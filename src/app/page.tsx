@@ -1,13 +1,17 @@
 import { Glasses, Upload, Sparkles, Share2 } from 'lucide-react'
+import { LoginButton } from '@/components/auth/LoginButton'
 
 export default function Home() {
   return (
     <main className="container mx-auto px-4 py-8">
       {/* Header */}
       <header className="text-center mb-12">
-        <div className="flex items-center justify-center mb-4">
-          <Glasses className="w-12 h-12 text-blue-600 mr-3" />
-          <h1 className="text-4xl font-bold text-gray-800">VisuTry</h1>
+        <div className="flex items-center justify-between mb-8">
+          <div className="flex items-center">
+            <Glasses className="w-12 h-12 text-blue-600 mr-3" />
+            <h1 className="text-4xl font-bold text-gray-800">VisuTry</h1>
+          </div>
+          <LoginButton />
         </div>
         <p className="text-xl text-gray-600 max-w-2xl mx-auto">
           使用AI技术体验虚拟眼镜试戴，找到最适合你的眼镜款式
