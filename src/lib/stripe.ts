@@ -1,13 +1,17 @@
 import Stripe from "stripe"
+import { mockStripe, isMockMode } from './mocks/stripe'
 
-if (!process.env.STRIPE_SECRET_KEY) {
+// Only require Stripe key in production mode
+if (!process.env.STRIPE_SECRET_KEY && !isMockMode) {
   throw new Error("STRIPE_SECRET_KEY environment variable is required")
 }
 
-export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
-  apiVersion: "2023-10-16",
-  typescript: true,
-})
+export const stripe = isMockMode
+  ? (mockStripe as any)
+  : new Stripe(process.env.STRIPE_SECRET_KEY!, {
+      apiVersion: "2023-10-16",
+      typescript: true,
+    })
 
 // 产品配置
 export const PRODUCTS = {

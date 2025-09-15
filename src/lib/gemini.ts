@@ -1,10 +1,12 @@
 import { GoogleGenerativeAI } from "@google/generative-ai"
+import { mockGenerateTryOnImage, isMockMode } from "./mocks/gemini"
 
-if (!process.env.GEMINI_API_KEY) {
+// Only require API key in production mode
+if (!process.env.GEMINI_API_KEY && !isMockMode) {
   throw new Error("GEMINI_API_KEY environment variable is required")
 }
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY)
+const genAI = process.env.GEMINI_API_KEY ? new GoogleGenerativeAI(process.env.GEMINI_API_KEY) : null
 
 export interface TryOnRequest {
   userImageUrl: string
@@ -23,6 +25,15 @@ export async function generateTryOnImage({
   glassesImageUrl,
   prompt = "Please seamlessly blend the glasses onto the person's face in a natural and realistic way. Ensure the glasses fit properly on the face, match the lighting and perspective, and look like they belong in the original photo."
 }: TryOnRequest): Promise<TryOnResult> {
+  // Use mock service in test mode
+  if (isMockMode) {
+    return mockGenerateTryOnImage({ userImageUrl, glassesImageUrl, prompt })
+  }
+
+  if (!genAI) {
+    throw new Error("Gemini API not initialized")
+  }
+
   try {
     // Note: Since Gemini API is primarily for text and image analysis, not image editing
     // We implement a simulated try-on effect here. In production, integrate specialized image processing APIs
