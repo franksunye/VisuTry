@@ -65,11 +65,13 @@ async function main() {
     }
   ]
 
+  // 清理现有数据
+  await prisma.glassesFrame.deleteMany()
+
+  // 创建新数据
   for (const frame of frames) {
-    await prisma.glassesFrame.upsert({
-      where: { name: frame.name },
-      update: {},
-      create: frame
+    await prisma.glassesFrame.create({
+      data: frame
     })
   }
 

@@ -90,7 +90,7 @@ export function FrameSelector({
           {categories.map(category => (
             <button
               key={category}
-              onClick={() => setSelectedCategory(category)}
+              onClick={() => setSelectedCategory(category || "all")}
               disabled={disabled}
               className={cn(
                 "px-3 py-1 rounded-full text-sm font-medium transition-colors",
