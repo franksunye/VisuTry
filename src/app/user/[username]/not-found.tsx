@@ -21,7 +21,7 @@ export default function UserNotFound() {
           User Not Found
         </h2>
         <p className="text-gray-600 mb-8">
-          Sorry, the user you're looking for doesn't exist or has deleted their account.
+          Sorry, the user you&apos;re looking for doesn&apos;t exist or has deleted their account.
           Possible reasons:
         </p>
 
