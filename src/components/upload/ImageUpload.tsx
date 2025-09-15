@@ -22,8 +22,8 @@ export function ImageUpload({
   currentImage,
   loading = false,
   className,
-  label = "上传图片",
-  description = "支持 JPEG、PNG、WebP 格式，最大 5MB",
+  label = "Upload Image",
+  description = "Supports JPEG, PNG, WebP formats, max 5MB",
   accept = "image/jpeg,image/png,image/webp"
 }: ImageUploadProps) {
   const [dragOver, setDragOver] = useState(false)
@@ -39,16 +39,16 @@ export function ImageUpload({
 
     setUploading(true)
     try {
-      // 压缩图片
+      // Compress image
       const compressedFile = await compressImage(file)
-      
-      // 创建预览
+
+      // Create preview
       const preview = await createImagePreview(compressedFile)
       
       onImageSelect(compressedFile, preview)
     } catch (error) {
-      console.error("图片处理失败:", error)
-      alert("图片处理失败，请重试")
+      console.error("Image processing failed:", error)
+      alert("Image processing failed, please try again")
     } finally {
       setUploading(false)
     }
@@ -131,7 +131,7 @@ export function ImageUpload({
           <div className="relative">
             <img
               src={currentImage}
-              alt="上传的图片"
+              alt="Uploaded image"
               className="w-full h-48 object-cover rounded-lg"
             />
             <button
@@ -152,7 +152,7 @@ export function ImageUpload({
             {isLoading ? (
               <div className="flex flex-col items-center">
                 <Loader2 className="w-12 h-12 text-blue-500 animate-spin mb-4" />
-                <p className="text-sm text-gray-600">处理图片中...</p>
+                <p className="text-sm text-gray-600">Processing image...</p>
               </div>
             ) : (
               <div className="flex flex-col items-center">
@@ -164,7 +164,7 @@ export function ImageUpload({
                   )}
                 </div>
                 <p className="text-lg font-medium text-gray-900 mb-2">
-                  {dragOver ? "释放以上传图片" : "点击或拖拽上传图片"}
+                  {dragOver ? "Drop to upload image" : "Click or drag to upload image"}
                 </p>
                 {description && (
                   <p className="text-sm text-gray-500">{description}</p>

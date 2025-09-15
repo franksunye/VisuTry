@@ -24,13 +24,13 @@ export async function generateTryOnImage({
   prompt = "Please seamlessly blend the glasses onto the person's face in a natural and realistic way. Ensure the glasses fit properly on the face, match the lighting and perspective, and look like they belong in the original photo."
 }: TryOnRequest): Promise<TryOnResult> {
   try {
-    // 注意：由于Gemini API目前主要用于文本和图像分析，而不是图像编辑
-    // 这里我们实现一个模拟的试戴效果，在实际生产环境中需要集成专门的图像处理API
+    // Note: Since Gemini API is primarily for text and image analysis, not image editing
+    // We implement a simulated try-on effect here. In production, integrate specialized image processing APIs
 
-    // 模拟处理时间
+    // Simulate processing time
     await new Promise(resolve => setTimeout(resolve, 3000 + Math.random() * 2000))
 
-    // 使用 Gemini 进行图像分析，获取面部特征信息
+    // Use Gemini for image analysis to get facial feature information
     const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" })
 
     // 获取用户图片数据

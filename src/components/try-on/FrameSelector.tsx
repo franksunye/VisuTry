@@ -42,19 +42,19 @@ export function FrameSelector({
       if (data.success) {
         setFrames(data.data)
       } else {
-        setError(data.error || "获取眼镜框架失败")
+        setError(data.error || "Failed to fetch glasses frames")
       }
     } catch (err) {
-      setError("网络错误，请重试")
+      setError("Network error, please try again")
     } finally {
       setLoading(false)
     }
   }
 
-  // 获取所有分类
+  // Get all categories
   const categories = ["all", ...Array.from(new Set(frames.map(frame => frame.category).filter(Boolean)))]
-  
-  // 过滤框架
+
+  // Filter frames
   const filteredFrames = selectedCategory === "all" 
     ? frames 
     : frames.filter(frame => frame.category === selectedCategory)
@@ -63,7 +63,7 @@ export function FrameSelector({
     return (
       <div className={cn("flex items-center justify-center py-8", className)}>
         <Loader2 className="w-8 h-8 text-blue-500 animate-spin" />
-        <span className="ml-2 text-gray-600">加载眼镜款式...</span>
+        <span className="ml-2 text-gray-600">Loading glasses styles...</span>
       </div>
     )
   }
@@ -76,7 +76,7 @@ export function FrameSelector({
           onClick={fetchFrames}
           className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
         >
-          重新加载
+          Reload
         </button>
       </div>
     )
@@ -84,7 +84,7 @@ export function FrameSelector({
 
   return (
     <div className={cn("space-y-4", className)}>
-      {/* 分类筛选 */}
+      {/* Category Filter */}
       {categories.length > 1 && (
         <div className="flex flex-wrap gap-2">
           {categories.map(category => (
@@ -100,13 +100,13 @@ export function FrameSelector({
                 disabled && "opacity-50 cursor-not-allowed"
               )}
             >
-              {category === "all" ? "全部" : category}
+              {category === "all" ? "All" : category}
             </button>
           ))}
         </div>
       )}
 
-      {/* 框架网格 */}
+      {/* Frame Grid */}
       {filteredFrames.length > 0 ? (
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
           {filteredFrames.map(frame => (
@@ -152,7 +152,7 @@ export function FrameSelector({
         </div>
       ) : (
         <div className="text-center py-8">
-          <p className="text-gray-500">暂无可用的眼镜款式</p>
+          <p className="text-gray-500">No glasses styles available</p>
         </div>
       )}
     </div>
