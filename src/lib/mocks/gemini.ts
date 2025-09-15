@@ -2,6 +2,8 @@
 import { TryOnRequest, TryOnResult } from "@/lib/gemini"
 import { isMockMode } from "./index"
 
+export { isMockMode }
+
 // Mock try-on results with different scenarios
 const mockTryOnScenarios = [
   {

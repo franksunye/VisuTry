@@ -1,6 +1,8 @@
 // Mock Stripe Service for Testing
 import { isMockMode } from "./index"
 
+export { isMockMode }
+
 export interface MockPaymentSession {
   id: string
   url: string

@@ -52,6 +52,8 @@ const MockCredentialsProvider = CredentialsProvider({
       name: mockUser.name,
       image: mockUser.image,
       username: mockUser.username,
+      freeTrialsUsed: mockUser.freeTrialsUsed,
+      isPremium: mockUser.isPremium,
     }
   },
 })

@@ -111,6 +111,14 @@ Please provide a detailed analysis that would help with virtual glasses try-on.
 }
 
 export async function validateGeminiConnection(): Promise<boolean> {
+  if (isMockMode) {
+    return true // Always return true in mock mode
+  }
+
+  if (!genAI) {
+    return false
+  }
+
   try {
     const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" })
     const result = await model.generateContent("Hello, this is a test.")
