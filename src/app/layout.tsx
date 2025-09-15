@@ -6,20 +6,20 @@ import { SessionProvider } from '@/components/providers/SessionProvider'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'VisuTry - AI眼镜试戴',
-  description: '使用AI技术体验虚拟眼镜试戴，找到最适合你的眼镜款式',
-  keywords: ['眼镜试戴', 'AI', '虚拟试戴', '眼镜', '人工智能'],
+  title: 'VisuTry - AI Glasses Try-On',
+  description: 'Experience virtual glasses try-on with AI technology and find the perfect glasses style for you',
+  keywords: ['glasses try-on', 'AI', 'virtual try-on', 'glasses', 'artificial intelligence'],
   authors: [{ name: 'VisuTry Team' }],
   openGraph: {
-    title: 'VisuTry - AI眼镜试戴',
-    description: '使用AI技术体验虚拟眼镜试戴，找到最适合你的眼镜款式',
+    title: 'VisuTry - AI Glasses Try-On',
+    description: 'Experience virtual glasses try-on with AI technology and find the perfect glasses style for you',
     type: 'website',
-    locale: 'zh_CN',
+    locale: 'en_US',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'VisuTry - AI眼镜试戴',
-    description: '使用AI技术体验虚拟眼镜试戴，找到最适合你的眼镜款式',
+    title: 'VisuTry - AI Glasses Try-On',
+    description: 'Experience virtual glasses try-on with AI technology and find the perfect glasses style for you',
   },
 }
 
