@@ -3,79 +3,79 @@ import { PrismaClient } from '@prisma/client'
 const prisma = new PrismaClient()
 
 async function main() {
-  console.log('开始填充数据库...')
+  console.log('Starting database seeding...')
 
-  // 创建示例眼镜框架
+  // Create sample glasses frames
   const frames = [
     {
-      name: "经典黑框眼镜",
-      description: "经典的黑色方框眼镜，适合各种脸型",
+      name: "Classic Black Frame",
+      description: "Classic black square frame glasses, suitable for all face shapes",
       imageUrl: "https://images.unsplash.com/photo-1574258495973-f010dfbb5371?w=400&h=400&fit=crop",
-      category: "方框",
+      category: "Square",
       brand: "Classic"
     },
     {
-      name: "圆形金属框",
-      description: "复古风格的圆形金属框眼镜",
+      name: "Round Metal Frame",
+      description: "Vintage style round metal frame glasses",
       imageUrl: "https://images.unsplash.com/photo-1511499767150-a48a237f0083?w=400&h=400&fit=crop",
-      category: "圆框",
+      category: "Round",
       brand: "Vintage"
     },
     {
-      name: "时尚猫眼框",
-      description: "优雅的猫眼形状，展现女性魅力",
+      name: "Fashion Cat Eye",
+      description: "Elegant cat eye shape, showcasing feminine charm",
       imageUrl: "https://images.unsplash.com/photo-1508296695146-257a814070b4?w=400&h=400&fit=crop",
-      category: "猫眼",
+      category: "Cat Eye",
       brand: "Fashion"
     },
     {
-      name: "运动型眼镜",
-      description: "轻便的运动型眼镜，适合活跃生活",
+      name: "Sport Glasses",
+      description: "Lightweight sport glasses, perfect for active lifestyle",
       imageUrl: "https://images.unsplash.com/photo-1473496169904-658ba7c44d8a?w=400&h=400&fit=crop",
-      category: "运动",
+      category: "Sport",
       brand: "Sport"
     },
     {
-      name: "透明框眼镜",
-      description: "时尚的透明框设计，低调而优雅",
+      name: "Clear Frame Glasses",
+      description: "Fashionable clear frame design, subtle and elegant",
       imageUrl: "https://images.unsplash.com/photo-1506629905607-d9c297d3d45b?w=400&h=400&fit=crop",
-      category: "方框",
+      category: "Square",
       brand: "Modern"
     },
     {
-      name: "复古圆框",
-      description: "经典的复古圆框设计，文艺气息浓厚",
+      name: "Vintage Round Frame",
+      description: "Classic vintage round frame design with artistic flair",
       imageUrl: "https://images.unsplash.com/photo-1509695507497-903c140c43b0?w=400&h=400&fit=crop",
-      category: "圆框",
+      category: "Round",
       brand: "Retro"
     },
     {
-      name: "大框太阳镜",
-      description: "时尚的大框太阳镜，防紫外线",
+      name: "Oversized Sunglasses",
+      description: "Fashionable oversized sunglasses with UV protection",
       imageUrl: "https://images.unsplash.com/photo-1572635196237-14b3f281503f?w=400&h=400&fit=crop",
-      category: "太阳镜",
+      category: "Sunglasses",
       brand: "Sun"
     },
     {
-      name: "商务金框",
-      description: "专业的商务金框眼镜，彰显品味",
+      name: "Business Gold Frame",
+      description: "Professional business gold frame glasses, showcasing taste",
       imageUrl: "https://images.unsplash.com/photo-1556306535-38febf6782e7?w=400&h=400&fit=crop",
-      category: "方框",
+      category: "Square",
       brand: "Business"
     }
   ]
 
-  // 清理现有数据
+  // Clear existing data
   await prisma.glassesFrame.deleteMany()
 
-  // 创建新数据
+  // Create new data
   for (const frame of frames) {
     await prisma.glassesFrame.create({
       data: frame
     })
   }
 
-  console.log('数据库填充完成！')
+  console.log('Database seeding completed!')
 }
 
 main()

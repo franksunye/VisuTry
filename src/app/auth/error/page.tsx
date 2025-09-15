@@ -13,14 +13,14 @@ export default function AuthErrorPage({ searchParams }: ErrorPageProps) {
   const getErrorMessage = (error: string) => {
     switch (error) {
       case "Configuration":
-        return "服务器配置错误，请联系管理员"
+        return "Server configuration error, please contact administrator"
       case "AccessDenied":
-        return "访问被拒绝，请检查您的权限"
+        return "Access denied, please check your permissions"
       case "Verification":
-        return "验证失败，请重试"
+        return "Verification failed, please try again"
       case "Default":
       default:
-        return "登录时发生未知错误，请重试"
+        return "Unknown error occurred during login, please try again"
     }
   }
 
@@ -32,10 +32,10 @@ export default function AuthErrorPage({ searchParams }: ErrorPageProps) {
             <AlertCircle className="w-16 h-16 text-red-500" />
           </div>
           <h1 className="text-2xl font-bold text-gray-900 mb-2">
-            登录失败
+            Login Failed
           </h1>
           <p className="text-gray-600">
-            {error ? getErrorMessage(error) : "登录过程中发生错误"}
+            {error ? getErrorMessage(error) : "An error occurred during login"}
           </p>
         </div>
 

@@ -11,43 +11,43 @@ export default function UserNotFound() {
           <h1 className="text-3xl font-bold text-gray-900">VisuTry</h1>
         </div>
 
-        {/* 错误图标 */}
+        {/* Error Icon */}
         <div className="flex items-center justify-center mb-6">
           <UserX className="w-16 h-16 text-gray-400" />
         </div>
 
-        {/* 错误信息 */}
+        {/* Error Message */}
         <h2 className="text-2xl font-bold text-gray-900 mb-4">
-          用户不存在
+          User Not Found
         </h2>
         <p className="text-gray-600 mb-8">
-          抱歉，您要查看的用户不存在或已删除账户。
-          可能的原因：
+          Sorry, the user you're looking for doesn't exist or has deleted their account.
+          Possible reasons:
         </p>
 
         <ul className="text-left text-sm text-gray-600 mb-8 space-y-2">
-          <li>• 用户名输入错误</li>
-          <li>• 用户已删除账户</li>
-          <li>• 用户设置了隐私保护</li>
-          <li>• 链接地址有误</li>
+          <li>• Username entered incorrectly</li>
+          <li>• User has deleted their account</li>
+          <li>• User has set privacy protection</li>
+          <li>• Link address is incorrect</li>
         </ul>
 
-        {/* 操作按钮 */}
+        {/* Action Buttons */}
         <div className="space-y-3">
           <Link
             href="/try-on"
             className="w-full flex items-center justify-center px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
           >
             <Glasses className="w-5 h-5 mr-2" />
-            开始AI试戴
+            Start AI Try-On
           </Link>
-          
+
           <Link
             href="/"
             className="w-full flex items-center justify-center px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
           >
             <ArrowLeft className="w-5 h-5 mr-2" />
-            返回首页
+            Back to Home
           </Link>
         </div>
       </div>

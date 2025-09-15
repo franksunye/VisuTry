@@ -241,7 +241,7 @@ export function TryOnInterface() {
             ) : (
               <>
                 <Sparkles className="w-5 h-5 mr-2" />
-                开始AI试戴
+                Start AI Try-On
               </>
             )}
           </button>

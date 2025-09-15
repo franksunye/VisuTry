@@ -12,32 +12,32 @@ interface DashboardStatsProps {
 export function DashboardStats({ stats }: DashboardStatsProps) {
   const statCards = [
     {
-      title: "总试戴次数",
+      title: "Total Try-Ons",
       value: stats.totalTryOns,
       icon: <Glasses className="w-6 h-6 text-blue-600" />,
       bgColor: "bg-blue-100",
-      description: "累计使用次数"
+      description: "Cumulative usage count"
     },
     {
-      title: "成功试戴",
+      title: "Successful Try-Ons",
       value: stats.completedTryOns,
       icon: <CheckCircle className="w-6 h-6 text-green-600" />,
       bgColor: "bg-green-100",
-      description: "完成的试戴"
+      description: "Completed try-ons"
     },
     {
-      title: "剩余次数",
-      value: stats.isPremium ? "无限" : stats.remainingTrials,
+      title: "Remaining Uses",
+      value: stats.isPremium ? "Unlimited" : stats.remainingTrials,
       icon: <Clock className="w-6 h-6 text-orange-600" />,
       bgColor: "bg-orange-100",
-      description: stats.isPremium ? "高级会员" : "免费额度"
+      description: stats.isPremium ? "Premium Member" : "Free Quota"
     },
     {
-      title: "会员状态",
-      value: stats.isPremium ? "高级" : "免费",
+      title: "Membership",
+      value: stats.isPremium ? "Premium" : "Free",
       icon: <Star className="w-6 h-6 text-purple-600" />,
       bgColor: "bg-purple-100",
-      description: stats.isPremium ? "享受无限试戴" : "升级解锁更多"
+      description: stats.isPremium ? "Enjoy unlimited try-ons" : "Upgrade for more"
     }
   ]
 

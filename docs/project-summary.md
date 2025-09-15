@@ -1,63 +1,63 @@
-# VisuTry 项目总结
+# VisuTry Project Summary
 
-## 项目概述
+## Project Overview
 
-VisuTry 是一个基于AI技术的虚拟眼镜试戴应用，用户可以上传自己的照片，选择不同款式的眼镜，通过AI技术生成逼真的试戴效果。
+VisuTry is an AI-powered virtual glasses try-on application where users can upload their photos, select different glasses styles, and generate realistic try-on effects using AI technology.
 
-## 技术栈
+## Technology Stack
 
-### 前端
-- **Next.js 14** - React框架，使用App Router
-- **TypeScript** - 类型安全
-- **Tailwind CSS** - 样式框架
-- **Lucide React** - 图标库
-- **date-fns** - 日期处理
+### Frontend
+- **Next.js 14** - React framework with App Router
+- **TypeScript** - Type safety
+- **Tailwind CSS** - Styling framework
+- **Lucide React** - Icon library
+- **date-fns** - Date handling
 
-### 后端
-- **Next.js API Routes** - 服务端API
-- **Prisma** - ORM数据库工具
-- **PostgreSQL** - 主数据库
-- **NextAuth.js** - 身份认证
+### Backend
+- **Next.js API Routes** - Server-side API
+- **Prisma** - ORM database tool
+- **PostgreSQL** - Primary database
+- **NextAuth.js** - Authentication
 
-### 第三方服务
-- **Google Gemini API** - AI图像处理
-- **Stripe** - 支付处理
-- **Vercel Blob** - 文件存储
-- **Twitter OAuth** - 社交登录
+### Third-party Services
+- **Google Gemini API** - AI image processing
+- **Stripe** - Payment processing
+- **Vercel Blob** - File storage
+- **Twitter OAuth** - Social login
 
-## 已实现功能
+## Implemented Features
 
-### ✅ 阶段1：MVP核心功能
+### ✅ Phase 1: MVP Core Features
 
-#### 1. 用户认证系统
-- Twitter OAuth登录
-- 用户会话管理
-- 用户资料展示
-- 登录/登出功能
+#### 1. User Authentication System
+- Twitter OAuth login
+- User session management
+- User profile display
+- Login/logout functionality
 
-#### 2. 图片上传功能
-- 拖拽上传支持
-- 图片压缩和预览
-- 多种格式支持（JPEG, PNG, WebP）
-- 文件大小限制（5MB）
+#### 2. Image Upload Feature
+- Drag and drop upload support
+- Image compression and preview
+- Multiple format support (JPEG, PNG, WebP)
+- File size limit (5MB)
 
-#### 3. AI试戴功能
-- 用户照片上传
-- 眼镜框架选择
-- AI图像处理（Gemini API）
-- 异步任务处理
-- 实时状态轮询
-- 结果展示
+#### 3. AI Try-On Feature
+- User photo upload
+- Glasses frame selection
+- AI image processing (Gemini API)
+- Asynchronous task processing
+- Real-time status polling
+- Result display
 
-#### 4. 付费系统
-- Stripe集成
-- 多种套餐（月付/年付/次数包）
-- Webhook处理
-- 订阅管理
-- 使用次数限制
+#### 4. Payment System
+- Stripe integration
+- Multiple plans (monthly/yearly/credit packs)
+- Webhook handling
+- Subscription management
+- Usage limit controls
 
-#### 5. 分享功能
-- 公开分享页面
+#### 5. Sharing Feature
+- Public sharing pages
 - 社交媒体分享（Twitter, Facebook）
 - 链接复制功能
 - SEO优化

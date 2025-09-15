@@ -17,15 +17,15 @@ export async function GET() {
       data: frames
     })
   } catch (error) {
-    console.error("获取眼镜框架失败:", error)
+    console.error("Failed to fetch glasses frames:", error)
     return NextResponse.json(
-      { success: false, error: "获取眼镜框架失败" },
+      { success: false, error: "Failed to fetch glasses frames" },
       { status: 500 }
     )
   }
 }
 
-// 创建新的眼镜框架（管理员功能）
+// Create new glasses frame (admin function)
 export async function POST(request: Request) {
   try {
     const body = await request.json()
@@ -33,7 +33,7 @@ export async function POST(request: Request) {
 
     if (!name || !imageUrl) {
       return NextResponse.json(
-        { success: false, error: "名称和图片URL是必需的" },
+        { success: false, error: "Name and image URL are required" },
         { status: 400 }
       )
     }
@@ -54,9 +54,9 @@ export async function POST(request: Request) {
       data: frame
     })
   } catch (error) {
-    console.error("创建眼镜框架失败:", error)
+    console.error("Failed to create glasses frame:", error)
     return NextResponse.json(
-      { success: false, error: "创建眼镜框架失败" },
+      { success: false, error: "Failed to create glasses frame" },
       { status: 500 }
     )
   }

@@ -20,7 +20,7 @@ export function LoginButton({ className, variant = "default" }: LoginButtonProps
         className
       )}>
         <div className="w-4 h-4 border-2 border-gray-300 border-t-transparent rounded-full animate-spin mr-2" />
-        加载中...
+        Loading...
       </div>
     )
   }
@@ -32,7 +32,7 @@ export function LoginButton({ className, variant = "default" }: LoginButtonProps
           {session.user.image ? (
             <img
               src={session.user.image}
-              alt={session.user.name || "用户头像"}
+              alt={session.user.name || "User Avatar"}
               className="w-8 h-8 rounded-full"
             />
           ) : (
@@ -41,7 +41,7 @@ export function LoginButton({ className, variant = "default" }: LoginButtonProps
             </div>
           )}
           <span className="text-sm font-medium text-gray-700">
-            {session.user.name || session.user.username || "用户"}
+            {session.user.name || session.user.username || "User"}
           </span>
         </div>
         
@@ -56,7 +56,7 @@ export function LoginButton({ className, variant = "default" }: LoginButtonProps
           )}
         >
           <LogOut className="w-4 h-4 mr-1" />
-          退出
+          Sign Out
         </button>
       </div>
     )
@@ -74,7 +74,7 @@ export function LoginButton({ className, variant = "default" }: LoginButtonProps
       )}
     >
       <Twitter className="w-4 h-4 mr-2" />
-      使用 Twitter 登录
+      Sign in with Twitter
     </button>
   )
 }
