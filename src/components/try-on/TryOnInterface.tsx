@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { ImageUpload } from "@/components/upload/ImageUpload"
 import { FrameSelector } from "@/components/try-on/FrameSelector"
 import { ResultDisplay } from "@/components/try-on/ResultDisplay"
@@ -14,6 +14,47 @@ export function TryOnInterface() {
   const [isProcessing, setIsProcessing] = useState(false)
   const [result, setResult] = useState<{ imageUrl: string; taskId: string } | null>(null)
   const [currentStep, setCurrentStep] = useState<"upload" | "select" | "process" | "result">("upload")
+  const [currentTaskId, setCurrentTaskId] = useState<string | null>(null)
+  const [processingMessage, setProcessingMessage] = useState("AI正在处理您的试戴请求...")
+
+  // 轮询检查任务状态
+  useEffect(() => {
+    if (!currentTaskId || !isProcessing) return
+
+    const pollInterval = setInterval(async () => {
+      try {
+        const response = await fetch(`/api/try-on/${currentTaskId}`)
+        const data = await response.json()
+
+        if (data.success) {
+          const task = data.data
+
+          if (task.status === "completed" && task.resultImageUrl) {
+            setResult({
+              imageUrl: task.resultImageUrl,
+              taskId: task.id
+            })
+            setCurrentStep("result")
+            setIsProcessing(false)
+            setCurrentTaskId(null)
+            clearInterval(pollInterval)
+          } else if (task.status === "failed") {
+            alert(task.errorMessage || "AI处理失败，请重试")
+            setCurrentStep("select")
+            setIsProcessing(false)
+            setCurrentTaskId(null)
+            clearInterval(pollInterval)
+          } else if (task.status === "processing") {
+            setProcessingMessage("AI正在分析您的照片和眼镜...")
+          }
+        }
+      } catch (error) {
+        console.error("检查任务状态失败:", error)
+      }
+    }, 2000) // 每2秒检查一次
+
+    return () => clearInterval(pollInterval)
+  }, [currentTaskId, isProcessing])
 
   const handleUserImageSelect = (file: File, preview: string) => {
     setUserImage({ file, preview })
@@ -67,11 +108,9 @@ export function TryOnInterface() {
       const data = await response.json()
 
       if (data.success) {
-        setResult({
-          imageUrl: data.data.resultImageUrl,
-          taskId: data.data.taskId
-        })
-        setCurrentStep("result")
+        setCurrentTaskId(data.data.taskId)
+        setProcessingMessage("AI正在处理您的试戴请求...")
+        // 不立即设置结果，等待轮询获取完成状态
       } else {
         throw new Error(data.error || "试戴失败")
       }
@@ -86,6 +125,7 @@ export function TryOnInterface() {
 
   const handleTryAgain = () => {
     setResult(null)
+    setCurrentTaskId(null)
     setCurrentStep("upload")
   }
 
@@ -196,7 +236,7 @@ export function TryOnInterface() {
             {isProcessing ? (
               <>
                 <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
-                AI试戴中...
+                {processingMessage}
               </>
             ) : (
               <>
