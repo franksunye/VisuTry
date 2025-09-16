@@ -109,3 +109,11 @@ jspm_packages/
 
 # TernJS port file
 .tern-port
+
+# 测试相关
+tests/temp/
+tests/reports/coverage/
+tests/reports/*.json
+test-results.json
+coverage/
+*.test.log
