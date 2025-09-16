@@ -1,19 +1,18 @@
-# VisuTry 项目架构文档
+# VisuTry 项目架构与功能文档
 
-## 概述
+## 📋 项目概述
 
-VisuTry是一个基于Next.js的全栈AI眼镜试戴应用，采用现代化的技术栈和模块化的架构设计。
+VisuTry是一个基于Next.js的全栈AI眼镜试戴应用，用户可以上传照片并通过AI技术实时预览不同眼镜的试戴效果。
 
-## 技术架构
+## 🛠 技术架构
 
-### 前端架构
+### 前端技术栈
 - **框架**: Next.js 14 (App Router)
 - **UI库**: React 18 + TypeScript
-- **样式**: Tailwind CSS
-- **图标**: Lucide React
+- **样式**: Tailwind CSS + Lucide React
 - **状态管理**: React Hooks + Context API
 
-### 后端架构
+### 后端技术栈
 - **API**: Next.js API Routes
 - **数据库**: PostgreSQL + Prisma ORM
 - **认证**: NextAuth.js (Twitter OAuth)
@@ -26,6 +25,48 @@ VisuTry是一个基于Next.js的全栈AI眼镜试戴应用，采用现代化的�
 - **数据库**: 托管PostgreSQL (推荐Supabase/PlanetScale)
 - **CDN**: Vercel Edge Network
 - **监控**: Vercel Analytics
+
+## ✅ 已实现功能
+
+### Phase 1: MVP核心功能
+
+#### 1. 用户认证系统
+- Twitter OAuth登录
+- 用户会话管理
+- 用户资料显示
+- 登录/登出功能
+
+#### 2. 图片上传功能
+- 拖拽上传支持
+- 图片压缩和预览
+- 多格式支持 (JPEG, PNG, WebP)
+- 文件大小限制 (5MB)
+
+#### 3. AI试戴功能
+- 用户照片上传
+- 眼镜框架选择
+- AI图像处理 (Gemini API)
+- 异步任务处理
+- 实时状态轮询
+- 结果展示
+
+#### 4. 支付系统
+- Stripe集成
+- 免费试用额度管理
+- 付费套餐 (月度/年度)
+- 积分包购买
+- 支付历史记录
+
+#### 5. 分享功能
+- 试戴结果分享链接
+- 社交媒体集成
+- 公开访问页面
+
+#### 6. 用户仪表板
+- 试戴历史记录
+- 使用统计
+- 账户管理
+- 支付记录
 
 ## 数据库设计
 

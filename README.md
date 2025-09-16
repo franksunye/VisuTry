@@ -50,105 +50,64 @@ VisuTry/
 └── docs/                  # 项目文档
 ```
 
-## 开发环境设置
+## 🚀 快速开始
 
-### 1. 克隆项目
+### 测试模式 (推荐)
+无需任何API密钥，立即体验所有功能：
 
 ```bash
+# 1. 克隆项目
 git clone https://github.com/franksunye/VisuTry.git
 cd VisuTry
-```
 
-### 2. 安装依赖
-
-```bash
+# 2. 安装依赖
 npm install
+
+# 3. 启动测试模式
+npm run test:start:windows  # Windows
+npm run test:start          # Linux/Mac
+
+# 或手动启动
+cp .env.test .env.local && npm run dev
 ```
 
-### 3. 环境变量配置
+访问 http://localhost:3000 开始使用
 
-复制 `.env.example` 到 `.env.local` 并填入相应的配置：
+### 生产模式
+需要配置真实的API服务，参考 `docs/development-guide.md`
+
+## 🧪 测试
 
 ```bash
-cp .env.example .env.local
+# 运行集成测试
+npm run test:integration
+
+# 运行认证API测试
+node tests/legacy/authenticated-apis-legacy.js
+
+# 运行所有测试
+npm test
 ```
 
-需要配置的环境变量：
-- `DATABASE_URL`: PostgreSQL数据库连接字符串
-- `NEXTAUTH_SECRET`: NextAuth.js密钥
-- `TWITTER_CLIENT_ID` & `TWITTER_CLIENT_SECRET`: Twitter OAuth应用凭据
-- `GEMINI_API_KEY`: Google Gemini API密钥
-- `STRIPE_PUBLISHABLE_KEY` & `STRIPE_SECRET_KEY`: Stripe支付密钥
+## 📊 当前状态
 
-### 4. 数据库设置
+✅ **Mock环境**: 集成测试通过率 89%
+🎯 **下一步**: 前端组件测试 → 真实环境配置 → 生产部署
 
-```bash
-# 生成Prisma客户端
-npx prisma generate
+详细计划见 `docs/backlog.md`
 
-# 运行数据库迁移
-npx prisma db push
+## 📚 文档
 
-# (可选) 填充示例数据
-npx prisma db seed
-```
+- `docs/backlog.md` - 开发计划和任务清单
+- `docs/development-guide.md` - 生产环境配置指南
+- `docs/testing-guide.md` - 测试使用说明
+- `docs/architecture.md` - 项目架构文档
 
-### 5. 启动开发服务器
+## 🚀 部署
 
-```bash
-npm run dev
-```
+生产部署指南请参考 `docs/development-guide.md`
 
-访问 [http://localhost:3000](http://localhost:3000) 查看应用。
-
-## 部署
-
-### Vercel部署
-
-1. 将代码推送到GitHub
-2. 在Vercel中导入项目
-3. 配置环境变量
-4. 部署
-
-### 环境变量配置
-
-确保在生产环境中配置所有必要的环境变量，特别是：
-- 数据库连接字符串
-- API密钥
-- OAuth应用凭据
-- Stripe Webhook密钥
-
-## API文档
-
-### 认证相关
-- `POST /api/auth/signin` - 用户登录
-- `POST /api/auth/signout` - 用户登出
-
-### 试戴功能
-- `POST /api/try-on` - 创建试戴任务
-- `GET /api/try-on/[id]` - 获取试戴结果
-- `GET /api/try-on/history` - 获取用户历史记录
-
-### 支付相关
-- `POST /api/payment/create-session` - 创建支付会话
-- `POST /api/payment/webhook` - Stripe Webhook处理
-
-### 文件上传
-- `POST /api/upload` - 上传图片文件
-
-## 贡献指南
-
-1. Fork项目
-2. 创建功能分支 (`git checkout -b feature/AmazingFeature`)
-3. 提交更改 (`git commit -m 'Add some AmazingFeature'`)
-4. 推送到分支 (`git push origin feature/AmazingFeature`)
-5. 创建Pull Request
-
-## 许可证
-
-本项目采用MIT许可证 - 查看 [LICENSE](LICENSE) 文件了解详情。
-
-## 联系方式
+## 📞 联系
 
 - 项目链接: [https://github.com/franksunye/VisuTry](https://github.com/franksunye/VisuTry)
 - 问题反馈: [GitHub Issues](https://github.com/franksunye/VisuTry/issues)
