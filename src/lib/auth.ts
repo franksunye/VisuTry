@@ -2,10 +2,13 @@ import { NextAuthOptions } from "next-auth"
 import TwitterProvider from "next-auth/providers/twitter"
 import { PrismaAdapter } from "@next-auth/prisma-adapter"
 import { prisma } from "@/lib/prisma"
+import { MockCredentialsProvider, isMockMode } from "@/lib/mocks/auth"
 
 export const authOptions: NextAuthOptions = {
-  adapter: PrismaAdapter(prisma),
-  providers: [
+  adapter: isMockMode ? undefined : PrismaAdapter(prisma),
+  providers: isMockMode ? [
+    MockCredentialsProvider
+  ] : [
     TwitterProvider({
       clientId: process.env.TWITTER_CLIENT_ID!,
       clientSecret: process.env.TWITTER_CLIENT_SECRET!,
@@ -13,10 +16,19 @@ export const authOptions: NextAuthOptions = {
     }),
   ],
   callbacks: {
-    async session({ session, user }) {
+    async session({ session, user, token }) {
       if (session.user) {
+        // In mock mode, use data from token/user directly
+        if (isMockMode) {
+          session.user.id = user?.id || token?.sub || "mock-user-1"
+          session.user.freeTrialsUsed = user?.freeTrialsUsed || 0
+          session.user.isPremium = user?.isPremium || false
+          session.user.premiumExpiresAt = user?.premiumExpiresAt || null
+          return session
+        }
+
         session.user.id = user.id
-        
+
         // 获取用户的试用次数和付费状态
         const userData = await prisma.user.findUnique({
           where: { id: user.id },
@@ -31,9 +43,9 @@ export const authOptions: NextAuthOptions = {
           session.user.freeTrialsUsed = userData.freeTrialsUsed
           session.user.isPremium = userData.isPremium
           session.user.premiumExpiresAt = userData.premiumExpiresAt
-          
+
           // 检查付费是否过期
-          const isPremiumActive = userData.isPremium && 
+          const isPremiumActive = userData.isPremium &&
             (!userData.premiumExpiresAt || userData.premiumExpiresAt > new Date())
           
           session.user.isPremiumActive = isPremiumActive
@@ -56,7 +68,7 @@ export const authOptions: NextAuthOptions = {
     error: "/auth/error",
   },
   session: {
-    strategy: "database",
+    strategy: isMockMode ? "jwt" : "database",
   },
   debug: process.env.NODE_ENV === "development",
 }

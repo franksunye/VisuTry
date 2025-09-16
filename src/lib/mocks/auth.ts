@@ -94,3 +94,6 @@ export function getMockAuthOptions(): NextAuthOptions {
     debug: process.env.NODE_ENV === "development",
   }
 }
+
+// Export the providers for use in auth.ts
+export { MockCredentialsProvider, isMockMode }

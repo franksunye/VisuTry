@@ -139,3 +139,12 @@ export function validateMockFile(file: File): { valid: boolean; error?: string }
   console.log('✅ Mock Blob: File validation passed')
   return { valid: true }
 }
+
+// Convenience function for upload API compatibility
+export async function mockBlobUpload(
+  filename: string,
+  file: File,
+  options?: { access?: 'public' | 'private' }
+): Promise<MockBlobResult> {
+  return MockBlob.put(filename, file, options)
+}

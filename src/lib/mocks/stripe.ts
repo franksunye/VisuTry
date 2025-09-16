@@ -178,3 +178,25 @@ export class MockStripe {
 }
 
 export const mockStripe = new MockStripe()
+
+// Convenience function for API compatibility
+export async function mockCreateCheckoutSession(params: {
+  productType: string
+  userId: string
+  successUrl: string
+  cancelUrl: string
+}): Promise<MockPaymentSession> {
+  return mockStripe.checkout.sessions.create({
+    mode: 'subscription',
+    line_items: [{
+      price: `price_mock_${params.productType.toLowerCase()}`,
+      quantity: 1
+    }],
+    success_url: params.successUrl,
+    cancel_url: params.cancelUrl,
+    metadata: {
+      userId: params.userId,
+      productType: params.productType
+    }
+  })
+}
