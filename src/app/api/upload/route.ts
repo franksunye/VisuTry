@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server"
 import { getServerSession } from "next-auth/next"
 import { authOptions } from "@/lib/auth"
 import { put } from "@vercel/blob"
+import { isMockMode } from "@/lib/mocks"
+import { mockBlobUpload } from "@/lib/mocks/blob"
 
 export async function POST(request: NextRequest) {
   try {
@@ -49,10 +51,18 @@ export async function POST(request: NextRequest) {
     const filename = `${session.user.id}/${timestamp}.${extension}`
 
     try {
-      // 上传到Vercel Blob
-      const blob = await put(filename, file, {
-        access: "public",
-      })
+      let blob
+
+      if (isMockMode) {
+        // 在测试模式下使用Mock上传
+        console.log('🧪 Mock Upload: Using mock blob upload service')
+        blob = await mockBlobUpload(filename, file)
+      } else {
+        // 上传到Vercel Blob
+        blob = await put(filename, file, {
+          access: "public",
+        })
+      }
 
       return NextResponse.json({
         success: true,

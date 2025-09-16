@@ -4,6 +4,10 @@ import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 import { put } from "@vercel/blob"
 import { generateTryOnImage } from "@/lib/gemini"
+import { isMockMode } from "@/lib/mocks"
+import { MockDatabase } from "@/lib/mocks/database"
+import { mockBlobUpload } from "@/lib/mocks/blob"
+import { mockGenerateTryOnImage } from "@/lib/mocks/gemini"
 
 export async function POST(request: NextRequest) {
   try {
@@ -17,9 +21,15 @@ export async function POST(request: NextRequest) {
     }
 
     // 检查用户是否有剩余次数
-    const user = await prisma.user.findUnique({
-      where: { id: session.user.id }
-    })
+    let user
+    if (isMockMode) {
+      console.log('🧪 Mock Try-On: Using mock database')
+      user = await MockDatabase.findUser({ id: session.user.id })
+    } else {
+      user = await prisma.user.findUnique({
+        where: { id: session.user.id }
+      })
+    }
 
     if (!user) {
       return NextResponse.json(
@@ -62,44 +72,88 @@ export async function POST(request: NextRequest) {
 
     // 上传用户图片
     const userImageFilename = `try-on/${session.user.id}/${Date.now()}-user.jpg`
-    const userImageBlob = await put(userImageFilename, userImageFile, {
-      access: "public",
-    })
+    let userImageBlob
+
+    if (isMockMode) {
+      userImageBlob = await mockBlobUpload(userImageFilename, userImageFile)
+    } else {
+      userImageBlob = await put(userImageFilename, userImageFile, {
+        access: "public",
+      })
+    }
 
     let glassesImageUrl: string
 
     if (glassesImageFile) {
       // 上传眼镜图片
       const glassesImageFilename = `try-on/${session.user.id}/${Date.now()}-glasses.jpg`
-      const glassesImageBlob = await put(glassesImageFilename, glassesImageFile, {
-        access: "public",
-      })
+      let glassesImageBlob
+
+      if (isMockMode) {
+        glassesImageBlob = await mockBlobUpload(glassesImageFilename, glassesImageFile)
+      } else {
+        glassesImageBlob = await put(glassesImageFilename, glassesImageFile, {
+          access: "public",
+        })
+      }
       glassesImageUrl = glassesImageBlob.url
     } else {
-      // 从数据库获取框架图片
-      const frame = await prisma.glassesFrame.findUnique({
-        where: { id: frameId }
-      })
-      
-      if (!frame) {
-        return NextResponse.json(
-          { success: false, error: "选择的眼镜框架不存在" },
-          { status: 404 }
-        )
+      if (isMockMode) {
+        // 在Mock模式下使用Mock框架数据
+        const { mockGlassesFrames } = await import('@/lib/mocks')
+        const frame = mockGlassesFrames.find(f => f.id === frameId)
+
+        if (!frame) {
+          return NextResponse.json(
+            { success: false, error: "选择的眼镜框架不存在" },
+            { status: 404 }
+          )
+        }
+
+        glassesImageUrl = frame.imageUrl
+      } else {
+        // 从数据库获取框架图片
+        const frame = await prisma.glassesFrame.findUnique({
+          where: { id: frameId }
+        })
+
+        if (!frame) {
+          return NextResponse.json(
+            { success: false, error: "选择的眼镜框架不存在" },
+            { status: 404 }
+          )
+        }
+
+        glassesImageUrl = frame.imageUrl
       }
-      
-      glassesImageUrl = frame.imageUrl
     }
 
     // 创建试戴任务记录
-    const tryOnTask = await prisma.tryOnTask.create({
-      data: {
+    let tryOnTask
+    if (isMockMode) {
+      tryOnTask = await MockDatabase.createTryOnTask({
         userId: session.user.id,
-        userImageUrl: userImageBlob.url,
-        glassesImageUrl,
-        status: "PROCESSING"
-      }
-    })
+        frameId: frameId,
+        originalImageUrl: userImageBlob.url,
+        status: "processing"
+      })
+    } else {
+      tryOnTask = await prisma.tryOnTask.create({
+        data: {
+          userId: session.user.id,
+          userImageUrl: userImageBlob.url,
+          glassesImageUrl,
+          status: "PROCESSING"
+        }
+      })
+    }
+
+    if (!tryOnTask) {
+      return NextResponse.json(
+        { success: false, error: "创建试戴任务失败" },
+        { status: 500 }
+      )
+    }
 
     // 异步处理AI试戴
     processTryOnAsync(tryOnTask.id, userImageBlob.url, glassesImageUrl)
@@ -109,12 +163,18 @@ export async function POST(request: NextRequest) {
 
     // 更新用户使用次数（仅对免费用户）
     if (!isPremiumActive) {
-      await prisma.user.update({
-        where: { id: session.user.id },
-        data: {
+      if (isMockMode) {
+        await MockDatabase.updateUser(session.user.id, {
           freeTrialsUsed: user.freeTrialsUsed + 1
-        }
-      })
+        })
+      } else {
+        await prisma.user.update({
+          where: { id: session.user.id },
+          data: {
+            freeTrialsUsed: user.freeTrialsUsed + 1
+          }
+        })
+      }
     }
 
     return NextResponse.json({
@@ -138,41 +198,72 @@ export async function POST(request: NextRequest) {
 // 异步处理试戴任务
 async function processTryOnAsync(taskId: string, userImageUrl: string, glassesImageUrl: string) {
   try {
-    // 调用Gemini API进行图像处理
-    const result = await generateTryOnImage({
-      userImageUrl,
-      glassesImageUrl
-    })
+    let result
+
+    if (isMockMode) {
+      // 在Mock模式下使用Mock AI服务
+      result = await mockGenerateTryOnImage({
+        userImageUrl,
+        glassesImageUrl
+      })
+    } else {
+      // 调用Gemini API进行图像处理
+      result = await generateTryOnImage({
+        userImageUrl,
+        glassesImageUrl
+      })
+    }
 
     if (result.success && result.imageUrl) {
       // 更新任务状态为完成
-      await prisma.tryOnTask.update({
-        where: { id: taskId },
-        data: {
-          status: "COMPLETED",
+      if (isMockMode) {
+        await MockDatabase.updateTryOnTask(taskId, {
+          status: "completed",
           resultImageUrl: result.imageUrl
-        }
-      })
+        })
+      } else {
+        await prisma.tryOnTask.update({
+          where: { id: taskId },
+          data: {
+            status: "COMPLETED",
+            resultImageUrl: result.imageUrl
+          }
+        })
+      }
     } else {
       // 更新任务状态为失败
+      if (isMockMode) {
+        await MockDatabase.updateTryOnTask(taskId, {
+          status: "failed",
+          errorMessage: result.error || "AI处理失败"
+        })
+      } else {
+        await prisma.tryOnTask.update({
+          where: { id: taskId },
+          data: {
+            status: "FAILED",
+            errorMessage: result.error || "AI处理失败"
+          }
+        })
+      }
+    }
+  } catch (error) {
+    console.error("处理试戴任务失败:", error)
+
+    // 更新任务状态为失败
+    if (isMockMode) {
+      await MockDatabase.updateTryOnTask(taskId, {
+        status: "failed",
+        errorMessage: "处理过程中发生错误"
+      })
+    } else {
       await prisma.tryOnTask.update({
         where: { id: taskId },
         data: {
           status: "FAILED",
-          errorMessage: result.error || "AI处理失败"
+          errorMessage: error instanceof Error ? error.message : "未知错误"
         }
       })
     }
-  } catch (error) {
-    console.error("处理试戴任务失败:", error)
-    
-    // 更新任务状态为失败
-    await prisma.tryOnTask.update({
-      where: { id: taskId },
-      data: {
-        status: "FAILED",
-        errorMessage: error instanceof Error ? error.message : "未知错误"
-      }
-    })
   }
 }

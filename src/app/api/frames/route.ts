@@ -1,8 +1,18 @@
 import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
+import { mockGlassesFrames, isMockMode } from "@/lib/mocks"
 
 export async function GET() {
   try {
+    // Use mock data in test mode
+    if (isMockMode) {
+      console.log('🧪 Mock Frames API: Returning mock glasses frames')
+      return NextResponse.json({
+        success: true,
+        data: mockGlassesFrames
+      })
+    }
+
     const frames = await prisma.glassesFrame.findMany({
       where: {
         isActive: true

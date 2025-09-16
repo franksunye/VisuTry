@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server"
 import { getServerSession } from "next-auth/next"
 import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
+import { isMockMode } from "@/lib/mocks"
+import { MockDatabase } from "@/lib/mocks/database"
 
 export async function GET(request: NextRequest) {
   try {
@@ -32,28 +34,49 @@ export async function GET(request: NextRequest) {
     }
 
     // 获取试戴历史记录
-    const [tasks, total] = await Promise.all([
-      prisma.tryOnTask.findMany({
-        where,
-        orderBy: {
-          createdAt: "desc"
-        },
-        skip,
-        take: limit,
-        select: {
-          id: true,
-          status: true,
-          userImageUrl: true,
-          glassesImageUrl: true,
-          resultImageUrl: true,
-          errorMessage: true,
-          createdAt: true,
-          updatedAt: true,
-          metadata: true
-        }
-      }),
-      prisma.tryOnTask.count({ where })
-    ])
+    let tasks, total
+
+    if (isMockMode) {
+      console.log('🧪 Mock Try-On History: Using mock database')
+      const allTasks = await MockDatabase.findUserTryOnTasks(session.user.id)
+
+      // 应用状态过滤
+      let filteredTasks = allTasks
+      if (status) {
+        filteredTasks = allTasks.filter(task => task.status.toLowerCase() === status.toLowerCase())
+      }
+
+      // 应用分页
+      total = filteredTasks.length
+      tasks = filteredTasks
+        .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+        .slice(skip, skip + limit)
+    } else {
+      const [tasksResult, totalResult] = await Promise.all([
+        prisma.tryOnTask.findMany({
+          where,
+          orderBy: {
+            createdAt: "desc"
+          },
+          skip,
+          take: limit,
+          select: {
+            id: true,
+            status: true,
+            userImageUrl: true,
+            glassesImageUrl: true,
+            resultImageUrl: true,
+            errorMessage: true,
+            createdAt: true,
+            updatedAt: true,
+            metadata: true
+          }
+        }),
+        prisma.tryOnTask.count({ where })
+      ])
+      tasks = tasksResult
+      total = totalResult
+    }
 
     // 计算分页信息
     const totalPages = Math.ceil(total / limit)
