@@ -9,6 +9,7 @@ interface ErrorPageProps {
 
 export default function AuthErrorPage({ searchParams }: ErrorPageProps) {
   const error = searchParams.error
+  const errorDetails = error ? getErrorDetails(error) : null
 
   const getErrorMessage = (error: string) => {
     switch (error) {
@@ -18,9 +19,36 @@ export default function AuthErrorPage({ searchParams }: ErrorPageProps) {
         return "Access denied, please check your permissions"
       case "Verification":
         return "Verification failed, please try again"
+      case "Callback":
+        return "OAuth callback error - this usually indicates a configuration mismatch between Twitter app and NextAuth"
       case "Default":
       default:
         return "Unknown error occurred during login, please try again"
+    }
+  }
+
+  const getErrorDetails = (error: string) => {
+    switch (error) {
+      case "Callback":
+        return {
+          description: "Twitter OAuth callback failed",
+          possibleCauses: [
+            "Twitter app callback URL doesn't match NextAuth callback URL",
+            "Environment variables not properly set in Vercel",
+            "Twitter app permissions insufficient",
+            "NEXTAUTH_SECRET not set or incorrect",
+            "Network connectivity issues during callback"
+          ],
+          solutions: [
+            "Verify Twitter app callback URL: https://visutry.vercel.app/api/auth/callback/twitter",
+            "Check Vercel environment variables are set correctly",
+            "Ensure Twitter app has 'Read and write' permissions",
+            "Verify NEXTAUTH_SECRET is set in Vercel",
+            "Try clearing browser cache and cookies"
+          ]
+        }
+      default:
+        return null
     }
   }
 
@@ -41,17 +69,51 @@ export default function AuthErrorPage({ searchParams }: ErrorPageProps) {
 
         <div className="bg-white rounded-2xl shadow-lg p-8">
           <div className="space-y-6">
-            <div className="text-center">
-              <h2 className="text-lg font-semibold text-gray-900 mb-2">
-                可能的解决方案
-              </h2>
-              <ul className="text-sm text-gray-600 space-y-2 text-left">
-                <li>• 检查网络连接是否正常</li>
-                <li>• 确认Twitter账户状态正常</li>
-                <li>• 清除浏览器缓存后重试</li>
-                <li>• 尝试使用其他浏览器</li>
-              </ul>
-            </div>
+            {/* Error Details */}
+            {errorDetails && (
+              <div className="space-y-4">
+                <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                  <h3 className="font-semibold text-red-800 mb-2">错误详情</h3>
+                  <p className="text-red-700 text-sm">{errorDetails.description}</p>
+                  {error && (
+                    <p className="text-red-600 text-xs mt-1 font-mono">Error Code: {error}</p>
+                  )}
+                </div>
+
+                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                  <h3 className="font-semibold text-yellow-800 mb-2">可能原因</h3>
+                  <ul className="text-yellow-700 text-sm space-y-1">
+                    {errorDetails.possibleCauses.map((cause, index) => (
+                      <li key={index}>• {cause}</li>
+                    ))}
+                  </ul>
+                </div>
+
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                  <h3 className="font-semibold text-blue-800 mb-2">解决方案</h3>
+                  <ul className="text-blue-700 text-sm space-y-1">
+                    {errorDetails.solutions.map((solution, index) => (
+                      <li key={index}>• {solution}</li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            )}
+
+            {/* General Solutions */}
+            {!errorDetails && (
+              <div className="text-center">
+                <h2 className="text-lg font-semibold text-gray-900 mb-2">
+                  可能的解决方案
+                </h2>
+                <ul className="text-sm text-gray-600 space-y-2 text-left">
+                  <li>• 检查网络连接是否正常</li>
+                  <li>• 确认Twitter账户状态正常</li>
+                  <li>• 清除浏览器缓存后重试</li>
+                  <li>• 尝试使用其他浏览器</li>
+                </ul>
+              </div>
+            )}
 
             <div className="space-y-3">
               <Link
