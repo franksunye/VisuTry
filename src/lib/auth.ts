@@ -44,35 +44,46 @@ export const authOptions: NextAuthOptions = {
     },
     async jwt({ token, user, account, profile }) {
       try {
+        console.log('JWT callback invoked:', {
+          hasUser: !!user,
+          hasAccount: !!account,
+          hasProfile: !!profile,
+          accountProvider: account?.provider,
+          tokenSub: token.sub
+        })
+
         // 首次登录时，从 Twitter profile 获取信息
         if (user && account && profile) {
-          console.log('JWT callback - user login:', {
+          console.log('Processing new user login:', {
             userId: user.id,
+            userEmail: user.email,
+            userName: user.name,
             accountProvider: account.provider,
+            accountType: account.type,
             profileData: profile
           })
 
           token.id = user.id
+          token.email = user.email
+          token.name = user.name
           token.username = (profile as any).data?.username || (profile as any).username || user.name
 
-          // 尝试在数据库中创建或更新用户（可选，不阻塞登录）
-          try {
-            console.log('User logged in successfully:', {
-              id: user.id,
-              email: user.email,
-              name: user.name,
-              username: token.username
-            })
-          } catch (error) {
-            console.error('Failed to sync user to database:', error)
-            // 不抛出错误，允许登录继续
-          }
+          console.log('Token updated with user data:', {
+            tokenId: token.id,
+            tokenEmail: token.email,
+            tokenName: token.name,
+            tokenUsername: token.username
+          })
         }
+
         return token
       } catch (error) {
         console.error('JWT callback error:', error)
-        // 返回基本 token 以避免登录失败
-        return token
+        // 即使出错也返回 token，避免登录完全失败
+        return {
+          ...token,
+          error: 'JWT_CALLBACK_ERROR'
+        }
       }
     },
     async redirect({ url, baseUrl }) {
