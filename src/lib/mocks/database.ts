@@ -4,7 +4,7 @@ import { mockUsers, mockTryOnResults, isMockMode } from './index'
 // Mock database operations
 export class MockDatabase {
   private static users = [...mockUsers]
-  private static tryOnTasks = [...mockTryOnResults]
+  public static tryOnTasks = [...mockTryOnResults]
   private static taskIdCounter = 1
 
   // User operations
@@ -44,11 +44,10 @@ export class MockDatabase {
       userId: data.userId,
       frameId: data.frameId,
       originalImageUrl: data.originalImageUrl,
-      resultImageUrl: null,
+      resultImageUrl: '',
       status: data.status || 'processing',
       createdAt: new Date(),
-      isPublic: false,
-      ...data
+      isPublic: false
     }
     
     this.tryOnTasks.push(task)
