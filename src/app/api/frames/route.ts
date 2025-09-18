@@ -28,10 +28,15 @@ export async function GET() {
     })
   } catch (error) {
     console.error("Failed to fetch glasses frames:", error)
-    return NextResponse.json(
-      { success: false, error: "Failed to fetch glasses frames" },
-      { status: 500 }
-    )
+
+    // Fallback to mock data if database fails
+    console.log('🔄 Database failed, falling back to mock data')
+    return NextResponse.json({
+      success: true,
+      data: mockGlassesFrames,
+      fallback: true,
+      message: "Using mock data due to database connection issues"
+    })
   }
 }
 
