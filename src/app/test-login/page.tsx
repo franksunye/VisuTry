@@ -10,12 +10,27 @@ export default function TestLoginPage() {
 
   const handleMockLogin = async () => {
     try {
-      const result = await signIn("mock-credentials", {
-        email,
-        type: userType,
-        redirect: false,
+      // Use our custom mock login API
+      const response = await fetch('/api/test/mock-login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email,
+          userType,
+        }),
       })
-      console.log("Login result:", result)
+
+      const result = await response.json()
+      console.log("Mock login result:", result)
+
+      if (result.success) {
+        // Refresh the page to update the session
+        window.location.reload()
+      } else {
+        console.error("Mock login failed:", result.error)
+      }
     } catch (error) {
       console.error("Login error:", error)
     }
