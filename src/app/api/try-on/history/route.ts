@@ -86,7 +86,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({
       success: true,
       data: {
-        tasks: tasks.map(task => ({
+        tasks: tasks.map((task: any) => ({
           ...task,
           status: task.status.toLowerCase()
         })),
