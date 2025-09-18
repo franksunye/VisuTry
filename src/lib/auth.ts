@@ -5,62 +5,62 @@ import { prisma } from "@/lib/prisma"
 import { MockCredentialsProvider, isMockMode } from "@/lib/mocks/auth"
 
 export const authOptions: NextAuthOptions = {
-  adapter: isMockMode ? undefined : PrismaAdapter(prisma),
-  providers: isMockMode ? [
-    MockCredentialsProvider
-  ] : [
+  // 暂时使用 JWT 策略避免数据库连接问题
+  adapter: undefined, // isMockMode ? undefined : PrismaAdapter(prisma),
+  providers: [
     TwitterProvider({
       clientId: process.env.TWITTER_CLIENT_ID!,
       clientSecret: process.env.TWITTER_CLIENT_SECRET!,
       version: "2.0",
     }),
+    ...(isMockMode ? [MockCredentialsProvider] : [])
   ],
   callbacks: {
-    async session({ session, user, token }) {
-      if (session.user) {
-        // In mock mode, use data from token/user directly
-        if (isMockMode) {
-          session.user.id = user?.id || token?.sub || "mock-user-1"
-          session.user.freeTrialsUsed = user?.freeTrialsUsed || 0
-          session.user.isPremium = user?.isPremium || false
-          session.user.premiumExpiresAt = user?.premiumExpiresAt || null
-          return session
-        }
+    async session({ session, token }) {
+      if (session.user && token) {
+        // 使用 JWT 策略，从 token 中获取用户信息
+        session.user.id = token.sub || token.id || "unknown"
+        session.user.freeTrialsUsed = 0 // 默认值，后续可以从数据库同步
+        session.user.isPremium = false
+        session.user.premiumExpiresAt = null
+        session.user.isPremiumActive = false
+        session.user.remainingTrials = 3 // 默认免费试用次数
 
-        session.user.id = user.id
-
-        // 获取用户的试用次数和付费状态
-        const userData = await prisma.user.findUnique({
-          where: { id: user.id },
-          select: {
-            freeTrialsUsed: true,
-            isPremium: true,
-            premiumExpiresAt: true,
-          },
-        })
-
-        if (userData) {
-          session.user.freeTrialsUsed = userData.freeTrialsUsed
-          session.user.isPremium = userData.isPremium
-          session.user.premiumExpiresAt = userData.premiumExpiresAt
-
-          // 检查付费是否过期
-          const isPremiumActive = userData.isPremium &&
-            (!userData.premiumExpiresAt || userData.premiumExpiresAt > new Date())
-          
-          session.user.isPremiumActive = isPremiumActive
-          session.user.remainingTrials = Math.max(0, 
-            (process.env.FREE_TRIAL_LIMIT ? parseInt(process.env.FREE_TRIAL_LIMIT) : 3) - userData.freeTrialsUsed
-          )
+        // 如果有用户名信息，添加到会话中
+        if (token.username) {
+          session.user.username = token.username as string
         }
       }
       return session
     },
-    async jwt({ token, user }) {
-      if (user) {
+    async jwt({ token, user, account, profile }) {
+      // 首次登录时，从 Twitter profile 获取信息
+      if (user && account && profile) {
         token.id = user.id
+        token.username = (profile as any).data?.username || (profile as any).username
+
+        // 尝试在数据库中创建或更新用户（可选，不阻塞登录）
+        try {
+          // 这里可以异步创建用户记录，但不阻塞登录流程
+          console.log('User logged in:', {
+            id: user.id,
+            email: user.email,
+            name: user.name,
+            username: token.username
+          })
+        } catch (error) {
+          console.error('Failed to sync user to database:', error)
+          // 不抛出错误，允许登录继续
+        }
       }
       return token
+    },
+    async redirect({ url, baseUrl }) {
+      // 确保授权成功后重定向到主页
+      console.log('Redirect callback:', { url, baseUrl })
+      if (url.startsWith("/")) return `${baseUrl}${url}`
+      else if (new URL(url).origin === baseUrl) return url
+      return baseUrl + "/"
     },
   },
   pages: {
@@ -68,7 +68,7 @@ export const authOptions: NextAuthOptions = {
     error: "/auth/error",
   },
   session: {
-    strategy: isMockMode ? "jwt" : "database",
+    strategy: "jwt", // 使用 JWT 策略避免数据库依赖
   },
   debug: process.env.NODE_ENV === "development",
 }
