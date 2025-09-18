@@ -217,7 +217,7 @@ class TestRunner {
   async executeJest(suite) {
     return new Promise((resolve, reject) => {
       const jestArgs = [
-        '--testPathPattern', suite.pattern,
+        '--testPathPatterns', suite.pattern,
         '--testTimeout', suite.timeout.toString(),
         '--verbose',
         '--forceExit',

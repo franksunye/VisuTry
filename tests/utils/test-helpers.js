@@ -1,6 +1,8 @@
 // VisuTry 测试辅助工具
 const axios = require('axios')
 const FormData = require('form-data')
+const fs = require('fs')
+const path = require('path')
 
 // 测试配置
 const TEST_CONFIG = {
@@ -331,6 +333,50 @@ class TestEnvironment {
       } catch (error) {
         console.warn('Failed to reset mock data:', error.message)
       }
+    }
+  }
+
+  /**
+   * 创建测试图片文件
+   */
+  static async createTestImage(filePath, width = 400, height = 400) {
+    // 确保目录存在
+    const dir = path.dirname(filePath)
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir, { recursive: true })
+    }
+
+    // 创建一个简单的测试图片（实际上是文本文件，但在测试中可以模拟）
+    const imageContent = `Test Image ${width}x${height}\nCreated at: ${new Date().toISOString()}`
+    fs.writeFileSync(filePath, imageContent)
+
+    return filePath
+  }
+
+  /**
+   * 创建临时目录
+   */
+  static createTempDir() {
+    const tempDir = path.join(__dirname, '../temp')
+    if (!fs.existsSync(tempDir)) {
+      fs.mkdirSync(tempDir, { recursive: true })
+    }
+    return tempDir
+  }
+
+  /**
+   * 清理临时文件
+   */
+  static cleanupTempFiles() {
+    const tempDir = path.join(__dirname, '../temp')
+    if (fs.existsSync(tempDir)) {
+      const files = fs.readdirSync(tempDir)
+      files.forEach(file => {
+        const filePath = path.join(tempDir, file)
+        if (fs.statSync(filePath).isFile()) {
+          fs.unlinkSync(filePath)
+        }
+      })
     }
   }
 }
