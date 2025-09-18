@@ -11,33 +11,7 @@ export const authOptions: NextAuthOptions = {
     TwitterProvider({
       clientId: process.env.TWITTER_CLIENT_ID!,
       clientSecret: process.env.TWITTER_CLIENT_SECRET!,
-      version: "2.0",
-      authorization: {
-        url: "https://twitter.com/i/oauth2/authorize",
-        params: {
-          scope: "users.read tweet.read offline.access",
-          response_type: "code",
-        },
-      },
-      token: "https://api.twitter.com/2/oauth2/token",
-      userinfo: {
-        url: "https://api.twitter.com/2/users/me",
-        params: {
-          "user.fields": "id,name,username,profile_image_url,email"
-        }
-      },
-      profile(profile) {
-        console.log('Twitter profile received:', profile)
-        return {
-          id: profile.data.id,
-          name: profile.data.name,
-          username: profile.data.username,
-          email: profile.data.email || null,
-          image: profile.data.profile_image_url || null,
-          freeTrialsUsed: 0,
-          isPremium: false,
-        }
-      },
+      version: "1.0A",
     }),
     ...(isMockMode ? [MockCredentialsProvider] : [])
   ],
@@ -83,7 +57,8 @@ export const authOptions: NextAuthOptions = {
           token.id = user.id
           token.email = user.email
           token.name = user.name
-          token.username = (profile as any).data?.username || (profile as any).username || user.name
+          // Twitter v1.0A 使用不同的字段结构
+          token.username = (profile as any).screen_name || (profile as any).username || user.name
 
           console.log('Token updated with user data:', {
             tokenId: token.id,
