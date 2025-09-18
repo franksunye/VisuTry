@@ -8,12 +8,11 @@ export const authOptions: NextAuthOptions = {
   // 暂时使用 JWT 策略避免数据库连接问题
   adapter: undefined, // isMockMode ? undefined : PrismaAdapter(prisma),
   providers: [
+    ...(isMockMode ? [MockCredentialsProvider] : []),
     TwitterProvider({
       clientId: process.env.TWITTER_CLIENT_ID!,
       clientSecret: process.env.TWITTER_CLIENT_SECRET!,
-      version: "1.0A",
     }),
-    ...(isMockMode ? [MockCredentialsProvider] : [])
   ],
   callbacks: {
     async session({ session, token }) {
