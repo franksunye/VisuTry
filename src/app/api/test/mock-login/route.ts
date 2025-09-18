@@ -5,26 +5,37 @@ import { authOptions } from "@/lib/auth"
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { email, userType } = body
+    console.log('Mock login request body:', body)
 
-    if (!email) {
-      return NextResponse.json(
-        { success: false, error: "Email is required" },
-        { status: 400 }
-      )
-    }
+    // Support both old and new parameter formats
+    const {
+      email,
+      userType,
+      userId,
+      name,
+      username,
+      isPremium
+    } = body
+
+    const userEmail = email || 'test@example.com'
+    const userName = name || (userType === 'premium' ? 'Premium User' : 'Test User')
+    const userUsername = username || (userType === 'premium' ? 'premiumuser' : 'testuser')
+    const userIsPremium = isPremium !== undefined ? isPremium : (userType === 'premium')
+    const userIdValue = userId || (userType === 'premium' ? 'mock-user-2' : 'mock-user-1')
 
     // Create a mock user session
     const mockUser = {
-      id: userType === 'premium' ? 'mock-user-2' : 'mock-user-1',
-      email: email,
-      name: userType === 'premium' ? 'Premium User' : 'Test User',
+      id: userIdValue,
+      email: userEmail,
+      name: userName,
       image: 'https://via.placeholder.com/150',
-      username: userType === 'premium' ? 'premiumuser' : 'testuser',
-      freeTrialsUsed: userType === 'premium' ? 0 : 1,
-      isPremium: userType === 'premium',
-      premiumExpiresAt: userType === 'premium' ? new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) : null,
+      username: userUsername,
+      freeTrialsUsed: userIsPremium ? 0 : 1,
+      isPremium: userIsPremium,
+      premiumExpiresAt: userIsPremium ? new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) : null,
     }
+
+    console.log('Created mock user:', mockUser)
 
     // Set the test session cookie (simple JSON)
     const testSession = JSON.stringify(mockUser)

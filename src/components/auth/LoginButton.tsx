@@ -1,8 +1,9 @@
 "use client"
 
 import { signIn, signOut, useSession } from "next-auth/react"
-import { Twitter, LogOut, User } from "lucide-react"
+import { Twitter, LogOut, User, TestTube } from "lucide-react"
 import { cn } from "@/utils/cn"
+import { useTestSession } from "@/hooks/useTestSession"
 
 interface LoginButtonProps {
   className?: string
@@ -11,8 +12,13 @@ interface LoginButtonProps {
 
 export function LoginButton({ className, variant = "default" }: LoginButtonProps) {
   const { data: session, status } = useSession()
+  const { testSession, loading: testLoading, clearTestSession } = useTestSession()
 
-  if (status === "loading") {
+  // Check both NextAuth session and test session
+  const isLoading = status === "loading" || testLoading
+  const currentSession = session || testSession
+
+  if (isLoading) {
     return (
       <div className={cn(
         "flex items-center justify-center px-4 py-2 rounded-lg",
@@ -25,14 +31,17 @@ export function LoginButton({ className, variant = "default" }: LoginButtonProps
     )
   }
 
-  if (session) {
+  if (currentSession) {
+    const user = currentSession.user
+    const isTestSession = testSession !== null
+
     return (
       <div className="flex items-center space-x-3">
         <div className="flex items-center space-x-2">
-          {session.user.image ? (
+          {user.image ? (
             <img
-              src={session.user.image}
-              alt={session.user.name || "User Avatar"}
+              src={user.image}
+              alt={user.name || "User Avatar"}
               className="w-8 h-8 rounded-full"
             />
           ) : (
@@ -40,13 +49,21 @@ export function LoginButton({ className, variant = "default" }: LoginButtonProps
               <User className="w-4 h-4 text-gray-500" />
             </div>
           )}
-          <span className="text-sm font-medium text-gray-700">
-            {session.user.name || session.user.username || "User"}
-          </span>
+          <div className="flex flex-col">
+            <span className="text-sm font-medium text-gray-700">
+              {user.name || user.username || "User"}
+            </span>
+            {isTestSession && (
+              <span className="text-xs text-orange-600 flex items-center">
+                <TestTube className="w-3 h-3 mr-1" />
+                Test Mode
+              </span>
+            )}
+          </div>
         </div>
-        
+
         <button
-          onClick={() => signOut()}
+          onClick={() => isTestSession ? clearTestSession() : signOut()}
           className={cn(
             "flex items-center px-3 py-2 rounded-lg text-sm font-medium transition-colors",
             variant === "outline" && "border border-gray-300 text-gray-700 hover:bg-gray-50",

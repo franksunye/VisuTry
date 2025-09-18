@@ -1,7 +1,25 @@
+'use client'
+
 import { Glasses, Upload, Sparkles, Share2 } from 'lucide-react'
 import { LoginButton } from '@/components/auth/LoginButton'
+import { useRouter } from 'next/navigation'
+import { useSession } from 'next-auth/react'
+import { useTestSession } from '@/hooks/useTestSession'
 
 export default function Home() {
+  const router = useRouter()
+  const { data: session } = useSession()
+  const { testSession } = useTestSession()
+
+  const isAuthenticated = session || testSession
+
+  const handleStartTryOn = () => {
+    if (isAuthenticated) {
+      router.push('/try-on')
+    } else {
+      router.push('/auth/signin')
+    }
+  }
   return (
     <main className="container mx-auto px-4 py-8">
       {/* Header */}
@@ -55,7 +73,10 @@ export default function Home() {
 
       {/* CTA Section */}
       <section className="text-center">
-        <button className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-4 px-8 rounded-lg text-lg transition-colors duration-200 shadow-lg hover:shadow-xl">
+        <button
+          onClick={handleStartTryOn}
+          className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-4 px-8 rounded-lg text-lg transition-colors duration-200 shadow-lg hover:shadow-xl"
+        >
           Start Try-On
         </button>
         <p className="text-sm text-gray-500 mt-4">
