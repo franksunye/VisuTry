@@ -8,26 +8,37 @@ import { isMockMode } from "@/lib/mocks"
 import { MockDatabase } from "@/lib/mocks/database"
 import { mockBlobUpload } from "@/lib/mocks/blob"
 import { mockGenerateTryOnImage } from "@/lib/mocks/gemini"
+import { getTestSessionFromRequest } from "@/lib/test-session"
 
 export async function POST(request: NextRequest) {
   try {
-    // 检查用户认证
+    // 检查用户认证 (NextAuth 或测试会话)
     const session = await getServerSession(authOptions)
-    if (!session) {
+    const testSession = !session ? getTestSessionFromRequest(request) : null
+
+    if (!session && !testSession) {
       return NextResponse.json(
         { success: false, error: "未授权访问" },
         { status: 401 }
       )
     }
 
+    // 使用会话数据
+    const userId = session?.user?.id || testSession?.id || 'unknown'
+    const userEmail = session?.user?.email || testSession?.email || 'test@example.com'
+
     // 检查用户是否有剩余次数
     let user
-    if (isMockMode) {
+    if (testSession) {
+      // 使用测试会话数据
+      console.log('🧪 Test Session: Using test session data')
+      user = testSession
+    } else if (isMockMode) {
       console.log('🧪 Mock Try-On: Using mock database')
-      user = await MockDatabase.findUser({ id: session.user.id })
+      user = await MockDatabase.findUser({ id: userId })
     } else {
       user = await prisma.user.findUnique({
-        where: { id: session.user.id }
+        where: { id: userId }
       })
     }
 
