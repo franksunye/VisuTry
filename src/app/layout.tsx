@@ -10,6 +10,13 @@ export const metadata: Metadata = {
   description: 'Experience virtual glasses try-on with AI technology and find the perfect glasses style for you',
   keywords: ['glasses try-on', 'AI', 'virtual try-on', 'glasses', 'artificial intelligence'],
   authors: [{ name: 'VisuTry Team' }],
+  icons: {
+    icon: [
+      { url: '/favicon.ico', sizes: '32x32', type: 'image/x-icon' },
+      { url: '/favicon.svg', sizes: 'any', type: 'image/svg+xml' }
+    ],
+    apple: { url: '/favicon.svg', sizes: '180x180', type: 'image/svg+xml' }
+  },
   openGraph: {
     title: 'VisuTry - AI Glasses Try-On',
     description: 'Experience virtual glasses try-on with AI technology and find the perfect glasses style for you',
