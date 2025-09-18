@@ -1,12 +1,20 @@
 "use client"
 
 import { signIn, signOut, useSession } from "next-auth/react"
-import { useState } from "react"
+import { useState, useEffect } from "react"
+import { getTestSession, clearTestSession, TestUser } from "@/lib/test-session"
 
 export default function TestLoginPage() {
   const { data: session, status } = useSession()
   const [email, setEmail] = useState("free@example.com")
   const [userType, setUserType] = useState("free")
+  const [testSession, setTestSession] = useState<TestUser | null>(null)
+
+  // Check for test session on component mount
+  useEffect(() => {
+    const testUser = getTestSession()
+    setTestSession(testUser)
+  }, [])
 
   const handleMockLogin = async () => {
     try {
@@ -26,8 +34,10 @@ export default function TestLoginPage() {
       console.log("Mock login result:", result)
 
       if (result.success) {
-        // Refresh the page to update the session
-        window.location.reload()
+        // Update test session state
+        const testUser = getTestSession()
+        setTestSession(testUser)
+        console.log("Mock login successful, test session:", testUser)
       } else {
         console.error("Mock login failed:", result.error)
       }
@@ -55,18 +65,39 @@ export default function TestLoginPage() {
     <div className="container mx-auto p-8 max-w-md">
       <h1 className="text-2xl font-bold mb-6">🧪 Test Login Page</h1>
       
-      {session ? (
+      {(session || testSession) ? (
         <div className="bg-green-100 p-4 rounded-lg mb-6">
           <h2 className="text-lg font-semibold text-green-800 mb-2">✅ Logged In</h2>
           <div className="text-sm text-green-700">
-            <p><strong>Name:</strong> {session.user?.name}</p>
-            <p><strong>Email:</strong> {session.user?.email}</p>
-            <p><strong>ID:</strong> {session.user?.id}</p>
-            <p><strong>Free Trials Used:</strong> {session.user?.freeTrialsUsed || 0}</p>
-            <p><strong>Premium:</strong> {session.user?.isPremium ? "Yes" : "No"}</p>
+            {session ? (
+              <>
+                <p><strong>Source:</strong> NextAuth (Real)</p>
+                <p><strong>Name:</strong> {session.user?.name}</p>
+                <p><strong>Email:</strong> {session.user?.email}</p>
+                <p><strong>ID:</strong> {session.user?.id}</p>
+                <p><strong>Free Trials Used:</strong> {session.user?.freeTrialsUsed || 0}</p>
+                <p><strong>Premium:</strong> {session.user?.isPremium ? "Yes" : "No"}</p>
+              </>
+            ) : testSession ? (
+              <>
+                <p><strong>Source:</strong> Test Session (Mock)</p>
+                <p><strong>Name:</strong> {testSession.name}</p>
+                <p><strong>Email:</strong> {testSession.email}</p>
+                <p><strong>ID:</strong> {testSession.id}</p>
+                <p><strong>Free Trials Used:</strong> {testSession.freeTrialsUsed}</p>
+                <p><strong>Premium:</strong> {testSession.isPremium ? "Yes" : "No"}</p>
+              </>
+            ) : null}
           </div>
           <button
-            onClick={() => signOut()}
+            onClick={() => {
+              if (session) {
+                signOut()
+              } else {
+                clearTestSession()
+                setTestSession(null)
+              }
+            }}
             className="mt-4 bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
           >
             Sign Out

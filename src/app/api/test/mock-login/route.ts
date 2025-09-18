@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { getServerSession } from "next-auth/next"
 import { authOptions } from "@/lib/auth"
-import { SignJWT } from "jose"
 
 export async function POST(request: NextRequest) {
   try {
@@ -27,25 +26,9 @@ export async function POST(request: NextRequest) {
       premiumExpiresAt: userType === 'premium' ? new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) : null,
     }
 
-    // Create a JWT token for the mock session
-    const secret = new TextEncoder().encode(process.env.NEXTAUTH_SECRET || 'fallback-secret')
-    
-    const token = await new SignJWT({
-      sub: mockUser.id,
-      email: mockUser.email,
-      name: mockUser.name,
-      picture: mockUser.image,
-      username: mockUser.username,
-      freeTrialsUsed: mockUser.freeTrialsUsed,
-      isPremium: mockUser.isPremium,
-      premiumExpiresAt: mockUser.premiumExpiresAt,
-      iat: Math.floor(Date.now() / 1000),
-      exp: Math.floor(Date.now() / 1000) + 24 * 60 * 60, // 24 hours
-    })
-      .setProtectedHeader({ alg: 'HS256' })
-      .sign(secret)
+    // Set the test session cookie (simple JSON)
+    const testSession = JSON.stringify(mockUser)
 
-    // Set the session cookie
     const response = NextResponse.json({
       success: true,
       message: `Mock login successful as ${userType} user`,
@@ -60,9 +43,9 @@ export async function POST(request: NextRequest) {
       }
     })
 
-    // Set NextAuth session cookie
-    response.cookies.set('next-auth.session-token', token, {
-      httpOnly: true,
+    // Set test session cookie
+    response.cookies.set('test-session', testSession, {
+      httpOnly: false, // Allow client-side access for testing
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
       maxAge: 24 * 60 * 60, // 24 hours
@@ -74,8 +57,8 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error("Mock login failed:", error)
     return NextResponse.json(
-      { 
-        success: false, 
+      {
+        success: false,
         error: "Mock login failed",
         details: error instanceof Error ? error.message : "Unknown error"
       },
@@ -85,28 +68,46 @@ export async function POST(request: NextRequest) {
 }
 
 // GET method to check current session
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
+    // Check NextAuth session
     const session = await getServerSession(authOptions)
-    
+
+    // Check test session cookie
+    const testSessionCookie = request.cookies.get('test-session')
+    let testSession = null
+
+    if (testSessionCookie) {
+      try {
+        testSession = JSON.parse(testSessionCookie.value)
+      } catch (e) {
+        console.error("Failed to parse test session:", e)
+      }
+    }
+
     return NextResponse.json({
       success: true,
-      authenticated: !!session,
+      authenticated: !!session || !!testSession,
       session: session ? {
         user: {
           id: session.user.id,
           email: session.user.email,
           name: session.user.name,
           image: session.user.image,
-        }
+        },
+        source: 'nextauth'
+      } : null,
+      testSession: testSession ? {
+        user: testSession,
+        source: 'test'
       } : null
     })
 
   } catch (error) {
     console.error("Session check failed:", error)
     return NextResponse.json(
-      { 
-        success: false, 
+      {
+        success: false,
         error: "Session check failed",
         details: error instanceof Error ? error.message : "Unknown error"
       },
