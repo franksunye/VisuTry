@@ -20,7 +20,24 @@ export const authOptions: NextAuthOptions = {
         },
       },
       token: "https://api.twitter.com/2/oauth2/token",
-      userinfo: "https://api.twitter.com/2/users/me?user.fields=id,name,username,profile_image_url",
+      userinfo: {
+        url: "https://api.twitter.com/2/users/me",
+        params: {
+          "user.fields": "id,name,username,profile_image_url,email"
+        }
+      },
+      profile(profile) {
+        console.log('Twitter profile received:', profile)
+        return {
+          id: profile.data.id,
+          name: profile.data.name,
+          username: profile.data.username,
+          email: profile.data.email || null,
+          image: profile.data.profile_image_url || null,
+          freeTrialsUsed: 0,
+          isPremium: false,
+        }
+      },
     }),
     ...(isMockMode ? [MockCredentialsProvider] : [])
   ],
