@@ -11,7 +11,7 @@ interface UserPageProps {
   }
 }
 
-// 生成动态元数据
+// Generate dynamic metadata
 export async function generateMetadata({ params }: UserPageProps): Promise<Metadata> {
   const user = await prisma.user.findFirst({
     where: {
@@ -24,26 +24,26 @@ export async function generateMetadata({ params }: UserPageProps): Promise<Metad
 
   if (!user) {
     return {
-      title: "用户不存在 - VisuTry",
-      description: "该用户不存在或已删除账户"
+      title: "User Not Found - VisuTry",
+      description: "This user does not exist or has deleted their account"
     }
   }
 
-  const displayName = user.name || user.username || "用户"
-  
+  const displayName = user.name || user.username || "User"
+
   return {
-    title: `${displayName}的试戴作品 - VisuTry`,
-    description: `查看${displayName}在VisuTry上的AI眼镜试戴作品集`,
+    title: `${displayName}'s Try-On Gallery - VisuTry`,
+    description: `View ${displayName}'s AI glasses try-on gallery on VisuTry`,
     openGraph: {
-      title: `${displayName}的试戴作品`,
-      description: `查看${displayName}在VisuTry上的AI眼镜试戴作品集`,
+      title: `${displayName}'s Try-On Gallery`,
+      description: `View ${displayName}'s AI glasses try-on gallery on VisuTry`,
       images: user.image ? [user.image] : [],
       type: "profile"
     },
     twitter: {
       card: "summary",
-      title: `${displayName}的试戴作品`,
-      description: `查看${displayName}在VisuTry上的AI眼镜试戴作品集`,
+      title: `${displayName}'s Try-On Gallery`,
+      description: `View ${displayName}'s AI glasses try-on gallery on VisuTry`,
       images: user.image ? [user.image] : []
     }
   }
@@ -178,7 +178,7 @@ export default async function UserPage({ params }: UserPageProps) {
               </div>
             </div>
 
-            {/* 用户信息 */}
+            {/* User Info */}
             <div className="pt-20">
               <div className="flex items-start justify-between">
                 <div>
@@ -190,7 +190,7 @@ export default async function UserPage({ params }: UserPageProps) {
                   </h2>
                   <div className="flex items-center text-gray-600 mb-4">
                     <Calendar className="w-4 h-4 mr-2" />
-                    <span>加入于 {joinDate}</span>
+                    <span>Joined {joinDate}</span>
                   </div>
                 </div>
               </div>

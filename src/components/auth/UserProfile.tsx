@@ -22,12 +22,12 @@ export function UserProfile({ className, showDetails = true }: UserProfileProps)
 
   return (
     <div className={cn("bg-white rounded-lg shadow-sm border p-4", className)}>
-      {/* 用户基本信息 */}
+      {/* User Basic Info */}
       <div className="flex items-center space-x-3 mb-4">
         {user.image ? (
           <img
             src={user.image}
-            alt={user.name || "用户头像"}
+            alt={user.name || "User avatar"}
             className="w-12 h-12 rounded-full"
           />
         ) : (
@@ -37,10 +37,10 @@ export function UserProfile({ className, showDetails = true }: UserProfileProps)
             </span>
           </div>
         )}
-        
+
         <div>
           <h3 className="font-semibold text-gray-900">
-            {user.name || user.username || "用户"}
+            {user.name || user.username || "User"}
           </h3>
           {user.email && (
             <p className="text-sm text-gray-500">{user.email}</p>

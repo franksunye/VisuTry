@@ -15,7 +15,6 @@ import {
 } from "lucide-react"
 import Link from "next/link"
 import { formatDistanceToNow } from "date-fns"
-import { zhCN } from "date-fns/locale"
 import { cn } from "@/utils/cn"
 
 interface TryOnTask {
@@ -61,13 +60,13 @@ export function TryOnHistoryList({
   const getStatusText = (status: string) => {
     switch (status.toLowerCase()) {
       case "completed":
-        return "已完成"
+        return "Completed"
       case "processing":
-        return "处理中"
+        return "Processing"
       case "failed":
-        return "失败"
+        return "Failed"
       default:
-        return "未知"
+        return "Unknown"
     }
   }
 
@@ -135,16 +134,16 @@ export function TryOnHistoryList({
       <div className="bg-white rounded-lg shadow-sm border p-12 text-center">
         <Clock className="w-16 h-16 text-gray-400 mx-auto mb-4" />
         <h3 className="text-lg font-medium text-gray-900 mb-2">
-          {currentStatus === "all" ? "还没有试戴记录" : `没有${getStatusText(currentStatus)}的记录`}
+          {currentStatus === "all" ? "No try-on records yet" : `No ${getStatusText(currentStatus).toLowerCase()} records`}
         </h3>
         <p className="text-gray-500 mb-6">
-          开始您的AI眼镜试戴之旅吧！
+          Start your AI glasses try-on journey!
         </p>
         <Link
           href="/try-on"
           className="inline-flex items-center px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
         >
-          开始试戴
+          Start Try-On
         </Link>
       </div>
     )
@@ -220,8 +219,7 @@ export function TryOnHistoryList({
               <div className="flex items-center justify-between mb-2">
                 <span className="text-sm text-gray-500">
                   {formatDistanceToNow(new Date(task.createdAt), {
-                    addSuffix: true,
-                    locale: zhCN
+                    addSuffix: true
                   })}
                 </span>
               </div>

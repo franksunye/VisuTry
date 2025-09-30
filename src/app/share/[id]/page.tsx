@@ -10,7 +10,7 @@ interface SharePageProps {
   }
 }
 
-// 生成动态元数据
+// Generate dynamic metadata
 export async function generateMetadata({ params }: SharePageProps): Promise<Metadata> {
   const task = await prisma.tryOnTask.findUnique({
     where: { id: params.id },
@@ -25,33 +25,33 @@ export async function generateMetadata({ params }: SharePageProps): Promise<Meta
 
   if (!task || task.status !== "COMPLETED" || !task.resultImageUrl) {
     return {
-      title: "VisuTry - AI眼镜试戴",
-      description: "使用AI技术体验虚拟眼镜试戴"
+      title: "VisuTry - AI Glasses Try-On",
+      description: "Experience virtual glasses try-on with AI technology"
     }
   }
 
-  const userName = task.user.name || "用户"
-  
+  const userName = task.user.name || "User"
+
   return {
-    title: `${userName}的AI眼镜试戴效果 - VisuTry`,
-    description: `查看${userName}使用VisuTry AI技术的眼镜试戴效果`,
+    title: `${userName}'s AI Glasses Try-On Result - VisuTry`,
+    description: `Check out ${userName}'s AI glasses try-on result with VisuTry`,
     openGraph: {
-      title: `${userName}的AI眼镜试戴效果`,
-      description: `查看${userName}使用VisuTry AI技术的眼镜试戴效果`,
+      title: `${userName}'s AI Glasses Try-On Result`,
+      description: `Check out ${userName}'s AI glasses try-on result with VisuTry`,
       images: [
         {
           url: task.resultImageUrl,
           width: 800,
           height: 600,
-          alt: "AI眼镜试戴效果"
+          alt: "AI Glasses Try-On Result"
         }
       ],
       type: "website"
     },
     twitter: {
       card: "summary_large_image",
-      title: `${userName}的AI眼镜试戴效果`,
-      description: `查看${userName}使用VisuTry AI技术的眼镜试戴效果`,
+      title: `${userName}'s AI Glasses Try-On Result`,
+      description: `Check out ${userName}'s AI glasses try-on result with VisuTry`,
       images: [task.resultImageUrl]
     }
   }

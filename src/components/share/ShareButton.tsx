@@ -14,7 +14,7 @@ export function ShareButton({ taskId, className }: ShareButtonProps) {
   const [copied, setCopied] = useState(false)
 
   const shareUrl = `${window.location.origin}/share/${taskId}`
-  const shareText = "看看我用VisuTry AI试戴的眼镜效果！"
+  const shareText = "Check out my AI glasses try-on result with VisuTry!"
 
   const handleCopyLink = async () => {
     try {
@@ -22,7 +22,7 @@ export function ShareButton({ taskId, className }: ShareButtonProps) {
       setCopied(true)
       setTimeout(() => setCopied(false), 2000)
     } catch (error) {
-      console.error("复制失败:", error)
+      console.error("Copy failed:", error)
     }
   }
 
