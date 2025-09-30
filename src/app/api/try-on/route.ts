@@ -30,6 +30,14 @@ export async function POST(request: NextRequest) {
     const userId = session?.user?.id || testSession?.id || 'unknown'
     const userEmail = session?.user?.email || testSession?.email || 'test@example.com'
 
+    // 验证用户 ID
+    if (userId === 'unknown' || !userId) {
+      return NextResponse.json(
+        { success: false, error: "无效的用户会话" },
+        { status: 401 }
+      )
+    }
+
     // 检查用户是否有剩余次数
     let user
     if (testSession) {
@@ -43,11 +51,27 @@ export async function POST(request: NextRequest) {
       user = await prisma.user.findUnique({
         where: { id: userId }
       })
+
+      // 如果用户不存在，自动创建（防御性编程）
+      if (!user && session?.user) {
+        console.log('User not found, creating user:', userId)
+        user = await prisma.user.create({
+          data: {
+            id: userId,
+            name: session.user.name,
+            email: session.user.email,
+            image: session.user.image,
+            username: session.user.username,
+            freeTrialsUsed: 0,
+            isPremium: false,
+          }
+        })
+      }
     }
 
     if (!user) {
       return NextResponse.json(
-        { success: false, error: "用户不存在" },
+        { success: false, error: "用户不存在，请重新登录" },
         { status: 404 }
       )
     }

@@ -15,40 +15,85 @@ export default async function DashboardPage() {
     redirect("/auth/signin")
   }
 
-  // 获取用户统计数据
-  const [tryOnStats, recentTryOns] = await Promise.all([
-    prisma.tryOnTask.aggregate({
-      where: { userId: session.user.id },
-      _count: {
-        id: true,
-      },
-    }),
-    prisma.tryOnTask.findMany({
-      where: { userId: session.user.id },
-      orderBy: { createdAt: "desc" },
-      take: 6,
-      select: {
-        id: true,
-        status: true,
-        userImageUrl: true,
-        resultImageUrl: true,
-        createdAt: true,
-      },
-    }),
-  ])
+  // 确保用户 ID 有效
+  if (!session.user?.id || session.user.id === "unknown") {
+    console.error('Invalid user ID in session:', session.user?.id)
+    redirect("/auth/signin?error=InvalidSession")
+  }
 
-  const completedTryOns = await prisma.tryOnTask.count({
-    where: {
-      userId: session.user.id,
-      status: "COMPLETED",
-    },
-  })
+  let tryOnStats, recentTryOns, completedTryOns
+
+  try {
+    // 首先确保用户存在于数据库中
+    let user = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: { id: true }
+    })
+
+    // 如果用户不存在，创建用户记录（防御性编程）
+    if (!user) {
+      console.log('User not found in database, creating user:', session.user.id)
+      user = await prisma.user.create({
+        data: {
+          id: session.user.id,
+          name: session.user.name,
+          email: session.user.email,
+          image: session.user.image,
+          username: session.user.username,
+          freeTrialsUsed: 0,
+          isPremium: false,
+        },
+        select: { id: true }
+      })
+    }
+
+    // 获取用户统计数据
+    [tryOnStats, recentTryOns] = await Promise.all([
+      prisma.tryOnTask.aggregate({
+        where: { userId: session.user.id },
+        _count: {
+          id: true,
+        },
+      }),
+      prisma.tryOnTask.findMany({
+        where: { userId: session.user.id },
+        orderBy: { createdAt: "desc" },
+        take: 6,
+        select: {
+          id: true,
+          status: true,
+          userImageUrl: true,
+          resultImageUrl: true,
+          createdAt: true,
+        },
+      }),
+    ])
+
+    completedTryOns = await prisma.tryOnTask.count({
+      where: {
+        userId: session.user.id,
+        status: "COMPLETED",
+      },
+    })
+  } catch (error) {
+    console.error('Error fetching dashboard data:', error)
+
+    // 如果是数据库连接错误，显示友好的错误信息
+    if (error instanceof Error && error.message.includes('connect')) {
+      throw new Error('Unable to connect to database. Please try again later.')
+    }
+
+    // 其他错误，使用默认值
+    tryOnStats = { _count: { id: 0 } }
+    recentTryOns = []
+    completedTryOns = 0
+  }
 
   const stats = {
-    totalTryOns: tryOnStats._count.id,
-    completedTryOns,
-    remainingTrials: session.user.remainingTrials,
-    isPremium: session.user.isPremiumActive,
+    totalTryOns: tryOnStats?._count?.id || 0,
+    completedTryOns: completedTryOns || 0,
+    remainingTrials: session.user.remainingTrials || 0,
+    isPremium: session.user.isPremiumActive || false,
   }
 
   return (

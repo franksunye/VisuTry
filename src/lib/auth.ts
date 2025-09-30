@@ -17,53 +17,96 @@ const __debugWrite = (label: string, data: any) => {
 }
 
 export const authOptions: NextAuthOptions = {
-  // 暂时使用 JWT 策略避免数据库连接问题
-  adapter: undefined, // isMockMode ? undefined : PrismaAdapter(prisma),
+  // 使用 Prisma Adapter 确保用户自动创建到数据库
+  adapter: isMockMode ? undefined : PrismaAdapter(prisma),
 
   providers: [
     ...(isMockMode ? [MockCredentialsProvider] : []),
-    // 使用Twitter OAuth 1.0a (API Key and Secret)
+    // 使用Twitter OAuth 2.0
     TwitterProvider({
       clientId: process.env.TWITTER_CLIENT_ID!,
       clientSecret: process.env.TWITTER_CLIENT_SECRET!,
-      version: "2.0", // 使用 OAuth 2.0（Twitter 已更新域名为 api.x.com）
+      version: "2.0",
     }),
   ],
   callbacks: {
-    async session({ session, token }) {
-      // 简化的session callback
+    async session({ session, token, user }) {
+      // 从数据库同步最新的用户数据
       if (session.user && token) {
-        session.user.id = (token.sub as string) || (token.id as string) || "unknown"
-        session.user.freeTrialsUsed = (token.freeTrialsUsed as number) || 0
-        session.user.isPremium = (token.isPremium as boolean) || false
-        session.user.premiumExpiresAt = (token.premiumExpiresAt as Date) || null
-        session.user.isPremiumActive = (token.isPremiumActive as boolean) || false
-        session.user.remainingTrials = (token.remainingTrials as number) || 3
+        const userId = user?.id || (token.sub as string) || (token.id as string)
 
-        if (token.username) {
+        if (userId && userId !== "unknown") {
+          try {
+            // 从数据库获取最新用户数据
+            const dbUser = await prisma.user.findUnique({
+              where: { id: userId },
+              select: {
+                id: true,
+                name: true,
+                email: true,
+                image: true,
+                username: true,
+                freeTrialsUsed: true,
+                isPremium: true,
+                premiumExpiresAt: true,
+              }
+            })
+
+            if (dbUser) {
+              session.user.id = dbUser.id
+              session.user.name = dbUser.name
+              session.user.email = dbUser.email
+              session.user.image = dbUser.image
+              session.user.username = dbUser.username
+              session.user.freeTrialsUsed = dbUser.freeTrialsUsed
+              session.user.isPremium = dbUser.isPremium
+              session.user.premiumExpiresAt = dbUser.premiumExpiresAt
+
+              // 计算是否为活跃高级会员
+              session.user.isPremiumActive = dbUser.isPremium &&
+                (!dbUser.premiumExpiresAt || dbUser.premiumExpiresAt > new Date())
+
+              // 计算剩余试用次数
+              const freeTrialLimit = parseInt(process.env.FREE_TRIAL_LIMIT || "3")
+              session.user.remainingTrials = Math.max(0, freeTrialLimit - dbUser.freeTrialsUsed)
+            } else {
+              // 用户不存在于数据库，使用 token 中的默认值
+              session.user.id = userId
+              session.user.freeTrialsUsed = 0
+              session.user.isPremium = false
+              session.user.premiumExpiresAt = null
+              session.user.isPremiumActive = false
+              session.user.remainingTrials = 3
+            }
+          } catch (error) {
+            console.error('Error fetching user from database:', error)
+            // 发生错误时使用 token 中的值作为后备
+            session.user.id = userId
+            session.user.freeTrialsUsed = (token.freeTrialsUsed as number) || 0
+            session.user.isPremium = (token.isPremium as boolean) || false
+            session.user.premiumExpiresAt = (token.premiumExpiresAt as Date) || null
+            session.user.isPremiumActive = (token.isPremiumActive as boolean) || false
+            session.user.remainingTrials = (token.remainingTrials as number) || 3
+          }
+        }
+
+        // 从 token 补充用户名和邮箱（如果数据库中没有）
+        if (token.username && !session.user.username) {
           session.user.username = token.username as string
         }
-        if (token.email) {
+        if (token.email && !session.user.email) {
           session.user.email = token.email as string
         }
       }
       return session
     },
     async jwt({ token, user, account, profile }) {
-      // 简化的JWT callback，减少可能的错误点
+      // 首次登录时设置基本信息
       if (user) {
-        // 首次登录，设置基本信息
         token.id = user.id
         token.name = user.name
         token.email = user.email
         token.image = user.image
-
-        // 设置默认属性
-        token.freeTrialsUsed = 0
-        token.isPremium = false
-        token.premiumExpiresAt = null
-        token.isPremiumActive = false
-        token.remainingTrials = 3
       }
 
       // 如果是Twitter登录，补充用户名与邮箱（兼容 v1.1/v2）
@@ -71,6 +114,35 @@ export const authOptions: NextAuthOptions = {
         const p: any = profile
         token.username = p?.data?.username ?? p?.username ?? p?.screen_name ?? token.username ?? user?.name
         if (!token.email) token.email = p?.data?.email ?? p?.email ?? token.email
+      }
+
+      // 定期从数据库同步用户数据到 token（每次请求都同步）
+      if (token.sub) {
+        try {
+          const dbUser = await prisma.user.findUnique({
+            where: { id: token.sub },
+            select: {
+              freeTrialsUsed: true,
+              isPremium: true,
+              premiumExpiresAt: true,
+            }
+          })
+
+          if (dbUser) {
+            token.freeTrialsUsed = dbUser.freeTrialsUsed
+            token.isPremium = dbUser.isPremium
+            token.premiumExpiresAt = dbUser.premiumExpiresAt
+
+            // 计算活跃状态和剩余次数
+            token.isPremiumActive = dbUser.isPremium &&
+              (!dbUser.premiumExpiresAt || dbUser.premiumExpiresAt > new Date())
+
+            const freeTrialLimit = parseInt(process.env.FREE_TRIAL_LIMIT || "3")
+            token.remainingTrials = Math.max(0, freeTrialLimit - dbUser.freeTrialsUsed)
+          }
+        } catch (error) {
+          console.error('Error syncing user data to token:', error)
+        }
       }
 
       return token
