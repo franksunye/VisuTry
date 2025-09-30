@@ -10,7 +10,7 @@ export async function GET(
   try {
     // 检查用户认证
     const session = await getServerSession(authOptions)
-    if (!session) {
+    if (!session || !session.user) {
       return NextResponse.json(
         { success: false, error: "未授权访问" },
         { status: 401 }
@@ -79,7 +79,7 @@ export async function DELETE(
   try {
     // 检查用户认证
     const session = await getServerSession(authOptions)
-    if (!session) {
+    if (!session || !session.user) {
       return NextResponse.json(
         { success: false, error: "未授权访问" },
         { status: 401 }

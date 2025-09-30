@@ -82,7 +82,7 @@ export async function POST(request: NextRequest) {
     }
 
     // 上传用户图片
-    const userImageFilename = `try-on/${session.user.id}/${Date.now()}-user.jpg`
+    const userImageFilename = `try-on/${userId}/${Date.now()}-user.jpg`
     let userImageBlob
 
     if (isMockMode) {
@@ -97,7 +97,7 @@ export async function POST(request: NextRequest) {
 
     if (glassesImageFile) {
       // 上传眼镜图片
-      const glassesImageFilename = `try-on/${session.user.id}/${Date.now()}-glasses.jpg`
+      const glassesImageFilename = `try-on/${userId}/${Date.now()}-glasses.jpg`
       let glassesImageBlob
 
       if (isMockMode) {
@@ -143,7 +143,7 @@ export async function POST(request: NextRequest) {
     let tryOnTask
     if (isMockMode) {
       tryOnTask = await MockDatabase.createTryOnTask({
-        userId: session.user.id,
+        userId: userId,
         frameId: frameId,
         originalImageUrl: userImageBlob.url,
         status: "processing"
@@ -151,7 +151,7 @@ export async function POST(request: NextRequest) {
     } else {
       tryOnTask = await prisma.tryOnTask.create({
         data: {
-          userId: session.user.id,
+          userId: userId,
           userImageUrl: userImageBlob.url,
           glassesImageUrl,
           status: "PROCESSING"
@@ -175,12 +175,12 @@ export async function POST(request: NextRequest) {
     // 更新用户使用次数（仅对免费用户）
     if (!isPremiumActive) {
       if (isMockMode) {
-        await MockDatabase.updateUser(session.user.id, {
+        await MockDatabase.updateUser(userId, {
           freeTrialsUsed: user.freeTrialsUsed + 1
         })
       } else {
         await prisma.user.update({
-          where: { id: session.user.id },
+          where: { id: userId },
           data: {
             freeTrialsUsed: user.freeTrialsUsed + 1
           }

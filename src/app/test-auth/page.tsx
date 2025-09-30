@@ -57,10 +57,10 @@ export default function TestAuthPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl shadow-xl p-8 max-w-md w-full">
-        <div className="text-center mb-8">
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">
+    <div className="flex items-center justify-center min-h-screen p-4 bg-gradient-to-br from-blue-50 to-indigo-100">
+      <div className="w-full max-w-md p-8 bg-white shadow-xl rounded-2xl">
+        <div className="mb-8 text-center">
+          <h1 className="mb-2 text-2xl font-bold text-gray-900">
             🧪 测试认证页面
           </h1>
           <p className="text-gray-600">
@@ -72,22 +72,22 @@ export default function TestAuthPage() {
           <button
             onClick={handleTestLogin}
             disabled={loading}
-            className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-blue-300 text-white font-medium py-3 px-4 rounded-lg transition-colors"
+            className="w-full px-4 py-3 font-medium text-white transition-colors bg-blue-600 rounded-lg hover:bg-blue-700 disabled:bg-blue-300"
           >
             {loading ? '登录中...' : '🔑 测试登录 (模拟 Twitter)'}
           </button>
 
           <button
             onClick={handleClearSession}
-            className="w-full bg-gray-600 hover:bg-gray-700 text-white font-medium py-3 px-4 rounded-lg transition-colors"
+            className="w-full px-4 py-3 font-medium text-white transition-colors bg-gray-600 rounded-lg hover:bg-gray-700"
           >
             🗑️ 清除会话
           </button>
 
-          <div className="border-t pt-4">
+          <div className="pt-4 border-t">
             <a
               href="/auth/signin"
-              className="w-full bg-green-600 hover:bg-green-700 text-white font-medium py-3 px-4 rounded-lg transition-colors block text-center"
+              className="block w-full px-4 py-3 font-medium text-center text-white transition-colors bg-green-600 rounded-lg hover:bg-green-700"
             >
               🐦 真实 Twitter 登录
             </a>
@@ -95,7 +95,7 @@ export default function TestAuthPage() {
         </div>
 
         {message && (
-          <div className="mt-6 p-4 bg-gray-50 rounded-lg">
+          <div className="p-4 mt-6 rounded-lg bg-gray-50">
             <p className="text-sm text-gray-700">{message}</p>
           </div>
         )}
@@ -103,7 +103,7 @@ export default function TestAuthPage() {
         <div className="mt-8 text-center">
           <a
             href="/"
-            className="text-blue-600 hover:text-blue-800 text-sm"
+            className="text-sm text-blue-600 hover:text-blue-800"
           >
             ← 返回首页
           </a>

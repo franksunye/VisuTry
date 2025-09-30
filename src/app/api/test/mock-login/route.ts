@@ -101,10 +101,10 @@ export async function GET(request: NextRequest) {
       authenticated: !!session || !!testSession,
       session: session ? {
         user: {
-          id: session.user.id,
-          email: session.user.email,
-          name: session.user.name,
-          image: session.user.image,
+          id: session.user?.id,
+          email: session.user?.email,
+          name: session.user?.name,
+          image: session.user?.image,
         },
         source: 'nextauth'
       } : null,
