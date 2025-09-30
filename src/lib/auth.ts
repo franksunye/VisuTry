@@ -9,7 +9,6 @@ import { log } from "@/lib/logger"
 const __debugWrite = (label: string, data: any) => {
   if (process.env.NODE_ENV !== 'development') return
   try {
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
     const fs = require('fs') as typeof import('fs')
     const line = JSON.stringify({ ts: new Date().toISOString(), label, data }) + "\n"
     fs.mkdirSync('tmp', { recursive: true })
