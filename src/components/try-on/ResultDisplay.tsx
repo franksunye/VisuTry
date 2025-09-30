@@ -36,30 +36,30 @@ export function ResultDisplay({
       
       window.URL.revokeObjectURL(url)
     } catch (error) {
-      console.error("下载失败:", error)
-      alert("下载失败，请重试")
+      console.error("Download failed:", error)
+      alert("Download failed, please try again")
     }
   }
 
   const handleShare = async (platform: "twitter" | "facebook" | "copy") => {
     setSharing(true)
-    
+
     try {
-      // 生成分享链接
+      // Generate share link
       const shareUrl = `${window.location.origin}/share/${taskId}`
-      const shareText = "看看我用VisuTry AI试戴的眼镜效果！"
-      
+      const shareText = "Check out my AI glasses try-on result with VisuTry!"
+
       switch (platform) {
         case "twitter":
           const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(shareUrl)}`
           window.open(twitterUrl, "_blank")
           break
-          
+
         case "facebook":
           const facebookUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`
           window.open(facebookUrl, "_blank")
           break
-          
+
         case "copy":
           await navigator.clipboard.writeText(shareUrl)
           setCopied(true)
@@ -67,8 +67,8 @@ export function ResultDisplay({
           break
       }
     } catch (error) {
-      console.error("分享失败:", error)
-      alert("分享失败，请重试")
+      console.error("Share failed:", error)
+      alert("Share failed, please try again")
     } finally {
       setSharing(false)
     }
@@ -88,7 +88,7 @@ export function ResultDisplay({
         setLiked(!liked)
       }
     } catch (error) {
-      console.error("反馈失败:", error)
+      console.error("Feedback failed:", error)
     }
   }
 
@@ -96,30 +96,30 @@ export function ResultDisplay({
     <div className={cn("max-w-4xl mx-auto", className)}>
       <div className="text-center mb-8">
         <h2 className="text-2xl font-bold text-gray-900 mb-2">
-          试戴完成！
+          Try-On Complete!
         </h2>
         <p className="text-gray-600">
-          AI为您生成了专属的试戴效果，您觉得怎么样？
+          AI has generated your personalized try-on result. What do you think?
         </p>
       </div>
 
       <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
-        {/* 结果图片 */}
+        {/* Result Image */}
         <div className="relative">
           <img
             src={resultImageUrl}
-            alt="AI试戴结果"
+            alt="AI Try-On Result"
             className="w-full h-auto max-h-96 object-contain bg-gray-50"
           />
-          
-          {/* 浮动操作按钮 */}
+
+          {/* Floating Action Button */}
           <div className="absolute top-4 right-4 flex space-x-2">
             <button
               onClick={handleLike}
               className={cn(
                 "w-10 h-10 rounded-full flex items-center justify-center transition-colors",
-                liked 
-                  ? "bg-red-500 text-white" 
+                liked
+                  ? "bg-red-500 text-white"
                   : "bg-white bg-opacity-80 text-gray-600 hover:bg-opacity-100"
               )}
             >
@@ -128,29 +128,29 @@ export function ResultDisplay({
           </div>
         </div>
 
-        {/* 操作区域 */}
+        {/* Action Area */}
         <div className="p-6">
           <div className="flex flex-col sm:flex-row gap-4">
-            {/* 主要操作 */}
+            {/* Primary Actions */}
             <div className="flex-1 grid grid-cols-2 gap-3">
               <button
                 onClick={handleDownload}
                 className="flex items-center justify-center px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
               >
                 <Download className="w-5 h-5 mr-2" />
-                下载图片
+                Download
               </button>
-              
+
               <button
                 onClick={onTryAgain}
                 className="flex items-center justify-center px-4 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
               >
                 <RotateCcw className="w-5 h-5 mr-2" />
-                重新试戴
+                Try Again
               </button>
             </div>
 
-            {/* 分享操作 */}
+            {/* Share Actions */}
             <div className="flex space-x-2">
               <button
                 onClick={() => handleShare("twitter")}
@@ -159,7 +159,7 @@ export function ResultDisplay({
               >
                 <Twitter className="w-5 h-5" />
               </button>
-              
+
               <button
                 onClick={() => handleShare("facebook")}
                 disabled={sharing}
@@ -167,7 +167,7 @@ export function ResultDisplay({
               >
                 <Facebook className="w-5 h-5" />
               </button>
-              
+
               <button
                 onClick={() => handleShare("copy")}
                 disabled={sharing}
@@ -178,10 +178,10 @@ export function ResultDisplay({
             </div>
           </div>
 
-          {/* 提示信息 */}
+          {/* Tip Message */}
           <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
             <p className="text-sm text-blue-800">
-              💡 提示：您可以下载图片保存到本地，或者分享给朋友看看效果！
+              💡 Tip: You can download the image to save locally, or share it with friends!
             </p>
           </div>
         </div>

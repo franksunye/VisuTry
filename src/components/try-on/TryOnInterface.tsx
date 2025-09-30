@@ -15,9 +15,9 @@ export function TryOnInterface() {
   const [result, setResult] = useState<{ imageUrl: string; taskId: string } | null>(null)
   const [currentStep, setCurrentStep] = useState<"upload" | "select" | "process" | "result">("upload")
   const [currentTaskId, setCurrentTaskId] = useState<string | null>(null)
-  const [processingMessage, setProcessingMessage] = useState("AI正在处理您的试戴请求...")
+  const [processingMessage, setProcessingMessage] = useState("AI is processing your try-on request...")
 
-  // 轮询检查任务状态
+  // Poll task status
   useEffect(() => {
     if (!currentTaskId || !isProcessing) return
 
@@ -39,19 +39,19 @@ export function TryOnInterface() {
             setCurrentTaskId(null)
             clearInterval(pollInterval)
           } else if (task.status === "failed") {
-            alert(task.errorMessage || "AI处理失败，请重试")
+            alert(task.errorMessage || "AI processing failed, please try again")
             setCurrentStep("select")
             setIsProcessing(false)
             setCurrentTaskId(null)
             clearInterval(pollInterval)
           } else if (task.status === "processing") {
-            setProcessingMessage("AI正在分析您的照片和眼镜...")
+            setProcessingMessage("AI is analyzing your photo and glasses...")
           }
         }
       } catch (error) {
-        console.error("检查任务状态失败:", error)
+        console.error("Failed to check task status:", error)
       }
-    }, 2000) // 每2秒检查一次
+    }, 2000) // Check every 2 seconds
 
     return () => clearInterval(pollInterval)
   }, [currentTaskId, isProcessing])
@@ -109,14 +109,14 @@ export function TryOnInterface() {
 
       if (data.success) {
         setCurrentTaskId(data.data.taskId)
-        setProcessingMessage("AI正在处理您的试戴请求...")
-        // 不立即设置结果，等待轮询获取完成状态
+        setProcessingMessage("AI is processing your try-on request...")
+        // Don't set result immediately, wait for polling to get completion status
       } else {
-        throw new Error(data.error || "试戴失败")
+        throw new Error(data.error || "Try-on failed")
       }
     } catch (error) {
-      console.error("试戴失败:", error)
-      alert("试戴失败，请重试")
+      console.error("Try-on failed:", error)
+      alert("Try-on failed, please try again")
       setCurrentStep("select")
     } finally {
       setIsProcessing(false)
@@ -133,7 +133,7 @@ export function TryOnInterface() {
 
   return (
     <div className="max-w-6xl mx-auto">
-      {/* 步骤指示器 */}
+      {/* Step Indicator */}
       <div className="flex items-center justify-center mb-8">
         <div className="flex items-center space-x-4">
           <div className={`flex items-center ${currentStep !== "upload" ? "text-green-600" : "text-blue-600"}`}>
@@ -142,37 +142,37 @@ export function TryOnInterface() {
             }`}>
               <User className="w-4 h-4" />
             </div>
-            <span className="ml-2 font-medium">上传照片</span>
+            <span className="ml-2 font-medium">Upload Photo</span>
           </div>
-          
+
           <ArrowRight className="w-4 h-4 text-gray-400" />
-          
+
           <div className={`flex items-center ${
-            currentStep === "select" ? "text-blue-600" : 
+            currentStep === "select" ? "text-blue-600" :
             ["process", "result"].includes(currentStep) ? "text-green-600" : "text-gray-400"
           }`}>
             <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
-              currentStep === "select" ? "bg-blue-100" : 
+              currentStep === "select" ? "bg-blue-100" :
               ["process", "result"].includes(currentStep) ? "bg-green-100" : "bg-gray-100"
             }`}>
               <Glasses className="w-4 h-4" />
             </div>
-            <span className="ml-2 font-medium">选择眼镜</span>
+            <span className="ml-2 font-medium">Select Glasses</span>
           </div>
-          
+
           <ArrowRight className="w-4 h-4 text-gray-400" />
-          
+
           <div className={`flex items-center ${
-            currentStep === "process" ? "text-blue-600" : 
+            currentStep === "process" ? "text-blue-600" :
             currentStep === "result" ? "text-green-600" : "text-gray-400"
           }`}>
             <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
-              currentStep === "process" ? "bg-blue-100" : 
+              currentStep === "process" ? "bg-blue-100" :
               currentStep === "result" ? "bg-green-100" : "bg-gray-100"
             }`}>
               <Sparkles className="w-4 h-4" />
             </div>
-            <span className="ml-2 font-medium">AI试戴</span>
+            <span className="ml-2 font-medium">AI Try-On</span>
           </div>
         </div>
       </div>
@@ -185,36 +185,36 @@ export function TryOnInterface() {
         />
       ) : (
         <div className="grid lg:grid-cols-2 gap-8">
-          {/* 左侧：用户照片上传 */}
+          {/* Left: User Photo Upload */}
           <div className="space-y-6">
             <ImageUpload
               onImageSelect={handleUserImageSelect}
               onImageRemove={handleUserImageRemove}
               currentImage={userImage?.preview}
-              label="上传您的照片"
-              description="请上传清晰的正面照片，确保面部清楚可见"
+              label="Upload Your Photo"
+              description="Please upload a clear front-facing photo with your face clearly visible"
               loading={isProcessing}
             />
           </div>
 
-          {/* 右侧：眼镜选择 */}
+          {/* Right: Glasses Selection */}
           <div className="space-y-6">
             <div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">选择眼镜款式</h3>
-              
-              {/* 自定义上传 */}
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">Select Glasses Style</h3>
+
+              {/* Custom Upload */}
               <div className="mb-6">
                 <ImageUpload
                   onImageSelect={handleGlassesImageSelect}
                   onImageRemove={handleGlassesImageRemove}
                   currentImage={glassesImage?.preview}
-                  label="上传自定义眼镜"
-                  description="或者从下方预设款式中选择"
+                  label="Upload Custom Glasses"
+                  description="Or choose from preset styles below"
                   loading={isProcessing}
                 />
               </div>
 
-              {/* 预设框架选择器 */}
+              {/* Preset Frame Selector */}
               <FrameSelector
                 selectedFrameId={selectedFrameId}
                 onFrameSelect={handleFrameSelect}
@@ -225,7 +225,7 @@ export function TryOnInterface() {
         </div>
       )}
 
-      {/* 操作按钮 */}
+      {/* Action Button */}
       {currentStep !== "result" && (
         <div className="flex justify-center mt-8">
           <button
