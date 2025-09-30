@@ -50,14 +50,14 @@ export function PricingCard({ plan, currentUser }: PricingCardProps) {
       const data = await response.json()
 
       if (data.success && data.data.url) {
-        // 重定向到Stripe Checkout
+        // Redirect to Stripe Checkout
         window.location.href = data.data.url
       } else {
-        throw new Error(data.error || "创建支付会话失败")
+        throw new Error(data.error || "Failed to create payment session")
       }
     } catch (error) {
-      console.error("支付失败:", error)
-      alert("支付失败，请重试")
+      console.error("Payment failed:", error)
+      alert("Payment failed, please try again")
     } finally {
       setLoading(false)
     }
@@ -75,17 +75,17 @@ export function PricingCard({ plan, currentUser }: PricingCardProps) {
         ? "border-blue-500 ring-2 ring-blue-200 scale-105" 
         : "border-gray-200 hover:border-gray-300 hover:shadow-md"
     )}>
-      {/* 热门标签 */}
+      {/* Popular Badge */}
       {plan.popular && (
         <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
           <span className="bg-blue-600 text-white px-4 py-1 rounded-full text-sm font-medium">
-            最受欢迎
+            Most Popular
           </span>
         </div>
       )}
 
       <div className="p-6">
-        {/* 图标和标题 */}
+        {/* Icon and Title */}
         <div className="flex items-center mb-4">
           <div className={cn(
             "w-12 h-12 rounded-lg flex items-center justify-center mr-4",
@@ -99,7 +99,7 @@ export function PricingCard({ plan, currentUser }: PricingCardProps) {
           </div>
         </div>
 
-        {/* 价格 */}
+        {/* Price */}
         <div className="mb-6">
           <div className="flex items-baseline">
             <span className="text-3xl font-bold text-gray-900">{plan.price}</span>
@@ -108,12 +108,12 @@ export function PricingCard({ plan, currentUser }: PricingCardProps) {
           {plan.originalPrice && (
             <div className="flex items-center mt-1">
               <span className="text-gray-500 line-through text-sm">{plan.originalPrice}</span>
-              <span className="text-green-600 text-sm ml-2 font-medium">节省17%</span>
+              <span className="text-green-600 text-sm ml-2 font-medium">Save 17%</span>
             </div>
           )}
         </div>
 
-        {/* 功能列表 */}
+        {/* Features List */}
         <ul className="space-y-3 mb-8">
           {plan.features.map((feature, index) => (
             <li key={index} className="flex items-start">
@@ -123,7 +123,7 @@ export function PricingCard({ plan, currentUser }: PricingCardProps) {
           ))}
         </ul>
 
-        {/* 按钮 */}
+        {/* Button */}
         <button
           onClick={handleSubscribe}
           disabled={isDisabled}
@@ -138,25 +138,25 @@ export function PricingCard({ plan, currentUser }: PricingCardProps) {
           {loading ? (
             <div className="flex items-center justify-center">
               <Loader2 className="w-4 h-4 animate-spin mr-2" />
-              处理中...
+              Processing...
             </div>
           ) : isCurrentPlan ? (
-            "当前套餐"
+            "Current Plan"
           ) : (
             plan.buttonText
           )}
         </button>
 
-        {/* 额外信息 */}
+        {/* Additional Info */}
         {plan.id === "CREDITS_PACK" && (
           <p className="text-xs text-gray-500 text-center mt-3">
-            次数包永不过期，可随时使用
+            Credits never expire, use anytime
           </p>
         )}
-        
+
         {(plan.id === "PREMIUM_MONTHLY" || plan.id === "PREMIUM_YEARLY") && (
           <p className="text-xs text-gray-500 text-center mt-3">
-            可随时取消，无长期合约
+            Cancel anytime, no long-term contract
           </p>
         )}
       </div>
