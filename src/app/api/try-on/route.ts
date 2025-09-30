@@ -15,33 +15,33 @@ export const dynamic = 'force-dynamic'
 
 export async function POST(request: NextRequest) {
   try {
-    // 检查用户认证 (NextAuth 或测试会话)
+    // Check user authentication (NextAuth or test session)
     const session = await getServerSession(authOptions)
     const testSession = !session ? getTestSessionFromRequest(request) : null
 
     if (!session && !testSession) {
       return NextResponse.json(
-        { success: false, error: "未授权访问" },
+        { success: false, error: "Unauthorized access" },
         { status: 401 }
       )
     }
 
-    // 使用会话数据
+    // Use session data
     const userId = session?.user?.id || testSession?.id || 'unknown'
     const userEmail = session?.user?.email || testSession?.email || 'test@example.com'
 
-    // 验证用户 ID
+    // Validate user ID
     if (userId === 'unknown' || !userId) {
       return NextResponse.json(
-        { success: false, error: "无效的用户会话" },
+        { success: false, error: "Invalid user session" },
         { status: 401 }
       )
     }
 
-    // 检查用户是否有剩余次数
+    // Check if user has remaining tries
     let user
     if (testSession) {
-      // 使用测试会话数据
+      // Use test session data
       console.log('🧪 Test Session: Using test session data')
       user = testSession
     } else if (isMockMode) {
@@ -52,7 +52,7 @@ export async function POST(request: NextRequest) {
         where: { id: userId }
       })
 
-      // 如果用户不存在，自动创建（防御性编程）
+      // If user doesn't exist, create automatically (defensive programming)
       if (!user && session?.user) {
         console.log('User not found, creating user:', userId)
         user = await prisma.user.create({
@@ -71,43 +71,43 @@ export async function POST(request: NextRequest) {
 
     if (!user) {
       return NextResponse.json(
-        { success: false, error: "用户不存在，请重新登录" },
+        { success: false, error: "User not found, please log in again" },
         { status: 404 }
       )
     }
 
-    // 检查使用次数限制
+    // Check usage limit
     const freeTrialLimit = parseInt(process.env.FREE_TRIAL_LIMIT || "3")
-    const isPremiumActive = user.isPremium && 
+    const isPremiumActive = user.isPremium &&
       (!user.premiumExpiresAt || user.premiumExpiresAt > new Date())
 
     if (!isPremiumActive && user.freeTrialsUsed >= freeTrialLimit) {
       return NextResponse.json(
-        { success: false, error: "免费试用次数已用完，请升级到高级会员" },
+        { success: false, error: "Free trial limit reached, please upgrade to premium" },
         { status: 403 }
       )
     }
 
-    // 获取上传的文件
+    // Get uploaded files
     const formData = await request.formData()
     const userImageFile = formData.get("userImage") as File
     const glassesImageFile = formData.get("glassesImage") as File
 
     if (!userImageFile) {
       return NextResponse.json(
-        { success: false, error: "用户照片是必需的" },
+        { success: false, error: "User photo is required" },
         { status: 400 }
       )
     }
 
     if (!glassesImageFile) {
       return NextResponse.json(
-        { success: false, error: "请上传眼镜图片" },
+        { success: false, error: "Please upload glasses image" },
         { status: 400 }
       )
     }
 
-    // 上传用户图片
+    // Upload user image
     const userImageFilename = `try-on/${userId}/${Date.now()}-user.jpg`
     let userImageBlob
 
@@ -119,7 +119,7 @@ export async function POST(request: NextRequest) {
       })
     }
 
-    // 上传眼镜图片
+    // Upload glasses image
     const glassesImageFilename = `try-on/${userId}/${Date.now()}-glasses.jpg`
     let glassesImageBlob
 
@@ -133,7 +133,7 @@ export async function POST(request: NextRequest) {
 
     const glassesImageUrl = glassesImageBlob.url
 
-    // 创建试戴任务记录
+    // Create try-on task record
     let tryOnTask
     if (isMockMode) {
       tryOnTask = await MockDatabase.createTryOnTask({
@@ -155,18 +155,18 @@ export async function POST(request: NextRequest) {
 
     if (!tryOnTask) {
       return NextResponse.json(
-        { success: false, error: "创建试戴任务失败" },
+        { success: false, error: "Failed to create try-on task" },
         { status: 500 }
       )
     }
 
-    // 异步处理AI试戴
+    // Process AI try-on asynchronously
     processTryOnAsync(tryOnTask.id, userImageBlob.url, glassesImageUrl)
       .catch(error => {
-        console.error("异步处理试戴失败:", error)
+        console.error("Async try-on processing failed:", error)
       })
 
-    // 更新用户使用次数（仅对免费用户）
+    // Update user usage count (free users only)
     if (!isPremiumActive) {
       if (isMockMode) {
         await MockDatabase.updateUser(userId, {
@@ -187,20 +187,20 @@ export async function POST(request: NextRequest) {
       data: {
         taskId: tryOnTask.id,
         status: "processing",
-        message: "AI正在处理您的试戴请求，请稍候..."
+        message: "AI is processing your try-on request, please wait..."
       }
     })
 
   } catch (error) {
-    console.error("试戴API错误:", error)
+    console.error("Try-on API error:", error)
     return NextResponse.json(
-      { success: false, error: "服务器内部错误" },
+      { success: false, error: "Internal server error" },
       { status: 500 }
     )
   }
 }
 
-// 异步处理试戴任务
+// Process try-on task asynchronously
 async function processTryOnAsync(taskId: string, userImageUrl: string, glassesImageUrl: string) {
   try {
     let result

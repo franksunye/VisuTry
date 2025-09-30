@@ -1,7 +1,6 @@
 import { Clock, CheckCircle, XCircle, Loader2, ExternalLink, History } from "lucide-react"
 import Link from "next/link"
 import { formatDistanceToNow } from "date-fns"
-import { zhCN } from "date-fns/locale"
 
 interface TryOnTask {
   id: string
@@ -32,13 +31,13 @@ export function RecentTryOns({ tryOns }: RecentTryOnsProps) {
   const getStatusText = (status: string) => {
     switch (status.toLowerCase()) {
       case "completed":
-        return "已完成"
+        return "Completed"
       case "processing":
-        return "处理中"
+        return "Processing"
       case "failed":
-        return "失败"
+        return "Failed"
       default:
-        return "未知"
+        return "Unknown"
     }
   }
 
@@ -59,18 +58,18 @@ export function RecentTryOns({ tryOns }: RecentTryOnsProps) {
     return (
       <div className="bg-white rounded-xl shadow-sm border">
         <div className="p-6 border-b border-gray-200">
-          <h2 className="text-lg font-semibold text-gray-900">最近的试戴记录</h2>
+          <h2 className="text-lg font-semibold text-gray-900">Recent Try-Ons</h2>
         </div>
-        
+
         <div className="p-8 text-center">
           <History className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 mb-2">还没有试戴记录</h3>
-          <p className="text-gray-500 mb-6">开始您的第一次AI眼镜试戴体验吧！</p>
+          <h3 className="text-lg font-medium text-gray-900 mb-2">No try-on records yet</h3>
+          <p className="text-gray-500 mb-6">Start your first AI glasses try-on experience!</p>
           <Link
             href="/try-on"
             className="inline-flex items-center px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
           >
-            开始试戴
+            Start Try-On
           </Link>
         </div>
       </div>
@@ -81,12 +80,12 @@ export function RecentTryOns({ tryOns }: RecentTryOnsProps) {
     <div className="bg-white rounded-xl shadow-sm border">
       <div className="p-6 border-b border-gray-200">
         <div className="flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-gray-900">最近的试戴记录</h2>
+          <h2 className="text-lg font-semibold text-gray-900">Recent Try-Ons</h2>
           <Link
             href="/dashboard/history"
             className="text-blue-600 hover:text-blue-700 text-sm font-medium flex items-center"
           >
-            查看全部
+            View All
             <ExternalLink className="w-4 h-4 ml-1" />
           </Link>
         </div>
@@ -96,23 +95,23 @@ export function RecentTryOns({ tryOns }: RecentTryOnsProps) {
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
           {tryOns.map((tryOn) => (
             <div key={tryOn.id} className="border border-gray-200 rounded-lg overflow-hidden hover:shadow-md transition-shadow">
-              {/* 图片预览 */}
+              {/* Image Preview */}
               <div className="aspect-square bg-gray-100 relative">
                 {tryOn.resultImageUrl ? (
                   <img
                     src={tryOn.resultImageUrl}
-                    alt="试戴结果"
+                    alt="Try-on result"
                     className="w-full h-full object-cover"
                   />
                 ) : (
                   <img
                     src={tryOn.userImageUrl}
-                    alt="用户照片"
+                    alt="User photo"
                     className="w-full h-full object-cover opacity-50"
                   />
                 )}
-                
-                {/* 状态覆盖层 */}
+
+                {/* Status Badge */}
                 <div className="absolute top-2 right-2">
                   <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(tryOn.status)}`}>
                     {getStatusIcon(tryOn.status)}
@@ -120,23 +119,22 @@ export function RecentTryOns({ tryOns }: RecentTryOnsProps) {
                   </span>
                 </div>
               </div>
-              
-              {/* 信息区域 */}
+
+              {/* Info Area */}
               <div className="p-4">
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-gray-500">
                     {formatDistanceToNow(new Date(tryOn.createdAt), {
-                      addSuffix: true,
-                      locale: zhCN
+                      addSuffix: true
                     })}
                   </span>
-                  
+
                   {tryOn.status.toLowerCase() === "completed" && tryOn.resultImageUrl && (
                     <Link
                       href={`/share/${tryOn.id}`}
                       className="text-blue-600 hover:text-blue-700 text-sm font-medium"
                     >
-                      查看详情
+                      View Details
                     </Link>
                   )}
                 </div>
