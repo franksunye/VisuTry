@@ -21,7 +21,16 @@ export default async function DashboardPage() {
     redirect("/auth/signin?error=InvalidSession")
   }
 
-  let tryOnStats, recentTryOns, completedTryOns
+  // 定义类型
+  let tryOnStats: { _count: { id: number } } = { _count: { id: 0 } }
+  let recentTryOns: Array<{
+    id: string
+    status: string
+    userImageUrl: string
+    resultImageUrl: string | null
+    createdAt: Date
+  }> = []
+  let completedTryOns: number = 0
 
   try {
     // 首先确保用户存在于数据库中
@@ -48,7 +57,7 @@ export default async function DashboardPage() {
     }
 
     // 获取用户统计数据
-    [tryOnStats, recentTryOns] = await Promise.all([
+    const [stats, tasks] = await Promise.all([
       prisma.tryOnTask.aggregate({
         where: { userId: session.user.id },
         _count: {
@@ -69,6 +78,9 @@ export default async function DashboardPage() {
       }),
     ])
 
+    tryOnStats = stats
+    recentTryOns = tasks
+
     completedTryOns = await prisma.tryOnTask.count({
       where: {
         userId: session.user.id,
@@ -83,10 +95,7 @@ export default async function DashboardPage() {
       throw new Error('Unable to connect to database. Please try again later.')
     }
 
-    // 其他错误，使用默认值
-    tryOnStats = { _count: { id: 0 } }
-    recentTryOns = []
-    completedTryOns = 0
+    // 其他错误，使用默认值（已在声明时初始化）
   }
 
   const stats = {
