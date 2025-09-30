@@ -1,166 +1,150 @@
 # VisuTry Product Backlog
 
-## 🎯 Current Goal
-Focus on MVP with minimum feature set → Production deployment ready
+## 🎯 Current Sprint Goal
+**Local Development E2E Verification** - Configure real services and verify all key features work end-to-end in local environment
 
 ## 📊 Current Status
-✅ **Completed**: MVP core features implemented
-✅ **Completed**: Twitter OAuth authentication working
-✅ **Completed**: Vercel deployment successful
-✅ **Completed**: UI simplified (removed preset frames)
-🎯 **Next**: Real environment integration → Production optimization
+- ✅ Twitter OAuth authentication working
+- ✅ Vercel deployment successful (with dynamic route fix)
+- 🎯 **Focus**: Real service configuration + E2E verification in local dev
 
 ---
 
-## 🔥 High Priority (Immediate)
+## 🔥 Sprint Backlog (Current)
 
-### 1. Real Environment Configuration [8 story points]
-**Goal**: Replace Mock services with real services
-- [ ] PostgreSQL database configuration (Supabase)
-- [ ] Google Gemini API integration
-- [ ] Stripe payment real configuration
-- [ ] Vercel Blob storage configuration
-- [x] Twitter OAuth real configuration ✅
-- [ ] Staging environment deployment
+### 1. Real Service Configuration [5 SP]
+**Goal**: Configure all real services in local development environment
 
-**Acceptance Criteria**: All features work with real services
+- [x] Twitter OAuth ✅
+- [ ] Supabase PostgreSQL database
+  - [ ] Create Supabase project
+  - [ ] Configure connection string
+  - [ ] Run Prisma migrations
+  - [ ] Verify database connectivity
+- [ ] Vercel Blob storage
+  - [ ] Configure Blob token
+  - [ ] Test image upload
+  - [ ] Verify image retrieval
+- [ ] Google Gemini API
+  - [ ] Get API key
+  - [ ] Configure in .env.local
+  - [ ] Test AI image generation
+- [ ] Stripe payment (test mode)
+  - [ ] Configure test API keys
+  - [ ] Set up webhook endpoint
+  - [ ] Test payment flow
 
-### 2. Core Feature Testing [5 story points]
-**Goal**: Ensure MVP features work correctly
-- [ ] User authentication flow testing
-- [ ] Image upload and processing testing
-- [ ] AI try-on functionality testing
-- [ ] Payment flow testing
-- [ ] Share functionality testing
-
-**Acceptance Criteria**: All core user flows tested and working
+**Acceptance**: All services configured and responding in local dev
 
 ---
 
-## 🟡 Medium Priority (Short-term)
+### 2. Core Feature E2E Verification [8 SP]
+**Goal**: Verify each key feature works end-to-end with real services
 
-### 3. Performance & Monitoring [3 story points]
-**Goal**: Production-ready monitoring system
-- [ ] Performance benchmarking (Page < 3s, API < 500ms)
-- [ ] Error monitoring configuration
-- [ ] User behavior analytics
-- [ ] Alert mechanism
+#### 2.1 Authentication Flow ✅
+- [x] Twitter OAuth login
+- [x] Session persistence
+- [x] Logout
 
-**Acceptance Criteria**: Monitoring dashboard operational, performance meets targets
+#### 2.2 Image Upload & Storage
+- [ ] Upload user photo (< 5MB)
+- [ ] Upload glasses image
+- [ ] Images stored in Vercel Blob
+- [ ] Image URLs accessible
 
-### 4. Security Audit [2 story points]
-**Goal**: Production-grade security
-- [ ] Security scanning
+#### 2.3 AI Try-On Processing
+- [ ] Submit try-on request
+- [ ] Gemini API processes images
+- [ ] Result image generated
+- [ ] Result stored and retrievable
+
+#### 2.4 Try-On History
+- [ ] View history list
+- [ ] Pagination works
+- [ ] Filter by status
+- [ ] Delete try-on record
+
+#### 2.5 Payment Flow
+- [ ] View pricing page
+- [ ] Create Stripe checkout session
+- [ ] Complete test payment
+- [ ] Webhook updates user status
+- [ ] Premium features unlocked
+
+#### 2.6 Share Feature
+- [ ] Generate share link
+- [ ] Public share page accessible
+- [ ] Social media share buttons work
+
+**Acceptance**: All 6 features verified working end-to-end
+
+---
+
+## 📋 Product Backlog (Prioritized)
+
+### 3. Production Deployment Preparation [3 SP]
+- [ ] Environment variable security review
+- [ ] Error monitoring setup (Sentry/Vercel)
+- [ ] Performance baseline measurement
+- [ ] Production checklist completion
+
+### 4. Image Optimization [2 SP]
+- [ ] Replace `<img>` with Next.js `<Image />`
+- [ ] Configure image domains
+- [ ] Test responsive images
+- [ ] Measure LCP improvement
+
+### 5. Security Hardening [2 SP]
 - [ ] API rate limiting
-- [ ] Input validation review
-- [ ] Environment variable security check
-
-**Acceptance Criteria**: Security scan passes, no critical vulnerabilities
-
----
-
-## 🟢 Low Priority (Post-production)
-
-### 5. Production Deployment [3 story points]
-**Goal**: Successfully launch to production
-- [ ] Domain and SSL configuration
-- [ ] CDN optimization
-- [ ] Production environment deployment
-- [ ] Smoke testing verification
-
-**Acceptance Criteria**: Users can access and use all features
-
-### 6. Optimization & Documentation [2 story points]
-**Goal**: Production-grade optimization and docs
-- [ ] Load testing
-- [ ] Code optimization
-- [ ] User documentation
-- [ ] API documentation
-
-**Acceptance Criteria**: Load test passes, documentation complete
+- [ ] Input validation audit
+- [ ] CSRF protection verification
+- [ ] Security headers configuration
 
 ---
 
-## 📋 Feature Simplification (Completed)
+## ✅ Done
 
-### ✅ Removed Features (To Focus on MVP)
-- [x] Preset glasses frame library
-- [x] Frame selector component
-- [x] Frame management API (kept but not used)
-- [x] Debug and test pages
-- [x] Twitter OAuth debugging tools
-
-### ✅ Simplified Features
-- [x] Try-on page: Only custom image upload
-- [x] UI: Cleaner, simpler interface
-- [x] Documentation: English only, focused on MVP
+### Sprint 1: MVP Foundation
+- [x] Core UI components
+- [x] Twitter OAuth integration
+- [x] Mock services for development
+- [x] Vercel deployment pipeline
+- [x] Dynamic route rendering fix
 
 ---
 
-## 🎯 Milestones
+## � Notes
 
-### Milestone 1: MVP Complete ✅ (Completed)
-- [x] Core features implemented
-- [x] Twitter OAuth working
-- [x] Vercel deployment successful
-- [x] UI simplified and in English
+### Current Environment
+- **Development**: Mock mode enabled by default
+- **Real Services**: Configured via .env.local
+- **Testing**: Manual E2E verification in local dev
 
-### Milestone 2: Production Ready (4 weeks)
-- [ ] Real services integrated
-- [ ] Staging environment stable
-- [ ] Performance monitoring meets targets
-- [ ] Security audit passed
+### Key Decisions
+- Focus on local dev verification before production deployment
+- Use Stripe test mode for payment verification
+- Keep mock mode as fallback for rapid development
 
-### Milestone 3: Production Launch (6 weeks)
-- [ ] Production environment deployed
-- [ ] Users can use normally
-- [ ] Monitoring data normal
-- [ ] Initial user feedback collected
+### Blockers
+- None currently
 
 ---
 
-## 🚀 Quick Decision Log
+## 📊 Definition of Done
 
-### Technical Choices
-- **Frontend**: Next.js 14 + React + TypeScript
-- **Backend**: Next.js API Routes + Prisma
-- **Database**: PostgreSQL (Supabase)
-- **AI**: Google Gemini API
-- **Payment**: Stripe
-- **Deployment**: Vercel
+**For E2E Verification Tasks**:
+1. Service configured in .env.local
+2. Manual test completed successfully
+3. Error handling verified
+4. Documented in testing notes
 
-### Recent Changes
-- **2025-09-30**: Removed preset frames feature to simplify MVP
-- **2025-09-30**: Converted all UI text to English
-- **2025-09-30**: Cleaned up debug and test code
-- **2025-09-30**: Fixed TypeScript null safety issues for Vercel deployment
-
-### Current Blockers
-- Need to configure real Gemini API
-- Need to set up production database
-- Need to configure Stripe production keys
+**For Feature Verification**:
+1. Happy path works end-to-end
+2. Error scenarios handled gracefully
+3. Data persists correctly
+4. User experience is smooth
 
 ---
 
-## 📈 Key Metrics
-
-**Quality Metrics**:
-- Build success rate: 100% ✅
-- TypeScript compilation: No errors ✅
-- Deployment success: 100% ✅
-
-**Performance Targets**:
-- Page load: < 3 seconds
-- API response: < 500ms
-- AI processing: < 30 seconds
-
-**Business Metrics**:
-- Try-on success rate: > 95%
-- Payment success rate: > 98%
-- User satisfaction: > 4.0/5.0
-
----
-
-**Next Action**: Configure real Gemini API and test AI processing
-
-*Update Frequency: Daily or when completing important tasks*
+**Last Updated**: 2025-09-30
+**Next Review**: After completing current sprint
