@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react"
 import { ImageUpload } from "@/components/upload/ImageUpload"
-import { FrameSelector } from "@/components/try-on/FrameSelector"
 import { ResultDisplay } from "@/components/try-on/ResultDisplay"
 import { Sparkles, ArrowRight, User, Glasses } from "lucide-react"
 import { TryOnRequest } from "@/types"
@@ -10,7 +9,6 @@ import { TryOnRequest } from "@/types"
 export function TryOnInterface() {
   const [userImage, setUserImage] = useState<{ file: File; preview: string } | null>(null)
   const [glassesImage, setGlassesImage] = useState<{ file: File; preview: string } | null>(null)
-  const [selectedFrameId, setSelectedFrameId] = useState<string | null>(null)
   const [isProcessing, setIsProcessing] = useState(false)
   const [result, setResult] = useState<{ imageUrl: string; taskId: string } | null>(null)
   const [currentStep, setCurrentStep] = useState<"upload" | "select" | "process" | "result">("upload")
@@ -70,20 +68,14 @@ export function TryOnInterface() {
 
   const handleGlassesImageSelect = (file: File, preview: string) => {
     setGlassesImage({ file, preview })
-    setSelectedFrameId(null)
   }
 
   const handleGlassesImageRemove = () => {
     setGlassesImage(null)
   }
 
-  const handleFrameSelect = (frameId: string) => {
-    setSelectedFrameId(frameId)
-    setGlassesImage(null)
-  }
-
   const handleStartTryOn = async () => {
-    if (!userImage || (!glassesImage && !selectedFrameId)) {
+    if (!userImage || !glassesImage) {
       return
     }
 
@@ -93,12 +85,7 @@ export function TryOnInterface() {
     try {
       const formData = new FormData()
       formData.append("userImage", userImage.file)
-      
-      if (glassesImage) {
-        formData.append("glassesImage", glassesImage.file)
-      } else if (selectedFrameId) {
-        formData.append("frameId", selectedFrameId)
-      }
+      formData.append("glassesImage", glassesImage.file)
 
       const response = await fetch("/api/try-on", {
         method: "POST",
@@ -129,7 +116,7 @@ export function TryOnInterface() {
     setCurrentStep("upload")
   }
 
-  const canProceed = userImage && (glassesImage || selectedFrameId)
+  const canProceed = userImage && glassesImage
 
   return (
     <div className="max-w-6xl mx-auto">
@@ -197,30 +184,16 @@ export function TryOnInterface() {
             />
           </div>
 
-          {/* Right: Glasses Selection */}
+          {/* Right: Glasses Upload */}
           <div className="space-y-6">
-            <div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Select Glasses Style</h3>
-
-              {/* Custom Upload */}
-              <div className="mb-6">
-                <ImageUpload
-                  onImageSelect={handleGlassesImageSelect}
-                  onImageRemove={handleGlassesImageRemove}
-                  currentImage={glassesImage?.preview}
-                  label="Upload Custom Glasses"
-                  description="Or choose from preset styles below"
-                  loading={isProcessing}
-                />
-              </div>
-
-              {/* Preset Frame Selector */}
-              <FrameSelector
-                selectedFrameId={selectedFrameId}
-                onFrameSelect={handleFrameSelect}
-                disabled={isProcessing || !!glassesImage}
-              />
-            </div>
+            <ImageUpload
+              onImageSelect={handleGlassesImageSelect}
+              onImageRemove={handleGlassesImageRemove}
+              currentImage={glassesImage?.preview}
+              label="Upload Glasses Image"
+              description="Please upload a clear image of the glasses you want to try on"
+              loading={isProcessing}
+            />
           </div>
         </div>
       )}

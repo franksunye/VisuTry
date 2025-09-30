@@ -63,6 +63,7 @@ export const mockTryOnResults = [
     userId: 'mock-user-1',
     frameId: 'frame-1',
     originalImageUrl: 'https://via.placeholder.com/400x400/87CEEB/000000?text=Original+Photo',
+    glassesImageUrl: 'https://via.placeholder.com/400x400/FFD700/000000?text=Glasses',
     resultImageUrl: 'https://via.placeholder.com/400x400/87CEEB/000000?text=With+Glasses',
     status: 'completed',
     createdAt: new Date(),

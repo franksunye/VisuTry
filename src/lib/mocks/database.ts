@@ -33,23 +33,28 @@ export class MockDatabase {
   // Try-on task operations
   static async createTryOnTask(data: {
     userId: string
-    frameId: string
     originalImageUrl: string
+    glassesImageUrl: string
+    frameId?: string
     status?: string
   }) {
     if (!isMockMode) return null
-    
-    const task = {
+
+    const task: any = {
       id: `mock-task-${this.taskIdCounter++}`,
       userId: data.userId,
-      frameId: data.frameId,
       originalImageUrl: data.originalImageUrl,
+      glassesImageUrl: data.glassesImageUrl,
       resultImageUrl: '',
       status: data.status || 'processing',
       createdAt: new Date(),
       isPublic: false
     }
-    
+
+    if (data.frameId) {
+      task.frameId = data.frameId
+    }
+
     this.tryOnTasks.push(task)
     return task
   }

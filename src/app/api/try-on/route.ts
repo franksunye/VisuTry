@@ -65,7 +65,6 @@ export async function POST(request: NextRequest) {
     const formData = await request.formData()
     const userImageFile = formData.get("userImage") as File
     const glassesImageFile = formData.get("glassesImage") as File
-    const frameId = formData.get("frameId") as string
 
     if (!userImageFile) {
       return NextResponse.json(
@@ -74,9 +73,9 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    if (!glassesImageFile && !frameId) {
+    if (!glassesImageFile) {
       return NextResponse.json(
-        { success: false, error: "请选择眼镜款式或上传眼镜图片" },
+        { success: false, error: "请上传眼镜图片" },
         { status: 400 }
       )
     }
@@ -93,59 +92,27 @@ export async function POST(request: NextRequest) {
       })
     }
 
-    let glassesImageUrl: string
+    // 上传眼镜图片
+    const glassesImageFilename = `try-on/${userId}/${Date.now()}-glasses.jpg`
+    let glassesImageBlob
 
-    if (glassesImageFile) {
-      // 上传眼镜图片
-      const glassesImageFilename = `try-on/${userId}/${Date.now()}-glasses.jpg`
-      let glassesImageBlob
-
-      if (isMockMode) {
-        glassesImageBlob = await mockBlobUpload(glassesImageFilename, glassesImageFile)
-      } else {
-        glassesImageBlob = await put(glassesImageFilename, glassesImageFile, {
-          access: "public",
-        })
-      }
-      glassesImageUrl = glassesImageBlob.url
+    if (isMockMode) {
+      glassesImageBlob = await mockBlobUpload(glassesImageFilename, glassesImageFile)
     } else {
-      if (isMockMode) {
-        // 在Mock模式下使用Mock框架数据
-        const { mockGlassesFrames } = await import('@/lib/mocks')
-        const frame = mockGlassesFrames.find(f => f.id === frameId)
-
-        if (!frame) {
-          return NextResponse.json(
-            { success: false, error: "选择的眼镜框架不存在" },
-            { status: 404 }
-          )
-        }
-
-        glassesImageUrl = frame.imageUrl
-      } else {
-        // 从数据库获取框架图片
-        const frame = await prisma.glassesFrame.findUnique({
-          where: { id: frameId }
-        })
-
-        if (!frame) {
-          return NextResponse.json(
-            { success: false, error: "选择的眼镜框架不存在" },
-            { status: 404 }
-          )
-        }
-
-        glassesImageUrl = frame.imageUrl
-      }
+      glassesImageBlob = await put(glassesImageFilename, glassesImageFile, {
+        access: "public",
+      })
     }
+
+    const glassesImageUrl = glassesImageBlob.url
 
     // 创建试戴任务记录
     let tryOnTask
     if (isMockMode) {
       tryOnTask = await MockDatabase.createTryOnTask({
         userId: userId,
-        frameId: frameId,
         originalImageUrl: userImageBlob.url,
+        glassesImageUrl: glassesImageUrl,
         status: "processing"
       })
     } else {
