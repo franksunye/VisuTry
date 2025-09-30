@@ -1,243 +1,271 @@
-# VisuTry 项目架构与功能文档
+# VisuTry Project Architecture & Features
 
-## 📋 项目概述
+## 📋 Project Overview
 
-VisuTry是一个基于Next.js的全栈AI眼镜试戴应用，用户可以上传照片并通过AI技术实时预览不同眼镜的试戴效果。
+VisuTry is a full-stack AI-powered glasses try-on application built with Next.js. Users can upload their photos and custom glasses images to preview how different glasses look on them using AI technology.
 
-## 🛠 技术架构
+**Current Focus**: Minimum Viable Product (MVP) with core features only.
 
-### 前端技术栈
-- **框架**: Next.js 14 (App Router)
-- **UI库**: React 18 + TypeScript
-- **样式**: Tailwind CSS + Lucide React
-- **状态管理**: React Hooks + Context API
+## 🛠 Technology Stack
 
-### 后端技术栈
+### Frontend
+- **Framework**: Next.js 14 (App Router)
+- **UI Library**: React 18 + TypeScript
+- **Styling**: Tailwind CSS + Lucide React Icons
+- **State Management**: React Hooks
+
+### Backend
 - **API**: Next.js API Routes
-- **数据库**: PostgreSQL + Prisma ORM
-- **认证**: NextAuth.js (Twitter OAuth)
-- **支付**: Stripe
-- **文件存储**: Vercel Blob
-- **AI服务**: Google Gemini API
+- **Database**: PostgreSQL + Prisma ORM
+- **Authentication**: NextAuth.js (Twitter OAuth)
+- **Payment**: Stripe
+- **File Storage**: Vercel Blob
+- **AI Service**: Google Gemini API
 
-### 部署架构
-- **平台**: Vercel
-- **数据库**: 托管PostgreSQL (推荐Supabase/PlanetScale)
+### Deployment
+- **Platform**: Vercel
+- **Database**: Hosted PostgreSQL (Supabase recommended)
 - **CDN**: Vercel Edge Network
-- **监控**: Vercel Analytics
+- **Analytics**: Vercel Analytics
 
-## ✅ 已实现功能
+## ✅ Implemented Features (MVP)
 
-### Phase 1: MVP核心功能
+### 1. User Authentication
+- Twitter OAuth login
+- Session management
+- User profile display
+- Login/logout functionality
 
-#### 1. 用户认证系统
-- Twitter OAuth登录
-- 用户会话管理
-- 用户资料显示
-- 登录/登出功能
+### 2. Image Upload
+- Drag & drop support
+- Image compression and preview
+- Multiple format support (JPEG, PNG, WebP)
+- File size limit (5MB)
 
-#### 2. 图片上传功能
-- 拖拽上传支持
-- 图片压缩和预览
-- 多格式支持 (JPEG, PNG, WebP)
-- 文件大小限制 (5MB)
+### 3. AI Try-On Feature
+- User photo upload
+- **Custom glasses image upload** (simplified - no preset frames)
+- AI image processing (Gemini API)
+- Asynchronous task processing
+- Real-time status polling
+- Result display
 
-#### 3. AI试戴功能
-- 用户照片上传
-- 眼镜框架选择
-- AI图像处理 (Gemini API)
-- 异步任务处理
-- 实时状态轮询
-- 结果展示
+### 4. Payment System
+- Stripe integration
+- Free trial quota management (3 free try-ons)
+- Premium plans (monthly/yearly)
+- Payment history
 
-#### 4. 支付系统
-- Stripe集成
-- 免费试用额度管理
-- 付费套餐 (月度/年度)
-- 积分包购买
-- 支付历史记录
+### 5. Share Feature
+- Try-on result sharing links
+- Social media integration (Twitter, Facebook next)
+- Public access pages
 
-#### 5. 分享功能
-- 试戴结果分享链接
-- 社交媒体集成
-- 公开访问页面
+### 6. User Dashboard
+- Try-on history
+- Usage statistics
+- Account management
+- Payment records
 
-#### 6. 用户仪表板
-- 试戴历史记录
-- 使用统计
-- 账户管理
-- 支付记录
+## 📊 Database Schema
 
-## 数据库设计
+### Core Tables
 
-### 核心表结构
+1. **User** - User information
+   - Basic info (id, name, email, image)
+   - Trial usage (freeTrialsUsed)
+   - Premium status (isPremium, premiumExpiresAt)
 
-1. **User** - 用户信息
-   - 基本信息 (id, name, email, image)
-   - 试用次数管理 (freeTrialsUsed)
-   - 付费状态 (isPremium, premiumExpiresAt)
+2. **TryOnTask** - Try-on tasks
+   - Input images (userImageUrl, glassesImageUrl)
+   - Output result (resultImageUrl)
+   - Task status (PENDING/PROCESSING/COMPLETED/FAILED)
 
-2. **TryOnTask** - 试戴任务
-   - 输入图片 (userImageUrl, glassesImageUrl)
-   - 输出结果 (resultImageUrl)
-   - 任务状态 (status: PENDING/PROCESSING/COMPLETED/FAILED)
+3. **Payment** - Payment records
+   - Stripe integration (stripeSessionId, stripePaymentId)
+   - Product type (PREMIUM_MONTHLY/YEARLY/CREDITS_PACK)
 
-3. **Payment** - 支付记录
-   - Stripe集成 (stripeSessionId, stripePaymentId)
-   - 产品类型 (productType: PREMIUM_MONTHLY/YEARLY/CREDITS_PACK)
+4. **GlassesFrame** - Glasses frame library (deprecated - not used in MVP)
+   - Frame info (name, description, imageUrl)
+   - Category management (category, brand)
+   - **Note**: Kept for future use, but not currently used in the UI
 
-4. **GlassesFrame** - 眼镜框架库
-   - 框架信息 (name, description, imageUrl)
-   - 分类管理 (category, brand)
+## 🔌 API Design
 
-## API设计
-
-### 认证相关
+### Authentication
 ```
-POST /api/auth/signin     # 用户登录
-POST /api/auth/signout    # 用户登出
-GET  /api/auth/session    # 获取会话信息
+POST /api/auth/signin     # User login
+POST /api/auth/signout    # User logout
+GET  /api/auth/session    # Get session info
 ```
 
-### 试戴功能
+### Try-On Feature
 ```
-POST /api/try-on          # 创建试戴任务
-GET  /api/try-on/[id]     # 获取试戴结果
-GET  /api/try-on/history  # 获取用户历史
-```
-
-### 支付系统
-```
-POST /api/payment/create-session  # 创建支付会话
-POST /api/payment/webhook         # Stripe Webhook
-GET  /api/payment/status          # 支付状态查询
+POST /api/try-on          # Create try-on task (requires userImage + glassesImage)
+GET  /api/try-on/[id]     # Get try-on result
+GET  /api/try-on/history  # Get user history
+POST /api/try-on/[id]/feedback  # Submit feedback (like/dislike)
 ```
 
-### 文件管理
+### Payment System
 ```
-POST /api/upload          # 文件上传
-GET  /api/frames          # 获取眼镜框架列表
+POST /api/payment/create-session  # Create payment session
+POST /api/payment/webhook         # Stripe webhook
 ```
 
-## 组件架构
+### File Management
+```
+POST /api/upload          # File upload
+GET  /api/frames          # Get glasses frames list (deprecated - not used)
+```
 
-### 页面组件
+### Sharing
+```
+GET  /api/share/[id]      # Get shared try-on result
+```
+
+## 🏗️ Component Architecture
+
+### Page Components
 ```
 src/app/
-├── page.tsx              # 首页
-├── auth/                 # 认证页面
-├── dashboard/            # 用户仪表板
-├── try-on/               # 试戴功能页面
-└── share/[id]/           # 分享页面
+├── page.tsx              # Home page
+├── auth/                 # Authentication pages
+│   └── signin/
+├── dashboard/            # User dashboard
+│   └── history/
+├── try-on/               # Try-on feature page
+├── share/[id]/           # Share page
+├── pricing/              # Pricing page
+└── user/[username]/      # Public user profile
 ```
 
-### UI组件
+### UI Components
 ```
 src/components/
-├── ui/                   # 基础UI组件
-│   ├── Button.tsx
-│   ├── Input.tsx
-│   ├── Modal.tsx
-│   └── Loading.tsx
-├── auth/                 # 认证组件
+├── auth/                 # Authentication components
 │   ├── LoginButton.tsx
 │   └── UserProfile.tsx
-├── upload/               # 上传组件
-│   ├── ImageUpload.tsx
-│   └── DragDropZone.tsx
-└── try-on/               # 试戴组件
-    ├── TryOnInterface.tsx
-    ├── ResultDisplay.tsx
-    └── FrameSelector.tsx
+├── upload/               # Upload components
+│   └── ImageUpload.tsx
+├── try-on/               # Try-on components
+│   ├── TryOnInterface.tsx
+│   ├── ResultDisplay.tsx
+│   └── FrameSelector.tsx  (deprecated - not used in MVP)
+├── dashboard/            # Dashboard components
+│   ├── DashboardStats.tsx
+│   ├── RecentTryOns.tsx
+│   └── TryOnHistoryList.tsx
+├── payment/              # Payment components
+│   └── PricingCard.tsx
+└── user/                 # User profile components
+    ├── UserPublicProfile.tsx
+    └── PublicTryOnGallery.tsx
 ```
 
-## 工作流程
+## 🔄 Try-On Workflow (Simplified)
 
-### 试戴流程
-1. 用户上传头像照片
-2. 选择眼镜框架或上传自定义框架
-3. 系统调用Gemini API进行图像合成
-4. 返回试戴结果并保存到数据库
-5. 用户可分享结果到社交媒体
+1. User uploads their photo
+2. User uploads custom glasses image
+3. System calls Gemini API for image synthesis
+4. Returns try-on result and saves to database
+5. User can share result to social media
 
-### 付费流程
-1. 用户选择付费套餐
-2. 创建Stripe Checkout会话
-3. 用户完成支付
-4. Webhook更新用户付费状态
-5. 解锁高级功能
+**Note**: Preset frame selection has been removed to simplify the MVP.
 
-## 安全考虑
+## 💳 Payment Workflow
 
-### 数据安全
-- 所有API路由都有适当的认证检查
-- 用户只能访问自己的数据
-- 敏感信息使用环境变量存储
+1. User selects a premium plan
+2. Creates Stripe Checkout session
+3. User completes payment
+4. Webhook updates user premium status
+5. Unlocks unlimited try-ons
 
-### 文件安全
-- 图片上传大小限制 (5MB)
-- 文件类型验证 (JPEG/PNG/WebP)
-- 自动图片压缩和优化
+## 🔒 Security Considerations
 
-### 支付安全
-- 使用Stripe安全支付处理
-- Webhook签名验证
-- 敏感支付信息不存储在本地
+### Data Security
+- All API routes have proper authentication checks
+- Users can only access their own data
+- Sensitive information stored in environment variables
 
-## 性能优化
+### File Security
+- Image upload size limit (5MB)
+- File type validation (JPEG/PNG/WebP)
+- Automatic image compression and optimization
 
-### 前端优化
-- Next.js自动代码分割
-- 图片懒加载和优化
-- Tailwind CSS按需加载
+### Payment Security
+- Stripe secure payment processing
+- Webhook signature verification
+- No sensitive payment info stored locally
 
-### 后端优化
-- 数据库查询优化
-- API响应缓存
-- 图片CDN加速
+## ⚡ Performance Optimization
 
-### AI服务优化
-- 异步任务处理
-- 错误重试机制
-- 结果缓存策略
+### Frontend
+- Next.js automatic code splitting
+- Image lazy loading and optimization
+- Tailwind CSS on-demand loading
 
-## 监控和分析
+### Backend
+- Database query optimization
+- API response caching
+- Image CDN acceleration
 
-### 应用监控
-- Vercel Analytics集成
-- 错误日志收集
-- 性能指标监控
+### AI Service
+- Asynchronous task processing
+- Error retry mechanism
+- Result caching strategy
 
-### 业务分析
-- 用户使用统计
-- 试戴成功率分析
-- 付费转化率跟踪
+## 📈 Monitoring & Analytics
 
-## 扩展性设计
+### Application Monitoring
+- Vercel Analytics integration
+- Error log collection
+- Performance metrics monitoring
 
-### 水平扩展
-- 无状态API设计
-- 数据库读写分离准备
-- CDN和缓存策略
+### Business Analytics
+- User usage statistics
+- Try-on success rate analysis
+- Payment conversion tracking
 
-### 功能扩展
-- 模块化组件设计
-- 插件化架构准备
-- 多语言支持框架
+## 🚀 Development Workflow
 
-## 开发工作流
+### Code Quality
+- TypeScript type checking
+- ESLint code standards
+- Prettier code formatting
 
-### 代码质量
-- TypeScript类型检查
-- ESLint代码规范
-- Prettier代码格式化
+### Testing Strategy
+- Unit tests (Jest + React Testing Library)
+- Integration tests
+- E2E tests (Playwright)
 
-### 测试策略
-- 单元测试 (Jest)
-- 集成测试 (Cypress)
-- API测试 (Postman/Newman)
+### Deployment Process
+- Git commit triggers automatic deployment
+- Environment variable management
+- Database migration automation
 
-### 部署流程
-- Git提交触发自动部署
-- 环境变量管理
-- 数据库迁移自动化
+## 🎯 MVP Scope (Current Focus)
+
+### ✅ Included in MVP
+- User authentication (Twitter OAuth)
+- Custom image upload (user photo + glasses image)
+- AI try-on processing
+- Basic payment system (free trials + premium)
+- Share functionality
+- User dashboard
+
+### ❌ Not Included in MVP (Future)
+- Preset glasses frame library
+- Multiple authentication providers
+- Advanced analytics
+- Mobile app
+- Multi-language support
+- Admin dashboard
+
+## 📝 Notes
+
+- **Language**: All user-facing text is in English
+- **Focus**: Core functionality only, no extra features
+- **Testing**: Mock mode available for development
+- **Deployment**: Vercel with automatic CI/CD
+

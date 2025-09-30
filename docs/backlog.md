@@ -1,155 +1,166 @@
-# VisuTry 产品待办事项 (Product Backlog)
+# VisuTry Product Backlog
 
-## 🎯 目标
-从Mock环境验证 → 生产环境部署就绪
+## 🎯 Current Goal
+Focus on MVP with minimum feature set → Production deployment ready
 
-## 📊 当前状态
-✅ **已完成**: Mock环境集成测试 (89%通过率)
-✅ **已完成**: 前端组件测试 (77个测试用例，73个通过)
-✅ **已完成**: E2E测试创建 (25个测试用例，覆盖核心流程)
-🎯 **下一步**: 修复测试问题 → 真实环境 → 生产部署
-
----
-
-## 🔥 高优先级 (立即执行)
-
-### 1. 前端组件测试 [8 story points] ✅ **已完成**
-**目标**: 前端测试覆盖率 > 80%
-- [x] 安装React Testing Library + 配置
-- [x] 文件上传组件测试 (ImageUpload - 95%+ 覆盖率)
-- [x] 眼镜框架选择组件测试 (FrameSelector - 100% 覆盖率)
-- [x] 认证组件测试 (LoginButton - 100% 覆盖率)
-- [x] 支付组件测试 (PricingCard - 基础测试完成)
-- [x] 仪表板组件测试 (DashboardStats - 100% 覆盖率)
-- [x] 测试覆盖率报告
-
-**完成标准**: ✅ 核心组件测试完成，77个测试用例，73个通过
-
-### 2. E2E测试 [5 story points] ✅ **已完成**
-**目标**: 核心用户流程自动化验证
-- [x] 安装Playwright/Cypress
-- [x] 用户注册登录流程测试
-- [x] 完整试戴流程测试 (上传→选择→试戴→查看)
-- [x] 支付升级流程测试
-- [x] 错误场景测试
-
-**完成标准**: ✅ 25个E2E测试用例创建完成，覆盖所有核心用户流程
+## 📊 Current Status
+✅ **Completed**: MVP core features implemented
+✅ **Completed**: Twitter OAuth authentication working
+✅ **Completed**: Vercel deployment successful
+✅ **Completed**: UI simplified (removed preset frames)
+🎯 **Next**: Real environment integration → Production optimization
 
 ---
 
-## 🟡 中优先级 (短期内完成)
+## 🔥 High Priority (Immediate)
 
-### 3. 真实环境配置 [8 story points]
-**目标**: 替换Mock服务为真实服务
-- [ ] PostgreSQL数据库配置
-- [ ] Google Gemini API集成
-- [ ] Stripe支付真实配置
-- [ ] Vercel Blob存储配置
-- [ ] Twitter OAuth真实配置
-- [ ] Staging环境部署
+### 1. Real Environment Configuration [8 story points]
+**Goal**: Replace Mock services with real services
+- [ ] PostgreSQL database configuration (Supabase)
+- [ ] Google Gemini API integration
+- [ ] Stripe payment real configuration
+- [ ] Vercel Blob storage configuration
+- [x] Twitter OAuth real configuration ✅
+- [ ] Staging environment deployment
 
-**完成标准**: 所有功能在真实服务下正常工作
+**Acceptance Criteria**: All features work with real services
 
-### 4. 性能和监控 [3 story points]
-**目标**: 生产就绪的监控体系
-- [ ] 性能基准测试 (页面 < 3s, API < 500ms)
-- [ ] 错误监控配置
-- [ ] 用户行为分析
-- [ ] 告警机制
+### 2. Core Feature Testing [5 story points]
+**Goal**: Ensure MVP features work correctly
+- [ ] User authentication flow testing
+- [ ] Image upload and processing testing
+- [ ] AI try-on functionality testing
+- [ ] Payment flow testing
+- [ ] Share functionality testing
 
-**完成标准**: 监控仪表板正常，性能达标
-
----
-
-## 🟢 低优先级 (生产后优化)
-
-### 5. 生产部署 [3 story points]
-**目标**: 成功发布到生产环境
-- [ ] 域名和SSL配置
-- [ ] CDN优化
-- [ ] 生产环境部署
-- [ ] 冒烟测试验证
-
-**完成标准**: 用户可以正常使用所有功能
-
-### 6. 安全和优化 [2 story points]
-**目标**: 生产级安全和性能
-- [ ] 安全扫描
-- [ ] 负载测试
-- [ ] 代码优化
-- [ ] 文档完善
-
-**完成标准**: 安全扫描通过，负载测试达标
+**Acceptance Criteria**: All core user flows tested and working
 
 ---
 
-## 📋 每日跟踪 (简化版)
+## 🟡 Medium Priority (Short-term)
 
-### 本周目标 (2025-09-16 - 2025-09-22)
-🎯 **主要任务**: E2E测试和问题修复
-- [x] Day 1-2: React Testing Library环境搭建
-- [x] Day 3-4: 核心组件测试编写
-- [x] Day 5-7: E2E测试创建和实施
-- [ ] Day 8-9: 修复测试问题和提高覆盖率
+### 3. Performance & Monitoring [3 story points]
+**Goal**: Production-ready monitoring system
+- [ ] Performance benchmarking (Page < 3s, API < 500ms)
+- [ ] Error monitoring configuration
+- [ ] User behavior analytics
+- [ ] Alert mechanism
 
-### 进度跟踪
-- **已完成**: [更新完成的任务]
-- **进行中**: [当前正在做的任务]
-- **阻碍**: [遇到的问题]
-- **下一步**: [明天的计划]
+**Acceptance Criteria**: Monitoring dashboard operational, performance meets targets
 
----
+### 4. Security Audit [2 story points]
+**Goal**: Production-grade security
+- [ ] Security scanning
+- [ ] API rate limiting
+- [ ] Input validation review
+- [ ] Environment variable security check
 
-## 🎯 里程碑检查点
-
-### 里程碑 1: 测试完善 (2周内)
-- [x] 前端测试覆盖率 > 80% (已创建测试框架)
-- [x] E2E测试覆盖核心流程 (25个测试用例完成)
-- [ ] 所有测试CI通过 (需修复服务器启动问题)
-
-### 里程碑 2: 生产就绪 (4周内)  
-- [ ] 真实服务集成完成
-- [ ] Staging环境稳定
-- [ ] 性能监控达标
-
-### 里程碑 3: 生产发布 (6周内)
-- [ ] 生产环境部署成功
-- [ ] 用户可正常使用
-- [ ] 监控数据正常
+**Acceptance Criteria**: Security scan passes, no critical vulnerabilities
 
 ---
 
-## 🚀 快速决策记录
+## 🟢 Low Priority (Post-production)
 
-### 技术选择
-- **前端测试**: Jest + React Testing Library
-- **E2E测试**: Playwright (轻量、快速)
-- **监控**: Vercel Analytics + 简单日志
+### 5. Production Deployment [3 story points]
+**Goal**: Successfully launch to production
+- [ ] Domain and SSL configuration
+- [ ] CDN optimization
+- [ ] Production environment deployment
+- [ ] Smoke testing verification
 
-### 当前阻碍
-- [记录遇到的问题]
+**Acceptance Criteria**: Users can access and use all features
 
-### 解决方案
-- [记录解决方案]
+### 6. Optimization & Documentation [2 story points]
+**Goal**: Production-grade optimization and docs
+- [ ] Load testing
+- [ ] Code optimization
+- [ ] User documentation
+- [ ] API documentation
 
----
-
-## 📈 关键指标
-
-**质量指标**:
-- 测试覆盖率: 目标 > 80%
-- E2E通过率: 目标 > 95%
-
-**性能指标**:
-- 页面加载: < 3秒
-- API响应: < 500ms
-
-**业务指标**:
-- 试戴成功率: > 95%
-- 支付成功率: > 98%
+**Acceptance Criteria**: Load test passes, documentation complete
 
 ---
 
-**下一步行动**: 开始前端组件测试环境搭建
+## 📋 Feature Simplification (Completed)
 
-*更新频率: 每日或完成重要任务时*
+### ✅ Removed Features (To Focus on MVP)
+- [x] Preset glasses frame library
+- [x] Frame selector component
+- [x] Frame management API (kept but not used)
+- [x] Debug and test pages
+- [x] Twitter OAuth debugging tools
+
+### ✅ Simplified Features
+- [x] Try-on page: Only custom image upload
+- [x] UI: Cleaner, simpler interface
+- [x] Documentation: English only, focused on MVP
+
+---
+
+## 🎯 Milestones
+
+### Milestone 1: MVP Complete ✅ (Completed)
+- [x] Core features implemented
+- [x] Twitter OAuth working
+- [x] Vercel deployment successful
+- [x] UI simplified and in English
+
+### Milestone 2: Production Ready (4 weeks)
+- [ ] Real services integrated
+- [ ] Staging environment stable
+- [ ] Performance monitoring meets targets
+- [ ] Security audit passed
+
+### Milestone 3: Production Launch (6 weeks)
+- [ ] Production environment deployed
+- [ ] Users can use normally
+- [ ] Monitoring data normal
+- [ ] Initial user feedback collected
+
+---
+
+## 🚀 Quick Decision Log
+
+### Technical Choices
+- **Frontend**: Next.js 14 + React + TypeScript
+- **Backend**: Next.js API Routes + Prisma
+- **Database**: PostgreSQL (Supabase)
+- **AI**: Google Gemini API
+- **Payment**: Stripe
+- **Deployment**: Vercel
+
+### Recent Changes
+- **2025-09-30**: Removed preset frames feature to simplify MVP
+- **2025-09-30**: Converted all UI text to English
+- **2025-09-30**: Cleaned up debug and test code
+- **2025-09-30**: Fixed TypeScript null safety issues for Vercel deployment
+
+### Current Blockers
+- Need to configure real Gemini API
+- Need to set up production database
+- Need to configure Stripe production keys
+
+---
+
+## 📈 Key Metrics
+
+**Quality Metrics**:
+- Build success rate: 100% ✅
+- TypeScript compilation: No errors ✅
+- Deployment success: 100% ✅
+
+**Performance Targets**:
+- Page load: < 3 seconds
+- API response: < 500ms
+- AI processing: < 30 seconds
+
+**Business Metrics**:
+- Try-on success rate: > 95%
+- Payment success rate: > 98%
+- User satisfaction: > 4.0/5.0
+
+---
+
+**Next Action**: Configure real Gemini API and test AI processing
+
+*Update Frequency: Daily or when completing important tasks*
