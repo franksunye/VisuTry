@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server"
 import { headers } from "next/headers"
 import { prisma } from "@/lib/prisma"
-import { 
-  verifyWebhookSignature, 
+import {
+  verifyWebhookSignature,
   handleSuccessfulPayment,
   handleSubscriptionCreated,
   handleSubscriptionUpdated,
@@ -10,6 +10,9 @@ import {
   ProductType
 } from "@/lib/stripe"
 import Stripe from "stripe"
+
+// Force dynamic rendering for this route
+export const dynamic = 'force-dynamic'
 
 export async function POST(request: NextRequest) {
   try {

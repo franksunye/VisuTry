@@ -5,6 +5,9 @@ import { put } from "@vercel/blob"
 import { isMockMode } from "@/lib/mocks"
 import { mockBlobUpload } from "@/lib/mocks/blob"
 
+// Force dynamic rendering for this route
+export const dynamic = 'force-dynamic'
+
 export async function POST(request: NextRequest) {
   try {
     // 检查用户认证

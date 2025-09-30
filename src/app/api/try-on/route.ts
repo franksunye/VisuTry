@@ -10,6 +10,9 @@ import { mockBlobUpload } from "@/lib/mocks/blob"
 import { mockGenerateTryOnImage } from "@/lib/mocks/gemini"
 import { getTestSessionFromRequest } from "@/lib/test-session"
 
+// Force dynamic rendering for this route
+export const dynamic = 'force-dynamic'
+
 export async function POST(request: NextRequest) {
   try {
     // 检查用户认证 (NextAuth 或测试会话)

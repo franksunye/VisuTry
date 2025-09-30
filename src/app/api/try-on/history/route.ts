@@ -5,6 +5,9 @@ import { prisma } from "@/lib/prisma"
 import { isMockMode } from "@/lib/mocks"
 import { MockDatabase } from "@/lib/mocks/database"
 
+// Force dynamic rendering for this route
+export const dynamic = 'force-dynamic'
+
 export async function GET(request: NextRequest) {
   try {
     // 检查用户认证

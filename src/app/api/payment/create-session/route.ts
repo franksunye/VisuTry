@@ -5,6 +5,9 @@ import { createCheckoutSession, ProductType } from "@/lib/stripe"
 import { isMockMode } from "@/lib/mocks"
 import { mockCreateCheckoutSession } from "@/lib/mocks/stripe"
 
+// Force dynamic rendering for this route
+export const dynamic = 'force-dynamic'
+
 export async function POST(request: NextRequest) {
   try {
     // 检查用户认证
