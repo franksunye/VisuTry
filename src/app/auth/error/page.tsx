@@ -4,14 +4,14 @@ import Link from "next/link"
 interface ErrorPageProps {
   searchParams: {
     error?: string
+    error_description?: string
+    callbackUrl?: string
+    code?: string
+    state?: string
   }
 }
 
-export default function AuthErrorPage({ searchParams }: ErrorPageProps) {
-  const error = searchParams.error
-  const errorDetails = error ? getErrorDetails(error) : null
-
-  const getErrorMessage = (error: string) => {
+const getErrorMessage = (error: string) => {
     switch (error) {
       case "Configuration":
         return "Server configuration error, please contact administrator"
@@ -27,7 +27,7 @@ export default function AuthErrorPage({ searchParams }: ErrorPageProps) {
     }
   }
 
-  const getErrorDetails = (error: string) => {
+const getErrorDetails = (error: string) => {
     switch (error) {
       case "Callback":
         return {
@@ -50,7 +50,15 @@ export default function AuthErrorPage({ searchParams }: ErrorPageProps) {
       default:
         return null
     }
-  }
+}
+
+export default function AuthErrorPage({ searchParams }: ErrorPageProps) {
+  const error = searchParams.error
+  const errorDescription = searchParams.error_description
+  const callbackUrl = searchParams.callbackUrl
+  const code = searchParams.code
+  const state = searchParams.state
+  const errorDetails = error ? getErrorDetails(error) : null
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-red-50 to-orange-100 px-4">
@@ -133,6 +141,29 @@ export default function AuthErrorPage({ searchParams }: ErrorPageProps) {
             </div>
           </div>
         </div>
+
+        {/* 调试信息 */}
+        {process.env.NODE_ENV === 'development' && (
+          <div className="mt-6 p-4 bg-gray-50 rounded-lg">
+            <h3 className="font-semibold text-gray-900 mb-2">调试信息 (开发环境)</h3>
+            <div className="space-y-2 text-sm">
+              <div><span className="font-medium">错误类型:</span> <span className="text-red-600">{error || '未知'}</span></div>
+              {errorDescription && <div><span className="font-medium">错误描述:</span> <span className="text-gray-700">{errorDescription}</span></div>}
+              {callbackUrl && <div><span className="font-medium">回调URL:</span> <span className="text-blue-600 break-all">{callbackUrl}</span></div>}
+              {code && <div><span className="font-medium">授权码:</span> <span className="text-green-600 break-all">{code}</span></div>}
+              {state && <div><span className="font-medium">State参数:</span> <span className="text-purple-600 break-all">{state}</span></div>}
+              <div><span className="font-medium">时间:</span> <span className="text-gray-700">{new Date().toLocaleString()}</span></div>
+            </div>
+            <details className="mt-3">
+              <summary className="cursor-pointer text-sm text-gray-500 hover:text-gray-700">
+                完整URL参数
+              </summary>
+              <pre className="mt-2 p-3 bg-gray-100 rounded text-xs overflow-auto">
+                {JSON.stringify(searchParams, null, 2)}
+              </pre>
+            </details>
+          </div>
+        )}
 
         <div className="text-center">
           <p className="text-sm text-gray-500">

@@ -3,86 +3,98 @@ import TwitterProvider from "next-auth/providers/twitter"
 import { PrismaAdapter } from "@next-auth/prisma-adapter"
 import { prisma } from "@/lib/prisma"
 import { MockCredentialsProvider, isMockMode } from "@/lib/mocks/auth"
+import { log } from "@/lib/logger"
+
+// Lightweight debug sink to file for local dev (so we can read errors without terminal access)
+const __debugWrite = (label: string, data: any) => {
+  if (process.env.NODE_ENV !== 'development') return
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const fs = require('fs') as typeof import('fs')
+    const line = JSON.stringify({ ts: new Date().toISOString(), label, data }) + "\n"
+    fs.mkdirSync('tmp', { recursive: true })
+    fs.appendFileSync('tmp/nextauth-debug.log', line, 'utf8')
+  } catch {}
+}
 
 export const authOptions: NextAuthOptions = {
   // 暂时使用 JWT 策略避免数据库连接问题
   adapter: undefined, // isMockMode ? undefined : PrismaAdapter(prisma),
+
   providers: [
     ...(isMockMode ? [MockCredentialsProvider] : []),
+    // 使用Twitter OAuth 1.0a (API Key and Secret)
     TwitterProvider({
       clientId: process.env.TWITTER_CLIENT_ID!,
       clientSecret: process.env.TWITTER_CLIENT_SECRET!,
+      version: "2.0", // 使用 OAuth 2.0（Twitter 已更新域名为 api.x.com）
     }),
   ],
   callbacks: {
     async session({ session, token }) {
+      // 简化的session callback
       if (session.user && token) {
-        // 使用 JWT 策略，从 token 中获取用户信息
         session.user.id = (token.sub as string) || (token.id as string) || "unknown"
-        session.user.freeTrialsUsed = 0 // 默认值，后续可以从数据库同步
-        session.user.isPremium = false
-        session.user.premiumExpiresAt = null
-        session.user.isPremiumActive = false
-        session.user.remainingTrials = 3 // 默认免费试用次数
+        session.user.freeTrialsUsed = (token.freeTrialsUsed as number) || 0
+        session.user.isPremium = (token.isPremium as boolean) || false
+        session.user.premiumExpiresAt = (token.premiumExpiresAt as Date) || null
+        session.user.isPremiumActive = (token.isPremiumActive as boolean) || false
+        session.user.remainingTrials = (token.remainingTrials as number) || 3
 
-        // 如果有用户名信息，添加到会话中
         if (token.username) {
           session.user.username = token.username as string
+        }
+        if (token.email) {
+          session.user.email = token.email as string
         }
       }
       return session
     },
     async jwt({ token, user, account, profile }) {
-      try {
-        console.log('JWT callback invoked:', {
-          hasUser: !!user,
-          hasAccount: !!account,
-          hasProfile: !!profile,
-          accountProvider: account?.provider,
-          tokenSub: token.sub
-        })
+      // 简化的JWT callback，减少可能的错误点
+      if (user) {
+        // 首次登录，设置基本信息
+        token.id = user.id
+        token.name = user.name
+        token.email = user.email
+        token.image = user.image
 
-        // 首次登录时，从 Twitter profile 获取信息
-        if (user && account && profile) {
-          console.log('Processing new user login:', {
-            userId: user.id,
-            userEmail: user.email,
-            userName: user.name,
-            accountProvider: account.provider,
-            accountType: account.type,
-            profileData: profile
-          })
-
-          token.id = user.id
-          token.email = user.email
-          token.name = user.name
-          // Twitter v1.0A 使用不同的字段结构
-          token.username = (profile as any).screen_name || (profile as any).username || user.name
-
-          console.log('Token updated with user data:', {
-            tokenId: token.id,
-            tokenEmail: token.email,
-            tokenName: token.name,
-            tokenUsername: token.username
-          })
-        }
-
-        return token
-      } catch (error) {
-        console.error('JWT callback error:', error)
-        // 即使出错也返回 token，避免登录完全失败
-        return {
-          ...token,
-          error: 'JWT_CALLBACK_ERROR'
-        }
+        // 设置默认属性
+        token.freeTrialsUsed = 0
+        token.isPremium = false
+        token.premiumExpiresAt = null
+        token.isPremiumActive = false
+        token.remainingTrials = 3
       }
+
+      // 如果是Twitter登录，补充用户名与邮箱（兼容 v1.1/v2）
+      if (account?.provider === 'twitter' && profile) {
+        const p: any = profile
+        token.username = p?.data?.username ?? p?.username ?? p?.screen_name ?? token.username ?? user?.name
+        if (!token.email) token.email = p?.data?.email ?? p?.email ?? token.email
+      }
+
+      return token
     },
     async redirect({ url, baseUrl }) {
       // 确保授权成功后重定向到主页
-      console.log('Redirect callback:', { url, baseUrl })
-      if (url.startsWith("/")) return `${baseUrl}${url}`
-      else if (new URL(url).origin === baseUrl) return url
-      return baseUrl + "/"
+      log.debug('auth', 'Redirect callback', { url, baseUrl })
+
+      let redirectUrl: string
+      if (url.startsWith("/")) {
+        redirectUrl = `${baseUrl}${url}`
+      } else if (new URL(url).origin === baseUrl) {
+        redirectUrl = url
+      } else {
+        redirectUrl = baseUrl + "/"
+      }
+
+      log.info('auth', 'OAuth redirect completed', {
+        originalUrl: url,
+        finalUrl: redirectUrl
+      })
+
+      return redirectUrl
     },
   },
   pages: {
@@ -97,16 +109,55 @@ export const authOptions: NextAuthOptions = {
   logger: {
     error(code, metadata) {
       console.error('NextAuth Error:', code, metadata)
+      __debugWrite('logger.error', { code, metadata })
     },
     warn(code) {
       console.warn('NextAuth Warning:', code)
+      __debugWrite('logger.warn', { code })
     },
     debug(code, metadata) {
       if (process.env.NODE_ENV === "development") {
         console.log('NextAuth Debug:', code, metadata)
+        __debugWrite('logger.debug', { code, metadata })
       }
     }
   },
+  events: ({
+    async error(error: any) {
+      const err = {
+        name: (error as any)?.name,
+        message: (error as any)?.message,
+        stack: (error as any)?.stack,
+        cause: (error as any)?.cause,
+      }
+      console.error('NextAuth Events Error:', err)
+      __debugWrite('events.error', err)
+    },
+    async signIn({ user, account, isNewUser }: any) {
+      const info = {
+        user: { id: user?.id, name: user?.name },
+        account: account?.provider,
+        isNewUser,
+      }
+      console.log('NextAuth SignIn Event:', info)
+      __debugWrite('events.signIn', info)
+    },
+    async signOut({ session }: any) {
+      const info = { userId: session?.user?.id }
+      console.log('NextAuth SignOut Event:', info)
+      __debugWrite('events.signOut', info)
+    },
+    async createUser({ user }: any) {
+      const info = { id: user.id, name: user.name }
+      console.log('NextAuth CreateUser Event:', info)
+      __debugWrite('events.createUser', info)
+    },
+    async session({ session }: any) {
+      const info = { userId: session?.user?.id }
+      console.log('NextAuth Session Event:', info)
+      __debugWrite('events.session', info)
+    },
+  } as any),
 }
 
 // 扩展NextAuth类型

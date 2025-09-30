@@ -117,3 +117,13 @@ tests/reports/*.json
 test-results.json
 coverage/
 *.test.log
+
+# 调试文件和临时脚本
+tmp/
+scripts/debug-*.js
+scripts/test-*.js
+scripts/diagnose-*.js
+scripts/simple-*.js
+scripts/tmp-*.ps1
+scripts/*-with-*.bat
+src/app/api/debug/
