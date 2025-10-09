@@ -8,22 +8,20 @@
 /**
  * Trigger a session update on the client side
  * This will cause the JWT callback to re-fetch user data from the database
- * 
+ *
  * Usage:
  * ```typescript
  * import { triggerSessionUpdate } from '@/lib/session-utils'
- * 
- * // After updating user data in the database
- * await prisma.user.update({ ... })
- * await triggerSessionUpdate()
+ *
+ * // In a React component:
+ * const { update } = useSession()
+ * await triggerSessionUpdate(update)
  * ```
  */
-export async function triggerSessionUpdate() {
+export async function triggerSessionUpdate(updateFn: () => Promise<any>) {
   if (typeof window !== 'undefined') {
-    // Client-side: use next-auth's update function
-    const { useSession } = await import('next-auth/react')
-    const { update } = useSession()
-    await update()
+    // Client-side: use the update function from useSession hook
+    await updateFn()
   }
 }
 
