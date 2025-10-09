@@ -19,8 +19,38 @@ const __debugWrite = (label: string, data: any) => {
   } catch {}
 }
 
+// Validate critical environment variables at startup
+const validateEnvVars = () => {
+  const required = ['TWITTER_CLIENT_ID', 'TWITTER_CLIENT_SECRET', 'NEXTAUTH_SECRET']
+  const missing = required.filter(key => !process.env[key])
+
+  if (missing.length > 0) {
+    console.error('❌ Missing required environment variables:', missing)
+    throw new Error(`Missing required environment variables: ${missing.join(', ')}`)
+  }
+
+  // Log environment info (without sensitive data)
+  console.log('✅ NextAuth Environment Check:')
+  console.log('  - NODE_ENV:', process.env.NODE_ENV)
+  console.log('  - NEXTAUTH_URL:', process.env.NEXTAUTH_URL || '(not set - will use default)')
+  console.log('  - VERCEL:', process.env.VERCEL ? 'Yes' : 'No')
+  console.log('  - VERCEL_URL:', process.env.VERCEL_URL || '(not set)')
+  console.log('  - Database:', process.env.DATABASE_URL ? 'Configured' : 'Missing')
+  console.log('  - Twitter OAuth:', process.env.TWITTER_CLIENT_ID ? 'Configured' : 'Missing')
+}
+
+// Run validation (only once at module load)
+if (!isMockMode) {
+  try {
+    validateEnvVars()
+  } catch (error) {
+    console.error('Environment validation failed:', error)
+  }
+}
+
 export const authOptions: NextAuthOptions = {
   // 使用 Prisma Adapter 确保用户自动创建到数据库
+  // 在 Vercel 生产环境,确保 adapter 正确初始化
   adapter: isMockMode ? undefined : PrismaAdapter(prisma),
 
   providers: [
@@ -30,6 +60,12 @@ export const authOptions: NextAuthOptions = {
       clientId: process.env.TWITTER_CLIENT_ID!,
       clientSecret: process.env.TWITTER_CLIENT_SECRET!,
       version: "2.0",
+      // 明确指定授权参数,确保 Vercel 环境正确处理
+      authorization: {
+        params: {
+          scope: "tweet.read users.read offline.access",
+        },
+      },
     }),
   ],
   callbacks: {
@@ -82,7 +118,11 @@ export const authOptions: NextAuthOptions = {
               session.user.remainingTrials = 3
             }
           } catch (error) {
-            console.error('Error fetching user from database:', error)
+            console.error('❌ Error fetching user from database in session callback:', error)
+            console.error('   This may indicate database connection issues in Vercel')
+            console.error('   Falling back to token data')
+            __debugWrite('session.db_error', { error, userId })
+
             // 发生错误时使用 token 中的值作为后备
             session.user.id = userId
             session.user.freeTrialsUsed = (token.freeTrialsUsed as number) || 0
@@ -144,7 +184,9 @@ export const authOptions: NextAuthOptions = {
             token.remainingTrials = Math.max(0, freeTrialLimit - dbUser.freeTrialsUsed)
           }
         } catch (error) {
-          console.error('Error syncing user data to token:', error)
+          console.error('❌ Error syncing user data to token in jwt callback:', error)
+          console.error('   This may indicate database connection issues in Vercel')
+          __debugWrite('jwt.db_error', { error, userId: token.sub })
         }
       }
 

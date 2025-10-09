@@ -12,11 +12,16 @@
  */
 
 // Only setup proxy in Node.js environment (not in browser)
+// CRITICAL: Completely skip proxy setup in Vercel/production to avoid any interference
 if (typeof window === 'undefined') {
-  const isLocalDev = process.env.NODE_ENV === 'development' && !process.env.VERCEL
+  // Multiple checks to ensure we're ONLY in local development
+  const isVercel = process.env.VERCEL === '1' || process.env.VERCEL === 'true' || !!process.env.VERCEL_URL
+  const isProduction = process.env.NODE_ENV === 'production'
+  const isLocalDev = process.env.NODE_ENV === 'development' && !isVercel
   const proxyUrl = process.env.HTTPS_PROXY || process.env.HTTP_PROXY
 
-  if (isLocalDev && proxyUrl) {
+  // ONLY configure proxy if we're absolutely sure we're in local development
+  if (isLocalDev && proxyUrl && !isProduction && !isVercel) {
     try {
       // Configure openid-client to use proxy
       const { custom } = require('openid-client')
@@ -34,6 +39,7 @@ if (typeof window === 'undefined') {
       })
 
       console.log('🔌 Proxy configured for NextAuth/openid-client')
+      console.log('  - Environment: LOCAL DEVELOPMENT')
       console.log('  - Proxy URL:', proxyUrl)
       console.log('  - Timeout: 15000ms')
       console.log('  - Target: Twitter OAuth API')
@@ -42,9 +48,16 @@ if (typeof window === 'undefined') {
       console.error('   Twitter OAuth may fail in China without proxy')
     }
   } else {
-    if (isLocalDev) {
-      console.log('⚠️  No proxy configured - Twitter OAuth may fail in China')
-      console.log('   Set HTTPS_PROXY or HTTP_PROXY in .env.local')
+    // Log why proxy was not configured (only in development)
+    if (process.env.NODE_ENV === 'development') {
+      if (isVercel) {
+        console.log('ℹ️  Skipping proxy setup: Running on Vercel')
+      } else if (isProduction) {
+        console.log('ℹ️  Skipping proxy setup: Production environment')
+      } else if (!proxyUrl) {
+        console.log('⚠️  No proxy configured - Twitter OAuth may fail in China')
+        console.log('   Set HTTPS_PROXY or HTTP_PROXY in .env.local')
+      }
     }
   }
 }
