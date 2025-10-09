@@ -1,3 +1,5 @@
+const path = require('path')
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   images: {
@@ -15,9 +17,10 @@ const nextConfig = {
   },
   // Ensure TypeScript path aliases work correctly in production builds
   webpack: (config, { isServer }) => {
-    // This helps resolve @ alias in production builds
+    // Explicitly add @ alias to webpack resolve
     config.resolve.alias = {
       ...config.resolve.alias,
+      '@': path.resolve(__dirname, 'src'),
     }
     return config
   },
