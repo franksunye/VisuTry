@@ -1,0 +1,42 @@
+# Test files
+tests/
+*.test.ts
+*.test.tsx
+*.test.js
+*.spec.ts
+*.spec.tsx
+*.spec.js
+
+# Documentation
+docs/
+*.md
+!README.md
+
+# Development files
+.vscode/
+.idea/
+
+# Logs
+logs/
+*.log
+tmp/
+
+# Scripts (keep only essential ones)
+scripts/test-*.js
+scripts/debug-*.js
+scripts/diagnose-*.js
+scripts/simple-*.js
+
+# Playwright
+playwright.config.js
+playwright-report/
+test-results/
+
+# Jest
+jest.config.js
+jest.setup.js
+
+# Coverage
+coverage/
+.nyc_output/
+

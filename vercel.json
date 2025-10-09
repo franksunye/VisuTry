@@ -1,5 +1,5 @@
 {
-  "buildCommand": "rm -rf .next node_modules/.cache && prisma migrate deploy && npm run build",
+  "buildCommand": "prisma migrate deploy && prisma generate && next build",
   "installCommand": "npm ci",
   "framework": "nextjs",
   "functions": {
