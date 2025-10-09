@@ -37,9 +37,9 @@ export function ShareButton({ taskId, className }: ShareButtonProps) {
   }
 
   const handleWeChatShare = () => {
-    // 微信分享通常需要微信SDK，这里提供复制链接的替代方案
+    // WeChat sharing typically requires WeChat SDK, here we provide a copy link alternative
     handleCopyLink()
-    alert("链接已复制，您可以在微信中粘贴分享")
+    alert("Link copied! You can paste and share it in WeChat")
   }
 
   if (!isOpen) {
@@ -52,23 +52,23 @@ export function ShareButton({ taskId, className }: ShareButtonProps) {
         )}
       >
         <Share2 className="w-4 h-4 mr-2" />
-        分享
+        Share
       </button>
     )
   }
 
   return (
     <div className="relative">
-      {/* 背景遮罩 */}
-      <div 
+      {/* Background Overlay */}
+      <div
         className="fixed inset-0 bg-black bg-opacity-50 z-40"
         onClick={() => setIsOpen(false)}
       />
-      
-      {/* 分享面板 */}
+
+      {/* Share Panel */}
       <div className="absolute top-full right-0 mt-2 w-80 bg-white rounded-xl shadow-lg border z-50 p-6">
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-semibold text-gray-900">分享试戴效果</h3>
+          <h3 className="text-lg font-semibold text-gray-900">Share Try-On Result</h3>
           <button
             onClick={() => setIsOpen(false)}
             className="text-gray-400 hover:text-gray-600"
@@ -77,10 +77,10 @@ export function ShareButton({ taskId, className }: ShareButtonProps) {
           </button>
         </div>
 
-        {/* 分享链接 */}
+        {/* Share Link */}
         <div className="mb-6">
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            分享链接
+            Share Link
           </label>
           <div className="flex items-center space-x-2">
             <input
@@ -96,22 +96,22 @@ export function ShareButton({ taskId, className }: ShareButtonProps) {
               {copied ? (
                 <>
                   <Check className="w-4 h-4 mr-1" />
-                  已复制
+                  Copied
                 </>
               ) : (
                 <>
                   <Copy className="w-4 h-4 mr-1" />
-                  复制
+                  Copy
                 </>
               )}
             </button>
           </div>
         </div>
 
-        {/* 社交媒体分享 */}
+        {/* Social Media Share */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-3">
-            分享到社交媒体
+            Share to Social Media
           </label>
           <div className="grid grid-cols-3 gap-3">
             <button
@@ -121,7 +121,7 @@ export function ShareButton({ taskId, className }: ShareButtonProps) {
               <Twitter className="w-6 h-6 text-blue-500 mb-1" />
               <span className="text-xs text-gray-600">Twitter</span>
             </button>
-            
+
             <button
               onClick={handleFacebookShare}
               className="flex flex-col items-center p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
@@ -129,21 +129,21 @@ export function ShareButton({ taskId, className }: ShareButtonProps) {
               <Facebook className="w-6 h-6 text-blue-600 mb-1" />
               <span className="text-xs text-gray-600">Facebook</span>
             </button>
-            
+
             <button
               onClick={handleWeChatShare}
               className="flex flex-col items-center p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
             >
               <MessageCircle className="w-6 h-6 text-green-500 mb-1" />
-              <span className="text-xs text-gray-600">微信</span>
+              <span className="text-xs text-gray-600">WeChat</span>
             </button>
           </div>
         </div>
 
-        {/* 提示信息 */}
+        {/* Tip Message */}
         <div className="mt-4 p-3 bg-blue-50 rounded-lg">
           <p className="text-xs text-blue-800">
-            💡 分享您的试戴效果，让朋友们也来体验VisuTry的AI试戴功能！
+            💡 Share your try-on result and let your friends experience VisuTry&apos;s AI try-on feature!
           </p>
         </div>
       </div>

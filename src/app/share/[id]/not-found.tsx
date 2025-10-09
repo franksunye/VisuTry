@@ -11,43 +11,43 @@ export default function ShareNotFound() {
           <h1 className="text-3xl font-bold text-gray-900">VisuTry</h1>
         </div>
 
-        {/* 错误图标 */}
+        {/* Error Icon */}
         <div className="flex items-center justify-center mb-6">
           <AlertCircle className="w-16 h-16 text-gray-400" />
         </div>
 
-        {/* 错误信息 */}
+        {/* Error Message */}
         <h2 className="text-2xl font-bold text-gray-900 mb-4">
-          分享内容不存在
+          Shared Content Not Found
         </h2>
         <p className="text-gray-600 mb-8">
-          抱歉，您要查看的试戴结果不存在或已被删除。
-          可能的原因：
+          Sorry, the try-on result you&apos;re looking for doesn&apos;t exist or has been deleted.
+          Possible reasons:
         </p>
 
         <ul className="text-left text-sm text-gray-600 mb-8 space-y-2">
-          <li>• 分享链接已过期</li>
-          <li>• 试戴任务未完成</li>
-          <li>• 内容已被用户删除</li>
-          <li>• 链接地址有误</li>
+          <li>• Share link has expired</li>
+          <li>• Try-on task is not completed</li>
+          <li>• Content has been deleted by user</li>
+          <li>• Link address is incorrect</li>
         </ul>
 
-        {/* 操作按钮 */}
+        {/* Action Buttons */}
         <div className="space-y-3">
           <Link
             href="/try-on"
             className="w-full flex items-center justify-center px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
           >
             <Glasses className="w-5 h-5 mr-2" />
-            开始AI试戴
+            Start AI Try-On
           </Link>
-          
+
           <Link
             href="/"
             className="w-full flex items-center justify-center px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
           >
             <ArrowLeft className="w-5 h-5 mr-2" />
-            返回首页
+            Back to Home
           </Link>
         </div>
       </div>

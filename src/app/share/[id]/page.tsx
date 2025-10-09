@@ -74,12 +74,12 @@ export default async function SharePage({ params }: SharePageProps) {
     notFound()
   }
 
-  const userName = task.user.name || "用户"
-  const createdDate = new Date(task.createdAt).toLocaleDateString("zh-CN")
+  const userName = task.user.name || "User"
+  const createdDate = new Date(task.createdAt).toLocaleDateString("en-US")
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
-      {/* 头部 */}
+      {/* Header */}
       <header className="bg-white shadow-sm border-b">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
@@ -92,19 +92,19 @@ export default async function SharePage({ params }: SharePageProps) {
               className="flex items-center text-blue-600 hover:text-blue-700 transition-colors"
             >
               <ArrowLeft className="w-4 h-4 mr-2" />
-              体验AI试戴
+              Try AI Glasses
             </Link>
           </div>
         </div>
       </header>
 
-      {/* 主要内容 */}
+      {/* Main Content */}
       <main className="container mx-auto px-4 py-8">
         <div className="max-w-4xl mx-auto">
-          {/* 标题区域 */}
+          {/* Title Section */}
           <div className="text-center mb-8">
             <h2 className="text-3xl font-bold text-gray-900 mb-4">
-              AI眼镜试戴效果
+              AI Glasses Try-On Result
             </h2>
             <div className="flex items-center justify-center space-x-4 text-gray-600">
               {task.user.image && (
@@ -120,16 +120,16 @@ export default async function SharePage({ params }: SharePageProps) {
             </div>
           </div>
 
-          {/* 结果展示 */}
+          {/* Result Display */}
           <div className="bg-white rounded-2xl shadow-lg overflow-hidden mb-8">
             <div className="relative">
               <img
                 src={task.resultImageUrl}
-                alt="AI眼镜试戴效果"
+                alt="AI Glasses Try-On Result"
                 className="w-full h-auto max-h-96 object-contain bg-gray-50"
               />
             </div>
-            
+
             <div className="p-6">
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <a
@@ -138,58 +138,58 @@ export default async function SharePage({ params }: SharePageProps) {
                   className="flex items-center justify-center px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
                 >
                   <Download className="w-5 h-5 mr-2" />
-                  下载图片
+                  Download Image
                 </a>
-                
+
                 <Link
                   href="/try-on"
                   className="flex items-center justify-center px-6 py-3 border border-blue-600 text-blue-600 rounded-lg hover:bg-blue-50 transition-colors"
                 >
                   <Glasses className="w-5 h-5 mr-2" />
-                  我也要试戴
+                  Try It Yourself
                 </Link>
               </div>
             </div>
           </div>
 
-          {/* 产品介绍 */}
+          {/* Product Introduction */}
           <div className="bg-white rounded-xl shadow-sm p-6">
             <h3 className="text-xl font-semibold text-gray-900 mb-4">
-              关于 VisuTry
+              About VisuTry
             </h3>
             <p className="text-gray-600 mb-4">
-              VisuTry 是一款基于AI技术的虚拟眼镜试戴应用。通过先进的人工智能算法，
-              我们能够为您提供逼真的眼镜试戴体验，帮助您找到最适合的眼镜款式。
+              VisuTry is an AI-powered virtual glasses try-on application. Using advanced artificial intelligence algorithms,
+              we provide you with a realistic glasses try-on experience to help you find the perfect eyewear style.
             </p>
-            
+
             <div className="grid md:grid-cols-3 gap-4">
               <div className="text-center p-4">
                 <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-3">
                   <Glasses className="w-6 h-6 text-blue-600" />
                 </div>
-                <h4 className="font-medium text-gray-900 mb-2">AI技术</h4>
+                <h4 className="font-medium text-gray-900 mb-2">AI Technology</h4>
                 <p className="text-sm text-gray-600">
-                  使用先进的AI算法实现逼真的试戴效果
+                  Advanced AI algorithms for realistic try-on effects
                 </p>
               </div>
-              
+
               <div className="text-center p-4">
                 <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3">
                   <Download className="w-6 h-6 text-green-600" />
                 </div>
-                <h4 className="font-medium text-gray-900 mb-2">免费试用</h4>
+                <h4 className="font-medium text-gray-900 mb-2">Free Trial</h4>
                 <p className="text-sm text-gray-600">
-                  每个用户都可以免费体验3次AI试戴
+                  Every user gets 3 free AI try-on experiences
                 </p>
               </div>
-              
+
               <div className="text-center p-4">
                 <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-3">
                   <ArrowLeft className="w-6 h-6 text-purple-600" />
                 </div>
-                <h4 className="font-medium text-gray-900 mb-2">简单易用</h4>
+                <h4 className="font-medium text-gray-900 mb-2">Easy to Use</h4>
                 <p className="text-sm text-gray-600">
-                  只需上传照片，选择眼镜，即可获得试戴效果
+                  Simply upload a photo, select glasses, and get your try-on result
                 </p>
               </div>
             </div>
@@ -197,11 +197,11 @@ export default async function SharePage({ params }: SharePageProps) {
         </div>
       </main>
 
-      {/* 底部 */}
+      {/* Footer */}
       <footer className="bg-white border-t mt-16">
         <div className="container mx-auto px-4 py-6">
           <div className="text-center text-gray-600">
-            <p>&copy; 2024 VisuTry. 使用AI技术让眼镜试戴更简单。</p>
+            <p>&copy; 2024 VisuTry. Making glasses try-on easier with AI technology.</p>
           </div>
         </div>
       </footer>
