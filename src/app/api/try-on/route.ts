@@ -219,7 +219,10 @@ async function processTryOnAsync(taskId: string, userImageUrl: string, glassesIm
       })
     }
 
+    console.log("📊 Try-on result:", { success: result.success, hasImageUrl: !!result.imageUrl, error: result.error })
+
     if (result.success && result.imageUrl) {
+      console.log("✅ Updating task status to COMPLETED...")
       // 更新任务状态为完成
       if (isMockMode) {
         await MockDatabase.updateTryOnTask(taskId, {
@@ -235,7 +238,9 @@ async function processTryOnAsync(taskId: string, userImageUrl: string, glassesIm
           }
         })
       }
+      console.log("✅ Task status updated to COMPLETED")
     } else {
+      console.log("❌ Try-on failed, updating task status to FAILED...")
       // 更新任务状态为失败
       if (isMockMode) {
         await MockDatabase.updateTryOnTask(taskId, {

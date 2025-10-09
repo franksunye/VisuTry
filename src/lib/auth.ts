@@ -1,3 +1,6 @@
+// IMPORTANT: Setup proxy BEFORE any other imports that make network requests
+import "./proxy-setup"
+
 import { NextAuthOptions } from "next-auth"
 import TwitterProvider from "next-auth/providers/twitter"
 import { PrismaAdapter } from "@next-auth/prisma-adapter"

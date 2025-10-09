@@ -1,6 +1,39 @@
 import { GoogleGenerativeAI } from "@google/generative-ai"
 import { mockGenerateTryOnImage, isMockMode } from "./mocks/gemini"
 
+// Configure proxy for Gemini API in local development
+if (typeof window === 'undefined') {
+  const isLocalDev = process.env.NODE_ENV === 'development' && !process.env.VERCEL
+  const proxyUrl = process.env.HTTPS_PROXY || process.env.HTTP_PROXY
+
+  if (isLocalDev && proxyUrl) {
+    try {
+      const { ProxyAgent } = require('undici')
+      const { setGlobalDispatcher } = require('undici')
+
+      // Configure proxy with longer timeout for Gemini API
+      const dispatcher = new ProxyAgent({
+        uri: proxyUrl,
+        connect: {
+          timeout: 60000, // 60 seconds connection timeout
+        },
+        headersTimeout: 120000, // 120 seconds headers timeout
+        bodyTimeout: 120000, // 120 seconds body timeout
+      })
+      setGlobalDispatcher(dispatcher)
+
+      console.log('🔌 Proxy configured for Gemini API')
+      console.log('  - Proxy URL:', proxyUrl)
+      console.log('  - Connection timeout: 60s')
+      console.log('  - Headers/Body timeout: 120s')
+      console.log('  - Target: generativelanguage.googleapis.com')
+    } catch (error) {
+      console.error('❌ Failed to configure proxy for Gemini API:', error)
+      console.error('   Gemini API may fail in China without proxy')
+    }
+  }
+}
+
 // Only require API key in production mode
 if (!process.env.GEMINI_API_KEY && !isMockMode) {
   throw new Error("GEMINI_API_KEY environment variable is required")
@@ -23,7 +56,7 @@ export interface TryOnResult {
 export async function generateTryOnImage({
   userImageUrl,
   glassesImageUrl,
-  prompt = "Please seamlessly blend the glasses onto the person's face in a natural and realistic way. Ensure the glasses fit properly on the face, match the lighting and perspective, and look like they belong in the original photo."
+  prompt = "Place these glasses naturally on the person's face. Ensure the glasses fit properly, match the lighting and perspective, and look realistic."
 }: TryOnRequest): Promise<TryOnResult> {
   // Use mock service in test mode
   if (isMockMode) {
@@ -35,74 +68,130 @@ export async function generateTryOnImage({
   }
 
   try {
-    // Note: Since Gemini API is primarily for text and image analysis, not image editing
-    // We implement a simulated try-on effect here. In production, integrate specialized image processing APIs
+    console.log("🎨 Starting Gemini 2.0 Flash Image Generation virtual try-on...")
 
-    // Simulate processing time
-    await new Promise(resolve => setTimeout(resolve, 3000 + Math.random() * 2000))
+    // Use Gemini 2.0 Flash Preview Image Generation
+    // This model has FREE TIER quota and supports image generation
+    const model = genAI.getGenerativeModel({
+      model: "gemini-2.0-flash-preview-image-generation",
+      generationConfig: {
+        // @ts-ignore - responseModalities is not in the type definition yet
+        responseModalities: ["IMAGE", "TEXT"]
+      }
+    })
 
-    // Use Gemini for image analysis to get facial feature information
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" })
-
-    // 获取用户图片数据
+    // Fetch user image
     const userImageResponse = await fetch(userImageUrl)
     if (!userImageResponse.ok) {
       throw new Error("Failed to fetch user image")
     }
-
     const userImageBuffer = await userImageResponse.arrayBuffer()
     const userImageBase64 = Buffer.from(userImageBuffer).toString('base64')
+    const userImageMimeType = userImageResponse.headers.get('content-type') || 'image/jpeg'
 
-    // 分析面部特征
-    const analysisPrompt = `
-Analyze this face photo and provide detailed information about:
-1. Face shape (round, oval, square, heart, etc.)
-2. Eye position and size
-3. Nose bridge position and width
-4. Face angle and orientation
-5. Lighting conditions
-6. Recommended glasses positioning
+    // Fetch glasses image
+    const glassesImageResponse = await fetch(glassesImageUrl)
+    if (!glassesImageResponse.ok) {
+      throw new Error("Failed to fetch glasses image")
+    }
+    const glassesImageBuffer = await glassesImageResponse.arrayBuffer()
+    const glassesImageBase64 = Buffer.from(glassesImageBuffer).toString('base64')
+    const glassesImageMimeType = glassesImageResponse.headers.get('content-type') || 'image/png'
 
-Please provide a detailed analysis that would help with virtual glasses try-on.
+    console.log("📸 Images loaded, generating virtual try-on...")
+
+    // Create the prompt for multi-image fusion
+    const tryOnPrompt = `
+You are an expert at virtual glasses try-on. I will provide you with two images:
+1. A person's face photo
+2. A pair of glasses
+
+Please create a photorealistic image where the glasses are naturally placed on the person's face.
+
+Requirements:
+- Position the glasses correctly on the nose bridge and ears
+- Match the perspective and angle of the face
+- Adjust the size of the glasses to fit the face proportionally
+- Match the lighting conditions of the original photo
+- Ensure the glasses look natural and realistic
+- Preserve the person's facial features and expression
+- Make sure the glasses don't obscure important facial features unnaturally
+
+${prompt}
 `
 
-    const analysisResult = await model.generateContent([
+    // Generate the try-on image using multi-image fusion
+    const result = await model.generateContent([
+      tryOnPrompt,
       {
-        text: analysisPrompt
+        inlineData: {
+          mimeType: userImageMimeType,
+          data: userImageBase64
+        }
       },
       {
         inlineData: {
-          mimeType: "image/jpeg",
-          data: userImageBase64
+          mimeType: glassesImageMimeType,
+          data: glassesImageBase64
         }
       }
     ])
 
-    const analysis = await analysisResult.response.text()
-    console.log("Face analysis:", analysis)
+    console.log("✅ Gemini API response received")
 
-    // 在实际应用中，这里应该调用专门的图像合成API
-    // 目前我们返回一个模拟的成功结果
+    // Extract the generated image from the response
+    const response = result.response
+    const candidates = response.candidates
 
-    // 模拟成功率（90%成功率）
-    if (Math.random() < 0.9) {
-      // 在实际实现中，这里应该是处理后的图片URL
-      // 现在我们返回原图作为占位符
-      return {
-        success: true,
-        imageUrl: userImageUrl, // 实际应该是合成后的图片
-        error: undefined
-      }
-    } else {
-      // 模拟偶尔的失败情况
-      return {
-        success: false,
-        error: "图像处理失败，请确保照片清晰且面部可见"
+    if (!candidates || candidates.length === 0) {
+      throw new Error("No candidates returned from Gemini API")
+    }
+
+    const parts = candidates[0].content.parts
+
+    // Look for inline_data (generated image)
+    for (const part of parts) {
+      if (part.inlineData) {
+        console.log("🖼️ Generated image found in response")
+
+        // Convert the base64 image data to a data URL
+        const imageData = part.inlineData.data
+        const mimeType = part.inlineData.mimeType || 'image/png'
+        const dataUrl = `data:${mimeType};base64,${imageData}`
+
+        return {
+          success: true,
+          imageUrl: dataUrl,
+          error: undefined
+        }
       }
     }
 
+    // If no image was generated, check for text response
+    const textResponse = response.text()
+    console.warn("⚠️ No image generated, text response:", textResponse)
+
+    throw new Error("Gemini did not generate an image. Response: " + textResponse)
+
   } catch (error) {
-    console.error("Gemini API error:", error)
+    console.error("❌ Gemini API error:", error)
+
+    // Check if it's a quota error
+    if (error instanceof Error && error.message.includes('quota')) {
+      return {
+        success: false,
+        error: "Gemini 2.5 Flash Image 配额已用完。请稍后再试或升级到付费计划。"
+      }
+    }
+
+    // Check if it's a 429 error (rate limit)
+    if (error instanceof Error && error.message.includes('429')) {
+      return {
+        success: false,
+        error: "请求过于频繁，请稍后再试（建议等待 20-30 秒）。"
+      }
+    }
+
     return {
       success: false,
       error: error instanceof Error ? error.message : "AI处理过程中发生未知错误"
@@ -120,7 +209,7 @@ export async function validateGeminiConnection(): Promise<boolean> {
   }
 
   try {
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" })
+    const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash-exp" })
     const result = await model.generateContent("Hello, this is a test.")
     const response = await result.response
     return response.text().length > 0

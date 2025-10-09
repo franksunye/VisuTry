@@ -1,3 +1,6 @@
+// IMPORTANT: Setup proxy BEFORE NextAuth
+import "@/lib/proxy-setup"
+
 import NextAuth from "next-auth"
 import { authOptions } from "@/lib/auth"
 

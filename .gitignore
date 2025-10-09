@@ -126,4 +126,10 @@ scripts/diagnose-*.js
 scripts/simple-*.js
 scripts/tmp-*.ps1
 scripts/*-with-*.bat
+scripts/check-*.js
 src/app/api/debug/
+
+# 本地开发文档（临时调试笔记）
+*-SOLUTION.md
+*-ISSUE.md
+*-IMPLEMENTATION.md
