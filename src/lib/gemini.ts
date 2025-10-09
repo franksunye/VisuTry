@@ -188,13 +188,13 @@ ${prompt}
     if (error instanceof Error && error.message.includes('429')) {
       return {
         success: false,
-        error: "请求过于频繁，请稍后再试（建议等待 20-30 秒）。"
+        error: "Too many requests, please try again later (recommended wait: 20-30 seconds)."
       }
     }
 
     return {
       success: false,
-      error: error instanceof Error ? error.message : "AI处理过程中发生未知错误"
+      error: error instanceof Error ? error.message : "Unknown error occurred during AI processing"
     }
   }
 }

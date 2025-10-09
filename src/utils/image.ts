@@ -7,15 +7,15 @@ export const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp']
 
 export function validateImageFile(file: File): { valid: boolean; error?: string } {
   if (!file) {
-    return { valid: false, error: '请选择一个文件' }
+    return { valid: false, error: 'Please select a file' }
   }
 
   if (!ALLOWED_IMAGE_TYPES.includes(file.type)) {
-    return { valid: false, error: '只支持 JPEG、PNG 和 WebP 格式的图片' }
+    return { valid: false, error: 'Only JPEG, PNG and WebP formats are supported' }
   }
 
   if (file.size > MAX_FILE_SIZE) {
-    return { valid: false, error: '文件大小不能超过 5MB' }
+    return { valid: false, error: 'File size cannot exceed 5MB' }
   }
 
   return { valid: true }

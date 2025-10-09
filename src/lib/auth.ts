@@ -49,18 +49,18 @@ if (!isMockMode) {
 }
 
 export const authOptions: NextAuthOptions = {
-  // 使用 Prisma Adapter 确保用户自动创建到数据库
-  // 在 Vercel 生产环境,确保 adapter 正确初始化
+  // Use Prisma Adapter to ensure users are automatically created in database
+  // In Vercel production environment, ensure adapter is properly initialized
   adapter: isMockMode ? undefined : PrismaAdapter(prisma),
 
   providers: [
     ...(isMockMode ? [MockCredentialsProvider] : []),
-    // 使用Twitter OAuth 2.0
+    // Use Twitter OAuth 2.0
     TwitterProvider({
       clientId: process.env.TWITTER_CLIENT_ID!,
       clientSecret: process.env.TWITTER_CLIENT_SECRET!,
       version: "2.0",
-      // 明确指定授权参数,确保 Vercel 环境正确处理
+      // Explicitly specify authorization params to ensure Vercel environment handles correctly
       authorization: {
         params: {
           scope: "tweet.read users.read offline.access",
@@ -70,13 +70,13 @@ export const authOptions: NextAuthOptions = {
   ],
   callbacks: {
     async session({ session, token, user }) {
-      // 从数据库同步最新的用户数据
+      // Sync latest user data from database
       if (session.user && token) {
         const userId = user?.id || (token.sub as string) || (token.id as string)
 
         if (userId && userId !== "unknown") {
           try {
-            // 从数据库获取最新用户数据
+            // Fetch latest user data from database
             const dbUser = await prisma.user.findUnique({
               where: { id: userId },
               select: {
@@ -123,7 +123,7 @@ export const authOptions: NextAuthOptions = {
             console.error('   Falling back to token data')
             __debugWrite('session.db_error', { error, userId })
 
-            // 发生错误时使用 token 中的值作为后备
+            // Use token values as fallback when error occurs
             session.user.id = userId
             session.user.freeTrialsUsed = (token.freeTrialsUsed as number) || 0
             session.user.isPremium = (token.isPremium as boolean) || false
@@ -133,7 +133,7 @@ export const authOptions: NextAuthOptions = {
           }
         }
 
-        // 从 token 补充用户名和邮箱（如果数据库中没有）
+        // Supplement username and email from token (if not in database)
         if (token.username && !session.user.username) {
           session.user.username = token.username as string
         }
@@ -144,7 +144,7 @@ export const authOptions: NextAuthOptions = {
       return session
     },
     async jwt({ token, user, account, profile }) {
-      // 首次登录时设置基本信息
+      // Set basic info on first login
       if (user) {
         token.id = user.id
         token.name = user.name
@@ -152,14 +152,14 @@ export const authOptions: NextAuthOptions = {
         token.image = user.image
       }
 
-      // 如果是Twitter登录，补充用户名与邮箱（兼容 v1.1/v2）
+      // If Twitter login, supplement username and email (compatible with v1.1/v2)
       if (account?.provider === 'twitter' && profile) {
         const p: any = profile
         token.username = p?.data?.username ?? p?.username ?? p?.screen_name ?? token.username ?? user?.name
         if (!token.email) token.email = p?.data?.email ?? p?.email ?? token.email
       }
 
-      // 定期从数据库同步用户数据到 token（每次请求都同步）
+      // Periodically sync user data from database to token (sync on every request)
       if (token.sub) {
         try {
           const dbUser = await prisma.user.findUnique({
