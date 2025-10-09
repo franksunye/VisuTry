@@ -1,0 +1,34 @@
+# Vercel ignore file
+# Files and directories to exclude from deployment
+
+# Tests
+tests/
+*.test.ts
+*.test.tsx
+*.test.js
+*.spec.ts
+*.spec.tsx
+*.spec.js
+
+# Documentation
+docs/
+*.md
+!README.md
+
+# Development files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Logs
+logs/
+*.log
+tmp/
+
+# Scripts (except necessary ones)
+scripts/test-*.js
+scripts/debug-*.js
+scripts/diagnose-*.js
+scripts/simple-*.js
+
