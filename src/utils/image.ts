@@ -48,7 +48,7 @@ export function compressImage(file: File, maxWidth: number = 1024, quality: numb
             })
             resolve(compressedFile)
           } else {
-            reject(new Error('图片压缩失败'))
+            reject(new Error('Image compression failed'))
           }
         },
         file.type,
@@ -56,7 +56,7 @@ export function compressImage(file: File, maxWidth: number = 1024, quality: numb
       )
     }
 
-    img.onerror = () => reject(new Error('图片加载失败'))
+    img.onerror = () => reject(new Error('Image loading failed'))
     img.src = URL.createObjectURL(file)
   })
 }
@@ -68,10 +68,10 @@ export function createImagePreview(file: File): Promise<string> {
       if (e.target?.result) {
         resolve(e.target.result as string)
       } else {
-        reject(new Error('无法创建图片预览'))
+        reject(new Error('Unable to create image preview'))
       }
     }
-    reader.onerror = () => reject(new Error('文件读取失败'))
+    reader.onerror = () => reject(new Error('File reading failed'))
     reader.readAsDataURL(file)
   })
 }

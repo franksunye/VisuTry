@@ -101,15 +101,15 @@ export const authOptions: NextAuthOptions = {
               session.user.isPremium = dbUser.isPremium
               session.user.premiumExpiresAt = dbUser.premiumExpiresAt
 
-              // 计算是否为活跃高级会员
+              // Calculate if premium is active
               session.user.isPremiumActive = dbUser.isPremium &&
                 (!dbUser.premiumExpiresAt || dbUser.premiumExpiresAt > new Date())
 
-              // 计算剩余试用次数
+              // Calculate remaining trial count
               const freeTrialLimit = parseInt(process.env.FREE_TRIAL_LIMIT || "3")
               session.user.remainingTrials = Math.max(0, freeTrialLimit - dbUser.freeTrialsUsed)
             } else {
-              // 用户不存在于数据库，使用 token 中的默认值
+              // User doesn't exist in database, use default values from token
               session.user.id = userId
               session.user.freeTrialsUsed = 0
               session.user.isPremium = false
@@ -176,7 +176,7 @@ export const authOptions: NextAuthOptions = {
             token.isPremium = dbUser.isPremium
             token.premiumExpiresAt = dbUser.premiumExpiresAt
 
-            // 计算活跃状态和剩余次数
+            // Calculate active status and remaining count
             token.isPremiumActive = dbUser.isPremium &&
               (!dbUser.premiumExpiresAt || dbUser.premiumExpiresAt > new Date())
 

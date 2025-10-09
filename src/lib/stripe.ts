@@ -13,27 +13,27 @@ export const stripe = isMockMode
       typescript: true,
     })
 
-// 产品配置
+// Product configuration
 export const PRODUCTS = {
   PREMIUM_MONTHLY: {
-    name: "高级会员 - 月付",
-    description: "无限次AI试戴 + 高级功能",
+    name: "Premium - Monthly",
+    description: "Unlimited AI try-ons + Premium features",
     price: 999, // 9.99 USD in cents
     currency: "usd",
     interval: "month" as const,
     priceId: process.env.STRIPE_PREMIUM_MONTHLY_PRICE_ID,
   },
   PREMIUM_YEARLY: {
-    name: "高级会员 - 年付",
-    description: "无限次AI试戴 + 高级功能 + 2个月免费",
+    name: "Premium - Annual",
+    description: "Unlimited AI try-ons + Premium features + 2 months free",
     price: 9999, // 99.99 USD in cents
     currency: "usd",
     interval: "year" as const,
     priceId: process.env.STRIPE_PREMIUM_YEARLY_PRICE_ID,
   },
   CREDITS_PACK: {
-    name: "试戴次数包",
-    description: "额外获得20次AI试戴机会",
+    name: "Credits Pack",
+    description: "Get 20 additional AI try-on credits",
     price: 299, // 2.99 USD in cents
     currency: "usd",
     priceId: process.env.STRIPE_CREDITS_PACK_PRICE_ID,

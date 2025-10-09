@@ -79,7 +79,7 @@ export default async function HistoryPage({ searchParams }: HistoryPageProps) {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      {/* 页面标题 */}
+      {/* Page Header */}
       <div className="flex items-center justify-between mb-8">
         <div className="flex items-center">
           <Link
@@ -87,16 +87,16 @@ export default async function HistoryPage({ searchParams }: HistoryPageProps) {
             className="flex items-center text-blue-600 hover:text-blue-700 mr-4"
           >
             <ArrowLeft className="w-5 h-5 mr-2" />
-            返回个人中心
+            Back to Dashboard
           </Link>
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">试戴历史</h1>
-            <p className="text-gray-600 mt-1">查看您的所有AI试戴记录</p>
+            <h1 className="text-3xl font-bold text-gray-900">Try-On History</h1>
+            <p className="text-gray-600 mt-1">View all your AI try-on records</p>
           </div>
         </div>
       </div>
 
-      {/* 统计卡片 */}
+      {/* Stats Cards */}
       <div className="grid md:grid-cols-4 gap-4 mb-8">
         <div className="bg-white rounded-lg shadow-sm border p-6">
           <div className="flex items-center">
@@ -104,7 +104,7 @@ export default async function HistoryPage({ searchParams }: HistoryPageProps) {
               <History className="w-6 h-6 text-blue-600" />
             </div>
             <div className="ml-4">
-              <p className="text-sm text-gray-600">总计</p>
+              <p className="text-sm text-gray-600">Total</p>
               <p className="text-2xl font-semibold text-gray-900">{statusCounts.total}</p>
             </div>
           </div>
@@ -116,7 +116,7 @@ export default async function HistoryPage({ searchParams }: HistoryPageProps) {
               <div className="w-6 h-6 bg-green-600 rounded-full" />
             </div>
             <div className="ml-4">
-              <p className="text-sm text-gray-600">已完成</p>
+              <p className="text-sm text-gray-600">Completed</p>
               <p className="text-2xl font-semibold text-gray-900">{statusCounts.completed}</p>
             </div>
           </div>
@@ -128,7 +128,7 @@ export default async function HistoryPage({ searchParams }: HistoryPageProps) {
               <div className="w-6 h-6 bg-yellow-600 rounded-full animate-pulse" />
             </div>
             <div className="ml-4">
-              <p className="text-sm text-gray-600">处理中</p>
+              <p className="text-sm text-gray-600">Processing</p>
               <p className="text-2xl font-semibold text-gray-900">{statusCounts.processing}</p>
             </div>
           </div>
@@ -140,23 +140,23 @@ export default async function HistoryPage({ searchParams }: HistoryPageProps) {
               <div className="w-6 h-6 bg-red-600 rounded-full" />
             </div>
             <div className="ml-4">
-              <p className="text-sm text-gray-600">失败</p>
+              <p className="text-sm text-gray-600">Failed</p>
               <p className="text-2xl font-semibold text-gray-900">{statusCounts.failed}</p>
             </div>
           </div>
         </div>
       </div>
 
-      {/* 筛选器 */}
+      {/* Filters */}
       <div className="bg-white rounded-lg shadow-sm border p-4 mb-6">
         <div className="flex items-center space-x-4">
-          <span className="text-sm font-medium text-gray-700">筛选状态：</span>
+          <span className="text-sm font-medium text-gray-700">Filter by status:</span>
           <div className="flex space-x-2">
             {[
-              { value: "all", label: "全部" },
-              { value: "completed", label: "已完成" },
-              { value: "processing", label: "处理中" },
-              { value: "failed", label: "失败" }
+              { value: "all", label: "All" },
+              { value: "completed", label: "Completed" },
+              { value: "processing", label: "Processing" },
+              { value: "failed", label: "Failed" }
             ].map((filter) => (
               <Link
                 key={filter.value}
@@ -174,7 +174,7 @@ export default async function HistoryPage({ searchParams }: HistoryPageProps) {
         </div>
       </div>
 
-      {/* 历史记录列表 */}
+      {/* History List */}
       <TryOnHistoryList
         tasks={tasks}
         currentPage={page}

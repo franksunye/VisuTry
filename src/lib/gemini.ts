@@ -180,7 +180,7 @@ ${prompt}
     if (error instanceof Error && error.message.includes('quota')) {
       return {
         success: false,
-        error: "Gemini 2.5 Flash Image 配额已用完。请稍后再试或升级到付费计划。"
+        error: "Gemini 2.5 Flash Image quota exhausted. Please try again later or upgrade to a paid plan."
       }
     }
 
