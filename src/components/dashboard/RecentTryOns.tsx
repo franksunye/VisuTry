@@ -1,5 +1,6 @@
 import { Clock, CheckCircle, XCircle, Loader2, ExternalLink, History } from "lucide-react"
 import Link from "next/link"
+import Image from "next/image"
 import { formatDistanceToNow } from "date-fns"
 
 interface TryOnTask {
@@ -98,21 +99,29 @@ export function RecentTryOns({ tryOns }: RecentTryOnsProps) {
               {/* Image Preview */}
               <div className="aspect-square bg-gray-100 relative">
                 {tryOn.resultImageUrl ? (
-                  <img
+                  <Image
                     src={tryOn.resultImageUrl}
                     alt="Try-on result"
-                    className="w-full h-full object-cover"
+                    fill
+                    sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                    className="object-cover"
+                    loading="lazy"
+                    quality={75}
                   />
                 ) : (
-                  <img
+                  <Image
                     src={tryOn.userImageUrl}
                     alt="User photo"
-                    className="w-full h-full object-cover opacity-50"
+                    fill
+                    sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                    className="object-cover opacity-50"
+                    loading="lazy"
+                    quality={75}
                   />
                 )}
 
                 {/* Status Badge */}
-                <div className="absolute top-2 right-2">
+                <div className="absolute top-2 right-2 z-10">
                   <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(tryOn.status)}`}>
                     {getStatusIcon(tryOn.status)}
                     <span className="ml-1">{getStatusText(tryOn.status)}</span>

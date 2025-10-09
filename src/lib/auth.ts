@@ -70,80 +70,28 @@ export const authOptions: NextAuthOptions = {
   ],
   callbacks: {
     async session({ session, token, user }) {
-      // Sync latest user data from database
+      // Optimization: Read data directly from token to avoid database queries on every request
+      // Token is already updated in jwt callback
       if (session.user && token) {
         const userId = user?.id || (token.sub as string) || (token.id as string)
 
         if (userId && userId !== "unknown") {
-          try {
-            // Fetch latest user data from database
-            const dbUser = await prisma.user.findUnique({
-              where: { id: userId },
-              select: {
-                id: true,
-                name: true,
-                email: true,
-                image: true,
-                username: true,
-                freeTrialsUsed: true,
-                isPremium: true,
-                premiumExpiresAt: true,
-              }
-            })
-
-            if (dbUser) {
-              session.user.id = dbUser.id
-              session.user.name = dbUser.name
-              session.user.email = dbUser.email
-              session.user.image = dbUser.image
-              session.user.username = dbUser.username
-              session.user.freeTrialsUsed = dbUser.freeTrialsUsed
-              session.user.isPremium = dbUser.isPremium
-              session.user.premiumExpiresAt = dbUser.premiumExpiresAt
-
-              // Calculate if premium is active
-              session.user.isPremiumActive = dbUser.isPremium &&
-                (!dbUser.premiumExpiresAt || dbUser.premiumExpiresAt > new Date())
-
-              // Calculate remaining trial count
-              const freeTrialLimit = parseInt(process.env.FREE_TRIAL_LIMIT || "3")
-              session.user.remainingTrials = Math.max(0, freeTrialLimit - dbUser.freeTrialsUsed)
-            } else {
-              // User doesn't exist in database, use default values from token
-              session.user.id = userId
-              session.user.freeTrialsUsed = 0
-              session.user.isPremium = false
-              session.user.premiumExpiresAt = null
-              session.user.isPremiumActive = false
-              session.user.remainingTrials = 3
-            }
-          } catch (error) {
-            console.error('❌ Error fetching user from database in session callback:', error)
-            console.error('   This may indicate database connection issues in Vercel')
-            console.error('   Falling back to token data')
-            __debugWrite('session.db_error', { error, userId })
-
-            // Use token values as fallback when error occurs
-            session.user.id = userId
-            session.user.freeTrialsUsed = (token.freeTrialsUsed as number) || 0
-            session.user.isPremium = (token.isPremium as boolean) || false
-            session.user.premiumExpiresAt = (token.premiumExpiresAt as Date) || null
-            session.user.isPremiumActive = (token.isPremiumActive as boolean) || false
-            session.user.remainingTrials = (token.remainingTrials as number) || 3
-          }
-        }
-
-        // Supplement username and email from token (if not in database)
-        if (token.username && !session.user.username) {
-          session.user.username = token.username as string
-        }
-        if (token.email && !session.user.email) {
-          session.user.email = token.email as string
+          // Read cached user data directly from token
+          session.user.id = userId
+          session.user.name = (token.name as string) || session.user.name
+          session.user.email = (token.email as string) || session.user.email
+          session.user.image = (token.image as string) || session.user.image
+          session.user.username = (token.username as string) || session.user.username
+          session.user.freeTrialsUsed = (token.freeTrialsUsed as number) || 0
+          session.user.isPremium = (token.isPremium as boolean) || false
+          session.user.premiumExpiresAt = (token.premiumExpiresAt as Date) || null
+          session.user.isPremiumActive = (token.isPremiumActive as boolean) || false
+          session.user.remainingTrials = (token.remainingTrials as number) || 3
         }
       }
       return session
     },
-    async jwt({ token, user, account, profile }) {
+    async jwt({ token, user, account, profile, trigger }) {
       // Set basic info on first login
       if (user) {
         token.id = user.id
@@ -159,12 +107,21 @@ export const authOptions: NextAuthOptions = {
         if (!token.email) token.email = p?.data?.email ?? p?.email ?? token.email
       }
 
-      // Periodically sync user data from database to token (sync on every request)
-      if (token.sub) {
+      // Optimization: Only sync from database in specific cases, not on every request
+      // 1. First login (user exists)
+      // 2. Manual trigger update (trigger === 'update')
+      // 3. Token has no user data
+      const shouldSync = user || trigger === 'update' || !token.freeTrialsUsed
+
+      if (token.sub && shouldSync) {
         try {
           const dbUser = await prisma.user.findUnique({
             where: { id: token.sub },
             select: {
+              name: true,
+              email: true,
+              image: true,
+              username: true,
               freeTrialsUsed: true,
               isPremium: true,
               premiumExpiresAt: true,
@@ -172,6 +129,11 @@ export const authOptions: NextAuthOptions = {
           })
 
           if (dbUser) {
+            // Update all user info to token
+            token.name = dbUser.name
+            token.email = dbUser.email
+            token.image = dbUser.image
+            token.username = dbUser.username
             token.freeTrialsUsed = dbUser.freeTrialsUsed
             token.isPremium = dbUser.isPremium
             token.premiumExpiresAt = dbUser.premiumExpiresAt

@@ -8,6 +8,10 @@ import { SubscriptionCard } from "@/components/dashboard/SubscriptionCard"
 import { Glasses, Plus } from "lucide-react"
 import Link from "next/link"
 
+// 启用部分预渲染和缓存优化
+export const dynamic = 'force-dynamic' // 因为需要用户session数据
+export const revalidate = 60 // 60秒后重新验证缓存
+
 export default async function DashboardPage() {
   const session = await getServerSession(authOptions)
 
@@ -22,7 +26,8 @@ export default async function DashboardPage() {
   }
 
   // 定义类型
-  let tryOnStats: { _count: { id: number } } = { _count: { id: 0 } }
+  let totalTryOns = 0
+  let completedTryOns = 0
   let recentTryOns: Array<{
     id: string
     status: string
@@ -30,40 +35,19 @@ export default async function DashboardPage() {
     resultImageUrl: string | null
     createdAt: Date
   }> = []
-  let completedTryOns: number = 0
 
   try {
-    // 首先确保用户存在于数据库中
-    let user = await prisma.user.findUnique({
-      where: { id: session.user.id },
-      select: { id: true }
-    })
-
-    // 如果用户不存在，创建用户记录（防御性编程）
-    if (!user) {
-      console.log('User not found in database, creating user:', session.user.id)
-      user = await prisma.user.create({
-        data: {
-          id: session.user.id,
-          name: session.user.name,
-          email: session.user.email,
-          image: session.user.image,
-          username: session.user.username,
-          freeTrialsUsed: 0,
-          isPremium: false,
-        },
-        select: { id: true }
-      })
-    }
-
-    // 获取用户统计数据
-    const [stats, tasks] = await Promise.all([
-      prisma.tryOnTask.aggregate({
+    // 优化：使用单个并行查询获取所有数据，减少数据库往返
+    const [statusGroups, tasks] = await Promise.all([
+      // 使用 groupBy 一次性获取总数和完成数
+      prisma.tryOnTask.groupBy({
+        by: ['status'],
         where: { userId: session.user.id },
         _count: {
           id: true,
         },
       }),
+      // 获取最近的试戴记录
       prisma.tryOnTask.findMany({
         where: { userId: session.user.id },
         orderBy: { createdAt: "desc" },
@@ -78,15 +62,10 @@ export default async function DashboardPage() {
       }),
     ])
 
-    tryOnStats = stats
+    // 从 groupBy 结果中计算统计数据
+    totalTryOns = statusGroups.reduce((sum, group) => sum + group._count.id, 0)
+    completedTryOns = statusGroups.find(g => g.status === 'COMPLETED')?._count.id || 0
     recentTryOns = tasks
-
-    completedTryOns = await prisma.tryOnTask.count({
-      where: {
-        userId: session.user.id,
-        status: "COMPLETED",
-      },
-    })
   } catch (error) {
     console.error('Error fetching dashboard data:', error)
 
@@ -99,8 +78,8 @@ export default async function DashboardPage() {
   }
 
   const stats = {
-    totalTryOns: tryOnStats?._count?.id || 0,
-    completedTryOns: completedTryOns || 0,
+    totalTryOns,
+    completedTryOns,
     remainingTrials: session.user.remainingTrials || 0,
     isPremium: session.user.isPremiumActive || false,
   }
