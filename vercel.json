@@ -1,6 +1,6 @@
 {
-  "buildCommand": "prisma migrate deploy && prisma generate && next build",
-  "installCommand": "npm ci",
+  "buildCommand": "npm run build",
+  "installCommand": "npm install",
   "framework": "nextjs",
   "functions": {
     "src/app/api/**/*.ts": {
