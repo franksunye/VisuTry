@@ -186,8 +186,8 @@ export default function TestStripePage() {
               <li>Make sure you are logged in (you should see your user info above)</li>
               <li>Click one of the payment buttons to create a checkout session</li>
               <li>Check the result to verify the session was created successfully</li>
-              <li>In mock mode, you'll see a mock session ID and URL</li>
-              <li>In production mode, you'll get a real Stripe checkout URL</li>
+              <li>In mock mode, you&apos;ll see a mock session ID and URL</li>
+              <li>In production mode, you&apos;ll get a real Stripe checkout URL</li>
             </ol>
           </div>
 
