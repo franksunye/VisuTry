@@ -14,22 +14,20 @@ export async function DashboardStatsAsync({ userId }: DashboardStatsAsyncProps) 
   perfLogger.start('dashboard-async:stats')
 
   try {
-    // 获取用户基本信息
-    const user = await perfLogger.measure(
-      'dashboard-async:getUserBasicData',
-      () => prisma.user.findUnique({
-        where: { id: userId },
-        select: {
-          isPremium: true,
-          premiumExpiresAt: true,
-          freeTrialsUsed: true,
-        },
-      }),
-      { userId }
-    )
-
-    // 获取任务统计
-    const [totalTryOns, completedTryOns] = await Promise.all([
+    // 🔥 优化：并行查询所有数据，减少数据库往返次数
+    const [user, totalTryOns, completedTryOns] = await Promise.all([
+      perfLogger.measure(
+        'dashboard-async:getUserBasicData',
+        () => prisma.user.findUnique({
+          where: { id: userId },
+          select: {
+            isPremium: true,
+            premiumExpiresAt: true,
+            freeTrialsUsed: true,
+          },
+        }),
+        { userId }
+      ),
       perfLogger.measure(
         'dashboard-async:getTotalCount',
         () => prisma.tryOnTask.count({

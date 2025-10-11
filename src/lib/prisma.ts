@@ -39,3 +39,15 @@ if (process.env.NODE_ENV === 'production') {
 }
 
 if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma
+
+// 🔥 数据库连接预热
+// 在应用启动时立即建立连接，避免首次查询时的冷启动延迟
+if (process.env.NODE_ENV === 'production') {
+  prisma.$connect()
+    .then(() => {
+      console.log('✅ [Prisma] Database connection established')
+    })
+    .catch((error) => {
+      console.error('❌ [Prisma] Failed to connect to database:', error)
+    })
+}
