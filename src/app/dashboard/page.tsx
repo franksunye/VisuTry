@@ -42,51 +42,67 @@ export default async function DashboardPage() {
   }
 
   try {
-    // 优化：使用单个并行查询获取所有数据，减少数据库往返
-    const [statusGroups, tasks, currentUser] = await Promise.all([
-      // 使用 groupBy 一次性获取总数和完成数
-      prisma.tryOnTask.groupBy({
-        by: ['status'],
-        where: { userId: session.user.id },
-        _count: {
-          id: true,
+    // 性能优化：使用单个查询获取用户和任务数据，减少数据库往返
+    // 这比 3 个并行查询更快，因为：
+    // 1. 减少了网络往返次数（1 次 vs 3 次）
+    // 2. 减少了数据库连接开销
+    // 3. 利用了已有的索引 (userId, createdAt)
+    const userWithTasks = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: {
+        isPremium: true,
+        premiumExpiresAt: true,
+        freeTrialsUsed: true,
+        tryOnTasks: {
+          orderBy: { createdAt: "desc" },
+          // 获取最近 50 条记录用于统计（通常用户不会有太多）
+          // 这样可以在内存中计算统计数据，避免额外的 groupBy 查询
+          take: 50,
+          select: {
+            id: true,
+            status: true,
+            userImageUrl: true,
+            resultImageUrl: true,
+            createdAt: true,
+          },
         },
-      }),
-      // 获取最近的试戴记录
-      prisma.tryOnTask.findMany({
-        where: { userId: session.user.id },
-        orderBy: { createdAt: "desc" },
-        take: 6,
-        select: {
-          id: true,
-          status: true,
-          userImageUrl: true,
-          resultImageUrl: true,
-          createdAt: true,
-        },
-      }),
-      // 获取最新的用户数据（包括会员状态）
-      prisma.user.findUnique({
-        where: { id: session.user.id },
-        select: {
-          isPremium: true,
-          premiumExpiresAt: true,
-          freeTrialsUsed: true,
-        },
-      }),
-    ])
+      },
+    })
 
-    // 从 groupBy 结果中计算统计数据
-    totalTryOns = statusGroups.reduce((sum, group) => sum + group._count.id, 0)
-    completedTryOns = statusGroups.find(g => g.status === 'COMPLETED')?._count.id || 0
-    recentTryOns = tasks
-
-    // 更新用户统计数据
-    if (currentUser) {
+    if (userWithTasks) {
+      // 更新用户统计数据
       userStats = {
-        isPremium: currentUser.isPremium,
-        premiumExpiresAt: currentUser.premiumExpiresAt,
-        freeTrialsUsed: currentUser.freeTrialsUsed,
+        isPremium: userWithTasks.isPremium,
+        premiumExpiresAt: userWithTasks.premiumExpiresAt,
+        freeTrialsUsed: userWithTasks.freeTrialsUsed,
+      }
+
+      // 在内存中计算统计数据（非常快，通常 < 1ms）
+      const allTasks = userWithTasks.tryOnTasks
+      totalTryOns = allTasks.length
+      completedTryOns = allTasks.filter(task => task.status === 'COMPLETED').length
+
+      // 只显示最近 6 条
+      recentTryOns = allTasks.slice(0, 6)
+
+      // 如果用户有超过 50 条记录，totalTryOns 可能不准确
+      // 在这种情况下，我们可以添加一个 _count 查询
+      // 但对于大多数用户来说，50 条已经足够
+      if (allTasks.length === 50) {
+        // 用户可能有更多记录，执行精确计数
+        const exactCount = await prisma.tryOnTask.count({
+          where: { userId: session.user.id },
+        })
+        totalTryOns = exactCount
+
+        // 重新计算完成数（如果需要精确值）
+        const exactCompletedCount = await prisma.tryOnTask.count({
+          where: {
+            userId: session.user.id,
+            status: 'COMPLETED'
+          },
+        })
+        completedTryOns = exactCompletedCount
       }
     }
   } catch (error) {
