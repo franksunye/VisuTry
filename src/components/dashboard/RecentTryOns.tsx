@@ -94,7 +94,7 @@ export function RecentTryOns({ tryOns }: RecentTryOnsProps) {
       
       <div className="p-6">
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {tryOns.map((tryOn) => (
+          {tryOns.map((tryOn, index) => (
             <div key={tryOn.id} className="border border-gray-200 rounded-lg overflow-hidden hover:shadow-md transition-shadow">
               {/* Image Preview */}
               <div className="aspect-square bg-gray-100 relative">
@@ -105,8 +105,11 @@ export function RecentTryOns({ tryOns }: RecentTryOnsProps) {
                     fill
                     sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
                     className="object-cover"
-                    loading="lazy"
-                    quality={75}
+                    loading={index < 3 ? "eager" : "lazy"}
+                    priority={index < 3}
+                    quality={60}
+                    placeholder="blur"
+                    blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mN8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg=="
                   />
                 ) : (
                   <Image
@@ -115,8 +118,11 @@ export function RecentTryOns({ tryOns }: RecentTryOnsProps) {
                     fill
                     sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
                     className="object-cover opacity-50"
-                    loading="lazy"
-                    quality={75}
+                    loading={index < 3 ? "eager" : "lazy"}
+                    priority={index < 3}
+                    quality={60}
+                    placeholder="blur"
+                    blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mN8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg=="
                   />
                 )}
 

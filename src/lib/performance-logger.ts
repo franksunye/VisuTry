@@ -13,7 +13,8 @@ interface PerformanceMetric {
 }
 
 class PerformanceLogger {
-  private metrics: Map<string, number> = new Map()
+  private startTimes: Map<string, number> = new Map()
+  private durations: Map<string, number> = new Map()
   private enabled: boolean
 
   constructor() {
@@ -27,7 +28,7 @@ class PerformanceLogger {
    */
   start(operation: string): void {
     if (!this.enabled) return
-    this.metrics.set(operation, Date.now())
+    this.startTimes.set(operation, Date.now())
   }
 
   /**
@@ -38,14 +39,17 @@ class PerformanceLogger {
   end(operation: string, metadata?: Record<string, any>): number {
     if (!this.enabled) return 0
 
-    const startTime = this.metrics.get(operation)
+    const startTime = this.startTimes.get(operation)
     if (!startTime) {
       console.warn(`⚠️ [Performance] No start time found for operation: ${operation}`)
       return 0
     }
 
     const duration = Date.now() - startTime
-    this.metrics.delete(operation)
+    this.startTimes.delete(operation)
+
+    // 保存 duration 以便后续在 Summary 中使用
+    this.durations.set(operation, duration)
 
     const metric: PerformanceMetric = {
       operation,
@@ -70,6 +74,21 @@ class PerformanceLogger {
     }
 
     return duration
+  }
+
+  /**
+   * 获取已记录的操作耗时
+   * @param operation 操作名称
+   */
+  getDuration(operation: string): number {
+    return this.durations.get(operation) || 0
+  }
+
+  /**
+   * 清除所有已记录的耗时（用于新的页面加载）
+   */
+  clearDurations(): void {
+    this.durations.clear()
   }
 
   /**

@@ -6,6 +6,7 @@ import { unstable_cache } from 'next/cache'
 import { DashboardStats } from "@/components/dashboard/DashboardStats"
 import { RecentTryOns } from "@/components/dashboard/RecentTryOns"
 import { SubscriptionCard } from "@/components/dashboard/SubscriptionCard"
+import { ClientPerformanceMonitor } from "@/components/performance/ClientPerformanceMonitor"
 import { Glasses, Plus } from "lucide-react"
 import Link from "next/link"
 import { perfLogger, logPageLoad } from "@/lib/performance-logger"
@@ -218,16 +219,19 @@ export default async function DashboardPage() {
   // 🔍 计算总耗时并输出摘要
   const totalDuration = Date.now() - pageStartTime
   logPageLoad('Dashboard', totalDuration, {
-    'Session获取': perfLogger['metrics']?.get('dashboard:getSession') || 0,
-    '数据库查询': perfLogger['metrics']?.get('dashboard:db-queries') || 0,
-    '数据处理': perfLogger['metrics']?.get('dashboard:data-processing') || 0,
-    '统计计算': perfLogger['metrics']?.get('dashboard:compute-stats') || 0,
+    'Session获取': perfLogger.getDuration('dashboard:getSession'),
+    '数据库查询': perfLogger.getDuration('dashboard:db-queries'),
+    '数据处理': perfLogger.getDuration('dashboard:data-processing'),
+    '统计计算': perfLogger.getDuration('dashboard:compute-stats'),
   })
 
   perfLogger.mark('dashboard:rendering-start')
 
   return (
     <div className="container px-4 py-8 mx-auto">
+      {/* 客户端性能监控 */}
+      <ClientPerformanceMonitor pageName="Dashboard" />
+
       {/* Page Header */}
       <div className="flex items-center justify-between mb-8">
         <div>
