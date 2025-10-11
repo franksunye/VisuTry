@@ -2,13 +2,35 @@ import { redirect } from "next/navigation"
 import { getServerSession } from "next-auth/next"
 import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
+import { unstable_cache } from 'next/cache'
 import { TryOnInterface } from "@/components/try-on/TryOnInterface"
 import { ArrowLeft } from "lucide-react"
 import Link from "next/link"
 import { headers } from "next/headers"
 
-// 启用动态渲染，确保获取最新数据
-export const dynamic = 'force-dynamic'
+// 性能优化：使用智能缓存策略
+export const revalidate = 60
+
+// 智能缓存函数：获取用户数据
+function getUserTryOnData(userId: string) {
+  return unstable_cache(
+    async () => {
+      return await prisma.user.findUnique({
+        where: { id: userId },
+        select: {
+          isPremium: true,
+          premiumExpiresAt: true,
+          freeTrialsUsed: true,
+        },
+      })
+    },
+    [`tryon-data-${userId}`],
+    {
+      revalidate: 60,
+      tags: [`user-${userId}`, 'tryon'],
+    }
+  )()
+}
 
 export default async function TryOnPage() {
   const session = await getServerSession(authOptions)
@@ -42,14 +64,8 @@ export default async function TryOnPage() {
   let user = session?.user || testSession
 
   if (session?.user?.id) {
-    const currentUser = await prisma.user.findUnique({
-      where: { id: session.user.id },
-      select: {
-        isPremium: true,
-        premiumExpiresAt: true,
-        freeTrialsUsed: true,
-      },
-    })
+    // 使用智能缓存获取用户数据
+    const currentUser = await getUserTryOnData(session.user.id)
 
     if (currentUser) {
       // 计算会员状态和剩余次数

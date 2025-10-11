@@ -2,12 +2,34 @@ import { redirect } from "next/navigation"
 import { getServerSession } from "next-auth/next"
 import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
+import { unstable_cache } from 'next/cache'
 import { PricingCard } from "@/components/pricing/PricingCard"
 import { Glasses, ArrowLeft, Check, Star, Zap } from "lucide-react"
 import Link from "next/link"
 
-// 启用动态渲染，确保获取最新数据
-export const dynamic = 'force-dynamic'
+// 性能优化：使用智能缓存策略
+export const revalidate = 60
+
+// 智能缓存函数：获取用户数据
+function getUserPricingData(userId: string) {
+  return unstable_cache(
+    async () => {
+      return await prisma.user.findUnique({
+        where: { id: userId },
+        select: {
+          isPremium: true,
+          premiumExpiresAt: true,
+          freeTrialsUsed: true,
+        },
+      })
+    },
+    [`pricing-data-${userId}`],
+    {
+      revalidate: 60,
+      tags: [`user-${userId}`, 'pricing'],
+    }
+  )()
+}
 
 export default async function PricingPage() {
   const session = await getServerSession(authOptions)
@@ -16,15 +38,8 @@ export default async function PricingPage() {
     redirect("/auth/signin")
   }
 
-  // 从数据库获取最新的用户数据，而不是使用缓存的 Session 数据
-  const currentUser = await prisma.user.findUnique({
-    where: { id: session.user.id },
-    select: {
-      isPremium: true,
-      premiumExpiresAt: true,
-      freeTrialsUsed: true,
-    },
-  })
+  // 使用智能缓存获取用户数据
+  const currentUser = await getUserPricingData(session.user.id)
 
   // 计算会员状态和剩余次数
   const isPremiumActive = !!(currentUser?.isPremium &&

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { headers } from "next/headers"
+import { revalidateTag } from "next/cache"
 import { prisma } from "@/lib/prisma"
 import {
   verifyWebhookSignature,
@@ -107,6 +108,9 @@ async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session) 
       })
     }
 
+    // 清除用户缓存，确保 Dashboard 立即显示最新数据
+    revalidateTag(`user-${paymentData.userId}`)
+
     console.log(`Payment completed for user ${paymentData.userId}`)
   } catch (error) {
     console.error("处理支付完成事件失败:", error)
@@ -127,6 +131,9 @@ async function handleSubscriptionCreatedEvent(subscription: Stripe.Subscription)
       }
     })
 
+    // 清除用户缓存，确保 Dashboard 立即显示最新会员状态
+    revalidateTag(`user-${subscriptionData.userId}`)
+
     console.log(`Subscription created for user ${subscriptionData.userId}`)
   } catch (error) {
     console.error("处理订阅创建事件失败:", error)
@@ -140,7 +147,7 @@ async function handleSubscriptionUpdatedEvent(subscription: Stripe.Subscription)
     
     // 更新用户的高级会员状态
     const isPremiumActive = subscription.status === "active"
-    
+
     await prisma.user.update({
       where: { id: subscriptionData.userId },
       data: {
@@ -148,6 +155,9 @@ async function handleSubscriptionUpdatedEvent(subscription: Stripe.Subscription)
         premiumExpiresAt: isPremiumActive ? subscriptionData.expiresAt : null,
       }
     })
+
+    // 清除用户缓存，确保 Dashboard 立即显示最新会员状态
+    revalidateTag(`user-${subscriptionData.userId}`)
 
     console.log(`Subscription updated for user ${subscriptionData.userId}`)
   } catch (error) {
@@ -168,6 +178,9 @@ async function handleSubscriptionDeletedEvent(subscription: Stripe.Subscription)
         premiumExpiresAt: null,
       }
     })
+
+    // 清除用户缓存，确保 Dashboard 立即显示最新会员状态
+    revalidateTag(`user-${subscriptionData.userId}`)
 
     console.log(`Subscription deleted for user ${subscriptionData.userId}`)
   } catch (error) {

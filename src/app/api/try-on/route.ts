@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { getServerSession } from "next-auth/next"
+import { revalidateTag } from "next/cache"
 import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 import { put } from "@vercel/blob"
@@ -179,6 +180,9 @@ export async function POST(request: NextRequest) {
             freeTrialsUsed: user.freeTrialsUsed + 1
           }
         })
+
+        // 清除用户缓存，确保 Dashboard 立即显示最新使用次数
+        revalidateTag(`user-${userId}`)
       }
     }
 
