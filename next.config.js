@@ -21,7 +21,6 @@ const nextConfig = {
 
   // 优化生产构建
   experimental: {
-    optimizeCss: true, // 优化 CSS
     optimizePackageImports: ['lucide-react'], // 优化图标库导入
   },
 }
