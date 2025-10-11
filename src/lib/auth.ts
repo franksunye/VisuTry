@@ -7,6 +7,7 @@ import { PrismaAdapter } from "@next-auth/prisma-adapter"
 import { prisma } from "@/lib/prisma"
 import { MockCredentialsProvider, isMockMode } from "@/lib/mocks/auth"
 import { log } from "@/lib/logger"
+import { perfLogger } from "@/lib/performance-logger"
 
 // Lightweight debug sink to file for local dev (so we can read errors without terminal access)
 const __debugWrite = (label: string, data: any) => {
@@ -70,6 +71,9 @@ export const authOptions: NextAuthOptions = {
   ],
   callbacks: {
     async session({ session, token, user }) {
+      // 🔍 监控 session callback 性能
+      perfLogger.start('auth:session-callback')
+
       // Optimization: Read data directly from token to avoid database queries on every request
       // Token is already updated in jwt callback
       if (session.user && token) {
@@ -89,9 +93,14 @@ export const authOptions: NextAuthOptions = {
           session.user.remainingTrials = (token.remainingTrials as number) || 3
         }
       }
+
+      perfLogger.end('auth:session-callback', { userId: session.user?.id })
       return session
     },
     async jwt({ token, user, account, profile, trigger }) {
+      // 🔍 监控 JWT callback 性能
+      perfLogger.start('auth:jwt-callback')
+
       // Set basic info on first login
       if (user) {
         token.id = user.id
@@ -115,6 +124,9 @@ export const authOptions: NextAuthOptions = {
 
       if (token.sub && shouldSync) {
         try {
+          // 🔍 监控数据库同步
+          perfLogger.start('auth:jwt:db-sync')
+
           const dbUser = await prisma.user.findUnique({
             where: { id: token.sub },
             select: {
@@ -126,6 +138,12 @@ export const authOptions: NextAuthOptions = {
               isPremium: true,
               premiumExpiresAt: true,
             }
+          })
+
+          perfLogger.end('auth:jwt:db-sync', {
+            userId: token.sub,
+            userFound: !!dbUser,
+            trigger
           })
 
           if (dbUser) {
@@ -146,11 +164,18 @@ export const authOptions: NextAuthOptions = {
             token.remainingTrials = Math.max(0, freeTrialLimit - dbUser.freeTrialsUsed)
           }
         } catch (error) {
+          perfLogger.end('auth:jwt:db-sync', { success: false, error: true })
           console.error('❌ Error syncing user data to token in jwt callback:', error)
           console.error('   This may indicate database connection issues in Vercel')
           __debugWrite('jwt.db_error', { error, userId: token.sub })
         }
       }
+
+      perfLogger.end('auth:jwt-callback', {
+        userId: token.sub,
+        shouldSync,
+        trigger
+      })
 
       return token
     },

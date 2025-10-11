@@ -8,6 +8,7 @@ import { RecentTryOns } from "@/components/dashboard/RecentTryOns"
 import { SubscriptionCard } from "@/components/dashboard/SubscriptionCard"
 import { Glasses, Plus } from "lucide-react"
 import Link from "next/link"
+import { perfLogger, logPageLoad } from "@/lib/performance-logger"
 
 // 性能优化：使用智能缓存策略
 // 1. 使用 unstable_cache 缓存用户数据（带用户专属标签）
@@ -54,7 +55,14 @@ async function getUserTasks(userId: string) {
 }
 
 export default async function DashboardPage() {
+  // 🔍 开始性能监控
+  const pageStartTime = Date.now()
+  perfLogger.mark('dashboard:page-start')
+
+  // 🔍 监控 Session 获取
+  perfLogger.start('dashboard:getSession')
   const session = await getServerSession(authOptions)
+  perfLogger.end('dashboard:getSession')
 
   if (!session) {
     redirect("/auth/signin")
@@ -65,6 +73,8 @@ export default async function DashboardPage() {
     console.error('Invalid user ID in session:', session.user?.id)
     redirect("/auth/signin?error=InvalidSession")
   }
+
+  perfLogger.mark('dashboard:session-validated', { userId: session.user.id })
 
   // 定义类型
   let totalTryOns = 0
@@ -87,13 +97,33 @@ export default async function DashboardPage() {
     // 1. 用户基本信息（轻量级）：使用缓存，< 1KB
     // 2. 任务数据（包含图片 URL）：不缓存，避免超过 2MB 限制
 
+    // 🔍 监控数据库查询
+    perfLogger.start('dashboard:db-queries')
+    perfLogger.mark('dashboard:fetching-user-and-tasks')
+
     // 并行获取用户数据和任务数据
     const [currentUser, allTasks] = await Promise.all([
-      getUserBasicData(session.user.id),  // 缓存的用户信息
-      getUserTasks(session.user.id),       // 不缓存的任务数据
+      perfLogger.measure(
+        'dashboard:db:getUserBasicData',
+        () => getUserBasicData(session.user.id),
+        { userId: session.user.id, cached: true }
+      ),
+      perfLogger.measure(
+        'dashboard:db:getUserTasks',
+        () => getUserTasks(session.user.id),
+        { userId: session.user.id, cached: false }
+      ),
     ])
 
+    perfLogger.end('dashboard:db-queries', {
+      userFound: !!currentUser,
+      tasksCount: allTasks.length
+    })
+
     if (currentUser) {
+      // 🔍 监控数据处理
+      perfLogger.start('dashboard:data-processing')
+
       // 更新用户统计数据
       userStats = {
         isPremium: currentUser.isPremium,
@@ -108,27 +138,45 @@ export default async function DashboardPage() {
       // 只显示最近 6 条
       recentTryOns = allTasks.slice(0, 6)
 
+      perfLogger.end('dashboard:data-processing', {
+        totalTryOns,
+        completedTryOns,
+        recentCount: recentTryOns.length
+      })
+
       // 如果用户有超过 50 条记录，totalTryOns 可能不准确
       // 在这种情况下，我们可以添加一个 _count 查询
       // 但对于大多数用户来说，50 条已经足够
       if (allTasks.length === 50) {
+        // 🔍 监控额外的计数查询
+        perfLogger.mark('dashboard:need-exact-count')
+
         // 用户可能有更多记录，执行精确计数
-        const exactCount = await prisma.tryOnTask.count({
-          where: { userId: session.user.id },
-        })
+        const exactCount = await perfLogger.measure(
+          'dashboard:db:exactTaskCount',
+          () => prisma.tryOnTask.count({
+            where: { userId: session.user.id },
+          }),
+          { userId: session.user.id }
+        )
         totalTryOns = exactCount
 
         // 重新计算完成数（如果需要精确值）
-        const exactCompletedCount = await prisma.tryOnTask.count({
-          where: {
-            userId: session.user.id,
-            status: 'COMPLETED'
-          },
-        })
+        const exactCompletedCount = await perfLogger.measure(
+          'dashboard:db:exactCompletedCount',
+          () => prisma.tryOnTask.count({
+            where: {
+              userId: session.user.id,
+              status: 'COMPLETED'
+            },
+          }),
+          { userId: session.user.id }
+        )
         completedTryOns = exactCompletedCount
       }
     }
   } catch (error) {
+    perfLogger.end('dashboard:db-queries', { success: false, error: true })
     console.error('Error fetching dashboard data:', error)
 
     // 如果是数据库连接错误，显示友好的错误信息
@@ -138,6 +186,9 @@ export default async function DashboardPage() {
 
     // 其他错误，使用默认值（已在声明时初始化）
   }
+
+  // 🔍 监控数据计算
+  perfLogger.start('dashboard:compute-stats')
 
   // 计算会员状态和剩余次数
   const isPremiumActive = userStats.isPremium &&
@@ -161,6 +212,19 @@ export default async function DashboardPage() {
     isPremiumActive,
     remainingTrials,
   }
+
+  perfLogger.end('dashboard:compute-stats')
+
+  // 🔍 计算总耗时并输出摘要
+  const totalDuration = Date.now() - pageStartTime
+  logPageLoad('Dashboard', totalDuration, {
+    'Session获取': perfLogger['metrics']?.get('dashboard:getSession') || 0,
+    '数据库查询': perfLogger['metrics']?.get('dashboard:db-queries') || 0,
+    '数据处理': perfLogger['metrics']?.get('dashboard:data-processing') || 0,
+    '统计计算': perfLogger['metrics']?.get('dashboard:compute-stats') || 0,
+  })
+
+  perfLogger.mark('dashboard:rendering-start')
 
   return (
     <div className="container px-4 py-8 mx-auto">
