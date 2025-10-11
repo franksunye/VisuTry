@@ -50,8 +50,8 @@ export async function DashboardStatsAsync({ userId }: DashboardStatsAsyncProps) 
     })
 
     // 计算会员状态和剩余次数
-    const isPremiumActive = user?.isPremium &&
-      (!user.premiumExpiresAt || user.premiumExpiresAt > new Date())
+    const isPremiumActive = !!(user?.isPremium &&
+      (!user.premiumExpiresAt || user.premiumExpiresAt > new Date()))
     const freeTrialLimit = parseInt(process.env.FREE_TRIAL_LIMIT || "3")
     const remainingTrials = Math.max(0, freeTrialLimit - (user?.freeTrialsUsed || 0))
 
