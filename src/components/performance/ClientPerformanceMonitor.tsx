@@ -33,25 +33,25 @@ export function ClientPerformanceMonitor({ pageName }: ClientPerformanceMonitorP
         const metrics = {
           // DNS 查询时间
           dns: Math.round(perfData.domainLookupEnd - perfData.domainLookupStart),
-          
+
           // TCP 连接时间
           tcp: Math.round(perfData.connectEnd - perfData.connectStart),
-          
+
           // 请求响应时间
           request: Math.round(perfData.responseEnd - perfData.requestStart),
-          
+
           // DOM 解析时间
           domParse: Math.round(perfData.domInteractive - perfData.responseEnd),
-          
+
           // DOM 内容加载完成时间
-          domContentLoaded: Math.round(perfData.domContentLoadedEventEnd - perfData.navigationStart),
-          
+          domContentLoaded: Math.round(perfData.domContentLoadedEventEnd - perfData.fetchStart),
+
           // 页面完全加载时间
-          pageLoad: Math.round(perfData.loadEventEnd - perfData.navigationStart),
-          
+          pageLoad: Math.round(perfData.loadEventEnd - perfData.fetchStart),
+
           // 首次内容绘制时间 (FCP)
           fcp: 0,
-          
+
           // 最大内容绘制时间 (LCP)
           lcp: 0,
         }
