@@ -67,6 +67,37 @@ export default async function DebugImagesPage() {
               </div>
             </div>
 
+            {/* URL 分析 */}
+            <div className="bg-blue-50 border border-blue-200 p-4 rounded mb-4">
+              <h3 className="font-medium mb-2">📊 URL 分析：</h3>
+              <div className="space-y-2 text-sm">
+                <div>
+                  <strong>域名：</strong>
+                  <code className="bg-gray-200 px-1 ml-2">
+                    {new URL(tryOn.resultImageUrl || tryOn.userImageUrl).hostname}
+                  </code>
+                </div>
+                <div>
+                  <strong>是否在白名单：</strong>
+                  <span className={`ml-2 px-2 py-1 rounded ${
+                    (tryOn.resultImageUrl || tryOn.userImageUrl).includes('public.blob.vercel-storage.com')
+                      ? 'bg-green-100 text-green-800'
+                      : 'bg-red-100 text-red-800'
+                  }`}>
+                    {(tryOn.resultImageUrl || tryOn.userImageUrl).includes('public.blob.vercel-storage.com')
+                      ? '✅ 是（应该被优化）'
+                      : '❌ 否（可能不会被优化）'}
+                  </span>
+                </div>
+                <div>
+                  <strong>预期优化 URL：</strong>
+                  <code className="bg-gray-200 px-1 ml-2 text-xs break-all block mt-1">
+                    /_next/image?url={encodeURIComponent(tryOn.resultImageUrl || tryOn.userImageUrl)}&w=384&q=40
+                  </code>
+                </div>
+              </div>
+            </div>
+
             {/* 检查说明 */}
             <div className="bg-yellow-50 border border-yellow-200 p-4 rounded">
               <h3 className="font-medium mb-2">🔍 检查步骤：</h3>
@@ -78,6 +109,7 @@ export default async function DebugImagesPage() {
                 <li>检查 URL 是否包含 <code className="bg-gray-200 px-1">/_next/image?url=...</code></li>
                 <li>检查 Response Headers 中的 Content-Type</li>
                 <li>检查文件大小（应该 &lt; 100 KB）</li>
+                <li><strong>如果看到 Base64</strong>：右键点击图片 → 在新标签页打开，查看是否能正常加载</li>
               </ol>
             </div>
           </div>

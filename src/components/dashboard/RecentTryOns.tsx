@@ -109,8 +109,6 @@ export function RecentTryOns({ tryOns }: RecentTryOnsProps) {
                     loading={index < 3 ? "eager" : "lazy"}
                     priority={index < 3}
                     quality={40}
-                    placeholder="blur"
-                    blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mN8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg=="
                   />
                 ) : (
                   <Image
@@ -122,8 +120,6 @@ export function RecentTryOns({ tryOns }: RecentTryOnsProps) {
                     loading={index < 3 ? "eager" : "lazy"}
                     priority={index < 3}
                     quality={40}
-                    placeholder="blur"
-                    blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mN8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg=="
                   />
                 )}
 
