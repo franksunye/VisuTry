@@ -2,6 +2,7 @@ import { Clock, CheckCircle, XCircle, Loader2, ExternalLink, History } from "luc
 import Link from "next/link"
 import Image from "next/image"
 import { formatDistanceToNow } from "date-fns"
+import { getThumbnailUrl, getResponsiveSizes } from "@/lib/image-utils"
 
 interface TryOnTask {
   id: string
@@ -96,31 +97,31 @@ export function RecentTryOns({ tryOns }: RecentTryOnsProps) {
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
           {tryOns.map((tryOn, index) => (
             <div key={tryOn.id} className="border border-gray-200 rounded-lg overflow-hidden hover:shadow-md transition-shadow">
-              {/* Image Preview */}
+              {/* Image Preview - 优化缩略图加载 */}
               <div className="aspect-square bg-gray-100 relative">
                 {tryOn.resultImageUrl ? (
                   <Image
-                    src={tryOn.resultImageUrl}
+                    src={getThumbnailUrl(tryOn.resultImageUrl, 300, 40)}
                     alt="Try-on result"
                     fill
-                    sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                    sizes={getResponsiveSizes(300)}
                     className="object-cover"
                     loading={index < 3 ? "eager" : "lazy"}
                     priority={index < 3}
-                    quality={60}
+                    quality={40}
                     placeholder="blur"
                     blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mN8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg=="
                   />
                 ) : (
                   <Image
-                    src={tryOn.userImageUrl}
+                    src={getThumbnailUrl(tryOn.userImageUrl, 300, 40)}
                     alt="User photo"
                     fill
-                    sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                    sizes={getResponsiveSizes(300)}
                     className="object-cover opacity-50"
                     loading={index < 3 ? "eager" : "lazy"}
                     priority={index < 3}
-                    quality={60}
+                    quality={40}
                     placeholder="blur"
                     blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mN8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg=="
                   />
