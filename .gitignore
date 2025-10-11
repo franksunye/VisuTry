@@ -130,3 +130,22 @@ src/app/api/debug/
 *-SOLUTION.md
 *-ISSUE.md
 *-IMPLEMENTATION.md
+
+# 临时文档和报告（避免提交过程文件）
+/*-SUMMARY.md
+/*-CHECKLIST.md
+/*-STATUS.md
+/*-COMPLETION.md
+/*-GUIDE.md
+/*-REFERENCE.md
+/TEST_*.md
+/STRIPE_*.md
+/WEBHOOK_*.md
+/SUCCESS_*.md
+/DEPLOYMENT_*.md
+tests/reports/*.md
+tests/manual/
+scripts/verify-*.js
+scripts/list-*.js
+scripts/install-*.ps1
+scripts/install-*.md
