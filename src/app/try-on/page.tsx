@@ -1,11 +1,14 @@
 import { redirect } from "next/navigation"
 import { getServerSession } from "next-auth/next"
 import { authOptions } from "@/lib/auth"
+import { prisma } from "@/lib/prisma"
 import { TryOnInterface } from "@/components/try-on/TryOnInterface"
 import { ArrowLeft } from "lucide-react"
 import Link from "next/link"
-import { getTestSessionFromRequest } from "@/lib/test-session"
 import { headers } from "next/headers"
+
+// 启用动态渲染，确保获取最新数据
+export const dynamic = 'force-dynamic'
 
 export default async function TryOnPage() {
   const session = await getServerSession(authOptions)
@@ -35,8 +38,37 @@ export default async function TryOnPage() {
     redirect("/auth/signin")
   }
 
-  // Use session data from either NextAuth or test session
-  const user = session?.user || testSession
+  // 从数据库获取最新的用户数据（仅对真实用户，测试会话使用原数据）
+  let user = session?.user || testSession
+
+  if (session?.user?.id) {
+    const currentUser = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: {
+        isPremium: true,
+        premiumExpiresAt: true,
+        freeTrialsUsed: true,
+      },
+    })
+
+    if (currentUser) {
+      // 计算会员状态和剩余次数
+      const isPremiumActive = !!(currentUser.isPremium &&
+        (!currentUser.premiumExpiresAt || currentUser.premiumExpiresAt > new Date()))
+      const freeTrialLimit = parseInt(process.env.FREE_TRIAL_LIMIT || "3")
+      const remainingTrials = Math.max(0, freeTrialLimit - currentUser.freeTrialsUsed)
+
+      // 更新用户对象，包含最新数据
+      user = {
+        ...session.user,
+        isPremium: currentUser.isPremium,
+        premiumExpiresAt: currentUser.premiumExpiresAt,
+        freeTrialsUsed: currentUser.freeTrialsUsed,
+        isPremiumActive: isPremiumActive,
+        remainingTrials: remainingTrials,
+      }
+    }
+  }
 
   return (
     <div className="container mx-auto px-4 py-8">
