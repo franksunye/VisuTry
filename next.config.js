@@ -1,13 +1,30 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   images: {
-    domains: ['localhost', 'vercel.app'],
+    // 允许的图片域名
     remotePatterns: [
       {
         protocol: 'https',
-        hostname: '**',
+        hostname: '**.public.blob.vercel-storage.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'via.placeholder.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'lh3.googleusercontent.com', // Google OAuth 头像
+      },
+      {
+        protocol: 'https',
+        hostname: 'pbs.twimg.com', // Twitter 头像
       },
     ],
+    // 图片优化配置
+    formats: ['image/webp'], // 优先使用 WebP
+    deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
+    imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
+    minimumCacheTTL: 60, // 缓存 60 秒
   },
   env: {
     NEXTAUTH_URL: process.env.NEXTAUTH_URL,
