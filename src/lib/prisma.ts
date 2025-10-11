@@ -1,12 +1,18 @@
 import { PrismaClient } from '@prisma/client'
+import { PrismaNeon } from '@prisma/adapter-neon'
 
 const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined
 }
 
-// 创建 Prisma Client 实例
-// Neon 数据库支持标准的 PostgreSQL 协议，无需特殊 adapter
+// 使用 Neon Serverless Driver 优化性能
+// Prisma 6.x 新 API：直接传递 connectionString 对象
+// 这样可以获得更低的延迟和更好的 serverless 性能
+const connectionString = process.env.DATABASE_URL!
+const adapter = new PrismaNeon({ connectionString })
+
 export const prisma = globalForPrisma.prisma ?? new PrismaClient({
+  adapter,
   log: process.env.NODE_ENV === 'development' ? ['error', 'warn'] : ['error']
 })
 
