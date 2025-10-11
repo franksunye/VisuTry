@@ -15,7 +15,7 @@ function CancelContent() {
 
   useEffect(() => {
     // 获取 session_id 参数
-    const id = searchParams.get('session_id')
+    const id = searchParams?.get('session_id') || null
     setSessionId(id)
   }, [searchParams])
 
