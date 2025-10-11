@@ -35,10 +35,15 @@ export default async function DashboardPage() {
     resultImageUrl: string | null
     createdAt: Date
   }> = []
+  let userStats = {
+    isPremium: false,
+    premiumExpiresAt: null as Date | null,
+    freeTrialsUsed: 0,
+  }
 
   try {
     // 优化：使用单个并行查询获取所有数据，减少数据库往返
-    const [statusGroups, tasks] = await Promise.all([
+    const [statusGroups, tasks, currentUser] = await Promise.all([
       // 使用 groupBy 一次性获取总数和完成数
       prisma.tryOnTask.groupBy({
         by: ['status'],
@@ -60,12 +65,30 @@ export default async function DashboardPage() {
           createdAt: true,
         },
       }),
+      // 获取最新的用户数据（包括会员状态）
+      prisma.user.findUnique({
+        where: { id: session.user.id },
+        select: {
+          isPremium: true,
+          premiumExpiresAt: true,
+          freeTrialsUsed: true,
+        },
+      }),
     ])
 
     // 从 groupBy 结果中计算统计数据
     totalTryOns = statusGroups.reduce((sum, group) => sum + group._count.id, 0)
     completedTryOns = statusGroups.find(g => g.status === 'COMPLETED')?._count.id || 0
     recentTryOns = tasks
+
+    // 更新用户统计数据
+    if (currentUser) {
+      userStats = {
+        isPremium: currentUser.isPremium,
+        premiumExpiresAt: currentUser.premiumExpiresAt,
+        freeTrialsUsed: currentUser.freeTrialsUsed,
+      }
+    }
   } catch (error) {
     console.error('Error fetching dashboard data:', error)
 
@@ -77,11 +100,27 @@ export default async function DashboardPage() {
     // 其他错误，使用默认值（已在声明时初始化）
   }
 
+  // 计算会员状态和剩余次数
+  const isPremiumActive = userStats.isPremium &&
+    (!userStats.premiumExpiresAt || userStats.premiumExpiresAt > new Date())
+  const freeTrialLimit = parseInt(process.env.FREE_TRIAL_LIMIT || "3")
+  const remainingTrials = Math.max(0, freeTrialLimit - userStats.freeTrialsUsed)
+
   const stats = {
     totalTryOns,
     completedTryOns,
-    remainingTrials: session.user.remainingTrials || 0,
-    isPremium: session.user.isPremiumActive || false,
+    remainingTrials,
+    isPremium: isPremiumActive,
+  }
+
+  // 更新 session.user 以便传递给 SubscriptionCard
+  const userForCard = {
+    ...session.user,
+    isPremium: userStats.isPremium,
+    premiumExpiresAt: userStats.premiumExpiresAt,
+    freeTrialsUsed: userStats.freeTrialsUsed,
+    isPremiumActive,
+    remainingTrials,
   }
 
   return (
@@ -116,7 +155,7 @@ export default async function DashboardPage() {
         {/* Sidebar */}
         <div className="space-y-6">
           {/* Subscription Card */}
-          <SubscriptionCard user={session.user} />
+          <SubscriptionCard user={userForCard} />
 
           {/* Quick Actions */}
           <div className="bg-white rounded-xl shadow-sm border p-6">
