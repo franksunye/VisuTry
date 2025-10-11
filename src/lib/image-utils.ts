@@ -1,33 +1,30 @@
 /**
  * 图片优化工具
- * 用于生成优化的图片 URL
+ * 用于 Vercel Blob Storage + Next.js Image Optimization
  */
 
 /**
  * 生成缩略图 URL
- * 使用 Vercel Image Optimization 或 Supabase Transform
- * 
+ *
+ * 注意：Vercel Blob Storage 的图片会自动通过 Next.js Image Optimization 处理
+ * 只需要在 <Image> 组件中设置 quality 和 sizes 属性即可
+ * Next.js 会自动：
+ * - 生成多种尺寸的图片
+ * - 转换为 WebP/AVIF 格式
+ * - 通过 Vercel CDN 分发
+ *
  * @param originalUrl 原始图片 URL
- * @param width 目标宽度（像素）
- * @param quality 图片质量（1-100）
- * @returns 优化后的图片 URL
+ * @param width 目标宽度（像素）- 仅用于文档说明，实际由 sizes 属性控制
+ * @param quality 图片质量（1-100）- 仅用于文档说明，实际由 quality 属性控制
+ * @returns 原始图片 URL（Next.js 会自动优化）
  */
 export function getThumbnailUrl(
   originalUrl: string,
   width: number = 300,
   quality: number = 40
 ): string {
-  // 如果是 Supabase Storage URL，使用 Supabase Transform
-  if (originalUrl.includes('supabase.co/storage')) {
-    // Supabase Transform API
-    // https://supabase.com/docs/guides/storage/serving/image-transformations
-    const url = new URL(originalUrl)
-    url.searchParams.set('width', width.toString())
-    url.searchParams.set('quality', quality.toString())
-    return url.toString()
-  }
-  
-  // 其他情况，返回原始 URL（Vercel Image Optimization 会自动处理）
+  // Vercel Blob Storage 的图片会自动通过 Next.js Image Optimization 处理
+  // 不需要手动添加参数，Next.js <Image> 组件会自动优化
   return originalUrl
 }
 
