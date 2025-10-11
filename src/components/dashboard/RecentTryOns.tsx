@@ -1,3 +1,5 @@
+"use client"
+
 import { Clock, CheckCircle, XCircle, Loader2, ExternalLink, History } from "lucide-react"
 import Link from "next/link"
 import Image from "next/image"
