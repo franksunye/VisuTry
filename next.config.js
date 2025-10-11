@@ -5,11 +5,15 @@ const nextConfig = {
     remotePatterns: [
       {
         protocol: 'https',
-        hostname: '**.public.blob.vercel-storage.com',
+        hostname: '**.public.blob.vercel-storage.com', // Vercel Blob Storage
       },
       {
         protocol: 'https',
-        hostname: 'via.placeholder.com',
+        hostname: 'mock-blob-storage.vercel.app', // Mock Blob Storage (测试环境)
+      },
+      {
+        protocol: 'https',
+        hostname: 'via.placeholder.com', // Mock 占位图
       },
       {
         protocol: 'https',
