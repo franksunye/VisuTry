@@ -8,9 +8,10 @@ import { SubscriptionCard } from "@/components/dashboard/SubscriptionCard"
 import { Glasses, Plus } from "lucide-react"
 import Link from "next/link"
 
-// 启用部分预渲染和缓存优化
-export const dynamic = 'force-dynamic' // 因为需要用户session数据
-export const revalidate = 60 // 60秒后重新验证缓存
+// 性能优化：启用缓存以显著改善加载速度
+// 移除 force-dynamic，允许 Next.js 缓存页面
+// 用户数据通过服务端查询数据库获取，保证实时性
+export const revalidate = 30 // 30秒缓存，平衡性能和实时性
 
 export default async function DashboardPage() {
   const session = await getServerSession(authOptions)
