@@ -15,9 +15,9 @@ import Link from "next/link"
 // 3. 既保证性能（< 1秒），又保证数据实时性（状态变更立即生效）
 export const revalidate = 60 // 60秒后台重新验证
 
-// 智能缓存函数：获取用户 Dashboard 数据
-// 使用用户专属标签，支持按需清除缓存
-function getUserDashboardData(userId: string) {
+// 智能缓存函数：只缓存用户基本信息（轻量级数据）
+// 任务数据不缓存，避免超过 2MB 限制
+function getUserBasicData(userId: string) {
   return unstable_cache(
     async () => {
       return await prisma.user.findUnique({
@@ -26,26 +26,31 @@ function getUserDashboardData(userId: string) {
           isPremium: true,
           premiumExpiresAt: true,
           freeTrialsUsed: true,
-          tryOnTasks: {
-            orderBy: { createdAt: "desc" },
-            take: 50,
-            select: {
-              id: true,
-              status: true,
-              userImageUrl: true,
-              resultImageUrl: true,
-              createdAt: true,
-            },
-          },
         },
       })
     },
-    [`dashboard-data-${userId}`], // 用户专属缓存键
+    [`user-basic-${userId}`], // 用户专属缓存键
     {
       revalidate: 60, // 60秒后重新验证
       tags: [`user-${userId}`, 'dashboard'], // 用户专属标签，支持按需清除
     }
   )()
+}
+
+// 获取任务数据（不缓存，因为包含图片 URL，数据量大）
+async function getUserTasks(userId: string) {
+  return await prisma.tryOnTask.findMany({
+    where: { userId },
+    orderBy: { createdAt: "desc" },
+    take: 50,
+    select: {
+      id: true,
+      status: true,
+      userImageUrl: true,
+      resultImageUrl: true,
+      createdAt: true,
+    },
+  })
 }
 
 export default async function DashboardPage() {
@@ -78,22 +83,25 @@ export default async function DashboardPage() {
   }
 
   try {
-    // 性能优化：使用智能缓存获取用户数据
-    // 1. 首次访问：查询数据库（可能较慢）
-    // 2. 后续访问：从缓存读取（< 1秒）
-    // 3. 状态变更：通过 revalidateTag 立即清除缓存，下次访问获取最新数据
-    const userWithTasks = await getUserDashboardData(session.user.id)
+    // 性能优化：分离缓存策略
+    // 1. 用户基本信息（轻量级）：使用缓存，< 1KB
+    // 2. 任务数据（包含图片 URL）：不缓存，避免超过 2MB 限制
 
-    if (userWithTasks) {
+    // 并行获取用户数据和任务数据
+    const [currentUser, allTasks] = await Promise.all([
+      getUserBasicData(session.user.id),  // 缓存的用户信息
+      getUserTasks(session.user.id),       // 不缓存的任务数据
+    ])
+
+    if (currentUser) {
       // 更新用户统计数据
       userStats = {
-        isPremium: userWithTasks.isPremium,
-        premiumExpiresAt: userWithTasks.premiumExpiresAt,
-        freeTrialsUsed: userWithTasks.freeTrialsUsed,
+        isPremium: currentUser.isPremium,
+        premiumExpiresAt: currentUser.premiumExpiresAt,
+        freeTrialsUsed: currentUser.freeTrialsUsed,
       }
 
       // 在内存中计算统计数据（非常快，通常 < 1ms）
-      const allTasks = userWithTasks.tryOnTasks
       totalTryOns = allTasks.length
       completedTryOns = allTasks.filter(task => task.status === 'COMPLETED').length
 
