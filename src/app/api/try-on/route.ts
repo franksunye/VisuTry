@@ -271,7 +271,7 @@ async function processTryOnAsync(taskId: string, userImageUrl: string, glassesIm
         // Get userId from task
         let userId: string
         if (isMockMode) {
-          const task = await MockDatabase.getTryOnTask(taskId)
+          const task = await MockDatabase.findTryOnTask(taskId)
           userId = task?.userId || 'unknown'
         } else {
           const task = await prisma.tryOnTask.findUnique({
