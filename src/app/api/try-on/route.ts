@@ -108,6 +108,27 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // Validate image sizes (should be compressed by frontend, but double-check)
+    const MAX_IMAGE_SIZE = 1 * 1024 * 1024 // 1MB (frontend should compress to ~200-300KB)
+
+    if (userImageFile.size > MAX_IMAGE_SIZE) {
+      console.warn(`⚠️ User image too large: ${(userImageFile.size / 1024).toFixed(2)}KB`)
+      return NextResponse.json(
+        { success: false, error: "User image is too large. Please use a smaller image or compress it." },
+        { status: 400 }
+      )
+    }
+
+    if (glassesImageFile.size > MAX_IMAGE_SIZE) {
+      console.warn(`⚠️ Glasses image too large: ${(glassesImageFile.size / 1024).toFixed(2)}KB`)
+      return NextResponse.json(
+        { success: false, error: "Glasses image is too large. Please use a smaller image or compress it." },
+        { status: 400 }
+      )
+    }
+
+    console.log(`📊 Image sizes: user=${(userImageFile.size / 1024).toFixed(2)}KB, glasses=${(glassesImageFile.size / 1024).toFixed(2)}KB`)
+
     // Upload user image
     const userImageFilename = `try-on/${userId}/${Date.now()}-user.jpg`
     let userImageBlob

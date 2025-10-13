@@ -23,7 +23,7 @@ export function ImageUpload({
   loading = false,
   className,
   label = "Upload Image",
-  description = "Supports JPEG, PNG, WebP formats, max 5MB",
+  description = "Supports JPEG, PNG, WebP formats. Images will be automatically optimized to 1200x1200 for best performance.",
   accept = "image/jpeg,image/png,image/webp"
 }: ImageUploadProps) {
   const [dragOver, setDragOver] = useState(false)
