@@ -170,44 +170,20 @@ export async function generateTryOnImage({
 
     // Create the prompt for multi-image fusion
     const tryOnPrompt = `
-You are a professional photo editor. Your task is to overlay glasses onto a person's photo WITHOUT changing the original photo.
+You are an expert at virtual glasses try-on. I will provide you with two images:
+1. A person's face photo
+2. A pair of glasses
 
-INPUT IMAGES:
-- Image 1: Original person's photo (MUST remain 100% unchanged)
-- Image 2: Glasses to overlay
+Please create a photorealistic image where the glasses are naturally placed on the person's face.
 
-TASK:
-Add the glasses from Image 2 onto the person in Image 1 as an overlay layer, like Photoshop layers.
-
-CRITICAL - PRESERVE ORIGINAL IMAGE:
-1. Keep the EXACT original photo of the person - do NOT regenerate or redraw the face
-2. Keep EXACT skin texture, pores, wrinkles, blemishes from original
-3. Keep EXACT hair style, color, and texture from original
-4. Keep EXACT background, lighting, and colors from original
-5. Keep EXACT facial expression and features from original
-6. The ONLY change should be adding the glasses on top
-
-GLASSES PLACEMENT:
-1. Position glasses on the nose bridge, aligned with eyes
-2. Scale glasses proportionally to fit the face size
-3. Match the angle and perspective of the face
-4. Add natural shadows under the glasses frames
-5. Add subtle reflections on the lenses if appropriate
-
-BLENDING:
-1. Blend only the edges of the glasses frames with the face
-2. Make shadows look natural
-3. Do NOT blur or modify the original face/background
-
-WHAT NOT TO DO:
-- Do NOT regenerate or redraw the person's face
-- Do NOT change skin tone, texture, or any facial features
-- Do NOT change hair, clothing, or background
-- Do NOT apply filters or effects to the original image
-- Do NOT generate only the glasses without the person
-
-OUTPUT:
-The EXACT original photo with glasses overlaid on top, as if using Photoshop layers.
+Requirements:
+- Position the glasses correctly on the nose bridge and ears
+- Match the perspective and angle of the face
+- Adjust the size of the glasses to fit the face proportionally
+- Match the lighting conditions of the original photo
+- Ensure the glasses look natural and realistic
+- Preserve the person's facial features and expression
+- Make sure the glasses don't obscure important facial features unnaturally
 
 ${prompt}
 `
