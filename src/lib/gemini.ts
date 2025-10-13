@@ -71,10 +71,10 @@ export async function generateTryOnImage({
     const totalStartTime = Date.now()
     console.log("🎨 Starting Gemini 2.0 Flash Image Generation virtual try-on...")
 
-    // Use Gemini 2.5 Flash Image Generation
-    // This model supports image generation with better quality
+    // Use Gemini 2.0 Flash Preview Image Generation
+    // This model has FREE TIER quota and supports image generation
     const model = genAI.getGenerativeModel({
-      model: "gemini-2.5-flash-image",
+      model: "gemini-2.0-flash-preview-image-generation",
       generationConfig: {
         // @ts-ignore - responseModalities is not in the type definition yet
         responseModalities: ["IMAGE", "TEXT"]
