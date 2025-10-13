@@ -38,7 +38,11 @@ async function quickTest() {
     // Download test images
     console.log('2️⃣  Downloading test images...')
     const downloadStart = Date.now()
-    
+
+    // Use publicly accessible test images
+    const userImageUrl = 'https://httpbin.org/image/jpeg'
+    const glassesImageUrl = 'https://httpbin.org/image/png'
+
     const [userImg, glassesImg] = await Promise.all([
       fetch(userImageUrl),
       fetch(glassesImageUrl)
