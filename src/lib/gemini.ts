@@ -71,10 +71,10 @@ export async function generateTryOnImage({
     const totalStartTime = Date.now()
     console.log("🎨 Starting Gemini 2.0 Flash Image Generation virtual try-on...")
 
-    // Use Gemini 2.0 Flash Preview Image Generation
-    // This model has FREE TIER quota and supports image generation
+    // Use Gemini 2.5 Flash Image Generation
+    // This model supports image generation with better quality
     const model = genAI.getGenerativeModel({
-      model: "gemini-2.0-flash-preview-image-generation",
+      model: "gemini-2.5-flash-image",
       generationConfig: {
         // @ts-ignore - responseModalities is not in the type definition yet
         responseModalities: ["IMAGE", "TEXT"]
@@ -170,20 +170,32 @@ export async function generateTryOnImage({
 
     // Create the prompt for multi-image fusion
     const tryOnPrompt = `
-You are an expert at virtual glasses try-on. I will provide you with two images:
-1. A person's face photo
-2. A pair of glasses
+I need you to create a virtual try-on image by compositing two images together.
 
-Please create a photorealistic image where the glasses are naturally placed on the person's face.
+INPUT IMAGES:
+- First image: A person's face/portrait
+- Second image: A pair of glasses
 
-Requirements:
-- Position the glasses correctly on the nose bridge and ears
-- Match the perspective and angle of the face
-- Adjust the size of the glasses to fit the face proportionally
-- Match the lighting conditions of the original photo
-- Ensure the glasses look natural and realistic
-- Preserve the person's facial features and expression
-- Make sure the glasses don't obscure important facial features unnaturally
+YOUR TASK:
+Create a single photorealistic image showing the PERSON from the first image WEARING the GLASSES from the second image.
+
+CRITICAL REQUIREMENTS:
+1. START with the person's face from the first image as your base
+2. PLACE the glasses from the second image ONTO the person's face
+3. The glasses must be positioned on the nose bridge, aligned with the eyes
+4. Scale the glasses to fit the person's face proportionally
+5. Match the perspective and angle of the person's face
+6. Blend lighting, shadows, and reflections naturally
+7. Keep all facial features, skin tone, hair, and background from the person's image
+8. The result must look like a real photograph of this person wearing these glasses
+
+WHAT NOT TO DO:
+- Do NOT generate only the glasses
+- Do NOT generate a different person
+- Do NOT change the person's appearance except for adding the glasses
+
+OUTPUT:
+A single photorealistic composite image of the person wearing the glasses.
 
 ${prompt}
 `
@@ -221,6 +233,17 @@ ${prompt}
     }
 
     const parts = candidates[0].content.parts
+    console.log(`📊 Response parts count: ${parts.length}`)
+
+    // Log all parts to understand what Gemini returned
+    parts.forEach((part, index) => {
+      if (part.text) {
+        console.log(`📝 Part ${index}: Text response - "${part.text.substring(0, 100)}..."`)
+      }
+      if (part.inlineData) {
+        console.log(`🖼️ Part ${index}: Image data (${(part.inlineData.data.length/1024).toFixed(2)}KB, ${part.inlineData.mimeType})`)
+      }
+    })
 
     // Look for inline_data (generated image)
     for (const part of parts) {
@@ -321,7 +344,7 @@ export async function validateGeminiConnection(): Promise<boolean> {
   try {
     const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash-exp" })
     const result = await model.generateContent("Hello, this is a test.")
-    const response = await result.response
+    const response = result.response
     return response.text().length > 0
   } catch (error) {
     console.error("Gemini connection validation failed:", error)
