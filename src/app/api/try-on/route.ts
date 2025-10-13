@@ -188,10 +188,30 @@ export async function POST(request: NextRequest) {
     }
 
     // Process AI try-on asynchronously
-    processTryOnAsync(tryOnTask.id, userImageBlob.url, glassesImageUrl)
+    // Use waitUntil to ensure the background task completes even after the response is sent
+    // This prevents Vercel from terminating the serverless function prematurely
+    const processingPromise = processTryOnAsync(tryOnTask.id, userImageBlob.url, glassesImageUrl)
       .catch(error => {
-        console.error("Async try-on processing failed:", error)
+        console.error("❌ Async try-on processing failed:", error)
+        // Update task status to FAILED if processing fails
+        return prisma.tryOnTask.update({
+          where: { id: tryOnTask.id },
+          data: {
+            status: "FAILED",
+            errorMessage: error instanceof Error ? error.message : "Unknown error"
+          }
+        }).catch(dbError => {
+          console.error("❌ Failed to update task status after error:", dbError)
+        })
       })
+
+    // Ensure the background task continues after response is sent
+    if (request.waitUntil) {
+      request.waitUntil(processingPromise)
+    } else {
+      // Fallback: log warning if waitUntil is not available
+      console.warn("⚠️ waitUntil not available, background task may be terminated prematurely")
+    }
 
     // Update user usage count (free users only)
     if (!isPremiumActive) {
@@ -269,18 +289,21 @@ async function uploadBase64ToBlob(base64Data: string, taskId: string, userId: st
 async function processTryOnAsync(taskId: string, userImageUrl: string, glassesImageUrl: string) {
   const processStartTime = Date.now()
   console.log(`🚀 [Task ${taskId}] Starting async processing...`)
+  console.log(`📍 [Task ${taskId}] Environment: ${process.env.VERCEL ? 'Vercel' : 'Local'}`)
 
   try {
     let result
 
     if (isMockMode) {
       // 在Mock模式下使用Mock AI服务
+      console.log(`🧪 [Task ${taskId}] Using Mock AI service`)
       result = await mockGenerateTryOnImage({
         userImageUrl,
         glassesImageUrl
       })
     } else {
       // 调用Gemini API进行图像处理
+      console.log(`🎨 [Task ${taskId}] Calling Gemini API...`)
       const aiStartTime = Date.now()
       result = await generateTryOnImage({
         userImageUrl,
@@ -321,6 +344,7 @@ async function processTryOnAsync(taskId: string, userImageUrl: string, glassesIm
       }
 
       // 更新任务状态为完成
+      console.log(`💾 [Task ${taskId}] Updating database status to COMPLETED...`)
       if (isMockMode) {
         await MockDatabase.updateTryOnTask(taskId, {
           status: "completed",
@@ -338,8 +362,10 @@ async function processTryOnAsync(taskId: string, userImageUrl: string, glassesIm
 
       const totalProcessTime = Date.now() - processStartTime
       console.log(`✅ [Task ${taskId}] Task completed in ${totalProcessTime}ms (${(totalProcessTime/1000).toFixed(2)}s) ⭐ TOTAL TIME`)
+      console.log(`✅ [Task ${taskId}] Database updated successfully with result URL: ${finalImageUrl.substring(0, 80)}...`)
     } else {
-      console.log("❌ Try-on failed, updating task status to FAILED...")
+      console.log(`❌ [Task ${taskId}] Try-on failed, updating task status to FAILED...`)
+      console.log(`❌ [Task ${taskId}] Error: ${result.error}`)
       // 更新任务状态为失败
       if (isMockMode) {
         await MockDatabase.updateTryOnTask(taskId, {
@@ -355,24 +381,32 @@ async function processTryOnAsync(taskId: string, userImageUrl: string, glassesIm
           }
         })
       }
+      console.log(`💾 [Task ${taskId}] Database updated with FAILED status`)
     }
   } catch (error) {
-    console.error("处理试戴任务失败:", error)
+    console.error(`❌ [Task ${taskId}] Exception in processTryOnAsync:`, error)
+    console.error(`❌ [Task ${taskId}] Error stack:`, error instanceof Error ? error.stack : 'No stack trace')
 
     // 更新任务状态为失败
+    console.log(`💾 [Task ${taskId}] Updating database status to FAILED due to exception...`)
     if (isMockMode) {
       await MockDatabase.updateTryOnTask(taskId, {
         status: "failed",
         errorMessage: "处理过程中发生错误"
       })
     } else {
-      await prisma.tryOnTask.update({
-        where: { id: taskId },
-        data: {
-          status: "FAILED",
-          errorMessage: error instanceof Error ? error.message : "未知错误"
-        }
-      })
+      try {
+        await prisma.tryOnTask.update({
+          where: { id: taskId },
+          data: {
+            status: "FAILED",
+            errorMessage: error instanceof Error ? error.message : "未知错误"
+          }
+        })
+        console.log(`💾 [Task ${taskId}] Database updated with FAILED status after exception`)
+      } catch (dbError) {
+        console.error(`❌ [Task ${taskId}] Failed to update database after exception:`, dbError)
+      }
     }
   }
 }
