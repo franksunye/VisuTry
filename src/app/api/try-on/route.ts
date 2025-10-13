@@ -204,6 +204,41 @@ export async function POST(request: NextRequest) {
   }
 }
 
+// Helper function to upload base64 image to Blob Storage
+async function uploadBase64ToBlob(base64Data: string, taskId: string, userId: string): Promise<string> {
+  console.log("🔄 Converting base64 image to Blob Storage...")
+
+  // Extract mime type and base64 data
+  const matches = base64Data.match(/^data:([^;]+);base64,(.+)$/)
+  if (!matches) {
+    throw new Error("Invalid base64 data format")
+  }
+
+  const mimeType = matches[1]
+  const base64Content = matches[2]
+
+  // Convert base64 to buffer
+  const buffer = Buffer.from(base64Content, 'base64')
+
+  // Determine file extension from mime type
+  const extension = mimeType.split('/')[1] || 'png'
+  const filename = `try-on/${userId}/${taskId}-result.${extension}`
+
+  console.log(`📤 Uploading to Blob Storage: ${filename} (${(buffer.length / 1024).toFixed(2)} KB)`)
+
+  // Upload to Vercel Blob Storage
+  if (isMockMode) {
+    const blob = await mockBlobUpload(filename, new File([buffer], filename, { type: mimeType }))
+    return blob.url
+  } else {
+    const blob = await put(filename, buffer, {
+      access: "public",
+      contentType: mimeType
+    })
+    return blob.url
+  }
+}
+
 // Process try-on task asynchronously
 async function processTryOnAsync(taskId: string, userImageUrl: string, glassesImageUrl: string) {
   try {
@@ -227,18 +262,42 @@ async function processTryOnAsync(taskId: string, userImageUrl: string, glassesIm
 
     if (result.success && result.imageUrl) {
       console.log("✅ Updating task status to COMPLETED...")
+
+      // Check if the result is base64 and convert to Blob URL
+      let finalImageUrl = result.imageUrl
+      if (result.imageUrl.startsWith('data:')) {
+        console.log("⚠️ Result image is base64 format, converting to Blob Storage...")
+
+        // Get userId from task
+        let userId: string
+        if (isMockMode) {
+          const task = await MockDatabase.findTryOnTask(taskId)
+          userId = task?.userId || 'unknown'
+        } else {
+          const task = await prisma.tryOnTask.findUnique({
+            where: { id: taskId },
+            select: { userId: true }
+          })
+          userId = task?.userId || 'unknown'
+        }
+
+        // Upload base64 to Blob Storage
+        finalImageUrl = await uploadBase64ToBlob(result.imageUrl, taskId, userId)
+        console.log(`✅ Base64 converted to Blob URL: ${finalImageUrl}`)
+      }
+
       // 更新任务状态为完成
       if (isMockMode) {
         await MockDatabase.updateTryOnTask(taskId, {
           status: "completed",
-          resultImageUrl: result.imageUrl
+          resultImageUrl: finalImageUrl
         })
       } else {
         await prisma.tryOnTask.update({
           where: { id: taskId },
           data: {
             status: "COMPLETED",
-            resultImageUrl: result.imageUrl
+            resultImageUrl: finalImageUrl
           }
         })
       }
