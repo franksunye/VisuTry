@@ -88,26 +88,56 @@ export async function generateTryOnImage({
     console.log(`   User image: ${userImageUrl}`)
     console.log(`   Glasses image: ${glassesImageUrl}`)
 
-    const fetchWithTimeout = async (url: string, timeoutMs: number = 30000) => {
-      const controller = new AbortController()
-      const timeout = setTimeout(() => controller.abort(), timeoutMs)
+    const fetchWithRetry = async (url: string, maxRetries: number = 3, timeoutMs: number = 30000) => {
+      for (let attempt = 1; attempt <= maxRetries; attempt++) {
+        try {
+          console.log(`   Attempt ${attempt}/${maxRetries} for ${url.substring(0, 80)}...`)
 
-      try {
-        const response = await fetch(url, { signal: controller.signal })
-        clearTimeout(timeout)
-        return response
-      } catch (error) {
-        clearTimeout(timeout)
-        if (error instanceof Error && error.name === 'AbortError') {
-          throw new Error(`Fetch timeout after ${timeoutMs}ms for ${url}`)
+          const controller = new AbortController()
+          const timeout = setTimeout(() => controller.abort(), timeoutMs)
+
+          const response = await fetch(url, {
+            signal: controller.signal,
+            // Add headers to help with connection
+            headers: {
+              'User-Agent': 'VisuTry/1.0'
+            }
+          })
+
+          clearTimeout(timeout)
+
+          if (response.ok) {
+            console.log(`   ✅ Success on attempt ${attempt}`)
+            return response
+          }
+
+          console.warn(`   ⚠️ HTTP ${response.status} on attempt ${attempt}`)
+
+          if (attempt < maxRetries) {
+            const delay = attempt * 1000 // 1s, 2s, 3s
+            console.log(`   ⏳ Waiting ${delay}ms before retry...`)
+            await new Promise(resolve => setTimeout(resolve, delay))
+          }
+
+        } catch (error) {
+          console.error(`   ❌ Error on attempt ${attempt}:`, error instanceof Error ? error.message : error)
+
+          if (attempt < maxRetries) {
+            const delay = attempt * 1000
+            console.log(`   ⏳ Waiting ${delay}ms before retry...`)
+            await new Promise(resolve => setTimeout(resolve, delay))
+          } else {
+            throw error
+          }
         }
-        throw error
       }
+
+      throw new Error(`Failed to fetch after ${maxRetries} attempts: ${url}`)
     }
 
     const [userImageResponse, glassesImageResponse] = await Promise.all([
-      fetchWithTimeout(userImageUrl, 30000),
-      fetchWithTimeout(glassesImageUrl, 30000)
+      fetchWithRetry(userImageUrl, 3, 30000),
+      fetchWithRetry(glassesImageUrl, 3, 30000)
     ])
 
     if (!userImageResponse.ok) {
