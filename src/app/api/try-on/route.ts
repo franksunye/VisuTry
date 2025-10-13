@@ -241,6 +241,9 @@ async function uploadBase64ToBlob(base64Data: string, taskId: string, userId: st
 
 // Process try-on task asynchronously
 async function processTryOnAsync(taskId: string, userImageUrl: string, glassesImageUrl: string) {
+  const processStartTime = Date.now()
+  console.log(`🚀 [Task ${taskId}] Starting async processing...`)
+
   try {
     let result
 
@@ -252,21 +255,25 @@ async function processTryOnAsync(taskId: string, userImageUrl: string, glassesIm
       })
     } else {
       // 调用Gemini API进行图像处理
+      const aiStartTime = Date.now()
       result = await generateTryOnImage({
         userImageUrl,
         glassesImageUrl
       })
+      const aiTime = Date.now() - aiStartTime
+      console.log(`⏱️ [Task ${taskId}] AI processing time: ${aiTime}ms (${(aiTime/1000).toFixed(2)}s)`)
     }
 
-    console.log("📊 Try-on result:", { success: result.success, hasImageUrl: !!result.imageUrl, error: result.error })
+    console.log(`📊 [Task ${taskId}] Try-on result:`, { success: result.success, hasImageUrl: !!result.imageUrl, error: result.error })
 
     if (result.success && result.imageUrl) {
-      console.log("✅ Updating task status to COMPLETED...")
+      console.log(`✅ [Task ${taskId}] Updating task status to COMPLETED...`)
 
       // Check if the result is base64 and convert to Blob URL
       let finalImageUrl = result.imageUrl
       if (result.imageUrl.startsWith('data:')) {
-        console.log("⚠️ Result image is base64 format, converting to Blob Storage...")
+        const uploadStartTime = Date.now()
+        console.log(`⚠️ [Task ${taskId}] Result image is base64 format, converting to Blob Storage...`)
 
         // Get userId from task
         let userId: string
@@ -283,7 +290,8 @@ async function processTryOnAsync(taskId: string, userImageUrl: string, glassesIm
 
         // Upload base64 to Blob Storage
         finalImageUrl = await uploadBase64ToBlob(result.imageUrl, taskId, userId)
-        console.log(`✅ Base64 converted to Blob URL: ${finalImageUrl}`)
+        const uploadTime = Date.now() - uploadStartTime
+        console.log(`✅ [Task ${taskId}] Base64 converted to Blob URL in ${uploadTime}ms: ${finalImageUrl}`)
       }
 
       // 更新任务状态为完成
@@ -301,7 +309,9 @@ async function processTryOnAsync(taskId: string, userImageUrl: string, glassesIm
           }
         })
       }
-      console.log("✅ Task status updated to COMPLETED")
+
+      const totalProcessTime = Date.now() - processStartTime
+      console.log(`✅ [Task ${taskId}] Task completed in ${totalProcessTime}ms (${(totalProcessTime/1000).toFixed(2)}s) ⭐ TOTAL TIME`)
     } else {
       console.log("❌ Try-on failed, updating task status to FAILED...")
       // 更新任务状态为失败

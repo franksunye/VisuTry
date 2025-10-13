@@ -68,6 +68,7 @@ export async function generateTryOnImage({
   }
 
   try {
+    const totalStartTime = Date.now()
     console.log("🎨 Starting Gemini 2.0 Flash Image Generation virtual try-on...")
 
     // Use Gemini 2.0 Flash Preview Image Generation
@@ -80,23 +81,38 @@ export async function generateTryOnImage({
       }
     })
 
-    // Fetch user image
-    const userImageResponse = await fetch(userImageUrl)
+    // Fetch images in parallel for better performance
+    const downloadStartTime = Date.now()
+    const [userImageResponse, glassesImageResponse] = await Promise.all([
+      fetch(userImageUrl),
+      fetch(glassesImageUrl)
+    ])
+
     if (!userImageResponse.ok) {
       throw new Error("Failed to fetch user image")
     }
-    const userImageBuffer = await userImageResponse.arrayBuffer()
-    const userImageBase64 = Buffer.from(userImageBuffer).toString('base64')
-    const userImageMimeType = userImageResponse.headers.get('content-type') || 'image/jpeg'
-
-    // Fetch glasses image
-    const glassesImageResponse = await fetch(glassesImageUrl)
     if (!glassesImageResponse.ok) {
       throw new Error("Failed to fetch glasses image")
     }
-    const glassesImageBuffer = await glassesImageResponse.arrayBuffer()
+
+    const [userImageBuffer, glassesImageBuffer] = await Promise.all([
+      userImageResponse.arrayBuffer(),
+      glassesImageResponse.arrayBuffer()
+    ])
+
+    const downloadTime = Date.now() - downloadStartTime
+    console.log(`⏱️ Image download time: ${downloadTime}ms (${(downloadTime/1000).toFixed(2)}s)`)
+
+    // Convert to base64
+    const base64StartTime = Date.now()
+    const userImageBase64 = Buffer.from(userImageBuffer).toString('base64')
     const glassesImageBase64 = Buffer.from(glassesImageBuffer).toString('base64')
+    const userImageMimeType = userImageResponse.headers.get('content-type') || 'image/jpeg'
     const glassesImageMimeType = glassesImageResponse.headers.get('content-type') || 'image/png'
+
+    const base64Time = Date.now() - base64StartTime
+    console.log(`⏱️ Base64 conversion time: ${base64Time}ms`)
+    console.log(`📊 Image sizes: user=${(userImageBase64.length/1024).toFixed(2)}KB, glasses=${(glassesImageBase64.length/1024).toFixed(2)}KB`)
 
     console.log("📸 Images loaded, generating virtual try-on...")
 
@@ -121,6 +137,9 @@ ${prompt}
 `
 
     // Generate the try-on image using multi-image fusion
+    const apiStartTime = Date.now()
+    console.log("🚀 Calling Gemini API...")
+
     const result = await model.generateContent([
       tryOnPrompt,
       {
@@ -137,7 +156,9 @@ ${prompt}
       }
     ])
 
-    console.log("✅ Gemini API response received")
+    const apiTime = Date.now() - apiStartTime
+    console.log(`✅ Gemini API response received`)
+    console.log(`⏱️ Gemini API call time: ${apiTime}ms (${(apiTime/1000).toFixed(2)}s) ⭐ KEY METRIC`)
 
     // Extract the generated image from the response
     const response = result.response
@@ -158,6 +179,10 @@ ${prompt}
         const imageData = part.inlineData.data
         const mimeType = part.inlineData.mimeType || 'image/png'
         const dataUrl = `data:${mimeType};base64,${imageData}`
+
+        const totalTime = Date.now() - totalStartTime
+        console.log(`⏱️ Total generation time: ${totalTime}ms (${(totalTime/1000).toFixed(2)}s)`)
+        console.log(`📊 Result image size: ${(imageData.length/1024).toFixed(2)}KB`)
 
         return {
           success: true,

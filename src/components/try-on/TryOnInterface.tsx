@@ -49,7 +49,7 @@ export function TryOnInterface() {
       } catch (error) {
         console.error("Failed to check task status:", error)
       }
-    }, 2000) // Check every 2 seconds
+    }, 1000) // Check every 1 second for faster response
 
     return () => clearInterval(pollInterval)
   }, [currentTaskId, isProcessing])
