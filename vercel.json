@@ -1,3 +1,8 @@
 {
-  "framework": "nextjs"
+  "framework": "nextjs",
+  "functions": {
+    "src/app/api/try-on/route.ts": {
+      "maxDuration": 60
+    }
+  }
 }

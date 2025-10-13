@@ -82,17 +82,39 @@ export async function generateTryOnImage({
     })
 
     // Fetch images in parallel for better performance
+    // Add timeout to prevent hanging
     const downloadStartTime = Date.now()
+    console.log(`📥 Downloading images from Blob Storage...`)
+    console.log(`   User image: ${userImageUrl}`)
+    console.log(`   Glasses image: ${glassesImageUrl}`)
+
+    const fetchWithTimeout = async (url: string, timeoutMs: number = 30000) => {
+      const controller = new AbortController()
+      const timeout = setTimeout(() => controller.abort(), timeoutMs)
+
+      try {
+        const response = await fetch(url, { signal: controller.signal })
+        clearTimeout(timeout)
+        return response
+      } catch (error) {
+        clearTimeout(timeout)
+        if (error instanceof Error && error.name === 'AbortError') {
+          throw new Error(`Fetch timeout after ${timeoutMs}ms for ${url}`)
+        }
+        throw error
+      }
+    }
+
     const [userImageResponse, glassesImageResponse] = await Promise.all([
-      fetch(userImageUrl),
-      fetch(glassesImageUrl)
+      fetchWithTimeout(userImageUrl, 30000),
+      fetchWithTimeout(glassesImageUrl, 30000)
     ])
 
     if (!userImageResponse.ok) {
-      throw new Error("Failed to fetch user image")
+      throw new Error(`Failed to fetch user image: ${userImageResponse.status} ${userImageResponse.statusText}`)
     }
     if (!glassesImageResponse.ok) {
-      throw new Error("Failed to fetch glasses image")
+      throw new Error(`Failed to fetch glasses image: ${glassesImageResponse.status} ${glassesImageResponse.statusText}`)
     }
 
     const [userImageBuffer, glassesImageBuffer] = await Promise.all([
@@ -201,19 +223,52 @@ ${prompt}
   } catch (error) {
     console.error("❌ Gemini API error:", error)
 
-    // Check if it's a quota error
-    if (error instanceof Error && error.message.includes('quota')) {
+    // Log detailed error information
+    if (error instanceof Error) {
+      console.error("   Error name:", error.name)
+      console.error("   Error message:", error.message)
+      console.error("   Error stack:", error.stack)
+    }
+
+    // Check for specific error types
+    const errorMessage = error instanceof Error ? error.message : String(error)
+
+    // Network/fetch errors
+    if (errorMessage.includes('fetch failed') || errorMessage.includes('ECONNREFUSED') || errorMessage.includes('ETIMEDOUT')) {
+      console.error("🌐 Network error detected - possible causes:")
+      console.error("   1. Vercel serverless function network restrictions")
+      console.error("   2. Google API endpoint unreachable")
+      console.error("   3. Timeout (check if GEMINI_API_KEY is set)")
+      console.error("   4. Regional restrictions")
+
       return {
         success: false,
-        error: "Gemini 2.5 Flash Image quota exhausted. Please try again later or upgrade to a paid plan."
+        error: "Network error: Unable to connect to Gemini API. Please check your internet connection and try again."
+      }
+    }
+
+    // Check if it's a quota error
+    if (errorMessage.includes('quota')) {
+      return {
+        success: false,
+        error: "Gemini API quota exhausted. Please try again later or upgrade to a paid plan."
       }
     }
 
     // Check if it's a 429 error (rate limit)
-    if (error instanceof Error && error.message.includes('429')) {
+    if (errorMessage.includes('429')) {
       return {
         success: false,
-        error: "Too many requests, please try again later (recommended wait: 20-30 seconds)."
+        error: "Too many requests. Please wait 20-30 seconds and try again."
+      }
+    }
+
+    // Check if it's an authentication error
+    if (errorMessage.includes('API key') || errorMessage.includes('401') || errorMessage.includes('403')) {
+      console.error("🔑 Authentication error - GEMINI_API_KEY may be invalid or missing")
+      return {
+        success: false,
+        error: "Authentication error: Invalid or missing API key."
       }
     }
 

@@ -14,6 +14,11 @@ import { getTestSessionFromRequest } from "@/lib/test-session"
 // Force dynamic rendering for this route
 export const dynamic = 'force-dynamic'
 
+// Set maximum duration for this serverless function
+// Gemini API can take 4-10 seconds, plus upload/download time
+// Free tier: max 10s, Hobby: max 10s, Pro: max 60s
+export const maxDuration = 60 // 60 seconds for Pro plan
+
 export async function POST(request: NextRequest) {
   try {
     // Check user authentication (NextAuth or test session)
