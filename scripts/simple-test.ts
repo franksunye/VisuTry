@@ -1,30 +1,23 @@
 /**
- * Quick Gemini Performance Test
- * 
- * A simplified version for quick testing
- * 
- * Usage:
- *   npx tsx scripts/quick-test.ts
+ * Simple Gemini Performance Test with Real Images
+ * Uses publicly accessible test images
  */
 
 import { GoogleGenerativeAI } from "@google/generative-ai"
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY
 
-async function quickTest() {
-  console.log('🚀 Quick Gemini Performance Test\n')
+async function simpleTest() {
+  console.log('🚀 Gemini Performance Test with Real Images\n')
 
   if (!GEMINI_API_KEY) {
-    console.error('❌ GEMINI_API_KEY not found in environment')
-    console.log('\nSet it with:')
-    console.log('  export GEMINI_API_KEY="your-key"')
+    console.error('❌ GEMINI_API_KEY not found')
     process.exit(1)
   }
 
   const totalStart = Date.now()
 
   try {
-    // Initialize
     console.log('1️⃣  Initializing Gemini API...')
     const genAI = new GoogleGenerativeAI(GEMINI_API_KEY)
     const model = genAI.getGenerativeModel({
@@ -35,37 +28,22 @@ async function quickTest() {
       }
     })
 
-    // Download test images
+    // Use publicly accessible test images
     console.log('2️⃣  Downloading test images...')
     const downloadStart = Date.now()
     
-    // Create simple test images using data URLs
-    // This avoids network issues and uses minimal data
-    const createTestImage = (width: number, height: number, color: string) => {
-      // Create a minimal PNG data URL
-      return `data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==`
+    // Using httpbin.org which returns test images
+    const userImageUrl = 'https://httpbin.org/image/jpeg'
+    const glassesImageUrl = 'https://httpbin.org/image/png'
+    
+    const [userImg, glassesImg] = await Promise.all([
+      fetch(userImageUrl),
+      fetch(glassesImageUrl)
+    ])
+
+    if (!userImg.ok || !glassesImg.ok) {
+      throw new Error('Failed to download images')
     }
-
-    const userImgData = createTestImage(800, 800, 'blue')
-    const glassesImgData = createTestImage(400, 400, 'purple')
-
-    // Convert data URLs to Response objects
-    const base64ToArrayBuffer = (base64: string) => {
-      const binaryString = Buffer.from(base64.split(',')[1], 'base64')
-      return binaryString.buffer
-    }
-
-    const userImg = {
-      ok: true,
-      arrayBuffer: async () => base64ToArrayBuffer(userImgData),
-      headers: { get: () => 'image/png' }
-    } as Response
-
-    const glassesImg = {
-      ok: true,
-      arrayBuffer: async () => base64ToArrayBuffer(glassesImgData),
-      headers: { get: () => 'image/png' }
-    } as Response
 
     const [userBuf, glassesBuf] = await Promise.all([
       userImg.arrayBuffer(),
@@ -144,7 +122,7 @@ async function quickTest() {
     console.log(`Gemini API time: ${apiTime}ms`)
     
     // Estimate with optimizations
-    const optimizedOverhead = overhead * 0.5 // 50% reduction
+    const optimizedOverhead = overhead * 0.5
     const estimated = apiTime + optimizedOverhead
     console.log(`\nWith optimizations:`)
     console.log(`Estimated total: ${estimated}ms (${(estimated/1000).toFixed(2)}s)`)
@@ -163,5 +141,5 @@ async function quickTest() {
   }
 }
 
-quickTest()
+simpleTest()
 
