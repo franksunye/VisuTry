@@ -187,30 +187,16 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Process AI try-on asynchronously
-    // Use waitUntil to ensure the background task completes even after the response is sent
-    // This prevents Vercel from terminating the serverless function prematurely
-    const processingPromise = processTryOnAsync(tryOnTask.id, userImageBlob.url, glassesImageUrl)
-      .catch(error => {
-        console.error("❌ Async try-on processing failed:", error)
-        // Update task status to FAILED if processing fails
-        return prisma.tryOnTask.update({
-          where: { id: tryOnTask.id },
-          data: {
-            status: "FAILED",
-            errorMessage: error instanceof Error ? error.message : "Unknown error"
-          }
-        }).catch(dbError => {
-          console.error("❌ Failed to update task status after error:", dbError)
-        })
-      })
+    // Process AI try-on synchronously to ensure completion
+    // With maxDuration: 60, we have enough time for Gemini API (10-30s)
+    console.log(`⏱️ [Task ${tryOnTask.id}] Starting synchronous processing (maxDuration: 60s)`)
 
-    // Ensure the background task continues after response is sent
-    if (request.waitUntil) {
-      request.waitUntil(processingPromise)
-    } else {
-      // Fallback: log warning if waitUntil is not available
-      console.warn("⚠️ waitUntil not available, background task may be terminated prematurely")
+    try {
+      await processTryOnAsync(tryOnTask.id, userImageBlob.url, glassesImageUrl)
+      console.log(`✅ [Task ${tryOnTask.id}] Processing completed successfully`)
+    } catch (error) {
+      console.error(`❌ [Task ${tryOnTask.id}] Processing failed:`, error)
+      // Error handling is done inside processTryOnAsync
     }
 
     // Update user usage count (free users only)
@@ -232,12 +218,34 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    // Get the final task status to return to client
+    const finalTask = isMockMode
+      ? await MockDatabase.findTryOnTask(tryOnTask.id)
+      : await prisma.tryOnTask.findUnique({
+          where: { id: tryOnTask.id },
+          select: {
+            id: true,
+            status: true,
+            resultImageUrl: true,
+            errorMessage: true
+          }
+        })
+
+    const taskStatus = finalTask?.status || "COMPLETED"
+    const statusLower = typeof taskStatus === 'string' ? taskStatus.toLowerCase() : 'completed'
+
     return NextResponse.json({
       success: true,
       data: {
         taskId: tryOnTask.id,
-        status: "processing",
-        message: "AI is processing your try-on request, please wait..."
+        status: statusLower,
+        resultImageUrl: finalTask?.resultImageUrl || null,
+        errorMessage: isMockMode ? undefined : (finalTask as any)?.errorMessage,
+        message: taskStatus === "COMPLETED"
+          ? "Try-on completed successfully!"
+          : taskStatus === "FAILED"
+          ? "Try-on failed, please try again"
+          : "Processing..."
       }
     })
 
