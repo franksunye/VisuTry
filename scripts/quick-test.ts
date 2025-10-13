@@ -39,33 +39,14 @@ async function quickTest() {
     console.log('2️⃣  Downloading test images...')
     const downloadStart = Date.now()
     
-    // Create simple test images using data URLs
-    // This avoids network issues and uses minimal data
-    const createTestImage = (width: number, height: number, color: string) => {
-      // Create a minimal PNG data URL
-      return `data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==`
+    const [userImg, glassesImg] = await Promise.all([
+      fetch(userImageUrl),
+      fetch(glassesImageUrl)
+    ])
+
+    if (!userImg.ok || !glassesImg.ok) {
+      throw new Error('Failed to download images')
     }
-
-    const userImgData = createTestImage(800, 800, 'blue')
-    const glassesImgData = createTestImage(400, 400, 'purple')
-
-    // Convert data URLs to Response objects
-    const base64ToArrayBuffer = (base64: string) => {
-      const binaryString = Buffer.from(base64.split(',')[1], 'base64')
-      return binaryString.buffer
-    }
-
-    const userImg = {
-      ok: true,
-      arrayBuffer: async () => base64ToArrayBuffer(userImgData),
-      headers: { get: () => 'image/png' }
-    } as Response
-
-    const glassesImg = {
-      ok: true,
-      arrayBuffer: async () => base64ToArrayBuffer(glassesImgData),
-      headers: { get: () => 'image/png' }
-    } as Response
 
     const [userBuf, glassesBuf] = await Promise.all([
       userImg.arrayBuffer(),
