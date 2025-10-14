@@ -45,17 +45,17 @@ model User {
   emailVerified DateTime?
   image         String?
   username      String?   @unique
-  
+
   // VisuTry specific fields
   freeTrialsUsed Int      @default(0)
   isPremium      Boolean  @default(false)
   premiumExpiresAt DateTime?
-  
+
   accounts      Account[]
   sessions      Session[]
   tryOnTasks    TryOnTask[]
   payments      Payment[]
-  
+
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 }

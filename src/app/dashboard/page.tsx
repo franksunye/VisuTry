@@ -132,7 +132,7 @@ export default async function DashboardPage() {
                 href="/pricing"
                 className="flex items-center justify-center w-full px-4 py-3 text-gray-700 transition-colors border border-gray-300 rounded-lg hover:bg-gray-50"
               >
-                Upgrade to Premium
+                Upgrade to Standard
               </Link>
             </div>
           </div>

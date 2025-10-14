@@ -65,7 +65,8 @@ export default async function PricingPage() {
       price: "$2.99",
       period: "One-time",
       features: [
-        "20 additional AI try-ons",
+        "10 AI try-ons",
+        "Credits never expire",
         "High-quality image processing",
         "Unlimited downloads and sharing",
         "Priority customer support"
@@ -76,16 +77,16 @@ export default async function PricingPage() {
     },
     {
       id: "PREMIUM_MONTHLY",
-      name: "Premium",
+      name: "Standard",
       description: "Most popular choice",
-      price: "$9.99",
+      price: "$8.99",
       period: "per month",
       features: [
-        "Unlimited AI try-ons",
+        "30 AI try-ons per month",
         "High-quality image processing",
         "Priority processing queue",
         "Unlimited downloads and sharing",
-        "Premium glasses frame library",
+        "Standard glasses frame library",
         "Priority customer support",
         "Ad-free experience"
       ],
@@ -95,20 +96,20 @@ export default async function PricingPage() {
     },
     {
       id: "PREMIUM_YEARLY",
-      name: "Premium Annual",
+      name: "Standard Annual",
       description: "Best value",
-      price: "$99.99",
+      price: "$89.99",
       period: "per year",
-      originalPrice: "$119.88",
+      originalPrice: "$107.88",
       features: [
-        "Unlimited AI try-ons",
+        "420 AI try-ons per year (360 + 60 bonus)",
         "High-quality image processing",
         "Priority processing queue",
         "Unlimited downloads and sharing",
-        "Premium glasses frame library",
+        "Standard glasses frame library",
         "Priority customer support",
         "Ad-free experience",
-        "Save 2 months"
+        "Save 2 months + 60 bonus try-ons"
       ],
       buttonText: "Start Annual Subscription",
       popular: false,
@@ -122,7 +123,7 @@ export default async function PricingPage() {
       <div className="flex items-center justify-between mb-8">
         <div>
           <h1 className="text-3xl font-bold text-gray-900">Choose Your Plan</h1>
-          <p className="mt-1 text-gray-600">Upgrade to premium for unlimited AI try-on experience</p>
+          <p className="mt-1 text-gray-600">Upgrade to Standard for enhanced AI try-on experience</p>
         </div>
         <Link
           href="/dashboard"
@@ -140,7 +141,7 @@ export default async function PricingPage() {
             <div className="flex items-center">
               <Star className="w-5 h-5 mr-2 text-yellow-600" />
               <div>
-                <strong className="text-yellow-800">You are a Premium Member</strong>
+                <strong className="text-yellow-800">You are a Standard Member</strong>
                 {currentUser?.premiumExpiresAt && (
                   <span className="ml-2 text-yellow-700">
                     Expires: {new Date(currentUser.premiumExpiresAt).toLocaleDateString("en-US")}
@@ -190,15 +191,15 @@ export default async function PricingPage() {
                 <th className="px-6 py-3 text-sm font-medium text-left text-gray-900">Feature</th>
                 <th className="px-6 py-3 text-sm font-medium text-center text-gray-900">Free</th>
                 <th className="px-6 py-3 text-sm font-medium text-center text-gray-900">Credits Pack</th>
-                <th className="px-6 py-3 text-sm font-medium text-center text-gray-900">Premium</th>
+                <th className="px-6 py-3 text-sm font-medium text-center text-gray-900">Standard</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
               <tr>
                 <td className="px-6 py-4 text-sm text-gray-900">AI Try-ons</td>
                 <td className="px-6 py-4 text-sm text-center text-gray-600">3 times</td>
-                <td className="px-6 py-4 text-sm text-center text-gray-600">+20 times</td>
-                <td className="px-6 py-4 text-sm text-center text-green-600">Unlimited</td>
+                <td className="px-6 py-4 text-sm text-center text-gray-600">+10 times</td>
+                <td className="px-6 py-4 text-sm text-center text-green-600">30/month or 420/year</td>
               </tr>
               <tr>
                 <td className="px-6 py-4 text-sm text-gray-900">Image Quality</td>
@@ -216,7 +217,7 @@ export default async function PricingPage() {
                 <td className="px-6 py-4 text-sm text-gray-900">Glasses Frame Library</td>
                 <td className="px-6 py-4 text-sm text-center text-gray-600">Basic</td>
                 <td className="px-6 py-4 text-sm text-center text-gray-600">Basic</td>
-                <td className="px-6 py-4 text-sm text-center text-green-600">Premium</td>
+                <td className="px-6 py-4 text-sm text-center text-green-600">Standard</td>
               </tr>
               <tr>
                 <td className="px-6 py-4 text-sm text-gray-900">Customer Support</td>

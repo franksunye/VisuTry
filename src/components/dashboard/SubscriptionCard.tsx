@@ -27,15 +27,15 @@ export function SubscriptionCard({ user }: SubscriptionCardProps) {
             <Crown className="w-6 h-6 text-yellow-600" />
           </div>
           <div className="ml-4">
-            <h3 className="text-lg font-semibold text-yellow-900">Premium Member</h3>
-            <p className="text-yellow-700 text-sm">Enjoy unlimited AI try-ons</p>
+            <h3 className="text-lg font-semibold text-yellow-900">Standard Member</h3>
+            <p className="text-yellow-700 text-sm">Enjoy enhanced AI try-ons</p>
           </div>
         </div>
 
         <div className="space-y-3">
           <div className="flex items-center justify-between">
             <span className="text-yellow-800 text-sm">Try-ons</span>
-            <span className="text-yellow-900 font-medium">Unlimited</span>
+            <span className="text-yellow-900 font-medium">30/month or 420/year</span>
           </div>
 
           {user.premiumExpiresAt && (
@@ -53,14 +53,14 @@ export function SubscriptionCard({ user }: SubscriptionCardProps) {
         <div className="mt-6 pt-4 border-t border-yellow-200">
           <div className="grid grid-cols-2 gap-3">
             <div className="text-center">
-              <div className="text-2xl font-bold text-yellow-900">∞</div>
+              <div className="text-2xl font-bold text-yellow-900">30+</div>
               <div className="text-xs text-yellow-700">Try-ons</div>
             </div>
             <div className="text-center">
               <div className="text-2xl font-bold text-yellow-900">
                 <Star className="w-6 h-6 mx-auto" />
               </div>
-              <div className="text-xs text-yellow-700">Premium Features</div>
+              <div className="text-xs text-yellow-700">Standard Features</div>
             </div>
           </div>
         </div>
@@ -112,7 +112,7 @@ export function SubscriptionCard({ user }: SubscriptionCardProps) {
             Running low on try-ons!
           </p>
           <p className="text-orange-700 text-xs mt-1">
-            Upgrade to premium for unlimited try-ons
+            Upgrade to Standard for enhanced try-ons
           </p>
         </div>
       )}
@@ -123,17 +123,17 @@ export function SubscriptionCard({ user }: SubscriptionCardProps) {
         className="w-full flex items-center justify-center px-4 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all duration-200"
       >
         <Star className="w-5 h-5 mr-2" />
-        Upgrade to Premium
+        Upgrade to Standard
         <ArrowUpRight className="w-4 h-4 ml-2" />
       </Link>
 
       {/* Premium Features Preview */}
       <div className="mt-4 pt-4 border-t border-gray-200">
-        <p className="text-xs text-gray-600 mb-3">Premium benefits:</p>
+        <p className="text-xs text-gray-600 mb-3">Standard benefits:</p>
         <div className="grid grid-cols-2 gap-2 text-xs">
           <div className="flex items-center text-gray-600">
             <div className="w-2 h-2 bg-green-500 rounded-full mr-2" />
-            Unlimited try-ons
+            30/month or 420/year
           </div>
           <div className="flex items-center text-gray-600">
             <div className="w-2 h-2 bg-green-500 rounded-full mr-2" />
@@ -141,7 +141,7 @@ export function SubscriptionCard({ user }: SubscriptionCardProps) {
           </div>
           <div className="flex items-center text-gray-600">
             <div className="w-2 h-2 bg-green-500 rounded-full mr-2" />
-            Premium frames
+            Standard frames
           </div>
           <div className="flex items-center text-gray-600">
             <div className="w-2 h-2 bg-green-500 rounded-full mr-2" />
