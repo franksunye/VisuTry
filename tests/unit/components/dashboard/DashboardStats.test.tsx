@@ -85,8 +85,8 @@ describe('DashboardStats', () => {
 
       expect(screen.getByText('50')).toBeInTheDocument() // totalTryOns
       expect(screen.getByText('45')).toBeInTheDocument() // completedTryOns
-      expect(screen.getByText('Unlimited')).toBeInTheDocument() // remainingTrials should show "Unlimited"
-      expect(screen.getByText('Premium')).toBeInTheDocument() // membership
+      expect(screen.getByText('30+/month')).toBeInTheDocument() // remainingTrials should show "30+/month"
+      expect(screen.getByText('Standard')).toBeInTheDocument() // membership
     })
 
     it('should display correct descriptions for premium users', () => {
@@ -94,8 +94,8 @@ describe('DashboardStats', () => {
 
       expect(screen.getByText('Cumulative usage count')).toBeInTheDocument()
       expect(screen.getByText('Completed try-ons')).toBeInTheDocument()
-      expect(screen.getByText('Premium Member')).toBeInTheDocument()
-      expect(screen.getByText('Enjoy unlimited try-ons')).toBeInTheDocument()
+      expect(screen.getByText('Standard Member')).toBeInTheDocument()
+      expect(screen.getByText('Enhanced try-on experience')).toBeInTheDocument()
     })
   })
 
@@ -143,8 +143,8 @@ describe('DashboardStats', () => {
 
       expect(screen.getByText('1000')).toBeInTheDocument()
       expect(screen.getByText('950')).toBeInTheDocument()
-      expect(screen.getByText('Unlimited')).toBeInTheDocument()
-      expect(screen.getByText('Premium')).toBeInTheDocument()
+      expect(screen.getByText('30+/month')).toBeInTheDocument()
+      expect(screen.getByText('Standard')).toBeInTheDocument()
     })
   })
 

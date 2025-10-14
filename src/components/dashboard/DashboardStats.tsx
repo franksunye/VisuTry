@@ -27,17 +27,17 @@ export function DashboardStats({ stats }: DashboardStatsProps) {
     },
     {
       title: "Remaining Uses",
-      value: stats.isPremium ? "Unlimited" : stats.remainingTrials,
+      value: stats.isPremium ? "30+/month" : stats.remainingTrials,
       icon: <Clock className="w-6 h-6 text-orange-600" />,
       bgColor: "bg-orange-100",
-      description: stats.isPremium ? "Premium Member" : "Free Quota"
+      description: stats.isPremium ? "Standard Member" : "Free Quota"
     },
     {
       title: "Membership",
-      value: stats.isPremium ? "Premium" : "Free",
+      value: stats.isPremium ? "Standard" : "Free",
       icon: <Star className="w-6 h-6 text-purple-600" />,
       bgColor: "bg-purple-100",
-      description: stats.isPremium ? "Enjoy unlimited try-ons" : "Upgrade for more"
+      description: stats.isPremium ? "Enhanced try-on experience" : "Upgrade for more"
     }
   ]
 

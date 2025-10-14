@@ -89,7 +89,7 @@ export async function POST(request: NextRequest) {
 
     if (!isPremiumActive && user.freeTrialsUsed >= freeTrialLimit) {
       return NextResponse.json(
-        { success: false, error: "Free trial limit reached, please upgrade to premium" },
+        { success: false, error: "Free trial limit reached, please upgrade to Standard" },
         { status: 403 }
       )
     }
