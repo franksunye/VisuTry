@@ -82,7 +82,7 @@ export async function DashboardStatsAsync({ userId }: DashboardStatsAsyncProps) 
         const yearlyUsed = totalTryOns // 简化：使用总使用量
         const yearlyLimit = 420
         const remaining = Math.max(0, yearlyLimit - yearlyUsed)
-        remainingDisplay = remaining > 100 ? "400+" : remaining.toString()
+        remainingDisplay = remaining.toString()
       } else if (isMonthlySubscription) {
         // 月费用户：30 - 本月已使用 = 剩余
         // 简化：显示30+表示充足
