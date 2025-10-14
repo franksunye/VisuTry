@@ -29,7 +29,13 @@
     "test:setup": "node tests/scripts/setup-test-env.js",
     "test:cleanup": "node tests/scripts/cleanup.js",
     "test:e2e:playwright": "playwright test",
-    "test:e2e:install": "playwright install"
+    "test:e2e:install": "playwright install",
+    "release": "node scripts/release.js",
+    "release:patch": "node scripts/release.js patch",
+    "release:minor": "node scripts/release.js minor",
+    "release:major": "node scripts/release.js major",
+    "version:check": "echo $npm_package_version",
+    "version:bump": "npm version --no-git-tag-version"
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",
