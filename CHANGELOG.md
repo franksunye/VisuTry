@@ -12,17 +12,24 @@
 - 提示词优化：改进nano banana的try on提示词
 - Stripe切换为正式环境
 
-## [0.2.0] - 即将发布
+## [0.2.0] - 2025-10-14
 
 ### ✨ 新功能
 - 完整的版本管理系统
 - 自动化发布流程
 - 语义化版本控制
+- Git钩子和提交消息验证
 
 ### 🔧 构建/工具
-- 添加版本管理配置文件
-- 创建自动化发布脚本
+- 添加版本管理配置文件 (`version.config.js`)
+- 创建自动化发布脚本 (`scripts/release.js`)
 - 更新package.json发布命令
+- Git钩子设置脚本 (`scripts/setup-git-hooks.js`)
+
+### 📚 文档
+- 版本管理指南 (`docs/VERSION_MANAGEMENT.md`)
+- 发布流程快速参考 (`docs/RELEASE_GUIDE.md`)
+- 变更日志模板 (`CHANGELOG.md`)
 
 ## [0.1.0] - 2025-09-15
 
