@@ -41,22 +41,40 @@ export default async function DashboardPage() {
 
   perfLogger.mark('dashboard:session-validated', { userId: session.user.id })
 
-  // 获取用户基本信息（用于 SubscriptionCard）
+  // 获取用户基本信息和最新支付记录（用于 SubscriptionCard）
   // 这个查询很快，可以在主线程执行
-  const user = await prisma.user.findUnique({
-    where: { id: session.user.id },
-    select: {
-      isPremium: true,
-      premiumExpiresAt: true,
-      freeTrialsUsed: true,
-    },
-  })
+  const [user, latestPayment] = await Promise.all([
+    prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: {
+        isPremium: true,
+        premiumExpiresAt: true,
+        freeTrialsUsed: true,
+      },
+    }),
+    prisma.payment.findFirst({
+      where: {
+        userId: session.user.id,
+        status: 'COMPLETED',
+        productType: { in: ['PREMIUM_MONTHLY', 'PREMIUM_YEARLY'] }
+      },
+      orderBy: { createdAt: 'desc' },
+      select: {
+        productType: true,
+        createdAt: true,
+      },
+    })
+  ])
 
   // 计算会员状态和剩余次数
   const isPremiumActive = user?.isPremium &&
     (!user.premiumExpiresAt || user.premiumExpiresAt > new Date())
   const freeTrialLimit = parseInt(process.env.FREE_TRIAL_LIMIT || "3")
   const remainingTrials = Math.max(0, freeTrialLimit - (user?.freeTrialsUsed || 0))
+
+  // 确定订阅类型
+  const subscriptionType = latestPayment?.productType || null
+  const isYearlySubscription = subscriptionType === 'PREMIUM_YEARLY'
 
   const userForCard = {
     ...session.user,
@@ -65,6 +83,8 @@ export default async function DashboardPage() {
     freeTrialsUsed: user?.freeTrialsUsed || 0,
     isPremiumActive,
     remainingTrials,
+    subscriptionType,
+    isYearlySubscription,
   }
 
   // 🔍 计算总耗时并输出摘要

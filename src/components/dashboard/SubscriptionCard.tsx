@@ -10,6 +10,8 @@ interface User {
   freeTrialsUsed?: number
   isPremiumActive?: boolean
   remainingTrials?: number
+  subscriptionType?: string | null
+  isYearlySubscription?: boolean
 }
 
 interface SubscriptionCardProps {
@@ -35,7 +37,9 @@ export function SubscriptionCard({ user }: SubscriptionCardProps) {
         <div className="space-y-3">
           <div className="flex items-center justify-between">
             <span className="text-yellow-800 text-sm">Try-ons</span>
-            <span className="text-yellow-900 font-medium">30/month or 420/year</span>
+            <span className="text-yellow-900 font-medium">
+              {user.isYearlySubscription ? "420/year" : "30/month"}
+            </span>
           </div>
 
           {user.premiumExpiresAt && (
@@ -53,8 +57,12 @@ export function SubscriptionCard({ user }: SubscriptionCardProps) {
         <div className="mt-6 pt-4 border-t border-yellow-200">
           <div className="grid grid-cols-2 gap-3">
             <div className="text-center">
-              <div className="text-2xl font-bold text-yellow-900">30+</div>
-              <div className="text-xs text-yellow-700">Try-ons</div>
+              <div className="text-2xl font-bold text-yellow-900">
+                {user.isYearlySubscription ? "420" : "30+"}
+              </div>
+              <div className="text-xs text-yellow-700">
+                {user.isYearlySubscription ? "Per Year" : "Per Month"}
+              </div>
             </div>
             <div className="text-center">
               <div className="text-2xl font-bold text-yellow-900">

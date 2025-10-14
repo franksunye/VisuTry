@@ -4,8 +4,10 @@ interface DashboardStatsProps {
   stats: {
     totalTryOns: number
     completedTryOns: number
-    remainingTrials: number
+    quotaDisplay: string | number
     isPremium: boolean
+    subscriptionType?: string | null
+    isYearlySubscription?: boolean
   }
 }
 
@@ -26,11 +28,13 @@ export function DashboardStats({ stats }: DashboardStatsProps) {
       description: "Completed try-ons"
     },
     {
-      title: "Remaining Uses",
-      value: stats.isPremium ? "30+/month" : stats.remainingTrials,
+      title: stats.isPremium ? "Quota" : "Remaining Uses",
+      value: stats.quotaDisplay,
       icon: <Clock className="w-6 h-6 text-orange-600" />,
       bgColor: "bg-orange-100",
-      description: stats.isPremium ? "Standard Member" : "Free Quota"
+      description: stats.isPremium
+        ? (stats.isYearlySubscription ? "Annual Plan" : "Monthly Plan")
+        : "Free Quota"
     },
     {
       title: "Membership",

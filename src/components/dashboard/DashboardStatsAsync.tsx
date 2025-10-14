@@ -15,7 +15,7 @@ export async function DashboardStatsAsync({ userId }: DashboardStatsAsyncProps) 
 
   try {
     // 🔥 优化：并行查询所有数据，减少数据库往返次数
-    const [user, totalTryOns, completedTryOns] = await Promise.all([
+    const [user, totalTryOns, completedTryOns, latestPayment] = await Promise.all([
       perfLogger.measure(
         'dashboard-async:getUserBasicData',
         () => prisma.user.findUnique({
@@ -42,6 +42,22 @@ export async function DashboardStatsAsync({ userId }: DashboardStatsAsyncProps) 
         }),
         { userId }
       ),
+      perfLogger.measure(
+        'dashboard-async:getLatestPayment',
+        () => prisma.payment.findFirst({
+          where: {
+            userId,
+            status: 'COMPLETED',
+            productType: { in: ['PREMIUM_MONTHLY', 'PREMIUM_YEARLY'] }
+          },
+          orderBy: { createdAt: 'desc' },
+          select: {
+            productType: true,
+            createdAt: true,
+          },
+        }),
+        { userId }
+      ),
     ])
 
     perfLogger.end('dashboard-async:stats', {
@@ -49,17 +65,38 @@ export async function DashboardStatsAsync({ userId }: DashboardStatsAsyncProps) 
       completedTryOns,
     })
 
-    // 计算会员状态和剩余次数
+    // 计算会员状态和配额信息
     const isPremiumActive = !!(user?.isPremium &&
       (!user.premiumExpiresAt || user.premiumExpiresAt > new Date()))
-    const freeTrialLimit = parseInt(process.env.FREE_TRIAL_LIMIT || "3")
-    const remainingTrials = Math.max(0, freeTrialLimit - (user?.freeTrialsUsed || 0))
+
+    // 确定订阅类型
+    const subscriptionType = latestPayment?.productType || null
+    const isYearlySubscription = subscriptionType === 'PREMIUM_YEARLY'
+    const isMonthlySubscription = subscriptionType === 'PREMIUM_MONTHLY'
+
+    // 计算配额显示
+    let quotaDisplay: string | number
+    if (isPremiumActive) {
+      if (isYearlySubscription) {
+        quotaDisplay = "420/year"
+      } else if (isMonthlySubscription) {
+        quotaDisplay = "30/month"
+      } else {
+        quotaDisplay = "Standard"
+      }
+    } else {
+      const freeTrialLimit = parseInt(process.env.FREE_TRIAL_LIMIT || "3")
+      const remainingTrials = Math.max(0, freeTrialLimit - (user?.freeTrialsUsed || 0))
+      quotaDisplay = remainingTrials
+    }
 
     const stats = {
       totalTryOns,
       completedTryOns,
-      remainingTrials,
+      quotaDisplay,
       isPremium: isPremiumActive,
+      subscriptionType,
+      isYearlySubscription,
     }
 
     return <DashboardStats stats={stats} />
@@ -71,8 +108,10 @@ export async function DashboardStatsAsync({ userId }: DashboardStatsAsyncProps) 
     return <DashboardStats stats={{
       totalTryOns: 0,
       completedTryOns: 0,
-      remainingTrials: 3,
+      quotaDisplay: 3,
       isPremium: false,
+      subscriptionType: null,
+      isYearlySubscription: false,
     }} />
   }
 }
