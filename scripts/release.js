@@ -89,9 +89,9 @@ function getNextVersion(currentVersion, type) {
   }
 }
 
-async function preReleaseChecks() {
+async function preReleaseChecks(skipTests = false) {
   log('🔍 执行发布前检查...', 'blue')
-  
+
   // 检查工作目录是否干净
   try {
     const status = exec('git status --porcelain', { silent: true })
@@ -120,9 +120,23 @@ async function preReleaseChecks() {
   log('📥 拉取最新代码...', 'cyan')
   exec('git pull origin main')
 
-  // 运行测试
-  log('🧪 运行测试...', 'cyan')
-  exec('npm test')
+  if (!skipTests) {
+    // 运行测试
+    log('🧪 运行测试...', 'cyan')
+    try {
+      exec('npm test')
+    } catch (error) {
+      log('❌ 测试失败，是否跳过测试继续发布？', 'yellow')
+      const skipConfirm = await askQuestion('跳过测试继续发布? (y/N): ')
+      if (skipConfirm.toLowerCase() !== 'y') {
+        log('❌ 发布已取消', 'red')
+        process.exit(1)
+      }
+      log('⚠️ 跳过测试，继续发布流程', 'yellow')
+    }
+  } else {
+    log('⚠️ 跳过测试检查', 'yellow')
+  }
 
   // 运行构建
   log('🏗️ 运行构建检查...', 'cyan')
@@ -184,8 +198,11 @@ async function main() {
       process.exit(0)
     }
     
+    // 检查是否跳过测试
+    const skipTests = process.argv.includes('--skip-tests')
+
     // 执行发布流程
-    await preReleaseChecks()
+    await preReleaseChecks(skipTests)
     await createRelease(newVersion)
     
     log('🎉 发布完成!', 'green')

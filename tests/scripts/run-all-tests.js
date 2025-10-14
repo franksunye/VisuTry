@@ -140,10 +140,13 @@ class TestRunner {
       // 服务器未运行，需要启动
     }
 
-    // 启动服务器
-    const serverProcess = spawn('npm', ['run', 'dev'], {
+    // 启动服务器 - Windows兼容性修复
+    const isWindows = process.platform === 'win32'
+    const npmCommand = isWindows ? 'npm.cmd' : 'npm'
+    const serverProcess = spawn(npmCommand, ['run', 'dev'], {
       stdio: 'pipe',
-      env: { ...process.env, NODE_ENV: 'test', ENABLE_MOCKS: 'true' }
+      env: { ...process.env, NODE_ENV: 'test', ENABLE_MOCKS: 'true' },
+      shell: isWindows
     })
 
     // 等待服务器启动
@@ -228,8 +231,11 @@ class TestRunner {
         jestArgs.push('--coverage')
       }
 
-      const jestProcess = spawn('npx', ['jest', ...jestArgs], {
-        stdio: 'pipe'
+      const isWindows = process.platform === 'win32'
+      const npxCommand = isWindows ? 'npx.cmd' : 'npx'
+      const jestProcess = spawn(npxCommand, ['jest', ...jestArgs], {
+        stdio: 'pipe',
+        shell: isWindows
       })
 
       let output = ''
