@@ -26,11 +26,13 @@ function log(message, color = 'reset') {
 
 function exec(command, options = {}) {
   try {
-    return execSync(command, { 
-      encoding: 'utf8', 
+    const result = execSync(command, {
+      encoding: 'utf8',
       stdio: options.silent ? 'pipe' : 'inherit',
-      ...options 
-    }).trim()
+      ...options
+    })
+    // 安全处理可能为null或undefined的结果
+    return result ? result.trim() : ''
   } catch (error) {
     log(`❌ 命令执行失败: ${command}`, 'red')
     log(error.message, 'red')
