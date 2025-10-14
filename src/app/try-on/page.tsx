@@ -1,8 +1,7 @@
 import { redirect } from "next/navigation"
 import { getServerSession } from "next-auth/next"
 import { authOptions } from "@/lib/auth"
-import { prisma } from "@/lib/prisma"
-import { unstable_cache } from 'next/cache'
+import { getCachedUserData } from "@/lib/cache"
 import { TryOnInterface } from "@/components/try-on/TryOnInterface"
 import { ArrowLeft } from "lucide-react"
 import Link from "next/link"
@@ -11,37 +10,9 @@ import { headers } from "next/headers"
 // 性能优化：使用智能缓存策略
 export const revalidate = 60
 
-// 智能缓存函数：获取用户数据
+// 使用统一的缓存管理工具
 function getUserTryOnData(userId: string) {
-  // 临时为特定用户禁用缓存，直到问题解决
-  if (userId === 'cmgj1ii6h0000ti1h35uxukv7') {
-    return prisma.user.findUnique({
-      where: { id: userId },
-      select: {
-        isPremium: true,
-        premiumExpiresAt: true,
-        freeTrialsUsed: true,
-      },
-    })
-  }
-
-  return unstable_cache(
-    async () => {
-      return await prisma.user.findUnique({
-        where: { id: userId },
-        select: {
-          isPremium: true,
-          premiumExpiresAt: true,
-          freeTrialsUsed: true,
-        },
-      })
-    },
-    [`tryon-data-${userId}`],
-    {
-      revalidate: 60,
-      tags: [`user-${userId}`, 'tryon'],
-    }
-  )()
+  return getCachedUserData(userId)
 }
 
 export default async function TryOnPage() {

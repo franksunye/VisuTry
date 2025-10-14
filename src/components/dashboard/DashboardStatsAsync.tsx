@@ -1,6 +1,6 @@
-import { prisma } from "@/lib/prisma"
 import { DashboardStats } from "./DashboardStats"
 import { perfLogger } from "@/lib/performance-logger"
+import { getCachedUserData, getCachedUserPayment, getCachedUserStats } from "@/lib/cache"
 
 interface DashboardStatsAsyncProps {
   userId: string
@@ -14,51 +14,26 @@ export async function DashboardStatsAsync({ userId }: DashboardStatsAsyncProps) 
   perfLogger.start('dashboard-async:stats')
 
   try {
-    // 🔥 优化：并行查询所有数据，减少数据库往返次数
-    const [user, totalTryOns, completedTryOns, latestPayment] = await Promise.all([
+    // 🔥 优化：使用统一的缓存管理工具，减少数据库往返次数
+    const [user, userStats, latestPayment] = await Promise.all([
       perfLogger.measure(
         'dashboard-async:getUserBasicData',
-        () => prisma.user.findUnique({
-          where: { id: userId },
-          select: {
-            isPremium: true,
-            premiumExpiresAt: true,
-            freeTrialsUsed: true,
-          },
-        }),
+        () => getCachedUserData(userId),
         { userId }
       ),
       perfLogger.measure(
-        'dashboard-async:getTotalCount',
-        () => prisma.tryOnTask.count({
-          where: { userId },
-        }),
-        { userId }
-      ),
-      perfLogger.measure(
-        'dashboard-async:getCompletedCount',
-        () => prisma.tryOnTask.count({
-          where: { userId, status: 'COMPLETED' },
-        }),
+        'dashboard-async:getUserStats',
+        () => getCachedUserStats(userId),
         { userId }
       ),
       perfLogger.measure(
         'dashboard-async:getLatestPayment',
-        () => prisma.payment.findFirst({
-          where: {
-            userId,
-            status: 'COMPLETED',
-            productType: { in: ['PREMIUM_MONTHLY', 'PREMIUM_YEARLY'] }
-          },
-          orderBy: { createdAt: 'desc' },
-          select: {
-            productType: true,
-            createdAt: true,
-          },
-        }),
+        () => getCachedUserPayment(userId),
         { userId }
       ),
     ])
+
+    const { totalTryOns, completedTryOns } = userStats || { totalTryOns: 0, completedTryOns: 0 }
 
     perfLogger.end('dashboard-async:stats', {
       totalTryOns,

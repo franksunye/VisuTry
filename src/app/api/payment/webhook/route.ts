@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { headers } from "next/headers"
-import { revalidateTag } from "next/cache"
 import { prisma } from "@/lib/prisma"
+import { clearUserCache } from "@/lib/cache"
 import {
   verifyWebhookSignature,
   handleSuccessfulPayment,
@@ -108,8 +108,8 @@ async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session) 
       })
     }
 
-    // 清除用户缓存，确保 Dashboard 立即显示最新数据
-    revalidateTag(`user-${paymentData.userId}`)
+    // 清除用户缓存，确保所有页面立即显示最新数据
+    clearUserCache(paymentData.userId)
 
     console.log(`Payment completed for user ${paymentData.userId}`)
   } catch (error) {
@@ -131,8 +131,8 @@ async function handleSubscriptionCreatedEvent(subscription: Stripe.Subscription)
       }
     })
 
-    // 清除用户缓存，确保 Dashboard 立即显示最新会员状态
-    revalidateTag(`user-${subscriptionData.userId}`)
+    // 清除用户缓存，确保所有页面立即显示最新会员状态
+    clearUserCache(subscriptionData.userId)
 
     console.log(`Subscription created for user ${subscriptionData.userId}`)
   } catch (error) {
@@ -156,8 +156,8 @@ async function handleSubscriptionUpdatedEvent(subscription: Stripe.Subscription)
       }
     })
 
-    // 清除用户缓存，确保 Dashboard 立即显示最新会员状态
-    revalidateTag(`user-${subscriptionData.userId}`)
+    // 清除用户缓存，确保所有页面立即显示最新会员状态
+    clearUserCache(subscriptionData.userId)
 
     console.log(`Subscription updated for user ${subscriptionData.userId}`)
   } catch (error) {
@@ -179,8 +179,8 @@ async function handleSubscriptionDeletedEvent(subscription: Stripe.Subscription)
       }
     })
 
-    // 清除用户缓存，确保 Dashboard 立即显示最新会员状态
-    revalidateTag(`user-${subscriptionData.userId}`)
+    // 清除用户缓存，确保所有页面立即显示最新会员状态
+    clearUserCache(subscriptionData.userId)
 
     console.log(`Subscription deleted for user ${subscriptionData.userId}`)
   } catch (error) {

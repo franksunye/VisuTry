@@ -11,7 +11,7 @@ import { ClientPerformanceMonitor } from "@/components/performance/ClientPerform
 import { Glasses, Plus } from "lucide-react"
 import Link from "next/link"
 import { perfLogger, logPageLoad } from "@/lib/performance-logger"
-import { prisma } from "@/lib/prisma"
+import { getCachedUserData, getCachedUserPayment } from "@/lib/cache"
 
 // 性能优化：使用 Suspense 流式渲染
 // 1. 立即返回页面框架（< 100ms）
@@ -42,28 +42,10 @@ export default async function DashboardPage() {
   perfLogger.mark('dashboard:session-validated', { userId: session.user.id })
 
   // 获取用户基本信息和最新支付记录（用于 SubscriptionCard）
-  // 这个查询很快，可以在主线程执行
+  // 使用统一的缓存管理工具
   const [user, latestPayment] = await Promise.all([
-    prisma.user.findUnique({
-      where: { id: session.user.id },
-      select: {
-        isPremium: true,
-        premiumExpiresAt: true,
-        freeTrialsUsed: true,
-      },
-    }),
-    prisma.payment.findFirst({
-      where: {
-        userId: session.user.id,
-        status: 'COMPLETED',
-        productType: { in: ['PREMIUM_MONTHLY', 'PREMIUM_YEARLY'] }
-      },
-      orderBy: { createdAt: 'desc' },
-      select: {
-        productType: true,
-        createdAt: true,
-      },
-    })
+    getCachedUserData(session.user.id),
+    getCachedUserPayment(session.user.id)
   ])
 
   // 计算会员状态和剩余次数
