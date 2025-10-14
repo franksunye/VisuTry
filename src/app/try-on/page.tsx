@@ -13,6 +13,21 @@ export const revalidate = 60
 
 // 智能缓存函数：获取用户数据
 function getUserTryOnData(userId: string) {
+  // 对于特定用户暂时禁用缓存进行调试
+  const debugUserId = 'cmgj1ii6h0000ti1h35uxukv7'
+
+  if (userId === debugUserId) {
+    // 直接查询，不使用缓存
+    return prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        isPremium: true,
+        premiumExpiresAt: true,
+        freeTrialsUsed: true,
+      },
+    })
+  }
+
   return unstable_cache(
     async () => {
       return await prisma.user.findUnique({
