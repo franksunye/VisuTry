@@ -37,6 +37,9 @@
     "release:patch:skip-tests": "node scripts/release.js patch --skip-tests",
     "release:minor:skip-tests": "node scripts/release.js minor --skip-tests",
     "release:major:skip-tests": "node scripts/release.js major --skip-tests",
+    "release:patch:quick": "node scripts/release.js patch --skip-tests --skip-build",
+    "release:minor:quick": "node scripts/release.js minor --skip-tests --skip-build",
+    "release:major:quick": "node scripts/release.js major --skip-tests --skip-build",
     "version:check": "echo $npm_package_version",
     "version:bump": "npm version --no-git-tag-version"
   },

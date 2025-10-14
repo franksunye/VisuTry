@@ -89,7 +89,7 @@ function getNextVersion(currentVersion, type) {
   }
 }
 
-async function preReleaseChecks(skipTests = false) {
+async function preReleaseChecks(skipTests = false, skipBuild = false) {
   log('🔍 执行发布前检查...', 'blue')
 
   // 检查工作目录是否干净
@@ -138,9 +138,23 @@ async function preReleaseChecks(skipTests = false) {
     log('⚠️ 跳过测试检查', 'yellow')
   }
 
-  // 运行构建
-  log('🏗️ 运行构建检查...', 'cyan')
-  exec('npm run build')
+  if (!skipBuild) {
+    // 运行构建
+    log('🏗️ 运行构建检查...', 'cyan')
+    try {
+      exec('npm run build')
+    } catch (error) {
+      log('❌ 构建失败，是否跳过构建继续发布？', 'yellow')
+      const skipConfirm = await askQuestion('跳过构建继续发布? (y/N): ')
+      if (skipConfirm.toLowerCase() !== 'y') {
+        log('❌ 发布已取消', 'red')
+        process.exit(1)
+      }
+      log('⚠️ 跳过构建，继续发布流程', 'yellow')
+    }
+  } else {
+    log('⚠️ 跳过构建检查', 'yellow')
+  }
 
   log('✅ 所有检查通过', 'green')
 }
@@ -198,11 +212,12 @@ async function main() {
       process.exit(0)
     }
     
-    // 检查是否跳过测试
+    // 检查是否跳过测试和构建
     const skipTests = process.argv.includes('--skip-tests')
+    const skipBuild = process.argv.includes('--skip-build')
 
     // 执行发布流程
-    await preReleaseChecks(skipTests)
+    await preReleaseChecks(skipTests, skipBuild)
     await createRelease(newVersion)
     
     log('🎉 发布完成!', 'green')
