@@ -13,21 +13,6 @@ export const revalidate = 60
 
 // 智能缓存函数：获取用户数据
 function getUserTryOnData(userId: string) {
-  // 对于特定用户暂时禁用缓存进行调试
-  const debugUserId = 'cmgj1ii6h0000ti1h35uxukv7'
-
-  if (userId === debugUserId) {
-    // 直接查询，不使用缓存
-    return prisma.user.findUnique({
-      where: { id: userId },
-      select: {
-        isPremium: true,
-        premiumExpiresAt: true,
-        freeTrialsUsed: true,
-      },
-    })
-  }
-
   return unstable_cache(
     async () => {
       return await prisma.user.findUnique({
@@ -41,7 +26,7 @@ function getUserTryOnData(userId: string) {
     },
     [`tryon-data-${userId}`],
     {
-      revalidate: 10, // 减少缓存时间到10秒，便于调试
+      revalidate: 60, // 恢复正常缓存时间
       tags: [`user-${userId}`, 'tryon'],
     }
   )()
@@ -89,19 +74,7 @@ export default async function TryOnPage() {
       const freeTrialLimit = parseInt(process.env.FREE_TRIAL_LIMIT || "3")
       const remainingTrials = Math.max(0, freeTrialLimit - currentUser.freeTrialsUsed)
 
-      // 调试信息（仅在开发环境）
-      if (process.env.NODE_ENV === 'development') {
-        console.log('Try-On Page Debug:', {
-          userId: session.user.id,
-          isPremium: currentUser.isPremium,
-          premiumExpiresAt: currentUser.premiumExpiresAt,
-          currentTime: new Date(),
-          isPremiumActive,
-          freeTrialLimit,
-          freeTrialsUsed: currentUser.freeTrialsUsed,
-          remainingTrials,
-        })
-      }
+
 
       // 更新用户对象，包含最新数据
       user = {
