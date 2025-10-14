@@ -13,6 +13,18 @@ export const revalidate = 60
 
 // 智能缓存函数：获取用户数据
 function getUserTryOnData(userId: string) {
+  // 临时为特定用户禁用缓存，直到问题解决
+  if (userId === 'cmgj1ii6h0000ti1h35uxukv7') {
+    return prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        isPremium: true,
+        premiumExpiresAt: true,
+        freeTrialsUsed: true,
+      },
+    })
+  }
+
   return unstable_cache(
     async () => {
       return await prisma.user.findUnique({
@@ -26,7 +38,7 @@ function getUserTryOnData(userId: string) {
     },
     [`tryon-data-${userId}`],
     {
-      revalidate: 60, // 恢复正常缓存时间
+      revalidate: 60,
       tags: [`user-${userId}`, 'tryon'],
     }
   )()
