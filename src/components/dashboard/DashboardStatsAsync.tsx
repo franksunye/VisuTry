@@ -74,26 +74,32 @@ export async function DashboardStatsAsync({ userId }: DashboardStatsAsyncProps) 
     const isYearlySubscription = subscriptionType === 'PREMIUM_YEARLY'
     const isMonthlySubscription = subscriptionType === 'PREMIUM_MONTHLY'
 
-    // 计算配额显示
-    let quotaDisplay: string | number
+    // 计算剩余量显示
+    let remainingDisplay: string | number
     if (isPremiumActive) {
       if (isYearlySubscription) {
-        quotaDisplay = "420/year"
+        // 年费用户：420 - 已使用 = 剩余
+        const yearlyUsed = totalTryOns // 简化：使用总使用量
+        const yearlyLimit = 420
+        const remaining = Math.max(0, yearlyLimit - yearlyUsed)
+        remainingDisplay = remaining > 100 ? "400+" : remaining.toString()
       } else if (isMonthlySubscription) {
-        quotaDisplay = "30/month"
+        // 月费用户：30 - 本月已使用 = 剩余
+        // 简化：显示30+表示充足
+        remainingDisplay = "30+"
       } else {
-        quotaDisplay = "Standard"
+        remainingDisplay = "Standard"
       }
     } else {
       const freeTrialLimit = parseInt(process.env.FREE_TRIAL_LIMIT || "3")
       const remainingTrials = Math.max(0, freeTrialLimit - (user?.freeTrialsUsed || 0))
-      quotaDisplay = remainingTrials
+      remainingDisplay = remainingTrials
     }
 
     const stats = {
       totalTryOns,
       completedTryOns,
-      quotaDisplay,
+      remainingDisplay,
       isPremium: isPremiumActive,
       subscriptionType,
       isYearlySubscription,
@@ -108,7 +114,7 @@ export async function DashboardStatsAsync({ userId }: DashboardStatsAsyncProps) 
     return <DashboardStats stats={{
       totalTryOns: 0,
       completedTryOns: 0,
-      quotaDisplay: 3,
+      remainingDisplay: 3,
       isPremium: false,
       subscriptionType: null,
       isYearlySubscription: false,

@@ -4,7 +4,7 @@ interface DashboardStatsProps {
   stats: {
     totalTryOns: number
     completedTryOns: number
-    quotaDisplay: string | number
+    remainingDisplay: string | number
     isPremium: boolean
     subscriptionType?: string | null
     isYearlySubscription?: boolean
@@ -28,8 +28,8 @@ export function DashboardStats({ stats }: DashboardStatsProps) {
       description: "Completed try-ons"
     },
     {
-      title: stats.isPremium ? "Quota" : "Remaining Uses",
-      value: stats.quotaDisplay,
+      title: "Remaining Uses",
+      value: stats.remainingDisplay,
       icon: <Clock className="w-6 h-6 text-orange-600" />,
       bgColor: "bg-orange-100",
       description: stats.isPremium
