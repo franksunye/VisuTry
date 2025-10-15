@@ -1,11 +1,19 @@
-import { redirect } from "next/navigation"
+// import { redirect } from "next/navigation" // 不再需要强制重定向
 import { getServerSession } from "next-auth/next"
 import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 import { unstable_cache } from 'next/cache'
 import { PricingCard } from "@/components/pricing/PricingCard"
-import { Glasses, ArrowLeft, Check, Star, Zap } from "lucide-react"
+import { Glasses, ArrowLeft, Star, Zap } from "lucide-react"
 import Link from "next/link"
+import { Metadata } from 'next'
+import { generateSEO } from '@/lib/seo'
+
+export const metadata: Metadata = generateSEO({
+  title: 'Pricing Plans - AI Glasses Try-On | VisuTry',
+  description: 'Choose the perfect plan for AI glasses try-on. Free trials available, premium features for unlimited access. Find your ideal glasses with advanced AI technology.',
+  url: '/pricing',
+})
 
 // 性能优化：使用智能缓存策略
 export const revalidate = 60
@@ -34,28 +42,31 @@ function getUserPricingData(userId: string) {
 export default async function PricingPage() {
   const session = await getServerSession(authOptions)
 
-  if (!session) {
-    redirect("/auth/signin")
+  // 获取用户数据（如果已登录）
+  let currentUser = null
+  let isPremiumActive = false
+  let remainingTrials = 3 // 默认免费试用次数
+
+  if (session) {
+    // 使用智能缓存获取用户数据
+    currentUser = await getUserPricingData(session.user.id)
+
+    // 计算会员状态和剩余次数
+    isPremiumActive = !!(currentUser?.isPremium &&
+      (!currentUser.premiumExpiresAt || currentUser.premiumExpiresAt > new Date()))
+    const freeTrialLimit = parseInt(process.env.FREE_TRIAL_LIMIT || "3")
+    remainingTrials = Math.max(0, freeTrialLimit - (currentUser?.freeTrialsUsed || 0))
   }
 
-  // 使用智能缓存获取用户数据
-  const currentUser = await getUserPricingData(session.user.id)
-
-  // 计算会员状态和剩余次数
-  const isPremiumActive = !!(currentUser?.isPremium &&
-    (!currentUser.premiumExpiresAt || currentUser.premiumExpiresAt > new Date()))
-  const freeTrialLimit = parseInt(process.env.FREE_TRIAL_LIMIT || "3")
-  const remainingTrials = Math.max(0, freeTrialLimit - (currentUser?.freeTrialsUsed || 0))
-
-  // 构建用户对象，包含最新数据
-  const userForDisplay = {
+  // 构建用户对象，包含最新数据（如果已登录）
+  const userForDisplay = session ? {
     ...session.user,
     isPremium: currentUser?.isPremium || false,
     premiumExpiresAt: currentUser?.premiumExpiresAt || null,
     freeTrialsUsed: currentUser?.freeTrialsUsed || 0,
     isPremiumActive: isPremiumActive,
     remainingTrials: remainingTrials,
-  }
+  } : null
 
   const pricingPlans = [
     {

@@ -25,15 +25,21 @@ interface User {
 
 interface PricingCardProps {
   plan: PricingPlan
-  currentUser: User
+  currentUser: User | null
 }
 
 export function PricingCard({ plan, currentUser }: PricingCardProps) {
   const [loading, setLoading] = useState(false)
 
   const handleSubscribe = async () => {
+    // 如果用户未登录，重定向到登录页
+    if (!currentUser) {
+      window.location.href = "/auth/signin"
+      return
+    }
+
     setLoading(true)
-    
+
     try {
       const response = await fetch("/api/payment/create-session", {
         method: "POST",
@@ -63,7 +69,7 @@ export function PricingCard({ plan, currentUser }: PricingCardProps) {
     }
   }
 
-  const isCurrentPlan = currentUser.isPremiumActive && 
+  const isCurrentPlan = currentUser?.isPremiumActive &&
     (plan.id === "PREMIUM_MONTHLY" || plan.id === "PREMIUM_YEARLY")
 
   const isDisabled = loading || isCurrentPlan
@@ -142,6 +148,8 @@ export function PricingCard({ plan, currentUser }: PricingCardProps) {
             </div>
           ) : isCurrentPlan ? (
             "Current Plan"
+          ) : !currentUser ? (
+            "Sign In to Subscribe"
           ) : (
             plan.buttonText
           )}
