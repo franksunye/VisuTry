@@ -2,42 +2,31 @@ import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 import './globals.css'
 import { SessionProvider } from '@/components/providers/SessionProvider'
+import { DEFAULT_SEO } from '@/lib/seo'
+import { GoogleAnalytics } from '@/components/analytics/GoogleAnalytics'
+import { GoogleTagManager } from '@/components/analytics/GoogleTagManager'
 
 const inter = Inter({ subsets: ['latin'] })
 
-export const metadata: Metadata = {
-  title: 'VisuTry - AI Glasses Try-On',
-  description: 'Experience virtual glasses try-on with AI technology and find the perfect glasses style for you',
-  keywords: ['glasses try-on', 'AI', 'virtual try-on', 'glasses', 'artificial intelligence'],
-  authors: [{ name: 'VisuTry Team' }],
-  icons: {
-    icon: [
-      { url: '/favicon.ico', sizes: '32x32', type: 'image/x-icon' },
-      { url: '/favicon.svg', sizes: 'any', type: 'image/svg+xml' }
-    ],
-    apple: { url: '/favicon.svg', sizes: '180x180', type: 'image/svg+xml' }
-  },
-  openGraph: {
-    title: 'VisuTry - AI Glasses Try-On',
-    description: 'Experience virtual glasses try-on with AI technology and find the perfect glasses style for you',
-    type: 'website',
-    locale: 'en_US',
-  },
-  twitter: {
-    card: 'summary_large_image',
-    title: 'VisuTry - AI Glasses Try-On',
-    description: 'Experience virtual glasses try-on with AI technology and find the perfect glasses style for you',
-  },
-}
+export const metadata: Metadata = DEFAULT_SEO
 
 export default function RootLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
+  const gaId = process.env.NEXT_PUBLIC_GA_ID
+  const gtmId = process.env.NEXT_PUBLIC_GTM_ID
+
   return (
     <html lang="zh-CN">
       <body className={inter.className}>
+        {/* Google Tag Manager */}
+        {gtmId && <GoogleTagManager gtmId={gtmId} />}
+
+        {/* Google Analytics */}
+        {gaId && <GoogleAnalytics gaId={gaId} />}
+
         <SessionProvider>
           <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
             {children}

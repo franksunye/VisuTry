@@ -1,0 +1,36 @@
+# VisuTry Robots.txt
+# 允许所有搜索引擎爬取
+
+User-agent: *
+Allow: /
+
+# 禁止爬取的路径
+Disallow: /api/
+Disallow: /admin/
+Disallow: /_next/
+Disallow: /debug/
+Disallow: /test/
+Disallow: /private/
+
+# 允许爬取重要页面
+Allow: /api/health
+Allow: /share/
+
+# 网站地图位置
+Sitemap: https://visutry.vercel.app/sitemap.xml
+
+# 爬取延迟（毫秒）
+Crawl-delay: 1
+
+# 特定搜索引擎优化
+User-agent: Googlebot
+Allow: /
+Crawl-delay: 0
+
+User-agent: Bingbot
+Allow: /
+Crawl-delay: 1
+
+User-agent: Baiduspider
+Allow: /
+Crawl-delay: 2

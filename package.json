@@ -6,7 +6,7 @@
     "dev": "next dev",
     "dev:skip-prisma": "next dev",
     "dev:test": "next dev --port 3001",
-    "build": "prisma generate && next build",
+    "build": "prisma generate && next build && next-sitemap",
     "start": "next start",
     "lint": "next lint",
     "postinstall": "prisma generate",
@@ -41,7 +41,9 @@
     "release:minor:quick": "node scripts/release.js minor --skip-tests --skip-build",
     "release:major:quick": "node scripts/release.js major --skip-tests --skip-build",
     "version:check": "echo $npm_package_version",
-    "version:bump": "npm version --no-git-tag-version"
+    "version:bump": "npm version --no-git-tag-version",
+    "sitemap": "next-sitemap",
+    "seo:check": "echo 'Checking SEO configuration...' && node -e \"console.log('Site URL:', process.env.NEXT_PUBLIC_SITE_URL || 'Not set')\""
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",
@@ -56,6 +58,8 @@
     "lucide-react": "^0.294.0",
     "next": "^14.0.0",
     "next-auth": "^4.24.11",
+    "next-seo": "^6.5.0",
+    "next-sitemap": "^4.2.3",
     "postcss": "^8.4.32",
     "prisma": "^6.17.0",
     "react": "^18.2.0",
