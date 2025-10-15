@@ -180,16 +180,27 @@ export const authOptions: NextAuthOptions = {
       return token
     },
     async redirect({ url, baseUrl }) {
-      // 确保授权成功后重定向到主页
+      // Handle post-login redirects intelligently
       log.debug('auth', 'Redirect callback', { url, baseUrl })
 
       let redirectUrl: string
+
+      // If URL is relative, make it absolute
       if (url.startsWith("/")) {
         redirectUrl = `${baseUrl}${url}`
-      } else if (new URL(url).origin === baseUrl) {
+      }
+      // If URL is from same origin, use it
+      else if (new URL(url).origin === baseUrl) {
         redirectUrl = url
-      } else {
-        redirectUrl = baseUrl + "/"
+      }
+      // For external URLs or invalid URLs, redirect to dashboard for authenticated users
+      else {
+        redirectUrl = `${baseUrl}/dashboard`
+      }
+
+      // Special handling for signin page - redirect to dashboard instead
+      if (redirectUrl.includes('/auth/signin')) {
+        redirectUrl = `${baseUrl}/dashboard`
       }
 
       log.info('auth', 'OAuth redirect completed', {

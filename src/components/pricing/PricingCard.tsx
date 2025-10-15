@@ -32,9 +32,9 @@ export function PricingCard({ plan, currentUser }: PricingCardProps) {
   const [loading, setLoading] = useState(false)
 
   const handleSubscribe = async () => {
-    // 如果用户未登录，重定向到登录页
+    // 如果用户未登录，重定向到登录页并设置回调URL
     if (!currentUser) {
-      window.location.href = "/auth/signin"
+      window.location.href = `/auth/signin?callbackUrl=${encodeURIComponent('/pricing')}`
       return
     }
 

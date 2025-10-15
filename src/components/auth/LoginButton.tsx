@@ -8,9 +8,10 @@ import { useTestSession } from "@/hooks/useTestSession"
 interface LoginButtonProps {
   className?: string
   variant?: "default" | "outline" | "ghost"
+  callbackUrl?: string
 }
 
-export function LoginButton({ className, variant = "default" }: LoginButtonProps) {
+export function LoginButton({ className, variant = "default", callbackUrl }: LoginButtonProps) {
   const { data: session, status } = useSession()
   const { testSession, loading: testLoading, clearTestSession } = useTestSession()
 
@@ -81,7 +82,7 @@ export function LoginButton({ className, variant = "default" }: LoginButtonProps
 
   return (
     <button
-      onClick={() => signIn("twitter")}
+      onClick={() => signIn("twitter", { callbackUrl: callbackUrl || "/dashboard" })}
       className={cn(
         "flex items-center px-4 py-2 rounded-lg text-sm font-medium transition-colors",
         variant === "outline" && "border border-blue-300 text-blue-700 hover:bg-blue-50",

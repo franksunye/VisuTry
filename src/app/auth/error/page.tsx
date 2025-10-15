@@ -128,15 +128,15 @@ export default function AuthErrorPage({ searchParams }: ErrorPageProps) {
                 href="/auth/signin"
                 className="w-full flex items-center justify-center px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
               >
-                重新登录
+                Try Sign In Again
               </Link>
-              
+
               <Link
                 href="/"
                 className="w-full flex items-center justify-center px-4 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
               >
                 <ArrowLeft className="w-4 h-4 mr-2" />
-                返回首页
+                Back to Home
               </Link>
             </div>
           </div>

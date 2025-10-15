@@ -17,7 +17,7 @@ export default function Home() {
     if (isAuthenticated) {
       router.push('/try-on')
     } else {
-      router.push('/auth/signin')
+      router.push('/auth/signin?callbackUrl=' + encodeURIComponent('/try-on'))
     }
   }
   return (
