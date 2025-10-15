@@ -69,10 +69,10 @@ export default function SignInPage() {
           </div>
         </div>
 
-        {/* 底部说明 */}
+        {/* Bottom note */}
         <div className="text-center">
           <p className="text-sm text-gray-500">
-            还没有账户？登录后将自动为您创建账户
+            Don&apos;t have an account? One will be created automatically when you sign in
           </p>
         </div>
       </div>

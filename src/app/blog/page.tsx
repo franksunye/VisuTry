@@ -57,23 +57,23 @@ export default function BlogPage() {
           </p>
         </div>
 
-        {/* 博客文章列表 */}
+        {/* Blog posts list */}
         <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3 max-w-6xl mx-auto">
           {blogPosts.map((post) => (
             <article
               key={post.id}
               className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow"
             >
-              {/* 文章图片 */}
+              {/* Article image */}
               <div className="h-48 bg-gradient-to-r from-blue-400 to-purple-500 flex items-center justify-center">
                 <span className="text-white text-lg font-medium">
                   {post.title.substring(0, 10)}...
                 </span>
               </div>
 
-              {/* 文章内容 */}
+              {/* Article content */}
               <div className="p-6">
-                {/* 分类标签 */}
+                {/* Category tag */}
                 <div className="flex items-center justify-between mb-3">
                   <span className="inline-block bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full">
                     {post.category}
@@ -81,17 +81,17 @@ export default function BlogPage() {
                   <span className="text-sm text-gray-500">{post.readTime}</span>
                 </div>
 
-                {/* 文章标题 */}
+                {/* Article title */}
                 <h2 className="text-xl font-bold text-gray-900 mb-3 line-clamp-2">
                   {post.title}
                 </h2>
 
-                {/* 文章描述 */}
+                {/* Article description */}
                 <p className="text-gray-600 mb-4 line-clamp-3">
                   {post.description}
                 </p>
 
-                {/* 文章元信息 */}
+                {/* Article metadata */}
                 <div className="flex items-center justify-between text-sm text-gray-500 mb-4">
                   <div className="flex items-center space-x-4">
                     <div className="flex items-center">
@@ -105,12 +105,12 @@ export default function BlogPage() {
                   </div>
                 </div>
 
-                {/* 阅读更多链接 */}
+                {/* Read more link */}
                 <Link
                   href={`/blog/${post.id}`}
                   className="inline-flex items-center text-blue-600 hover:text-blue-800 font-medium"
                 >
-                  阅读全文
+                  Read Full Article
                   <ArrowRight className="w-4 h-4 ml-1" />
                 </Link>
               </div>
@@ -118,13 +118,13 @@ export default function BlogPage() {
           ))}
         </div>
 
-        {/* 返回首页链接 */}
+        {/* Back to home link */}
         <div className="text-center mt-12">
           <Link
             href="/"
             className="inline-flex items-center px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
           >
-            返回首页
+            Back to Home
           </Link>
         </div>
       </div>

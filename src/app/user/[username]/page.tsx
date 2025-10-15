@@ -114,8 +114,8 @@ export default async function UserPage({ params }: UserPageProps) {
     }
   })
 
-  const displayName = user.name || user.username || "用户"
-  const joinDate = new Date(user.createdAt).toLocaleDateString("zh-CN", {
+  const displayName = user.name || user.username || "User"
+  const joinDate = new Date(user.createdAt).toLocaleDateString("en-US", {
     year: "numeric",
     month: "long"
   })
@@ -201,14 +201,14 @@ export default async function UserPage({ params }: UserPageProps) {
                   <div className="text-2xl font-bold text-gray-900">
                     {user._count.tryOnTasks}
                   </div>
-                  <div className="text-sm text-gray-600">公开作品</div>
+                  <div className="text-sm text-gray-600">Public Works</div>
                 </div>
                 
                 <div className="text-center p-4 bg-gray-50 rounded-lg">
                   <div className="text-2xl font-bold text-gray-900">
-                    {user.isPremium ? "高级" : "免费"}
+                    {user.isPremium ? "Premium" : "Free"}
                   </div>
-                  <div className="text-sm text-gray-600">会员等级</div>
+                  <div className="text-sm text-gray-600">Membership</div>
                 </div>
                 
                 <div className="text-center p-4 bg-gray-50 rounded-lg col-span-2 md:col-span-1">
@@ -222,16 +222,16 @@ export default async function UserPage({ params }: UserPageProps) {
           </div>
         </div>
 
-        {/* 作品展示 */}
+        {/* Works showcase */}
         <div className="bg-white rounded-2xl shadow-sm border">
           <div className="p-6 border-b border-gray-200">
             <h3 className="text-xl font-semibold text-gray-900">
-              {displayName}的试戴作品
+              {displayName}&apos;s Try-On Gallery
             </h3>
             <p className="text-gray-600 mt-1">
-              {publicTryOns.length > 0 
-                ? `共 ${publicTryOns.length} 个公开作品`
-                : "还没有公开的作品"
+              {publicTryOns.length > 0
+                ? `${publicTryOns.length} public works`
+                : "No public works yet"
               }
             </p>
           </div>

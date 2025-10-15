@@ -23,7 +23,7 @@ const structuredData = generateStructuredData('article', {
 export default function BlogPostPage() {
   return (
     <>
-      {/* 结构化数据 */}
+      {/* Structured data */}
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
@@ -31,174 +31,174 @@ export default function BlogPostPage() {
 
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
         <div className="container mx-auto px-4 py-12">
-          {/* 返回按钮 */}
+          {/* Back button */}
           <div className="mb-8">
             <Link
               href="/blog"
               className="inline-flex items-center text-blue-600 hover:text-blue-800"
             >
               <ArrowLeft className="w-4 h-4 mr-2" />
-              返回博客
+              Back to Blog
             </Link>
           </div>
 
-          {/* 文章内容 */}
+          {/* Article content */}
           <article className="max-w-4xl mx-auto bg-white rounded-lg shadow-lg overflow-hidden">
-            {/* 文章头部 */}
+            {/* Article header */}
             <div className="h-64 bg-gradient-to-r from-blue-400 to-purple-500 flex items-center justify-center">
               <div className="text-center text-white">
                 <Glasses className="w-16 h-16 mx-auto mb-4" />
-                <h1 className="text-3xl font-bold">脸型与眼镜搭配指南</h1>
+                <h1 className="text-3xl font-bold">Face Shape & Glasses Guide</h1>
               </div>
             </div>
 
-            {/* 文章元信息 */}
+            {/* Article metadata */}
             <div className="p-8 border-b">
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center space-x-4 text-sm text-gray-600">
-                  <span>作者：VisuTry团队</span>
-                  <span>发布时间：2025年10月15日</span>
-                  <span>阅读时间：5分钟</span>
+                  <span>Author: VisuTry Team</span>
+                  <span>Published: October 15, 2025</span>
+                  <span>Read time: 5 min</span>
                 </div>
                 <button className="flex items-center text-blue-600 hover:text-blue-800">
                   <Share2 className="w-4 h-4 mr-1" />
-                  分享
+                  Share
                 </button>
               </div>
               <h1 className="text-3xl font-bold text-gray-900 mb-4">
-                如何根据脸型选择适合的眼镜？完整指南
+                How to Choose the Right Glasses for Your Face Shape? Complete Guide
               </h1>
               <p className="text-xl text-gray-600">
-                选择合适的眼镜不仅能提升视力，更能完美修饰脸型。本文将详细介绍不同脸型的眼镜搭配技巧。
+                Choosing the right glasses not only improves vision but also perfectly complements your face shape. This article provides detailed tips for matching glasses to different face shapes.
               </p>
             </div>
 
-            {/* 文章正文 */}
+            {/* Article body */}
             <div className="p-8 prose prose-lg max-w-none">
-              <h2>为什么脸型很重要？</h2>
+              <h2>Why is Face Shape Important?</h2>
               <p>
-                选择眼镜时，脸型是最重要的考虑因素之一。合适的眼镜能够：
+                When choosing glasses, face shape is one of the most important factors to consider. The right glasses can:
               </p>
               <ul>
-                <li>平衡面部比例</li>
-                <li>突出最佳特征</li>
-                <li>提升整体气质</li>
-                <li>增强自信心</li>
+                <li>Balance facial proportions</li>
+                <li>Highlight your best features</li>
+                <li>Enhance your overall appearance</li>
+                <li>Boost your confidence</li>
               </ul>
 
-              <h2>不同脸型的眼镜选择指南</h2>
+              <h2>Glasses Selection Guide for Different Face Shapes</h2>
 
-              <h3>1. 圆脸型</h3>
+              <h3>1. Round Face</h3>
               <p>
-                <strong>特征：</strong>脸部宽度和长度相近，下巴较圆润，颧骨不明显。
+                <strong>Characteristics:</strong> Face width and length are similar, rounded chin, less prominent cheekbones.
               </p>
               <p>
-                <strong>推荐眼镜：</strong>
+                <strong>Recommended glasses:</strong>
               </p>
               <ul>
-                <li>方形或矩形镜框</li>
-                <li>角度分明的设计</li>
-                <li>镜框宽度略大于脸部最宽处</li>
+                <li>Square or rectangular frames</li>
+                <li>Angular designs</li>
+                <li>Frame width slightly larger than the widest part of the face</li>
               </ul>
 
-              <h3>2. 方脸型</h3>
+              <h3>2. Square Face</h3>
               <p>
-                <strong>特征：</strong>额头、颧骨、下颌宽度相近，下巴线条较为方正。
+                <strong>Characteristics:</strong> Forehead, cheekbones, and jawline are similar in width, with a square jawline.
               </p>
               <p>
-                <strong>推荐眼镜：</strong>
+                <strong>Recommended glasses:</strong>
               </p>
               <ul>
-                <li>圆形或椭圆形镜框</li>
-                <li>柔和的曲线设计</li>
-                <li>避免过于方正的款式</li>
+                <li>Round or oval frames</li>
+                <li>Soft curved designs</li>
+                <li>Avoid overly square styles</li>
               </ul>
 
-              <h3>3. 长脸型</h3>
+              <h3>3. Long Face</h3>
               <p>
-                <strong>特征：</strong>脸部长度明显大于宽度，额头较高。
+                <strong>Characteristics:</strong> Face length is significantly greater than width, with a high forehead.
               </p>
               <p>
-                <strong>推荐眼镜：</strong>
+                <strong>Recommended glasses:</strong>
               </p>
               <ul>
-                <li>大框或宽框设计</li>
-                <li>装饰性较强的镜框</li>
-                <li>低鼻梁设计</li>
+                <li>Large or wide frame designs</li>
+                <li>Decorative frames</li>
+                <li>Low bridge designs</li>
               </ul>
 
-              <h3>4. 心形脸</h3>
+              <h3>4. Heart-Shaped Face</h3>
               <p>
-                <strong>特征：</strong>额头较宽，下巴尖细，呈倒三角形。
+                <strong>Characteristics:</strong> Wide forehead with a narrow, pointed chin, forming an inverted triangle.
               </p>
               <p>
-                <strong>推荐眼镜：</strong>
+                <strong>Recommended glasses:</strong>
               </p>
               <ul>
-                <li>下半框较重的设计</li>
-                <li>猫眼形状</li>
-                <li>避免上半部分过于厚重</li>
+                <li>Bottom-heavy frame designs</li>
+                <li>Cat-eye shapes</li>
+                <li>Avoid heavy top portions</li>
               </ul>
 
-              {/* CTA区域 */}
+              {/* CTA section */}
               <div className="bg-blue-50 p-6 rounded-lg my-8">
                 <h3 className="text-xl font-bold text-blue-900 mb-4">
-                  🔍 立即体验AI虚拟试戴
+                  🔍 Try AI Virtual Glasses Try-On Now
                 </h3>
                 <p className="text-blue-800 mb-4">
-                  不确定哪款眼镜适合你？使用我们的AI虚拟试戴工具，上传照片即可看到试戴效果！
+                  Not sure which glasses suit you? Use our AI virtual try-on tool - just upload your photo to see how different glasses look on you!
                 </p>
                 <Link
                   href="/"
                   className="inline-block bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors"
                 >
-                  开始试戴
+                  Start Try-On
                 </Link>
               </div>
 
-              <h2>选择眼镜的其他考虑因素</h2>
+              <h2>Other Factors to Consider When Choosing Glasses</h2>
 
-              <h3>肤色搭配</h3>
+              <h3>Skin Tone Matching</h3>
               <p>
-                除了脸型，肤色也是选择眼镜的重要因素：
+                Besides face shape, skin tone is also an important factor in choosing glasses:
               </p>
               <ul>
-                <li><strong>暖色调肌肤：</strong>适合金色、棕色、橙色镜框</li>
-                <li><strong>冷色调肌肤：</strong>适合银色、黑色、蓝色镜框</li>
+                <li><strong>Warm skin tones:</strong> Suit gold, brown, orange frames</li>
+                <li><strong>Cool skin tones:</strong> Suit silver, black, blue frames</li>
               </ul>
 
-              <h3>生活方式</h3>
+              <h3>Lifestyle</h3>
               <p>
-                考虑你的日常活动和职业需求：
+                Consider your daily activities and professional needs:
               </p>
               <ul>
-                <li>运动爱好者：选择轻便、防滑的材质</li>
-                <li>商务人士：选择经典、专业的款式</li>
-                <li>时尚达人：可以尝试大胆的设计</li>
+                <li>Sports enthusiasts: Choose lightweight, non-slip materials</li>
+                <li>Business professionals: Choose classic, professional styles</li>
+                <li>Fashion lovers: Can try bold designs</li>
               </ul>
 
-              <h2>总结</h2>
+              <h2>Conclusion</h2>
               <p>
-                选择合适的眼镜需要综合考虑脸型、肤色、生活方式等多个因素。
-                最重要的是，选择让你感到自信和舒适的款式。
+                Choosing the right glasses requires considering multiple factors including face shape, skin tone, and lifestyle.
+                Most importantly, choose styles that make you feel confident and comfortable.
               </p>
               <p>
-                使用VisuTry的AI虚拟试戴技术，你可以轻松尝试不同款式，
-                找到最适合自己的眼镜。
+                With VisuTry&apos;s AI virtual try-on technology, you can easily try different styles
+                and find the perfect glasses for you.
               </p>
             </div>
 
-            {/* 文章底部 */}
+            {/* Article footer */}
             <div className="p-8 bg-gray-50 border-t">
               <div className="flex items-center justify-between">
                 <div className="text-sm text-gray-600">
-                  标签：眼镜选择、脸型搭配、时尚指南
+                  Tags: Glasses Selection, Face Shape Matching, Style Guide
                 </div>
                 <Link
                   href="/"
                   className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors"
                 >
-                  立即试戴
+                  Try Now
                 </Link>
               </div>
             </div>
