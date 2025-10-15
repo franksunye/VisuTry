@@ -8,6 +8,7 @@ import { prisma } from "@/lib/prisma"
 import { MockCredentialsProvider, isMockMode } from "@/lib/mocks/auth"
 import { log } from "@/lib/logger"
 import { perfLogger } from "@/lib/performance-logger"
+import { clearUserCache } from "@/lib/cache"
 
 // Lightweight debug sink to file for local dev (so we can read errors without terminal access)
 const __debugWrite = (label: string, data: any) => {
@@ -162,6 +163,17 @@ export const authOptions: NextAuthOptions = {
 
             const freeTrialLimit = parseInt(process.env.FREE_TRIAL_LIMIT || "3")
             token.remainingTrials = Math.max(0, freeTrialLimit - dbUser.freeTrialsUsed)
+
+            // 清除用户缓存，确保Dashboard等页面使用最新数据
+            // 特别是在重新登录或手动触发更新时
+            if (trigger === 'update' || user) {
+              try {
+                clearUserCache(token.sub)
+                log.debug('auth', 'User cache cleared after data sync', { userId: token.sub })
+              } catch (cacheError) {
+                log.warn('auth', 'Failed to clear user cache', { userId: token.sub, error: cacheError })
+              }
+            }
           }
         } catch (error) {
           perfLogger.end('auth:jwt:db-sync', { success: false, error: true })
