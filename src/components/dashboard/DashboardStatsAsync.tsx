@@ -9,6 +9,8 @@ interface DashboardStatsAsyncProps {
   subscriptionType: string | null
   isYearlySubscription: boolean
   remainingTrials: number
+  creditsBalance: number
+  freeTrialsUsed: number
 }
 
 /**
@@ -23,7 +25,9 @@ export async function DashboardStatsAsync({
   isPremiumActive,
   subscriptionType,
   isYearlySubscription,
-  remainingTrials
+  remainingTrials,
+  creditsBalance,
+  freeTrialsUsed
 }: DashboardStatsAsyncProps) {
   perfLogger.start('dashboard-async:stats')
 
@@ -46,30 +50,50 @@ export async function DashboardStatsAsync({
     const isMonthlySubscription = subscriptionType === 'PREMIUM_MONTHLY'
 
     // 计算剩余量显示
+    // 🔥 新逻辑：显示总可用次数 = 订阅配额 + Credits Pack
     let remainingDisplay: string | number
+    let remainingDescription: string
+
     if (isPremiumActive) {
       if (isYearlySubscription) {
-        // 年费用户：420 - 已使用 = 剩余
-        const yearlyUsed = totalTryOns // 简化：使用总使用量
+        // 年费用户：420 - 已使用 + Credits Pack
         const yearlyLimit = 420
-        const remaining = Math.max(0, yearlyLimit - yearlyUsed)
-        remainingDisplay = remaining.toString()
+        const subscriptionRemaining = Math.max(0, yearlyLimit - freeTrialsUsed)
+        const totalRemaining = subscriptionRemaining + creditsBalance
+        remainingDisplay = totalRemaining
+        remainingDescription = creditsBalance > 0
+          ? `Annual (${subscriptionRemaining}) + Credits (${creditsBalance})`
+          : "Annual Plan"
       } else if (isMonthlySubscription) {
-        // 月费用户：30 - 本月已使用 = 剩余
-        // 简化：显示30+表示充足
-        remainingDisplay = "30+"
+        // 月费用户：30 - 本月已使用 + Credits Pack
+        const monthlyLimit = 30
+        const subscriptionRemaining = Math.max(0, monthlyLimit - freeTrialsUsed)
+        const totalRemaining = subscriptionRemaining + creditsBalance
+        remainingDisplay = totalRemaining
+        remainingDescription = creditsBalance > 0
+          ? `Monthly (${subscriptionRemaining}) + Credits (${creditsBalance})`
+          : "Monthly Plan"
       } else {
-        remainingDisplay = "Standard"
+        // 其他订阅类型
+        remainingDisplay = creditsBalance > 0 ? creditsBalance : "Standard"
+        remainingDescription = "Subscription"
       }
     } else {
-      // 免费用户：使用从 session 传入的剩余次数
-      remainingDisplay = remainingTrials
+      // 免费用户：免费配额 + Credits Pack
+      const freeTrialLimit = 3
+      const freeRemaining = Math.max(0, freeTrialLimit - freeTrialsUsed)
+      const totalRemaining = freeRemaining + creditsBalance
+      remainingDisplay = totalRemaining
+      remainingDescription = creditsBalance > 0
+        ? `Free (${freeRemaining}) + Credits (${creditsBalance})`
+        : "Free Quota"
     }
 
     const stats = {
       totalTryOns,
       completedTryOns,
       remainingDisplay,
+      remainingDescription,
       isPremium: isPremiumActive,
       subscriptionType,
       isYearlySubscription,
@@ -85,6 +109,7 @@ export async function DashboardStatsAsync({
       totalTryOns: 0,
       completedTryOns: 0,
       remainingDisplay: 3,
+      remainingDescription: "Free Quota",
       isPremium: false,
       subscriptionType: null,
       isYearlySubscription: false,

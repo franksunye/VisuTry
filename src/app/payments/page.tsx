@@ -20,7 +20,7 @@ export default async function PaymentsPage() {
     redirect("/auth/signin")
   }
 
-  // 获取用户的所有支付记录
+  // Get all payment records for the user
   const payments = await prisma.payment.findMany({
     where: {
       userId: session.user.id
@@ -30,10 +30,33 @@ export default async function PaymentsPage() {
     }
   })
 
-  // 获取用户当前状态
+  // Get current user status
   const user = session.user
   // TypeScript workaround: creditsBalance is defined in types/next-auth.d.ts but may not be recognized during build
   const creditsBalance = (user as any).creditsBalance || 0
+
+  // Get latest subscription payment to determine subscription type
+  const latestSubscriptionPayment = payments.find(p =>
+    p.productType === 'PREMIUM_YEARLY' || p.productType === 'PREMIUM_MONTHLY'
+  )
+  const isYearlySubscription = latestSubscriptionPayment?.productType === 'PREMIUM_YEARLY'
+
+  // Calculate subscription quota remaining
+  let subscriptionQuota = 0
+  let subscriptionQuotaLabel = ''
+  if (user.isPremiumActive) {
+    if (isYearlySubscription) {
+      subscriptionQuota = Math.max(0, 420 - user.freeTrialsUsed)
+      subscriptionQuotaLabel = `Annual quota (${subscriptionQuota} of 420)`
+    } else {
+      subscriptionQuota = Math.max(0, 30 - user.freeTrialsUsed)
+      subscriptionQuotaLabel = `Monthly quota (${subscriptionQuota} of 30)`
+    }
+  } else {
+    const freeLimit = 3
+    subscriptionQuota = Math.max(0, freeLimit - user.freeTrialsUsed)
+    subscriptionQuotaLabel = `Free trials (${subscriptionQuota} of ${freeLimit})`
+  }
 
   return (
     <div className="container max-w-4xl px-4 py-8 mx-auto">
@@ -56,7 +79,7 @@ export default async function PaymentsPage() {
       <div className="p-6 mb-8 bg-white border border-gray-200 rounded-lg shadow-sm">
         <h2 className="mb-4 text-xl font-semibold">Current Status</h2>
         <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-          <div className="p-4 bg-blue-50 rounded-lg">
+          <div className="p-4 rounded-lg bg-blue-50">
             <div className="text-sm text-blue-600">Membership</div>
             <div className="mt-1 text-2xl font-bold text-blue-900">
               {user.isPremiumActive ? 'Standard' : 'Free'}
@@ -68,7 +91,7 @@ export default async function PaymentsPage() {
             )}
           </div>
 
-          <div className="p-4 bg-green-50 rounded-lg">
+          <div className="p-4 rounded-lg bg-green-50">
             <div className="text-sm text-green-600">Credits Balance</div>
             <div className="mt-1 text-2xl font-bold text-green-900">
               {creditsBalance}
@@ -76,13 +99,15 @@ export default async function PaymentsPage() {
             <div className="mt-1 text-xs text-green-700">Never expire</div>
           </div>
 
-          <div className="p-4 bg-purple-50 rounded-lg">
-            <div className="text-sm text-purple-600">Free Trials</div>
+          <div className="p-4 rounded-lg bg-purple-50">
+            <div className="text-sm text-purple-600">
+              {user.isPremiumActive ? 'Subscription Quota' : 'Free Trials'}
+            </div>
             <div className="mt-1 text-2xl font-bold text-purple-900">
-              {user.remainingTrials || 0}
+              {subscriptionQuota}
             </div>
             <div className="mt-1 text-xs text-purple-700">
-              {user.isPremiumActive ? 'Subscription quota' : 'Remaining'}
+              {subscriptionQuotaLabel}
             </div>
           </div>
         </div>
@@ -149,7 +174,7 @@ export default async function PaymentsPage() {
               }
 
               return (
-                <div key={payment.id} className="p-6 hover:bg-gray-50 transition-colors">
+                <div key={payment.id} className="p-6 transition-colors hover:bg-gray-50">
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
                       <div className="flex items-center">
@@ -177,7 +202,7 @@ export default async function PaymentsPage() {
                       </div>
 
                       {payment.stripePaymentId && (
-                        <div className="mt-1 text-xs text-gray-400 font-mono">
+                        <div className="mt-1 font-mono text-xs text-gray-400">
                           ID: {payment.stripePaymentId}
                         </div>
                       )}
@@ -200,21 +225,21 @@ export default async function PaymentsPage() {
       </div>
 
       {/* Help Section */}
-      <div className="mt-8 p-6 bg-gray-50 rounded-lg border border-gray-200">
+      <div className="p-6 mt-8 border border-gray-200 rounded-lg bg-gray-50">
         <h3 className="font-semibold text-gray-900">Need help?</h3>
         <p className="mt-2 text-sm text-gray-600">
           If you have any questions about your payments or subscriptions, please contact our support team.
         </p>
-        <div className="mt-4 flex gap-4">
+        <div className="flex gap-4 mt-4">
           <Link
             href="/pricing"
-            className="text-sm text-blue-600 hover:text-blue-700 font-medium"
+            className="text-sm font-medium text-blue-600 hover:text-blue-700"
           >
             View Pricing Plans →
           </Link>
           <Link
             href="/dashboard"
-            className="text-sm text-blue-600 hover:text-blue-700 font-medium"
+            className="text-sm font-medium text-blue-600 hover:text-blue-700"
           >
             Back to Dashboard →
           </Link>

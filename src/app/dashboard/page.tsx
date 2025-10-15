@@ -98,6 +98,8 @@ export default async function DashboardPage() {
               subscriptionType={subscriptionType}
               isYearlySubscription={isYearlySubscription}
               remainingTrials={session.user.remainingTrials}
+              creditsBalance={(session.user as any).creditsBalance || 0}
+              freeTrialsUsed={session.user.freeTrialsUsed}
             />
           </Suspense>
 
