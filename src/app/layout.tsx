@@ -19,7 +19,7 @@ export default function RootLayout({
   const gtmId = process.env.NEXT_PUBLIC_GTM_ID
 
   return (
-    <html lang="zh-CN">
+    <html lang="en">
       <body className={inter.className}>
         {/* Google Tag Manager */}
         {gtmId && <GoogleTagManager gtmId={gtmId} />}

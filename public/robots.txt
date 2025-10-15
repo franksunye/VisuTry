@@ -1,10 +1,10 @@
 # VisuTry Robots.txt
-# 允许所有搜索引擎爬取
+# Allow all search engines to crawl
 
 User-agent: *
 Allow: /
 
-# 禁止爬取的路径
+# Disallow crawling of these paths
 Disallow: /api/
 Disallow: /admin/
 Disallow: /_next/
@@ -12,17 +12,17 @@ Disallow: /debug/
 Disallow: /test/
 Disallow: /private/
 
-# 允许爬取重要页面
+# Allow crawling of important pages
 Allow: /api/health
 Allow: /share/
 
-# 网站地图位置
+# Sitemap location
 Sitemap: https://visutry.vercel.app/sitemap.xml
 
-# 爬取延迟（毫秒）
+# Crawl delay (seconds)
 Crawl-delay: 1
 
-# 特定搜索引擎优化
+# Search engine specific optimization
 User-agent: Googlebot
 Allow: /
 Crawl-delay: 0

@@ -1,28 +1,27 @@
-// SEO配置和工具函数
+// SEO configuration and utility functions
 import { Metadata } from 'next'
 
-// 网站基础信息
+// Website basic information
 export const SITE_CONFIG = {
   name: 'VisuTry',
-  title: 'VisuTry - AI虚拟眼镜试戴工具',
-  description: '使用AI技术体验虚拟眼镜试戴，找到最适合你脸型的眼镜款式。支持多种品牌眼镜在线试戴，智能推荐最佳搭配。',
+  title: 'VisuTry - AI Virtual Glasses Try-On Tool',
+  description: 'Experience virtual glasses try-on with AI technology. Find the perfect glasses style for your face shape. Try multiple brands online with intelligent recommendations.',
   url: process.env.NEXT_PUBLIC_SITE_URL || 'https://visutry.vercel.app',
   ogImage: '/og-image.jpg',
   keywords: [
-    '虚拟眼镜试戴',
-    'AI试戴',
-    '在线试眼镜',
-    '眼镜试戴工具',
-    '人工智能',
     'virtual glasses try-on',
     'AI glasses',
-    'online glasses fitting'
+    'online glasses fitting',
+    'glasses try-on tool',
+    'artificial intelligence',
+    'face shape glasses',
+    'virtual eyewear',
+    'smart glasses recommendation'
   ],
   author: 'VisuTry Team',
   creator: 'VisuTry',
   publisher: 'VisuTry',
-  locale: 'zh-CN',
-  alternateLocales: ['en-US'],
+  locale: 'en-US',
 }
 
 // 默认SEO配置
@@ -73,24 +72,20 @@ export const DEFAULT_SEO: Metadata = {
     apple: { url: '/favicon.svg', sizes: '180x180', type: 'image/svg+xml' }
   },
   
-  // 其他meta标签
+  // Other meta tags
   metadataBase: new URL(SITE_CONFIG.url),
   alternates: {
     canonical: SITE_CONFIG.url,
-    languages: {
-      'zh-CN': SITE_CONFIG.url,
-      'en-US': `${SITE_CONFIG.url}/en`,
-    },
   },
   
-  // 验证标签（需要时添加）
+  // Verification tags (add when needed)
   verification: {
     google: process.env.GOOGLE_SITE_VERIFICATION,
     yandex: process.env.YANDEX_VERIFICATION,
     yahoo: process.env.YAHOO_VERIFICATION,
   },
-  
-  // 机器人指令
+
+  // Robot instructions
   robots: {
     index: true,
     follow: true,
@@ -104,7 +99,7 @@ export const DEFAULT_SEO: Metadata = {
   },
 }
 
-// 生成页面SEO配置的工具函数
+// Utility function to generate page SEO configuration
 export function generateSEO({
   title,
   description,
@@ -166,7 +161,7 @@ export function generateSEO({
   }
 }
 
-// 结构化数据生成器
+// Structured data generator
 export function generateStructuredData(type: 'website' | 'article' | 'product', data: any) {
   const baseData = {
     '@context': 'https://schema.org',
@@ -228,7 +223,7 @@ export function generateStructuredData(type: 'website' | 'article' | 'product', 
           '@type': 'Offer',
           availability: 'https://schema.org/InStock',
           price: data.price,
-          priceCurrency: data.currency || 'CNY',
+          priceCurrency: data.currency || 'USD',
         },
         ...data,
       }

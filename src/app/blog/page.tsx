@@ -4,41 +4,41 @@ import Link from 'next/link'
 import { Calendar, User, ArrowRight } from 'lucide-react'
 
 export const metadata: Metadata = generateSEO({
-  title: '博客 - 眼镜试戴指南与AI技术分享',
-  description: '探索眼镜试戴技巧、脸型搭配指南、AI技术应用等专业内容。帮助你找到最适合的眼镜款式。',
+  title: 'Blog - Glasses Try-On Guide & AI Technology Insights',
+  description: 'Explore glasses try-on techniques, face shape matching guides, AI technology applications and professional insights. Find the perfect glasses style for you.',
   url: '/blog',
 })
 
-// 示例博客文章数据
+// Sample blog posts data
 const blogPosts = [
   {
     id: 'how-to-choose-glasses-for-your-face',
-    title: '如何根据脸型选择适合的眼镜？完整指南',
-    description: '详细解析不同脸型适合的眼镜款式，包括圆脸、方脸、长脸等，帮你找到最佳搭配。',
-    author: 'VisuTry团队',
+    title: 'How to Choose the Right Glasses for Your Face Shape? Complete Guide',
+    description: 'Detailed analysis of suitable glasses styles for different face shapes, including round, square, long faces, and more. Find your perfect match.',
+    author: 'VisuTry Team',
     publishedAt: '2025-10-15',
-    category: '选镜指南',
-    readTime: '5分钟',
+    category: 'Glasses Guide',
+    readTime: '5 min read',
     image: '/blog/face-shape-guide.jpg',
   },
   {
     id: 'ai-glasses-tryon-technology',
-    title: 'AI虚拟试戴技术原理解析',
-    description: '深入了解AI虚拟试戴技术的工作原理，包括人脸识别、3D建模等核心技术。',
-    author: 'VisuTry团队',
+    title: 'AI Virtual Try-On Technology Explained',
+    description: 'Deep dive into how AI virtual try-on technology works, including facial recognition, 3D modeling and other core technologies.',
+    author: 'VisuTry Team',
     publishedAt: '2025-10-14',
-    category: '技术分享',
-    readTime: '8分钟',
+    category: 'Technology',
+    readTime: '8 min read',
     image: '/blog/ai-technology.jpg',
   },
   {
     id: 'best-glasses-brands-2025',
-    title: '2025年最受欢迎的眼镜品牌推荐',
-    description: '盘点2025年最受欢迎的眼镜品牌，包括Ray-Ban、Gentle Monster等知名品牌。',
-    author: 'VisuTry团队',
+    title: 'Most Popular Glasses Brands in 2025',
+    description: 'Discover the most popular glasses brands in 2025, including Ray-Ban, Gentle Monster and other renowned brands.',
+    author: 'VisuTry Team',
     publishedAt: '2025-10-13',
-    category: '品牌推荐',
-    readTime: '6分钟',
+    category: 'Brand Reviews',
+    readTime: '6 min read',
     image: '/blog/brands-2025.jpg',
   },
 ]
@@ -47,13 +47,13 @@ export default function BlogPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
       <div className="container mx-auto px-4 py-12">
-        {/* 页面标题 */}
+        {/* Page title */}
         <div className="text-center mb-12">
           <h1 className="text-4xl font-bold text-gray-900 mb-4">
-            VisuTry 博客
+            VisuTry Blog
           </h1>
           <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-            探索眼镜试戴技巧、脸型搭配指南、AI技术应用等专业内容
+            Explore glasses try-on techniques, face shape matching guides, AI technology applications and professional insights
           </p>
         </div>
 

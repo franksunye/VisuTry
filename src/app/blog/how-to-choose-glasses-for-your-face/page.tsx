@@ -4,19 +4,19 @@ import Link from 'next/link'
 import { ArrowLeft, Glasses, Share2 } from 'lucide-react'
 
 export const metadata: Metadata = generateSEO({
-  title: '如何根据脸型选择适合的眼镜？完整指南',
-  description: '详细解析不同脸型适合的眼镜款式，包括圆脸、方脸、长脸等专业建议。使用AI试戴工具找到最佳搭配。',
+  title: 'How to Choose the Right Glasses for Your Face Shape? Complete Guide',
+  description: 'Detailed analysis of suitable glasses styles for different face shapes, including round, square, long faces and professional advice. Use AI try-on tool to find your perfect match.',
   url: '/blog/how-to-choose-glasses-for-your-face',
   type: 'article',
 })
 
-// 结构化数据
+// Structured data
 const structuredData = generateStructuredData('article', {
-  title: '如何根据脸型选择适合的眼镜？完整指南',
-  description: '详细解析不同脸型适合的眼镜款式，包括圆脸、方脸、长脸等专业建议。',
+  title: 'How to Choose the Right Glasses for Your Face Shape? Complete Guide',
+  description: 'Detailed analysis of suitable glasses styles for different face shapes, including round, square, long faces and professional advice.',
   publishedAt: '2025-10-15T10:00:00Z',
   modifiedAt: '2025-10-15T10:00:00Z',
-  author: 'VisuTry团队',
+  author: 'VisuTry Team',
   image: '/blog/face-shape-guide.jpg',
 })
 

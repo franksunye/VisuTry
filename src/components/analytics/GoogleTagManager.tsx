@@ -74,7 +74,7 @@ export const pushEcommerceEvent = (
     ecommerce: {
       transaction_id: transactionId,
       value: value,
-      currency: 'CNY',
+      currency: 'USD',
       items: items,
     },
   })
