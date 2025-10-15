@@ -117,11 +117,16 @@ export const authOptions: NextAuthOptions = {
         if (!token.email) token.email = p?.data?.email ?? p?.email ?? token.email
       }
 
-      // Optimization: Only sync from database in specific cases, not on every request
+      // 🔥 优化：改进同步策略，确保数据及时更新
       // 1. First login (user exists)
       // 2. Manual trigger update (trigger === 'update')
-      // 3. Token has no user data
-      const shouldSync = user || trigger === 'update' || !token.freeTrialsUsed
+      // 3. Token has no user data (isPremium is undefined)
+      // 4. Periodic sync: every 5 minutes to catch subscription changes
+      const tokenAge = token.iat ? Date.now() - (Number(token.iat) * 1000) : Infinity
+      const shouldSync = user ||
+                        trigger === 'update' ||
+                        token.isPremium === undefined ||
+                        tokenAge > 5 * 60 * 1000  // 5 minutes
 
       if (token.sub && shouldSync) {
         try {

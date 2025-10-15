@@ -1,8 +1,5 @@
-// import { redirect } from "next/navigation" // 不再需要强制重定向
 import { getServerSession } from "next-auth/next"
 import { authOptions } from "@/lib/auth"
-import { prisma } from "@/lib/prisma"
-import { unstable_cache } from 'next/cache'
 import { PricingCard } from "@/components/pricing/PricingCard"
 import { Glasses, ArrowLeft, Star, Zap } from "lucide-react"
 import Link from "next/link"
@@ -15,55 +12,26 @@ export const metadata: Metadata = generateSEO({
   url: '/pricing',
 })
 
-// 性能优化：使用智能缓存策略
+// 🔥 优化：不再使用缓存，直接使用 session 作为唯一数据源
 export const revalidate = 60
-
-// 智能缓存函数：获取用户数据
-function getUserPricingData(userId: string) {
-  return unstable_cache(
-    async () => {
-      return await prisma.user.findUnique({
-        where: { id: userId },
-        select: {
-          isPremium: true,
-          premiumExpiresAt: true,
-          freeTrialsUsed: true,
-        },
-      })
-    },
-    [`pricing-data-${userId}`],
-    {
-      revalidate: 60,
-      tags: [`user-${userId}`, 'pricing'],
-    }
-  )()
-}
 
 export default async function PricingPage() {
   const session = await getServerSession(authOptions)
 
-  // 获取用户数据（如果已登录）
-  let currentUser = null
+  // 🔥 优化：直接从 session 读取用户数据，不再查询数据库
+  // session.user 已经包含了所有必要的用户信息（来自 JWT token）
   let isPremiumActive = false
   let remainingTrials = 3 // 默认免费试用次数
 
   if (session) {
-    // 使用智能缓存获取用户数据
-    currentUser = await getUserPricingData(session.user.id)
-
-    // 计算会员状态和剩余次数
-    isPremiumActive = !!(currentUser?.isPremium &&
-      (!currentUser.premiumExpiresAt || currentUser.premiumExpiresAt > new Date()))
-    const freeTrialLimit = parseInt(process.env.FREE_TRIAL_LIMIT || "3")
-    remainingTrials = Math.max(0, freeTrialLimit - (currentUser?.freeTrialsUsed || 0))
+    // 直接使用 session 中的数据
+    isPremiumActive = session.user.isPremiumActive || false
+    remainingTrials = session.user.remainingTrials || 3
   }
 
-  // 构建用户对象，包含最新数据（如果已登录）
+  // 🔥 优化：直接使用 session.user，不需要重新构建
   const userForDisplay = session ? {
     ...session.user,
-    isPremium: currentUser?.isPremium || false,
-    premiumExpiresAt: currentUser?.premiumExpiresAt || null,
-    freeTrialsUsed: currentUser?.freeTrialsUsed || 0,
     isPremiumActive: isPremiumActive,
     remainingTrials: remainingTrials,
   } : null
@@ -163,9 +131,9 @@ export default async function PricingPage() {
               <Star className="w-5 h-5 mr-2 text-yellow-600" />
               <div>
                 <strong className="text-yellow-800">You are a Standard Member</strong>
-                {currentUser?.premiumExpiresAt && (
+                {session?.user?.premiumExpiresAt && (
                   <span className="ml-2 text-yellow-700">
-                    Expires: {new Date(currentUser.premiumExpiresAt).toLocaleDateString("en-US")}
+                    Expires: {new Date(session.user.premiumExpiresAt).toLocaleDateString("en-US")}
                   </span>
                 )}
               </div>

@@ -24,7 +24,17 @@ export const CACHE_TIMES = {
 
 /**
  * 获取用户基本信息（带缓存）
- * 用于Try-On页面和Dashboard页面
+ *
+ * ⚠️ 已废弃：不应该用于业务决策
+ *
+ * 原因：unstable_cache 使用 stale-while-revalidate 策略，
+ * 即使调用 revalidateTag 后，下次请求仍可能返回旧缓存。
+ *
+ * 推荐做法：
+ * - 关键业务逻辑（订阅状态、配额检查）：使用 session.user（来自 JWT）
+ * - 非关键数据（统计、历史记录）：可以使用此函数
+ *
+ * @deprecated 请使用 session.user 作为用户状态的唯一数据源
  */
 export function getCachedUserData(userId: string) {
   return unstable_cache(

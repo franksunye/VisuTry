@@ -1,19 +1,13 @@
 import { redirect } from "next/navigation"
 import { getServerSession } from "next-auth/next"
 import { authOptions } from "@/lib/auth"
-import { getCachedUserData } from "@/lib/cache"
 import { TryOnInterface } from "@/components/try-on/TryOnInterface"
 import { ArrowLeft } from "lucide-react"
 import Link from "next/link"
 import { headers } from "next/headers"
 
-// 性能优化：使用智能缓存策略
+// 🔥 优化：不再使用缓存，直接使用 session 作为唯一数据源
 export const revalidate = 60
-
-// 使用统一的缓存管理工具
-function getUserTryOnData(userId: string) {
-  return getCachedUserData(userId)
-}
 
 export default async function TryOnPage() {
   const session = await getServerSession(authOptions)
@@ -43,33 +37,10 @@ export default async function TryOnPage() {
     redirect("/auth/signin")
   }
 
-  // 从数据库获取最新的用户数据（仅对真实用户，测试会话使用原数据）
-  let user = session?.user || testSession
-
-  if (session?.user?.id) {
-    // 使用智能缓存获取用户数据
-    const currentUser = await getUserTryOnData(session.user.id)
-
-    if (currentUser) {
-      // 计算会员状态和剩余次数
-      const isPremiumActive = !!(currentUser.isPremium &&
-        (!currentUser.premiumExpiresAt || currentUser.premiumExpiresAt > new Date()))
-      const freeTrialLimit = parseInt(process.env.FREE_TRIAL_LIMIT || "3")
-      const remainingTrials = Math.max(0, freeTrialLimit - currentUser.freeTrialsUsed)
-
-
-
-      // 更新用户对象，包含最新数据
-      user = {
-        ...session.user,
-        isPremium: currentUser.isPremium,
-        premiumExpiresAt: currentUser.premiumExpiresAt,
-        freeTrialsUsed: currentUser.freeTrialsUsed,
-        isPremiumActive: isPremiumActive,
-        remainingTrials: remainingTrials,
-      }
-    }
-  }
+  // 🔥 优化：直接使用 session.user 作为唯一数据源
+  // session.user 已经包含了所有必要的用户信息（来自 JWT token）
+  // 不再从数据库读取，避免缓存不一致问题
+  const user = session?.user || testSession
 
   return (
     <div className="container mx-auto px-4 py-8">
