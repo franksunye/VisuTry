@@ -88,7 +88,8 @@ export const authOptions: NextAuthOptions = {
           session.user.image = (token.image as string) || session.user.image
           session.user.username = (token.username as string) || session.user.username
           session.user.freeTrialsUsed = (token.freeTrialsUsed as number) || 0
-          session.user.creditsBalance = (token.creditsBalance as number) || 0
+          // TypeScript workaround: creditsBalance is defined in types/next-auth.d.ts
+          ;(session.user as any).creditsBalance = (token.creditsBalance as number) || 0
           session.user.isPremium = (token.isPremium as boolean) || false
           session.user.premiumExpiresAt = (token.premiumExpiresAt as Date) || null
           session.user.isPremiumActive = (token.isPremiumActive as boolean) || false

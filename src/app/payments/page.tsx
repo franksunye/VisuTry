@@ -32,6 +32,8 @@ export default async function PaymentsPage() {
 
   // 获取用户当前状态
   const user = session.user
+  // TypeScript workaround: creditsBalance is defined in types/next-auth.d.ts but may not be recognized during build
+  const creditsBalance = (user as any).creditsBalance || 0
 
   return (
     <div className="container max-w-4xl px-4 py-8 mx-auto">
@@ -65,15 +67,15 @@ export default async function PaymentsPage() {
               </div>
             )}
           </div>
-          
+
           <div className="p-4 bg-green-50 rounded-lg">
             <div className="text-sm text-green-600">Credits Balance</div>
             <div className="mt-1 text-2xl font-bold text-green-900">
-              {user.creditsBalance || 0}
+              {creditsBalance}
             </div>
             <div className="mt-1 text-xs text-green-700">Never expire</div>
           </div>
-          
+
           <div className="p-4 bg-purple-50 rounded-lg">
             <div className="text-sm text-purple-600">Free Trials</div>
             <div className="mt-1 text-2xl font-bold text-purple-900">
