@@ -51,6 +51,8 @@ export async function DashboardStatsAsync({
 
     // 计算剩余量显示
     // 🔥 新逻辑：显示总可用次数 = 订阅配额 + Credits Pack
+    // 注意：使用 totalTryOns（实际使用次数）而不是 freeTrialsUsed
+    // 因为 Premium 用户的 freeTrialsUsed 不会更新
     let remainingDisplay: string | number
     let remainingDescription: string
 
@@ -58,7 +60,7 @@ export async function DashboardStatsAsync({
       if (isYearlySubscription) {
         // 年费用户：420 - 已使用 + Credits Pack
         const yearlyLimit = 420
-        const subscriptionRemaining = Math.max(0, yearlyLimit - freeTrialsUsed)
+        const subscriptionRemaining = Math.max(0, yearlyLimit - totalTryOns)
         const totalRemaining = subscriptionRemaining + creditsBalance
         remainingDisplay = totalRemaining
         remainingDescription = creditsBalance > 0
@@ -67,7 +69,7 @@ export async function DashboardStatsAsync({
       } else if (isMonthlySubscription) {
         // 月费用户：30 - 本月已使用 + Credits Pack
         const monthlyLimit = 30
-        const subscriptionRemaining = Math.max(0, monthlyLimit - freeTrialsUsed)
+        const subscriptionRemaining = Math.max(0, monthlyLimit - totalTryOns)
         const totalRemaining = subscriptionRemaining + creditsBalance
         remainingDisplay = totalRemaining
         remainingDescription = creditsBalance > 0

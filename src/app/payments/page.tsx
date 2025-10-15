@@ -41,21 +41,21 @@ export default async function PaymentsPage() {
   )
   const isYearlySubscription = latestSubscriptionPayment?.productType === 'PREMIUM_YEARLY'
 
-  // Calculate subscription quota remaining
-  let subscriptionQuota = 0
+  // Subscription quota display (simplified - just show total quota, not remaining)
+  let subscriptionQuota: number | string = 0
   let subscriptionQuotaLabel = ''
   if (user.isPremiumActive) {
     if (isYearlySubscription) {
-      subscriptionQuota = Math.max(0, 420 - user.freeTrialsUsed)
-      subscriptionQuotaLabel = `Annual quota (${subscriptionQuota} of 420)`
+      subscriptionQuota = 420
+      subscriptionQuotaLabel = 'Annual quota'
     } else {
-      subscriptionQuota = Math.max(0, 30 - user.freeTrialsUsed)
-      subscriptionQuotaLabel = `Monthly quota (${subscriptionQuota} of 30)`
+      subscriptionQuota = 30
+      subscriptionQuotaLabel = 'Monthly quota'
     }
   } else {
     const freeLimit = 3
     subscriptionQuota = Math.max(0, freeLimit - user.freeTrialsUsed)
-    subscriptionQuotaLabel = `Free trials (${subscriptionQuota} of ${freeLimit})`
+    subscriptionQuotaLabel = `${subscriptionQuota} of ${freeLimit} remaining`
   }
 
   return (
