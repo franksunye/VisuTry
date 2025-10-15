@@ -4,7 +4,7 @@ import { useState } from "react"
 import { ExternalLink, Calendar, Glasses } from "lucide-react"
 import Link from "next/link"
 import { formatDistanceToNow } from "date-fns"
-import { zhCN } from "date-fns/locale"
+import { enUS } from "date-fns/locale"
 
 interface TryOnItem {
   id: string
@@ -27,10 +27,10 @@ export function PublicTryOnGallery({ tryOns }: PublicTryOnGalleryProps) {
       <div className="p-12 text-center">
         <Glasses className="w-16 h-16 text-gray-400 mx-auto mb-4" />
         <h3 className="text-lg font-medium text-gray-900 mb-2">
-          还没有公开的作品
+          No Public Works Yet
         </h3>
         <p className="text-gray-500">
-          该用户还没有分享任何试戴作品
+          This user hasn&apos;t shared any try-on works yet
         </p>
       </div>
     )
@@ -48,23 +48,23 @@ export function PublicTryOnGallery({ tryOns }: PublicTryOnGalleryProps) {
             >
               <img
                 src={tryOn.resultImageUrl || tryOn.userImageUrl}
-                alt="试戴作品"
+                alt="Try-on work"
                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
               />
               
-              {/* 悬停覆盖层 */}
+              {/* Hover overlay */}
               <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 transition-all duration-200 flex items-center justify-center">
                 <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200">
                   <ExternalLink className="w-8 h-8 text-white" />
                 </div>
               </div>
               
-              {/* 时间标签 */}
+              {/* Time label */}
               <div className="absolute bottom-2 left-2 right-2">
                 <div className="bg-black bg-opacity-50 text-white text-xs px-2 py-1 rounded backdrop-blur-sm">
                   {formatDistanceToNow(new Date(tryOn.createdAt), {
                     addSuffix: true,
-                    locale: zhCN
+                    locale: enUS
                   })}
                 </div>
               </div>
@@ -82,11 +82,11 @@ export function PublicTryOnGallery({ tryOns }: PublicTryOnGalleryProps) {
           <div className="relative max-w-4xl max-h-full">
             <img
               src={selectedImage}
-              alt="试戴作品预览"
+              alt="Try-on work preview"
               className="max-w-full max-h-full object-contain rounded-lg"
             />
             
-            {/* 关闭按钮 */}
+            {/* Close button */}
             <button
               onClick={() => setSelectedImage(null)}
               className="absolute top-4 right-4 w-10 h-10 bg-black bg-opacity-50 text-white rounded-full flex items-center justify-center hover:bg-opacity-75 transition-colors"
