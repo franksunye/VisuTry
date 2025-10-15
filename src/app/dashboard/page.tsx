@@ -92,7 +92,13 @@ export default async function DashboardPage() {
         <div className="space-y-8 lg:col-span-2">
           {/* Stats Cards - 异步加载 */}
           <Suspense fallback={<DashboardStatsSkeleton />}>
-            <DashboardStatsAsync userId={session.user.id} />
+            <DashboardStatsAsync
+              userId={session.user.id}
+              isPremiumActive={session.user.isPremiumActive}
+              subscriptionType={subscriptionType}
+              isYearlySubscription={isYearlySubscription}
+              remainingTrials={session.user.remainingTrials}
+            />
           </Suspense>
 
           {/* Recent Try-Ons - 异步加载 */}

@@ -1,37 +1,39 @@
 import { DashboardStats } from "./DashboardStats"
 import { perfLogger } from "@/lib/performance-logger"
-import { getCachedUserData, getCachedUserPayment, getCachedUserStats } from "@/lib/cache"
+import { getCachedUserStats } from "@/lib/cache"
 
 interface DashboardStatsAsyncProps {
   userId: string
+  // 🔥 修复：从 session 传入用户状态，避免缓存不一致
+  isPremiumActive: boolean
+  subscriptionType: string | null
+  isYearlySubscription: boolean
+  remainingTrials: number
 }
 
 /**
  * 异步加载统计数据组件
  * 用于 Suspense 流式渲染
+ *
+ * 🔥 重要：用户状态（isPremium等）从 session 传入，不从数据库读取
+ * 这样可以避免缓存不一致导致的显示错误
  */
-export async function DashboardStatsAsync({ userId }: DashboardStatsAsyncProps) {
+export async function DashboardStatsAsync({
+  userId,
+  isPremiumActive,
+  subscriptionType,
+  isYearlySubscription,
+  remainingTrials
+}: DashboardStatsAsyncProps) {
   perfLogger.start('dashboard-async:stats')
 
   try {
-    // 🔥 优化：使用统一的缓存管理工具，减少数据库往返次数
-    const [user, userStats, latestPayment] = await Promise.all([
-      perfLogger.measure(
-        'dashboard-async:getUserBasicData',
-        () => getCachedUserData(userId),
-        { userId }
-      ),
-      perfLogger.measure(
-        'dashboard-async:getUserStats',
-        () => getCachedUserStats(userId),
-        { userId }
-      ),
-      perfLogger.measure(
-        'dashboard-async:getLatestPayment',
-        () => getCachedUserPayment(userId),
-        { userId }
-      ),
-    ])
+    // 🔥 只获取统计数据，不再获取用户基本信息（从 session 传入）
+    const userStats = await perfLogger.measure(
+      'dashboard-async:getUserStats',
+      () => getCachedUserStats(userId),
+      { userId }
+    )
 
     const { totalTryOns, completedTryOns } = userStats || { totalTryOns: 0, completedTryOns: 0 }
 
@@ -40,13 +42,7 @@ export async function DashboardStatsAsync({ userId }: DashboardStatsAsyncProps) 
       completedTryOns,
     })
 
-    // 计算会员状态和配额信息
-    const isPremiumActive = !!(user?.isPremium &&
-      (!user.premiumExpiresAt || user.premiumExpiresAt > new Date()))
-
-    // 确定订阅类型
-    const subscriptionType = latestPayment?.productType || null
-    const isYearlySubscription = subscriptionType === 'PREMIUM_YEARLY'
+    // 使用传入的订阅状态（来自 session）
     const isMonthlySubscription = subscriptionType === 'PREMIUM_MONTHLY'
 
     // 计算剩余量显示
@@ -66,8 +62,7 @@ export async function DashboardStatsAsync({ userId }: DashboardStatsAsyncProps) 
         remainingDisplay = "Standard"
       }
     } else {
-      const freeTrialLimit = parseInt(process.env.FREE_TRIAL_LIMIT || "3")
-      const remainingTrials = Math.max(0, freeTrialLimit - (user?.freeTrialsUsed || 0))
+      // 免费用户：使用从 session 传入的剩余次数
       remainingDisplay = remainingTrials
     }
 
