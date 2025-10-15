@@ -47,7 +47,8 @@ model User {
   username      String?   @unique
 
   // VisuTry specific fields
-  freeTrialsUsed Int      @default(0)
+  freeTrialsUsed Int      @default(0)  // Free trial uses (for non-premium users)
+  creditsBalance Int      @default(0)  // Purchased credits balance (never expire)
   isPremium      Boolean  @default(false)
   premiumExpiresAt DateTime?
 

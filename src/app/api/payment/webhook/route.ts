@@ -96,13 +96,13 @@ async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session) 
       }
     })
 
-    // 如果是次数包，增加用户的试戴次数
+    // 如果是次数包，增加用户的 credits 余额
     if (paymentData.productType === "CREDITS_PACK") {
       await prisma.user.update({
         where: { id: paymentData.userId },
         data: {
-          freeTrialsUsed: {
-            decrement: 20 // 增加20次试戴机会
+          creditsBalance: {
+            increment: 10 // 增加10个 credits（永不过期）
           }
         }
       })

@@ -88,6 +88,7 @@ export const authOptions: NextAuthOptions = {
           session.user.image = (token.image as string) || session.user.image
           session.user.username = (token.username as string) || session.user.username
           session.user.freeTrialsUsed = (token.freeTrialsUsed as number) || 0
+          session.user.creditsBalance = (token.creditsBalance as number) || 0
           session.user.isPremium = (token.isPremium as boolean) || false
           session.user.premiumExpiresAt = (token.premiumExpiresAt as Date) || null
           session.user.isPremiumActive = (token.isPremiumActive as boolean) || false
@@ -141,6 +142,7 @@ export const authOptions: NextAuthOptions = {
               image: true,
               username: true,
               freeTrialsUsed: true,
+              creditsBalance: true,
               isPremium: true,
               premiumExpiresAt: true,
             }
@@ -159,15 +161,27 @@ export const authOptions: NextAuthOptions = {
             token.image = dbUser.image
             token.username = dbUser.username
             token.freeTrialsUsed = dbUser.freeTrialsUsed
+            token.creditsBalance = dbUser.creditsBalance
             token.isPremium = dbUser.isPremium
             token.premiumExpiresAt = dbUser.premiumExpiresAt
 
-            // Calculate active status and remaining count
+            // Calculate active status
             token.isPremiumActive = dbUser.isPremium &&
               (!dbUser.premiumExpiresAt || dbUser.premiumExpiresAt > new Date())
 
+            // Calculate remaining trials
+            // Priority: Premium quota > Credits Pack > Free trials
             const freeTrialLimit = parseInt(process.env.FREE_TRIAL_LIMIT || "3")
-            token.remainingTrials = Math.max(0, freeTrialLimit - dbUser.freeTrialsUsed)
+            if (token.isPremiumActive) {
+              // Premium users: show their subscription quota
+              token.remainingTrials = 999 // Will be calculated based on subscription type
+            } else if (dbUser.creditsBalance > 0) {
+              // Users with credits: show credits balance
+              token.remainingTrials = dbUser.creditsBalance
+            } else {
+              // Free users: show free trial remaining
+              token.remainingTrials = Math.max(0, freeTrialLimit - dbUser.freeTrialsUsed)
+            }
 
             // 清除用户缓存，确保Dashboard等页面使用最新数据
             // 特别是在重新登录或手动触发更新时

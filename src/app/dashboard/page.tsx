@@ -8,7 +8,7 @@ import { DashboardStatsSkeleton } from "@/components/dashboard/DashboardStatsSke
 import { RecentTryOnsSkeleton } from "@/components/dashboard/RecentTryOnsSkeleton"
 import { SubscriptionCard } from "@/components/dashboard/SubscriptionCard"
 import { ClientPerformanceMonitor } from "@/components/performance/ClientPerformanceMonitor"
-import { Glasses, Plus } from "lucide-react"
+import { Glasses, Plus, Receipt } from "lucide-react"
 import Link from "next/link"
 import { perfLogger, logPageLoad } from "@/lib/performance-logger"
 import { getCachedUserPayment } from "@/lib/cache"
@@ -129,6 +129,14 @@ export default async function DashboardPage() {
                 className="flex items-center justify-center w-full px-4 py-3 text-gray-700 transition-colors border border-gray-300 rounded-lg hover:bg-gray-50"
               >
                 Upgrade to Standard
+              </Link>
+
+              <Link
+                href="/payments"
+                className="flex items-center justify-center w-full px-4 py-3 text-gray-700 transition-colors border border-gray-300 rounded-lg hover:bg-gray-50"
+              >
+                <Receipt className="w-5 h-5 mr-2" />
+                Payment History
               </Link>
             </div>
           </div>
