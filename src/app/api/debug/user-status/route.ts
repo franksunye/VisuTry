@@ -15,20 +15,38 @@ export async function GET(request: NextRequest) {
     revalidateTag(`user-${userId}`)
     revalidateTag('tryon')
     
-    // 获取最新用户数据
-    const user = await prisma.user.findUnique({
-      where: { id: userId },
-      select: {
-        id: true,
-        name: true,
-        email: true,
-        isPremium: true,
-        premiumExpiresAt: true,
-        freeTrialsUsed: true,
-        createdAt: true,
-        updatedAt: true,
-      }
-    })
+    // 获取最新用户数据和支付记录
+    const [user, payments] = await Promise.all([
+      prisma.user.findUnique({
+        where: { id: userId },
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          isPremium: true,
+          premiumExpiresAt: true,
+          freeTrialsUsed: true,
+          createdAt: true,
+          updatedAt: true,
+        }
+      }),
+      prisma.payment.findMany({
+        where: {
+          userId,
+          status: 'COMPLETED',
+        },
+        orderBy: { createdAt: 'desc' },
+        take: 5,
+        select: {
+          id: true,
+          productType: true,
+          amount: true,
+          status: true,
+          createdAt: true,
+          stripeSessionId: true,
+        },
+      })
+    ])
 
     if (!user) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 })
@@ -47,6 +65,7 @@ export async function GET(request: NextRequest) {
         isPremiumActive,
         remainingTrials,
       },
+      payments: payments,
       calculations: {
         currentTime: new Date().toISOString(),
         isPremiumActive,
@@ -54,6 +73,8 @@ export async function GET(request: NextRequest) {
         remainingTrials,
         premiumExpiresAt: user.premiumExpiresAt?.toISOString(),
         isPremiumExpired: user.premiumExpiresAt ? user.premiumExpiresAt <= new Date() : false,
+        latestPayment: payments[0] || null,
+        hasValidPayments: payments.length > 0,
       },
       cacheCleared: true,
       environment: {
