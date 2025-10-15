@@ -119,5 +119,6 @@ export function clearUserCache(userId: string) {
  */
 export function clearPageCache(page: 'dashboard' | 'tryon') {
   console.log(`🧹 清除页面缓存: ${page}`)
-  revalidateTag(CACHE_TAGS[page.toUpperCase() as keyof typeof CACHE_TAGS])
+  const tag = page === 'dashboard' ? CACHE_TAGS.DASHBOARD : CACHE_TAGS.TRYON
+  revalidateTag(tag)
 }

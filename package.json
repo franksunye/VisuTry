@@ -6,7 +6,7 @@
     "dev": "next dev",
     "dev:skip-prisma": "next dev",
     "dev:test": "next dev --port 3001",
-    "build": "prisma generate && next build && next-sitemap",
+    "build": "prisma generate && next build",
     "start": "next start",
     "lint": "next lint",
     "postinstall": "prisma generate",

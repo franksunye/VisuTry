@@ -17,11 +17,11 @@ const logLevels = process.env.NODE_ENV === 'development'
   : ['error'] as const
 
 export const prisma = globalForPrisma.prisma ?? new PrismaClient({
-  adapter: adapter as any, // Type assertion for Prisma 6.x compatibility
+  // adapter: adapter, // 暂时禁用适配器以解决类型兼容性问题
   log: logLevels.map(level => ({
     level,
     emit: 'event'
-  })) as any
+  }))
 })
 
 // 🔍 监听查询事件，记录慢查询

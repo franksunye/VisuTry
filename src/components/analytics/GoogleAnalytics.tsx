@@ -55,10 +55,13 @@ export const trackEvent = (
 // 页面浏览追踪
 export const trackPageView = (url: string, title?: string) => {
   if (typeof window !== 'undefined' && window.gtag) {
-    window.gtag('config', process.env.NEXT_PUBLIC_GA_ID, {
-      page_title: title,
-      page_location: url,
-    })
+    const gaId = process.env.NEXT_PUBLIC_GA_ID
+    if (gaId) {
+      window.gtag('config', gaId, {
+        page_title: title,
+        page_location: url,
+      })
+    }
   }
 }
 
