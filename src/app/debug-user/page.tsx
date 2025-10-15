@@ -33,24 +33,52 @@ export default function DebugUserPage() {
   const { data: session, status } = useSession()
   const [debugData, setDebugData] = useState<DebugData | null>(null)
   const [loading, setLoading] = useState(false)
+  const [clearingCache, setClearingCache] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [message, setMessage] = useState<string | null>(null)
 
   const fetchDebugData = async () => {
     setLoading(true)
     setError(null)
-    
+    setMessage(null)
+
     try {
       const response = await fetch('/api/debug/user-data')
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}: ${response.statusText}`)
       }
-      
+
       const data = await response.json()
       setDebugData(data)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Unknown error')
     } finally {
       setLoading(false)
+    }
+  }
+
+  const clearCache = async () => {
+    setClearingCache(true)
+    setError(null)
+    setMessage(null)
+
+    try {
+      const response = await fetch('/api/debug/clear-cache', { method: 'POST' })
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`)
+      }
+
+      const data = await response.json()
+      setMessage('Cache cleared successfully! Refreshing data...')
+
+      // 等待一秒后自动刷新数据
+      setTimeout(() => {
+        fetchDebugData()
+      }, 1000)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Unknown error')
+    } finally {
+      setClearingCache(false)
     }
   }
 
@@ -74,14 +102,24 @@ export default function DebugUserPage() {
         <div className="bg-white rounded-lg shadow-lg p-6">
           <div className="flex items-center justify-between mb-6">
             <h1 className="text-2xl font-bold text-gray-900">User Data Debug</h1>
-            <button
-              onClick={fetchDebugData}
-              disabled={loading}
-              className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
-            >
-              <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
-              Refresh
-            </button>
+            <div className="flex space-x-3">
+              <button
+                onClick={clearCache}
+                disabled={clearingCache || loading}
+                className="flex items-center px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50"
+              >
+                <HardDrive className={`w-4 h-4 mr-2 ${clearingCache ? 'animate-pulse' : ''}`} />
+                Clear Cache
+              </button>
+              <button
+                onClick={fetchDebugData}
+                disabled={loading || clearingCache}
+                className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+              >
+                <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
+                Refresh
+              </button>
+            </div>
           </div>
 
           {error && (
@@ -89,6 +127,15 @@ export default function DebugUserPage() {
               <div className="flex items-center">
                 <AlertTriangle className="w-5 h-5 text-red-500 mr-2" />
                 <span className="text-red-700">Error: {error}</span>
+              </div>
+            </div>
+          )}
+
+          {message && (
+            <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg">
+              <div className="flex items-center">
+                <CheckCircle className="w-5 h-5 text-green-500 mr-2" />
+                <span className="text-green-700">{message}</span>
               </div>
             </div>
           )}
