@@ -11,7 +11,7 @@ import { ClientPerformanceMonitor } from "@/components/performance/ClientPerform
 import { Glasses, Plus } from "lucide-react"
 import Link from "next/link"
 import { perfLogger, logPageLoad } from "@/lib/performance-logger"
-import { getCachedUserData, getCachedUserPayment } from "@/lib/cache"
+import { getCachedUserPayment } from "@/lib/cache"
 
 // 性能优化：使用 Suspense 流式渲染
 // 1. 立即返回页面框架（< 100ms）
@@ -41,30 +41,18 @@ export default async function DashboardPage() {
 
   perfLogger.mark('dashboard:session-validated', { userId: session.user.id })
 
-  // 获取用户基本信息和最新支付记录（用于 SubscriptionCard）
-  // 使用统一的缓存管理工具
-  const [user, latestPayment] = await Promise.all([
-    getCachedUserData(session.user.id),
-    getCachedUserPayment(session.user.id)
-  ])
+  // 🔥 修复：直接使用 session.user 作为唯一数据源，避免缓存不一致
+  // session.user 已经包含了所有必要的用户信息（来自 JWT token）
+  // 只需要获取最新支付记录来确定订阅类型
+  const latestPayment = await getCachedUserPayment(session.user.id)
 
-  // 计算会员状态和剩余次数
-  const isPremiumActive = user?.isPremium &&
-    (!user.premiumExpiresAt || user.premiumExpiresAt > new Date())
-  const freeTrialLimit = parseInt(process.env.FREE_TRIAL_LIMIT || "3")
-  const remainingTrials = Math.max(0, freeTrialLimit - (user?.freeTrialsUsed || 0))
-
-  // 确定订阅类型
+  // 确定订阅类型（这是 session 中没有的额外信息）
   const subscriptionType = latestPayment?.productType || null
   const isYearlySubscription = subscriptionType === 'PREMIUM_YEARLY'
 
+  // 直接使用 session.user 的数据，不从数据库覆盖
   const userForCard = {
     ...session.user,
-    isPremium: user?.isPremium || false,
-    premiumExpiresAt: user?.premiumExpiresAt || null,
-    freeTrialsUsed: user?.freeTrialsUsed || 0,
-    isPremiumActive,
-    remainingTrials,
     subscriptionType,
     isYearlySubscription,
   }
