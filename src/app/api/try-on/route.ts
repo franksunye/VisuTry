@@ -87,11 +87,19 @@ export async function POST(request: NextRequest) {
     const isPremiumActive = user.isPremium &&
       (!user.premiumExpiresAt || user.premiumExpiresAt > new Date())
 
-    if (!isPremiumActive && user.freeTrialsUsed >= freeTrialLimit) {
-      return NextResponse.json(
-        { success: false, error: "Free trial limit reached, please upgrade to Standard" },
-        { status: 403 }
-      )
+    // 🔥 修复：检查配额时考虑 creditsBalance
+    // 优先级：Premium配额 > Credits Pack > 免费试用
+    if (!isPremiumActive) {
+      const freeRemaining = Math.max(0, freeTrialLimit - user.freeTrialsUsed)
+      const creditsRemaining = user.creditsBalance || 0
+      const totalRemaining = freeRemaining + creditsRemaining
+
+      if (totalRemaining <= 0) {
+        return NextResponse.json(
+          { success: false, error: "No remaining quota. Please purchase Credits Pack or upgrade to Standard." },
+          { status: 403 }
+        )
+      }
     }
 
     // Get uploaded files
@@ -199,9 +207,10 @@ export async function POST(request: NextRequest) {
       // Error handling is done inside processTryOnAsync
     }
 
-    // Update user usage count
-    // - Free users: increment freeTrialsUsed
-    // - Premium users: increment premiumUsageCount
+    // 🔥 修复：更新用户使用计数，正确处理 creditsBalance
+    // 优先级：
+    // - Premium用户：增加 premiumUsageCount（订阅配额优先，然后是credits）
+    // - 免费用户：优先使用 credits，然后使用免费试用
     if (isMockMode) {
       if (!isPremiumActive) {
         await MockDatabase.updateUser(userId, {
@@ -211,15 +220,34 @@ export async function POST(request: NextRequest) {
       // Note: Mock mode doesn't track premiumUsageCount yet
     } else {
       if (!isPremiumActive) {
-        // Free users: increment freeTrialsUsed
-        await prisma.user.update({
-          where: { id: userId },
-          data: {
-            freeTrialsUsed: user.freeTrialsUsed + 1
-          }
-        })
+        // 免费用户：优先消费 credits，如果没有 credits 则消费免费试用
+        const hasCredits = (user.creditsBalance || 0) > 0
+
+        if (hasCredits) {
+          // 有 credits：扣除 1 个 credit
+          await prisma.user.update({
+            where: { id: userId },
+            data: {
+              creditsBalance: {
+                decrement: 1
+              }
+            }
+          })
+          console.log(`💳 User ${userId}: Consumed 1 credit (${user.creditsBalance} -> ${user.creditsBalance - 1})`)
+        } else {
+          // 没有 credits：使用免费试用
+          await prisma.user.update({
+            where: { id: userId },
+            data: {
+              freeTrialsUsed: {
+                increment: 1
+              }
+            }
+          })
+          console.log(`🆓 User ${userId}: Used free trial (${user.freeTrialsUsed} -> ${user.freeTrialsUsed + 1})`)
+        }
       } else {
-        // Premium users: increment premiumUsageCount
+        // Premium用户：增加 premiumUsageCount
         await prisma.user.update({
           where: { id: userId },
           data: {
@@ -228,6 +256,7 @@ export async function POST(request: NextRequest) {
             }
           }
         })
+        console.log(`👑 Premium user ${userId}: Usage count (${user.premiumUsageCount} -> ${user.premiumUsageCount + 1})`)
       }
 
       // 清除用户缓存，确保 Dashboard 立即显示最新使用次数

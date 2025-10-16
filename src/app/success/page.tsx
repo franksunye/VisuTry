@@ -9,15 +9,32 @@ import Link from 'next/link'
 function SuccessContent() {
   const searchParams = useSearchParams()
   const router = useRouter()
-  const { data: session, status } = useSession()
+  const { data: session, status, update } = useSession()
   const [sessionId, setSessionId] = useState<string | null>(null)
   const [countdown, setCountdown] = useState(5)
+  const [sessionRefreshed, setSessionRefreshed] = useState(false)
 
   useEffect(() => {
     // 获取 session_id 参数
     const id = searchParams?.get('session_id') || null
     setSessionId(id)
   }, [searchParams])
+
+  useEffect(() => {
+    // 🔥 关键修复：支付成功后立即刷新session，确保显示最新的credits余额
+    // 这会触发JWT callback重新从数据库读取用户数据
+    if (status === 'authenticated' && !sessionRefreshed) {
+      console.log('💳 Payment success: Refreshing session to get updated credits...')
+      update().then(() => {
+        console.log('✅ Session refreshed with latest credits balance')
+        setSessionRefreshed(true)
+      }).catch((error) => {
+        console.error('❌ Failed to refresh session:', error)
+        // 即使刷新失败也标记为已尝试，避免无限重试
+        setSessionRefreshed(true)
+      })
+    }
+  }, [status, sessionRefreshed, update])
 
   useEffect(() => {
     // 倒计时自动跳转

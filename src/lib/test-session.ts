@@ -7,6 +7,8 @@ export interface TestUser {
   image: string
   username: string
   freeTrialsUsed: number
+  creditsBalance: number
+  premiumUsageCount: number
   isPremium: boolean
   premiumExpiresAt: Date | null
 }

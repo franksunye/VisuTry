@@ -12,6 +12,8 @@ export const mockUsers = [
     image: 'https://via.placeholder.com/150',
     username: 'testuser',
     freeTrialsUsed: 1,
+    creditsBalance: 0,
+    premiumUsageCount: 0,
     isPremium: false,
     premiumExpiresAt: null,
   },
@@ -22,6 +24,8 @@ export const mockUsers = [
     image: 'https://via.placeholder.com/150',
     username: 'premiumuser',
     freeTrialsUsed: 0,
+    creditsBalance: 10,
+    premiumUsageCount: 5,
     isPremium: true,
     premiumExpiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days from now
   }

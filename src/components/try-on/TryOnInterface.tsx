@@ -1,12 +1,14 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { useSession } from "next-auth/react"
 import { ImageUpload } from "@/components/upload/ImageUpload"
 import { ResultDisplay } from "@/components/try-on/ResultDisplay"
 import { Sparkles, ArrowRight, User, Glasses } from "lucide-react"
 import { TryOnRequest } from "@/types"
 
 export function TryOnInterface() {
+  const { update } = useSession()
   const [userImage, setUserImage] = useState<{ file: File; preview: string } | null>(null)
   const [glassesImage, setGlassesImage] = useState<{ file: File; preview: string } | null>(null)
   const [isProcessing, setIsProcessing] = useState(false)
@@ -36,6 +38,12 @@ export function TryOnInterface() {
             setIsProcessing(false)
             setCurrentTaskId(null)
             clearInterval(pollInterval)
+
+            // 🔥 关键修复：Try-on完成后刷新session，确保显示最新的使用次数和credits余额
+            console.log('✅ Try-on completed: Refreshing session to update usage count...')
+            update().catch((error) => {
+              console.error('❌ Failed to refresh session after try-on:', error)
+            })
           } else if (task.status === "failed") {
             alert(task.errorMessage || "AI processing failed, please try again")
             setCurrentStep("select")
