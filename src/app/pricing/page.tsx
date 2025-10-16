@@ -231,6 +231,25 @@ export default async function PricingPage() {
           </div>
         </div>
       </div>
+
+      {/* Legal Links */}
+      <div className="mt-8 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+        <p className="text-sm text-gray-700 text-center">
+          By subscribing, you agree to our{' '}
+          <Link href="/terms" className="text-blue-600 hover:underline font-medium">
+            Terms of Service
+          </Link>
+          {' '}and{' '}
+          <Link href="/privacy" className="text-blue-600 hover:underline font-medium">
+            Privacy Policy
+          </Link>
+          . View our{' '}
+          <Link href="/refund" className="text-blue-600 hover:underline font-medium">
+            Refund Policy
+          </Link>
+          {' '}for cancellation terms.
+        </p>
+      </div>
     </div>
   )
 }

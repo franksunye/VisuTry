@@ -16,6 +16,7 @@ VisuTry is a cutting-edge AI-powered virtual glasses try-on application that all
 - 📊 **User Dashboard**: Personal history, usage statistics, and account management
 - 🖼️ **Custom Upload**: Upload both user photos and custom glasses images
 - ⚡ **Real-time Processing**: Asynchronous AI processing with live status updates
+- ⚖️ **Legal Compliance**: Complete privacy policy, terms of service, and refund policy pages
 
 ## 🛠 Tech Stack
 
@@ -178,6 +179,8 @@ See `docs/VERSION_MANAGEMENT.md` for detailed guidelines.
 - [`docs/testing-guide.md`](docs/testing-guide.md) - Testing instructions
 - [`docs/VERSION_MANAGEMENT.md`](docs/VERSION_MANAGEMENT.md) - Version management guide
 - [`docs/RELEASE_GUIDE.md`](docs/RELEASE_GUIDE.md) - Quick release reference
+- [`docs/LEGAL_COMPLIANCE.md`](docs/LEGAL_COMPLIANCE.md) - Legal compliance documentation
+- [`docs/LEGAL_PAGES_QUICKSTART.md`](docs/LEGAL_PAGES_QUICKSTART.md) - Legal pages quick start guide
 - [`CHANGELOG.md`](CHANGELOG.md) - Version history and changes
 
 ## 🚀 Deployment

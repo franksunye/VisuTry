@@ -5,6 +5,7 @@ import { SessionProvider } from '@/components/providers/SessionProvider'
 import { DEFAULT_SEO } from '@/lib/seo'
 import { GoogleAnalytics } from '@/components/analytics/GoogleAnalytics'
 import { GoogleTagManager } from '@/components/analytics/GoogleTagManager'
+import { Footer } from '@/components/layout/Footer'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -28,8 +29,11 @@ export default function RootLayout({
         {gaId && <GoogleAnalytics gaId={gaId} />}
 
         <SessionProvider>
-          <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
-            {children}
+          <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex flex-col">
+            <div className="flex-grow">
+              {children}
+            </div>
+            <Footer />
           </div>
         </SessionProvider>
       </body>
