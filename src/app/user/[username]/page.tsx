@@ -134,7 +134,7 @@ export default async function UserPage({ params }: UserPageProps) {
               href="/"
               className="flex items-center text-blue-600 hover:text-blue-700 transition-colors"
             >
-              体验AI试戴
+              Try AI Glasses
             </a>
           </div>
         </div>
@@ -213,9 +213,9 @@ export default async function UserPage({ params }: UserPageProps) {
                 
                 <div className="text-center p-4 bg-gray-50 rounded-lg col-span-2 md:col-span-1">
                   <div className="text-2xl font-bold text-gray-900">
-                    {publicTryOns.length > 0 ? "活跃" : "新手"}
+                    {publicTryOns.length > 0 ? "Active" : "Newbie"}
                   </div>
-                  <div className="text-sm text-gray-600">用户状态</div>
+                  <div className="text-sm text-gray-600">User Status</div>
                 </div>
               </div>
             </div>
@@ -239,13 +239,13 @@ export default async function UserPage({ params }: UserPageProps) {
           <PublicTryOnGallery tryOns={publicTryOns} />
         </div>
 
-        {/* 底部提示 */}
+        {/* Bottom CTA */}
         <div className="mt-8 text-center">
           <div className="bg-blue-50 rounded-xl border border-blue-200 p-6 inline-block">
             <Glasses className="w-8 h-8 text-blue-600 mx-auto mb-3" />
-            <h4 className="font-semibold text-blue-900 mb-2">想要体验AI试戴？</h4>
+            <h4 className="font-semibold text-blue-900 mb-2">Want to Try AI Glasses?</h4>
             <p className="text-blue-800 text-sm mb-4">
-              使用VisuTry的AI技术，轻松试戴各种眼镜款式
+              Use VisuTry&apos;s AI technology to easily try on various glasses styles
             </p>
             <a
               href="/try-on"

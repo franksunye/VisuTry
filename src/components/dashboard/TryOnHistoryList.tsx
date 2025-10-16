@@ -84,26 +84,26 @@ export function TryOnHistoryList({
   }
 
   const handleDelete = async (taskId: string) => {
-    if (!confirm("确定要删除这个试戴记录吗？此操作无法撤销。")) {
+    if (!confirm("Are you sure you want to delete this try-on record? This action cannot be undone.")) {
       return
     }
 
     setDeletingId(taskId)
-    
+
     try {
       const response = await fetch(`/api/try-on/${taskId}`, {
         method: "DELETE"
       })
 
       if (response.ok) {
-        // 刷新页面
+        // Refresh page
         window.location.reload()
       } else {
-        throw new Error("删除失败")
+        throw new Error("Delete failed")
       }
     } catch (error) {
-      console.error("删除失败:", error)
-      alert("删除失败，请重试")
+      console.error("Delete failed:", error)
+      alert("Delete failed, please try again")
     } finally {
       setDeletingId(null)
     }
@@ -247,7 +247,7 @@ export function TryOnHistoryList({
             )}
           >
             <ChevronLeft className="w-4 h-4 mr-1" />
-            上一页
+            Previous
           </Link>
           
           <div className="flex space-x-1">
@@ -276,7 +276,7 @@ export function TryOnHistoryList({
                 : "text-gray-700 hover:bg-gray-100"
             )}
           >
-            下一页
+            Next
             <ChevronRight className="w-4 h-4 ml-1" />
           </Link>
         </div>

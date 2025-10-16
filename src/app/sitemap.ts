@@ -4,8 +4,8 @@ import { getBlogSitemapEntries } from '@/lib/blog'
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://visutry.com'
-  
-  // 静态页面
+
+  // Static pages
   const staticPages: MetadataRoute.Sitemap = [
     {
       url: baseUrl,
@@ -58,25 +58,25 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     },
   ]
 
-  // 动态博客文章页面
+  // Dynamic blog post pages
   const blogPages: MetadataRoute.Sitemap = await getBlogSitemapEntries()
 
-  // 动态用户公开页面（如果有公开用户页面的话）
+  // Dynamic user public pages
   let userPages: MetadataRoute.Sitemap = []
   try {
-    // 获取有公开页面的用户（假设有 isPublic 字段）
+    // Get users with public pages
     const publicUsers = await prisma.user.findMany({
       where: {
-        // 这里可以添加条件，比如用户选择公开个人页面
+        // Add conditions here, e.g., users who chose to make their profile public
         // isPublic: true,
-        // 或者有公开试戴记录的用户
+        // or users with public try-on records
       },
       select: {
         id: true,
         name: true,
         updatedAt: true,
       },
-      take: 1000, // 限制数量避免sitemap过大
+      take: 1000, // Limit to avoid sitemap being too large
     })
 
     userPages = publicUsers.map(user => ({
@@ -86,24 +86,24 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.5,
     }))
   } catch (error) {
-    console.log('无法获取用户页面，跳过用户sitemap生成')
+    console.log('Unable to fetch user pages, skipping user sitemap generation')
     userPages = []
   }
 
-  // 动态试戴分享页面（公开的分享页面）
+  // Dynamic try-on share pages (public share pages)
   let sharePages: MetadataRoute.Sitemap = []
   try {
-    // 获取公开的试戴分享页面
+    // Get public try-on share pages
     const publicShares = await prisma.tryOnTask.findMany({
       where: {
-        // isPublic: true, // 暂时注释，因为模型中可能没有这个字段
-        // 可以根据实际需求添加条件
+        // isPublic: true, // Commented out temporarily as the model may not have this field
+        // Add conditions based on actual requirements
       },
       select: {
         id: true,
         updatedAt: true,
       },
-      take: 100, // 限制数量避免sitemap过大
+      take: 100, // Limit to avoid sitemap being too large
     })
 
     sharePages = publicShares.map(share => ({
@@ -113,11 +113,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.6,
     }))
   } catch (error) {
-    console.log('无法获取分享页面，跳过分享sitemap生成')
+    console.log('Unable to fetch share pages, skipping share sitemap generation')
     sharePages = []
   }
 
-  // 合并所有页面
+  // Merge all pages
   return [
     ...staticPages,
     ...blogPages,
@@ -126,5 +126,5 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   ]
 }
 
-// 可选：配置sitemap的更新频率
-export const revalidate = 3600 // 每小时重新生成一次
+// Optional: Configure sitemap revalidation frequency
+export const revalidate = 3600 // Regenerate every hour

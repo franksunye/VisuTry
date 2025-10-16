@@ -11,7 +11,7 @@ export default async function DebugImagesPage() {
     redirect("/auth/signin")
   }
 
-  // 获取最近的试戴记录
+  // Get recent try-on records
   const tryOns = await prisma.tryOnTask.findMany({
     where: { userId: session.user.id },
     orderBy: { createdAt: "desc" },
@@ -25,24 +25,24 @@ export default async function DebugImagesPage() {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <h1 className="text-2xl font-bold mb-6">图片调试页面</h1>
-      
+      <h1 className="text-2xl font-bold mb-6">Image Debug Page</h1>
+
       <div className="space-y-8">
         {tryOns.map((tryOn, index) => (
           <div key={tryOn.id} className="border p-4 rounded-lg">
-            <h2 className="text-lg font-semibold mb-4">试戴记录 #{index + 1}</h2>
-            
-            {/* 原始 URL */}
+            <h2 className="text-lg font-semibold mb-4">Try-On Record #{index + 1}</h2>
+
+            {/* Original URL */}
             <div className="mb-4">
-              <h3 className="font-medium mb-2">原始图片 URL：</h3>
+              <h3 className="font-medium mb-2">Original Image URL:</h3>
               <div className="bg-gray-100 p-2 rounded text-xs break-all">
                 {tryOn.resultImageUrl || tryOn.userImageUrl}
               </div>
             </div>
 
-            {/* 使用 Next.js Image 组件 */}
+            {/* Using Next.js Image component */}
             <div className="mb-4">
-              <h3 className="font-medium mb-2">Next.js Image 组件（quality=40, width=300）：</h3>
+              <h3 className="font-medium mb-2">Next.js Image Component (quality=40, width=300):</h3>
               <div className="w-[300px] h-[300px] relative border">
                 <Image
                   src={tryOn.resultImageUrl || tryOn.userImageUrl}
@@ -55,9 +55,9 @@ export default async function DebugImagesPage() {
               </div>
             </div>
 
-            {/* 使用原生 img 标签 */}
+            {/* Using native img tag */}
             <div className="mb-4">
-              <h3 className="font-medium mb-2">原生 img 标签（直接加载）：</h3>
+              <h3 className="font-medium mb-2">Native img Tag (Direct Load):</h3>
               <div className="w-[300px] h-[300px] border">
                 <img
                   src={tryOn.resultImageUrl || tryOn.userImageUrl}
@@ -67,30 +67,30 @@ export default async function DebugImagesPage() {
               </div>
             </div>
 
-            {/* URL 分析 */}
+            {/* URL Analysis */}
             <div className="bg-blue-50 border border-blue-200 p-4 rounded mb-4">
-              <h3 className="font-medium mb-2">📊 URL 分析：</h3>
+              <h3 className="font-medium mb-2">📊 URL Analysis:</h3>
               <div className="space-y-2 text-sm">
                 <div>
-                  <strong>域名：</strong>
+                  <strong>Domain:</strong>
                   <code className="bg-gray-200 px-1 ml-2">
                     {new URL(tryOn.resultImageUrl || tryOn.userImageUrl).hostname}
                   </code>
                 </div>
                 <div>
-                  <strong>是否在白名单：</strong>
+                  <strong>In Whitelist:</strong>
                   <span className={`ml-2 px-2 py-1 rounded ${
                     (tryOn.resultImageUrl || tryOn.userImageUrl).includes('public.blob.vercel-storage.com')
                       ? 'bg-green-100 text-green-800'
                       : 'bg-red-100 text-red-800'
                   }`}>
                     {(tryOn.resultImageUrl || tryOn.userImageUrl).includes('public.blob.vercel-storage.com')
-                      ? '✅ 是（应该被优化）'
-                      : '❌ 否（可能不会被优化）'}
+                      ? '✅ Yes (Should be optimized)'
+                      : '❌ No (May not be optimized)'}
                   </span>
                 </div>
                 <div>
-                  <strong>预期优化 URL：</strong>
+                  <strong>Expected Optimized URL:</strong>
                   <code className="bg-gray-200 px-1 ml-2 text-xs break-all block mt-1">
                     /_next/image?url={encodeURIComponent(tryOn.resultImageUrl || tryOn.userImageUrl)}&w=384&q=40
                   </code>
@@ -98,18 +98,18 @@ export default async function DebugImagesPage() {
               </div>
             </div>
 
-            {/* 检查说明 */}
+            {/* Check Instructions */}
             <div className="bg-yellow-50 border border-yellow-200 p-4 rounded">
-              <h3 className="font-medium mb-2">🔍 检查步骤：</h3>
+              <h3 className="font-medium mb-2">🔍 Check Steps:</h3>
               <ol className="list-decimal list-inside space-y-1 text-sm">
-                <li>打开 Chrome DevTools (F12)</li>
-                <li>切换到 Network 标签</li>
-                <li>刷新页面</li>
-                <li>查找图片请求</li>
-                <li>检查 URL 是否包含 <code className="bg-gray-200 px-1">/_next/image?url=...</code></li>
-                <li>检查 Response Headers 中的 Content-Type</li>
-                <li>检查文件大小（应该 &lt; 100 KB）</li>
-                <li><strong>如果看到 Base64</strong>：右键点击图片 → 在新标签页打开，查看是否能正常加载</li>
+                <li>Open Chrome DevTools (F12)</li>
+                <li>Switch to Network tab</li>
+                <li>Refresh page</li>
+                <li>Find image requests</li>
+                <li>Check if URL contains <code className="bg-gray-200 px-1">/_next/image?url=...</code></li>
+                <li>Check Content-Type in Response Headers</li>
+                <li>Check file size (should be &lt; 100 KB)</li>
+                <li><strong>If you see Base64</strong>: Right-click image → Open in new tab, check if it loads properly</li>
               </ol>
             </div>
           </div>
