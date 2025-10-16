@@ -71,28 +71,38 @@ function getProductDescription(productType: ProductType): string {
 }
 ```
 
-### 新的描述格式
+### 新的描述格式（友好详细版）
 
-| 产品类型 | 旧描述 | 新描述 |
-|---------|--------|--------|
-| PREMIUM_MONTHLY | 高级会员 - 月付 | Standard - Monthly (30 credits) |
-| PREMIUM_YEARLY | 高级会员 - 年付 | Standard - Annual (420 credits) |
-| CREDITS_PACK | 试戴次数包 - 20次 | Credits Pack (10 credits) |
+| 产品类型 | 旧描述（中文） | 新描述（英文，用户友好） |
+|---------|--------------|----------------------|
+| PREMIUM_MONTHLY | 高级会员 - 月付 | **30 AI try-ons per month + Standard features** |
+| PREMIUM_YEARLY | 高级会员 - 年付 | **420 AI try-ons per year (360 + 60 bonus) + Standard features** |
+| CREDITS_PACK | 试戴次数包 - 20次 | **Get 10 AI try-on credits (never expire)** |
 
 ### 优势
-1. **国际化**：使用英文描述
-2. **数据一致性**：从配置读取，确保准确
-3. **动态更新**：配额变化时自动更新
-4. **类型安全**：利用TypeScript类型系统
-5. **可维护性**：单一数据源
+1. **用户友好**：描述清晰易懂，突出产品价值和特点
+2. **国际化**：使用英文描述
+3. **数据一致性**：从配置读取，确保准确
+4. **动态更新**：配额变化时自动更新
+5. **类型安全**：利用TypeScript类型系统
+6. **可维护性**：单一数据源
 
 ### 修改的文件
 - `src/app/api/payment/webhook/route.ts` - 更新`getProductDescription`函数
 
+### 实现细节
+在 `PRODUCT_METADATA` 中添加 `paymentDescription` 字段：
+```typescript
+CREDITS_PACK: {
+  paymentDescription: `Get ${QUOTA_CONFIG.CREDITS_PACK} AI try-on credits (never expire)`,
+  // ... 其他字段
+}
+```
+
 ### 测试结果
 - ✅ 编译通过
 - ✅ 描述格式测试通过
-- ✅ 所有产品类型描述正确
+- ✅ 所有产品类型描述正确且用户友好
 
 ### 相关文档
 - `docs/PAYMENT_DESCRIPTION_FIX.md` - 详细技术文档

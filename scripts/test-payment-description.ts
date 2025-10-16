@@ -14,9 +14,9 @@ function getProductDescription(productType: ProductType): string {
   if (!product) {
     return "Unknown Product"
   }
-  
-  // 格式：产品名称 (配额信息)
-  return `${product.name} (${product.quota} credits)`
+
+  // 使用专门为支付记录设计的详细描述
+  return product.paymentDescription
 }
 
 async function main() {
@@ -38,9 +38,9 @@ async function main() {
   }
 
   console.log('预期的支付记录描述：')
-  console.log('  - PREMIUM_MONTHLY: "Standard - Monthly (30 credits)"')
-  console.log('  - PREMIUM_YEARLY: "Standard - Annual (420 credits)"')
-  console.log('  - CREDITS_PACK: "Credits Pack (10 credits)"')
+  console.log('  - PREMIUM_MONTHLY: "30 AI try-ons per month + Standard features"')
+  console.log('  - PREMIUM_YEARLY: "420 AI try-ons per year (360 + 60 bonus) + Standard features"')
+  console.log('  - CREDITS_PACK: "Get 10 AI try-on credits (never expire)"')
   console.log()
 
   console.log('✅ 所有描述已更新为英文格式！')

@@ -246,6 +246,6 @@ function getProductDescription(productType: ProductType): string {
     return "Unknown Product"
   }
 
-  // 格式：产品名称 (配额信息)
-  return `${product.name} (${product.quota} credits)`
+  // 使用专门为支付记录设计的详细描述
+  return product.paymentDescription
 }

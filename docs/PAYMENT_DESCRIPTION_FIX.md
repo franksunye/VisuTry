@@ -53,6 +53,27 @@ function getProductDescription(productType: ProductType): string {
 ```
 
 ### 修改后
+
+**步骤1：在配置中添加 `paymentDescription` 字段**
+```typescript
+// src/config/pricing.ts
+export const PRODUCT_METADATA = {
+  PREMIUM_MONTHLY: {
+    // ... 其他字段
+    paymentDescription: `${QUOTA_CONFIG.MONTHLY_SUBSCRIPTION} AI try-ons per month + Standard features`,
+  },
+  PREMIUM_YEARLY: {
+    // ... 其他字段
+    paymentDescription: `${QUOTA_CONFIG.YEARLY_SUBSCRIPTION} AI try-ons per year (360 + 60 bonus) + Standard features`,
+  },
+  CREDITS_PACK: {
+    // ... 其他字段
+    paymentDescription: `Get ${QUOTA_CONFIG.CREDITS_PACK} AI try-on credits (never expire)`,
+  },
+}
+```
+
+**步骤2：使用 `paymentDescription` 字段**
 ```typescript
 import { QUOTA_CONFIG, PRODUCT_METADATA } from "@/config/pricing"
 
@@ -62,27 +83,31 @@ function getProductDescription(productType: ProductType): string {
   if (!product) {
     return "Unknown Product"
   }
-  
-  // 格式：产品名称 (配额信息)
-  return `${product.name} (${product.quota} credits)`
+
+  // 使用专门为支付记录设计的详细描述
+  return product.paymentDescription
 }
 ```
 
 ## 新的描述格式
 
-| 产品类型 | 旧描述（中文） | 新描述（英文） |
-|---------|--------------|--------------|
-| PREMIUM_MONTHLY | 高级会员 - 月付 | Standard - Monthly (30 credits) |
-| PREMIUM_YEARLY | 高级会员 - 年付 | Standard - Annual (420 credits) |
-| CREDITS_PACK | 试戴次数包 - 20次 | Credits Pack (10 credits) |
+| 产品类型 | 旧描述（中文） | 新描述（英文，友好详细） |
+|---------|--------------|----------------------|
+| PREMIUM_MONTHLY | 高级会员 - 月付 | **30 AI try-ons per month + Standard features** |
+| PREMIUM_YEARLY | 高级会员 - 年付 | **420 AI try-ons per year (360 + 60 bonus) + Standard features** |
+| CREDITS_PACK | 试戴次数包 - 20次 | **Get 10 AI try-on credits (never expire)** |
 
 ## 优势
 
-1. **国际化**：使用英文描述，符合国际化标准
-2. **数据一致性**：从 `PRODUCT_METADATA` 读取，确保与产品配置一致
-3. **动态更新**：配额变化时自动更新描述，无需修改代码
-4. **类型安全**：利用 TypeScript 类型系统，避免拼写错误
-5. **可维护性**：单一数据源，易于维护
+1. **用户友好**：描述清晰易懂，突出产品价值
+   - Credits Pack: "Get 10 AI try-on credits (never expire)" - 强调永不过期
+   - Monthly: "30 AI try-ons per month + Standard features" - 明确配额和功能
+   - Yearly: "420 AI try-ons per year (360 + 60 bonus) + Standard features" - 突出奖励
+2. **国际化**：使用英文描述，符合国际化标准
+3. **数据一致性**：从 `PRODUCT_METADATA` 读取，确保与产品配置一致
+4. **动态更新**：配额变化时自动更新描述，无需修改代码
+5. **类型安全**：利用 TypeScript 类型系统，避免拼写错误
+6. **可维护性**：单一数据源，易于维护
 
 ## 数据流
 
@@ -105,9 +130,9 @@ npx tsx scripts/test-payment-description.ts
 
 输出：
 ```
-✅ PREMIUM_MONTHLY: "Standard - Monthly (30 credits)"
-✅ PREMIUM_YEARLY: "Standard - Annual (420 credits)"
-✅ CREDITS_PACK: "Credits Pack (10 credits)"
+✅ PREMIUM_MONTHLY: "30 AI try-ons per month + Standard features"
+✅ PREMIUM_YEARLY: "420 AI try-ons per year (360 + 60 bonus) + Standard features"
+✅ CREDITS_PACK: "Get 10 AI try-on credits (never expire)"
 ```
 
 ## 影响范围

@@ -34,6 +34,8 @@ export const PRODUCT_METADATA = {
     name: "Standard - Monthly",
     shortName: "Standard",
     description: "Most popular choice",
+    // 用于支付记录的详细描述
+    paymentDescription: `${QUOTA_CONFIG.MONTHLY_SUBSCRIPTION} AI try-ons per month + Standard features`,
     quota: QUOTA_CONFIG.MONTHLY_SUBSCRIPTION,
     price: PRICE_CONFIG.MONTHLY_SUBSCRIPTION,
     currency: "usd",
@@ -55,6 +57,8 @@ export const PRODUCT_METADATA = {
     name: "Standard - Annual",
     shortName: "Standard Annual",
     description: "Best value",
+    // 用于支付记录的详细描述
+    paymentDescription: `${QUOTA_CONFIG.YEARLY_SUBSCRIPTION} AI try-ons per year (360 + 60 bonus) + Standard features`,
     quota: QUOTA_CONFIG.YEARLY_SUBSCRIPTION,
     price: PRICE_CONFIG.YEARLY_SUBSCRIPTION,
     currency: "usd",
@@ -77,6 +81,8 @@ export const PRODUCT_METADATA = {
     name: "Credits Pack",
     shortName: "Credits Pack",
     description: "Perfect for occasional users",
+    // 用于支付记录的详细描述
+    paymentDescription: `Get ${QUOTA_CONFIG.CREDITS_PACK} AI try-on credits (never expire)`,
     quota: QUOTA_CONFIG.CREDITS_PACK,
     price: PRICE_CONFIG.CREDITS_PACK,
     currency: "usd",
