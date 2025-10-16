@@ -6,7 +6,7 @@ export const SITE_CONFIG = {
   name: 'VisuTry',
   title: 'VisuTry - AI Virtual Glasses Try-On Tool',
   description: 'Experience virtual glasses try-on with AI technology. Find the perfect glasses style for your face shape. Try multiple brands online with intelligent recommendations.',
-  url: process.env.NEXT_PUBLIC_SITE_URL || 'https://visutry.vercel.app',
+  url: process.env.NEXT_PUBLIC_SITE_URL || 'https://visutry.com',
   ogImage: '/og-image.jpg',
   keywords: [
     'virtual glasses try-on',

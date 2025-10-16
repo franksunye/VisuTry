@@ -1,6 +1,6 @@
 /** @type {import('next-sitemap').IConfig} */
 module.exports = {
-  siteUrl: process.env.SITE_URL || 'https://visutry.vercel.app',
+  siteUrl: process.env.NEXT_PUBLIC_SITE_URL || 'https://visutry.com',
   generateRobotsTxt: false, // 我们已经手动创建了 robots.txt
   generateIndexSitemap: true, // 生成索引站点地图
   
@@ -87,7 +87,7 @@ module.exports = {
       }
     ],
     additionalSitemaps: [
-      'https://visutry.vercel.app/sitemap.xml',
+      `${process.env.NEXT_PUBLIC_SITE_URL || 'https://visutry.com'}/sitemap.xml`,
     ],
   }
 }

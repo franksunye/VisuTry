@@ -3,7 +3,7 @@ import { prisma } from '@/lib/prisma'
 import { getBlogSitemapEntries } from '@/lib/blog'
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://visutry.vercel.app'
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://visutry.com'
   
   // 静态页面
   const staticPages: MetadataRoute.Sitemap = [

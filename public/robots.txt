@@ -17,7 +17,7 @@ Allow: /api/health
 Allow: /share/
 
 # Sitemap location
-Sitemap: https://visutry.vercel.app/sitemap.xml
+Sitemap: https://visutry.com/sitemap.xml
 
 # Crawl delay (seconds)
 Crawl-delay: 1
