@@ -5,7 +5,7 @@ import { Glasses, ArrowLeft, Star, Zap } from "lucide-react"
 import Link from "next/link"
 import { Metadata } from 'next'
 import { generateSEO } from '@/lib/seo'
-import { PRODUCT_METADATA, formatPrice } from '@/config/pricing'
+import { PRODUCT_METADATA, QUOTA_CONFIG, formatPrice } from '@/config/pricing'
 
 export const metadata: Metadata = generateSEO({
   title: 'Pricing Plans - AI Glasses Try-On | VisuTry',
@@ -165,9 +165,9 @@ export default async function PricingPage() {
             <tbody className="divide-y divide-gray-200">
               <tr>
                 <td className="px-6 py-4 text-sm text-gray-900">AI Try-ons</td>
-                <td className="px-6 py-4 text-sm text-center text-gray-600">{PRODUCT_METADATA.CREDITS_PACK.quota} times</td>
-                <td className="px-6 py-4 text-sm text-center text-gray-600">+{PRODUCT_METADATA.CREDITS_PACK.quota} times</td>
-                <td className="px-6 py-4 text-sm text-center text-green-600">{PRODUCT_METADATA.PREMIUM_MONTHLY.quota}/month or {PRODUCT_METADATA.PREMIUM_YEARLY.quota}/year</td>
+                <td className="px-6 py-4 text-sm text-center text-gray-600">{QUOTA_CONFIG.FREE_TRIAL} times</td>
+                <td className="px-6 py-4 text-sm text-center text-gray-600">+{QUOTA_CONFIG.CREDITS_PACK} times</td>
+                <td className="px-6 py-4 text-sm text-center text-green-600">{QUOTA_CONFIG.MONTHLY_SUBSCRIPTION}/month or {QUOTA_CONFIG.YEARLY_SUBSCRIPTION}/year</td>
               </tr>
               <tr>
                 <td className="px-6 py-4 text-sm text-gray-900">Image Quality</td>
