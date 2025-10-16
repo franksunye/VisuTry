@@ -9,6 +9,7 @@ import { MockCredentialsProvider, isMockMode } from "@/lib/mocks/auth"
 import { log } from "@/lib/logger"
 import { perfLogger } from "@/lib/performance-logger"
 import { clearUserCache } from "@/lib/cache"
+import { QUOTA_CONFIG } from "@/config/pricing"
 
 // Lightweight debug sink to file for local dev (so we can read errors without terminal access)
 const __debugWrite = (label: string, data: any) => {
@@ -170,9 +171,8 @@ export const authOptions: NextAuthOptions = {
             token.isPremiumActive = dbUser.isPremium &&
               (!dbUser.premiumExpiresAt || dbUser.premiumExpiresAt > new Date())
 
-            // Calculate remaining trials
+            // Calculate remaining trials (using centralized config)
             // Priority: Premium quota > Credits Pack > Free trials
-            const freeTrialLimit = parseInt(process.env.FREE_TRIAL_LIMIT || "3")
             if (token.isPremiumActive) {
               // Premium users: show their subscription quota
               token.remainingTrials = 999 // Will be calculated based on subscription type
@@ -181,7 +181,7 @@ export const authOptions: NextAuthOptions = {
               token.remainingTrials = dbUser.creditsBalance
             } else {
               // Free users: show free trial remaining
-              token.remainingTrials = Math.max(0, freeTrialLimit - dbUser.freeTrialsUsed)
+              token.remainingTrials = Math.max(0, QUOTA_CONFIG.FREE_TRIAL - dbUser.freeTrialsUsed)
             }
 
             // 清除用户缓存，确保Dashboard等页面使用最新数据

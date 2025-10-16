@@ -5,6 +5,7 @@ import { Glasses, ArrowLeft, Star, Zap } from "lucide-react"
 import Link from "next/link"
 import { Metadata } from 'next'
 import { generateSEO } from '@/lib/seo'
+import { PRODUCT_METADATA, formatPrice } from '@/config/pricing'
 
 export const metadata: Metadata = generateSEO({
   title: 'Pricing Plans - AI Glasses Try-On | VisuTry',
@@ -36,62 +37,40 @@ export default async function PricingPage() {
     remainingTrials: remainingTrials,
   } : null
 
+  // Use centralized pricing configuration
   const pricingPlans = [
     {
       id: "CREDITS_PACK",
-      name: "Credits Pack",
-      description: "Perfect for occasional users",
-      price: "$2.99",
+      name: PRODUCT_METADATA.CREDITS_PACK.name,
+      description: PRODUCT_METADATA.CREDITS_PACK.description,
+      price: formatPrice(PRODUCT_METADATA.CREDITS_PACK.price),
       period: "One-time",
-      features: [
-        "10 AI try-ons",
-        "Credits never expire",
-        "High-quality image processing",
-        "Unlimited downloads and sharing",
-        "Priority customer support"
-      ],
+      features: [...PRODUCT_METADATA.CREDITS_PACK.features],
       buttonText: "Buy Credits Pack",
-      popular: false,
+      popular: PRODUCT_METADATA.CREDITS_PACK.popular,
       icon: <Zap className="w-6 h-6" />
     },
     {
       id: "PREMIUM_MONTHLY",
-      name: "Standard",
-      description: "Most popular choice",
-      price: "$8.99",
+      name: PRODUCT_METADATA.PREMIUM_MONTHLY.shortName,
+      description: PRODUCT_METADATA.PREMIUM_MONTHLY.description,
+      price: formatPrice(PRODUCT_METADATA.PREMIUM_MONTHLY.price),
       period: "per month",
-      features: [
-        "30 AI try-ons per month",
-        "High-quality image processing",
-        "Priority processing queue",
-        "Unlimited downloads and sharing",
-        "Standard glasses frame library",
-        "Priority customer support",
-        "Ad-free experience"
-      ],
+      features: [...PRODUCT_METADATA.PREMIUM_MONTHLY.features],
       buttonText: "Start Monthly Subscription",
-      popular: true,
+      popular: PRODUCT_METADATA.PREMIUM_MONTHLY.popular,
       icon: <Star className="w-6 h-6" />
     },
     {
       id: "PREMIUM_YEARLY",
-      name: "Standard Annual",
-      description: "Best value",
-      price: "$89.99",
+      name: PRODUCT_METADATA.PREMIUM_YEARLY.shortName,
+      description: PRODUCT_METADATA.PREMIUM_YEARLY.description,
+      price: formatPrice(PRODUCT_METADATA.PREMIUM_YEARLY.price),
       period: "per year",
-      originalPrice: "$107.88",
-      features: [
-        "420 AI try-ons per year (360 + 60 bonus)",
-        "High-quality image processing",
-        "Priority processing queue",
-        "Unlimited downloads and sharing",
-        "Standard glasses frame library",
-        "Priority customer support",
-        "Ad-free experience",
-        "Save 2 months + 60 bonus try-ons"
-      ],
+      originalPrice: "$107.88", // 12 * $8.99
+      features: [...PRODUCT_METADATA.PREMIUM_YEARLY.features],
       buttonText: "Start Annual Subscription",
-      popular: false,
+      popular: PRODUCT_METADATA.PREMIUM_YEARLY.popular,
       icon: <Star className="w-6 h-6" />
     }
   ]
@@ -186,9 +165,9 @@ export default async function PricingPage() {
             <tbody className="divide-y divide-gray-200">
               <tr>
                 <td className="px-6 py-4 text-sm text-gray-900">AI Try-ons</td>
-                <td className="px-6 py-4 text-sm text-center text-gray-600">3 times</td>
-                <td className="px-6 py-4 text-sm text-center text-gray-600">+10 times</td>
-                <td className="px-6 py-4 text-sm text-center text-green-600">30/month or 420/year</td>
+                <td className="px-6 py-4 text-sm text-center text-gray-600">{PRODUCT_METADATA.CREDITS_PACK.quota} times</td>
+                <td className="px-6 py-4 text-sm text-center text-gray-600">+{PRODUCT_METADATA.CREDITS_PACK.quota} times</td>
+                <td className="px-6 py-4 text-sm text-center text-green-600">{PRODUCT_METADATA.PREMIUM_MONTHLY.quota}/month or {PRODUCT_METADATA.PREMIUM_YEARLY.quota}/year</td>
               </tr>
               <tr>
                 <td className="px-6 py-4 text-sm text-gray-900">Image Quality</td>

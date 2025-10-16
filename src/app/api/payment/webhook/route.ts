@@ -11,6 +11,7 @@ import {
   ProductType
 } from "@/lib/stripe"
 import Stripe from "stripe"
+import { QUOTA_CONFIG } from "@/config/pricing"
 
 // Force dynamic rendering for this route
 export const dynamic = 'force-dynamic'
@@ -96,13 +97,13 @@ async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session) 
       }
     })
 
-    // 如果是次数包，增加用户的 credits 余额
+    // 如果是次数包，增加用户的 credits 余额（使用配置的额度）
     if (paymentData.productType === "CREDITS_PACK") {
       await prisma.user.update({
         where: { id: paymentData.userId },
         data: {
           creditsBalance: {
-            increment: 10 // 增加10个 credits（永不过期）
+            increment: QUOTA_CONFIG.CREDITS_PACK
           }
         }
       })

@@ -6,6 +6,7 @@ import { ArrowLeft, CreditCard, CheckCircle, XCircle, Clock } from "lucide-react
 import Link from "next/link"
 import { Metadata } from 'next'
 import { generateSEO } from '@/lib/seo'
+import { getSubscriptionQuotaLabel } from '@/config/pricing'
 
 export const metadata: Metadata = generateSEO({
   title: 'Payment History - AI Glasses Try-On | VisuTry',
@@ -41,22 +42,12 @@ export default async function PaymentsPage() {
   )
   const isYearlySubscription = latestSubscriptionPayment?.productType === 'PREMIUM_YEARLY'
 
-  // Subscription quota display (simplified - just show total quota, not remaining)
-  let subscriptionQuota: number | string = 0
-  let subscriptionQuotaLabel = ''
-  if (user.isPremiumActive) {
-    if (isYearlySubscription) {
-      subscriptionQuota = 420
-      subscriptionQuotaLabel = 'Annual quota'
-    } else {
-      subscriptionQuota = 30
-      subscriptionQuotaLabel = 'Monthly quota'
-    }
-  } else {
-    const freeLimit = 3
-    subscriptionQuota = Math.max(0, freeLimit - user.freeTrialsUsed)
-    subscriptionQuotaLabel = `${subscriptionQuota} of ${freeLimit} remaining`
-  }
+  // Calculate subscription quota remaining using centralized config
+  const { quota: subscriptionQuota, label: subscriptionQuotaLabel } = getSubscriptionQuotaLabel(
+    user.isPremiumActive,
+    isYearlySubscription,
+    user.freeTrialsUsed
+  )
 
   return (
     <div className="container max-w-4xl px-4 py-8 mx-auto">

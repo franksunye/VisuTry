@@ -1,6 +1,7 @@
 import { DashboardStats } from "./DashboardStats"
 import { perfLogger } from "@/lib/performance-logger"
 import { getCachedUserStats } from "@/lib/cache"
+import { QUOTA_CONFIG } from "@/config/pricing"
 
 interface DashboardStatsAsyncProps {
   userId: string
@@ -58,18 +59,16 @@ export async function DashboardStatsAsync({
 
     if (isPremiumActive) {
       if (isYearlySubscription) {
-        // 年费用户：420 - 已使用 + Credits Pack
-        const yearlyLimit = 420
-        const subscriptionRemaining = Math.max(0, yearlyLimit - totalTryOns)
+        // 年费用户：使用配置的年度额度
+        const subscriptionRemaining = Math.max(0, QUOTA_CONFIG.YEARLY_SUBSCRIPTION - freeTrialsUsed)
         const totalRemaining = subscriptionRemaining + creditsBalance
         remainingDisplay = totalRemaining
         remainingDescription = creditsBalance > 0
           ? `Annual (${subscriptionRemaining}) + Credits (${creditsBalance})`
           : "Annual Plan"
       } else if (isMonthlySubscription) {
-        // 月费用户：30 - 本月已使用 + Credits Pack
-        const monthlyLimit = 30
-        const subscriptionRemaining = Math.max(0, monthlyLimit - totalTryOns)
+        // 月费用户：使用配置的月度额度
+        const subscriptionRemaining = Math.max(0, QUOTA_CONFIG.MONTHLY_SUBSCRIPTION - freeTrialsUsed)
         const totalRemaining = subscriptionRemaining + creditsBalance
         remainingDisplay = totalRemaining
         remainingDescription = creditsBalance > 0
@@ -81,9 +80,8 @@ export async function DashboardStatsAsync({
         remainingDescription = "Subscription"
       }
     } else {
-      // 免费用户：免费配额 + Credits Pack
-      const freeTrialLimit = 3
-      const freeRemaining = Math.max(0, freeTrialLimit - freeTrialsUsed)
+      // 免费用户：使用配置的免费试用额度
+      const freeRemaining = Math.max(0, QUOTA_CONFIG.FREE_TRIAL - freeTrialsUsed)
       const totalRemaining = freeRemaining + creditsBalance
       remainingDisplay = totalRemaining
       remainingDescription = creditsBalance > 0
@@ -106,11 +104,11 @@ export async function DashboardStatsAsync({
     perfLogger.end('dashboard-async:stats', { error: true })
     console.error('Error loading dashboard stats:', error)
     
-    // 返回默认值
+    // 返回默认值（使用配置的免费试用额度）
     return <DashboardStats stats={{
       totalTryOns: 0,
       completedTryOns: 0,
-      remainingDisplay: 3,
+      remainingDisplay: QUOTA_CONFIG.FREE_TRIAL,
       remainingDescription: "Free Quota",
       isPremium: false,
       subscriptionType: null,

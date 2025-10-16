@@ -1,5 +1,6 @@
 import Stripe from "stripe"
 import { mockStripe, isMockMode } from './mocks/stripe'
+import { PRODUCT_METADATA, QUOTA_CONFIG } from '@/config/pricing'
 
 // Only require Stripe key in production mode
 if (!process.env.STRIPE_SECRET_KEY && !isMockMode) {
@@ -13,30 +14,30 @@ export const stripe = isMockMode
       typescript: true,
     })
 
-// Product configuration
+// Product configuration - now using centralized config
 export const PRODUCTS = {
   PREMIUM_MONTHLY: {
-    name: "Standard - Monthly",
-    description: "30 AI try-ons per month + Standard features",
-    price: 899, // 8.99 USD in cents
-    currency: "usd",
-    interval: "month" as const,
-    priceId: process.env.STRIPE_PREMIUM_MONTHLY_PRICE_ID,
+    name: PRODUCT_METADATA.PREMIUM_MONTHLY.name,
+    description: `${QUOTA_CONFIG.MONTHLY_SUBSCRIPTION} AI try-ons per month + Standard features`,
+    price: PRODUCT_METADATA.PREMIUM_MONTHLY.price,
+    currency: PRODUCT_METADATA.PREMIUM_MONTHLY.currency,
+    interval: PRODUCT_METADATA.PREMIUM_MONTHLY.interval,
+    priceId: PRODUCT_METADATA.PREMIUM_MONTHLY.priceId,
   },
   PREMIUM_YEARLY: {
-    name: "Standard - Annual",
-    description: "420 AI try-ons per year (360 + 60 bonus) + Standard features",
-    price: 8999, // 89.99 USD in cents
-    currency: "usd",
-    interval: "year" as const,
-    priceId: process.env.STRIPE_PREMIUM_YEARLY_PRICE_ID,
+    name: PRODUCT_METADATA.PREMIUM_YEARLY.name,
+    description: `${QUOTA_CONFIG.YEARLY_SUBSCRIPTION} AI try-ons per year (360 + 60 bonus) + Standard features`,
+    price: PRODUCT_METADATA.PREMIUM_YEARLY.price,
+    currency: PRODUCT_METADATA.PREMIUM_YEARLY.currency,
+    interval: PRODUCT_METADATA.PREMIUM_YEARLY.interval,
+    priceId: PRODUCT_METADATA.PREMIUM_YEARLY.priceId,
   },
   CREDITS_PACK: {
-    name: "Credits Pack",
-    description: "Get 10 AI try-on credits (never expire)",
-    price: 299, // 2.99 USD in cents
-    currency: "usd",
-    priceId: process.env.STRIPE_CREDITS_PACK_PRICE_ID,
+    name: PRODUCT_METADATA.CREDITS_PACK.name,
+    description: `Get ${QUOTA_CONFIG.CREDITS_PACK} AI try-on credits (never expire)`,
+    price: PRODUCT_METADATA.CREDITS_PACK.price,
+    currency: PRODUCT_METADATA.CREDITS_PACK.currency,
+    priceId: PRODUCT_METADATA.CREDITS_PACK.priceId,
   },
 } as const
 
