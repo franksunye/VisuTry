@@ -199,23 +199,39 @@ export async function POST(request: NextRequest) {
       // Error handling is done inside processTryOnAsync
     }
 
-    // Update user usage count (free users only)
-    if (!isPremiumActive) {
-      if (isMockMode) {
+    // Update user usage count
+    // - Free users: increment freeTrialsUsed
+    // - Premium users: increment premiumUsageCount
+    if (isMockMode) {
+      if (!isPremiumActive) {
         await MockDatabase.updateUser(userId, {
           freeTrialsUsed: user.freeTrialsUsed + 1
         })
-      } else {
+      }
+      // Note: Mock mode doesn't track premiumUsageCount yet
+    } else {
+      if (!isPremiumActive) {
+        // Free users: increment freeTrialsUsed
         await prisma.user.update({
           where: { id: userId },
           data: {
             freeTrialsUsed: user.freeTrialsUsed + 1
           }
         })
-
-        // 清除用户缓存，确保 Dashboard 立即显示最新使用次数
-        revalidateTag(`user-${userId}`)
+      } else {
+        // Premium users: increment premiumUsageCount
+        await prisma.user.update({
+          where: { id: userId },
+          data: {
+            premiumUsageCount: {
+              increment: 1
+            }
+          }
+        })
       }
+
+      // 清除用户缓存，确保 Dashboard 立即显示最新使用次数
+      revalidateTag(`user-${userId}`)
     }
 
     // Get the final task status to return to client

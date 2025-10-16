@@ -189,11 +189,37 @@ async function handleSubscriptionDeletedEvent(subscription: Stripe.Subscription)
   }
 }
 
-// 处理发票支付成功
+// 处理发票支付成功（订阅续费）
 async function handleInvoicePaymentSucceeded(invoice: Stripe.Invoice) {
   try {
     if (invoice.subscription) {
       console.log(`Invoice payment succeeded for subscription ${invoice.subscription}`)
+
+      // 🔥 重要：订阅续费时重置 Premium 用户的使用计数器
+      // 这样每个计费周期都会重新开始计数
+      const subscription = await prisma.payment.findFirst({
+        where: {
+          stripeSessionId: invoice.subscription as string,
+        },
+        select: {
+          userId: true,
+        }
+      })
+
+      if (subscription?.userId) {
+        // 重置 premiumUsageCount 为 0
+        await prisma.user.update({
+          where: { id: subscription.userId },
+          data: {
+            premiumUsageCount: 0
+          }
+        })
+
+        // 清除用户缓存，确保 Dashboard 立即显示重置后的配额
+        clearUserCache(subscription.userId)
+
+        console.log(`✅ Reset premiumUsageCount for user ${subscription.userId} on subscription renewal`)
+      }
     }
   } catch (error) {
     console.error("处理发票支付成功事件失败:", error)

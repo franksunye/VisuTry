@@ -97,7 +97,7 @@ export function getCachedUserStats(userId: string) {
           where: { userId, status: 'COMPLETED' },
         }),
       ])
-      
+
       return { totalTryOns, completedTryOns }
     },
     [`user-stats-${userId}`],

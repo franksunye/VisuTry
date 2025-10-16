@@ -12,6 +12,7 @@ interface DashboardStatsAsyncProps {
   remainingTrials: number
   creditsBalance: number
   freeTrialsUsed: number
+  premiumUsageCount: number
 }
 
 /**
@@ -28,7 +29,8 @@ export async function DashboardStatsAsync({
   isYearlySubscription,
   remainingTrials,
   creditsBalance,
-  freeTrialsUsed
+  freeTrialsUsed,
+  premiumUsageCount
 }: DashboardStatsAsyncProps) {
   perfLogger.start('dashboard-async:stats')
 
@@ -51,24 +53,24 @@ export async function DashboardStatsAsync({
     const isMonthlySubscription = subscriptionType === 'PREMIUM_MONTHLY'
 
     // 计算剩余量显示
-    // 🔥 新逻辑：显示总可用次数 = 订阅配额 + Credits Pack
-    // 注意：使用 totalTryOns（实际使用次数）而不是 freeTrialsUsed
-    // 因为 Premium 用户的 freeTrialsUsed 不会更新
+    // 🔥 计数器模式：
+    // - Premium 用户：使用 premiumUsageCount（从 session 传入，每次使用递增，续费时重置）
+    // - 免费用户：使用 freeTrialsUsed（免费试用的使用次数）
     let remainingDisplay: string | number
     let remainingDescription: string
 
     if (isPremiumActive) {
       if (isYearlySubscription) {
-        // 年费用户：使用配置的年度额度
-        const subscriptionRemaining = Math.max(0, QUOTA_CONFIG.YEARLY_SUBSCRIPTION - freeTrialsUsed)
+        // 年费用户：使用 premiumUsageCount 计数器
+        const subscriptionRemaining = Math.max(0, QUOTA_CONFIG.YEARLY_SUBSCRIPTION - premiumUsageCount)
         const totalRemaining = subscriptionRemaining + creditsBalance
         remainingDisplay = totalRemaining
         remainingDescription = creditsBalance > 0
           ? `Annual (${subscriptionRemaining}) + Credits (${creditsBalance})`
           : "Annual Plan"
       } else if (isMonthlySubscription) {
-        // 月费用户：使用配置的月度额度
-        const subscriptionRemaining = Math.max(0, QUOTA_CONFIG.MONTHLY_SUBSCRIPTION - freeTrialsUsed)
+        // 月费用户：使用 premiumUsageCount 计数器
+        const subscriptionRemaining = Math.max(0, QUOTA_CONFIG.MONTHLY_SUBSCRIPTION - premiumUsageCount)
         const totalRemaining = subscriptionRemaining + creditsBalance
         remainingDisplay = totalRemaining
         remainingDescription = creditsBalance > 0
@@ -80,7 +82,7 @@ export async function DashboardStatsAsync({
         remainingDescription = "Subscription"
       }
     } else {
-      // 免费用户：使用配置的免费试用额度
+      // 免费用户：使用 freeTrialsUsed（只计算免费试用期的使用）
       const freeRemaining = Math.max(0, QUOTA_CONFIG.FREE_TRIAL - freeTrialsUsed)
       const totalRemaining = freeRemaining + creditsBalance
       remainingDisplay = totalRemaining

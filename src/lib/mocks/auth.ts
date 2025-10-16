@@ -53,6 +53,7 @@ const MockCredentialsProvider = CredentialsProvider({
       image: mockUser.image,
       username: mockUser.username,
       freeTrialsUsed: mockUser.freeTrialsUsed,
+      premiumUsageCount: 0, // Mock users start with 0 premium usage
       creditsBalance: 0, // Mock users start with 0 credits
       isPremium: mockUser.isPremium,
     }

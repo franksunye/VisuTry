@@ -100,6 +100,7 @@ export default async function DashboardPage() {
               remainingTrials={session.user.remainingTrials}
               creditsBalance={(session.user as any).creditsBalance || 0}
               freeTrialsUsed={session.user.freeTrialsUsed}
+              premiumUsageCount={(session.user as any).premiumUsageCount || 0}
             />
           </Suspense>
 

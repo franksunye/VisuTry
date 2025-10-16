@@ -43,10 +43,12 @@ export default async function PaymentsPage() {
   const isYearlySubscription = latestSubscriptionPayment?.productType === 'PREMIUM_YEARLY'
 
   // Calculate subscription quota remaining using centralized config
+  // Use premiumUsageCount for Premium users, freeTrialsUsed for free users
+  const usageCount = user.isPremiumActive ? (user as any).premiumUsageCount || 0 : user.freeTrialsUsed
   const { quota: subscriptionQuota, label: subscriptionQuotaLabel } = getSubscriptionQuotaLabel(
     user.isPremiumActive,
     isYearlySubscription,
-    user.freeTrialsUsed
+    usageCount
   )
 
   return (

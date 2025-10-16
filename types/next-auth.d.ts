@@ -7,6 +7,7 @@ declare module "next-auth" {
       id: string
       username?: string | null
       freeTrialsUsed: number
+      premiumUsageCount: number
       creditsBalance: number
       isPremium: boolean
       premiumExpiresAt?: Date | null
@@ -20,6 +21,7 @@ declare module "next-auth" {
   interface User extends DefaultUser {
     username?: string | null
     freeTrialsUsed: number
+    premiumUsageCount: number
     creditsBalance: number
     isPremium: boolean
     premiumExpiresAt?: Date | null
@@ -31,6 +33,7 @@ declare module "next-auth/jwt" {
     id?: string
     username?: string | null
     freeTrialsUsed?: number
+    premiumUsageCount?: number
     creditsBalance?: number
     isPremium?: boolean
     premiumExpiresAt?: Date | null
