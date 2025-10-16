@@ -11,7 +11,7 @@ import {
   ProductType
 } from "@/lib/stripe"
 import Stripe from "stripe"
-import { QUOTA_CONFIG } from "@/config/pricing"
+import { QUOTA_CONFIG, PRODUCT_METADATA } from "@/config/pricing"
 
 // Force dynamic rendering for this route
 export const dynamic = 'force-dynamic'
@@ -239,15 +239,13 @@ async function handleInvoicePaymentFailed(invoice: Stripe.Invoice) {
 }
 
 // 获取产品描述
+// 🔥 使用统一的价格配置，确保描述与产品元数据一致
 function getProductDescription(productType: ProductType): string {
-  switch (productType) {
-    case "PREMIUM_MONTHLY":
-      return "高级会员 - 月付"
-    case "PREMIUM_YEARLY":
-      return "高级会员 - 年付"
-    case "CREDITS_PACK":
-      return "试戴次数包 - 20次"
-    default:
-      return "未知产品"
+  const product = PRODUCT_METADATA[productType]
+  if (!product) {
+    return "Unknown Product"
   }
+
+  // 格式：产品名称 (配额信息)
+  return `${product.name} (${product.quota} credits)`
 }
