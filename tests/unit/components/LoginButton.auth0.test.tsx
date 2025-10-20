@@ -1,6 +1,6 @@
 /**
  * LoginButton Auth0 Integration Tests
- * Tests for multi-provider login button
+ * Tests for Auth0-only login button
  */
 
 import React from 'react'
@@ -64,17 +64,17 @@ describe('LoginButton - Auth0 Integration', () => {
 
     it('should use custom callbackUrl when provided', () => {
       const { signIn } = require('next-auth/react')
-      
+
       render(
         <SessionProvider session={null}>
           <LoginButton callbackUrl="/custom-page" />
         </SessionProvider>
       )
 
-      const twitterButton = screen.getByText(/Sign in with Twitter/i)
-      fireEvent.click(twitterButton)
+      const auth0Button = screen.getByText(/Sign in with Auth0/i)
+      fireEvent.click(auth0Button)
 
-      expect(signIn).toHaveBeenCalledWith('twitter', {
+      expect(signIn).toHaveBeenCalledWith('auth0', {
         callbackUrl: '/custom-page',
       })
     })
@@ -86,13 +86,11 @@ describe('LoginButton - Auth0 Integration', () => {
         </SessionProvider>
       )
 
-      const buttons = container.querySelectorAll('button')
-      expect(buttons.length).toBe(2)
+      const button = container.querySelector('button')
+      expect(button).toBeInTheDocument()
 
       // Check for variant classes
-      buttons.forEach((button) => {
-        expect(button.className).toContain('bg-')
-      })
+      expect(button?.className).toContain('bg-')
     })
   })
 
