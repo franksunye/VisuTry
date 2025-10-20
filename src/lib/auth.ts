@@ -3,6 +3,7 @@ import "./proxy-setup"
 
 import { NextAuthOptions } from "next-auth"
 import TwitterProvider from "next-auth/providers/twitter"
+import Auth0Provider from "next-auth/providers/auth0"
 import { PrismaAdapter } from "@next-auth/prisma-adapter"
 import { prisma } from "@/lib/prisma"
 import { MockCredentialsProvider, isMockMode } from "@/lib/mocks/auth"
@@ -24,8 +25,17 @@ const __debugWrite = (label: string, data: any) => {
 
 // Validate critical environment variables at startup
 const validateEnvVars = () => {
-  const required = ['TWITTER_CLIENT_ID', 'TWITTER_CLIENT_SECRET', 'NEXTAUTH_SECRET']
+  const required = ['NEXTAUTH_SECRET']
   const missing = required.filter(key => !process.env[key])
+
+  // At least one provider must be configured
+  const hasTwitter = process.env.TWITTER_CLIENT_ID && process.env.TWITTER_CLIENT_SECRET
+  const hasAuth0 = process.env.AUTH0_ID && process.env.AUTH0_SECRET && process.env.AUTH0_ISSUER_BASE_URL
+
+  if (!hasTwitter && !hasAuth0) {
+    console.error('❌ At least one OAuth provider must be configured (Twitter or Auth0)')
+    throw new Error('No OAuth providers configured')
+  }
 
   if (missing.length > 0) {
     console.error('❌ Missing required environment variables:', missing)
@@ -39,7 +49,8 @@ const validateEnvVars = () => {
   console.log('  - VERCEL:', process.env.VERCEL ? 'Yes' : 'No')
   console.log('  - VERCEL_URL:', process.env.VERCEL_URL || '(not set)')
   console.log('  - Database:', process.env.DATABASE_URL ? 'Configured' : 'Missing')
-  console.log('  - Twitter OAuth:', process.env.TWITTER_CLIENT_ID ? 'Configured' : 'Missing')
+  console.log('  - Twitter OAuth:', hasTwitter ? 'Configured' : 'Not configured')
+  console.log('  - Auth0:', hasAuth0 ? 'Configured' : 'Not configured')
 }
 
 // Run validation (only once at module load)
@@ -58,18 +69,27 @@ export const authOptions: NextAuthOptions = {
 
   providers: [
     ...(isMockMode ? [MockCredentialsProvider] : []),
-    // Use Twitter OAuth 2.0
-    TwitterProvider({
-      clientId: process.env.TWITTER_CLIENT_ID!,
-      clientSecret: process.env.TWITTER_CLIENT_SECRET!,
-      version: "2.0",
-      // Explicitly specify authorization params to ensure Vercel environment handles correctly
-      authorization: {
-        params: {
-          scope: "tweet.read users.read offline.access",
+    // Twitter OAuth 2.0
+    ...(process.env.TWITTER_CLIENT_ID && process.env.TWITTER_CLIENT_SECRET ? [
+      TwitterProvider({
+        clientId: process.env.TWITTER_CLIENT_ID,
+        clientSecret: process.env.TWITTER_CLIENT_SECRET,
+        version: "2.0",
+        authorization: {
+          params: {
+            scope: "tweet.read users.read offline.access",
+          },
         },
-      },
-    }),
+      }),
+    ] : []),
+    // Auth0 OAuth
+    ...(process.env.AUTH0_ID && process.env.AUTH0_SECRET && process.env.AUTH0_ISSUER_BASE_URL ? [
+      Auth0Provider({
+        clientId: process.env.AUTH0_ID,
+        clientSecret: process.env.AUTH0_SECRET,
+        issuer: process.env.AUTH0_ISSUER_BASE_URL,
+      }),
+    ] : []),
   ],
   callbacks: {
     async session({ session, token, user }) {
@@ -114,11 +134,21 @@ export const authOptions: NextAuthOptions = {
         token.image = user.image
       }
 
-      // If Twitter login, supplement username and email (compatible with v1.1/v2)
-      if (account?.provider === 'twitter' && profile) {
+      // Handle provider-specific profile data
+      if (profile) {
         const p: any = profile
-        token.username = p?.data?.username ?? p?.username ?? p?.screen_name ?? token.username ?? user?.name
-        if (!token.email) token.email = p?.data?.email ?? p?.email ?? token.email
+
+        // Twitter: extract username from profile
+        if (account?.provider === 'twitter') {
+          token.username = p?.data?.username ?? p?.username ?? p?.screen_name ?? token.username ?? user?.name
+          if (!token.email) token.email = p?.data?.email ?? p?.email ?? token.email
+        }
+
+        // Auth0: extract nickname as username
+        if (account?.provider === 'auth0') {
+          token.username = p?.nickname ?? p?.name ?? token.username ?? user?.name
+          if (!token.email) token.email = p?.email ?? token.email
+        }
       }
 
       // 🔥 优化：改进同步策略，确保数据及时更新

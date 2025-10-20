@@ -46,6 +46,7 @@
     "seo:check": "echo 'Checking SEO configuration...' && node -e \"console.log('Site URL:', process.env.NEXT_PUBLIC_SITE_URL || 'Not set')\""
   },
   "dependencies": {
+    "@auth0/nextjs-auth0": "^4.11.0",
     "@google/generative-ai": "^0.24.1",
     "@next-auth/prisma-adapter": "^1.0.7",
     "@prisma/adapter-neon": "^6.17.1",

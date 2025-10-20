@@ -1,7 +1,7 @@
 "use client"
 
 import { signIn, signOut, useSession } from "next-auth/react"
-import { Twitter, LogOut, User, TestTube } from "lucide-react"
+import { Twitter, LogOut, User, TestTube, Shield } from "lucide-react"
 import { cn } from "@/utils/cn"
 import { useTestSession } from "@/hooks/useTestSession"
 
@@ -81,18 +81,33 @@ export function LoginButton({ className, variant = "default", callbackUrl }: Log
   }
 
   return (
-    <button
-      onClick={() => signIn("twitter", { callbackUrl: callbackUrl || "/dashboard" })}
-      className={cn(
-        "flex items-center px-4 py-2 rounded-lg text-sm font-medium transition-colors",
-        variant === "outline" && "border border-blue-300 text-blue-700 hover:bg-blue-50",
-        variant === "ghost" && "text-blue-600 hover:text-blue-700 hover:bg-blue-100",
-        variant === "default" && "bg-blue-600 text-white hover:bg-blue-700",
-        className
-      )}
-    >
-      <Twitter className="w-4 h-4 mr-2" />
-      Sign in with Twitter
-    </button>
+    <div className="flex flex-col gap-2">
+      <button
+        onClick={() => signIn("twitter", { callbackUrl: callbackUrl || "/dashboard" })}
+        className={cn(
+          "flex items-center justify-center px-4 py-2 rounded-lg text-sm font-medium transition-colors",
+          variant === "outline" && "border border-blue-300 text-blue-700 hover:bg-blue-50",
+          variant === "ghost" && "text-blue-600 hover:text-blue-700 hover:bg-blue-100",
+          variant === "default" && "bg-blue-600 text-white hover:bg-blue-700",
+          className
+        )}
+      >
+        <Twitter className="w-4 h-4 mr-2" />
+        Sign in with Twitter
+      </button>
+      <button
+        onClick={() => signIn("auth0", { callbackUrl: callbackUrl || "/dashboard" })}
+        className={cn(
+          "flex items-center justify-center px-4 py-2 rounded-lg text-sm font-medium transition-colors",
+          variant === "outline" && "border border-purple-300 text-purple-700 hover:bg-purple-50",
+          variant === "ghost" && "text-purple-600 hover:text-purple-700 hover:bg-purple-100",
+          variant === "default" && "bg-purple-600 text-white hover:bg-purple-700",
+          className
+        )}
+      >
+        <Shield className="w-4 h-4 mr-2" />
+        Sign in with Auth0
+      </button>
+    </div>
   )
 }

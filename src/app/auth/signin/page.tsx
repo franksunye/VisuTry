@@ -23,7 +23,7 @@ export default function SignInPage() {
             Sign In to Start AI Glasses Try-On
           </h2>
           <p className="text-sm text-gray-500">
-            Sign in with your Twitter account to experience smart try-on features
+            Sign in with your preferred provider to experience smart try-on features
           </p>
         </div>
 
@@ -48,7 +48,7 @@ export default function SignInPage() {
                 </div>
                 <div>
                   <h3 className="font-medium text-gray-900">Secure & Reliable</h3>
-                  <p className="text-sm text-gray-500">Sign in securely with Twitter OAuth</p>
+                  <p className="text-sm text-gray-500">Sign in securely with Twitter or Auth0</p>
                 </div>
               </div>
             </div>
