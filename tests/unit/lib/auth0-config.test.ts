@@ -96,28 +96,19 @@ describe('Auth0 Configuration', () => {
     })
   })
 
-  describe('Multi-Provider Compatibility', () => {
-    it('should support Auth0 alongside Twitter', () => {
-      // Set up test environment with at least one provider
-      process.env.TWITTER_CLIENT_ID = 'test-twitter-id'
-      process.env.TWITTER_CLIENT_SECRET = 'test-twitter-secret'
+  describe('Single Provider (Auth0)', () => {
+    it('should have Auth0 as the only provider', () => {
+      process.env.AUTH0_ID = 'test-auth0-id'
+      process.env.AUTH0_SECRET = 'test-auth0-secret'
+      process.env.AUTH0_ISSUER_BASE_URL = 'https://test.auth0.com'
 
-      const providers = {
-        twitter: {
-          enabled: !!process.env.TWITTER_CLIENT_ID,
-          clientId: process.env.TWITTER_CLIENT_ID,
-        },
-        auth0: {
-          enabled: !!process.env.AUTH0_ID,
-          clientId: process.env.AUTH0_ID,
-        },
-      }
+      const auth0Enabled = !!(
+        process.env.AUTH0_ID &&
+        process.env.AUTH0_SECRET &&
+        process.env.AUTH0_ISSUER_BASE_URL
+      )
 
-      // At least one provider should be enabled
-      const hasAtLeastOneProvider =
-        providers.twitter.enabled || providers.auth0.enabled
-
-      expect(hasAtLeastOneProvider).toBe(true)
+      expect(auth0Enabled).toBe(true)
     })
 
     it('should handle provider-specific scopes', () => {

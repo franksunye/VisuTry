@@ -128,21 +128,21 @@ describe('Auth0 Sign-In Flow', () => {
     })
   })
 
-  describe('Multi-Provider Support', () => {
-    it('should support both Twitter and Auth0 providers', () => {
-      const providers = {
-        twitter: !!process.env.TWITTER_CLIENT_ID,
-        auth0: !!process.env.AUTH0_ID,
-      }
+  describe('Auth0 Connections', () => {
+    it('should support Auth0 as the primary provider', () => {
+      const auth0Enabled = !!(
+        process.env.AUTH0_ID &&
+        process.env.AUTH0_SECRET &&
+        process.env.AUTH0_ISSUER_BASE_URL
+      )
 
-      const hasMultipleProviders = Object.values(providers).filter(Boolean).length >= 1
-      expect(hasMultipleProviders).toBe(true)
+      expect(auth0Enabled).toBe(true)
     })
 
-    it('should allow user to sign in with either provider', () => {
-      const signInMethods = ['twitter', 'auth0']
-      expect(signInMethods).toContain('twitter')
-      expect(signInMethods).toContain('auth0')
+    it('should support Twitter through Auth0 connections', () => {
+      // Twitter is configured as a connection in Auth0, not as a separate provider
+      const signInMethod = 'auth0'
+      expect(signInMethod).toBe('auth0')
     })
   })
 

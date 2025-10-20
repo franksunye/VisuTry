@@ -2,15 +2,16 @@
 
 ## Overview
 
-VisuTry now supports Auth0 as an authentication provider alongside Twitter OAuth. This enables users to sign in using their Auth0 account.
+VisuTry uses Auth0 as the primary authentication provider. All login methods (Twitter, Google, etc.) are configured through Auth0 connections, providing a unified and secure authentication experience.
 
 ## Features
 
-- ✅ Multi-provider authentication (Twitter + Auth0)
+- ✅ Unified authentication through Auth0
+- ✅ Support for Twitter, Google, and other social providers (via Auth0 connections)
 - ✅ Seamless user profile mapping
-- ✅ Backward compatible with existing Twitter OAuth
 - ✅ Automatic user creation on first login
 - ✅ JWT-based session management
+- ✅ Simplified configuration and maintenance
 
 ## Setup Instructions
 
@@ -97,13 +98,16 @@ No schema changes required. Auth0 users are stored in the same `User` table with
 - `username`: User's nickname/username
 - `image`: User's profile picture
 
-## Multi-Provider Support
+## Multiple Connection Support
 
-Users can link multiple authentication providers to the same account:
+Auth0 supports multiple social connections that users can choose from:
 
-1. Sign in with Twitter
-2. Later sign in with Auth0 using the same email
-3. Both accounts are linked automatically
+1. Twitter (via Auth0 Twitter connection)
+2. Google (via Auth0 Google connection)
+3. GitHub (via Auth0 GitHub connection)
+4. And many more...
+
+Users can link multiple connections to the same account by signing in with different methods using the same email address.
 
 ## Testing
 
@@ -179,19 +183,19 @@ Auth0Provider({
 })
 ```
 
-### Conditional Provider Loading
+### Single Provider Configuration
 
-Providers are conditionally loaded based on environment variables:
+Auth0 is the only provider configured in NextAuth.js:
 
 ```typescript
-// Twitter is optional
-...(process.env.TWITTER_CLIENT_ID && process.env.TWITTER_CLIENT_SECRET ? [TwitterProvider(...)] : [])
-
-// Auth0 is optional
-...(process.env.AUTH0_ID && process.env.AUTH0_SECRET && process.env.AUTH0_ISSUER_BASE_URL ? [Auth0Provider(...)] : [])
+Auth0Provider({
+  clientId: process.env.AUTH0_ID,
+  clientSecret: process.env.AUTH0_SECRET,
+  issuer: process.env.AUTH0_ISSUER_BASE_URL,
+})
 ```
 
-At least one provider must be configured.
+All social connections (Twitter, Google, etc.) are configured in the Auth0 Dashboard, not in the application code.
 
 ## Security Considerations
 
@@ -203,16 +207,22 @@ At least one provider must be configured.
 
 ## Migration Guide
 
-### For Existing Users
+### For Existing Twitter Users
 
-Existing Twitter users can:
-1. Sign in with Twitter (existing flow)
-2. Later sign in with Auth0 using the same email
-3. Accounts are automatically linked
+If you have existing users who signed in with Twitter:
+
+1. **Option 1: Manual Migration**
+   - Users sign in with Twitter through Auth0
+   - Auth0 automatically links accounts by email
+   - Existing user data is preserved
+
+2. **Option 2: Database Migration**
+   - Update user records to use Auth0 IDs
+   - Ensure email addresses match for linking
 
 ### For New Users
 
-New users can choose either provider on first login.
+New users sign in through Auth0 and can choose from available connections (Twitter, Google, etc.).
 
 ## Support
 

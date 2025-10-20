@@ -1,4 +1,4 @@
-import { Glasses, Twitter, Shield, Zap } from "lucide-react"
+import { Glasses, Shield, Zap } from "lucide-react"
 import { LoginButton } from "@/components/auth/LoginButton"
 import { Metadata } from 'next'
 import { generateSEO } from '@/lib/seo'
@@ -23,7 +23,7 @@ export default function SignInPage() {
             Sign In to Start AI Glasses Try-On
           </h2>
           <p className="text-sm text-gray-500">
-            Sign in with your preferred provider to experience smart try-on features
+            Sign in with Auth0 to experience smart try-on features
           </p>
         </div>
 
@@ -48,7 +48,7 @@ export default function SignInPage() {
                 </div>
                 <div>
                   <h3 className="font-medium text-gray-900">Secure & Reliable</h3>
-                  <p className="text-sm text-gray-500">Sign in securely with Twitter or Auth0</p>
+                  <p className="text-sm text-gray-500">Sign in securely with Auth0 (supports Twitter, Google, and more)</p>
                 </div>
               </div>
             </div>

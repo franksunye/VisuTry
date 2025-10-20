@@ -49,11 +49,24 @@ AUTH0_SECRET=your-client-secret
 AUTH0_ISSUER_BASE_URL=https://your-domain.auth0.com
 ```
 
-### Step 6: Test
+### Step 6: Configure Twitter Connection in Auth0 (Optional)
+To enable Twitter login through Auth0:
+
+1. In Auth0 Dashboard, go to **Connections → Social**
+2. Click **Twitter** and enable it
+3. Enter your Twitter API credentials:
+   - API Key (Consumer Key)
+   - API Secret (Consumer Secret)
+4. Save changes
+
+Users can now sign in with Twitter through Auth0.
+
+### Step 7: Test
 ```bash
 npm run dev
 # Visit http://localhost:3000/auth/signin
 # Click "Sign in with Auth0"
+# Choose Twitter or other configured connection
 ```
 
 ## Troubleshooting

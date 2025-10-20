@@ -9,7 +9,7 @@ VisuTry is a cutting-edge AI-powered virtual glasses try-on application that all
 ## ✨ Features
 
 - 🤖 **AI Try-On Technology**: Powered by Google Gemini 2.5 Flash Image model for realistic virtual try-on
-- 👤 **User Authentication**: Secure OAuth login with Twitter or Auth0 via NextAuth.js
+- 👤 **User Authentication**: Secure Auth0 authentication with support for Twitter, Google, and more
 - 💳 **Payment System**: Integrated Stripe payment with free trials and premium plans
 - 📱 **Responsive Design**: Optimized for both desktop and mobile devices
 - 🔗 **Social Sharing**: Generate shareable links for social media platforms
@@ -29,7 +29,7 @@ VisuTry is a cutting-edge AI-powered virtual glasses try-on application that all
 ### Backend
 - **API**: Next.js API Routes
 - **Database**: PostgreSQL + Prisma ORM
-- **Authentication**: NextAuth.js (Twitter OAuth + Auth0)
+- **Authentication**: NextAuth.js + Auth0 (supports Twitter, Google, and more)
 - **Payment**: Stripe
 - **File Storage**: Vercel Blob
 - **AI Service**: Google Gemini 2.5 Flash Image
@@ -193,12 +193,10 @@ The application is deployed on Vercel with automatic deployments from the main b
 Required for production:
 - `NEXTAUTH_URL` - Application URL
 - `NEXTAUTH_SECRET` - NextAuth secret key
-- **OAuth Providers** (at least one required):
-  - `TWITTER_CLIENT_ID` - Twitter OAuth client ID
-  - `TWITTER_CLIENT_SECRET` - Twitter OAuth client secret
+- **Auth0 Configuration** (required):
   - `AUTH0_ID` - Auth0 client ID
   - `AUTH0_SECRET` - Auth0 client secret
-  - `AUTH0_ISSUER_BASE_URL` - Auth0 issuer URL
+  - `AUTH0_ISSUER_BASE_URL` - Auth0 issuer URL (e.g., https://your-domain.auth0.com)
 - `DATABASE_URL` - PostgreSQL connection string
 - `GEMINI_API_KEY` - Google Gemini API key
 - `STRIPE_SECRET_KEY` - Stripe secret key
