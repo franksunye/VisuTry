@@ -7,6 +7,26 @@
 
 ## [未发布]
 
+### ✨ 新功能
+- 完全迁移到 Auth0 认证系统
+- 支持 Twitter、Google 等多种登录方式（通过 Auth0 连接）
+
+### 🔧 改进
+- 简化认证系统，移除直接的 Twitter OAuth 集成
+- 所有登录方式统一通过 Auth0 处理
+- 环境变量配置简化（仅需 Auth0 配置）
+- 用户资料映射统一为 Auth0 标准
+
+### 📚 文档
+- Auth0 集成完整指南 (`docs/AUTH0_INTEGRATION.md`)
+- Auth0 快速开始指南 (`docs/AUTH0_QUICKSTART.md`)
+- 添加 Auth0 中配置 Twitter 连接的说明
+
+### ✅ 测试
+- Auth0 配置单元测试
+- 登录按钮单提供商测试
+- Auth0 登录流程集成测试
+
 ### 计划中
 - UI交互优化：AI Try On点击后在当前页面等待并查看试戴效果
 - 提示词优化：改进nano banana的try on提示词

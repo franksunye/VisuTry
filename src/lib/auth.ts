@@ -2,7 +2,7 @@
 import "./proxy-setup"
 
 import { NextAuthOptions } from "next-auth"
-import TwitterProvider from "next-auth/providers/twitter"
+import Auth0Provider from "next-auth/providers/auth0"
 import { PrismaAdapter } from "@next-auth/prisma-adapter"
 import { prisma } from "@/lib/prisma"
 import { MockCredentialsProvider, isMockMode } from "@/lib/mocks/auth"
@@ -24,7 +24,7 @@ const __debugWrite = (label: string, data: any) => {
 
 // Validate critical environment variables at startup
 const validateEnvVars = () => {
-  const required = ['TWITTER_CLIENT_ID', 'TWITTER_CLIENT_SECRET', 'NEXTAUTH_SECRET']
+  const required = ['NEXTAUTH_SECRET', 'AUTH0_ID', 'AUTH0_SECRET', 'AUTH0_ISSUER_BASE_URL']
   const missing = required.filter(key => !process.env[key])
 
   if (missing.length > 0) {
@@ -39,7 +39,7 @@ const validateEnvVars = () => {
   console.log('  - VERCEL:', process.env.VERCEL ? 'Yes' : 'No')
   console.log('  - VERCEL_URL:', process.env.VERCEL_URL || '(not set)')
   console.log('  - Database:', process.env.DATABASE_URL ? 'Configured' : 'Missing')
-  console.log('  - Twitter OAuth:', process.env.TWITTER_CLIENT_ID ? 'Configured' : 'Missing')
+  console.log('  - Auth0:', 'Configured')
 }
 
 // Run validation (only once at module load)
@@ -58,17 +58,11 @@ export const authOptions: NextAuthOptions = {
 
   providers: [
     ...(isMockMode ? [MockCredentialsProvider] : []),
-    // Use Twitter OAuth 2.0
-    TwitterProvider({
-      clientId: process.env.TWITTER_CLIENT_ID!,
-      clientSecret: process.env.TWITTER_CLIENT_SECRET!,
-      version: "2.0",
-      // Explicitly specify authorization params to ensure Vercel environment handles correctly
-      authorization: {
-        params: {
-          scope: "tweet.read users.read offline.access",
-        },
-      },
+    // Auth0 OAuth (supports Twitter, Google, and other connections configured in Auth0)
+    Auth0Provider({
+      clientId: process.env.AUTH0_ID!,
+      clientSecret: process.env.AUTH0_SECRET!,
+      issuer: process.env.AUTH0_ISSUER_BASE_URL!,
     }),
   ],
   callbacks: {
@@ -114,11 +108,11 @@ export const authOptions: NextAuthOptions = {
         token.image = user.image
       }
 
-      // If Twitter login, supplement username and email (compatible with v1.1/v2)
-      if (account?.provider === 'twitter' && profile) {
+      // Auth0: extract profile data
+      if (account?.provider === 'auth0' && profile) {
         const p: any = profile
-        token.username = p?.data?.username ?? p?.username ?? p?.screen_name ?? token.username ?? user?.name
-        if (!token.email) token.email = p?.data?.email ?? p?.email ?? token.email
+        token.username = p?.nickname ?? p?.name ?? token.username ?? user?.name
+        if (!token.email) token.email = p?.email ?? token.email
       }
 
       // 🔥 优化：改进同步策略，确保数据及时更新

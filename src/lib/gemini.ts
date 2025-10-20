@@ -77,7 +77,9 @@ export async function generateTryOnImage({
       model: "gemini-2.5-flash-image",
       generationConfig: {
         // @ts-ignore - responseModalities is not in the type definition yet
-        responseModalities: ["IMAGE", "TEXT"]
+        // Only output image without text to save tokens and reduce redundant information
+        // Reference: https://ai.google.dev/gemini-api/docs/image-generation#output-type
+        responseModalities: ["Image"]
       }
     })
 
