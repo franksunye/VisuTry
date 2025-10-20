@@ -9,7 +9,7 @@ VisuTry is a cutting-edge AI-powered virtual glasses try-on application that all
 ## ✨ Features
 
 - 🤖 **AI Try-On Technology**: Powered by Google Gemini 2.5 Flash Image model for realistic virtual try-on
-- 👤 **User Authentication**: Secure Twitter OAuth login with NextAuth.js
+- 👤 **User Authentication**: Secure OAuth login with Twitter or Auth0 via NextAuth.js
 - 💳 **Payment System**: Integrated Stripe payment with free trials and premium plans
 - 📱 **Responsive Design**: Optimized for both desktop and mobile devices
 - 🔗 **Social Sharing**: Generate shareable links for social media platforms
@@ -29,7 +29,7 @@ VisuTry is a cutting-edge AI-powered virtual glasses try-on application that all
 ### Backend
 - **API**: Next.js API Routes
 - **Database**: PostgreSQL + Prisma ORM
-- **Authentication**: NextAuth.js (Twitter OAuth)
+- **Authentication**: NextAuth.js (Twitter OAuth + Auth0)
 - **Payment**: Stripe
 - **File Storage**: Vercel Blob
 - **AI Service**: Google Gemini 2.5 Flash Image
@@ -177,6 +177,8 @@ See `docs/VERSION_MANAGEMENT.md` for detailed guidelines.
 - [`docs/architecture.md`](docs/architecture.md) - Project architecture and features
 - [`docs/development-guide.md`](docs/development-guide.md) - Production setup guide
 - [`docs/testing-guide.md`](docs/testing-guide.md) - Testing instructions
+- [`docs/AUTH0_INTEGRATION.md`](docs/AUTH0_INTEGRATION.md) - Auth0 integration guide
+- [`docs/AUTH0_QUICKSTART.md`](docs/AUTH0_QUICKSTART.md) - Auth0 quick start (5 minutes)
 - [`docs/VERSION_MANAGEMENT.md`](docs/VERSION_MANAGEMENT.md) - Version management guide
 - [`docs/RELEASE_GUIDE.md`](docs/RELEASE_GUIDE.md) - Quick release reference
 - [`docs/LEGAL_COMPLIANCE.md`](docs/LEGAL_COMPLIANCE.md) - Legal compliance documentation
@@ -191,12 +193,18 @@ The application is deployed on Vercel with automatic deployments from the main b
 Required for production:
 - `NEXTAUTH_URL` - Application URL
 - `NEXTAUTH_SECRET` - NextAuth secret key
-- `TWITTER_CLIENT_ID` - Twitter OAuth client ID
-- `TWITTER_CLIENT_SECRET` - Twitter OAuth client secret
+- **OAuth Providers** (at least one required):
+  - `TWITTER_CLIENT_ID` - Twitter OAuth client ID
+  - `TWITTER_CLIENT_SECRET` - Twitter OAuth client secret
+  - `AUTH0_ID` - Auth0 client ID
+  - `AUTH0_SECRET` - Auth0 client secret
+  - `AUTH0_ISSUER_BASE_URL` - Auth0 issuer URL
 - `DATABASE_URL` - PostgreSQL connection string
 - `GEMINI_API_KEY` - Google Gemini API key
 - `STRIPE_SECRET_KEY` - Stripe secret key
 - `BLOB_READ_WRITE_TOKEN` - Vercel Blob storage token
+
+See [`docs/AUTH0_QUICKSTART.md`](docs/AUTH0_QUICKSTART.md) for Auth0 setup instructions.
 
 ## 🤝 Contributing
 
