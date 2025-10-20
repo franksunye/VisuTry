@@ -32,7 +32,7 @@ mkdir -p prompts/utils
   "prompt": "You are an expert at virtual glasses try-on. I will provide you with two images:\n1. A person's face photo\n2. A pair of glasses\n\nPlease create a photorealistic image where the glasses are naturally placed on the person's face.\n\nRequirements:\n- Position the glasses correctly on the nose bridge and ears\n- Match the perspective and angle of the face\n- Adjust the size of the glasses to fit the face proportionally\n- Match the lighting conditions of the original photo\n- Ensure the glasses look natural and realistic\n- Preserve the person's facial features and expression\n- Make sure the glasses don't obscure important facial features unnaturally",
   "parameters": {
     "temperature": 0.7,
-    "responseModalities": ["IMAGE", "TEXT"]
+    "responseModalities": ["Image"]
   },
   "metadata": {
     "testResults": {
@@ -252,7 +252,8 @@ export async function generateTryOnImage({
       model: promptConfig.model,
       generationConfig: {
         // @ts-ignore - responseModalities is not in the type definition yet
-        responseModalities: promptConfig.parameters?.responseModalities || ["IMAGE", "TEXT"]
+        // Only output image without text to save tokens and reduce redundant information
+        responseModalities: promptConfig.parameters?.responseModalities || ["Image"]
       }
     })
     

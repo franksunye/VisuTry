@@ -28,11 +28,12 @@ async function verifyModel(apiKey: string, modelName: string): Promise<boolean> 
     log(`\n🔍 Testing model: ${modelName}`, colors.cyan)
     
     const genAI = new GoogleGenerativeAI(apiKey)
-    const model = genAI.getGenerativeModel({ 
+    const model = genAI.getGenerativeModel({
       model: modelName,
       generationConfig: {
         // @ts-ignore
-        responseModalities: ["IMAGE", "TEXT"]
+        // Only output image without text to save tokens
+        responseModalities: ["Image"]
       }
     })
     
@@ -74,11 +75,12 @@ async function verifyImageGeneration(apiKey: string, modelName: string): Promise
     log(`\n🎨 Testing image generation with: ${modelName}`, colors.cyan)
     
     const genAI = new GoogleGenerativeAI(apiKey)
-    const model = genAI.getGenerativeModel({ 
+    const model = genAI.getGenerativeModel({
       model: modelName,
       generationConfig: {
         // @ts-ignore
-        responseModalities: ["IMAGE", "TEXT"]
+        // Only output image without text to save tokens
+        responseModalities: ["Image"]
       }
     })
     
