@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { ArrowLeft, Layers, CheckCircle2, XCircle } from 'lucide-react'
 import Image from 'next/image'
 import BlogTags from '@/components/BlogTags'
+import { Breadcrumbs } from '@/components/seo/Breadcrumbs'
 
 export const metadata: Metadata = generateSEO({
   title: 'Acetate vs Plastic Eyeglass Frames 2025 - Complete Comparison Guide',
@@ -33,6 +34,16 @@ export default function BlogPostPage() {
 
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
         <div className="container mx-auto px-4 py-12">
+          {/* Breadcrumbs */}
+          <div className="mb-6">
+            <Breadcrumbs
+              items={[
+                { name: 'Blog', url: '/blog' },
+                { name: 'Acetate vs Plastic Frames Guide' },
+              ]}
+            />
+          </div>
+
           <div className="mb-8">
             <Link href="/blog" className="inline-flex items-center text-blue-600 hover:text-blue-800">
               <ArrowLeft className="w-4 h-4 mr-2" />

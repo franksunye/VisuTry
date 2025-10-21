@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { ArrowLeft, Award, Eye, CheckCircle2 } from 'lucide-react'
 import Image from 'next/image'
 import BlogTags from '@/components/BlogTags'
+import { Breadcrumbs } from '@/components/seo/Breadcrumbs'
 
 export const metadata: Metadata = generateSEO({
   title: 'Oliver Peoples Finley Vintage Review 2025 - Worth the Investment?',
@@ -33,6 +34,16 @@ export default function BlogPostPage() {
 
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
         <div className="container mx-auto px-4 py-12">
+          {/* Breadcrumbs */}
+          <div className="mb-6">
+            <Breadcrumbs
+              items={[
+                { name: 'Blog', url: '/blog' },
+                { name: 'Oliver Peoples Finley Vintage Review' },
+              ]}
+            />
+          </div>
+
           <div className="mb-8">
             <Link
               href="/blog"

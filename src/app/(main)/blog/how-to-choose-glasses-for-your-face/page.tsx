@@ -3,6 +3,7 @@ import { generateSEO, generateStructuredData } from '@/lib/seo'
 import Link from 'next/link'
 import { ArrowLeft, Glasses, Share2 } from 'lucide-react'
 import BlogTags from '@/components/BlogTags'
+import { Breadcrumbs } from '@/components/seo/Breadcrumbs'
 
 export const metadata: Metadata = generateSEO({
   title: 'How to Choose the Right Glasses for Your Face Shape? Complete Guide',
@@ -34,6 +35,16 @@ export default function BlogPostPage() {
 
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
         <div className="container mx-auto px-4 py-12">
+          {/* Breadcrumbs */}
+          <div className="mb-6">
+            <Breadcrumbs
+              items={[
+                { name: 'Blog', url: '/blog' },
+                { name: 'How to Choose Glasses for Your Face' },
+              ]}
+            />
+          </div>
+
           {/* Back button */}
           <div className="mb-8">
             <Link
