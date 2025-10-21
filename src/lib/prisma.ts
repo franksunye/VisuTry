@@ -17,7 +17,7 @@ const logLevels = process.env.NODE_ENV === 'development'
   : ['error'] as const
 
 export const prisma = globalForPrisma.prisma ?? new PrismaClient({
-  // adapter: adapter, // 暂时禁用适配器以解决类型兼容性问题
+  adapter: adapter, // 使用 Neon Serverless Driver 优化 serverless 环境性能
   log: logLevels.map(level => ({
     level,
     emit: 'event'
