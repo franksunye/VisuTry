@@ -30,7 +30,30 @@ export const staticBlogPosts: BlogPost[] = [
     tags: ['Face Shape', 'Glasses Selection', 'Style Guide'],
     isPublished: true,
   },
-  // More articles can be added in the future
+  {
+    slug: 'best-ai-virtual-glasses-tryon-tools-2025',
+    title: 'Best AI Virtual Glasses Try-On Tools in 2025 - Complete Comparison',
+    description: 'Comprehensive review of the top AI-powered virtual glasses try-on tools in 2025. Compare features, accuracy, and user experience to find the perfect solution for online eyewear shopping.',
+    publishedAt: '2025-10-20T10:00:00Z',
+    modifiedAt: '2025-10-20T10:00:00Z',
+    author: 'VisuTry Team',
+    category: 'Technology',
+    readTime: '8 min read',
+    tags: ['Virtual Try-On', 'AI Technology', 'Product Comparison', 'Shopping Guide'],
+    isPublished: true,
+  },
+  {
+    slug: 'rayban-glasses-virtual-tryon-guide',
+    title: 'Ray-Ban Glasses Virtual Try-On Guide 2025 - Find Your Perfect Style',
+    description: 'Complete guide to Ray-Ban glasses styles with virtual try-on. Explore iconic Wayfarer, Clubmaster, and Aviator frames. Try them on virtually before you buy.',
+    publishedAt: '2025-10-21T10:00:00Z',
+    modifiedAt: '2025-10-21T10:00:00Z',
+    author: 'VisuTry Team',
+    category: 'Brand Guide',
+    readTime: '10 min read',
+    tags: ['Ray-Ban', 'Designer Glasses', 'Virtual Try-On', 'Style Guide'],
+    isPublished: true,
+  },
 ]
 
 /**
