@@ -52,7 +52,6 @@ model User {
   creditsBalance Int      @default(0)  // Purchased credits balance (never expire)
   isPremium      Boolean  @default(false)
   premiumExpiresAt DateTime?
-  role             UserRole @default(USER)
 
   accounts      Account[]
   sessions      Session[]
@@ -158,9 +157,4 @@ enum ProductType {
   PREMIUM_MONTHLY
   PREMIUM_YEARLY
   CREDITS_PACK
-}
-
-enum UserRole {
-  USER
-  ADMIN
 }

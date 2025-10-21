@@ -82,8 +82,6 @@ export const authOptions: NextAuthOptions = {
           session.user.email = (token.email as string) || session.user.email
           session.user.image = (token.image as string) || session.user.image
           session.user.username = (token.username as string) || session.user.username
-          // @ts-ignore
-          session.user.role = token.role
           session.user.freeTrialsUsed = (token.freeTrialsUsed as number) || 0
           // TypeScript workaround: premiumUsageCount and creditsBalance are defined in types/next-auth.d.ts
           ;(session.user as any).premiumUsageCount = (token.premiumUsageCount as number) || 0
@@ -140,7 +138,6 @@ export const authOptions: NextAuthOptions = {
               email: true,
               image: true,
               username: true,
-              role: true,
               freeTrialsUsed: true,
               premiumUsageCount: true,
               creditsBalance: true,
@@ -161,7 +158,6 @@ export const authOptions: NextAuthOptions = {
             token.email = dbUser.email
             token.image = dbUser.image
             token.username = dbUser.username
-            token.role = dbUser.role
             token.freeTrialsUsed = dbUser.freeTrialsUsed
             token.premiumUsageCount = dbUser.premiumUsageCount
             token.creditsBalance = dbUser.creditsBalance
