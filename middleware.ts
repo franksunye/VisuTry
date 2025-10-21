@@ -6,6 +6,9 @@ import type { NextRequest } from 'next/server';
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
+  // Log ALL middleware invocations for debugging
+  console.log('[Middleware] Invoked for path:', pathname);
+
   // Protect all /admin routes
   if (pathname.startsWith('/admin')) {
     const session = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
@@ -50,7 +53,11 @@ export async function middleware(req: NextRequest) {
   return NextResponse.next();
 }
 
-// See "Matching Paths" below to learn more
+// Matcher configuration for Next.js middleware
+// This ensures middleware runs for all /admin routes
 export const config = {
-  matcher: ['/admin/:path*'],
+  matcher: [
+    '/admin',
+    '/admin/:path*',
+  ],
 };
