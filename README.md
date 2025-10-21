@@ -86,7 +86,7 @@ Visit [http://localhost:3000](http://localhost:3000) to start using the applicat
 
 ### Production & Development
 
-For production deployment and local development with real API services, please refer to the [Development Guide](docs/development-guide.md).
+For production deployment and local development with real API services, please refer to the [Development Guide](docs/guides/development-guide.md).
 
 ## 🔄 How It Works
 
@@ -98,7 +98,7 @@ For production deployment and local development with real API services, please r
 
 ## 🧪 Testing
 
-This project includes a comprehensive test suite. For detailed instructions, see the [Testing Guide](docs/testing-guide.md).
+This project includes a comprehensive test suite. For detailed instructions, see the [Testing Guide](docs/guides/testing-guide.md).
 
 ```bash
 # Run all tests
@@ -107,15 +107,15 @@ npm test
 
 ## 📚 Documentation
 
-- [Project Architecture](docs/architecture.md)
-- [Development Guide](docs/development-guide.md)
-- [Testing Guide](docs/testing-guide.md)
-- [Version Management](docs/VERSION_MANAGEMENT.md)
+- [Project Architecture](docs/project/architecture.md)
+- [Development Guide](docs/guides/development-guide.md)
+- [Testing Guide](docs/guides/testing-guide.md)
+- [Version Management](docs/guides/version-management.md)
 - [Changelog](CHANGELOG.md)
 
 ## 🚀 Deployment
 
-The application is deployed on Vercel. For a full list of required environment variables for production, see the [Development Guide](docs/development-guide.md).
+The application is deployed on Vercel. For a full list of required environment variables for production, see the [Development Guide](docs/guides/development-guide.md).
 
 ## 🤝 Contributing
 
