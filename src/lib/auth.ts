@@ -91,7 +91,8 @@ export const authOptions: NextAuthOptions = {
           session.user.isPremium = (token.isPremium as boolean) || false
           session.user.premiumExpiresAt = (token.premiumExpiresAt as Date) || null
           session.user.isPremiumActive = (token.isPremiumActive as boolean) || false
-          session.user.remainingTrials = (token.remainingTrials as number) || 3
+          // 🔥 修复：使用 ?? 而不是 ||，因为 0 是有效值
+          session.user.remainingTrials = (token.remainingTrials as number) ?? 3
         }
       }
 
