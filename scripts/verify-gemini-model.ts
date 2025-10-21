@@ -1,11 +1,34 @@
 /**
- * Gemini Model Verification Script
+ * Gemini Model Verification Script (with Proxy Support)
  * 
  * This script tests if a given API key can access specific Gemini models,
- * particularly the gemini-2.5-flash-image model for image generation.
+ * with support for HTTP/HTTPS proxy (needed in China).
  */
 
 import { GoogleGenerativeAI } from "@google/generative-ai"
+
+// Configure proxy BEFORE any API calls
+const proxyUrl = process.env.HTTPS_PROXY || process.env.HTTP_PROXY || 'http://127.0.0.1:7890'
+
+try {
+  const { ProxyAgent } = require('undici')
+  const { setGlobalDispatcher } = require('undici')
+
+  const dispatcher = new ProxyAgent({
+    uri: proxyUrl,
+    connect: {
+      timeout: 60000,
+    },
+    headersTimeout: 120000,
+    bodyTimeout: 120000,
+  })
+  setGlobalDispatcher(dispatcher)
+
+  console.log('🔌 Proxy configured:', proxyUrl)
+} catch (error) {
+  console.warn('⚠️ Failed to configure proxy:', error)
+  console.warn('   Continuing without proxy...')
+}
 
 // Color codes for terminal output
 const colors = {
@@ -64,6 +87,8 @@ async function verifyModel(apiKey: string, modelName: string): Promise<boolean> 
       log(`   💡 Rate limit exceeded`, colors.yellow)
     } else if (error.message?.includes('quota')) {
       log(`   💡 Quota exceeded`, colors.yellow)
+    } else if (error.message?.includes('fetch failed')) {
+      log(`   💡 Network error - check proxy settings or internet connection`, colors.yellow)
     }
     
     return false
@@ -150,14 +175,20 @@ async function verifyImageGeneration(apiKey: string, modelName: string): Promise
 
 async function main() {
   log('\n' + '='.repeat(70), colors.bright)
-  log('🔬 Gemini Model Verification Tool', colors.bright)
+  log('🔬 Gemini Model Verification Tool (with Proxy)', colors.bright)
   log('='.repeat(70) + '\n', colors.bright)
   
   // API Key to test
-  const API_KEY = 'AIzaSyC372C7u9sXj4pFkBYEP9X2fJPrOlPrKWk'
+  const API_KEY = process.env.GEMINI_API_KEY
+
+  if (!API_KEY) {
+    log('❌ Error: GEMINI_API_KEY environment variable not set.', colors.red)
+    log('   Please set the environment variable and try again.', colors.yellow)
+    process.exit(1)
+  }
   
   log('🔑 API Key:', colors.cyan)
-  log(`   ${API_KEY.substring(0, 20)}...${API_KEY.substring(API_KEY.length - 4)}`, colors.reset)
+  log(`   ${API_KEY.substring(0, 4)}...${API_KEY.substring(API_KEY.length - 4)}`, colors.reset)
   
   // Models to test
   const modelsToTest = [
@@ -234,7 +265,10 @@ async function main() {
     log('   gemini-2.5-flash-image is not accessible, but the fallback works.', colors.reset)
   } else {
     log('❌ WARNING: No image generation models are accessible', colors.red)
-    log('   Please check your API key permissions or quota.', colors.reset)
+    log('   Please check:', colors.reset)
+    log('   1. API key permissions or quota', colors.reset)
+    log('   2. Proxy settings (current: ' + proxyUrl + ')', colors.reset)
+    log('   3. Internet connection', colors.reset)
   }
   
   log('\n' + '='.repeat(70) + '\n', colors.bright)
