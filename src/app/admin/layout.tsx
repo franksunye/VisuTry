@@ -71,7 +71,7 @@ export default function AdminLayout({
           </Link>
         </div>
 
-        <nav className="flex-1 p-4">
+        <nav className="flex-1 p-4 overflow-y-auto">
           <ul className="space-y-2">
             {navItems.map((item) => {
               const isActive = pathname === item.href || pathname.startsWith(item.href + '/');
@@ -95,6 +95,12 @@ export default function AdminLayout({
           </ul>
         </nav>
 
+        {/* User Profile */}
+        <div className="p-4 border-t border-gray-800">
+          <UserProfile variant="dark" showDetails={true} />
+        </div>
+
+        {/* Back to Site */}
         <div className="p-4 border-t border-gray-800">
           <Link
             href="/"
@@ -110,15 +116,10 @@ export default function AdminLayout({
 
       {/* Main Content */}
       <div className="flex flex-col flex-1 overflow-hidden">
-        <header className="bg-white border-b border-gray-200 px-6 py-4 flex justify-between items-center">
-          <div>
-            <h2 className="text-2xl font-semibold text-gray-800">
-              {navItems.find(item => pathname.startsWith(item.href))?.title || 'Admin Panel'}
-            </h2>
-          </div>
-          <div>
-            <UserProfile />
-          </div>
+        <header className="bg-white border-b border-gray-200 px-6 py-4">
+          <h2 className="text-2xl font-semibold text-gray-800">
+            {navItems.find(item => pathname.startsWith(item.href))?.title || 'Admin Panel'}
+          </h2>
         </header>
         <main className="flex-1 overflow-y-auto p-6 bg-gray-50">
           {children}
