@@ -2,6 +2,7 @@ import { Metadata } from 'next'
 import { generateSEO } from '@/lib/seo'
 import Link from 'next/link'
 import { ArrowLeft, FileText } from 'lucide-react'
+import { Breadcrumbs } from '@/components/seo/Breadcrumbs'
 
 export const metadata: Metadata = generateSEO({
   title: 'Terms of Service | VisuTry',
@@ -15,6 +16,15 @@ export default function TermsPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
       <div className="container mx-auto px-4 py-8">
+        {/* Breadcrumbs */}
+        <div className="mb-6">
+          <Breadcrumbs
+            items={[
+              { name: 'Terms of Service' },
+            ]}
+          />
+        </div>
+
         {/* Header */}
         <div className="mb-8">
           <Link

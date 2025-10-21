@@ -230,7 +230,7 @@ export function generateSEO({
 
 // Structured data generator
 export function generateStructuredData(
-  type: 'website' | 'article' | 'product' | 'organization' | 'softwareApplication' | 'faqPage' | 'offer' | 'breadcrumbList',
+  type: 'website' | 'article' | 'product' | 'organization' | 'softwareApplication' | 'faqPage' | 'offer' | 'breadcrumbList' | 'howTo',
   data: any
 ) {
   const baseData = {
@@ -242,7 +242,8 @@ export function generateStructuredData(
               type === 'softwareApplication' ? 'SoftwareApplication' :
               type === 'faqPage' ? 'FAQPage' :
               type === 'offer' ? 'Offer' :
-              type === 'breadcrumbList' ? 'BreadcrumbList' : type,
+              type === 'breadcrumbList' ? 'BreadcrumbList' :
+              type === 'howTo' ? 'HowTo' : type,
   }
 
   switch (type) {
@@ -334,6 +335,22 @@ export function generateStructuredData(
           name: item.name,
           item: item.url ? `${SITE_CONFIG.url}${item.url}` : undefined,
         })) || [],
+      }
+
+    case 'howTo':
+      return {
+        ...baseData,
+        name: data.name,
+        description: data.description,
+        totalTime: data.totalTime || 'PT5M',
+        step: data.steps?.map((step: any, index: number) => ({
+          '@type': 'HowToStep',
+          position: index + 1,
+          name: step.name,
+          text: step.text,
+          image: step.image,
+        })) || [],
+        ...data,
       }
 
     case 'article':

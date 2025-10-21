@@ -6,6 +6,7 @@ import Link from "next/link"
 import { Metadata } from 'next'
 import { generateSEO, generateStructuredData } from '@/lib/seo'
 import { PRODUCT_METADATA, QUOTA_CONFIG, formatPrice } from '@/config/pricing'
+import { Breadcrumbs } from '@/components/seo/Breadcrumbs'
 
 export const metadata: Metadata = generateSEO({
   title: 'Pricing Plans - AI Glasses Try-On | VisuTry',
@@ -101,6 +102,16 @@ export default async function PricingPage() {
           dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
         />
       ))}
+
+      {/* Breadcrumbs */}
+      <div className="mb-6">
+        <Breadcrumbs
+          items={[
+            { name: 'Pricing' },
+          ]}
+        />
+      </div>
+
       {/* Page Header */}
       <div className="flex items-center justify-between mb-8">
         <div>
