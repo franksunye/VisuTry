@@ -8,6 +8,16 @@ export async function middleware(req: NextRequest) {
 
   // Log ALL middleware invocations for debugging
   console.log('[Middleware] Invoked for path:', pathname);
+  console.log('[Middleware] Full URL:', req.url);
+  console.log('[Middleware] Method:', req.method);
+
+  // Test route - block access to /test-middleware
+  if (pathname.startsWith('/test-middleware')) {
+    console.log('[Middleware] TEST ROUTE - Blocking access to /test-middleware');
+    const url = new URL('/', req.url);
+    url.searchParams.set('blocked', 'true');
+    return NextResponse.redirect(url);
+  }
 
   // Protect all /admin routes
   if (pathname.startsWith('/admin')) {
@@ -54,10 +64,17 @@ export async function middleware(req: NextRequest) {
 }
 
 // Matcher configuration for Next.js middleware
-// This ensures middleware runs for all /admin routes
+// Using negative lookahead to exclude API routes and static files
+// This ensures middleware runs for all routes except those excluded
 export const config = {
   matcher: [
-    '/admin',
-    '/admin/:path*',
+    /*
+     * Match all request paths except for the ones starting with:
+     * - api (API routes)
+     * - _next/static (static files)
+     * - _next/image (image optimization files)
+     * - favicon.ico (favicon file)
+     */
+    '/((?!api|_next/static|_next/image|favicon.ico).*)',
   ],
 };
