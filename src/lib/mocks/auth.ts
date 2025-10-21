@@ -41,11 +41,11 @@ const MockCredentialsProvider = CredentialsProvider({
   },
   async authorize(credentials) {
     if (!credentials?.email) return null
-    
+
     // Find or create mock user
     const userType = credentials.type || "free"
     const mockUser = userType === "admin" ? mockUsers[2] : userType === "premium" ? mockUsers[1] : mockUsers[0]
-    
+
     return {
       id: mockUser.id,
       email: credentials.email,
@@ -57,7 +57,7 @@ const MockCredentialsProvider = CredentialsProvider({
       premiumUsageCount: 0, // Mock users start with 0 premium usage
       creditsBalance: 0, // Mock users start with 0 credits
       isPremium: mockUser.isPremium,
-    }
+    } as any
   },
 })
 
