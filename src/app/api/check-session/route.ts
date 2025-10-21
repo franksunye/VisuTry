@@ -3,6 +3,10 @@ import { getToken } from 'next-auth/jwt';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 
+// Force dynamic rendering - this route uses cookies and session
+export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
+
 // Debug endpoint to check session and JWT token
 // Access: /api/check-session
 export async function GET(req: NextRequest) {
