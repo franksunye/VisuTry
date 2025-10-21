@@ -108,6 +108,17 @@ export const authOptions: NextAuthOptions = {
         token.name = user.name
         token.email = user.email
         token.image = user.image
+        // CRITICAL: Set role from user object on first login
+        // @ts-ignore - role exists on User type
+        token.role = user.role
+
+        // Debug logging for first login
+        console.log('[Auth JWT] First login - role set:', {
+          userId: user.id,
+          email: user.email,
+          // @ts-ignore
+          role: user.role
+        })
       }
 
       // Auth0: extract profile data
@@ -167,6 +178,14 @@ export const authOptions: NextAuthOptions = {
             token.creditsBalance = dbUser.creditsBalance
             token.isPremium = dbUser.isPremium
             token.premiumExpiresAt = dbUser.premiumExpiresAt
+
+            // Debug logging for role assignment
+            console.log('[Auth JWT] User role synced from DB:', {
+              userId: token.sub,
+              email: dbUser.email,
+              role: dbUser.role,
+              trigger
+            })
 
             // Calculate active status
             token.isPremiumActive = dbUser.isPremium &&
