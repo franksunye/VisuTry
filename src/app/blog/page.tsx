@@ -1,6 +1,7 @@
 import { Metadata } from 'next'
 import { generateSEO } from '@/lib/seo'
 import Link from 'next/link'
+import Image from 'next/image'
 import { Calendar, User, ArrowRight } from 'lucide-react'
 
 export const metadata: Metadata = generateSEO({
@@ -19,7 +20,7 @@ const blogPosts = [
     publishedAt: '2025-10-21',
     category: 'Shopping Guide',
     readTime: '10 min read',
-    image: '/og-image.jpg',
+    image: '/blog-covers/prescription-online-shopping.jpg',
   },
   {
     id: 'browline-clubmaster-glasses-complete-guide',
@@ -29,7 +30,7 @@ const blogPosts = [
     publishedAt: '2025-10-21',
     category: 'Style Guide',
     readTime: '8 min read',
-    image: '/Zenni Retro Browline Glasses.jpg',
+    image: '/blog-covers/browline-clubmaster.jpg',
   },
   {
     id: 'acetate-vs-plastic-eyeglass-frames-guide',
@@ -39,7 +40,7 @@ const blogPosts = [
     publishedAt: '2025-10-21',
     category: 'Materials Guide',
     readTime: '7 min read',
-    image: '/Classic Acetate Rectangle.jpg',
+    image: '/blog-covers/acetate-vs-plastic.jpg',
   },
   {
     id: 'tom-ford-luxury-eyewear-guide-2025',
@@ -49,7 +50,7 @@ const blogPosts = [
     publishedAt: '2025-10-21',
     category: 'Luxury Brands',
     readTime: '7 min read',
-    image: '/Tom Ford FT5873.jpg',
+    image: '/blog-covers/tom-ford-luxury.jpg',
   },
   {
     id: 'oliver-peoples-finley-vintage-review',
@@ -59,7 +60,7 @@ const blogPosts = [
     publishedAt: '2025-10-21',
     category: 'Product Review',
     readTime: '8 min read',
-    image: '/Oliver Peoples Finley Vintage.jpg',
+    image: '/blog-covers/oliver-peoples-review.jpg',
   },
   {
     id: 'celebrity-glasses-style-guide-2025',
@@ -69,7 +70,7 @@ const blogPosts = [
     publishedAt: '2025-10-21',
     category: 'Celebrity Style',
     readTime: '9 min read',
-    image: '/Cindy Crawford.jpg',
+    image: '/blog-covers/celebrity-style.jpg',
   },
   {
     id: 'rayban-glasses-virtual-tryon-guide',
@@ -79,7 +80,7 @@ const blogPosts = [
     publishedAt: '2025-10-21',
     category: 'Brand Guide',
     readTime: '10 min read',
-    image: '/Ray-Ban RB5154 Clubmaster - Browline Black Frame Eyeglasses.jpg',
+    image: '/blog-covers/rayban-guide.jpg',
   },
   {
     id: 'best-ai-virtual-glasses-tryon-tools-2025',
@@ -89,7 +90,7 @@ const blogPosts = [
     publishedAt: '2025-10-20',
     category: 'Technology',
     readTime: '8 min read',
-    image: '/og-image.jpg',
+    image: '/blog-covers/ai-virtual-tryon.jpg',
   },
   {
     id: 'how-to-choose-glasses-for-your-face',
@@ -99,7 +100,7 @@ const blogPosts = [
     publishedAt: '2025-10-15',
     category: 'Glasses Guide',
     readTime: '5 min read',
-    image: '/og-image.jpg',
+    image: '/blog-covers/face-shape-guide.jpg',
   },
 ]
 
@@ -125,11 +126,17 @@ export default function BlogPage() {
               className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow"
             >
               {/* Article image */}
-              <div className="h-48 bg-gradient-to-r from-blue-400 to-purple-500 flex items-center justify-center">
-                <span className="text-white text-lg font-medium">
-                  {post.title.substring(0, 10)}...
-                </span>
-              </div>
+              <Link href={`/blog/${post.id}`} className="block">
+                <div className="relative h-48 bg-gray-100 overflow-hidden group">
+                  <Image
+                    src={post.image}
+                    alt={post.title}
+                    fill
+                    className="object-cover group-hover:scale-105 transition-transform duration-300"
+                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                  />
+                </div>
+              </Link>
 
               {/* Article content */}
               <div className="p-6">
