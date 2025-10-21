@@ -138,6 +138,7 @@
 | ------------------------ | ----- | ---------- | ---------------------------------------------------------- | --- |
 | **阶段1：SEO基础建设**          | 第1月   | 可被Google识别 | robots.txt / sitemap.xml / meta优化 / GA4 / Search Console接入 | ✅ 已完成 |
 | **阶段1.5：关键词优化**          | 第1月   | 提升关键词覆盖 | 扩展关键词至27个 / 优化页面内容关键词密度 / 分层关键词管理 | ✅ 已完成 (2025-10-21) |
+| **阶段1.6：结构化数据优化**       | 第1月   | 提升搜索展示效果 | Schema.org标记 / Rich Snippets / FAQ/Offer/Organization Schema | 🔄 进行中 (2025-10-21) |
 | **阶段2：内容中心建设**           | 第2~3月 | 建立流量入口     | `/blog`结构搭建 + 每周2篇内容                                       | 🔄 进行中 |
 | **阶段3：Programmatic SEO** | 第3~6月 | 扩展规模化页面    | 自动生成品牌/款式试戴页                                               | ⏳ 待开始 |
 | **阶段4：外链与传播**            | 第4~7月 | 提升权重       | 在 Reddit / Medium / 产品榜单投稿                                 | ⏳ 待开始 |
@@ -173,6 +174,47 @@
 
    * 使用 `next-i18next`
    * 中英文页面各自优化关键词（例：“虚拟眼镜试戴” vs “virtual glasses try-on”）
+
+
+5. **结构化数据（Schema.org）** ✅ **已实施**
+
+   结构化数据帮助搜索引擎更好地理解页面内容，提升搜索结果展示效果（Rich Snippets）。
+
+   **已实现的 Schema 类型：**
+
+   * ✅ **Article Schema** - 博客文章（9篇已实施）
+   * ✅ **Organization Schema** - 主页组织信息
+   * ✅ **WebSite Schema** - 网站基本信息
+   * ✅ **SoftwareApplication Schema** - 工具应用描述
+   * ✅ **FAQPage Schema** - 常见问题
+   * ✅ **Offer Schema** - 定价信息
+   * ✅ **BreadcrumbList Schema** - 面包屑导航
+
+   **实施方式：**
+   ```typescript
+   // 使用统一的工具函数生成结构化数据
+   const structuredData = generateStructuredData('article', {
+     title: '...',
+     description: '...',
+     publishedAt: '2025-10-21T10:00:00Z',
+     author: 'VisuTry Team',
+   })
+
+   // 在页面中嵌入
+   <script type="application/ld+json">
+     {JSON.stringify(structuredData)}
+   </script>
+   ```
+
+   **预期效果：**
+   - 🎯 搜索结果显示富媒体片段（评分、价格、FAQ等）
+   - 📈 点击率提升 20-30%
+   - ⭐ 提升品牌可信度和专业形象
+   - 🔍 更好的搜索可见性
+
+   **验证工具：**
+   - Google Rich Results Test: https://search.google.com/test/rich-results
+   - Schema.org Validator: https://validator.schema.org/
 
 ---
 

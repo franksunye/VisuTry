@@ -4,7 +4,7 @@ import { PricingCard } from "@/components/pricing/PricingCard"
 import { Glasses, ArrowLeft, Star, Zap } from "lucide-react"
 import Link from "next/link"
 import { Metadata } from 'next'
-import { generateSEO } from '@/lib/seo'
+import { generateSEO, generateStructuredData } from '@/lib/seo'
 import { PRODUCT_METADATA, QUOTA_CONFIG, formatPrice } from '@/config/pricing'
 
 export const metadata: Metadata = generateSEO({
@@ -75,8 +75,32 @@ export default async function PricingPage() {
     }
   ]
 
+  // Generate structured data for pricing offers
+  const offerSchemas = pricingPlans.map(plan =>
+    generateStructuredData('offer', {
+      name: plan.name,
+      description: plan.description,
+      price: plan.price.replace('$', ''),
+      priceCurrency: 'USD',
+      priceValidUntil: '2025-12-31',
+      itemOffered: {
+        '@type': 'Service',
+        name: `${plan.name} - AI Virtual Glasses Try-On`,
+        description: plan.features.join(', '),
+      },
+    })
+  )
+
   return (
     <div className="container px-4 py-8 mx-auto">
+      {/* Structured Data for Offers */}
+      {offerSchemas.map((schema, index) => (
+        <script
+          key={index}
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+        />
+      ))}
       {/* Page Header */}
       <div className="flex items-center justify-between mb-8">
         <div>

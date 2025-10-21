@@ -229,10 +229,20 @@ export function generateSEO({
 }
 
 // Structured data generator
-export function generateStructuredData(type: 'website' | 'article' | 'product', data: any) {
+export function generateStructuredData(
+  type: 'website' | 'article' | 'product' | 'organization' | 'softwareApplication' | 'faqPage' | 'offer' | 'breadcrumbList',
+  data: any
+) {
   const baseData = {
     '@context': 'https://schema.org',
-    '@type': type,
+    '@type': type === 'website' ? 'WebSite' :
+              type === 'article' ? 'Article' :
+              type === 'product' ? 'Product' :
+              type === 'organization' ? 'Organization' :
+              type === 'softwareApplication' ? 'SoftwareApplication' :
+              type === 'faqPage' ? 'FAQPage' :
+              type === 'offer' ? 'Offer' :
+              type === 'breadcrumbList' ? 'BreadcrumbList' : type,
   }
 
   switch (type) {
@@ -242,17 +252,90 @@ export function generateStructuredData(type: 'website' | 'article' | 'product', 
         name: SITE_CONFIG.name,
         url: SITE_CONFIG.url,
         description: SITE_CONFIG.description,
-        publisher: {
-          '@type': 'Organization',
-          name: SITE_CONFIG.name,
-          logo: {
-            '@type': 'ImageObject',
-            url: `${SITE_CONFIG.url}/logo.png`,
+        potentialAction: {
+          '@type': 'SearchAction',
+          target: {
+            '@type': 'EntryPoint',
+            urlTemplate: `${SITE_CONFIG.url}/search?q={search_term_string}`,
           },
+          'query-input': 'required name=search_term_string',
         },
         ...data,
       }
-    
+
+    case 'organization':
+      return {
+        ...baseData,
+        name: SITE_CONFIG.name,
+        url: SITE_CONFIG.url,
+        logo: `${SITE_CONFIG.url}/og-image.jpg`,
+        description: SITE_CONFIG.description,
+        sameAs: [
+          'https://twitter.com/visutry',
+          // Add more social media links as needed
+        ],
+        contactPoint: {
+          '@type': 'ContactPoint',
+          contactType: 'customer support',
+          email: 'support@visutry.com',
+        },
+        ...data,
+      }
+
+    case 'softwareApplication':
+      return {
+        ...baseData,
+        name: SITE_CONFIG.name,
+        applicationCategory: 'DesignApplication',
+        operatingSystem: 'Web Browser',
+        offers: {
+          '@type': 'Offer',
+          price: '0',
+          priceCurrency: 'USD',
+        },
+        description: SITE_CONFIG.description,
+        ...data,
+      }
+
+    case 'faqPage':
+      return {
+        ...baseData,
+        mainEntity: data.questions?.map((q: any) => ({
+          '@type': 'Question',
+          name: q.question,
+          acceptedAnswer: {
+            '@type': 'Answer',
+            text: q.answer,
+          },
+        })) || [],
+      }
+
+    case 'offer':
+      return {
+        ...baseData,
+        name: data.name,
+        description: data.description,
+        price: data.price,
+        priceCurrency: data.currency || 'USD',
+        availability: 'https://schema.org/InStock',
+        seller: {
+          '@type': 'Organization',
+          name: SITE_CONFIG.name,
+        },
+        ...data,
+      }
+
+    case 'breadcrumbList':
+      return {
+        ...baseData,
+        itemListElement: data.items?.map((item: any, index: number) => ({
+          '@type': 'ListItem',
+          position: index + 1,
+          name: item.name,
+          item: item.url ? `${SITE_CONFIG.url}${item.url}` : undefined,
+        })) || [],
+      }
+
     case 'article':
       return {
         ...baseData,
@@ -270,12 +353,12 @@ export function generateStructuredData(type: 'website' | 'article' | 'product', 
           name: SITE_CONFIG.name,
           logo: {
             '@type': 'ImageObject',
-            url: `${SITE_CONFIG.url}/logo.png`,
+            url: `${SITE_CONFIG.url}/og-image.jpg`,
           },
         },
         ...data,
       }
-    
+
     case 'product':
       return {
         ...baseData,
@@ -294,7 +377,7 @@ export function generateStructuredData(type: 'website' | 'article' | 'product', 
         },
         ...data,
       }
-    
+
     default:
       return baseData
   }

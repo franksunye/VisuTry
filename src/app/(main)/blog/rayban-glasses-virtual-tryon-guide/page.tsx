@@ -3,6 +3,7 @@ import { generateSEO, generateStructuredData } from '@/lib/seo'
 import Link from 'next/link'
 import { ArrowLeft, Star, Eye, TrendingUp } from 'lucide-react'
 import Image from 'next/image'
+import { Breadcrumbs } from '@/components/seo/Breadcrumbs'
 
 export const metadata: Metadata = generateSEO({
   title: 'Ray-Ban Glasses Virtual Try-On Guide 2025 - Find Your Perfect Style',
@@ -30,6 +31,16 @@ export default function BlogPostPage() {
 
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
         <div className="container mx-auto px-4 py-12">
+          {/* Breadcrumbs */}
+          <div className="mb-6">
+            <Breadcrumbs
+              items={[
+                { name: 'Blog', url: '/blog' },
+                { name: 'Ray-Ban Virtual Try-On Guide' },
+              ]}
+            />
+          </div>
+
           <div className="mb-8">
             <Link
               href="/blog"

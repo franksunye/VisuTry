@@ -1,4 +1,5 @@
 import { Footer } from '@/components/layout/Footer'
+import { HomeStructuredData } from './home-structured-data'
 
 export default function MainLayout({
   children,
@@ -7,6 +8,7 @@ export default function MainLayout({
 }) {
   return (
     <>
+      <HomeStructuredData />
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex flex-col">
         <div className="flex-grow">
           {children}
