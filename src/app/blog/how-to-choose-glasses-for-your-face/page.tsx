@@ -2,6 +2,7 @@ import { Metadata } from 'next'
 import { generateSEO, generateStructuredData } from '@/lib/seo'
 import Link from 'next/link'
 import { ArrowLeft, Glasses, Share2 } from 'lucide-react'
+import BlogTags from '@/components/BlogTags'
 
 export const metadata: Metadata = generateSEO({
   title: 'How to Choose the Right Glasses for Your Face Shape? Complete Guide',
@@ -19,6 +20,8 @@ const structuredData = generateStructuredData('article', {
   author: 'VisuTry Team',
   image: '/blog/face-shape-guide.jpg',
 })
+
+const articleTags = ['Face Shape', 'Glasses Selection', 'Style Guide', 'Buying Guide', 'Fashion Tips']
 
 export default function BlogPostPage() {
   return (
@@ -190,10 +193,8 @@ export default function BlogPostPage() {
 
             {/* Article footer */}
             <div className="p-8 bg-gray-50 border-t">
-              <div className="flex items-center justify-between">
-                <div className="text-sm text-gray-600">
-                  Tags: Glasses Selection, Face Shape Matching, Style Guide
-                </div>
+              <div className="flex items-center justify-between flex-wrap gap-4">
+                <BlogTags tags={articleTags} />
                 <Link
                   href="/"
                   className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors"
