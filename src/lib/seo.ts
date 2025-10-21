@@ -1,27 +1,94 @@
 // SEO configuration and utility functions
 import { Metadata } from 'next'
 
+/**
+ * Keyword Categories for SEO Optimization
+ * Organized by intent and conversion potential
+ */
+export const KEYWORDS = {
+  // Core tool keywords (high conversion intent)
+  core: [
+    'virtual glasses try-on',
+    'AI glasses try-on',
+    'online glasses fitting',
+    'virtual eyewear try-on',
+    'glasses try-on tool',
+  ],
+
+  // Feature-based keywords
+  features: [
+    'face shape glasses matcher',
+    'smart glasses recommendation',
+    'AI-powered eyewear fitting',
+    'virtual frame fitting',
+    'online optical try-on',
+  ],
+
+  // Long-tail keywords (traffic generation)
+  longTail: [
+    'best glasses for round face',
+    'how to choose glasses online',
+    'prescription glasses virtual try-on',
+    'try on glasses before buying',
+    'virtual glasses fitting app',
+    'online eyewear shopping tool',
+  ],
+
+  // Brand-related keywords
+  brands: [
+    'Ray-Ban virtual try-on',
+    'designer glasses online',
+    'premium eyewear try-on',
+    'luxury glasses virtual fitting',
+  ],
+
+  // Problem-solving keywords
+  problemSolving: [
+    'find perfect glasses online',
+    'glasses shopping made easy',
+    'try glasses without visiting store',
+  ],
+}
+
+// Flatten all keywords for meta tags
+const ALL_KEYWORDS = [
+  ...KEYWORDS.core,
+  ...KEYWORDS.features,
+  ...KEYWORDS.longTail,
+  ...KEYWORDS.brands,
+  ...KEYWORDS.problemSolving,
+]
+
 // Website basic information
 export const SITE_CONFIG = {
   name: 'VisuTry',
-  title: 'VisuTry - AI Virtual Glasses Try-On Tool',
-  description: 'Experience virtual glasses try-on with AI technology. Find the perfect glasses style for your face shape. Try multiple brands online with intelligent recommendations.',
+  title: 'VisuTry - AI Virtual Glasses Try-On Tool | Find Your Perfect Eyewear Online',
+  description: 'Try on glasses virtually with AI-powered technology. Find the perfect eyewear for your face shape with our smart glasses recommendation tool. Shop designer frames online with confidence using virtual try-on.',
   url: process.env.NEXT_PUBLIC_SITE_URL || 'https://visutry.com',
   ogImage: '/og-image.jpg',
-  keywords: [
-    'virtual glasses try-on',
-    'AI glasses',
-    'online glasses fitting',
-    'glasses try-on tool',
-    'artificial intelligence',
-    'face shape glasses',
-    'virtual eyewear',
-    'smart glasses recommendation'
-  ],
+  keywords: ALL_KEYWORDS,
   author: 'VisuTry Team',
   creator: 'VisuTry',
   publisher: 'VisuTry',
   locale: 'en-US',
+}
+
+/**
+ * Get keywords by page type for targeted SEO
+ */
+export function getKeywordsByType(type: 'home' | 'blog' | 'product' | 'pricing'): string[] {
+  switch (type) {
+    case 'home':
+      return [...KEYWORDS.core, ...KEYWORDS.features, ...KEYWORDS.problemSolving]
+    case 'blog':
+      return [...KEYWORDS.core, ...KEYWORDS.longTail]
+    case 'product':
+      return [...KEYWORDS.core, ...KEYWORDS.brands]
+    case 'pricing':
+      return [...KEYWORDS.core, ...KEYWORDS.features]
+    default:
+      return KEYWORDS.core
+  }
 }
 
 // 默认SEO配置
