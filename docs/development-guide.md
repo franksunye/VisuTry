@@ -1,39 +1,31 @@
-# VisuTry 开发指南
+# VisuTry Development Guide
 
-## 环境配置清单
+This guide provides instructions for setting up the development environment, running tests, and deploying the application.
 
-### 必需的外部服务账户
+## 1. Environment Setup
 
-1. **Google Cloud Platform**
-   - 创建项目并启用Gemini API
-   - 获取API密钥
-   - 配置计费账户
+### Prerequisites
 
-2. **Twitter Developer Account**
-   - 创建Twitter应用
-   - 获取Client ID和Client Secret
-   - 配置OAuth回调URL
+Before you begin, ensure you have accounts for the following services:
 
-3. **Stripe账户**
-   - 创建Stripe账户
-   - 获取测试和生产环境密钥
-   - 配置Webhook端点
+- **Google Cloud Platform**: To enable the Gemini API and obtain an API key.
+- **Twitter Developer Account**: To create a Twitter app and get the Client ID and Client Secret for OAuth.
+- **Stripe Account**: To manage payments and get API keys for test and production environments.
+- **Database Service**: A PostgreSQL database. We recommend [Supabase](https://supabase.com/) or [PlanetScale](https://planetscale.com/).
+- **Vercel Account**: For deployment and Vercel Blob storage.
 
-4. **数据库服务**
-   - 推荐使用Supabase或PlanetScale
-   - 创建PostgreSQL数据库
-   - 获取连接字符串
+### Environment Variables
 
-5. **Vercel账户**
-   - 用于部署和Blob存储
-   - 连接GitHub仓库
-
-### 环境变量配置
-
-复制`.env.example`到`.env.local`并填入以下配置：
+Clone the repository and create a `.env.local` file from the example file:
 
 ```bash
-# 数据库
+cp .env.example .env.local
+```
+
+Then, fill in the required environment variables:
+
+```bash
+# Database
 DATABASE_URL="postgresql://user:password@host:port/database"
 
 # NextAuth
@@ -55,107 +47,82 @@ STRIPE_WEBHOOK_SECRET="whsec_..."
 # Vercel Blob
 BLOB_READ_WRITE_TOKEN="your-blob-token"
 
-# 应用配置
+# Application Configuration
 FREE_TRIAL_LIMIT=3
 PREMIUM_PRICE_ID="price_..."
 ```
 
-## 开发流程
+## 2. Development Workflow
 
-### 1. 本地开发环境设置
+### Local Setup
 
-```bash
-# 克隆项目
-git clone https://github.com/franksunye/VisuTry.git
-cd VisuTry
+1.  **Clone the repository**:
+    ```bash
+    git clone https://github.com/franksunye/VisuTry.git
+    cd VisuTry
+    ```
 
-# 安装依赖
-npm install
+2.  **Install dependencies**:
+    ```bash
+    npm install
+    ```
 
-# 配置环境变量
-cp .env.example .env.local
-# 编辑 .env.local 填入实际配置
+3.  **Set up environment variables**:
+    ```bash
+    cp .env.example .env.local
+    # Edit .env.local with your credentials
+    ```
 
-# 初始化数据库
-npx prisma generate
-npx prisma db push
+4.  **Initialize the database**:
+    ```bash
+    npx prisma generate
+    npx prisma db push
+    ```
 
-# 启动开发服务器
-npm run dev
-```
+5.  **Start the development server**:
+    ```bash
+    npm run dev
+    ```
 
-### 2. 数据库操作
+### Database Operations
 
-```bash
-# 查看数据库
-npx prisma studio
+-   **View database**:
+    ```bash
+    npx prisma studio
+    ```
+-   **Reset database**:
+    ```bash
+    npx prisma db push --force-reset
+    ```
+-   **Generate Prisma client**:
+    ```bash
+    npx prisma generate
+    ```
+-   **Create a migration**:
+    ```bash
+    npx prisma migrate dev --name <migration-name>
+    ```
 
-# 重置数据库
-npx prisma db push --force-reset
+### Code Quality Checks
 
-# 生成客户端
-npx prisma generate
+-   **Linting**:
+    ```bash
+    npm run lint
+    ```
+-   **Type checking**:
+    ```bash
+    npm run type-check
+    ```
+-   **Build check**:
+    ```bash
+    npm run build
+    ```
 
-# 创建迁移
-npx prisma migrate dev --name init
-```
+## 3. API Development
 
-### 3. 代码规范
+### Authentication Middleware
 
-```bash
-# 代码检查
-npm run lint
-
-# 类型检查
-npm run type-check
-
-# 构建检查
-npm run build
-```
-
-## 开发阶段任务
-
-### 阶段1: MVP核心功能
-
-#### 1.1 用户认证系统
-- [ ] 配置NextAuth.js
-- [ ] 实现Twitter OAuth登录
-- [ ] 创建用户会话管理
-- [ ] 实现登录/登出功能
-
-#### 1.2 图片上传功能
-- [ ] 创建图片上传组件
-- [ ] 实现拖拽上传
-- [ ] 添加图片压缩和验证
-- [ ] 集成Vercel Blob存储
-
-#### 1.3 AI试戴功能
-- [ ] 集成Gemini API
-- [ ] 创建试戴任务管理
-- [ ] 实现异步任务处理
-- [ ] 添加错误处理和重试
-
-#### 1.4 付费系统
-- [ ] 集成Stripe Checkout
-- [ ] 实现套餐管理
-- [ ] 创建Webhook处理
-- [ ] 添加使用次数限制
-
-#### 1.5 分享功能
-- [ ] 创建分享页面
-- [ ] 实现短链接生成
-- [ ] 添加社交媒体分享
-- [ ] 优化OG标签
-
-#### 1.6 用户个人页面
-- [ ] 创建用户仪表板
-- [ ] 显示历史记录
-- [ ] 实现套餐管理
-- [ ] 添加使用统计
-
-## API开发指南
-
-### 认证中间件
+Use the `requireAuth` utility to protect API routes that require authentication.
 
 ```typescript
 // src/lib/auth.ts
@@ -175,7 +142,9 @@ export async function requireAuth() {
 }
 ```
 
-### 错误处理
+### API Response Helpers
+
+Use these helpers to return consistent JSON responses.
 
 ```typescript
 // src/lib/api-response.ts
@@ -188,7 +157,9 @@ export function apiError(message: string, status = 400) {
 }
 ```
 
-### 数据库查询示例
+### Database Query Example
+
+Here's an example of a database query using Prisma.
 
 ```typescript
 // src/lib/db/users.ts
@@ -214,9 +185,11 @@ export async function getUserWithStats(userId: string) {
 }
 ```
 
-## 组件开发指南
+## 4. Component Development
 
-### 基础UI组件
+### UI Components
+
+Base UI components are located in `src/components/ui`.
 
 ```typescript
 // src/components/ui/Button.tsx
@@ -229,11 +202,13 @@ interface ButtonProps {
 }
 
 export function Button({ variant = 'primary', size = 'md', loading, children, onClick }: ButtonProps) {
-  // 实现...
+  // Implementation...
 }
 ```
 
-### 业务组件
+### Feature Components
+
+Feature-specific components are organized by feature in `src/components`.
 
 ```typescript
 // src/components/try-on/TryOnInterface.tsx
@@ -243,13 +218,13 @@ interface TryOnInterfaceProps {
 }
 
 export function TryOnInterface({ onSubmit, loading }: TryOnInterfaceProps) {
-  // 实现...
+  // Implementation...
 }
 ```
 
-## 测试指南
+## 5. Testing
 
-### 单元测试
+### Unit Tests
 
 ```typescript
 // __tests__/utils/image.test.ts
@@ -264,14 +239,14 @@ describe('validateImageFile', () => {
 })
 ```
 
-### API测试
+### API Tests
 
 ```typescript
 // __tests__/api/try-on.test.ts
 import { POST } from '@/app/api/try-on/route'
 
 describe('/api/try-on', () => {
-  it('should create try-on task', async () => {
+  it('should create a try-on task', async () => {
     const request = new Request('http://localhost:3000/api/try-on', {
       method: 'POST',
       body: JSON.stringify({ /* test data */ })
@@ -283,79 +258,56 @@ describe('/api/try-on', () => {
 })
 ```
 
-## 部署指南
+## 6. Deployment
 
-### Vercel部署
+### Vercel Deployment
 
-1. 连接GitHub仓库到Vercel
-2. 配置环境变量
-3. 设置构建命令: `npm run build`
-4. 设置输出目录: `.next`
+1.  Connect your GitHub repository to Vercel.
+2.  Configure the environment variables in the Vercel dashboard.
+3.  Set the build command to `npm run build`.
+4.  Set the output directory to `.next`.
 
-### 环境变量配置
+### Production Environment Variables
 
-在Vercel Dashboard中配置所有生产环境变量，确保：
-- 数据库URL指向生产数据库
-- API密钥使用生产环境密钥
-- Webhook URL指向生产域名
+Ensure that all environment variables in Vercel are set to their production values.
 
-### 数据库迁移
+### Database Migrations
+
+Run the following command to apply database migrations in production:
 
 ```bash
-# 生产环境数据库迁移
 npx prisma migrate deploy
 ```
 
-## 故障排除
+## 7. Troubleshooting
 
-### 常见问题
+### Common Issues
 
-1. **NextAuth配置错误**
-   - 检查NEXTAUTH_URL是否正确
-   - 确认OAuth应用回调URL配置
+-   **NextAuth Configuration Error**: Check that `NEXTAUTH_URL` is correct and the OAuth callback URL is properly configured.
+-   **Database Connection Failed**: Verify the `DATABASE_URL` format and check the status of your database service.
+-   **API Calls Failing**: Ensure your API keys are valid and check for network issues.
+-   **Image Upload Issues**: Verify your Blob storage configuration and check file size and format limits.
 
-2. **数据库连接失败**
-   - 验证DATABASE_URL格式
-   - 检查数据库服务状态
-
-3. **API调用失败**
-   - 确认API密钥有效性
-   - 检查网络连接和防火墙
-
-4. **图片上传问题**
-   - 验证Blob存储配置
-   - 检查文件大小和格式限制
-
-### 调试技巧
+### Debugging Tips
 
 ```typescript
-// 开发环境调试
+// Log debug info in development
 if (process.env.NODE_ENV === 'development') {
   console.log('Debug info:', { data })
 }
 
-// 错误日志
+// Error logging
 try {
-  // 业务逻辑
+  // Business logic
 } catch (error) {
   console.error('Error:', error)
-  // 发送到错误监控服务
+  // Send to an error monitoring service
 }
 ```
 
-## 性能优化建议
+## 8. Performance Optimization
 
-1. **图片优化**
-   - 使用Next.js Image组件
-   - 实现懒加载
-   - 压缩上传图片
-
-2. **API优化**
-   - 实现响应缓存
-   - 使用数据库索引
-   - 优化查询语句
-
-3. **前端优化**
-   - 代码分割
-   - 预加载关键资源
-   - 使用React.memo优化渲染
+-   **Image Optimization**: Use the Next.js `Image` component, implement lazy loading, and compress uploaded images.
+-   **API Optimization**: Implement response caching, use database indexes, and optimize queries.
+-   **Frontend Optimization**: Use code splitting, preload critical resources, and use `React.memo` to optimize rendering.
+```
