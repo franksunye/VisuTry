@@ -2,6 +2,7 @@ import { redirect } from "next/navigation"
 import { getServerSession } from "next-auth/next"
 import { authOptions } from "@/lib/auth"
 import { TryOnInterface } from "@/components/try-on/TryOnInterface"
+import { UserStatusBanner } from "@/components/try-on/UserStatusBanner"
 import { ArrowLeft } from "lucide-react"
 import Link from "next/link"
 import { headers } from "next/headers"
@@ -38,11 +39,6 @@ export default async function TryOnPage() {
   if (!session && !testSession) {
     redirect("/auth/signin")
   }
-
-  // 🔥 优化：直接使用 session.user 作为唯一数据源
-  // session.user 已经包含了所有必要的用户信息（来自 JWT token）
-  // 不再从数据库读取，避免缓存不一致问题
-  const user = session?.user || testSession
 
   // HowTo structured data for SEO
   const howToSchema = generateStructuredData('howTo', {
@@ -112,30 +108,8 @@ export default async function TryOnPage() {
               </div>
             </div>
           </div>
-        ) : user?.isPremiumActive ? (
-          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-            <div className="flex items-center">
-              <div className="text-yellow-800">
-                <strong>Standard Member</strong> - Enhanced AI try-ons available
-              </div>
-            </div>
-          </div>
         ) : (
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-            <div className="flex items-center justify-between">
-              <div className="text-blue-800">
-                <strong>Free User</strong> - Remaining try-ons: {user?.remainingTrials || 0}
-              </div>
-              {(user?.remainingTrials === 0) && (
-                <Link
-                  href="/pricing"
-                  className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
-                >
-                  Upgrade Now
-                </Link>
-              )}
-            </div>
-          </div>
+          <UserStatusBanner />
         )}
       </div>
 
