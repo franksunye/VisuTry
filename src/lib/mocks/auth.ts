@@ -37,14 +37,14 @@ const MockCredentialsProvider = CredentialsProvider({
   name: "Mock Login",
   credentials: {
     email: { label: "Email", type: "email", placeholder: "test@example.com" },
-    type: { label: "User Type", type: "select", options: ["free", "premium", "admin"] }
+    type: { label: "User Type", type: "select", options: ["free", "premium"] }
   },
   async authorize(credentials) {
     if (!credentials?.email) return null
     
     // Find or create mock user
     const userType = credentials.type || "free"
-    const mockUser = userType === "admin" ? mockUsers[2] : userType === "premium" ? mockUsers[1] : mockUsers[0]
+    const mockUser = userType === "premium" ? mockUsers[1] : mockUsers[0]
     
     return {
       id: mockUser.id,
@@ -52,7 +52,6 @@ const MockCredentialsProvider = CredentialsProvider({
       name: mockUser.name,
       image: mockUser.image,
       username: mockUser.username,
-      role: mockUser.role,
       freeTrialsUsed: mockUser.freeTrialsUsed,
       premiumUsageCount: 0, // Mock users start with 0 premium usage
       creditsBalance: 0, // Mock users start with 0 credits
@@ -73,8 +72,6 @@ export function getMockAuthOptions(): NextAuthOptions {
           // Get mock user data
           const mockUser = mockUsers.find(u => u.id === session.user.id) || mockUsers[0]
           
-          // @ts-ignore
-          session.user.role = mockUser.role
           session.user.freeTrialsUsed = mockUser.freeTrialsUsed
           session.user.isPremium = mockUser.isPremium
           session.user.premiumExpiresAt = mockUser.premiumExpiresAt
@@ -85,8 +82,6 @@ export function getMockAuthOptions(): NextAuthOptions {
       async jwt({ token, user, account }) {
         if (user) {
           token.username = user.username
-          // @ts-ignore
-          token.role = user.role
         }
         return token
       },
