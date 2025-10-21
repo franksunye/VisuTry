@@ -81,7 +81,7 @@ export default function BlogPostPage() {
 
               <h2>What Sets Tom Ford Apart</h2>
               <ul>
-                <li><strong>Iconic "T" logo</strong> - Instantly recognizable signature detail</li>
+                <li><strong>Iconic &quot;T&quot; logo</strong> - Instantly recognizable signature detail</li>
                 <li><strong>Premium materials</strong> - Italian acetate, titanium, and precious metals</li>
                 <li><strong>Impeccable craftsmanship</strong> - Handmade in Italy and Japan</li>
                 <li><strong>Timeless designs</strong> - Classic styles that transcend trends</li>
@@ -106,7 +106,7 @@ export default function BlogPostPage() {
               <ul>
                 <li><strong>Square silhouette</strong> with refined proportions</li>
                 <li><strong>Thick acetate construction</strong> for substantial feel</li>
-                <li><strong>Signature "T" temples</strong> in polished metal</li>
+                <li><strong>Signature &quot;T&quot; temples</strong> in polished metal</li>
                 <li><strong>Available in classic colors</strong> - black, tortoise, havana</li>
                 <li><strong>Perfect for:</strong> Business professionals, fashion-forward individuals</li>
               </ul>
@@ -153,9 +153,9 @@ export default function BlogPostPage() {
                 <li><strong>Precision-engineered hinges</strong> for smooth operation</li>
               </ul>
 
-              <h2>The Signature "T" Logo</h2>
+              <h2>The Signature &quot;T&quot; Logo</h2>
               <p>
-                The iconic <strong>"T" logo</strong> on the temples is more than just branding—it&apos;s a 
+                The iconic <strong>&quot;T&quot; logo</strong> on the temples is more than just branding—it&apos;s a
                 status symbol. This distinctive detail:
               </p>
               <ul>
@@ -264,8 +264,8 @@ export default function BlogPostPage() {
               <div className="bg-yellow-50 border-l-4 border-yellow-400 p-6 my-8">
                 <h3 className="text-lg font-bold text-yellow-900 mb-2">⚠️ Beware of Counterfeits</h3>
                 <p className="text-gray-800 mb-0">
-                  Tom Ford is one of the most counterfeited eyewear brands. Always buy from authorized 
-                  retailers. Check for: quality "T" logo, proper packaging, authentication cards, and 
+                  Tom Ford is one of the most counterfeited eyewear brands. Always buy from authorized
+                  retailers. Check for: quality &quot;T&quot; logo, proper packaging, authentication cards, and
                   serial numbers inside the temple.
                 </p>
               </div>
