@@ -2,21 +2,21 @@
 
 [![Version](https://img.shields.io/badge/version-0.2.0-blue.svg)](https://github.com/franksunye/VisuTry/releases)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
-[![Vercel](https://img.shields.io/badge/deployed%20on-Vercel-black.svg)](https://vercel.com)
+[![Vercel](https.img.shields.io/badge/deployed%20on-Vercel-black.svg)](https://vercel.com)
 
-VisuTry is a cutting-edge AI-powered virtual glasses try-on application that allows users to upload their photos and custom glasses images to preview how different eyewear looks on them using advanced AI technology.
+VisuTry is a cutting-edge AI-powered virtual glasses try-on application. It allows users to upload their photos and custom glasses images to preview how different eyewear looks on them using advanced AI technology.
 
 ## ✨ Features
 
-- 🤖 **AI Try-On Technology**: Powered by Google Gemini 2.5 Flash Image model for realistic virtual try-on
-- 👤 **User Authentication**: Secure Auth0 authentication with support for Twitter, Google, and more
-- 💳 **Payment System**: Integrated Stripe payment with free trials and premium plans
-- 📱 **Responsive Design**: Optimized for both desktop and mobile devices
-- 🔗 **Social Sharing**: Generate shareable links for social media platforms
-- 📊 **User Dashboard**: Personal history, usage statistics, and account management
-- 🖼️ **Custom Upload**: Upload both user photos and custom glasses images
-- ⚡ **Real-time Processing**: Asynchronous AI processing with live status updates
-- ⚖️ **Legal Compliance**: Complete privacy policy, terms of service, and refund policy pages
+- 🤖 **AI Try-On Technology**: Realistic virtual try-on powered by Google Gemini 2.5 Flash.
+- 👤 **User Authentication**: Secure authentication with Auth0, supporting Google, Twitter, and more.
+- 💳 **Payment System**: Integrated with Stripe for free trials and premium plans.
+- 📱 **Responsive Design**: Optimized for both desktop and mobile devices.
+- 🔗 **Social Sharing**: Generate shareable links for your try-on results.
+- 📊 **User Dashboard**: Manage your try-on history, usage statistics, and account settings.
+- 🖼️ **Custom Uploads**: Upload your own photos and glasses images.
+- ⚡ **Real-time Processing**: Asynchronous AI processing with live status updates.
+- ⚖️ **Legal Compliance**: Includes a privacy policy, terms of service, and refund policy.
 
 ## 🛠 Tech Stack
 
@@ -29,10 +29,10 @@ VisuTry is a cutting-edge AI-powered virtual glasses try-on application that all
 ### Backend
 - **API**: Next.js API Routes
 - **Database**: PostgreSQL + Prisma ORM
-- **Authentication**: NextAuth.js + Auth0 (supports Twitter, Google, and more)
+- **Authentication**: NextAuth.js + Auth0
 - **Payment**: Stripe
 - **File Storage**: Vercel Blob
-- **AI Service**: Google Gemini 2.5 Flash Image
+- **AI Service**: Google Gemini 2.5 Flash
 
 ### Deployment
 - **Platform**: Vercel
@@ -46,192 +46,87 @@ VisuTry is a cutting-edge AI-powered virtual glasses try-on application that all
 VisuTry/
 ├── src/
 │   ├── app/                 # Next.js App Router
-│   │   ├── api/            # API routes
-│   │   │   ├── auth/       # Authentication endpoints
-│   │   │   ├── try-on/     # Try-on processing endpoints
-│   │   │   ├── payment/    # Stripe payment endpoints
-│   │   │   └── upload/     # File upload endpoints
-│   │   ├── dashboard/      # User dashboard pages
-│   │   ├── share/          # Public sharing pages
-│   │   └── try-on/         # Try-on interface pages
 │   ├── components/         # React components
-│   │   ├── ui/            # Base UI components
-│   │   ├── auth/          # Authentication components
-│   │   ├── upload/        # File upload components
-│   │   ├── try-on/        # Try-on interface components
-│   │   ├── dashboard/     # Dashboard components
-│   │   └── share/         # Sharing components
 │   ├── lib/               # Utility libraries
-│   │   ├── auth.ts        # NextAuth configuration
-│   │   ├── prisma.ts      # Prisma client
-│   │   ├── stripe.ts      # Stripe configuration
-│   │   └── gemini.ts      # Gemini AI client
-│   ├── types/             # TypeScript type definitions
-│   └── utils/             # Utility functions
+│   └── ...
 ├── prisma/                # Database schema and migrations
-├── scripts/               # Build and release scripts
-├── tests/                 # Test suites
 ├── docs/                  # Project documentation
-└── public/                # Static assets
+└── ...
 ```
 
 ## 🚀 Quick Start
 
 ### Demo Mode (Recommended)
-Experience all features instantly without any API keys:
 
-```bash
-# 1. Clone the repository
-git clone https://github.com/franksunye/VisuTry.git
-cd VisuTry
+Experience all features instantly without any API keys.
 
-# 2. Install dependencies
-npm install
+1.  **Clone the repository**:
+    ```bash
+    git clone https://github.com/franksunye/VisuTry.git
+    cd VisuTry
+    ```
 
-# 3. Start in demo mode
-npm run test:start:windows  # Windows
-npm run test:start          # Linux/Mac
+2.  **Install dependencies**:
+    ```bash
+    npm install
+    ```
 
-# Or manually start demo mode
-cp .env.test .env.local && npm run dev
-```
+3.  **Start in demo mode**:
+    ```bash
+    # For Windows
+    npm run test:start:windows
 
-Visit http://localhost:3000 to start using the application
+    # For Linux/Mac
+    npm run test:start
+    ```
 
-### Production Mode
-For production deployment with real API services, see `docs/development-guide.md`
+    Alternatively, you can manually start the demo mode by running `cp .env.test .env.local && npm run dev`.
 
-### Development Mode
-```bash
-# Install dependencies
-npm install
+Visit [http://localhost:3000](http://localhost:3000) to start using the application.
 
-# Set up environment variables
-cp .env.example .env.local
-# Edit .env.local with your API keys
+### Production & Development
 
-# Run database migrations
-npx prisma migrate dev
+For production deployment and local development with real API services, please refer to the [Development Guide](docs/development-guide.md).
 
-# Start development server
-npm run dev
-```
+## 🔄 How It Works
+
+1. **User Authentication**: Sign in with your preferred OAuth provider.
+2. **Upload Images**: Upload your photo and a custom glasses image.
+3. **AI Processing**: The Gemini AI model processes the virtual try-on.
+4. **Real-time Updates**: Monitor the processing status with live updates.
+5. **View & Share**: View the AI-generated result and share it on social media.
 
 ## 🧪 Testing
+
+This project includes a comprehensive test suite. For detailed instructions, see the [Testing Guide](docs/testing-guide.md).
 
 ```bash
 # Run all tests
 npm test
-
-# Run unit tests
-npm run test:unit
-
-# Run integration tests
-npm run test:integration
-
-# Run E2E tests with Playwright
-npm run test:e2e:playwright
-
-# Run tests with coverage
-npm run test:coverage
-
-# Watch mode for development
-npm run test:watch
 ```
-
-## 📊 Current Status
-
-- ✅ **Version**: v0.2.0 - Version Management System
-- ✅ **Core Features**: MVP completed with all major features
-- ✅ **Testing**: Comprehensive test suite with 89% pass rate
-- ✅ **Deployment**: Production-ready on Vercel
-- 🎯 **Next**: UI optimization and prompt improvements (v0.3.0)
-
-## 🔄 How It Works
-
-1. **User Authentication**: Sign in with Twitter OAuth
-2. **Upload Images**: Upload your photo and custom glasses image
-3. **AI Processing**: Gemini 2.5 Flash Image model processes the virtual try-on
-4. **Real-time Updates**: Monitor processing status with live updates
-5. **View Results**: See the AI-generated try-on result
-6. **Share & Save**: Share results on social media or save to history
-
-## 🎯 Version Management
-
-This project uses semantic versioning and automated release management:
-
-```bash
-# Create a new release
-npm run release
-
-# Version-specific releases
-npm run release:patch  # Bug fixes (0.2.0 → 0.2.1)
-npm run release:minor  # New features (0.2.0 → 0.3.0)
-npm run release:major  # Breaking changes (0.2.0 → 1.0.0)
-```
-
-See `docs/VERSION_MANAGEMENT.md` for detailed guidelines.
 
 ## 📚 Documentation
 
-- [`docs/architecture.md`](docs/architecture.md) - Project architecture and features
-- [`docs/development-guide.md`](docs/development-guide.md) - Production setup guide
-- [`docs/testing-guide.md`](docs/testing-guide.md) - Testing instructions
-- [`docs/AUTH0_INTEGRATION.md`](docs/AUTH0_INTEGRATION.md) - Auth0 integration guide
-- [`docs/AUTH0_QUICKSTART.md`](docs/AUTH0_QUICKSTART.md) - Auth0 quick start (5 minutes)
-- [`docs/VERSION_MANAGEMENT.md`](docs/VERSION_MANAGEMENT.md) - Version management guide
-- [`docs/RELEASE_GUIDE.md`](docs/RELEASE_GUIDE.md) - Quick release reference
-- [`docs/LEGAL_COMPLIANCE.md`](docs/LEGAL_COMPLIANCE.md) - Legal compliance documentation
-- [`docs/LEGAL_PAGES_QUICKSTART.md`](docs/LEGAL_PAGES_QUICKSTART.md) - Legal pages quick start guide
-- [`CHANGELOG.md`](CHANGELOG.md) - Version history and changes
+- [Project Architecture](docs/architecture.md)
+- [Development Guide](docs/development-guide.md)
+- [Testing Guide](docs/testing-guide.md)
+- [Version Management](docs/VERSION_MANAGEMENT.md)
+- [Changelog](CHANGELOG.md)
 
 ## 🚀 Deployment
 
-The application is deployed on Vercel with automatic deployments from the main branch.
-
-### Environment Variables
-Required for production:
-- `NEXTAUTH_URL` - Application URL
-- `NEXTAUTH_SECRET` - NextAuth secret key
-- **Auth0 Configuration** (required):
-  - `AUTH0_ID` - Auth0 client ID
-  - `AUTH0_SECRET` - Auth0 client secret
-  - `AUTH0_ISSUER_BASE_URL` - Auth0 issuer URL (e.g., https://your-domain.auth0.com)
-- `DATABASE_URL` - PostgreSQL connection string
-- `GEMINI_API_KEY` - Google Gemini API key
-- `STRIPE_SECRET_KEY` - Stripe secret key
-- `BLOB_READ_WRITE_TOKEN` - Vercel Blob storage token
-
-See [`docs/AUTH0_QUICKSTART.md`](docs/AUTH0_QUICKSTART.md) for Auth0 setup instructions.
+The application is deployed on Vercel. For a full list of required environment variables for production, see the [Development Guide](docs/development-guide.md).
 
 ## 🤝 Contributing
 
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'feat: add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+We welcome contributions! Please follow these steps:
 
-Please follow the [Conventional Commits](https://www.conventionalcommits.org/) specification for commit messages.
+1.  Fork the repository.
+2.  Create a new feature branch.
+3.  Commit your changes following the [Conventional Commits](https://www.conventionalcommits.org/) specification.
+4.  Open a Pull Request.
 
 ## 📄 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 📞 Contact
-
-- **Project Repository**: [https://github.com/franksunye/VisuTry](https://github.com/franksunye/VisuTry)
-- **Issues**: [GitHub Issues](https://github.com/franksunye/VisuTry/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/franksunye/VisuTry/discussions)
-
-## 🙏 Acknowledgments
-
-- [Google Gemini](https://ai.google.dev/) for AI image generation
-- [Vercel](https://vercel.com/) for hosting and deployment
-- [Stripe](https://stripe.com/) for payment processing
-- [NextAuth.js](https://next-auth.js.org/) for authentication
-- [Prisma](https://www.prisma.io/) for database management
-
----
-
-**Built with ❤️ using Next.js and AI technology**
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
+```
