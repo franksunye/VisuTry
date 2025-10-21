@@ -5,7 +5,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Input } from '@/components/ui/input';
 import {
   Dialog,
   DialogContent,
@@ -14,6 +13,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import StorageControls from './StorageControls';
 
 interface StorageStats {
   totalFiles: number;
@@ -42,6 +42,9 @@ export default function StorageManager() {
   const [loading, setLoading] = useState(true);
   const [showOrphaned, setShowOrphaned] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalFiles, setTotalFiles] = useState(0);
   const [selectedFiles, setSelectedFiles] = useState<Set<string>>(new Set());
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showCleanupDialog, setShowCleanupDialog] = useState(false);
@@ -67,11 +70,15 @@ export default function StorageManager() {
     try {
       const params = new URLSearchParams();
       if (showOrphaned) params.set('orphaned', 'true');
-      
+      if (searchTerm) params.set('search', searchTerm);
+      params.set('page', currentPage.toString());
+
       const response = await fetch(`/api/admin/blob/list?${params}`);
       const data = await response.json();
       if (data.success) {
         setFiles(data.data.files);
+        setTotalPages(data.data.totalPages);
+        setTotalFiles(data.data.total);
       }
     } catch (error) {
       console.error('Failed to load files:', error);
@@ -83,14 +90,30 @@ export default function StorageManager() {
   // 初始加载
   useEffect(() => {
     loadStats();
-    loadFiles();
-  }, [showOrphaned]);
+  }, []);
 
-  // 筛选文件
-  const filteredFiles = files.filter(file =>
-    file.pathname.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    file.url.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // 当筛选条件或分页改变时重新加载
+  useEffect(() => {
+    loadFiles();
+  }, [showOrphaned, searchTerm, currentPage]);
+
+  // 搜索改变时重置到第一页
+  const handleSearchChange = (value: string) => {
+    setSearchTerm(value);
+    setCurrentPage(1);
+  };
+
+  // 切换筛选时重置到第一页
+  const handleToggleOrphaned = () => {
+    setShowOrphaned(!showOrphaned);
+    setCurrentPage(1);
+  };
+
+  // 页码改变
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+    setSelectedFiles(new Set()); // 清空选择
+  };
 
   // 切换文件选择
   const toggleFileSelection = (url: string) => {
@@ -103,12 +126,12 @@ export default function StorageManager() {
     setSelectedFiles(newSelected);
   };
 
-  // 全选/取消全选
+  // 全选/取消全选（当前页）
   const toggleSelectAll = () => {
-    if (selectedFiles.size === filteredFiles.length) {
+    if (selectedFiles.size === files.length) {
       setSelectedFiles(new Set());
     } else {
-      setSelectedFiles(new Set(filteredFiles.map(f => f.url)));
+      setSelectedFiles(new Set(files.map(f => f.url)));
     }
   };
 
@@ -260,7 +283,7 @@ export default function StorageManager() {
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => setShowOrphaned(!showOrphaned)}
+                onClick={handleToggleOrphaned}
               >
                 {showOrphaned ? 'Show All' : 'Show Orphaned Only'}
               </Button>
@@ -276,15 +299,20 @@ export default function StorageManager() {
           </div>
         </CardHeader>
         <CardContent>
-          {/* 搜索和操作栏 */}
+          {/* 搜索和分页控件 */}
+          <StorageControls
+            searchTerm={searchTerm}
+            onSearchChange={handleSearchChange}
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={handlePageChange}
+          />
+
+          {/* 操作栏 */}
           <div className="flex items-center justify-between mb-4">
-            <Input
-              type="text"
-              placeholder="Search files..."
-              className="w-80"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
+            <div className="text-sm text-muted-foreground">
+              Showing {files.length} of {totalFiles} files
+            </div>
             <div className="flex items-center space-x-2">
               {selectedFiles.size > 0 && (
                 <>
@@ -314,7 +342,7 @@ export default function StorageManager() {
                     <TableHead className="w-12">
                       <input
                         type="checkbox"
-                        checked={selectedFiles.size === filteredFiles.length && filteredFiles.length > 0}
+                        checked={selectedFiles.size === files.length && files.length > 0}
                         onChange={toggleSelectAll}
                       />
                     </TableHead>
@@ -325,7 +353,7 @@ export default function StorageManager() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filteredFiles.map((file) => (
+                  {files.map((file) => (
                     <TableRow key={file.url}>
                       <TableCell>
                         <input

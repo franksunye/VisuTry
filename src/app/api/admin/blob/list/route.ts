@@ -27,13 +27,15 @@ export async function GET(request: NextRequest) {
     // 获取查询参数
     const { searchParams } = new URL(request.url);
     const prefix = searchParams.get('prefix') || undefined;
-    const limit = searchParams.get('limit') ? parseInt(searchParams.get('limit')!) : undefined;
     const showOrphaned = searchParams.get('orphaned') === 'true';
+    const search = searchParams.get('search') || '';
+    const page = searchParams.get('page') ? parseInt(searchParams.get('page')!) : 1;
+    const itemsPerPage = 50;
 
-    console.log('[Admin Blob List] Fetching files...', { prefix, limit, showOrphaned });
+    console.log('[Admin Blob List] Fetching files...', { prefix, showOrphaned, search, page });
 
     // 获取所有 Blob 文件
-    const { blobs } = await list({ prefix, limit });
+    const { blobs } = await list({ prefix });
 
     // 如果需要显示孤立文件，获取数据库中的 URL
     let filteredBlobs = blobs;
@@ -56,8 +58,25 @@ export async function GET(request: NextRequest) {
       filteredBlobs = blobs.filter(blob => !dbUrls.has(blob.url));
     }
 
+    // 搜索过滤
+    if (search) {
+      filteredBlobs = filteredBlobs.filter(blob =>
+        blob.pathname.toLowerCase().includes(search.toLowerCase()) ||
+        blob.url.toLowerCase().includes(search.toLowerCase())
+      );
+    }
+
+    // 计算分页
+    const totalFiles = filteredBlobs.length;
+    const totalPages = Math.ceil(totalFiles / itemsPerPage);
+    const currentPage = Math.max(1, Math.min(page, totalPages || 1));
+    const offset = (currentPage - 1) * itemsPerPage;
+
+    // 获取当前页的文件
+    const paginatedBlobs = filteredBlobs.slice(offset, offset + itemsPerPage);
+
     // 格式化文件信息
-    const files = filteredBlobs.map(blob => ({
+    const files = paginatedBlobs.map(blob => ({
       url: blob.url,
       pathname: blob.pathname,
       size: blob.size,
@@ -66,13 +85,16 @@ export async function GET(request: NextRequest) {
       downloadUrl: blob.downloadUrl,
     }));
 
-    console.log(`[Admin Blob List] Found ${files.length} files`);
+    console.log(`[Admin Blob List] Found ${totalFiles} files, showing page ${currentPage}/${totalPages}`);
 
     return NextResponse.json({
       success: true,
       data: {
         files,
-        total: files.length,
+        total: totalFiles,
+        currentPage,
+        totalPages,
+        itemsPerPage,
       },
     });
   } catch (error) {
