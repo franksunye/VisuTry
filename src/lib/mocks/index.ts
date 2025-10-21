@@ -11,6 +11,7 @@ export const mockUsers = [
     name: 'Test User',
     image: 'https://via.placeholder.com/150',
     username: 'testuser',
+    role: 'USER',
     freeTrialsUsed: 1,
     creditsBalance: 0,
     premiumUsageCount: 0,
@@ -23,11 +24,25 @@ export const mockUsers = [
     name: 'Premium User',
     image: 'https://via.placeholder.com/150',
     username: 'premiumuser',
+    role: 'USER',
     freeTrialsUsed: 0,
     creditsBalance: 10,
     premiumUsageCount: 5,
     isPremium: true,
     premiumExpiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days from now
+  },
+  {
+    id: 'mock-user-admin',
+    email: 'admin@example.com',
+    name: 'Admin User',
+    image: 'https://via.placeholder.com/150',
+    username: 'adminuser',
+    role: 'ADMIN',
+    freeTrialsUsed: 0,
+    creditsBalance: 0,
+    premiumUsageCount: 0,
+    isPremium: true,
+    premiumExpiresAt: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000), // 1 year from now
   }
 ]
 
