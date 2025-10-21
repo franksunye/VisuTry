@@ -2,6 +2,10 @@ import { prisma } from '@/lib/prisma';
 import React from 'react';
 import OrderControls from '@/components/admin/OrderControls';
 import { PaymentStatus } from '@prisma/client';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import Link from 'next/link';
 
 // This is a React Server Component (RSC) to display the order management page.
 // It fetches a paginated list of orders from the database.
@@ -54,46 +58,88 @@ export default async function OrdersPage({ searchParams }: OrdersPageProps) {
   const { orders, currentPage, totalPages } = await getOrders({ page, status });
 
   return (
-    <div className="bg-white p-6 shadow rounded">
-      <h2 className="text-2xl font-bold mb-4">Order Management</h2>
-
-      <OrderControls currentPage={currentPage} totalPages={totalPages} />
-
-      {/* Orders Table */}
-      <div className="overflow-x-auto">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
-            <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Order ID</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">User</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
-            </tr>
-          </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
-            {orders.map((order) => (
-              <tr key={order.id}>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 font-mono">{order.id.slice(-8)}...</td>
-                <td className="px-6 py-4 whitespace-nowrap">{order.user.name} ({order.user.email})</td>
-                <td className="px-6 py-4 whitespace-nowrap">${(order.amount / 100).toFixed(2)}</td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                    order.status === 'COMPLETED' ? 'bg-green-100 text-green-800' :
-                    order.status === 'PENDING' ? 'bg-yellow-100 text-yellow-800' :
-                    'bg-red-100 text-red-800'
-                  }`}>
-                    {order.status}
-                  </span>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">{order.createdAt.toLocaleDateString()}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+    <div className="space-y-6">
+      <div>
+        <h2 className="text-3xl font-bold tracking-tight">Order Management</h2>
+        <p className="text-muted-foreground">
+          View and manage all payment transactions
+        </p>
       </div>
 
-      {/* Pagination controls are now part of OrderControls */}
+      <Card>
+        <CardHeader>
+          <CardTitle>All Orders</CardTitle>
+          <CardDescription>
+            A list of all payment transactions in the system
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <OrderControls currentPage={currentPage} totalPages={totalPages} />
+
+          {/* Orders Table */}
+          <div className="mt-4">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Order ID</TableHead>
+                  <TableHead>User</TableHead>
+                  <TableHead>Product</TableHead>
+                  <TableHead>Amount</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Date</TableHead>
+                  <TableHead>Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {orders.map((order) => (
+                  <TableRow key={order.id}>
+                    <TableCell className="font-mono text-xs">
+                      {order.id.slice(-8)}...
+                    </TableCell>
+                    <TableCell>
+                      <Link
+                        href={`/admin/users/${order.user.id}`}
+                        className="hover:underline"
+                      >
+                        {order.user.name || order.user.email}
+                      </Link>
+                    </TableCell>
+                    <TableCell className="text-sm">
+                      {order.productType.replace(/_/g, ' ')}
+                    </TableCell>
+                    <TableCell className="font-medium">
+                      ${(order.amount / 100).toFixed(2)}
+                    </TableCell>
+                    <TableCell>
+                      <Badge
+                        variant={
+                          order.status === 'COMPLETED' ? 'default' :
+                          order.status === 'PENDING' ? 'secondary' :
+                          order.status === 'REFUNDED' ? 'outline' :
+                          'destructive'
+                        }
+                      >
+                        {order.status}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-sm">
+                      {new Date(order.createdAt).toLocaleDateString()}
+                    </TableCell>
+                    <TableCell>
+                      <Link
+                        href={`/admin/orders/${order.id}`}
+                        className="text-sm text-blue-600 hover:underline"
+                      >
+                        View Details
+                      </Link>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }

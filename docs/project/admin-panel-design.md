@@ -123,3 +123,117 @@ enum UserRole {
 *   `GET /api/admin/users?page=1&limit=10&search=...`: 获取用户列表，支持分页和搜索。
 *   `GET /api/admin/orders?status=PENDING`: 获取订单列表，支持筛选。
 *   `PATCH /api/admin/orders/[orderId]`: 更新订单信息（如状态）。
+
+---
+
+## 3. 当前实现状态 (Implementation Status)
+
+### 3.1. 已完成功能 ✅
+
+**基础架构:**
+- ✅ 中间件权限控制 (`src/middleware.ts`)
+- ✅ Admin 布局和导航 (`src/app/admin/layout.tsx`)
+- ✅ 数据库 Schema 支持 UserRole 枚举
+- ✅ Shadcn/UI 组件库集成
+
+**仪表盘:**
+- ✅ 基础统计数据展示（总用户数、完成订单数、总收入）
+- 🔨 待完善：今日数据、最近活动列表
+
+**用户管理:**
+- ✅ 用户列表展示（分页、搜索）
+- 🔨 待完善：用户详情页、历史订单查看
+
+**订单管理:**
+- ✅ 订单列表展示（分页、状态筛选）
+- 🔨 待完善：订单详情页、状态修改、Stripe 集成
+
+### 3.2. 本次升级内容 🚀
+
+**Sprint 1 - UI 组件库升级:**
+1. ✅ 安装配置 Shadcn/UI
+2. ✅ 添加必要组件：Card, Table, Badge, Button, Dialog, Input, Select, Label, Textarea
+
+**Sprint 2 - Dashboard 增强:**
+1. 🔨 添加今日统计数据（今日新增用户、今日订单、今日销售额）
+2. 🔨 添加最近活动列表（最近 5 笔订单、最近 5 个注册用户）
+3. 🔨 使用 Shadcn/UI Card 组件美化界面
+
+**Sprint 3 - 用户管理增强:**
+1. 🔨 创建用户详情页 `/admin/users/[id]`
+2. 🔨 显示用户基本信息和统计
+3. 🔨 显示用户历史订单列表
+4. 🔨 使用 Shadcn/UI 组件优化界面
+
+**Sprint 4 - 订单管理增强:**
+1. 🔨 创建订单详情页 `/admin/orders/[id]`
+2. 🔨 显示完整订单信息（用户、金额、产品类型）
+3. 🔨 集成 Stripe 支付信息展示
+4. 🔨 添加 Stripe Dashboard 快捷链接
+5. 🔨 使用 Shadcn/UI 组件优化界面
+
+**Sprint 5 - 整体优化:**
+1. 🔨 使用 Shadcn/UI 组件重构现有页面
+2. 🔨 优化表格展示和交互
+3. 🔨 添加加载状态和错误处理
+4. 🔨 确保 Vercel 部署兼容性
+
+### 3.3. 技术实现细节
+
+**组件结构:**
+```
+src/
+├── app/admin/
+│   ├── layout.tsx              # Admin 布局（侧边栏导航）
+│   ├── page.tsx                # 重定向到 dashboard
+│   ├── dashboard/
+│   │   └── page.tsx            # 仪表盘页面（增强版）
+│   ├── users/
+│   │   ├── page.tsx            # 用户列表页面
+│   │   └── [id]/
+│   │       └── page.tsx        # 用户详情页面（新增）
+│   └── orders/
+│       ├── page.tsx            # 订单列表页面
+│       └── [id]/
+│           └── page.tsx        # 订单详情页面（新增）
+├── components/
+│   ├── admin/
+│   │   ├── UserControls.tsx    # 用户搜索和分页控件
+│   │   └── OrderControls.tsx   # 订单筛选和分页控件
+│   └── ui/                     # Shadcn/UI 组件
+│       ├── card.tsx
+│       ├── table.tsx
+│       ├── badge.tsx
+│       ├── button.tsx
+│       ├── dialog.tsx
+│       └── ...
+└── middleware.ts               # 权限控制中间件
+```
+
+**数据库查询优化:**
+- 使用 Prisma 的 `include` 关联查询减少数据库往返
+- 使用 `Promise.all` 并行查询提升性能
+- 添加适当的索引支持高效查询
+
+**安全性保障:**
+- 所有 `/admin` 路由通过 middleware 进行权限验证
+- API 端点需要验证用户角色
+- 敏感操作需要二次确认（Dialog 组件）
+
+### 3.4. 部署注意事项
+
+**环境变量要求:**
+```env
+DATABASE_URL=              # Neon 数据库连接
+NEXTAUTH_SECRET=           # NextAuth 密钥
+NEXTAUTH_URL=              # 应用 URL
+AUTH0_CLIENT_ID=           # Auth0 客户端 ID
+AUTH0_CLIENT_SECRET=       # Auth0 客户端密钥
+AUTH0_ISSUER=              # Auth0 域名
+STRIPE_SECRET_KEY=         # Stripe 密钥（用于支付信息查询）
+```
+
+**Vercel 配置:**
+- Build Command: `npm run build`（已包含 Prisma 生成和迁移）
+- 确保所有环境变量在 Vercel 项目设置中配置
+- 使用 Edge Runtime 时注意 Prisma 兼容性（当前使用 Node.js Runtime）
