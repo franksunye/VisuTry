@@ -5,6 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import Link from 'next/link';
+import TryOnHistoryTable from '@/components/admin/TryOnHistoryTable';
 
 interface UserDetailPageProps {
   params: {
@@ -236,49 +237,13 @@ export default async function UserDetailPage({ params }: UserDetailPageProps) {
       <Card>
         <CardHeader>
           <CardTitle>Try-On History</CardTitle>
-          <CardDescription>Recent virtual try-on tasks</CardDescription>
+          <CardDescription>Recent virtual try-on tasks with image preview</CardDescription>
         </CardHeader>
         <CardContent>
           {user.tryOnTasks.length === 0 ? (
             <p className="text-sm text-muted-foreground">No try-on history</p>
           ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Task ID</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Created</TableHead>
-                  <TableHead>Updated</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {user.tryOnTasks.map((task) => (
-                  <TableRow key={task.id}>
-                    <TableCell className="font-mono text-xs">
-                      {task.id.slice(-8)}...
-                    </TableCell>
-                    <TableCell>
-                      <Badge
-                        variant={
-                          task.status === 'COMPLETED' ? 'default' :
-                          task.status === 'PROCESSING' ? 'secondary' :
-                          task.status === 'FAILED' ? 'destructive' :
-                          'outline'
-                        }
-                      >
-                        {task.status}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-sm">
-                      {new Date(task.createdAt).toLocaleDateString()}
-                    </TableCell>
-                    <TableCell className="text-sm">
-                      {new Date(task.updatedAt).toLocaleDateString()}
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+            <TryOnHistoryTable tasks={user.tryOnTasks} />
           )}
         </CardContent>
       </Card>
