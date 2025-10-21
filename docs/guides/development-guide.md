@@ -251,7 +251,7 @@ describe('/api/try-on', () => {
       method: 'POST',
       body: JSON.stringify({ /* test data */ })
     })
-    
+
     const response = await POST(request)
     expect(response.status).toBe(200)
   })
