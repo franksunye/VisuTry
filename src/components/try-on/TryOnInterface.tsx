@@ -7,7 +7,6 @@ import { ResultDisplay } from "@/components/try-on/ResultDisplay"
 import { LoadingState } from "@/components/try-on/LoadingState"
 import { EmptyState } from "@/components/try-on/EmptyState"
 import { Sparkles, ArrowRight, User, Glasses } from "lucide-react"
-import { TryOnRequest } from "@/types"
 
 export function TryOnInterface() {
   const { update } = useSession()
@@ -47,13 +46,13 @@ export function TryOnInterface() {
               console.error('❌ Failed to refresh session after try-on:', error)
             })
           } else if (task.status === "failed") {
-            alert(task.errorMessage || "AI processing failed, please try again")
+            alert(task.errorMessage || "Processing failed, please try again")
             setCurrentStep("select")
             setIsProcessing(false)
             setCurrentTaskId(null)
             clearInterval(pollInterval)
           } else if (task.status === "processing") {
-            setProcessingMessage("AI is analyzing your photo and glasses...")
+            setProcessingMessage("Analyzing...")
           }
         }
       } catch (error) {
@@ -106,14 +105,14 @@ export function TryOnInterface() {
 
       if (data.success) {
         setCurrentTaskId(data.data.taskId)
-        setProcessingMessage("AI is processing your try-on request...")
+        setProcessingMessage("Processing...")
         // Don't set result immediately, wait for polling to get completion status
       } else {
         throw new Error(data.error || "Try-on failed")
       }
     } catch (error) {
       console.error("Try-on failed:", error)
-      alert("Try-on failed, please try again")
+      alert("Failed, please try again")
       setCurrentStep("select")
     } finally {
       setIsProcessing(false)
@@ -139,7 +138,7 @@ export function TryOnInterface() {
             }`}>
               <User className="w-4 h-4" />
             </div>
-            <span className="ml-2 font-medium">Upload Photo</span>
+            <span className="ml-2 font-medium">Photo</span>
           </div>
 
           <ArrowRight className="w-4 h-4 text-gray-400" />
@@ -154,7 +153,7 @@ export function TryOnInterface() {
             }`}>
               <Glasses className="w-4 h-4" />
             </div>
-            <span className="ml-2 font-medium">Select Glasses</span>
+            <span className="ml-2 font-medium">Glasses</span>
           </div>
 
           <ArrowRight className="w-4 h-4 text-gray-400" />
@@ -169,7 +168,7 @@ export function TryOnInterface() {
             }`}>
               <Sparkles className="w-4 h-4" />
             </div>
-            <span className="ml-2 font-medium">AI Try-On</span>
+            <span className="ml-2 font-medium">Try-On</span>
           </div>
         </div>
       </div>
@@ -200,8 +199,8 @@ export function TryOnInterface() {
             onImageSelect={handleUserImageSelect}
             onImageRemove={handleUserImageRemove}
             currentImage={userImage?.preview}
-            label="Upload Your Photo"
-            description="Please upload a clear front-facing photo with your face clearly visible"
+            label="Your Photo"
+            description="Clear front-facing photo"
             loading={isProcessing}
           />
 
@@ -210,8 +209,8 @@ export function TryOnInterface() {
             onImageSelect={handleGlassesImageSelect}
             onImageRemove={handleGlassesImageRemove}
             currentImage={glassesImage?.preview}
-            label="Upload Glasses Image"
-            description="Please upload a clear image of the glasses you want to try on"
+            label="Glasses"
+            description="Clear image of glasses"
             loading={isProcessing}
           />
         </div>
@@ -233,7 +232,7 @@ export function TryOnInterface() {
             ) : (
               <>
                 <Sparkles className="w-5 h-5 mr-2" />
-                Start AI Try-On
+                Try On
               </>
             )}
           </button>

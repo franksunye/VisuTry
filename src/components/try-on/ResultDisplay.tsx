@@ -96,10 +96,10 @@ export function ResultDisplay({
     <div className={cn("w-full", className)}>
       <div className="text-center mb-6">
         <h2 className="text-xl font-bold text-gray-900 mb-2">
-          Try-On Complete!
+          Your Result
         </h2>
         <p className="text-gray-600 text-sm">
-          AI has generated your personalized try-on result. What do you think?
+          How does it look?
         </p>
       </div>
 

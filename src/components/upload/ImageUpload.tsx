@@ -23,7 +23,7 @@ export function ImageUpload({
   loading = false,
   className,
   label = "Upload Image",
-  description = "Supports JPEG, PNG, WebP formats. Images will be automatically optimized to 1200x1200 for best performance.",
+  description = "JPEG, PNG, or WebP",
   accept = "image/jpeg,image/png,image/webp"
 }: ImageUploadProps) {
   const [dragOver, setDragOver] = useState(false)
@@ -164,7 +164,7 @@ export function ImageUpload({
                   )}
                 </div>
                 <p className="text-lg font-medium text-gray-900 mb-2">
-                  {dragOver ? "Drop to upload image" : "Click or drag to upload image"}
+                  {dragOver ? "Drop to upload" : "Click or drag to upload"}
                 </p>
                 {description && (
                   <p className="text-sm text-gray-500">{description}</p>
