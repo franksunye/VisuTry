@@ -2,18 +2,21 @@
 
 /**
  * Performance Testing Script
- * 
+ *
  * This script helps test and monitor Core Web Vitals and performance metrics.
  * It provides instructions and links for various performance testing tools.
  */
 
-const chalk = require('chalk') || { 
-  green: (s) => s, 
-  blue: (s) => s, 
-  yellow: (s) => s, 
-  red: (s) => s,
-  bold: (s) => s 
+// Simple color helpers (no external dependencies)
+const colors = {
+  green: (s) => `\x1b[32m${s}\x1b[0m`,
+  blue: (s) => `\x1b[34m${s}\x1b[0m`,
+  yellow: (s) => `\x1b[33m${s}\x1b[0m`,
+  red: (s) => `\x1b[31m${s}\x1b[0m`,
+  bold: (s) => `\x1b[1m${s}\x1b[0m`,
 }
+
+const chalk = colors
 
 console.log('\n' + '='.repeat(60))
 console.log('🚀 VisuTry Performance Testing Guide')
