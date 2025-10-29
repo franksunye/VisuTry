@@ -1,0 +1,83 @@
+[
+  {
+    "id": "rayban",
+    "name": "Ray-Ban",
+    "displayName": "Ray-Ban",
+    "description": "Ray-Ban is a brand of sunglasses and eyeglasses founded in 1936. Known for iconic styles like Aviator and Wayfarer.",
+    "website": "https://www.ray-ban.com",
+    "isActive": true
+  },
+  {
+    "id": "oliver-peoples",
+    "name": "Oliver Peoples",
+    "displayName": "Oliver Peoples",
+    "description": "Oliver Peoples is an American luxury eyewear brand founded in 1987, known for high-quality prescription glasses.",
+    "website": "https://www.oliverpeoples.com",
+    "isActive": true
+  },
+  {
+    "id": "warby-parker",
+    "name": "Warby Parker",
+    "displayName": "Warby Parker",
+    "description": "Warby Parker offers affordable, stylish eyeglasses and sunglasses with a home try-on program.",
+    "website": "https://www.warbyparker.com",
+    "isActive": true
+  },
+  {
+    "id": "zenni",
+    "name": "Zenni",
+    "displayName": "Zenni Optical",
+    "description": "Zenni Optical is an online eyewear retailer offering affordable prescription glasses and sunglasses.",
+    "website": "https://www.zennioptical.com",
+    "isActive": true
+  },
+  {
+    "id": "tom-ford",
+    "name": "Tom Ford",
+    "displayName": "Tom Ford",
+    "description": "Tom Ford is a luxury fashion brand offering high-end eyewear and sunglasses.",
+    "website": "https://www.tomford.com",
+    "isActive": true
+  },
+  {
+    "id": "gucci",
+    "name": "Gucci",
+    "displayName": "Gucci",
+    "description": "Gucci is an Italian luxury brand offering designer eyeglasses and sunglasses.",
+    "website": "https://www.gucci.com",
+    "isActive": true
+  },
+  {
+    "id": "prada",
+    "name": "Prada",
+    "displayName": "Prada",
+    "description": "Prada is an Italian luxury fashion house known for high-quality eyewear.",
+    "website": "https://www.prada.com",
+    "isActive": true
+  },
+  {
+    "id": "versace",
+    "name": "Versace",
+    "displayName": "Versace",
+    "description": "Versace is an Italian luxury fashion brand offering stylish eyeglasses and sunglasses.",
+    "website": "https://www.versace.com",
+    "isActive": true
+  },
+  {
+    "id": "coach",
+    "name": "Coach",
+    "displayName": "Coach",
+    "description": "Coach is an American luxury fashion brand offering eyewear and accessories.",
+    "website": "https://www.coach.com",
+    "isActive": true
+  },
+  {
+    "id": "michael-kors",
+    "name": "Michael Kors",
+    "displayName": "Michael Kors",
+    "description": "Michael Kors is an American fashion designer brand offering eyeglasses and sunglasses.",
+    "website": "https://www.michaelkors.com",
+    "isActive": true
+  }
+]
+

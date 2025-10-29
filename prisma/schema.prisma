@@ -131,11 +131,21 @@ model GlassesFrame {
   imageUrl    String
   category    String?
   brand       String?
+  model       String?  // 型号代码
+  price       Float?   // 价格
+  style       String?  // 风格（clubmaster, round, cat-eye, etc.）
+  material    String?  // 材质（acetate, metal, plastic）
+  color       String?  // 颜色
   isActive    Boolean  @default(true)
-  
+
+  // 关联
+  faceShapes  FrameFaceShapeRecommendation[]
+  categories  FrameCategoryAssociation[]
+
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
-  
+
+  @@index([brand])
   @@index([category])
   @@index([isActive])
 }
@@ -158,6 +168,54 @@ enum ProductType {
   PREMIUM_MONTHLY
   PREMIUM_YEARLY
   CREDITS_PACK
+}
+
+model FaceShape {
+  id              String   @id @default(cuid())
+  name            String   @unique // round, square, oval, etc.
+  displayName     String   // "Round Face"
+  description     String?
+  characteristics String?  // 脸型特征
+
+  frames          FrameFaceShapeRecommendation[]
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model GlassesCategory {
+  id          String   @id @default(cuid())
+  name        String   @unique // prescription, sunglasses, etc.
+  displayName String   // "Prescription Glasses"
+  description String?
+
+  frames      FrameCategoryAssociation[]
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model FrameFaceShapeRecommendation {
+  id          String   @id @default(cuid())
+  frameId     String
+  faceShapeId String
+  reason      String?  // 推荐原因
+
+  frame       GlassesFrame @relation(fields: [frameId], references: [id], onDelete: Cascade)
+  faceShape   FaceShape    @relation(fields: [faceShapeId], references: [id], onDelete: Cascade)
+
+  @@unique([frameId, faceShapeId])
+}
+
+model FrameCategoryAssociation {
+  id         String   @id @default(cuid())
+  frameId    String
+  categoryId String
+
+  frame      GlassesFrame    @relation(fields: [frameId], references: [id], onDelete: Cascade)
+  category   GlassesCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@unique([frameId, categoryId])
 }
 
 enum UserRole {

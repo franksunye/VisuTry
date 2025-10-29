@@ -1,0 +1,73 @@
+[
+  {
+    "id": "prescription",
+    "name": "prescription",
+    "displayName": "Prescription Glasses",
+    "description": "Prescription glasses for vision correction with custom lens power.",
+    "isActive": true
+  },
+  {
+    "id": "sunglasses",
+    "name": "sunglasses",
+    "displayName": "Sunglasses",
+    "description": "Sunglasses for UV protection and outdoor style.",
+    "isActive": true
+  },
+  {
+    "id": "reading",
+    "name": "reading",
+    "displayName": "Reading Glasses",
+    "description": "Reading glasses for close-up vision correction.",
+    "isActive": true
+  },
+  {
+    "id": "computer",
+    "name": "computer",
+    "displayName": "Computer Glasses",
+    "description": "Computer glasses with blue light filtering for screen time.",
+    "isActive": true
+  },
+  {
+    "id": "sports",
+    "name": "sports",
+    "displayName": "Sports Glasses",
+    "description": "Sports glasses designed for athletic activities and outdoor sports.",
+    "isActive": true
+  },
+  {
+    "id": "fashion",
+    "name": "fashion",
+    "displayName": "Fashion Glasses",
+    "description": "Fashion-forward eyeglasses for style and personal expression.",
+    "isActive": true
+  },
+  {
+    "id": "vintage",
+    "name": "vintage",
+    "displayName": "Vintage Glasses",
+    "description": "Vintage-style eyeglasses with retro designs and classic appeal.",
+    "isActive": true
+  },
+  {
+    "id": "designer",
+    "name": "designer",
+    "displayName": "Designer Glasses",
+    "description": "High-end designer eyeglasses from luxury fashion brands.",
+    "isActive": true
+  },
+  {
+    "id": "budget",
+    "name": "budget",
+    "displayName": "Budget Glasses",
+    "description": "Affordable eyeglasses without compromising on quality.",
+    "isActive": true
+  },
+  {
+    "id": "premium",
+    "name": "premium",
+    "displayName": "Premium Glasses",
+    "description": "Premium quality eyeglasses with advanced lens technology.",
+    "isActive": true
+  }
+]
+
