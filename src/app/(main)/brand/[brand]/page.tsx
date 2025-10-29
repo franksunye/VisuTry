@@ -168,8 +168,8 @@ export default async function BrandPage({ params }: BrandPageProps) {
         dangerouslySetInnerHTML={{
           __html: JSON.stringify(
             generateCollectionPageSchema({
-              name: `${brand} Glasses`,
-              description: `Explore ${brand} glasses and try them on virtually with VisuTry`,
+              name: `${brandName} Glasses`,
+              description: `Explore ${brandName} glasses and try them on virtually with VisuTry`,
               url: generateCanonicalUrl(`/brand/${params.brand}`),
               itemCount: frames.length,
             })
