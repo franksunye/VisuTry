@@ -146,7 +146,7 @@ export default function BlogPostPage() {
 
               <h2>Materials and Craftsmanship</h2>
               <p>
-                Tom Ford uses only the finest materials:
+                Tom Ford uses only the finest materials. For a detailed comparison of frame materials, check out our <Link href="/blog/acetate-vs-plastic-eyeglass-frames-guide" className="text-blue-600 hover:text-blue-800">acetate vs plastic frames guide</Link>.
               </p>
 
               <h3>Premium Acetate</h3>
@@ -318,7 +318,7 @@ export default function BlogPostPage() {
                 sophisticated style statement.
               </p>
               <p className="font-bold text-lg mt-6">
-                Ready to experience luxury eyewear? Explore Tom Ford styles with our virtual try-on tool today!
+                Ready to experience luxury eyewear? Explore Tom Ford styles with our virtual try-on tool today! Also check out our <Link href="/blog/oliver-peoples-finley-vintage-review" className="text-blue-600 hover:text-blue-800">Oliver Peoples Finley Vintage review</Link> and <Link href="/blog/celebrity-glasses-style-guide-2025" className="text-blue-600 hover:text-blue-800">celebrity glasses style guide</Link> for more luxury eyewear inspiration.
               </p>
             </div>
 

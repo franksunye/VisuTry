@@ -198,7 +198,10 @@ export default function BlogPostPage() {
               </p>
               <p>
                 With VisuTry&apos;s AI virtual try-on technology, you can easily try different styles
-                and find the perfect glasses for you.
+                and find the perfect glasses for you. Explore our <Link href="/blog/best-ai-virtual-glasses-tryon-tools-2025" className="text-blue-600 hover:text-blue-800">comprehensive guide to AI virtual try-on tools</Link> to learn more about the latest technology.
+              </p>
+              <p>
+                Once you&apos;ve found your perfect style, check out our <Link href="/blog/prescription-glasses-online-shopping-guide-2025" className="text-blue-600 hover:text-blue-800">complete guide to buying prescription glasses online</Link> to make your purchase with confidence.
               </p>
             </div>
 

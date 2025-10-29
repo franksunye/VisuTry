@@ -136,9 +136,9 @@ export default function BlogPostPage() {
                 elegant for years to come.
               </p>
               <p>
-                <strong>Get the look:</strong> Look for rectangular or subtle cat-eye frames in tortoiseshell 
-                or classic black. Brands like <a href="https://www.oliverpeoples.com" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-800">Oliver Peoples</a> and 
-                Tom Ford offer similar sophisticated styles.
+                <strong>Get the look:</strong> Look for rectangular or subtle cat-eye frames in tortoiseshell
+                or classic black. Brands like <Link href="/blog/oliver-peoples-finley-vintage-review" className="text-blue-600 hover:text-blue-800">Oliver Peoples</Link> and
+                <Link href="/blog/tom-ford-luxury-eyewear-guide-2025" className="text-blue-600 hover:text-blue-800">Tom Ford</Link> offer similar sophisticated styles.
               </p>
 
               <h3>2. Joan Smalls - The Modern Minimalist</h3>
@@ -187,9 +187,9 @@ export default function BlogPostPage() {
                 />
               </div>
               <p>
-                Browline glasses (also known as Clubmaster style) have experienced a major resurgence thanks 
-                to celebrities embracing vintage aesthetics. This style has been spotted on everyone from 
-                <strong> Robert Downey Jr.</strong> to <strong>Emma Watson</strong>.
+                Browline glasses (also known as Clubmaster style) have experienced a major resurgence thanks
+                to celebrities embracing vintage aesthetics. This style has been spotted on everyone from
+                <strong> Robert Downey Jr.</strong> to <strong>Emma Watson</strong>. For a deep dive into this iconic style, check out our <Link href="/blog/browline-clubmaster-glasses-complete-guide" className="text-blue-600 hover:text-blue-800">complete browline/clubmaster guide</Link>.
               </p>
               <p>
                 <strong>Key features of the browline trend:</strong>
@@ -354,18 +354,18 @@ export default function BlogPostPage() {
 
               <h2>Conclusion: Make Celebrity Style Your Own</h2>
               <p>
-                While celebrity eyewear can provide excellent inspiration, the key to great style is making 
+                While celebrity eyewear can provide excellent inspiration, the key to great style is making
                 it your own. Use celebrity looks as a starting point, then adapt them to your:
               </p>
               <ul>
-                <li><strong>Face shape</strong> - Choose frames that flatter your unique features</li>
+                <li><strong>Face shape</strong> - Check our <Link href="/blog/how-to-choose-glasses-for-your-face" className="text-blue-600 hover:text-blue-800">face shape guide</Link> to choose frames that flatter your unique features</li>
                 <li><strong>Personal style</strong> - Select designs that align with your aesthetic</li>
                 <li><strong>Lifestyle needs</strong> - Ensure your glasses work for your daily activities</li>
                 <li><strong>Budget</strong> - Find quality options at your price point</li>
               </ul>
               <p>
-                With virtual try-on technology, you can experiment with countless celebrity-inspired styles 
-                risk-free, finding the perfect frames that make you feel like a star.
+                With virtual try-on technology, you can experiment with countless celebrity-inspired styles
+                risk-free, finding the perfect frames that make you feel like a star. Explore our <Link href="/blog/best-ai-virtual-glasses-tryon-tools-2025" className="text-blue-600 hover:text-blue-800">guide to the best AI virtual try-on tools</Link> to get started.
               </p>
               <p className="font-bold text-lg mt-6">
                 Your perfect celebrity-inspired look is waiting—start your virtual try-on journey today!

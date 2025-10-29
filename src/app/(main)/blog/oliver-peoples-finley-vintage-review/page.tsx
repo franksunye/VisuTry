@@ -155,9 +155,9 @@ export default function BlogPostPage() {
 
               <h2>Materials and Construction</h2>
               <p>
-                This is where Oliver Peoples truly justifies its premium pricing. The Finley Vintage is crafted 
-                from <strong>premium Italian acetate</strong>, which offers several advantages over standard 
-                plastic frames:
+                This is where Oliver Peoples truly justifies its premium pricing. The Finley Vintage is crafted
+                from <strong>premium Italian acetate</strong>, which offers several advantages over standard
+                plastic frames. For a detailed comparison of frame materials, check out our <Link href="/blog/acetate-vs-plastic-eyeglass-frames-guide" className="text-blue-600 hover:text-blue-800">acetate vs plastic frames guide</Link>.
               </p>
 
               <h3>Acetate Quality</h3>
@@ -438,8 +438,8 @@ export default function BlogPostPage() {
               </div>
 
               <p className="font-bold text-lg mt-6">
-                Ready to experience luxury eyewear? Try the Finley Vintage virtually or explore similar 
-                styles to find your perfect match!
+                Ready to experience luxury eyewear? Try the Finley Vintage virtually or explore similar
+                styles to find your perfect match! Check out our <Link href="/blog/tom-ford-luxury-eyewear-guide-2025" className="text-blue-600 hover:text-blue-800">Tom Ford luxury eyewear guide</Link> and <Link href="/blog/celebrity-glasses-style-guide-2025" className="text-blue-600 hover:text-blue-800">celebrity glasses style guide</Link> for more luxury eyewear inspiration.
               </p>
             </div>
 

@@ -113,8 +113,8 @@ export default function BlogPostPage() {
                 <Image src="/Ray-Ban RB5154 Clubmaster - Browline Black Frame Eyeglasses.jpg" alt="Ray-Ban Clubmaster eyeglasses" width={800} height={600} className="rounded-lg shadow-md" />
               </div>
               <p>
-                The <strong>Ray-Ban Clubmaster</strong> (RB5154 for optical, RB3016 for sunglasses) is the most 
-                famous browline style. Introduced in the 1980s, it became an instant classic and remains one of 
+                The <strong><Link href="/blog/rayban-glasses-virtual-tryon-guide" className="text-blue-600 hover:text-blue-800">Ray-Ban Clubmaster</Link></strong> (RB5154 for optical, RB3016 for sunglasses) is the most
+                famous browline style. Introduced in the 1980s, it became an instant classic and remains one of
                 Ray-Ban&apos;s best-selling frames.
               </p>
               <h3>Clubmaster Features:</h3>
@@ -125,6 +125,9 @@ export default function BlogPostPage() {
                 <li>Price: $150-$200 for optical frames</li>
               </ul>
               <h2>Face Shapes and Browline Glasses</h2>
+              <p>
+                Not sure if browline glasses suit your face shape? Check out our <Link href="/blog/how-to-choose-glasses-for-your-face" className="text-blue-600 hover:text-blue-800">complete face shape guide</Link> to learn more.
+              </p>
               <h3>Best For:</h3>
               <ul>
                 <li><strong>Oval faces</strong> - The angular top adds definition</li>
@@ -193,12 +196,12 @@ export default function BlogPostPage() {
               </ul>
               <h2>Conclusion</h2>
               <p>
-                <strong>Browline/Clubmaster glasses</strong> represent a perfect blend of vintage charm and 
-                modern sophistication. Whether you choose the iconic Ray-Ban Clubmaster or a contemporary 
-                variation, these frames offer timeless style that works across decades and occasions.
+                <strong>Browline/Clubmaster glasses</strong> represent a perfect blend of vintage charm and
+                modern sophistication. Whether you choose the iconic Ray-Ban Clubmaster or a contemporary
+                variation, these frames offer timeless style that works across decades and occasions. For more style inspiration, check out our <Link href="/blog/celebrity-glasses-style-guide-2025" className="text-blue-600 hover:text-blue-800">celebrity glasses style guide</Link>.
               </p>
               <p className="font-bold text-lg mt-6">
-                Ready to join the browline revival? Try these iconic frames virtually and find your perfect match!
+                Ready to join the browline revival? Try these iconic frames virtually with our <Link href="/blog/best-ai-virtual-glasses-tryon-tools-2025" className="text-blue-600 hover:text-blue-800">AI virtual try-on tools</Link> and find your perfect match!
               </p>
             </div>
             <div className="p-8 bg-gray-50 border-t">
