@@ -4,6 +4,9 @@ import { authOptions } from '@/lib/auth';
 import { list } from '@vercel/blob';
 import { prisma } from '@/lib/prisma';
 
+// Force dynamic rendering for this route
+export const dynamic = 'force-dynamic'
+
 // 获取 Blob Storage 统计信息
 export async function GET(request: NextRequest) {
   try {
