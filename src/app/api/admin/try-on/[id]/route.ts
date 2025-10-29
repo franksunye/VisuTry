@@ -4,6 +4,9 @@ import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { del } from '@vercel/blob';
 
+// Force dynamic rendering for this route
+export const dynamic = 'force-dynamic'
+
 // 获取 Try-On 任务详情（包含图片）
 export async function GET(
   request: NextRequest,

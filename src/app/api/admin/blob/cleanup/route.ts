@@ -4,6 +4,9 @@ import { authOptions } from '@/lib/auth';
 import { list, del } from '@vercel/blob';
 import { prisma } from '@/lib/prisma';
 
+// Force dynamic rendering for this route
+export const dynamic = 'force-dynamic'
+
 // 清理孤立文件
 export async function POST(request: NextRequest) {
   try {
