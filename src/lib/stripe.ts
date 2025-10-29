@@ -3,7 +3,7 @@ import { mockStripe, isMockMode } from './mocks/stripe'
 import { PRODUCT_METADATA, QUOTA_CONFIG } from '@/config/pricing'
 
 // Only require Stripe key in production mode
-if (!process.env.STRIPE_SECRET_KEY && !isMockMode) {
+if (!process.env.STRIPE_SECRET_KEY && !isMockMode && !process.env.SKIP_ENV_VALIDATION) {
   throw new Error("STRIPE_SECRET_KEY environment variable is required")
 }
 

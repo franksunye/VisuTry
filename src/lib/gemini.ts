@@ -35,7 +35,7 @@ if (typeof window === 'undefined') {
 }
 
 // Only require API key in production mode
-if (!process.env.GEMINI_API_KEY && !isMockMode) {
+if (!process.env.GEMINI_API_KEY && !isMockMode && !process.env.SKIP_ENV_VALIDATION) {
   throw new Error("GEMINI_API_KEY environment variable is required")
 }
 

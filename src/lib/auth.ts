@@ -43,11 +43,12 @@ const validateEnvVars = () => {
 }
 
 // Run validation (only once at module load)
-if (!isMockMode) {
+if (!isMockMode && !process.env.SKIP_ENV_VALIDATION) {
   try {
     validateEnvVars()
   } catch (error) {
     console.error('Environment validation failed:', error)
+    throw error
   }
 }
 
