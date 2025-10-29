@@ -1,0 +1,22 @@
+# Browsers that we support
+# This targets modern browsers that support ES2020+ features
+# Removes unnecessary polyfills for Array.at, Object.fromEntries, etc.
+
+# Production browsers
+[production]
+>0.5%
+last 2 versions
+not dead
+not IE 11
+not op_mini all
+Chrome >= 90
+Firefox >= 88
+Safari >= 14
+Edge >= 90
+
+# Development browsers
+[development]
+last 1 chrome version
+last 1 firefox version
+last 1 safari version
+

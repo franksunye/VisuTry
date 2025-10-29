@@ -60,6 +60,22 @@ const nextConfig = {
     removeConsole: process.env.NODE_ENV === 'production' ? {
       exclude: ['error', 'warn'],
     } : false,
+    // 移除 React 属性
+    reactRemoveProperties: process.env.NODE_ENV === 'production',
+  },
+
+  // 现代浏览器目标 - 移除不必要的 polyfills
+  // 支持 ES2020+ 特性，减少 11.6 KiB 的 legacy JavaScript
+  transpilePackages: [],
+
+  // 优化输出
+  output: 'standalone',
+
+  // 优化 CSS 加载
+  modularizeImports: {
+    'lucide-react': {
+      transform: 'lucide-react/dist/esm/icons/{{kebabCase member}}',
+    },
   },
 }
 

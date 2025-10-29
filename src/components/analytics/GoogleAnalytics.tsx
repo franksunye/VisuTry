@@ -13,13 +13,14 @@ export function GoogleAnalytics({ gaId }: GoogleAnalyticsProps) {
 
   return (
     <>
+      {/* Google Analytics - Lazy loaded for better performance */}
       <Script
-        strategy="afterInteractive"
+        strategy="lazyOnload"
         src={`https://www.googletagmanager.com/gtag/js?id=${gaId}`}
       />
       <Script
         id="google-analytics"
-        strategy="afterInteractive"
+        strategy="lazyOnload"
         dangerouslySetInnerHTML={{
           __html: `
             window.dataLayer = window.dataLayer || [];
