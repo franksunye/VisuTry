@@ -1,7 +1,5 @@
-'use client'
-
-import { useEffect, useState } from 'react'
 import type { Metadata } from 'next'
+import { notFound } from 'next/navigation'
 import { prisma } from '@/lib/prisma'
 import {
   generateCategoryTitle,
@@ -74,82 +72,23 @@ export async function generateMetadata({
   }
 }
 
-export default function CategoryPage({ params }: CategoryPageProps) {
-  const [category, setCategory] = useState<any>(null)
-  const [frames, setFrames] = useState<any[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+export default async function CategoryPage({ params }: CategoryPageProps) {
+  const categoryName = unslugify(params.category)
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const categoryName = unslugify(params.category)
+  const category = await prisma.glassesCategory.findFirst({
+    where: { name: { equals: categoryName, mode: 'insensitive' } },
+  })
 
-        // Fetch category
-        const categoryResponse = await fetch('/api/glasses/categories')
-        const categoryData = await categoryResponse.json()
-
-        if (!categoryData.success) {
-          setError('Failed to load category')
-          return
-        }
-
-        const foundCategory = categoryData.data.find(
-          (c: any) => c.name.toLowerCase() === categoryName.toLowerCase()
-        )
-
-        if (!foundCategory) {
-          setError('Category not found')
-          return
-        }
-
-        setCategory(foundCategory)
-
-        // Fetch frames for this category
-        const framesResponse = await fetch('/api/glasses/frames')
-        const framesData = await framesResponse.json()
-
-        if (framesData.success) {
-          const categoryFrames = framesData.data.filter((frame: any) =>
-            frame.category?.toLowerCase() === categoryName.toLowerCase()
-          )
-          setFrames(categoryFrames)
-        }
-      } catch (err) {
-        setError('Failed to load data')
-        console.error(err)
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    fetchData()
-  }, [params])
-
-  if (loading) {
-    return (
-      <div className="container mx-auto px-4 py-8">
-        <div className="animate-pulse">
-          <div className="h-8 bg-gray-200 rounded w-1/3 mb-4"></div>
-          <div className="h-96 bg-gray-200 rounded mb-4"></div>
-        </div>
-      </div>
-    )
+  if (!category) {
+    notFound()
   }
 
-  if (error || !category) {
-    return (
-      <div className="container mx-auto px-4 py-8">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold text-gray-900 mb-4">Category Not Found</h1>
-          <p className="text-gray-600 mb-6">{error || 'The category you are looking for does not exist.'}</p>
-          <Link href="/" className="text-blue-600 hover:text-blue-700">
-            ← Back to Home
-          </Link>
-        </div>
-      </div>
-    )
-  }
+  const frames = await prisma.glassesFrame.findMany({
+    where: {
+      isActive: true,
+      category: { equals: categoryName, mode: 'insensitive' },
+    },
+  })
 
   return (
     <div className="container mx-auto px-4 py-8">

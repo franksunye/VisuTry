@@ -1,7 +1,5 @@
-'use client'
-
-import { useEffect, useState } from 'react'
 import type { Metadata } from 'next'
+import { notFound } from 'next/navigation'
 import { prisma } from '@/lib/prisma'
 import {
   generateBrandTitle,
@@ -82,71 +80,18 @@ export async function generateMetadata({
   }
 }
 
-export default function BrandPage({ params }: BrandPageProps) {
-  const [brand, setBrand] = useState<string | null>(null)
-  const [frames, setFrames] = useState<any[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+export default async function BrandPage({ params }: BrandPageProps) {
+  const brandName = unslugify(params.brand)
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const brandName = unslugify(params.brand)
+  const frames = await prisma.glassesFrame.findMany({
+    where: {
+      isActive: true,
+      brand: { equals: brandName, mode: 'insensitive' },
+    },
+  })
 
-        // Fetch frames for this brand
-        const framesResponse = await fetch('/api/glasses/frames')
-        const framesData = await framesResponse.json()
-
-        if (!framesData.success) {
-          setError('Failed to load brand')
-          return
-        }
-
-        const brandFrames = framesData.data.filter(
-          (frame: any) => frame.brand?.toLowerCase() === brandName.toLowerCase()
-        )
-
-        if (brandFrames.length === 0) {
-          setError('Brand not found')
-          return
-        }
-
-        setBrand(brandName)
-        setFrames(brandFrames)
-      } catch (err) {
-        setError('Failed to load data')
-        console.error(err)
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    fetchData()
-  }, [params])
-
-  if (loading) {
-    return (
-      <div className="container mx-auto px-4 py-8">
-        <div className="animate-pulse">
-          <div className="h-8 bg-gray-200 rounded w-1/3 mb-4"></div>
-          <div className="h-96 bg-gray-200 rounded mb-4"></div>
-        </div>
-      </div>
-    )
-  }
-
-  if (error || !brand) {
-    return (
-      <div className="container mx-auto px-4 py-8">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold text-gray-900 mb-4">Brand Not Found</h1>
-          <p className="text-gray-600 mb-6">{error || 'The brand you are looking for does not exist.'}</p>
-          <Link href="/" className="text-blue-600 hover:text-blue-700">
-            ← Back to Home
-          </Link>
-        </div>
-      </div>
-    )
+  if (frames.length === 0) {
+    notFound()
   }
 
   return (
@@ -157,7 +102,7 @@ export default function BrandPage({ params }: BrandPageProps) {
           Home
         </Link>
         <span className="mx-2">/</span>
-        <span className="text-gray-900">{brand}</span>
+        <span className="text-gray-900">{brandName}</span>
       </div>
 
       {/* Back Button */}
@@ -168,16 +113,16 @@ export default function BrandPage({ params }: BrandPageProps) {
 
       {/* Header */}
       <div className="mb-12">
-        <h1 className="text-4xl font-bold text-gray-900 mb-4">{brand}</h1>
+        <h1 className="text-4xl font-bold text-gray-900 mb-4">{brandName}</h1>
         <p className="text-lg text-gray-600">
-          Explore {brand} glasses and try them on virtually with VisuTry
+          Explore {brandName} glasses and try them on virtually with VisuTry
         </p>
       </div>
 
       {/* Frames Grid */}
       <div>
         <h2 className="text-2xl font-bold text-gray-900 mb-6">
-          {brand} Models ({frames.length})
+          {brandName} Models ({frames.length})
         </h2>
 
         {frames.length > 0 ? (

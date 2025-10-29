@@ -1,13 +1,10 @@
-'use client'
-
-import { useEffect, useState } from 'react'
 import type { Metadata } from 'next'
+import { notFound } from 'next/navigation'
 import { prisma } from '@/lib/prisma'
 import {
   generateFaceShapeTitle,
   generateFaceShapeDescription,
   generateCollectionPageSchema,
-  generateBreadcrumbSchema,
   generateCanonicalUrl,
   generateFaceShapeSlug,
   unslugify,
@@ -75,84 +72,29 @@ export async function generateMetadata({
   }
 }
 
-export default function FaceShapePage({ params }: FaceShapePageProps) {
-  const [shape, setShape] = useState<any>(null)
-  const [frames, setFrames] = useState<any[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+export default async function FaceShapePage({ params }: FaceShapePageProps) {
+  const shapeName = unslugify(params.faceShape)
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const shapeName = unslugify(params.faceShape)
+  const shape = await prisma.faceShape.findFirst({
+    where: { name: { equals: shapeName, mode: 'insensitive' } },
+  })
 
-        // Fetch face shape
-        const shapeResponse = await fetch('/api/glasses/face-shapes')
-        const shapeData = await shapeResponse.json()
-
-        if (!shapeData.success) {
-          setError('Failed to load face shape')
-          return
-        }
-
-        const foundShape = shapeData.data.find(
-          (s: any) => s.name.toLowerCase() === shapeName.toLowerCase()
-        )
-
-        if (!foundShape) {
-          setError('Face shape not found')
-          return
-        }
-
-        setShape(foundShape)
-
-        // Fetch frames for this face shape
-        const framesResponse = await fetch('/api/glasses/frames')
-        const framesData = await framesResponse.json()
-
-        if (framesData.success) {
-          const recommendedFrames = framesData.data.filter((frame: any) =>
-            frame.faceShapes?.some(
-              (rec: any) => rec.faceShape.name.toLowerCase() === shapeName.toLowerCase()
-            )
-          )
-          setFrames(recommendedFrames)
-        }
-      } catch (err) {
-        setError('Failed to load data')
-        console.error(err)
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    fetchData()
-  }, [params])
-
-  if (loading) {
-    return (
-      <div className="container mx-auto px-4 py-8">
-        <div className="animate-pulse">
-          <div className="h-8 bg-gray-200 rounded w-1/3 mb-4"></div>
-          <div className="h-96 bg-gray-200 rounded mb-4"></div>
-        </div>
-      </div>
-    )
+  if (!shape) {
+    notFound()
   }
 
-  if (error || !shape) {
-    return (
-      <div className="container mx-auto px-4 py-8">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold text-gray-900 mb-4">Face Shape Not Found</h1>
-          <p className="text-gray-600 mb-6">{error || 'The face shape you are looking for does not exist.'}</p>
-          <Link href="/" className="text-blue-600 hover:text-blue-700">
-            ← Back to Home
-          </Link>
-        </div>
-      </div>
-    )
-  }
+  const frames = await prisma.glassesFrame.findMany({
+    where: {
+      isActive: true,
+      faceShapes: {
+        some: {
+          faceShape: {
+            name: { equals: shapeName, mode: 'insensitive' },
+          },
+        },
+      },
+    },
+  })
 
   return (
     <div className="container mx-auto px-4 py-8">
