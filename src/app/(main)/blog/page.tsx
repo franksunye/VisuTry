@@ -120,7 +120,7 @@ export default function BlogPage() {
 
         {/* Blog posts list */}
         <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3 max-w-6xl mx-auto">
-          {blogPosts.map((post) => (
+          {blogPosts.map((post, index) => (
             <article
               key={post.id}
               className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow"
@@ -134,6 +134,8 @@ export default function BlogPage() {
                     fill
                     className="object-cover group-hover:scale-105 transition-transform duration-300"
                     sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                    priority={index < 3}
+                    loading={index < 3 ? undefined : 'lazy'}
                   />
                 </div>
               </Link>

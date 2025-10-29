@@ -43,7 +43,12 @@
     "version:check": "echo $npm_package_version",
     "version:bump": "npm version --no-git-tag-version",
     "sitemap": "next-sitemap",
-    "seo:check": "echo 'Checking SEO configuration...' && node -e \"console.log('Site URL:', process.env.NEXT_PUBLIC_SITE_URL || 'Not set')\""
+    "seo:check": "echo 'Checking SEO configuration...' && node -e \"console.log('Site URL:', process.env.NEXT_PUBLIC_SITE_URL || 'Not set')\"",
+    "analyze": "ANALYZE=true next build",
+    "analyze:server": "BUNDLE_ANALYZE=server next build",
+    "analyze:browser": "BUNDLE_ANALYZE=browser next build",
+    "perf:test": "node scripts/test-performance.js",
+    "perf:test:open": "node scripts/test-performance.js --open"
   },
   "dependencies": {
     "@auth0/nextjs-auth0": "^4.11.0",
@@ -76,6 +81,7 @@
     "use-debounce": "^10.0.6"
   },
   "devDependencies": {
+    "@next/bundle-analyzer": "^14.0.0",
     "@playwright/test": "^1.55.0",
     "@testing-library/jest-dom": "^6.8.0",
     "@testing-library/react": "^16.3.0",

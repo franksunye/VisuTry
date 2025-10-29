@@ -1,3 +1,7 @@
+const withBundleAnalyzer = require('@next/bundle-analyzer')({
+  enabled: process.env.ANALYZE === 'true',
+})
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   images: {
@@ -42,8 +46,21 @@ const nextConfig = {
 
   // 优化生产构建
   experimental: {
-    optimizePackageImports: ['lucide-react'], // 优化图标库导入
+    optimizePackageImports: ['lucide-react', '@radix-ui/react-dialog', '@radix-ui/react-select'], // 优化图标库和组件库导入
+  },
+
+  // 优化字体加载
+  optimizeFonts: true,
+
+  // 启用 HTTP/2 Server Push
+  generateEtags: true,
+
+  // 优化 CSS
+  compiler: {
+    removeConsole: process.env.NODE_ENV === 'production' ? {
+      exclude: ['error', 'warn'],
+    } : false,
   },
 }
 
-module.exports = nextConfig
+module.exports = withBundleAnalyzer(nextConfig)
