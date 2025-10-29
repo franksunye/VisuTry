@@ -6,14 +6,22 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { FrameFormDialog } from '@/components/admin/FrameFormDialog'
+import { DeleteConfirmDialog } from '@/components/admin/DeleteConfirmDialog'
+import { Plus, Pencil, Trash2 } from 'lucide-react'
 
 interface Frame {
   id: string
   name: string
-  brand?: string
-  model?: string
-  category?: string
-  price?: number
+  brand?: string | null
+  model?: string | null
+  category?: string | null
+  price?: number | null
+  description?: string | null
+  imageUrl?: string | null
+  style?: string | null
+  material?: string | null
+  color?: string | null
   isActive: boolean
   createdAt: string
 }
@@ -27,6 +35,10 @@ export default function FramesPage() {
   const [totalPages, setTotalPages] = useState(1)
   const [search, setSearch] = useState('')
   const [totalFrames, setTotalFrames] = useState(0)
+  const [formOpen, setFormOpen] = useState(false)
+  const [deleteOpen, setDeleteOpen] = useState(false)
+  const [selectedFrame, setSelectedFrame] = useState<Frame | null>(null)
+  const [successMessage, setSuccessMessage] = useState<string | null>(null)
 
   useEffect(() => {
     fetchFrames()
@@ -59,14 +71,47 @@ export default function FramesPage() {
     setPage(1)
   }
 
+  const handleCreate = () => {
+    setSelectedFrame(null)
+    setFormOpen(true)
+  }
+
+  const handleEdit = (frame: Frame) => {
+    setSelectedFrame(frame)
+    setFormOpen(true)
+  }
+
+  const handleDelete = (frame: Frame) => {
+    setSelectedFrame(frame)
+    setDeleteOpen(true)
+  }
+
+  const handleSuccess = (message: string) => {
+    setSuccessMessage(message)
+    fetchFrames()
+    setTimeout(() => setSuccessMessage(null), 3000)
+  }
+
   return (
     <div className="space-y-6">
-      <div>
-        <h2 className="text-3xl font-bold tracking-tight">Frames Management</h2>
-        <p className="text-muted-foreground">
-          Manage glasses frames for programmatic SEO
-        </p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-3xl font-bold tracking-tight">Frames Management</h2>
+          <p className="text-muted-foreground">
+            Manage glasses frames for programmatic SEO
+          </p>
+        </div>
+        <Button onClick={handleCreate}>
+          <Plus className="mr-2 h-4 w-4" />
+          Add New Frame
+        </Button>
       </div>
+
+      {successMessage && (
+        <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded">
+          {successMessage}
+        </div>
+      )}
 
       <Card>
         <CardHeader>
@@ -102,6 +147,7 @@ export default function FramesPage() {
                       <TableHead>Price</TableHead>
                       <TableHead>Status</TableHead>
                       <TableHead>Created</TableHead>
+                      <TableHead className="text-right">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -121,6 +167,24 @@ export default function FramesPage() {
                         </TableCell>
                         <TableCell>
                           {new Date(frame.createdAt).toLocaleDateString()}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <div className="flex justify-end gap-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleEdit(frame)}
+                            >
+                              <Pencil className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleDelete(frame)}
+                            >
+                              <Trash2 className="h-4 w-4 text-red-500" />
+                            </Button>
+                          </div>
                         </TableCell>
                       </TableRow>
                     ))}
@@ -154,6 +218,22 @@ export default function FramesPage() {
           )}
         </CardContent>
       </Card>
+
+      {/* Dialogs */}
+      <FrameFormDialog
+        open={formOpen}
+        onOpenChange={setFormOpen}
+        frame={selectedFrame}
+        onSuccess={() => handleSuccess(selectedFrame ? 'Frame updated successfully' : 'Frame created successfully')}
+      />
+
+      <DeleteConfirmDialog
+        open={deleteOpen}
+        onOpenChange={setDeleteOpen}
+        frameId={selectedFrame?.id || ''}
+        frameName={selectedFrame?.name || ''}
+        onSuccess={() => handleSuccess('Frame deleted successfully')}
+      />
     </div>
   )
 }
