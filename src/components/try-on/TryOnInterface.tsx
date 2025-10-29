@@ -141,7 +141,7 @@ export function TryOnInterface() {
   const handleTryAgain = () => {
     setResult(null)
     setCurrentTaskId(null)
-    setCurrentStep("upload")
+    setCurrentStep("select")  // Return to step 2 (select glasses) instead of step 1, keeping uploaded photos
   }
 
   const canProceed = userImage && glassesImage
@@ -195,7 +195,7 @@ export function TryOnInterface() {
       {/* Main Content: Left-Right Layout (Desktop) / Top-Bottom Layout (Mobile) */}
       <div className="grid lg:grid-cols-[400px_1fr] gap-8">
         {/* Result Preview Area - Shows first on mobile, right on desktop */}
-        <div className="lg:order-2 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300 overflow-hidden">
+        <div className="overflow-hidden border-2 border-gray-300 border-dashed rounded-lg lg:order-2 bg-gray-50">
           {isProcessing ? (
             <LoadingState message={processingMessage} />
           ) : result ? (
@@ -212,7 +212,7 @@ export function TryOnInterface() {
         </div>
 
         {/* Photo Uploads - Shows second on mobile, left on desktop */}
-        <div className="lg:order-1 space-y-6">
+        <div className="space-y-6 lg:order-1">
           {/* User Photo Upload */}
           <ImageUpload
             onImageSelect={handleUserImageSelect}
@@ -241,11 +241,11 @@ export function TryOnInterface() {
           <button
             onClick={handleStartTryOn}
             disabled={!canProceed || isProcessing}
-            className="flex items-center px-8 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className="flex items-center px-8 py-3 text-white transition-colors bg-blue-600 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isProcessing ? (
               <>
-                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
+                <div className="w-5 h-5 mr-2 border-2 border-white rounded-full border-t-transparent animate-spin" />
                 {processingMessage}
               </>
             ) : (
