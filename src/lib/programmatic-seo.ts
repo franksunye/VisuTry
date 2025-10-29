@@ -186,3 +186,45 @@ export function generateTwitterTags(data: {
   }
 }
 
+/**
+ * Generate URL slug for frame (brand-model)
+ */
+export function generateFrameSlug(brand: string, model: string): string {
+  return `${slugify(brand)}-${slugify(model)}`
+}
+
+/**
+ * Parse frame slug back to brand and model
+ */
+export function parseFrameSlug(slug: string): { brand: string; model: string } | null {
+  const parts = slug.split('-')
+  if (parts.length < 2) return null
+
+  // Last part is model, rest is brand
+  const model = parts[parts.length - 1]
+  const brand = parts.slice(0, -1).join('-')
+
+  return { brand: unslugify(brand), model: unslugify(model) }
+}
+
+/**
+ * Generate URL slug for face shape
+ */
+export function generateFaceShapeSlug(shape: string): string {
+  return slugify(shape)
+}
+
+/**
+ * Generate URL slug for category
+ */
+export function generateCategorySlug(category: string): string {
+  return slugify(category)
+}
+
+/**
+ * Generate URL slug for brand
+ */
+export function generateBrandSlug(brand: string): string {
+  return slugify(brand)
+}
+
