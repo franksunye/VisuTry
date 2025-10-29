@@ -28,7 +28,7 @@ export default async function TagPage({ params }: Props) {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
-      <div className="container mx-auto px-4 py-12">
+      <main className="container mx-auto px-4 py-12">
         {/* Back button */}
         <div className="mb-8">
           <Link
@@ -130,7 +130,7 @@ export default async function TagPage({ params }: Props) {
             </Link>
           </div>
         )}
-      </div>
+      </main>
     </div>
   )
 }

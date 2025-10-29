@@ -29,7 +29,7 @@ export default function BlogPostPage() {
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }} />
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
-        <div className="container mx-auto px-4 py-12">
+        <main className="container mx-auto px-4 py-12">
           {/* Breadcrumbs */}
           <div className="mb-6">
             <Breadcrumbs
@@ -210,7 +210,7 @@ export default function BlogPostPage() {
               </div>
             </div>
           </article>
-        </div>
+        </main>
       </div>
     </>
   )

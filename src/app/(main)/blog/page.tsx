@@ -107,7 +107,7 @@ const blogPosts = [
 export default function BlogPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
-      <div className="container mx-auto px-4 py-12">
+      <main className="container mx-auto px-4 py-12">
         {/* Page title */}
         <div className="text-center mb-12">
           <h1 className="text-4xl font-bold text-gray-900 mb-4">
@@ -196,7 +196,7 @@ export default function BlogPage() {
             Back to Home
           </Link>
         </div>
-      </div>
+      </main>
     </div>
   )
 }
