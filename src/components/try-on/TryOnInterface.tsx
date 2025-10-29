@@ -104,9 +104,29 @@ export function TryOnInterface() {
       const data = await response.json()
 
       if (data.success) {
-        setCurrentTaskId(data.data.taskId)
-        setProcessingMessage("Processing...")
-        // Don't set result immediately, wait for polling to get completion status
+        const taskData = data.data
+
+        // Check if task is already completed (synchronous processing)
+        if (taskData.status === "completed" && taskData.resultImageUrl) {
+          // Task completed immediately, display result
+          setResult({
+            imageUrl: taskData.resultImageUrl,
+            taskId: taskData.taskId
+          })
+          setCurrentStep("result")
+          setIsProcessing(false)
+
+          // Refresh session to update usage count
+          console.log('✅ Try-on completed: Refreshing session to update usage count...')
+          update().catch((error) => {
+            console.error('❌ Failed to refresh session after try-on:', error)
+          })
+        } else {
+          // Task still processing, start polling
+          setCurrentTaskId(taskData.taskId)
+          setProcessingMessage("Processing...")
+          // Keep isProcessing=true for polling to continue
+        }
       } else {
         throw new Error(data.error || "Try-on failed")
       }
@@ -114,7 +134,6 @@ export function TryOnInterface() {
       console.error("Try-on failed:", error)
       alert("Failed, please try again")
       setCurrentStep("select")
-    } finally {
       setIsProcessing(false)
     }
   }
