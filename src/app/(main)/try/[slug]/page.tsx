@@ -15,7 +15,7 @@ import { ArrowLeft, Glasses, Heart } from 'lucide-react'
 
 interface ProductPageProps {
   params: {
-    'brand-model': string
+    slug: string
   }
 }
 
@@ -27,7 +27,7 @@ export async function generateStaticParams() {
   })
 
   return frames.map(frame => ({
-    'brand-model': `${slugify(frame.brand || '')}-${slugify(frame.model || '')}`,
+    slug: `${slugify(frame.brand || '')}-${slugify(frame.model || '')}`,
   }))
 }
 
@@ -35,7 +35,7 @@ export async function generateStaticParams() {
 export async function generateMetadata({
   params,
 }: ProductPageProps): Promise<Metadata> {
-  const slug = params['brand-model']
+  const slug = params.slug
   const parsed = parseFrameSlug(slug)
 
   if (!parsed) {
@@ -87,7 +87,7 @@ export async function generateMetadata({
 }
 
 export default async function ProductPage({ params }: ProductPageProps) {
-  const slug = params['brand-model']
+  const slug = params.slug
   const parsed = parseFrameSlug(slug)
 
   if (!parsed) {
@@ -245,7 +245,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
               image: frame.imageUrl,
               brand: frame.brand || 'Unknown',
               price: frame.price || undefined,
-              url: generateCanonicalUrl(`/try/${params['brand-model']}`),
+              url: generateCanonicalUrl(`/try/${params.slug}`),
             })
           ),
         }}
