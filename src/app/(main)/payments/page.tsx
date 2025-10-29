@@ -7,6 +7,7 @@ import Link from "next/link"
 import { Metadata } from 'next'
 import { generateSEO } from '@/lib/seo'
 import { getSubscriptionQuotaLabel } from '@/config/pricing'
+import { AutoRefreshWrapper } from '@/components/payments/AutoRefreshWrapper'
 
 export const metadata: Metadata = generateSEO({
   title: 'Payment History - AI Glasses Try-On | VisuTry',
@@ -52,9 +53,10 @@ export default async function PaymentsPage() {
   )
 
   return (
-    <div className="container max-w-4xl px-4 py-8 mx-auto">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-8">
+    <AutoRefreshWrapper>
+      <div className="container max-w-4xl px-4 py-8 mx-auto">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-8">
         <div>
           <h1 className="text-3xl font-bold">Payment History</h1>
           <p className="mt-2 text-gray-600">View all your transactions and subscription details</p>
@@ -238,7 +240,8 @@ export default async function PaymentsPage() {
           </Link>
         </div>
       </div>
-    </div>
+      </div>
+    </AutoRefreshWrapper>
   )
 }
 

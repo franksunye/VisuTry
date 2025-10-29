@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth/next"
 import { authOptions } from "@/lib/auth"
 import { TryOnInterface } from "@/components/try-on/TryOnInterface"
 import { UserStatusBanner } from "@/components/try-on/UserStatusBanner"
+import { AutoRefreshWrapper } from "@/components/payments/AutoRefreshWrapper"
 import { ArrowLeft } from "lucide-react"
 import Link from "next/link"
 import { headers } from "next/headers"
@@ -66,12 +67,13 @@ export default async function TryOnPage() {
   })
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      {/* HowTo Structured Data */}
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(howToSchema) }}
-      />
+    <AutoRefreshWrapper>
+      <div className="container mx-auto px-4 py-8">
+        {/* HowTo Structured Data */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(howToSchema) }}
+        />
 
       {/* Breadcrumbs */}
       <div className="mb-6">
@@ -115,6 +117,7 @@ export default async function TryOnPage() {
 
       {/* Try-On Interface */}
       <TryOnInterface />
-    </div>
+      </div>
+    </AutoRefreshWrapper>
   )
 }

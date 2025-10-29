@@ -7,6 +7,7 @@ import { RecentTryOnsAsync } from "@/components/dashboard/RecentTryOnsAsync"
 import { DashboardStatsSkeleton } from "@/components/dashboard/DashboardStatsSkeleton"
 import { RecentTryOnsSkeleton } from "@/components/dashboard/RecentTryOnsSkeleton"
 import { SubscriptionCard } from "@/components/dashboard/SubscriptionCard"
+import { PaymentSuccessHandler } from "@/components/dashboard/PaymentSuccessHandler"
 import { ClientPerformanceMonitor } from "@/components/performance/ClientPerformanceMonitor"
 import { Glasses, Plus, Receipt } from "lucide-react"
 import Link from "next/link"
@@ -67,9 +68,14 @@ export default async function DashboardPage() {
 
   return (
     <div className="container px-4 py-8 mx-auto">
-      {/* 客户端性能监控 */}
+      {/* Client-side performance monitoring */}
       <ClientPerformanceMonitor pageName="Dashboard" />
-      
+
+      {/* Payment success handler - auto-refresh session */}
+      <Suspense fallback={null}>
+        <PaymentSuccessHandler />
+      </Suspense>
+
       {/* Page Header - 立即渲染 */}
       <div className="flex items-center justify-between mb-8">
         <div>
