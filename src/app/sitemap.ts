@@ -61,61 +61,59 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // Dynamic blog post pages
   const blogPages: MetadataRoute.Sitemap = await getBlogSitemapEntries()
 
-  // Dynamic user public pages
+  // Dynamic user public pages - DISABLED to prevent 404 errors
+  // Reason: User pages are dynamic and may not exist, causing 404s in Google Search Console
+  // Only enable when we have a proper "isPublic" field in the User model
   let userPages: MetadataRoute.Sitemap = []
-  try {
-    // Get users with public pages
-    const publicUsers = await prisma.user.findMany({
-      where: {
-        // Add conditions here, e.g., users who chose to make their profile public
-        // isPublic: true,
-        // or users with public try-on records
-      },
-      select: {
-        id: true,
-        name: true,
-        updatedAt: true,
-      },
-      take: 1000, // Limit to avoid sitemap being too large
-    })
+  // try {
+  //   const publicUsers = await prisma.user.findMany({
+  //     where: {
+  //       isPublic: true, // Only include users who explicitly made their profile public
+  //     },
+  //     select: {
+  //       id: true,
+  //       name: true,
+  //       updatedAt: true,
+  //     },
+  //     take: 1000,
+  //   })
+  //   userPages = publicUsers.map(user => ({
+  //     url: `${baseUrl}/user/${user.name}`,
+  //     lastModified: user.updatedAt,
+  //     changeFrequency: 'monthly' as const,
+  //     priority: 0.5,
+  //   }))
+  // } catch (error) {
+  //   console.log('Unable to fetch user pages, skipping user sitemap generation')
+  //   userPages = []
+  // }
 
-    userPages = publicUsers.map(user => ({
-      url: `${baseUrl}/user/${user.name}`,
-      lastModified: user.updatedAt,
-      changeFrequency: 'monthly' as const,
-      priority: 0.5,
-    }))
-  } catch (error) {
-    console.log('Unable to fetch user pages, skipping user sitemap generation')
-    userPages = []
-  }
-
-  // Dynamic try-on share pages (public share pages)
+  // Dynamic try-on share pages - DISABLED to prevent 404 errors
+  // Reason: Share pages are dynamic and may not exist, causing 404s in Google Search Console
+  // Only enable when we have a proper "isPublic" field in the TryOnTask model
   let sharePages: MetadataRoute.Sitemap = []
-  try {
-    // Get public try-on share pages
-    const publicShares = await prisma.tryOnTask.findMany({
-      where: {
-        // isPublic: true, // Commented out temporarily as the model may not have this field
-        // Add conditions based on actual requirements
-      },
-      select: {
-        id: true,
-        updatedAt: true,
-      },
-      take: 100, // Limit to avoid sitemap being too large
-    })
-
-    sharePages = publicShares.map(share => ({
-      url: `${baseUrl}/share/${share.id}`,
-      lastModified: share.updatedAt,
-      changeFrequency: 'monthly' as const,
-      priority: 0.6,
-    }))
-  } catch (error) {
-    console.log('Unable to fetch share pages, skipping share sitemap generation')
-    sharePages = []
-  }
+  // try {
+  //   const publicShares = await prisma.tryOnTask.findMany({
+  //     where: {
+  //       isPublic: true, // Only include explicitly public shares
+  //       status: 'COMPLETED', // Only include completed tasks
+  //     },
+  //     select: {
+  //       id: true,
+  //       updatedAt: true,
+  //     },
+  //     take: 100,
+  //   })
+  //   sharePages = publicShares.map(share => ({
+  //     url: `${baseUrl}/share/${share.id}`,
+  //     lastModified: share.updatedAt,
+  //     changeFrequency: 'monthly' as const,
+  //     priority: 0.6,
+  //   }))
+  // } catch (error) {
+  //   console.log('Unable to fetch share pages, skipping share sitemap generation')
+  //   sharePages = []
+  // }
 
   // Merge all pages
   return [
