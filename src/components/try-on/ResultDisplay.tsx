@@ -93,23 +93,23 @@ export function ResultDisplay({
   }
 
   return (
-    <div className={cn("max-w-4xl mx-auto", className)}>
-      <div className="text-center mb-8">
-        <h2 className="text-2xl font-bold text-gray-900 mb-2">
+    <div className={cn("w-full", className)}>
+      <div className="text-center mb-6">
+        <h2 className="text-xl font-bold text-gray-900 mb-2">
           Try-On Complete!
         </h2>
-        <p className="text-gray-600">
+        <p className="text-gray-600 text-sm">
           AI has generated your personalized try-on result. What do you think?
         </p>
       </div>
 
-      <div className="bg-white rounded-2xl shadow-lg overflow-hidden">
+      <div className="bg-white rounded-xl shadow-md overflow-hidden">
         {/* Result Image */}
         <div className="relative">
           <img
             src={resultImageUrl}
             alt="AI Try-On Result"
-            className="w-full h-auto max-h-96 object-contain bg-gray-50"
+            className="w-full h-auto object-contain bg-gray-50"
           />
 
           {/* Floating Action Button */}
@@ -129,60 +129,56 @@ export function ResultDisplay({
         </div>
 
         {/* Action Area */}
-        <div className="p-6">
-          <div className="flex flex-col sm:flex-row gap-4">
+        <div className="p-4">
+          <div className="flex flex-col gap-3">
             {/* Primary Actions */}
-            <div className="flex-1 grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-2 gap-2">
               <button
                 onClick={handleDownload}
-                className="flex items-center justify-center px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                className="flex items-center justify-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm"
               >
-                <Download className="w-5 h-5 mr-2" />
+                <Download className="w-4 h-4 mr-2" />
                 Download
               </button>
 
               <button
                 onClick={onTryAgain}
-                className="flex items-center justify-center px-4 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                className="flex items-center justify-center px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors text-sm"
               >
-                <RotateCcw className="w-5 h-5 mr-2" />
+                <RotateCcw className="w-4 h-4 mr-2" />
                 Try Again
               </button>
             </div>
 
             {/* Share Actions */}
-            <div className="flex space-x-2">
+            <div className="flex justify-center space-x-2">
               <button
                 onClick={() => handleShare("twitter")}
                 disabled={sharing}
-                className="flex items-center justify-center w-12 h-12 bg-blue-400 text-white rounded-lg hover:bg-blue-500 transition-colors disabled:opacity-50"
+                className="flex items-center justify-center w-10 h-10 bg-blue-400 text-white rounded-lg hover:bg-blue-500 transition-colors disabled:opacity-50"
+                title="Share on Twitter"
               >
-                <Twitter className="w-5 h-5" />
+                <Twitter className="w-4 h-4" />
               </button>
 
               <button
                 onClick={() => handleShare("facebook")}
                 disabled={sharing}
-                className="flex items-center justify-center w-12 h-12 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
+                className="flex items-center justify-center w-10 h-10 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
+                title="Share on Facebook"
               >
-                <Facebook className="w-5 h-5" />
+                <Facebook className="w-4 h-4" />
               </button>
 
               <button
                 onClick={() => handleShare("copy")}
                 disabled={sharing}
-                className="flex items-center justify-center w-12 h-12 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors disabled:opacity-50"
+                className="flex items-center justify-center w-10 h-10 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors disabled:opacity-50"
+                title="Copy link"
               >
-                {copied ? <Check className="w-5 h-5" /> : <Copy className="w-5 h-5" />}
+                {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
               </button>
             </div>
-          </div>
-
-          {/* Tip Message */}
-          <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-            <p className="text-sm text-blue-800">
-              💡 Tip: You can download the image to save locally, or share it with friends!
-            </p>
           </div>
         </div>
       </div>

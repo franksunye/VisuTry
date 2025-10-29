@@ -4,6 +4,8 @@ import { useState, useEffect } from "react"
 import { useSession } from "next-auth/react"
 import { ImageUpload } from "@/components/upload/ImageUpload"
 import { ResultDisplay } from "@/components/try-on/ResultDisplay"
+import { LoadingState } from "@/components/try-on/LoadingState"
+import { EmptyState } from "@/components/try-on/EmptyState"
 import { Sparkles, ArrowRight, User, Glasses } from "lucide-react"
 import { TryOnRequest } from "@/types"
 
@@ -172,39 +174,48 @@ export function TryOnInterface() {
         </div>
       </div>
 
-      {currentStep === "result" && result ? (
-        <ResultDisplay
-          resultImageUrl={result.imageUrl}
-          taskId={result.taskId}
-          onTryAgain={handleTryAgain}
-        />
-      ) : (
-        <div className="grid lg:grid-cols-2 gap-8">
-          {/* Left: User Photo Upload */}
-          <div className="space-y-6">
-            <ImageUpload
-              onImageSelect={handleUserImageSelect}
-              onImageRemove={handleUserImageRemove}
-              currentImage={userImage?.preview}
-              label="Upload Your Photo"
-              description="Please upload a clear front-facing photo with your face clearly visible"
-              loading={isProcessing}
-            />
-          </div>
-
-          {/* Right: Glasses Upload */}
-          <div className="space-y-6">
-            <ImageUpload
-              onImageSelect={handleGlassesImageSelect}
-              onImageRemove={handleGlassesImageRemove}
-              currentImage={glassesImage?.preview}
-              label="Upload Glasses Image"
-              description="Please upload a clear image of the glasses you want to try on"
-              loading={isProcessing}
-            />
-          </div>
+      {/* Main Content: Left-Right Layout (Desktop) / Top-Bottom Layout (Mobile) */}
+      <div className="grid lg:grid-cols-[400px_1fr] gap-8">
+        {/* Result Preview Area - Shows first on mobile, right on desktop */}
+        <div className="lg:order-2 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300 overflow-hidden">
+          {isProcessing ? (
+            <LoadingState message={processingMessage} />
+          ) : result ? (
+            <div className="p-6">
+              <ResultDisplay
+                resultImageUrl={result.imageUrl}
+                taskId={result.taskId}
+                onTryAgain={handleTryAgain}
+              />
+            </div>
+          ) : (
+            <EmptyState />
+          )}
         </div>
-      )}
+
+        {/* Photo Uploads - Shows second on mobile, left on desktop */}
+        <div className="lg:order-1 space-y-6">
+          {/* User Photo Upload */}
+          <ImageUpload
+            onImageSelect={handleUserImageSelect}
+            onImageRemove={handleUserImageRemove}
+            currentImage={userImage?.preview}
+            label="Upload Your Photo"
+            description="Please upload a clear front-facing photo with your face clearly visible"
+            loading={isProcessing}
+          />
+
+          {/* Glasses Photo Upload */}
+          <ImageUpload
+            onImageSelect={handleGlassesImageSelect}
+            onImageRemove={handleGlassesImageRemove}
+            currentImage={glassesImage?.preview}
+            label="Upload Glasses Image"
+            description="Please upload a clear image of the glasses you want to try on"
+            loading={isProcessing}
+          />
+        </div>
+      </div>
 
       {/* Action Button */}
       {currentStep !== "result" && (
