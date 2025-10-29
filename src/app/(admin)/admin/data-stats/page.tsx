@@ -41,7 +41,8 @@ async function getDataStats() {
       select: { frameId: true },
       distinct: ['frameId'],
     }),
-    prisma.glassesFrame.count({ where: { imageUrl: { not: null } } }),
+    // imageUrl is required (String), so all frames have images
+    prisma.glassesFrame.count(),
     prisma.glassesFrame.count({ where: { description: { not: null } } }),
     prisma.glassesFrame.count({ where: { price: { not: null } } }),
     prisma.glassesFrame.count({ where: { brand: { not: null } } }),
