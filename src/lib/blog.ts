@@ -149,7 +149,7 @@ export async function getBlogPostBySlug(slug: string): Promise<BlogPost | null> 
  */
 export async function getBlogSitemapEntries() {
   const posts = await getAllBlogPosts()
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://visutry.vercel.app'
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://visutry.com'
 
   return posts.map(post => ({
     url: `${baseUrl}/blog/${post.slug}`,
