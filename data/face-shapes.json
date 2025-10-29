@@ -3,10 +3,17 @@
     "id": "round",
     "name": "round",
     "displayName": "Round Face",
-    "description": "Round faces have equal width and length with soft, curved features.",
-    "characteristics": "Full cheeks, rounded jawline, wider forehead, soft facial features",
-    "recommendedStyles": ["square", "rectangular", "angular", "browline", "clubmaster"],
-    "avoidStyles": ["round", "oversized", "cat-eye"],
+    "description": "Round faces have soft, curved features with equal width and length.",
+    "characteristics": "Soft curves, equal width and length, full cheeks",
+    "recommendedStyles": [
+      "clubmaster",
+      "browline",
+      "angular"
+    ],
+    "avoidStyles": [
+      "round",
+      "oversized"
+    ],
     "isActive": true
   },
   {
@@ -14,9 +21,16 @@
     "name": "square",
     "displayName": "Square Face",
     "description": "Square faces have strong jawlines and equal width and length.",
-    "characteristics": "Strong jawline, equal width and length, broad forehead, angular features",
-    "recommendedStyles": ["round", "oval", "cat-eye", "wayfarer"],
-    "avoidStyles": ["square", "heavy-frames", "angular"],
+    "characteristics": "Strong jawline, equal width and length, angular features",
+    "recommendedStyles": [
+      "round",
+      "oval",
+      "cat-eye"
+    ],
+    "avoidStyles": [
+      "square",
+      "geometric"
+    ],
     "isActive": true
   },
   {
@@ -24,8 +38,12 @@
     "name": "oval",
     "displayName": "Oval Face",
     "description": "Oval faces are longer than they are wide with balanced proportions.",
-    "characteristics": "Longer face shape, balanced width and length, tapered jawline",
-    "recommendedStyles": ["any", "oversized", "cat-eye", "browline", "clubmaster"],
+    "characteristics": "Longer than wide, balanced proportions, tapered chin",
+    "recommendedStyles": [
+      "any",
+      "clubmaster",
+      "aviator"
+    ],
     "avoidStyles": [],
     "isActive": true
   },
@@ -34,29 +52,47 @@
     "name": "heart",
     "displayName": "Heart Face",
     "description": "Heart faces are wider at the forehead and narrower at the chin.",
-    "characteristics": "Wider forehead, narrower jawline, pointed chin, prominent cheekbones",
-    "recommendedStyles": ["bottom-heavy", "cat-eye", "wayfarer", "round"],
-    "avoidStyles": ["top-heavy", "oversized"],
-    "isActive": true
-  },
-  {
-    "id": "oblong",
-    "name": "oblong",
-    "displayName": "Oblong Face",
-    "description": "Oblong faces are longer than they are wide with a longer jawline.",
-    "characteristics": "Long face shape, narrow width, elongated jawline, prominent chin",
-    "recommendedStyles": ["oversized", "round", "cat-eye", "browline"],
-    "avoidStyles": ["narrow", "small-frames"],
+    "characteristics": "Wider forehead, narrower chin, pointed features",
+    "recommendedStyles": [
+      "cat-eye",
+      "oversized",
+      "bottom-heavy"
+    ],
+    "avoidStyles": [
+      "top-heavy"
+    ],
     "isActive": true
   },
   {
     "id": "diamond",
     "name": "diamond",
     "displayName": "Diamond Face",
-    "description": "Diamond faces are wider at the cheekbones with a narrow forehead and chin.",
-    "characteristics": "Prominent cheekbones, narrow forehead, narrow chin, angular features",
-    "recommendedStyles": ["cat-eye", "browline", "clubmaster", "round"],
-    "avoidStyles": ["narrow", "heavy-top"],
+    "description": "Diamond faces are wider at the cheekbones with narrow forehead and chin.",
+    "characteristics": "Wide cheekbones, narrow forehead and chin, angular",
+    "recommendedStyles": [
+      "oval",
+      "cat-eye",
+      "browline"
+    ],
+    "avoidStyles": [
+      "narrow"
+    ],
+    "isActive": true
+  },
+  {
+    "id": "oblong",
+    "name": "oblong",
+    "displayName": "Oblong Face",
+    "description": "Oblong faces are longer than they are wide with a narrow chin.",
+    "characteristics": "Longer than wide, narrow chin, elongated features",
+    "recommendedStyles": [
+      "oversized",
+      "cat-eye",
+      "browline"
+    ],
+    "avoidStyles": [
+      "narrow"
+    ],
     "isActive": true
   },
   {
@@ -64,10 +100,15 @@
     "name": "triangle",
     "displayName": "Triangle Face",
     "description": "Triangle faces are wider at the jawline and narrower at the forehead.",
-    "characteristics": "Wider jawline, narrow forehead, prominent chin, angular jaw",
-    "recommendedStyles": ["top-heavy", "oversized", "browline", "cat-eye"],
-    "avoidStyles": ["bottom-heavy", "narrow"],
+    "characteristics": "Wider jawline, narrower forehead, pointed chin",
+    "recommendedStyles": [
+      "top-heavy",
+      "oversized",
+      "browline"
+    ],
+    "avoidStyles": [
+      "bottom-heavy"
+    ],
     "isActive": true
   }
 ]
-
