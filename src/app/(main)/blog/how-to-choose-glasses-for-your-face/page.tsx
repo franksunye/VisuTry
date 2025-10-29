@@ -83,7 +83,7 @@ export default function BlogPostPage() {
                 How to Choose the Right Glasses for Your Face Shape? Complete Guide
               </h1>
               <p className="text-xl text-gray-600">
-                Choosing the right glasses not only improves vision but also perfectly complements your face shape. This article provides detailed tips for matching glasses to different face shapes. If you're ready to shop, check out our <Link href="/blog/prescription-glasses-online-shopping-guide-2025" className="text-blue-600 hover:text-blue-800">complete online shopping guide</Link>.
+                Choosing the right glasses not only improves vision but also perfectly complements your face shape. This article provides detailed tips for matching glasses to different face shapes. If you&apos;re ready to shop, check out our <Link href="/blog/prescription-glasses-online-shopping-guide-2025" className="text-blue-600 hover:text-blue-800">complete online shopping guide</Link>.
               </p>
             </div>
 
