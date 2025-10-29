@@ -6,7 +6,6 @@ import {
   generateFrameDescription,
   generateProductSchema,
   generateCanonicalUrl,
-  parseFrameSlug,
   slugify,
 } from '@/lib/programmatic-seo'
 import Image from 'next/image'
@@ -23,11 +22,11 @@ interface ProductPageProps {
 export async function generateStaticParams() {
   const frames = await prisma.glassesFrame.findMany({
     where: { isActive: true },
-    select: { brand: true, model: true },
+    select: { id: true },
   })
 
   return frames.map(frame => ({
-    slug: `${slugify(frame.brand || '')}-${slugify(frame.model || '')}`,
+    slug: frame.id,
   }))
 }
 
@@ -36,20 +35,9 @@ export async function generateMetadata({
   params,
 }: ProductPageProps): Promise<Metadata> {
   const slug = params.slug
-  const parsed = parseFrameSlug(slug)
 
-  if (!parsed) {
-    return {
-      title: 'Product Not Found',
-      description: 'The product you are looking for does not exist.',
-    }
-  }
-
-  const frame = await prisma.glassesFrame.findFirst({
-    where: {
-      brand: { equals: parsed.brand, mode: 'insensitive' },
-      model: { equals: parsed.model, mode: 'insensitive' },
-    },
+  const frame = await prisma.glassesFrame.findUnique({
+    where: { id: slug },
   })
 
   if (!frame) {
@@ -88,17 +76,9 @@ export async function generateMetadata({
 
 export default async function ProductPage({ params }: ProductPageProps) {
   const slug = params.slug
-  const parsed = parseFrameSlug(slug)
 
-  if (!parsed) {
-    notFound()
-  }
-
-  const frame = await prisma.glassesFrame.findFirst({
-    where: {
-      brand: { equals: parsed.brand, mode: 'insensitive' },
-      model: { equals: parsed.model, mode: 'insensitive' },
-    },
+  const frame = await prisma.glassesFrame.findUnique({
+    where: { id: slug },
     include: {
       faceShapes: {
         include: {
