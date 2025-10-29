@@ -79,7 +79,7 @@ export default function BlogPostPage() {
                 <li><strong>Cost savings</strong> - 50-70% cheaper than retail stores</li>
                 <li><strong>Convenience</strong> - Shop from home, 24/7</li>
                 <li><strong>Wider selection</strong> - Thousands of styles available</li>
-                <li><strong>Virtual try-on</strong> - See frames on your face before buying</li>
+                <li><strong>Virtual try-on</strong> - See frames on your face before buying (check out our <Link href="/blog/best-ai-virtual-glasses-tryon-tools-2025" className="text-blue-600 hover:text-blue-800">guide to the best AI virtual try-on tools</Link>)</li>
                 <li><strong>Easy comparison</strong> - Compare prices and styles instantly</li>
                 <li><strong>Home delivery</strong> - Glasses shipped to your door</li>
               </ul>
@@ -129,7 +129,7 @@ export default function BlogPostPage() {
               </p>
               <ul>
                 <li><strong>Face shape</strong> - See our <Link href="/blog/how-to-choose-glasses-for-your-face" className="text-blue-600 hover:text-blue-800">face shape guide</Link></li>
-                <li><strong>Frame material</strong> - Acetate, plastic, metal, titanium</li>
+                <li><strong>Frame material</strong> - Learn about <Link href="/blog/acetate-vs-plastic-eyeglass-frames-guide" className="text-blue-600 hover:text-blue-800">acetate vs plastic frames</Link></li>
                 <li><strong>Frame size</strong> - Check measurements (lens width, bridge, temple length)</li>
                 <li><strong>Style</strong> - Professional, casual, trendy, classic</li>
                 <li><strong>Color</strong> - Match your skin tone and wardrobe</li>

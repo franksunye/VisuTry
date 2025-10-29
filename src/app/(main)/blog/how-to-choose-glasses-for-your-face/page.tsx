@@ -83,7 +83,7 @@ export default function BlogPostPage() {
                 How to Choose the Right Glasses for Your Face Shape? Complete Guide
               </h1>
               <p className="text-xl text-gray-600">
-                Choosing the right glasses not only improves vision but also perfectly complements your face shape. This article provides detailed tips for matching glasses to different face shapes.
+                Choosing the right glasses not only improves vision but also perfectly complements your face shape. This article provides detailed tips for matching glasses to different face shapes. If you're ready to shop, check out our <Link href="/blog/prescription-glasses-online-shopping-guide-2025" className="text-blue-600 hover:text-blue-800">complete online shopping guide</Link>.
               </p>
             </div>
 
@@ -124,7 +124,7 @@ export default function BlogPostPage() {
               </p>
               <ul>
                 <li>Round or oval frames</li>
-                <li>Soft curved designs</li>
+                <li>Soft curved designs (like <Link href="/blog/browline-clubmaster-glasses-complete-guide" className="text-blue-600 hover:text-blue-800">browline clubmaster styles</Link>)</li>
                 <li>Avoid overly square styles</li>
               </ul>
 
@@ -194,7 +194,7 @@ export default function BlogPostPage() {
               <h2>Conclusion</h2>
               <p>
                 Choosing the right glasses requires considering multiple factors including face shape, skin tone, and lifestyle.
-                Most importantly, choose styles that make you feel confident and comfortable.
+                Most importantly, choose styles that make you feel confident and comfortable. For style inspiration, check out our <Link href="/blog/celebrity-glasses-style-guide-2025" className="text-blue-600 hover:text-blue-800">celebrity glasses style guide</Link>.
               </p>
               <p>
                 With VisuTry&apos;s AI virtual try-on technology, you can easily try different styles
