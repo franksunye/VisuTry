@@ -244,7 +244,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
               description: frame.description || '',
               image: frame.imageUrl,
               brand: frame.brand || 'Unknown',
-              price: frame.price,
+              price: frame.price || undefined,
               url: generateCanonicalUrl(`/try/${params['brand-model']}`),
             })
           ),
