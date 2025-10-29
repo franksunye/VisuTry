@@ -142,8 +142,11 @@ export async function POST(request: NextRequest) {
 
     console.log(`📊 Image sizes: user=${(userImageFile.size / 1024).toFixed(2)}KB, glasses=${(glassesImageFile.size / 1024).toFixed(2)}KB`)
 
+    // 🔥 FIX: Use single timestamp to avoid filename collision
+    const timestamp = Date.now()
+
     // Upload user image
-    const userImageFilename = `try-on/${userId}/${Date.now()}-user.jpg`
+    const userImageFilename = `try-on/${userId}/${timestamp}-user.jpg`
     let userImageBlob
 
     if (isMockMode) {
@@ -155,7 +158,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Upload glasses image
-    const glassesImageFilename = `try-on/${userId}/${Date.now()}-glasses.jpg`
+    const glassesImageFilename = `try-on/${userId}/${timestamp}-glasses.jpg`
     let glassesImageBlob
 
     if (isMockMode) {
