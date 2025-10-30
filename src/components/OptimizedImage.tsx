@@ -156,6 +156,9 @@ export function HeroImage({
 /**
  * Try-On result image with high quality
  * Used for displaying AI try-on results in result pages and share pages
+ *
+ * @param useFill - If true, uses fill layout (for fixed aspect ratio containers like share page)
+ *                  If false, uses responsive layout (for auto-height containers like try-on page)
  */
 export function TryOnResultImage({
   src,
@@ -164,6 +167,9 @@ export function TryOnResultImage({
   className,
   onLoad,
   onError,
+  useFill = false,
+  width = 800,
+  height = 800,
 }: {
   src: string
   alt?: string
@@ -171,6 +177,9 @@ export function TryOnResultImage({
   className?: string
   onLoad?: () => void
   onError?: () => void
+  useFill?: boolean
+  width?: number
+  height?: number
 }) {
   const [isLoading, setIsLoading] = useState(true)
   const [hasError, setHasError] = useState(false)
@@ -186,8 +195,42 @@ export function TryOnResultImage({
     onError?.()
   }
 
+  if (useFill) {
+    // Fill layout for fixed aspect ratio containers (share page)
+    return (
+      <>
+        {/* Loading placeholder */}
+        {isLoading && !hasError && (
+          <div className="absolute inset-0 bg-gray-200 animate-pulse rounded-lg" />
+        )}
+
+        {/* Error state */}
+        {hasError && (
+          <div className="absolute inset-0 bg-gray-100 flex items-center justify-center rounded-lg">
+            <span className="text-gray-400 text-sm">Failed to load image</span>
+          </div>
+        )}
+
+        {/* Optimized image */}
+        <Image
+          src={src}
+          alt={alt}
+          fill
+          className={className || 'object-contain'}
+          loading={priority ? 'eager' : 'lazy'}
+          priority={priority}
+          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 80vw, 800px"
+          quality={85}
+          onLoad={handleLoad}
+          onError={handleError}
+        />
+      </>
+    )
+  }
+
+  // Responsive layout for auto-height containers (try-on page)
   return (
-    <>
+    <div className="relative">
       {/* Loading placeholder */}
       {isLoading && !hasError && (
         <div className="absolute inset-0 bg-gray-200 animate-pulse rounded-lg" />
@@ -204,8 +247,9 @@ export function TryOnResultImage({
       <Image
         src={src}
         alt={alt}
-        fill
-        className={className || 'object-contain'}
+        width={width}
+        height={height}
+        className={className || 'w-full h-auto object-contain'}
         loading={priority ? 'eager' : 'lazy'}
         priority={priority}
         sizes="(max-width: 640px) 100vw, (max-width: 1024px) 80vw, 800px"
@@ -213,7 +257,7 @@ export function TryOnResultImage({
         onLoad={handleLoad}
         onError={handleError}
       />
-    </>
+    </div>
   )
 }
 

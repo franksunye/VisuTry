@@ -131,6 +131,7 @@ export default async function SharePage({ params }: SharePageProps) {
                 src={task.resultImageUrl}
                 alt="AI Glasses Try-On Result"
                 priority={true}
+                useFill={true}
                 className="object-contain"
               />
             </div>

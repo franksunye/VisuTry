@@ -40,13 +40,14 @@ export function ResultDisplay({
   return (
     <div className={cn("w-full h-full flex flex-col", className)}>
       <div className="bg-white rounded-xl shadow-md overflow-hidden flex flex-col h-full">
-        {/* Result Image - Optimized with Next.js Image */}
+        {/* Result Image - Optimized with Next.js Image (responsive layout) */}
         <div className="relative flex-1 bg-gray-50 min-h-0">
           <TryOnResultImage
             src={resultImageUrl}
             alt="AI Try-On Result"
             priority={true}
-            className="object-contain"
+            useFill={false}
+            className="w-full h-auto"
           />
         </div>
 
