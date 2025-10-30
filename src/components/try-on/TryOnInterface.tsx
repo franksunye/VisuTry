@@ -195,11 +195,11 @@ export function TryOnInterface() {
       {/* Main Content: Left-Right Layout (Desktop) / Top-Bottom Layout (Mobile) */}
       <div className="grid lg:grid-cols-[400px_1fr] gap-8">
         {/* Result Preview Area - Shows first on mobile, right on desktop */}
-        <div className="overflow-hidden border-2 border-gray-300 border-dashed rounded-lg lg:order-2 bg-gray-50">
+        <div className="h-[600px] overflow-hidden border-2 border-gray-300 border-dashed rounded-lg lg:order-2 bg-gray-50 flex flex-col">
           {isProcessing ? (
             <LoadingState message={processingMessage} />
           ) : result ? (
-            <div className="p-6">
+            <div className="p-6 h-full flex flex-col">
               <ResultDisplay
                 resultImageUrl={result.imageUrl}
                 taskId={result.taskId}

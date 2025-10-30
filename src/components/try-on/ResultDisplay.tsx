@@ -38,10 +38,10 @@ export function ResultDisplay({
   }
 
   return (
-    <div className={cn("w-full", className)}>
-      <div className="bg-white rounded-xl shadow-md overflow-hidden">
+    <div className={cn("w-full h-full flex flex-col", className)}>
+      <div className="bg-white rounded-xl shadow-md overflow-hidden flex flex-col h-full">
         {/* Result Image - Optimized with Next.js Image */}
-        <div className="relative aspect-square bg-gray-50">
+        <div className="relative flex-1 bg-gray-50 min-h-0">
           <TryOnResultImage
             src={resultImageUrl}
             alt="AI Try-On Result"
@@ -51,7 +51,7 @@ export function ResultDisplay({
         </div>
 
         {/* Action Area */}
-        <div className="p-4">
+        <div className="p-4 flex-shrink-0">
           <div className="grid grid-cols-2 gap-2">
             <button
               onClick={handleDownload}
