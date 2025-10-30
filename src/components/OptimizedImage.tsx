@@ -1,6 +1,8 @@
+"use client"
+
 /**
  * OptimizedImage Component
- * 
+ *
  * A wrapper around Next.js Image component with built-in performance optimizations:
  * - Automatic lazy loading for below-fold images
  * - Priority loading for above-fold images
