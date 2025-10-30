@@ -319,7 +319,41 @@ export function TryOnResultImage({
 
 ---
 
-**修复时间**: 2025-10-30  
-**提交哈希**: fb003fa  
-**状态**: ✅ 已修复并部署
+## 🔄 后续修复：精确高度匹配
+
+### 问题发现
+
+修复后发现左右两侧高度仍然不匹配：
+- 左侧总高度 = 300px (photo) + 20px (gap) + 180px (glasses) = **500px**
+- 右侧高度 = **600px**
+- 右侧比左侧高 **100px**
+
+### 最终修复
+
+```tsx
+// src/components/try-on/TryOnInterface.tsx
+// ❌ 修复前
+<div className="h-[600px] overflow-hidden ...">
+
+// ✅ 修复后
+<div className="h-[500px] overflow-hidden ...">
+```
+
+**高度计算**:
+- Photo 上传区: `h-[300px]`
+- Glasses 上传区: `h-[180px]`
+- 间距: `space-y-5` = 20px
+- **右侧容器 = 300 + 20 + 180 = 500px**
+
+### 验证
+
+- ✅ 左侧总高度 = 500px
+- ✅ 右侧容器高度 = 500px
+- ✅ 左右两侧完全匹配
+
+---
+
+**修复时间**: 2025-10-30
+**提交哈希**: 80bb01c (高度匹配) + fb003fa (Flex 布局)
+**状态**: ✅ 已完全修复并部署
 
