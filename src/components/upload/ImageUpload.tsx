@@ -14,6 +14,7 @@ interface ImageUploadProps {
   label?: string
   description?: string
   accept?: string
+  height?: string
 }
 
 export function ImageUpload({
@@ -24,7 +25,8 @@ export function ImageUpload({
   className,
   label = "Upload Image",
   description = "JPEG, PNG, or WebP",
-  accept = "image/jpeg,image/png,image/webp"
+  accept = "image/jpeg,image/png,image/webp",
+  height
 }: ImageUploadProps) {
   const [dragOver, setDragOver] = useState(false)
   const [uploading, setUploading] = useState(false)
@@ -105,7 +107,8 @@ export function ImageUpload({
           "hover:border-blue-400 hover:bg-blue-50",
           dragOver && "border-blue-400 bg-blue-50",
           isLoading && "cursor-not-allowed opacity-50",
-          currentImage ? "border-green-300 bg-green-50" : "border-gray-300 bg-gray-50"
+          currentImage ? "border-green-300 bg-green-50" : "border-gray-300 bg-gray-50",
+          height
         )}
         onDrop={handleDrop}
         onDragOver={handleDragOver}
@@ -123,17 +126,12 @@ export function ImageUpload({
         />
 
         {currentImage ? (
-          <div className="relative">
+          <div className="relative h-full">
             <img
               src={currentImage}
               alt={`Uploaded ${label?.toLowerCase() || 'image'}`}
-              className="w-full h-48 object-cover rounded-lg"
+              className="w-full h-full object-cover rounded-lg"
             />
-            {label && (
-              <div className="absolute top-2 left-2 px-2 py-1 bg-black bg-opacity-70 text-white text-xs font-medium rounded">
-                {label}
-              </div>
-            )}
             <button
               onClick={handleRemove}
               className="absolute top-2 right-2 w-8 h-8 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600 transition-colors shadow-lg"
@@ -149,7 +147,7 @@ export function ImageUpload({
             )}
           </div>
         ) : (
-          <div className="p-6 text-center">
+          <div className="h-full flex items-center justify-center p-6">
             {isLoading ? (
               <div className="flex flex-col items-center">
                 <Loader2 className="w-12 h-12 text-blue-500 animate-spin mb-4" />
@@ -164,17 +162,12 @@ export function ImageUpload({
                     <ImageIcon className="w-7 h-7 text-blue-600" />
                   )}
                 </div>
-                {label && (
-                  <p className="text-xl font-semibold text-gray-900 mb-1">
-                    {label}
-                  </p>
+                {description && (
+                  <p className="text-lg font-semibold text-gray-900 mb-1">{description}</p>
                 )}
-                <p className="text-base font-medium text-gray-700 mb-1">
+                <p className="text-base font-medium text-gray-600">
                   {dragOver ? "Drop to upload" : "Click or drag to upload"}
                 </p>
-                {description && (
-                  <p className="text-sm text-gray-500">{description}</p>
-                )}
               </div>
             )}
           </div>

@@ -221,6 +221,7 @@ export function TryOnInterface() {
             label="Your Photo"
             description="Clear front-facing photo"
             loading={isProcessing}
+            height="h-[340px]"
           />
 
           {/* Glasses Photo Upload */}
@@ -231,6 +232,7 @@ export function TryOnInterface() {
             label="Glasses"
             description="Clear image of glasses"
             loading={isProcessing}
+            height="h-[140px]"
           />
         </div>
       </div>
