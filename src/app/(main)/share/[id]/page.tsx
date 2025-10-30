@@ -3,6 +3,8 @@ import { prisma } from "@/lib/prisma"
 import { Glasses, Download, ArrowLeft } from "lucide-react"
 import Link from "next/link"
 import type { Metadata } from "next"
+import { TryOnResultImage } from "@/components/OptimizedImage"
+import Image from "next/image"
 
 interface SharePageProps {
   params: {
@@ -108,10 +110,12 @@ export default async function SharePage({ params }: SharePageProps) {
             </h2>
             <div className="flex items-center justify-center space-x-4 text-gray-600">
               {task.user.image && (
-                <img
+                <Image
                   src={task.user.image}
                   alt={userName}
-                  className="w-8 h-8 rounded-full"
+                  width={32}
+                  height={32}
+                  className="rounded-full"
                 />
               )}
               <span>{userName}</span>
@@ -120,13 +124,14 @@ export default async function SharePage({ params }: SharePageProps) {
             </div>
           </div>
 
-          {/* Result Display */}
+          {/* Result Display - Optimized with Next.js Image */}
           <div className="bg-white rounded-2xl shadow-lg overflow-hidden mb-8">
-            <div className="relative">
-              <img
+            <div className="relative aspect-square max-h-[600px] bg-gray-50">
+              <TryOnResultImage
                 src={task.resultImageUrl}
                 alt="AI Glasses Try-On Result"
-                className="w-full h-auto max-h-96 object-contain bg-gray-50"
+                priority={true}
+                className="object-contain"
               />
             </div>
 

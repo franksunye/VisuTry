@@ -5,6 +5,8 @@ import { ExternalLink, Calendar, Glasses } from "lucide-react"
 import Link from "next/link"
 import { formatDistanceToNow } from "date-fns"
 import { enUS } from "date-fns/locale"
+import { TryOnThumbnail } from "@/components/OptimizedImage"
+import Image from "next/image"
 
 interface TryOnItem {
   id: string
@@ -40,16 +42,18 @@ export function PublicTryOnGallery({ tryOns }: PublicTryOnGalleryProps) {
     <>
       <div className="p-6">
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-          {tryOns.map((tryOn) => (
+          {tryOns.map((tryOn, index) => (
             <div
               key={tryOn.id}
               className="group relative aspect-square bg-gray-100 rounded-lg overflow-hidden hover:shadow-lg transition-all duration-200 cursor-pointer"
               onClick={() => setSelectedImage(tryOn.resultImageUrl)}
             >
-              <img
+              {/* Optimized thumbnail with Next.js Image */}
+              <TryOnThumbnail
                 src={tryOn.resultImageUrl || tryOn.userImageUrl}
                 alt="Try-on work"
-                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
+                index={index}
+                className="object-cover group-hover:scale-105 transition-transform duration-200"
               />
               
               {/* Hover overlay */}
@@ -75,15 +79,19 @@ export function PublicTryOnGallery({ tryOns }: PublicTryOnGalleryProps) {
 
       {/* 图片预览模态框 */}
       {selectedImage && (
-        <div 
+        <div
           className="fixed inset-0 bg-black bg-opacity-75 z-50 flex items-center justify-center p-4"
           onClick={() => setSelectedImage(null)}
         >
-          <div className="relative max-w-4xl max-h-full">
-            <img
+          <div className="relative max-w-4xl max-h-[90vh] aspect-square">
+            {/* Optimized preview image */}
+            <Image
               src={selectedImage}
               alt="Try-on work preview"
-              className="max-w-full max-h-full object-contain rounded-lg"
+              fill
+              className="object-contain rounded-lg"
+              quality={85}
+              sizes="(max-width: 1024px) 90vw, 800px"
             />
             
             {/* Close button */}

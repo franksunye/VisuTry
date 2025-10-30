@@ -2,6 +2,7 @@
 
 import { Download, RotateCcw } from "lucide-react"
 import { cn } from "@/utils/cn"
+import { TryOnResultImage } from "@/components/OptimizedImage"
 
 interface ResultDisplayProps {
   resultImageUrl: string
@@ -39,12 +40,13 @@ export function ResultDisplay({
   return (
     <div className={cn("w-full", className)}>
       <div className="bg-white rounded-xl shadow-md overflow-hidden">
-        {/* Result Image */}
-        <div className="relative">
-          <img
+        {/* Result Image - Optimized with Next.js Image */}
+        <div className="relative aspect-square bg-gray-50">
+          <TryOnResultImage
             src={resultImageUrl}
             alt="AI Try-On Result"
-            className="w-full h-auto object-contain bg-gray-50"
+            priority={true}
+            className="object-contain"
           />
         </div>
 

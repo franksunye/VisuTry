@@ -1,13 +1,13 @@
 "use client"
 
 import { useState } from "react"
-import { 
-  Clock, 
-  CheckCircle, 
-  XCircle, 
-  Loader2, 
-  Download, 
-  Share2, 
+import {
+  Clock,
+  CheckCircle,
+  XCircle,
+  Loader2,
+  Download,
+  Share2,
   Trash2,
   ExternalLink,
   ChevronLeft,
@@ -16,6 +16,7 @@ import {
 import Link from "next/link"
 import { formatDistanceToNow } from "date-fns"
 import { cn } from "@/utils/cn"
+import { TryOnThumbnail } from "@/components/OptimizedImage"
 
 interface TryOnTask {
   id: string
@@ -153,15 +154,16 @@ export function TryOnHistoryList({
     <div className="space-y-6">
       {/* 任务网格 */}
       <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {tasks.map((task) => (
+        {tasks.map((task, index) => (
           <div key={task.id} className="bg-white rounded-lg shadow-sm border overflow-hidden hover:shadow-md transition-shadow">
-            {/* 图片预览 */}
+            {/* 图片预览 - Optimized with Next.js Image */}
             <div className="aspect-square bg-gray-100 relative">
-              <img
+              <TryOnThumbnail
                 src={task.resultImageUrl || task.userImageUrl}
                 alt={task.status === "COMPLETED" ? "试戴结果" : "用户照片"}
+                index={index}
                 className={cn(
-                  "w-full h-full object-cover",
+                  "object-cover",
                   task.status !== "COMPLETED" && "opacity-50"
                 )}
               />

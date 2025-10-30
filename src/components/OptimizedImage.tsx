@@ -152,6 +152,73 @@ export function HeroImage({
 }
 
 /**
+ * Try-On result image with high quality
+ * Used for displaying AI try-on results in result pages and share pages
+ */
+export function TryOnResultImage({
+  src,
+  alt = "AI Try-On Result",
+  priority = true,
+  className,
+  onLoad,
+  onError,
+}: {
+  src: string
+  alt?: string
+  priority?: boolean
+  className?: string
+  onLoad?: () => void
+  onError?: () => void
+}) {
+  return (
+    <OptimizedImage
+      src={src}
+      alt={alt}
+      fill
+      aboveFold={priority}
+      className={className || 'object-contain'}
+      sizes="(max-width: 640px) 100vw, (max-width: 1024px) 80vw, 800px"
+      quality={85}
+      showPlaceholder={true}
+    />
+  )
+}
+
+/**
+ * Try-On thumbnail image for lists and galleries
+ * Optimized for performance with lower quality and lazy loading
+ */
+export function TryOnThumbnail({
+  src,
+  alt = "Try-on result",
+  priority = false,
+  className,
+  index = 0,
+}: {
+  src: string
+  alt?: string
+  priority?: boolean
+  className?: string
+  index?: number
+}) {
+  // First 3 images get priority loading
+  const shouldPrioritize = priority || index < 3
+
+  return (
+    <OptimizedImage
+      src={src}
+      alt={alt}
+      fill
+      aboveFold={shouldPrioritize}
+      className={className || 'object-cover'}
+      sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 300px"
+      quality={40}
+      showPlaceholder={true}
+    />
+  )
+}
+
+/**
  * Avatar image with fixed dimensions
  */
 export function AvatarImage({
