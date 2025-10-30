@@ -126,7 +126,7 @@ export default async function SharePage({ params }: SharePageProps) {
 
           {/* Result Display - Optimized with Next.js Image */}
           <div className="bg-white rounded-2xl shadow-lg overflow-hidden mb-8">
-            <div className="relative aspect-square max-h-[600px] bg-gray-50">
+            <div className="relative w-full aspect-square bg-gray-50">
               <TryOnResultImage
                 src={task.resultImageUrl}
                 alt="AI Glasses Try-On Result"

@@ -172,17 +172,48 @@ export function TryOnResultImage({
   onLoad?: () => void
   onError?: () => void
 }) {
+  const [isLoading, setIsLoading] = useState(true)
+  const [hasError, setHasError] = useState(false)
+
+  const handleLoad = () => {
+    setIsLoading(false)
+    onLoad?.()
+  }
+
+  const handleError = () => {
+    setIsLoading(false)
+    setHasError(true)
+    onError?.()
+  }
+
   return (
-    <OptimizedImage
-      src={src}
-      alt={alt}
-      fill
-      aboveFold={priority}
-      className={className || 'object-contain'}
-      sizes="(max-width: 640px) 100vw, (max-width: 1024px) 80vw, 800px"
-      quality={85}
-      showPlaceholder={true}
-    />
+    <>
+      {/* Loading placeholder */}
+      {isLoading && !hasError && (
+        <div className="absolute inset-0 bg-gray-200 animate-pulse rounded-lg" />
+      )}
+
+      {/* Error state */}
+      {hasError && (
+        <div className="absolute inset-0 bg-gray-100 flex items-center justify-center rounded-lg">
+          <span className="text-gray-400 text-sm">Failed to load image</span>
+        </div>
+      )}
+
+      {/* Optimized image */}
+      <Image
+        src={src}
+        alt={alt}
+        fill
+        className={className || 'object-contain'}
+        loading={priority ? 'eager' : 'lazy'}
+        priority={priority}
+        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 80vw, 800px"
+        quality={85}
+        onLoad={handleLoad}
+        onError={handleError}
+      />
+    </>
   )
 }
 
@@ -203,20 +234,49 @@ export function TryOnThumbnail({
   className?: string
   index?: number
 }) {
+  const [isLoading, setIsLoading] = useState(true)
+  const [hasError, setHasError] = useState(false)
+
   // First 3 images get priority loading
   const shouldPrioritize = priority || index < 3
 
+  const handleLoad = () => {
+    setIsLoading(false)
+  }
+
+  const handleError = () => {
+    setIsLoading(false)
+    setHasError(true)
+  }
+
   return (
-    <OptimizedImage
-      src={src}
-      alt={alt}
-      fill
-      aboveFold={shouldPrioritize}
-      className={className || 'object-cover'}
-      sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 300px"
-      quality={40}
-      showPlaceholder={true}
-    />
+    <>
+      {/* Loading placeholder */}
+      {isLoading && !hasError && (
+        <div className="absolute inset-0 bg-gray-200 animate-pulse rounded-lg" />
+      )}
+
+      {/* Error state */}
+      {hasError && (
+        <div className="absolute inset-0 bg-gray-100 flex items-center justify-center rounded-lg">
+          <span className="text-gray-400 text-xs">Failed to load</span>
+        </div>
+      )}
+
+      {/* Optimized image */}
+      <Image
+        src={src}
+        alt={alt}
+        fill
+        className={className || 'object-cover'}
+        loading={shouldPrioritize ? 'eager' : 'lazy'}
+        priority={shouldPrioritize}
+        sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 300px"
+        quality={40}
+        onLoad={handleLoad}
+        onError={handleError}
+      />
+    </>
   )
 }
 
