@@ -99,12 +99,6 @@ export function ImageUpload({
 
   return (
     <div className={cn("w-full", className)}>
-      {label && (
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          {label}
-        </label>
-      )}
-      
       <div
         className={cn(
           "relative border-2 border-dashed rounded-lg transition-all duration-200 cursor-pointer",
@@ -125,19 +119,26 @@ export function ImageUpload({
           onChange={handleFileInputChange}
           className="hidden"
           disabled={isLoading}
+          aria-label={label}
         />
 
         {currentImage ? (
           <div className="relative">
             <img
               src={currentImage}
-              alt="Uploaded image"
+              alt={`Uploaded ${label?.toLowerCase() || 'image'}`}
               className="w-full h-48 object-cover rounded-lg"
             />
+            {label && (
+              <div className="absolute top-2 left-2 px-2 py-1 bg-black bg-opacity-70 text-white text-xs font-medium rounded">
+                {label}
+              </div>
+            )}
             <button
               onClick={handleRemove}
-              className="absolute top-2 right-2 w-8 h-8 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600 transition-colors"
+              className="absolute top-2 right-2 w-8 h-8 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600 transition-colors shadow-lg"
               disabled={isLoading}
+              aria-label={`Remove ${label?.toLowerCase() || 'image'}`}
             >
               <X className="w-4 h-4" />
             </button>
@@ -148,7 +149,7 @@ export function ImageUpload({
             )}
           </div>
         ) : (
-          <div className="p-8 text-center">
+          <div className="p-6 text-center">
             {isLoading ? (
               <div className="flex flex-col items-center">
                 <Loader2 className="w-12 h-12 text-blue-500 animate-spin mb-4" />
@@ -156,14 +157,19 @@ export function ImageUpload({
               </div>
             ) : (
               <div className="flex flex-col items-center">
-                <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mb-4">
+                <div className="w-14 h-14 bg-blue-100 rounded-full flex items-center justify-center mb-3">
                   {dragOver ? (
-                    <Upload className="w-8 h-8 text-blue-600" />
+                    <Upload className="w-7 h-7 text-blue-600" />
                   ) : (
-                    <ImageIcon className="w-8 h-8 text-blue-600" />
+                    <ImageIcon className="w-7 h-7 text-blue-600" />
                   )}
                 </div>
-                <p className="text-lg font-medium text-gray-900 mb-2">
+                {label && (
+                  <p className="text-xl font-semibold text-gray-900 mb-1">
+                    {label}
+                  </p>
+                )}
+                <p className="text-base font-medium text-gray-700 mb-1">
                   {dragOver ? "Drop to upload" : "Click or drag to upload"}
                 </p>
                 {description && (

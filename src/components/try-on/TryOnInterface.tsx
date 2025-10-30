@@ -212,7 +212,7 @@ export function TryOnInterface() {
         </div>
 
         {/* Photo Uploads - Shows second on mobile, left on desktop */}
-        <div className="space-y-6 lg:order-1">
+        <div className="space-y-5 lg:order-1">
           {/* User Photo Upload */}
           <ImageUpload
             onImageSelect={handleUserImageSelect}
