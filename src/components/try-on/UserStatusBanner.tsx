@@ -16,9 +16,9 @@ export function UserStatusBanner() {
 
   if (isPremiumActive) {
     return (
-      <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+      <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-2.5">
         <div className="flex items-center">
-          <div className="text-yellow-800">
+          <div className="text-yellow-800 text-sm">
             <strong>Standard Member</strong> - Enhanced AI try-ons available
           </div>
         </div>
@@ -27,15 +27,15 @@ export function UserStatusBanner() {
   }
 
   return (
-    <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+    <div className="bg-blue-50 border border-blue-200 rounded-lg p-2.5">
       <div className="flex items-center justify-between">
-        <div className="text-blue-800">
+        <div className="text-blue-800 text-sm">
           <strong>Free User</strong> - Remaining try-ons: {remainingTrials}
         </div>
         {remainingTrials === 0 && (
           <Link
             href="/pricing"
-            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+            className="bg-blue-600 text-white px-3 py-1.5 text-sm rounded-lg hover:bg-blue-700 transition-colors"
           >
             Upgrade Now
           </Link>
