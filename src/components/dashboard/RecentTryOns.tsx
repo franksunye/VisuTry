@@ -4,7 +4,7 @@ import { Clock, CheckCircle, XCircle, Loader2, ExternalLink, History } from "luc
 import Link from "next/link"
 import Image from "next/image"
 import { formatDistanceToNow } from "date-fns"
-import { getThumbnailUrl, getResponsiveSizes } from "@/lib/image-utils"
+import { getThumbnailUrl, getResponsiveSizes, IMAGE_QUALITY } from "@/lib/image-utils"
 
 interface TryOnTask {
   id: string
@@ -103,25 +103,25 @@ export function RecentTryOns({ tryOns }: RecentTryOnsProps) {
               <div className="aspect-square bg-gray-100 relative">
                 {tryOn.resultImageUrl ? (
                   <Image
-                    src={getThumbnailUrl(tryOn.resultImageUrl, 300, 40)}
+                    src={getThumbnailUrl(tryOn.resultImageUrl, 300, IMAGE_QUALITY.STANDARD)}
                     alt="Try-on result"
                     fill
                     sizes={getResponsiveSizes(300)}
                     className="object-cover"
                     loading={index < 3 ? "eager" : "lazy"}
                     priority={index < 3}
-                    quality={40}
+                    quality={IMAGE_QUALITY.STANDARD}
                   />
                 ) : (
                   <Image
-                    src={getThumbnailUrl(tryOn.userImageUrl, 300, 40)}
+                    src={getThumbnailUrl(tryOn.userImageUrl, 300, IMAGE_QUALITY.STANDARD)}
                     alt="User photo"
                     fill
                     sizes={getResponsiveSizes(300)}
                     className="object-cover opacity-50"
                     loading={index < 3 ? "eager" : "lazy"}
                     priority={index < 3}
-                    quality={40}
+                    quality={IMAGE_QUALITY.STANDARD}
                   />
                 )}
 

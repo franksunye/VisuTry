@@ -7,7 +7,7 @@
  * 图片质量配置
  */
 export const IMAGE_QUALITY = {
-  THUMBNAIL: 40,      // 缩略图（列表、画廊）
+  THUMBNAIL: 60,      // 缩略图（列表、画廊）- 提高到 60 以保证清晰度
   STANDARD: 75,       // 标准质量（一般展示）
   HIGH: 85,           // 高质量（结果展示）
   HERO: 90,           // 超高质量（首屏大图）

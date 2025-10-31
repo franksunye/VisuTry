@@ -13,6 +13,7 @@
 
 import Image, { ImageProps } from 'next/image'
 import { useState } from 'react'
+import { IMAGE_QUALITY } from '@/lib/image-utils'
 
 interface OptimizedImageProps extends Omit<ImageProps, 'onLoad'> {
   /**
@@ -316,7 +317,7 @@ export function TryOnThumbnail({
         loading={shouldPrioritize ? 'eager' : 'lazy'}
         priority={shouldPrioritize}
         sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 300px"
-        quality={40}
+        quality={IMAGE_QUALITY.STANDARD}
         onLoad={handleLoad}
         onError={handleError}
       />
