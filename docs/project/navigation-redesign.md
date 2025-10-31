@@ -3,9 +3,10 @@
 ## 📋 文档信息
 - **创建日期**: 2025-10-31
 - **最后更新**: 2025-10-31
-- **状态**: 待实施
+- **状态**: Phase 1 & 2 已完成，Phase 3 待未来迭代
 - **优先级**: 高
 - **开发分支**: `feature/global-navigation`
+- **Commit**: `f4c5e23`
 - **相关改动**: 登录后着陆页改为 Try-On（已完成）
 
 ---
@@ -509,57 +510,69 @@ export default function MainLayout({
 
 ## 📈 实施计划
 
-### Phase 1: 核心导航（必须）
-**预计工作量**: 2-3 小时
+### ✅ Phase 1: 核心导航（已完成）
+**实际工作量**: 2 小时
 
-- [ ] 创建 `Header` 组件
-- [ ] 创建 `UserMenu` 组件
-- [ ] 在 `MainLayout` 中引入 `Header`
-- [ ] 测试桌面端导航
-- [ ] 测试移动端导航
-- [ ] 测试登录/未登录状态切换
+- ✅ 创建 `Header` 组件
+  - 统一的全局导航栏（Try-On, Blog, Pricing）
+  - CTA 按钮（Start Free Trial / Start Try-On）
+  - 移动端汉堡菜单（带动画效果）
+  - 首页透明背景支持
+  - 基础 A11y 支持（ARIA 标签）
+- ✅ 创建 `UserMenu` 组件
+  - 用户信息显示（姓名、邮箱）
+  - Dashboard 和 History 链接
+  - testSession 支持
+  - 点击外部关闭 + Escape 键关闭
+  - 使用 Next.js Image 组件
+- ✅ 在 `MainLayout` 中引入 `Header`
 
-### Phase 2: 清理优化（推荐）
-**预计工作量**: 1-2 小时
+### ✅ Phase 2: 清理优化（已完成）
+**实际工作量**: 1 小时
 
-- [ ] 移除 Try-On 页面的 "Back to Dashboard"
-- [ ] 移除 Pricing 页面的条件性返回链接
-- [ ] 移除 Blog 页面的 "Back to Home"
-- [ ] 更新 `navigation.ts` 工具函数（如需要）
-- [ ] 测试所有页面导航流程
+- ✅ 移除 Try-On 页面的 "Back to Dashboard"
+- ✅ 移除 Pricing 页面的条件性返回链接
+- ✅ 移除 Blog 页面的 "Back to Home"
+- ✅ 简化首页 header（移除重复的 Logo + LoginButton）
 
-### Phase 3: 高级功能（可选）
+### 🔄 Phase 3: 高级优化（未来迭代）
 **预计工作量**: 4-6 小时
 
-- [ ] 添加搜索功能（搜索眼镜款式）
-- [ ] 添加通知中心（订阅状态、试用次数提醒）
-- [ ] 添加快捷键支持（如 `/` 打开搜索）
-- [ ] 添加面包屑导航（Breadcrumbs）
+- [ ] 完整的键盘导航和 focus management
+- [ ] SEO 结构化数据（SiteNavigationElement）
+- [ ] 性能优化（React.memo, prefetch 策略）
+- [ ] 搜索功能（搜索眼镜款式）
+- [ ] 通知中心（订阅状态、试用次数提醒）
 
 ---
 
 ## ✅ 验收标准
 
-### 功能验收
+### 功能验收（待测试）
 - [ ] 所有页面显示统一的导航栏
 - [ ] Logo 点击可回到首页
 - [ ] 导航链接正确跳转
 - [ ] 当前页面高亮显示
 - [ ] 登录/未登录状态正确显示
+- [ ] CTA 按钮正确显示和跳转
 - [ ] 用户菜单下拉正常工作
 - [ ] 移动端汉堡菜单正常工作
+- [ ] testSession 正确处理
 
-### 体验验收
+### 体验验收（待测试）
 - [ ] 导航栏在滚动时固定在顶部
-- [ ] 移动端菜单打开/关闭流畅
+- [ ] 移动端菜单打开/关闭流畅（动画效果）
 - [ ] 点击外部区域关闭用户菜单
+- [ ] Escape 键关闭用户菜单
 - [ ] 导航链接悬停效果正常
 - [ ] 无布局抖动（CLS）
+- [ ] 首页透明背景正常显示
 
-### 性能验收
+### 性能验收（待测试）
 - [ ] 首次加载时间 < 100ms
 - [ ] 导航切换无延迟
 - [ ] 移动端菜单动画流畅（60fps）
+- [ ] 图片加载优化（Next.js Image）
 
 ---
 
@@ -649,4 +662,13 @@ export default function MainLayout({
 - **新增**: 完整的 A11y 支持
 - **修复**: 使用 Next.js Image 组件
 - **修复**: 支持 testSession
+
+### 2025-10-31 - Phase 1 & 2 开发完成
+- **完成**: Header 组件（统一导航 + CTA + 移动端菜单）
+- **完成**: UserMenu 组件（用户信息 + Dashboard + History）
+- **完成**: 清理所有页面的重复导航
+- **完成**: 简化首页 header
+- **状态**: 已推送到 feature/global-navigation 分支
+- **Commit**: f4c5e23
+- **下一步**: Vercel preview 环境测试
 
