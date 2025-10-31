@@ -142,11 +142,31 @@ export async function POST(request: NextRequest) {
 
     console.log(`📊 Image sizes: user=${(userImageFile.size / 1024).toFixed(2)}KB, glasses=${(glassesImageFile.size / 1024).toFixed(2)}KB`)
 
+    // 🔍 DEBUG: Log file details to help diagnose upload issues
+    console.log(`📸 File details:`)
+    console.log(`  User image: name="${userImageFile.name}", size=${userImageFile.size}, type=${userImageFile.type}`)
+    console.log(`  Glasses image: name="${glassesImageFile.name}", size=${glassesImageFile.size}, type=${glassesImageFile.type}`)
+
+    // 🔍 CHECK 1: Are they the same File object reference?
+    const sameObject = userImageFile === glassesImageFile
+    console.log(`  Same object reference? ${sameObject ? '❌ YES (PROBLEM!)' : '✅ No'}`)
+
+    // 🔍 CHECK 2: Do they have identical metadata?
+    const sameMetadata = userImageFile.name === glassesImageFile.name &&
+                         userImageFile.size === glassesImageFile.size
+    if (sameMetadata) {
+      console.warn(`  ⚠️ WARNING: Files have identical name and size!`)
+      console.warn(`     This might indicate user uploaded the same file twice`)
+      console.warn(`     Or there's a bug in the upload process`)
+    }
+
     // 🔥 FIX: Use single timestamp to avoid filename collision
     const timestamp = Date.now()
 
     // Upload user image
     const userImageFilename = `try-on/${userId}/${timestamp}-user.jpg`
+    console.log(`📤 Uploading user image to: ${userImageFilename}`)
+
     let userImageBlob
 
     if (isMockMode) {
@@ -157,8 +177,12 @@ export async function POST(request: NextRequest) {
       })
     }
 
+    console.log(`✅ User image uploaded to: ${userImageBlob.url}`)
+
     // Upload glasses image
     const glassesImageFilename = `try-on/${userId}/${timestamp}-glasses.jpg`
+    console.log(`📤 Uploading glasses image to: ${glassesImageFilename}`)
+
     let glassesImageBlob
 
     if (isMockMode) {
@@ -169,7 +193,15 @@ export async function POST(request: NextRequest) {
       })
     }
 
+    console.log(`✅ Glasses image uploaded to: ${glassesImageBlob.url}`)
+
     const glassesImageUrl = glassesImageBlob.url
+
+    // 🔍 DEBUG: Verify URLs are different
+    console.log(`🔍 Upload verification:`)
+    console.log(`  User URL: ${userImageBlob.url}`)
+    console.log(`  Glasses URL: ${glassesImageUrl}`)
+    console.log(`  URLs are ${userImageBlob.url === glassesImageUrl ? '❌ SAME (ERROR!)' : '✅ different (OK)'}`)
 
     // Create try-on task record
     let tryOnTask
