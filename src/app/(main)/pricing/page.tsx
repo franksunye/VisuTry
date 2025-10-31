@@ -2,6 +2,7 @@ import { getServerSession } from "next-auth/next"
 import { authOptions } from "@/lib/auth"
 import { PricingCard } from "@/components/pricing/PricingCard"
 import { Glasses, Star, Zap } from "lucide-react"
+import Link from "next/link"
 import { Metadata } from 'next'
 import { generateSEO, generateStructuredData } from '@/lib/seo'
 import { PRODUCT_METADATA, QUOTA_CONFIG, formatPrice } from '@/config/pricing'
