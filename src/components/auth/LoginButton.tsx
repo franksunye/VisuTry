@@ -82,7 +82,7 @@ export function LoginButton({ className, variant = "default", callbackUrl }: Log
 
   return (
     <button
-      onClick={() => signIn("auth0", { callbackUrl: callbackUrl || "/dashboard" })}
+      onClick={() => signIn("auth0", { callbackUrl: callbackUrl || "/try-on" })}
       className={cn(
         "flex items-center justify-center px-4 py-2 rounded-lg text-sm font-medium transition-colors",
         variant === "outline" && "border border-purple-300 text-purple-700 hover:bg-purple-50",

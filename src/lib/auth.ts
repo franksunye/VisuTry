@@ -247,14 +247,14 @@ export const authOptions: NextAuthOptions = {
       else if (new URL(url).origin === baseUrl) {
         redirectUrl = url
       }
-      // For external URLs or invalid URLs, redirect to dashboard for authenticated users
+      // For external URLs or invalid URLs, redirect to try-on for authenticated users
       else {
-        redirectUrl = `${baseUrl}/dashboard`
+        redirectUrl = `${baseUrl}/try-on`
       }
 
-      // Special handling for signin page - redirect to dashboard instead
+      // Special handling for signin page - redirect to try-on instead
       if (redirectUrl.includes('/auth/signin')) {
-        redirectUrl = `${baseUrl}/dashboard`
+        redirectUrl = `${baseUrl}/try-on`
       }
 
       log.info('auth', 'OAuth redirect completed', {
