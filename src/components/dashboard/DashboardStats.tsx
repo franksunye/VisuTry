@@ -1,4 +1,4 @@
-import { Glasses, CheckCircle, Clock, Star } from "lucide-react"
+import { Glasses, CheckCircle, Clock } from "lucide-react"
 
 interface DashboardStatsProps {
   stats: {
@@ -34,18 +34,11 @@ export function DashboardStats({ stats }: DashboardStatsProps) {
       icon: <Clock className="w-6 h-6 text-orange-600" />,
       bgColor: "bg-orange-100",
       description: stats.remainingDescription
-    },
-    {
-      title: "Membership",
-      value: stats.isPremium ? "Standard" : "Free",
-      icon: <Star className="w-6 h-6 text-purple-600" />,
-      bgColor: "bg-purple-100",
-      description: stats.isPremium ? "Enhanced try-on experience" : "Upgrade for more"
     }
   ]
 
   return (
-    <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+    <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
       {statCards.map((card, index) => (
         <div key={index} className="bg-white rounded-xl shadow-sm border p-6">
           <div className="flex items-center">

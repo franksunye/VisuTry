@@ -6,8 +6,7 @@ import { DashboardStats } from '@/components/dashboard/DashboardStats'
 jest.mock('lucide-react', () => ({
   Glasses: ({ className }: { className?: string }) => <div data-testid="glasses-icon" className={className} />,
   CheckCircle: ({ className }: { className?: string }) => <div data-testid="check-circle-icon" className={className} />,
-  Clock: ({ className }: { className?: string }) => <div data-testid="clock-icon" className={className} />,
-  Star: ({ className }: { className?: string }) => <div data-testid="star-icon" className={className} />
+  Clock: ({ className }: { className?: string }) => <div data-testid="clock-icon" className={className} />
 }))
 
 describe('DashboardStats', () => {
@@ -26,13 +25,11 @@ describe('DashboardStats', () => {
       expect(screen.getByText('Total Try-Ons')).toBeInTheDocument()
       expect(screen.getByText('Successful Try-Ons')).toBeInTheDocument()
       expect(screen.getByText('Remaining Uses')).toBeInTheDocument()
-      expect(screen.getByText('Membership')).toBeInTheDocument()
 
       // Check all icons are present
       expect(screen.getByTestId('glasses-icon')).toBeInTheDocument()
       expect(screen.getByTestId('check-circle-icon')).toBeInTheDocument()
       expect(screen.getByTestId('clock-icon')).toBeInTheDocument()
-      expect(screen.getByTestId('star-icon')).toBeInTheDocument()
     })
 
     it('should display correct values for free users', () => {
@@ -41,7 +38,6 @@ describe('DashboardStats', () => {
       expect(screen.getByText('15')).toBeInTheDocument() // totalTryOns
       expect(screen.getByText('12')).toBeInTheDocument() // completedTryOns
       expect(screen.getByText('3')).toBeInTheDocument() // remainingTrials
-      expect(screen.getByText('Free')).toBeInTheDocument() // membership
     })
 
     it('should display correct descriptions for free users', () => {
@@ -50,7 +46,6 @@ describe('DashboardStats', () => {
       expect(screen.getByText('Cumulative usage count')).toBeInTheDocument()
       expect(screen.getByText('Completed try-ons')).toBeInTheDocument()
       expect(screen.getByText('Free Quota')).toBeInTheDocument()
-      expect(screen.getByText('Upgrade for more')).toBeInTheDocument()
     })
 
     it('should apply correct icon colors for free users', () => {
@@ -59,7 +54,6 @@ describe('DashboardStats', () => {
       expect(screen.getByTestId('glasses-icon')).toHaveClass('text-blue-600')
       expect(screen.getByTestId('check-circle-icon')).toHaveClass('text-green-600')
       expect(screen.getByTestId('clock-icon')).toHaveClass('text-orange-600')
-      expect(screen.getByTestId('star-icon')).toHaveClass('text-purple-600')
     })
   })
 
@@ -77,7 +71,6 @@ describe('DashboardStats', () => {
       expect(screen.getByText('Total Try-Ons')).toBeInTheDocument()
       expect(screen.getByText('Successful Try-Ons')).toBeInTheDocument()
       expect(screen.getByText('Remaining Uses')).toBeInTheDocument()
-      expect(screen.getByText('Membership')).toBeInTheDocument()
     })
 
     it('should display correct values for premium users', () => {
@@ -86,7 +79,6 @@ describe('DashboardStats', () => {
       expect(screen.getByText('50')).toBeInTheDocument() // totalTryOns
       expect(screen.getByText('45')).toBeInTheDocument() // completedTryOns
       expect(screen.getByText('30+/month')).toBeInTheDocument() // remainingTrials should show "30+/month"
-      expect(screen.getByText('Standard')).toBeInTheDocument() // membership
     })
 
     it('should display correct descriptions for premium users', () => {
@@ -94,8 +86,6 @@ describe('DashboardStats', () => {
 
       expect(screen.getByText('Cumulative usage count')).toBeInTheDocument()
       expect(screen.getByText('Completed try-ons')).toBeInTheDocument()
-      expect(screen.getByText('Standard Member')).toBeInTheDocument()
-      expect(screen.getByText('Enhanced try-on experience')).toBeInTheDocument()
     })
   })
 
@@ -113,7 +103,6 @@ describe('DashboardStats', () => {
       // Should display zeros
       const zeroElements = screen.getAllByText('0')
       expect(zeroElements).toHaveLength(3) // totalTryOns, completedTryOns, remainingTrials
-      expect(screen.getByText('Free')).toBeInTheDocument()
     })
 
     it('should handle large numbers correctly', () => {
@@ -144,7 +133,6 @@ describe('DashboardStats', () => {
       expect(screen.getByText('1000')).toBeInTheDocument()
       expect(screen.getByText('950')).toBeInTheDocument()
       expect(screen.getByText('30+/month')).toBeInTheDocument()
-      expect(screen.getByText('Standard')).toBeInTheDocument()
     })
   })
 
@@ -160,10 +148,10 @@ describe('DashboardStats', () => {
       render(<DashboardStats stats={stats} />)
 
       const gridContainer = screen.getByText('Total Try-Ons').closest('.grid')
-      expect(gridContainer).toHaveClass('md:grid-cols-2', 'lg:grid-cols-4', 'gap-6')
+      expect(gridContainer).toHaveClass('md:grid-cols-2', 'lg:grid-cols-3', 'gap-6')
     })
 
-    it('should render exactly 4 stat cards', () => {
+    it('should render exactly 3 stat cards', () => {
       const stats = {
         totalTryOns: 10,
         completedTryOns: 8,
@@ -173,10 +161,10 @@ describe('DashboardStats', () => {
 
       render(<DashboardStats stats={stats} />)
 
-      const cards = screen.getAllByRole('generic').filter(el => 
+      const cards = screen.getAllByRole('generic').filter(el =>
         el.className.includes('bg-white rounded-xl shadow-sm border p-6')
       )
-      expect(cards).toHaveLength(4)
+      expect(cards).toHaveLength(3)
     })
 
     it('should apply correct background colors to icon containers', () => {
@@ -193,12 +181,10 @@ describe('DashboardStats', () => {
       const blueContainer = screen.getByTestId('glasses-icon').closest('.bg-blue-100')
       const greenContainer = screen.getByTestId('check-circle-icon').closest('.bg-green-100')
       const orangeContainer = screen.getByTestId('clock-icon').closest('.bg-orange-100')
-      const purpleContainer = screen.getByTestId('star-icon').closest('.bg-purple-100')
 
       expect(blueContainer).toBeInTheDocument()
       expect(greenContainer).toBeInTheDocument()
       expect(orangeContainer).toBeInTheDocument()
-      expect(purpleContainer).toBeInTheDocument()
     })
   })
 

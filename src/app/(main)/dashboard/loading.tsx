@@ -22,8 +22,8 @@ export default function DashboardLoading() {
         {/* Main Content */}
         <div className="lg:col-span-2 space-y-8">
           {/* Stats Cards Skeleton */}
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {[1, 2, 3, 4].map((i) => (
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[1, 2, 3].map((i) => (
               <div key={i} className="bg-white rounded-xl shadow-sm border p-6">
                 <div className="flex items-center">
                   <div className="w-12 h-12 bg-gray-200 rounded-lg animate-pulse"></div>
