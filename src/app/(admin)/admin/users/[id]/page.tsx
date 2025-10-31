@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import Link from 'next/link';
 import TryOnHistoryTable from '@/components/admin/TryOnHistoryTable';
+import { User } from 'lucide-react';
 
 interface UserDetailPageProps {
   params: {
@@ -122,6 +123,25 @@ export default async function UserDetailPage({ params }: UserDetailPageProps) {
           <CardTitle>Basic Information</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
+          {/* Avatar Display */}
+          <div className="flex items-center space-x-4 pb-4 border-b">
+            {user.image ? (
+              <img
+                src={user.image}
+                alt={user.name || 'User'}
+                className="w-16 h-16 rounded-full object-cover"
+              />
+            ) : (
+              <div className="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center">
+                <User className="w-8 h-8 text-gray-500" />
+              </div>
+            )}
+            <div>
+              <p className="text-sm font-medium text-muted-foreground">Avatar</p>
+              <p className="text-sm">{user.image ? 'User has avatar' : 'No avatar'}</p>
+            </div>
+          </div>
+
           <div className="grid grid-cols-2 gap-4">
             <div>
               <p className="text-sm font-medium text-muted-foreground">User ID</p>

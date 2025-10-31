@@ -5,6 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import Link from 'next/link';
+import { User } from 'lucide-react';
 
 // This is a React Server Component (RSC) to display the user management page.
 // It fetches a paginated list of users from the database.
@@ -81,6 +82,7 @@ export default async function UsersPage({ searchParams }: UsersPageProps) {
             <Table>
               <TableHeader>
                 <TableRow>
+                  <TableHead>Avatar</TableHead>
                   <TableHead>Name</TableHead>
                   <TableHead>Email</TableHead>
                   <TableHead>Role</TableHead>
@@ -92,6 +94,19 @@ export default async function UsersPage({ searchParams }: UsersPageProps) {
               <TableBody>
                 {users.map((user) => (
                   <TableRow key={user.id}>
+                    <TableCell>
+                      {user.image ? (
+                        <img
+                          src={user.image}
+                          alt={user.name || 'User'}
+                          className="w-8 h-8 rounded-full object-cover"
+                        />
+                      ) : (
+                        <div className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center">
+                          <User className="w-4 h-4 text-gray-500" />
+                        </div>
+                      )}
+                    </TableCell>
                     <TableCell className="font-medium">
                       {user.name || 'N/A'}
                     </TableCell>
