@@ -5,7 +5,6 @@ import { TryOnInterface } from "@/components/try-on/TryOnInterface"
 import { UserStatusBanner } from "@/components/try-on/UserStatusBanner"
 import { AutoRefreshWrapper } from "@/components/payments/AutoRefreshWrapper"
 import { headers } from "next/headers"
-import { Breadcrumbs } from "@/components/seo/Breadcrumbs"
 import { generateStructuredData } from "@/lib/seo"
 
 // 🔥 优化：不再使用缓存，直接使用 session 作为唯一数据源
@@ -73,19 +72,9 @@ export default async function TryOnPage() {
           dangerouslySetInnerHTML={{ __html: JSON.stringify(howToSchema) }}
         />
 
-      {/* Breadcrumbs */}
-      <div className="mb-6">
-        <Breadcrumbs
-          items={[
-            { name: 'Try-On' },
-          ]}
-        />
-      </div>
-
       {/* Page Header */}
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900">AI Glasses Try-On</h1>
-        <p className="text-gray-600 mt-1">Upload your photo, select glasses, and experience AI-powered virtual try-on</p>
       </div>
 
       {/* User Status Banner */}

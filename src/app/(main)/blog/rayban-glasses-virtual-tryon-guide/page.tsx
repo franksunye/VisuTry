@@ -1,7 +1,7 @@
 import { Metadata } from 'next'
 import { generateSEO, generateStructuredData } from '@/lib/seo'
 import Link from 'next/link'
-import { ArrowLeft, Star, Eye, TrendingUp } from 'lucide-react'
+import { Star, Eye, TrendingUp } from 'lucide-react'
 import Image from 'next/image'
 import { Breadcrumbs } from '@/components/seo/Breadcrumbs'
 
@@ -39,16 +39,6 @@ export default function BlogPostPage() {
                 { name: 'Ray-Ban Virtual Try-On Guide' },
               ]}
             />
-          </div>
-
-          <div className="mb-8">
-            <Link
-              href="/blog"
-              className="inline-flex items-center text-blue-600 hover:text-blue-800"
-            >
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Back to Blog
-            </Link>
           </div>
 
           <article className="max-w-4xl mx-auto bg-white rounded-lg shadow-lg overflow-hidden">

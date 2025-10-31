@@ -44,16 +44,6 @@ export default function BlogPostPage() {
             />
           </div>
 
-          <div className="mb-8">
-            <Link
-              href="/blog"
-              className="inline-flex items-center text-blue-600 hover:text-blue-800"
-            >
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Back to Blog
-            </Link>
-          </div>
-
           <article className="max-w-4xl mx-auto bg-white rounded-lg shadow-lg overflow-hidden">
             <div className="h-64 bg-gradient-to-r from-pink-500 to-purple-600 flex items-center justify-center">
               <div className="text-center text-white">
