@@ -4,8 +4,6 @@ import { authOptions } from "@/lib/auth"
 import { TryOnInterface } from "@/components/try-on/TryOnInterface"
 import { UserStatusBanner } from "@/components/try-on/UserStatusBanner"
 import { AutoRefreshWrapper } from "@/components/payments/AutoRefreshWrapper"
-import { ArrowLeft } from "lucide-react"
-import Link from "next/link"
 import { headers } from "next/headers"
 import { Breadcrumbs } from "@/components/seo/Breadcrumbs"
 import { generateStructuredData } from "@/lib/seo"
@@ -85,18 +83,9 @@ export default async function TryOnPage() {
       </div>
 
       {/* Page Header */}
-      <div className="flex items-center justify-between mb-8">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">AI Glasses Try-On</h1>
-          <p className="text-gray-600 mt-1">Upload your photo, select glasses, and experience AI-powered virtual try-on</p>
-        </div>
-        <Link
-          href="/dashboard"
-          className="flex items-center text-blue-600 hover:text-blue-700"
-        >
-          <ArrowLeft className="w-5 h-5 mr-2" />
-          Back to Dashboard
-        </Link>
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold text-gray-900">AI Glasses Try-On</h1>
+        <p className="text-gray-600 mt-1">Upload your photo, select glasses, and experience AI-powered virtual try-on</p>
       </div>
 
       {/* User Status Banner */}

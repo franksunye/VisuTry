@@ -1,7 +1,6 @@
 'use client'
 
-import { Glasses, Upload, Sparkles, Share2 } from 'lucide-react'
-import { LoginButton } from '@/components/auth/LoginButton'
+import { Upload, Sparkles, Share2 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useSession } from 'next-auth/react'
 import { useTestSession } from '@/hooks/useTestSession'
@@ -22,15 +21,11 @@ export default function Home() {
   }
   return (
     <main className="container px-4 py-8 mx-auto">
-      {/* Header */}
+      {/* Hero Header */}
       <header className="mb-12 text-center">
-        <div className="flex items-center justify-between mb-8">
-          <div className="flex items-center">
-            <Glasses className="w-12 h-12 mr-3 text-blue-600" />
-            <h1 className="text-4xl font-bold text-gray-800">VisuTry</h1>
-          </div>
-          <LoginButton />
-        </div>
+        <h1 className="text-5xl font-bold text-gray-900 mb-4">
+          AI-Powered Virtual Glasses Try-On
+        </h1>
         <p className="max-w-2xl mx-auto text-xl text-gray-600">
           Experience virtual glasses try-on with AI technology and find the perfect glasses style for you
         </p>

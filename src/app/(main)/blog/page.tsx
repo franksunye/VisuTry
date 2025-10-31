@@ -186,16 +186,6 @@ export default function BlogPage() {
             </article>
           ))}
         </div>
-
-        {/* Back to home link */}
-        <div className="text-center mt-12">
-          <Link
-            href="/"
-            className="inline-flex items-center px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-          >
-            Back to Home
-          </Link>
-        </div>
       </main>
     </div>
   )
