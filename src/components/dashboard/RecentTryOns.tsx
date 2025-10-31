@@ -103,25 +103,25 @@ export function RecentTryOns({ tryOns }: RecentTryOnsProps) {
               <div className="aspect-square bg-gray-100 relative">
                 {tryOn.resultImageUrl ? (
                   <Image
-                    src={getThumbnailUrl(tryOn.resultImageUrl, 300, IMAGE_QUALITY.STANDARD)}
+                    src={tryOn.resultImageUrl}
                     alt="Try-on result"
                     fill
-                    sizes={getResponsiveSizes(300)}
+                    sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 400px"
                     className="object-cover"
                     loading={index < 3 ? "eager" : "lazy"}
                     priority={index < 3}
-                    quality={IMAGE_QUALITY.STANDARD}
+                    quality={IMAGE_QUALITY.HIGH}
                   />
                 ) : (
                   <Image
-                    src={getThumbnailUrl(tryOn.userImageUrl, 300, IMAGE_QUALITY.STANDARD)}
+                    src={tryOn.userImageUrl}
                     alt="User photo"
                     fill
-                    sizes={getResponsiveSizes(300)}
+                    sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 400px"
                     className="object-cover opacity-50"
                     loading={index < 3 ? "eager" : "lazy"}
                     priority={index < 3}
-                    quality={IMAGE_QUALITY.STANDARD}
+                    quality={IMAGE_QUALITY.HIGH}
                   />
                 )}
 
