@@ -1,7 +1,7 @@
 'use client'
 
 import { signOut, useSession } from 'next-auth/react'
-import { User, LogOut, LayoutDashboard, ChevronDown, History } from 'lucide-react'
+import { User, LogOut, LayoutDashboard, ChevronDown, History, CreditCard } from 'lucide-react'
 import { useState, useRef, useEffect } from 'react'
 import Link from 'next/link'
 import { useTestSession } from '@/hooks/useTestSession'
@@ -96,7 +96,7 @@ export function UserMenu() {
             <LayoutDashboard className="w-4 h-4 mr-3 text-gray-500" />
             Dashboard
           </Link>
-          
+
           <Link
             href="/dashboard/history"
             onClick={() => setIsOpen(false)}
@@ -105,6 +105,16 @@ export function UserMenu() {
           >
             <History className="w-4 h-4 mr-3 text-gray-500" />
             History
+          </Link>
+
+          <Link
+            href="/payments"
+            onClick={() => setIsOpen(false)}
+            className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+            role="menuitem"
+          >
+            <CreditCard className="w-4 h-4 mr-3 text-gray-500" />
+            Payments
           </Link>
           
           {/* Divider */}
