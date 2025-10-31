@@ -4,7 +4,6 @@ import { signOut, useSession } from 'next-auth/react'
 import { User, LogOut, LayoutDashboard, ChevronDown, History } from 'lucide-react'
 import { useState, useRef, useEffect } from 'react'
 import Link from 'next/link'
-import Image from 'next/image'
 import { useTestSession } from '@/hooks/useTestSession'
 
 export function UserMenu() {
@@ -52,12 +51,10 @@ export function UserMenu() {
         aria-label="User menu"
       >
         {user?.image ? (
-          <Image 
-            src={user.image} 
-            alt={user.name || 'User'} 
-            width={32} 
-            height={32}
-            className="rounded-full"
+          <img
+            src={user.image}
+            alt={user.name || 'User'}
+            className="w-8 h-8 rounded-full"
           />
         ) : (
           <div className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center">
