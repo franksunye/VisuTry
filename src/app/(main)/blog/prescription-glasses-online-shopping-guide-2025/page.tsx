@@ -1,5 +1,6 @@
 import { Metadata } from 'next'
 import { generateSEO, generateStructuredData } from '@/lib/seo'
+import Link from 'next/link'
 import { ShoppingCart, CheckCircle2, AlertTriangle } from 'lucide-react'
 import BlogTags from '@/components/BlogTags'
 import { Breadcrumbs } from '@/components/seo/Breadcrumbs'
