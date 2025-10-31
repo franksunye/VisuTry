@@ -316,8 +316,9 @@ export function TryOnThumbnail({
         className={className || 'object-cover'}
         loading={shouldPrioritize ? 'eager' : 'lazy'}
         priority={shouldPrioritize}
-        sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 400px"
+        sizes="(max-width: 640px) 90vw, (max-width: 768px) 45vw, (max-width: 1024px) 30vw, 380px"
         quality={IMAGE_QUALITY.HIGH}
+        placeholder="empty"
         onLoad={handleLoad}
         onError={handleError}
       />
