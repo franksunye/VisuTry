@@ -265,6 +265,8 @@ export function TryOnResultImage({
 /**
  * Try-On thumbnail image for lists and galleries
  * Optimized for performance with lower quality and lazy loading
+ *
+ * @param size - Display size context: 'small' for dashboard cards (~300px), 'large' for history grid (~450px)
  */
 export function TryOnThumbnail({
   src,
@@ -272,18 +274,27 @@ export function TryOnThumbnail({
   priority = false,
   className,
   index = 0,
+  size = 'large',
 }: {
   src: string
   alt?: string
   priority?: boolean
   className?: string
   index?: number
+  size?: 'small' | 'large'
 }) {
   const [isLoading, setIsLoading] = useState(true)
   const [hasError, setHasError] = useState(false)
 
   // First 3 images get priority loading
   const shouldPrioritize = priority || index < 3
+
+  // Different sizes for different contexts
+  // 'small': Dashboard cards in sidebar (~300px) - more conservative
+  // 'large': History page full-width grid (~450px) - needs larger images
+  const sizes = size === 'small'
+    ? "(max-width: 640px) 90vw, (max-width: 768px) 45vw, (max-width: 1024px) 30vw, 320px"
+    : "(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 480px"
 
   const handleLoad = () => {
     setIsLoading(false)
@@ -316,7 +327,7 @@ export function TryOnThumbnail({
         className={className || 'object-cover'}
         loading={shouldPrioritize ? 'eager' : 'lazy'}
         priority={shouldPrioritize}
-        sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 400px"
+        sizes={sizes}
         quality={IMAGE_QUALITY.HIGH}
         onLoad={handleLoad}
         onError={handleError}

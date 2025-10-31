@@ -106,7 +106,7 @@ export function RecentTryOns({ tryOns }: RecentTryOnsProps) {
                     src={tryOn.resultImageUrl}
                     alt="Try-on result"
                     fill
-                    sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 400px"
+                    sizes="(max-width: 640px) 90vw, (max-width: 768px) 45vw, (max-width: 1024px) 30vw, 320px"
                     className="object-cover"
                     loading={index < 3 ? "eager" : "lazy"}
                     priority={index < 3}
@@ -117,7 +117,7 @@ export function RecentTryOns({ tryOns }: RecentTryOnsProps) {
                     src={tryOn.userImageUrl}
                     alt="User photo"
                     fill
-                    sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 400px"
+                    sizes="(max-width: 640px) 90vw, (max-width: 768px) 45vw, (max-width: 1024px) 30vw, 320px"
                     className="object-cover opacity-50"
                     loading={index < 3 ? "eager" : "lazy"}
                     priority={index < 3}
