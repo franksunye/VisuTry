@@ -108,16 +108,6 @@ export default function BlogPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
       <main className="container mx-auto px-4 py-12">
-        {/* Page title */}
-        <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">
-            VisuTry Blog
-          </h1>
-          <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-            Explore glasses try-on techniques, face shape matching guides, AI technology applications and professional insights
-          </p>
-        </div>
-
         {/* Blog posts list */}
         <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3 max-w-6xl mx-auto">
           {blogPosts.map((post, index) => (
@@ -185,16 +175,6 @@ export default function BlogPage() {
               </div>
             </article>
           ))}
-        </div>
-
-        {/* Back to home link */}
-        <div className="text-center mt-12">
-          <Link
-            href="/"
-            className="inline-flex items-center px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-          >
-            Back to Home
-          </Link>
         </div>
       </main>
     </div>

@@ -1,12 +1,11 @@
 import { getServerSession } from "next-auth/next"
 import { authOptions } from "@/lib/auth"
 import { PricingCard } from "@/components/pricing/PricingCard"
-import { Glasses, ArrowLeft, Star, Zap } from "lucide-react"
+import { Glasses, Star, Zap } from "lucide-react"
 import Link from "next/link"
 import { Metadata } from 'next'
 import { generateSEO, generateStructuredData } from '@/lib/seo'
 import { PRODUCT_METADATA, QUOTA_CONFIG, formatPrice } from '@/config/pricing'
-import { Breadcrumbs } from '@/components/seo/Breadcrumbs'
 
 export const metadata: Metadata = generateSEO({
   title: 'Pricing Plans - AI Glasses Try-On | VisuTry',
@@ -103,38 +102,9 @@ export default async function PricingPage() {
         />
       ))}
 
-      {/* Breadcrumbs */}
-      <div className="mb-6">
-        <Breadcrumbs
-          items={[
-            { name: 'Pricing' },
-          ]}
-        />
-      </div>
-
       {/* Page Header */}
-      <div className="flex items-center justify-between mb-8">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Choose Your Plan</h1>
-          <p className="mt-1 text-gray-600">Upgrade to Standard for enhanced AI try-on experience</p>
-        </div>
-        {userForDisplay ? (
-          <Link
-            href="/dashboard"
-            className="flex items-center text-blue-600 hover:text-blue-700"
-          >
-            <ArrowLeft className="w-5 h-5 mr-2" />
-            Back to Dashboard
-          </Link>
-        ) : (
-          <Link
-            href="/"
-            className="flex items-center text-blue-600 hover:text-blue-700"
-          >
-            <ArrowLeft className="w-5 h-5 mr-2" />
-            Back to Home
-          </Link>
-        )}
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold text-gray-900">Choose Your Plan</h1>
       </div>
 
       {/* Current Status */}

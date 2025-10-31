@@ -2,7 +2,7 @@ import { redirect } from "next/navigation"
 import { getServerSession } from "next-auth/next"
 import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
-import { ArrowLeft, CreditCard, CheckCircle, XCircle, Clock } from "lucide-react"
+import { CreditCard, CheckCircle, XCircle, Clock } from "lucide-react"
 import Link from "next/link"
 import { Metadata } from 'next'
 import { generateSEO } from '@/lib/seo'
@@ -56,19 +56,10 @@ export default async function PaymentsPage() {
     <AutoRefreshWrapper>
       <div className="container max-w-4xl px-4 py-8 mx-auto">
         {/* Header */}
-        <div className="flex items-center justify-between mb-8">
-        <div>
+        <div className="mb-8">
           <h1 className="text-3xl font-bold">Payment History</h1>
           <p className="mt-2 text-gray-600">View all your transactions and subscription details</p>
         </div>
-        <Link
-          href="/dashboard"
-          className="flex items-center px-4 py-2 text-gray-700 transition-colors bg-white border border-gray-300 rounded-lg hover:bg-gray-50"
-        >
-          <ArrowLeft className="w-4 h-4 mr-2" />
-          Back to Dashboard
-        </Link>
-      </div>
 
       {/* Current Status Card */}
       <div className="p-6 mb-8 bg-white border border-gray-200 rounded-lg shadow-sm">
@@ -225,18 +216,12 @@ export default async function PaymentsPage() {
         <p className="mt-2 text-sm text-gray-600">
           If you have any questions about your payments or subscriptions, please contact our support team.
         </p>
-        <div className="flex gap-4 mt-4">
+        <div className="mt-4">
           <Link
             href="/pricing"
             className="text-sm font-medium text-blue-600 hover:text-blue-700"
           >
             View Pricing Plans →
-          </Link>
-          <Link
-            href="/dashboard"
-            className="text-sm font-medium text-blue-600 hover:text-blue-700"
-          >
-            Back to Dashboard →
           </Link>
         </div>
       </div>

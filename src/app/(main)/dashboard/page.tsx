@@ -78,12 +78,7 @@ export default async function DashboardPage() {
 
       {/* Page Header - 立即渲染 */}
       <div className="flex items-center justify-between mb-8">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
-          <p className="mt-1 text-gray-600">
-            Welcome back, {session.user.name || "User"}!
-          </p>
-        </div>
+        <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
         <Link
           href="/try-on"
           className="flex items-center px-6 py-3 text-white transition-colors bg-blue-600 rounded-lg hover:bg-blue-700"
