@@ -70,6 +70,7 @@
     "lucide-react": "^0.294.0",
     "next": "^14.0.0",
     "next-auth": "^4.24.11",
+    "next-intl": "^4.4.0",
     "next-seo": "^6.5.0",
     "next-sitemap": "^4.2.3",
     "postcss": "^8.4.32",
