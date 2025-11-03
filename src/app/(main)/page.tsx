@@ -71,9 +71,6 @@ export default function Home() {
           >
             Start Try-On
           </button>
-          <p className="mt-4 text-sm text-gray-500">
-            3 Free Virtual Try-Ons • No Credit Card Required • Instant Results — Powered by Nano Banana
-          </p>
         </div>
       </section>
     </main>
