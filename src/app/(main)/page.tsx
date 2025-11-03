@@ -24,10 +24,10 @@ export default function Home() {
       {/* Hero Header */}
       <header className="mb-12 text-center">
         <h1 className="text-5xl font-bold text-gray-900 mb-4">
-          Discover the Glasses That Fit You Perfectly
+          VisuTry
         </h1>
         <p className="max-w-2xl mx-auto text-xl text-gray-600">
-          Upload your photo, log in — and try 3 styles free.
+          Discover the Glasses That Fit You Perfectly
         </p>
       </header>
 
