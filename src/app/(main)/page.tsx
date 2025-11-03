@@ -51,7 +51,7 @@ export default function Home() {
               <Sparkles className="w-8 h-8 text-purple-600" />
             </div>
             <h3 className="mb-2 text-lg font-semibold">Pick Your Frames</h3>
-            <p className="text-center text-gray-600">Choose the glasses you like. We'll show how each style looks on your face.</p>
+            <p className="text-center text-gray-600">Choose the glasses you like. We&apos;ll show how each style looks on your face.</p>
           </div>
 
           <div className="flex flex-col items-center">
