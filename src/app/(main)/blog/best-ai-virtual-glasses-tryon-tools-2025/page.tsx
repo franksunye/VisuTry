@@ -75,8 +75,8 @@ export default function BlogPostPage() {
                 or computer camera. Understanding your <Link href="/blog/how-to-choose-glasses-for-your-face" className="text-blue-600 hover:text-blue-800">face shape</Link> is crucial for finding the perfect frames.
               </p>
               <p>
-                According to recent market research, <strong>78% of online eyewear shoppers</strong> now prefer 
-                retailers that offer virtual try-on features, and the technology has reduced return rates by up 
+                According to recent market research, <strong>78% of online eyewear shoppers</strong> now prefer
+                retailers that offer virtual try-on features, and the technology has reduced return rates by up
                 to <strong>40%</strong>. Let&apos;s explore the best tools available in 2025.
               </p>
 
@@ -104,31 +104,29 @@ export default function BlogPostPage() {
 
               <h2>Top AI Virtual Try-On Tools Compared</h2>
 
-              <h3>1. VisuTry - Best Overall Experience</h3>
+              <h3>1. VisuTry — Photo-based AI Try-On (Beta)</h3>
               <div className="bg-blue-50 p-6 rounded-lg my-6">
-                <div className="flex items-center mb-4">
-                  <div className="bg-blue-600 text-white px-3 py-1 rounded-full text-sm font-bold mr-3">
-                    Editor&apos;s Choice
-                  </div>
-                  <div className="text-2xl font-bold text-blue-900">9.5/10</div>
-                </div>
                 <p className="mb-4">
-                  <strong>VisuTry</strong> stands out as the most advanced and user-friendly virtual try-on 
-                  platform in 2025. Powered by cutting-edge AI facial recognition and 3D modeling technology, 
-                  it delivers photorealistic results in real-time.
+                  <strong>VisuTry</strong> provides a simple, accurate photo-based virtual try-on experience.
+                  Upload a front-facing photo and choose from a small demo catalog or upload your own frame image.
+                  Our AI (Google Gemini 2.5 Flash) composites glasses realistically onto your photo—no app required.
                 </p>
-                <p className="font-bold text-gray-900 mb-2">Key Features:</p>
+                <p className="font-bold text-gray-900 mb-2">Key Features (current):</p>
                 <ul className="space-y-2">
-                  <li>✅ <strong>Real-time AR try-on</strong> with live camera feed</li>
-                  <li>✅ <strong>Photo upload mode</strong> for detailed comparison</li>
-                  <li>✅ <strong>AI face shape analysis</strong> with personalized recommendations</li>
-                  <li>✅ <strong>Multi-brand support</strong> including Ray-Ban, Oliver Peoples, Tom Ford</li>
-                  <li>✅ <strong>Save and share</strong> your favorite looks</li>
-                  <li>✅ <strong>100% free</strong> with no registration required</li>
+                  <li>✅ <strong>Photo upload try‑on</strong> powered by AI image compositing</li>
+                  <li>✅ <strong>Custom frame upload</strong> (PNG with transparency) and a limited demo catalog</li>
+                  <li>✅ <strong>3 free try‑ons</strong> in demo mode; sign‑in required to save results</li>
+                  <li>✅ <strong>Shareable results</strong> via links; works on desktop and mobile</li>
+                  <li>✅ <strong>Payments</strong> via Stripe for premium plans</li>
+                </ul>
+                <p className="font-bold text-gray-900 mb-2 mt-4">Limitations (roadmap):</p>
+                <ul className="space-y-2">
+                  <li>• No <strong>real‑time AR</strong> camera tracking yet</li>
+                  <li>• No <strong>automatic face‑shape analysis</strong> yet</li>
+                  <li>• <strong>Brand/model catalog</strong> is limited and under active expansion</li>
                 </ul>
                 <p className="mt-4">
-                  <strong>Best For:</strong> Anyone looking for the most accurate and comprehensive virtual 
-                  try-on experience with professional-grade results.
+                  <strong>Best For:</strong> Quick photo-based previews and creators who want to upload custom frames.
                 </p>
                 <div className="mt-6">
                   <Link
@@ -142,19 +140,18 @@ export default function BlogPostPage() {
 
               <h3>2. Warby Parker Virtual Try-On</h3>
               <div className="bg-gray-50 p-6 rounded-lg my-6">
-                <div className="text-xl font-bold text-gray-900 mb-2">8.2/10</div>
                 <p className="mb-4">
-                  Warby Parker&apos;s proprietary virtual try-on tool is integrated into their mobile app and 
-                  website. While limited to their own brand, it offers a smooth experience for Warby Parker 
+                  Warby Parker&apos;s proprietary virtual try-on tool is integrated into their mobile app and
+                  website. While limited to their own brand, it offers a smooth experience for Warby Parker
                   customers.
                 </p>
-                <p className="font-bold text-gray-900 mb-2">Pros:</p>
+                <p className="font-bold text-gray-900 mb-2">Strengths:</p>
                 <ul>
                   <li>Seamless integration with shopping experience</li>
                   <li>Good accuracy for their frame styles</li>
                   <li>Easy to use on mobile devices</li>
                 </ul>
-                <p className="font-bold text-gray-900 mb-2 mt-4">Cons:</p>
+                <p className="font-bold text-gray-900 mb-2 mt-4">Limitations:</p>
                 <ul>
                   <li>Only works with Warby Parker frames</li>
                   <li>Requires app download for best experience</li>
@@ -167,22 +164,21 @@ export default function BlogPostPage() {
 
               <h3>3. Zenni Optical Virtual Mirror</h3>
               <div className="bg-gray-50 p-6 rounded-lg my-6">
-                <div className="text-xl font-bold text-gray-900 mb-2">7.8/10</div>
                 <p className="mb-4">
-                  Zenni&apos;s Virtual Mirror allows you to try on their extensive catalog of affordable frames. 
-                  The technology is functional but not as advanced as newer competitors.
+                  Zenni&apos;s Virtual Mirror allows you to try on their extensive catalog of affordable frames.
+                  The technology is functional and accessible across devices.
                 </p>
-                <p className="font-bold text-gray-900 mb-2">Pros:</p>
+                <p className="font-bold text-gray-900 mb-2">Strengths:</p>
                 <ul>
                   <li>Large selection of budget-friendly frames</li>
                   <li>Works on desktop and mobile</li>
-                  <li>No account required</li>
+                  <li>No account required to try on</li>
                 </ul>
-                <p className="font-bold text-gray-900 mb-2 mt-4">Cons:</p>
+                <p className="font-bold text-gray-900 mb-2 mt-4">Limitations:</p>
                 <ul>
-                  <li>Less realistic rendering compared to newer tools</li>
-                  <li>Can be slow to load</li>
                   <li>Limited to Zenni frames only</li>
+                  <li>Rendering quality varies</li>
+                  <li>Performance can be inconsistent</li>
                 </ul>
                 <p className="mt-4">
                   <strong>Best For:</strong> Budget-conscious shoppers exploring Zenni&apos;s affordable options.
@@ -191,18 +187,17 @@ export default function BlogPostPage() {
 
               <h3>4. GlassesUSA Virtual Mirror</h3>
               <div className="bg-gray-50 p-6 rounded-lg my-6">
-                <div className="text-xl font-bold text-gray-900 mb-2">7.5/10</div>
                 <p className="mb-4">
-                  GlassesUSA offers a virtual try-on feature across their multi-brand platform, giving access 
+                  GlassesUSA offers a virtual try-on feature across their multi-brand platform, giving access
                   to various designer frames.
                 </p>
-                <p className="font-bold text-gray-900 mb-2">Pros:</p>
+                <p className="font-bold text-gray-900 mb-2">Strengths:</p>
                 <ul>
                   <li>Multiple brands available</li>
                   <li>Prescription lens preview</li>
                   <li>Integration with their rewards program</li>
                 </ul>
-                <p className="font-bold text-gray-900 mb-2 mt-4">Cons:</p>
+                <p className="font-bold text-gray-900 mb-2 mt-4">Limitations:</p>
                 <ul>
                   <li>Inconsistent quality across different frames</li>
                   <li>Requires account creation for full features</li>
@@ -210,30 +205,41 @@ export default function BlogPostPage() {
                 </ul>
               </div>
 
+              <h3>Other notable SDK providers (for brands/developers)</h3>
+              <div className="bg-gray-50 p-6 rounded-lg my-6">
+                <ul className="list-disc pl-5">
+                  <li><a href="https://fittingbox.com/en/glasses-virtual-try-on" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-800">Fittingbox</a> — Real-time AR VTO, 3D frame database, PD measurement</li>
+                  <li><a href="https://www.perfectcorp.com/business/solutions/online-service/eye-wear" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-800">Perfect Corp. (YouCam)</a> — Web/mobile SDK, eCommerce integrations, analytics</li>
+                  <li><a href="https://www.banuba.com/glasses-virtual-try-on" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-800">Banuba</a> — Face AR with eyewear try-on, PD measurement, Shopify options</li>
+                  <li><a href="https://tryon.kivisense.com/blog/ar-solution-eyewear/" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-800">Kivisense</a> — AR try-on across categories with eyewear use cases</li>
+                </ul>
+              </div>
+
+
               <h2>How AI Virtual Try-On Technology Works</h2>
               <p>
-                Understanding the technology behind virtual try-on helps you appreciate why some tools perform 
+                Understanding the technology behind virtual try-on helps you appreciate why some tools perform
                 better than others. Here&apos;s the process:
               </p>
               <ol>
                 <li>
-                  <strong>Facial Detection:</strong> AI algorithms identify key facial landmarks including eyes, 
+                  <strong>Facial Detection:</strong> AI algorithms identify key facial landmarks including eyes,
                   nose, ears, and face contours
                 </li>
                 <li>
-                  <strong>3D Mapping:</strong> Your face is mapped in three dimensions to understand depth and 
+                  <strong>3D Mapping:</strong> Your face is mapped in three dimensions to understand depth and
                   proportions
                 </li>
                 <li>
-                  <strong>Frame Rendering:</strong> Glasses are rendered in 3D and positioned accurately on your 
+                  <strong>Frame Rendering:</strong> Glasses are rendered in 3D and positioned accurately on your
                   face model
                 </li>
                 <li>
-                  <strong>Real-time Adjustment:</strong> As you move, the AI tracks your face and adjusts the 
+                  <strong>Real-time Adjustment:</strong> As you move, the AI tracks your face and adjusts the
                   glasses accordingly
                 </li>
                 <li>
-                  <strong>Lighting & Shadows:</strong> Advanced tools add realistic lighting effects and shadows 
+                  <strong>Lighting & Shadows:</strong> Advanced tools add realistic lighting effects and shadows
                   for photorealism
                 </li>
               </ol>
@@ -241,8 +247,8 @@ export default function BlogPostPage() {
               <div className="bg-yellow-50 border-l-4 border-yellow-400 p-6 my-8">
                 <h3 className="text-lg font-bold text-yellow-900 mb-2">💡 Expert Tip</h3>
                 <p className="text-gray-800 mb-0">
-                  For the most accurate results, ensure good lighting when using virtual try-on tools. Natural 
-                  daylight or bright, even indoor lighting helps the AI better detect your facial features and 
+                  For the most accurate results, ensure good lighting when using virtual try-on tools. Natural
+                  daylight or bright, even indoor lighting helps the AI better detect your facial features and
                   render glasses more realistically.
                 </p>
               </div>
@@ -253,20 +259,16 @@ export default function BlogPostPage() {
               </p>
               <ul>
                 <li>
-                  <strong>For maximum accuracy and features:</strong> VisuTry offers the most advanced technology 
-                  and works with multiple brands
+                  <strong>For live AR realism and large catalogs:</strong> Retailer tools (Warby Parker, Zenni) or B2B providers (Fittingbox, Perfect Corp., Banuba)
                 </li>
                 <li>
-                  <strong>For brand-specific shopping:</strong> Use the retailer&apos;s own tool (Warby Parker, 
-                  Zenni, etc.) if you&apos;re committed to that brand
+                  <strong>For quick photo-based previews or custom frames:</strong> VisuTry
                 </li>
                 <li>
-                  <strong>For exploration and comparison:</strong> Independent platforms like VisuTry let you 
-                  compare across brands without commitment
+                  <strong>For brand-specific shopping:</strong> Use the retailer&apos;s own tool if you&apos;re committed to that brand
                 </li>
                 <li>
-                  <strong>For mobile convenience:</strong> Look for tools with dedicated mobile apps or 
-                  mobile-optimized websites
+                  <strong>For mobile convenience:</strong> Prefer tools with dedicated apps or great mobile web performance
                 </li>
               </ul>
 
@@ -283,30 +285,31 @@ export default function BlogPostPage() {
               </ul>
 
               <div className="bg-gradient-to-r from-blue-500 to-purple-600 text-white p-8 rounded-lg my-8">
-                <h3 className="text-2xl font-bold mb-4">Ready to Find Your Perfect Glasses?</h3>
+                <h3 className="text-2xl font-bold mb-4">Ready to Try It Yourself?</h3>
                 <p className="mb-6">
-                  Experience the most advanced AI virtual try-on technology with VisuTry. Try hundreds of 
-                  styles instantly, get personalized recommendations, and find your perfect match—all for free!
+                  Try VisuTry’s photo‑based AI try‑on in your browser. Get <strong>3 free demo try‑ons</strong>,
+                  upload custom frames, and preview results on your photo — no app required.
                 </p>
                 <Link
                   href="/"
                   className="inline-block bg-white text-blue-600 px-8 py-3 rounded-lg font-bold hover:bg-gray-100 transition-colors"
                 >
-                  Start Virtual Try-On Now →
+                  Start Virtual Try‑On Now →
                 </Link>
               </div>
 
               <h2>Conclusion</h2>
               <p>
-                Virtual try-on technology has transformed online eyewear shopping from a risky gamble into a
-                confident, enjoyable experience. While several good options exist, <strong>VisuTry</strong> leads
-                the pack in 2025 with its combination of accuracy, ease of use, multi-brand support, and
-                advanced AI features.
+                Virtual try‑on technology has transformed online eyewear shopping into a more confident, enjoyable
+                experience. There are several strong options, and the right choice depends on your needs: if you
+                require <strong>live AR</strong> and a <strong>large brand catalog</strong>, retailer tools or SDK
+                providers may fit best; if you want <strong>quick photo‑based previews</strong> and
+                <strong>custom frame uploads</strong> directly in the browser, <strong>VisuTry</strong> is a
+                lightweight, convenient choice.
               </p>
               <p>
-                Whether you&apos;re shopping for your first pair of glasses or your tenth, using a high-quality
-                virtual try-on tool ensures you&apos;ll love how your new glasses look before you buy. The
-                technology is free, fast, and remarkably accurate—there&apos;s no reason not to try it!
+                You can start with <strong>3 free demo try‑ons</strong> on VisuTry and upgrade for unlimited usage.
+                Exploring a tool before buying helps ensure you’ll love how the frames look on you.
               </p>
               <p>
                 For more guidance on selecting frames, explore our <Link href="/blog/rayban-glasses-virtual-tryon-guide" className="text-blue-600 hover:text-blue-800">Ray-Ban virtual try-on guide</Link> and learn about <Link href="/blog/acetate-vs-plastic-eyeglass-frames-guide" className="text-blue-600 hover:text-blue-800">frame materials</Link> to make an informed decision.
