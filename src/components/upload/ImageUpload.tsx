@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useRef, useCallback } from "react"
-import { Upload, X, Image as ImageIcon, Loader2 } from "lucide-react"
+import { Upload, X, Image as ImageIcon, Loader2, User, Glasses } from "lucide-react"
 import { validateImageFile, compressImage, createImagePreview } from "@/utils/image"
 import { cn } from "@/utils/cn"
 
@@ -15,6 +15,7 @@ interface ImageUploadProps {
   description?: string
   accept?: string
   height?: string
+  iconType?: "image" | "user" | "glasses"
 }
 
 export function ImageUpload({
@@ -26,7 +27,8 @@ export function ImageUpload({
   label = "Upload Image",
   description = "JPEG, PNG, or WebP",
   accept = "image/jpeg,image/png,image/webp",
-  height
+  height,
+  iconType = "image"
 }: ImageUploadProps) {
   const [dragOver, setDragOver] = useState(false)
   const [uploading, setUploading] = useState(false)
@@ -99,6 +101,17 @@ export function ImageUpload({
 
   const isLoading = loading || uploading
 
+  const getIcon = () => {
+    switch (iconType) {
+      case "user":
+        return <User className="w-7 h-7 text-blue-600" />
+      case "glasses":
+        return <Glasses className="w-7 h-7 text-blue-600" />
+      default:
+        return <ImageIcon className="w-7 h-7 text-blue-600" />
+    }
+  }
+
   return (
     <div className={cn("w-full", className)}>
       <div
@@ -159,7 +172,7 @@ export function ImageUpload({
                   {dragOver ? (
                     <Upload className="w-7 h-7 text-blue-600" />
                   ) : (
-                    <ImageIcon className="w-7 h-7 text-blue-600" />
+                    getIcon()
                   )}
                 </div>
                 {description && (

@@ -223,6 +223,7 @@ export function TryOnInterface() {
             description="Clear front-facing photo"
             loading={isProcessing}
             height="h-[300px]"
+            iconType="user"
           />
 
           {/* Glasses Photo Upload */}
@@ -234,6 +235,7 @@ export function TryOnInterface() {
             description="Clear image of glasses"
             loading={isProcessing}
             height="h-[180px]"
+            iconType="glasses"
           />
         </div>
       </div>
