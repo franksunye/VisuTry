@@ -11,7 +11,7 @@ export async function GET(request: NextRequest) {
   try {
     // 验证管理员权限
     const session = await getServerSession(authOptions);
-    if (\!session || \!session.user) {
+    if (!session || !session.user) {
       return NextResponse.json(
         { success: false, error: 'Unauthorized' },
         { status: 401 }
@@ -19,7 +19,7 @@ export async function GET(request: NextRequest) {
     }
 
     // @ts-ignore
-    if (session.user.role \!== 'ADMIN') {
+    if (session.user.role !== 'ADMIN') {
       return NextResponse.json(
         { success: false, error: 'Forbidden - Admin access required' },
         { status: 403 }
