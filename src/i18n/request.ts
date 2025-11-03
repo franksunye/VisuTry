@@ -13,9 +13,10 @@ export default getRequestConfig(async ({ requestLocale }) => {
   // This typically corresponds to the `[locale]` segment
   let locale = await requestLocale
 
-  // Validate that the incoming `locale` parameter is valid
+  // For routes without locale (e.g., /admin, /api), use default locale
+  // This prevents build errors when next-intl processes non-i18n routes
   if (!locale || !locales.includes(locale as Locale)) {
-    notFound()
+    locale = 'en' // Use default locale for non-i18n routes
   }
 
   return {
