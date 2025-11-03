@@ -1,13 +1,23 @@
 import { Glasses, Shield, Zap } from "lucide-react"
 import { LoginButton } from "@/components/auth/LoginButton"
 import { Metadata } from 'next'
-import { generateSEO } from '@/lib/seo'
+import { generateI18nSEO } from '@/lib/seo'
+import { Locale } from '@/i18n'
 
-export const metadata: Metadata = generateSEO({
-  title: 'Sign In - AI Glasses Try-On | VisuTry',
-  description: 'Sign in to VisuTry to start your AI glasses try-on experience. Get 3 free trials and find the perfect glasses for your face shape.',
-  url: '/auth/signin',
-})
+type Props = {
+  params: { locale: string }
+}
+
+export async function generateMetadata({ params: { locale } }: Props): Promise<Metadata> {
+  // For auth pages, we can use a simple static title/description
+  // or add translations if needed
+  return generateI18nSEO({
+    locale: locale as Locale,
+    title: 'Sign In - AI Glasses Try-On | VisuTry',
+    description: 'Sign in to VisuTry to start your AI glasses try-on experience. Get 3 free trials and find the perfect glasses for your face shape.',
+    pathname: '/auth/signin',
+  })
+}
 
 export default function SignInPage() {
   return (

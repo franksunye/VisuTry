@@ -5,7 +5,25 @@ import { TryOnInterface } from "@/components/try-on/TryOnInterface"
 import { UserStatusBanner } from "@/components/try-on/UserStatusBanner"
 import { AutoRefreshWrapper } from "@/components/payments/AutoRefreshWrapper"
 import { headers } from "next/headers"
-import { generateStructuredData } from "@/lib/seo"
+import { generateI18nSEO, generateStructuredData } from "@/lib/seo"
+import { getTranslations } from 'next-intl/server'
+import { Locale } from '@/i18n'
+import { Metadata } from 'next'
+
+type Props = {
+  params: { locale: string }
+}
+
+export async function generateMetadata({ params: { locale } }: Props): Promise<Metadata> {
+  const t = await getTranslations({ locale, namespace: 'meta.tryOn' })
+
+  return generateI18nSEO({
+    locale: locale as Locale,
+    title: t('title'),
+    description: t('description'),
+    pathname: '/try-on',
+  })
+}
 
 // 🔥 优化：不再使用缓存，直接使用 session 作为唯一数据源
 export const revalidate = 60

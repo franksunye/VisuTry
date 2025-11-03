@@ -1,14 +1,25 @@
 import { Metadata } from 'next'
-import { generateSEO } from '@/lib/seo'
+import { generateI18nSEO } from '@/lib/seo'
+import { getTranslations } from 'next-intl/server'
+import { Locale } from '@/i18n'
 import Link from 'next/link'
 import Image from 'next/image'
 import { Calendar, User, ArrowRight } from 'lucide-react'
 
-export const metadata: Metadata = generateSEO({
-  title: 'Blog - Glasses Try-On Guide & AI Technology Insights',
-  description: 'Explore glasses try-on techniques, face shape matching guides, AI technology applications and professional insights. Find the perfect glasses style for you.',
-  url: '/blog',
-})
+type Props = {
+  params: { locale: string }
+}
+
+export async function generateMetadata({ params: { locale } }: Props): Promise<Metadata> {
+  const t = await getTranslations({ locale, namespace: 'meta.blog' })
+
+  return generateI18nSEO({
+    locale: locale as Locale,
+    title: t('title'),
+    description: t('description'),
+    pathname: '/blog',
+  })
+}
 
 // Sample blog posts data
 const blogPosts = [

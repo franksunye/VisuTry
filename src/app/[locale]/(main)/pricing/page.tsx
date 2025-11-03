@@ -4,14 +4,25 @@ import { PricingCard } from "@/components/pricing/PricingCard"
 import { Glasses, Star, Zap } from "lucide-react"
 import Link from "next/link"
 import { Metadata } from 'next'
-import { generateSEO, generateStructuredData } from '@/lib/seo'
+import { generateI18nSEO, generateStructuredData } from '@/lib/seo'
 import { PRODUCT_METADATA, QUOTA_CONFIG, formatPrice } from '@/config/pricing'
+import { getTranslations } from 'next-intl/server'
+import { Locale } from '@/i18n'
 
-export const metadata: Metadata = generateSEO({
-  title: 'Pricing Plans - AI Glasses Try-On | VisuTry',
-  description: 'Choose the perfect plan for AI glasses try-on. Free trials available, premium features for unlimited access. Find your ideal glasses with advanced AI technology.',
-  url: '/pricing',
-})
+type Props = {
+  params: { locale: string }
+}
+
+export async function generateMetadata({ params: { locale } }: Props): Promise<Metadata> {
+  const t = await getTranslations({ locale, namespace: 'meta.pricing' })
+
+  return generateI18nSEO({
+    locale: locale as Locale,
+    title: t('title'),
+    description: t('description'),
+    pathname: '/pricing',
+  })
+}
 
 // 🔥 优化：不再使用缓存，直接使用 session 作为唯一数据源
 export const revalidate = 60

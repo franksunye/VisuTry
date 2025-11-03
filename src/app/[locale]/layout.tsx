@@ -1,11 +1,13 @@
 import { NextIntlClientProvider } from 'next-intl'
-import { getMessages } from 'next-intl/server'
+import { getMessages, getTranslations } from 'next-intl/server'
 import { notFound } from 'next/navigation'
 import { Inter } from 'next/font/google'
 import { locales, type Locale, localeDirections } from '@/i18n'
 import { SessionProvider } from '@/components/providers/SessionProvider'
 import { GoogleAnalytics } from '@/components/analytics/GoogleAnalytics'
 import { GoogleTagManager } from '@/components/analytics/GoogleTagManager'
+import { generateI18nSEO, SITE_CONFIG } from '@/lib/seo'
+import { Metadata } from 'next'
 import { ReactNode } from 'react'
 import '../globals.css'
 
@@ -18,6 +20,17 @@ type Props = {
 
 export function generateStaticParams() {
   return locales.map((locale) => ({ locale }))
+}
+
+export async function generateMetadata({ params: { locale } }: Props): Promise<Metadata> {
+  const t = await getTranslations({ locale, namespace: 'meta.home' })
+
+  return generateI18nSEO({
+    locale: locale as Locale,
+    title: t('title'),
+    description: t('description'),
+    pathname: '',
+  })
 }
 
 export default async function LocaleLayout({
