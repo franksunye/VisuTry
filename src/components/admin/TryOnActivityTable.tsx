@@ -15,7 +15,7 @@ interface Task {
   createdAt: Date;
   user: {
     id: string;
-    email: string;
+    email: string | null;
     name: string | null;
   };
 }
@@ -89,7 +89,7 @@ export default function TryOnActivityTable({ tasks, currentPage, totalPages }: T
                 <TableRow key={task.id}>
                   <TableCell>
                     <div className="flex flex-col">
-                      <span className="font-medium">{task.user.email}</span>
+                      <span className="font-medium">{task.user.email || 'N/A'}</span>
                       {task.user.name && (
                         <span className="text-sm text-muted-foreground">{task.user.name}</span>
                       )}
