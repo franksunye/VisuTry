@@ -337,6 +337,7 @@ declare module "next-auth" {
       email?: string | null
       image?: string | null
       username?: string | null
+      role?: string
       freeTrialsUsed: number
       isPremium: boolean
       premiumExpiresAt?: Date | null
@@ -346,10 +347,25 @@ declare module "next-auth" {
   }
 
   interface User {
-    id: string
     username?: string | null
+    role?: string
     freeTrialsUsed: number
     isPremium: boolean
     premiumExpiresAt?: Date | null
+  }
+}
+
+declare module "next-auth/jwt" {
+  interface JWT {
+    id?: string
+    role?: 'USER' | 'ADMIN'
+    username?: string | null
+    freeTrialsUsed?: number
+    premiumUsageCount?: number
+    creditsBalance?: number
+    isPremium?: boolean
+    premiumExpiresAt?: Date | null
+    isPremiumActive?: boolean
+    remainingTrials?: number
   }
 }
