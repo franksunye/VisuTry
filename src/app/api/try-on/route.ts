@@ -160,6 +160,37 @@ export async function POST(request: NextRequest) {
       console.warn(`     Or there's a bug in the upload process`)
     }
 
+    // 🔍 CHECK 3: Calculate file content fingerprints to detect if content is identical
+    // This is critical - even if File objects are different, their content might be the same
+    const calculateFileFingerprint = async (file: File): Promise<string> => {
+      const buffer = await file.arrayBuffer()
+      const bytes = new Uint8Array(buffer)
+
+      // Create fingerprint from first 512 bytes + file size
+      let hash = 0
+      const sampleSize = Math.min(512, bytes.length)
+      for (let i = 0; i < sampleSize; i++) {
+        hash = ((hash << 5) - hash) + bytes[i]
+        hash = hash & hash // Convert to 32-bit integer
+      }
+
+      return `${file.size}-${hash.toString(16)}`
+    }
+
+    const userImageFingerprint = await calculateFileFingerprint(userImageFile)
+    const glassesImageFingerprint = await calculateFileFingerprint(glassesImageFile)
+
+    console.log(`  User image fingerprint: ${userImageFingerprint}`)
+    console.log(`  Glasses image fingerprint: ${glassesImageFingerprint}`)
+
+    if (userImageFingerprint === glassesImageFingerprint) {
+      console.error(`  ❌ CRITICAL: File content fingerprints are IDENTICAL!`)
+      console.error(`     This means the two files have the same content!`)
+      console.error(`     This is the root cause of the duplicate image problem!`)
+    } else {
+      console.log(`  ✅ File content fingerprints are different (good)`)
+    }
+
     // 🔥 FIX: Use single timestamp to avoid filename collision
     const timestamp = Date.now()
 
