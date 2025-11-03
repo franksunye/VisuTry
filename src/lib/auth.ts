@@ -337,7 +337,6 @@ declare module "next-auth" {
       email?: string | null
       image?: string | null
       username?: string | null
-      role?: string
       freeTrialsUsed: number
       isPremium: boolean
       premiumExpiresAt?: Date | null
@@ -347,8 +346,8 @@ declare module "next-auth" {
   }
 
   interface User {
+    id: string
     username?: string | null
-    role?: string
     freeTrialsUsed: number
     isPremium: boolean
     premiumExpiresAt?: Date | null
@@ -358,7 +357,7 @@ declare module "next-auth" {
 declare module "next-auth/jwt" {
   interface JWT {
     id?: string
-    role?: 'USER' | 'ADMIN'
+    role?: string
     username?: string | null
     freeTrialsUsed?: number
     premiumUsageCount?: number
