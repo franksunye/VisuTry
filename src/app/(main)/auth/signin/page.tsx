@@ -20,10 +20,10 @@ export default function SignInPage() {
             <h1 className="text-3xl font-bold text-gray-900">VisuTry</h1>
           </div>
           <h2 className="text-xl text-gray-600 mb-2">
-            Sign In to Start AI Glasses Try-On
+            Log in to start your 3 free previews
           </h2>
           <p className="text-sm text-gray-500">
-            Sign in with Auth0 to experience smart try-on features
+            Discover the best glasses for your face — quickly, easily, and realistically.
           </p>
         </div>
 
@@ -38,7 +38,7 @@ export default function SignInPage() {
                 </div>
                 <div>
                   <h3 className="font-medium text-gray-900">Free Try-On</h3>
-                  <p className="text-sm text-gray-500">Enjoy 3 free AI try-ons per account</p>
+                  <p className="text-sm text-gray-500">We provide 3 free try-outs to help you decide with confidence.</p>
                 </div>
               </div>
 
@@ -48,7 +48,7 @@ export default function SignInPage() {
                 </div>
                 <div>
                   <h3 className="font-medium text-gray-900">Secure & Reliable</h3>
-                  <p className="text-sm text-gray-500">Sign in securely with Auth0 (supports Twitter, Google, and more)</p>
+                  <p className="text-sm text-gray-500">Sign in securely (supports Twitter, Google, and more)</p>
                 </div>
               </div>
             </div>

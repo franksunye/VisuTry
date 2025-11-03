@@ -24,10 +24,10 @@ export default function Home() {
       {/* Hero Header */}
       <header className="mb-12 text-center">
         <h1 className="text-5xl font-bold text-gray-900 mb-4">
-          AI-Powered Virtual Glasses Try-On
+          Discover the Glasses That Fit You Perfectly
         </h1>
         <p className="max-w-2xl mx-auto text-xl text-gray-600">
-          Experience virtual glasses try-on with AI technology and find the perfect glasses style for you
+          Upload your photo, log in — and try 3 styles free.
         </p>
       </header>
 
@@ -42,24 +42,24 @@ export default function Home() {
             <div className="flex items-center justify-center w-16 h-16 mb-4 bg-blue-100 rounded-full">
               <Upload className="w-8 h-8 text-blue-600" />
             </div>
-            <h3 className="mb-2 text-lg font-semibold">Upload Photo</h3>
-            <p className="text-center text-gray-600">Upload your front-facing photo</p>
+            <h3 className="mb-2 text-lg font-semibold">Upload Your Photo</h3>
+            <p className="text-center text-gray-600">Upload a front-facing photo of yourself — no special tools required.</p>
           </div>
 
           <div className="flex flex-col items-center">
             <div className="flex items-center justify-center w-16 h-16 mb-4 bg-purple-100 rounded-full">
               <Sparkles className="w-8 h-8 text-purple-600" />
             </div>
-            <h3 className="mb-2 text-lg font-semibold">AI Try-On</h3>
-            <p className="text-center text-gray-600">Choose glasses style, AI tries them on for you</p>
+            <h3 className="mb-2 text-lg font-semibold">Pick Your Frames</h3>
+            <p className="text-center text-gray-600">Choose the glasses you like. We'll show how each style looks on your face.</p>
           </div>
 
           <div className="flex flex-col items-center">
             <div className="flex items-center justify-center w-16 h-16 mb-4 bg-green-100 rounded-full">
               <Share2 className="w-8 h-8 text-green-600" />
             </div>
-            <h3 className="mb-2 text-lg font-semibold">Share Results</h3>
-            <p className="text-center text-gray-600">Save and share your try-on results</p>
+            <h3 className="mb-2 text-lg font-semibold">See & Save</h3>
+            <p className="text-center text-gray-600">See your top look, then save or share it. Free for your first 3 uses after login.</p>
           </div>
         </div>
 
@@ -69,10 +69,10 @@ export default function Home() {
             onClick={handleStartTryOn}
             className="px-8 py-4 text-lg font-semibold text-white transition-colors duration-200 bg-blue-600 rounded-lg shadow-lg hover:bg-blue-700 hover:shadow-xl"
           >
-            Start Try-On
+            Get Started
           </button>
           <p className="mt-4 text-sm text-gray-500">
-            3 Free Virtual Try-Ons • No Credit Card Required • Instant Results — Powered by Nano Banana
+            No credit card required • Free to try 3 styles • Instant results after login
           </p>
         </div>
       </section>
