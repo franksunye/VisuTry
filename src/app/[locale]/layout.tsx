@@ -3,13 +3,11 @@ import { getMessages, getTranslations } from 'next-intl/server'
 import { notFound } from 'next/navigation'
 import { Inter } from 'next/font/google'
 import { locales, type Locale, localeDirections } from '@/i18n'
-import { SessionProvider } from '@/components/providers/SessionProvider'
 import { GoogleAnalytics } from '@/components/analytics/GoogleAnalytics'
 import { GoogleTagManager } from '@/components/analytics/GoogleTagManager'
 import { generateI18nSEO, SITE_CONFIG } from '@/lib/seo'
 import { Metadata } from 'next'
 import { ReactNode } from 'react'
-import '../globals.css'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -70,11 +68,9 @@ export default async function LocaleLayout(props: Props) {
         {/* Google Analytics */}
         {gaId && <GoogleAnalytics gaId={gaId} />}
 
-        <SessionProvider>
-          <NextIntlClientProvider messages={messages}>
-            {children}
-          </NextIntlClientProvider>
-        </SessionProvider>
+        <NextIntlClientProvider messages={messages}>
+          {children}
+        </NextIntlClientProvider>
       </body>
     </html>
   )
