@@ -211,6 +211,49 @@ npm run start
 - 影响所有使用 `generateMetadata` 和异步页面组件的文件
 
 **修复状态**: ✅ 完成
-**提交**: 670833c
+**提交**:
+- 670833c - Fix params Promise handling
+- 2244ce2 - Add missing children destructuring
+- 63de311 - Add next-intl plugin to next.config.js
 **分支**: feature/i18n-multi-language
+
+---
+
+## 🐛 问题 2: next-intl 配置文件未找到
+
+### 错误信息
+```
+Error: Couldn't find next-intl config file.
+Please follow the instructions at https://next-intl.dev/docs/getting-started/app-router
+Error digest: 1847728666
+```
+
+### 根本原因
+`next-intl` 需要在 `next.config.js` 中明确配置插件，以便在生产构建时能够找到配置文件。
+
+### 修复方案
+
+更新 `next.config.js`：
+
+```javascript
+const withNextIntl = require('next-intl/plugin')(
+  // Specify the path to the request config
+  './src/i18n/request.ts'
+)
+
+const nextConfig = {
+  // ... your config
+}
+
+module.exports = withBundleAnalyzer(withNextIntl(nextConfig))
+```
+
+### 关键点
+- ✅ 必须使用 `next-intl/plugin` 包装配置
+- ✅ 必须指定 request config 的路径
+- ✅ 插件顺序：`withBundleAnalyzer(withNextIntl(nextConfig))`
+- ✅ 配置文件路径：`./src/i18n/request.ts`
+
+### 修复的文件
+- `next.config.js` - 添加 next-intl 插件配置
 
