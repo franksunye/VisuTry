@@ -15,7 +15,9 @@ jest.mock('lucide-react', () => ({
   Upload: ({ className }: { className?: string }) => <div data-testid="upload-icon" className={className} />,
   X: ({ className }: { className?: string }) => <div data-testid="x-icon" className={className} />,
   Image: ({ className }: { className?: string }) => <div data-testid="image-icon" className={className} />,
-  Loader2: ({ className }: { className?: string }) => <div data-testid="loader-icon" className={className} />
+  Loader2: ({ className }: { className?: string }) => <div data-testid="loader-icon" className={className} />,
+  User: ({ className }: { className?: string }) => <div data-testid="user-icon" className={className} />,
+  Glasses: ({ className }: { className?: string }) => <div data-testid="glasses-icon" className={className} />
 }))
 
 // Mock window.alert
@@ -87,6 +89,53 @@ describe('ImageUpload', () => {
 
       const container = screen.getByText('Upload Image').closest('.custom-class')
       expect(container).toBeInTheDocument()
+    })
+
+    it('should render user icon when iconType is "user"', () => {
+      render(
+        <ImageUpload
+          onImageSelect={mockOnImageSelect}
+          onImageRemove={mockOnImageRemove}
+          iconType="user"
+        />
+      )
+
+      expect(screen.getByTestId('user-icon')).toBeInTheDocument()
+      expect(screen.queryByTestId('image-icon')).not.toBeInTheDocument()
+    })
+
+    it('should render glasses icon when iconType is "glasses"', () => {
+      render(
+        <ImageUpload
+          onImageSelect={mockOnImageSelect}
+          onImageRemove={mockOnImageRemove}
+          iconType="glasses"
+        />
+      )
+
+      expect(screen.getByTestId('glasses-icon')).toBeInTheDocument()
+      expect(screen.queryByTestId('image-icon')).not.toBeInTheDocument()
+    })
+
+    it('should render image icon when iconType is "image" or not provided', () => {
+      const { rerender } = render(
+        <ImageUpload
+          onImageSelect={mockOnImageSelect}
+          onImageRemove={mockOnImageRemove}
+          iconType="image"
+        />
+      )
+
+      expect(screen.getByTestId('image-icon')).toBeInTheDocument()
+
+      rerender(
+        <ImageUpload
+          onImageSelect={mockOnImageSelect}
+          onImageRemove={mockOnImageRemove}
+        />
+      )
+
+      expect(screen.getByTestId('image-icon')).toBeInTheDocument()
     })
   })
 
