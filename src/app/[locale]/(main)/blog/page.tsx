@@ -7,14 +7,15 @@ import Image from 'next/image'
 import { Calendar, User, ArrowRight } from 'lucide-react'
 
 type Props = {
-  params: { locale: string }
+  params: Promise<{ locale: string }>
 }
 
-export async function generateMetadata({ params: { locale } }: Props): Promise<Metadata> {
-  const t = await getTranslations({ locale, namespace: 'meta.blog' })
+export async function generateMetadata(props: Props): Promise<Metadata> {
+  const params = await props.params
+  const t = await getTranslations({ locale: params.locale, namespace: 'meta.blog' })
 
   return generateI18nSEO({
-    locale: locale as Locale,
+    locale: params.locale as Locale,
     title: t('title'),
     description: t('description'),
     pathname: '/blog',

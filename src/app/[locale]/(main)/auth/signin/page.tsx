@@ -5,14 +5,15 @@ import { generateI18nSEO } from '@/lib/seo'
 import { Locale } from '@/i18n'
 
 type Props = {
-  params: { locale: string }
+  params: Promise<{ locale: string }>
 }
 
-export async function generateMetadata({ params: { locale } }: Props): Promise<Metadata> {
+export async function generateMetadata(props: Props): Promise<Metadata> {
+  const params = await props.params
   // For auth pages, we can use a simple static title/description
   // or add translations if needed
   return generateI18nSEO({
-    locale: locale as Locale,
+    locale: params.locale as Locale,
     title: 'Sign In - AI Glasses Try-On | VisuTry',
     description: 'Sign in to VisuTry to start your AI glasses try-on experience. Get 3 free trials and find the perfect glasses for your face shape.',
     pathname: '/auth/signin',

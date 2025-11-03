@@ -11,14 +11,15 @@ import { Locale } from '@/i18n'
 import { Metadata } from 'next'
 
 type Props = {
-  params: { locale: string }
+  params: Promise<{ locale: string }>
 }
 
-export async function generateMetadata({ params: { locale } }: Props): Promise<Metadata> {
-  const t = await getTranslations({ locale, namespace: 'meta.tryOn' })
+export async function generateMetadata(props: Props): Promise<Metadata> {
+  const params = await props.params
+  const t = await getTranslations({ locale: params.locale, namespace: 'meta.tryOn' })
 
   return generateI18nSEO({
-    locale: locale as Locale,
+    locale: params.locale as Locale,
     title: t('title'),
     description: t('description'),
     pathname: '/try-on',
