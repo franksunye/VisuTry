@@ -59,7 +59,7 @@ export default function Home() {
               <Share2 className="w-8 h-8 text-green-600" />
             </div>
             <h3 className="mb-2 text-lg font-semibold">See & Save</h3>
-            <p className="text-center text-gray-600">See your top look, then save or share it. Free for your first 3 uses after login.</p>
+            <p className="text-center text-gray-600">See your top look, then save or share it.</p>
           </div>
         </div>
 
@@ -71,9 +71,6 @@ export default function Home() {
           >
             Get Started
           </button>
-          <p className="mt-4 text-sm text-gray-500">
-            No credit card required • Free to try 3 styles • Instant results after login
-          </p>
         </div>
       </section>
     </main>
