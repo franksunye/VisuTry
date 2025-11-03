@@ -252,9 +252,16 @@
       "product": "Product",
       "company": "Company",
       "legal": "Legal",
-      "support": "Support"
+      "support": "Support",
+      "tryOn": "Try On",
+      "pricing": "Pricing",
+      "blog": "Blog",
+      "privacy": "Privacy Policy",
+      "terms": "Terms of Service",
+      "refund": "Refund Policy"
     },
-    "copyright": "© {year} VisuTry. All rights reserved."
+    "copyright": "© {year} VisuTry. All rights reserved.",
+    "madeWith": "Made with ❤️ using AI technology"
   },
   "meta": {
     "home": {

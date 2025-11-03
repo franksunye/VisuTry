@@ -252,9 +252,16 @@
       "product": "Produk",
       "company": "Perusahaan",
       "legal": "Legal",
-      "support": "Dukungan"
+      "support": "Dukungan",
+      "tryOn": "Coba Virtual",
+      "pricing": "Harga",
+      "blog": "Blog",
+      "privacy": "Kebijakan Privasi",
+      "terms": "Ketentuan Layanan",
+      "refund": "Kebijakan Pengembalian Dana"
     },
-    "copyright": "© {year} VisuTry. Hak cipta dilindungi."
+    "copyright": "© {year} VisuTry. Hak cipta dilindungi.",
+    "madeWith": "Dibuat dengan ❤️ menggunakan teknologi AI"
   },
   "meta": {
     "home": {

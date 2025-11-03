@@ -59,17 +59,17 @@ export function Footer() {
             <ul className="space-y-2">
               <li>
                 <Link href={`/${locale}/try-on`} className="text-gray-600 hover:text-blue-600 text-sm transition-colors">
-                  Try On
+                  {t('links.tryOn')}
                 </Link>
               </li>
               <li>
                 <Link href={`/${locale}/pricing`} className="text-gray-600 hover:text-blue-600 text-sm transition-colors">
-                  Pricing
+                  {t('links.pricing')}
                 </Link>
               </li>
               <li>
                 <Link href={`/${locale}/blog`} className="text-gray-600 hover:text-blue-600 text-sm transition-colors">
-                  Blog
+                  {t('links.blog')}
                 </Link>
               </li>
             </ul>
@@ -81,17 +81,17 @@ export function Footer() {
             <ul className="space-y-2">
               <li>
                 <Link href={`/${locale}/privacy`} className="text-gray-600 hover:text-blue-600 text-sm transition-colors">
-                  Privacy Policy
+                  {t('links.privacy')}
                 </Link>
               </li>
               <li>
                 <Link href={`/${locale}/terms`} className="text-gray-600 hover:text-blue-600 text-sm transition-colors">
-                  Terms of Service
+                  {t('links.terms')}
                 </Link>
               </li>
               <li>
                 <Link href={`/${locale}/refund`} className="text-gray-600 hover:text-blue-600 text-sm transition-colors">
-                  Refund Policy
+                  {t('links.refund')}
                 </Link>
               </li>
             </ul>
@@ -105,7 +105,7 @@ export function Footer() {
               {t('copyright', { year: currentYear })}
             </p>
             <p className="text-gray-500 text-xs mt-2 md:mt-0">
-              Made with ❤️ using AI technology
+              {t('madeWith')}
             </p>
           </div>
         </div>

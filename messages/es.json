@@ -252,9 +252,16 @@
       "product": "Producto",
       "company": "Empresa",
       "legal": "Legal",
-      "support": "Soporte"
+      "support": "Soporte",
+      "tryOn": "Prueba Virtual",
+      "pricing": "Precios",
+      "blog": "Blog",
+      "privacy": "Política de Privacidad",
+      "terms": "Términos de Servicio",
+      "refund": "Política de Reembolso"
     },
-    "copyright": "© {year} VisuTry. Todos los derechos reservados."
+    "copyright": "© {year} VisuTry. Todos los derechos reservados.",
+    "madeWith": "Hecho con ❤️ usando tecnología IA"
   },
   "meta": {
     "home": {
