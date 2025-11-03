@@ -23,10 +23,7 @@ export default function Home() {
     <main className="container px-4 py-8 mx-auto">
       {/* Hero Header */}
       <header className="mb-12 text-center">
-        <h1 className="text-5xl font-bold text-gray-900 mb-4">
-          VisuTry
-        </h1>
-        <p className="max-w-2xl mx-auto text-xl text-gray-600">
+        <p className="max-w-2xl mx-auto text-3xl font-semibold text-gray-900">
           Discover the Glasses That Fit You Perfectly
         </p>
       </header>
