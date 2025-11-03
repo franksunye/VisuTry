@@ -5,18 +5,20 @@ import { useSearchParams, useRouter } from 'next/navigation'
 import { useSession } from 'next-auth/react'
 import { CheckCircle, Glasses, ArrowRight, Sparkles, Crown, Loader2 } from 'lucide-react'
 import Link from 'next/link'
+import { useTranslations } from 'next-intl'
 
 // Payment processing status
 type PaymentStatus = 'checking' | 'updating' | 'success' | 'redirecting' | 'error'
 
 function SuccessContent() {
+  const t = useTranslations('success')
   const searchParams = useSearchParams()
   const router = useRouter()
   const { data: session, status, update } = useSession()
   const [sessionId, setSessionId] = useState<string | null>(null)
   const [paymentStatus, setPaymentStatus] = useState<PaymentStatus>('checking')
   const [countdown, setCountdown] = useState(3)
-  const [statusMessage, setStatusMessage] = useState('Processing your payment...')
+  const [statusMessage, setStatusMessage] = useState(t('processing'))
   const [initialBalance, setInitialBalance] = useState<number | null>(null)
 
   useEffect(() => {
@@ -156,14 +158,14 @@ function SuccessContent() {
                 <Loader2 className="w-12 h-12 text-blue-600 animate-spin" />
               </div>
               <h2 className="mb-2 text-2xl font-bold text-gray-900">
-                {paymentStatus === 'checking' ? 'Processing Payment...' : 'Updating Account...'}
+                {paymentStatus === 'checking' ? t('processing') : t('updatingAccount')}
               </h2>
               <p className="mb-6 text-gray-600">
                 {statusMessage}
               </p>
               <div className="p-4 rounded-lg bg-blue-50">
                 <p className="text-sm text-blue-800">
-                  Please wait while we update your account balance
+                  {t('pleaseWait')}
                 </p>
               </div>
             </div>
@@ -184,7 +186,7 @@ function SuccessContent() {
                 <CheckCircle className="w-12 h-12 text-red-600" />
               </div>
               <h2 className="mb-2 text-2xl font-bold text-gray-900">
-                Update Failed
+                {t('error')}
               </h2>
               <p className="mb-6 text-gray-600">
                 {statusMessage}
@@ -193,7 +195,7 @@ function SuccessContent() {
                 href="/dashboard"
                 className="inline-flex items-center justify-center px-6 py-3 text-white transition-colors bg-blue-600 rounded-lg hover:bg-blue-700"
               >
-                Go to Dashboard
+                {t('goToDashboard')}
               </Link>
             </div>
           </div>
@@ -213,10 +215,10 @@ function SuccessContent() {
               <CheckCircle className="w-12 h-12 text-green-600" />
             </div>
             <h1 className="mb-2 text-3xl font-bold text-white">
-              Payment Successful!
+              {t('title')}
             </h1>
             <p className="text-lg text-green-50">
-              Thank you for your purchase
+              {t('thankYou')}
             </p>
           </div>
 
@@ -232,7 +234,7 @@ function SuccessContent() {
                 <Sparkles className="w-6 h-6 text-yellow-500" />
               </div>
               <p className="text-gray-600">
-                Your payment has been processed successfully and your account balance has been updated!
+                {t('paymentProcessed')}
               </p>
             </div>
 

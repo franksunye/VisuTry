@@ -271,6 +271,29 @@
       "managePlan": "Kelola Paket"
     }
   },
+  "success": {
+    "title": "Pembayaran Berhasil!",
+    "thankYou": "Terima kasih atas pembelian Anda",
+    "processing": "Memproses Pembayaran...",
+    "updatingAccount": "Memperbarui Akun...",
+    "pleaseWait": "Mohon tunggu sementara kami memproses pembayaran Anda...",
+    "accountUpdated": "Akun diperbarui! Mengalihkan...",
+    "paymentProcessed": "Pembayaran Anda telah berhasil diproses dan saldo akun Anda telah diperbarui!",
+    "error": "Terjadi kesalahan",
+    "errorMessage": "Kami mengalami masalah saat memproses pembayaran Anda. Silakan coba lagi atau hubungi dukungan.",
+    "goToDashboard": "Ke Dasbor",
+    "redirecting": "Mengalihkan ke dasbor dalam {count} detik...",
+    "features": {
+      "unlimitedTryOns": "Percobaan Tanpa Batas",
+      "unlimitedTryOnsDesc": "Coba sebanyak mungkin kacamata yang Anda inginkan",
+      "highQuality": "Hasil Berkualitas Tinggi",
+      "highQualityDesc": "Dapatkan pengalaman coba AI terbaik",
+      "premiumSupport": "Dukungan Premium",
+      "premiumSupportDesc": "Dapatkan bantuan saat Anda membutuhkannya"
+    },
+    "premium": "Premium",
+    "startTryOn": "Mulai Mencoba Sekarang"
+  },
   "footer": {
     "tagline": "Coba virtual kacamata dengan teknologi AI",
     "links": {

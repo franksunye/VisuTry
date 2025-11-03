@@ -271,6 +271,54 @@
       "managePlan": "Manage Plan"
     }
   },
+  "cancel": {
+    "title": "Payment Cancelled",
+    "subtitle": "Your payment was not completed",
+    "noWorries": "No worries, you can try again anytime",
+    "noCharges": "Your payment was cancelled and no charges were made to your account.",
+    "commonReasons": "Common Reasons for Cancellation",
+    "reason1": "You clicked the back button or closed the payment window",
+    "reason2": "You decided to review the pricing options again",
+    "reason3": "There was an issue with your payment method",
+    "whatNext": "What would you like to do?",
+    "option1": "Review our pricing plans and choose the one that fits your needs",
+    "option2": "Continue using VisuTry with your free trial credits",
+    "option3": "Contact our support team if you need assistance",
+    "tryAgain": "Try Again - View Pricing",
+    "continueFreeTrial": "Continue with Free Trial",
+    "backToDashboard": "Back to Dashboard",
+    "backToHome": "Back to Home",
+    "redirecting": "Redirecting to pricing page in {count} seconds...",
+    "needHelp": "Need Help?",
+    "needHelpDesc": "If you encountered any issues during checkout, our support team is here to help.",
+    "contactSupport": "Contact Support",
+    "securePayment": "Secure Payment",
+    "securePaymentDesc": "We accept all major credit cards and use Stripe for secure payment processing.",
+    "freeUser": "Free User"
+  },
+  "success": {
+    "title": "Payment Successful!",
+    "thankYou": "Thank you for your purchase",
+    "processing": "Processing Payment...",
+    "updatingAccount": "Updating Account...",
+    "pleaseWait": "Please wait while we process your payment...",
+    "accountUpdated": "Account updated! Redirecting...",
+    "paymentProcessed": "Your payment has been processed successfully and your account balance has been updated!",
+    "error": "Something went wrong",
+    "errorMessage": "We encountered an issue processing your payment. Please try again or contact support.",
+    "goToDashboard": "Go to Dashboard",
+    "redirecting": "Redirecting to dashboard in {count} seconds...",
+    "features": {
+      "unlimitedTryOns": "Unlimited Try-Ons",
+      "unlimitedTryOnsDesc": "Try as many glasses as you want",
+      "highQuality": "High-Quality Results",
+      "highQualityDesc": "Get the best AI-powered try-on experience",
+      "premiumSupport": "Premium Support",
+      "premiumSupportDesc": "Get help when you need it"
+    },
+    "premium": "Premium",
+    "startTryOn": "Start Try-On Now"
+  },
   "footer": {
     "tagline": "AI-powered virtual glasses try-on",
     "links": {

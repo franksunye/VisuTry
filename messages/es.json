@@ -271,6 +271,29 @@
       "managePlan": "Gestionar Plan"
     }
   },
+  "success": {
+    "title": "¡Pago Exitoso!",
+    "thankYou": "Gracias por tu compra",
+    "processing": "Procesando Pago...",
+    "updatingAccount": "Actualizando Cuenta...",
+    "pleaseWait": "Por favor espera mientras procesamos tu pago...",
+    "accountUpdated": "¡Cuenta actualizada! Redirigiendo...",
+    "paymentProcessed": "¡Tu pago ha sido procesado exitosamente y el saldo de tu cuenta ha sido actualizado!",
+    "error": "Algo salió mal",
+    "errorMessage": "Encontramos un problema al procesar tu pago. Por favor intenta de nuevo o contacta a soporte.",
+    "goToDashboard": "Ir al Panel",
+    "redirecting": "Redirigiendo al panel en {count} segundos...",
+    "features": {
+      "unlimitedTryOns": "Pruebas Ilimitadas",
+      "unlimitedTryOnsDesc": "Prueba tantas gafas como quieras",
+      "highQuality": "Resultados de Alta Calidad",
+      "highQualityDesc": "Obtén la mejor experiencia de prueba con IA",
+      "premiumSupport": "Soporte Premium",
+      "premiumSupportDesc": "Obtén ayuda cuando la necesites"
+    },
+    "premium": "Premium",
+    "startTryOn": "Comenzar Prueba Ahora"
+  },
   "footer": {
     "tagline": "Prueba virtual de gafas con IA",
     "links": {
