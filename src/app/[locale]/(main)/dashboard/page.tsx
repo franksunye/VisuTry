@@ -13,6 +13,7 @@ import { Glasses, Plus, Receipt } from "lucide-react"
 import Link from "next/link"
 import { perfLogger, logPageLoad } from "@/lib/performance-logger"
 import { getCachedUserPayment } from "@/lib/cache"
+import { getTranslations } from "next-intl/server"
 
 // 性能优化：使用 Suspense 流式渲染
 // 1. 立即返回页面框架（< 100ms）
@@ -24,6 +25,9 @@ export default async function DashboardPage() {
   // 🔍 开始性能监控
   const pageStartTime = Date.now()
   perfLogger.mark('dashboard:page-start')
+
+  // Get translations
+  const t = await getTranslations('dashboard')
 
   // 🔍 监控 Session 获取
   perfLogger.start('dashboard:getSession')
@@ -78,13 +82,13 @@ export default async function DashboardPage() {
 
       {/* Page Header - 立即渲染 */}
       <div className="flex items-center justify-between mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
+        <h1 className="text-3xl font-bold text-gray-900">{t('title')}</h1>
         <Link
           href="/try-on"
           className="flex items-center px-6 py-3 text-white transition-colors bg-blue-600 rounded-lg hover:bg-blue-700"
         >
           <Plus className="w-5 h-5 mr-2" />
-          Start Try-On
+          {t('startTryOn')}
         </Link>
       </div>
 
@@ -118,21 +122,21 @@ export default async function DashboardPage() {
 
           {/* Quick Actions */}
           <div className="p-6 bg-white border shadow-sm rounded-xl">
-            <h3 className="mb-4 text-lg font-semibold text-gray-900">Quick Actions</h3>
+            <h3 className="mb-4 text-lg font-semibold text-gray-900">{t('quickActions.title')}</h3>
             <div className="space-y-3">
               <Link
                 href="/try-on"
                 className="flex items-center justify-center w-full px-4 py-3 text-white transition-colors bg-blue-600 rounded-lg hover:bg-blue-700"
               >
                 <Glasses className="w-5 h-5 mr-2" />
-                Start AI Try-On
+                {t('quickActions.startAITryOn')}
               </Link>
 
               <Link
                 href="/pricing"
                 className="flex items-center justify-center w-full px-4 py-3 text-gray-700 transition-colors border border-gray-300 rounded-lg hover:bg-gray-50"
               >
-                Upgrade to Standard
+                {t('quickActions.upgradeToStandard')}
               </Link>
 
               <Link
@@ -140,26 +144,26 @@ export default async function DashboardPage() {
                 className="flex items-center justify-center w-full px-4 py-3 text-gray-700 transition-colors border border-gray-300 rounded-lg hover:bg-gray-50"
               >
                 <Receipt className="w-5 h-5 mr-2" />
-                Payment History
+                {t('quickActions.paymentHistory')}
               </Link>
             </div>
           </div>
 
           {/* Tips Card */}
           <div className="p-6 bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-200 rounded-xl">
-            <h3 className="mb-3 text-lg font-semibold text-blue-900">💡 Tips</h3>
+            <h3 className="mb-3 text-lg font-semibold text-blue-900">{t('tips.title')}</h3>
             <ul className="space-y-2 text-sm text-blue-800">
               <li className="flex items-start">
                 <span className="mr-2">•</span>
-                <span>Use clear, front-facing photos for best results</span>
+                <span>{t('tips.tip1')}</span>
               </li>
               <li className="flex items-start">
                 <span className="mr-2">•</span>
-                <span>Good lighting improves AI accuracy</span>
+                <span>{t('tips.tip2')}</span>
               </li>
               <li className="flex items-start">
                 <span className="mr-2">•</span>
-                <span>Try different frame styles to find your perfect match</span>
+                <span>{t('tips.tip3')}</span>
               </li>
             </ul>
           </div>

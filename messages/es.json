@@ -229,14 +229,39 @@
   "dashboard": {
     "title": "Panel",
     "welcome": "Bienvenido de nuevo, {name}",
+    "startTryOn": "Comenzar Prueba",
     "stats": {
+      "totalTryOns": "Total de Pruebas",
+      "successfulTryOns": "Pruebas Exitosas",
+      "remainingUses": "Usos Restantes",
+      "cumulativeUsage": "Recuento de uso acumulado",
+      "completedTryOns": "Pruebas completadas",
       "tryOnsUsed": "Pruebas Utilizadas",
-      "tryOnsRemaining": "Pruebas Restantes",
-      "totalTryOns": "Total de Pruebas"
+      "tryOnsRemaining": "Pruebas Restantes"
+    },
+    "quickActions": {
+      "title": "Acciones Rápidas",
+      "startAITryOn": "Iniciar Prueba con IA",
+      "upgradeToStandard": "Actualizar a Estándar",
+      "paymentHistory": "Historial de Pagos"
+    },
+    "tips": {
+      "title": "💡 Consejos",
+      "tip1": "Usa fotos claras de frente para mejores resultados",
+      "tip2": "Una buena iluminación mejora la precisión de la IA",
+      "tip3": "Prueba diferentes estilos de monturas para encontrar tu combinación perfecta"
     },
     "recentActivity": {
-      "title": "Actividad Reciente",
-      "noActivity": "No hay actividad reciente"
+      "title": "Pruebas Recientes",
+      "noActivity": "Aún no hay registros de pruebas",
+      "noActivityDescription": "¡Comienza tu primera experiencia de prueba de gafas con IA!",
+      "viewAll": "Ver Todo",
+      "status": {
+        "completed": "Completado",
+        "processing": "Procesando",
+        "failed": "Fallido",
+        "unknown": "Desconocido"
+      }
     },
     "subscription": {
       "title": "Suscripción",

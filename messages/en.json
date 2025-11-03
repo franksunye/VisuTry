@@ -229,14 +229,39 @@
   "dashboard": {
     "title": "Dashboard",
     "welcome": "Welcome back, {name}",
+    "startTryOn": "Start Try-On",
     "stats": {
+      "totalTryOns": "Total Try-Ons",
+      "successfulTryOns": "Successful Try-Ons",
+      "remainingUses": "Remaining Uses",
+      "cumulativeUsage": "Cumulative usage count",
+      "completedTryOns": "Completed try-ons",
       "tryOnsUsed": "Try-ons Used",
-      "tryOnsRemaining": "Try-ons Remaining",
-      "totalTryOns": "Total Try-ons"
+      "tryOnsRemaining": "Try-ons Remaining"
+    },
+    "quickActions": {
+      "title": "Quick Actions",
+      "startAITryOn": "Start AI Try-On",
+      "upgradeToStandard": "Upgrade to Standard",
+      "paymentHistory": "Payment History"
+    },
+    "tips": {
+      "title": "💡 Tips",
+      "tip1": "Use clear, front-facing photos for best results",
+      "tip2": "Good lighting improves AI accuracy",
+      "tip3": "Try different frame styles to find your perfect match"
     },
     "recentActivity": {
-      "title": "Recent Activity",
-      "noActivity": "No recent activity"
+      "title": "Recent Try-Ons",
+      "noActivity": "No try-on records yet",
+      "noActivityDescription": "Start your first AI glasses try-on experience!",
+      "viewAll": "View All",
+      "status": {
+        "completed": "Completed",
+        "processing": "Processing",
+        "failed": "Failed",
+        "unknown": "Unknown"
+      }
     },
     "subscription": {
       "title": "Subscription",

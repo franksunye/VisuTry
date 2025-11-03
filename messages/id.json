@@ -229,14 +229,39 @@
   "dashboard": {
     "title": "Dasbor",
     "welcome": "Selamat datang kembali, {name}",
+    "startTryOn": "Mulai Mencoba",
     "stats": {
+      "totalTryOns": "Total Percobaan",
+      "successfulTryOns": "Percobaan Berhasil",
+      "remainingUses": "Penggunaan Tersisa",
+      "cumulativeUsage": "Jumlah penggunaan kumulatif",
+      "completedTryOns": "Percobaan selesai",
       "tryOnsUsed": "Percobaan Digunakan",
-      "tryOnsRemaining": "Percobaan Tersisa",
-      "totalTryOns": "Total Percobaan"
+      "tryOnsRemaining": "Percobaan Tersisa"
+    },
+    "quickActions": {
+      "title": "Aksi Cepat",
+      "startAITryOn": "Mulai Coba AI",
+      "upgradeToStandard": "Tingkatkan ke Standar",
+      "paymentHistory": "Riwayat Pembayaran"
+    },
+    "tips": {
+      "title": "💡 Tips",
+      "tip1": "Gunakan foto yang jelas dan menghadap depan untuk hasil terbaik",
+      "tip2": "Pencahayaan yang baik meningkatkan akurasi AI",
+      "tip3": "Coba berbagai gaya bingkai untuk menemukan yang paling cocok"
     },
     "recentActivity": {
-      "title": "Aktivitas Terkini",
-      "noActivity": "Tidak ada aktivitas terkini"
+      "title": "Percobaan Terkini",
+      "noActivity": "Belum ada catatan percobaan",
+      "noActivityDescription": "Mulai pengalaman coba kacamata AI pertama Anda!",
+      "viewAll": "Lihat Semua",
+      "status": {
+        "completed": "Selesai",
+        "processing": "Memproses",
+        "failed": "Gagal",
+        "unknown": "Tidak Diketahui"
+      }
     },
     "subscription": {
       "title": "Langganan",
