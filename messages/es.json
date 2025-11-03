@@ -294,6 +294,23 @@
     "premium": "Premium",
     "startTryOn": "Comenzar Prueba Ahora"
   },
+  "legal": {
+    "privacy": {
+      "title": "Política de Privacidad",
+      "lastUpdated": "Última actualización: {date}",
+      "backToHome": "Volver al Inicio"
+    },
+    "terms": {
+      "title": "Términos de Servicio",
+      "lastUpdated": "Última actualización: {date}",
+      "backToHome": "Volver al Inicio"
+    },
+    "refund": {
+      "title": "Política de Reembolso",
+      "lastUpdated": "Última actualización: {date}",
+      "backToHome": "Volver al Inicio"
+    }
+  },
   "footer": {
     "tagline": "Prueba virtual de gafas con IA",
     "links": {

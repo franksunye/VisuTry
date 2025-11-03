@@ -319,6 +319,23 @@
     "premium": "Premium",
     "startTryOn": "Start Try-On Now"
   },
+  "legal": {
+    "privacy": {
+      "title": "Privacy Policy",
+      "lastUpdated": "Last updated: {date}",
+      "backToHome": "Back to Home"
+    },
+    "terms": {
+      "title": "Terms of Service",
+      "lastUpdated": "Last updated: {date}",
+      "backToHome": "Back to Home"
+    },
+    "refund": {
+      "title": "Refund Policy",
+      "lastUpdated": "Last updated: {date}",
+      "backToHome": "Back to Home"
+    }
+  },
   "footer": {
     "tagline": "AI-powered virtual glasses try-on",
     "links": {

@@ -294,6 +294,23 @@
     "premium": "Premium",
     "startTryOn": "Mulai Mencoba Sekarang"
   },
+  "legal": {
+    "privacy": {
+      "title": "Kebijakan Privasi",
+      "lastUpdated": "Terakhir diperbarui: {date}",
+      "backToHome": "Kembali ke Beranda"
+    },
+    "terms": {
+      "title": "Ketentuan Layanan",
+      "lastUpdated": "Terakhir diperbarui: {date}",
+      "backToHome": "Kembali ke Beranda"
+    },
+    "refund": {
+      "title": "Kebijakan Pengembalian Dana",
+      "lastUpdated": "Terakhir diperbarui: {date}",
+      "backToHome": "Kembali ke Beranda"
+    }
+  },
   "footer": {
     "tagline": "Coba virtual kacamata dengan teknologi AI",
     "links": {

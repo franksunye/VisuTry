@@ -2,6 +2,7 @@ import { Metadata } from 'next'
 import { generateSEO } from '@/lib/seo'
 import Link from 'next/link'
 import { ArrowLeft, RefreshCw } from 'lucide-react'
+import { getTranslations } from 'next-intl/server'
 
 export const metadata: Metadata = generateSEO({
   title: 'Refund Policy | VisuTry',
@@ -9,7 +10,8 @@ export const metadata: Metadata = generateSEO({
   url: '/refund',
 })
 
-export default function RefundPage() {
+export default async function RefundPage() {
+  const t = await getTranslations('legal.refund')
   const lastUpdated = 'January 15, 2025'
 
   return (
@@ -22,16 +24,16 @@ export default function RefundPage() {
             className="inline-flex items-center text-blue-600 hover:text-blue-700 mb-4"
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
-            Back to Home
+            {t('backToHome')}
           </Link>
-          
+
           <div className="flex items-center mb-4">
             <RefreshCw className="w-10 h-10 text-blue-600 mr-3" />
-            <h1 className="text-4xl font-bold text-gray-900">Refund Policy</h1>
+            <h1 className="text-4xl font-bold text-gray-900">{t('title')}</h1>
           </div>
-          
+
           <p className="text-gray-600">
-            Last updated: {lastUpdated}
+            {t('lastUpdated', { date: lastUpdated })}
           </p>
         </div>
 
