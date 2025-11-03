@@ -57,6 +57,8 @@ export async function middleware(req: NextRequest) {
       console.log('[Admin Middleware] Access DENIED - User role:', userRole, 'Email:', token.email, 'Full token:', JSON.stringify(token, null, 2))
       const url = new URL(`/${defaultLocale}`, req.url)
       url.searchParams.set('error', 'Forbidden')
+      url.searchParams.set('debug_role', userRole || 'undefined')
+      url.searchParams.set('debug_email', token.email || 'no-email')
       return NextResponse.redirect(url)
     }
 
