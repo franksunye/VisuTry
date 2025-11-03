@@ -155,28 +155,30 @@ export default async function TryOnPage({ searchParams }: TryOnPageProps) {
               Page {currentPage} of {totalPages}
             </div>
             <div className="flex gap-2">
-              <Link
-                href={`/admin/try-on?page=${currentPage - 1}`}
-                className={`px-4 py-2 rounded border text-sm font-medium transition-colors ${
-                  currentPage === 1
-                    ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                    : 'bg-white text-gray-700 hover:bg-gray-50 border-gray-300'
-                }`}
-                onClick={(e) => currentPage === 1 && e.preventDefault()}
-              >
-                Previous
-              </Link>
-              <Link
-                href={`/admin/try-on?page=${currentPage + 1}`}
-                className={`px-4 py-2 rounded border text-sm font-medium transition-colors ${
-                  currentPage === totalPages
-                    ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                    : 'bg-white text-gray-700 hover:bg-gray-50 border-gray-300'
-                }`}
-                onClick={(e) => currentPage === totalPages && e.preventDefault()}
-              >
-                Next
-              </Link>
+              {currentPage > 1 ? (
+                <Link
+                  href={`/admin/try-on?page=${currentPage - 1}`}
+                  className="px-4 py-2 rounded border text-sm font-medium transition-colors bg-white text-gray-700 hover:bg-gray-50 border-gray-300"
+                >
+                  Previous
+                </Link>
+              ) : (
+                <span className="px-4 py-2 rounded border text-sm font-medium bg-gray-100 text-gray-400 cursor-not-allowed">
+                  Previous
+                </span>
+              )}
+              {currentPage < totalPages ? (
+                <Link
+                  href={`/admin/try-on?page=${currentPage + 1}`}
+                  className="px-4 py-2 rounded border text-sm font-medium transition-colors bg-white text-gray-700 hover:bg-gray-50 border-gray-300"
+                >
+                  Next
+                </Link>
+              ) : (
+                <span className="px-4 py-2 rounded border text-sm font-medium bg-gray-100 text-gray-400 cursor-not-allowed">
+                  Next
+                </span>
+              )}
             </div>
           </div>
         </CardContent>
