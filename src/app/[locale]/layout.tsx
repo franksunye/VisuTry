@@ -37,6 +37,7 @@ export async function generateMetadata(props: Props): Promise<Metadata> {
 export default async function LocaleLayout(props: Props) {
   const params = await props.params
   const locale = params.locale
+  const { children } = props
 
   // Validate that the incoming `locale` parameter is valid
   if (!locales.includes(locale as Locale)) {
