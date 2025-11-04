@@ -196,12 +196,6 @@ export const authOptions: NextAuthOptions = {
               role: dbUser.role,
               trigger
             })
-          } else {
-            console.warn('[Auth JWT] User not found in database:', {
-              userId: token.sub,
-              trigger
-            })
-          }
 
             // Calculate active status
             token.isPremiumActive = dbUser.isPremium &&
@@ -230,6 +224,11 @@ export const authOptions: NextAuthOptions = {
                 log.warn('auth', 'Failed to clear user cache', { userId: token.sub, error: cacheError })
               }
             }
+          } else {
+            console.warn('[Auth JWT] User not found in database:', {
+              userId: token.sub,
+              trigger
+            })
           }
         } catch (error) {
           perfLogger.end('auth:jwt:db-sync', { success: false, error: true })
