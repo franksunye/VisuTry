@@ -1,4 +1,4 @@
-import { Glasses, Shield, Zap } from "lucide-react"
+import { Shield, Zap } from "lucide-react"
 import { LoginButton } from "@/components/auth/LoginButton"
 import { Metadata } from 'next'
 import { generateI18nSEO } from '@/lib/seo'
@@ -22,24 +22,19 @@ export async function generateMetadata(props: Props): Promise<Metadata> {
 
 export default function SignInPage() {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 px-4">
-      <div className="max-w-md w-full space-y-8">
-        {/* Logo and Title */}
-        <div className="text-center">
-          <div className="flex items-center justify-center mb-4">
-            <Glasses className="w-12 h-12 text-blue-600 mr-3" />
-            <h1 className="text-3xl font-bold text-gray-900">VisuTry</h1>
-          </div>
-          <h2 className="text-xl text-gray-600 mb-2">
-            Log in to start your 3 free previews
-          </h2>
-          <p className="text-sm text-gray-500">
-            Discover the best glasses for your face — quickly, easily, and realistically.
-          </p>
-        </div>
-
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 px-4 py-12">
+      <div className="max-w-md w-full">
         {/* Sign In Card */}
         <div className="bg-white rounded-2xl shadow-lg p-8">
+          {/* Header */}
+          <div className="text-center mb-6">
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">
+              Log in to start your 3 free previews
+            </h2>
+            <p className="text-sm text-gray-500">
+              Discover the best glasses for your face — quickly, easily, and realistically.
+            </p>
+          </div>
           <div className="space-y-6">
             {/* Features */}
             <div className="space-y-4">
