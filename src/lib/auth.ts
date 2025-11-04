@@ -133,13 +133,11 @@ export const authOptions: NextAuthOptions = {
       // 1. First login (user exists)
       // 2. Manual trigger update (trigger === 'update')
       // 3. Token has no user data (isPremium is undefined)
-      // 4. Token has no role (critical for admin access)
-      // 5. Periodic sync: every 5 minutes to catch subscription changes
+      // 4. Periodic sync: every 5 minutes to catch subscription changes
       const tokenAge = token.iat ? Date.now() - (Number(token.iat) * 1000) : Infinity
       const shouldSync = user ||
                         trigger === 'update' ||
                         token.isPremium === undefined ||
-                        !token.role ||
                         tokenAge > 5 * 60 * 1000  // 5 minutes
 
       if (token.sub && shouldSync) {
