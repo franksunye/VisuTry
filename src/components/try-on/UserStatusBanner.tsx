@@ -60,21 +60,19 @@ export function UserStatusBanner() {
 
   // Free user with quota - BLUE INFO
   return (
-    <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+    <div className="bg-blue-50 border border-blue-200 rounded-lg p-2.5">
       <div className="flex items-center justify-between">
         <div className="text-blue-800 text-sm">
-          <strong>Free User</strong>
-          <div className="mt-1 text-blue-700 text-xs">
-            <div>Free try-ons: <span className="font-semibold">{Math.max(0, 3 - freeTrialsUsed)}/3</span></div>
-            {creditsBalance > 0 && (
-              <div>Credits available: <span className="font-semibold">{creditsBalance}</span></div>
-            )}
-            <div className="mt-1">Total remaining: <span className="font-semibold">{remainingTrials}</span></div>
-          </div>
+          <strong>Free User</strong> - Remaining: <span className="font-semibold">{remainingTrials}</span>
+          {creditsBalance > 0 && (
+            <span className="ml-3 text-blue-700">
+              (Free: {Math.max(0, 3 - freeTrialsUsed)}/3, Credits: {creditsBalance})
+            </span>
+          )}
         </div>
         <Link
           href="/pricing"
-          className="ml-4 bg-blue-600 text-white px-4 py-2 text-sm rounded-lg hover:bg-blue-700 transition-colors font-medium flex-shrink-0"
+          className="ml-4 bg-blue-600 text-white px-3 py-1.5 text-sm rounded-lg hover:bg-blue-700 transition-colors font-medium flex-shrink-0"
         >
           Buy Credits
         </Link>
