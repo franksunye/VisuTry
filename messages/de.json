@@ -176,6 +176,14 @@
     "pricing": {
       "title": "Preispläne - KI-Brillenanprobe | VisuTry",
       "description": "Wählen Sie den perfekten Plan für die KI-Brillenanprobe. Kostenlose Testversionen verfügbar, Premium-Funktionen für unbegrenzten Zugang. Finden Sie Ihre ideale Brille mit fortschrittlicher KI-Technologie."
+    },
+    "tryOn": {
+      "title": "Virtuelle Anprobe - Sehen Sie, Wie Brillen an Ihnen Aussehen | VisuTry",
+      "description": "Laden Sie Ihr Foto hoch und probieren Sie hunderte von Brillen virtuell mit KI an. Sehen Sie, wie verschiedene Fassungen an Ihrem Gesicht aussehen, bevor Sie kaufen."
+    },
+    "blog": {
+      "title": "Blog - Brillen-Tipps und Trends | VisuTry",
+      "description": "Entdecken Sie die neuesten Brillentrends, Styling-Tipps und Anleitungen zum Finden der perfekten Brille für Ihre Gesichtsform."
     }
   }
 }
