@@ -159,7 +159,7 @@ export const authOptions: NextAuthOptions = {
             hasRole: !!token.role
           })
 
-          const dbUser = await prisma.user.findUnique({
+          let dbUser = await prisma.user.findUnique({
             where: { id: token.sub },
             select: {
               name: true,
@@ -174,6 +174,43 @@ export const authOptions: NextAuthOptions = {
               premiumExpiresAt: true,
             }
           })
+
+          // FALLBACK: If user not found by ID, try to find by email
+          // This can happen if PrismaAdapter created user with CUID instead of Auth0 ID
+          if (!dbUser && token.email) {
+            console.log('[Auth JWT] User not found by ID, trying by email:', {
+              userId: token.sub,
+              email: token.email
+            })
+
+            dbUser = await prisma.user.findUnique({
+              where: { email: token.email },
+              select: {
+                id: true,
+                name: true,
+                email: true,
+                image: true,
+                username: true,
+                role: true,
+                freeTrialsUsed: true,
+                premiumUsageCount: true,
+                creditsBalance: true,
+                isPremium: true,
+                premiumExpiresAt: true,
+              }
+            })
+
+            if (dbUser) {
+              console.log('[Auth JWT] User found by email, updating token.sub:', {
+                oldId: token.sub,
+                newId: dbUser.id,
+                email: token.email
+              })
+              // Update token.sub to the correct user ID
+              token.sub = dbUser.id
+              token.id = dbUser.id
+            }
+          }
 
           perfLogger.end('auth:jwt:db-sync', {
             userId: token.sub,
