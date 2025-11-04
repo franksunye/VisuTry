@@ -1,6 +1,8 @@
 // Mock Services for Testing
 // This file provides mock implementations of external services
 
+import { UserRole } from '@prisma/client'
+
 export const isMockMode = process.env.ENABLE_MOCKS === 'true' || process.env.NODE_ENV === 'test'
 
 // Mock data for testing
@@ -11,7 +13,7 @@ export const mockUsers = [
     name: 'Test User',
     image: 'https://via.placeholder.com/150',
     username: 'testuser',
-    role: 'USER',
+    role: 'USER' as UserRole,
     freeTrialsUsed: 1,
     creditsBalance: 0,
     premiumUsageCount: 0,
@@ -24,7 +26,7 @@ export const mockUsers = [
     name: 'Premium User',
     image: 'https://via.placeholder.com/150',
     username: 'premiumuser',
-    role: 'USER',
+    role: 'USER' as UserRole,
     freeTrialsUsed: 0,
     creditsBalance: 10,
     premiumUsageCount: 5,
@@ -37,7 +39,7 @@ export const mockUsers = [
     name: 'Admin User',
     image: 'https://via.placeholder.com/150',
     username: 'adminuser',
-    role: 'ADMIN',
+    role: 'ADMIN' as UserRole,
     freeTrialsUsed: 0,
     creditsBalance: 0,
     premiumUsageCount: 0,

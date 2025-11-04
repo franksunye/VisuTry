@@ -17,7 +17,6 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    // @ts-ignore
     if (session.user.role !== 'ADMIN') {
       return NextResponse.json(
         { error: 'Forbidden - Admin access required' },

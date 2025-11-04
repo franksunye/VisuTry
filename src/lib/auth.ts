@@ -83,8 +83,8 @@ export const authOptions: NextAuthOptions = {
           session.user.email = (token.email as string) || session.user.email
           session.user.image = (token.image as string) || session.user.image
           session.user.username = (token.username as string) || session.user.username
-          // @ts-ignore
-          session.user.role = token.role
+          // CRITICAL: Ensure role is always set (default to USER if missing)
+          session.user.role = (token.role as any) || 'USER'
           session.user.freeTrialsUsed = (token.freeTrialsUsed as number) || 0
           // TypeScript workaround: premiumUsageCount and creditsBalance are defined in types/next-auth.d.ts
           ;(session.user as any).premiumUsageCount = (token.premiumUsageCount as number) || 0
@@ -111,15 +111,14 @@ export const authOptions: NextAuthOptions = {
         token.email = user.email
         token.image = user.image
         // CRITICAL: Set role from user object on first login
-        // @ts-ignore - role exists on User type
-        token.role = user.role
+        // If role is not set, it will be fetched from DB in the sync section below
+        token.role = user.role || 'USER'
 
         // Debug logging for first login
         console.log('[Auth JWT] First login - role set:', {
           userId: user.id,
           email: user.email,
-          // @ts-ignore
-          role: user.role
+          role: token.role
         })
       }
 
@@ -216,6 +215,11 @@ export const authOptions: NextAuthOptions = {
                 log.warn('auth', 'Failed to clear user cache', { userId: token.sub, error: cacheError })
               }
             }
+          } else {
+            console.warn('[Auth JWT] User not found in database:', {
+              userId: token.sub,
+              trigger
+            })
           }
         } catch (error) {
           perfLogger.end('auth:jwt:db-sync', { success: false, error: true })
@@ -328,28 +332,5 @@ export const authOptions: NextAuthOptions = {
   } as any),
 }
 
-// 扩展NextAuth类型
-declare module "next-auth" {
-  interface Session {
-    user: {
-      id: string
-      name?: string | null
-      email?: string | null
-      image?: string | null
-      username?: string | null
-      freeTrialsUsed: number
-      isPremium: boolean
-      premiumExpiresAt?: Date | null
-      isPremiumActive: boolean
-      remainingTrials: number
-    }
-  }
-
-  interface User {
-    id: string
-    username?: string | null
-    freeTrialsUsed: number
-    isPremium: boolean
-    premiumExpiresAt?: Date | null
-  }
-}
+// Note: NextAuth type extensions are defined in types/next-auth.d.ts
+// Do NOT duplicate them here as it will override the correct types

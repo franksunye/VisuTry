@@ -142,11 +142,62 @@ export async function POST(request: NextRequest) {
 
     console.log(`📊 Image sizes: user=${(userImageFile.size / 1024).toFixed(2)}KB, glasses=${(glassesImageFile.size / 1024).toFixed(2)}KB`)
 
+    // 🔍 DEBUG: Log file details to help diagnose upload issues
+    console.log(`📸 File details:`)
+    console.log(`  User image: name="${userImageFile.name}", size=${userImageFile.size}, type=${userImageFile.type}`)
+    console.log(`  Glasses image: name="${glassesImageFile.name}", size=${glassesImageFile.size}, type=${glassesImageFile.type}`)
+
+    // 🔍 CHECK 1: Are they the same File object reference?
+    const sameObject = userImageFile === glassesImageFile
+    console.log(`  Same object reference? ${sameObject ? '❌ YES (PROBLEM!)' : '✅ No'}`)
+
+    // 🔍 CHECK 2: Do they have identical metadata?
+    const sameMetadata = userImageFile.name === glassesImageFile.name &&
+                         userImageFile.size === glassesImageFile.size
+    if (sameMetadata) {
+      console.warn(`  ⚠️ WARNING: Files have identical name and size!`)
+      console.warn(`     This might indicate user uploaded the same file twice`)
+      console.warn(`     Or there's a bug in the upload process`)
+    }
+
+    // 🔍 CHECK 3: Calculate file content fingerprints to detect if content is identical
+    // This is critical - even if File objects are different, their content might be the same
+    const calculateFileFingerprint = async (file: File): Promise<string> => {
+      const buffer = await file.arrayBuffer()
+      const bytes = new Uint8Array(buffer)
+
+      // Create fingerprint from first 512 bytes + file size
+      let hash = 0
+      const sampleSize = Math.min(512, bytes.length)
+      for (let i = 0; i < sampleSize; i++) {
+        hash = ((hash << 5) - hash) + bytes[i]
+        hash = hash & hash // Convert to 32-bit integer
+      }
+
+      return `${file.size}-${hash.toString(16)}`
+    }
+
+    const userImageFingerprint = await calculateFileFingerprint(userImageFile)
+    const glassesImageFingerprint = await calculateFileFingerprint(glassesImageFile)
+
+    console.log(`  User image fingerprint: ${userImageFingerprint}`)
+    console.log(`  Glasses image fingerprint: ${glassesImageFingerprint}`)
+
+    if (userImageFingerprint === glassesImageFingerprint) {
+      console.error(`  ❌ CRITICAL: File content fingerprints are IDENTICAL!`)
+      console.error(`     This means the two files have the same content!`)
+      console.error(`     This is the root cause of the duplicate image problem!`)
+    } else {
+      console.log(`  ✅ File content fingerprints are different (good)`)
+    }
+
     // 🔥 FIX: Use single timestamp to avoid filename collision
     const timestamp = Date.now()
 
     // Upload user image
     const userImageFilename = `try-on/${userId}/${timestamp}-user.jpg`
+    console.log(`📤 Uploading user image to: ${userImageFilename}`)
+
     let userImageBlob
 
     if (isMockMode) {
@@ -157,8 +208,12 @@ export async function POST(request: NextRequest) {
       })
     }
 
+    console.log(`✅ User image uploaded to: ${userImageBlob.url}`)
+
     // Upload glasses image
     const glassesImageFilename = `try-on/${userId}/${timestamp}-glasses.jpg`
+    console.log(`📤 Uploading glasses image to: ${glassesImageFilename}`)
+
     let glassesImageBlob
 
     if (isMockMode) {
@@ -169,7 +224,15 @@ export async function POST(request: NextRequest) {
       })
     }
 
+    console.log(`✅ Glasses image uploaded to: ${glassesImageBlob.url}`)
+
     const glassesImageUrl = glassesImageBlob.url
+
+    // 🔍 DEBUG: Verify URLs are different
+    console.log(`🔍 Upload verification:`)
+    console.log(`  User URL: ${userImageBlob.url}`)
+    console.log(`  Glasses URL: ${glassesImageUrl}`)
+    console.log(`  URLs are ${userImageBlob.url === glassesImageUrl ? '❌ SAME (ERROR!)' : '✅ different (OK)'}`)
 
     // Create try-on task record
     let tryOnTask

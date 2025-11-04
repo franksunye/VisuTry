@@ -1,0 +1,182 @@
+{
+  "common": {
+    "getStarted": "Loslegen",
+    "learnMore": "Mehr Erfahren",
+    "signIn": "Anmelden",
+    "signOut": "Abmelden",
+    "startFreeTrial": "Kostenlose Testversion Starten",
+    "startTryOn": "Anprobe Starten",
+    "tryOn": "Virtuelle Anprobe",
+    "blog": "Blog",
+    "pricing": "Preise",
+    "dashboard": "Dashboard",
+    "profile": "Profil",
+    "settings": "Einstellungen",
+    "loading": "Lädt...",
+    "error": "Fehler",
+    "success": "Erfolg",
+    "cancel": "Abbrechen",
+    "save": "Speichern",
+    "delete": "Löschen",
+    "edit": "Bearbeiten",
+    "close": "Schließen",
+    "back": "Zurück",
+    "next": "Weiter",
+    "previous": "Vorherige",
+    "submit": "Absenden",
+    "confirm": "Bestätigen"
+  },
+  "nav": {
+    "home": "Startseite",
+    "tryOn": "Virtuelle Anprobe",
+    "blog": "Blog",
+    "pricing": "Preise",
+    "dashboard": "Dashboard",
+    "signIn": "Anmelden",
+    "signOut": "Abmelden",
+    "toggleMenu": "Navigationsmenü umschalten"
+  },
+  "home": {
+    "hero": {
+      "title": "Entdecken Sie die Brille, die Perfekt zu Ihnen Passt",
+      "subtitle": "Probieren Sie Brillen in 3 Einfachen Schritten"
+    },
+    "steps": {
+      "step1": {
+        "title": "Laden Sie Ihr Foto Hoch",
+        "description": "Laden Sie ein Foto von sich aus der Frontalansicht hoch — keine speziellen Werkzeuge erforderlich."
+      },
+      "step2": {
+        "title": "Wählen Sie Ihre Fassung",
+        "description": "Wählen Sie die Brille, die Ihnen gefällt. Wir zeigen Ihnen, wie jeder Stil an Ihrem Gesicht aussieht."
+      },
+      "step3": {
+        "title": "Ansehen und Speichern",
+        "description": "Sehen Sie Ihren besten Look, dann speichern oder teilen Sie ihn."
+      }
+    },
+    "cta": {
+      "button": "Loslegen"
+    }
+  },
+  "pricing": {
+    "title": "Wählen Sie Ihren Plan",
+    "subtitle": "Wählen Sie den perfekten Plan für Ihre Bedürfnisse",
+    "currentPlan": "Aktueller Plan",
+    "freeUser": "Kostenloser Benutzer",
+    "remainingTryOns": "Verbleibende Anproben: {count}",
+    "plans": {
+      "creditsPack": {
+        "name": "Credits-Paket",
+        "description": "Perfekt für gelegentliche Nutzung",
+        "price": "2,99 €",
+        "period": "Einmalig",
+        "buttonText": "Credits-Paket Kaufen",
+        "features": [
+          "10 KI-Anproben",
+          "Hochwertige Bildverarbeitung",
+          "Unbegrenzte Downloads und Teilen",
+          "Standard-Brillenfassungsbibliothek",
+          "E-Mail-Support"
+        ]
+      },
+      "monthly": {
+        "name": "Standard",
+        "description": "Beliebteste Wahl",
+        "price": "8,99 €",
+        "period": "pro Monat",
+        "buttonText": "Monatsabonnement Starten",
+        "features": [
+          "30 KI-Anproben pro Monat",
+          "Hochwertige Bildverarbeitung",
+          "Prioritäts-Warteschlange",
+          "Unbegrenzte Downloads und Teilen",
+          "Standard-Brillenfassungsbibliothek",
+          "Prioritäts-Kundensupport"
+        ]
+      },
+      "yearly": {
+        "name": "Standard",
+        "description": "Bester Wert - Sparen Sie 17%",
+        "price": "89,99 €",
+        "originalPrice": "107,88 €",
+        "period": "pro Jahr",
+        "buttonText": "Jahresabonnement Starten",
+        "features": [
+          "420 KI-Anproben pro Jahr (35/Monat)",
+          "Hochwertige Bildverarbeitung",
+          "Prioritäts-Warteschlange",
+          "Unbegrenzte Downloads und Teilen",
+          "Standard-Brillenfassungsbibliothek",
+          "Prioritäts-Kundensupport",
+          "Sparen Sie 17,89 € im Vergleich zum Monatsabo"
+        ]
+      }
+    },
+    "comparison": {
+      "title": "Pläne Vergleichen",
+      "features": {
+        "aiTryOns": "KI-Anproben",
+        "imageQuality": "Bildqualität",
+        "processingSpeed": "Verarbeitungsgeschwindigkeit",
+        "downloads": "Downloads & Teilen",
+        "frameLibrary": "Fassungsbibliothek",
+        "support": "Kundensupport"
+      },
+      "values": {
+        "free": {
+          "aiTryOns": "3 Mal",
+          "imageQuality": "Standard",
+          "processingSpeed": "Standard",
+          "downloads": "Begrenzt",
+          "frameLibrary": "Basis",
+          "support": "E-Mail"
+        },
+        "credits": {
+          "aiTryOns": "+10 Mal",
+          "imageQuality": "Hoch",
+          "processingSpeed": "Standard",
+          "downloads": "Unbegrenzt",
+          "frameLibrary": "Standard",
+          "support": "E-Mail"
+        },
+        "standard": {
+          "aiTryOns": "30/Monat oder 420/Jahr",
+          "imageQuality": "Hoch",
+          "processingSpeed": "Priorität",
+          "downloads": "Unbegrenzt",
+          "frameLibrary": "Standard",
+          "support": "Priorität"
+        }
+      }
+    }
+  },
+  "footer": {
+    "tagline": "KI-gestützte virtuelle Brillenanprobe",
+    "links": {
+      "product": "Produkt",
+      "company": "Unternehmen",
+      "legal": "Rechtliches",
+      "support": "Support",
+      "tryOn": "Virtuelle Anprobe",
+      "pricing": "Preise",
+      "blog": "Blog",
+      "privacy": "Datenschutzerklärung",
+      "terms": "Nutzungsbedingungen",
+      "refund": "Rückerstattungsrichtlinie"
+    },
+    "copyright": "© {year} VisuTry. Alle Rechte vorbehalten.",
+    "madeWith": "Gemacht mit ❤️ unter Verwendung von KI-Technologie"
+  },
+  "meta": {
+    "home": {
+      "title": "VisuTry - KI-Virtuelle Brillenanprobe | Finden Sie Ihre Perfekte Brille Online",
+      "description": "Probieren Sie Brillen virtuell mit KI-Technologie an. Finden Sie die perfekte Brille für Ihre Gesichtsform mit unserem intelligenten Brillenempfehlungstool. Kaufen Sie Designer-Fassungen online mit Vertrauen durch virtuelle Anprobe."
+    },
+    "pricing": {
+      "title": "Preispläne - KI-Brillenanprobe | VisuTry",
+      "description": "Wählen Sie den perfekten Plan für die KI-Brillenanprobe. Kostenlose Testversionen verfügbar, Premium-Funktionen für unbegrenzten Zugang. Finden Sie Ihre ideale Brille mit fortschrittlicher KI-Technologie."
+    }
+  }
+}
+

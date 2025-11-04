@@ -2,116 +2,139 @@ import { MetadataRoute } from 'next'
 import { prisma } from '@/lib/prisma'
 import { getBlogSitemapEntries } from '@/lib/blog'
 import { slugify } from '@/lib/programmatic-seo'
+import { locales } from '@/i18n'
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://visutry.com'
 
-  // Static pages
-  const staticPages: MetadataRoute.Sitemap = [
-    {
-      url: baseUrl,
-      lastModified: new Date(),
-      changeFrequency: 'daily',
-      priority: 1,
-    },
-    {
-      url: `${baseUrl}/try-on`,
-      lastModified: new Date(),
-      changeFrequency: 'weekly',
-      priority: 0.9,
-    },
-    {
-      url: `${baseUrl}/blog`,
-      lastModified: new Date(),
-      changeFrequency: 'weekly',
-      priority: 0.8,
-    },
-    {
-      url: `${baseUrl}/pricing`,
-      lastModified: new Date(),
-      changeFrequency: 'weekly',
-      priority: 0.7,
-    },
-    {
-      url: `${baseUrl}/auth/signin`,
-      lastModified: new Date(),
-      changeFrequency: 'monthly',
-      priority: 0.6,
-    },
-    // Legal pages
-    {
-      url: `${baseUrl}/privacy`,
-      lastModified: new Date(),
-      changeFrequency: 'monthly',
-      priority: 0.5,
-    },
-    {
-      url: `${baseUrl}/terms`,
-      lastModified: new Date(),
-      changeFrequency: 'monthly',
-      priority: 0.5,
-    },
-    {
-      url: `${baseUrl}/refund`,
-      lastModified: new Date(),
-      changeFrequency: 'monthly',
-      priority: 0.5,
-    },
+  // Helper function to generate alternate languages
+  const generateAlternates = (path: string) => {
+    const alternates: { [key: string]: string } = {}
+    locales.forEach(locale => {
+      alternates[locale] = `${baseUrl}/${locale}${path}`
+    })
+    return alternates
+  }
+
+  // Static pages with i18n support
+  const staticPagePaths = [
+    { path: '', priority: 1, changeFrequency: 'daily' as const },
+    { path: '/try-on', priority: 0.9, changeFrequency: 'weekly' as const },
+    { path: '/blog', priority: 0.8, changeFrequency: 'weekly' as const },
+    { path: '/pricing', priority: 0.7, changeFrequency: 'weekly' as const },
+    { path: '/auth/signin', priority: 0.6, changeFrequency: 'monthly' as const },
+    { path: '/privacy', priority: 0.5, changeFrequency: 'monthly' as const },
+    { path: '/terms', priority: 0.5, changeFrequency: 'monthly' as const },
+    { path: '/refund', priority: 0.5, changeFrequency: 'monthly' as const },
   ]
 
-  // Dynamic blog post pages
-  const blogPages: MetadataRoute.Sitemap = await getBlogSitemapEntries()
+  // Generate static pages for all locales
+  const staticPages: MetadataRoute.Sitemap = []
+  staticPagePaths.forEach(({ path, priority, changeFrequency }) => {
+    locales.forEach(locale => {
+      staticPages.push({
+        url: `${baseUrl}/${locale}${path}`,
+        lastModified: new Date(),
+        changeFrequency,
+        priority,
+        alternates: {
+          languages: generateAlternates(path),
+        },
+      })
+    })
+  })
 
-  // Dynamic product pages (frames)
+  // Dynamic blog post pages (with i18n)
+  const blogPagesBase: MetadataRoute.Sitemap = await getBlogSitemapEntries()
+  const blogPages: MetadataRoute.Sitemap = []
+  blogPagesBase.forEach(page => {
+    // Extract path from URL
+    const path = page.url.replace(baseUrl, '')
+    locales.forEach(locale => {
+      blogPages.push({
+        ...page,
+        url: `${baseUrl}/${locale}${path}`,
+        alternates: {
+          languages: generateAlternates(path),
+        },
+      })
+    })
+  })
+
+  // Dynamic product pages (frames) with i18n
   let productPages: MetadataRoute.Sitemap = []
   try {
     const frames = await prisma.glassesFrame.findMany({
       where: { isActive: true },
       select: { id: true, updatedAt: true },
     })
-    productPages = frames.map(frame => ({
-      url: `${baseUrl}/try/${frame.id}`,
-      lastModified: frame.updatedAt,
-      changeFrequency: 'monthly' as const,
-      priority: 0.8,
-    }))
+    frames.forEach(frame => {
+      const path = `/try/${frame.id}`
+      locales.forEach(locale => {
+        productPages.push({
+          url: `${baseUrl}/${locale}${path}`,
+          lastModified: frame.updatedAt,
+          changeFrequency: 'monthly' as const,
+          priority: 0.8,
+          alternates: {
+            languages: generateAlternates(path),
+          },
+        })
+      })
+    })
   } catch (error) {
     console.log('Unable to fetch product pages, skipping product sitemap generation')
   }
 
-  // Dynamic face shape pages
+  // Dynamic face shape pages with i18n
   let faceShapePages: MetadataRoute.Sitemap = []
   try {
     const shapes = await prisma.faceShape.findMany({
       select: { name: true, updatedAt: true },
     })
-    faceShapePages = shapes.map(shape => ({
-      url: `${baseUrl}/style/${slugify(shape.name)}`,
-      lastModified: shape.updatedAt,
-      changeFrequency: 'monthly' as const,
-      priority: 0.7,
-    }))
+    shapes.forEach(shape => {
+      const path = `/style/${slugify(shape.name)}`
+      locales.forEach(locale => {
+        faceShapePages.push({
+          url: `${baseUrl}/${locale}${path}`,
+          lastModified: shape.updatedAt,
+          changeFrequency: 'monthly' as const,
+          priority: 0.7,
+          alternates: {
+            languages: generateAlternates(path),
+          },
+        })
+      })
+    })
   } catch (error) {
     console.log('Unable to fetch face shape pages, skipping face shape sitemap generation')
   }
 
-  // Dynamic category pages
+  // Dynamic category pages with i18n
   let categoryPages: MetadataRoute.Sitemap = []
   try {
     const categories = await prisma.glassesCategory.findMany({
       select: { name: true, updatedAt: true },
     })
-    categoryPages = categories.map(category => ({
-      url: `${baseUrl}/category/${slugify(category.name)}`,
-      lastModified: category.updatedAt,
-      changeFrequency: 'monthly' as const,
-      priority: 0.7,
-    }))
+    categories.forEach(category => {
+      const path = `/category/${slugify(category.name)}`
+      locales.forEach(locale => {
+        categoryPages.push({
+          url: `${baseUrl}/${locale}${path}`,
+          lastModified: category.updatedAt,
+          changeFrequency: 'monthly' as const,
+          priority: 0.7,
+          alternates: {
+            languages: generateAlternates(path),
+          },
+        })
+      })
+    })
   } catch (error) {
     console.log('Unable to fetch category pages, skipping category sitemap generation')
   }
 
-  // Dynamic brand pages
+  // Dynamic brand pages with i18n
   let brandPages: MetadataRoute.Sitemap = []
   try {
     const brands = await prisma.glassesFrame.findMany({
@@ -119,14 +142,22 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       distinct: ['brand'],
       select: { brand: true, updatedAt: true },
     })
-    brandPages = brands
+    brands
       .filter((b): b is { brand: string; updatedAt: Date } => b.brand !== null && b.brand !== undefined)
-      .map(brand => ({
-        url: `${baseUrl}/brand/${slugify(brand.brand)}`,
-        lastModified: brand.updatedAt,
-        changeFrequency: 'monthly' as const,
-        priority: 0.6,
-      }))
+      .forEach(brand => {
+        const path = `/brand/${slugify(brand.brand)}`
+        locales.forEach(locale => {
+          brandPages.push({
+            url: `${baseUrl}/${locale}${path}`,
+            lastModified: brand.updatedAt,
+            changeFrequency: 'monthly' as const,
+            priority: 0.6,
+            alternates: {
+              languages: generateAlternates(path),
+            },
+          })
+        })
+      })
   } catch (error) {
     console.log('Unable to fetch brand pages, skipping brand sitemap generation')
   }

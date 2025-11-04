@@ -56,7 +56,8 @@ export interface TryOnResult {
 export async function generateTryOnImage({
   userImageUrl,
   glassesImageUrl,
-  prompt = "Place these glasses naturally on the person's face. Ensure the glasses fit properly, match the lighting and perspective, and look realistic."
+  // Original prompt: "Place these glasses naturally on the person's face. Ensure the glasses fit properly, match the lighting and perspective, and look realistic."
+  prompt = "Place the glasses naturally on the person's face. Although the head is slightly tilted, the glasses frame tilts accordingly and aligns exactly with the roll/tilt angle of the head, sitting properly on the nose bridge and temples. Ensure the glasses fit properly, match the lighting and perspective, and look realistic. Avoid distortion or skewing of the frame."
 }: TryOnRequest): Promise<TryOnResult> {
   // Use mock service in test mode
   if (isMockMode) {

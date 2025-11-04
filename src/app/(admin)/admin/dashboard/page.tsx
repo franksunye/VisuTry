@@ -4,6 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import Link from 'next/link';
+import { User } from 'lucide-react';
 
 // This is a React Server Component (RSC) to display the admin dashboard.
 // It fetches data directly on the server to provide key metrics.
@@ -251,6 +252,7 @@ export default async function DashboardPage() {
             <Table>
               <TableHeader>
                 <TableRow>
+                  <TableHead>Avatar</TableHead>
                   <TableHead>Name</TableHead>
                   <TableHead>Email</TableHead>
                   <TableHead>Joined</TableHead>
@@ -259,6 +261,19 @@ export default async function DashboardPage() {
               <TableBody>
                 {stats.recentUsers.map((user) => (
                   <TableRow key={user.id}>
+                    <TableCell>
+                      {user.image ? (
+                        <img
+                          src={user.image}
+                          alt={user.name || 'User'}
+                          className="w-8 h-8 rounded-full object-cover"
+                        />
+                      ) : (
+                        <div className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center">
+                          <User className="w-4 h-4 text-gray-500" />
+                        </div>
+                      )}
+                    </TableCell>
                     <TableCell className="font-medium">
                       <Link
                         href={`/admin/users/${user.id}`}

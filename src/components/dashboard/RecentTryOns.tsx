@@ -4,7 +4,8 @@ import { Clock, CheckCircle, XCircle, Loader2, ExternalLink, History } from "luc
 import Link from "next/link"
 import Image from "next/image"
 import { formatDistanceToNow } from "date-fns"
-import { getThumbnailUrl, getResponsiveSizes } from "@/lib/image-utils"
+import { getThumbnailUrl, getResponsiveSizes, IMAGE_QUALITY } from "@/lib/image-utils"
+import { useTranslations } from "next-intl"
 
 interface TryOnTask {
   id: string
@@ -19,6 +20,8 @@ interface RecentTryOnsProps {
 }
 
 export function RecentTryOns({ tryOns }: RecentTryOnsProps) {
+  const t = useTranslations('dashboard.recentActivity')
+
   const getStatusIcon = (status: string) => {
     switch (status.toLowerCase()) {
       case "completed":
@@ -35,13 +38,13 @@ export function RecentTryOns({ tryOns }: RecentTryOnsProps) {
   const getStatusText = (status: string) => {
     switch (status.toLowerCase()) {
       case "completed":
-        return "Completed"
+        return t('status.completed')
       case "processing":
-        return "Processing"
+        return t('status.processing')
       case "failed":
-        return "Failed"
+        return t('status.failed')
       default:
-        return "Unknown"
+        return t('status.unknown')
     }
   }
 
@@ -62,18 +65,18 @@ export function RecentTryOns({ tryOns }: RecentTryOnsProps) {
     return (
       <div className="bg-white rounded-xl shadow-sm border">
         <div className="p-6 border-b border-gray-200">
-          <h2 className="text-lg font-semibold text-gray-900">Recent Try-Ons</h2>
+          <h2 className="text-lg font-semibold text-gray-900">{t('title')}</h2>
         </div>
 
         <div className="p-8 text-center">
           <History className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 mb-2">No try-on records yet</h3>
-          <p className="text-gray-500 mb-6">Start your first AI glasses try-on experience!</p>
+          <h3 className="text-lg font-medium text-gray-900 mb-2">{t('noActivity')}</h3>
+          <p className="text-gray-500 mb-6">{t('noActivityDescription')}</p>
           <Link
             href="/try-on"
             className="inline-flex items-center px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
           >
-            Start Try-On
+            {t('../../common.startTryOn')}
           </Link>
         </div>
       </div>
@@ -84,12 +87,12 @@ export function RecentTryOns({ tryOns }: RecentTryOnsProps) {
     <div className="bg-white rounded-xl shadow-sm border">
       <div className="p-6 border-b border-gray-200">
         <div className="flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-gray-900">Recent Try-Ons</h2>
+          <h2 className="text-lg font-semibold text-gray-900">{t('title')}</h2>
           <Link
             href="/dashboard/history"
             className="text-blue-600 hover:text-blue-700 text-sm font-medium flex items-center"
           >
-            View All
+            {t('viewAll')}
             <ExternalLink className="w-4 h-4 ml-1" />
           </Link>
         </div>
@@ -103,25 +106,25 @@ export function RecentTryOns({ tryOns }: RecentTryOnsProps) {
               <div className="aspect-square bg-gray-100 relative">
                 {tryOn.resultImageUrl ? (
                   <Image
-                    src={getThumbnailUrl(tryOn.resultImageUrl, 300, 40)}
+                    src={tryOn.resultImageUrl}
                     alt="Try-on result"
                     fill
-                    sizes={getResponsiveSizes(300)}
+                    sizes="(max-width: 640px) 90vw, (max-width: 768px) 45vw, (max-width: 1024px) 30vw, 320px"
                     className="object-cover"
                     loading={index < 3 ? "eager" : "lazy"}
                     priority={index < 3}
-                    quality={40}
+                    quality={IMAGE_QUALITY.HIGH}
                   />
                 ) : (
                   <Image
-                    src={getThumbnailUrl(tryOn.userImageUrl, 300, 40)}
+                    src={tryOn.userImageUrl}
                     alt="User photo"
                     fill
-                    sizes={getResponsiveSizes(300)}
+                    sizes="(max-width: 640px) 90vw, (max-width: 768px) 45vw, (max-width: 1024px) 30vw, 320px"
                     className="object-cover opacity-50"
                     loading={index < 3 ? "eager" : "lazy"}
                     priority={index < 3}
-                    quality={40}
+                    quality={IMAGE_QUALITY.HIGH}
                   />
                 )}
 
