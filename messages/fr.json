@@ -151,6 +151,23 @@
       }
     }
   },
+  "footer": {
+    "tagline": "Essayage virtuel de lunettes avec IA",
+    "links": {
+      "product": "Produit",
+      "company": "Entreprise",
+      "legal": "Légal",
+      "support": "Support",
+      "tryOn": "Essayage Virtuel",
+      "pricing": "Tarifs",
+      "blog": "Blog",
+      "privacy": "Politique de Confidentialité",
+      "terms": "Conditions d'Utilisation",
+      "refund": "Politique de Remboursement"
+    },
+    "copyright": "© {year} VisuTry. Tous droits réservés.",
+    "madeWith": "Fait avec ❤️ en utilisant la technologie IA"
+  },
   "meta": {
     "home": {
       "title": "VisuTry - Outil d'Essayage Virtuel de Lunettes IA | Trouvez Vos Lunettes Parfaites en Ligne",

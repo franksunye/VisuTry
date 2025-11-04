@@ -151,6 +151,23 @@
       }
     }
   },
+  "footer": {
+    "tagline": "AI搭載バーチャルメガネ試着",
+    "links": {
+      "product": "製品",
+      "company": "会社",
+      "legal": "法的情報",
+      "support": "サポート",
+      "tryOn": "バーチャル試着",
+      "pricing": "料金",
+      "blog": "ブログ",
+      "privacy": "プライバシーポリシー",
+      "terms": "利用規約",
+      "refund": "返金ポリシー"
+    },
+    "copyright": "© {year} VisuTry. 全著作権所有。",
+    "madeWith": "AI技術を使用して❤️で作成"
+  },
   "meta": {
     "home": {
       "title": "VisuTry - AIバーチャルメガネ試着ツール | オンラインで完璧なメガネを見つける",

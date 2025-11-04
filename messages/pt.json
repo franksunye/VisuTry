@@ -151,6 +151,23 @@
       }
     }
   },
+  "footer": {
+    "tagline": "Experimentação virtual de óculos com IA",
+    "links": {
+      "product": "Produto",
+      "company": "Empresa",
+      "legal": "Legal",
+      "support": "Suporte",
+      "tryOn": "Experimentação Virtual",
+      "pricing": "Preços",
+      "blog": "Blog",
+      "privacy": "Política de Privacidade",
+      "terms": "Termos de Serviço",
+      "refund": "Política de Reembolso"
+    },
+    "copyright": "© {year} VisuTry. Todos os direitos reservados.",
+    "madeWith": "Feito com ❤️ usando tecnologia de IA"
+  },
   "meta": {
     "home": {
       "title": "VisuTry - Ferramenta de Experimentação Virtual de Óculos com IA | Encontre Seus Óculos Perfeitos Online",

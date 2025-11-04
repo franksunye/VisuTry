@@ -151,6 +151,23 @@
       }
     }
   },
+  "footer": {
+    "tagline": "KI-gestützte virtuelle Brillenanprobe",
+    "links": {
+      "product": "Produkt",
+      "company": "Unternehmen",
+      "legal": "Rechtliches",
+      "support": "Support",
+      "tryOn": "Virtuelle Anprobe",
+      "pricing": "Preise",
+      "blog": "Blog",
+      "privacy": "Datenschutzerklärung",
+      "terms": "Nutzungsbedingungen",
+      "refund": "Rückerstattungsrichtlinie"
+    },
+    "copyright": "© {year} VisuTry. Alle Rechte vorbehalten.",
+    "madeWith": "Gemacht mit ❤️ unter Verwendung von KI-Technologie"
+  },
   "meta": {
     "home": {
       "title": "VisuTry - KI-Virtuelle Brillenanprobe | Finden Sie Ihre Perfekte Brille Online",
