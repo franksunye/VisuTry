@@ -193,12 +193,18 @@ export const authOptions: NextAuthOptions = {
               (!dbUser.premiumExpiresAt || dbUser.premiumExpiresAt > new Date())
 
             // Calculate remaining trials (using centralized config)
-            // Total = Free trials remaining + Credits balance
+            // Note: For Premium users, we can't determine subscription type here (not stored in User model)
+            // So we use a conservative estimate: assume monthly quota (30)
+            // The actual quota will be calculated on pages that have access to Payment records
             if (token.isPremiumActive) {
-              // Premium users: show their subscription quota
-              token.remainingTrials = 999 // Will be calculated based on subscription type
+              // Premium users: use conservative monthly quota + credits
+              // (actual quota depends on subscription type, calculated elsewhere)
+              const conservativeQuota = QUOTA_CONFIG.MONTHLY_SUBSCRIPTION
+              const subscriptionRemaining = Math.max(0, conservativeQuota - (dbUser.premiumUsageCount || 0))
+              const creditsRemaining = dbUser.creditsBalance || 0
+              token.remainingTrials = subscriptionRemaining + creditsRemaining
             } else {
-              // Free users: total = free trials remaining + credits balance
+              // Free users: free trials remaining + credits balance
               const freeRemaining = Math.max(0, QUOTA_CONFIG.FREE_TRIAL - dbUser.freeTrialsUsed)
               const creditsRemaining = dbUser.creditsBalance || 0
               token.remainingTrials = freeRemaining + creditsRemaining
