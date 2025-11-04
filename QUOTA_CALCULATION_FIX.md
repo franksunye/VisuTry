@@ -287,10 +287,11 @@ const usagePercentage = totalQuota > 0 ? (totalUsed / totalQuota) * 100 : 0
 
 **修改后**:
 ```typescript
+const creditsRemaining = (user.creditsPurchased || 0) - (user.creditsUsed || 0)
 {remainingTrials} try-ons remaining
-{creditsBalance > 0 && (
+{creditsRemaining > 0 && (
   <p className="text-xs text-gray-500">
-    Free: {Math.max(0, freeTrialLimit - freeTrialsUsed)}, Credits: {creditsBalance}
+    Free: {Math.max(0, freeTrialLimit - freeTrialsUsed)}, Credits: {creditsRemaining}
   </p>
 )}
 ```
@@ -310,13 +311,14 @@ interface User {
   subscriptionType?: string | null
   isYearlySubscription?: boolean
   // Credits 追踪字段
-  creditsPurchased?: number  // ✅ 新增：购买的总数
-  creditsUsed?: number  // ✅ 新增：已使用的数量
-  creditsBalance?: number  // 冗余字段：creditsPurchased - creditsUsed
+  creditsPurchased?: number  // ✅ 购买的总数
+  creditsUsed?: number  // ✅ 已使用的数量
   // Premium 追踪字段
   premiumUsageCount?: number  // ✅ 已使用的订阅次数
 }
 ```
+
+**说明**：删除 `creditsBalance`，所有计算都用 `creditsPurchased - creditsUsed`。
 
 然后，添加 Premium 用户的进度条（包含 Credits）:
 ```typescript

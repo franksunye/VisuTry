@@ -210,11 +210,16 @@ ALTER TABLE "User" ADD COLUMN "creditsPurchased" INT DEFAULT 0;
 ALTER TABLE "User" ADD COLUMN "creditsUsed" INT DEFAULT 0;
 
 -- 迁移现有数据
-UPDATE "User" 
+UPDATE "User"
 SET creditsPurchased = creditsBalance,
     creditsUsed = 0
 WHERE creditsBalance > 0;
+
+-- 删除冗余字段
+ALTER TABLE "User" DROP COLUMN "creditsBalance";
 ```
+
+**说明**：`creditsBalance` 是冗余字段，应该直接删除。所有计算都用 `creditsPurchased - creditsUsed`。
 
 ### 步骤 2：更新 Webhook
 ```typescript
@@ -224,9 +229,6 @@ await prisma.user.update({
   data: {
     creditsPurchased: {
       increment: QUOTA_CONFIG.CREDITS_PACK
-    },
-    creditsBalance: {
-      increment: QUOTA_CONFIG.CREDITS_PACK  // 同时更新冗余字段
     }
   }
 })
@@ -240,9 +242,6 @@ await prisma.user.update({
   data: {
     creditsUsed: {
       increment: 1
-    },
-    creditsBalance: {
-      decrement: 1  // 同时更新冗余字段
     }
   }
 })
@@ -326,4 +325,91 @@ const usagePercentage = (totalUsed / totalQuota) * 100
 - [ ] 进度条: 包含 Free + Credits 的总进度
 - [ ] 拆开显示: 各部分清晰可见
 - [ ] Premium 进度条: 正确显示
+
+# creditsBalance 字段废弃说明
+
+## 🔴 问题
+
+`creditsBalance` 是一个**冗余字段**，应该被删除。
+
+### 为什么冗余？
+
+```
+creditsBalance = creditsPurchased - creditsUsed
+```
+
+这个值可以直接计算，不需要存储。
+
+---
+
+## ✅ 解决方案
+
+### 数据库迁移
+
+```sql
+-- 步骤 1: 添加新字段
+ALTER TABLE "User" ADD COLUMN "creditsPurchased" INT DEFAULT 0;
+ALTER TABLE "User" ADD COLUMN "creditsUsed" INT DEFAULT 0;
+
+-- 步骤 2: 迁移现有数据
+UPDATE "User" 
+SET creditsPurchased = creditsBalance,
+    creditsUsed = 0
+WHERE creditsBalance > 0;
+
+-- 步骤 3: 删除冗余字段
+ALTER TABLE "User" DROP COLUMN "creditsBalance";
+```
+
+### 代码更新
+
+**Webhook（购买 Credits）**:
+```typescript
+// ❌ 旧代码
+creditsBalance: { increment: 10 }
+
+// ✅ 新代码
+creditsPurchased: { increment: 10 }
+```
+
+**Try-On API（使用 Credits）**:
+```typescript
+// ❌ 旧代码
+creditsBalance: { decrement: 1 }
+
+// ✅ 新代码
+creditsUsed: { increment: 1 }
+```
+
+**计算剩余**:
+```typescript
+// ❌ 旧代码
+const creditsRemaining = creditsBalance
+
+// ✅ 新代码
+const creditsRemaining = creditsPurchased - creditsUsed
+```
+
+---
+
+## 📊 设计一致性
+
+现在三个配额来源**完全一致**：
+
+| 配额来源 | 总 | 已使用 | 剩余 |
+|---------|-----|--------|------|
+| Free | 3 | `freeTrialsUsed` | `3 - freeTrialsUsed` |
+| Premium | 30/420 | `premiumUsageCount` | `quota - premiumUsageCount` |
+| Credits | `creditsPurchased` | `creditsUsed` | `creditsPurchased - creditsUsed` |
+
+**所有都用"总 - 已使用"的模式！**
+
+---
+
+## ✅ 已更新的文件
+
+- ✅ QUOTA_DESIGN_ISSUE.md - 步骤 1-3
+- ✅ QUOTA_CALCULATION_FIX.md - User 接口、显示文本
+
+
 
