@@ -72,8 +72,7 @@ export function getMockAuthOptions(): NextAuthOptions {
           
           // Get mock user data
           const mockUser = mockUsers.find(u => u.id === session.user.id) || mockUsers[0]
-          
-          // @ts-ignore
+
           session.user.role = mockUser.role
           session.user.freeTrialsUsed = mockUser.freeTrialsUsed
           session.user.isPremium = mockUser.isPremium

@@ -50,7 +50,6 @@ export async function middleware(req: NextRequest) {
       return NextResponse.redirect(url)
     }
 
-    // @ts-ignore
     const userRole = token.role
 
     if (userRole !== 'ADMIN') {

@@ -12,16 +12,25 @@ export default function DebugAuthPage() {
     async function fetchDbUser() {
       if (session?.user?.id) {
         try {
+          // Try to fetch user profile
           const res = await fetch('/api/user/profile')
           const data = await res.json()
           setDbUser(data)
+
+          // Also try to query database directly for this user ID
+          const dbCheckRes = await fetch('/api/debug/check-user?userId=' + session.user.id)
+          const dbCheckData = await dbCheckRes.json()
+          setDbUser((prev: any) => ({
+            ...prev,
+            dbCheck: dbCheckData
+          }))
         } catch (error) {
           console.error('Error fetching user:', error)
         }
       }
       setLoading(false)
     }
-    
+
     if (status !== 'loading') {
       fetchDbUser()
     }
@@ -84,6 +93,60 @@ export default function DebugAuthPage() {
             ) : (
               <p className="text-red-600">Error: {dbUser.error}</p>
             )}
+          </div>
+        )}
+
+        {/* Database Check */}
+        {dbUser?.dbCheck && (
+          <div className="bg-white rounded-lg shadow p-6 mb-6">
+            <h2 className="text-xl font-semibold mb-4">Database Check</h2>
+            <div className="space-y-4">
+              <div>
+                <p className="font-medium mb-2">User Exists in DB: {dbUser.dbCheck.userExists ? '✅ Yes' : '❌ No'}</p>
+                {!dbUser.dbCheck.userExists && (
+                  <div className="bg-red-50 border border-red-200 rounded p-3 text-sm">
+                    <p className="text-red-900 font-medium">⚠️ User ID not found in database!</p>
+                    <p className="text-red-700">This means Auth0 created a session but the user wasn't saved to the database.</p>
+                  </div>
+                )}
+              </div>
+
+              {dbUser.dbCheck.user && (
+                <div>
+                  <p className="font-medium mb-2">Database User Info:</p>
+                  <div className="bg-gray-50 p-3 rounded text-sm space-y-1">
+                    <p>ID: {dbUser.dbCheck.user.id}</p>
+                    <p>Email: {dbUser.dbCheck.user.email}</p>
+                    <p>Role: {dbUser.dbCheck.user.role}</p>
+                    <p>Created: {new Date(dbUser.dbCheck.user.createdAt).toLocaleString()}</p>
+                  </div>
+                </div>
+              )}
+
+              {dbUser.dbCheck.accounts && dbUser.dbCheck.accounts.length > 0 && (
+                <div>
+                  <p className="font-medium mb-2">Auth Accounts:</p>
+                  <div className="bg-gray-50 p-3 rounded text-sm space-y-1">
+                    {dbUser.dbCheck.accounts.map((acc: any, i: number) => (
+                      <p key={i}>{acc.provider}: {acc.providerAccountId}</p>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              <div>
+                <p className="font-medium mb-2">Recent Users in Database ({dbUser.dbCheck.totalUsers} total):</p>
+                <div className="bg-gray-50 p-3 rounded text-sm space-y-2 max-h-60 overflow-y-auto">
+                  {dbUser.dbCheck.recentUsers?.map((u: any) => (
+                    <div key={u.id} className="border-b border-gray-200 pb-2">
+                      <p className="font-mono text-xs">{u.id}</p>
+                      <p>{u.email} - {u.role}</p>
+                      <p className="text-gray-500 text-xs">{new Date(u.createdAt).toLocaleString()}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
           </div>
         )}
 
