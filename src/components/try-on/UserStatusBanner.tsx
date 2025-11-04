@@ -43,7 +43,7 @@ export function UserStatusBanner() {
             <div className="text-red-800 text-sm">
               <strong>No remaining try-ons</strong>
               <p className="text-red-700 mt-0.5">
-                You've used all your free try-ons. Upgrade to continue.
+                You&apos;ve used all your free try-ons. Upgrade to continue.
               </p>
             </div>
           </div>
