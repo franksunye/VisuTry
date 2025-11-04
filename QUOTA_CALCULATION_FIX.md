@@ -19,16 +19,24 @@
 
 ## 📐 正确的计算公式
 
-### Free Users
+### 剩余次数计算（用于显示剩余）
+
+**Free Users**:
 ```
 remainingTrials = (3 - freeTrialsUsed) + creditsBalance
 ```
 
-### Premium Users (Monthly/Yearly)
+**Premium Users (Monthly/Yearly)**:
 ```
 subscriptionQuota = 30 (Monthly) or 420 (Yearly)
 remainingTrials = (subscriptionQuota - premiumUsageCount) + creditsBalance
 ```
+
+**说明**：这里使用 `creditsBalance` 是正确的，因为显示的是**剩余**的次数。
+
+### 进度条计算（用于显示使用百分比）
+
+详见下面的 "SubscriptionCard 修复方案" 部分，使用 `creditsPurchased` 和 `creditsUsed`。
 
 ---
 
@@ -253,12 +261,19 @@ if (isPremiumActive && user.currentSubscriptionType) {
 const usagePercentage = ((user.freeTrialsUsed || 0) / freeTrialLimit) * 100
 ```
 
-**修改后**:
+**修改后** (正确的计算方式):
 ```typescript
-const totalQuota = freeTrialLimit + (user.creditsBalance || 0)
-const totalUsed = (user.freeTrialsUsed || 0)
+// 总额度 = 免费额度 + 购买的credits总数
+const totalQuota = freeTrialLimit + (user.creditsPurchased || 0)
+// 总使用 = 已用免费次数 + 已用credits
+const totalUsed = (user.freeTrialsUsed || 0) + (user.creditsUsed || 0)
 const usagePercentage = totalQuota > 0 ? (totalUsed / totalQuota) * 100 : 0
 ```
+
+**关键点**:
+- 分子（已使用）= `freeTrialsUsed + creditsUsed`
+- 分母（总额度）= `freeTrialLimit + creditsPurchased`
+- ❌ 不能用 `creditsBalance`（那是剩余的，不是总的）
 
 ### 问题 2: 显示文本不拆开
 
@@ -279,7 +294,7 @@ const usagePercentage = totalQuota > 0 ? (totalUsed / totalQuota) * 100 : 0
 
 ### 问题 3: Premium 用户无进度条 + 不含 Credits
 
-首先，更新 User 接口添加 `creditsBalance` 和 `premiumUsageCount`:
+首先，更新 User 接口添加 Credits 追踪字段和 `premiumUsageCount`:
 ```typescript
 interface User {
   id: string
@@ -291,19 +306,25 @@ interface User {
   remainingTrials?: number
   subscriptionType?: string | null
   isYearlySubscription?: boolean
-  creditsBalance?: number  // ✅ 新增
-  premiumUsageCount?: number  // ✅ 新增
+  // Credits 追踪字段
+  creditsPurchased?: number  // ✅ 新增：购买的总数
+  creditsUsed?: number  // ✅ 新增：已使用的数量
+  creditsBalance?: number  // 冗余字段：creditsPurchased - creditsUsed
+  // Premium 追踪字段
+  premiumUsageCount?: number  // ✅ 已使用的订阅次数
 }
 ```
 
 然后，添加 Premium 用户的进度条（包含 Credits）:
 ```typescript
 if (user.isPremiumActive) {
-  const quota = user.isYearlySubscription ? 420 : 30
-  const creditsBalance = user.creditsBalance || 0
-  const totalQuota = quota + creditsBalance
+  const subscriptionQuota = user.isYearlySubscription ? 420 : 30
+  // 总额度 = 订阅额度 + 购买的credits总数
+  const totalQuota = subscriptionQuota + (user.creditsPurchased || 0)
+  // 总使用 = 已用订阅次数 + 已用credits
+  const totalUsed = (user.premiumUsageCount || 0) + (user.creditsUsed || 0)
   const usagePercentage = totalQuota > 0
-    ? ((user.premiumUsageCount || 0) / totalQuota) * 100
+    ? (totalUsed / totalQuota) * 100
     : 0
 
   // 显示进度条
@@ -311,6 +332,11 @@ if (user.isPremiumActive) {
   // 拆开显示：Subscription: {subscriptionRemaining}, Credits: {creditsBalance}
 }
 ```
+
+**关键点**:
+- 分子（已使用）= `premiumUsageCount + creditsUsed`
+- 分母（总额度）= `subscriptionQuota + creditsPurchased`
+- ❌ 不能用 `creditsBalance`（那是剩余的，不是总的）
 
 **数据可用性**: `creditsBalance` 和 `premiumUsageCount` 已经在 `session.user` 中可用（来自 JWT Token），通过 `userForCard` 传入 SubscriptionCard。
 

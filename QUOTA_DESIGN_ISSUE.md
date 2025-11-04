@@ -224,6 +224,9 @@ await prisma.user.update({
   data: {
     creditsPurchased: {
       increment: QUOTA_CONFIG.CREDITS_PACK
+    },
+    creditsBalance: {
+      increment: QUOTA_CONFIG.CREDITS_PACK  // 同时更新冗余字段
     }
   }
 })
@@ -237,22 +240,46 @@ await prisma.user.update({
   data: {
     creditsUsed: {
       increment: 1
+    },
+    creditsBalance: {
+      decrement: 1  // 同时更新冗余字段
     }
   }
 })
 ```
 
 ### 步骤 4：更新计算公式
+
+**剩余次数计算**（用于显示剩余）:
 ```typescript
 const creditsRemaining = creditsPurchased - creditsUsed
 const remainingTotal = freeRemaining + creditsRemaining + subscriptionRemaining
 ```
 
+**进度条计算**（用于显示使用百分比）:
+```typescript
+// 免费用户
+const totalQuota = freeTrialLimit + creditsPurchased  // 总额度
+const totalUsed = freeTrialsUsed + creditsUsed  // 总使用
+const usagePercentage = (totalUsed / totalQuota) * 100
+
+// Premium 用户
+const totalQuota = subscriptionQuota + creditsPurchased  // 总额度
+const totalUsed = premiumUsageCount + creditsUsed  // 总使用
+const usagePercentage = (totalUsed / totalQuota) * 100
+```
+
+**关键点**：
+- ✅ 剩余计算用 `creditsPurchased - creditsUsed`
+- ✅ 进度条分子用 `creditsUsed`（已使用）
+- ✅ 进度条分母用 `creditsPurchased`（总购买）
+- ❌ 进度条分母不能用 `creditsBalance`（那是剩余的）
+
 ### 步骤 5：更新所有显示逻辑
-- Dashboard 进度条
-- Try-On Page 显示
-- Pricing Page 显示
-- 所有计算公式
+- Dashboard 进度条（使用正确的公式）
+- Try-On Page 显示（使用 `remainingTotal`）
+- Pricing Page 显示（使用 `remainingTotal`）
+- 所有计算公式（区分"剩余"和"进度条"）
 
 ---
 
