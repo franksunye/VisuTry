@@ -22,17 +22,20 @@
 ### 剩余次数计算（用于显示剩余）
 
 **Free Users**:
-```
-remainingTrials = (3 - freeTrialsUsed) + creditsBalance
+```typescript
+remainingTrials = (3 - freeTrialsUsed) + (creditsPurchased - creditsUsed)
 ```
 
 **Premium Users (Monthly/Yearly)**:
-```
+```typescript
 subscriptionQuota = 30 (Monthly) or 420 (Yearly)
-remainingTrials = (subscriptionQuota - premiumUsageCount) + creditsBalance
+remainingTrials = (subscriptionQuota - premiumUsageCount) + (creditsPurchased - creditsUsed)
 ```
 
-**说明**：这里使用 `creditsBalance` 是正确的，因为显示的是**剩余**的次数。
+**设计一致性**：
+- Free Trial: `3 - freeTrialsUsed` ✅
+- Premium: `quota - premiumUsageCount` ✅
+- Credits: `creditsPurchased - creditsUsed` ✅ 统一的"总 - 已使用"模式
 
 ### 进度条计算（用于显示使用百分比）
 
