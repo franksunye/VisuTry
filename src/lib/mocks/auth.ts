@@ -69,11 +69,11 @@ export function getMockAuthOptions(): NextAuthOptions {
       async session({ session, user, token }) {
         if (session.user) {
           session.user.id = user?.id || token?.sub || 'mock-user-1'
-          
+
           // Get mock user data
           const mockUser = mockUsers.find(u => u.id === session.user.id) || mockUsers[0]
 
-          session.user.role = mockUser.role
+          session.user.role = mockUser.role as any
           session.user.freeTrialsUsed = mockUser.freeTrialsUsed
           session.user.isPremium = mockUser.isPremium
           session.user.premiumExpiresAt = mockUser.premiumExpiresAt
