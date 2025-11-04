@@ -176,15 +176,6 @@
     "pricing": {
       "title": "Plans Tarifaires - Essayage Virtuel de Lunettes IA | VisuTry",
       "description": "Choisissez le forfait parfait pour l'essayage virtuel de lunettes IA. Essais gratuits disponibles, fonctionnalités premium pour un accès illimité. Trouvez vos lunettes idéales avec une technologie IA avancée."
-    },
-    "tryOn": {
-      "title": "Essayage Virtuel - Voyez Comment les Lunettes Vous Vont | VisuTry",
-      "description": "Téléchargez votre photo et essayez des centaines de lunettes virtuellement avec l'IA. Voyez comment différentes montures vous vont avant d'acheter."
-    },
-    "blog": {
-      "title": "Blog - Conseils et Tendances en Lunetterie | VisuTry",
-      "description": "Découvrez les dernières tendances en lunetterie, conseils de style et guides pour trouver les lunettes parfaites pour la forme de votre visage."
     }
   }
 }
-
