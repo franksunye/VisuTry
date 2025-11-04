@@ -57,6 +57,24 @@
     },
     "cta": {
       "button": "Loslegen"
+    },
+    "showcase": {
+      "alex": {
+        "name": "Alex",
+        "description": "Fand den perfekten Aviator-Stil in Sekunden"
+      },
+      "ethan": {
+        "name": "Ethan",
+        "description": "Entdeckte seinen charakteristischen Look mit KI"
+      },
+      "sophia": {
+        "name": "Sophia",
+        "description": "Probierte über 10 Stile aus, bevor sie den richtigen fand"
+      },
+      "encouragement": {
+        "title": "✨ Schließen Sie sich Tausenden an, die ihre perfekte Brille gefunden haben",
+        "subtitle": "Probieren Sie unbegrenzte Stile mit KI-gestützter Präzision"
+      }
     }
   },
   "pricing": {

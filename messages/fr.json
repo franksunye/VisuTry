@@ -57,6 +57,24 @@
     },
     "cta": {
       "button": "Commencer"
+    },
+    "showcase": {
+      "alex": {
+        "name": "Alex",
+        "description": "A trouvé le style aviateur parfait en quelques secondes"
+      },
+      "ethan": {
+        "name": "Ethan",
+        "description": "A découvert son look signature avec l'IA"
+      },
+      "sophia": {
+        "name": "Sophia",
+        "description": "A essayé plus de 10 styles avant de trouver le bon"
+      },
+      "encouragement": {
+        "title": "✨ Rejoignez des milliers de personnes qui ont trouvé leurs lunettes parfaites",
+        "subtitle": "Essayez des styles illimités avec une précision alimentée par l'IA"
+      }
     }
   },
   "pricing": {

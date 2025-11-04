@@ -3,32 +3,34 @@
 import { useState, useEffect } from 'react'
 import Image from 'next/image'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 
 interface ShowcaseItem {
   image: string
-  name: string
-  description: string
+  nameKey: string
+  descriptionKey: string
 }
 
 const showcaseItems: ShowcaseItem[] = [
   {
     image: '/home/Alex-try-on-screen.png',
-    name: 'Alex',
-    description: 'Found the perfect aviator style in seconds',
+    nameKey: 'alex.name',
+    descriptionKey: 'alex.description',
   },
   {
     image: '/home/Ethan-try-on-screen.png',
-    name: 'Ethan',
-    description: 'Discovered his signature look with AI',
+    nameKey: 'ethan.name',
+    descriptionKey: 'ethan.description',
   },
   {
     image: '/home/Sophia-try-on-screen.png',
-    name: 'Sophia',
-    description: 'Tried 10+ styles before finding the one',
+    nameKey: 'sophia.name',
+    descriptionKey: 'sophia.description',
   },
 ]
 
 export function TryOnShowcase() {
+  const t = useTranslations('home.showcase')
   const [currentIndex, setCurrentIndex] = useState(0)
   const [isAutoPlaying, setIsAutoPlaying] = useState(true)
 
@@ -63,7 +65,7 @@ export function TryOnShowcase() {
   return (
     <div className="w-full max-w-5xl mx-auto mb-12">
       {/* Showcase Container */}
-      <div className="relative bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 rounded-2xl shadow-2xl overflow-hidden">
+      <div className="relative overflow-hidden shadow-2xl bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 rounded-2xl">
         {/* Main Image Display */}
         <div className="relative aspect-[16/10] md:aspect-[16/9] overflow-hidden">
           {showcaseItems.map((item, index) => (
@@ -93,14 +95,14 @@ export function TryOnShowcase() {
           {/* Navigation Arrows */}
           <button
             onClick={goToPrevious}
-            className="absolute left-2 md:left-4 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white text-gray-800 rounded-full p-2 md:p-3 shadow-lg transition-all hover:scale-110 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="absolute p-2 text-gray-800 transition-all -translate-y-1/2 rounded-full shadow-lg left-2 md:left-4 top-1/2 bg-white/90 hover:bg-white md:p-3 hover:scale-110 focus:outline-none focus:ring-2 focus:ring-blue-500"
             aria-label="Previous showcase"
           >
             <ChevronLeft className="w-5 h-5 md:w-6 md:h-6" />
           </button>
           <button
             onClick={goToNext}
-            className="absolute right-2 md:right-4 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white text-gray-800 rounded-full p-2 md:p-3 shadow-lg transition-all hover:scale-110 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="absolute p-2 text-gray-800 transition-all -translate-y-1/2 rounded-full shadow-lg right-2 md:right-4 top-1/2 bg-white/90 hover:bg-white md:p-3 hover:scale-110 focus:outline-none focus:ring-2 focus:ring-blue-500"
             aria-label="Next showcase"
           >
             <ChevronRight className="w-5 h-5 md:w-6 md:h-6" />
@@ -108,15 +110,15 @@ export function TryOnShowcase() {
         </div>
 
         {/* Bottom Info Bar */}
-        <div className="bg-white/95 backdrop-blur-sm px-6 py-4 md:py-6">
-          <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+        <div className="px-6 py-4 bg-white/95 backdrop-blur-sm md:py-6">
+          <div className="flex flex-col items-center justify-between gap-4 md:flex-row">
             {/* User Info */}
             <div className="text-center md:text-left">
-              <h3 className="text-lg md:text-xl font-bold text-gray-900">
-                {showcaseItems[currentIndex].name}
+              <h3 className="text-lg font-bold text-gray-900 md:text-xl">
+                {t(showcaseItems[currentIndex].nameKey)}
               </h3>
-              <p className="text-sm md:text-base text-gray-600">
-                {showcaseItems[currentIndex].description}
+              <p className="text-sm text-gray-600 md:text-base">
+                {t(showcaseItems[currentIndex].descriptionKey)}
               </p>
             </div>
 
@@ -141,12 +143,12 @@ export function TryOnShowcase() {
       </div>
 
       {/* Encouraging Text */}
-      <div className="text-center mt-8 px-4">
-        <p className="text-lg md:text-xl text-gray-700 font-medium mb-2">
-          ✨ Join thousands who found their perfect glasses
+      <div className="px-4 mt-8 text-center">
+        <p className="mb-2 text-lg font-medium text-gray-700 md:text-xl">
+          {t('encouragement.title')}
         </p>
-        <p className="text-sm md:text-base text-gray-600">
-          Try on unlimited styles with AI-powered precision
+        <p className="text-sm text-gray-600 md:text-base">
+          {t('encouragement.subtitle')}
         </p>
       </div>
     </div>

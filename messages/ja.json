@@ -57,6 +57,24 @@
     },
     "cta": {
       "button": "始める"
+    },
+    "showcase": {
+      "alex": {
+        "name": "Alex",
+        "description": "数秒で完璧なアビエータースタイルを発見"
+      },
+      "ethan": {
+        "name": "Ethan",
+        "description": "AIで自分らしいルックを発見"
+      },
+      "sophia": {
+        "name": "Sophia",
+        "description": "10以上のスタイルを試して理想の一本を発見"
+      },
+      "encouragement": {
+        "title": "✨ 完璧なメガネを見つけた何千人もの仲間に加わろう",
+        "subtitle": "AI搭載の精度で無制限のスタイルを試着"
+      }
     }
   },
   "pricing": {

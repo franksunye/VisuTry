@@ -57,6 +57,24 @@
     },
     "cta": {
       "button": "Comenzar"
+    },
+    "showcase": {
+      "alex": {
+        "name": "Alex",
+        "description": "Encontró el estilo aviador perfecto en segundos"
+      },
+      "ethan": {
+        "name": "Ethan",
+        "description": "Descubrió su look característico con IA"
+      },
+      "sophia": {
+        "name": "Sophia",
+        "description": "Probó más de 10 estilos antes de encontrar el indicado"
+      },
+      "encouragement": {
+        "title": "✨ Únete a miles que encontraron sus gafas perfectas",
+        "subtitle": "Prueba estilos ilimitados con precisión de IA"
+      }
     }
   },
   "pricing": {

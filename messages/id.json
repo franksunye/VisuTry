@@ -57,6 +57,24 @@
     },
     "cta": {
       "button": "Mulai Sekarang"
+    },
+    "showcase": {
+      "alex": {
+        "name": "Alex",
+        "description": "Menemukan gaya aviator sempurna dalam hitungan detik"
+      },
+      "ethan": {
+        "name": "Ethan",
+        "description": "Menemukan tampilan khasnya dengan AI"
+      },
+      "sophia": {
+        "name": "Sophia",
+        "description": "Mencoba 10+ gaya sebelum menemukan yang tepat"
+      },
+      "encouragement": {
+        "title": "✨ Bergabunglah dengan ribuan orang yang menemukan kacamata sempurna mereka",
+        "subtitle": "Coba gaya tak terbatas dengan presisi bertenaga AI"
+      }
     }
   },
   "pricing": {

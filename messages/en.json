@@ -57,6 +57,24 @@
     },
     "cta": {
       "button": "Get Started"
+    },
+    "showcase": {
+      "alex": {
+        "name": "Alex",
+        "description": "Found the perfect aviator style in seconds"
+      },
+      "ethan": {
+        "name": "Ethan",
+        "description": "Discovered his signature look with AI"
+      },
+      "sophia": {
+        "name": "Sophia",
+        "description": "Tried 10+ styles before finding the one"
+      },
+      "encouragement": {
+        "title": "✨ Join thousands who found their perfect glasses",
+        "subtitle": "Try on unlimited styles with AI-powered precision"
+      }
     }
   },
   "pricing": {
