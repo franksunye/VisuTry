@@ -115,6 +115,13 @@ export const authOptions: NextAuthOptions = {
         token.role = user.role || 'USER'
 
         // Debug logging for first login
+        console.log('[Auth JWT] First login - user object:', {
+          userId: user.id,
+          email: user.email,
+          name: user.name,
+          role: user.role,
+          allKeys: Object.keys(user)
+        })
         console.log('[Auth JWT] First login - role set:', {
           userId: user.id,
           email: user.email,
