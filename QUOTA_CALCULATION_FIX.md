@@ -271,15 +271,42 @@ const usagePercentage = totalQuota > 0 ? (totalUsed / totalQuota) * 100 : 0
 )}
 ```
 
-3. **SubscriptionCard** - Premium 用户也应该显示进度条:
+3. **SubscriptionCard** - Premium 用户也应该显示进度条（包含 Credits）:
+
+首先，更新 User 接口添加 `creditsBalance` 和 `premiumUsageCount`:
 ```typescript
-// 添加 Premium 用户的进度条
-if (user.isPremiumActive) {
-  const quota = user.isYearlySubscription ? 420 : 30
-  const usagePercentage = ((user.premiumUsageCount || 0) / quota) * 100
-  // 显示进度条
+interface User {
+  id: string
+  name?: string | null
+  isPremium?: boolean
+  premiumExpiresAt?: Date | null
+  freeTrialsUsed?: number
+  isPremiumActive?: boolean
+  remainingTrials?: number
+  subscriptionType?: string | null
+  isYearlySubscription?: boolean
+  creditsBalance?: number  // ✅ 新增
+  premiumUsageCount?: number  // ✅ 新增
 }
 ```
+
+然后，添加 Premium 用户的进度条（包含 Credits）:
+```typescript
+if (user.isPremiumActive) {
+  const quota = user.isYearlySubscription ? 420 : 30
+  const creditsBalance = user.creditsBalance || 0
+  const totalQuota = quota + creditsBalance
+  const usagePercentage = totalQuota > 0
+    ? ((user.premiumUsageCount || 0) / totalQuota) * 100
+    : 0
+
+  // 显示进度条
+  // 显示文本：{remainingTrials} try-ons remaining
+  // 拆开显示：Subscription: {subscriptionRemaining}, Credits: {creditsBalance}
+}
+```
+
+**数据可用性**: `creditsBalance` 和 `premiumUsageCount` 已经在 `session.user` 中可用（来自 JWT Token），通过 `userForCard` 传入 SubscriptionCard。
 
 ---
 

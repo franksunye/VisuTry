@@ -80,15 +80,29 @@ const usagePercentage = totalQuota > 0 ? (totalUsed / totalQuota) * 100 : 0
 )}
 ```
 
-### 问题 3: 无 Premium 进度条
+### 问题 3: 无 Premium 进度条 + 不含 Credits
 ```typescript
-// 添加 Premium 用户的进度条
+// 修改前：无 Premium 进度条
+if (user.isPremiumActive) {
+  // 没有显示进度条
+}
+
+// 修改后：显示 Premium 进度条，包含 Credits
 if (user.isPremiumActive) {
   const quota = user.isYearlySubscription ? 420 : 30
-  const usagePercentage = ((user.premiumUsageCount || 0) / quota) * 100
+  const creditsBalance = (user as any).creditsBalance || 0
+  const totalQuota = quota + creditsBalance
+  const usagePercentage = totalQuota > 0
+    ? ((user.premiumUsageCount || 0) / totalQuota) * 100
+    : 0
+
   // 显示进度条
+  // 显示文本：{remainingTrials} try-ons remaining
+  // 拆开显示：Subscription: {subscriptionRemaining}, Credits: {creditsBalance}
 }
 ```
+
+**注意**: `creditsBalance` 已经在 `session.user` 中可用（来自 JWT Token），SubscriptionCard 的 User 接口需要添加这个字段。
 
 ---
 
