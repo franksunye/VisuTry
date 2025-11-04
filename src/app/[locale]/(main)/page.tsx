@@ -5,6 +5,7 @@ import { useRouter, useParams } from 'next/navigation'
 import { useSession } from 'next-auth/react'
 import { useTestSession } from '@/hooks/useTestSession'
 import { useTranslations } from 'next-intl'
+import { TryOnShowcase } from '@/components/home/TryOnShowcase'
 
 export default function Home() {
   const router = useRouter()
@@ -64,6 +65,9 @@ export default function Home() {
             <p className="text-center text-gray-600">{t('steps.step3.description')}</p>
           </div>
         </div>
+
+        {/* Try-On Showcase Carousel */}
+        <TryOnShowcase />
 
         {/* CTA Section */}
         <div className="text-center">
