@@ -1,7 +1,6 @@
 'use client'
 
 import { Glasses, CheckCircle, Clock } from "lucide-react"
-import { useTranslations } from "next-intl"
 
 interface DashboardStatsProps {
   stats: {
@@ -16,25 +15,23 @@ interface DashboardStatsProps {
 }
 
 export function DashboardStats({ stats }: DashboardStatsProps) {
-  const t = useTranslations('dashboard.stats')
-
   const statCards = [
     {
-      title: t('totalTryOns'),
+      title: 'Total Try-Ons',
       value: stats.totalTryOns,
       icon: <Glasses className="w-6 h-6 text-blue-600" />,
       bgColor: "bg-blue-100",
-      description: t('cumulativeUsage')
+      description: 'Cumulative usage count'
     },
     {
-      title: t('successfulTryOns'),
+      title: 'Successful Try-Ons',
       value: stats.completedTryOns,
       icon: <CheckCircle className="w-6 h-6 text-green-600" />,
       bgColor: "bg-green-100",
-      description: t('completedTryOns')
+      description: 'Completed try-ons'
     },
     {
-      title: t('remainingUses'),
+      title: 'Remaining Uses',
       value: stats.remainingDisplay,
       icon: <Clock className="w-6 h-6 text-orange-600" />,
       bgColor: "bg-orange-100",

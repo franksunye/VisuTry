@@ -3,7 +3,6 @@ import { generateSEO } from '@/lib/seo'
 import Link from 'next/link'
 import { ArrowLeft, FileText } from 'lucide-react'
 import { Breadcrumbs } from '@/components/seo/Breadcrumbs'
-import { getTranslations } from 'next-intl/server'
 
 export const metadata: Metadata = generateSEO({
   title: 'Terms of Service | VisuTry',
@@ -12,7 +11,6 @@ export const metadata: Metadata = generateSEO({
 })
 
 export default async function TermsPage() {
-  const t = await getTranslations('legal.terms')
   const lastUpdated = 'January 15, 2025'
 
   return (
@@ -22,7 +20,7 @@ export default async function TermsPage() {
         <div className="mb-6">
           <Breadcrumbs
             items={[
-              { name: t('title') },
+              { name: 'Terms of Service' },
             ]}
           />
         </div>
@@ -34,16 +32,16 @@ export default async function TermsPage() {
             className="inline-flex items-center text-blue-600 hover:text-blue-700 mb-4"
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
-            {t('backToHome')}
+            Back to Home
           </Link>
 
           <div className="flex items-center mb-4">
             <FileText className="w-10 h-10 text-blue-600 mr-3" />
-            <h1 className="text-4xl font-bold text-gray-900">{t('title')}</h1>
+            <h1 className="text-4xl font-bold text-gray-900">Terms of Service</h1>
           </div>
 
           <p className="text-gray-600">
-            {t('lastUpdated', { date: lastUpdated })}
+            Last updated: {lastUpdated}
           </p>
         </div>
 

@@ -5,25 +5,12 @@ import { TryOnInterface } from "@/components/try-on/TryOnInterface"
 import { UserStatusBanner } from "@/components/try-on/UserStatusBanner"
 import { AutoRefreshWrapper } from "@/components/payments/AutoRefreshWrapper"
 import { headers } from "next/headers"
-import { generateI18nSEO, generateStructuredData } from "@/lib/seo"
-import { getTranslations } from 'next-intl/server'
-import { Locale } from '@/i18n'
+import { generateStructuredData } from "@/lib/seo"
 import { Metadata } from 'next'
 
-type Props = {
-  params: Promise<{ locale: string }>
-}
-
-export async function generateMetadata(props: Props): Promise<Metadata> {
-  const params = await props.params
-  const t = await getTranslations({ locale: params.locale, namespace: 'meta.tryOn' })
-
-  return generateI18nSEO({
-    locale: params.locale as Locale,
-    title: t('title'),
-    description: t('description'),
-    pathname: '/try-on',
-  })
+export const metadata: Metadata = {
+  title: 'Virtual Try-On - See How Glasses Look on You | VisuTry',
+  description: 'Upload your photo and try on hundreds of glasses virtually with AI. See how different frames look on your face before you buy.',
 }
 
 // 🔥 优化：不再使用缓存，直接使用 session 作为唯一数据源

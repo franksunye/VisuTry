@@ -13,7 +13,6 @@ import { Glasses, Plus, Receipt } from "lucide-react"
 import Link from "next/link"
 import { perfLogger, logPageLoad } from "@/lib/performance-logger"
 import { getCachedUserPayment } from "@/lib/cache"
-import { getTranslations } from "next-intl/server"
 
 // 性能优化：使用 Suspense 流式渲染
 // 1. 立即返回页面框架（< 100ms）
@@ -25,9 +24,6 @@ export default async function DashboardPage() {
   // 🔍 开始性能监控
   const pageStartTime = Date.now()
   perfLogger.mark('dashboard:page-start')
-
-  // Get translations
-  const t = await getTranslations('dashboard')
 
   // 🔍 监控 Session 获取
   perfLogger.start('dashboard:getSession')
@@ -82,13 +78,13 @@ export default async function DashboardPage() {
 
       {/* Page Header - 立即渲染 */}
       <div className="flex items-center justify-between mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">{t('title')}</h1>
+        <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
         <Link
           href="/try-on"
           className="flex items-center px-6 py-3 text-white transition-colors bg-blue-600 rounded-lg hover:bg-blue-700"
         >
           <Plus className="w-5 h-5 mr-2" />
-          {t('startTryOn')}
+          Start Try-On
         </Link>
       </div>
 

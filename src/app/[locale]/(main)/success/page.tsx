@@ -5,20 +5,18 @@ import { useSearchParams, useRouter } from 'next/navigation'
 import { useSession } from 'next-auth/react'
 import { CheckCircle, Glasses, ArrowRight, Sparkles, Crown, Loader2 } from 'lucide-react'
 import Link from 'next/link'
-import { useTranslations } from 'next-intl'
 
 // Payment processing status
 type PaymentStatus = 'checking' | 'updating' | 'success' | 'redirecting' | 'error'
 
 function SuccessContent() {
-  const t = useTranslations('success')
   const searchParams = useSearchParams()
   const router = useRouter()
   const { data: session, status, update } = useSession()
   const [sessionId, setSessionId] = useState<string | null>(null)
   const [paymentStatus, setPaymentStatus] = useState<PaymentStatus>('checking')
   const [countdown, setCountdown] = useState(3)
-  const [statusMessage, setStatusMessage] = useState(t('processing'))
+  const [statusMessage, setStatusMessage] = useState('Processing Payment...')
   const [initialBalance, setInitialBalance] = useState<number | null>(null)
 
   useEffect(() => {
