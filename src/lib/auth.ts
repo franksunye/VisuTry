@@ -145,13 +145,6 @@ export const authOptions: NextAuthOptions = {
           // 🔍 监控数据库同步
           perfLogger.start('auth:jwt:db-sync')
 
-          console.log('[Auth JWT] Starting DB sync for user:', {
-            userId: token.sub,
-            shouldSync,
-            trigger,
-            hasRole: !!token.role
-          })
-
           const dbUser = await prisma.user.findUnique({
             where: { id: token.sub },
             select: {
@@ -232,19 +225,8 @@ export const authOptions: NextAuthOptions = {
           perfLogger.end('auth:jwt:db-sync', { success: false, error: true })
           console.error('❌ Error syncing user data to token in jwt callback:', error)
           console.error('   This may indicate database connection issues in Vercel')
-          console.error('   Error details:', {
-            message: (error as any)?.message,
-            code: (error as any)?.code,
-            userId: token.sub
-          })
-          __debugWrite('jwt.db_error', { error: String(error), userId: token.sub })
+          __debugWrite('jwt.db_error', { error, userId: token.sub })
         }
-      } else {
-        console.log('[Auth JWT] Skipping DB sync:', {
-          hasTokenSub: !!token.sub,
-          shouldSync,
-          reason: !token.sub ? 'no token.sub' : 'shouldSync is false'
-        })
       }
 
       perfLogger.end('auth:jwt-callback', {
