@@ -29,7 +29,7 @@ export default function Home() {
     <main className="container px-4 py-8 mx-auto">
       {/* Hero Header */}
       <header className="mb-16 text-center">
-        <h1 className="max-w-3xl mx-auto text-4xl md:text-5xl font-bold text-gray-900 mb-3">
+        <h1 className="max-w-3xl mx-auto text-3xl md:text-4xl font-bold text-gray-900 mb-3">
           {t('hero.title')}
         </h1>
         <p className="text-xl md:text-2xl text-gray-600 font-medium">
