@@ -28,17 +28,17 @@ export default function Home() {
   return (
     <main className="container px-4 py-8 mx-auto">
       {/* Hero Header */}
-      <header className="mb-12 text-center">
-        <p className="max-w-2xl mx-auto text-3xl font-semibold text-gray-900">
+      <header className="mb-16 text-center">
+        <h1 className="max-w-3xl mx-auto text-4xl md:text-5xl font-bold text-gray-900 mb-3">
           {t('hero.title')}
+        </h1>
+        <p className="text-xl md:text-2xl text-gray-600 font-medium">
+          {t('hero.subtitle')}
         </p>
       </header>
 
       {/* Hero Section */}
       <section className="max-w-4xl mx-auto mb-16">
-        <h2 className="mb-12 text-3xl font-semibold text-center text-gray-800">
-          {t('hero.subtitle')}
-        </h2>
 
         <div className="grid gap-8 mb-12 md:grid-cols-3">
           <div className="flex flex-col items-center">
