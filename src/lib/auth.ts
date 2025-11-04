@@ -83,7 +83,8 @@ export const authOptions: NextAuthOptions = {
           session.user.email = (token.email as string) || session.user.email
           session.user.image = (token.image as string) || session.user.image
           session.user.username = (token.username as string) || session.user.username
-          session.user.role = token.role || 'USER'
+          // CRITICAL: Ensure role is always set (default to USER if missing)
+          session.user.role = (token.role as any) || 'USER'
           session.user.freeTrialsUsed = (token.freeTrialsUsed as number) || 0
           // TypeScript workaround: premiumUsageCount and creditsBalance are defined in types/next-auth.d.ts
           ;(session.user as any).premiumUsageCount = (token.premiumUsageCount as number) || 0
@@ -110,13 +111,14 @@ export const authOptions: NextAuthOptions = {
         token.email = user.email
         token.image = user.image
         // CRITICAL: Set role from user object on first login
-        token.role = user.role
+        // If role is not set, it will be fetched from DB in the sync section below
+        token.role = user.role || 'USER'
 
         // Debug logging for first login
         console.log('[Auth JWT] First login - role set:', {
           userId: user.id,
           email: user.email,
-          role: user.role
+          role: token.role
         })
       }
 
@@ -131,11 +133,13 @@ export const authOptions: NextAuthOptions = {
       // 1. First login (user exists)
       // 2. Manual trigger update (trigger === 'update')
       // 3. Token has no user data (isPremium is undefined)
-      // 4. Periodic sync: every 5 minutes to catch subscription changes
+      // 4. Token has no role (critical for admin access)
+      // 5. Periodic sync: every 5 minutes to catch subscription changes
       const tokenAge = token.iat ? Date.now() - (Number(token.iat) * 1000) : Infinity
       const shouldSync = user ||
                         trigger === 'update' ||
                         token.isPremium === undefined ||
+                        !token.role ||
                         tokenAge > 5 * 60 * 1000  // 5 minutes
 
       if (token.sub && shouldSync) {
