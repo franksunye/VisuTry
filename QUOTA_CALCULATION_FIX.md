@@ -1,5 +1,13 @@
 # Try-On 剩余次数计算 - 现状、问题和修复方案
 
+> **文档说明**: 本文档从**实现角度**分析配额系统的当前问题和修复方案。
+>
+> 如需了解**设计问题的根本原因**，请参考 `QUOTA_DESIGN_ISSUE.md`。
+>
+> **关系**: 设计问题 → 实现问题 → 修复方案
+
+---
+
 ## 📍 当前显示位置
 
 1. **Try-On Page** - UserStatusBanner + TryOnInterface
@@ -200,69 +208,67 @@ if (isPremiumActive && user.currentSubscriptionType) {
 
 ---
 
-## 📊 组件显示不一致问题
+## 📊 组件修复详情
 
-### 核心原则
-**用户视角的剩余总数** = 免费送的剩余 + Pack 购买剩的 + 订阅剩的
-
-```
-remainingTotal = freeRemaining + creditsBalance + subscriptionRemaining
-```
-
-需要拆开展示时可以拆开，需要汇总时汇总。**进度条应该只显示总的进度条**。
-
-### Try-On Page 问题
+### Try-On Page 修复
 
 **UserStatusBanner** (`src/components/try-on/UserStatusBanner.tsx`):
-- ✅ 显示总数: `remainingTrials`（正确）
-- ✅ 拆开显示: `(Free: X/3, Credits: Y)`（正确）
-- ❌ 但 `remainingTrials` 来自 JWT Token，年费用户显示错误
+- ✅ 显示总数: `remainingTrials`（逻辑正确）
+- ✅ 拆开显示: `(Free: X/3, Credits: Y)`（逻辑正确）
+- ❌ **问题**: `remainingTrials` 来自 JWT Token，年费用户显示错误（30 而不是 420）
 
 **TryOnInterface** (`src/components/try-on/TryOnInterface.tsx`):
-- ✅ 使用 `remainingTrials` 检查配额（正确）
-- ❌ 但基于错误的 JWT Token 值
+- ✅ 使用 `remainingTrials` 检查配额（逻辑正确）
+- ❌ **问题**: 基于错误的 JWT Token 值
 
-### Dashboard 问题
+**修复方案**: 修复 JWT Token 中的 `remainingTrials` 计算（见步骤 3），UserStatusBanner 和 TryOnInterface 会自动正确。
+
+---
+
+### Dashboard 修复
 
 **DashboardStatsAsync** (`src/components/dashboard/DashboardStatsAsync.tsx`):
 - ✅ 计算正确: `totalRemaining = subscriptionRemaining + creditsBalance`
 - ✅ 拆开显示: `Annual (X) + Credits (Y)`（正确）
 - ✅ 显示总数: `remainingDisplay`（正确）
 
-**SubscriptionCard** (`src/components/dashboard/SubscriptionCard.tsx`):
+**DashboardStats** (`src/components/dashboard/DashboardStats.tsx`):
+- ✅ 显示总数: `remainingDisplay`（正确）
+- ✅ 显示描述: `remainingDescription`（正确）
+
+**SubscriptionCard** (`src/components/dashboard/SubscriptionCard.tsx`) - 需要修复：
 - ❌ 只显示免费用户的进度条（基于 `freeTrialsUsed`）
 - ❌ 进度条只计算免费额度，没有包含 Credits
 - ❌ 显示 `remainingTrials` 但没有拆开显示各部分
 - ❌ 没有显示 Premium 用户的进度条
 
-**DashboardStats** (`src/components/dashboard/DashboardStats.tsx`):
-- ✅ 显示总数: `remainingDisplay`（正确）
-- ✅ 显示描述: `remainingDescription`（正确）
+---
 
-### 修复方案
+## 🔧 SubscriptionCard 修复方案
 
-#### Try-On Page
-1. 修复 JWT Token 中的 `remainingTrials` 计算（见前面的步骤 3）
-2. UserStatusBanner 和 TryOnInterface 会自动正确
+### 问题 1: 免费用户进度条不含 Credits
 
-#### Dashboard
-1. **SubscriptionCard** - 修改免费用户的进度条显示:
+**修改前**:
 ```typescript
-// 修改前：只计算免费额度
 const usagePercentage = ((user.freeTrialsUsed || 0) / freeTrialLimit) * 100
+```
 
-// 修改后：计算总的使用百分比
+**修改后**:
+```typescript
 const totalQuota = freeTrialLimit + (user.creditsBalance || 0)
 const totalUsed = (user.freeTrialsUsed || 0)
 const usagePercentage = totalQuota > 0 ? (totalUsed / totalQuota) * 100 : 0
 ```
 
-2. **SubscriptionCard** - 修改显示文本:
-```typescript
-// 修改前：只显示免费额度
-{remainingTrials} free try-ons remaining
+### 问题 2: 显示文本不拆开
 
-// 修改后：显示总的剩余次数和拆开的详情
+**修改前**:
+```typescript
+{remainingTrials} free try-ons remaining
+```
+
+**修改后**:
+```typescript
 {remainingTrials} try-ons remaining
 {creditsBalance > 0 && (
   <p className="text-xs text-gray-500">
@@ -271,7 +277,7 @@ const usagePercentage = totalQuota > 0 ? (totalUsed / totalQuota) * 100 : 0
 )}
 ```
 
-3. **SubscriptionCard** - Premium 用户也应该显示进度条（包含 Credits）:
+### 问题 3: Premium 用户无进度条 + 不含 Credits
 
 首先，更新 User 接口添加 `creditsBalance` 和 `premiumUsageCount`:
 ```typescript
@@ -310,6 +316,15 @@ if (user.isPremiumActive) {
 
 ---
 
+## 📋 修复优先级
+
+1. **高**: 步骤 1-3（修复 JWT Token）- 影响所有页面
+2. **高**: 步骤 4-5（前端组件）- 确保一致性
+3. **中**: 步骤 6（API 检查）- 防止无限使用
+4. **中**: SubscriptionCard 修复 - 改进用户体验
+
+---
+
 ## 🧪 测试清单
 
 - [ ] 年费用户: 所有页面显示 420
@@ -321,4 +336,15 @@ if (user.isPremiumActive) {
 - [ ] Dashboard 进度条: 包含 Free + Credits 的总进度
 - [ ] Dashboard 进度条: Premium 用户也显示进度条
 - [ ] 拆开显示: 各部分（Free/Credits/Subscription）清晰可见
+
+---
+
+## 🧪 验收标准
+
+- [ ] 年费用户: 所有页面显示 420
+- [ ] 月费用户: 所有页面显示 30
+- [ ] 免费用户: 所有页面显示 3
+- [ ] 进度条: 包含 Free + Credits 的总进度
+- [ ] 拆开显示: 各部分清晰可见
+- [ ] Premium 进度条: 正确显示
 
