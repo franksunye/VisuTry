@@ -82,7 +82,7 @@ export function TryOnShowcase() {
               <div className="relative w-full h-full">
                 <Image
                   src={item.image}
-                  alt={`${item.name}'s virtual try-on experience`}
+                  alt={`${t(item.nameKey)}'s virtual try-on experience`}
                   fill
                   className="object-contain p-4 md:p-8"
                   priority={index === 0}
@@ -124,7 +124,7 @@ export function TryOnShowcase() {
 
             {/* Dot Indicators */}
             <div className="flex items-center gap-2">
-              {showcaseItems.map((_, index) => (
+              {showcaseItems.map((item, index) => (
                 <button
                   key={index}
                   onClick={() => goToSlide(index)}
@@ -133,7 +133,7 @@ export function TryOnShowcase() {
                       ? 'w-8 md:w-10 h-2.5 md:h-3 bg-blue-600'
                       : 'w-2.5 md:w-3 h-2.5 md:h-3 bg-gray-300 hover:bg-gray-400'
                   }`}
-                  aria-label={`Go to ${showcaseItems[index].name}'s showcase`}
+                  aria-label={`Go to ${t(item.nameKey)}'s showcase`}
                   aria-current={index === currentIndex}
                 />
               ))}
