@@ -1,0 +1,165 @@
+{
+  "common": {
+    "getStarted": "Commencer",
+    "learnMore": "En Savoir Plus",
+    "signIn": "Se Connecter",
+    "signOut": "Se Déconnecter",
+    "startFreeTrial": "Démarrer l'Essai Gratuit",
+    "startTryOn": "Commencer l'Essayage",
+    "tryOn": "Essayage Virtuel",
+    "blog": "Blog",
+    "pricing": "Tarifs",
+    "dashboard": "Tableau de Bord",
+    "profile": "Profil",
+    "settings": "Paramètres",
+    "loading": "Chargement...",
+    "error": "Erreur",
+    "success": "Succès",
+    "cancel": "Annuler",
+    "save": "Enregistrer",
+    "delete": "Supprimer",
+    "edit": "Modifier",
+    "close": "Fermer",
+    "back": "Retour",
+    "next": "Suivant",
+    "previous": "Précédent",
+    "submit": "Soumettre",
+    "confirm": "Confirmer"
+  },
+  "nav": {
+    "home": "Accueil",
+    "tryOn": "Essayage Virtuel",
+    "blog": "Blog",
+    "pricing": "Tarifs",
+    "dashboard": "Tableau de Bord",
+    "signIn": "Se Connecter",
+    "signOut": "Se Déconnecter",
+    "toggleMenu": "Basculer le menu de navigation"
+  },
+  "home": {
+    "hero": {
+      "title": "Découvrez les Lunettes qui Vous Vont Parfaitement",
+      "subtitle": "Essayez des Lunettes en 3 Étapes Faciles"
+    },
+    "steps": {
+      "step1": {
+        "title": "Téléchargez Votre Photo",
+        "description": "Téléchargez une photo de face de vous-même — aucun outil spécial requis."
+      },
+      "step2": {
+        "title": "Choisissez Vos Montures",
+        "description": "Choisissez les lunettes que vous aimez. Nous vous montrerons comment chaque style vous va."
+      },
+      "step3": {
+        "title": "Voir et Sauvegarder",
+        "description": "Voyez votre meilleur look, puis sauvegardez-le ou partagez-le."
+      }
+    },
+    "cta": {
+      "button": "Commencer"
+    }
+  },
+  "pricing": {
+    "title": "Choisissez Votre Forfait",
+    "subtitle": "Sélectionnez le forfait parfait pour vos besoins",
+    "currentPlan": "Forfait Actuel",
+    "freeUser": "Utilisateur Gratuit",
+    "remainingTryOns": "Essayages restants : {count}",
+    "plans": {
+      "creditsPack": {
+        "name": "Pack de Crédits",
+        "description": "Parfait pour une utilisation occasionnelle",
+        "price": "2,99 €",
+        "period": "Paiement unique",
+        "buttonText": "Acheter le Pack de Crédits",
+        "features": [
+          "10 essayages IA",
+          "Traitement d'image haute qualité",
+          "Téléchargements et partages illimités",
+          "Bibliothèque de montures standard",
+          "Support par e-mail"
+        ]
+      },
+      "monthly": {
+        "name": "Standard",
+        "description": "Choix le plus populaire",
+        "price": "8,99 €",
+        "period": "par mois",
+        "buttonText": "Démarrer l'Abonnement Mensuel",
+        "features": [
+          "30 essayages IA par mois",
+          "Traitement d'image haute qualité",
+          "File d'attente prioritaire",
+          "Téléchargements et partages illimités",
+          "Bibliothèque de montures standard",
+          "Support client prioritaire"
+        ]
+      },
+      "yearly": {
+        "name": "Standard",
+        "description": "Meilleure valeur - Économisez 17%",
+        "price": "89,99 €",
+        "originalPrice": "107,88 €",
+        "period": "par an",
+        "buttonText": "Démarrer l'Abonnement Annuel",
+        "features": [
+          "420 essayages IA par an (35/mois)",
+          "Traitement d'image haute qualité",
+          "File d'attente prioritaire",
+          "Téléchargements et partages illimités",
+          "Bibliothèque de montures standard",
+          "Support client prioritaire",
+          "Économisez 17,89 € par rapport au mensuel"
+        ]
+      }
+    },
+    "comparison": {
+      "title": "Comparer les Forfaits",
+      "features": {
+        "aiTryOns": "Essayages IA",
+        "imageQuality": "Qualité d'Image",
+        "processingSpeed": "Vitesse de Traitement",
+        "downloads": "Téléchargements et Partage",
+        "frameLibrary": "Bibliothèque de Montures",
+        "support": "Support Client"
+      },
+      "values": {
+        "free": {
+          "aiTryOns": "3 fois",
+          "imageQuality": "Standard",
+          "processingSpeed": "Standard",
+          "downloads": "Limité",
+          "frameLibrary": "Basique",
+          "support": "E-mail"
+        },
+        "credits": {
+          "aiTryOns": "+10 fois",
+          "imageQuality": "Haute",
+          "processingSpeed": "Standard",
+          "downloads": "Illimité",
+          "frameLibrary": "Standard",
+          "support": "E-mail"
+        },
+        "standard": {
+          "aiTryOns": "30/mois ou 420/an",
+          "imageQuality": "Haute",
+          "processingSpeed": "Prioritaire",
+          "downloads": "Illimité",
+          "frameLibrary": "Standard",
+          "support": "Prioritaire"
+        }
+      }
+    }
+  },
+  "meta": {
+    "home": {
+      "title": "VisuTry - Outil d'Essayage Virtuel de Lunettes IA | Trouvez Vos Lunettes Parfaites en Ligne",
+      "description": "Essayez des lunettes virtuellement avec la technologie IA. Trouvez les lunettes parfaites pour la forme de votre visage avec notre outil intelligent de recommandation de lunettes. Achetez des montures de créateurs en ligne en toute confiance grâce à l'essayage virtuel."
+    },
+    "pricing": {
+      "title": "Plans Tarifaires - Essayage Virtuel de Lunettes IA | VisuTry",
+      "description": "Choisissez le forfait parfait pour l'essayage virtuel de lunettes IA. Essais gratuits disponibles, fonctionnalités premium pour un accès illimité. Trouvez vos lunettes idéales avec une technologie IA avancée."
+    }
+  }
+}
+

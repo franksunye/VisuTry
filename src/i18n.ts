@@ -1,14 +1,14 @@
 /**
  * Internationalization (i18n) Configuration
- * 
- * MVP Version: Supports 3 languages (English, Indonesian, Spanish)
- * 
+ *
+ * Supports 9 languages for global reach and SEO optimization
+ *
  * This configuration can be easily extended to support additional languages
  * by adding new locale codes to the arrays and objects below.
  */
 
-// Supported locales for MVP
-export const locales = ['en', 'id', 'es'] as const
+// Supported locales (ordered by preference)
+export const locales = ['en', 'id', 'ar', 'ru', 'de', 'ja', 'es', 'pt', 'fr'] as const
 export type Locale = typeof locales[number]
 
 // Default locale (fallback)
@@ -18,14 +18,26 @@ export const defaultLocale: Locale = 'en'
 export const localeNames: Record<Locale, string> = {
   en: 'English',
   id: 'Bahasa Indonesia',
+  ar: 'العربية',
+  ru: 'Русский',
+  de: 'Deutsch',
+  ja: '日本語',
   es: 'Español',
+  pt: 'Português',
+  fr: 'Français',
 }
 
 // Text direction for each locale
 export const localeDirections: Record<Locale, 'ltr' | 'rtl'> = {
   en: 'ltr',
   id: 'ltr',
+  ar: 'rtl', // Arabic is right-to-left
+  ru: 'ltr',
+  de: 'ltr',
+  ja: 'ltr',
   es: 'ltr',
+  pt: 'ltr',
+  fr: 'ltr',
 }
 
 // Locale to Open Graph locale mapping
@@ -33,14 +45,26 @@ export const localeDirections: Record<Locale, 'ltr' | 'rtl'> = {
 export const localeToOGLocale: Record<Locale, string> = {
   en: 'en_US',
   id: 'id_ID',
+  ar: 'ar_AR',
+  ru: 'ru_RU',
+  de: 'de_DE',
+  ja: 'ja_JP',
   es: 'es_ES',
+  pt: 'pt_PT',
+  fr: 'fr_FR',
 }
 
 // Language display names for UI (can be different from native names)
 export const localeDisplayNames: Record<Locale, string> = {
   en: 'English',
   id: 'Indonesian',
+  ar: 'Arabic',
+  ru: 'Russian',
+  de: 'German',
+  ja: 'Japanese',
   es: 'Spanish',
+  pt: 'Portuguese',
+  fr: 'French',
 }
 
 /**

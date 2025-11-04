@@ -1,0 +1,165 @@
+{
+  "common": {
+    "getStarted": "Começar",
+    "learnMore": "Saiba Mais",
+    "signIn": "Entrar",
+    "signOut": "Sair",
+    "startFreeTrial": "Iniciar Teste Gratuito",
+    "startTryOn": "Iniciar Experimentação",
+    "tryOn": "Experimentação Virtual",
+    "blog": "Blog",
+    "pricing": "Preços",
+    "dashboard": "Painel",
+    "profile": "Perfil",
+    "settings": "Configurações",
+    "loading": "Carregando...",
+    "error": "Erro",
+    "success": "Sucesso",
+    "cancel": "Cancelar",
+    "save": "Salvar",
+    "delete": "Excluir",
+    "edit": "Editar",
+    "close": "Fechar",
+    "back": "Voltar",
+    "next": "Próximo",
+    "previous": "Anterior",
+    "submit": "Enviar",
+    "confirm": "Confirmar"
+  },
+  "nav": {
+    "home": "Início",
+    "tryOn": "Experimentação Virtual",
+    "blog": "Blog",
+    "pricing": "Preços",
+    "dashboard": "Painel",
+    "signIn": "Entrar",
+    "signOut": "Sair",
+    "toggleMenu": "Alternar menu de navegação"
+  },
+  "home": {
+    "hero": {
+      "title": "Descubra os Óculos que Combinam Perfeitamente com Você",
+      "subtitle": "Experimente Óculos em 3 Passos Fáceis"
+    },
+    "steps": {
+      "step1": {
+        "title": "Envie Sua Foto",
+        "description": "Envie uma foto frontal de você — nenhuma ferramenta especial necessária."
+      },
+      "step2": {
+        "title": "Escolha Suas Armações",
+        "description": "Escolha os óculos que você gosta. Mostraremos como cada estilo fica no seu rosto."
+      },
+      "step3": {
+        "title": "Ver e Salvar",
+        "description": "Veja seu melhor visual, depois salve ou compartilhe."
+      }
+    },
+    "cta": {
+      "button": "Começar"
+    }
+  },
+  "pricing": {
+    "title": "Escolha Seu Plano",
+    "subtitle": "Selecione o plano perfeito para suas necessidades",
+    "currentPlan": "Plano Atual",
+    "freeUser": "Usuário Gratuito",
+    "remainingTryOns": "Experimentações restantes: {count}",
+    "plans": {
+      "creditsPack": {
+        "name": "Pacote de Créditos",
+        "description": "Perfeito para uso ocasional",
+        "price": "R$ 14,99",
+        "period": "Pagamento único",
+        "buttonText": "Comprar Pacote de Créditos",
+        "features": [
+          "10 experimentações com IA",
+          "Processamento de imagem de alta qualidade",
+          "Downloads e compartilhamentos ilimitados",
+          "Biblioteca de armações padrão",
+          "Suporte por e-mail"
+        ]
+      },
+      "monthly": {
+        "name": "Padrão",
+        "description": "Escolha mais popular",
+        "price": "R$ 44,99",
+        "period": "por mês",
+        "buttonText": "Iniciar Assinatura Mensal",
+        "features": [
+          "30 experimentações com IA por mês",
+          "Processamento de imagem de alta qualidade",
+          "Fila de processamento prioritária",
+          "Downloads e compartilhamentos ilimitados",
+          "Biblioteca de armações padrão",
+          "Suporte ao cliente prioritário"
+        ]
+      },
+      "yearly": {
+        "name": "Padrão",
+        "description": "Melhor valor - Economize 17%",
+        "price": "R$ 449,99",
+        "originalPrice": "R$ 539,88",
+        "period": "por ano",
+        "buttonText": "Iniciar Assinatura Anual",
+        "features": [
+          "420 experimentações com IA por ano (35/mês)",
+          "Processamento de imagem de alta qualidade",
+          "Fila de processamento prioritária",
+          "Downloads e compartilhamentos ilimitados",
+          "Biblioteca de armações padrão",
+          "Suporte ao cliente prioritário",
+          "Economize R$ 89,89 em comparação ao mensal"
+        ]
+      }
+    },
+    "comparison": {
+      "title": "Comparar Planos",
+      "features": {
+        "aiTryOns": "Experimentações com IA",
+        "imageQuality": "Qualidade de Imagem",
+        "processingSpeed": "Velocidade de Processamento",
+        "downloads": "Downloads e Compartilhamento",
+        "frameLibrary": "Biblioteca de Armações",
+        "support": "Suporte ao Cliente"
+      },
+      "values": {
+        "free": {
+          "aiTryOns": "3 vezes",
+          "imageQuality": "Padrão",
+          "processingSpeed": "Padrão",
+          "downloads": "Limitado",
+          "frameLibrary": "Básica",
+          "support": "E-mail"
+        },
+        "credits": {
+          "aiTryOns": "+10 vezes",
+          "imageQuality": "Alta",
+          "processingSpeed": "Padrão",
+          "downloads": "Ilimitado",
+          "frameLibrary": "Padrão",
+          "support": "E-mail"
+        },
+        "standard": {
+          "aiTryOns": "30/mês ou 420/ano",
+          "imageQuality": "Alta",
+          "processingSpeed": "Prioritária",
+          "downloads": "Ilimitado",
+          "frameLibrary": "Padrão",
+          "support": "Prioritário"
+        }
+      }
+    }
+  },
+  "meta": {
+    "home": {
+      "title": "VisuTry - Ferramenta de Experimentação Virtual de Óculos com IA | Encontre Seus Óculos Perfeitos Online",
+      "description": "Experimente óculos virtualmente com tecnologia de IA. Encontre os óculos perfeitos para o formato do seu rosto com nossa ferramenta inteligente de recomendação de óculos. Compre armações de grife online com confiança usando experimentação virtual."
+    },
+    "pricing": {
+      "title": "Planos de Preços - Experimentação Virtual de Óculos com IA | VisuTry",
+      "description": "Escolha o plano perfeito para experimentação virtual de óculos com IA. Testes gratuitos disponíveis, recursos premium para acesso ilimitado. Encontre seus óculos ideais com tecnologia de IA avançada."
+    }
+  }
+}
+
