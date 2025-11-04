@@ -193,16 +193,15 @@ export const authOptions: NextAuthOptions = {
               (!dbUser.premiumExpiresAt || dbUser.premiumExpiresAt > new Date())
 
             // Calculate remaining trials (using centralized config)
-            // Priority: Premium quota > Credits Pack > Free trials
+            // Total = Free trials remaining + Credits balance
             if (token.isPremiumActive) {
               // Premium users: show their subscription quota
               token.remainingTrials = 999 // Will be calculated based on subscription type
-            } else if (dbUser.creditsBalance > 0) {
-              // Users with credits: show credits balance
-              token.remainingTrials = dbUser.creditsBalance
             } else {
-              // Free users: show free trial remaining
-              token.remainingTrials = Math.max(0, QUOTA_CONFIG.FREE_TRIAL - dbUser.freeTrialsUsed)
+              // Free users: total = free trials remaining + credits balance
+              const freeRemaining = Math.max(0, QUOTA_CONFIG.FREE_TRIAL - dbUser.freeTrialsUsed)
+              const creditsRemaining = dbUser.creditsBalance || 0
+              token.remainingTrials = freeRemaining + creditsRemaining
             }
 
             // 清除用户缓存，确保Dashboard等页面使用最新数据
