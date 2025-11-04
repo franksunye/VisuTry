@@ -67,6 +67,15 @@ export const authOptions: NextAuthOptions = {
     }),
   ],
   callbacks: {
+    async signIn({ user, account, profile, email, credentials }) {
+      console.log('[Auth SignIn] User attempting to sign in:', {
+        userId: user?.id,
+        email: user?.email,
+        provider: account?.provider,
+        isNewUser: !user?.id
+      })
+      return true
+    },
     async session({ session, token, user }) {
       // 🔍 监控 session callback 性能
       perfLogger.start('auth:session-callback')
@@ -227,8 +236,50 @@ export const authOptions: NextAuthOptions = {
           } else {
             console.warn('[Auth JWT] User not found in database:', {
               userId: token.sub,
-              trigger
+              trigger,
+              email: token.email
             })
+
+            // FALLBACK: If user doesn't exist, try to create them
+            // This can happen if PrismaAdapter failed to create the user
+            if (trigger === 'signIn' && token.email) {
+              try {
+                console.log('[Auth JWT] Attempting to create user as fallback:', {
+                  userId: token.sub,
+                  email: token.email
+                })
+
+                const newUser = await prisma.user.create({
+                  data: {
+                    id: token.sub,
+                    email: token.email,
+                    name: token.name || token.email,
+                    image: token.image,
+                    role: 'USER' // Default role
+                  }
+                })
+
+                console.log('[Auth JWT] User created successfully:', {
+                  userId: newUser.id,
+                  email: newUser.email,
+                  role: newUser.role
+                })
+
+                // Set token fields from newly created user
+                token.role = newUser.role
+                token.freeTrialsUsed = newUser.freeTrialsUsed
+                token.premiumUsageCount = newUser.premiumUsageCount
+                token.creditsBalance = newUser.creditsBalance
+                token.isPremium = newUser.isPremium
+                token.premiumExpiresAt = newUser.premiumExpiresAt
+              } catch (createError) {
+                console.error('[Auth JWT] Failed to create user as fallback:', {
+                  userId: token.sub,
+                  email: token.email,
+                  error: (createError as any)?.message
+                })
+              }
+            }
           }
         } catch (error) {
           perfLogger.end('auth:jwt:db-sync', { success: false, error: true })
