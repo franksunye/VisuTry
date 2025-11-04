@@ -156,14 +156,14 @@ function SuccessContent() {
                 <Loader2 className="w-12 h-12 text-blue-600 animate-spin" />
               </div>
               <h2 className="mb-2 text-2xl font-bold text-gray-900">
-                {paymentStatus === 'checking' ? t('processing') : t('updatingAccount')}
+                {paymentStatus === 'checking' ? 'Processing Payment...' : 'Updating Account...'}
               </h2>
               <p className="mb-6 text-gray-600">
                 {statusMessage}
               </p>
               <div className="p-4 rounded-lg bg-blue-50">
                 <p className="text-sm text-blue-800">
-                  {t('pleaseWait')}
+                  Please wait while we process your payment...
                 </p>
               </div>
             </div>
@@ -184,7 +184,7 @@ function SuccessContent() {
                 <CheckCircle className="w-12 h-12 text-red-600" />
               </div>
               <h2 className="mb-2 text-2xl font-bold text-gray-900">
-                {t('error')}
+                Something went wrong
               </h2>
               <p className="mb-6 text-gray-600">
                 {statusMessage}
@@ -193,7 +193,7 @@ function SuccessContent() {
                 href="/dashboard"
                 className="inline-flex items-center justify-center px-6 py-3 text-white transition-colors bg-blue-600 rounded-lg hover:bg-blue-700"
               >
-                {t('goToDashboard')}
+                Go to Dashboard
               </Link>
             </div>
           </div>
@@ -213,10 +213,10 @@ function SuccessContent() {
               <CheckCircle className="w-12 h-12 text-green-600" />
             </div>
             <h1 className="mb-2 text-3xl font-bold text-white">
-              {t('title')}
+              Payment Successful!
             </h1>
             <p className="text-lg text-green-50">
-              {t('thankYou')}
+              Thank you for your purchase
             </p>
           </div>
 
@@ -232,7 +232,7 @@ function SuccessContent() {
                 <Sparkles className="w-6 h-6 text-yellow-500" />
               </div>
               <p className="text-gray-600">
-                {t('paymentProcessed')}
+                Your payment has been processed successfully and your account balance has been updated!
               </p>
             </div>
 
