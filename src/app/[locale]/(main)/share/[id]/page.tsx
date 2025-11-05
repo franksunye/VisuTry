@@ -4,7 +4,6 @@ import { Glasses, Download } from "lucide-react"
 import Link from "next/link"
 import type { Metadata } from "next"
 import { TryOnResultImage } from "@/components/OptimizedImage"
-import Image from "next/image"
 
 interface SharePageProps {
   params: {
@@ -91,12 +90,10 @@ export default async function SharePage({ params }: SharePageProps) {
             </h2>
             <div className="flex items-center justify-center space-x-4 text-gray-600">
               {task.user.image && (
-                <Image
+                <img
                   src={task.user.image}
                   alt={userName}
-                  width={32}
-                  height={32}
-                  className="rounded-full"
+                  className="w-8 h-8 rounded-full"
                 />
               )}
               <span>{userName}</span>
