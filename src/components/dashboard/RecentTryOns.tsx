@@ -35,13 +35,13 @@ export function RecentTryOns({ tryOns }: RecentTryOnsProps) {
   const getStatusText = (status: string) => {
     switch (status.toLowerCase()) {
       case "completed":
-        return "Completed"
+        return 'Completed'
       case "processing":
-        return "Processing"
+        return 'Processing'
       case "failed":
-        return "Failed"
+        return 'Failed'
       default:
-        return "Unknown"
+        return 'Unknown'
     }
   }
 

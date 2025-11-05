@@ -1,0 +1,216 @@
+{
+  "common": {
+    "getStarted": "Comenzar",
+    "learnMore": "Más Información",
+    "signIn": "Iniciar Sesión",
+    "signOut": "Cerrar Sesión",
+    "startFreeTrial": "Iniciar Prueba Gratuita",
+    "startTryOn": "Comenzar Prueba",
+    "tryOn": "Prueba Virtual",
+    "blog": "Blog",
+    "pricing": "Precios",
+    "dashboard": "Panel",
+    "profile": "Perfil",
+    "settings": "Configuración",
+    "loading": "Cargando...",
+    "error": "Error",
+    "success": "Éxito",
+    "cancel": "Cancelar",
+    "save": "Guardar",
+    "delete": "Eliminar",
+    "edit": "Editar",
+    "close": "Cerrar",
+    "back": "Atrás",
+    "next": "Siguiente",
+    "previous": "Anterior",
+    "submit": "Enviar",
+    "confirm": "Confirmar"
+  },
+  "nav": {
+    "home": "Inicio",
+    "tryOn": "Prueba Virtual",
+    "blog": "Blog",
+    "pricing": "Precios",
+    "dashboard": "Panel",
+    "signIn": "Iniciar Sesión",
+    "signOut": "Cerrar Sesión",
+    "toggleMenu": "Alternar menú de navegación"
+  },
+  "home": {
+    "hero": {
+      "title": "Descubre las Gafas que te Quedan Perfectamente",
+      "subtitle": "Prueba Gafas en 3 Sencillos Pasos"
+    },
+    "steps": {
+      "step1": {
+        "title": "Sube tu Foto",
+        "description": "Sube una foto de frente de ti mismo — no se requieren herramientas especiales."
+      },
+      "step2": {
+        "title": "Elige tus Monturas",
+        "description": "Elige las gafas que te gusten. Te mostraremos cómo se ve cada estilo en tu cara."
+      },
+      "step3": {
+        "title": "Ver y Guardar",
+        "description": "Ve tu mejor look, luego guárdalo o compártelo."
+      }
+    },
+    "cta": {
+      "button": "Comenzar"
+    },
+    "showcase": {
+      "alex": {
+        "name": "Alex",
+        "description": "Encontró el estilo aviador perfecto en segundos"
+      },
+      "ethan": {
+        "name": "Ethan",
+        "description": "Descubrió su look característico con IA"
+      },
+      "sophia": {
+        "name": "Sophia",
+        "description": "Probó más de 10 estilos antes de encontrar el indicado"
+      },
+      "encouragement": {
+        "title": "✨ Únete a miles que encontraron sus gafas perfectas",
+        "subtitle": "Prueba estilos ilimitados con precisión de IA"
+      }
+    }
+  },
+  "pricing": {
+    "title": "Elige tu Plan",
+    "subtitle": "Selecciona el plan perfecto para tus necesidades",
+    "currentPlan": "Plan Actual",
+    "freeUser": "Usuario Gratuito",
+    "remainingTryOns": "Pruebas restantes: {count}",
+    "plans": {
+      "creditsPack": {
+        "name": "Paquete de Créditos",
+        "description": "Perfecto para uso ocasional",
+        "price": "$2.99",
+        "period": "Pago único",
+        "buttonText": "Comprar Paquete de Créditos",
+        "features": [
+          "10 pruebas con IA",
+          "Procesamiento de imágenes de alta calidad",
+          "Descargas y compartir ilimitados",
+          "Biblioteca estándar de monturas",
+          "Soporte por email"
+        ]
+      },
+      "monthly": {
+        "name": "Estándar",
+        "description": "Opción más popular",
+        "price": "$8.99",
+        "period": "por mes",
+        "buttonText": "Iniciar Suscripción Mensual",
+        "features": [
+          "30 pruebas con IA por mes",
+          "Procesamiento de imágenes de alta calidad",
+          "Cola de procesamiento prioritaria",
+          "Descargas y compartir ilimitados",
+          "Biblioteca estándar de monturas",
+          "Soporte prioritario al cliente"
+        ]
+      },
+      "yearly": {
+        "name": "Estándar",
+        "description": "Mejor valor - Ahorra 17%",
+        "price": "$89.99",
+        "originalPrice": "$107.88",
+        "period": "por año",
+        "buttonText": "Iniciar Suscripción Anual",
+        "features": [
+          "420 pruebas con IA por año (35/mes)",
+          "Procesamiento de imágenes de alta calidad",
+          "Cola de procesamiento prioritaria",
+          "Descargas y compartir ilimitados",
+          "Biblioteca estándar de monturas",
+          "Soporte prioritario al cliente",
+          "Ahorra $17.89 comparado con mensual"
+        ]
+      }
+    },
+    "comparison": {
+      "title": "Comparar Planes",
+      "features": {
+        "aiTryOns": "Pruebas con IA",
+        "imageQuality": "Calidad de Imagen",
+        "processingSpeed": "Velocidad de Procesamiento",
+        "downloads": "Descargas y Compartir",
+        "frameLibrary": "Biblioteca de Monturas",
+        "support": "Atención al Cliente"
+      },
+      "values": {
+        "free": {
+          "aiTryOns": "3 veces",
+          "imageQuality": "Estándar",
+          "processingSpeed": "Estándar",
+          "downloads": "Limitado",
+          "frameLibrary": "Básica",
+          "support": "Email"
+        },
+        "credits": {
+          "aiTryOns": "+10 veces",
+          "imageQuality": "Alta",
+          "processingSpeed": "Estándar",
+          "downloads": "Ilimitado",
+          "frameLibrary": "Estándar",
+          "support": "Email"
+        },
+        "standard": {
+          "aiTryOns": "30/mes o 420/año",
+          "imageQuality": "Alta",
+          "processingSpeed": "Prioritaria",
+          "downloads": "Ilimitado",
+          "frameLibrary": "Estándar",
+          "support": "Prioritario"
+        }
+      }
+    },
+    "faq": {
+      "title": "Preguntas Frecuentes",
+      "questions": [
+        {
+          "question": "¿Puedo cancelar mi suscripción en cualquier momento?",
+          "answer": "Sí, puedes cancelar tu suscripción en cualquier momento. Tu acceso continuará hasta el final de tu período de facturación."
+        },
+        {
+          "question": "¿Qué pasa con las pruebas no utilizadas?",
+          "answer": "Para suscripciones mensuales, las pruebas no utilizadas no se transfieren al mes siguiente. Para paquetes de créditos, los créditos nunca expiran."
+        },
+        {
+          "question": "¿Ofrecen reembolsos?",
+          "answer": "Ofrecemos una garantía de devolución de dinero de 7 días para todas las suscripciones. Los paquetes de créditos no son reembolsables una vez utilizados."
+        }
+      ]
+    }
+  },
+  "footer": {
+    "tagline": "Prueba virtual de gafas con IA",
+    "links": {
+      "product": "Producto",
+      "company": "Empresa",
+      "legal": "Legal",
+      "support": "Soporte",
+      "tryOn": "Prueba Virtual",
+      "pricing": "Precios",
+      "blog": "Blog",
+      "privacy": "Política de Privacidad",
+      "terms": "Términos de Servicio",
+      "refund": "Política de Reembolso"
+    },
+    "copyright": "© {year} VisuTry. Todos los derechos reservados.",
+    "madeWith": "Hecho con ❤️ usando tecnología IA"
+  },
+  "meta": {
+    "home": {
+      "title": "VisuTry - Herramienta de Prueba Virtual de Gafas con IA | Encuentra tus Gafas Perfectas Online",
+      "description": "Prueba gafas virtualmente con tecnología de IA. Encuentra las gafas perfectas para la forma de tu cara con nuestra herramienta inteligente de recomendación de gafas. Compra monturas de diseñador online con confianza usando la prueba virtual."
+    },
+    "pricing": {
+      "title": "Planes de Precios - Prueba Virtual de Gafas con IA | VisuTry",
+      "description": "Elige el plan perfecto para la prueba virtual de gafas con IA. Pruebas gratuitas disponibles, funciones premium para acceso ilimitado. Encuentra tus gafas ideales con tecnología de IA avanzada."
+    }
+  }
+}

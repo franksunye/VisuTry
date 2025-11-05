@@ -1,0 +1,216 @@
+{
+  "common": {
+    "getStarted": "Mulai Sekarang",
+    "learnMore": "Pelajari Lebih Lanjut",
+    "signIn": "Masuk",
+    "signOut": "Keluar",
+    "startFreeTrial": "Mulai Uji Coba Gratis",
+    "startTryOn": "Mulai Mencoba",
+    "tryOn": "Coba Virtual",
+    "blog": "Blog",
+    "pricing": "Harga",
+    "dashboard": "Dasbor",
+    "profile": "Profil",
+    "settings": "Pengaturan",
+    "loading": "Memuat...",
+    "error": "Kesalahan",
+    "success": "Berhasil",
+    "cancel": "Batal",
+    "save": "Simpan",
+    "delete": "Hapus",
+    "edit": "Edit",
+    "close": "Tutup",
+    "back": "Kembali",
+    "next": "Selanjutnya",
+    "previous": "Sebelumnya",
+    "submit": "Kirim",
+    "confirm": "Konfirmasi"
+  },
+  "nav": {
+    "home": "Beranda",
+    "tryOn": "Coba Virtual",
+    "blog": "Blog",
+    "pricing": "Harga",
+    "dashboard": "Dasbor",
+    "signIn": "Masuk",
+    "signOut": "Keluar",
+    "toggleMenu": "Buka/tutup menu navigasi"
+  },
+  "home": {
+    "hero": {
+      "title": "Temukan Kacamata yang Sempurna untuk Anda",
+      "subtitle": "Coba Kacamata dalam 3 Langkah Mudah"
+    },
+    "steps": {
+      "step1": {
+        "title": "Unggah Foto Anda",
+        "description": "Unggah foto wajah Anda dari depan — tidak perlu alat khusus."
+      },
+      "step2": {
+        "title": "Pilih Bingkai",
+        "description": "Pilih kacamata yang Anda suka. Kami akan menunjukkan bagaimana setiap gaya terlihat di wajah Anda."
+      },
+      "step3": {
+        "title": "Lihat & Simpan",
+        "description": "Lihat tampilan terbaik Anda, lalu simpan atau bagikan."
+      }
+    },
+    "cta": {
+      "button": "Mulai Sekarang"
+    },
+    "showcase": {
+      "alex": {
+        "name": "Alex",
+        "description": "Menemukan gaya aviator sempurna dalam hitungan detik"
+      },
+      "ethan": {
+        "name": "Ethan",
+        "description": "Menemukan tampilan khasnya dengan AI"
+      },
+      "sophia": {
+        "name": "Sophia",
+        "description": "Mencoba 10+ gaya sebelum menemukan yang tepat"
+      },
+      "encouragement": {
+        "title": "✨ Bergabunglah dengan ribuan orang yang menemukan kacamata sempurna mereka",
+        "subtitle": "Coba gaya tak terbatas dengan presisi bertenaga AI"
+      }
+    }
+  },
+  "pricing": {
+    "title": "Pilih Paket Anda",
+    "subtitle": "Pilih paket yang sempurna untuk kebutuhan Anda",
+    "currentPlan": "Paket Saat Ini",
+    "freeUser": "Pengguna Gratis",
+    "remainingTryOns": "Sisa percobaan: {count}",
+    "plans": {
+      "creditsPack": {
+        "name": "Paket Kredit",
+        "description": "Sempurna untuk penggunaan sesekali",
+        "price": "$2.99",
+        "period": "Sekali bayar",
+        "buttonText": "Beli Paket Kredit",
+        "features": [
+          "10 percobaan AI",
+          "Pemrosesan gambar berkualitas tinggi",
+          "Unduhan dan berbagi tanpa batas",
+          "Perpustakaan bingkai kacamata standar",
+          "Dukungan email"
+        ]
+      },
+      "monthly": {
+        "name": "Standar",
+        "description": "Pilihan paling populer",
+        "price": "$8.99",
+        "period": "per bulan",
+        "buttonText": "Mulai Langganan Bulanan",
+        "features": [
+          "30 percobaan AI per bulan",
+          "Pemrosesan gambar berkualitas tinggi",
+          "Antrian pemrosesan prioritas",
+          "Unduhan dan berbagi tanpa batas",
+          "Perpustakaan bingkai kacamata standar",
+          "Dukungan pelanggan prioritas"
+        ]
+      },
+      "yearly": {
+        "name": "Standar",
+        "description": "Nilai terbaik - Hemat 17%",
+        "price": "$89.99",
+        "originalPrice": "$107.88",
+        "period": "per tahun",
+        "buttonText": "Mulai Langganan Tahunan",
+        "features": [
+          "420 percobaan AI per tahun (35/bulan)",
+          "Pemrosesan gambar berkualitas tinggi",
+          "Antrian pemrosesan prioritas",
+          "Unduhan dan berbagi tanpa batas",
+          "Perpustakaan bingkai kacamata standar",
+          "Dukungan pelanggan prioritas",
+          "Hemat $17.89 dibanding bulanan"
+        ]
+      }
+    },
+    "comparison": {
+      "title": "Bandingkan Paket",
+      "features": {
+        "aiTryOns": "Percobaan AI",
+        "imageQuality": "Kualitas Gambar",
+        "processingSpeed": "Kecepatan Pemrosesan",
+        "downloads": "Unduhan & Berbagi",
+        "frameLibrary": "Perpustakaan Bingkai",
+        "support": "Dukungan Pelanggan"
+      },
+      "values": {
+        "free": {
+          "aiTryOns": "3 kali",
+          "imageQuality": "Standar",
+          "processingSpeed": "Standar",
+          "downloads": "Terbatas",
+          "frameLibrary": "Dasar",
+          "support": "Email"
+        },
+        "credits": {
+          "aiTryOns": "+10 kali",
+          "imageQuality": "Tinggi",
+          "processingSpeed": "Standar",
+          "downloads": "Tanpa batas",
+          "frameLibrary": "Standar",
+          "support": "Email"
+        },
+        "standard": {
+          "aiTryOns": "30/bulan atau 420/tahun",
+          "imageQuality": "Tinggi",
+          "processingSpeed": "Prioritas",
+          "downloads": "Tanpa batas",
+          "frameLibrary": "Standar",
+          "support": "Prioritas"
+        }
+      }
+    },
+    "faq": {
+      "title": "Pertanyaan yang Sering Diajukan",
+      "questions": [
+        {
+          "question": "Bisakah saya membatalkan langganan kapan saja?",
+          "answer": "Ya, Anda dapat membatalkan langganan kapan saja. Akses Anda akan berlanjut hingga akhir periode penagihan."
+        },
+        {
+          "question": "Apa yang terjadi dengan percobaan yang tidak terpakai?",
+          "answer": "Untuk langganan bulanan, percobaan yang tidak terpakai tidak akan dibawa ke bulan berikutnya. Untuk paket kredit, kredit tidak pernah kedaluwarsa."
+        },
+        {
+          "question": "Apakah Anda menawarkan pengembalian dana?",
+          "answer": "Kami menawarkan jaminan uang kembali 7 hari untuk semua langganan. Paket kredit tidak dapat dikembalikan setelah digunakan."
+        }
+      ]
+    }
+  },
+  "footer": {
+    "tagline": "Coba virtual kacamata dengan teknologi AI",
+    "links": {
+      "product": "Produk",
+      "company": "Perusahaan",
+      "legal": "Legal",
+      "support": "Dukungan",
+      "tryOn": "Coba Virtual",
+      "pricing": "Harga",
+      "blog": "Blog",
+      "privacy": "Kebijakan Privasi",
+      "terms": "Ketentuan Layanan",
+      "refund": "Kebijakan Pengembalian Dana"
+    },
+    "copyright": "© {year} VisuTry. Hak cipta dilindungi.",
+    "madeWith": "Dibuat dengan ❤️ menggunakan teknologi AI"
+  },
+  "meta": {
+    "home": {
+      "title": "VisuTry - Alat Coba Virtual Kacamata AI | Temukan Kacamata Sempurna Anda Online",
+      "description": "Coba kacamata secara virtual dengan teknologi AI. Temukan kacamata sempurna untuk bentuk wajah Anda dengan alat rekomendasi kacamata pintar kami. Belanja bingkai desainer online dengan percaya diri menggunakan coba virtual."
+    },
+    "pricing": {
+      "title": "Paket Harga - Coba Virtual Kacamata AI | VisuTry",
+      "description": "Pilih paket sempurna untuk coba virtual kacamata AI. Uji coba gratis tersedia, fitur premium untuk akses tanpa batas. Temukan kacamata ideal Anda dengan teknologi AI canggih."
+    }
+  }
+}

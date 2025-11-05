@@ -35,7 +35,6 @@ export async function GET(req: NextRequest) {
           user: {
             id: serverSession.user.id,
             email: serverSession.user.email,
-            // @ts-ignore - role exists in extended session type
             role: serverSession.user.role,
             name: serverSession.user.name,
           }

@@ -22,7 +22,6 @@ export async function GET(
       );
     }
 
-    // @ts-ignore
     if (session.user.role !== 'ADMIN') {
       return NextResponse.json(
         { success: false, error: 'Forbidden - Admin access required' },

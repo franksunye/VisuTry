@@ -6,10 +6,17 @@ import { ImageUpload } from "@/components/upload/ImageUpload"
 import { ResultDisplay } from "@/components/try-on/ResultDisplay"
 import { LoadingState } from "@/components/try-on/LoadingState"
 import { EmptyState } from "@/components/try-on/EmptyState"
-import { Sparkles, ArrowRight, User, Glasses } from "lucide-react"
+import { Sparkles, ArrowRight, User, Glasses, AlertCircle, X } from "lucide-react"
+import Link from "next/link"
+
+interface ErrorState {
+  message: string
+  type: 'quota' | 'processing' | 'generic'
+  statusCode?: number
+}
 
 export function TryOnInterface() {
-  const { update } = useSession()
+  const { data: session, update } = useSession()
   const [userImage, setUserImage] = useState<{ file: File; preview: string } | null>(null)
   const [glassesImage, setGlassesImage] = useState<{ file: File; preview: string } | null>(null)
   const [isProcessing, setIsProcessing] = useState(false)
@@ -17,6 +24,11 @@ export function TryOnInterface() {
   const [currentStep, setCurrentStep] = useState<"upload" | "select" | "process" | "result">("upload")
   const [currentTaskId, setCurrentTaskId] = useState<string | null>(null)
   const [processingMessage, setProcessingMessage] = useState("AI is processing your try-on request...")
+  const [error, setError] = useState<ErrorState | null>(null)
+
+  // Get quota info from session
+  const remainingTrials = session?.user?.remainingTrials ?? 0
+  const hasQuota = remainingTrials > 0
 
   // Poll task status
   useEffect(() => {
@@ -90,6 +102,7 @@ export function TryOnInterface() {
 
     setIsProcessing(true)
     setCurrentStep("process")
+    setError(null)
 
     try {
       const formData = new FormData()
@@ -128,11 +141,25 @@ export function TryOnInterface() {
           // Keep isProcessing=true for polling to continue
         }
       } else {
-        throw new Error(data.error || "Try-on failed")
+        // Handle API errors with specific error types
+        const errorMessage = data.error || "Try-on failed"
+        const isQuotaError = response.status === 403 && errorMessage.includes("quota")
+
+        setError({
+          message: errorMessage,
+          type: isQuotaError ? 'quota' : 'generic',
+          statusCode: response.status
+        })
+
+        setCurrentStep("select")
+        setIsProcessing(false)
       }
     } catch (error) {
       console.error("Try-on failed:", error)
-      alert("Failed, please try again")
+      setError({
+        message: "An unexpected error occurred. Please try again.",
+        type: 'generic'
+      })
       setCurrentStep("select")
       setIsProcessing(false)
     }
@@ -146,8 +173,74 @@ export function TryOnInterface() {
 
   const canProceed = userImage && glassesImage
 
+  // Error Modal Component
+  const ErrorModal = () => {
+    if (!error) return null
+
+    const isQuotaError = error.type === 'quota'
+
+    return (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div className="bg-white rounded-lg shadow-xl max-w-md w-full">
+          {/* Header */}
+          <div className={`p-4 border-b ${isQuotaError ? 'bg-red-50 border-red-200' : 'bg-orange-50 border-orange-200'}`}>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <AlertCircle className={`w-5 h-5 ${isQuotaError ? 'text-red-600' : 'text-orange-600'}`} />
+                <h3 className={`font-semibold ${isQuotaError ? 'text-red-900' : 'text-orange-900'}`}>
+                  {isQuotaError ? 'No Try-Ons Available' : 'Try-On Failed'}
+                </h3>
+              </div>
+              <button
+                onClick={() => setError(null)}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+          </div>
+
+          {/* Body */}
+          <div className="p-6">
+            <p className={`text-sm mb-4 ${isQuotaError ? 'text-red-800' : 'text-gray-700'}`}>
+              {error.message}
+            </p>
+
+            {isQuotaError && (
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
+                <p className="text-xs text-blue-800">
+                  <strong>💡 Tip:</strong> You can purchase Credits or upgrade to Standard membership to continue using try-ons.
+                </p>
+              </div>
+            )}
+          </div>
+
+          {/* Footer */}
+          <div className="p-4 border-t bg-gray-50 flex gap-3">
+            <button
+              onClick={() => setError(null)}
+              className="flex-1 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+            >
+              Close
+            </button>
+            {isQuotaError && (
+              <Link
+                href="/pricing"
+                className="flex-1 px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors text-center"
+              >
+                View Plans
+              </Link>
+            )}
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="max-w-6xl mx-auto">
+      {/* Error Modal */}
+      <ErrorModal />
       {/* Step Indicator */}
       <div className="flex items-center justify-center mb-8">
         <div className="flex items-center space-x-4">
@@ -242,10 +335,11 @@ export function TryOnInterface() {
 
       {/* Action Button */}
       {currentStep !== "result" && (
-        <div className="flex justify-center mt-8">
+        <div className="flex flex-col items-center gap-4 mt-8">
           <button
             onClick={handleStartTryOn}
-            disabled={!canProceed || isProcessing}
+            disabled={!canProceed || isProcessing || !hasQuota}
+            title={!hasQuota ? "No remaining try-ons. Please upgrade." : ""}
             className="flex items-center px-8 py-3 text-white transition-colors bg-blue-600 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isProcessing ? (
@@ -260,6 +354,17 @@ export function TryOnInterface() {
               </>
             )}
           </button>
+
+          {/* Quota warning when no quota */}
+          {!hasQuota && !isProcessing && (
+            <div className="flex items-center gap-2 text-red-600 text-sm">
+              <AlertCircle className="w-4 h-4" />
+              <span>No remaining try-ons</span>
+              <Link href="/pricing" className="font-semibold underline hover:text-red-700">
+                Upgrade now
+              </Link>
+            </div>
+          )}
         </div>
       )}
     </div>

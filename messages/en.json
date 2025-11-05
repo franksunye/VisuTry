@@ -1,0 +1,218 @@
+{
+  "common": {
+    "getStarted": "Get Started",
+    "learnMore": "Learn More",
+    "signIn": "Sign In",
+    "signOut": "Sign Out",
+    "startFreeTrial": "Start Free Trial",
+    "startTryOn": "Start Try-On",
+    "tryOn": "Try-On",
+    "blog": "Blog",
+    "pricing": "Pricing",
+    "dashboard": "Dashboard",
+    "profile": "Profile",
+    "settings": "Settings",
+    "loading": "Loading...",
+    "error": "Error",
+    "success": "Success",
+    "cancel": "Cancel",
+    "save": "Save",
+    "delete": "Delete",
+    "edit": "Edit",
+    "close": "Close",
+    "back": "Back",
+    "next": "Next",
+    "previous": "Previous",
+    "submit": "Submit",
+    "confirm": "Confirm"
+  },
+  "nav": {
+    "home": "Home",
+    "tryOn": "Try-On",
+    "blog": "Blog",
+    "pricing": "Pricing",
+    "dashboard": "Dashboard",
+    "signIn": "Sign In",
+    "signOut": "Sign Out",
+    "toggleMenu": "Toggle navigation menu"
+  },
+  "home": {
+    "hero": {
+      "title": "Discover the Glasses That Fit You Perfectly",
+      "subtitle": "Try On Glasses in 3 Easy Steps"
+    },
+    "steps": {
+      "step1": {
+        "title": "Upload Your Photo",
+        "description": "Upload a front-facing photo of yourself — no special tools required."
+      },
+      "step2": {
+        "title": "Pick Your Frames",
+        "description": "Choose the glasses you like. We'll show how each style looks on your face."
+      },
+      "step3": {
+        "title": "See & Save",
+        "description": "See your top look, then save or share it."
+      }
+    },
+    "cta": {
+      "button": "Get Started"
+    },
+    "showcase": {
+      "alex": {
+        "name": "Alex",
+        "description": "Found the perfect aviator style in seconds"
+      },
+      "ethan": {
+        "name": "Ethan",
+        "description": "Discovered his signature look with AI"
+      },
+      "sophia": {
+        "name": "Sophia",
+        "description": "Tried 10+ styles before finding the one"
+      },
+      "encouragement": {
+        "title": "✨ Join thousands who found their perfect glasses",
+        "subtitle": "Try on unlimited styles with AI-powered precision"
+      }
+    }
+  },
+  "pricing": {
+    "title": "Choose Your Plan",
+    "subtitle": "Select the perfect plan for your needs",
+    "currentPlan": "Current Plan",
+    "freeUser": "Free User",
+    "remainingTryOns": "Remaining try-ons: {count}",
+    "plans": {
+      "creditsPack": {
+        "name": "Credits Pack",
+        "description": "Perfect for occasional use",
+        "price": "$2.99",
+        "period": "One-time",
+        "buttonText": "Buy Credits Pack",
+        "features": [
+          "10 AI try-ons",
+          "High-quality image processing",
+          "Unlimited downloads and sharing",
+          "Standard glasses frame library",
+          "Email support"
+        ]
+      },
+      "monthly": {
+        "name": "Standard",
+        "description": "Most popular choice",
+        "price": "$8.99",
+        "period": "per month",
+        "buttonText": "Start Monthly Subscription",
+        "features": [
+          "30 AI try-ons per month",
+          "High-quality image processing",
+          "Priority processing queue",
+          "Unlimited downloads and sharing",
+          "Standard glasses frame library",
+          "Priority customer support"
+        ]
+      },
+      "yearly": {
+        "name": "Standard",
+        "description": "Best value - Save 17%",
+        "price": "$89.99",
+        "originalPrice": "$107.88",
+        "period": "per year",
+        "buttonText": "Start Annual Subscription",
+        "features": [
+          "420 AI try-ons per year (35/month)",
+          "High-quality image processing",
+          "Priority processing queue",
+          "Unlimited downloads and sharing",
+          "Standard glasses frame library",
+          "Priority customer support",
+          "Save $17.89 compared to monthly"
+        ]
+      }
+    },
+    "comparison": {
+      "title": "Compare Plans",
+      "features": {
+        "aiTryOns": "AI Try-ons",
+        "imageQuality": "Image Quality",
+        "processingSpeed": "Processing Speed",
+        "downloads": "Downloads & Sharing",
+        "frameLibrary": "Frame Library",
+        "support": "Customer Support"
+      },
+      "values": {
+        "free": {
+          "aiTryOns": "3 times",
+          "imageQuality": "Standard",
+          "processingSpeed": "Standard",
+          "downloads": "Limited",
+          "frameLibrary": "Basic",
+          "support": "Email"
+        },
+        "credits": {
+          "aiTryOns": "+10 times",
+          "imageQuality": "High",
+          "processingSpeed": "Standard",
+          "downloads": "Unlimited",
+          "frameLibrary": "Standard",
+          "support": "Email"
+        },
+        "standard": {
+          "aiTryOns": "30/month or 420/year",
+          "imageQuality": "High",
+          "processingSpeed": "Priority",
+          "downloads": "Unlimited",
+          "frameLibrary": "Standard",
+          "support": "Priority"
+        }
+      }
+    },
+    "faq": {
+      "title": "Frequently Asked Questions",
+      "questions": [
+        {
+          "question": "Can I cancel my subscription anytime?",
+          "answer": "Yes, you can cancel your subscription at any time. Your access will continue until the end of your billing period."
+        },
+        {
+          "question": "What happens to unused try-ons?",
+          "answer": "For monthly subscriptions, unused try-ons do not roll over to the next month. For credits packs, credits never expire."
+        },
+        {
+          "question": "Do you offer refunds?",
+          "answer": "We offer a 7-day money-back guarantee for all subscriptions. Credits packs are non-refundable once used."
+        }
+      ]
+    }
+  },
+
+  "footer": {
+    "tagline": "AI-powered virtual glasses try-on",
+    "links": {
+      "product": "Product",
+      "company": "Company",
+      "legal": "Legal",
+      "support": "Support",
+      "tryOn": "Try On",
+      "pricing": "Pricing",
+      "blog": "Blog",
+      "privacy": "Privacy Policy",
+      "terms": "Terms of Service",
+      "refund": "Refund Policy"
+    },
+    "copyright": "© {year} VisuTry. All rights reserved.",
+    "madeWith": "Made with ❤️ using AI technology"
+  },
+  "meta": {
+    "home": {
+      "title": "VisuTry - AI Virtual Glasses Try-On Tool | Find Your Perfect Eyewear Online",
+      "description": "Try on glasses virtually with AI-powered technology. Find the perfect eyewear for your face shape with our smart glasses recommendation tool. Shop designer frames online with confidence using virtual try-on."
+    },
+    "pricing": {
+      "title": "Pricing Plans - AI Glasses Try-On | VisuTry",
+      "description": "Choose the perfect plan for AI glasses try-on. Free trials available, premium features for unlimited access. Find your ideal glasses with advanced AI technology."
+    }
+  }
+}
+

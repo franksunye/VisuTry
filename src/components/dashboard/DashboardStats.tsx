@@ -1,3 +1,5 @@
+'use client'
+
 import { Glasses, CheckCircle, Clock } from "lucide-react"
 
 interface DashboardStatsProps {
@@ -15,21 +17,21 @@ interface DashboardStatsProps {
 export function DashboardStats({ stats }: DashboardStatsProps) {
   const statCards = [
     {
-      title: "Total Try-Ons",
+      title: 'Total Try-Ons',
       value: stats.totalTryOns,
       icon: <Glasses className="w-6 h-6 text-blue-600" />,
       bgColor: "bg-blue-100",
-      description: "Cumulative usage count"
+      description: 'Cumulative usage count'
     },
     {
-      title: "Successful Try-Ons",
+      title: 'Successful Try-Ons',
       value: stats.completedTryOns,
       icon: <CheckCircle className="w-6 h-6 text-green-600" />,
       bgColor: "bg-green-100",
-      description: "Completed try-ons"
+      description: 'Completed try-ons'
     },
     {
-      title: "Remaining Uses",
+      title: 'Remaining Uses',
       value: stats.remainingDisplay,
       icon: <Clock className="w-6 h-6 text-orange-600" />,
       bgColor: "bg-orange-100",

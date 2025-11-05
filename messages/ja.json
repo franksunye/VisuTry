@@ -1,0 +1,199 @@
+{
+  "common": {
+    "getStarted": "始める",
+    "learnMore": "詳しく見る",
+    "signIn": "ログイン",
+    "signOut": "ログアウト",
+    "startFreeTrial": "無料トライアルを開始",
+    "startTryOn": "試着を開始",
+    "tryOn": "バーチャル試着",
+    "blog": "ブログ",
+    "pricing": "料金",
+    "dashboard": "ダッシュボード",
+    "profile": "プロフィール",
+    "settings": "設定",
+    "loading": "読み込み中...",
+    "error": "エラー",
+    "success": "成功",
+    "cancel": "キャンセル",
+    "save": "保存",
+    "delete": "削除",
+    "edit": "編集",
+    "close": "閉じる",
+    "back": "戻る",
+    "next": "次へ",
+    "previous": "前へ",
+    "submit": "送信",
+    "confirm": "確認"
+  },
+  "nav": {
+    "home": "ホーム",
+    "tryOn": "バーチャル試着",
+    "blog": "ブログ",
+    "pricing": "料金",
+    "dashboard": "ダッシュボード",
+    "signIn": "ログイン",
+    "signOut": "ログアウト",
+    "toggleMenu": "ナビゲーションメニューを切り替え"
+  },
+  "home": {
+    "hero": {
+      "title": "あなたにぴったりのメガネを見つけよう",
+      "subtitle": "3つの簡単なステップでメガネを試着"
+    },
+    "steps": {
+      "step1": {
+        "title": "写真をアップロード",
+        "description": "正面から撮影した写真をアップロードしてください。特別なツールは必要ありません。"
+      },
+      "step2": {
+        "title": "フレームを選択",
+        "description": "お好きなメガネを選んでください。各スタイルがあなたの顔にどう見えるかをお見せします。"
+      },
+      "step3": {
+        "title": "確認して保存",
+        "description": "最高の見た目を確認したら、保存または共有してください。"
+      }
+    },
+    "cta": {
+      "button": "始める"
+    },
+    "showcase": {
+      "alex": {
+        "name": "Alex",
+        "description": "数秒で完璧なアビエータースタイルを発見"
+      },
+      "ethan": {
+        "name": "Ethan",
+        "description": "AIで自分らしいルックを発見"
+      },
+      "sophia": {
+        "name": "Sophia",
+        "description": "10以上のスタイルを試して理想の一本を発見"
+      },
+      "encouragement": {
+        "title": "✨ 完璧なメガネを見つけた何千人もの仲間に加わろう",
+        "subtitle": "AI搭載の精度で無制限のスタイルを試着"
+      }
+    }
+  },
+  "pricing": {
+    "title": "プランを選択",
+    "subtitle": "あなたのニーズに最適なプランを選択してください",
+    "currentPlan": "現在のプラン",
+    "freeUser": "無料ユーザー",
+    "remainingTryOns": "残りの試着回数：{count}",
+    "plans": {
+      "creditsPack": {
+        "name": "クレジットパック",
+        "description": "時々使用する方に最適",
+        "price": "¥450",
+        "period": "1回限り",
+        "buttonText": "クレジットパックを購入",
+        "features": [
+          "AI試着10回",
+          "高品質画像処理",
+          "無制限のダウンロードと共有",
+          "標準メガネフレームライブラリ",
+          "メールサポート"
+        ]
+      },
+      "monthly": {
+        "name": "スタンダード",
+        "description": "最も人気のある選択",
+        "price": "¥1,350",
+        "period": "月額",
+        "buttonText": "月額サブスクリプションを開始",
+        "features": [
+          "月30回のAI試着",
+          "高品質画像処理",
+          "優先処理キュー",
+          "無制限のダウンロードと共有",
+          "標準メガネフレームライブラリ",
+          "優先カスタマーサポート"
+        ]
+      },
+      "yearly": {
+        "name": "スタンダード",
+        "description": "最もお得 - 17%節約",
+        "price": "¥13,500",
+        "originalPrice": "¥16,200",
+        "period": "年額",
+        "buttonText": "年間サブスクリプションを開始",
+        "features": [
+          "年間420回のAI試着（月35回）",
+          "高品質画像処理",
+          "優先処理キュー",
+          "無制限のダウンロードと共有",
+          "標準メガネフレームライブラリ",
+          "優先カスタマーサポート",
+          "月額プランと比較して¥2,700節約"
+        ]
+      }
+    },
+    "comparison": {
+      "title": "プランを比較",
+      "features": {
+        "aiTryOns": "AI試着",
+        "imageQuality": "画像品質",
+        "processingSpeed": "処理速度",
+        "downloads": "ダウンロードと共有",
+        "frameLibrary": "フレームライブラリ",
+        "support": "カスタマーサポート"
+      },
+      "values": {
+        "free": {
+          "aiTryOns": "3回",
+          "imageQuality": "標準",
+          "processingSpeed": "標準",
+          "downloads": "制限あり",
+          "frameLibrary": "基本",
+          "support": "メール"
+        },
+        "credits": {
+          "aiTryOns": "+10回",
+          "imageQuality": "高品質",
+          "processingSpeed": "標準",
+          "downloads": "無制限",
+          "frameLibrary": "標準",
+          "support": "メール"
+        },
+        "standard": {
+          "aiTryOns": "月30回または年420回",
+          "imageQuality": "高品質",
+          "processingSpeed": "優先",
+          "downloads": "無制限",
+          "frameLibrary": "標準",
+          "support": "優先"
+        }
+      }
+    }
+  },
+  "footer": {
+    "tagline": "AI搭載バーチャルメガネ試着",
+    "links": {
+      "product": "製品",
+      "company": "会社",
+      "legal": "法的情報",
+      "support": "サポート",
+      "tryOn": "バーチャル試着",
+      "pricing": "料金",
+      "blog": "ブログ",
+      "privacy": "プライバシーポリシー",
+      "terms": "利用規約",
+      "refund": "返金ポリシー"
+    },
+    "copyright": "© {year} VisuTry. 全著作権所有。",
+    "madeWith": "AI技術を使用して❤️で作成"
+  },
+  "meta": {
+    "home": {
+      "title": "VisuTry - AIバーチャルメガネ試着ツール | オンラインで完璧なメガネを見つける",
+      "description": "AI技術でメガネをバーチャル試着。スマートなメガネ推奨ツールで顔の形に最適なメガネを見つけましょう。バーチャル試着でデザイナーフレームを自信を持ってオンラインショッピング。"
+    },
+    "pricing": {
+      "title": "料金プラン - AIメガネ試着 | VisuTry",
+      "description": "AIメガネ試着に最適なプランを選択してください。無料トライアル利用可能、無制限アクセスのプレミアム機能。高度なAI技術で理想のメガネを見つけましょう。"
+    }
+  }
+}

@@ -1,5 +1,6 @@
 // SEO configuration and utility functions
 import { Metadata } from 'next'
+import { locales, type Locale, localeToOGLocale } from '@/i18n'
 
 /**
  * Keyword Categories for SEO Optimization
@@ -397,5 +398,124 @@ export function generateStructuredData(
 
     default:
       return baseData
+  }
+}
+
+/**
+ * Generate alternate language URLs for a given pathname
+ * Used for hreflang tags and language alternates
+ */
+export function getAlternateLanguages(pathname: string = ''): Record<string, string> {
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://visutry.com'
+  const alternates: Record<string, string> = {}
+
+  // Remove leading slash if present
+  const cleanPath = pathname.startsWith('/') ? pathname.slice(1) : pathname
+
+  // Remove locale prefix if present in pathname
+  const pathWithoutLocale = cleanPath.replace(/^(en|id|es)\//, '')
+
+  locales.forEach((locale) => {
+    alternates[locale] = `${baseUrl}/${locale}${pathWithoutLocale ? `/${pathWithoutLocale}` : ''}`
+  })
+
+  return alternates
+}
+
+/**
+ * Generate i18n-aware SEO metadata
+ * Includes hreflang tags, canonical URLs, and localized Open Graph tags
+ */
+export function generateI18nSEO({
+  locale,
+  title,
+  description,
+  image,
+  pathname = '',
+  type = 'website',
+  noIndex = false,
+}: {
+  locale: Locale
+  title: string
+  description: string
+  image?: string
+  pathname?: string
+  type?: 'website' | 'article'
+  noIndex?: boolean
+}): Metadata {
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://visutry.com'
+  const seoImage = image || SITE_CONFIG.ogImage
+
+  // Remove leading slash if present
+  const cleanPath = pathname.startsWith('/') ? pathname.slice(1) : pathname
+
+  // Remove locale prefix if present in pathname
+  const pathWithoutLocale = cleanPath.replace(/^(en|id|es)\//, '')
+
+  // Construct canonical URL with locale
+  const canonicalUrl = `${baseUrl}/${locale}${pathWithoutLocale ? `/${pathWithoutLocale}` : ''}`
+
+  // Generate alternate language URLs
+  const alternateLanguages = getAlternateLanguages(pathWithoutLocale)
+
+  // Get Open Graph locale
+  const ogLocale = localeToOGLocale[locale]
+  const alternateLocales = locales
+    .filter(l => l !== locale)
+    .map(l => localeToOGLocale[l])
+
+  return {
+    title,
+    description,
+
+    // Open Graph with locale support
+    openGraph: {
+      type,
+      locale: ogLocale,
+      alternateLocale: alternateLocales,
+      url: canonicalUrl,
+      title,
+      description,
+      images: [
+        {
+          url: seoImage,
+          width: 1200,
+          height: 630,
+          alt: title,
+        }
+      ],
+      siteName: SITE_CONFIG.name,
+    },
+
+    // Twitter
+    twitter: {
+      card: 'summary_large_image',
+      title,
+      description,
+      images: [seoImage],
+      creator: '@visutry',
+    },
+
+    // Alternates with hreflang and canonical
+    alternates: {
+      canonical: canonicalUrl,
+      languages: alternateLanguages,
+    },
+
+    // Robots
+    robots: noIndex ? {
+      index: false,
+      follow: false,
+    } : {
+      index: true,
+      follow: true,
+      googleBot: {
+        index: true,
+        follow: true,
+        'max-video-preview': -1,
+        'max-image-preview': 'large',
+        'max-snippet': -1,
+      },
+    },
   }
 }
