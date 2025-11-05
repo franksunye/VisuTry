@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation"
 import { prisma } from "@/lib/prisma"
-import { Glasses, Download, ArrowLeft } from "lucide-react"
+import { Glasses, Download } from "lucide-react"
 import Link from "next/link"
 import type { Metadata } from "next"
 import { TryOnResultImage } from "@/components/OptimizedImage"
@@ -81,25 +81,6 @@ export default async function SharePage({ params }: SharePageProps) {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
-      {/* Header */}
-      <header className="bg-white shadow-sm border-b">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center">
-              <Glasses className="w-8 h-8 text-blue-600 mr-3" />
-              <h1 className="text-2xl font-bold text-gray-900">VisuTry</h1>
-            </div>
-            <Link
-              href="/"
-              className="flex items-center text-blue-600 hover:text-blue-700 transition-colors"
-            >
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Try AI Glasses
-            </Link>
-          </div>
-        </div>
-      </header>
-
       {/* Main Content */}
       <main className="container mx-auto px-4 py-8">
         <div className="max-w-4xl mx-auto">
