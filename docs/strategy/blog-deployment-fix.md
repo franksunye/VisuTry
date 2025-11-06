@@ -99,6 +99,38 @@ import { Breadcrumbs } from '@/components/seo/Breadcrumbs'
 
 ---
 
+## 第三个错误：未转义的引号
+
+### 问题描述
+```
+Error: `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`.  react/no-unescaped-entities
+```
+
+### 根本原因
+React/Next.js 的 ESLint 规则不允许在 JSX 中使用未转义的引号（撇号）。
+
+### 解决方案
+将所有 JSX 文本中的 `'` 替换为 `&apos;`：
+
+```typescript
+❌ 错误: Don't settle on the first pair!
+✅ 正确: Don&apos;t settle on the first pair!
+
+❌ 错误: Here's why it matters:
+✅ 正确: Here&apos;s why it matters:
+```
+
+### 修复的实例
+- `best-glasses-for-face-shapes-guide/page.tsx`: 2 处
+- `find-perfect-glasses-online-guide/page.tsx`: 2 处
+- `prescription-glasses-virtual-tryon-guide/page.tsx`: 4 处
+
+### 验证
+✅ 所有引号已正确转义
+✅ ESLint 检查通过
+
+---
+
 ## 相关文件
 
 - `docs/strategy/blog-longtail-keyword-strategy.md` - 完整策略
