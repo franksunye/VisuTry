@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import Image from 'next/image'
 import { generateStructuredData } from '@/lib/seo'
 import { Breadcrumbs } from '@/components/seo/Breadcrumbs'
 
@@ -8,7 +9,7 @@ const structuredData = generateStructuredData('article', {
   publishedAt: '2025-11-06T10:00:00Z',
   modifiedAt: '2025-11-06T10:00:00Z',
   author: 'VisuTry Team',
-  image: '/og-image.jpg',
+  image: '/blog-covers/ai-virtual-tryon.jpg',
 })
 
 export const metadata = {
@@ -33,6 +34,17 @@ export default function BlogPostPage() {
           </div>
 
           <article className="max-w-3xl mx-auto bg-white rounded-lg shadow-lg overflow-hidden">
+            {/* Cover Image */}
+            <div className="relative h-96 w-full overflow-hidden">
+              <Image
+                src="/blog-covers/ai-virtual-tryon.jpg"
+                alt="Prescription Glasses Virtual Try-On Guide"
+                fill
+                className="object-cover"
+                priority
+              />
+            </div>
+
             <div className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white p-8">
               <h1 className="text-4xl font-bold mb-4">
                 Prescription Glasses Virtual Try-On Guide
@@ -99,9 +111,24 @@ export default function BlogPostPage() {
               </p>
 
               <h2>Best Prescription Glasses for Virtual Try-On</h2>
+              <div className="my-6">
+                <Image
+                  src="/Ray-Ban RB5154 Clubmaster - Browline Black Frame Eyeglasses.jpg"
+                  alt="Ray-Ban prescription glasses for virtual try-on"
+                  width={800}
+                  height={600}
+                  className="rounded-lg shadow-md"
+                />
+              </div>
               <p>
-                Popular brands: Ray-Ban, Tom Ford, Oliver Peoples, Warby Parker
+                Popular brands that work great with virtual try-on:
               </p>
+              <ul>
+                <li><strong>Ray-Ban</strong> - Classic styles, excellent quality</li>
+                <li><strong>Tom Ford</strong> - Luxury options, premium materials</li>
+                <li><strong>Oliver Peoples</strong> - Sophisticated designs</li>
+                <li><strong>Warby Parker</strong> - Affordable, stylish frames</li>
+              </ul>
 
               <h2>Pro Tips for Success</h2>
               <ul>

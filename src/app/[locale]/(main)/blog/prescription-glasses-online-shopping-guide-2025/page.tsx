@@ -1,6 +1,7 @@
 import { Metadata } from 'next'
 import { generateSEO, generateStructuredData } from '@/lib/seo'
 import Link from 'next/link'
+import Image from 'next/image'
 import { ShoppingCart, CheckCircle2, AlertTriangle } from 'lucide-react'
 import BlogTags from '@/components/BlogTags'
 import { Breadcrumbs } from '@/components/seo/Breadcrumbs'
@@ -18,7 +19,7 @@ const structuredData = generateStructuredData('article', {
   publishedAt: '2025-10-21T19:00:00Z',
   modifiedAt: '2025-10-21T19:00:00Z',
   author: 'VisuTry Team',
-  image: '/og-image.jpg',
+  image: '/blog-covers/prescription-online-shopping.jpg',
 })
 
 const articleTags = ['Online Shopping', 'Prescription Glasses', 'Buying Guide', 'Eyewear Tips', 'How-To']
@@ -40,6 +41,17 @@ export default function BlogPostPage() {
           </div>
 
           <article className="max-w-4xl mx-auto bg-white rounded-lg shadow-lg overflow-hidden">
+            {/* Cover Image */}
+            <div className="relative h-96 w-full overflow-hidden">
+              <Image
+                src="/blog-covers/prescription-online-shopping.jpg"
+                alt="How to Buy Prescription Glasses Online Guide"
+                fill
+                className="object-cover"
+                priority
+              />
+            </div>
+
             <div className="h-64 bg-gradient-to-r from-blue-600 to-cyan-500 flex items-center justify-center">
               <div className="text-center text-white">
                 <ShoppingCart className="w-16 h-16 mx-auto mb-4" />

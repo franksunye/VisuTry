@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import Image from 'next/image'
 import { generateStructuredData } from '@/lib/seo'
 import { Breadcrumbs } from '@/components/seo/Breadcrumbs'
 
@@ -8,7 +9,7 @@ const structuredData = generateStructuredData('article', {
   publishedAt: '2025-11-06T11:00:00Z',
   modifiedAt: '2025-11-06T11:00:00Z',
   author: 'VisuTry Team',
-  image: '/og-image.jpg',
+  image: '/blog-covers/face-shape-guide.jpg',
 })
 
 export const metadata = {
@@ -33,6 +34,17 @@ export default function BlogPostPage() {
           </div>
 
           <article className="max-w-3xl mx-auto bg-white rounded-lg shadow-lg overflow-hidden">
+            {/* Cover Image */}
+            <div className="relative h-96 w-full overflow-hidden">
+              <Image
+                src="/blog-covers/face-shape-guide.jpg"
+                alt="Best Glasses for Different Face Shapes Guide"
+                fill
+                className="object-cover"
+                priority
+              />
+            </div>
+
             <div className="bg-gradient-to-r from-purple-600 to-blue-600 text-white p-8">
               <h1 className="text-4xl font-bold mb-4">
                 Best Glasses for Different Face Shapes
@@ -59,6 +71,15 @@ export default function BlogPostPage() {
               </p>
 
               <h2>1. Round Face Shape</h2>
+              <div className="my-6">
+                <Image
+                  src="/Ray-Ban RB5154 Clubmaster - Browline Black Frame Eyeglasses.jpg"
+                  alt="Best glasses for round face shape - browline frames"
+                  width={800}
+                  height={600}
+                  className="rounded-lg shadow-md"
+                />
+              </div>
               <p>
                 <strong>Best glasses styles:</strong> Browline, Cat-eye, Rectangular, Geometric
               </p>
