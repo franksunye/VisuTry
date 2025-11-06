@@ -6,8 +6,8 @@ import { Breadcrumbs } from '@/components/seo/Breadcrumbs'
 const structuredData = generateStructuredData('article', {
   title: 'Best Glasses for Different Face Shapes - Complete Guide 2025',
   description: 'Comprehensive guide to finding the best glasses for your face shape. Learn which frame styles work best for round, square, oval, heart, and oblong faces.',
-  publishedAt: '2025-11-06T11:00:00Z',
-  modifiedAt: '2025-11-06T11:00:00Z',
+  publishedAt: '2025-11-02T11:00:00Z',
+  modifiedAt: '2025-11-02T11:00:00Z',
   author: 'VisuTry Team',
   image: '/blog-covers/face-shape-guide.jpg',
 })

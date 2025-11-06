@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import Image from 'next/image'
 import { generateStructuredData } from '@/lib/seo'
 import { Breadcrumbs } from '@/components/seo/Breadcrumbs'
 
@@ -68,6 +69,15 @@ export default function BlogPostPage() {
               </p>
 
               <h2>Step 4: Use Virtual Try-On</h2>
+              <div className="my-6">
+                <Image
+                  src="/Oliver Peoples Finley Vintage.jpg"
+                  alt="Virtual try-on process for finding perfect glasses online"
+                  width={800}
+                  height={600}
+                  className="rounded-lg shadow-md"
+                />
+              </div>
               <p>
                 This is the game-changer for online shopping. Virtual try-on lets you see how frames look on your face.
               </p>

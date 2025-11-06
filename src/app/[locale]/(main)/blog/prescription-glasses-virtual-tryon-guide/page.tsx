@@ -6,8 +6,8 @@ import { Breadcrumbs } from '@/components/seo/Breadcrumbs'
 const structuredData = generateStructuredData('article', {
   title: 'Prescription Glasses Virtual Try-On Guide - Find Your Perfect Fit Online',
   description: 'Complete guide to using virtual try-on tools for prescription glasses. Learn how to find the perfect fit online without visiting a store.',
-  publishedAt: '2025-11-06T10:00:00Z',
-  modifiedAt: '2025-11-06T10:00:00Z',
+  publishedAt: '2025-11-04T10:00:00Z',
+  modifiedAt: '2025-11-04T10:00:00Z',
   author: 'VisuTry Team',
   image: '/blog-covers/ai-virtual-tryon.jpg',
 })

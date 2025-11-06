@@ -16,8 +16,8 @@ export const metadata: Metadata = generateSEO({
 const structuredData = generateStructuredData('article', {
   title: 'How to Buy Prescription Glasses Online 2025 - Complete Shopping Guide',
   description: 'Complete guide to buying prescription glasses online safely and successfully.',
-  publishedAt: '2025-10-21T19:00:00Z',
-  modifiedAt: '2025-10-21T19:00:00Z',
+  publishedAt: '2025-10-28T19:00:00Z',
+  modifiedAt: '2025-10-28T19:00:00Z',
   author: 'VisuTry Team',
   image: '/blog-covers/prescription-online-shopping.jpg',
 })
