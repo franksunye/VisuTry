@@ -9,6 +9,9 @@ import { User } from 'lucide-react';
 // This is a React Server Component (RSC) to display the admin dashboard.
 // It fetches data directly on the server to provide key metrics.
 
+// Force dynamic rendering to always show the latest data
+export const dynamic = 'force-dynamic';
+
 async function getStats() {
   const now = new Date();
   const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
