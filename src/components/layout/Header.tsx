@@ -11,6 +11,7 @@ import { useState, useMemo } from 'react'
 import { cn } from '@/utils/cn'
 import { useTestSession } from '@/hooks/useTestSession'
 import { useTranslations } from 'next-intl'
+import { analytics, getUserType } from '@/lib/analytics'
 
 interface HeaderProps {
   transparent?: boolean
@@ -62,6 +63,17 @@ export function Header({ transparent = false }: HeaderProps) {
               <Link
                 key={link.href}
                 href={link.href}
+                onClick={() => {
+                  // 追踪 Pricing 链接点击
+                  if (link.href.includes('/pricing')) {
+                    const userType = getUserType(
+                      session?.user?.isPremiumActive || false,
+                      (session?.user as any)?.creditsBalance || 0,
+                      !!session
+                    )
+                    analytics.trackViewPricing('nav', userType, (session?.user as any)?.remainingTrials || 0)
+                  }
+                }}
                 className={cn(
                   'text-sm font-medium transition-colors hover:text-blue-600',
                   pathname === link.href

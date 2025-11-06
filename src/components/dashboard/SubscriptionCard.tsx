@@ -1,6 +1,9 @@
+'use client'
+
 import { Star, Crown, Clock, ArrowUpRight } from "lucide-react"
 import Link from "next/link"
 import { formatDistanceToNow } from "date-fns"
+import { analytics } from "@/lib/analytics"
 
 interface User {
   id: string
@@ -128,6 +131,11 @@ export function SubscriptionCard({ user }: SubscriptionCardProps) {
       {/* Upgrade Button */}
       <Link
         href="/pricing"
+        onClick={() => {
+          const remainingTrials = user.remainingTrials || 0
+          const quotaWarning = remainingTrials <= 1
+          analytics.trackUpgradeClick('subscription_card', 'free', remainingTrials, quotaWarning)
+        }}
         className="w-full flex items-center justify-center px-4 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all duration-200"
       >
         <Star className="w-5 h-5 mr-2" />

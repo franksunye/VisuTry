@@ -8,6 +8,7 @@ import { LoadingState } from "@/components/try-on/LoadingState"
 import { EmptyState } from "@/components/try-on/EmptyState"
 import { Sparkles, ArrowRight, User, Glasses, AlertCircle, X } from "lucide-react"
 import Link from "next/link"
+import { analytics, getUserType } from "@/lib/analytics"
 
 interface ErrorState {
   message: string
@@ -226,6 +227,14 @@ export function TryOnInterface() {
             {isQuotaError && (
               <Link
                 href="/pricing"
+                onClick={() => {
+                  const userType = getUserType(
+                    session?.user?.isPremiumActive || false,
+                    (session?.user as any)?.creditsBalance || 0,
+                    !!session
+                  )
+                  analytics.trackQuotaExhaustedCTA('error_modal', userType)
+                }}
                 className="flex-1 px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors text-center"
               >
                 View Plans
@@ -360,7 +369,18 @@ export function TryOnInterface() {
             <div className="flex items-center gap-2 text-red-600 text-sm">
               <AlertCircle className="w-4 h-4" />
               <span>No remaining try-ons</span>
-              <Link href="/pricing" className="font-semibold underline hover:text-red-700">
+              <Link
+                href="/pricing"
+                onClick={() => {
+                  const userType = getUserType(
+                    session?.user?.isPremiumActive || false,
+                    (session?.user as any)?.creditsBalance || 0,
+                    !!session
+                  )
+                  analytics.trackQuotaExhaustedCTA('try_on', userType)
+                }}
+                className="font-semibold underline hover:text-red-700"
+              >
                 Upgrade now
               </Link>
             </div>

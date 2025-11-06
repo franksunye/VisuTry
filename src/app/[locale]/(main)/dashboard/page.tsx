@@ -13,6 +13,7 @@ import { Glasses, Plus, Receipt } from "lucide-react"
 import Link from "next/link"
 import { perfLogger, logPageLoad } from "@/lib/performance-logger"
 import { getCachedUserPayment } from "@/lib/cache"
+import { DashboardQuickActions } from "@/components/dashboard/DashboardQuickActions"
 
 // 性能优化：使用 Suspense 流式渲染
 // 1. 立即返回页面框架（< 100ms）
@@ -117,33 +118,10 @@ export default async function DashboardPage() {
           <SubscriptionCard user={userForCard} />
 
           {/* Quick Actions */}
-          <div className="p-6 bg-white border shadow-sm rounded-xl">
-            <h3 className="mb-4 text-lg font-semibold text-gray-900">Quick Actions</h3>
-            <div className="space-y-3">
-              <Link
-                href="/try-on"
-                className="flex items-center justify-center w-full px-4 py-3 text-white transition-colors bg-blue-600 rounded-lg hover:bg-blue-700"
-              >
-                <Glasses className="w-5 h-5 mr-2" />
-                Start AI Try-On
-              </Link>
-
-              <Link
-                href="/pricing"
-                className="flex items-center justify-center w-full px-4 py-3 text-gray-700 transition-colors border border-gray-300 rounded-lg hover:bg-gray-50"
-              >
-                Upgrade to Standard
-              </Link>
-
-              <Link
-                href="/payments"
-                className="flex items-center justify-center w-full px-4 py-3 text-gray-700 transition-colors border border-gray-300 rounded-lg hover:bg-gray-50"
-              >
-                <Receipt className="w-5 h-5 mr-2" />
-                Payment History
-              </Link>
-            </div>
-          </div>
+          <DashboardQuickActions
+            userType={session.user.isPremiumActive ? 'premium' : (session.user as any).creditsBalance > 0 ? 'credits' : 'free'}
+            remainingTrials={session.user.remainingTrials}
+          />
 
           {/* Tips Card */}
           <div className="p-6 bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-200 rounded-xl">

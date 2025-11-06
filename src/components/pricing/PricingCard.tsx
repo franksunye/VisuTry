@@ -3,6 +3,7 @@
 import { useState } from "react"
 import { Check, Loader2 } from "lucide-react"
 import { cn } from "@/utils/cn"
+import { analytics, getUserType, type ProductType } from "@/lib/analytics"
 
 interface PricingPlan {
   id: string
@@ -41,6 +42,20 @@ export function PricingCard({ plan, currentUser }: PricingCardProps) {
     setLoading(true)
 
     try {
+      // 追踪点击购买按钮
+      const userType = getUserType(
+        currentUser.isPremiumActive,
+        0, // creditsBalance 不在 currentUser 中，使用 0
+        true // 已认证
+      )
+      const planPrice = parseFloat(plan.price.replace('$', '').replace('/month', '').replace('/year', ''))
+      analytics.trackClickPurchase(
+        plan.id as ProductType,
+        planPrice,
+        userType,
+        'pricing'
+      )
+
       const response = await fetch("/api/payment/create-session", {
         method: "POST",
         headers: {
@@ -56,6 +71,9 @@ export function PricingCard({ plan, currentUser }: PricingCardProps) {
       const data = await response.json()
 
       if (data.success && data.data.url) {
+        // 追踪开始结账
+        analytics.trackBeginCheckout(plan.id as ProductType, planPrice)
+
         // Redirect to Stripe Checkout
         window.location.href = data.data.url
       } else {
