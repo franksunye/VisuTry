@@ -13,6 +13,36 @@ export const metadata: Metadata = generateSEO({
 // Sample blog posts data
 const blogPosts = [
   {
+    id: 'prescription-glasses-virtual-tryon-guide',
+    title: 'Prescription Glasses Virtual Try-On Guide - Find Your Perfect Fit Online',
+    description: 'Complete guide to using virtual try-on tools for prescription glasses. Learn how to find the perfect fit online without visiting a store.',
+    author: 'VisuTry Team',
+    publishedAt: '2025-11-06',
+    category: 'Virtual Try-On',
+    readTime: '6 min read',
+    image: '/blog-covers/virtual-tryon-guide.jpg',
+  },
+  {
+    id: 'best-glasses-for-face-shapes-guide',
+    title: 'Best Glasses for Different Face Shapes - Complete Guide 2025',
+    description: 'Comprehensive guide to finding the best glasses for your face shape. Learn which frame styles work best for round, square, oval, heart, and oblong faces.',
+    author: 'VisuTry Team',
+    publishedAt: '2025-11-06',
+    category: 'Style Guide',
+    readTime: '8 min read',
+    image: '/blog-covers/face-shapes-guide.jpg',
+  },
+  {
+    id: 'find-perfect-glasses-online-guide',
+    title: 'How to Find Your Perfect Glasses Online - Step-by-Step Guide',
+    description: 'Complete step-by-step guide to finding and buying the perfect glasses online. Learn how to choose frames, use virtual try-on, and make confident purchases.',
+    author: 'VisuTry Team',
+    publishedAt: '2025-11-06',
+    category: 'Shopping Guide',
+    readTime: '7 min read',
+    image: '/blog-covers/find-perfect-glasses.jpg',
+  },
+  {
     id: 'prescription-glasses-online-shopping-guide-2025',
     title: 'How to Buy Prescription Glasses Online 2025',
     description: 'Learn how to safely buy prescription glasses online. Get tips on measuring PD, reading prescriptions, and avoiding mistakes.',
