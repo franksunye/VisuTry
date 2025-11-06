@@ -69,9 +69,40 @@ git push origin main
 2. **先创建目录** - 使用 `mkdir -p` 确保目录存在
 3. **验证文件位置** - 使用 `ls` 或 `view` 工具验证文件是否在正确的位置
 
+## 第二个错误：Breadcrumbs 导入路径错误
+
+### 问题描述
+```
+Module not found: Can't resolve '@/components/blog/Breadcrumbs'
+```
+
+### 根本原因
+使用了错误的导入路径：
+```typescript
+❌ 错误: import { Breadcrumbs } from '@/components/blog/Breadcrumbs'
+✅ 正确: import { Breadcrumbs } from '@/components/seo/Breadcrumbs'
+```
+
+### 解决方案
+修改所有三个新文章的导入语句：
+```typescript
+// prescription-glasses-virtual-tryon-guide/page.tsx
+// best-glasses-for-face-shapes-guide/page.tsx
+// find-perfect-glasses-online-guide/page.tsx
+
+import { Breadcrumbs } from '@/components/seo/Breadcrumbs'
+```
+
+### 验证
+✅ 导入路径与其他博客文章一致
+✅ Breadcrumbs 组件位于 `src/components/seo/Breadcrumbs.tsx`
+
+---
+
 ## 相关文件
 
 - `docs/strategy/blog-longtail-keyword-strategy.md` - 完整策略
 - `docs/strategy/blog-implementation-summary.md` - 实施总结
 - `src/app/[locale]/(main)/blog/page.tsx` - 博客列表页面
+- `src/components/seo/Breadcrumbs.tsx` - Breadcrumbs 组件
 
