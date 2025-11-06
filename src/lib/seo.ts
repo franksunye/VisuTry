@@ -5,27 +5,54 @@ import { locales, type Locale, localeToOGLocale } from '@/i18n'
 /**
  * Keyword Categories for SEO Optimization
  * Organized by intent and conversion potential
+ * Updated with Nano Banana AI model and high-priority keywords
  */
 export const KEYWORDS = {
-  // Core tool keywords (high conversion intent)
+  // Core tool keywords (high conversion intent) - Priority A
   core: [
-    'virtual glasses try-on',
+    'nano banana virtual glasses try-on',
+    'nano banana glasses try on tool',
+    'nano banana AI glasses fitting',
     'AI glasses try-on',
+    'virtual glasses try-on',
     'online glasses fitting',
-    'virtual eyewear try-on',
-    'glasses try-on tool',
+    'instant online glasses try-on',
+    'free virtual glasses try-on',
   ],
 
-  // Feature-based keywords
+  // AI Model & Technology - Priority A
+  aiModel: [
+    'nano banana AI eyewear try-on',
+    'nano banana powered virtual try-on',
+    'AI-powered glasses try-on tool',
+    'virtual eyewear fitting nano banana AI',
+    'nano banana online glasses fitting platform',
+  ],
+
+  // Feature-based keywords - Priority A/B
   features: [
     'face shape glasses matcher',
     'smart glasses recommendation',
     'AI-powered eyewear fitting',
     'virtual frame fitting',
     'online optical try-on',
+    'instant virtual glasses fitting',
+    'no download virtual glasses try-on',
+    'browser-based virtual glasses try-on',
   ],
 
-  // Long-tail keywords (traffic generation)
+  // Convenience & Access - Priority A/B
+  convenience: [
+    'try glasses online',
+    'try glasses without visiting store',
+    'instant online virtual glasses testing',
+    'free nano banana virtual eyewear try-on',
+    'web-based glasses try-on tool',
+    'try on any glasses online',
+    'all brand glasses virtual try-on',
+  ],
+
+  // Long-tail keywords (traffic generation) - Priority B/C
   longTail: [
     'best glasses for round face',
     'how to choose glasses online',
@@ -33,38 +60,35 @@ export const KEYWORDS = {
     'try on glasses before buying',
     'virtual glasses fitting app',
     'online eyewear shopping tool',
-  ],
-
-  // Brand-related keywords
-  brands: [
-    'Ray-Ban virtual try-on',
-    'designer glasses online',
-    'premium eyewear try-on',
-    'luxury glasses virtual fitting',
-  ],
-
-  // Problem-solving keywords
-  problemSolving: [
     'find perfect glasses online',
     'glasses shopping made easy',
-    'try glasses without visiting store',
+  ],
+
+  // Brand-related keywords - Priority B
+  brands: [
+    'Ray-Ban virtual try-on',
+    'designer glasses try-on',
+    'premium eyewear try-on',
+    'luxury eyewear virtual fitting',
+    'branded glasses online try-on',
   ],
 }
 
 // Flatten all keywords for meta tags
 const ALL_KEYWORDS = [
   ...KEYWORDS.core,
+  ...KEYWORDS.aiModel,
   ...KEYWORDS.features,
+  ...KEYWORDS.convenience,
   ...KEYWORDS.longTail,
   ...KEYWORDS.brands,
-  ...KEYWORDS.problemSolving,
 ]
 
 // Website basic information
 export const SITE_CONFIG = {
   name: 'VisuTry',
-  title: 'VisuTry - AI Virtual Glasses Try-On Tool | Find Your Perfect Eyewear Online',
-  description: 'Try on glasses virtually with AI-powered technology. Find the perfect eyewear for your face shape with our smart glasses recommendation tool. Shop designer frames online with confidence using virtual try-on.',
+  title: 'VisuTry - Nano Banana AI Virtual Glasses Try-On | Instant Online Eyewear Fitting',
+  description: 'Try on glasses instantly with Nano Banana AI-powered virtual try-on. No download needed - upload your photo and try any glasses online free. Smart face shape matching for perfect eyewear recommendations.',
   url: process.env.NEXT_PUBLIC_SITE_URL || 'https://visutry.com',
   ogImage: '/og-image.jpg',
   keywords: ALL_KEYWORDS,
@@ -80,13 +104,13 @@ export const SITE_CONFIG = {
 export function getKeywordsByType(type: 'home' | 'blog' | 'product' | 'pricing'): string[] {
   switch (type) {
     case 'home':
-      return [...KEYWORDS.core, ...KEYWORDS.features, ...KEYWORDS.problemSolving]
+      return [...KEYWORDS.core, ...KEYWORDS.aiModel, ...KEYWORDS.features, ...KEYWORDS.convenience]
     case 'blog':
       return [...KEYWORDS.core, ...KEYWORDS.longTail]
     case 'product':
       return [...KEYWORDS.core, ...KEYWORDS.brands]
     case 'pricing':
-      return [...KEYWORDS.core, ...KEYWORDS.features]
+      return [...KEYWORDS.core, ...KEYWORDS.features, ...KEYWORDS.convenience]
     default:
       return KEYWORDS.core
   }
