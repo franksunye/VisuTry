@@ -23,7 +23,6 @@ export default function BlogPostPage() {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }} />
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
         <main className="container mx-auto px-4 py-12">
-          {/* Breadcrumbs */}
           <div className="mb-6">
             <Breadcrumbs
               items={[
@@ -33,9 +32,7 @@ export default function BlogPostPage() {
             />
           </div>
 
-          {/* Article */}
           <article className="max-w-3xl mx-auto bg-white rounded-lg shadow-lg overflow-hidden">
-            {/* Header */}
             <div className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white p-8">
               <h1 className="text-4xl font-bold mb-4">
                 Prescription Glasses Virtual Try-On Guide
@@ -49,7 +46,6 @@ export default function BlogPostPage() {
               </div>
             </div>
 
-            {/* Content */}
             <div className="p-8 prose prose-lg max-w-none">
               <p>
                 Buying prescription glasses online has become easier than ever, thanks to virtual try-on technology. 
@@ -63,8 +59,7 @@ export default function BlogPostPage() {
 
               <h2>Why Virtual Try-On for Prescription Glasses?</h2>
               <p>
-                Virtual try-on technology has revolutionized online eyewear shopping. Here's why it matters for 
-                prescription glasses:
+                Virtual try-on technology has revolutionized online eyewear shopping. Here's why it matters:
               </p>
               <ul>
                 <li><strong>See before you buy</strong> - Visualize how frames look on your face</li>
@@ -90,105 +85,47 @@ export default function BlogPostPage() {
 
               <h3>Step 2: Upload and Select Frames</h3>
               <p>
-                Upload your photo to the virtual try-on tool and browse prescription glasses options. 
-                Most tools let you filter by:
+                Upload your photo to the virtual try-on tool and browse prescription glasses options.
               </p>
-              <ul>
-                <li>Frame shape (browline, cat-eye, round, etc.)</li>
-                <li>Brand (Ray-Ban, Tom Ford, Oliver Peoples, etc.)</li>
-                <li>Color and material</li>
-                <li>Price range</li>
-              </ul>
 
               <h3>Step 3: Try Multiple Styles</h3>
               <p>
-                Don't settle on the first pair! Try at least 5-10 different styles to see what works best 
-                for your face shape and personal style.
+                Don't settle on the first pair! Try at least 5-10 different styles to see what works best.
               </p>
 
               <h3>Step 4: Check the Fit</h3>
               <p>
-                Look for:
+                Look for proper alignment and balance with your face shape.
               </p>
-              <ul>
-                <li>Frames sit properly on your nose</li>
-                <li>Temples align with your ears</li>
-                <li>Overall balance with your face shape</li>
-                <li>Style matches your personality</li>
-              </ul>
 
               <h2>Best Prescription Glasses for Virtual Try-On</h2>
               <p>
-                Popular brands that work great with virtual try-on:
+                Popular brands: Ray-Ban, Tom Ford, Oliver Peoples, Warby Parker
               </p>
-              <ul>
-                <li><strong>Ray-Ban</strong> - Classic styles, excellent quality</li>
-                <li><strong>Tom Ford</strong> - Luxury options, premium materials</li>
-                <li><strong>Oliver Peoples</strong> - Sophisticated designs</li>
-                <li><strong>Warby Parker</strong> - Affordable, stylish frames</li>
-              </ul>
 
               <h2>Pro Tips for Success</h2>
               <ul>
-                <li>Try frames in different colors - same style, different colors can look very different</li>
-                <li>Consider your lifestyle - active? professional? casual?</li>
-                <li>Check frame size - ensure it matches your face width</li>
-                <li>Read reviews - see what other customers say about fit and quality</li>
-                <li>Use multiple tools - compare results from different virtual try-on platforms</li>
+                <li>Try frames in different colors</li>
+                <li>Consider your lifestyle</li>
+                <li>Check frame size</li>
+                <li>Read reviews from other customers</li>
+                <li>Use multiple tools for comparison</li>
               </ul>
-
-              <h2>Virtual Try-On vs Traditional Fitting</h2>
-              <p>
-                While virtual try-on is excellent, some people still prefer in-store fitting for:
-              </p>
-              <ul>
-                <li>Professional measurement of pupillary distance (PD)</li>
-                <li>Hands-on feel of frame quality</li>
-                <li>Immediate adjustments</li>
-              </ul>
-
-              <p>
-                However, virtual try-on offers advantages like convenience, wider selection, and better prices.
-              </p>
 
               <div className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white p-8 rounded-lg my-8">
                 <h3 className="text-2xl font-bold mb-4">Ready to Try Prescription Glasses Virtually?</h3>
                 <p className="mb-6">
-                  Use our AI-powered virtual try-on tool to find your perfect prescription glasses. 
-                  See exactly how frames look on your face before buying!
+                  Use our AI-powered virtual try-on tool to find your perfect prescription glasses.
                 </p>
                 <Link href="/try-on" className="inline-block bg-white text-blue-600 px-8 py-3 rounded-lg font-bold hover:bg-gray-100 transition-colors">
                   Start Virtual Try-On →
                 </Link>
               </div>
 
-              <h2>Common Questions</h2>
-              <h3>How accurate is virtual try-on?</h3>
-              <p>
-                Modern AI-powered virtual try-on is highly accurate. It uses facial recognition to properly 
-                position frames on your face, accounting for your unique facial features.
-              </p>
-
-              <h3>Can I return glasses if they don't fit?</h3>
-              <p>
-                Most online eyewear retailers offer 30-day returns. Always check the return policy before purchasing.
-              </p>
-
-              <h3>Do I need my prescription for virtual try-on?</h3>
-              <p>
-                No! Virtual try-on only shows how frames look. You'll need your prescription when ordering.
-              </p>
-
               <h2>Conclusion</h2>
               <p>
                 Virtual try-on technology makes buying prescription glasses online safer and more enjoyable. 
-                By following this guide, you can confidently find frames that look great and fit perfectly—
-                all from the comfort of your home.
-              </p>
-
-              <p>
-                Ready to find your perfect prescription glasses? 
-                <Link href="/try-on" className="text-blue-600 hover:text-blue-800 font-semibold"> Try our virtual try-on tool today!</Link>
+                By following this guide, you can confidently find frames that look great and fit perfectly.
               </p>
             </div>
           </article>
