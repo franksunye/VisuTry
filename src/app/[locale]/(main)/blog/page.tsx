@@ -20,7 +20,7 @@ const blogPosts = [
     publishedAt: '2025-11-06',
     category: 'Virtual Try-On',
     readTime: '6 min read',
-    image: '/blog-covers/virtual-tryon-guide.jpg',
+    image: '/blog-covers/ai-virtual-tryon.jpg',
   },
   {
     id: 'best-glasses-for-face-shapes-guide',
@@ -30,7 +30,7 @@ const blogPosts = [
     publishedAt: '2025-11-06',
     category: 'Style Guide',
     readTime: '8 min read',
-    image: '/blog-covers/face-shapes-guide.jpg',
+    image: '/blog-covers/face-shape-guide.jpg',
   },
   {
     id: 'find-perfect-glasses-online-guide',
@@ -40,7 +40,7 @@ const blogPosts = [
     publishedAt: '2025-11-06',
     category: 'Shopping Guide',
     readTime: '7 min read',
-    image: '/blog-covers/find-perfect-glasses.jpg',
+    image: '/blog-covers/prescription-online-shopping.jpg',
   },
   {
     id: 'prescription-glasses-online-shopping-guide-2025',
