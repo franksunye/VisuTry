@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { generateStructuredData } from '@/lib/seo'
-import { Breadcrumbs } from '@/components/blog/Breadcrumbs'
+import { Breadcrumbs } from '@/components/seo/Breadcrumbs'
 
 const structuredData = generateStructuredData('article', {
   title: 'Best Glasses for Different Face Shapes - Complete Guide 2025',
