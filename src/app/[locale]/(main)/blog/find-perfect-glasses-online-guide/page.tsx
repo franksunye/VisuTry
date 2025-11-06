@@ -59,7 +59,7 @@ export default function BlogPostPage() {
 
               <h2>Step 2: Gather Your Information</h2>
               <p>
-                You'll need: your prescription, pupillary distance (PD), frame size preferences, and style preferences.
+                You&apos;ll need: your prescription, pupillary distance (PD), frame size preferences, and style preferences.
               </p>
 
               <h2>Step 3: Choose Your Style</h2>
@@ -133,7 +133,7 @@ export default function BlogPostPage() {
                 <li>✅ Try at least 5-10 different styles</li>
                 <li>✅ Ask friends for opinions</li>
                 <li>✅ Consider your lifestyle and daily activities</li>
-                <li>✅ Don't rush - take your time deciding</li>
+                <li>✅ Don&apos;t rush - take your time deciding</li>
                 <li>✅ Check return and warranty policies</li>
               </ul>
 

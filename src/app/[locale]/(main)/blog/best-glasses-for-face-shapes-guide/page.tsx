@@ -126,7 +126,7 @@ export default function BlogPostPage() {
 
               <h2>Final Tips</h2>
               <ul>
-                <li>Don't just follow rules - wear what makes you feel confident</li>
+                <li>Don&apos;t just follow rules - wear what makes you feel confident</li>
                 <li>Try multiple styles</li>
                 <li>Consider your lifestyle</li>
                 <li>Use virtual try-on to test styles</li>
@@ -135,8 +135,8 @@ export default function BlogPostPage() {
 
               <h2>Conclusion</h2>
               <p>
-                Finding the best glasses for your face shape doesn't have to be complicated. By understanding 
-                your face shape and knowing which frame styles complement it, you can confidently choose glasses 
+                Finding the best glasses for your face shape doesn&apos;t have to be complicated. By understanding
+                your face shape and knowing which frame styles complement it, you can confidently choose glasses
                 that look great and feel comfortable.
               </p>
             </div>

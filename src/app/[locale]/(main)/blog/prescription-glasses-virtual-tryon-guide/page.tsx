@@ -59,13 +59,13 @@ export default function BlogPostPage() {
 
               <h2>Why Virtual Try-On for Prescription Glasses?</h2>
               <p>
-                Virtual try-on technology has revolutionized online eyewear shopping. Here's why it matters:
+                Virtual try-on technology has revolutionized online eyewear shopping. Here&apos;s why it matters:
               </p>
               <ul>
                 <li><strong>See before you buy</strong> - Visualize how frames look on your face</li>
                 <li><strong>Save time</strong> - No need to visit multiple stores</li>
                 <li><strong>Better decisions</strong> - Compare multiple styles instantly</li>
-                <li><strong>Confidence</strong> - Know exactly what you're getting</li>
+                <li><strong>Confidence</strong> - Know exactly what you&apos;re getting</li>
                 <li><strong>Convenience</strong> - Shop anytime, anywhere</li>
               </ul>
 
@@ -73,7 +73,7 @@ export default function BlogPostPage() {
 
               <h3>Step 1: Prepare Your Photo</h3>
               <p>
-                The quality of your virtual try-on depends on your photo. Here's what you need:
+                The quality of your virtual try-on depends on your photo. Here&apos;s what you need:
               </p>
               <ul>
                 <li>Clear, front-facing photo of your face</li>
@@ -90,7 +90,7 @@ export default function BlogPostPage() {
 
               <h3>Step 3: Try Multiple Styles</h3>
               <p>
-                Don't settle on the first pair! Try at least 5-10 different styles to see what works best.
+                Don&apos;t settle on the first pair! Try at least 5-10 different styles to see what works best.
               </p>
 
               <h3>Step 4: Check the Fit</h3>
