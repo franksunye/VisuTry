@@ -188,9 +188,24 @@ export default async function PricingPage() {
               </tr>
               <tr>
                 <td className="px-6 py-4 text-sm text-gray-900">Image Quality</td>
-                <td className="px-6 py-4 text-sm text-center text-gray-600">Standard</td>
-                <td className="px-6 py-4 text-sm text-center text-gray-600">High Quality</td>
-                <td className="px-6 py-4 text-sm text-center text-green-600">High Quality</td>
+                <td className="px-6 py-4 text-sm text-center text-gray-600">
+                  <div>Standard</div>
+                  <div className="text-xs text-gray-500">(800×800)</div>
+                </td>
+                <td className="px-6 py-4 text-sm text-center text-gray-600">
+                  <div>High Quality</div>
+                  <div className="text-xs text-gray-500">(1200×1200)</div>
+                </td>
+                <td className="px-6 py-4 text-sm text-center text-green-600">
+                  <div>High Quality</div>
+                  <div className="text-xs text-green-500">(1200×1200)</div>
+                </td>
+              </tr>
+              <tr>
+                <td className="px-6 py-4 text-sm text-gray-900">Watermark</td>
+                <td className="px-6 py-4 text-sm text-center text-gray-600">Yes</td>
+                <td className="px-6 py-4 text-sm text-center text-gray-600">No</td>
+                <td className="px-6 py-4 text-sm text-center text-green-600">No</td>
               </tr>
               <tr>
                 <td className="px-6 py-4 text-sm text-gray-900">Processing Priority</td>
@@ -220,6 +235,27 @@ export default async function PricingPage() {
         <h2 className="mb-6 text-2xl font-bold text-center text-gray-900">Frequently Asked Questions</h2>
         <div className="grid gap-6 md:grid-cols-2">
           <div className="p-6 bg-white border rounded-lg shadow-sm">
+            <h3 className="mb-2 font-semibold text-gray-900">What&apos;s the difference between free and paid image quality?</h3>
+            <p className="text-sm text-gray-600">
+              Free users receive standard quality images (800×800 pixels) with a watermark. Premium users get high-quality images (1200×1200 pixels) without any watermark, perfect for sharing and downloading.
+            </p>
+          </div>
+
+          <div className="p-6 bg-white border rounded-lg shadow-sm">
+            <h3 className="mb-2 font-semibold text-gray-900">Can I remove the watermark from my images?</h3>
+            <p className="text-sm text-gray-600">
+              Yes! Upgrade to any paid plan (Credits Pack or Standard subscription) to get watermark-free images. All your future try-ons will be saved in high quality without watermarks.
+            </p>
+          </div>
+
+          <div className="p-6 bg-white border rounded-lg shadow-sm">
+            <h3 className="mb-2 font-semibold text-gray-900">Do credits expire?</h3>
+            <p className="text-sm text-gray-600">
+              Credits never expire after purchase. You can use them anytime at your convenience.
+            </p>
+          </div>
+
+          <div className="p-6 bg-white border rounded-lg shadow-sm">
             <h3 className="mb-2 font-semibold text-gray-900">Can I cancel my subscription anytime?</h3>
             <p className="text-sm text-gray-600">
               Yes, you can cancel your subscription at any time. After cancellation, you can still use premium features until the end of the current billing period.
@@ -230,13 +266,6 @@ export default async function PricingPage() {
             <h3 className="mb-2 font-semibold text-gray-900">What payment methods are supported?</h3>
             <p className="text-sm text-gray-600">
               We support all major credit and debit cards, including Visa, Mastercard, American Express, and more.
-            </p>
-          </div>
-
-          <div className="p-6 bg-white border rounded-lg shadow-sm">
-            <h3 className="mb-2 font-semibold text-gray-900">Do credits expire?</h3>
-            <p className="text-sm text-gray-600">
-              Credits never expire after purchase. You can use them anytime at your convenience.
             </p>
           </div>
 
