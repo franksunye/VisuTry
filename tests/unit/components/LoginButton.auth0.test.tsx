@@ -41,7 +41,7 @@ describe('LoginButton - Auth0 Integration', () => {
         </SessionProvider>
       )
 
-      const auth0Button = screen.getByText(/Sign in with Auth0/i)
+      const auth0Button = screen.getByText(/Sign in/i)
       expect(auth0Button).toBeInTheDocument()
     })
 
@@ -54,7 +54,7 @@ describe('LoginButton - Auth0 Integration', () => {
         </SessionProvider>
       )
 
-      const auth0Button = screen.getByText(/Sign in with Auth0/i)
+      const auth0Button = screen.getByText(/Sign in/i)
       fireEvent.click(auth0Button)
 
       expect(signIn).toHaveBeenCalledWith('auth0', {
@@ -71,7 +71,7 @@ describe('LoginButton - Auth0 Integration', () => {
         </SessionProvider>
       )
 
-      const auth0Button = screen.getByText(/Sign in with Auth0/i)
+      const auth0Button = screen.getByText(/Sign in/i)
       fireEvent.click(auth0Button)
 
       expect(signIn).toHaveBeenCalledWith('auth0', {
