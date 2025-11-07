@@ -26,7 +26,7 @@ export function LoginButton({ className, variant = "default", callbackUrl }: Log
         "bg-gray-100 text-gray-400",
         className
       )}>
-        <div className="w-4 h-4 border-2 border-gray-300 border-t-transparent rounded-full animate-spin mr-2" />
+        <div className="w-4 h-4 mr-2 border-2 border-gray-300 rounded-full border-t-transparent animate-spin" />
         Loading...
       </div>
     )
@@ -46,7 +46,7 @@ export function LoginButton({ className, variant = "default", callbackUrl }: Log
               className="w-8 h-8 rounded-full"
             />
           ) : (
-            <div className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center">
+            <div className="flex items-center justify-center w-8 h-8 bg-gray-200 rounded-full">
               <User className="w-4 h-4 text-gray-500" />
             </div>
           )}
@@ -55,7 +55,7 @@ export function LoginButton({ className, variant = "default", callbackUrl }: Log
               {user.name || user.username || "User"}
             </span>
             {isTestSession && (
-              <span className="text-xs text-orange-600 flex items-center">
+              <span className="flex items-center text-xs text-orange-600">
                 <TestTube className="w-3 h-3 mr-1" />
                 Test Mode
               </span>
@@ -92,7 +92,7 @@ export function LoginButton({ className, variant = "default", callbackUrl }: Log
       )}
     >
       <Shield className="w-4 h-4 mr-2" />
-      Sign in with Auth0
+      Sign in
     </button>
   )
 }
