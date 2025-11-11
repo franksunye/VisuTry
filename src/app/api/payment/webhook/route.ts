@@ -98,12 +98,12 @@ async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session) 
       }
     })
 
-    // 如果是次数包，增加用户的 credits 余额（使用配置的额度）
+    // 如果是次数包，增加用户的 credits 购买总数
     if (paymentData.productType === "CREDITS_PACK") {
       await prisma.user.update({
         where: { id: paymentData.userId },
         data: {
-          creditsBalance: {
+          creditsPurchased: {
             increment: QUOTA_CONFIG.CREDITS_PACK
           }
         }

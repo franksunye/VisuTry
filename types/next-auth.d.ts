@@ -11,7 +11,8 @@ declare module "next-auth" {
       role: UserRole
       freeTrialsUsed: number
       premiumUsageCount: number
-      creditsBalance: number
+      creditsPurchased: number
+      creditsUsed: number
       isPremium: boolean
       premiumExpiresAt?: Date | null
       isPremiumActive: boolean
@@ -26,7 +27,8 @@ declare module "next-auth" {
     role: UserRole
     freeTrialsUsed: number
     premiumUsageCount: number
-    creditsBalance: number
+    creditsPurchased: number
+    creditsUsed: number
     isPremium: boolean
     premiumExpiresAt?: Date | null
   }
@@ -39,7 +41,8 @@ declare module "next-auth/jwt" {
     role?: UserRole
     freeTrialsUsed?: number
     premiumUsageCount?: number
-    creditsBalance?: number
+    creditsPurchased?: number
+    creditsUsed?: number
     isPremium?: boolean
     premiumExpiresAt?: Date | null
     isPremiumActive?: boolean

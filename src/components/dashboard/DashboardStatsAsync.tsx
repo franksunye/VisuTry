@@ -10,7 +10,8 @@ interface DashboardStatsAsyncProps {
   subscriptionType: string | null
   isYearlySubscription: boolean
   remainingTrials: number
-  creditsBalance: number
+  creditsPurchased: number
+  creditsUsed: number
   freeTrialsUsed: number
   premiumUsageCount: number
 }
@@ -28,7 +29,8 @@ export async function DashboardStatsAsync({
   subscriptionType,
   isYearlySubscription,
   remainingTrials,
-  creditsBalance,
+  creditsPurchased,
+  creditsUsed,
   freeTrialsUsed,
   premiumUsageCount
 }: DashboardStatsAsyncProps) {
@@ -59,35 +61,37 @@ export async function DashboardStatsAsync({
     let remainingDisplay: string | number
     let remainingDescription: string
 
+    const creditsRemaining = creditsPurchased - creditsUsed
+
     if (isPremiumActive) {
       if (isYearlySubscription) {
         // 年费用户：使用 premiumUsageCount 计数器
         const subscriptionRemaining = Math.max(0, QUOTA_CONFIG.YEARLY_SUBSCRIPTION - premiumUsageCount)
-        const totalRemaining = subscriptionRemaining + creditsBalance
+        const totalRemaining = subscriptionRemaining + creditsRemaining
         remainingDisplay = totalRemaining
-        remainingDescription = creditsBalance > 0
-          ? `Annual (${subscriptionRemaining}) + Credits (${creditsBalance})`
+        remainingDescription = creditsRemaining > 0
+          ? `Annual (${subscriptionRemaining}) + Credits (${creditsRemaining}/${creditsPurchased})`
           : "Annual Plan"
       } else if (isMonthlySubscription) {
         // 月费用户：使用 premiumUsageCount 计数器
         const subscriptionRemaining = Math.max(0, QUOTA_CONFIG.MONTHLY_SUBSCRIPTION - premiumUsageCount)
-        const totalRemaining = subscriptionRemaining + creditsBalance
+        const totalRemaining = subscriptionRemaining + creditsRemaining
         remainingDisplay = totalRemaining
-        remainingDescription = creditsBalance > 0
-          ? `Monthly (${subscriptionRemaining}) + Credits (${creditsBalance})`
+        remainingDescription = creditsRemaining > 0
+          ? `Monthly (${subscriptionRemaining}) + Credits (${creditsRemaining}/${creditsPurchased})`
           : "Monthly Plan"
       } else {
         // 其他订阅类型
-        remainingDisplay = creditsBalance > 0 ? creditsBalance : "Standard"
+        remainingDisplay = creditsRemaining > 0 ? creditsRemaining : "Standard"
         remainingDescription = "Subscription"
       }
     } else {
       // 免费用户：使用 freeTrialsUsed（只计算免费试用期的使用）
       const freeRemaining = Math.max(0, QUOTA_CONFIG.FREE_TRIAL - freeTrialsUsed)
-      const totalRemaining = freeRemaining + creditsBalance
+      const totalRemaining = freeRemaining + creditsRemaining
       remainingDisplay = totalRemaining
-      remainingDescription = creditsBalance > 0
-        ? `Free (${freeRemaining}) + Credits (${creditsBalance})`
+      remainingDescription = creditsRemaining > 0
+        ? `Free (${freeRemaining}) + Credits (${creditsRemaining}/${creditsPurchased})`
         : "Free Quota"
     }
 

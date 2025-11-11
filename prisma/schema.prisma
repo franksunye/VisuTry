@@ -49,7 +49,8 @@ model User {
   // VisuTry specific fields
   freeTrialsUsed Int      @default(0)  // Free trial uses (for non-premium users)
   premiumUsageCount Int   @default(0)  // Premium subscription usage count (resets on billing cycle)
-  creditsBalance Int      @default(0)  // Purchased credits balance (never expire)
+  creditsPurchased Int    @default(0)  // Total credits purchased (never decreases)
+  creditsUsed Int         @default(0)  // Total credits used (never decreases)
   isPremium      Boolean  @default(false)
   premiumExpiresAt DateTime?
   currentSubscriptionType String?      // Current active subscription type (PREMIUM_MONTHLY or PREMIUM_YEARLY)

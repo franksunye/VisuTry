@@ -100,7 +100,8 @@ export default async function DashboardPage() {
               subscriptionType={subscriptionType}
               isYearlySubscription={isYearlySubscription}
               remainingTrials={session.user.remainingTrials}
-              creditsBalance={(session.user as any).creditsBalance || 0}
+              creditsPurchased={(session.user as any).creditsPurchased || 0}
+              creditsUsed={(session.user as any).creditsUsed || 0}
               freeTrialsUsed={session.user.freeTrialsUsed}
               premiumUsageCount={(session.user as any).premiumUsageCount || 0}
             />
@@ -119,7 +120,7 @@ export default async function DashboardPage() {
 
           {/* Quick Actions */}
           <DashboardQuickActions
-            userType={session.user.isPremiumActive ? 'premium' : (session.user as any).creditsBalance > 0 ? 'credits' : 'free'}
+            userType={session.user.isPremiumActive ? 'premium' : ((session.user as any).creditsPurchased - (session.user as any).creditsUsed) > 0 ? 'credits' : 'free'}
             remainingTrials={session.user.remainingTrials}
           />
 

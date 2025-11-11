@@ -15,7 +15,9 @@ export function UserStatusBanner() {
   const isPremiumActive = user.isPremiumActive
   const remainingTrials = user.remainingTrials || 0
   const freeTrialsUsed = user.freeTrialsUsed || 0
-  const creditsBalance = (user as any).creditsBalance || 0
+  const creditsPurchased = (user as any).creditsPurchased || 0
+  const creditsUsed = (user as any).creditsUsed || 0
+  const creditsRemaining = creditsPurchased - creditsUsed
 
   // Premium user banner
   if (isPremiumActive) {
@@ -64,9 +66,9 @@ export function UserStatusBanner() {
       <div className="flex items-center justify-between">
         <div className="text-blue-800 text-sm">
           <strong>Free User</strong> - Remaining: <span className="font-semibold">{remainingTrials}</span>
-          {creditsBalance > 0 && (
+          {creditsRemaining > 0 && (
             <span className="ml-3 text-blue-700">
-              (Free: {Math.max(0, 3 - freeTrialsUsed)}/3, Credits: {creditsBalance})
+              (Free: {Math.max(0, 3 - freeTrialsUsed)}/3, Credits: {creditsRemaining}/{creditsPurchased})
             </span>
           )}
         </div>

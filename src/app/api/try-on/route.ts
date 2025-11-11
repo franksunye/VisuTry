@@ -94,7 +94,7 @@ export async function POST(request: NextRequest) {
         ? QUOTA_CONFIG.YEARLY_SUBSCRIPTION
         : QUOTA_CONFIG.MONTHLY_SUBSCRIPTION
       const subscriptionRemaining = Math.max(0, quota - (user.premiumUsageCount || 0))
-      const creditsRemaining = user.creditsBalance || 0
+      const creditsRemaining = (user.creditsPurchased || 0) - (user.creditsUsed || 0)
       const totalRemaining = subscriptionRemaining + creditsRemaining
 
       if (totalRemaining <= 0) {
@@ -106,7 +106,7 @@ export async function POST(request: NextRequest) {
     } else if (!isPremiumActive) {
       // Free users: check free trials + credits
       const freeRemaining = Math.max(0, QUOTA_CONFIG.FREE_TRIAL - user.freeTrialsUsed)
-      const creditsRemaining = user.creditsBalance || 0
+      const creditsRemaining = (user.creditsPurchased || 0) - (user.creditsUsed || 0)
       const totalRemaining = freeRemaining + creditsRemaining
 
       if (totalRemaining <= 0) {
@@ -324,19 +324,20 @@ export async function POST(request: NextRequest) {
       } else {
         if (!isPremiumActive) {
           // 免费用户：优先消费 credits，如果没有 credits 则消费免费试用
-          const hasCredits = (user.creditsBalance || 0) > 0
+          const creditsRemaining = (user.creditsPurchased || 0) - (user.creditsUsed || 0)
+          const hasCredits = creditsRemaining > 0
 
           if (hasCredits) {
-            // 有 credits：扣除 1 个 credit
+            // 有 credits：增加已使用计数
             await prisma.user.update({
               where: { id: userId },
               data: {
-                creditsBalance: {
-                  decrement: 1
+                creditsUsed: {
+                  increment: 1
                 }
               }
             })
-            console.log(`💳 User ${userId}: Consumed 1 credit (${user.creditsBalance} -> ${user.creditsBalance - 1})`)
+            console.log(`💳 User ${userId}: Consumed 1 credit (${creditsRemaining} -> ${creditsRemaining - 1})`)
           } else {
             // 没有 credits：使用免费试用
             await prisma.user.update({
@@ -350,16 +351,36 @@ export async function POST(request: NextRequest) {
             console.log(`🆓 User ${userId}: Used free trial (${user.freeTrialsUsed} -> ${user.freeTrialsUsed + 1})`)
           }
         } else {
-          // Premium用户：增加 premiumUsageCount
-          await prisma.user.update({
-            where: { id: userId },
-            data: {
-              premiumUsageCount: {
-                increment: 1
+          // Premium用户：优先使用订阅配额，然后使用 credits
+          const quota = user.currentSubscriptionType === 'PREMIUM_YEARLY'
+            ? QUOTA_CONFIG.YEARLY_SUBSCRIPTION
+            : QUOTA_CONFIG.MONTHLY_SUBSCRIPTION
+          const subscriptionRemaining = Math.max(0, quota - (user.premiumUsageCount || 0))
+          const creditsRemaining = (user.creditsPurchased || 0) - (user.creditsUsed || 0)
+
+          if (subscriptionRemaining > 0) {
+            // 有订阅配额：增加 premiumUsageCount
+            await prisma.user.update({
+              where: { id: userId },
+              data: {
+                premiumUsageCount: {
+                  increment: 1
+                }
               }
-            }
-          })
-          console.log(`👑 Premium user ${userId}: Usage count (${user.premiumUsageCount} -> ${user.premiumUsageCount + 1})`)
+            })
+            console.log(`👑 Premium user ${userId}: Used subscription quota (${subscriptionRemaining} -> ${subscriptionRemaining - 1})`)
+          } else if (creditsRemaining > 0) {
+            // 订阅配额用完，使用 credits
+            await prisma.user.update({
+              where: { id: userId },
+              data: {
+                creditsUsed: {
+                  increment: 1
+                }
+              }
+            })
+            console.log(`💳 Premium user ${userId}: Used credit (${creditsRemaining} -> ${creditsRemaining - 1})`)
+          }
         }
 
         // 清除用户缓存，确保 Dashboard 立即显示最新使用次数

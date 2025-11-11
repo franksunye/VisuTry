@@ -86,9 +86,10 @@ export const authOptions: NextAuthOptions = {
           // CRITICAL: Ensure role is always set (default to USER if missing)
           session.user.role = (token.role as any) || 'USER'
           session.user.freeTrialsUsed = (token.freeTrialsUsed as number) || 0
-          // TypeScript workaround: premiumUsageCount and creditsBalance are defined in types/next-auth.d.ts
+          // TypeScript workaround: premiumUsageCount and credits fields are defined in types/next-auth.d.ts
           ;(session.user as any).premiumUsageCount = (token.premiumUsageCount as number) || 0
-          ;(session.user as any).creditsBalance = (token.creditsBalance as number) || 0
+          ;(session.user as any).creditsPurchased = (token.creditsPurchased as number) || 0
+          ;(session.user as any).creditsUsed = (token.creditsUsed as number) || 0
           session.user.isPremium = (token.isPremium as boolean) || false
           session.user.premiumExpiresAt = (token.premiumExpiresAt as Date) || null
           session.user.isPremiumActive = (token.isPremiumActive as boolean) || false
@@ -156,7 +157,8 @@ export const authOptions: NextAuthOptions = {
               role: true,
               freeTrialsUsed: true,
               premiumUsageCount: true,
-              creditsBalance: true,
+              creditsPurchased: true,
+              creditsUsed: true,
               isPremium: true,
               premiumExpiresAt: true,
               currentSubscriptionType: true,
@@ -178,7 +180,8 @@ export const authOptions: NextAuthOptions = {
             token.role = dbUser.role
             token.freeTrialsUsed = dbUser.freeTrialsUsed
             token.premiumUsageCount = dbUser.premiumUsageCount
-            token.creditsBalance = dbUser.creditsBalance
+            token.creditsPurchased = dbUser.creditsPurchased
+            token.creditsUsed = dbUser.creditsUsed
             token.isPremium = dbUser.isPremium
             token.premiumExpiresAt = dbUser.premiumExpiresAt
 
@@ -201,13 +204,13 @@ export const authOptions: NextAuthOptions = {
                 ? QUOTA_CONFIG.YEARLY_SUBSCRIPTION
                 : QUOTA_CONFIG.MONTHLY_SUBSCRIPTION
               const subscriptionRemaining = Math.max(0, quota - (dbUser.premiumUsageCount || 0))
-              const creditsRemaining = dbUser.creditsBalance || 0
+              const creditsRemaining = (dbUser.creditsPurchased || 0) - (dbUser.creditsUsed || 0)
               token.remainingTrials = subscriptionRemaining + creditsRemaining
               token.subscriptionType = dbUser.currentSubscriptionType
             } else {
               // Free users: free trials remaining + credits balance
               const freeRemaining = Math.max(0, QUOTA_CONFIG.FREE_TRIAL - dbUser.freeTrialsUsed)
-              const creditsRemaining = dbUser.creditsBalance || 0
+              const creditsRemaining = (dbUser.creditsPurchased || 0) - (dbUser.creditsUsed || 0)
               token.remainingTrials = freeRemaining + creditsRemaining
               token.subscriptionType = null
             }
