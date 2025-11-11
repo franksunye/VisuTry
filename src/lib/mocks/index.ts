@@ -15,10 +15,12 @@ export const mockUsers = [
     username: 'testuser',
     role: 'USER' as UserRole,
     freeTrialsUsed: 1,
-    creditsBalance: 0,
+    creditsPurchased: 0,
+    creditsUsed: 0,
     premiumUsageCount: 0,
     isPremium: false,
     premiumExpiresAt: null,
+    currentSubscriptionType: null,
   },
   {
     id: 'mock-user-2',
@@ -28,10 +30,12 @@ export const mockUsers = [
     username: 'premiumuser',
     role: 'USER' as UserRole,
     freeTrialsUsed: 0,
-    creditsBalance: 10,
+    creditsPurchased: 10,
+    creditsUsed: 0,
     premiumUsageCount: 5,
     isPremium: true,
     premiumExpiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days from now
+    currentSubscriptionType: 'PREMIUM_MONTHLY' as string | null,
   },
   {
     id: 'mock-user-admin',
@@ -41,10 +45,12 @@ export const mockUsers = [
     username: 'adminuser',
     role: 'ADMIN' as UserRole,
     freeTrialsUsed: 0,
-    creditsBalance: 0,
+    creditsPurchased: 0,
+    creditsUsed: 0,
     premiumUsageCount: 0,
     isPremium: true,
     premiumExpiresAt: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000), // 1 year from now
+    currentSubscriptionType: 'PREMIUM_YEARLY' as string | null,
   }
 ]
 
