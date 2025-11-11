@@ -31,7 +31,9 @@ function SuccessContent() {
       console.log('💳 Payment success page loaded, starting balance check...')
 
       // Record initial balance
-      const currentBalance = (session?.user as any)?.creditsBalance || 0
+      const creditsPurchased = (session?.user as any)?.creditsPurchased || 0
+      const creditsUsed = (session?.user as any)?.creditsUsed || 0
+      const currentBalance = creditsPurchased - creditsUsed
       setInitialBalance(currentBalance)
 
       let attempts = 0
@@ -50,7 +52,9 @@ function SuccessContent() {
             throw new Error(data.error || 'Failed to fetch balance')
           }
 
-          const newBalance = data.data.creditsBalance
+          const newCreditsPurchased = data.data.creditsPurchased || 0
+          const newCreditsUsed = data.data.creditsUsed || 0
+          const newBalance = newCreditsPurchased - newCreditsUsed
           console.log(`📊 Current balance: ${currentBalance} → New balance: ${newBalance}`)
 
           // Check if balance has been updated (increased)

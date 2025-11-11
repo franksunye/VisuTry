@@ -182,8 +182,8 @@ export default async function UserDetailPage({ params }: UserDetailPageProps) {
               <p className="text-sm">{user.freeTrialsUsed}</p>
             </div>
             <div>
-              <p className="text-sm font-medium text-muted-foreground">Credits Balance</p>
-              <p className="text-sm">{user.creditsBalance}</p>
+              <p className="text-sm font-medium text-muted-foreground">Credits</p>
+              <p className="text-sm">{(user.creditsPurchased || 0) - (user.creditsUsed || 0)}/{user.creditsPurchased || 0}</p>
             </div>
             <div>
               <p className="text-sm font-medium text-muted-foreground">Premium Usage</p>

@@ -32,9 +32,11 @@ export async function POST() {
         role: true,
         freeTrialsUsed: true,
         premiumUsageCount: true,
-        creditsBalance: true,
+        creditsPurchased: true,
+        creditsUsed: true,
         isPremium: true,
         premiumExpiresAt: true,
+        currentSubscriptionType: true,
       }
     })
 

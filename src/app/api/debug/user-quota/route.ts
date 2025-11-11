@@ -25,9 +25,12 @@ export async function GET(request: NextRequest) {
         email: true,
         name: true,
         freeTrialsUsed: true,
-        creditsBalance: true,
+        creditsPurchased: true,
+        creditsUsed: true,
+        premiumUsageCount: true,
         isPremium: true,
         premiumExpiresAt: true,
+        currentSubscriptionType: true,
         createdAt: true,
         updatedAt: true,
       }
@@ -39,14 +42,18 @@ export async function GET(request: NextRequest) {
 
     // 计算剩余次数（模拟 JWT 逻辑）
     const isPremiumActive = dbUser.isPremium && (!dbUser.premiumExpiresAt || dbUser.premiumExpiresAt > new Date())
-    
+    const creditsRemaining = (dbUser.creditsPurchased || 0) - (dbUser.creditsUsed || 0)
+
     let calculatedRemainingTrials = 0
-    if (isPremiumActive) {
-      calculatedRemainingTrials = 999
-    } else if (dbUser.creditsBalance > 0) {
-      calculatedRemainingTrials = dbUser.creditsBalance
+    if (isPremiumActive && dbUser.currentSubscriptionType) {
+      const quota = dbUser.currentSubscriptionType === 'PREMIUM_YEARLY'
+        ? QUOTA_CONFIG.YEARLY_SUBSCRIPTION
+        : QUOTA_CONFIG.MONTHLY_SUBSCRIPTION
+      const subscriptionRemaining = Math.max(0, quota - (dbUser.premiumUsageCount || 0))
+      calculatedRemainingTrials = subscriptionRemaining + creditsRemaining
     } else {
-      calculatedRemainingTrials = Math.max(0, QUOTA_CONFIG.FREE_TRIAL - dbUser.freeTrialsUsed)
+      const freeRemaining = Math.max(0, QUOTA_CONFIG.FREE_TRIAL - dbUser.freeTrialsUsed)
+      calculatedRemainingTrials = freeRemaining + creditsRemaining
     }
 
     // 查询最近的 try-on 任务

@@ -228,9 +228,12 @@ export function TryOnInterface() {
               <Link
                 href="/pricing"
                 onClick={() => {
+                  const creditsPurchased = (session?.user as any)?.creditsPurchased || 0
+                  const creditsUsed = (session?.user as any)?.creditsUsed || 0
+                  const creditsRemaining = creditsPurchased - creditsUsed
                   const userType = getUserType(
                     session?.user?.isPremiumActive || false,
-                    (session?.user as any)?.creditsBalance || 0,
+                    creditsRemaining,
                     !!session
                   )
                   analytics.trackQuotaExhaustedCTA('error_modal', userType)
@@ -372,9 +375,12 @@ export function TryOnInterface() {
               <Link
                 href="/pricing"
                 onClick={() => {
+                  const creditsPurchased = (session?.user as any)?.creditsPurchased || 0
+                  const creditsUsed = (session?.user as any)?.creditsUsed || 0
+                  const creditsRemaining = creditsPurchased - creditsUsed
                   const userType = getUserType(
                     session?.user?.isPremiumActive || false,
-                    (session?.user as any)?.creditsBalance || 0,
+                    creditsRemaining,
                     !!session
                   )
                   analytics.trackQuotaExhaustedCTA('try_on', userType)

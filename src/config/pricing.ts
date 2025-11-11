@@ -129,18 +129,22 @@ export function formatPrice(cents: number): string {
 
 /**
  * 计算用户剩余额度
- * 
+ *
  * @param isPremiumActive - 是否是高级会员
  * @param subscriptionType - 订阅类型
  * @param freeTrialsUsed - 已使用的免费试用次数
- * @param creditsBalance - Credits 余额
+ * @param premiumUsageCount - Premium 使用次数
+ * @param creditsPurchased - Credits 购买总数
+ * @param creditsUsed - Credits 已使用数
  * @returns 剩余额度信息
  */
 export function calculateRemainingQuota(
   isPremiumActive: boolean,
   subscriptionType: 'PREMIUM_MONTHLY' | 'PREMIUM_YEARLY' | null,
   freeTrialsUsed: number,
-  creditsBalance: number
+  premiumUsageCount: number,
+  creditsPurchased: number,
+  creditsUsed: number
 ): {
   subscriptionRemaining: number
   creditsRemaining: number
@@ -149,13 +153,14 @@ export function calculateRemainingQuota(
 } {
   let subscriptionRemaining = 0
   let description = ""
+  const creditsRemaining = creditsPurchased - creditsUsed
 
   if (isPremiumActive && subscriptionType) {
     // 高级会员：根据订阅类型计算配额
-    const quota = subscriptionType === 'PREMIUM_YEARLY' 
-      ? QUOTA_CONFIG.YEARLY_SUBSCRIPTION 
+    const quota = subscriptionType === 'PREMIUM_YEARLY'
+      ? QUOTA_CONFIG.YEARLY_SUBSCRIPTION
       : QUOTA_CONFIG.MONTHLY_SUBSCRIPTION
-    subscriptionRemaining = Math.max(0, quota - freeTrialsUsed)
+    subscriptionRemaining = Math.max(0, quota - premiumUsageCount)
     description = subscriptionType === 'PREMIUM_YEARLY' ? 'Annual' : 'Monthly'
   } else {
     // 免费用户：使用免费试用配额
@@ -163,14 +168,14 @@ export function calculateRemainingQuota(
     description = 'Free'
   }
 
-  const totalRemaining = subscriptionRemaining + creditsBalance
+  const totalRemaining = subscriptionRemaining + creditsRemaining
 
   return {
     subscriptionRemaining,
-    creditsRemaining: creditsBalance,
+    creditsRemaining,
     totalRemaining,
-    description: creditsBalance > 0
-      ? `${description} (${subscriptionRemaining}) + Credits (${creditsBalance})`
+    description: creditsRemaining > 0
+      ? `${description} (${subscriptionRemaining}) + Credits (${creditsRemaining}/${creditsPurchased})`
       : `${description} Plan`
   }
 }

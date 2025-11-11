@@ -34,8 +34,9 @@ export default async function PaymentsPage() {
 
   // Get current user status
   const user = session.user
-  // TypeScript workaround: creditsBalance is defined in types/next-auth.d.ts but may not be recognized during build
-  const creditsBalance = (user as any).creditsBalance || 0
+  const creditsPurchased = (user as any).creditsPurchased || 0
+  const creditsUsed = (user as any).creditsUsed || 0
+  const creditsRemaining = creditsPurchased - creditsUsed
 
   // Get latest subscription payment to determine subscription type
   const latestSubscriptionPayment = payments.find(p =>
@@ -80,7 +81,7 @@ export default async function PaymentsPage() {
           <div className="p-4 rounded-lg bg-green-50">
             <div className="text-sm text-green-600">Credits Balance</div>
             <div className="mt-1 text-2xl font-bold text-green-900">
-              {creditsBalance}
+              {creditsRemaining}/{creditsPurchased}
             </div>
             <div className="mt-1 text-xs text-green-700">Never expire</div>
           </div>

@@ -66,9 +66,12 @@ export function Header({ transparent = false }: HeaderProps) {
                 onClick={() => {
                   // 追踪 Pricing 链接点击
                   if (link.href.includes('/pricing')) {
+                    const creditsPurchased = (session?.user as any)?.creditsPurchased || 0
+                    const creditsUsed = (session?.user as any)?.creditsUsed || 0
+                    const creditsRemaining = creditsPurchased - creditsUsed
                     const userType = getUserType(
                       session?.user?.isPremiumActive || false,
-                      (session?.user as any)?.creditsBalance || 0,
+                      creditsRemaining,
                       !!session
                     )
                     analytics.trackViewPricing('nav', userType, (session?.user as any)?.remainingTrials || 0)
