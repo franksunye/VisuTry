@@ -75,6 +75,54 @@
         "title": "✨ Rejoignez des milliers de personnes qui ont trouvé leurs lunettes parfaites",
         "subtitle": "Essayez des styles illimités avec une précision alimentée par l'IA"
       }
+    },
+    "features": {
+      "title": "Fonctionnalités Clés de VisuTry",
+      "subtitle": "Découvrez la prochaine génération d'essayage virtuel alimenté par l'IA",
+      "feature1": {
+        "title": "Google Gemini 2.5 Flash",
+        "description": "Propulsé par le dernier modèle d'IA de Google pour des résultats d'essayage ultra-réalistes avec une précision exceptionnelle et un éclairage naturel."
+      },
+      "feature2": {
+        "title": "Rétention Intelligente des Données",
+        "description": "Votre historique d'essayage est stocké en toute sécurité - 7 jours pour les utilisateurs gratuits, 90 jours avec Crédits et 1 an pour les membres Premium."
+      },
+      "feature3": {
+        "title": "Traitement Ultra-Rapide",
+        "description": "Obtenez vos résultats d'essayage en 10-30 secondes avec notre pipeline d'IA optimisé. Les utilisateurs Premium bénéficient d'un traitement prioritaire."
+      },
+      "feature4": {
+        "title": "Confidentialité Protégée",
+        "description": "Vos photos sont cryptées et sécurisées. Nous ne partageons jamais vos images ni ne les utilisons pour l'entraînement sans autorisation."
+      }
+    },
+    "faq": {
+      "title": "Questions Fréquemment Posées",
+      "subtitle": "Tout ce que vous devez savoir sur VisuTry",
+      "q1": {
+        "question": "Comment fonctionne l'essayage IA de VisuTry ?",
+        "answer": "VisuTry utilise Google Gemini 2.5 Flash IA pour analyser vos traits faciaux et superposer de manière réaliste des lunettes sur votre photo. L'IA comprend la forme du visage, l'éclairage et la perspective pour créer des résultats d'apparence naturelle en quelques secondes."
+      },
+      "q2": {
+        "question": "Mes données photographiques sont-elles sûres et privées ?",
+        "answer": "Absolument ! Vos photos sont cryptées pendant le téléchargement et le traitement. Nous ne partageons jamais vos images publiquement ni ne les utilisons pour l'entraînement de l'IA sans autorisation explicite. Les données des utilisateurs gratuits sont stockées pendant 7 jours, les utilisateurs de Crédits pendant 90 jours et les membres Premium pendant 1 an."
+      },
+      "q3": {
+        "question": "Quelle est la différence entre la qualité gratuite et Premium ?",
+        "answer": "Les utilisateurs gratuits obtiennent des images de qualité standard (800×800 pixels) avec un petit filigrane. Les utilisateurs Premium reçoivent des images de haute qualité (1200×1200 pixels) sans filigrane, ainsi qu'un traitement prioritaire et une rétention des données plus longue (1 an vs 7 jours)."
+      },
+      "q4": {
+        "question": "Puis-je utiliser les images générées commercialement ?",
+        "answer": "Oui ! Les utilisateurs Premium et Pack de Crédits peuvent utiliser leurs images sans filigrane à toutes fins, y compris à des fins commerciales. Les utilisateurs gratuits reçoivent des images avec filigrane pour un usage personnel uniquement."
+      },
+      "q5": {
+        "question": "Combien de temps faut-il pour générer un essayage ?",
+        "answer": "La plupart des essayages se terminent en 10-30 secondes. Les utilisateurs Premium bénéficient d'un traitement prioritaire, ce qui signifie des résultats plus rapides même pendant les heures de pointe. Le temps exact dépend de la charge du serveur et de la complexité de l'image."
+      },
+      "q6": {
+        "question": "Qu'advient-il de mon historique d'essayage ?",
+        "answer": "Votre historique d'essayage est automatiquement sauvegardé en fonction de votre forfait : Utilisateurs gratuits (7 jours), utilisateurs de Crédits (90 jours), utilisateurs Premium (1 an). Vous recevrez un rappel par e-mail 3 jours avant l'expiration, vous donnant le temps de télécharger ou de mettre à niveau."
+      }
     }
   },
   "pricing": {
@@ -167,6 +215,23 @@
           "support": "Prioritaire"
         }
       }
+    },
+    "faq": {
+      "title": "Questions Fréquemment Posées",
+      "questions": [
+        {
+          "question": "Puis-je annuler mon abonnement à tout moment ?",
+          "answer": "Oui, vous pouvez annuler votre abonnement à tout moment. Votre accès se poursuivra jusqu'à la fin de votre période de facturation."
+        },
+        {
+          "question": "Qu'advient-il des essayages non utilisés ?",
+          "answer": "Pour les abonnements mensuels, les essayages non utilisés ne sont pas reportés au mois suivant. Pour les packs de crédits, les crédits n'expirent jamais."
+        },
+        {
+          "question": "Offrez-vous des remboursements ?",
+          "answer": "Nous offrons une garantie de remboursement de 7 jours pour tous les abonnements. Les packs de crédits ne sont pas remboursables une fois utilisés."
+        }
+      ]
     }
   },
   "footer": {
