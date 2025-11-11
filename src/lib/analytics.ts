@@ -199,10 +199,10 @@ export const analytics = {
 /**
  * 辅助函数：获取用户类型
  */
-export function getUserType(isPremiumActive: boolean, creditsBalance: number, isAuthenticated: boolean): UserType {
+export function getUserType(isPremiumActive: boolean, creditsRemaining: number, isAuthenticated: boolean): UserType {
   if (!isAuthenticated) return 'anonymous'
   if (isPremiumActive) return 'premium'
-  if (creditsBalance > 0) return 'credits'
+  if (creditsRemaining > 0) return 'credits'
   return 'free'
 }
 

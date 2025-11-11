@@ -55,7 +55,8 @@ const MockCredentialsProvider = CredentialsProvider({
       role: mockUser.role,
       freeTrialsUsed: mockUser.freeTrialsUsed,
       premiumUsageCount: 0, // Mock users start with 0 premium usage
-      creditsBalance: 0, // Mock users start with 0 credits
+      creditsPurchased: 0, // Mock users start with 0 credits purchased
+      creditsUsed: 0, // Mock users start with 0 credits used
       isPremium: mockUser.isPremium,
     } as any
   },
