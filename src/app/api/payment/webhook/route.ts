@@ -82,13 +82,14 @@ export async function POST(request: NextRequest) {
 async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session) {
   try {
     const paymentData = await handleSuccessfulPayment(session)
-    
+
     // 创建支付记录
     await prisma.payment.create({
       data: {
         userId: paymentData.userId,
         stripeSessionId: paymentData.sessionId,
         stripePaymentId: paymentData.paymentIntentId,
+        stripeSubscriptionId: session.subscription as string | null,
         amount: paymentData.amount,
         currency: paymentData.currency,
         status: "COMPLETED",
@@ -201,28 +202,30 @@ async function handleInvoicePaymentSucceeded(invoice: Stripe.Invoice) {
 
       // 🔥 重要：订阅续费时重置 Premium 用户的使用计数器
       // 这样每个计费周期都会重新开始计数
-      const subscription = await prisma.payment.findFirst({
+      const payment = await prisma.payment.findFirst({
         where: {
-          stripeSessionId: invoice.subscription as string,
+          stripeSubscriptionId: invoice.subscription as string,
         },
         select: {
           userId: true,
         }
       })
 
-      if (subscription?.userId) {
+      if (payment?.userId) {
         // 重置 premiumUsageCount 为 0
         await prisma.user.update({
-          where: { id: subscription.userId },
+          where: { id: payment.userId },
           data: {
             premiumUsageCount: 0
           }
         })
 
         // 清除用户缓存，确保 Dashboard 立即显示重置后的配额
-        clearUserCache(subscription.userId)
+        clearUserCache(payment.userId)
 
-        console.log(`✅ Reset premiumUsageCount for user ${subscription.userId} on subscription renewal`)
+        console.log(`✅ Reset premiumUsageCount for user ${payment.userId} on subscription renewal`)
+      } else {
+        console.warn(`⚠️ No payment record found for subscription ${invoice.subscription}`)
       }
     }
   } catch (error) {

@@ -103,26 +103,28 @@ model TryOnTask {
 }
 
 model Payment {
-  id              String        @id @default(cuid())
-  userId          String
-  stripeSessionId String        @unique
-  stripePaymentId String?       @unique
-  
+  id                    String        @id @default(cuid())
+  userId                String
+  stripeSessionId       String        @unique
+  stripePaymentId       String?       @unique
+  stripeSubscriptionId  String?       // Stripe subscription ID for recurring payments
+
   amount          Int           // Amount in cents
   currency        String        @default("usd")
   status          PaymentStatus @default(PENDING)
-  
+
   // Product info
   productType     ProductType
   description     String?
-  
+
   user            User          @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
+
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt
-  
+
   @@index([userId])
   @@index([status])
+  @@index([stripeSubscriptionId])
 }
 
 model GlassesFrame {
