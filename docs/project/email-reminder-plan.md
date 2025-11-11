@@ -279,3 +279,329 @@ curl -H "Authorization: Bearer YOUR_CRON_SECRET" \
 
 准备好后，按照阶段 1 → 2 → 3 的顺序实施即可。
 
+---
+
+## 📎 附录：任务过期清理技术方案
+
+### 背景
+
+邮件提醒功能的前提是有明确的过期时间。当前系统需要实现：
+1. 任务自动过期清理
+2. 明确的过期时间显示
+3. 用户升级后延长保存时间
+
+### 方案对比
+
+#### 方案 A：添加 expiresAt 字段 + Vercel Cron（推荐）⭐⭐⭐⭐⭐
+
+**数据库变更**：
+
+```prisma
+model TryOnTask {
+  id              String    @id @default(cuid())
+  userId          String
+  userImageUrl    String
+  glassesImageUrl String
+  resultImageUrl  String?
+  status          TaskStatus @default(PENDING)
+  errorMessage    String?
+  prompt          String?
+  metadata        Json?
+  expiresAt       DateTime?  // 新增：过期时间
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@index([userId])
+  @@index([status])
+  @@index([expiresAt])  // 新增索引，优化清理查询
+  @@index([userId, createdAt(sort: Desc)])
+  @@index([userId, status])
+}
+```
+
+**保存时间配置**：
+
+```typescript
+// src/config/retention.ts
+export const RETENTION_CONFIG = {
+  FREE_USER: 7,        // 7 天
+  PREMIUM_USER: 365,   // 1 年
+  CREDITS_USER: 90,    // 90 天
+}
+```
+
+**创建任务时设置过期时间**：
+
+```typescript
+// src/app/api/try-on/route.ts
+function calculateExpiresAt(
+  isPremium: boolean,
+  creditsPurchased: number,
+  creditsUsed: number
+): Date {
+  const now = new Date()
+  const hasCredits = (creditsPurchased - creditsUsed) > 0
+
+  if (isPremium) {
+    // 付费用户：1年
+    return new Date(now.setDate(now.getDate() + RETENTION_CONFIG.PREMIUM_USER))
+  } else if (hasCredits) {
+    // Credits 用户：90天
+    return new Date(now.setDate(now.getDate() + RETENTION_CONFIG.CREDITS_USER))
+  } else {
+    // 免费用户：7天
+    return new Date(now.setDate(now.getDate() + RETENTION_CONFIG.FREE_USER))
+  }
+}
+
+// 创建任务时
+const expiresAt = calculateExpiresAt(
+  user.isPremium,
+  user.creditsPurchased,
+  user.creditsUsed
+)
+
+await prisma.tryOnTask.create({
+  data: {
+    userId,
+    userImageUrl: userImageBlob.url,
+    glassesImageUrl: glassesImageBlob.url,
+    status: "PENDING",
+    expiresAt,  // 设置过期时间
+    // ...
+  }
+})
+```
+
+**清理 Cron Job**：
+
+```typescript
+// src/app/api/cron/cleanup-expired-tasks/route.ts
+import { NextRequest, NextResponse } from 'next/server'
+import { prisma } from '@/lib/prisma'
+import { del } from '@vercel/blob'
+
+export async function GET(request: NextRequest) {
+  // 安全验证
+  const authHeader = request.headers.get('authorization')
+  if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+
+  try {
+    // 查找过期的任务
+    const expiredTasks = await prisma.tryOnTask.findMany({
+      where: {
+        expiresAt: {
+          lte: new Date()  // 小于等于当前时间
+        }
+      },
+      select: {
+        id: true,
+        userImageUrl: true,
+        glassesImageUrl: true,
+        resultImageUrl: true,
+      }
+    })
+
+    console.log(`[Cleanup] Found ${expiredTasks.length} expired tasks`)
+
+    // 收集需要删除的 Blob URLs
+    const urlsToDelete: string[] = []
+    expiredTasks.forEach(task => {
+      if (task.userImageUrl) urlsToDelete.push(task.userImageUrl)
+      if (task.glassesImageUrl) urlsToDelete.push(task.glassesImageUrl)
+      if (task.resultImageUrl) urlsToDelete.push(task.resultImageUrl)
+    })
+
+    // 删除数据库记录
+    await prisma.tryOnTask.deleteMany({
+      where: {
+        id: { in: expiredTasks.map(t => t.id) }
+      }
+    })
+
+    // 删除 Blob 文件
+    if (urlsToDelete.length > 0) {
+      await del(urlsToDelete)
+    }
+
+    console.log(`[Cleanup] Deleted ${expiredTasks.length} tasks, ${urlsToDelete.length} files`)
+
+    return NextResponse.json({
+      success: true,
+      deletedTasks: expiredTasks.length,
+      deletedFiles: urlsToDelete.length
+    })
+  } catch (error) {
+    console.error('[Cleanup] Error:', error)
+    return NextResponse.json({ error: 'Cleanup failed' }, { status: 500 })
+  }
+}
+```
+
+**Vercel Cron 配置**：
+
+```json
+// vercel.json
+{
+  "crons": [
+    {
+      "path": "/api/cron/check-expiring-subscriptions",
+      "schedule": "0 9 * * *"
+    },
+    {
+      "path": "/api/cron/cleanup-expired-tasks",
+      "schedule": "0 2 * * *"
+    }
+  ]
+}
+```
+
+**优点**：
+- ✅ 明确的过期时间 - 每个任务都有清晰的过期日期
+- ✅ 自动化清理 - 无需手动干预
+- ✅ 查询效率高 - 有专门的索引
+- ✅ 用户体验好 - 可以显示剩余天数
+- ✅ 灵活性高 - 可以根据用户升级动态调整
+
+**缺点**：
+- ⚠️ 需要数据库迁移
+- ⚠️ Vercel Cron 有限制（Hobby 计划每天最多 1 次）
+
+---
+
+#### 方案 B：基于 createdAt 动态计算（简单版）⭐⭐⭐⭐
+
+不修改数据库，在查询和清理时动态计算：
+
+```typescript
+// 查询时过滤过期数据
+async function getUserTasks(userId: string, isPremium: boolean) {
+  const retentionDays = isPremium ? 365 : 7
+  const cutoffDate = new Date()
+  cutoffDate.setDate(cutoffDate.getDate() - retentionDays)
+
+  return await prisma.tryOnTask.findMany({
+    where: {
+      userId,
+      createdAt: {
+        gte: cutoffDate  // 只返回未过期的
+      }
+    }
+  })
+}
+```
+
+**优点**：
+- ✅ 无需数据库迁移
+- ✅ 实现简单
+
+**缺点**：
+- ⚠️ 查询复杂 - 需要 JOIN user 表
+- ⚠️ 性能较差 - 没有专门的索引
+- ⚠️ 用户体验差 - 难以显示准确的过期时间
+- ⚠️ 升级问题 - 用户升级后，历史数据的保存时间难以处理
+
+---
+
+### 推荐方案：方案 A
+
+**实施步骤**：
+
+1. **数据库迁移**
+   ```bash
+   npx prisma migrate dev --name add_expires_at_to_try_on_task
+   ```
+
+2. **创建配置文件**
+   - `src/config/retention.ts`
+
+3. **修改创建任务逻辑**
+   - 在 `src/app/api/try-on/route.ts` 中添加 `expiresAt` 计算
+
+4. **创建清理 API**
+   - `src/app/api/cron/cleanup-expired-tasks/route.ts`
+
+5. **更新 Vercel Cron 配置**
+   - 在 `vercel.json` 中添加清理任务
+
+6. **用户界面更新**
+   - 在 History 页面显示过期时间
+
+---
+
+### 保存时间建议
+
+| 用户类型 | 保存时间 | 理由 |
+|---------|---------|------|
+| 免费用户 | 7 天 | 足够试用，促进转化 |
+| Credits Pack | 90 天 | 中等时长，鼓励订阅 |
+| Premium 订阅 | 1 年 | 长期保存，体现价值 |
+
+---
+
+### 成本影响
+
+**假设**：
+- 每张图片 ~300KB
+- 每个任务 3 张图片 = ~900KB
+
+**免费用户（7天保存）**：
+- 3 次试用 × 900KB = 2.7MB
+- 成本：几乎可忽略
+
+**付费用户（1年保存）**：
+- 30 次/月 × 12 月 × 900KB = 324MB/年
+- Vercel Blob: $0.15/GB = ~$0.05/年/用户
+
+**结论**：成本影响很小，完全可行！
+
+---
+
+### 用户升级处理
+
+当用户从免费升级到 Premium 时，延长现有任务的过期时间：
+
+```typescript
+// src/app/api/payment/webhook/route.ts
+async function extendTasksOnUpgrade(userId: string) {
+  const newExpiresAt = new Date()
+  newExpiresAt.setDate(newExpiresAt.getDate() + 365)
+
+  await prisma.tryOnTask.updateMany({
+    where: {
+      userId,
+      expiresAt: { gt: new Date() }  // 只延长未过期的任务
+    },
+    data: { expiresAt: newExpiresAt }
+  })
+
+  console.log(`Extended task retention for user ${userId}`)
+}
+
+// 在订阅创建事件中调用
+if (productType === 'PREMIUM_MONTHLY' || productType === 'PREMIUM_YEARLY') {
+  await extendTasksOnUpgrade(userId)
+}
+```
+
+---
+
+### 与邮件提醒的集成
+
+有了 `expiresAt` 字段后，邮件提醒功能可以：
+
+1. **订阅过期提醒**：提醒用户续订以保留数据
+2. **任务过期提醒**：在任务过期前 3 天提醒用户下载
+3. **批量导出功能**：允许用户在过期前批量下载所有图片
+
+---
+
+### 实施优先级
+
+1. **高优先级**：添加 `expiresAt` 字段和清理 Cron Job
+2. **中优先级**：订阅过期邮件提醒
+3. **低优先级**：任务过期提醒、批量导出功能
+
