@@ -75,6 +75,54 @@
         "title": "✨ Únete a miles que encontraron sus gafas perfectas",
         "subtitle": "Prueba estilos ilimitados con precisión de IA"
       }
+    },
+    "features": {
+      "title": "Características Clave de VisuTry",
+      "subtitle": "Experimenta la próxima generación de prueba virtual con IA",
+      "feature1": {
+        "title": "Google Gemini 2.5 Flash",
+        "description": "Impulsado por el último modelo de IA de Google para resultados de prueba ultra realistas con precisión excepcional e iluminación natural."
+      },
+      "feature2": {
+        "title": "Retención Inteligente de Datos",
+        "description": "Tu historial de pruebas se almacena de forma segura: 7 días para usuarios gratuitos, 90 días con Créditos y 1 año para miembros Premium."
+      },
+      "feature3": {
+        "title": "Procesamiento Ultrarrápido",
+        "description": "Obtén tus resultados de prueba en 10-30 segundos con nuestro pipeline de IA optimizado. Los usuarios Premium disfrutan de procesamiento prioritario."
+      },
+      "feature4": {
+        "title": "Privacidad Protegida",
+        "description": "Tus fotos están encriptadas y seguras. Nunca compartimos tus imágenes ni las usamos para entrenamiento sin permiso."
+      }
+    },
+    "faq": {
+      "title": "Preguntas Frecuentes",
+      "subtitle": "Todo lo que necesitas saber sobre VisuTry",
+      "q1": {
+        "question": "¿Cómo funciona la prueba virtual con IA de VisuTry?",
+        "answer": "VisuTry utiliza Google Gemini 2.5 Flash IA para analizar tus rasgos faciales y superponer gafas de forma realista en tu foto. La IA comprende la forma del rostro, la iluminación y la perspectiva para crear resultados de aspecto natural en segundos."
+      },
+      "q2": {
+        "question": "¿Mis datos fotográficos están seguros y privados?",
+        "answer": "¡Absolutamente! Tus fotos se encriptan durante la carga y el procesamiento. Nunca compartimos tus imágenes públicamente ni las usamos para entrenamiento de IA sin permiso explícito. Los datos de usuarios gratuitos se almacenan durante 7 días, usuarios de Créditos durante 90 días y miembros Premium durante 1 año."
+      },
+      "q3": {
+        "question": "¿Cuál es la diferencia entre la calidad gratuita y Premium?",
+        "answer": "Los usuarios gratuitos obtienen imágenes de calidad estándar (800×800 píxeles) con una pequeña marca de agua. Los usuarios Premium reciben imágenes de alta calidad (1200×1200 píxeles) sin marcas de agua, además de procesamiento prioritario y retención de datos más larga (1 año vs 7 días)."
+      },
+      "q4": {
+        "question": "¿Puedo usar las imágenes generadas comercialmente?",
+        "answer": "¡Sí! Los usuarios Premium y de Paquete de Créditos pueden usar sus imágenes sin marca de agua para cualquier propósito, incluido el uso comercial. Los usuarios gratuitos reciben imágenes con marca de agua solo para uso personal."
+      },
+      "q5": {
+        "question": "¿Cuánto tiempo tarda en generarse una prueba?",
+        "answer": "La mayoría de las pruebas se completan en 10-30 segundos. Los usuarios Premium disfrutan de procesamiento prioritario, lo que significa resultados más rápidos incluso durante las horas pico. El tiempo exacto depende de la carga del servidor y la complejidad de la imagen."
+      },
+      "q6": {
+        "question": "¿Qué sucede con mi historial de pruebas?",
+        "answer": "Tu historial de pruebas se guarda automáticamente según tu plan: Usuarios gratuitos (7 días), usuarios de Créditos (90 días), usuarios Premium (1 año). Recibirás un recordatorio por correo electrónico 3 días antes de la expiración, dándote tiempo para descargar o actualizar."
+      }
     }
   },
   "pricing": {

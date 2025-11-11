@@ -25,8 +25,27 @@ export default function Home() {
     }
   }
 
+  // Generate FAQ structured data for SEO
+  const faqSchema = {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [1, 2, 3, 4, 5, 6].map((num) => ({
+      "@type": "Question",
+      "name": t(`faq.q${num}.question`),
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": t(`faq.q${num}.answer`)
+      }
+    }))
+  }
+
   return (
     <main className="container px-4 py-8 mx-auto">
+      {/* FAQ Structured Data for SEO */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
+      />
       {/* Hero Header */}
       <header className="mb-16 text-center">
         <h1 className="max-w-3xl mx-auto text-3xl md:text-4xl font-bold text-gray-900 mb-3">
