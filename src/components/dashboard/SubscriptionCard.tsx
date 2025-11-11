@@ -15,6 +15,9 @@ interface User {
   remainingTrials?: number
   subscriptionType?: string | null
   isYearlySubscription?: boolean
+  premiumUsageCount?: number
+  creditsPurchased?: number
+  creditsUsed?: number
 }
 
 interface SubscriptionCardProps {
@@ -22,9 +25,60 @@ interface SubscriptionCardProps {
 }
 
 export function SubscriptionCard({ user }: SubscriptionCardProps) {
-  const freeTrialLimit = 3 // Get from environment variable or use default
+  const freeTrialLimit = 3
 
-  if (user.isPremiumActive) {
+  // Calculate quota for all user types
+  const isPremiumActive = user.isPremiumActive || false
+  const subscriptionType = user.subscriptionType
+  const isYearlySubscription = user.isYearlySubscription || false
+
+  // Subscription quota
+  let subscriptionQuota = 0
+  let subscriptionUsed = 0
+  let subscriptionLabel = ''
+
+  if (isPremiumActive && subscriptionType) {
+    subscriptionQuota = isYearlySubscription ? 420 : 30
+    subscriptionUsed = user.premiumUsageCount || 0
+    subscriptionLabel = isYearlySubscription ? 'Annual' : 'Monthly'
+  } else {
+    subscriptionQuota = freeTrialLimit
+    subscriptionUsed = user.freeTrialsUsed || 0
+    subscriptionLabel = 'Free'
+  }
+
+  // Credits quota
+  const creditsPurchased = user.creditsPurchased || 0
+  const creditsUsed = user.creditsUsed || 0
+
+  // Total quota
+  const totalQuota = subscriptionQuota + creditsPurchased
+  const totalUsed = subscriptionUsed + creditsUsed
+  const totalRemaining = totalQuota - totalUsed
+
+  // Progress percentage
+  const usagePercentage = totalQuota > 0 ? (totalUsed / totalQuota) * 100 : 0
+
+  // Detail text
+  const subscriptionRemaining = subscriptionQuota - subscriptionUsed
+  const creditsRemaining = creditsPurchased - creditsUsed
+
+  let detailText = ''
+  if (creditsPurchased > 0) {
+    detailText = `${subscriptionLabel}: ${subscriptionRemaining}/${subscriptionQuota}, Credits: ${creditsRemaining}/${creditsPurchased}`
+  } else {
+    detailText = `${subscriptionLabel}: ${subscriptionRemaining}/${subscriptionQuota}`
+  }
+
+  // Progress bar color based on usage
+  let progressColor = 'bg-blue-600'
+  if (usagePercentage >= 80) {
+    progressColor = 'bg-red-600'
+  } else if (usagePercentage >= 50) {
+    progressColor = 'bg-yellow-600'
+  }
+
+  if (isPremiumActive) {
     return (
       <div className="bg-gradient-to-br from-yellow-50 to-orange-50 rounded-xl border border-yellow-200 p-6">
         <div className="flex items-center mb-4">
@@ -37,52 +91,49 @@ export function SubscriptionCard({ user }: SubscriptionCardProps) {
           </div>
         </div>
 
-        <div className="space-y-3">
-          <div className="flex items-center justify-between">
-            <span className="text-yellow-800 text-sm">Try-ons</span>
+        {/* Usage Progress */}
+        <div className="mb-4">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-yellow-800 text-sm">Try-ons Used</span>
             <span className="text-yellow-900 font-medium">
-              {user.isYearlySubscription ? "420/year" : "30/month"}
+              {totalUsed} / {totalQuota}
             </span>
           </div>
 
-          {user.premiumExpiresAt && (
+          <div className="w-full bg-yellow-200 rounded-full h-2">
+            <div
+              className={`${progressColor} h-2 rounded-full transition-all duration-300`}
+              style={{ width: `${Math.min(usagePercentage, 100)}%` }}
+            />
+          </div>
+
+          <div className="mt-2 space-y-1">
+            <p className="text-xs text-yellow-700">
+              {detailText}
+            </p>
+            <p className="text-xs text-yellow-600">
+              Total: {totalRemaining} try-ons remaining
+            </p>
+          </div>
+        </div>
+
+        {user.premiumExpiresAt && (
+          <div className="pt-4 border-t border-yellow-200">
             <div className="flex items-center justify-between">
-              <span className="text-yellow-800 text-sm">Expires</span>
+              <span className="text-yellow-800 text-sm">Subscription Expires</span>
               <span className="text-yellow-900 font-medium text-sm">
                 {formatDistanceToNow(new Date(user.premiumExpiresAt), {
                   addSuffix: true
                 })}
               </span>
             </div>
-          )}
-        </div>
-
-        <div className="mt-6 pt-4 border-t border-yellow-200">
-          <div className="grid grid-cols-2 gap-3">
-            <div className="text-center">
-              <div className="text-2xl font-bold text-yellow-900">
-                {user.isYearlySubscription ? "420" : "30+"}
-              </div>
-              <div className="text-xs text-yellow-700">
-                {user.isYearlySubscription ? "Per Year" : "Per Month"}
-              </div>
-            </div>
-            <div className="text-center">
-              <div className="text-2xl font-bold text-yellow-900">
-                <Star className="w-6 h-6 mx-auto" />
-              </div>
-              <div className="text-xs text-yellow-700">Standard Features</div>
-            </div>
           </div>
-        </div>
+        )}
       </div>
     )
   }
 
   // Free user
-  const usagePercentage = ((user.freeTrialsUsed || 0) / freeTrialLimit) * 100
-  const remainingTrials = user.remainingTrials || 0
-
   return (
     <div className="bg-white rounded-xl shadow-sm border p-6">
       <div className="flex items-center mb-4">
@@ -100,30 +151,35 @@ export function SubscriptionCard({ user }: SubscriptionCardProps) {
         <div className="flex items-center justify-between mb-2">
           <span className="text-gray-700 text-sm">Try-ons Used</span>
           <span className="text-gray-900 font-medium">
-            {user.freeTrialsUsed || 0} / {freeTrialLimit}
+            {totalUsed} / {totalQuota}
           </span>
         </div>
 
         <div className="w-full bg-gray-200 rounded-full h-2">
           <div
-            className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+            className={`${progressColor} h-2 rounded-full transition-all duration-300`}
             style={{ width: `${Math.min(usagePercentage, 100)}%` }}
           />
         </div>
 
-        <p className="text-xs text-gray-500 mt-2">
-          {remainingTrials} free try-ons remaining
-        </p>
+        <div className="mt-2 space-y-1">
+          <p className="text-xs text-gray-600">
+            {detailText}
+          </p>
+          <p className="text-xs text-gray-500">
+            Total: {totalRemaining} try-ons remaining
+          </p>
+        </div>
       </div>
 
       {/* Upgrade Notice */}
-      {remainingTrials <= 1 && (
+      {totalRemaining <= 1 && (
         <div className="mb-4 p-3 bg-orange-50 border border-orange-200 rounded-lg">
           <p className="text-orange-800 text-sm font-medium">
             Running low on try-ons!
           </p>
           <p className="text-orange-700 text-xs mt-1">
-            Upgrade to Standard for enhanced try-ons
+            Upgrade to Standard for more try-ons or purchase Credits Pack
           </p>
         </div>
       )}
@@ -132,9 +188,8 @@ export function SubscriptionCard({ user }: SubscriptionCardProps) {
       <Link
         href="/pricing"
         onClick={() => {
-          const remainingTrials = user.remainingTrials || 0
-          const quotaWarning = remainingTrials <= 1
-          analytics.trackUpgradeClick('subscription_card', 'free', remainingTrials, quotaWarning)
+          const quotaWarning = totalRemaining <= 1
+          analytics.trackUpgradeClick('subscription_card', 'free', totalRemaining, quotaWarning)
         }}
         className="w-full flex items-center justify-center px-4 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all duration-200"
       >
