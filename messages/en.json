@@ -75,6 +75,54 @@
         "title": "✨ Join thousands who found their perfect glasses",
         "subtitle": "Try on unlimited styles with AI-powered precision"
       }
+    },
+    "features": {
+      "title": "Key Features of VisuTry",
+      "subtitle": "Experience the next generation of AI-powered virtual try-on",
+      "feature1": {
+        "title": "Google Gemini 2.5 Flash",
+        "description": "Powered by Google's latest AI model for ultra-realistic try-on results with exceptional accuracy and natural lighting."
+      },
+      "feature2": {
+        "title": "Smart Data Retention",
+        "description": "Your try-on history is safely stored - 7 days for free users, 90 days with Credits, and 1 year for Premium members."
+      },
+      "feature3": {
+        "title": "Lightning Fast Processing",
+        "description": "Get your try-on results in 10-30 seconds with our optimized AI pipeline. Premium users enjoy priority processing."
+      },
+      "feature4": {
+        "title": "Privacy Protected",
+        "description": "Your photos are encrypted and secure. We never share your images or use them for training without permission."
+      }
+    },
+    "faq": {
+      "title": "Frequently Asked Questions",
+      "subtitle": "Everything you need to know about VisuTry",
+      "q1": {
+        "question": "How does VisuTry's AI try-on work?",
+        "answer": "VisuTry uses Google Gemini 2.5 Flash AI to analyze your facial features and realistically overlay glasses onto your photo. The AI understands face shape, lighting, and perspective to create natural-looking results in seconds."
+      },
+      "q2": {
+        "question": "Is my photo data safe and private?",
+        "answer": "Absolutely! Your photos are encrypted during upload and processing. We never share your images publicly or use them for AI training without explicit permission. Free users' data is stored for 7 days, Credits users for 90 days, and Premium members for 1 year."
+      },
+      "q3": {
+        "question": "What's the difference between free and Premium quality?",
+        "answer": "Free users get standard quality images (800×800 pixels) with a small watermark. Premium users receive high-quality images (1200×1200 pixels) without watermarks, plus priority processing and longer data retention (1 year vs 7 days)."
+      },
+      "q4": {
+        "question": "Can I use the generated images commercially?",
+        "answer": "Yes! Premium and Credits Pack users can use their watermark-free images for any purpose, including commercial use. Free users receive images with a watermark for personal use only."
+      },
+      "q5": {
+        "question": "How long does it take to generate a try-on?",
+        "answer": "Most try-ons complete in 10-30 seconds. Premium users enjoy priority processing, which means faster results even during peak times. The exact time depends on server load and image complexity."
+      },
+      "q6": {
+        "question": "What happens to my try-on history?",
+        "answer": "Your try-on history is automatically saved based on your plan: Free users (7 days), Credits users (90 days), Premium users (1 year). You'll receive an email reminder 3 days before expiration, giving you time to download or upgrade."
+      }
     }
   },
   "pricing": {
