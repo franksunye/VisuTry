@@ -45,6 +45,7 @@ export const PRODUCT_METADATA = {
       `${QUOTA_CONFIG.MONTHLY_SUBSCRIPTION} AI try-ons per month`,
       "High-quality image processing",
       "Priority processing queue",
+      "1 year data retention",
       "Unlimited downloads and sharing",
       "Standard glasses frame library",
       "Priority customer support",
@@ -68,6 +69,7 @@ export const PRODUCT_METADATA = {
       `${QUOTA_CONFIG.YEARLY_SUBSCRIPTION} AI try-ons per year (360 + 60 bonus)`,
       "High-quality image processing",
       "Priority processing queue",
+      "1 year data retention",
       "Unlimited downloads and sharing",
       "Standard glasses frame library",
       "Priority customer support",
@@ -91,6 +93,7 @@ export const PRODUCT_METADATA = {
     features: [
       `${QUOTA_CONFIG.CREDITS_PACK} AI try-ons`,
       "Credits never expire",
+      "90 days data retention",
       "High-quality image processing",
       "Unlimited downloads and sharing",
       "Priority customer support"
