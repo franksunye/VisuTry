@@ -10,6 +10,7 @@ import { MockDatabase } from "@/lib/mocks/database"
 import { mockBlobUpload } from "@/lib/mocks/blob"
 import { mockGenerateTryOnImage } from "@/lib/mocks/gemini"
 import { getTestSessionFromRequest } from "@/lib/test-session"
+import { QUOTA_CONFIG } from "@/config/pricing"
 
 // Force dynamic rendering for this route
 export const dynamic = 'force-dynamic'
@@ -83,14 +84,28 @@ export async function POST(request: NextRequest) {
     }
 
     // Check usage limit
-    const freeTrialLimit = parseInt(process.env.FREE_TRIAL_LIMIT || "3")
     const isPremiumActive = user.isPremium &&
       (!user.premiumExpiresAt || user.premiumExpiresAt > new Date())
 
-    // 🔥 修复：检查配额时考虑 creditsBalance
-    // 优先级：Premium配额 > Credits Pack > 免费试用
-    if (!isPremiumActive) {
-      const freeRemaining = Math.max(0, freeTrialLimit - user.freeTrialsUsed)
+    // Check quota for both Premium and Free users
+    if (isPremiumActive && user.currentSubscriptionType) {
+      // Premium users: check subscription quota + credits
+      const quota = user.currentSubscriptionType === 'PREMIUM_YEARLY'
+        ? QUOTA_CONFIG.YEARLY_SUBSCRIPTION
+        : QUOTA_CONFIG.MONTHLY_SUBSCRIPTION
+      const subscriptionRemaining = Math.max(0, quota - (user.premiumUsageCount || 0))
+      const creditsRemaining = user.creditsBalance || 0
+      const totalRemaining = subscriptionRemaining + creditsRemaining
+
+      if (totalRemaining <= 0) {
+        return NextResponse.json(
+          { success: false, error: "No remaining quota. Please purchase Credits Pack." },
+          { status: 403 }
+        )
+      }
+    } else if (!isPremiumActive) {
+      // Free users: check free trials + credits
+      const freeRemaining = Math.max(0, QUOTA_CONFIG.FREE_TRIAL - user.freeTrialsUsed)
       const creditsRemaining = user.creditsBalance || 0
       const totalRemaining = freeRemaining + creditsRemaining
 

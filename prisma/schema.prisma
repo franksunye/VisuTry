@@ -52,6 +52,7 @@ model User {
   creditsBalance Int      @default(0)  // Purchased credits balance (never expire)
   isPremium      Boolean  @default(false)
   premiumExpiresAt DateTime?
+  currentSubscriptionType String?      // Current active subscription type (PREMIUM_MONTHLY or PREMIUM_YEARLY)
   role             UserRole @default(USER)
 
   accounts      Account[]

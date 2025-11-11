@@ -122,20 +122,21 @@ async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session) 
 async function handleSubscriptionCreatedEvent(subscription: Stripe.Subscription) {
   try {
     const subscriptionData = await handleSubscriptionCreated(subscription)
-    
+
     // 更新用户的高级会员状态
     await prisma.user.update({
       where: { id: subscriptionData.userId },
       data: {
         isPremium: true,
         premiumExpiresAt: subscriptionData.expiresAt,
+        currentSubscriptionType: subscriptionData.productType,
       }
     })
 
     // 清除用户缓存，确保所有页面立即显示最新会员状态
     clearUserCache(subscriptionData.userId)
 
-    console.log(`Subscription created for user ${subscriptionData.userId}`)
+    console.log(`Subscription created for user ${subscriptionData.userId}, type: ${subscriptionData.productType}`)
   } catch (error) {
     console.error("处理订阅创建事件失败:", error)
   }
@@ -145,22 +146,24 @@ async function handleSubscriptionCreatedEvent(subscription: Stripe.Subscription)
 async function handleSubscriptionUpdatedEvent(subscription: Stripe.Subscription) {
   try {
     const subscriptionData = await handleSubscriptionUpdated(subscription)
-    
+
     // 更新用户的高级会员状态
     const isPremiumActive = subscription.status === "active"
+    const productType = subscription.metadata?.productType as ProductType | undefined
 
     await prisma.user.update({
       where: { id: subscriptionData.userId },
       data: {
         isPremium: isPremiumActive,
         premiumExpiresAt: isPremiumActive ? subscriptionData.expiresAt : null,
+        currentSubscriptionType: isPremiumActive && productType ? productType : null,
       }
     })
 
     // 清除用户缓存，确保所有页面立即显示最新会员状态
     clearUserCache(subscriptionData.userId)
 
-    console.log(`Subscription updated for user ${subscriptionData.userId}`)
+    console.log(`Subscription updated for user ${subscriptionData.userId}, active: ${isPremiumActive}`)
   } catch (error) {
     console.error("处理订阅更新事件失败:", error)
   }
@@ -170,13 +173,14 @@ async function handleSubscriptionUpdatedEvent(subscription: Stripe.Subscription)
 async function handleSubscriptionDeletedEvent(subscription: Stripe.Subscription) {
   try {
     const subscriptionData = await handleSubscriptionDeleted(subscription)
-    
+
     // 取消用户的高级会员状态
     await prisma.user.update({
       where: { id: subscriptionData.userId },
       data: {
         isPremium: false,
         premiumExpiresAt: null,
+        currentSubscriptionType: null,
       }
     })
 

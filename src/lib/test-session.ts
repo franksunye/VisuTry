@@ -11,6 +11,7 @@ export interface TestUser {
   premiumUsageCount: number
   isPremium: boolean
   premiumExpiresAt: Date | null
+  currentSubscriptionType?: string | null
 }
 
 // Client-side function to get test session

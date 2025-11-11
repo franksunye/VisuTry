@@ -44,6 +44,7 @@ declare module "next-auth/jwt" {
     premiumExpiresAt?: Date | null
     isPremiumActive?: boolean
     remainingTrials?: number
+    subscriptionType?: string | null
   }
 }
 

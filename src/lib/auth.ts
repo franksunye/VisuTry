@@ -92,8 +92,9 @@ export const authOptions: NextAuthOptions = {
           session.user.isPremium = (token.isPremium as boolean) || false
           session.user.premiumExpiresAt = (token.premiumExpiresAt as Date) || null
           session.user.isPremiumActive = (token.isPremiumActive as boolean) || false
-          // 🔥 修复：使用 ?? 而不是 ||，因为 0 是有效值
           session.user.remainingTrials = (token.remainingTrials as number) ?? 3
+          session.user.subscriptionType = (token.subscriptionType as string | null) || null
+          session.user.isYearlySubscription = (token.subscriptionType as string) === 'PREMIUM_YEARLY'
         }
       }
 
@@ -158,6 +159,7 @@ export const authOptions: NextAuthOptions = {
               creditsBalance: true,
               isPremium: true,
               premiumExpiresAt: true,
+              currentSubscriptionType: true,
             }
           })
 
@@ -192,22 +194,22 @@ export const authOptions: NextAuthOptions = {
             token.isPremiumActive = dbUser.isPremium &&
               (!dbUser.premiumExpiresAt || dbUser.premiumExpiresAt > new Date())
 
-            // Calculate remaining trials (using centralized config)
-            // Note: For Premium users, we can't determine subscription type here (not stored in User model)
-            // So we use a conservative estimate: assume monthly quota (30)
-            // The actual quota will be calculated on pages that have access to Payment records
-            if (token.isPremiumActive) {
-              // Premium users: use conservative monthly quota + credits
-              // (actual quota depends on subscription type, calculated elsewhere)
-              const conservativeQuota = QUOTA_CONFIG.MONTHLY_SUBSCRIPTION
-              const subscriptionRemaining = Math.max(0, conservativeQuota - (dbUser.premiumUsageCount || 0))
+            // Calculate remaining trials based on subscription type
+            if (token.isPremiumActive && dbUser.currentSubscriptionType) {
+              // Premium users: use actual subscription quota based on type
+              const quota = dbUser.currentSubscriptionType === 'PREMIUM_YEARLY'
+                ? QUOTA_CONFIG.YEARLY_SUBSCRIPTION
+                : QUOTA_CONFIG.MONTHLY_SUBSCRIPTION
+              const subscriptionRemaining = Math.max(0, quota - (dbUser.premiumUsageCount || 0))
               const creditsRemaining = dbUser.creditsBalance || 0
               token.remainingTrials = subscriptionRemaining + creditsRemaining
+              token.subscriptionType = dbUser.currentSubscriptionType
             } else {
               // Free users: free trials remaining + credits balance
               const freeRemaining = Math.max(0, QUOTA_CONFIG.FREE_TRIAL - dbUser.freeTrialsUsed)
               const creditsRemaining = dbUser.creditsBalance || 0
               token.remainingTrials = freeRemaining + creditsRemaining
+              token.subscriptionType = null
             }
 
             // 清除用户缓存，确保Dashboard等页面使用最新数据
