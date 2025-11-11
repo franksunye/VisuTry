@@ -20,13 +20,13 @@ export class MockDatabase {
     return user || null
   }
 
-  static async updateUser(id: string, data: Partial<typeof mockUsers[0]>) {
+  static async updateUser(id: string, data: any) {
     if (!isMockMode) return null
-    
+
     const userIndex = this.users.findIndex(u => u.id === id)
     if (userIndex === -1) return null
-    
-    this.users[userIndex] = { ...this.users[userIndex], ...data }
+
+    this.users[userIndex] = { ...this.users[userIndex], ...data } as any
     return this.users[userIndex]
   }
 
