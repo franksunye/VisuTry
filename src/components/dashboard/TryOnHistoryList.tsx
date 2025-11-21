@@ -17,11 +17,14 @@ import Link from "next/link"
 import { formatDistanceToNow } from "date-fns"
 import { cn } from "@/utils/cn"
 import { TryOnThumbnail } from "@/components/OptimizedImage"
+import { getTryOnConfig, type TryOnType } from "@/config/try-on-types"
 
 interface TryOnTask {
   id: string
+  type?: TryOnType
   status: string
   userImageUrl: string
+  itemImageUrl?: string | null
   glassesImageUrl?: string | null
   resultImageUrl?: string | null
   errorMessage?: string | null
@@ -168,8 +171,8 @@ export function TryOnHistoryList({
                 )}
               />
               
-              {/* 状态标签 */}
-              <div className="absolute top-3 left-3">
+              {/* 状态标签和类型标签 */}
+              <div className="absolute top-3 left-3 flex flex-col gap-1">
                 <span className={cn(
                   "inline-flex items-center px-2 py-1 rounded-full text-xs font-medium border",
                   getStatusColor(task.status)
@@ -177,6 +180,11 @@ export function TryOnHistoryList({
                   {getStatusIcon(task.status)}
                   <span className="ml-1">{getStatusText(task.status)}</span>
                 </span>
+                {task.type && task.type !== 'GLASSES' && (
+                  <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-purple-50 text-purple-700 border border-purple-200">
+                    {getTryOnConfig(task.type).icon} {getTryOnConfig(task.type).name}
+                  </span>
+                )}
               </div>
 
               {/* 操作按钮 */}
