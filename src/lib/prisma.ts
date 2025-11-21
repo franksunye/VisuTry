@@ -5,20 +5,6 @@ const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined
 }
 
-// 🔍 Verify Prisma Client version matches package.json
-const expectedVersion = '6.19.0'
-const actualVersion = require('@prisma/client/package.json').version
-
-if (actualVersion !== expectedVersion) {
-  const errorMsg = `[Prisma] VERSION MISMATCH! Expected ${expectedVersion}, got ${actualVersion}. This indicates a build cache issue. Please clear Vercel build cache and redeploy.`
-  console.error(errorMsg)
-  if (process.env.NODE_ENV === 'production') {
-    throw new Error(errorMsg)
-  }
-}
-
-console.log(`[Prisma] Using Prisma Client v${actualVersion}`)
-
 // 使用 Neon Serverless Driver 优化性能
 // Prisma 6.x 新 API：直接传递 connectionString 对象
 // 这样可以获得更低的延迟和更好的 serverless 性能
