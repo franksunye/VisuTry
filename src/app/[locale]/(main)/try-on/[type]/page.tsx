@@ -78,8 +78,7 @@ export default async function TryOnTypePage({ params }: TryOnPageProps) {
   }
 
   // Generate structured data for SEO
-  const structuredData = generateStructuredData({
-    type: 'WebApplication',
+  const structuredData = generateStructuredData('softwareApplication', {
     name: `VisuTry - ${config.displayName}`,
     description: `Virtual ${config.name} try-on powered by AI`,
     url: `https://visutry.com/${locale}/try-on/${type}`,

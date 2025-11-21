@@ -179,7 +179,7 @@ export function TryOnInterface({ type = 'GLASSES' }: TryOnInterfaceProps) {
     setCurrentStep("select")  // Return to step 2 (select glasses) instead of step 1, keeping uploaded photos
   }
 
-  const canProceed = userImage && glassesImage
+  const canProceed = userImage && itemImage
 
   // Error Modal Component
   const ErrorModal = () => {
