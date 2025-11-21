@@ -181,23 +181,30 @@ export async function generateTryOnImage({
     console.log("📸 Images loaded, generating virtual try-on...")
 
     // Create the prompt for multi-image fusion
-    // Use the custom prompt if provided, otherwise use a generic try-on prompt
-    const tryOnPrompt = `
-You are an expert at virtual try-on. I will provide you with two images:
-1. A person's photo
-2. An item to try on
+    // The prompt parameter contains type-specific detailed instructions from config
+    const tryOnPrompt = `You are an expert AI image generation specialist for virtual try-on technology.
 
-Please create a photorealistic image following these instructions:
+INPUT:
+- Image 1: A person's photograph (user photo)
+- Image 2: An item to try on (product image)
 
+TASK:
+Generate a single photorealistic composite image showing the person wearing/using the item.
+
+DETAILED INSTRUCTIONS:
 ${prompt}
 
-General requirements:
-- Match the perspective and angle of the person
-- Adjust the size of the item to fit proportionally
-- Match the lighting conditions of the original photo
-- Ensure the result looks natural and realistic
-- Preserve the person's features and expression
-`
+TECHNICAL REQUIREMENTS:
+- Output resolution: Match the user photo's resolution
+- Image quality: Photorealistic, high-fidelity
+- Composition: Keep the original photo's framing and composition
+- Color accuracy: Maintain accurate colors for both person and item
+- Edge blending: Seamless transitions with no visible artifacts
+- Depth consistency: Proper occlusion and layering
+- Shadow realism: Natural shadows that match the lighting environment
+
+OUTPUT FORMAT:
+Return a single composite image that looks like a professional photograph taken in one shot.`
 
     // Generate the try-on image using multi-image fusion
     const apiStartTime = Date.now()
