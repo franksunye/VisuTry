@@ -108,6 +108,7 @@ export async function DELETE(
     // 收集需要删除的文件 URL
     const urlsToDelete: string[] = [];
     if (task.userImageUrl) urlsToDelete.push(task.userImageUrl);
+    if ((task as any).itemImageUrl) urlsToDelete.push((task as any).itemImageUrl);
     if (task.glassesImageUrl) urlsToDelete.push(task.glassesImageUrl);
     if (task.resultImageUrl) urlsToDelete.push(task.resultImageUrl);
 

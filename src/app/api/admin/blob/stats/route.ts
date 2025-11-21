@@ -40,6 +40,7 @@ export async function GET(request: NextRequest) {
     const tasks = await prisma.tryOnTask.findMany({
       select: {
         userImageUrl: true,
+        itemImageUrl: true,
         glassesImageUrl: true,
         resultImageUrl: true,
       },
@@ -49,6 +50,7 @@ export async function GET(request: NextRequest) {
     const dbUrls = new Set<string>();
     tasks.forEach(task => {
       if (task.userImageUrl) dbUrls.add(task.userImageUrl);
+      if ((task as any).itemImageUrl) dbUrls.add((task as any).itemImageUrl);
       if (task.glassesImageUrl) dbUrls.add(task.glassesImageUrl);
       if (task.resultImageUrl) dbUrls.add(task.resultImageUrl);
     });

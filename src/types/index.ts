@@ -9,8 +9,10 @@ export interface UserProfile extends User {
 // Try-on task types
 export interface TryOnRequest {
   userImageFile: File
-  glassesImageFile?: File
+  itemImageFile?: File // Generic item image (glasses, outfit, shoes, etc.)
+  glassesImageFile?: File // Legacy field name for backward compatibility
   glassesFrameId?: string
+  type?: 'GLASSES' | 'OUTFIT' | 'SHOES' | 'ACCESSORIES'
   prompt?: string
 }
 
