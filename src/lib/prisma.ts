@@ -1,15 +1,17 @@
 import { PrismaClient } from '@prisma/client'
-import { PrismaNeon } from '@prisma/adapter-neon'
+// TEMPORARY: Disable Neon adapter to debug login issue
+// import { PrismaNeon } from '@prisma/adapter-neon'
 
 const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined
 }
 
+// TEMPORARY: Disable Neon adapter to debug login issue
 // 使用 Neon Serverless Driver 优化性能
 // Prisma 6.x 新 API：直接传递 connectionString 对象
 // 这样可以获得更低的延迟和更好的 serverless 性能
-const connectionString = process.env.DATABASE_URL!
-const adapter = new PrismaNeon({ connectionString })
+// const connectionString = process.env.DATABASE_URL!
+// const adapter = new PrismaNeon({ connectionString })
 
 // 🔍 性能监控：记录 Prisma 查询日志
 const logLevels = process.env.NODE_ENV === 'development'
@@ -17,7 +19,8 @@ const logLevels = process.env.NODE_ENV === 'development'
   : ['error'] as const
 
 export const prisma = globalForPrisma.prisma ?? new PrismaClient({
-  adapter: adapter, // 使用 Neon Serverless Driver 优化 serverless 环境性能
+  // TEMPORARY: Disable Neon adapter to debug login issue
+  // adapter: adapter, // 使用 Neon Serverless Driver 优化 serverless 环境性能
   log: logLevels.map(level => ({
     level,
     emit: 'event'
