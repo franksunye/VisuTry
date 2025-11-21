@@ -5,6 +5,12 @@ const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined
 }
 
+// 🔍 Debug: Log Prisma Client version in production
+if (process.env.NODE_ENV === 'production') {
+  console.log('[Prisma] Initializing Prisma Client...')
+  console.log('[Prisma] @prisma/client version:', require('@prisma/client/package.json').version)
+}
+
 // 使用 Neon Serverless Driver 优化性能
 // Prisma 6.x 新 API：直接传递 connectionString 对象
 // 这样可以获得更低的延迟和更好的 serverless 性能
