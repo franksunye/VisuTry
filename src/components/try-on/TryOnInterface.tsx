@@ -9,6 +9,7 @@ import { EmptyState } from "@/components/try-on/EmptyState"
 import { Sparkles, ArrowRight, User, Glasses, AlertCircle, X } from "lucide-react"
 import Link from "next/link"
 import { analytics, getUserType } from "@/lib/analytics"
+import { TryOnType, getTryOnConfig } from "@/config/try-on-types"
 
 interface ErrorState {
   message: string
@@ -16,15 +17,20 @@ interface ErrorState {
   statusCode?: number
 }
 
-export function TryOnInterface() {
+interface TryOnInterfaceProps {
+  type?: TryOnType // Optional for backward compatibility, defaults to GLASSES
+}
+
+export function TryOnInterface({ type = 'GLASSES' }: TryOnInterfaceProps) {
+  const config = getTryOnConfig(type)
   const { data: session, update } = useSession()
   const [userImage, setUserImage] = useState<{ file: File; preview: string } | null>(null)
-  const [glassesImage, setGlassesImage] = useState<{ file: File; preview: string } | null>(null)
+  const [itemImage, setItemImage] = useState<{ file: File; preview: string } | null>(null)
   const [isProcessing, setIsProcessing] = useState(false)
   const [result, setResult] = useState<{ imageUrl: string; taskId: string } | null>(null)
   const [currentStep, setCurrentStep] = useState<"upload" | "select" | "process" | "result">("upload")
   const [currentTaskId, setCurrentTaskId] = useState<string | null>(null)
-  const [processingMessage, setProcessingMessage] = useState("AI is processing your try-on request...")
+  const [processingMessage, setProcessingMessage] = useState(`AI is processing your ${config.name.toLowerCase()} try-on request...`)
   const [error, setError] = useState<ErrorState | null>(null)
 
   // Get quota info from session
@@ -88,16 +94,16 @@ export function TryOnInterface() {
     setCurrentStep("upload")
   }
 
-  const handleGlassesImageSelect = (file: File, preview: string) => {
-    setGlassesImage({ file, preview })
+  const handleItemImageSelect = (file: File, preview: string) => {
+    setItemImage({ file, preview })
   }
 
-  const handleGlassesImageRemove = () => {
-    setGlassesImage(null)
+  const handleItemImageRemove = () => {
+    setItemImage(null)
   }
 
   const handleStartTryOn = async () => {
-    if (!userImage || !glassesImage) {
+    if (!userImage || !itemImage) {
       return
     }
 
@@ -108,7 +114,8 @@ export function TryOnInterface() {
     try {
       const formData = new FormData()
       formData.append("userImage", userImage.file)
-      formData.append("glassesImage", glassesImage.file)
+      formData.append("itemImage", itemImage.file)
+      formData.append("type", type)
 
       const response = await fetch("/api/try-on", {
         method: "POST",
@@ -277,7 +284,7 @@ export function TryOnInterface() {
             }`}>
               <Glasses className="w-4 h-4" />
             </div>
-            <span className="ml-2 font-medium">Glasses</span>
+            <span className="ml-2 font-medium">{config.name}</span>
           </div>
 
           <ArrowRight className="w-4 h-4 text-gray-400" />
@@ -303,7 +310,7 @@ export function TryOnInterface() {
         {/* Height matches left side: 300px (photo) + 20px (gap) + 180px (glasses) = 500px */}
         <div className="h-[500px] overflow-hidden border-2 border-gray-300 border-dashed rounded-lg lg:order-2 bg-gray-50 flex flex-col">
           {isProcessing ? (
-            <LoadingState message={processingMessage} />
+            <LoadingState message={processingMessage} type={type} />
           ) : result ? (
             <div className="p-6 h-full flex flex-col">
               <ResultDisplay
@@ -313,7 +320,7 @@ export function TryOnInterface() {
               />
             </div>
           ) : (
-            <EmptyState />
+            <EmptyState type={type} />
           )}
         </div>
 
@@ -331,13 +338,13 @@ export function TryOnInterface() {
             iconType="user"
           />
 
-          {/* Glasses Photo Upload */}
+          {/* Item Photo Upload (Glasses, Outfit, etc.) */}
           <ImageUpload
-            onImageSelect={handleGlassesImageSelect}
-            onImageRemove={handleGlassesImageRemove}
-            currentImage={glassesImage?.preview}
-            label="Glasses"
-            description="Clear image of glasses"
+            onImageSelect={handleItemImageSelect}
+            onImageRemove={handleItemImageRemove}
+            currentImage={itemImage?.preview}
+            label={config.itemImageLabel}
+            description={config.itemImagePlaceholder}
             loading={isProcessing}
             height="h-[180px]"
             iconType="glasses"
@@ -362,7 +369,7 @@ export function TryOnInterface() {
             ) : (
               <>
                 <Sparkles className="w-5 h-5 mr-2" />
-                Try On
+                Try On {config.name}
               </>
             )}
           </button>

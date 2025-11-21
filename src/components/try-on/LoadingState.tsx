@@ -1,12 +1,16 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import { TryOnType, getTryOnConfig } from "@/config/try-on-types"
 
 interface LoadingStateProps {
   message?: string
+  type?: TryOnType
 }
 
-export function LoadingState({ message = "Generating your result..." }: LoadingStateProps) {
+export function LoadingState({ message, type = 'GLASSES' }: LoadingStateProps) {
+  const config = getTryOnConfig(type)
+  const displayMessage = message || `AI is processing your ${config.name.toLowerCase()} try-on request...`
   const [elapsedTime, setElapsedTime] = useState(0)
 
   useEffect(() => {
@@ -29,7 +33,7 @@ export function LoadingState({ message = "Generating your result..." }: LoadingS
 
       {/* Message */}
       <p className="text-base font-medium text-gray-700 mb-2 text-center">
-        {message}
+        {displayMessage}
       </p>
 
       {/* Elapsed Time */}

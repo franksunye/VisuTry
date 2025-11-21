@@ -29,6 +29,8 @@
   "nav": {
     "home": "ホーム",
     "tryOn": "バーチャル試着",
+    "tryGlasses": "メガネを試す",
+    "tryOutfit": "服を試す",
     "blog": "ブログ",
     "pricing": "料金",
     "dashboard": "ダッシュボード",
@@ -56,7 +58,9 @@
       }
     },
     "cta": {
-      "button": "始める"
+      "button": "始める",
+      "tryGlasses": "メガネを試す",
+      "tryOutfit": "服を試す"
     },
     "showcase": {
       "alex": {

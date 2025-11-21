@@ -17,11 +17,11 @@ export default function Home() {
 
   const isAuthenticated = session || testSession
 
-  const handleStartTryOn = () => {
+  const handleStartTryOn = (type: 'glasses' | 'outfit' = 'glasses') => {
     if (isAuthenticated) {
-      router.push(`/${locale}/try-on`)
+      router.push(`/${locale}/try-on/${type}`)
     } else {
-      router.push(`/${locale}/auth/signin?callbackUrl=` + encodeURIComponent(`/${locale}/try-on`))
+      router.push(`/${locale}/auth/signin?callbackUrl=` + encodeURIComponent(`/${locale}/try-on/${type}`))
     }
   }
 
@@ -88,13 +88,19 @@ export default function Home() {
         {/* Try-On Showcase Carousel */}
         <TryOnShowcase />
 
-        {/* CTA Section */}
-        <div className="text-center">
+        {/* CTA Section - Dual Buttons */}
+        <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
           <button
-            onClick={handleStartTryOn}
-            className="px-8 py-4 text-lg font-semibold text-white transition-colors duration-200 bg-blue-600 rounded-lg shadow-lg hover:bg-blue-700 hover:shadow-xl"
+            onClick={() => handleStartTryOn('glasses')}
+            className="px-8 py-4 text-lg font-semibold text-white transition-colors duration-200 bg-blue-600 rounded-lg shadow-lg hover:bg-blue-700 hover:shadow-xl min-w-[200px]"
           >
-            {t('cta.button')}
+            👓 {t('cta.tryGlasses')}
+          </button>
+          <button
+            onClick={() => handleStartTryOn('outfit')}
+            className="px-8 py-4 text-lg font-semibold text-blue-600 transition-colors duration-200 bg-white border-2 border-blue-600 rounded-lg shadow-lg hover:bg-blue-50 hover:shadow-xl min-w-[200px]"
+          >
+            👔 {t('cta.tryOutfit')}
           </button>
         </div>
       </section>

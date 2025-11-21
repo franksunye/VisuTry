@@ -43,7 +43,8 @@ const genAI = process.env.GEMINI_API_KEY ? new GoogleGenerativeAI(process.env.GE
 
 export interface TryOnRequest {
   userImageUrl: string
-  glassesImageUrl: string
+  itemImageUrl?: string // New generic field name
+  glassesImageUrl?: string // Legacy field name for backward compatibility
   prompt?: string
 }
 
@@ -55,13 +56,21 @@ export interface TryOnResult {
 
 export async function generateTryOnImage({
   userImageUrl,
-  glassesImageUrl,
+  itemImageUrl,
+  glassesImageUrl, // Legacy parameter for backward compatibility
   // Original prompt: "Place these glasses naturally on the person's face. Ensure the glasses fit properly, match the lighting and perspective, and look realistic."
   prompt = "Place the glasses naturally on the person’s face in the uploaded photo — use that face photo exactly as is, without cropping or altering its size, proportions, or composition; if the head is slightly tilted, the glasses frame should tilt accordingly and align exactly with the roll/tilt angle of the head, sitting properly on the nose bridge and temples. Ensure the glasses fit properly, match the lighting and perspective, look realistic, and avoid any distortion or skewing of the frame."
 }: TryOnRequest): Promise<TryOnResult> {
+  // Support both new and legacy field names
+  const actualItemImageUrl = itemImageUrl || glassesImageUrl
+
+  if (!actualItemImageUrl) {
+    throw new Error("Item image URL is required")
+  }
+
   // Use mock service in test mode
   if (isMockMode) {
-    return mockGenerateTryOnImage({ userImageUrl, glassesImageUrl, prompt })
+    return mockGenerateTryOnImage({ userImageUrl, glassesImageUrl: actualItemImageUrl, prompt })
   }
 
   if (!genAI) {
@@ -89,7 +98,7 @@ export async function generateTryOnImage({
     const downloadStartTime = Date.now()
     console.log(`📥 Downloading images from Blob Storage...`)
     console.log(`   User image: ${userImageUrl}`)
-    console.log(`   Glasses image: ${glassesImageUrl}`)
+    console.log(`   Item image: ${actualItemImageUrl}`)
 
     const fetchWithRetry = async (url: string, maxRetries: number = 3, timeoutMs: number = 30000) => {
       for (let attempt = 1; attempt <= maxRetries; attempt++) {
@@ -138,21 +147,21 @@ export async function generateTryOnImage({
       throw new Error(`Failed to fetch after ${maxRetries} attempts: ${url}`)
     }
 
-    const [userImageResponse, glassesImageResponse] = await Promise.all([
+    const [userImageResponse, itemImageResponse] = await Promise.all([
       fetchWithRetry(userImageUrl, 3, 30000),
-      fetchWithRetry(glassesImageUrl, 3, 30000)
+      fetchWithRetry(actualItemImageUrl, 3, 30000)
     ])
 
     if (!userImageResponse.ok) {
       throw new Error(`Failed to fetch user image: ${userImageResponse.status} ${userImageResponse.statusText}`)
     }
-    if (!glassesImageResponse.ok) {
-      throw new Error(`Failed to fetch glasses image: ${glassesImageResponse.status} ${glassesImageResponse.statusText}`)
+    if (!itemImageResponse.ok) {
+      throw new Error(`Failed to fetch item image: ${itemImageResponse.status} ${itemImageResponse.statusText}`)
     }
 
-    const [userImageBuffer, glassesImageBuffer] = await Promise.all([
+    const [userImageBuffer, itemImageBuffer] = await Promise.all([
       userImageResponse.arrayBuffer(),
-      glassesImageResponse.arrayBuffer()
+      itemImageResponse.arrayBuffer()
     ])
 
     const downloadTime = Date.now() - downloadStartTime
@@ -161,34 +170,33 @@ export async function generateTryOnImage({
     // Convert to base64
     const base64StartTime = Date.now()
     const userImageBase64 = Buffer.from(userImageBuffer).toString('base64')
-    const glassesImageBase64 = Buffer.from(glassesImageBuffer).toString('base64')
+    const itemImageBase64 = Buffer.from(itemImageBuffer).toString('base64')
     const userImageMimeType = userImageResponse.headers.get('content-type') || 'image/jpeg'
-    const glassesImageMimeType = glassesImageResponse.headers.get('content-type') || 'image/png'
+    const itemImageMimeType = itemImageResponse.headers.get('content-type') || 'image/png'
 
     const base64Time = Date.now() - base64StartTime
     console.log(`⏱️ Base64 conversion time: ${base64Time}ms`)
-    console.log(`📊 Image sizes: user=${(userImageBase64.length/1024).toFixed(2)}KB, glasses=${(glassesImageBase64.length/1024).toFixed(2)}KB`)
+    console.log(`📊 Image sizes: user=${(userImageBase64.length/1024).toFixed(2)}KB, item=${(itemImageBase64.length/1024).toFixed(2)}KB`)
 
     console.log("📸 Images loaded, generating virtual try-on...")
 
     // Create the prompt for multi-image fusion
+    // Use the custom prompt if provided, otherwise use a generic try-on prompt
     const tryOnPrompt = `
-You are an expert at virtual glasses try-on. I will provide you with two images:
-1. A person's face photo
-2. A pair of glasses
+You are an expert at virtual try-on. I will provide you with two images:
+1. A person's photo
+2. An item to try on
 
-Please create a photorealistic image where the glasses are naturally placed on the person's face.
-
-Requirements:
-- Position the glasses correctly on the nose bridge and ears
-- Match the perspective and angle of the face
-- Adjust the size of the glasses to fit the face proportionally
-- Match the lighting conditions of the original photo
-- Ensure the glasses look natural and realistic
-- Preserve the person's facial features and expression
-- Make sure the glasses don't obscure important facial features unnaturally
+Please create a photorealistic image following these instructions:
 
 ${prompt}
+
+General requirements:
+- Match the perspective and angle of the person
+- Adjust the size of the item to fit proportionally
+- Match the lighting conditions of the original photo
+- Ensure the result looks natural and realistic
+- Preserve the person's features and expression
 `
 
     // Generate the try-on image using multi-image fusion
@@ -205,8 +213,8 @@ ${prompt}
       },
       {
         inlineData: {
-          mimeType: glassesImageMimeType,
-          data: glassesImageBase64
+          mimeType: itemImageMimeType,
+          data: itemImageBase64
         }
       }
     ])
