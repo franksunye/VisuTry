@@ -29,11 +29,13 @@ const validateEnvVars = () => {
 
   if (missing.length > 0) {
     console.error('❌ Missing required environment variables:', missing)
+    logger.error('auth', 'Missing required environment variables', new Error(missing.join(', ')))
     throw new Error(`Missing required environment variables: ${missing.join(', ')}`)
   }
 
   // Log environment info (without sensitive data)
   console.log('✅ NextAuth Environment Check:')
+  logger.info('auth', 'NextAuth environment check passed', { nodeEnv: process.env.NODE_ENV, vercel: !!process.env.VERCEL })
   console.log('  - NODE_ENV:', process.env.NODE_ENV)
   console.log('  - NEXTAUTH_URL:', process.env.NEXTAUTH_URL || '(not set - will use default)')
   console.log('  - VERCEL:', process.env.VERCEL ? 'Yes' : 'No')
@@ -47,7 +49,9 @@ if (!isMockMode && !process.env.SKIP_ENV_VALIDATION) {
   try {
     validateEnvVars()
   } catch (error) {
+    const err = error instanceof Error ? error : new Error(String(error))
     console.error('Environment validation failed:', error)
+    logger.error('auth', 'Environment validation failed', err)
     throw error
   }
 }
@@ -122,6 +126,7 @@ export const authOptions: NextAuthOptions = {
           email: user.email,
           role: token.role
         })
+        logger.info('auth', 'First login - role set', { userId: user.id, email: user.email, role: token.role })
       }
 
       // Auth0: extract profile data

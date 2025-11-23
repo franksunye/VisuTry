@@ -11,6 +11,7 @@ import { Sparkles, ArrowRight, User, Glasses, AlertCircle, X, Shirt, Footprints,
 import Link from "next/link"
 import { analytics, getUserType } from "@/lib/analytics"
 import { TryOnType, getTryOnConfig } from "@/config/try-on-types"
+import { logger } from "@/lib/logger"
 
 interface ErrorState {
   message: string
@@ -78,8 +79,11 @@ export function TryOnInterface({ type = 'GLASSES' }: TryOnInterfaceProps) {
 
             // 🔥 关键修复：Try-on完成后刷新session，确保显示最新的使用次数和credits余额
             console.log('✅ Try-on completed: Refreshing session to update usage count...')
+            logger.info('component', 'Try-on completed, refreshing session')
             update().catch((error) => {
+              const err = error instanceof Error ? error : new Error(String(error))
               console.error('❌ Failed to refresh session after try-on:', error)
+              logger.error('component', 'Failed to refresh session after try-on', err)
             })
           } else if (task.status === "failed") {
             alert(task.errorMessage || "Processing failed, please try again")
@@ -92,7 +96,9 @@ export function TryOnInterface({ type = 'GLASSES' }: TryOnInterfaceProps) {
           }
         }
       } catch (error) {
+        const err = error instanceof Error ? error : new Error(String(error))
         console.error("Failed to check task status:", error)
+        logger.error('component', 'Failed to check task status', err)
       }
     }, 1000) // Check every 1 second for faster response
 
@@ -156,8 +162,11 @@ export function TryOnInterface({ type = 'GLASSES' }: TryOnInterfaceProps) {
 
           // Refresh session to update usage count
           console.log('✅ Try-on completed: Refreshing session to update usage count...')
+          logger.info('component', 'Try-on completed, refreshing session')
           update().catch((error) => {
+            const err = error instanceof Error ? error : new Error(String(error))
             console.error('❌ Failed to refresh session after try-on:', error)
+            logger.error('component', 'Failed to refresh session after try-on', err)
           })
         } else {
           // Task still processing, start polling
@@ -180,7 +189,9 @@ export function TryOnInterface({ type = 'GLASSES' }: TryOnInterfaceProps) {
         setIsProcessing(false)
       }
     } catch (error) {
+      const err = error instanceof Error ? error : new Error(String(error))
       console.error("Try-on failed:", error)
+      logger.error('component', 'Try-on failed', err)
       setError({
         message: "An unexpected error occurred. Please try again.",
         type: 'generic'
