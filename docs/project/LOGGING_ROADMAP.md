@@ -12,6 +12,11 @@
 - [x] 迁移 lib/gemini.ts (部分，关键日志)
 - [x] 迁移 lib/auth.ts (部分，关键日志)
 - [x] 迁移 components/try-on/TryOnInterface.tsx (6 个 console 调用)
+- [x] 迁移 payment/create-session/route.ts (2 个 console 调用)
+- [x] 迁移 components/dashboard/PaymentSuccessHandler.tsx (3 个 console 调用)
+- [x] 迁移 components/try-on/ResultDisplay.tsx (1 个 console 调用)
+- [x] 迁移 components/upload/ImageUpload.tsx (1 个 console 调用)
+- [x] 迁移 hooks/useAutoRefreshSession.ts (3 个 console 调用)
 
 ## 📋 待做
 
@@ -32,12 +37,10 @@
   - 添加日志级别控制
   - 批量发送日志
 
-- [ ] 迁移页面和组件 (2-3 小时)
-  - 35 个 app 目录文件
-  - 14 个 lib 目录文件
-  - 12 个 components 文件
-  - 2 个 hooks 文件
-  - 1 个 middleware 文件
+- [ ] 迁移其他页面和组件 (可选)
+  - Dashboard 相关页面
+  - Admin 相关页面
+  - 其他工具函数
 
 ### 低优先级
 - [ ] 添加日志级别控制 (30 分钟)
@@ -46,13 +49,30 @@
 ## 📊 统计
 
 - 总 console 调用数：349 行
-- 已迁移：~120 行 (34.4%)
-- 待迁移：~229 行 (65.6%)
+- 已迁移：~152 行 (43.6%)
+- 待迁移：~197 行 (56.4%)
 
-### 已迁移的关键文件
-- ✅ API 路由：try-on, payment, upload, admin (79 行)
-- ✅ 库文件：gemini.ts (部分), auth.ts (部分)
-- ✅ 组件：TryOnInterface (6 行)
+### ✅ 已迁移的核心功能（完整覆盖）
+- **Try-On 工作流**
+  - ✅ API 路由：try-on/route.ts (59 行)
+  - ✅ 前端组件：TryOnInterface.tsx (6 行)
+  - ✅ 结果显示：ResultDisplay.tsx (1 行)
+
+- **支付工作流**
+  - ✅ API 路由：payment/webhook/route.ts (16 行)
+  - ✅ API 路由：payment/create-session/route.ts (2 行)
+  - ✅ 前端组件：PaymentSuccessHandler.tsx (3 行)
+
+- **认证和会话**
+  - ✅ 库文件：auth.ts (部分)
+  - ✅ Hook：useAutoRefreshSession.ts (3 行)
+
+- **AI 处理**
+  - ✅ 库文件：gemini.ts (部分，关键日志)
+
+- **文件上传**
+  - ✅ API 路由：upload/route.ts (3 行)
+  - ✅ 前端组件：ImageUpload.tsx (1 行)
 
 ## 🔗 相关文件
 
