@@ -93,16 +93,6 @@ export default async function TryOnTypePage({ params }: TryOnPageProps) {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
       />
 
-      {/* Page Header */}
-      <div className="mb-8 text-center">
-        <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-3">
-          {config.icon} {config.displayName}
-        </h1>
-        <p className="text-lg text-gray-600">
-          Upload your photo and see how {config.name.toLowerCase()} look on you with AI
-        </p>
-      </div>
-
       {/* User Status Banner */}
       <div className="mb-8">
         {testSession ? (
