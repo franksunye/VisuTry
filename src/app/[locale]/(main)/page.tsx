@@ -7,6 +7,34 @@ import { useTestSession } from '@/hooks/useTestSession'
 import { useTranslations } from 'next-intl'
 import { TryOnShowcase } from '@/components/home/TryOnShowcase'
 
+// English FAQ content - displayed in all languages
+const englishFaqContent = [
+  {
+    question: "How does VisuTry's AI try-on work?",
+    answer: "VisuTry uses Google Gemini 2.5 Flash AI to analyze your facial features and realistically overlay glasses onto your photo. The AI understands face shape, lighting, and perspective to create natural-looking results in seconds."
+  },
+  {
+    question: "Is my photo data safe and private?",
+    answer: "Absolutely! Your photos are encrypted during upload and processing. We never share your images publicly or use them for AI training without explicit permission. Free users' data is stored for 7 days, Credits users for 90 days, and Premium members for 1 year."
+  },
+  {
+    question: "What's the difference between free and Premium quality?",
+    answer: "Free users get standard quality images (800×800 pixels) with a small watermark. Premium users receive high-quality images (1200×1200 pixels) without watermarks, plus priority processing and longer data retention (1 year vs 7 days)."
+  },
+  {
+    question: "Can I use the generated images commercially?",
+    answer: "Yes! Premium and Credits Pack users can use their watermark-free images for any purpose, including commercial use. Free users receive images with a watermark for personal use only."
+  },
+  {
+    question: "How long does it take to generate a try-on?",
+    answer: "Most try-ons complete in 10-30 seconds. Premium users enjoy priority processing, which means faster results even during peak times. The exact time depends on server load and image complexity."
+  },
+  {
+    question: "What happens to my try-on history?",
+    answer: "Your try-on history is automatically saved based on your plan: Free users (7 days), Credits users (90 days), Premium users (1 year). You'll receive an email reminder 3 days before expiration, giving you time to download or upgrade."
+  }
+]
+
 export default function Home() {
   const router = useRouter()
   const params = useParams()
@@ -25,16 +53,16 @@ export default function Home() {
     }
   }
 
-  // Generate FAQ structured data for SEO
+  // Generate FAQ structured data for SEO - using English content
   const faqSchema = {
     "@context": "https://schema.org",
     "@type": "FAQPage",
-    "mainEntity": [1, 2, 3, 4, 5, 6].map((num) => ({
+    "mainEntity": englishFaqContent.map((item) => ({
       "@type": "Question",
-      "name": t(`faq.q${num}.question`),
+      "name": item.question,
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": t(`faq.q${num}.answer`)
+        "text": item.answer
       }
     }))
   }
@@ -195,14 +223,14 @@ export default function Home() {
         </div>
 
         <div className="space-y-6">
-          {[1, 2, 3, 4, 5, 6].map((num) => (
+          {englishFaqContent.map((item, index) => (
             <details
-              key={num}
+              key={index}
               className="group bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-md transition-shadow"
             >
               <summary className="flex items-center justify-between p-6 cursor-pointer list-none">
                 <h3 className="text-lg font-semibold text-gray-900 pr-4">
-                  {t(`faq.q${num}.question`)}
+                  {item.question}
                 </h3>
                 <span className="text-gray-400 group-open:rotate-180 transition-transform">
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -211,7 +239,7 @@ export default function Home() {
                 </span>
               </summary>
               <div className="px-6 pb-6 text-gray-600">
-                <p>{t(`faq.q${num}.answer`)}</p>
+                <p>{item.answer}</p>
               </div>
             </details>
           ))}
