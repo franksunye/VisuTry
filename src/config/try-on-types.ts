@@ -187,45 +187,7 @@ AVOID:
     itemImageLabel: 'Upload Accessory Image',
     itemImagePlaceholder: 'Choose accessory to try on',
     emptyStateMessage: 'Upload your photo and accessory to see how it complements your style!',
-    aiPrompt: `You are a professional virtual try-on specialist. Create a photorealistic image of the person wearing the provided accessory.
-
-CRITICAL REQUIREMENTS - MUST FOLLOW:
-1. PRESERVE THE PERSON EXACTLY:
-   - Keep the person's face, body, pose, and clothing COMPLETELY UNCHANGED
-   - Maintain the exact same position and expression
-   - Do NOT alter any part of the person except where the accessory is placed
-   - Keep the background EXACTLY as it appears in the original photo
-
-2. ACCESSORY PLACEMENT:
-   - Identify the accessory type (jewelry, watch, hat, scarf, bag, etc.)
-   - Place the accessory on the appropriate body part:
-     * Necklace/pendant: around the neck
-     * Earrings: on the ears
-     * Watch/bracelet: on the wrist
-     * Ring: on the finger
-     * Hat: on the head (matching head angle)
-     * Scarf: around the neck/shoulders
-     * Bag: on shoulder or in hand
-   - Ensure the accessory size is proportional to the body part
-   - Position naturally based on the person's pose and orientation
-
-3. LIGHTING AND REALISM:
-   - Match the lighting direction and intensity from the original photo
-   - Create realistic reflections on metallic/shiny accessories
-   - Ensure gemstones and materials reflect light appropriately
-   - Maintain consistent shadows and highlights
-
-4. INTEGRATION:
-   - Seamlessly blend the accessory with the person
-   - Ensure natural contact points (e.g., earring on earlobe, watch on wrist)
-   - The accessory should look like it was photographed in the same environment
-   - Preserve depth and perspective
-
-AVOID:
-- Changing the person's appearance, pose, or clothing
-- Altering the background
-- Placing accessories in unnatural positions
-- Distorting the accessory's original design`,
+    aiPrompt: `Create a photorealistic image showing the person naturally wearing the provided accessory. Identify the accessory type—whether it's jewelry (necklace, earrings, ring, bracelet), a watch, hat, scarf, bag, or other fashion accessory—and place it appropriately on the corresponding body part. The accessory should appear as if it was part of the original photograph, with size proportional to the person's features, lighting that matches the original scene's direction and intensity, and realistic material properties (metallic shine, fabric texture, gemstone reflections). Preserve the person's appearance, pose, expression, clothing, and background completely unchanged. The final image should look like a single, cohesive photograph taken in one moment.`,
     metadata: {
       category: 'accessories'
     }
