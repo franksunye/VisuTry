@@ -47,7 +47,6 @@ export const PRODUCT_METADATA = {
       "Priority processing queue",
       "1 year data retention",
       "Unlimited downloads and sharing",
-      "Standard glasses frame library",
       "Priority customer support",
       "Ad-free experience"
     ],
@@ -71,7 +70,6 @@ export const PRODUCT_METADATA = {
       "Priority processing queue",
       "1 year data retention",
       "Unlimited downloads and sharing",
-      "Standard glasses frame library",
       "Priority customer support",
       "Ad-free experience",
       "Save 2 months + 60 bonus try-ons"
