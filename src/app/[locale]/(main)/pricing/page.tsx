@@ -214,12 +214,6 @@ export default async function PricingPage() {
                 <td className="px-6 py-4 text-sm text-center text-green-600">Priority</td>
               </tr>
               <tr>
-                <td className="px-6 py-4 text-sm text-gray-900">Glasses Frame Library</td>
-                <td className="px-6 py-4 text-sm text-center text-gray-600">Basic</td>
-                <td className="px-6 py-4 text-sm text-center text-gray-600">Basic</td>
-                <td className="px-6 py-4 text-sm text-center text-green-600">Standard</td>
-              </tr>
-              <tr>
                 <td className="px-6 py-4 text-sm text-gray-900">Data Retention</td>
                 <td className="px-6 py-4 text-sm text-center text-gray-600">
                   <div>7 days</div>
