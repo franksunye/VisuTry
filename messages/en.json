@@ -29,6 +29,8 @@
   "nav": {
     "home": "Home",
     "tryOn": "Try-On",
+    "tryGlasses": "Try Glasses",
+    "tryOutfit": "Try Outfit",
     "blog": "Blog",
     "pricing": "Pricing",
     "dashboard": "Dashboard",
@@ -56,7 +58,9 @@
       }
     },
     "cta": {
-      "button": "Get Started"
+      "button": "Get Started",
+      "tryGlasses": "Try On Glasses",
+      "tryOutfit": "Try On Outfit"
     },
     "showcase": {
       "alex": {

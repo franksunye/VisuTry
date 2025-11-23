@@ -46,9 +46,11 @@ export default async function HistoryPage({ searchParams }: HistoryPageProps) {
       take: limit,
       select: {
         id: true,
+        type: true,
         status: true,
         userImageUrl: true,
-        glassesImageUrl: true,
+        itemImageUrl: true,
+        glassesImageUrl: true, // Keep for backward compatibility
         resultImageUrl: true,
         errorMessage: true,
         createdAt: true,

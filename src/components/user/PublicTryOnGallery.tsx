@@ -7,12 +7,15 @@ import { formatDistanceToNow } from "date-fns"
 import { enUS } from "date-fns/locale"
 import { TryOnThumbnail } from "@/components/OptimizedImage"
 import Image from "next/image"
+import { getTryOnConfig, type TryOnType } from "@/config/try-on-types"
 
 interface TryOnItem {
   id: string
+  type?: TryOnType
   resultImageUrl: string | null
   userImageUrl: string
-  glassesImageUrl: string | null
+  itemImageUrl?: string | null
+  glassesImageUrl?: string | null
   createdAt: Date
   metadata?: any
 }
@@ -63,14 +66,19 @@ export function PublicTryOnGallery({ tryOns }: PublicTryOnGalleryProps) {
                 </div>
               </div>
               
-              {/* Time label */}
-              <div className="absolute bottom-2 left-2 right-2">
+              {/* Time and Type labels */}
+              <div className="absolute bottom-2 left-2 right-2 flex flex-col gap-1">
                 <div className="bg-black bg-opacity-50 text-white text-xs px-2 py-1 rounded backdrop-blur-sm">
                   {formatDistanceToNow(new Date(tryOn.createdAt), {
                     addSuffix: true,
                     locale: enUS
                   })}
                 </div>
+                {tryOn.type && tryOn.type !== 'GLASSES' && (
+                  <div className="bg-purple-600 bg-opacity-80 text-white text-xs px-2 py-1 rounded backdrop-blur-sm">
+                    {getTryOnConfig(tryOn.type).icon} {getTryOnConfig(tryOn.type).name}
+                  </div>
+                )}
               </div>
             </div>
           ))}

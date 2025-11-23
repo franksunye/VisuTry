@@ -6,9 +6,8 @@ generator client {
 }
 
 datasource db {
-  provider  = "postgresql"
-  url       = env("DATABASE_URL")
-  directUrl = env("DATABASE_URL_UNPOOLED")
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
 model Account {
@@ -76,22 +75,24 @@ model VerificationToken {
 model TryOnTask {
   id          String   @id @default(cuid())
   userId      String
-  
+  type        TryOnType @default(GLASSES)  // Try-on category
+
   // Input images
   userImageUrl    String
-  glassesImageUrl String
-  
+  itemImageUrl    String                   // Generic field for any item
+  glassesImageUrl String?                  // Keep for backward compatibility
+
   // Output
   resultImageUrl  String?
-  
+
   // Task status
   status      TaskStatus @default(PENDING)
   errorMessage String?
-  
+
   // Metadata
   prompt      String?
   metadata    Json?
-  
+
   user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   createdAt   DateTime @default(now())
@@ -99,8 +100,10 @@ model TryOnTask {
 
   @@index([userId])
   @@index([status])
-  @@index([userId, createdAt(sort: Desc)]) // Optimize dashboard recent tasks query
-  @@index([userId, status]) // Optimize dashboard stats query
+  @@index([type])                                // Index for type filtering
+  @@index([userId, type, createdAt(sort: Desc)]) // Optimized type queries
+  @@index([userId, createdAt(sort: Desc)])       // Optimize dashboard recent tasks query
+  @@index([userId, status])                      // Optimize dashboard stats query
 }
 
 model Payment {
@@ -172,6 +175,13 @@ enum ProductType {
   PREMIUM_MONTHLY
   PREMIUM_YEARLY
   CREDITS_PACK
+}
+
+enum TryOnType {
+  GLASSES
+  OUTFIT
+  SHOES
+  ACCESSORIES
 }
 
 model FaceShape {

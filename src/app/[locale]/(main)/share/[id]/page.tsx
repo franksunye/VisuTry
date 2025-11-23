@@ -4,6 +4,7 @@ import { Glasses, Download, ArrowLeft } from "lucide-react"
 import Link from "next/link"
 import type { Metadata } from "next"
 import { TryOnResultImage } from "@/components/OptimizedImage"
+import { getTryOnConfig, type TryOnType } from "@/config/try-on-types"
 
 interface SharePageProps {
   params: {
@@ -32,13 +33,15 @@ export async function generateMetadata({ params }: SharePageProps): Promise<Meta
   }
 
   const userName = task.user.name || "User"
+  const taskType = (task as any).type as TryOnType || 'GLASSES'
+  const config = getTryOnConfig(taskType)
 
   return {
-    title: `${userName}'s AI Glasses Try-On Result - VisuTry`,
-    description: `Check out ${userName}'s AI glasses try-on result with VisuTry`,
+    title: `${userName}'s AI ${config.name} Try-On Result - VisuTry`,
+    description: `Check out ${userName}'s AI ${config.name.toLowerCase()} try-on result with VisuTry`,
     openGraph: {
-      title: `${userName}'s AI Glasses Try-On Result`,
-      description: `Check out ${userName}'s AI glasses try-on result with VisuTry`,
+      title: `${userName}'s AI ${config.name} Try-On Result`,
+      description: `Check out ${userName}'s AI ${config.name.toLowerCase()} try-on result with VisuTry`,
       images: [
         {
           url: task.resultImageUrl,
@@ -51,8 +54,8 @@ export async function generateMetadata({ params }: SharePageProps): Promise<Meta
     },
     twitter: {
       card: "summary_large_image",
-      title: `${userName}'s AI Glasses Try-On Result`,
-      description: `Check out ${userName}'s AI glasses try-on result with VisuTry`,
+      title: `${userName}'s AI ${config.name} Try-On Result`,
+      description: `Check out ${userName}'s AI ${config.name.toLowerCase()} try-on result with VisuTry`,
       images: [task.resultImageUrl]
     }
   }
@@ -76,6 +79,8 @@ export default async function SharePage({ params }: SharePageProps) {
   }
 
   const userName = task.user.name || "User"
+  const taskType = (task as any).type as TryOnType || 'GLASSES'
+  const config = getTryOnConfig(taskType)
   const createdDate = new Date(task.createdAt).toLocaleDateString("en-US")
 
   return (
@@ -86,7 +91,7 @@ export default async function SharePage({ params }: SharePageProps) {
           {/* Title Section */}
           <div className="text-center mb-8">
             <h2 className="text-3xl font-bold text-gray-900 mb-4">
-              AI Glasses Try-On Result
+              {config.icon} AI {config.name} Try-On Result
             </h2>
             <div className="flex items-center justify-center space-x-4 text-gray-600">
               {task.user.image && (

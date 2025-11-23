@@ -11,6 +11,7 @@ import { mockBlobUpload } from "@/lib/mocks/blob"
 import { mockGenerateTryOnImage } from "@/lib/mocks/gemini"
 import { getTestSessionFromRequest } from "@/lib/test-session"
 import { QUOTA_CONFIG } from "@/config/pricing"
+import { TryOnType, getTryOnConfig, isValidTryOnType } from "@/config/try-on-types"
 
 // Force dynamic rendering for this route
 export const dynamic = 'force-dynamic'
@@ -120,7 +121,19 @@ export async function POST(request: NextRequest) {
     // Get uploaded files
     const formData = await request.formData()
     const userImageFile = formData.get("userImage") as File
-    const glassesImageFile = formData.get("glassesImage") as File
+    const itemImageFile = formData.get("itemImage") as File || formData.get("glassesImage") as File // Support both new and legacy field names
+    const tryOnTypeParam = formData.get("type") as string || "GLASSES" // Default to GLASSES for backward compatibility
+
+    // Validate try-on type
+    const tryOnType = tryOnTypeParam.toUpperCase() as TryOnType
+    if (!isValidTryOnType(tryOnType)) {
+      return NextResponse.json(
+        { success: false, error: `Invalid try-on type: ${tryOnTypeParam}` },
+        { status: 400 }
+      )
+    }
+
+    const config = getTryOnConfig(tryOnType)
 
     if (!userImageFile) {
       return NextResponse.json(
@@ -129,9 +142,9 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    if (!glassesImageFile) {
+    if (!itemImageFile) {
       return NextResponse.json(
-        { success: false, error: "Please upload glasses image" },
+        { success: false, error: `Please upload ${config.name.toLowerCase()} image` },
         { status: 400 }
       )
     }
@@ -147,28 +160,28 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    if (glassesImageFile.size > MAX_IMAGE_SIZE) {
-      console.warn(`⚠️ Glasses image too large: ${(glassesImageFile.size / 1024).toFixed(2)}KB`)
+    if (itemImageFile.size > MAX_IMAGE_SIZE) {
+      console.warn(`⚠️ ${config.name} image too large: ${(itemImageFile.size / 1024).toFixed(2)}KB`)
       return NextResponse.json(
-        { success: false, error: "Glasses image is too large. Please use a smaller image or compress it." },
+        { success: false, error: `${config.name} image is too large. Please use a smaller image or compress it.` },
         { status: 400 }
       )
     }
 
-    console.log(`📊 Image sizes: user=${(userImageFile.size / 1024).toFixed(2)}KB, glasses=${(glassesImageFile.size / 1024).toFixed(2)}KB`)
+    console.log(`📊 [${tryOnType}] Image sizes: user=${(userImageFile.size / 1024).toFixed(2)}KB, ${config.name.toLowerCase()}=${(itemImageFile.size / 1024).toFixed(2)}KB`)
 
     // 🔍 DEBUG: Log file details to help diagnose upload issues
     console.log(`📸 File details:`)
     console.log(`  User image: name="${userImageFile.name}", size=${userImageFile.size}, type=${userImageFile.type}`)
-    console.log(`  Glasses image: name="${glassesImageFile.name}", size=${glassesImageFile.size}, type=${glassesImageFile.type}`)
+    console.log(`  ${config.name} image: name="${itemImageFile.name}", size=${itemImageFile.size}, type=${itemImageFile.type}`)
 
     // 🔍 CHECK 1: Are they the same File object reference?
-    const sameObject = userImageFile === glassesImageFile
+    const sameObject = userImageFile === itemImageFile
     console.log(`  Same object reference? ${sameObject ? '❌ YES (PROBLEM!)' : '✅ No'}`)
 
     // 🔍 CHECK 2: Do they have identical metadata?
-    const sameMetadata = userImageFile.name === glassesImageFile.name &&
-                         userImageFile.size === glassesImageFile.size
+    const sameMetadata = userImageFile.name === itemImageFile.name &&
+                         userImageFile.size === itemImageFile.size
     if (sameMetadata) {
       console.warn(`  ⚠️ WARNING: Files have identical name and size!`)
       console.warn(`     This might indicate user uploaded the same file twice`)
@@ -193,12 +206,12 @@ export async function POST(request: NextRequest) {
     }
 
     const userImageFingerprint = await calculateFileFingerprint(userImageFile)
-    const glassesImageFingerprint = await calculateFileFingerprint(glassesImageFile)
+    const itemImageFingerprint = await calculateFileFingerprint(itemImageFile)
 
     console.log(`  User image fingerprint: ${userImageFingerprint}`)
-    console.log(`  Glasses image fingerprint: ${glassesImageFingerprint}`)
+    console.log(`  ${config.name} image fingerprint: ${itemImageFingerprint}`)
 
-    if (userImageFingerprint === glassesImageFingerprint) {
+    if (userImageFingerprint === itemImageFingerprint) {
       console.error(`  ❌ CRITICAL: File content fingerprints are IDENTICAL!`)
       console.error(`     This means the two files have the same content!`)
       console.error(`     This is the root cause of the duplicate image problem!`)
@@ -225,29 +238,29 @@ export async function POST(request: NextRequest) {
 
     console.log(`✅ User image uploaded to: ${userImageBlob.url}`)
 
-    // Upload glasses image
-    const glassesImageFilename = `try-on/${userId}/${timestamp}-glasses.jpg`
-    console.log(`📤 Uploading glasses image to: ${glassesImageFilename}`)
+    // Upload item image (glasses, outfit, shoes, etc.)
+    const itemImageFilename = `try-on/${userId}/${timestamp}-${tryOnType.toLowerCase()}.jpg`
+    console.log(`📤 Uploading ${config.name.toLowerCase()} image to: ${itemImageFilename}`)
 
-    let glassesImageBlob
+    let itemImageBlob
 
     if (isMockMode) {
-      glassesImageBlob = await mockBlobUpload(glassesImageFilename, glassesImageFile)
+      itemImageBlob = await mockBlobUpload(itemImageFilename, itemImageFile)
     } else {
-      glassesImageBlob = await put(glassesImageFilename, glassesImageFile, {
+      itemImageBlob = await put(itemImageFilename, itemImageFile, {
         access: "public",
       })
     }
 
-    console.log(`✅ Glasses image uploaded to: ${glassesImageBlob.url}`)
+    console.log(`✅ ${config.name} image uploaded to: ${itemImageBlob.url}`)
 
-    const glassesImageUrl = glassesImageBlob.url
+    const itemImageUrl = itemImageBlob.url
 
     // 🔍 DEBUG: Verify URLs are different
     console.log(`🔍 Upload verification:`)
     console.log(`  User URL: ${userImageBlob.url}`)
-    console.log(`  Glasses URL: ${glassesImageUrl}`)
-    console.log(`  URLs are ${userImageBlob.url === glassesImageUrl ? '❌ SAME (ERROR!)' : '✅ different (OK)'}`)
+    console.log(`  ${config.name} URL: ${itemImageUrl}`)
+    console.log(`  URLs are ${userImageBlob.url === itemImageUrl ? '❌ SAME (ERROR!)' : '✅ different (OK)'}`)
 
     // Create try-on task record
     let tryOnTask
@@ -255,15 +268,16 @@ export async function POST(request: NextRequest) {
       tryOnTask = await MockDatabase.createTryOnTask({
         userId: userId,
         originalImageUrl: userImageBlob.url,
-        glassesImageUrl: glassesImageUrl,
+        glassesImageUrl: itemImageUrl, // Mock DB still uses old field name
         status: "processing"
       })
     } else {
       tryOnTask = await prisma.tryOnTask.create({
         data: {
           userId: userId,
+          type: tryOnType,
           userImageUrl: userImageBlob.url,
-          glassesImageUrl,
+          itemImageUrl,
           status: "PROCESSING"
         }
       })
@@ -281,7 +295,7 @@ export async function POST(request: NextRequest) {
     console.log(`⏱️ [Task ${tryOnTask.id}] Starting synchronous processing (maxDuration: 60s)`)
 
     try {
-      await processTryOnAsync(tryOnTask.id, userImageBlob.url, glassesImageUrl)
+      await processTryOnAsync(tryOnTask.id, userImageBlob.url, itemImageUrl, tryOnType)
       console.log(`✅ [Task ${tryOnTask.id}] Processing completed successfully`)
     } catch (error) {
       console.error(`❌ [Task ${tryOnTask.id}] Processing failed:`, error)
@@ -450,9 +464,10 @@ async function uploadBase64ToBlob(base64Data: string, taskId: string, userId: st
 }
 
 // Process try-on task asynchronously
-async function processTryOnAsync(taskId: string, userImageUrl: string, glassesImageUrl: string) {
+async function processTryOnAsync(taskId: string, userImageUrl: string, itemImageUrl: string, tryOnType: TryOnType) {
   const processStartTime = Date.now()
-  console.log(`🚀 [Task ${taskId}] Starting async processing...`)
+  const config = getTryOnConfig(tryOnType)
+  console.log(`🚀 [Task ${taskId}] Starting async processing for ${tryOnType}...`)
   console.log(`📍 [Task ${taskId}] Environment: ${process.env.VERCEL ? 'Vercel' : 'Local'}`)
 
   try {
@@ -463,15 +478,16 @@ async function processTryOnAsync(taskId: string, userImageUrl: string, glassesIm
       console.log(`🧪 [Task ${taskId}] Using Mock AI service`)
       result = await mockGenerateTryOnImage({
         userImageUrl,
-        glassesImageUrl
+        glassesImageUrl: itemImageUrl // Mock still uses old parameter name
       })
     } else {
       // 调用Gemini API进行图像处理
-      console.log(`🎨 [Task ${taskId}] Calling Gemini API...`)
+      console.log(`🎨 [Task ${taskId}] Calling Gemini API with ${tryOnType}-specific prompt...`)
       const aiStartTime = Date.now()
       result = await generateTryOnImage({
         userImageUrl,
-        glassesImageUrl
+        itemImageUrl,
+        prompt: config.aiPrompt
       })
       const aiTime = Date.now() - aiStartTime
       console.log(`⏱️ [Task ${taskId}] AI processing time: ${aiTime}ms (${(aiTime/1000).toFixed(2)}s)`)

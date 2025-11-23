@@ -106,9 +106,11 @@ export default async function UserPage({ params }: UserPageProps) {
     take: 12,
     select: {
       id: true,
+      type: true,
       resultImageUrl: true,
       userImageUrl: true,
-      glassesImageUrl: true,
+      itemImageUrl: true,
+      glassesImageUrl: true, // Keep for backward compatibility
       createdAt: true,
       metadata: true
     }

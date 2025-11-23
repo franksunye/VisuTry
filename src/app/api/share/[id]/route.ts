@@ -41,8 +41,10 @@ export async function GET(
       success: true,
       data: {
         id: task.id,
+        type: (task as any).type || 'GLASSES', // Include type, default to GLASSES for old records
         userImageUrl: task.userImageUrl,
-        glassesImageUrl: task.glassesImageUrl,
+        itemImageUrl: (task as any).itemImageUrl || task.glassesImageUrl, // Support both field names
+        glassesImageUrl: task.glassesImageUrl, // Keep for backward compatibility
         resultImageUrl: task.resultImageUrl,
         createdAt: task.createdAt,
         user: {

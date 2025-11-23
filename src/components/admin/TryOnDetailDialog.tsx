@@ -12,12 +12,15 @@ import {
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import Image from 'next/image';
+import { getTryOnConfig, type TryOnType } from '@/config/try-on-types';
 
 interface TryOnTask {
   id: string;
   userId: string;
+  type?: TryOnType;
   userImageUrl: string;
-  glassesImageUrl: string;
+  itemImageUrl?: string;
+  glassesImageUrl?: string;
   resultImageUrl: string | null;
   status: string;
   errorMessage: string | null;
@@ -125,19 +128,26 @@ export default function TryOnDetailDialog({
         </DialogHeader>
 
         <div className="space-y-6">
-          {/* 任务状态 */}
+          {/* 任务状态和类型 */}
           <div>
-            <h3 className="text-sm font-medium mb-2">Status</h3>
-            <Badge
-              variant={
-                task.status === 'COMPLETED' ? 'default' :
-                task.status === 'PROCESSING' ? 'secondary' :
-                task.status === 'FAILED' ? 'destructive' :
-                'outline'
-              }
-            >
-              {task.status}
-            </Badge>
+            <h3 className="text-sm font-medium mb-2">Status & Type</h3>
+            <div className="flex gap-2">
+              <Badge
+                variant={
+                  task.status === 'COMPLETED' ? 'default' :
+                  task.status === 'PROCESSING' ? 'secondary' :
+                  task.status === 'FAILED' ? 'destructive' :
+                  'outline'
+                }
+              >
+                {task.status}
+              </Badge>
+              {task.type && (
+                <Badge variant="outline">
+                  {getTryOnConfig(task.type).icon} {getTryOnConfig(task.type).name}
+                </Badge>
+              )}
+            </div>
             {task.errorMessage && (
               <p className="text-sm text-red-600 mt-2">{task.errorMessage}</p>
             )}
@@ -192,15 +202,17 @@ export default function TryOnDetailDialog({
                 </a>
               </div>
               <div>
-                <span className="text-muted-foreground">Glasses Image:</span>
+                <span className="text-muted-foreground">
+                  {task.type ? getTryOnConfig(task.type).name : 'Item'} Image:
+                </span>
                 <br />
                 <a
-                  href={task.glassesImageUrl}
+                  href={task.itemImageUrl || task.glassesImageUrl}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-blue-600 hover:underline break-all"
                 >
-                  {task.glassesImageUrl}
+                  {task.itemImageUrl || task.glassesImageUrl}
                 </a>
               </div>
               {task.resultImageUrl && (
@@ -247,11 +259,13 @@ export default function TryOnDetailDialog({
                   </div>
                 </div>
                 <div>
-                  <p className="text-xs text-muted-foreground mb-2">Glasses Image</p>
+                  <p className="text-xs text-muted-foreground mb-2">
+                    {task.type ? getTryOnConfig(task.type).name : 'Item'} Image
+                  </p>
                   <div className="relative aspect-square border rounded overflow-hidden">
                     <Image
-                      src={task.glassesImageUrl}
-                      alt="Glasses"
+                      src={task.itemImageUrl || task.glassesImageUrl || ''}
+                      alt={task.type ? getTryOnConfig(task.type).name : 'Item'}
                       fill
                       className="object-cover"
                     />

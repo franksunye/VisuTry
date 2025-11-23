@@ -29,6 +29,8 @@
   "nav": {
     "home": "Inicio",
     "tryOn": "Prueba Virtual",
+    "tryGlasses": "Probar Gafas",
+    "tryOutfit": "Probar Ropa",
     "blog": "Blog",
     "pricing": "Precios",
     "dashboard": "Panel",
@@ -56,7 +58,9 @@
       }
     },
     "cta": {
-      "button": "Comenzar"
+      "button": "Comenzar",
+      "tryGlasses": "Probar Gafas",
+      "tryOutfit": "Probar Ropa"
     },
     "showcase": {
       "alex": {

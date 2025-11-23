@@ -56,7 +56,9 @@
       }
     },
     "cta": {
-      "button": "Começar"
+      "button": "Começar",
+      "tryGlasses": "Experimentar Óculos",
+      "tryOutfit": "Experimentar Roupa"
     },
     "showcase": {
       "alex": {
