@@ -86,6 +86,10 @@
         "description": "Suas fotos são criptografadas e seguras. Nunca compartilhamos suas imagens ou as usamos para treinamento sem permissão."
       }
     },
+    "faq": {
+      "title": "Perguntas Frequentes",
+      "subtitle": "Tudo o que você precisa saber sobre VisuTry"
+    },
     "showcase": {
       "alex": {
         "name": "Alex",

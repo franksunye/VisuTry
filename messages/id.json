@@ -86,6 +86,10 @@
         "description": "Foto Anda dienkripsi dan aman. Kami tidak pernah membagikan gambar Anda atau menggunakannya untuk pelatihan tanpa izin."
       }
     },
+    "faq": {
+      "title": "Pertanyaan yang Sering Diajukan",
+      "subtitle": "Semua yang perlu Anda ketahui tentang VisuTry"
+    },
     "showcase": {
       "alex": {
         "name": "Alex",
