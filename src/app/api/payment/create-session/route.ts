@@ -4,6 +4,7 @@ import { authOptions } from "@/lib/auth"
 import { createCheckoutSession, ProductType } from "@/lib/stripe"
 import { isMockMode } from "@/lib/mocks"
 import { mockCreateCheckoutSession } from "@/lib/mocks/stripe"
+import { logger } from "@/lib/logger"
 
 // Force dynamic rendering for this route
 export const dynamic = 'force-dynamic'
@@ -70,6 +71,7 @@ export async function POST(request: NextRequest) {
 
     if (isMockMode) {
       console.log('🧪 Mock Payment: Creating mock checkout session')
+      logger.info('payment', 'Creating mock checkout session', { productType: finalProductType, userId: session.user.id })
       checkoutSession = await mockCreateCheckoutSession({
         productType: finalProductType,
         userId: session.user.id,
@@ -85,6 +87,7 @@ export async function POST(request: NextRequest) {
       })
     }
 
+    logger.info('payment', 'Checkout session created successfully', { sessionId: checkoutSession.id, productType: finalProductType })
     return NextResponse.json({
       success: true,
       data: {
@@ -94,7 +97,9 @@ export async function POST(request: NextRequest) {
     })
 
   } catch (error) {
+    const err = error instanceof Error ? error : new Error(String(error))
     console.error("创建支付会话失败:", error)
+    logger.error('payment', 'Failed to create checkout session', err)
     return NextResponse.json(
       { success: false, error: "创建支付会话失败" },
       { status: 500 }

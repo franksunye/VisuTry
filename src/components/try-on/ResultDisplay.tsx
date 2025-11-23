@@ -3,6 +3,7 @@
 import { Download, RotateCcw } from "lucide-react"
 import { cn } from "@/utils/cn"
 import { TryOnResultImage } from "@/components/OptimizedImage"
+import { logger } from "@/lib/logger"
 
 interface ResultDisplayProps {
   resultImageUrl: string
@@ -32,7 +33,9 @@ export function ResultDisplay({
 
       window.URL.revokeObjectURL(url)
     } catch (error) {
+      const err = error instanceof Error ? error : new Error(String(error))
       console.error("Download failed:", error)
+      logger.error('component', 'Download failed', err)
       alert("Download failed, please try again")
     }
   }

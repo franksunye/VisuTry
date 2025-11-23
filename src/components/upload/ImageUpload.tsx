@@ -4,6 +4,7 @@ import { useState, useRef, useCallback } from "react"
 import { Upload, X, Image as ImageIcon, Loader2, User, Glasses, Shirt, Footprints, Watch } from "lucide-react"
 import { validateImageFile, compressImage, createImagePreview } from "@/utils/image"
 import { cn } from "@/utils/cn"
+import { logger } from "@/lib/logger"
 
 interface ImageUploadProps {
   onImageSelect: (file: File, preview: string) => void
@@ -51,7 +52,9 @@ export function ImageUpload({
       
       onImageSelect(compressedFile, preview)
     } catch (error) {
+      const err = error instanceof Error ? error : new Error(String(error))
       console.error("Image processing failed:", error)
+      logger.error('component', 'Image processing failed', err)
       alert("Image processing failed, please try again")
     } finally {
       setUploading(false)
