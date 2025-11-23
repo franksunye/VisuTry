@@ -9,8 +9,8 @@
 - [x] 迁移 upload 路由 (3 个 console 调用)
 - [x] 迁移 admin/frames 路由 (2 个 console 调用)
 - [x] 迁移 admin/import 路由 (1 个 console 调用)
-- [x] 迁移 lib/gemini.ts (部分，关键日志)
-- [x] 迁移 lib/auth.ts (部分，关键日志)
+- [x] 迁移 lib/gemini.ts (完整核心流程)
+- [x] 迁移 lib/auth.ts (完整核心流程)
 - [x] 迁移 components/try-on/TryOnInterface.tsx (6 个 console 调用)
 - [x] 迁移 payment/create-session/route.ts (2 个 console 调用)
 - [x] 迁移 components/dashboard/PaymentSuccessHandler.tsx (3 个 console 调用)
@@ -64,11 +64,19 @@
   - ✅ 前端组件：PaymentSuccessHandler.tsx (3 行)
 
 - **认证和会话**
-  - ✅ 库文件：auth.ts (部分)
+  - ✅ 库文件：auth.ts (完整核心流程)
+    - 用户角色同步
+    - JWT 回调错误处理
+    - 认证事件（登录、登出、创建用户）
   - ✅ Hook：useAutoRefreshSession.ts (3 行)
 
 - **AI 处理**
-  - ✅ 库文件：gemini.ts (部分，关键日志)
+  - ✅ 库文件：gemini.ts (完整核心流程)
+    - API 响应处理
+    - 性能指标（API 调用时间、总生成时间）
+    - 图片提取和验证
+    - 网络错误检测
+    - 认证错误处理
 
 - **文件上传**
   - ✅ API 路由：upload/route.ts (3 行)
