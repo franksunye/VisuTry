@@ -12,6 +12,7 @@ import { mockGenerateTryOnImage } from "@/lib/mocks/gemini"
 import { getTestSessionFromRequest } from "@/lib/test-session"
 import { QUOTA_CONFIG } from "@/config/pricing"
 import { TryOnType, getTryOnConfig, isValidTryOnType } from "@/config/try-on-types"
+import { logger } from "@/lib/logger"
 
 // Force dynamic rendering for this route
 export const dynamic = 'force-dynamic'
@@ -51,9 +52,11 @@ export async function POST(request: NextRequest) {
     if (testSession) {
       // Use test session data
       console.log('🧪 Test Session: Using test session data')
+      logger.debug('api', 'Test Session: Using test session data')
       user = testSession
     } else if (isMockMode) {
       console.log('🧪 Mock Try-On: Using mock database')
+      logger.debug('api', 'Mock Try-On: Using mock database')
       user = await MockDatabase.findUser({ id: userId })
     } else {
       user = await prisma.user.findUnique({
@@ -63,6 +66,7 @@ export async function POST(request: NextRequest) {
       // If user doesn't exist, create automatically (defensive programming)
       if (!user && session?.user) {
         console.log('User not found, creating user:', userId)
+        logger.info('api', 'User not found, creating user', { userId })
         user = await prisma.user.create({
           data: {
             id: userId,
@@ -154,6 +158,7 @@ export async function POST(request: NextRequest) {
 
     if (userImageFile.size > MAX_IMAGE_SIZE) {
       console.warn(`⚠️ User image too large: ${(userImageFile.size / 1024).toFixed(2)}KB`)
+      logger.warn('api', 'User image too large', { size: userImageFile.size })
       return NextResponse.json(
         { success: false, error: "User image is too large. Please use a smaller image or compress it." },
         { status: 400 }
@@ -162,6 +167,7 @@ export async function POST(request: NextRequest) {
 
     if (itemImageFile.size > MAX_IMAGE_SIZE) {
       console.warn(`⚠️ ${config.name} image too large: ${(itemImageFile.size / 1024).toFixed(2)}KB`)
+      logger.warn('api', `${config.name} image too large`, { size: itemImageFile.size })
       return NextResponse.json(
         { success: false, error: `${config.name} image is too large. Please use a smaller image or compress it.` },
         { status: 400 }
@@ -169,15 +175,18 @@ export async function POST(request: NextRequest) {
     }
 
     console.log(`📊 [${tryOnType}] Image sizes: user=${(userImageFile.size / 1024).toFixed(2)}KB, ${config.name.toLowerCase()}=${(itemImageFile.size / 1024).toFixed(2)}KB`)
+    logger.debug('api', `Image sizes: user=${(userImageFile.size / 1024).toFixed(2)}KB, ${config.name.toLowerCase()}=${(itemImageFile.size / 1024).toFixed(2)}KB`, { tryOnType })
 
     // 🔍 DEBUG: Log file details to help diagnose upload issues
     console.log(`📸 File details:`)
     console.log(`  User image: name="${userImageFile.name}", size=${userImageFile.size}, type=${userImageFile.type}`)
     console.log(`  ${config.name} image: name="${itemImageFile.name}", size=${itemImageFile.size}, type=${itemImageFile.type}`)
+    logger.debug('api', 'File details', { userImage: { name: userImageFile.name, size: userImageFile.size, type: userImageFile.type }, itemImage: { name: itemImageFile.name, size: itemImageFile.size, type: itemImageFile.type } })
 
     // 🔍 CHECK 1: Are they the same File object reference?
     const sameObject = userImageFile === itemImageFile
     console.log(`  Same object reference? ${sameObject ? '❌ YES (PROBLEM!)' : '✅ No'}`)
+    logger.debug('api', `Same object reference: ${sameObject ? 'YES (PROBLEM!)' : 'No'}`)
 
     // 🔍 CHECK 2: Do they have identical metadata?
     const sameMetadata = userImageFile.name === itemImageFile.name &&
@@ -186,6 +195,7 @@ export async function POST(request: NextRequest) {
       console.warn(`  ⚠️ WARNING: Files have identical name and size!`)
       console.warn(`     This might indicate user uploaded the same file twice`)
       console.warn(`     Or there's a bug in the upload process`)
+      logger.warn('api', 'Files have identical name and size - possible duplicate upload or bug')
     }
 
     // 🔍 CHECK 3: Calculate file content fingerprints to detect if content is identical
@@ -210,13 +220,16 @@ export async function POST(request: NextRequest) {
 
     console.log(`  User image fingerprint: ${userImageFingerprint}`)
     console.log(`  ${config.name} image fingerprint: ${itemImageFingerprint}`)
+    logger.debug('api', 'File fingerprints', { userImageFingerprint, itemImageFingerprint })
 
     if (userImageFingerprint === itemImageFingerprint) {
       console.error(`  ❌ CRITICAL: File content fingerprints are IDENTICAL!`)
       console.error(`     This means the two files have the same content!`)
       console.error(`     This is the root cause of the duplicate image problem!`)
+      logger.error('api', 'CRITICAL: File content fingerprints are IDENTICAL - duplicate image problem detected', new Error('Duplicate fingerprints'), { userImageFingerprint, itemImageFingerprint })
     } else {
       console.log(`  ✅ File content fingerprints are different (good)`)
+      logger.debug('api', 'File content fingerprints are different (good)')
     }
 
     // 🔥 FIX: Use single timestamp to avoid filename collision
@@ -225,6 +238,7 @@ export async function POST(request: NextRequest) {
     // Upload user image
     const userImageFilename = `try-on/${userId}/${timestamp}-user.jpg`
     console.log(`📤 Uploading user image to: ${userImageFilename}`)
+    logger.info('api', 'Uploading user image', { filename: userImageFilename })
 
     let userImageBlob
 
@@ -237,10 +251,12 @@ export async function POST(request: NextRequest) {
     }
 
     console.log(`✅ User image uploaded to: ${userImageBlob.url}`)
+    logger.info('api', 'User image uploaded successfully', { url: userImageBlob.url })
 
     // Upload item image (glasses, outfit, shoes, etc.)
     const itemImageFilename = `try-on/${userId}/${timestamp}-${tryOnType.toLowerCase()}.jpg`
     console.log(`📤 Uploading ${config.name.toLowerCase()} image to: ${itemImageFilename}`)
+    logger.info('api', `Uploading ${config.name.toLowerCase()} image`, { filename: itemImageFilename })
 
     let itemImageBlob
 
@@ -253,6 +269,7 @@ export async function POST(request: NextRequest) {
     }
 
     console.log(`✅ ${config.name} image uploaded to: ${itemImageBlob.url}`)
+    logger.info('api', `${config.name} image uploaded successfully`, { url: itemImageBlob.url })
 
     const itemImageUrl = itemImageBlob.url
 
@@ -261,6 +278,7 @@ export async function POST(request: NextRequest) {
     console.log(`  User URL: ${userImageBlob.url}`)
     console.log(`  ${config.name} URL: ${itemImageUrl}`)
     console.log(`  URLs are ${userImageBlob.url === itemImageUrl ? '❌ SAME (ERROR!)' : '✅ different (OK)'}`)
+    logger.debug('api', 'Upload verification', { userUrl: userImageBlob.url, itemUrl: itemImageUrl, same: userImageBlob.url === itemImageUrl })
 
     // Create try-on task record
     let tryOnTask
@@ -327,6 +345,7 @@ export async function POST(request: NextRequest) {
 
     if (isTaskSuccessful) {
       console.log(`✅ [Task ${tryOnTask.id}] Try-on successful, deducting usage count...`)
+      logger.info('api', 'Try-on successful, deducting usage count', { taskId: tryOnTask.id })
 
       if (isMockMode) {
         if (!isPremiumActive) {
@@ -352,6 +371,7 @@ export async function POST(request: NextRequest) {
               }
             })
             console.log(`💳 User ${userId}: Consumed 1 credit (${creditsRemaining} -> ${creditsRemaining - 1})`)
+            logger.info('api', 'User consumed credit', { userId, remaining: creditsRemaining - 1 })
           } else {
             // 没有 credits：使用免费试用
             await prisma.user.update({
@@ -363,6 +383,7 @@ export async function POST(request: NextRequest) {
               }
             })
             console.log(`🆓 User ${userId}: Used free trial (${user.freeTrialsUsed} -> ${user.freeTrialsUsed + 1})`)
+            logger.info('api', 'User used free trial', { userId, trialsUsed: user.freeTrialsUsed + 1 })
           }
         } else {
           // Premium用户：优先使用订阅配额，然后使用 credits
@@ -383,6 +404,7 @@ export async function POST(request: NextRequest) {
               }
             })
             console.log(`👑 Premium user ${userId}: Used subscription quota (${subscriptionRemaining} -> ${subscriptionRemaining - 1})`)
+            logger.info('api', 'Premium user used subscription quota', { userId, remaining: subscriptionRemaining - 1 })
           } else if (creditsRemaining > 0) {
             // 订阅配额用完，使用 credits
             await prisma.user.update({
@@ -394,6 +416,7 @@ export async function POST(request: NextRequest) {
               }
             })
             console.log(`💳 Premium user ${userId}: Used credit (${creditsRemaining} -> ${creditsRemaining - 1})`)
+            logger.info('api', 'Premium user used credit', { userId, remaining: creditsRemaining - 1 })
           }
         }
 
@@ -525,6 +548,7 @@ async function processTryOnAsync(taskId: string, userImageUrl: string, itemImage
 
       // 更新任务状态为完成
       console.log(`💾 [Task ${taskId}] Updating database status to COMPLETED...`)
+      logger.info('api', 'Updating database status to COMPLETED', { taskId })
       if (isMockMode) {
         await MockDatabase.updateTryOnTask(taskId, {
           status: "completed",
@@ -542,10 +566,14 @@ async function processTryOnAsync(taskId: string, userImageUrl: string, itemImage
 
       const totalProcessTime = Date.now() - processStartTime
       console.log(`✅ [Task ${taskId}] Task completed in ${totalProcessTime}ms (${(totalProcessTime/1000).toFixed(2)}s) ⭐ TOTAL TIME`)
+      logger.info('api', 'Task completed successfully', { taskId, duration: totalProcessTime })
       console.log(`✅ [Task ${taskId}] Database updated successfully with result URL: ${finalImageUrl.substring(0, 80)}...`)
+      logger.info('api', 'Database updated successfully with result URL', { taskId, resultUrl: finalImageUrl.substring(0, 80) })
     } else {
       console.log(`❌ [Task ${taskId}] Try-on failed, updating task status to FAILED...`)
+      logger.warn('api', 'Try-on failed, updating task status to FAILED', { taskId })
       console.log(`❌ [Task ${taskId}] Error: ${result.error}`)
+      logger.warn('api', 'Try-on error', { taskId, error: result.error })
       // 更新任务状态为失败
       if (isMockMode) {
         await MockDatabase.updateTryOnTask(taskId, {
@@ -562,13 +590,18 @@ async function processTryOnAsync(taskId: string, userImageUrl: string, itemImage
         })
       }
       console.log(`💾 [Task ${taskId}] Database updated with FAILED status`)
+      logger.info('api', 'Database updated with FAILED status', { taskId })
     }
   } catch (error) {
+    const err = error instanceof Error ? error : new Error(String(error))
     console.error(`❌ [Task ${taskId}] Exception in processTryOnAsync:`, error)
+    logger.error('api', 'Exception in processTryOnAsync', err, { taskId })
     console.error(`❌ [Task ${taskId}] Error stack:`, error instanceof Error ? error.stack : 'No stack trace')
+    logger.error('api', 'Error stack', err, { taskId, stack: error instanceof Error ? error.stack : 'No stack trace' })
 
     // 更新任务状态为失败
     console.log(`💾 [Task ${taskId}] Updating database status to FAILED due to exception...`)
+    logger.info('api', 'Updating database status to FAILED due to exception', { taskId })
     if (isMockMode) {
       await MockDatabase.updateTryOnTask(taskId, {
         status: "failed",
@@ -584,8 +617,11 @@ async function processTryOnAsync(taskId: string, userImageUrl: string, itemImage
           }
         })
         console.log(`💾 [Task ${taskId}] Database updated with FAILED status after exception`)
+        logger.info('api', 'Database updated with FAILED status after exception', { taskId })
       } catch (dbError) {
+        const dbErr = dbError instanceof Error ? dbError : new Error(String(dbError))
         console.error(`❌ [Task ${taskId}] Failed to update database after exception:`, dbError)
+        logger.error('database', 'Failed to update task status after exception', dbErr, { taskId })
       }
     }
   }
