@@ -1,5 +1,6 @@
 import { GoogleGenerativeAI } from "@google/generative-ai"
 import { mockGenerateTryOnImage, isMockMode } from "./mocks/gemini"
+import { logger } from "./logger"
 
 // Configure proxy for Gemini API in local development
 if (typeof window === 'undefined') {
@@ -23,12 +24,15 @@ if (typeof window === 'undefined') {
       setGlobalDispatcher(dispatcher)
 
       console.log('🔌 Proxy configured for Gemini API')
+      logger.info('general', 'Proxy configured for Gemini API', { proxyUrl, connectionTimeout: '60s', headersBodyTimeout: '120s' })
       console.log('  - Proxy URL:', proxyUrl)
       console.log('  - Connection timeout: 60s')
       console.log('  - Headers/Body timeout: 120s')
       console.log('  - Target: generativelanguage.googleapis.com')
     } catch (error) {
+      const err = error instanceof Error ? error : new Error(String(error))
       console.error('❌ Failed to configure proxy for Gemini API:', error)
+      logger.error('general', 'Failed to configure proxy for Gemini API', err)
       console.error('   Gemini API may fail in China without proxy')
     }
   }
@@ -80,6 +84,7 @@ export async function generateTryOnImage({
   try {
     const totalStartTime = Date.now()
     console.log("🎨 Starting Gemini 2.0 Flash Image Generation virtual try-on...")
+    logger.info('api', 'Starting Gemini virtual try-on', { userImageUrl, itemImageUrl: actualItemImageUrl })
 
     // Use Gemini 2.5 Flash Image
     // This model supports image generation and is accessible with the current API key
@@ -97,6 +102,7 @@ export async function generateTryOnImage({
     // Add timeout to prevent hanging
     const downloadStartTime = Date.now()
     console.log(`📥 Downloading images from Blob Storage...`)
+    logger.debug('api', 'Downloading images from Blob Storage', { userImageUrl, itemImageUrl: actualItemImageUrl })
     console.log(`   User image: ${userImageUrl}`)
     console.log(`   Item image: ${actualItemImageUrl}`)
 
@@ -104,6 +110,7 @@ export async function generateTryOnImage({
       for (let attempt = 1; attempt <= maxRetries; attempt++) {
         try {
           console.log(`   Attempt ${attempt}/${maxRetries} for ${url.substring(0, 80)}...`)
+          logger.debug('api', `Fetch attempt ${attempt}/${maxRetries}`, { url: url.substring(0, 80) })
 
           const controller = new AbortController()
           const timeout = setTimeout(() => controller.abort(), timeoutMs)
@@ -120,10 +127,12 @@ export async function generateTryOnImage({
 
           if (response.ok) {
             console.log(`   ✅ Success on attempt ${attempt}`)
+            logger.debug('api', `Fetch success on attempt ${attempt}`)
             return response
           }
 
           console.warn(`   ⚠️ HTTP ${response.status} on attempt ${attempt}`)
+          logger.warn('api', `HTTP error on fetch attempt`, { attempt, status: response.status })
 
           if (attempt < maxRetries) {
             const delay = attempt * 1000 // 1s, 2s, 3s
@@ -132,7 +141,9 @@ export async function generateTryOnImage({
           }
 
         } catch (error) {
+          const err = error instanceof Error ? error : new Error(String(error))
           console.error(`   ❌ Error on attempt ${attempt}:`, error instanceof Error ? error.message : error)
+          logger.error('api', `Fetch error on attempt ${attempt}`, err)
 
           if (attempt < maxRetries) {
             const delay = attempt * 1000
@@ -166,6 +177,7 @@ export async function generateTryOnImage({
 
     const downloadTime = Date.now() - downloadStartTime
     console.log(`⏱️ Image download time: ${downloadTime}ms (${(downloadTime/1000).toFixed(2)}s)`)
+    logger.info('api', 'Image download completed', { downloadTime })
 
     // Convert to base64
     const base64StartTime = Date.now()
@@ -176,9 +188,11 @@ export async function generateTryOnImage({
 
     const base64Time = Date.now() - base64StartTime
     console.log(`⏱️ Base64 conversion time: ${base64Time}ms`)
+    logger.debug('api', 'Base64 conversion completed', { base64Time })
     console.log(`📊 Image sizes: user=${(userImageBase64.length/1024).toFixed(2)}KB, item=${(itemImageBase64.length/1024).toFixed(2)}KB`)
 
     console.log("📸 Images loaded, generating virtual try-on...")
+    logger.info('api', 'Images loaded, calling Gemini API')
 
     // Create the prompt for multi-image fusion
     // The prompt parameter contains type-specific detailed instructions from config
@@ -209,6 +223,7 @@ Return a single composite image that looks like a professional photograph taken 
     // Generate the try-on image using multi-image fusion
     const apiStartTime = Date.now()
     console.log("🚀 Calling Gemini API...")
+    logger.info('api', 'Calling Gemini API for image generation')
 
     const result = await model.generateContent([
       tryOnPrompt,
@@ -228,6 +243,7 @@ Return a single composite image that looks like a professional photograph taken 
 
     const apiTime = Date.now() - apiStartTime
     console.log(`✅ Gemini API response received`)
+    logger.info('api', 'Gemini API response received', { apiTime })
     console.log(`⏱️ Gemini API call time: ${apiTime}ms (${(apiTime/1000).toFixed(2)}s) ⭐ KEY METRIC`)
 
     // Extract the generated image from the response
@@ -325,12 +341,14 @@ Return a single composite image that looks like a professional photograph taken 
     // Check if it's an authentication error
     if (errorMessage.includes('API key') || errorMessage.includes('401') || errorMessage.includes('403')) {
       console.error("🔑 Authentication error - GEMINI_API_KEY may be invalid or missing")
+      logger.error('api', 'Gemini authentication error - invalid or missing API key', error instanceof Error ? error : new Error(String(error)))
       return {
         success: false,
         error: "Authentication error: Invalid or missing API key."
       }
     }
 
+    logger.error('api', 'Gemini API error', error instanceof Error ? error : new Error(String(error)))
     return {
       success: false,
       error: error instanceof Error ? error.message : "Unknown error occurred during AI processing"
@@ -353,7 +371,9 @@ export async function validateGeminiConnection(): Promise<boolean> {
     const response = result.response
     return response.text().length > 0
   } catch (error) {
+    const err = error instanceof Error ? error : new Error(String(error))
     console.error("Gemini connection validation failed:", error)
+    logger.error('api', 'Gemini connection validation failed', err)
     return false
   }
 }
