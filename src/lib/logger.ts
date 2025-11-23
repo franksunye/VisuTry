@@ -1,7 +1,10 @@
 /**
  * 运行时日志系统
  * 支持开发环境和生产环境的日志记录和监控
+ * 生产环境日志通过 Axiom 发送到云端
  */
+
+import { Axiom } from '@axiomhq/js'
 
 export type LogLevel = 'debug' | 'info' | 'warn' | 'error'
 export type LogCategory = 'auth' | 'oauth' | 'api' | 'database' | 'upload' | 'payment' | 'general'
@@ -31,6 +34,21 @@ class Logger {
   private maxLogs = 1000 // 最多保存1000条日志
   private isDevelopment = process.env.NODE_ENV === 'development'
   private isProduction = process.env.NODE_ENV === 'production'
+  private axiom: Axiom | null = null
+
+  constructor() {
+    // 初始化 Axiom 客户端（仅在生产环境）
+    if (this.isProduction && process.env.AXIOM_TOKEN) {
+      try {
+        this.axiom = new Axiom({
+          token: process.env.AXIOM_TOKEN,
+          orgId: process.env.AXIOM_ORG_ID,
+        })
+      } catch (error) {
+        console.error('Failed to initialize Axiom client:', error)
+      }
+    }
+  }
 
   private generateId(): string {
     return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
@@ -75,7 +93,7 @@ class Logger {
 
   private addLog(entry: LogEntry) {
     this.logs.push(entry)
-    
+
     // 保持日志数量在限制内
     if (this.logs.length > this.maxLogs) {
       this.logs = this.logs.slice(-this.maxLogs)
@@ -86,9 +104,9 @@ class Logger {
       this.consoleOutput(entry)
     }
 
-    // 生产环境可以在这里添加外部日志服务集成
-    if (this.isProduction && entry.level === 'error') {
-      this.handleProductionError(entry)
+    // 生产环境：发送到 Axiom（error, warn, info 级别）
+    if (this.isProduction && entry.level !== 'debug') {
+      this.sendToAxiom(entry)
     }
   }
 
@@ -115,9 +133,37 @@ class Logger {
     }
   }
 
+  private async sendToAxiom(entry: LogEntry) {
+    if (!this.axiom) return
+
+    try {
+      // 构建发送到 Axiom 的日志对象
+      const axiomLog = {
+        timestamp: entry.timestamp,
+        level: entry.level,
+        category: entry.category,
+        message: entry.message,
+        id: entry.id,
+        userId: entry.userId,
+        sessionId: entry.sessionId,
+        userAgent: entry.userAgent,
+        ip: entry.ip,
+        url: entry.url,
+        method: entry.method,
+        error: entry.error,
+        data: entry.data,
+      }
+
+      // 异步发送到 Axiom，不阻塞主流程
+      await this.axiom.ingest(process.env.AXIOM_DATASET || 'visutry-logs', [axiomLog])
+    } catch (error) {
+      // 发送失败不影响应用运行，仅输出到控制台
+      console.error('Failed to send log to Axiom:', error instanceof Error ? error.message : error)
+    }
+  }
+
   private handleProductionError(entry: LogEntry) {
-    // 生产环境错误处理
-    // 这里可以集成外部错误监控服务，如 Sentry, LogRocket 等
+    // 生产环境错误处理（已通过 sendToAxiom 发送）
     console.error('Production Error:', {
       id: entry.id,
       timestamp: entry.timestamp,
