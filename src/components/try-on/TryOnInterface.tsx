@@ -348,7 +348,7 @@ export function TryOnInterface({ type = 'GLASSES' }: TryOnInterfaceProps) {
             description={config.itemImagePlaceholder}
             loading={isProcessing}
             height="h-[180px]"
-            iconType="glasses"
+            iconType={config.iconType}
           />
         </div>
       </div>

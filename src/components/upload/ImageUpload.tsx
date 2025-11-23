@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useRef, useCallback } from "react"
-import { Upload, X, Image as ImageIcon, Loader2, User, Glasses } from "lucide-react"
+import { Upload, X, Image as ImageIcon, Loader2, User, Glasses, Shirt, Footprints, Watch } from "lucide-react"
 import { validateImageFile, compressImage, createImagePreview } from "@/utils/image"
 import { cn } from "@/utils/cn"
 
@@ -15,7 +15,7 @@ interface ImageUploadProps {
   description?: string
   accept?: string
   height?: string
-  iconType?: "image" | "user" | "glasses"
+  iconType?: "image" | "user" | "glasses" | "outfit" | "shoes" | "accessories"
 }
 
 export function ImageUpload({
@@ -107,6 +107,12 @@ export function ImageUpload({
         return <User className="w-7 h-7 text-blue-600" />
       case "glasses":
         return <Glasses className="w-7 h-7 text-blue-600" />
+      case "outfit":
+        return <Shirt className="w-7 h-7 text-blue-600" />
+      case "shoes":
+        return <Footprints className="w-7 h-7 text-blue-600" />
+      case "accessories":
+        return <Watch className="w-7 h-7 text-blue-600" />
       default:
         return <ImageIcon className="w-7 h-7 text-blue-600" />
     }

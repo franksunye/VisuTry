@@ -12,6 +12,7 @@ export interface TryOnConfig {
   displayName: string
   route: string
   icon: string
+  iconType: "glasses" | "outfit" | "shoes" | "accessories"
   userImageLabel: string
   itemImageLabel: string
   itemImagePlaceholder: string
@@ -31,6 +32,7 @@ export const TRY_ON_CONFIGS: Record<TryOnType, TryOnConfig> = {
     displayName: 'Try On Glasses',
     route: '/try-on/glasses',
     icon: '👓',
+    iconType: 'glasses',
     userImageLabel: 'Upload Your Photo',
     itemImageLabel: 'Upload Glasses Image',
     itemImagePlaceholder: 'Choose glasses to try on',
@@ -85,6 +87,7 @@ AVOID:
     displayName: 'Try On Outfit',
     route: '/try-on/outfit',
     icon: '👔',
+    iconType: 'outfit',
     userImageLabel: 'Upload Your Photo',
     itemImageLabel: 'Upload Outfit Image',
     itemImagePlaceholder: 'Choose outfit to try on',
@@ -132,6 +135,7 @@ AVOID:
     displayName: 'Try On Shoes',
     route: '/try-on/shoes',
     icon: '👟',
+    iconType: 'shoes',
     userImageLabel: 'Upload Your Photo',
     itemImageLabel: 'Upload Shoes Image',
     itemImagePlaceholder: 'Choose shoes to try on',
@@ -178,6 +182,7 @@ AVOID:
     displayName: 'Try On Accessories',
     route: '/try-on/accessories',
     icon: '💍',
+    iconType: 'accessories',
     userImageLabel: 'Upload Your Photo',
     itemImageLabel: 'Upload Accessory Image',
     itemImagePlaceholder: 'Choose accessory to try on',
