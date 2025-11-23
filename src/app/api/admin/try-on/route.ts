@@ -40,7 +40,12 @@ export async function GET(request: NextRequest) {
         orderBy: {
           createdAt: 'desc',
         },
-        include: {
+        select: {
+          id: true,
+          userId: true,
+          status: true,
+          createdAt: true,
+          updatedAt: true,
           user: {
             select: {
               id: true,

@@ -22,7 +22,12 @@ async function getTryOnTasks({ page = 1 }: { page?: number }) {
       orderBy: {
         createdAt: 'desc',
       },
-      include: {
+      select: {
+        id: true,
+        userId: true,
+        status: true,
+        createdAt: true,
+        updatedAt: true,
         user: {
           select: {
             id: true,
