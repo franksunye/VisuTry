@@ -66,6 +66,26 @@
       "tryShoes": "Coba Sepatu",
       "tryAccessories": "Coba Aksesori"
     },
+    "features": {
+      "title": "Fitur Utama VisuTry",
+      "subtitle": "Rasakan generasi berikutnya dari virtual try-on bertenaga AI",
+      "feature1": {
+        "title": "Google Gemini 2.5 Flash",
+        "description": "Didukung oleh model AI terbaru Google untuk hasil try-on ultra-realistis dengan akurasi luar biasa dan pencahayaan alami."
+      },
+      "feature2": {
+        "title": "Penyimpanan Data Cerdas",
+        "description": "Riwayat try-on Anda disimpan dengan aman - 7 hari untuk pengguna gratis, 90 hari dengan Kredit, dan 1 tahun untuk anggota Premium."
+      },
+      "feature3": {
+        "title": "Pemrosesan Kilat",
+        "description": "Dapatkan hasil try-on Anda dalam 10-30 detik dengan pipeline AI kami yang dioptimalkan. Pengguna Premium menikmati pemrosesan prioritas."
+      },
+      "feature4": {
+        "title": "Privasi Terlindungi",
+        "description": "Foto Anda dienkripsi dan aman. Kami tidak pernah membagikan gambar Anda atau menggunakannya untuk pelatihan tanpa izin."
+      }
+    },
     "showcase": {
       "alex": {
         "name": "Alex",

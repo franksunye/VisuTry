@@ -66,6 +66,26 @@
       "tryShoes": "Experimentar Sapatos",
       "tryAccessories": "Experimentar Acessórios"
     },
+    "features": {
+      "title": "Principais Recursos do VisuTry",
+      "subtitle": "Experimente a próxima geração de experimentação virtual alimentada por IA",
+      "feature1": {
+        "title": "Google Gemini 2.5 Flash",
+        "description": "Alimentado pelo modelo de IA mais recente do Google para resultados de experimentação ultra-realistas com precisão excepcional e iluminação natural."
+      },
+      "feature2": {
+        "title": "Retenção Inteligente de Dados",
+        "description": "Seu histórico de experimentação é armazenado com segurança - 7 dias para usuários gratuitos, 90 dias com Créditos e 1 ano para membros Premium."
+      },
+      "feature3": {
+        "title": "Processamento Relâmpago",
+        "description": "Obtenha seus resultados de experimentação em 10-30 segundos com nosso pipeline de IA otimizado. Usuários Premium desfrutam de processamento prioritário."
+      },
+      "feature4": {
+        "title": "Privacidade Protegida",
+        "description": "Suas fotos são criptografadas e seguras. Nunca compartilhamos suas imagens ou as usamos para treinamento sem permissão."
+      }
+    },
     "showcase": {
       "alex": {
         "name": "Alex",

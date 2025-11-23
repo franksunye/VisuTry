@@ -66,6 +66,26 @@
       "tryShoes": "靴を試す",
       "tryAccessories": "アクセサリーを試す"
     },
+    "features": {
+      "title": "VisuTryの主な機能",
+      "subtitle": "次世代のAI搭載バーチャル試着を体験",
+      "feature1": {
+        "title": "Google Gemini 2.5 Flash",
+        "description": "Googleの最新AIモデルで、超リアルな試着結果を実現。優れた精度と自然な照明で完璧な仕上がり。"
+      },
+      "feature2": {
+        "title": "スマートデータ保持",
+        "description": "試着履歴は安全に保存されます。無料ユーザーは7日間、クレジット購入者は90日間、プレミアムメンバーは1年間保存。"
+      },
+      "feature3": {
+        "title": "高速処理",
+        "description": "最適化されたAIパイプラインで、10～30秒で試着結果を取得。プレミアムユーザーは優先処理を享受。"
+      },
+      "feature4": {
+        "title": "プライバシー保護",
+        "description": "あなたの写真は暗号化され、安全に保護されます。許可なく画像を共有したり、トレーニングに使用することはありません。"
+      }
+    },
     "showcase": {
       "alex": {
         "name": "Alex",

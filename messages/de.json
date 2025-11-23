@@ -66,6 +66,26 @@
       "tryShoes": "Schuhe Anprobieren",
       "tryAccessories": "Accessoires Anprobieren"
     },
+    "features": {
+      "title": "Hauptmerkmale von VisuTry",
+      "subtitle": "Erleben Sie die nächste Generation der KI-gestützten virtuellen Anprobe",
+      "feature1": {
+        "title": "Google Gemini 2.5 Flash",
+        "description": "Angetrieben von Googles neuestem KI-Modell für ultra-realistische Anprobeergebnisse mit außergewöhnlicher Genauigkeit und natürlicher Beleuchtung."
+      },
+      "feature2": {
+        "title": "Intelligente Datenspeicherung",
+        "description": "Ihre Anprobehistorie wird sicher gespeichert - 7 Tage für kostenlose Benutzer, 90 Tage mit Credits und 1 Jahr für Premium-Mitglieder."
+      },
+      "feature3": {
+        "title": "Blitzschnelle Verarbeitung",
+        "description": "Erhalten Sie Ihre Anprobeergebnisse in 10-30 Sekunden mit unserer optimierten KI-Pipeline. Premium-Benutzer genießen vorrangige Verarbeitung."
+      },
+      "feature4": {
+        "title": "Datenschutz Geschützt",
+        "description": "Ihre Fotos sind verschlüsselt und sicher. Wir teilen Ihre Bilder nie und verwenden sie nicht zum Training ohne Genehmigung."
+      }
+    },
     "showcase": {
       "alex": {
         "name": "Alex",
