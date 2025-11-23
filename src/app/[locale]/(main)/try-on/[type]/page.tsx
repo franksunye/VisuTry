@@ -2,7 +2,6 @@ import { redirect, notFound } from "next/navigation"
 import { getServerSession } from "next-auth/next"
 import { authOptions } from "@/lib/auth"
 import { TryOnInterface } from "@/components/try-on/TryOnInterface"
-import { UserStatusBanner } from "@/components/try-on/UserStatusBanner"
 import { AutoRefreshWrapper } from "@/components/payments/AutoRefreshWrapper"
 import { headers } from "next/headers"
 import { generateStructuredData } from "@/lib/seo"
@@ -92,22 +91,6 @@ export default async function TryOnTypePage({ params }: TryOnPageProps) {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
       />
-
-      {/* User Status Banner */}
-      <div className="mb-8">
-        {testSession ? (
-          <div className="bg-green-50 border border-green-200 rounded-lg p-2.5">
-            <div className="flex items-center justify-between">
-              <div className="text-green-800 text-sm">
-                <strong>Test Mode</strong> - {testSession.isPremium ? 'Standard User' : 'Free User'} ({testSession.name})
-                {!testSession.isPremium && ` - Used ${testSession.freeTrialsUsed}/3 try-ons`}
-              </div>
-            </div>
-          </div>
-        ) : (
-          <UserStatusBanner />
-        )}
-      </div>
 
       {/* Try-On Interface */}
       <TryOnInterface type={tryOnType} />

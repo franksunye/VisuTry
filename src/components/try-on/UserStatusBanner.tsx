@@ -2,7 +2,7 @@
 
 import { useSession } from "next-auth/react"
 import Link from "next/link"
-import { AlertCircle, Zap } from "lucide-react"
+import { Zap } from "lucide-react"
 
 export function UserStatusBanner() {
   const { data: session } = useSession()
@@ -14,71 +14,37 @@ export function UserStatusBanner() {
   const user = session.user
   const isPremiumActive = user.isPremiumActive
   const remainingTrials = user.remainingTrials || 0
-  const freeTrialsUsed = user.freeTrialsUsed || 0
-  const creditsPurchased = (user as any).creditsPurchased || 0
-  const creditsUsed = (user as any).creditsUsed || 0
-  const creditsRemaining = creditsPurchased - creditsUsed
 
-  // Premium user banner
+  // Premium user - simple badge
   if (isPremiumActive) {
     return (
-      <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Zap className="w-5 h-5 text-yellow-600" />
-            <div className="text-yellow-800 text-sm">
-              <strong>Standard Member</strong> - Enhanced AI try-ons available
-            </div>
-          </div>
-        </div>
-      </div>
-    )
-  }
-
-  // Free user with no quota - RED WARNING
-  if (remainingTrials === 0) {
-    return (
-      <div className="bg-red-50 border border-red-300 rounded-lg p-3">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0" />
-            <div className="text-red-800 text-sm">
-              <strong>No remaining try-ons</strong>
-              <p className="text-red-700 mt-0.5">
-                You&apos;ve used all your free try-ons. Upgrade to continue.
-              </p>
-            </div>
-          </div>
-          <Link
-            href="/pricing"
-            className="ml-4 bg-red-600 text-white px-4 py-2 text-sm rounded-lg hover:bg-red-700 transition-colors font-medium flex-shrink-0"
-          >
-            Upgrade Now
-          </Link>
-        </div>
-      </div>
-    )
-  }
-
-  // Free user with quota - BLUE INFO
-  return (
-    <div className="bg-blue-50 border border-blue-200 rounded-lg p-2.5">
-      <div className="flex items-center justify-between">
-        <div className="text-blue-800 text-sm">
-          <strong>Free User</strong> - Remaining: <span className="font-semibold">{remainingTrials}</span>
-          {creditsRemaining > 0 && (
-            <span className="ml-3 text-blue-700">
-              (Free: {Math.max(0, 3 - freeTrialsUsed)}/3, Credits: {creditsRemaining}/{creditsPurchased})
-            </span>
-          )}
-        </div>
+      <div className="flex items-center gap-3 text-sm">
+        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-yellow-100 text-yellow-800 rounded-md font-medium">
+          <Zap className="w-3.5 h-3.5" />
+          Standard
+        </span>
         <Link
-          href="/pricing"
-          className="ml-4 bg-blue-600 text-white px-3 py-1.5 text-sm rounded-lg hover:bg-blue-700 transition-colors font-medium flex-shrink-0"
+          href="/dashboard"
+          className="text-gray-600 hover:text-gray-900 transition-colors"
         >
-          Buy Credits
+          View Dashboard →
         </Link>
       </div>
+    )
+  }
+
+  // Free user - simple badge with remaining count
+  return (
+    <div className="flex items-center gap-3 text-sm">
+      <span className="inline-flex items-center px-2.5 py-1 bg-gray-100 text-gray-700 rounded-md font-medium">
+        Free User
+      </span>
+      <Link
+        href="/dashboard"
+        className="text-gray-600 hover:text-gray-900 transition-colors"
+      >
+        Remaining: <span className="font-semibold text-gray-900">{remainingTrials}</span>
+      </Link>
     </div>
   )
 }

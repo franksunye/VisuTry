@@ -6,6 +6,7 @@ import { ImageUpload } from "@/components/upload/ImageUpload"
 import { ResultDisplay } from "@/components/try-on/ResultDisplay"
 import { LoadingState } from "@/components/try-on/LoadingState"
 import { EmptyState } from "@/components/try-on/EmptyState"
+import { UserStatusBanner } from "@/components/try-on/UserStatusBanner"
 import { Sparkles, ArrowRight, User, Glasses, AlertCircle, X } from "lucide-react"
 import Link from "next/link"
 import { analytics, getUserType } from "@/lib/analytics"
@@ -352,31 +353,40 @@ export function TryOnInterface({ type = 'GLASSES' }: TryOnInterfaceProps) {
         </div>
       </div>
 
-      {/* Action Button */}
+      {/* Action Button with Status */}
       {currentStep !== "result" && (
-        <div className="flex flex-col items-center gap-4 mt-8">
-          <button
-            onClick={handleStartTryOn}
-            disabled={!canProceed || isProcessing || !hasQuota}
-            title={!hasQuota ? "No remaining try-ons. Please upgrade." : ""}
-            className="flex items-center px-8 py-3 text-white transition-colors bg-blue-600 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {isProcessing ? (
-              <>
-                <div className="w-5 h-5 mr-2 border-2 border-white rounded-full border-t-transparent animate-spin" />
-                {processingMessage}
-              </>
-            ) : (
-              <>
-                <Sparkles className="w-5 h-5 mr-2" />
-                Try On {config.name}
-              </>
-            )}
-          </button>
+        <div className="mt-8">
+          {/* Button and Status in one row */}
+          <div className="flex items-center justify-between gap-4">
+            {/* Left: User Status Banner */}
+            <div className="flex-shrink-0">
+              <UserStatusBanner />
+            </div>
+
+            {/* Right: Try On Button */}
+            <button
+              onClick={handleStartTryOn}
+              disabled={!canProceed || isProcessing || !hasQuota}
+              title={!hasQuota ? "No remaining try-ons. Please upgrade." : ""}
+              className="flex items-center px-8 py-3 text-white transition-colors bg-blue-600 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isProcessing ? (
+                <>
+                  <div className="w-5 h-5 mr-2 border-2 border-white rounded-full border-t-transparent animate-spin" />
+                  {processingMessage}
+                </>
+              ) : (
+                <>
+                  <Sparkles className="w-5 h-5 mr-2" />
+                  Try On {config.name}
+                </>
+              )}
+            </button>
+          </div>
 
           {/* Quota warning when no quota */}
           {!hasQuota && !isProcessing && (
-            <div className="flex items-center gap-2 text-red-600 text-sm">
+            <div className="flex items-center justify-center gap-2 text-red-600 text-sm mt-4">
               <AlertCircle className="w-4 h-4" />
               <span>No remaining try-ons</span>
               <Link
