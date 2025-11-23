@@ -7,7 +7,7 @@ import { ResultDisplay } from "@/components/try-on/ResultDisplay"
 import { LoadingState } from "@/components/try-on/LoadingState"
 import { EmptyState } from "@/components/try-on/EmptyState"
 import { UserStatusBanner } from "@/components/try-on/UserStatusBanner"
-import { Sparkles, ArrowRight, User, Glasses, AlertCircle, X } from "lucide-react"
+import { Sparkles, ArrowRight, User, Glasses, AlertCircle, X, Shirt, Footprints, Watch } from "lucide-react"
 import Link from "next/link"
 import { analytics, getUserType } from "@/lib/analytics"
 import { TryOnType, getTryOnConfig } from "@/config/try-on-types"
@@ -31,6 +31,22 @@ export function TryOnInterface({ type = 'GLASSES' }: TryOnInterfaceProps) {
   const [result, setResult] = useState<{ imageUrl: string; taskId: string } | null>(null)
   const [currentStep, setCurrentStep] = useState<"upload" | "select" | "process" | "result">("upload")
   const [currentTaskId, setCurrentTaskId] = useState<string | null>(null)
+
+  // Get the appropriate icon for the item type
+  const getItemIcon = () => {
+    switch (type) {
+      case 'GLASSES':
+        return <Glasses className="w-4 h-4" />
+      case 'OUTFIT':
+        return <Shirt className="w-4 h-4" />
+      case 'SHOES':
+        return <Footprints className="w-4 h-4" />
+      case 'ACCESSORIES':
+        return <Watch className="w-4 h-4" />
+      default:
+        return <Glasses className="w-4 h-4" />
+    }
+  }
   const [processingMessage, setProcessingMessage] = useState(`AI is processing your ${config.name.toLowerCase()} try-on request...`)
   const [error, setError] = useState<ErrorState | null>(null)
 
@@ -283,7 +299,7 @@ export function TryOnInterface({ type = 'GLASSES' }: TryOnInterfaceProps) {
               currentStep === "select" ? "bg-blue-100" :
               ["process", "result"].includes(currentStep) ? "bg-green-100" : "bg-gray-100"
             }`}>
-              <Glasses className="w-4 h-4" />
+              {getItemIcon()}
             </div>
             <span className="ml-2 font-medium">{config.name}</span>
           </div>
