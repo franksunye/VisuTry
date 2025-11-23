@@ -5,8 +5,8 @@ import Image from 'next/image'
 import { Calendar, User, ArrowRight } from 'lucide-react'
 
 export const metadata: Metadata = generateSEO({
-  title: 'Blog - Eyewear Tips & Trends | VisuTry',
-  description: 'Discover the latest eyewear trends, style tips, and guides to finding the perfect glasses for your face shape.',
+  title: 'Blog - Fashion & Style Tips | VisuTry',
+  description: 'Discover the latest trends, style tips, and guides for glasses, outfits, shoes, and accessories. Learn how to find your perfect style with AI virtual try-on.',
   url: '/blog',
 })
 

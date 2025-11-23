@@ -5,63 +5,81 @@ import { locales, type Locale, localeToOGLocale } from '@/i18n'
 /**
  * Keyword Categories for SEO Optimization
  * Organized by intent and conversion potential
- * Updated with Nano Banana AI model and high-priority keywords
+ * Updated with multi-category support: Glasses, Outfits, Shoes, and Accessories
  */
 export const KEYWORDS = {
   // Core tool keywords (high conversion intent) - Priority A
   core: [
-    'nano banana virtual glasses try-on',
-    'nano banana glasses try on tool',
-    'nano banana AI glasses fitting',
-    'AI glasses try-on',
-    'virtual glasses try-on',
-    'online glasses fitting',
-    'instant online glasses try-on',
-    'free virtual glasses try-on',
+    'virtual try-on',
+    'AI virtual try-on',
+    'virtual try-on glasses',
+    'virtual try-on outfit',
+    'virtual try-on shoes',
+    'virtual try-on accessories',
+    'online try-on tool',
+    'free virtual try-on',
+    'AI-powered virtual fitting',
   ],
 
   // AI Model & Technology - Priority A
   aiModel: [
-    'nano banana AI eyewear try-on',
-    'nano banana powered virtual try-on',
-    'AI-powered glasses try-on tool',
-    'virtual eyewear fitting nano banana AI',
-    'nano banana online glasses fitting platform',
+    'Nano Banana AI Gemini 2.5 Flash Image virtual try-on',
+    'Nano Banana AI powered try-on',
+    'Gemini 2.5 Flash Image virtual fitting',
+    'AI-powered virtual fitting tool',
+    'virtual fitting with Nano Banana AI',
+    'Nano Banana online try-on platform',
+    'AI virtual try-on technology',
   ],
 
   // Feature-based keywords - Priority A/B
   features: [
-    'face shape glasses matcher',
-    'smart glasses recommendation',
-    'AI-powered eyewear fitting',
-    'virtual frame fitting',
-    'online optical try-on',
-    'instant virtual glasses fitting',
-    'no download virtual glasses try-on',
-    'browser-based virtual glasses try-on',
+    'smart style recommendation',
+    'AI-powered virtual fitting',
+    'instant virtual try-on',
+    'no download virtual try-on',
+    'browser-based virtual fitting',
+    'realistic virtual try-on',
+    'photorealistic virtual fitting',
+    'multi-category virtual try-on',
   ],
 
   // Convenience & Access - Priority A/B
   convenience: [
-    'try glasses online',
-    'try glasses without visiting store',
-    'instant online virtual glasses testing',
-    'free nano banana virtual eyewear try-on',
-    'web-based glasses try-on tool',
-    'try on any glasses online',
-    'all brand glasses virtual try-on',
+    'try before you buy',
+    'virtual shopping assistant',
+    'online style preview',
+    'instant style visualization',
+    'web-based virtual fitting',
+    'try on anything online',
+    'all-in-one virtual try-on',
+    'style preview tool',
   ],
 
   // Long-tail keywords (traffic generation) - Priority B/C
   longTail: [
     'best glasses for round face',
     'how to choose glasses online',
-    'prescription glasses virtual try-on',
-    'try on glasses before buying',
     'virtual glasses fitting app',
-    'online eyewear shopping tool',
-    'find perfect glasses online',
-    'glasses shopping made easy',
+    'try on clothes online',
+    'virtual shoe fitting',
+    'online accessory preview',
+    'find perfect style online',
+    'virtual wardrobe try-on',
+    'how to try on shoes online',
+    'virtual jewelry try-on',
+  ],
+
+  // Category-specific keywords - Priority B
+  categories: [
+    'virtual eyewear try-on',
+    'online clothing try-on',
+    'virtual footwear fitting',
+    'accessory virtual try-on',
+    'designer glasses virtual try-on',
+    'fashion outfit virtual try-on',
+    'shoe size virtual fitting',
+    'jewelry virtual try-on',
   ],
 
   // Brand-related keywords - Priority B
@@ -81,14 +99,15 @@ const ALL_KEYWORDS = [
   ...KEYWORDS.features,
   ...KEYWORDS.convenience,
   ...KEYWORDS.longTail,
+  ...KEYWORDS.categories,
   ...KEYWORDS.brands,
 ]
 
 // Website basic information
 export const SITE_CONFIG = {
   name: 'VisuTry',
-  title: 'VisuTry - Nano Banana AI Virtual Glasses Try-On | Instant Online Eyewear Fitting',
-  description: 'Try on glasses instantly with Nano Banana AI-powered virtual try-on. No download needed - upload your photo and try any glasses online free. Smart face shape matching for perfect eyewear recommendations.',
+  title: 'VisuTry - AI Virtual Try-On for Glasses, Outfits, Shoes & Accessories',
+  description: 'Try on glasses, outfits, shoes, and accessories instantly with AI-powered virtual try-on. No download needed - upload your photo and see how items look on you before buying. Powered by Nano Banana AI (Gemini 2.5 Flash Image) for photorealistic results.',
   url: process.env.NEXT_PUBLIC_SITE_URL || 'https://visutry.com',
   ogImage: '/og-image.jpg',
   keywords: ALL_KEYWORDS,

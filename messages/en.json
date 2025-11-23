@@ -69,19 +69,19 @@
     "showcase": {
       "alex": {
         "name": "Alex",
-        "description": "Found the perfect aviator style in seconds"
+        "description": "Found the perfect aviator glasses in seconds"
       },
       "ethan": {
         "name": "Ethan",
-        "description": "Discovered his signature look with AI"
+        "description": "Discovered his signature outfit with AI"
       },
       "sophia": {
         "name": "Sophia",
-        "description": "Tried 10+ styles before finding the one"
+        "description": "Tried 10+ styles before finding the perfect shoes"
       },
       "encouragement": {
-        "title": "✨ Join thousands who found their perfect glasses",
-        "subtitle": "Try on unlimited styles with AI-powered precision"
+        "title": "✨ Join thousands who found their perfect style",
+        "subtitle": "Try on glasses, outfits, shoes & accessories with AI-powered precision"
       }
     },
     "features": {
@@ -265,12 +265,12 @@
   },
   "meta": {
     "home": {
-      "title": "VisuTry - Nano Banana AI Virtual Glasses Try-On | Instant Online Eyewear Fitting",
-      "description": "Try on glasses instantly with Nano Banana AI-powered virtual try-on. No download needed - upload your photo and try any glasses online free. Smart face shape matching for perfect eyewear recommendations."
+      "title": "VisuTry - AI Virtual Try-On for Glasses, Outfits, Shoes & Accessories",
+      "description": "Try on glasses, outfits, shoes, and accessories instantly with AI-powered virtual try-on. No download needed - upload your photo and see how items look on you before buying. Powered by Nano Banana AI (Gemini 2.5 Flash Image) for photorealistic results."
     },
     "pricing": {
-      "title": "Pricing Plans - Nano Banana AI Glasses Try-On | VisuTry",
-      "description": "Choose the perfect plan for instant AI glasses try-on powered by Nano Banana. Free trials available, premium features for unlimited virtual eyewear fitting. Try any glasses online with advanced AI technology."
+      "title": "Pricing Plans - AI Virtual Try-On for All Categories | VisuTry",
+      "description": "Choose the perfect plan for instant AI-powered virtual try-on. Try glasses, outfits, shoes, and accessories with Nano Banana AI (Gemini 2.5 Flash Image). Free trials available, premium features for unlimited virtual fitting."
     }
   }
 }

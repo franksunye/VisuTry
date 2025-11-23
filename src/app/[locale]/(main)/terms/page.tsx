@@ -6,7 +6,7 @@ import { Breadcrumbs } from '@/components/seo/Breadcrumbs'
 
 export const metadata: Metadata = generateSEO({
   title: 'Terms of Service | VisuTry',
-  description: 'Read VisuTry Terms of Service. Learn about user responsibilities, service usage rules, and legal terms for our AI glasses try-on platform.',
+  description: 'Read VisuTry Terms of Service. Learn about user responsibilities, service usage rules, and legal terms for our AI virtual try-on platform for glasses, outfits, shoes, and accessories.',
   url: '/terms',
 })
 
