@@ -378,7 +378,7 @@ export function TryOnInterface({ type = 'GLASSES' }: TryOnInterfaceProps) {
               ) : (
                 <>
                   <Sparkles className="w-5 h-5 mr-2" />
-                  Try On {config.name}
+                  Try On
                 </>
               )}
             </button>
