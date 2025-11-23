@@ -42,21 +42,21 @@
   },
   "home": {
     "hero": {
-      "title": "Discover the Glasses That Fit You Perfectly",
-      "subtitle": "Try On Glasses in 3 Easy Steps"
+      "title": "Find Your Perfect Style",
+      "subtitle": "Try On in 3 Easy Steps"
     },
     "steps": {
       "step1": {
         "title": "Upload Your Photo",
-        "description": "Upload a front-facing photo of yourself — no special tools required."
+        "description": "Upload a clear photo of yourself — no special tools required."
       },
       "step2": {
-        "title": "Pick Your Frames",
-        "description": "Choose the glasses you like. We'll show how each style looks on your face."
+        "title": "Pick Your Style",
+        "description": "Choose the item you'd like to try. We'll show you how it looks on you."
       },
       "step3": {
         "title": "See & Save",
-        "description": "See your top look, then save or share it."
+        "description": "See your perfect look, then save or share it."
       }
     },
     "cta": {

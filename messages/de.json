@@ -42,21 +42,21 @@
   },
   "home": {
     "hero": {
-      "title": "Entdecken Sie die Brille, die Perfekt zu Ihnen Passt",
-      "subtitle": "Probieren Sie Brillen in 3 Einfachen Schritten"
+      "title": "Finden Sie Ihren Perfekten Stil",
+      "subtitle": "Probieren Sie in 3 Einfachen Schritten"
     },
     "steps": {
       "step1": {
         "title": "Laden Sie Ihr Foto Hoch",
-        "description": "Laden Sie ein Foto von sich aus der Frontalansicht hoch — keine speziellen Werkzeuge erforderlich."
+        "description": "Laden Sie ein klares Foto von sich hoch — keine speziellen Werkzeuge erforderlich."
       },
       "step2": {
-        "title": "Wählen Sie Ihre Fassung",
-        "description": "Wählen Sie die Brille, die Ihnen gefällt. Wir zeigen Ihnen, wie jeder Stil an Ihrem Gesicht aussieht."
+        "title": "Wählen Sie Ihren Stil",
+        "description": "Wählen Sie den Artikel, den Sie anprobieren möchten. Wir zeigen Ihnen, wie er auf Ihnen aussieht."
       },
       "step3": {
         "title": "Ansehen und Speichern",
-        "description": "Sehen Sie Ihren besten Look, dann speichern oder teilen Sie ihn."
+        "description": "Sehen Sie Ihren perfekten Look, dann speichern oder teilen Sie ihn."
       }
     },
     "cta": {

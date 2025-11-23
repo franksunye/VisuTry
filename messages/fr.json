@@ -42,21 +42,21 @@
   },
   "home": {
     "hero": {
-      "title": "Découvrez les Lunettes qui Vous Vont Parfaitement",
-      "subtitle": "Essayez des Lunettes en 3 Étapes Faciles"
+      "title": "Trouvez Votre Style Parfait",
+      "subtitle": "Essayez en 3 Étapes Faciles"
     },
     "steps": {
       "step1": {
         "title": "Téléchargez Votre Photo",
-        "description": "Téléchargez une photo de face de vous-même — aucun outil spécial requis."
+        "description": "Téléchargez une photo claire de vous-même — aucun outil spécial requis."
       },
       "step2": {
-        "title": "Choisissez Vos Montures",
-        "description": "Choisissez les lunettes que vous aimez. Nous vous montrerons comment chaque style vous va."
+        "title": "Choisissez Votre Style",
+        "description": "Choisissez l'article que vous souhaitez essayer. Nous vous montrerons comment il vous va."
       },
       "step3": {
         "title": "Voir et Sauvegarder",
-        "description": "Voyez votre meilleur look, puis sauvegardez-le ou partagez-le."
+        "description": "Voyez votre look parfait, puis sauvegardez-le ou partagez-le."
       }
     },
     "cta": {

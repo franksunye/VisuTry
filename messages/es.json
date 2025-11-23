@@ -42,21 +42,21 @@
   },
   "home": {
     "hero": {
-      "title": "Descubre las Gafas que te Quedan Perfectamente",
-      "subtitle": "Prueba Gafas en 3 Sencillos Pasos"
+      "title": "Encuentra Tu Estilo Perfecto",
+      "subtitle": "Prueba en 3 Sencillos Pasos"
     },
     "steps": {
       "step1": {
         "title": "Sube tu Foto",
-        "description": "Sube una foto de frente de ti mismo — no se requieren herramientas especiales."
+        "description": "Sube una foto clara de ti mismo — no se requieren herramientas especiales."
       },
       "step2": {
-        "title": "Elige tus Monturas",
-        "description": "Elige las gafas que te gusten. Te mostraremos cómo se ve cada estilo en tu cara."
+        "title": "Elige Tu Estilo",
+        "description": "Elige el artículo que deseas probar. Te mostraremos cómo se ve en ti."
       },
       "step3": {
         "title": "Ver y Guardar",
-        "description": "Ve tu mejor look, luego guárdalo o compártelo."
+        "description": "Ve tu look perfecto, luego guárdalo o compártelo."
       }
     },
     "cta": {

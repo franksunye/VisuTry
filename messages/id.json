@@ -42,21 +42,21 @@
   },
   "home": {
     "hero": {
-      "title": "Temukan Kacamata yang Sempurna untuk Anda",
-      "subtitle": "Coba Kacamata dalam 3 Langkah Mudah"
+      "title": "Temukan Gaya Sempurna Anda",
+      "subtitle": "Coba dalam 3 Langkah Mudah"
     },
     "steps": {
       "step1": {
         "title": "Unggah Foto Anda",
-        "description": "Unggah foto wajah Anda dari depan — tidak perlu alat khusus."
+        "description": "Unggah foto yang jelas dari diri Anda — tidak perlu alat khusus."
       },
       "step2": {
-        "title": "Pilih Bingkai",
-        "description": "Pilih kacamata yang Anda suka. Kami akan menunjukkan bagaimana setiap gaya terlihat di wajah Anda."
+        "title": "Pilih Gaya Anda",
+        "description": "Pilih item yang ingin Anda coba. Kami akan menunjukkan bagaimana tampilannya pada Anda."
       },
       "step3": {
         "title": "Lihat & Simpan",
-        "description": "Lihat tampilan terbaik Anda, lalu simpan atau bagikan."
+        "description": "Lihat tampilan sempurna Anda, lalu simpan atau bagikan."
       }
     },
     "cta": {

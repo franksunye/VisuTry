@@ -42,21 +42,21 @@
   },
   "home": {
     "hero": {
-      "title": "Descubra os Óculos que Combinam Perfeitamente com Você",
-      "subtitle": "Experimente Óculos em 3 Passos Fáceis"
+      "title": "Encontre Seu Estilo Perfeito",
+      "subtitle": "Experimente em 3 Passos Fáceis"
     },
     "steps": {
       "step1": {
         "title": "Envie Sua Foto",
-        "description": "Envie uma foto frontal de você — nenhuma ferramenta especial necessária."
+        "description": "Envie uma foto clara de você — nenhuma ferramenta especial necessária."
       },
       "step2": {
-        "title": "Escolha Suas Armações",
-        "description": "Escolha os óculos que você gosta. Mostraremos como cada estilo fica no seu rosto."
+        "title": "Escolha Seu Estilo",
+        "description": "Escolha o item que deseja experimentar. Mostraremos como fica em você."
       },
       "step3": {
         "title": "Ver e Salvar",
-        "description": "Veja seu melhor visual, depois salve ou compartilhe."
+        "description": "Veja seu visual perfeito, depois salve ou compartilhe."
       }
     },
     "cta": {
