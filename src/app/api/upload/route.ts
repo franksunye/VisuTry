@@ -4,6 +4,7 @@ import { authOptions } from "@/lib/auth"
 import { put } from "@vercel/blob"
 import { isMockMode } from "@/lib/mocks"
 import { mockBlobUpload } from "@/lib/mocks/blob"
+import { logger } from "@/lib/logger"
 
 // Force dynamic rendering for this route
 export const dynamic = 'force-dynamic'
@@ -59,6 +60,7 @@ export async function POST(request: NextRequest) {
       if (isMockMode) {
         // 在测试模式下使用Mock上传
         console.log('🧪 Mock Upload: Using mock blob upload service')
+        logger.debug('api', 'Mock Upload: Using mock blob upload service')
         blob = await mockBlobUpload(filename, file)
       } else {
         // 上传到Vercel Blob
@@ -67,6 +69,7 @@ export async function POST(request: NextRequest) {
         })
       }
 
+      logger.info('api', 'File uploaded successfully', { filename, size: file.size, type: file.type, url: blob.url })
       return NextResponse.json({
         success: true,
         data: {
@@ -77,14 +80,18 @@ export async function POST(request: NextRequest) {
         }
       })
     } catch (uploadError) {
+      const err = uploadError instanceof Error ? uploadError : new Error(String(uploadError))
       console.error("文件上传失败:", uploadError)
+      logger.error('api', '文件上传失败', err, { filename })
       return NextResponse.json(
         { success: false, error: "文件上传失败" },
         { status: 500 }
       )
     }
   } catch (error) {
+    const err = error instanceof Error ? error : new Error(String(error))
     console.error("上传API错误:", error)
+    logger.error('api', '上传API错误', err)
     return NextResponse.json(
       { success: false, error: "服务器内部错误" },
       { status: 500 }

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import { logger } from '@/lib/logger'
 
 // Force dynamic rendering for this route
 export const dynamic = 'force-dynamic'
@@ -30,40 +31,52 @@ export async function GET(request: NextRequest) {
     const limit = parseInt(searchParams.get('limit') || '20', 10)
     const search = searchParams.get('search') || ''
 
-    const offset = (page - 1) * limit
+    try {
+      const offset = (page - 1) * limit
 
-    // Build where clause
-    const where = search
-      ? {
-          OR: [
-            { name: { contains: search, mode: 'insensitive' as const } },
-            { brand: { contains: search, mode: 'insensitive' as const } },
-            { model: { contains: search, mode: 'insensitive' as const } },
-          ],
-        }
-      : {}
+      // Build where clause
+      const where = search
+        ? {
+            OR: [
+              { name: { contains: search, mode: 'insensitive' as const } },
+              { brand: { contains: search, mode: 'insensitive' as const } },
+              { model: { contains: search, mode: 'insensitive' as const } },
+            ],
+          }
+        : {}
 
-    // Fetch frames and total count
-    const [frames, total] = await Promise.all([
-      prisma.glassesFrame.findMany({
-        where,
-        take: limit,
-        skip: offset,
-        orderBy: { createdAt: 'desc' },
-      }),
-      prisma.glassesFrame.count({ where }),
-    ])
+      // Fetch frames and total count
+      const [frames, total] = await Promise.all([
+        prisma.glassesFrame.findMany({
+          where,
+          take: limit,
+          skip: offset,
+          orderBy: { createdAt: 'desc' },
+        }),
+        prisma.glassesFrame.count({ where }),
+      ])
 
-    const totalPages = Math.ceil(total / limit)
+      const totalPages = Math.ceil(total / limit)
 
-    return NextResponse.json({
-      frames,
-      total,
-      page,
-      totalPages,
-    })
+      return NextResponse.json({
+        frames,
+        total,
+        page,
+        totalPages,
+      })
+    } catch (error) {
+      const err = error instanceof Error ? error : new Error(String(error))
+      console.error('Error fetching frames:', error)
+      logger.error('api', 'Error fetching frames', err, { page, limit })
+      return NextResponse.json(
+        { error: 'Internal server error' },
+        { status: 500 }
+      )
+    }
   } catch (error) {
-    console.error('Error fetching frames:', error)
+    const err = error instanceof Error ? error : new Error(String(error))
+    console.error('Error in GET handler:', error)
+    logger.error('api', 'Error in GET handler', err)
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
@@ -106,50 +119,63 @@ export async function POST(request: NextRequest) {
       isActive,
     } = body
 
-    // Validation
-    if (!id || !name) {
+    try {
+      // Validation
+      if (!id || !name) {
+        return NextResponse.json(
+          { error: 'ID and name are required' },
+          { status: 400 }
+        )
+      }
+
+      // Check if ID already exists
+      const existing = await prisma.glassesFrame.findUnique({
+        where: { id },
+      })
+
+      if (existing) {
+        return NextResponse.json(
+          { error: 'Frame with this ID already exists' },
+          { status: 409 }
+        )
+      }
+
+      // Create frame
+      const frame = await prisma.glassesFrame.create({
+        data: {
+          id,
+          name,
+          description: description || null,
+          imageUrl: imageUrl || null,
+          brand: brand || null,
+          model: model || null,
+          category: category || null,
+          style: style || null,
+          material: material || null,
+          color: color || null,
+          price: price ? parseFloat(price) : null,
+          isActive: isActive !== undefined ? isActive : true,
+        },
+      })
+
+      logger.info('api', 'Frame created successfully', { frameId: frame.id, name: frame.name })
+      return NextResponse.json({
+        success: true,
+        frame,
+      })
+    } catch (error) {
+      const err = error instanceof Error ? error : new Error(String(error))
+      console.error('Error creating frame:', error)
+      logger.error('api', 'Error creating frame', err, { frameId: id, name })
       return NextResponse.json(
-        { error: 'ID and name are required' },
-        { status: 400 }
+        { error: 'Internal server error' },
+        { status: 500 }
       )
     }
-
-    // Check if ID already exists
-    const existing = await prisma.glassesFrame.findUnique({
-      where: { id },
-    })
-
-    if (existing) {
-      return NextResponse.json(
-        { error: 'Frame with this ID already exists' },
-        { status: 409 }
-      )
-    }
-
-    // Create frame
-    const frame = await prisma.glassesFrame.create({
-      data: {
-        id,
-        name,
-        description: description || null,
-        imageUrl: imageUrl || null,
-        brand: brand || null,
-        model: model || null,
-        category: category || null,
-        style: style || null,
-        material: material || null,
-        color: color || null,
-        price: price ? parseFloat(price) : null,
-        isActive: isActive !== undefined ? isActive : true,
-      },
-    })
-
-    return NextResponse.json({
-      success: true,
-      frame,
-    })
   } catch (error) {
-    console.error('Error creating frame:', error)
+    const err = error instanceof Error ? error : new Error(String(error))
+    console.error('Error in POST handler:', error)
+    logger.error('api', 'Error in POST handler', err)
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

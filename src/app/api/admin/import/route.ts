@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import { logger } from '@/lib/logger'
 
 // Force dynamic rendering for this route
 export const dynamic = 'force-dynamic'
@@ -150,12 +151,15 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    logger.info('api', 'Frames imported successfully', { total: results.total, created: results.created, updated: results.updated, skipped: results.skipped })
     return NextResponse.json({
       success: true,
       results,
     })
   } catch (error) {
+    const err = error instanceof Error ? error : new Error(String(error))
     console.error('Error importing frames:', error)
+    logger.error('api', 'Error importing frames', err)
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
