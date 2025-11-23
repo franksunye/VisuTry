@@ -271,6 +271,7 @@ Return a single composite image that looks like a professional photograph taken 
     for (const part of parts) {
       if (part.inlineData) {
         console.log("🖼️ Generated image found in response")
+        logger.info('api', 'Generated image found in Gemini response')
 
         // Convert the base64 image data to a data URL
         const imageData = part.inlineData.data
@@ -279,6 +280,7 @@ Return a single composite image that looks like a professional photograph taken 
 
         const totalTime = Date.now() - totalStartTime
         console.log(`⏱️ Total generation time: ${totalTime}ms (${(totalTime/1000).toFixed(2)}s)`)
+        logger.info('api', 'Try-on generation completed', { totalTime, apiTime, imageSize: (imageData.length/1024).toFixed(2) })
         console.log(`📊 Result image size: ${(imageData.length/1024).toFixed(2)}KB`)
 
         return {
@@ -292,11 +294,14 @@ Return a single composite image that looks like a professional photograph taken 
     // If no image was generated, check for text response
     const textResponse = response.text()
     console.warn("⚠️ No image generated, text response:", textResponse)
+    logger.warn('api', 'No image generated from Gemini, received text response instead', { textResponse: textResponse.substring(0, 200) })
 
     throw new Error("Gemini did not generate an image. Response: " + textResponse)
 
   } catch (error) {
+    const err = error instanceof Error ? error : new Error(String(error))
     console.error("❌ Gemini API error:", error)
+    logger.error('api', 'Gemini API error', err)
 
     // Log detailed error information
     if (error instanceof Error) {
@@ -315,6 +320,7 @@ Return a single composite image that looks like a professional photograph taken 
       console.error("   2. Google API endpoint unreachable")
       console.error("   3. Timeout (check if GEMINI_API_KEY is set)")
       console.error("   4. Regional restrictions")
+      logger.error('api', 'Gemini network error detected', err, { errorType: 'network' })
 
       return {
         success: false,

@@ -197,6 +197,7 @@ export const authOptions: NextAuthOptions = {
               role: dbUser.role,
               trigger
             })
+            logger.info('auth', 'User role synced from database', { userId: token.sub, email: dbUser.email, role: dbUser.role, isPremium: dbUser.isPremium })
 
             // Calculate active status
             token.isPremiumActive = dbUser.isPremium &&
@@ -235,11 +236,14 @@ export const authOptions: NextAuthOptions = {
               userId: token.sub,
               trigger
             })
+            logger.warn('auth', 'User not found in database during JWT sync', { userId: token.sub, trigger })
           }
         } catch (error) {
+          const err = error instanceof Error ? error : new Error(String(error))
           perfLogger.end('auth:jwt:db-sync', { success: false, error: true })
           console.error('❌ Error syncing user data to token in jwt callback:', error)
           console.error('   This may indicate database connection issues in Vercel')
+          logger.error('auth', 'Error syncing user data to token in JWT callback', err, { userId: token.sub })
           __debugWrite('jwt.db_error', { error, userId: token.sub })
         }
       }
@@ -296,10 +300,12 @@ export const authOptions: NextAuthOptions = {
   logger: {
     error(code, metadata) {
       console.error('NextAuth Error:', code, metadata)
+      logger.error('auth', 'NextAuth error', new Error(code), { code, metadata })
       __debugWrite('logger.error', { code, metadata })
     },
     warn(code) {
       console.warn('NextAuth Warning:', code)
+      logger.warn('auth', 'NextAuth warning', { code })
       __debugWrite('logger.warn', { code })
     },
     debug(code, metadata) {
@@ -318,6 +324,7 @@ export const authOptions: NextAuthOptions = {
         cause: (error as any)?.cause,
       }
       console.error('NextAuth Events Error:', err)
+      logger.error('auth', 'NextAuth event error', new Error(err.message), { errorName: err.name })
       __debugWrite('events.error', err)
     },
     async signIn({ user, account, isNewUser }: any) {
@@ -327,21 +334,25 @@ export const authOptions: NextAuthOptions = {
         isNewUser,
       }
       console.log('NextAuth SignIn Event:', info)
+      logger.info('auth', 'User signed in', { userId: user?.id, provider: account?.provider, isNewUser })
       __debugWrite('events.signIn', info)
     },
     async signOut({ session }: any) {
       const info = { userId: session?.user?.id }
       console.log('NextAuth SignOut Event:', info)
+      logger.info('auth', 'User signed out', { userId: session?.user?.id })
       __debugWrite('events.signOut', info)
     },
     async createUser({ user }: any) {
       const info = { id: user.id, name: user.name }
       console.log('NextAuth CreateUser Event:', info)
+      logger.info('auth', 'New user created', { userId: user.id, name: user.name })
       __debugWrite('events.createUser', info)
     },
     async session({ session }: any) {
       const info = { userId: session?.user?.id }
       console.log('NextAuth Session Event:', info)
+      logger.debug('auth', 'Session event', { userId: session?.user?.id })
       __debugWrite('events.session', info)
     },
   } as any),
