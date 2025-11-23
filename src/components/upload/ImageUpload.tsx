@@ -54,7 +54,7 @@ export function ImageUpload({
     } catch (error) {
       const err = error instanceof Error ? error : new Error(String(error))
       console.error("Image processing failed:", error)
-      logger.error('component', 'Image processing failed', err)
+      logger.error('general', 'Image processing failed', err)
       alert("Image processing failed, please try again")
     } finally {
       setUploading(false)

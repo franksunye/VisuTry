@@ -21,13 +21,13 @@ export function PaymentSuccessHandler() {
 
     if (paymentSuccess && !refreshed) {
       console.log('💳 Payment success detected, refreshing session...')
-      logger.info('component', 'Payment success detected, refreshing session')
+      logger.info('general', 'Payment success detected, refreshing session')
 
       // Auto-refresh session
       update()
         .then(() => {
           console.log('✅ Session refreshed after payment')
-          logger.info('component', 'Session refreshed after payment')
+          logger.info('general', 'Session refreshed after payment')
           setRefreshed(true)
           setShowToast(true)
 
@@ -39,7 +39,7 @@ export function PaymentSuccessHandler() {
         .catch((error) => {
           const err = error instanceof Error ? error : new Error(String(error))
           console.error('❌ Failed to refresh session:', error)
-          logger.error('component', 'Failed to refresh session after payment', err)
+          logger.error('general', 'Failed to refresh session after payment', err)
           setRefreshed(true)
         })
     }

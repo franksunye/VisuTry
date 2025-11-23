@@ -35,7 +35,7 @@ export function ResultDisplay({
     } catch (error) {
       const err = error instanceof Error ? error : new Error(String(error))
       console.error("Download failed:", error)
-      logger.error('component', 'Download failed', err)
+      logger.error('general', 'Download failed', err)
       alert("Download failed, please try again")
     }
   }

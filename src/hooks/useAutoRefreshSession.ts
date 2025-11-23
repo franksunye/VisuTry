@@ -33,17 +33,17 @@ export function useAutoRefreshSession(options?: {
     try {
       refreshInProgress.current = true
       console.log(`🔄 Auto-refreshing session (reason: ${reason})...`)
-      logger.debug('hook', `Auto-refreshing session (reason: ${reason})`)
+      logger.debug('general', `Auto-refreshing session (reason: ${reason})`)
 
       await update()
 
       lastRefreshTime.current = Date.now()
       console.log('✅ Session auto-refreshed successfully')
-      logger.info('hook', 'Session auto-refreshed successfully')
+      logger.info('general', 'Session auto-refreshed successfully')
     } catch (error) {
       const err = error instanceof Error ? error : new Error(String(error))
       console.error('❌ Failed to auto-refresh session:', error)
-      logger.error('hook', 'Failed to auto-refresh session', err)
+      logger.error('general', 'Failed to auto-refresh session', err)
     } finally {
       refreshInProgress.current = false
     }
