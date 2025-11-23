@@ -31,6 +31,8 @@
     "tryOn": "Try-On",
     "tryGlasses": "Try Glasses",
     "tryOutfit": "Try Outfit",
+    "tryShoes": "Try Shoes",
+    "tryAccessories": "Try Accessories",
     "blog": "Blog",
     "pricing": "Pricing",
     "dashboard": "Dashboard",
@@ -60,7 +62,9 @@
     "cta": {
       "button": "Get Started",
       "tryGlasses": "Try On Glasses",
-      "tryOutfit": "Try On Outfit"
+      "tryOutfit": "Try On Outfit",
+      "tryShoes": "Try On Shoes",
+      "tryAccessories": "Try On Accessories"
     },
     "showcase": {
       "alex": {
@@ -240,15 +244,18 @@
   },
 
   "footer": {
-    "tagline": "AI-powered virtual glasses try-on",
+    "tagline": "AI-powered virtual try-on for glasses, outfits, shoes, and accessories",
     "links": {
       "product": "Product",
-      "company": "Company",
+      "resources": "Resources",
       "legal": "Legal",
-      "support": "Support",
-      "tryOn": "Try On",
+      "tryGlasses": "Try Glasses",
+      "tryOutfit": "Try Outfit",
+      "tryShoes": "Try Shoes",
+      "tryAccessories": "Try Accessories",
       "pricing": "Pricing",
       "blog": "Blog",
+      "faq": "FAQ",
       "privacy": "Privacy Policy",
       "terms": "Terms of Service",
       "refund": "Refund Policy"

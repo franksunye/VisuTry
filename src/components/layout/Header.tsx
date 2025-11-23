@@ -35,7 +35,8 @@ export function Header({ transparent = false }: HeaderProps) {
   const navLinks = useMemo(() => [
     { href: `/${locale}/try-on/glasses`, label: t('tryGlasses') },
     { href: `/${locale}/try-on/outfit`, label: t('tryOutfit') },
-    { href: `/${locale}/blog`, label: t('blog') },
+    { href: `/${locale}/try-on/shoes`, label: t('tryShoes') },
+    { href: `/${locale}/try-on/accessories`, label: t('tryAccessories') },
     { href: `/${locale}/pricing`, label: t('pricing') },
   ], [locale, t])
   

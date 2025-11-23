@@ -17,7 +17,7 @@ export default function Home() {
 
   const isAuthenticated = session || testSession
 
-  const handleStartTryOn = (type: 'glasses' | 'outfit' = 'glasses') => {
+  const handleStartTryOn = (type: 'glasses' | 'outfit' | 'shoes' | 'accessories' = 'glasses') => {
     if (isAuthenticated) {
       router.push(`/${locale}/try-on/${type}`)
     } else {
@@ -88,19 +88,31 @@ export default function Home() {
         {/* Try-On Showcase Carousel */}
         <TryOnShowcase />
 
-        {/* CTA Section - Dual Buttons */}
-        <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+        {/* CTA Section - Four Try-On Options */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 justify-center">
           <button
             onClick={() => handleStartTryOn('glasses')}
-            className="px-8 py-4 text-lg font-semibold text-white transition-colors duration-200 bg-blue-600 rounded-lg shadow-lg hover:bg-blue-700 hover:shadow-xl min-w-[200px]"
+            className="px-6 py-3 text-base font-semibold text-white transition-colors duration-200 bg-blue-600 rounded-lg shadow-lg hover:bg-blue-700 hover:shadow-xl"
           >
             👓 {t('cta.tryGlasses')}
           </button>
           <button
             onClick={() => handleStartTryOn('outfit')}
-            className="px-8 py-4 text-lg font-semibold text-blue-600 transition-colors duration-200 bg-white border-2 border-blue-600 rounded-lg shadow-lg hover:bg-blue-50 hover:shadow-xl min-w-[200px]"
+            className="px-6 py-3 text-base font-semibold text-white transition-colors duration-200 bg-blue-600 rounded-lg shadow-lg hover:bg-blue-700 hover:shadow-xl"
           >
             👔 {t('cta.tryOutfit')}
+          </button>
+          <button
+            onClick={() => handleStartTryOn('shoes')}
+            className="px-6 py-3 text-base font-semibold text-white transition-colors duration-200 bg-blue-600 rounded-lg shadow-lg hover:bg-blue-700 hover:shadow-xl"
+          >
+            👟 {t('cta.tryShoes')}
+          </button>
+          <button
+            onClick={() => handleStartTryOn('accessories')}
+            className="px-6 py-3 text-base font-semibold text-white transition-colors duration-200 bg-blue-600 rounded-lg shadow-lg hover:bg-blue-700 hover:shadow-xl"
+          >
+            💍 {t('cta.tryAccessories')}
           </button>
         </div>
       </section>

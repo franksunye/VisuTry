@@ -13,15 +13,15 @@ export function Footer() {
 
   return (
     <footer className="bg-white/80 backdrop-blur-sm border-t border-gray-200 mt-auto">
-      <div className="container mx-auto px-4 py-8">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+      <div className="container mx-auto px-4 py-12">
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-8 mb-8">
           {/* Brand Section */}
           <div className="col-span-1 md:col-span-2">
             <div className="flex items-center mb-4">
               <Glasses className="w-8 h-8 text-blue-600 mr-2" />
               <span className="text-xl font-bold text-gray-800">VisuTry</span>
             </div>
-            <p className="text-gray-600 text-sm mb-4">
+            <p className="text-gray-600 text-sm mb-6">
               {t('tagline')}
             </p>
             <div className="flex space-x-4">
@@ -58,8 +58,23 @@ export function Footer() {
             <h3 className="font-semibold text-gray-900 mb-4">{t('links.product')}</h3>
             <ul className="space-y-2">
               <li>
-                <Link href={`/${locale}/try-on`} className="text-gray-600 hover:text-blue-600 text-sm transition-colors">
-                  {t('links.tryOn')}
+                <Link href={`/${locale}/try-on/glasses`} className="text-gray-600 hover:text-blue-600 text-sm transition-colors">
+                  {t('links.tryGlasses')}
+                </Link>
+              </li>
+              <li>
+                <Link href={`/${locale}/try-on/outfit`} className="text-gray-600 hover:text-blue-600 text-sm transition-colors">
+                  {t('links.tryOutfit')}
+                </Link>
+              </li>
+              <li>
+                <Link href={`/${locale}/try-on/shoes`} className="text-gray-600 hover:text-blue-600 text-sm transition-colors">
+                  {t('links.tryShoes')}
+                </Link>
+              </li>
+              <li>
+                <Link href={`/${locale}/try-on/accessories`} className="text-gray-600 hover:text-blue-600 text-sm transition-colors">
+                  {t('links.tryAccessories')}
                 </Link>
               </li>
               <li>
@@ -67,9 +82,21 @@ export function Footer() {
                   {t('links.pricing')}
                 </Link>
               </li>
+            </ul>
+          </div>
+
+          {/* Resources Links */}
+          <div>
+            <h3 className="font-semibold text-gray-900 mb-4">{t('links.resources')}</h3>
+            <ul className="space-y-2">
               <li>
                 <Link href={`/${locale}/blog`} className="text-gray-600 hover:text-blue-600 text-sm transition-colors">
                   {t('links.blog')}
+                </Link>
+              </li>
+              <li>
+                <Link href={`/${locale}/faq`} className="text-gray-600 hover:text-blue-600 text-sm transition-colors">
+                  {t('links.faq')}
                 </Link>
               </li>
             </ul>
@@ -99,7 +126,7 @@ export function Footer() {
         </div>
 
         {/* Bottom Bar */}
-        <div className="border-t border-gray-200 mt-8 pt-6">
+        <div className="border-t border-gray-200 pt-6">
           <div className="flex flex-col md:flex-row justify-between items-center">
             <p className="text-gray-600 text-sm">
               {t('copyright', { year: currentYear })}
