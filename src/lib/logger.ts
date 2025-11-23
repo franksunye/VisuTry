@@ -104,8 +104,11 @@ class Logger {
       this.consoleOutput(entry)
     }
 
-    // 生产环境：发送到 Axiom（error, warn, info 级别）
+    // 生产环境：同时输出到 Vercel 日志和 Axiom
     if (this.isProduction && entry.level !== 'debug') {
+      // 输出到 Vercel 日志（console）
+      this.handleProductionError(entry)
+      // 异步发送到 Axiom（不阻塞主流程）
       this.sendToAxiom(entry)
     }
   }
@@ -163,16 +166,29 @@ class Logger {
   }
 
   private handleProductionError(entry: LogEntry) {
-    // 生产环境错误处理（已通过 sendToAxiom 发送）
-    console.error('Production Error:', {
+    // 生产环境日志输出到 Vercel（同时也发送到 Axiom）
+    const logData = {
       id: entry.id,
       timestamp: entry.timestamp,
+      level: entry.level,
       message: entry.message,
       category: entry.category,
       userId: entry.userId,
       url: entry.url,
       error: entry.error,
-    })
+    }
+
+    switch (entry.level) {
+      case 'error':
+        console.error('❌ Production Error:', logData)
+        break
+      case 'warn':
+        console.warn('⚠️ Production Warning:', logData)
+        break
+      case 'info':
+        console.log('ℹ️ Production Info:', logData)
+        break
+    }
   }
 
   // 公共日志方法
