@@ -6,7 +6,7 @@ import Auth0Provider from "next-auth/providers/auth0"
 import { PrismaAdapter } from "@next-auth/prisma-adapter"
 import { prisma } from "@/lib/prisma"
 import { MockCredentialsProvider, isMockMode } from "@/lib/mocks/auth"
-import { log } from "@/lib/logger"
+import { logger } from "@/lib/logger"
 import { perfLogger } from "@/lib/performance-logger"
 import { clearUserCache } from "@/lib/cache"
 import { QUOTA_CONFIG } from "@/config/pricing"
@@ -226,9 +226,9 @@ export const authOptions: NextAuthOptions = {
             if (trigger === 'update' || user) {
               try {
                 clearUserCache(token.sub)
-                log.debug('auth', 'User cache cleared after data sync', { userId: token.sub })
+                logger.debug('auth', 'User cache cleared after data sync', { userId: token.sub })
               } catch (cacheError) {
-                log.warn('auth', 'Failed to clear user cache', { userId: token.sub, error: cacheError })
+                logger.warn('auth', 'Failed to clear user cache', { userId: token.sub, error: cacheError })
               }
             }
           } else {
@@ -258,7 +258,7 @@ export const authOptions: NextAuthOptions = {
     },
     async redirect({ url, baseUrl }) {
       // Handle post-login redirects intelligently
-      log.debug('auth', 'Redirect callback', { url, baseUrl })
+      logger.debug('auth', 'Redirect callback', { url, baseUrl })
 
       let redirectUrl: string
 
@@ -280,7 +280,7 @@ export const authOptions: NextAuthOptions = {
         redirectUrl = `${baseUrl}/try-on`
       }
 
-      log.info('auth', 'OAuth redirect completed', {
+      logger.info('auth', 'OAuth redirect completed', {
         originalUrl: url,
         finalUrl: redirectUrl
       })
