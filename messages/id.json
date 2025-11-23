@@ -29,6 +29,10 @@
   "nav": {
     "home": "Beranda",
     "tryOn": "Coba Virtual",
+    "tryGlasses": "Coba Kacamata",
+    "tryOutfit": "Coba Pakaian",
+    "tryShoes": "Coba Sepatu",
+    "tryAccessories": "Coba Aksesori",
     "blog": "Blog",
     "pricing": "Harga",
     "dashboard": "Dasbor",
@@ -56,7 +60,11 @@
       }
     },
     "cta": {
-      "button": "Mulai Sekarang"
+      "button": "Mulai Sekarang",
+      "tryGlasses": "Coba Kacamata",
+      "tryOutfit": "Coba Pakaian",
+      "tryShoes": "Coba Sepatu",
+      "tryAccessories": "Coba Aksesori"
     },
     "showcase": {
       "alex": {
@@ -187,15 +195,18 @@
     }
   },
   "footer": {
-    "tagline": "Coba virtual kacamata dengan teknologi AI",
+    "tagline": "Coba virtual dengan teknologi AI untuk kacamata, pakaian, sepatu, dan aksesori",
     "links": {
       "product": "Produk",
-      "company": "Perusahaan",
+      "resources": "Sumber Daya",
       "legal": "Legal",
-      "support": "Dukungan",
-      "tryOn": "Coba Virtual",
+      "tryGlasses": "Coba Kacamata",
+      "tryOutfit": "Coba Pakaian",
+      "tryShoes": "Coba Sepatu",
+      "tryAccessories": "Coba Aksesori",
       "pricing": "Harga",
       "blog": "Blog",
+      "faq": "Tanya Jawab",
       "privacy": "Kebijakan Privasi",
       "terms": "Ketentuan Layanan",
       "refund": "Kebijakan Pengembalian Dana"

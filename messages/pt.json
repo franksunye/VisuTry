@@ -29,6 +29,10 @@
   "nav": {
     "home": "Início",
     "tryOn": "Experimentação Virtual",
+    "tryGlasses": "Experimentar Óculos",
+    "tryOutfit": "Experimentar Roupas",
+    "tryShoes": "Experimentar Sapatos",
+    "tryAccessories": "Experimentar Acessórios",
     "blog": "Blog",
     "pricing": "Preços",
     "dashboard": "Painel",
@@ -58,7 +62,9 @@
     "cta": {
       "button": "Começar",
       "tryGlasses": "Experimentar Óculos",
-      "tryOutfit": "Experimentar Roupa"
+      "tryOutfit": "Experimentar Roupa",
+      "tryShoes": "Experimentar Sapatos",
+      "tryAccessories": "Experimentar Acessórios"
     },
     "showcase": {
       "alex": {
@@ -172,15 +178,18 @@
     }
   },
   "footer": {
-    "tagline": "Experimentação virtual de óculos com IA",
+    "tagline": "Experimentação virtual com IA para óculos, roupas, sapatos e acessórios",
     "links": {
       "product": "Produto",
-      "company": "Empresa",
+      "resources": "Recursos",
       "legal": "Legal",
-      "support": "Suporte",
-      "tryOn": "Experimentação Virtual",
+      "tryGlasses": "Experimentar Óculos",
+      "tryOutfit": "Experimentar Roupas",
+      "tryShoes": "Experimentar Sapatos",
+      "tryAccessories": "Experimentar Acessórios",
       "pricing": "Preços",
       "blog": "Blog",
+      "faq": "Perguntas Frequentes",
       "privacy": "Política de Privacidade",
       "terms": "Termos de Serviço",
       "refund": "Política de Reembolso"

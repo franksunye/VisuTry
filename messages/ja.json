@@ -31,6 +31,8 @@
     "tryOn": "バーチャル試着",
     "tryGlasses": "メガネを試す",
     "tryOutfit": "服を試す",
+    "tryShoes": "靴を試す",
+    "tryAccessories": "アクセサリーを試す",
     "blog": "ブログ",
     "pricing": "料金",
     "dashboard": "ダッシュボード",
@@ -60,7 +62,9 @@
     "cta": {
       "button": "始める",
       "tryGlasses": "メガネを試す",
-      "tryOutfit": "服を試す"
+      "tryOutfit": "服を試す",
+      "tryShoes": "靴を試す",
+      "tryAccessories": "アクセサリーを試す"
     },
     "showcase": {
       "alex": {
@@ -174,15 +178,18 @@
     }
   },
   "footer": {
-    "tagline": "AI搭載バーチャルメガネ試着",
+    "tagline": "メガネ、服、靴、アクセサリーのAI搭載バーチャル試着",
     "links": {
       "product": "製品",
-      "company": "会社",
+      "resources": "リソース",
       "legal": "法的情報",
-      "support": "サポート",
-      "tryOn": "バーチャル試着",
+      "tryGlasses": "メガネを試す",
+      "tryOutfit": "服を試す",
+      "tryShoes": "靴を試す",
+      "tryAccessories": "アクセサリーを試す",
       "pricing": "料金",
       "blog": "ブログ",
+      "faq": "よくある質問",
       "privacy": "プライバシーポリシー",
       "terms": "利用規約",
       "refund": "返金ポリシー"

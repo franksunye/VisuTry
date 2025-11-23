@@ -29,6 +29,10 @@
   "nav": {
     "home": "Accueil",
     "tryOn": "Essayage Virtuel",
+    "tryGlasses": "Essayer des Lunettes",
+    "tryOutfit": "Essayer des Vêtements",
+    "tryShoes": "Essayer des Chaussures",
+    "tryAccessories": "Essayer des Accessoires",
     "blog": "Blog",
     "pricing": "Tarifs",
     "dashboard": "Tableau de Bord",
@@ -58,7 +62,9 @@
     "cta": {
       "button": "Commencer",
       "tryGlasses": "Essayer des Lunettes",
-      "tryOutfit": "Essayer des Vêtements"
+      "tryOutfit": "Essayer des Vêtements",
+      "tryShoes": "Essayer des Chaussures",
+      "tryAccessories": "Essayer des Accessoires"
     },
     "showcase": {
       "alex": {
@@ -237,15 +243,18 @@
     }
   },
   "footer": {
-    "tagline": "Essayage virtuel de lunettes avec IA",
+    "tagline": "Essayage virtuel avec IA pour lunettes, vêtements, chaussures et accessoires",
     "links": {
       "product": "Produit",
-      "company": "Entreprise",
+      "resources": "Ressources",
       "legal": "Légal",
-      "support": "Support",
-      "tryOn": "Essayage Virtuel",
+      "tryGlasses": "Essayer des Lunettes",
+      "tryOutfit": "Essayer des Vêtements",
+      "tryShoes": "Essayer des Chaussures",
+      "tryAccessories": "Essayer des Accessoires",
       "pricing": "Tarifs",
       "blog": "Blog",
+      "faq": "Questions Fréquemment Posées",
       "privacy": "Politique de Confidentialité",
       "terms": "Conditions d'Utilisation",
       "refund": "Politique de Remboursement"

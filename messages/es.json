@@ -31,6 +31,8 @@
     "tryOn": "Prueba Virtual",
     "tryGlasses": "Probar Gafas",
     "tryOutfit": "Probar Ropa",
+    "tryShoes": "Probar Zapatos",
+    "tryAccessories": "Probar Accesorios",
     "blog": "Blog",
     "pricing": "Precios",
     "dashboard": "Panel",
@@ -60,7 +62,9 @@
     "cta": {
       "button": "Comenzar",
       "tryGlasses": "Probar Gafas",
-      "tryOutfit": "Probar Ropa"
+      "tryOutfit": "Probar Ropa",
+      "tryShoes": "Probar Zapatos",
+      "tryAccessories": "Probar Accesorios"
     },
     "showcase": {
       "alex": {
@@ -239,15 +243,18 @@
     }
   },
   "footer": {
-    "tagline": "Prueba virtual de gafas con IA",
+    "tagline": "Prueba virtual con IA para gafas, ropa, zapatos y accesorios",
     "links": {
       "product": "Producto",
-      "company": "Empresa",
+      "resources": "Recursos",
       "legal": "Legal",
-      "support": "Soporte",
-      "tryOn": "Prueba Virtual",
+      "tryGlasses": "Probar Gafas",
+      "tryOutfit": "Probar Ropa",
+      "tryShoes": "Probar Zapatos",
+      "tryAccessories": "Probar Accesorios",
       "pricing": "Precios",
       "blog": "Blog",
+      "faq": "Preguntas Frecuentes",
       "privacy": "Política de Privacidad",
       "terms": "Términos de Servicio",
       "refund": "Política de Reembolso"
