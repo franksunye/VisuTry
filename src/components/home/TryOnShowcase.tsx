@@ -13,17 +13,17 @@ interface ShowcaseItem {
 
 const showcaseItems: ShowcaseItem[] = [
   {
-    image: '/home/Alex-try-on-screen.png',
+    image: '/home/Alex-try-on-glasses-screen.png',
     nameKey: 'alex.name',
     descriptionKey: 'alex.description',
   },
   {
-    image: '/home/Ethan-try-on-screen.png',
+    image: '/home/Ethan-try-on-glasses-screen.png',
     nameKey: 'ethan.name',
     descriptionKey: 'ethan.description',
   },
   {
-    image: '/home/Sophia-try-on-screen.png',
+    image: '/home/Sophia-try-on-outfit-screen.png',
     nameKey: 'sophia.name',
     descriptionKey: 'sophia.description',
   },
