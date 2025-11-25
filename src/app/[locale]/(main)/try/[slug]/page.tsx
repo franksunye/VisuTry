@@ -20,6 +20,8 @@ interface ProductPageProps {
 
 // Generate static params for all frames
 export async function generateStaticParams() {
+  const enabled = process.env.PROGRAMMATIC_SEO_ENABLED === 'true'
+  if (!enabled) return []
   const frames = await prisma.glassesFrame.findMany({
     where: { isActive: true },
     select: { id: true },
@@ -29,6 +31,8 @@ export async function generateStaticParams() {
     slug: frame.id,
   }))
 }
+
+export const dynamicParams = process.env.PROGRAMMATIC_SEO_ENABLED === 'true'
 
 // Generate metadata
 export async function generateMetadata({
@@ -233,4 +237,3 @@ export default async function ProductPage({ params }: ProductPageProps) {
     </div>
   )
 }
-

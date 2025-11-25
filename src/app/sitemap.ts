@@ -6,6 +6,7 @@ import { locales } from '@/i18n'
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://visutry.com'
+  const programmaticEnabled = process.env.PROGRAMMATIC_SEO_ENABLED === 'true'
 
   // Helper function to generate alternate languages
   const generateAlternates = (path: string) => {
@@ -63,103 +64,111 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   // Dynamic product pages (frames) with i18n
   let productPages: MetadataRoute.Sitemap = []
-  try {
-    const frames = await prisma.glassesFrame.findMany({
-      where: { isActive: true },
-      select: { id: true, updatedAt: true },
-    })
-    frames.forEach(frame => {
-      const path = `/try/${frame.id}`
-      locales.forEach(locale => {
-        productPages.push({
-          url: `${baseUrl}/${locale}${path}`,
-          lastModified: frame.updatedAt,
-          changeFrequency: 'monthly' as const,
-          priority: 0.8,
-          alternates: {
-            languages: generateAlternates(path),
-          },
-        })
+  if (programmaticEnabled) {
+    try {
+      const frames = await prisma.glassesFrame.findMany({
+        where: { isActive: true },
+        select: { id: true, updatedAt: true },
       })
-    })
-  } catch (error) {
-    console.log('Unable to fetch product pages, skipping product sitemap generation')
-  }
-
-  // Dynamic face shape pages with i18n
-  let faceShapePages: MetadataRoute.Sitemap = []
-  try {
-    const shapes = await prisma.faceShape.findMany({
-      select: { name: true, updatedAt: true },
-    })
-    shapes.forEach(shape => {
-      const path = `/style/${slugify(shape.name)}`
-      locales.forEach(locale => {
-        faceShapePages.push({
-          url: `${baseUrl}/${locale}${path}`,
-          lastModified: shape.updatedAt,
-          changeFrequency: 'monthly' as const,
-          priority: 0.7,
-          alternates: {
-            languages: generateAlternates(path),
-          },
-        })
-      })
-    })
-  } catch (error) {
-    console.log('Unable to fetch face shape pages, skipping face shape sitemap generation')
-  }
-
-  // Dynamic category pages with i18n
-  let categoryPages: MetadataRoute.Sitemap = []
-  try {
-    const categories = await prisma.glassesCategory.findMany({
-      select: { name: true, updatedAt: true },
-    })
-    categories.forEach(category => {
-      const path = `/category/${slugify(category.name)}`
-      locales.forEach(locale => {
-        categoryPages.push({
-          url: `${baseUrl}/${locale}${path}`,
-          lastModified: category.updatedAt,
-          changeFrequency: 'monthly' as const,
-          priority: 0.7,
-          alternates: {
-            languages: generateAlternates(path),
-          },
-        })
-      })
-    })
-  } catch (error) {
-    console.log('Unable to fetch category pages, skipping category sitemap generation')
-  }
-
-  // Dynamic brand pages with i18n
-  let brandPages: MetadataRoute.Sitemap = []
-  try {
-    const brands = await prisma.glassesFrame.findMany({
-      where: { isActive: true },
-      distinct: ['brand'],
-      select: { brand: true, updatedAt: true },
-    })
-    brands
-      .filter((b): b is { brand: string; updatedAt: Date } => b.brand !== null && b.brand !== undefined)
-      .forEach(brand => {
-        const path = `/brand/${slugify(brand.brand)}`
+      frames.forEach(frame => {
+        const path = `/try/${frame.id}`
         locales.forEach(locale => {
-          brandPages.push({
+          productPages.push({
             url: `${baseUrl}/${locale}${path}`,
-            lastModified: brand.updatedAt,
+            lastModified: frame.updatedAt,
             changeFrequency: 'monthly' as const,
-            priority: 0.6,
+            priority: 0.8,
             alternates: {
               languages: generateAlternates(path),
             },
           })
         })
       })
-  } catch (error) {
-    console.log('Unable to fetch brand pages, skipping brand sitemap generation')
+    } catch (error) {
+      console.log('Unable to fetch product pages, skipping product sitemap generation')
+    }
+  }
+
+  // Dynamic face shape pages with i18n
+  let faceShapePages: MetadataRoute.Sitemap = []
+  if (programmaticEnabled) {
+    try {
+      const shapes = await prisma.faceShape.findMany({
+        select: { name: true, updatedAt: true },
+      })
+      shapes.forEach(shape => {
+        const path = `/style/${slugify(shape.name)}`
+        locales.forEach(locale => {
+          faceShapePages.push({
+            url: `${baseUrl}/${locale}${path}`,
+            lastModified: shape.updatedAt,
+            changeFrequency: 'monthly' as const,
+            priority: 0.7,
+            alternates: {
+              languages: generateAlternates(path),
+            },
+          })
+        })
+      })
+    } catch (error) {
+      console.log('Unable to fetch face shape pages, skipping face shape sitemap generation')
+    }
+  }
+
+  // Dynamic category pages with i18n
+  let categoryPages: MetadataRoute.Sitemap = []
+  if (programmaticEnabled) {
+    try {
+      const categories = await prisma.glassesCategory.findMany({
+        select: { name: true, updatedAt: true },
+      })
+      categories.forEach(category => {
+        const path = `/category/${slugify(category.name)}`
+        locales.forEach(locale => {
+          categoryPages.push({
+            url: `${baseUrl}/${locale}${path}`,
+            lastModified: category.updatedAt,
+            changeFrequency: 'monthly' as const,
+            priority: 0.7,
+            alternates: {
+              languages: generateAlternates(path),
+            },
+          })
+        })
+      })
+    } catch (error) {
+      console.log('Unable to fetch category pages, skipping category sitemap generation')
+    }
+  }
+
+  // Dynamic brand pages with i18n
+  let brandPages: MetadataRoute.Sitemap = []
+  if (programmaticEnabled) {
+    try {
+      const brands = await prisma.glassesFrame.findMany({
+        where: { isActive: true },
+        distinct: ['brand'],
+        select: { brand: true, updatedAt: true },
+      })
+      brands
+        .filter((b): b is { brand: string; updatedAt: Date } => b.brand !== null && b.brand !== undefined)
+        .forEach(brand => {
+          const path = `/brand/${slugify(brand.brand)}`
+          locales.forEach(locale => {
+            brandPages.push({
+              url: `${baseUrl}/${locale}${path}`,
+              lastModified: brand.updatedAt,
+              changeFrequency: 'monthly' as const,
+              priority: 0.6,
+              alternates: {
+                languages: generateAlternates(path),
+              },
+            })
+          })
+        })
+    } catch (error) {
+      console.log('Unable to fetch brand pages, skipping brand sitemap generation')
+    }
   }
 
   // Dynamic user public pages - DISABLED to prevent 404 errors
