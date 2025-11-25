@@ -48,17 +48,14 @@ export async function GET(request: NextRequest) {
           distinct: ['userImageUrl'],
         }),
         prisma.tryOnTask.findMany({
-          where: { itemImageUrl: { not: null } },
           select: { itemImageUrl: true },
           distinct: ['itemImageUrl'],
         }),
         prisma.tryOnTask.findMany({
-          where: { glassesImageUrl: { not: null } },
           select: { glassesImageUrl: true },
           distinct: ['glassesImageUrl'],
         }),
         prisma.tryOnTask.findMany({
-          where: { resultImageUrl: { not: null } },
           select: { resultImageUrl: true },
           distinct: ['resultImageUrl'],
         }),
