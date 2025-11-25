@@ -314,7 +314,7 @@ export async function POST(request: NextRequest) {
     console.log(`⏱️ [Task ${tryOnTask.id}] Starting synchronous processing (maxDuration: 60s)`)
 
     try {
-      await processTryOnAsync(tryOnTask.id, userImageBlob.url, itemImageUrl, tryOnType)
+      await processTryOnAsync(tryOnTask.id, userImageBlob.url, itemImageUrl, tryOnType, ctx)
       console.log(`✅ [Task ${tryOnTask.id}] Processing completed successfully`)
     } catch (error) {
       console.error(`❌ [Task ${tryOnTask.id}] Processing failed:`, error)
@@ -488,7 +488,7 @@ async function uploadBase64ToBlob(base64Data: string, taskId: string, userId: st
 }
 
 // Process try-on task asynchronously
-async function processTryOnAsync(taskId: string, userImageUrl: string, itemImageUrl: string, tryOnType: TryOnType) {
+async function processTryOnAsync(taskId: string, userImageUrl: string, itemImageUrl: string, tryOnType: TryOnType, context?: any) {
   const processStartTime = Date.now()
   const config = getTryOnConfig(tryOnType)
   console.log(`🚀 [Task ${taskId}] Starting async processing for ${tryOnType}...`)
@@ -549,7 +549,7 @@ async function processTryOnAsync(taskId: string, userImageUrl: string, itemImage
 
       // 更新任务状态为完成
       console.log(`💾 [Task ${taskId}] Updating database status to COMPLETED...`)
-      logger.info('api', 'Updating database status to COMPLETED', { taskId }, ctx)
+      logger.info('api', 'Updating database status to COMPLETED', { taskId }, context)
       if (isMockMode) {
         await MockDatabase.updateTryOnTask(taskId, {
           status: "completed",
@@ -567,14 +567,14 @@ async function processTryOnAsync(taskId: string, userImageUrl: string, itemImage
 
       const totalProcessTime = Date.now() - processStartTime
       console.log(`✅ [Task ${taskId}] Task completed in ${totalProcessTime}ms (${(totalProcessTime/1000).toFixed(2)}s) ⭐ TOTAL TIME`)
-      logger.info('api', 'Task completed successfully', { taskId, duration: totalProcessTime }, ctx)
+      logger.info('api', 'Task completed successfully', { taskId, duration: totalProcessTime }, context)
       console.log(`✅ [Task ${taskId}] Database updated successfully with result URL: ${finalImageUrl.substring(0, 80)}...`)
-      logger.info('api', 'Database updated successfully with result URL', { taskId, resultUrl: finalImageUrl.substring(0, 80) }, ctx)
+      logger.info('api', 'Database updated successfully with result URL', { taskId, resultUrl: finalImageUrl.substring(0, 80) }, context)
     } else {
       console.log(`❌ [Task ${taskId}] Try-on failed, updating task status to FAILED...`)
-      logger.warn('api', 'Try-on failed, updating task status to FAILED', { taskId }, ctx)
+      logger.warn('api', 'Try-on failed, updating task status to FAILED', { taskId }, context)
       console.log(`❌ [Task ${taskId}] Error: ${result.error}`)
-      logger.warn('api', 'Try-on error', { taskId, error: result.error }, ctx)
+      logger.warn('api', 'Try-on error', { taskId, error: result.error }, context)
       // 更新任务状态为失败
       if (isMockMode) {
         await MockDatabase.updateTryOnTask(taskId, {
@@ -591,18 +591,18 @@ async function processTryOnAsync(taskId: string, userImageUrl: string, itemImage
         })
       }
       console.log(`💾 [Task ${taskId}] Database updated with FAILED status`)
-      logger.info('api', 'Database updated with FAILED status', { taskId }, ctx)
+      logger.info('api', 'Database updated with FAILED status', { taskId }, context)
     }
   } catch (error) {
     const err = error instanceof Error ? error : new Error(String(error))
     console.error(`❌ [Task ${taskId}] Exception in processTryOnAsync:`, error)
-    logger.error('api', 'Exception in processTryOnAsync', err, { taskId }, ctx)
+    logger.error('api', 'Exception in processTryOnAsync', err, { taskId }, context)
     console.error(`❌ [Task ${taskId}] Error stack:`, error instanceof Error ? error.stack : 'No stack trace')
-    logger.error('api', 'Error stack', err, { taskId, stack: error instanceof Error ? error.stack : 'No stack trace' }, ctx)
+    logger.error('api', 'Error stack', err, { taskId, stack: error instanceof Error ? error.stack : 'No stack trace' }, context)
 
     // 更新任务状态为失败
     console.log(`💾 [Task ${taskId}] Updating database status to FAILED due to exception...`)
-    logger.info('api', 'Updating database status to FAILED due to exception', { taskId }, ctx)
+    logger.info('api', 'Updating database status to FAILED due to exception', { taskId }, context)
     if (isMockMode) {
       await MockDatabase.updateTryOnTask(taskId, {
         status: "failed",
@@ -618,11 +618,11 @@ async function processTryOnAsync(taskId: string, userImageUrl: string, itemImage
           }
         })
         console.log(`💾 [Task ${taskId}] Database updated with FAILED status after exception`)
-        logger.info('api', 'Database updated with FAILED status after exception', { taskId }, ctx)
+        logger.info('api', 'Database updated with FAILED status after exception', { taskId }, context)
       } catch (dbError) {
         const dbErr = dbError instanceof Error ? dbError : new Error(String(dbError))
         console.error(`❌ [Task ${taskId}] Failed to update database after exception:`, dbError)
-        logger.error('database', 'Failed to update task status after exception', dbErr, { taskId }, ctx)
+        logger.error('database', 'Failed to update task status after exception', dbErr, { taskId }, context)
       }
     }
   }
