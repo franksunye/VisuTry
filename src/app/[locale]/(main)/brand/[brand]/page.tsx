@@ -22,6 +22,8 @@ interface BrandPageProps {
 
 // Generate static params for all brands
 export async function generateStaticParams() {
+  const enabled = process.env.PROGRAMMATIC_SEO_ENABLED === 'true'
+  if (!enabled) return []
   const brands = await prisma.glassesFrame.findMany({
     where: { isActive: true },
     distinct: ['brand'],
@@ -34,6 +36,8 @@ export async function generateStaticParams() {
       brand: generateBrandSlug(b.brand),
     }))
 }
+
+export const dynamicParams = process.env.PROGRAMMATIC_SEO_ENABLED === 'true'
 
 // Generate metadata
 export async function generateMetadata({
@@ -179,4 +183,3 @@ export default async function BrandPage({ params }: BrandPageProps) {
     </div>
   )
 }
-
