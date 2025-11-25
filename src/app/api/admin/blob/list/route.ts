@@ -44,7 +44,6 @@ export async function GET(request: NextRequest) {
     if (showOrphaned) {
       const [userUrls, itemUrls, glassesUrls, resultUrls] = await Promise.all([
         prisma.tryOnTask.findMany({
-          where: { userImageUrl: { not: null } },
           select: { userImageUrl: true },
           distinct: ['userImageUrl'],
         }),
@@ -66,10 +65,10 @@ export async function GET(request: NextRequest) {
       ]);
 
       const dbUrls = new Set<string>();
-      userUrls.forEach(u => dbUrls.add(u.userImageUrl as string));
-      itemUrls.forEach(i => dbUrls.add(i.itemImageUrl as string));
-      glassesUrls.forEach(g => dbUrls.add(g.glassesImageUrl as string));
-      resultUrls.forEach(r => dbUrls.add(r.resultImageUrl as string));
+      userUrls.forEach(u => { if (u.userImageUrl) dbUrls.add(u.userImageUrl); });
+      itemUrls.forEach(i => { if (i.itemImageUrl) dbUrls.add(i.itemImageUrl as string); });
+      glassesUrls.forEach(g => { if (g.glassesImageUrl) dbUrls.add(g.glassesImageUrl as string); });
+      resultUrls.forEach(r => { if (r.resultImageUrl) dbUrls.add(r.resultImageUrl as string); });
 
       filteredBlobs = blobs.filter(blob => !dbUrls.has(blob.url));
     }
