@@ -7,7 +7,7 @@
 import { Axiom } from '@axiomhq/js'
 
 export type LogLevel = 'debug' | 'info' | 'warn' | 'error'
-export type LogCategory = 'auth' | 'oauth' | 'api' | 'database' | 'upload' | 'payment' | 'general'
+export type LogCategory = 'auth' | 'oauth' | 'api' | 'database' | 'upload' | 'payment' | 'web' | 'general'
 
 export interface LogEntry {
   id: string
@@ -310,6 +310,19 @@ export const log = {
     success: (provider: string, userId: string, context?: any) => logger.oauthSuccess(provider, userId, context),
     error: (provider: string, error: Error, context?: any) => logger.oauthError(provider, error, context),
     callback: (provider: string, data: any, context?: any) => logger.oauthCallback(provider, data, context),
+  }
+}
+
+export function getRequestContext(request: Request) {
+  const forwarded = request.headers.get('x-forwarded-for') || undefined
+  const realIp = request.headers.get('x-real-ip') || undefined
+  const ip = forwarded ? forwarded.split(',')[0].trim() : realIp || undefined
+  const userAgent = request.headers.get('user-agent') || undefined
+  return {
+    method: request.method,
+    url: request.url,
+    ip,
+    userAgent,
   }
 }
 

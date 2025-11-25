@@ -3,6 +3,7 @@ import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 import createIntlMiddleware from 'next-intl/middleware'
 import { locales, defaultLocale } from './i18n'
+import { logger, getRequestContext } from '@/lib/logger'
 
 // Create i18n middleware
 const intlMiddleware = createIntlMiddleware({
@@ -29,6 +30,9 @@ export async function middleware(req: NextRequest) {
   ) {
     return NextResponse.next()
   }
+
+  const ctx = getRequestContext(req)
+  logger.info('web', 'Page request', { pathname }, ctx)
 
   // Handle /admin routes with authentication
   if (pathname.startsWith('/admin')) {

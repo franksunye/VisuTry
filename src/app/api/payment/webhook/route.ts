@@ -12,12 +12,13 @@ import {
 } from "@/lib/stripe"
 import Stripe from "stripe"
 import { QUOTA_CONFIG, PRODUCT_METADATA } from "@/config/pricing"
-import { logger } from "@/lib/logger"
+import { logger, getRequestContext } from "@/lib/logger"
 
 // Force dynamic rendering for this route
 export const dynamic = 'force-dynamic'
 
 export async function POST(request: NextRequest) {
+  const ctx = getRequestContext(request)
   try {
     const body = await request.text()
     const headersList = headers()
@@ -41,32 +42,32 @@ export async function POST(request: NextRequest) {
     // 处理不同类型的事件
     switch (event.type) {
       case "checkout.session.completed":
-        await handleCheckoutSessionCompleted(event.data.object as Stripe.Checkout.Session)
+        await handleCheckoutSessionCompleted(event.data.object as Stripe.Checkout.Session, ctx)
         break
 
       case "customer.subscription.created":
-        await handleSubscriptionCreatedEvent(event.data.object as Stripe.Subscription)
+        await handleSubscriptionCreatedEvent(event.data.object as Stripe.Subscription, ctx)
         break
 
       case "customer.subscription.updated":
-        await handleSubscriptionUpdatedEvent(event.data.object as Stripe.Subscription)
+        await handleSubscriptionUpdatedEvent(event.data.object as Stripe.Subscription, ctx)
         break
 
       case "customer.subscription.deleted":
-        await handleSubscriptionDeletedEvent(event.data.object as Stripe.Subscription)
+        await handleSubscriptionDeletedEvent(event.data.object as Stripe.Subscription, ctx)
         break
 
       case "invoice.payment_succeeded":
-        await handleInvoicePaymentSucceeded(event.data.object as Stripe.Invoice)
+        await handleInvoicePaymentSucceeded(event.data.object as Stripe.Invoice, ctx)
         break
 
       case "invoice.payment_failed":
-        await handleInvoicePaymentFailed(event.data.object as Stripe.Invoice)
+        await handleInvoicePaymentFailed(event.data.object as Stripe.Invoice, ctx)
         break
 
       default:
         console.log(`Unhandled event type: ${event.type}`)
-        logger.warn('payment', `Unhandled event type: ${event.type}`)
+        logger.warn('payment', `Unhandled event type: ${event.type}`, undefined, ctx)
     }
 
     return NextResponse.json({ received: true })
@@ -74,7 +75,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     const err = error instanceof Error ? error : new Error(String(error))
     console.error("Webhook处理失败:", error)
-    logger.error('payment', 'Webhook处理失败', err)
+    logger.error('payment', 'Webhook处理失败', err, undefined, ctx)
     return NextResponse.json(
       { error: "Webhook处理失败" },
       { status: 400 }
@@ -83,7 +84,7 @@ export async function POST(request: NextRequest) {
 }
 
 // 处理Checkout会话完成
-async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session) {
+async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session, context?: any) {
   try {
     const paymentData = await handleSuccessfulPayment(session)
 
@@ -118,16 +119,16 @@ async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session) 
     clearUserCache(paymentData.userId)
 
     console.log(`Payment completed for user ${paymentData.userId}`)
-    logger.info('payment', 'Payment completed', { userId: paymentData.userId, amount: paymentData.amount, productType: paymentData.productType })
+    logger.info('payment', 'Payment completed', { userId: paymentData.userId, amount: paymentData.amount, productType: paymentData.productType }, context)
   } catch (error) {
     const err = error instanceof Error ? error : new Error(String(error))
     console.error("处理支付完成事件失败:", error)
-    logger.error('payment', '处理支付完成事件失败', err)
+    logger.error('payment', '处理支付完成事件失败', err, undefined, context)
   }
 }
 
 // 处理订阅创建
-async function handleSubscriptionCreatedEvent(subscription: Stripe.Subscription) {
+async function handleSubscriptionCreatedEvent(subscription: Stripe.Subscription, context?: any) {
   try {
     const subscriptionData = await handleSubscriptionCreated(subscription)
 
@@ -145,16 +146,16 @@ async function handleSubscriptionCreatedEvent(subscription: Stripe.Subscription)
     clearUserCache(subscriptionData.userId)
 
     console.log(`Subscription created for user ${subscriptionData.userId}, type: ${subscriptionData.productType}`)
-    logger.info('payment', 'Subscription created', { userId: subscriptionData.userId, productType: subscriptionData.productType })
+    logger.info('payment', 'Subscription created', { userId: subscriptionData.userId, productType: subscriptionData.productType }, context)
   } catch (error) {
     const err = error instanceof Error ? error : new Error(String(error))
     console.error("处理订阅创建事件失败:", error)
-    logger.error('payment', '处理订阅创建事件失败', err)
+    logger.error('payment', '处理订阅创建事件失败', err, undefined, context)
   }
 }
 
 // 处理订阅更新
-async function handleSubscriptionUpdatedEvent(subscription: Stripe.Subscription) {
+async function handleSubscriptionUpdatedEvent(subscription: Stripe.Subscription, context?: any) {
   try {
     const subscriptionData = await handleSubscriptionUpdated(subscription)
 
@@ -175,16 +176,16 @@ async function handleSubscriptionUpdatedEvent(subscription: Stripe.Subscription)
     clearUserCache(subscriptionData.userId)
 
     console.log(`Subscription updated for user ${subscriptionData.userId}, active: ${isPremiumActive}`)
-    logger.info('payment', 'Subscription updated', { userId: subscriptionData.userId, active: isPremiumActive })
+    logger.info('payment', 'Subscription updated', { userId: subscriptionData.userId, active: isPremiumActive }, context)
   } catch (error) {
     const err = error instanceof Error ? error : new Error(String(error))
     console.error("处理订阅更新事件失败:", error)
-    logger.error('payment', '处理订阅更新事件失败', err)
+    logger.error('payment', '处理订阅更新事件失败', err, undefined, context)
   }
 }
 
 // 处理订阅删除
-async function handleSubscriptionDeletedEvent(subscription: Stripe.Subscription) {
+async function handleSubscriptionDeletedEvent(subscription: Stripe.Subscription, context?: any) {
   try {
     const subscriptionData = await handleSubscriptionDeleted(subscription)
 
@@ -202,20 +203,20 @@ async function handleSubscriptionDeletedEvent(subscription: Stripe.Subscription)
     clearUserCache(subscriptionData.userId)
 
     console.log(`Subscription deleted for user ${subscriptionData.userId}`)
-    logger.info('payment', 'Subscription deleted', { userId: subscriptionData.userId })
+    logger.info('payment', 'Subscription deleted', { userId: subscriptionData.userId }, context)
   } catch (error) {
     const err = error instanceof Error ? error : new Error(String(error))
     console.error("处理订阅删除事件失败:", error)
-    logger.error('payment', '处理订阅删除事件失败', err)
+    logger.error('payment', '处理订阅删除事件失败', err, undefined, context)
   }
 }
 
 // 处理发票支付成功（订阅续费）
-async function handleInvoicePaymentSucceeded(invoice: Stripe.Invoice) {
+async function handleInvoicePaymentSucceeded(invoice: Stripe.Invoice, context?: any) {
   try {
     if (invoice.subscription) {
       console.log(`Invoice payment succeeded for subscription ${invoice.subscription}`)
-      logger.info('payment', 'Invoice payment succeeded', { subscriptionId: invoice.subscription })
+      logger.info('payment', 'Invoice payment succeeded', { subscriptionId: invoice.subscription }, context)
 
       // 🔥 重要：订阅续费时重置 Premium 用户的使用计数器
       // 这样每个计费周期都会重新开始计数
@@ -241,31 +242,31 @@ async function handleInvoicePaymentSucceeded(invoice: Stripe.Invoice) {
         clearUserCache(payment.userId)
 
         console.log(`✅ Reset premiumUsageCount for user ${payment.userId} on subscription renewal`)
-        logger.info('payment', 'Reset premiumUsageCount on subscription renewal', { userId: payment.userId })
+        logger.info('payment', 'Reset premiumUsageCount on subscription renewal', { userId: payment.userId }, context)
       } else {
         console.warn(`⚠️ No payment record found for subscription ${invoice.subscription}`)
-        logger.warn('payment', 'No payment record found for subscription', { subscriptionId: invoice.subscription })
+        logger.warn('payment', 'No payment record found for subscription', { subscriptionId: invoice.subscription }, context)
       }
     }
   } catch (error) {
     const err = error instanceof Error ? error : new Error(String(error))
     console.error("处理发票支付成功事件失败:", error)
-    logger.error('payment', '处理发票支付成功事件失败', err)
+    logger.error('payment', '处理发票支付成功事件失败', err, undefined, context)
   }
 }
 
 // 处理发票支付失败
-async function handleInvoicePaymentFailed(invoice: Stripe.Invoice) {
+async function handleInvoicePaymentFailed(invoice: Stripe.Invoice, context?: any) {
   try {
     if (invoice.subscription) {
       console.log(`Invoice payment failed for subscription ${invoice.subscription}`)
-      logger.warn('payment', 'Invoice payment failed', { subscriptionId: invoice.subscription })
+      logger.warn('payment', 'Invoice payment failed', { subscriptionId: invoice.subscription }, context)
       // 这里可以添加通知用户支付失败的逻辑
     }
   } catch (error) {
     const err = error instanceof Error ? error : new Error(String(error))
     console.error("处理发票支付失败事件失败:", error)
-    logger.error('payment', '处理发票支付失败事件失败', err)
+    logger.error('payment', '处理发票支付失败事件失败', err, undefined, context)
   }
 }
 
