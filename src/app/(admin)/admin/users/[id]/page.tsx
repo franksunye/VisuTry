@@ -17,14 +17,39 @@ interface UserDetailPageProps {
 async function getUserDetails(userId: string) {
   const user = await prisma.user.findUnique({
     where: { id: userId },
-    include: {
+    select: {
+      id: true,
+      image: true,
+      name: true,
+      email: true,
+      role: true,
+      emailVerified: true,
+      createdAt: true,
+      isPremium: true,
+      freeTrialsUsed: true,
+      creditsPurchased: true,
+      creditsUsed: true,
+      premiumUsageCount: true,
       payments: {
         orderBy: { createdAt: 'desc' },
-        take: 20, // Show last 20 orders
+        take: 20,
+        select: {
+          id: true,
+          productType: true,
+          amount: true,
+          status: true,
+          createdAt: true,
+        },
       },
       tryOnTasks: {
         orderBy: { createdAt: 'desc' },
-        take: 10, // Show last 10 try-on tasks
+        take: 10,
+        select: {
+          id: true,
+          status: true,
+          createdAt: true,
+          updatedAt: true,
+        },
       },
     },
   });
@@ -270,4 +295,3 @@ export default async function UserDetailPage({ params }: UserDetailPageProps) {
     </div>
   );
 }
-

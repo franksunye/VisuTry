@@ -59,11 +59,29 @@ async function getStats() {
     prisma.payment.findMany({
       take: 5,
       orderBy: { createdAt: 'desc' },
-      include: { user: true },
+      select: {
+        id: true,
+        userId: true,
+        amount: true,
+        status: true,
+        user: {
+          select: {
+            name: true,
+            email: true,
+          },
+        },
+      },
     }),
     prisma.user.findMany({
       take: 5,
       orderBy: { createdAt: 'desc' },
+      select: {
+        id: true,
+        image: true,
+        name: true,
+        email: true,
+        createdAt: true,
+      },
     }),
   ]);
 

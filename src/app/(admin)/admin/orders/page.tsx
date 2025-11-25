@@ -36,8 +36,19 @@ async function getOrders({ page = 1, status }: { page?: number; status?: string 
       orderBy: {
         createdAt: 'desc',
       },
-      include: {
-        user: true, // Include user data for display
+      select: {
+        id: true,
+        productType: true,
+        amount: true,
+        status: true,
+        createdAt: true,
+        user: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+          },
+        },
       },
     }),
     prisma.payment.count({ where }),

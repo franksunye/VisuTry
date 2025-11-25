@@ -40,6 +40,15 @@ async function getUsers({ page = 1, search = '' }: { page?: number; search?: str
       orderBy: {
         createdAt: 'desc',
       },
+      select: {
+        id: true,
+        image: true,
+        name: true,
+        email: true,
+        role: true,
+        isPremium: true,
+        createdAt: true,
+      },
     }),
     prisma.user.count({ where }),
   ]);

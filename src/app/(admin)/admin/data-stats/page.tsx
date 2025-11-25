@@ -50,10 +50,10 @@ async function getDataStats() {
       select: { brand: true, category: true },
     }),
     prisma.frameCategoryAssociation.findMany({
-      include: { category: true },
+      include: { category: { select: { id: true, name: true } } },
     }),
     prisma.frameFaceShapeRecommendation.findMany({
-      include: { faceShape: true },
+      include: { faceShape: { select: { name: true } } },
     }),
   ])
 
@@ -427,4 +427,3 @@ export default async function DataStatsPage() {
     </div>
   )
 }
-

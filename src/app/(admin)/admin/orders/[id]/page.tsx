@@ -14,8 +14,25 @@ interface OrderDetailPageProps {
 async function getOrderDetails(orderId: string) {
   const order = await prisma.payment.findUnique({
     where: { id: orderId },
-    include: {
-      user: true,
+    select: {
+      id: true,
+      productType: true,
+      amount: true,
+      currency: true,
+      status: true,
+      description: true,
+      stripeSessionId: true,
+      stripePaymentId: true,
+      createdAt: true,
+      updatedAt: true,
+      user: {
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          createdAt: true,
+        },
+      },
     },
   });
 
@@ -259,4 +276,3 @@ export default async function OrderDetailPage({ params }: OrderDetailPageProps) 
     </div>
   );
 }
-
