@@ -36,24 +36,34 @@ export async function GET(request: NextRequest) {
     const totalSize = blobs.reduce((sum, blob) => sum + blob.size, 0);
     const totalFiles = blobs.length;
 
-    // 获取数据库中的图片 URL 数量
-    const tasks = await prisma.tryOnTask.findMany({
-      select: {
-        userImageUrl: true,
-        itemImageUrl: true,
-        glassesImageUrl: true,
-        resultImageUrl: true,
-      },
-    });
+    const [userUrls, itemUrls, glassesUrls, resultUrls] = await Promise.all([
+      prisma.tryOnTask.findMany({
+        where: { userImageUrl: { not: null } },
+        select: { userImageUrl: true },
+        distinct: ['userImageUrl'],
+      }),
+      prisma.tryOnTask.findMany({
+        where: { itemImageUrl: { not: null } },
+        select: { itemImageUrl: true },
+        distinct: ['itemImageUrl'],
+      }),
+      prisma.tryOnTask.findMany({
+        where: { glassesImageUrl: { not: null } },
+        select: { glassesImageUrl: true },
+        distinct: ['glassesImageUrl'],
+      }),
+      prisma.tryOnTask.findMany({
+        where: { resultImageUrl: { not: null } },
+        select: { resultImageUrl: true },
+        distinct: ['resultImageUrl'],
+      }),
+    ]);
 
-    // 统计数据库中引用的 URL
     const dbUrls = new Set<string>();
-    tasks.forEach(task => {
-      if (task.userImageUrl) dbUrls.add(task.userImageUrl);
-      if ((task as any).itemImageUrl) dbUrls.add((task as any).itemImageUrl);
-      if (task.glassesImageUrl) dbUrls.add(task.glassesImageUrl);
-      if (task.resultImageUrl) dbUrls.add(task.resultImageUrl);
-    });
+    userUrls.forEach(u => dbUrls.add(u.userImageUrl as string));
+    itemUrls.forEach(i => dbUrls.add(i.itemImageUrl as string));
+    glassesUrls.forEach(g => dbUrls.add(g.glassesImageUrl as string));
+    resultUrls.forEach(r => dbUrls.add(r.resultImageUrl as string));
 
     // 找出孤立文件（在 Blob 中但不在数据库中）
     const orphanedFiles = blobs.filter(blob => !dbUrls.has(blob.url));
@@ -105,4 +115,3 @@ export async function GET(request: NextRequest) {
     );
   }
 }
-

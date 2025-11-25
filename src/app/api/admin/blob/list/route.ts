@@ -42,22 +42,34 @@ export async function GET(request: NextRequest) {
     // 如果需要显示孤立文件，获取数据库中的 URL
     let filteredBlobs = blobs;
     if (showOrphaned) {
-      const tasks = await prisma.tryOnTask.findMany({
-        select: {
-          userImageUrl: true,
-          itemImageUrl: true,
-          glassesImageUrl: true,
-          resultImageUrl: true,
-        },
-      });
+      const [userUrls, itemUrls, glassesUrls, resultUrls] = await Promise.all([
+        prisma.tryOnTask.findMany({
+          where: { userImageUrl: { not: null } },
+          select: { userImageUrl: true },
+          distinct: ['userImageUrl'],
+        }),
+        prisma.tryOnTask.findMany({
+          where: { itemImageUrl: { not: null } },
+          select: { itemImageUrl: true },
+          distinct: ['itemImageUrl'],
+        }),
+        prisma.tryOnTask.findMany({
+          where: { glassesImageUrl: { not: null } },
+          select: { glassesImageUrl: true },
+          distinct: ['glassesImageUrl'],
+        }),
+        prisma.tryOnTask.findMany({
+          where: { resultImageUrl: { not: null } },
+          select: { resultImageUrl: true },
+          distinct: ['resultImageUrl'],
+        }),
+      ]);
 
       const dbUrls = new Set<string>();
-      tasks.forEach(task => {
-        if (task.userImageUrl) dbUrls.add(task.userImageUrl);
-        if ((task as any).itemImageUrl) dbUrls.add((task as any).itemImageUrl);
-        if (task.glassesImageUrl) dbUrls.add(task.glassesImageUrl);
-        if (task.resultImageUrl) dbUrls.add(task.resultImageUrl);
-      });
+      userUrls.forEach(u => dbUrls.add(u.userImageUrl as string));
+      itemUrls.forEach(i => dbUrls.add(i.itemImageUrl as string));
+      glassesUrls.forEach(g => dbUrls.add(g.glassesImageUrl as string));
+      resultUrls.forEach(r => dbUrls.add(r.resultImageUrl as string));
 
       filteredBlobs = blobs.filter(blob => !dbUrls.has(blob.url));
     }
@@ -109,4 +121,3 @@ export async function GET(request: NextRequest) {
     );
   }
 }
-
