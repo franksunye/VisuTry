@@ -22,6 +22,8 @@ interface CategoryPageProps {
 
 // Generate static params for all categories
 export async function generateStaticParams() {
+  const enabled = process.env.PROGRAMMATIC_SEO_ENABLED === 'true'
+  if (!enabled) return []
   const categories = await prisma.glassesCategory.findMany({
     select: { name: true },
   })
@@ -30,6 +32,8 @@ export async function generateStaticParams() {
     category: generateCategorySlug(cat.name),
   }))
 }
+
+export const dynamicParams = process.env.PROGRAMMATIC_SEO_ENABLED === 'true'
 
 // Generate metadata
 export async function generateMetadata({
@@ -172,4 +176,3 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
     </div>
   )
 }
-

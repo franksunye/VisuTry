@@ -22,6 +22,8 @@ interface FaceShapePageProps {
 
 // Generate static params for all face shapes
 export async function generateStaticParams() {
+  const enabled = process.env.PROGRAMMATIC_SEO_ENABLED === 'true'
+  if (!enabled) return []
   const shapes = await prisma.faceShape.findMany({
     select: { name: true },
   })
@@ -30,6 +32,8 @@ export async function generateStaticParams() {
     faceShape: generateFaceShapeSlug(shape.name),
   }))
 }
+
+export const dynamicParams = process.env.PROGRAMMATIC_SEO_ENABLED === 'true'
 
 // Generate metadata
 export async function generateMetadata({
@@ -184,4 +188,3 @@ export default async function FaceShapePage({ params }: FaceShapePageProps) {
     </div>
   )
 }
-
