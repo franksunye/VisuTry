@@ -22,14 +22,19 @@ export default async function PaymentsPage() {
     redirect("/auth/signin")
   }
 
-  // Get all payment records for the user
   const payments = await prisma.payment.findMany({
-    where: {
-      userId: session.user.id
+    where: { userId: session.user.id },
+    orderBy: { createdAt: 'desc' },
+    select: {
+      id: true,
+      productType: true,
+      description: true,
+      createdAt: true,
+      stripePaymentId: true,
+      amount: true,
+      currency: true,
+      status: true,
     },
-    orderBy: {
-      createdAt: 'desc'
-    }
   })
 
   // Get current user status
@@ -230,4 +235,3 @@ export default async function PaymentsPage() {
     </AutoRefreshWrapper>
   )
 }
-

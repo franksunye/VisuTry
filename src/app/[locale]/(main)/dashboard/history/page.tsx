@@ -50,12 +50,11 @@ export default async function HistoryPage({ searchParams }: HistoryPageProps) {
         status: true,
         userImageUrl: true,
         itemImageUrl: true,
-        glassesImageUrl: true, // Keep for backward compatibility
+        glassesImageUrl: true,
         resultImageUrl: true,
         errorMessage: true,
         createdAt: true,
         updatedAt: true,
-        metadata: true
       }
     }),
     prisma.tryOnTask.count({ where })
