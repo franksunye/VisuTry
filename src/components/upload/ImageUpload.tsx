@@ -42,24 +42,47 @@ export function ImageUpload({
       return
     }
 
+    // 🔍 追踪日志：记录原始文件信息
+    const originalFileInfo = {
+      name: file.name,
+      size: file.size,
+      type: file.type,
+      lastModified: file.lastModified,
+      uploadTarget: label // 用于区分是 user photo 还是 item photo
+    }
+    logger.info('upload', 'File selected for upload', originalFileInfo)
+
     setUploading(true)
     try {
       // Compress image
       const compressedFile = await compressImage(file)
 
+      // 🔍 追踪日志：记录压缩后的文件信息
+      const compressedFileInfo = {
+        originalName: file.name,
+        originalSize: file.size,
+        compressedName: compressedFile.name,
+        compressedSize: compressedFile.size,
+        compressedType: compressedFile.type,
+        compressedLastModified: compressedFile.lastModified,
+        compressionRatio: ((1 - compressedFile.size / file.size) * 100).toFixed(1) + '%',
+        uploadTarget: label
+      }
+      logger.info('upload', 'File compressed successfully', compressedFileInfo)
+
       // Create preview
       const preview = await createImagePreview(compressedFile)
-      
+
       onImageSelect(compressedFile, preview)
     } catch (error) {
       const err = error instanceof Error ? error : new Error(String(error))
       console.error("Image processing failed:", error)
-      logger.error('general', 'Image processing failed', err)
+      logger.error('upload', 'Image processing failed', err, { uploadTarget: label })
       alert("Image processing failed, please try again")
     } finally {
       setUploading(false)
     }
-  }, [onImageSelect])
+  }, [onImageSelect, label])
 
   const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault()

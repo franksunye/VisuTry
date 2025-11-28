@@ -178,108 +178,116 @@ export async function POST(request: NextRequest) {
     console.log(`📊 [${tryOnType}] Image sizes: user=${(userImageFile.size / 1024).toFixed(2)}KB, ${config.name.toLowerCase()}=${(itemImageFile.size / 1024).toFixed(2)}KB`)
     logger.debug('api', `Image sizes: user=${(userImageFile.size / 1024).toFixed(2)}KB, ${config.name.toLowerCase()}=${(itemImageFile.size / 1024).toFixed(2)}KB`, { tryOnType }, ctx)
 
-    // 🔍 DEBUG: Log file details to help diagnose upload issues
-    console.log(`📸 File details:`)
-    console.log(`  User image: name="${userImageFile.name}", size=${userImageFile.size}, type=${userImageFile.type}`)
-    console.log(`  ${config.name} image: name="${itemImageFile.name}", size=${itemImageFile.size}, type=${itemImageFile.type}`)
-    logger.debug('api', 'File details', { userImage: { name: userImageFile.name, size: userImageFile.size, type: userImageFile.type }, itemImage: { name: itemImageFile.name, size: itemImageFile.size, type: itemImageFile.type } }, ctx)
+    // 🔍 追踪日志：记录接收到的文件详情，用于诊断重复图片问题
+    const fileTrackingInfo = {
+      userId,
+      tryOnType,
+      userImage: { name: userImageFile.name, size: userImageFile.size, type: userImageFile.type },
+      itemImage: { name: itemImageFile.name, size: itemImageFile.size, type: itemImageFile.type }
+    }
+    logger.info('upload', 'Backend received files for try-on', fileTrackingInfo, ctx)
 
     // 🔍 CHECK 1: Are they the same File object reference?
     const sameObject = userImageFile === itemImageFile
-    console.log(`  Same object reference? ${sameObject ? '❌ YES (PROBLEM!)' : '✅ No'}`)
-    logger.debug('api', `Same object reference: ${sameObject ? 'YES (PROBLEM!)' : 'No'}`, undefined, ctx)
+    if (sameObject) {
+      logger.warn('upload', 'BACKEND DETECTION: Same File object reference', { userId, tryOnType }, ctx)
+    }
 
     // 🔍 CHECK 2: Do they have identical metadata?
     const sameMetadata = userImageFile.name === itemImageFile.name &&
                          userImageFile.size === itemImageFile.size
     if (sameMetadata) {
-      console.warn(`  ⚠️ WARNING: Files have identical name and size!`)
-      console.warn(`     This might indicate user uploaded the same file twice`)
-      console.warn(`     Or there's a bug in the upload process`)
-      logger.warn('api', 'Files have identical name and size - possible duplicate upload or bug', undefined, ctx)
+      logger.warn('upload', 'Files have identical name and size - possible duplicate', {
+        userId, tryOnType, fileName: userImageFile.name, fileSize: userImageFile.size
+      }, ctx)
     }
 
     // 🔍 CHECK 3: Calculate file content fingerprints to detect if content is identical
-    // This is critical - even if File objects are different, their content might be the same
-    const calculateFileFingerprint = async (file: File): Promise<string> => {
-      const buffer = await file.arrayBuffer()
-      const bytes = new Uint8Array(buffer)
+    // 先读取文件内容到 Buffer，后续上传使用这些 Buffer 避免多次读取流
+    const userImageBuffer = await userImageFile.arrayBuffer()
+    const itemImageBuffer = await itemImageFile.arrayBuffer()
+    const userImageBytes = new Uint8Array(userImageBuffer)
+    const itemImageBytes = new Uint8Array(itemImageBuffer)
 
-      // Create fingerprint from first 512 bytes + file size
+    const calculateFingerprint = (bytes: Uint8Array, size: number): string => {
       let hash = 0
       const sampleSize = Math.min(512, bytes.length)
       for (let i = 0; i < sampleSize; i++) {
         hash = ((hash << 5) - hash) + bytes[i]
-        hash = hash & hash // Convert to 32-bit integer
+        hash = hash & hash
       }
-
-      return `${file.size}-${hash.toString(16)}`
+      return `${size}-${hash.toString(16)}`
     }
 
-    const userImageFingerprint = await calculateFileFingerprint(userImageFile)
-    const itemImageFingerprint = await calculateFileFingerprint(itemImageFile)
+    const userImageFingerprint = calculateFingerprint(userImageBytes, userImageFile.size)
+    const itemImageFingerprint = calculateFingerprint(itemImageBytes, itemImageFile.size)
 
-    console.log(`  User image fingerprint: ${userImageFingerprint}`)
-    console.log(`  ${config.name} image fingerprint: ${itemImageFingerprint}`)
-    logger.debug('api', 'File fingerprints', { userImageFingerprint, itemImageFingerprint }, ctx)
+    // 🔍 追踪日志：记录指纹计算结果
+    logger.info('upload', 'File fingerprints calculated', {
+      userId, tryOnType, userImageFingerprint, itemImageFingerprint,
+      fingerprintsMatch: userImageFingerprint === itemImageFingerprint
+    }, ctx)
 
     if (userImageFingerprint === itemImageFingerprint) {
-      console.error(`  ❌ CRITICAL: File content fingerprints are IDENTICAL!`)
-      console.error(`     This means the two files have the same content!`)
-      console.error(`     This is the root cause of the duplicate image problem!`)
-      logger.error('api', 'CRITICAL: File content fingerprints are IDENTICAL - duplicate image problem detected', new Error('Duplicate fingerprints'), { userImageFingerprint, itemImageFingerprint }, ctx)
-    } else {
-      console.log(`  ✅ File content fingerprints are different (good)`)
-      logger.debug('api', 'File content fingerprints are different (good)', undefined, ctx)
+      // 🔍 详细记录重复情况，这是我们要追踪的关键问题
+      logger.error('upload', 'CRITICAL: Duplicate file content detected', new Error('Duplicate fingerprints'), {
+        userId, tryOnType, userImageFingerprint, itemImageFingerprint,
+        userImageName: userImageFile.name, itemImageName: itemImageFile.name,
+        userImageSize: userImageFile.size, itemImageSize: itemImageFile.size,
+        sameObjectReference: sameObject, sameMetadata
+      }, ctx)
     }
 
     // 🔥 FIX: Use single timestamp to avoid filename collision
     const timestamp = Date.now()
 
-    // Upload user image
+    // Upload user image using the buffer we already read (避免再次读取 File 对象)
     const userImageFilename = `try-on/${userId}/${timestamp}-user.jpg`
-    console.log(`📤 Uploading user image to: ${userImageFilename}`)
-    logger.info('api', 'Uploading user image', { filename: userImageFilename }, ctx)
+    logger.info('upload', 'Uploading user image', {
+      filename: userImageFilename, bufferSize: userImageBytes.length, userId, tryOnType
+    }, ctx)
 
     let userImageBlob
 
     if (isMockMode) {
-      userImageBlob = await mockBlobUpload(userImageFilename, userImageFile)
+      userImageBlob = await mockBlobUpload(userImageFilename, new File([userImageBytes], userImageFile.name, { type: userImageFile.type }))
     } else {
-      userImageBlob = await put(userImageFilename, userImageFile, {
+      userImageBlob = await put(userImageFilename, Buffer.from(userImageBytes), {
         access: "public",
+        contentType: userImageFile.type
       })
     }
 
-    console.log(`✅ User image uploaded to: ${userImageBlob.url}`)
-    logger.info('api', 'User image uploaded successfully', { url: userImageBlob.url }, ctx)
+    logger.info('upload', 'User image uploaded successfully', { url: userImageBlob.url, userId, tryOnType }, ctx)
 
-    // Upload item image (glasses, outfit, shoes, etc.)
+    // Upload item image using the buffer we already read
     const itemImageFilename = `try-on/${userId}/${timestamp}-${tryOnType.toLowerCase()}.jpg`
-    console.log(`📤 Uploading ${config.name.toLowerCase()} image to: ${itemImageFilename}`)
-    logger.info('api', `Uploading ${config.name.toLowerCase()} image`, { filename: itemImageFilename }, ctx)
+    logger.info('upload', 'Uploading item image', {
+      filename: itemImageFilename, bufferSize: itemImageBytes.length, userId, tryOnType
+    }, ctx)
 
     let itemImageBlob
 
     if (isMockMode) {
-      itemImageBlob = await mockBlobUpload(itemImageFilename, itemImageFile)
+      itemImageBlob = await mockBlobUpload(itemImageFilename, new File([itemImageBytes], itemImageFile.name, { type: itemImageFile.type }))
     } else {
-      itemImageBlob = await put(itemImageFilename, itemImageFile, {
+      itemImageBlob = await put(itemImageFilename, Buffer.from(itemImageBytes), {
         access: "public",
+        contentType: itemImageFile.type
       })
     }
 
-    console.log(`✅ ${config.name} image uploaded to: ${itemImageBlob.url}`)
-    logger.info('api', `${config.name} image uploaded successfully`, { url: itemImageBlob.url }, ctx)
+    logger.info('upload', 'Item image uploaded successfully', { url: itemImageBlob.url, userId, tryOnType }, ctx)
 
     const itemImageUrl = itemImageBlob.url
 
-    // 🔍 DEBUG: Verify URLs are different
-    console.log(`🔍 Upload verification:`)
-    console.log(`  User URL: ${userImageBlob.url}`)
-    console.log(`  ${config.name} URL: ${itemImageUrl}`)
-    console.log(`  URLs are ${userImageBlob.url === itemImageUrl ? '❌ SAME (ERROR!)' : '✅ different (OK)'}`)
-    logger.debug('api', 'Upload verification', { userUrl: userImageBlob.url, itemUrl: itemImageUrl, same: userImageBlob.url === itemImageUrl }, ctx)
+    // 🔍 追踪日志：验证上传后的 URL
+    const uploadVerification = { userId, tryOnType, userUrl: userImageBlob.url, itemUrl: itemImageUrl, urlsAreSame: userImageBlob.url === itemImageUrl }
+    logger.info('upload', 'Upload verification completed', uploadVerification, ctx)
+
+    if (userImageBlob.url === itemImageUrl) {
+      logger.error('upload', 'CRITICAL: Uploaded URLs are identical', new Error('Identical URLs'), uploadVerification, ctx)
+    }
 
     // Create try-on task record
     let tryOnTask

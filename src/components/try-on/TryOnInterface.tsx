@@ -130,6 +130,34 @@ export function TryOnInterface({ type = 'GLASSES' }: TryOnInterfaceProps) {
       return
     }
 
+    // 🔍 追踪日志：记录发送前的文件状态，帮助诊断重复图片问题
+    const isSameObject = userImage.file === itemImage.file
+    const fileTrackingData = {
+      userFile: {
+        name: userImage.file.name,
+        size: userImage.file.size,
+        type: userImage.file.type,
+        lastModified: userImage.file.lastModified
+      },
+      itemFile: {
+        name: itemImage.file.name,
+        size: itemImage.file.size,
+        type: itemImage.file.type,
+        lastModified: itemImage.file.lastModified
+      },
+      isSameObject,
+      isSameMetadata: userImage.file.name === itemImage.file.name &&
+                      userImage.file.size === itemImage.file.size,
+      tryOnType: type
+    }
+
+    logger.info('upload', 'Try-on request initiated - file tracking', fileTrackingData)
+
+    // 如果前端检测到同一对象引用，记录警告
+    if (isSameObject) {
+      logger.warn('upload', 'FRONTEND DETECTION: userImage.file and itemImage.file are the SAME object reference', fileTrackingData)
+    }
+
     setIsProcessing(true)
     setCurrentStep("process")
     setError(null)
