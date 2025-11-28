@@ -58,21 +58,21 @@ export const PRODUCT_METADATA = {
     shortName: "Standard Annual",
     description: "Best value",
     // 用于支付记录的详细描述
-    paymentDescription: `${QUOTA_CONFIG.YEARLY_SUBSCRIPTION} AI try-ons per year (360 + 60 bonus) + Standard features`,
+    paymentDescription: `${QUOTA_CONFIG.YEARLY_SUBSCRIPTION} AI try-ons per year (1080 + 180 bonus) + Standard features`,
     quota: QUOTA_CONFIG.YEARLY_SUBSCRIPTION,
     price: PRICE_CONFIG.YEARLY_SUBSCRIPTION,
     currency: "usd",
     interval: "year" as const,
     priceId: process.env.STRIPE_PREMIUM_YEARLY_PRICE_ID,
     features: [
-      `${QUOTA_CONFIG.YEARLY_SUBSCRIPTION} AI try-ons per year (360 + 60 bonus)`,
+      `${QUOTA_CONFIG.YEARLY_SUBSCRIPTION} AI try-ons per year (1080 + 180 bonus)`,
       "High-quality image processing",
       "Priority processing queue",
       "1 year data retention",
       "Unlimited downloads and sharing",
       "Priority customer support",
       "Ad-free experience",
-      "Save 2 months + 60 bonus try-ons"
+      "Save 2 months + 180 bonus try-ons"
     ],
     popular: false,
   },
