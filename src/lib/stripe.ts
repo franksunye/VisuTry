@@ -26,7 +26,7 @@ export const PRODUCTS = {
   },
   PREMIUM_YEARLY: {
     name: PRODUCT_METADATA.PREMIUM_YEARLY.name,
-    description: `${QUOTA_CONFIG.YEARLY_SUBSCRIPTION} AI try-ons per year (360 + 60 bonus) + Standard features`,
+    description: `${QUOTA_CONFIG.YEARLY_SUBSCRIPTION} AI try-ons per year (1080 + 180 bonus) + Standard features`,
     price: PRODUCT_METADATA.PREMIUM_YEARLY.price,
     currency: PRODUCT_METADATA.PREMIUM_YEARLY.currency,
     interval: PRODUCT_METADATA.PREMIUM_YEARLY.interval,
