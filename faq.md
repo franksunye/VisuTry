@@ -1,25 +1,24 @@
----
-title: 常见问题
+title: FAQ
 layout: page
 permalink: /faq.html
 ---
 
-# 常见问题（FAQ）
+# Frequently Asked Questions
 
-## 谁可以使用？
-面向电商、品牌与开发者，也支持个人用户试戴/试穿。网页入口适合快速体验，企业客户可申请接口接入与私有化部署。
+## Who can use VisuTry?
+E‑commerce teams, brands, and developers — plus individuals for self‑serve try‑on. Use the web entry for quick trials; enterprise can request API access and private deployments.
 
-## 有哪些设备要求？
-现代浏览器即可使用。建议在桌面端或最新版移动浏览器打开，确保网络稳定与照片清晰，以获得更佳效果。
+## What are the device requirements?
+Any modern browser. Desktop or up‑to‑date mobile browsers work best. Stable network and clear photos improve results.
 
-## 如何开始？
-访问 `contact.html` 预约试用或获取接入说明，准备正面清晰照片或人物模型，即可在网页端上传生成结果。
+## How do I start?
+Visit `/contact.html` to request a demo or integration details. Prepare a clear front‑facing photo or avatar and upload in the web interface.
 
-## 隐私安全吗？
-上传的数据仅用于生成试戴/试穿效果，默认不做长期保存；企业客户可启用到期清理、隔离存储与访问控制策略。
+## Is my data private?
+Uploads are used only to generate try‑on results and aren’t stored long‑term by default. Enterprise options include expiry policies, isolated storage, and access controls.
 
-## 收费方式？
-按使用量或套餐计费，提供测试额度与企业定制方案。具体报价与功能范围请通过联系页面咨询。
+## How is pricing structured?
+Usage‑based or plan‑based pricing, with test credits and enterprise packages. Contact us for specific features and quotes.
 
 <script type="application/ld+json">
 {
@@ -28,42 +27,42 @@ permalink: /faq.html
   "mainEntity": [
     {
       "@type": "Question",
-      "name": "谁可以使用？",
+      "name": "Who can use VisuTry?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "面向电商、品牌与开发者，也支持个人用户试戴/试穿。网页入口适合快速体验，企业客户可申请接口接入与私有化部署。"
+        "text": "E‑commerce teams, brands, and developers — plus individuals for self‑serve try‑on. Use the web entry for quick trials; enterprise can request API access and private deployments."
       }
     },
     {
       "@type": "Question",
-      "name": "有哪些设备要求？",
+      "name": "What are the device requirements?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "现代浏览器即可使用。建议在桌面端或最新版移动浏览器打开，确保网络稳定与照片清晰，以获得更佳效果。"
+        "text": "Any modern browser. Desktop or up‑to‑date mobile browsers work best. Stable network and clear photos improve results."
       }
     },
     {
       "@type": "Question",
-      "name": "如何开始？",
+      "name": "How do I start?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "访问联系页面预约试用或获取接入说明，准备正面清晰照片或人物模型，即可在网页端上传生成结果。"
+        "text": "Visit /contact.html to request a demo or integration details. Prepare a clear front‑facing photo or avatar and upload in the web interface."
       }
     },
     {
       "@type": "Question",
-      "name": "隐私安全吗？",
+      "name": "Is my data private?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "上传的数据仅用于生成试戴/试穿效果，默认不做长期保存；企业客户可启用到期清理、隔离存储与访问控制策略。"
+        "text": "Uploads are used only to generate try‑on results and aren’t stored long‑term by default. Enterprise options include expiry policies, isolated storage, and access controls."
       }
     },
     {
       "@type": "Question",
-      "name": "收费方式？",
+      "name": "How is pricing structured?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "按使用量或套餐计费，提供测试额度与企业定制方案。具体报价与功能范围请通过联系页面咨询。"
+        "text": "Usage‑based or plan‑based pricing, with test credits and enterprise packages. Contact us for specific features and quotes."
       }
     }
   ]

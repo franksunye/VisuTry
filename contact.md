@@ -1,18 +1,17 @@
----
-title: 联系我们
+title: Contact
 layout: page
 permalink: /contact.html
 ---
 
-# 联系 / 预约 / 使用入口
+# Contact / Demo / Entry
 
-## 立即试用或接入
-- 邮箱：`hello@visutry.com`
-- 预约演示：`https://visutry.com/demo`
+## Try now or integrate
+- Email: `hello@visutry.com`
+- Demo booking: `https://visutry.com/demo`
 
-## 我们需要哪些信息
-- 使用场景（电商网站、品牌活动、内部试验等）
-- 目标品类（眼镜、帽子、饰品、服装等）
-- 预计使用量与时间
+## What we need
+- Use case (e‑commerce site, brand campaign, internal trial, etc.)
+- Target categories (glasses, hats, accessories, apparel)
+- Estimated usage and timeframe
 
-提交后我们将在一个工作日内回复，提供试用说明与接入流程。
+We respond within one business day with demo details and integration steps.

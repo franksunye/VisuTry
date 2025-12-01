@@ -1,26 +1,25 @@
----
-title: 如何运作
+title: How It Works
 layout: page
 permalink: /how-it-works.html
 ---
 
-# 如何运作
+# How It Works
 
-本页解释 VisuTry 的虚拟试戴/试穿流程、工作原理、适用人群与使用条件。
+This page explains VisuTry’s process, underlying approach, ideal users, and usage tips.
 
-## 工作原理是什么？
-通过对用户照片或人物模型进行检测与拟合，系统将目标商品的几何与外观参数进行对齐与渲染，生成接近真实的合成效果图。
+## What’s the principle?
+We detect and fit user photos or avatars, align product geometry and appearance, and render realistic composite results.
 
-## 使用流程
-1. 选择品类与款式
-2. 上传照片或人物模型
-3. 系统进行自动拟合与渲染
-4. 查看结果，下载或继续更换款式
+## Flow
+1. Choose category and style
+2. Upload photo or avatar
+3. Automatic fitting and rendering
+4. Review, download, or switch styles
 
-## 优势
-- 无需安装复杂软件，浏览器即可使用
-- 支持多品类（眼镜、帽子、饰品、服装）
-- 速度快，适合电商场景与批量使用
+## Advantages
+- No complex installs — works in the browser
+- Multi‑category support (glasses, hats, accessories, apparel)
+- Fast enough for e‑commerce and batch use
 
-## 适合人群与使用条件
-适合线上零售、品牌营销与用户自助试戴/试穿。建议使用正面清晰照片、良好光线与自然姿态，以提升拟合质量。
+## Who should use it & conditions
+Best for online retail, brand marketing, and self‑serve try‑on. Use clear front‑facing photos, good lighting, and natural pose for higher quality.

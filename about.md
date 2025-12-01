@@ -1,21 +1,20 @@
----
-title: 关于我们
+title: About
 layout: page
 permalink: /about.html
 ---
 
-# 关于我们
+# About Us
 
-我们致力于为电商与品牌提供可靠的虚拟试戴/试穿工具。基于 Nano Banana 模型与 visutry.com 的工程实践，我们将复杂的视觉推理流程抽象为易用的网页入口与可集成的服务接口。
+We build reliable virtual try‑on tools for e‑commerce and brands. Powered by Nano Banana and visutry.com practices, we turn complex vision inference into a simple web entry and integrable services.
 
-## 我们的背景
-团队长期从事计算机视觉、生成式模型与电商体验优化相关工作，关注真实感、稳定性与可落地性。
+## Our Background
+Experience across computer vision, generative models, and e‑commerce UX — focused on realism, stability, and practical deployment.
 
-## 模型来源与技术栈
-核心使用 Nano Banana 推理组件与自研的前后端服务，兼顾速度与质量，支持在浏览器中进行轻量化体验。
+## Model & Stack
+Core inference with Nano Banana and our services, balancing speed and quality, with lightweight in‑browser experiences.
 
-## 隐私与安全
-我们按需处理上传的照片或模型，仅用于生成试戴/试穿效果；对外接口默认关闭持久化存储，并支持数据到期自动清理与企业级隔离部署。
+## Privacy & Security
+We process uploaded photos/avatars only to generate try‑on results. External interfaces default to no persistent storage, with optional data expiry, isolated deployments, and access control for enterprise.
 
-## 为什么选择我们
-我们提供清晰的接入路径、可控的成本与透明的服务协议，适合需要快速验证与规模化上线的团队。
+## Why Choose Us
+Clear integration paths, predictable cost, and transparent service agreements — ideal for quick validation and scaling.

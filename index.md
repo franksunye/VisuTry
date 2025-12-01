@@ -1,32 +1,31 @@
----
-title: 虚拟试戴/试穿工具
+title: Virtual Try‑On Tool
 layout: page
 permalink: /
 ---
 
-# VisuTry — 虚拟试戴/试穿工具（基于 Nano Banana + visutry.com）
+# VisuTry — Virtual Try‑On (Nano Banana + visutry.com)
 
-以更低门槛、更高真实感的方式，让用户在线完成眼镜、帽子、饰品与服装的虚拟试戴/试穿，并支持品牌接入与自定义模型。
+Bring realistic try‑on for glasses, hats, accessories, and apparel to the browser. Lower friction for users and offer brand‑ready integration.
 
-**立即开始**：前往 `contact.html` 联系我们或预约试用。
+**Get a demo**: visit `/contact.html` to reach us.
 
-## 我们解决什么问题？
-- 帮助电商与品牌在无实体门店的情况下提升转化
-- 降低退换货率与试错成本
-- 让用户获得接近真实的拟合效果与尺寸参考
+## What problem do we solve?
+- Improve conversion without physical stores
+- Reduce returns and trial‑and‑error costs
+- Provide realistic fit and sizing hints
 
-## 什么是虚拟试戴/试穿？
-这是一种通过图像/三维模型推理，在用户上传的照片或人物模型上叠加目标商品的技术。你无需安装复杂软件，仅需上传素材，即可在浏览器中查看效果。
+## What is virtual try‑on?
+It overlays target products onto user photos or 3D avatars via image/model inference. No complex software required — upload assets and view results in the browser.
 
-## 如何开始使用 VisuTry 虚拟试戴工具？
-1. 准备一张正面清晰照片或人物模型
-2. 选择要试戴/试穿的品类与款式
-3. 上传后等待推理生成效果图
-4. 下载/分享结果或继续更换款式
+## How to get started
+1. Prepare a clear front‑facing photo or avatar
+2. Pick the category and style to try
+3. Upload and wait for inference results
+4. Download/share results or switch styles
 
-## 为什么选择我们？
-- 基于 Nano Banana 模型的推理能力与轻量部署
-- 面向品牌与开发者的可集成化接口
-- 重视隐私与安全的处理流程
+## Why VisuTry
+- Powered by Nano Banana with lightweight deployment
+- Developer‑ and brand‑friendly integration paths
+- Privacy‑aware processing flow
 
-如需了解原理与流程，请查看 `how-it-works.html`；更多背景与隐私说明，请访问 `about.html`；常见问题请前往 `faq.html`。
+See `/how-it-works.html` for the process, `/about.html` for background and privacy, and `/faq.html` for common questions.
