@@ -3,6 +3,22 @@
   "functions": {
     "src/app/api/try-on/route.ts": {
       "maxDuration": 60
+    },
+    "src/app/api/cron/cleanup-expired-tasks/route.ts": {
+      "maxDuration": 300
+    },
+    "src/app/api/cron/retention-notifications/route.ts": {
+      "maxDuration": 300
     }
-  }
+  },
+  "crons": [
+    {
+      "path": "/api/cron/retention-notifications",
+      "schedule": "0 9 * * *"
+    },
+    {
+      "path": "/api/cron/cleanup-expired-tasks",
+      "schedule": "0 2 * * *"
+    }
+  ]
 }

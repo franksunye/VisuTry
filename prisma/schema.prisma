@@ -55,6 +55,11 @@ model User {
   currentSubscriptionType String?      // Current active subscription type (PREMIUM_MONTHLY or PREMIUM_YEARLY)
   role             UserRole @default(USER)
 
+  // Email notification tracking
+  lastRetention3DayEmailSent DateTime?  // Track 3-day reminder email
+  lastRetention24HEmailSent  DateTime?  // Track 24-hour reminder email
+  lastRetentionDeletedEmailSent DateTime?  // Track deletion notification email
+
   accounts      Account[]
   sessions      Session[]
   tryOnTasks    TryOnTask[]
@@ -93,6 +98,9 @@ model TryOnTask {
   prompt      String?
   metadata    Json?
 
+  // Data retention
+  expiresAt   DateTime?  // When this task data will be deleted
+
   user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   createdAt   DateTime @default(now())
@@ -104,6 +112,7 @@ model TryOnTask {
   @@index([userId, type, createdAt(sort: Desc)]) // Optimized type queries
   @@index([userId, createdAt(sort: Desc)])       // Optimize dashboard recent tasks query
   @@index([userId, status])                      // Optimize dashboard stats query
+  @@index([expiresAt])                           // Index for expiry cleanup cron
 }
 
 model Payment {
