@@ -1,3 +1,4 @@
+---
 title: Virtual Try‑On Tool
 layout: page
 permalink: /
