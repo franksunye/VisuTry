@@ -344,10 +344,24 @@ export const authOptions: NextAuthOptions = {
       __debugWrite('events.signOut', info)
     },
     async createUser({ user }: any) {
-      const info = { id: user.id, name: user.name }
+      const info = { id: user.id, name: user.name, email: user.email }
       console.log('NextAuth CreateUser Event:', info)
       logger.info('auth', 'New user created', { userId: user.id, name: user.name })
       __debugWrite('events.createUser', info)
+
+      // Send welcome email to new user (non-blocking)
+      import('@/lib/resend').then(({ sendWelcomeEmail }) => {
+        sendWelcomeEmail({
+          id: user.id,
+          email: user.email,
+          name: user.name,
+        }).catch((err) => {
+          console.error('Failed to send welcome email:', err)
+          logger.error('auth', 'Failed to send welcome email', err instanceof Error ? err : new Error(String(err)), { userId: user.id })
+        })
+      }).catch((err) => {
+        console.error('Failed to import resend module:', err)
+      })
     },
     async session({ session }: any) {
       const info = { userId: session?.user?.id }

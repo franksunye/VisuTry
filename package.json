@@ -78,6 +78,7 @@
     "postcss": "^8.4.32",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
+    "resend": "^6.5.2",
     "stripe": "^14.25.0",
     "tailwind-merge": "^2.6.0",
     "tailwindcss": "^3.3.6",
