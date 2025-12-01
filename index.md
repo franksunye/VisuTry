@@ -1,6 +1,6 @@
 ---
 title: Virtual Try‑On Tool
-layout: page
+layout: home
 permalink: /
 ---
 
