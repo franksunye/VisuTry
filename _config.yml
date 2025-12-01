@@ -1,0 +1,7 @@
+title: VisuTry
+description: Static site on answer branch
+baseurl: ""
+url: ""
+theme: minima
+plugins:
+  - jekyll-feed
