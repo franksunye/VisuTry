@@ -10,6 +10,36 @@ const resend = process.env.RESEND_API_KEY
 const WELCOME_EMAIL_TEMPLATE_ALIAS = 'simple-html-welcome-email-template-for-visutrycom'
 
 /**
+ * Extract first name from various name formats
+ * Handles: "John Smith", "@johnsmith", "john@example.com", null
+ */
+function extractFirstName(name: string | null, email: string | null): string {
+  if (name) {
+    // Remove @ prefix if it's a Twitter handle
+    const cleanName = name.startsWith('@') ? name.slice(1) : name
+    // Get first part (before space)
+    const firstName = cleanName.split(' ')[0]
+    // Return if it looks like a name (not empty, not just numbers)
+    if (firstName && !/^\d+$/.test(firstName)) {
+      return firstName
+    }
+  }
+
+  // Fallback: extract from email (before @)
+  if (email) {
+    const emailPrefix = email.split('@')[0]
+    // Clean up common separators and get first part
+    const firstPart = emailPrefix.split(/[._-]/)[0]
+    if (firstPart && firstPart.length > 1) {
+      // Capitalize first letter
+      return firstPart.charAt(0).toUpperCase() + firstPart.slice(1).toLowerCase()
+    }
+  }
+
+  return 'there'
+}
+
+/**
  * Send welcome email to new user using Resend template
  */
 export async function sendWelcomeEmail(user: {
@@ -40,7 +70,7 @@ export async function sendWelcomeEmail(user: {
       // Template variables - matches {{FIRST_NAME}} in template
       // @ts-ignore
       template_data: {
-        FIRST_NAME: user.name?.split(' ')[0] || 'there',
+        FIRST_NAME: extractFirstName(user.name, user.email),
       },
     })
 
