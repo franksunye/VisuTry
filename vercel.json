@@ -15,10 +15,6 @@
     {
       "path": "/api/cron/retention-notifications",
       "schedule": "0 9 * * *"
-    },
-    {
-      "path": "/api/cron/cleanup-expired-tasks",
-      "schedule": "0 2 * * *"
     }
   ]
 }
