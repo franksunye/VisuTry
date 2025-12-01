@@ -1,10 +1,59 @@
-import { Resend } from 'resend'
 import { logger } from '@/lib/logger'
 
-// Initialize Resend client
-const resend = process.env.RESEND_API_KEY
-  ? new Resend(process.env.RESEND_API_KEY)
-  : null
+// Resend API configuration
+const RESEND_API_KEY = process.env.RESEND_API_KEY
+const RESEND_API_URL = 'https://api.resend.com/emails'
+
+// Template IDs/aliases
+const TEMPLATES = {
+  WELCOME: 'simple-html-welcome-email-template-for-visutrycom',
+  RETENTION_3DAY: 'dataretention-upgrade-reminder-email-',
+  RETENTION_24H: '-24-1day-24h-notice-before-deletion',
+  RETENTION_DELETED: '-after-deletion',
+} as const
+
+/**
+ * Send email using Resend API with template support
+ */
+async function sendEmailWithTemplate(params: {
+  from: string
+  to: string
+  templateId: string
+  variables: Record<string, string | number>
+}): Promise<{ success: boolean; emailId?: string; error?: string }> {
+  if (!RESEND_API_KEY) {
+    return { success: false, error: 'Resend API key not configured' }
+  }
+
+  try {
+    const response = await fetch(RESEND_API_URL, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${RESEND_API_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        from: params.from,
+        to: params.to,
+        template: {
+          id: params.templateId,
+          variables: params.variables,
+        },
+      }),
+    })
+
+    const data = await response.json()
+
+    if (!response.ok) {
+      return { success: false, error: data.message || JSON.stringify(data) }
+    }
+
+    return { success: true, emailId: data.id }
+  } catch (err) {
+    const error = err instanceof Error ? err : new Error(String(err))
+    return { success: false, error: error.message }
+  }
+}
 
 /**
  * Extract first name from various name formats
@@ -47,41 +96,31 @@ export async function sendWelcomeEmail(user: {
   email: string | null
   name: string | null
 }): Promise<{ success: boolean; emailId?: string; error?: string }> {
-  if (!resend) {
-    logger.warn('email', 'Resend not configured', { userId: user.id })
-    return { success: false, error: 'Resend not configured' }
-  }
   if (!user.email) {
     logger.warn('email', 'User has no email', { userId: user.id })
     return { success: false, error: 'User has no email address' }
   }
 
-  const firstName = extractFirstName(user.name, user.email)
+  const result = await sendEmailWithTemplate({
+    from: 'VisuTry <noreply@visutry.com>',
+    to: user.email,
+    templateId: TEMPLATES.WELCOME,
+    variables: {
+      FIRST_NAME: extractFirstName(user.name, user.email),
+    },
+  })
 
-  try {
-    const { data, error } = await resend.emails.send({
-      from: 'VisuTry <noreply@visutry.com>',
-      to: user.email,
-      subject: 'Welcome to VisuTry! 🎉',
-      text: `Hi ${firstName},\n\nWelcome to VisuTry! We're excited to have you.\n\nStart trying on glasses virtually at https://www.visutry.com\n\nThank you,\nThe VisuTry Team`,
-    })
-
-    if (error) {
-      logger.error('email', 'Failed to send welcome email', new Error(error.message), { userId: user.id })
-      return { success: false, error: error.message }
-    }
-
-    logger.info('email', 'Welcome email sent', { userId: user.id, emailId: data?.id })
-    return { success: true, emailId: data?.id }
-  } catch (err) {
-    const error = err instanceof Error ? err : new Error(String(err))
-    logger.error('email', 'Exception sending welcome email', error, { userId: user.id })
-    return { success: false, error: error.message }
+  if (result.success) {
+    logger.info('email', 'Welcome email sent', { userId: user.id, emailId: result.emailId })
+  } else {
+    logger.error('email', 'Failed to send welcome email', new Error(result.error || 'Unknown'), { userId: user.id })
   }
+
+  return result
 }
 
 /**
- * Send 3-day retention reminder email
+ * Send 3-day retention reminder email using Resend template
  */
 export async function sendRetention3DayEmail(user: {
   id: string
@@ -90,63 +129,33 @@ export async function sendRetention3DayEmail(user: {
   planDisplayName: string
   expiryDate: Date
 }): Promise<{ success: boolean; emailId?: string; error?: string }> {
-  if (!resend) {
-    logger.warn('email', 'Resend not configured', { userId: user.id })
-    return { success: false, error: 'Resend not configured' }
-  }
   if (!user.email) {
     logger.warn('email', 'User has no email', { userId: user.id })
     return { success: false, error: 'User has no email address' }
   }
 
-  const firstName = extractFirstName(user.name, user.email)
-  const expiryDate = formatDateForEmail(user.expiryDate)
+  const result = await sendEmailWithTemplate({
+    from: 'Support <support@visutry.com>',
+    to: user.email,
+    templateId: TEMPLATES.RETENTION_3DAY,
+    variables: {
+      FIRST_NAME: extractFirstName(user.name, user.email),
+      USER_PLAN: user.planDisplayName,
+      EXPIRY_DATE: formatDateForEmail(user.expiryDate),
+    },
+  })
 
-  const textContent = `Hi ${firstName},
-
-We hope you've enjoyed using Visutry. As part of our commitment to privacy and efficient resource use, we remove stored Try‑On images after a certain period depending on your plan. Here's how our storage retention works:
-
-Plan type & storage retention
-• Free users: data retained for 7 days
-• Credits Pack users: data retained for 90 days
-• Standard (or Paid) users: data retained for 1 year
-
-Your current plan: ${user.planDisplayName}
-Your stored Try‑On results will expire on ${expiryDate}.
-
-To keep any images or history beyond that date, please log in to your dashboard at visutry.com and download any results you want to keep.
-
-👉 Or — consider upgrading to a longer‑term plan: check our full pricing & storage options here: https://www.visutry.com/pricing
-
-If you have any questions or need help, feel free to contact us at support@visutry.com.
-
-Thank you for being with us,
-The Visutry Team`
-
-  try {
-    const { data, error } = await resend.emails.send({
-      from: 'Support <support@visutry.com>',
-      to: user.email,
-      subject: 'Your Visutry Try‑On data expiry coming up — choose how long to keep it',
-      text: textContent,
-    })
-
-    if (error) {
-      logger.error('email', 'Failed to send 3-day retention email', new Error(error.message), { userId: user.id })
-      return { success: false, error: error.message }
-    }
-
-    logger.info('email', '3-day retention email sent', { userId: user.id, emailId: data?.id })
-    return { success: true, emailId: data?.id }
-  } catch (err) {
-    const error = err instanceof Error ? err : new Error(String(err))
-    logger.error('email', 'Exception sending 3-day email', error, { userId: user.id })
-    return { success: false, error: error.message }
+  if (result.success) {
+    logger.info('email', '3-day retention email sent', { userId: user.id, emailId: result.emailId })
+  } else {
+    logger.error('email', 'Failed to send 3-day retention email', new Error(result.error || 'Unknown'), { userId: user.id })
   }
+
+  return result
 }
 
 /**
- * Send 24-hour final reminder email
+ * Send 24-hour final reminder email using Resend template
  */
 export async function sendRetention24HEmail(user: {
   id: string
@@ -154,57 +163,32 @@ export async function sendRetention24HEmail(user: {
   name: string | null
   expiryDate: Date
 }): Promise<{ success: boolean; emailId?: string; error?: string }> {
-  if (!resend) {
-    logger.warn('email', 'Resend not configured', { userId: user.id })
-    return { success: false, error: 'Resend not configured' }
-  }
   if (!user.email) {
     logger.warn('email', 'User has no email', { userId: user.id })
     return { success: false, error: 'User has no email address' }
   }
 
-  const firstName = extractFirstName(user.name, user.email)
-  const expiryDate = formatDateForEmail(user.expiryDate)
+  const result = await sendEmailWithTemplate({
+    from: 'Support <support@visutry.com>',
+    to: user.email,
+    templateId: TEMPLATES.RETENTION_24H,
+    variables: {
+      FIRST_NAME: extractFirstName(user.name, user.email),
+      EXPIRY_DATE: formatDateForEmail(user.expiryDate),
+    },
+  })
 
-  const textContent = `Hi ${firstName},
-
-Just a friendly reminder — your Try‑On results stored on Visutry are set to be automatically deleted tomorrow (${expiryDate}).
-
-If you'd like to keep any of your virtual try-on images, please log in now and download them before they're removed:
-👉 https://www.visutry.com/dashboard
-
-Want to keep your data longer? Consider upgrading your plan:
-👉 https://www.visutry.com/pricing
-
-If you have any questions, feel free to reach out at support@visutry.com.
-
-Thank you,
-The Visutry Team`
-
-  try {
-    const { data, error } = await resend.emails.send({
-      from: 'Support <support@visutry.com>',
-      to: user.email,
-      subject: '⚠️ Final Notice: Your Try-On Results Will Be Deleted Tomorrow',
-      text: textContent,
-    })
-
-    if (error) {
-      logger.error('email', 'Failed to send 24h email', new Error(error.message), { userId: user.id })
-      return { success: false, error: error.message }
-    }
-
-    logger.info('email', '24h retention email sent', { userId: user.id, emailId: data?.id })
-    return { success: true, emailId: data?.id }
-  } catch (err) {
-    const error = err instanceof Error ? err : new Error(String(err))
-    logger.error('email', 'Exception sending 24h email', error, { userId: user.id })
-    return { success: false, error: error.message }
+  if (result.success) {
+    logger.info('email', '24h retention email sent', { userId: user.id, emailId: result.emailId })
+  } else {
+    logger.error('email', 'Failed to send 24h email', new Error(result.error || 'Unknown'), { userId: user.id })
   }
+
+  return result
 }
 
 /**
- * Send deletion confirmation email
+ * Send deletion confirmation email using Resend template
  */
 export async function sendRetentionDeletedEmail(user: {
   id: string
@@ -212,51 +196,26 @@ export async function sendRetentionDeletedEmail(user: {
   name: string | null
   expiryDate: Date
 }): Promise<{ success: boolean; emailId?: string; error?: string }> {
-  if (!resend) {
-    logger.warn('email', 'Resend not configured', { userId: user.id })
-    return { success: false, error: 'Resend not configured' }
-  }
   if (!user.email) {
     logger.warn('email', 'User has no email', { userId: user.id })
     return { success: false, error: 'User has no email address' }
   }
 
-  const firstName = extractFirstName(user.name, user.email)
-  const expiryDate = formatDateForEmail(user.expiryDate)
+  const result = await sendEmailWithTemplate({
+    from: 'Support <support@visutry.com>',
+    to: user.email,
+    templateId: TEMPLATES.RETENTION_DELETED,
+    variables: {
+      FIRST_NAME: extractFirstName(user.name, user.email),
+      EXPIRY_DATE: formatDateForEmail(user.expiryDate),
+    },
+  })
 
-  const textContent = `Hi ${firstName},
-
-As scheduled, we've permanently deleted your Try‑On results from Visutry (original expiry date: ${expiryDate}). This includes all images and history associated with your account.
-
-If you'd like to start fresh with new try-ons, you're always welcome back:
-👉 https://www.visutry.com
-
-Want longer data retention next time? Check out our plans:
-👉 https://www.visutry.com/pricing
-
-If you have any questions, contact us at support@visutry.com.
-
-Thank you for using Visutry,
-The Visutry Team`
-
-  try {
-    const { data, error } = await resend.emails.send({
-      from: 'Support <support@visutry.com>',
-      to: user.email,
-      subject: 'Your Try-On Results Have Been Deleted',
-      text: textContent,
-    })
-
-    if (error) {
-      logger.error('email', 'Failed to send deletion email', new Error(error.message), { userId: user.id })
-      return { success: false, error: error.message }
-    }
-
-    logger.info('email', 'Deletion email sent', { userId: user.id, emailId: data?.id })
-    return { success: true, emailId: data?.id }
-  } catch (err) {
-    const error = err instanceof Error ? err : new Error(String(err))
-    logger.error('email', 'Exception sending deletion email', error, { userId: user.id })
-    return { success: false, error: error.message }
+  if (result.success) {
+    logger.info('email', 'Deletion email sent', { userId: user.id, emailId: result.emailId })
+  } else {
+    logger.error('email', 'Failed to send deletion email', new Error(result.error || 'Unknown'), { userId: user.id })
   }
+
+  return result
 }
