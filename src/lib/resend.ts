@@ -37,10 +37,10 @@ export async function sendWelcomeEmail(user: {
       // Use template with alias
       // @ts-ignore - Resend supports template_id with alias
       template_id: WELCOME_EMAIL_TEMPLATE_ALIAS,
-      // Template variables
+      // Template variables - matches {{FIRST_NAME}} in template
       // @ts-ignore
       template_data: {
-        user_name: user.name || 'there',
+        FIRST_NAME: user.name?.split(' ')[0] || 'there',
       },
     })
 
