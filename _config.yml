@@ -5,3 +5,8 @@ url: ""
 theme: minima
 plugins:
   - jekyll-feed
+header_pages:
+  - about.md
+  - how-it-works.md
+  - faq.md
+  - contact.md
