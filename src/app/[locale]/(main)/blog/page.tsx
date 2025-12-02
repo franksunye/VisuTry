@@ -3,6 +3,7 @@ import { generateSEO } from '@/lib/seo'
 import Link from 'next/link'
 import { Calendar, User, ArrowRight } from 'lucide-react'
 import { getAllBlogPosts } from '@/lib/blog'
+import Image from 'next/image'
 
 export const metadata: Metadata = generateSEO({
   title: 'Blog - Fashion & Style Tips | VisuTry',
@@ -25,10 +26,14 @@ export default async function BlogPage() {
               className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow"
             >
               <Link href={`./${post.slug}`} className="block">
-                <div className="h-48 bg-gradient-to-r from-blue-400 to-purple-500 flex items-center justify-center">
-                  <span className="text-white text-lg font-medium">
-                    {post.title.substring(0, 12)}...
-                  </span>
+                <div className="relative h-48 w-full overflow-hidden">
+                  <Image
+                    src={post.coverImage}
+                    alt={post.title}
+                    fill
+                    className="object-cover"
+                    priority={index < 3}
+                  />
                 </div>
               </Link>
 

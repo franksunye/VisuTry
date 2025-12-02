@@ -14,6 +14,7 @@ export interface BlogPost {
   readTime: string
   tags: string[]
   isPublished: boolean
+  coverImage: string
 }
 
 // Static blog posts list (can be fetched from database in the future)
@@ -29,6 +30,7 @@ export const staticBlogPosts: BlogPost[] = [
     readTime: '5 min read',
     tags: ['Face Shape', 'Glasses Selection', 'Style Guide'],
     isPublished: true,
+    coverImage: '/blog/face-shape-guide.jpg',
   },
   {
     slug: 'best-ai-virtual-glasses-tryon-tools-2025',
@@ -41,6 +43,7 @@ export const staticBlogPosts: BlogPost[] = [
     readTime: '8 min read',
     tags: ['Virtual Try-On', 'AI Technology', 'Product Comparison', 'Shopping Guide'],
     isPublished: true,
+    coverImage: '/og-image.jpg',
   },
   {
     slug: 'rayban-glasses-virtual-tryon-guide',
@@ -53,6 +56,7 @@ export const staticBlogPosts: BlogPost[] = [
     readTime: '10 min read',
     tags: ['Ray-Ban', 'Designer Glasses', 'Virtual Try-On', 'Style Guide'],
     isPublished: true,
+    coverImage: '/Ray-Ban RB5154 Clubmaster - Browline Black Frame Eyeglasses.jpg',
   },
   {
     slug: 'celebrity-glasses-style-guide-2025',
@@ -65,6 +69,7 @@ export const staticBlogPosts: BlogPost[] = [
     readTime: '9 min read',
     tags: ['Celebrity Style', 'Fashion Trends', 'Style Inspiration', 'Eyewear Fashion', 'Virtual Try-On'],
     isPublished: true,
+    coverImage: '/Cindy Crawford.jpg',
   },
   {
     slug: 'oliver-peoples-finley-vintage-review',
@@ -77,6 +82,7 @@ export const staticBlogPosts: BlogPost[] = [
     readTime: '8 min read',
     tags: ['Oliver Peoples', 'Luxury Eyewear', 'Product Review', 'Designer Glasses', 'Premium Frames'],
     isPublished: true,
+    coverImage: '/Oliver Peoples Finley Vintage.jpg',
   },
   {
     slug: 'tom-ford-luxury-eyewear-guide-2025',
@@ -89,6 +95,7 @@ export const staticBlogPosts: BlogPost[] = [
     readTime: '7 min read',
     tags: ['Tom Ford', 'Luxury Eyewear', 'Designer Glasses', 'Premium Frames', 'Fashion'],
     isPublished: true,
+    coverImage: '/og-image.jpg',
   },
   {
     slug: 'acetate-vs-plastic-eyeglass-frames-guide',
@@ -101,6 +108,7 @@ export const staticBlogPosts: BlogPost[] = [
     readTime: '7 min read',
     tags: ['Eyeglass Materials', 'Frame Guide', 'Acetate Frames', 'Buying Guide', 'Eyewear Education'],
     isPublished: true,
+    coverImage: '/og-image.jpg',
   },
   {
     slug: 'browline-clubmaster-glasses-complete-guide',
@@ -113,6 +121,7 @@ export const staticBlogPosts: BlogPost[] = [
     readTime: '8 min read',
     tags: ['Browline Glasses', 'Clubmaster', 'Retro Style', 'Vintage Eyewear', 'Fashion Trends'],
     isPublished: true,
+    coverImage: '/Zenni Retro Browline Glasses.jpg',
   },
   {
     slug: 'prescription-glasses-online-shopping-guide-2025',
@@ -125,6 +134,7 @@ export const staticBlogPosts: BlogPost[] = [
     readTime: '10 min read',
     tags: ['Online Shopping', 'Prescription Glasses', 'Buying Guide', 'Eyewear Tips', 'How-To'],
     isPublished: true,
+    coverImage: '/og-image.jpg',
   },
   {
     slug: 'best-glasses-for-face-shapes-guide',
@@ -137,6 +147,7 @@ export const staticBlogPosts: BlogPost[] = [
     readTime: '8 min read',
     tags: ['Face Shape', 'Glasses Selection', 'Style Guide'],
     isPublished: true,
+    coverImage: '/blog/face-shape-guide.jpg',
   },
   {
     slug: 'prescription-glasses-virtual-tryon-guide',
@@ -149,6 +160,7 @@ export const staticBlogPosts: BlogPost[] = [
     readTime: '6 min read',
     tags: ['Virtual Try-On', 'Prescription', 'Buying Guide'],
     isPublished: true,
+    coverImage: '/blog-covers/ai-virtual-tryon.jpg',
   },
   {
     slug: 'find-perfect-glasses-online-guide',
@@ -161,6 +173,7 @@ export const staticBlogPosts: BlogPost[] = [
     readTime: '7 min read',
     tags: ['Online Shopping', 'Glasses Guide', 'Virtual Try-On'],
     isPublished: true,
+    coverImage: '/og-image.jpg',
   },
 ]
 
