@@ -55,6 +55,7 @@ export interface TryOnRequest {
 export interface TryOnResult {
   success: boolean
   imageUrl?: string
+  metadata?: any
   error?: string
 }
 
@@ -92,9 +93,8 @@ export async function generateTryOnImage({
       model: "gemini-2.5-flash-image",
       generationConfig: {
         // @ts-ignore - responseModalities is not in the type definition yet
-        // Only output image without text to save tokens and reduce redundant information
-        // Reference: https://ai.google.dev/gemini-api/docs/image-generation#output-type
-        responseModalities: ["Image"]
+        // Return both image and text (JSON metadata)
+        responseModalities: ["Image","Text"]
       }
     })
 
@@ -218,7 +218,14 @@ TECHNICAL REQUIREMENTS:
 - Shadow realism: Natural shadows that match the lighting environment
 
 OUTPUT FORMAT:
-Return a single composite image that looks like a professional photograph taken in one shot.`
+- Return two outputs: (1) one photorealistic composite image, (2) one JSON object
+- JSON keys: required -> category, product, fit, recommendations; optional -> lens (only when category = "eyewear")
+- category ∈ {"eyewear","outfit","shoes","accessories"}
+- product = { brand, model, color, style } (omit unknown fields)
+- fit = { fitNotes } as ONE concise sentence, user-friendly
+- recommendations = { sizeAdvice, styleAdvice, alternatives:[string...] } (alternatives are simple product names)
+- lens = { lensType, tinted } and include ONLY for eyewear
+- The JSON must be valid, single object, no extra text, no comments, no markdown fences, no trailing commas.`
 
     // Generate the try-on image using multi-image fusion
     const apiStartTime = Date.now()
@@ -257,15 +264,27 @@ Return a single composite image that looks like a professional photograph taken 
     const parts = candidates[0].content.parts
     console.log(`📊 Response parts count: ${parts.length}`)
 
-    // Log all parts to understand what Gemini returned
+    let metadataText: string | undefined
     parts.forEach((part, index) => {
       if (part.text) {
         console.log(`📝 Part ${index}: Text response - "${part.text.substring(0, 100)}..."`)
+        metadataText = part.text
       }
       if (part.inlineData) {
         console.log(`🖼️ Part ${index}: Image data (${(part.inlineData.data.length/1024).toFixed(2)}KB, ${part.inlineData.mimeType})`)
       }
     })
+
+    let metadataObj: any | undefined
+    if (metadataText) {
+      const cleaned = metadataText.trim().replace(/^```json\s*/i, '').replace(/^```\s*/i, '').replace(/```$/i, '')
+      try {
+        metadataObj = JSON.parse(cleaned)
+      } catch (e) {
+        logger.warn('api', 'Failed to parse metadata JSON; returning text as fallback', e)
+        metadataObj = { rawText: metadataText }
+      }
+    }
 
     // Look for inline_data (generated image)
     for (const part of parts) {
@@ -286,6 +305,7 @@ Return a single composite image that looks like a professional photograph taken 
         return {
           success: true,
           imageUrl: dataUrl,
+          metadata: metadataObj,
           error: undefined
         }
       }
