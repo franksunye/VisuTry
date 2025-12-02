@@ -5,7 +5,7 @@ import { ArrowLeft, Tag as TagIcon, Calendar, User, ArrowRight } from 'lucide-re
 import { getAllBlogPosts } from '@/lib/blog'
 
 type Props = {
-  params: { tag: string }
+  params: { locale: string; tag: string }
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
@@ -13,12 +13,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return generateSEO({
     title: `${tag} - Blog Articles`,
     description: `Browse all articles tagged with ${tag}. Discover insights, guides, and tips about ${tag}.`,
-    url: `/blog/tag/${params.tag}`,
+    url: `/${params.locale}/blog/tag/${params.tag}`,
   })
 }
 
 export default async function TagPage({ params }: Props) {
   const tag = decodeURIComponent(params.tag)
+  const locale = params.locale
   const allPosts = await getAllBlogPosts()
   
   // Filter posts by tag
@@ -32,7 +33,7 @@ export default async function TagPage({ params }: Props) {
         {/* Back button */}
         <div className="mb-8">
           <Link
-            href="/blog"
+            href={`/${locale}/blog`}
             className="inline-flex items-center text-blue-600 hover:text-blue-800"
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
@@ -109,7 +110,7 @@ export default async function TagPage({ params }: Props) {
 
                   {/* Read more link */}
                   <Link
-                    href={`/blog/${post.slug}`}
+                    href={`/${locale}/blog/${post.slug}`}
                     className="inline-flex items-center text-blue-600 hover:text-blue-800 font-medium"
                   >
                     Read Full Article
@@ -123,7 +124,7 @@ export default async function TagPage({ params }: Props) {
           <div className="text-center py-12">
             <p className="text-gray-600 text-lg">No articles found with this tag.</p>
             <Link
-              href="/blog"
+              href={`/${locale}/blog`}
               className="inline-block mt-4 text-blue-600 hover:text-blue-800 font-medium"
             >
               Browse all articles →
@@ -134,4 +135,3 @@ export default async function TagPage({ params }: Props) {
     </div>
   )
 }
-
