@@ -7,6 +7,7 @@
  * - CLS (Cumulative Layout Shift)
  */
 
+import { locales, defaultLocale } from '@/i18n'
 export interface WebVitalsMetric {
   id: string
   name: string
@@ -246,10 +247,14 @@ export function calculateCLS(): Promise<number> {
 export function prefetchCriticalRoutes() {
   if (typeof window === 'undefined') return
 
+  const path = window.location.pathname
+  const firstSeg = path.split('/')[1] || defaultLocale
+  const currentLocale = (locales as readonly string[]).includes(firstSeg) ? firstSeg : defaultLocale
+
   const criticalRoutes = [
-    '/',
-    '/blog',
-    '/pricing',
+    `/${currentLocale}`,
+    `/${currentLocale}/blog`,
+    `/${currentLocale}/pricing`,
   ]
 
   criticalRoutes.forEach(route => {

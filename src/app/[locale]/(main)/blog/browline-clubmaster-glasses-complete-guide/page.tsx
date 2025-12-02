@@ -1,17 +1,20 @@
 import { Metadata } from 'next'
-import { generateSEO, generateStructuredData } from '@/lib/seo'
+import { generateStructuredData, generateI18nSEO } from '@/lib/seo'
 import Link from 'next/link'
 import { ArrowLeft, TrendingUp, History } from 'lucide-react'
 import Image from 'next/image'
 import BlogTags from '@/components/BlogTags'
 import { Breadcrumbs } from '@/components/seo/Breadcrumbs'
 
-export const metadata: Metadata = generateSEO({
-  title: 'Browline/Clubmaster Glasses Complete Guide 2025 - Retro Style Revival',
-  description: 'Discover the history, style, and modern appeal of browline/Clubmaster glasses. Learn why this retro style is making a major comeback in 2025.',
-  url: '/blog/browline-clubmaster-glasses-complete-guide',
-  type: 'article',
-})
+export async function generateMetadata({ params }: { params: { locale: string } }): Promise<Metadata> {
+  return generateI18nSEO({
+    locale: params.locale as any,
+    title: 'Browline/Clubmaster Glasses Complete Guide 2025 - Retro Style Revival',
+    description: 'Discover the history, style, and modern appeal of browline/Clubmaster glasses. Learn why this retro style is making a major comeback in 2025.',
+    pathname: '/blog/browline-clubmaster-glasses-complete-guide',
+    type: 'article',
+  })
+}
 
 const structuredData = generateStructuredData('article', {
   title: 'Browline/Clubmaster Glasses Complete Guide 2025',
@@ -33,10 +36,10 @@ export default function BlogPostPage() {
           {/* Breadcrumbs */}
           <div className="mb-6">
             <Breadcrumbs
-              items={[
-                { name: 'Blog', url: '/blog' },
+              items={[items:[
+                { name: 'Blog', url: '../blog' },
                 { name: 'Browline Clubmaster Glasses Guide' },
-              ]}
+              ]]}
             />
           </div>
 
@@ -108,7 +111,7 @@ export default function BlogPostPage() {
                 <Image src="/Ray-Ban RB5154 Clubmaster - Browline Black Frame Eyeglasses.jpg" alt="Ray-Ban Clubmaster eyeglasses" width={800} height={600} className="rounded-lg shadow-md" />
               </div>
               <p>
-                The <strong><Link href="/blog/rayban-glasses-virtual-tryon-guide" className="text-blue-600 hover:text-blue-800">Ray-Ban Clubmaster</Link></strong> (RB5154 for optical, RB3016 for sunglasses) is the most
+                The <strong><Link href="../rayban-glasses-virtual-tryon-guide" className="text-blue-600 hover:text-blue-800">Ray-Ban Clubmaster</Link></strong> (RB5154 for optical, RB3016 for sunglasses) is the most
                 famous browline style. Introduced in the 1980s, it became an instant classic and remains one of
                 Ray-Ban&apos;s best-selling frames.
               </p>
@@ -121,7 +124,7 @@ export default function BlogPostPage() {
               </ul>
               <h2>Face Shapes and Browline Glasses</h2>
               <p>
-                Not sure if browline glasses suit your face shape? Check out our <Link href="/blog/how-to-choose-glasses-for-your-face" className="text-blue-600 hover:text-blue-800">complete face shape guide</Link> to learn more.
+                Not sure if browline glasses suit your face shape? Check out our <Link href="../how-to-choose-glasses-for-your-face" className="text-blue-600 hover:text-blue-800">complete face shape guide</Link> to learn more.
               </p>
               <h3>Best For:</h3>
               <ul>
@@ -140,7 +143,7 @@ export default function BlogPostPage() {
                   See how browline/Clubmaster glasses look on your face before buying. Try multiple brands 
                   and colors with our AI-powered virtual try-on tool!
                 </p>
-                <Link href="/" className="inline-block bg-white text-indigo-600 px-8 py-3 rounded-lg font-bold hover:bg-gray-100 transition-colors">
+                <Link href="../try-on" className="inline-block bg-white text-indigo-600 px-8 py-3 rounded-lg font-bold hover:bg-gray-100 transition-colors">
                   Try Browline Styles →
                 </Link>
               </div>
@@ -193,16 +196,16 @@ export default function BlogPostPage() {
               <p>
                 <strong>Browline/Clubmaster glasses</strong> represent a perfect blend of vintage charm and
                 modern sophistication. Whether you choose the iconic Ray-Ban Clubmaster or a contemporary
-                variation, these frames offer timeless style that works across decades and occasions. For more style inspiration, check out our <Link href="/blog/celebrity-glasses-style-guide-2025" className="text-blue-600 hover:text-blue-800">celebrity glasses style guide</Link>.
+                variation, these frames offer timeless style that works across decades and occasions. For more style inspiration, check out our <Link href="../celebrity-glasses-style-guide-2025" className="text-blue-600 hover:text-blue-800">celebrity glasses style guide</Link>.
               </p>
               <p className="font-bold text-lg mt-6">
-                Ready to join the browline revival? Try these iconic frames virtually with our <Link href="/blog/best-ai-virtual-glasses-tryon-tools-2025" className="text-blue-600 hover:text-blue-800">AI virtual try-on tools</Link> and find your perfect match!
+                Ready to join the browline revival? Try these iconic frames virtually with our <Link href="../best-ai-virtual-glasses-tryon-tools-2025" className="text-blue-600 hover:text-blue-800">AI virtual try-on tools</Link> and find your perfect match!
               </p>
             </div>
             <div className="p-8 bg-gray-50 border-t">
               <div className="flex items-center justify-between flex-wrap gap-4">
                 <BlogTags tags={articleTags} />
-                <Link href="/" className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors">
+                <Link href="../try-on" className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors">
                   Try Browline Styles
                 </Link>
               </div>

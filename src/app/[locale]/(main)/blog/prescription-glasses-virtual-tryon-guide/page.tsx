@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import Image from 'next/image'
-import { generateStructuredData } from '@/lib/seo'
+import { Metadata } from 'next'
+import { generateStructuredData, generateI18nSEO } from '@/lib/seo'
 import { Breadcrumbs } from '@/components/seo/Breadcrumbs'
 
 const structuredData = generateStructuredData('article', {
@@ -12,10 +13,14 @@ const structuredData = generateStructuredData('article', {
   image: '/blog-covers/ai-virtual-tryon.jpg',
 })
 
-export const metadata = {
-  title: 'Prescription Glasses Virtual Try-On Guide - Find Your Perfect Fit Online',
-  description: 'Complete guide to using virtual try-on tools for prescription glasses. Learn how to find the perfect fit online without visiting a store.',
-  keywords: 'prescription glasses virtual try-on, online prescription glasses fitting, virtual glasses fitting, prescription eyeglasses online',
+export async function generateMetadata({ params }: { params: { locale: string } }): Promise<Metadata> {
+  return generateI18nSEO({
+    locale: params.locale as any,
+    title: 'Prescription Glasses Virtual Try-On Guide - Find Your Perfect Fit Online',
+    description: 'Complete guide to using virtual try-on tools for prescription glasses. Learn how to find the perfect fit online without visiting a store.',
+    pathname: '/blog/prescription-glasses-virtual-tryon-guide',
+    type: 'article',
+  })
 }
 
 export default function BlogPostPage() {
@@ -26,10 +31,10 @@ export default function BlogPostPage() {
         <main className="container mx-auto px-4 py-12">
           <div className="mb-6">
             <Breadcrumbs
-              items={[
-                { name: 'Blog', url: '/blog' },
+              items={[items:[
+                { name: 'Blog', url: '../blog' },
                 { name: 'Prescription Glasses Virtual Try-On Guide' },
-              ]}
+              ]]}
             />
           </div>
 
@@ -144,7 +149,7 @@ export default function BlogPostPage() {
                 <p className="mb-6">
                   Use our AI-powered virtual try-on tool to find your perfect prescription glasses.
                 </p>
-                <Link href="/try-on" className="inline-block bg-white text-blue-600 px-8 py-3 rounded-lg font-bold hover:bg-gray-100 transition-colors">
+                <Link href="../try-on" className="inline-block bg-white text-blue-600 px-8 py-3 rounded-lg font-bold hover:bg-gray-100 transition-colors">
                   Start Virtual Try-On →
                 </Link>
               </div>

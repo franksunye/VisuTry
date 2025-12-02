@@ -38,10 +38,10 @@ export default function BlogPostPage() {
           {/* Breadcrumbs */}
           <div className="mb-6">
             <Breadcrumbs
-              items={[
-                { name: 'Blog', url: '/blog' },
+              items:[
+                { name: 'Blog', url: '../blog' },
                 { name: 'How to Choose Glasses for Your Face' },
-              ]}
+              ]]}
             />
           </div>
 

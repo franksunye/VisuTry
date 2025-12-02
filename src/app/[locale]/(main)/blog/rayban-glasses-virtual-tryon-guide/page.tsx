@@ -35,7 +35,7 @@ export default function BlogPostPage() {
           <div className="mb-6">
             <Breadcrumbs
               items={[
-                { name: 'Blog', url: '/blog' },
+                { name: 'Blog', url: '../blog' },
                 { name: 'Ray-Ban Virtual Try-On Guide' },
               ]}
             />
@@ -389,4 +389,3 @@ export default function BlogPostPage() {
     </>
   )
 }
-

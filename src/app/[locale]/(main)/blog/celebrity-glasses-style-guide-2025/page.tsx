@@ -1,17 +1,20 @@
 import { Metadata } from 'next'
-import { generateSEO, generateStructuredData } from '@/lib/seo'
+import { generateStructuredData, generateI18nSEO } from '@/lib/seo'
 import Link from 'next/link'
 import { ArrowLeft, Star, Sparkles, TrendingUp } from 'lucide-react'
 import Image from 'next/image'
 import BlogTags from '@/components/BlogTags'
 import { Breadcrumbs } from '@/components/seo/Breadcrumbs'
 
-export const metadata: Metadata = generateSEO({
-  title: 'Celebrity Glasses Style Guide 2025 - Get the Look',
-  description: 'Discover how celebrities like Cindy Crawford and Joan Smalls rock their eyewear. Get inspired by iconic glasses styles and learn how to recreate celebrity looks with virtual try-on.',
-  url: '/blog/celebrity-glasses-style-guide-2025',
-  type: 'article',
-})
+export async function generateMetadata({ params }: { params: { locale: string } }): Promise<Metadata> {
+  return generateI18nSEO({
+    locale: params.locale as any,
+    title: 'Celebrity Glasses Style Guide 2025 - Get the Look',
+    description: 'Discover how celebrities like Cindy Crawford and Joan Smalls rock their eyewear. Get inspired by iconic glasses styles and learn how to recreate celebrity looks with virtual try-on.',
+    pathname: '/blog/celebrity-glasses-style-guide-2025',
+    type: 'article',
+  })
+}
 
 const structuredData = generateStructuredData('article', {
   title: 'Celebrity Glasses Style Guide 2025 - Get the Look',
@@ -38,7 +41,7 @@ export default function BlogPostPage() {
           <div className="mb-6">
             <Breadcrumbs
               items={[
-                { name: 'Blog', url: '/blog' },
+                { name: 'Blog', url: '../blog' },
                 { name: 'Celebrity Glasses Style Guide 2025' },
               ]}
             />
@@ -91,7 +94,7 @@ export default function BlogPostPage() {
                   the perfect adaptation of celebrity looks for your unique features.
                 </p>
                 <Link
-                  href="/"
+                  href="../try-on"
                   className="inline-block bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors font-bold"
                 >
                   Try Celebrity Styles Virtually →
@@ -127,8 +130,8 @@ export default function BlogPostPage() {
               </p>
               <p>
                 <strong>Get the look:</strong> Look for rectangular or subtle cat-eye frames in tortoiseshell
-                or classic black. Brands like <Link href="/blog/oliver-peoples-finley-vintage-review" className="text-blue-600 hover:text-blue-800">Oliver Peoples</Link> and
-                <Link href="/blog/tom-ford-luxury-eyewear-guide-2025" className="text-blue-600 hover:text-blue-800">Tom Ford</Link> offer similar sophisticated styles.
+                or classic black. Brands like <Link href="../oliver-peoples-finley-vintage-review" className="text-blue-600 hover:text-blue-800">Oliver Peoples</Link> and
+                <Link href="../tom-ford-luxury-eyewear-guide-2025" className="text-blue-600 hover:text-blue-800">Tom Ford</Link> offer similar sophisticated styles.
               </p>
 
               <h3>2. Joan Smalls - The Modern Minimalist</h3>
@@ -179,7 +182,7 @@ export default function BlogPostPage() {
               <p>
                 Browline glasses (also known as Clubmaster style) have experienced a major resurgence thanks
                 to celebrities embracing vintage aesthetics. This style has been spotted on everyone from
-                <strong> Robert Downey Jr.</strong> to <strong>Emma Watson</strong>. For a deep dive into this iconic style, check out our <Link href="/blog/browline-clubmaster-glasses-complete-guide" className="text-blue-600 hover:text-blue-800">complete browline/clubmaster guide</Link>.
+                <strong> Robert Downey Jr.</strong> to <strong>Emma Watson</strong>. For a deep dive into this iconic style, check out our <Link href="../browline-clubmaster-glasses-complete-guide" className="text-blue-600 hover:text-blue-800">complete browline/clubmaster guide</Link>.
               </p>
               <p>
                 <strong>Key features of the browline trend:</strong>
@@ -318,7 +321,7 @@ export default function BlogPostPage() {
                   match in seconds!
                 </p>
                 <Link
-                  href="/"
+                  href="../try-on"
                   className="inline-block bg-white text-purple-600 px-8 py-3 rounded-lg font-bold hover:bg-gray-100 transition-colors"
                 >
                   Try Celebrity Styles Now →
@@ -348,14 +351,14 @@ export default function BlogPostPage() {
                 it your own. Use celebrity looks as a starting point, then adapt them to your:
               </p>
               <ul>
-                <li><strong>Face shape</strong> - Check our <Link href="/blog/how-to-choose-glasses-for-your-face" className="text-blue-600 hover:text-blue-800">face shape guide</Link> to choose frames that flatter your unique features</li>
+                <li><strong>Face shape</strong> - Check our <Link href="../how-to-choose-glasses-for-your-face" className="text-blue-600 hover:text-blue-800">face shape guide</Link> to choose frames that flatter your unique features</li>
                 <li><strong>Personal style</strong> - Select designs that align with your aesthetic</li>
                 <li><strong>Lifestyle needs</strong> - Ensure your glasses work for your daily activities</li>
                 <li><strong>Budget</strong> - Find quality options at your price point</li>
               </ul>
               <p>
                 With virtual try-on technology, you can experiment with countless celebrity-inspired styles
-                risk-free, finding the perfect frames that make you feel like a star. Explore our <Link href="/blog/best-ai-virtual-glasses-tryon-tools-2025" className="text-blue-600 hover:text-blue-800">guide to the best AI virtual try-on tools</Link> to get started.
+                risk-free, finding the perfect frames that make you feel like a star. Explore our <Link href="../best-ai-virtual-glasses-tryon-tools-2025" className="text-blue-600 hover:text-blue-800">guide to the best AI virtual try-on tools</Link> to get started.
               </p>
               <p className="font-bold text-lg mt-6">
                 Your perfect celebrity-inspired look is waiting—start your virtual try-on journey today!
@@ -366,7 +369,7 @@ export default function BlogPostPage() {
               <div className="flex items-center justify-between flex-wrap gap-4">
                 <BlogTags tags={articleTags} />
                 <Link
-                  href="/"
+                  href="../try-on"
                   className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors"
                 >
                   Try Virtual Try-On
