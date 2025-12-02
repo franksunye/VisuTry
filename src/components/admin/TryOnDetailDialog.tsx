@@ -26,6 +26,7 @@ interface TryOnTask {
   errorMessage: string | null;
   createdAt: string;
   updatedAt: string;
+  metadata?: any;
   user: {
     id: string;
     name: string | null;
@@ -230,13 +231,74 @@ export default function TryOnDetailDialog({
                 </div>
               )}
             </div>
-          </div>
+        </div>
 
-          {/* 图片预览 */}
+        {task.metadata && (
           <div>
-            <div className="flex items-center justify-between mb-2">
-              <h3 className="text-sm font-medium">Image Preview</h3>
-              <Button
+            <h3 className="text-sm font-medium mb-2">Metadata</h3>
+            <div className="space-y-2 text-sm">
+              <div>
+                <span className="text-muted-foreground">Category:</span> {task.metadata?.category || 'N/A'}
+              </div>
+              {task.metadata?.product && (
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <span className="text-muted-foreground">Brand:</span> {task.metadata.product?.brand || 'N/A'}
+                  </div>
+                  <div>
+                    <span className="text-muted-foreground">Model:</span> {task.metadata.product?.model || 'N/A'}
+                  </div>
+                  <div>
+                    <span className="text-muted-foreground">Color:</span> {task.metadata.product?.color || 'N/A'}
+                  </div>
+                  <div>
+                    <span className="text-muted-foreground">Style:</span> {task.metadata.product?.style || 'N/A'}
+                  </div>
+                </div>
+              )}
+              {task.metadata?.lens && (
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <span className="text-muted-foreground">Lens Type:</span> {task.metadata.lens?.lensType || 'N/A'}
+                  </div>
+                  <div>
+                    <span className="text-muted-foreground">Tinted:</span> {task.metadata.lens?.tinted === true ? 'Yes' : task.metadata.lens?.tinted === false ? 'No' : 'N/A'}
+                  </div>
+                </div>
+              )}
+              {task.metadata?.fit?.fitNotes && (
+                <div>
+                  <span className="text-muted-foreground">Fit Notes:</span> {task.metadata.fit.fitNotes}
+                </div>
+              )}
+              {task.metadata?.recommendations && (
+                <div className="space-y-1">
+                  {task.metadata.recommendations?.sizeAdvice && (
+                    <div>
+                      <span className="text-muted-foreground">Size Advice:</span> {task.metadata.recommendations.sizeAdvice}
+                    </div>
+                  )}
+                  {task.metadata.recommendations?.styleAdvice && (
+                    <div>
+                      <span className="text-muted-foreground">Style Advice:</span> {task.metadata.recommendations.styleAdvice}
+                    </div>
+                  )}
+                  {Array.isArray(task.metadata.recommendations?.alternatives) && task.metadata.recommendations.alternatives.length > 0 && (
+                    <div>
+                      <span className="text-muted-foreground">Alternatives:</span> {task.metadata.recommendations.alternatives.join(', ')}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* 图片预览 */}
+        <div>
+          <div className="flex items-center justify-between mb-2">
+            <h3 className="text-sm font-medium">Image Preview</h3>
+            <Button
                 variant="outline"
                 size="sm"
                 onClick={() => setShowImages(!showImages)}
@@ -305,4 +367,3 @@ export default function TryOnDetailDialog({
     </Dialog>
   );
 }
-
