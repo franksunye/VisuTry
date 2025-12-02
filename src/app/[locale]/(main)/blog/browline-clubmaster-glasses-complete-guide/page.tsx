@@ -36,10 +36,10 @@ export default function BlogPostPage() {
           {/* Breadcrumbs */}
           <div className="mb-6">
             <Breadcrumbs
-              items={[items:[
+              items={[
                 { name: 'Blog', url: '../blog' },
                 { name: 'Browline Clubmaster Glasses Guide' },
-              ]]}
+              ]}
             />
           </div>
 
@@ -216,4 +216,3 @@ export default function BlogPostPage() {
     </>
   )
 }
-

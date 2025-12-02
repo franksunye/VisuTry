@@ -31,10 +31,10 @@ export default function BlogPostPage() {
         <main className="container mx-auto px-4 py-12">
           <div className="mb-6">
             <Breadcrumbs
-              items={[items:[
+              items={[
                 { name: 'Blog', url: '../blog' },
                 { name: 'Prescription Glasses Virtual Try-On Guide' },
-              ]]}
+              ]}
             />
           </div>
 
@@ -166,4 +166,3 @@ export default function BlogPostPage() {
     </>
   )
 }
-

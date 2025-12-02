@@ -102,7 +102,7 @@ export async function sendWelcomeEmail(user: {
   }
 
   const result = await sendEmailWithTemplate({
-    from: 'VisuTry <noreply@visutry.com>',
+    from: 'VisuTry <support@visutry.com>',
     to: user.email,
     templateId: TEMPLATES.WELCOME,
     variables: {
@@ -135,7 +135,7 @@ export async function sendRetention3DayEmail(user: {
   }
 
   const result = await sendEmailWithTemplate({
-    from: 'Support <support@visutry.com>',
+    from: 'VisuTry <support@visutry.com>',
     to: user.email,
     templateId: TEMPLATES.RETENTION_3DAY,
     variables: {
@@ -169,7 +169,7 @@ export async function sendRetention24HEmail(user: {
   }
 
   const result = await sendEmailWithTemplate({
-    from: 'Support <support@visutry.com>',
+    from: 'VisuTry <support@visutry.com>',
     to: user.email,
     templateId: TEMPLATES.RETENTION_24H,
     variables: {
@@ -202,7 +202,7 @@ export async function sendRetentionDeletedEmail(user: {
   }
 
   const result = await sendEmailWithTemplate({
-    from: 'Support <support@visutry.com>',
+    from: 'VisuTry <support@visutry.com>',
     to: user.email,
     templateId: TEMPLATES.RETENTION_DELETED,
     variables: {

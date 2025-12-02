@@ -1,17 +1,20 @@
 import { Metadata } from 'next'
-import { generateSEO, generateStructuredData } from '@/lib/seo'
+import { generateStructuredData, generateI18nSEO } from '@/lib/seo'
 import Link from 'next/link'
 import { ArrowLeft, Award, Eye, CheckCircle2 } from 'lucide-react'
 import Image from 'next/image'
 import BlogTags from '@/components/BlogTags'
 import { Breadcrumbs } from '@/components/seo/Breadcrumbs'
 
-export const metadata: Metadata = generateSEO({
-  title: 'Oliver Peoples Finley Vintage Review 2025 - Worth the Investment?',
-  description: 'In-depth review of the iconic Oliver Peoples Finley Vintage eyeglasses. Discover quality, fit, style, and whether these luxury frames are worth the price.',
-  url: '/blog/oliver-peoples-finley-vintage-review',
-  type: 'article',
-})
+export async function generateMetadata({ params }: { params: { locale: string } }): Promise<Metadata> {
+  return generateI18nSEO({
+    locale: params.locale as any,
+    title: 'Oliver Peoples Finley Vintage Review 2025 - Worth the Investment?',
+    description: 'In-depth review of the iconic Oliver Peoples Finley Vintage eyeglasses. Discover quality, fit, style, and whether these luxury frames are worth the price.',
+    pathname: '/blog/oliver-peoples-finley-vintage-review',
+    type: 'article',
+  })
+}
 
 const structuredData = generateStructuredData('article', {
   title: 'Oliver Peoples Finley Vintage Review 2025 - Worth the Investment?',
@@ -38,7 +41,7 @@ export default function BlogPostPage() {
           <div className="mb-6">
             <Breadcrumbs
               items={[
-                { name: 'Blog', url: '/blog' },
+                { name: 'Blog', url: '../blog' },
                 { name: 'Oliver Peoples Finley Vintage Review' },
               ]}
             />
@@ -147,7 +150,7 @@ export default function BlogPostPage() {
               <p>
                 This is where Oliver Peoples truly justifies its premium pricing. The Finley Vintage is crafted
                 from <strong>premium Italian acetate</strong>, which offers several advantages over standard
-                plastic frames. For a detailed comparison of frame materials, check out our <Link href="/blog/acetate-vs-plastic-eyeglass-frames-guide" className="text-blue-600 hover:text-blue-800">acetate vs plastic frames guide</Link>.
+                plastic frames. For a detailed comparison of frame materials, check out our <Link href="../blog/acetate-vs-plastic-eyeglass-frames-guide" className="text-blue-600 hover:text-blue-800">acetate vs plastic frames guide</Link>.
               </p>
 
               <h3>Acetate Quality</h3>
@@ -328,7 +331,7 @@ export default function BlogPostPage() {
                   multiple brands to compare!
                 </p>
                 <Link
-                  href="/"
+                  href="../.."
                   className="inline-block bg-white text-orange-600 px-8 py-3 rounded-lg font-bold hover:bg-gray-100 transition-colors"
                 >
                   Virtual Try-On Now →
@@ -429,7 +432,7 @@ export default function BlogPostPage() {
 
               <p className="font-bold text-lg mt-6">
                 Ready to experience luxury eyewear? Try the Finley Vintage virtually or explore similar
-                styles to find your perfect match! Check out our <Link href="/blog/tom-ford-luxury-eyewear-guide-2025" className="text-blue-600 hover:text-blue-800">Tom Ford luxury eyewear guide</Link> and <Link href="/blog/celebrity-glasses-style-guide-2025" className="text-blue-600 hover:text-blue-800">celebrity glasses style guide</Link> for more luxury eyewear inspiration.
+                styles to find your perfect match! Check out our <Link href="../blog/tom-ford-luxury-eyewear-guide-2025" className="text-blue-600 hover:text-blue-800">Tom Ford luxury eyewear guide</Link> and <Link href="../blog/celebrity-glasses-style-guide-2025" className="text-blue-600 hover:text-blue-800">celebrity glasses style guide</Link> for more luxury eyewear inspiration.
               </p>
             </div>
 
@@ -437,7 +440,7 @@ export default function BlogPostPage() {
               <div className="flex items-center justify-between flex-wrap gap-4">
                 <BlogTags tags={articleTags} />
                 <Link
-                  href="/"
+                  href="../.."
                   className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors"
                 >
                   Try Similar Styles
@@ -450,4 +453,3 @@ export default function BlogPostPage() {
     </>
   )
 }
-
