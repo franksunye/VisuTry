@@ -21,7 +21,7 @@ export default async function BlogPage() {
         <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3 max-w-6xl mx-auto">
           {posts.map((post, index) => (
             <article
-              key={post.id}
+              key={post.slug}
               className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow"
             >
               <Link href={`./${post.slug}`} className="block">
