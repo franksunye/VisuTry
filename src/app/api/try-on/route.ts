@@ -338,7 +338,8 @@ export async function POST(request: NextRequest) {
             id: true,
             status: true,
             resultImageUrl: true,
-            errorMessage: true
+            errorMessage: true,
+            metadata: true
           }
         })
 
@@ -442,6 +443,7 @@ export async function POST(request: NextRequest) {
         taskId: tryOnTask.id,
         status: statusLower,
         resultImageUrl: finalTask?.resultImageUrl || null,
+        metadata: (finalTask as any)?.metadata || null,
         errorMessage: isMockMode ? undefined : (finalTask as any)?.errorMessage,
         message: taskStatus === "COMPLETED"
           ? "Try-on completed successfully!"
@@ -561,14 +563,16 @@ async function processTryOnAsync(taskId: string, userImageUrl: string, itemImage
       if (isMockMode) {
         await MockDatabase.updateTryOnTask(taskId, {
           status: "completed",
-          resultImageUrl: finalImageUrl
+          resultImageUrl: finalImageUrl,
+          metadata: (result as any)?.metadata
         })
       } else {
         await prisma.tryOnTask.update({
           where: { id: taskId },
           data: {
             status: "COMPLETED",
-            resultImageUrl: finalImageUrl
+            resultImageUrl: finalImageUrl,
+            metadata: (result as any)?.metadata
           }
         })
       }
