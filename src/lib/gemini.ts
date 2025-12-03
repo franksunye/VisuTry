@@ -218,14 +218,9 @@ TECHNICAL REQUIREMENTS:
 - Shadow realism: Natural shadows that match the lighting environment
 
 OUTPUT FORMAT:
-- Return two outputs: (1) one photorealistic composite image, (2) one JSON object
-- JSON keys: required -> category, product, fit, recommendations; optional -> lens (only when category = "eyewear")
-- category ∈ {"eyewear","outfit","shoes","accessories"}
-- product = { brand, model, color, style } (omit unknown fields)
-- fit = { fitNotes } as ONE concise sentence, user-friendly
-- recommendations = { sizeAdvice, styleAdvice, alternatives:[string...] } (alternatives are simple product names)
-- lens = { lensType, tinted } and include ONLY for eyewear
-- The JSON must be valid, single object, no extra text, no comments, no markdown fences, no trailing commas.`
+- Return two outputs: (1) one photorealistic composite image, (2) a brief text description
+- The text should include: product category, identified brand/model/color/style if recognizable, fit assessment, and styling recommendations
+- Keep the description concise and user-friendly (2-4 sentences)`
 
     // Generate the try-on image using multi-image fusion
     const apiStartTime = Date.now()
@@ -275,16 +270,8 @@ OUTPUT FORMAT:
       }
     })
 
-    let metadataObj: any | undefined
-    if (metadataText) {
-      const cleaned = metadataText.trim().replace(/^```json\s*/i, '').replace(/^```\s*/i, '').replace(/```$/i, '')
-      try {
-        metadataObj = JSON.parse(cleaned)
-      } catch (e) {
-        logger.warn('api', 'Failed to parse metadata JSON; returning text as fallback', e)
-        metadataObj = { rawText: metadataText }
-      }
-    }
+    // Store the text description directly as metadata
+    const metadataObj = metadataText ? { description: metadataText.trim() } : undefined
 
     // Look for inline_data (generated image)
     for (const part of parts) {
