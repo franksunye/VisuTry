@@ -6,10 +6,10 @@ const RESEND_API_URL = 'https://api.resend.com/emails'
 
 // Template IDs/aliases
 const TEMPLATES = {
-  WELCOME: 'simple-html-welcome-email-template-for-visutrycom',
-  RETENTION_3DAY: 'dataretention-upgrade-reminder-email-',
-  RETENTION_24H: '-24-1day-24h-notice-before-deletion',
-  RETENTION_DELETED: '-after-deletion',
+  WELCOME: 'welcome',
+  RETENTION_3DAY: 'dataretention-upgrade-reminder',
+  RETENTION_24H: '24h-notice-before-deletion',
+  RETENTION_DELETED: 'after-deletion',
 } as const
 
 /**
