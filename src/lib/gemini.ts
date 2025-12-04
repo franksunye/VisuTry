@@ -219,7 +219,7 @@ TECHNICAL REQUIREMENTS:
 
 OUTPUT FORMAT:
 - Return two outputs: (1) one photorealistic composite image, (2) a brief text description
-- The text should include: product category, identified brand/model/color/style if recognizable, fit assessment, and styling recommendations
+- The text should include: product category, identified brand/model/color/style/price if recognizable, fit assessment, and styling recommendations
 - Keep the description concise and user-friendly (2-4 sentences)`
 
     // Generate the try-on image using multi-image fusion
