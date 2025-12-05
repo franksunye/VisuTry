@@ -6,8 +6,8 @@ import { logger } from "@/lib/logger"
 import { TaskStatus, TryOnType, User } from "@prisma/client"
 
 // Service Tiering Config
-const ENABLE_SERVICE_TIERING = process.env.ENABLE_SERVICE_TIERING === 'true' || true // Default to true for now as per plan
-const GEMINI_PREMIUM_ONLY = process.env.GEMINI_PREMIUM_ONLY === 'true' || true
+const ENABLE_SERVICE_TIERING = process.env.ENABLE_SERVICE_TIERING !== 'false' // Default to true, unless explicitly set to false
+const GEMINI_PREMIUM_ONLY = process.env.GEMINI_PREMIUM_ONLY !== 'false'
 
 export interface TryOnSubmissionResult {
   taskId: string
@@ -61,7 +61,7 @@ export async function submitTryOnTask(
   // Check premium status logic (same as in existing route)
   const isPremiumActive = user.isPremium && (!user.premiumExpiresAt || user.premiumExpiresAt > new Date())
   
-  if (isPremiumActive) {
+  if (ENABLE_SERVICE_TIERING && isPremiumActive) {
     serviceType = 'gemini'
     isAsync = false // Gemini is currently synchronous
   }
