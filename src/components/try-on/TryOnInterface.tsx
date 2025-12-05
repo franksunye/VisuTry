@@ -12,6 +12,7 @@ import Link from "next/link"
 import { analytics, getUserType } from "@/lib/analytics"
 import { TryOnType, getTryOnConfig } from "@/config/try-on-types"
 import { logger } from "@/lib/logger"
+import { cn } from "@/utils/cn"
 
 interface ErrorState {
   message: string
@@ -431,28 +432,12 @@ export function TryOnInterface({ type = 'GLASSES' }: TryOnInterfaceProps) {
         </div>
       </div>
 
-      {/* Main Content: Left-Right Layout (Desktop) / Top-Bottom Layout (Mobile) */}
-      <div className="grid lg:grid-cols-[400px_1fr] gap-8">
-        {/* Result Preview Area - Shows first on mobile, right on desktop */}
-        {/* Height matches left side: 300px (photo) + 20px (gap) + 180px (glasses) = 500px */}
-        <div className="h-[500px] overflow-hidden border-2 border-gray-300 border-dashed rounded-lg lg:order-2 bg-gray-50 flex flex-col">
-          {isProcessing ? (
-            <LoadingState message={processingMessage} type={type} />
-          ) : result ? (
-            <div className="p-6 h-full flex flex-col">
-              <ResultDisplay
-                resultImageUrl={result.imageUrl}
-                taskId={result.taskId}
-                onTryAgain={handleTryAgain}
-              />
-            </div>
-          ) : (
-            <EmptyState type={type} />
-          )}
-        </div>
-
-        {/* Photo Uploads - Shows second on mobile, left on desktop */}
-        <div className="space-y-5 lg:order-1">
+      {/* Main Content: Mobile-first layout with reordering */}
+      {/* Mobile: Upload → Button → Result (action-first) */}
+      {/* Desktop: Left (Upload) | Right (Result), Button below */}
+      <div className="flex flex-col lg:grid lg:grid-cols-[400px_1fr] gap-8">
+        {/* Photo Uploads - First on mobile, left on desktop */}
+        <div className="space-y-5 order-1 lg:order-1">
           {/* User Photo Upload */}
           <ImageUpload
             onImageSelect={handleUserImageSelect}
@@ -477,11 +462,9 @@ export function TryOnInterface({ type = 'GLASSES' }: TryOnInterfaceProps) {
             iconType={config.iconType}
           />
         </div>
-      </div>
 
-      {/* Action Button with Status */}
-      {currentStep !== "result" && (
-        <div className="mt-8">
+        {/* Action Button with Status - Second on mobile (sticky), below grid on desktop */}
+        <div className="order-2 lg:order-3 lg:col-span-2 sticky bottom-0 lg:static bg-white py-4 lg:py-0 -mx-4 px-4 lg:mx-0 lg:px-0 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)] lg:shadow-none z-10">
           {/* Button and Status in one row */}
           <div className="flex items-center justify-between gap-4">
             {/* Left: User Status Banner */}
@@ -518,24 +501,40 @@ export function TryOnInterface({ type = 'GLASSES' }: TryOnInterfaceProps) {
               <Link
                 href="/pricing"
                 onClick={() => {
-                  const creditsPurchased = (session?.user as any)?.creditsPurchased || 0
-                  const creditsUsed = (session?.user as any)?.creditsUsed || 0
-                  const creditsRemaining = creditsPurchased - creditsUsed
-                  const userType = getUserType(
-                    session?.user?.isPremiumActive || false,
-                    creditsRemaining,
-                    !!session
-                  )
-                  analytics.trackQuotaExhaustedCTA('try_on', userType)
+                  analytics.trackButtonClick('upgrade_from_quota_warning', window.location.pathname, {
+                    userType: getUserType(session),
+                    location: 'try_on_interface'
+                  })
                 }}
-                className="font-semibold underline hover:text-red-700"
+                className="text-blue-600 hover:underline font-medium"
               >
                 Upgrade now
               </Link>
             </div>
           )}
         </div>
-      )}
+
+        {/* Result Preview Area - Third on mobile, right on desktop */}
+        {/* Mobile: 200px when empty, 500px when loading/result. Desktop: always 500px */}
+        <div className={cn(
+          "overflow-hidden border-2 border-gray-300 border-dashed rounded-lg order-3 lg:order-2 bg-gray-50 flex flex-col",
+          result || isProcessing ? "h-[500px]" : "h-[200px] lg:h-[500px]"
+        )}>
+          {isProcessing ? (
+            <LoadingState message={processingMessage} type={type} />
+          ) : result ? (
+            <div className="p-6 h-full flex flex-col">
+              <ResultDisplay
+                resultImageUrl={result.imageUrl}
+                taskId={result.taskId}
+                onTryAgain={handleTryAgain}
+              />
+            </div>
+          ) : (
+            <EmptyState type={type} />
+          )}
+        </div>
+      </div>
     </div>
   )
 }
