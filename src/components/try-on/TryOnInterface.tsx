@@ -501,7 +501,15 @@ export function TryOnInterface({ type = 'GLASSES' }: TryOnInterfaceProps) {
               <Link
                 href="/pricing"
                 onClick={() => {
-                  analytics.trackQuotaExhaustedCTA('try_on', getUserType(session))
+                  const creditsPurchased = (session?.user as any)?.creditsPurchased || 0
+                  const creditsUsed = (session?.user as any)?.creditsUsed || 0
+                  const creditsRemaining = creditsPurchased - creditsUsed
+                  const userType = getUserType(
+                    session?.user?.isPremiumActive || false,
+                    creditsRemaining,
+                    !!session
+                  )
+                  analytics.trackQuotaExhaustedCTA('try_on', userType)
                 }}
                 className="text-blue-600 hover:underline font-medium"
               >
