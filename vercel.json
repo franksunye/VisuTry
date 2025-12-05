@@ -18,10 +18,6 @@
     {
       "path": "/api/cron/retention-notifications",
       "schedule": "0 9 * * *"
-    },
-    {
-      "path": "/api/cron/sync-pending-tasks",
-      "schedule": "*/3 * * * *"
     }
   ]
 }
