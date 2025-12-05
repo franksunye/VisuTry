@@ -501,10 +501,7 @@ export function TryOnInterface({ type = 'GLASSES' }: TryOnInterfaceProps) {
               <Link
                 href="/pricing"
                 onClick={() => {
-                  analytics.trackButtonClick('upgrade_from_quota_warning', window.location.pathname, {
-                    userType: getUserType(session),
-                    location: 'try_on_interface'
-                  })
+                  analytics.trackQuotaExhaustedCTA('try_on', getUserType(session))
                 }}
                 className="text-blue-600 hover:underline font-medium"
               >
