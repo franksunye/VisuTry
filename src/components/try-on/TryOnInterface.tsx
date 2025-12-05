@@ -59,18 +59,43 @@ export function TryOnInterface({ type = 'GLASSES' }: TryOnInterfaceProps) {
   useEffect(() => {
     if (!currentTaskId || !isProcessing) return
 
+    let pollCount = 0
+    const maxPolls = 150 // 5 minutes at 2s interval (safety timeout)
+
     const pollInterval = setInterval(async () => {
+      pollCount++
+      
+      // Safety timeout check
+      if (pollCount > maxPolls) {
+        clearInterval(pollInterval)
+        setIsProcessing(false)
+        setCurrentTaskId(null)
+        setError({
+          message: "Processing timed out. Please try again.",
+          type: 'generic'
+        })
+        return
+      }
+
       try {
-        const response = await fetch(`/api/try-on/${currentTaskId}`)
+        // Use the new polling endpoint
+        const response = await fetch('/api/try-on/poll', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ taskId: currentTaskId })
+        })
+        
         const data = await response.json()
 
         if (data.success) {
           const task = data.data
 
-          if (task.status === "completed" && task.resultImageUrl) {
+          if (task.status === "COMPLETED" && task.resultImageUrl) {
             setResult({
               imageUrl: task.resultImageUrl,
-              taskId: task.id
+              taskId: currentTaskId
             })
             setCurrentStep("result")
             setIsProcessing(false)
@@ -85,14 +110,22 @@ export function TryOnInterface({ type = 'GLASSES' }: TryOnInterfaceProps) {
               console.error('❌ Failed to refresh session after try-on:', error)
               logger.error('general', 'Failed to refresh session after try-on', err)
             })
-          } else if (task.status === "failed") {
-            alert(task.errorMessage || "Processing failed, please try again")
+          } else if (task.status === "FAILED") {
+            // Fix: Ensure error message is extracted correctly
+            const errorMsg = task.error || task.errorMessage || "Processing failed, please try again"
+            setError({
+              message: errorMsg,
+              type: 'generic'
+            })
             setCurrentStep("select")
             setIsProcessing(false)
             setCurrentTaskId(null)
             clearInterval(pollInterval)
-          } else if (task.status === "processing") {
-            setProcessingMessage("Analyzing...")
+          } else if (task.status === "PROCESSING" || task.status === "PENDING") {
+            // Update progress if available
+            if (task.progress) {
+              setProcessingMessage(`Processing... ${task.progress}%`)
+            }
           }
         }
       } catch (error) {
@@ -100,10 +133,40 @@ export function TryOnInterface({ type = 'GLASSES' }: TryOnInterfaceProps) {
         console.error("Failed to check task status:", error)
         logger.error('general', 'Failed to check task status', err)
       }
-    }, 1000) // Check every 1 second for faster response
+    }, 2000) // Check every 2 seconds to avoid hitting rate limits
 
     return () => clearInterval(pollInterval)
   }, [currentTaskId, isProcessing])
+
+  // Check for pending tasks on mount (Recovery)
+  useEffect(() => {
+    const checkPendingTasks = async () => {
+      try {
+        const response = await fetch('/api/try-on/pending-tasks')
+        if (!response.ok) return
+        
+        const tasks = await response.json()
+        if (tasks && tasks.length > 0) {
+          const task = tasks[0]
+          console.log('Found pending task, recovering:', task)
+          
+          setCurrentTaskId(task.taskId)
+          setIsProcessing(true)
+          setCurrentStep("process")
+          
+          if (task.serviceType === 'gemini') {
+            setProcessingMessage("Resuming AI processing... (~15-30s)")
+          } else {
+            setProcessingMessage("Resuming high-quality processing... (~2-3 mins)")
+          }
+        }
+      } catch (error) {
+        console.error("Failed to check pending tasks:", error)
+      }
+    }
+
+    checkPendingTasks()
+  }, [])
 
   const handleUserImageSelect = (file: File, preview: string) => {
     setUserImage({ file, preview })
@@ -168,7 +231,8 @@ export function TryOnInterface({ type = 'GLASSES' }: TryOnInterfaceProps) {
       formData.append("itemImage", itemImage.file)
       formData.append("type", type)
 
-      const response = await fetch("/api/try-on", {
+      // Use new submit endpoint
+      const response = await fetch("/api/try-on/submit", {
         method: "POST",
         body: formData,
       })
@@ -199,7 +263,14 @@ export function TryOnInterface({ type = 'GLASSES' }: TryOnInterfaceProps) {
         } else {
           // Task still processing, start polling
           setCurrentTaskId(taskData.taskId)
-          setProcessingMessage("Processing...")
+          
+          // Set message based on service type
+          if (taskData.serviceType === 'gemini') {
+             setProcessingMessage("AI is processing... (~15-30s)")
+          } else {
+             setProcessingMessage("Queued for high-quality processing... (~2-3 mins)")
+          }
+          
           // Keep isProcessing=true for polling to continue
         }
       } else {
