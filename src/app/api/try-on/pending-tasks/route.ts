@@ -83,7 +83,7 @@ export async function GET(request: NextRequest) {
 
   } catch (error) {
     console.error("Pending Tasks API error:", error)
-    logger.error('api', 'Pending Tasks API error', error, ctx)
+    logger.error('api', 'Pending Tasks API error', error as Error, ctx)
     return NextResponse.json(
       { success: false, error: "Internal server error" },
       { status: 500 }
