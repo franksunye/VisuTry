@@ -122,9 +122,9 @@ export default async function PricingPage() {
       {/* Current Status */}
       <div className="mb-8">
         {isPremiumActive ? (
-          <div className="p-4 border border-yellow-200 rounded-lg bg-yellow-50">
+          <div className="p-4 bg-yellow-50 rounded-lg border border-yellow-200">
             <div className="flex items-center">
-              <Star className="w-5 h-5 mr-2 text-yellow-600" />
+              <Star className="mr-2 w-5 h-5 text-yellow-600" />
               <div>
                 <strong className="text-yellow-800">You are a Standard Member</strong>
                 {session?.user?.premiumExpiresAt && (
@@ -136,10 +136,10 @@ export default async function PricingPage() {
             </div>
           </div>
         ) : (
-          <div className="p-4 border border-blue-200 rounded-lg bg-blue-50">
-            <div className="flex items-center justify-between">
+          <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
+            <div className="flex justify-between items-center">
               <div className="flex items-center">
-                <Glasses className="w-5 h-5 mr-2 text-blue-600" />
+                <Glasses className="mr-2 w-5 h-5 text-blue-600" />
                 <div>
                   <strong className="text-blue-800">Free User</strong>
                   <span className="ml-2 text-blue-700">
@@ -164,7 +164,7 @@ export default async function PricingPage() {
       </div>
 
       {/* Feature Comparison */}
-      <div className="overflow-hidden bg-white border shadow-sm rounded-xl">
+      <div className="overflow-hidden bg-white rounded-xl border shadow-sm">
         <div className="p-6 border-b border-gray-200">
           <h2 className="text-xl font-semibold text-gray-900">Feature Comparison</h2>
         </div>
@@ -208,6 +208,21 @@ export default async function PricingPage() {
                 <td className="px-6 py-4 text-sm text-center text-green-600">No</td>
               </tr>
               <tr>
+                <td className="px-6 py-4 text-sm text-gray-900">Generation Speed</td>
+                <td className="px-6 py-4 text-sm text-center text-gray-600">
+                  <div>Standard</div>
+                  <div className="text-xs text-gray-500">(Queue-based)</div>
+                </td>
+                <td className="px-6 py-4 text-sm text-center text-gray-600">
+                  <div>Standard</div>
+                  <div className="text-xs text-gray-500">(Queue-based)</div>
+                </td>
+                <td className="px-6 py-4 text-sm text-center text-green-600">
+                  <div>Fast</div>
+                  <div className="text-xs text-green-500">(Real-time)</div>
+                </td>
+              </tr>
+              <tr>
                 <td className="px-6 py-4 text-sm text-gray-900">Processing Priority</td>
                 <td className="px-6 py-4 text-sm text-center text-gray-600">Normal</td>
                 <td className="px-6 py-4 text-sm text-center text-gray-600">Normal</td>
@@ -243,42 +258,42 @@ export default async function PricingPage() {
       <div className="mt-12">
         <h2 className="mb-6 text-2xl font-bold text-center text-gray-900">Frequently Asked Questions</h2>
         <div className="grid gap-6 md:grid-cols-2">
-          <div className="p-6 bg-white border rounded-lg shadow-sm">
+          <div className="p-6 bg-white rounded-lg border shadow-sm">
             <h3 className="mb-2 font-semibold text-gray-900">What&apos;s the difference between free and paid image quality?</h3>
             <p className="text-sm text-gray-600">
               Free users receive standard quality images (800×800 pixels) with a watermark. Premium users get high-quality images (1200×1200 pixels) without any watermark, perfect for sharing and downloading.
             </p>
           </div>
 
-          <div className="p-6 bg-white border rounded-lg shadow-sm">
+          <div className="p-6 bg-white rounded-lg border shadow-sm">
             <h3 className="mb-2 font-semibold text-gray-900">Can I remove the watermark from my images?</h3>
             <p className="text-sm text-gray-600">
               Yes! Upgrade to any paid plan (Credits Pack or Standard subscription) to get watermark-free images. All your future try-ons will be saved in high quality without watermarks.
             </p>
           </div>
 
-          <div className="p-6 bg-white border rounded-lg shadow-sm">
+          <div className="p-6 bg-white rounded-lg border shadow-sm">
             <h3 className="mb-2 font-semibold text-gray-900">Do credits expire?</h3>
             <p className="text-sm text-gray-600">
               Credits never expire after purchase. You can use them anytime at your convenience.
             </p>
           </div>
 
-          <div className="p-6 bg-white border rounded-lg shadow-sm">
+          <div className="p-6 bg-white rounded-lg border shadow-sm">
             <h3 className="mb-2 font-semibold text-gray-900">Can I cancel my subscription anytime?</h3>
             <p className="text-sm text-gray-600">
               Yes, you can cancel your subscription at any time. After cancellation, you can still use premium features until the end of the current billing period.
             </p>
           </div>
 
-          <div className="p-6 bg-white border rounded-lg shadow-sm">
+          <div className="p-6 bg-white rounded-lg border shadow-sm">
             <h3 className="mb-2 font-semibold text-gray-900">What payment methods are supported?</h3>
             <p className="text-sm text-gray-600">
               We support all major credit and debit cards, including Visa, Mastercard, American Express, and more.
             </p>
           </div>
 
-          <div className="p-6 bg-white border rounded-lg shadow-sm">
+          <div className="p-6 bg-white rounded-lg border shadow-sm">
             <h3 className="mb-2 font-semibold text-gray-900">How do I contact support?</h3>
             <p className="text-sm text-gray-600">
               You can contact us via email at support@visutry.com. Premium members enjoy priority support.
@@ -288,18 +303,18 @@ export default async function PricingPage() {
       </div>
 
       {/* Legal Links */}
-      <div className="mt-8 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-        <p className="text-sm text-gray-700 text-center">
+      <div className="p-4 mt-8 bg-blue-50 rounded-lg border border-blue-200">
+        <p className="text-sm text-center text-gray-700">
           By subscribing, you agree to our{' '}
-          <Link href="/terms" className="text-blue-600 hover:underline font-medium">
+          <Link href="/terms" className="font-medium text-blue-600 hover:underline">
             Terms of Service
           </Link>
           {' '}and{' '}
-          <Link href="/privacy" className="text-blue-600 hover:underline font-medium">
+          <Link href="/privacy" className="font-medium text-blue-600 hover:underline">
             Privacy Policy
           </Link>
           . View our{' '}
-          <Link href="/refund" className="text-blue-600 hover:underline font-medium">
+          <Link href="/refund" className="font-medium text-blue-600 hover:underline">
             Refund Policy
           </Link>
           {' '}for cancellation terms.

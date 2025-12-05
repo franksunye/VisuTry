@@ -91,8 +91,9 @@ export const PRODUCT_METADATA = {
     features: [
       `${QUOTA_CONFIG.CREDITS_PACK} AI try-ons`,
       "Credits never expire",
-      "90 days data retention",
       "High-quality image processing",
+      "Standard generation speed",
+      "90 days data retention",
       "Unlimited downloads and sharing",
       "Priority customer support"
     ],
