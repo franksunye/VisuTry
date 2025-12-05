@@ -9,6 +9,9 @@
     },
     "src/app/api/cron/retention-notifications/route.ts": {
       "maxDuration": 300
+    },
+    "src/app/api/cron/sync-pending-tasks/route.ts": {
+      "maxDuration": 300
     }
   },
   "crons": [

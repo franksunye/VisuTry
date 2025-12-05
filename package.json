@@ -21,6 +21,8 @@
     "test:unit": "jest tests/unit --testTimeout=30000",
     "test:integration:new": "jest tests/integration --testTimeout=60000",
     "test:api": "jest tests/integration/api --testTimeout=60000",
+    "test:gemini": "tsx scripts/test-gemini-connection.ts",
+    "test:gemini:tryon": "tsx scripts/test-gemini-tryon.ts",
     "debug:oauth": "node scripts/debug-twitter-oauth.js",
     "debug:logs": "echo 'Visit http://localhost:3000/debug/logs to view logs'",
     "test:e2e": "jest tests/integration/e2e --testTimeout=120000",

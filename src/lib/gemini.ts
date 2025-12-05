@@ -1,6 +1,7 @@
 import { GoogleGenerativeAI } from "@google/generative-ai"
 import { mockGenerateTryOnImage, isMockMode } from "./mocks/gemini"
 import { logger } from "./logger"
+import { buildTryOnPrompt } from "./prompt-builder"
 
 // Configure proxy for Gemini API in local development
 if (typeof window === 'undefined') {
@@ -194,33 +195,9 @@ export async function generateTryOnImage({
     console.log("📸 Images loaded, generating virtual try-on...")
     logger.info('api', 'Images loaded, calling Gemini API')
 
-    // Create the prompt for multi-image fusion
+    // Create the prompt for multi-image fusion using unified prompt builder
     // The prompt parameter contains type-specific detailed instructions from config
-    const tryOnPrompt = `You are an expert AI image generation specialist for virtual try-on technology.
-
-INPUT:
-- Image 1: A person's photograph (user photo)
-- Image 2: An item to try on (product image)
-
-TASK:
-Generate a single photorealistic composite image showing the person wearing/using the item.
-
-DETAILED INSTRUCTIONS:
-${prompt}
-
-TECHNICAL REQUIREMENTS:
-- Output resolution: Match the user photo's resolution
-- Image quality: Photorealistic, high-fidelity
-- Composition: Keep the original photo's framing and composition
-- Color accuracy: Maintain accurate colors for both person and item
-- Edge blending: Seamless transitions with no visible artifacts
-- Depth consistency: Proper occlusion and layering
-- Shadow realism: Natural shadows that match the lighting environment
-
-OUTPUT FORMAT:
-- Return two outputs: (1) one photorealistic composite image, (2) a brief text description
-- The text should include: product category, identified brand/model/color/style/price if recognizable, fit assessment, and styling recommendations
-- Keep the description concise and user-friendly (2-4 sentences)`
+    const tryOnPrompt = buildTryOnPrompt(prompt)
 
     // Generate the try-on image using multi-image fusion
     const apiStartTime = Date.now()
