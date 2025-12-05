@@ -4,6 +4,7 @@ import { generateTryOnImage } from "@/lib/gemini"
 import { submitAsyncTask, pollTaskResult } from "@/lib/grsai"
 import { logger } from "@/lib/logger"
 import { TaskStatus, TryOnType, User } from "@prisma/client"
+import { TRY_ON_CONFIGS } from "@/config/try-on-types"
 
 // Service Tiering Config
 const ENABLE_SERVICE_TIERING = process.env.ENABLE_SERVICE_TIERING !== 'false' // Default to true, unless explicitly set to false
@@ -36,6 +37,9 @@ export async function submitTryOnTask(
   
   const startTime = Date.now()
   logger.info('tryon-service', `Starting try-on task for user ${user.id}`, { type })
+
+  // Use provided prompt or fallback to type-specific default prompt
+  const effectivePrompt = prompt || TRY_ON_CONFIGS[type].aiPrompt
 
   // 1. Upload images to Vercel Blob for persistence
   // Note: We upload regardless of service to ensure we have a record of input
@@ -93,7 +97,7 @@ export async function submitTryOnTask(
       const result = await generateTryOnImage({
         userImageUrl: userBlob.url,
         itemImageUrl: itemBlob.url,
-        prompt
+        prompt: effectivePrompt
       })
 
       if (result.success && result.imageUrl) {
@@ -169,7 +173,7 @@ export async function submitTryOnTask(
       const userDataUri = `data:${userMime};base64,${userBuffer.toString('base64')}`
       const itemDataUri = `data:${itemMime};base64,${itemBuffer.toString('base64')}`
 
-      const externalTaskId = await submitAsyncTask(userDataUri, itemDataUri, prompt || "")
+      const externalTaskId = await submitAsyncTask(userDataUri, itemDataUri, effectivePrompt)
 
       // Update task with external ID
       await prisma.tryOnTask.update({
