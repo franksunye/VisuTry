@@ -1,10 +1,11 @@
 "use client"
 
-import { Clock, CheckCircle, XCircle, Loader2, ExternalLink, History } from "lucide-react"
+import { Clock, CheckCircle, XCircle, Loader2, ExternalLink, History, RefreshCw } from "lucide-react"
 import Link from "next/link"
 import Image from "next/image"
 import { formatDistanceToNow } from "date-fns"
 import { getThumbnailUrl, getResponsiveSizes, IMAGE_QUALITY } from "@/lib/image-utils"
+import { useState, useEffect, useCallback } from "react"
 
 interface TryOnTask {
   id: string
@@ -12,13 +13,123 @@ interface TryOnTask {
   userImageUrl: string
   resultImageUrl?: string | null
   createdAt: Date
+  metadata?: any
 }
 
 interface RecentTryOnsProps {
   tryOns: TryOnTask[]
 }
 
-export function RecentTryOns({ tryOns }: RecentTryOnsProps) {
+export function RecentTryOns({ tryOns: initialTryOns }: RecentTryOnsProps) {
+  const [tryOns, setTryOns] = useState<TryOnTask[]>(initialTryOns)
+  const [isPolling, setIsPolling] = useState(false)
+  const [syncingTasks, setSyncingTasks] = useState<Set<string>>(new Set())
+
+  // Find pending GrsAi tasks that need polling
+  const pendingGrsAiTasks = tryOns.filter(task =>
+    task.status.toLowerCase() === 'processing' &&
+    task.metadata?.serviceType === 'grsai'
+  )
+
+  // Manual sync function for individual tasks
+  const syncTask = useCallback(async (taskId: string) => {
+    setSyncingTasks(prev => new Set(prev).add(taskId))
+
+    try {
+      const response = await fetch('/api/try-on/poll', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ taskId })
+      })
+
+      if (response.ok) {
+        const result = await response.json()
+
+        // Update the task in our local state
+        setTryOns(prev => prev.map(task =>
+          task.id === taskId
+            ? {
+                ...task,
+                status: result.data.status,
+                resultImageUrl: result.data.resultImageUrl || task.resultImageUrl
+              }
+            : task
+        ))
+      }
+    } catch (error) {
+      console.error('Failed to sync task:', error)
+    } finally {
+      setSyncingTasks(prev => {
+        const newSet = new Set(prev)
+        newSet.delete(taskId)
+        return newSet
+      })
+    }
+  }, [])
+
+  // Auto-polling for pending tasks
+  useEffect(() => {
+    if (pendingGrsAiTasks.length === 0) return
+
+    setIsPolling(true)
+    const interval = setInterval(async () => {
+      // Poll all pending tasks
+      const pollPromises = pendingGrsAiTasks.map(async (task) => {
+        try {
+          const response = await fetch('/api/try-on/poll', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ taskId: task.id })
+          })
+
+          if (response.ok) {
+            const result = await response.json()
+            return { taskId: task.id, result: result.data }
+          }
+        } catch (error) {
+          console.error(`Failed to poll task ${task.id}:`, error)
+        }
+        return null
+      })
+
+      const results = await Promise.all(pollPromises)
+
+      // Update tasks with new results
+      setTryOns(prev => {
+        let updated = [...prev]
+        results.forEach(result => {
+          if (result) {
+            const index = updated.findIndex(t => t.id === result.taskId)
+            if (index !== -1) {
+              updated[index] = {
+                ...updated[index],
+                status: result.result.status,
+                resultImageUrl: result.result.resultImageUrl || updated[index].resultImageUrl
+              }
+            }
+          }
+        })
+        return updated
+      })
+    }, 5000) // Poll every 5 seconds
+
+    return () => {
+      clearInterval(interval)
+      setIsPolling(false)
+    }
+  }, [pendingGrsAiTasks.length])
+
+  // Stop polling when all tasks are complete
+  useEffect(() => {
+    const stillPending = tryOns.filter(task =>
+      task.status.toLowerCase() === 'processing' &&
+      task.metadata?.serviceType === 'grsai'
+    )
+
+    if (stillPending.length === 0 && isPolling) {
+      setIsPolling(false)
+    }
+  }, [tryOns, isPolling])
   const getStatusIcon = (status: string) => {
     switch (status.toLowerCase()) {
       case "completed":
@@ -143,14 +254,31 @@ export function RecentTryOns({ tryOns }: RecentTryOnsProps) {
                     })}
                   </span>
 
-                  {tryOn.status.toLowerCase() === "completed" && tryOn.resultImageUrl && (
-                    <Link
-                      href={`/share/${tryOn.id}`}
-                      className="text-blue-600 hover:text-blue-700 text-sm font-medium"
-                    >
-                      View Details
-                    </Link>
-                  )}
+                  <div className="flex items-center gap-2">
+                    {/* Manual sync button for pending GrsAi tasks */}
+                    {tryOn.status.toLowerCase() === "processing" &&
+                     tryOn.metadata?.serviceType === 'grsai' && (
+                      <button
+                        onClick={() => syncTask(tryOn.id)}
+                        disabled={syncingTasks.has(tryOn.id)}
+                        className="flex items-center px-2 py-1 text-xs font-medium text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded transition-colors disabled:opacity-50"
+                        title="Check for results"
+                      >
+                        <RefreshCw className={`w-3 h-3 mr-1 ${syncingTasks.has(tryOn.id) ? 'animate-spin' : ''}`} />
+                        {syncingTasks.has(tryOn.id) ? 'Syncing...' : 'Check'}
+                      </button>
+                    )}
+
+                    {/* View details link for completed tasks */}
+                    {tryOn.status.toLowerCase() === "completed" && tryOn.resultImageUrl && (
+                      <Link
+                        href={`/share/${tryOn.id}`}
+                        className="text-blue-600 hover:text-blue-700 text-sm font-medium"
+                      >
+                        View Details
+                      </Link>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>

@@ -26,6 +26,7 @@ export async function RecentTryOnsAsync({ userId }: RecentTryOnsAsyncProps) {
           userImageUrl: true,
           resultImageUrl: true,
           createdAt: true,
+          metadata: true,
         },
       }),
       { userId }
