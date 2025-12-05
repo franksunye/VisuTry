@@ -145,7 +145,7 @@ const checkPendingTasks = async () => {
 ```bash
 # GrsAi 配置
 GRSAI_API_KEY=your_grsai_api_key
-GRSAI_BASE_URL=https://grsai.dakka.com.cn
+GRSAI_BASE_URL=https://api.grsai.com
 
 # 服务选择配置
 ENABLE_SERVICE_TIERING=true

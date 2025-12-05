@@ -1,7 +1,8 @@
 import { logger } from "@/lib/logger"
 
 const GRSAI_API_KEY = process.env.GRSAI_API_KEY || process.env.GEMINI_API_KEY
-const GRSAI_BASE_URL = (process.env.GRSAI_BASE_URL || process.env.GEMINI_API_BASE_URL || "https://grsai.dakka.com.cn").replace(/\/$/, "")
+// Use api.grsai.com as default - this is the verified working endpoint from test scripts
+const GRSAI_BASE_URL = (process.env.GRSAI_BASE_URL || process.env.GEMINI_API_BASE_URL || "https://api.grsai.com").replace(/\/$/, "")
 const MODEL_NAME = "nano-banana-fast"
 
 interface GrsAiSubmitResponse {
@@ -62,6 +63,8 @@ export async function submitAsyncTask(
     shutProgress: false
   }
 
+  logger.info('grsai', `Submitting task to: ${url}`, { baseUrl: GRSAI_BASE_URL })
+
   try {
     const response = await fetch(url, {
       method: "POST",
@@ -74,20 +77,35 @@ export async function submitAsyncTask(
 
     if (!response.ok) {
       const errorText = await response.text()
-      logger.error('grsai', `Submission failed: ${response.status} ${response.statusText}`, undefined, { error: errorText })
+      logger.error('grsai', `Submission failed: ${response.status} ${response.statusText}`, undefined, {
+        url,
+        error: errorText
+      })
       throw new Error(`GrsAi Submission failed: ${response.statusText}`)
     }
 
     const data = await response.json() as GrsAiSubmitResponse
 
+    // Log successful response for debugging
+    logger.info('grsai', 'Received response from GrsAi', {
+      code: data.code,
+      msg: data.msg,
+      hasData: !!data.data,
+      hasId: !!data.data?.id
+    })
+
     if (data.code === 0 && data.data?.id) {
+      logger.info('grsai', `Task submitted successfully`, { taskId: data.data.id })
       return data.data.id
     } else {
-      logger.error('grsai', 'Unexpected response format', undefined, data)
+      // Log full response for debugging unexpected formats
+      logger.error('grsai', 'Unexpected response format', undefined, {
+        fullResponse: JSON.stringify(data).substring(0, 500) // Limit length
+      })
       throw new Error("No Task ID received from GrsAi")
     }
   } catch (error) {
-    logger.error('grsai', 'Network error during submission', error as Error)
+    logger.error('grsai', 'Network error during submission', error as Error, { url })
     throw error
   }
 }
