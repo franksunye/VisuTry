@@ -1,4 +1,5 @@
 import { logger } from "@/lib/logger"
+import { buildTryOnPrompt } from "@/lib/prompt-builder"
 
 const GRSAI_API_KEY = process.env.GRSAI_API_KEY || process.env.GEMINI_API_KEY
 // Use api.grsai.com as default - this is the verified working endpoint from test scripts
@@ -42,17 +43,25 @@ export interface GrsAiResult {
 
 /**
  * Submit an async task to GrsAi
+ *
+ * @param userImageDataUri - User photo as data URI
+ * @param itemImageDataUri - Item/product image as data URI
+ * @param detailedInstructions - Type-specific detailed instructions (from TRY_ON_CONFIGS[type].aiPrompt)
  */
 export async function submitAsyncTask(
   userImageDataUri: string,
   itemImageDataUri: string,
-  prompt: string
+  detailedInstructions: string
 ): Promise<string> {
   const url = `${GRSAI_BASE_URL}/v1/draw/nano-banana`
-  
+
+  // Build the complete prompt using the unified prompt builder
+  // This ensures consistency with Gemini direct API calls
+  const fullPrompt = buildTryOnPrompt(detailedInstructions)
+
   const payload = {
     model: MODEL_NAME,
-    prompt: prompt,
+    prompt: fullPrompt,
     aspectRatio: "auto",
     imageSize: "1K",
     urls: [
