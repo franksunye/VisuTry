@@ -46,7 +46,7 @@ export async function submitTryOnTask(
       put(`tryon/item/${user.id}/${Date.now()}-${itemImageFile.name}`, itemImageFile, { access: 'public' })
     ])
   } catch (error) {
-    logger.error('tryon-service', 'Failed to upload images to blob storage', error)
+    logger.error('tryon-service', 'Failed to upload images to blob storage', error as Error)
     throw new Error("Failed to upload images")
   }
 
@@ -111,7 +111,7 @@ export async function submitTryOnTask(
           finalResultUrl = uploadedBlob.url
           logger.info('tryon-service', 'Gemini result uploaded to blob', { taskId: task.id, url: finalResultUrl })
         } catch (uploadError) {
-          logger.error('tryon-service', 'Failed to upload Gemini result to blob', uploadError)
+          logger.error('tryon-service', 'Failed to upload Gemini result to blob', uploadError as Error)
           // Fallback to Data URL if upload fails
         }
 
@@ -142,7 +142,7 @@ export async function submitTryOnTask(
       }
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : "Unknown error"
-      logger.error('tryon-service', 'Gemini generation failed', { taskId: task.id, error })
+      logger.error('tryon-service', 'Gemini generation failed', error as Error, { taskId: task.id })
       
       await prisma.tryOnTask.update({
         where: { id: task.id },
@@ -194,7 +194,7 @@ export async function submitTryOnTask(
 
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : "Unknown error"
-      logger.error('tryon-service', 'GrsAi submission failed', { taskId: task.id, error })
+      logger.error('tryon-service', 'GrsAi submission failed', error as Error, { taskId: task.id })
       
       await prisma.tryOnTask.update({
         where: { id: task.id },
@@ -252,7 +252,7 @@ export async function getTryOnResult(taskId: string): Promise<TryOnPollResult> {
           logger.warn('tryon-service', 'Failed to fetch GrsAi result for upload', { taskId, status: response.status })
         }
       } catch (uploadError) {
-        logger.error('tryon-service', 'Failed to upload GrsAi result to blob', uploadError)
+        logger.error('tryon-service', 'Failed to upload GrsAi result to blob', uploadError as Error)
         // Fallback to original URL if upload fails
       }
 

@@ -92,7 +92,7 @@ export async function POST(request: NextRequest) {
 
   } catch (error) {
     console.error("Try-on Submit API error:", error)
-    logger.error('api', 'Try-on Submit API error', error, ctx)
+    logger.error('api', 'Try-on Submit API error', error as Error, ctx)
     return NextResponse.json(
       { success: false, error: error instanceof Error ? error.message : "Internal server error" },
       { status: 500 }

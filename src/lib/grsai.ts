@@ -74,7 +74,7 @@ export async function submitAsyncTask(
 
     if (!response.ok) {
       const errorText = await response.text()
-      logger.error('grsai', `Submission failed: ${response.status} ${response.statusText}`, { error: errorText })
+      logger.error('grsai', `Submission failed: ${response.status} ${response.statusText}`, undefined, { error: errorText })
       throw new Error(`GrsAi Submission failed: ${response.statusText}`)
     }
 
@@ -83,11 +83,11 @@ export async function submitAsyncTask(
     if (data.code === 0 && data.data?.id) {
       return data.data.id
     } else {
-      logger.error('grsai', 'Unexpected response format', data)
+      logger.error('grsai', 'Unexpected response format', undefined, data)
       throw new Error("No Task ID received from GrsAi")
     }
   } catch (error) {
-    logger.error('grsai', 'Network error during submission', error)
+    logger.error('grsai', 'Network error during submission', error as Error)
     throw error
   }
 }
@@ -110,7 +110,7 @@ export async function pollTaskResult(taskId: string): Promise<GrsAiResult> {
 
     if (!response.ok) {
       const errorText = await response.text()
-      logger.error('grsai', `Polling failed: ${response.status}`, { taskId, error: errorText })
+      logger.error('grsai', `Polling failed: ${response.status}`, undefined, { taskId, error: errorText })
       // If 404, maybe task not found or expired, treat as failed
       return { status: 'failed', progress: 0, error: `Polling failed: ${response.status}` }
     }
@@ -187,7 +187,7 @@ export async function pollTaskResult(taskId: string): Promise<GrsAiResult> {
     }
 
   } catch (error) {
-    logger.error('grsai', 'Polling network error', error)
+    logger.error('grsai', 'Polling network error', error as Error)
     return { status: 'failed', progress: 0, error: "Network error" }
   }
 }
