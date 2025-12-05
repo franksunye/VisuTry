@@ -1,43 +1,45 @@
 /**
  * Unified Prompt Builder for AI Image Generation
- * 
+ *
  * This module provides a consistent prompt structure for both Gemini (direct)
  * and GrsAi (proxy) services. Both services ultimately use Gemini models,
  * so the prompt engineering should be identical.
+ *
+ * Based on Google's official Gemini 2.5 Flash Image prompting best practices:
+ * - Use natural, descriptive language instead of keyword lists
+ * - Think like a photographer when describing scenes
+ * - Be explicit about aspect ratio and dimensions
+ * - Provide context and intent for better results
+ *
+ * @see https://developers.googleblog.com/en/how-to-prompt-gemini-2-5-flash-image-generation-for-the-best-results/
  */
 
 /**
  * Build a complete try-on prompt with full structure
- * 
+ *
  * @param detailedInstructions - Type-specific detailed instructions (from TRY_ON_CONFIGS[type].aiPrompt)
  * @returns Complete prompt string with all sections
  */
 export function buildTryOnPrompt(detailedInstructions: string): string {
-  return `You are an expert AI image generation specialist for virtual try-on technology.
+  return `You are a professional virtual try-on photographer creating composite images.
 
-INPUT:
-- Image 1: A person's photograph (user photo)
-- Image 2: An item to try on (product image)
+SCENE SETUP:
+You have two images: Image 1 is the person's photograph (the "canvas"), and Image 2 is the product to try on.
 
-TASK:
-Generate a single photorealistic composite image showing the person wearing/using the item.
+YOUR TASK:
+Create a single photorealistic image showing the person naturally wearing the product. The final image must look like a real photograph taken in the same setting as the original.
+
+CRITICAL CONSTRAINT - IMAGE DIMENSIONS:
+The output image must have the exact same dimensions and aspect ratio as Image 1 (the person's photo). If Image 1 is a vertical portrait photo, your output must be a vertical portrait. If Image 1 is a horizontal landscape photo, your output must be horizontal. Do not crop, pad, letterbox, or change the framing in any way.
 
 DETAILED INSTRUCTIONS:
 ${detailedInstructions}
 
-TECHNICAL REQUIREMENTS:
-- Output resolution: Match the user photo's resolution
-- Image quality: Photorealistic, high-fidelity
-- Composition: Keep the original photo's framing and composition
-- Color accuracy: Maintain accurate colors for both person and item
-- Edge blending: Seamless transitions with no visible artifacts
-- Depth consistency: Proper occlusion and layering
-- Shadow realism: Natural shadows that match the lighting environment
+QUALITY GUIDELINES:
+Match the exact lighting direction, color temperature, and intensity from Image 1. Maintain photorealistic quality with natural shadows and highlights. Ensure seamless blending with no visible artifacts at edges. Preserve all original details including face, expression, background, and composition. The product should look like it was photographed in the same moment.
 
-OUTPUT FORMAT:
-- Return two outputs: (1) one photorealistic composite image, (2) a brief text description
-- The text should include: product category, identified brand/model/color/style/price if recognizable, fit assessment, and styling recommendations
-- Keep the description concise and user-friendly (2-4 sentences)`
+OUTPUT:
+Generate the composite image, followed by a brief 2-3 sentence description noting the product type, any identifiable brand details, and how well it complements the person's features.`
 }
 
 /**
