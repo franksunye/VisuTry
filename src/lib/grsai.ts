@@ -124,7 +124,14 @@ export async function submitAsyncTask(
  */
 export async function pollTaskResult(taskId: string): Promise<GrsAiResult> {
   const url = `${GRSAI_BASE_URL}/v1/draw/result`
-  
+  const startTime = Date.now()
+
+  logger.info('grsai', `Polling GrsAi task result`, {
+    taskId,
+    url,
+    baseUrl: GRSAI_BASE_URL,
+  })
+
   try {
     const response = await fetch(url, {
       method: "POST",
@@ -135,33 +142,64 @@ export async function pollTaskResult(taskId: string): Promise<GrsAiResult> {
       body: JSON.stringify({ id: taskId })
     })
 
+    const responseTime = Date.now() - startTime
+
     if (!response.ok) {
       const errorText = await response.text()
-      logger.error('grsai', `Polling failed: ${response.status}`, undefined, { taskId, error: errorText })
+      logger.error('grsai', `Polling failed: ${response.status}`, undefined, {
+        taskId,
+        httpStatus: response.status,
+        httpStatusText: response.statusText,
+        responseTime: `${responseTime}ms`,
+        error: errorText
+      })
       // If 404, maybe task not found or expired, treat as failed
       return { status: 'failed', progress: 0, error: `Polling failed: ${response.status}` }
     }
 
     const data = await response.json()
-    
+
+    // Log raw response for debugging
+    logger.debug('grsai', `Raw GrsAi response received`, {
+      taskId,
+      responseTime: `${responseTime}ms`,
+      code: data.code,
+      msg: data.msg,
+      hasData: !!data.data,
+      dataStatus: data.data?.status,
+      dataProgress: data.data?.progress,
+      hasResults: !!data.data?.results,
+      resultsCount: data.data?.results?.length,
+      hasImageUrl: !!data.data?.imageUrl,
+      hasImages: !!data.data?.images,
+      hasResult: !!data.data?.result,
+    })
+
     // Normalize response data
     // Based on test script logs: 
     // Status: 1 or 'succeeded' -> Success
     // Status: 0 or 'processing' -> Processing
     // Status: -1 or 'failed' -> Failed
-    
+
     // Look for status in data.data.status or data.status
     const rawStatus = data.data?.status ?? data.status
     const progress = data.data?.progress ?? 0
-    
+
     // Determine standardized status
     let status: 'processing' | 'succeeded' | 'failed' = 'processing'
-    
+
     if (rawStatus === 1 || rawStatus === 'succeeded' || rawStatus === 'SUCCESS') {
       status = 'succeeded'
     } else if (rawStatus === -1 || rawStatus === 'failed' || rawStatus === 'FAILED') {
       status = 'failed'
     }
+
+    logger.info('grsai', `GrsAi task status parsed`, {
+      taskId,
+      rawStatus,
+      normalizedStatus: status,
+      progress,
+    })
 
     // Extract image URL if succeeded
     let imageUrl: string | undefined
@@ -174,6 +212,11 @@ export async function pollTaskResult(taskId: string): Promise<GrsAiResult> {
         if (firstResult.url) {
           // Clean up URL (remove backticks and surrounding spaces if any)
           imageUrl = firstResult.url.replace(/[`]/g, '').trim()
+          logger.info('grsai', `Image URL extracted from results array`, {
+            taskId,
+            imageUrl: imageUrl ? imageUrl.substring(0, 100) + '...' : undefined,
+            hasContent: !!firstResult.content,
+          })
         }
         if (firstResult.content) {
           metadata = { description: firstResult.content }
@@ -184,16 +227,19 @@ export async function pollTaskResult(taskId: string): Promise<GrsAiResult> {
       if (!imageUrl) {
         if (data.data?.imageUrl) {
           imageUrl = data.data.imageUrl
+          logger.info('grsai', `Image URL extracted from imageUrl field`, { taskId })
         } else if (data.data?.images && Array.isArray(data.data.images) && data.data.images.length > 0) {
           imageUrl = data.data.images[0]
+          logger.info('grsai', `Image URL extracted from images array`, { taskId })
         }
-        
+
         // If imageUrl is still not found, check result
         // But if imageUrl IS found, result might be the text description
         if (data.data?.result) {
           if (!imageUrl) {
             // If no image found yet, assume result is the image URL
             imageUrl = data.data.result
+            logger.info('grsai', `Image URL extracted from result field`, { taskId })
           } else {
             // If image already found, result is likely the text description
             // Only set if metadata wasn't already set by 'results' structure
@@ -203,9 +249,17 @@ export async function pollTaskResult(taskId: string): Promise<GrsAiResult> {
           }
         }
       }
+
+      if (!imageUrl) {
+        logger.warn('grsai', `Task succeeded but no image URL found`, {
+          taskId,
+          rawData: JSON.stringify(data.data).substring(0, 500),
+        })
+      }
     }
 
-    return {
+    const totalTime = Date.now() - startTime
+    const result: GrsAiResult = {
       status,
       progress,
       imageUrl,
@@ -213,8 +267,25 @@ export async function pollTaskResult(taskId: string): Promise<GrsAiResult> {
       error: status === 'failed' ? (data.data?.failure_reason || data.data?.error || data.msg || "Unknown error") : undefined
     }
 
+    logger.info('grsai', `GrsAi polling completed`, {
+      taskId,
+      status: result.status,
+      progress: result.progress,
+      hasImageUrl: !!result.imageUrl,
+      hasMetadata: !!result.metadata,
+      hasError: !!result.error,
+      error: result.error,
+      totalTime: `${totalTime}ms`,
+    })
+
+    return result
+
   } catch (error) {
-    logger.error('grsai', 'Polling network error', error as Error)
+    const totalTime = Date.now() - startTime
+    logger.error('grsai', 'Polling network error', error as Error, {
+      taskId,
+      totalTime: `${totalTime}ms`,
+    })
     return { status: 'failed', progress: 0, error: "Network error" }
   }
 }
