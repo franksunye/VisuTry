@@ -25,6 +25,7 @@ async function getTryOnTasks({ page = 1 }: { page?: number }) {
       select: {
         id: true,
         userId: true,
+        type: true,
         status: true,
         createdAt: true,
         updatedAt: true,

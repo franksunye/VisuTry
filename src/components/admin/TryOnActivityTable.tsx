@@ -5,12 +5,13 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import Link from 'next/link';
-import { TaskStatus } from '@prisma/client';
+import { TaskStatus, TryOnType } from '@prisma/client';
 import TryOnDetailDialog from '@/components/admin/TryOnDetailDialog';
 
 interface Task {
   id: string;
   userId: string;
+  type: TryOnType;
   status: TaskStatus;
   createdAt: Date;
   user: {
@@ -36,6 +37,21 @@ function getStatusColor(status: TaskStatus) {
       return 'bg-yellow-100 text-yellow-800';
     case 'PENDING':
       return 'bg-blue-100 text-blue-800';
+    default:
+      return 'bg-gray-100 text-gray-800';
+  }
+}
+
+function getTypeColor(type: TryOnType) {
+  switch (type) {
+    case 'GLASSES':
+      return 'bg-sky-100 text-sky-800';
+    case 'OUTFIT':
+      return 'bg-purple-100 text-purple-800';
+    case 'SHOES':
+      return 'bg-amber-100 text-amber-800';
+    case 'ACCESSORIES':
+      return 'bg-pink-100 text-pink-800';
     default:
       return 'bg-gray-100 text-gray-800';
   }
@@ -73,6 +89,7 @@ export default function TryOnActivityTable({ tasks, currentPage, totalPages }: T
             <TableRow>
               <TableHead>User</TableHead>
               <TableHead>Time</TableHead>
+              <TableHead>Type</TableHead>
               <TableHead>Status</TableHead>
               <TableHead>Action</TableHead>
             </TableRow>
@@ -80,7 +97,7 @@ export default function TryOnActivityTable({ tasks, currentPage, totalPages }: T
           <TableBody>
             {tasks.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={4} className="text-center py-8 text-muted-foreground">
+                <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
                   No try-on activities found
                 </TableCell>
               </TableRow>
@@ -97,6 +114,11 @@ export default function TryOnActivityTable({ tasks, currentPage, totalPages }: T
                   </TableCell>
                   <TableCell className="text-sm">
                     {formatRelativeTime(task.createdAt)}
+                  </TableCell>
+                  <TableCell>
+                    <Badge className={getTypeColor(task.type)}>
+                      {task.type}
+                    </Badge>
                   </TableCell>
                   <TableCell>
                     <Badge className={getStatusColor(task.status)}>
