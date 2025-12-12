@@ -7,6 +7,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import Link from 'next/link';
 import { TaskStatus, TryOnType } from '@prisma/client';
 import TryOnDetailDialog from '@/components/admin/TryOnDetailDialog';
+import { useRouter } from 'next/navigation';
+import { RefreshCw } from 'lucide-react';
 
 interface Task {
   id: string;
@@ -75,10 +77,52 @@ function formatRelativeTime(date: Date): string {
 export default function TryOnActivityTable({ tasks, currentPage, totalPages }: TryOnActivityTableProps) {
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [fetchingTaskId, setFetchingTaskId] = useState<string | null>(null);
+  const [fetchMessage, setFetchMessage] = useState<{ taskId: string; success: boolean; message: string } | null>(null);
+  const router = useRouter();
 
   const handleViewDetails = (taskId: string) => {
     setSelectedTaskId(taskId);
     setDialogOpen(true);
+  };
+
+  const handleFetchResult = async (taskId: string) => {
+    setFetchingTaskId(taskId);
+    setFetchMessage(null);
+    
+    try {
+      const response = await fetch(`/api/admin/try-on/${taskId}/fetch-result`, {
+        method: 'POST',
+      });
+      
+      const data = await response.json();
+      
+      if (data.success) {
+        const resultData = data.data;
+        if (resultData.noChange) {
+          setFetchMessage({ taskId, success: true, message: resultData.message });
+        } else if (resultData.currentStatus === 'COMPLETED') {
+          setFetchMessage({ taskId, success: true, message: '任务已完成！' });
+          // Refresh the page to show updated status
+          router.refresh();
+        } else if (resultData.currentStatus === 'FAILED') {
+          setFetchMessage({ taskId, success: false, message: `任务失败: ${resultData.error || '未知错误'}` });
+          router.refresh();
+        } else {
+          setFetchMessage({ taskId, success: true, message: `任务仍在处理中 (${resultData.currentStatus})` });
+        }
+      } else {
+        setFetchMessage({ taskId, success: false, message: data.error || '获取失败' });
+      }
+    } catch (error) {
+      setFetchMessage({ taskId, success: false, message: '网络错误' });
+    } finally {
+      setFetchingTaskId(null);
+    }
+  };
+
+  const canFetchResult = (status: TaskStatus) => {
+    return status === 'PENDING' || status === 'PROCESSING';
   };
 
   return (
@@ -126,13 +170,42 @@ export default function TryOnActivityTable({ tasks, currentPage, totalPages }: T
                     </Badge>
                   </TableCell>
                   <TableCell>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleViewDetails(task.id)}
-                    >
-                      View Details
-                    </Button>
+                    <div className="flex flex-col gap-2">
+                      <div className="flex gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleViewDetails(task.id)}
+                        >
+                          View Details
+                        </Button>
+                        {canFetchResult(task.status) && (
+                          <Button
+                            variant="secondary"
+                            size="sm"
+                            onClick={() => handleFetchResult(task.id)}
+                            disabled={fetchingTaskId === task.id}
+                          >
+                            {fetchingTaskId === task.id ? (
+                              <>
+                                <RefreshCw className="w-3 h-3 mr-1 animate-spin" />
+                                获取中...
+                              </>
+                            ) : (
+                              <>
+                                <RefreshCw className="w-3 h-3 mr-1" />
+                                获取结果
+                              </>
+                            )}
+                          </Button>
+                        )}
+                      </div>
+                      {fetchMessage && fetchMessage.taskId === task.id && (
+                        <span className={`text-xs ${fetchMessage.success ? 'text-green-600' : 'text-red-600'}`}>
+                          {fetchMessage.message}
+                        </span>
+                      )}
+                    </div>
                   </TableCell>
                 </TableRow>
               ))
