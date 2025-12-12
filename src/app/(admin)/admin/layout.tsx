@@ -3,7 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { UserProfile } from '@/components/auth/UserProfile';
+
 import { cn } from '@/lib/utils';
 
 // This is the root layout for the /admin section.
@@ -132,10 +132,7 @@ export default function AdminLayout({
           </ul>
         </nav>
 
-        {/* User Profile */}
-        <div className="p-4 border-t border-gray-800">
-          <UserProfile variant="dark" showDetails={true} />
-        </div>
+
 
         {/* Back to Site */}
         <div className="p-4 border-t border-gray-800">
