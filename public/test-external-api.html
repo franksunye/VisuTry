@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>External API Test</title>
+  <style>
+    body { font-family: Arial; padding: 20px; max-width: 800px; margin: 0 auto; }
+    .section { margin: 20px 0; padding: 15px; border: 1px solid #ddd; border-radius: 8px; }
+    input, button { margin: 5px 0; padding: 8px; }
+    button { background: #0070f3; color: white; border: none; cursor: pointer; border-radius: 4px; }
+    button:hover { background: #0051a8; }
+    pre { background: #f5f5f5; padding: 10px; overflow-x: auto; border-radius: 4px; }
+    .success { color: green; }
+    .error { color: red; }
+    img { max-width: 300px; margin: 10px 0; }
+  </style>
+</head>
+<body>
+  <h1>🔌 External API Test</h1>
+  
+  <div class="section">
+    <h3>Configuration</h3>
+    <label>API Key: <input type="text" id="apiKey" value="sk_test_shopify123" style="width: 300px;"></label>
+  </div>
+
+  <div class="section">
+    <h3>1. Submit Try-On Task</h3>
+    <div>
+      <label>User Image: <input type="file" id="userImage" accept="image/*"></label>
+    </div>
+    <div>
+      <label>Item Image: <input type="file" id="itemImage" accept="image/*"></label>
+    </div>
+    <div>
+      <label>Type: 
+        <select id="tryOnType">
+          <option value="GLASSES">GLASSES</option>
+          <option value="WATCH">WATCH</option>
+        </select>
+      </label>
+    </div>
+    <button onclick="submitTask()">Submit Task</button>
+    <pre id="submitResult">Response will appear here...</pre>
+  </div>
+
+  <div class="section">
+    <h3>2. Poll Result</h3>
+    <label>Task ID: <input type="text" id="taskId" style="width: 300px;"></label>
+    <button onclick="pollResult()">Poll Result</button>
+    <button onclick="startPolling()">Start Auto-Polling</button>
+    <button onclick="stopPolling()">Stop</button>
+    <pre id="pollResult">Response will appear here...</pre>
+    <div id="resultImage"></div>
+  </div>
+
+  <script>
+    let pollingInterval = null;
+
+    async function submitTask() {
+      const apiKey = document.getElementById('apiKey').value;
+      const userImage = document.getElementById('userImage').files[0];
+      const itemImage = document.getElementById('itemImage').files[0];
+      const type = document.getElementById('tryOnType').value;
+
+      if (!userImage || !itemImage) {
+        alert('Please select both images');
+        return;
+      }
+
+      const formData = new FormData();
+      formData.append('userImage', userImage);
+      formData.append('itemImage', itemImage);
+      formData.append('type', type);
+
+      document.getElementById('submitResult').textContent = 'Submitting...';
+
+      try {
+        const response = await fetch('/api/v1/external/try-on', {
+          method: 'POST',
+          headers: { 'X-API-Key': apiKey },
+          body: formData
+        });
+        
+        const data = await response.json();
+        document.getElementById('submitResult').textContent = JSON.stringify(data, null, 2);
+        
+        if (data.success && data.data?.taskId) {
+          document.getElementById('taskId').value = data.data.taskId;
+          document.getElementById('submitResult').className = 'success';
+        } else {
+          document.getElementById('submitResult').className = 'error';
+        }
+      } catch (error) {
+        document.getElementById('submitResult').textContent = 'Error: ' + error.message;
+        document.getElementById('submitResult').className = 'error';
+      }
+    }
+
+    async function pollResult() {
+      const apiKey = document.getElementById('apiKey').value;
+      const taskId = document.getElementById('taskId').value;
+
+      if (!taskId) {
+        alert('Please enter a Task ID');
+        return;
+      }
+
+      try {
+        const response = await fetch(`/api/v1/external/try-on/${taskId}`, {
+          method: 'GET',
+          headers: { 'X-API-Key': apiKey }
+        });
+        
+        const data = await response.json();
+        document.getElementById('pollResult').textContent = JSON.stringify(data, null, 2);
+        
+        if (data.success) {
+          document.getElementById('pollResult').className = 'success';
+          
+          if (data.data?.resultImageUrl) {
+            document.getElementById('resultImage').innerHTML = 
+              `<img src="${data.data.resultImageUrl}" alt="Result">`;
+            stopPolling();
+          }
+        } else {
+          document.getElementById('pollResult').className = 'error';
+        }
+      } catch (error) {
+        document.getElementById('pollResult').textContent = 'Error: ' + error.message;
+        document.getElementById('pollResult').className = 'error';
+      }
+    }
+
+    function startPolling() {
+      if (pollingInterval) return;
+      pollingInterval = setInterval(pollResult, 2000);
+      console.log('Auto-polling started');
+    }
+
+    function stopPolling() {
+      if (pollingInterval) {
+        clearInterval(pollingInterval);
+        pollingInterval = null;
+        console.log('Auto-polling stopped');
+      }
+    }
+  </script>
+</body>
+</html>
