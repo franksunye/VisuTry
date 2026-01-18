@@ -13,9 +13,9 @@
 // 从环境变量读取，提供默认值
 export const QUOTA_CONFIG = {
   FREE_TRIAL: parseInt(process.env.FREE_TRIAL_LIMIT || "1"),
-  MONTHLY_SUBSCRIPTION: parseInt(process.env.MONTHLY_QUOTA || "30"),
-  YEARLY_SUBSCRIPTION: parseInt(process.env.YEARLY_QUOTA || "420"),
-  CREDITS_PACK: parseInt(process.env.CREDITS_PACK_AMOUNT || "10"),
+  MONTHLY_SUBSCRIPTION: parseInt(process.env.MONTHLY_QUOTA || "90"),
+  YEARLY_SUBSCRIPTION: parseInt(process.env.YEARLY_QUOTA || "1260"),
+  CREDITS_PACK: parseInt(process.env.CREDITS_PACK_AMOUNT || "30"),
 } as const
 
 // ========== 2. 价格配置 ==========
@@ -99,13 +99,105 @@ export const PRODUCT_METADATA = {
     ],
     popular: false,
   },
+  CREDITS_PACK_PROMO_60: {
+    id: "CREDITS_PACK_PROMO_60",
+    name: "Limited Fall Promo",
+    shortName: "Promo Pack",
+    description: "Special Offer: 6x Credits",
+    // 用于支付记录的详细描述
+    paymentDescription: `Special Offer: Get 2x Credits (${QUOTA_CONFIG.CREDITS_PACK * 2} AI try-on credits) for $2.99`,
+    quota: QUOTA_CONFIG.CREDITS_PACK * 2, // 促销翻倍
+    price: PRICE_CONFIG.CREDITS_PACK, // 保持原价 $2.99
+    currency: "usd",
+    interval: null,
+    priceId: process.env.STRIPE_CREDITS_PACK_PRICE_ID, // 复用原 Price ID
+    features: [
+      `${QUOTA_CONFIG.CREDITS_PACK * 2} AI try-ons (Buy One Get One!)`,
+      "Credits never expire",
+      "High-quality image processing",
+      "Standard generation speed",
+      "90 days data retention",
+      "Unlimited downloads and sharing",
+      "Priority customer support"
+    ],
+    popular: true,
+  },
+  PREMIUM_MONTHLY_PROMO: {
+    id: "PREMIUM_MONTHLY_PROMO",
+    name: "Standard - Monthly (Promo)",
+    shortName: "Monthly Promo",
+    description: "Special Offer: 2x Credits",
+    paymentDescription: `Special Offer: Get 2x Credits (${QUOTA_CONFIG.MONTHLY_SUBSCRIPTION * 2} AI try-ons) for $8.99`,
+    quota: QUOTA_CONFIG.MONTHLY_SUBSCRIPTION * 2,
+    price: PRICE_CONFIG.MONTHLY_SUBSCRIPTION,
+    currency: "usd",
+    interval: "month" as const,
+    priceId: process.env.STRIPE_PREMIUM_MONTHLY_PRICE_ID,
+    features: [
+      `${QUOTA_CONFIG.MONTHLY_SUBSCRIPTION * 2} AI try-ons per month (Double!)`,
+      "High-quality image processing",
+      "Priority processing queue",
+      "1 year data retention",
+      "Unlimited downloads and sharing",
+      "Priority customer support",
+      "Ad-free experience"
+    ],
+    popular: true,
+  },
+  PREMIUM_YEARLY_PROMO: {
+    id: "PREMIUM_YEARLY_PROMO",
+    name: "Standard - Annual (Promo)",
+    shortName: "Annual Promo",
+    description: "Special Offer: 2x Credits",
+    paymentDescription: `Special Offer: Get 2x Credits (${QUOTA_CONFIG.YEARLY_SUBSCRIPTION * 2} AI try-ons) for $89.99`,
+    quota: QUOTA_CONFIG.YEARLY_SUBSCRIPTION * 2,
+    price: PRICE_CONFIG.YEARLY_SUBSCRIPTION,
+    currency: "usd",
+    interval: "year" as const,
+    priceId: process.env.STRIPE_PREMIUM_YEARLY_PRICE_ID,
+    features: [
+      `${QUOTA_CONFIG.YEARLY_SUBSCRIPTION * 2} AI try-ons per year (Double!)`,
+      "High-quality image processing",
+      "Priority processing queue",
+      "1 year data retention",
+      "Unlimited downloads and sharing",
+      "Priority customer support",
+      "Ad-free experience"
+    ],
+    popular: true,
+  },
 } as const
+
+// ========== 3.1 促销代码配置 ==========
+// 简单的代码映射，未来可以移至数据库
+export const PROMO_CODES: Record<string, keyof typeof PRODUCT_METADATA> = {
+  "VISU60": "CREDITS_PACK_PROMO_60",
+  "SALE2024": "CREDITS_PACK_PROMO_60", // Default to credits pack if used individually
+  "BOGO": "CREDITS_PACK_PROMO_60",
+}
+
+// 建立标准产品到促销产品的自动转换映射
+export const PROMO_MAPPING: Record<string, ProductType> = {
+  "CREDITS_PACK": "CREDITS_PACK_PROMO_60",
+  "PREMIUM_MONTHLY": "PREMIUM_MONTHLY_PROMO",
+  "PREMIUM_YEARLY": "PREMIUM_YEARLY_PROMO",
+}
 
 // ========== 4. 类型定义 ==========
 export type ProductType = keyof typeof PRODUCT_METADATA
 export type ProductMetadata = typeof PRODUCT_METADATA[ProductType]
 
 // ========== 5. 辅助函数 ==========
+
+/**
+ * 解析促销代码
+ * @returns 对应的产品类型，如果代码无效则返回 null
+ */
+export function resolvePromoCode(code: string): ProductType | null {
+  if (!code) return null
+  const normalizedCode = code.toUpperCase().trim()
+  return PROMO_CODES[normalizedCode] as ProductType || null
+}
 
 /**
  * 获取产品配额
@@ -142,7 +234,7 @@ export function formatPrice(cents: number): string {
  */
 export function calculateRemainingQuota(
   isPremiumActive: boolean,
-  subscriptionType: 'PREMIUM_MONTHLY' | 'PREMIUM_YEARLY' | null,
+  subscriptionType: ProductType | string | null,
   freeTrialsUsed: number,
   premiumUsageCount: number,
   creditsPurchased: number,
@@ -159,11 +251,17 @@ export function calculateRemainingQuota(
 
   if (isPremiumActive && subscriptionType) {
     // 高级会员：根据订阅类型计算配额
-    const quota = subscriptionType === 'PREMIUM_YEARLY'
-      ? QUOTA_CONFIG.YEARLY_SUBSCRIPTION
-      : QUOTA_CONFIG.MONTHLY_SUBSCRIPTION
+    const quota = getProductQuota(subscriptionType as ProductType)
     subscriptionRemaining = Math.max(0, quota - premiumUsageCount)
-    description = subscriptionType === 'PREMIUM_YEARLY' ? 'Annual' : 'Monthly'
+
+    // 基础描述
+    if (subscriptionType.includes('YEARLY')) {
+      description = 'Annual'
+    } else if (subscriptionType.includes('MONTHLY')) {
+      description = 'Monthly'
+    } else {
+      description = 'Standard'
+    }
   } else {
     // 免费用户：使用免费试用配额
     subscriptionRemaining = Math.max(0, QUOTA_CONFIG.FREE_TRIAL - freeTrialsUsed)
@@ -192,25 +290,24 @@ export function calculateRemainingQuota(
  */
 export function getSubscriptionQuotaLabel(
   isPremiumActive: boolean,
-  isYearlySubscription: boolean,
+  subscriptionType: ProductType | string | null,
   freeTrialsUsed: number
 ): {
   quota: number
   label: string
 } {
-  if (isPremiumActive) {
-    if (isYearlySubscription) {
-      const quota = Math.max(0, QUOTA_CONFIG.YEARLY_SUBSCRIPTION - freeTrialsUsed)
-      return {
-        quota,
-        label: `Annual quota (${quota} of ${QUOTA_CONFIG.YEARLY_SUBSCRIPTION})`
-      }
-    } else {
-      const quota = Math.max(0, QUOTA_CONFIG.MONTHLY_SUBSCRIPTION - freeTrialsUsed)
-      return {
-        quota,
-        label: `Monthly quota (${quota} of ${QUOTA_CONFIG.MONTHLY_SUBSCRIPTION})`
-      }
+  if (isPremiumActive && subscriptionType) {
+    const totalQuota = getProductQuota(subscriptionType as ProductType)
+    const quota = Math.max(0, totalQuota - freeTrialsUsed)
+
+    let typeLabel = "Monthly"
+    if (subscriptionType.includes('YEARLY')) {
+      typeLabel = "Annual"
+    }
+
+    return {
+      quota,
+      label: `${typeLabel} quota (${quota} of ${totalQuota})`
     }
   } else {
     const quota = Math.max(0, QUOTA_CONFIG.FREE_TRIAL - freeTrialsUsed)

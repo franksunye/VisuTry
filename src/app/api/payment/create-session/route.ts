@@ -29,7 +29,7 @@ export async function POST(request: NextRequest) {
 
     if (productType) {
       // 验证产品类型
-      const validProductTypes: ProductType[] = ["PREMIUM_MONTHLY", "PREMIUM_YEARLY", "CREDITS_PACK"]
+      const validProductTypes: ProductType[] = ["PREMIUM_MONTHLY", "PREMIUM_YEARLY", "CREDITS_PACK", "CREDITS_PACK_PROMO_60", "PREMIUM_MONTHLY_PROMO", "PREMIUM_YEARLY_PROMO"]
       if (!validProductTypes.includes(productType)) {
         return NextResponse.json(
           { success: false, error: "无效的产品类型" },

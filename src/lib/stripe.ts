@@ -10,9 +10,9 @@ if (!process.env.STRIPE_SECRET_KEY && !isMockMode && !process.env.SKIP_ENV_VALID
 export const stripe = isMockMode
   ? (mockStripe as any)
   : new Stripe(process.env.STRIPE_SECRET_KEY!, {
-      apiVersion: "2023-10-16",
-      typescript: true,
-    })
+    apiVersion: "2023-10-16",
+    typescript: true,
+  })
 
 // Product configuration - now using centralized config
 export const PRODUCTS = {
@@ -39,6 +39,29 @@ export const PRODUCTS = {
     currency: PRODUCT_METADATA.CREDITS_PACK.currency,
     priceId: PRODUCT_METADATA.CREDITS_PACK.priceId,
   },
+  CREDITS_PACK_PROMO_60: {
+    name: PRODUCT_METADATA.CREDITS_PACK_PROMO_60.name,
+    description: PRODUCT_METADATA.CREDITS_PACK_PROMO_60.description,
+    price: PRODUCT_METADATA.CREDITS_PACK_PROMO_60.price,
+    currency: PRODUCT_METADATA.CREDITS_PACK_PROMO_60.currency,
+    priceId: PRODUCT_METADATA.CREDITS_PACK_PROMO_60.priceId,
+  },
+  PREMIUM_MONTHLY_PROMO: {
+    name: PRODUCT_METADATA.PREMIUM_MONTHLY_PROMO.name,
+    description: PRODUCT_METADATA.PREMIUM_MONTHLY_PROMO.description,
+    price: PRODUCT_METADATA.PREMIUM_MONTHLY_PROMO.price,
+    currency: PRODUCT_METADATA.PREMIUM_MONTHLY_PROMO.currency,
+    interval: PRODUCT_METADATA.PREMIUM_MONTHLY_PROMO.interval,
+    priceId: PRODUCT_METADATA.PREMIUM_MONTHLY_PROMO.priceId,
+  },
+  PREMIUM_YEARLY_PROMO: {
+    name: PRODUCT_METADATA.PREMIUM_YEARLY_PROMO.name,
+    description: PRODUCT_METADATA.PREMIUM_YEARLY_PROMO.description,
+    price: PRODUCT_METADATA.PREMIUM_YEARLY_PROMO.price,
+    currency: PRODUCT_METADATA.PREMIUM_YEARLY_PROMO.currency,
+    interval: PRODUCT_METADATA.PREMIUM_YEARLY_PROMO.interval,
+    priceId: PRODUCT_METADATA.PREMIUM_YEARLY_PROMO.priceId,
+  },
 } as const
 
 export type ProductType = keyof typeof PRODUCTS
@@ -56,13 +79,13 @@ export async function createCheckoutSession({
   cancelUrl: string
 }) {
   const product = PRODUCTS[productType]
-  
+
   if (!product.priceId) {
     throw new Error(`Price ID not configured for product: ${productType}`)
   }
 
   const sessionParams: Stripe.Checkout.SessionCreateParams = {
-    mode: productType === "CREDITS_PACK" ? "payment" : "subscription",
+    mode: productType.startsWith("CREDITS_PACK") ? "payment" : "subscription",
     payment_method_types: ["card"],
     line_items: [
       {
@@ -99,7 +122,7 @@ export async function getCustomerSubscriptions(customerId: string) {
     customer: customerId,
     status: "active",
   })
-  
+
   return subscriptions.data
 }
 
@@ -122,7 +145,7 @@ export function verifyWebhookSignature(
 export async function handleSuccessfulPayment(session: Stripe.Checkout.Session) {
   const userId = session.client_reference_id
   const productType = session.metadata?.productType as ProductType
-  
+
   if (!userId || !productType) {
     throw new Error("Missing required metadata in checkout session")
   }
@@ -141,14 +164,14 @@ export async function handleSuccessfulPayment(session: Stripe.Checkout.Session) 
 export async function handleSubscriptionCreated(subscription: Stripe.Subscription) {
   const userId = subscription.metadata?.userId
   const productType = subscription.metadata?.productType as ProductType
-  
+
   if (!userId || !productType) {
     throw new Error("Missing required metadata in subscription")
   }
 
   // 计算到期时间
   const expiresAt = new Date(subscription.current_period_end * 1000)
-  
+
   return {
     userId,
     productType,
@@ -161,13 +184,13 @@ export async function handleSubscriptionCreated(subscription: Stripe.Subscriptio
 // 处理订阅更新
 export async function handleSubscriptionUpdated(subscription: Stripe.Subscription) {
   const userId = subscription.metadata?.userId
-  
+
   if (!userId) {
     throw new Error("Missing userId in subscription metadata")
   }
 
   const expiresAt = new Date(subscription.current_period_end * 1000)
-  
+
   return {
     userId,
     subscriptionId: subscription.id,
@@ -179,7 +202,7 @@ export async function handleSubscriptionUpdated(subscription: Stripe.Subscriptio
 // 处理订阅删除
 export async function handleSubscriptionDeleted(subscription: Stripe.Subscription) {
   const userId = subscription.metadata?.userId
-  
+
   if (!userId) {
     throw new Error("Missing userId in subscription metadata")
   }

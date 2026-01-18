@@ -11,7 +11,7 @@ import {
   ProductType
 } from "@/lib/stripe"
 import Stripe from "stripe"
-import { QUOTA_CONFIG, PRODUCT_METADATA } from "@/config/pricing"
+import { QUOTA_CONFIG, PRODUCT_METADATA, getProductQuota } from "@/config/pricing"
 import { logger, getRequestContext } from "@/lib/logger"
 
 // Force dynamic rendering for this route
@@ -103,13 +103,15 @@ async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session, 
       }
     })
 
-    // 如果是次数包，增加用户的 credits 购买总数
-    if (paymentData.productType === "CREDITS_PACK") {
+    // 如果是次数包（包含促销包），增加用户的 credits 购买总数
+    // Refactored to support generic credit packs (standard or promo)
+    if (paymentData.productType.startsWith("CREDITS_PACK")) {
+      const quota = getProductQuota(paymentData.productType)
       await prisma.user.update({
         where: { id: paymentData.userId },
         data: {
           creditsPurchased: {
-            increment: QUOTA_CONFIG.CREDITS_PACK
+            increment: quota
           }
         }
       })

@@ -1,7 +1,6 @@
 import { getServerSession } from "next-auth/next"
 import { authOptions } from "@/lib/auth"
-import { PricingCard } from "@/components/pricing/PricingCard"
-import { Glasses, Star, Zap } from "lucide-react"
+import { PricingSection } from "@/components/pricing/PricingSection"
 import Link from "next/link"
 import { Metadata } from 'next'
 import { generateI18nSEO, generateStructuredData } from '@/lib/seo'
@@ -49,56 +48,25 @@ export default async function PricingPage() {
     remainingTrials: remainingTrials,
   } : null
 
-  // Use centralized pricing configuration
+  // Generate structured data for pricing offers from Metadata directly
+  // We only include standard plans in initial SEO schema
   const pricingPlans = [
-    {
-      id: "CREDITS_PACK",
-      name: PRODUCT_METADATA.CREDITS_PACK.name,
-      description: PRODUCT_METADATA.CREDITS_PACK.description,
-      price: formatPrice(PRODUCT_METADATA.CREDITS_PACK.price),
-      period: "One-time",
-      features: [...PRODUCT_METADATA.CREDITS_PACK.features],
-      buttonText: "Buy Credits Pack",
-      popular: PRODUCT_METADATA.CREDITS_PACK.popular,
-      icon: <Zap className="w-6 h-6" />
-    },
-    {
-      id: "PREMIUM_MONTHLY",
-      name: PRODUCT_METADATA.PREMIUM_MONTHLY.shortName,
-      description: PRODUCT_METADATA.PREMIUM_MONTHLY.description,
-      price: formatPrice(PRODUCT_METADATA.PREMIUM_MONTHLY.price),
-      period: "per month",
-      features: [...PRODUCT_METADATA.PREMIUM_MONTHLY.features],
-      buttonText: "Start Monthly Subscription",
-      popular: PRODUCT_METADATA.PREMIUM_MONTHLY.popular,
-      icon: <Star className="w-6 h-6" />
-    },
-    {
-      id: "PREMIUM_YEARLY",
-      name: PRODUCT_METADATA.PREMIUM_YEARLY.shortName,
-      description: PRODUCT_METADATA.PREMIUM_YEARLY.description,
-      price: formatPrice(PRODUCT_METADATA.PREMIUM_YEARLY.price),
-      period: "per year",
-      originalPrice: "$107.88", // 12 * $8.99
-      features: [...PRODUCT_METADATA.PREMIUM_YEARLY.features],
-      buttonText: "Start Annual Subscription",
-      popular: PRODUCT_METADATA.PREMIUM_YEARLY.popular,
-      icon: <Star className="w-6 h-6" />
-    }
+    PRODUCT_METADATA.CREDITS_PACK,
+    PRODUCT_METADATA.PREMIUM_MONTHLY,
+    PRODUCT_METADATA.PREMIUM_YEARLY
   ]
 
-  // Generate structured data for pricing offers
   const offerSchemas = pricingPlans.map(plan =>
     generateStructuredData('offer', {
       name: plan.name,
       description: plan.description,
-      price: plan.price.replace('$', ''),
+      price: formatPrice(plan.price).replace('$', ''),
       priceCurrency: 'USD',
       priceValidUntil: '2025-12-31',
       itemOffered: {
         '@type': 'Service',
         name: `${plan.name} - AI Virtual Glasses Try-On`,
-        description: plan.features.join(', '),
+        description: plan.features ? plan.features.join(', ') : plan.description,
       },
     })
   )
@@ -119,140 +87,10 @@ export default async function PricingPage() {
         <h1 className="text-3xl font-bold text-gray-900">Choose Your Plan</h1>
       </div>
 
-      {/* Current Status */}
-      <div className="mb-8">
-        {isPremiumActive ? (
-          <div className="p-4 bg-yellow-50 rounded-lg border border-yellow-200">
-            <div className="flex items-center">
-              <Star className="mr-2 w-5 h-5 text-yellow-600" />
-              <div>
-                <strong className="text-yellow-800">You are a Standard Member</strong>
-                {session?.user?.premiumExpiresAt && (
-                  <span className="ml-2 text-yellow-700">
-                    Expires: {new Date(session.user.premiumExpiresAt).toLocaleDateString("en-US")}
-                  </span>
-                )}
-              </div>
-            </div>
-          </div>
-        ) : (
-          <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
-            <div className="flex justify-between items-center">
-              <div className="flex items-center">
-                <Glasses className="mr-2 w-5 h-5 text-blue-600" />
-                <div>
-                  <strong className="text-blue-800">Free User</strong>
-                  <span className="ml-2 text-blue-700">
-                    Remaining try-ons: {remainingTrials}
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
+      {/* Promo Input is now inside PricingSection */}
 
-      {/* Pricing Cards */}
-      <div className="grid gap-8 mb-12 md:grid-cols-3">
-        {pricingPlans.map((plan) => (
-          <PricingCard
-            key={plan.id}
-            plan={plan}
-            currentUser={userForDisplay}
-          />
-        ))}
-      </div>
-
-      {/* Feature Comparison */}
-      <div className="overflow-hidden bg-white rounded-xl border shadow-sm">
-        <div className="p-6 border-b border-gray-200">
-          <h2 className="text-xl font-semibold text-gray-900">Feature Comparison</h2>
-        </div>
-
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 text-sm font-medium text-left text-gray-900">Feature</th>
-                <th className="px-6 py-3 text-sm font-medium text-center text-gray-900">Free</th>
-                <th className="px-6 py-3 text-sm font-medium text-center text-gray-900">Credits Pack</th>
-                <th className="px-6 py-3 text-sm font-medium text-center text-gray-900">Standard</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-200">
-              <tr>
-                <td className="px-6 py-4 text-sm text-gray-900">AI Try-ons</td>
-                <td className="px-6 py-4 text-sm text-center text-gray-600">{QUOTA_CONFIG.FREE_TRIAL} times</td>
-                <td className="px-6 py-4 text-sm text-center text-gray-600">+{QUOTA_CONFIG.CREDITS_PACK} times</td>
-                <td className="px-6 py-4 text-sm text-center text-green-600">{QUOTA_CONFIG.MONTHLY_SUBSCRIPTION}/month or {QUOTA_CONFIG.YEARLY_SUBSCRIPTION}/year</td>
-              </tr>
-              <tr>
-                <td className="px-6 py-4 text-sm text-gray-900">Image Quality</td>
-                <td className="px-6 py-4 text-sm text-center text-gray-600">
-                  <div>Standard</div>
-                  <div className="text-xs text-gray-500">(800×800)</div>
-                </td>
-                <td className="px-6 py-4 text-sm text-center text-gray-600">
-                  <div>High Quality</div>
-                  <div className="text-xs text-gray-500">(1200×1200)</div>
-                </td>
-                <td className="px-6 py-4 text-sm text-center text-green-600">
-                  <div>High Quality</div>
-                  <div className="text-xs text-green-500">(1200×1200)</div>
-                </td>
-              </tr>
-              <tr>
-                <td className="px-6 py-4 text-sm text-gray-900">Watermark</td>
-                <td className="px-6 py-4 text-sm text-center text-gray-600">Yes</td>
-                <td className="px-6 py-4 text-sm text-center text-gray-600">No</td>
-                <td className="px-6 py-4 text-sm text-center text-green-600">No</td>
-              </tr>
-              <tr>
-                <td className="px-6 py-4 text-sm text-gray-900">Generation Speed</td>
-                <td className="px-6 py-4 text-sm text-center text-gray-600">
-                  <div>Standard</div>
-                  <div className="text-xs text-gray-500">(Queue-based)</div>
-                </td>
-                <td className="px-6 py-4 text-sm text-center text-gray-600">
-                  <div>Standard</div>
-                  <div className="text-xs text-gray-500">(Queue-based)</div>
-                </td>
-                <td className="px-6 py-4 text-sm text-center text-green-600">
-                  <div>Fast</div>
-                  <div className="text-xs text-green-500">(Real-time)</div>
-                </td>
-              </tr>
-              <tr>
-                <td className="px-6 py-4 text-sm text-gray-900">Processing Priority</td>
-                <td className="px-6 py-4 text-sm text-center text-gray-600">Normal</td>
-                <td className="px-6 py-4 text-sm text-center text-gray-600">Normal</td>
-                <td className="px-6 py-4 text-sm text-center text-green-600">Priority</td>
-              </tr>
-              <tr>
-                <td className="px-6 py-4 text-sm text-gray-900">Data Retention</td>
-                <td className="px-6 py-4 text-sm text-center text-gray-600">
-                  <div>7 days</div>
-                  <div className="text-xs text-gray-500">Auto-delete after expiry</div>
-                </td>
-                <td className="px-6 py-4 text-sm text-center text-gray-600">
-                  <div>90 days</div>
-                  <div className="text-xs text-gray-500">Extended storage</div>
-                </td>
-                <td className="px-6 py-4 text-sm text-center text-green-600">
-                  <div>1 year</div>
-                  <div className="text-xs text-green-500">Long-term storage</div>
-                </td>
-              </tr>
-              <tr>
-                <td className="px-6 py-4 text-sm text-gray-900">Customer Support</td>
-                <td className="px-6 py-4 text-sm text-center text-gray-600">Email</td>
-                <td className="px-6 py-4 text-sm text-center text-gray-600">Priority Email</td>
-                <td className="px-6 py-4 text-sm text-center text-green-600">Priority Support</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
+      {/* Pricing Section (Cards + Comparison + Promo Input) */}
+      <PricingSection user={userForDisplay} />
 
       {/* FAQ */}
       <div className="mt-12">

@@ -6,7 +6,6 @@ import { ImageUpload } from "@/components/upload/ImageUpload"
 import { ResultDisplay } from "@/components/try-on/ResultDisplay"
 import { LoadingState } from "@/components/try-on/LoadingState"
 import { EmptyState } from "@/components/try-on/EmptyState"
-import { UserStatusBanner } from "@/components/try-on/UserStatusBanner"
 import { Sparkles, ArrowRight, User, Glasses, AlertCircle, X, Shirt, Footprints, Watch } from "lucide-react"
 import Link from "next/link"
 import { analytics, getUserType } from "@/lib/analytics"
@@ -465,56 +464,71 @@ export function TryOnInterface({ type = 'GLASSES' }: TryOnInterfaceProps) {
 
         {/* Action Button with Status - Second on mobile (sticky), below grid on desktop */}
         <div className="order-2 lg:order-3 lg:col-span-2 sticky bottom-0 lg:static bg-white py-4 lg:py-0 -mx-4 px-4 lg:mx-0 lg:px-0 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)] lg:shadow-none z-10">
-          {/* Button and Status in one row */}
-          <div className="flex items-center justify-between gap-4">
-            {/* Left: User Status Banner */}
-            <div className="flex-shrink-0">
-              <UserStatusBanner />
-            </div>
-
-            {/* Right: Try On Button */}
-            <button
-              onClick={handleStartTryOn}
-              disabled={!canProceed || isProcessing || !hasQuota}
-              title={!hasQuota ? "No remaining try-ons. Please upgrade." : ""}
-              className="flex items-center px-8 py-3 text-white transition-colors bg-blue-600 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {isProcessing ? (
-                <>
-                  <div className="w-5 h-5 mr-2 border-2 border-white rounded-full border-t-transparent animate-spin" />
-                  {processingMessage}
-                </>
-              ) : (
-                <>
-                  <Sparkles className="w-5 h-5 mr-2" />
-                  Try On
-                </>
-              )}
-            </button>
-          </div>
-
-          {/* Quota warning when no quota */}
-          {!hasQuota && !isProcessing && (
-            <div className="flex items-center justify-center gap-2 text-red-600 text-sm mt-4">
-              <AlertCircle className="w-4 h-4" />
-              <span>No remaining try-ons</span>
-              <Link
-                href="/pricing"
-                onClick={() => {
-                  const creditsPurchased = (session?.user as any)?.creditsPurchased || 0
-                  const creditsUsed = (session?.user as any)?.creditsUsed || 0
-                  const creditsRemaining = creditsPurchased - creditsUsed
-                  const userType = getUserType(
-                    session?.user?.isPremiumActive || false,
-                    creditsRemaining,
-                    !!session
-                  )
-                  analytics.trackQuotaExhaustedCTA('try_on', userType)
-                }}
-                className="text-blue-600 hover:underline font-medium"
+          {hasQuota ? (
+            // Normal state: Clean action bar
+            <div className="flex items-center justify-between gap-4">
+              <div className="flex items-center gap-3 text-sm text-gray-600">
+                <span className="inline-flex items-center px-2.5 py-1 bg-gray-100 rounded-full font-medium">
+                  {session?.user?.isPremiumActive ? "Standard" : "Free"}
+                </span>
+                <span>
+                  Remaining: <strong className="text-gray-900">{remainingTrials}</strong>
+                </span>
+              </div>
+              <button
+                onClick={handleStartTryOn}
+                disabled={!canProceed || isProcessing}
+                className="flex items-center px-8 py-3 text-white transition-colors bg-blue-600 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Upgrade now
-              </Link>
+                {isProcessing ? (
+                  <>
+                    <div className="w-5 h-5 mr-2 border-2 border-white rounded-full border-t-transparent animate-spin" />
+                    {processingMessage}
+                  </>
+                ) : (
+                  <>
+                    <Sparkles className="w-5 h-5 mr-2" />
+                    Try On
+                  </>
+                )}
+              </button>
+            </div>
+          ) : (
+            // Exhausted state: Premium promo card
+            <div className="p-4 bg-gradient-to-r from-blue-50 via-indigo-50 to-purple-50 rounded-xl border border-blue-200">
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+                <div className="flex items-center gap-3">
+                  <div className="flex items-center justify-center w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex-shrink-0">
+                    <Sparkles className="w-5 h-5 text-white" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold text-gray-900">
+                      You've used all your try-ons!
+                    </p>
+                    <p className="text-xs text-gray-600">
+                      High demand: <strong className="text-blue-600">Only a few 2x spots left</strong>
+                    </p>
+                  </div>
+                </div>
+                <Link
+                  href="/pricing?code=BOGO"
+                  onClick={() => {
+                    const creditsPurchased = (session?.user as any)?.creditsPurchased || 0
+                    const creditsUsed = (session?.user as any)?.creditsUsed || 0
+                    const creditsRemaining = creditsPurchased - creditsUsed
+                    const userType = getUserType(
+                      session?.user?.isPremiumActive || false,
+                      creditsRemaining,
+                      !!session
+                    )
+                    analytics.trackQuotaExhaustedCTA('try_on', userType)
+                  }}
+                  className="flex items-center gap-2 px-6 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg font-medium text-sm hover:from-blue-700 hover:to-indigo-700 transition-all shadow-md hover:shadow-lg animate-pulse"
+                >
+                  🎁 Claim Promo
+                  <ArrowRight className="w-4 h-4" />
+                </Link>
+              </div>
             </div>
           )}
         </div>

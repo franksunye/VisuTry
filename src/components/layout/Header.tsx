@@ -59,34 +59,44 @@ export function Header({ transparent = false }: HeaderProps) {
           
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-6">
-            {navLinks.map((link) => (
-              <Link
-                key={link.href}
-                href={link.href}
-                onClick={() => {
-                  // 追踪 Pricing 链接点击
-                  if (link.href.includes('/pricing')) {
-                    const creditsPurchased = (session?.user as any)?.creditsPurchased || 0
-                    const creditsUsed = (session?.user as any)?.creditsUsed || 0
-                    const creditsRemaining = creditsPurchased - creditsUsed
-                    const userType = getUserType(
-                      session?.user?.isPremiumActive || false,
-                      creditsRemaining,
-                      !!session
-                    )
-                    analytics.trackViewPricing('nav', userType, (session?.user as any)?.remainingTrials || 0)
-                  }
-                }}
-                className={cn(
-                  'text-sm font-medium transition-colors hover:text-blue-600',
-                  pathname === link.href
-                    ? 'text-blue-600 border-b-2 border-blue-600 pb-1'
-                    : 'text-gray-700'
-                )}
-              >
-                {link.label}
-              </Link>
-            ))}
+            {navLinks.map((link) => {
+              const isPricingLink = link.href.includes('/pricing')
+              return (
+                <div key={link.href} className="relative flex items-center">
+                  <Link
+                    href={isPricingLink ? `/${locale}/pricing?code=BOGO` : link.href}
+                    onClick={() => {
+                      // 追踪 Pricing 链接点击
+                      if (isPricingLink) {
+                        const creditsPurchased = (session?.user as any)?.creditsPurchased || 0
+                        const creditsUsed = (session?.user as any)?.creditsUsed || 0
+                        const creditsRemaining = creditsPurchased - creditsUsed
+                        const userType = getUserType(
+                          session?.user?.isPremiumActive || false,
+                          creditsRemaining,
+                          !!session
+                        )
+                        analytics.trackViewPricing('nav', userType, (session?.user as any)?.remainingTrials || 0)
+                      }
+                    }}
+                    className={cn(
+                      'text-sm font-medium transition-colors hover:text-blue-600',
+                      pathname === link.href
+                        ? 'text-blue-600 border-b-2 border-blue-600 pb-1'
+                        : 'text-gray-700'
+                    )}
+                  >
+                    {link.label}
+                  </Link>
+                  {/* Promo Badge - only on Pricing link */}
+                  {isPricingLink && (
+                    <span className="ml-1.5 inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-semibold bg-gradient-to-r from-emerald-500 to-teal-500 text-white animate-pulse">
+                      🎁 Limited
+                    </span>
+                  )}
+                </div>
+              )
+            })}
           </div>
           
           {/* CTA + Auth Section */}
@@ -145,22 +155,30 @@ export function Header({ transparent = false }: HeaderProps) {
         >
           <div className="border-t border-gray-200 pt-4 pb-4 mt-3">
             <div className="flex flex-col space-y-3">
-              {navLinks.map((link) => (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  onClick={() => setMobileMenuOpen(false)}
-                  className={cn(
-                    'px-4 py-2 rounded-lg text-sm font-medium transition-colors',
-                    pathname === link.href
-                      ? 'bg-blue-50 text-blue-600'
-                      : 'text-gray-700 hover:bg-gray-50'
-                  )}
-                  role="menuitem"
-                >
-                  {link.label}
-                </Link>
-              ))}
+              {navLinks.map((link) => {
+                const isPricingLink = link.href.includes('/pricing')
+                return (
+                  <Link
+                    key={link.href}
+                    href={isPricingLink ? `/${locale}/pricing?code=BOGO` : link.href}
+                    onClick={() => setMobileMenuOpen(false)}
+                    className={cn(
+                      'px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center justify-between',
+                      pathname === link.href
+                        ? 'bg-blue-50 text-blue-600'
+                        : 'text-gray-700 hover:bg-gray-50'
+                    )}
+                    role="menuitem"
+                  >
+                    <span>{link.label}</span>
+                    {isPricingLink && (
+                      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-gradient-to-r from-emerald-500 to-teal-500 text-white">
+                        🎁 Limited
+                      </span>
+                    )}
+                  </Link>
+                )
+              })}
               
               {/* Mobile Language Switcher */}
               <div className="border-t border-gray-200 pt-3 mt-3">
