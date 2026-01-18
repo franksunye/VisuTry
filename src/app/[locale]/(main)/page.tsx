@@ -194,7 +194,7 @@ export default function Home() {
       </section>
 
       {/* FAQ Section */}
-      <section className="max-w-4xl mx-auto mb-16">
+      <section id="faq" className="max-w-4xl mx-auto mb-16">
         <div className="text-center mb-12">
           <h2 className="text-3xl font-bold text-gray-900 mb-4">
             {t('faq.title')}
