@@ -54,7 +54,7 @@ export default async function PaymentsPage() {
   const usageCount = user.isPremiumActive ? (user as any).premiumUsageCount || 0 : user.freeTrialsUsed
   const { quota: subscriptionQuota, label: subscriptionQuotaLabel } = getSubscriptionQuotaLabel(
     user.isPremiumActive,
-    isYearlySubscription,
+    latestSubscriptionPayment?.productType ?? null,
     usageCount
   )
 
