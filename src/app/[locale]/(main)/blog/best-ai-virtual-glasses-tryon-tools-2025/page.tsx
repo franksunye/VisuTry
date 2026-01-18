@@ -115,7 +115,7 @@ export default function BlogPostPage() {
                 <ul className="space-y-2">
                   <li>✅ <strong>Photo upload try‑on</strong> powered by AI image compositing</li>
                   <li>✅ <strong>Custom frame upload</strong> (PNG with transparency) and a limited demo catalog</li>
-                  <li>✅ <strong>3 free try‑ons</strong> in demo mode; sign‑in required to save results</li>
+                  <li>✅ <strong>1 free try‑on</strong> in demo mode; sign‑in required to save results</li>
                   <li>✅ <strong>Shareable results</strong> via links; works on desktop and mobile</li>
                   <li>✅ <strong>Payments</strong> via Stripe for premium plans</li>
                 </ul>
@@ -287,7 +287,7 @@ export default function BlogPostPage() {
               <div className="bg-gradient-to-r from-blue-500 to-purple-600 text-white p-8 rounded-lg my-8">
                 <h3 className="text-2xl font-bold mb-4">Ready to Try It Yourself?</h3>
                 <p className="mb-6">
-                  Try VisuTry’s photo‑based AI try‑on in your browser. Get <strong>3 free demo try‑ons</strong>,
+                  Try VisuTry’s photo‑based AI try‑on in your browser. Get <strong>1 free demo try‑on</strong>,
                   upload custom frames, and preview results on your photo — no app required.
                 </p>
                 <Link
@@ -308,7 +308,7 @@ export default function BlogPostPage() {
                 lightweight, convenient choice.
               </p>
               <p>
-                You can start with <strong>3 free demo try‑ons</strong> on VisuTry and upgrade for unlimited usage.
+                You can start with <strong>1 free demo try‑on</strong> on VisuTry and upgrade for unlimited usage.
                 Exploring a tool before buying helps ensure you’ll love how the frames look on you.
               </p>
               <p>

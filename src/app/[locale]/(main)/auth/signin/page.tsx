@@ -15,7 +15,7 @@ export async function generateMetadata(props: Props): Promise<Metadata> {
   return generateI18nSEO({
     locale: params.locale as Locale,
     title: 'Sign In - AI Virtual Try-On | VisuTry',
-    description: 'Sign in to VisuTry to start your AI virtual try-on experience. Get 3 free trials for glasses, outfits, shoes, and accessories.',
+    description: 'Sign in to VisuTry to start your AI virtual try-on experience. Get free trials for glasses, outfits, shoes, and accessories.',
     pathname: '/auth/signin',
   })
 }
@@ -29,7 +29,7 @@ export default function SignInPage() {
           {/* Header */}
           <div className="text-center mb-6">
             <h2 className="text-2xl font-bold text-gray-900 mb-2">
-              Log in to start your 3 free previews
+              Log in to start your free preview
             </h2>
             <p className="text-sm text-gray-500">
               Discover the best glasses for your face — quickly, easily, and realistically.
@@ -44,7 +44,7 @@ export default function SignInPage() {
                 </div>
                 <div>
                   <h3 className="font-medium text-gray-900">Free Try-On</h3>
-                  <p className="text-sm text-gray-500">We provide 3 free try-outs to help you decide with confidence.</p>
+                  <p className="text-sm text-gray-500">We provide free try-outs to help you decide with confidence.</p>
                 </div>
               </div>
 

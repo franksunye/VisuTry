@@ -168,7 +168,7 @@ export default async function SharePage({ params }: SharePageProps) {
                 </div>
                 <h4 className="font-medium text-gray-900 mb-2">Free Trial</h4>
                 <p className="text-sm text-gray-600">
-                  Every user gets 3 free AI try-on experiences
+                  Every user gets 1 free AI try-on experience
                 </p>
               </div>
 

@@ -22,7 +22,7 @@ export function HomeStructuredData() {
       '@type': 'Offer',
       price: '0',
       priceCurrency: 'USD',
-      description: 'Free trial with 3 virtual try-ons for glasses, outfits, shoes, and accessories',
+      description: 'Free trial with 1 virtual try-on for glasses, outfits, shoes, and accessories',
     },
   })
 
@@ -39,7 +39,7 @@ export function HomeStructuredData() {
       },
       {
         question: 'Is the virtual try-on free?',
-        answer: 'Yes! We offer 3 free virtual try-ons for all users across all categories. You can upgrade to our premium plans for unlimited try-ons and additional features.',
+        answer: 'Yes! We offer 1 free virtual try-on for all users across all categories. You can upgrade to our premium plans for unlimited try-ons and additional features.',
       },
       {
         question: 'What items can I try on?',

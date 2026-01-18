@@ -34,12 +34,12 @@ export default async function PricingPage() {
   // 🔥 优化：直接从 session 读取用户数据，不再查询数据库
   // session.user 已经包含了所有必要的用户信息（来自 JWT token）
   let isPremiumActive = false
-  let remainingTrials = 3 // 默认免费试用次数
+  let remainingTrials = 1 // 默认免费试用次数
 
   if (session) {
     // 直接使用 session 中的数据
     isPremiumActive = session.user.isPremiumActive || false
-    remainingTrials = session.user.remainingTrials || 3
+    remainingTrials = session.user.remainingTrials || 1
   }
 
   // 🔥 优化：直接使用 session.user，不需要重新构建

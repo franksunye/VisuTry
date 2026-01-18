@@ -12,7 +12,7 @@
 // ========== 1. 额度配置 ==========
 // 从环境变量读取，提供默认值
 export const QUOTA_CONFIG = {
-  FREE_TRIAL: parseInt(process.env.FREE_TRIAL_LIMIT || "3"),
+  FREE_TRIAL: parseInt(process.env.FREE_TRIAL_LIMIT || "1"),
   MONTHLY_SUBSCRIPTION: parseInt(process.env.MONTHLY_QUOTA || "30"),
   YEARLY_SUBSCRIPTION: parseInt(process.env.YEARLY_QUOTA || "420"),
   CREDITS_PACK: parseInt(process.env.CREDITS_PACK_AMOUNT || "10"),
