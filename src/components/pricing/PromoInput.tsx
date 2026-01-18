@@ -76,7 +76,7 @@ export function PromoInput({ onPromoChange, activeCode }: PromoInputProps) {
               </div>
               <div>
                 <p className="text-sm font-semibold text-emerald-800">
-                  Promo code "{activeCode}" applied!
+                  Promo code {activeCode} applied!
                 </p>
                 <p className="text-xs text-emerald-600">
                   High demand: <strong className="text-emerald-700">Only a few 2x spots left</strong>
