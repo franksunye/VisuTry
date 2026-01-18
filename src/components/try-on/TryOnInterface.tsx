@@ -503,7 +503,7 @@ export function TryOnInterface({ type = 'GLASSES' }: TryOnInterfaceProps) {
                   </div>
                   <div>
                     <p className="text-sm font-semibold text-gray-900">
-                      You've used all your try-ons!
+                      You&apos;ve used all your try-ons!
                     </p>
                     <p className="text-xs text-gray-600">
                       High demand: <strong className="text-blue-600">Only a few 2x spots left</strong>
