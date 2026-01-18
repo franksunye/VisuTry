@@ -159,10 +159,13 @@ export default async function PaymentsPage() {
               const config = statusConfig[payment.status]
               const StatusIcon = config.icon
 
-              const productNames = {
+              const productNames: Record<string, string> = {
                 PREMIUM_MONTHLY: 'Standard - Monthly',
                 PREMIUM_YEARLY: 'Standard - Annual',
-                CREDITS_PACK: 'Credits Pack (10 credits)'
+                CREDITS_PACK: 'Credits Pack (10 credits)',
+                CREDITS_PACK_PROMO_60: 'Credits Pack 2x (60 credits)',
+                PREMIUM_MONTHLY_PROMO: 'Standard - Monthly 2x',
+                PREMIUM_YEARLY_PROMO: 'Standard - Annual 2x'
               }
 
               return (
