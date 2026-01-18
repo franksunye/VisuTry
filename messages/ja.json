@@ -175,7 +175,7 @@
       },
       "values": {
         "free": {
-          "aiTryOns": "3回",
+          "aiTryOns": "1回",
           "imageQuality": "標準",
           "processingSpeed": "標準",
           "downloads": "制限あり",

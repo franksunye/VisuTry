@@ -199,7 +199,7 @@
       },
       "values": {
         "free": {
-          "aiTryOns": "3 times",
+          "aiTryOns": "1 time",
           "imageQuality": "Standard",
           "processingSpeed": "Standard",
           "downloads": "Limited",
@@ -242,7 +242,6 @@
       ]
     }
   },
-
   "footer": {
     "tagline": "AI-powered virtual try-on for glasses, outfits, shoes, and accessories",
     "links": {
@@ -274,4 +273,3 @@
     }
   }
 }
-

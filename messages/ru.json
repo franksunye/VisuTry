@@ -175,7 +175,7 @@
       },
       "values": {
         "free": {
-          "aiTryOns": "3 раза",
+          "aiTryOns": "1 раз",
           "imageQuality": "Стандартное",
           "processingSpeed": "Стандартная",
           "downloads": "Ограничено",
