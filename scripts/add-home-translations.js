@@ -8,7 +8,7 @@ const translations = {
       title: "Caractéristiques Clés de VisuTry",
       subtitle: "Découvrez la prochaine génération d'essayage virtuel par IA",
       feature1: {
-        title: "Google Gemini 2.5 Flash",
+        title: "Google Nano Banana",
         description: "Propulsé par le dernier modèle d'IA de Google pour des résultats d'essayage ultra-réalistes avec une précision exceptionnelle et un éclairage naturel."
       },
       feature2: {
@@ -29,7 +29,7 @@ const translations = {
       subtitle: "Tout ce que vous devez savoir sur VisuTry",
       q1: {
         question: "Comment fonctionne l'essayage IA de VisuTry ?",
-        answer: "VisuTry utilise Google Gemini 2.5 Flash IA pour analyser vos traits faciaux et superposer des lunettes de manière réaliste sur votre photo. L'IA comprend la forme du visage, l'éclairage et la perspective pour créer des résultats d'apparence naturelle en quelques secondes."
+        answer: "VisuTry utilise Google Nano Banana IA pour analyser vos traits faciaux et superposer des lunettes de manière réaliste sur votre photo. L'IA comprend la forme du visage, l'éclairage et la perspective pour créer des résultats d'apparence naturelle en quelques secondes."
       },
       q2: {
         question: "Mes données photo sont-elles sûres et privées ?",
@@ -58,7 +58,7 @@ const translations = {
       title: "Hauptmerkmale von VisuTry",
       subtitle: "Erleben Sie die nächste Generation der KI-gestützten virtuellen Anprobe",
       feature1: {
-        title: "Google Gemini 2.5 Flash",
+        title: "Google Nano Banana",
         description: "Angetrieben von Googles neuestem KI-Modell für ultra-realistische Anprobeergebnisse mit außergewöhnlicher Genauigkeit und natürlicher Beleuchtung."
       },
       feature2: {
@@ -79,7 +79,7 @@ const translations = {
       subtitle: "Alles, was Sie über VisuTry wissen müssen",
       q1: {
         question: "Wie funktioniert die KI-Anprobe von VisuTry?",
-        answer: "VisuTry verwendet Google Gemini 2.5 Flash KI, um Ihre Gesichtszüge zu analysieren und Brillen realistisch auf Ihr Foto zu legen. Die KI versteht Gesichtsform, Beleuchtung und Perspektive, um in Sekunden natürlich aussehende Ergebnisse zu erstellen."
+        answer: "VisuTry verwendet Google Nano Banana KI, um Ihre Gesichtszüge zu analysieren und Brillen realistisch auf Ihr Foto zu legen. Die KI versteht Gesichtsform, Beleuchtung und Perspektive, um in Sekunden natürlich aussehende Ergebnisse zu erstellen."
       },
       q2: {
         question: "Sind meine Fotodaten sicher und privat?",

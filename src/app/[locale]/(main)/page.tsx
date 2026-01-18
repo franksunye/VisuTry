@@ -11,7 +11,7 @@ import { TryOnShowcase } from '@/components/home/TryOnShowcase'
 const englishFaqContent = [
   {
     question: "How does VisuTry's AI try-on work?",
-    answer: "VisuTry uses Google Gemini 2.5 Flash AI to analyze your facial features and realistically overlay glasses onto your photo. The AI understands face shape, lighting, and perspective to create natural-looking results in seconds."
+    answer: "VisuTry uses Google Nano Banana AI to analyze your facial features and realistically overlay glasses onto your photo. The AI understands face shape, lighting, and perspective to create natural-looking results in seconds."
   },
   {
     question: "Is my photo data safe and private?",
@@ -139,7 +139,7 @@ export default function Home() {
         </div>
 
         <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-4">
-          {/* Feature 1: Google Gemini 2.5 Flash */}
+          {/* Feature 1: Google Nano Banana */}
           <div className="p-6 bg-white border border-gray-200 rounded-xl shadow-sm hover:shadow-md transition-shadow">
             <div className="flex items-center justify-center w-12 h-12 mb-4 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg">
               <Zap className="w-6 h-6 text-white" />

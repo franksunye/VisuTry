@@ -8,7 +8,7 @@ VisuTry is a cutting-edge AI-powered virtual glasses try-on application. It allo
 
 ## ✨ Features
 
-- 🤖 **AI Try-On Technology**: Realistic virtual try-on powered by Google Gemini 2.5 Flash.
+- 🤖 **AI Try-On Technology**: Realistic virtual try-on powered by Google Nano Banana.
 - 👤 **User Authentication**: Secure authentication with Auth0, supporting Google, Twitter, and more.
 - 💳 **Payment System**: Integrated with Stripe for free trials and premium plans.
 - 📱 **Responsive Design**: Optimized for both desktop and mobile devices.
@@ -32,7 +32,7 @@ VisuTry is a cutting-edge AI-powered virtual glasses try-on application. It allo
 - **Authentication**: NextAuth.js + Auth0
 - **Payment**: Stripe
 - **File Storage**: Vercel Blob
-- **AI Service**: Google Gemini 2.5 Flash
+- **AI Service**: Google Nano Banana
 
 ### Deployment
 - **Platform**: Vercel

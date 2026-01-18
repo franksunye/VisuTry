@@ -7,7 +7,7 @@
 **What it does**: Upload your photo and glasses image to see how they look on you using AI.
 
 **Key capabilities**:
-- Real-time AI processing with Google Gemini 2.5 Flash
+- Real-time AI processing with Google Nano Banana
 - Support for custom glasses images
 - Asynchronous processing with live status updates
 - Result history and management
@@ -296,7 +296,7 @@
 
 ## 🔗 External Integrations
 
-- **Google Gemini 2.5 Flash** - AI image processing
+- **Google Nano Banana** - AI image processing
 - **Auth0** - Authentication provider
 - **Stripe** - Payment processing
 - **Vercel Blob** - File storage

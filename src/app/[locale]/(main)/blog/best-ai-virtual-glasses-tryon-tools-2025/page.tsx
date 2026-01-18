@@ -109,7 +109,7 @@ export default function BlogPostPage() {
                 <p className="mb-4">
                   <strong>VisuTry</strong> provides a simple, accurate photo-based virtual try-on experience.
                   Upload a front-facing photo and choose from a small demo catalog or upload your own frame image.
-                  Our AI (Google Gemini 2.5 Flash) composites glasses realistically onto your photo—no app required.
+                  Our AI (Google Nano Banana) composites glasses realistically onto your photo—no app required.
                 </p>
                 <p className="font-bold text-gray-900 mb-2">Key Features (current):</p>
                 <ul className="space-y-2">
