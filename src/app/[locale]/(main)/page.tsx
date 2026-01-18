@@ -116,31 +116,13 @@ export default function Home() {
         {/* Try-On Showcase Carousel */}
         <TryOnShowcase />
 
-        {/* CTA Section - Four Try-On Options */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 justify-center">
+        {/* CTA Section - Glasses Only */}
+        <div className="flex justify-center">
           <button
             onClick={() => handleStartTryOn('glasses')}
             className="px-6 py-3 text-base font-semibold text-white transition-colors duration-200 bg-blue-600 rounded-lg shadow-lg hover:bg-blue-700 hover:shadow-xl"
           >
             👓 {t('cta.tryGlasses')}
-          </button>
-          <button
-            onClick={() => handleStartTryOn('outfit')}
-            className="px-6 py-3 text-base font-semibold text-white transition-colors duration-200 bg-blue-600 rounded-lg shadow-lg hover:bg-blue-700 hover:shadow-xl"
-          >
-            👔 {t('cta.tryOutfit')}
-          </button>
-          <button
-            onClick={() => handleStartTryOn('shoes')}
-            className="px-6 py-3 text-base font-semibold text-white transition-colors duration-200 bg-blue-600 rounded-lg shadow-lg hover:bg-blue-700 hover:shadow-xl"
-          >
-            👟 {t('cta.tryShoes')}
-          </button>
-          <button
-            onClick={() => handleStartTryOn('accessories')}
-            className="px-6 py-3 text-base font-semibold text-white transition-colors duration-200 bg-blue-600 rounded-lg shadow-lg hover:bg-blue-700 hover:shadow-xl"
-          >
-            💍 {t('cta.tryAccessories')}
           </button>
         </div>
       </section>
