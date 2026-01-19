@@ -4,6 +4,7 @@ import { Star, Crown, Clock, ArrowUpRight } from "lucide-react"
 import Link from "next/link"
 import { formatDistanceToNow } from "date-fns"
 import { analytics } from "@/lib/analytics"
+import { QUOTA_CONFIG } from "@/config/pricing"
 
 interface User {
   id: string
@@ -38,7 +39,7 @@ export function SubscriptionCard({ user }: SubscriptionCardProps) {
   let subscriptionLabel = ''
 
   if (isPremiumActive && subscriptionType) {
-    subscriptionQuota = isYearlySubscription ? 420 : 30
+    subscriptionQuota = isYearlySubscription ? QUOTA_CONFIG.YEARLY_SUBSCRIPTION : QUOTA_CONFIG.MONTHLY_SUBSCRIPTION
     subscriptionUsed = user.premiumUsageCount || 0
     subscriptionLabel = isYearlySubscription ? 'Annual' : 'Monthly'
   } else {
@@ -204,7 +205,7 @@ export function SubscriptionCard({ user }: SubscriptionCardProps) {
         <div className="grid grid-cols-2 gap-2 text-xs">
           <div className="flex items-center text-gray-600">
             <div className="w-2 h-2 bg-green-500 rounded-full mr-2" />
-            30/month or 420/year
+            {QUOTA_CONFIG.MONTHLY_SUBSCRIPTION}/month or {QUOTA_CONFIG.YEARLY_SUBSCRIPTION}/year
           </div>
           <div className="flex items-center text-gray-600">
             <div className="w-2 h-2 bg-green-500 rounded-full mr-2" />
