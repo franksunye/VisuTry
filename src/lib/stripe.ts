@@ -102,8 +102,8 @@ export async function createCheckoutSession({
     },
   }
 
-  // 对于订阅，添加试用期配置
-  if (productType !== "CREDITS_PACK") {
+  // 对于订阅，添加订阅元数据（Credits Pack 系列都是一次性付款，不需要）
+  if (!productType.startsWith("CREDITS_PACK")) {
     sessionParams.subscription_data = {
       metadata: {
         userId,
