@@ -209,33 +209,42 @@ export async function POST(request: NextRequest) {
     const userImageBytes = new Uint8Array(userImageBuffer)
     const itemImageBytes = new Uint8Array(itemImageBuffer)
 
-    const calculateFingerprint = (bytes: Uint8Array, size: number): string => {
-      let hash = 0
-      const sampleSize = Math.min(512, bytes.length)
-      for (let i = 0; i < sampleSize; i++) {
-        hash = ((hash << 5) - hash) + bytes[i]
-        hash = hash & hash
+    // 🔍 CHECK 3: Calculate file content fingerprints to detect if content is identical
+    // Optimization: Skip expensive fingerprinting in production to save Vercel CPU duration
+    const shouldFingerprint = process.env.NODE_ENV === 'development' || process.env.ENABLE_HEAVY_DIAGNOSTICS === 'true'
+    
+    let userImageFingerprint = 'omitted'
+    let itemImageFingerprint = 'omitted'
+
+    if (shouldFingerprint) {
+      const calculateFingerprint = (bytes: Uint8Array, size: number): string => {
+        let hash = 0
+        const sampleSize = Math.min(512, bytes.length)
+        for (let i = 0; i < sampleSize; i++) {
+          hash = ((hash << 5) - hash) + bytes[i]
+          hash = hash & hash
+        }
+        return `${size}-${hash.toString(16)}`
       }
-      return `${size}-${hash.toString(16)}`
-    }
 
-    const userImageFingerprint = calculateFingerprint(userImageBytes, userImageFile.size)
-    const itemImageFingerprint = calculateFingerprint(itemImageBytes, itemImageFile.size)
+      userImageFingerprint = calculateFingerprint(userImageBytes, userImageFile.size)
+      itemImageFingerprint = calculateFingerprint(itemImageBytes, itemImageFile.size)
 
-    // 🔍 追踪日志：记录指纹计算结果
-    logger.info('upload', 'File fingerprints calculated', {
-      userId, tryOnType, userImageFingerprint, itemImageFingerprint,
-      fingerprintsMatch: userImageFingerprint === itemImageFingerprint
-    }, ctx)
-
-    if (userImageFingerprint === itemImageFingerprint) {
-      // 🔍 详细记录重复情况，这是我们要追踪的关键问题
-      logger.error('upload', 'CRITICAL: Duplicate file content detected', new Error('Duplicate fingerprints'), {
+      // 🔍 追踪日志：记录指纹计算结果
+      logger.info('upload', 'File fingerprints calculated', {
         userId, tryOnType, userImageFingerprint, itemImageFingerprint,
-        userImageName: userImageFile.name, itemImageName: itemImageFile.name,
-        userImageSize: userImageFile.size, itemImageSize: itemImageFile.size,
-        sameObjectReference: sameObject, sameMetadata
+        fingerprintsMatch: userImageFingerprint === itemImageFingerprint
       }, ctx)
+
+      if (userImageFingerprint === itemImageFingerprint) {
+        // 🔍 详细记录重复情况
+        logger.error('upload', 'CRITICAL: Duplicate file content detected', new Error('Duplicate fingerprints'), {
+          userId, tryOnType, userImageFingerprint, itemImageFingerprint,
+          userImageName: userImageFile.name, itemImageName: itemImageFile.name,
+          userImageSize: userImageFile.size, itemImageSize: itemImageFile.size,
+          sameObjectReference: sameObject, sameMetadata
+        }, ctx)
+      }
     }
 
     // 🔥 FIX: Use single timestamp to avoid filename collision

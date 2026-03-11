@@ -40,12 +40,19 @@ type TryOnUploadDiagnostics = Prisma.InputJsonObject
 
 async function inspectFile(file: File): Promise<FileInspection> {
   const buffer = Buffer.from(await file.arrayBuffer())
+  
+  // Optimization: Skip expensive SHA256 calculation in production to save CPU duration
+  // Only calculate if explicitly enabled or in development
+  const shouldHash = process.env.NODE_ENV === 'development' || process.env.ENABLE_HEAVY_DIAGNOSTICS === 'true'
+  const sha256 = shouldHash 
+    ? createHash('sha256').update(buffer).digest('hex')
+    : 'omitted_for_performance'
 
   return {
     name: file.name,
     type: file.type || 'application/octet-stream',
     size: file.size,
-    sha256: createHash('sha256').update(buffer).digest('hex'),
+    sha256: sha256,
   }
 }
 
