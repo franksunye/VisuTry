@@ -149,3 +149,9 @@ scripts/verify-*.js
 scripts/list-*.js
 scripts/install-*.ps1
 scripts/install-*.md
+
+# Confidential Business Documents
+docs/crm/
+docs/strategy/internal/
+*-financial-model*.md
+*-target-model*.md
