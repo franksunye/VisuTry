@@ -62,6 +62,7 @@
 
 ## 4. 后续步骤 (Next Steps)
 
-1.  [ ] 批准方案一：修改 `src/middleware.ts` 降低日志频率。
-2.  [ ] 批准方案二：清理 `src/lib/tryon-service.ts` 中的哈希计算逻辑。
-3.  [ ] 监控优化后的 Dashboard 曲线观察效果。
+1.  [x] **已完成** (2026-03-11): 修改 `src/middleware.ts` 降低高频访问日志级别至 `debug`。
+2.  [x] **已完成** (2026-03-11): 在 `src/lib/tryon-service.ts` 和 `src/app/api/try-on/route.ts` 中通过环境变量禁用生产环境图像哈希计算。
+3.  [ ] **观察中**: 监控 Vercel Usage Dashboard，验证 Fluid Active CPU 曲线是否回落 (预计 24 小时可见明显趋势)。
+4.  [ ] **待定**: 如果 CPU 占用依然不理想，启动阶段二：将 Gemini 同步试戴逻辑重构为异步轮询模式。
