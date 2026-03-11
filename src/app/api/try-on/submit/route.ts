@@ -70,6 +70,24 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    logger.info('upload', 'Submit route received try-on files', {
+      userId,
+      tryOnType,
+      userImage: {
+        name: userImageFile.name,
+        size: userImageFile.size,
+        type: userImageFile.type,
+      },
+      itemImage: {
+        name: itemImageFile.name,
+        size: itemImageFile.size,
+        type: itemImageFile.type,
+      },
+      sameObjectReference: userImageFile === itemImageFile,
+      sameFileName: userImageFile.name === itemImageFile.name,
+      sameFileSize: userImageFile.size === itemImageFile.size,
+    }, ctx)
+
     // 4. Submit Task
     const result = await submitTryOnTask(
       user,

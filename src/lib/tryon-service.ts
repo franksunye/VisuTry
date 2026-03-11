@@ -3,8 +3,9 @@ import { put } from "@vercel/blob"
 import { generateTryOnImage } from "@/lib/gemini"
 import { submitAsyncTask, pollTaskResult } from "@/lib/grsai"
 import { logger } from "@/lib/logger"
-import { TaskStatus, TryOnType, User } from "@prisma/client"
+import { Prisma, TaskStatus, TryOnType, User } from "@prisma/client"
 import { TRY_ON_CONFIGS } from "@/config/try-on-types"
+import { createHash } from "node:crypto"
 
 // Service Tiering Config
 const ENABLE_SERVICE_TIERING = process.env.ENABLE_SERVICE_TIERING !== 'false' // Default to true, unless explicitly set to false
@@ -27,6 +28,27 @@ export interface TryOnPollResult {
   isNewCompletion?: boolean
 }
 
+interface FileInspection {
+  name: string
+  type: string
+  size: number
+  sha256: string
+}
+
+type TryOnInputDiagnostics = Prisma.InputJsonObject
+type TryOnUploadDiagnostics = Prisma.InputJsonObject
+
+async function inspectFile(file: File): Promise<FileInspection> {
+  const buffer = Buffer.from(await file.arrayBuffer())
+
+  return {
+    name: file.name,
+    type: file.type || 'application/octet-stream',
+    size: file.size,
+    sha256: createHash('sha256').update(buffer).digest('hex'),
+  }
+}
+
 export async function submitTryOnTask(
   user: User,
   userImageFile: File,
@@ -40,6 +62,45 @@ export async function submitTryOnTask(
 
   // Use provided prompt or fallback to type-specific default prompt
   const effectivePrompt = prompt || TRY_ON_CONFIGS[type].aiPrompt
+
+  const [userInspection, itemInspection] = await Promise.all([
+    inspectFile(userImageFile),
+    inspectFile(itemImageFile),
+  ])
+
+  const inputDiagnostics: TryOnInputDiagnostics = {
+    userFile: {
+      name: userInspection.name,
+      type: userInspection.type,
+      size: userInspection.size,
+      sha256: userInspection.sha256,
+    },
+    itemFile: {
+      name: itemInspection.name,
+      type: itemInspection.type,
+      size: itemInspection.size,
+      sha256: itemInspection.sha256,
+    },
+    sameObjectReference: userImageFile === itemImageFile,
+    sameFileName: userInspection.name === itemInspection.name,
+    sameFileSize: userInspection.size === itemInspection.size,
+    sameContentSha256: userInspection.sha256 === itemInspection.sha256,
+  }
+
+  logger.info('tryon-service', 'Try-on input diagnostics collected', {
+    userId: user.id,
+    type,
+    ...inputDiagnostics,
+  })
+
+  if (inputDiagnostics.sameContentSha256) {
+    logger.warn('tryon-service', 'Try-on input files have identical content', {
+      userId: user.id,
+      type,
+      userSha256: userInspection.sha256,
+      itemSha256: itemInspection.sha256,
+    })
+  }
 
   // 1. Upload images to Vercel Blob for persistence
   // Note: We upload regardless of service to ensure we have a record of input
@@ -72,6 +133,27 @@ export async function submitTryOnTask(
 
   logger.info('tryon-service', `Service selection: ${serviceType} (Async: ${isAsync})`, { userId: user.id, isPremium: isPremiumActive })
 
+  const uploadDiagnostics: TryOnUploadDiagnostics = {
+    userImageUrl: userBlob.url,
+    itemImageUrl: itemBlob.url,
+    identicalUploadUrls: userBlob.url === itemBlob.url,
+  }
+
+  logger.info('tryon-service', 'Try-on upload diagnostics collected', {
+    userId: user.id,
+    type,
+    ...uploadDiagnostics,
+  })
+
+  if (uploadDiagnostics.identicalUploadUrls) {
+    logger.error(
+      'tryon-service',
+      'Try-on upload produced identical URLs',
+      new Error('Identical upload URLs detected'),
+      { userId: user.id, type, ...uploadDiagnostics }
+    )
+  }
+
   // 3. Create Task in DB
   const task = await prisma.tryOnTask.create({
     data: {
@@ -84,7 +166,9 @@ export async function submitTryOnTask(
         serviceType,
         isAsync,
         originalUserFileName: userImageFile.name,
-        originalItemFileName: itemImageFile.name
+        originalItemFileName: itemImageFile.name,
+        inputDiagnostics,
+        uploadDiagnostics,
       }
     }
   })

@@ -35,6 +35,28 @@ interface TryOnTask {
   };
 }
 
+interface FileDiagnostics {
+  name?: string;
+  type?: string;
+  size?: number;
+  sha256?: string;
+}
+
+interface TaskDiagnostics {
+  userFile?: FileDiagnostics;
+  itemFile?: FileDiagnostics;
+  sameObjectReference?: boolean;
+  sameFileName?: boolean;
+  sameFileSize?: boolean;
+  sameContentSha256?: boolean;
+}
+
+interface UploadDiagnostics {
+  userImageUrl?: string;
+  itemImageUrl?: string;
+  identicalUploadUrls?: boolean;
+}
+
 interface TryOnDetailDialogProps {
   taskId: string | null;
   open: boolean;
@@ -52,6 +74,9 @@ export default function TryOnDetailDialog({
   const [loading, setLoading] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [showImages, setShowImages] = useState(false);
+
+  const inputDiagnostics = task?.metadata?.inputDiagnostics as TaskDiagnostics | undefined;
+  const uploadDiagnostics = task?.metadata?.uploadDiagnostics as UploadDiagnostics | undefined;
 
   // 加载任务详情
   useEffect(() => {
@@ -117,6 +142,27 @@ export default function TryOnDetailDialog({
       </Dialog>
     );
   }
+
+  const renderBoolean = (value: boolean | undefined) => {
+    if (value === undefined) return 'N/A';
+    return value ? 'Yes' : 'No';
+  };
+
+  const renderFileDiagnostics = (label: string, file?: FileDiagnostics) => {
+    if (!file) return null;
+
+    return (
+      <div className="rounded border p-3 space-y-1">
+        <h4 className="text-xs font-medium text-foreground">{label}</h4>
+        <div className="text-xs text-muted-foreground">
+          <div>Name: {file.name || 'N/A'}</div>
+          <div>Type: {file.type || 'N/A'}</div>
+          <div>Size: {typeof file.size === 'number' ? `${file.size} bytes` : 'N/A'}</div>
+          <div className="break-all">SHA256: {file.sha256 || 'N/A'}</div>
+        </div>
+      </div>
+    );
+  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -239,6 +285,51 @@ export default function TryOnDetailDialog({
             <p className="text-sm text-muted-foreground whitespace-pre-wrap">
               {task.metadata.description}
             </p>
+          </div>
+        )}
+
+        {(inputDiagnostics || uploadDiagnostics) && (
+          <div>
+            <h3 className="text-sm font-medium mb-2">Diagnostics</h3>
+            <div className="space-y-3">
+              {inputDiagnostics && (
+                <div className="space-y-3">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    {renderFileDiagnostics('User File', inputDiagnostics.userFile)}
+                    {renderFileDiagnostics('Item File', inputDiagnostics.itemFile)}
+                  </div>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs">
+                    <div className="rounded border p-2">
+                      <div className="text-muted-foreground">Same Object</div>
+                      <div className="font-medium">{renderBoolean(inputDiagnostics.sameObjectReference)}</div>
+                    </div>
+                    <div className="rounded border p-2">
+                      <div className="text-muted-foreground">Same Name</div>
+                      <div className="font-medium">{renderBoolean(inputDiagnostics.sameFileName)}</div>
+                    </div>
+                    <div className="rounded border p-2">
+                      <div className="text-muted-foreground">Same Size</div>
+                      <div className="font-medium">{renderBoolean(inputDiagnostics.sameFileSize)}</div>
+                    </div>
+                    <div className="rounded border p-2">
+                      <div className="text-muted-foreground">Same Content</div>
+                      <div className="font-medium">{renderBoolean(inputDiagnostics.sameContentSha256)}</div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {uploadDiagnostics && (
+                <div className="rounded border p-3 space-y-2 text-xs text-muted-foreground">
+                  <h4 className="text-xs font-medium text-foreground">Upload Check</h4>
+                  <div>User URL Same As Task: {renderBoolean(uploadDiagnostics.userImageUrl === task.userImageUrl)}</div>
+                  <div>Item URL Same As Task: {renderBoolean(uploadDiagnostics.itemImageUrl === (task.itemImageUrl || task.glassesImageUrl))}</div>
+                  <div>Identical Upload URLs: {renderBoolean(uploadDiagnostics.identicalUploadUrls)}</div>
+                  <div className="break-all">Logged User URL: {uploadDiagnostics.userImageUrl || 'N/A'}</div>
+                  <div className="break-all">Logged Item URL: {uploadDiagnostics.itemImageUrl || 'N/A'}</div>
+                </div>
+              )}
+            </div>
           </div>
         )}
 

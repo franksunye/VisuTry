@@ -51,6 +51,7 @@ jest.mock('@/lib/gemini', () => ({
 jest.mock('@/lib/logger', () => ({
   logger: {
     info: jest.fn(),
+    warn: jest.fn(),
     error: jest.fn(),
   },
 }))
@@ -105,6 +106,30 @@ describe('TryOnService', () => {
       )
 
       expect(submitAsyncTask).toHaveBeenCalled()
+      expect(prisma.tryOnTask.create).toHaveBeenCalledWith({
+        data: expect.objectContaining({
+          metadata: expect.objectContaining({
+            inputDiagnostics: expect.objectContaining({
+              userFile: expect.objectContaining({
+                name: 'test.jpg',
+                type: 'image/jpeg',
+                sha256: expect.any(String),
+              }),
+              itemFile: expect.objectContaining({
+                name: 'test.jpg',
+                type: 'image/jpeg',
+                sha256: expect.any(String),
+              }),
+              sameContentSha256: true,
+            }),
+            uploadDiagnostics: expect.objectContaining({
+              userImageUrl: 'http://blob/test.jpg',
+              itemImageUrl: 'http://blob/test.jpg',
+              identicalUploadUrls: true,
+            }),
+          }),
+        }),
+      })
       expect(result.serviceType).toBe('grsai')
       expect(result.isAsync).toBe(true)
       expect(result.status).toBe('submitted')
