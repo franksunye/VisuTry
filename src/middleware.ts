@@ -32,7 +32,8 @@ export async function middleware(req: NextRequest) {
   }
 
   const ctx = getRequestContext(req)
-  logger.info('web', 'Page request', { pathname }, ctx)
+  // Optimization: Use debug level for high-frequency logs to save Vercel CPU duration
+  logger.debug('web', 'Page request', { pathname }, ctx)
 
   // Handle /admin routes with authentication
   if (pathname.startsWith('/admin')) {
