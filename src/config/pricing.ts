@@ -101,18 +101,18 @@ export const PRODUCT_METADATA = {
   },
   CREDITS_PACK_PROMO_60: {
     id: "CREDITS_PACK_PROMO_60",
-    name: "Limited Fall Promo",
-    shortName: "Promo Pack",
-    description: "Special Offer: 6x Credits",
+    name: "Credits Pack - Extended",
+    shortName: "Credits Pack",
+    description: "Extended credits allocation",
     // 用于支付记录的详细描述
-    paymentDescription: `Special Offer: Get 2x Credits (${QUOTA_CONFIG.CREDITS_PACK * 2} AI try-on credits) for $2.99`,
+    paymentDescription: `Extended allocation: ${QUOTA_CONFIG.CREDITS_PACK * 2} AI try-on credits for $2.99`,
     quota: QUOTA_CONFIG.CREDITS_PACK * 2, // 促销翻倍
     price: PRICE_CONFIG.CREDITS_PACK, // 保持原价 $2.99
     currency: "usd",
     interval: null,
     priceId: process.env.STRIPE_CREDITS_PACK_PRICE_ID, // 复用原 Price ID
     features: [
-      `${QUOTA_CONFIG.CREDITS_PACK * 2} AI try-ons (Buy One Get One!)`,
+      `${QUOTA_CONFIG.CREDITS_PACK * 2} AI try-ons`,
       "Credits never expire",
       "High-quality image processing",
       "Standard generation speed",
@@ -124,17 +124,17 @@ export const PRODUCT_METADATA = {
   },
   PREMIUM_MONTHLY_PROMO: {
     id: "PREMIUM_MONTHLY_PROMO",
-    name: "Standard - Monthly (Promo)",
-    shortName: "Monthly Promo",
-    description: "Special Offer: 2x Credits",
-    paymentDescription: `Special Offer: Get 2x Credits (${QUOTA_CONFIG.MONTHLY_SUBSCRIPTION * 2} AI try-ons) for $8.99`,
+    name: "Standard - Monthly (Extended)",
+    shortName: "Standard",
+    description: "Extended monthly allocation",
+    paymentDescription: `Extended allocation: ${QUOTA_CONFIG.MONTHLY_SUBSCRIPTION * 2} AI try-ons for $8.99`,
     quota: QUOTA_CONFIG.MONTHLY_SUBSCRIPTION * 2,
     price: PRICE_CONFIG.MONTHLY_SUBSCRIPTION,
     currency: "usd",
     interval: "month" as const,
     priceId: process.env.STRIPE_PREMIUM_MONTHLY_PRICE_ID,
     features: [
-      `${QUOTA_CONFIG.MONTHLY_SUBSCRIPTION * 2} AI try-ons per month (Double!)`,
+      `${QUOTA_CONFIG.MONTHLY_SUBSCRIPTION * 2} AI try-ons per month`,
       "High-quality image processing",
       "Priority processing queue",
       "1 year data retention",
@@ -146,17 +146,17 @@ export const PRODUCT_METADATA = {
   },
   PREMIUM_YEARLY_PROMO: {
     id: "PREMIUM_YEARLY_PROMO",
-    name: "Standard - Annual (Promo)",
-    shortName: "Annual Promo",
-    description: "Special Offer: 2x Credits",
-    paymentDescription: `Special Offer: Get 2x Credits (${QUOTA_CONFIG.YEARLY_SUBSCRIPTION * 2} AI try-ons) for $89.99`,
+    name: "Standard - Annual (Extended)",
+    shortName: "Standard Annual",
+    description: "Extended annual allocation",
+    paymentDescription: `Extended allocation: ${QUOTA_CONFIG.YEARLY_SUBSCRIPTION * 2} AI try-ons for $89.99`,
     quota: QUOTA_CONFIG.YEARLY_SUBSCRIPTION * 2,
     price: PRICE_CONFIG.YEARLY_SUBSCRIPTION,
     currency: "usd",
     interval: "year" as const,
     priceId: process.env.STRIPE_PREMIUM_YEARLY_PRICE_ID,
     features: [
-      `${QUOTA_CONFIG.YEARLY_SUBSCRIPTION * 2} AI try-ons per year (Double!)`,
+      `${QUOTA_CONFIG.YEARLY_SUBSCRIPTION * 2} AI try-ons per year`,
       "High-quality image processing",
       "Priority processing queue",
       "1 year data retention",
@@ -366,4 +366,3 @@ export function validatePricingConfig(): { valid: boolean; errors: string[] } {
     errors
   }
 }
-

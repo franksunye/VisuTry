@@ -24,8 +24,8 @@ dotenv.config({ path: path.resolve(process.cwd(), '.env') });
 import { prisma } from '../src/lib/prisma';
 import { del } from '@vercel/blob';
 import { RETENTION_CONFIG } from '../src/config/retention';
-import nodemailer from 'nodemailer';
 import { getDeletionEmailContent } from '../src/templates/deletion-email';
+import { sendMail } from './mail';
 
 const isDryRun = !process.argv.includes('--dry-run=false');
 
@@ -240,16 +240,6 @@ async function main() {
     // 4.3 发送通知邮件
     if (userNotificationMap.size > 0) {
       console.log(`\nStep 3/3: Sending deletion notifications to ${userNotificationMap.size} users via Exmail...`);
-      
-      const transporter = nodemailer.createTransport({
-        host: 'smtp.exmail.qq.com',
-        port: 465,
-        secure: true,
-        auth: {
-          user: process.env.EXMAIL_USER,
-          pass: process.env.EXMAIL_PASS,
-        },
-      });
 
       let sentCount = 0;
       const notificationList = Array.from(userNotificationMap.entries());
@@ -259,8 +249,8 @@ async function main() {
         const emailContent = getDeletionEmailContent(info.name || '', info.expiryDate.toLocaleDateString());
         
         try {
-          await transporter.sendMail({
-            from: '"VisuTry Support" <support@visutry.com>',
+          await sendMail({
+            fromEmail: 'support@visutry.com',
             to: info.email,
             subject: emailContent.subject,
             text: emailContent.text,

@@ -38,7 +38,7 @@ export function PricingSection({ user }: PricingSectionProps) {
       price: formatPrice(creditPackData.price),
       period: "One-time",
       features: [...creditPackData.features],
-      buttonText: creditPackData.id.includes("PROMO") ? "Claim Limited Offer" : "Buy Credits Pack",
+      buttonText: creditPackData.id.includes("PROMO") ? "Buy Credits Pack" : "Buy Credits Pack",
       popular: creditPackData.popular,
       icon: <Zap className="w-6 h-6" />
     },
@@ -49,7 +49,7 @@ export function PricingSection({ user }: PricingSectionProps) {
       price: formatPrice(monthlyData.price),
       period: "per month",
       features: [...monthlyData.features],
-      buttonText: monthlyData.id.includes("PROMO") ? "Get Promo Monthly" : "Start Monthly Subscription",
+      buttonText: monthlyData.id.includes("PROMO") ? "Start Monthly Subscription" : "Start Monthly Subscription",
       popular: monthlyData.popular,
       icon: <Star className="w-6 h-6" />
     },
@@ -61,7 +61,7 @@ export function PricingSection({ user }: PricingSectionProps) {
       period: "per year",
       originalPrice: "$107.88",
       features: [...yearlyData.features],
-      buttonText: yearlyData.id.includes("PROMO") ? "Get Promo Annual" : "Start Annual Subscription",
+      buttonText: yearlyData.id.includes("PROMO") ? "Start Annual Subscription" : "Start Annual Subscription",
       popular: yearlyData.popular,
       icon: <Star className="w-6 h-6" />
     }
@@ -94,7 +94,7 @@ export function PricingSection({ user }: PricingSectionProps) {
                 <th className="px-6 py-3 text-sm font-medium text-left text-gray-900">Feature</th>
                 <th className="px-6 py-3 text-sm font-medium text-center text-gray-900">Free</th>
                 <th className="px-6 py-3 text-sm font-medium text-center text-gray-900">
-                  {creditPackData.id.includes("PROMO") ? "Promo Pack" : "Credits Pack"}
+                  Credits Pack
                 </th>
                 <th className="px-6 py-3 text-sm font-medium text-center text-gray-900">Standard</th>
               </tr>

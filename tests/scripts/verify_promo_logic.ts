@@ -1,7 +1,7 @@
 
 import { resolvePromoCode, getProductQuota, calculateRemainingQuota, PROMO_MAPPING, QUOTA_CONFIG } from "../../src/config/pricing";
 
-console.log("Verifying Production-Aligned Pricing Config...");
+console.log("Verifying promo capability remains available for targeted use...");
 
 console.log(`Base Quotas -> Credits: ${QUOTA_CONFIG.CREDITS_PACK}, Monthly: ${QUOTA_CONFIG.MONTHLY_SUBSCRIPTION}, Yearly: ${QUOTA_CONFIG.YEARLY_SUBSCRIPTION}`);
 
@@ -28,4 +28,10 @@ testCases.forEach(({ id, expected, promoId, promoExpected }) => {
     if (pQuota !== promoExpected) throw new Error(`${promoId} quota mismatch`);
 });
 
-console.log("\n✅ All Production-Aligned checks passed!");
+["BOGO", "VISU60", "SALE2024"].forEach((code) => {
+    const resolved = resolvePromoCode(code);
+    console.log(`[code=${code}] Resolved Product: ${resolved}`);
+    if (!resolved) throw new Error(`${code} should still resolve for targeted promo use`);
+});
+
+console.log("\n✅ Promo capability checks passed. Promo remains available, but should not be treated as the default public pricing path.");

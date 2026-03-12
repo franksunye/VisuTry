@@ -64,7 +64,7 @@ export function PromoInput({ onPromoChange, activeCode }: PromoInputProps) {
     router.replace(newUrl, { scroll: false })
   }
 
-  // When promo is active and valid, show a celebration banner
+  // When promo is active and valid, confirm that special pricing is applied
   if (activeCode && validationStatus === "valid") {
     return (
       <div className="mb-8">
@@ -79,7 +79,7 @@ export function PromoInput({ onPromoChange, activeCode }: PromoInputProps) {
                   Promo code {activeCode} applied!
                 </p>
                 <p className="text-xs text-emerald-600">
-                  High demand: <strong className="text-emerald-700">Only a few 2x spots left</strong>
+                  Special pricing is active for this session.
                 </p>
               </div>
             </div>

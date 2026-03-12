@@ -494,7 +494,7 @@ export function TryOnInterface({ type = 'GLASSES' }: TryOnInterfaceProps) {
               </button>
             </div>
           ) : (
-            // Exhausted state: Premium promo card
+            // Exhausted state: pricing CTA
             <div className="p-4 bg-gradient-to-r from-blue-50 via-indigo-50 to-purple-50 rounded-xl border border-blue-200">
               <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
                 <div className="flex items-center gap-3">
@@ -506,12 +506,12 @@ export function TryOnInterface({ type = 'GLASSES' }: TryOnInterfaceProps) {
                       You&apos;ve used all your try-ons!
                     </p>
                     <p className="text-xs text-gray-600">
-                      High demand: <strong className="text-blue-600">Only a few 2x spots left</strong>
+                      Review the available plans to continue with more try-ons.
                     </p>
                   </div>
                 </div>
                 <Link
-                  href="/pricing?code=BOGO"
+                  href="/pricing"
                   onClick={() => {
                     const creditsPurchased = (session?.user as any)?.creditsPurchased || 0
                     const creditsUsed = (session?.user as any)?.creditsUsed || 0
@@ -525,7 +525,7 @@ export function TryOnInterface({ type = 'GLASSES' }: TryOnInterfaceProps) {
                   }}
                   className="flex items-center gap-2 px-6 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg font-medium text-sm hover:from-blue-700 hover:to-indigo-700 transition-all shadow-md hover:shadow-lg animate-pulse"
                 >
-                  🎁 Claim Promo
+                  View Plans
                   <ArrowRight className="w-4 h-4" />
                 </Link>
               </div>
