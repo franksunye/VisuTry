@@ -20,6 +20,7 @@ Usage:
 npx tsx scripts/mail.ts list --unread --limit 20
 npx tsx scripts/mail.ts thread --from someone@example.com
 npx tsx scripts/mail.ts reply --message-id '<...>' --body-file tmp/reply.txt
+npx tsx scripts/mail.ts reply --message-id '<...>' --body-file tmp/reply.txt --quote
 npx tsx scripts/mail.ts send --from-email sun@visutry.com --to someone@example.com --subject "..." --body-file tmp/mail.txt
 ```
 
@@ -55,6 +56,11 @@ npx tsx scripts/mail.ts send --from-email sun@visutry.com --to someone@example.c
 - Reply in-thread by `Message-ID`:
 ```bash
 npx tsx scripts/mail.ts reply --message-id '<...>' --body-file /tmp/reply.txt
+```
+
+- Reply in-thread and include quoted history:
+```bash
+npx tsx scripts/mail.ts reply --message-id '<...>' --body-file /tmp/reply.txt --quote
 ```
 
 ### 3. Cleanup Notifications

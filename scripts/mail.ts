@@ -30,7 +30,7 @@ function printUsage(): never {
   npx tsx scripts/mail.ts list [--limit 20] [--unread] [--from email] [--subject keyword] [--json]
   npx tsx scripts/mail.ts thread [--from email] [--message-id id] [--subject keyword] [--limit 20] [--json]
   npx tsx scripts/mail.ts send --from-email sun@visutry.com --to user@example.com --subject "..." (--body "..." | --body-file path) [--in-reply-to id] [--dry-run] [--json]
-  npx tsx scripts/mail.ts reply --message-id id [--from-email sun@visutry.com] (--body "..." | --body-file path) [--dry-run] [--json]`);
+  npx tsx scripts/mail.ts reply --message-id id [--from-email sun@visutry.com] (--body "..." | --body-file path) [--quote] [--dry-run] [--json]`);
   process.exit(1);
 }
 
@@ -367,6 +367,38 @@ async function findMessageById(messageId: string): Promise<MessageSummary | null
   return found ? toSummary(found) : null;
 }
 
+async function fetchMessageDetailsById(messageId: string): Promise<ThreadMessage | null> {
+  const client = createImapClient();
+
+  await client.connect();
+  const lock = await client.getMailboxLock('INBOX');
+
+  try {
+    for await (const message of client.fetch('1:*', {
+      uid: true,
+      envelope: true,
+      flags: true,
+      source: true,
+    })) {
+      const summary = toSummary(message);
+      if (summary.messageId !== messageId) {
+        continue;
+      }
+
+      const parsed = await simpleParser(message.source);
+      return {
+        ...summary,
+        text: parsed.text?.trim() || '',
+      };
+    }
+  } finally {
+    lock.release();
+    await client.logout();
+  }
+
+  return null;
+}
+
 function normalizeReplySubject(subject: string | null): string {
   if (!subject) {
     return 'Re:';
@@ -374,19 +406,48 @@ function normalizeReplySubject(subject: string | null): string {
   return /^re:/i.test(subject) ? subject : `Re: ${subject}`;
 }
 
+function formatQuotedReplyHeader(original: ThreadMessage): string {
+  const date = original.date
+    ? new Date(original.date).toLocaleString('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+      })
+    : 'an earlier message';
+
+  return `On ${date}, ${original.from || 'unknown sender'} wrote:`;
+}
+
+function formatQuotedReplyBody(original: ThreadMessage): string {
+  const quotedLines = (original.text || '')
+    .split('\n')
+    .map((line) => `> ${line}`);
+
+  return [formatQuotedReplyHeader(original), ...quotedLines].join('\n');
+}
+
 async function handleReply(options: Record<string, string | boolean>): Promise<void> {
   const messageId = requireString(options, 'message-id');
-  const body = getBody(options);
+  const baseBody = getBody(options);
+  const includeQuote = hasFlag(options, 'quote');
   const fromEmail = getOption(options, 'from-email') || getEnv('EXMAIL_USER');
-  const original = await findMessageById(messageId);
+  const original = includeQuote
+    ? await fetchMessageDetailsById(messageId)
+    : await findMessageById(messageId);
 
   if (!original?.from) {
     throw new Error(`Original message not found for message-id: ${messageId}`);
   }
 
+  const body = includeQuote && 'text' in original
+    ? `${baseBody.trimEnd()}\n\n${formatQuotedReplyBody(original as ThreadMessage)}`
+    : baseBody;
+
   const mergedOptions: Record<string, string | boolean> = {
     ...Object.fromEntries(
-      Object.entries(options).filter(([key]) => key !== 'body-file' && key !== 'message-id'),
+      Object.entries(options).filter(([key]) => !['body-file', 'message-id', 'quote'].includes(key)),
     ),
     'from-email': fromEmail,
     to: original.from,

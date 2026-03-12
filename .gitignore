@@ -155,3 +155,4 @@ docs/crm/
 docs/strategy/internal/
 *-financial-model*.md
 *-target-model*.md
+.private/
