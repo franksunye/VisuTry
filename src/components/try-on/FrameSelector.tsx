@@ -35,6 +35,9 @@ export function FrameSelector({
   }, [])
 
   const fetchFrames = async () => {
+    setLoading(true)
+    setError(null)
+
     try {
       const response = await fetch("/api/frames")
       const data = await response.json()

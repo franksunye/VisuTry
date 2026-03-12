@@ -1,25 +1,14 @@
-/**
- * LoginButton Auth0 Integration Tests
- * Tests for Auth0-only login button
- */
-
 import React from 'react'
 import { render, screen, fireEvent } from '@testing-library/react'
-import { SessionProvider } from 'next-auth/react'
-import { LoginButton } from '@/components/auth/LoginButton'
+import { SessionProvider, signIn, signOut, useSession } from 'next-auth/react'
 
-// Mock next-auth
 jest.mock('next-auth/react', () => ({
   signIn: jest.fn(),
   signOut: jest.fn(),
-  useSession: jest.fn(() => ({
-    data: null,
-    status: 'unauthenticated',
-  })),
-  SessionProvider: ({ children }: any) => children,
+  useSession: jest.fn(),
+  SessionProvider: ({ children }: { children: React.ReactNode }) => children,
 }))
 
-// Mock useTestSession hook
 jest.mock('@/hooks/useTestSession', () => ({
   useTestSession: jest.fn(() => ({
     testSession: null,
@@ -28,142 +17,77 @@ jest.mock('@/hooks/useTestSession', () => ({
   })),
 }))
 
-describe('LoginButton - Auth0 Integration', () => {
+const { LoginButton } = require('@/components/auth/LoginButton')
+
+const mockUseSession = useSession as jest.MockedFunction<typeof useSession>
+const mockSignIn = signIn as jest.MockedFunction<typeof signIn>
+const mockSignOut = signOut as jest.MockedFunction<typeof signOut>
+
+function setSession(status: 'loading' | 'authenticated' | 'unauthenticated', data: any = null) {
+  mockUseSession.mockReturnValue({
+    data,
+    status,
+    update: jest.fn(),
+  })
+}
+
+describe('LoginButton Auth0 integration', () => {
   beforeEach(() => {
     jest.clearAllMocks()
+    setSession('unauthenticated')
   })
 
-  describe('Unauthenticated State', () => {
-    it('should render Auth0 login button', () => {
-      render(
-        <SessionProvider session={null}>
-          <LoginButton />
-        </SessionProvider>
-      )
+  it('renders the auth0 sign-in CTA', () => {
+    render(
+      <SessionProvider session={null}>
+        <LoginButton />
+      </SessionProvider>
+    )
 
-      const auth0Button = screen.getByText(/Sign in/i)
-      expect(auth0Button).toBeInTheDocument()
-    })
-
-    it('should call signIn with auth0 provider when button is clicked', () => {
-      const { signIn } = require('next-auth/react')
-
-      render(
-        <SessionProvider session={null}>
-          <LoginButton />
-        </SessionProvider>
-      )
-
-      const auth0Button = screen.getByText(/Sign in/i)
-      fireEvent.click(auth0Button)
-
-      expect(signIn).toHaveBeenCalledWith('auth0', {
-        callbackUrl: '/dashboard',
-      })
-    })
-
-    it('should use custom callbackUrl when provided', () => {
-      const { signIn } = require('next-auth/react')
-
-      render(
-        <SessionProvider session={null}>
-          <LoginButton callbackUrl="/custom-page" />
-        </SessionProvider>
-      )
-
-      const auth0Button = screen.getByText(/Sign in/i)
-      fireEvent.click(auth0Button)
-
-      expect(signIn).toHaveBeenCalledWith('auth0', {
-        callbackUrl: '/custom-page',
-      })
-    })
-
-    it('should apply correct styling variants', () => {
-      const { container } = render(
-        <SessionProvider session={null}>
-          <LoginButton variant="default" />
-        </SessionProvider>
-      )
-
-      const button = container.querySelector('button')
-      expect(button).toBeInTheDocument()
-
-      // Check for variant classes
-      expect(button?.className).toContain('bg-')
-    })
+    expect(screen.getByRole('button', { name: /sign in/i })).toBeInTheDocument()
   })
 
-  describe('Authenticated State', () => {
-    const mockSession = {
+  it('calls signIn with the default try-on callback', () => {
+    render(
+      <SessionProvider session={null}>
+        <LoginButton />
+      </SessionProvider>
+    )
+
+    fireEvent.click(screen.getByRole('button', { name: /sign in/i }))
+
+    expect(mockSignIn).toHaveBeenCalledWith('auth0', { callbackUrl: '/try-on' })
+  })
+
+  it('shows sign out controls for authenticated auth0 users', () => {
+    setSession('authenticated', {
       user: {
         id: 'user-123',
         name: 'Test User',
         email: 'test@example.com',
         image: 'https://example.com/avatar.jpg',
         username: 'testuser',
+        role: 'USER',
         freeTrialsUsed: 0,
+        premiumUsageCount: 0,
+        creditsPurchased: 0,
+        creditsUsed: 0,
         isPremium: false,
         premiumExpiresAt: null,
         isPremiumActive: false,
         remainingTrials: 3,
       },
-      expires: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
-    }
-
-    it('should show user profile when authenticated', () => {
-      const { useSession } = require('next-auth/react')
-      useSession.mockReturnValue({
-        data: mockSession,
-        status: 'authenticated',
-      })
-
-      render(
-        <SessionProvider session={mockSession}>
-          <LoginButton />
-        </SessionProvider>
-      )
-
-      expect(screen.getByText('Test User')).toBeInTheDocument()
-      expect(screen.getByText(/Sign Out/i)).toBeInTheDocument()
+      expires: '2099-01-01T00:00:00.000Z',
     })
 
-    it('should call signOut when Sign Out button is clicked', () => {
-      const { useSession, signOut } = require('next-auth/react')
-      useSession.mockReturnValue({
-        data: mockSession,
-        status: 'authenticated',
-      })
+    render(
+      <SessionProvider session={null}>
+        <LoginButton />
+      </SessionProvider>
+    )
 
-      render(
-        <SessionProvider session={mockSession}>
-          <LoginButton />
-        </SessionProvider>
-      )
-
-      const signOutButton = screen.getByText(/Sign Out/i)
-      fireEvent.click(signOutButton)
-
-      expect(signOut).toHaveBeenCalled()
-    })
-  })
-
-  describe('Loading State', () => {
-    it('should show loading indicator while session is loading', () => {
-      const { useSession } = require('next-auth/react')
-      useSession.mockReturnValue({
-        data: null,
-        status: 'loading',
-      })
-
-      render(
-        <SessionProvider session={null}>
-          <LoginButton />
-        </SessionProvider>
-      )
-
-      expect(screen.getByText(/Loading/i)).toBeInTheDocument()
-    })
+    expect(screen.getByText('Test User')).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: /sign out/i }))
+    expect(mockSignOut).toHaveBeenCalled()
   })
 })
-

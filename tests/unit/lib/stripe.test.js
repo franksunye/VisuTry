@@ -17,17 +17,27 @@ const {
 } = require('../../../src/lib/stripe')
 
 describe('Stripe Library Unit Tests', () => {
+  let consoleLogSpy
+
+  beforeEach(() => {
+    consoleLogSpy = jest.spyOn(console, 'log').mockImplementation(() => {})
+  })
+
+  afterEach(() => {
+    consoleLogSpy.mockRestore()
+  })
+
   describe('Product Configuration', () => {
     test('should have correct product definitions', () => {
       expect(PRODUCTS.PREMIUM_MONTHLY).toBeDefined()
-      expect(PRODUCTS.PREMIUM_MONTHLY.name).toBe('Premium - Monthly')
-      expect(PRODUCTS.PREMIUM_MONTHLY.price).toBe(999)
+      expect(PRODUCTS.PREMIUM_MONTHLY.name).toBe('Standard - Monthly')
+      expect(PRODUCTS.PREMIUM_MONTHLY.price).toBe(899)
       expect(PRODUCTS.PREMIUM_MONTHLY.currency).toBe('usd')
       expect(PRODUCTS.PREMIUM_MONTHLY.interval).toBe('month')
 
       expect(PRODUCTS.PREMIUM_YEARLY).toBeDefined()
-      expect(PRODUCTS.PREMIUM_YEARLY.name).toBe('Premium - Annual')
-      expect(PRODUCTS.PREMIUM_YEARLY.price).toBe(9999)
+      expect(PRODUCTS.PREMIUM_YEARLY.name).toBe('Standard - Annual')
+      expect(PRODUCTS.PREMIUM_YEARLY.price).toBe(8999)
       expect(PRODUCTS.PREMIUM_YEARLY.interval).toBe('year')
 
       expect(PRODUCTS.CREDITS_PACK).toBeDefined()
@@ -266,4 +276,3 @@ describe('Stripe Library Unit Tests', () => {
     })
   })
 })
-

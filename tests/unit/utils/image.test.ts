@@ -9,6 +9,7 @@ describe('image utils', () => {
   const originalCreateElement = document.createElement.bind(document)
   const originalImage = global.Image
   const originalCreateObjectURL = URL.createObjectURL
+  let consoleLogSpy: jest.SpyInstance
 
   function installCanvasMocks(alphaValues: number[]) {
     const outputContext: MockCanvasContext = {
@@ -50,6 +51,7 @@ describe('image utils', () => {
   }
 
   beforeEach(() => {
+    consoleLogSpy = jest.spyOn(console, 'log').mockImplementation(() => {})
     URL.createObjectURL = jest.fn().mockReturnValue('blob:mock-url')
 
     class MockImage {

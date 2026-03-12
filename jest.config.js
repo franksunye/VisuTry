@@ -15,6 +15,9 @@ const customJestConfig = {
     '<rootDir>/tests/temp/',
     '<rootDir>/tests/legacy/'
   ],
+  transformIgnorePatterns: [
+    '/node_modules/(?!(lucide-react)/)',
+  ],
   collectCoverageFrom: [
     'src/**/*.{js,jsx,ts,tsx}',
     '!src/**/*.d.ts',
@@ -30,7 +33,8 @@ const customJestConfig = {
   },
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/src/$1',
-    '^lucide-react$': '<rootDir>/node_modules/lucide-react/dist/cjs/lucide-react.js',
+    '^lucide-react$': '<rootDir>/tests/mocks/lucide-react.cjs.js',
+    '^lucide-react/dist/esm/icons/(.*)$': '<rootDir>/tests/mocks/lucide-icon.cjs.js',
   },
   testTimeout: 30000,
 }
