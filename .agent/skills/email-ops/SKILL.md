@@ -33,6 +33,7 @@ Legacy wrappers kept for backward compatibility. They now delegate to `scripts/m
 - Do not create one-off mail scripts with hard-coded recipients, subjects, or passwords.
 - For manual outbound mail, always use `scripts/mail.ts` with `--body-file` or `--dry-run` first.
 - If a task needs automation from application code, keep it in product scripts or libs; do not add ad-hoc copies under `scripts/`.
+- For external human recipients, do not send the email immediately after drafting. First present the final draft to the user and send only after explicit confirmation.
 
 ## Common Commands
 
