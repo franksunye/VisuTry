@@ -9,6 +9,8 @@ jest.mock('@/lib/logger', () => ({
   logger: {
     error: jest.fn(),
     info: jest.fn(),
+    warn: jest.fn(),
+    debug: jest.fn(),
   }
 }))
 
@@ -115,5 +117,29 @@ describe('GrsAi Library', () => {
         expect(result.status).toBe('failed')
         expect(result.error).toBe('GPU error')
       })
+
+    it('should treat non-zero business code as failed even with HTTP 200', async () => {
+      const mockResponse = {
+        code: 1001,
+        msg: 'task not found',
+        data: {}
+      }
+
+      ;(global.fetch as jest.Mock).mockResolvedValue({
+        ok: true,
+        json: jest.fn().mockResolvedValue(mockResponse)
+      })
+
+      const result = await pollTaskResult('missing-task')
+
+      expect(result.status).toBe('failed')
+      expect(result.error).toBe('task not found')
+      expect(result.diagnostics).toEqual({
+        code: 1001,
+        message: 'task not found',
+        rawStatus: undefined,
+        failureReason: undefined,
+      })
+    })
   })
 })

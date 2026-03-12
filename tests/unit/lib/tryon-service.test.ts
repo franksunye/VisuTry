@@ -260,5 +260,100 @@ describe('TryOnService', () => {
       expect(result.status).toBe(TaskStatus.COMPLETED)
       expect(result.isNewCompletion).toBeFalsy() 
     })
+
+    it('should mark task as failed when GrsAi succeeds without image URL', async () => {
+      const mockTask = {
+        id: 'task-2',
+        userId: 'user-1',
+        status: TaskStatus.PROCESSING,
+        metadata: {
+          serviceType: 'grsai',
+          externalTaskId: 'grsai-task-id',
+        },
+      }
+
+      ;(prisma.tryOnTask.findUnique as jest.Mock).mockResolvedValue(mockTask)
+      ;(pollTaskResult as jest.Mock).mockResolvedValue({
+        status: 'succeeded',
+        progress: 100,
+        diagnostics: {
+          code: 0,
+          message: 'success',
+          rawStatus: 'succeeded',
+        },
+      })
+      ;(prisma.tryOnTask.update as jest.Mock).mockResolvedValue({})
+
+      const result = await getTryOnResult('task-2')
+
+      expect(prisma.tryOnTask.update).toHaveBeenCalledWith({
+        where: { id: 'task-2' },
+        data: expect.objectContaining({
+          status: TaskStatus.FAILED,
+          errorMessage: 'GrsAi task succeeded without a result image URL',
+          metadata: expect.objectContaining({
+            serviceType: 'grsai',
+            externalTaskId: 'grsai-task-id',
+            lastExternalStatus: 'succeeded',
+          }),
+        }),
+      })
+      expect(result.status).toBe(TaskStatus.FAILED)
+      expect(result.error).toBe('GrsAi task succeeded without a result image URL')
+    })
+
+    it('should retry once when GrsAi fails with timeout', async () => {
+      const mockTask = {
+        id: 'task-3',
+        userId: 'user-1',
+        userImageUrl: 'http://blob/user.jpg',
+        itemImageUrl: 'http://blob/item.jpg',
+        type: 'GLASSES',
+        status: TaskStatus.PROCESSING,
+        metadata: {
+          serviceType: 'grsai',
+          externalTaskId: 'grsai-task-id-1',
+          retryCount: 0,
+          effectivePrompt: 'retry prompt',
+        },
+      }
+
+      ;(prisma.tryOnTask.findUnique as jest.Mock).mockResolvedValue(mockTask)
+      ;(pollTaskResult as jest.Mock).mockResolvedValue({
+        status: 'failed',
+        error: 'google gemini timeout...',
+        diagnostics: {
+          code: 0,
+          message: 'success',
+          rawStatus: 'failed',
+          failureReason: 'error',
+        },
+      })
+      ;(submitAsyncTask as jest.Mock).mockResolvedValue('grsai-task-id-2')
+      ;(prisma.tryOnTask.update as jest.Mock).mockResolvedValue({})
+
+      const result = await getTryOnResult('task-3')
+
+      expect(submitAsyncTask).toHaveBeenCalledWith(
+        'http://blob/user.jpg',
+        'http://blob/item.jpg',
+        'retry prompt'
+      )
+      expect(prisma.tryOnTask.update).toHaveBeenCalledWith({
+        where: { id: 'task-3' },
+        data: expect.objectContaining({
+          status: TaskStatus.PROCESSING,
+          errorMessage: null,
+          metadata: expect.objectContaining({
+            externalTaskId: 'grsai-task-id-2',
+            previousExternalTaskId: 'grsai-task-id-1',
+            retryCount: 1,
+            lastRetryReason: 'google gemini timeout...',
+          }),
+        }),
+      })
+      expect(result.status).toBe(TaskStatus.PROCESSING)
+      expect(result.progress).toBe(0)
+    })
   })
 })

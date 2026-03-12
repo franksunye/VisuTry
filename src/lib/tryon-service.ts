@@ -10,6 +10,7 @@ import { createHash } from "node:crypto"
 // Service Tiering Config
 const ENABLE_SERVICE_TIERING = process.env.ENABLE_SERVICE_TIERING !== 'false' // Default to true, unless explicitly set to false
 const GEMINI_PREMIUM_ONLY = process.env.GEMINI_PREMIUM_ONLY !== 'false'
+const MAX_GRSAI_TIMEOUT_RETRIES = 1
 
 export interface TryOnSubmissionResult {
   taskId: string
@@ -37,6 +38,13 @@ interface FileInspection {
 
 type TryOnInputDiagnostics = Prisma.InputJsonObject
 type TryOnUploadDiagnostics = Prisma.InputJsonObject
+
+function shouldRetryGrsAiTimeout(error?: string): boolean {
+  if (!error) return false
+
+  const normalizedError = error.toLowerCase()
+  return normalizedError.includes('timeout') || normalizedError.includes('timed out')
+}
 
 async function inspectFile(file: File): Promise<FileInspection> {
   const buffer = Buffer.from(await file.arrayBuffer())
@@ -172,6 +180,8 @@ export async function submitTryOnTask(
       metadata: {
         serviceType,
         isAsync,
+        effectivePrompt,
+        retryCount: 0,
         originalUserFileName: userImageFile.name,
         originalItemFileName: itemImageFile.name,
         inputDiagnostics,
@@ -275,7 +285,9 @@ export async function submitTryOnTask(
             ...(task.metadata as any),
             externalTaskId,
             serviceType,
-            isAsync
+            isAsync,
+            effectivePrompt,
+            retryCount: 0,
           }
         }
       })
@@ -328,6 +340,15 @@ export async function getTryOnResult(taskId: string): Promise<TryOnPollResult> {
   if (metadata?.serviceType === 'grsai' && metadata?.externalTaskId) {
     // Poll GrsAi
     const pollResult = await pollTaskResult(metadata.externalTaskId)
+    const retryCount = typeof metadata?.retryCount === 'number' ? metadata.retryCount : 0
+    const externalPollMetadata = {
+      ...(metadata as any),
+      lastExternalPollAt: new Date().toISOString(),
+      lastExternalStatus: pollResult.status,
+      lastExternalProgress: pollResult.progress,
+      lastExternalError: pollResult.error,
+      lastExternalDiagnostics: pollResult.diagnostics,
+    }
     
     if (pollResult.status === 'succeeded' && pollResult.imageUrl) {
       // Upload result to Vercel Blob for persistence
@@ -361,7 +382,7 @@ export async function getTryOnResult(taskId: string): Promise<TryOnPollResult> {
           status: TaskStatus.COMPLETED,
           resultImageUrl: resultImageUrl,
           metadata: {
-            ...(metadata as any),
+            ...externalPollMetadata,
             ...(pollResult.metadata || {}), // Save GrsAi text/metadata
             originalResultUrl: pollResult.imageUrl, // Keep original URL in metadata
             completionTime: Date.now()
@@ -379,13 +400,89 @@ export async function getTryOnResult(taskId: string): Promise<TryOnPollResult> {
         progress: 100,
         isNewCompletion
       }
+    } else if (pollResult.status === 'succeeded' && !pollResult.imageUrl) {
+      const errorMessage = 'GrsAi task succeeded without a result image URL'
+
+      logger.error('tryon-service', errorMessage, undefined, {
+        taskId,
+        externalTaskId: metadata.externalTaskId,
+        diagnostics: pollResult.diagnostics,
+      })
+
+      await prisma.tryOnTask.update({
+        where: { id: taskId },
+        data: {
+          status: TaskStatus.FAILED,
+          errorMessage,
+          metadata: externalPollMetadata,
+        }
+      })
+
+      return {
+        status: TaskStatus.FAILED,
+        error: errorMessage
+      }
     } else if (pollResult.status === 'failed') {
+      if (
+        retryCount < MAX_GRSAI_TIMEOUT_RETRIES &&
+        shouldRetryGrsAiTimeout(pollResult.error) &&
+        task.userImageUrl &&
+        task.itemImageUrl
+      ) {
+        const retryPrompt = metadata?.effectivePrompt || TRY_ON_CONFIGS[task.type].aiPrompt
+
+        logger.warn('tryon-service', 'Retrying GrsAi task after timeout', {
+          taskId,
+          previousExternalTaskId: metadata.externalTaskId,
+          retryCount,
+          maxRetries: MAX_GRSAI_TIMEOUT_RETRIES,
+          error: pollResult.error,
+        })
+
+        try {
+          const retriedExternalTaskId = await submitAsyncTask(
+            task.userImageUrl,
+            task.itemImageUrl,
+            retryPrompt
+          )
+
+          await prisma.tryOnTask.update({
+            where: { id: taskId },
+            data: {
+              status: TaskStatus.PROCESSING,
+              errorMessage: null,
+              metadata: {
+                ...externalPollMetadata,
+                externalTaskId: retriedExternalTaskId,
+                retryCount: retryCount + 1,
+                lastRetryAt: new Date().toISOString(),
+                lastRetryReason: pollResult.error,
+                previousExternalTaskId: metadata.externalTaskId,
+                effectivePrompt: retryPrompt,
+              }
+            }
+          })
+
+          return {
+            status: TaskStatus.PROCESSING,
+            progress: 0,
+          }
+        } catch (retryError) {
+          logger.error('tryon-service', 'Failed to resubmit GrsAi task after timeout', retryError as Error, {
+            taskId,
+            previousExternalTaskId: metadata.externalTaskId,
+            retryCount,
+          })
+        }
+      }
+
       // Update DB to FAILED
       await prisma.tryOnTask.update({
         where: { id: taskId },
         data: {
           status: TaskStatus.FAILED,
-          errorMessage: pollResult.error
+          errorMessage: pollResult.error,
+          metadata: externalPollMetadata,
         }
       })
       

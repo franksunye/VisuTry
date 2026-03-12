@@ -2,8 +2,8 @@ import { logger } from "@/lib/logger"
 import { buildTryOnPrompt } from "@/lib/prompt-builder"
 
 const GRSAI_API_KEY = process.env.GRSAI_API_KEY || process.env.GEMINI_API_KEY
-// Use api.grsai.com as default - this is the verified working endpoint from test scripts
-const GRSAI_BASE_URL = (process.env.GRSAI_BASE_URL || process.env.GEMINI_API_BASE_URL || "https://api.grsai.com").replace(/\/$/, "")
+// Default to the current overseas GrsAi host from vendor docs.
+const GRSAI_BASE_URL = (process.env.GRSAI_BASE_URL || process.env.GEMINI_API_BASE_URL || "https://grsaiapi.com").replace(/\/$/, "")
 const MODEL_NAME = "nano-banana-fast"
 
 interface GrsAiSubmitResponse {
@@ -39,6 +39,12 @@ export interface GrsAiResult {
   imageUrl?: string
   metadata?: any // Add metadata field for text result
   error?: string
+  diagnostics?: {
+    code?: number
+    message?: string
+    rawStatus?: number | string
+    failureReason?: string
+  }
 }
 
 /**
@@ -159,13 +165,16 @@ export async function pollTaskResult(grsaiTaskId: string): Promise<GrsAiResult> 
     }
 
     const data = await response.json()
+    const responseCode = typeof data?.code === 'number' ? data.code : undefined
+    const responseMessage = typeof data?.msg === 'string' ? data.msg : undefined
+    const failureReason = data?.data?.failure_reason || data?.data?.error
 
     // Log raw response for debugging
     logger.debug('grsai', `Raw GrsAi response received`, {
       grsaiTaskId,
       responseTime: `${responseTime}ms`,
-      code: data.code,
-      msg: data.msg,
+      code: responseCode,
+      msg: responseMessage,
       hasData: !!data.data,
       dataStatus: data.data?.status,
       dataProgress: data.data?.progress,
@@ -188,10 +197,21 @@ export async function pollTaskResult(grsaiTaskId: string): Promise<GrsAiResult> 
 
     // Determine standardized status
     let status: 'processing' | 'succeeded' | 'failed' = 'processing'
+    const normalizedRawStatus = typeof rawStatus === 'string' ? rawStatus.toLowerCase() : rawStatus
 
-    if (rawStatus === 1 || rawStatus === 'succeeded' || rawStatus === 'SUCCESS') {
+    if (normalizedRawStatus === 1 || normalizedRawStatus === 'succeeded' || normalizedRawStatus === 'success') {
       status = 'succeeded'
-    } else if (rawStatus === -1 || rawStatus === 'failed' || rawStatus === 'FAILED') {
+    } else if (normalizedRawStatus === -1 || normalizedRawStatus === 'failed' || normalizedRawStatus === 'error') {
+      status = 'failed'
+    } else if (
+      normalizedRawStatus === 0 ||
+      normalizedRawStatus === 'processing' ||
+      normalizedRawStatus === 'running' ||
+      normalizedRawStatus === 'queued' ||
+      normalizedRawStatus === 'pending'
+    ) {
+      status = 'processing'
+    } else if (responseCode !== undefined && responseCode !== 0) {
       status = 'failed'
     }
 
@@ -265,7 +285,22 @@ export async function pollTaskResult(grsaiTaskId: string): Promise<GrsAiResult> 
       progress,
       imageUrl,
       metadata,
-      error: status === 'failed' ? (data.data?.failure_reason || data.data?.error || data.msg || "Unknown error") : undefined
+      error: status === 'failed' ? (failureReason || responseMessage || "Unknown error") : undefined,
+      diagnostics: {
+        code: responseCode,
+        message: responseMessage,
+        rawStatus,
+        failureReason,
+      }
+    }
+
+    if (status === 'processing' && responseCode !== undefined && responseCode !== 0) {
+      logger.warn('grsai', 'GrsAi returned non-zero business code while task remained non-terminal', {
+        grsaiTaskId,
+        code: responseCode,
+        message: responseMessage,
+        rawStatus,
+      })
     }
 
     logger.info('grsai', `GrsAi polling completed`, {
@@ -277,6 +312,7 @@ export async function pollTaskResult(grsaiTaskId: string): Promise<GrsAiResult> 
       hasError: !!result.error,
       error: result.error,
       totalTime: `${totalTime}ms`,
+      diagnostics: result.diagnostics,
     })
 
     return result
