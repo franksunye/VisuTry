@@ -46,6 +46,20 @@ function shouldRetryGrsAiTimeout(error?: string): boolean {
   return normalizedError.includes('timeout') || normalizedError.includes('timed out')
 }
 
+function shouldTreatPollFailureAsTransient(error?: string): boolean {
+  if (!error) return false
+
+  const normalizedError = error.toLowerCase()
+  return (
+    normalizedError.includes('network error') ||
+    normalizedError.includes('fetch failed') ||
+    normalizedError.includes('socket hang up') ||
+    normalizedError.includes('econnreset') ||
+    normalizedError.includes('etimedout') ||
+    normalizedError.includes('timed out')
+  )
+}
+
 async function inspectFile(file: File): Promise<FileInspection> {
   const buffer = Buffer.from(await file.arrayBuffer())
   
@@ -327,7 +341,7 @@ export async function getTryOnResult(taskId: string): Promise<TryOnPollResult> {
   }
 
   // If already completed or failed, return immediately
-  if (task.status === TaskStatus.COMPLETED || task.status === TaskStatus.FAILED) {
+  if (task.status === TaskStatus.COMPLETED) {
     return {
       status: task.status,
       resultImageUrl: task.resultImageUrl || undefined,
@@ -335,8 +349,17 @@ export async function getTryOnResult(taskId: string): Promise<TryOnPollResult> {
     }
   }
 
-  // If PENDING or PROCESSING, check if we need to poll external service
   const metadata = task.metadata as any
+
+  if (task.status === TaskStatus.FAILED && !metadata?.externalTaskId) {
+    return {
+      status: task.status,
+      resultImageUrl: task.resultImageUrl || undefined,
+      error: task.errorMessage || undefined
+    }
+  }
+
+  // If task has an external GrsAi ID, keep polling even if the local status was marked FAILED.
   if (metadata?.serviceType === 'grsai' && metadata?.externalTaskId) {
     // Poll GrsAi
     const pollResult = await pollTaskResult(metadata.externalTaskId)
@@ -423,6 +446,28 @@ export async function getTryOnResult(taskId: string): Promise<TryOnPollResult> {
         error: errorMessage
       }
     } else if (pollResult.status === 'failed') {
+      if (shouldTreatPollFailureAsTransient(pollResult.error)) {
+        logger.warn('tryon-service', 'Transient GrsAi polling failure detected, keeping task in processing', {
+          taskId,
+          externalTaskId: metadata.externalTaskId,
+          error: pollResult.error,
+        })
+
+        await prisma.tryOnTask.update({
+          where: { id: taskId },
+          data: {
+            status: TaskStatus.PROCESSING,
+            errorMessage: null,
+            metadata: externalPollMetadata,
+          }
+        })
+
+        return {
+          status: TaskStatus.PROCESSING,
+          progress: pollResult.progress ?? 0,
+        }
+      }
+
       if (
         retryCount < MAX_GRSAI_TIMEOUT_RETRIES &&
         shouldRetryGrsAiTimeout(pollResult.error) &&

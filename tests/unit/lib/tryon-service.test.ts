@@ -261,6 +261,43 @@ describe('TryOnService', () => {
       expect(result.isNewCompletion).toBeFalsy() 
     })
 
+    it('should keep task processing when GrsAi polling fails with a transient network error', async () => {
+      const mockTask = {
+        id: 'task-transient',
+        status: TaskStatus.PROCESSING,
+        metadata: {
+          serviceType: 'grsai',
+          externalTaskId: 'grsai-task-id',
+          retryCount: 0,
+        },
+      }
+
+      ;(prisma.tryOnTask.findUnique as jest.Mock).mockResolvedValue(mockTask)
+      ;(pollTaskResult as jest.Mock).mockResolvedValue({
+        status: 'failed',
+        progress: 0,
+        error: 'Network error',
+      })
+      ;(prisma.tryOnTask.update as jest.Mock).mockResolvedValue({})
+
+      const result = await getTryOnResult('task-transient')
+
+      expect(prisma.tryOnTask.update).toHaveBeenCalledWith({
+        where: { id: 'task-transient' },
+        data: expect.objectContaining({
+          status: TaskStatus.PROCESSING,
+          errorMessage: null,
+          metadata: expect.objectContaining({
+            externalTaskId: 'grsai-task-id',
+            lastExternalStatus: 'failed',
+            lastExternalError: 'Network error',
+          }),
+        }),
+      })
+      expect(result.status).toBe(TaskStatus.PROCESSING)
+      expect(result.progress).toBe(0)
+    })
+
     it('should mark task as failed when GrsAi succeeds without image URL', async () => {
       const mockTask = {
         id: 'task-2',
@@ -354,6 +391,47 @@ describe('TryOnService', () => {
       })
       expect(result.status).toBe(TaskStatus.PROCESSING)
       expect(result.progress).toBe(0)
+    })
+
+    it('should recover a failed task if it still has an external task ID and GrsAi later succeeds', async () => {
+      const mockTask = {
+        id: 'task-recover',
+        userId: 'user-1',
+        status: TaskStatus.FAILED,
+        errorMessage: 'Network error',
+        metadata: {
+          serviceType: 'grsai',
+          externalTaskId: 'grsai-task-id-recover',
+          retryCount: 0,
+        },
+      }
+
+      ;(prisma.tryOnTask.findUnique as jest.Mock).mockResolvedValue(mockTask)
+      ;(pollTaskResult as jest.Mock).mockResolvedValue({
+        status: 'succeeded',
+        imageUrl: 'http://result-recover.jpg',
+      })
+      global.fetch = jest.fn().mockResolvedValue({
+        ok: true,
+        blob: jest.fn().mockResolvedValue(new Blob(['fake-image'], { type: 'image/png' }))
+      })
+      ;(prisma.tryOnTask.updateMany as jest.Mock).mockResolvedValue({ count: 1 })
+
+      const result = await getTryOnResult('task-recover')
+
+      expect(pollTaskResult).toHaveBeenCalledWith('grsai-task-id-recover')
+      expect(prisma.tryOnTask.updateMany).toHaveBeenCalledWith({
+        where: {
+          id: 'task-recover',
+          status: { not: TaskStatus.COMPLETED }
+        },
+        data: expect.objectContaining({
+          status: TaskStatus.COMPLETED,
+          resultImageUrl: 'http://blob/test.jpg',
+        }),
+      })
+      expect(result.status).toBe(TaskStatus.COMPLETED)
+      expect(result.isNewCompletion).toBe(true)
     })
   })
 })

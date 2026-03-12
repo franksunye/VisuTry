@@ -113,7 +113,7 @@ export async function POST(
             });
         }
 
-        if (task.status === TaskStatus.FAILED) {
+        if (task.status === TaskStatus.FAILED && !metadata?.externalTaskId) {
             logger.info('api', `[Admin Fetch Result] Task already failed, skipping`, {
                 taskId,
                 status: task.status,
