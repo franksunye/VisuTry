@@ -112,6 +112,14 @@ function getPasswordForSender(fromEmail: string): string {
   return process.env[`${envPrefix}_PASS`] || getEnv('EXMAIL_PASS');
 }
 
+function getMessageSourceOrThrow(message: { uid: number; source?: Buffer<ArrayBufferLike> }): Buffer<ArrayBufferLike> {
+  if (!message.source) {
+    throw new Error(`IMAP message ${message.uid} is missing source content`);
+  }
+
+  return message.source;
+}
+
 export function getDisplayName(fromEmail: string): string {
   return fromEmail.startsWith('sun@')
     ? 'Frank Sun | VisuTry AI Labs'
@@ -287,7 +295,7 @@ async function handleThread(options: Record<string, string | boolean>): Promise<
     }
 
     for (const message of candidates.sort((a, b) => a.uid - b.uid).slice(-limit)) {
-      const parsed = await simpleParser(message.source);
+      const parsed = await simpleParser(getMessageSourceOrThrow(message));
       threadMessages.push({
         ...toSummary(message),
         text: parsed.text?.trim() || '',
@@ -385,7 +393,7 @@ async function fetchMessageDetailsById(messageId: string): Promise<ThreadMessage
         continue;
       }
 
-      const parsed = await simpleParser(message.source);
+      const parsed = await simpleParser(getMessageSourceOrThrow(message));
       return {
         ...summary,
         text: parsed.text?.trim() || '',
