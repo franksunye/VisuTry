@@ -32,7 +32,7 @@ if (ENABLE_SERVICE_TIERING && isPremiumActive) {
 ### 基础配置
 
 ```
-Base URL: https://api.grsai.com (配置在 GRSAI_BASE_URL 环境变量)
+Base URL: https://grsaiapi.com (配置在 GRSAI_BASE_URL 环境变量)
 Authorization: Bearer {GRSAI_API_KEY}
 Content-Type: application/json
 ```
@@ -202,6 +202,21 @@ export async function pollTaskResult(grsaiTaskId: string): Promise<GrsAiResult> 
   // 返回标准化的状态和结果
 }
 ```
+
+### 上传前图片规范化
+
+为了降低上游图片兼容性失败率，当前浏览器端上传链路会先对输入图做规范化，再提交到后端：
+
+- 用户照统一转为标准 `image/jpeg`
+- 商品图存在透明像素时输出 `image/png`
+- 商品图不含透明时输出 `image/jpeg`
+- 图片仍会先压到约 `1200px` 边长、`85%` 质量附近
+
+这样做的目标是：
+
+- 降低 `The image format is incorrect` 类错误
+- 降低 MIME 与真实编码不一致造成的异常
+- 保持预处理发生在浏览器端，不增加 Vercel Serverless CPU
 
 ### ID 说明
 

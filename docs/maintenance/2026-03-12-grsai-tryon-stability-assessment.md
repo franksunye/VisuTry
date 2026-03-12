@@ -198,6 +198,28 @@ VisuTry 当前 Try-On 主链路中：
 
 用于避免环境变量漏配时回退到旧节点。
 
+### 5.6 浏览器端图片格式规范化已上线
+
+已在前端上传预处理链路中补充图片规范化，目标是在不增加 Vercel Serverless CPU 的前提下，降低上游图片兼容性失败率。
+
+当前策略为：
+
+- 用户人脸图统一转为标准 `JPEG`
+- 商品图先压缩到处理尺寸后做轻量透明检测
+- 检测到透明像素时保留为标准 `PNG`
+- 不含透明时统一转为标准 `JPEG`
+
+实现位置：
+
+- `src/utils/image.ts`
+- `src/components/upload/ImageUpload.tsx`
+
+这一调整的收益是：
+
+- 降低 `image format incorrect` 类失败
+- 降低 MIME 与真实编码不一致导致的兼容性问题
+- 保持图片预处理仍发生在浏览器端，不额外增加服务端成本
+
 ---
 
 ## 6. 当前判断：GrsAi 方案是否可继续使用
@@ -228,8 +250,9 @@ VisuTry 当前 Try-On 主链路中：
 ### 7.1 高优先级
 
 1. 对上传到 GrsAi 的图片做更强制的格式规范化
-   - 尽量统一为标准 `jpeg/png`
-   - 降低 HEIC、异常 MIME、损坏编码导致的失败率
+   - 已完成浏览器端 `jpeg/png` 规范化
+   - 后续继续观察 `image format incorrect` 告警是否显著下降
+   - 如仍有残留，再评估是否需要增加更严格的异常图片拦截
 
 2. 在后台展示关键 GrsAi 诊断字段
    - `lastExternalDiagnostics`
