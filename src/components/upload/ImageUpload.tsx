@@ -54,8 +54,12 @@ export function ImageUpload({
 
     setUploading(true)
     try {
+      const compressionProfile = iconType === "user" ? "user-photo" : "item-photo"
+
       // Compress image
-      const compressedFile = await compressImage(file)
+      const compressedFile = await compressImage(file, undefined, undefined, {
+        profile: compressionProfile
+      })
 
       // 🔍 追踪日志：记录压缩后的文件信息
       const compressedFileInfo = {
@@ -82,7 +86,7 @@ export function ImageUpload({
     } finally {
       setUploading(false)
     }
-  }, [onImageSelect, label])
+  }, [onImageSelect, label, iconType])
 
   const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault()

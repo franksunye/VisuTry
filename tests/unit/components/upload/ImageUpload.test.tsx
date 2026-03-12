@@ -46,9 +46,9 @@ describe('ImageUpload', () => {
     it('should render upload area with default props', () => {
       render(<ImageUpload onImageSelect={mockOnImageSelect} onImageRemove={mockOnImageRemove} />)
 
-      expect(screen.getByText('Upload Image')).toBeInTheDocument()
-      expect(screen.getByText('Supports JPEG, PNG, WebP formats, max 5MB')).toBeInTheDocument()
-      expect(screen.getByText('Click or drag to upload image')).toBeInTheDocument()
+      expect(screen.queryByText('Upload Image')).not.toBeInTheDocument()
+      expect(screen.getByText('JPEG, PNG, or WebP')).toBeInTheDocument()
+      expect(screen.getByText('Click or drag to upload')).toBeInTheDocument()
       expect(screen.getByTestId('image-icon')).toBeInTheDocument()
     })
 
@@ -143,7 +143,7 @@ describe('ImageUpload', () => {
     it('should trigger file input when upload area is clicked', async () => {
       render(<ImageUpload onImageSelect={mockOnImageSelect} onImageRemove={mockOnImageRemove} />)
 
-      const uploadArea = screen.getByText('Click or drag to upload image').closest('div')
+      const uploadArea = screen.getByText('Click or drag to upload').closest('div')
       const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement
 
       // Mock file input click
@@ -164,9 +164,32 @@ describe('ImageUpload', () => {
 
       await waitFor(() => {
         expect(mockValidateImageFile).toHaveBeenCalledWith(testFile)
-        expect(mockCompressImage).toHaveBeenCalledWith(testFile)
+        expect(mockCompressImage).toHaveBeenCalledWith(testFile, undefined, undefined, {
+          profile: 'item-photo'
+        })
         expect(mockCreateImagePreview).toHaveBeenCalled()
         expect(mockOnImageSelect).toHaveBeenCalled()
+      })
+    })
+
+    it('should use the user photo compression profile for user uploads', async () => {
+      render(
+        <ImageUpload
+          onImageSelect={mockOnImageSelect}
+          onImageRemove={mockOnImageRemove}
+          iconType="user"
+        />
+      )
+
+      const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement
+      const testFile = new File(['test'], 'portrait.png', { type: 'image/png' })
+
+      await user.upload(fileInput, testFile)
+
+      await waitFor(() => {
+        expect(mockCompressImage).toHaveBeenCalledWith(testFile, undefined, undefined, {
+          profile: 'user-photo'
+        })
       })
     })
 
@@ -207,20 +230,20 @@ describe('ImageUpload', () => {
     it('should handle drag over events', () => {
       render(<ImageUpload onImageSelect={mockOnImageSelect} onImageRemove={mockOnImageRemove} />)
 
-      const uploadArea = screen.getByText('Click or drag to upload image').closest('div')
+      const uploadArea = screen.getByText('Click or drag to upload').closest('div')
       
       fireEvent.dragOver(uploadArea!, {
         dataTransfer: { files: [] }
       })
 
-      expect(screen.getByText('Drop to upload image')).toBeInTheDocument()
+      expect(screen.getByText('Drop to upload')).toBeInTheDocument()
       expect(screen.getByTestId('upload-icon')).toBeInTheDocument()
     })
 
     it('should handle drag leave events', () => {
       render(<ImageUpload onImageSelect={mockOnImageSelect} onImageRemove={mockOnImageRemove} />)
 
-      const uploadArea = screen.getByText('Click or drag to upload image').closest('div')
+      const uploadArea = screen.getByText('Click or drag to upload').closest('div')
       
       // First drag over
       fireEvent.dragOver(uploadArea!, {
@@ -232,14 +255,14 @@ describe('ImageUpload', () => {
         dataTransfer: { files: [] }
       })
 
-      expect(screen.getByText('Click or drag to upload image')).toBeInTheDocument()
+      expect(screen.getByText('Click or drag to upload')).toBeInTheDocument()
       expect(screen.getByTestId('image-icon')).toBeInTheDocument()
     })
 
     it('should handle file drop', async () => {
       render(<ImageUpload onImageSelect={mockOnImageSelect} onImageRemove={mockOnImageRemove} />)
 
-      const uploadArea = screen.getByText('Click or drag to upload image').closest('div')
+      const uploadArea = screen.getByText('Click or drag to upload').closest('div')
       const testFile = new File(['test'], 'test.jpg', { type: 'image/jpeg' })
       
       fireEvent.drop(uploadArea!, {
@@ -255,7 +278,7 @@ describe('ImageUpload', () => {
     it('should ignore drop events with no files', () => {
       render(<ImageUpload onImageSelect={mockOnImageSelect} onImageRemove={mockOnImageRemove} />)
 
-      const uploadArea = screen.getByText('Click or drag to upload image').closest('div')
+      const uploadArea = screen.getByText('Click or drag to upload').closest('div')
       
       fireEvent.drop(uploadArea!, {
         dataTransfer: { files: [] }
