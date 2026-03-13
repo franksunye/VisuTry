@@ -29,12 +29,21 @@ export async function GET(request: NextRequest) {
 
     console.log('[Admin Blob Stats] Fetching storage statistics...');
 
-    // 获取所有 Blob 文件
-    const { blobs } = await list();
+    // 获取所有 Blob 文件（处理分页，支持超过 1000 个文件）
+    const allBlobs = [];
+    let hasMore = true;
+    let cursor: string | undefined;
+
+    while (hasMore) {
+      const listResponse = await list({ cursor, limit: 1000 });
+      allBlobs.push(...listResponse.blobs);
+      hasMore = listResponse.hasMore;
+      cursor = listResponse.cursor;
+    }
     
     // 计算总大小
-    const totalSize = blobs.reduce((sum, blob) => sum + blob.size, 0);
-    const totalFiles = blobs.length;
+    const totalSize = allBlobs.reduce((sum, blob) => sum + blob.size, 0);
+    const totalFiles = allBlobs.length;
 
     const [userUrls, itemUrls, glassesUrls, resultUrls, frameUrls, userAvatarUrls] = await Promise.all([
       prisma.tryOnTask.findMany({
@@ -79,7 +88,7 @@ export async function GET(request: NextRequest) {
     const gracePeriodHours = 24;
     const gracePeriodMs = gracePeriodHours * 60 * 60 * 1000;
 
-    const orphanedFiles = blobs.filter(blob => {
+    const orphanedFiles = allBlobs.filter(blob => {
       // 在数据库中被引用
       if (dbUrls.has(blob.url)) return false;
 
@@ -93,14 +102,14 @@ export async function GET(request: NextRequest) {
 
     // 按文件类型分组
     const filesByType: Record<string, number> = {};
-    blobs.forEach(blob => {
+    allBlobs.forEach(blob => {
       const ext = blob.pathname.split('.').pop()?.toLowerCase() || 'unknown';
       filesByType[ext] = (filesByType[ext] || 0) + 1;
     });
 
     // 按用户分组（从路径中提取用户 ID）
     const filesByUser: Record<string, number> = {};
-    blobs.forEach(blob => {
+    allBlobs.forEach(blob => {
       const match = blob.pathname.match(/^try-on\/([^\/]+)\//);
       if (match) {
         const userId = match[1];

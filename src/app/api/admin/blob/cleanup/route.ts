@@ -31,9 +31,18 @@ export async function POST(request: NextRequest) {
 
     console.log(`[Admin Blob Cleanup] Starting cleanup (dryRun: ${dryRun})...`);
 
-    // 获取所有 Blob 文件
-    const { blobs } = await list();
-    console.log(`[Admin Blob Cleanup] Found ${blobs.length} total files`);
+    // 获取所有 Blob 文件（处理分页，支持超过 1000 个文件）
+    const allBlobs = [];
+    let hasMore = true;
+    let cursor: string | undefined;
+
+    while (hasMore) {
+      const listResponse = await list({ cursor, limit: 1000 });
+      allBlobs.push(...listResponse.blobs);
+      hasMore = listResponse.hasMore;
+      cursor = listResponse.cursor;
+    }
+    console.log(`[Admin Blob Cleanup] Found ${allBlobs.length} total files`);
 
     const [userUrls, itemUrls, glassesUrls, resultUrls, frameUrls, userAvatarUrls] = await Promise.all([
       prisma.tryOnTask.findMany({
@@ -80,7 +89,7 @@ export async function POST(request: NextRequest) {
     const gracePeriodHours = 24;
     const gracePeriodMs = gracePeriodHours * 60 * 60 * 1000;
     
-    const orphanedFiles = blobs.filter(blob => {
+    const orphanedFiles = allBlobs.filter(blob => {
       // 在数据库中被引用
       if (dbUrls.has(blob.url)) return false;
       
