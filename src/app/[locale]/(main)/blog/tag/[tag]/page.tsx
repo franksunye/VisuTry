@@ -17,6 +17,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   })
 }
 
+export const revalidate = 3600 // 1 hour
+
 export default async function TagPage({ params }: Props) {
   const tag = decodeURIComponent(params.tag)
   const locale = params.locale

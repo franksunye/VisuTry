@@ -76,6 +76,9 @@ export async function generateMetadata({
   }
 }
 
+// 1 hour ISR
+export const revalidate = 3600
+
 export default async function FaceShapePage({ params }: FaceShapePageProps) {
   const shapeName = unslugify(params.faceShape)
 

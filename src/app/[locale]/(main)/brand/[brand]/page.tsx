@@ -38,6 +38,7 @@ export async function generateStaticParams() {
 }
 
 export const dynamicParams = process.env.PROGRAMMATIC_SEO_ENABLED === 'true'
+export const revalidate = 3600 // 1 hour
 
 // Generate metadata
 export async function generateMetadata({
