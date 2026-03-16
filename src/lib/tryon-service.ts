@@ -33,7 +33,7 @@ interface FileInspection {
   name: string
   type: string
   size: number
-  sha256: string
+  sha256: string | null
 }
 
 type TryOnInputDiagnostics = Prisma.InputJsonObject
@@ -68,7 +68,7 @@ async function inspectFile(file: File): Promise<FileInspection> {
   const shouldHash = process.env.NODE_ENV === 'development' || process.env.ENABLE_HEAVY_DIAGNOSTICS === 'true'
   const sha256 = shouldHash 
     ? createHash('sha256').update(buffer).digest('hex')
-    : 'omitted_for_performance'
+    : null
 
   return {
     name: file.name,
@@ -113,7 +113,12 @@ export async function submitTryOnTask(
     sameObjectReference: userImageFile === itemImageFile,
     sameFileName: userInspection.name === itemInspection.name,
     sameFileSize: userInspection.size === itemInspection.size,
-    sameContentSha256: userInspection.sha256 === itemInspection.sha256,
+    // Only compute "same content" when real hashes are available
+    sameContentSha256:
+      userInspection.sha256 && itemInspection.sha256
+        ? userInspection.sha256 === itemInspection.sha256
+        : undefined,
+    hashEnabled: Boolean(userInspection.sha256 && itemInspection.sha256),
   }
 
   logger.info('tryon-service', 'Try-on input diagnostics collected', {
@@ -122,7 +127,7 @@ export async function submitTryOnTask(
     ...inputDiagnostics,
   })
 
-  if (inputDiagnostics.sameContentSha256) {
+  if (inputDiagnostics.sameContentSha256 === true) {
     logger.warn('tryon-service', 'Try-on input files have identical content', {
       userId: user.id,
       type,
