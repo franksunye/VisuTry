@@ -86,11 +86,13 @@ describe('TryOnService', () => {
 
   beforeEach(() => {
     jest.clearAllMocks()
-    ;(put as jest.Mock).mockResolvedValue({ url: 'http://blob/test.jpg' })
+    ;(put as jest.Mock).mockImplementation((path: string) => ({
+      url: `http://blob/${path}`,
+    }))
   })
 
   describe('submitTryOnTask', () => {
-    it('should use GrsAi for free users', async () => {
+    it('should use GrsAi for free users and keep user/item URLs distinct', async () => {
       ;(submitAsyncTask as jest.Mock).mockResolvedValue('grsai-task-id')
       ;(prisma.tryOnTask.create as jest.Mock).mockResolvedValue({
         id: 'task-1',
@@ -108,24 +110,25 @@ describe('TryOnService', () => {
       expect(submitAsyncTask).toHaveBeenCalled()
       expect(prisma.tryOnTask.create).toHaveBeenCalledWith({
         data: expect.objectContaining({
+          userImageUrl: expect.stringContaining('tryon/user/user-1/'),
+          itemImageUrl: expect.stringContaining('tryon/item/user-1/'),
           metadata: expect.objectContaining({
             inputDiagnostics: expect.objectContaining({
               userFile: expect.objectContaining({
                 name: 'test.jpg',
                 type: 'image/jpeg',
-                sha256: expect.any(String),
               }),
               itemFile: expect.objectContaining({
                 name: 'test.jpg',
                 type: 'image/jpeg',
-                sha256: expect.any(String),
               }),
-              sameContentSha256: true,
+              sameContentSha256: undefined,
+              hashEnabled: false,
             }),
             uploadDiagnostics: expect.objectContaining({
-              userImageUrl: 'http://blob/test.jpg',
-              itemImageUrl: 'http://blob/test.jpg',
-              identicalUploadUrls: true,
+              userImageUrl: expect.stringContaining('tryon/user/user-1/'),
+              itemImageUrl: expect.stringContaining('tryon/item/user-1/'),
+              identicalUploadUrls: false,
             }),
           }),
         }),
@@ -180,7 +183,7 @@ describe('TryOnService', () => {
         where: { id: 'task-gemini' },
         data: expect.objectContaining({
             status: TaskStatus.COMPLETED,
-            resultImageUrl: 'http://blob/test.jpg', // From put mock
+            resultImageUrl: expect.stringContaining('tryon/result/user-1/task-gemini.png'),
             metadata: expect.objectContaining({
                 originalResultUrl: 'data:image/png;base64,fake'
             })
