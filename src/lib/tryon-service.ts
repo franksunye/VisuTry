@@ -38,6 +38,9 @@ interface FileInspection {
 
 type TryOnInputDiagnostics = Prisma.InputJsonObject
 type TryOnUploadDiagnostics = Prisma.InputJsonObject
+interface TryOnSubmissionOptions {
+  clientSubmissionId?: string
+}
 
 function shouldRetryGrsAiTimeout(error?: string): boolean {
   if (!error) return false
@@ -83,11 +86,12 @@ export async function submitTryOnTask(
   userImageFile: File,
   itemImageFile: File,
   type: TryOnType,
-  prompt?: string
+  prompt?: string,
+  options?: TryOnSubmissionOptions
 ): Promise<TryOnSubmissionResult> {
-  
+  const clientSubmissionId = options?.clientSubmissionId
   const startTime = Date.now()
-  logger.info('tryon-service', `Starting try-on task for user ${user.id}`, { type })
+  logger.info('tryon-service', `Starting try-on task for user ${user.id}`, { type, clientSubmissionId })
 
   // Use provided prompt or fallback to type-specific default prompt
   const effectivePrompt = prompt || TRY_ON_CONFIGS[type].aiPrompt
@@ -123,6 +127,7 @@ export async function submitTryOnTask(
 
   logger.info('tryon-service', 'Try-on input diagnostics collected', {
     userId: user.id,
+    clientSubmissionId,
     type,
     ...inputDiagnostics,
   })
@@ -130,6 +135,7 @@ export async function submitTryOnTask(
   if (inputDiagnostics.sameContentSha256 === true) {
     logger.warn('tryon-service', 'Try-on input files have identical content', {
       userId: user.id,
+      clientSubmissionId,
       type,
       userSha256: userInspection.sha256,
       itemSha256: itemInspection.sha256,
@@ -145,7 +151,11 @@ export async function submitTryOnTask(
       put(`tryon/item/${user.id}/${Date.now()}-${itemImageFile.name}`, itemImageFile, { access: 'public' })
     ])
   } catch (error) {
-    logger.error('tryon-service', 'Failed to upload images to blob storage', error as Error)
+    logger.error('tryon-service', 'Failed to upload images to blob storage', error as Error, {
+      userId: user.id,
+      clientSubmissionId,
+      type,
+    })
     throw new Error("Failed to upload images")
   }
 
@@ -165,7 +175,11 @@ export async function submitTryOnTask(
     isAsync = false // Gemini is currently synchronous
   }
 
-  logger.info('tryon-service', `Service selection: ${serviceType} (Async: ${isAsync})`, { userId: user.id, isPremium: isPremiumActive })
+  logger.info('tryon-service', `Service selection: ${serviceType} (Async: ${isAsync})`, {
+    userId: user.id,
+    clientSubmissionId,
+    isPremium: isPremiumActive
+  })
 
   const uploadDiagnostics: TryOnUploadDiagnostics = {
     userImageUrl: userBlob.url,
@@ -175,6 +189,7 @@ export async function submitTryOnTask(
 
   logger.info('tryon-service', 'Try-on upload diagnostics collected', {
     userId: user.id,
+    clientSubmissionId,
     type,
     ...uploadDiagnostics,
   })
@@ -184,7 +199,7 @@ export async function submitTryOnTask(
       'tryon-service',
       'Try-on upload produced identical URLs',
       new Error('Identical upload URLs detected'),
-      { userId: user.id, type, ...uploadDiagnostics }
+      { userId: user.id, clientSubmissionId, type, ...uploadDiagnostics }
     )
   }
 
@@ -201,6 +216,7 @@ export async function submitTryOnTask(
         isAsync,
         effectivePrompt,
         retryCount: 0,
+        clientSubmissionId,
         originalUserFileName: userImageFile.name,
         originalItemFileName: itemImageFile.name,
         inputDiagnostics,
@@ -233,9 +249,16 @@ export async function submitTryOnTask(
           // Upload to Vercel Blob
           const uploadedBlob = await put(`tryon/result/${task.userId}/${task.id}.png`, file, { access: 'public' })
           finalResultUrl = uploadedBlob.url
-          logger.info('tryon-service', 'Gemini result uploaded to blob', { taskId: task.id, url: finalResultUrl })
+          logger.info('tryon-service', 'Gemini result uploaded to blob', {
+            taskId: task.id,
+            clientSubmissionId,
+            url: finalResultUrl
+          })
         } catch (uploadError) {
-          logger.error('tryon-service', 'Failed to upload Gemini result to blob', uploadError as Error)
+          logger.error('tryon-service', 'Failed to upload Gemini result to blob', uploadError as Error, {
+            taskId: task.id,
+            clientSubmissionId,
+          })
           // Fallback to Data URL if upload fails
         }
 
@@ -266,7 +289,10 @@ export async function submitTryOnTask(
       }
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : "Unknown error"
-      logger.error('tryon-service', 'Gemini generation failed', error as Error, { taskId: task.id })
+      logger.error('tryon-service', 'Gemini generation failed', error as Error, {
+        taskId: task.id,
+        clientSubmissionId,
+      })
       
       await prisma.tryOnTask.update({
         where: { id: task.id },
@@ -320,7 +346,10 @@ export async function submitTryOnTask(
 
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : "Unknown error"
-      logger.error('tryon-service', 'GrsAi submission failed', error as Error, { taskId: task.id })
+      logger.error('tryon-service', 'GrsAi submission failed', error as Error, {
+        taskId: task.id,
+        clientSubmissionId,
+      })
       
       await prisma.tryOnTask.update({
         where: { id: task.id },

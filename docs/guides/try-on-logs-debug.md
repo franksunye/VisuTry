@@ -124,3 +124,56 @@
 3. 按本手册到 Axiom 拉出这条任务的相关日志。
 4. 把关键几条日志（去掉隐私值）贴给开发或在 Chat 里发给 AI，按第 4 节的决策树一起判断问题落在哪一层。
 
+---
+
+## 6. Axiom 快速查询模板（按 `clientSubmissionId` 一键拉全链路）
+
+> 适用时间：2026-03-21 之后的新请求。前端会在提交时附带 `clientSubmissionId`，并透传到 `upload` 与 `tryon-service` 日志。
+
+### 6.1 先从后端 `upload` 日志拿 `clientSubmissionId`
+
+过滤条件（Stream UI）：
+
+- `category == "upload"`
+- `message == "Submit route received try-on files"`
+- 时间范围：任务时间前后 10 分钟
+
+在日志详情里复制：
+
+- `data.clientSubmissionId`
+
+---
+
+### 6.2 用同一个 `clientSubmissionId` 拉全链路
+
+过滤条件（推荐）：
+
+- `data.clientSubmissionId == "<复制到的clientSubmissionId>"`
+- 时间范围：任务时间前后 10 分钟
+
+可选追加：
+
+- `category in ("upload", "tryon-service", "grsai", "api")`
+- `level in ("info", "warn", "error")`
+
+---
+
+### 6.3 重点事件清单（按顺序）
+
+1. `Submit route received try-on files`（后端接收快照）
+2. `Submit route duplicate guard checked`（后端重复文件校验）
+3. `Try-on input diagnostics collected`（service 输入诊断）
+4. `Try-on upload diagnostics collected`（service 上传诊断）
+5. `Service selection: ...`（服务分流）
+6. 结果相关日志（`Gemini result uploaded to blob` / `GrsAi result uploaded to blob` / failed/retry 类）
+
+---
+
+### 6.4 常用定位结论
+
+- 如果第 1 步就显示两图同名同大小，且第 2 步 `sameContentSha256 = true`：
+  - 结论：输入侧重复文件（用户操作或前端状态复用）。
+- 如果第 3 步输入正常，但第 4 步 `identicalUploadUrls = true`：
+  - 结论：上传/写库层异常。
+- 如果输入和上传都正常，但最终视觉错位：
+  - 结论：更偏模型对齐问题（下游生成）。

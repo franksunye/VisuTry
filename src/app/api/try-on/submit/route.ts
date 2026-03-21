@@ -7,6 +7,7 @@ import { checkUserQuota, deductUserQuota } from "@/lib/quota"
 import { submitTryOnTask } from "@/lib/tryon-service"
 import { TryOnType, isValidTryOnType } from "@/config/try-on-types"
 import { User } from "@prisma/client"
+import { createHash } from "node:crypto"
 
 export const dynamic = 'force-dynamic'
 export const maxDuration = 60
@@ -53,6 +54,7 @@ export async function POST(request: NextRequest) {
     const itemImageFile = formData.get("itemImage") as File || formData.get("glassesImage") as File
     const tryOnTypeParam = formData.get("type") as string || "GLASSES"
     const prompt = formData.get("prompt") as string || undefined
+    const clientSubmissionId = formData.get("clientSubmissionId") as string || undefined
 
     // Validate inputs
     if (!userImageFile || !itemImageFile) {
@@ -72,6 +74,7 @@ export async function POST(request: NextRequest) {
 
     logger.info('upload', 'Submit route received try-on files', {
       userId,
+      clientSubmissionId,
       tryOnType,
       userImage: {
         name: userImageFile.name,
@@ -88,13 +91,58 @@ export async function POST(request: NextRequest) {
       sameFileSize: userImageFile.size === itemImageFile.size,
     }, ctx)
 
+    const sameMetadata =
+      userImageFile.name === itemImageFile.name &&
+      userImageFile.size === itemImageFile.size &&
+      userImageFile.type === itemImageFile.type
+
+    if (sameMetadata) {
+      const [userBuffer, itemBuffer] = await Promise.all([
+        userImageFile.arrayBuffer(),
+        itemImageFile.arrayBuffer(),
+      ])
+
+      const userSha256 = createHash('sha256').update(Buffer.from(userBuffer)).digest('hex')
+      const itemSha256 = createHash('sha256').update(Buffer.from(itemBuffer)).digest('hex')
+      const sameContent = userSha256 === itemSha256
+
+      logger.info('upload', 'Submit route duplicate guard checked', {
+        userId,
+        clientSubmissionId,
+        tryOnType,
+        sameMetadata,
+        sameContentSha256: sameContent,
+      }, ctx)
+
+      if (sameContent) {
+        logger.warn('upload', 'Submit route blocked request: identical user/item file content', {
+          userId,
+          clientSubmissionId,
+          tryOnType,
+          userImageName: userImageFile.name,
+          itemImageName: itemImageFile.name,
+          userImageSize: userImageFile.size,
+          itemImageSize: itemImageFile.size,
+        }, ctx)
+
+        return NextResponse.json(
+          {
+            success: false,
+            error: "User image and item image are identical. Please upload two different images.",
+          },
+          { status: 400 }
+        )
+      }
+    }
+
     // 4. Submit Task
     const result = await submitTryOnTask(
       user,
       userImageFile,
       itemImageFile,
       tryOnType,
-      prompt
+      prompt,
+      { clientSubmissionId }
     )
 
     // 5. Handle Synchronous Completion (e.g. Gemini Premium)

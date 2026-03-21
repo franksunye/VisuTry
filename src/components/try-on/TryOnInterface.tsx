@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { useSession } from "next-auth/react"
 import { ImageUpload } from "@/components/upload/ImageUpload"
 import { ResultDisplay } from "@/components/try-on/ResultDisplay"
@@ -50,6 +50,28 @@ export function TryOnInterface({ type = 'GLASSES' }: TryOnInterfaceProps) {
   }
   const [processingMessage, setProcessingMessage] = useState(`AI is processing your ${config.name.toLowerCase()} try-on request...`)
   const [error, setError] = useState<ErrorState | null>(null)
+  const submitInFlightRef = useRef(false)
+
+  const fileMeta = (file: File) => ({
+    name: file.name,
+    size: file.size,
+    type: file.type,
+    lastModified: file.lastModified
+  })
+
+  const toHex = (buffer: ArrayBuffer) => Array.from(new Uint8Array(buffer))
+    .map((byte) => byte.toString(16).padStart(2, '0'))
+    .join('')
+
+  const hashFileSha256 = async (file: File): Promise<string | null> => {
+    try {
+      if (!globalThis.crypto?.subtle) return null
+      const digest = await globalThis.crypto.subtle.digest('SHA-256', await file.arrayBuffer())
+      return toHex(digest)
+    } catch {
+      return null
+    }
+  }
 
   // Get quota info from session
   const remainingTrials = session?.user?.remainingTrials ?? 0
@@ -192,25 +214,28 @@ export function TryOnInterface({ type = 'GLASSES' }: TryOnInterfaceProps) {
     if (!userImage || !itemImage) {
       return
     }
+    if (submitInFlightRef.current || isProcessing) {
+      return
+    }
+
+    const clientSubmissionId = `tryon-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
+    const sameMetadata =
+      userImage.file.name === itemImage.file.name &&
+      userImage.file.size === itemImage.file.size &&
+      userImage.file.type === itemImage.file.type
 
     // 🔍 追踪日志：记录发送前的文件状态，帮助诊断重复图片问题
     const isSameObject = userImage.file === itemImage.file
     const fileTrackingData = {
+      clientSubmissionId,
       userFile: {
-        name: userImage.file.name,
-        size: userImage.file.size,
-        type: userImage.file.type,
-        lastModified: userImage.file.lastModified
+        ...fileMeta(userImage.file)
       },
       itemFile: {
-        name: itemImage.file.name,
-        size: itemImage.file.size,
-        type: itemImage.file.type,
-        lastModified: itemImage.file.lastModified
+        ...fileMeta(itemImage.file)
       },
       isSameObject,
-      isSameMetadata: userImage.file.name === itemImage.file.name &&
-                      userImage.file.size === itemImage.file.size,
+      isSameMetadata: sameMetadata,
       tryOnType: type
     }
 
@@ -221,7 +246,41 @@ export function TryOnInterface({ type = 'GLASSES' }: TryOnInterfaceProps) {
       logger.warn('upload', 'FRONTEND DETECTION: userImage.file and itemImage.file are the SAME object reference', fileTrackingData)
     }
 
+    if (isSameObject) {
+      setError({
+        message: "You selected the same image for both slots. Please upload a different item image.",
+        type: 'generic'
+      })
+      return
+    }
+
+    if (sameMetadata) {
+      const [userHash, itemHash] = await Promise.all([
+        hashFileSha256(userImage.file),
+        hashFileSha256(itemImage.file),
+      ])
+
+      const isSameContent = userHash && itemHash ? userHash === itemHash : true
+      if (isSameContent) {
+        logger.warn('upload', 'Try-on blocked on frontend due to identical user/item files', {
+          clientSubmissionId,
+          tryOnType: type,
+          userMeta: fileMeta(userImage.file),
+          itemMeta: fileMeta(itemImage.file),
+          hashEnabled: Boolean(userHash && itemHash),
+          sameContentSha256: userHash && itemHash ? userHash === itemHash : null,
+        })
+
+        setError({
+          message: "Your photo and item image appear to be the same file. Please choose a different item image and try again.",
+          type: 'generic'
+        })
+        return
+      }
+    }
+
     setIsProcessing(true)
+    submitInFlightRef.current = true
     setCurrentStep("process")
     setError(null)
 
@@ -230,6 +289,7 @@ export function TryOnInterface({ type = 'GLASSES' }: TryOnInterfaceProps) {
       formData.append("userImage", userImage.file)
       formData.append("itemImage", itemImage.file)
       formData.append("type", type)
+      formData.append("clientSubmissionId", clientSubmissionId)
 
       // Use new submit endpoint
       const response = await fetch("/api/try-on/submit", {
@@ -297,6 +357,8 @@ export function TryOnInterface({ type = 'GLASSES' }: TryOnInterfaceProps) {
       })
       setCurrentStep("select")
       setIsProcessing(false)
+    } finally {
+      submitInFlightRef.current = false
     }
   }
 
