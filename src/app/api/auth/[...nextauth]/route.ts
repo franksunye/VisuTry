@@ -3,6 +3,7 @@ import "@/lib/proxy-setup"
 
 import NextAuth from "next-auth"
 import { authOptions } from "@/lib/auth"
+import { logger } from "@/lib/logger"
 
 // CRITICAL: Force Node.js runtime (not Edge) for Prisma compatibility
 // Edge Runtime requires prisma:// protocol, but we're using direct PostgreSQL connection
@@ -11,4 +12,22 @@ export const dynamic = 'force-dynamic'
 
 const handler = NextAuth(authOptions)
 
-export { handler as GET, handler as POST }
+export async function GET(request: Request) {
+  const { pathname, searchParams } = new URL(request.url)
+
+  if (pathname.endsWith("/api/auth/signin/auth0")) {
+    logger.info("auth", "OAuth sign-in request started", {
+      provider: "auth0",
+      entryMethod: "direct_auth_url",
+      hasCallbackUrl: searchParams.has("callbackUrl"),
+      callbackUrl: searchParams.get("callbackUrl") || null,
+      path: pathname,
+    })
+  }
+
+  return handler(request)
+}
+
+export async function POST(request: Request) {
+  return handler(request)
+}
