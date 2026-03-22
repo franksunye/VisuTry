@@ -12,13 +12,7 @@ export const dynamic = 'force-dynamic'
 
 const handler = NextAuth(authOptions)
 
-type RouteContext = {
-  params: {
-    nextauth: string[]
-  }
-}
-
-export async function GET(request: Request, context: RouteContext) {
+export async function GET(request: Request) {
   const { pathname, searchParams } = new URL(request.url)
 
   if (pathname.endsWith("/api/auth/signin/auth0")) {
@@ -31,9 +25,9 @@ export async function GET(request: Request, context: RouteContext) {
     })
   }
 
-  return handler(request, context)
+  return handler(request)
 }
 
-export async function POST(request: Request, context: RouteContext) {
-  return handler(request, context)
+export async function POST(request: Request) {
+  return handler(request)
 }
