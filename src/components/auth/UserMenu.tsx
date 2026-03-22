@@ -5,15 +5,26 @@ import { User, LogOut, LayoutDashboard, ChevronDown, History, CreditCard } from 
 import { useState, useRef, useEffect } from 'react'
 import Link from 'next/link'
 import { useTestSession } from '@/hooks/useTestSession'
+import { usePathname } from 'next/navigation'
+import { defaultLocale, locales } from '@/i18n'
 
 export function UserMenu() {
   const { data: session } = useSession()
   const { testSession, clearTestSession } = useTestSession()
+  const pathname = usePathname()
   const [isOpen, setIsOpen] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
   
   const user = session?.user || testSession?.user
   const isTestMode = !!testSession
+
+  const getSignOutCallbackUrl = () => {
+    const firstSegment = pathname?.split('/').filter(Boolean)[0]
+    if (firstSegment && locales.includes(firstSegment as any)) {
+      return `/${firstSegment}`
+    }
+    return `/${defaultLocale}`
+  }
   
   // Close menu when clicking outside
   useEffect(() => {
@@ -127,7 +138,7 @@ export function UserMenu() {
               if (isTestMode) {
                 clearTestSession()
               } else {
-                signOut()
+                signOut({ callbackUrl: getSignOutCallbackUrl() })
               }
             }}
             className="w-full flex items-center px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors"
@@ -141,4 +152,3 @@ export function UserMenu() {
     </div>
   )
 }
-
