@@ -1,11 +1,9 @@
 "use client"
 
-import { signOut, useSession } from "next-auth/react"
+import { signIn, signOut, useSession } from "next-auth/react"
 import { LogOut, User, TestTube, Shield } from "lucide-react"
 import { cn } from "@/utils/cn"
 import { useTestSession } from "@/hooks/useTestSession"
-import { useState } from "react"
-import { analytics } from "@/lib/analytics"
 
 interface LoginButtonProps {
   className?: string
@@ -16,30 +14,10 @@ interface LoginButtonProps {
 export function LoginButton({ className, variant = "default", callbackUrl }: LoginButtonProps) {
   const { data: session, status } = useSession()
   const { testSession, loading: testLoading, clearTestSession } = useTestSession()
-  const [isSigningIn, setIsSigningIn] = useState(false)
 
   // Check both NextAuth session and test session
   const isLoading = status === "loading" || testLoading
   const currentSession = session || testSession
-
-  const handleAuth0SignIn = () => {
-    if (isSigningIn) return
-    setIsSigningIn(true)
-
-    const targetCallbackUrl = callbackUrl || "/try-on"
-    try {
-      analytics.trackLoginStart(
-        "auth0",
-        "direct_auth_url",
-        window.location.pathname,
-        targetCallbackUrl
-      )
-    } catch {}
-
-    const directAuthUrl = new URL("/api/auth/signin/auth0", window.location.origin)
-    directAuthUrl.searchParams.set("callbackUrl", targetCallbackUrl)
-    window.location.assign(directAuthUrl.toString())
-  }
 
   if (isLoading) {
     return (
@@ -104,10 +82,9 @@ export function LoginButton({ className, variant = "default", callbackUrl }: Log
 
   return (
     <button
-      onClick={handleAuth0SignIn}
-      disabled={isSigningIn}
+      onClick={() => signIn("auth0", { callbackUrl: callbackUrl || "/try-on" })}
       className={cn(
-        "flex items-center justify-center px-4 py-2 rounded-lg text-sm font-medium transition-colors disabled:opacity-70 disabled:cursor-not-allowed",
+        "flex items-center justify-center px-4 py-2 rounded-lg text-sm font-medium transition-colors",
         variant === "outline" && "border border-purple-300 text-purple-700 hover:bg-purple-50",
         variant === "ghost" && "text-purple-600 hover:text-purple-700 hover:bg-purple-100",
         variant === "default" && "bg-purple-600 text-white hover:bg-purple-700",
@@ -115,7 +92,7 @@ export function LoginButton({ className, variant = "default", callbackUrl }: Log
       )}
     >
       <Shield className="w-4 h-4 mr-2" />
-      {isSigningIn ? "Signing in..." : "Sign in"}
+      Sign in
     </button>
   )
 }

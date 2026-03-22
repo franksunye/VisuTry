@@ -14,7 +14,6 @@ export type UpgradeLocation = 'quick_actions' | 'subscription_card' | 'nav'
 
 // 产品类型
 export type ProductType = 'CREDITS_PACK' | 'PREMIUM_MONTHLY' | 'PREMIUM_YEARLY'
-export type AuthEntryMethod = 'nextauth_signin' | 'direct_auth_url'
 
 /**
  * 发送事件到 Google Analytics
@@ -55,18 +54,6 @@ export const analytics = {
       method,
       user_type: isNewUser ? 'new' : 'returning',
       has_premium: isPremium,
-    })
-  },
-
-  /**
-   * 追踪用户点击登录入口（用于诊断登录链路）
-   */
-  trackLoginStart(method: string, entryMethod: AuthEntryMethod, sourcePath?: string, callbackPath?: string) {
-    sendEvent('login_start', {
-      method,
-      entry_method: entryMethod,
-      source_path: sourcePath,
-      callback_path: callbackPath,
     })
   },
 
@@ -226,3 +213,4 @@ declare global {
     dataLayer: Array<Record<string, any>>
   }
 }
+
