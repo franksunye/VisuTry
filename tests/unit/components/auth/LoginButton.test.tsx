@@ -1,9 +1,9 @@
 import React from 'react'
 import { render, screen, fireEvent } from '@testing-library/react'
-import { signOut, useSession } from 'next-auth/react'
-import { redirectTo } from '@/lib/browser-navigation'
+import { signIn, signOut, useSession } from 'next-auth/react'
 
 jest.mock('next-auth/react', () => ({
+  signIn: jest.fn(),
   signOut: jest.fn(),
   useSession: jest.fn(),
 }))
@@ -12,17 +12,13 @@ jest.mock('@/hooks/useTestSession', () => ({
   useTestSession: jest.fn(),
 }))
 
-jest.mock('@/lib/browser-navigation', () => ({
-  redirectTo: jest.fn(),
-}))
-
 import { useTestSession } from '@/hooks/useTestSession'
 const { LoginButton } = require('@/components/auth/LoginButton')
 
 const mockUseSession = useSession as jest.MockedFunction<typeof useSession>
+const mockSignIn = signIn as jest.MockedFunction<typeof signIn>
 const mockSignOut = signOut as jest.MockedFunction<typeof signOut>
 const mockUseTestSession = useTestSession as jest.MockedFunction<typeof useTestSession>
-const mockRedirectTo = redirectTo as jest.MockedFunction<typeof redirectTo>
 
 function mockNextAuthSession(overrides: {
   data?: any
@@ -65,7 +61,7 @@ describe('LoginButton', () => {
 
     fireEvent.click(screen.getByRole('button', { name: /sign in/i }))
 
-    expect(mockRedirectTo).toHaveBeenCalledWith('http://localhost/api/auth/signin/auth0?callbackUrl=%2Ftry-on')
+    expect(mockSignIn).toHaveBeenCalledWith('auth0', { callbackUrl: '/try-on' })
   })
 
   it('uses a custom callback when provided', () => {
@@ -73,7 +69,7 @@ describe('LoginButton', () => {
 
     fireEvent.click(screen.getByRole('button', { name: /sign in/i }))
 
-    expect(mockRedirectTo).toHaveBeenCalledWith('http://localhost/api/auth/signin/auth0?callbackUrl=%2Fdashboard')
+    expect(mockSignIn).toHaveBeenCalledWith('auth0', { callbackUrl: '/dashboard' })
   })
 
   it('renders authenticated next-auth users and signs out', () => {

@@ -6,7 +6,6 @@ import { cn } from "@/utils/cn"
 import { useTestSession } from "@/hooks/useTestSession"
 import { useState } from "react"
 import { analytics } from "@/lib/analytics"
-import { redirectTo } from "@/lib/browser-navigation"
 
 interface LoginButtonProps {
   className?: string
@@ -39,7 +38,7 @@ export function LoginButton({ className, variant = "default", callbackUrl }: Log
 
     const directAuthUrl = new URL("/api/auth/signin/auth0", window.location.origin)
     directAuthUrl.searchParams.set("callbackUrl", targetCallbackUrl)
-    redirectTo(directAuthUrl.toString())
+    window.location.assign(directAuthUrl.toString())
   }
 
   if (isLoading) {
