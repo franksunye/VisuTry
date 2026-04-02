@@ -99,6 +99,16 @@ export function Footer() {
                   {t('links.faq')}
                 </Link>
               </li>
+              <li>
+                <a
+                  href="https://ziso.cc"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-gray-600 hover:text-blue-600 text-sm transition-colors"
+                >
+                  {t('links.zisoAi')}
+                </a>
+              </li>
             </ul>
           </div>
 
