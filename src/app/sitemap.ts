@@ -20,10 +20,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // Static pages with i18n support
   const staticPagePaths = [
     { path: '', priority: 1, changeFrequency: 'daily' as const },
-    { path: '/try-on', priority: 0.9, changeFrequency: 'weekly' as const },
+    { path: '/try-on/glasses', priority: 0.9, changeFrequency: 'weekly' as const },
     { path: '/blog', priority: 0.8, changeFrequency: 'weekly' as const },
     { path: '/pricing', priority: 0.7, changeFrequency: 'weekly' as const },
-    { path: '/auth/signin', priority: 0.6, changeFrequency: 'monthly' as const },
     { path: '/privacy', priority: 0.5, changeFrequency: 'monthly' as const },
     { path: '/terms', priority: 0.5, changeFrequency: 'monthly' as const },
     { path: '/refund', priority: 0.5, changeFrequency: 'monthly' as const },

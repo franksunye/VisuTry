@@ -5,7 +5,6 @@ import Link from "next/link"
 import { Metadata } from 'next'
 import { generateI18nSEO, generateStructuredData } from '@/lib/seo'
 import { PRODUCT_METADATA, QUOTA_CONFIG, formatPrice } from '@/config/pricing'
-import { getTranslations } from 'next-intl/server'
 import { Locale } from '@/i18n'
 
 type Props = {
@@ -14,12 +13,11 @@ type Props = {
 
 export async function generateMetadata(props: Props): Promise<Metadata> {
   const params = await props.params
-  const t = await getTranslations({ locale: params.locale, namespace: 'meta.pricing' })
 
   return generateI18nSEO({
     locale: params.locale as Locale,
-    title: t('title'),
-    description: t('description'),
+    title: 'Credits Pack Pricing for AI Glasses Try-On | VisuTry',
+    description: 'Continue AI glasses try-on with 30 credits for USD 2.99. Upload your own glasses product images or screenshots, no subscription required.',
     pathname: '/pricing',
   })
 }
@@ -62,7 +60,7 @@ export default async function PricingPage() {
       description: plan.description,
       price: formatPrice(plan.price).replace('$', ''),
       priceCurrency: 'USD',
-      priceValidUntil: '2025-12-31',
+      priceValidUntil: '2026-12-31',
       itemOffered: {
         '@type': 'Service',
         name: `${plan.name} - AI Virtual Glasses Try-On`,
@@ -83,8 +81,16 @@ export default async function PricingPage() {
       ))}
 
       {/* Page Header */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">Choose Your Plan</h1>
+      <div className="mb-8 max-w-3xl">
+        <p className="mb-3 text-sm font-semibold uppercase tracking-wide text-blue-600">
+          Simple AI glasses try-on pricing
+        </p>
+        <h1 className="mb-4 text-3xl font-bold text-gray-900 md:text-4xl">
+          Continue with 30 AI try-ons for USD 2.99
+        </h1>
+        <p className="text-base leading-7 text-gray-600">
+          The Credits Pack is the easiest way to keep comparing glasses from your own product photos or screenshots. It is a one-time purchase, not a subscription, and your credits do not expire.
+        </p>
       </div>
 
       {/* Promo Input is now inside PricingSection */}
@@ -97,16 +103,16 @@ export default async function PricingPage() {
         <h2 className="mb-6 text-2xl font-bold text-center text-gray-900">Frequently Asked Questions</h2>
         <div className="grid gap-6 md:grid-cols-2">
           <div className="p-6 bg-white rounded-lg border shadow-sm">
-            <h3 className="mb-2 font-semibold text-gray-900">What&apos;s the difference between free and paid image quality?</h3>
+            <h3 className="mb-2 font-semibold text-gray-900">Is the Credits Pack a subscription?</h3>
             <p className="text-sm text-gray-600">
-              Free users receive standard quality images (800×800 pixels) with a watermark. Premium users get high-quality images (1200×1200 pixels) without any watermark, perfect for sharing and downloading.
+              No. The Credits Pack is a one-time USD 2.99 purchase for 30 AI try-ons. It is designed for occasional users who want to compare glasses without starting a monthly plan.
             </p>
           </div>
 
           <div className="p-6 bg-white rounded-lg border shadow-sm">
-            <h3 className="mb-2 font-semibold text-gray-900">Can I remove the watermark from my images?</h3>
+            <h3 className="mb-2 font-semibold text-gray-900">Can I use credits with my own glasses screenshots?</h3>
             <p className="text-sm text-gray-600">
-              Yes! Upgrade to any paid plan (Credits Pack or Standard subscription) to get watermark-free images. All your future try-ons will be saved in high quality without watermarks.
+              Yes. Credits work with the glasses try-on flow where you upload your face photo and a glasses product image, store image, or screenshot.
             </p>
           </div>
 
@@ -118,9 +124,9 @@ export default async function PricingPage() {
           </div>
 
           <div className="p-6 bg-white rounded-lg border shadow-sm">
-            <h3 className="mb-2 font-semibold text-gray-900">Can I cancel my subscription anytime?</h3>
+            <h3 className="mb-2 font-semibold text-gray-900">What&apos;s the difference between free and paid image quality?</h3>
             <p className="text-sm text-gray-600">
-              Yes, you can cancel your subscription at any time. After cancellation, you can still use premium features until the end of the current billing period.
+              Free users receive standard quality images (800×800 pixels) with a watermark. Credits Pack and Standard users get high-quality images (1200×1200 pixels) without watermarks.
             </p>
           </div>
 
