@@ -1,6 +1,7 @@
 # Blog Cover Images Credits
 
-All images are sourced from Unsplash.com and are free to use under the Unsplash License.
+Most legacy images are sourced from Unsplash.com and are free to use under the Unsplash License.
+New 2026 blog covers were generated with Codex imagegen for VisuTry.
 
 ## Image Sources
 
@@ -58,6 +59,16 @@ All images are sourced from Unsplash.com and are free to use under the Unsplash 
 - **Description**: Shopping and retail concept
 - **License**: Unsplash License (Free to use)
 
+### 10. ai-virtual-tryon-tools-2026.png
+- **Source**: Codex imagegen
+- **Description**: Editorial cover for evaluating AI virtual try-on tools in 2026
+- **Prompt summary**: Premium SaaS-style ecommerce workspace with laptop and phone virtual eyewear try-on previews, no brand logos or readable text
+
+### 11. virtual-try-on-reduce-returns.png
+- **Source**: Codex imagegen
+- **Description**: Editorial cover for virtual try-on reducing eyewear ecommerce returns
+- **Prompt summary**: Ecommerce operations dashboard, eyewear frames, shipping boxes, and returns workflow visuals, no brand logos or readable text
+
 ## Unsplash License
 
 The Unsplash License allows you to:
@@ -75,5 +86,4 @@ For more information, visit: https://unsplash.com/license
 
 ---
 
-**Last Updated**: October 21, 2025
-
+**Last Updated**: May 27, 2026
