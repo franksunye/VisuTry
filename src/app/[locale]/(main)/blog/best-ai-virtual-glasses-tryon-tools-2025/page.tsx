@@ -8,6 +8,7 @@ import { Breadcrumbs } from '@/components/seo/Breadcrumbs'
 export const metadata: Metadata = generateSEO({
   title: 'Best AI Virtual Glasses Try-On Tools in 2025 - Complete Comparison',
   description: 'Comprehensive review of the top AI-powered virtual glasses try-on tools in 2025. Compare features, accuracy, and user experience to find the perfect solution for online eyewear shopping.',
+  image: '/blog-covers/ai-virtual-tryon.jpg',
   url: '/blog/best-ai-virtual-glasses-tryon-tools-2025',
   type: 'article',
 })
@@ -18,7 +19,7 @@ const structuredData = generateStructuredData('article', {
   publishedAt: '2025-10-20T10:00:00Z',
   modifiedAt: '2025-10-20T10:00:00Z',
   author: 'VisuTry Team',
-  image: '/og-image.jpg',
+  image: '/blog-covers/ai-virtual-tryon.jpg',
 })
 
 export default function BlogPostPage() {
@@ -335,4 +336,3 @@ export default function BlogPostPage() {
     </>
   )
 }
-

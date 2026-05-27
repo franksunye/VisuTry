@@ -14,7 +14,7 @@ export default function BlogTags({ tags, className = '' }: BlogTagsProps) {
       {tags.map((tag, index) => (
         <Link
           key={tag}
-          href={`../tag/${encodeURIComponent(tag)}`}
+          href={`/en/blog/tag/${encodeURIComponent(tag)}`}
           className="inline-block bg-gray-100 hover:bg-blue-100 text-gray-700 hover:text-blue-800 text-sm px-3 py-1 rounded-full transition-colors"
         >
           {tag}
@@ -23,4 +23,3 @@ export default function BlogTags({ tags, className = '' }: BlogTagsProps) {
     </div>
   )
 }
-

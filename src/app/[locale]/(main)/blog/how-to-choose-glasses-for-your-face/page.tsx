@@ -8,6 +8,7 @@ import { Breadcrumbs } from '@/components/seo/Breadcrumbs'
 export const metadata: Metadata = generateSEO({
   title: 'How to Choose the Right Glasses for Your Face Shape? Complete Guide',
   description: 'Detailed analysis of suitable glasses styles for different face shapes, including round, square, long faces and professional advice. Use AI try-on tool to find your perfect match.',
+  image: '/blog-covers/face-shape-guide.jpg',
   url: '/blog/how-to-choose-glasses-for-your-face',
   type: 'article',
 })
@@ -19,7 +20,7 @@ const structuredData = generateStructuredData('article', {
   publishedAt: '2025-10-15T10:00:00Z',
   modifiedAt: '2025-10-15T10:00:00Z',
   author: 'VisuTry Team',
-  image: '/blog/face-shape-guide.jpg',
+  image: '/blog-covers/face-shape-guide.jpg',
 })
 
 const articleTags = ['Face Shape', 'Glasses Selection', 'Style Guide', 'Buying Guide', 'Fashion Tips']

@@ -109,7 +109,7 @@ export const SITE_CONFIG = {
   title: 'VisuTry - AI Virtual Try-On for Glasses, Outfits, Shoes & Accessories',
   description: 'Try on glasses, outfits, shoes, and accessories instantly with AI-powered virtual try-on. No download needed - upload your photo and see how items look on you before buying. Powered by Nano Banana AI (Gemini 2.5 Flash Image) for photorealistic results.',
   url: process.env.NEXT_PUBLIC_SITE_URL || 'https://visutry.com',
-  ogImage: '/og-image.jpg',
+  ogImage: '/blog-covers/ai-virtual-tryon.jpg',
   keywords: ALL_KEYWORDS,
   author: 'VisuTry Team',
   creator: 'VisuTry',
@@ -313,7 +313,7 @@ export function generateStructuredData(
         ...baseData,
         name: SITE_CONFIG.name,
         url: SITE_CONFIG.url,
-        logo: `${SITE_CONFIG.url}/og-image.jpg`,
+        logo: `${SITE_CONFIG.url}${SITE_CONFIG.ogImage}`,
         description: SITE_CONFIG.description,
         sameAs: [
           'https://twitter.com/visutry',
@@ -414,7 +414,7 @@ export function generateStructuredData(
           name: SITE_CONFIG.name,
           logo: {
             '@type': 'ImageObject',
-            url: `${SITE_CONFIG.url}/og-image.jpg`,
+            url: `${SITE_CONFIG.url}${SITE_CONFIG.ogImage}`,
           },
         },
         ...data,

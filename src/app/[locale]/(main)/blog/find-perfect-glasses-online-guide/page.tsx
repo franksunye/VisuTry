@@ -9,7 +9,7 @@ const structuredData = generateStructuredData('article', {
   publishedAt: '2025-11-06T12:00:00Z',
   modifiedAt: '2025-11-06T12:00:00Z',
   author: 'VisuTry Team',
-  image: '/og-image.jpg',
+  image: '/blog-covers/ai-virtual-tryon.jpg',
 })
 
 export const metadata = {
@@ -160,4 +160,3 @@ export default function BlogPostPage() {
     </>
   )
 }
-
