@@ -21,7 +21,7 @@ const structuredData = generateStructuredData('article', {
   title,
   description,
   publishedAt: '2025-10-20T10:00:00Z',
-  modifiedAt: '2026-05-27T10:00:00Z',
+  modifiedAt: '2026-05-20T10:00:00Z',
   author: 'VisuTry Team',
   image: coverImage,
 })
@@ -82,7 +82,7 @@ export default function BlogPostPage() {
             <div className="border-b p-8">
               <div className="mb-4 flex flex-wrap items-center gap-3 text-sm text-gray-600">
                 <span>VisuTry Team</span>
-                <span>Updated May 27, 2026</span>
+                <span>Updated May 20, 2026</span>
                 <span>8 min read</span>
               </div>
               <h1 className="mb-4 text-3xl font-bold text-gray-900 md:text-4xl">

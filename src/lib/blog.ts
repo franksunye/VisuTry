@@ -37,7 +37,7 @@ export const staticBlogPosts: BlogPost[] = [
     title: 'AI Virtual Try-On Tools in 2026 - What Actually Matters',
     description: 'A practical 2026 guide to choosing virtual try-on tools for eyewear, including photo-based AI, real-time AR, catalog coverage, privacy, and shopping workflow fit.',
     publishedAt: '2025-10-14T10:00:00Z',
-    modifiedAt: '2026-05-27T10:00:00Z',
+    modifiedAt: '2026-05-20T10:00:00Z',
     author: 'VisuTry Team',
     category: 'Technology',
     readTime: '8 min read',
