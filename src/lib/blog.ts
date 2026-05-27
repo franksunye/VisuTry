@@ -195,7 +195,13 @@ export const staticBlogPosts: BlogPost[] = [
  */
 export async function getAllBlogPosts(): Promise<BlogPost[]> {
   // Currently returns static articles, can be fetched from database in the future
-  return staticBlogPosts.filter(post => post.isPublished)
+  return staticBlogPosts
+    .filter(post => post.isPublished)
+    .sort((a, b) => {
+      const dateA = new Date(a.modifiedAt || a.publishedAt).getTime()
+      const dateB = new Date(b.modifiedAt || b.publishedAt).getTime()
+      return dateB - dateA
+    })
 }
 
 /**

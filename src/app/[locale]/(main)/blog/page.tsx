@@ -18,6 +18,12 @@ export const revalidate = 3600
 
 export default async function BlogPage() {
   const posts = await getAllBlogPosts()
+  const getDisplayDate = (post: Awaited<ReturnType<typeof getAllBlogPosts>>[number]) =>
+    new Date(post.modifiedAt || post.publishedAt).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+    })
   const blogSchema = {
     '@context': 'https://schema.org',
     '@type': 'Blog',
@@ -125,7 +131,7 @@ export default async function BlogPage() {
                       </div>
                       <div className="flex items-center">
                         <Calendar className="w-4 h-4 mr-1" />
-                        {new Date(post.publishedAt).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}
+                        {getDisplayDate(post)}
                       </div>
                     </div>
                   </div>
