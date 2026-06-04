@@ -42,15 +42,12 @@ export default function Home() {
   const { data: session } = useSession()
   const { testSession } = useTestSession()
   const t = useTranslations('home')
+  const tCommon = useTranslations('common')
 
   const isAuthenticated = session || testSession
 
   const handleStartTryOn = (type: 'glasses' | 'outfit' | 'shoes' | 'accessories' = 'glasses') => {
-    if (isAuthenticated) {
-      router.push(`/${locale}/try-on/${type}`)
-    } else {
-      router.push(`/${locale}/auth/signin?callbackUrl=` + encodeURIComponent(`/${locale}/try-on/${type}`))
-    }
+    router.push(`/${locale}/try-on/${type}`)
   }
 
   // Generate FAQ structured data for SEO - using English content
@@ -122,7 +119,7 @@ export default function Home() {
             onClick={() => handleStartTryOn('glasses')}
             className="px-6 py-3 text-base font-semibold text-white transition-colors duration-200 bg-blue-600 rounded-lg shadow-lg hover:bg-blue-700 hover:shadow-xl"
           >
-            👓 {t('cta.tryGlasses')}
+            👓 {isAuthenticated ? tCommon('startTryOn') : tCommon('startFreeTrial')}
           </button>
         </div>
       </section>
