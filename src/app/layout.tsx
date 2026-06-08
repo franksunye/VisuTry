@@ -1,9 +1,8 @@
 /**
  * Root Layout
  *
- * Note: This layout provides SessionProvider for all routes.
- * The [locale]/layout.tsx will override <html> and <body> tags for i18n routes.
- * Admin routes will use this layout's <html> and <body> tags.
+ * Single <html>/<body> shell for all routes. Locale-specific lang/dir and i18n
+ * providers live in app/[locale]/layout.tsx (must not nest another html/body).
  */
 
 import { SessionProvider } from '@/components/providers/SessionProvider'
@@ -23,8 +22,16 @@ export default async function RootLayout({
   const session = await getServerSession(authOptions)
 
   return (
-    <html lang="en">
-      <body className={inter.className}>
+    <html lang="en" suppressHydrationWarning>
+      <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link rel="preconnect" href="https://www.googletagmanager.com" />
+        <link rel="preconnect" href="https://www.google-analytics.com" />
+        <link rel="dns-prefetch" href="https://fonts.googleapis.com" />
+        <link rel="dns-prefetch" href="https://www.googletagmanager.com" />
+      </head>
+      <body className={inter.className} suppressHydrationWarning>
         <SessionProvider session={session}>
           {children}
         </SessionProvider>

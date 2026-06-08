@@ -4,31 +4,35 @@ import { useState } from "react"
 import { Glasses, Star, Zap } from "lucide-react"
 import { PricingCard } from "@/components/pricing/PricingCard"
 import { PromoInput } from "@/components/pricing/PromoInput"
-import { PRODUCT_METADATA, QUOTA_CONFIG, formatPrice, resolvePromoCode, PROMO_MAPPING } from '@/config/pricing'
+import {
+  PRODUCT_METADATA,
+  PricingQuotas,
+  buildPlanFeatures,
+  formatPrice,
+  getPlanQuota,
+  resolveDisplayProductId,
+  resolvePromoCode,
+} from '@/config/pricing'
 
 interface PricingSectionProps {
   user: any // Typed as any for simplicity, effectively UserForDisplay
+  quotas: PricingQuotas
 }
 
-export function PricingSection({ user }: PricingSectionProps) {
+export function PricingSection({ user, quotas }: PricingSectionProps) {
   const [activeCode, setActiveCode] = useState<string | null>(null)
 
   // Determine if any promo code is valid
   const promoProductType = activeCode ? resolvePromoCode(activeCode) : null
   const isPromoActive = !!promoProductType
 
-  // Helper to get the correct product data (standard or promo)
-  const getPlanData = (standardId: string) => {
-    const standardData = PRODUCT_METADATA[standardId as keyof typeof PRODUCT_METADATA]
-    if (isPromoActive && PROMO_MAPPING[standardId]) {
-      return PRODUCT_METADATA[PROMO_MAPPING[standardId] as keyof typeof PRODUCT_METADATA]
-    }
-    return standardData
-  }
+  const creditPackId = resolveDisplayProductId('CREDITS_PACK', isPromoActive)
+  const monthlyId = resolveDisplayProductId('PREMIUM_MONTHLY', isPromoActive)
+  const yearlyId = resolveDisplayProductId('PREMIUM_YEARLY', isPromoActive)
 
-  const creditPackData = getPlanData("CREDITS_PACK")
-  const monthlyData = getPlanData("PREMIUM_MONTHLY")
-  const yearlyData = getPlanData("PREMIUM_YEARLY")
+  const creditPackData = PRODUCT_METADATA[creditPackId]
+  const monthlyData = PRODUCT_METADATA[monthlyId]
+  const yearlyData = PRODUCT_METADATA[yearlyId]
 
   const pricingPlans = [
     {
@@ -37,7 +41,7 @@ export function PricingSection({ user }: PricingSectionProps) {
       description: creditPackData.description,
       price: formatPrice(creditPackData.price),
       period: "One-time",
-      features: [...creditPackData.features],
+      features: buildPlanFeatures(creditPackId, quotas),
       buttonText: creditPackData.id.includes("PROMO") ? "Buy Credits Pack" : "Buy Credits Pack",
       popular: creditPackData.popular,
       icon: <Zap className="w-6 h-6" />
@@ -48,7 +52,7 @@ export function PricingSection({ user }: PricingSectionProps) {
       description: monthlyData.description,
       price: formatPrice(monthlyData.price),
       period: "per month",
-      features: [...monthlyData.features],
+      features: buildPlanFeatures(monthlyId, quotas),
       buttonText: monthlyData.id.includes("PROMO") ? "Start Monthly Subscription" : "Start Monthly Subscription",
       popular: monthlyData.popular,
       icon: <Star className="w-6 h-6" />
@@ -60,7 +64,7 @@ export function PricingSection({ user }: PricingSectionProps) {
       price: formatPrice(yearlyData.price),
       period: "per year",
       originalPrice: "$107.88",
-      features: [...yearlyData.features],
+      features: buildPlanFeatures(yearlyId, quotas),
       buttonText: yearlyData.id.includes("PROMO") ? "Start Annual Subscription" : "Start Annual Subscription",
       popular: yearlyData.popular,
       icon: <Star className="w-6 h-6" />
@@ -71,7 +75,7 @@ export function PricingSection({ user }: PricingSectionProps) {
     <div>
       <PromoInput onPromoChange={setActiveCode} activeCode={activeCode} />
       
-      <div className="grid gap-8 mb-12 md:grid-cols-3">
+      <div className="grid gap-8 mb-12 md:grid-cols-3 items-stretch">
         {pricingPlans.map((plan) => (
           <PricingCard
             key={plan.id}
@@ -102,12 +106,12 @@ export function PricingSection({ user }: PricingSectionProps) {
             <tbody className="divide-y divide-gray-200">
               <tr>
                 <td className="px-6 py-4 text-sm text-gray-900">AI Try-ons</td>
-                <td className="px-6 py-4 text-sm text-center text-gray-600">{QUOTA_CONFIG.FREE_TRIAL} times</td>
+                <td className="px-6 py-4 text-sm text-center text-gray-600">{quotas.freeTrial} times</td>
                 <td className="px-6 py-4 text-sm font-bold text-center text-blue-600">
-                  +{creditPackData.quota} times
+                  +{getPlanQuota(creditPackId, quotas)} times
                 </td>
                 <td className="px-6 py-4 text-sm text-center text-green-600">
-                  {monthlyData.quota}/month or {yearlyData.quota}/year
+                  {quotas.monthly}/month or {quotas.yearly}/year
                 </td>
               </tr>
               {/* Other rows remain static as they don't change with quota */}

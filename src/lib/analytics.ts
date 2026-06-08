@@ -7,7 +7,14 @@
 export type UserType = 'anonymous' | 'free' | 'premium' | 'credits'
 
 // 事件来源
-export type EventSource = 'nav' | 'dashboard' | 'try_on' | 'pricing' | 'error_modal' | 'direct'
+export type EventSource =
+  | 'nav'
+  | 'dashboard'
+  | 'try_on'
+  | 'pricing'
+  | 'error_modal'
+  | 'direct'
+  | 'face_analysis'
 
 // 升级按钮位置
 export type UpgradeLocation = 'quick_actions' | 'subscription_card' | 'nav'
@@ -192,6 +199,57 @@ export const analytics = {
     sendEvent('checkout_cancelled', {
       plan_type: planType,
       value,
+    })
+  },
+
+  // ==================== Face Analysis 事件 ====================
+
+  trackFaceAnalysisStart(userType: UserType, remainingQuota: number) {
+    sendEvent('face_analysis_start', {
+      user_type: userType,
+      remaining_quota: remainingQuota,
+    })
+  },
+
+  trackFaceAnalysisComplete(
+    faceShape: string,
+    confidence: number,
+    processingTimeMs: number,
+    userType: UserType
+  ) {
+    sendEvent('face_analysis_complete', {
+      face_shape: faceShape,
+      confidence,
+      processing_time_ms: processingTimeMs,
+      user_type: userType,
+    })
+  },
+
+  trackFaceAnalysisFailed(errorMessage: string, userType: UserType) {
+    sendEvent('face_analysis_failed', {
+      error_message: errorMessage.slice(0, 200),
+      user_type: userType,
+    })
+  },
+
+  trackFaceAnalysisUnlockClick(faceShape: string, source: EventSource = 'face_analysis') {
+    sendEvent('face_analysis_unlock_click', {
+      face_shape: faceShape,
+      source,
+    })
+  },
+
+  trackFaceAnalysisUnlockSuccess(taskId: string) {
+    sendEvent('face_analysis_unlock_success', {
+      task_id: taskId,
+    })
+  },
+
+  trackFaceAnalysisFrameSearch(faceShape: string, style: string, query: string) {
+    sendEvent('face_analysis_frame_search', {
+      face_shape: faceShape,
+      style,
+      query,
     })
   },
 }

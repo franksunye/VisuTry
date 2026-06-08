@@ -4,7 +4,7 @@ import { PricingSection } from "@/components/pricing/PricingSection"
 import Link from "next/link"
 import { Metadata } from 'next'
 import { generateI18nSEO, generateStructuredData } from '@/lib/seo'
-import { PRODUCT_METADATA, QUOTA_CONFIG, formatPrice } from '@/config/pricing'
+import { PRODUCT_METADATA, formatPrice, getPricingQuotas } from '@/config/pricing'
 import { Locale } from '@/i18n'
 
 type Props = {
@@ -26,6 +26,7 @@ export async function generateMetadata(props: Props): Promise<Metadata> {
 export const revalidate = 60
 
 export default async function PricingPage() {
+  const quotas = getPricingQuotas()
   const session = await getServerSession(authOptions)
 
   // 🔥 优化：直接从 session 读取用户数据，不再查询数据库
@@ -86,7 +87,7 @@ export default async function PricingPage() {
           Simple AI glasses try-on pricing
         </p>
         <h1 className="mb-4 text-3xl font-bold text-gray-900 md:text-4xl">
-          Continue with 30 AI try-ons for USD 2.99
+          Continue with {quotas.creditsPack} AI try-ons for USD 2.99
         </h1>
         <p className="text-base leading-7 text-gray-600">
           The Credits Pack is the easiest way to keep comparing glasses from your own product photos or screenshots. It is a one-time purchase, not a subscription, and your credits do not expire.
@@ -96,7 +97,7 @@ export default async function PricingPage() {
       {/* Promo Input is now inside PricingSection */}
 
       {/* Pricing Section (Cards + Comparison + Promo Input) */}
-      <PricingSection user={userForDisplay} />
+      <PricingSection user={userForDisplay} quotas={quotas} />
 
       {/* FAQ */}
       <div className="mt-12">
@@ -105,7 +106,7 @@ export default async function PricingPage() {
           <div className="p-6 bg-white rounded-lg border shadow-sm">
             <h3 className="mb-2 font-semibold text-gray-900">Is the Credits Pack a subscription?</h3>
             <p className="text-sm text-gray-600">
-              No. The Credits Pack is a one-time USD 2.99 purchase for 30 AI try-ons. It is designed for occasional users who want to compare glasses without starting a monthly plan.
+              No. The Credits Pack is a one-time USD 2.99 purchase for {quotas.creditsPack} AI try-ons. It is designed for occasional users who want to compare glasses without starting a monthly plan.
             </p>
           </div>
 

@@ -94,9 +94,9 @@ export function PricingCard({ plan, currentUser }: PricingCardProps) {
 
   return (
     <div className={cn(
-      "relative bg-white rounded-2xl shadow-sm border transition-all duration-200",
-      plan.popular 
-        ? "border-blue-500 ring-2 ring-blue-200 scale-105" 
+      "relative flex h-full flex-col bg-white rounded-2xl shadow-sm border transition-all duration-200",
+      plan.popular
+        ? "border-blue-500 ring-2 ring-blue-200 z-10"
         : "border-gray-200 hover:border-gray-300 hover:shadow-md"
     )}>
       {/* Popular Badge */}
@@ -108,7 +108,7 @@ export function PricingCard({ plan, currentUser }: PricingCardProps) {
         </div>
       )}
 
-      <div className="p-6">
+      <div className="flex flex-1 flex-col p-6">
         {/* Icon and Title */}
         <div className="flex items-center mb-4">
           <div className={cn(
@@ -147,6 +147,7 @@ export function PricingCard({ plan, currentUser }: PricingCardProps) {
           ))}
         </ul>
 
+        <div className="mt-auto">
         {/* Button */}
         <button
           onClick={handleSubscribe}
@@ -185,6 +186,7 @@ export function PricingCard({ plan, currentUser }: PricingCardProps) {
             Cancel anytime, no long-term contract
           </p>
         )}
+        </div>
       </div>
     </div>
   )

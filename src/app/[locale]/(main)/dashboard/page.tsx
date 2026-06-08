@@ -4,8 +4,10 @@ import { authOptions } from "@/lib/auth"
 import { Suspense } from "react"
 import { DashboardStatsAsync } from "@/components/dashboard/DashboardStatsAsync"
 import { RecentTryOnsAsync } from "@/components/dashboard/RecentTryOnsAsync"
+import { RecentFaceAnalysesAsync } from "@/components/dashboard/RecentFaceAnalysesAsync"
 import { DashboardStatsSkeleton } from "@/components/dashboard/DashboardStatsSkeleton"
 import { RecentTryOnsSkeleton } from "@/components/dashboard/RecentTryOnsSkeleton"
+import { RecentFaceAnalysesSkeleton } from "@/components/dashboard/RecentFaceAnalysesSkeleton"
 import { SubscriptionCard } from "@/components/dashboard/SubscriptionCard"
 import { PaymentSuccessHandler } from "@/components/dashboard/PaymentSuccessHandler"
 import { ClientPerformanceMonitor } from "@/components/performance/ClientPerformanceMonitor"
@@ -21,7 +23,11 @@ import { DashboardQuickActions } from "@/components/dashboard/DashboardQuickActi
 // 3. 用户立即看到页面，而不是白屏等待
 export const revalidate = 60 // 60秒后台重新验证
 
-export default async function DashboardPage() {
+type DashboardPageProps = {
+  params: { locale: string }
+}
+
+export default async function DashboardPage({ params }: DashboardPageProps) {
   // 🔍 开始性能监控
   const pageStartTime = Date.now()
   perfLogger.mark('dashboard:page-start')
@@ -110,6 +116,10 @@ export default async function DashboardPage() {
           {/* Recent Try-Ons - 异步加载 */}
           <Suspense fallback={<RecentTryOnsSkeleton />}>
             <RecentTryOnsAsync userId={session.user.id} />
+          </Suspense>
+
+          <Suspense fallback={<RecentFaceAnalysesSkeleton />}>
+            <RecentFaceAnalysesAsync userId={session.user.id} locale={params.locale} />
           </Suspense>
         </div>
 

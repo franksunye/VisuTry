@@ -27,6 +27,7 @@
     "confirm": "Konfirmasi"
   },
   "nav": {
+    "faceAnalysis": "Analisis Wajah",
     "home": "Beranda",
     "tryOn": "Coba Virtual",
     "tryGlasses": "Kacamata",
@@ -61,7 +62,7 @@
     },
     "cta": {
       "button": "Mulai Sekarang",
-      "tryGlasses": "Coba Kacamata",
+      "faceAnalysis": "Analisis Wajah",
       "tryOutfit": "Coba Pakaian",
       "tryShoes": "Coba Sepatu",
       "tryAccessories": "Coba Aksesori"
@@ -247,6 +248,103 @@
     "pricing": {
       "title": "Paket Harga - Coba Virtual AI untuk Semua Kategori | VisuTry",
       "description": "Pilih paket sempurna untuk coba virtual instan bertenaga AI. Coba kacamata, pakaian, sepatu, dan aksesori dengan Nano Banana AI (Gemini 2.5 Flash Image). Uji coba gratis tersedia, fitur premium untuk fitting virtual tak terbatas."
+    }
+  },
+  "faceAnalysis": {
+    "meta": {
+      "title": "Analisis Wajah AI untuk Kacamata | VisuTry",
+      "description": "Temukan bentuk wajah Anda dengan AI dan dapatkan rekomendasi kacamata yang dipersonalisasi. Unggah foto dan buka laporan gaya lengkap Anda."
+    },
+    "stepper": {
+      "photo": "Foto",
+      "analysis": "Analisis AI",
+      "report": "Laporan"
+    },
+    "upload": {
+      "title": "Unggah Foto",
+      "uploaded": "Diunggah",
+      "label": "Foto Anda",
+      "description": "Foto menghadap depan yang jelas",
+      "ready": "Foto bagus! Siap untuk dianalisis."
+    },
+    "analyze": {
+      "title": "Analisis Wajah AI",
+      "description": "Temukan bentuk wajah Anda dan dapatkan wawasan yang dipersonalisasi.",
+      "button": "Analisis Wajah Saya",
+      "again": "Analisis Lagi",
+      "analyzing": "Menganalisis...",
+      "creditNote": "{count} kredit akan digunakan"
+    },
+    "loading": {
+      "message": "AI sedang menganalisis bentuk dan fitur wajah Anda..."
+    },
+    "empty": {
+      "title": "Analisis Anda akan muncul di sini",
+      "description": "Unggah foto dan jalankan analisis wajah AI untuk melihat hasilnya."
+    },
+    "failed": {
+      "title": "Analisis gagal",
+      "retry": "Coba Lagi"
+    },
+    "footer": {
+      "remainingCredits": "Kredit Tersisa:",
+      "privacy": "Hasil analisis Anda bersifat pribadi dan aman",
+      "noCredits": "Tidak ada kredit tersisa untuk analisis wajah.",
+      "getCredits": "Dapatkan Kredit"
+    },
+    "result": {
+      "title": "Hasil Analisis AI",
+      "completed": "Selesai",
+      "yourPhoto": "Foto yang Anda unggah",
+      "confidence": "Kepercayaan {percent}%",
+      "confidenceDisclaimer": "Estimasi AI, bukan saran medis.",
+      "keyFeatures": "Fitur Utama",
+      "wireframeCaption": "Overlay ilustratif",
+      "lockedTitle": "Buka Laporan Lengkap Anda",
+      "lockedDescription": "Bingkai terbaik, gaya yang dihindari, dan panduan pribadi",
+      "previewTitle": "Pratinjau Laporan Lengkap",
+      "bestFrames": "Bingkai Terbaik untuk Anda",
+      "framesToAvoid": "Bingkai yang Dihindari",
+      "styleGuide": "Panduan Gaya Pribadi"
+    },
+    "unlock": {
+      "title": "Buka Laporan AI Lengkap",
+      "feature1": "Rekomendasi bingkai terperinci dan panduan gaya",
+      "feature2": "{count} kredit try-on disertakan",
+      "feature3": "Buka sekali — laporan tetap terbuka",
+      "price": "${price} sekali bayar",
+      "button": "Buka Sekarang",
+      "redirecting": "Mengalihkan..."
+    },
+    "frameSearch": {
+      "title": "Mencari bingkai?",
+      "description": "Saat berbelanja bingkai, cari gaya ini:",
+      "opensGoogle": "Membuka pencarian Google di tab baru",
+      "searchStyle": "Cari bingkai {style}"
+    },
+    "landing": {
+      "title": "Analisis Wajah AI untuk Pilihan Kacamata yang Lebih Baik",
+      "description": "Unggah foto untuk menemukan bentuk wajah, fitur utama, dan rekomendasi bingkai yang dipersonalisasi dengan AI.",
+      "tryGlasses": "Coba Kacamata Saja",
+      "steps": {
+        "uploadTitle": "Unggah foto Anda",
+        "uploadDescription": "Gunakan foto menghadap depan yang jelas untuk hasil terbaik.",
+        "analysisTitle": "Analisis wajah AI",
+        "analysisDescription": "Dapatkan bentuk wajah, skor kepercayaan, dan fitur utama.",
+        "reportTitle": "Laporan yang dipersonalisasi",
+        "reportDescription": "Buka rekomendasi bingkai dan panduan gaya.",
+        "privacyTitle": "Pribadi & aman",
+        "privacyDescription": "Foto dan analisis Anda tetap pribadi di akun Anda."
+      }
+    },
+    "dashboard": {
+      "title": "Analisis Wajah Terbaru",
+      "viewAll": "Lihat semua",
+      "empty": "Belum ada analisis wajah.",
+      "startAnalysis": "Mulai Analisis Wajah",
+      "unlocked": "Terbuka",
+      "locked": "Terkunci",
+      "viewReport": "Lihat laporan"
     }
   }
 }

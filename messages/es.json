@@ -27,6 +27,7 @@
     "confirm": "Confirmar"
   },
   "nav": {
+    "faceAnalysis": "Análisis facial",
     "home": "Inicio",
     "tryOn": "Prueba Virtual",
     "tryGlasses": "Gafas",
@@ -61,7 +62,7 @@
     },
     "cta": {
       "button": "Comenzar",
-      "tryGlasses": "Probar Gafas",
+      "faceAnalysis": "Análisis facial",
       "tryOutfit": "Probar Ropa",
       "tryShoes": "Probar Zapatos",
       "tryAccessories": "Probar Accesorios"
@@ -271,6 +272,103 @@
     "pricing": {
       "title": "Planes de Precios - Prueba Virtual de IA para Todas las Categorías | VisuTry",
       "description": "Elige el plan perfecto para prueba virtual instantánea impulsada por IA. Prueba gafas, ropa, zapatos y accesorios con Nano Banana IA (Gemini 2.5 Flash Image). Pruebas gratuitas disponibles, funciones premium para ajuste virtual ilimitado."
+    }
+  },
+  "faceAnalysis": {
+    "meta": {
+      "title": "Análisis facial con IA para gafas | VisuTry",
+      "description": "Descubre la forma de tu rostro con IA y obtén recomendaciones personalizadas de gafas. Sube una foto y desbloquea tu informe de estilo completo."
+    },
+    "stepper": {
+      "photo": "Foto",
+      "analysis": "Análisis IA",
+      "report": "Informe"
+    },
+    "upload": {
+      "title": "Subir foto",
+      "uploaded": "Subida",
+      "label": "Tu foto",
+      "description": "Foto frontal clara",
+      "ready": "¡Buena foto! Lista para el análisis."
+    },
+    "analyze": {
+      "title": "Análisis facial con IA",
+      "description": "Descubre la forma de tu rostro y obtén información personalizada.",
+      "button": "Analizar mi rostro",
+      "again": "Analizar de nuevo",
+      "analyzing": "Analizando...",
+      "creditNote": "Se usará {count} crédito"
+    },
+    "loading": {
+      "message": "La IA está analizando la forma y los rasgos de tu rostro..."
+    },
+    "empty": {
+      "title": "Tu análisis aparecerá aquí",
+      "description": "Sube una foto y ejecuta el análisis facial con IA para ver los resultados."
+    },
+    "failed": {
+      "title": "Análisis fallido",
+      "retry": "Intentar de nuevo"
+    },
+    "footer": {
+      "remainingCredits": "Créditos restantes:",
+      "privacy": "Tus resultados de análisis son privados y seguros",
+      "noCredits": "No quedan créditos para el análisis facial.",
+      "getCredits": "Obtener créditos"
+    },
+    "result": {
+      "title": "Resultados del análisis IA",
+      "completed": "Completado",
+      "yourPhoto": "Tu foto subida",
+      "confidence": "{percent}% de confianza",
+      "confidenceDisclaimer": "Estimación de IA, no consejo médico.",
+      "keyFeatures": "Rasgos clave",
+      "wireframeCaption": "Superposición ilustrativa",
+      "lockedTitle": "Desbloquea tu informe completo",
+      "lockedDescription": "Mejores monturas, estilos a evitar y guía personal",
+      "previewTitle": "Vista previa del informe completo",
+      "bestFrames": "Mejores monturas para ti",
+      "framesToAvoid": "Monturas a evitar",
+      "styleGuide": "Guía de estilo personal"
+    },
+    "unlock": {
+      "title": "Desbloquear informe completo de IA",
+      "feature1": "Recomendaciones detalladas de monturas y guía de estilo",
+      "feature2": "{count} créditos de prueba incluidos",
+      "feature3": "Desbloqueo único — el informe permanece desbloqueado",
+      "price": "${price} pago único",
+      "button": "Desbloquear ahora",
+      "redirecting": "Redirigiendo..."
+    },
+    "frameSearch": {
+      "title": "¿Buscas monturas?",
+      "description": "Al comprar monturas, busca estos estilos:",
+      "opensGoogle": "Abre la búsqueda de Google en una nueva pestaña",
+      "searchStyle": "Buscar monturas {style}"
+    },
+    "landing": {
+      "title": "Análisis facial con IA para elegir mejor tus gafas",
+      "description": "Sube una foto para descubrir la forma de tu rostro, rasgos clave y recomendaciones personalizadas de monturas con IA.",
+      "tryGlasses": "Probar gafas en su lugar",
+      "steps": {
+        "uploadTitle": "Sube tu foto",
+        "uploadDescription": "Usa una foto frontal clara para mejores resultados.",
+        "analysisTitle": "Análisis facial con IA",
+        "analysisDescription": "Obtén forma del rostro, puntuación de confianza y rasgos clave.",
+        "reportTitle": "Informe personalizado",
+        "reportDescription": "Desbloquea recomendaciones de monturas y guía de estilo.",
+        "privacyTitle": "Privado y seguro",
+        "privacyDescription": "Tus fotos y análisis permanecen privados en tu cuenta."
+      }
+    },
+    "dashboard": {
+      "title": "Análisis faciales recientes",
+      "viewAll": "Ver todo",
+      "empty": "Aún no hay análisis faciales.",
+      "startAnalysis": "Iniciar análisis facial",
+      "unlocked": "Desbloqueado",
+      "locked": "Bloqueado",
+      "viewReport": "Ver informe"
     }
   }
 }

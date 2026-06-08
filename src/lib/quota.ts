@@ -4,18 +4,56 @@ import { User } from "@prisma/client"
 import { logger } from "@/lib/logger"
 import { revalidateTag } from "next/cache"
 
+export type QuotaSource = "subscription" | "credit" | "free_trial"
+
+/**
+ * Which quota bucket the next successful task would consume.
+ * Mirrors deductUserQuota priority order exactly (for Face Analysis unlock logic).
+ * Try-On does not call this; it only uses checkUserQuota + deductUserQuota.
+ */
+export function getNextQuotaSource(user: User): QuotaSource | null {
+  const isPremiumActive =
+    user.isPremium && (!user.premiumExpiresAt || user.premiumExpiresAt > new Date())
+
+  if (!isPremiumActive) {
+    const creditsRemaining = (user.creditsPurchased || 0) - (user.creditsUsed || 0)
+    if (creditsRemaining > 0) {
+      return "credit"
+    }
+
+    const freeRemaining = Math.max(0, QUOTA_CONFIG.FREE_TRIAL - user.freeTrialsUsed)
+    return freeRemaining > 0 ? "free_trial" : null
+  }
+
+  const quota =
+    user.currentSubscriptionType === "PREMIUM_YEARLY"
+      ? QUOTA_CONFIG.YEARLY_SUBSCRIPTION
+      : QUOTA_CONFIG.MONTHLY_SUBSCRIPTION
+  const subscriptionRemaining = Math.max(0, quota - (user.premiumUsageCount || 0))
+  const creditsRemaining = (user.creditsPurchased || 0) - (user.creditsUsed || 0)
+
+  if (subscriptionRemaining > 0) {
+    return "subscription"
+  }
+  if (creditsRemaining > 0) {
+    return "credit"
+  }
+  return null
+}
+
 /**
  * Check if user has remaining quota for try-on
  */
 export function checkUserQuota(user: User): { allowed: boolean; reason?: string } {
-  const isPremiumActive = user.isPremium &&
-    (!user.premiumExpiresAt || user.premiumExpiresAt > new Date())
+  const isPremiumActive =
+    user.isPremium && (!user.premiumExpiresAt || user.premiumExpiresAt > new Date())
 
   if (isPremiumActive && user.currentSubscriptionType) {
     // Premium users: check subscription quota + credits
-    const quota = user.currentSubscriptionType === 'PREMIUM_YEARLY'
-      ? QUOTA_CONFIG.YEARLY_SUBSCRIPTION
-      : QUOTA_CONFIG.MONTHLY_SUBSCRIPTION
+    const quota =
+      user.currentSubscriptionType === "PREMIUM_YEARLY"
+        ? QUOTA_CONFIG.YEARLY_SUBSCRIPTION
+        : QUOTA_CONFIG.MONTHLY_SUBSCRIPTION
     const subscriptionRemaining = Math.max(0, quota - (user.premiumUsageCount || 0))
     const creditsRemaining = (user.creditsPurchased || 0) - (user.creditsUsed || 0)
     const totalRemaining = subscriptionRemaining + creditsRemaining
@@ -30,7 +68,10 @@ export function checkUserQuota(user: User): { allowed: boolean; reason?: string 
     const totalRemaining = freeRemaining + creditsRemaining
 
     if (totalRemaining <= 0) {
-      return { allowed: false, reason: "No remaining quota. Please purchase Credits Pack or upgrade to Standard." }
+      return {
+        allowed: false,
+        reason: "No remaining quota. Please purchase Credits Pack or upgrade to Standard.",
+      }
     }
   }
 
@@ -44,8 +85,8 @@ export async function deductUserQuota(userId: string, ctx?: any): Promise<void> 
   const user = await prisma.user.findUnique({ where: { id: userId } })
   if (!user) return
 
-  const isPremiumActive = user.isPremium &&
-    (!user.premiumExpiresAt || user.premiumExpiresAt > new Date())
+  const isPremiumActive =
+    user.isPremium && (!user.premiumExpiresAt || user.premiumExpiresAt > new Date())
 
   if (!isPremiumActive) {
     // 免费用户：优先消费 credits，如果没有 credits 则消费免费试用
@@ -56,22 +97,28 @@ export async function deductUserQuota(userId: string, ctx?: any): Promise<void> 
       // 有 credits：增加已使用计数
       await prisma.user.update({
         where: { id: userId },
-        data: { creditsUsed: { increment: 1 } }
+        data: { creditsUsed: { increment: 1 } },
       })
-      logger.info('quota', 'User consumed credit', { userId, remaining: creditsRemaining - 1 }, ctx)
+      logger.info("quota", "User consumed credit", { userId, remaining: creditsRemaining - 1 }, ctx)
     } else {
       // 没有 credits：使用免费试用
       await prisma.user.update({
         where: { id: userId },
-        data: { freeTrialsUsed: { increment: 1 } }
+        data: { freeTrialsUsed: { increment: 1 } },
       })
-      logger.info('quota', 'User used free trial', { userId, trialsUsed: user.freeTrialsUsed + 1 }, ctx)
+      logger.info(
+        "quota",
+        "User used free trial",
+        { userId, trialsUsed: user.freeTrialsUsed + 1 },
+        ctx
+      )
     }
   } else {
     // Premium用户：优先使用订阅配额，然后使用 credits
-    const quota = user.currentSubscriptionType === 'PREMIUM_YEARLY'
-      ? QUOTA_CONFIG.YEARLY_SUBSCRIPTION
-      : QUOTA_CONFIG.MONTHLY_SUBSCRIPTION
+    const quota =
+      user.currentSubscriptionType === "PREMIUM_YEARLY"
+        ? QUOTA_CONFIG.YEARLY_SUBSCRIPTION
+        : QUOTA_CONFIG.MONTHLY_SUBSCRIPTION
     const subscriptionRemaining = Math.max(0, quota - (user.premiumUsageCount || 0))
     const creditsRemaining = (user.creditsPurchased || 0) - (user.creditsUsed || 0)
 
@@ -79,16 +126,21 @@ export async function deductUserQuota(userId: string, ctx?: any): Promise<void> 
       // 有订阅配额：增加 premiumUsageCount
       await prisma.user.update({
         where: { id: userId },
-        data: { premiumUsageCount: { increment: 1 } }
+        data: { premiumUsageCount: { increment: 1 } },
       })
-      logger.info('quota', 'Premium user used subscription quota', { userId, remaining: subscriptionRemaining - 1 }, ctx)
+      logger.info(
+        "quota",
+        "Premium user used subscription quota",
+        { userId, remaining: subscriptionRemaining - 1 },
+        ctx
+      )
     } else if (creditsRemaining > 0) {
       // 订阅配额用完，使用 credits
       await prisma.user.update({
         where: { id: userId },
-        data: { creditsUsed: { increment: 1 } }
+        data: { creditsUsed: { increment: 1 } },
       })
-      logger.info('quota', 'Premium user used credit', { userId, remaining: creditsRemaining - 1 }, ctx)
+      logger.info("quota", "Premium user used credit", { userId, remaining: creditsRemaining - 1 }, ctx)
     }
   }
 

@@ -29,6 +29,7 @@
   "nav": {
     "home": "Home",
     "tryOn": "Try-On",
+    "faceAnalysis": "Face Analysis",
     "tryGlasses": "Glasses",
     "tryOutfit": "Try Outfit",
     "tryShoes": "Try Shoes",
@@ -240,6 +241,103 @@
           "answer": "We offer a 7-day money-back guarantee for all subscriptions. Credits packs are non-refundable once used."
         }
       ]
+    }
+  },
+  "faceAnalysis": {
+    "meta": {
+      "title": "AI Face Analysis for Glasses | VisuTry",
+      "description": "Discover your face shape with AI and get personalized glasses recommendations. Upload a photo and unlock your full style report."
+    },
+    "stepper": {
+      "photo": "Photo",
+      "analysis": "AI Analysis",
+      "report": "Report"
+    },
+    "upload": {
+      "title": "Upload Photo",
+      "uploaded": "Uploaded",
+      "label": "Your Photo",
+      "description": "Clear front-facing photo",
+      "ready": "Good photo! Ready for analysis."
+    },
+    "analyze": {
+      "title": "AI Face Analysis",
+      "description": "Discover your face shape and get personalized insights.",
+      "button": "Analyze My Face",
+      "again": "Analyze Again",
+      "analyzing": "Analyzing...",
+      "creditNote": "{count} credit will be used"
+    },
+    "loading": {
+      "message": "AI is analyzing your face shape and features..."
+    },
+    "empty": {
+      "title": "Your analysis will appear here",
+      "description": "Upload a photo and run AI face analysis to see results."
+    },
+    "failed": {
+      "title": "Analysis failed",
+      "retry": "Try Again"
+    },
+    "footer": {
+      "remainingCredits": "Remaining Credits:",
+      "privacy": "Your analysis results are private and secure",
+      "noCredits": "No credits remaining for face analysis.",
+      "getCredits": "Get Credits"
+    },
+    "result": {
+      "title": "AI Analysis Results",
+      "completed": "Completed",
+      "yourPhoto": "Your uploaded photo",
+      "confidence": "{percent}% Confidence",
+      "confidenceDisclaimer": "AI estimate, not medical advice.",
+      "keyFeatures": "Key Features",
+      "wireframeCaption": "Illustrative overlay",
+      "lockedTitle": "Unlock Your Full Report",
+      "lockedDescription": "Best frames, styles to avoid, and personal guide",
+      "previewTitle": "Full Report Preview",
+      "bestFrames": "Best Frames for You",
+      "framesToAvoid": "Frames to Avoid",
+      "styleGuide": "Personal Style Guide"
+    },
+    "unlock": {
+      "title": "Unlock Full AI Report",
+      "feature1": "Detailed frame recommendations and style guide",
+      "feature2": "{count} try-on credits included",
+      "feature3": "One-time unlock — report stays unlocked",
+      "price": "${price} one-time",
+      "button": "Unlock Now",
+      "redirecting": "Redirecting..."
+    },
+    "frameSearch": {
+      "title": "Shopping for frames?",
+      "description": "When shopping for frames, search for these styles:",
+      "opensGoogle": "Opens Google search in a new tab",
+      "searchStyle": "Search {style} frames"
+    },
+    "landing": {
+      "title": "AI Face Analysis for Better Glasses Choices",
+      "description": "Upload a photo to discover your face shape, key features, and personalized frame recommendations powered by AI.",
+      "tryGlasses": "Try Glasses Instead",
+      "steps": {
+        "uploadTitle": "Upload your photo",
+        "uploadDescription": "Use a clear, front-facing photo for best results.",
+        "analysisTitle": "AI face analysis",
+        "analysisDescription": "Get face shape, confidence score, and key features.",
+        "reportTitle": "Personalized report",
+        "reportDescription": "Unlock frame recommendations and style guidance.",
+        "privacyTitle": "Private & secure",
+        "privacyDescription": "Your photos and analysis stay private to your account."
+      }
+    },
+    "dashboard": {
+      "title": "Recent Face Analyses",
+      "viewAll": "View all",
+      "empty": "No face analyses yet.",
+      "startAnalysis": "Start Face Analysis",
+      "unlocked": "Unlocked",
+      "locked": "Locked",
+      "viewReport": "View report"
     }
   },
   "footer": {

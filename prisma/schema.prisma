@@ -62,8 +62,9 @@ model User {
 
   accounts      Account[]
   sessions      Session[]
-  tryOnTasks    TryOnTask[]
-  payments      Payment[]
+  tryOnTasks         TryOnTask[]
+  faceAnalysisTasks  FaceAnalysisTask[]
+  payments           Payment[]
 
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
@@ -113,6 +114,36 @@ model TryOnTask {
   @@index([userId, createdAt(sort: Desc)])       // Optimize dashboard recent tasks query
   @@index([userId, status])                      // Optimize dashboard stats query
   @@index([expiresAt])                           // Index for expiry cleanup cron
+}
+
+model FaceAnalysisTask {
+  id              String     @id @default(cuid())
+  userId          String
+  userImageUrl    String
+  status          TaskStatus @default(PENDING)
+  errorMessage    String?
+
+  detectedShape   String?
+  confidence      Float?
+  basicResult     Json?
+  fullResult      Json?
+  reportUnlocked  Boolean    @default(false)
+
+  externalTaskId  String?
+  prompt          String?
+  metadata        Json?
+  expiresAt       DateTime?
+
+  user            User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+
+  @@index([userId])
+  @@index([userId, createdAt(sort: Desc)])
+  @@index([status])
+  @@index([expiresAt])
+  @@index([externalTaskId])
 }
 
 model Payment {

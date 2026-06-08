@@ -27,6 +27,7 @@
     "confirm": "Confirmer"
   },
   "nav": {
+    "faceAnalysis": "Analyse du visage",
     "home": "Accueil",
     "tryOn": "Essayage Virtuel",
     "tryGlasses": "Lunettes",
@@ -61,7 +62,7 @@
     },
     "cta": {
       "button": "Commencer",
-      "tryGlasses": "Essayer des Lunettes",
+      "faceAnalysis": "Analyse du visage",
       "tryOutfit": "Essayer des Vêtements",
       "tryShoes": "Essayer des Chaussures",
       "tryAccessories": "Essayer des Accessoires"
@@ -271,6 +272,103 @@
     "pricing": {
       "title": "Plans Tarifaires - Essayage Virtuel IA pour Toutes les Catégories | VisuTry",
       "description": "Choisissez le forfait parfait pour l'essayage virtuel instantané propulsé par l'IA. Essayez des lunettes, vêtements, chaussures et accessoires avec Nano Banana IA (Gemini 2.5 Flash Image). Essais gratuits disponibles, fonctionnalités premium pour ajustement virtuel illimité."
+    }
+  },
+  "faceAnalysis": {
+    "meta": {
+      "title": "Analyse du visage par IA pour lunettes | VisuTry",
+      "description": "Découvrez la forme de votre visage grâce à l'IA et obtenez des recommandations de lunettes personnalisées. Téléchargez une photo et débloquez votre rapport de style complet."
+    },
+    "stepper": {
+      "photo": "Photo",
+      "analysis": "Analyse IA",
+      "report": "Rapport"
+    },
+    "upload": {
+      "title": "Télécharger une photo",
+      "uploaded": "Téléchargée",
+      "label": "Votre photo",
+      "description": "Photo de face claire",
+      "ready": "Bonne photo ! Prête pour l'analyse."
+    },
+    "analyze": {
+      "title": "Analyse du visage par IA",
+      "description": "Découvrez la forme de votre visage et obtenez des informations personnalisées.",
+      "button": "Analyser mon visage",
+      "again": "Analyser à nouveau",
+      "analyzing": "Analyse en cours...",
+      "creditNote": "{count} crédit sera utilisé"
+    },
+    "loading": {
+      "message": "L'IA analyse la forme et les traits de votre visage..."
+    },
+    "empty": {
+      "title": "Votre analyse apparaîtra ici",
+      "description": "Téléchargez une photo et lancez l'analyse faciale IA pour voir les résultats."
+    },
+    "failed": {
+      "title": "Analyse échouée",
+      "retry": "Réessayer"
+    },
+    "footer": {
+      "remainingCredits": "Crédits restants :",
+      "privacy": "Vos résultats d'analyse sont privés et sécurisés",
+      "noCredits": "Plus de crédits pour l'analyse du visage.",
+      "getCredits": "Obtenir des crédits"
+    },
+    "result": {
+      "title": "Résultats de l'analyse IA",
+      "completed": "Terminé",
+      "yourPhoto": "Votre photo téléchargée",
+      "confidence": "{percent}% de confiance",
+      "confidenceDisclaimer": "Estimation IA, pas un avis médical.",
+      "keyFeatures": "Traits clés",
+      "wireframeCaption": "Superposition illustrative",
+      "lockedTitle": "Débloquez votre rapport complet",
+      "lockedDescription": "Meilleures montures, styles à éviter et guide personnel",
+      "previewTitle": "Aperçu du rapport complet",
+      "bestFrames": "Meilleures montures pour vous",
+      "framesToAvoid": "Montures à éviter",
+      "styleGuide": "Guide de style personnel"
+    },
+    "unlock": {
+      "title": "Débloquer le rapport IA complet",
+      "feature1": "Recommandations détaillées de montures et guide de style",
+      "feature2": "{count} crédits d'essayage inclus",
+      "feature3": "Déblocage unique — le rapport reste débloqué",
+      "price": "${price} paiement unique",
+      "button": "Débloquer maintenant",
+      "redirecting": "Redirection..."
+    },
+    "frameSearch": {
+      "title": "Vous cherchez des montures ?",
+      "description": "Lors de vos achats, recherchez ces styles :",
+      "opensGoogle": "Ouvre une recherche Google dans un nouvel onglet",
+      "searchStyle": "Rechercher montures {style}"
+    },
+    "landing": {
+      "title": "Analyse du visage par IA pour mieux choisir vos lunettes",
+      "description": "Téléchargez une photo pour découvrir la forme de votre visage, vos traits clés et des recommandations de montures personnalisées par IA.",
+      "tryGlasses": "Essayer des lunettes à la place",
+      "steps": {
+        "uploadTitle": "Téléchargez votre photo",
+        "uploadDescription": "Utilisez une photo de face claire pour de meilleurs résultats.",
+        "analysisTitle": "Analyse du visage par IA",
+        "analysisDescription": "Obtenez la forme du visage, le score de confiance et les traits clés.",
+        "reportTitle": "Rapport personnalisé",
+        "reportDescription": "Débloquez les recommandations de montures et les conseils de style.",
+        "privacyTitle": "Privé et sécurisé",
+        "privacyDescription": "Vos photos et analyses restent privées dans votre compte."
+      }
+    },
+    "dashboard": {
+      "title": "Analyses faciales récentes",
+      "viewAll": "Tout voir",
+      "empty": "Aucune analyse faciale pour le moment.",
+      "startAnalysis": "Commencer l'analyse faciale",
+      "unlocked": "Débloqué",
+      "locked": "Verrouillé",
+      "viewReport": "Voir le rapport"
     }
   }
 }

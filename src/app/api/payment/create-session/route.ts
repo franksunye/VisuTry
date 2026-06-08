@@ -22,7 +22,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { productType, priceId, successUrl, cancelUrl } = body
+    const { productType, priceId, successUrl, cancelUrl, unlockTaskId } = body
 
     // 支持两种参数格式：productType 或 priceId
     let finalProductType: ProductType
@@ -85,6 +85,7 @@ export async function POST(request: NextRequest) {
         userId: session.user.id,
         successUrl,
         cancelUrl,
+        unlockTaskId: typeof unlockTaskId === 'string' ? unlockTaskId : undefined,
       })
     }
 

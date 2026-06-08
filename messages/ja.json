@@ -27,6 +27,7 @@
     "confirm": "確認"
   },
   "nav": {
+    "faceAnalysis": "顔分析",
     "home": "ホーム",
     "tryOn": "バーチャル試着",
     "tryGlasses": "メガネ",
@@ -61,7 +62,7 @@
     },
     "cta": {
       "button": "始める",
-      "tryGlasses": "メガネを試す",
+      "faceAnalysis": "顔分析",
       "tryOutfit": "服を試す",
       "tryShoes": "靴を試す",
       "tryAccessories": "アクセサリーを試す"
@@ -230,6 +231,103 @@
     "pricing": {
       "title": "料金プラン - すべてのカテゴリーのAIバーチャル試着 | VisuTry",
       "description": "即座のAI搭載バーチャル試着に最適なプランを選択してください。Nano Banana AI (Gemini 2.5 Flash Image)でメガネ、服、靴、アクセサリーを試着。無料トライアル利用可能、無制限のバーチャルフィッティングのプレミアム機能。"
+    }
+  },
+  "faceAnalysis": {
+    "meta": {
+      "title": "AI顔分析でメガネ選び | VisuTry",
+      "description": "AIで顔の形を分析し、パーソナライズされたメガネのおすすめを取得。写真をアップロードして、完全なスタイルレポートを解除しましょう。"
+    },
+    "stepper": {
+      "photo": "写真",
+      "analysis": "AI分析",
+      "report": "レポート"
+    },
+    "upload": {
+      "title": "写真をアップロード",
+      "uploaded": "アップロード済み",
+      "label": "あなたの写真",
+      "description": "正面のはっきりした写真",
+      "ready": "良い写真です！分析の準備ができました。"
+    },
+    "analyze": {
+      "title": "AI顔分析",
+      "description": "顔の形を分析し、パーソナライズされたインサイトを取得します。",
+      "button": "顔を分析する",
+      "again": "再分析する",
+      "analyzing": "分析中...",
+      "creditNote": "{count}クレジットを使用します"
+    },
+    "loading": {
+      "message": "AIが顔の形と特徴を分析しています..."
+    },
+    "empty": {
+      "title": "分析結果がここに表示されます",
+      "description": "写真をアップロードしてAI顔分析を実行してください。"
+    },
+    "failed": {
+      "title": "分析に失敗しました",
+      "retry": "再試行"
+    },
+    "footer": {
+      "remainingCredits": "残りクレジット：",
+      "privacy": "分析結果は非公開で安全に保護されます",
+      "noCredits": "顔分析に使用できるクレジットがありません。",
+      "getCredits": "クレジットを取得"
+    },
+    "result": {
+      "title": "AI分析結果",
+      "completed": "完了",
+      "yourPhoto": "アップロードした写真",
+      "confidence": "信頼度{percent}%",
+      "confidenceDisclaimer": "AIによる推定であり、医療アドバイスではありません。",
+      "keyFeatures": "主な特徴",
+      "wireframeCaption": "イラスト用オーバーレイ",
+      "lockedTitle": "完全レポートを解除",
+      "lockedDescription": "おすすめフレーム、避けるべきスタイル、パーソナルガイド",
+      "previewTitle": "完全レポートのプレビュー",
+      "bestFrames": "あなたに合うフレーム",
+      "framesToAvoid": "避けるべきフレーム",
+      "styleGuide": "パーソナルスタイルガイド"
+    },
+    "unlock": {
+      "title": "完全AIレポートを解除",
+      "feature1": "詳細なフレーム推奨とスタイルガイド",
+      "feature2": "試着クレジット{count}回付き",
+      "feature3": "一度の解除でレポートは永久に解除されたまま",
+      "price": "一回払い${price}",
+      "button": "今すぐ解除",
+      "redirecting": "リダイレクト中..."
+    },
+    "frameSearch": {
+      "title": "フレームを探していますか？",
+      "description": "フレームを購入する際は、これらのスタイルを検索してください：",
+      "opensGoogle": "新しいタブでGoogle検索を開きます",
+      "searchStyle": "{style}フレームを検索"
+    },
+    "landing": {
+      "title": "AI顔分析でより良いメガネ選び",
+      "description": "写真をアップロードして、顔の形、主な特徴、AIによるパーソナライズされたフレーム推奨を発見しましょう。",
+      "tryGlasses": "代わりにメガネを試着",
+      "steps": {
+        "uploadTitle": "写真をアップロード",
+        "uploadDescription": "最良の結果には正面のはっきりした写真を使用してください。",
+        "analysisTitle": "AI顔分析",
+        "analysisDescription": "顔の形、信頼度スコア、主な特徴を取得。",
+        "reportTitle": "パーソナライズレポート",
+        "reportDescription": "フレーム推奨とスタイルガイドを解除。",
+        "privacyTitle": "非公開で安全",
+        "privacyDescription": "写真と分析はアカウント内で非公開のままです。"
+      }
+    },
+    "dashboard": {
+      "title": "最近の顔分析",
+      "viewAll": "すべて表示",
+      "empty": "顔分析はまだありません。",
+      "startAnalysis": "顔分析を開始",
+      "unlocked": "解除済み",
+      "locked": "ロック中",
+      "viewReport": "レポートを見る"
     }
   }
 }

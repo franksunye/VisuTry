@@ -72,11 +72,13 @@ export async function createCheckoutSession({
   userId,
   successUrl,
   cancelUrl,
+  unlockTaskId,
 }: {
   productType: ProductType
   userId: string
   successUrl: string
   cancelUrl: string
+  unlockTaskId?: string
 }) {
   const product = PRODUCTS[productType]
 
@@ -99,6 +101,7 @@ export async function createCheckoutSession({
     metadata: {
       userId,
       productType,
+      ...(unlockTaskId ? { unlockTaskId } : {}),
     },
   }
 
@@ -157,6 +160,7 @@ export async function handleSuccessfulPayment(session: Stripe.Checkout.Session) 
     currency: session.currency || "usd",
     sessionId: session.id,
     paymentIntentId: session.payment_intent as string,
+    unlockTaskId: session.metadata?.unlockTaskId,
   }
 }
 

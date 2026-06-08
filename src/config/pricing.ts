@@ -187,7 +187,74 @@ export const PROMO_MAPPING: Record<string, ProductType> = {
 export type ProductType = keyof typeof PRODUCT_METADATA
 export type ProductMetadata = typeof PRODUCT_METADATA[ProductType]
 
+export interface PricingQuotas {
+  freeTrial: number
+  creditsPack: number
+  monthly: number
+  yearly: number
+}
+
 // ========== 5. 辅助函数 ==========
+
+/**
+ * Read quota values on the server and pass into client pricing UI.
+ * Avoids hydration mismatch: client bundles cannot read server-only env vars.
+ */
+export function getPricingQuotas(): PricingQuotas {
+  return {
+    freeTrial: QUOTA_CONFIG.FREE_TRIAL,
+    creditsPack: QUOTA_CONFIG.CREDITS_PACK,
+    monthly: QUOTA_CONFIG.MONTHLY_SUBSCRIPTION,
+    yearly: QUOTA_CONFIG.YEARLY_SUBSCRIPTION,
+  }
+}
+
+export function resolveDisplayProductId(
+  standardId: ProductType,
+  isPromoActive: boolean
+): ProductType {
+  if (isPromoActive && PROMO_MAPPING[standardId]) {
+    return PROMO_MAPPING[standardId] as ProductType
+  }
+  return standardId
+}
+
+export function buildPlanFeatures(productId: ProductType, quotas: PricingQuotas): string[] {
+  const meta = PRODUCT_METADATA[productId]
+  const staticFeatures = meta.features.slice(1)
+
+  switch (productId) {
+    case 'CREDITS_PACK':
+      return [`${quotas.creditsPack} AI try-ons`, ...staticFeatures]
+    case 'CREDITS_PACK_PROMO_60':
+      return [`${quotas.creditsPack * 2} AI try-ons`, ...staticFeatures]
+    case 'PREMIUM_MONTHLY':
+    case 'PREMIUM_MONTHLY_PROMO':
+      return [`${quotas.monthly} AI try-ons per month`, ...staticFeatures]
+    case 'PREMIUM_YEARLY':
+    case 'PREMIUM_YEARLY_PROMO':
+      return [`${quotas.yearly} AI try-ons per year (1080 + 180 bonus)`, ...staticFeatures]
+    default:
+      return [...meta.features]
+  }
+}
+
+export function getPlanQuota(productId: ProductType, quotas: PricingQuotas): number {
+  switch (productId) {
+    case 'CREDITS_PACK':
+      return quotas.creditsPack
+    case 'CREDITS_PACK_PROMO_60':
+      return quotas.creditsPack * 2
+    case 'PREMIUM_MONTHLY':
+    case 'PREMIUM_MONTHLY_PROMO':
+      return quotas.monthly
+    case 'PREMIUM_YEARLY':
+    case 'PREMIUM_YEARLY_PROMO':
+      return quotas.yearly
+    default:
+      return PRODUCT_METADATA[productId].quota
+  }
+}
 
 /**
  * 解析促销代码

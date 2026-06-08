@@ -27,6 +27,7 @@
     "confirm": "Bestätigen"
   },
   "nav": {
+    "faceAnalysis": "Gesichtsanalyse",
     "home": "Startseite",
     "tryOn": "Virtuelle Anprobe",
     "tryGlasses": "Brille",
@@ -61,7 +62,7 @@
     },
     "cta": {
       "button": "Loslegen",
-      "tryGlasses": "Brille Anprobieren",
+      "faceAnalysis": "Gesichtsanalyse",
       "tryOutfit": "Kleidung Anprobieren",
       "tryShoes": "Schuhe Anprobieren",
       "tryAccessories": "Accessoires Anprobieren"
@@ -230,6 +231,103 @@
     "pricing": {
       "title": "Preispläne - KI-Virtuelle Anprobe für Alle Kategorien | VisuTry",
       "description": "Wählen Sie den perfekten Plan für sofortige KI-gestützte virtuelle Anprobe. Probieren Sie Brillen, Kleidung, Schuhe und Accessoires mit Nano Banana KI (Gemini 2.5 Flash Image) an. Kostenlose Testversionen verfügbar, Premium-Funktionen für unbegrenzte virtuelle Anpassung."
+    }
+  },
+  "faceAnalysis": {
+    "meta": {
+      "title": "KI-Gesichtsanalyse für Brillen | VisuTry",
+      "description": "Entdecken Sie Ihre Gesichtsform mit KI und erhalten Sie personalisierte Brillenempfehlungen. Laden Sie ein Foto hoch und schalten Sie Ihren vollständigen Stilbericht frei."
+    },
+    "stepper": {
+      "photo": "Foto",
+      "analysis": "KI-Analyse",
+      "report": "Bericht"
+    },
+    "upload": {
+      "title": "Foto hochladen",
+      "uploaded": "Hochgeladen",
+      "label": "Ihr Foto",
+      "description": "Klares Frontalfoto",
+      "ready": "Gutes Foto! Bereit zur Analyse."
+    },
+    "analyze": {
+      "title": "KI-Gesichtsanalyse",
+      "description": "Entdecken Sie Ihre Gesichtsform und erhalten Sie personalisierte Einblicke.",
+      "button": "Mein Gesicht analysieren",
+      "again": "Erneut analysieren",
+      "analyzing": "Analysiere...",
+      "creditNote": "{count} Credit wird verwendet"
+    },
+    "loading": {
+      "message": "KI analysiert Ihre Gesichtsform und Merkmale..."
+    },
+    "empty": {
+      "title": "Ihre Analyse erscheint hier",
+      "description": "Laden Sie ein Foto hoch und starten Sie die KI-Gesichtsanalyse."
+    },
+    "failed": {
+      "title": "Analyse fehlgeschlagen",
+      "retry": "Erneut versuchen"
+    },
+    "footer": {
+      "remainingCredits": "Verbleibende Credits:",
+      "privacy": "Ihre Analyseergebnisse sind privat und sicher",
+      "noCredits": "Keine Credits mehr für die Gesichtsanalyse.",
+      "getCredits": "Credits kaufen"
+    },
+    "result": {
+      "title": "KI-Analyseergebnisse",
+      "completed": "Abgeschlossen",
+      "yourPhoto": "Ihr hochgeladenes Foto",
+      "confidence": "{percent}% Konfidenz",
+      "confidenceDisclaimer": "KI-Schätzung, keine medizinische Beratung.",
+      "keyFeatures": "Hauptmerkmale",
+      "wireframeCaption": "Illustrative Überlagerung",
+      "lockedTitle": "Vollständigen Bericht freischalten",
+      "lockedDescription": "Beste Rahmen, zu vermeidende Stile und persönlicher Leitfaden",
+      "previewTitle": "Vorschau des vollständigen Berichts",
+      "bestFrames": "Beste Rahmen für Sie",
+      "framesToAvoid": "Zu vermeidende Rahmen",
+      "styleGuide": "Persönlicher Stilleitfaden"
+    },
+    "unlock": {
+      "title": "Vollständigen KI-Bericht freischalten",
+      "feature1": "Detaillierte Rahmenempfehlungen und Stilleitfaden",
+      "feature2": "{count} Try-On-Credits inklusive",
+      "feature3": "Einmalige Freischaltung — Bericht bleibt freigeschaltet",
+      "price": "${price} einmalig",
+      "button": "Jetzt freischalten",
+      "redirecting": "Weiterleitung..."
+    },
+    "frameSearch": {
+      "title": "Brillen kaufen?",
+      "description": "Suchen Sie beim Einkaufen nach diesen Stilen:",
+      "opensGoogle": "Öffnet Google-Suche in einem neuen Tab",
+      "searchStyle": "{style}-Brillen suchen"
+    },
+    "landing": {
+      "title": "KI-Gesichtsanalyse für bessere Brillenwahl",
+      "description": "Laden Sie ein Foto hoch, um Ihre Gesichtsform, Hauptmerkmale und personalisierte Rahmenempfehlungen per KI zu entdecken.",
+      "tryGlasses": "Stattdessen Brille anprobieren",
+      "steps": {
+        "uploadTitle": "Foto hochladen",
+        "uploadDescription": "Verwenden Sie ein klares Frontalfoto für beste Ergebnisse.",
+        "analysisTitle": "KI-Gesichtsanalyse",
+        "analysisDescription": "Gesichtsform, Konfidenzwert und Hauptmerkmale erhalten.",
+        "reportTitle": "Personalisierter Bericht",
+        "reportDescription": "Rahmenempfehlungen und Stilberatung freischalten.",
+        "privacyTitle": "Privat & sicher",
+        "privacyDescription": "Ihre Fotos und Analysen bleiben in Ihrem Konto privat."
+      }
+    },
+    "dashboard": {
+      "title": "Letzte Gesichtsanalysen",
+      "viewAll": "Alle anzeigen",
+      "empty": "Noch keine Gesichtsanalysen.",
+      "startAnalysis": "Gesichtsanalyse starten",
+      "unlocked": "Freigeschaltet",
+      "locked": "Gesperrt",
+      "viewReport": "Bericht anzeigen"
     }
   }
 }

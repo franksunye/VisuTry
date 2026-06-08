@@ -13,6 +13,7 @@ import {
 import Stripe from "stripe"
 import { QUOTA_CONFIG, PRODUCT_METADATA, getProductQuota } from "@/config/pricing"
 import { logger, getRequestContext } from "@/lib/logger"
+import { unlockFaceAnalysisReport } from "@/lib/face-analysis-service"
 
 // Force dynamic rendering for this route
 export const dynamic = 'force-dynamic'
@@ -115,6 +116,19 @@ async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session, 
           }
         }
       })
+    }
+
+    if (paymentData.unlockTaskId) {
+      const unlocked = await unlockFaceAnalysisReport(
+        paymentData.unlockTaskId,
+        paymentData.userId
+      )
+      if (unlocked) {
+        logger.info('payment', 'Face analysis report unlocked', {
+          userId: paymentData.userId,
+          taskId: paymentData.unlockTaskId,
+        }, context)
+      }
     }
 
     // 清除用户缓存，确保所有页面立即显示最新数据
