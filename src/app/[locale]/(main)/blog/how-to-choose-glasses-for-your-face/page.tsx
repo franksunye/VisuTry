@@ -25,7 +25,9 @@ const structuredData = generateStructuredData('article', {
 
 const articleTags = ['Face Shape', 'Glasses Selection', 'Style Guide', 'Buying Guide', 'Fashion Tips']
 
-export default function BlogPostPage() {
+export default function BlogPostPage({ params }: { params: { locale: string } }) {
+  const localePrefix = `/${params.locale}`
+
   return (
     <>
       {/* Structured data */}
@@ -73,7 +75,7 @@ export default function BlogPostPage() {
                 How to Choose the Right Glasses for Your Face Shape? Complete Guide
               </h1>
               <p className="text-xl text-gray-600">
-                Choosing the right glasses not only improves vision but also perfectly complements your face shape. This article provides detailed tips for matching glasses to different face shapes. If you&apos;re ready to shop, check out our <Link href="/blog/prescription-glasses-online-shopping-guide-2025" className="text-blue-600 hover:text-blue-800">complete online shopping guide</Link>.
+                Choosing the right glasses not only improves vision but also perfectly complements your face shape. This article provides detailed tips for matching glasses to different face shapes. If you want an AI-assisted starting point, try <Link href={`${localePrefix}/face-analysis`} className="text-blue-600 hover:text-blue-800">AI face analysis for glasses</Link> before you shop.
               </p>
             </div>
 
@@ -89,6 +91,10 @@ export default function BlogPostPage() {
                 <li>Enhance your overall appearance</li>
                 <li>Boost your confidence</li>
               </ul>
+              <p>
+                For a newer workflow that combines face shape detection, personalized frame guidance,
+                and virtual try-on, read our <Link href={`${localePrefix}/blog/ai-face-analysis-for-glasses-guide`} className="text-blue-600 hover:text-blue-800">AI face analysis for glasses guide</Link>.
+              </p>
 
               <h2>Glasses Selection Guide for Different Face Shapes</h2>
 
@@ -147,16 +153,16 @@ export default function BlogPostPage() {
               {/* CTA section */}
               <div className="bg-blue-50 p-6 rounded-lg my-8">
                 <h3 className="text-xl font-bold text-blue-900 mb-4">
-                  🔍 Try AI Virtual Glasses Try-On Now
+                  Start with AI face analysis
                 </h3>
                 <p className="text-blue-800 mb-4">
-                  Not sure which glasses suit you? Use our AI virtual try-on tool - just upload your photo to see how different glasses look on you!
+                  Not sure which glasses suit you? Upload a clear photo to estimate your face shape, get frame recommendations, and then compare styles with virtual try-on.
                 </p>
                 <Link
-                  href="/"
+                  href={`${localePrefix}/face-analysis`}
                   className="inline-block bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors"
                 >
-                  Start Try-On
+                  Analyze My Face
                 </Link>
               </div>
 
@@ -200,10 +206,10 @@ export default function BlogPostPage() {
               <div className="flex items-center justify-between flex-wrap gap-4">
                 <BlogTags tags={articleTags} />
                 <Link
-                  href="/"
+                  href={`${localePrefix}/face-analysis`}
                   className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors"
                 >
-                  Try Now
+                  Analyze My Face
                 </Link>
               </div>
             </div>

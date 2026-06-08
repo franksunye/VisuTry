@@ -20,6 +20,19 @@ export interface BlogPost {
 // Static blog posts list (can be fetched from database in the future)
 export const staticBlogPosts: BlogPost[] = [
   {
+    slug: 'ai-face-analysis-for-glasses-guide',
+    title: 'AI Face Analysis for Glasses - How to Find Frames That Fit Your Face Shape',
+    description: 'Learn how AI face analysis helps identify your face shape, narrow down glasses styles, and use virtual try-on to choose frames with more confidence.',
+    publishedAt: '2026-06-08T10:00:00Z',
+    modifiedAt: '2026-06-08T10:00:00Z',
+    author: 'VisuTry Team',
+    category: 'Face Shape Guide',
+    readTime: '8 min read',
+    tags: ['AI Face Analysis', 'Face Shape', 'Glasses Selection', 'Virtual Try-On'],
+    isPublished: true,
+    coverImage: '/blog-covers/face-shape-guide.jpg',
+  },
+  {
     slug: 'how-to-choose-glasses-for-your-face',
     title: 'How to Choose the Right Glasses for Your Face Shape? Complete Guide',
     description: 'Detailed analysis of suitable glasses styles for different face shapes, including round, square, long faces and professional advice. Use AI try-on tools to find the best match.',

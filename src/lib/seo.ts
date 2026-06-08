@@ -13,6 +13,7 @@ export const KEYWORDS = {
     'virtual try-on',
     'AI virtual try-on',
     'virtual try-on glasses',
+    'AI face analysis for glasses',
     'virtual try-on outfit',
     'virtual try-on shoes',
     'virtual try-on accessories',
@@ -35,6 +36,8 @@ export const KEYWORDS = {
   // Feature-based keywords - Priority A/B
   features: [
     'smart style recommendation',
+    'face shape analysis',
+    'personalized glasses recommendations',
     'AI-powered virtual fitting',
     'instant virtual try-on',
     'no download virtual try-on',
@@ -59,7 +62,10 @@ export const KEYWORDS = {
   // Long-tail keywords (traffic generation) - Priority B/C
   longTail: [
     'best glasses for round face',
+    'glasses for face shape',
+    'best glasses for face shape',
     'how to choose glasses online',
+    'how to find glasses for my face shape',
     'virtual glasses fitting app',
     'try on clothes online',
     'virtual shoe fitting',
