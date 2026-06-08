@@ -10,6 +10,15 @@ import {
   FaceAnalysisFullResult,
   FaceAnalysisLockedTeaser,
 } from '@/types/face-analysis'
+import {
+  buildAvoidRecommendations,
+  buildFaceMetrics,
+  buildFrameRecommendations,
+  buildReportStrengths,
+  buildStyleTips,
+  buildTryOnGuidance,
+  getReportDisclaimer,
+} from '@/lib/face-analysis-report'
 
 const shapeCatalog = faceShapesData as Array<{
   name: string
@@ -57,6 +66,8 @@ export function parseFaceAnalysisContent(raw: string): FaceAnalysisAiResult {
     bestFrames: toStringArray(parsed.bestFrames, 5),
     framesToAvoid: toStringArray(parsed.framesToAvoid, 4),
     styleGuide: typeof parsed.styleGuide === 'string' ? parsed.styleGuide : '',
+    strengths: toStringArray(parsed.strengths, 3),
+    styleRecommendations: toStringArray(parsed.styleRecommendations, 3),
   }
 }
 
@@ -91,20 +102,35 @@ export function buildLockedTeaser(full: FaceAnalysisFullResult): FaceAnalysisLoc
 export function buildFullResult(ai: FaceAnalysisAiResult): FaceAnalysisFullResult {
   const basic = buildBasicResult(ai)
   const catalog = getCatalogEntry(ai.faceShape)
+  const frameRecommendations = buildFrameRecommendations(ai.faceShape)
+  const avoidRecommendations = buildAvoidRecommendations(ai.faceShape)
+  const styleTips = buildStyleTips(ai.faceShape, ai.styleRecommendations)
+  const strengths = buildReportStrengths(ai.faceShape, ai.strengths)
 
   return {
     ...basic,
+    reportVersion: 'v2',
     bestFrames:
       ai.bestFrames.length > 0
         ? ai.bestFrames
-        : (catalog?.recommendedStyles ?? []).map((s) => `${s} frames`),
+        : frameRecommendations.map((item) => `${item.displayName} frames`),
     framesToAvoid:
       ai.framesToAvoid.length > 0
         ? ai.framesToAvoid
-        : (catalog?.avoidStyles ?? []).map((s) => `${s} frames`),
+        : avoidRecommendations.map((item) => `${item.displayName} frames`),
     styleGuide: ai.styleGuide || basic.summary,
     catalogRecommendedStyles: catalog?.recommendedStyles,
     catalogAvoidStyles: catalog?.avoidStyles,
+    overview: {
+      summary: ai.summary || basic.summary,
+      strengths,
+      disclaimer: getReportDisclaimer(),
+    },
+    metrics: buildFaceMetrics(ai.faceShape, ai.confidence),
+    frameRecommendations,
+    avoidRecommendations,
+    styleTips,
+    tryOnGuidance: buildTryOnGuidance(ai.faceShape),
   }
 }
 
@@ -117,6 +143,8 @@ export function fallbackAiResult(): FaceAnalysisAiResult {
     bestFrames: ['aviator frames', 'clubmaster frames'],
     framesToAvoid: ['overly narrow frames'],
     styleGuide: 'Consider trying a few different frame widths to find your best match.',
+    strengths: ['Balanced proportions'],
+    styleRecommendations: ['Try multiple frame widths before choosing.'],
   }
 }
 

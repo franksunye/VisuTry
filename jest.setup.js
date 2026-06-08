@@ -47,6 +47,9 @@ jest.mock('next/navigation', () => ({
   usePathname() {
     return '/'
   },
+  useParams() {
+    return { locale: 'en' }
+  },
 }))
 
 // Mock environment variables for tests

@@ -14,6 +14,10 @@ Requirements:
 - bestFrames: 3-5 frame style recommendations (e.g. round, cat-eye, browline, aviator, oversized)
 - framesToAvoid: 2-4 frame styles to avoid for this face shape
 - styleGuide: 2-3 sentences of personalized styling advice
+- strengths: 3 short strings describing positive facial structure signals for eyewear styling
+- styleRecommendations: 3 short, practical eyewear styling tips
+- Do not estimate age, gender, attractiveness, ethnicity, emotion, wealth, or profession.
+- Do not claim medical or biometric certainty.
 
 JSON schema:
 {
@@ -23,6 +27,8 @@ JSON schema:
   "keyFeatures": ["Strong jawline", "Balanced forehead width"],
   "bestFrames": ["round frames", "oval frames"],
   "framesToAvoid": ["square frames", "geometric frames"],
-  "styleGuide": "Personalized advice paragraph."
+  "styleGuide": "Personalized advice paragraph.",
+  "strengths": ["Defined jawline", "Balanced upper and lower face"],
+  "styleRecommendations": ["Choose rounder frames to soften angles"]
 }`
 }
