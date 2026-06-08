@@ -251,8 +251,6 @@ export function getPlanQuota(productId: ProductType, quotas: PricingQuotas): num
     case 'PREMIUM_YEARLY':
     case 'PREMIUM_YEARLY_PROMO':
       return quotas.yearly
-    default:
-      return PRODUCT_METADATA[productId].quota
   }
 }
 
