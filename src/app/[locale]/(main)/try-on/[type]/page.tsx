@@ -8,7 +8,7 @@ import { generateStructuredData } from "@/lib/seo"
 import { Metadata } from 'next'
 import { TryOnType, getTryOnConfig, urlToTryOnType, getAllTryOnTypes, tryOnTypeToUrl } from "@/config/try-on-types"
 import Link from "next/link"
-import { ArrowRight, CheckCircle2, Image, Shield, Upload } from "lucide-react"
+import { ArrowRight, CheckCircle2, CreditCard, Image, Shield, Upload } from "lucide-react"
 
 interface TryOnPageProps {
   params: {
@@ -172,9 +172,65 @@ function PublicTryOnLanding({
       : `Virtual ${config.name} try-on powered by AI.`,
     url: `https://visutry.com/${locale}/try-on/${type}`,
   })
+  const valuePoints = isGlasses
+    ? [
+        "Works with your own glasses images",
+        "Useful for designer and store product photos",
+        "One-time Credits Pack available after the free try-on",
+      ]
+    : [
+        `Upload your own ${config.name.toLowerCase()} image`,
+        "Preview the item on your photo before buying",
+        "Browser-based flow with no app install",
+      ]
+  const landingSteps = isGlasses
+    ? [
+        {
+          icon: Upload,
+          title: "Upload your photos",
+          description: "Use a face photo plus a glasses product photo, store image, or screenshot from email.",
+        },
+        {
+          icon: Image,
+          title: "Preview and compare",
+          description: "Check how different frames look on your face before choosing what to buy.",
+        },
+        {
+          icon: Shield,
+          title: "Browser-based and private",
+          description: "No app install. Free data is stored for 7 days; Credits Pack users get 90 days of history retention.",
+        },
+        {
+          icon: CreditCard,
+          title: "Continue when you need more",
+          description: "Start with one free try-on, then use a one-time Credits Pack when you want to compare more frames.",
+        },
+      ]
+    : [
+        {
+          icon: Upload,
+          title: `Upload your ${config.name.toLowerCase()} photos`,
+          description: `Use a clear personal photo and a ${config.name.toLowerCase()} product image.`,
+        },
+        {
+          icon: Image,
+          title: "Preview the look",
+          description: "Generate an AI preview before deciding what to buy.",
+        },
+        {
+          icon: Shield,
+          title: "Browser-based and private",
+          description: "No app install. Your try-on history follows your account retention plan.",
+        },
+        {
+          icon: CreditCard,
+          title: "Continue with credits",
+          description: "Start free, then use a one-time Credits Pack when you want more AI try-ons.",
+        },
+      ]
 
   return (
-    <main className="bg-white">
+    <main>
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(appSchema) }}
@@ -184,17 +240,26 @@ function PublicTryOnLanding({
         dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
       />
 
-      <section className="mx-auto grid max-w-6xl gap-10 px-4 py-12 md:grid-cols-[1.1fr_0.9fr] md:items-center md:py-16">
-        <div>
-          <p className="mb-3 text-sm font-semibold uppercase tracking-wide text-blue-600">
+      <div className="mx-auto max-w-6xl px-4 py-8 md:py-10">
+        <section className="grid gap-8 lg:grid-cols-[0.95fr_1.05fr] lg:items-center">
+          <div className="max-w-2xl">
+          <p className="mb-3 inline-flex items-center rounded-full border border-blue-200 bg-white px-3 py-1 text-sm font-semibold text-blue-700">
             AI glasses try-on online
           </p>
-          <h1 className="mb-5 max-w-3xl text-4xl font-bold leading-tight text-gray-950 md:text-5xl">
+          <h1 className="mb-4 text-3xl font-bold leading-tight text-gray-950 md:text-5xl">
             Try on glasses from a photo or product screenshot
           </h1>
-          <p className="mb-7 max-w-2xl text-lg leading-8 text-gray-600">
+          <p className="mb-6 text-lg leading-8 text-gray-600">
             Upload a clear face photo and your own glasses image. VisuTry creates a realistic preview so you can compare frames before buying, without installing an app.
           </p>
+          <div className="mb-7 grid gap-3">
+            {valuePoints.map((item) => (
+              <div key={item} className="flex items-start gap-3 text-sm font-medium text-gray-700">
+                <CheckCircle2 className="mt-0.5 h-5 w-5 flex-shrink-0 text-green-600" />
+                <span>{item}</span>
+              </div>
+            ))}
+          </div>
           <div className="flex flex-col gap-3 sm:flex-row">
             <Link
               href={startHref}
@@ -215,51 +280,44 @@ function PublicTryOnLanding({
           </p>
         </div>
 
-        <div className="rounded-2xl border border-gray-200 bg-gray-50 p-6">
-          <div className="grid gap-4">
-            <div className="rounded-xl bg-white p-5 shadow-sm">
-              <Upload className="mb-3 h-6 w-6 text-blue-600" />
-              <h2 className="mb-2 text-lg font-semibold text-gray-950">Upload your photos</h2>
-              <p className="text-sm leading-6 text-gray-600">
-                Use a face photo plus a glasses product photo, store image, or screenshot from email.
-              </p>
-            </div>
-            <div className="rounded-xl bg-white p-5 shadow-sm">
-              <Image className="mb-3 h-6 w-6 text-blue-600" />
-              <h2 className="mb-2 text-lg font-semibold text-gray-950">Preview and compare</h2>
-              <p className="text-sm leading-6 text-gray-600">
-                Check how different frames look on your face before choosing what to buy.
-              </p>
-            </div>
-            <div className="rounded-xl bg-white p-5 shadow-sm">
-              <Shield className="mb-3 h-6 w-6 text-blue-600" />
-              <h2 className="mb-2 text-lg font-semibold text-gray-950">Browser-based and private</h2>
-              <p className="text-sm leading-6 text-gray-600">
-                No app install. Free data is stored for 7 days; Credits Pack users get 90 days of history retention.
-              </p>
-            </div>
+        <div className="rounded-2xl border border-gray-200 bg-white/80 p-4 shadow-sm md:p-5">
+          <div className="grid gap-4 sm:grid-cols-2">
+            {landingSteps.map((step) => {
+              const Icon = step.icon
+              return (
+                <div key={step.title} className="rounded-xl border border-gray-100 bg-white p-5 shadow-sm">
+                  <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-lg bg-blue-50 text-blue-600">
+                    <Icon className="h-5 w-5" />
+                  </div>
+                  <h2 className="mb-2 text-base font-semibold text-gray-950">{step.title}</h2>
+                  <p className="text-sm leading-6 text-gray-600">{step.description}</p>
+                </div>
+              )
+            })}
           </div>
+          <p className="mt-4 rounded-lg bg-blue-50 px-4 py-3 text-sm leading-6 text-blue-900">
+            VisuTry works with product photos and screenshots, so you can compare frames from
+            stores, emails, or saved images in one browser-based flow.
+          </p>
         </div>
       </section>
 
-      <section className="border-y border-gray-200 bg-gray-50">
-        <div className="mx-auto grid max-w-6xl gap-6 px-4 py-10 md:grid-cols-3">
-          {[
-            "Works with your own glasses images",
-            "Useful for designer and store product photos",
-            "One-time Credits Pack available after the free try-on",
-          ].map((item) => (
-            <div key={item} className="flex gap-3">
-              <CheckCircle2 className="mt-0.5 h-5 w-5 flex-shrink-0 text-green-600" />
-              <p className="text-sm font-medium text-gray-800">{item}</p>
-            </div>
-          ))}
+      <section className="mt-8 rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+        <div className="mb-6 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <p className="mb-2 text-sm font-semibold uppercase tracking-normal text-blue-600">
+              Questions shoppers ask
+            </p>
+            <h2 className="text-2xl font-bold text-gray-950">AI glasses try-on FAQ</h2>
+          </div>
+          <Link
+            href={`/${locale}/blog/prescription-glasses-virtual-tryon-guide`}
+            className="text-sm font-semibold text-blue-600 hover:text-blue-800"
+          >
+            Read the buying guide
+          </Link>
         </div>
-      </section>
-
-      <section className="mx-auto max-w-4xl px-4 py-12">
-        <h2 className="mb-6 text-2xl font-bold text-gray-950">AI glasses try-on FAQ</h2>
-        <div className="space-y-4">
+        <div className="grid gap-4 md:grid-cols-2">
           {faqItems.map((item) => (
             <details key={item.question} className="rounded-lg border border-gray-200 bg-white p-5">
               <summary className="cursor-pointer text-base font-semibold text-gray-950">
@@ -270,6 +328,7 @@ function PublicTryOnLanding({
           ))}
         </div>
       </section>
+      </div>
     </main>
   )
 }
