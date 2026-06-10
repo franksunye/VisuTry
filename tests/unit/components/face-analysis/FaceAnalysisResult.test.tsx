@@ -59,7 +59,7 @@ function makeTask(overrides: Partial<FaceAnalysisTaskResponse> = {}): FaceAnalys
 
 describe('FaceAnalysisResult', () => {
   it('renders the premium full report sections when unlocked', () => {
-    render(<FaceAnalysisResult task={makeTask()} onUnlock={jest.fn()} />)
+    render(<FaceAnalysisResult task={makeTask()} onUnlock={jest.fn()} remainingCredits={5} />)
 
     expect(screen.getByText('Your AI Face Shape Report')).toBeInTheDocument()
     expect(screen.getByText('Face Analysis Details')).toBeInTheDocument()
@@ -67,7 +67,26 @@ describe('FaceAnalysisResult', () => {
     expect(screen.getByText('Frames to Avoid')).toBeInTheDocument()
     expect(screen.getByText('Personal Style Guide')).toBeInTheDocument()
     expect(screen.getByText('Try On Your Top Picks')).toBeInTheDocument()
+    expect(screen.getByText(/Each AI glasses try-on uses 1 credit per generated photo/i)).toBeInTheDocument()
+    expect(screen.queryByAltText('Style guide preview')).not.toBeInTheDocument()
     expect(screen.getByRole('button', { name: /download report/i })).toBeEnabled()
+  })
+
+  it('starts top picks generation when credits are available', () => {
+    render(<FaceAnalysisResult task={makeTask()} onUnlock={jest.fn()} remainingCredits={5} />)
+
+    expect(screen.getByRole('button', { name: /try top picks on your photo/i })).toBeEnabled()
+    expect(screen.getByText('5 credits')).toBeInTheDocument()
+    expect(screen.getByText(/failed generations are not charged/i)).toBeInTheDocument()
+  })
+
+  it('links top picks to pricing when credits are insufficient', () => {
+    render(<FaceAnalysisResult task={makeTask()} onUnlock={jest.fn()} remainingCredits={2} />)
+
+    const link = screen.getByRole('link', { name: /get credits to try top picks/i })
+    expect(link).toHaveAttribute('href', '/en/pricing')
+    expect(screen.getByText(/You need/i)).toBeInTheDocument()
+    expect(screen.getByText('2 credits')).toBeInTheDocument()
   })
 
   it('renders a locked premium preview when the report is not unlocked', () => {

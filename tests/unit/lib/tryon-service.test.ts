@@ -190,6 +190,50 @@ describe('TryOnService', () => {
         })
       })
     })
+
+    it('should allow callers to force GrsAi for premium batch workflows', async () => {
+      const premiumUser = { ...mockUser, isPremium: true, premiumExpiresAt: new Date(Date.now() + 10000) }
+      const mockGenerate = require('@/lib/gemini').generateTryOnImage
+
+      ;(submitAsyncTask as jest.Mock).mockResolvedValue('grsai-forced-task-id')
+      ;(prisma.tryOnTask.create as jest.Mock).mockResolvedValue({
+        id: 'task-forced-grsai',
+        status: TaskStatus.PENDING,
+        metadata: {},
+      })
+      ;(prisma.tryOnTask.update as jest.Mock).mockResolvedValue({})
+
+      const result = await submitTryOnTask(
+        premiumUser as any,
+        mockFile,
+        mockFile,
+        'GLASSES',
+        'batch prompt',
+        {
+          forceServiceType: 'grsai',
+          metadata: {
+            source: 'face-analysis-top-picks',
+            framePresetId: 'rectangle-classic',
+          },
+        }
+      )
+
+      expect(mockGenerate).not.toHaveBeenCalled()
+      expect(submitAsyncTask).toHaveBeenCalled()
+      expect(prisma.tryOnTask.create).toHaveBeenCalledWith({
+        data: expect.objectContaining({
+          metadata: expect.objectContaining({
+            serviceType: 'grsai',
+            isAsync: true,
+            source: 'face-analysis-top-picks',
+            framePresetId: 'rectangle-classic',
+          }),
+        }),
+      })
+      expect(result.serviceType).toBe('grsai')
+      expect(result.isAsync).toBe(true)
+      expect(result.status).toBe('submitted')
+    })
   })
 
   describe('getTryOnResult', () => {
@@ -237,7 +281,7 @@ describe('TryOnService', () => {
         },
         data: expect.objectContaining({
           status: TaskStatus.COMPLETED,
-          resultImageUrl: 'http://blob/test.jpg', // From put mock
+          resultImageUrl: 'http://blob/tryon/result/user-1/task-1.png',
           metadata: expect.objectContaining({
              serviceType: 'grsai',
              externalTaskId: 'grsai-task-id',
@@ -430,7 +474,7 @@ describe('TryOnService', () => {
         },
         data: expect.objectContaining({
           status: TaskStatus.COMPLETED,
-          resultImageUrl: 'http://blob/test.jpg',
+          resultImageUrl: 'http://blob/tryon/result/user-1/task-recover.png',
         }),
       })
       expect(result.status).toBe(TaskStatus.COMPLETED)

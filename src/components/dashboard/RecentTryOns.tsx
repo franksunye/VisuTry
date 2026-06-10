@@ -247,6 +247,18 @@ export function RecentTryOns({ tryOns: initialTryOns }: RecentTryOnsProps) {
 
               {/* Info Area */}
               <div className="p-4">
+                {tryOn.metadata?.source === 'face-analysis-top-picks' && (
+                  <div className="mb-3">
+                    <span className="inline-flex items-center rounded-full bg-blue-50 px-2.5 py-1 text-xs font-semibold text-blue-700">
+                      Top Picks
+                    </span>
+                    {tryOn.metadata?.framePresetName && (
+                      <p className="mt-2 text-sm font-semibold text-gray-900">
+                        {tryOn.metadata.framePresetName}
+                      </p>
+                    )}
+                  </div>
+                )}
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-gray-500">
                     {formatDistanceToNow(new Date(tryOn.createdAt), {

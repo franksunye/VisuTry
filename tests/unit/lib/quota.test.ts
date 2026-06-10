@@ -1,5 +1,5 @@
 import { User } from '@prisma/client'
-import { getNextQuotaSource } from '@/lib/quota'
+import { getNextQuotaSource, getRemainingQuotaCount } from '@/lib/quota'
 
 function makeUser(overrides: Partial<User> = {}): User {
   return {
@@ -68,5 +68,30 @@ describe('getNextQuotaSource', () => {
     })
 
     expect(getNextQuotaSource(user)).toBeNull()
+  })
+})
+
+describe('getRemainingQuotaCount', () => {
+  it('adds credits and free trials for non-premium users', () => {
+    const user = makeUser({
+      creditsPurchased: 10,
+      creditsUsed: 4,
+      freeTrialsUsed: 1,
+    })
+
+    expect(getRemainingQuotaCount(user)).toBe(8)
+  })
+
+  it('adds subscription quota and credits for premium users', () => {
+    const user = makeUser({
+      isPremium: true,
+      premiumExpiresAt: new Date(Date.now() + 86400000),
+      currentSubscriptionType: 'PREMIUM_MONTHLY',
+      premiumUsageCount: 8,
+      creditsPurchased: 5,
+      creditsUsed: 2,
+    })
+
+    expect(getRemainingQuotaCount(user)).toBeGreaterThan(3)
   })
 })

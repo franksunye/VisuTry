@@ -6,6 +6,24 @@ import { revalidateTag } from "next/cache"
 
 export type QuotaSource = "subscription" | "credit" | "free_trial"
 
+export function getRemainingQuotaCount(user: User): number {
+  const isPremiumActive =
+    user.isPremium && (!user.premiumExpiresAt || user.premiumExpiresAt > new Date())
+  const creditsRemaining = Math.max(0, (user.creditsPurchased || 0) - (user.creditsUsed || 0))
+
+  if (!isPremiumActive) {
+    const freeRemaining = Math.max(0, QUOTA_CONFIG.FREE_TRIAL - user.freeTrialsUsed)
+    return freeRemaining + creditsRemaining
+  }
+
+  const quota =
+    user.currentSubscriptionType === "PREMIUM_YEARLY"
+      ? QUOTA_CONFIG.YEARLY_SUBSCRIPTION
+      : QUOTA_CONFIG.MONTHLY_SUBSCRIPTION
+  const subscriptionRemaining = Math.max(0, quota - (user.premiumUsageCount || 0))
+  return subscriptionRemaining + creditsRemaining
+}
+
 /**
  * Which quota bucket the next successful task would consume.
  * Mirrors deductUserQuota priority order exactly (for Face Analysis unlock logic).

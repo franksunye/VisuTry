@@ -40,6 +40,8 @@ type TryOnInputDiagnostics = Prisma.InputJsonObject
 type TryOnUploadDiagnostics = Prisma.InputJsonObject
 interface TryOnSubmissionOptions {
   clientSubmissionId?: string
+  metadata?: Record<string, unknown>
+  forceServiceType?: 'grsai' | 'gemini'
 }
 
 function shouldRetryGrsAiTimeout(error?: string): boolean {
@@ -175,6 +177,11 @@ export async function submitTryOnTask(
     isAsync = false // Gemini is currently synchronous
   }
 
+  if (options?.forceServiceType) {
+    serviceType = options.forceServiceType
+    isAsync = serviceType === 'grsai'
+  }
+
   logger.info('tryon-service', `Service selection: ${serviceType} (Async: ${isAsync})`, {
     userId: user.id,
     clientSubmissionId,
@@ -217,6 +224,7 @@ export async function submitTryOnTask(
         effectivePrompt,
         retryCount: 0,
         clientSubmissionId,
+        ...(options?.metadata || {}),
         originalUserFileName: userImageFile.name,
         originalItemFileName: itemImageFile.name,
         inputDiagnostics,
