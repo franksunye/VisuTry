@@ -14,6 +14,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     title: `${tag} - Blog Articles`,
     description: `Browse all articles tagged with ${tag}. Discover insights, guides, and tips about ${tag}.`,
     url: `/${params.locale}/blog/tag/${params.tag}`,
+    noIndex: true,
   })
 }
 

@@ -4,14 +4,23 @@ import { signIn, signOut, useSession } from "next-auth/react"
 import { LogOut, User, TestTube, Shield } from "lucide-react"
 import { cn } from "@/utils/cn"
 import { useTestSession } from "@/hooks/useTestSession"
+import { analytics } from "@/lib/analytics"
 
 interface LoginButtonProps {
   className?: string
   variant?: "default" | "outline" | "ghost"
   callbackUrl?: string
+  eventName?: string
+  eventParameters?: Record<string, any>
 }
 
-export function LoginButton({ className, variant = "default", callbackUrl }: LoginButtonProps) {
+export function LoginButton({
+  className,
+  variant = "default",
+  callbackUrl,
+  eventName,
+  eventParameters,
+}: LoginButtonProps) {
   const { data: session, status } = useSession()
   const { testSession, loading: testLoading, clearTestSession } = useTestSession()
 
@@ -82,7 +91,12 @@ export function LoginButton({ className, variant = "default", callbackUrl }: Log
 
   return (
     <button
-      onClick={() => signIn("auth0", { callbackUrl: callbackUrl || "/try-on" })}
+      onClick={() => {
+        if (eventName) {
+          analytics.trackCustomEvent(eventName, eventParameters)
+        }
+        signIn("auth0", { callbackUrl: callbackUrl || "/try-on" })
+      }}
       className={cn(
         "flex items-center justify-center px-4 py-2 rounded-lg text-sm font-medium transition-colors",
         variant === "outline" && "border border-purple-300 text-purple-700 hover:bg-purple-50",

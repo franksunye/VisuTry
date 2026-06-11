@@ -51,6 +51,10 @@ function sendEvent(eventName: string, parameters: Record<string, any> = {}) {
  * 统一的分析追踪接口
  */
 export const analytics = {
+  trackCustomEvent(eventName: string, parameters: Record<string, any> = {}) {
+    sendEvent(eventName, parameters)
+  },
+
   // ==================== 用户认证事件 ====================
   
   /**
@@ -211,6 +215,14 @@ export const analytics = {
     })
   },
 
+  trackFaceAnalysisUpload(fileType: string, fileSizeBytes: number, userType: UserType) {
+    sendEvent('face_analysis_upload', {
+      file_type: fileType,
+      file_size_bytes: fileSizeBytes,
+      user_type: userType,
+    })
+  },
+
   trackFaceAnalysisComplete(
     faceShape: string,
     confidence: number,
@@ -252,6 +264,14 @@ export const analytics = {
       query,
     })
   },
+
+  trackTryOnFromFaceAnalysis(faceAnalysisTaskId: string, styleCount: number, requiredCredits: number) {
+    sendEvent('try_on_from_face_analysis', {
+      face_analysis_task_id: faceAnalysisTaskId,
+      style_count: styleCount,
+      required_credits: requiredCredits,
+    })
+  },
 }
 
 /**
@@ -271,4 +291,3 @@ declare global {
     dataLayer: Array<Record<string, any>>
   }
 }
-

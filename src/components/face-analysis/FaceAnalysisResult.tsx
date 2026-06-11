@@ -27,6 +27,7 @@ import { FaceWireframeOverlay } from './FaceWireframeOverlay'
 import { UnlockCreditsBanner } from './UnlockCreditsBanner'
 import { FrameSearchSuggestions } from './FrameSearchSuggestions'
 import { cn } from '@/utils/cn'
+import { analytics } from '@/lib/analytics'
 import {
   DEFAULT_TOP_PICK_PRESET_IDS,
   getTopPickPresetForStyle,
@@ -462,6 +463,7 @@ function TryOnTopPicksPanel({
     setIsGenerating(true)
     setError(null)
     setBatchResult(null)
+    analytics.trackTryOnFromFaceAnalysis(faceAnalysisTaskId, presetIds.length, requiredCredits)
 
     try {
       const response = await fetch('/api/face-analysis/top-picks-try-on', {

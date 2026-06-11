@@ -270,7 +270,7 @@ export function generateSEO({
     
     robots: noIndex ? {
       index: false,
-      follow: false,
+      follow: true,
     } : {
       index: true,
       follow: true,
@@ -462,7 +462,8 @@ export function getAlternateLanguages(pathname: string = ''): Record<string, str
   const cleanPath = pathname.startsWith('/') ? pathname.slice(1) : pathname
 
   // Remove locale prefix if present in pathname
-  const pathWithoutLocale = cleanPath.replace(/^(en|id|es)\//, '')
+  const localePattern = locales.join('|')
+  const pathWithoutLocale = cleanPath.replace(new RegExp(`^(${localePattern})/`), '')
 
   locales.forEach((locale) => {
     alternates[locale] = `${baseUrl}/${locale}${pathWithoutLocale ? `/${pathWithoutLocale}` : ''}`
@@ -499,7 +500,8 @@ export function generateI18nSEO({
   const cleanPath = pathname.startsWith('/') ? pathname.slice(1) : pathname
 
   // Remove locale prefix if present in pathname
-  const pathWithoutLocale = cleanPath.replace(/^(en|id|es)\//, '')
+  const localePattern = locales.join('|')
+  const pathWithoutLocale = cleanPath.replace(new RegExp(`^(${localePattern})/`), '')
 
   // Construct canonical URL with locale
   const canonicalUrl = `${baseUrl}/${locale}${pathWithoutLocale ? `/${pathWithoutLocale}` : ''}`
@@ -554,7 +556,7 @@ export function generateI18nSEO({
     // Robots
     robots: noIndex ? {
       index: false,
-      follow: false,
+      follow: true,
     } : {
       index: true,
       follow: true,

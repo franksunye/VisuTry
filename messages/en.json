@@ -245,8 +245,8 @@
   },
   "faceAnalysis": {
     "meta": {
-      "title": "AI Face Analysis for Glasses | VisuTry",
-      "description": "Discover your face shape with AI and get personalized glasses recommendations. Upload a photo and unlock your full style report."
+      "title": "AI Face Analysis for Glasses - Find Your Face Shape | VisuTry",
+      "description": "Upload a photo to find your face shape, get personalized glasses recommendations, and compare frame styles with AI virtual try-on."
     },
     "stepper": {
       "photo": "Photo",

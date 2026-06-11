@@ -247,6 +247,7 @@ export function FaceAnalysisInterface() {
                 </div>
                 <ImageUpload
                   onImageSelect={(file, preview) => {
+                    analytics.trackFaceAnalysisUpload(file.type || 'unknown', file.size, userType)
                     setUserImage({ file, preview })
                     setCurrentStep('analysis')
                     setTask(null)
@@ -363,7 +364,11 @@ export function FaceAnalysisInterface() {
           ) : (
             <div className="rounded-xl border border-blue-200 bg-blue-50 p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
               <p className="text-sm text-gray-700">{t('footer.noCredits')}</p>
-              <Link href={`/${locale}/pricing`} className={FACE_ANALYSIS_LAYOUT.primaryButton}>
+              <Link
+                href={`/${locale}/pricing`}
+                className={FACE_ANALYSIS_LAYOUT.primaryButton}
+                onClick={() => analytics.trackViewPricing('face_analysis', userType, remainingTrials)}
+              >
                 {t('footer.getCredits')}
               </Link>
             </div>
