@@ -12,6 +12,7 @@ interface LoginButtonProps {
   callbackUrl?: string
   eventName?: string
   eventParameters?: Record<string, any>
+  label?: string
 }
 
 export function LoginButton({
@@ -20,6 +21,7 @@ export function LoginButton({
   callbackUrl,
   eventName,
   eventParameters,
+  label,
 }: LoginButtonProps) {
   const { data: session, status } = useSession()
   const { testSession, loading: testLoading, clearTestSession } = useTestSession()
@@ -106,7 +108,7 @@ export function LoginButton({
       )}
     >
       <Shield className="w-4 h-4 mr-2" />
-      Sign in
+      {label || "Sign in"}
     </button>
   )
 }

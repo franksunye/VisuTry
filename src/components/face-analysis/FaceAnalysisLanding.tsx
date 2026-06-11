@@ -29,9 +29,9 @@ const faceAnalysisFaqContent = [
 ]
 
 const valuePoints = [
-  'Detect your likely face shape from one clear photo',
-  'Turn the result into a practical glasses shortlist',
-  'Move straight from recommendations to AI virtual try-on',
+  'Face shape in minutes',
+  'Frame styles worth trying first',
+  'Direct path into glasses try-on',
 ]
 
 const faceShapeGuidance = [
@@ -142,42 +142,43 @@ export async function FaceAnalysisLanding({ locale }: FaceAnalysisLandingProps) 
         dangerouslySetInnerHTML={{ __html: JSON.stringify(howToSchema) }}
       />
 
-      <div className="mx-auto max-w-6xl px-4 py-8 md:py-10">
-        <div className="grid gap-8 lg:grid-cols-[0.95fr_1.05fr] lg:items-center">
-          <div className="max-w-2xl">
-            <p className="mb-3 inline-flex items-center rounded-lg border border-blue-200 bg-white px-3 py-1 text-sm font-semibold text-blue-700">
+      <div className="bg-gradient-to-b from-blue-50 to-white">
+        <section className="mx-auto grid min-h-[680px] max-w-6xl gap-10 px-4 py-12 md:py-16 lg:grid-cols-[0.88fr_1.12fr] lg:items-center">
+          <div className="max-w-xl">
+            <p className="mb-4 inline-flex items-center rounded-lg border border-blue-200 bg-white px-3 py-1 text-sm font-semibold text-blue-700 shadow-sm">
               Face shape analysis to glasses try-on
             </p>
-            <h1 className="mb-4 text-3xl font-bold leading-tight text-gray-950 md:text-5xl">
+            <h1 className="mb-5 text-4xl font-bold leading-tight text-gray-950 md:text-6xl">
               {heroTitle}
             </h1>
-            <p className="mb-6 text-lg leading-8 text-gray-600">
+            <p className="mb-7 text-lg leading-8 text-gray-600 md:text-xl">
               {heroDescription}
             </p>
-            <div className="mb-7 grid gap-3">
+            <div className="mb-8 flex flex-wrap gap-3">
               {valuePoints.map((item) => (
-                <div key={item} className="flex items-start gap-3 text-sm font-medium text-gray-700">
-                  <CheckCircle2 className="mt-0.5 h-5 w-5 flex-shrink-0 text-green-600" />
+                <div key={item} className="flex items-center gap-2 rounded-full bg-white px-3 py-2 text-sm font-semibold text-gray-700 shadow-sm">
+                  <CheckCircle2 className="h-4 w-4 flex-shrink-0 text-green-600" />
                   <span>{item}</span>
                 </div>
               ))}
             </div>
             <div className="flex flex-col gap-3 sm:flex-row">
               <LoginButton
-                className="justify-center py-3"
+                className="justify-center px-5 py-3"
                 callbackUrl={`/${locale}/face-analysis`}
                 eventName="face_analysis_signin_click"
                 eventParameters={{ source: 'face_analysis_landing' }}
+                label={isEnglish ? 'Start face analysis' : undefined}
               />
               <Link
                 href={`/${locale}/try-on/glasses`}
                 className="inline-flex items-center justify-center gap-2 rounded-lg border border-gray-300 px-4 py-3 text-gray-700 hover:bg-gray-50"
               >
-                {t('tryGlasses')}
+                {isEnglish ? 'Try glasses on photo' : t('tryGlasses')}
                 <ArrowRight className="h-4 w-4" />
               </Link>
             </div>
-            <div className="mt-4 flex flex-wrap gap-3 text-sm">
+            <div className="mt-5 flex flex-wrap gap-3 text-sm">
               <Link href={`/${locale}/glasses-for-face-shape`} className="font-semibold text-blue-700 hover:text-blue-900">
                 Compare glasses by face shape
               </Link>
@@ -188,28 +189,27 @@ export async function FaceAnalysisLanding({ locale }: FaceAnalysisLandingProps) 
             </div>
           </div>
 
-          <div>
+          <div className="mx-auto w-full max-w-[620px]">
             <FaceAnalysisPreviewVisual variant="report" />
-            <div className="mt-4 grid gap-4 sm:grid-cols-2">
-              {steps.map((step) => {
-                const Icon = step.icon
-                return (
-                  <div key={step.title} className="rounded-lg border border-gray-100 bg-white p-5 shadow-sm">
-                    <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-lg bg-blue-50 text-blue-600">
-                      <Icon className="h-5 w-5" />
-                    </div>
-                    <h2 className="mb-2 text-base font-semibold text-gray-950">{step.title}</h2>
-                    <p className="text-sm leading-6 text-gray-600">{step.description}</p>
-                  </div>
-                )
-              })}
-            </div>
-            <p className="mt-4 rounded-lg bg-blue-50 px-4 py-3 text-sm leading-6 text-blue-900">
-              VisuTry estimates your face shape and suggests frame styles, then lets you compare
-              those recommendations with AI virtual try-on.
-            </p>
           </div>
-        </div>
+        </section>
+      </div>
+
+      <div className="mx-auto max-w-6xl px-4 py-10 md:py-14">
+        <section className="grid gap-4 md:grid-cols-4">
+          {steps.map((step) => {
+            const Icon = step.icon
+            return (
+              <div key={step.title} className="rounded-lg border border-gray-200 bg-white p-5 shadow-sm">
+                <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-lg bg-blue-50 text-blue-600">
+                  <Icon className="h-5 w-5" />
+                </div>
+                <h2 className="mb-2 text-base font-semibold text-gray-950">{step.title}</h2>
+                <p className="text-sm leading-6 text-gray-600">{step.description}</p>
+              </div>
+            )
+          })}
+        </section>
 
         <section className="mt-10">
           <div className="mb-5 flex items-center gap-2">
