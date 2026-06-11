@@ -126,20 +126,21 @@ Acceptance:
 ### Upgrade Face-Shape Programmatic Pages
 
 Priority: P1
-Status: TODO
+Status: Done
 
 Tasks:
 
-- [ ] Improve `/style/[faceShape]` template.
-- [ ] Add useful static guidance when frame inventory is sparse.
-- [ ] Add CTA to `/en/face-analysis`.
-- [ ] Add CTA to `/en/try-on/glasses`.
-- [ ] Add FAQ schema per face shape.
+- [x] Improve `/style/[faceShape]` template.
+- [x] Add useful static guidance when frame inventory is sparse.
+- [x] Add CTA to `/en/face-analysis`.
+- [x] Add CTA to `/en/try-on/glasses`.
+- [x] Add FAQ schema per face shape.
+- [x] Add stable sitemap entries for six core face-shape pages.
 
 Acceptance:
 
-- [ ] Each face-shape page can rank and convert even with limited inventory.
-- [ ] Internal links connect face-shape pages back into the try-on funnel.
+- [x] Each face-shape page can rank and convert even with limited inventory.
+- [x] Internal links connect face-shape pages back into the try-on funnel.
 
 ### Monitor Indexing and Query Movement
 
@@ -237,7 +238,7 @@ Acceptance:
 
 ### Week 2
 
-- [ ] Face-shape pages upgraded.
+- [x] Face-shape pages upgraded.
 - [ ] Four priority blog pages refreshed.
 - [ ] New or updated pages submitted in GSC.
 - [ ] First weekly funnel report produced.

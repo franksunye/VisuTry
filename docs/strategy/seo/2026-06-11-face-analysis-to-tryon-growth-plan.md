@@ -266,9 +266,10 @@ GSC weekly query groups:
 
 ### Days 6-8: Upgrade Face-Shape Pages
 
-- Improve `/style/[faceShape]` template.
-- Ensure useful guidance appears even without many database frames.
-- Add try-on CTAs and face-analysis CTAs.
+- Completed: improve `/style/[faceShape]` template.
+- Completed: ensure useful guidance appears even without many database frames.
+- Completed: add try-on CTAs and face-analysis CTAs.
+- Completed: add stable sitemap entries for the six core face-shape pages.
 
 ### Days 9-11: Blog Refresh
 
@@ -309,4 +310,3 @@ Monthly:
 - If completion rate is low: inspect analysis UX and failure states.
 - If try-on click-through is low: improve recommendations and show frame examples earlier.
 - If unlock success is low: test pricing/credit messaging after users see value.
-

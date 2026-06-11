@@ -29,6 +29,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { path: '/terms', priority: 0.5, changeFrequency: 'monthly' as const },
     { path: '/refund', priority: 0.5, changeFrequency: 'monthly' as const },
   ]
+  const staticFaceShapePaths = [
+    '/style/round-face',
+    '/style/square-face',
+    '/style/oval-face',
+    '/style/heart-face',
+    '/style/diamond-face',
+    '/style/oblong-face',
+  ]
 
   // Generate static pages for all locales
   const staticPages: MetadataRoute.Sitemap = []
@@ -39,6 +47,19 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         lastModified: new Date(),
         changeFrequency,
         priority,
+        alternates: {
+          languages: generateAlternates(path),
+        },
+      })
+    })
+  })
+  staticFaceShapePaths.forEach((path) => {
+    locales.forEach(locale => {
+      staticPages.push({
+        url: `${baseUrl}/${locale}${path}`,
+        lastModified: new Date(),
+        changeFrequency: 'weekly',
+        priority: 0.75,
         alternates: {
           languages: generateAlternates(path),
         },
