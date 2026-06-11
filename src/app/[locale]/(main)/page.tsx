@@ -7,6 +7,7 @@ import { useSession } from 'next-auth/react'
 import { useTestSession } from '@/hooks/useTestSession'
 import { useTranslations } from 'next-intl'
 import { TryOnShowcase } from '@/components/home/TryOnShowcase'
+import { FaceAnalysisPreviewVisual } from '@/components/face-analysis/FaceAnalysisPreviewVisual'
 
 // English FAQ content - displayed in all languages
 const englishFaqContent = [
@@ -127,23 +128,21 @@ export default function Home() {
 
       {/* New Face Analysis Section */}
       <section className="max-w-5xl mx-auto mb-16">
-        <div className="rounded-xl border border-blue-100 bg-white p-6 shadow-sm md:p-8">
-          <div className="grid gap-6 md:grid-cols-[auto_1fr_auto] md:items-center">
-            <div className="flex h-14 w-14 items-center justify-center rounded-lg bg-blue-600 text-white">
+        <div className="grid gap-8 rounded-lg border border-blue-100 bg-white p-6 shadow-sm md:p-8 lg:grid-cols-[0.88fr_1.12fr] lg:items-center">
+          <div>
+            <div className="mb-5 flex h-14 w-14 items-center justify-center rounded-lg bg-blue-600 text-white">
               <ScanFace className="h-7 w-7" />
             </div>
-            <div>
-              <p className="mb-2 text-sm font-semibold uppercase tracking-normal text-blue-600">
-                New AI face analysis
-              </p>
-              <h2 className="mb-2 text-2xl font-bold text-gray-900">
-                Find glasses that match your face shape before you try them on
-              </h2>
-              <p className="text-gray-600">
-                Upload a photo to discover your face shape, key features, and personalized frame
-                recommendations, then use virtual try-on to compare the styles on your own face.
-              </p>
-            </div>
+            <p className="mb-2 text-sm font-semibold uppercase tracking-normal text-blue-600">
+              New AI face analysis
+            </p>
+            <h2 className="mb-3 text-2xl font-bold text-gray-900">
+              Find glasses that match your face shape before you try them on
+            </h2>
+            <p className="mb-5 text-gray-600">
+              Upload a photo to discover your face shape, key features, and personalized frame
+              recommendations, then use virtual try-on to compare the styles on your own face.
+            </p>
             <Link
               href={`/${locale}/face-analysis`}
               className="inline-flex items-center justify-center rounded-lg bg-blue-600 px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-blue-700"
@@ -152,6 +151,7 @@ export default function Home() {
               <ArrowRight className="ml-2 h-4 w-4" />
             </Link>
           </div>
+          <FaceAnalysisPreviewVisual variant="workflow" />
         </div>
       </section>
 

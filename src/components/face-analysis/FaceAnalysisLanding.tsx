@@ -3,6 +3,7 @@ import { ArrowRight, CheckCircle2, Glasses, ScanFace, Shield, Sparkles, Upload }
 import { getTranslations } from 'next-intl/server'
 import { LoginButton } from '@/components/auth/LoginButton'
 import { generateStructuredData } from '@/lib/seo'
+import { FaceAnalysisPreviewVisual } from '@/components/face-analysis/FaceAnalysisPreviewVisual'
 
 interface FaceAnalysisLandingProps {
   locale: string
@@ -187,8 +188,9 @@ export async function FaceAnalysisLanding({ locale }: FaceAnalysisLandingProps) 
             </div>
           </div>
 
-          <div className="rounded-lg border border-gray-200 bg-white/80 p-4 shadow-sm md:p-5">
-            <div className="grid gap-4 sm:grid-cols-2">
+          <div>
+            <FaceAnalysisPreviewVisual variant="report" />
+            <div className="mt-4 grid gap-4 sm:grid-cols-2">
               {steps.map((step) => {
                 const Icon = step.icon
                 return (
