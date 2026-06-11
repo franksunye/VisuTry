@@ -1,10 +1,12 @@
 import type { Metadata } from 'next'
+import Image from 'next/image'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { ArrowRight, CheckCircle2, Glasses, ScanFace } from 'lucide-react'
 import { prisma } from '@/lib/prisma'
 import { Locale } from '@/i18n'
 import { generateI18nSEO, generateStructuredData } from '@/lib/seo'
+import { getTopPickPresetById, type GlassesPreset } from '@/config/glasses-presets'
 import {
   generateCollectionPageSchema,
   generateFaceShapeSlug,
@@ -28,6 +30,7 @@ const faceShapeGuides = {
       'Round faces usually have softer curves, fuller cheeks, and similar face width and length. Angular glasses can add definition and create a more balanced look.',
     characteristics: 'Soft cheeks, curved jawline, rounded chin, and less visible angles.',
     tryFirst: ['Rectangular frames', 'Square frames', 'Geometric frames', 'Slightly wider frames'],
+    presetIds: ['rectangle-classic', 'square-classic', 'geometric-classic', 'wayfarer-classic'],
     avoidFirst: ['Very small round frames', 'Tiny rimless frames', 'Frames much narrower than your face'],
     whyItWorks:
       'Straight lines and defined corners add contrast to softer proportions, while enough frame width prevents the glasses from looking too small.',
@@ -40,6 +43,7 @@ const faceShapeGuides = {
       'Square faces often have a broad forehead, strong jawline, and defined angles. Softer frames can reduce visual heaviness and balance the structure.',
     characteristics: 'Strong jawline, broad forehead, angular cheek area, and similar face width and length.',
     tryFirst: ['Round frames', 'Oval frames', 'Thin metal frames', 'Softly curved frames'],
+    presetIds: ['round-classic', 'oval-classic', 'rimless-light', 'aviator-classic'],
     avoidFirst: ['Heavy square frames', 'Very boxy thick frames', 'Frames that sit too low on the cheeks'],
     whyItWorks:
       'Curved lenses soften angular features and lighter materials keep the frame from competing with a strong jawline.',
@@ -52,6 +56,7 @@ const faceShapeGuides = {
       'Oval faces are balanced and flexible, so the best glasses usually come down to scale, width, and personal style.',
     characteristics: 'Balanced proportions, softly rounded jawline, and face length slightly greater than width.',
     tryFirst: ['Balanced rectangular frames', 'Browline frames', 'Aviators', 'Classic square frames'],
+    presetIds: ['rectangle-classic', 'browline-classic', 'aviator-classic', 'square-classic'],
     avoidFirst: ['Frames much wider than your face', 'Very narrow frames', 'Oversized frames that cover the eyebrows'],
     whyItWorks:
       'Oval proportions can carry many frame shapes, but the frame should still align with your brow width and facial scale.',
@@ -64,6 +69,7 @@ const faceShapeGuides = {
       'Heart-shaped faces usually have a wider forehead and a narrower chin. Lightweight or lifted frames can balance the top and bottom of the face.',
     characteristics: 'Wider forehead, narrower chin, and sometimes higher or more prominent cheekbones.',
     tryFirst: ['Lightweight frames', 'Rounded frames', 'Subtle cat-eye frames', 'Bottom-balanced frames'],
+    presetIds: ['rimless-light', 'round-classic', 'cat-eye-classic', 'bottom-weighted-classic'],
     avoidFirst: ['Very top-heavy frames', 'Deep heavy browlines', 'Frames wider than the forehead'],
     whyItWorks:
       'Softer lower edges and lighter top lines keep attention from collecting only at the forehead.',
@@ -76,6 +82,7 @@ const faceShapeGuides = {
       'Diamond faces often have prominent cheekbones with a narrower forehead and chin. Frames that add gentle width near the eyes work well.',
     characteristics: 'Prominent cheekbones, narrower forehead, narrower chin, and angular contours.',
     tryFirst: ['Oval frames', 'Rimless frames', 'Cat-eye frames', 'Browline frames'],
+    presetIds: ['oval-classic', 'rimless-light', 'cat-eye-classic', 'browline-classic'],
     avoidFirst: ['Very narrow frames', 'Tiny lenses', 'Frames that pinch visually at the cheekbones'],
     whyItWorks:
       'Soft width near the brow balances cheekbones without adding unnecessary weight to the lower face.',
@@ -88,6 +95,7 @@ const faceShapeGuides = {
       'Oblong faces are longer than they are wide. Frames with more depth or presence can balance the vertical proportion.',
     characteristics: 'Longer face length, straighter cheek lines, and often a longer nose or chin area.',
     tryFirst: ['Deep rectangular frames', 'Oversized frames', 'Browline frames', 'Statement frames'],
+    presetIds: ['rectangle-classic', 'oversized-classic', 'browline-classic', 'oversized-square-classic'],
     avoidFirst: ['Very shallow frames', 'Tiny narrow frames', 'Frames that sit too high and lengthen the face'],
     whyItWorks:
       'More lens depth and visual weight help break up vertical length and make the face feel more balanced.',
@@ -95,6 +103,10 @@ const faceShapeGuides = {
 } as const
 
 type FaceShapeSlug = keyof typeof faceShapeGuides
+
+function isGlassesPreset(preset: GlassesPreset | undefined): preset is GlassesPreset {
+  return Boolean(preset)
+}
 
 function normalizeFaceShapeSlug(slug: string): FaceShapeSlug | null {
   const normalized = slugify(slug)
@@ -128,28 +140,6 @@ async function getDbShape(candidates: string[]) {
     })
   } catch {
     return null
-  }
-}
-
-async function getRecommendedFrames(candidates: string[]) {
-  try {
-    return await prisma.glassesFrame.findMany({
-      where: {
-        isActive: true,
-        faceShapes: {
-          some: {
-            faceShape: {
-              OR: candidates.map((candidate) => ({
-                name: { equals: candidate, mode: 'insensitive' as const },
-              })),
-            },
-          },
-        },
-      },
-      take: 12,
-    })
-  } catch {
-    return []
   }
 }
 
@@ -201,10 +191,10 @@ export default async function FaceShapePage({ params }: FaceShapePageProps) {
 
   const guide = faceShapeGuides[normalizedSlug]
   const candidates = getDbNameCandidates(params.faceShape, guide)
-  const [dbShape, frames] = await Promise.all([
-    getDbShape(candidates),
-    getRecommendedFrames(candidates),
-  ])
+  const dbShape = await getDbShape(candidates)
+  const recommendedPresets = guide.presetIds
+    .map(getTopPickPresetById)
+    .filter(isGlassesPreset)
   const locale = params.locale
   const displayName = dbShape?.displayName?.replace(/\s+Face$/i, '') || guide.displayName
   const description = dbShape?.description || guide.description
@@ -231,7 +221,7 @@ export default async function FaceShapePage({ params }: FaceShapePageProps) {
     name: `${displayName} Face Glasses`,
     description,
     url: `https://visutry.com${pageUrl}`,
-    itemCount: frames.length,
+    itemCount: recommendedPresets.length,
   })
 
   return (
@@ -334,7 +324,7 @@ export default async function FaceShapePage({ params }: FaceShapePageProps) {
           <div className="mb-5 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
             <div>
               <p className="mb-2 text-sm font-semibold uppercase tracking-normal text-blue-600">
-                Recommended frames
+                Recommended styles
               </p>
               <h2 className="text-2xl font-bold text-gray-950">
                 Glasses to try for {displayName.toLowerCase()} faces
@@ -345,62 +335,30 @@ export default async function FaceShapePage({ params }: FaceShapePageProps) {
             </Link>
           </div>
 
-          {frames.length > 0 ? (
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-              {frames.map((frame) => (
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+            {recommendedPresets.map((preset) => (
                 <Link
-                  key={frame.id}
-                  href={`/${locale}/try/${slugify(frame.brand || '')}-${slugify(frame.model || frame.id)}`}
+                  key={preset.id}
+                  href={`/${locale}/try-on/glasses`}
                   className="group overflow-hidden rounded-lg border border-gray-200 bg-white transition hover:shadow-lg"
                 >
                   <div className="relative h-48 overflow-hidden bg-gray-100">
-                    {/* Frame catalogs may include mixed remote hosts, so keep this page resilient. */}
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      src={frame.imageUrl}
-                      alt={frame.name}
+                    <Image
+                      src={`/${preset.assetPath}`}
+                      alt={`${preset.name} glasses style`}
                       width={360}
                       height={240}
                       className="h-full w-full object-cover transition group-hover:scale-105"
                     />
                   </div>
                   <div className="p-4">
-                    <h3 className="font-semibold text-gray-950 group-hover:text-blue-700">{frame.name}</h3>
-                    <p className="mt-1 text-sm text-gray-600">{frame.brand}</p>
-                    {frame.price && (
-                      <p className="mt-2 text-lg font-bold text-gray-950">${frame.price}</p>
-                    )}
+                    <h3 className="font-semibold text-gray-950 group-hover:text-blue-700">{preset.name}</h3>
+                    <p className="mt-1 text-sm text-gray-600">{preset.style} glasses style</p>
+                    <p className="mt-3 text-sm font-semibold text-blue-700">Try this style</p>
                   </div>
                 </Link>
               ))}
-            </div>
-          ) : (
-            <div className="rounded-lg border border-gray-200 bg-white p-6">
-              <h3 className="mb-2 text-lg font-semibold text-gray-950">
-                No saved frames for this face shape yet
-              </h3>
-              <p className="mb-5 max-w-3xl text-sm leading-6 text-gray-600">
-                You can still use the recommendations above as your first filter. Start with AI
-                face analysis, then try glasses styles on your own photo to check the real fit.
-              </p>
-              <div className="flex flex-col gap-3 sm:flex-row">
-                <Link
-                  href={`/${locale}/face-analysis`}
-                  className="inline-flex items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-3 text-sm font-semibold text-white hover:bg-blue-700"
-                >
-                  Analyze my face
-                  <ArrowRight className="h-4 w-4" />
-                </Link>
-                <Link
-                  href={`/${locale}/glasses-for-face-shape`}
-                  className="inline-flex items-center justify-center gap-2 rounded-lg border border-gray-300 px-4 py-3 text-sm font-semibold text-gray-700 hover:bg-gray-50"
-                >
-                  Compare all face shapes
-                  <ArrowRight className="h-4 w-4" />
-                </Link>
-              </div>
-            </div>
-          )}
+          </div>
         </section>
 
         <section className="mt-12 rounded-lg border border-gray-200 bg-white p-6">
