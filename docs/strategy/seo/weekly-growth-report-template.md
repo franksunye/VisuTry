@@ -1,4 +1,4 @@
-# Weekly Growth Report Template
+# Weekly Commercial Traffic Report Template
 
 Week:
 Owner: Codex
@@ -8,12 +8,14 @@ Owner: Codex
 | KPI | Target | Actual | Status | Note |
 | --- | ---: | ---: | --- | --- |
 | Indexed priority URLs | 8/8 | TBD | TBD |  |
-| Core query impressions | 300+ / 30 days | TBD | TBD |  |
-| Core organic clicks | 15+ / 30 days | TBD | TBD |  |
+| Commercial query impressions | 300+ / 30 days | TBD | TBD |  |
+| Commercial organic clicks | 15+ / 30 days | TBD | TBD |  |
 | US CTR on target pages | 1.2%+ | TBD | TBD |  |
+| Commercial action rate | 5%+ | TBD | TBD |  |
+| Try-on start rate | 3%+ | TBD | TBD |  |
 | Face analysis upload rate | 5%+ | TBD | TBD |  |
-| Face analysis completion rate | 50%+ | TBD | TBD |  |
 | Try-on continuation rate | 12%+ | TBD | TBD |  |
+| Paid-intent action count | 5+ / 30 days | TBD | TBD |  |
 | Blog bridge clicks | 10+ / 30 days | TBD | TBD |  |
 
 ## GSC Findings
@@ -24,8 +26,10 @@ Owner: Codex
 - CTR issues:
 - Indexing issues:
 
-## GA Funnel Findings
+## GA Commercial Action Findings
 
+- Try-on starts:
+- Pricing views:
 - `face_analysis_upload`:
 - `face_analysis_complete`:
 - `try_on_from_face_analysis`:
@@ -36,7 +40,7 @@ Owner: Codex
 
 This week's highest-leverage SEO action:
 
-This week's highest-leverage funnel action:
+This week's highest-leverage commercial-conversion action:
 
 ## Next Actions
 

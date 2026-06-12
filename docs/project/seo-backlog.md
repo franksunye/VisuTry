@@ -92,7 +92,7 @@ Acceptance:
 Reference:
 
 - [GSC, Keyword Planner, and Trends Research](../strategy/seo/2026-06-12-gsc-keyword-country-research.md)
-- [Growth KPI Operating Plan](../strategy/seo/2026-06-12-growth-kpi-operating-plan.md)
+- [Commercial Traffic KPI Operating Plan](../strategy/seo/2026-06-12-growth-kpi-operating-plan.md)
 
 ### Canonical Domain Alignment
 
@@ -240,8 +240,8 @@ Status: Active
 
 Tasks:
 
-- [x] Define practical 30-day and 90-day growth KPIs.
-- [x] Create weekly growth report template.
+- [x] Define practical 30-day and 90-day commercial traffic KPIs.
+- [x] Create weekly commercial traffic report template.
 - [ ] Check GSC for `/en/face-analysis`.
 - [ ] Check GSC for `/en/blog/ai-face-analysis-for-glasses-guide`.
 - [ ] Track impressions for face-analysis and glasses-intent query groups.
@@ -394,8 +394,8 @@ Acceptance:
 - [x] Oliver Peoples shared review page bridge refresh completed.
 - [ ] German-specific Oliver Peoples localization decision completed.
 - [ ] New or updated pages submitted in GSC.
-- [ ] First weekly funnel report produced.
-- [x] Practical growth KPI plan documented.
+- [ ] First weekly commercial traffic report produced.
+- [x] Practical commercial traffic KPI plan documented.
 
 ## See Also
 

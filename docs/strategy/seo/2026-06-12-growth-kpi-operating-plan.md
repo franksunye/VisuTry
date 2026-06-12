@@ -1,14 +1,22 @@
-# VisuTry Growth KPI Operating Plan
+# VisuTry Commercial Traffic KPI Operating Plan
 
 Date: 2026-06-12
 Owner: Codex
-Scope: Face analysis to glasses try-on growth
+Scope: Website commercial traffic growth
 
 ## North Star
 
-Organic-search users who complete face analysis and continue into glasses try-on.
+Commercial-intent website visitors who take a high-value product action.
 
-This is the best single KPI because it connects SEO traffic to the commercial model: VisuTry is not only a face-analysis tool; face analysis should help shoppers decide which glasses to try on.
+For VisuTry, a high-value product action means the visitor moves from discovery into an action that can create revenue or purchase intent:
+
+- starts glasses try-on
+- starts face analysis
+- completes face analysis and continues into try-on
+- views pricing or credit-pack information
+- unlocks a paid face-analysis or try-on outcome
+
+Face analysis to glasses try-on is one important commercial path, but it is not the whole business KPI. The broader goal is to grow qualified traffic that can convert through any VisuTry commercial path.
 
 ## Current Baseline
 
@@ -18,23 +26,24 @@ Source: Google Search Console research on 2026-06-12, last 3 months.
 - Total GSC impressions: 2,082.
 - Overall CTR: 4%.
 - United States: 7 clicks, 1,010 impressions, 0.7% CTR.
-- Target face-analysis and try-on terms are mostly missing from current GSC query data.
+- Target face-analysis, try-on, and eyewear shopping terms are mostly missing from current GSC query data.
 - Existing non-brand opportunity is concentrated in Oliver Peoples review traffic.
 
 ## 30-Day Targets
 
-These are intentionally practical. The first 30 days should prove that Google can index the funnel pages, that the right queries start appearing, and that GA can measure the product path.
+These are intentionally practical. The first 30 days should prove that Google can index commercial pages, that the right queries start appearing, and that GA can measure commercial actions across the site.
 
 | KPI | 30-day target | Measurement source | Why it matters |
 | --- | ---: | --- | --- |
 | Indexed priority URLs | 8/8 priority URLs indexed or submitted for re-crawl | GSC URL inspection | No indexing means no SEO growth. |
-| Core query impressions | 300+ impressions from target eyewear-intent query groups | GSC query report | The current target-query baseline is near zero, so early growth is visibility. |
-| Core organic clicks | 15+ clicks to priority commercial pages | GSC page report | Click volume should start moving before revenue can move. |
+| Commercial query impressions | 300+ impressions from target commercial-intent query groups | GSC query report | The current target-query baseline is near zero, so early growth is visibility. |
+| Commercial organic clicks | 15+ clicks to priority commercial pages | GSC page report | Click volume should start moving before revenue can move. |
 | US CTR on target pages | 1.2%+ | GSC country/page report | US baseline is 0.7%; first target is fixing SERP relevance. |
-| Face analysis upload rate | 5%+ of `/face-analysis` sessions | GA events | Upload is the first real product commitment. |
-| Face analysis completion rate | 50%+ upload to complete | GA events | Completion validates the feature experience. |
-| Try-on continuation rate | 12%+ complete to `try_on_from_face_analysis` | GA events | This proves face analysis is feeding the try-on funnel. |
-| Blog bridge clicks | 10+ `blog_funnel_click` events | GA events | Review traffic must start entering the product path. |
+| Commercial action rate | 5%+ of commercial landing sessions | GA events | Visitors must move from content or landing pages into product actions. |
+| Try-on start rate | 3%+ of commercial landing sessions | GA events | Try-on is the clearest product action for eyewear shoppers. |
+| Face analysis upload rate | 5%+ of `/face-analysis` sessions | GA events | Face analysis is a key assisted-shopping entry point. |
+| Paid-intent action count | 5+ pricing views or unlock successes | GA events | Commercial traffic should produce purchase intent, not only engagement. |
+| Blog bridge clicks | 10+ `blog_funnel_click` events | GA events | Review and guide traffic must start entering commercial paths. |
 
 Priority URLs:
 
@@ -52,6 +61,8 @@ Target query groups:
 - `glasses try on`
 - `virtual glasses try on`
 - `try on glasses online`
+- `try on glasses at home`
+- `try before you buy glasses`
 - `what glasses suit my face`
 - `face shape glasses`
 - `glasses for face shape`
@@ -59,6 +70,9 @@ Target query groups:
 - `face shape detector online free`
 - `try on glasses ai`
 - `try on glasses app`
+- `Oliver Peoples Finley review`
+- `Ray-Ban virtual try on`
+- `prescription glasses virtual try on`
 
 ## 90-Day Targets
 
@@ -66,13 +80,14 @@ The 90-day target should be outcome-oriented, but still grounded in the current 
 
 | KPI | 90-day target |
 | --- | ---: |
-| Core query impressions | 1,500+ impressions from target query groups |
-| Core organic clicks | 60+ clicks to priority commercial pages |
+| Commercial query impressions | 1,500+ impressions from target query groups |
+| Commercial organic clicks | 60+ clicks to priority commercial pages |
 | US CTR on target pages | 2%+ |
+| Commercial action rate | 8%+ |
+| Try-on start rate | 5%+ |
 | Face analysis upload rate | 8%+ |
-| Face analysis completion rate | 60%+ |
 | Try-on continuation rate | 20%+ |
-| Organic users completing face analysis and entering try-on | 2x the first measured 30-day baseline |
+| Paid-intent action count | 3x the first measured 30-day baseline |
 
 ## Weekly Operating Rhythm
 
@@ -85,14 +100,17 @@ Every week:
    - `try_on_from_face_analysis`
    - `face_analysis_unlock_success`
    - `blog_funnel_click`
+   - pricing page views
+   - try-on starts
 3. Compare actuals against the 30-day target run rate.
-4. Choose one page-level SEO action and one funnel action.
+4. Choose one page-level SEO action and one commercial-conversion action.
 5. Record decisions in the weekly growth report.
 
 ## Decision Rules
 
 - If impressions are low: improve indexing, internal links, and topical coverage before writing new content.
 - If impressions grow but CTR stays low: rewrite titles, meta descriptions, and first-screen SERP promise.
+- If commercial clicks grow but action rate is low: improve product CTAs, pricing visibility, and trust cues.
 - If clicks grow but upload rate is low: improve `/face-analysis` first-screen clarity, privacy reassurance, and upload CTA.
 - If uploads happen but completions are low: inspect face-analysis UX, error states, and processing expectations.
 - If completions happen but try-on continuation is low: make recommended frames more visible and add stronger try-on CTAs inside the report.
@@ -105,4 +123,5 @@ Every week:
   - `/en/face-analysis`
   - `/en/try-on/glasses`
   - `/en/glasses-for-face-shape`
-- Produce the first weekly funnel report once GA has at least one full day of event data after deployment.
+- Confirm whether pricing views and try-on starts are already tracked as GA events; add events if the data is missing.
+- Produce the first weekly commercial traffic report once GA has at least one full day of event data after deployment.
