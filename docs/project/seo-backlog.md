@@ -249,7 +249,7 @@ Acceptance:
 ### Use Oliver Peoples Pages as Funnel Bridge
 
 Priority: P1
-Status: TODO
+Status: In progress
 
 Data signal:
 
@@ -258,16 +258,19 @@ Data signal:
 
 Tasks:
 
-- [ ] Refresh English Oliver Peoples page title/meta for CTR.
-- [ ] Add face-shape fit section.
-- [ ] Add face-analysis CTA.
-- [ ] Add glasses try-on CTA.
+- [x] Refresh Oliver Peoples page title/meta for CTR around review, face-shape fit, and try-on intent.
+- [x] Add face-shape fit section.
+- [x] Add face-analysis CTA.
+- [x] Add glasses try-on CTA.
+- [x] Add FAQ schema for face-shape fit, online try-on, and value decision questions.
 - [ ] Evaluate German page refresh or locale-specific CTA.
+- [ ] Request reindexing for `/en/blog/oliver-peoples-finley-vintage-review` and `/de/blog/oliver-peoples-finley-vintage-review` after deployment.
 
 Acceptance:
 
 - [ ] High-impression product-review pages move users into the face-analysis and glasses try-on funnel.
 - [ ] CTR and clicks are tracked in the weekly GSC report.
+- [ ] GSC CTR target: English page from 1.8% to 3%+, German page from 1% to 2.5%+ within 2-4 weeks after indexing.
 
 ## Medium Priority
 
@@ -356,7 +359,8 @@ Acceptance:
 - [x] GSC, Keyword Planner, and Google Trends research completed.
 - [x] `/en/face-analysis`, `/en/try-on/glasses`, and `/en/glasses-for-face-shape` aligned to researched keyword clusters.
 - [ ] Trends-based AEO copy additions completed.
-- [ ] Oliver Peoples bridge refresh completed.
+- [x] Oliver Peoples shared review page bridge refresh completed.
+- [ ] German-specific Oliver Peoples localization decision completed.
 - [ ] New or updated pages submitted in GSC.
 - [ ] First weekly funnel report produced.
 

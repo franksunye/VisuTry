@@ -86,10 +86,10 @@ export const staticBlogPosts: BlogPost[] = [
   },
   {
     slug: 'oliver-peoples-finley-vintage-review',
-    title: 'Oliver Peoples Finley Vintage Review 2025 - Worth the Investment?',
-    description: 'In-depth review of the iconic Oliver Peoples Finley Vintage eyeglasses. Discover quality, fit, style, and whether these luxury frames are worth the price.',
+    title: 'Oliver Peoples Finley Vintage Review: Face Shape Fit & Try-On',
+    description: 'Oliver Peoples Finley Vintage review with face-shape fit advice, frame sizing notes, and virtual glasses try-on guidance before you buy.',
     publishedAt: '2025-10-20T15:00:00Z',
-    modifiedAt: '2025-10-20T15:00:00Z',
+    modifiedAt: '2026-06-12T10:00:00Z',
     author: 'VisuTry Team',
     category: 'Product Review',
     readTime: '8 min read',

@@ -1,38 +1,62 @@
 import { Metadata } from 'next'
 import { generateStructuredData, generateI18nSEO } from '@/lib/seo'
 import Link from 'next/link'
-import { ArrowLeft, Award, Eye, CheckCircle2 } from 'lucide-react'
+import { Award } from 'lucide-react'
 import Image from 'next/image'
 import BlogTags from '@/components/BlogTags'
 import { Breadcrumbs } from '@/components/seo/Breadcrumbs'
+import { FaceAnalysisFunnelCTA } from '@/components/blog/FaceAnalysisFunnelCTA'
 
 export async function generateMetadata({ params }: { params: { locale: string } }): Promise<Metadata> {
   return generateI18nSEO({
     locale: params.locale as any,
-    title: 'Oliver Peoples Finley Vintage Review 2025 - Worth the Investment?',
-    description: 'In-depth review of the iconic Oliver Peoples Finley Vintage eyeglasses. Discover quality, fit, style, and whether these luxury frames are worth the price.',
+    title: 'Oliver Peoples Finley Vintage Review: Face Shape Fit & Try-On',
+    description: 'Oliver Peoples Finley Vintage review with face-shape fit advice, frame sizing notes, and virtual glasses try-on guidance before you buy.',
     pathname: '/blog/oliver-peoples-finley-vintage-review',
     type: 'article',
   })
 }
 
 const structuredData = generateStructuredData('article', {
-  title: 'Oliver Peoples Finley Vintage Review 2025 - Worth the Investment?',
-  description: 'Comprehensive review of the Oliver Peoples Finley Vintage eyeglasses.',
+  title: 'Oliver Peoples Finley Vintage Review: Face Shape Fit & Try-On',
+  description: 'Comprehensive review of the Oliver Peoples Finley Vintage eyeglasses with face-shape fit advice and virtual try-on guidance.',
   publishedAt: '2025-10-21T15:00:00Z',
-  modifiedAt: '2025-10-21T15:00:00Z',
+  modifiedAt: '2026-06-12T10:00:00Z',
   author: 'VisuTry Team',
   image: '/Oliver Peoples Finley Vintage.jpg',
 })
 
+const faqSchema = generateStructuredData('faqPage', {
+  questions: [
+    {
+      question: 'What face shape suits Oliver Peoples Finley Vintage?',
+      answer: 'The Oliver Peoples Finley Vintage works best for oval, round, and heart-shaped faces because its square acetate shape adds definition without looking too heavy. Very angular square faces may want to compare softer round or browline styles first.',
+    },
+    {
+      question: 'Can I try Oliver Peoples Finley Vintage online before buying?',
+      answer: 'Yes. Use virtual glasses try-on to compare similar square acetate frames on your own photo, then use face analysis if you are unsure whether this frame shape fits your face proportions.',
+    },
+    {
+      question: 'Is Oliver Peoples Finley Vintage worth it?',
+      answer: 'It can be worth it if you want a durable luxury acetate frame with understated styling and plan to wear it frequently. The safest workflow is to check face-shape compatibility and try similar frames online before purchasing.',
+    },
+  ],
+})
+
 const articleTags = ['Oliver Peoples', 'Luxury Eyewear', 'Product Review', 'Designer Glasses', 'Premium Frames']
 
-export default function BlogPostPage() {
+export default function BlogPostPage({ params }: { params: { locale: string } }) {
+  const localePrefix = `/${params.locale}`
+
   return (
     <>
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
       />
 
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
@@ -64,11 +88,11 @@ export default function BlogPostPage() {
                 </div>
               </div>
               <h1 className="text-3xl font-bold text-gray-900 mb-4">
-                Oliver Peoples Finley Vintage Review 2025: Worth the Investment?
+                Oliver Peoples Finley Vintage Review: Face Shape Fit, Quality, and Try-On Advice
               </h1>
               <p className="text-xl text-gray-600">
                 An honest, comprehensive review of one of the most iconic luxury eyeglass frames on the market. 
-                We examine quality, comfort, style, and value to help you decide if these premium frames are right for you.
+                We examine quality, comfort, style, face-shape fit, and value to help you decide if these premium frames are right for you before you buy.
               </p>
             </div>
 
@@ -96,6 +120,13 @@ export default function BlogPostPage() {
                 </div>
               </div>
 
+              <FaceAnalysisFunnelCTA
+                locale={params.locale}
+                title="Check whether Finley-style frames fit your face"
+                body="The Finley Vintage is a square acetate frame. Use AI face analysis to confirm your face shape, then compare similar frames with virtual glasses try-on."
+                tone="light"
+              />
+
               <h2>About Oliver Peoples</h2>
               <p>
                 Founded in 1987 in Los Angeles, <a href="https://www.oliverpeoples.com" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-800">Oliver Peoples</a> has 
@@ -116,6 +147,7 @@ export default function BlogPostPage() {
                   width={800}
                   height={600}
                   className="rounded-lg shadow-md"
+                  style={{ width: '100%', height: 'auto' }}
                 />
               </div>
               <p>
@@ -218,6 +250,18 @@ export default function BlogPostPage() {
                   <li>⚠️ <strong>Very small faces</strong> - 49mm might be too large</li>
                 </ul>
               </div>
+              <p>
+                If you are searching for <strong>face shape glasses</strong> or <strong>glasses for face shape</strong>,
+                the Finley Vintage belongs in the square acetate category: it tends to sharpen softer features and
+                can make round faces look more structured. If your face is already very angular, compare it with
+                softer <Link href={`${localePrefix}/blog/browline-clubmaster-glasses-complete-guide`} className="text-blue-600 hover:text-blue-800">browline glasses</Link> or
+                use our <Link href={`${localePrefix}/glasses-for-face-shape`} className="text-blue-600 hover:text-blue-800">glasses for face shape guide</Link> before deciding.
+              </p>
+              <p>
+                The fastest workflow is simple: run <Link href={`${localePrefix}/face-analysis`} className="text-blue-600 hover:text-blue-800">AI face analysis for glasses</Link>,
+                check whether your report recommends square or rectangular frames, then continue to
+                <Link href={`${localePrefix}/try-on/glasses`} className="text-blue-600 hover:text-blue-800"> virtual glasses try-on</Link> to compare similar luxury styles on your own photo.
+              </p>
 
               <h2>Style Versatility</h2>
               <p>
@@ -326,16 +370,24 @@ export default function BlogPostPage() {
               <div className="bg-gradient-to-r from-amber-600 to-orange-500 text-white p-8 rounded-lg my-8">
                 <h3 className="text-2xl font-bold mb-4">Try Before You Buy</h3>
                 <p className="mb-6">
-                  Not sure if the Finley Vintage is right for your face? Use our AI-powered virtual try-on 
-                  to see how these frames look on you before making the investment. Try similar styles from 
-                  multiple brands to compare!
+                  Not sure if the Finley Vintage is right for your face? Start with AI face analysis to check
+                  whether square acetate frames match your proportions, then use virtual glasses try-on to compare
+                  similar styles before making the investment.
                 </p>
-                <Link
-                  href="../.."
-                  className="inline-block bg-white text-orange-600 px-8 py-3 rounded-lg font-bold hover:bg-gray-100 transition-colors"
-                >
-                  Virtual Try-On Now →
-                </Link>
+                <div className="flex flex-col gap-3 sm:flex-row">
+                  <Link
+                    href={`${localePrefix}/face-analysis`}
+                    className="inline-flex justify-center bg-white text-orange-600 px-8 py-3 rounded-lg font-bold hover:bg-gray-100 transition-colors"
+                  >
+                    Analyze My Face
+                  </Link>
+                  <Link
+                    href={`${localePrefix}/try-on/glasses`}
+                    className="inline-flex justify-center border border-white/70 px-8 py-3 rounded-lg font-bold text-white hover:bg-white/10 transition-colors"
+                  >
+                    Try On Glasses
+                  </Link>
+                </div>
               </div>
 
               <h2>Comparison to Alternatives</h2>
@@ -426,13 +478,20 @@ export default function BlogPostPage() {
                   <strong>Rating: 9.2/10</strong> - The Oliver Peoples Finley Vintage is a near-perfect 
                   eyeglass frame that combines exceptional quality, timeless style, and remarkable comfort. 
                   While expensive, it&apos;s a worthwhile investment for those who can afford it and will 
-                  appreciate the difference that true luxury eyewear makes.
+                  appreciate the difference that true luxury eyewear makes. Before buying, confirm that square
+                  acetate frames suit your face shape and compare similar frames with online try-on.
                 </p>
               </div>
 
+              <FaceAnalysisFunnelCTA
+                locale={params.locale}
+                title="Turn this review into a personal shortlist"
+                body="Use the Finley Vintage as a reference style, then let face analysis narrow your best frame shapes before you try glasses on online."
+              />
+
               <p className="font-bold text-lg mt-6">
                 Ready to experience luxury eyewear? Try the Finley Vintage virtually or explore similar
-                styles to find your perfect match! Check out our <Link href="../blog/tom-ford-luxury-eyewear-guide-2025" className="text-blue-600 hover:text-blue-800">Tom Ford luxury eyewear guide</Link> and <Link href="../blog/celebrity-glasses-style-guide-2025" className="text-blue-600 hover:text-blue-800">celebrity glasses style guide</Link> for more luxury eyewear inspiration.
+                styles to find your perfect match! Check out our <Link href={`${localePrefix}/blog/tom-ford-luxury-eyewear-guide-2025`} className="text-blue-600 hover:text-blue-800">Tom Ford luxury eyewear guide</Link> and <Link href={`${localePrefix}/blog/celebrity-glasses-style-guide-2025`} className="text-blue-600 hover:text-blue-800">celebrity glasses style guide</Link> for more luxury eyewear inspiration.
               </p>
             </div>
 
@@ -440,7 +499,7 @@ export default function BlogPostPage() {
               <div className="flex items-center justify-between flex-wrap gap-4">
                 <BlogTags tags={articleTags} />
                 <Link
-                  href="../.."
+                  href={`${localePrefix}/try-on/glasses`}
                   className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors"
                 >
                   Try Similar Styles
