@@ -123,5 +123,5 @@ Every week:
   - `/en/face-analysis`
   - `/en/try-on/glasses`
   - `/en/glasses-for-face-shape`
-- Confirm whether pricing views and try-on starts are already tracked as GA events; add events if the data is missing.
+- Completed on 2026-06-12: pricing page views send `view_pricing`; real try-on submissions send `try_on_start` with `try_on_type`.
 - Produce the first weekly commercial traffic report once GA has at least one full day of event data after deployment.

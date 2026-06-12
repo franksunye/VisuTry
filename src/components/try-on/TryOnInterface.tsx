@@ -285,6 +285,16 @@ export function TryOnInterface({ type = 'GLASSES' }: TryOnInterfaceProps) {
     setError(null)
 
     try {
+      const creditsPurchased = (session?.user as any)?.creditsPurchased || 0
+      const creditsUsed = (session?.user as any)?.creditsUsed || 0
+      const creditsRemaining = creditsPurchased - creditsUsed
+      const userType = getUserType(
+        session?.user?.isPremiumActive || false,
+        creditsRemaining,
+        !!session
+      )
+      analytics.trackTryOnStart(userType, remainingTrials, undefined, undefined, type)
+
       const formData = new FormData()
       formData.append("userImage", userImage.file)
       formData.append("itemImage", itemImage.file)

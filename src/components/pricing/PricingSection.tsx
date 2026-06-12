@@ -1,9 +1,10 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Glasses, Star, Zap } from "lucide-react"
 import { PricingCard } from "@/components/pricing/PricingCard"
 import { PromoInput } from "@/components/pricing/PromoInput"
+import { analytics, getUserType } from "@/lib/analytics"
 import {
   PRODUCT_METADATA,
   PricingQuotas,
@@ -21,6 +22,19 @@ interface PricingSectionProps {
 
 export function PricingSection({ user, quotas }: PricingSectionProps) {
   const [activeCode, setActiveCode] = useState<string | null>(null)
+
+  useEffect(() => {
+    const creditsPurchased = user?.creditsPurchased || 0
+    const creditsUsed = user?.creditsUsed || 0
+    const creditsRemaining = creditsPurchased - creditsUsed
+    const userType = getUserType(
+      user?.isPremiumActive || false,
+      creditsRemaining,
+      Boolean(user)
+    )
+
+    analytics.trackViewPricing('pricing', userType, user?.remainingTrials || 0)
+  }, [user])
 
   // Determine if any promo code is valid
   const promoProductType = activeCode ? resolvePromoCode(activeCode) : null

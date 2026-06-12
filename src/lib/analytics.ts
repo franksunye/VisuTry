@@ -84,12 +84,13 @@ export const analytics = {
   /**
    * 追踪开始试戴
    */
-  trackTryOnStart(userType: UserType, remainingQuota: number, glassesId?: string, glassesName?: string) {
+  trackTryOnStart(userType: UserType, remainingQuota: number, glassesId?: string, glassesName?: string, tryOnType?: string) {
     sendEvent('try_on_start', {
       user_type: userType,
       remaining_quota: remainingQuota,
       glasses_id: glassesId,
       glasses_name: glassesName,
+      try_on_type: tryOnType,
     })
   },
 

@@ -242,6 +242,7 @@ Tasks:
 
 - [x] Define practical 30-day and 90-day commercial traffic KPIs.
 - [x] Create weekly commercial traffic report template.
+- [x] Confirm and add commercial GA events for pricing views and try-on starts.
 - [ ] Check GSC for `/en/face-analysis`.
 - [ ] Check GSC for `/en/blog/ai-face-analysis-for-glasses-guide`.
 - [ ] Track impressions for face-analysis and glasses-intent query groups.
