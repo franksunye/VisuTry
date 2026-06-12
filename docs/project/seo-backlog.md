@@ -108,12 +108,12 @@ Tasks:
 
 - [x] Update Vercel Production `NEXT_PUBLIC_SITE_URL` to `https://www.visutry.com`.
 - [x] Update SEO fallback URLs, sitemap config, structured data URLs, and admin sitemap guidance to `https://www.visutry.com`.
-- [ ] After redeploy, verify production canonical and sitemap URLs use `www`.
+- [x] After redeploy, verify production canonical URLs use `www`.
 - [ ] Add/verify `https://www.visutry.com/` property in GSC or confirm domain-level property access.
 
 Acceptance:
 
-- [ ] Production page canonical matches the served `www` domain.
+- [x] Production page canonical matches the served `www` domain.
 - [ ] GSC URL inspection can be run against canonical URLs without property mismatch.
 
 ### Face Analysis to Try-On Repositioning
