@@ -59,6 +59,14 @@ const faqContent = [
     answer: 'Start with your face shape, then check frame width, lens depth, bridge fit, and personal style. VisuTry uses AI face analysis to create a shortlist, then virtual try-on helps you compare the look on your own photo.',
   },
   {
+    question: 'What are face shape glasses?',
+    answer: 'Face shape glasses are frame styles chosen to balance your visible proportions. For example, angular frames can add definition to round faces, while round or oval frames can soften square faces.',
+  },
+  {
+    question: 'How do I shop glasses by face shape?',
+    answer: 'Start by finding your likely face shape, compare the frame styles that usually work for that shape, then use virtual try-on to check the exact frame scale on your own photo.',
+  },
+  {
     question: 'Can AI tell me my face shape for glasses?',
     answer: 'AI can estimate your likely face shape from a clear front-facing photo and turn that into frame recommendations. The result should be used as a shopping shortcut, not a rigid rule.',
   },

@@ -150,6 +150,18 @@ function PublicTryOnLanding({
           answer: "Start with AI face analysis to estimate your face shape and get frame recommendations, then return to virtual glasses try-on with a better shortlist.",
         },
         {
+          question: "How does AI try on glasses work?",
+          answer: "AI glasses try-on combines your face photo with a glasses product image or screenshot to generate a preview of the frame on your face. It is most useful after you shortlist styles by face shape, size, and personal taste.",
+        },
+        {
+          question: "Is VisuTry a try on glasses app?",
+          answer: "VisuTry works like a try on glasses app, but it runs in your web browser. You can use it on desktop or mobile without installing an app.",
+        },
+        {
+          question: "Can I try on blue light glasses online?",
+          answer: "Yes. If you have a clear product image or screenshot of blue light glasses, you can upload it and preview the frame on your face before buying.",
+        },
+        {
           question: "Do I need to install an app?",
           answer: "No. VisuTry runs in the browser on desktop and mobile. Sign in, upload your photos, and start the glasses try-on flow online.",
         },

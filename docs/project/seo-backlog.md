@@ -109,12 +109,14 @@ Tasks:
 - [x] Update Vercel Production `NEXT_PUBLIC_SITE_URL` to `https://www.visutry.com`.
 - [x] Update SEO fallback URLs, sitemap config, structured data URLs, and admin sitemap guidance to `https://www.visutry.com`.
 - [x] After redeploy, verify production canonical URLs use `www`.
-- [ ] Add/verify `https://www.visutry.com/` property in GSC or confirm domain-level property access.
+- [x] Add/verify `https://www.visutry.com/` property in GSC or confirm domain-level property access.
+- [x] Submit `https://www.visutry.com/sitemap.xml` in the canonical `www` GSC property.
 
 Acceptance:
 
 - [x] Production page canonical matches the served `www` domain.
-- [ ] GSC URL inspection can be run against canonical URLs without property mismatch.
+- [x] GSC URL inspection can be run against canonical URLs without property mismatch.
+- [ ] Recheck the new `www` sitemap status after GSC finishes processing the newly verified property.
 
 ### Face Analysis to Try-On Repositioning
 
@@ -134,7 +136,7 @@ Tasks:
 - [x] Add stronger above-the-fold try-on bridge.
 - [x] Add internal links to face-shape pages and try-on page.
 - [x] Update visible copy and metadata around researched Keyword Planner terms: `AI face shape detector`, `face shape detector for glasses`, and `what glasses suit my face`.
-- [ ] Add FAQ/AEO answers for Trends-rising terms: `face shape detector online free` and `face shape finder`.
+- [x] Add FAQ/AEO answers for Trends-rising terms: `face shape detector online free` and `face shape finder`.
 
 Acceptance:
 
@@ -168,8 +170,8 @@ Tasks:
 - [x] Add a short "try on glasses at home" section.
 - [x] Add a "face analysis before try-on" bridge.
 - [x] Add FAQ schema for try-on intent questions.
-- [ ] Add Trends-rising FAQ/AEO answers for `try on glasses ai` and `try on glasses app`.
-- [ ] Consider a support section or article for `blue light glasses virtual try on`.
+- [x] Add Trends-rising FAQ/AEO answers for `try on glasses ai` and `try on glasses app`.
+- [x] Add FAQ/AEO coverage for `blue light glasses virtual try on`.
 
 Acceptance:
 
@@ -209,6 +211,7 @@ Acceptance:
 - [x] Page has clear conversion path: read guidance, analyze face, try glasses.
 - [x] Page is included in sitemap.
 - [x] Page passes lint/typecheck.
+- [x] Trends-rising language covers `face shape glasses`, `glasses by face shape`, and `how to choose glasses for face shape`.
 
 ### Upgrade Face-Shape Programmatic Pages
 
@@ -289,7 +292,7 @@ Tasks:
 - [x] Add `blog_funnel_click` GA/GTM event tracking for blog CTAs.
 - [x] Register GA custom dimensions for `source_page`, `destination`, and `cta_location`.
 - [ ] Evaluate German page refresh or locale-specific CTA.
-- [ ] Request reindexing for `/en/blog/oliver-peoples-finley-vintage-review` and `/de/blog/oliver-peoples-finley-vintage-review` after deployment.
+- [x] Request reindexing for `/en/blog/oliver-peoples-finley-vintage-review` and `/de/blog/oliver-peoples-finley-vintage-review` after deployment.
 
 Acceptance:
 
@@ -384,7 +387,7 @@ Acceptance:
 - [x] Priority live blog pages refreshed; legacy `best-glasses-for-face-shapes-guide` confirmed as canonical redirect.
 - [x] GSC, Keyword Planner, and Google Trends research completed.
 - [x] `/en/face-analysis`, `/en/try-on/glasses`, and `/en/glasses-for-face-shape` aligned to researched keyword clusters.
-- [ ] Trends-based AEO copy additions completed.
+- [x] Trends-based AEO copy additions completed.
 - [x] Oliver Peoples shared review page bridge refresh completed.
 - [ ] German-specific Oliver Peoples localization decision completed.
 - [ ] New or updated pages submitted in GSC.

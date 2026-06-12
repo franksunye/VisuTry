@@ -19,6 +19,14 @@ const faceAnalysisFaqContent = [
     answer: 'Yes. AI face analysis can recommend frame directions for round, square, oval, heart, diamond, oblong, and triangle face shapes. Use virtual try-on as the final visual check.',
   },
   {
+    question: 'Can I use a face shape detector online free before buying glasses?',
+    answer: 'Yes. VisuTry lets you start with an online AI face shape detector so you can understand your likely face shape before choosing glasses. Use the result as a practical shortlist, then confirm the look with virtual try-on.',
+  },
+  {
+    question: 'What is a face shape finder for glasses?',
+    answer: 'A face shape finder estimates whether your face is closer to round, square, oval, heart, diamond, oblong, or triangle, then turns that result into frame styles to try first.',
+  },
+  {
     question: 'Is my face analysis private?',
     answer: 'Your uploaded photo and analysis stay private to your account. VisuTry uses the image to generate your face shape report and glasses recommendations.',
   },
