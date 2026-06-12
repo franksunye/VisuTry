@@ -125,6 +125,8 @@ export default function BlogPostPage({ params }: { params: { locale: string } })
                 title="Check whether Finley-style frames fit your face"
                 body="The Finley Vintage is a square acetate frame. Use AI face analysis to confirm your face shape, then compare similar frames with virtual glasses try-on."
                 tone="light"
+                sourcePage="/blog/oliver-peoples-finley-vintage-review"
+                ctaLocation="oliver_peoples_intro"
               />
 
               <h2>About Oliver Peoples</h2>
@@ -487,6 +489,8 @@ export default function BlogPostPage({ params }: { params: { locale: string } })
                 locale={params.locale}
                 title="Turn this review into a personal shortlist"
                 body="Use the Finley Vintage as a reference style, then let face analysis narrow your best frame shapes before you try glasses on online."
+                sourcePage="/blog/oliver-peoples-finley-vintage-review"
+                ctaLocation="oliver_peoples_final_verdict"
               />
 
               <p className="font-bold text-lg mt-6">

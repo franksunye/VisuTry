@@ -263,6 +263,7 @@ Tasks:
 - [x] Add face-analysis CTA.
 - [x] Add glasses try-on CTA.
 - [x] Add FAQ schema for face-shape fit, online try-on, and value decision questions.
+- [x] Add `blog_funnel_click` GA/GTM event tracking for blog CTAs.
 - [ ] Evaluate German page refresh or locale-specific CTA.
 - [ ] Request reindexing for `/en/blog/oliver-peoples-finley-vintage-review` and `/de/blog/oliver-peoples-finley-vintage-review` after deployment.
 
@@ -270,6 +271,7 @@ Acceptance:
 
 - [ ] High-impression product-review pages move users into the face-analysis and glasses try-on funnel.
 - [ ] CTR and clicks are tracked in the weekly GSC report.
+- [ ] GA/GTM report can segment `blog_funnel_click` by `source_page`, `destination`, `cta_location`, and `locale`.
 - [ ] GSC CTR target: English page from 1.8% to 3%+, German page from 1% to 2.5%+ within 2-4 weeks after indexing.
 
 ## Medium Priority

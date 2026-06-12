@@ -1,11 +1,16 @@
+'use client'
+
 import Link from 'next/link'
 import { ArrowRight, Glasses, ScanFace } from 'lucide-react'
+import { analytics } from '@/lib/analytics'
 
 type FaceAnalysisFunnelCTAProps = {
   locale: string
   title?: string
   body?: string
   tone?: 'blue' | 'light'
+  sourcePage?: string
+  ctaLocation?: string
 }
 
 export function FaceAnalysisFunnelCTA({
@@ -13,9 +18,12 @@ export function FaceAnalysisFunnelCTA({
   title = 'Find your best frames before you try them on',
   body = 'Use AI face analysis to understand your face shape, get a focused frame shortlist, and continue into virtual glasses try-on.',
   tone = 'blue',
+  sourcePage,
+  ctaLocation = 'blog_funnel_cta',
 }: FaceAnalysisFunnelCTAProps) {
   const localePrefix = `/${locale}`
   const isBlue = tone === 'blue'
+  const getSourcePage = () => sourcePage || window.location.pathname
 
   return (
     <div
@@ -45,6 +53,14 @@ export function FaceAnalysisFunnelCTA({
       <div className="flex flex-col gap-3 sm:flex-row">
         <Link
           href={`${localePrefix}/face-analysis`}
+          onClick={() =>
+            analytics.trackBlogFunnelClick({
+              sourcePage: getSourcePage(),
+              destination: 'face_analysis',
+              ctaLocation,
+              locale,
+            })
+          }
           className={`inline-flex items-center justify-center rounded-lg px-5 py-3 text-sm font-semibold transition-colors ${
             isBlue
               ? 'bg-white text-blue-700 hover:bg-blue-50'
@@ -56,6 +72,14 @@ export function FaceAnalysisFunnelCTA({
         </Link>
         <Link
           href={`${localePrefix}/try-on/glasses`}
+          onClick={() =>
+            analytics.trackBlogFunnelClick({
+              sourcePage: getSourcePage(),
+              destination: 'glasses_try_on',
+              ctaLocation,
+              locale,
+            })
+          }
           className={`inline-flex items-center justify-center rounded-lg border px-5 py-3 text-sm font-semibold transition-colors ${
             isBlue
               ? 'border-blue-200 text-white hover:bg-blue-500'

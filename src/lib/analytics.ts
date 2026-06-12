@@ -15,6 +15,7 @@ export type EventSource =
   | 'error_modal'
   | 'direct'
   | 'face_analysis'
+  | 'blog'
 
 // 升级按钮位置
 export type UpgradeLocation = 'quick_actions' | 'subscription_card' | 'nav'
@@ -270,6 +271,26 @@ export const analytics = {
       face_analysis_task_id: faceAnalysisTaskId,
       style_count: styleCount,
       required_credits: requiredCredits,
+    })
+  },
+
+  trackBlogFunnelClick({
+    sourcePage,
+    destination,
+    ctaLocation,
+    locale,
+  }: {
+    sourcePage: string
+    destination: 'face_analysis' | 'glasses_try_on' | 'glasses_for_face_shape'
+    ctaLocation: string
+    locale: string
+  }) {
+    sendEvent('blog_funnel_click', {
+      source: 'blog',
+      source_page: sourcePage,
+      destination,
+      cta_location: ctaLocation,
+      locale,
     })
   },
 }
