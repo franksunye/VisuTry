@@ -1,6 +1,6 @@
 # SEO Backlog
 
-Last updated: 2026-06-11
+Last updated: 2026-06-12
 Current sprint: Face Analysis to Glasses Try-On Growth
 Owner: Codex
 
@@ -69,7 +69,7 @@ Acceptance:
 
 ## High Priority
 
-### GSC and Keyword Planner Research
+### GSC, Keyword Planner, and Google Trends Research
 
 Priority: P0
 Status: Done
@@ -78,18 +78,20 @@ Tasks:
 
 - [x] Pull GSC query, country, and page data for `https://visutry.com/`.
 - [x] Use Google Ads Keyword Planner for US English keyword demand validation.
+- [x] Use Google Trends for US and worldwide demand-shape validation.
 - [x] Map real keywords to product-led SEO pages.
 - [x] Document country and page priorities.
 
 Acceptance:
 
 - [x] Research completed on 2026-06-12.
-- [x] Keyword plan is based on GSC and Keyword Planner, not guessing.
+- [x] Keyword plan is based on GSC, Keyword Planner, and Google Trends, not guessing.
 - [x] US market, face-analysis, glasses try-on, and Oliver Peoples bridge opportunities are prioritized.
+- [x] Trends-adjusted user language is documented: `glasses try on`, `face shape glasses`, `glasses for face shape`, `face shape detector online free`, `try on glasses ai`, and `try on glasses app`.
 
 Reference:
 
-- [GSC and Keyword Planner Research](../strategy/seo/2026-06-12-gsc-keyword-country-research.md)
+- [GSC, Keyword Planner, and Trends Research](../strategy/seo/2026-06-12-gsc-keyword-country-research.md)
 
 ### Face Analysis to Try-On Repositioning
 
@@ -109,6 +111,7 @@ Tasks:
 - [x] Add stronger above-the-fold try-on bridge.
 - [x] Add internal links to face-shape pages and try-on page.
 - [x] Update visible copy and metadata around researched Keyword Planner terms: `AI face shape detector`, `face shape detector for glasses`, and `what glasses suit my face`.
+- [ ] Add FAQ/AEO answers for Trends-rising terms: `face shape detector online free` and `face shape finder`.
 
 Acceptance:
 
@@ -128,11 +131,13 @@ Target URL:
 
 Target keywords from Keyword Planner:
 
+- `glasses try on`
 - `virtual glasses try on`
 - `try on glasses online`
-- `glasses try on`
 - `try on glasses at home`
 - `try before you buy glasses`
+- `try on glasses ai`
+- `try on glasses app`
 
 Tasks:
 
@@ -140,6 +145,8 @@ Tasks:
 - [x] Add a short "try on glasses at home" section.
 - [x] Add a "face analysis before try-on" bridge.
 - [x] Add FAQ schema for try-on intent questions.
+- [ ] Add Trends-rising FAQ/AEO answers for `try on glasses ai` and `try on glasses app`.
+- [ ] Consider a support section or article for `blue light glasses virtual try on`.
 
 Acceptance:
 
@@ -157,9 +164,12 @@ Target URL:
 
 Target intent:
 
+- `face shape glasses`
+- `glasses for face shape`
+- `glasses by face shape`
+- `how to choose glasses for face shape`
 - `best glasses for my face shape`
 - `what glasses suit my face`
-- `glasses for face shape`
 
 Tasks:
 
@@ -169,6 +179,7 @@ Tasks:
 - [x] Link to `/en/try-on/glasses`.
 - [x] Link to `/en/style/[faceShape]`.
 - [x] Add FAQ schema.
+- [ ] Add Trends-rising language around `face shape glasses`, `glasses by face shape`, and `how to choose glasses for face shape`.
 
 Acceptance:
 
@@ -211,6 +222,29 @@ Acceptance:
 
 - [ ] Weekly status note completed.
 - [ ] Query movement documented.
+
+### Trends-Based AEO Content Additions
+
+Priority: P1
+Status: TODO
+
+Source:
+
+- Google Trends, United States, past 12 months.
+
+Tasks:
+
+- [ ] Add or expand `/en/face-analysis` FAQ answers for `face shape detector online free` and `face shape finder`.
+- [ ] Add or expand `/en/try-on/glasses` FAQ answers for `try on glasses ai`, `try on glasses app`, and `blue light glasses virtual try on`.
+- [ ] Add or expand `/en/glasses-for-face-shape` sections for `face shape glasses`, `glasses by face shape`, `glasses based on face shape`, and `how to choose glasses for face shape`.
+- [ ] Create a content brief for a future Warby Parker comparison page or section using neutral comparison language.
+- [ ] Track whether Trends-rising terms appear in GSC within 2-4 weeks after deployment and indexing.
+
+Acceptance:
+
+- [ ] Page copy uses real user demand language from Google Trends.
+- [ ] AEO blocks answer question-style terms directly.
+- [ ] Every answer links into the commercial path: face analysis, recommended frames, or glasses try-on.
 
 ### Use Oliver Peoples Pages as Funnel Bridge
 
@@ -319,8 +353,9 @@ Acceptance:
 
 - [x] Face-shape pages upgraded.
 - [x] Priority live blog pages refreshed; legacy `best-glasses-for-face-shapes-guide` confirmed as canonical redirect.
-- [x] GSC and Keyword Planner research completed.
+- [x] GSC, Keyword Planner, and Google Trends research completed.
 - [x] `/en/face-analysis`, `/en/try-on/glasses`, and `/en/glasses-for-face-shape` aligned to researched keyword clusters.
+- [ ] Trends-based AEO copy additions completed.
 - [ ] Oliver Peoples bridge refresh completed.
 - [ ] New or updated pages submitted in GSC.
 - [ ] First weekly funnel report produced.

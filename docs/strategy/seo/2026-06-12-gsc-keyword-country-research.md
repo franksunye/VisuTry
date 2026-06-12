@@ -1,4 +1,4 @@
-# GSC and Keyword Planner Research: Face Analysis to Glasses Try-On
+# GSC, Keyword Planner, and Trends Research: Face Analysis to Glasses Try-On
 
 Date: 2026-06-12
 Owner: Codex
@@ -6,6 +6,7 @@ Sources:
 
 - Google Search Console, property `https://visutry.com/`
 - Google Ads Keyword Planner, account `192-353-0386`
+- Google Trends, United States and worldwide, past 12 months
 
 ## Executive Summary
 
@@ -26,6 +27,14 @@ Keyword Planner confirms that the target US English keywords are real search dem
 - `face shape detector for glasses`: 100-1k average monthly searches.
 
 This means the current growth problem is not keyword imagination. It is visibility, indexing, topical authority, and CTR for the non-brand cluster.
+
+Google Trends adds an important demand-shape correction:
+
+- In the US, the broader try-on phrase `glasses try on` is much larger than `virtual glasses try on` and `try on glasses online`.
+- In the US, the broader face-shape phrases `face shape glasses` and `glasses for face shape` are much larger than `AI face shape detector`.
+- Worldwide, `face shape glasses`, `glasses try on`, `glasses for face shape`, and `face shape detector` all have visible demand, which supports a product-led funnel from face-shape intent into glasses try-on.
+
+Strategic implication: keep `/en/face-analysis` differentiated as an AI feature, but use user-language hubs and support content to capture the bigger demand: "glasses try on", "face shape glasses", "glasses for face shape", and "how to choose glasses for face shape".
 
 ## GSC Baseline
 
@@ -171,17 +180,162 @@ Interpretation:
 - `try on glasses at home` and `try before you buy glasses` are commercial and expensive in paid search; they deserve a future decision page or section on `/en/try-on/glasses`.
 - Brand comparison terms such as `warby parker virtual try on` are real demand, but should be handled carefully as comparison content, not misleading competitor pages.
 
+## Google Trends Findings
+
+Settings:
+
+- Date range: Past 12 months
+- Search type: Google web search
+- Primary market view: United States
+- Secondary market view: Worldwide
+
+### US: Face Analysis vs Try-On Entry Points
+
+Comparison:
+
+- `AI face shape detector`
+- `face shape detector for glasses`
+- `virtual glasses try on`
+- `try on glasses online`
+- `what glasses suit my face`
+
+Average relative interest:
+
+| Term | Average relative interest |
+| --- | ---: |
+| `virtual glasses try on` | 65 |
+| `try on glasses online` | 40 |
+| `what glasses suit my face` | 5 |
+| `AI face shape detector` | 0 |
+| `face shape detector for glasses` | 0 |
+
+Interpretation:
+
+- `virtual glasses try on` and `try on glasses online` are the strongest US product-query surfaces.
+- `AI face shape detector` and `face shape detector for glasses` are valid Keyword Planner terms, but in Trends they are too narrow when compared against try-on phrases.
+- Use AI face analysis as the differentiator and conversion mechanism, not as the only demand language.
+
+Related rising queries:
+
+- `virtual try on glasses warby parker`: +60%
+- `blue light glasses virtual try on`: +40%
+- `try on glasses app`: +150%
+- `order glasses online`: +80%
+- `what kind of glasses suit my face`: +50%
+
+### US: Try-On Demand Wording
+
+Comparison:
+
+- `virtual glasses try on`
+- `try on glasses online`
+- `glasses try on`
+- `try on glasses at home`
+- `try before you buy glasses`
+
+Average relative interest:
+
+| Term | Average relative interest |
+| --- | ---: |
+| `glasses try on` | 79 |
+| `virtual glasses try on` | 21 |
+| `try on glasses online` | 13 |
+| `try on glasses at home` | 4 |
+| `try before you buy glasses` | 0 |
+
+Interpretation:
+
+- `glasses try on` should be treated as the broad demand phrase.
+- `virtual glasses try on` and `try on glasses online` remain better product-page title/meta phrases because they clarify online AI try-on intent.
+- `try on glasses at home` and `try before you buy glasses` are commercially meaningful in Keyword Planner, but Trends suggests they are smaller and should be handled as sections/FAQ or future commercial comparison content, not as the core page headline.
+
+Related rising queries:
+
+- `try on glasses ai`: +130%
+- `try on glasses app`: +150%
+- `blue light glasses virtual try on`: +40%
+- `warby parker try at home`: +140%
+- `glasses to try on at home`: +70%
+
+### US: Face-Shape Demand Wording
+
+Comparison:
+
+- `face shape detector`
+- `AI face shape detector`
+- `glasses for face shape`
+- `what glasses suit my face`
+- `face shape glasses`
+
+Average relative interest:
+
+| Term | Average relative interest |
+| --- | ---: |
+| `face shape glasses` | 69 |
+| `glasses for face shape` | 48 |
+| `face shape detector` | 19 |
+| `what glasses suit my face` | 1 |
+| `AI face shape detector` | 0 |
+
+Interpretation:
+
+- The strongest user language is not "AI face shape detector"; it is "face shape glasses" and "glasses for face shape".
+- `/en/glasses-for-face-shape` should become the main SEO hub for the upper-funnel question.
+- `/en/face-analysis` should answer "face shape detector online free" and "face shape finder", then move users into glasses recommendations and try-on.
+
+Related rising queries:
+
+- `face shape detector online free`: +200%
+- `face shape finder`: +90%
+- `glasses by face shape`: +250%
+- `how to choose glasses for face shape`: +200%
+- `glasses based on face shape`: +180%
+- `face shape glasses guide`: +250%
+- `face shape and glasses`: +120%
+
+### Worldwide: Demand Shape
+
+Comparison:
+
+- `glasses try on`
+- `virtual glasses try on`
+- `face shape glasses`
+- `glasses for face shape`
+- `face shape detector`
+
+Average relative interest:
+
+| Term | Average relative interest |
+| --- | ---: |
+| `face shape glasses` | 53 |
+| `glasses try on` | 34 |
+| `glasses for face shape` | 33 |
+| `face shape detector` | 31 |
+| `virtual glasses try on` | 12 |
+
+Regional signal:
+
+- For worldwide `glasses try on`, Google Trends showed Russia and Ukraine among the top visible regions.
+- This aligns with GSC, where Russia and Ukraine already show high CTR and meaningful clicks despite limited targeted content.
+
+Interpretation:
+
+- International demand is not only "virtual try-on"; face-shape-to-glasses guidance has broad global pull.
+- Russia, Ukraine, and Brazil should stay on the watchlist because they have current GSC clicks. However, the US remains the first monetization and CTR priority because it has the largest GSC impression base and English Keyword Planner data.
+
 ## Updated Keyword-to-Page Map
 
 ### P0: `/en/face-analysis`
 
 Primary:
 
-- `ai face shape detector`
-- `face shape detector for glasses`
+- `AI face shape detector for glasses`
+- `face shape detector online free`
+- `face shape finder`
 
 Secondary:
 
+- `face shape detector for glasses`
 - `what glasses suit my face`
 - `AI glasses finder`
 
@@ -190,38 +344,53 @@ Required optimization:
 - Title/meta should lead with `AI face shape detector for glasses`.
 - Above-the-fold copy should explicitly say "face shape detector for glasses".
 - Add a visible short answer block: "What glasses suit my face?"
+- Add FAQ/AEO coverage for "face shape detector online free" and "face shape finder".
 - Add internal links from high-impression Oliver Peoples pages.
 
 ### P0: `/en/try-on/glasses`
 
 Primary:
 
+- `glasses try on`
 - `virtual glasses try on`
 - `try on glasses online`
-- `glasses try on`
 
 Secondary:
 
 - `try on glasses at home`
 - `try before you buy glasses`
+- `try on glasses ai`
+- `try on glasses app`
+- `blue light glasses virtual try on`
 
 Required optimization:
 
 - Update metadata and H1 around "virtual glasses try on" and "try on glasses online".
 - Add a section for "try on glasses at home" and "try before you buy glasses".
+- Add FAQ/AEO coverage for "try on glasses AI" and "try on glasses app".
+- Consider a future `blue light glasses virtual try on` support article or section.
 - Link to face analysis as the recommendation step before try-on.
 
 ### P1: `/en/glasses-for-face-shape`
 
 Primary:
 
-- `what glasses suit my face`
+- `face shape glasses`
 - `glasses for face shape`
+- `glasses by face shape`
 - `best glasses for my face shape`
+
+Secondary:
+
+- `what glasses suit my face`
+- `how to choose glasses for face shape`
+- `glasses based on face shape`
+- `face shape glasses guide`
 
 Required optimization:
 
 - Add exact-match "what glasses suit my face" question and answer near the top.
+- Add "how to choose glasses for face shape" and "glasses based on face shape" sections.
 - Strengthen links to `/en/style/[faceShape]` pages.
 - Add CTA to analyze face if the user does not know their shape.
 
@@ -244,8 +413,9 @@ Required optimization:
 1. Optimize for the United States first.
 2. Treat `/en/face-analysis`, `/en/try-on/glasses`, and `/en/glasses-for-face-shape` as the main product-led SEO cluster.
 3. Use Oliver Peoples pages as the bridge from existing non-brand impressions into the new product funnel.
-4. Do not prioritize broad international localization until US non-brand visibility starts moving.
-5. Keep tag pages out of the index; they are visible but not strategic destination pages.
+4. Use Trends wording to separate page roles: broad demand hubs use user language; feature pages use AI language for differentiation and conversion.
+5. Do not prioritize broad international localization until US non-brand visibility starts moving, but keep Russia, Ukraine, and Brazil on the watchlist because GSC and Trends both show demand signals.
+6. Keep tag pages out of the index; they are visible but not strategic destination pages.
 
 ## Next Actions
 
@@ -254,6 +424,7 @@ Required optimization:
 - Update `/en/face-analysis` metadata/H1 support copy around `AI face shape detector for glasses`.
 - Update `/en/try-on/glasses` metadata and visible copy around `virtual glasses try on`, `try on glasses online`, and `try on glasses at home`.
 - Update `/en/glasses-for-face-shape` intro around `what glasses suit my face`.
+- Add AEO/FAQ content around `face shape detector online free`, `face shape finder`, `try on glasses ai`, and `try on glasses app`.
 - Refresh `/en/blog/oliver-peoples-finley-vintage-review` and `/de/blog/oliver-peoples-finley-vintage-review` with face-shape and try-on bridge CTAs.
 
 ### GSC follow-up
