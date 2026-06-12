@@ -5,7 +5,7 @@ import { slugify } from '@/lib/programmatic-seo'
 import { locales } from '@/i18n'
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://visutry.com'
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.visutry.com'
   const programmaticEnabled = process.env.PROGRAMMATIC_SEO_ENABLED === 'true'
 
   // Helper function to generate alternate languages

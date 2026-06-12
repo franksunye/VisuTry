@@ -19,7 +19,7 @@ What does this mean?
 Why was this done?
 In order to provide the fastest experience for all our users, we periodically clear trial data for inactive periods (7-30 days for free trials).
 
-If you wish to create new try-ons, feel free to visit us again at https://visutry.com.
+If you wish to create new try-ons, feel free to visit us again at https://www.visutry.com.
 
 Best regards,
 The VisuTry Team
@@ -46,7 +46,7 @@ support@visutry.com`,
           <p>This is part of our commitment to maintaining a fast and secure experience for all users.</p>
           
           <div style="text-align: center; margin: 30px 0;">
-            <a href="https://visutry.com" style="background-color: #000; color: #fff; padding: 12px 25px; text-decoration: none; border-radius: 5px; font-weight: bold;">Visit VisuTry Again</a>
+            <a href="https://www.visutry.com" style="background-color: #000; color: #fff; padding: 12px 25px; text-decoration: none; border-radius: 5px; font-weight: bold;">Visit VisuTry Again</a>
           </div>
           
           <hr style="border: 0; border-top: 1px solid #eee; margin: 30px 0;" />

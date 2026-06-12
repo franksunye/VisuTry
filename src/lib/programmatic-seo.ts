@@ -147,7 +147,7 @@ export function generateCollectionPageSchema(data: {
  * Generate canonical URL
  */
 export function generateCanonicalUrl(path: string): string {
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://visutry.com'
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.visutry.com'
   return `${baseUrl}${path}`
 }
 

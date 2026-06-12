@@ -220,7 +220,7 @@ export default async function FaceShapePage({ params }: FaceShapePageProps) {
   const collectionSchema = generateCollectionPageSchema({
     name: `${displayName} Face Glasses`,
     description,
-    url: `https://visutry.com${pageUrl}`,
+    url: `https://www.visutry.com${pageUrl}`,
     itemCount: recommendedPresets.length,
   })
 

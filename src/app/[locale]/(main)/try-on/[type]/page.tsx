@@ -35,12 +35,12 @@ export async function generateMetadata({ params }: TryOnPageProps): Promise<Meta
       title: "Virtual Glasses Try On Online from Photo | VisuTry",
       description: "Try on glasses online at home from a face photo and your own glasses product image or screenshot. Compare frames before buying with VisuTry's browser-based AI glasses try-on.",
       alternates: {
-        canonical: `https://visutry.com/${params.locale}/try-on/glasses`,
+        canonical: `https://www.visutry.com/${params.locale}/try-on/glasses`,
       },
       openGraph: {
         title: "Virtual Glasses Try On Online from Photo | VisuTry",
         description: "Upload a face photo and a glasses product image or screenshot to preview how frames look before buying at home. No app install required.",
-        url: `https://visutry.com/${params.locale}/try-on/glasses`,
+        url: `https://www.visutry.com/${params.locale}/try-on/glasses`,
         type: "website",
       },
     }
@@ -99,7 +99,7 @@ export default async function TryOnTypePage({ params }: TryOnPageProps) {
   const structuredData = generateStructuredData('softwareApplication', {
     name: `VisuTry - ${config.displayName}`,
     description: `Virtual ${config.name} try-on powered by AI`,
-    url: `https://visutry.com/${locale}/try-on/${type}`,
+    url: `https://www.visutry.com/${locale}/try-on/${type}`,
   })
 
   return (
@@ -178,7 +178,7 @@ function PublicTryOnLanding({
     description: isGlasses
       ? "Browser-based AI glasses try-on from a face photo and a glasses product image or screenshot."
       : `Virtual ${config.name} try-on powered by AI.`,
-    url: `https://visutry.com/${locale}/try-on/${type}`,
+    url: `https://www.visutry.com/${locale}/try-on/${type}`,
   })
   const valuePoints = isGlasses
     ? [

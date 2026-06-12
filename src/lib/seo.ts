@@ -114,7 +114,7 @@ export const SITE_CONFIG = {
   name: 'VisuTry',
   title: 'VisuTry - AI Virtual Try-On for Glasses, Outfits, Shoes & Accessories',
   description: 'Try on glasses, outfits, shoes, and accessories instantly with AI-powered virtual try-on. No download needed - upload your photo and see how items look on you before buying. Powered by Nano Banana AI (Gemini 2.5 Flash Image) for photorealistic results.',
-  url: process.env.NEXT_PUBLIC_SITE_URL || 'https://visutry.com',
+  url: process.env.NEXT_PUBLIC_SITE_URL || 'https://www.visutry.com',
   ogImage: '/blog-covers/ai-virtual-tryon.jpg',
   keywords: ALL_KEYWORDS,
   author: 'VisuTry Team',
@@ -455,7 +455,7 @@ export function generateStructuredData(
  * Used for hreflang tags and language alternates
  */
 export function getAlternateLanguages(pathname: string = ''): Record<string, string> {
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://visutry.com'
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.visutry.com'
   const alternates: Record<string, string> = {}
 
   // Remove leading slash if present
@@ -493,7 +493,7 @@ export function generateI18nSEO({
   type?: 'website' | 'article'
   noIndex?: boolean
 }): Metadata {
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://visutry.com'
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.visutry.com'
   const seoImage = image || SITE_CONFIG.ogImage
 
   // Remove leading slash if present

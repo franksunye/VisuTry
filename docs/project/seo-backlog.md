@@ -93,6 +93,29 @@ Reference:
 
 - [GSC, Keyword Planner, and Trends Research](../strategy/seo/2026-06-12-gsc-keyword-country-research.md)
 
+### Canonical Domain Alignment
+
+Priority: P0
+Status: Done
+
+Problem:
+
+- Production redirects `https://visutry.com/...` to `https://www.visutry.com/...`.
+- SEO metadata and sitemap fallbacks previously emitted non-www canonical URLs.
+- GSC inspection for the non-www Oliver Peoples URL showed a redirect state, which weakens indexing actions for refreshed content.
+
+Tasks:
+
+- [x] Update Vercel Production `NEXT_PUBLIC_SITE_URL` to `https://www.visutry.com`.
+- [x] Update SEO fallback URLs, sitemap config, structured data URLs, and admin sitemap guidance to `https://www.visutry.com`.
+- [ ] After redeploy, verify production canonical and sitemap URLs use `www`.
+- [ ] Add/verify `https://www.visutry.com/` property in GSC or confirm domain-level property access.
+
+Acceptance:
+
+- [ ] Production page canonical matches the served `www` domain.
+- [ ] GSC URL inspection can be run against canonical URLs without property mismatch.
+
 ### Face Analysis to Try-On Repositioning
 
 Priority: P0
@@ -264,6 +287,7 @@ Tasks:
 - [x] Add glasses try-on CTA.
 - [x] Add FAQ schema for face-shape fit, online try-on, and value decision questions.
 - [x] Add `blog_funnel_click` GA/GTM event tracking for blog CTAs.
+- [x] Register GA custom dimensions for `source_page`, `destination`, and `cta_location`.
 - [ ] Evaluate German page refresh or locale-specific CTA.
 - [ ] Request reindexing for `/en/blog/oliver-peoples-finley-vintage-review` and `/de/blog/oliver-peoples-finley-vintage-review` after deployment.
 

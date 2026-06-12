@@ -418,7 +418,7 @@ export default async function DataStatsPage() {
             <div className="flex-1">
               <p className="font-medium">Submit sitemap to Google Search Console</p>
               <p className="text-sm text-muted-foreground">
-                Sitemap URL: https://visutry.com/sitemap.xml
+                Sitemap URL: https://www.visutry.com/sitemap.xml
               </p>
             </div>
           </div>

@@ -73,7 +73,7 @@ export async function FaceAnalysisLanding({ locale }: FaceAnalysisLandingProps) 
   })
   const appSchema = generateStructuredData('softwareApplication', {
     name: 'VisuTry AI Face Analysis for Glasses',
-    url: `https://visutry.com/${locale}/face-analysis`,
+    url: `https://www.visutry.com/${locale}/face-analysis`,
     applicationCategory: 'LifestyleApplication',
     operatingSystem: 'Web Browser',
     description: 'AI face shape analysis for glasses recommendations and virtual try-on planning.',

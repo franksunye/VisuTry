@@ -1,6 +1,6 @@
 /** @type {import('next-sitemap').IConfig} */
 module.exports = {
-  siteUrl: process.env.NEXT_PUBLIC_SITE_URL || 'https://visutry.com',
+  siteUrl: process.env.NEXT_PUBLIC_SITE_URL || 'https://www.visutry.com',
   generateRobotsTxt: false, // 我们已经手动创建了 robots.txt
   generateIndexSitemap: true, // 生成索引站点地图
   
@@ -87,7 +87,7 @@ module.exports = {
       }
     ],
     additionalSitemaps: [
-      `${process.env.NEXT_PUBLIC_SITE_URL || 'https://visutry.com'}/sitemap.xml`,
+      `${process.env.NEXT_PUBLIC_SITE_URL || 'https://www.visutry.com'}/sitemap.xml`,
     ],
   }
 }
