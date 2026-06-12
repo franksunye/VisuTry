@@ -126,28 +126,34 @@ export default function Home() {
         </div>
       </section>
 
-      {/* New Face Analysis Section */}
-      <section className="max-w-5xl mx-auto mb-16">
-        <div className="grid gap-8 rounded-lg border border-blue-100 bg-white p-6 shadow-sm md:p-8 lg:grid-cols-[0.88fr_1.12fr] lg:items-center">
+      {/* Face Analysis to Try-On Section */}
+      <section className="max-w-6xl mx-auto mb-16">
+        <div className="grid gap-8 overflow-hidden rounded-lg border border-blue-100 bg-gradient-to-br from-white via-blue-50/70 to-white p-5 shadow-sm md:p-8 lg:grid-cols-[0.76fr_1.24fr] lg:items-center">
           <div>
-            <div className="mb-5 flex h-14 w-14 items-center justify-center rounded-lg bg-blue-600 text-white">
-              <ScanFace className="h-7 w-7" />
-            </div>
-            <p className="mb-2 text-sm font-semibold uppercase tracking-normal text-blue-600">
-              New AI face analysis
+            <p className="mb-3 inline-flex items-center rounded-lg border border-blue-200 bg-white px-3 py-1 text-sm font-semibold text-blue-700">
+              <ScanFace className="mr-2 h-4 w-4" />
+              Face analysis for glasses
             </p>
-            <h2 className="mb-3 text-2xl font-bold text-gray-900">
-              Find glasses that match your face shape before you try them on
+            <h2 className="mb-4 text-3xl font-bold leading-tight text-gray-950 md:text-4xl">
+              Start try-on with frames that already fit the face
             </h2>
-            <p className="mb-5 text-gray-600">
-              Upload a photo to discover your face shape, key features, and personalized frame
-              recommendations, then use virtual try-on to compare the styles on your own face.
+            <p className="mb-6 text-base leading-7 text-gray-600">
+              VisuTry now uses one portrait to read face shape, narrow the first frame shortlist,
+              and send shoppers directly into glasses try-on with better choices.
             </p>
+            <div className="mb-6 grid gap-3 text-sm font-semibold text-gray-700">
+              {['Face shape report', 'Recommended frame styles', 'One path into AI try-on'].map((item) => (
+                <div key={item} className="flex items-center gap-2">
+                  <span className="h-1.5 w-1.5 rounded-full bg-blue-600" />
+                  <span>{item}</span>
+                </div>
+              ))}
+            </div>
             <Link
               href={`/${locale}/face-analysis`}
-              className="inline-flex items-center justify-center rounded-lg bg-blue-600 px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-blue-700"
+              className="inline-flex items-center justify-center rounded-lg bg-blue-600 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-blue-600/20 transition-colors hover:bg-blue-700"
             >
-              Analyze My Face
+              Analyze my face
               <ArrowRight className="ml-2 h-4 w-4" />
             </Link>
           </div>

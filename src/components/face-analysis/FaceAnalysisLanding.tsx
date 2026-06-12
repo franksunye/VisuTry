@@ -29,9 +29,9 @@ const faceAnalysisFaqContent = [
 ]
 
 const valuePoints = [
-  'Face shape in minutes',
-  'Frame styles worth trying first',
-  'Direct path into glasses try-on',
+  'AI face shape report',
+  'Frame picks with a reason',
+  'Continue into virtual try-on',
 ]
 
 const faceShapeGuidance = [
@@ -64,9 +64,9 @@ const faceShapeGuidance = [
 export async function FaceAnalysisLanding({ locale }: FaceAnalysisLandingProps) {
   const t = await getTranslations('faceAnalysis.landing')
   const isEnglish = locale === 'en'
-  const heroTitle = isEnglish ? 'Find Glasses That Fit Your Face with AI' : t('title')
+  const heroTitle = isEnglish ? 'Face analysis that leads to better glasses try-on' : t('title')
   const heroDescription = isEnglish
-    ? 'Upload one clear photo to understand your face shape, get frame directions, and continue into AI glasses try-on with a better shortlist.'
+    ? 'Upload one clear portrait, understand your face shape, then start try-on with frames that are actually worth testing.'
     : t('description')
   const faqSchema = generateStructuredData('faqPage', {
     questions: faceAnalysisFaqContent,
@@ -142,21 +142,21 @@ export async function FaceAnalysisLanding({ locale }: FaceAnalysisLandingProps) 
         dangerouslySetInnerHTML={{ __html: JSON.stringify(howToSchema) }}
       />
 
-      <div className="bg-gradient-to-b from-blue-50 to-white">
-        <section className="mx-auto grid min-h-[680px] max-w-6xl gap-10 px-4 py-12 md:py-16 lg:grid-cols-[0.88fr_1.12fr] lg:items-center">
+      <div className="bg-gradient-to-b from-blue-50 via-white to-white">
+        <section className="mx-auto grid min-h-[680px] max-w-6xl gap-10 px-4 py-10 md:py-14 lg:grid-cols-[0.78fr_1.22fr] lg:items-center">
           <div className="max-w-xl">
             <p className="mb-4 inline-flex items-center rounded-lg border border-blue-200 bg-white px-3 py-1 text-sm font-semibold text-blue-700 shadow-sm">
               Face shape analysis to glasses try-on
             </p>
-            <h1 className="mb-5 text-4xl font-bold leading-tight text-gray-950 md:text-6xl">
+            <h1 className="mb-5 text-4xl font-bold leading-tight text-gray-950 md:text-5xl">
               {heroTitle}
             </h1>
-            <p className="mb-7 text-lg leading-8 text-gray-600 md:text-xl">
+            <p className="mb-7 text-lg leading-8 text-gray-600">
               {heroDescription}
             </p>
-            <div className="mb-8 flex flex-wrap gap-3">
+            <div className="mb-8 grid gap-3">
               {valuePoints.map((item) => (
-                <div key={item} className="flex items-center gap-2 rounded-full bg-white px-3 py-2 text-sm font-semibold text-gray-700 shadow-sm">
+                <div key={item} className="flex items-center gap-3 text-sm font-semibold text-gray-700">
                   <CheckCircle2 className="h-4 w-4 flex-shrink-0 text-green-600" />
                   <span>{item}</span>
                 </div>
@@ -189,22 +189,24 @@ export async function FaceAnalysisLanding({ locale }: FaceAnalysisLandingProps) 
             </div>
           </div>
 
-          <div className="mx-auto w-full max-w-[620px]">
+          <div className="mx-auto w-full max-w-[720px]">
             <FaceAnalysisPreviewVisual variant="report" />
           </div>
         </section>
       </div>
 
-      <div className="mx-auto max-w-6xl px-4 py-10 md:py-14">
-        <section className="grid gap-4 md:grid-cols-4">
+      <div className="mx-auto max-w-6xl px-4 py-10 md:py-12">
+        <section className="grid gap-3 md:grid-cols-4">
           {steps.map((step) => {
             const Icon = step.icon
             return (
-              <div key={step.title} className="rounded-lg border border-gray-200 bg-white p-5 shadow-sm">
-                <div className="mb-4 flex h-10 w-10 items-center justify-center rounded-lg bg-blue-50 text-blue-600">
-                  <Icon className="h-5 w-5" />
+              <div key={step.title} className="rounded-lg border border-gray-200 bg-white p-4">
+                <div className="mb-3 flex items-center gap-3">
+                  <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-50 text-blue-600">
+                    <Icon className="h-4 w-4" />
+                  </span>
+                  <h2 className="text-sm font-semibold text-gray-950">{step.title}</h2>
                 </div>
-                <h2 className="mb-2 text-base font-semibold text-gray-950">{step.title}</h2>
                 <p className="text-sm leading-6 text-gray-600">{step.description}</p>
               </div>
             )
@@ -218,7 +220,7 @@ export async function FaceAnalysisLanding({ locale }: FaceAnalysisLandingProps) 
               Best glasses by face shape
             </h2>
           </div>
-          <p className="mb-5 max-w-3xl text-sm leading-6 text-gray-600">
+          <p className="mb-5 max-w-2xl text-sm leading-6 text-gray-600">
             Face shape is a starting point, not a rulebook. Use these frame directions to build
             your first shortlist, then validate the scale and style with virtual try-on.
           </p>
@@ -263,31 +265,6 @@ export async function FaceAnalysisLanding({ locale }: FaceAnalysisLandingProps) 
             </Link>
           </div>
         </section>
-
-        <section className="mt-10 grid gap-5 md:grid-cols-3">
-          <div className="rounded-lg border border-gray-200 bg-white p-5">
-            <h2 className="mb-2 text-lg font-semibold text-gray-950">Find your face shape</h2>
-            <p className="text-sm leading-6 text-gray-600">
-              The report estimates round, square, oval, heart, diamond, oblong, or triangle
-              proportions from a clear photo.
-            </p>
-          </div>
-          <div className="rounded-lg border border-gray-200 bg-white p-5">
-            <h2 className="mb-2 text-lg font-semibold text-gray-950">Shortlist better frames</h2>
-            <p className="text-sm leading-6 text-gray-600">
-              Get practical recommendations for glasses shapes, styles to avoid, and shopping
-              search terms.
-            </p>
-          </div>
-          <div className="rounded-lg border border-gray-200 bg-white p-5">
-            <h2 className="mb-2 text-lg font-semibold text-gray-950">Check with try-on</h2>
-            <p className="text-sm leading-6 text-gray-600">
-              Move from face shape guidance to AI glasses try-on so you can compare real looks
-              on your own photo.
-            </p>
-          </div>
-        </section>
-
         <section className="mt-10 rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
           <div className="mb-6 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
             <div>
