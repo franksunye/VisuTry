@@ -3,6 +3,7 @@ import { generateSEO, generateStructuredData } from '@/lib/seo'
 import Link from 'next/link'
 import { Glasses, Share2 } from 'lucide-react'
 import BlogTags from '@/components/BlogTags'
+import { FaceAnalysisFunnelCTA } from '@/components/blog/FaceAnalysisFunnelCTA'
 import { Breadcrumbs } from '@/components/seo/Breadcrumbs'
 
 export const metadata: Metadata = generateSEO({
@@ -18,12 +19,29 @@ const structuredData = generateStructuredData('article', {
   title: 'How to Choose the Right Glasses for Your Face Shape? Complete Guide',
   description: 'Detailed analysis of suitable glasses styles for different face shapes, including round, square, long faces and professional advice.',
   publishedAt: '2025-10-15T10:00:00Z',
-  modifiedAt: '2025-10-15T10:00:00Z',
+  modifiedAt: '2026-06-12T10:00:00Z',
   author: 'VisuTry Team',
   image: '/blog-covers/face-shape-guide.jpg',
 })
 
 const articleTags = ['Face Shape', 'Glasses Selection', 'Style Guide', 'Buying Guide', 'Fashion Tips']
+
+const faqSchema = generateStructuredData('faqPage', {
+  questions: [
+    {
+      question: 'How do I choose glasses for my face shape?',
+      answer: 'Identify your face shape first, choose frame shapes that balance your proportions, then use virtual try-on to check scale and style on your own photo.',
+    },
+    {
+      question: 'Can AI help me choose glasses?',
+      answer: 'Yes. AI face analysis can estimate your face shape and visible features, then suggest frame styles to try before you compare them with virtual glasses try-on.',
+    },
+    {
+      question: 'What if my face does not match one exact face shape?',
+      answer: 'Many faces sit between categories. Treat face shape as a starting point, then compare several recommended frame styles with try-on and frame measurements.',
+    },
+  ],
+})
 
 export default function BlogPostPage({ params }: { params: { locale: string } }) {
   const localePrefix = `/${params.locale}`
@@ -34,6 +52,10 @@ export default function BlogPostPage({ params }: { params: { locale: string } })
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
       />
 
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
@@ -96,6 +118,13 @@ export default function BlogPostPage({ params }: { params: { locale: string } })
                 and virtual try-on, read our <Link href={`${localePrefix}/blog/ai-face-analysis-for-glasses-guide`} className="text-blue-600 hover:text-blue-800">AI face analysis for glasses guide</Link>.
               </p>
 
+              <FaceAnalysisFunnelCTA
+                locale={params.locale}
+                title="Choose with a report, then confirm with try-on"
+                body="Use face shape guidance to narrow your options, then compare recommended glasses styles on your own photo."
+                tone="light"
+              />
+
               <h2>Glasses Selection Guide for Different Face Shapes</h2>
 
               <h3>1. Round Face</h3>
@@ -120,7 +149,7 @@ export default function BlogPostPage({ params }: { params: { locale: string } })
               </p>
               <ul>
                 <li>Round or oval frames</li>
-                <li>Soft curved designs (like <Link href="/blog/browline-clubmaster-glasses-complete-guide" className="text-blue-600 hover:text-blue-800">browline clubmaster styles</Link>)</li>
+                <li>Soft curved designs (like <Link href={`${localePrefix}/blog/browline-clubmaster-glasses-complete-guide`} className="text-blue-600 hover:text-blue-800">browline clubmaster styles</Link>)</li>
                 <li>Avoid overly square styles</li>
               </ul>
 
@@ -150,21 +179,7 @@ export default function BlogPostPage({ params }: { params: { locale: string } })
                 <li>Avoid heavy top portions</li>
               </ul>
 
-              {/* CTA section */}
-              <div className="bg-blue-50 p-6 rounded-lg my-8">
-                <h3 className="text-xl font-bold text-blue-900 mb-4">
-                  Start with AI face analysis
-                </h3>
-                <p className="text-blue-800 mb-4">
-                  Not sure which glasses suit you? Upload a clear photo to estimate your face shape, get frame recommendations, and then compare styles with virtual try-on.
-                </p>
-                <Link
-                  href={`${localePrefix}/face-analysis`}
-                  className="inline-block bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors"
-                >
-                  Analyze My Face
-                </Link>
-              </div>
+              <FaceAnalysisFunnelCTA locale={params.locale} />
 
               <h2>Other Factors to Consider When Choosing Glasses</h2>
 
@@ -190,14 +205,14 @@ export default function BlogPostPage({ params }: { params: { locale: string } })
               <h2>Conclusion</h2>
               <p>
                 Choosing the right glasses requires considering multiple factors including face shape, skin tone, and lifestyle.
-                Most importantly, choose styles that make you feel confident and comfortable. For style inspiration, check out our <Link href="/blog/celebrity-glasses-style-guide-2025" className="text-blue-600 hover:text-blue-800">celebrity glasses style guide</Link>.
+                Most importantly, choose styles that make you feel confident and comfortable. For style inspiration, check out our <Link href={`${localePrefix}/blog/celebrity-glasses-style-guide-2025`} className="text-blue-600 hover:text-blue-800">celebrity glasses style guide</Link>.
               </p>
               <p>
                 With VisuTry&apos;s AI virtual try-on technology, you can easily try different styles
-                and find the perfect glasses for you. Explore our <Link href="/blog/best-ai-virtual-glasses-tryon-tools-2025" className="text-blue-600 hover:text-blue-800">comprehensive guide to AI virtual try-on tools</Link> to learn more about the latest technology.
+                and find the perfect glasses for you. Explore our <Link href={`${localePrefix}/blog/best-ai-virtual-glasses-tryon-tools-2025`} className="text-blue-600 hover:text-blue-800">comprehensive guide to AI virtual try-on tools</Link> to learn more about the latest technology.
               </p>
               <p>
-                Once you&apos;ve found your perfect style, check out our <Link href="/blog/prescription-glasses-online-shopping-guide-2025" className="text-blue-600 hover:text-blue-800">complete guide to buying prescription glasses online</Link> to make your purchase with confidence.
+                Once you&apos;ve found your perfect style, check out our <Link href={`${localePrefix}/blog/prescription-glasses-online-shopping-guide-2025`} className="text-blue-600 hover:text-blue-800">complete guide to buying prescription glasses online</Link> to make your purchase with confidence.
               </p>
             </div>
 

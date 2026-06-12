@@ -1,7 +1,8 @@
 import { Metadata } from 'next'
 import Image from 'next/image'
 import Link from 'next/link'
-import { CheckCircle2, Eye, Glasses, ScanFace, ShieldCheck, Sparkles } from 'lucide-react'
+import { CheckCircle2, Eye, Glasses, ScanFace, ShieldCheck } from 'lucide-react'
+import { FaceAnalysisFunnelCTA } from '@/components/blog/FaceAnalysisFunnelCTA'
 import { Breadcrumbs } from '@/components/seo/Breadcrumbs'
 import { generateI18nSEO, generateStructuredData } from '@/lib/seo'
 
@@ -9,7 +10,7 @@ const title = 'AI Face Analysis for Glasses - How to Find Frames That Fit Your F
 const description = 'Learn how AI face analysis helps identify your face shape, narrow down glasses styles, and use virtual try-on to choose frames with more confidence.'
 const coverImage = '/blog-covers/face-shape-guide.jpg'
 const publishedAt = '2026-06-08T10:00:00Z'
-const modifiedAt = '2026-06-08T10:00:00Z'
+const modifiedAt = '2026-06-12T10:00:00Z'
 
 export async function generateMetadata({ params }: { params: { locale: string } }): Promise<Metadata> {
   return generateI18nSEO({
@@ -170,6 +171,13 @@ export default function BlogPostPage({ params }: { params: { locale: string } })
                 personalized frame guidance.
               </p>
 
+              <FaceAnalysisFunnelCTA
+                locale={params.locale}
+                title="Turn face shape advice into a try-on shortlist"
+                body="Start with one portrait, get frame directions, then test the recommended styles on your own photo instead of browsing hundreds of frames cold."
+                tone="light"
+              />
+
               <div className="not-prose my-8 grid gap-4 md:grid-cols-3">
                 {workflowSteps.map((item) => {
                   const Icon = item.icon
@@ -243,30 +251,20 @@ export default function BlogPostPage({ params }: { params: { locale: string } })
                 <li><strong>Check real-world details</strong> such as frame measurements, bridge fit, prescription lens options, and return policy before buying.</li>
               </ol>
 
-              <div className="not-prose my-8 rounded-lg bg-blue-600 p-6 text-white">
-                <div className="mb-4 flex items-center gap-3">
-                  <Sparkles className="h-6 w-6" />
-                  <h2 className="text-2xl font-bold">Find your frame shortlist first</h2>
-                </div>
-                <p className="mb-5 text-blue-50">
-                  Use VisuTry AI Face Analysis to discover your face shape and get personalized
-                  glasses recommendations, then preview frames with virtual try-on.
-                </p>
-                <div className="flex flex-col gap-3 sm:flex-row">
-                  <Link
-                    href={`${localePrefix}/face-analysis`}
-                    className="inline-flex items-center justify-center rounded-lg bg-white px-5 py-3 font-semibold text-blue-700 transition-colors hover:bg-blue-50"
-                  >
-                    Start Face Analysis
-                  </Link>
-                  <Link
-                    href={`${localePrefix}/try-on/glasses`}
-                    className="inline-flex items-center justify-center rounded-lg border border-blue-200 px-5 py-3 font-semibold text-white transition-colors hover:bg-blue-500"
-                  >
-                    Try On Glasses
-                  </Link>
-                </div>
-              </div>
+              <FaceAnalysisFunnelCTA locale={params.locale} />
+
+              <h2>Quick answers for shoppers comparing AI glasses tools</h2>
+              <p>
+                Search results for glasses face-shape tools often promise a scan, a frame advisor,
+                or a virtual mirror. The useful question is not which label sounds most advanced,
+                but whether the workflow moves you from analysis to a smaller set of frames you
+                can actually evaluate.
+              </p>
+              <ul>
+                <li><strong>If you do not know your face shape:</strong> start with AI face analysis.</li>
+                <li><strong>If you already know your face shape:</strong> compare recommended styles in the <Link href={`${localePrefix}/glasses-for-face-shape`}>glasses for face shape guide</Link>.</li>
+                <li><strong>If you already have frames in mind:</strong> go straight to <Link href={`${localePrefix}/try-on/glasses`}>virtual glasses try-on</Link>.</li>
+              </ul>
 
               <h2>What to look for in the try-on result</h2>
               <p>

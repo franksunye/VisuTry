@@ -2,6 +2,7 @@ import { Metadata } from 'next'
 import Image from 'next/image'
 import Link from 'next/link'
 import { CheckCircle2, Image as ImageIcon, Shield, Smartphone, Store } from 'lucide-react'
+import { FaceAnalysisFunnelCTA } from '@/components/blog/FaceAnalysisFunnelCTA'
 import { Breadcrumbs } from '@/components/seo/Breadcrumbs'
 import { generateSEO, generateStructuredData } from '@/lib/seo'
 
@@ -24,6 +25,23 @@ const structuredData = generateStructuredData('article', {
   modifiedAt: '2026-05-20T10:00:00Z',
   author: 'VisuTry Team',
   image: coverImage,
+})
+
+const faqSchema = generateStructuredData('faqPage', {
+  questions: [
+    {
+      question: 'What is the best AI virtual try-on tool for glasses?',
+      answer: 'The best tool depends on the workflow. For shoppers who already know the frame they want, photo-based try-on can produce a clear preview. For shoppers who do not know where to start, a stronger workflow combines face analysis, frame recommendations, and virtual try-on.',
+    },
+    {
+      question: 'Do virtual glasses try-on tools need a face-shape feature?',
+      answer: 'Face-shape analysis is useful when it helps shoppers build a smaller frame shortlist before try-on. It should lead into practical frame recommendations, not stop at a generic face-shape label.',
+    },
+    {
+      question: 'Is photo-based AI try-on or real-time AR better?',
+      answer: 'Photo-based AI try-on is often better for polished previews, custom frame images, and shareable decision images. Real-time AR is useful for fast live browsing when a store has prepared frame assets.',
+    },
+  ],
 })
 
 const criteria = [
@@ -49,12 +67,18 @@ const criteria = [
   },
 ]
 
-export default function BlogPostPage() {
+export default function BlogPostPage({ params }: { params: { locale: string } }) {
+  const localePrefix = `/${params.locale}`
+
   return (
     <>
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
       />
 
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
@@ -106,10 +130,17 @@ export default function BlogPostPage() {
               <p>
                 This guide focuses on the practical criteria that matter when evaluating AI
                 virtual try-on tools today. If you are still choosing frames by face shape, start
-                with our <Link href="/blog/how-to-choose-glasses-for-your-face">face shape guide</Link>.
+                with our <Link href={`${localePrefix}/blog/how-to-choose-glasses-for-your-face`}>face shape guide</Link>.
                 If you are buying prescription frames, pair try-on with our
-                {' '}<Link href="/blog/prescription-glasses-online-shopping-guide-2025">online shopping checklist</Link>.
+                {' '}<Link href={`${localePrefix}/blog/prescription-glasses-online-shopping-guide-2025`}>online shopping checklist</Link>.
               </p>
+
+              <FaceAnalysisFunnelCTA
+                locale={params.locale}
+                title="Compare tools by the shopping path, not the demo"
+                body="For eyewear, the strongest path is not just virtual try-on. It is face analysis, frame recommendations, and then try-on with a smaller, better shortlist."
+                tone="light"
+              />
 
               <h2>Two try-on models are emerging</h2>
               <div className="grid gap-4 md:grid-cols-2">
@@ -154,6 +185,12 @@ export default function BlogPostPage() {
                 before-buying image and for smaller eyewear sellers that do not yet have a full
                 3D frame catalog.
               </p>
+              <p>
+                The newer VisuTry path adds a decision layer before try-on: <Link href={`${localePrefix}/face-analysis`}>AI face analysis for glasses</Link>
+                {' '}helps shoppers understand their face shape and frame directions first, then
+                moves them into <Link href={`${localePrefix}/try-on/glasses`}>AI glasses try-on</Link>
+                {' '}with styles that are worth comparing.
+              </p>
 
               <div className="not-prose my-8 rounded-lg bg-blue-600 p-6 text-white">
                 <h3 className="mb-3 text-2xl font-bold">Quick evaluation checklist</h3>
@@ -171,6 +208,8 @@ export default function BlogPostPage() {
                 advanced demo. It is the one that reduces uncertainty at the exact moment your
                 buyer is deciding whether a frame is worth ordering.
               </p>
+
+              <FaceAnalysisFunnelCTA locale={params.locale} />
             </div>
           </article>
         </main>

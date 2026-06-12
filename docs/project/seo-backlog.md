@@ -164,20 +164,23 @@ Acceptance:
 ### Refresh Priority Blog Pages
 
 Priority: P2
-Status: TODO
+Status: In progress
 
 Tasks:
 
-- [ ] Refresh `/en/blog/ai-face-analysis-for-glasses-guide`.
-- [ ] Refresh `/en/blog/how-to-choose-glasses-for-your-face`.
-- [ ] Refresh `/en/blog/best-glasses-for-face-shapes-guide`.
-- [ ] Refresh `/en/blog/best-ai-virtual-glasses-tryon-tools-2025`.
-- [ ] Add contextual CTAs to face analysis and glasses try-on.
+- [x] Refresh `/en/blog/ai-face-analysis-for-glasses-guide`.
+- [x] Refresh `/en/blog/how-to-choose-glasses-for-your-face`.
+- [x] Confirm `/en/blog/best-glasses-for-face-shapes-guide` permanently redirects to `/en/blog/how-to-choose-glasses-for-your-face` and is not published in the blog sitemap source.
+- [x] Refresh `/en/blog/best-ai-virtual-glasses-tryon-tools-2025`.
+- [x] Add contextual CTAs to face analysis and glasses try-on.
+- [x] Add FAQ schema to refreshed support pages.
+- [x] Add internal links to `/en/glasses-for-face-shape`, `/en/style/[faceShape]`, `/en/face-analysis`, and `/en/try-on/glasses` where relevant.
 
 Acceptance:
 
-- [ ] Blog pages support the face-analysis to try-on funnel.
-- [ ] Pages target researched question-style GEO queries.
+- [x] Blog pages support the face-analysis to try-on funnel.
+- [x] Pages target researched question-style GEO queries.
+- [ ] Request reindexing for materially updated blog pages in GSC.
 
 ### Fix 404 Errors
 
@@ -239,7 +242,7 @@ Acceptance:
 ### Week 2
 
 - [x] Face-shape pages upgraded.
-- [ ] Four priority blog pages refreshed.
+- [x] Priority live blog pages refreshed; legacy `best-glasses-for-face-shapes-guide` confirmed as canonical redirect.
 - [ ] New or updated pages submitted in GSC.
 - [ ] First weekly funnel report produced.
 
