@@ -69,6 +69,28 @@ Acceptance:
 
 ## High Priority
 
+### GSC and Keyword Planner Research
+
+Priority: P0
+Status: Done
+
+Tasks:
+
+- [x] Pull GSC query, country, and page data for `https://visutry.com/`.
+- [x] Use Google Ads Keyword Planner for US English keyword demand validation.
+- [x] Map real keywords to product-led SEO pages.
+- [x] Document country and page priorities.
+
+Acceptance:
+
+- [x] Research completed on 2026-06-12.
+- [x] Keyword plan is based on GSC and Keyword Planner, not guessing.
+- [x] US market, face-analysis, glasses try-on, and Oliver Peoples bridge opportunities are prioritized.
+
+Reference:
+
+- [GSC and Keyword Planner Research](../strategy/seo/2026-06-12-gsc-keyword-country-research.md)
+
 ### Face Analysis to Try-On Repositioning
 
 Priority: P0
@@ -86,12 +108,43 @@ Tasks:
 - [x] Strengthen first-screen copy around "find glasses that fit your face".
 - [x] Add stronger above-the-fold try-on bridge.
 - [x] Add internal links to face-shape pages and try-on page.
+- [x] Update visible copy and metadata around researched Keyword Planner terms: `AI face shape detector`, `face shape detector for glasses`, and `what glasses suit my face`.
 
 Acceptance:
 
 - [x] First viewport clearly connects face analysis to glasses try-on.
 - [x] Primary CTA drives analysis upload or sign-in.
 - [x] Secondary CTA drives direct glasses try-on.
+- [x] Page is explicitly positioned for the researched US English query cluster.
+
+### Optimize Glasses Try-On Page for US Keyword Demand
+
+Priority: P0
+Status: TODO
+
+Target URL:
+
+- `/en/try-on/glasses`
+
+Target keywords from Keyword Planner:
+
+- `virtual glasses try on`
+- `try on glasses online`
+- `glasses try on`
+- `try on glasses at home`
+- `try before you buy glasses`
+
+Tasks:
+
+- [x] Update metadata and visible H1/support copy.
+- [x] Add a short "try on glasses at home" section.
+- [x] Add a "face analysis before try-on" bridge.
+- [x] Add FAQ schema for try-on intent questions.
+
+Acceptance:
+
+- [x] Page targets the researched virtual try-on keyword cluster.
+- [x] Page links users back to face analysis when they do not know which frames to try.
 
 ### Build Glasses for Face Shape Hub
 
@@ -158,6 +211,29 @@ Acceptance:
 
 - [ ] Weekly status note completed.
 - [ ] Query movement documented.
+
+### Use Oliver Peoples Pages as Funnel Bridge
+
+Priority: P1
+Status: TODO
+
+Data signal:
+
+- `/de/blog/oliver-peoples-finley-vintage-review`: 1,110 GSC impressions, 1% CTR.
+- `/en/blog/oliver-peoples-finley-vintage-review`: 342 GSC impressions, 1.8% CTR.
+
+Tasks:
+
+- [ ] Refresh English Oliver Peoples page title/meta for CTR.
+- [ ] Add face-shape fit section.
+- [ ] Add face-analysis CTA.
+- [ ] Add glasses try-on CTA.
+- [ ] Evaluate German page refresh or locale-specific CTA.
+
+Acceptance:
+
+- [ ] High-impression product-review pages move users into the face-analysis and glasses try-on funnel.
+- [ ] CTR and clicks are tracked in the weekly GSC report.
 
 ## Medium Priority
 
@@ -243,6 +319,9 @@ Acceptance:
 
 - [x] Face-shape pages upgraded.
 - [x] Priority live blog pages refreshed; legacy `best-glasses-for-face-shapes-guide` confirmed as canonical redirect.
+- [x] GSC and Keyword Planner research completed.
+- [x] `/en/face-analysis`, `/en/try-on/glasses`, and `/en/glasses-for-face-shape` aligned to researched keyword clusters.
+- [ ] Oliver Peoples bridge refresh completed.
 - [ ] New or updated pages submitted in GSC.
 - [ ] First weekly funnel report produced.
 

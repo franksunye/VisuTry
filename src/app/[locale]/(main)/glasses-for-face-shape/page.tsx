@@ -75,7 +75,7 @@ const faqContent = [
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return generateI18nSEO({
     locale: params.locale as Locale,
-    title: 'Best Glasses for Your Face Shape: AI Guide and Try-On',
+    title: 'What Glasses Suit My Face? Face Shape Guide | VisuTry',
     description: 'Find what glasses suit your face shape, compare frame styles, and use VisuTry AI face analysis to move from recommendations to virtual glasses try-on.',
     pathname: '/glasses-for-face-shape',
   })
@@ -119,14 +119,15 @@ export default function GlassesForFaceShapePage({ params }: Props) {
         <section className="grid gap-8 lg:grid-cols-[0.95fr_1.05fr] lg:items-center">
           <div>
             <p className="mb-3 inline-flex rounded-lg border border-blue-200 bg-white px-3 py-1 text-sm font-semibold text-blue-700">
-              Glasses for face shape
+              What glasses suit my face?
             </p>
             <h1 className="mb-4 text-3xl font-bold leading-tight text-gray-950 md:text-5xl">
-              Find the Best Glasses for Your Face Shape
+              What Glasses Suit My Face Shape?
             </h1>
             <p className="mb-6 text-lg leading-8 text-gray-600">
-              Use face shape as the starting point, then validate the shortlist with AI virtual
-              try-on. VisuTry turns face analysis into a practical path for choosing glasses online.
+              Use face shape as the starting point, then validate your shortlist with AI virtual
+              glasses try-on. VisuTry turns the question &quot;what glasses suit my face?&quot; into a
+              practical path for choosing frames online.
             </p>
             <div className="flex flex-col gap-3 sm:flex-row">
               <Link

@@ -29,7 +29,7 @@ const faceAnalysisFaqContent = [
 ]
 
 const valuePoints = [
-  'AI face shape report',
+  'AI face shape detector for glasses',
   'Frame picks with a reason',
   'Continue into virtual try-on',
 ]
@@ -64,9 +64,9 @@ const faceShapeGuidance = [
 export async function FaceAnalysisLanding({ locale }: FaceAnalysisLandingProps) {
   const t = await getTranslations('faceAnalysis.landing')
   const isEnglish = locale === 'en'
-  const heroTitle = isEnglish ? 'Face analysis that leads to better glasses try-on' : t('title')
+  const heroTitle = isEnglish ? 'AI Face Shape Detector for Glasses' : t('title')
   const heroDescription = isEnglish
-    ? 'Upload one clear portrait, understand your face shape, then start try-on with frames that are actually worth testing.'
+    ? 'Upload one clear portrait, learn what glasses suit your face, then start virtual glasses try-on with frames that are actually worth testing.'
     : t('description')
   const faqSchema = generateStructuredData('faqPage', {
     questions: faceAnalysisFaqContent,
@@ -146,7 +146,7 @@ export async function FaceAnalysisLanding({ locale }: FaceAnalysisLandingProps) 
         <section className="mx-auto grid min-h-[680px] max-w-6xl gap-10 px-4 py-10 md:py-14 lg:grid-cols-[0.78fr_1.22fr] lg:items-center">
           <div className="max-w-xl">
             <p className="mb-4 inline-flex items-center rounded-lg border border-blue-200 bg-white px-3 py-1 text-sm font-semibold text-blue-700 shadow-sm">
-              Face shape analysis to glasses try-on
+              Face shape detector for glasses
             </p>
             <h1 className="mb-5 text-4xl font-bold leading-tight text-gray-950 md:text-5xl">
               {heroTitle}
@@ -221,8 +221,9 @@ export async function FaceAnalysisLanding({ locale }: FaceAnalysisLandingProps) 
             </h2>
           </div>
           <p className="mb-5 max-w-2xl text-sm leading-6 text-gray-600">
-            Face shape is a starting point, not a rulebook. Use these frame directions to build
-            your first shortlist, then validate the scale and style with virtual try-on.
+            If you are asking what glasses suit my face, start with face shape as a first filter.
+            Use these frame directions to build your shortlist, then validate scale and style with
+            virtual glasses try-on.
           </p>
           <div className="overflow-x-auto rounded-lg border border-gray-200 bg-white">
             <div className="min-w-[720px]">

@@ -32,14 +32,14 @@ export async function generateMetadata({ params }: TryOnPageProps): Promise<Meta
 
   if (tryOnType === "GLASSES") {
     return {
-      title: "AI Glasses Try-On from Photo or Screenshot | VisuTry",
-      description: "Try on glasses online from a face photo and your own glasses product image or screenshot. Compare frames before buying with VisuTry's browser-based AI glasses try-on.",
+      title: "Virtual Glasses Try On Online from Photo | VisuTry",
+      description: "Try on glasses online at home from a face photo and your own glasses product image or screenshot. Compare frames before buying with VisuTry's browser-based AI glasses try-on.",
       alternates: {
         canonical: `https://visutry.com/${params.locale}/try-on/glasses`,
       },
       openGraph: {
-        title: "AI Glasses Try-On from Photo or Screenshot | VisuTry",
-        description: "Upload a face photo and a glasses product image or screenshot to preview how frames look before buying. No app install required.",
+        title: "Virtual Glasses Try On Online from Photo | VisuTry",
+        description: "Upload a face photo and a glasses product image or screenshot to preview how frames look before buying at home. No app install required.",
         url: `https://visutry.com/${params.locale}/try-on/glasses`,
         type: "website",
       },
@@ -134,12 +134,20 @@ function PublicTryOnLanding({
   const faqItems = isGlasses
     ? [
         {
-          question: "Can I try on glasses from a screenshot?",
-          answer: "Yes. VisuTry lets you upload your face photo and a glasses product image or screenshot, then uses AI to create a realistic preview on your face.",
+          question: "Can I try on glasses online from a screenshot?",
+          answer: "Yes. VisuTry lets you upload your face photo and a glasses product image or screenshot, then uses AI to create a realistic virtual glasses try-on preview on your face.",
         },
         {
-          question: "Can I upload my own glasses image?",
+          question: "Can I upload my own glasses image for virtual try-on?",
           answer: "Yes. You can upload a product photo, store image, email screenshot, or a transparent frame image. Clear front-facing product images usually work best.",
+        },
+        {
+          question: "Can I try on glasses at home before buying?",
+          answer: "Yes. VisuTry runs in your browser, so you can try on glasses at home from a face photo and compare frame images before deciding what to buy.",
+        },
+        {
+          question: "What if I do not know which glasses to try first?",
+          answer: "Start with AI face analysis to estimate your face shape and get frame recommendations, then return to virtual glasses try-on with a better shortlist.",
         },
         {
           question: "Do I need to install an app?",
@@ -174,8 +182,10 @@ function PublicTryOnLanding({
   })
   const valuePoints = isGlasses
     ? [
-        "Works with your own glasses images",
-        "Useful for designer and store product photos",
+        "Virtual glasses try-on from photo",
+        "Try glasses online at home",
+        "Works with product photos and screenshots",
+        "Use face analysis first if you need frame ideas",
         "One-time Credits Pack available after the free try-on",
       ]
     : [
@@ -244,13 +254,15 @@ function PublicTryOnLanding({
         <section className="grid gap-8 lg:grid-cols-[0.95fr_1.05fr] lg:items-center">
           <div className="max-w-2xl">
           <p className="mb-3 inline-flex items-center rounded-full border border-blue-200 bg-white px-3 py-1 text-sm font-semibold text-blue-700">
-            AI glasses try-on online
+            Virtual glasses try on online
           </p>
           <h1 className="mb-4 text-3xl font-bold leading-tight text-gray-950 md:text-5xl">
-            Try on glasses from a photo or product screenshot
+            Try On Glasses Online from a Photo
           </h1>
           <p className="mb-6 text-lg leading-8 text-gray-600">
-            Upload a clear face photo and your own glasses image. VisuTry creates a realistic preview so you can compare frames before buying, without installing an app.
+            Upload a clear face photo and your own glasses image. VisuTry creates a realistic
+            virtual glasses try-on preview so you can compare frames at home before buying,
+            without installing an app.
           </p>
           <div className="mb-7 grid gap-3">
             {valuePoints.map((item) => (
@@ -296,8 +308,12 @@ function PublicTryOnLanding({
             })}
           </div>
           <p className="mt-4 rounded-lg bg-blue-50 px-4 py-3 text-sm leading-6 text-blue-900">
-            VisuTry works with product photos and screenshots, so you can compare frames from
-            stores, emails, or saved images in one browser-based flow.
+            Not sure what glasses suit your face? Start with{' '}
+            <Link href={`/${locale}/face-analysis`} className="font-semibold text-blue-700 hover:text-blue-900">
+              AI face shape analysis
+            </Link>
+            {' '}to get a shortlist, then come back here to try on glasses online from your own
+            photo and product screenshots.
           </p>
         </div>
       </section>
