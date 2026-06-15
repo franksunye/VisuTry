@@ -25,8 +25,11 @@ async function getStats() {
     totalRevenue,
     todayRevenue,
     pendingOrders,
+    totalFaceAnalyses,
+    todayFaceAnalyses,
     recentOrders,
     recentUsers,
+    recentFaceAnalyses,
   ] = await Promise.all([
     // Total counts
     prisma.user.count(),
@@ -54,6 +57,10 @@ async function getStats() {
 
     // Pending orders
     prisma.payment.count({ where: { status: 'PENDING' } }),
+
+    // Face analysis counts
+    prisma.faceAnalysisTask.count(),
+    prisma.faceAnalysisTask.count({ where: { createdAt: { gte: todayStart } } }),
 
     // Recent activity
     prisma.payment.findMany({
@@ -83,6 +90,24 @@ async function getStats() {
         createdAt: true,
       },
     }),
+    prisma.faceAnalysisTask.findMany({
+      take: 5,
+      orderBy: { createdAt: 'desc' },
+      select: {
+        id: true,
+        userId: true,
+        detectedShape: true,
+        confidence: true,
+        status: true,
+        createdAt: true,
+        user: {
+          select: {
+            name: true,
+            email: true,
+          },
+        },
+      },
+    }),
   ]);
 
   return {
@@ -93,8 +118,11 @@ async function getStats() {
     totalRevenue: (totalRevenue._sum.amount ?? 0) / 100,
     todayRevenue: (todayRevenue._sum.amount ?? 0) / 100,
     pendingOrders,
+    totalFaceAnalyses,
+    todayFaceAnalyses,
     recentOrders,
     recentUsers,
+    recentFaceAnalyses,
   };
 }
 
@@ -111,7 +139,7 @@ export default async function DashboardPage() {
       </div>
 
       {/* Stats Grid */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
         {/* Total Users */}
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -214,10 +242,38 @@ export default async function DashboardPage() {
             </p>
           </CardContent>
         </Card>
+
+        {/* Face Analyses */}
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Face Analyses</CardTitle>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth="2"
+              className="h-4 w-4 text-muted-foreground"
+            >
+              <circle cx="12" cy="12" r="10" />
+              <path d="M8 14s1.5 2 4 2 4-2 4-2" />
+              <line x1="9" x2="9.01" y1="9" y2="9" />
+              <line x1="15" x2="15.01" y1="9" y2="9" />
+            </svg>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{stats.totalFaceAnalyses}</div>
+            <p className="text-xs text-muted-foreground">
+              +{stats.todayFaceAnalyses} today
+            </p>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Recent Activity */}
-      <div className="grid gap-4 md:grid-cols-2">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {/* Recent Orders */}
         <Card>
           <CardHeader>
@@ -311,6 +367,62 @@ export default async function DashboardPage() {
                 ))}
               </TableBody>
             </Table>
+          </CardContent>
+        </Card>
+
+        {/* Recent Face Analyses */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Recent Face Analyses</CardTitle>
+            <CardDescription>Latest 5 face analysis records</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {stats.recentFaceAnalyses.length === 0 ? (
+              <p className="text-sm text-muted-foreground">No face analysis records yet</p>
+            ) : (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>User</TableHead>
+                    <TableHead>Shape</TableHead>
+                    <TableHead>Status</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {stats.recentFaceAnalyses.map((task) => (
+                    <TableRow key={task.id}>
+                      <TableCell className="font-medium">
+                        <Link
+                          href={`/admin/users/${task.userId}`}
+                          className="hover:underline"
+                        >
+                          {task.user.name || task.user.email}
+                        </Link>
+                      </TableCell>
+                      <TableCell>{task.detectedShape || '—'}</TableCell>
+                      <TableCell>
+                        <Badge
+                          variant={
+                            task.status === 'COMPLETED'
+                              ? 'default'
+                              : task.status === 'FAILED'
+                                ? 'destructive'
+                                : 'secondary'
+                          }
+                        >
+                          {task.status}
+                        </Badge>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            )}
+            <div className="mt-4">
+              <Link href="/admin/face-analysis" className="text-sm text-blue-600 hover:underline">
+                View all →
+              </Link>
+            </div>
           </CardContent>
         </Card>
       </div>

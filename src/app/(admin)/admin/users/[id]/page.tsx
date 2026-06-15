@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import Link from 'next/link';
 import TryOnHistoryTable from '@/components/admin/TryOnHistoryTable';
+import FaceAnalysisHistoryTable from '@/components/admin/FaceAnalysisHistoryTable';
 import { User } from 'lucide-react';
 
 interface UserDetailPageProps {
@@ -30,6 +31,12 @@ async function getUserDetails(userId: string) {
       creditsPurchased: true,
       creditsUsed: true,
       premiumUsageCount: true,
+      _count: {
+        select: {
+          tryOnTasks: true,
+          faceAnalysisTasks: true,
+        },
+      },
       payments: {
         orderBy: { createdAt: 'desc' },
         take: 20,
@@ -49,6 +56,18 @@ async function getUserDetails(userId: string) {
           status: true,
           createdAt: true,
           updatedAt: true,
+        },
+      },
+      faceAnalysisTasks: {
+        orderBy: { createdAt: 'desc' },
+        take: 10,
+        select: {
+          id: true,
+          detectedShape: true,
+          confidence: true,
+          reportUnlocked: true,
+          status: true,
+          createdAt: true,
         },
       },
     },
@@ -72,7 +91,8 @@ async function getUserDetails(userId: string) {
       totalSpent,
       completedOrders,
       pendingOrders,
-      totalTryOns: user.tryOnTasks.length,
+      totalTryOns: user._count.tryOnTasks,
+      totalFaceAnalyses: user._count.faceAnalysisTasks,
     },
   };
 }
@@ -104,7 +124,7 @@ export default async function UserDetailPage({ params }: UserDetailPageProps) {
       </div>
 
       {/* User Info Cards */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Spent</CardTitle>
@@ -138,6 +158,15 @@ export default async function UserDetailPage({ params }: UserDetailPageProps) {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.totalTryOns}</div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Face Analyses</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{stats.totalFaceAnalyses}</div>
           </CardContent>
         </Card>
       </div>
@@ -289,6 +318,21 @@ export default async function UserDetailPage({ params }: UserDetailPageProps) {
             <p className="text-sm text-muted-foreground">No try-on history</p>
           ) : (
             <TryOnHistoryTable tasks={user.tryOnTasks} />
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Face Analysis History */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Face Analysis History</CardTitle>
+          <CardDescription>Recent face analysis records for this user</CardDescription>
+        </CardHeader>
+        <CardContent>
+          {user.faceAnalysisTasks.length === 0 ? (
+            <p className="text-sm text-muted-foreground">No face analysis history</p>
+          ) : (
+            <FaceAnalysisHistoryTable tasks={user.faceAnalysisTasks} />
           )}
         </CardContent>
       </Card>
