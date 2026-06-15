@@ -24,7 +24,7 @@ import {
   FrameRecommendation,
   StyleTip,
 } from '@/types/face-analysis'
-import { FaceWireframeOverlay } from './FaceWireframeOverlay'
+import { FaceLandmarkMeshOverlay } from './FaceLandmarkMeshOverlay'
 import { UnlockCreditsBanner } from './UnlockCreditsBanner'
 import { FrameSearchSuggestions } from './FrameSearchSuggestions'
 import { cn } from '@/utils/cn'
@@ -80,23 +80,25 @@ export function FaceAnalysisResult({
   const hasMeasuredGeometry = geometry?.status === 'measured'
 
   return (
-    <div className="space-y-5">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+    <div className="space-y-4 sm:space-y-5">
+      <div className="flex flex-col gap-3 border-b border-gray-100 pb-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <div className="flex flex-wrap items-center gap-2">
-            <h2 className="text-xl font-semibold text-gray-900">Your AI Face Shape Report</h2>
-            <span className="inline-flex items-center rounded-full bg-blue-50 px-2.5 py-1 text-xs font-semibold text-blue-700">
+            <h2 className="text-lg font-semibold tracking-tight text-gray-950 sm:text-xl">
+              Your AI Face Shape Report
+            </h2>
+            <span className="inline-flex items-center rounded-full bg-blue-50 px-2 py-0.5 text-[11px] font-semibold text-blue-700 sm:px-2.5 sm:py-1 sm:text-xs">
               <Sparkles className="mr-1 h-3.5 w-3.5" />
               {hasMeasuredGeometry ? 'Landmark measured' : 'AI-powered'}
             </span>
             {task.status === 'completed' && (
-              <span className="inline-flex items-center rounded-full bg-green-100 px-2.5 py-1 text-xs font-medium text-green-700">
+              <span className="inline-flex items-center rounded-full bg-green-50 px-2 py-0.5 text-[11px] font-semibold text-green-700 sm:px-2.5 sm:py-1 sm:text-xs">
                 <CheckCircle2 className="mr-1 h-3.5 w-3.5" />
                 {t('completed')}
               </span>
             )}
           </div>
-          <p className="mt-1 max-w-2xl text-sm text-gray-500">
+          <p className="mt-1 max-w-2xl text-xs leading-5 text-gray-500 sm:text-sm">
             {hasMeasuredGeometry
               ? 'Landmark-assisted proportions with AI styling guidance. Not medical or biometric advice.'
               : 'Style guidance for frame selection and AI try-on. Not medical or biometric advice.'}
@@ -106,16 +108,16 @@ export function FaceAnalysisResult({
           type="button"
           onClick={handleDownload}
           disabled={!isUnlocked}
-          className="inline-flex items-center justify-center rounded-lg border border-blue-200 px-4 py-2 text-sm font-semibold text-blue-700 transition-colors hover:bg-blue-50 disabled:cursor-not-allowed disabled:border-gray-200 disabled:text-gray-400"
+          className="inline-flex h-10 items-center justify-center rounded-lg border border-blue-200 px-3 text-sm font-semibold text-blue-700 transition-colors hover:bg-blue-50 disabled:cursor-not-allowed disabled:border-gray-200 disabled:text-gray-400 sm:px-4"
         >
           <Download className="mr-2 h-4 w-4" />
           {isUnlocked ? 'Download Report' : 'Unlock to Download'}
         </button>
       </div>
 
-      <div className="grid gap-4 xl:grid-cols-[250px_minmax(0,1fr)_270px]">
-        <div className={cn(FACE_ANALYSIS_LAYOUT.card, 'overflow-hidden p-4')}>
-          <div className="relative mx-auto aspect-[4/5] w-full max-w-[280px] overflow-hidden rounded-lg bg-gray-100 xl:max-w-none">
+      <div className="grid gap-3 lg:grid-cols-[minmax(220px,0.9fr)_minmax(0,1.05fr)] xl:grid-cols-[250px_minmax(0,1fr)_270px]">
+        <div className={cn(FACE_ANALYSIS_LAYOUT.card, 'overflow-hidden p-3 sm:p-4')}>
+          <div className="relative mx-auto aspect-[4/5] w-full max-w-[220px] overflow-hidden rounded-lg bg-gray-100 sm:max-w-[280px] xl:max-w-none">
             <Image
               src={task.userImageUrl}
               alt={t('yourPhoto')}
@@ -123,31 +125,38 @@ export function FaceAnalysisResult({
               className="object-cover"
               sizes="320px"
             />
-            <FaceWireframeOverlay className="absolute inset-0 h-full w-full pointer-events-none" />
+            <FaceLandmarkMeshOverlay
+              imageUrl={task.userImageUrl}
+              className="absolute inset-0 h-full w-full pointer-events-none"
+            />
           </div>
-          <p className="mt-3 text-center text-xs text-gray-500">{t('wireframeCaption')}</p>
+          <p className="mt-2 text-center text-[11px] text-gray-500 sm:text-xs">
+            {hasMeasuredGeometry ? 'Live landmark mesh overlay' : t('wireframeCaption')}
+          </p>
         </div>
 
-        <div className={cn(FACE_ANALYSIS_LAYOUT.card, 'p-5')}>
-          <p className="mb-3 text-sm font-semibold text-gray-900">Your Face Shape</p>
+        <div className={cn(FACE_ANALYSIS_LAYOUT.card, 'p-4 sm:p-5')}>
+          <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-gray-500">Your Face Shape</p>
           <div className="flex items-center gap-4">
-            <div className="flex h-[52px] w-[52px] items-center justify-center rounded-2xl bg-blue-100 text-blue-600">
-              <ShapeIcon className="h-7 w-7" />
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-blue-100 text-blue-600 sm:h-[52px] sm:w-[52px]">
+              <ShapeIcon className="h-6 w-6 sm:h-7 sm:w-7" />
             </div>
             <div>
-              <h3 className="text-3xl font-bold leading-tight capitalize text-gray-950">
+              <h3 className="text-2xl font-bold leading-tight capitalize text-gray-950 sm:text-3xl">
                 {basic.faceShapeDisplayName?.replace(' Face', '') || basic.faceShape}
               </h3>
-              {confidencePercent !== null && (
-                <span className="mt-2 inline-flex items-center rounded-full bg-green-50 px-2.5 py-1 text-xs font-semibold text-green-700">
-              {confidencePercent}% confidence
-                </span>
-              )}
-              {hasMeasuredGeometry && (
-                <span className="ml-2 mt-2 inline-flex items-center rounded-full bg-blue-50 px-2.5 py-1 text-xs font-semibold text-blue-700">
-                  {geometry.qualityScore}% photo quality
-                </span>
-              )}
+              <div className="mt-2 flex flex-wrap gap-1.5">
+                {confidencePercent !== null && (
+                  <span className="inline-flex items-center rounded-full bg-green-50 px-2 py-0.5 text-[11px] font-semibold text-green-700">
+                    {confidencePercent}% confidence
+                  </span>
+                )}
+                {hasMeasuredGeometry && (
+                  <span className="inline-flex items-center rounded-full bg-blue-50 px-2 py-0.5 text-[11px] font-semibold text-blue-700">
+                    {geometry.qualityScore}% photo quality
+                  </span>
+                )}
+              </div>
             </div>
           </div>
           <p className="mt-4 text-sm leading-6 text-gray-600">
@@ -163,12 +172,12 @@ export function FaceAnalysisResult({
           </div>
         </div>
 
-        <div className={cn(FACE_ANALYSIS_LAYOUT.card, 'p-5')}>
-          <p className="mb-4 text-sm font-semibold text-gray-900">{t('keyFeatures')}</p>
-          <ul className="space-y-4">
+        <div className={cn(FACE_ANALYSIS_LAYOUT.card, 'p-4 sm:p-5 lg:col-span-2 xl:col-span-1')}>
+          <p className="mb-3 text-sm font-semibold text-gray-900">{t('keyFeatures')}</p>
+          <ul className="grid gap-3 sm:grid-cols-2 xl:block xl:space-y-4">
             {(full?.overview?.strengths ?? basic.keyFeatures).slice(0, 5).map((feature) => (
-              <li key={feature} className="flex items-start gap-3 text-sm leading-6 text-gray-700">
-                <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-green-600" />
+              <li key={feature} className="flex items-start gap-2.5 text-sm leading-6 text-gray-700">
+                <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-green-600" />
                 <span>{feature}</span>
               </li>
             ))}
@@ -260,16 +269,16 @@ function MetricsSection({
             : 'AI analyzes your facial structure and proportions.'}
         </div>
       </div>
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-6">
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-3 2xl:grid-cols-6">
         {metrics.map((metric) => (
-          <div key={metric.id} className="rounded-lg border border-gray-200 bg-white p-4 text-center shadow-[0_1px_2px_rgba(15,23,42,0.04)]">
+          <div key={metric.id} className="rounded-lg border border-gray-200 bg-white p-3 text-center shadow-[0_1px_2px_rgba(15,23,42,0.04)] sm:p-4">
             <p className="text-xs font-semibold text-gray-950">{metric.label}</p>
             <MetricVisual metric={metric} />
-            <p className="mt-3 text-sm font-semibold text-blue-700">{metric.value}</p>
+            <p className="mt-2 text-xs font-semibold text-blue-700 sm:mt-3 sm:text-sm">{metric.value}</p>
             {metric.id === 'faceShape' ? (
-              <p className="mt-1 text-xs font-semibold text-green-600">{metric.score}% Match</p>
+              <p className="mt-1 text-[11px] font-semibold text-green-600 sm:text-xs">{metric.score}% Match</p>
             ) : (
-              <p className="mt-1 text-xs font-semibold text-gray-950">{metric.caption}</p>
+              <p className="mt-1 text-[11px] font-semibold text-gray-950 sm:text-xs">{metric.caption}</p>
             )}
           </div>
         ))}
@@ -305,8 +314,8 @@ function FrameRecommendationPanel({
   isAvoid?: boolean
 }) {
   return (
-    <section className={cn(FACE_ANALYSIS_LAYOUT.card, 'p-5')}>
-      <div className="mb-5 flex items-start justify-between gap-3">
+    <section className={cn(FACE_ANALYSIS_LAYOUT.card, 'p-4 sm:p-5')}>
+      <div className="mb-4 flex items-start justify-between gap-3">
         <div>
           <h3 className="text-base font-semibold text-gray-950">{title}</h3>
           <p className="mt-1 text-sm text-gray-500">{subtitle}</p>
@@ -315,31 +324,35 @@ function FrameRecommendationPanel({
           {badge}
         </span>
       </div>
-      <div className={cn('grid gap-3', isAvoid ? 'sm:grid-cols-1' : 'sm:grid-cols-2')}>
+      <div className={cn('grid gap-3', isAvoid ? 'sm:grid-cols-1' : 'grid-cols-2 xl:grid-cols-4')}>
         {recommendations.slice(0, isAvoid ? 3 : 4).map((item) => (
           <div
             key={item.type}
             className={cn(
               'rounded-xl border',
               isAvoid
-                ? 'border-red-100 bg-red-50/40 p-4'
-                : 'border-gray-200 bg-white p-3 transition-shadow hover:shadow-sm'
+                ? 'border-red-100 bg-red-50/40 p-3 sm:p-4'
+                : 'border-gray-200 bg-white p-2.5 transition-shadow hover:shadow-sm sm:p-3'
             )}
           >
             {isAvoid ? (
               <>
-                <div className="mb-3 flex items-center justify-between gap-3">
+                <div className="flex items-center gap-3">
                   <FramePresetThumbnail
                     preset={getTopPickPresetForStyle(item.displayName || item.type)}
                     alt={`${item.displayName} glasses`}
                     isAvoid
                   />
-                  <span className="rounded-full bg-red-100 px-2 py-0.5 text-xs font-semibold text-red-700">
-                    {item.score}% match
-                  </span>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-start justify-between gap-2">
+                      <p className="text-sm font-semibold text-gray-950">{item.displayName}</p>
+                      <span className="shrink-0 rounded-full bg-red-100 px-2 py-0.5 text-[11px] font-semibold text-red-700">
+                        {item.score}% match
+                      </span>
+                    </div>
+                    <p className="mt-1 text-xs leading-5 text-gray-600">{item.reason}</p>
+                  </div>
                 </div>
-                <p className="font-semibold text-gray-950">{item.displayName}</p>
-                <p className="mt-1 text-xs leading-5 text-gray-600">{item.reason}</p>
               </>
             ) : (
               <>
@@ -349,8 +362,8 @@ function FrameRecommendationPanel({
                 />
                 <div className="mt-3">
                   <p className="text-sm font-semibold text-gray-950">{item.displayName}</p>
-                  <p className="mt-1 text-sm font-semibold text-green-600">{item.score}% Match</p>
-                  <p className="mt-2 text-xs leading-5 text-gray-600">{item.reason}</p>
+                  <p className="mt-1 text-xs font-semibold text-green-600">{item.score}% Match</p>
+                  <p className="mt-1.5 text-xs leading-5 text-gray-600">{item.reason}</p>
                 </div>
               </>
             )}
@@ -374,12 +387,12 @@ function FrameRecommendationPanel({
 
 function StyleGuidePanel({ tips }: { tips: StyleTip[] }) {
   return (
-    <section className={cn(FACE_ANALYSIS_LAYOUT.card, 'p-5')}>
+    <section className={cn(FACE_ANALYSIS_LAYOUT.card, 'p-4 sm:p-5')}>
       <h3 className="text-base font-semibold text-gray-950">Personal Style Guide</h3>
       <p className="mt-1 text-sm text-gray-500">Practical styling advice for your frame search.</p>
-      <div className="mt-5 grid gap-3">
+      <div className="mt-4 grid gap-3">
         {tips.map((tip) => (
-          <div key={tip.title} className="rounded-xl border border-blue-100 bg-blue-50/40 p-4">
+          <div key={tip.title} className="rounded-xl border border-blue-100 bg-blue-50/40 p-3 sm:p-4">
             <div className="flex gap-3">
               <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-white text-blue-600 shadow-sm">
                 <Sparkles className="h-4 w-4" />
@@ -687,7 +700,7 @@ function FramePresetThumbnail({
 }) {
   return (
     <div className={cn(
-      'relative h-12 w-24 shrink-0 overflow-hidden rounded-lg border bg-white',
+      'relative h-10 w-20 shrink-0 overflow-hidden rounded-lg border bg-white sm:h-12 sm:w-24',
       isAvoid ? 'border-red-100' : 'border-gray-100'
     )}>
       <Image
@@ -709,7 +722,7 @@ function FramePresetProductImage({
   alt: string
 }) {
   return (
-    <div className="relative h-[92px] w-full overflow-hidden rounded-lg bg-white">
+    <div className="relative h-[62px] w-full overflow-hidden rounded-lg bg-white sm:h-[92px]">
       <Image
         src={`/${preset.assetPath}`}
         alt={alt}
@@ -784,60 +797,93 @@ function PremiumPreviewCard({ title, lines }: { title: string; lines: string[] }
 }
 
 function MetricVisual({ metric }: { metric: FaceAnalysisMetric }) {
+  const shapePath = metric.id === 'faceShape' ? getFaceShapeMetricPath(metric.value) : null
+
   return (
-    <div className="relative mx-auto mt-3 h-[108px] w-[108px]">
+    <div className="relative mx-auto mt-2 h-[74px] w-[74px] sm:mt-3 sm:h-[108px] sm:w-[108px]">
       <Image
         src="/assets/face-analysis/neutral-face-wireframe.png"
         alt="Neutral face analysis wireframe"
         fill
-        className="object-contain opacity-95"
+        className="object-contain opacity-90"
         sizes="108px"
       />
       <svg viewBox="0 0 120 120" className="absolute inset-0 h-full w-full" fill="none" aria-hidden>
-        {metric.id === 'faceShape' && (
+        {shapePath && (
           <g strokeLinecap="round" strokeLinejoin="round">
-            <path d="M60 13c18 0 30 14 31 36 1 26-10 45-24 56-3 2.5-5.5 3.5-7 3.5s-4-1-7-3.5C39 94 28 75 29 49c1-22 13-36 31-36Z" stroke="#2563EB" strokeWidth="3" />
-            <path d="M37 31c7-10 16-14 23-14s16 4 23 14" stroke="#2563EB" strokeWidth="2" />
+            <path d={shapePath} stroke="rgba(37,99,235,0.18)" strokeWidth="7" />
+            <path d={shapePath} stroke="#2563EB" strokeWidth="3.2" />
+            <path d="M38 31c6.8-8.2 15.4-11.6 22-11.6s15.2 3.4 22 11.6" stroke="#60A5FA" strokeWidth="1.6" opacity="0.9" />
           </g>
         )}
         {metric.id === 'faceLength' && (
           <g strokeLinecap="round">
-            <line x1="60" y1="18" x2="60" y2="104" stroke="#2563EB" strokeWidth="2.7" />
-            <line x1="41" y1="20" x2="60" y2="20" stroke="#2563EB" strokeDasharray="2 6" strokeWidth="2" />
-            <line x1="41" y1="102" x2="60" y2="102" stroke="#2563EB" strokeDasharray="2 6" strokeWidth="2" />
-            <circle cx="60" cy="20" r="2.4" fill="#60A5FA" />
-            <circle cx="60" cy="102" r="2.4" fill="#60A5FA" />
+            <line x1="60" y1="18" x2="60" y2="104" stroke="rgba(37,99,235,0.18)" strokeWidth="7" />
+            <line x1="60" y1="18" x2="60" y2="104" stroke="#2563EB" strokeWidth="2.8" />
+            <line x1="41" y1="20" x2="60" y2="20" stroke="#60A5FA" strokeDasharray="3 5" strokeWidth="2" />
+            <line x1="41" y1="102" x2="60" y2="102" stroke="#60A5FA" strokeDasharray="3 5" strokeWidth="2" />
+            <circle cx="60" cy="20" r="3" fill="#2563EB" stroke="white" strokeWidth="1.2" />
+            <circle cx="60" cy="102" r="3" fill="#2563EB" stroke="white" strokeWidth="1.2" />
           </g>
         )}
         {metric.id === 'faceWidth' && (
           <g strokeLinecap="round" strokeLinejoin="round">
-            <line x1="30" y1="58" x2="90" y2="58" stroke="#2563EB" strokeDasharray="2.5 4.5" strokeWidth="2.6" />
-            <circle cx="32" cy="58" r="4" fill="#60A5FA" />
-            <circle cx="88" cy="58" r="4" fill="#60A5FA" />
+            <line x1="30" y1="58" x2="90" y2="58" stroke="rgba(37,99,235,0.18)" strokeWidth="7" />
+            <line x1="30" y1="58" x2="90" y2="58" stroke="#2563EB" strokeDasharray="3 4.5" strokeWidth="2.5" />
+            <circle cx="32" cy="58" r="4.5" fill="#60A5FA" stroke="white" strokeWidth="1.2" />
+            <circle cx="88" cy="58" r="4.5" fill="#60A5FA" stroke="white" strokeWidth="1.2" />
           </g>
         )}
         {metric.id === 'jawline' && (
           <g strokeLinecap="round" strokeLinejoin="round">
-            <path d="M37 69c2.8 16 13.5 28.5 23 31 9.5-2.5 20.2-15 23-31" stroke="#2563EB" strokeWidth="4" />
-            <path d="M46 85c8.4 7.2 19.6 7.2 28 0" stroke="#2563EB" strokeWidth="2.4" />
+            <path d="M36.5 69c3 16.5 14 29 23.5 31.5C69.5 98 80.5 85.5 83.5 69" stroke="rgba(37,99,235,0.18)" strokeWidth="8" />
+            <path d="M37 69c2.8 16 13.5 28.5 23 31 9.5-2.5 20.2-15 23-31" stroke="#2563EB" strokeWidth="4.2" />
+            <path d="M47 86c8 6.6 18 6.6 26 0" stroke="#60A5FA" strokeWidth="2" />
           </g>
         )}
         {metric.id === 'cheekbones' && (
           <g>
-            <ellipse cx="36" cy="61" rx="7.5" ry="9.8" fill="#60A5FA" opacity="0.82" />
-            <ellipse cx="84" cy="61" rx="7.5" ry="9.8" fill="#60A5FA" opacity="0.82" />
+            <ellipse cx="36" cy="61" rx="9.5" ry="11.5" fill="rgba(37,99,235,0.14)" />
+            <ellipse cx="84" cy="61" rx="9.5" ry="11.5" fill="rgba(37,99,235,0.14)" />
+            <ellipse cx="36" cy="61" rx="7.5" ry="9.8" fill="#60A5FA" opacity="0.86" />
+            <ellipse cx="84" cy="61" rx="7.5" ry="9.8" fill="#60A5FA" opacity="0.86" />
+            <path d="M45 58c9 3.5 21 3.5 30 0" stroke="#2563EB" strokeDasharray="3 5" strokeWidth="1.7" strokeLinecap="round" opacity="0.65" />
           </g>
         )}
         {metric.id === 'symmetry' && (
           <g strokeLinecap="round" strokeLinejoin="round">
+            <line x1="60" y1="17" x2="60" y2="104" stroke="rgba(37,99,235,0.18)" strokeWidth="7" />
             <line x1="60" y1="17" x2="60" y2="104" stroke="#2563EB" strokeWidth="3" />
-            <path d="M60 19c13 3.5 24 18 24 39 0 23-9.5 38-24 44" stroke="#2563EB" strokeWidth="2.2" />
-            <path d="M60 19c-13 3.5-24 18-24 39 0 23 9.5 38 24 44" stroke="#2563EB" strokeWidth="1.4" opacity="0.35" />
+            <path d="M60 19c13 3.5 24 18 24 39 0 23-9.5 38-24 44" stroke="#60A5FA" strokeWidth="2.1" />
+            <path d="M60 19c-13 3.5-24 18-24 39 0 23 9.5 38 24 44" stroke="#60A5FA" strokeWidth="1.4" opacity="0.35" />
           </g>
         )}
       </svg>
     </div>
   )
+}
+
+function getFaceShapeMetricPath(value: string) {
+  const shape = value.toLowerCase()
+  if (shape.includes('round')) {
+    return 'M60 18c19.5 0 33 14.8 34 36.5 1 23.5-12.5 41-26.5 49-3.2 1.8-5.8 2.7-7.5 2.7s-4.3-.9-7.5-2.7C38.5 95.5 25 78 26 54.5 27 32.8 40.5 18 60 18Z'
+  }
+  if (shape.includes('square')) {
+    return 'M60 14c18.5 0 31 13.5 31.5 35.5.5 23.5-9 44.5-24.5 53.5-3 1.8-5.4 2.7-7 2.7s-4-.9-7-2.7C37.5 94 28 73 28.5 49.5 29 27.5 41.5 14 60 14Z'
+  }
+  if (shape.includes('heart')) {
+    return 'M60 15c18.5 0 32 12.5 33 33 1.2 25.5-13.5 45-26 55.5-3 2.5-5.4 3.7-7 3.7s-4-1.2-7-3.7C40.5 93 25.8 73.5 27 48 28 27.5 41.5 15 60 15Z'
+  }
+  if (shape.includes('diamond')) {
+    return 'M60 15c16 0 26 13 31 34 2 8.5-1 22-8 34-5.8 10-15.5 21.5-23 24-7.5-2.5-17.2-14-23-24-7-12-10-25.5-8-34 5-21 15-34 31-34Z'
+  }
+  if (shape.includes('oblong')) {
+    return 'M60 10c17 0 28 14.5 29 38 1.2 30.5-9.8 49-22 58.5-3 2.3-5.4 3.5-7 3.5s-4-1.2-7-3.5C40.8 97 29.8 78.5 31 48c1-23.5 12-38 29-38Z'
+  }
+  if (shape.includes('triangle')) {
+    return 'M60 17c17 0 27.5 12.5 29 31.5 1.8 24.5-7.8 44-22 54-3 2.1-5.4 3.2-7 3.2s-4-1.1-7-3.2c-14.2-10-23.8-29.5-22-54C32.5 29.5 43 17 60 17Z'
+  }
+  return 'M60 13c18 0 30 14 31 36 1 26-10 45-24 56-3 2.5-5.5 3.5-7 3.5s-4-1-7-3.5C39 94 28 75 29 49c1-22 13-36 31-36Z'
 }
 
 function fallbackMetricSummary(features: string[]) {

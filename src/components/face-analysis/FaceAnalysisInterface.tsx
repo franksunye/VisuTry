@@ -306,7 +306,7 @@ export function FaceAnalysisInterface() {
           )}
         </div>
 
-        <div className="order-3 2xl:order-2">
+        <div className="order-2 2xl:order-2">
           <div
             className={cn(
               hasResult ? 'p-5 sm:p-6' : 'p-6',
@@ -355,7 +355,7 @@ export function FaceAnalysisInterface() {
           </div>
         </div>
 
-        <div className="order-2 2xl:order-3 2xl:col-span-2 py-4 2xl:py-0">
+        <div className="order-3 2xl:order-3 2xl:col-span-2 py-4 2xl:py-0">
           {hasQuota ? (
             <div className="flex items-center justify-between gap-4">
               <p className="text-sm text-gray-600">
@@ -424,19 +424,26 @@ function ReportSideRail({
 
   return (
     <aside className="grid gap-4 lg:grid-cols-[1fr_1.2fr] 2xl:sticky 2xl:top-24 2xl:block 2xl:space-y-4">
-      <div className={cn(FACE_ANALYSIS_LAYOUT.card, 'p-4')}>
+      <div className={cn(FACE_ANALYSIS_LAYOUT.card, 'p-3 sm:p-4')}>
         <div className="flex items-center gap-3">
           <div className="flex h-10 w-10 items-center justify-center rounded-full bg-green-100 text-green-700">
             <CheckCircle2 className="h-5 w-5" />
           </div>
-          <div>
+          <div className="min-w-0 flex-1">
             <p className="text-sm font-semibold text-gray-950">Analysis Completed</p>
             <p className="text-xs text-gray-500">Completed on {completedDate}</p>
           </div>
+          <button
+            type="button"
+            onClick={onAnalyzeAgain}
+            className="rounded-lg border border-blue-100 bg-blue-50 px-3 py-2 text-xs font-semibold text-blue-700 hover:bg-blue-100 2xl:hidden"
+          >
+            Retake
+          </button>
         </div>
       </div>
 
-      <nav className={cn(FACE_ANALYSIS_LAYOUT.card, 'p-2 lg:row-span-2 2xl:row-span-1')}>
+      <nav className={cn(FACE_ANALYSIS_LAYOUT.card, 'hidden p-2 2xl:block')}>
         {['Overview', 'Face Analysis', 'Recommendations', 'Style Guide'].map((item, index) => (
           <div
             key={item}
@@ -453,7 +460,7 @@ function ReportSideRail({
         ))}
       </nav>
 
-      <div className={cn(FACE_ANALYSIS_LAYOUT.card, 'hidden p-4 lg:block')}>
+      <div className={cn(FACE_ANALYSIS_LAYOUT.card, 'hidden p-4 2xl:block')}>
         <div className="mb-3 flex items-center justify-between">
           <p className="text-sm font-semibold text-gray-950">Your Photo</p>
           <button
@@ -478,7 +485,7 @@ function ReportSideRail({
         </p>
       </div>
 
-      <div className={cn(FACE_ANALYSIS_LAYOUT.card, 'border-blue-200 bg-blue-50/60 p-4 lg:hidden 2xl:block')}>
+      <div className={cn(FACE_ANALYSIS_LAYOUT.card, 'hidden border-blue-200 bg-blue-50/60 p-4 2xl:block')}>
         <div className="mb-3 flex items-center justify-center text-blue-600">
           <Sparkles className="h-7 w-7" />
         </div>
