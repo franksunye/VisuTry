@@ -1,15 +1,19 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { ChevronDown } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
 
-// This is the root layout for the /admin section.
-// It provides a consistent sidebar navigation and header for all admin pages.
+type NavItem = {
+  title: string;
+  href: string;
+  icon: React.ReactNode;
+};
 
-const navItems = [
+const primaryNavItems: NavItem[] = [
   {
     title: 'Dashboard',
     href: '/admin/dashboard',
@@ -25,51 +29,6 @@ const navItems = [
     icon: (
       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
-      </svg>
-    ),
-  },
-  {
-    title: 'Orders',
-    href: '/admin/orders',
-    icon: (
-      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
-      </svg>
-    ),
-  },
-  {
-    title: 'Frames',
-    href: '/admin/frames',
-    icon: (
-      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-      </svg>
-    ),
-  },
-  {
-    title: 'Import',
-    href: '/admin/import',
-    icon: (
-      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-      </svg>
-    ),
-  },
-  {
-    title: 'Data Stats',
-    href: '/admin/data-stats',
-    icon: (
-      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-      </svg>
-    ),
-  },
-  {
-    title: 'Storage',
-    href: '/admin/storage',
-    icon: (
-      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4" />
       </svg>
     ),
   },
@@ -92,7 +51,69 @@ const navItems = [
       </svg>
     ),
   },
+  {
+    title: 'Orders',
+    href: '/admin/orders',
+    icon: (
+      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+      </svg>
+    ),
+  },
 ];
+
+const bottomNavItems: NavItem[] = [
+  {
+    title: 'Storage',
+    href: '/admin/storage',
+    icon: (
+      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4" />
+      </svg>
+    ),
+  },
+];
+
+const catalogNavItems: NavItem[] = [
+  {
+    title: 'Frames',
+    href: '/admin/frames',
+    icon: (
+      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+      </svg>
+    ),
+  },
+  {
+    title: 'Import',
+    href: '/admin/import',
+    icon: (
+      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+      </svg>
+    ),
+  },
+  {
+    title: 'Data Stats',
+    href: '/admin/data-stats',
+    icon: (
+      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+      </svg>
+    ),
+  },
+];
+
+const allNavItems = [...primaryNavItems, ...catalogNavItems, ...bottomNavItems];
+
+function isNavItemActive(pathname: string, href: string) {
+  return pathname === href || pathname.startsWith(href + '/');
+}
+
+function getPageTitle(pathname: string) {
+  const match = allNavItems.find((item) => isNavItemActive(pathname, item.href));
+  return match?.title || 'Admin Panel';
+}
 
 export default function AdminLayout({
   children,
@@ -100,10 +121,17 @@ export default function AdminLayout({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
+  const isCatalogActive = catalogNavItems.some((item) => isNavItemActive(pathname, item.href));
+  const [catalogOpen, setCatalogOpen] = useState(isCatalogActive);
+
+  useEffect(() => {
+    if (isCatalogActive) {
+      setCatalogOpen(true);
+    }
+  }, [isCatalogActive]);
 
   return (
     <div className="flex h-screen bg-gray-50">
-      {/* Sidebar Navigation */}
       <aside className="w-64 bg-gray-900 text-white flex-shrink-0 flex flex-col">
         <div className="p-6 border-b border-gray-800">
           <Link href="/admin/dashboard" className="flex items-center space-x-2">
@@ -119,8 +147,78 @@ export default function AdminLayout({
 
         <nav className="flex-1 p-4 overflow-y-auto">
           <ul className="space-y-2">
-            {navItems.map((item) => {
-              const isActive = pathname === item.href || pathname.startsWith(item.href + '/');
+            {primaryNavItems.map((item) => {
+              const isActive = isNavItemActive(pathname, item.href);
+              return (
+                <li key={item.href}>
+                  <Link
+                    href={item.href}
+                    className={cn(
+                      'flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors',
+                      isActive
+                        ? 'bg-blue-600 text-white'
+                        : 'text-gray-300 hover:bg-gray-800 hover:text-white'
+                    )}
+                  >
+                    {item.icon}
+                    <span className="font-medium">{item.title}</span>
+                  </Link>
+                </li>
+              );
+            })}
+
+            <li>
+              <button
+                type="button"
+                onClick={() => setCatalogOpen((open) => !open)}
+                className={cn(
+                  'flex w-full items-center justify-between px-4 py-3 rounded-lg transition-colors',
+                  isCatalogActive
+                    ? 'bg-gray-800 text-white'
+                    : 'text-gray-300 hover:bg-gray-800 hover:text-white'
+                )}
+              >
+                <span className="flex items-center space-x-3">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4" />
+                  </svg>
+                  <span className="font-medium">Catalog</span>
+                </span>
+                <ChevronDown
+                  className={cn(
+                    'w-4 h-4 transition-transform text-gray-400',
+                    catalogOpen && 'rotate-180'
+                  )}
+                />
+              </button>
+
+              {catalogOpen && (
+                <ul className="mt-1 ml-4 space-y-1 border-l border-gray-700 pl-2">
+                  {catalogNavItems.map((item) => {
+                    const isActive = isNavItemActive(pathname, item.href);
+                    return (
+                      <li key={item.href}>
+                        <Link
+                          href={item.href}
+                          className={cn(
+                            'flex items-center space-x-3 px-3 py-2 rounded-lg text-sm transition-colors',
+                            isActive
+                              ? 'bg-blue-600 text-white'
+                              : 'text-gray-400 hover:bg-gray-800 hover:text-white'
+                          )}
+                        >
+                          {item.icon}
+                          <span className="font-medium">{item.title}</span>
+                        </Link>
+                      </li>
+                    );
+                  })}
+                </ul>
+              )}
+            </li>
+
+            {bottomNavItems.map((item) => {
+              const isActive = isNavItemActive(pathname, item.href);
               return (
                 <li key={item.href}>
                   <Link
@@ -141,9 +239,6 @@ export default function AdminLayout({
           </ul>
         </nav>
 
-
-
-        {/* Back to Site */}
         <div className="p-4 border-t border-gray-800">
           <Link
             href="/"
@@ -157,11 +252,10 @@ export default function AdminLayout({
         </div>
       </aside>
 
-      {/* Main Content */}
       <div className="flex flex-col flex-1 overflow-hidden">
         <header className="bg-white border-b border-gray-200 px-6 py-4">
           <h2 className="text-2xl font-semibold text-gray-800">
-            {navItems.find(item => pathname.startsWith(item.href))?.title || 'Admin Panel'}
+            {getPageTitle(pathname)}
           </h2>
         </header>
         <main className="flex-1 overflow-y-auto p-6 bg-gray-50">
