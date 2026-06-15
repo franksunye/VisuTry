@@ -197,16 +197,13 @@ export function FrameCompareInterface({ initialRemainingCredits = 0 }: { initial
 
   return (
     <main className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-      <div className="mb-7 flex flex-col gap-4 border-b border-gray-200 pb-6 lg:flex-row lg:items-end lg:justify-between">
+      <div className="mb-7 flex flex-col gap-4 border-b border-gray-200 pb-5 lg:flex-row lg:items-center lg:justify-between">
         <div>
-          <div className="mb-2 inline-flex items-center gap-2 rounded-full bg-blue-50 px-3 py-1 text-sm font-semibold text-blue-700">
-            <Grid2X2 className="h-4 w-4" />
-            Compare
-          </div>
-          <h1 className="text-3xl font-bold tracking-normal text-gray-950 sm:text-4xl">
+          <h1 className="inline-flex items-center gap-2 text-base font-bold tracking-normal text-gray-950">
+            <Grid2X2 className="h-4 w-4 text-blue-600" />
             Compare Glasses Frames
           </h1>
-          <p className="mt-2 max-w-2xl text-base text-gray-600">
+          <p className="mt-1.5 max-w-2xl text-sm font-normal text-gray-600">
             Pick up to 4 built-in frames and generate a clean side-by-side try-on comparison.
           </p>
         </div>
