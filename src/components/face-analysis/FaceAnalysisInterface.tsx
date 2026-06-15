@@ -355,16 +355,8 @@ export function FaceAnalysisInterface() {
           </div>
         </div>
 
-        <div className="order-3 2xl:order-3 2xl:col-span-2 py-4 2xl:py-0">
-          {hasQuota ? (
-            <div className="flex items-center justify-between gap-4">
-              <p className="text-sm text-gray-600">
-                {t('footer.remainingCredits')}{' '}
-                <strong className="text-gray-900">{remainingTrials}</strong>
-              </p>
-              <p className="text-xs text-gray-500 hidden sm:block">{t('footer.privacy')}</p>
-            </div>
-          ) : (
+        {!hasQuota && (
+          <div className="order-3 2xl:order-3 2xl:col-span-2 py-4 2xl:py-0">
             <div className="rounded-xl border border-blue-200 bg-blue-50 p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
               <p className="text-sm text-gray-700">{t('footer.noCredits')}</p>
               <Link
@@ -375,8 +367,8 @@ export function FaceAnalysisInterface() {
                 {t('footer.getCredits')}
               </Link>
             </div>
-          )}
-        </div>
+          </div>
+        )}
       </div>
 
       {error && !task?.errorMessage && (
@@ -421,6 +413,55 @@ function ReportSideRail({
     day: 'numeric',
     year: 'numeric',
   })
+  const navItems = [
+    { label: 'Overview', href: '#overview' },
+    { label: 'Face Analysis', href: '#face-analysis-details' },
+    { label: 'Recommendations', href: '#recommendations' },
+    { label: 'Style Guide', href: '#style-guide' },
+  ]
+  const [activeHref, setActiveHref] = useState('#overview')
+
+  useEffect(() => {
+    const syncFromHash = () => {
+      const hash = window.location.hash
+      if (navItems.some((item) => item.href === hash)) {
+        setActiveHref(hash)
+      }
+    }
+
+    syncFromHash()
+    window.addEventListener('hashchange', syncFromHash)
+
+    if (typeof IntersectionObserver === 'undefined') {
+      return () => window.removeEventListener('hashchange', syncFromHash)
+    }
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const visible = entries
+          .filter((entry) => entry.isIntersecting)
+          .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top)[0]
+
+        if (visible?.target.id) {
+          setActiveHref(`#${visible.target.id}`)
+        }
+      },
+      {
+        rootMargin: '-22% 0px -68% 0px',
+        threshold: 0.01,
+      }
+    )
+
+    navItems.forEach((item) => {
+      const target = document.getElementById(item.href.slice(1))
+      if (target) observer.observe(target)
+    })
+
+    return () => {
+      window.removeEventListener('hashchange', syncFromHash)
+      observer.disconnect()
+    }
+  }, [])
 
   return (
     <aside className="grid gap-4 lg:grid-cols-[1fr_1.2fr] 2xl:sticky 2xl:top-24 2xl:block 2xl:space-y-4">
@@ -444,20 +485,29 @@ function ReportSideRail({
       </div>
 
       <nav className={cn(FACE_ANALYSIS_LAYOUT.card, 'hidden p-2 2xl:block')}>
-        {['Overview', 'Face Analysis', 'Recommendations', 'Style Guide'].map((item, index) => (
-          <div
-            key={item}
+        {navItems.map((item, index) => {
+          const isActive = activeHref === item.href
+          return (
+          <a
+            key={item.label}
+            href={item.href}
+            aria-current={isActive ? 'true' : undefined}
+            onClick={() => setActiveHref(item.href)}
             className={cn(
-              'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium',
-              index === 0 ? 'bg-blue-50 text-blue-700' : 'text-gray-600'
+              'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors hover:bg-blue-50 hover:text-blue-700',
+              isActive ? 'bg-blue-50 text-blue-700' : 'text-gray-600'
             )}
           >
-            <span className="flex h-6 w-6 items-center justify-center rounded-full bg-white text-xs font-semibold shadow-sm">
+            <span className={cn(
+              'flex h-6 w-6 items-center justify-center rounded-full bg-white text-xs font-semibold shadow-sm',
+              isActive ? 'text-blue-700' : 'text-gray-600'
+            )}>
               {index + 1}
             </span>
-            {item}
-          </div>
-        ))}
+            {item.label}
+          </a>
+          )
+        })}
       </nav>
 
       <div className={cn(FACE_ANALYSIS_LAYOUT.card, 'hidden p-4 2xl:block')}>
@@ -492,10 +542,18 @@ function ReportSideRail({
         <p className="text-center text-sm font-semibold text-gray-950">
           {task.reportUnlocked ? 'Premium Report Unlocked' : 'Report Preview'}
         </p>
-        <ul className="mt-3 space-y-2 text-xs leading-5 text-gray-600">
-          <li>Detailed face analysis</li>
-          <li>Personalized frame picks</li>
-          <li>Style and fit guidance</li>
+        <ul className="mt-3 space-y-1.5 text-left text-xs leading-5 text-gray-600">
+          {[
+            'Detailed face analysis',
+            'Personalized frame picks',
+            'Style and fit guidance',
+            'Lifetime access',
+          ].map((item) => (
+            <li key={item} className="flex items-start gap-2">
+              <span className="mt-[7px] h-1 w-1 shrink-0 rounded-full bg-blue-600" />
+              <span>{item}</span>
+            </li>
+          ))}
         </ul>
         <div className="mt-4 rounded-lg bg-white px-3 py-2 text-center text-sm font-semibold text-gray-800 shadow-sm">
           {remainingTrials} credits left

@@ -67,7 +67,7 @@ describe('FaceAnalysisResult', () => {
     expect(screen.getByText('Frames to Avoid')).toBeInTheDocument()
     expect(screen.getByText('Personal Style Guide')).toBeInTheDocument()
     expect(screen.getByText('Try On Your Top Picks')).toBeInTheDocument()
-    expect(screen.getByText(/Each AI glasses try-on uses 1 credit per generated photo/i)).toBeInTheDocument()
+    expect(screen.queryByText(/Each AI glasses try-on uses 1 credit per generated photo/i)).not.toBeInTheDocument()
     expect(screen.queryByAltText('Style guide preview')).not.toBeInTheDocument()
     expect(screen.getByRole('button', { name: /download report/i })).toBeEnabled()
   })
@@ -76,8 +76,8 @@ describe('FaceAnalysisResult', () => {
     render(<FaceAnalysisResult task={makeTask()} onUnlock={jest.fn()} remainingCredits={5} />)
 
     expect(screen.getByRole('button', { name: /try top picks on your photo/i })).toBeEnabled()
-    expect(screen.getByText('5 credits')).toBeInTheDocument()
-    expect(screen.getByText(/failed generations are not charged/i)).toBeInTheDocument()
+    expect(screen.queryByText('5 credits')).not.toBeInTheDocument()
+    expect(screen.queryByText(/failed generations are not charged/i)).not.toBeInTheDocument()
   })
 
   it('links top picks to pricing when credits are insufficient', () => {
@@ -85,8 +85,8 @@ describe('FaceAnalysisResult', () => {
 
     const link = screen.getByRole('link', { name: /get credits to try top picks/i })
     expect(link).toHaveAttribute('href', '/en/pricing')
-    expect(screen.getByText(/You need/i)).toBeInTheDocument()
-    expect(screen.getByText('2 credits')).toBeInTheDocument()
+    expect(screen.queryByText(/You need/i)).not.toBeInTheDocument()
+    expect(screen.queryByText('2 credits')).not.toBeInTheDocument()
   })
 
   it('renders a locked premium preview when the report is not unlocked', () => {
