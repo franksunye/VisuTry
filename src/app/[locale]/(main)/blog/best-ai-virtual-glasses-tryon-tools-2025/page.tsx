@@ -4,19 +4,22 @@ import Link from 'next/link'
 import { CheckCircle2, Image as ImageIcon, Shield, Smartphone, Store } from 'lucide-react'
 import { FaceAnalysisFunnelCTA } from '@/components/blog/FaceAnalysisFunnelCTA'
 import { Breadcrumbs } from '@/components/seo/Breadcrumbs'
-import { generateSEO, generateStructuredData } from '@/lib/seo'
+import { generateI18nSEO, generateStructuredData } from '@/lib/seo'
 
 const title = 'AI Virtual Try-On Tools in 2026 - What Actually Matters'
 const description = 'A practical 2026 guide to choosing virtual try-on tools for eyewear, including photo-based AI, real-time AR, catalog coverage, privacy, and shopping workflow fit.'
 const coverImage = '/blog-covers/ai-virtual-tryon-tools-2026.png'
 
-export const metadata: Metadata = generateSEO({
-  title,
-  description,
-  image: coverImage,
-  url: '/blog/best-ai-virtual-glasses-tryon-tools-2025',
-  type: 'article',
-})
+export async function generateMetadata({ params }: { params: { locale: string } }): Promise<Metadata> {
+  return generateI18nSEO({
+    locale: params.locale as any,
+    title,
+    description,
+    image: coverImage,
+    pathname: '/blog/best-ai-virtual-glasses-tryon-tools-2025',
+    type: 'article',
+  })
+}
 
 const structuredData = generateStructuredData('article', {
   title,

@@ -3,19 +3,22 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { BarChart3, CheckCircle2, PackageCheck, ShoppingCart, UserCheck } from 'lucide-react'
 import { Breadcrumbs } from '@/components/seo/Breadcrumbs'
-import { generateSEO, generateStructuredData } from '@/lib/seo'
+import { generateI18nSEO, generateStructuredData } from '@/lib/seo'
 
 const title = 'How Virtual Try-On Helps Online Eyewear Stores Reduce Returns'
 const description = 'A practical guide for eyewear ecommerce teams on using virtual try-on to improve buyer confidence, set better expectations, and reduce avoidable frame-fit returns.'
 const coverImage = '/blog-covers/virtual-try-on-reduce-returns.png'
 
-export const metadata: Metadata = generateSEO({
-  title,
-  description,
-  image: coverImage,
-  url: '/blog/virtual-try-on-reduce-eyewear-returns',
-  type: 'article',
-})
+export async function generateMetadata({ params }: { params: { locale: string } }): Promise<Metadata> {
+  return generateI18nSEO({
+    locale: params.locale as any,
+    title,
+    description,
+    image: coverImage,
+    pathname: '/blog/virtual-try-on-reduce-eyewear-returns',
+    type: 'article',
+  })
+}
 
 const structuredData = generateStructuredData('article', {
   title,

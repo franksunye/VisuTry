@@ -1,5 +1,5 @@
 import { Metadata } from 'next'
-import { generateSEO } from '@/lib/seo'
+import { generateI18nSEO } from '@/lib/seo'
 import Link from 'next/link'
 import { ArrowLeft, Tag as TagIcon, Calendar, User, ArrowRight } from 'lucide-react'
 import { getAllBlogPosts } from '@/lib/blog'
@@ -10,10 +10,11 @@ type Props = {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const tag = decodeURIComponent(params.tag)
-  return generateSEO({
+  return generateI18nSEO({
+    locale: params.locale as any,
     title: `${tag} - Blog Articles`,
     description: `Browse all articles tagged with ${tag}. Discover insights, guides, and tips about ${tag}.`,
-    url: `/${params.locale}/blog/tag/${params.tag}`,
+    pathname: `/blog/tag/${params.tag}`,
     noIndex: true,
   })
 }

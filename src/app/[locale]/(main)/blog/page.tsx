@@ -1,5 +1,5 @@
 import { Metadata } from 'next'
-import { SITE_CONFIG, generateSEO } from '@/lib/seo'
+import { SITE_CONFIG, generateI18nSEO } from '@/lib/seo'
 import Link from 'next/link'
 import { Calendar, User, ArrowRight } from 'lucide-react'
 import { getAllBlogPosts } from '@/lib/blog'
@@ -7,17 +7,25 @@ import Image from 'next/image'
 
 const blogDescription = 'Discover the latest trends, style tips, and guides for glasses, outfits, shoes, and accessories. Learn how to find your perfect style with AI virtual try-on.'
 
-export const metadata: Metadata = generateSEO({
-  title: 'Blog - Fashion & Style Tips',
-  description: blogDescription,
-  url: '/blog',
-})
+type Props = {
+  params: { locale: string }
+}
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  return generateI18nSEO({
+    locale: params.locale as any,
+    title: 'Blog - Fashion & Style Tips',
+    description: blogDescription,
+    pathname: '/blog',
+  })
+}
 
 // 1 hour ISR for blog listings
 export const revalidate = 3600
 
-export default async function BlogPage() {
+export default async function BlogPage({ params }: Props) {
   const posts = await getAllBlogPosts()
+  const localePrefix = `/${params.locale}`
   const getDisplayDate = (post: Awaited<ReturnType<typeof getAllBlogPosts>>[number]) =>
     new Date(post.modifiedAt || post.publishedAt).toLocaleDateString('en-US', {
       year: 'numeric',
@@ -29,7 +37,7 @@ export default async function BlogPage() {
     '@type': 'Blog',
     name: 'VisuTry Blog',
     description: blogDescription,
-    url: `${SITE_CONFIG.url}/blog`,
+    url: `${SITE_CONFIG.url}${localePrefix}/blog`,
     publisher: {
       '@type': 'Organization',
       name: SITE_CONFIG.name,
@@ -39,7 +47,7 @@ export default async function BlogPage() {
       '@type': 'BlogPosting',
       headline: post.title,
       description: post.description,
-      url: `${SITE_CONFIG.url}/blog/${post.slug}`,
+      url: `${SITE_CONFIG.url}${localePrefix}/blog/${post.slug}`,
       image: `${SITE_CONFIG.url}${post.coverImage}`,
       datePublished: post.publishedAt,
       dateModified: post.modifiedAt || post.publishedAt,
@@ -57,7 +65,7 @@ export default async function BlogPage() {
       '@type': 'ListItem',
       position: index + 1,
       name: post.title,
-      url: `${SITE_CONFIG.url}/blog/${post.slug}`,
+      url: `${SITE_CONFIG.url}${localePrefix}/blog/${post.slug}`,
     })),
   }
 

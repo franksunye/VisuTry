@@ -1,25 +1,33 @@
 import { Metadata } from 'next'
-import { generateSEO, generateStructuredData } from '@/lib/seo'
+import { generateI18nSEO, generateStructuredData } from '@/lib/seo'
 import Link from 'next/link'
 import { ArrowLeft, Crown, Sparkles } from 'lucide-react'
 import Image from 'next/image'
 import BlogTags from '@/components/BlogTags'
 import { Breadcrumbs } from '@/components/seo/Breadcrumbs'
 
-export const metadata: Metadata = generateSEO({
-  title: 'Tom Ford Luxury Eyewear Guide 2025 - Ultimate Style & Quality',
-  description: 'Explore Tom Ford luxury eyeglasses collection. Discover iconic styles, premium craftsmanship, and why Tom Ford frames are the ultimate status symbol in eyewear.',
-  url: '/blog/tom-ford-luxury-eyewear-guide-2025',
-  type: 'article',
-})
+const title = 'Tom Ford Luxury Eyewear Guide 2025 - Ultimate Style & Quality'
+const description = 'Explore Tom Ford luxury eyeglasses collection. Discover iconic styles, premium craftsmanship, and why Tom Ford frames are the ultimate status symbol in eyewear.'
+const coverImage = '/Tom Ford FT5873.jpg'
+
+export async function generateMetadata({ params }: { params: { locale: string } }): Promise<Metadata> {
+  return generateI18nSEO({
+    locale: params.locale as any,
+    title,
+    description,
+    image: coverImage,
+    pathname: '/blog/tom-ford-luxury-eyewear-guide-2025',
+    type: 'article',
+  })
+}
 
 const structuredData = generateStructuredData('article', {
-  title: 'Tom Ford Luxury Eyewear Guide 2025 - Ultimate Style & Quality',
+  title,
   description: 'Complete guide to Tom Ford luxury eyeglasses and their iconic designs.',
   publishedAt: '2025-10-21T16:00:00Z',
   modifiedAt: '2025-10-21T16:00:00Z',
   author: 'VisuTry Team',
-  image: '/Tom Ford FT5873.jpg',
+  image: coverImage,
 })
 
 const articleTags = ['Tom Ford', 'Luxury Eyewear', 'Designer Glasses', 'Premium Frames', 'Fashion']
@@ -332,4 +340,3 @@ export default function BlogPostPage() {
     </>
   )
 }
-

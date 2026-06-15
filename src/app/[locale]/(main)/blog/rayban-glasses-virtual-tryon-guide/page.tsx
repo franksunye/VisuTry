@@ -1,24 +1,32 @@
 import { Metadata } from 'next'
-import { generateSEO, generateStructuredData } from '@/lib/seo'
+import { generateI18nSEO, generateStructuredData } from '@/lib/seo'
 import Link from 'next/link'
 import { Star, Eye, TrendingUp } from 'lucide-react'
 import Image from 'next/image'
 import { Breadcrumbs } from '@/components/seo/Breadcrumbs'
 
-export const metadata: Metadata = generateSEO({
-  title: 'Ray-Ban Glasses Virtual Try-On Guide 2025 - Find Your Perfect Style',
-  description: 'Complete guide to Ray-Ban glasses styles with virtual try-on. Explore iconic Wayfarer, Clubmaster, and Aviator frames. Try them on virtually before you buy.',
-  url: '/blog/rayban-glasses-virtual-tryon-guide',
-  type: 'article',
-})
+const title = 'Ray-Ban Glasses Virtual Try-On Guide 2025 - Find Your Perfect Style'
+const description = 'Complete guide to Ray-Ban glasses styles with virtual try-on. Explore iconic Wayfarer, Clubmaster, and Aviator frames. Try them on virtually before you buy.'
+const coverImage = '/Ray-Ban RB5154 Clubmaster - Browline Black Frame Eyeglasses.jpg'
+
+export async function generateMetadata({ params }: { params: { locale: string } }): Promise<Metadata> {
+  return generateI18nSEO({
+    locale: params.locale as any,
+    title,
+    description,
+    image: coverImage,
+    pathname: '/blog/rayban-glasses-virtual-tryon-guide',
+    type: 'article',
+  })
+}
 
 const structuredData = generateStructuredData('article', {
-  title: 'Ray-Ban Glasses Virtual Try-On Guide 2025 - Find Your Perfect Style',
+  title,
   description: 'Complete guide to Ray-Ban glasses styles with virtual try-on capabilities.',
   publishedAt: '2025-10-21T10:00:00Z',
   modifiedAt: '2025-10-21T10:00:00Z',
   author: 'VisuTry Team',
-  image: '/Ray-Ban RB5154 Clubmaster - Browline Black Frame Eyeglasses.jpg',
+  image: coverImage,
 })
 
 export default function BlogPostPage() {

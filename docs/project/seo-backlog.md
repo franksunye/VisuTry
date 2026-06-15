@@ -243,6 +243,8 @@ Tasks:
 - [x] Define practical 30-day and 90-day commercial traffic KPIs.
 - [x] Create weekly commercial traffic report template.
 - [x] Confirm and add commercial GA events for pricing views and try-on starts.
+- [x] Produce first weekly commercial traffic report for 2026-06-15.
+- [x] Fix legacy blog canonical metadata after GSC showed wrong canonical selection.
 - [ ] Check GSC for `/en/face-analysis`.
 - [ ] Check GSC for `/en/blog/ai-face-analysis-for-glasses-guide`.
 - [ ] Track impressions for face-analysis and glasses-intent query groups.
@@ -395,7 +397,7 @@ Acceptance:
 - [x] Oliver Peoples shared review page bridge refresh completed.
 - [ ] German-specific Oliver Peoples localization decision completed.
 - [ ] New or updated pages submitted in GSC.
-- [ ] First weekly commercial traffic report produced.
+- [x] First weekly commercial traffic report produced.
 - [x] Practical commercial traffic KPI plan documented.
 
 ## See Also

@@ -1,27 +1,34 @@
 import { Metadata } from 'next'
-import { generateSEO, generateStructuredData } from '@/lib/seo'
+import { generateI18nSEO, generateStructuredData } from '@/lib/seo'
 import Link from 'next/link'
 import { Glasses, Share2 } from 'lucide-react'
 import BlogTags from '@/components/BlogTags'
 import { FaceAnalysisFunnelCTA } from '@/components/blog/FaceAnalysisFunnelCTA'
 import { Breadcrumbs } from '@/components/seo/Breadcrumbs'
 
-export const metadata: Metadata = generateSEO({
-  title: 'How to Choose the Right Glasses for Your Face Shape? Complete Guide',
-  description: 'Detailed analysis of suitable glasses styles for different face shapes, including round, square, long faces and professional advice. Use AI try-on tool to find your perfect match.',
-  image: '/blog-covers/face-shape-guide.jpg',
-  url: '/blog/how-to-choose-glasses-for-your-face',
-  type: 'article',
-})
+const title = 'How to Choose the Right Glasses for Your Face Shape? Complete Guide'
+const description = 'Detailed analysis of suitable glasses styles for different face shapes, including round, square, long faces and professional advice. Use AI try-on tool to find your perfect match.'
+const coverImage = '/blog-covers/face-shape-guide.jpg'
+
+export async function generateMetadata({ params }: { params: { locale: string } }): Promise<Metadata> {
+  return generateI18nSEO({
+    locale: params.locale as any,
+    title,
+    description,
+    image: coverImage,
+    pathname: '/blog/how-to-choose-glasses-for-your-face',
+    type: 'article',
+  })
+}
 
 // Structured data
 const structuredData = generateStructuredData('article', {
-  title: 'How to Choose the Right Glasses for Your Face Shape? Complete Guide',
+  title,
   description: 'Detailed analysis of suitable glasses styles for different face shapes, including round, square, long faces and professional advice.',
   publishedAt: '2025-10-15T10:00:00Z',
   modifiedAt: '2026-06-12T10:00:00Z',
   author: 'VisuTry Team',
-  image: '/blog-covers/face-shape-guide.jpg',
+  image: coverImage,
 })
 
 const articleTags = ['Face Shape', 'Glasses Selection', 'Style Guide', 'Buying Guide', 'Fashion Tips']

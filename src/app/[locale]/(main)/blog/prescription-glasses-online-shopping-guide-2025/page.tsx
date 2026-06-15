@@ -1,25 +1,33 @@
 import { Metadata } from 'next'
-import { generateSEO, generateStructuredData } from '@/lib/seo'
+import { generateI18nSEO, generateStructuredData } from '@/lib/seo'
 import Link from 'next/link'
 import Image from 'next/image'
 import { ShoppingCart, CheckCircle2, AlertTriangle } from 'lucide-react'
 import BlogTags from '@/components/BlogTags'
 import { Breadcrumbs } from '@/components/seo/Breadcrumbs'
 
-export const metadata: Metadata = generateSEO({
-  title: 'How to Buy Prescription Glasses Online 2025 - Complete Shopping Guide',
-  description: 'Learn how to safely buy prescription glasses online. Get tips on measuring PD, reading prescriptions, choosing lenses, and avoiding common mistakes.',
-  url: '/blog/prescription-glasses-online-shopping-guide-2025',
-  type: 'article',
-})
+const title = 'How to Buy Prescription Glasses Online 2025 - Complete Shopping Guide'
+const description = 'Learn how to safely buy prescription glasses online. Get tips on measuring PD, reading prescriptions, choosing lenses, and avoiding common mistakes.'
+const coverImage = '/blog-covers/prescription-online-shopping.jpg'
+
+export async function generateMetadata({ params }: { params: { locale: string } }): Promise<Metadata> {
+  return generateI18nSEO({
+    locale: params.locale as any,
+    title,
+    description,
+    image: coverImage,
+    pathname: '/blog/prescription-glasses-online-shopping-guide-2025',
+    type: 'article',
+  })
+}
 
 const structuredData = generateStructuredData('article', {
-  title: 'How to Buy Prescription Glasses Online 2025 - Complete Shopping Guide',
+  title,
   description: 'Complete guide to buying prescription glasses online safely and successfully.',
   publishedAt: '2025-10-28T19:00:00Z',
   modifiedAt: '2025-10-28T19:00:00Z',
   author: 'VisuTry Team',
-  image: '/blog-covers/prescription-online-shopping.jpg',
+  image: coverImage,
 })
 
 const articleTags = ['Online Shopping', 'Prescription Glasses', 'Buying Guide', 'Eyewear Tips', 'How-To']
@@ -313,4 +321,3 @@ export default function BlogPostPage() {
     </>
   )
 }
-

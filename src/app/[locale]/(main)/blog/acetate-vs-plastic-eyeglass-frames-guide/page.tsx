@@ -1,25 +1,33 @@
 import { Metadata } from 'next'
-import { generateSEO, generateStructuredData } from '@/lib/seo'
+import { generateI18nSEO, generateStructuredData } from '@/lib/seo'
 import Link from 'next/link'
 import { ArrowLeft, Layers, CheckCircle2, XCircle } from 'lucide-react'
 import Image from 'next/image'
 import BlogTags from '@/components/BlogTags'
 import { Breadcrumbs } from '@/components/seo/Breadcrumbs'
 
-export const metadata: Metadata = generateSEO({
-  title: 'Acetate vs Plastic Eyeglass Frames 2025 - Complete Comparison Guide',
-  description: 'Discover the key differences between acetate and plastic eyeglass frames. Learn about durability, comfort, style, and which material is best for your needs.',
-  url: '/blog/acetate-vs-plastic-eyeglass-frames-guide',
-  type: 'article',
-})
+const title = 'Acetate vs Plastic Eyeglass Frames 2025 - Complete Comparison Guide'
+const description = 'Discover the key differences between acetate and plastic eyeglass frames. Learn about durability, comfort, style, and which material is best for your needs.'
+const coverImage = '/Classic Acetate Rectangle.jpg'
+
+export async function generateMetadata({ params }: { params: { locale: string } }): Promise<Metadata> {
+  return generateI18nSEO({
+    locale: params.locale as any,
+    title,
+    description,
+    image: coverImage,
+    pathname: '/blog/acetate-vs-plastic-eyeglass-frames-guide',
+    type: 'article',
+  })
+}
 
 const structuredData = generateStructuredData('article', {
-  title: 'Acetate vs Plastic Eyeglass Frames 2025 - Complete Comparison Guide',
+  title,
   description: 'Comprehensive comparison of acetate and plastic eyeglass frame materials.',
   publishedAt: '2025-10-21T17:00:00Z',
   modifiedAt: '2025-10-21T17:00:00Z',
   author: 'VisuTry Team',
-  image: '/Classic Acetate Rectangle.jpg',
+  image: coverImage,
 })
 
 const articleTags = ['Eyeglass Materials', 'Frame Guide', 'Acetate Frames', 'Buying Guide', 'Eyewear Education']
@@ -375,4 +383,3 @@ export default function BlogPostPage() {
     </>
   )
 }
-
