@@ -7,7 +7,6 @@ import { useEffect, useState } from 'react'
 import {
   AlertTriangle,
   CheckCircle2,
-  Download,
   ExternalLink,
   Glasses,
   Info,
@@ -75,10 +74,6 @@ export function FaceAnalysisResult({
   const styleTips = full?.styleTips ?? []
   const tryOnStyles = full?.tryOnGuidance?.topStyles ?? recommended.slice(0, 4).map((item) => item.displayName)
 
-  const handleDownload = () => {
-    window.print()
-  }
-
   if (!basic) return null
 
   const geometry = full?.geometry ?? basic.geometry
@@ -112,15 +107,6 @@ export function FaceAnalysisResult({
               : 'Style guidance for frame selection and AI try-on. Not medical or biometric advice.'}
           </p>
         </div>
-        <button
-          type="button"
-          onClick={handleDownload}
-          disabled={!isUnlocked}
-          className="inline-flex h-10 items-center justify-center rounded-lg border border-blue-200 px-3 text-sm font-semibold text-blue-700 transition-colors hover:bg-blue-50 disabled:cursor-not-allowed disabled:border-gray-200 disabled:text-gray-400 sm:px-4"
-        >
-          <Download className="mr-2 h-4 w-4" />
-          {isUnlocked ? 'Download Report' : 'Unlock to Download'}
-        </button>
       </div>
 
       <div className="grid gap-3 lg:grid-cols-[minmax(220px,0.9fr)_minmax(0,1.05fr)] xl:grid-cols-[250px_minmax(0,1fr)_270px]">

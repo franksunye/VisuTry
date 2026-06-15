@@ -69,7 +69,7 @@ describe('FaceAnalysisResult', () => {
     expect(screen.getByText('Try On Your Top Picks')).toBeInTheDocument()
     expect(screen.queryByText(/Each AI glasses try-on uses 1 credit per generated photo/i)).not.toBeInTheDocument()
     expect(screen.queryByAltText('Style guide preview')).not.toBeInTheDocument()
-    expect(screen.getByRole('button', { name: /download report/i })).toBeEnabled()
+    expect(screen.queryByRole('button', { name: /download report/i })).not.toBeInTheDocument()
   })
 
   it('starts top picks generation when credits are available', () => {
@@ -108,6 +108,6 @@ describe('FaceAnalysisResult', () => {
     expect(screen.getByText('Unlock your complete report')).toBeInTheDocument()
     expect(screen.getByText('Preview: best frame directions')).toBeInTheDocument()
     expect(screen.getAllByText('Unlock Full AI Report').length).toBeGreaterThan(0)
-    expect(screen.getByRole('button', { name: /unlock to download/i })).toBeDisabled()
+    expect(screen.queryByRole('button', { name: /unlock to download/i })).not.toBeInTheDocument()
   })
 })

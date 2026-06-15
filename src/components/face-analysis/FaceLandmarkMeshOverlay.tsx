@@ -80,6 +80,22 @@ export function FaceLandmarkMeshOverlay({
     return () => resizeObserver.disconnect()
   }, [])
 
+  useEffect(() => {
+    const redrawForPrint = () => {
+      drawOverlay()
+      window.requestAnimationFrame(() => drawOverlay())
+      window.setTimeout(drawOverlay, 120)
+    }
+
+    window.addEventListener('beforeprint', redrawForPrint)
+    window.addEventListener('afterprint', redrawForPrint)
+
+    return () => {
+      window.removeEventListener('beforeprint', redrawForPrint)
+      window.removeEventListener('afterprint', redrawForPrint)
+    }
+  }, [])
+
   function drawOverlay() {
     const canvas = canvasRef.current
     const container = containerRef.current
