@@ -15,6 +15,7 @@ import {
 } from '@/config/face-analysis'
 import { FaceAnalysisTaskResponse } from '@/types/face-analysis'
 import { analytics, getUserType, type ProductType } from '@/lib/analytics'
+import { analyzeFaceGeometryFromFile } from '@/lib/face-landmark-client'
 import { PRICE_CONFIG } from '@/config/pricing'
 import { FaceAnalysisStepper } from './FaceAnalysisStepper'
 import { FaceAnalysisResult } from './FaceAnalysisResult'
@@ -83,9 +84,11 @@ export function FaceAnalysisInterface() {
     analytics.trackFaceAnalysisStart(userType, remainingTrials)
 
     try {
+      const geometry = await analyzeFaceGeometryFromFile(userImage.file)
       const formData = new FormData()
       formData.append('userImage', userImage.file)
       formData.append('clientSubmissionId', crypto.randomUUID())
+      formData.append('geometryAnalysis', JSON.stringify(geometry))
 
       const response = await fetch('/api/face-analysis/submit', {
         method: 'POST',

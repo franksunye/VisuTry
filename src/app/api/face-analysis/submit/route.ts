@@ -5,6 +5,7 @@ import { prisma } from '@/lib/prisma'
 import { getRequestContext, logger } from '@/lib/logger'
 import { checkUserQuota, deductUserQuota, getNextQuotaSource } from '@/lib/quota'
 import { serializeFaceAnalysisTask, submitFaceAnalysis } from '@/lib/face-analysis-service'
+import { normalizeGeometryAnalysis } from '@/lib/face-landmark-metrics'
 
 export const dynamic = 'force-dynamic'
 export const maxDuration = 60
@@ -35,6 +36,10 @@ export async function POST(request: NextRequest) {
     const formData = await request.formData()
     const userImageFile = formData.get('userImage') as File | null
     const clientSubmissionId = (formData.get('clientSubmissionId') as string) || undefined
+    const rawGeometry = formData.get('geometryAnalysis')
+    const geometry = typeof rawGeometry === 'string'
+      ? normalizeGeometryAnalysis(safeParseJson(rawGeometry))
+      : null
 
     if (!userImageFile) {
       return NextResponse.json(
@@ -48,11 +53,14 @@ export async function POST(request: NextRequest) {
       clientSubmissionId,
       fileName: userImageFile.name,
       fileSize: userImageFile.size,
+      geometryStatus: geometry?.status,
+      geometryQuality: geometry?.qualityScore,
     }, ctx)
 
     const result = await submitFaceAnalysis(user, userImageFile, {
       clientSubmissionId,
       reportUnlocked: quotaSource !== 'free_trial',
+      geometry,
     })
 
     if (result.status === 'completed') {
@@ -77,5 +85,13 @@ export async function POST(request: NextRequest) {
       },
       { status: 500 }
     )
+  }
+}
+
+function safeParseJson(value: string): unknown {
+  try {
+    return JSON.parse(value)
+  } catch {
+    return null
   }
 }

@@ -1,10 +1,12 @@
 import { CanonicalFaceShape } from '@/config/face-analysis'
 import {
   FaceAnalysisMetric,
+  FaceGeometryAnalysis,
   FrameRecommendation,
   StyleTip,
   TryOnGuidance,
 } from '@/types/face-analysis'
+import { buildMeasuredFaceMetrics } from '@/lib/face-landmark-metrics'
 
 type ShapeReportProfile = {
   metrics: Omit<FaceAnalysisMetric, 'score'>[]
@@ -233,10 +235,18 @@ function metricScore(baseConfidence: number, index: number): number {
   return Math.min(96, Math.max(68, base - index * 2 + 4))
 }
 
-export function buildFaceMetrics(shape: CanonicalFaceShape, confidence: number): FaceAnalysisMetric[] {
+export function buildFaceMetrics(
+  shape: CanonicalFaceShape,
+  confidence: number,
+  geometry?: FaceGeometryAnalysis | null
+): FaceAnalysisMetric[] {
+  const measured = buildMeasuredFaceMetrics(shape, confidence, geometry)
+  if (measured) return measured
+
   return profiles[shape].metrics.map((item, index) => ({
     ...item,
     score: metricScore(confidence, index),
+    source: 'ai-template',
   }))
 }
 

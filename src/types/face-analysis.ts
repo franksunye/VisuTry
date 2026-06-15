@@ -18,6 +18,7 @@ export interface FaceAnalysisBasicResult {
   confidence: number
   summary: string
   keyFeatures: string[]
+  geometry?: FaceGeometryAnalysis
 }
 
 export interface FaceAnalysisFullResult extends FaceAnalysisBasicResult {
@@ -33,6 +34,7 @@ export interface FaceAnalysisFullResult extends FaceAnalysisBasicResult {
   avoidRecommendations?: FrameRecommendation[]
   styleTips?: StyleTip[]
   tryOnGuidance?: TryOnGuidance
+  geometry?: FaceGeometryAnalysis
 }
 
 export interface FaceAnalysisLockedTeaser {
@@ -54,6 +56,37 @@ export interface FaceAnalysisMetric {
   score: number
   caption: string
   detail: string
+  source?: 'landmark' | 'ai-template'
+}
+
+export interface FaceLandmarkPoint {
+  x: number
+  y: number
+  z?: number
+}
+
+export interface FaceGeometryRatios {
+  faceAspectRatio: number
+  cheekToFaceWidth: number
+  jawToCheekWidth: number
+  foreheadToCheekWidth: number
+  eyeLineTiltDeg: number
+  symmetryOffset: number
+  noseBridgeToFaceWidth: number
+}
+
+export interface FaceGeometryAnalysis {
+  version: 'landmark-v1'
+  status: 'measured' | 'unavailable'
+  source: 'mediapipe-face-landmarker' | 'ai-fallback'
+  faceDetected: boolean
+  faceCount: number
+  qualityScore: number
+  measuredShape?: CanonicalFaceShape
+  measuredConfidence?: number
+  ratios?: FaceGeometryRatios
+  signals: string[]
+  warnings: string[]
 }
 
 export interface FrameRecommendation {

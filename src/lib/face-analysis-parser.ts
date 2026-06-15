@@ -8,6 +8,7 @@ import {
   FaceAnalysisAiResult,
   FaceAnalysisBasicResult,
   FaceAnalysisFullResult,
+  FaceGeometryAnalysis,
   FaceAnalysisLockedTeaser,
 } from '@/types/face-analysis'
 import {
@@ -75,7 +76,10 @@ function getCatalogEntry(shape: CanonicalFaceShape) {
   return shapeCatalog.find((entry) => entry.name === shape)
 }
 
-export function buildBasicResult(ai: FaceAnalysisAiResult): FaceAnalysisBasicResult {
+export function buildBasicResult(
+  ai: FaceAnalysisAiResult,
+  geometry?: FaceGeometryAnalysis | null
+): FaceAnalysisBasicResult {
   const catalog = getCatalogEntry(ai.faceShape)
   return {
     faceShape: ai.faceShape,
@@ -83,11 +87,14 @@ export function buildBasicResult(ai: FaceAnalysisAiResult): FaceAnalysisBasicRes
     confidence: ai.confidence,
     summary: ai.summary || catalog?.displayName || 'Face analysis complete',
     keyFeatures:
-      ai.keyFeatures.length > 0
+      geometry?.status === 'measured' && geometry.signals.length > 0
+        ? Array.from(new Set([...geometry.signals.slice(0, 2), ...ai.keyFeatures])).slice(0, 5)
+        : ai.keyFeatures.length > 0
         ? ai.keyFeatures
         : catalog
           ? [catalog.displayName]
           : [],
+    geometry: geometry ?? undefined,
   }
 }
 
@@ -99,8 +106,11 @@ export function buildLockedTeaser(full: FaceAnalysisFullResult): FaceAnalysisLoc
   }
 }
 
-export function buildFullResult(ai: FaceAnalysisAiResult): FaceAnalysisFullResult {
-  const basic = buildBasicResult(ai)
+export function buildFullResult(
+  ai: FaceAnalysisAiResult,
+  geometry?: FaceGeometryAnalysis | null
+): FaceAnalysisFullResult {
+  const basic = buildBasicResult(ai, geometry)
   const catalog = getCatalogEntry(ai.faceShape)
   const frameRecommendations = buildFrameRecommendations(ai.faceShape)
   const avoidRecommendations = buildAvoidRecommendations(ai.faceShape)
@@ -123,14 +133,17 @@ export function buildFullResult(ai: FaceAnalysisAiResult): FaceAnalysisFullResul
     catalogAvoidStyles: catalog?.avoidStyles,
     overview: {
       summary: ai.summary || basic.summary,
-      strengths,
+      strengths: geometry?.status === 'measured'
+        ? Array.from(new Set([...geometry.signals.slice(0, 2), ...strengths])).slice(0, 3)
+        : strengths,
       disclaimer: getReportDisclaimer(),
     },
-    metrics: buildFaceMetrics(ai.faceShape, ai.confidence),
+    metrics: buildFaceMetrics(ai.faceShape, ai.confidence, geometry),
     frameRecommendations,
     avoidRecommendations,
     styleTips,
     tryOnGuidance: buildTryOnGuidance(ai.faceShape),
+    geometry: geometry ?? undefined,
   }
 }
 

@@ -19,6 +19,7 @@ import { useTranslations } from 'next-intl'
 import { FACE_ANALYSIS_LAYOUT, getFaceShapeIcon } from '@/config/face-analysis'
 import {
   FaceAnalysisMetric,
+  FaceGeometryAnalysis,
   FaceAnalysisTaskResponse,
   FrameRecommendation,
   StyleTip,
@@ -75,6 +76,9 @@ export function FaceAnalysisResult({
 
   if (!basic) return null
 
+  const geometry = full?.geometry ?? basic.geometry
+  const hasMeasuredGeometry = geometry?.status === 'measured'
+
   return (
     <div className="space-y-5">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
@@ -83,7 +87,7 @@ export function FaceAnalysisResult({
             <h2 className="text-xl font-semibold text-gray-900">Your AI Face Shape Report</h2>
             <span className="inline-flex items-center rounded-full bg-blue-50 px-2.5 py-1 text-xs font-semibold text-blue-700">
               <Sparkles className="mr-1 h-3.5 w-3.5" />
-              AI-powered
+              {hasMeasuredGeometry ? 'Landmark measured' : 'AI-powered'}
             </span>
             {task.status === 'completed' && (
               <span className="inline-flex items-center rounded-full bg-green-100 px-2.5 py-1 text-xs font-medium text-green-700">
@@ -93,7 +97,9 @@ export function FaceAnalysisResult({
             )}
           </div>
           <p className="mt-1 max-w-2xl text-sm text-gray-500">
-            Style guidance for frame selection and AI try-on. Not medical or biometric advice.
+            {hasMeasuredGeometry
+              ? 'Landmark-assisted proportions with AI styling guidance. Not medical or biometric advice.'
+              : 'Style guidance for frame selection and AI try-on. Not medical or biometric advice.'}
           </p>
         </div>
         <button
@@ -134,7 +140,12 @@ export function FaceAnalysisResult({
               </h3>
               {confidencePercent !== null && (
                 <span className="mt-2 inline-flex items-center rounded-full bg-green-50 px-2.5 py-1 text-xs font-semibold text-green-700">
-                  {confidencePercent}% confidence
+              {confidencePercent}% confidence
+                </span>
+              )}
+              {hasMeasuredGeometry && (
+                <span className="ml-2 mt-2 inline-flex items-center rounded-full bg-blue-50 px-2.5 py-1 text-xs font-semibold text-blue-700">
+                  {geometry.qualityScore}% photo quality
                 </span>
               )}
             </div>
@@ -167,7 +178,7 @@ export function FaceAnalysisResult({
 
       {isUnlocked ? (
         <>
-          {metrics.length > 0 && <MetricsSection metrics={metrics} />}
+          {metrics.length > 0 && <MetricsSection metrics={metrics} geometry={geometry} />}
 
           <div className="grid items-start gap-5 xl:grid-cols-2">
             <FrameRecommendationPanel
@@ -223,7 +234,14 @@ export function FaceAnalysisResult({
   )
 }
 
-function MetricsSection({ metrics }: { metrics: FaceAnalysisMetric[] }) {
+function MetricsSection({
+  metrics,
+  geometry,
+}: {
+  metrics: FaceAnalysisMetric[]
+  geometry?: FaceGeometryAnalysis
+}) {
+  const isMeasured = geometry?.status === 'measured'
   return (
     <section className={cn(FACE_ANALYSIS_LAYOUT.card, 'p-4 sm:p-5')}>
       <div className="mb-4">
@@ -231,11 +249,15 @@ function MetricsSection({ metrics }: { metrics: FaceAnalysisMetric[] }) {
           <span className="flex h-5 w-5 items-center justify-center rounded-full bg-blue-50 text-blue-600">
             <Sparkles className="h-3.5 w-3.5" />
           </span>
-          <h3 className="text-sm font-semibold text-gray-950">Face Analysis Details</h3>
+          <h3 className="text-sm font-semibold text-gray-950">
+            {isMeasured ? 'Measured Face Analysis Details' : 'Face Analysis Details'}
+          </h3>
         </div>
         <div className="mt-1 flex items-center gap-1.5 text-xs text-gray-500">
           <Info className="h-3.5 w-3.5" />
-          AI analyzes your facial structure and proportions.
+          {isMeasured
+            ? 'On-device landmarks estimate facial proportions before AI styling review.'
+            : 'AI analyzes your facial structure and proportions.'}
         </div>
       </div>
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-6">
@@ -254,8 +276,15 @@ function MetricsSection({ metrics }: { metrics: FaceAnalysisMetric[] }) {
       </div>
       <div className="mt-4 flex items-center gap-1.5 text-xs text-gray-500">
         <Info className="h-3.5 w-3.5 shrink-0" />
-        These measurements are estimated by AI and may not be 100% accurate.
+        {isMeasured
+          ? 'Measurements are estimated from a single uploaded photo and can vary with angle, lighting, and pose.'
+          : 'These measurements are estimated by AI and may not be 100% accurate.'}
       </div>
+      {isMeasured && geometry.warnings.length > 0 && (
+        <div className="mt-3 rounded-lg border border-amber-100 bg-amber-50 px-3 py-2 text-xs leading-5 text-amber-800">
+          {geometry.warnings.join(' ')}
+        </div>
+      )}
     </section>
   )
 }

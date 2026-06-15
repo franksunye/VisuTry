@@ -17,6 +17,7 @@ describe('face-analysis-report', () => {
       label: 'Face Shape',
       value: 'Square',
     })
+    expect(metrics[0].source).toBe('ai-template')
     expect(metrics.every((metric) => metric.score >= 68 && metric.score <= 96)).toBe(true)
   })
 

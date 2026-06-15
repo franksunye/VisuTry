@@ -6,6 +6,7 @@ import { prisma } from '@/lib/prisma'
 import { logger } from '@/lib/logger'
 import { buildFaceAnalysisPrompt } from '@/lib/prompts/face-analysis-prompt'
 import { analyzeFaceWithGrsAi } from '@/lib/grsai-face-analysis'
+import { normalizeGeometryAnalysis } from '@/lib/face-landmark-metrics'
 import {
   buildBasicResult,
   buildFullResult,
@@ -15,6 +16,7 @@ import {
 import {
   FaceAnalysisBasicResult,
   FaceAnalysisFullResult,
+  FaceGeometryAnalysis,
   FaceAnalysisTaskResponse,
 } from '@/types/face-analysis'
 
@@ -70,10 +72,22 @@ export function serializeFaceAnalysisTask(
 export async function submitFaceAnalysis(
   user: User,
   userImageFile: File,
-  options?: { clientSubmissionId?: string; reportUnlocked?: boolean }
+  options?: {
+    clientSubmissionId?: string
+    reportUnlocked?: boolean
+    geometry?: FaceGeometryAnalysis | null
+  }
 ): Promise<FaceAnalysisSubmitResult> {
   const startTime = Date.now()
-  const prompt = buildFaceAnalysisPrompt()
+  const geometry = normalizeGeometryAnalysis(options?.geometry)
+  const createMetadata = toJsonSafe({
+    serviceType: 'grsai-face-chat',
+    model: FACE_ANALYSIS_MODEL,
+    clientSubmissionId: options?.clientSubmissionId,
+    originalFileName: userImageFile.name,
+    geometry,
+  }) as Prisma.InputJsonValue
+  const prompt = buildFaceAnalysisPrompt(geometry)
 
   const blob = await put(
     `face-analysis/${user.id}/${Date.now()}-${userImageFile.name}`,
@@ -88,12 +102,7 @@ export async function submitFaceAnalysis(
       status: TaskStatus.PROCESSING,
       prompt,
       expiresAt: calculateExpiresAt(user),
-      metadata: {
-        serviceType: 'grsai-face-chat',
-        model: FACE_ANALYSIS_MODEL,
-        clientSubmissionId: options?.clientSubmissionId,
-        originalFileName: userImageFile.name,
-      },
+      metadata: createMetadata,
     },
   })
 
@@ -106,10 +115,19 @@ export async function submitFaceAnalysis(
 
     const rawContent = await analyzeFaceWithGrsAi(imageDataUri, prompt)
     const aiResult = parseFaceAnalysisContent(rawContent)
-    const basicResult = buildBasicResult(aiResult)
-    const fullResult = buildFullResult(aiResult)
+    const basicResult = buildBasicResult(aiResult, geometry)
+    const fullResult = buildFullResult(aiResult, geometry)
+    const basicResultJson = toJsonSafe(basicResult)
+    const fullResultJson = toJsonSafe(fullResult)
 
     const reportUnlocked = options?.reportUnlocked ?? false
+    const completionMetadata = toJsonSafe({
+      serviceType: 'grsai-face-chat',
+      model: FACE_ANALYSIS_MODEL,
+      clientSubmissionId: options?.clientSubmissionId,
+      completionTimeMs: Date.now() - startTime,
+      geometry,
+    }) as Prisma.InputJsonValue
 
     await prisma.faceAnalysisTask.update({
       where: { id: task.id },
@@ -117,15 +135,10 @@ export async function submitFaceAnalysis(
         status: TaskStatus.COMPLETED,
         detectedShape: aiResult.faceShape,
         confidence: aiResult.confidence,
-        basicResult: basicResult as unknown as Prisma.InputJsonValue,
-        fullResult: fullResult as unknown as Prisma.InputJsonValue,
+        basicResult: basicResultJson as unknown as Prisma.InputJsonValue,
+        fullResult: fullResultJson as unknown as Prisma.InputJsonValue,
         reportUnlocked,
-        metadata: {
-          serviceType: 'grsai-face-chat',
-          model: FACE_ANALYSIS_MODEL,
-          clientSubmissionId: options?.clientSubmissionId,
-          completionTimeMs: Date.now() - startTime,
-        },
+        metadata: completionMetadata,
       },
     })
 
@@ -183,4 +196,8 @@ export async function unlockFaceAnalysisReport(taskId: string, userId: string): 
     data: { reportUnlocked: true },
   })
   return result.count > 0
+}
+
+function toJsonSafe<T>(value: T): T {
+  return JSON.parse(JSON.stringify(value)) as T
 }
