@@ -38,15 +38,19 @@ interface CompareBatchResult {
   batchId: string
   requiredCredits: number
   remainingCreditsBefore: number
+  recovered?: boolean
+  startedAt?: string
+  userImageUrl?: string | null
   tasks: CompareTask[]
 }
 
 interface UploadedImage {
-  file: File
+  file?: File
   preview: string
 }
 
 const MAX_SELECTED_FRAMES = 4
+const LONG_PROCESSING_THRESHOLD_MS = 90_000
 
 function normalizeTaskStatus(status: unknown): CompareTaskStatus {
   const normalized = String(status || '').toLowerCase()
@@ -62,8 +66,11 @@ export function FrameCompareInterface({ initialRemainingCredits = 0 }: { initial
   const [userImage, setUserImage] = useState<UploadedImage | null>(null)
   const [selectedIds, setSelectedIds] = useState<string[]>(DEFAULT_TOP_PICK_PRESET_IDS)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isRetryingFailed, setIsRetryingFailed] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [batchResult, setBatchResult] = useState<CompareBatchResult | null>(null)
+  const [batchStartedAt, setBatchStartedAt] = useState<number | null>(null)
+  const [now, setNow] = useState(() => Date.now())
 
   const selectedPresets = useMemo(
     () => TOP_PICK_GLASSES_PRESETS.filter((preset) => selectedIds.includes(preset.id)),
@@ -71,8 +78,35 @@ export function FrameCompareInterface({ initialRemainingCredits = 0 }: { initial
   )
   const hasEnoughCredits = remainingCredits >= selectedIds.length
   const completedCount = batchResult?.tasks.filter((task) => task.status === 'completed').length ?? 0
+  const failedTasks = batchResult?.tasks.filter((task) => task.status === 'failed') ?? []
+  const failedCount = failedTasks.length
   const processingCount = batchResult?.tasks.filter((task) => task.status === 'processing').length ?? 0
-  const canSubmit = Boolean(userImage && selectedIds.length > 0 && !isSubmitting && hasEnoughCredits)
+  const isBatchProcessing = processingCount > 0
+  const processingElapsedMs = batchStartedAt ? now - batchStartedAt : 0
+  const showLongProcessingNotice = isBatchProcessing && processingElapsedMs >= LONG_PROCESSING_THRESHOLD_MS
+  const resultSummary = batchResult
+    ? [
+        `${completedCount}/${batchResult.tasks.length} completed`,
+        failedCount > 0 ? `${failedCount} failed` : null,
+        processingCount > 0 ? `${processingCount} generating` : null,
+      ].filter(Boolean).join(' · ')
+    : 'Ready for side-by-side comparison'
+  const canSubmit = Boolean(
+    userImage?.file &&
+    selectedIds.length > 0 &&
+    !isSubmitting &&
+    !isRetryingFailed &&
+    !isBatchProcessing &&
+    hasEnoughCredits,
+  )
+  const canRetryFailed = Boolean(
+    userImage?.file &&
+    failedCount > 0 &&
+    !isSubmitting &&
+    !isRetryingFailed &&
+    !isBatchProcessing &&
+    remainingCredits >= failedCount,
+  )
 
   useEffect(() => {
     if (!batchResult || processingCount === 0) return
@@ -137,6 +171,57 @@ export function FrameCompareInterface({ initialRemainingCredits = 0 }: { initial
     }
   }, [batchResult, processingCount, update])
 
+  useEffect(() => {
+    if (!isBatchProcessing) return
+
+    const intervalId = window.setInterval(() => {
+      setNow(Date.now())
+    }, 15000)
+
+    return () => window.clearInterval(intervalId)
+  }, [isBatchProcessing])
+
+  useEffect(() => {
+    if (batchResult || isSubmitting || isRetryingFailed) return
+
+    let cancelled = false
+
+    const recoverCurrentBatch = async () => {
+      try {
+        const response = await fetch('/api/try-on/glasses/compare/current')
+        const payload = await response.json()
+        if (!response.ok || !payload.success || !payload.data || cancelled) return
+
+        const recoveredBatch = {
+          ...payload.data,
+          tasks: payload.data.tasks.map((task: CompareTask) => ({
+            ...task,
+            status: normalizeTaskStatus(task.status),
+          })),
+        } as CompareBatchResult
+
+        setBatchResult(recoveredBatch)
+        setSelectedIds(recoveredBatch.tasks.map((task) => task.preset.id).filter(Boolean))
+
+        if (recoveredBatch.userImageUrl) {
+          setUserImage({ preview: recoveredBatch.userImageUrl })
+        }
+
+        const startedAt = recoveredBatch.startedAt ? new Date(recoveredBatch.startedAt).getTime() : Date.now()
+        setBatchStartedAt(Number.isFinite(startedAt) ? startedAt : Date.now())
+        setNow(Date.now())
+      } catch {
+        // Recovery is opportunistic; a fresh compare can still be started.
+      }
+    }
+
+    void recoverCurrentBatch()
+
+    return () => {
+      cancelled = true
+    }
+  }, [batchResult, isSubmitting, isRetryingFailed])
+
   const togglePreset = (presetId: string) => {
     setError(null)
     setSelectedIds((current) => {
@@ -151,7 +236,7 @@ export function FrameCompareInterface({ initialRemainingCredits = 0 }: { initial
   }
 
   const handleSubmit = async () => {
-    if (!userImage || selectedIds.length === 0) return
+    if (!userImage?.file || selectedIds.length === 0) return
     if (!hasEnoughCredits) {
       setError(`You need ${selectedIds.length} credits to compare these frames.`)
       return
@@ -183,6 +268,8 @@ export function FrameCompareInterface({ initialRemainingCredits = 0 }: { initial
           status: normalizeTaskStatus(task.status),
         })),
       })
+      setBatchStartedAt(Date.now())
+      setNow(Date.now())
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Frame compare failed')
     } finally {
@@ -190,9 +277,65 @@ export function FrameCompareInterface({ initialRemainingCredits = 0 }: { initial
     }
   }
 
+  const handleRetryFailed = async () => {
+    if (!userImage?.file || !batchResult || failedCount === 0) {
+      setError('Please upload your photo again to retry failed frames.')
+      return
+    }
+    if (remainingCredits < failedCount) {
+      setError(`You need ${failedCount} credits to retry failed frames.`)
+      return
+    }
+
+    setIsRetryingFailed(true)
+    setError(null)
+
+    try {
+      const retryPresetIds = failedTasks.map((task) => task.preset.id)
+      const formData = new FormData()
+      formData.append('userImage', userImage.file)
+      formData.append('framePresetIds', JSON.stringify(retryPresetIds))
+
+      const response = await fetch('/api/try-on/glasses/compare', {
+        method: 'POST',
+        body: formData,
+      })
+      const payload = await response.json()
+
+      if (!response.ok || !payload.success) {
+        throw new Error(payload.error || 'Retry failed')
+      }
+
+      const replacementTasks = payload.data.tasks.map((task: CompareTask) => ({
+        ...task,
+        status: normalizeTaskStatus(task.status),
+      }))
+
+      setBatchResult((current) => {
+        if (!current) return payload.data
+        return {
+          ...current,
+          tasks: current.tasks.map((task) => {
+            const replacement = replacementTasks.find(
+              (item: CompareTask) => item.preset.id === task.preset.id,
+            )
+            return replacement ?? task
+          }),
+        }
+      })
+      setBatchStartedAt(Date.now())
+      setNow(Date.now())
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Retry failed')
+    } finally {
+      setIsRetryingFailed(false)
+    }
+  }
+
   const resetResults = () => {
     setBatchResult(null)
     setError(null)
+    setBatchStartedAt(null)
   }
 
   return (
@@ -224,6 +367,7 @@ export function FrameCompareInterface({ initialRemainingCredits = 0 }: { initial
             </div>
             <ImageUpload
               currentImage={userImage?.preview}
+              loading={isBatchProcessing || isRetryingFailed}
               onImageSelect={(file, preview) => {
                 setUserImage({ file, preview })
                 resetResults()
@@ -259,7 +403,8 @@ export function FrameCompareInterface({ initialRemainingCredits = 0 }: { initial
                   setSelectedIds([])
                   resetResults()
                 }}
-                className="font-semibold text-blue-600 hover:text-blue-700"
+                disabled={isBatchProcessing || isRetryingFailed}
+                className="font-semibold text-blue-600 hover:text-blue-700 disabled:cursor-not-allowed disabled:text-gray-400"
               >
                 Clear
               </button>
@@ -268,6 +413,7 @@ export function FrameCompareInterface({ initialRemainingCredits = 0 }: { initial
               {TOP_PICK_GLASSES_PRESETS.map((preset) => {
                 const selected = selectedIds.includes(preset.id)
                 const lockedOut = !selected && selectedIds.length >= MAX_SELECTED_FRAMES
+                const disabled = isBatchProcessing || isRetryingFailed || lockedOut
                 return (
                   <button
                     key={preset.id}
@@ -276,7 +422,7 @@ export function FrameCompareInterface({ initialRemainingCredits = 0 }: { initial
                       togglePreset(preset.id)
                       resetResults()
                     }}
-                    disabled={lockedOut}
+                    disabled={disabled}
                     className={cn(
                       'relative rounded-lg border bg-white p-3 text-left transition-all hover:border-blue-300 hover:shadow-sm disabled:cursor-not-allowed disabled:opacity-45',
                       selected ? 'border-blue-500 ring-2 ring-blue-100' : 'border-gray-200',
@@ -313,7 +459,7 @@ export function FrameCompareInterface({ initialRemainingCredits = 0 }: { initial
               <div>
                 <h2 className="text-base font-bold text-gray-950">Try-On Results</h2>
                 <p className="text-sm text-gray-500">
-                  {batchResult ? `${completedCount}/${batchResult.tasks.length} completed` : 'Ready for side-by-side comparison'}
+                  {resultSummary}
                 </p>
               </div>
             </div>
@@ -323,17 +469,41 @@ export function FrameCompareInterface({ initialRemainingCredits = 0 }: { initial
               disabled={!canSubmit}
               className="inline-flex items-center justify-center gap-2 rounded-lg bg-blue-600 px-5 py-2.5 text-sm font-bold text-white shadow-sm transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-gray-300"
             >
-              {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
-              Try {selectedIds.length || 4} Frames
+              {isSubmitting || isBatchProcessing || isRetryingFailed ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Sparkles className="h-4 w-4" />
+              )}
+              {isRetryingFailed ? 'Retrying...' : isBatchProcessing ? 'Generating...' : `Try ${selectedIds.length || 4} Frames`}
             </button>
           </div>
+
+          {showLongProcessingNotice && (
+            <div className="mb-4 rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-800">
+              <p className="font-semibold">Still generating</p>
+              <p className="mt-1 text-blue-700">
+                Some frames can take a few minutes. You can keep this page open, or check completed results later in{' '}
+                <Link href={`/${locale}/dashboard/history`} className="font-bold underline">
+                  Dashboard History
+                </Link>
+                .
+              </p>
+            </div>
+          )}
+
+          {batchResult?.recovered && !userImage?.file && (
+            <div className="mb-4 rounded-lg border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-700">
+              Recovered an in-progress comparison after refresh. Results will keep updating here; upload the photo
+              again if you want to retry failed frames or start a new comparison.
+            </div>
+          )}
 
           {error && (
             <div className="mb-4 flex items-start gap-2 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
               <XCircle className="mt-0.5 h-4 w-4 flex-shrink-0" />
               <div>
                 <p className="font-semibold">{error}</p>
-                {!hasEnoughCredits && (
+                {(!hasEnoughCredits || (failedCount > 0 && remainingCredits < failedCount)) && (
                   <Link href={`/${locale}/pricing`} className="mt-1 inline-block font-bold text-red-800 underline">
                     Get credits
                   </Link>
@@ -423,15 +593,39 @@ export function FrameCompareInterface({ initialRemainingCredits = 0 }: { initial
           )}
 
           {batchResult && processingCount === 0 && (
-            <div className="mt-4 flex justify-end">
-              <button
-                type="button"
-                onClick={resetResults}
-                className="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-700 hover:border-blue-300 hover:text-blue-700"
-              >
-                <RotateCcw className="h-4 w-4" />
-                Compare Again
-              </button>
+            <div className="mt-4 flex flex-col gap-3 border-t border-gray-100 pt-4 sm:flex-row sm:items-center sm:justify-between">
+              <p className="text-sm text-gray-600">
+                Your generated try-on images are also saved in{' '}
+                <Link href={`/${locale}/dashboard/history`} className="font-semibold text-blue-600 hover:text-blue-700">
+                  Dashboard History
+                </Link>
+                .
+              </p>
+              <div className="flex flex-wrap justify-end gap-3">
+                {failedCount > 0 && (
+                  <button
+                    type="button"
+                    onClick={handleRetryFailed}
+                    disabled={!canRetryFailed}
+                    className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-gray-300"
+                  >
+                    {isRetryingFailed ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <RotateCcw className="h-4 w-4" />
+                    )}
+                    Retry Failed ({failedCount})
+                  </button>
+                )}
+                <button
+                  type="button"
+                  onClick={resetResults}
+                  className="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-700 hover:border-blue-300 hover:text-blue-700"
+                >
+                  <RotateCcw className="h-4 w-4" />
+                  Compare Again
+                </button>
+              </div>
             </div>
           )}
         </section>

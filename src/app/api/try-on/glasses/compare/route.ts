@@ -3,7 +3,7 @@ import { getServerSession } from 'next-auth/next'
 import { revalidateTag } from 'next/cache'
 import { readFile } from 'node:fs/promises'
 import { join } from 'node:path'
-import { TryOnType, type User } from '@prisma/client'
+import { TaskStatus, TryOnType, type User } from '@prisma/client'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { getRemainingQuotaCount } from '@/lib/quota'
@@ -15,11 +15,17 @@ import {
   getTopPickPresetById,
   type GlassesPreset,
 } from '@/config/glasses-presets'
+import { toCompareTaskResponse } from '@/lib/compare-tryon'
 
 export const dynamic = 'force-dynamic'
 export const maxDuration = 60
 
 const MAX_PRESETS_PER_BATCH = 4
+const PRESET_SUBMISSION_STAGGER_MS = 3000
+
+function sleep(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms))
+}
 
 async function createPresetFile(preset: GlassesPreset) {
   const assetPath = join(process.cwd(), 'public', preset.assetPath)
@@ -98,18 +104,13 @@ async function processPresetTask({
       },
     )
 
-    return {
-      taskId: result.taskId,
+    return toCompareTaskResponse({
+      id: result.taskId,
       status: result.status === 'submitted' ? 'processing' : result.status,
       resultImageUrl: result.resultImageUrl ?? null,
       errorMessage: result.error ?? null,
-      preset: {
-        id: preset.id,
-        name: preset.name,
-        style: preset.style,
-        assetPath: preset.assetPath,
-      },
-    }
+      metadata,
+    })
   } catch (error) {
     const err = error instanceof Error ? error : new Error(String(error))
     logger.error('api', 'Frame compare preset failed', err, {
@@ -118,39 +119,29 @@ async function processPresetTask({
       presetId: preset.id,
     })
 
-    return {
-      taskId: `${batchId}-${preset.id}-failed`,
-      status: 'failed',
+    return toCompareTaskResponse({
+      id: `${batchId}-${preset.id}-failed`,
+      status: TaskStatus.FAILED,
       resultImageUrl: null,
       errorMessage: err.message,
-      preset: {
-        id: preset.id,
-        name: preset.name,
-        style: preset.style,
-        assetPath: preset.assetPath,
-      },
-    }
+      metadata,
+    })
   }
 }
 
-async function runWithConcurrency<T, R>(
+async function runWithStaggeredStarts<T, R>(
   items: T[],
-  limit: number,
+  staggerMs: number,
   worker: (item: T, index: number) => Promise<R>
 ) {
-  const results: R[] = []
-  let cursor = 0
-
-  async function runner() {
-    while (cursor < items.length) {
-      const index = cursor
-      cursor += 1
-      results[index] = await worker(items[index], index)
-    }
-  }
-
-  await Promise.all(Array.from({ length: Math.min(limit, items.length) }, runner))
-  return results
+  return Promise.all(
+    items.map(async (item, index) => {
+      if (index > 0) {
+        await sleep(index * staggerMs)
+      }
+      return worker(item, index)
+    })
+  )
 }
 
 export async function POST(request: NextRequest) {
@@ -209,9 +200,10 @@ export async function POST(request: NextRequest) {
       source: 'frame-compare',
       serviceType: 'grsai',
       batchSize: presets.length,
+      submissionStaggerMs: PRESET_SUBMISSION_STAGGER_MS,
     }
 
-    const tasks = await runWithConcurrency(presets, 2, (preset, index) =>
+    const tasks = await runWithStaggeredStarts(presets, PRESET_SUBMISSION_STAGGER_MS, (preset, index) =>
       processPresetTask({
         user,
         userImageFile: userImage,
@@ -230,6 +222,7 @@ export async function POST(request: NextRequest) {
         requiredCredits,
         creditsUsed: 0,
         remainingCreditsBefore: remainingCredits,
+        submissionStaggerMs: PRESET_SUBMISSION_STAGGER_MS,
         tasks,
       },
     })
