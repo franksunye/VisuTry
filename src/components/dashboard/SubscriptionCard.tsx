@@ -132,6 +132,12 @@ export function SubscriptionCard({ user }: SubscriptionCardProps) {
                 })}
               </span>
             </div>
+            <Link
+              href={localizedPath(locale, "/payments")}
+              className="mt-3 inline-flex text-sm font-medium text-yellow-800 hover:text-yellow-900"
+            >
+              Manage subscription and billing
+            </Link>
           </div>
         )}
       </div>

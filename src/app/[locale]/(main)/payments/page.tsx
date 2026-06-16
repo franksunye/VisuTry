@@ -8,6 +8,7 @@ import { Metadata } from 'next'
 import { generateSEO } from '@/lib/seo'
 import { getSubscriptionQuotaLabel } from '@/config/pricing'
 import { AutoRefreshWrapper } from '@/components/payments/AutoRefreshWrapper'
+import { ManageSubscriptionButton } from '@/components/payments/ManageSubscriptionButton'
 import { localizedPath } from '@/lib/localized-path'
 
 export const metadata: Metadata = generateSEO({
@@ -77,13 +78,23 @@ export default async function PaymentsPage({ params }: PaymentsPageProps) {
         <h2 className="mb-4 text-xl font-semibold">Current Status</h2>
         <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
           <div className="p-4 rounded-lg bg-blue-50">
-            <div className="text-sm text-blue-600">Membership</div>
-            <div className="mt-1 text-2xl font-bold text-blue-900">
-              {user.isPremiumActive ? 'Standard' : 'Free'}
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <div className="text-sm text-blue-600">Membership</div>
+                <div className="mt-1 text-2xl font-bold text-blue-900">
+                  {user.isPremiumActive ? 'Standard' : 'Free'}
+                </div>
+                {user.isPremiumActive && user.premiumExpiresAt && (
+                  <div className="mt-1 text-xs text-blue-700">
+                    Expires: {new Date(user.premiumExpiresAt).toLocaleDateString()}
+                  </div>
+                )}
+              </div>
+              {user.isPremiumActive && <ManageSubscriptionButton />}
             </div>
-            {user.isPremiumActive && user.premiumExpiresAt && (
-              <div className="mt-1 text-xs text-blue-700">
-                Expires: {new Date(user.premiumExpiresAt).toLocaleDateString()}
+            {user.isPremiumActive && (
+              <div className="mt-2 text-xs text-blue-700">
+                You can update payment method or cancel from Stripe Billing Portal.
               </div>
             )}
           </div>

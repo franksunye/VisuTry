@@ -135,6 +135,16 @@ export async function cancelSubscription(subscriptionId: string) {
   return subscription
 }
 
+// Create Stripe customer billing portal session
+export async function createBillingPortalSession(customerId: string, returnUrl: string) {
+  const session = await stripe.billingPortal.sessions.create({
+    customer: customerId,
+    return_url: returnUrl,
+  })
+
+  return session
+}
+
 // 验证Webhook签名
 export function verifyWebhookSignature(
   payload: string | Buffer,
