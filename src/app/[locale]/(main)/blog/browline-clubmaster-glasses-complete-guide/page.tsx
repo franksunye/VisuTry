@@ -27,7 +27,9 @@ const structuredData = generateStructuredData('article', {
 
 const articleTags = ['Browline Glasses', 'Clubmaster', 'Retro Style', 'Vintage Eyewear', 'Fashion Trends']
 
-export default function BlogPostPage() {
+export default function BlogPostPage({ params }: { params: { locale: string } }) {
+  const localePrefix = `/${params.locale}`
+
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }} />
@@ -37,7 +39,7 @@ export default function BlogPostPage() {
           <div className="mb-6">
             <Breadcrumbs
               items={[
-                { name: 'Blog', url: '../blog' },
+                { name: 'Blog', url: `${localePrefix}/blog` },
                 { name: 'Browline Clubmaster Glasses Guide' },
               ]}
             />

@@ -1,7 +1,11 @@
 import { AlertCircle, ArrowLeft } from "lucide-react"
 import Link from "next/link"
+import { localizedPath } from "@/lib/localized-path"
 
 interface ErrorPageProps {
+  params: {
+    locale: string
+  }
   searchParams: {
     error?: string
     error_description?: string
@@ -52,7 +56,7 @@ const getErrorDetails = (error: string) => {
     }
 }
 
-export default function AuthErrorPage({ searchParams }: ErrorPageProps) {
+export default function AuthErrorPage({ params, searchParams }: ErrorPageProps) {
   const error = searchParams.error
   const errorDescription = searchParams.error_description
   const callbackUrl = searchParams.callbackUrl
@@ -125,14 +129,14 @@ export default function AuthErrorPage({ searchParams }: ErrorPageProps) {
 
             <div className="space-y-3">
               <Link
-                href="/auth/signin"
+                href={localizedPath(params.locale, "/auth/signin")}
                 className="w-full flex items-center justify-center px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
               >
                 Try Sign In Again
               </Link>
 
               <Link
-                href="/"
+                href={localizedPath(params.locale, "/")}
                 className="w-full flex items-center justify-center px-4 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
               >
                 <ArrowLeft className="w-4 h-4 mr-2" />

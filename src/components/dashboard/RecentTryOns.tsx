@@ -3,9 +3,11 @@
 import { Clock, CheckCircle, XCircle, Loader2, ExternalLink, History, RefreshCw } from "lucide-react"
 import Link from "next/link"
 import Image from "next/image"
+import { useParams } from "next/navigation"
 import { formatDistanceToNow } from "date-fns"
 import { getThumbnailUrl, getResponsiveSizes, IMAGE_QUALITY } from "@/lib/image-utils"
 import { useState, useEffect, useCallback } from "react"
+import { localizedPath } from "@/lib/localized-path"
 
 interface TryOnTask {
   id: string
@@ -21,6 +23,8 @@ interface RecentTryOnsProps {
 }
 
 export function RecentTryOns({ tryOns: initialTryOns }: RecentTryOnsProps) {
+  const params = useParams()
+  const locale = params.locale as string | undefined
   const [tryOns, setTryOns] = useState<TryOnTask[]>(initialTryOns)
   const [isPolling, setIsPolling] = useState(false)
   const [syncingTasks, setSyncingTasks] = useState<Set<string>>(new Set())
@@ -181,7 +185,7 @@ export function RecentTryOns({ tryOns: initialTryOns }: RecentTryOnsProps) {
           <h3 className="text-lg font-medium text-gray-900 mb-2">No try-on records yet</h3>
           <p className="text-gray-500 mb-6">Start your first AI glasses try-on experience!</p>
           <Link
-            href="/try-on"
+            href={localizedPath(locale, '/try-on')}
             className="inline-flex items-center px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
           >
             Start Try-On
@@ -197,7 +201,7 @@ export function RecentTryOns({ tryOns: initialTryOns }: RecentTryOnsProps) {
         <div className="flex items-center justify-between">
           <h2 className="text-lg font-semibold text-gray-900">Recent Try-Ons</h2>
           <Link
-            href="/dashboard/history"
+            href={localizedPath(locale, '/dashboard/history')}
             className="text-blue-600 hover:text-blue-700 text-sm font-medium flex items-center"
           >
             View All

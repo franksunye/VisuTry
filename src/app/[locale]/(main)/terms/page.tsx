@@ -3,6 +3,7 @@ import { generateSEO } from '@/lib/seo'
 import Link from 'next/link'
 import { ArrowLeft, FileText } from 'lucide-react'
 import { Breadcrumbs } from '@/components/seo/Breadcrumbs'
+import { localizedPath } from '@/lib/localized-path'
 
 export const metadata: Metadata = generateSEO({
   title: 'Terms of Service | VisuTry',
@@ -10,7 +11,7 @@ export const metadata: Metadata = generateSEO({
   url: '/terms',
 })
 
-export default async function TermsPage() {
+export default async function TermsPage({ params }: { params: { locale: string } }) {
   const lastUpdated = 'January 15, 2025'
 
   return (
@@ -28,7 +29,7 @@ export default async function TermsPage() {
         {/* Header */}
         <div className="mb-8">
           <Link
-            href="/"
+            href={localizedPath(params.locale, '/')}
             className="inline-flex items-center text-blue-600 hover:text-blue-700 mb-4"
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
@@ -192,7 +193,7 @@ export default async function TermsPage() {
               <h3 className="text-xl font-semibold text-gray-800 mb-3">6.3 Refunds</h3>
               <p className="text-gray-700">
                 Refunds are subject to our{' '}
-                <Link href="/refund" className="text-blue-600 hover:underline">
+                <Link href={localizedPath(params.locale, '/refund')} className="text-blue-600 hover:underline">
                   Refund Policy
                 </Link>
                 . Please review it carefully before making a purchase.
@@ -351,4 +352,3 @@ export default async function TermsPage() {
     </div>
   )
 }
-

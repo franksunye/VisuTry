@@ -14,6 +14,7 @@ import { analytics, getUserType } from "@/lib/analytics"
 import { TryOnType, getTryOnConfig } from "@/config/try-on-types"
 import { logger } from "@/lib/logger"
 import { cn } from "@/utils/cn"
+import { localizedPath } from "@/lib/localized-path"
 
 interface ErrorState {
   message: string
@@ -82,7 +83,8 @@ export function TryOnInterface({ type = 'GLASSES' }: TryOnInterfaceProps) {
   const remainingTrials = session?.user?.remainingTrials ?? 0
   const hasQuota = remainingTrials > 0
   const isGlassesTryOn = type === 'GLASSES'
-  const faceAnalysisHref = `/${locale}/face-analysis`
+  const faceAnalysisHref = localizedPath(locale, '/face-analysis')
+  const pricingHref = localizedPath(locale, '/pricing')
 
   // Poll task status
   useEffect(() => {
@@ -460,7 +462,7 @@ export function TryOnInterface({ type = 'GLASSES' }: TryOnInterfaceProps) {
             </button>
             {isQuotaError && (
               <Link
-                href="/pricing"
+                href={pricingHref}
                 onClick={() => {
                   const creditsPurchased = (session?.user as any)?.creditsPurchased || 0
                   const creditsUsed = (session?.user as any)?.creditsUsed || 0
@@ -621,7 +623,7 @@ export function TryOnInterface({ type = 'GLASSES' }: TryOnInterfaceProps) {
                   </div>
                 </div>
                 <Link
-                  href="/pricing"
+                  href={pricingHref}
                   onClick={() => {
                     const creditsPurchased = (session?.user as any)?.creditsPurchased || 0
                     const creditsUsed = (session?.user as any)?.creditsUsed || 0

@@ -1,7 +1,14 @@
+"use client"
+
 import { AlertCircle, ArrowLeft, Glasses } from "lucide-react"
 import Link from "next/link"
+import { useParams } from "next/navigation"
+import { localizedPath } from "@/lib/localized-path"
 
 export default function ShareNotFound() {
+  const params = useParams()
+  const locale = params.locale as string | undefined
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center px-4">
       <div className="max-w-md w-full text-center">
@@ -35,7 +42,7 @@ export default function ShareNotFound() {
         {/* Action Buttons */}
         <div className="space-y-3">
           <Link
-            href="/try-on"
+            href={localizedPath(locale, "/try-on")}
             className="w-full flex items-center justify-center px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
           >
             <Glasses className="w-5 h-5 mr-2" />
@@ -43,7 +50,7 @@ export default function ShareNotFound() {
           </Link>
 
           <Link
-            href="/"
+            href={localizedPath(locale, "/")}
             className="w-full flex items-center justify-center px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
           >
             <ArrowLeft className="w-5 h-5 mr-2" />

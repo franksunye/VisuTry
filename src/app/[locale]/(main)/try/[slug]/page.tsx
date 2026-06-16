@@ -11,9 +11,11 @@ import {
 import Image from 'next/image'
 import Link from 'next/link'
 import { ArrowLeft, Glasses, Heart } from 'lucide-react'
+import { localizedPath } from '@/lib/localized-path'
 
 interface ProductPageProps {
   params: {
+    locale: string
     slug: string
   }
 }
@@ -101,11 +103,11 @@ export default async function ProductPage({ params }: ProductPageProps) {
     <div className="container mx-auto px-4 py-8">
       {/* Breadcrumb */}
       <div className="mb-6 flex items-center text-sm text-gray-600">
-        <Link href="/" className="hover:text-gray-900">
+        <Link href={localizedPath(params.locale, '/')} className="hover:text-gray-900">
           Home
         </Link>
         <span className="mx-2">/</span>
-        <Link href={`/brand/${slugify(frame.brand || '')}`} className="hover:text-gray-900">
+        <Link href={localizedPath(params.locale, `/brand/${slugify(frame.brand || '')}`)} className="hover:text-gray-900">
           {frame.brand}
         </Link>
         <span className="mx-2">/</span>
@@ -113,7 +115,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
       </div>
 
       {/* Back Button */}
-      <Link href="/" className="inline-flex items-center text-blue-600 hover:text-blue-700 mb-6">
+      <Link href={localizedPath(params.locale, '/')} className="inline-flex items-center text-blue-600 hover:text-blue-700 mb-6">
         <ArrowLeft className="w-4 h-4 mr-2" />
         Back
       </Link>

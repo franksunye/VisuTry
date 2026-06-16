@@ -14,10 +14,12 @@ import {
   ChevronRight
 } from "lucide-react"
 import Link from "next/link"
+import { useParams } from "next/navigation"
 import { formatDistanceToNow } from "date-fns"
 import { cn } from "@/utils/cn"
 import { TryOnThumbnail } from "@/components/OptimizedImage"
 import { getTryOnConfig, type TryOnType } from "@/config/try-on-types"
+import { localizedPath } from "@/lib/localized-path"
 
 interface TryOnTask {
   id: string
@@ -46,6 +48,8 @@ export function TryOnHistoryList({
   totalPages, 
   currentStatus 
 }: TryOnHistoryListProps) {
+  const params = useParams()
+  const locale = params.locale as string | undefined
   const [deletingId, setDeletingId] = useState<string | null>(null)
 
   const getStatusIcon = (status: string) => {
@@ -144,7 +148,7 @@ export function TryOnHistoryList({
           Start your AI glasses try-on journey!
         </p>
         <Link
-          href="/try-on"
+          href={localizedPath(locale, '/try-on')}
           className="inline-flex items-center px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
         >
           Start Try-On

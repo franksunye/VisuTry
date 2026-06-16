@@ -1,9 +1,11 @@
 "use client"
 
 import { useState } from "react"
+import { useParams } from "next/navigation"
 import { Check, Loader2 } from "lucide-react"
 import { cn } from "@/utils/cn"
 import { analytics, getUserType, type ProductType } from "@/lib/analytics"
+import { localizedPath } from "@/lib/localized-path"
 
 interface PricingPlan {
   id: string
@@ -31,11 +33,16 @@ interface PricingCardProps {
 
 export function PricingCard({ plan, currentUser }: PricingCardProps) {
   const [loading, setLoading] = useState(false)
+  const params = useParams()
+  const locale = params.locale as string | undefined
+  const pricingHref = localizedPath(locale, '/pricing')
+  const dashboardHref = localizedPath(locale, '/dashboard')
+  const signInHref = localizedPath(locale, '/auth/signin')
 
   const handleSubscribe = async () => {
     // 如果用户未登录，重定向到登录页并设置回调URL
     if (!currentUser) {
-      window.location.href = `/auth/signin?callbackUrl=${encodeURIComponent('/pricing')}`
+      window.location.href = `${signInHref}?callbackUrl=${encodeURIComponent(pricingHref)}`
       return
     }
 
@@ -63,8 +70,8 @@ export function PricingCard({ plan, currentUser }: PricingCardProps) {
         },
         body: JSON.stringify({
           productType: plan.id,
-          successUrl: `${window.location.origin}/dashboard?payment=success`,
-          cancelUrl: `${window.location.origin}/pricing?payment=cancelled`,
+          successUrl: `${window.location.origin}${dashboardHref}?payment=success`,
+          cancelUrl: `${window.location.origin}${pricingHref}?payment=cancelled`,
         }),
       })
 

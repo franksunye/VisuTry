@@ -5,6 +5,7 @@ import Image from 'next/image'
 import { ShoppingCart, CheckCircle2, AlertTriangle } from 'lucide-react'
 import BlogTags from '@/components/BlogTags'
 import { Breadcrumbs } from '@/components/seo/Breadcrumbs'
+import { localizedPath } from '@/lib/localized-path'
 
 const title = 'How to Buy Prescription Glasses Online 2025 - Complete Shopping Guide'
 const description = 'Learn how to safely buy prescription glasses online. Get tips on measuring PD, reading prescriptions, choosing lenses, and avoiding common mistakes.'
@@ -32,7 +33,11 @@ const structuredData = generateStructuredData('article', {
 
 const articleTags = ['Online Shopping', 'Prescription Glasses', 'Buying Guide', 'Eyewear Tips', 'How-To']
 
-export default function BlogPostPage() {
+type BlogPostPageProps = {
+  params: { locale: string }
+}
+
+export default function BlogPostPage({ params }: BlogPostPageProps) {
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }} />
@@ -42,7 +47,7 @@ export default function BlogPostPage() {
           <div className="mb-6">
             <Breadcrumbs
               items={[
-                { name: 'Blog', url: '/blog' },
+                { name: 'Blog', url: localizedPath(params.locale, '/blog') },
                 { name: 'Prescription Glasses Online Shopping Guide' },
               ]}
             />
@@ -94,7 +99,7 @@ export default function BlogPostPage() {
                 <li><strong>Cost savings</strong> - 50-70% cheaper than retail stores</li>
                 <li><strong>Convenience</strong> - Shop from home, 24/7</li>
                 <li><strong>Wider selection</strong> - Thousands of styles available</li>
-                <li><strong>Virtual try-on</strong> - See frames on your face before buying (check out our <Link href="/blog/best-ai-virtual-glasses-tryon-tools-2025" className="text-blue-600 hover:text-blue-800">guide to the best AI virtual try-on tools</Link>)</li>
+                <li><strong>Virtual try-on</strong> - See frames on your face before buying (check out our <Link href={localizedPath(params.locale, '/blog/best-ai-virtual-glasses-tryon-tools-2025')} className="text-blue-600 hover:text-blue-800">guide to the best AI virtual try-on tools</Link>)</li>
                 <li><strong>Easy comparison</strong> - Compare prices and styles instantly</li>
                 <li><strong>Home delivery</strong> - Glasses shipped to your door</li>
               </ul>
@@ -143,8 +148,8 @@ export default function BlogPostPage() {
                 This is the fun part! Consider:
               </p>
               <ul>
-                <li><strong>Face shape</strong> - See our <Link href="/blog/how-to-choose-glasses-for-your-face" className="text-blue-600 hover:text-blue-800">face shape guide</Link></li>
-                <li><strong>Frame material</strong> - Learn about <Link href="/blog/acetate-vs-plastic-eyeglass-frames-guide" className="text-blue-600 hover:text-blue-800">acetate vs plastic frames</Link></li>
+                <li><strong>Face shape</strong> - See our <Link href={localizedPath(params.locale, '/blog/how-to-choose-glasses-for-your-face')} className="text-blue-600 hover:text-blue-800">face shape guide</Link></li>
+                <li><strong>Frame material</strong> - Learn about <Link href={localizedPath(params.locale, '/blog/acetate-vs-plastic-eyeglass-frames-guide')} className="text-blue-600 hover:text-blue-800">acetate vs plastic frames</Link></li>
                 <li><strong>Frame size</strong> - Check measurements (lens width, bridge, temple length)</li>
                 <li><strong>Style</strong> - Professional, casual, trendy, classic</li>
                 <li><strong>Color</strong> - Match your skin tone and wardrobe</li>
@@ -156,7 +161,7 @@ export default function BlogPostPage() {
                   of styles on your actual face. This dramatically reduces the chance of ordering frames 
                   that don&apos;t suit you.
                 </p>
-                <Link href="/" className="inline-block bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors font-bold">
+                <Link href={localizedPath(params.locale, '/')} className="inline-block bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors font-bold">
                   Try Frames Virtually →
                 </Link>
               </div>
@@ -258,7 +263,7 @@ export default function BlogPostPage() {
                 <li><strong>Using an old prescription</strong> - Get a current exam</li>
                 <li><strong>Wrong PD measurement</strong> - Measure carefully or ask your doctor</li>
                 <li><strong>Ignoring frame measurements</strong> - Check size compatibility</li>
-                <li><strong>Skipping virtual try-on</strong> - Always preview frames on your face. Check out our <Link href="/blog/best-ai-virtual-glasses-tryon-tools-2025" className="text-blue-600 hover:text-blue-800">guide to the best AI virtual try-on tools</Link></li>
+                <li><strong>Skipping virtual try-on</strong> - Always preview frames on your face. Check out our <Link href={localizedPath(params.locale, '/blog/best-ai-virtual-glasses-tryon-tools-2025')} className="text-blue-600 hover:text-blue-800">guide to the best AI virtual try-on tools</Link></li>
                 <li><strong>Choosing cheapest lenses</strong> - Invest in quality coatings</li>
                 <li><strong>Not reading return policy</strong> - Know your options before buying</li>
                 <li><strong>Ordering just one pair</strong> - Consider a backup</li>
@@ -287,7 +292,7 @@ export default function BlogPostPage() {
                   Ready to save money and get perfect-fitting glasses? Use our virtual try-on tool to find 
                   your ideal frames, then shop with confidence knowing exactly how they&apos;ll look!
                 </p>
-                <Link href="/" className="inline-block bg-white text-blue-600 px-8 py-3 rounded-lg font-bold hover:bg-gray-100 transition-colors">
+                <Link href={localizedPath(params.locale, '/')} className="inline-block bg-white text-blue-600 px-8 py-3 rounded-lg font-bold hover:bg-gray-100 transition-colors">
                   Find Your Perfect Frames →
                 </Link>
               </div>
@@ -301,7 +306,7 @@ export default function BlogPostPage() {
               <p>
                 The key is taking your time, double-checking all measurements, and using tools like virtual
                 try-on to make informed decisions. With thousands of satisfied customers buying glasses online
-                every day, you can shop with confidence! Don&apos;t forget to consider your <Link href="/blog/how-to-choose-glasses-for-your-face" className="text-blue-600 hover:text-blue-800">face shape</Link> and <Link href="/blog/browline-clubmaster-glasses-complete-guide" className="text-blue-600 hover:text-blue-800">popular styles</Link> when selecting frames.
+                every day, you can shop with confidence! Don&apos;t forget to consider your <Link href={localizedPath(params.locale, '/blog/how-to-choose-glasses-for-your-face')} className="text-blue-600 hover:text-blue-800">face shape</Link> and <Link href={localizedPath(params.locale, '/blog/browline-clubmaster-glasses-complete-guide')} className="text-blue-600 hover:text-blue-800">popular styles</Link> when selecting frames.
               </p>
               <p className="font-bold text-lg mt-6">
                 Ready to save money on your next pair of glasses? Start with our virtual try-on tool today!
@@ -310,7 +315,7 @@ export default function BlogPostPage() {
             <div className="p-8 bg-gray-50 border-t">
               <div className="flex items-center justify-between flex-wrap gap-4">
                 <BlogTags tags={articleTags} />
-                <Link href="/" className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors">
+                <Link href={localizedPath(params.locale, '/')} className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors">
                   Start Shopping
                 </Link>
               </div>

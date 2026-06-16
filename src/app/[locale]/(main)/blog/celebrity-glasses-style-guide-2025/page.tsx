@@ -27,7 +27,9 @@ const structuredData = generateStructuredData('article', {
 
 const articleTags = ['Celebrity Style', 'Fashion Trends', 'Style Inspiration', 'Eyewear Fashion', 'Virtual Try-On']
 
-export default function BlogPostPage() {
+export default function BlogPostPage({ params }: { params: { locale: string } }) {
+  const localePrefix = `/${params.locale}`
+
   return (
     <>
       <script
@@ -41,7 +43,7 @@ export default function BlogPostPage() {
           <div className="mb-6">
             <Breadcrumbs
               items={[
-                { name: 'Blog', url: '../blog' },
+                { name: 'Blog', url: `${localePrefix}/blog` },
                 { name: 'Celebrity Glasses Style Guide 2025' },
               ]}
             />
@@ -382,4 +384,3 @@ export default function BlogPostPage() {
     </>
   )
 }
-

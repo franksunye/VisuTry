@@ -1,14 +1,18 @@
 'use client'
 
 import { signOut, useSession } from 'next-auth/react'
+import { useParams } from 'next/navigation'
 import { User, LogOut, LayoutDashboard, ChevronDown, History, CreditCard } from 'lucide-react'
 import { useState, useRef, useEffect } from 'react'
 import Link from 'next/link'
 import { useTestSession } from '@/hooks/useTestSession'
+import { localizedPath } from '@/lib/localized-path'
 
 export function UserMenu() {
   const { data: session } = useSession()
   const { testSession, clearTestSession } = useTestSession()
+  const params = useParams()
+  const locale = params.locale as string | undefined
   const [isOpen, setIsOpen] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
   
@@ -88,7 +92,7 @@ export function UserMenu() {
           
           {/* Menu Items */}
           <Link
-            href="/dashboard"
+            href={localizedPath(locale, '/dashboard')}
             onClick={() => setIsOpen(false)}
             className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
             role="menuitem"
@@ -98,7 +102,7 @@ export function UserMenu() {
           </Link>
 
           <Link
-            href="/dashboard/history"
+            href={localizedPath(locale, '/dashboard/history')}
             onClick={() => setIsOpen(false)}
             className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
             role="menuitem"
@@ -108,7 +112,7 @@ export function UserMenu() {
           </Link>
 
           <Link
-            href="/payments"
+            href={localizedPath(locale, '/payments')}
             onClick={() => setIsOpen(false)}
             className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
             role="menuitem"
@@ -141,4 +145,3 @@ export function UserMenu() {
     </div>
   )
 }
-

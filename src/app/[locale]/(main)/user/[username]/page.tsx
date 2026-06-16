@@ -4,9 +4,11 @@ import { UserPublicProfile } from "@/components/user/UserPublicProfile"
 import { PublicTryOnGallery } from "@/components/user/PublicTryOnGallery"
 import { Glasses, Calendar, Star } from "lucide-react"
 import type { Metadata } from "next"
+import { localizedPath } from "@/lib/localized-path"
 
 interface UserPageProps {
   params: {
+    locale: string
     username: string
   }
 }
@@ -133,7 +135,7 @@ export default async function UserPage({ params }: UserPageProps) {
               <h1 className="text-2xl font-bold text-gray-900">VisuTry</h1>
             </div>
             <a
-              href="/"
+              href={localizedPath(params.locale, "/")}
               className="flex items-center text-blue-600 hover:text-blue-700 transition-colors"
             >
               Try AI Glasses
@@ -250,7 +252,7 @@ export default async function UserPage({ params }: UserPageProps) {
               Use VisuTry&apos;s AI technology to easily try on various glasses styles
             </p>
             <a
-              href="/try-on"
+              href={localizedPath(params.locale, "/try-on")}
               className="inline-flex items-center px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
             >
               <Glasses className="w-5 h-5 mr-2" />

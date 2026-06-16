@@ -2,10 +2,14 @@
 
 import { useSession } from "next-auth/react"
 import Link from "next/link"
+import { useParams } from "next/navigation"
 import { Zap } from "lucide-react"
+import { localizedPath } from "@/lib/localized-path"
 
 export function UserStatusBanner() {
   const { data: session } = useSession()
+  const params = useParams()
+  const locale = params.locale as string | undefined
 
   if (!session?.user) {
     return null
@@ -24,7 +28,7 @@ export function UserStatusBanner() {
           Standard
         </span>
         <Link
-          href="/dashboard"
+          href={localizedPath(locale, '/dashboard')}
           className="text-gray-600 hover:text-gray-900 transition-colors"
         >
           View Dashboard →
@@ -40,7 +44,7 @@ export function UserStatusBanner() {
         Free User
       </span>
       <Link
-        href="/dashboard"
+        href={localizedPath(locale, '/dashboard')}
         className="text-gray-600 hover:text-gray-900 transition-colors"
       >
         Remaining: <span className="font-semibold text-gray-900">{remainingTrials}</span>
@@ -48,4 +52,3 @@ export function UserStatusBanner() {
     </div>
   )
 }
-

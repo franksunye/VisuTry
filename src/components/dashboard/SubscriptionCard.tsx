@@ -2,9 +2,11 @@
 
 import { Star, Crown, Clock, ArrowUpRight } from "lucide-react"
 import Link from "next/link"
+import { useParams } from "next/navigation"
 import { formatDistanceToNow } from "date-fns"
 import { analytics } from "@/lib/analytics"
 import { QUOTA_CONFIG } from "@/config/pricing"
+import { localizedPath } from "@/lib/localized-path"
 
 interface User {
   id: string
@@ -26,6 +28,8 @@ interface SubscriptionCardProps {
 }
 
 export function SubscriptionCard({ user }: SubscriptionCardProps) {
+  const params = useParams()
+  const locale = params.locale as string | undefined
   const freeTrialLimit = 3
 
   // Calculate quota for all user types
@@ -187,7 +191,7 @@ export function SubscriptionCard({ user }: SubscriptionCardProps) {
 
       {/* Upgrade Button */}
       <Link
-        href="/pricing"
+        href={localizedPath(locale, '/pricing')}
         onClick={() => {
           const quotaWarning = totalRemaining <= 1
           analytics.trackUpgradeClick('subscription_card', 'free', totalRemaining, quotaWarning)

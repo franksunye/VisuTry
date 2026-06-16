@@ -123,7 +123,7 @@ export default function BlogPostPage({ params }: { params: { locale: string } })
           <div className="mb-6">
             <Breadcrumbs
               items={[
-                { name: 'Blog', url: '/blog' },
+                { name: 'Blog', url: `${localePrefix}/blog` },
                 { name: 'AI Face Analysis for Glasses' },
               ]}
             />

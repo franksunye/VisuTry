@@ -1,8 +1,10 @@
 'use client'
 
 import Link from 'next/link'
+import { useParams } from 'next/navigation'
 import { Glasses, Receipt } from 'lucide-react'
 import { analytics, type UserType } from '@/lib/analytics'
+import { localizedPath } from '@/lib/localized-path'
 
 interface DashboardQuickActionsProps {
   userType: UserType
@@ -10,12 +12,15 @@ interface DashboardQuickActionsProps {
 }
 
 export function DashboardQuickActions({ userType, remainingTrials }: DashboardQuickActionsProps) {
+  const params = useParams()
+  const locale = params.locale as string | undefined
+
   return (
     <div className="p-6 bg-white border shadow-sm rounded-xl">
       <h3 className="mb-4 text-lg font-semibold text-gray-900">Quick Actions</h3>
       <div className="space-y-3">
         <Link
-          href="/try-on"
+          href={localizedPath(locale, '/try-on')}
           className="flex items-center justify-center w-full px-4 py-3 text-white transition-colors bg-blue-600 rounded-lg hover:bg-blue-700"
         >
           <Glasses className="w-5 h-5 mr-2" />
@@ -23,7 +28,7 @@ export function DashboardQuickActions({ userType, remainingTrials }: DashboardQu
         </Link>
 
         <Link
-          href="/pricing"
+          href={localizedPath(locale, '/pricing')}
           onClick={() => {
             analytics.trackUpgradeClick('quick_actions', userType, remainingTrials, false)
           }}
@@ -33,7 +38,7 @@ export function DashboardQuickActions({ userType, remainingTrials }: DashboardQu
         </Link>
 
         <Link
-          href="/payments"
+          href={localizedPath(locale, '/payments')}
           onClick={() => {
             analytics.trackViewPaymentHistory(userType, true)
           }}
@@ -46,4 +51,3 @@ export function DashboardQuickActions({ userType, remainingTrials }: DashboardQu
     </div>
   )
 }
-

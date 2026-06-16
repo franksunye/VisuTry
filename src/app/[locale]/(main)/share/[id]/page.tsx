@@ -5,9 +5,11 @@ import Link from "next/link"
 import type { Metadata } from "next"
 import { TryOnResultImage } from "@/components/OptimizedImage"
 import { getTryOnConfig, type TryOnType } from "@/config/try-on-types"
+import { localizedPath } from "@/lib/localized-path"
 
 interface SharePageProps {
   params: {
+    locale: string
     id: string
   }
 }
@@ -131,7 +133,7 @@ export default async function SharePage({ params }: SharePageProps) {
                 </a>
 
                 <Link
-                  href="/try-on"
+                  href={localizedPath(params.locale, "/try-on")}
                   className="flex items-center justify-center px-6 py-3 border border-blue-600 text-blue-600 rounded-lg hover:bg-blue-50 transition-colors"
                 >
                   <Glasses className="w-5 h-5 mr-2" />

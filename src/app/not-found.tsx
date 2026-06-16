@@ -1,6 +1,7 @@
 import { AlertCircle, ArrowLeft, Glasses, Search, Home } from "lucide-react"
 import Link from "next/link"
 import { Metadata } from "next"
+import { localizedPath } from "@/lib/localized-path"
 
 export const metadata: Metadata = {
   title: '404 - Page Not Found | VisuTry',
@@ -40,7 +41,7 @@ export default function NotFound() {
         {/* Helpful Links */}
         <div className="space-y-3">
           <Link
-            href="/"
+            href={localizedPath(undefined, "/")}
             className="w-full flex items-center justify-center px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors shadow-md"
           >
             <Home className="w-5 h-5 mr-2" />
@@ -48,7 +49,7 @@ export default function NotFound() {
           </Link>
 
           <Link
-            href="/try-on"
+            href={localizedPath(undefined, "/try-on")}
             className="w-full flex items-center justify-center px-6 py-3 border-2 border-blue-600 text-blue-600 rounded-lg hover:bg-blue-50 transition-colors"
           >
             <Glasses className="w-5 h-5 mr-2" />
@@ -56,7 +57,7 @@ export default function NotFound() {
           </Link>
 
           <Link
-            href="/blog"
+            href={localizedPath(undefined, "/blog")}
             className="w-full flex items-center justify-center px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
           >
             <Search className="w-5 h-5 mr-2" />
@@ -69,21 +70,21 @@ export default function NotFound() {
           <p className="text-sm text-gray-500 mb-4">Popular Pages:</p>
           <div className="flex flex-wrap justify-center gap-2">
             <Link
-              href="/blog/how-to-choose-glasses-for-your-face"
+              href={localizedPath(undefined, "/blog/how-to-choose-glasses-for-your-face")}
               className="text-sm text-blue-600 hover:text-blue-800 hover:underline"
             >
               Face Shape Guide
             </Link>
             <span className="text-gray-300">•</span>
             <Link
-              href="/blog/best-ai-virtual-glasses-tryon-tools-2025"
+              href={localizedPath(undefined, "/blog/best-ai-virtual-glasses-tryon-tools-2025")}
               className="text-sm text-blue-600 hover:text-blue-800 hover:underline"
             >
               AI Try-On Tools
             </Link>
             <span className="text-gray-300">•</span>
             <Link
-              href="/pricing"
+              href={localizedPath(undefined, "/pricing")}
               className="text-sm text-blue-600 hover:text-blue-800 hover:underline"
             >
               Pricing
@@ -94,4 +95,3 @@ export default function NotFound() {
     </div>
   )
 }
-

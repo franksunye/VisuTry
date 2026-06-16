@@ -16,6 +16,7 @@ import Link from "next/link"
 import { perfLogger, logPageLoad } from "@/lib/performance-logger"
 import { getCachedUserPayment } from "@/lib/cache"
 import { DashboardQuickActions } from "@/components/dashboard/DashboardQuickActions"
+import { localizedPath } from "@/lib/localized-path"
 
 // 性能优化：使用 Suspense 流式渲染
 // 1. 立即返回页面框架（< 100ms）
@@ -38,13 +39,13 @@ export default async function DashboardPage({ params }: DashboardPageProps) {
   perfLogger.end('dashboard:getSession')
 
   if (!session) {
-    redirect("/auth/signin")
+    redirect(localizedPath(params.locale, "/auth/signin"))
   }
 
   // 确保用户 ID 有效
   if (!session.user?.id || session.user.id === "unknown") {
     console.error('Invalid user ID in session:', session.user?.id)
-    redirect("/auth/signin?error=InvalidSession")
+    redirect(`${localizedPath(params.locale, "/auth/signin")}?error=InvalidSession`)
   }
 
   perfLogger.mark('dashboard:session-validated', { userId: session.user.id })
@@ -87,7 +88,7 @@ export default async function DashboardPage({ params }: DashboardPageProps) {
       <div className="flex items-center justify-between mb-8">
         <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
         <Link
-          href="/try-on"
+          href={localizedPath(params.locale, "/try-on")}
           className="flex items-center px-6 py-3 text-white transition-colors bg-blue-600 rounded-lg hover:bg-blue-700"
         >
           <Plus className="w-5 h-5 mr-2" />
@@ -157,4 +158,3 @@ export default async function DashboardPage({ params }: DashboardPageProps) {
     </div>
   )
 }
-

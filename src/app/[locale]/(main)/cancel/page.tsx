@@ -1,14 +1,17 @@
 'use client'
 
 import { useEffect, useState, Suspense } from 'react'
-import { useSearchParams, useRouter } from 'next/navigation'
+import { useSearchParams, useRouter, useParams } from 'next/navigation'
 import { useSession } from 'next-auth/react'
 import { XCircle, Glasses, ArrowLeft, RefreshCw, HelpCircle, CreditCard } from 'lucide-react'
 import Link from 'next/link'
+import { localizedPath } from '@/lib/localized-path'
 
 function CancelContent() {
   const searchParams = useSearchParams()
   const router = useRouter()
+  const params = useParams()
+  const locale = params.locale as string | undefined
   const { data: session, status } = useSession()
   const [sessionId, setSessionId] = useState<string | null>(null)
   const [countdown, setCountdown] = useState(10)
@@ -25,9 +28,9 @@ function CancelContent() {
       const timer = setTimeout(() => setCountdown(countdown - 1), 1000)
       return () => clearTimeout(timer)
     } else {
-      router.push('/pricing')
+      router.push(localizedPath(locale, '/pricing'))
     }
-  }, [countdown, router])
+  }, [countdown, locale, router])
 
   if (status === 'loading') {
     return (
@@ -161,7 +164,7 @@ function CancelContent() {
             {/* Action Buttons */}
             <div className="space-y-3">
               <Link
-                href="/pricing"
+                href={localizedPath(locale, '/pricing')}
                 className="w-full flex items-center justify-center px-6 py-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all duration-200 shadow-lg hover:shadow-xl"
               >
                 <RefreshCw className="w-5 h-5 mr-2" />
@@ -169,7 +172,7 @@ function CancelContent() {
               </Link>
 
               <Link
-                href="/try-on"
+                href={localizedPath(locale, '/try-on')}
                 className="w-full flex items-center justify-center px-6 py-3 bg-white border-2 border-blue-600 text-blue-600 rounded-lg hover:bg-blue-50 transition-colors"
               >
                 <Glasses className="w-5 h-5 mr-2" />
@@ -177,7 +180,7 @@ function CancelContent() {
               </Link>
 
               <Link
-                href={session ? "/dashboard" : "/"}
+                href={session ? localizedPath(locale, "/dashboard") : localizedPath(locale, "/")}
                 className="w-full flex items-center justify-center px-6 py-3 bg-white border-2 border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
               >
                 <ArrowLeft className="w-5 h-5 mr-2" />
@@ -248,4 +251,3 @@ export default function CancelPage() {
     </Suspense>
   )
 }
-

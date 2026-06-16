@@ -8,6 +8,7 @@ import { Metadata } from 'next'
 import { generateSEO } from '@/lib/seo'
 import { getSubscriptionQuotaLabel } from '@/config/pricing'
 import { AutoRefreshWrapper } from '@/components/payments/AutoRefreshWrapper'
+import { localizedPath } from '@/lib/localized-path'
 
 export const metadata: Metadata = generateSEO({
   title: 'Payment History - AI Glasses Try-On | VisuTry',
@@ -15,11 +16,15 @@ export const metadata: Metadata = generateSEO({
   url: '/payments',
 })
 
-export default async function PaymentsPage() {
+type PaymentsPageProps = {
+  params: { locale: string }
+}
+
+export default async function PaymentsPage({ params }: PaymentsPageProps) {
   const session = await getServerSession(authOptions)
 
   if (!session) {
-    redirect("/auth/signin")
+    redirect(localizedPath(params.locale, "/auth/signin"))
   }
 
   const payments = await prisma.payment.findMany({
@@ -120,7 +125,7 @@ export default async function PaymentsPage() {
             <h3 className="mt-4 text-lg font-medium text-gray-900">No payments yet</h3>
             <p className="mt-2 text-gray-600">Your payment history will appear here</p>
             <Link
-              href="/pricing"
+              href={localizedPath(params.locale, "/pricing")}
               className="inline-block px-6 py-3 mt-6 text-white transition-colors bg-blue-600 rounded-lg hover:bg-blue-700"
             >
               View Pricing Plans
@@ -227,7 +232,7 @@ export default async function PaymentsPage() {
         </p>
         <div className="mt-4">
           <Link
-            href="/pricing"
+            href={localizedPath(params.locale, "/pricing")}
             className="text-sm font-medium text-blue-600 hover:text-blue-700"
           >
             View Pricing Plans →

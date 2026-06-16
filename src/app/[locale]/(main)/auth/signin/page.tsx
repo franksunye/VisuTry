@@ -3,6 +3,7 @@ import { LoginButton } from "@/components/auth/LoginButton"
 import { Metadata } from 'next'
 import { generateI18nSEO } from '@/lib/seo'
 import { Locale } from '@/i18n'
+import { localizedPath } from '@/lib/localized-path'
 
 type Props = {
   params: Promise<{ locale: string }>
@@ -21,7 +22,9 @@ export async function generateMetadata(props: Props): Promise<Metadata> {
   })
 }
 
-export default function SignInPage() {
+export default async function SignInPage(props: Props) {
+  const params = await props.params
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 px-4 py-12">
       <div className="max-w-md w-full">
@@ -76,9 +79,9 @@ export default function SignInPage() {
 
               <p className="text-xs text-gray-500 text-center">
                 By signing in, you agree to our{' '}
-                <a href="/terms" className="text-blue-600 hover:underline">Terms of Service</a>
+                <a href={localizedPath(params.locale, '/terms')} className="text-blue-600 hover:underline">Terms of Service</a>
                 {' '}and{' '}
-                <a href="/privacy" className="text-blue-600 hover:underline">Privacy Policy</a>
+                <a href={localizedPath(params.locale, '/privacy')} className="text-blue-600 hover:underline">Privacy Policy</a>
               </p>
             </div>
           </div>

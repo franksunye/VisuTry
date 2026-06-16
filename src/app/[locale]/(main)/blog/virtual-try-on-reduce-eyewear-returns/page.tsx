@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { BarChart3, CheckCircle2, PackageCheck, ShoppingCart, UserCheck } from 'lucide-react'
 import { Breadcrumbs } from '@/components/seo/Breadcrumbs'
 import { generateI18nSEO, generateStructuredData } from '@/lib/seo'
+import { localizedPath } from '@/lib/localized-path'
 
 const title = 'How Virtual Try-On Helps Online Eyewear Stores Reduce Returns'
 const description = 'A practical guide for eyewear ecommerce teams on using virtual try-on to improve buyer confidence, set better expectations, and reduce avoidable frame-fit returns.'
@@ -52,7 +53,11 @@ const benefits = [
   },
 ]
 
-export default function BlogPostPage() {
+type BlogPostPageProps = {
+  params: { locale: string }
+}
+
+export default function BlogPostPage({ params }: BlogPostPageProps) {
   return (
     <>
       <script
@@ -65,7 +70,7 @@ export default function BlogPostPage() {
           <div className="mb-6">
             <Breadcrumbs
               items={[
-                { name: 'Blog', url: '/blog' },
+                { name: 'Blog', url: localizedPath(params.locale, '/blog') },
                 { name: 'Virtual Try-On for Eyewear Returns' },
               ]}
             />
@@ -175,7 +180,7 @@ export default function BlogPostPage() {
 
               <p>
                 For the consumer side of this workflow, read our
-                {' '}<Link href="/blog/prescription-glasses-virtual-tryon-guide">prescription glasses virtual try-on guide</Link>.
+                {' '}<Link href={localizedPath(params.locale, '/blog/prescription-glasses-virtual-tryon-guide')}>prescription glasses virtual try-on guide</Link>.
               </p>
             </div>
           </article>

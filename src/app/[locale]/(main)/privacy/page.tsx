@@ -3,6 +3,7 @@ import { generateSEO } from '@/lib/seo'
 import Link from 'next/link'
 import { ArrowLeft, Shield } from 'lucide-react'
 import { Breadcrumbs } from '@/components/seo/Breadcrumbs'
+import { localizedPath } from '@/lib/localized-path'
 
 export const metadata: Metadata = generateSEO({
   title: 'Privacy Policy | VisuTry',
@@ -10,7 +11,7 @@ export const metadata: Metadata = generateSEO({
   url: '/privacy',
 })
 
-export default async function PrivacyPage() {
+export default async function PrivacyPage({ params }: { params: { locale: string } }) {
   const lastUpdated = 'January 15, 2025'
 
   return (
@@ -28,7 +29,7 @@ export default async function PrivacyPage() {
         {/* Header */}
         <div className="mb-8">
           <Link
-            href="/"
+            href={localizedPath(params.locale, '/')}
             className="inline-flex items-center text-blue-600 hover:text-blue-700 mb-4"
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
@@ -288,4 +289,3 @@ export default async function PrivacyPage() {
     </div>
   )
 }
-

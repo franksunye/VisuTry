@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { Star, Eye, TrendingUp } from 'lucide-react'
 import Image from 'next/image'
 import { Breadcrumbs } from '@/components/seo/Breadcrumbs'
+import { localizedPath } from '@/lib/localized-path'
 
 const title = 'Ray-Ban Glasses Virtual Try-On Guide 2025 - Find Your Perfect Style'
 const description = 'Complete guide to Ray-Ban glasses styles with virtual try-on. Explore iconic Wayfarer, Clubmaster, and Aviator frames. Try them on virtually before you buy.'
@@ -29,7 +30,11 @@ const structuredData = generateStructuredData('article', {
   image: coverImage,
 })
 
-export default function BlogPostPage() {
+type BlogPostPageProps = {
+  params: { locale: string }
+}
+
+export default function BlogPostPage({ params }: BlogPostPageProps) {
   return (
     <>
       <script
@@ -43,7 +48,7 @@ export default function BlogPostPage() {
           <div className="mb-6">
             <Breadcrumbs
               items={[
-                { name: 'Blog', url: '../blog' },
+                { name: 'Blog', url: localizedPath(params.locale, '/blog') },
                 { name: 'Ray-Ban Virtual Try-On Guide' },
               ]}
             />
@@ -70,7 +75,7 @@ export default function BlogPostPage() {
               </h1>
               <p className="text-xl text-gray-600">
                 Discover the complete guide to Ray-Ban&apos;s iconic eyewear collection. Learn about their
-                most popular styles and try them on virtually to find your perfect match. Check out our <Link href="/blog/how-to-choose-glasses-for-your-face" className="text-blue-600 hover:text-blue-800">face shape guide</Link> to find the best Ray-Ban style for you.
+                most popular styles and try them on virtually to find your perfect match. Check out our <Link href={localizedPath(params.locale, '/blog/how-to-choose-glasses-for-your-face')} className="text-blue-600 hover:text-blue-800">face shape guide</Link> to find the best Ray-Ban style for you.
               </p>
             </div>
 
@@ -99,7 +104,7 @@ export default function BlogPostPage() {
                   different Ray-Ban frames look on your face instantly. It&apos;s free and takes just seconds!
                 </p>
                 <Link
-                  href="/"
+                  href={localizedPath(params.locale, '/')}
                   className="inline-block bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors font-bold"
                 >
                   Try Ray-Ban Virtually →
@@ -149,7 +154,7 @@ export default function BlogPostPage() {
                 <p className="mb-4">
                   <strong>Introduced in the 1980s</strong>, the Clubmaster (also known as the Browline) combines
                   vintage appeal with modern sophistication. Its distinctive half-frame design makes it instantly
-                  recognizable. Learn more about this iconic style in our <Link href="/blog/browline-clubmaster-glasses-complete-guide" className="text-blue-600 hover:text-blue-800">complete browline/clubmaster guide</Link>.
+                  recognizable. Learn more about this iconic style in our <Link href={localizedPath(params.locale, '/blog/browline-clubmaster-glasses-complete-guide')} className="text-blue-600 hover:text-blue-800">complete browline/clubmaster guide</Link>.
                 </p>
                 <p className="font-bold text-gray-900 mb-2">Key Features:</p>
                 <ul>
@@ -299,7 +304,7 @@ export default function BlogPostPage() {
                   Upload your photo or use your camera to see exactly how each frame looks on your face.
                 </p>
                 <Link
-                  href="/"
+                  href={localizedPath(params.locale, '/')}
                   className="inline-block bg-white text-red-600 px-8 py-3 rounded-lg font-bold hover:bg-gray-100 transition-colors"
                 >
                   Virtual Try-On Now →
@@ -309,7 +314,7 @@ export default function BlogPostPage() {
               <h2>Ray-Ban Quality & Materials</h2>
               <p>
                 What sets Ray-Ban apart from competitors isn&apos;t just design—it&apos;s the quality of
-                materials and construction. For a detailed comparison of frame materials, check out our <Link href="/blog/acetate-vs-plastic-eyeglass-frames-guide" className="text-blue-600 hover:text-blue-800">acetate vs plastic frames guide</Link>.
+                materials and construction. For a detailed comparison of frame materials, check out our <Link href={localizedPath(params.locale, '/blog/acetate-vs-plastic-eyeglass-frames-guide')} className="text-blue-600 hover:text-blue-800">acetate vs plastic frames guide</Link>.
               </p>
               <ul>
                 <li>
@@ -384,7 +389,7 @@ export default function BlogPostPage() {
                   Tags: Ray-Ban, Designer Glasses, Virtual Try-On, Eyewear Guide, Style Tips
                 </div>
                 <Link
-                  href="/"
+                  href={localizedPath(params.locale, '/')}
                   className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors"
                 >
                   Try Ray-Ban Now

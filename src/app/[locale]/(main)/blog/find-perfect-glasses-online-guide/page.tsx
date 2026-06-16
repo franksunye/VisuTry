@@ -2,6 +2,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { generateStructuredData } from '@/lib/seo'
 import { Breadcrumbs } from '@/components/seo/Breadcrumbs'
+import { localizedPath } from '@/lib/localized-path'
 
 const structuredData = generateStructuredData('article', {
   title: 'How to Find Your Perfect Glasses Online - Step-by-Step Guide',
@@ -18,7 +19,11 @@ export const metadata = {
   keywords: 'find perfect glasses online, how to choose glasses online, buy glasses online, glasses shopping guide',
 }
 
-export default function BlogPostPage() {
+type BlogPostPageProps = {
+  params: { locale: string }
+}
+
+export default function BlogPostPage({ params }: BlogPostPageProps) {
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }} />
@@ -27,7 +32,7 @@ export default function BlogPostPage() {
           <div className="mb-6">
             <Breadcrumbs
               items={[
-                { name: 'Blog', url: '/blog' },
+                { name: 'Blog', url: localizedPath(params.locale, '/blog') },
                 { name: 'How to Find Your Perfect Glasses Online' },
               ]}
             />
@@ -124,7 +129,7 @@ export default function BlogPostPage() {
                 <p className="mb-6">
                   Start with our virtual try-on tool to see how different frames look on your face.
                 </p>
-                <Link href="/try-on" className="inline-block bg-white text-green-600 px-8 py-3 rounded-lg font-bold hover:bg-gray-100 transition-colors">
+                <Link href={localizedPath(params.locale, '/try-on')} className="inline-block bg-white text-green-600 px-8 py-3 rounded-lg font-bold hover:bg-gray-100 transition-colors">
                   Start Virtual Try-On →
                 </Link>
               </div>

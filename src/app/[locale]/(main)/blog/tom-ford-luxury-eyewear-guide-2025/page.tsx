@@ -5,6 +5,7 @@ import { ArrowLeft, Crown, Sparkles } from 'lucide-react'
 import Image from 'next/image'
 import BlogTags from '@/components/BlogTags'
 import { Breadcrumbs } from '@/components/seo/Breadcrumbs'
+import { localizedPath } from '@/lib/localized-path'
 
 const title = 'Tom Ford Luxury Eyewear Guide 2025 - Ultimate Style & Quality'
 const description = 'Explore Tom Ford luxury eyeglasses collection. Discover iconic styles, premium craftsmanship, and why Tom Ford frames are the ultimate status symbol in eyewear.'
@@ -32,7 +33,11 @@ const structuredData = generateStructuredData('article', {
 
 const articleTags = ['Tom Ford', 'Luxury Eyewear', 'Designer Glasses', 'Premium Frames', 'Fashion']
 
-export default function BlogPostPage() {
+type BlogPostPageProps = {
+  params: { locale: string }
+}
+
+export default function BlogPostPage({ params }: BlogPostPageProps) {
   return (
     <>
       <script
@@ -46,7 +51,7 @@ export default function BlogPostPage() {
           <div className="mb-6">
             <Breadcrumbs
               items={[
-                { name: 'Blog', url: '/blog' },
+                { name: 'Blog', url: localizedPath(params.locale, '/blog') },
                 { name: 'Tom Ford Luxury Eyewear Guide 2025' },
               ]}
             />
@@ -147,7 +152,7 @@ export default function BlogPostPage() {
 
               <h2>Materials and Craftsmanship</h2>
               <p>
-                Tom Ford uses only the finest materials. For a detailed comparison of frame materials, check out our <Link href="/blog/acetate-vs-plastic-eyeglass-frames-guide" className="text-blue-600 hover:text-blue-800">acetate vs plastic frames guide</Link>.
+                Tom Ford uses only the finest materials. For a detailed comparison of frame materials, check out our <Link href={localizedPath(params.locale, '/blog/acetate-vs-plastic-eyeglass-frames-guide')} className="text-blue-600 hover:text-blue-800">acetate vs plastic frames guide</Link>.
               </p>
 
               <h3>Premium Acetate</h3>
@@ -209,7 +214,7 @@ export default function BlogPostPage() {
                   styles and colors with our AI-powered virtual try-on tool.
                 </p>
                 <Link
-                  href="/"
+                  href={localizedPath(params.locale, '/')}
                   className="inline-block bg-white text-gray-900 px-8 py-3 rounded-lg font-bold hover:bg-gray-100 transition-colors"
                 >
                   Try Tom Ford Styles →
@@ -319,7 +324,7 @@ export default function BlogPostPage() {
                 sophisticated style statement.
               </p>
               <p className="font-bold text-lg mt-6">
-                Ready to experience luxury eyewear? Explore Tom Ford styles with our virtual try-on tool today! Also check out our <Link href="/blog/oliver-peoples-finley-vintage-review" className="text-blue-600 hover:text-blue-800">Oliver Peoples Finley Vintage review</Link> and <Link href="/blog/celebrity-glasses-style-guide-2025" className="text-blue-600 hover:text-blue-800">celebrity glasses style guide</Link> for more luxury eyewear inspiration.
+                Ready to experience luxury eyewear? Explore Tom Ford styles with our virtual try-on tool today! Also check out our <Link href={localizedPath(params.locale, '/blog/oliver-peoples-finley-vintage-review')} className="text-blue-600 hover:text-blue-800">Oliver Peoples Finley Vintage review</Link> and <Link href={localizedPath(params.locale, '/blog/celebrity-glasses-style-guide-2025')} className="text-blue-600 hover:text-blue-800">celebrity glasses style guide</Link> for more luxury eyewear inspiration.
               </p>
             </div>
 
@@ -327,7 +332,7 @@ export default function BlogPostPage() {
               <div className="flex items-center justify-between flex-wrap gap-4">
                 <BlogTags tags={articleTags} />
                 <Link
-                  href="/"
+                  href={localizedPath(params.locale, '/')}
                   className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors"
                 >
                   Try Tom Ford Virtually

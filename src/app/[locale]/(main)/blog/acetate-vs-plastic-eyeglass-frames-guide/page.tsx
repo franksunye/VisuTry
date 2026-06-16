@@ -5,6 +5,7 @@ import { ArrowLeft, Layers, CheckCircle2, XCircle } from 'lucide-react'
 import Image from 'next/image'
 import BlogTags from '@/components/BlogTags'
 import { Breadcrumbs } from '@/components/seo/Breadcrumbs'
+import { localizedPath } from '@/lib/localized-path'
 
 const title = 'Acetate vs Plastic Eyeglass Frames 2025 - Complete Comparison Guide'
 const description = 'Discover the key differences between acetate and plastic eyeglass frames. Learn about durability, comfort, style, and which material is best for your needs.'
@@ -32,7 +33,11 @@ const structuredData = generateStructuredData('article', {
 
 const articleTags = ['Eyeglass Materials', 'Frame Guide', 'Acetate Frames', 'Buying Guide', 'Eyewear Education']
 
-export default function BlogPostPage() {
+type BlogPostPageProps = {
+  params: { locale: string }
+}
+
+export default function BlogPostPage({ params }: BlogPostPageProps) {
   return (
     <>
       <script
@@ -46,7 +51,7 @@ export default function BlogPostPage() {
           <div className="mb-6">
             <Breadcrumbs
               items={[
-                { name: 'Blog', url: '../blog' },
+                { name: 'Blog', url: localizedPath(params.locale, '/blog') },
                 { name: 'Acetate vs Plastic Frames Guide' },
               ]}
             />
@@ -285,7 +290,7 @@ export default function BlogPostPage() {
                   acetate and plastic frames look on your face. Compare styles, colors, and shapes instantly!
                 </p>
                 <Link
-                  href="/"
+                  href={localizedPath(params.locale, '/')}
                   className="inline-block bg-white text-teal-600 px-8 py-3 rounded-lg font-bold hover:bg-gray-100 transition-colors"
                 >
                   Compare Frame Materials →
@@ -294,9 +299,9 @@ export default function BlogPostPage() {
 
               <h2>Popular Acetate Frame Brands</h2>
               <ul>
-                <li><strong><Link href="/blog/oliver-peoples-finley-vintage-review" className="text-blue-600 hover:text-blue-800">Oliver Peoples</Link></strong> - Premium acetate, timeless designs ($400-$600)</li>
-                <li><strong><Link href="/blog/tom-ford-luxury-eyewear-guide-2025" className="text-blue-600 hover:text-blue-800">Tom Ford</Link></strong> - Luxury acetate with signature style ($400-$800)</li>
-                <li><strong><Link href="/blog/rayban-glasses-virtual-tryon-guide" className="text-blue-600 hover:text-blue-800">Ray-Ban</Link></strong> - Quality acetate at mid-range prices ($150-$300)</li>
+                <li><strong><Link href={localizedPath(params.locale, '/blog/oliver-peoples-finley-vintage-review')} className="text-blue-600 hover:text-blue-800">Oliver Peoples</Link></strong> - Premium acetate, timeless designs ($400-$600)</li>
+                <li><strong><Link href={localizedPath(params.locale, '/blog/tom-ford-luxury-eyewear-guide-2025')} className="text-blue-600 hover:text-blue-800">Tom Ford</Link></strong> - Luxury acetate with signature style ($400-$800)</li>
+                <li><strong><Link href={localizedPath(params.locale, '/blog/rayban-glasses-virtual-tryon-guide')} className="text-blue-600 hover:text-blue-800">Ray-Ban</Link></strong> - Quality acetate at mid-range prices ($150-$300)</li>
                 <li><strong>Warby Parker</strong> - Affordable acetate options ($95-$145)</li>
                 <li><strong>Moscot</strong> - Vintage-inspired acetate frames ($300-$400)</li>
               </ul>
@@ -362,7 +367,7 @@ export default function BlogPostPage() {
 
               <p className="font-bold text-lg mt-6">
                 Ready to find your perfect frames? Try both acetate and plastic styles virtually to see
-                which material and design suits you best! Check out our <Link href="/blog/prescription-glasses-online-shopping-guide-2025" className="text-blue-600 hover:text-blue-800">complete guide to buying prescription glasses online</Link> for more tips on selecting the right frames.
+                which material and design suits you best! Check out our <Link href={localizedPath(params.locale, '/blog/prescription-glasses-online-shopping-guide-2025')} className="text-blue-600 hover:text-blue-800">complete guide to buying prescription glasses online</Link> for more tips on selecting the right frames.
               </p>
             </div>
 
@@ -370,7 +375,7 @@ export default function BlogPostPage() {
               <div className="flex items-center justify-between flex-wrap gap-4">
                 <BlogTags tags={articleTags} />
                 <Link
-                  href="/"
+                  href={localizedPath(params.locale, '/')}
                   className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors"
                 >
                   Try Different Materials

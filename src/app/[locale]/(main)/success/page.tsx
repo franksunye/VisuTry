@@ -1,10 +1,11 @@
 'use client'
 
 import { useEffect, useState, Suspense } from 'react'
-import { useSearchParams, useRouter } from 'next/navigation'
+import { useSearchParams, useRouter, useParams } from 'next/navigation'
 import { useSession } from 'next-auth/react'
 import { CheckCircle, Glasses, ArrowRight, Sparkles, Crown, Loader2 } from 'lucide-react'
 import Link from 'next/link'
+import { localizedPath } from '@/lib/localized-path'
 
 // Payment processing status
 type PaymentStatus = 'checking' | 'updating' | 'success' | 'redirecting' | 'error'
@@ -12,6 +13,8 @@ type PaymentStatus = 'checking' | 'updating' | 'success' | 'redirecting' | 'erro
 function SuccessContent() {
   const searchParams = useSearchParams()
   const router = useRouter()
+  const params = useParams()
+  const locale = params.locale as string | undefined
   const { data: session, status, update } = useSession()
   const [sessionId, setSessionId] = useState<string | null>(null)
   const [paymentStatus, setPaymentStatus] = useState<PaymentStatus>('checking')
@@ -133,10 +136,10 @@ function SuccessContent() {
         const timer = setTimeout(() => setCountdown(countdown - 1), 1000)
         return () => clearTimeout(timer)
       } else {
-        router.push('/dashboard?payment=success')
+        router.push(`${localizedPath(locale, '/dashboard')}?payment=success`)
       }
     }
-  }, [countdown, router, paymentStatus])
+  }, [countdown, locale, router, paymentStatus])
 
   if (status === 'loading') {
     return (
@@ -194,7 +197,7 @@ function SuccessContent() {
                 {statusMessage}
               </p>
               <Link
-                href="/dashboard"
+                href={localizedPath(locale, '/dashboard')}
                 className="inline-flex items-center justify-center px-6 py-3 text-white transition-colors bg-blue-600 rounded-lg hover:bg-blue-700"
               >
                 Go to Dashboard
@@ -320,7 +323,7 @@ function SuccessContent() {
             {/* Action Buttons */}
             <div className="space-y-3">
               <Link
-                href="/try-on"
+                href={localizedPath(locale, '/try-on')}
                 className="flex items-center justify-center w-full px-6 py-4 text-white transition-all duration-200 rounded-lg shadow-lg bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 hover:shadow-xl"
               >
                 <Glasses className="w-5 h-5 mr-2" />
@@ -329,7 +332,7 @@ function SuccessContent() {
               </Link>
 
               <Link
-                href="/dashboard"
+                href={localizedPath(locale, '/dashboard')}
                 className="flex items-center justify-center w-full px-6 py-3 text-gray-700 transition-colors bg-white border-2 border-gray-300 rounded-lg hover:bg-gray-50"
               >
                 Go to Dashboard
@@ -376,4 +379,3 @@ export default function SuccessPage() {
     </Suspense>
   )
 }
-
