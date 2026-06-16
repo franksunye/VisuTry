@@ -265,7 +265,7 @@ async function PublicTryOnLanding({
       />
 
       <div className="mx-auto max-w-6xl px-4 py-8 md:py-10">
-        {isGlasses && <h1 className="sr-only">Try on glasses online from a photo</h1>}
+        {isGlasses && <h1 className="sr-only">{t('srOnlyTitle')}</h1>}
         {isGlasses && (
           <div className="mb-8">
             <ModelTryOnSlides locale={locale} mode="glasses" />
@@ -338,7 +338,7 @@ async function PublicTryOnLanding({
         <div className="mb-6 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <p className="mb-2 text-sm font-semibold uppercase tracking-normal text-blue-600">
-              Questions shoppers ask
+              {t('questionsEyebrow')}
             </p>
             <h2 className="text-2xl font-bold text-gray-950">{t('faqTitle')}</h2>
           </div>

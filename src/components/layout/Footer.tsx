@@ -22,7 +22,7 @@ export function Footer() {
               <span className="text-xl font-bold text-gray-800">VisuTry</span>
             </div>
             <p className="text-gray-600 text-sm mb-6">
-              AI glasses try-on, face analysis, and frame comparison for online eyewear shoppers.
+              {t('tagline')}
             </p>
             <div className="flex space-x-4">
               <a
@@ -59,17 +59,17 @@ export function Footer() {
             <ul className="space-y-2">
               <li>
                 <Link href={`/${locale}/face-analysis`} className="text-gray-600 hover:text-blue-600 text-sm transition-colors">
-                  Face Analysis
+                  {t('links.faceAnalysis')}
                 </Link>
               </li>
               <li>
                 <Link href={`/${locale}/try-on/glasses`} className="text-gray-600 hover:text-blue-600 text-sm transition-colors">
-                  Glasses Try-On
+                  {t('links.tryGlasses')}
                 </Link>
               </li>
               <li>
                 <Link href={`/${locale}/try-on/glasses/compare`} className="text-gray-600 hover:text-blue-600 text-sm transition-colors">
-                  Frame Compare
+                  {t('links.frameCompare')}
                 </Link>
               </li>
               <li>
@@ -82,7 +82,7 @@ export function Footer() {
 
           {/* More Try-On Links */}
           <div>
-            <h3 className="font-semibold text-gray-900 mb-4">More Try-On</h3>
+            <h3 className="font-semibold text-gray-900 mb-4">{t('links.moreTryOn')}</h3>
             <ul className="space-y-2">
               <li>
                 <Link href={`/${locale}/try-on/outfit`} className="text-gray-600 hover:text-blue-600 text-sm transition-colors">
@@ -118,7 +118,7 @@ export function Footer() {
               </li>
               <li>
                 <Link href={`/${locale}/glasses-for-face-shape`} className="text-gray-600 hover:text-blue-600 text-sm transition-colors">
-                  Face Shape Guide
+                  {t('links.faceShapeGuide')}
                 </Link>
               </li>
               <li>

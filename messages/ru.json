@@ -9,7 +9,7 @@
     "tryGlasses": "Очки",
     "pricing": "Цены",
     "toggleMenu": "Переключить навигационное меню",
-    "compare": "Compare",
+    "compare": "Сравнение",
     "faq": "FAQ"
   },
   "home": {
@@ -62,10 +62,16 @@
       "zisoAi": "ZISO AI",
       "privacy": "Политика Конфиденциальности",
       "terms": "Условия Использования",
-      "refund": "Политика Возврата"
+      "refund": "Политика Возврата",
+      "faceAnalysis": "Анализ лица",
+      "tryGlasses": "Очки",
+      "frameCompare": "Compare",
+      "moreTryOn": "Другие примерки",
+      "faceShapeGuide": "Гид по форме лица"
     },
     "copyright": "© {year} VisuTry. Все права защищены.",
-    "madeWith": "Сделано с ❤️ с использованием технологии ИИ"
+    "madeWith": "Сделано с ❤️ с использованием технологии ИИ",
+    "tagline": "AI-примерка очков, анализ лица и сравнение оправ для онлайн-покупателей очков."
   },
   "faceAnalysis": {
     "meta": {
@@ -270,7 +276,59 @@
       "subtitle": "Quick answers for shoppers choosing glasses онлайн with VisuTry.",
       "topics": "Темы",
       "supportTitle": "Нужна помощь с конкретной задачей?",
-      "supportDescription": "Свяжитесь с поддержкой, указав email аккаунта и ID задачи, если результат выглядит неверным или обрабатывается дольше обычного."
+      "supportDescription": "Свяжитесь с поддержкой, указав email аккаунта и ID задачи, если результат выглядит неверным или обрабатывается дольше обычного.",
+      "quickLinks": {
+        "face": "Face",
+        "glasses": "Glasses",
+        "compare": "Compare"
+      },
+      "groups": {
+        "using": {
+          "title": "Using VisuTry",
+          "q1": {
+            "question": "What can I do with VisuTry?",
+            "answer": "VisuTry helps you choose glasses online with three connected tools: Face Analysis for frame direction, Glasses Try-On for custom product images or screenshots, and Compare for quick side-by-side preset frame previews."
+          },
+          "q2": {
+            "question": "Should I start with Face, Glasses, or Compare?",
+            "answer": "Start with Face if you do not know which frame styles suit you. Use Glasses when you already have a specific product image. Use Compare when you want to test several built-in frame shapes quickly."
+          },
+          "q3": {
+            "question": "Do I need to install an app?",
+            "answer": "No. VisuTry runs in your browser on desktop and mobile."
+          }
+        },
+        "credits": {
+          "title": "Credits and pricing",
+          "q1": {
+            "question": "What can I do with one free credit?",
+            "answer": "You can run one face analysis, one custom glasses try-on, or one frame inside Compare. This gives trial users a real product experience before buying credits."
+          },
+          "q2": {
+            "question": "How many credits does Frame Compare use?",
+            "answer": "Frame Compare uses one credit per generated frame. A full 4-frame comparison uses up to 4 credits. Failed generations are not charged."
+          },
+          "q3": {
+            "question": "Is the Credits Pack a subscription?",
+            "answer": "No. The Credits Pack is a one-time purchase. Purchased credits do not expire."
+          }
+        },
+        "privacy": {
+          "title": "Results and privacy",
+          "q1": {
+            "question": "Where can I find completed results?",
+            "answer": "Generated try-on images and task results are saved in Dashboard History according to your account retention plan."
+          },
+          "q2": {
+            "question": "What if a generation takes a long time?",
+            "answer": "Keep the page open while the task is processing. If it takes longer than usual, you can also check Dashboard History later for completed results."
+          },
+          "q3": {
+            "question": "Is my photo private?",
+            "answer": "Your photo and generated results stay private to your account. VisuTry uses uploaded images to generate your requested analysis or try-on result."
+          }
+        }
+      }
     },
     "tryOnLanding": {
       "metaTitle": "Онлайн-примерка очков по фото | VisuTry",
@@ -323,7 +381,9 @@
         "s3Description": "No app install. Free data is stored for 7 days; Credits Pack users get 90 days of история retention.",
         "s4Title": "Continue when you need more (RU)",
         "s4Description": "Начать with one бесплатно try-on, then use a one-time Credits Pack when you want to compare more оправаs."
-      }
+      },
+      "questionsEyebrow": "Вопросы от покупателей",
+      "srOnlyTitle": "Try on glasses online from a photo"
     },
     "compareLanding": {
       "metaTitle": "Сравнение оправ очков онлайн | VisuTry",
@@ -396,6 +456,96 @@
         "q5Answer": "Your загрузитьed фото and analysis stay приватно to your account. VisuTry uses the image to generate your face shape report and glasses recommendations.",
         "q6Question": "What glasses suit my face shape? (RU)",
         "q6Answer": "Round faces often start with angular оправаs, square faces with round or oval оправаs, oval faces with balanced rectangular or browline оправаs, and heart faces with lightweight or softly upswept оправаs."
+      },
+      "schema": {
+        "appName": "VisuTry AI Face Analysis for Glasses",
+        "appDescription": "AI face shape analysis for glasses recommendations and virtual try-on planning.",
+        "feature1": "AI face shape detection",
+        "feature2": "Personalized glasses recommendations",
+        "feature3": "Frame styles to try and avoid",
+        "feature4": "Virtual glasses try-on workflow",
+        "howToName": "How to choose glasses with AI face analysis",
+        "howToDescription": "Use one clear photo to estimate your face shape, shortlist glasses styles, and validate the look with AI virtual try-on.",
+        "howToStep1Name": "Upload a front-facing photo",
+        "howToStep1Text": "Use a clear photo with your face visible and good lighting.",
+        "howToStep2Name": "Review your AI face shape report",
+        "howToStep2Text": "Check the estimated face shape, confidence score, and visible style features.",
+        "howToStep3Name": "Try recommended glasses styles",
+        "howToStep3Text": "Use the suggested frame directions as your first virtual try-on shortlist."
+      }
+    },
+    "compareLandingVisual": {
+      "badge": "Preset Frame Compare",
+      "title": "Compare preset frames in one clean board",
+      "description": "Pick built-in frame shapes, generate each look from the same portrait, and review the results side by side before shopping for a specific product.",
+      "bullet1": "16 common frame presets",
+      "bullet2": "One credit per generated frame",
+      "bullet3": "Desktop and mobile comparison views",
+      "ctaPrimary": "Start comparing",
+      "ctaSecondary": "View credits"
+    },
+    "modelTryOnSlides": {
+      "slides": {
+        "sophiaName": "Sophia",
+        "sophiaFrame": "Soft rectangle",
+        "sophiaNote": "Checks frame scale, color, and smile fit in one visual pass.",
+        "ethanName": "Ethan",
+        "ethanFrame": "Tortoise rectangle",
+        "ethanNote": "Compares a confident everyday frame before buying online.",
+        "femaleName": "Female portrait",
+        "femaleFrame": "4 preset frames",
+        "femaleNote": "Rectangle, Browline, Wayfarer, and Geometric compared side by side.",
+        "maleName": "Male portrait",
+        "maleFrame": "4 preset frames",
+        "maleNote": "Same workflow on desktop and mobile with one clean comparison board."
+      },
+      "modes": {
+        "home": {
+          "eyebrow": "AI glasses workflow",
+          "title": "Analyze, try on, and compare glasses from one photo",
+          "description": "Use Face for direction, Glasses for custom product images, and Compare for fast side-by-side frame decisions.",
+          "ctaLabel": "Start with Face",
+          "secondaryLabel": "Compare frames",
+          "step1": "Face guidance",
+          "step2": "Custom try-on",
+          "step3": "Side-by-side compare"
+        },
+        "glasses": {
+          "eyebrow": "Virtual glasses try-on",
+          "title": "Try glasses from product photos or screenshots",
+          "description": "Upload a portrait and a frame image. VisuTry creates a browser-based preview that helps you judge shape, scale, and style.",
+          "ctaLabel": "Start glasses try-on",
+          "secondaryLabel": "Compare presets",
+          "step1": "Upload product image",
+          "step2": "AI fits the frame",
+          "step3": "Save to history"
+        },
+        "compare": {
+          "eyebrow": "Quick frame compare",
+          "title": "Pick preset frames and compare them side by side",
+          "description": "Choose up to four built-in frame presets and generate a clean comparison board from the same portrait.",
+          "ctaLabel": "Start comparing",
+          "secondaryLabel": "Try custom glasses",
+          "step1": "Choose presets",
+          "step2": "Generate each frame",
+          "step3": "Review in one board"
+        },
+        "face": {
+          "eyebrow": "Face analysis for glasses",
+          "title": "Find frame directions before you start trying glasses",
+          "description": "Get face-shape guidance, recommended frame styles, and a clearer shortlist before spending credits on try-on images.",
+          "ctaLabel": "Analyze my face",
+          "secondaryLabel": "Try glasses",
+          "step1": "Detect face shape",
+          "step2": "Shortlist frame styles",
+          "step3": "Continue to try-on"
+        }
+      },
+      "a11y": {
+        "previous": "Previous slide",
+        "next": "Next slide",
+        "show": "Show {name}",
+        "alt": "{name} using VisuTry {mode} workflow"
       }
     }
   }

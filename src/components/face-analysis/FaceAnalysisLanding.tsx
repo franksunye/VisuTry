@@ -53,34 +53,34 @@ export async function FaceAnalysisLanding({ locale }: FaceAnalysisLandingProps) 
     questions: faceAnalysisFaqContent,
   })
   const appSchema = generateStructuredData('softwareApplication', {
-    name: 'VisuTry AI Face Analysis for Glasses',
+    name: tm('schema.appName'),
     url: `https://www.visutry.com/${locale}/face-analysis`,
     applicationCategory: 'LifestyleApplication',
     operatingSystem: 'Web Browser',
-    description: 'AI face shape analysis for glasses recommendations and virtual try-on planning.',
+    description: tm('schema.appDescription'),
     featureList: [
-      'AI face shape detection',
-      'Personalized glasses recommendations',
-      'Frame styles to try and avoid',
-      'Virtual glasses try-on workflow',
+      tm('schema.feature1'),
+      tm('schema.feature2'),
+      tm('schema.feature3'),
+      tm('schema.feature4'),
     ],
   })
   const howToSchema = generateStructuredData('howTo', {
-    name: 'How to choose glasses with AI face analysis',
-    description: 'Use one clear photo to estimate your face shape, shortlist glasses styles, and validate the look with AI virtual try-on.',
+    name: tm('schema.howToName'),
+    description: tm('schema.howToDescription'),
     totalTime: 'PT3M',
     steps: [
       {
-        name: 'Upload a front-facing photo',
-        text: 'Use a clear photo with your face visible and good lighting.',
+        name: tm('schema.howToStep1Name'),
+        text: tm('schema.howToStep1Text'),
       },
       {
-        name: 'Review your AI face shape report',
-        text: 'Check the estimated face shape, confidence score, and visible style features.',
+        name: tm('schema.howToStep2Name'),
+        text: tm('schema.howToStep2Text'),
       },
       {
-        name: 'Try recommended glasses styles',
-        text: 'Use the suggested frame directions as your first virtual try-on shortlist.',
+        name: tm('schema.howToStep3Name'),
+        text: tm('schema.howToStep3Text'),
       },
     ],
   })

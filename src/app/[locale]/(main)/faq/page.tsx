@@ -9,62 +9,6 @@ type Props = {
   params: { locale: string }
 }
 
-const faqGroups = [
-  {
-    title: 'Using VisuTry',
-    items: [
-      {
-        question: 'What can I do with VisuTry?',
-        answer: 'VisuTry helps you choose glasses online with three connected tools: Face Analysis for frame direction, Glasses Try-On for custom product images or screenshots, and Compare for quick side-by-side preset frame previews.',
-      },
-      {
-        question: 'Should I start with Face, Glasses, or Compare?',
-        answer: 'Start with Face if you do not know which frame styles suit you. Use Glasses when you already have a specific product image. Use Compare when you want to test several built-in frame shapes quickly.',
-      },
-      {
-        question: 'Do I need to install an app?',
-        answer: 'No. VisuTry runs in your browser on desktop and mobile.',
-      },
-    ],
-  },
-  {
-    title: 'Credits and pricing',
-    items: [
-      {
-        question: 'What can I do with one free credit?',
-        answer: 'You can run one face analysis, one custom glasses try-on, or one frame inside Compare. This gives trial users a real product experience before buying credits.',
-      },
-      {
-        question: 'How many credits does Frame Compare use?',
-        answer: 'Frame Compare uses one credit per generated frame. A full 4-frame comparison uses up to 4 credits. Failed generations are not charged.',
-      },
-      {
-        question: 'Is the Credits Pack a subscription?',
-        answer: 'No. The Credits Pack is a one-time purchase. Purchased credits do not expire.',
-      },
-    ],
-  },
-  {
-    title: 'Results and privacy',
-    items: [
-      {
-        question: 'Where can I find completed results?',
-        answer: 'Generated try-on images and task results are saved in Dashboard History according to your account retention plan.',
-      },
-      {
-        question: 'What if a generation takes a long time?',
-        answer: 'Keep the page open while the task is processing. If it takes longer than usual, you can also check Dashboard History later for completed results.',
-      },
-      {
-        question: 'Is my photo private?',
-        answer: 'Your photo and generated results stay private to your account. VisuTry uses uploaded images to generate your requested analysis or try-on result.',
-      },
-    ],
-  },
-]
-
-const allFaqItems = faqGroups.flatMap((group) => group.items)
-
 function toAnchorId(value: string) {
   return value.toLowerCase().replace(/\s+/g, '-')
 }
@@ -81,6 +25,34 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function FaqPage({ params }: Props) {
   const t = await getTranslations({ locale: params.locale, namespace: 'marketing.faqPage' })
+  const tNav = await getTranslations({ locale: params.locale, namespace: 'nav' })
+  const faqGroups = [
+    {
+      title: t('groups.using.title'),
+      items: [
+        { question: t('groups.using.q1.question'), answer: t('groups.using.q1.answer') },
+        { question: t('groups.using.q2.question'), answer: t('groups.using.q2.answer') },
+        { question: t('groups.using.q3.question'), answer: t('groups.using.q3.answer') },
+      ],
+    },
+    {
+      title: t('groups.credits.title'),
+      items: [
+        { question: t('groups.credits.q1.question'), answer: t('groups.credits.q1.answer') },
+        { question: t('groups.credits.q2.question'), answer: t('groups.credits.q2.answer') },
+        { question: t('groups.credits.q3.question'), answer: t('groups.credits.q3.answer') },
+      ],
+    },
+    {
+      title: t('groups.privacy.title'),
+      items: [
+        { question: t('groups.privacy.q1.question'), answer: t('groups.privacy.q1.answer') },
+        { question: t('groups.privacy.q2.question'), answer: t('groups.privacy.q2.answer') },
+        { question: t('groups.privacy.q3.question'), answer: t('groups.privacy.q3.answer') },
+      ],
+    },
+  ]
+  const allFaqItems = faqGroups.flatMap((group) => group.items)
   const faqSchema = generateStructuredData('faqPage', {
     questions: allFaqItems,
   })
@@ -104,9 +76,9 @@ export default async function FaqPage({ params }: Props) {
         </p>
         <div className="mt-6 grid gap-3 sm:grid-cols-3">
           {[
-            { icon: ScanFace, label: 'Face Analysis', href: `/${params.locale}/face-analysis` },
-            { icon: Sparkles, label: 'Glasses Try-On', href: `/${params.locale}/try-on/glasses` },
-            { icon: Grid2X2, label: 'Frame Compare', href: `/${params.locale}/try-on/glasses/compare` },
+            { icon: ScanFace, label: tNav('faceAnalysis'), href: `/${params.locale}/face-analysis` },
+            { icon: Sparkles, label: tNav('tryGlasses'), href: `/${params.locale}/try-on/glasses` },
+            { icon: Grid2X2, label: tNav('compare'), href: `/${params.locale}/try-on/glasses/compare` },
           ].map((item) => {
             const Icon = item.icon
             return (
