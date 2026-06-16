@@ -2,10 +2,12 @@
 
 import { useState, useEffect, useRef } from "react"
 import { useSession } from "next-auth/react"
+import { useParams } from "next/navigation"
 import { ImageUpload } from "@/components/upload/ImageUpload"
 import { ResultDisplay } from "@/components/try-on/ResultDisplay"
 import { LoadingState } from "@/components/try-on/LoadingState"
 import { EmptyState } from "@/components/try-on/EmptyState"
+import { FaceAnalysisNudge } from "@/components/try-on/FaceAnalysisNudge"
 import { Sparkles, ArrowRight, User, Glasses, AlertCircle, X, Shirt, Footprints, Watch } from "lucide-react"
 import Link from "next/link"
 import { analytics, getUserType } from "@/lib/analytics"
@@ -25,6 +27,8 @@ interface TryOnInterfaceProps {
 
 export function TryOnInterface({ type = 'GLASSES' }: TryOnInterfaceProps) {
   const config = getTryOnConfig(type)
+  const params = useParams()
+  const locale = (params.locale as string) || 'en'
   const { data: session, update } = useSession()
   const [userImage, setUserImage] = useState<{ file: File; preview: string } | null>(null)
   const [itemImage, setItemImage] = useState<{ file: File; preview: string } | null>(null)
@@ -32,6 +36,7 @@ export function TryOnInterface({ type = 'GLASSES' }: TryOnInterfaceProps) {
   const [result, setResult] = useState<{ imageUrl: string; taskId: string } | null>(null)
   const [currentStep, setCurrentStep] = useState<"upload" | "select" | "process" | "result">("upload")
   const [currentTaskId, setCurrentTaskId] = useState<string | null>(null)
+  const [isFaceNudgeDismissed, setIsFaceNudgeDismissed] = useState(false)
 
   // Get the appropriate icon for the item type
   const getItemIcon = () => {
@@ -76,6 +81,8 @@ export function TryOnInterface({ type = 'GLASSES' }: TryOnInterfaceProps) {
   // Get quota info from session
   const remainingTrials = session?.user?.remainingTrials ?? 0
   const hasQuota = remainingTrials > 0
+  const isGlassesTryOn = type === 'GLASSES'
+  const faceAnalysisHref = `/${locale}/face-analysis`
 
   // Poll task status
   useEffect(() => {
@@ -380,6 +387,27 @@ export function TryOnInterface({ type = 'GLASSES' }: TryOnInterfaceProps) {
 
   const canProceed = userImage && itemImage
 
+  const trackFaceAnalysisNudgeClick = (stage: 'pre' | 'post') => {
+    const creditsPurchased = (session?.user as any)?.creditsPurchased || 0
+    const creditsUsed = (session?.user as any)?.creditsUsed || 0
+    const creditsRemaining = creditsPurchased - creditsUsed
+    const userType = getUserType(
+      session?.user?.isPremiumActive || false,
+      creditsRemaining,
+      !!session
+    )
+
+    analytics.trackCustomEvent('try_on_face_analysis_nudge_click', {
+      stage,
+      source: 'try_on_glasses',
+      user_type: userType,
+      remaining_quota: remainingTrials,
+      has_user_photo: Boolean(userImage),
+      has_item_photo: Boolean(itemImage),
+      task_id: result?.taskId,
+    })
+  }
+
   // Error Modal Component
   const ErrorModal = () => {
     if (!error) return null
@@ -503,6 +531,16 @@ export function TryOnInterface({ type = 'GLASSES' }: TryOnInterfaceProps) {
         </div>
       </div>
 
+      {isGlassesTryOn && !result && !isProcessing && !isFaceNudgeDismissed ? (
+        <FaceAnalysisNudge
+          href={faceAnalysisHref}
+          variant="pre"
+          onCtaClick={() => trackFaceAnalysisNudgeClick('pre')}
+          onDismiss={() => setIsFaceNudgeDismissed(true)}
+          className="mb-6"
+        />
+      ) : null}
+
       {/* Main Content: Mobile-first layout with reordering */}
       {/* Mobile: Upload → Button → Result (action-first) */}
       {/* Desktop: Left (Upload) | Right (Result), Button below */}
@@ -625,6 +663,16 @@ export function TryOnInterface({ type = 'GLASSES' }: TryOnInterfaceProps) {
             <EmptyState type={type} />
           )}
         </div>
+
+        {isGlassesTryOn && result ? (
+          <div className="order-4 lg:col-span-2">
+            <FaceAnalysisNudge
+              href={faceAnalysisHref}
+              variant="post"
+              onCtaClick={() => trackFaceAnalysisNudgeClick('post')}
+            />
+          </div>
+        ) : null}
       </div>
     </div>
   )
