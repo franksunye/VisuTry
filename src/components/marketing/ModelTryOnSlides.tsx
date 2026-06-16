@@ -204,8 +204,8 @@ export function ModelTryOnSlides({ locale, mode = 'home', compact = false }: Mod
             <ChevronRight className="h-5 w-5" />
           </button>
         </div>
-        <div className="flex flex-col gap-3 border-t border-gray-200 bg-white px-4 py-4 sm:flex-row sm:items-center sm:justify-between">
-          <div>
+        <div className="flex flex-col gap-3 border-t border-gray-200 bg-white px-4 py-4 sm:min-h-[108px] sm:flex-row sm:items-center sm:justify-between">
+          <div className="sm:min-h-[56px]">
             <p className="text-sm font-bold text-gray-950">
               {t(currentSlide.nameKey)} · {t(currentSlide.frameKey)}
             </p>
