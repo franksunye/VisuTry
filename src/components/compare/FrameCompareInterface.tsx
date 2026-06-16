@@ -24,7 +24,7 @@ import {
 } from '@/config/glasses-presets'
 import { cn } from '@/utils/cn'
 
-type CompareTaskStatus = 'processing' | 'completed' | 'failed'
+type CompareTaskStatus = 'queued' | 'processing' | 'completed' | 'failed'
 
 interface CompareTask {
   taskId: string
@@ -51,11 +51,27 @@ interface UploadedImage {
 
 const MAX_SELECTED_FRAMES = 4
 const LONG_PROCESSING_THRESHOLD_MS = 90_000
+const FRAME_DISPATCH_STAGGER_MS = 3000
+
+function sleep(ms: number) {
+  return new Promise((resolve) => window.setTimeout(resolve, ms))
+}
 
 function normalizeTaskStatus(status: unknown): CompareTaskStatus {
   const normalized = String(status || '').toLowerCase()
+  if (normalized === 'queued') return 'queued'
   if (normalized === 'completed' || normalized === 'failed') return normalized
   return 'processing'
+}
+
+function createQueuedTask(batchId: string, preset: Pick<GlassesPreset, 'id' | 'name' | 'style' | 'assetPath'>, index: number): CompareTask {
+  return {
+    taskId: `queued-${batchId}-${preset.id}-${index}`,
+    status: 'queued',
+    resultImageUrl: null,
+    errorMessage: null,
+    preset,
+  }
 }
 
 export function FrameCompareInterface({ initialRemainingCredits = 0 }: { initialRemainingCredits?: number }) {
@@ -81,7 +97,9 @@ export function FrameCompareInterface({ initialRemainingCredits = 0 }: { initial
   const failedTasks = batchResult?.tasks.filter((task) => task.status === 'failed') ?? []
   const failedCount = failedTasks.length
   const processingCount = batchResult?.tasks.filter((task) => task.status === 'processing').length ?? 0
-  const isBatchProcessing = processingCount > 0
+  const queuedCount = batchResult?.tasks.filter((task) => task.status === 'queued').length ?? 0
+  const activeCount = processingCount + queuedCount
+  const isBatchProcessing = activeCount > 0
   const processingElapsedMs = batchStartedAt ? now - batchStartedAt : 0
   const showLongProcessingNotice = isBatchProcessing && processingElapsedMs >= LONG_PROCESSING_THRESHOLD_MS
   const resultSummary = batchResult
@@ -89,10 +107,12 @@ export function FrameCompareInterface({ initialRemainingCredits = 0 }: { initial
         `${completedCount}/${batchResult.tasks.length} completed`,
         failedCount > 0 ? `${failedCount} failed` : null,
         processingCount > 0 ? `${processingCount} generating` : null,
+        queuedCount > 0 ? `${queuedCount} queued` : null,
       ].filter(Boolean).join(' · ')
     : 'Ready for side-by-side comparison'
   const canSubmit = Boolean(
     userImage?.file &&
+    !batchResult &&
     selectedIds.length > 0 &&
     !isSubmitting &&
     !isRetryingFailed &&
@@ -116,7 +136,7 @@ export function FrameCompareInterface({ initialRemainingCredits = 0 }: { initial
     const pollProcessingTasks = async () => {
       const updates = await Promise.all(
         batchResult.tasks
-          .filter((task) => task.status === 'processing' && !task.taskId.includes('-failed'))
+          .filter((task) => task.status === 'processing' && !task.taskId.startsWith('queued-') && !task.taskId.includes('-failed'))
           .map(async (task) => {
             try {
               const response = await fetch('/api/try-on/poll', {
@@ -166,10 +186,10 @@ export function FrameCompareInterface({ initialRemainingCredits = 0 }: { initial
   }, [batchResult, processingCount])
 
   useEffect(() => {
-    if (batchResult && processingCount === 0) {
+    if (batchResult && activeCount === 0) {
       void update()
     }
-  }, [batchResult, processingCount, update])
+  }, [activeCount, batchResult, update])
 
   useEffect(() => {
     if (!isBatchProcessing) return
@@ -248,7 +268,6 @@ export function FrameCompareInterface({ initialRemainingCredits = 0 }: { initial
 
     try {
       const formData = new FormData()
-      formData.append('userImage', userImage.file)
       formData.append('framePresetIds', JSON.stringify(selectedIds))
 
       const response = await fetch('/api/try-on/glasses/compare', {
@@ -261,19 +280,97 @@ export function FrameCompareInterface({ initialRemainingCredits = 0 }: { initial
         throw new Error(payload.error || 'Frame compare failed')
       }
 
-      setBatchResult({
+      const batch = {
         ...payload.data,
-        tasks: payload.data.tasks.map((task: CompareTask) => ({
-          ...task,
-          status: normalizeTaskStatus(task.status),
-        })),
-      })
+        tasks: payload.data.presets.map((preset: CompareTask['preset'], index: number) =>
+          createQueuedTask(payload.data.batchId, preset, index)
+        ),
+      } as CompareBatchResult
+
+      setBatchResult(batch)
       setBatchStartedAt(Date.now())
       setNow(Date.now())
+      await dispatchFrames({
+        batchId: payload.data.batchId,
+        presets: payload.data.presets,
+        batchSize: payload.data.presets.length,
+      })
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Frame compare failed')
     } finally {
       setIsSubmitting(false)
+    }
+  }
+
+  const dispatchFrames = async ({
+    batchId,
+    presets,
+    batchSize,
+  }: {
+    batchId: string
+    presets: Array<CompareTask['preset'] & { batchIndex?: number }>
+    batchSize: number
+  }) => {
+    if (!userImage?.file) return
+
+    for (let index = 0; index < presets.length; index += 1) {
+      if (index > 0) {
+        await sleep(FRAME_DISPATCH_STAGGER_MS)
+      }
+
+      const preset = presets[index]
+      const batchIndex = typeof preset.batchIndex === 'number' ? preset.batchIndex : index
+
+      try {
+        const formData = new FormData()
+        formData.append('userImage', userImage.file)
+        formData.append('framePresetId', preset.id)
+        formData.append('batchId', batchId)
+        formData.append('batchSize', String(batchSize))
+        formData.append('batchIndex', String(batchIndex))
+
+        const response = await fetch('/api/try-on/glasses/compare/frame', {
+          method: 'POST',
+          body: formData,
+        })
+        const payload = await response.json()
+
+        if (!response.ok || !payload.success) {
+          throw new Error(payload.error || `Failed to submit ${preset.name}`)
+        }
+
+        const dispatchedTask = {
+          ...payload.data.task,
+          status: normalizeTaskStatus(payload.data.task.status),
+        } as CompareTask
+
+        setBatchResult((current) => {
+          if (!current) return current
+          return {
+            ...current,
+            tasks: current.tasks.map((task) => (
+              task.preset.id === preset.id ? dispatchedTask : task
+            )),
+          }
+        })
+      } catch (err) {
+        const message = err instanceof Error ? err.message : `Failed to submit ${preset.name}`
+        const failedTask: CompareTask = {
+          ...createQueuedTask(batchId, preset, batchIndex),
+          status: 'failed',
+          errorMessage: message,
+        }
+
+        setBatchResult((current) => {
+          if (!current) return current
+          return {
+            ...current,
+            tasks: current.tasks.map((task) => (
+              task.preset.id === preset.id ? failedTask : task
+            )),
+          }
+        })
+      }
     }
   }
 
@@ -291,40 +388,29 @@ export function FrameCompareInterface({ initialRemainingCredits = 0 }: { initial
     setError(null)
 
     try {
-      const retryPresetIds = failedTasks.map((task) => task.preset.id)
-      const formData = new FormData()
-      formData.append('userImage', userImage.file)
-      formData.append('framePresetIds', JSON.stringify(retryPresetIds))
-
-      const response = await fetch('/api/try-on/glasses/compare', {
-        method: 'POST',
-        body: formData,
-      })
-      const payload = await response.json()
-
-      if (!response.ok || !payload.success) {
-        throw new Error(payload.error || 'Retry failed')
-      }
-
-      const replacementTasks = payload.data.tasks.map((task: CompareTask) => ({
-        ...task,
-        status: normalizeTaskStatus(task.status),
+      const batchId = batchResult.batchId
+      const retryPresets = failedTasks.map((task, index) => ({
+        ...task.preset,
+        batchIndex: index,
       }))
 
       setBatchResult((current) => {
-        if (!current) return payload.data
+        if (!current) return current
         return {
           ...current,
           tasks: current.tasks.map((task) => {
-            const replacement = replacementTasks.find(
-              (item: CompareTask) => item.preset.id === task.preset.id,
-            )
-            return replacement ?? task
+            const retryPreset = retryPresets.find((preset) => preset.id === task.preset.id)
+            return retryPreset ? createQueuedTask(batchId, retryPreset, retryPreset.batchIndex) : task
           }),
         }
       })
       setBatchStartedAt(Date.now())
       setNow(Date.now())
+      await dispatchFrames({
+        batchId,
+        presets: retryPresets,
+        batchSize: batchResult.tasks.length,
+      })
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Retry failed')
     } finally {
@@ -564,6 +650,11 @@ export function FrameCompareInterface({ initialRemainingCredits = 0 }: { initial
                         <XCircle className="mb-3 h-8 w-8" />
                         <p className="text-sm font-semibold">{task.errorMessage || 'Generation failed'}</p>
                       </div>
+                    ) : task.status === 'queued' ? (
+                      <div className="flex h-full flex-col items-center justify-center px-6 text-center text-gray-500">
+                        <Loader2 className="mb-3 h-8 w-8 animate-spin text-gray-400" />
+                        <p className="text-sm font-semibold">Queued {task.preset.name}</p>
+                      </div>
                     ) : (
                       <div className="flex h-full flex-col items-center justify-center px-6 text-center text-gray-500">
                         <Loader2 className="mb-3 h-8 w-8 animate-spin text-blue-600" />
@@ -581,6 +672,7 @@ export function FrameCompareInterface({ initialRemainingCredits = 0 }: { initial
                         'rounded-full px-2.5 py-1 text-xs font-bold',
                         task.status === 'completed' && 'bg-green-50 text-green-700',
                         task.status === 'processing' && 'bg-blue-50 text-blue-700',
+                        task.status === 'queued' && 'bg-gray-100 text-gray-600',
                         task.status === 'failed' && 'bg-red-50 text-red-700',
                       )}
                     >
@@ -592,7 +684,7 @@ export function FrameCompareInterface({ initialRemainingCredits = 0 }: { initial
             </div>
           )}
 
-          {batchResult && processingCount === 0 && (
+          {batchResult && activeCount === 0 && (
             <div className="mt-4 flex flex-col gap-3 border-t border-gray-100 pt-4 sm:flex-row sm:items-center sm:justify-between">
               <p className="text-sm text-gray-600">
                 Your generated try-on images are also saved in{' '}
