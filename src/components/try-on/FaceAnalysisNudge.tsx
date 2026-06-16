@@ -52,6 +52,53 @@ export function FaceAnalysisNudge({
   const content = contentByVariant[variant]
   const isPost = variant === "post"
 
+  if (!isPost) {
+    return (
+      <aside
+        className={cn(
+          "rounded-lg border border-blue-100 bg-white/80 px-4 py-3 shadow-sm",
+          className,
+        )}
+        aria-label="Face Analysis recommendation"
+      >
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex min-w-0 items-start gap-3">
+            <div className="mt-0.5 flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg bg-blue-50 text-blue-600">
+              <ScanFace className="h-4 w-4" />
+            </div>
+            <div className="min-w-0">
+              <h2 className="text-sm font-bold text-gray-950">{content.title}</h2>
+              <p className="mt-1 text-sm leading-5 text-gray-600">
+                Get face-shape guidance before choosing frames.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex flex-shrink-0 items-center gap-2 pl-12 sm:pl-0">
+            <Link
+              href={href}
+              onClick={onCtaClick}
+              className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-blue-200 bg-blue-50 px-3 py-2 text-sm font-bold text-blue-700 transition hover:border-blue-300 hover:bg-blue-100"
+            >
+              {content.cta}
+              <ArrowRight className="h-3.5 w-3.5" />
+            </Link>
+            {onDismiss ? (
+              <button
+                type="button"
+                onClick={onDismiss}
+                className="flex h-8 w-8 items-center justify-center rounded-full text-gray-400 transition hover:bg-gray-100 hover:text-gray-700"
+                aria-label="Dismiss Face Analysis recommendation"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            ) : null}
+          </div>
+        </div>
+      </aside>
+    )
+  }
+
   return (
     <aside
       className={cn(
