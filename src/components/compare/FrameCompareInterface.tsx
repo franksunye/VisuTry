@@ -53,6 +53,14 @@ const MAX_SELECTED_FRAMES = 4
 const LONG_PROCESSING_THRESHOLD_MS = 90_000
 const FRAME_DISPATCH_STAGGER_MS = 3000
 
+function pluralizeFrame(count: number) {
+  return count === 1 ? 'Frame' : 'Frames'
+}
+
+function pluralizeCredit(count: number) {
+  return count === 1 ? 'credit' : 'credits'
+}
+
 function sleep(ms: number) {
   return new Promise((resolve) => window.setTimeout(resolve, ms))
 }
@@ -79,6 +87,10 @@ export function FrameCompareInterface({ initialRemainingCredits = 0 }: { initial
   const locale = (params.locale as string) || 'en'
   const { data: session, update } = useSession()
   const remainingCredits = session?.user?.remainingTrials ?? initialRemainingCredits
+  const availableFrameCredits = Math.max(0, Math.min(MAX_SELECTED_FRAMES, remainingCredits))
+  const selectionLimit = availableFrameCredits
+  const isSelectionCreditLimited = availableFrameCredits > 0 && availableFrameCredits < MAX_SELECTED_FRAMES
+  const hasNoCredits = remainingCredits <= 0
   const [userImage, setUserImage] = useState<UploadedImage | null>(null)
   const [selectedIds, setSelectedIds] = useState<string[]>(DEFAULT_TOP_PICK_PRESET_IDS)
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -127,6 +139,27 @@ export function FrameCompareInterface({ initialRemainingCredits = 0 }: { initial
     !isBatchProcessing &&
     remainingCredits >= failedCount,
   )
+  const selectedCountLabel = isSelectionCreditLimited
+    ? `${selectedIds.length}/${selectionLimit} available`
+    : hasNoCredits
+      ? '0 available'
+      : `${selectedIds.length}/${MAX_SELECTED_FRAMES} selected`
+  const presetSelectionCopy = hasNoCredits
+    ? 'Get credits to run frame compare'
+    : isSelectionCreditLimited
+      ? `Choose up to ${selectionLimit} ${pluralizeFrame(selectionLimit).toLowerCase()} with your current credits`
+      : 'Choose frames to compare'
+  const tryButtonCount = selectedIds.length || selectionLimit || MAX_SELECTED_FRAMES
+  const tryButtonCopy = hasNoCredits ? 'Get Credits' : `Try ${tryButtonCount} ${pluralizeFrame(tryButtonCount)}`
+
+  useEffect(() => {
+    if (batchResult || isSubmitting || isRetryingFailed || isBatchProcessing) return
+
+    setSelectedIds((current) => {
+      if (current.length <= availableFrameCredits) return current
+      return current.slice(0, availableFrameCredits)
+    })
+  }, [availableFrameCredits, batchResult, isBatchProcessing, isRetryingFailed, isSubmitting])
 
   useEffect(() => {
     if (!batchResult || processingCount === 0) return
@@ -248,7 +281,7 @@ export function FrameCompareInterface({ initialRemainingCredits = 0 }: { initial
       if (current.includes(presetId)) {
         return current.filter((id) => id !== presetId)
       }
-      if (current.length >= MAX_SELECTED_FRAMES) {
+      if (current.length >= selectionLimit) {
         return current
       }
       return [...current, presetId]
@@ -258,7 +291,9 @@ export function FrameCompareInterface({ initialRemainingCredits = 0 }: { initial
   const handleSubmit = async () => {
     if (!userImage?.file || selectedIds.length === 0) return
     if (!hasEnoughCredits) {
-      setError(`You need ${selectedIds.length} credits to compare these frames.`)
+      setError(
+        `You have ${remainingCredits} ${pluralizeCredit(remainingCredits)}. Select fewer frames or get credits for the full comparison.`,
+      )
       return
     }
 
@@ -478,11 +513,11 @@ export function FrameCompareInterface({ initialRemainingCredits = 0 }: { initial
                 <h2 className="text-base font-bold text-gray-950">Preset Frames</h2>
               </div>
               <span className="rounded-full bg-blue-50 px-2.5 py-1 text-xs font-bold text-blue-700">
-                {selectedIds.length}/4 selected
+                {selectedCountLabel}
               </span>
             </div>
             <div className="mb-3 flex items-center justify-between text-sm">
-              <span className="text-gray-600">Choose frames to compare</span>
+              <span className="text-gray-600">{presetSelectionCopy}</span>
               <button
                 type="button"
                 onClick={() => {
@@ -495,10 +530,39 @@ export function FrameCompareInterface({ initialRemainingCredits = 0 }: { initial
                 Clear
               </button>
             </div>
+            {(isSelectionCreditLimited || hasNoCredits) && (
+              <div
+                className={cn(
+                  'mb-3 rounded-lg border px-3 py-2.5 text-sm',
+                  hasNoCredits
+                    ? 'border-amber-200 bg-amber-50 text-amber-800'
+                    : 'border-blue-200 bg-blue-50 text-blue-800',
+                )}
+              >
+                {hasNoCredits ? (
+                  <p>
+                    You do not have credits available.{' '}
+                    <Link href={`/${locale}/pricing`} className="font-bold underline">
+                      Get credits
+                    </Link>{' '}
+                    to run a frame comparison.
+                  </p>
+                ) : (
+                  <p>
+                    You have {remainingCredits} {pluralizeCredit(remainingCredits)}, so this compare can run{' '}
+                    {selectionLimit} {pluralizeFrame(selectionLimit).toLowerCase()} now.{' '}
+                    <Link href={`/${locale}/pricing`} className="font-bold underline">
+                      Get credits
+                    </Link>{' '}
+                    for the full 4-frame comparison.
+                  </p>
+                )}
+              </div>
+            )}
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-2 xl:grid-cols-3">
               {TOP_PICK_GLASSES_PRESETS.map((preset) => {
                 const selected = selectedIds.includes(preset.id)
-                const lockedOut = !selected && selectedIds.length >= MAX_SELECTED_FRAMES
+                const lockedOut = !selected && selectedIds.length >= selectionLimit
                 const disabled = isBatchProcessing || isRetryingFailed || lockedOut
                 return (
                   <button
@@ -560,7 +624,7 @@ export function FrameCompareInterface({ initialRemainingCredits = 0 }: { initial
               ) : (
                 <Sparkles className="h-4 w-4" />
               )}
-              {isRetryingFailed ? 'Retrying...' : isBatchProcessing ? 'Generating...' : `Try ${selectedIds.length || 4} Frames`}
+              {isRetryingFailed ? 'Retrying...' : isBatchProcessing ? 'Generating...' : tryButtonCopy}
             </button>
           </div>
 
