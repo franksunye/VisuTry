@@ -1,96 +1,18 @@
 {
   "common": {
-    "getStarted": "Começar",
-    "learnMore": "Saiba Mais",
-    "signIn": "Entrar",
-    "signOut": "Sair",
     "startFreeTrial": "Iniciar Teste Gratuito",
     "startTryOn": "Iniciar Experimentação",
-    "tryOn": "Experimentação Virtual",
-    "blog": "Blog",
-    "pricing": "Preços",
-    "dashboard": "Painel",
-    "profile": "Perfil",
-    "settings": "Configurações",
-    "loading": "Carregando...",
-    "error": "Erro",
-    "success": "Sucesso",
-    "cancel": "Cancelar",
-    "save": "Salvar",
-    "delete": "Excluir",
-    "edit": "Editar",
-    "close": "Fechar",
-    "back": "Voltar",
-    "next": "Próximo",
-    "previous": "Anterior",
-    "submit": "Enviar",
-    "confirm": "Confirmar"
+    "loading": "Carregando..."
   },
   "nav": {
     "faceAnalysis": "Análise facial",
-    "home": "Início",
-    "tryOn": "Experimentação Virtual",
     "tryGlasses": "Óculos",
-    "tryOutfit": "Experimentar Roupas",
-    "tryShoes": "Experimentar Sapatos",
-    "tryAccessories": "Experimentar Acessórios",
-    "blog": "Blog",
     "pricing": "Preços",
-    "dashboard": "Painel",
-    "signIn": "Entrar",
-    "signOut": "Sair",
-    "toggleMenu": "Alternar menu de navegação"
+    "toggleMenu": "Alternar menu de navegação",
+    "compare": "Compare",
+    "faq": "FAQ"
   },
   "home": {
-    "hero": {
-      "title": "Encontre Seu Estilo Perfeito",
-      "subtitle": "Experimente em 3 Passos Fáceis"
-    },
-    "steps": {
-      "step1": {
-        "title": "Envie Sua Foto",
-        "description": "Envie uma foto clara de você — nenhuma ferramenta especial necessária."
-      },
-      "step2": {
-        "title": "Escolha Seu Estilo",
-        "description": "Escolha o item que deseja experimentar. Mostraremos como fica em você."
-      },
-      "step3": {
-        "title": "Ver e Salvar",
-        "description": "Veja seu visual perfeito, depois salve ou compartilhe."
-      }
-    },
-    "cta": {
-      "button": "Começar",
-      "faceAnalysis": "Análise facial",
-      "tryOutfit": "Experimentar Roupa",
-      "tryShoes": "Experimentar Sapatos",
-      "tryAccessories": "Experimentar Acessórios"
-    },
-    "features": {
-      "title": "Principais Recursos do VisuTry",
-      "subtitle": "Experimente a próxima geração de experimentação virtual alimentada por IA",
-      "feature1": {
-        "title": "Google Nano Banana",
-        "description": "Alimentado pelo modelo de IA mais recente do Google para resultados de experimentação ultra-realistas com precisão excepcional e iluminação natural."
-      },
-      "feature2": {
-        "title": "Retenção Inteligente de Dados",
-        "description": "Seu histórico de experimentação é armazenado com segurança - 7 dias para usuários gratuitos, 90 dias com Créditos e 1 ano para membros Premium."
-      },
-      "feature3": {
-        "title": "Processamento Relâmpago",
-        "description": "Obtenha seus resultados de experimentação em 10-30 segundos com nosso pipeline de IA otimizado. Usuários Premium desfrutam de processamento prioritário."
-      },
-      "feature4": {
-        "title": "Privacidade Protegida",
-        "description": "Suas fotos são criptografadas e seguras. Nunca compartilhamos suas imagens ou as usamos para treinamento sem permissão."
-      }
-    },
-    "faq": {
-      "title": "Perguntas Frequentes",
-      "subtitle": "Tudo o que você precisa saber sobre VisuTry"
-    },
     "showcase": {
       "alex": {
         "name": "Alex",
@@ -111,104 +33,26 @@
     }
   },
   "pricing": {
-    "title": "Escolha Seu Plano",
-    "subtitle": "Selecione o plano perfeito para suas necessidades",
-    "currentPlan": "Plano Atual",
-    "freeUser": "Usuário Gratuito",
-    "remainingTryOns": "Experimentações restantes: {count}",
     "plans": {
       "creditsPack": {
-        "name": "Pacote de Créditos",
-        "description": "Perfeito para uso ocasional",
-        "price": "R$ 14,99",
-        "period": "Pagamento único",
-        "buttonText": "Comprar Pacote de Créditos",
-        "features": [
-          "10 experimentações com IA",
-          "Processamento de imagem de alta qualidade",
-          "Downloads e compartilhamentos ilimitados",
-          "Biblioteca de armações padrão",
-          "Suporte por e-mail"
-        ]
+        "period": "Pagamento único"
       },
       "monthly": {
-        "name": "Padrão",
-        "description": "Escolha mais popular",
-        "price": "R$ 44,99",
-        "period": "por mês",
-        "buttonText": "Iniciar Assinatura Mensal",
-        "features": [
-          "30 experimentações com IA por mês",
-          "Processamento de imagem de alta qualidade",
-          "Fila de processamento prioritária",
-          "Downloads e compartilhamentos ilimitados",
-          "Biblioteca de armações padrão",
-          "Suporte ao cliente prioritário"
-        ]
+        "period": "por mês"
       },
       "yearly": {
-        "name": "Padrão",
-        "description": "Melhor valor - Economize 17%",
-        "price": "R$ 449,99",
-        "originalPrice": "R$ 539,88",
-        "period": "por ano",
-        "buttonText": "Iniciar Assinatura Anual",
-        "features": [
-          "420 experimentações com IA por ano (35/mês)",
-          "Processamento de imagem de alta qualidade",
-          "Fila de processamento prioritária",
-          "Downloads e compartilhamentos ilimitados",
-          "Biblioteca de armações padrão",
-          "Suporte ao cliente prioritário",
-          "Economize R$ 89,89 em comparação ao mensal"
-        ]
+        "period": "por ano"
       }
     },
     "comparison": {
-      "title": "Comparar Planos",
-      "features": {
-        "aiTryOns": "Experimentações com IA",
-        "imageQuality": "Qualidade de Imagem",
-        "processingSpeed": "Velocidade de Processamento",
-        "downloads": "Downloads e Compartilhamento",
-        "frameLibrary": "Biblioteca de Armações",
-        "support": "Suporte ao Cliente"
-      },
-      "values": {
-        "free": {
-          "aiTryOns": "1 vez",
-          "imageQuality": "Padrão",
-          "processingSpeed": "Padrão",
-          "downloads": "Limitado",
-          "frameLibrary": "Básica",
-          "support": "E-mail"
-        },
-        "credits": {
-          "aiTryOns": "+10 vezes",
-          "imageQuality": "Alta",
-          "processingSpeed": "Padrão",
-          "downloads": "Ilimitado",
-          "frameLibrary": "Padrão",
-          "support": "E-mail"
-        },
-        "standard": {
-          "aiTryOns": "30/mês ou 420/ano",
-          "imageQuality": "Alta",
-          "processingSpeed": "Prioritária",
-          "downloads": "Ilimitado",
-          "frameLibrary": "Padrão",
-          "support": "Prioritário"
-        }
-      }
+      "title": "Comparar Planos"
     }
   },
   "footer": {
-    "tagline": "Experimentação virtual com IA para óculos, roupas, sapatos e acessórios",
     "links": {
       "product": "Produto",
       "resources": "Recursos",
       "legal": "Legal",
-      "tryGlasses": "Experimentar Óculos",
       "tryOutfit": "Experimentar Roupas",
       "tryShoes": "Experimentar Sapatos",
       "tryAccessories": "Experimentar Acessórios",
@@ -222,16 +66,6 @@
     },
     "copyright": "© {year} VisuTry. Todos os direitos reservados.",
     "madeWith": "Feito com ❤️ usando tecnologia de IA"
-  },
-  "meta": {
-    "home": {
-      "title": "VisuTry - Experimentação Virtual de IA para Óculos, Roupas, Sapatos e Acessórios",
-      "description": "Experimente óculos, roupas, sapatos e acessórios instantaneamente com experimentação virtual alimentada por IA. Sem download necessário - carregue sua foto e veja como os itens ficam em você antes de comprar. Alimentado por Nano Banana IA (Gemini 2.5 Flash Image) para resultados fotorrealistas."
-    },
-    "pricing": {
-      "title": "Planos de Preços - Experimentação Virtual de IA para Todas as Categorias | VisuTry",
-      "description": "Escolha o plano perfeito para experimentação virtual instantânea alimentada por IA. Experimente óculos, roupas, sapatos e acessórios com Nano Banana IA (Gemini 2.5 Flash Image). Testes gratuitos disponíveis, recursos premium para ajuste virtual ilimitado."
-    }
   },
   "faceAnalysis": {
     "meta": {
@@ -328,6 +162,241 @@
       "unlocked": "Desbloqueado",
       "locked": "Bloqueado",
       "viewReport": "Ver relatório"
+    }
+  },
+  "marketing": {
+    "home": {
+      "metaTitle": "VisuTry - Experimentação Virtual de IA para Óculos, Roupas, Sapatos e Acessórios",
+      "metaDescription": "Experimente óculos, roupas, sapatos e acessórios instantaneamente com experimentação virtual alimentada por IA. Sem download necessário - carregue sua foto e veja como os itens ficam em você antes de comprar. Alimentado por Nano Banana IA (Gemini 2.5 Flash Image) para resultados fotorrealistas.",
+      "faqTitle": "Perguntas Frequentes",
+      "faqSubtitle": "Tudo o que você precisa saber sobre VisuTry",
+      "heroTitle": "Encontre Seu Estilo Perfeito",
+      "heroSubtitle": "Experimente em 3 Passos Fáceis",
+      "tools": {
+        "faceTitle": "Análise facial",
+        "faceDescription": "Detecte o formato do rosto e receba direções de armação antes de gastar créditos.",
+        "glassesTitle": "Óculos",
+        "glassesDescription": "Envie fotos de produto ou capturas e visualize no seu rosto.",
+        "compareTitle": "Comparar",
+        "compareDescription": "Escolha presets integrados e revise vários resultados no mesmo painel."
+      },
+      "ctaPrimary": "Começar com Face",
+      "ctaSecondary": "Comparar armações",
+      "featureCards": {
+        "faceTitle": "Análise Facial",
+        "faceDescription": "A professional face-shape report with armação style recommendations.",
+        "glassesTitle": "Custom Óculos Prova",
+        "glassesDescription": "Use your own glasses product image, store foto, or screenshot.",
+        "compareTitle": "Frame Comparar",
+        "compareDescription": "Quickly test built-in armação presets from the same portrait.",
+        "openTool": "Abrir ferramenta"
+      },
+      "workflow": {
+        "badge": "Face analysis for glasses (PT)",
+        "title": "Começar try-on with armaçãos that already fit the face",
+        "description": "VisuTry now uses one portrait to read face shape, narrow the first armação shortlist, and send shoppers directly into glasses try-on with better choices.",
+        "point1": "Face shape report (PT)",
+        "point2": "Recommended armação styles",
+        "point3": "One path into AI try-on (PT)",
+        "cta": "Analisar meu rosto"
+      },
+      "benefits": {
+        "generatedTitle": "AI-generated previews (PT)",
+        "generatedDescription": "Use one portrait to analyze, try on, and compare glasses before buying. (PT)",
+        "historyTitle": "Saved to histórico",
+        "historyDescription": "Completed results stay available in Dashboard History based on your plan. (PT)",
+        "privacyTitle": "Private by default (PT)",
+        "privacyDescription": "Photos and results stay privado to your account and are never published."
+      },
+      "faq": {
+        "q1Question": "How does VisuTry's AI try-on work? (PT)",
+        "q1Answer": "VisuTry uses Google Nano Banana AI to analyze your facial features and realistically overlay glasses onto your photo. The AI understands face shape, lighting, and perspective to create natural-looking results in seconds.",
+        "q2Question": "Is my photo data safe and private?",
+        "q2Answer": "Absolutely! Your photos are encrypted during upload and processing. We never share your images publicly or use them for AI training without explicit permission. Free users' data is stored for 7 days, Credits users for 90 days, and Premium members for 1 year.",
+        "q3Question": "What's the difference between free and Premium quality?",
+        "q3Answer": "Free users get standard quality images (800×800 pixels) with a small watermark. Premium users receive high-quality images (1200×1200 pixels) without watermarks, plus priority processing and longer data retention (1 year vs 7 days).",
+        "q4Question": "Can I use the generated images commercially?",
+        "q4Answer": "Yes! Premium and Credits Pack users can use their watermark-free images for any purpose, including commercial use. Free users receive images with a watermark for personal use only.",
+        "q5Question": "How long does it take to generate a try-on?",
+        "q5Answer": "Most try-ons complete in 10-30 seconds. Premium users enjoy priority processing, which means faster results even during peak times. The exact time depends on server load and image complexity."
+      }
+    },
+    "pricing": {
+      "metaTitle": "Planos de Preços - Experimentação Virtual de IA para Todas as Categorias | VisuTry",
+      "metaDescription": "Escolha o plano perfeito para experimentação virtual instantânea alimentada por IA. Experimente óculos, roupas, sapatos e acessórios com Nano Banana IA (Gemini 2.5 Flash Image). Testes gratuitos disponíveis, recursos premium para ajuste virtual ilimitado.",
+      "eyebrow": "Créditos simples para Face, Glasses e Compare",
+      "title": "Comece com 1 crédito grátis e continue com {count} créditos de IA por USD 2.99",
+      "description": "Use créditos em análise facial com IA, try-on de óculos personalizado e comparação de armações.",
+      "faqTitle": "Frequently Asked Questions (PT)",
+      "featureCards": {
+        "faceTitle": "Análise Facial",
+        "faceDescription": "Use one crédito to estimate face shape and get armação directions before trying glasses.",
+        "glassesTitle": "Óculos Prova",
+        "glassesDescription": "Use one crédito per custom try-on from a portrait and a glasses product image.",
+        "compareTitle": "Frame Comparar",
+        "compareDescription": "Use one crédito per generated armação. Try 1 armação grátis, or compare up to 4 with créditos."
+      },
+      "faq": {
+        "q1Title": "Can I cancel my subscription anytime?",
+        "q1Answer": "Yes, you can cancel your subscription at any time. Your access will continue until the end of your billing period.",
+        "q2Title": "What happens to unused try-ons?",
+        "q2Answer": "For monthly subscriptions, unused try-ons do not roll over to the next month. For credits packs, credits never expire.",
+        "q3Title": "Do you offer refunds?",
+        "q3Answer": "We offer a 7-day money-back guarantee for all subscriptions. Credits packs are non-refundable once used.",
+        "q4Title": "Do créditos expire?",
+        "q4Answer": "Credits never expire after purchase. You can use them anytime at your convenience. (PT)",
+        "q5Title": "What can I do with one grátis crédito?",
+        "q5Answer": "You can run one face analysis, one custom glasses try-on, or one armação inside Comparar. It is designed to let you test the workflow before buying créditos.",
+        "q6Title": "What payment methods are supported? (PT)",
+        "q6Answer": "We support all major crédito and debit cards, including Visa, Mastercard, American Express, and more.",
+        "q7Title": "How do I contact support? (PT)",
+        "q7Answer": "You can contact us via email at support@visutry.com. Premium members enjoy priority support. (PT)"
+      },
+      "legal": {
+        "prefix": "Ao assinar, você concorda com nossos",
+        "terms": "Termos de Serviço",
+        "and": "e",
+        "privacy": "Política de Privacidade",
+        "middle": ". Veja também nossa",
+        "refund": "Política de Reembolso",
+        "suffix": "para regras de cancelamento."
+      }
+    },
+    "faqPage": {
+      "metaTitle": "FAQ: AI Óculos Prova, Análise Facial, and Comparar | VisuTry",
+      "metaDescription": "Questions about VisuTry créditos, AI face analysis, custom glasses try-on, armação compare, privacy, and Dashboard History.",
+      "badge": "Central de ajuda",
+      "title": "FAQ for AI glasses try-on, face analysis, and armação compare",
+      "subtitle": "Quick answers for shoppers choosing glasses online with VisuTry. (PT)",
+      "topics": "Tópicos",
+      "supportTitle": "Precisa de ajuda com uma tarefa específica?",
+      "supportDescription": "Entre em contato com o suporte com o e-mail da conta e o ID da tarefa se um resultado parecer incorreto ou ficar processando por mais tempo do que o esperado."
+    },
+    "tryOnLanding": {
+      "metaTitle": "Prova virtual de óculos online por foto | VisuTry",
+      "metaDescription": "Experimente óculos online com foto do rosto e imagem do produto ou screenshot.",
+      "howItWorks": "Como funciona",
+      "title": "Da imagem do produto à prévia de prova",
+      "description": "Use Óculos when you already have a specific armação foto or screenshot. VisuTry turns that product image into a browser-based preview on your portrait.",
+      "startButton": "Começar teste grátis",
+      "pricingButton": "30 try-ons for USD 2.99 (PT)",
+      "guideLink": "Ler guia de compra",
+      "faqTitle": "FAQ prova de óculos IA",
+      "notFoundTitle": "Try-On não encontrado | VisuTry",
+      "notFoundDescription": "O tipo de try-on solicitado não foi encontrado.",
+      "ogDescription": "Envie foto do rosto e imagem do óculos para ver a armação antes de comprar, sem app.",
+      "ctaNote": "Uma prova grátis para começar. Credits Pack é compra única, sem assinatura.",
+      "shortlistNotePrefix": "Not sure what glasses suit your face? Começar with",
+      "shortlistNoteLink": "AI face shape analysis (PT)",
+      "shortlistNoteSuffix": "to get a shortlist, then come back here to try on glasses online from your own foto and product screenshots.",
+      "faq": {
+        "q1Question": "Can I try on glasses online from a screenshot? (PT)",
+        "q1Answer": "Yes. VisuTry lets you enviar your face foto and a glasses product image or screenshot, then uses AI to create a realistic virtual glasses try-on preview on your face.",
+        "q2Question": "Can I enviar my own glasses image for virtual try-on?",
+        "q2Answer": "Yes. You can enviar a product foto, store image, email screenshot, or a transparent armação image. Clear front-facing product images usually work best.",
+        "q3Question": "Can I try on glasses at home before buying? (PT)",
+        "q3Answer": "Yes. VisuTry runs in your browser, so you can try on glasses at home from a face foto and compare armação images before deciding what to buy.",
+        "q4Question": "What if I do not know which glasses to try first? (PT)",
+        "q4Answer": "Começar with AI face analysis to estimate your face shape and get armação recommendations, then return to virtual glasses try-on with a better shortlist.",
+        "q5Question": "How does AI try on glasses work? (PT)",
+        "q5Answer": "AI glasses try-on combines your face foto with a glasses product image or screenshot to generate a preview of the armação on your face. It is most useful after you shortlist styles by face shape, size, and personal taste.",
+        "q6Question": "Is VisuTry a try on glasses app? (PT)",
+        "q6Answer": "VisuTry works like a try on glasses app, but it runs in your web browser. You can use it on desktop or mobile without installing an app. (PT)",
+        "q7Question": "Can I try on blue light glasses online? (PT)",
+        "q7Answer": "Yes. If you have a clear product image or screenshot of blue light glasses, you can enviar it and preview the armação on your face before buying.",
+        "q8Question": "Do I need to install an app? (PT)",
+        "q8Answer": "No. VisuTry runs in the browser on desktop and mobile. Sign in, enviar your fotos, and start the glasses try-on flow online.",
+        "q9Question": "What happens after my grátis try-on?",
+        "q9Answer": "You can continue with a Credits Pack: 30 AI try-ons for USD 2.99, no subscription required. Credits do not expire. (PT)"
+      },
+      "valuePoints": {
+        "p1": "Upload a portrait and one glasses image (PT)",
+        "p2": "Preview the armação on your face before buying",
+        "p3": "Use Face or Comparar when you need help choosing"
+      },
+      "steps": {
+        "s1Title": "Upload your fotos",
+        "s1Description": "Use a face foto plus a glasses product foto, store image, or screenshot from email.",
+        "s2Title": "Preview and compare (PT)",
+        "s2Description": "Check how different armaçãos look on your face before choosing what to buy.",
+        "s3Title": "Browser-based and privado",
+        "s3Description": "No app install. Free data is stored for 7 days; Credits Pack users get 90 days of histórico retention.",
+        "s4Title": "Continue when you need more (PT)",
+        "s4Description": "Começar with one grátis try-on, then use a one-time Credits Pack when you want to compare more armaçãos."
+      }
+    },
+    "compareLanding": {
+      "metaTitle": "Compare armações de óculos online | VisuTry",
+      "metaDescription": "Envie uma foto, escolha presets e compare resultados de IA lado a lado.",
+      "startCreditTitle": "Começar with one crédito",
+      "upToFourTitle": "Up to four armaçãos",
+      "savedTitle": "Saved to histórico",
+      "compareBefore": "Comparar before buying",
+      "startComparing": "Começar comparação",
+      "viewPricing": "Ver preços",
+      "ogDescription": "Quickly compare built-in glasses armação presets on your own foto with AI try-on.",
+      "srOnlyTitle": "Compare armações de óculos na sua foto",
+      "cards": {
+        "c1Description": "Trial users can compare one preset armação first, then add créditos when they want a full board.",
+        "c2Description": "Credits map directly to generated armaçãos, so a 4-armação comparison uses up to 4 créditos.",
+        "c3Description": "Completed results are kept in Dashboard History according to your account retention plan. (PT)"
+      },
+      "compareDescription": "Use Comparar when you have several likely armação shapes and want a fast side-by-side view. Use Óculos Prova when you already have a specific product image or screenshot."
+    },
+    "faceAnalysisLanding": {
+      "badge": "Detector de formato de rosto para óculos",
+      "startFaceAnalysis": "Iniciar análise facial",
+      "tryGlassesOnPhoto": "Try glasses on foto",
+      "faqTitle": "FAQ análise facial IA",
+      "guideLink": "Read the full guia",
+      "faqEyebrow": "Perguntas frequentes dos compradores",
+      "valuePoints": {
+        "p1": "AI face shape detector for glasses (PT)",
+        "p2": "Frame picks with a reason (PT)",
+        "p3": "Continue into virtual try-on (PT)"
+      },
+      "links": {
+        "compareByShape": "Comparar glasses by face shape",
+        "readGuide": "Read the AI glasses guia"
+      },
+      "table": {
+        "title": "Best glasses by face shape (PT)",
+        "description": "If you are asking what glasses suit my face, start with face shape as a first filter. Use these armação directions to build your shortlist, then validate scale and style with virtual glasses try-on.",
+        "colShape": "Formato do rosto",
+        "colTryFirst": "Teste primeiro",
+        "colWhy": "Por que funciona",
+        "seeStyles": "Ver estilos",
+        "ctaGuide": "Explore the face-shape guia",
+        "ctaTry": "Try glasses on your foto"
+      },
+      "shapes": {
+        "roundName": "Round face (PT)",
+        "roundFrames": "Rectangular, square, geometric, and slightly wider armaçãos",
+        "roundReason": "Angular lines add definition and help balance softer curves. (PT)",
+        "squareName": "Square face (PT)",
+        "squareFrames": "Round, oval, thin metal, and softly curved armaçãos",
+        "squareReason": "Curved shapes soften a strong jawline and reduce visual weight. (PT)",
+        "ovalName": "Oval face (PT)",
+        "ovalFrames": "Balanced rectangular, browline, aviator, and classic shapes (PT)",
+        "ovalReason": "Oval proportions are flexible, so scale and personal style matter most. (PT)",
+        "heartName": "Heart face (PT)",
+        "heartFrames": "Lightweight, rounded, cat-eye, and bottom-balanced armaçãos",
+        "heartReason": "Softer or lifted shapes balance a wider forehead with a narrower chin. (PT)"
+      },
+      "faq": {
+        "q1Question": "What is AI face analysis for glasses? (PT)",
+        "q1Answer": "VisuTry provides AI face analysis for glasses by estimating your face shape and key visible features, then suggesting armação styles before virtual try-on.",
+        "q2Question": "Can AI recommend glasses for my face shape? (PT)",
+        "q2Answer": "Yes. AI face analysis can recommend armação directions for round, square, oval, heart, diamond, oblong, and triangle face shapes. Use virtual try-on as the final visual check.",
+        "q3Question": "Can I use a face shape detector online grátis before buying glasses?",
+        "q3Answer": "Yes. VisuTry lets you start with an online AI face shape detector so you can understand your likely face shape before choosing glasses. Use the result as a practical shortlist, then confirm the look with virtual try-on. (PT)",
+        "q4Question": "What is a face shape finder for glasses? (PT)",
+        "q4Answer": "A face shape finder estimates whether your face is closer to round, square, oval, heart, diamond, oblong, or triangle, then turns that result into armação styles to try first.",
+        "q5Question": "Is my face analysis privado?",
+        "q5Answer": "Your enviared foto and analysis stay privado to your account. VisuTry uses the image to generate your face shape report and glasses recommendations.",
+        "q6Question": "What glasses suit my face shape? (PT)",
+        "q6Answer": "Round faces often start with angular armaçãos, square faces with round or oval armaçãos, oval faces with balanced rectangular or browline armaçãos, and heart faces with lightweight or softly upswept armaçãos."
+      }
     }
   }
 }

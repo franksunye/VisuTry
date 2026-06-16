@@ -1,96 +1,18 @@
 {
   "common": {
-    "getStarted": "Начать",
-    "learnMore": "Узнать Больше",
-    "signIn": "Войти",
-    "signOut": "Выйти",
     "startFreeTrial": "Начать Бесплатную Пробную Версию",
     "startTryOn": "Начать Примерку",
-    "tryOn": "Виртуальная Примерка",
-    "blog": "Блог",
-    "pricing": "Цены",
-    "dashboard": "Панель Управления",
-    "profile": "Профиль",
-    "settings": "Настройки",
-    "loading": "Загрузка...",
-    "error": "Ошибка",
-    "success": "Успешно",
-    "cancel": "Отмена",
-    "save": "Сохранить",
-    "delete": "Удалить",
-    "edit": "Редактировать",
-    "close": "Закрыть",
-    "back": "Назад",
-    "next": "Далее",
-    "previous": "Предыдущий",
-    "submit": "Отправить",
-    "confirm": "Подтвердить"
+    "loading": "Загрузка..."
   },
   "nav": {
     "faceAnalysis": "Анализ лица",
-    "home": "Главная",
-    "tryOn": "Виртуальная Примерка",
     "tryGlasses": "Очки",
-    "tryOutfit": "Примерить Одежду",
-    "tryShoes": "Примерить Обувь",
-    "tryAccessories": "Примерить Аксессуары",
-    "blog": "Блог",
     "pricing": "Цены",
-    "dashboard": "Панель Управления",
-    "signIn": "Войти",
-    "signOut": "Выйти",
-    "toggleMenu": "Переключить навигационное меню"
+    "toggleMenu": "Переключить навигационное меню",
+    "compare": "Compare",
+    "faq": "FAQ"
   },
   "home": {
-    "hero": {
-      "title": "Найдите Свой Идеальный Стиль",
-      "subtitle": "Примерьте в 3 Простых Шага"
-    },
-    "steps": {
-      "step1": {
-        "title": "Загрузите Свое Фото",
-        "description": "Загрузите четкое фото себя — никаких специальных инструментов не требуется."
-      },
-      "step2": {
-        "title": "Выберите Свой Стиль",
-        "description": "Выберите предмет, который хотите примерить. Мы покажем, как он выглядит на вас."
-      },
-      "step3": {
-        "title": "Посмотрите и Сохраните",
-        "description": "Посмотрите свой идеальный образ, затем сохраните или поделитесь им."
-      }
-    },
-    "cta": {
-      "button": "Начать",
-      "faceAnalysis": "Анализ лица",
-      "tryOutfit": "Примерить Одежду",
-      "tryShoes": "Примерить Обувь",
-      "tryAccessories": "Примерить Аксессуары"
-    },
-    "features": {
-      "title": "Основные Возможности VisuTry",
-      "subtitle": "Испытайте следующее поколение виртуальной примерки на базе ИИ",
-      "feature1": {
-        "title": "Google Nano Banana",
-        "description": "Работает на основе последней модели ИИ от Google для ультареалистичных результатов примерки с исключительной точностью и естественным освещением."
-      },
-      "feature2": {
-        "title": "Умное Хранение Данных",
-        "description": "История ваших примерок безопасно сохраняется - 7 дней для бесплатных пользователей, 90 дней с Кредитами и 1 год для членов Premium."
-      },
-      "feature3": {
-        "title": "Молниеносная Обработка",
-        "description": "Получите результаты примерки за 10-30 секунд с нашим оптимизированным конвейером ИИ. Пользователи Premium получают приоритетную обработку."
-      },
-      "feature4": {
-        "title": "Защита Приватности",
-        "description": "Ваши фотографии зашифрованы и защищены. Мы никогда не делимся вашими изображениями и не используем их для обучения без разрешения."
-      }
-    },
-    "faq": {
-      "title": "Часто Задаваемые Вопросы",
-      "subtitle": "Все, что вам нужно знать о VisuTry"
-    },
     "showcase": {
       "alex": {
         "name": "Алекс",
@@ -111,104 +33,26 @@
     }
   },
   "pricing": {
-    "title": "Выберите Свой План",
-    "subtitle": "Выберите идеальный план для ваших потребностей",
-    "currentPlan": "Текущий План",
-    "freeUser": "Бесплатный Пользователь",
-    "remainingTryOns": "Осталось примерок: {count}",
     "plans": {
       "creditsPack": {
-        "name": "Пакет Кредитов",
-        "description": "Идеально для периодического использования",
-        "price": "₽249",
-        "period": "Разовый платеж",
-        "buttonText": "Купить Пакет Кредитов",
-        "features": [
-          "10 примерок с ИИ",
-          "Высококачественная обработка изображений",
-          "Неограниченные загрузки и публикации",
-          "Стандартная библиотека оправ",
-          "Поддержка по электронной почте"
-        ]
+        "period": "Разовый платеж"
       },
       "monthly": {
-        "name": "Стандарт",
-        "description": "Самый популярный выбор",
-        "price": "₽749",
-        "period": "в месяц",
-        "buttonText": "Начать Месячную Подписку",
-        "features": [
-          "30 примерок с ИИ в месяц",
-          "Высококачественная обработка изображений",
-          "Приоритетная очередь обработки",
-          "Неограниченные загрузки и публикации",
-          "Стандартная библиотека оправ",
-          "Приоритетная поддержка клиентов"
-        ]
+        "period": "в месяц"
       },
       "yearly": {
-        "name": "Стандарт",
-        "description": "Лучшее предложение - Экономия 17%",
-        "price": "₽7,499",
-        "originalPrice": "₽8,988",
-        "period": "в год",
-        "buttonText": "Начать Годовую Подписку",
-        "features": [
-          "420 примерок с ИИ в год (35/месяц)",
-          "Высококачественная обработка изображений",
-          "Приоритетная очередь обработки",
-          "Неограниченные загрузки и публикации",
-          "Стандартная библиотека оправ",
-          "Приоритетная поддержка клиентов",
-          "Экономия ₽1,489 по сравнению с месячной подпиской"
-        ]
+        "period": "в год"
       }
     },
     "comparison": {
-      "title": "Сравнить Планы",
-      "features": {
-        "aiTryOns": "Примерки с ИИ",
-        "imageQuality": "Качество Изображения",
-        "processingSpeed": "Скорость Обработки",
-        "downloads": "Загрузки и Публикации",
-        "frameLibrary": "Библиотека Оправ",
-        "support": "Поддержка Клиентов"
-      },
-      "values": {
-        "free": {
-          "aiTryOns": "1 раз",
-          "imageQuality": "Стандартное",
-          "processingSpeed": "Стандартная",
-          "downloads": "Ограничено",
-          "frameLibrary": "Базовая",
-          "support": "Электронная почта"
-        },
-        "credits": {
-          "aiTryOns": "+10 раз",
-          "imageQuality": "Высокое",
-          "processingSpeed": "Стандартная",
-          "downloads": "Неограничено",
-          "frameLibrary": "Стандартная",
-          "support": "Электронная почта"
-        },
-        "standard": {
-          "aiTryOns": "30/месяц или 420/год",
-          "imageQuality": "Высокое",
-          "processingSpeed": "Приоритетная",
-          "downloads": "Неограничено",
-          "frameLibrary": "Стандартная",
-          "support": "Приоритетная"
-        }
-      }
+      "title": "Сравнить Планы"
     }
   },
   "footer": {
-    "tagline": "Виртуальная примерка с ИИ для очков, одежды, обуви и аксессуаров",
     "links": {
       "product": "Продукт",
       "resources": "Ресурсы",
       "legal": "Юридическая информация",
-      "tryGlasses": "Примерить Очки",
       "tryOutfit": "Примерить Одежду",
       "tryShoes": "Примерить Обувь",
       "tryAccessories": "Примерить Аксессуары",
@@ -222,16 +66,6 @@
     },
     "copyright": "© {year} VisuTry. Все права защищены.",
     "madeWith": "Сделано с ❤️ с использованием технологии ИИ"
-  },
-  "meta": {
-    "home": {
-      "title": "VisuTry - Виртуальная Примерка ИИ для Очков, Одежды, Обуви и Аксессуаров",
-      "description": "Примеряйте очки, одежду, обувь и аксессуары мгновенно с виртуальной примеркой на базе ИИ. Без загрузки - загрузите свое фото и посмотрите, как товары выглядят на вас перед покупкой. Работает на базе Nano Banana ИИ (Gemini 2.5 Flash Image) для фотореалистичных результатов."
-    },
-    "pricing": {
-      "title": "Тарифные Планы - Виртуальная Примерка ИИ для Всех Категорий | VisuTry",
-      "description": "Выберите идеальный план для мгновенной виртуальной примерки на базе ИИ. Примеряйте очки, одежду, обувь и аксессуары с Nano Banana ИИ (Gemini 2.5 Flash Image). Доступны бесплатные пробные версии, премиум-функции для неограниченной виртуальной подгонки."
-    }
   },
   "faceAnalysis": {
     "meta": {
@@ -328,6 +162,241 @@
       "unlocked": "Открыто",
       "locked": "Закрыто",
       "viewReport": "Смотреть отчёт"
+    }
+  },
+  "marketing": {
+    "home": {
+      "metaTitle": "VisuTry - Виртуальная Примерка ИИ для Очков, Одежды, Обуви и Аксессуаров",
+      "metaDescription": "Примеряйте очки, одежду, обувь и аксессуары мгновенно с виртуальной примеркой на базе ИИ. Без загрузки - загрузите свое фото и посмотрите, как товары выглядят на вас перед покупкой. Работает на базе Nano Banana ИИ (Gemini 2.5 Flash Image) для фотореалистичных результатов.",
+      "faqTitle": "Часто Задаваемые Вопросы",
+      "faqSubtitle": "Все, что вам нужно знать о VisuTry",
+      "heroTitle": "Найдите Свой Идеальный Стиль",
+      "heroSubtitle": "Примерьте в 3 Простых Шага",
+      "tools": {
+        "faceTitle": "Анализ лица",
+        "faceDescription": "Определяйте форму лица и получайте направления по оправам до расхода кредитов.",
+        "glassesTitle": "Очки",
+        "glassesDescription": "Загружайте фото товара или скриншоты и смотрите на своем лице.",
+        "compareTitle": "Сравнить",
+        "compareDescription": "Выбирайте встроенные пресеты и проверяйте несколько результатов в одном борде."
+      },
+      "ctaPrimary": "Начать с Face",
+      "ctaSecondary": "Сравнить оправы",
+      "featureCards": {
+        "faceTitle": "Анализ лица",
+        "faceDescription": "A professional face-shape report with оправа style recommendations.",
+        "glassesTitle": "Custom Очки Примерка",
+        "glassesDescription": "Use your own glasses product image, store фото, or screenshot.",
+        "compareTitle": "Frame Сравнение",
+        "compareDescription": "Quickly test built-in оправа presets from the same portrait.",
+        "openTool": "Открыть инструмент"
+      },
+      "workflow": {
+        "badge": "Face analysis for glasses (RU)",
+        "title": "Начать try-on with оправаs that already fit the face",
+        "description": "VisuTry now uses one portrait to read face shape, narrow the first оправа shortlist, and send shoppers directly into glasses try-on with better choices.",
+        "point1": "Face shape report (RU)",
+        "point2": "Recommended оправа styles",
+        "point3": "One path into AI try-on (RU)",
+        "cta": "Проанализировать лицо"
+      },
+      "benefits": {
+        "generatedTitle": "AI-generated previews (RU)",
+        "generatedDescription": "Use one portrait to analyze, try on, and compare glasses before buying. (RU)",
+        "historyTitle": "Saved to история",
+        "historyDescription": "Completed results stay available in Dashboard History based on your plan. (RU)",
+        "privacyTitle": "Private by default (RU)",
+        "privacyDescription": "Photos and results stay приватно to your account and are never published."
+      },
+      "faq": {
+        "q1Question": "How does VisuTry's AI try-on work? (RU)",
+        "q1Answer": "VisuTry uses Google Nano Banana AI to analyze your facial features and realistically overlay glasses onto your photo. The AI understands face shape, lighting, and perspective to create natural-looking results in seconds.",
+        "q2Question": "Is my photo data safe and private?",
+        "q2Answer": "Absolutely! Your photos are encrypted during upload and processing. We never share your images publicly or use them for AI training without explicit permission. Free users' data is stored for 7 days, Credits users for 90 days, and Premium members for 1 year.",
+        "q3Question": "What's the difference between free and Premium quality?",
+        "q3Answer": "Free users get standard quality images (800×800 pixels) with a small watermark. Premium users receive high-quality images (1200×1200 pixels) without watermarks, plus priority processing and longer data retention (1 year vs 7 days).",
+        "q4Question": "Can I use the generated images commercially?",
+        "q4Answer": "Yes! Premium and Credits Pack users can use their watermark-free images for any purpose, including commercial use. Free users receive images with a watermark for personal use only.",
+        "q5Question": "How long does it take to generate a try-on?",
+        "q5Answer": "Most try-ons complete in 10-30 seconds. Premium users enjoy priority processing, which means faster results even during peak times. The exact time depends on server load and image complexity."
+      }
+    },
+    "pricing": {
+      "metaTitle": "Тарифные Планы - Виртуальная Примерка ИИ для Всех Категорий | VisuTry",
+      "metaDescription": "Выберите идеальный план для мгновенной виртуальной примерки на базе ИИ. Примеряйте очки, одежду, обувь и аксессуары с Nano Banana ИИ (Gemini 2.5 Flash Image). Доступны бесплатные пробные версии, премиум-функции для неограниченной виртуальной подгонки.",
+      "eyebrow": "Простые кредиты для Face, Glasses и Compare",
+      "title": "Начните с 1 бесплатного кредита и продолжайте с {count} AI-кредитами за 2.99 USD",
+      "description": "Используйте кредиты для ИИ-анализа лица, персональной примерки очков и сравнения оправ.",
+      "faqTitle": "Frequently Asked Questions (RU)",
+      "featureCards": {
+        "faceTitle": "Анализ лица",
+        "faceDescription": "Use one кредит to estimate face shape and get оправа directions before trying glasses.",
+        "glassesTitle": "Очки Примерка",
+        "glassesDescription": "Use one кредит per custom try-on from a portrait and a glasses product image.",
+        "compareTitle": "Frame Сравнение",
+        "compareDescription": "Use one кредит per generated оправа. Try 1 оправа бесплатно, or compare up to 4 with кредиты."
+      },
+      "faq": {
+        "q1Title": "Can I cancel my subscription anytime?",
+        "q1Answer": "Yes, you can cancel your subscription at any time. Your access will continue until the end of your billing period.",
+        "q2Title": "What happens to unused try-ons?",
+        "q2Answer": "For monthly subscriptions, unused try-ons do not roll over to the next month. For credits packs, credits never expire.",
+        "q3Title": "Do you offer refunds?",
+        "q3Answer": "We offer a 7-day money-back guarantee for all subscriptions. Credits packs are non-refundable once used.",
+        "q4Title": "Do кредиты expire?",
+        "q4Answer": "Credits never expire after purchase. You can use them anytime at your convenience. (RU)",
+        "q5Title": "What can I do with one бесплатно кредит?",
+        "q5Answer": "You can run one face analysis, one custom glasses try-on, or one оправа inside Сравнение. It is designed to let you test the workflow before buying кредиты.",
+        "q6Title": "What payment methods are supported? (RU)",
+        "q6Answer": "We support all major кредит and debit cards, including Visa, Mastercard, American Express, and more.",
+        "q7Title": "How do I contact support? (RU)",
+        "q7Answer": "You can contact us via email at support@visutry.com. Premium members enjoy priority support. (RU)"
+      },
+      "legal": {
+        "prefix": "Оформляя подписку, вы соглашаетесь с",
+        "terms": "Условиями использования",
+        "and": "и",
+        "privacy": "Политикой конфиденциальности",
+        "middle": ". Также ознакомьтесь с",
+        "refund": "Политикой возврата",
+        "suffix": "по условиям отмены."
+      }
+    },
+    "faqPage": {
+      "metaTitle": "FAQ: AI Очки Примерка, Анализ лица, and Сравнение | VisuTry",
+      "metaDescription": "Questions about VisuTry кредиты, AI face analysis, custom glasses try-on, оправа compare, privacy, and Dashboard History.",
+      "badge": "Центр помощи",
+      "title": "FAQ for AI glasses try-on, face analysis, and оправа compare",
+      "subtitle": "Quick answers for shoppers choosing glasses онлайн with VisuTry.",
+      "topics": "Темы",
+      "supportTitle": "Нужна помощь с конкретной задачей?",
+      "supportDescription": "Свяжитесь с поддержкой, указав email аккаунта и ID задачи, если результат выглядит неверным или обрабатывается дольше обычного."
+    },
+    "tryOnLanding": {
+      "metaTitle": "Онлайн-примерка очков по фото | VisuTry",
+      "metaDescription": "Примеряйте очки онлайн по фото лица и изображению товара или скриншоту.",
+      "howItWorks": "Как это работает",
+      "title": "От изображения товара к превью примерки",
+      "description": "Use Очки when you already have a specific оправа фото or screenshot. VisuTry turns that product image into a browser-based preview on your portrait.",
+      "startButton": "Начать бесплатно",
+      "pricingButton": "30 try-ons for USD 2.99 (RU)",
+      "guideLink": "Читать гайд по покупке",
+      "faqTitle": "FAQ по ИИ-примерке очков",
+      "notFoundTitle": "Try-On не найден | VisuTry",
+      "notFoundDescription": "Запрошенный тип try-on не найден.",
+      "ogDescription": "Загрузите фото лица и изображение очков, чтобы увидеть результат до покупки.",
+      "ctaNote": "Одна бесплатная примерка для старта. Credits Pack — разовая покупка без подписки.",
+      "shortlistNotePrefix": "Not sure what glasses suit your face? Начать with",
+      "shortlistNoteLink": "AI face shape analysis (RU)",
+      "shortlistNoteSuffix": "to get a shortlist, then come back here to try on glasses онлайн from your own фото and product screenshots.",
+      "faq": {
+        "q1Question": "Can I try on glasses онлайн from a screenshot?",
+        "q1Answer": "Yes. VisuTry lets you загрузить your face фото and a glasses product image or screenshot, then uses AI to create a realistic virtual glasses try-on preview on your face.",
+        "q2Question": "Can I загрузить my own glasses image for virtual try-on?",
+        "q2Answer": "Yes. You can загрузить a product фото, store image, email screenshot, or a transparent оправа image. Clear front-facing product images usually work best.",
+        "q3Question": "Can I try on glasses at home before buying? (RU)",
+        "q3Answer": "Yes. VisuTry runs in your browser, so you can try on glasses at home from a face фото and compare оправа images before deciding what to buy.",
+        "q4Question": "What if I do not know which glasses to try first? (RU)",
+        "q4Answer": "Начать with AI face analysis to estimate your face shape and get оправа recommendations, then return to virtual glasses try-on with a better shortlist.",
+        "q5Question": "How does AI try on glasses work? (RU)",
+        "q5Answer": "AI glasses try-on combines your face фото with a glasses product image or screenshot to generate a preview of the оправа on your face. It is most useful after you shortlist styles by face shape, size, and personal taste.",
+        "q6Question": "Is VisuTry a try on glasses app? (RU)",
+        "q6Answer": "VisuTry works like a try on glasses app, but it runs in your web browser. You can use it on desktop or mobile without installing an app. (RU)",
+        "q7Question": "Can I try on blue light glasses онлайн?",
+        "q7Answer": "Yes. If you have a clear product image or screenshot of blue light glasses, you can загрузить it and preview the оправа on your face before buying.",
+        "q8Question": "Do I need to install an app? (RU)",
+        "q8Answer": "No. VisuTry runs in the browser on desktop and mobile. Sign in, загрузить your фотоs, and start the glasses try-on flow онлайн.",
+        "q9Question": "What happens after my бесплатно try-on?",
+        "q9Answer": "You can continue with a Credits Pack: 30 AI try-ons for USD 2.99, no subscription required. Credits do not expire. (RU)"
+      },
+      "valuePoints": {
+        "p1": "Upload a portrait and one glasses image (RU)",
+        "p2": "Preview the оправа on your face before buying",
+        "p3": "Use Face or Сравнение when you need help choosing"
+      },
+      "steps": {
+        "s1Title": "Upload your фотоs",
+        "s1Description": "Use a face фото plus a glasses product фото, store image, or screenshot from email.",
+        "s2Title": "Preview and compare (RU)",
+        "s2Description": "Check how different оправаs look on your face before choosing what to buy.",
+        "s3Title": "Browser-based and приватно",
+        "s3Description": "No app install. Free data is stored for 7 days; Credits Pack users get 90 days of история retention.",
+        "s4Title": "Continue when you need more (RU)",
+        "s4Description": "Начать with one бесплатно try-on, then use a one-time Credits Pack when you want to compare more оправаs."
+      }
+    },
+    "compareLanding": {
+      "metaTitle": "Сравнение оправ очков онлайн | VisuTry",
+      "metaDescription": "Загрузите фото, выберите пресеты и сравните результаты AI рядом.",
+      "startCreditTitle": "Начать with one кредит",
+      "upToFourTitle": "Up to four оправаs",
+      "savedTitle": "Saved to история",
+      "compareBefore": "Сравнение before buying",
+      "startComparing": "Начать сравнение",
+      "viewPricing": "Смотреть цены",
+      "ogDescription": "Quickly compare built-in glasses оправа presets on your own фото with AI try-on.",
+      "srOnlyTitle": "Сравните оправы очков на вашем фото",
+      "cards": {
+        "c1Description": "Trial users can compare one preset оправа first, then add кредиты when they want a full board.",
+        "c2Description": "Credits map directly to generated оправаs, so a 4-оправа comparison uses up to 4 кредиты.",
+        "c3Description": "Completed results are kept in Dashboard History according to your account retention plan. (RU)"
+      },
+      "compareDescription": "Use Сравнение when you have several likely оправа shapes and want a fast side-by-side view. Use Очки Примерка when you already have a specific product image or screenshot."
+    },
+    "faceAnalysisLanding": {
+      "badge": "Определение формы лица для очков",
+      "startFaceAnalysis": "Начать анализ лица",
+      "tryGlassesOnPhoto": "Try glasses on фото",
+      "faqTitle": "FAQ по ИИ-анализу лица",
+      "guideLink": "Read the full гайд",
+      "faqEyebrow": "Вопросы от покупателей",
+      "valuePoints": {
+        "p1": "AI face shape detector for glasses (RU)",
+        "p2": "Frame picks with a reason (RU)",
+        "p3": "Continue into virtual try-on (RU)"
+      },
+      "links": {
+        "compareByShape": "Сравнение glasses by face shape",
+        "readGuide": "Read the AI glasses гайд"
+      },
+      "table": {
+        "title": "Best glasses by face shape (RU)",
+        "description": "If you are asking what glasses suit my face, start with face shape as a first filter. Use these оправа directions to build your shortlist, then validate scale and style with virtual glasses try-on.",
+        "colShape": "Форма лица",
+        "colTryFirst": "Сначала попробовать",
+        "colWhy": "Почему это работает",
+        "seeStyles": "Смотреть стили",
+        "ctaGuide": "Explore the face-shape гайд",
+        "ctaTry": "Try glasses on your фото"
+      },
+      "shapes": {
+        "roundName": "Round face (RU)",
+        "roundFrames": "Rectangular, square, geometric, and slightly wider оправаs",
+        "roundReason": "Angular lines add definition and help balance softer curves. (RU)",
+        "squareName": "Square face (RU)",
+        "squareFrames": "Round, oval, thin metal, and softly curved оправаs",
+        "squareReason": "Curved shapes soften a strong jawline and reduce visual weight. (RU)",
+        "ovalName": "Oval face (RU)",
+        "ovalFrames": "Balanced rectangular, browline, aviator, and classic shapes (RU)",
+        "ovalReason": "Oval proportions are flexible, so scale and personal style matter most. (RU)",
+        "heartName": "Heart face (RU)",
+        "heartFrames": "Lightweight, rounded, cat-eye, and bottom-balanced оправаs",
+        "heartReason": "Softer or lifted shapes balance a wider forehead with a narrower chin. (RU)"
+      },
+      "faq": {
+        "q1Question": "What is AI face analysis for glasses? (RU)",
+        "q1Answer": "VisuTry provides AI face analysis for glasses by estimating your face shape and key visible features, then suggesting оправа styles before virtual try-on.",
+        "q2Question": "Can AI recommend glasses for my face shape? (RU)",
+        "q2Answer": "Yes. AI face analysis can recommend оправа directions for round, square, oval, heart, diamond, oblong, and triangle face shapes. Use virtual try-on as the final visual check.",
+        "q3Question": "Can I use a face shape detector онлайн бесплатно before buying glasses?",
+        "q3Answer": "Yes. VisuTry lets you start with an онлайн AI face shape detector so you can understand your likely face shape before choosing glasses. Use the result as a practical shortlist, then confirm the look with virtual try-on.",
+        "q4Question": "What is a face shape finder for glasses? (RU)",
+        "q4Answer": "A face shape finder estimates whether your face is closer to round, square, oval, heart, diamond, oblong, or triangle, then turns that result into оправа styles to try first.",
+        "q5Question": "Is my face analysis приватно?",
+        "q5Answer": "Your загрузитьed фото and analysis stay приватно to your account. VisuTry uses the image to generate your face shape report and glasses recommendations.",
+        "q6Question": "What glasses suit my face shape? (RU)",
+        "q6Answer": "Round faces often start with angular оправаs, square faces with round or oval оправаs, oval faces with balanced rectangular or browline оправаs, and heart faces with lightweight or softly upswept оправаs."
+      }
     }
   }
 }

@@ -10,6 +10,7 @@ import { TryOnType, getTryOnConfig, urlToTryOnType, getAllTryOnTypes, tryOnTypeT
 import Link from "next/link"
 import { ArrowRight, CheckCircle2, CreditCard, Image, Shield, Upload } from "lucide-react"
 import { ModelTryOnSlides } from "@/components/marketing/ModelTryOnSlides"
+import { getTranslations } from "next-intl/server"
 
 interface TryOnPageProps {
   params: {
@@ -20,12 +21,13 @@ interface TryOnPageProps {
 
 // Generate metadata dynamically based on try-on type
 export async function generateMetadata({ params }: TryOnPageProps): Promise<Metadata> {
+  const marketingT = await getTranslations({ locale: params.locale, namespace: 'marketing.tryOnLanding' })
   const tryOnType = urlToTryOnType(params.type)
   
   if (!tryOnType) {
     return {
-      title: 'Try-On Not Found | VisuTry',
-      description: 'The requested try-on type was not found.'
+      title: marketingT('notFoundTitle'),
+      description: marketingT('notFoundDescription')
     }
   }
 
@@ -34,13 +36,13 @@ export async function generateMetadata({ params }: TryOnPageProps): Promise<Meta
   if (tryOnType === "GLASSES") {
     return {
       title: "Virtual Glasses Try On Online from Photo | VisuTry",
-      description: "Try on glasses online at home from a face photo and your own glasses product image or screenshot. Compare frames before buying with VisuTry's browser-based AI glasses try-on.",
+      description: marketingT('metaDescription'),
       alternates: {
         canonical: `https://www.visutry.com/${params.locale}/try-on/glasses`,
       },
       openGraph: {
-        title: "Virtual Glasses Try On Online from Photo | VisuTry",
-        description: "Upload a face photo and a glasses product image or screenshot to preview how frames look before buying at home. No app install required.",
+        title: marketingT('metaTitle'),
+        description: marketingT('ogDescription'),
         url: `https://www.visutry.com/${params.locale}/try-on/glasses`,
         type: "website",
       },
@@ -119,7 +121,7 @@ export default async function TryOnTypePage({ params }: TryOnPageProps) {
   )
 }
 
-function PublicTryOnLanding({
+async function PublicTryOnLanding({
   locale,
   type,
   tryOnType,
@@ -128,6 +130,7 @@ function PublicTryOnLanding({
   type: string
   tryOnType: TryOnType
 }) {
+  const t = await getTranslations({ locale, namespace: 'marketing.tryOnLanding' })
   const config = getTryOnConfig(tryOnType)
   const isGlasses = tryOnType === "GLASSES"
   const startHref = `/${locale}/auth/signin?callbackUrl=${encodeURIComponent(`/${locale}/try-on/${type}`)}`
@@ -135,40 +138,40 @@ function PublicTryOnLanding({
   const faqItems = isGlasses
     ? [
         {
-          question: "Can I try on glasses online from a screenshot?",
-          answer: "Yes. VisuTry lets you upload your face photo and a glasses product image or screenshot, then uses AI to create a realistic virtual glasses try-on preview on your face.",
+          question: t('faq.q1Question'),
+          answer: t('faq.q1Answer'),
         },
         {
-          question: "Can I upload my own glasses image for virtual try-on?",
-          answer: "Yes. You can upload a product photo, store image, email screenshot, or a transparent frame image. Clear front-facing product images usually work best.",
+          question: t('faq.q2Question'),
+          answer: t('faq.q2Answer'),
         },
         {
-          question: "Can I try on glasses at home before buying?",
-          answer: "Yes. VisuTry runs in your browser, so you can try on glasses at home from a face photo and compare frame images before deciding what to buy.",
+          question: t('faq.q3Question'),
+          answer: t('faq.q3Answer'),
         },
         {
-          question: "What if I do not know which glasses to try first?",
-          answer: "Start with AI face analysis to estimate your face shape and get frame recommendations, then return to virtual glasses try-on with a better shortlist.",
+          question: t('faq.q4Question'),
+          answer: t('faq.q4Answer'),
         },
         {
-          question: "How does AI try on glasses work?",
-          answer: "AI glasses try-on combines your face photo with a glasses product image or screenshot to generate a preview of the frame on your face. It is most useful after you shortlist styles by face shape, size, and personal taste.",
+          question: t('faq.q5Question'),
+          answer: t('faq.q5Answer'),
         },
         {
-          question: "Is VisuTry a try on glasses app?",
-          answer: "VisuTry works like a try on glasses app, but it runs in your web browser. You can use it on desktop or mobile without installing an app.",
+          question: t('faq.q6Question'),
+          answer: t('faq.q6Answer'),
         },
         {
-          question: "Can I try on blue light glasses online?",
-          answer: "Yes. If you have a clear product image or screenshot of blue light glasses, you can upload it and preview the frame on your face before buying.",
+          question: t('faq.q7Question'),
+          answer: t('faq.q7Answer'),
         },
         {
-          question: "Do I need to install an app?",
-          answer: "No. VisuTry runs in the browser on desktop and mobile. Sign in, upload your photos, and start the glasses try-on flow online.",
+          question: t('faq.q8Question'),
+          answer: t('faq.q8Answer'),
         },
         {
-          question: "What happens after my free try-on?",
-          answer: "You can continue with a Credits Pack: 30 AI try-ons for USD 2.99, no subscription required. Credits do not expire.",
+          question: t('faq.q9Question'),
+          answer: t('faq.q9Answer'),
         },
       ]
     : [
@@ -195,9 +198,9 @@ function PublicTryOnLanding({
   })
   const valuePoints = isGlasses
     ? [
-        "Upload a portrait and one glasses image",
-        "Preview the frame on your face before buying",
-        "Use Face or Compare when you need help choosing",
+        t('valuePoints.p1'),
+        t('valuePoints.p2'),
+        t('valuePoints.p3'),
       ]
     : [
         `Upload your own ${config.name.toLowerCase()} image`,
@@ -208,23 +211,23 @@ function PublicTryOnLanding({
     ? [
         {
           icon: Upload,
-          title: "Upload your photos",
-          description: "Use a face photo plus a glasses product photo, store image, or screenshot from email.",
+          title: t('steps.s1Title'),
+          description: t('steps.s1Description'),
         },
         {
           icon: Image,
-          title: "Preview and compare",
-          description: "Check how different frames look on your face before choosing what to buy.",
+          title: t('steps.s2Title'),
+          description: t('steps.s2Description'),
         },
         {
           icon: Shield,
-          title: "Browser-based and private",
-          description: "No app install. Free data is stored for 7 days; Credits Pack users get 90 days of history retention.",
+          title: t('steps.s3Title'),
+          description: t('steps.s3Description'),
         },
         {
           icon: CreditCard,
-          title: "Continue when you need more",
-          description: "Start with one free try-on, then use a one-time Credits Pack when you want to compare more frames.",
+          title: t('steps.s4Title'),
+          description: t('steps.s4Description'),
         },
       ]
     : [
@@ -272,14 +275,13 @@ function PublicTryOnLanding({
         <section className="grid gap-8 lg:grid-cols-[0.82fr_1.18fr] lg:items-start">
           <div className="max-w-2xl">
           <p className="mb-3 inline-flex items-center rounded-lg border border-blue-200 bg-white px-3 py-1 text-sm font-semibold text-blue-700">
-            How it works
+            {t('howItWorks')}
           </p>
           <h2 className="mb-4 text-2xl font-bold leading-tight text-gray-950 md:text-3xl">
-            From product image to try-on preview
+            {t('title')}
           </h2>
           <p className="mb-6 text-base leading-7 text-gray-600">
-            Use Glasses when you already have a specific frame photo or screenshot. VisuTry turns
-            that product image into a browser-based preview on your portrait.
+            {t('description')}
           </p>
           <div className="mb-7 grid gap-3">
             {valuePoints.map((item) => (
@@ -294,19 +296,17 @@ function PublicTryOnLanding({
               href={startHref}
               className="inline-flex items-center justify-center rounded-lg bg-blue-600 px-5 py-3 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-blue-700"
             >
-              Start free glasses try-on
+              {t('startButton')}
               <ArrowRight className="ml-2 h-4 w-4" />
             </Link>
             <Link
               href={`/${locale}/pricing`}
               className="inline-flex items-center justify-center rounded-lg border border-gray-300 px-5 py-3 text-sm font-semibold text-gray-900 transition-colors hover:bg-gray-50"
             >
-              30 try-ons for USD 2.99
+              {t('pricingButton')}
             </Link>
           </div>
-          <p className="mt-4 text-sm text-gray-500">
-            One free try-on to start. Credits Pack is a one-time purchase, no subscription required.
-          </p>
+          <p className="mt-4 text-sm text-gray-500">{t('ctaNote')}</p>
         </div>
 
         <div className="rounded-lg border border-gray-200 bg-white/80 p-4 shadow-sm md:p-5">
@@ -325,12 +325,11 @@ function PublicTryOnLanding({
             })}
           </div>
           <p className="mt-4 rounded-lg bg-blue-50 px-4 py-3 text-sm leading-6 text-blue-900">
-            Not sure what glasses suit your face? Start with{' '}
+            {t('shortlistNotePrefix')}{' '}
             <Link href={`/${locale}/face-analysis`} className="font-semibold text-blue-700 hover:text-blue-900">
-              AI face shape analysis
+              {t('shortlistNoteLink')}
             </Link>
-            {' '}to get a shortlist, then come back here to try on glasses online from your own
-            photo and product screenshots.
+            {' '}{t('shortlistNoteSuffix')}
           </p>
         </div>
       </section>
@@ -341,13 +340,13 @@ function PublicTryOnLanding({
             <p className="mb-2 text-sm font-semibold uppercase tracking-normal text-blue-600">
               Questions shoppers ask
             </p>
-            <h2 className="text-2xl font-bold text-gray-950">AI glasses try-on FAQ</h2>
+            <h2 className="text-2xl font-bold text-gray-950">{t('faqTitle')}</h2>
           </div>
           <Link
             href={`/${locale}/blog/prescription-glasses-virtual-tryon-guide`}
             className="text-sm font-semibold text-blue-600 hover:text-blue-800"
           >
-            Read the buying guide
+            {t('guideLink')}
           </Link>
         </div>
         <div className="grid gap-4 md:grid-cols-2">

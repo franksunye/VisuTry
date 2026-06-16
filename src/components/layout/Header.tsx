@@ -33,11 +33,11 @@ export function Header({ transparent = false }: HeaderProps) {
 
   // Navigation links with locale prefix
   const navLinks = useMemo(() => [
-    { href: `/${locale}/face-analysis`, label: 'Face' },
-    { href: `/${locale}/try-on/glasses`, label: 'Glasses' },
-    { href: `/${locale}/try-on/glasses/compare`, label: 'Compare' },
+    { href: `/${locale}/face-analysis`, label: t('faceAnalysis') },
+    { href: `/${locale}/try-on/glasses`, label: t('tryGlasses') },
+    { href: `/${locale}/try-on/glasses/compare`, label: t('compare') },
     { href: `/${locale}/pricing`, label: t('pricing') },
-    { href: `/${locale}/faq`, label: 'FAQ' },
+    { href: `/${locale}/faq`, label: t('faq') },
   ], [locale, t])
   
   return (

@@ -20,12 +20,12 @@ export function generateStaticParams() {
 
 export async function generateMetadata(props: Props): Promise<Metadata> {
   const params = await props.params
-  const t = await getTranslations({ locale: params.locale, namespace: 'meta.home' })
+  const t = await getTranslations({ locale: params.locale, namespace: 'marketing.home' })
 
   return generateI18nSEO({
     locale: params.locale as Locale,
-    title: t('title'),
-    description: t('description'),
+    title: t('metaTitle'),
+    description: t('metaDescription'),
     pathname: '',
   })
 }

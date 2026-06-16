@@ -9,6 +9,7 @@ import { FrameCompareInterface } from '@/components/compare/FrameCompareInterfac
 import { getRemainingQuotaCount } from '@/lib/quota'
 import { prisma } from '@/lib/prisma'
 import { CompareLandingVisual } from '@/components/marketing/CompareLandingVisual'
+import { getTranslations } from 'next-intl/server'
 
 interface FrameComparePageProps {
   params: {
@@ -17,16 +18,16 @@ interface FrameComparePageProps {
 }
 
 export async function generateMetadata({ params }: FrameComparePageProps): Promise<Metadata> {
+  const t = await getTranslations({ locale: params.locale, namespace: 'marketing.compareLanding' })
   return {
-    title: 'Compare Glasses Frames Online | VisuTry',
-    description:
-      'Upload a face photo, choose built-in glasses frame presets, and compare AI try-on results side by side.',
+    title: t('metaTitle'),
+    description: t('metaDescription'),
     alternates: {
       canonical: `https://www.visutry.com/${params.locale}/try-on/glasses/compare`,
     },
     openGraph: {
-      title: 'Compare Glasses Frames Online | VisuTry',
-      description: 'Quickly compare built-in glasses frame presets on your own photo with AI try-on.',
+      title: t('metaTitle'),
+      description: t('ogDescription'),
       url: `https://www.visutry.com/${params.locale}/try-on/glasses/compare`,
       type: 'website',
     },
@@ -68,29 +69,30 @@ export default async function FrameComparePage({ params }: FrameComparePageProps
   )
 }
 
-function PublicFrameCompareLanding({ locale }: { locale: string }) {
+async function PublicFrameCompareLanding({ locale }: { locale: string }) {
+  const t = await getTranslations({ locale, namespace: 'marketing.compareLanding' })
   const signInHref = `/${locale}/auth/signin?callbackUrl=${encodeURIComponent(
     `/${locale}/try-on/glasses/compare`,
   )}`
 
   return (
     <main className="mx-auto w-full max-w-6xl px-4 py-10 sm:px-6 lg:px-8">
-      <h1 className="sr-only">Compare glasses frames on your photo</h1>
+      <h1 className="sr-only">{t('srOnlyTitle')}</h1>
       <CompareLandingVisual locale={locale} startHref={signInHref} />
 
       <section className="mt-8 grid gap-4 md:grid-cols-3">
         {[
           {
-            title: 'Start with one credit',
-            description: 'Trial users can compare one preset frame first, then add credits when they want a full board.',
+            title: t('startCreditTitle'),
+            description: t('cards.c1Description'),
           },
           {
-            title: 'Up to four frames',
-            description: 'Credits map directly to generated frames, so a 4-frame comparison uses up to 4 credits.',
+            title: t('upToFourTitle'),
+            description: t('cards.c2Description'),
           },
           {
-            title: 'Saved to history',
-            description: 'Completed results are kept in Dashboard History according to your account retention plan.',
+            title: t('savedTitle'),
+            description: t('cards.c3Description'),
           },
         ].map((item) => (
           <div key={item.title} className="rounded-lg border border-gray-200 bg-white p-5 shadow-sm">
@@ -105,11 +107,10 @@ function PublicFrameCompareLanding({ locale }: { locale: string }) {
         <div>
           <div className="mb-2 inline-flex items-center gap-2 text-sm font-bold text-blue-700">
             <Grid2X2 className="h-4 w-4" />
-            Compare before buying
+            {t('compareBefore')}
           </div>
           <p className="max-w-2xl text-sm leading-6 text-blue-900">
-            Use Compare when you have several likely frame shapes and want a fast side-by-side view.
-            Use Glasses Try-On when you already have a specific product image or screenshot.
+            {t('compareDescription')}
           </p>
         </div>
         <div className="mt-4 flex flex-col gap-3 sm:mt-0 sm:flex-row">
@@ -118,13 +119,13 @@ function PublicFrameCompareLanding({ locale }: { locale: string }) {
             className="inline-flex items-center justify-center gap-2 rounded-lg bg-blue-600 px-5 py-3 text-sm font-bold text-white shadow-sm hover:bg-blue-700"
           >
             <Sparkles className="h-4 w-4" />
-            Start Comparing
+            {t('startComparing')}
           </Link>
           <Link
             href={`/${locale}/pricing`}
             className="inline-flex items-center justify-center rounded-lg border border-blue-200 bg-white px-5 py-3 text-sm font-bold text-blue-700 hover:border-blue-300"
           >
-            View pricing
+            {t('viewPricing')}
           </Link>
         </div>
       </section>

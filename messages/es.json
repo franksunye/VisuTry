@@ -1,72 +1,18 @@
 {
   "common": {
-    "getStarted": "Comenzar",
-    "learnMore": "Más Información",
-    "signIn": "Iniciar Sesión",
-    "signOut": "Cerrar Sesión",
     "startFreeTrial": "Iniciar Prueba Gratuita",
     "startTryOn": "Comenzar Prueba",
-    "tryOn": "Prueba Virtual",
-    "blog": "Blog",
-    "pricing": "Precios",
-    "dashboard": "Panel",
-    "profile": "Perfil",
-    "settings": "Configuración",
-    "loading": "Cargando...",
-    "error": "Error",
-    "success": "Éxito",
-    "cancel": "Cancelar",
-    "save": "Guardar",
-    "delete": "Eliminar",
-    "edit": "Editar",
-    "close": "Cerrar",
-    "back": "Atrás",
-    "next": "Siguiente",
-    "previous": "Anterior",
-    "submit": "Enviar",
-    "confirm": "Confirmar"
+    "loading": "Cargando..."
   },
   "nav": {
     "faceAnalysis": "Análisis facial",
-    "home": "Inicio",
-    "tryOn": "Prueba Virtual",
     "tryGlasses": "Gafas",
-    "tryOutfit": "Probar Ropa",
-    "tryShoes": "Probar Zapatos",
-    "tryAccessories": "Probar Accesorios",
-    "blog": "Blog",
     "pricing": "Precios",
-    "dashboard": "Panel",
-    "signIn": "Iniciar Sesión",
-    "signOut": "Cerrar Sesión",
-    "toggleMenu": "Alternar menú de navegación"
+    "toggleMenu": "Alternar menú de navegación",
+    "compare": "Compare",
+    "faq": "FAQ"
   },
   "home": {
-    "hero": {
-      "title": "Encuentra Tu Estilo Perfecto",
-      "subtitle": "Prueba en 3 Sencillos Pasos"
-    },
-    "steps": {
-      "step1": {
-        "title": "Sube tu Foto",
-        "description": "Sube una foto clara de ti mismo — no se requieren herramientas especiales."
-      },
-      "step2": {
-        "title": "Elige Tu Estilo",
-        "description": "Elige el artículo que deseas probar. Te mostraremos cómo se ve en ti."
-      },
-      "step3": {
-        "title": "Ver y Guardar",
-        "description": "Ve tu look perfecto, luego guárdalo o compártelo."
-      }
-    },
-    "cta": {
-      "button": "Comenzar",
-      "faceAnalysis": "Análisis facial",
-      "tryOutfit": "Probar Ropa",
-      "tryShoes": "Probar Zapatos",
-      "tryAccessories": "Probar Accesorios"
-    },
     "showcase": {
       "alex": {
         "name": "Alex",
@@ -84,172 +30,29 @@
         "title": "✨ Únete a miles que encontraron sus gafas perfectas",
         "subtitle": "Prueba estilos ilimitados con precisión de IA"
       }
-    },
-    "features": {
-      "title": "Características Clave de VisuTry",
-      "subtitle": "Experimenta la próxima generación de prueba virtual con IA",
-      "feature1": {
-        "title": "Google Nano Banana",
-        "description": "Impulsado por el último modelo de IA de Google para resultados de prueba ultra realistas con precisión excepcional e iluminación natural."
-      },
-      "feature2": {
-        "title": "Retención Inteligente de Datos",
-        "description": "Tu historial de pruebas se almacena de forma segura: 7 días para usuarios gratuitos, 90 días con Créditos y 1 año para miembros Premium."
-      },
-      "feature3": {
-        "title": "Procesamiento Ultrarrápido",
-        "description": "Obtén tus resultados de prueba en 10-30 segundos con nuestro pipeline de IA optimizado. Los usuarios Premium disfrutan de procesamiento prioritario."
-      },
-      "feature4": {
-        "title": "Privacidad Protegida",
-        "description": "Tus fotos están encriptadas y seguras. Nunca compartimos tus imágenes ni las usamos para entrenamiento sin permiso."
-      }
-    },
-    "faq": {
-      "title": "Preguntas Frecuentes",
-      "subtitle": "Todo lo que necesitas saber sobre VisuTry",
-      "q1": {
-        "question": "¿Cómo funciona la prueba virtual con IA de VisuTry?",
-        "answer": "VisuTry utiliza Google Nano Banana IA para analizar tus rasgos faciales y superponer gafas de forma realista en tu foto. La IA comprende la forma del rostro, la iluminación y la perspectiva para crear resultados de aspecto natural en segundos."
-      },
-      "q2": {
-        "question": "¿Mis datos fotográficos están seguros y privados?",
-        "answer": "¡Absolutamente! Tus fotos se encriptan durante la carga y el procesamiento. Nunca compartimos tus imágenes públicamente ni las usamos para entrenamiento de IA sin permiso explícito. Los datos de usuarios gratuitos se almacenan durante 7 días, usuarios de Créditos durante 90 días y miembros Premium durante 1 año."
-      },
-      "q3": {
-        "question": "¿Cuál es la diferencia entre la calidad gratuita y Premium?",
-        "answer": "Los usuarios gratuitos obtienen imágenes de calidad estándar (800×800 píxeles) con una pequeña marca de agua. Los usuarios Premium reciben imágenes de alta calidad (1200×1200 píxeles) sin marcas de agua, además de procesamiento prioritario y retención de datos más larga (1 año vs 7 días)."
-      },
-      "q4": {
-        "question": "¿Puedo usar las imágenes generadas comercialmente?",
-        "answer": "¡Sí! Los usuarios Premium y de Paquete de Créditos pueden usar sus imágenes sin marca de agua para cualquier propósito, incluido el uso comercial. Los usuarios gratuitos reciben imágenes con marca de agua solo para uso personal."
-      },
-      "q5": {
-        "question": "¿Cuánto tiempo tarda en generarse una prueba?",
-        "answer": "La mayoría de las pruebas se completan en 10-30 segundos. Los usuarios Premium disfrutan de procesamiento prioritario, lo que significa resultados más rápidos incluso durante las horas pico. El tiempo exacto depende de la carga del servidor y la complejidad de la imagen."
-      },
-      "q6": {
-        "question": "¿Qué sucede con mi historial de pruebas?",
-        "answer": "Tu historial de pruebas se guarda automáticamente según tu plan: Usuarios gratuitos (7 días), usuarios de Créditos (90 días), usuarios Premium (1 año). Recibirás un recordatorio por correo electrónico 3 días antes de la expiración, dándote tiempo para descargar o actualizar."
-      }
     }
   },
   "pricing": {
-    "title": "Elige tu Plan",
-    "subtitle": "Selecciona el plan perfecto para tus necesidades",
-    "currentPlan": "Plan Actual",
-    "freeUser": "Usuario Gratuito",
-    "remainingTryOns": "Pruebas restantes: {count}",
     "plans": {
       "creditsPack": {
-        "name": "Paquete de Créditos",
-        "description": "Perfecto para uso ocasional",
-        "price": "$2.99",
-        "period": "Pago único",
-        "buttonText": "Comprar Paquete de Créditos",
-        "features": [
-          "10 pruebas con IA",
-          "Procesamiento de imágenes de alta calidad",
-          "Descargas y compartir ilimitados",
-          "Biblioteca estándar de monturas",
-          "Soporte por email"
-        ]
+        "period": "Pago único"
       },
       "monthly": {
-        "name": "Estándar",
-        "description": "Opción más popular",
-        "price": "$8.99",
-        "period": "por mes",
-        "buttonText": "Iniciar Suscripción Mensual",
-        "features": [
-          "30 pruebas con IA por mes",
-          "Procesamiento de imágenes de alta calidad",
-          "Cola de procesamiento prioritaria",
-          "Descargas y compartir ilimitados",
-          "Biblioteca estándar de monturas",
-          "Soporte prioritario al cliente"
-        ]
+        "period": "por mes"
       },
       "yearly": {
-        "name": "Estándar",
-        "description": "Mejor valor - Ahorra 17%",
-        "price": "$89.99",
-        "originalPrice": "$107.88",
-        "period": "por año",
-        "buttonText": "Iniciar Suscripción Anual",
-        "features": [
-          "420 pruebas con IA por año (35/mes)",
-          "Procesamiento de imágenes de alta calidad",
-          "Cola de procesamiento prioritaria",
-          "Descargas y compartir ilimitados",
-          "Biblioteca estándar de monturas",
-          "Soporte prioritario al cliente",
-          "Ahorra $17.89 comparado con mensual"
-        ]
+        "period": "por año"
       }
     },
     "comparison": {
-      "title": "Comparar Planes",
-      "features": {
-        "aiTryOns": "Pruebas con IA",
-        "imageQuality": "Calidad de Imagen",
-        "processingSpeed": "Velocidad de Procesamiento",
-        "downloads": "Descargas y Compartir",
-        "frameLibrary": "Biblioteca de Monturas",
-        "support": "Atención al Cliente"
-      },
-      "values": {
-        "free": {
-          "aiTryOns": "1 vez",
-          "imageQuality": "Estándar",
-          "processingSpeed": "Estándar",
-          "downloads": "Limitado",
-          "frameLibrary": "Básica",
-          "support": "Email"
-        },
-        "credits": {
-          "aiTryOns": "+10 veces",
-          "imageQuality": "Alta",
-          "processingSpeed": "Estándar",
-          "downloads": "Ilimitado",
-          "frameLibrary": "Estándar",
-          "support": "Email"
-        },
-        "standard": {
-          "aiTryOns": "30/mes o 420/año",
-          "imageQuality": "Alta",
-          "processingSpeed": "Prioritaria",
-          "downloads": "Ilimitado",
-          "frameLibrary": "Estándar",
-          "support": "Prioritario"
-        }
-      }
-    },
-    "faq": {
-      "title": "Preguntas Frecuentes",
-      "questions": [
-        {
-          "question": "¿Puedo cancelar mi suscripción en cualquier momento?",
-          "answer": "Sí, puedes cancelar tu suscripción en cualquier momento. Tu acceso continuará hasta el final de tu período de facturación."
-        },
-        {
-          "question": "¿Qué pasa con las pruebas no utilizadas?",
-          "answer": "Para suscripciones mensuales, las pruebas no utilizadas no se transfieren al mes siguiente. Para paquetes de créditos, los créditos nunca expiran."
-        },
-        {
-          "question": "¿Ofrecen reembolsos?",
-          "answer": "Ofrecemos una garantía de devolución de dinero de 7 días para todas las suscripciones. Los paquetes de créditos no son reembolsables una vez utilizados."
-        }
-      ]
+      "title": "Comparar Planes"
     }
   },
   "footer": {
-    "tagline": "Prueba virtual con IA para gafas, ropa, zapatos y accesorios",
     "links": {
       "product": "Producto",
       "resources": "Recursos",
       "legal": "Legal",
-      "tryGlasses": "Probar Gafas",
       "tryOutfit": "Probar Ropa",
       "tryShoes": "Probar Zapatos",
       "tryAccessories": "Probar Accesorios",
@@ -263,16 +66,6 @@
     },
     "copyright": "© {year} VisuTry. Todos los derechos reservados.",
     "madeWith": "Hecho con ❤️ usando tecnología IA"
-  },
-  "meta": {
-    "home": {
-      "title": "VisuTry - Prueba Virtual de IA para Gafas, Ropa, Zapatos y Accesorios",
-      "description": "Prueba gafas, ropa, zapatos y accesorios al instante con prueba virtual impulsada por IA. Sin descargas - sube tu foto y ve cómo se ven los artículos antes de comprar. Impulsado por Nano Banana IA (Gemini 2.5 Flash Image) para resultados fotorrealistas."
-    },
-    "pricing": {
-      "title": "Planes de Precios - Prueba Virtual de IA para Todas las Categorías | VisuTry",
-      "description": "Elige el plan perfecto para prueba virtual instantánea impulsada por IA. Prueba gafas, ropa, zapatos y accesorios con Nano Banana IA (Gemini 2.5 Flash Image). Pruebas gratuitas disponibles, funciones premium para ajuste virtual ilimitado."
-    }
   },
   "faceAnalysis": {
     "meta": {
@@ -369,6 +162,241 @@
       "unlocked": "Desbloqueado",
       "locked": "Bloqueado",
       "viewReport": "Ver informe"
+    }
+  },
+  "marketing": {
+    "home": {
+      "metaTitle": "VisuTry - Prueba Virtual de IA para Gafas, Ropa, Zapatos y Accesorios",
+      "metaDescription": "Prueba gafas, ropa, zapatos y accesorios al instante con prueba virtual impulsada por IA. Sin descargas - sube tu foto y ve cómo se ven los artículos antes de comprar. Impulsado por Nano Banana IA (Gemini 2.5 Flash Image) para resultados fotorrealistas.",
+      "faqTitle": "Preguntas Frecuentes",
+      "faqSubtitle": "Todo lo que necesitas saber sobre VisuTry",
+      "heroTitle": "Encuentra Tu Estilo Perfecto",
+      "heroSubtitle": "Prueba en 3 Sencillos Pasos",
+      "tools": {
+        "faceTitle": "Análisis facial",
+        "faceDescription": "Detecta la forma de tu rostro y obtén recomendaciones de monturas antes de usar créditos.",
+        "glassesTitle": "Gafas",
+        "glassesDescription": "Sube fotos de producto o capturas y visualízalas en tu rostro.",
+        "compareTitle": "Comparar",
+        "compareDescription": "Elige preajustes integrados y revisa varios resultados de monturas en un solo panel."
+      },
+      "ctaPrimary": "Empezar con Face",
+      "ctaSecondary": "Comparar monturas",
+      "featureCards": {
+        "faceTitle": "Análisis facial",
+        "faceDescription": "Un informe profesional de forma facial con recomendaciones de monturas.",
+        "glassesTitle": "Prueba de gafas personalizada",
+        "glassesDescription": "Usa tu propia imagen de producto, foto de tienda o captura de pantalla.",
+        "compareTitle": "Comparación de monturas",
+        "compareDescription": "Prueba rápidamente monturas predefinidas desde el mismo retrato.",
+        "openTool": "Abrir herramienta"
+      },
+      "workflow": {
+        "badge": "Análisis facial para gafas",
+        "title": "Empieza la prueba con monturas que sí encajan con tu rostro",
+        "description": "VisuTry usa un solo retrato para leer la forma de tu rostro, reducir la primera selección y llevarte a la prueba de gafas con mejores opciones.",
+        "point1": "Informe de forma facial",
+        "point2": "Estilos de montura recomendados",
+        "point3": "Un único flujo hacia la prueba con IA",
+        "cta": "Analizar mi rostro"
+      },
+      "benefits": {
+        "generatedTitle": "Vistas previas generadas por IA",
+        "generatedDescription": "Usa un retrato para analizar, probar y comparar gafas antes de comprar.",
+        "historyTitle": "Guardado en historial",
+        "historyDescription": "Los resultados completados permanecen en el historial del panel según tu plan.",
+        "privacyTitle": "Privado por defecto",
+        "privacyDescription": "Tus fotos y resultados permanecen privados en tu cuenta y nunca se publican."
+      },
+      "faq": {
+        "q1Question": "¿Cómo funciona la prueba virtual con IA de VisuTry?",
+        "q1Answer": "VisuTry utiliza Google Nano Banana IA para analizar tus rasgos faciales y superponer gafas de forma realista en tu foto. La IA comprende la forma del rostro, la iluminación y la perspectiva para crear resultados de aspecto natural en segundos.",
+        "q2Question": "¿Mis datos fotográficos están seguros y privados?",
+        "q2Answer": "¡Absolutamente! Tus fotos se encriptan durante la carga y el procesamiento. Nunca compartimos tus imágenes públicamente ni las usamos para entrenamiento de IA sin permiso explícito. Los datos de usuarios gratuitos se almacenan durante 7 días, usuarios de Créditos durante 90 días y miembros Premium durante 1 año.",
+        "q3Question": "¿Cuál es la diferencia entre la calidad gratuita y Premium?",
+        "q3Answer": "Los usuarios gratuitos obtienen imágenes de calidad estándar (800×800 píxeles) con una pequeña marca de agua. Los usuarios Premium reciben imágenes de alta calidad (1200×1200 píxeles) sin marcas de agua, además de procesamiento prioritario y retención de datos más larga (1 año vs 7 días).",
+        "q4Question": "¿Puedo usar las imágenes generadas comercialmente?",
+        "q4Answer": "¡Sí! Los usuarios Premium y de Paquete de Créditos pueden usar sus imágenes sin marca de agua para cualquier propósito, incluido el uso comercial. Los usuarios gratuitos reciben imágenes con marca de agua solo para uso personal.",
+        "q5Question": "¿Cuánto tiempo tarda en generarse una prueba?",
+        "q5Answer": "La mayoría de las pruebas se completan en 10-30 segundos. Los usuarios Premium disfrutan de procesamiento prioritario, lo que significa resultados más rápidos incluso durante las horas pico. El tiempo exacto depende de la carga del servidor y la complejidad de la imagen."
+      }
+    },
+    "pricing": {
+      "metaTitle": "Planes de Precios - Prueba Virtual de IA para Todas las Categorías | VisuTry",
+      "metaDescription": "Elige el plan perfecto para prueba virtual instantánea impulsada por IA. Prueba gafas, ropa, zapatos y accesorios con Nano Banana IA (Gemini 2.5 Flash Image). Pruebas gratuitas disponibles, funciones premium para ajuste virtual ilimitado.",
+      "eyebrow": "Créditos simples para Face, Glasses y Compare",
+      "title": "Empieza con 1 crédito gratis y continúa con {count} créditos de IA por USD 2.99",
+      "description": "Usa créditos en análisis facial con IA, prueba personalizada de gafas y comparación de monturas.",
+      "faqTitle": "Preguntas Frecuentes",
+      "featureCards": {
+        "faceTitle": "Análisis facial",
+        "faceDescription": "Usa un crédito para estimar la forma de tu rostro y obtener recomendaciones de monturas antes de probar gafas.",
+        "glassesTitle": "Prueba de gafas",
+        "glassesDescription": "Usa un crédito por cada prueba personalizada con tu retrato y una imagen de gafas.",
+        "compareTitle": "Comparación de monturas",
+        "compareDescription": "Usa un crédito por montura generada. Prueba 1 montura gratis o compara hasta 4 con créditos."
+      },
+      "faq": {
+        "q1Title": "¿Puedo cancelar mi suscripción en cualquier momento?",
+        "q1Answer": "Sí, puedes cancelar tu suscripción en cualquier momento. Tu acceso continuará hasta el final de tu período de facturación.",
+        "q2Title": "¿Qué pasa con las pruebas no utilizadas?",
+        "q2Answer": "Para suscripciones mensuales, las pruebas no utilizadas no se transfieren al mes siguiente. Para paquetes de créditos, los créditos nunca expiran.",
+        "q3Title": "¿Ofrecen reembolsos?",
+        "q3Answer": "Ofrecemos una garantía de devolución de dinero de 7 días para todas las suscripciones. Los paquetes de créditos no son reembolsables una vez utilizados.",
+        "q4Title": "¿Los créditos caducan?",
+        "q4Answer": "Los créditos no caducan después de comprarlos. Puedes usarlos cuando quieras.",
+        "q5Title": "¿Qué puedo hacer con un crédito gratis?",
+        "q5Answer": "Puedes hacer un análisis facial, una prueba personalizada de gafas o una montura en Compare. Está diseñado para probar el flujo antes de comprar créditos.",
+        "q6Title": "¿Qué métodos de pago aceptan?",
+        "q6Answer": "Aceptamos las principales tarjetas de crédito y débito, incluyendo Visa, Mastercard, American Express y más.",
+        "q7Title": "¿Cómo contacto con soporte?",
+        "q7Answer": "Puedes escribirnos a support@visutry.com. Los usuarios Premium tienen soporte prioritario."
+      },
+      "legal": {
+        "prefix": "Al suscribirte, aceptas nuestros",
+        "terms": "Términos del servicio",
+        "and": "y",
+        "privacy": "Política de privacidad",
+        "middle": ". Consulta también nuestra",
+        "refund": "Política de reembolso",
+        "suffix": "para condiciones de cancelación."
+      }
+    },
+    "faqPage": {
+      "metaTitle": "FAQ: Prueba de gafas con IA, análisis facial y comparación | VisuTry",
+      "metaDescription": "Preguntas sobre créditos de VisuTry, análisis facial con IA, prueba personalizada de gafas, comparación de monturas, privacidad e historial del panel.",
+      "badge": "Centro de ayuda",
+      "title": "FAQ de prueba de gafas con IA, análisis facial y comparación de monturas",
+      "subtitle": "Respuestas rápidas para compradores que eligen gafas en línea con VisuTry.",
+      "topics": "Temas",
+      "supportTitle": "¿Necesitas ayuda con una tarea específica?",
+      "supportDescription": "Contacta con soporte con el correo de tu cuenta y el ID de tarea si un resultado parece incorrecto o sigue procesando más de lo esperado."
+    },
+    "tryOnLanding": {
+      "metaTitle": "Prueba virtual de gafas online desde una foto | VisuTry",
+      "metaDescription": "Prueba gafas en línea desde casa con una foto del rostro y tu imagen de producto o captura de pantalla.",
+      "howItWorks": "Cómo funciona",
+      "title": "De imagen de producto a vista previa de prueba",
+      "description": "Usa Glasses cuando ya tengas una foto de montura o una captura. VisuTry convierte esa imagen en una vista previa en navegador sobre tu retrato.",
+      "startButton": "Empezar prueba gratis",
+      "pricingButton": "30 pruebas por USD 2.99",
+      "guideLink": "Leer guía de compra",
+      "faqTitle": "FAQ de prueba de gafas",
+      "notFoundTitle": "Try-On no encontrado | VisuTry",
+      "notFoundDescription": "No se encontró el tipo de try-on solicitado.",
+      "ogDescription": "Sube una foto de tu rostro y una imagen de gafas o captura para ver cómo queda la montura antes de comprar, sin instalar app.",
+      "ctaNote": "Empieza con una prueba gratuita. Credits Pack es una compra única, sin suscripción.",
+      "shortlistNotePrefix": "¿No sabes qué gafas te favorecen? Empieza con",
+      "shortlistNoteLink": "análisis de forma facial con IA",
+      "shortlistNoteSuffix": "para crear una lista corta y vuelve aquí para probar gafas con tus fotos y capturas de productos.",
+      "faq": {
+        "q1Question": "¿Puedo probar gafas online desde una captura?",
+        "q1Answer": "Sí. VisuTry te permite subir tu foto de rostro y una imagen de gafas o captura, y la IA genera una vista previa realista.",
+        "q2Question": "¿Puedo subir mi propia imagen de gafas para la prueba virtual?",
+        "q2Answer": "Sí. Puedes subir foto de producto, imagen de tienda, captura de correo o imagen transparente de montura. Las fotos frontales claras funcionan mejor.",
+        "q3Question": "¿Puedo probar gafas en casa antes de comprar?",
+        "q3Answer": "Sí. VisuTry funciona en el navegador, para que pruebes gafas desde casa con una foto de rostro y compares monturas antes de decidir.",
+        "q4Question": "¿Y si no sé qué gafas probar primero?",
+        "q4Answer": "Empieza con análisis facial con IA para estimar tu forma de rostro y obtener recomendaciones; luego vuelve a la prueba con una mejor selección.",
+        "q5Question": "¿Cómo funciona la prueba de gafas con IA?",
+        "q5Answer": "La IA combina tu foto de rostro con una imagen o captura de gafas para generar una vista previa de la montura en tu cara.",
+        "q6Question": "¿VisuTry es una app para probar gafas?",
+        "q6Answer": "VisuTry funciona como una app de prueba de gafas, pero se ejecuta en tu navegador en desktop o móvil, sin instalación.",
+        "q7Question": "¿Puedo probar gafas de luz azul online?",
+        "q7Answer": "Sí. Si tienes una imagen o captura clara de gafas de luz azul, puedes subirla y ver la montura en tu rostro antes de comprar.",
+        "q8Question": "¿Necesito instalar una app?",
+        "q8Answer": "No. VisuTry funciona en navegador en desktop y móvil. Inicia sesión, sube tus fotos y empieza.",
+        "q9Question": "¿Qué pasa después de mi prueba gratis?",
+        "q9Answer": "Puedes continuar con Credits Pack: 30 pruebas de IA por USD 2.99, sin suscripción y sin caducidad de créditos."
+      },
+      "valuePoints": {
+        "p1": "Sube un retrato y una imagen de gafas",
+        "p2": "Visualiza la montura en tu rostro antes de comprar",
+        "p3": "Usa Face o Compare cuando necesites ayuda para elegir"
+      },
+      "steps": {
+        "s1Title": "Sube tus fotos",
+        "s1Description": "Usa una foto de rostro y una foto de producto, imagen de tienda o captura.",
+        "s2Title": "Previsualiza y compara",
+        "s2Description": "Comprueba cómo se ven distintas monturas en tu rostro antes de comprar.",
+        "s3Title": "En navegador y privado",
+        "s3Description": "Sin instalación. Los datos gratis se guardan 7 días; Credits Pack, 90 días.",
+        "s4Title": "Continúa cuando necesites más",
+        "s4Description": "Empieza gratis y luego usa Credits Pack de pago único para comparar más monturas."
+      }
+    },
+    "compareLanding": {
+      "metaTitle": "Compara monturas de gafas online | VisuTry",
+      "metaDescription": "Sube una foto de rostro, elige presets de monturas y compara resultados de prueba con IA lado a lado.",
+      "startCreditTitle": "Empieza con un crédito",
+      "upToFourTitle": "Hasta cuatro monturas",
+      "savedTitle": "Guardado en historial",
+      "compareBefore": "Compara antes de comprar",
+      "startComparing": "Empezar a comparar",
+      "viewPricing": "Ver precios",
+      "ogDescription": "Compara rápidamente monturas predefinidas sobre tu foto con prueba de IA.",
+      "srOnlyTitle": "Compara monturas de gafas en tu foto",
+      "cards": {
+        "c1Description": "Los usuarios de prueba pueden comparar primero una montura y luego añadir créditos para un tablero completo.",
+        "c2Description": "Los créditos se consumen por montura generada, por lo que una comparación de 4 monturas usa hasta 4 créditos.",
+        "c3Description": "Los resultados completados se guardan en el historial según tu plan de retención."
+      },
+      "compareDescription": "Usa Compare cuando tengas varias formas candidatas y quieras una vista rápida lado a lado. Usa Glasses Try-On cuando ya tengas una imagen concreta de producto."
+    },
+    "faceAnalysisLanding": {
+      "badge": "Detector de forma facial para gafas",
+      "startFaceAnalysis": "Iniciar análisis facial",
+      "tryGlassesOnPhoto": "Probar gafas en foto",
+      "faqTitle": "FAQ de análisis facial IA",
+      "guideLink": "Leer guía completa",
+      "faqEyebrow": "Preguntas frecuentes de compradores",
+      "valuePoints": {
+        "p1": "Detector de forma facial con IA para gafas",
+        "p2": "Selección de monturas con explicación",
+        "p3": "Continúa hacia prueba virtual"
+      },
+      "links": {
+        "compareByShape": "Comparar gafas por forma de rostro",
+        "readGuide": "Leer guía de gafas con IA"
+      },
+      "table": {
+        "title": "Mejores gafas según la forma de tu rostro",
+        "description": "Si te preguntas qué gafas te quedan mejor, empieza por la forma de tu rostro como primer filtro. Usa estas orientaciones para crear una selección y valida escala y estilo con la prueba virtual.",
+        "colShape": "Forma del rostro",
+        "colTryFirst": "Probar primero",
+        "colWhy": "Por qué funciona",
+        "seeStyles": "Ver estilos",
+        "ctaGuide": "Explorar guía por forma de rostro",
+        "ctaTry": "Probar gafas en tu foto"
+      },
+      "shapes": {
+        "roundName": "Rostro redondo",
+        "roundFrames": "Monturas rectangulares, cuadradas, geométricas y ligeramente más anchas",
+        "roundReason": "Las líneas angulares añaden definición y equilibran curvas suaves.",
+        "squareName": "Rostro cuadrado",
+        "squareFrames": "Monturas redondas, ovaladas, metálicas finas y con curvas suaves",
+        "squareReason": "Las formas curvas suavizan una mandíbula marcada.",
+        "ovalName": "Rostro ovalado",
+        "ovalFrames": "Monturas rectangulares equilibradas, browline, aviador y clásicas",
+        "ovalReason": "El rostro ovalado es flexible; importan sobre todo escala y estilo personal.",
+        "heartName": "Rostro corazón",
+        "heartFrames": "Monturas ligeras, redondeadas, cat-eye y equilibradas en la parte inferior",
+        "heartReason": "Las formas suaves o elevadas equilibran una frente ancha con mentón más estrecho."
+      },
+      "faq": {
+        "q1Question": "¿Qué es el análisis facial con IA para gafas?",
+        "q1Answer": "VisuTry ofrece análisis facial con IA estimando tu forma de rostro y rasgos visibles para sugerir estilos de montura antes de la prueba virtual.",
+        "q2Question": "¿Puede la IA recomendar gafas según mi rostro?",
+        "q2Answer": "Sí. Puede recomendar direcciones de montura para rostros redondos, cuadrados, ovalados, corazón, diamante, alargados y triangulares.",
+        "q3Question": "¿Puedo usar un detector facial online gratis antes de comprar?",
+        "q3Answer": "Sí. Puedes empezar con un detector de forma facial con IA para entender tu tipo de rostro y crear una lista corta antes de elegir gafas.",
+        "q4Question": "¿Qué es un face shape finder para gafas?",
+        "q4Answer": "Es una herramienta que estima si tu rostro se acerca a redondo, cuadrado, ovalado, corazón, diamante, alargado o triangular, y lo traduce en estilos recomendados.",
+        "q5Question": "¿Mi análisis facial es privado?",
+        "q5Answer": "Tu foto y análisis permanecen privados en tu cuenta. VisuTry usa la imagen para generar tu reporte y recomendaciones.",
+        "q6Question": "¿Qué gafas van mejor con mi forma de rostro?",
+        "q6Answer": "Los rostros redondos suelen favorecer monturas angulares; los cuadrados, monturas redondas u ovaladas; los ovalados, rectangulares equilibradas o browline; y los de corazón, monturas ligeras o suavemente elevadas."
+      }
     }
   }
 }

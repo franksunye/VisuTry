@@ -3,42 +3,27 @@
 import Link from 'next/link'
 import { Database, ScanFace, ArrowRight, Grid2X2, Glasses, LockKeyhole, Sparkles } from 'lucide-react'
 import { useParams } from 'next/navigation'
+import { useTranslations } from 'next-intl'
 import { FaceAnalysisPreviewVisual } from '@/components/face-analysis/FaceAnalysisPreviewVisual'
 import { ModelTryOnSlides } from '@/components/marketing/ModelTryOnSlides'
-
-// English FAQ content - displayed in all languages
-const englishFaqContent = [
-  {
-    question: "How does VisuTry's AI try-on work?",
-    answer: "VisuTry combines face guidance, AI glasses try-on, and frame comparison. Upload a portrait, choose a glasses image or preset, and generate realistic previews in your browser."
-  },
-  {
-    question: "What is Frame Compare?",
-    answer: "Frame Compare lets you pick built-in glasses presets and generate side-by-side try-on results from the same photo, so you can compare shape and scale faster."
-  },
-  {
-    question: "Is my photo data safe and private?",
-    answer: "Absolutely! Your photos are encrypted during upload and processing. We never share your images publicly or use them for AI training without explicit permission. Free users' data is stored for 7 days, Credits users for 90 days, and Premium members for 1 year."
-  },
-  {
-    question: "How long does it take to generate a try-on?",
-    answer: "Most single try-ons complete in about 10-30 seconds. Compare runs frames individually so each result can finish, fail, or retry without blocking the full page."
-  },
-  {
-    question: "What happens to my try-on history?",
-    answer: "Completed results are saved in Dashboard History according to your account retention plan, so you can come back to compare looks later."
-  }
-]
 
 export default function Home() {
   const params = useParams()
   const locale = params.locale as string
+  const t = useTranslations('marketing.home')
 
-  // Generate FAQ structured data for SEO - using English content
+  const faqItems = [
+    { question: t('faq.q1Question'), answer: t('faq.q1Answer') },
+    { question: t('faq.q2Question'), answer: t('faq.q2Answer') },
+    { question: t('faq.q3Question'), answer: t('faq.q3Answer') },
+    { question: t('faq.q4Question'), answer: t('faq.q4Answer') },
+    { question: t('faq.q5Question'), answer: t('faq.q5Answer') },
+  ]
+
   const faqSchema = {
     "@context": "https://schema.org",
     "@type": "FAQPage",
-    "mainEntity": englishFaqContent.map((item) => ({
+    "mainEntity": faqItems.map((item) => ({
       "@type": "Question",
       "name": item.question,
       "acceptedAnswer": {
@@ -58,10 +43,10 @@ export default function Home() {
       {/* Hero Header */}
       <header className="mb-16 text-center">
         <h1 className="max-w-3xl mx-auto text-3xl md:text-4xl font-bold text-gray-900 mb-3">
-          AI Glasses Try-On, Face Analysis, and Frame Compare
+          {t('heroTitle')}
         </h1>
         <p className="mx-auto max-w-3xl text-lg md:text-xl text-gray-600 font-medium">
-          Find better frames before you buy: analyze your face shape, try custom glasses images, and compare preset frames side by side.
+          {t('heroSubtitle')}
         </p>
       </header>
 
@@ -73,24 +58,24 @@ export default function Home() {
             <div className="flex items-center justify-center w-16 h-16 mb-4 bg-blue-100 rounded-full">
               <ScanFace className="w-8 h-8 text-blue-600" />
             </div>
-            <h3 className="mb-2 text-lg font-semibold">Face</h3>
-            <p className="text-center text-gray-600">Detect face shape and get frame directions before spending credits.</p>
+            <h3 className="mb-2 text-lg font-semibold">{t('tools.faceTitle')}</h3>
+            <p className="text-center text-gray-600">{t('tools.faceDescription')}</p>
           </div>
 
           <div className="flex flex-col items-center">
             <div className="flex items-center justify-center w-16 h-16 mb-4 bg-green-100 rounded-full">
               <Glasses className="w-8 h-8 text-green-600" />
             </div>
-            <h3 className="mb-2 text-lg font-semibold">Glasses</h3>
-            <p className="text-center text-gray-600">Upload product photos or screenshots and preview them on your face.</p>
+            <h3 className="mb-2 text-lg font-semibold">{t('tools.glassesTitle')}</h3>
+            <p className="text-center text-gray-600">{t('tools.glassesDescription')}</p>
           </div>
 
           <div className="flex flex-col items-center">
             <div className="flex items-center justify-center w-16 h-16 mb-4 bg-indigo-100 rounded-full">
               <Grid2X2 className="w-8 h-8 text-indigo-600" />
             </div>
-            <h3 className="mb-2 text-lg font-semibold">Compare</h3>
-            <p className="text-center text-gray-600">Pick built-in presets and review multiple frame results in one board.</p>
+            <h3 className="mb-2 text-lg font-semibold">{t('tools.compareTitle')}</h3>
+            <p className="text-center text-gray-600">{t('tools.compareDescription')}</p>
           </div>
         </div>
 
@@ -102,13 +87,13 @@ export default function Home() {
             href={`/${locale}/face-analysis`}
             className="inline-flex items-center rounded-lg bg-blue-600 px-6 py-3 text-base font-semibold text-white shadow-lg transition-colors duration-200 hover:bg-blue-700"
           >
-            Start with Face
+            {t('ctaPrimary')}
           </Link>
           <Link
             href={`/${locale}/try-on/glasses/compare`}
             className="inline-flex items-center rounded-lg border border-gray-300 bg-white px-6 py-3 text-base font-semibold text-gray-800 transition-colors duration-200 hover:border-blue-300 hover:text-blue-700"
           >
-            Compare frames
+            {t('ctaSecondary')}
           </Link>
         </div>
       </section>
@@ -118,20 +103,20 @@ export default function Home() {
           {[
             {
               icon: ScanFace,
-              title: 'Face Analysis',
-              description: 'A professional face-shape report with frame style recommendations.',
+              title: t('featureCards.faceTitle'),
+              description: t('featureCards.faceDescription'),
               href: `/${locale}/face-analysis`,
             },
             {
               icon: Glasses,
-              title: 'Custom Glasses Try-On',
-              description: 'Use your own glasses product image, store photo, or screenshot.',
+              title: t('featureCards.glassesTitle'),
+              description: t('featureCards.glassesDescription'),
               href: `/${locale}/try-on/glasses`,
             },
             {
               icon: Grid2X2,
-              title: 'Frame Compare',
-              description: 'Quickly test built-in frame presets from the same portrait.',
+              title: t('featureCards.compareTitle'),
+              description: t('featureCards.compareDescription'),
               href: `/${locale}/try-on/glasses/compare`,
             },
           ].map((item) => {
@@ -142,7 +127,7 @@ export default function Home() {
                 <h2 className="mb-2 text-lg font-bold text-gray-950">{item.title}</h2>
                 <p className="text-sm leading-6 text-gray-600">{item.description}</p>
                 <span className="mt-4 inline-flex items-center text-sm font-semibold text-blue-600">
-                  Open tool <ArrowRight className="ml-1 h-4 w-4" />
+                  {t('featureCards.openTool')} <ArrowRight className="ml-1 h-4 w-4" />
                 </span>
               </Link>
             )
@@ -156,17 +141,16 @@ export default function Home() {
           <div>
             <p className="mb-3 inline-flex items-center rounded-lg border border-blue-200 bg-white px-3 py-1 text-sm font-semibold text-blue-700">
               <ScanFace className="mr-2 h-4 w-4" />
-              Face analysis for glasses
+              {t('workflow.badge')}
             </p>
             <h2 className="mb-4 text-3xl font-bold leading-tight text-gray-950 md:text-4xl">
-              Start try-on with frames that already fit the face
+              {t('workflow.title')}
             </h2>
             <p className="mb-6 text-base leading-7 text-gray-600">
-              VisuTry now uses one portrait to read face shape, narrow the first frame shortlist,
-              and send shoppers directly into glasses try-on with better choices.
+              {t('workflow.description')}
             </p>
             <div className="mb-6 grid gap-3 text-sm font-semibold text-gray-700">
-              {['Face shape report', 'Recommended frame styles', 'One path into AI try-on'].map((item) => (
+              {[t('workflow.point1'), t('workflow.point2'), t('workflow.point3')].map((item) => (
                 <div key={item} className="flex items-center gap-2">
                   <span className="h-1.5 w-1.5 rounded-full bg-blue-600" />
                   <span>{item}</span>
@@ -177,7 +161,7 @@ export default function Home() {
               href={`/${locale}/face-analysis`}
               className="inline-flex items-center justify-center rounded-lg bg-blue-600 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-blue-600/20 transition-colors hover:bg-blue-700"
             >
-              Analyze my face
+              {t('workflow.cta')}
               <ArrowRight className="ml-2 h-4 w-4" />
             </Link>
           </div>
@@ -190,18 +174,18 @@ export default function Home() {
           {[
             {
               icon: Sparkles,
-              title: 'AI-generated previews',
-              description: 'Use one portrait to analyze, try on, and compare glasses before buying.',
+              title: t('benefits.generatedTitle'),
+              description: t('benefits.generatedDescription'),
             },
             {
               icon: Database,
-              title: 'Saved to history',
-              description: 'Completed results stay available in Dashboard History based on your plan.',
+              title: t('benefits.historyTitle'),
+              description: t('benefits.historyDescription'),
             },
             {
               icon: LockKeyhole,
-              title: 'Private by default',
-              description: 'Photos and results stay private to your account and are never published.',
+              title: t('benefits.privacyTitle'),
+              description: t('benefits.privacyDescription'),
             },
           ].map((item) => {
             const Icon = item.icon
@@ -223,12 +207,12 @@ export default function Home() {
       {/* FAQ Section */}
       <section id="faq" className="max-w-4xl mx-auto mb-16">
         <div className="text-center mb-12">
-          <h2 className="text-3xl font-bold text-gray-900 mb-4">Questions before you start</h2>
-          <p className="text-lg text-gray-600">Short answers for choosing the right VisuTry workflow.</p>
+          <h2 className="text-3xl font-bold text-gray-900 mb-4">{t('faqTitle')}</h2>
+          <p className="text-lg text-gray-600">{t('faqSubtitle')}</p>
         </div>
 
         <div className="space-y-6">
-          {englishFaqContent.map((item, index) => (
+          {faqItems.map((item, index) => (
             <details
               key={index}
               className="group bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-md transition-shadow"

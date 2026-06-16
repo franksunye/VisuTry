@@ -3,6 +3,7 @@ import { Metadata } from 'next'
 import { ArrowRight, Grid2X2, ScanFace, Shield, Sparkles } from 'lucide-react'
 import { generateI18nSEO, generateStructuredData } from '@/lib/seo'
 import { Locale } from '@/i18n'
+import { getTranslations } from 'next-intl/server'
 
 type Props = {
   params: { locale: string }
@@ -69,15 +70,17 @@ function toAnchorId(value: string) {
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const t = await getTranslations({ locale: params.locale, namespace: 'marketing.faqPage' })
   return generateI18nSEO({
     locale: params.locale as Locale,
-    title: 'FAQ: AI Glasses Try-On, Face Analysis, and Compare | VisuTry',
-    description: 'Questions about VisuTry credits, AI face analysis, custom glasses try-on, frame compare, privacy, and Dashboard History.',
+    title: t('metaTitle'),
+    description: t('metaDescription'),
     pathname: '/faq',
   })
 }
 
-export default function FaqPage({ params }: Props) {
+export default async function FaqPage({ params }: Props) {
+  const t = await getTranslations({ locale: params.locale, namespace: 'marketing.faqPage' })
   const faqSchema = generateStructuredData('faqPage', {
     questions: allFaqItems,
   })
@@ -91,13 +94,13 @@ export default function FaqPage({ params }: Props) {
 
       <section className="mb-8 rounded-lg border border-gray-200 bg-white p-6 shadow-sm md:p-8">
         <p className="mb-3 inline-flex items-center rounded-lg border border-blue-200 bg-blue-50 px-3 py-1 text-sm font-semibold text-blue-700">
-          Help center
+          {t('badge')}
         </p>
         <h1 className="max-w-3xl text-3xl font-bold leading-tight text-gray-950 md:text-4xl">
-          FAQ for AI glasses try-on, face analysis, and frame compare
+          {t('title')}
         </h1>
         <p className="mt-4 max-w-3xl text-base leading-7 text-gray-600">
-          Quick answers for shoppers choosing glasses online with VisuTry.
+          {t('subtitle')}
         </p>
         <div className="mt-6 grid gap-3 sm:grid-cols-3">
           {[
@@ -119,7 +122,7 @@ export default function FaqPage({ params }: Props) {
 
       <div className="grid gap-6 lg:grid-cols-[260px_minmax(0,1fr)]">
         <aside className="h-fit rounded-lg border border-gray-200 bg-white p-5 shadow-sm">
-          <h2 className="mb-4 text-sm font-bold uppercase text-gray-500">Topics</h2>
+          <h2 className="mb-4 text-sm font-bold uppercase text-gray-500">{t('topics')}</h2>
           <div className="space-y-2">
             {faqGroups.map((group) => (
               <a key={group.title} href={`#${toAnchorId(group.title)}`} className="block rounded-md px-3 py-2 text-sm font-semibold text-gray-700 hover:bg-blue-50 hover:text-blue-700">
@@ -150,9 +153,9 @@ export default function FaqPage({ params }: Props) {
             <div className="flex items-start gap-3">
               <Shield className="mt-0.5 h-5 w-5 text-blue-700" />
               <div>
-                <h2 className="font-bold text-blue-950">Need help with a specific task?</h2>
+                <h2 className="font-bold text-blue-950">{t('supportTitle')}</h2>
                 <p className="mt-1 text-sm leading-6 text-blue-900">
-                  Contact support with your account email and task ID if a result looks wrong or remains processing longer than expected.
+                  {t('supportDescription')}
                 </p>
                 <a href="mailto:support@visutry.com" className="mt-3 inline-flex text-sm font-bold text-blue-700 underline">
                   support@visutry.com

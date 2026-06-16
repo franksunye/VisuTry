@@ -1,96 +1,18 @@
 {
   "common": {
-    "getStarted": "Mulai Sekarang",
-    "learnMore": "Pelajari Lebih Lanjut",
-    "signIn": "Masuk",
-    "signOut": "Keluar",
     "startFreeTrial": "Mulai Uji Coba Gratis",
     "startTryOn": "Mulai Mencoba",
-    "tryOn": "Coba Virtual",
-    "blog": "Blog",
-    "pricing": "Harga",
-    "dashboard": "Dasbor",
-    "profile": "Profil",
-    "settings": "Pengaturan",
-    "loading": "Memuat...",
-    "error": "Kesalahan",
-    "success": "Berhasil",
-    "cancel": "Batal",
-    "save": "Simpan",
-    "delete": "Hapus",
-    "edit": "Edit",
-    "close": "Tutup",
-    "back": "Kembali",
-    "next": "Selanjutnya",
-    "previous": "Sebelumnya",
-    "submit": "Kirim",
-    "confirm": "Konfirmasi"
+    "loading": "Memuat..."
   },
   "nav": {
     "faceAnalysis": "Analisis Wajah",
-    "home": "Beranda",
-    "tryOn": "Coba Virtual",
     "tryGlasses": "Kacamata",
-    "tryOutfit": "Coba Pakaian",
-    "tryShoes": "Coba Sepatu",
-    "tryAccessories": "Coba Aksesori",
-    "blog": "Blog",
     "pricing": "Harga",
-    "dashboard": "Dasbor",
-    "signIn": "Masuk",
-    "signOut": "Keluar",
-    "toggleMenu": "Buka/tutup menu navigasi"
+    "toggleMenu": "Buka/tutup menu navigasi",
+    "compare": "Compare",
+    "faq": "FAQ"
   },
   "home": {
-    "hero": {
-      "title": "Temukan Gaya Sempurna Anda",
-      "subtitle": "Coba dalam 3 Langkah Mudah"
-    },
-    "steps": {
-      "step1": {
-        "title": "Unggah Foto Anda",
-        "description": "Unggah foto yang jelas dari diri Anda — tidak perlu alat khusus."
-      },
-      "step2": {
-        "title": "Pilih Gaya Anda",
-        "description": "Pilih item yang ingin Anda coba. Kami akan menunjukkan bagaimana tampilannya pada Anda."
-      },
-      "step3": {
-        "title": "Lihat & Simpan",
-        "description": "Lihat tampilan sempurna Anda, lalu simpan atau bagikan."
-      }
-    },
-    "cta": {
-      "button": "Mulai Sekarang",
-      "faceAnalysis": "Analisis Wajah",
-      "tryOutfit": "Coba Pakaian",
-      "tryShoes": "Coba Sepatu",
-      "tryAccessories": "Coba Aksesori"
-    },
-    "features": {
-      "title": "Fitur Utama VisuTry",
-      "subtitle": "Rasakan generasi berikutnya dari virtual try-on bertenaga AI",
-      "feature1": {
-        "title": "Google Nano Banana",
-        "description": "Didukung oleh model AI terbaru Google untuk hasil try-on ultra-realistis dengan akurasi luar biasa dan pencahayaan alami."
-      },
-      "feature2": {
-        "title": "Penyimpanan Data Cerdas",
-        "description": "Riwayat try-on Anda disimpan dengan aman - 7 hari untuk pengguna gratis, 90 hari dengan Kredit, dan 1 tahun untuk anggota Premium."
-      },
-      "feature3": {
-        "title": "Pemrosesan Kilat",
-        "description": "Dapatkan hasil try-on Anda dalam 10-30 detik dengan pipeline AI kami yang dioptimalkan. Pengguna Premium menikmati pemrosesan prioritas."
-      },
-      "feature4": {
-        "title": "Privasi Terlindungi",
-        "description": "Foto Anda dienkripsi dan aman. Kami tidak pernah membagikan gambar Anda atau menggunakannya untuk pelatihan tanpa izin."
-      }
-    },
-    "faq": {
-      "title": "Pertanyaan yang Sering Diajukan",
-      "subtitle": "Semua yang perlu Anda ketahui tentang VisuTry"
-    },
     "showcase": {
       "alex": {
         "name": "Alex",
@@ -111,121 +33,26 @@
     }
   },
   "pricing": {
-    "title": "Pilih Paket Anda",
-    "subtitle": "Pilih paket yang sempurna untuk kebutuhan Anda",
-    "currentPlan": "Paket Saat Ini",
-    "freeUser": "Pengguna Gratis",
-    "remainingTryOns": "Sisa percobaan: {count}",
     "plans": {
       "creditsPack": {
-        "name": "Paket Kredit",
-        "description": "Sempurna untuk penggunaan sesekali",
-        "price": "$2.99",
-        "period": "Sekali bayar",
-        "buttonText": "Beli Paket Kredit",
-        "features": [
-          "10 percobaan AI",
-          "Pemrosesan gambar berkualitas tinggi",
-          "Unduhan dan berbagi tanpa batas",
-          "Perpustakaan bingkai kacamata standar",
-          "Dukungan email"
-        ]
+        "period": "Sekali bayar"
       },
       "monthly": {
-        "name": "Standar",
-        "description": "Pilihan paling populer",
-        "price": "$8.99",
-        "period": "per bulan",
-        "buttonText": "Mulai Langganan Bulanan",
-        "features": [
-          "30 percobaan AI per bulan",
-          "Pemrosesan gambar berkualitas tinggi",
-          "Antrian pemrosesan prioritas",
-          "Unduhan dan berbagi tanpa batas",
-          "Perpustakaan bingkai kacamata standar",
-          "Dukungan pelanggan prioritas"
-        ]
+        "period": "per bulan"
       },
       "yearly": {
-        "name": "Standar",
-        "description": "Nilai terbaik - Hemat 17%",
-        "price": "$89.99",
-        "originalPrice": "$107.88",
-        "period": "per tahun",
-        "buttonText": "Mulai Langganan Tahunan",
-        "features": [
-          "420 percobaan AI per tahun (35/bulan)",
-          "Pemrosesan gambar berkualitas tinggi",
-          "Antrian pemrosesan prioritas",
-          "Unduhan dan berbagi tanpa batas",
-          "Perpustakaan bingkai kacamata standar",
-          "Dukungan pelanggan prioritas",
-          "Hemat $17.89 dibanding bulanan"
-        ]
+        "period": "per tahun"
       }
     },
     "comparison": {
-      "title": "Bandingkan Paket",
-      "features": {
-        "aiTryOns": "Percobaan AI",
-        "imageQuality": "Kualitas Gambar",
-        "processingSpeed": "Kecepatan Pemrosesan",
-        "downloads": "Unduhan & Berbagi",
-        "frameLibrary": "Perpustakaan Bingkai",
-        "support": "Dukungan Pelanggan"
-      },
-      "values": {
-        "free": {
-          "aiTryOns": "1 kali",
-          "imageQuality": "Standar",
-          "processingSpeed": "Standar",
-          "downloads": "Terbatas",
-          "frameLibrary": "Dasar",
-          "support": "Email"
-        },
-        "credits": {
-          "aiTryOns": "+10 kali",
-          "imageQuality": "Tinggi",
-          "processingSpeed": "Standar",
-          "downloads": "Tanpa batas",
-          "frameLibrary": "Standar",
-          "support": "Email"
-        },
-        "standard": {
-          "aiTryOns": "30/bulan atau 420/tahun",
-          "imageQuality": "Tinggi",
-          "processingSpeed": "Prioritas",
-          "downloads": "Tanpa batas",
-          "frameLibrary": "Standar",
-          "support": "Prioritas"
-        }
-      }
-    },
-    "faq": {
-      "title": "Pertanyaan yang Sering Diajukan",
-      "questions": [
-        {
-          "question": "Bisakah saya membatalkan langganan kapan saja?",
-          "answer": "Ya, Anda dapat membatalkan langganan kapan saja. Akses Anda akan berlanjut hingga akhir periode penagihan."
-        },
-        {
-          "question": "Apa yang terjadi dengan percobaan yang tidak terpakai?",
-          "answer": "Untuk langganan bulanan, percobaan yang tidak terpakai tidak akan dibawa ke bulan berikutnya. Untuk paket kredit, kredit tidak pernah kedaluwarsa."
-        },
-        {
-          "question": "Apakah Anda menawarkan pengembalian dana?",
-          "answer": "Kami menawarkan jaminan uang kembali 7 hari untuk semua langganan. Paket kredit tidak dapat dikembalikan setelah digunakan."
-        }
-      ]
+      "title": "Bandingkan Paket"
     }
   },
   "footer": {
-    "tagline": "Coba virtual dengan teknologi AI untuk kacamata, pakaian, sepatu, dan aksesori",
     "links": {
       "product": "Produk",
       "resources": "Sumber Daya",
       "legal": "Legal",
-      "tryGlasses": "Coba Kacamata",
       "tryOutfit": "Coba Pakaian",
       "tryShoes": "Coba Sepatu",
       "tryAccessories": "Coba Aksesori",
@@ -239,16 +66,6 @@
     },
     "copyright": "© {year} VisuTry. Hak cipta dilindungi.",
     "madeWith": "Dibuat dengan ❤️ menggunakan teknologi AI"
-  },
-  "meta": {
-    "home": {
-      "title": "VisuTry - Coba Virtual AI untuk Kacamata, Pakaian, Sepatu & Aksesori",
-      "description": "Coba kacamata, pakaian, sepatu, dan aksesori instan dengan virtual try-on bertenaga AI. Tanpa download - unggah foto Anda dan lihat bagaimana item terlihat pada Anda sebelum membeli. Didukung oleh Nano Banana AI (Gemini 2.5 Flash Image) untuk hasil fotorealistis."
-    },
-    "pricing": {
-      "title": "Paket Harga - Coba Virtual AI untuk Semua Kategori | VisuTry",
-      "description": "Pilih paket sempurna untuk coba virtual instan bertenaga AI. Coba kacamata, pakaian, sepatu, dan aksesori dengan Nano Banana AI (Gemini 2.5 Flash Image). Uji coba gratis tersedia, fitur premium untuk fitting virtual tak terbatas."
-    }
   },
   "faceAnalysis": {
     "meta": {
@@ -345,6 +162,241 @@
       "unlocked": "Terbuka",
       "locked": "Terkunci",
       "viewReport": "Lihat laporan"
+    }
+  },
+  "marketing": {
+    "home": {
+      "metaTitle": "AI Coba Kacamata, Analisis Wajah, dan Bandingkan Bingkai | VisuTry",
+      "metaDescription": "Analisis bentuk wajah, coba gambar kacamata sendiri, dan bandingkan bingkai preset langsung di browser.",
+      "faqTitle": "Pertanyaan sebelum mulai",
+      "faqSubtitle": "Jawaban singkat untuk memilih alur VisuTry yang tepat.",
+      "heroTitle": "AI Coba Kacamata, Analisis Wajah, dan Bandingkan Bingkai",
+      "heroSubtitle": "Temukan bingkai yang lebih pas sebelum beli: analisis bentuk wajah, coba gambar kacamata sendiri, lalu bandingkan bingkai preset berdampingan.",
+      "tools": {
+        "faceTitle": "Analisis Wajah",
+        "faceDescription": "Deteksi bentuk wajah dan dapatkan arahan bingkai sebelum memakai kredit.",
+        "glassesTitle": "Kacamata",
+        "glassesDescription": "Unggah foto produk atau screenshot dan lihat pratinjau di wajah Anda.",
+        "compareTitle": "Bandingkan",
+        "compareDescription": "Pilih preset bawaan dan tinjau beberapa hasil bingkai dalam satu papan."
+      },
+      "ctaPrimary": "Mulai dari Face",
+      "ctaSecondary": "Bandingkan bingkai",
+      "featureCards": {
+        "faceTitle": "Analisis Wajah",
+        "faceDescription": "Laporan profesional bentuk wajah dengan rekomendasi gaya bingkai.",
+        "glassesTitle": "Coba Kacamata Kustom",
+        "glassesDescription": "Gunakan gambar produk kacamata sendiri, foto toko, atau screenshot.",
+        "compareTitle": "Bandingkan Bingkai",
+        "compareDescription": "Uji cepat preset bingkai bawaan dari potret yang sama.",
+        "openTool": "Buka alat"
+      },
+      "workflow": {
+        "badge": "Analisis wajah untuk kacamata",
+        "title": "Mulai try-on dengan bingkai yang sudah sesuai bentuk wajah",
+        "description": "VisuTry menggunakan satu potret untuk membaca bentuk wajah, menyaring shortlist awal, lalu membawa pengguna ke try-on dengan pilihan yang lebih tepat.",
+        "point1": "Laporan bentuk wajah",
+        "point2": "Gaya bingkai yang direkomendasikan",
+        "point3": "Satu alur ke AI try-on",
+        "cta": "Analisis wajah saya"
+      },
+      "benefits": {
+        "generatedTitle": "Pratinjau hasil AI",
+        "generatedDescription": "Gunakan satu potret untuk analisis, try-on, dan membandingkan kacamata sebelum membeli.",
+        "historyTitle": "Tersimpan di riwayat",
+        "historyDescription": "Hasil selesai tetap tersedia di Dashboard History sesuai paket Anda.",
+        "privacyTitle": "Privat secara default",
+        "privacyDescription": "Foto dan hasil Anda tetap privat di akun dan tidak pernah dipublikasikan."
+      },
+      "faq": {
+        "q1Question": "Bagaimana cara kerja AI try-on VisuTry?",
+        "q1Answer": "VisuTry uses Google Nano Banana AI to analyze your facial features and realistically overlay glasses onto your photo. The AI understands face shape, lighting, and perspective to create natural-looking results in seconds.",
+        "q2Question": "Is my photo data safe and private?",
+        "q2Answer": "Absolutely! Your photos are encrypted during upload and processing. We never share your images publicly or use them for AI training without explicit permission. Free users' data is stored for 7 days, Credits users for 90 days, and Premium members for 1 year.",
+        "q3Question": "What's the difference between free and Premium quality?",
+        "q3Answer": "Free users get standard quality images (800×800 pixels) with a small watermark. Premium users receive high-quality images (1200×1200 pixels) without watermarks, plus priority processing and longer data retention (1 year vs 7 days).",
+        "q4Question": "Can I use the generated images commercially?",
+        "q4Answer": "Yes! Premium and Credits Pack users can use their watermark-free images for any purpose, including commercial use. Free users receive images with a watermark for personal use only.",
+        "q5Question": "How long does it take to generate a try-on?",
+        "q5Answer": "Most try-ons complete in 10-30 seconds. Premium users enjoy priority processing, which means faster results even during peak times. The exact time depends on server load and image complexity."
+      }
+    },
+    "pricing": {
+      "metaTitle": "Harga Credits Pack untuk AI Coba Kacamata | VisuTry",
+      "metaDescription": "Lanjutkan AI coba kacamata dengan 30 kredit seharga USD 2.99. Unggah gambar produk atau screenshot kacamata Anda, tanpa langganan.",
+      "eyebrow": "Kredit sederhana untuk Face, Glasses, dan Compare",
+      "title": "Mulai dengan 1 kredit gratis, lalu lanjutkan dengan {count} kredit AI seharga USD 2.99",
+      "description": "Gunakan kredit untuk analisis wajah AI, coba kacamata kustom, dan perbandingan bingkai.",
+      "faqTitle": "Pertanyaan yang Sering Diajukan",
+      "featureCards": {
+        "faceTitle": "Analisis Wajah",
+        "faceDescription": "Gunakan satu kredit untuk memperkirakan bentuk wajah dan mendapatkan arahan bingkai sebelum mencoba kacamata.",
+        "glassesTitle": "Coba Kacamata",
+        "glassesDescription": "Gunakan satu kredit untuk setiap try-on kustom dari potret dan gambar produk kacamata.",
+        "compareTitle": "Bandingkan Bingkai",
+        "compareDescription": "Gunakan satu kredit per bingkai yang dihasilkan. Coba 1 bingkai gratis, atau bandingkan hingga 4 dengan kredit."
+      },
+      "faq": {
+        "q1Title": "Apakah Credits Pack adalah langganan?",
+        "q1Answer": "Tidak. Credits Pack adalah pembelian sekali USD 2.99 untuk {count} try-on AI. Cocok untuk pengguna sesekali yang ingin membandingkan kacamata tanpa langganan bulanan.",
+        "q2Title": "Bisakah saya pakai kredit dengan screenshot kacamata sendiri?",
+        "q2Answer": "Ya. Kredit dapat dipakai di alur try-on kacamata saat Anda mengunggah foto wajah dan gambar produk, foto toko, atau screenshot.",
+        "q3Title": "Berapa kredit yang dipakai Frame Compare?",
+        "q3Answer": "Frame Compare memakai satu kredit per bingkai yang dihasilkan. Perbandingan 4 bingkai memakai hingga 4 kredit; generasi gagal tidak dikenakan biaya.",
+        "q4Title": "Apakah kredit kedaluwarsa?",
+        "q4Answer": "Kredit tidak pernah kedaluwarsa setelah dibeli. Anda bisa memakainya kapan saja.",
+        "q5Title": "Apa yang bisa dilakukan dengan satu kredit gratis?",
+        "q5Answer": "Anda bisa menjalankan satu analisis wajah, satu try-on kacamata kustom, atau satu bingkai di Compare. Ini untuk mencoba alur sebelum membeli kredit.",
+        "q6Title": "Metode pembayaran apa yang didukung?",
+        "q6Answer": "Kami mendukung kartu kredit dan debit utama, termasuk Visa, Mastercard, American Express, dan lainnya.",
+        "q7Title": "Bagaimana cara menghubungi dukungan?",
+        "q7Answer": "Anda bisa menghubungi kami lewat email di support@visutry.com. Anggota Premium mendapat dukungan prioritas."
+      },
+      "legal": {
+        "prefix": "Dengan berlangganan, Anda menyetujui",
+        "terms": "Ketentuan Layanan",
+        "and": "dan",
+        "privacy": "Kebijakan Privasi",
+        "middle": ". Lihat",
+        "refund": "Kebijakan Refund",
+        "suffix": "untuk ketentuan pembatalan."
+      }
+    },
+    "faqPage": {
+      "metaTitle": "FAQ: AI Coba Kacamata, Analisis Wajah, dan Compare | VisuTry",
+      "metaDescription": "Pertanyaan tentang kredit VisuTry, analisis wajah AI, coba kacamata kustom, compare bingkai, privasi, dan Dashboard History.",
+      "badge": "Pusat bantuan",
+      "title": "FAQ untuk AI coba kacamata, analisis wajah, dan compare bingkai",
+      "subtitle": "Jawaban cepat untuk pembeli kacamata online dengan VisuTry.",
+      "topics": "Topik",
+      "supportTitle": "Butuh bantuan untuk tugas tertentu?",
+      "supportDescription": "Hubungi dukungan dengan email akun dan ID tugas jika hasil terlihat salah atau proses terlalu lama."
+    },
+    "tryOnLanding": {
+      "metaTitle": "Coba Kacamata Virtual Online dari Foto | VisuTry",
+      "metaDescription": "Coba kacamata online dari foto wajah dan gambar produk atau screenshot kacamata Anda.",
+      "howItWorks": "Cara kerja",
+      "title": "Dari gambar produk ke preview try-on",
+      "description": "Gunakan Glasses saat Anda sudah punya foto bingkai atau screenshot. VisuTry mengubah gambar produk itu menjadi preview di browser pada potret Anda.",
+      "startButton": "Mulai coba kacamata gratis",
+      "pricingButton": "30 try-on seharga USD 2.99",
+      "guideLink": "Baca panduan pembelian",
+      "faqTitle": "FAQ AI coba kacamata",
+      "notFoundTitle": "Try-On Tidak Ditemukan | VisuTry",
+      "notFoundDescription": "Jenis try-on yang diminta tidak ditemukan.",
+      "ogDescription": "Unggah foto wajah dan gambar produk kacamata atau screenshot untuk melihat pratinjau bingkai sebelum membeli. Tidak perlu instal aplikasi.",
+      "ctaNote": "Mulai dengan satu try-on gratis. Credits Pack adalah pembelian sekali, tanpa langganan.",
+      "shortlistNotePrefix": "Belum yakin kacamata apa yang cocok? Mulai dengan",
+      "shortlistNoteLink": "analisis bentuk wajah AI",
+      "shortlistNoteSuffix": "untuk membuat shortlist, lalu kembali ke sini untuk mencoba kacamata dari foto dan screenshot produk Anda.",
+      "faq": {
+        "q1Question": "Bisakah saya mencoba kacamata online dari screenshot?",
+        "q1Answer": "Ya. VisuTry memungkinkan Anda mengunggah foto wajah dan gambar produk kacamata atau screenshot, lalu AI membuat preview try-on yang realistis.",
+        "q2Question": "Bisakah saya unggah gambar kacamata sendiri untuk try-on virtual?",
+        "q2Answer": "Ya. Anda bisa unggah foto produk, foto toko, screenshot email, atau gambar frame transparan. Gambar produk depan yang jelas biasanya paling bagus.",
+        "q3Question": "Bisakah saya mencoba kacamata dari rumah sebelum membeli?",
+        "q3Answer": "Ya. VisuTry berjalan di browser, jadi Anda bisa mencoba kacamata dari foto wajah dan membandingkan bingkai sebelum membeli.",
+        "q4Question": "Bagaimana jika saya tidak tahu harus mencoba bingkai mana dulu?",
+        "q4Answer": "Mulai dari analisis wajah AI untuk memperkirakan bentuk wajah dan rekomendasi bingkai, lalu kembali ke try-on kacamata dengan shortlist yang lebih baik.",
+        "q5Question": "Bagaimana cara kerja AI try-on kacamata?",
+        "q5Answer": "AI try-on menggabungkan foto wajah Anda dengan gambar produk kacamata atau screenshot untuk membuat preview bingkai di wajah Anda.",
+        "q6Question": "Apakah VisuTry aplikasi coba kacamata?",
+        "q6Answer": "VisuTry bekerja seperti aplikasi coba kacamata, tetapi berjalan di browser web dan bisa dipakai di desktop atau mobile tanpa instalasi.",
+        "q7Question": "Bisakah saya mencoba kacamata anti radiasi online?",
+        "q7Answer": "Ya. Jika Anda punya gambar produk atau screenshot yang jelas, Anda bisa mengunggahnya dan melihat preview di wajah sebelum membeli.",
+        "q8Question": "Apakah saya perlu instal aplikasi?",
+        "q8Answer": "Tidak. VisuTry berjalan di browser desktop dan mobile.",
+        "q9Question": "Apa yang terjadi setelah try-on gratis saya habis?",
+        "q9Answer": "Anda bisa lanjut dengan Credits Pack: 30 try-on AI seharga USD 2.99, tanpa langganan, dan kredit tidak kedaluwarsa."
+      },
+      "valuePoints": {
+        "p1": "Unggah satu potret dan satu gambar kacamata",
+        "p2": "Lihat preview bingkai di wajah sebelum membeli",
+        "p3": "Gunakan Face atau Compare saat butuh bantuan memilih"
+      },
+      "steps": {
+        "s1Title": "Unggah foto Anda",
+        "s1Description": "Gunakan foto wajah ditambah foto produk kacamata, foto toko, atau screenshot email.",
+        "s2Title": "Pratinjau dan bandingkan",
+        "s2Description": "Lihat perbedaan bingkai di wajah Anda sebelum memutuskan membeli.",
+        "s3Title": "Berbasis browser dan privat",
+        "s3Description": "Tanpa instal aplikasi. Data gratis disimpan 7 hari; pengguna Credits Pack mendapat retensi 90 hari.",
+        "s4Title": "Lanjut saat Anda butuh lebih",
+        "s4Description": "Mulai dari satu try-on gratis, lalu gunakan Credits Pack sekali beli untuk membandingkan lebih banyak bingkai."
+      }
+    },
+    "compareLanding": {
+      "metaTitle": "Bandingkan Bingkai Kacamata Online | VisuTry",
+      "metaDescription": "Unggah foto wajah, pilih preset bingkai kacamata bawaan, dan bandingkan hasil AI try-on berdampingan.",
+      "startCreditTitle": "Mulai dengan satu kredit",
+      "upToFourTitle": "Hingga empat bingkai",
+      "savedTitle": "Tersimpan di riwayat",
+      "compareBefore": "Bandingkan sebelum membeli",
+      "startComparing": "Mulai membandingkan",
+      "viewPricing": "Lihat harga",
+      "ogDescription": "Bandingkan preset bingkai kacamata bawaan di foto Anda dengan AI try-on secara cepat.",
+      "srOnlyTitle": "Bandingkan bingkai kacamata di foto Anda",
+      "cards": {
+        "c1Description": "Pengguna trial bisa membandingkan satu preset bingkai dulu, lalu menambah kredit saat ingin papan penuh.",
+        "c2Description": "Kredit dipakai sesuai jumlah bingkai yang dihasilkan, jadi perbandingan 4 bingkai memakai hingga 4 kredit.",
+        "c3Description": "Hasil selesai disimpan di Dashboard History sesuai rencana retensi akun Anda."
+      },
+      "compareDescription": "Gunakan Compare saat Anda punya beberapa kandidat bentuk bingkai dan ingin tampilan berdampingan dengan cepat. Gunakan Glasses Try-On jika sudah punya gambar produk tertentu."
+    },
+    "faceAnalysisLanding": {
+      "badge": "Detektor bentuk wajah untuk kacamata",
+      "startFaceAnalysis": "Mulai analisis wajah",
+      "tryGlassesOnPhoto": "Coba kacamata di foto",
+      "faqTitle": "FAQ analisis wajah AI",
+      "guideLink": "Baca panduan lengkap",
+      "faqEyebrow": "Pertanyaan yang sering ditanyakan pengguna",
+      "valuePoints": {
+        "p1": "Detektor bentuk wajah AI untuk kacamata",
+        "p2": "Pilihan bingkai dengan alasan yang jelas",
+        "p3": "Lanjut ke virtual try-on"
+      },
+      "links": {
+        "compareByShape": "Bandingkan kacamata berdasarkan bentuk wajah",
+        "readGuide": "Baca panduan kacamata AI"
+      },
+      "table": {
+        "title": "Kacamata terbaik berdasarkan bentuk wajah",
+        "description": "Jika Anda bertanya kacamata apa yang cocok untuk wajah saya, mulai dari bentuk wajah sebagai filter awal. Gunakan arahan bingkai ini untuk menyusun shortlist, lalu validasi skala dan gaya dengan virtual try-on.",
+        "colShape": "Bentuk wajah",
+        "colTryFirst": "Coba dulu",
+        "colWhy": "Mengapa cocok",
+        "seeStyles": "Lihat gaya",
+        "ctaGuide": "Jelajahi panduan bentuk wajah",
+        "ctaTry": "Coba kacamata di foto Anda"
+      },
+      "shapes": {
+        "roundName": "Wajah bulat",
+        "roundFrames": "Bingkai persegi panjang, kotak, geometris, dan sedikit lebih lebar",
+        "roundReason": "Garis tegas membantu menambah definisi dan menyeimbangkan kurva lembut.",
+        "squareName": "Wajah persegi",
+        "squareFrames": "Bingkai bulat, oval, metal tipis, dan lengkung lembut",
+        "squareReason": "Bentuk melengkung membantu melembutkan garis rahang yang tegas.",
+        "ovalName": "Wajah oval",
+        "ovalFrames": "Bingkai persegi panjang seimbang, browline, aviator, dan bentuk klasik",
+        "ovalReason": "Proporsi wajah oval fleksibel, jadi ukuran dan gaya pribadi paling penting.",
+        "heartName": "Wajah hati",
+        "heartFrames": "Bingkai ringan, bulat, cat-eye, dan keseimbangan di bagian bawah",
+        "heartReason": "Bentuk yang lembut atau terangkat menyeimbangkan dahi lebar dan dagu yang lebih sempit."
+      },
+      "faq": {
+        "q1Question": "Apa itu analisis wajah AI untuk kacamata?",
+        "q1Answer": "VisuTry menyediakan analisis wajah AI untuk kacamata dengan memperkirakan bentuk wajah dan fitur utama, lalu menyarankan gaya bingkai sebelum virtual try-on.",
+        "q2Question": "Bisakah AI merekomendasikan kacamata sesuai bentuk wajah?",
+        "q2Answer": "Ya. Analisis wajah AI dapat merekomendasikan arah bingkai untuk wajah bulat, persegi, oval, hati, diamond, oblong, dan segitiga. Gunakan virtual try-on sebagai validasi visual akhir.",
+        "q3Question": "Bisakah saya pakai detektor bentuk wajah online gratis sebelum beli kacamata?",
+        "q3Answer": "Ya. VisuTry memungkinkan Anda memulai dari detektor bentuk wajah AI online gratis agar memahami kemungkinan bentuk wajah sebelum memilih kacamata. Gunakan hasilnya sebagai shortlist awal, lalu konfirmasi dengan virtual try-on.",
+        "q4Question": "Apa itu face shape finder untuk kacamata?",
+        "q4Answer": "Face shape finder memperkirakan apakah wajah Anda lebih dekat ke bulat, persegi, oval, hati, diamond, oblong, atau segitiga, lalu mengubahnya menjadi rekomendasi gaya bingkai untuk dicoba lebih dulu.",
+        "q5Question": "Apakah analisis wajah saya privat?",
+        "q5Answer": "Foto dan hasil analisis Anda tetap privat di akun. VisuTry menggunakan gambar hanya untuk menghasilkan laporan bentuk wajah dan rekomendasi kacamata.",
+        "q6Question": "Kacamata apa yang cocok untuk bentuk wajah saya?",
+        "q6Answer": "Wajah bulat biasanya cocok mulai dari bingkai bersudut, wajah persegi cocok dengan bingkai bulat atau oval, wajah oval cocok dengan bingkai persegi panjang seimbang atau browline, dan wajah hati cocok dengan bingkai ringan atau sedikit terangkat."
+      }
     }
   }
 }

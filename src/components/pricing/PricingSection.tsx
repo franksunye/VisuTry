@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { Glasses, Star, Zap } from "lucide-react"
+import { useTranslations } from 'next-intl'
 import { PricingCard } from "@/components/pricing/PricingCard"
 import { PromoInput } from "@/components/pricing/PromoInput"
 import { analytics, getUserType } from "@/lib/analytics"
@@ -22,6 +23,7 @@ interface PricingSectionProps {
 
 export function PricingSection({ user, quotas }: PricingSectionProps) {
   const [activeCode, setActiveCode] = useState<string | null>(null)
+  const tPricing = useTranslations('pricing')
 
   useEffect(() => {
     const creditsPurchased = user?.creditsPurchased || 0
@@ -54,7 +56,7 @@ export function PricingSection({ user, quotas }: PricingSectionProps) {
       name: creditPackData.shortName,
       description: creditPackData.description,
       price: formatPrice(creditPackData.price),
-      period: "One-time",
+      period: tPricing('plans.creditsPack.period'),
       features: buildPlanFeatures(creditPackId, quotas),
       buttonText: creditPackData.id.includes("PROMO") ? "Buy Credits Pack" : "Buy Credits Pack",
       popular: creditPackData.popular,
@@ -65,7 +67,7 @@ export function PricingSection({ user, quotas }: PricingSectionProps) {
       name: monthlyData.shortName,
       description: monthlyData.description,
       price: formatPrice(monthlyData.price),
-      period: "per month",
+      period: tPricing('plans.monthly.period'),
       features: buildPlanFeatures(monthlyId, quotas),
       buttonText: monthlyData.id.includes("PROMO") ? "Start Monthly Subscription" : "Start Monthly Subscription",
       popular: monthlyData.popular,
@@ -76,7 +78,7 @@ export function PricingSection({ user, quotas }: PricingSectionProps) {
       name: yearlyData.shortName,
       description: yearlyData.description,
       price: formatPrice(yearlyData.price),
-      period: "per year",
+      period: tPricing('plans.yearly.period'),
       originalPrice: "$107.88",
       features: buildPlanFeatures(yearlyId, quotas),
       buttonText: yearlyData.id.includes("PROMO") ? "Start Annual Subscription" : "Start Annual Subscription",
@@ -102,7 +104,7 @@ export function PricingSection({ user, quotas }: PricingSectionProps) {
       {/* Comparison Table can optionally be updated here too if needed, doing static for now */}
       <div className="overflow-hidden bg-white rounded-xl border shadow-sm">
         <div className="p-6 border-b border-gray-200">
-          <h2 className="text-xl font-semibold text-gray-900">Feature Comparison</h2>
+          <h2 className="text-xl font-semibold text-gray-900">{tPricing('comparison.title')}</h2>
         </div>
 
         <div className="overflow-x-auto">

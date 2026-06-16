@@ -1,72 +1,18 @@
 {
   "common": {
-    "getStarted": "Commencer",
-    "learnMore": "En Savoir Plus",
-    "signIn": "Se Connecter",
-    "signOut": "Se Déconnecter",
     "startFreeTrial": "Démarrer l'Essai Gratuit",
     "startTryOn": "Commencer l'Essayage",
-    "tryOn": "Essayage Virtuel",
-    "blog": "Blog",
-    "pricing": "Tarifs",
-    "dashboard": "Tableau de Bord",
-    "profile": "Profil",
-    "settings": "Paramètres",
-    "loading": "Chargement...",
-    "error": "Erreur",
-    "success": "Succès",
-    "cancel": "Annuler",
-    "save": "Enregistrer",
-    "delete": "Supprimer",
-    "edit": "Modifier",
-    "close": "Fermer",
-    "back": "Retour",
-    "next": "Suivant",
-    "previous": "Précédent",
-    "submit": "Soumettre",
-    "confirm": "Confirmer"
+    "loading": "Chargement..."
   },
   "nav": {
     "faceAnalysis": "Analyse du visage",
-    "home": "Accueil",
-    "tryOn": "Essayage Virtuel",
     "tryGlasses": "Lunettes",
-    "tryOutfit": "Essayer des Vêtements",
-    "tryShoes": "Essayer des Chaussures",
-    "tryAccessories": "Essayer des Accessoires",
-    "blog": "Blog",
     "pricing": "Tarifs",
-    "dashboard": "Tableau de Bord",
-    "signIn": "Se Connecter",
-    "signOut": "Se Déconnecter",
-    "toggleMenu": "Basculer le menu de navigation"
+    "toggleMenu": "Basculer le menu de navigation",
+    "compare": "Compare",
+    "faq": "FAQ"
   },
   "home": {
-    "hero": {
-      "title": "Trouvez Votre Style Parfait",
-      "subtitle": "Essayez en 3 Étapes Faciles"
-    },
-    "steps": {
-      "step1": {
-        "title": "Téléchargez Votre Photo",
-        "description": "Téléchargez une photo claire de vous-même — aucun outil spécial requis."
-      },
-      "step2": {
-        "title": "Choisissez Votre Style",
-        "description": "Choisissez l'article que vous souhaitez essayer. Nous vous montrerons comment il vous va."
-      },
-      "step3": {
-        "title": "Voir et Sauvegarder",
-        "description": "Voyez votre look parfait, puis sauvegardez-le ou partagez-le."
-      }
-    },
-    "cta": {
-      "button": "Commencer",
-      "faceAnalysis": "Analyse du visage",
-      "tryOutfit": "Essayer des Vêtements",
-      "tryShoes": "Essayer des Chaussures",
-      "tryAccessories": "Essayer des Accessoires"
-    },
     "showcase": {
       "alex": {
         "name": "Alex",
@@ -84,172 +30,29 @@
         "title": "✨ Rejoignez des milliers de personnes qui ont trouvé leurs lunettes parfaites",
         "subtitle": "Essayez des styles illimités avec une précision alimentée par l'IA"
       }
-    },
-    "features": {
-      "title": "Fonctionnalités Clés de VisuTry",
-      "subtitle": "Découvrez la prochaine génération d'essayage virtuel alimenté par l'IA",
-      "feature1": {
-        "title": "Google Nano Banana",
-        "description": "Propulsé par le dernier modèle d'IA de Google pour des résultats d'essayage ultra-réalistes avec une précision exceptionnelle et un éclairage naturel."
-      },
-      "feature2": {
-        "title": "Rétention Intelligente des Données",
-        "description": "Votre historique d'essayage est stocké en toute sécurité - 7 jours pour les utilisateurs gratuits, 90 jours avec Crédits et 1 an pour les membres Premium."
-      },
-      "feature3": {
-        "title": "Traitement Ultra-Rapide",
-        "description": "Obtenez vos résultats d'essayage en 10-30 secondes avec notre pipeline d'IA optimisé. Les utilisateurs Premium bénéficient d'un traitement prioritaire."
-      },
-      "feature4": {
-        "title": "Confidentialité Protégée",
-        "description": "Vos photos sont cryptées et sécurisées. Nous ne partageons jamais vos images ni ne les utilisons pour l'entraînement sans autorisation."
-      }
-    },
-    "faq": {
-      "title": "Questions Fréquemment Posées",
-      "subtitle": "Tout ce que vous devez savoir sur VisuTry",
-      "q1": {
-        "question": "Comment fonctionne l'essayage IA de VisuTry ?",
-        "answer": "VisuTry utilise Google Nano Banana IA pour analyser vos traits faciaux et superposer de manière réaliste des lunettes sur votre photo. L'IA comprend la forme du visage, l'éclairage et la perspective pour créer des résultats d'apparence naturelle en quelques secondes."
-      },
-      "q2": {
-        "question": "Mes données photographiques sont-elles sûres et privées ?",
-        "answer": "Absolument ! Vos photos sont cryptées pendant le téléchargement et le traitement. Nous ne partageons jamais vos images publiquement ni ne les utilisons pour l'entraînement de l'IA sans autorisation explicite. Les données des utilisateurs gratuits sont stockées pendant 7 jours, les utilisateurs de Crédits pendant 90 jours et les membres Premium pendant 1 an."
-      },
-      "q3": {
-        "question": "Quelle est la différence entre la qualité gratuite et Premium ?",
-        "answer": "Les utilisateurs gratuits obtiennent des images de qualité standard (800×800 pixels) avec un petit filigrane. Les utilisateurs Premium reçoivent des images de haute qualité (1200×1200 pixels) sans filigrane, ainsi qu'un traitement prioritaire et une rétention des données plus longue (1 an vs 7 jours)."
-      },
-      "q4": {
-        "question": "Puis-je utiliser les images générées commercialement ?",
-        "answer": "Oui ! Les utilisateurs Premium et Pack de Crédits peuvent utiliser leurs images sans filigrane à toutes fins, y compris à des fins commerciales. Les utilisateurs gratuits reçoivent des images avec filigrane pour un usage personnel uniquement."
-      },
-      "q5": {
-        "question": "Combien de temps faut-il pour générer un essayage ?",
-        "answer": "La plupart des essayages se terminent en 10-30 secondes. Les utilisateurs Premium bénéficient d'un traitement prioritaire, ce qui signifie des résultats plus rapides même pendant les heures de pointe. Le temps exact dépend de la charge du serveur et de la complexité de l'image."
-      },
-      "q6": {
-        "question": "Qu'advient-il de mon historique d'essayage ?",
-        "answer": "Votre historique d'essayage est automatiquement sauvegardé en fonction de votre forfait : Utilisateurs gratuits (7 jours), utilisateurs de Crédits (90 jours), utilisateurs Premium (1 an). Vous recevrez un rappel par e-mail 3 jours avant l'expiration, vous donnant le temps de télécharger ou de mettre à niveau."
-      }
     }
   },
   "pricing": {
-    "title": "Choisissez Votre Forfait",
-    "subtitle": "Sélectionnez le forfait parfait pour vos besoins",
-    "currentPlan": "Forfait Actuel",
-    "freeUser": "Utilisateur Gratuit",
-    "remainingTryOns": "Essayages restants : {count}",
     "plans": {
       "creditsPack": {
-        "name": "Pack de Crédits",
-        "description": "Parfait pour une utilisation occasionnelle",
-        "price": "2,99 €",
-        "period": "Paiement unique",
-        "buttonText": "Acheter le Pack de Crédits",
-        "features": [
-          "10 essayages IA",
-          "Traitement d'image haute qualité",
-          "Téléchargements et partages illimités",
-          "Bibliothèque de montures standard",
-          "Support par e-mail"
-        ]
+        "period": "Paiement unique"
       },
       "monthly": {
-        "name": "Standard",
-        "description": "Choix le plus populaire",
-        "price": "8,99 €",
-        "period": "par mois",
-        "buttonText": "Démarrer l'Abonnement Mensuel",
-        "features": [
-          "30 essayages IA par mois",
-          "Traitement d'image haute qualité",
-          "File d'attente prioritaire",
-          "Téléchargements et partages illimités",
-          "Bibliothèque de montures standard",
-          "Support client prioritaire"
-        ]
+        "period": "par mois"
       },
       "yearly": {
-        "name": "Standard",
-        "description": "Meilleure valeur - Économisez 17%",
-        "price": "89,99 €",
-        "originalPrice": "107,88 €",
-        "period": "par an",
-        "buttonText": "Démarrer l'Abonnement Annuel",
-        "features": [
-          "420 essayages IA par an (35/mois)",
-          "Traitement d'image haute qualité",
-          "File d'attente prioritaire",
-          "Téléchargements et partages illimités",
-          "Bibliothèque de montures standard",
-          "Support client prioritaire",
-          "Économisez 17,89 € par rapport au mensuel"
-        ]
+        "period": "par an"
       }
     },
     "comparison": {
-      "title": "Comparer les Forfaits",
-      "features": {
-        "aiTryOns": "Essayages IA",
-        "imageQuality": "Qualité d'Image",
-        "processingSpeed": "Vitesse de Traitement",
-        "downloads": "Téléchargements et Partage",
-        "frameLibrary": "Bibliothèque de Montures",
-        "support": "Support Client"
-      },
-      "values": {
-        "free": {
-          "aiTryOns": "1 fois",
-          "imageQuality": "Standard",
-          "processingSpeed": "Standard",
-          "downloads": "Limité",
-          "frameLibrary": "Basique",
-          "support": "E-mail"
-        },
-        "credits": {
-          "aiTryOns": "+10 fois",
-          "imageQuality": "Haute",
-          "processingSpeed": "Standard",
-          "downloads": "Illimité",
-          "frameLibrary": "Standard",
-          "support": "E-mail"
-        },
-        "standard": {
-          "aiTryOns": "30/mois ou 420/an",
-          "imageQuality": "Haute",
-          "processingSpeed": "Prioritaire",
-          "downloads": "Illimité",
-          "frameLibrary": "Standard",
-          "support": "Prioritaire"
-        }
-      }
-    },
-    "faq": {
-      "title": "Questions Fréquemment Posées",
-      "questions": [
-        {
-          "question": "Puis-je annuler mon abonnement à tout moment ?",
-          "answer": "Oui, vous pouvez annuler votre abonnement à tout moment. Votre accès se poursuivra jusqu'à la fin de votre période de facturation."
-        },
-        {
-          "question": "Qu'advient-il des essayages non utilisés ?",
-          "answer": "Pour les abonnements mensuels, les essayages non utilisés ne sont pas reportés au mois suivant. Pour les packs de crédits, les crédits n'expirent jamais."
-        },
-        {
-          "question": "Offrez-vous des remboursements ?",
-          "answer": "Nous offrons une garantie de remboursement de 7 jours pour tous les abonnements. Les packs de crédits ne sont pas remboursables une fois utilisés."
-        }
-      ]
+      "title": "Comparer les Forfaits"
     }
   },
   "footer": {
-    "tagline": "Essayage virtuel avec IA pour lunettes, vêtements, chaussures et accessoires",
     "links": {
       "product": "Produit",
       "resources": "Ressources",
       "legal": "Légal",
-      "tryGlasses": "Essayer des Lunettes",
       "tryOutfit": "Essayer des Vêtements",
       "tryShoes": "Essayer des Chaussures",
       "tryAccessories": "Essayer des Accessoires",
@@ -263,16 +66,6 @@
     },
     "copyright": "© {year} VisuTry. Tous droits réservés.",
     "madeWith": "Fait avec ❤️ en utilisant la technologie IA"
-  },
-  "meta": {
-    "home": {
-      "title": "VisuTry - Essayage Virtuel IA pour Lunettes, Vêtements, Chaussures et Accessoires",
-      "description": "Essayez des lunettes, vêtements, chaussures et accessoires instantanément avec l'essayage virtuel propulsé par l'IA. Aucun téléchargement requis - téléchargez votre photo et voyez comment les articles vous vont avant d'acheter. Propulsé par Nano Banana IA (Gemini 2.5 Flash Image) pour des résultats photoréalistes."
-    },
-    "pricing": {
-      "title": "Plans Tarifaires - Essayage Virtuel IA pour Toutes les Catégories | VisuTry",
-      "description": "Choisissez le forfait parfait pour l'essayage virtuel instantané propulsé par l'IA. Essayez des lunettes, vêtements, chaussures et accessoires avec Nano Banana IA (Gemini 2.5 Flash Image). Essais gratuits disponibles, fonctionnalités premium pour ajustement virtuel illimité."
-    }
   },
   "faceAnalysis": {
     "meta": {
@@ -369,6 +162,241 @@
       "unlocked": "Débloqué",
       "locked": "Verrouillé",
       "viewReport": "Voir le rapport"
+    }
+  },
+  "marketing": {
+    "home": {
+      "metaTitle": "VisuTry - Essayage Virtuel IA pour Lunettes, Vêtements, Chaussures et Accessoires",
+      "metaDescription": "Essayez des lunettes, vêtements, chaussures et accessoires instantanément avec l'essayage virtuel propulsé par l'IA. Aucun téléchargement requis - téléchargez votre photo et voyez comment les articles vous vont avant d'acheter. Propulsé par Nano Banana IA (Gemini 2.5 Flash Image) pour des résultats photoréalistes.",
+      "faqTitle": "Questions Fréquemment Posées",
+      "faqSubtitle": "Tout ce que vous devez savoir sur VisuTry",
+      "heroTitle": "Trouvez Votre Style Parfait",
+      "heroSubtitle": "Essayez en 3 Étapes Faciles",
+      "tools": {
+        "faceTitle": "Analyse du visage",
+        "faceDescription": "Détectez la forme du visage et obtenez des orientations de montures avant de dépenser des crédits.",
+        "glassesTitle": "Lunettes",
+        "glassesDescription": "Importez des photos produit ou captures d’écran et visualisez-les sur votre visage.",
+        "compareTitle": "Comparer",
+        "compareDescription": "Choisissez des presets intégrés et examinez plusieurs résultats de montures sur un seul panneau."
+      },
+      "ctaPrimary": "Commencer par Face",
+      "ctaSecondary": "Comparer les montures",
+      "featureCards": {
+        "faceTitle": "Analyse du visage",
+        "faceDescription": "Un rapport professionnel de forme du visage avec recommandations de montures.",
+        "glassesTitle": "Essayage lunettes personnalisé",
+        "glassesDescription": "Utilisez votre image produit, photo boutique ou capture d’écran.",
+        "compareTitle": "Comparaison de montures",
+        "compareDescription": "Testez rapidement des montures prédéfinies à partir du même portrait.",
+        "openTool": "Ouvrir l’outil"
+      },
+      "workflow": {
+        "badge": "Analyse du visage pour lunettes",
+        "title": "Commencez l’essayage avec des montures qui correspondent déjà au visage",
+        "description": "VisuTry utilise un portrait pour lire la forme du visage, réduire la première sélection et vous orienter vers l’essayage avec de meilleures options.",
+        "point1": "Rapport de forme du visage",
+        "point2": "Styles de montures recommandés",
+        "point3": "Un seul parcours vers l’essayage IA",
+        "cta": "Analyser mon visage"
+      },
+      "benefits": {
+        "generatedTitle": "Aperçus générés par IA",
+        "generatedDescription": "Utilisez un portrait pour analyser, essayer et comparer des lunettes avant achat.",
+        "historyTitle": "Enregistré dans l’historique",
+        "historyDescription": "Les résultats terminés restent disponibles dans l’historique du tableau de bord selon votre formule.",
+        "privacyTitle": "Privé par défaut",
+        "privacyDescription": "Vos photos et résultats restent privés dans votre compte et ne sont jamais publiés."
+      },
+      "faq": {
+        "q1Question": "Comment fonctionne l'essayage IA de VisuTry ?",
+        "q1Answer": "VisuTry utilise Google Nano Banana IA pour analyser vos traits faciaux et superposer de manière réaliste des lunettes sur votre photo. L'IA comprend la forme du visage, l'éclairage et la perspective pour créer des résultats d'apparence naturelle en quelques secondes.",
+        "q2Question": "Mes données photographiques sont-elles sûres et privées ?",
+        "q2Answer": "Absolument ! Vos photos sont cryptées pendant le téléchargement et le traitement. Nous ne partageons jamais vos images publiquement ni ne les utilisons pour l'entraînement de l'IA sans autorisation explicite. Les données des utilisateurs gratuits sont stockées pendant 7 jours, les utilisateurs de Crédits pendant 90 jours et les membres Premium pendant 1 an.",
+        "q3Question": "Quelle est la différence entre la qualité gratuite et Premium ?",
+        "q3Answer": "Les utilisateurs gratuits obtiennent des images de qualité standard (800×800 pixels) avec un petit filigrane. Les utilisateurs Premium reçoivent des images de haute qualité (1200×1200 pixels) sans filigrane, ainsi qu'un traitement prioritaire et une rétention des données plus longue (1 an vs 7 jours).",
+        "q4Question": "Puis-je utiliser les images générées commercialement ?",
+        "q4Answer": "Oui ! Les utilisateurs Premium et Pack de Crédits peuvent utiliser leurs images sans filigrane à toutes fins, y compris à des fins commerciales. Les utilisateurs gratuits reçoivent des images avec filigrane pour un usage personnel uniquement.",
+        "q5Question": "Combien de temps faut-il pour générer un essayage ?",
+        "q5Answer": "La plupart des essayages se terminent en 10-30 secondes. Les utilisateurs Premium bénéficient d'un traitement prioritaire, ce qui signifie des résultats plus rapides même pendant les heures de pointe. Le temps exact dépend de la charge du serveur et de la complexité de l'image."
+      }
+    },
+    "pricing": {
+      "metaTitle": "Plans Tarifaires - Essayage Virtuel IA pour Toutes les Catégories | VisuTry",
+      "metaDescription": "Choisissez le forfait parfait pour l'essayage virtuel instantané propulsé par l'IA. Essayez des lunettes, vêtements, chaussures et accessoires avec Nano Banana IA (Gemini 2.5 Flash Image). Essais gratuits disponibles, fonctionnalités premium pour ajustement virtuel illimité.",
+      "eyebrow": "Crédits simples pour Face, Glasses et Compare",
+      "title": "Commencez avec 1 crédit gratuit, puis continuez avec {count} crédits IA pour 2,99 USD",
+      "description": "Utilisez les crédits pour l’analyse du visage IA, l’essayage lunettes personnalisé et la comparaison de montures.",
+      "faqTitle": "Questions Fréquemment Posées",
+      "featureCards": {
+        "faceTitle": "Analyse du visage",
+        "faceDescription": "Utilisez un crédit pour estimer la forme du visage et obtenir des recommandations de montures avant l’essayage.",
+        "glassesTitle": "Essayage lunettes",
+        "glassesDescription": "Utilisez un crédit par essai personnalisé à partir d’un portrait et d’une image de lunettes.",
+        "compareTitle": "Comparaison de montures",
+        "compareDescription": "Un crédit par monture générée. Essayez 1 monture gratuitement ou comparez jusqu’à 4 avec des crédits."
+      },
+      "faq": {
+        "q1Title": "Le Credits Pack est-il un abonnement ?",
+        "q1Answer": "Non. Le Credits Pack est un achat unique de 2,99 USD pour {count} essayages IA.",
+        "q2Title": "Puis-je utiliser mes crédits avec mes propres captures de lunettes ?",
+        "q2Answer": "Oui. Les crédits fonctionnent avec le flux d’essayage lunettes où vous importez votre photo de visage et une image de lunettes.",
+        "q3Title": "Combien de crédits consomme Frame Compare ?",
+        "q3Answer": "Frame Compare consomme un crédit par monture générée. Une comparaison complète de 4 montures peut utiliser jusqu’à 4 crédits.",
+        "q4Title": "Les crédits expirent-ils ?",
+        "q4Answer": "Les crédits n’expirent pas après achat.",
+        "q5Title": "Que puis-je faire avec un crédit gratuit ?",
+        "q5Answer": "Vous pouvez lancer une analyse du visage, un essai personnalisé ou une monture dans Compare.",
+        "q6Title": "Quels moyens de paiement sont acceptés ?",
+        "q6Answer": "Nous acceptons les principales cartes de crédit et de débit, dont Visa, Mastercard et American Express.",
+        "q7Title": "Comment contacter le support ?",
+        "q7Answer": "Vous pouvez nous écrire à support@visutry.com. Les membres Premium bénéficient d’un support prioritaire."
+      },
+      "legal": {
+        "prefix": "En vous abonnant, vous acceptez nos",
+        "terms": "Conditions d’utilisation",
+        "and": "et",
+        "privacy": "Politique de confidentialité",
+        "middle": ". Consultez aussi notre",
+        "refund": "Politique de remboursement",
+        "suffix": "pour les conditions d’annulation."
+      }
+    },
+    "faqPage": {
+      "metaTitle": "FAQ : essayage lunettes IA, analyse du visage et comparaison | VisuTry",
+      "metaDescription": "Questions sur les crédits VisuTry, l’analyse faciale IA, l’essayage personnalisé, la comparaison, la confidentialité et l’historique.",
+      "badge": "Centre d'aide",
+      "title": "FAQ pour l’essayage lunettes IA, l’analyse du visage et la comparaison de montures",
+      "subtitle": "Réponses rapides pour les acheteurs de lunettes en ligne avec VisuTry.",
+      "topics": "Sujets",
+      "supportTitle": "Besoin d'aide sur une tâche précise ?",
+      "supportDescription": "Contactez le support avec l’email de votre compte et l’ID de tâche si un résultat semble incorrect ou reste en traitement trop longtemps."
+    },
+    "tryOnLanding": {
+      "metaTitle": "Essayage virtuel de lunettes en ligne depuis une photo | VisuTry",
+      "metaDescription": "Essayez des lunettes en ligne avec une photo de visage et votre image produit ou capture.",
+      "howItWorks": "Comment ça marche",
+      "title": "De l’image produit à l’aperçu d’essayage",
+      "description": "Utilisez Glasses quand vous avez déjà une photo de monture ou une capture. VisuTry transforme cette image en aperçu navigateur sur votre portrait.",
+      "startButton": "Démarrer essai gratuit",
+      "pricingButton": "30 essais pour 2,99 USD",
+      "guideLink": "Lire le guide d'achat",
+      "faqTitle": "FAQ essayage lunettes IA",
+      "notFoundTitle": "Try-On introuvable | VisuTry",
+      "notFoundDescription": "Le type de try-on demandé est introuvable.",
+      "ogDescription": "Importez une photo de visage et une image de lunettes pour prévisualiser le rendu avant achat, sans application.",
+      "ctaNote": "Un essai gratuit pour commencer. Credits Pack est un achat unique, sans abonnement.",
+      "shortlistNotePrefix": "Vous ne savez pas quelles lunettes vous vont ? Commencez par",
+      "shortlistNoteLink": "l’analyse IA de la forme du visage",
+      "shortlistNoteSuffix": "pour créer une présélection, puis revenez ici pour essayer des lunettes avec vos photos et captures.",
+      "faq": {
+        "q1Question": "Puis-je essayer des lunettes en ligne depuis une capture ?",
+        "q1Answer": "Oui. VisuTry vous permet d’importer une photo de visage et une image de lunettes pour générer un aperçu réaliste.",
+        "q2Question": "Puis-je importer ma propre image de lunettes ?",
+        "q2Answer": "Oui. Photo produit, image boutique, capture d’e-mail ou image transparente de monture sont acceptées.",
+        "q3Question": "Puis-je essayer des lunettes chez moi avant d’acheter ?",
+        "q3Answer": "Oui. VisuTry fonctionne dans le navigateur sur desktop et mobile.",
+        "q4Question": "Et si je ne sais pas quelles lunettes essayer en premier ?",
+        "q4Answer": "Commencez par l’analyse du visage IA pour obtenir une meilleure présélection.",
+        "q5Question": "Comment fonctionne l’essayage lunettes par IA ?",
+        "q5Answer": "L’IA combine votre photo de visage avec une image de lunettes pour créer un aperçu du rendu.",
+        "q6Question": "VisuTry est-il une application d’essayage lunettes ?",
+        "q6Answer": "VisuTry fonctionne comme une app d’essayage, mais directement dans le navigateur.",
+        "q7Question": "Puis-je essayer des lunettes anti-lumière bleue en ligne ?",
+        "q7Answer": "Oui, si vous avez une image produit ou capture claire.",
+        "q8Question": "Dois-je installer une application ?",
+        "q8Answer": "Non. VisuTry fonctionne dans le navigateur.",
+        "q9Question": "Que se passe-t-il après mon essai gratuit ?",
+        "q9Answer": "Vous pouvez continuer avec Credits Pack : 30 essais IA pour 2,99 USD, sans abonnement."
+      },
+      "valuePoints": {
+        "p1": "Importez un portrait et une image de lunettes",
+        "p2": "Prévisualisez la monture sur votre visage avant achat",
+        "p3": "Utilisez Face ou Compare si vous avez besoin d’aide pour choisir"
+      },
+      "steps": {
+        "s1Title": "Importez vos photos",
+        "s1Description": "Utilisez une photo de visage et une image produit, boutique ou capture.",
+        "s2Title": "Prévisualiser et comparer",
+        "s2Description": "Vérifiez le rendu de différentes montures avant de choisir.",
+        "s3Title": "Navigateur et confidentialité",
+        "s3Description": "Aucune installation. Les données gratuites sont conservées 7 jours ; Credits Pack, 90 jours.",
+        "s4Title": "Continuez quand vous en avez besoin",
+        "s4Description": "Commencez gratuitement, puis utilisez Credits Pack pour comparer davantage de montures."
+      }
+    },
+    "compareLanding": {
+      "metaTitle": "Comparer des montures de lunettes en ligne | VisuTry",
+      "metaDescription": "Importez une photo de visage, choisissez des montures prédéfinies et comparez les résultats IA côte à côte.",
+      "startCreditTitle": "Commencez avec un crédit",
+      "upToFourTitle": "Jusqu’à quatre montures",
+      "savedTitle": "Enregistré dans l’historique",
+      "compareBefore": "Comparer avant d’acheter",
+      "startComparing": "Commencer la comparaison",
+      "viewPricing": "Voir les tarifs",
+      "ogDescription": "Comparez rapidement des montures prédéfinies sur votre photo avec l’essayage IA.",
+      "srOnlyTitle": "Comparer des montures sur votre photo",
+      "cards": {
+        "c1Description": "Les utilisateurs d’essai peuvent d’abord comparer une monture puis ajouter des crédits.",
+        "c2Description": "Les crédits sont consommés par monture générée ; 4 montures peuvent utiliser jusqu’à 4 crédits.",
+        "c3Description": "Les résultats terminés sont conservés dans l’historique selon votre plan."
+      },
+      "compareDescription": "Utilisez Compare pour une vue rapide côte à côte de plusieurs formes probables."
+    },
+    "faceAnalysisLanding": {
+      "badge": "Détecteur de forme du visage pour lunettes",
+      "startFaceAnalysis": "Démarrer l'analyse du visage",
+      "tryGlassesOnPhoto": "Essayer des lunettes sur photo",
+      "faqTitle": "FAQ analyse faciale IA",
+      "guideLink": "Lire le guide complet",
+      "faqEyebrow": "Questions fréquentes des acheteurs",
+      "valuePoints": {
+        "p1": "Détecteur IA de forme du visage pour lunettes",
+        "p2": "Sélection de montures avec explications",
+        "p3": "Poursuivez vers l’essayage virtuel"
+      },
+      "links": {
+        "compareByShape": "Comparer les lunettes par forme de visage",
+        "readGuide": "Lire le guide lunettes IA"
+      },
+      "table": {
+        "title": "Meilleures lunettes selon la forme du visage",
+        "description": "Si vous vous demandez quelles lunettes vous vont, commencez par la forme du visage comme premier filtre.",
+        "colShape": "Forme du visage",
+        "colTryFirst": "À essayer d’abord",
+        "colWhy": "Pourquoi ça fonctionne",
+        "seeStyles": "Voir les styles",
+        "ctaGuide": "Explorer le guide par forme",
+        "ctaTry": "Essayer des lunettes sur votre photo"
+      },
+      "shapes": {
+        "roundName": "Visage rond",
+        "roundFrames": "Montures rectangulaires, carrées, géométriques et légèrement larges",
+        "roundReason": "Les lignes angulaires apportent de la définition.",
+        "squareName": "Visage carré",
+        "squareFrames": "Montures rondes, ovales, métal fin et courbes douces",
+        "squareReason": "Les formes courbes adoucissent la mâchoire.",
+        "ovalName": "Visage ovale",
+        "ovalFrames": "Montures rectangulaires équilibrées, browline, aviateur et classiques",
+        "ovalReason": "Le visage ovale est flexible ; l’échelle et le style priment.",
+        "heartName": "Visage en cœur",
+        "heartFrames": "Montures légères, arrondies, cat-eye et équilibrées vers le bas",
+        "heartReason": "Les formes douces équilibrent le front large et le menton plus fin."
+      },
+      "faq": {
+        "q1Question": "Qu’est-ce que l’analyse du visage IA pour lunettes ?",
+        "q1Answer": "VisuTry estime la forme du visage et des caractéristiques visibles pour recommander des styles de monture avant essayage.",
+        "q2Question": "L’IA peut-elle recommander des lunettes selon mon visage ?",
+        "q2Answer": "Oui, pour les formes rondes, carrées, ovales, cœur, diamant, oblongues et triangulaires.",
+        "q3Question": "Puis-je utiliser un détecteur de forme de visage gratuit avant achat ?",
+        "q3Answer": "Oui. Commencez avec le détecteur IA pour créer une présélection, puis validez avec l’essayage.",
+        "q4Question": "Qu’est-ce qu’un face shape finder pour lunettes ?",
+        "q4Answer": "Un outil qui estime votre forme de visage et la convertit en styles de monture à essayer.",
+        "q5Question": "Mon analyse du visage est-elle privée ?",
+        "q5Answer": "Oui. Votre photo et vos résultats restent privés à votre compte.",
+        "q6Question": "Quelles lunettes conviennent à ma forme de visage ?",
+        "q6Answer": "En général : rond -> montures angulaires, carré -> rondes/ovales, ovale -> formes équilibrées, cœur -> montures légères relevées."
+      }
     }
   }
 }

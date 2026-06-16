@@ -1,156 +1,55 @@
-# 🌍 i18n - Remaining Tasks
+# i18n Scope And Current Policy
 
-**Last Updated**: 2025-11-04  
-**Current Status**: 9 languages supported (en, id, ar, ru, de, ja, es, pt, fr)  
-**Branch**: `feature/i18n-multi-language`
+**Last Updated**: 2026-06-16  
+**Supported Locales**: `en`, `id`, `ar`, `ru`, `de`, `ja`, `es`, `pt`, `fr`  
+**Default Locale**: `en`
 
----
+## Localization Strategy
 
-## ✅ What's Done
+VisuTry now uses a **marketing-first localization** strategy.
 
-- ✅ 9 languages configured and working
-- ✅ Home page fully translated (all 9 languages)
-- ✅ Pricing page fully translated (all 9 languages)
-- ✅ Navigation & Header translated
-- ✅ Footer translated
-- ✅ Language switcher working
-- ✅ Sitemap auto-generates for all languages
-- ✅ SEO meta tags with hreflang support
-- ✅ RTL support for Arabic
-- ✅ Middleware with language detection
-- ✅ All core infrastructure complete
+- Localize: navigation and marketing copy under locale routes
+- Keep English-only: tool workflow UI and post-login product internals
+- Keep admin English-only by design
 
----
+## In Scope
 
-## 🚧 TODO - Remaining Pages to Translate
+- Header and footer navigation labels
+- Marketing pages and landing pages:
+  - `src/app/[locale]/(main)/page.tsx`
+  - `src/app/[locale]/(main)/pricing/page.tsx`
+  - `src/app/[locale]/(main)/faq/page.tsx`
+  - `src/app/[locale]/(main)/try-on/[type]/page.tsx` (public landing content only)
+  - `src/app/[locale]/(main)/try-on/glasses/compare/page.tsx` (public landing content only)
+  - `src/app/[locale]/(main)/face-analysis/page.tsx` (landing/marketing content)
+- Marketing components used by those pages
+- Locale metadata and marketing structured data text
 
-### Priority 1: User-Facing Pages (High Impact)
+## Out Of Scope
 
-#### Try-On Flow
-- [ ] `src/app/[locale]/(main)/try-on/page.tsx` - Try-on upload page
-- [ ] `src/components/try-on/*` - Try-on components
-  - [ ] Upload instructions
-  - [ ] Frame selection UI
-  - [ ] Results display
-  - [ ] Error messages
+- Tool internals and workflow UI:
+  - `src/components/try-on/*`
+  - `src/components/compare/FrameCompareInterface.tsx`
+  - `src/components/face-analysis/FaceAnalysisInterface.tsx`
+  - Dashboard widgets and task-running UI
 
-#### Dashboard
-- [ ] `src/app/[locale]/(main)/dashboard/page.tsx` - User dashboard
-  - [ ] Welcome message
-  - [ ] Stats labels
-  - [ ] Quick actions
-  - [ ] Tips section
+## Source Of Truth
 
-#### Payment Pages
-- [ ] `src/app/[locale]/(main)/payment/success/page.tsx` - Payment success
-- [ ] `src/app/[locale]/(main)/payment/cancel/page.tsx` - Payment cancelled
-  - [ ] Success/cancel messages
-  - [ ] Next steps instructions
+- Translation schema source: `messages/en.json`
+- All locale files must mirror the same key tree
+- Keep marketing keys under `marketing.*`
 
-### Priority 2: Legal Pages (SEO Value)
+## Implementation Rules
 
-- [ ] `src/app/[locale]/(main)/privacy/page.tsx` - Privacy Policy
-- [ ] `src/app/[locale]/(main)/terms/page.tsx` - Terms of Service
-- [ ] `src/app/[locale]/(main)/refund/page.tsx` - Refund Policy
+1. Add new keys in `messages/en.json`
+2. Mirror key structure to all locale files
+3. Wire pages/components to `useTranslations` or `getTranslations`
+4. Keep untranslated product internals intentionally untouched
 
-**Note**: Legal pages may need professional legal translation, not just AI translation.
+## Validation Checklist
 
-### Priority 3: Auth Pages (Lower Priority)
-
-- [ ] `src/app/[locale]/(main)/auth/signin/page.tsx` - Sign in page
-- [ ] Auth error messages
-- [ ] Auth success messages
-
-### Priority 4: Blog (If Needed)
-
-- [ ] Blog post content (if you want multilingual blog)
-- [ ] Blog categories/tags
-
----
-
-## 📝 How to Add Translations
-
-### Step 1: Add Keys to English File
-Edit `messages/en.json` and add new translation keys:
-```json
-{
-  "tryOn": {
-    "upload": {
-      "title": "Upload Your Photo",
-      "instruction": "Choose a clear front-facing photo"
-    }
-  }
-}
-```
-
-### Step 2: Translate to Other 8 Languages
-Copy the structure to all language files and translate:
-- `messages/id.json` - Indonesian
-- `messages/ar.json` - Arabic
-- `messages/ru.json` - Russian
-- `messages/de.json` - German
-- `messages/ja.json` - Japanese
-- `messages/es.json` - Spanish
-- `messages/pt.json` - Portuguese
-- `messages/fr.json` - French
-
-### Step 3: Use in Components
-```typescript
-import { useTranslations } from 'next-intl'
-
-export default function TryOnPage() {
-  const t = useTranslations('tryOn')
-  return <h1>{t('upload.title')}</h1>
-}
-```
-
----
-
-## 🎯 Quick Wins (Do These First)
-
-1. **Dashboard** - High user visibility, easy to translate
-2. **Payment Success/Cancel** - Critical user experience
-3. **Try-On Flow** - Core feature, high impact
-
----
-
-## 📚 Reference
-
-### Current Language Order (by preference)
-1. English (en) - Default
-2. Indonesian (id)
-3. Arabic (ar) - RTL
-4. Russian (ru)
-5. German (de)
-6. Japanese (ja)
-7. Spanish (es)
-8. Portuguese (pt)
-9. French (fr)
-
-### Key Files
-- **Config**: `src/i18n.ts`
-- **Translations**: `messages/*.json`
-- **Middleware**: `src/middleware.ts`
-- **Sitemap**: `src/app/sitemap.ts` (auto-updates)
-
-### Useful Commands
-```bash
-# Validate all JSON files
-for file in messages/*.json; do node -e "JSON.parse(require('fs').readFileSync('$file'))"; done
-
-# Check TypeScript
-npx tsc --noEmit
-
-# Build
-npm run build
-```
-
----
-
-## 💡 Notes
-
-- Legal pages may require professional translation for compliance
-- Blog translation is optional - consider if you want multilingual content
-- Admin panel stays English-only (by design)
-- All new pages should use translations from day 1
+- Key parity: no missing/extra locale keys versus `en`
+- Manual smoke test: `en`, `id`, `ja`, `ar`
+- Verify metadata language consistency per locale
+- Run lint on touched files
 

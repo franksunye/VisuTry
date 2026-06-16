@@ -9,73 +9,46 @@ interface FaceAnalysisLandingProps {
   locale: string
 }
 
-const faceAnalysisFaqContent = [
-  {
-    question: 'What is AI face analysis for glasses?',
-    answer: 'VisuTry provides AI face analysis for glasses by estimating your face shape and key visible features, then suggesting frame styles before virtual try-on.',
-  },
-  {
-    question: 'Can AI recommend glasses for my face shape?',
-    answer: 'Yes. AI face analysis can recommend frame directions for round, square, oval, heart, diamond, oblong, and triangle face shapes. Use virtual try-on as the final visual check.',
-  },
-  {
-    question: 'Can I use a face shape detector online free before buying glasses?',
-    answer: 'Yes. VisuTry lets you start with an online AI face shape detector so you can understand your likely face shape before choosing glasses. Use the result as a practical shortlist, then confirm the look with virtual try-on.',
-  },
-  {
-    question: 'What is a face shape finder for glasses?',
-    answer: 'A face shape finder estimates whether your face is closer to round, square, oval, heart, diamond, oblong, or triangle, then turns that result into frame styles to try first.',
-  },
-  {
-    question: 'Is my face analysis private?',
-    answer: 'Your uploaded photo and analysis stay private to your account. VisuTry uses the image to generate your face shape report and glasses recommendations.',
-  },
-  {
-    question: 'What glasses suit my face shape?',
-    answer: 'Round faces often start with angular frames, square faces with round or oval frames, oval faces with balanced rectangular or browline frames, and heart faces with lightweight or softly upswept frames.',
-  },
-]
-
-const valuePoints = [
-  'AI face shape detector for glasses',
-  'Frame picks with a reason',
-  'Continue into virtual try-on',
-]
-
-const faceShapeGuidance = [
-  {
-    shape: 'Round face',
-    slug: 'round-face',
-    frames: 'Rectangular, square, geometric, and slightly wider frames',
-    reason: 'Angular lines add definition and help balance softer curves.',
-  },
-  {
-    shape: 'Square face',
-    slug: 'square-face',
-    frames: 'Round, oval, thin metal, and softly curved frames',
-    reason: 'Curved shapes soften a strong jawline and reduce visual weight.',
-  },
-  {
-    shape: 'Oval face',
-    slug: 'oval-face',
-    frames: 'Balanced rectangular, browline, aviator, and classic shapes',
-    reason: 'Oval proportions are flexible, so scale and personal style matter most.',
-  },
-  {
-    shape: 'Heart face',
-    slug: 'heart-face',
-    frames: 'Lightweight, rounded, cat-eye, and bottom-balanced frames',
-    reason: 'Softer or lifted shapes balance a wider forehead with a narrower chin.',
-  },
-]
-
 export async function FaceAnalysisLanding({ locale }: FaceAnalysisLandingProps) {
   const t = await getTranslations('faceAnalysis.landing')
-  const isEnglish = locale === 'en'
-  const heroTitle = isEnglish ? 'AI Face Shape Detector for Glasses' : t('title')
-  const heroDescription = isEnglish
-    ? 'Upload one clear portrait, learn what glasses suit your face, then start virtual glasses try-on with frames that are actually worth testing.'
-    : t('description')
+  const tm = await getTranslations({ locale, namespace: 'marketing.faceAnalysisLanding' })
+  const heroTitle = t('title')
+  const heroDescription = t('description')
+  const faceAnalysisFaqContent = [
+    { question: tm('faq.q1Question'), answer: tm('faq.q1Answer') },
+    { question: tm('faq.q2Question'), answer: tm('faq.q2Answer') },
+    { question: tm('faq.q3Question'), answer: tm('faq.q3Answer') },
+    { question: tm('faq.q4Question'), answer: tm('faq.q4Answer') },
+    { question: tm('faq.q5Question'), answer: tm('faq.q5Answer') },
+    { question: tm('faq.q6Question'), answer: tm('faq.q6Answer') },
+  ]
+  const valuePoints = [tm('valuePoints.p1'), tm('valuePoints.p2'), tm('valuePoints.p3')]
+  const faceShapeGuidance = [
+    {
+      shape: tm('shapes.roundName'),
+      slug: 'round-face',
+      frames: tm('shapes.roundFrames'),
+      reason: tm('shapes.roundReason'),
+    },
+    {
+      shape: tm('shapes.squareName'),
+      slug: 'square-face',
+      frames: tm('shapes.squareFrames'),
+      reason: tm('shapes.squareReason'),
+    },
+    {
+      shape: tm('shapes.ovalName'),
+      slug: 'oval-face',
+      frames: tm('shapes.ovalFrames'),
+      reason: tm('shapes.ovalReason'),
+    },
+    {
+      shape: tm('shapes.heartName'),
+      slug: 'heart-face',
+      frames: tm('shapes.heartFrames'),
+      reason: tm('shapes.heartReason'),
+    },
+  ]
   const faqSchema = generateStructuredData('faqPage', {
     questions: faceAnalysisFaqContent,
   })
@@ -154,7 +127,7 @@ export async function FaceAnalysisLanding({ locale }: FaceAnalysisLandingProps) 
         <section className="mx-auto grid min-h-[680px] max-w-6xl gap-10 px-4 py-10 md:py-14 lg:grid-cols-[0.78fr_1.22fr] lg:items-center">
           <div className="max-w-xl">
             <p className="mb-4 inline-flex items-center rounded-lg border border-blue-200 bg-white px-3 py-1 text-sm font-semibold text-blue-700 shadow-sm">
-              Face shape detector for glasses
+              {tm('badge')}
             </p>
             <h1 className="mb-5 text-4xl font-bold leading-tight text-gray-950 md:text-5xl">
               {heroTitle}
@@ -176,23 +149,23 @@ export async function FaceAnalysisLanding({ locale }: FaceAnalysisLandingProps) 
                 callbackUrl={`/${locale}/face-analysis`}
                 eventName="face_analysis_signin_click"
                 eventParameters={{ source: 'face_analysis_landing' }}
-                label={isEnglish ? 'Start face analysis' : undefined}
+                label={tm('startFaceAnalysis')}
               />
               <Link
                 href={`/${locale}/try-on/glasses`}
                 className="inline-flex items-center justify-center gap-2 rounded-lg border border-gray-300 px-4 py-3 text-gray-700 hover:bg-gray-50"
               >
-                {isEnglish ? 'Try glasses on photo' : t('tryGlasses')}
+                {tm('tryGlassesOnPhoto')}
                 <ArrowRight className="h-4 w-4" />
               </Link>
             </div>
             <div className="mt-5 flex flex-wrap gap-3 text-sm">
               <Link href={`/${locale}/glasses-for-face-shape`} className="font-semibold text-blue-700 hover:text-blue-900">
-                Compare glasses by face shape
+                {tm('links.compareByShape')}
               </Link>
               <span className="text-gray-300">/</span>
               <Link href={`/${locale}/blog/ai-face-analysis-for-glasses-guide`} className="font-semibold text-blue-700 hover:text-blue-900">
-                Read the AI glasses guide
+                {tm('links.readGuide')}
               </Link>
             </div>
           </div>
@@ -225,20 +198,18 @@ export async function FaceAnalysisLanding({ locale }: FaceAnalysisLandingProps) 
           <div className="mb-5 flex items-center gap-2">
             <Glasses className="h-5 w-5 text-blue-600" />
             <h2 className="text-2xl font-bold text-gray-950">
-              Best glasses by face shape
+              {tm('table.title')}
             </h2>
           </div>
           <p className="mb-5 max-w-2xl text-sm leading-6 text-gray-600">
-            If you are asking what glasses suit my face, start with face shape as a first filter.
-            Use these frame directions to build your shortlist, then validate scale and style with
-            virtual glasses try-on.
+            {tm('table.description')}
           </p>
           <div className="overflow-x-auto rounded-lg border border-gray-200 bg-white">
             <div className="min-w-[720px]">
               <div className="grid grid-cols-[1fr_1.35fr_1.45fr] gap-3 bg-gray-50 px-4 py-3 text-sm font-semibold text-gray-700">
-                <span>Face shape</span>
-                <span>Try first</span>
-                <span>Why it works</span>
+                <span>{tm('table.colShape')}</span>
+                <span>{tm('table.colTryFirst')}</span>
+                <span>{tm('table.colWhy')}</span>
               </div>
               {faceShapeGuidance.map((item) => (
                 <div
@@ -250,7 +221,7 @@ export async function FaceAnalysisLanding({ locale }: FaceAnalysisLandingProps) 
                   <span className="text-gray-600">
                     {item.reason}{' '}
                     <Link href={`/${locale}/style/${item.slug}`} className="font-semibold text-blue-700 hover:text-blue-900">
-                      See styles
+                      {tm('table.seeStyles')}
                     </Link>
                   </span>
                 </div>
@@ -262,14 +233,14 @@ export async function FaceAnalysisLanding({ locale }: FaceAnalysisLandingProps) 
               href={`/${locale}/glasses-for-face-shape`}
               className="inline-flex items-center justify-center gap-2 rounded-lg bg-gray-950 px-4 py-3 text-sm font-semibold text-white hover:bg-gray-800"
             >
-              Explore the face-shape guide
+              {tm('table.ctaGuide')}
               <ArrowRight className="h-4 w-4" />
             </Link>
             <Link
               href={`/${locale}/try-on/glasses`}
               className="inline-flex items-center justify-center gap-2 rounded-lg border border-gray-300 px-4 py-3 text-sm font-semibold text-gray-700 hover:bg-gray-50"
             >
-              Try glasses on your photo
+              {tm('table.ctaTry')}
               <ArrowRight className="h-4 w-4" />
             </Link>
           </div>
@@ -278,17 +249,17 @@ export async function FaceAnalysisLanding({ locale }: FaceAnalysisLandingProps) 
           <div className="mb-6 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
             <div>
               <p className="mb-2 text-sm font-semibold uppercase tracking-normal text-blue-600">
-                Questions shoppers ask
+                {tm('faqEyebrow')}
               </p>
               <h2 className="text-2xl font-bold text-gray-950">
-                AI face analysis FAQ
+                {tm('faqTitle')}
               </h2>
             </div>
             <Link
               href={`/${locale}/blog/ai-face-analysis-for-glasses-guide`}
               className="text-sm font-semibold text-blue-600 hover:text-blue-800"
             >
-              Read the full guide
+              {tm('guideLink')}
             </Link>
           </div>
           <div className="grid gap-4 md:grid-cols-3">

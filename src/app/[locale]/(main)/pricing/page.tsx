@@ -7,6 +7,7 @@ import { generateI18nSEO, generateStructuredData } from '@/lib/seo'
 import { PRODUCT_METADATA, formatPrice, getPricingQuotas } from '@/config/pricing'
 import { Locale } from '@/i18n'
 import { CheckCircle2, Grid2X2, ScanFace, Sparkles } from 'lucide-react'
+import { getTranslations } from 'next-intl/server'
 
 type Props = {
   params: Promise<{ locale: string }>
@@ -14,11 +15,12 @@ type Props = {
 
 export async function generateMetadata(props: Props): Promise<Metadata> {
   const params = await props.params
+  const t = await getTranslations({ locale: params.locale, namespace: 'marketing.pricing' })
 
   return generateI18nSEO({
     locale: params.locale as Locale,
-    title: 'Credits Pack Pricing for AI Glasses Try-On | VisuTry',
-    description: 'Continue AI glasses try-on with 30 credits for USD 2.99. Upload your own glasses product images or screenshots, no subscription required.',
+    title: t('metaTitle'),
+    description: t('metaDescription'),
     pathname: '/pricing',
   })
 }
@@ -29,6 +31,7 @@ export const revalidate = 60
 export default async function PricingPage({ params }: { params: { locale: string } }) {
   const quotas = getPricingQuotas()
   const session = await getServerSession(authOptions)
+  const t = await getTranslations({ locale: params.locale, namespace: 'marketing.pricing' })
 
   // 🔥 优化：直接从 session 读取用户数据，不再查询数据库
   // session.user 已经包含了所有必要的用户信息（来自 JWT token）
@@ -85,13 +88,13 @@ export default async function PricingPage({ params }: { params: { locale: string
       {/* Page Header */}
       <div className="mb-8 max-w-3xl">
         <p className="mb-3 text-sm font-semibold uppercase tracking-wide text-blue-600">
-          Simple credits for Face, Glasses, and Compare
+          {t('eyebrow')}
         </p>
         <h1 className="mb-4 text-3xl font-bold text-gray-900 md:text-4xl">
-          Start with 1 free credit, then continue with {quotas.creditsPack} AI credits for USD 2.99
+          {t('title', { count: quotas.creditsPack })}
         </h1>
         <p className="text-base leading-7 text-gray-600">
-          Use credits across AI face analysis, custom glasses try-on, and frame comparison. A Compare board uses one credit per generated frame, so trial users can test one frame first and upgrade when they want a full 4-frame comparison.
+          {t('description')}
         </p>
       </div>
 
@@ -99,18 +102,18 @@ export default async function PricingPage({ params }: { params: { locale: string
         {[
           {
             icon: ScanFace,
-            title: 'Face Analysis',
-            description: 'Use one credit to estimate face shape and get frame directions before trying glasses.',
+            title: t('featureCards.faceTitle'),
+            description: t('featureCards.faceDescription'),
           },
           {
             icon: Sparkles,
-            title: 'Glasses Try-On',
-            description: 'Use one credit per custom try-on from a portrait and a glasses product image.',
+            title: t('featureCards.glassesTitle'),
+            description: t('featureCards.glassesDescription'),
           },
           {
             icon: Grid2X2,
-            title: 'Frame Compare',
-            description: 'Use one credit per generated frame. Try 1 frame free, or compare up to 4 with credits.',
+            title: t('featureCards.compareTitle'),
+            description: t('featureCards.compareDescription'),
           },
         ].map((item) => {
           const Icon = item.icon
@@ -131,54 +134,54 @@ export default async function PricingPage({ params }: { params: { locale: string
 
       {/* FAQ */}
       <div className="mt-12">
-        <h2 className="mb-6 text-2xl font-bold text-center text-gray-900">Frequently Asked Questions</h2>
+        <h2 className="mb-6 text-2xl font-bold text-center text-gray-900">{t('faqTitle')}</h2>
         <div className="grid gap-6 md:grid-cols-2">
           <div className="p-6 bg-white rounded-lg border shadow-sm">
-            <h3 className="mb-2 font-semibold text-gray-900">Is the Credits Pack a subscription?</h3>
+            <h3 className="mb-2 font-semibold text-gray-900">{t('faq.q1Title')}</h3>
             <p className="text-sm text-gray-600">
-              No. The Credits Pack is a one-time USD 2.99 purchase for {quotas.creditsPack} AI try-ons. It is designed for occasional users who want to compare glasses without starting a monthly plan.
+              {t('faq.q1Answer', { count: quotas.creditsPack })}
             </p>
           </div>
 
           <div className="p-6 bg-white rounded-lg border shadow-sm">
-            <h3 className="mb-2 font-semibold text-gray-900">Can I use credits with my own glasses screenshots?</h3>
+            <h3 className="mb-2 font-semibold text-gray-900">{t('faq.q2Title')}</h3>
             <p className="text-sm text-gray-600">
-              Yes. Credits work with the glasses try-on flow where you upload your face photo and a glasses product image, store image, or screenshot.
+              {t('faq.q2Answer')}
             </p>
           </div>
 
           <div className="p-6 bg-white rounded-lg border shadow-sm">
-            <h3 className="mb-2 font-semibold text-gray-900">How many credits does Frame Compare use?</h3>
+            <h3 className="mb-2 font-semibold text-gray-900">{t('faq.q3Title')}</h3>
             <p className="text-sm text-gray-600">
-              Frame Compare uses one credit per generated frame. A full 4-frame comparison uses up to 4 credits; failed generations are not charged.
+              {t('faq.q3Answer')}
             </p>
           </div>
 
           <div className="p-6 bg-white rounded-lg border shadow-sm">
-            <h3 className="mb-2 font-semibold text-gray-900">Do credits expire?</h3>
+            <h3 className="mb-2 font-semibold text-gray-900">{t('faq.q4Title')}</h3>
             <p className="text-sm text-gray-600">
-              Credits never expire after purchase. You can use them anytime at your convenience.
+              {t('faq.q4Answer')}
             </p>
           </div>
 
           <div className="p-6 bg-white rounded-lg border shadow-sm">
-            <h3 className="mb-2 font-semibold text-gray-900">What can I do with one free credit?</h3>
+            <h3 className="mb-2 font-semibold text-gray-900">{t('faq.q5Title')}</h3>
             <p className="text-sm text-gray-600">
-              You can run one face analysis, one custom glasses try-on, or one frame inside Compare. It is designed to let you test the workflow before buying credits.
+              {t('faq.q5Answer')}
             </p>
           </div>
 
           <div className="p-6 bg-white rounded-lg border shadow-sm">
-            <h3 className="mb-2 font-semibold text-gray-900">What payment methods are supported?</h3>
+            <h3 className="mb-2 font-semibold text-gray-900">{t('faq.q6Title')}</h3>
             <p className="text-sm text-gray-600">
-              We support all major credit and debit cards, including Visa, Mastercard, American Express, and more.
+              {t('faq.q6Answer')}
             </p>
           </div>
 
           <div className="p-6 bg-white rounded-lg border shadow-sm">
-            <h3 className="mb-2 font-semibold text-gray-900">How do I contact support?</h3>
+            <h3 className="mb-2 font-semibold text-gray-900">{t('faq.q7Title')}</h3>
             <p className="text-sm text-gray-600">
-              You can contact us via email at support@visutry.com. Premium members enjoy priority support.
+              {t('faq.q7Answer')}
             </p>
           </div>
         </div>
@@ -189,19 +192,19 @@ export default async function PricingPage({ params }: { params: { locale: string
         <p className="flex flex-col items-center justify-center gap-2 text-sm text-gray-700 sm:flex-row">
           <CheckCircle2 className="h-4 w-4 text-green-600" />
           <span>
-          By subscribing, you agree to our{' '}
+          {t('legal.prefix')}{' '}
           <Link href={`/${params.locale}/terms`} className="font-medium text-blue-600 hover:underline">
-            Terms of Service
+            {t('legal.terms')}
           </Link>
-          {' '}and{' '}
+          {' '}{t('legal.and')}{' '}
           <Link href={`/${params.locale}/privacy`} className="font-medium text-blue-600 hover:underline">
-            Privacy Policy
+            {t('legal.privacy')}
           </Link>
-          . View our{' '}
+          {t('legal.middle')}{' '}
           <Link href={`/${params.locale}/refund`} className="font-medium text-blue-600 hover:underline">
-            Refund Policy
+            {t('legal.refund')}
           </Link>
-          {' '}for cancellation terms.
+          {' '}{t('legal.suffix')}
           </span>
         </p>
       </div>

@@ -1,96 +1,18 @@
 {
   "common": {
-    "getStarted": "ابدأ الآن",
-    "learnMore": "اعرف المزيد",
-    "signIn": "تسجيل الدخول",
-    "signOut": "تسجيل الخروج",
     "startFreeTrial": "ابدأ النسخة التجريبية المجانية",
     "startTryOn": "ابدأ التجربة",
-    "tryOn": "التجربة الافتراضية",
-    "blog": "المدونة",
-    "pricing": "الأسعار",
-    "dashboard": "لوحة التحكم",
-    "profile": "الملف الشخصي",
-    "settings": "الإعدادات",
-    "loading": "جاري التحميل...",
-    "error": "خطأ",
-    "success": "نجح",
-    "cancel": "إلغاء",
-    "save": "حفظ",
-    "delete": "حذف",
-    "edit": "تعديل",
-    "close": "إغلاق",
-    "back": "رجوع",
-    "next": "التالي",
-    "previous": "السابق",
-    "submit": "إرسال",
-    "confirm": "تأكيد"
+    "loading": "جاري التحميل..."
   },
   "nav": {
     "faceAnalysis": "تحليل الوجه",
-    "home": "الرئيسية",
-    "tryOn": "التجربة الافتراضية",
     "tryGlasses": "النظارات",
-    "tryOutfit": "جرب الملابس",
-    "tryShoes": "جرب الأحذية",
-    "tryAccessories": "جرب الإكسسوارات",
-    "blog": "المدونة",
     "pricing": "الأسعار",
-    "dashboard": "لوحة التحكم",
-    "signIn": "تسجيل الدخول",
-    "signOut": "تسجيل الخروج",
-    "toggleMenu": "تبديل قائمة التنقل"
+    "toggleMenu": "تبديل قائمة التنقل",
+    "compare": "Compare",
+    "faq": "FAQ"
   },
   "home": {
-    "hero": {
-      "title": "اكتشف أسلوبك المثالي",
-      "subtitle": "جرب في 3 خطوات سهلة"
-    },
-    "steps": {
-      "step1": {
-        "title": "ارفع صورتك",
-        "description": "ارفع صورة واضحة لنفسك — لا حاجة لأدوات خاصة."
-      },
-      "step2": {
-        "title": "اختر أسلوبك",
-        "description": "اختر العنصر الذي تريد تجربته. سنريك كيف يبدو عليك."
-      },
-      "step3": {
-        "title": "شاهد واحفظ",
-        "description": "شاهد مظهرك المثالي، ثم احفظه أو شاركه."
-      }
-    },
-    "cta": {
-      "button": "ابدأ الآن",
-      "faceAnalysis": "تحليل الوجه",
-      "tryOutfit": "جرب الملابس",
-      "tryShoes": "جرب الأحذية",
-      "tryAccessories": "جرب الإكسسوارات"
-    },
-    "features": {
-      "title": "المميزات الرئيسية لـ VisuTry",
-      "subtitle": "اختبر الجيل التالي من التجربة الافتراضية المدعومة بالذكاء الاصطناعي",
-      "feature1": {
-        "title": "Google Nano Banana",
-        "description": "مدعوم بأحدث نموذج ذكاء اصطناعي من Google لنتائج تجربة واقعية للغاية بدقة استثنائية وإضاءة طبيعية."
-      },
-      "feature2": {
-        "title": "الاحتفاظ الذكي بالبيانات",
-        "description": "يتم حفظ سجل التجارب الخاص بك بأمان - 7 أيام للمستخدمين المجانيين، 90 يوماً مع الرصيد، وسنة واحدة لأعضاء Premium."
-      },
-      "feature3": {
-        "title": "معالجة سريعة البرق",
-        "description": "احصل على نتائج التجربة في 10-30 ثانية مع خط أنابيب الذكاء الاصطناعي المحسّن لدينا. يتمتع مستخدمو Premium بمعالجة ذات أولوية."
-      },
-      "feature4": {
-        "title": "الخصوصية المحمية",
-        "description": "صورك مشفرة وآمنة. لا نشارك صورك أبداً أو نستخدمها للتدريب بدون إذن."
-      }
-    },
-    "faq": {
-      "title": "الأسئلة الشائعة",
-      "subtitle": "كل ما تحتاج إلى معرفته عن VisuTry"
-    },
     "showcase": {
       "alex": {
         "name": "أليكس",
@@ -111,104 +33,26 @@
     }
   },
   "pricing": {
-    "title": "اختر خطتك",
-    "subtitle": "اختر الخطة المثالية لاحتياجاتك",
-    "currentPlan": "الخطة الحالية",
-    "freeUser": "مستخدم مجاني",
-    "remainingTryOns": "التجارب المتبقية: {count}",
     "plans": {
       "creditsPack": {
-        "name": "حزمة الرصيد",
-        "description": "مثالية للاستخدام العرضي",
-        "price": "11 ريال",
-        "period": "دفعة واحدة",
-        "buttonText": "شراء حزمة الرصيد",
-        "features": [
-          "10 تجارب بالذكاء الاصطناعي",
-          "معالجة صور عالية الجودة",
-          "تنزيلات ومشاركات غير محدودة",
-          "مكتبة إطارات نظارات قياسية",
-          "دعم عبر البريد الإلكتروني"
-        ]
+        "period": "دفعة واحدة"
       },
       "monthly": {
-        "name": "قياسي",
-        "description": "الخيار الأكثر شعبية",
-        "price": "34 ريال",
-        "period": "شهريًا",
-        "buttonText": "ابدأ الاشتراك الشهري",
-        "features": [
-          "30 تجربة بالذكاء الاصطناعي شهريًا",
-          "معالجة صور عالية الجودة",
-          "قائمة انتظار معالجة ذات أولوية",
-          "تنزيلات ومشاركات غير محدودة",
-          "مكتبة إطارات نظارات قياسية",
-          "دعم عملاء ذو أولوية"
-        ]
+        "period": "شهريًا"
       },
       "yearly": {
-        "name": "قياسي",
-        "description": "أفضل قيمة - وفر 17%",
-        "price": "338 ريال",
-        "originalPrice": "405 ريال",
-        "period": "سنويًا",
-        "buttonText": "ابدأ الاشتراك السنوي",
-        "features": [
-          "420 تجربة بالذكاء الاصطناعي سنويًا (35/شهر)",
-          "معالجة صور عالية الجودة",
-          "قائمة انتظار معالجة ذات أولوية",
-          "تنزيلات ومشاركات غير محدودة",
-          "مكتبة إطارات نظارات قياسية",
-          "دعم عملاء ذو أولوية",
-          "وفر 67 ريال مقارنة بالاشتراك الشهري"
-        ]
+        "period": "سنويًا"
       }
     },
     "comparison": {
-      "title": "قارن الخطط",
-      "features": {
-        "aiTryOns": "تجارب الذكاء الاصطناعي",
-        "imageQuality": "جودة الصورة",
-        "processingSpeed": "سرعة المعالجة",
-        "downloads": "التنزيلات والمشاركة",
-        "frameLibrary": "مكتبة الإطارات",
-        "support": "دعم العملاء"
-      },
-      "values": {
-        "free": {
-          "aiTryOns": "1 مرة",
-          "imageQuality": "قياسية",
-          "processingSpeed": "قياسية",
-          "downloads": "محدودة",
-          "frameLibrary": "أساسية",
-          "support": "بريد إلكتروني"
-        },
-        "credits": {
-          "aiTryOns": "+10 مرات",
-          "imageQuality": "عالية",
-          "processingSpeed": "قياسية",
-          "downloads": "غير محدودة",
-          "frameLibrary": "قياسية",
-          "support": "بريد إلكتروني"
-        },
-        "standard": {
-          "aiTryOns": "30/شهر أو 420/سنة",
-          "imageQuality": "عالية",
-          "processingSpeed": "ذات أولوية",
-          "downloads": "غير محدودة",
-          "frameLibrary": "قياسية",
-          "support": "ذو أولوية"
-        }
-      }
+      "title": "قارن الخطط"
     }
   },
   "footer": {
-    "tagline": "تجربة افتراضية بالذكاء الاصطناعي للنظارات والملابس والأحذية والإكسسوارات",
     "links": {
       "product": "المنتج",
       "resources": "الموارد",
       "legal": "قانوني",
-      "tryGlasses": "جرب النظارات",
       "tryOutfit": "جرب الملابس",
       "tryShoes": "جرب الأحذية",
       "tryAccessories": "جرب الإكسسوارات",
@@ -222,16 +66,6 @@
     },
     "copyright": "© {year} VisuTry. جميع الحقوق محفوظة.",
     "madeWith": "صنع بـ ❤️ باستخدام تقنية الذكاء الاصطناعي"
-  },
-  "meta": {
-    "home": {
-      "title": "VisuTry - التجربة الافتراضية بالذكاء الاصطناعي للنظارات والملابس والأحذية والإكسسوارات",
-      "description": "جرب النظارات والملابس والأحذية والإكسسوارات فورًا مع التجربة الافتراضية المدعومة بالذكاء الاصطناعي. بدون تنزيل - قم بتحميل صورتك وشاهد كيف تبدو العناصر عليك قبل الشراء. مدعوم بـ Nano Banana AI (Gemini 2.5 Flash Image) للحصول على نتائج واقعية."
-    },
-    "pricing": {
-      "title": "خطط الأسعار - التجربة الافتراضية بالذكاء الاصطناعي لجميع الفئات | VisuTry",
-      "description": "اختر الخطة المثالية للتجربة الافتراضية الفورية المدعومة بالذكاء الاصطناعي. جرب النظارات والملابس والأحذية والإكسسوارات مع Nano Banana AI (Gemini 2.5 Flash Image). تتوفر تجارب مجانية، ميزات مميزة للتركيب الافتراضي غير المحدود."
-    }
   },
   "faceAnalysis": {
     "meta": {
@@ -328,6 +162,241 @@
       "unlocked": "مفتوح",
       "locked": "مقفل",
       "viewReport": "عرض التقرير"
+    }
+  },
+  "marketing": {
+    "home": {
+      "metaTitle": "VisuTry - التجربة الافتراضية بالذكاء الاصطناعي للنظارات والملابس والأحذية والإكسسوارات",
+      "metaDescription": "جرب النظارات والملابس والأحذية والإكسسوارات فورًا مع التجربة الافتراضية المدعومة بالذكاء الاصطناعي. بدون تنزيل - قم بتحميل صورتك وشاهد كيف تبدو العناصر عليك قبل الشراء. مدعوم بـ Nano Banana AI (Gemini 2.5 Flash Image) للحصول على نتائج واقعية.",
+      "faqTitle": "الأسئلة الشائعة",
+      "faqSubtitle": "كل ما تحتاج إلى معرفته عن VisuTry",
+      "heroTitle": "اكتشف أسلوبك المثالي",
+      "heroSubtitle": "جرب في 3 خطوات سهلة",
+      "tools": {
+        "faceTitle": "تحليل الوجه",
+        "faceDescription": "اكتشف شكل الوجه واحصل على اتجاهات الإطارات قبل استخدام الرصيد.",
+        "glassesTitle": "النظارات",
+        "glassesDescription": "ارفع صور المنتج أو لقطات الشاشة واعرضها على وجهك.",
+        "compareTitle": "مقارنة",
+        "compareDescription": "اختر القوالب الجاهزة وراجع عدة نتائج في لوحة واحدة."
+      },
+      "ctaPrimary": "ابدأ من Face",
+      "ctaSecondary": "قارن الإطارات",
+      "featureCards": {
+        "faceTitle": "تحليل الوجه",
+        "faceDescription": "A professional face-shape report with إطار style recommendations.",
+        "glassesTitle": "Custom النظارات التجربة",
+        "glassesDescription": "Use your own glasses product image, store صورة, or screenshot.",
+        "compareTitle": "Frame مقارنة",
+        "compareDescription": "Quickly test built-in إطار presets from the same portrait.",
+        "openTool": "Open tool (AR)"
+      },
+      "workflow": {
+        "badge": "Face analysis for glasses (AR)",
+        "title": "ابدأ try-on with إطارs that already fit the face",
+        "description": "VisuTry now uses one portrait to read face shape, narrow the first إطار shortlist, and send shoppers directly into glasses try-on with better choices.",
+        "point1": "Face shape report (AR)",
+        "point2": "Recommended إطار styles",
+        "point3": "One path into AI try-on (AR)",
+        "cta": "Analyze my face (AR)"
+      },
+      "benefits": {
+        "generatedTitle": "AI-generated previews (AR)",
+        "generatedDescription": "Use one portrait to analyze, try on, and compare glasses before buying. (AR)",
+        "historyTitle": "Saved to السجل",
+        "historyDescription": "Completed results stay available in Dashboard History based on your plan. (AR)",
+        "privacyTitle": "Private by default (AR)",
+        "privacyDescription": "Photos and results stay خاص to your account and are never published."
+      },
+      "faq": {
+        "q1Question": "How does VisuTry's AI try-on work? (AR)",
+        "q1Answer": "VisuTry uses Google Nano Banana AI to analyze your facial features and realistically overlay glasses onto your photo. The AI understands face shape, lighting, and perspective to create natural-looking results in seconds.",
+        "q2Question": "Is my photo data safe and private?",
+        "q2Answer": "Absolutely! Your photos are encrypted during upload and processing. We never share your images publicly or use them for AI training without explicit permission. Free users' data is stored for 7 days, Credits users for 90 days, and Premium members for 1 year.",
+        "q3Question": "What's the difference between free and Premium quality?",
+        "q3Answer": "Free users get standard quality images (800×800 pixels) with a small watermark. Premium users receive high-quality images (1200×1200 pixels) without watermarks, plus priority processing and longer data retention (1 year vs 7 days).",
+        "q4Question": "Can I use the generated images commercially?",
+        "q4Answer": "Yes! Premium and Credits Pack users can use their watermark-free images for any purpose, including commercial use. Free users receive images with a watermark for personal use only.",
+        "q5Question": "How long does it take to generate a try-on?",
+        "q5Answer": "Most try-ons complete in 10-30 seconds. Premium users enjoy priority processing, which means faster results even during peak times. The exact time depends on server load and image complexity."
+      }
+    },
+    "pricing": {
+      "metaTitle": "خطط الأسعار - التجربة الافتراضية بالذكاء الاصطناعي لجميع الفئات | VisuTry",
+      "metaDescription": "اختر الخطة المثالية للتجربة الافتراضية الفورية المدعومة بالذكاء الاصطناعي. جرب النظارات والملابس والأحذية والإكسسوارات مع Nano Banana AI (Gemini 2.5 Flash Image). تتوفر تجارب مجانية، ميزات مميزة للتركيب الافتراضي غير المحدود.",
+      "eyebrow": "رصيد بسيط لـ Face وGlasses وCompare",
+      "title": "ابدأ برصيد مجاني واحد ثم واصل مع {count} رصيد AI مقابل 2.99 دولار",
+      "description": "استخدم الرصيد لتحليل الوجه وتجربة النظارات المخصصة ومقارنة الإطارات.",
+      "faqTitle": "Frequently Asked Questions (AR)",
+      "featureCards": {
+        "faceTitle": "تحليل الوجه",
+        "faceDescription": "Use one رصيد to estimate face shape and get إطار directions before trying glasses.",
+        "glassesTitle": "تجربة النظارات",
+        "glassesDescription": "Use one رصيد per custom try-on from a portrait and a glasses product image.",
+        "compareTitle": "مقارنة الإطارات",
+        "compareDescription": "Use one رصيد per generated إطار. Try 1 إطار مجاني, or compare up to 4 with أرصدة."
+      },
+      "faq": {
+        "q1Title": "هل باقة الرصيد اشتراك؟",
+        "q1Answer": "Yes, you can cancel your subscription at any time. Your access will continue until the end of your billing period.",
+        "q2Title": "هل يمكنني استخدام الرصيد مع لقطات نظاراتي؟",
+        "q2Answer": "For monthly subscriptions, unused try-ons do not roll over to the next month. For credits packs, credits never expire.",
+        "q3Title": "كم رصيد يستهلك Frame Compare؟",
+        "q3Answer": "We offer a 7-day money-back guarantee for all subscriptions. Credits packs are non-refundable once used.",
+        "q4Title": "هل تنتهي صلاحية الرصيد؟",
+        "q4Answer": "Credits never expire after purchase. You can use them anytime at your convenience. (AR)",
+        "q5Title": "ماذا أفعل برصيد مجاني واحد؟",
+        "q5Answer": "You can run one face analysis, one custom glasses try-on, or one إطار inside مقارنة. It is designed to let you test the workflow before buying أرصدة.",
+        "q6Title": "ما وسائل الدفع المدعومة؟",
+        "q6Answer": "We support all major رصيد and debit cards, including Visa, Mastercard, American Express, and more.",
+        "q7Title": "كيف أتواصل مع الدعم؟",
+        "q7Answer": "You can contact us via email at support@visutry.com. Premium members enjoy priority support. (AR)"
+      },
+      "legal": {
+        "prefix": "باستمرار الاشتراك فإنك توافق على",
+        "terms": "شروط الخدمة",
+        "and": "و",
+        "privacy": "سياسة الخصوصية",
+        "middle": ". راجع أيضًا",
+        "refund": "سياسة الاسترداد",
+        "suffix": "لبنود الإلغاء."
+      }
+    },
+    "faqPage": {
+      "metaTitle": "الأسئلة الشائعة: تجربة النظارات وتحليل الوجه والمقارنة | VisuTry",
+      "metaDescription": "أسئلة حول الرصيد، تحليل الوجه، تجربة النظارات، المقارنة، الخصوصية، وسجل النتائج.",
+      "badge": "مركز المساعدة",
+      "title": "الأسئلة الشائعة لتجربة النظارات وتحليل الوجه والمقارنة",
+      "subtitle": "إجابات سريعة للمتسوقين الذين يختارون النظارات عبر VisuTry.",
+      "topics": "الموضوعات",
+      "supportTitle": "هل تحتاج مساعدة في مهمة محددة؟",
+      "supportDescription": "تواصل مع الدعم عبر بريد حسابك ومعرّف المهمة إذا كانت النتيجة غير صحيحة أو استغرقت وقتًا أطول من المتوقع."
+    },
+    "tryOnLanding": {
+      "metaTitle": "تجربة نظارات افتراضية أونلاين من صورة | VisuTry",
+      "metaDescription": "جرّب النظارات أونلاين باستخدام صورة الوجه وصورة المنتج أو لقطة الشاشة.",
+      "howItWorks": "كيف يعمل",
+      "title": "من صورة المنتج إلى معاينة التجربة",
+      "description": "استخدم Glasses عندما تكون لديك صورة إطار أو لقطة شاشة. يحول VisuTry الصورة إلى معاينة على صورتك داخل المتصفح.",
+      "startButton": "ابدأ تجربة النظارات المجانية",
+      "pricingButton": "30 تجربة مقابل 2.99 دولار",
+      "guideLink": "اقرأ دليل الشراء",
+      "faqTitle": "أسئلة تجربة النظارات بالذكاء الاصطناعي",
+      "notFoundTitle": "لم يتم العثور على Try-On | VisuTry",
+      "notFoundDescription": "نوع try-on المطلوب غير موجود.",
+      "ogDescription": "ارفع صورة الوجه وصورة النظارة لمعاينة الشكل قبل الشراء، بدون تطبيق.",
+      "ctaNote": "تجربة مجانية واحدة للبداية. Credits Pack شراء لمرة واحدة بدون اشتراك.",
+      "shortlistNotePrefix": "Not sure what glasses suit your face? ابدأ with",
+      "shortlistNoteLink": "AI face shape analysis (AR)",
+      "shortlistNoteSuffix": "to get a shortlist, then come back here to try on glasses أونلاين from your own صورة and product screenshots.",
+      "faq": {
+        "q1Question": "Can I try on glasses أونلاين from a screenshot?",
+        "q1Answer": "Yes. VisuTry lets you ارفع your face صورة and a glasses product image or screenshot, then uses AI to create a realistic virtual glasses try-on preview on your face.",
+        "q2Question": "Can I ارفع my own glasses image for virtual try-on?",
+        "q2Answer": "Yes. You can ارفع a product صورة, store image, email screenshot, or a transparent إطار image. Clear front-facing product images usually work best.",
+        "q3Question": "Can I try on glasses at home before buying? (AR)",
+        "q3Answer": "Yes. VisuTry runs in your browser, so you can try on glasses at home from a face صورة and compare إطار images before deciding what to buy.",
+        "q4Question": "What if I do not know which glasses to try first? (AR)",
+        "q4Answer": "ابدأ with AI face analysis to estimate your face shape and get إطار recommendations, then return to virtual glasses try-on with a better shortlist.",
+        "q5Question": "How does AI try on glasses work? (AR)",
+        "q5Answer": "AI glasses try-on combines your face صورة with a glasses product image or screenshot to generate a preview of the إطار on your face. It is most useful after you shortlist styles by face shape, size, and personal taste.",
+        "q6Question": "Is VisuTry a try on glasses app? (AR)",
+        "q6Answer": "VisuTry works like a try on glasses app, but it runs in your web browser. You can use it on desktop or mobile without installing an app. (AR)",
+        "q7Question": "Can I try on blue light glasses أونلاين?",
+        "q7Answer": "Yes. If you have a clear product image or screenshot of blue light glasses, you can ارفع it and preview the إطار on your face before buying.",
+        "q8Question": "Do I need to install an app? (AR)",
+        "q8Answer": "No. VisuTry runs in the browser on desktop and mobile. Sign in, ارفع your صورةs, and start the glasses try-on flow أونلاين.",
+        "q9Question": "What happens after my مجاني try-on?",
+        "q9Answer": "You can continue with a Credits Pack: 30 AI try-ons for USD 2.99, no subscription required. Credits do not expire. (AR)"
+      },
+      "valuePoints": {
+        "p1": "Upload a portrait and one glasses image (AR)",
+        "p2": "Preview the إطار on your face before buying",
+        "p3": "Use Face or مقارنة when you need help choosing"
+      },
+      "steps": {
+        "s1Title": "Upload your صورةs",
+        "s1Description": "Use a face صورة plus a glasses product صورة, store image, or screenshot from email.",
+        "s2Title": "Preview and compare (AR)",
+        "s2Description": "Check how different إطارs look on your face before choosing what to buy.",
+        "s3Title": "Browser-based and خاص",
+        "s3Description": "No app install. Free data is stored for 7 days; Credits Pack users get 90 days of السجل retention.",
+        "s4Title": "Continue when you need more (AR)",
+        "s4Description": "ابدأ with one مجاني try-on, then use a one-time Credits Pack when you want to compare more إطارs."
+      }
+    },
+    "compareLanding": {
+      "metaTitle": "قارن إطارات النظارات أونلاين | VisuTry",
+      "metaDescription": "ارفع صورة، اختر القوالب الجاهزة، وقارن نتائج الذكاء الاصطناعي جنبًا إلى جنب.",
+      "startCreditTitle": "ابدأ برصيد واحد",
+      "upToFourTitle": "حتى أربعة إطارات",
+      "savedTitle": "محفوظة في السجل",
+      "compareBefore": "قارن قبل الشراء",
+      "startComparing": "ابدأ المقارنة",
+      "viewPricing": "عرض الأسعار",
+      "ogDescription": "Quickly compare built-in glasses إطار presets on your own صورة with AI try-on.",
+      "srOnlyTitle": "قارن إطارات النظارات على صورتك",
+      "cards": {
+        "c1Description": "يمكن للمستخدم التجريبي مقارنة إطار واحد أولًا ثم إضافة رصيد عند الحاجة.",
+        "c2Description": "يُحتسب الرصيد حسب عدد الإطارات المولدة، لذا قد تستهلك مقارنة 4 إطارات حتى 4 أرصدة.",
+        "c3Description": "النتائج المكتملة تُحفظ في السجل وفق سياسة الاحتفاظ في حسابك."
+      },
+      "compareDescription": "Use مقارنة when you have several likely إطار shapes and want a fast side-by-side view. Use النظارات التجربة when you already have a specific product image or screenshot."
+    },
+    "faceAnalysisLanding": {
+      "badge": "كاشف شكل الوجه للنظارات",
+      "startFaceAnalysis": "ابدأ تحليل الوجه",
+      "tryGlassesOnPhoto": "جرّب النظارات على الصورة",
+      "faqTitle": "أسئلة تحليل الوجه بالذكاء الاصطناعي",
+      "guideLink": "اقرأ الدليل الكامل",
+      "faqEyebrow": "أسئلة يطرحها المتسوقون",
+      "valuePoints": {
+        "p1": "AI face shape detector for glasses (AR)",
+        "p2": "Frame picks with a reason (AR)",
+        "p3": "Continue into virtual try-on (AR)"
+      },
+      "links": {
+        "compareByShape": "مقارنة glasses by face shape",
+        "readGuide": "Read the AI glasses الدليل"
+      },
+      "table": {
+        "title": "Best glasses by face shape (AR)",
+        "description": "If you are asking what glasses suit my face, start with face shape as a first filter. Use these إطار directions to build your shortlist, then validate scale and style with virtual glasses try-on.",
+        "colShape": "شكل الوجه",
+        "colTryFirst": "جرّب أولاً",
+        "colWhy": "لماذا يناسب",
+        "seeStyles": "عرض الأنماط",
+        "ctaGuide": "Explore the face-shape الدليل",
+        "ctaTry": "Try glasses on your صورة"
+      },
+      "shapes": {
+        "roundName": "Round face (AR)",
+        "roundFrames": "Rectangular, square, geometric, and slightly wider إطارs",
+        "roundReason": "Angular lines add definition and help balance softer curves. (AR)",
+        "squareName": "Square face (AR)",
+        "squareFrames": "Round, oval, thin metal, and softly curved إطارs",
+        "squareReason": "Curved shapes soften a strong jawline and reduce visual weight. (AR)",
+        "ovalName": "Oval face (AR)",
+        "ovalFrames": "Balanced rectangular, browline, aviator, and classic shapes (AR)",
+        "ovalReason": "Oval proportions are flexible, so scale and personal style matter most. (AR)",
+        "heartName": "Heart face (AR)",
+        "heartFrames": "Lightweight, rounded, cat-eye, and bottom-balanced إطارs",
+        "heartReason": "Softer or lifted shapes balance a wider forehead with a narrower chin. (AR)"
+      },
+      "faq": {
+        "q1Question": "What is AI face analysis for glasses? (AR)",
+        "q1Answer": "VisuTry provides AI face analysis for glasses by estimating your face shape and key visible features, then suggesting إطار styles before virtual try-on.",
+        "q2Question": "Can AI recommend glasses for my face shape? (AR)",
+        "q2Answer": "Yes. AI face analysis can recommend إطار directions for round, square, oval, heart, diamond, oblong, and triangle face shapes. Use virtual try-on as the final visual check.",
+        "q3Question": "Can I use a face shape detector أونلاين مجاني before buying glasses?",
+        "q3Answer": "Yes. VisuTry lets you start with an أونلاين AI face shape detector so you can understand your likely face shape before choosing glasses. Use the result as a practical shortlist, then confirm the look with virtual try-on.",
+        "q4Question": "What is a face shape finder for glasses? (AR)",
+        "q4Answer": "A face shape finder estimates whether your face is closer to round, square, oval, heart, diamond, oblong, or triangle, then turns that result into إطار styles to try first.",
+        "q5Question": "Is my face analysis خاص?",
+        "q5Answer": "Your ارفعed صورة and analysis stay خاص to your account. VisuTry uses the image to generate your face shape report and glasses recommendations.",
+        "q6Question": "What glasses suit my face shape? (AR)",
+        "q6Answer": "Round faces often start with angular إطارs, square faces with round or oval إطارs, oval faces with balanced rectangular or browline إطارs, and heart faces with lightweight or softly upswept إطارs."
+      }
     }
   }
 }

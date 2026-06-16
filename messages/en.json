@@ -1,72 +1,18 @@
 {
   "common": {
-    "getStarted": "Get Started",
-    "learnMore": "Learn More",
-    "signIn": "Sign In",
-    "signOut": "Sign Out",
     "startFreeTrial": "Start Free Trial",
     "startTryOn": "Start Try-On",
-    "tryOn": "Try-On",
-    "blog": "Blog",
-    "pricing": "Pricing",
-    "dashboard": "Dashboard",
-    "profile": "Profile",
-    "settings": "Settings",
-    "loading": "Loading...",
-    "error": "Error",
-    "success": "Success",
-    "cancel": "Cancel",
-    "save": "Save",
-    "delete": "Delete",
-    "edit": "Edit",
-    "close": "Close",
-    "back": "Back",
-    "next": "Next",
-    "previous": "Previous",
-    "submit": "Submit",
-    "confirm": "Confirm"
+    "loading": "Loading..."
   },
   "nav": {
-    "home": "Home",
-    "tryOn": "Try-On",
     "faceAnalysis": "Face Analysis",
     "tryGlasses": "Glasses",
-    "tryOutfit": "Try Outfit",
-    "tryShoes": "Try Shoes",
-    "tryAccessories": "Try Accessories",
-    "blog": "Blog",
+    "compare": "Compare",
+    "faq": "FAQ",
     "pricing": "Pricing",
-    "dashboard": "Dashboard",
-    "signIn": "Sign In",
-    "signOut": "Sign Out",
     "toggleMenu": "Toggle navigation menu"
   },
   "home": {
-    "hero": {
-      "title": "Try on Any Glasses — from Product Photos or Screenshots",
-      "subtitle": "Try On in 3 Easy Steps"
-    },
-    "steps": {
-      "step1": {
-        "title": "Upload Your Photo",
-        "description": "Upload a clear photo of yourself — no special tools required."
-      },
-      "step2": {
-        "title": "Pick Your Style",
-        "description": "Choose the item you'd like to try. We'll show you how it looks on you."
-      },
-      "step3": {
-        "title": "See & Save",
-        "description": "See your perfect look, then save or share it."
-      }
-    },
-    "cta": {
-      "button": "Get Started",
-      "tryGlasses": "Try On Glasses",
-      "tryOutfit": "Try On Outfit",
-      "tryShoes": "Try On Shoes",
-      "tryAccessories": "Try On Accessories"
-    },
     "showcase": {
       "alex": {
         "name": "Alex",
@@ -84,163 +30,22 @@
         "title": "✨ Join thousands who found their perfect style",
         "subtitle": "Try on glasses, outfits, shoes & accessories with AI-powered precision"
       }
-    },
-    "features": {
-      "title": "Key Features of VisuTry",
-      "subtitle": "Experience the next generation of AI-powered virtual try-on",
-      "feature1": {
-        "title": "Google Nano Banana",
-        "description": "Powered by Google's latest AI model for ultra-realistic try-on results with exceptional accuracy and natural lighting."
-      },
-      "feature2": {
-        "title": "Smart Data Retention",
-        "description": "Your try-on history is safely stored - 7 days for free users, 90 days with Credits, and 1 year for Premium members."
-      },
-      "feature3": {
-        "title": "Lightning Fast Processing",
-        "description": "Get your try-on results in 10-30 seconds with our optimized AI pipeline. Premium users enjoy priority processing."
-      },
-      "feature4": {
-        "title": "Privacy Protected",
-        "description": "Your photos are encrypted and secure. We never share your images or use them for training without permission."
-      }
-    },
-    "faq": {
-      "title": "Frequently Asked Questions",
-      "subtitle": "Everything you need to know about VisuTry",
-      "q1": {
-        "question": "How does VisuTry's AI try-on work?",
-        "answer": "VisuTry uses Google Nano Banana AI to analyze your facial features and realistically overlay glasses onto your photo. The AI understands face shape, lighting, and perspective to create natural-looking results in seconds."
-      },
-      "q2": {
-        "question": "Is my photo data safe and private?",
-        "answer": "Absolutely! Your photos are encrypted during upload and processing. We never share your images publicly or use them for AI training without explicit permission. Free users' data is stored for 7 days, Credits users for 90 days, and Premium members for 1 year."
-      },
-      "q3": {
-        "question": "What's the difference between free and Premium quality?",
-        "answer": "Free users get standard quality images (800×800 pixels) with a small watermark. Premium users receive high-quality images (1200×1200 pixels) without watermarks, plus priority processing and longer data retention (1 year vs 7 days)."
-      },
-      "q4": {
-        "question": "Can I use the generated images commercially?",
-        "answer": "Yes! Premium and Credits Pack users can use their watermark-free images for any purpose, including commercial use. Free users receive images with a watermark for personal use only."
-      },
-      "q5": {
-        "question": "How long does it take to generate a try-on?",
-        "answer": "Most try-ons complete in 10-30 seconds. Premium users enjoy priority processing, which means faster results even during peak times. The exact time depends on server load and image complexity."
-      },
-      "q6": {
-        "question": "What happens to my try-on history?",
-        "answer": "Your try-on history is automatically saved based on your plan: Free users (7 days), Credits users (90 days), Premium users (1 year). You'll receive an email reminder 3 days before expiration, giving you time to download or upgrade."
-      }
     }
   },
   "pricing": {
-    "title": "Choose Your Plan",
-    "subtitle": "Select the perfect plan for your needs",
-    "currentPlan": "Current Plan",
-    "freeUser": "Free User",
-    "remainingTryOns": "Remaining try-ons: {count}",
     "plans": {
       "creditsPack": {
-        "name": "Credits Pack",
-        "description": "Perfect for occasional use",
-        "price": "$2.99",
-        "period": "One-time",
-        "buttonText": "Buy Credits Pack",
-        "features": [
-          "10 AI try-ons",
-          "High-quality image processing",
-          "Unlimited downloads and sharing",
-          "Standard glasses frame library",
-          "Email support"
-        ]
+        "period": "One-time"
       },
       "monthly": {
-        "name": "Standard",
-        "description": "Most popular choice",
-        "price": "$8.99",
-        "period": "per month",
-        "buttonText": "Start Monthly Subscription",
-        "features": [
-          "30 AI try-ons per month",
-          "High-quality image processing",
-          "Priority processing queue",
-          "Unlimited downloads and sharing",
-          "Standard glasses frame library",
-          "Priority customer support"
-        ]
+        "period": "per month"
       },
       "yearly": {
-        "name": "Standard",
-        "description": "Best value - Save 17%",
-        "price": "$89.99",
-        "originalPrice": "$107.88",
-        "period": "per year",
-        "buttonText": "Start Annual Subscription",
-        "features": [
-          "420 AI try-ons per year (35/month)",
-          "High-quality image processing",
-          "Priority processing queue",
-          "Unlimited downloads and sharing",
-          "Standard glasses frame library",
-          "Priority customer support",
-          "Save $17.89 compared to monthly"
-        ]
+        "period": "per year"
       }
     },
     "comparison": {
-      "title": "Compare Plans",
-      "features": {
-        "aiTryOns": "AI Try-ons",
-        "imageQuality": "Image Quality",
-        "processingSpeed": "Processing Speed",
-        "downloads": "Downloads & Sharing",
-        "frameLibrary": "Frame Library",
-        "support": "Customer Support"
-      },
-      "values": {
-        "free": {
-          "aiTryOns": "1 time",
-          "imageQuality": "Standard",
-          "processingSpeed": "Standard",
-          "downloads": "Limited",
-          "frameLibrary": "Basic",
-          "support": "Email"
-        },
-        "credits": {
-          "aiTryOns": "+10 times",
-          "imageQuality": "High",
-          "processingSpeed": "Standard",
-          "downloads": "Unlimited",
-          "frameLibrary": "Standard",
-          "support": "Email"
-        },
-        "standard": {
-          "aiTryOns": "30/month or 420/year",
-          "imageQuality": "High",
-          "processingSpeed": "Priority",
-          "downloads": "Unlimited",
-          "frameLibrary": "Standard",
-          "support": "Priority"
-        }
-      }
-    },
-    "faq": {
-      "title": "Frequently Asked Questions",
-      "questions": [
-        {
-          "question": "Can I cancel my subscription anytime?",
-          "answer": "Yes, you can cancel your subscription at any time. Your access will continue until the end of your billing period."
-        },
-        {
-          "question": "What happens to unused try-ons?",
-          "answer": "For monthly subscriptions, unused try-ons do not roll over to the next month. For credits packs, credits never expire."
-        },
-        {
-          "question": "Do you offer refunds?",
-          "answer": "We offer a 7-day money-back guarantee for all subscriptions. Credits packs are non-refundable once used."
-        }
-      ]
+      "title": "Compare Plans"
     }
   },
   "faceAnalysis": {
@@ -340,13 +145,246 @@
       "viewReport": "View report"
     }
   },
+  "marketing": {
+    "home": {
+      "metaTitle": "AI Glasses Try-On, Face Analysis, and Frame Compare | VisuTry",
+      "metaDescription": "Analyze face shape, try custom glasses images, and compare preset frames side by side in your browser.",
+      "faqTitle": "Questions before you start",
+      "faqSubtitle": "Short answers for choosing the right VisuTry workflow.",
+      "heroTitle": "AI Glasses Try-On, Face Analysis, and Frame Compare",
+      "heroSubtitle": "Find better frames before you buy: analyze your face shape, try custom glasses images, and compare preset frames side by side.",
+      "tools": {
+        "faceTitle": "Face",
+        "faceDescription": "Detect face shape and get frame directions before spending credits.",
+        "glassesTitle": "Glasses",
+        "glassesDescription": "Upload product photos or screenshots and preview them on your face.",
+        "compareTitle": "Compare",
+        "compareDescription": "Pick built-in presets and review multiple frame results in one board."
+      },
+      "ctaPrimary": "Start with Face",
+      "ctaSecondary": "Compare frames",
+      "featureCards": {
+        "faceTitle": "Face Analysis",
+        "faceDescription": "A professional face-shape report with frame style recommendations.",
+        "glassesTitle": "Custom Glasses Try-On",
+        "glassesDescription": "Use your own glasses product image, store photo, or screenshot.",
+        "compareTitle": "Frame Compare",
+        "compareDescription": "Quickly test built-in frame presets from the same portrait.",
+        "openTool": "Open tool"
+      },
+      "workflow": {
+        "badge": "Face analysis for glasses",
+        "title": "Start try-on with frames that already fit the face",
+        "description": "VisuTry now uses one portrait to read face shape, narrow the first frame shortlist, and send shoppers directly into glasses try-on with better choices.",
+        "point1": "Face shape report",
+        "point2": "Recommended frame styles",
+        "point3": "One path into AI try-on",
+        "cta": "Analyze my face"
+      },
+      "benefits": {
+        "generatedTitle": "AI-generated previews",
+        "generatedDescription": "Use one portrait to analyze, try on, and compare glasses before buying.",
+        "historyTitle": "Saved to history",
+        "historyDescription": "Completed results stay available in Dashboard History based on your plan.",
+        "privacyTitle": "Private by default",
+        "privacyDescription": "Photos and results stay private to your account and are never published."
+      },
+      "faq": {
+        "q1Question": "How does VisuTry's AI try-on work?",
+        "q1Answer": "VisuTry combines face guidance, AI glasses try-on, and frame comparison. Upload a portrait, choose a glasses image or preset, and generate realistic previews in your browser.",
+        "q2Question": "What is Frame Compare?",
+        "q2Answer": "Frame Compare lets you pick built-in glasses presets and generate side-by-side try-on results from the same photo, so you can compare shape and scale faster.",
+        "q3Question": "Is my photo data safe and private?",
+        "q3Answer": "Absolutely. Your photos are encrypted during upload and processing. We never share your images publicly or use them for AI training without explicit permission.",
+        "q4Question": "How long does it take to generate a try-on?",
+        "q4Answer": "Most single try-ons complete in about 10-30 seconds. Compare runs frames individually so each result can finish, fail, or retry without blocking the full page.",
+        "q5Question": "What happens to my try-on history?",
+        "q5Answer": "Completed results are saved in Dashboard History according to your account retention plan, so you can come back to compare looks later."
+      }
+    },
+    "pricing": {
+      "metaTitle": "Credits Pack Pricing for AI Glasses Try-On | VisuTry",
+      "metaDescription": "Continue AI glasses try-on with 30 credits for USD 2.99. Upload your own glasses product images or screenshots, no subscription required.",
+      "eyebrow": "Simple credits for Face, Glasses, and Compare",
+      "title": "Start with 1 free credit, then continue with {count} AI credits for USD 2.99",
+      "description": "Use credits across AI face analysis, custom glasses try-on, and frame comparison.",
+      "faqTitle": "Frequently Asked Questions",
+      "featureCards": {
+        "faceTitle": "Face Analysis",
+        "faceDescription": "Use one credit to estimate face shape and get frame directions before trying glasses.",
+        "glassesTitle": "Glasses Try-On",
+        "glassesDescription": "Use one credit per custom try-on from a portrait and a glasses product image.",
+        "compareTitle": "Frame Compare",
+        "compareDescription": "Use one credit per generated frame. Try 1 frame free, or compare up to 4 with credits."
+      },
+      "faq": {
+        "q1Title": "Is the Credits Pack a subscription?",
+        "q1Answer": "No. The Credits Pack is a one-time USD 2.99 purchase for {count} AI try-ons. It is designed for occasional users who want to compare glasses without starting a monthly plan.",
+        "q2Title": "Can I use credits with my own glasses screenshots?",
+        "q2Answer": "Yes. Credits work with the glasses try-on flow where you upload your face photo and a glasses product image, store image, or screenshot.",
+        "q3Title": "How many credits does Frame Compare use?",
+        "q3Answer": "Frame Compare uses one credit per generated frame. A full 4-frame comparison uses up to 4 credits; failed generations are not charged.",
+        "q4Title": "Do credits expire?",
+        "q4Answer": "Credits never expire after purchase. You can use them anytime at your convenience.",
+        "q5Title": "What can I do with one free credit?",
+        "q5Answer": "You can run one face analysis, one custom glasses try-on, or one frame inside Compare. It is designed to let you test the workflow before buying credits.",
+        "q6Title": "What payment methods are supported?",
+        "q6Answer": "We support all major credit and debit cards, including Visa, Mastercard, American Express, and more.",
+        "q7Title": "How do I contact support?",
+        "q7Answer": "You can contact us via email at support@visutry.com. Premium members enjoy priority support."
+      },
+      "legal": {
+        "prefix": "By subscribing, you agree to our",
+        "terms": "Terms of Service",
+        "and": "and",
+        "privacy": "Privacy Policy",
+        "middle": ". View our",
+        "refund": "Refund Policy",
+        "suffix": "for cancellation terms."
+      }
+    },
+    "faqPage": {
+      "metaTitle": "FAQ: AI Glasses Try-On, Face Analysis, and Compare | VisuTry",
+      "metaDescription": "Questions about VisuTry credits, AI face analysis, custom glasses try-on, frame compare, privacy, and Dashboard History.",
+      "badge": "Help center",
+      "title": "FAQ for AI glasses try-on, face analysis, and frame compare",
+      "subtitle": "Quick answers for shoppers choosing glasses online with VisuTry.",
+      "topics": "Topics",
+      "supportTitle": "Need help with a specific task?",
+      "supportDescription": "Contact support with your account email and task ID if a result looks wrong or remains processing longer than expected."
+    },
+    "tryOnLanding": {
+      "metaTitle": "Virtual Glasses Try On Online from Photo | VisuTry",
+      "metaDescription": "Try on glasses online at home from a face photo and your own glasses product image or screenshot.",
+      "howItWorks": "How it works",
+      "title": "From product image to try-on preview",
+      "description": "Use Glasses when you already have a specific frame photo or screenshot. VisuTry turns that product image into a browser-based preview on your portrait.",
+      "startButton": "Start free glasses try-on",
+      "pricingButton": "30 try-ons for USD 2.99",
+      "guideLink": "Read the buying guide",
+      "faqTitle": "AI glasses try-on FAQ",
+      "notFoundTitle": "Try-On Not Found | VisuTry",
+      "notFoundDescription": "The requested try-on type was not found.",
+      "ogDescription": "Upload a face photo and a glasses product image or screenshot to preview how frames look before buying at home. No app install required.",
+      "ctaNote": "One free try-on to start. Credits Pack is a one-time purchase, no subscription required.",
+      "shortlistNotePrefix": "Not sure what glasses suit your face? Start with",
+      "shortlistNoteLink": "AI face shape analysis",
+      "shortlistNoteSuffix": "to get a shortlist, then come back here to try on glasses online from your own photo and product screenshots.",
+      "faq": {
+        "q1Question": "Can I try on glasses online from a screenshot?",
+        "q1Answer": "Yes. VisuTry lets you upload your face photo and a glasses product image or screenshot, then uses AI to create a realistic virtual glasses try-on preview on your face.",
+        "q2Question": "Can I upload my own glasses image for virtual try-on?",
+        "q2Answer": "Yes. You can upload a product photo, store image, email screenshot, or a transparent frame image. Clear front-facing product images usually work best.",
+        "q3Question": "Can I try on glasses at home before buying?",
+        "q3Answer": "Yes. VisuTry runs in your browser, so you can try on glasses at home from a face photo and compare frame images before deciding what to buy.",
+        "q4Question": "What if I do not know which glasses to try first?",
+        "q4Answer": "Start with AI face analysis to estimate your face shape and get frame recommendations, then return to virtual glasses try-on with a better shortlist.",
+        "q5Question": "How does AI try on glasses work?",
+        "q5Answer": "AI glasses try-on combines your face photo with a glasses product image or screenshot to generate a preview of the frame on your face. It is most useful after you shortlist styles by face shape, size, and personal taste.",
+        "q6Question": "Is VisuTry a try on glasses app?",
+        "q6Answer": "VisuTry works like a try on glasses app, but it runs in your web browser. You can use it on desktop or mobile without installing an app.",
+        "q7Question": "Can I try on blue light glasses online?",
+        "q7Answer": "Yes. If you have a clear product image or screenshot of blue light glasses, you can upload it and preview the frame on your face before buying.",
+        "q8Question": "Do I need to install an app?",
+        "q8Answer": "No. VisuTry runs in the browser on desktop and mobile. Sign in, upload your photos, and start the glasses try-on flow online.",
+        "q9Question": "What happens after my free try-on?",
+        "q9Answer": "You can continue with a Credits Pack: 30 AI try-ons for USD 2.99, no subscription required. Credits do not expire."
+      },
+      "valuePoints": {
+        "p1": "Upload a portrait and one glasses image",
+        "p2": "Preview the frame on your face before buying",
+        "p3": "Use Face or Compare when you need help choosing"
+      },
+      "steps": {
+        "s1Title": "Upload your photos",
+        "s1Description": "Use a face photo plus a glasses product photo, store image, or screenshot from email.",
+        "s2Title": "Preview and compare",
+        "s2Description": "Check how different frames look on your face before choosing what to buy.",
+        "s3Title": "Browser-based and private",
+        "s3Description": "No app install. Free data is stored for 7 days; Credits Pack users get 90 days of history retention.",
+        "s4Title": "Continue when you need more",
+        "s4Description": "Start with one free try-on, then use a one-time Credits Pack when you want to compare more frames."
+      }
+    },
+    "compareLanding": {
+      "metaTitle": "Compare Glasses Frames Online | VisuTry",
+      "metaDescription": "Upload a face photo, choose built-in glasses frame presets, and compare AI try-on results side by side.",
+      "startCreditTitle": "Start with one credit",
+      "upToFourTitle": "Up to four frames",
+      "savedTitle": "Saved to history",
+      "compareBefore": "Compare before buying",
+      "startComparing": "Start Comparing",
+      "viewPricing": "View pricing",
+      "ogDescription": "Quickly compare built-in glasses frame presets on your own photo with AI try-on.",
+      "srOnlyTitle": "Compare glasses frames on your photo",
+      "cards": {
+        "c1Description": "Trial users can compare one preset frame first, then add credits when they want a full board.",
+        "c2Description": "Credits map directly to generated frames, so a 4-frame comparison uses up to 4 credits.",
+        "c3Description": "Completed results are kept in Dashboard History according to your account retention plan."
+      },
+      "compareDescription": "Use Compare when you have several likely frame shapes and want a fast side-by-side view. Use Glasses Try-On when you already have a specific product image or screenshot."
+    },
+    "faceAnalysisLanding": {
+      "badge": "Face shape detector for glasses",
+      "startFaceAnalysis": "Start face analysis",
+      "tryGlassesOnPhoto": "Try glasses on photo",
+      "faqTitle": "AI face analysis FAQ",
+      "guideLink": "Read the full guide",
+      "faqEyebrow": "Questions shoppers ask",
+      "valuePoints": {
+        "p1": "AI face shape detector for glasses",
+        "p2": "Frame picks with a reason",
+        "p3": "Continue into virtual try-on"
+      },
+      "links": {
+        "compareByShape": "Compare glasses by face shape",
+        "readGuide": "Read the AI glasses guide"
+      },
+      "table": {
+        "title": "Best glasses by face shape",
+        "description": "If you are asking what glasses suit my face, start with face shape as a first filter. Use these frame directions to build your shortlist, then validate scale and style with virtual glasses try-on.",
+        "colShape": "Face shape",
+        "colTryFirst": "Try first",
+        "colWhy": "Why it works",
+        "seeStyles": "See styles",
+        "ctaGuide": "Explore the face-shape guide",
+        "ctaTry": "Try glasses on your photo"
+      },
+      "shapes": {
+        "roundName": "Round face",
+        "roundFrames": "Rectangular, square, geometric, and slightly wider frames",
+        "roundReason": "Angular lines add definition and help balance softer curves.",
+        "squareName": "Square face",
+        "squareFrames": "Round, oval, thin metal, and softly curved frames",
+        "squareReason": "Curved shapes soften a strong jawline and reduce visual weight.",
+        "ovalName": "Oval face",
+        "ovalFrames": "Balanced rectangular, browline, aviator, and classic shapes",
+        "ovalReason": "Oval proportions are flexible, so scale and personal style matter most.",
+        "heartName": "Heart face",
+        "heartFrames": "Lightweight, rounded, cat-eye, and bottom-balanced frames",
+        "heartReason": "Softer or lifted shapes balance a wider forehead with a narrower chin."
+      },
+      "faq": {
+        "q1Question": "What is AI face analysis for glasses?",
+        "q1Answer": "VisuTry provides AI face analysis for glasses by estimating your face shape and key visible features, then suggesting frame styles before virtual try-on.",
+        "q2Question": "Can AI recommend glasses for my face shape?",
+        "q2Answer": "Yes. AI face analysis can recommend frame directions for round, square, oval, heart, diamond, oblong, and triangle face shapes. Use virtual try-on as the final visual check.",
+        "q3Question": "Can I use a face shape detector online free before buying glasses?",
+        "q3Answer": "Yes. VisuTry lets you start with an online AI face shape detector so you can understand your likely face shape before choosing glasses. Use the result as a practical shortlist, then confirm the look with virtual try-on.",
+        "q4Question": "What is a face shape finder for glasses?",
+        "q4Answer": "A face shape finder estimates whether your face is closer to round, square, oval, heart, diamond, oblong, or triangle, then turns that result into frame styles to try first.",
+        "q5Question": "Is my face analysis private?",
+        "q5Answer": "Your uploaded photo and analysis stay private to your account. VisuTry uses the image to generate your face shape report and glasses recommendations.",
+        "q6Question": "What glasses suit my face shape?",
+        "q6Answer": "Round faces often start with angular frames, square faces with round or oval frames, oval faces with balanced rectangular or browline frames, and heart faces with lightweight or softly upswept frames."
+      }
+    }
+  },
   "footer": {
-    "tagline": "AI-powered virtual try-on for glasses, outfits, shoes, and accessories",
     "links": {
       "product": "Product",
       "resources": "Resources",
       "legal": "Legal",
-      "tryGlasses": "Try Glasses",
       "tryOutfit": "Try Outfit",
       "tryShoes": "Try Shoes",
       "tryAccessories": "Try Accessories",
@@ -360,15 +398,5 @@
     },
     "copyright": "© {year} VisuTry. All rights reserved.",
     "madeWith": "Made with ❤️ using AI technology"
-  },
-  "meta": {
-    "home": {
-      "title": "VisuTry - AI Virtual Try-On for Glasses, Outfits, Shoes & Accessories",
-      "description": "Try on glasses, outfits, shoes, and accessories instantly with AI-powered virtual try-on. No download needed - upload your photo and see how items look on you before buying. Powered by Nano Banana AI (Gemini 2.5 Flash Image) for photorealistic results."
-    },
-    "pricing": {
-      "title": "Pricing Plans - AI Virtual Try-On for All Categories | VisuTry",
-      "description": "Choose the perfect plan for instant AI-powered virtual try-on. Try glasses, outfits, shoes, and accessories with Nano Banana AI (Gemini 2.5 Flash Image). Free trials available, premium features for unlimited virtual fitting."
-    }
   }
 }

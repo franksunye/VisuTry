@@ -1,96 +1,18 @@
 {
   "common": {
-    "getStarted": "始める",
-    "learnMore": "詳しく見る",
-    "signIn": "ログイン",
-    "signOut": "ログアウト",
     "startFreeTrial": "無料トライアルを開始",
     "startTryOn": "試着を開始",
-    "tryOn": "バーチャル試着",
-    "blog": "ブログ",
-    "pricing": "料金",
-    "dashboard": "ダッシュボード",
-    "profile": "プロフィール",
-    "settings": "設定",
-    "loading": "読み込み中...",
-    "error": "エラー",
-    "success": "成功",
-    "cancel": "キャンセル",
-    "save": "保存",
-    "delete": "削除",
-    "edit": "編集",
-    "close": "閉じる",
-    "back": "戻る",
-    "next": "次へ",
-    "previous": "前へ",
-    "submit": "送信",
-    "confirm": "確認"
+    "loading": "読み込み中..."
   },
   "nav": {
     "faceAnalysis": "顔分析",
-    "home": "ホーム",
-    "tryOn": "バーチャル試着",
     "tryGlasses": "メガネ",
-    "tryOutfit": "服を試す",
-    "tryShoes": "靴を試す",
-    "tryAccessories": "アクセサリーを試す",
-    "blog": "ブログ",
     "pricing": "料金",
-    "dashboard": "ダッシュボード",
-    "signIn": "ログイン",
-    "signOut": "ログアウト",
-    "toggleMenu": "ナビゲーションメニューを切り替え"
+    "toggleMenu": "ナビゲーションメニューを切り替え",
+    "compare": "Compare",
+    "faq": "FAQ"
   },
   "home": {
-    "hero": {
-      "title": "あなたにぴったりのスタイルを見つけよう",
-      "subtitle": "3つの簡単なステップで試着"
-    },
-    "steps": {
-      "step1": {
-        "title": "写真をアップロード",
-        "description": "鮮明な写真をアップロードしてください。特別なツールは必要ありません。"
-      },
-      "step2": {
-        "title": "スタイルを選択",
-        "description": "試着したいアイテムを選んでください。あなたにどう見えるかをお見せします。"
-      },
-      "step3": {
-        "title": "確認して保存",
-        "description": "完璧なルックを確認したら、保存または共有してください。"
-      }
-    },
-    "cta": {
-      "button": "始める",
-      "faceAnalysis": "顔分析",
-      "tryOutfit": "服を試す",
-      "tryShoes": "靴を試す",
-      "tryAccessories": "アクセサリーを試す"
-    },
-    "features": {
-      "title": "VisuTryの主な機能",
-      "subtitle": "次世代のAI搭載バーチャル試着を体験",
-      "feature1": {
-        "title": "Google Nano Banana",
-        "description": "Googleの最新AIモデルで、超リアルな試着結果を実現。優れた精度と自然な照明で完璧な仕上がり。"
-      },
-      "feature2": {
-        "title": "スマートデータ保持",
-        "description": "試着履歴は安全に保存されます。無料ユーザーは7日間、クレジット購入者は90日間、プレミアムメンバーは1年間保存。"
-      },
-      "feature3": {
-        "title": "高速処理",
-        "description": "最適化されたAIパイプラインで、10～30秒で試着結果を取得。プレミアムユーザーは優先処理を享受。"
-      },
-      "feature4": {
-        "title": "プライバシー保護",
-        "description": "あなたの写真は暗号化され、安全に保護されます。許可なく画像を共有したり、トレーニングに使用することはありません。"
-      }
-    },
-    "faq": {
-      "title": "よくある質問",
-      "subtitle": "VisuTryについて知っておくべきことすべて"
-    },
     "showcase": {
       "alex": {
         "name": "Alex",
@@ -111,104 +33,26 @@
     }
   },
   "pricing": {
-    "title": "プランを選択",
-    "subtitle": "あなたのニーズに最適なプランを選択してください",
-    "currentPlan": "現在のプラン",
-    "freeUser": "無料ユーザー",
-    "remainingTryOns": "残りの試着回数：{count}",
     "plans": {
       "creditsPack": {
-        "name": "クレジットパック",
-        "description": "時々使用する方に最適",
-        "price": "¥450",
-        "period": "1回限り",
-        "buttonText": "クレジットパックを購入",
-        "features": [
-          "AI試着10回",
-          "高品質画像処理",
-          "無制限のダウンロードと共有",
-          "標準メガネフレームライブラリ",
-          "メールサポート"
-        ]
+        "period": "1回限り"
       },
       "monthly": {
-        "name": "スタンダード",
-        "description": "最も人気のある選択",
-        "price": "¥1,350",
-        "period": "月額",
-        "buttonText": "月額サブスクリプションを開始",
-        "features": [
-          "月30回のAI試着",
-          "高品質画像処理",
-          "優先処理キュー",
-          "無制限のダウンロードと共有",
-          "標準メガネフレームライブラリ",
-          "優先カスタマーサポート"
-        ]
+        "period": "月額"
       },
       "yearly": {
-        "name": "スタンダード",
-        "description": "最もお得 - 17%節約",
-        "price": "¥13,500",
-        "originalPrice": "¥16,200",
-        "period": "年額",
-        "buttonText": "年間サブスクリプションを開始",
-        "features": [
-          "年間420回のAI試着（月35回）",
-          "高品質画像処理",
-          "優先処理キュー",
-          "無制限のダウンロードと共有",
-          "標準メガネフレームライブラリ",
-          "優先カスタマーサポート",
-          "月額プランと比較して¥2,700節約"
-        ]
+        "period": "年額"
       }
     },
     "comparison": {
-      "title": "プランを比較",
-      "features": {
-        "aiTryOns": "AI試着",
-        "imageQuality": "画像品質",
-        "processingSpeed": "処理速度",
-        "downloads": "ダウンロードと共有",
-        "frameLibrary": "フレームライブラリ",
-        "support": "カスタマーサポート"
-      },
-      "values": {
-        "free": {
-          "aiTryOns": "1回",
-          "imageQuality": "標準",
-          "processingSpeed": "標準",
-          "downloads": "制限あり",
-          "frameLibrary": "基本",
-          "support": "メール"
-        },
-        "credits": {
-          "aiTryOns": "+10回",
-          "imageQuality": "高品質",
-          "processingSpeed": "標準",
-          "downloads": "無制限",
-          "frameLibrary": "標準",
-          "support": "メール"
-        },
-        "standard": {
-          "aiTryOns": "月30回または年420回",
-          "imageQuality": "高品質",
-          "processingSpeed": "優先",
-          "downloads": "無制限",
-          "frameLibrary": "標準",
-          "support": "優先"
-        }
-      }
+      "title": "プランを比較"
     }
   },
   "footer": {
-    "tagline": "メガネ、服、靴、アクセサリーのAI搭載バーチャル試着",
     "links": {
       "product": "製品",
       "resources": "リソース",
       "legal": "法的情報",
-      "tryGlasses": "メガネを試す",
       "tryOutfit": "服を試す",
       "tryShoes": "靴を試す",
       "tryAccessories": "アクセサリーを試す",
@@ -222,16 +66,6 @@
     },
     "copyright": "© {year} VisuTry. 全著作権所有。",
     "madeWith": "AI技術を使用して❤️で作成"
-  },
-  "meta": {
-    "home": {
-      "title": "VisuTry - メガネ、服、靴、アクセサリーのAIバーチャル試着",
-      "description": "AI搭載のバーチャル試着でメガネ、服、靴、アクセサリーを即座に試着。ダウンロード不要 - 写真をアップロードして購入前にアイテムがどのように見えるかを確認。Nano Banana AI (Gemini 2.5 Flash Image)によるフォトリアルな結果。"
-    },
-    "pricing": {
-      "title": "料金プラン - すべてのカテゴリーのAIバーチャル試着 | VisuTry",
-      "description": "即座のAI搭載バーチャル試着に最適なプランを選択してください。Nano Banana AI (Gemini 2.5 Flash Image)でメガネ、服、靴、アクセサリーを試着。無料トライアル利用可能、無制限のバーチャルフィッティングのプレミアム機能。"
-    }
   },
   "faceAnalysis": {
     "meta": {
@@ -328,6 +162,241 @@
       "unlocked": "解除済み",
       "locked": "ロック中",
       "viewReport": "レポートを見る"
+    }
+  },
+  "marketing": {
+    "home": {
+      "metaTitle": "VisuTry - メガネ、服、靴、アクセサリーのAIバーチャル試着",
+      "metaDescription": "AI搭載のバーチャル試着でメガネ、服、靴、アクセサリーを即座に試着。ダウンロード不要 - 写真をアップロードして購入前にアイテムがどのように見えるかを確認。Nano Banana AI (Gemini 2.5 Flash Image)によるフォトリアルな結果。",
+      "faqTitle": "よくある質問",
+      "faqSubtitle": "VisuTryについて知っておくべきことすべて",
+      "heroTitle": "あなたにぴったりのスタイルを見つけよう",
+      "heroSubtitle": "3つの簡単なステップで試着",
+      "tools": {
+        "faceTitle": "顔分析",
+        "faceDescription": "顔型を検出し、クレジットを使う前にフレーム方向の候補を把握できます。",
+        "glassesTitle": "メガネ",
+        "glassesDescription": "商品画像やスクリーンショットをアップロードして、顔上でプレビューできます。",
+        "compareTitle": "比較",
+        "compareDescription": "内蔵プリセットを選び、複数フレーム結果を1つのボードで確認できます。"
+      },
+      "ctaPrimary": "Faceから始める",
+      "ctaSecondary": "フレームを比較",
+      "featureCards": {
+        "faceTitle": "顔分析",
+        "faceDescription": "顔型レポートとフレーム提案をまとめて確認できます。",
+        "glassesTitle": "カスタム眼鏡試着",
+        "glassesDescription": "商品画像・店舗写真・スクリーンショットを使って試着できます。",
+        "compareTitle": "フレーム比較",
+        "compareDescription": "同じポートレートで内蔵フレームを素早く比較できます。",
+        "openTool": "ツールを開く"
+      },
+      "workflow": {
+        "badge": "眼鏡向け顔分析",
+        "title": "顔に合うフレームから試着を始める",
+        "description": "VisuTryは1枚のポートレートから顔型を読み取り、最初の候補を絞って、より適した試着へつなげます。",
+        "point1": "顔型レポート",
+        "point2": "推奨フレームスタイル",
+        "point3": "AI試着への一貫導線",
+        "cta": "顔を分析する"
+      },
+      "benefits": {
+        "generatedTitle": "AI生成プレビュー",
+        "generatedDescription": "1枚のポートレートで分析・試着・比較を行えます。",
+        "historyTitle": "履歴に保存",
+        "historyDescription": "完了結果はプランに応じてダッシュボード履歴に残ります。",
+        "privacyTitle": "デフォルトで非公開",
+        "privacyDescription": "写真と結果はアカウント内に限定され、公開されません。"
+      },
+      "faq": {
+        "q1Question": "VisuTryのAI試着はどう動作しますか？",
+        "q1Answer": "顔ガイド、AI眼鏡試着、フレーム比較を組み合わせ、ブラウザで自然なプレビューを生成します。",
+        "q2Question": "Frame Compareとは？",
+        "q2Answer": "内蔵プリセットを同一写真で並列生成し、形やスケールを比較できます。",
+        "q3Question": "写真データは安全ですか？",
+        "q3Answer": "アップロードと処理時に暗号化され、許可なく公開共有や学習利用は行いません。",
+        "q4Question": "生成にはどれくらいかかりますか？",
+        "q4Answer": "単体試着は通常10〜30秒です。比較はフレーム単位で処理されます。",
+        "q5Question": "試着履歴はどうなりますか？",
+        "q5Answer": "完了結果はアカウント保持プランに従って履歴に保存されます。"
+      }
+    },
+    "pricing": {
+      "metaTitle": "AI眼鏡試着のクレジット料金 | VisuTry",
+      "metaDescription": "USD 2.99で30クレジット。商品画像やスクリーンショットで試着を継続。サブスク不要。",
+      "eyebrow": "Face・Glasses・Compare向けのシンプルなクレジット",
+      "title": "無料1クレジットで開始、続ける場合は{count} AIクレジット（USD 2.99）",
+      "description": "クレジットはAI顔分析、カスタムメガネ試着、フレーム比較で利用できます。",
+      "faqTitle": "Frequently Asked Questions (JA)",
+      "featureCards": {
+        "faceTitle": "顔分析",
+        "faceDescription": "1クレジットで顔型を推定し、試着前にフレーム方向を確認。",
+        "glassesTitle": "眼鏡試着",
+        "glassesDescription": "ポートレートと眼鏡画像で1回のカスタム試着につき1クレジット。",
+        "compareTitle": "フレーム比較",
+        "compareDescription": "生成フレーム1つにつき1クレジット。最大4フレーム比較可能。"
+      },
+      "faq": {
+        "q1Title": "クレジットパックはサブスクですか？",
+        "q1Answer": "いいえ。{count}回分のAI試着を含む買い切りです。",
+        "q2Title": "自分の眼鏡画像でも使えますか？",
+        "q2Answer": "はい。顔写真と眼鏡画像・スクリーンショットで利用できます。",
+        "q3Title": "Frame Compareで必要なクレジット数は？",
+        "q3Answer": "生成フレーム1つにつき1クレジット、4フレームなら最大4クレジットです。",
+        "q4Title": "クレジットに有効期限はありますか？",
+        "q4Answer": "購入後のクレジットは失効しません。",
+        "q5Title": "無料1クレジットで何ができますか？",
+        "q5Answer": "顔分析1回、カスタム試着1回、または比較フレーム1件を試せます。",
+        "q6Title": "対応支払い方法は？",
+        "q6Answer": "Visa、Mastercard、American Expressなど主要カードに対応しています。",
+        "q7Title": "サポート連絡方法は？",
+        "q7Answer": "support@visutry.com へご連絡ください。Premiumは優先対応です。"
+      },
+      "legal": {
+        "prefix": "購読により、",
+        "terms": "利用規約",
+        "and": "と",
+        "privacy": "プライバシーポリシー",
+        "middle": "に同意したものとみなされます。",
+        "refund": "返金ポリシー",
+        "suffix": "もご確認ください。"
+      }
+    },
+    "faqPage": {
+      "metaTitle": "FAQ: AI眼鏡試着・顔分析・比較 | VisuTry",
+      "metaDescription": "クレジット、AI顔分析、カスタム試着、フレーム比較、プライバシー、履歴に関する質問。",
+      "badge": "ヘルプセンター",
+      "title": "AI眼鏡試着・顔分析・フレーム比較 FAQ",
+      "subtitle": "オンラインでメガネを選ぶユーザー向けのクイック回答。",
+      "topics": "トピック",
+      "supportTitle": "特定のタスクでお困りですか？",
+      "supportDescription": "結果が不自然、または処理が長い場合は、アカウントメールとタスクIDを添えてサポートへご連絡ください。"
+    },
+    "tryOnLanding": {
+      "metaTitle": "写真からオンライン眼鏡試着 | VisuTry",
+      "metaDescription": "顔写真と眼鏡商品画像で、ブラウザ上でオンライン試着。",
+      "howItWorks": "仕組み",
+      "title": "商品画像から試着プレビューへ",
+      "description": "特定フレームの写真やスクリーンショットがある場合はGlassesを使用。VisuTryがブラウザ上で顔写真に重ねて表示します。",
+      "startButton": "無料でメガネ試着を開始",
+      "pricingButton": "30回試着 USD 2.99",
+      "guideLink": "購入ガイドを読む",
+      "faqTitle": "AIメガネ試着FAQ",
+      "notFoundTitle": "Try-On が見つかりません | VisuTry",
+      "notFoundDescription": "指定された try-on タイプは見つかりませんでした。",
+      "ogDescription": "顔写真と眼鏡画像をアップロードし、購入前に装着イメージを確認。アプリ不要。",
+      "ctaNote": "最初は1回無料。Credits Packは買い切りでサブスク不要。",
+      "shortlistNotePrefix": "どの眼鏡が合うかわからない場合は、まず",
+      "shortlistNoteLink": "AI顔型分析",
+      "shortlistNoteSuffix": "で候補を絞ってから、ここで試着を続けてください。",
+      "faq": {
+        "q1Question": "スクリーンショットから試着できますか？",
+        "q1Answer": "はい。顔写真と眼鏡画像/スクリーンショットでリアルなプレビューを生成できます。",
+        "q2Question": "自分の眼鏡画像をアップロードできますか？",
+        "q2Answer": "はい。商品写真、店舗画像、メール画面、透過画像などに対応します。",
+        "q3Question": "購入前に自宅で試せますか？",
+        "q3Answer": "はい。ブラウザで動作し、顔写真から比較できます。",
+        "q4Question": "最初に何を試せばよいですか？",
+        "q4Answer": "まず顔分析で顔型と推奨を確認し、その後試着へ進むのがおすすめです。",
+        "q5Question": "AI試着の仕組みは？",
+        "q5Answer": "顔写真と眼鏡画像を組み合わせて装着イメージを生成します。",
+        "q6Question": "アプリですか？",
+        "q6Answer": "アプリのように使えますが、実際はブラウザで動作します。",
+        "q7Question": "ブルーライト眼鏡も試せますか？",
+        "q7Answer": "はい。鮮明な商品画像があればプレビュー可能です。",
+        "q8Question": "インストールは必要ですか？",
+        "q8Answer": "不要です。ブラウザで利用できます。",
+        "q9Question": "無料枠の後は？",
+        "q9Answer": "Credits Pack（USD 2.99 / 30回）で継続できます。"
+      },
+      "valuePoints": {
+        "p1": "Upload a portrait and one glasses image (JA)",
+        "p2": "Preview the フレーム on your face before buying",
+        "p3": "Use Face or 比較 when you need help choosing"
+      },
+      "steps": {
+        "s1Title": "Upload your 写真s",
+        "s1Description": "Use a face 写真 plus a glasses product 写真, store image, or screenshot from email.",
+        "s2Title": "Preview and compare (JA)",
+        "s2Description": "Check how different フレームs look on your face before choosing what to buy.",
+        "s3Title": "Browser-based and プライベート",
+        "s3Description": "No app install. Free data is stored for 7 days; Credits Pack users get 90 days of 履歴 retention.",
+        "s4Title": "Continue when you need more (JA)",
+        "s4Description": "開始 with one 無料 try-on, then use a one-time Credits Pack when you want to compare more フレームs."
+      }
+    },
+    "compareLanding": {
+      "metaTitle": "オンラインで眼鏡フレーム比較 | VisuTry",
+      "metaDescription": "顔写真と内蔵プリセットでAI試着結果を並べて比較。",
+      "startCreditTitle": "1クレジットで開始",
+      "upToFourTitle": "最大4フレーム",
+      "savedTitle": "履歴に保存",
+      "compareBefore": "購入前に比較",
+      "startComparing": "比較を開始",
+      "viewPricing": "料金を見る",
+      "ogDescription": "内蔵フレームをAI試着で素早く比較。",
+      "srOnlyTitle": "写真で眼鏡フレームを比較",
+      "cards": {
+        "c1Description": "まず1フレームを試し、必要に応じてクレジット追加できます。",
+        "c2Description": "生成フレーム数に応じてクレジット消費されます。",
+        "c3Description": "完了結果は保持プランに従って履歴へ保存されます。"
+      },
+      "compareDescription": "候補フレームを並べて素早く比較したい場合にCompareが有効です。"
+    },
+    "faceAnalysisLanding": {
+      "badge": "メガネ向け顔型検出",
+      "startFaceAnalysis": "顔分析を開始",
+      "tryGlassesOnPhoto": "写真でメガネ試着",
+      "faqTitle": "AI顔分析FAQ",
+      "guideLink": "完全ガイドを読む",
+      "faqEyebrow": "よくある質問",
+      "valuePoints": {
+        "p1": "眼鏡向けAI顔型検出",
+        "p2": "理由付きフレーム提案",
+        "p3": "そのままバーチャル試着へ"
+      },
+      "links": {
+        "compareByShape": "顔型別に眼鏡を比較",
+        "readGuide": "AI眼鏡ガイドを読む"
+      },
+      "table": {
+        "title": "顔型別おすすめ眼鏡",
+        "description": "まず顔型を起点に候補を絞り、最後に試着でサイズ感と印象を確認します。",
+        "colShape": "顔型",
+        "colTryFirst": "最初に試す",
+        "colWhy": "理由",
+        "seeStyles": "スタイルを見る",
+        "ctaGuide": "顔型ガイドを見る",
+        "ctaTry": "写真で眼鏡試着"
+      },
+      "shapes": {
+        "roundName": "丸顔",
+        "roundFrames": "長方形・スクエア・幾何学・やや幅広フレーム",
+        "roundReason": "直線的な要素が輪郭を引き締めます。",
+        "squareName": "四角顔",
+        "squareFrames": "ラウンド・オーバル・細メタル・やわらかい曲線",
+        "squareReason": "曲線が強い顎ラインを和らげます。",
+        "ovalName": "卵型",
+        "ovalFrames": "バランス型長方形・ブロウライン・アビエーター・クラシック",
+        "ovalReason": "卵型は汎用性が高く、サイズと好みが重要です。",
+        "heartName": "ハート型",
+        "heartFrames": "軽量・ラウンド・キャットアイ・下重心フレーム",
+        "heartReason": "柔らかい/上向き形状が額と顎のバランスを取ります。"
+      },
+      "faq": {
+        "q1Question": "眼鏡向けAI顔分析とは？",
+        "q1Answer": "顔型と特徴を推定し、試着前にフレーム方向を提案します。",
+        "q2Question": "顔型に合う眼鏡をAIが提案できますか？",
+        "q2Answer": "はい。丸・四角・卵・ハート・ダイヤ・面長・三角などに対応します。",
+        "q3Question": "購入前に無料で顔型検出できますか？",
+        "q3Answer": "はい。無料で顔型推定を開始し、候補絞り込みに活用できます。",
+        "q4Question": "face shape finderとは？",
+        "q4Answer": "顔型を推定し、最初に試すべきフレーム方向へ変換する機能です。",
+        "q5Question": "分析はプライベートですか？",
+        "q5Answer": "アップロード写真と結果はアカウント内に限定されます。",
+        "q6Question": "顔型別にどんな眼鏡が合いますか？",
+        "q6Answer": "丸顔は角張り、四角顔は丸み、卵型はバランス型、ハート型は軽量/上向きが目安です。"
+      }
     }
   }
 }
