@@ -195,11 +195,9 @@ function PublicTryOnLanding({
   })
   const valuePoints = isGlasses
     ? [
-        "Virtual glasses try-on from photo",
-        "Try glasses online at home",
-        "Works with product photos and screenshots",
-        "Use face analysis first if you need frame ideas",
-        "One-time Credits Pack available after the free try-on",
+        "Upload a portrait and one glasses image",
+        "Preview the frame on your face before buying",
+        "Use Face or Compare when you need help choosing",
       ]
     : [
         `Upload your own ${config.name.toLowerCase()} image`,
@@ -264,24 +262,24 @@ function PublicTryOnLanding({
       />
 
       <div className="mx-auto max-w-6xl px-4 py-8 md:py-10">
+        {isGlasses && <h1 className="sr-only">Try on glasses online from a photo</h1>}
         {isGlasses && (
           <div className="mb-8">
             <ModelTryOnSlides locale={locale} mode="glasses" />
           </div>
         )}
 
-        <section className="grid gap-8 lg:grid-cols-[0.95fr_1.05fr] lg:items-center">
+        <section className="grid gap-8 lg:grid-cols-[0.82fr_1.18fr] lg:items-start">
           <div className="max-w-2xl">
-          <p className="mb-3 inline-flex items-center rounded-full border border-blue-200 bg-white px-3 py-1 text-sm font-semibold text-blue-700">
-            Virtual glasses try on online
+          <p className="mb-3 inline-flex items-center rounded-lg border border-blue-200 bg-white px-3 py-1 text-sm font-semibold text-blue-700">
+            How it works
           </p>
-          <h1 className="mb-4 text-3xl font-bold leading-tight text-gray-950 md:text-5xl">
-            Try On Glasses Online from a Photo
-          </h1>
-          <p className="mb-6 text-lg leading-8 text-gray-600">
-            Upload a clear face photo and your own glasses image. VisuTry creates a realistic
-            virtual glasses try-on preview so you can compare frames at home before buying,
-            without installing an app.
+          <h2 className="mb-4 text-2xl font-bold leading-tight text-gray-950 md:text-3xl">
+            From product image to try-on preview
+          </h2>
+          <p className="mb-6 text-base leading-7 text-gray-600">
+            Use Glasses when you already have a specific frame photo or screenshot. VisuTry turns
+            that product image into a browser-based preview on your portrait.
           </p>
           <div className="mb-7 grid gap-3">
             {valuePoints.map((item) => (

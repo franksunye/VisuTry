@@ -1,11 +1,8 @@
 'use client'
 
 import Link from 'next/link'
-import { Upload, Sparkles, Share2, Zap, Shield, Clock, Database, ScanFace, ArrowRight, Grid2X2, Glasses } from 'lucide-react'
-import { useRouter, useParams } from 'next/navigation'
-import { useSession } from 'next-auth/react'
-import { useTestSession } from '@/hooks/useTestSession'
-import { useTranslations } from 'next-intl'
+import { Database, ScanFace, ArrowRight, Grid2X2, Glasses, LockKeyhole, Sparkles } from 'lucide-react'
+import { useParams } from 'next/navigation'
 import { FaceAnalysisPreviewVisual } from '@/components/face-analysis/FaceAnalysisPreviewVisual'
 import { ModelTryOnSlides } from '@/components/marketing/ModelTryOnSlides'
 
@@ -24,37 +21,18 @@ const englishFaqContent = [
     answer: "Absolutely! Your photos are encrypted during upload and processing. We never share your images publicly or use them for AI training without explicit permission. Free users' data is stored for 7 days, Credits users for 90 days, and Premium members for 1 year."
   },
   {
-    question: "What's the difference between free and Premium quality?",
-    answer: "Free users get standard quality images (800×800 pixels) with a small watermark. Premium users receive high-quality images (1200×1200 pixels) without watermarks, plus priority processing and longer data retention (1 year vs 7 days)."
-  },
-  {
-    question: "Can I use the generated images commercially?",
-    answer: "Yes! Premium and Credits Pack users can use their watermark-free images for any purpose, including commercial use. Free users receive images with a watermark for personal use only."
-  },
-  {
     question: "How long does it take to generate a try-on?",
-    answer: "Most try-ons complete in 10-30 seconds. Premium users enjoy priority processing, which means faster results even during peak times. The exact time depends on server load and image complexity."
+    answer: "Most single try-ons complete in about 10-30 seconds. Compare runs frames individually so each result can finish, fail, or retry without blocking the full page."
   },
   {
     question: "What happens to my try-on history?",
-    answer: "Your try-on history is automatically saved based on your plan: Free users (7 days), Credits users (90 days), Premium users (1 year). You'll receive an email reminder 3 days before expiration, giving you time to download or upgrade."
+    answer: "Completed results are saved in Dashboard History according to your account retention plan, so you can come back to compare looks later."
   }
 ]
 
 export default function Home() {
-  const router = useRouter()
   const params = useParams()
   const locale = params.locale as string
-  const { data: session } = useSession()
-  const { testSession } = useTestSession()
-  const t = useTranslations('home')
-  const tCommon = useTranslations('common')
-
-  const isAuthenticated = session || testSession
-
-  const handleStartTryOn = (type: 'glasses' | 'outfit' | 'shoes' | 'accessories' = 'glasses') => {
-    router.push(`/${locale}/try-on/${type}`)
-  }
 
   // Generate FAQ structured data for SEO - using English content
   const faqSchema = {
@@ -207,81 +185,46 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Key Features Section */}
       <section className="max-w-6xl mx-auto mb-16">
-        <div className="text-center mb-12">
-          <h2 className="text-3xl font-bold text-gray-900 mb-4">
-            {t('features.title')}
-          </h2>
-          <p className="text-lg text-gray-600">
-            {t('features.subtitle')}
-          </p>
-        </div>
-
-        <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-4">
-          {/* Feature 1: Google Nano Banana */}
-          <div className="p-6 bg-white border border-gray-200 rounded-xl shadow-sm hover:shadow-md transition-shadow">
-            <div className="flex items-center justify-center w-12 h-12 mb-4 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg">
-              <Zap className="w-6 h-6 text-white" />
-            </div>
-            <h3 className="text-xl font-semibold text-gray-900 mb-2">
-              {t('features.feature1.title')}
-            </h3>
-            <p className="text-gray-600">
-              {t('features.feature1.description')}
-            </p>
-          </div>
-
-          {/* Feature 2: Smart Data Retention */}
-          <div className="p-6 bg-white border border-gray-200 rounded-xl shadow-sm hover:shadow-md transition-shadow">
-            <div className="flex items-center justify-center w-12 h-12 mb-4 bg-gradient-to-br from-green-500 to-emerald-600 rounded-lg">
-              <Database className="w-6 h-6 text-white" />
-            </div>
-            <h3 className="text-xl font-semibold text-gray-900 mb-2">
-              {t('features.feature2.title')}
-            </h3>
-            <p className="text-gray-600">
-              {t('features.feature2.description')}
-            </p>
-          </div>
-
-          {/* Feature 3: Lightning Fast */}
-          <div className="p-6 bg-white border border-gray-200 rounded-xl shadow-sm hover:shadow-md transition-shadow">
-            <div className="flex items-center justify-center w-12 h-12 mb-4 bg-gradient-to-br from-orange-500 to-red-600 rounded-lg">
-              <Clock className="w-6 h-6 text-white" />
-            </div>
-            <h3 className="text-xl font-semibold text-gray-900 mb-2">
-              {t('features.feature3.title')}
-            </h3>
-            <p className="text-gray-600">
-              {t('features.feature3.description')}
-            </p>
-          </div>
-
-          {/* Feature 4: Privacy Protected */}
-          <div className="p-6 bg-white border border-gray-200 rounded-xl shadow-sm hover:shadow-md transition-shadow">
-            <div className="flex items-center justify-center w-12 h-12 mb-4 bg-gradient-to-br from-indigo-500 to-blue-600 rounded-lg">
-              <Shield className="w-6 h-6 text-white" />
-            </div>
-            <h3 className="text-xl font-semibold text-gray-900 mb-2">
-              {t('features.feature4.title')}
-            </h3>
-            <p className="text-gray-600">
-              {t('features.feature4.description')}
-            </p>
-          </div>
+        <div className="grid gap-4 rounded-lg border border-gray-200 bg-white p-4 shadow-sm md:grid-cols-3 md:p-5">
+          {[
+            {
+              icon: Sparkles,
+              title: 'AI-generated previews',
+              description: 'Use one portrait to analyze, try on, and compare glasses before buying.',
+            },
+            {
+              icon: Database,
+              title: 'Saved to history',
+              description: 'Completed results stay available in Dashboard History based on your plan.',
+            },
+            {
+              icon: LockKeyhole,
+              title: 'Private by default',
+              description: 'Photos and results stay private to your account and are never published.',
+            },
+          ].map((item) => {
+            const Icon = item.icon
+            return (
+              <div key={item.title} className="flex gap-3 rounded-lg bg-gray-50 p-4">
+                <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg bg-blue-50 text-blue-600">
+                  <Icon className="h-5 w-5" />
+                </div>
+                <div>
+                  <h2 className="text-sm font-bold text-gray-950">{item.title}</h2>
+                  <p className="mt-1 text-sm leading-6 text-gray-600">{item.description}</p>
+                </div>
+              </div>
+            )
+          })}
         </div>
       </section>
 
       {/* FAQ Section */}
       <section id="faq" className="max-w-4xl mx-auto mb-16">
         <div className="text-center mb-12">
-          <h2 className="text-3xl font-bold text-gray-900 mb-4">
-            {t('faq.title')}
-          </h2>
-          <p className="text-lg text-gray-600">
-            {t('faq.subtitle')}
-          </p>
+          <h2 className="text-3xl font-bold text-gray-900 mb-4">Questions before you start</h2>
+          <p className="text-lg text-gray-600">Short answers for choosing the right VisuTry workflow.</p>
         </div>
 
         <div className="space-y-6">
