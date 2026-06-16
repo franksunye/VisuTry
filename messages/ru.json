@@ -65,7 +65,7 @@
       "refund": "Политика Возврата",
       "faceAnalysis": "Анализ лица",
       "tryGlasses": "Очки",
-      "frameCompare": "Compare",
+      "frameCompare": "Сравнение оправ",
       "moreTryOn": "Другие примерки",
       "faceShapeGuide": "Гид по форме лица"
     },
@@ -475,14 +475,14 @@
       }
     },
     "compareLandingVisual": {
-      "badge": "Preset Frame Compare",
-      "title": "Compare preset frames in one clean board",
-      "description": "Pick built-in frame shapes, generate each look from the same portrait, and review the results side by side before shopping for a specific product.",
-      "bullet1": "16 common frame presets",
-      "bullet2": "One credit per generated frame",
-      "bullet3": "Desktop and mobile comparison views",
-      "ctaPrimary": "Start comparing",
-      "ctaSecondary": "View credits"
+      "badge": "Сравнение пресетов оправ",
+      "title": "Сравнивайте готовые оправы в одном удобном борде",
+      "description": "Выбирайте встроенные формы оправ, генерируйте каждый вариант с одного портрета и сравнивайте результаты рядом перед покупкой.",
+      "bullet1": "16 популярных пресетов оправ",
+      "bullet2": "1 кредит за сгенерированную оправу",
+      "bullet3": "Сравнение на desktop и mobile",
+      "ctaPrimary": "Начать сравнение",
+      "ctaSecondary": "Посмотреть кредиты"
     },
     "modelTryOnSlides": {
       "slides": {
@@ -492,12 +492,12 @@
         "ethanName": "Ethan",
         "ethanFrame": "Tortoise rectangle",
         "ethanNote": "Compares a confident everyday frame before buying online.",
-        "femaleName": "Female portrait",
-        "femaleFrame": "4 preset frames",
-        "femaleNote": "Rectangle, Browline, Wayfarer, and Geometric compared side by side.",
-        "maleName": "Male portrait",
-        "maleFrame": "4 preset frames",
-        "maleNote": "Same workflow on desktop and mobile with one clean comparison board."
+        "femaleName": "Женский портрет",
+        "femaleFrame": "4 пресета оправ",
+        "femaleNote": "Rectangle, Browline, Wayfarer и Geometric рядом.",
+        "maleName": "Мужской портрет",
+        "maleFrame": "4 пресета оправ",
+        "maleNote": "Одинаковый сценарий сравнения на desktop и mobile в одном борде."
       },
       "modes": {
         "home": {
@@ -521,14 +521,14 @@
           "step3": "Save to history"
         },
         "compare": {
-          "eyebrow": "Quick frame compare",
-          "title": "Pick preset frames and compare them side by side",
-          "description": "Choose up to four built-in frame presets and generate a clean comparison board from the same portrait.",
-          "ctaLabel": "Start comparing",
-          "secondaryLabel": "Try custom glasses",
-          "step1": "Choose presets",
-          "step2": "Generate each frame",
-          "step3": "Review in one board"
+          "eyebrow": "Быстрое сравнение оправ",
+          "title": "Выберите пресеты и сравните их рядом",
+          "description": "Выберите до четырех встроенных пресетов и создайте аккуратный сравнительный борд из одного портрета.",
+          "ctaLabel": "Начать сравнение",
+          "secondaryLabel": "Примерить свои очки",
+          "step1": "Выберите пресеты",
+          "step2": "Сгенерируйте каждую оправу",
+          "step3": "Просмотрите в одном борде"
         },
         "face": {
           "eyebrow": "Face analysis for glasses",
@@ -542,10 +542,10 @@
         }
       },
       "a11y": {
-        "previous": "Previous slide",
-        "next": "Next slide",
-        "show": "Show {name}",
-        "alt": "{name} using VisuTry {mode} workflow"
+        "previous": "Предыдущий слайд",
+        "next": "Следующий слайд",
+        "show": "Показать {name}",
+        "alt": "{name} в сценарии VisuTry {mode}"
       }
     }
   }

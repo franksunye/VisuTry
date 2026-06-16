@@ -65,7 +65,7 @@
       "refund": "سياسة الاسترداد",
       "faceAnalysis": "تحليل الوجه",
       "tryGlasses": "النظارات",
-      "frameCompare": "Compare",
+      "frameCompare": "مقارنة الإطارات",
       "moreTryOn": "تجارب إضافية",
       "faceShapeGuide": "دليل شكل الوجه"
     },
@@ -475,14 +475,14 @@
       }
     },
     "compareLandingVisual": {
-      "badge": "Preset Frame Compare",
-      "title": "Compare preset frames in one clean board",
-      "description": "Pick built-in frame shapes, generate each look from the same portrait, and review the results side by side before shopping for a specific product.",
-      "bullet1": "16 common frame presets",
-      "bullet2": "One credit per generated frame",
-      "bullet3": "Desktop and mobile comparison views",
-      "ctaPrimary": "Start comparing",
-      "ctaSecondary": "View credits"
+      "badge": "مقارنة الإطارات الجاهزة",
+      "title": "قارن الإطارات الجاهزة في لوحة واحدة واضحة",
+      "description": "اختر أشكال الإطارات المدمجة، أنشئ كل نتيجة من نفس الصورة، وراجع النتائج جنبًا إلى جنب قبل اختيار منتج محدد.",
+      "bullet1": "16 قالب إطار شائع",
+      "bullet2": "رصيد واحد لكل إطار مُنشأ",
+      "bullet3": "عرض مقارنة على الكمبيوتر والجوال",
+      "ctaPrimary": "ابدأ المقارنة",
+      "ctaSecondary": "عرض الرصيد"
     },
     "modelTryOnSlides": {
       "slides": {
@@ -492,12 +492,12 @@
         "ethanName": "Ethan",
         "ethanFrame": "Tortoise rectangle",
         "ethanNote": "Compares a confident everyday frame before buying online.",
-        "femaleName": "Female portrait",
-        "femaleFrame": "4 preset frames",
-        "femaleNote": "Rectangle, Browline, Wayfarer, and Geometric compared side by side.",
-        "maleName": "Male portrait",
-        "maleFrame": "4 preset frames",
-        "maleNote": "Same workflow on desktop and mobile with one clean comparison board."
+        "femaleName": "صورة لامرأة",
+        "femaleFrame": "4 إطارات جاهزة",
+        "femaleNote": "مقارنة Rectangle وBrowline وWayfarer وGeometric جنبًا إلى جنب.",
+        "maleName": "صورة لرجل",
+        "maleFrame": "4 إطارات جاهزة",
+        "maleNote": "نفس سير العمل على الكمبيوتر والجوال ضمن لوحة مقارنة واحدة."
       },
       "modes": {
         "home": {
@@ -521,14 +521,14 @@
           "step3": "Save to history"
         },
         "compare": {
-          "eyebrow": "Quick frame compare",
-          "title": "Pick preset frames and compare them side by side",
-          "description": "Choose up to four built-in frame presets and generate a clean comparison board from the same portrait.",
-          "ctaLabel": "Start comparing",
-          "secondaryLabel": "Try custom glasses",
-          "step1": "Choose presets",
-          "step2": "Generate each frame",
-          "step3": "Review in one board"
+          "eyebrow": "مقارنة سريعة للإطارات",
+          "title": "اختر الإطارات الجاهزة وقارنها جنبًا إلى جنب",
+          "description": "اختر حتى أربعة إطارات جاهزة وأنشئ لوحة مقارنة نظيفة من نفس الصورة.",
+          "ctaLabel": "ابدأ المقارنة",
+          "secondaryLabel": "جرّب النظارات المخصصة",
+          "step1": "اختر القوالب",
+          "step2": "أنشئ كل إطار",
+          "step3": "راجع في لوحة واحدة"
         },
         "face": {
           "eyebrow": "Face analysis for glasses",
@@ -542,10 +542,10 @@
         }
       },
       "a11y": {
-        "previous": "Previous slide",
-        "next": "Next slide",
-        "show": "Show {name}",
-        "alt": "{name} using VisuTry {mode} workflow"
+        "previous": "الشريحة السابقة",
+        "next": "الشريحة التالية",
+        "show": "عرض {name}",
+        "alt": "{name} باستخدام سير عمل VisuTry {mode}"
       }
     }
   }

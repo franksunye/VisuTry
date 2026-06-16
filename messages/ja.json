@@ -65,7 +65,7 @@
       "refund": "返金ポリシー",
       "faceAnalysis": "顔分析",
       "tryGlasses": "メガネ",
-      "frameCompare": "Compare",
+      "frameCompare": "フレーム比較",
       "moreTryOn": "その他の試着",
       "faceShapeGuide": "顔型ガイド"
     },
@@ -475,14 +475,14 @@
       }
     },
     "compareLandingVisual": {
-      "badge": "Preset Frame Compare",
-      "title": "Compare preset frames in one clean board",
-      "description": "Pick built-in frame shapes, generate each look from the same portrait, and review the results side by side before shopping for a specific product.",
-      "bullet1": "16 common frame presets",
-      "bullet2": "One credit per generated frame",
-      "bullet3": "Desktop and mobile comparison views",
-      "ctaPrimary": "Start comparing",
-      "ctaSecondary": "View credits"
+      "badge": "プリセットフレーム比較",
+      "title": "プリセットフレームを1つの見やすいボードで比較",
+      "description": "内蔵フレーム形状を選び、同じポートレートから各結果を生成して、特定の商品を探す前に横並びで確認できます。",
+      "bullet1": "主要な16種類のフレームプリセット",
+      "bullet2": "生成フレーム1件につき1クレジット",
+      "bullet3": "PC/モバイルの比較表示に対応",
+      "ctaPrimary": "比較を開始",
+      "ctaSecondary": "クレジットを見る"
     },
     "modelTryOnSlides": {
       "slides": {
@@ -492,12 +492,12 @@
         "ethanName": "Ethan",
         "ethanFrame": "Tortoise rectangle",
         "ethanNote": "Compares a confident everyday frame before buying online.",
-        "femaleName": "Female portrait",
-        "femaleFrame": "4 preset frames",
-        "femaleNote": "Rectangle, Browline, Wayfarer, and Geometric compared side by side.",
-        "maleName": "Male portrait",
-        "maleFrame": "4 preset frames",
-        "maleNote": "Same workflow on desktop and mobile with one clean comparison board."
+        "femaleName": "女性ポートレート",
+        "femaleFrame": "4つのプリセットフレーム",
+        "femaleNote": "Rectangle、Browline、Wayfarer、Geometric を横並びで比較。",
+        "maleName": "男性ポートレート",
+        "maleFrame": "4つのプリセットフレーム",
+        "maleNote": "PCとモバイルで同じ比較ワークフローを1つのボードで確認。"
       },
       "modes": {
         "home": {
@@ -521,14 +521,14 @@
           "step3": "Save to history"
         },
         "compare": {
-          "eyebrow": "Quick frame compare",
-          "title": "Pick preset frames and compare them side by side",
-          "description": "Choose up to four built-in frame presets and generate a clean comparison board from the same portrait.",
-          "ctaLabel": "Start comparing",
-          "secondaryLabel": "Try custom glasses",
-          "step1": "Choose presets",
-          "step2": "Generate each frame",
-          "step3": "Review in one board"
+          "eyebrow": "クイックフレーム比較",
+          "title": "プリセットフレームを選んで横並び比較",
+          "description": "最大4つの内蔵フレームプリセットを選択し、同じポートレートから比較ボードを生成できます。",
+          "ctaLabel": "比較を開始",
+          "secondaryLabel": "カスタムメガネを試す",
+          "step1": "プリセットを選択",
+          "step2": "各フレームを生成",
+          "step3": "1つのボードで確認"
         },
         "face": {
           "eyebrow": "Face analysis for glasses",
@@ -542,10 +542,10 @@
         }
       },
       "a11y": {
-        "previous": "Previous slide",
-        "next": "Next slide",
-        "show": "Show {name}",
-        "alt": "{name} using VisuTry {mode} workflow"
+        "previous": "前のスライド",
+        "next": "次のスライド",
+        "show": "{name}を表示",
+        "alt": "{name} の VisuTry {mode} ワークフロー"
       }
     }
   }

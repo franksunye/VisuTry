@@ -65,7 +65,7 @@
       "refund": "Rückerstattungsrichtlinie",
       "faceAnalysis": "Gesichtsanalyse",
       "tryGlasses": "Brille",
-      "frameCompare": "Compare",
+      "frameCompare": "Fassungsvergleich",
       "moreTryOn": "Weitere Anproben",
       "faceShapeGuide": "Leitfaden zur Gesichtsform"
     },
@@ -475,14 +475,14 @@
       }
     },
     "compareLandingVisual": {
-      "badge": "Preset Frame Compare",
-      "title": "Compare preset frames in one clean board",
-      "description": "Pick built-in frame shapes, generate each look from the same portrait, and review the results side by side before shopping for a specific product.",
-      "bullet1": "16 common frame presets",
-      "bullet2": "One credit per generated frame",
-      "bullet3": "Desktop and mobile comparison views",
-      "ctaPrimary": "Start comparing",
-      "ctaSecondary": "View credits"
+      "badge": "Preset-Fassungsvergleich",
+      "title": "Vergleichen Sie Preset-Fassungen in einem klaren Board",
+      "description": "Wählen Sie integrierte Fassungsformen, erzeugen Sie jeden Look aus demselben Porträt und prüfen Sie die Ergebnisse nebeneinander.",
+      "bullet1": "16 gängige Fassungs-Presets",
+      "bullet2": "Ein Credit pro generierter Fassung",
+      "bullet3": "Vergleichsansicht für Desktop und Mobile",
+      "ctaPrimary": "Vergleich starten",
+      "ctaSecondary": "Credits ansehen"
     },
     "modelTryOnSlides": {
       "slides": {
@@ -492,12 +492,12 @@
         "ethanName": "Ethan",
         "ethanFrame": "Tortoise rectangle",
         "ethanNote": "Compares a confident everyday frame before buying online.",
-        "femaleName": "Female portrait",
-        "femaleFrame": "4 preset frames",
-        "femaleNote": "Rectangle, Browline, Wayfarer, and Geometric compared side by side.",
-        "maleName": "Male portrait",
-        "maleFrame": "4 preset frames",
-        "maleNote": "Same workflow on desktop and mobile with one clean comparison board."
+        "femaleName": "Porträt (weiblich)",
+        "femaleFrame": "4 Preset-Fassungen",
+        "femaleNote": "Rectangle, Browline, Wayfarer und Geometric im direkten Vergleich.",
+        "maleName": "Porträt (männlich)",
+        "maleFrame": "4 Preset-Fassungen",
+        "maleNote": "Gleicher Workflow auf Desktop und Mobile in einem klaren Vergleichsboard."
       },
       "modes": {
         "home": {
@@ -521,14 +521,14 @@
           "step3": "Save to history"
         },
         "compare": {
-          "eyebrow": "Quick frame compare",
-          "title": "Pick preset frames and compare them side by side",
-          "description": "Choose up to four built-in frame presets and generate a clean comparison board from the same portrait.",
-          "ctaLabel": "Start comparing",
-          "secondaryLabel": "Try custom glasses",
-          "step1": "Choose presets",
-          "step2": "Generate each frame",
-          "step3": "Review in one board"
+          "eyebrow": "Schneller Fassungsvergleich",
+          "title": "Preset-Fassungen wählen und nebeneinander vergleichen",
+          "description": "Wählen Sie bis zu vier integrierte Presets und erzeugen Sie ein sauberes Vergleichsboard aus demselben Porträt.",
+          "ctaLabel": "Vergleich starten",
+          "secondaryLabel": "Eigene Brille testen",
+          "step1": "Presets wählen",
+          "step2": "Jede Fassung generieren",
+          "step3": "Im Board prüfen"
         },
         "face": {
           "eyebrow": "Face analysis for glasses",
@@ -542,10 +542,10 @@
         }
       },
       "a11y": {
-        "previous": "Previous slide",
-        "next": "Next slide",
-        "show": "Show {name}",
-        "alt": "{name} using VisuTry {mode} workflow"
+        "previous": "Vorherige Folie",
+        "next": "Nächste Folie",
+        "show": "{name} anzeigen",
+        "alt": "{name} im VisuTry-{mode}-Workflow"
       }
     }
   }
