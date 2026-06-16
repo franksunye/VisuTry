@@ -9,6 +9,7 @@ import { Metadata } from 'next'
 import { TryOnType, getTryOnConfig, urlToTryOnType, getAllTryOnTypes, tryOnTypeToUrl } from "@/config/try-on-types"
 import Link from "next/link"
 import { ArrowRight, CheckCircle2, CreditCard, Image, Shield, Upload } from "lucide-react"
+import { ModelTryOnSlides } from "@/components/marketing/ModelTryOnSlides"
 
 interface TryOnPageProps {
   params: {
@@ -263,6 +264,12 @@ function PublicTryOnLanding({
       />
 
       <div className="mx-auto max-w-6xl px-4 py-8 md:py-10">
+        {isGlasses && (
+          <div className="mb-8">
+            <ModelTryOnSlides locale={locale} mode="glasses" />
+          </div>
+        )}
+
         <section className="grid gap-8 lg:grid-cols-[0.95fr_1.05fr] lg:items-center">
           <div className="max-w-2xl">
           <p className="mb-3 inline-flex items-center rounded-full border border-blue-200 bg-white px-3 py-1 text-sm font-semibold text-blue-700">
@@ -304,7 +311,7 @@ function PublicTryOnLanding({
           </p>
         </div>
 
-        <div className="rounded-2xl border border-gray-200 bg-white/80 p-4 shadow-sm md:p-5">
+        <div className="rounded-lg border border-gray-200 bg-white/80 p-4 shadow-sm md:p-5">
           <div className="grid gap-4 sm:grid-cols-2">
             {landingSteps.map((step) => {
               const Icon = step.icon

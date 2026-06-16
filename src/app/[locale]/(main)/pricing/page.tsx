@@ -6,6 +6,7 @@ import { Metadata } from 'next'
 import { generateI18nSEO, generateStructuredData } from '@/lib/seo'
 import { PRODUCT_METADATA, formatPrice, getPricingQuotas } from '@/config/pricing'
 import { Locale } from '@/i18n'
+import { CheckCircle2, Grid2X2, ScanFace, Sparkles } from 'lucide-react'
 
 type Props = {
   params: Promise<{ locale: string }>
@@ -25,7 +26,7 @@ export async function generateMetadata(props: Props): Promise<Metadata> {
 // 🔥 优化：不再使用缓存，直接使用 session 作为唯一数据源
 export const revalidate = 60
 
-export default async function PricingPage() {
+export default async function PricingPage({ params }: { params: { locale: string } }) {
   const quotas = getPricingQuotas()
   const session = await getServerSession(authOptions)
 
@@ -84,14 +85,43 @@ export default async function PricingPage() {
       {/* Page Header */}
       <div className="mb-8 max-w-3xl">
         <p className="mb-3 text-sm font-semibold uppercase tracking-wide text-blue-600">
-          Simple AI glasses try-on pricing
+          Simple credits for Face, Glasses, and Compare
         </p>
         <h1 className="mb-4 text-3xl font-bold text-gray-900 md:text-4xl">
-          Continue with {quotas.creditsPack} AI try-ons for USD 2.99
+          Start with 1 free credit, then continue with {quotas.creditsPack} AI credits for USD 2.99
         </h1>
         <p className="text-base leading-7 text-gray-600">
-          The Credits Pack is the easiest way to keep comparing glasses from your own product photos or screenshots. It is a one-time purchase, not a subscription, and your credits do not expire.
+          Use credits across AI face analysis, custom glasses try-on, and frame comparison. A Compare board uses one credit per generated frame, so trial users can test one frame first and upgrade when they want a full 4-frame comparison.
         </p>
+      </div>
+
+      <div className="mb-8 grid gap-4 md:grid-cols-3">
+        {[
+          {
+            icon: ScanFace,
+            title: 'Face Analysis',
+            description: 'Use one credit to estimate face shape and get frame directions before trying glasses.',
+          },
+          {
+            icon: Sparkles,
+            title: 'Glasses Try-On',
+            description: 'Use one credit per custom try-on from a portrait and a glasses product image.',
+          },
+          {
+            icon: Grid2X2,
+            title: 'Frame Compare',
+            description: 'Use one credit per generated frame. Try 1 frame free, or compare up to 4 with credits.',
+          },
+        ].map((item) => {
+          const Icon = item.icon
+          return (
+            <div key={item.title} className="rounded-lg border border-gray-200 bg-white p-5 shadow-sm">
+              <Icon className="mb-4 h-5 w-5 text-blue-600" />
+              <h2 className="mb-2 text-base font-bold text-gray-950">{item.title}</h2>
+              <p className="text-sm leading-6 text-gray-600">{item.description}</p>
+            </div>
+          )
+        })}
       </div>
 
       {/* Promo Input is now inside PricingSection */}
@@ -118,6 +148,13 @@ export default async function PricingPage() {
           </div>
 
           <div className="p-6 bg-white rounded-lg border shadow-sm">
+            <h3 className="mb-2 font-semibold text-gray-900">How many credits does Frame Compare use?</h3>
+            <p className="text-sm text-gray-600">
+              Frame Compare uses one credit per generated frame. A full 4-frame comparison uses up to 4 credits; failed generations are not charged.
+            </p>
+          </div>
+
+          <div className="p-6 bg-white rounded-lg border shadow-sm">
             <h3 className="mb-2 font-semibold text-gray-900">Do credits expire?</h3>
             <p className="text-sm text-gray-600">
               Credits never expire after purchase. You can use them anytime at your convenience.
@@ -125,9 +162,9 @@ export default async function PricingPage() {
           </div>
 
           <div className="p-6 bg-white rounded-lg border shadow-sm">
-            <h3 className="mb-2 font-semibold text-gray-900">What&apos;s the difference between free and paid image quality?</h3>
+            <h3 className="mb-2 font-semibold text-gray-900">What can I do with one free credit?</h3>
             <p className="text-sm text-gray-600">
-              Free users receive standard quality images (800×800 pixels) with a watermark. Credits Pack and Standard users get high-quality images (1200×1200 pixels) without watermarks.
+              You can run one face analysis, one custom glasses try-on, or one frame inside Compare. It is designed to let you test the workflow before buying credits.
             </p>
           </div>
 
@@ -149,20 +186,23 @@ export default async function PricingPage() {
 
       {/* Legal Links */}
       <div className="p-4 mt-8 bg-blue-50 rounded-lg border border-blue-200">
-        <p className="text-sm text-center text-gray-700">
+        <p className="flex flex-col items-center justify-center gap-2 text-sm text-gray-700 sm:flex-row">
+          <CheckCircle2 className="h-4 w-4 text-green-600" />
+          <span>
           By subscribing, you agree to our{' '}
-          <Link href="/terms" className="font-medium text-blue-600 hover:underline">
+          <Link href={`/${params.locale}/terms`} className="font-medium text-blue-600 hover:underline">
             Terms of Service
           </Link>
           {' '}and{' '}
-          <Link href="/privacy" className="font-medium text-blue-600 hover:underline">
+          <Link href={`/${params.locale}/privacy`} className="font-medium text-blue-600 hover:underline">
             Privacy Policy
           </Link>
           . View our{' '}
-          <Link href="/refund" className="font-medium text-blue-600 hover:underline">
+          <Link href={`/${params.locale}/refund`} className="font-medium text-blue-600 hover:underline">
             Refund Policy
           </Link>
           {' '}for cancellation terms.
+          </span>
         </p>
       </div>
     </div>

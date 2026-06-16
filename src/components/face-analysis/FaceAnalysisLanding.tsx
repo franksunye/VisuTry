@@ -2,8 +2,8 @@ import Link from 'next/link'
 import { ArrowRight, CheckCircle2, Glasses, ScanFace, Shield, Sparkles, Upload } from 'lucide-react'
 import { getTranslations } from 'next-intl/server'
 import { LoginButton } from '@/components/auth/LoginButton'
+import { FaceAnalysisLandingSlides } from '@/components/marketing/FaceAnalysisLandingSlides'
 import { generateStructuredData } from '@/lib/seo'
-import { FaceAnalysisPreviewVisual } from '@/components/face-analysis/FaceAnalysisPreviewVisual'
 
 interface FaceAnalysisLandingProps {
   locale: string
@@ -198,7 +198,7 @@ export async function FaceAnalysisLanding({ locale }: FaceAnalysisLandingProps) 
           </div>
 
           <div className="mx-auto w-full max-w-[720px]">
-            <FaceAnalysisPreviewVisual variant="report" />
+            <FaceAnalysisLandingSlides />
           </div>
         </section>
       </div>

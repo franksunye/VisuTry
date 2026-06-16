@@ -128,6 +128,18 @@ export function PricingSection({ user, quotas }: PricingSectionProps) {
                   {quotas.monthly}/month or {quotas.yearly}/year
                 </td>
               </tr>
+              <tr>
+                <td className="px-6 py-4 text-sm text-gray-900">AI Face Analysis</td>
+                <td className="px-6 py-4 text-sm text-center text-gray-600">Included with credit</td>
+                <td className="px-6 py-4 text-sm text-center text-gray-600">Included</td>
+                <td className="px-6 py-4 text-sm text-center text-green-600">Included</td>
+              </tr>
+              <tr>
+                <td className="px-6 py-4 text-sm text-gray-900">Frame Compare</td>
+                <td className="px-6 py-4 text-sm text-center text-gray-600">1 frame trial</td>
+                <td className="px-6 py-4 text-sm text-center text-gray-600">1 credit per frame</td>
+                <td className="px-6 py-4 text-sm text-center text-green-600">1 credit per frame</td>
+              </tr>
               {/* Other rows remain static as they don't change with quota */}
                <tr>
                 <td className="px-6 py-4 text-sm text-gray-900">Image Quality</td>

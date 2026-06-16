@@ -1,19 +1,23 @@
 'use client'
 
 import Link from 'next/link'
-import { Upload, Sparkles, Share2, Zap, Shield, Clock, Database, ScanFace, ArrowRight } from 'lucide-react'
+import { Upload, Sparkles, Share2, Zap, Shield, Clock, Database, ScanFace, ArrowRight, Grid2X2, Glasses } from 'lucide-react'
 import { useRouter, useParams } from 'next/navigation'
 import { useSession } from 'next-auth/react'
 import { useTestSession } from '@/hooks/useTestSession'
 import { useTranslations } from 'next-intl'
-import { TryOnShowcase } from '@/components/home/TryOnShowcase'
 import { FaceAnalysisPreviewVisual } from '@/components/face-analysis/FaceAnalysisPreviewVisual'
+import { ModelTryOnSlides } from '@/components/marketing/ModelTryOnSlides'
 
 // English FAQ content - displayed in all languages
 const englishFaqContent = [
   {
     question: "How does VisuTry's AI try-on work?",
-    answer: "VisuTry uses Google Nano Banana AI to analyze your facial features and realistically overlay glasses onto your photo. The AI understands face shape, lighting, and perspective to create natural-looking results in seconds."
+    answer: "VisuTry combines face guidance, AI glasses try-on, and frame comparison. Upload a portrait, choose a glasses image or preset, and generate realistic previews in your browser."
+  },
+  {
+    question: "What is Frame Compare?",
+    answer: "Frame Compare lets you pick built-in glasses presets and generate side-by-side try-on results from the same photo, so you can compare shape and scale faster."
   },
   {
     question: "Is my photo data safe and private?",
@@ -76,53 +80,95 @@ export default function Home() {
       {/* Hero Header */}
       <header className="mb-16 text-center">
         <h1 className="max-w-3xl mx-auto text-3xl md:text-4xl font-bold text-gray-900 mb-3">
-          {t('hero.title')}
+          AI Glasses Try-On, Face Analysis, and Frame Compare
         </h1>
-        <p className="text-xl md:text-2xl text-gray-600 font-medium">
-          {t('hero.subtitle')}
+        <p className="mx-auto max-w-3xl text-lg md:text-xl text-gray-600 font-medium">
+          Find better frames before you buy: analyze your face shape, try custom glasses images, and compare preset frames side by side.
         </p>
       </header>
 
       {/* Hero Section */}
-      <section className="max-w-4xl mx-auto mb-16">
+      <section className="max-w-6xl mx-auto mb-16">
 
-        <div className="grid gap-8 mb-12 md:grid-cols-3">
+        <div className="grid gap-4 mb-8 md:grid-cols-3">
           <div className="flex flex-col items-center">
             <div className="flex items-center justify-center w-16 h-16 mb-4 bg-blue-100 rounded-full">
-              <Upload className="w-8 h-8 text-blue-600" />
+              <ScanFace className="w-8 h-8 text-blue-600" />
             </div>
-            <h3 className="mb-2 text-lg font-semibold">{t('steps.step1.title')}</h3>
-            <p className="text-center text-gray-600">{t('steps.step1.description')}</p>
-          </div>
-
-          <div className="flex flex-col items-center">
-            <div className="flex items-center justify-center w-16 h-16 mb-4 bg-purple-100 rounded-full">
-              <Sparkles className="w-8 h-8 text-purple-600" />
-            </div>
-            <h3 className="mb-2 text-lg font-semibold">{t('steps.step2.title')}</h3>
-            <p className="text-center text-gray-600">{t('steps.step2.description')}</p>
+            <h3 className="mb-2 text-lg font-semibold">Face</h3>
+            <p className="text-center text-gray-600">Detect face shape and get frame directions before spending credits.</p>
           </div>
 
           <div className="flex flex-col items-center">
             <div className="flex items-center justify-center w-16 h-16 mb-4 bg-green-100 rounded-full">
-              <Share2 className="w-8 h-8 text-green-600" />
+              <Glasses className="w-8 h-8 text-green-600" />
             </div>
-            <h3 className="mb-2 text-lg font-semibold">{t('steps.step3.title')}</h3>
-            <p className="text-center text-gray-600">{t('steps.step3.description')}</p>
+            <h3 className="mb-2 text-lg font-semibold">Glasses</h3>
+            <p className="text-center text-gray-600">Upload product photos or screenshots and preview them on your face.</p>
+          </div>
+
+          <div className="flex flex-col items-center">
+            <div className="flex items-center justify-center w-16 h-16 mb-4 bg-indigo-100 rounded-full">
+              <Grid2X2 className="w-8 h-8 text-indigo-600" />
+            </div>
+            <h3 className="mb-2 text-lg font-semibold">Compare</h3>
+            <p className="text-center text-gray-600">Pick built-in presets and review multiple frame results in one board.</p>
           </div>
         </div>
 
-        {/* Try-On Showcase Carousel */}
-        <TryOnShowcase />
+        <ModelTryOnSlides locale={locale} mode="home" />
 
         {/* CTA Section - Glasses Only */}
-        <div className="flex justify-center">
-          <button
-            onClick={() => handleStartTryOn('glasses')}
-            className="px-6 py-3 text-base font-semibold text-white transition-colors duration-200 bg-blue-600 rounded-lg shadow-lg hover:bg-blue-700 hover:shadow-xl"
+        <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
+          <Link
+            href={`/${locale}/face-analysis`}
+            className="inline-flex items-center rounded-lg bg-blue-600 px-6 py-3 text-base font-semibold text-white shadow-lg transition-colors duration-200 hover:bg-blue-700"
           >
-            👓 {isAuthenticated ? tCommon('startTryOn') : tCommon('startFreeTrial')}
-          </button>
+            Start with Face
+          </Link>
+          <Link
+            href={`/${locale}/try-on/glasses/compare`}
+            className="inline-flex items-center rounded-lg border border-gray-300 bg-white px-6 py-3 text-base font-semibold text-gray-800 transition-colors duration-200 hover:border-blue-300 hover:text-blue-700"
+          >
+            Compare frames
+          </Link>
+        </div>
+      </section>
+
+      <section className="max-w-6xl mx-auto mb-16">
+        <div className="grid gap-4 md:grid-cols-3">
+          {[
+            {
+              icon: ScanFace,
+              title: 'Face Analysis',
+              description: 'A professional face-shape report with frame style recommendations.',
+              href: `/${locale}/face-analysis`,
+            },
+            {
+              icon: Glasses,
+              title: 'Custom Glasses Try-On',
+              description: 'Use your own glasses product image, store photo, or screenshot.',
+              href: `/${locale}/try-on/glasses`,
+            },
+            {
+              icon: Grid2X2,
+              title: 'Frame Compare',
+              description: 'Quickly test built-in frame presets from the same portrait.',
+              href: `/${locale}/try-on/glasses/compare`,
+            },
+          ].map((item) => {
+            const Icon = item.icon
+            return (
+              <Link key={item.title} href={item.href} className="rounded-lg border border-gray-200 bg-white p-5 shadow-sm transition hover:border-blue-200 hover:shadow-md">
+                <Icon className="mb-4 h-6 w-6 text-blue-600" />
+                <h2 className="mb-2 text-lg font-bold text-gray-950">{item.title}</h2>
+                <p className="text-sm leading-6 text-gray-600">{item.description}</p>
+                <span className="mt-4 inline-flex items-center text-sm font-semibold text-blue-600">
+                  Open tool <ArrowRight className="ml-1 h-4 w-4" />
+                </span>
+              </Link>
+            )
+          })}
         </div>
       </section>
 

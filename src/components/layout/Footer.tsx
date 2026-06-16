@@ -14,7 +14,7 @@ export function Footer() {
   return (
     <footer className="bg-white/80 backdrop-blur-sm border-t border-gray-200 mt-auto">
       <div className="container mx-auto px-4 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-8 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-6 gap-8 mb-8">
           {/* Brand Section */}
           <div className="col-span-1 md:col-span-2">
             <div className="flex items-center mb-4">
@@ -22,7 +22,7 @@ export function Footer() {
               <span className="text-xl font-bold text-gray-800">VisuTry</span>
             </div>
             <p className="text-gray-600 text-sm mb-6">
-              {t('tagline')}
+              AI glasses try-on, face analysis, and frame comparison for online eyewear shoppers.
             </p>
             <div className="flex space-x-4">
               <a
@@ -58,10 +58,32 @@ export function Footer() {
             <h3 className="font-semibold text-gray-900 mb-4">{t('links.product')}</h3>
             <ul className="space-y-2">
               <li>
-                <Link href={`/${locale}/try-on/glasses`} className="text-gray-600 hover:text-blue-600 text-sm transition-colors">
-                  {t('links.tryGlasses')}
+                <Link href={`/${locale}/face-analysis`} className="text-gray-600 hover:text-blue-600 text-sm transition-colors">
+                  Face Analysis
                 </Link>
               </li>
+              <li>
+                <Link href={`/${locale}/try-on/glasses`} className="text-gray-600 hover:text-blue-600 text-sm transition-colors">
+                  Glasses Try-On
+                </Link>
+              </li>
+              <li>
+                <Link href={`/${locale}/try-on/glasses/compare`} className="text-gray-600 hover:text-blue-600 text-sm transition-colors">
+                  Frame Compare
+                </Link>
+              </li>
+              <li>
+                <Link href={`/${locale}/pricing`} className="text-gray-600 hover:text-blue-600 text-sm transition-colors">
+                  {t('links.pricing')}
+                </Link>
+              </li>
+            </ul>
+          </div>
+
+          {/* More Try-On Links */}
+          <div>
+            <h3 className="font-semibold text-gray-900 mb-4">More Try-On</h3>
+            <ul className="space-y-2">
               <li>
                 <Link href={`/${locale}/try-on/outfit`} className="text-gray-600 hover:text-blue-600 text-sm transition-colors">
                   {t('links.tryOutfit')}
@@ -75,11 +97,6 @@ export function Footer() {
               <li>
                 <Link href={`/${locale}/try-on/accessories`} className="text-gray-600 hover:text-blue-600 text-sm transition-colors">
                   {t('links.tryAccessories')}
-                </Link>
-              </li>
-              <li>
-                <Link href={`/${locale}/pricing`} className="text-gray-600 hover:text-blue-600 text-sm transition-colors">
-                  {t('links.pricing')}
                 </Link>
               </li>
             </ul>
@@ -97,6 +114,11 @@ export function Footer() {
               <li>
                 <Link href={`/${locale}/faq`} className="text-gray-600 hover:text-blue-600 text-sm transition-colors">
                   {t('links.faq')}
+                </Link>
+              </li>
+              <li>
+                <Link href={`/${locale}/glasses-for-face-shape`} className="text-gray-600 hover:text-blue-600 text-sm transition-colors">
+                  Face Shape Guide
                 </Link>
               </li>
               <li>
@@ -150,4 +172,3 @@ export function Footer() {
     </footer>
   )
 }
-
