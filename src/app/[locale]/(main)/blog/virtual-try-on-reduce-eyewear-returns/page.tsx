@@ -8,7 +8,7 @@ import { localizedPath } from '@/lib/localized-path'
 
 const title = 'How Virtual Try-On Helps Online Eyewear Stores Reduce Returns'
 const description = 'A practical guide for eyewear ecommerce teams on using virtual try-on to improve buyer confidence, set better expectations, and reduce avoidable frame-fit returns.'
-const coverImage = '/blog-covers/virtual-try-on-reduce-returns.png'
+const coverImage = '/blog-covers/virtual-try-on-reduce-returns.jpg'
 
 export async function generateMetadata({ params }: { params: { locale: string } }): Promise<Metadata> {
   return generateI18nSEO({

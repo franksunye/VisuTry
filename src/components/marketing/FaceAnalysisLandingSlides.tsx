@@ -16,7 +16,7 @@ const faceAnalysisSlides = [
   {
     name: 'Workflow',
     label: 'Full analysis workflow',
-    image: '/assets/marketing/face-analysis-landing-art.png',
+    image: '/assets/marketing/face-analysis-landing-art.jpg',
     frame: 'Frames to wear',
     note: 'From portrait upload to personalized frame picks and virtual try-on next steps.',
   },

@@ -13,17 +13,17 @@ interface ShowcaseItem {
 
 const showcaseItems: ShowcaseItem[] = [
   {
-    image: '/home/Alex-try-on-glasses-screen.png',
+    image: '/home/Alex-try-on-glasses-screen.jpg',
     nameKey: 'alex.name',
     descriptionKey: 'alex.description',
   },
   {
-    image: '/home/Ethan-try-on-glasses-screen.png',
+    image: '/home/Ethan-try-on-glasses-screen.jpg',
     nameKey: 'ethan.name',
     descriptionKey: 'ethan.description',
   },
   {
-    image: '/home/Sophia-try-on-outfit-screen.png',
+    image: '/home/Sophia-try-on-outfit-screen.jpg',
     nameKey: 'sophia.name',
     descriptionKey: 'sophia.description',
   },
@@ -154,4 +154,3 @@ export function TryOnShowcase() {
     </div>
   )
 }
-

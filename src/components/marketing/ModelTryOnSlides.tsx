@@ -26,13 +26,13 @@ interface ModelTryOnSlidesProps {
 const tryOnSlides: ShowcaseSlide[] = [
   {
     nameKey: 'slides.sophiaName',
-    image: '/home/Sophia-try-on-glasses-screen.png',
+    image: '/home/Sophia-try-on-glasses-screen.jpg',
     frameKey: 'slides.sophiaFrame',
     noteKey: 'slides.sophiaNote',
   },
   {
     nameKey: 'slides.ethanName',
-    image: '/home/Ethan-try-on-glasses-screen.png',
+    image: '/home/Ethan-try-on-glasses-screen.jpg',
     frameKey: 'slides.ethanFrame',
     noteKey: 'slides.ethanNote',
   },

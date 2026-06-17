@@ -56,7 +56,7 @@ export const staticBlogPosts: BlogPost[] = [
     readTime: '8 min read',
     tags: ['Virtual Try-On', 'AI Technology', 'Eyewear Ecommerce', 'Shopping Guide'],
     isPublished: true,
-    coverImage: '/blog-covers/ai-virtual-tryon-tools-2026.png',
+    coverImage: '/blog-covers/ai-virtual-tryon-tools-2026.jpg',
   },
   {
     slug: 'rayban-glasses-virtual-tryon-guide',
@@ -199,7 +199,7 @@ export const staticBlogPosts: BlogPost[] = [
     readTime: '7 min read',
     tags: ['Eyewear Ecommerce', 'Virtual Try-On', 'Returns', 'Conversion Optimization'],
     isPublished: true,
-    coverImage: '/blog-covers/virtual-try-on-reduce-returns.png',
+    coverImage: '/blog-covers/virtual-try-on-reduce-returns.jpg',
   },
 ]
 

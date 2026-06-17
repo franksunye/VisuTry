@@ -8,7 +8,7 @@ import { generateI18nSEO, generateStructuredData } from '@/lib/seo'
 
 const title = 'AI Virtual Try-On Tools in 2026 - What Actually Matters'
 const description = 'A practical 2026 guide to choosing virtual try-on tools for eyewear, including photo-based AI, real-time AR, catalog coverage, privacy, and shopping workflow fit.'
-const coverImage = '/blog-covers/ai-virtual-tryon-tools-2026.png'
+const coverImage = '/blog-covers/ai-virtual-tryon-tools-2026.jpg'
 
 export async function generateMetadata({ params }: { params: { locale: string } }): Promise<Metadata> {
   return generateI18nSEO({
