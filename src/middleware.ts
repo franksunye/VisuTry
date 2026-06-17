@@ -9,7 +9,8 @@ import { logger, getRequestContext } from '@/lib/logger'
 const intlMiddleware = createIntlMiddleware({
   locales,
   defaultLocale,
-  localePrefix: 'always' // Always show locale in URL
+  localePrefix: 'always', // Always show locale in URL
+  localeCookie: false,
 })
 
 /**

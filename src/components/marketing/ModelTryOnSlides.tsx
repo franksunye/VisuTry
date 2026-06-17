@@ -20,6 +20,7 @@ interface ModelTryOnSlidesProps {
   locale: string
   mode?: ShowcaseMode
   compact?: boolean
+  preloadFirstImage?: boolean
 }
 
 const tryOnSlides: ShowcaseSlide[] = [
@@ -82,7 +83,12 @@ const modeSteps: Record<ShowcaseMode, Array<{ icon: typeof ScanFace; key: string
   ],
 }
 
-export function ModelTryOnSlides({ locale, mode = 'home', compact = false }: ModelTryOnSlidesProps) {
+export function ModelTryOnSlides({
+  locale,
+  mode = 'home',
+  compact = false,
+  preloadFirstImage = true,
+}: ModelTryOnSlidesProps) {
   const t = useTranslations('marketing.modelTryOnSlides')
   const [currentIndex, setCurrentIndex] = useState(0)
   const steps = modeSteps[mode]
@@ -182,7 +188,7 @@ export function ModelTryOnSlides({ locale, mode = 'home', compact = false }: Mod
                 alt={t('a11y.alt', { name: t(slide.nameKey), mode })}
                 fill
                 className="object-contain p-3 md:p-5"
-                priority={index === 0}
+                priority={preloadFirstImage && index === 0}
                 sizes="(max-width: 768px) 100vw, 640px"
               />
             </div>

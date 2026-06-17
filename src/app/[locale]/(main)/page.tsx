@@ -1,15 +1,15 @@
-'use client'
-
 import Link from 'next/link'
 import { Database, ScanFace, ArrowRight, Grid2X2, Glasses, LockKeyhole, Sparkles } from 'lucide-react'
-import { useParams } from 'next/navigation'
 import { useTranslations } from 'next-intl'
 import { FaceAnalysisPreviewVisual } from '@/components/face-analysis/FaceAnalysisPreviewVisual'
 import { ModelTryOnSlides } from '@/components/marketing/ModelTryOnSlides'
 
-export default function Home() {
-  const params = useParams()
-  const locale = params.locale as string
+export default function Home({
+  params,
+}: {
+  params: { locale: string }
+}) {
+  const locale = params.locale
   const t = useTranslations('marketing.home')
 
   const faqItems = [
@@ -79,7 +79,7 @@ export default function Home() {
           </div>
         </div>
 
-        <ModelTryOnSlides locale={locale} mode="home" />
+        <ModelTryOnSlides locale={locale} mode="home" preloadFirstImage={false} />
 
         {/* CTA Section - Glasses Only */}
         <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
