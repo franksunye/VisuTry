@@ -481,6 +481,8 @@ export function generateI18nSEO({
   title,
   description,
   image,
+  imageWidth = 1200,
+  imageHeight = 630,
   pathname = '',
   type = 'website',
   noIndex = false,
@@ -489,12 +491,15 @@ export function generateI18nSEO({
   title: string
   description: string
   image?: string
+  imageWidth?: number
+  imageHeight?: number
   pathname?: string
   type?: 'website' | 'article'
   noIndex?: boolean
 }): Metadata {
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.visutry.com'
-  const seoImage = image || SITE_CONFIG.ogImage
+  const imagePath = image || SITE_CONFIG.ogImage
+  const seoImage = imagePath.startsWith('http') ? imagePath : `${baseUrl}${imagePath}`
 
   // Remove leading slash if present
   const cleanPath = pathname.startsWith('/') ? pathname.slice(1) : pathname
@@ -530,8 +535,8 @@ export function generateI18nSEO({
       images: [
         {
           url: seoImage,
-          width: 1200,
-          height: 630,
+          width: imageWidth,
+          height: imageHeight,
           alt: title,
         }
       ],

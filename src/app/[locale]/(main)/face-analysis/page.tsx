@@ -19,6 +19,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     locale: params.locale as Locale,
     title: t('title'),
     description: t('description'),
+    image: '/assets/marketing/face-analysis-landing-art.jpg',
+    imageWidth: 1536,
+    imageHeight: 1024,
     pathname: '/face-analysis',
   })
 }
