@@ -82,6 +82,126 @@ Do not change pricing or CTAs yet. GA already shows pricing views, checkout star
 - [x] Request indexing for `/en/face-analysis`, `/en/try-on/glasses`, and `/en/glasses-for-face-shape`.
 - [x] Recheck canonical metadata after GSC exposed a blog canonical mismatch.
 - [x] Fix locale-aware canonical metadata for blog index, tag pages, and old commercial blog pages.
-- [ ] After deployment, verify production canonical for `/en/blog/best-ai-virtual-glasses-tryon-tools-2025`.
-- [ ] After deployment, request indexing again for fixed canonical blog pages if production canonical is correct.
+- [x] After deployment, verify production canonical for `/en/blog/best-ai-virtual-glasses-tryon-tools-2025`.
+- [x] After deployment, request indexing again for fixed canonical blog pages if production canonical is correct.
 - [ ] Build a GA exploration or saved report for commercial action rate by landing page.
+
+## Thursday Checkpoint - 2026-06-18
+
+### Production SEO Verification
+
+Public production checks returned HTTP 200, `index, follow`, and the expected locale-aware `www` canonical for:
+
+- `/en/face-analysis`
+- `/en/try-on/glasses`
+- `/en/glasses-for-face-shape`
+- `/en/blog/best-ai-virtual-glasses-tryon-tools-2025`
+- `/en/blog/ai-face-analysis-for-glasses-guide`
+
+The canonical deployment issue is resolved. GSC indexing and query movement still require a fresh authenticated GSC check.
+
+### Face Analysis Launch Email
+
+- Campaign started: 2026-06-15 05:38 UTC.
+- Successfully sent: 2,067 unique accounts.
+- Unread human replies observed on 2026-06-18: 0.
+- The 11 accounts shown as pending by the old resume logic were created outside the original campaign audience. The script now freezes the audience at campaign start instead of absorbing new signups.
+- No additional email was sent during this checkpoint.
+
+### Anonymous Product Activity Check
+
+Equal windows of about 71 hours before and after campaign start:
+
+| Product activity | Before | After |
+| --- | ---: | ---: |
+| New users | 10 | 13 |
+| Try-on tasks | 6 | 6 |
+| Unique try-on users | 6 | 3 |
+| Completed try-ons | 6 | 4 |
+| Face analyses | 4 | 6 |
+| Unique face-analysis users | 4 | 5 |
+| Completed face analyses | 4 | 5 |
+| Unlocked reports | 1 | 1 |
+| Completed payments | 0 | 0 |
+
+Campaign-recipient activity after send:
+
+- Face analysis: 1 action from 1 recipient.
+- Try-on: 4 actions from 1 recipient.
+- Payments: 0.
+
+Interpretation: face-analysis usage increased slightly, but the campaign-recipient overlap is too small to attribute the change to email. Do not send another broad batch based on these results. The next measurement action is an authenticated GA landing-page exploration plus a fresh GSC query/page export.
+
+## Growth Target Review - 2026-06-18
+
+### GSC Update
+
+Data available through 2026-06-15 in the canonical `www` property:
+
+- Total: 7 clicks, 99 impressions, 7.1% CTR, average position 11.9.
+- United States: 3 clicks, 34 impressions.
+- `/en/face-analysis`: 1 click, 4 impressions; confirmed indexed.
+- `/en/blog/ai-face-analysis-for-glasses-guide`: 0 clicks, 44 impressions; confirmed indexed.
+- The query `which glasses suit my face ai free` has 6 impressions and 0 clicks.
+- Related target queries including `face shape detector` and AI glasses-suit-my-face variants have started appearing.
+- Sitemap: successful, last read 2026-06-18, 252 discovered pages.
+- Property index overview: 67 indexed pages and 1,051 non-indexed pages.
+
+Priority URL inspection is now 4/8 indexed:
+
+| URL | Status on 2026-06-18 |
+| --- | --- |
+| `/en/face-analysis` | Indexed |
+| `/en/try-on/glasses` | Not indexed; stale crawl selected an unrelated external canonical |
+| `/en/glasses-for-face-shape` | Indexed |
+| `/en/blog/ai-face-analysis-for-glasses-guide` | Indexed |
+| `/en/blog/how-to-choose-glasses-for-your-face` | Indexed |
+| `/en/blog/best-ai-virtual-glasses-tryon-tools-2025` | Not indexed; stale pre-fix canonical selected the Japanese locale |
+| `/en/blog/oliver-peoples-finley-vintage-review` | Not indexed; Google selected the old non-`www` German URL |
+| `/de/blog/oliver-peoples-finley-vintage-review` | Not indexed; stale non-`www` canonical crawl |
+
+### GA Update
+
+Past 28 days through 2026-06-17:
+
+| Event | Events | Users |
+| --- | ---: | ---: |
+| `face_analysis_signin_click` | 21 | 17 |
+| `face_analysis_upload` | 10 | 8 |
+| `face_analysis_start` | 8 | 6 |
+| `face_analysis_complete` | 5 | 5 |
+| `try_on_from_face_analysis` | 0 | 0 |
+| `try_on_start` | 7 | 6 |
+| `blog_funnel_click` | 1 | 1 |
+| `view_pricing` | 24 | 11 |
+| `begin_checkout` | 5 | 2 |
+
+GA reports $0 revenue for this period. The missing `try_on_from_face_analysis` event is the clearest funnel gap: users complete analysis, but no measured continuation reaches try-on.
+
+### Actions Selected
+
+Page-level SEO action:
+
+- Rewrite the title, description, and H1 of `/en/blog/ai-face-analysis-for-glasses-guide` around the observed query `which glasses suit my face`. This is the highest-impression commercial support page at 44 impressions and 0 clicks.
+
+Commercial-conversion action:
+
+- Add a direct virtual try-on CTA immediately after the free face-shape result and before the paid report wall.
+- Track direct continuation as `try_on_from_face_analysis` with `continuation_action=open_try_on`.
+- Distinguish paid top-pick generation with `continuation_action=generate_top_picks`.
+
+Next measurement checkpoint:
+
+- Confirm the four currently non-indexed priority URLs are re-crawled after the canonical fixes.
+- Compare article CTR and `try_on_from_face_analysis` after at least seven days of production data.
+
+Indexing requests for all four non-indexed priority URLs were submitted manually in GSC on 2026-06-18.
+
+Implementation verification completed on 2026-06-18:
+
+- Added the direct try-on CTA to both locked and unlocked face-analysis results.
+- CTA destination includes `source=face-analysis` and does not claim the existing photo will be transferred.
+- Added event differentiation through `continuation_action`.
+- Registered the event-scoped GA custom dimension `Face analysis continuation action` for `continuation_action`.
+- Added a component regression test for the CTA destination and analytics call.
+- Targeted Jest test, TypeScript check, lint, diff check, and the pure Next.js production build passed. Lint/build retain only pre-existing repository warnings.

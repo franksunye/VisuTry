@@ -6,11 +6,11 @@ import { FaceAnalysisFunnelCTA } from '@/components/blog/FaceAnalysisFunnelCTA'
 import { Breadcrumbs } from '@/components/seo/Breadcrumbs'
 import { generateI18nSEO, generateStructuredData } from '@/lib/seo'
 
-const title = 'AI Face Analysis for Glasses - How to Find Frames That Fit Your Face Shape'
-const description = 'Learn how AI face analysis helps identify your face shape, narrow down glasses styles, and use virtual try-on to choose frames with more confidence.'
+const title = 'Which Glasses Suit My Face? Free AI Face Analysis Guide'
+const description = 'Find which glasses suit your face with free AI face shape guidance. Shortlist flattering frames, then check your choices with virtual try-on.'
 const coverImage = '/blog-covers/face-shape-guide.jpg'
 const publishedAt = '2026-06-08T10:00:00Z'
-const modifiedAt = '2026-06-12T10:00:00Z'
+const modifiedAt = '2026-06-18T05:00:00Z'
 
 export async function generateMetadata({ params }: { params: { locale: string } }): Promise<Metadata> {
   return generateI18nSEO({
@@ -147,7 +147,7 @@ export default function BlogPostPage({ params }: { params: { locale: string } })
                 <span>8 min read</span>
               </div>
               <h1 className="mb-4 text-3xl font-bold text-gray-900 md:text-4xl">
-                AI Face Analysis for Glasses: How to Find Frames That Fit Your Face Shape
+                Which Glasses Suit My Face? A Free AI Face Analysis Guide
               </h1>
               <p className="text-xl text-gray-600">
                 Choosing glasses online gets much easier when you know your face shape first.

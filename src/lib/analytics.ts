@@ -267,11 +267,17 @@ export const analytics = {
     })
   },
 
-  trackTryOnFromFaceAnalysis(faceAnalysisTaskId: string, styleCount: number, requiredCredits: number) {
+  trackTryOnFromFaceAnalysis(
+    faceAnalysisTaskId: string,
+    styleCount: number,
+    requiredCredits: number,
+    action: 'open_try_on' | 'generate_top_picks' = 'generate_top_picks'
+  ) {
     sendEvent('try_on_from_face_analysis', {
       face_analysis_task_id: faceAnalysisTaskId,
       style_count: styleCount,
       required_credits: requiredCredits,
+      continuation_action: action,
     })
   },
 

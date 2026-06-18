@@ -1,8 +1,9 @@
 import React from 'react'
-import { render, screen } from '@testing-library/react'
+import { fireEvent, render, screen } from '@testing-library/react'
 import { FaceAnalysisResult } from '@/components/face-analysis/FaceAnalysisResult'
 import { FaceAnalysisTaskResponse } from '@/types/face-analysis'
 import { buildFullResult, parseFaceAnalysisContent } from '@/lib/face-analysis-parser'
+import { analytics } from '@/lib/analytics'
 
 jest.mock('next-intl', () => ({
   useTranslations: () => (key: string, values?: Record<string, unknown>) => {
@@ -58,6 +59,10 @@ function makeTask(overrides: Partial<FaceAnalysisTaskResponse> = {}): FaceAnalys
 }
 
 describe('FaceAnalysisResult', () => {
+  afterEach(() => {
+    jest.restoreAllMocks()
+  })
+
   it('renders the premium full report sections when unlocked', () => {
     render(<FaceAnalysisResult task={makeTask()} onUnlock={jest.fn()} remainingCredits={5} />)
 
@@ -109,5 +114,31 @@ describe('FaceAnalysisResult', () => {
     expect(screen.getByText('Preview: best frame directions')).toBeInTheDocument()
     expect(screen.getAllByText('Unlock Full AI Report').length).toBeGreaterThan(0)
     expect(screen.queryByRole('button', { name: /unlock to download/i })).not.toBeInTheDocument()
+  })
+
+  it('offers direct try-on from the free result and tracks the continuation', () => {
+    const trackTryOn = jest.spyOn(analytics, 'trackTryOnFromFaceAnalysis')
+
+    render(
+      <FaceAnalysisResult
+        task={makeTask({
+          fullResult: null,
+          reportUnlocked: false,
+          lockedTeaser: {
+            bestFrames: ['Round frames'],
+            framesToAvoid: ['Narrow rectangle'],
+            catalogRecommendedStyles: ['round'],
+          },
+        })}
+        onUnlock={jest.fn()}
+      />
+    )
+
+    const link = screen.getByRole('link', { name: /open virtual try-on/i })
+    expect(link).toHaveAttribute('href', '/en/try-on/glasses?source=face-analysis')
+
+    fireEvent.click(link)
+
+    expect(trackTryOn).toHaveBeenCalledWith('task-1', 0, 0, 'open_try_on')
   })
 })

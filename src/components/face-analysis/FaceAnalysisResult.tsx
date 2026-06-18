@@ -179,6 +179,25 @@ export function FaceAnalysisResult({
         </div>
       </div>
 
+      <section className="rounded-xl border border-blue-200 bg-blue-50 p-4 sm:flex sm:items-center sm:justify-between sm:gap-5 sm:p-5">
+        <div>
+          <p className="text-sm font-semibold text-blue-950">
+            See which frames suit your {basic.faceShapeDisplayName?.toLowerCase() || `${basic.faceShape} face`}
+          </p>
+          <p className="mt-1 text-sm leading-6 text-blue-800">
+            Use virtual try-on as the visual check before choosing a frame.
+          </p>
+        </div>
+        <Link
+          href={`/${locale}/try-on/glasses?source=face-analysis`}
+          onClick={() => analytics.trackTryOnFromFaceAnalysis(task.id, 0, 0, 'open_try_on')}
+          className="mt-3 inline-flex w-full shrink-0 items-center justify-center rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-blue-700 sm:mt-0 sm:w-auto"
+        >
+          <Glasses className="mr-2 h-4 w-4" />
+          Open virtual try-on
+        </Link>
+      </section>
+
       {isUnlocked ? (
         <>
           {metrics.length > 0 && (
@@ -497,7 +516,12 @@ function TryOnTopPicksPanel({
     setIsGenerating(true)
     setError(null)
     setBatchResult(null)
-    analytics.trackTryOnFromFaceAnalysis(faceAnalysisTaskId, presetIds.length, requiredCredits)
+    analytics.trackTryOnFromFaceAnalysis(
+      faceAnalysisTaskId,
+      presetIds.length,
+      requiredCredits,
+      'generate_top_picks'
+    )
 
     try {
       const response = await fetch('/api/face-analysis/top-picks-try-on', {

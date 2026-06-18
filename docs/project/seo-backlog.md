@@ -1,6 +1,6 @@
 # SEO Backlog
 
-Last updated: 2026-06-12
+Last updated: 2026-06-18
 Current sprint: Face Analysis to Glasses Try-On Growth
 Owner: Codex
 
@@ -117,7 +117,7 @@ Acceptance:
 
 - [x] Production page canonical matches the served `www` domain.
 - [x] GSC URL inspection can be run against canonical URLs without property mismatch.
-- [ ] Recheck the new `www` sitemap status after GSC finishes processing the newly verified property.
+- [x] Recheck the new `www` sitemap status after GSC finishes processing the newly verified property.
 
 ### Face Analysis to Try-On Repositioning
 
@@ -149,7 +149,7 @@ Acceptance:
 ### Optimize Glasses Try-On Page for US Keyword Demand
 
 Priority: P0
-Status: TODO
+Status: Done
 
 Target URL:
 
@@ -205,7 +205,7 @@ Tasks:
 - [x] Link to `/en/try-on/glasses`.
 - [x] Link to `/en/style/[faceShape]`.
 - [x] Add FAQ schema.
-- [ ] Add Trends-rising language around `face shape glasses`, `glasses by face shape`, and `how to choose glasses for face shape`.
+- [x] Add Trends-rising language around `face shape glasses`, `glasses by face shape`, and `how to choose glasses for face shape`.
 
 Acceptance:
 
@@ -245,20 +245,20 @@ Tasks:
 - [x] Confirm and add commercial GA events for pricing views and try-on starts.
 - [x] Produce first weekly commercial traffic report for 2026-06-15.
 - [x] Fix legacy blog canonical metadata after GSC showed wrong canonical selection.
-- [ ] Check GSC for `/en/face-analysis`.
-- [ ] Check GSC for `/en/blog/ai-face-analysis-for-glasses-guide`.
-- [ ] Track impressions for face-analysis and glasses-intent query groups.
-- [ ] Log issues and next action.
+- [x] Check GSC for `/en/face-analysis`.
+- [x] Check GSC for `/en/blog/ai-face-analysis-for-glasses-guide`.
+- [x] Track impressions for face-analysis and glasses-intent query groups.
+- [x] Log issues and next action.
 
 Acceptance:
 
-- [ ] Weekly status note completed.
-- [ ] Query movement documented.
+- [x] Weekly status note completed.
+- [x] Query movement documented.
 
 ### Trends-Based AEO Content Additions
 
 Priority: P1
-Status: TODO
+Status: In progress
 
 Source:
 
@@ -266,17 +266,17 @@ Source:
 
 Tasks:
 
-- [ ] Add or expand `/en/face-analysis` FAQ answers for `face shape detector online free` and `face shape finder`.
-- [ ] Add or expand `/en/try-on/glasses` FAQ answers for `try on glasses ai`, `try on glasses app`, and `blue light glasses virtual try on`.
-- [ ] Add or expand `/en/glasses-for-face-shape` sections for `face shape glasses`, `glasses by face shape`, `glasses based on face shape`, and `how to choose glasses for face shape`.
+- [x] Add or expand `/en/face-analysis` FAQ answers for `face shape detector online free` and `face shape finder`.
+- [x] Add or expand `/en/try-on/glasses` FAQ answers for `try on glasses ai`, `try on glasses app`, and `blue light glasses virtual try on`.
+- [x] Add or expand `/en/glasses-for-face-shape` sections for `face shape glasses`, `glasses by face shape`, `glasses based on face shape`, and `how to choose glasses for face shape`.
 - [ ] Create a content brief for a future Warby Parker comparison page or section using neutral comparison language.
 - [ ] Track whether Trends-rising terms appear in GSC within 2-4 weeks after deployment and indexing.
 
 Acceptance:
 
-- [ ] Page copy uses real user demand language from Google Trends.
-- [ ] AEO blocks answer question-style terms directly.
-- [ ] Every answer links into the commercial path: face analysis, recommended frames, or glasses try-on.
+- [x] Page copy uses real user demand language from Google Trends.
+- [x] AEO blocks answer question-style terms directly.
+- [x] Every answer links into the commercial path: face analysis, recommended frames, or glasses try-on.
 
 ### Use Oliver Peoples Pages as Funnel Bridge
 
@@ -328,7 +328,7 @@ Acceptance:
 
 - [x] Blog pages support the face-analysis to try-on funnel.
 - [x] Pages target researched question-style GEO queries.
-- [ ] Request reindexing for materially updated blog pages in GSC.
+- [x] Request reindexing for materially updated blog pages in GSC.
 
 ### Fix 404 Errors
 
