@@ -4,6 +4,42 @@ Last updated: 2026-06-18
 Current sprint: Face Analysis to Glasses Try-On Growth
 Owner: Codex
 
+## External Acquisition Sprint
+
+Priority: P0
+Status: Active
+
+Goal:
+
+- Reach 200 qualified external sessions and 20 external high-value product actions by 2026-07-12.
+
+Tasks:
+
+- [x] Reset the 30-day stretch targets around external traffic.
+- [x] Define three reusable campaign angles and public proof assets.
+- [x] Prepare UTM links and channel-specific copy.
+- [x] Create the first distribution and outreach queue.
+- [x] Research and rank the first ten outreach targets.
+- [ ] Publish the first three X/Reddit placements.
+- [ ] Prepare the Product Hunt launch page, gallery, and maker comment.
+- [ ] Submit four relevant directory listings.
+- [ ] Publish three useful community contributions with builder disclosure.
+- [ ] Research and send the first ten personalized outreach messages.
+- [ ] Record live placement URLs, sessions, product actions, and replies.
+
+Acceptance:
+
+- [ ] At least 12 external placements are live.
+- [ ] At least 30 personalized messages are sent.
+- [ ] At least 200 qualified external sessions are measured.
+- [ ] At least 20 external high-value actions are measured.
+- [ ] At least 5 external mentions or links are secured.
+
+Reference:
+
+- [External Growth Sprint](../strategy/growth/2026-06-18-external-growth-sprint.md)
+- [External Distribution Kit](../strategy/growth/2026-06-18-distribution-kit.md)
+
 ## Critical
 
 ### Google Search Console Verification
@@ -371,7 +407,7 @@ Acceptance:
 
 ### Social Distribution
 
-- [ ] Share priority pages on X, LinkedIn, Reddit, and Quora after the funnel pages are complete.
+- [ ] Share priority pages on X and Reddit after the funnel pages are complete; use Product Hunt as a coordinated launch and directories as an evergreen listing program.
 
 ### Link Building
 

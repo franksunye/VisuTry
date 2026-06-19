@@ -1,8 +1,37 @@
 # VisuTry Commercial Traffic KPI Operating Plan
 
 Date: 2026-06-12
+Revised: 2026-06-18
 Owner: Codex
 Scope: Website commercial traffic growth
+
+## 2026-06-18 Goal Reset
+
+The original 30-day targets remain the minimum floor. They are not large enough to solve the current small-sample problem, and SEO alone is unlikely to reach the desired traffic level within the remaining 24 days.
+
+The operating strategy now runs three acquisition tracks in parallel:
+
+1. Search demand capture through the existing indexed commercial cluster.
+2. External distribution through useful demonstrations, community answers, and product directories.
+3. Partner and publisher outreach for qualified referral traffic and links.
+
+The revised sprint plan is documented in [External Growth Sprint](../growth/2026-06-18-external-growth-sprint.md).
+
+### 30-Day Stretch Targets
+
+| KPI | Original floor | Revised target | Measurement source |
+| --- | ---: | ---: | --- |
+| Indexed priority URLs | 8/8 | 8/8 | GSC URL inspection |
+| Commercial query impressions | 300+ | 1,000+ | GSC target query groups |
+| Commercial organic clicks | 15+ | 50+ | GSC priority pages |
+| Qualified external sessions | Not defined | 200+ | GA organic, referral, social, and AI traffic with campaign UTMs |
+| External high-value actions | Not defined | 20+ | GA product events attributed to external sessions |
+| Blog bridge clicks | 10+ | 20+ | GA `blog_funnel_click` |
+| External mentions or links | Not defined | 5+ | Placement and outreach log |
+| Personalized outreach | Not defined | 30 | Outreach log |
+| Serious partner or publisher replies | Not defined | 3+ | Outreach log |
+
+Internal and owner test activity does not count toward qualified external sessions or external high-value actions. Until a formal internal-traffic filter is justified, attribution must use non-direct acquisition sources, campaign UTMs, and known-test-account exclusion in manual checks.
 
 ## North Star
 
