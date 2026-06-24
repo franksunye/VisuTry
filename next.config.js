@@ -84,6 +84,13 @@ const nextConfig = {
   },
   async redirects() {
     return [
+      // Clean up legacy non-locale SEO URLs that Google already discovered.
+      // The app uses locale-prefixed routes, so keep old blog/tag/share URLs
+      // from becoming long-lived 404 examples in Search Console.
+      { source: '/blog/tag/:tag', destination: '/en/blog/tag/:tag', permanent: true },
+      { source: '/blog/:slug', destination: '/en/blog/:slug', permanent: true },
+      { source: '/tag/:tag', destination: '/en/blog/tag/:tag', permanent: true },
+      { source: '/share/:id', destination: '/en/share/:id', permanent: true },
       { source: '/:locale/tag/:tag', destination: '/:locale/blog/tag/:tag', permanent: true },
       { source: '/:locale/blog/best-glasses-for-face-shapes-guide', destination: '/:locale/blog/how-to-choose-glasses-for-your-face', permanent: true },
       { source: '/:locale/how-to-choose-glasses-for-your-face', destination: '/:locale/blog/how-to-choose-glasses-for-your-face', permanent: true },

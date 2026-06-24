@@ -30,7 +30,11 @@ export async function generateMetadata({ params }: SharePageProps): Promise<Meta
   if (!task || task.status !== "COMPLETED" || !task.resultImageUrl) {
     return {
       title: "VisuTry - AI Glasses Try-On",
-      description: "Experience virtual glasses try-on with AI technology"
+      description: "Experience virtual glasses try-on with AI technology",
+      robots: {
+        index: false,
+        follow: true,
+      },
     }
   }
 
@@ -59,7 +63,11 @@ export async function generateMetadata({ params }: SharePageProps): Promise<Meta
       title: `${userName}'s AI ${config.name} Try-On Result`,
       description: `Check out ${userName}'s AI ${config.name.toLowerCase()} try-on result with VisuTry`,
       images: [task.resultImageUrl]
-    }
+    },
+    robots: {
+      index: false,
+      follow: true,
+    },
   }
 }
 

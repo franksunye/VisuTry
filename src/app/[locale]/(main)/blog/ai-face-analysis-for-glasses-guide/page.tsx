@@ -6,11 +6,11 @@ import { FaceAnalysisFunnelCTA } from '@/components/blog/FaceAnalysisFunnelCTA'
 import { Breadcrumbs } from '@/components/seo/Breadcrumbs'
 import { generateI18nSEO, generateStructuredData } from '@/lib/seo'
 
-const title = 'Which Glasses Suit My Face? Free AI Face Analysis Guide'
-const description = 'Find which glasses suit your face with free AI face shape guidance. Shortlist flattering frames, then check your choices with virtual try-on.'
+const title = 'AI Face Shape Detector for Glasses - Which Glasses Suit My Face?'
+const description = 'Use AI face shape detection to find which glasses suit your face, shortlist frame styles, and move from face analysis to virtual try-on.'
 const coverImage = '/blog-covers/face-shape-guide.jpg'
 const publishedAt = '2026-06-08T10:00:00Z'
-const modifiedAt = '2026-06-18T05:00:00Z'
+const modifiedAt = '2026-06-24T05:45:00Z'
 
 export async function generateMetadata({ params }: { params: { locale: string } }): Promise<Metadata> {
   return generateI18nSEO({
@@ -147,7 +147,7 @@ export default function BlogPostPage({ params }: { params: { locale: string } })
                 <span>8 min read</span>
               </div>
               <h1 className="mb-4 text-3xl font-bold text-gray-900 md:text-4xl">
-                Which Glasses Suit My Face? A Free AI Face Analysis Guide
+                AI Face Shape Detector for Glasses: Which Glasses Suit My Face?
               </h1>
               <p className="text-xl text-gray-600">
                 Choosing glasses online gets much easier when you know your face shape first.
@@ -169,6 +169,12 @@ export default function BlogPostPage({ params }: { params: { locale: string } })
                 face is round, square, oval, heart, diamond, oblong, or triangle, you can upload a
                 clear photo and get a structured result with a confidence score, key features, and
                 personalized frame guidance.
+              </p>
+
+              <p>
+                If you came here searching for an <Link href={`${localePrefix}/face-analysis`}>AI face shape detector for glasses</Link>,
+                start with the face-analysis tool first, then return to this guide to understand
+                why each frame direction may suit your face.
               </p>
 
               <FaceAnalysisFunnelCTA
@@ -262,6 +268,7 @@ export default function BlogPostPage({ params }: { params: { locale: string } })
               </p>
               <ul>
                 <li><strong>If you do not know your face shape:</strong> start with AI face analysis.</li>
+                <li><strong>If you do not know which glasses suit your face:</strong> use the <Link href={`${localePrefix}/face-analysis`}>AI face shape detector for glasses</Link> to get a shortlist.</li>
                 <li><strong>If you already know your face shape:</strong> compare recommended styles in the <Link href={`${localePrefix}/glasses-for-face-shape`}>glasses for face shape guide</Link>.</li>
                 <li><strong>If you already have frames in mind:</strong> go straight to <Link href={`${localePrefix}/try-on/glasses`}>virtual glasses try-on</Link>.</li>
               </ul>
