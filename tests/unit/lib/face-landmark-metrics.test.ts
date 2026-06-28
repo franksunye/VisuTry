@@ -51,6 +51,33 @@ function makeLandmarks(overrides: Partial<Record<keyof typeof indices, FaceLandm
   return points
 }
 
+function makePixelScaledLandmarks(width: number, height: number) {
+  const centerX = width / 2
+  const centerY = height / 2
+  const toPoint = (x: number, y: number): FaceLandmarkPoint => ({
+    x: x / width,
+    y: y / height,
+  })
+
+  return makeLandmarks({
+    top: toPoint(centerX, centerY - 300),
+    chin: toPoint(centerX, centerY + 300),
+    leftFace: toPoint(centerX - 200, centerY),
+    rightFace: toPoint(centerX + 200, centerY),
+    leftCheek: toPoint(centerX - 180, centerY + 20),
+    rightCheek: toPoint(centerX + 180, centerY + 20),
+    leftJaw: toPoint(centerX - 150, centerY + 210),
+    rightJaw: toPoint(centerX + 150, centerY + 210),
+    leftForehead: toPoint(centerX - 160, centerY - 180),
+    rightForehead: toPoint(centerX + 160, centerY - 180),
+    leftEyeOuter: toPoint(centerX - 95, centerY - 80),
+    rightEyeOuter: toPoint(centerX + 95, centerY - 80),
+    noseLeft: toPoint(centerX - 25, centerY),
+    noseRight: toPoint(centerX + 25, centerY),
+    noseBridge: toPoint(centerX, centerY - 30),
+  })
+}
+
 describe('face-landmark-metrics', () => {
   it('measures landmarks and derives a supported face shape', () => {
     const geometry = analyzeFaceLandmarks(makeLandmarks({}), { faceCount: 1 })
@@ -83,6 +110,56 @@ describe('face-landmark-metrics', () => {
       symmetryOffset: 0.01,
       noseBridgeToFaceWidth: 0.12,
     }).shape).toBe('triangle')
+  })
+
+  it('keeps face ratios stable across portrait and landscape image dimensions', () => {
+    const portrait = analyzeFaceLandmarks(makePixelScaledLandmarks(800, 1200), {
+      faceCount: 1,
+      imageWidth: 800,
+      imageHeight: 1200,
+    })
+    const landscape = analyzeFaceLandmarks(makePixelScaledLandmarks(1200, 800), {
+      faceCount: 1,
+      imageWidth: 1200,
+      imageHeight: 800,
+    })
+
+    expect(portrait.status).toBe('measured')
+    expect(landscape.status).toBe('measured')
+    expect(portrait.ratios?.faceAspectRatio).toBeCloseTo(1.5, 2)
+    expect(landscape.ratios?.faceAspectRatio).toBeCloseTo(1.5, 2)
+    expect(portrait.measuredShape).toBe(landscape.measuredShape)
+  })
+
+  it('rejects photos containing more than one face', () => {
+    const geometry = analyzeFaceLandmarks(makeLandmarks({}), { faceCount: 2 })
+
+    expect(geometry.status).toBe('unavailable')
+    expect(geometry.faceCount).toBe(2)
+    expect(geometry.warnings[0]).toContain('exactly one face')
+  })
+
+  it('rejects a face that is too tilted for reliable measurement', () => {
+    const geometry = analyzeFaceLandmarks(makeLandmarks({
+      leftEyeOuter: { x: 0.38, y: 0.34 },
+      rightEyeOuter: { x: 0.62, y: 0.46 },
+    }), { faceCount: 1 })
+
+    expect(geometry.status).toBe('unavailable')
+    expect(geometry.warnings[0]).toContain('too tilted')
+  })
+
+  it('rejects a face that occupies too little of the image', () => {
+    const tiny = makeLandmarks({
+      top: { x: 0.5, y: 0.43 },
+      chin: { x: 0.5, y: 0.57 },
+      leftFace: { x: 0.44, y: 0.5 },
+      rightFace: { x: 0.56, y: 0.5 },
+    })
+    const geometry = analyzeFaceLandmarks(tiny, { faceCount: 1 })
+
+    expect(geometry.status).toBe('unavailable')
+    expect(geometry.warnings[0]).toContain('too small')
   })
 
   it('builds landmark-sourced metrics when geometry is measured', () => {

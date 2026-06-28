@@ -1,9 +1,10 @@
 import { analyzeFaceLandmarks } from '@/lib/face-landmark-metrics'
 import { FaceGeometryAnalysis, FaceLandmarkPoint } from '@/types/face-analysis'
 
-const WASM_ASSET_URL = 'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@latest/wasm'
+const MEDIAPIPE_VERSION = '0.10.35'
+const WASM_ASSET_URL = `https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@${MEDIAPIPE_VERSION}/wasm`
 const MODEL_ASSET_URL =
-  'https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/latest/face_landmarker.task'
+  'https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task'
 
 type FaceLandmarkerInstance = {
   detect: (image: ImageBitmap | HTMLImageElement | HTMLCanvasElement) => {
@@ -108,7 +109,11 @@ export async function analyzeFaceGeometryFromFile(file: File): Promise<FaceGeome
   try {
     bitmap = await createImageBitmap(file)
     const result = await detectFaceLandmarksFromImage(bitmap)
-    return analyzeFaceLandmarks(result?.landmarks, { faceCount: result?.faceCount ?? 0 })
+    return analyzeFaceLandmarks(result?.landmarks, {
+      faceCount: result?.faceCount ?? 0,
+      imageWidth: bitmap.width,
+      imageHeight: bitmap.height,
+    })
   } catch (error) {
     return {
       version: 'landmark-v1',

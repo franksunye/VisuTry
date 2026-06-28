@@ -46,13 +46,30 @@ const FACE_MESH_INDEX: Record<PointIndex, number> = {
 }
 
 const MIN_FACE_MESH_POINTS = 455
+const MIN_FACE_SPAN = 0.16
+const MAX_EYE_LINE_TILT_DEG = 15
+const MAX_SYMMETRY_OFFSET = 0.14
+
+export interface FaceGeometryMeasurementOptions {
+  faceCount?: number
+  imageWidth?: number
+  imageHeight?: number
+}
 
 function getPoint(points: FaceLandmarkPoint[], key: PointIndex): FaceLandmarkPoint | null {
   return points[FACE_MESH_INDEX[key]] ?? null
 }
 
-function distance(a: FaceLandmarkPoint, b: FaceLandmarkPoint): number {
-  return Math.hypot(a.x - b.x, a.y - b.y)
+function distance(
+  a: FaceLandmarkPoint,
+  b: FaceLandmarkPoint,
+  imageWidth: number,
+  imageHeight: number
+): number {
+  return Math.hypot(
+    (a.x - b.x) * imageWidth,
+    (a.y - b.y) * imageHeight
+  )
 }
 
 function round(value: number, digits = 3): number {
@@ -79,12 +96,21 @@ function buildUnavailable(reason: string, faceCount = 0): FaceGeometryAnalysis {
 
 export function analyzeFaceLandmarks(
   landmarks: FaceLandmarkPoint[] | null | undefined,
-  options?: { faceCount?: number }
+  options?: FaceGeometryMeasurementOptions
 ): FaceGeometryAnalysis {
   const faceCount = options?.faceCount ?? (landmarks?.length ? 1 : 0)
+  if (faceCount > 1) {
+    return buildUnavailable(
+      'Multiple faces were detected. Use a photo with exactly one face.',
+      faceCount
+    )
+  }
   if (!landmarks || landmarks.length < MIN_FACE_MESH_POINTS) {
     return buildUnavailable('Face landmarks were not available for this photo.', faceCount)
   }
+
+  const imageWidth = normalizeDimension(options?.imageWidth)
+  const imageHeight = normalizeDimension(options?.imageHeight)
 
   const required = {
     top: getPoint(landmarks, 'top'),
@@ -124,20 +150,33 @@ export function analyzeFaceLandmarks(
   const noseRight = required.noseRight!
   const noseBridge = required.noseBridge!
 
-  const faceHeight = distance(top, chin)
-  const faceWidth = distance(leftFace, rightFace)
-  const cheekWidth = distance(leftCheek, rightCheek)
-  const jawWidth = distance(leftJaw, rightJaw)
-  const foreheadWidth = distance(leftForehead, rightForehead)
-  const noseBridgeWidth = distance(noseLeft, noseRight)
+  const faceHeight = distance(top, chin, imageWidth, imageHeight)
+  const faceWidth = distance(leftFace, rightFace, imageWidth, imageHeight)
+  const cheekWidth = distance(leftCheek, rightCheek, imageWidth, imageHeight)
+  const jawWidth = distance(leftJaw, rightJaw, imageWidth, imageHeight)
+  const foreheadWidth = distance(leftForehead, rightForehead, imageWidth, imageHeight)
+  const noseBridgeWidth = distance(noseLeft, noseRight, imageWidth, imageHeight)
   const eyeLineTiltDeg =
-    (Math.atan2(rightEyeOuter.y - leftEyeOuter.y, rightEyeOuter.x - leftEyeOuter.x) * 180) /
+    (Math.atan2(
+      (rightEyeOuter.y - leftEyeOuter.y) * imageHeight,
+      (rightEyeOuter.x - leftEyeOuter.x) * imageWidth
+    ) * 180) /
     Math.PI
   const faceCenterX = (leftFace.x + rightFace.x) / 2
-  const symmetryOffset = Math.abs(noseBridge.x - faceCenterX) / Math.max(faceWidth, 0.001)
+  const symmetryOffset =
+    Math.abs(noseBridge.x - faceCenterX) * imageWidth / Math.max(faceWidth, 0.001)
 
   if (faceHeight <= 0 || faceWidth <= 0 || cheekWidth <= 0) {
     return buildUnavailable('Face geometry could not be measured from this photo.', faceCount)
+  }
+
+  const horizontalFaceSpan = Math.abs(rightFace.x - leftFace.x)
+  const verticalFaceSpan = Math.abs(chin.y - top.y)
+  if (horizontalFaceSpan < MIN_FACE_SPAN || verticalFaceSpan < MIN_FACE_SPAN) {
+    return buildUnavailable(
+      'The face is too small in the photo. Move closer and keep the full face visible.',
+      faceCount
+    )
   }
 
   const ratios: FaceGeometryRatios = {
@@ -152,7 +191,18 @@ export function analyzeFaceLandmarks(
 
   const measured = classifyFaceGeometry(ratios)
   const warnings: string[] = []
-  if (faceCount > 1) warnings.push('Multiple faces were detected; the first face was measured.')
+  if (Math.abs(ratios.eyeLineTiltDeg) > MAX_EYE_LINE_TILT_DEG) {
+    return buildUnavailable(
+      'The photo is too tilted for reliable face-shape measurement. Keep both eyes level and try again.',
+      faceCount
+    )
+  }
+  if (ratios.symmetryOffset > MAX_SYMMETRY_OFFSET) {
+    return buildUnavailable(
+      'The face appears turned or off-center. Use a straight-on photo and try again.',
+      faceCount
+    )
+  }
   if (Math.abs(ratios.eyeLineTiltDeg) > 8) {
     warnings.push('The photo appears tilted, so proportions may be less precise.')
   }
@@ -182,6 +232,10 @@ export function analyzeFaceLandmarks(
     signals: measured.signals,
     warnings,
   }
+}
+
+function normalizeDimension(value: number | undefined): number {
+  return typeof value === 'number' && Number.isFinite(value) && value > 0 ? value : 1
 }
 
 export function classifyFaceGeometry(ratios: FaceGeometryRatios): {
