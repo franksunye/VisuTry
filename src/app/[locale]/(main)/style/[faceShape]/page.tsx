@@ -100,6 +100,19 @@ const faceShapeGuides = {
     whyItWorks:
       'More lens depth and visual weight help break up vertical length and make the face feel more balanced.',
   },
+  'triangle-face': {
+    name: 'triangle',
+    displayName: 'Triangle',
+    title: 'Best Glasses for Triangle Face Shapes',
+    description:
+      'Triangle faces usually have a jawline wider than the forehead. Frames with a defined upper line can add balance near the brows and temples.',
+    characteristics: 'Broader jawline, narrower forehead or temples, and an outline that widens toward the bottom.',
+    tryFirst: ['Browline frames', 'Cat-eye frames', 'Aviators', 'Frames with a defined upper rim'],
+    presetIds: ['browline-classic', 'cat-eye-classic', 'aviator-classic', 'geometric-classic'],
+    avoidFirst: ['Bottom-heavy frames', 'Very narrow frames', 'Low decoration that repeats jaw width'],
+    whyItWorks:
+      'A stronger upper frame line adds presence near the forehead and balances the visual weight of a broader jaw.',
+  },
 } as const
 
 type FaceShapeSlug = keyof typeof faceShapeGuides
@@ -117,6 +130,7 @@ function normalizeFaceShapeSlug(slug: string): FaceShapeSlug | null {
   if (normalized === 'heart' || normalized === 'heart-shaped-face') return 'heart-face'
   if (normalized === 'diamond') return 'diamond-face'
   if (normalized === 'oblong' || normalized === 'long-face') return 'oblong-face'
+  if (normalized === 'triangle' || normalized === 'pear-face') return 'triangle-face'
   return null
 }
 
@@ -271,6 +285,14 @@ export default async function FaceShapePage({ params }: FaceShapePageProps) {
               >
                 Try glasses online
                 <ArrowRight className="h-4 w-4" />
+              </Link>
+            </div>
+            <div className="mt-4 flex flex-wrap gap-x-5 gap-y-2 text-sm font-semibold">
+              <Link href={`/${locale}/face-shapes/${guide.name.toLowerCase()}`} className="text-blue-700 hover:text-blue-900">
+                How to identify this face shape
+              </Link>
+              <Link href={`/${locale}/hairstyles-for/${normalizedSlug}`} className="text-blue-700 hover:text-blue-900">
+                Hairstyles for this face shape
               </Link>
             </div>
           </div>

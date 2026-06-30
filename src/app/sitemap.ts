@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma'
 import { getBlogSitemapEntries } from '@/lib/blog'
 import { slugify } from '@/lib/programmatic-seo'
 import { locales } from '@/i18n'
+import { FACE_SHAPE_SLUGS } from '@/config/face-shape-content'
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.visutry.com'
@@ -21,7 +22,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const staticPagePaths = [
     { path: '', priority: 1, changeFrequency: 'daily' as const },
     { path: '/face-analysis', priority: 0.9, changeFrequency: 'weekly' as const },
+    { path: '/face-shapes', priority: 0.9, changeFrequency: 'weekly' as const },
     { path: '/glasses-for-face-shape', priority: 0.9, changeFrequency: 'weekly' as const },
+    { path: '/hairstyles-for-face-shape', priority: 0.85, changeFrequency: 'weekly' as const },
     { path: '/try-on/glasses', priority: 0.9, changeFrequency: 'weekly' as const },
     { path: '/blog', priority: 0.8, changeFrequency: 'weekly' as const },
     { path: '/pricing', priority: 0.7, changeFrequency: 'weekly' as const },
@@ -29,14 +32,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { path: '/terms', priority: 0.5, changeFrequency: 'monthly' as const },
     { path: '/refund', priority: 0.5, changeFrequency: 'monthly' as const },
   ]
-  const staticFaceShapePaths = [
-    '/style/round-face',
-    '/style/square-face',
-    '/style/oval-face',
-    '/style/heart-face',
-    '/style/diamond-face',
-    '/style/oblong-face',
-  ]
+  const staticFaceShapePaths = FACE_SHAPE_SLUGS.flatMap((slug) => [
+    `/face-shapes/${slug}`,
+    `/style/${slug}-face`,
+    `/hairstyles-for/${slug}-face`,
+  ])
 
   // Generate static pages for all locales
   const staticPages: MetadataRoute.Sitemap = []

@@ -51,6 +51,13 @@ const faceShapeRows = [
     avoidFirst: 'Very shallow frames that lengthen the face visually',
     reason: 'More lens depth and visual weight can balance longer proportions.',
   },
+  {
+    shape: 'Triangle face',
+    slug: 'triangle-face',
+    tryFirst: 'Browline, cat-eye, aviator, and defined upper-rim frames',
+    avoidFirst: 'Bottom-heavy frames that repeat the width of the jaw',
+    reason: 'A stronger upper line adds presence near a narrower forehead and balances the jaw.',
+  },
 ]
 
 const faqContent = [
@@ -151,6 +158,14 @@ export default function GlassesForFaceShapePage({ params }: Props) {
               >
                 Try glasses online
                 <ArrowRight className="h-4 w-4" />
+              </Link>
+            </div>
+            <div className="mt-4 flex flex-wrap gap-x-5 gap-y-2 text-sm font-semibold">
+              <Link href={`/${locale}/face-shapes`} className="text-blue-700 hover:text-blue-900">
+                Compare the seven face shapes
+              </Link>
+              <Link href={`/${locale}/hairstyles-for-face-shape`} className="text-blue-700 hover:text-blue-900">
+                Hairstyles by face shape
               </Link>
             </div>
           </div>
