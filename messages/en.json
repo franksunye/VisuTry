@@ -5,7 +5,8 @@
     "loading": "Loading..."
   },
   "nav": {
-    "faceAnalysis": "Face",
+    "faceShapeDetector": "Face Shape",
+    "faceAnalysis": "AI Analysis",
     "tryGlasses": "Glasses",
     "compare": "Compare",
     "faq": "FAQ",
@@ -539,7 +540,8 @@
       "privacy": "Privacy Policy",
       "terms": "Terms of Service",
       "refund": "Refund Policy",
-      "faceAnalysis": "Face",
+      "faceShapeDetector": "Free Face Shape Detector",
+      "faceAnalysis": "AI Face Analysis",
       "tryGlasses": "Glasses",
       "frameCompare": "Compare",
       "moreTryOn": "More Try-On",

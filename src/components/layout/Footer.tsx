@@ -58,6 +58,11 @@ export function Footer() {
             <h3 className="font-semibold text-gray-900 mb-4">{t('links.product')}</h3>
             <ul className="space-y-2">
               <li>
+                <Link href={`/${locale}/face-shape-detector`} className="text-gray-600 hover:text-blue-600 text-sm transition-colors">
+                  {t('links.faceShapeDetector')}
+                </Link>
+              </li>
+              <li>
                 <Link href={`/${locale}/face-analysis`} className="text-gray-600 hover:text-blue-600 text-sm transition-colors">
                   {t('links.faceAnalysis')}
                 </Link>

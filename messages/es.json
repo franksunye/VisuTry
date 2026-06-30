@@ -5,6 +5,7 @@
     "loading": "Cargando..."
   },
   "nav": {
+    "faceShapeDetector": "Forma del rostro",
     "faceAnalysis": "Análisis facial",
     "tryGlasses": "Gafas",
     "pricing": "Precios",
@@ -63,6 +64,7 @@
       "privacy": "Política de Privacidad",
       "terms": "Términos de Servicio",
       "refund": "Política de Reembolso",
+      "faceShapeDetector": "Detector gratuito de forma del rostro",
       "faceAnalysis": "Análisis facial",
       "tryGlasses": "Gafas",
       "frameCompare": "Comparación de monturas",

@@ -5,6 +5,7 @@
     "loading": "Memuat..."
   },
   "nav": {
+    "faceShapeDetector": "Bentuk Wajah",
     "faceAnalysis": "Analisis Wajah",
     "tryGlasses": "Kacamata",
     "pricing": "Harga",
@@ -63,6 +64,7 @@
       "privacy": "Kebijakan Privasi",
       "terms": "Ketentuan Layanan",
       "refund": "Kebijakan Pengembalian Dana",
+      "faceShapeDetector": "Detektor Bentuk Wajah Gratis",
       "faceAnalysis": "Analisis Wajah",
       "tryGlasses": "Kacamata",
       "frameCompare": "Bandingkan Bingkai",

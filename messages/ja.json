@@ -5,6 +5,7 @@
     "loading": "読み込み中..."
   },
   "nav": {
+    "faceShapeDetector": "顔型",
     "faceAnalysis": "顔分析",
     "tryGlasses": "メガネ",
     "pricing": "料金",
@@ -63,6 +64,7 @@
       "privacy": "プライバシーポリシー",
       "terms": "利用規約",
       "refund": "返金ポリシー",
+      "faceShapeDetector": "無料顔型診断",
       "faceAnalysis": "顔分析",
       "tryGlasses": "メガネ",
       "frameCompare": "フレーム比較",

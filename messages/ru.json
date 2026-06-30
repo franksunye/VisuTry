@@ -5,6 +5,7 @@
     "loading": "Загрузка..."
   },
   "nav": {
+    "faceShapeDetector": "Форма лица",
     "faceAnalysis": "Анализ лица",
     "tryGlasses": "Очки",
     "pricing": "Цены",
@@ -63,6 +64,7 @@
       "privacy": "Политика Конфиденциальности",
       "terms": "Условия Использования",
       "refund": "Политика Возврата",
+      "faceShapeDetector": "Бесплатный определитель формы лица",
       "faceAnalysis": "Анализ лица",
       "tryGlasses": "Очки",
       "frameCompare": "Сравнение оправ",

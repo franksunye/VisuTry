@@ -5,6 +5,7 @@
     "loading": "جاري التحميل..."
   },
   "nav": {
+    "faceShapeDetector": "شكل الوجه",
     "faceAnalysis": "تحليل الوجه",
     "tryGlasses": "النظارات",
     "pricing": "الأسعار",
@@ -63,6 +64,7 @@
       "privacy": "سياسة الخصوصية",
       "terms": "شروط الخدمة",
       "refund": "سياسة الاسترداد",
+      "faceShapeDetector": "كاشف شكل الوجه المجاني",
       "faceAnalysis": "تحليل الوجه",
       "tryGlasses": "النظارات",
       "frameCompare": "مقارنة الإطارات",
