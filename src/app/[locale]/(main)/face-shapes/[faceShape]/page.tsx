@@ -31,6 +31,8 @@ export async function generateMetadata({ params }: FaceShapeGuidePageProps): Pro
     title: `${guide.name} Face Shape: Features, Glasses and Hairstyles`,
     description: `${guide.shortDefinition} Learn how to identify a ${guide.name.toLowerCase()} face and choose glasses and hairstyles that work with its proportions.`,
     pathname: `/face-shapes/${guide.slug}`,
+    noIndex: params.locale !== 'en',
+    availableLocales: ['en'] as const,
   })
 }
 

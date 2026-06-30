@@ -1,0 +1,34 @@
+# VisuTry
+
+> VisuTry helps online eyewear shoppers move from face-shape discovery to personalized glasses advice, virtual try-on, and side-by-side frame comparison.
+
+Website: https://www.visutry.com/
+
+## Products
+
+- [Free Face Shape Detector](https://www.visutry.com/en/face-shape-detector): A free, no-login face-shape estimate. The selected photo is processed in browser memory and is not sent to VisuTry by this tool.
+- [AI Glasses Advisor](https://www.visutry.com/en/face-analysis): A credit-based personalized report with likely face shape, visible feature guidance, and frame recommendations.
+- [Virtual Glasses Try-On](https://www.visutry.com/en/try-on/glasses): Upload a portrait plus a glasses product image or screenshot to generate a visual preview.
+- [Frame Compare](https://www.visutry.com/en/try-on/glasses/compare): Generate preset frame looks from one portrait and review them side by side.
+- [Pricing](https://www.visutry.com/en/pricing): Face Shape Detector is free. Advisor, Try-On, and Frame Compare use trials or credits. The Credits Pack is a one-time purchase and purchased credits do not expire.
+
+## Guides
+
+- [Face Shapes](https://www.visutry.com/en/face-shapes)
+- [Glasses for Face Shape](https://www.visutry.com/en/glasses-for-face-shape)
+- [Face Shape Measurement Guide](https://www.visutry.com/en/face-shape-measurement)
+- [Hairstyles for Face Shape](https://www.visutry.com/en/hairstyles-for-face-shape)
+- [Blog](https://www.visutry.com/en/blog)
+
+## Important boundaries
+
+- Face-shape results are styling estimates, not identity recognition or medical assessments.
+- VisuTry does not provide prescriptions or guarantee physical frame fit, bridge comfort, or optical measurements.
+- Virtual try-on is a visual shopping aid. Product dimensions and in-person comfort checks remain important.
+- VisuTry does not claim a calibrated face-shape accuracy percentage without a labeled validation benchmark.
+
+## Contact
+
+- Support: support@visutry.com
+- Privacy: https://www.visutry.com/en/privacy
+- Terms: https://www.visutry.com/en/terms

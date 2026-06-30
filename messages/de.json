@@ -77,8 +77,8 @@
   },
   "faceAnalysis": {
     "meta": {
-      "title": "KI-Gesichtsanalyse für Brillen | VisuTry",
-      "description": "Entdecken Sie Ihre Gesichtsform mit KI und erhalten Sie personalisierte Brillenempfehlungen. Laden Sie ein Foto hoch und schalten Sie Ihren vollständigen Stilbericht frei."
+      "title": "KI-Brillenberater: Persönliche Fassungs-Empfehlungen | VisuTry",
+      "description": "Erhalten Sie persönliche Brillenempfehlungen aus einem Foto und wechseln Sie anschließend zur virtuellen Anprobe."
     },
     "stepper": {
       "photo": "Foto",
@@ -148,8 +148,8 @@
       "searchStyle": "{style}-Brillen suchen"
     },
     "landing": {
-      "title": "KI-Gesichtsanalyse für bessere Brillenwahl",
-      "description": "Laden Sie ein Foto hoch, um Ihre Gesichtsform, Hauptmerkmale und personalisierte Rahmenempfehlungen per KI zu entdecken.",
+      "title": "KI-Brillenberater für eine bessere Fassungs-Auswahl",
+      "description": "Laden Sie ein Foto hoch und erhalten Sie einen persönlichen Bericht mit Merkmalen, Gesichtsform und passenden Fassungen.",
       "tryGlasses": "Stattdessen Brille anprobieren",
       "steps": {
         "uploadTitle": "Foto hochladen",
@@ -174,24 +174,26 @@
   },
   "marketing": {
     "home": {
-      "metaTitle": "VisuTry - KI-Virtuelle Anprobe für Brillen, Kleidung, Schuhe und Accessoires",
-      "metaDescription": "Probieren Sie Brillen, Kleidung, Schuhe und Accessoires sofort mit KI-gestützter virtueller Anprobe an. Kein Download erforderlich - laden Sie Ihr Foto hoch und sehen Sie, wie Artikel auf Ihnen aussehen, bevor Sie kaufen. Angetrieben durch Nano Banana KI (Gemini 2.5 Flash Image) für fotorealistische Ergebnisse.",
+      "metaTitle": "Kostenloser Gesichtsform-Detektor & virtuelle Brillenanprobe | VisuTry",
+      "metaDescription": "Gesichtsform kostenlos bestimmen, persönliche Brillenberatung erhalten, eigene Fassungen virtuell anprobieren und Ergebnisse vergleichen.",
       "faqTitle": "Häufig Gestellte Fragen",
       "faqSubtitle": "Alles, was Sie über VisuTry wissen müssen",
-      "heroTitle": "Finden Sie Ihren Perfekten Stil",
-      "heroSubtitle": "Probieren Sie in 3 Einfachen Schritten",
+      "heroTitle": "Die richtige Brille finden – von der Gesichtsform bis zur Anprobe",
+      "heroSubtitle": "Starten Sie mit dem kostenlosen privaten Detektor und gehen Sie zu Beratung, Anprobe und Vergleich weiter.",
       "tools": {
-        "faceTitle": "Gesichtsanalyse",
-        "faceDescription": "Gesichtsform erkennen und vor dem Einsatz von Credits passende Fassungsrichtungen erhalten.",
-        "glassesTitle": "Brille",
+        "faceTitle": "Gesichtsform-Detektor",
+        "faceDescription": "Kostenlos und ohne Anmeldung; das Foto bleibt im Browser.",
+        "advisorTitle": "Brillenberater",
+        "advisorDescription": "Ein ausführlicher Bericht mit persönlichen Fassungs-Empfehlungen und Begründungen.",
+        "glassesTitle": "Virtuelle Anprobe",
         "glassesDescription": "Produktfotos oder Screenshots hochladen und direkt am Gesicht ansehen.",
-        "compareTitle": "Vergleichen",
+        "compareTitle": "Fassungsvergleich",
         "compareDescription": "Integrierte Presets wählen und mehrere Fassungsresultate in einem Board prüfen."
       },
-      "ctaPrimary": "Mit Face starten",
-      "ctaSecondary": "Rahmen vergleichen",
+      "ctaPrimary": "Gesichtsform kostenlos bestimmen",
+      "ctaSecondary": "Brille virtuell anprobieren",
       "featureCards": {
-        "faceTitle": "Gesichtsanalyse",
+        "faceTitle": "Brillenberater",
         "faceDescription": "A professional face-shape report with Fassung style recommendations.",
         "glassesTitle": "Custom Brillen Anprobe",
         "glassesDescription": "Use your own glasses product image, store Foto, or screenshot.",
@@ -235,11 +237,16 @@
       "eyebrow": "Einfache Credits für Face, Glasses und Compare",
       "title": "Starten Sie mit 1 Gratis-Credit und machen Sie mit {count} KI-Credits für 2,99 USD weiter",
       "description": "Nutzen Sie Credits für KI-Gesichtsanalyse, individuelle Brillenanprobe und Fassungsvergleich.",
+      "freeDetector": {
+        "title": "Der Gesichtsform-Detektor ist kostenlos",
+        "description": "Kein Konto, keine Credits und kein Foto-Upload an VisuTry.",
+        "cta": "Kostenlosen Detektor nutzen"
+      },
       "faqTitle": "Frequently Asked Questions (DE)",
       "featureCards": {
-        "faceTitle": "Gesichtsanalyse",
+        "faceTitle": "Brillenberater",
         "faceDescription": "Use one Credit to estimate face shape and get Fassung directions before trying glasses.",
-        "glassesTitle": "Brillen Anprobe",
+        "glassesTitle": "Virtuelle Anprobe",
         "glassesDescription": "Use one Credit per custom try-on from a portrait and a glasses product image.",
         "compareTitle": "Frame Vergleich",
         "compareDescription": "Use one Credit per generated Fassung. Try 1 Fassung kostenlos, or compare up to 4 with Credits."
@@ -346,9 +353,9 @@
       "notFoundDescription": "Der angeforderte Try-On-Typ wurde nicht gefunden.",
       "ogDescription": "Gesichtsfoto und Brillenbild hochladen und die Fassung vor dem Kauf im Browser prüfen.",
       "ctaNote": "Ein Gratis-Versuch zum Start. Credits Pack ist ein Einmalkauf ohne Abo.",
-      "shortlistNotePrefix": "Not sure what glasses suit your face? Starten with",
-      "shortlistNoteLink": "AI face shape analysis (DE)",
-      "shortlistNoteSuffix": "to get a shortlist, then come back here to try on glasses online from your own Foto and product screenshots.",
+      "shortlistNotePrefix": "Unsicher, welche Brille passt? Starten Sie mit",
+      "shortlistNoteLink": "dem kostenlosen Gesichtsform-Detektor",
+      "shortlistNoteSuffix": "und nutzen Sie danach den Brillenberater für eine persönliche Vorauswahl.",
       "faq": {
         "q1Question": "Can I try on glasses online from a screenshot? (DE)",
         "q1Answer": "Yes. VisuTry lets you hochladen your face Foto and a glasses product image or screenshot, then uses AI to create a realistic virtual glasses try-on preview on your face.",
@@ -403,11 +410,14 @@
         "c2Description": "Credits map directly to generated Fassungs, so a 4-Fassung comparison uses up to 4 Credits.",
         "c3Description": "Completed results are kept in Dashboard History according to your account retention plan. (DE)"
       },
-      "compareDescription": "Use Vergleich when you have several likely Fassung shapes and want a fast side-by-side view. Use Brillen Anprobe when you already have a specific product image or screenshot."
+      "compareDescription": "Nutzen Sie den Fassungsvergleich für eine schnelle Gegenüberstellung. Verwenden Sie die virtuelle Anprobe für ein bestimmtes Produktbild.",
+      "shortlistPrefix": "Unsicher, welche Fassungen Sie vergleichen sollen?",
+      "shortlistLink": "Starten Sie mit dem kostenlosen Gesichtsform-Detektor."
     },
     "faceAnalysisLanding": {
-      "badge": "Gesichtsform-Erkennung für Brillen",
+      "badge": "KI-Brillenberater",
       "startFaceAnalysis": "Gesichtsanalyse starten",
+      "useFreeDetector": "Kostenlosen Gesichtsform-Detektor nutzen",
       "tryGlassesOnPhoto": "Try glasses on Foto",
       "faqTitle": "FAQ KI-Gesichtsanalyse",
       "guideLink": "Read the full Leitfaden",
@@ -460,8 +470,8 @@
         "q6Answer": "Round faces often start with angular Fassungs, square faces with round or oval Fassungs, oval faces with balanced rectangular or browline Fassungs, and heart faces with lightweight or softly upswept Fassungs."
       },
       "schema": {
-        "appName": "VisuTry AI Face Analysis for Glasses",
-        "appDescription": "AI face shape analysis for glasses recommendations and virtual try-on planning.",
+        "appName": "VisuTry KI-Brillenberater",
+        "appDescription": "Persönliche Brillenempfehlungen anhand von Gesichtsform und sichtbaren Merkmalen, mit direktem Weg zur virtuellen Anprobe.",
         "feature1": "AI face shape detection",
         "feature2": "Personalized glasses recommendations",
         "feature3": "Frame styles to try and avoid",
@@ -504,9 +514,9 @@
       "modes": {
         "home": {
           "eyebrow": "AI glasses workflow",
-          "title": "Analyze, try on, and compare glasses from one photo",
-          "description": "Use Face for direction, Glasses for custom product images, and Compare for fast side-by-side frame decisions.",
-          "ctaLabel": "Start with Face",
+          "title": "Gesichtsform kostenlos finden, dann Brillen anprobieren und vergleichen",
+          "description": "Starten Sie mit dem privaten Detektor und gehen Sie bei Bedarf zu Beratung, Anprobe oder Vergleich weiter.",
+          "ctaLabel": "Gesichtsform bestimmen",
           "secondaryLabel": "Compare frames",
           "step1": "Face guidance",
           "step2": "Custom try-on",

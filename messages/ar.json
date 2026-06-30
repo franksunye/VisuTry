@@ -77,8 +77,8 @@
   },
   "faceAnalysis": {
     "meta": {
-      "title": "تحليل الوجه بالذكاء الاصطناعي للنظارات | VisuTry",
-      "description": "اكتشف شكل وجهك بالذكاء الاصطناعي واحصل على توصيات نظارات مخصصة. ارفع صورة وافتح تقرير الأناقة الكامل."
+      "title": "مستشار النظارات بالذكاء الاصطناعي: توصيات مخصصة | VisuTry",
+      "description": "احصل على توصيات نظارات مخصصة من صورة واحدة ثم انتقل إلى التجربة الافتراضية."
     },
     "stepper": {
       "photo": "صورة",
@@ -148,8 +148,8 @@
       "searchStyle": "ابحث عن إطارات {style}"
     },
     "landing": {
-      "title": "تحليل الوجه بالذكاء الاصطناعي لاختيار نظارات أفضل",
-      "description": "ارفع صورة لاكتشاف شكل وجهك والسمات الرئيسية وتوصيات الإطارات المخصصة بالذكاء الاصطناعي.",
+      "title": "مستشار النظارات بالذكاء الاصطناعي لاختيار إطارات أفضل",
+      "description": "ارفع صورة واحدة واحصل على تقرير شخصي عن السمات وشكل الوجه والإطارات المقترحة.",
       "tryGlasses": "جرّب النظارات بدلاً من ذلك",
       "steps": {
         "uploadTitle": "ارفع صورتك",
@@ -174,24 +174,26 @@
   },
   "marketing": {
     "home": {
-      "metaTitle": "VisuTry - التجربة الافتراضية بالذكاء الاصطناعي للنظارات والملابس والأحذية والإكسسوارات",
-      "metaDescription": "جرب النظارات والملابس والأحذية والإكسسوارات فورًا مع التجربة الافتراضية المدعومة بالذكاء الاصطناعي. بدون تنزيل - قم بتحميل صورتك وشاهد كيف تبدو العناصر عليك قبل الشراء. مدعوم بـ Nano Banana AI (Gemini 2.5 Flash Image) للحصول على نتائج واقعية.",
+      "metaTitle": "كاشف شكل الوجه المجاني وتجربة النظارات الافتراضية | VisuTry",
+      "metaDescription": "اكتشف شكل وجهك مجاناً، واحصل على نصائح للنظارات، وجرّب الإطارات وقارن النتائج.",
       "faqTitle": "الأسئلة الشائعة",
       "faqSubtitle": "كل ما تحتاج إلى معرفته عن VisuTry",
-      "heroTitle": "اكتشف أسلوبك المثالي",
-      "heroSubtitle": "جرب في 3 خطوات سهلة",
+      "heroTitle": "اعثر على النظارات المناسبة من شكل الوجه إلى التجربة",
+      "heroSubtitle": "ابدأ بكاشف شكل الوجه المجاني والخاص، ثم انتقل إلى الاستشارة والتجربة والمقارنة.",
       "tools": {
-        "faceTitle": "تحليل الوجه",
-        "faceDescription": "اكتشف شكل الوجه واحصل على اتجاهات الإطارات قبل استخدام الرصيد.",
-        "glassesTitle": "النظارات",
+        "faceTitle": "كاشف شكل الوجه",
+        "faceDescription": "مجاني ومن دون حساب، وتبقى الصورة داخل المتصفح.",
+        "advisorTitle": "مستشار النظارات",
+        "advisorDescription": "تقرير مفصل مع توصيات شخصية للإطارات وأسباب اختيارها.",
+        "glassesTitle": "تجربة افتراضية",
         "glassesDescription": "ارفع صور المنتج أو لقطات الشاشة واعرضها على وجهك.",
-        "compareTitle": "مقارنة",
+        "compareTitle": "مقارنة الإطارات",
         "compareDescription": "اختر القوالب الجاهزة وراجع عدة نتائج في لوحة واحدة."
       },
-      "ctaPrimary": "ابدأ من Face",
-      "ctaSecondary": "قارن الإطارات",
+      "ctaPrimary": "اكتشف شكل وجهي مجاناً",
+      "ctaSecondary": "جرّب النظارات",
       "featureCards": {
-        "faceTitle": "تحليل الوجه",
+        "faceTitle": "مستشار النظارات",
         "faceDescription": "A professional face-shape report with إطار style recommendations.",
         "glassesTitle": "Custom النظارات التجربة",
         "glassesDescription": "Use your own glasses product image, store صورة, or screenshot.",
@@ -235,11 +237,16 @@
       "eyebrow": "رصيد بسيط لـ Face وGlasses وCompare",
       "title": "ابدأ برصيد مجاني واحد ثم واصل مع {count} رصيد AI مقابل 2.99 دولار",
       "description": "استخدم الرصيد لتحليل الوجه وتجربة النظارات المخصصة ومقارنة الإطارات.",
+      "freeDetector": {
+        "title": "كاشف شكل الوجه مجاني",
+        "description": "لا يحتاج إلى حساب أو رصيد ولا يرفع الصورة إلى VisuTry.",
+        "cta": "استخدم الكاشف المجاني"
+      },
       "faqTitle": "Frequently Asked Questions (AR)",
       "featureCards": {
-        "faceTitle": "تحليل الوجه",
+        "faceTitle": "مستشار النظارات",
         "faceDescription": "Use one رصيد to estimate face shape and get إطار directions before trying glasses.",
-        "glassesTitle": "تجربة النظارات",
+        "glassesTitle": "تجربة افتراضية",
         "glassesDescription": "Use one رصيد per custom try-on from a portrait and a glasses product image.",
         "compareTitle": "مقارنة الإطارات",
         "compareDescription": "Use one رصيد per generated إطار. Try 1 إطار مجاني, or compare up to 4 with أرصدة."
@@ -346,9 +353,9 @@
       "notFoundDescription": "نوع try-on المطلوب غير موجود.",
       "ogDescription": "ارفع صورة الوجه وصورة النظارة لمعاينة الشكل قبل الشراء، بدون تطبيق.",
       "ctaNote": "تجربة مجانية واحدة للبداية. Credits Pack شراء لمرة واحدة بدون اشتراك.",
-      "shortlistNotePrefix": "Not sure what glasses suit your face? ابدأ with",
-      "shortlistNoteLink": "AI face shape analysis (AR)",
-      "shortlistNoteSuffix": "to get a shortlist, then come back here to try on glasses أونلاين from your own صورة and product screenshots.",
+      "shortlistNotePrefix": "لست متأكداً من النظارات المناسبة؟ ابدأ بـ",
+      "shortlistNoteLink": "كاشف شكل الوجه المجاني",
+      "shortlistNoteSuffix": "ثم استخدم مستشار النظارات للحصول على قائمة شخصية.",
       "faq": {
         "q1Question": "Can I try on glasses أونلاين from a screenshot?",
         "q1Answer": "Yes. VisuTry lets you ارفع your face صورة and a glasses product image or screenshot, then uses AI to create a realistic virtual glasses try-on preview on your face.",
@@ -403,11 +410,14 @@
         "c2Description": "يُحتسب الرصيد حسب عدد الإطارات المولدة، لذا قد تستهلك مقارنة 4 إطارات حتى 4 أرصدة.",
         "c3Description": "النتائج المكتملة تُحفظ في السجل وفق سياسة الاحتفاظ في حسابك."
       },
-      "compareDescription": "Use مقارنة when you have several likely إطار shapes and want a fast side-by-side view. Use النظارات التجربة when you already have a specific product image or screenshot."
+      "compareDescription": "استخدم مقارنة الإطارات لعرض عدة خيارات جنباً إلى جنب، واستخدم التجربة الافتراضية لصورة منتج محددة.",
+      "shortlistPrefix": "لست متأكداً من الإطارات التي تريد مقارنتها؟",
+      "shortlistLink": "ابدأ بكاشف شكل الوجه المجاني."
     },
     "faceAnalysisLanding": {
-      "badge": "كاشف شكل الوجه للنظارات",
+      "badge": "مستشار النظارات بالذكاء الاصطناعي",
       "startFaceAnalysis": "ابدأ تحليل الوجه",
+      "useFreeDetector": "استخدم كاشف شكل الوجه المجاني",
       "tryGlassesOnPhoto": "جرّب النظارات على الصورة",
       "faqTitle": "أسئلة تحليل الوجه بالذكاء الاصطناعي",
       "guideLink": "اقرأ الدليل الكامل",
@@ -460,8 +470,8 @@
         "q6Answer": "Round faces often start with angular إطارs, square faces with round or oval إطارs, oval faces with balanced rectangular or browline إطارs, and heart faces with lightweight or softly upswept إطارs."
       },
       "schema": {
-        "appName": "VisuTry AI Face Analysis for Glasses",
-        "appDescription": "AI face shape analysis for glasses recommendations and virtual try-on planning.",
+        "appName": "مستشار النظارات بالذكاء الاصطناعي من VisuTry",
+        "appDescription": "توصيات نظارات شخصية بناءً على شكل الوجه والسمات الظاهرة مع انتقال مباشر إلى التجربة الافتراضية.",
         "feature1": "AI face shape detection",
         "feature2": "Personalized glasses recommendations",
         "feature3": "Frame styles to try and avoid",
@@ -504,9 +514,9 @@
       "modes": {
         "home": {
           "eyebrow": "AI glasses workflow",
-          "title": "Analyze, try on, and compare glasses from one photo",
-          "description": "Use Face for direction, Glasses for custom product images, and Compare for fast side-by-side frame decisions.",
-          "ctaLabel": "Start with Face",
+          "title": "اكتشف شكل وجهك مجاناً ثم جرّب النظارات وقارنها",
+          "description": "ابدأ بالكاشف الخاص ثم انتقل إلى الاستشارة أو التجربة أو المقارنة عند الحاجة.",
+          "ctaLabel": "اكتشف شكل وجهي",
           "secondaryLabel": "Compare frames",
           "step1": "Face guidance",
           "step2": "Custom try-on",

@@ -2,6 +2,8 @@
 
 **Date**: 2026-05-25
 
+**Status**: Historical commercial foundation. Current SEO/GEO product and keyword ownership is defined in [2026-06-30 Product Architecture SEO/GEO Sync](./seo/2026-06-30-product-architecture-seo-geo-sync.md).
+
 **Scope**: Product reinforcement for verified paid users, plus a targeted SEO/GEO restart after roughly 6 months without meaningful growth work.
 
 **Primary goal**: Turn the first low-cost paid-user proof into a focused product and acquisition loop.

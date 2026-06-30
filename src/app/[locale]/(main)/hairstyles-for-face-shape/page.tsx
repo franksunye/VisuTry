@@ -30,6 +30,8 @@ export async function generateMetadata({ params }: HairstylesHubPageProps): Prom
     title: 'Best Hairstyles for Every Face Shape | VisuTry',
     description: 'Compare hairstyle ideas for oval, round, square, heart, diamond, oblong, and triangle faces, with practical guidance on length, layers, fringe, and volume.',
     pathname: '/hairstyles-for-face-shape',
+    noIndex: params.locale !== 'en',
+    availableLocales: ['en'] as const,
   })
 }
 

@@ -77,8 +77,8 @@
   },
   "faceAnalysis": {
     "meta": {
-      "title": "Análise facial com IA para óculos | VisuTry",
-      "description": "Descubra o formato do seu rosto com IA e obtenha recomendações personalizadas de óculos. Envie uma foto e desbloqueie seu relatório de estilo completo."
+      "title": "Consultor de óculos com IA: recomendações personalizadas | VisuTry",
+      "description": "Receba recomendações personalizadas de óculos a partir de uma foto e avance para a prova virtual."
     },
     "stepper": {
       "photo": "Foto",
@@ -148,8 +148,8 @@
       "searchStyle": "Pesquisar armações {style}"
     },
     "landing": {
-      "title": "Análise facial com IA para melhores escolhas de óculos",
-      "description": "Envie uma foto para descobrir o formato do seu rosto, características principais e recomendações personalizadas de armações com IA.",
+      "title": "Consultor de óculos com IA para uma seleção melhor",
+      "description": "Envie uma foto e receba um relatório personalizado sobre características, formato facial e armações para experimentar.",
       "tryGlasses": "Experimentar óculos em vez disso",
       "steps": {
         "uploadTitle": "Envie sua foto",
@@ -174,24 +174,26 @@
   },
   "marketing": {
     "home": {
-      "metaTitle": "VisuTry - Experimentação Virtual de IA para Óculos, Roupas, Sapatos e Acessórios",
-      "metaDescription": "Experimente óculos, roupas, sapatos e acessórios instantaneamente com experimentação virtual alimentada por IA. Sem download necessário - carregue sua foto e veja como os itens ficam em você antes de comprar. Alimentado por Nano Banana IA (Gemini 2.5 Flash Image) para resultados fotorrealistas.",
+      "metaTitle": "Detector facial gratuito e prova virtual de óculos | VisuTry",
+      "metaDescription": "Descubra gratuitamente o formato do rosto, receba consultoria, prove armações e compare resultados.",
       "faqTitle": "Perguntas Frequentes",
       "faqSubtitle": "Tudo o que você precisa saber sobre VisuTry",
-      "heroTitle": "Encontre Seu Estilo Perfeito",
-      "heroSubtitle": "Experimente em 3 Passos Fáceis",
+      "heroTitle": "Encontre os óculos certos, do formato do rosto à prova virtual",
+      "heroSubtitle": "Comece pelo detector gratuito e privado; avance para consultoria, prova virtual e comparação quando precisar.",
       "tools": {
-        "faceTitle": "Análise facial",
-        "faceDescription": "Detecte o formato do rosto e receba direções de armação antes de gastar créditos.",
-        "glassesTitle": "Óculos",
+        "faceTitle": "Detector de formato facial",
+        "faceDescription": "Gratuito e sem conta; a foto permanece no navegador.",
+        "advisorTitle": "Consultor de óculos",
+        "advisorDescription": "Um relatório detalhado com recomendações personalizadas de armações e seus motivos.",
+        "glassesTitle": "Prova virtual",
         "glassesDescription": "Envie fotos de produto ou capturas e visualize no seu rosto.",
-        "compareTitle": "Comparar",
+        "compareTitle": "Comparar armações",
         "compareDescription": "Escolha presets integrados e revise vários resultados no mesmo painel."
       },
-      "ctaPrimary": "Começar com Face",
-      "ctaSecondary": "Comparar armações",
+      "ctaPrimary": "Detectar formato gratuitamente",
+      "ctaSecondary": "Provar óculos",
       "featureCards": {
-        "faceTitle": "Análise Facial",
+        "faceTitle": "Consultor de óculos",
         "faceDescription": "A professional face-shape report with armação style recommendations.",
         "glassesTitle": "Custom Óculos Prova",
         "glassesDescription": "Use your own glasses product image, store foto, or screenshot.",
@@ -235,11 +237,16 @@
       "eyebrow": "Créditos simples para Face, Glasses e Compare",
       "title": "Comece com 1 crédito grátis e continue com {count} créditos de IA por USD 2.99",
       "description": "Use créditos em análise facial com IA, try-on de óculos personalizado e comparação de armações.",
+      "freeDetector": {
+        "title": "O detector de formato facial é gratuito",
+        "description": "Sem conta, créditos ou envio da foto para a VisuTry.",
+        "cta": "Usar detector gratuito"
+      },
       "faqTitle": "Frequently Asked Questions (PT)",
       "featureCards": {
-        "faceTitle": "Análise Facial",
+        "faceTitle": "Consultor de óculos",
         "faceDescription": "Use one crédito to estimate face shape and get armação directions before trying glasses.",
-        "glassesTitle": "Óculos Prova",
+        "glassesTitle": "Prova virtual",
         "glassesDescription": "Use one crédito per custom try-on from a portrait and a glasses product image.",
         "compareTitle": "Frame Comparar",
         "compareDescription": "Use one crédito per generated armação. Try 1 armação grátis, or compare up to 4 with créditos."
@@ -346,9 +353,9 @@
       "notFoundDescription": "O tipo de try-on solicitado não foi encontrado.",
       "ogDescription": "Envie foto do rosto e imagem do óculos para ver a armação antes de comprar, sem app.",
       "ctaNote": "Uma prova grátis para começar. Credits Pack é compra única, sem assinatura.",
-      "shortlistNotePrefix": "Not sure what glasses suit your face? Começar with",
-      "shortlistNoteLink": "AI face shape analysis (PT)",
-      "shortlistNoteSuffix": "to get a shortlist, then come back here to try on glasses online from your own foto and product screenshots.",
+      "shortlistNotePrefix": "Não sabe quais óculos combinam com você? Comece pelo",
+      "shortlistNoteLink": "detector facial gratuito",
+      "shortlistNoteSuffix": "e use depois o Consultor de óculos para uma seleção personalizada.",
       "faq": {
         "q1Question": "Can I try on glasses online from a screenshot? (PT)",
         "q1Answer": "Yes. VisuTry lets you enviar your face foto and a glasses product image or screenshot, then uses AI to create a realistic virtual glasses try-on preview on your face.",
@@ -403,11 +410,14 @@
         "c2Description": "Credits map directly to generated armaçãos, so a 4-armação comparison uses up to 4 créditos.",
         "c3Description": "Completed results are kept in Dashboard History according to your account retention plan. (PT)"
       },
-      "compareDescription": "Use Comparar when you have several likely armação shapes and want a fast side-by-side view. Use Óculos Prova when you already have a specific product image or screenshot."
+      "compareDescription": "Use a comparação de armações para ver opções lado a lado. Use a prova virtual se já tiver uma imagem específica do produto.",
+      "shortlistPrefix": "Não sabe quais armações comparar?",
+      "shortlistLink": "Comece pelo detector facial gratuito."
     },
     "faceAnalysisLanding": {
-      "badge": "Detector de formato de rosto para óculos",
+      "badge": "Consultor de óculos com IA",
       "startFaceAnalysis": "Iniciar análise facial",
+      "useFreeDetector": "Usar detector facial gratuito",
       "tryGlassesOnPhoto": "Try glasses on foto",
       "faqTitle": "FAQ análise facial IA",
       "guideLink": "Read the full guia",
@@ -460,8 +470,8 @@
         "q6Answer": "Round faces often start with angular armaçãos, square faces with round or oval armaçãos, oval faces with balanced rectangular or browline armaçãos, and heart faces with lightweight or softly upswept armaçãos."
       },
       "schema": {
-        "appName": "VisuTry AI Face Analysis for Glasses",
-        "appDescription": "AI face shape analysis for glasses recommendations and virtual try-on planning.",
+        "appName": "Consultor de óculos com IA VisuTry",
+        "appDescription": "Recomendações personalizadas segundo o formato facial e as características visíveis, ligadas à prova virtual.",
         "feature1": "AI face shape detection",
         "feature2": "Personalized glasses recommendations",
         "feature3": "Frame styles to try and avoid",
@@ -504,9 +514,9 @@
       "modes": {
         "home": {
           "eyebrow": "AI glasses workflow",
-          "title": "Analyze, try on, and compare glasses from one photo",
-          "description": "Use Face for direction, Glasses for custom product images, and Compare for fast side-by-side frame decisions.",
-          "ctaLabel": "Start with Face",
+          "title": "Descubra seu formato grátis, prove e compare óculos",
+          "description": "Comece pelo detector privado e avance para consultoria, prova ou comparação quando precisar.",
+          "ctaLabel": "Detectar meu formato",
           "secondaryLabel": "Compare frames",
           "step1": "Face guidance",
           "step2": "Custom try-on",

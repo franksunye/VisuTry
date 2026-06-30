@@ -16,7 +16,7 @@ type FaceAnalysisFunnelCTAProps = {
 export function FaceAnalysisFunnelCTA({
   locale,
   title = 'Find your best frames before you try them on',
-  body = 'Use AI face analysis to understand your face shape, get a focused frame shortlist, and continue into virtual glasses try-on.',
+  body = 'Find your likely face shape free and privately, then continue into personalized advice or virtual glasses try-on.',
   tone = 'blue',
   sourcePage,
   ctaLocation = 'blog_funnel_cta',
@@ -52,11 +52,11 @@ export function FaceAnalysisFunnelCTA({
       </div>
       <div className="flex flex-col gap-3 sm:flex-row">
         <Link
-          href={`${localePrefix}/face-analysis`}
+          href={`${localePrefix}/face-shape-detector`}
           onClick={() =>
             analytics.trackBlogFunnelClick({
               sourcePage: getSourcePage(),
-              destination: 'face_analysis',
+              destination: 'face_shape_detector',
               ctaLocation,
               locale,
             })
@@ -67,7 +67,7 @@ export function FaceAnalysisFunnelCTA({
               : 'bg-blue-600 text-white hover:bg-blue-700'
           }`}
         >
-          Analyze my face
+          Detect my face shape — free
           <ArrowRight className="ml-2 h-4 w-4" />
         </Link>
         <Link

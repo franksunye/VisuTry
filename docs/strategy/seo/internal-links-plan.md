@@ -1,6 +1,8 @@
 # Internal Links Implementation Plan
 
-## Status: IN PROGRESS
+## Status: LEGACY PLAN
+
+The current intent ownership and commercial internal-link contract are defined in [2026-06-30 Product Architecture SEO/GEO Sync](./2026-06-30-product-architecture-seo-geo-sync.md). Keep the article-to-article tasks below as historical backlog; do not use them to route detector queries to `/face-analysis`.
 
 ### Completed (2/9)
 
@@ -59,4 +61,3 @@ For each article, add links in these locations:
 3. **Conclusion** - 1 link to related content
 
 Use natural anchor text that fits the context.
-

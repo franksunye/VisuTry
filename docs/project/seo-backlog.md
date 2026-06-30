@@ -1,8 +1,25 @@
 # SEO Backlog
 
-Last updated: 2026-06-18
-Current sprint: Face Analysis to Glasses Try-On Growth
+Last updated: 2026-06-30
+Current sprint: Free Detector to Glasses Decision Growth
 Owner: Codex
+
+## Product Architecture Sync
+
+Priority: P0
+Status: Implemented; awaiting traffic baseline
+
+- [x] Assign one primary query family to Detector, Advisor, Try-On, Compare, and editorial hub URLs.
+- [x] Make Face Shape Detector the homepage's primary free acquisition CTA.
+- [x] Reposition `/face-analysis` as Glasses Advisor to prevent detector keyword cannibalization.
+- [x] Connect Detector results to Advisor, Virtual Try-On, and the face-shape guide.
+- [x] Add Detector upload, completion, failure, and downstream CTA events.
+- [x] Clarify on Pricing that Detector is free and does not consume credits.
+- [x] Remove untranslated face-shape locale copies from sitemap/hreflang and set them `noindex,follow`.
+- [ ] Establish the first 7-day Detector upload, completion, and continuation baseline.
+- [ ] Request indexing for the English Detector and refreshed homepage after production verification.
+
+Reference: [Product Architecture SEO/GEO Sync](../strategy/seo/2026-06-30-product-architecture-seo-geo-sync.md)
 
 ## External Acquisition Sprint
 

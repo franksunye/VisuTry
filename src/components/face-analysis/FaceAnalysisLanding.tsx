@@ -152,10 +152,10 @@ export async function FaceAnalysisLanding({ locale }: FaceAnalysisLandingProps) 
                 label={tm('startFaceAnalysis')}
               />
               <Link
-                href={`/${locale}/try-on/glasses`}
+                href={`/${locale}/face-shape-detector`}
                 className="inline-flex items-center justify-center gap-2 rounded-lg border border-gray-300 px-4 py-3 text-gray-700 hover:bg-gray-50"
               >
-                {tm('tryGlassesOnPhoto')}
+                {tm('useFreeDetector')}
                 <ArrowRight className="h-4 w-4" />
               </Link>
             </div>

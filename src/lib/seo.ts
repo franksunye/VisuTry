@@ -10,10 +10,14 @@ import { locales, type Locale, localeToOGLocale } from '@/i18n'
 export const KEYWORDS = {
   // Core tool keywords (high conversion intent) - Priority A
   core: [
+    'face shape detector',
+    'free face shape detector',
+    'glasses advisor',
     'virtual try-on',
     'AI virtual try-on',
     'virtual try-on glasses',
-    'AI face analysis for glasses',
+    'personalized glasses recommendations',
+    'frame compare',
     'virtual try-on outfit',
     'virtual try-on shoes',
     'virtual try-on accessories',
@@ -35,6 +39,8 @@ export const KEYWORDS = {
 
   // Feature-based keywords - Priority A/B
   features: [
+    'on-device face shape detector',
+    'private face shape analysis',
     'smart style recommendation',
     'face shape analysis',
     'personalized glasses recommendations',
@@ -112,8 +118,8 @@ const ALL_KEYWORDS = [
 // Website basic information
 export const SITE_CONFIG = {
   name: 'VisuTry',
-  title: 'VisuTry - AI Virtual Try-On for Glasses, Outfits, Shoes & Accessories',
-  description: 'Try on glasses, outfits, shoes, and accessories instantly with AI-powered virtual try-on. No download needed - upload your photo and see how items look on you before buying. Powered by Nano Banana AI (Gemini 2.5 Flash Image) for photorealistic results.',
+  title: 'VisuTry - Free Face Shape Detector & Virtual Glasses Try-On',
+  description: 'Find your face shape for free, get personalized glasses advice, try any frame image on your photo, and compare your best looks side by side.',
   url: process.env.NEXT_PUBLIC_SITE_URL || 'https://www.visutry.com',
   ogImage: '/blog-covers/ai-virtual-tryon.jpg',
   keywords: ALL_KEYWORDS,
@@ -454,7 +460,10 @@ export function generateStructuredData(
  * Generate alternate language URLs for a given pathname
  * Used for hreflang tags and language alternates
  */
-export function getAlternateLanguages(pathname: string = ''): Record<string, string> {
+export function getAlternateLanguages(
+  pathname: string = '',
+  availableLocales: readonly Locale[] = locales,
+): Record<string, string> {
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.visutry.com'
   const alternates: Record<string, string> = {}
 
@@ -465,7 +474,7 @@ export function getAlternateLanguages(pathname: string = ''): Record<string, str
   const localePattern = locales.join('|')
   const pathWithoutLocale = cleanPath.replace(new RegExp(`^(${localePattern})/`), '')
 
-  locales.forEach((locale) => {
+  availableLocales.forEach((locale) => {
     alternates[locale] = `${baseUrl}/${locale}${pathWithoutLocale ? `/${pathWithoutLocale}` : ''}`
   })
 
@@ -486,6 +495,7 @@ export function generateI18nSEO({
   pathname = '',
   type = 'website',
   noIndex = false,
+  availableLocales = locales,
 }: {
   locale: Locale
   title: string
@@ -496,6 +506,7 @@ export function generateI18nSEO({
   pathname?: string
   type?: 'website' | 'article'
   noIndex?: boolean
+  availableLocales?: readonly Locale[]
 }): Metadata {
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.visutry.com'
   const imagePath = image || SITE_CONFIG.ogImage
@@ -512,11 +523,11 @@ export function generateI18nSEO({
   const canonicalUrl = `${baseUrl}/${locale}${pathWithoutLocale ? `/${pathWithoutLocale}` : ''}`
 
   // Generate alternate language URLs
-  const alternateLanguages = getAlternateLanguages(pathWithoutLocale)
+  const alternateLanguages = getAlternateLanguages(pathWithoutLocale, availableLocales)
 
   // Get Open Graph locale
   const ogLocale = localeToOGLocale[locale]
-  const alternateLocales = locales
+  const alternateLocales = availableLocales
     .filter(l => l !== locale)
     .map(l => localeToOGLocale[l])
 

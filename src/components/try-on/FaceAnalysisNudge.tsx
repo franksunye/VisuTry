@@ -16,11 +16,11 @@ interface FaceAnalysisNudgeProps {
 
 const contentByVariant = {
   pre: {
-    eyebrow: "Face Analysis First",
+    eyebrow: "Glasses Advisor",
     title: "Not sure what suits you?",
     description:
-      "Start with Face Analysis to get personalized frame recommendations before trying glasses on.",
-    cta: "Analyze my face",
+      "Use Glasses Advisor to get personalized frame recommendations before trying glasses on.",
+    cta: "Open Glasses Advisor",
     supporting: "Takes about 30 seconds",
     points: ["Detect face shape", "Find flattering frames", "Save time in try-on"],
   },
@@ -29,7 +29,7 @@ const contentByVariant = {
     title: "Want more precise frame ideas?",
     description:
       "Analyze your face shape, proportions, and best frame styles before choosing your next pair.",
-    cta: "Get Face Analysis",
+    cta: "Open Glasses Advisor",
     supporting: "Helpful after seeing your first result",
     points: ["Face shape & proportions", "Best frame style matches", "Personalized suggestions"],
   },
@@ -59,7 +59,7 @@ export function FaceAnalysisNudge({
           "rounded-lg border border-blue-100 bg-white/80 px-4 py-3 shadow-sm",
           className,
         )}
-        aria-label="Face Analysis recommendation"
+        aria-label="Glasses Advisor recommendation"
       >
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex min-w-0 items-start gap-3">
@@ -88,7 +88,7 @@ export function FaceAnalysisNudge({
                 type="button"
                 onClick={onDismiss}
                 className="flex h-8 w-8 items-center justify-center rounded-full text-gray-400 transition hover:bg-gray-100 hover:text-gray-700"
-                aria-label="Dismiss Face Analysis recommendation"
+                aria-label="Dismiss Glasses Advisor recommendation"
               >
                 <X className="h-4 w-4" />
               </button>
@@ -106,7 +106,7 @@ export function FaceAnalysisNudge({
         isPost ? "p-5" : "p-4 md:p-5",
         className,
       )}
-      aria-label="Face Analysis recommendation"
+      aria-label="Glasses Advisor recommendation"
     >
       <div className={cn("flex gap-4", isPost ? "flex-col sm:flex-row sm:items-start" : "items-start")}>
         <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl bg-blue-100 text-blue-600">
@@ -128,7 +128,7 @@ export function FaceAnalysisNudge({
                 type="button"
                 onClick={onDismiss}
                 className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full text-gray-400 transition hover:bg-white hover:text-gray-700"
-                aria-label="Dismiss Face Analysis recommendation"
+                aria-label="Dismiss Glasses Advisor recommendation"
               >
                 <X className="h-4 w-4" />
               </button>

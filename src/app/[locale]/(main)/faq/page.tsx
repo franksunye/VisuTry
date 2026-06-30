@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { Metadata } from 'next'
-import { ArrowRight, Grid2X2, ScanFace, Shield, Sparkles } from 'lucide-react'
+import { ArrowRight, Glasses, Grid2X2, ScanFace, Shield, Sparkles } from 'lucide-react'
 import { generateI18nSEO, generateStructuredData } from '@/lib/seo'
 import { Locale } from '@/i18n'
 import { getTranslations } from 'next-intl/server'
@@ -74,10 +74,11 @@ export default async function FaqPage({ params }: Props) {
         <p className="mt-4 max-w-3xl text-base leading-7 text-gray-600">
           {t('subtitle')}
         </p>
-        <div className="mt-6 grid gap-3 sm:grid-cols-3">
+        <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           {[
-            { icon: ScanFace, label: tNav('faceAnalysis'), href: `/${params.locale}/face-analysis` },
-            { icon: Sparkles, label: tNav('tryGlasses'), href: `/${params.locale}/try-on/glasses` },
+            { icon: ScanFace, label: tNav('faceShapeDetector'), href: `/${params.locale}/face-shape-detector` },
+            { icon: Sparkles, label: tNav('faceAnalysis'), href: `/${params.locale}/face-analysis` },
+            { icon: Glasses, label: tNav('tryGlasses'), href: `/${params.locale}/try-on/glasses` },
             { icon: Grid2X2, label: tNav('compare'), href: `/${params.locale}/try-on/glasses/compare` },
           ].map((item) => {
             const Icon = item.icon

@@ -31,6 +31,8 @@ export async function generateMetadata({ params }: FaceShapesPageProps): Promise
     title: 'The 7 Face Shapes: How to Identify Yours | VisuTry',
     description: 'Compare oval, round, square, heart, diamond, oblong, and triangle face shapes with practical measurement clues, glasses guides, and hairstyle advice.',
     pathname: '/face-shapes',
+    noIndex: params.locale !== 'en',
+    availableLocales: ['en'] as const,
   })
 }
 

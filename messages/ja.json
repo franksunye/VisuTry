@@ -77,8 +77,8 @@
   },
   "faceAnalysis": {
     "meta": {
-      "title": "AI顔分析でメガネ選び | VisuTry",
-      "description": "AIで顔の形を分析し、パーソナライズされたメガネのおすすめを取得。写真をアップロードして、完全なスタイルレポートを解除しましょう。"
+      "title": "AIメガネアドバイザー：あなた向けフレーム提案 | VisuTry",
+      "description": "1枚の写真から自分に合うフレーム候補と理由を確認し、バーチャル試着へ進めます。"
     },
     "stepper": {
       "photo": "写真",
@@ -148,8 +148,8 @@
       "searchStyle": "{style}フレームを検索"
     },
     "landing": {
-      "title": "AI顔分析でより良いメガネ選び",
-      "description": "写真をアップロードして、顔の形、主な特徴、AIによるパーソナライズされたフレーム推奨を発見しましょう。",
+      "title": "AIメガネアドバイザーで候補を絞り込む",
+      "description": "1枚の写真から顔の特徴、顔型、試す価値のあるフレームをまとめた個人向けレポートを取得できます。",
       "tryGlasses": "代わりにメガネを試着",
       "steps": {
         "uploadTitle": "写真をアップロード",
@@ -174,24 +174,26 @@
   },
   "marketing": {
     "home": {
-      "metaTitle": "VisuTry - メガネ、服、靴、アクセサリーのAIバーチャル試着",
-      "metaDescription": "AI搭載のバーチャル試着でメガネ、服、靴、アクセサリーを即座に試着。ダウンロード不要 - 写真をアップロードして購入前にアイテムがどのように見えるかを確認。Nano Banana AI (Gemini 2.5 Flash Image)によるフォトリアルな結果。",
+      "metaTitle": "無料顔型診断＆メガネのバーチャル試着 | VisuTry",
+      "metaDescription": "顔型を無料で診断し、メガネのアドバイスを受け、商品画像を試着して結果を比較できます。",
       "faqTitle": "よくある質問",
       "faqSubtitle": "VisuTryについて知っておくべきことすべて",
-      "heroTitle": "あなたにぴったりのスタイルを見つけよう",
-      "heroSubtitle": "3つの簡単なステップで試着",
+      "heroTitle": "顔型診断から試着まで、あなたに合うメガネを見つける",
+      "heroSubtitle": "無料でプライベートな顔型診断から始め、必要に応じてアドバイス、試着、比較へ進めます。",
       "tools": {
-        "faceTitle": "顔分析",
-        "faceDescription": "顔型を検出し、クレジットを使う前にフレーム方向の候補を把握できます。",
-        "glassesTitle": "メガネ",
+        "faceTitle": "顔型診断",
+        "faceDescription": "無料・アカウント不要で、写真はブラウザ内で処理されます。",
+        "advisorTitle": "メガネアドバイザー",
+        "advisorDescription": "顔の特徴に合わせたフレーム候補と、その理由を詳しいレポートで確認できます。",
+        "glassesTitle": "バーチャル試着",
         "glassesDescription": "商品画像やスクリーンショットをアップロードして、顔上でプレビューできます。",
-        "compareTitle": "比較",
+        "compareTitle": "フレーム比較",
         "compareDescription": "内蔵プリセットを選び、複数フレーム結果を1つのボードで確認できます。"
       },
-      "ctaPrimary": "Faceから始める",
-      "ctaSecondary": "フレームを比較",
+      "ctaPrimary": "無料で顔型を診断",
+      "ctaSecondary": "メガネを試着",
       "featureCards": {
-        "faceTitle": "顔分析",
+        "faceTitle": "メガネアドバイザー",
         "faceDescription": "顔型レポートとフレーム提案をまとめて確認できます。",
         "glassesTitle": "カスタム眼鏡試着",
         "glassesDescription": "商品画像・店舗写真・スクリーンショットを使って試着できます。",
@@ -235,11 +237,16 @@
       "eyebrow": "Face・Glasses・Compare向けのシンプルなクレジット",
       "title": "無料1クレジットで開始、続ける場合は{count} AIクレジット（USD 2.99）",
       "description": "クレジットはAI顔分析、カスタムメガネ試着、フレーム比較で利用できます。",
+      "freeDetector": {
+        "title": "顔型診断は無料です",
+        "description": "アカウントもクレジットも不要で、写真はVisuTryへ送信されません。",
+        "cta": "無料診断を使う"
+      },
       "faqTitle": "Frequently Asked Questions (JA)",
       "featureCards": {
-        "faceTitle": "顔分析",
+        "faceTitle": "メガネアドバイザー",
         "faceDescription": "1クレジットで顔型を推定し、試着前にフレーム方向を確認。",
-        "glassesTitle": "眼鏡試着",
+        "glassesTitle": "バーチャル試着",
         "glassesDescription": "ポートレートと眼鏡画像で1回のカスタム試着につき1クレジット。",
         "compareTitle": "フレーム比較",
         "compareDescription": "生成フレーム1つにつき1クレジット。最大4フレーム比較可能。"
@@ -347,8 +354,8 @@
       "ogDescription": "顔写真と眼鏡画像をアップロードし、購入前に装着イメージを確認。アプリ不要。",
       "ctaNote": "最初は1回無料。Credits Packは買い切りでサブスク不要。",
       "shortlistNotePrefix": "どの眼鏡が合うかわからない場合は、まず",
-      "shortlistNoteLink": "AI顔型分析",
-      "shortlistNoteSuffix": "で候補を絞ってから、ここで試着を続けてください。",
+      "shortlistNoteLink": "無料の顔型診断",
+      "shortlistNoteSuffix": "を使い、必要ならメガネアドバイザーで候補を絞ってください。",
       "faq": {
         "q1Question": "スクリーンショットから試着できますか？",
         "q1Answer": "はい。顔写真と眼鏡画像/スクリーンショットでリアルなプレビューを生成できます。",
@@ -403,11 +410,14 @@
         "c2Description": "生成フレーム数に応じてクレジット消費されます。",
         "c3Description": "完了結果は保持プランに従って履歴へ保存されます。"
       },
-      "compareDescription": "候補フレームを並べて素早く比較したい場合にCompareが有効です。"
+      "compareDescription": "複数の候補フレームを同じ写真で生成し、横並びで比較できます。",
+      "shortlistPrefix": "比較するフレームに迷っていますか？",
+      "shortlistLink": "無料の顔型診断から始めましょう。"
     },
     "faceAnalysisLanding": {
-      "badge": "メガネ向け顔型検出",
+      "badge": "AIメガネアドバイザー",
       "startFaceAnalysis": "顔分析を開始",
+      "useFreeDetector": "無料の顔型診断を使う",
       "tryGlassesOnPhoto": "写真でメガネ試着",
       "faqTitle": "AI顔分析FAQ",
       "guideLink": "完全ガイドを読む",
@@ -460,8 +470,8 @@
         "q6Answer": "丸顔は角張り、四角顔は丸み、卵型はバランス型、ハート型は軽量/上向きが目安です。"
       },
       "schema": {
-        "appName": "VisuTry AI Face Analysis for Glasses",
-        "appDescription": "AI face shape analysis for glasses recommendations and virtual try-on planning.",
+        "appName": "VisuTry AIメガネアドバイザー",
+        "appDescription": "顔型と見た目の特徴に基づく個人向けフレーム提案を、バーチャル試着につなげます。",
         "feature1": "AI face shape detection",
         "feature2": "Personalized glasses recommendations",
         "feature3": "Frame styles to try and avoid",
@@ -504,9 +514,9 @@
       "modes": {
         "home": {
           "eyebrow": "AI glasses workflow",
-          "title": "Analyze, try on, and compare glasses from one photo",
-          "description": "Use Face for direction, Glasses for custom product images, and Compare for fast side-by-side frame decisions.",
-          "ctaLabel": "Start with Face",
+          "title": "顔型を無料で確認し、メガネを試着・比較",
+          "description": "プライベートな顔型診断から始め、必要に応じてアドバイス、試着、比較へ進めます。",
+          "ctaLabel": "顔型を診断",
           "secondaryLabel": "Compare frames",
           "step1": "Face guidance",
           "step2": "Custom try-on",

@@ -33,6 +33,8 @@ export async function generateMetadata({ params }: FaceShapeComparisonPageProps)
     title: `${first.name} vs ${second.name} Face Shape: Key Differences`,
     description: `Compare ${first.name.toLowerCase()} and ${second.name.toLowerCase()} face shapes by length, width, jawline, and outline. Use practical checks to decide which description fits better.`,
     pathname: `/face-shapes/compare/${comparison.slug}`,
+    noIndex: params.locale !== 'en',
+    availableLocales: ['en'] as const,
   })
 }
 

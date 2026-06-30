@@ -77,8 +77,8 @@
   },
   "faceAnalysis": {
     "meta": {
-      "title": "ИИ-анализ лица для очков | VisuTry",
-      "description": "Узнайте форму лица с помощью ИИ и получите персональные рекомендации по очкам. Загрузите фото и откройте полный стилевой отчёт."
+      "title": "ИИ-подбор очков: персональные рекомендации оправ | VisuTry",
+      "description": "Получите персональные рекомендации очков по одной фотографии и перейдите к виртуальной примерке."
     },
     "stepper": {
       "photo": "Фото",
@@ -148,8 +148,8 @@
       "searchStyle": "Искать оправы {style}"
     },
     "landing": {
-      "title": "ИИ-анализ лица для лучшего выбора очков",
-      "description": "Загрузите фото, чтобы узнать форму лица, ключевые черты и персональные рекомендации по оправам с помощью ИИ.",
+      "title": "ИИ-подбор очков для более точного списка оправ",
+      "description": "Загрузите одну фотографию и получите персональный отчёт о чертах лица, форме и подходящих оправах.",
       "tryGlasses": "Вместо этого примерить очки",
       "steps": {
         "uploadTitle": "Загрузите фото",
@@ -174,24 +174,26 @@
   },
   "marketing": {
     "home": {
-      "metaTitle": "VisuTry - Виртуальная Примерка ИИ для Очков, Одежды, Обуви и Аксессуаров",
-      "metaDescription": "Примеряйте очки, одежду, обувь и аксессуары мгновенно с виртуальной примеркой на базе ИИ. Без загрузки - загрузите свое фото и посмотрите, как товары выглядят на вас перед покупкой. Работает на базе Nano Banana ИИ (Gemini 2.5 Flash Image) для фотореалистичных результатов.",
+      "metaTitle": "Бесплатный определитель формы лица и примерка очков | VisuTry",
+      "metaDescription": "Определите форму лица бесплатно, получите рекомендации, примерьте оправы и сравните результаты.",
       "faqTitle": "Часто Задаваемые Вопросы",
       "faqSubtitle": "Все, что вам нужно знать о VisuTry",
-      "heroTitle": "Найдите Свой Идеальный Стиль",
-      "heroSubtitle": "Примерьте в 3 Простых Шага",
+      "heroTitle": "Найдите подходящие очки — от формы лица до примерки",
+      "heroSubtitle": "Начните с бесплатного приватного инструмента, затем переходите к подбору, примерке и сравнению.",
       "tools": {
-        "faceTitle": "Анализ лица",
-        "faceDescription": "Определяйте форму лица и получайте направления по оправам до расхода кредитов.",
-        "glassesTitle": "Очки",
+        "faceTitle": "Определитель формы лица",
+        "faceDescription": "Бесплатно и без аккаунта; фото обрабатывается в браузере.",
+        "advisorTitle": "Подбор очков",
+        "advisorDescription": "Подробный отчёт с персональными рекомендациями оправ и объяснениями.",
+        "glassesTitle": "Виртуальная примерка",
         "glassesDescription": "Загружайте фото товара или скриншоты и смотрите на своем лице.",
-        "compareTitle": "Сравнить",
+        "compareTitle": "Сравнение оправ",
         "compareDescription": "Выбирайте встроенные пресеты и проверяйте несколько результатов в одном борде."
       },
-      "ctaPrimary": "Начать с Face",
-      "ctaSecondary": "Сравнить оправы",
+      "ctaPrimary": "Определить форму бесплатно",
+      "ctaSecondary": "Примерить очки",
       "featureCards": {
-        "faceTitle": "Анализ лица",
+        "faceTitle": "Подбор очков",
         "faceDescription": "A professional face-shape report with оправа style recommendations.",
         "glassesTitle": "Custom Очки Примерка",
         "glassesDescription": "Use your own glasses product image, store фото, or screenshot.",
@@ -235,11 +237,16 @@
       "eyebrow": "Простые кредиты для Face, Glasses и Compare",
       "title": "Начните с 1 бесплатного кредита и продолжайте с {count} AI-кредитами за 2.99 USD",
       "description": "Используйте кредиты для ИИ-анализа лица, персональной примерки очков и сравнения оправ.",
+      "freeDetector": {
+        "title": "Определитель формы лица бесплатный",
+        "description": "Без аккаунта, кредитов и загрузки фото на сервер VisuTry.",
+        "cta": "Открыть бесплатный инструмент"
+      },
       "faqTitle": "Frequently Asked Questions (RU)",
       "featureCards": {
-        "faceTitle": "Анализ лица",
+        "faceTitle": "Подбор очков",
         "faceDescription": "Use one кредит to estimate face shape and get оправа directions before trying glasses.",
-        "glassesTitle": "Очки Примерка",
+        "glassesTitle": "Виртуальная примерка",
         "glassesDescription": "Use one кредит per custom try-on from a portrait and a glasses product image.",
         "compareTitle": "Frame Сравнение",
         "compareDescription": "Use one кредит per generated оправа. Try 1 оправа бесплатно, or compare up to 4 with кредиты."
@@ -346,9 +353,9 @@
       "notFoundDescription": "Запрошенный тип try-on не найден.",
       "ogDescription": "Загрузите фото лица и изображение очков, чтобы увидеть результат до покупки.",
       "ctaNote": "Одна бесплатная примерка для старта. Credits Pack — разовая покупка без подписки.",
-      "shortlistNotePrefix": "Not sure what glasses suit your face? Начать with",
-      "shortlistNoteLink": "AI face shape analysis (RU)",
-      "shortlistNoteSuffix": "to get a shortlist, then come back here to try on glasses онлайн from your own фото and product screenshots.",
+      "shortlistNotePrefix": "Не знаете, какие очки подойдут? Начните с",
+      "shortlistNoteLink": "бесплатного определителя формы лица",
+      "shortlistNoteSuffix": "а затем используйте подбор очков для персонального списка.",
       "faq": {
         "q1Question": "Can I try on glasses онлайн from a screenshot?",
         "q1Answer": "Yes. VisuTry lets you загрузить your face фото and a glasses product image or screenshot, then uses AI to create a realistic virtual glasses try-on preview on your face.",
@@ -403,11 +410,14 @@
         "c2Description": "Credits map directly to generated оправаs, so a 4-оправа comparison uses up to 4 кредиты.",
         "c3Description": "Completed results are kept in Dashboard History according to your account retention plan. (RU)"
       },
-      "compareDescription": "Use Сравнение when you have several likely оправа shapes and want a fast side-by-side view. Use Очки Примерка when you already have a specific product image or screenshot."
+      "compareDescription": "Используйте сравнение оправ для быстрого просмотра вариантов рядом. Для конкретного изображения товара выберите виртуальную примерку.",
+      "shortlistPrefix": "Не знаете, какие оправы сравнить?",
+      "shortlistLink": "Начните с бесплатного определителя формы лица."
     },
     "faceAnalysisLanding": {
-      "badge": "Определение формы лица для очков",
+      "badge": "ИИ-подбор очков",
       "startFaceAnalysis": "Начать анализ лица",
+      "useFreeDetector": "Использовать бесплатный определитель формы лица",
       "tryGlassesOnPhoto": "Try glasses on фото",
       "faqTitle": "FAQ по ИИ-анализу лица",
       "guideLink": "Read the full гайд",
@@ -460,8 +470,8 @@
         "q6Answer": "Round faces often start with angular оправаs, square faces with round or oval оправаs, oval faces with balanced rectangular or browline оправаs, and heart faces with lightweight or softly upswept оправаs."
       },
       "schema": {
-        "appName": "VisuTry AI Face Analysis for Glasses",
-        "appDescription": "AI face shape analysis for glasses recommendations and virtual try-on planning.",
+        "appName": "ИИ-подбор очков VisuTry",
+        "appDescription": "Персональные рекомендации оправ по форме и видимым чертам лица с переходом к виртуальной примерке.",
         "feature1": "AI face shape detection",
         "feature2": "Personalized glasses recommendations",
         "feature3": "Frame styles to try and avoid",
@@ -504,9 +514,9 @@
       "modes": {
         "home": {
           "eyebrow": "AI glasses workflow",
-          "title": "Analyze, try on, and compare glasses from one photo",
-          "description": "Use Face for direction, Glasses for custom product images, and Compare for fast side-by-side frame decisions.",
-          "ctaLabel": "Start with Face",
+          "title": "Определите форму лица бесплатно, затем примерьте и сравните очки",
+          "description": "Начните с приватного инструмента и переходите к подбору, примерке или сравнению.",
+          "ctaLabel": "Определить форму лица",
           "secondaryLabel": "Compare frames",
           "step1": "Face guidance",
           "step2": "Custom try-on",

@@ -63,7 +63,7 @@ const faceShapeRows = [
 const faqContent = [
   {
     question: 'How do I know what glasses suit my face?',
-    answer: 'Start with your face shape, then check frame width, lens depth, bridge fit, and personal style. VisuTry uses AI face analysis to create a shortlist, then virtual try-on helps you compare the look on your own photo.',
+    answer: 'Start with the free Face Shape Detector, then check frame width, lens depth, bridge fit, and personal style. Glasses Advisor can create a deeper shortlist, and Virtual Try-On helps you compare the look on your own photo.',
   },
   {
     question: 'What are face shape glasses?',
@@ -83,7 +83,7 @@ const faqContent = [
   },
   {
     question: 'What is the fastest way to choose glasses online?',
-    answer: 'Use AI face analysis to narrow the frame shapes, then try the recommended styles on your photo before comparing specific products.',
+    answer: 'Use the free Face Shape Detector for the first category, Glasses Advisor for personalized recommendations, then try the shortlisted styles on your photo.',
   },
 ]
 
@@ -91,8 +91,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return generateI18nSEO({
     locale: params.locale as Locale,
     title: 'What Glasses Suit My Face? Face Shape Guide | VisuTry',
-    description: 'Find what glasses suit your face shape, compare frame styles, and use VisuTry AI face analysis to move from recommendations to virtual glasses try-on.',
+    description: 'Find what glasses suit your face shape, compare frame styles, and move from the free Face Shape Detector to personalized advice and Virtual Try-On.',
     pathname: '/glasses-for-face-shape',
+    noIndex: params.locale !== 'en',
+    availableLocales: ['en'] as const,
   })
 }
 

@@ -1013,6 +1013,9 @@ API 应在以下条件满足后再启动：
 - 将免费检测器、高混淆比较、测量指南接入脸型、眼镜、发型内容集群和 sitemap；
 - 将免费检测器升级为一级产品入口，接入桌面端、移动端 Header 与 Footer 导航；
 - 导航产品命名统一为 Face Shape Detector、Glasses Advisor、Virtual Try-On 与 Frame Compare：免费入口承接已验证的 detector 搜索语言，付费入口表达眼镜建议结果而非底层 AI 技术；
+- 首页、核心 Landing、Pricing、metadata、结构化数据和内链已同步四阶段产品路径；
+- 免费 Detector 已增加上传、完成、失败与下游 CTA 埋点；
+- 未完成正文翻译的脸型内容暂时只索引英文版本，避免错误 hreflang 和重复英文页面；
 - TypeScript、核心 landmark 单元测试和生产构建通过。
 
 下一阶段不再继续凭感觉批量铺页。优先采集 detector 完成率、失败原因、结果后点击，以及 GSC 的收录、query 和 CTR 数据；同时用真人标注集校准分类边界与拒绝策略。

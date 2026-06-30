@@ -87,14 +87,14 @@ export default function BlogPostPage({ params }: { params: { locale: string } })
               <p>
                 The fastest workflow is simple: identify your face shape, shortlist a few frame
                 styles, then use virtual try-on to see which one actually fits your face and style.
-                If you are unsure where to start, run <Link href={`${localePrefix}/face-analysis`}>AI face analysis for glasses</Link>
+                If you are unsure where to start, run the <Link href={`${localePrefix}/face-shape-detector`}>free Face Shape Detector</Link>
                 {' '}or compare all recommendations in the <Link href={`${localePrefix}/glasses-for-face-shape`}>glasses for face shape hub</Link>.
               </p>
 
               <FaceAnalysisFunnelCTA
                 locale={params.locale}
                 title="Not sure which face shape you have?"
-                body="Upload one front-facing photo, get an AI face shape report, and move into a focused glasses try-on shortlist."
+                body="Upload one front-facing photo for a free on-device face-shape estimate, then move into glasses advice or virtual try-on."
                 tone="light"
               />
 

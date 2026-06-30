@@ -246,6 +246,46 @@ export const analytics = {
     })
   },
 
+  // ==================== Free Face Shape Detector 事件 ====================
+
+  trackFaceShapeDetectorUpload(fileType: string, fileSizeBytes: number) {
+    sendEvent('face_shape_detector_upload', {
+      file_type: fileType,
+      file_size_bytes: fileSizeBytes,
+      processing_mode: 'on_device',
+    })
+  },
+
+  trackFaceShapeDetectorComplete(
+    faceShape: string,
+    qualityScore: number,
+    processingTimeMs: number,
+  ) {
+    sendEvent('face_shape_detector_complete', {
+      face_shape: faceShape,
+      quality_score: qualityScore,
+      processing_time_ms: processingTimeMs,
+      processing_mode: 'on_device',
+    })
+  },
+
+  trackFaceShapeDetectorFailed(reason: string) {
+    sendEvent('face_shape_detector_failed', {
+      failure_reason: reason.slice(0, 200),
+      processing_mode: 'on_device',
+    })
+  },
+
+  trackFaceShapeDetectorCta(
+    faceShape: string,
+    destination: 'glasses_advisor' | 'virtual_try_on' | 'face_shape_guide',
+  ) {
+    sendEvent('face_shape_detector_cta_click', {
+      face_shape: faceShape,
+      destination,
+    })
+  },
+
   trackFaceAnalysisUnlockClick(faceShape: string, source: EventSource = 'face_analysis') {
     sendEvent('face_analysis_unlock_click', {
       face_shape: faceShape,
@@ -288,7 +328,7 @@ export const analytics = {
     locale,
   }: {
     sourcePage: string
-    destination: 'face_analysis' | 'glasses_try_on' | 'glasses_for_face_shape'
+    destination: 'face_shape_detector' | 'face_analysis' | 'glasses_try_on' | 'glasses_for_face_shape'
     ctaLocation: string
     locale: string
   }) {

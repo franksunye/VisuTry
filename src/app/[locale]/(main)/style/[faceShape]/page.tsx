@@ -194,8 +194,10 @@ export async function generateMetadata({ params }: FaceShapePageProps): Promise<
   return generateI18nSEO({
     locale: params.locale as Locale,
     title: `${guide.title} | Style Guide and AI Try-On`,
-    description: `${guide.description} Use VisuTry to analyze your face shape and try recommended glasses on your own photo.`,
+    description: `${guide.description} Use VisuTry's free Face Shape Detector, then try recommended glasses on your own photo.`,
     pathname: `/style/${normalizedSlug}`,
+    noIndex: params.locale !== 'en',
+    availableLocales: ['en'] as const,
   })
 }
 
@@ -227,7 +229,7 @@ export default async function FaceShapePage({ params }: FaceShapePageProps) {
     },
     {
       question: 'Can AI help me choose glasses for my face shape?',
-      answer: 'Yes. AI face analysis can estimate your face shape and turn it into a frame shortlist. VisuTry then lets you try recommended glasses styles on your own photo.',
+      answer: 'Yes. The free Face Shape Detector estimates your likely shape, while Glasses Advisor creates a deeper frame shortlist. Virtual Try-On then lets you check recommended styles on your own photo.',
     },
   ]
   const faqSchema = generateStructuredData('faqPage', { questions: faqContent })
@@ -404,7 +406,7 @@ export default async function FaceShapePage({ params }: FaceShapePageProps) {
           <div className="grid gap-4 md:grid-cols-3">
             {[
               'Use the face-shape guide to narrow the first frame shapes.',
-              'Upload a photo for AI face analysis and personalized recommendations.',
+              'Use Glasses Advisor for personalized recommendations when you need more than the free face-shape result.',
               'Try glasses on your photo to confirm scale, color, and style.',
             ].map((item) => (
               <div key={item} className="rounded-lg border border-gray-200 p-5">

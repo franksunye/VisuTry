@@ -1,7 +1,7 @@
 # VisuTry Commercial Traffic KPI Operating Plan
 
 Date: 2026-06-12
-Revised: 2026-06-18
+Revised: 2026-06-30
 Owner: Codex
 Scope: Website commercial traffic growth
 
@@ -39,10 +39,14 @@ Commercial-intent website visitors who take a high-value product action.
 
 For VisuTry, a high-value product action means the visitor moves from discovery into an action that can create revenue or purchase intent:
 
+- completes the free Face Shape Detector and continues to another product
+- opens Glasses Advisor from a Detector result
 - starts glasses try-on
-- starts face analysis
-- completes face analysis and continues into try-on
+- starts Glasses Advisor
+- completes Glasses Advisor and continues into try-on
 - views pricing or credit-pack information
+
+The free Detector itself is an acquisition and activation event. Its commercial value is measured by result completion and continuation into Advisor, Try-On, Compare, content, Pricing, or purchase—not by charging for the first classification.
 - unlocks a paid face-analysis or try-on outcome
 
 Face analysis to glasses try-on is one important commercial path, but it is not the whole business KPI. The broader goal is to grow qualified traffic that can convert through any VisuTry commercial path.

@@ -51,8 +51,8 @@
   },
   "faceAnalysis": {
     "meta": {
-      "title": "AI Face Shape Detector for Glasses | VisuTry",
-      "description": "Use an AI face shape detector for glasses. Upload one photo, learn what glasses suit your face, and continue into virtual glasses try-on."
+      "title": "AI Glasses Advisor: Personalized Frame Recommendations | VisuTry",
+      "description": "Get personalized glasses recommendations from one photo, understand why frame styles suit your features, and continue into virtual try-on."
     },
     "stepper": {
       "photo": "Photo",
@@ -122,14 +122,14 @@
       "searchStyle": "Search {style} frames"
     },
     "landing": {
-      "title": "AI Face Analysis for Better Glasses Choices",
-      "description": "Upload a photo to discover your face shape, key features, and personalized frame recommendations powered by AI.",
+      "title": "AI Glasses Advisor for a Better Frame Shortlist",
+      "description": "Upload one photo for a personalized report on your visible features, likely face shape, and the frame styles worth trying first.",
       "tryGlasses": "Try Glasses Instead",
       "steps": {
         "uploadTitle": "Upload your photo",
         "uploadDescription": "Use a clear, front-facing photo for best results.",
-        "analysisTitle": "AI face analysis",
-        "analysisDescription": "Get face shape, confidence score, and key features.",
+        "analysisTitle": "Personalized analysis",
+        "analysisDescription": "Review visible features, likely face shape, and recommendation signals.",
         "reportTitle": "Personalized report",
         "reportDescription": "Unlock frame recommendations and style guidance.",
         "privacyTitle": "Private & secure",
@@ -148,22 +148,24 @@
   },
   "marketing": {
     "home": {
-      "metaTitle": "AI Glasses Try-On, Face Analysis, and Frame Compare | VisuTry",
-      "metaDescription": "Analyze face shape, try custom glasses images, and compare preset frames side by side in your browser.",
+      "metaTitle": "Free Face Shape Detector & Virtual Glasses Try-On | VisuTry",
+      "metaDescription": "Find your face shape for free, get personalized glasses advice, try any frame image on your photo, and compare looks side by side.",
       "faqTitle": "Questions before you start",
       "faqSubtitle": "Short answers for choosing the right VisuTry workflow.",
-      "heroTitle": "AI Glasses Try-On, Face Analysis, and Frame Compare",
-      "heroSubtitle": "Find better frames before you buy: analyze your face shape, try custom glasses images, and compare preset frames side by side.",
+      "heroTitle": "Find the right glasses, from face shape to try-on",
+      "heroSubtitle": "Start with a free private face shape detector. Then get personalized frame advice, try any glasses image, and compare your best looks.",
       "tools": {
-        "faceTitle": "Face",
-        "faceDescription": "Detect face shape and get frame directions before spending credits.",
-        "glassesTitle": "Glasses",
+        "faceTitle": "Face Shape Detector",
+        "faceDescription": "Find your likely face shape free, with no login, credits, or photo upload to VisuTry.",
+        "advisorTitle": "Glasses Advisor",
+        "advisorDescription": "Get a deeper AI report with personalized frame recommendations and reasons.",
+        "glassesTitle": "Virtual Try-On",
         "glassesDescription": "Upload product photos or screenshots and preview them on your face.",
-        "compareTitle": "Compare",
+        "compareTitle": "Frame Compare",
         "compareDescription": "Pick built-in presets and review multiple frame results in one board."
       },
-      "ctaPrimary": "Start with Face",
-      "ctaSecondary": "Compare frames",
+      "ctaPrimary": "Detect my face shape — free",
+      "ctaSecondary": "Try on glasses",
       "featureCards": {
         "faceTitle": "Face Analysis",
         "faceDescription": "A professional face-shape report with frame style recommendations.",
@@ -174,13 +176,13 @@
         "openTool": "Open tool"
       },
       "workflow": {
-        "badge": "Face analysis for glasses",
-        "title": "Start try-on with frames that already fit the face",
-        "description": "VisuTry now uses one portrait to read face shape, narrow the first frame shortlist, and send shoppers directly into glasses try-on with better choices.",
-        "point1": "Face shape report",
-        "point2": "Recommended frame styles",
-        "point3": "One path into AI try-on",
-        "cta": "Analyze my face"
+        "badge": "AI Glasses Advisor",
+        "title": "Need more than a face-shape label? Get a personalized shortlist",
+        "description": "The Glasses Advisor turns one portrait into a deeper feature report, recommended frame styles, and reasons for what to try next.",
+        "point1": "Personalized feature report",
+        "point2": "Recommended and avoid-first styles",
+        "point3": "Direct path into virtual try-on",
+        "cta": "Open Glasses Advisor"
       },
       "benefits": {
         "generatedTitle": "AI-generated previews",
@@ -188,15 +190,15 @@
         "historyTitle": "Saved to history",
         "historyDescription": "Completed results stay available in Dashboard History based on your plan.",
         "privacyTitle": "Private by default",
-        "privacyDescription": "Photos and results stay private to your account and are never published."
+        "privacyDescription": "The free detector keeps your photo on-device. Account tools keep uploads and results private and never publish them."
       },
       "faq": {
-        "q1Question": "How does VisuTry's AI try-on work?",
-        "q1Answer": "VisuTry combines face guidance, AI glasses try-on, and frame comparison. Upload a portrait, choose a glasses image or preset, and generate realistic previews in your browser.",
+        "q1Question": "Where should I start?",
+        "q1Answer": "Start with the free Face Shape Detector if you do not know your shape. Use Glasses Advisor for a personalized shortlist, Virtual Try-On for a specific product image, and Frame Compare for side-by-side preset looks.",
         "q2Question": "What is Frame Compare?",
         "q2Answer": "Frame Compare lets you pick built-in glasses presets and generate side-by-side try-on results from the same photo, so you can compare shape and scale faster.",
-        "q3Question": "Is my photo data safe and private?",
-        "q3Answer": "Absolutely. Your photos are encrypted during upload and processing. We never share your images publicly or use them for AI training without explicit permission.",
+        "q3Question": "Is the free Face Shape Detector private?",
+        "q3Answer": "Yes. The free detector processes the selected photo in browser memory and does not send it to VisuTry. Photos used by account-based Advisor and Try-On tools remain private to your account.",
         "q4Question": "How long does it take to generate a try-on?",
         "q4Answer": "Most single try-ons complete in about 10-30 seconds. Compare runs frames individually so each result can finish, fail, or retry without blocking the full page.",
         "q5Question": "What happens to my try-on history?",
@@ -206,14 +208,19 @@
     "pricing": {
       "metaTitle": "Credits Pack Pricing for AI Glasses Try-On | VisuTry",
       "metaDescription": "Continue AI glasses try-on with 30 credits for USD 2.99. Upload your own glasses product images or screenshots, no subscription required.",
-      "eyebrow": "Simple credits for Face, Glasses, and Compare",
+      "eyebrow": "Simple credits for Advisor, Try-On, and Compare",
       "title": "Start with 1 free credit, then continue with {count} AI credits for USD 2.99",
-      "description": "Use credits across AI face analysis, custom glasses try-on, and frame comparison.",
+      "description": "The Face Shape Detector is always free. Use credits for the AI Glasses Advisor, custom virtual try-on, and frame comparison.",
+      "freeDetector": {
+        "title": "Face Shape Detector is free",
+        "description": "No account, credits, or server photo upload. Run the first step privately in your browser.",
+        "cta": "Use free detector"
+      },
       "faqTitle": "Frequently Asked Questions",
       "featureCards": {
-        "faceTitle": "Face Analysis",
-        "faceDescription": "Use one credit to estimate face shape and get frame directions before trying glasses.",
-        "glassesTitle": "Glasses Try-On",
+        "faceTitle": "Glasses Advisor",
+        "faceDescription": "Use one credit for a deeper report with personalized frame directions and reasons.",
+        "glassesTitle": "Virtual Try-On",
         "glassesDescription": "Use one credit per custom try-on from a portrait and a glasses product image.",
         "compareTitle": "Frame Compare",
         "compareDescription": "Use one credit per generated frame. Try 1 frame free, or compare up to 4 with credits."
@@ -228,7 +235,7 @@
         "q4Title": "Do credits expire?",
         "q4Answer": "Credits never expire after purchase. You can use them anytime at your convenience.",
         "q5Title": "What can I do with one free credit?",
-        "q5Answer": "You can run one face analysis, one custom glasses try-on, or one frame inside Compare. It is designed to let you test the workflow before buying credits.",
+        "q5Answer": "You can run one Glasses Advisor report, one custom virtual try-on, or one frame inside Frame Compare. The Face Shape Detector remains free and does not use this credit.",
         "q6Title": "What payment methods are supported?",
         "q6Answer": "We support all major credit and debit cards, including Visa, Mastercard, American Express, and more.",
         "q7Title": "How do I contact support?",
@@ -245,10 +252,10 @@
       }
     },
     "faqPage": {
-      "metaTitle": "FAQ: AI Glasses Try-On, Face Analysis, and Compare | VisuTry",
-      "metaDescription": "Questions about VisuTry credits, AI face analysis, custom glasses try-on, frame compare, privacy, and Dashboard History.",
+      "metaTitle": "FAQ: Face Shape Detector, Glasses Advisor & Try-On | VisuTry",
+      "metaDescription": "Answers about the free Face Shape Detector, AI Glasses Advisor, Virtual Try-On, Frame Compare, credits, privacy, and saved results.",
       "badge": "Help center",
-      "title": "FAQ for AI glasses try-on, face analysis, and frame compare",
+      "title": "FAQ for face shape, glasses advice, try-on, and comparison",
       "subtitle": "Quick answers for shoppers choosing glasses online with VisuTry.",
       "topics": "Topics",
       "supportTitle": "Need help with a specific task?",
@@ -263,11 +270,11 @@
           "title": "Using VisuTry",
           "q1": {
             "question": "What can I do with VisuTry?",
-            "answer": "VisuTry helps you choose glasses online with three connected tools: Face Analysis for frame direction, Glasses Try-On for custom product images or screenshots, and Compare for quick side-by-side preset frame previews."
+            "answer": "VisuTry connects four products: a free on-device Face Shape Detector, an AI Glasses Advisor for personalized recommendations, Virtual Try-On for product images or screenshots, and Frame Compare for side-by-side preset looks."
           },
           "q2": {
-            "question": "Should I start with Face, Glasses, or Compare?",
-            "answer": "Start with Face if you do not know which frame styles suit you. Use Glasses when you already have a specific product image. Use Compare when you want to test several built-in frame shapes quickly."
+            "question": "Which VisuTry product should I start with?",
+            "answer": "Start with the free Detector if you do not know your face shape. Use Glasses Advisor for a personalized shortlist, Virtual Try-On for a specific product image, and Frame Compare for several presets."
           },
           "q3": {
             "question": "Do I need to install an app?",
@@ -278,7 +285,7 @@
           "title": "Credits and pricing",
           "q1": {
             "question": "What can I do with one free credit?",
-            "answer": "You can run one face analysis, one custom glasses try-on, or one frame inside Compare. This gives trial users a real product experience before buying credits."
+            "answer": "You can run one Glasses Advisor report, one custom Virtual Try-On, or one frame inside Frame Compare. The Face Shape Detector is always free and does not use credits."
           },
           "q2": {
             "question": "How many credits does Frame Compare use?",
@@ -301,7 +308,7 @@
           },
           "q3": {
             "question": "Is my photo private?",
-            "answer": "Your photo and generated results stay private to your account. VisuTry uses uploaded images to generate your requested analysis or try-on result."
+            "answer": "The free Detector processes its photo in browser memory and does not send it to VisuTry. Photos uploaded to Advisor, Try-On, and Compare remain private to your account."
           }
         }
       }
@@ -321,8 +328,8 @@
       "ogDescription": "Upload a face photo and a glasses product image or screenshot to preview how frames look before buying at home. No app install required.",
       "ctaNote": "One free try-on to start. Credits Pack is a one-time purchase, no subscription required.",
       "shortlistNotePrefix": "Not sure what glasses suit your face? Start with",
-      "shortlistNoteLink": "AI face shape analysis",
-      "shortlistNoteSuffix": "to get a shortlist, then come back here to try on glasses online from your own photo and product screenshots.",
+      "shortlistNoteLink": "the free Face Shape Detector",
+      "shortlistNoteSuffix": "to identify your likely shape, then use Glasses Advisor if you want a personalized shortlist before trying product screenshots.",
       "faq": {
         "q1Question": "Can I try on glasses online from a screenshot?",
         "q1Answer": "Yes. VisuTry lets you upload your face photo and a glasses product image or screenshot, then uses AI to create a realistic virtual glasses try-on preview on your face.",
@@ -331,7 +338,7 @@
         "q3Question": "Can I try on glasses at home before buying?",
         "q3Answer": "Yes. VisuTry runs in your browser, so you can try on glasses at home from a face photo and compare frame images before deciding what to buy.",
         "q4Question": "What if I do not know which glasses to try first?",
-        "q4Answer": "Start with AI face analysis to estimate your face shape and get frame recommendations, then return to virtual glasses try-on with a better shortlist.",
+        "q4Answer": "Start with the free Face Shape Detector to identify your likely shape. Use Glasses Advisor for personalized recommendations, then return to Virtual Try-On with a better shortlist.",
         "q5Question": "How does AI try on glasses work?",
         "q5Answer": "AI glasses try-on combines your face photo with a glasses product image or screenshot to generate a preview of the frame on your face. It is most useful after you shortlist styles by face shape, size, and personal taste.",
         "q6Question": "Is VisuTry a try on glasses app?",
@@ -346,7 +353,7 @@
       "valuePoints": {
         "p1": "Upload a portrait and one glasses image",
         "p2": "Preview the frame on your face before buying",
-        "p3": "Use Face or Compare when you need help choosing"
+        "p3": "Use the free detector or Glasses Advisor when you need help choosing"
       },
       "steps": {
         "s1Title": "Upload your photos",
@@ -377,18 +384,21 @@
         "c2Description": "Credits map directly to generated frames, so a 4-frame comparison uses up to 4 credits.",
         "c3Description": "Completed results are kept in Dashboard History according to your account retention plan."
       },
-      "compareDescription": "Use Compare when you have several likely frame shapes and want a fast side-by-side view. Use Glasses Try-On when you already have a specific product image or screenshot."
+      "compareDescription": "Use Frame Compare when you have several likely frame shapes and want a fast side-by-side view. Use Virtual Try-On when you already have a specific product image or screenshot.",
+      "shortlistPrefix": "Not sure which frame shapes to compare?",
+      "shortlistLink": "Start with the free Face Shape Detector."
     },
     "faceAnalysisLanding": {
-      "badge": "Face shape detector for glasses",
-      "startFaceAnalysis": "Start face analysis",
+      "badge": "AI Glasses Advisor",
+      "startFaceAnalysis": "Get personalized advice",
+      "useFreeDetector": "Use free face shape detector",
       "tryGlassesOnPhoto": "Try glasses on photo",
-      "faqTitle": "AI face analysis FAQ",
+      "faqTitle": "AI Glasses Advisor FAQ",
       "guideLink": "Read the full guide",
       "faqEyebrow": "Questions shoppers ask",
       "valuePoints": {
-        "p1": "AI face shape detector for glasses",
-        "p2": "Frame picks with a reason",
+        "p1": "Personalized feature and face-shape report",
+        "p2": "Frame picks with clear reasons",
         "p3": "Continue into virtual try-on"
       },
       "links": {
@@ -420,12 +430,12 @@
         "heartReason": "Softer or lifted shapes balance a wider forehead with a narrower chin."
       },
       "faq": {
-        "q1Question": "What is AI face analysis for glasses?",
-        "q1Answer": "VisuTry provides AI face analysis for glasses by estimating your face shape and key visible features, then suggesting frame styles before virtual try-on.",
+        "q1Question": "What is the AI Glasses Advisor?",
+        "q1Answer": "VisuTry's Glasses Advisor reviews your likely face shape and visible features, then suggests frame styles with reasons before virtual try-on.",
         "q2Question": "Can AI recommend glasses for my face shape?",
         "q2Answer": "Yes. AI face analysis can recommend frame directions for round, square, oval, heart, diamond, oblong, and triangle face shapes. Use virtual try-on as the final visual check.",
         "q3Question": "Can I use a face shape detector online free before buying glasses?",
-        "q3Answer": "Yes. VisuTry lets you start with an online AI face shape detector so you can understand your likely face shape before choosing glasses. Use the result as a practical shortlist, then confirm the look with virtual try-on.",
+        "q3Answer": "Yes. VisuTry's separate Face Shape Detector is free, requires no login or credits, and processes the photo on-device. Use Glasses Advisor when you want a deeper personalized report.",
         "q4Question": "What is a face shape finder for glasses?",
         "q4Answer": "A face shape finder estimates whether your face is closer to round, square, oval, heart, diamond, oblong, or triangle, then turns that result into frame styles to try first.",
         "q5Question": "Is my face analysis private?",
@@ -434,14 +444,14 @@
         "q6Answer": "Round faces often start with angular frames, square faces with round or oval frames, oval faces with balanced rectangular or browline frames, and heart faces with lightweight or softly upswept frames."
       },
       "schema": {
-        "appName": "VisuTry AI Face Analysis for Glasses",
-        "appDescription": "AI face shape analysis for glasses recommendations and virtual try-on planning.",
-        "feature1": "AI face shape detection",
+        "appName": "VisuTry AI Glasses Advisor",
+        "appDescription": "Personalized glasses recommendations based on face shape and visible features, with a path into virtual try-on.",
+        "feature1": "Personalized face and feature report",
         "feature2": "Personalized glasses recommendations",
         "feature3": "Frame styles to try and avoid",
         "feature4": "Virtual glasses try-on workflow",
-        "howToName": "How to choose glasses with AI face analysis",
-        "howToDescription": "Use one clear photo to estimate your face shape, shortlist glasses styles, and validate the look with AI virtual try-on.",
+        "howToName": "How to choose glasses with the AI Glasses Advisor",
+        "howToDescription": "Use one clear photo to get personalized frame recommendations and validate the shortlist with virtual try-on.",
         "howToStep1Name": "Upload a front-facing photo",
         "howToStep1Text": "Use a clear photo with your face visible and good lighting.",
         "howToStep2Name": "Review your AI face shape report",
@@ -477,14 +487,14 @@
       },
       "modes": {
         "home": {
-          "eyebrow": "AI glasses workflow",
-          "title": "Analyze, try on, and compare glasses from one photo",
-          "description": "Use Face for direction, Glasses for custom product images, and Compare for fast side-by-side frame decisions.",
-          "ctaLabel": "Start with Face",
-          "secondaryLabel": "Compare frames",
-          "step1": "Face guidance",
-          "step2": "Custom try-on",
-          "step3": "Side-by-side compare"
+          "eyebrow": "From face shape to frame decision",
+          "title": "Find your shape free, then try and compare glasses",
+          "description": "Start with the private on-device detector. Continue to personalized advice, a specific product try-on, or side-by-side frame comparison.",
+          "ctaLabel": "Detect my face shape",
+          "secondaryLabel": "Try on glasses",
+          "step1": "Free face-shape result",
+          "step2": "Personalized advice or try-on",
+          "step3": "Side-by-side decision"
         },
         "glasses": {
           "eyebrow": "Virtual glasses try-on",
@@ -507,10 +517,10 @@
           "step3": "Review in one board"
         },
         "face": {
-          "eyebrow": "Face analysis for glasses",
+          "eyebrow": "AI Glasses Advisor",
           "title": "Find frame directions before you start trying glasses",
           "description": "Get face-shape guidance, recommended frame styles, and a clearer shortlist before spending credits on try-on images.",
-          "ctaLabel": "Analyze my face",
+          "ctaLabel": "Get personalized advice",
           "secondaryLabel": "Try glasses",
           "step1": "Detect face shape",
           "step2": "Shortlist frame styles",
@@ -549,6 +559,6 @@
     },
     "copyright": "© {year} VisuTry. All rights reserved.",
     "madeWith": "Made with ❤️ using AI technology",
-    "tagline": "AI glasses try-on, face analysis, and frame comparison for online eyewear shoppers."
+    "tagline": "Free face-shape discovery, personalized glasses advice, virtual try-on, and frame comparison."
   }
 }

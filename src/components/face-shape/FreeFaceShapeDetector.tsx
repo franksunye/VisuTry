@@ -7,6 +7,7 @@ import type { ChangeEvent } from 'react'
 import { AlertCircle, ArrowRight, CheckCircle2, Loader2, RotateCcw, Upload } from 'lucide-react'
 import { getFaceShapeContent } from '@/config/face-shape-content'
 import { analyzeFaceGeometryFromFile } from '@/lib/face-landmark-client'
+import { analytics } from '@/lib/analytics'
 import type { FaceGeometryAnalysis } from '@/types/face-analysis'
 
 interface FreeFaceShapeDetectorProps {
@@ -44,14 +45,20 @@ export function FreeFaceShapeDetector({ locale }: FreeFaceShapeDetectorProps) {
     setPreviewUrl(null)
 
     if (!ACCEPTED_TYPES.has(file.type)) {
-      setError('Choose a JPG, PNG, or WebP image.')
+      const message = 'Choose a JPG, PNG, or WebP image.'
+      setError(message)
+      analytics.trackFaceShapeDetectorFailed(message)
       return
     }
     if (file.size > MAX_FILE_SIZE) {
-      setError('Choose an image smaller than 10 MB.')
+      const message = 'Choose an image smaller than 10 MB.'
+      setError(message)
+      analytics.trackFaceShapeDetectorFailed(message)
       return
     }
 
+    analytics.trackFaceShapeDetectorUpload(file.type, file.size)
+    const startedAt = performance.now()
     const nextPreviewUrl = URL.createObjectURL(file)
     setPreviewUrl(nextPreviewUrl)
     setIsAnalyzing(true)
@@ -59,11 +66,21 @@ export function FreeFaceShapeDetector({ locale }: FreeFaceShapeDetectorProps) {
     try {
       const analysis = await analyzeFaceGeometryFromFile(file)
       setResult(analysis)
-      if (analysis.status !== 'measured') {
-        setError(analysis.warnings[0] ?? 'This photo could not be measured. Try a clear, straight-on image.')
+      if (analysis.status === 'measured' && analysis.measuredShape) {
+        analytics.trackFaceShapeDetectorComplete(
+          analysis.measuredShape,
+          analysis.qualityScore,
+          Math.round(performance.now() - startedAt),
+        )
+      } else {
+        const message = analysis.warnings[0] ?? 'This photo could not be measured. Try a clear, straight-on image.'
+        setError(message)
+        analytics.trackFaceShapeDetectorFailed(message)
       }
     } catch {
-      setError('Face analysis could not start in this browser. Try a recent version of Chrome, Edge, or Safari.')
+      const message = 'Face analysis could not start in this browser. Try a recent version of Chrome, Edge, or Safari.'
+      setError(message)
+      analytics.trackFaceShapeDetectorFailed(message)
     } finally {
       setIsAnalyzing(false)
     }
@@ -180,18 +197,27 @@ export function FreeFaceShapeDetector({ locale }: FreeFaceShapeDetectorProps) {
 
               <div className="flex flex-col gap-3 sm:flex-row">
                 <Link
-                  href={`/${locale}/face-shapes/${measuredGuide.slug}`}
+                  href={`/${locale}/face-analysis`}
+                  onClick={() => analytics.trackFaceShapeDetectorCta(measuredGuide.slug, 'glasses_advisor')}
                   className="inline-flex items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-3 text-sm font-semibold text-white hover:bg-blue-700"
                 >
-                  Understand this shape <ArrowRight className="h-4 w-4" />
+                  Get personalized advice <ArrowRight className="h-4 w-4" />
                 </Link>
                 <Link
-                  href={`/${locale}/style/${measuredGuide.styleSlug}`}
+                  href={`/${locale}/try-on/glasses`}
+                  onClick={() => analytics.trackFaceShapeDetectorCta(measuredGuide.slug, 'virtual_try_on')}
                   className="inline-flex items-center justify-center rounded-lg border border-gray-300 px-4 py-3 text-sm font-semibold text-gray-700 hover:bg-white"
                 >
-                  See matching glasses
+                  Try on glasses
                 </Link>
               </div>
+              <Link
+                href={`/${locale}/face-shapes/${measuredGuide.slug}`}
+                onClick={() => analytics.trackFaceShapeDetectorCta(measuredGuide.slug, 'face_shape_guide')}
+                className="mt-4 inline-flex text-sm font-semibold text-blue-700 hover:text-blue-900"
+              >
+                Understand this face shape
+              </Link>
             </div>
           ) : error ? (
             <div className="flex h-full min-h-[240px] flex-col items-center justify-center text-center">

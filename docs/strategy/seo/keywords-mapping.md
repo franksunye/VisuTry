@@ -2,6 +2,8 @@
 
 **版本 1.0 | 关键词研究和 SEO 策略**
 
+**状态：历史版本。** 当前 Face Shape Detector、Glasses Advisor、Virtual Try-On、Frame Compare 的关键词归属以 [2026-06-30 Product Architecture SEO/GEO Sync](./2026-06-30-product-architecture-seo-geo-sync.md) 为准。本文件继续作为品牌、型号和 programmatic SEO 的旧版参考。
+
 ---
 
 ## 📊 关键词分类
@@ -208,4 +210,3 @@ Home > Brands > {Brand}
 | 第 12 周 | 20+ 个 | 2,000+ | 3-5% |
 | 第 16 周 | 50+ 个 | 5,000+ | 5-8% |
 | 第 24 周 | 100+ 个 | 10,000+ | 8-10% |
-

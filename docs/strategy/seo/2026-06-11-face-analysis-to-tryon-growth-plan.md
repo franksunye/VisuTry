@@ -2,7 +2,9 @@
 
 Last updated: 2026-06-11
 Owner: Codex
-Status: Active
+Status: Superseded for current product architecture; retained as historical research
+
+Current source of truth: [2026-06-30 Product Architecture SEO/GEO Sync](./2026-06-30-product-architecture-seo-geo-sync.md). The current funnel starts with the free Face Shape Detector, then separates Glasses Advisor, Virtual Try-On, and Frame Compare by intent.
 
 ## Business Thesis
 

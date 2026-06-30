@@ -77,8 +77,8 @@
   },
   "faceAnalysis": {
     "meta": {
-      "title": "Analyse du visage par IA pour lunettes | VisuTry",
-      "description": "Découvrez la forme de votre visage grâce à l'IA et obtenez des recommandations de lunettes personnalisées. Téléchargez une photo et débloquez votre rapport de style complet."
+      "title": "Conseiller lunettes IA : recommandations personnalisées | VisuTry",
+      "description": "Obtenez des recommandations personnalisées à partir d’une photo, puis continuez vers l’essayage virtuel."
     },
     "stepper": {
       "photo": "Photo",
@@ -148,8 +148,8 @@
       "searchStyle": "Rechercher montures {style}"
     },
     "landing": {
-      "title": "Analyse du visage par IA pour mieux choisir vos lunettes",
-      "description": "Téléchargez une photo pour découvrir la forme de votre visage, vos traits clés et des recommandations de montures personnalisées par IA.",
+      "title": "Conseiller lunettes IA pour une meilleure sélection",
+      "description": "Téléchargez une photo et obtenez un rapport personnalisé sur vos traits, votre forme de visage et les montures à essayer.",
       "tryGlasses": "Essayer des lunettes à la place",
       "steps": {
         "uploadTitle": "Téléchargez votre photo",
@@ -174,24 +174,26 @@
   },
   "marketing": {
     "home": {
-      "metaTitle": "VisuTry - Essayage Virtuel IA pour Lunettes, Vêtements, Chaussures et Accessoires",
-      "metaDescription": "Essayez des lunettes, vêtements, chaussures et accessoires instantanément avec l'essayage virtuel propulsé par l'IA. Aucun téléchargement requis - téléchargez votre photo et voyez comment les articles vous vont avant d'acheter. Propulsé par Nano Banana IA (Gemini 2.5 Flash Image) pour des résultats photoréalistes.",
+      "metaTitle": "Détecteur de forme du visage gratuit & essayage de lunettes | VisuTry",
+      "metaDescription": "Trouvez gratuitement la forme de votre visage, obtenez des conseils personnalisés, essayez vos montures et comparez les résultats.",
       "faqTitle": "Questions Fréquemment Posées",
       "faqSubtitle": "Tout ce que vous devez savoir sur VisuTry",
-      "heroTitle": "Trouvez Votre Style Parfait",
-      "heroSubtitle": "Essayez en 3 Étapes Faciles",
+      "heroTitle": "Trouvez les bonnes lunettes, de la forme du visage à l’essayage",
+      "heroSubtitle": "Commencez par le détecteur gratuit et privé, puis passez aux conseils, à l’essayage et à la comparaison.",
       "tools": {
-        "faceTitle": "Analyse du visage",
-        "faceDescription": "Détectez la forme du visage et obtenez des orientations de montures avant de dépenser des crédits.",
-        "glassesTitle": "Lunettes",
+        "faceTitle": "Détecteur de forme",
+        "faceDescription": "Gratuit et sans compte ; la photo reste dans votre navigateur.",
+        "advisorTitle": "Conseiller lunettes",
+        "advisorDescription": "Un rapport détaillé avec des recommandations personnalisées de montures et leurs raisons.",
+        "glassesTitle": "Essayage virtuel",
         "glassesDescription": "Importez des photos produit ou captures d’écran et visualisez-les sur votre visage.",
-        "compareTitle": "Comparer",
+        "compareTitle": "Comparer les montures",
         "compareDescription": "Choisissez des presets intégrés et examinez plusieurs résultats de montures sur un seul panneau."
       },
-      "ctaPrimary": "Commencer par Face",
-      "ctaSecondary": "Comparer les montures",
+      "ctaPrimary": "Détecter ma forme gratuitement",
+      "ctaSecondary": "Essayer des lunettes",
       "featureCards": {
-        "faceTitle": "Analyse du visage",
+        "faceTitle": "Conseiller lunettes",
         "faceDescription": "Un rapport professionnel de forme du visage avec recommandations de montures.",
         "glassesTitle": "Essayage lunettes personnalisé",
         "glassesDescription": "Utilisez votre image produit, photo boutique ou capture d’écran.",
@@ -235,11 +237,16 @@
       "eyebrow": "Crédits simples pour Face, Glasses et Compare",
       "title": "Commencez avec 1 crédit gratuit, puis continuez avec {count} crédits IA pour 2,99 USD",
       "description": "Utilisez les crédits pour l’analyse du visage IA, l’essayage lunettes personnalisé et la comparaison de montures.",
+      "freeDetector": {
+        "title": "Le détecteur de forme est gratuit",
+        "description": "Sans compte, sans crédit et sans envoi de la photo à VisuTry.",
+        "cta": "Utiliser le détecteur gratuit"
+      },
       "faqTitle": "Questions Fréquemment Posées",
       "featureCards": {
-        "faceTitle": "Analyse du visage",
+        "faceTitle": "Conseiller lunettes",
         "faceDescription": "Utilisez un crédit pour estimer la forme du visage et obtenir des recommandations de montures avant l’essayage.",
-        "glassesTitle": "Essayage lunettes",
+        "glassesTitle": "Essayage virtuel",
         "glassesDescription": "Utilisez un crédit par essai personnalisé à partir d’un portrait et d’une image de lunettes.",
         "compareTitle": "Comparaison de montures",
         "compareDescription": "Un crédit par monture générée. Essayez 1 monture gratuitement ou comparez jusqu’à 4 avec des crédits."
@@ -347,8 +354,8 @@
       "ogDescription": "Importez une photo de visage et une image de lunettes pour prévisualiser le rendu avant achat, sans application.",
       "ctaNote": "Un essai gratuit pour commencer. Credits Pack est un achat unique, sans abonnement.",
       "shortlistNotePrefix": "Vous ne savez pas quelles lunettes vous vont ? Commencez par",
-      "shortlistNoteLink": "l’analyse IA de la forme du visage",
-      "shortlistNoteSuffix": "pour créer une présélection, puis revenez ici pour essayer des lunettes avec vos photos et captures.",
+      "shortlistNoteLink": "le détecteur gratuit de forme du visage",
+      "shortlistNoteSuffix": "puis utilisez le Conseiller lunettes pour une présélection personnalisée.",
       "faq": {
         "q1Question": "Puis-je essayer des lunettes en ligne depuis une capture ?",
         "q1Answer": "Oui. VisuTry vous permet d’importer une photo de visage et une image de lunettes pour générer un aperçu réaliste.",
@@ -403,11 +410,14 @@
         "c2Description": "Les crédits sont consommés par monture générée ; 4 montures peuvent utiliser jusqu’à 4 crédits.",
         "c3Description": "Les résultats terminés sont conservés dans l’historique selon votre plan."
       },
-      "compareDescription": "Utilisez Compare pour une vue rapide côte à côte de plusieurs formes probables."
+      "compareDescription": "Utilisez la comparaison de montures pour examiner rapidement plusieurs options côte à côte.",
+      "shortlistPrefix": "Vous ne savez pas quelles montures comparer ?",
+      "shortlistLink": "Commencez par le détecteur gratuit."
     },
     "faceAnalysisLanding": {
-      "badge": "Détecteur de forme du visage pour lunettes",
-      "startFaceAnalysis": "Démarrer l'analyse du visage",
+      "badge": "Conseiller lunettes IA",
+      "startFaceAnalysis": "Démarrer l’analyse du visage",
+      "useFreeDetector": "Utiliser le détecteur gratuit",
       "tryGlassesOnPhoto": "Essayer des lunettes sur photo",
       "faqTitle": "FAQ analyse faciale IA",
       "guideLink": "Lire le guide complet",
@@ -460,8 +470,8 @@
         "q6Answer": "En général : rond -> montures angulaires, carré -> rondes/ovales, ovale -> formes équilibrées, cœur -> montures légères relevées."
       },
       "schema": {
-        "appName": "VisuTry AI Face Analysis for Glasses",
-        "appDescription": "AI face shape analysis for glasses recommendations and virtual try-on planning.",
+        "appName": "Conseiller lunettes IA VisuTry",
+        "appDescription": "Recommandations personnalisées selon la forme du visage et les traits visibles, avec un accès direct à l’essayage virtuel.",
         "feature1": "AI face shape detection",
         "feature2": "Personalized glasses recommendations",
         "feature3": "Frame styles to try and avoid",
@@ -504,9 +514,9 @@
       "modes": {
         "home": {
           "eyebrow": "AI glasses workflow",
-          "title": "Analyze, try on, and compare glasses from one photo",
-          "description": "Use Face for direction, Glasses for custom product images, and Compare for fast side-by-side frame decisions.",
-          "ctaLabel": "Start with Face",
+          "title": "Trouvez votre forme gratuitement, puis essayez et comparez des lunettes",
+          "description": "Commencez par le détecteur privé, puis passez aux conseils, à l’essayage ou à la comparaison.",
+          "ctaLabel": "Détecter ma forme",
           "secondaryLabel": "Compare frames",
           "step1": "Face guidance",
           "step2": "Custom try-on",

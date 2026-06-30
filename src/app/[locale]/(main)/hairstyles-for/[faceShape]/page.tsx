@@ -31,6 +31,8 @@ export async function generateMetadata({ params }: HairstyleGuidePageProps): Pro
     title: `Best Hairstyles for ${guide.name} Faces: Cuts and Styling`,
     description: `Explore hairstyles for ${guide.name.toLowerCase()} faces, including practical guidance on length, layers, fringe, parting, and where to place volume.`,
     pathname: `/hairstyles-for/${guide.styleSlug}`,
+    noIndex: params.locale !== 'en',
+    availableLocales: ['en'] as const,
   })
 }
 

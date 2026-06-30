@@ -172,8 +172,8 @@ export default function BlogPostPage({ params }: { params: { locale: string } })
               </p>
 
               <p>
-                If you came here searching for an <Link href={`${localePrefix}/face-analysis`}>AI face shape detector for glasses</Link>,
-                start with the face-analysis tool first, then return to this guide to understand
+                If you came here searching for an <Link href={`${localePrefix}/face-shape-detector`}>AI face shape detector for glasses</Link>,
+                start with the free detector first, then return to this guide to understand
                 why each frame direction may suit your face.
               </p>
 
@@ -267,8 +267,8 @@ export default function BlogPostPage({ params }: { params: { locale: string } })
                 can actually evaluate.
               </p>
               <ul>
-                <li><strong>If you do not know your face shape:</strong> start with AI face analysis.</li>
-                <li><strong>If you do not know which glasses suit your face:</strong> use the <Link href={`${localePrefix}/face-analysis`}>AI face shape detector for glasses</Link> to get a shortlist.</li>
+                <li><strong>If you do not know your face shape:</strong> start with the <Link href={`${localePrefix}/face-shape-detector`}>free Face Shape Detector</Link>.</li>
+                <li><strong>If you do not know which glasses suit your face:</strong> use the <Link href={`${localePrefix}/face-analysis`}>AI Glasses Advisor</Link> to get a personalized shortlist.</li>
                 <li><strong>If you already know your face shape:</strong> compare recommended styles in the <Link href={`${localePrefix}/glasses-for-face-shape`}>glasses for face shape guide</Link>.</li>
                 <li><strong>If you already have frames in mind:</strong> go straight to <Link href={`${localePrefix}/try-on/glasses`}>virtual glasses try-on</Link>.</li>
               </ul>
@@ -325,7 +325,7 @@ export default function BlogPostPage({ params }: { params: { locale: string } })
                   prescription glasses virtual try-on guide
                 </Link>
                 {' '}or start directly with{' '}
-                <Link href={`${localePrefix}/face-analysis`}>AI face analysis</Link>.
+                <Link href={`${localePrefix}/face-shape-detector`}>the free Face Shape Detector</Link>.
               </p>
             </div>
           </article>

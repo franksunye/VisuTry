@@ -77,8 +77,8 @@
   },
   "faceAnalysis": {
     "meta": {
-      "title": "Analisis Wajah AI untuk Kacamata | VisuTry",
-      "description": "Temukan bentuk wajah Anda dengan AI dan dapatkan rekomendasi kacamata yang dipersonalisasi. Unggah foto dan buka laporan gaya lengkap Anda."
+      "title": "Penasihat Kacamata AI: Rekomendasi Bingkai Pribadi | VisuTry",
+      "description": "Dapatkan rekomendasi kacamata pribadi dari satu foto, lalu lanjutkan ke coba virtual."
     },
     "stepper": {
       "photo": "Foto",
@@ -148,8 +148,8 @@
       "searchStyle": "Cari bingkai {style}"
     },
     "landing": {
-      "title": "Analisis Wajah AI untuk Pilihan Kacamata yang Lebih Baik",
-      "description": "Unggah foto untuk menemukan bentuk wajah, fitur utama, dan rekomendasi bingkai yang dipersonalisasi dengan AI.",
+      "title": "Penasihat Kacamata AI untuk Pilihan Bingkai yang Lebih Baik",
+      "description": "Unggah satu foto dan dapatkan laporan pribadi tentang fitur, bentuk wajah, dan bingkai yang layak dicoba.",
       "tryGlasses": "Coba Kacamata Saja",
       "steps": {
         "uploadTitle": "Unggah foto Anda",
@@ -174,24 +174,26 @@
   },
   "marketing": {
     "home": {
-      "metaTitle": "AI Coba Kacamata, Analisis Wajah, dan Bandingkan Bingkai | VisuTry",
-      "metaDescription": "Analisis bentuk wajah, coba gambar kacamata sendiri, dan bandingkan bingkai preset langsung di browser.",
+      "metaTitle": "Detektor Bentuk Wajah Gratis & Coba Kacamata Virtual | VisuTry",
+      "metaDescription": "Temukan bentuk wajah gratis, dapatkan saran kacamata, coba gambar bingkai apa pun, dan bandingkan hasil.",
       "faqTitle": "Pertanyaan sebelum mulai",
       "faqSubtitle": "Jawaban singkat untuk memilih alur VisuTry yang tepat.",
-      "heroTitle": "AI Coba Kacamata, Analisis Wajah, dan Bandingkan Bingkai",
-      "heroSubtitle": "Temukan bingkai yang lebih pas sebelum beli: analisis bentuk wajah, coba gambar kacamata sendiri, lalu bandingkan bingkai preset berdampingan.",
+      "heroTitle": "Temukan kacamata yang tepat, dari bentuk wajah hingga try-on",
+      "heroSubtitle": "Mulai dengan detektor gratis dan privat, lalu lanjut ke saran, try-on, dan perbandingan.",
       "tools": {
-        "faceTitle": "Analisis Wajah",
-        "faceDescription": "Deteksi bentuk wajah dan dapatkan arahan bingkai sebelum memakai kredit.",
-        "glassesTitle": "Kacamata",
+        "faceTitle": "Detektor Bentuk Wajah",
+        "faceDescription": "Gratis tanpa akun; foto tetap diproses di browser Anda.",
+        "advisorTitle": "Penasihat Kacamata",
+        "advisorDescription": "Laporan mendalam dengan rekomendasi bingkai pribadi beserta alasannya.",
+        "glassesTitle": "Coba Virtual",
         "glassesDescription": "Unggah foto produk atau screenshot dan lihat pratinjau di wajah Anda.",
-        "compareTitle": "Bandingkan",
+        "compareTitle": "Bandingkan Bingkai",
         "compareDescription": "Pilih preset bawaan dan tinjau beberapa hasil bingkai dalam satu papan."
       },
-      "ctaPrimary": "Mulai dari Face",
-      "ctaSecondary": "Bandingkan bingkai",
+      "ctaPrimary": "Deteksi bentuk wajah gratis",
+      "ctaSecondary": "Coba kacamata",
       "featureCards": {
-        "faceTitle": "Analisis Wajah",
+        "faceTitle": "Penasihat Kacamata",
         "faceDescription": "Laporan profesional bentuk wajah dengan rekomendasi gaya bingkai.",
         "glassesTitle": "Coba Kacamata Kustom",
         "glassesDescription": "Gunakan gambar produk kacamata sendiri, foto toko, atau screenshot.",
@@ -235,11 +237,16 @@
       "eyebrow": "Kredit sederhana untuk Face, Glasses, dan Compare",
       "title": "Mulai dengan 1 kredit gratis, lalu lanjutkan dengan {count} kredit AI seharga USD 2.99",
       "description": "Gunakan kredit untuk analisis wajah AI, coba kacamata kustom, dan perbandingan bingkai.",
+      "freeDetector": {
+        "title": "Detektor Bentuk Wajah gratis",
+        "description": "Tanpa akun, kredit, atau unggahan foto ke VisuTry.",
+        "cta": "Gunakan detektor gratis"
+      },
       "faqTitle": "Pertanyaan yang Sering Diajukan",
       "featureCards": {
-        "faceTitle": "Analisis Wajah",
+        "faceTitle": "Penasihat Kacamata",
         "faceDescription": "Gunakan satu kredit untuk memperkirakan bentuk wajah dan mendapatkan arahan bingkai sebelum mencoba kacamata.",
-        "glassesTitle": "Coba Kacamata",
+        "glassesTitle": "Coba Virtual",
         "glassesDescription": "Gunakan satu kredit untuk setiap try-on kustom dari potret dan gambar produk kacamata.",
         "compareTitle": "Bandingkan Bingkai",
         "compareDescription": "Gunakan satu kredit per bingkai yang dihasilkan. Coba 1 bingkai gratis, atau bandingkan hingga 4 dengan kredit."
@@ -347,8 +354,8 @@
       "ogDescription": "Unggah foto wajah dan gambar produk kacamata atau screenshot untuk melihat pratinjau bingkai sebelum membeli. Tidak perlu instal aplikasi.",
       "ctaNote": "Mulai dengan satu try-on gratis. Credits Pack adalah pembelian sekali, tanpa langganan.",
       "shortlistNotePrefix": "Belum yakin kacamata apa yang cocok? Mulai dengan",
-      "shortlistNoteLink": "analisis bentuk wajah AI",
-      "shortlistNoteSuffix": "untuk membuat shortlist, lalu kembali ke sini untuk mencoba kacamata dari foto dan screenshot produk Anda.",
+      "shortlistNoteLink": "Detektor Bentuk Wajah gratis",
+      "shortlistNoteSuffix": "lalu gunakan Penasihat Kacamata jika Anda menginginkan shortlist pribadi.",
       "faq": {
         "q1Question": "Bisakah saya mencoba kacamata online dari screenshot?",
         "q1Answer": "Ya. VisuTry memungkinkan Anda mengunggah foto wajah dan gambar produk kacamata atau screenshot, lalu AI membuat preview try-on yang realistis.",
@@ -403,11 +410,14 @@
         "c2Description": "Kredit dipakai sesuai jumlah bingkai yang dihasilkan, jadi perbandingan 4 bingkai memakai hingga 4 kredit.",
         "c3Description": "Hasil selesai disimpan di Dashboard History sesuai rencana retensi akun Anda."
       },
-      "compareDescription": "Gunakan Compare saat Anda punya beberapa kandidat bentuk bingkai dan ingin tampilan berdampingan dengan cepat. Gunakan Glasses Try-On jika sudah punya gambar produk tertentu."
+      "compareDescription": "Gunakan perbandingan bingkai untuk meninjau beberapa pilihan secara berdampingan. Gunakan coba virtual jika Anda sudah memiliki gambar produk.",
+      "shortlistPrefix": "Belum yakin bingkai mana yang perlu dibandingkan?",
+      "shortlistLink": "Mulai dengan Detektor Bentuk Wajah gratis."
     },
     "faceAnalysisLanding": {
-      "badge": "Detektor bentuk wajah untuk kacamata",
+      "badge": "Penasihat Kacamata AI",
       "startFaceAnalysis": "Mulai analisis wajah",
+      "useFreeDetector": "Gunakan detektor bentuk wajah gratis",
       "tryGlassesOnPhoto": "Coba kacamata di foto",
       "faqTitle": "FAQ analisis wajah AI",
       "guideLink": "Baca panduan lengkap",
@@ -460,8 +470,8 @@
         "q6Answer": "Wajah bulat biasanya cocok mulai dari bingkai bersudut, wajah persegi cocok dengan bingkai bulat atau oval, wajah oval cocok dengan bingkai persegi panjang seimbang atau browline, dan wajah hati cocok dengan bingkai ringan atau sedikit terangkat."
       },
       "schema": {
-        "appName": "VisuTry AI Face Analysis for Glasses",
-        "appDescription": "AI face shape analysis for glasses recommendations and virtual try-on planning.",
+        "appName": "Penasihat Kacamata AI VisuTry",
+        "appDescription": "Rekomendasi kacamata pribadi berdasarkan bentuk wajah dan fitur yang terlihat, terhubung ke coba virtual.",
         "feature1": "AI face shape detection",
         "feature2": "Personalized glasses recommendations",
         "feature3": "Frame styles to try and avoid",
@@ -504,9 +514,9 @@
       "modes": {
         "home": {
           "eyebrow": "AI glasses workflow",
-          "title": "Analyze, try on, and compare glasses from one photo",
-          "description": "Use Face for direction, Glasses for custom product images, and Compare for fast side-by-side frame decisions.",
-          "ctaLabel": "Start with Face",
+          "title": "Temukan bentuk wajah gratis, lalu coba dan bandingkan kacamata",
+          "description": "Mulai dengan detektor privat, lalu lanjut ke saran, try-on, atau perbandingan.",
+          "ctaLabel": "Deteksi bentuk wajah",
           "secondaryLabel": "Compare frames",
           "step1": "Face guidance",
           "step2": "Custom try-on",

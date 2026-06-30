@@ -6,7 +6,7 @@ import { Metadata } from 'next'
 import { generateI18nSEO, generateStructuredData } from '@/lib/seo'
 import { PRODUCT_METADATA, formatPrice, getPricingQuotas } from '@/config/pricing'
 import { Locale } from '@/i18n'
-import { CheckCircle2, Grid2X2, ScanFace, Sparkles } from 'lucide-react'
+import { CheckCircle2, Glasses, Grid2X2, ScanFace, Sparkles } from 'lucide-react'
 import { getTranslations } from 'next-intl/server'
 
 type Props = {
@@ -98,15 +98,31 @@ export default async function PricingPage({ params }: { params: { locale: string
         </p>
       </div>
 
+      <Link
+        href={`/${params.locale}/face-shape-detector`}
+        className="mb-8 flex flex-col gap-3 rounded-lg border border-green-200 bg-green-50 p-5 transition hover:border-green-300 sm:flex-row sm:items-center sm:justify-between"
+      >
+        <span className="flex items-start gap-3">
+          <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-white text-green-700">
+            <ScanFace className="h-5 w-5" />
+          </span>
+          <span>
+            <span className="block font-bold text-green-950">{t('freeDetector.title')}</span>
+            <span className="mt-1 block text-sm leading-6 text-green-900">{t('freeDetector.description')}</span>
+          </span>
+        </span>
+        <span className="font-semibold text-green-800">{t('freeDetector.cta')} →</span>
+      </Link>
+
       <div className="mb-8 grid gap-4 md:grid-cols-3">
         {[
           {
-            icon: ScanFace,
+            icon: Sparkles,
             title: t('featureCards.faceTitle'),
             description: t('featureCards.faceDescription'),
           },
           {
-            icon: Sparkles,
+            icon: Glasses,
             title: t('featureCards.glassesTitle'),
             description: t('featureCards.glassesDescription'),
           },

@@ -149,7 +149,7 @@ export function ModelTryOnSlides({
         <div className="mt-7 flex flex-col gap-3 sm:flex-row">
           <Link
             href={{
-              home: `/${locale}/face-analysis`,
+              home: `/${locale}/face-shape-detector`,
               glasses: `/${locale}/try-on/glasses`,
               compare: `/${locale}/try-on/glasses/compare`,
               face: `/${locale}/face-analysis`,

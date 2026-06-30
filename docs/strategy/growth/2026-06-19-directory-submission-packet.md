@@ -16,7 +16,7 @@ Product Hunt is a launch surface, not an evergreen directory. Reddit and X are d
 | --- | --- |
 | Product name | VisuTry |
 | Website | `https://www.visutry.com` |
-| Primary campaign URL | `https://www.visutry.com/en/face-analysis` |
+| Primary campaign URL | `https://www.visutry.com/en/face-shape-detector` |
 | Category | Virtual Try-On, Eyewear, Artificial Intelligence, Shopping Assistant |
 | Pricing | Free trial; credit pack from $2.99; subscription options available |
 | Founder / maker | Frank / Ye Sun |
@@ -32,13 +32,13 @@ Product Hunt is a launch surface, not an evergreen directory. Reddit and X are d
 Primary:
 
 ```text
-AI face analysis and virtual glasses try-on from a photo
+Find your face shape free, then try and compare glasses
 ```
 
 Launch-oriented:
 
 ```text
-Find glasses for your face, then try them on from a photo
+Find your face shape for free, get a personalized frame shortlist, then try and compare glasses on your photo
 ```
 
 Catalog-oriented:

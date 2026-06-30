@@ -53,30 +53,38 @@ export default function Home({
       {/* Hero Section */}
       <section className="max-w-6xl mx-auto mb-16">
 
-        <div className="grid gap-4 mb-8 md:grid-cols-3">
-          <div className="flex flex-col items-center">
+        <div className="mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <Link href={`/${locale}/face-shape-detector`} className="flex flex-col items-center rounded-lg border border-blue-100 bg-white p-5 shadow-sm transition hover:border-blue-300 hover:shadow-md">
             <div className="flex items-center justify-center w-16 h-16 mb-4 bg-blue-100 rounded-full">
               <ScanFace className="w-8 h-8 text-blue-600" />
             </div>
             <h3 className="mb-2 text-lg font-semibold">{t('tools.faceTitle')}</h3>
             <p className="text-center text-gray-600">{t('tools.faceDescription')}</p>
-          </div>
+          </Link>
 
-          <div className="flex flex-col items-center">
+          <Link href={`/${locale}/face-analysis`} className="flex flex-col items-center rounded-lg border border-violet-100 bg-white p-5 shadow-sm transition hover:border-violet-300 hover:shadow-md">
+            <div className="flex items-center justify-center w-16 h-16 mb-4 bg-violet-100 rounded-full">
+              <Sparkles className="w-8 h-8 text-violet-600" />
+            </div>
+            <h3 className="mb-2 text-lg font-semibold">{t('tools.advisorTitle')}</h3>
+            <p className="text-center text-gray-600">{t('tools.advisorDescription')}</p>
+          </Link>
+
+          <Link href={`/${locale}/try-on/glasses`} className="flex flex-col items-center rounded-lg border border-green-100 bg-white p-5 shadow-sm transition hover:border-green-300 hover:shadow-md">
             <div className="flex items-center justify-center w-16 h-16 mb-4 bg-green-100 rounded-full">
               <Glasses className="w-8 h-8 text-green-600" />
             </div>
             <h3 className="mb-2 text-lg font-semibold">{t('tools.glassesTitle')}</h3>
             <p className="text-center text-gray-600">{t('tools.glassesDescription')}</p>
-          </div>
+          </Link>
 
-          <div className="flex flex-col items-center">
+          <Link href={`/${locale}/try-on/glasses/compare`} className="flex flex-col items-center rounded-lg border border-indigo-100 bg-white p-5 shadow-sm transition hover:border-indigo-300 hover:shadow-md">
             <div className="flex items-center justify-center w-16 h-16 mb-4 bg-indigo-100 rounded-full">
               <Grid2X2 className="w-8 h-8 text-indigo-600" />
             </div>
             <h3 className="mb-2 text-lg font-semibold">{t('tools.compareTitle')}</h3>
             <p className="text-center text-gray-600">{t('tools.compareDescription')}</p>
-          </div>
+          </Link>
         </div>
 
         <ModelTryOnSlides locale={locale} mode="home" preloadFirstImage={false} />
@@ -84,54 +92,17 @@ export default function Home({
         {/* CTA Section - Glasses Only */}
         <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
           <Link
-            href={`/${locale}/face-analysis`}
+            href={`/${locale}/face-shape-detector`}
             className="inline-flex items-center rounded-lg bg-blue-600 px-6 py-3 text-base font-semibold text-white shadow-lg transition-colors duration-200 hover:bg-blue-700"
           >
             {t('ctaPrimary')}
           </Link>
           <Link
-            href={`/${locale}/try-on/glasses/compare`}
+            href={`/${locale}/try-on/glasses`}
             className="inline-flex items-center rounded-lg border border-gray-300 bg-white px-6 py-3 text-base font-semibold text-gray-800 transition-colors duration-200 hover:border-blue-300 hover:text-blue-700"
           >
             {t('ctaSecondary')}
           </Link>
-        </div>
-      </section>
-
-      <section className="max-w-6xl mx-auto mb-16">
-        <div className="grid gap-4 md:grid-cols-3">
-          {[
-            {
-              icon: ScanFace,
-              title: t('featureCards.faceTitle'),
-              description: t('featureCards.faceDescription'),
-              href: `/${locale}/face-analysis`,
-            },
-            {
-              icon: Glasses,
-              title: t('featureCards.glassesTitle'),
-              description: t('featureCards.glassesDescription'),
-              href: `/${locale}/try-on/glasses`,
-            },
-            {
-              icon: Grid2X2,
-              title: t('featureCards.compareTitle'),
-              description: t('featureCards.compareDescription'),
-              href: `/${locale}/try-on/glasses/compare`,
-            },
-          ].map((item) => {
-            const Icon = item.icon
-            return (
-              <Link key={item.title} href={item.href} className="rounded-lg border border-gray-200 bg-white p-5 shadow-sm transition hover:border-blue-200 hover:shadow-md">
-                <Icon className="mb-4 h-6 w-6 text-blue-600" />
-                <h2 className="mb-2 text-lg font-bold text-gray-950">{item.title}</h2>
-                <p className="text-sm leading-6 text-gray-600">{item.description}</p>
-                <span className="mt-4 inline-flex items-center text-sm font-semibold text-blue-600">
-                  {t('featureCards.openTool')} <ArrowRight className="ml-1 h-4 w-4" />
-                </span>
-              </Link>
-            )
-          })}
         </div>
       </section>
 

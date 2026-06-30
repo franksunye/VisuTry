@@ -10,6 +10,7 @@ import { getRemainingQuotaCount } from '@/lib/quota'
 import { prisma } from '@/lib/prisma'
 import { CompareLandingVisual } from '@/components/marketing/CompareLandingVisual'
 import { getTranslations } from 'next-intl/server'
+import { generateStructuredData } from '@/lib/seo'
 
 interface FrameComparePageProps {
   params: {
@@ -71,12 +72,26 @@ export default async function FrameComparePage({ params }: FrameComparePageProps
 
 async function PublicFrameCompareLanding({ locale }: { locale: string }) {
   const t = await getTranslations({ locale, namespace: 'marketing.compareLanding' })
+  const appSchema = generateStructuredData('softwareApplication', {
+    name: 'VisuTry Frame Compare',
+    url: `https://www.visutry.com/${locale}/try-on/glasses/compare`,
+    applicationCategory: 'ShoppingApplication',
+    operatingSystem: 'Web Browser',
+    description: t('metaDescription'),
+    featureList: [
+      'Compare up to four preset glasses frames',
+      'Use the same portrait for every result',
+      'Review generated looks side by side',
+      'Save completed results to account history',
+    ],
+  })
   const signInHref = `/${locale}/auth/signin?callbackUrl=${encodeURIComponent(
     `/${locale}/try-on/glasses/compare`,
   )}`
 
   return (
     <main className="mx-auto w-full max-w-6xl px-4 py-10 sm:px-6 lg:px-8">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(appSchema) }} />
       <h1 className="sr-only">{t('srOnlyTitle')}</h1>
       <CompareLandingVisual locale={locale} startHref={signInHref} />
 
@@ -111,6 +126,12 @@ async function PublicFrameCompareLanding({ locale }: { locale: string }) {
           </div>
           <p className="max-w-2xl text-sm leading-6 text-blue-900">
             {t('compareDescription')}
+          </p>
+          <p className="mt-2 text-sm text-blue-900">
+            {t('shortlistPrefix')}{' '}
+            <Link href={`/${locale}/face-shape-detector`} className="font-bold text-blue-700 hover:text-blue-950">
+              {t('shortlistLink')}
+            </Link>
           </p>
         </div>
         <div className="mt-4 flex flex-col gap-3 sm:mt-0 sm:flex-row">

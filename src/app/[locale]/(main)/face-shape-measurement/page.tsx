@@ -52,6 +52,8 @@ export async function generateMetadata({ params }: FaceShapeMeasurementPageProps
     title: 'How to Measure Your Face Shape: 4 Measurements',
     description: 'Measure face length, forehead, cheekbones, and jaw correctly. Compare the ratios, avoid photo measurement mistakes, and identify your likely face shape.',
     pathname: '/face-shape-measurement',
+    noIndex: params.locale !== 'en',
+    availableLocales: ['en'] as const,
   })
 }
 

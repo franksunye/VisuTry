@@ -77,8 +77,8 @@
   },
   "faceAnalysis": {
     "meta": {
-      "title": "Análisis facial con IA para gafas | VisuTry",
-      "description": "Descubre la forma de tu rostro con IA y obtén recomendaciones personalizadas de gafas. Sube una foto y desbloquea tu informe de estilo completo."
+      "title": "Asesor de gafas con IA: recomendaciones personalizadas | VisuTry",
+      "description": "Recibe recomendaciones de gafas personalizadas a partir de una foto y continúa con la prueba virtual."
     },
     "stepper": {
       "photo": "Foto",
@@ -148,8 +148,8 @@
       "searchStyle": "Buscar monturas {style}"
     },
     "landing": {
-      "title": "Análisis facial con IA para elegir mejor tus gafas",
-      "description": "Sube una foto para descubrir la forma de tu rostro, rasgos clave y recomendaciones personalizadas de monturas con IA.",
+      "title": "Asesor de gafas con IA para una mejor selección",
+      "description": "Sube una foto y recibe un informe personalizado con rasgos, forma facial y monturas recomendadas.",
       "tryGlasses": "Probar gafas en su lugar",
       "steps": {
         "uploadTitle": "Sube tu foto",
@@ -174,24 +174,26 @@
   },
   "marketing": {
     "home": {
-      "metaTitle": "VisuTry - Prueba Virtual de IA para Gafas, Ropa, Zapatos y Accesorios",
-      "metaDescription": "Prueba gafas, ropa, zapatos y accesorios al instante con prueba virtual impulsada por IA. Sin descargas - sube tu foto y ve cómo se ven los artículos antes de comprar. Impulsado por Nano Banana IA (Gemini 2.5 Flash Image) para resultados fotorrealistas.",
+      "metaTitle": "Detector facial gratis y prueba virtual de gafas | VisuTry",
+      "metaDescription": "Descubre gratis la forma de tu rostro, recibe asesoría de gafas, prueba cualquier montura y compara resultados.",
       "faqTitle": "Preguntas Frecuentes",
       "faqSubtitle": "Todo lo que necesitas saber sobre VisuTry",
-      "heroTitle": "Encuentra Tu Estilo Perfecto",
-      "heroSubtitle": "Prueba en 3 Sencillos Pasos",
+      "heroTitle": "Encuentra las gafas adecuadas, desde la forma facial hasta la prueba",
+      "heroSubtitle": "Empieza con el detector gratuito y privado; continúa con asesoría, prueba virtual y comparación.",
       "tools": {
-        "faceTitle": "Análisis facial",
-        "faceDescription": "Detecta la forma de tu rostro y obtén recomendaciones de monturas antes de usar créditos.",
-        "glassesTitle": "Gafas",
+        "faceTitle": "Detector de forma facial",
+        "faceDescription": "Gratis y sin registro; la foto permanece en tu navegador.",
+        "advisorTitle": "Asesor de gafas",
+        "advisorDescription": "Un informe detallado con recomendaciones personalizadas de monturas y sus motivos.",
+        "glassesTitle": "Prueba virtual",
         "glassesDescription": "Sube fotos de producto o capturas y visualízalas en tu rostro.",
-        "compareTitle": "Comparar",
+        "compareTitle": "Comparar monturas",
         "compareDescription": "Elige preajustes integrados y revisa varios resultados de monturas en un solo panel."
       },
-      "ctaPrimary": "Empezar con Face",
-      "ctaSecondary": "Comparar monturas",
+      "ctaPrimary": "Detectar mi forma facial gratis",
+      "ctaSecondary": "Probar gafas",
       "featureCards": {
-        "faceTitle": "Análisis facial",
+        "faceTitle": "Asesor de gafas",
         "faceDescription": "Un informe profesional de forma facial con recomendaciones de monturas.",
         "glassesTitle": "Prueba de gafas personalizada",
         "glassesDescription": "Usa tu propia imagen de producto, foto de tienda o captura de pantalla.",
@@ -235,11 +237,16 @@
       "eyebrow": "Créditos simples para Face, Glasses y Compare",
       "title": "Empieza con 1 crédito gratis y continúa con {count} créditos de IA por USD 2.99",
       "description": "Usa créditos en análisis facial con IA, prueba personalizada de gafas y comparación de monturas.",
+      "freeDetector": {
+        "title": "El detector de forma facial es gratuito",
+        "description": "Sin cuenta, créditos ni carga de la foto a VisuTry.",
+        "cta": "Usar detector gratis"
+      },
       "faqTitle": "Preguntas Frecuentes",
       "featureCards": {
-        "faceTitle": "Análisis facial",
+        "faceTitle": "Asesor de gafas",
         "faceDescription": "Usa un crédito para estimar la forma de tu rostro y obtener recomendaciones de monturas antes de probar gafas.",
-        "glassesTitle": "Prueba de gafas",
+        "glassesTitle": "Prueba virtual",
         "glassesDescription": "Usa un crédito por cada prueba personalizada con tu retrato y una imagen de gafas.",
         "compareTitle": "Comparación de monturas",
         "compareDescription": "Usa un crédito por montura generada. Prueba 1 montura gratis o compara hasta 4 con créditos."
@@ -347,8 +354,8 @@
       "ogDescription": "Sube una foto de tu rostro y una imagen de gafas o captura para ver cómo queda la montura antes de comprar, sin instalar app.",
       "ctaNote": "Empieza con una prueba gratuita. Credits Pack es una compra única, sin suscripción.",
       "shortlistNotePrefix": "¿No sabes qué gafas te favorecen? Empieza con",
-      "shortlistNoteLink": "análisis de forma facial con IA",
-      "shortlistNoteSuffix": "para crear una lista corta y vuelve aquí para probar gafas con tus fotos y capturas de productos.",
+      "shortlistNoteLink": "el detector facial gratuito",
+      "shortlistNoteSuffix": "y usa después el Asesor de gafas si quieres una selección personalizada.",
       "faq": {
         "q1Question": "¿Puedo probar gafas online desde una captura?",
         "q1Answer": "Sí. VisuTry te permite subir tu foto de rostro y una imagen de gafas o captura, y la IA genera una vista previa realista.",
@@ -403,11 +410,14 @@
         "c2Description": "Los créditos se consumen por montura generada, por lo que una comparación de 4 monturas usa hasta 4 créditos.",
         "c3Description": "Los resultados completados se guardan en el historial según tu plan de retención."
       },
-      "compareDescription": "Usa Compare cuando tengas varias formas candidatas y quieras una vista rápida lado a lado. Usa Glasses Try-On cuando ya tengas una imagen concreta de producto."
+      "compareDescription": "Usa la comparación de monturas para una vista rápida lado a lado. Usa la prueba virtual si ya tienes una imagen concreta de producto.",
+      "shortlistPrefix": "¿No sabes qué monturas comparar?",
+      "shortlistLink": "Empieza con el detector facial gratuito."
     },
     "faceAnalysisLanding": {
-      "badge": "Detector de forma facial para gafas",
+      "badge": "Asesor de gafas con IA",
       "startFaceAnalysis": "Iniciar análisis facial",
+      "useFreeDetector": "Usar detector facial gratuito",
       "tryGlassesOnPhoto": "Probar gafas en foto",
       "faqTitle": "FAQ de análisis facial IA",
       "guideLink": "Leer guía completa",
@@ -460,8 +470,8 @@
         "q6Answer": "Los rostros redondos suelen favorecer monturas angulares; los cuadrados, monturas redondas u ovaladas; los ovalados, rectangulares equilibradas o browline; y los de corazón, monturas ligeras o suavemente elevadas."
       },
       "schema": {
-        "appName": "VisuTry AI Face Analysis for Glasses",
-        "appDescription": "AI face shape analysis for glasses recommendations and virtual try-on planning.",
+        "appName": "Asesor de gafas con IA de VisuTry",
+        "appDescription": "Recomendaciones personalizadas de gafas según la forma facial y los rasgos visibles, conectadas con la prueba virtual.",
         "feature1": "AI face shape detection",
         "feature2": "Personalized glasses recommendations",
         "feature3": "Frame styles to try and avoid",
@@ -504,9 +514,9 @@
       "modes": {
         "home": {
           "eyebrow": "AI glasses workflow",
-          "title": "Analyze, try on, and compare glasses from one photo",
-          "description": "Use Face for direction, Glasses for custom product images, and Compare for fast side-by-side frame decisions.",
-          "ctaLabel": "Start with Face",
+          "title": "Descubre tu forma gratis, prueba gafas y compara resultados",
+          "description": "Empieza con el detector privado y continúa con asesoría, prueba o comparación cuando lo necesites.",
+          "ctaLabel": "Detectar mi forma",
           "secondaryLabel": "Compare frames",
           "step1": "Face guidance",
           "step2": "Custom try-on",

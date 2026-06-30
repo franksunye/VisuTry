@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { ArrowRight, CheckCircle2, LockKeyhole, ScanFace, ShieldCheck } from 'lucide-react'
+import { ArrowRight, CheckCircle2, Glasses, Grid2X2, LockKeyhole, ScanFace, ShieldCheck, Sparkles } from 'lucide-react'
 import { FreeFaceShapeDetector } from '@/components/face-shape/FreeFaceShapeDetector'
 import type { Locale } from '@/i18n'
 import { generateI18nSEO, generateStructuredData } from '@/lib/seo'
@@ -34,6 +34,8 @@ export async function generateMetadata({ params }: FaceShapeDetectorPageProps): 
     title: 'Free Face Shape Detector: Private, On-Device Test',
     description: 'Upload one photo to estimate your face shape for free. Processing runs in your browser with no login, no credits, and no photo upload to VisuTry.',
     pathname: '/face-shape-detector',
+    noIndex: params.locale !== 'en',
+    availableLocales: ['en'] as const,
   })
 }
 
@@ -86,6 +88,33 @@ export default function FaceShapeDetectorPage({ params }: FaceShapeDetectorPageP
           </div>
 
           <FreeFaceShapeDetector locale={locale} />
+
+          <section className="mt-10 rounded-lg border border-blue-100 bg-blue-50/70 p-6 md:p-8">
+            <div className="mb-6 max-w-3xl">
+              <p className="mb-2 text-sm font-semibold uppercase tracking-normal text-blue-700">Your next step</p>
+              <h2 className="text-2xl font-bold text-gray-950">Turn a face-shape result into a glasses decision</h2>
+              <p className="mt-2 text-sm leading-6 text-gray-600">
+                The free detector answers the first question. Continue only as far as you need: get
+                personalized frame guidance, try a specific product image, or compare preset frames.
+              </p>
+            </div>
+            <div className="grid gap-4 md:grid-cols-3">
+              {[
+                { icon: Sparkles, title: 'Glasses Advisor', text: 'Get a deeper report with frame recommendations and reasons.', href: `/${locale}/face-analysis`, cta: 'Get personalized advice' },
+                { icon: Glasses, title: 'Virtual Try-On', text: 'Upload a product image or screenshot and preview it on your portrait.', href: `/${locale}/try-on/glasses`, cta: 'Try on a frame' },
+                { icon: Grid2X2, title: 'Frame Compare', text: 'Generate several preset frames from the same photo and compare them.', href: `/${locale}/try-on/glasses/compare`, cta: 'Compare frames' },
+              ].map(({ icon: Icon, title, text, href, cta }) => (
+                <Link key={title} href={href} className="rounded-lg border border-blue-100 bg-white p-5 transition hover:border-blue-300 hover:shadow-sm">
+                  <Icon className="mb-3 h-5 w-5 text-blue-700" />
+                  <h3 className="font-bold text-gray-950">{title}</h3>
+                  <p className="mt-2 text-sm leading-6 text-gray-600">{text}</p>
+                  <span className="mt-4 inline-flex items-center gap-1 text-sm font-semibold text-blue-700">
+                    {cta} <ArrowRight className="h-4 w-4" />
+                  </span>
+                </Link>
+              ))}
+            </div>
+          </section>
 
           <section className="mt-10 grid gap-4 md:grid-cols-3">
             {[

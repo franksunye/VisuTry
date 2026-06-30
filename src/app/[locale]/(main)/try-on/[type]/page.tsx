@@ -326,7 +326,7 @@ async function PublicTryOnLanding({
           </div>
           <p className="mt-4 rounded-lg bg-blue-50 px-4 py-3 text-sm leading-6 text-blue-900">
             {t('shortlistNotePrefix')}{' '}
-            <Link href={`/${locale}/face-analysis`} className="font-semibold text-blue-700 hover:text-blue-900">
+            <Link href={`/${locale}/face-shape-detector`} className="font-semibold text-blue-700 hover:text-blue-900">
               {t('shortlistNoteLink')}
             </Link>
             {' '}{t('shortlistNoteSuffix')}
