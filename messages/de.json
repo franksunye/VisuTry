@@ -5,12 +5,12 @@
     "loading": "Lädt..."
   },
   "nav": {
-    "faceShapeDetector": "Gesichtsform",
-    "faceAnalysis": "Gesichtsanalyse",
-    "tryGlasses": "Brille",
+    "faceShapeDetector": "Gesichtsform-Detektor",
+    "faceAnalysis": "Brillenberater",
+    "tryGlasses": "Virtuelle Anprobe",
     "pricing": "Preise",
     "toggleMenu": "Navigationsmenü umschalten",
-    "compare": "Vergleich",
+    "compare": "Fassungsvergleich",
     "faq": "FAQ"
   },
   "home": {
@@ -65,8 +65,8 @@
       "terms": "Nutzungsbedingungen",
       "refund": "Rückerstattungsrichtlinie",
       "faceShapeDetector": "Kostenloser Gesichtsform-Detektor",
-      "faceAnalysis": "Gesichtsanalyse",
-      "tryGlasses": "Brille",
+      "faceAnalysis": "KI-Brillenberater",
+      "tryGlasses": "Virtuelle Brillenanprobe",
       "frameCompare": "Fassungsvergleich",
       "moreTryOn": "Weitere Anproben",
       "faceShapeGuide": "Leitfaden zur Gesichtsform"

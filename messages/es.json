@@ -5,12 +5,12 @@
     "loading": "Cargando..."
   },
   "nav": {
-    "faceShapeDetector": "Forma del rostro",
-    "faceAnalysis": "Análisis facial",
-    "tryGlasses": "Gafas",
+    "faceShapeDetector": "Detector de forma facial",
+    "faceAnalysis": "Asesor de gafas",
+    "tryGlasses": "Prueba virtual",
     "pricing": "Precios",
     "toggleMenu": "Alternar menú de navegación",
-    "compare": "Comparar",
+    "compare": "Comparar monturas",
     "faq": "Preguntas frecuentes"
   },
   "home": {
@@ -65,8 +65,8 @@
       "terms": "Términos de Servicio",
       "refund": "Política de Reembolso",
       "faceShapeDetector": "Detector gratuito de forma del rostro",
-      "faceAnalysis": "Análisis facial",
-      "tryGlasses": "Gafas",
+      "faceAnalysis": "Asesor de gafas con IA",
+      "tryGlasses": "Prueba virtual de gafas",
       "frameCompare": "Comparación de monturas",
       "moreTryOn": "Más pruebas",
       "faceShapeGuide": "Guía de forma del rostro"

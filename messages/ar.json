@@ -5,12 +5,12 @@
     "loading": "جاري التحميل..."
   },
   "nav": {
-    "faceShapeDetector": "شكل الوجه",
-    "faceAnalysis": "تحليل الوجه",
-    "tryGlasses": "النظارات",
+    "faceShapeDetector": "كاشف شكل الوجه",
+    "faceAnalysis": "مستشار النظارات",
+    "tryGlasses": "تجربة افتراضية",
     "pricing": "الأسعار",
     "toggleMenu": "تبديل قائمة التنقل",
-    "compare": "مقارنة",
+    "compare": "مقارنة الإطارات",
     "faq": "الأسئلة الشائعة"
   },
   "home": {
@@ -65,8 +65,8 @@
       "terms": "شروط الخدمة",
       "refund": "سياسة الاسترداد",
       "faceShapeDetector": "كاشف شكل الوجه المجاني",
-      "faceAnalysis": "تحليل الوجه",
-      "tryGlasses": "النظارات",
+      "faceAnalysis": "مستشار النظارات بالذكاء الاصطناعي",
+      "tryGlasses": "تجربة النظارات افتراضياً",
       "frameCompare": "مقارنة الإطارات",
       "moreTryOn": "تجارب إضافية",
       "faceShapeGuide": "دليل شكل الوجه"

@@ -5,12 +5,12 @@
     "loading": "Chargement..."
   },
   "nav": {
-    "faceShapeDetector": "Forme du visage",
-    "faceAnalysis": "Analyse du visage",
-    "tryGlasses": "Lunettes",
+    "faceShapeDetector": "Détecteur de forme",
+    "faceAnalysis": "Conseiller lunettes",
+    "tryGlasses": "Essayage virtuel",
     "pricing": "Tarifs",
     "toggleMenu": "Basculer le menu de navigation",
-    "compare": "Comparer",
+    "compare": "Comparer les montures",
     "faq": "FAQ"
   },
   "home": {
@@ -65,8 +65,8 @@
       "terms": "Conditions d'Utilisation",
       "refund": "Politique de Remboursement",
       "faceShapeDetector": "Détecteur gratuit de forme du visage",
-      "faceAnalysis": "Analyse du visage",
-      "tryGlasses": "Lunettes",
+      "faceAnalysis": "Conseiller lunettes IA",
+      "tryGlasses": "Essayage virtuel de lunettes",
       "frameCompare": "Comparaison de montures",
       "moreTryOn": "Autres essayages",
       "faceShapeGuide": "Guide des formes de visage"

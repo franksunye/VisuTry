@@ -5,12 +5,12 @@
     "loading": "Memuat..."
   },
   "nav": {
-    "faceShapeDetector": "Bentuk Wajah",
-    "faceAnalysis": "Analisis Wajah",
-    "tryGlasses": "Kacamata",
+    "faceShapeDetector": "Detektor Bentuk Wajah",
+    "faceAnalysis": "Penasihat Kacamata",
+    "tryGlasses": "Coba Virtual",
     "pricing": "Harga",
     "toggleMenu": "Buka/tutup menu navigasi",
-    "compare": "Bandingkan",
+    "compare": "Bandingkan Bingkai",
     "faq": "FAQ"
   },
   "home": {
@@ -65,8 +65,8 @@
       "terms": "Ketentuan Layanan",
       "refund": "Kebijakan Pengembalian Dana",
       "faceShapeDetector": "Detektor Bentuk Wajah Gratis",
-      "faceAnalysis": "Analisis Wajah",
-      "tryGlasses": "Kacamata",
+      "faceAnalysis": "Penasihat Kacamata AI",
+      "tryGlasses": "Coba Kacamata Virtual",
       "frameCompare": "Bandingkan Bingkai",
       "moreTryOn": "Coba Lainnya",
       "faceShapeGuide": "Panduan Bentuk Wajah"

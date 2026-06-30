@@ -60,7 +60,7 @@ export function Header({ transparent = false }: HeaderProps) {
           </Link>
           
           {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center space-x-6">
+          <div className="hidden lg:flex items-center space-x-6">
             {navLinks.map((link) => {
               const isPricingLink = link.href.includes('/pricing')
               return (
@@ -97,7 +97,7 @@ export function Header({ transparent = false }: HeaderProps) {
           {/* CTA + Auth Section */}
           <div className="flex items-center space-x-3">
             {/* Language Switcher - Desktop */}
-            <div className="hidden md:block">
+            <div className="hidden lg:block">
               <LanguageSwitcher />
             </div>
 
@@ -129,7 +129,7 @@ export function Header({ transparent = false }: HeaderProps) {
             {/* Mobile Menu Button */}
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="md:hidden p-2 text-gray-700 hover:text-blue-600 transition-colors"
+              className="lg:hidden p-2 text-gray-700 hover:text-blue-600 transition-colors"
               aria-label={t('toggleMenu')}
               aria-expanded={mobileMenuOpen}
               aria-controls="mobile-menu"
@@ -143,7 +143,7 @@ export function Header({ transparent = false }: HeaderProps) {
         <div
           id="mobile-menu"
           className={cn(
-            "md:hidden transition-all duration-300 ease-in-out",
+            "lg:hidden transition-all duration-300 ease-in-out",
             mobileMenuOpen ? "max-h-[600px] opacity-100" : "max-h-0 opacity-0 overflow-hidden"
           )}
           role="menu"

@@ -5,12 +5,12 @@
     "loading": "読み込み中..."
   },
   "nav": {
-    "faceShapeDetector": "顔型",
-    "faceAnalysis": "顔分析",
-    "tryGlasses": "メガネ",
+    "faceShapeDetector": "顔型診断",
+    "faceAnalysis": "メガネアドバイザー",
+    "tryGlasses": "バーチャル試着",
     "pricing": "料金",
     "toggleMenu": "ナビゲーションメニューを切り替え",
-    "compare": "比較",
+    "compare": "フレーム比較",
     "faq": "よくある質問"
   },
   "home": {
@@ -65,8 +65,8 @@
       "terms": "利用規約",
       "refund": "返金ポリシー",
       "faceShapeDetector": "無料顔型診断",
-      "faceAnalysis": "顔分析",
-      "tryGlasses": "メガネ",
+      "faceAnalysis": "AIメガネアドバイザー",
+      "tryGlasses": "メガネのバーチャル試着",
       "frameCompare": "フレーム比較",
       "moreTryOn": "その他の試着",
       "faceShapeGuide": "顔型ガイド"

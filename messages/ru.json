@@ -5,12 +5,12 @@
     "loading": "Загрузка..."
   },
   "nav": {
-    "faceShapeDetector": "Форма лица",
-    "faceAnalysis": "Анализ лица",
-    "tryGlasses": "Очки",
+    "faceShapeDetector": "Определитель формы лица",
+    "faceAnalysis": "Подбор очков",
+    "tryGlasses": "Виртуальная примерка",
     "pricing": "Цены",
     "toggleMenu": "Переключить навигационное меню",
-    "compare": "Сравнение",
+    "compare": "Сравнение оправ",
     "faq": "FAQ"
   },
   "home": {
@@ -65,8 +65,8 @@
       "terms": "Условия Использования",
       "refund": "Политика Возврата",
       "faceShapeDetector": "Бесплатный определитель формы лица",
-      "faceAnalysis": "Анализ лица",
-      "tryGlasses": "Очки",
+      "faceAnalysis": "ИИ-подбор очков",
+      "tryGlasses": "Виртуальная примерка очков",
       "frameCompare": "Сравнение оправ",
       "moreTryOn": "Другие примерки",
       "faceShapeGuide": "Гид по форме лица"

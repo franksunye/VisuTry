@@ -5,10 +5,10 @@
     "loading": "Loading..."
   },
   "nav": {
-    "faceShapeDetector": "Face Shape",
-    "faceAnalysis": "AI Analysis",
-    "tryGlasses": "Glasses",
-    "compare": "Compare",
+    "faceShapeDetector": "Face Shape Detector",
+    "faceAnalysis": "Glasses Advisor",
+    "tryGlasses": "Virtual Try-On",
+    "compare": "Frame Compare",
     "faq": "FAQ",
     "pricing": "Pricing",
     "toggleMenu": "Toggle navigation menu"
@@ -541,9 +541,9 @@
       "terms": "Terms of Service",
       "refund": "Refund Policy",
       "faceShapeDetector": "Free Face Shape Detector",
-      "faceAnalysis": "AI Face Analysis",
-      "tryGlasses": "Glasses",
-      "frameCompare": "Compare",
+      "faceAnalysis": "AI Glasses Advisor",
+      "tryGlasses": "Virtual Glasses Try-On",
+      "frameCompare": "Frame Compare",
       "moreTryOn": "More Try-On",
       "faceShapeGuide": "Face Shape Guide"
     },
