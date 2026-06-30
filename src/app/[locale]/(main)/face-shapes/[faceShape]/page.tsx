@@ -86,10 +86,10 @@ export default function FaceShapeGuidePage({ params }: FaceShapeGuidePageProps) 
             <p className="mb-6 leading-7 text-gray-600">{guide.definition}</p>
             <div className="flex flex-col gap-3 sm:flex-row">
               <Link
-                href={`/${locale}/face-analysis`}
+                href={`/${locale}/face-shape-detector`}
                 className="inline-flex items-center justify-center gap-2 rounded-lg bg-blue-600 px-5 py-3 font-semibold text-white hover:bg-blue-700"
               >
-                Analyze my face
+                Try the free detector
                 <ArrowRight className="h-4 w-4" />
               </Link>
               <Link

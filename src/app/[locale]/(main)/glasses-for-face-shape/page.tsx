@@ -146,10 +146,10 @@ export default function GlassesForFaceShapePage({ params }: Props) {
             </p>
             <div className="flex flex-col gap-3 sm:flex-row">
               <Link
-                href={`/${locale}/face-analysis`}
+                href={`/${locale}/face-shape-detector`}
                 className="inline-flex items-center justify-center gap-2 rounded-lg bg-blue-600 px-5 py-3 font-semibold text-white hover:bg-blue-700"
               >
-                Analyze my face
+                Try the free detector
                 <ArrowRight className="h-4 w-4" />
               </Link>
               <Link
@@ -250,10 +250,10 @@ export default function GlassesForFaceShapePage({ params }: Props) {
               </h2>
             </div>
             <Link
-              href={`/${locale}/face-analysis`}
+              href={`/${locale}/face-shape-detector`}
               className="inline-flex items-center justify-center gap-2 rounded-lg bg-gray-950 px-4 py-3 text-sm font-semibold text-white hover:bg-gray-800"
             >
-              Start with AI face analysis
+              Start with the free detector
               <ArrowRight className="h-4 w-4" />
             </Link>
           </div>

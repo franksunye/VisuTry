@@ -4,6 +4,7 @@ import { getBlogSitemapEntries } from '@/lib/blog'
 import { slugify } from '@/lib/programmatic-seo'
 import { locales } from '@/i18n'
 import { FACE_SHAPE_SLUGS } from '@/config/face-shape-content'
+import { FACE_SHAPE_COMPARISON_SLUGS } from '@/config/face-shape-comparisons'
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.visutry.com'
@@ -22,6 +23,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const staticPagePaths = [
     { path: '', priority: 1, changeFrequency: 'daily' as const },
     { path: '/face-analysis', priority: 0.9, changeFrequency: 'weekly' as const },
+    { path: '/face-shape-detector', priority: 1, changeFrequency: 'weekly' as const },
+    { path: '/face-shape-measurement', priority: 0.85, changeFrequency: 'monthly' as const },
     { path: '/face-shapes', priority: 0.9, changeFrequency: 'weekly' as const },
     { path: '/glasses-for-face-shape', priority: 0.9, changeFrequency: 'weekly' as const },
     { path: '/hairstyles-for-face-shape', priority: 0.85, changeFrequency: 'weekly' as const },
@@ -36,7 +39,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     `/face-shapes/${slug}`,
     `/style/${slug}-face`,
     `/hairstyles-for/${slug}-face`,
-  ])
+  ]).concat(FACE_SHAPE_COMPARISON_SLUGS.map((slug) => `/face-shapes/compare/${slug}`))
 
   // Generate static pages for all locales
   const staticPages: MetadataRoute.Sitemap = []

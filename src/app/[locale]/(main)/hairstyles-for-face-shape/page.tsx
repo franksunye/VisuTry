@@ -63,10 +63,10 @@ export default function HairstylesHubPage({ params }: HairstylesHubPageProps) {
                 <ArrowRight className="h-4 w-4" />
               </Link>
               <Link
-                href={`/${locale}/face-analysis`}
+                href={`/${locale}/face-shape-detector`}
                 className="inline-flex items-center justify-center gap-2 rounded-lg border border-gray-300 px-5 py-3 font-semibold text-gray-700 hover:bg-gray-50"
               >
-                Analyze my face
+                Try the free detector
               </Link>
             </div>
           </div>
