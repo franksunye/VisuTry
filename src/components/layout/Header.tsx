@@ -102,14 +102,7 @@ export function Header({ transparent = false }: HeaderProps) {
             </div>
 
             {/* CTA Button - Desktop only */}
-            {!isAuthenticated ? (
-              <Link
-                href={`/${locale}/face-shape-detector`}
-                className="hidden sm:flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium text-sm"
-              >
-                {tCommon('checkFaceShape')}
-              </Link>
-            ) : (
+            {isAuthenticated ? (
               <Link
                 href={`/${locale}/try-on`}
                 className="hidden sm:flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium text-sm"
@@ -117,7 +110,14 @@ export function Header({ transparent = false }: HeaderProps) {
                 <Sparkles className="w-4 h-4 mr-2" />
                 {tCommon('startTryOn')}
               </Link>
-            )}
+            ) : !isHomePage ? (
+              <Link
+                href={`/${locale}/face-shape-detector`}
+                className="hidden sm:flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium text-sm"
+              >
+                {tCommon('checkFaceShape')}
+              </Link>
+            ) : null}
 
             {/* User Menu or Login Button */}
             {isAuthenticated ? (
@@ -185,7 +185,7 @@ export function Header({ transparent = false }: HeaderProps) {
                     <Sparkles className="w-4 h-4 mr-2" />
                     {tCommon('startTryOn')}
                   </Link>
-                ) : (
+                ) : !isHomePage ? (
                   <Link
                     href={`/${locale}/face-shape-detector`}
                     onClick={() => setMobileMenuOpen(false)}
@@ -193,7 +193,7 @@ export function Header({ transparent = false }: HeaderProps) {
                   >
                     {tCommon('checkFaceShape')}
                   </Link>
-                )}
+                ) : null}
               </div>
             </div>
           </div>

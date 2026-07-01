@@ -20,6 +20,13 @@ export default function Home({
     { question: t('faq.q5Question'), answer: t('faq.q5Answer') },
   ]
 
+  const toolPath = [
+    { step: '01', href: `/${locale}/face-shape-detector`, icon: ScanFace, label: t('tools.faceTitle'), isStart: true },
+    { step: '02', href: `/${locale}/face-analysis`, icon: Sparkles, label: t('tools.advisorTitle') },
+    { step: '03', href: `/${locale}/try-on/glasses`, icon: Glasses, label: t('tools.glassesTitle') },
+    { step: '04', href: `/${locale}/try-on/glasses/compare`, icon: Grid2X2, label: t('tools.compareTitle') },
+  ]
+
   const faqSchema = {
     "@context": "https://schema.org",
     "@type": "FAQPage",
@@ -41,7 +48,7 @@ export default function Home({
         dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
       />
       {/* Hero Header */}
-      <header className="mb-14 text-center">
+      <header className="mb-10 text-center">
         <h1 className="max-w-3xl mx-auto text-3xl md:text-4xl font-bold text-gray-900 mb-3">
           {t('heroTitle')}
         </h1>
@@ -67,52 +74,34 @@ export default function Home({
         </p>
       </header>
 
-      {/* Recommended product path */}
-      <section className="max-w-6xl mx-auto mb-16">
-        <div className="mb-6 text-center">
-          <p className="mb-2 text-sm font-semibold uppercase tracking-wide text-blue-600">
-            {t('recommendedWorkflow')}
-          </p>
-          <h2 className="text-2xl font-bold text-gray-950 md:text-3xl">
-            {t('workflowPath')}
-          </h2>
-        </div>
-        <div className="mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <Link href={`/${locale}/face-shape-detector`} className="flex flex-col items-center rounded-lg border border-blue-100 bg-white p-5 shadow-sm transition hover:border-blue-300 hover:shadow-md">
-            <div className="flex items-center justify-center w-16 h-16 mb-4 bg-blue-100 rounded-full">
-              <ScanFace className="w-8 h-8 text-blue-600" />
-            </div>
-            <p className="mb-2 rounded-full bg-blue-50 px-2.5 py-1 text-xs font-semibold text-blue-700">
-              {t('bestPlaceToStart')}
-            </p>
-            <h3 className="mb-2 text-lg font-semibold">{t('tools.faceTitle')}</h3>
-            <p className="text-center text-gray-600">{t('tools.faceDescription')}</p>
-          </Link>
-
-          <Link href={`/${locale}/face-analysis`} className="flex flex-col items-center rounded-lg border border-violet-100 bg-white p-5 shadow-sm transition hover:border-violet-300 hover:shadow-md">
-            <div className="flex items-center justify-center w-16 h-16 mb-4 bg-violet-100 rounded-full">
-              <Sparkles className="w-8 h-8 text-violet-600" />
-            </div>
-            <h3 className="mb-2 text-lg font-semibold">{t('tools.advisorTitle')}</h3>
-            <p className="text-center text-gray-600">{t('tools.advisorDescription')}</p>
-          </Link>
-
-          <Link href={`/${locale}/try-on/glasses`} className="flex flex-col items-center rounded-lg border border-green-100 bg-white p-5 shadow-sm transition hover:border-green-300 hover:shadow-md">
-            <div className="flex items-center justify-center w-16 h-16 mb-4 bg-green-100 rounded-full">
-              <Glasses className="w-8 h-8 text-green-600" />
-            </div>
-            <h3 className="mb-2 text-lg font-semibold">{t('tools.glassesTitle')}</h3>
-            <p className="text-center text-gray-600">{t('tools.glassesDescription')}</p>
-          </Link>
-
-          <Link href={`/${locale}/try-on/glasses/compare`} className="flex flex-col items-center rounded-lg border border-indigo-100 bg-white p-5 shadow-sm transition hover:border-indigo-300 hover:shadow-md">
-            <div className="flex items-center justify-center w-16 h-16 mb-4 bg-indigo-100 rounded-full">
-              <Grid2X2 className="w-8 h-8 text-indigo-600" />
-            </div>
-            <h3 className="mb-2 text-lg font-semibold">{t('tools.compareTitle')}</h3>
-            <p className="text-center text-gray-600">{t('tools.compareDescription')}</p>
-          </Link>
-        </div>
+      {/* Compact product path */}
+      <section className="mx-auto mb-16 max-w-5xl" aria-labelledby="tool-path-title">
+        <p id="tool-path-title" className="mb-3 text-center text-xs font-semibold uppercase tracking-wider text-blue-600">
+          {t('recommendedWorkflow')}
+        </p>
+        <ol className="grid overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm sm:grid-cols-2 lg:grid-cols-4">
+          {toolPath.map((item) => {
+            const Icon = item.icon
+            return (
+              <li key={item.href} className="border-b border-gray-200 last:border-b-0 sm:[&:nth-child(odd)]:border-r lg:border-b-0 lg:border-r lg:last:border-r-0">
+                <Link
+                  href={item.href}
+                  className="flex min-h-20 items-center gap-3 px-4 py-3 transition-colors hover:bg-blue-50/60"
+                >
+                  <span className="flex h-9 w-9 flex-none items-center justify-center rounded-full bg-blue-50 text-blue-600">
+                    <Icon className="h-4 w-4" />
+                  </span>
+                  <span className="min-w-0">
+                    <span className="block text-xs font-semibold text-gray-400">
+                      {item.step}{item.isStart ? ` · ${t('bestPlaceToStart')}` : ''}
+                    </span>
+                    <span className="mt-0.5 block text-sm font-bold text-gray-900">{item.label}</span>
+                  </span>
+                </Link>
+              </li>
+            )
+          })}
+        </ol>
       </section>
 
       {/* Free detector to paid advice */}
