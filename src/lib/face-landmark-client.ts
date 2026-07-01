@@ -65,6 +65,11 @@ export interface FaceLandmarkDetectionResult {
   }
 }
 
+export interface FaceLandmarkFileResult {
+  geometry: FaceGeometryAnalysis
+  detection: FaceLandmarkDetectionResult | null
+}
+
 export async function detectFaceLandmarksFromImage(
   image: ImageBitmap | HTMLImageElement | HTMLCanvasElement
 ): Promise<FaceLandmarkDetectionResult | null> {
@@ -91,45 +96,54 @@ export async function detectFaceLandmarksFromImage(
   }
 }
 
-export async function analyzeFaceGeometryFromFile(file: File): Promise<FaceGeometryAnalysis> {
+export async function analyzeFaceLandmarkFile(file: File): Promise<FaceLandmarkFileResult> {
   if (typeof window === 'undefined' || typeof createImageBitmap === 'undefined') {
     return {
-      version: 'landmark-v1',
-      status: 'unavailable',
-      source: 'ai-fallback',
-      faceDetected: false,
-      faceCount: 0,
-      qualityScore: 0,
-      signals: [],
-      warnings: ['Face landmark detection is not available in this browser.'],
+      geometry: unavailableGeometry('Face landmark detection is not available in this browser.'),
+      detection: null,
     }
   }
 
   let bitmap: ImageBitmap | null = null
   try {
     bitmap = await createImageBitmap(file)
-    const result = await detectFaceLandmarksFromImage(bitmap)
-    return analyzeFaceLandmarks(result?.landmarks, {
-      faceCount: result?.faceCount ?? 0,
-      imageWidth: bitmap.width,
-      imageHeight: bitmap.height,
-    })
+    const detection = await detectFaceLandmarksFromImage(bitmap)
+    return {
+      geometry: analyzeFaceLandmarks(detection?.landmarks, {
+        faceCount: detection?.faceCount ?? 0,
+        imageWidth: bitmap.width,
+        imageHeight: bitmap.height,
+      }),
+      detection,
+    }
   } catch (error) {
     return {
-      version: 'landmark-v1',
-      status: 'unavailable',
-      source: 'ai-fallback',
-      faceDetected: false,
-      faceCount: 0,
-      qualityScore: 0,
-      signals: [],
-      warnings: [
+      geometry: unavailableGeometry(
         error instanceof Error
           ? `Face landmark detection failed: ${error.message}`
-          : 'Face landmark detection failed.',
-      ],
+          : 'Face landmark detection failed.'
+      ),
+      detection: null,
     }
   } finally {
     bitmap?.close()
+  }
+}
+
+export async function analyzeFaceGeometryFromFile(file: File): Promise<FaceGeometryAnalysis> {
+  const { geometry } = await analyzeFaceLandmarkFile(file)
+  return geometry
+}
+
+function unavailableGeometry(message: string): FaceGeometryAnalysis {
+  return {
+    version: 'landmark-v1',
+    status: 'unavailable',
+    source: 'ai-fallback',
+    faceDetected: false,
+    faceCount: 0,
+    qualityScore: 0,
+    signals: [],
+    warnings: [message],
   }
 }

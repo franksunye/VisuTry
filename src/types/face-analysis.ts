@@ -83,6 +83,7 @@ export interface FaceGeometryAnalysis {
   faceCount: number
   qualityScore: number
   measuredShape?: CanonicalFaceShape
+  alternativeShapes?: CanonicalFaceShape[]
   measuredConfidence?: number
   ratios?: FaceGeometryRatios
   signals: string[]

@@ -87,6 +87,7 @@ describe('face-landmark-metrics', () => {
     expect(geometry.qualityScore).toBeGreaterThan(80)
     expect(geometry.ratios?.faceAspectRatio).toBeCloseTo(1.48, 2)
     expect(geometry.measuredShape).toBe('oblong')
+    expect(geometry.alternativeShapes).toEqual(expect.any(Array))
     expect(geometry.signals.length).toBeGreaterThan(0)
   })
 
@@ -164,11 +165,18 @@ describe('face-landmark-metrics', () => {
 
   it('builds landmark-sourced metrics when geometry is measured', () => {
     const geometry = analyzeFaceLandmarks(makeLandmarks({}), { faceCount: 1 })
-    const metrics = buildMeasuredFaceMetrics('oblong', 0.82, geometry)
+    const metrics = buildMeasuredFaceMetrics('oblong', 0.82, geometry, {
+      interpretation: 'landmark-only',
+    })
 
     expect(metrics).toHaveLength(6)
     expect(metrics?.every((metric) => metric.source === 'landmark')).toBe(true)
     expect(metrics?.find((metric) => metric.id === 'faceLength')?.caption).toContain(':1')
+    expect(metrics?.find((metric) => metric.id === 'faceShape')?.caption).toBe('Geometry match')
+    expect(metrics?.find((metric) => metric.id === 'faceShape')?.detail).not.toContain('AI')
+    expect(metrics?.find((metric) => metric.id === 'symmetry')?.label).toBe('Photo Alignment')
+    expect(metrics?.find((metric) => metric.id === 'symmetry')?.caption).toBe('Centered in photo')
+    expect(metrics?.find((metric) => metric.id === 'symmetry')?.detail).toContain('does not measure facial symmetry')
   })
 
   it('normalizes untrusted geometry input and rejects invalid versions', () => {
@@ -182,6 +190,7 @@ describe('face-landmark-metrics', () => {
       faceCount: 100,
       qualityScore: 200,
       measuredShape: 'hexagon',
+      alternativeShapes: ['oval', 'round', 'hexagon'],
       ratios: {
         faceAspectRatio: 9,
         cheekToFaceWidth: 0.8,
@@ -198,6 +207,7 @@ describe('face-landmark-metrics', () => {
     expect(normalized?.faceCount).toBe(10)
     expect(normalized?.qualityScore).toBe(100)
     expect(normalized?.measuredShape).toBeUndefined()
+    expect(normalized?.alternativeShapes).toEqual(['oval', 'round'])
     expect(normalized?.ratios?.faceAspectRatio).toBe(2.2)
     expect(normalized?.ratios?.eyeLineTiltDeg).toBe(35)
   })

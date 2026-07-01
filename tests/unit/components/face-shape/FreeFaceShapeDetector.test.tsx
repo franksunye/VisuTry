@@ -2,12 +2,16 @@ import React from 'react'
 import { fireEvent, render, screen } from '@testing-library/react'
 import { FreeFaceShapeDetector } from '@/components/face-shape/FreeFaceShapeDetector'
 import { analytics } from '@/lib/analytics'
-import type { FaceGeometryAnalysis } from '@/types/face-analysis'
+import type { FaceGeometryAnalysis, FaceLandmarkPoint } from '@/types/face-analysis'
 
-const mockAnalyzeFaceGeometryFromFile = jest.fn()
+const mockAnalyzeFaceLandmarkFile = jest.fn()
 
 jest.mock('@/lib/face-landmark-client', () => ({
-  analyzeFaceGeometryFromFile: (...args: unknown[]) => mockAnalyzeFaceGeometryFromFile(...args),
+  analyzeFaceLandmarkFile: (...args: unknown[]) => mockAnalyzeFaceLandmarkFile(...args),
+}))
+
+jest.mock('@/components/face-analysis/FaceLandmarkMeshOverlay', () => ({
+  FaceLandmarkMeshOverlay: () => <div data-testid="landmark-mesh" />,
 }))
 
 const measuredResult: FaceGeometryAnalysis = {
@@ -18,6 +22,7 @@ const measuredResult: FaceGeometryAnalysis = {
   faceCount: 1,
   qualityScore: 92,
   measuredShape: 'oval',
+  alternativeShapes: ['oblong'],
   measuredConfidence: 0.78,
   ratios: {
     faceAspectRatio: 1.45,
@@ -28,14 +33,33 @@ const measuredResult: FaceGeometryAnalysis = {
     symmetryOffset: 0.01,
     noseBridgeToFaceWidth: 0.2,
   },
-  signals: ['Face length is moderately greater than width.'],
+  signals: [
+    'Oval shape supported by measured proportions',
+    'Balanced face length-to-width ratio',
+    'Jawline has moderate taper',
+  ],
   warnings: [],
+}
+
+const landmarks: FaceLandmarkPoint[] = Array.from({ length: 455 }, (_, index) => ({
+  x: 0.3 + (index % 20) * 0.02,
+  y: 0.2 + (index % 25) * 0.02,
+  z: 0,
+}))
+
+const measuredFileResult = {
+  geometry: measuredResult,
+  detection: {
+    landmarks,
+    faceCount: 1,
+    connections: { tesselation: [], contours: [], irises: [] },
+  },
 }
 
 describe('FreeFaceShapeDetector', () => {
   beforeEach(() => {
-    mockAnalyzeFaceGeometryFromFile.mockClear()
-    mockAnalyzeFaceGeometryFromFile.mockResolvedValue(measuredResult)
+    mockAnalyzeFaceLandmarkFile.mockClear()
+    mockAnalyzeFaceLandmarkFile.mockResolvedValue(measuredFileResult)
     Object.defineProperty(URL, 'createObjectURL', {
       configurable: true,
       value: jest.fn(() => 'blob:face-photo'),
@@ -62,7 +86,14 @@ describe('FreeFaceShapeDetector', () => {
     fireEvent.change(input, { target: { files: [file] } })
 
     expect(trackUpload).toHaveBeenCalledWith('image/jpeg', file.size)
-    expect(await screen.findByText('Oval')).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: 'Oval' })).toBeInTheDocument()
+    expect(screen.getByText('Likely geometry match')).toBeInTheDocument()
+    expect(screen.getByText('oblong')).toBeInTheDocument()
+    expect(screen.getByText('92% photo quality')).toBeInTheDocument()
+    expect(screen.getByText('Measured face details')).toBeInTheDocument()
+    expect(screen.getAllByText('Photo Alignment')).toHaveLength(2)
+    expect(screen.getByTestId('landmark-mesh')).toBeInTheDocument()
+    expect(mockAnalyzeFaceLandmarkFile).toHaveBeenCalledTimes(1)
     expect(trackComplete).toHaveBeenCalledWith('oval', 92, expect.any(Number))
 
     const advisorLink = screen.getByRole('link', { name: /get personalized advice/i })
@@ -84,6 +115,6 @@ describe('FreeFaceShapeDetector', () => {
 
     expect(await screen.findByText('Choose a JPG, PNG, or WebP image.')).toBeInTheDocument()
     expect(trackFailed).toHaveBeenCalledWith('Choose a JPG, PNG, or WebP image.')
-    expect(mockAnalyzeFaceGeometryFromFile).not.toHaveBeenCalled()
+    expect(mockAnalyzeFaceLandmarkFile).not.toHaveBeenCalled()
   })
 })

@@ -9,6 +9,7 @@ import { FaceLandmarkPoint } from '@/types/face-analysis'
 
 interface FaceLandmarkMeshOverlayProps {
   imageUrl: string
+  detection?: FaceLandmarkDetectionResult | null
   className?: string
   onStatusChange?: (status: 'measured' | 'fallback') => void
 }
@@ -19,6 +20,7 @@ const HIGHLIGHT_POINTS = [
 
 export function FaceLandmarkMeshOverlay({
   imageUrl,
+  detection: precomputedDetection,
   className,
   onStatusChange,
 }: FaceLandmarkMeshOverlayProps) {
@@ -42,7 +44,9 @@ export function FaceLandmarkMeshOverlay({
       try {
         await image.decode()
         if (cancelled) return
-        const detection = await detectFaceLandmarksFromImage(image)
+        const detection = precomputedDetection === undefined
+          ? await detectFaceLandmarksFromImage(image)
+          : precomputedDetection
         if (cancelled) return
         detectionRef.current = detection
         const nextStatus = detection ? 'measured' : 'fallback'
@@ -63,7 +67,7 @@ export function FaceLandmarkMeshOverlay({
     return () => {
       cancelled = true
     }
-  }, [imageUrl, onStatusChange])
+  }, [imageUrl, onStatusChange, precomputedDetection])
 
   useEffect(() => {
     const container = containerRef.current

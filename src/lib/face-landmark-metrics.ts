@@ -227,6 +227,7 @@ export function analyzeFaceLandmarks(
     faceCount,
     qualityScore: Math.round(qualityScore),
     measuredShape: measured.shape,
+    alternativeShapes: measured.alternatives,
     measuredConfidence: measured.confidence,
     ratios,
     signals: measured.signals,
@@ -240,6 +241,7 @@ function normalizeDimension(value: number | undefined): number {
 
 export function classifyFaceGeometry(ratios: FaceGeometryRatios): {
   shape: CanonicalFaceShape
+  alternatives: CanonicalFaceShape[]
   confidence: number
   signals: string[]
 } {
@@ -279,6 +281,7 @@ export function classifyFaceGeometry(ratios: FaceGeometryRatios): {
 
   return {
     shape: best.shape,
+    alternatives: ranked.slice(1, 3).filter((candidate) => candidate.score > 0).map((candidate) => candidate.shape),
     confidence: round(confidence, 2),
     signals: buildGeometrySignals(best.shape, ratios),
   }
@@ -320,7 +323,8 @@ function measuredMetric(
 export function buildMeasuredFaceMetrics(
   shape: CanonicalFaceShape,
   confidence: number,
-  geometry?: FaceGeometryAnalysis | null
+  geometry?: FaceGeometryAnalysis | null,
+  options?: { interpretation?: 'landmark-only' | 'ai-assisted' }
 ): FaceAnalysisMetric[] | null {
   if (!geometry || geometry.status !== 'measured' || !geometry.ratios) return null
 
@@ -343,15 +347,20 @@ export function buildMeasuredFaceMetrics(
         ? 'Defined'
         : 'Balanced'
   const symmetryValue =
-    ratios.symmetryOffset <= 0.035 ? 'High' : ratios.symmetryOffset <= 0.07 ? 'Balanced' : 'Approximate'
+    ratios.symmetryOffset <= 0.035 ? 'Well aligned' : ratios.symmetryOffset <= 0.07 ? 'Acceptable' : 'Approximate'
+  const alignmentCaption =
+    ratios.symmetryOffset <= 0.035 ? 'Centered in photo' : ratios.symmetryOffset <= 0.07 ? 'Slightly offset' : 'Retake if possible'
+  const landmarkOnly = options?.interpretation === 'landmark-only'
 
   return [
     measuredMetric(
       'faceShape',
       'Face Shape',
       shapeLabel,
-      'Measured + AI',
-      `Landmark ratios support a ${shapeLabel.toLowerCase()} face reading; AI styling review is used as a second check.`,
+      landmarkOnly ? 'Geometry match' : 'Measured + AI',
+      landmarkOnly
+        ? `Landmark ratios from this photo support a ${shapeLabel.toLowerCase()} face-shape estimate.`
+        : `Landmark ratios support a ${shapeLabel.toLowerCase()} face reading; AI styling review is used as a second check.`,
       clamp(matchScore, 68, 96)
     ),
     measuredMetric(
@@ -380,7 +389,7 @@ export function buildMeasuredFaceMetrics(
     ),
     measuredMetric(
       'cheekbones',
-      'Cheekbones',
+      'Cheekbone Span',
       cheekValue,
       `${Math.round(ratios.foreheadToCheekWidth * 100)}% upper ratio`,
       'Measured upper-face and jaw ratios indicate whether cheekbones are the widest visual anchor.',
@@ -388,10 +397,10 @@ export function buildMeasuredFaceMetrics(
     ),
     measuredMetric(
       'symmetry',
-      'Symmetry',
+      'Photo Alignment',
       symmetryValue,
-      `${Math.round((1 - ratios.symmetryOffset) * 100)}% centered`,
-      'Estimated by comparing the nose bridge centerline with the visible face center.',
+      alignmentCaption,
+      'Checks how closely the visible nose bridge aligns with the face center in this photo; it does not measure facial symmetry.',
       clamp(Math.round(96 - ratios.symmetryOffset * 180), 68, 96)
     ),
   ]
@@ -410,6 +419,12 @@ export function normalizeGeometryAnalysis(value: unknown): FaceGeometryAnalysis 
   const shape = typeof candidate.measuredShape === 'string' && isCanonicalFaceShape(candidate.measuredShape)
     ? candidate.measuredShape
     : undefined
+  const alternativeShapes = Array.isArray(candidate.alternativeShapes)
+    ? candidate.alternativeShapes
+        .filter((value): value is CanonicalFaceShape => typeof value === 'string' && isCanonicalFaceShape(value))
+        .filter((value) => value !== shape)
+        .slice(0, 2)
+    : undefined
   const ratios = normalizeRatios(candidate.ratios)
 
   return {
@@ -420,6 +435,7 @@ export function normalizeGeometryAnalysis(value: unknown): FaceGeometryAnalysis 
     faceCount: clampNumber(candidate.faceCount, 0, 10, 0),
     qualityScore: clampNumber(candidate.qualityScore, 0, 100, 0),
     measuredShape: shape,
+    alternativeShapes,
     measuredConfidence: clampOptional(candidate.measuredConfidence, 0, 1),
     ratios: candidate.status === 'measured' ? ratios : undefined,
     signals: normalizeStringArray(candidate.signals, 6),
