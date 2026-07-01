@@ -2,6 +2,7 @@
   "common": {
     "startFreeTrial": "Start Free Trial",
     "startTryOn": "Start Try-On",
+    "checkFaceShape": "Check face shape",
     "loading": "Loading..."
   },
   "nav": {
@@ -152,19 +153,23 @@
       "metaDescription": "Find your face shape for free, get personalized glasses advice, try any frame image on your photo, and compare looks side by side.",
       "faqTitle": "Questions before you start",
       "faqSubtitle": "Short answers for choosing the right VisuTry workflow.",
-      "heroTitle": "Find the right glasses, from face shape to try-on",
-      "heroSubtitle": "Start with a free private face shape detector. Then get personalized frame advice, try any glasses image, and compare your best looks.",
+      "heroTitle": "Find glasses that actually suit your face",
+      "heroSubtitle": "Start with a free private face-shape check, get personalized frame advice, then preview and compare glasses before you buy.",
+      "trustLine": "Free face-shape result · Private by default · No login required · Try-on in seconds",
+      "recommendedWorkflow": "Recommended workflow",
+      "workflowPath": "Detect → Advise → Try-On → Compare",
+      "bestPlaceToStart": "Best place to start",
       "tools": {
         "faceTitle": "Face Shape Detector",
-        "faceDescription": "Find your likely face shape free, with no login, credits, or photo upload to VisuTry.",
+        "faceDescription": "Start free with a private face-shape result. No login, no credits.",
         "advisorTitle": "Glasses Advisor",
-        "advisorDescription": "Get a deeper AI report with personalized frame recommendations and reasons.",
+        "advisorDescription": "Get a deeper AI report with recommended and avoid-first frame styles.",
         "glassesTitle": "Virtual Try-On",
-        "glassesDescription": "Upload product photos or screenshots and preview them on your face.",
+        "glassesDescription": "Upload any glasses image and preview how it looks on your face.",
         "compareTitle": "Frame Compare",
-        "compareDescription": "Pick built-in presets and review multiple frame results in one board."
+        "compareDescription": "Compare several looks side by side before deciding."
       },
-      "ctaPrimary": "Detect my face shape — free",
+      "ctaPrimary": "Check my face shape — free",
       "ctaSecondary": "Try on glasses",
       "featureCards": {
         "faceTitle": "Face Analysis",
@@ -177,12 +182,12 @@
       },
       "workflow": {
         "badge": "AI Glasses Advisor",
-        "title": "Need more than a face-shape label? Get a personalized shortlist",
-        "description": "The Glasses Advisor turns one portrait into a deeper feature report, recommended frame styles, and reasons for what to try next.",
-        "point1": "Personalized feature report",
-        "point2": "Recommended and avoid-first styles",
-        "point3": "Direct path into virtual try-on",
-        "cta": "Open Glasses Advisor"
+        "title": "Want better recommendations than a simple face-shape label?",
+        "description": "The AI Glasses Advisor turns one portrait into a practical frame guide: what to wear, what to avoid, and what to try next.",
+        "point1": "See your best-fit frame shapes",
+        "point2": "Avoid styles that make your face look wider, longer, or heavier",
+        "point3": "Get try-on suggestions you can test immediately",
+        "cta": "Get my glasses advice"
       },
       "benefits": {
         "generatedTitle": "AI-generated previews",
@@ -487,14 +492,16 @@
       },
       "modes": {
         "home": {
-          "eyebrow": "From face shape to frame decision",
-          "title": "Find your shape free, then try and compare glasses",
-          "description": "Start with the private on-device detector. Continue to personalized advice, a specific product try-on, or side-by-side frame comparison.",
-          "ctaLabel": "Detect my face shape",
-          "secondaryLabel": "Try on glasses",
-          "step1": "Free face-shape result",
-          "step2": "Personalized advice or try-on",
-          "step3": "Side-by-side decision"
+          "eyebrow": "Steps 3–4 · Try on, then compare",
+          "title": "Try a frame. Compare your finalists.",
+          "description": "Preview a specific glasses image on your face, then put your strongest options side by side before deciding.",
+          "ctaLabel": "Try on glasses",
+          "secondaryLabel": "Compare my frames",
+          "step1": "Step 3 · Preview any glasses image",
+          "step2": "Step 4 · Compare finalists side by side",
+          "step3": "Side-by-side decision",
+          "tryOnPhase": "Step 3 · Virtual Try-On",
+          "comparePhase": "Step 4 · Frame Compare"
         },
         "glasses": {
           "eyebrow": "Virtual glasses try-on",

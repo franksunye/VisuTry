@@ -2,6 +2,7 @@
   "common": {
     "startFreeTrial": "Iniciar Teste Gratuito",
     "startTryOn": "Iniciar Experimentação",
+    "checkFaceShape": "Verificar formato do rosto",
     "loading": "Carregando..."
   },
   "nav": {
@@ -178,8 +179,12 @@
       "metaDescription": "Descubra gratuitamente o formato do rosto, receba consultoria, prove armações e compare resultados.",
       "faqTitle": "Perguntas Frequentes",
       "faqSubtitle": "Tudo o que você precisa saber sobre VisuTry",
-      "heroTitle": "Encontre os óculos certos, do formato do rosto à prova virtual",
+      "heroTitle": "Encontre óculos que realmente combinam com o seu rosto",
       "heroSubtitle": "Comece pelo detector gratuito e privado; avance para consultoria, prova virtual e comparação quando precisar.",
+      "trustLine": "Resultado grátis · Privado por padrão · Sem login · Prova em segundos",
+      "recommendedWorkflow": "Fluxo recomendado",
+      "workflowPath": "Detectar → Recomendar → Provar → Comparar",
+      "bestPlaceToStart": "Melhor ponto de partida",
       "tools": {
         "faceTitle": "Detector de formato facial",
         "faceDescription": "Gratuito e sem conta; a foto permanece no navegador.",
@@ -202,13 +207,13 @@
         "openTool": "Abrir ferramenta"
       },
       "workflow": {
-        "badge": "Face analysis for glasses (PT)",
-        "title": "Começar try-on with armaçãos that already fit the face",
-        "description": "VisuTry now uses one portrait to read face shape, narrow the first armação shortlist, and send shoppers directly into glasses try-on with better choices.",
-        "point1": "Face shape report (PT)",
-        "point2": "Recommended armação styles",
-        "point3": "One path into AI try-on (PT)",
-        "cta": "Analisar meu rosto"
+        "badge": "Consultor de óculos com IA",
+        "title": "Quer recomendações melhores do que apenas um formato de rosto?",
+        "description": "O consultor transforma um retrato em um guia prático: o que usar, o que evitar e o que provar em seguida.",
+        "point1": "Veja os melhores formatos de armação",
+        "point2": "Evite estilos que desfavorecem o seu rosto",
+        "point3": "Teste as recomendações imediatamente",
+        "cta": "Receber minha consultoria"
       },
       "benefits": {
         "generatedTitle": "AI-generated previews (PT)",
@@ -513,14 +518,16 @@
       },
       "modes": {
         "home": {
-          "eyebrow": "AI glasses workflow",
-          "title": "Descubra seu formato grátis, prove e compare óculos",
-          "description": "Comece pelo detector privado e avance para consultoria, prova ou comparação quando precisar.",
-          "ctaLabel": "Detectar meu formato",
-          "secondaryLabel": "Compare frames",
-          "step1": "Face guidance",
-          "step2": "Custom try-on",
-          "step3": "Side-by-side compare"
+          "eyebrow": "Etapas 3–4 · Prove e depois compare",
+          "title": "Prove uma armação. Compare as finalistas.",
+          "description": "Visualize uma armação específica no seu rosto e compare suas melhores opções lado a lado.",
+          "ctaLabel": "Provar óculos",
+          "secondaryLabel": "Comparar armações",
+          "step1": "Etapa 3 · Visualizar qualquer óculos",
+          "step2": "Etapa 4 · Comparar finalistas",
+          "step3": "Decisão lado a lado",
+          "tryOnPhase": "Etapa 3 · Prova virtual",
+          "comparePhase": "Etapa 4 · Comparar armações"
         },
         "glasses": {
           "eyebrow": "Virtual glasses try-on",

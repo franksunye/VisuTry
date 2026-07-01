@@ -2,6 +2,7 @@
   "common": {
     "startFreeTrial": "Mulai Uji Coba Gratis",
     "startTryOn": "Mulai Mencoba",
+    "checkFaceShape": "Periksa bentuk wajah",
     "loading": "Memuat..."
   },
   "nav": {
@@ -178,8 +179,12 @@
       "metaDescription": "Temukan bentuk wajah gratis, dapatkan saran kacamata, coba gambar bingkai apa pun, dan bandingkan hasil.",
       "faqTitle": "Pertanyaan sebelum mulai",
       "faqSubtitle": "Jawaban singkat untuk memilih alur VisuTry yang tepat.",
-      "heroTitle": "Temukan kacamata yang tepat, dari bentuk wajah hingga try-on",
+      "heroTitle": "Temukan kacamata yang benar-benar cocok untuk wajah Anda",
       "heroSubtitle": "Mulai dengan detektor gratis dan privat, lalu lanjut ke saran, try-on, dan perbandingan.",
+      "trustLine": "Hasil gratis · Privat secara default · Tanpa login · Try-on dalam hitungan detik",
+      "recommendedWorkflow": "Alur yang disarankan",
+      "workflowPath": "Deteksi → Saran → Coba → Bandingkan",
+      "bestPlaceToStart": "Tempat terbaik untuk memulai",
       "tools": {
         "faceTitle": "Detektor Bentuk Wajah",
         "faceDescription": "Gratis tanpa akun; foto tetap diproses di browser Anda.",
@@ -513,14 +518,16 @@
       },
       "modes": {
         "home": {
-          "eyebrow": "AI glasses workflow",
-          "title": "Temukan bentuk wajah gratis, lalu coba dan bandingkan kacamata",
-          "description": "Mulai dengan detektor privat, lalu lanjut ke saran, try-on, atau perbandingan.",
-          "ctaLabel": "Deteksi bentuk wajah",
-          "secondaryLabel": "Compare frames",
-          "step1": "Face guidance",
-          "step2": "Custom try-on",
-          "step3": "Side-by-side compare"
+          "eyebrow": "Langkah 3–4 · Coba, lalu bandingkan",
+          "title": "Coba satu bingkai. Bandingkan pilihan akhir.",
+          "description": "Pratinjau kacamata tertentu di wajah Anda, lalu bandingkan pilihan terbaik secara berdampingan.",
+          "ctaLabel": "Coba kacamata",
+          "secondaryLabel": "Bandingkan bingkai",
+          "step1": "Langkah 3 · Pratinjau kacamata",
+          "step2": "Langkah 4 · Bandingkan pilihan akhir",
+          "step3": "Keputusan berdampingan",
+          "tryOnPhase": "Langkah 3 · Try-On Virtual",
+          "comparePhase": "Langkah 4 · Bandingkan Bingkai"
         },
         "glasses": {
           "eyebrow": "Virtual glasses try-on",

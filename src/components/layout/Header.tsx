@@ -104,10 +104,10 @@ export function Header({ transparent = false }: HeaderProps) {
             {/* CTA Button - Desktop only */}
             {!isAuthenticated ? (
               <Link
-                href={`/${locale}/try-on`}
+                href={`/${locale}/face-shape-detector`}
                 className="hidden sm:flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium text-sm"
               >
-                {tCommon('startFreeTrial')}
+                {tCommon('checkFaceShape')}
               </Link>
             ) : (
               <Link
@@ -187,11 +187,11 @@ export function Header({ transparent = false }: HeaderProps) {
                   </Link>
                 ) : (
                   <Link
-                    href={`/${locale}/try-on`}
+                    href={`/${locale}/face-shape-detector`}
                     onClick={() => setMobileMenuOpen(false)}
                     className="flex items-center justify-center w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium text-sm"
                   >
-                    {tCommon('startFreeTrial')}
+                    {tCommon('checkFaceShape')}
                   </Link>
                 )}
               </div>

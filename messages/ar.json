@@ -2,6 +2,7 @@
   "common": {
     "startFreeTrial": "ابدأ النسخة التجريبية المجانية",
     "startTryOn": "ابدأ التجربة",
+    "checkFaceShape": "تحقق من شكل الوجه",
     "loading": "جاري التحميل..."
   },
   "nav": {
@@ -178,8 +179,12 @@
       "metaDescription": "اكتشف شكل وجهك مجاناً، واحصل على نصائح للنظارات، وجرّب الإطارات وقارن النتائج.",
       "faqTitle": "الأسئلة الشائعة",
       "faqSubtitle": "كل ما تحتاج إلى معرفته عن VisuTry",
-      "heroTitle": "اعثر على النظارات المناسبة من شكل الوجه إلى التجربة",
+      "heroTitle": "اعثر على نظارات تناسب وجهك حقاً",
       "heroSubtitle": "ابدأ بكاشف شكل الوجه المجاني والخاص، ثم انتقل إلى الاستشارة والتجربة والمقارنة.",
+      "trustLine": "نتيجة مجانية · خاص افتراضياً · بلا تسجيل دخول · تجربة خلال ثوانٍ",
+      "recommendedWorkflow": "المسار المقترح",
+      "workflowPath": "اكتشف · استشر · جرّب · قارن",
+      "bestPlaceToStart": "أفضل نقطة للبداية",
       "tools": {
         "faceTitle": "كاشف شكل الوجه",
         "faceDescription": "مجاني ومن دون حساب، وتبقى الصورة داخل المتصفح.",
@@ -202,13 +207,13 @@
         "openTool": "Open tool (AR)"
       },
       "workflow": {
-        "badge": "Face analysis for glasses (AR)",
-        "title": "ابدأ try-on with إطارs that already fit the face",
-        "description": "VisuTry now uses one portrait to read face shape, narrow the first إطار shortlist, and send shoppers directly into glasses try-on with better choices.",
-        "point1": "Face shape report (AR)",
-        "point2": "Recommended إطار styles",
-        "point3": "One path into AI try-on (AR)",
-        "cta": "Analyze my face (AR)"
+        "badge": "مستشار النظارات بالذكاء الاصطناعي",
+        "title": "هل تريد توصيات أفضل من مجرد اسم شكل الوجه؟",
+        "description": "يحوّل المستشار صورة واحدة إلى دليل عملي: ما الذي يناسبك، وما الذي تتجنبه، وما الذي تجربه تالياً.",
+        "point1": "اعرف أفضل أشكال الإطارات لوجهك",
+        "point2": "استبعد الأنماط غير المناسبة مبكراً",
+        "point3": "جرّب التوصيات فوراً",
+        "cta": "احصل على نصائح النظارات"
       },
       "benefits": {
         "generatedTitle": "AI-generated previews (AR)",
@@ -513,14 +518,16 @@
       },
       "modes": {
         "home": {
-          "eyebrow": "AI glasses workflow",
-          "title": "اكتشف شكل وجهك مجاناً ثم جرّب النظارات وقارنها",
-          "description": "ابدأ بالكاشف الخاص ثم انتقل إلى الاستشارة أو التجربة أو المقارنة عند الحاجة.",
-          "ctaLabel": "اكتشف شكل وجهي",
-          "secondaryLabel": "Compare frames",
-          "step1": "Face guidance",
-          "step2": "Custom try-on",
-          "step3": "Side-by-side compare"
+          "eyebrow": "الخطوتان 3 و4 · جرّب ثم قارن",
+          "title": "جرّب إطاراً. قارن خياراتك النهائية.",
+          "description": "عاين نظارة محددة على وجهك، ثم قارن أفضل الخيارات جنباً إلى جنب قبل القرار.",
+          "ctaLabel": "جرّب النظارات",
+          "secondaryLabel": "قارن الإطارات",
+          "step1": "الخطوة 3 · عاين أي نظارة",
+          "step2": "الخطوة 4 · قارن الخيارات النهائية",
+          "step3": "قرار جنباً إلى جنب",
+          "tryOnPhase": "الخطوة 3 · تجربة افتراضية",
+          "comparePhase": "الخطوة 4 · مقارنة الإطارات"
         },
         "glasses": {
           "eyebrow": "Virtual glasses try-on",

@@ -2,6 +2,7 @@
   "common": {
     "startFreeTrial": "Iniciar Prueba Gratuita",
     "startTryOn": "Comenzar Prueba",
+    "checkFaceShape": "Comprobar forma facial",
     "loading": "Cargando..."
   },
   "nav": {
@@ -178,8 +179,12 @@
       "metaDescription": "Descubre gratis la forma de tu rostro, recibe asesoría de gafas, prueba cualquier montura y compara resultados.",
       "faqTitle": "Preguntas Frecuentes",
       "faqSubtitle": "Todo lo que necesitas saber sobre VisuTry",
-      "heroTitle": "Encuentra las gafas adecuadas, desde la forma facial hasta la prueba",
+      "heroTitle": "Encuentra gafas que realmente favorezcan tu rostro",
       "heroSubtitle": "Empieza con el detector gratuito y privado; continúa con asesoría, prueba virtual y comparación.",
+      "trustLine": "Resultado gratis · Privado por defecto · Sin iniciar sesión · Prueba en segundos",
+      "recommendedWorkflow": "Flujo recomendado",
+      "workflowPath": "Detectar → Asesorar → Probar → Comparar",
+      "bestPlaceToStart": "El mejor punto de partida",
       "tools": {
         "faceTitle": "Detector de forma facial",
         "faceDescription": "Gratis y sin registro; la foto permanece en tu navegador.",
@@ -513,14 +518,16 @@
       },
       "modes": {
         "home": {
-          "eyebrow": "AI glasses workflow",
-          "title": "Descubre tu forma gratis, prueba gafas y compara resultados",
-          "description": "Empieza con el detector privado y continúa con asesoría, prueba o comparación cuando lo necesites.",
-          "ctaLabel": "Detectar mi forma",
-          "secondaryLabel": "Compare frames",
-          "step1": "Face guidance",
-          "step2": "Custom try-on",
-          "step3": "Side-by-side compare"
+          "eyebrow": "Pasos 3–4 · Prueba y después compara",
+          "title": "Prueba una montura. Compara tus finalistas.",
+          "description": "Visualiza unas gafas concretas en tu rostro y después compara tus mejores opciones lado a lado.",
+          "ctaLabel": "Probar gafas",
+          "secondaryLabel": "Comparar mis monturas",
+          "step1": "Paso 3 · Previsualizar unas gafas",
+          "step2": "Paso 4 · Comparar finalistas",
+          "step3": "Decisión lado a lado",
+          "tryOnPhase": "Paso 3 · Prueba virtual",
+          "comparePhase": "Paso 4 · Comparar monturas"
         },
         "glasses": {
           "eyebrow": "Virtual glasses try-on",

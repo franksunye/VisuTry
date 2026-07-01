@@ -2,6 +2,7 @@
   "common": {
     "startFreeTrial": "無料トライアルを開始",
     "startTryOn": "試着を開始",
+    "checkFaceShape": "顔型をチェック",
     "loading": "読み込み中..."
   },
   "nav": {
@@ -178,8 +179,12 @@
       "metaDescription": "顔型を無料で診断し、メガネのアドバイスを受け、商品画像を試着して結果を比較できます。",
       "faqTitle": "よくある質問",
       "faqSubtitle": "VisuTryについて知っておくべきことすべて",
-      "heroTitle": "顔型診断から試着まで、あなたに合うメガネを見つける",
+      "heroTitle": "あなたの顔に本当に似合うメガネを見つける",
       "heroSubtitle": "無料でプライベートな顔型診断から始め、必要に応じてアドバイス、試着、比較へ進めます。",
+      "trustLine": "顔型診断は無料 · デフォルトで非公開 · ログイン不要 · 数秒で試着",
+      "recommendedWorkflow": "おすすめの流れ",
+      "workflowPath": "診断 → アドバイス → 試着 → 比較",
+      "bestPlaceToStart": "まずはここから",
       "tools": {
         "faceTitle": "顔型診断",
         "faceDescription": "無料・アカウント不要で、写真はブラウザ内で処理されます。",
@@ -513,14 +518,16 @@
       },
       "modes": {
         "home": {
-          "eyebrow": "AI glasses workflow",
-          "title": "顔型を無料で確認し、メガネを試着・比較",
-          "description": "プライベートな顔型診断から始め、必要に応じてアドバイス、試着、比較へ進めます。",
-          "ctaLabel": "顔型を診断",
-          "secondaryLabel": "Compare frames",
-          "step1": "Face guidance",
-          "step2": "Custom try-on",
-          "step3": "Side-by-side compare"
+          "eyebrow": "ステップ3〜4 · 試着して比較",
+          "title": "フレームを試着。候補を比較。",
+          "description": "気になるメガネを顔写真で確認し、有力候補を並べて比較してから選べます。",
+          "ctaLabel": "メガネを試着",
+          "secondaryLabel": "フレームを比較",
+          "step1": "ステップ3 · メガネ画像を試着",
+          "step2": "ステップ4 · 候補を並べて比較",
+          "step3": "並べて選ぶ",
+          "tryOnPhase": "ステップ3 · バーチャル試着",
+          "comparePhase": "ステップ4 · フレーム比較"
         },
         "glasses": {
           "eyebrow": "Virtual glasses try-on",

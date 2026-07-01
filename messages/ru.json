@@ -2,6 +2,7 @@
   "common": {
     "startFreeTrial": "Начать Бесплатную Пробную Версию",
     "startTryOn": "Начать Примерку",
+    "checkFaceShape": "Определить форму лица",
     "loading": "Загрузка..."
   },
   "nav": {
@@ -178,8 +179,12 @@
       "metaDescription": "Определите форму лица бесплатно, получите рекомендации, примерьте оправы и сравните результаты.",
       "faqTitle": "Часто Задаваемые Вопросы",
       "faqSubtitle": "Все, что вам нужно знать о VisuTry",
-      "heroTitle": "Найдите подходящие очки — от формы лица до примерки",
+      "heroTitle": "Найдите очки, которые действительно подходят вашему лицу",
       "heroSubtitle": "Начните с бесплатного приватного инструмента, затем переходите к подбору, примерке и сравнению.",
+      "trustLine": "Бесплатный результат · Приватно по умолчанию · Без входа · Примерка за секунды",
+      "recommendedWorkflow": "Рекомендуемый путь",
+      "workflowPath": "Определить → Подобрать → Примерить → Сравнить",
+      "bestPlaceToStart": "Лучшее начало",
       "tools": {
         "faceTitle": "Определитель формы лица",
         "faceDescription": "Бесплатно и без аккаунта; фото обрабатывается в браузере.",
@@ -202,13 +207,13 @@
         "openTool": "Открыть инструмент"
       },
       "workflow": {
-        "badge": "Face analysis for glasses (RU)",
-        "title": "Начать try-on with оправаs that already fit the face",
-        "description": "VisuTry now uses one portrait to read face shape, narrow the first оправа shortlist, and send shoppers directly into glasses try-on with better choices.",
-        "point1": "Face shape report (RU)",
-        "point2": "Recommended оправа styles",
-        "point3": "One path into AI try-on (RU)",
-        "cta": "Проанализировать лицо"
+        "badge": "ИИ-консультант по очкам",
+        "title": "Нужны рекомендации лучше, чем просто название формы лица?",
+        "description": "Консультант превращает один портрет в практическое руководство: что носить, чего избегать и что примерить дальше.",
+        "point1": "Подходящие формы оправ",
+        "point2": "Неудачные стили можно исключить заранее",
+        "point3": "Рекомендации можно сразу примерить",
+        "cta": "Получить рекомендации"
       },
       "benefits": {
         "generatedTitle": "AI-generated previews (RU)",
@@ -513,14 +518,16 @@
       },
       "modes": {
         "home": {
-          "eyebrow": "AI glasses workflow",
-          "title": "Определите форму лица бесплатно, затем примерьте и сравните очки",
-          "description": "Начните с приватного инструмента и переходите к подбору, примерке или сравнению.",
-          "ctaLabel": "Определить форму лица",
-          "secondaryLabel": "Compare frames",
-          "step1": "Face guidance",
-          "step2": "Custom try-on",
-          "step3": "Side-by-side compare"
+          "eyebrow": "Шаги 3–4 · Примерьте и сравните",
+          "title": "Примерьте оправу. Сравните финалистов.",
+          "description": "Посмотрите конкретную модель на своём лице, затем сравните лучшие варианты рядом.",
+          "ctaLabel": "Примерить очки",
+          "secondaryLabel": "Сравнить оправы",
+          "step1": "Шаг 3 · Примерить любые очки",
+          "step2": "Шаг 4 · Сравнить финалистов",
+          "step3": "Сравнение рядом",
+          "tryOnPhase": "Шаг 3 · Виртуальная примерка",
+          "comparePhase": "Шаг 4 · Сравнение оправ"
         },
         "glasses": {
           "eyebrow": "Virtual glasses try-on",

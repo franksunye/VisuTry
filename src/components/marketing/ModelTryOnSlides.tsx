@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
-import { ArrowRight, ChevronLeft, ChevronRight, Grid2X2, ScanFace, Sparkles } from 'lucide-react'
+import { ArrowRight, ChevronLeft, ChevronRight, Glasses, Grid2X2, ScanFace, Sparkles } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import { cn } from '@/utils/cn'
 
@@ -62,9 +62,8 @@ const slidesByMode: Record<ShowcaseMode, ShowcaseSlide[]> = {
 
 const modeSteps: Record<ShowcaseMode, Array<{ icon: typeof ScanFace; key: string }>> = {
   home: [
-    { icon: ScanFace, key: 'modes.home.step1' },
-    { icon: Sparkles, key: 'modes.home.step2' },
-    { icon: Grid2X2, key: 'modes.home.step3' },
+    { icon: Glasses, key: 'modes.home.step1' },
+    { icon: Grid2X2, key: 'modes.home.step2' },
   ],
   glasses: [
     { icon: Sparkles, key: 'modes.glasses.step1' },
@@ -135,7 +134,7 @@ export function ModelTryOnSlides({
         <p className="mt-4 max-w-xl text-base leading-7 text-gray-600">
           {t(`modes.${mode}.description`)}
         </p>
-        <div className="mt-6 grid gap-3 sm:grid-cols-3">
+        <div className={cn('mt-6 grid gap-3', mode === 'home' ? 'sm:grid-cols-2' : 'sm:grid-cols-3')}>
           {steps.map((step) => {
             const Icon = step.icon
             return (
@@ -149,7 +148,7 @@ export function ModelTryOnSlides({
         <div className="mt-7 flex flex-col gap-3 sm:flex-row">
           <Link
             href={{
-              home: `/${locale}/face-shape-detector`,
+              home: `/${locale}/try-on/glasses`,
               glasses: `/${locale}/try-on/glasses`,
               compare: `/${locale}/try-on/glasses/compare`,
               face: `/${locale}/face-analysis`,
@@ -212,6 +211,11 @@ export function ModelTryOnSlides({
         </div>
         <div className="flex flex-col gap-3 border-t border-gray-200 bg-white px-4 py-4 sm:min-h-[108px] sm:flex-row sm:items-center sm:justify-between">
           <div className="sm:min-h-[56px]">
+            {mode === 'home' && (
+              <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-blue-600">
+                {t(currentIndex < tryOnSlides.length ? 'modes.home.tryOnPhase' : 'modes.home.comparePhase')}
+              </p>
+            )}
             <p className="text-sm font-bold text-gray-950">
               {t(currentSlide.nameKey)} · {t(currentSlide.frameKey)}
             </p>

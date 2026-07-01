@@ -2,6 +2,7 @@
   "common": {
     "startFreeTrial": "Démarrer l'Essai Gratuit",
     "startTryOn": "Commencer l'Essayage",
+    "checkFaceShape": "Vérifier la forme du visage",
     "loading": "Chargement..."
   },
   "nav": {
@@ -178,8 +179,12 @@
       "metaDescription": "Trouvez gratuitement la forme de votre visage, obtenez des conseils personnalisés, essayez vos montures et comparez les résultats.",
       "faqTitle": "Questions Fréquemment Posées",
       "faqSubtitle": "Tout ce que vous devez savoir sur VisuTry",
-      "heroTitle": "Trouvez les bonnes lunettes, de la forme du visage à l’essayage",
+      "heroTitle": "Trouvez des lunettes qui conviennent vraiment à votre visage",
       "heroSubtitle": "Commencez par le détecteur gratuit et privé, puis passez aux conseils, à l’essayage et à la comparaison.",
+      "trustLine": "Résultat gratuit · Privé par défaut · Sans connexion · Essayage en quelques secondes",
+      "recommendedWorkflow": "Parcours recommandé",
+      "workflowPath": "Détecter → Conseiller → Essayer → Comparer",
+      "bestPlaceToStart": "Meilleur point de départ",
       "tools": {
         "faceTitle": "Détecteur de forme",
         "faceDescription": "Gratuit et sans compte ; la photo reste dans votre navigateur.",
@@ -513,14 +518,16 @@
       },
       "modes": {
         "home": {
-          "eyebrow": "AI glasses workflow",
-          "title": "Trouvez votre forme gratuitement, puis essayez et comparez des lunettes",
-          "description": "Commencez par le détecteur privé, puis passez aux conseils, à l’essayage ou à la comparaison.",
-          "ctaLabel": "Détecter ma forme",
-          "secondaryLabel": "Compare frames",
-          "step1": "Face guidance",
-          "step2": "Custom try-on",
-          "step3": "Side-by-side compare"
+          "eyebrow": "Étapes 3–4 · Essayez, puis comparez",
+          "title": "Essayez une monture. Comparez vos finalistes.",
+          "description": "Visualisez une paire précise sur votre visage, puis comparez vos meilleures options côte à côte.",
+          "ctaLabel": "Essayer des lunettes",
+          "secondaryLabel": "Comparer mes montures",
+          "step1": "Étape 3 · Prévisualiser une monture",
+          "step2": "Étape 4 · Comparer les finalistes",
+          "step3": "Décision côte à côte",
+          "tryOnPhase": "Étape 3 · Essayage virtuel",
+          "comparePhase": "Étape 4 · Comparaison de montures"
         },
         "glasses": {
           "eyebrow": "Virtual glasses try-on",

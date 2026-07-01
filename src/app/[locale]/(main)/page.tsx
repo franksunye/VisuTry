@@ -41,23 +41,50 @@ export default function Home({
         dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
       />
       {/* Hero Header */}
-      <header className="mb-16 text-center">
+      <header className="mb-14 text-center">
         <h1 className="max-w-3xl mx-auto text-3xl md:text-4xl font-bold text-gray-900 mb-3">
           {t('heroTitle')}
         </h1>
         <p className="mx-auto max-w-3xl text-lg md:text-xl text-gray-600 font-medium">
           {t('heroSubtitle')}
         </p>
+        <div className="mt-7 flex flex-col items-center justify-center gap-3 sm:flex-row">
+          <Link
+            href={`/${locale}/face-shape-detector`}
+            className="inline-flex items-center rounded-lg bg-blue-600 px-6 py-3 text-base font-semibold text-white shadow-lg transition-colors duration-200 hover:bg-blue-700"
+          >
+            {t('ctaPrimary')}
+          </Link>
+          <Link
+            href={`/${locale}/try-on/glasses`}
+            className="inline-flex items-center rounded-lg border border-gray-300 bg-white px-6 py-3 text-base font-semibold text-gray-800 transition-colors duration-200 hover:border-blue-300 hover:text-blue-700"
+          >
+            {t('ctaSecondary')}
+          </Link>
+        </div>
+        <p className="mt-5 text-sm font-medium text-gray-500">
+          {t('trustLine')}
+        </p>
       </header>
 
-      {/* Hero Section */}
+      {/* Recommended product path */}
       <section className="max-w-6xl mx-auto mb-16">
-
+        <div className="mb-6 text-center">
+          <p className="mb-2 text-sm font-semibold uppercase tracking-wide text-blue-600">
+            {t('recommendedWorkflow')}
+          </p>
+          <h2 className="text-2xl font-bold text-gray-950 md:text-3xl">
+            {t('workflowPath')}
+          </h2>
+        </div>
         <div className="mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <Link href={`/${locale}/face-shape-detector`} className="flex flex-col items-center rounded-lg border border-blue-100 bg-white p-5 shadow-sm transition hover:border-blue-300 hover:shadow-md">
             <div className="flex items-center justify-center w-16 h-16 mb-4 bg-blue-100 rounded-full">
               <ScanFace className="w-8 h-8 text-blue-600" />
             </div>
+            <p className="mb-2 rounded-full bg-blue-50 px-2.5 py-1 text-xs font-semibold text-blue-700">
+              {t('bestPlaceToStart')}
+            </p>
             <h3 className="mb-2 text-lg font-semibold">{t('tools.faceTitle')}</h3>
             <p className="text-center text-gray-600">{t('tools.faceDescription')}</p>
           </Link>
@@ -86,27 +113,9 @@ export default function Home({
             <p className="text-center text-gray-600">{t('tools.compareDescription')}</p>
           </Link>
         </div>
-
-        <ModelTryOnSlides locale={locale} mode="home" preloadFirstImage={false} />
-
-        {/* CTA Section - Glasses Only */}
-        <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
-          <Link
-            href={`/${locale}/face-shape-detector`}
-            className="inline-flex items-center rounded-lg bg-blue-600 px-6 py-3 text-base font-semibold text-white shadow-lg transition-colors duration-200 hover:bg-blue-700"
-          >
-            {t('ctaPrimary')}
-          </Link>
-          <Link
-            href={`/${locale}/try-on/glasses`}
-            className="inline-flex items-center rounded-lg border border-gray-300 bg-white px-6 py-3 text-base font-semibold text-gray-800 transition-colors duration-200 hover:border-blue-300 hover:text-blue-700"
-          >
-            {t('ctaSecondary')}
-          </Link>
-        </div>
       </section>
 
-      {/* Face Analysis to Try-On Section */}
+      {/* Free detector to paid advice */}
       <section className="max-w-6xl mx-auto mb-16">
         <div className="grid gap-8 overflow-hidden rounded-lg border border-blue-100 bg-gradient-to-br from-white via-blue-50/70 to-white p-5 shadow-sm md:p-8 lg:grid-cols-[0.76fr_1.24fr] lg:items-center">
           <div>
@@ -138,6 +147,11 @@ export default function Home({
           </div>
           <FaceAnalysisPreviewVisual variant="workflow" />
         </div>
+      </section>
+
+      {/* Step 3 and 4 product proof */}
+      <section className="max-w-6xl mx-auto mb-16">
+        <ModelTryOnSlides locale={locale} mode="home" preloadFirstImage={false} />
       </section>
 
       <section className="max-w-6xl mx-auto mb-16">

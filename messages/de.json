@@ -2,6 +2,7 @@
   "common": {
     "startFreeTrial": "Kostenlose Testversion Starten",
     "startTryOn": "Anprobe Starten",
+    "checkFaceShape": "Gesichtsform prüfen",
     "loading": "Lädt..."
   },
   "nav": {
@@ -178,8 +179,12 @@
       "metaDescription": "Gesichtsform kostenlos bestimmen, persönliche Brillenberatung erhalten, eigene Fassungen virtuell anprobieren und Ergebnisse vergleichen.",
       "faqTitle": "Häufig Gestellte Fragen",
       "faqSubtitle": "Alles, was Sie über VisuTry wissen müssen",
-      "heroTitle": "Die richtige Brille finden – von der Gesichtsform bis zur Anprobe",
+      "heroTitle": "Finden Sie eine Brille, die wirklich zu Ihrem Gesicht passt",
       "heroSubtitle": "Starten Sie mit dem kostenlosen privaten Detektor und gehen Sie zu Beratung, Anprobe und Vergleich weiter.",
+      "trustLine": "Kostenloses Ergebnis · Standardmäßig privat · Keine Anmeldung · Anprobe in Sekunden",
+      "recommendedWorkflow": "Empfohlener Ablauf",
+      "workflowPath": "Erkennen → Beraten → Anprobieren → Vergleichen",
+      "bestPlaceToStart": "Bester Einstieg",
       "tools": {
         "faceTitle": "Gesichtsform-Detektor",
         "faceDescription": "Kostenlos und ohne Anmeldung; das Foto bleibt im Browser.",
@@ -202,13 +207,13 @@
         "openTool": "Tool öffnen"
       },
       "workflow": {
-        "badge": "Face analysis for glasses (DE)",
-        "title": "Starten try-on with Fassungs that already fit the face",
-        "description": "VisuTry now uses one portrait to read face shape, narrow the first Fassung shortlist, and send shoppers directly into glasses try-on with better choices.",
-        "point1": "Face shape report (DE)",
-        "point2": "Recommended Fassung styles",
-        "point3": "One path into AI try-on (DE)",
-        "cta": "Mein Gesicht analysieren"
+        "badge": "KI-Brillenberater",
+        "title": "Möchten Sie bessere Empfehlungen als nur ein Gesichtsform-Label?",
+        "description": "Der KI-Brillenberater macht aus einem Porträt einen praktischen Leitfaden: was passt, was Sie meiden sollten und was Sie als Nächstes anprobieren können.",
+        "point1": "Die besten Fassungsformen für Ihr Gesicht",
+        "point2": "Unvorteilhafte Stile früh ausschließen",
+        "point3": "Empfehlungen sofort virtuell anprobieren",
+        "cta": "Meine Brillenberatung erhalten"
       },
       "benefits": {
         "generatedTitle": "AI-generated previews (DE)",
@@ -513,14 +518,16 @@
       },
       "modes": {
         "home": {
-          "eyebrow": "AI glasses workflow",
-          "title": "Gesichtsform kostenlos finden, dann Brillen anprobieren und vergleichen",
-          "description": "Starten Sie mit dem privaten Detektor und gehen Sie bei Bedarf zu Beratung, Anprobe oder Vergleich weiter.",
-          "ctaLabel": "Gesichtsform bestimmen",
-          "secondaryLabel": "Compare frames",
-          "step1": "Face guidance",
-          "step2": "Custom try-on",
-          "step3": "Side-by-side compare"
+          "eyebrow": "Schritte 3–4 · Anprobieren, dann vergleichen",
+          "title": "Eine Fassung anprobieren. Favoriten vergleichen.",
+          "description": "Zeigen Sie eine konkrete Brille auf Ihrem Gesicht und vergleichen Sie danach Ihre stärksten Optionen nebeneinander.",
+          "ctaLabel": "Brille anprobieren",
+          "secondaryLabel": "Fassungen vergleichen",
+          "step1": "Schritt 3 · Beliebige Brille ansehen",
+          "step2": "Schritt 4 · Favoriten vergleichen",
+          "step3": "Direkter Vergleich",
+          "tryOnPhase": "Schritt 3 · Virtuelle Anprobe",
+          "comparePhase": "Schritt 4 · Fassungsvergleich"
         },
         "glasses": {
           "eyebrow": "Virtual glasses try-on",
