@@ -2,7 +2,8 @@
 
 Date: 2026-07-02
 Status: Active source of truth
-Owner: Codex, with founder support where identity, login, 2FA, or outbound approval is required
+Owner: Codex, with founder support where login, 2FA, or outbound approval is required
+Public founder identity: Frank Sun
 Primary product: Free Face Shape Detector
 Primary URL: `https://www.visutry.com/en/face-shape-detector`
 
@@ -53,6 +54,28 @@ Six personalized messages were sent on 2026-06-24. As of 2026-07-02:
 - no placement from that batch is counted yet.
 
 This baseline must be reconciled with a Google Search Console external-links export. Search-engine discovery is incomplete and cannot prove that SaaSHub is the only existing referring domain.
+
+### Detect Face Shape backlink-gap evidence
+
+Backlink databases disagree materially:
+
+- Semrush reported 636 referring domains and 4.26K backlinks for February 2026.
+- Ahrefs Top Websites reported 228 linking websites for March 2026.
+- The Collaborator checker powered by SE Ranking found 393 referring domains and exposed the strongest 50 links on 2026-07-02.
+
+The top-50 manual classification found:
+
+- 11 high-quality editorial or community-resource sources;
+- 4 legitimate directory or roundup sources;
+- 1 community mirror that should not be targeted independently;
+- 3 low-quality unrelated or automatically generated mentions;
+- 31 black-hat spam, irrelevant syndication, auto-report, or URL-share domains.
+
+Therefore the competitor's headline count must not become VisuTry's execution recipe. The reusable strategy is concentrated in a small set of competitor roundups, face-shape and hairstyle editorial pages, real tool directories, and community resource lists. The spam network explains a large part of the apparent scale and is explicitly excluded from VisuTry's 60-domain target.
+
+The newest-50 sample reinforced the same conclusion. Most newly detected links were explicitly branded `MASSLINKER`, `SEO-LINK.VIP`, `SEO_LINKK`, `BHS Links`, automatic URL-share pages, or domain-stat pages. The useful new opportunities were a small number of face-shape, hairstyle, AI-tool, and eyewear articles. No conclusion is made about who created the spam links; they may be intentional link building, third-party syndication, or negative SEO. VisuTry will not reproduce them.
+
+Detailed evidence and dispositions are recorded in `2026-07-02-detect-face-shape-backlink-gap.csv`.
 
 ## 4. Channel portfolio
 
@@ -221,23 +244,22 @@ Codex can research targets, prepare assets, adapt copy, operate the VisuTry mail
 
 The founder is required only for:
 
-1. **Canonical identity:** confirm whether public listings and signatures should use `Frank Sun`, `Ye Sun`, or `Frank (Ye) Sun`.
-2. **Account access:** sign in once to Product Hunt, AlternativeTo, Indie Hackers, SaaSHub, and other account-gated sites; complete CAPTCHA or 2FA when requested. Passwords should not be sent in chat.
-3. **Outbound approval:** approve personalized external email batches before sending, as required by the VisuTry email operating rule. Approval can be given in batches of up to 10 final drafts.
-4. **GSC baseline:** provide or export the latest Google Search Console `Links → Top linking sites` report so existing domains can be deduplicated and measured accurately.
-5. **Founder profile assets:** provide a public founder headshot only if Product Hunt or a publication requires it. The campaign can start without one.
+1. **Account access:** sign in once to Semrush or Ahrefs for the full competitor referring-domain export and later to Product Hunt, AlternativeTo, Indie Hackers, SaaSHub, and other account-gated sites; complete CAPTCHA or 2FA when requested. Passwords should not be sent in chat.
+2. **Outbound approval:** approve personalized external email batches before sending, as required by the VisuTry email operating rule. Approval can be given in batches of up to 10 final drafts.
+3. **GSC baseline:** provide the Google Search Console `Links → Top linking sites` export when convenient. The campaign starts without it because the current baseline is small.
+4. **Founder profile assets:** provide a public founder headshot only if Product Hunt or a publication requires it. The campaign can start without one.
 
 No backlink-purchase budget is required for the initial campaign. Any paid sponsorship, directory fee, or contributed-content fee requires separate approval and will not be represented as an organic editorial link.
 
 ## 11. Immediate queue
 
-1. Obtain the GSC linking-sites baseline.
-2. Confirm canonical founder identity.
+1. Export and classify Detect Face Shape referring domains before broad channel expansion.
+2. Separate competitor links into replicable listings, asset-dependent editorial links, mirrors/automatic pages, and spam.
 3. Claim and refresh the existing SaaSHub listing.
 4. Verify account readiness for Product Hunt, AlternativeTo, Indie Hackers, and SaaSCity.
-5. Prepare the first 10 directory submissions and first 10 resource-page pitches.
+5. Prepare the first 10 competitor-proven submissions and first 10 competitor-gap pitches.
 6. Prepare one batch follow-up for the six June targets based on the now-live free Detector.
-7. Create the 220-domain ledger and start with the first 80 fully qualified rows.
+7. Expand the ledger only with verified competitor-proven or independently qualified domains.
 
 ## 12. Evidence sources
 
@@ -247,4 +269,3 @@ No backlink-purchase budget is required for the initial campaign. Any paid spons
 - Directory fields and prior queue: `docs/strategy/growth/2026-06-19-directory-submission-packet.md`
 - Previous outreach targets: `docs/strategy/growth/2026-06-18-outreach-targets-batch-1.md`
 - Prior outreach execution: `docs/strategy/growth/2026-06-24-reddit-warmup-and-outreach-execution.md`
-

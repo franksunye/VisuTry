@@ -19,7 +19,7 @@ Product Hunt is a launch surface, not an evergreen directory. Reddit and X are d
 | Primary campaign URL | `https://www.visutry.com/en/face-shape-detector` |
 | Category | Virtual Try-On, Eyewear, Artificial Intelligence, Shopping Assistant |
 | Pricing | Free trial; credit pack from $2.99; subscription options available |
-| Founder / maker | Frank / Ye Sun |
+| Founder / maker | Frank Sun |
 | Support | `support@visutry.com` |
 | Source | `https://github.com/franksunye/VisuTry` |
 | X | `https://x.com/franksunye` |
