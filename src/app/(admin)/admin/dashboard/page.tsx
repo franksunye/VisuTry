@@ -24,6 +24,7 @@ async function getStats() {
     todayFaceShapeDetections,
     totalFaceAnalyses,
     todayFaceAnalyses,
+    recentOrders,
     recentUsers,
     recentFaceAnalyses,
   ] = await Promise.all([
@@ -33,6 +34,22 @@ async function getStats() {
     prisma.faceShapeDetection.count({ where: { createdAt: { gte: todayStart } } }),
     prisma.faceAnalysisTask.count(),
     prisma.faceAnalysisTask.count({ where: { createdAt: { gte: todayStart } } }),
+    prisma.payment.findMany({
+      take: 5,
+      orderBy: { createdAt: 'desc' },
+      select: {
+        id: true,
+        userId: true,
+        amount: true,
+        status: true,
+        user: {
+          select: {
+            name: true,
+            email: true,
+          },
+        },
+      },
+    }),
     prisma.user.findMany({
       take: 5,
       orderBy: { createdAt: 'desc' },
@@ -71,6 +88,7 @@ async function getStats() {
     todayFaceShapeDetections,
     totalFaceAnalyses,
     todayFaceAnalyses,
+    recentOrders,
     recentUsers,
     recentFaceAnalyses,
   };
@@ -172,7 +190,52 @@ export default async function DashboardPage() {
       </div>
 
       {/* Recent Activity */}
-      <div className="grid gap-4 md:grid-cols-2">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        {/* Recent Orders */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Recent Orders</CardTitle>
+            <CardDescription>Latest 5 payment transactions</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>User</TableHead>
+                  <TableHead>Amount</TableHead>
+                  <TableHead>Status</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {stats.recentOrders.map((order) => (
+                  <TableRow key={order.id}>
+                    <TableCell className="font-medium">
+                      <Link
+                        href={`/admin/users/${order.userId}`}
+                        className="hover:underline"
+                      >
+                        {order.user.name || order.user.email}
+                      </Link>
+                    </TableCell>
+                    <TableCell>${(order.amount / 100).toFixed(2)}</TableCell>
+                    <TableCell>
+                      <Badge
+                        variant={
+                          order.status === 'COMPLETED' ? 'default' :
+                          order.status === 'PENDING' ? 'secondary' :
+                          'destructive'
+                        }
+                      >
+                        {order.status}
+                      </Badge>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
+
         {/* Recent Users */}
         <Card>
           <CardHeader>
