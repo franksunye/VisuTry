@@ -23,6 +23,17 @@ const DETECTOR_FEATURES = [
   'Quality checks for multiple faces, tilt, and face size',
 ] as const
 
+function recordDetection(status: 'COMPLETED' | 'FAILED') {
+  void fetch('/api/face-shape-detector/usage', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ status }),
+    keepalive: true,
+  }).catch(() => {
+    // Business telemetry must never interrupt the on-device detector experience.
+  })
+}
+
 export function FreeFaceShapeDetector({ locale }: FreeFaceShapeDetectorProps) {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
   const [result, setResult] = useState<FaceGeometryAnalysis | null>(null)
@@ -82,15 +93,18 @@ export function FreeFaceShapeDetector({ locale }: FreeFaceShapeDetectorProps) {
           analysis.geometry.qualityScore,
           Math.round(performance.now() - startedAt),
         )
+        recordDetection('COMPLETED')
       } else {
         const message = analysis.geometry.warnings[0] ?? 'This photo could not be measured. Try a clear, straight-on image.'
         setError(message)
         analytics.trackFaceShapeDetectorFailed(message)
+        recordDetection('FAILED')
       }
     } catch {
       const message = 'Face analysis could not start in this browser. Try a recent version of Chrome, Edge, or Safari.'
       setError(message)
       analytics.trackFaceShapeDetectorFailed(message)
+      recordDetection('FAILED')
     } finally {
       setIsAnalyzing(false)
     }

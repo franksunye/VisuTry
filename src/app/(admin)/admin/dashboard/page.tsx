@@ -20,65 +20,19 @@ async function getStats() {
   const [
     totalUsers,
     todayUsers,
-    totalOrders,
-    todayOrders,
-    totalRevenue,
-    todayRevenue,
-    pendingOrders,
+    totalFaceShapeDetections,
+    todayFaceShapeDetections,
     totalFaceAnalyses,
     todayFaceAnalyses,
-    recentOrders,
     recentUsers,
     recentFaceAnalyses,
   ] = await Promise.all([
-    // Total counts
     prisma.user.count(),
     prisma.user.count({ where: { createdAt: { gte: todayStart } } }),
-    prisma.payment.count({ where: { status: 'COMPLETED' } }),
-    prisma.payment.count({
-      where: {
-        status: 'COMPLETED',
-        createdAt: { gte: todayStart }
-      }
-    }),
-
-    // Revenue
-    prisma.payment.aggregate({
-      _sum: { amount: true },
-      where: { status: 'COMPLETED' },
-    }),
-    prisma.payment.aggregate({
-      _sum: { amount: true },
-      where: {
-        status: 'COMPLETED',
-        createdAt: { gte: todayStart }
-      },
-    }),
-
-    // Pending orders
-    prisma.payment.count({ where: { status: 'PENDING' } }),
-
-    // Face analysis counts
+    prisma.faceShapeDetection.count(),
+    prisma.faceShapeDetection.count({ where: { createdAt: { gte: todayStart } } }),
     prisma.faceAnalysisTask.count(),
     prisma.faceAnalysisTask.count({ where: { createdAt: { gte: todayStart } } }),
-
-    // Recent activity
-    prisma.payment.findMany({
-      take: 5,
-      orderBy: { createdAt: 'desc' },
-      select: {
-        id: true,
-        userId: true,
-        amount: true,
-        status: true,
-        user: {
-          select: {
-            name: true,
-            email: true,
-          },
-        },
-      },
-    }),
     prisma.user.findMany({
       take: 5,
       orderBy: { createdAt: 'desc' },
@@ -113,14 +67,10 @@ async function getStats() {
   return {
     totalUsers,
     todayUsers,
-    totalOrders,
-    todayOrders,
-    totalRevenue: (totalRevenue._sum.amount ?? 0) / 100,
-    todayRevenue: (todayRevenue._sum.amount ?? 0) / 100,
-    pendingOrders,
+    totalFaceShapeDetections,
+    todayFaceShapeDetections,
     totalFaceAnalyses,
     todayFaceAnalyses,
-    recentOrders,
     recentUsers,
     recentFaceAnalyses,
   };
@@ -139,11 +89,10 @@ export default async function DashboardPage() {
       </div>
 
       {/* Stats Grid */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
-        {/* Total Users */}
+      <div className="grid gap-4 md:grid-cols-3">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Users</CardTitle>
+            <CardTitle className="text-sm font-medium">Registered Users</CardTitle>
             <svg
               xmlns="http://www.w3.org/2000/svg"
               viewBox="0 0 24 24"
@@ -167,10 +116,10 @@ export default async function DashboardPage() {
           </CardContent>
         </Card>
 
-        {/* Completed Orders */}
+        {/* Face Shape Detections */}
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Completed Orders</CardTitle>
+            <CardTitle className="text-sm font-medium">Face Shape Detections</CardTitle>
             <svg
               xmlns="http://www.w3.org/2000/svg"
               viewBox="0 0 24 24"
@@ -181,64 +130,14 @@ export default async function DashboardPage() {
               strokeWidth="2"
               className="h-4 w-4 text-muted-foreground"
             >
-              <rect width="20" height="14" x="2" y="5" rx="2" />
-              <path d="M2 10h20" />
+              <path d="M8 3H5a2 2 0 0 0-2 2v3M21 8V5a2 2 0 0 0-2-2h-3M3 16v3a2 2 0 0 0 2 2h3M16 21h3a2 2 0 0 0 2-2v-3" />
+              <path d="M9 10h.01M15 10h.01M9.5 15a4 4 0 0 0 5 0" />
             </svg>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.totalOrders}</div>
+            <div className="text-2xl font-bold">{stats.totalFaceShapeDetections}</div>
             <p className="text-xs text-muted-foreground">
-              +{stats.todayOrders} today
-            </p>
-          </CardContent>
-        </Card>
-
-        {/* Total Revenue */}
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth="2"
-              className="h-4 w-4 text-muted-foreground"
-            >
-              <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
-            </svg>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">${stats.totalRevenue.toFixed(2)}</div>
-            <p className="text-xs text-muted-foreground">
-              +${stats.todayRevenue.toFixed(2)} today
-            </p>
-          </CardContent>
-        </Card>
-
-        {/* Pending Orders */}
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Pending Orders</CardTitle>
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth="2"
-              className="h-4 w-4 text-muted-foreground"
-            >
-              <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
-            </svg>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.pendingOrders}</div>
-            <p className="text-xs text-muted-foreground">
-              Awaiting payment
+              +{stats.todayFaceShapeDetections} today
             </p>
           </CardContent>
         </Card>
@@ -273,52 +172,7 @@ export default async function DashboardPage() {
       </div>
 
       {/* Recent Activity */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {/* Recent Orders */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Recent Orders</CardTitle>
-            <CardDescription>Latest 5 payment transactions</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>User</TableHead>
-                  <TableHead>Amount</TableHead>
-                  <TableHead>Status</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {stats.recentOrders.map((order) => (
-                  <TableRow key={order.id}>
-                    <TableCell className="font-medium">
-                      <Link
-                        href={`/admin/users/${order.userId}`}
-                        className="hover:underline"
-                      >
-                        {order.user.name || order.user.email}
-                      </Link>
-                    </TableCell>
-                    <TableCell>${(order.amount / 100).toFixed(2)}</TableCell>
-                    <TableCell>
-                      <Badge
-                        variant={
-                          order.status === 'COMPLETED' ? 'default' :
-                          order.status === 'PENDING' ? 'secondary' :
-                          'destructive'
-                        }
-                      >
-                        {order.status}
-                      </Badge>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </CardContent>
-        </Card>
-
+      <div className="grid gap-4 md:grid-cols-2">
         {/* Recent Users */}
         <Card>
           <CardHeader>

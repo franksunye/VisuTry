@@ -43,6 +43,15 @@ const primaryNavItems: NavItem[] = [
     ),
   },
   {
+    title: 'Face Shape Detector',
+    href: '/admin/face-shape-detector',
+    icon: (
+      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 3H5a2 2 0 00-2 2v3m18 0V5a2 2 0 00-2-2h-3M3 16v3a2 2 0 002 2h3m8 0h3a2 2 0 002-2v-3M9 10h.01M15 10h.01M9.5 15a4 4 0 005 0" />
+      </svg>
+    ),
+  },
+  {
     title: 'Face Analysis',
     href: '/admin/face-analysis',
     icon: (

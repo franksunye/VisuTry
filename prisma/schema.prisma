@@ -146,6 +146,14 @@ model FaceAnalysisTask {
   @@index([externalTaskId])
 }
 
+model FaceShapeDetection {
+  id        String     @id @default(cuid())
+  status    TaskStatus
+  createdAt DateTime   @default(now())
+
+  @@index([status, createdAt])
+}
+
 model Payment {
   id                    String        @id @default(cuid())
   userId                String
