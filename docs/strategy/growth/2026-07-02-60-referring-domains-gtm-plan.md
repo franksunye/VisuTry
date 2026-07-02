@@ -77,6 +77,27 @@ The newest-50 sample reinforced the same conclusion. Most newly detected links w
 
 Detailed evidence and dispositions are recorded in `2026-07-02-detect-face-shape-backlink-gap.csv`.
 
+### Logged-in Semrush validation (2026-07-02)
+
+The founder-provided Semrush session showed 637 referring domains. The free account did not expose 100 rows per page as the header implied: it rendered only 10 rows and replaced the remaining rows with a trial paywall. Sorting and filtering also consumed the account's 10 free report requests. Therefore this session is a stratified sample, not a 637-domain export.
+
+Before the request limit was reached, 34 unique domains were captured across four useful views:
+
+- top domains by backlink count;
+- top domains by Authority Score;
+- active follow domains by Authority Score;
+- new domains by Authority Score.
+
+The sample confirms the earlier classification rather than changing it:
+
+- high-authority, actionable or potentially actionable sources include `perfectcorp.com`, `imyfone.com`, `beehiiv.com`, `sidehustlenation.com`, `fmhy.net`, and `saashub.com`;
+- `yahoo.com`, `yandex.ru`, and `ya.ru` are high-authority discovery/search surfaces, not submission targets;
+- `scam-detector.com` is an automatically generated domain-validation page, not an editorial placement to pitch;
+- most newly discovered domains had Authority Scores of 2-5 and showed the same low-value or suspicious pattern as the newest-50 sample;
+- the active-follow slice is far more useful than the headline total: after excluding search surfaces and an unrelated profile, only a small set remains worth pursuing.
+
+This means VisuTry should not buy a Semrush plan merely to export the remaining rows. The next dollar or hour is better spent resolving exact source pages and submission routes for the already-qualified domains, then expanding through their peer publications and directories.
+
 ## 4. Channel portfolio
 
 The 60-link goal is deliberately spread across channels so failure in one channel does not stop the campaign.

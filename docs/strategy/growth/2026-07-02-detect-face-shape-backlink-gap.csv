@@ -49,3 +49,13 @@ rank,domain,source_url,classification,quality,replicable,visutry_action,status
 48,prolinksdirectory.com,https://prolinksdirectory.com/advanced-video-retargeting-for-improved-e-commerce-conversions/,irrelevant_syndication,zero,no,Never reproduce,rejected
 49,haircutinspiration.com,https://haircutinspiration.com/flow-hairstyle/,editorial_hairstyle,high,yes,Offer Detector as a cited tool for choosing styles by face shape,qualified
 50,aipassportphotos.com,https://www.aipassportphotos.com/blog/best-ai-face-shape-detector/,competitor_roundup,high,yes,Request a fair test and inclusion in the next detector roundup,qualified
+51,yahoo.com,,search_or_aggregation_surface,high,no,Do not treat search or aggregation discovery as a submission channel,observe
+52,yandex.ru,,search_engine_surface,high,no,Do not treat search-engine discovery as a submission channel,observe
+53,ya.ru,,search_engine_surface,high,no,Do not treat search-engine discovery as a submission channel,observe
+54,dhgate.com,,marketplace_or_ugc,low,no,Resolve the exact source before considering any action,observe
+55,scam-detector.com,https://www.scam-detector.com/validator/detect-face-shape-com-review/,automatic_trust_report,low,no,Do not pursue an algorithmically generated validator page as a backlink tactic,rejected
+56,riseup.net,,hosted_community_content,low,no,Exact source is unknown and the host is unrelated to face tools,observe
+57,sidehustleapp.co,,unknown_new_domain,low,conditional,Resolve the exact source and site legitimacy before deciding,observe
+58,analyticshaven.top,,low_authority_new_domain,zero,no,Do not reproduce without evidence of a legitimate relevant source,rejected
+59,metamagic.top,,low_authority_new_domain,zero,no,Do not reproduce without evidence of a legitimate relevant source,rejected
+60,digitalseotool.com,,low_authority_new_domain,zero,no,Do not reproduce without evidence of a legitimate relevant source,rejected
