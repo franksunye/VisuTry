@@ -107,12 +107,20 @@ describe('TryOnService', () => {
         'GLASSES'
       )
 
-      expect(submitAsyncTask).toHaveBeenCalled()
+      expect(submitAsyncTask).toHaveBeenCalledWith(
+        expect.stringContaining('data:image/jpeg;base64,'),
+        expect.stringContaining('data:image/jpeg;base64,'),
+        expect.any(String),
+        'tryon-v1'
+      )
       expect(prisma.tryOnTask.create).toHaveBeenCalledWith({
         data: expect.objectContaining({
           userImageUrl: expect.stringContaining('tryon/user/user-1/'),
           itemImageUrl: expect.stringContaining('tryon/item/user-1/'),
           metadata: expect.objectContaining({
+            promptVersion: 'tryon-v1',
+            promptSource: 'registry',
+            renderedPrompt: expect.stringContaining('SCENE SETUP:'),
             inputDiagnostics: expect.objectContaining({
               userFile: expect.objectContaining({
                 name: 'test.jpg',
@@ -421,7 +429,8 @@ describe('TryOnService', () => {
       expect(submitAsyncTask).toHaveBeenCalledWith(
         'http://blob/user.jpg',
         'http://blob/item.jpg',
-        'retry prompt'
+        'retry prompt',
+        'tryon-v1'
       )
       expect(prisma.tryOnTask.update).toHaveBeenCalledWith({
         where: { id: 'task-3' },
@@ -433,6 +442,7 @@ describe('TryOnService', () => {
             previousExternalTaskId: 'grsai-task-id-1',
             retryCount: 1,
             lastRetryReason: 'google gemini timeout...',
+            promptVersion: 'tryon-v1',
           }),
         }),
       })

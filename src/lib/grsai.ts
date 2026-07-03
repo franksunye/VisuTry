@@ -57,13 +57,14 @@ export interface GrsAiResult {
 export async function submitAsyncTask(
   userImageDataUri: string,
   itemImageDataUri: string,
-  detailedInstructions: string
+  detailedInstructions: string,
+  promptVersion?: string
 ): Promise<string> {
   const url = `${GRSAI_BASE_URL}/v1/draw/nano-banana`
 
   // Build the complete prompt using the unified prompt builder
   // This ensures consistency with Gemini direct API calls
-  const fullPrompt = buildTryOnPrompt(detailedInstructions)
+  const fullPrompt = buildTryOnPrompt(detailedInstructions, promptVersion)
 
   const payload = {
     model: MODEL_NAME,

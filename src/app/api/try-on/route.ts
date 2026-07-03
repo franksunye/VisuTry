@@ -13,6 +13,10 @@ import { getTestSessionFromRequest } from "@/lib/test-session"
 import { QUOTA_CONFIG } from "@/config/pricing"
 import { TryOnType, getTryOnConfig, isValidTryOnType } from "@/config/try-on-types"
 import { logger, getRequestContext } from "@/lib/logger"
+import {
+  ResolvedTryOnPrompt,
+  resolveTryOnPrompt,
+} from '@/lib/try-on-prompt-registry'
 
 // Force dynamic rendering for this route
 export const dynamic = 'force-dynamic'
@@ -298,6 +302,10 @@ export async function POST(request: NextRequest) {
       logger.error('upload', 'CRITICAL: Uploaded URLs are identical', new Error('Identical URLs'), uploadVerification, ctx)
     }
 
+    // Resolve before persistence so this legacy route has the same audit trail
+    // and rollback behavior as the newer submit service.
+    const resolvedPrompt = resolveTryOnPrompt(tryOnType)
+
     // Create try-on task record
     let tryOnTask
     if (isMockMode) {
@@ -314,7 +322,13 @@ export async function POST(request: NextRequest) {
           type: tryOnType,
           userImageUrl: userImageBlob.url,
           itemImageUrl,
-          status: "PROCESSING"
+          status: "PROCESSING",
+          metadata: {
+            effectivePrompt: resolvedPrompt.detailedInstructions,
+            renderedPrompt: resolvedPrompt.renderedPrompt,
+            promptVersion: resolvedPrompt.version,
+            promptSource: resolvedPrompt.source,
+          },
         }
       })
     }
@@ -331,7 +345,14 @@ export async function POST(request: NextRequest) {
     console.log(`⏱️ [Task ${tryOnTask.id}] Starting synchronous processing (maxDuration: 60s)`)
 
     try {
-      await processTryOnAsync(tryOnTask.id, userImageBlob.url, itemImageUrl, tryOnType, ctx)
+      await processTryOnAsync(
+        tryOnTask.id,
+        userImageBlob.url,
+        itemImageUrl,
+        tryOnType,
+        resolvedPrompt,
+        ctx
+      )
       console.log(`✅ [Task ${tryOnTask.id}] Processing completed successfully`)
     } catch (error) {
       console.error(`❌ [Task ${tryOnTask.id}] Processing failed:`, error)
@@ -507,9 +528,15 @@ async function uploadBase64ToBlob(base64Data: string, taskId: string, userId: st
 }
 
 // Process try-on task asynchronously
-async function processTryOnAsync(taskId: string, userImageUrl: string, itemImageUrl: string, tryOnType: TryOnType, context?: any) {
+async function processTryOnAsync(
+  taskId: string,
+  userImageUrl: string,
+  itemImageUrl: string,
+  tryOnType: TryOnType,
+  resolvedPrompt: ResolvedTryOnPrompt,
+  context?: any
+) {
   const processStartTime = Date.now()
-  const config = getTryOnConfig(tryOnType)
   console.log(`🚀 [Task ${taskId}] Starting async processing for ${tryOnType}...`)
   console.log(`📍 [Task ${taskId}] Environment: ${process.env.VERCEL ? 'Vercel' : 'Local'}`)
 
@@ -530,7 +557,8 @@ async function processTryOnAsync(taskId: string, userImageUrl: string, itemImage
       result = await generateTryOnImage({
         userImageUrl,
         itemImageUrl,
-        prompt: config.aiPrompt
+        prompt: resolvedPrompt.detailedInstructions,
+        promptVersion: resolvedPrompt.version,
       })
       const aiTime = Date.now() - aiStartTime
       console.log(`⏱️ [Task ${taskId}] AI processing time: ${aiTime}ms (${(aiTime/1000).toFixed(2)}s)`)
@@ -581,7 +609,13 @@ async function processTryOnAsync(taskId: string, userImageUrl: string, itemImage
           data: {
             status: "COMPLETED",
             resultImageUrl: finalImageUrl,
-            metadata: (result as any)?.metadata
+            metadata: {
+              ...((result as any)?.metadata || {}),
+              effectivePrompt: resolvedPrompt.detailedInstructions,
+              renderedPrompt: resolvedPrompt.renderedPrompt,
+              promptVersion: resolvedPrompt.version,
+              promptSource: resolvedPrompt.source,
+            }
           }
         })
       }

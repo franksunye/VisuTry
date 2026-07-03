@@ -51,6 +51,7 @@ export interface TryOnRequest {
   itemImageUrl?: string // New generic field name
   glassesImageUrl?: string // Legacy field name for backward compatibility
   prompt?: string
+  promptVersion?: string
 }
 
 export interface TryOnResult {
@@ -64,6 +65,7 @@ export async function generateTryOnImage({
   userImageUrl,
   itemImageUrl,
   glassesImageUrl, // Legacy parameter for backward compatibility
+  promptVersion,
   // Original prompt: "Place these glasses naturally on the person's face. Ensure the glasses fit properly, match the lighting and perspective, and look realistic."
   prompt = "Place the glasses naturally on the person’s face in the uploaded photo — use that face photo exactly as is, without cropping or altering its size, proportions, or composition; if the head is slightly tilted, the glasses frame should tilt accordingly and align exactly with the roll/tilt angle of the head, sitting properly on the nose bridge and temples. Ensure the glasses fit properly, match the lighting and perspective, look realistic, and avoid any distortion or skewing of the frame."
 }: TryOnRequest): Promise<TryOnResult> {
@@ -197,7 +199,7 @@ export async function generateTryOnImage({
 
     // Create the prompt for multi-image fusion using unified prompt builder
     // The prompt parameter contains type-specific detailed instructions from config
-    const tryOnPrompt = buildTryOnPrompt(prompt)
+    const tryOnPrompt = buildTryOnPrompt(prompt, promptVersion)
 
     // Generate the try-on image using multi-image fusion
     const apiStartTime = Date.now()

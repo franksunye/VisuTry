@@ -6,6 +6,10 @@ import { logger } from "@/lib/logger"
 import { Prisma, TaskStatus, TryOnType, User } from "@prisma/client"
 import { TRY_ON_CONFIGS } from "@/config/try-on-types"
 import { createHash } from "node:crypto"
+import {
+  DEFAULT_TRY_ON_PROMPT_VERSION,
+  resolveTryOnPrompt,
+} from '@/lib/try-on-prompt-registry'
 
 // Service Tiering Config
 const ENABLE_SERVICE_TIERING = process.env.ENABLE_SERVICE_TIERING !== 'false' // Default to true, unless explicitly set to false
@@ -95,8 +99,10 @@ export async function submitTryOnTask(
   const startTime = Date.now()
   logger.info('tryon-service', `Starting try-on task for user ${user.id}`, { type, clientSubmissionId })
 
-  // Use provided prompt or fallback to type-specific default prompt
-  const effectivePrompt = prompt || TRY_ON_CONFIGS[type].aiPrompt
+  // Resolve once so dispatch, persistence, and retries all use the same immutable version.
+  const resolvedPrompt = resolveTryOnPrompt(type, prompt)
+  const effectivePrompt = resolvedPrompt.detailedInstructions
+  const promptVersion = resolvedPrompt.version
 
   const [userInspection, itemInspection] = await Promise.all([
     inspectFile(userImageFile),
@@ -219,12 +225,15 @@ export async function submitTryOnTask(
       itemImageUrl: itemBlob.url,
       status: TaskStatus.PENDING,
       metadata: {
+        ...(options?.metadata || {}),
         serviceType,
         isAsync,
         effectivePrompt,
+        renderedPrompt: resolvedPrompt.renderedPrompt,
+        promptVersion,
+        promptSource: resolvedPrompt.source,
         retryCount: 0,
         clientSubmissionId,
-        ...(options?.metadata || {}),
         originalUserFileName: userImageFile.name,
         originalItemFileName: itemImageFile.name,
         inputDiagnostics,
@@ -241,7 +250,8 @@ export async function submitTryOnTask(
       const result = await generateTryOnImage({
         userImageUrl: userBlob.url,
         itemImageUrl: itemBlob.url,
-        prompt: effectivePrompt
+        prompt: effectivePrompt,
+        promptVersion,
       })
 
       if (result.success && result.imageUrl) {
@@ -277,8 +287,8 @@ export async function submitTryOnTask(
             status: TaskStatus.COMPLETED,
             resultImageUrl: finalResultUrl,
             metadata: {
-              ...(task.metadata as any),
               ...(result.metadata || {}), // Save Gemini text/metadata
+              ...(task.metadata as any),
               originalResultUrl: result.imageUrl, // Keep original URL in metadata
               generationTime: Date.now() - startTime
             }
@@ -327,7 +337,12 @@ export async function submitTryOnTask(
       const userDataUri = `data:${userMime};base64,${userBuffer.toString('base64')}`
       const itemDataUri = `data:${itemMime};base64,${itemBuffer.toString('base64')}`
 
-      const externalTaskId = await submitAsyncTask(userDataUri, itemDataUri, effectivePrompt)
+      const externalTaskId = await submitAsyncTask(
+        userDataUri,
+        itemDataUri,
+        effectivePrompt,
+        promptVersion
+      )
 
       // Update task with external ID
       await prisma.tryOnTask.update({
@@ -340,6 +355,9 @@ export async function submitTryOnTask(
             serviceType,
             isAsync,
             effectivePrompt,
+            renderedPrompt: resolvedPrompt.renderedPrompt,
+            promptVersion,
+            promptSource: resolvedPrompt.source,
             retryCount: 0,
           }
         }
@@ -447,8 +465,8 @@ export async function getTryOnResult(taskId: string): Promise<TryOnPollResult> {
           status: TaskStatus.COMPLETED,
           resultImageUrl: resultImageUrl,
           metadata: {
-            ...externalPollMetadata,
             ...(pollResult.metadata || {}), // Save GrsAi text/metadata
+            ...externalPollMetadata,
             originalResultUrl: pollResult.imageUrl, // Keep original URL in metadata
             completionTime: Date.now()
           }
@@ -517,6 +535,8 @@ export async function getTryOnResult(taskId: string): Promise<TryOnPollResult> {
         task.itemImageUrl
       ) {
         const retryPrompt = metadata?.effectivePrompt || TRY_ON_CONFIGS[task.type].aiPrompt
+        // Tasks created before prompt versioning used the prompt now registered as v1.
+        const retryPromptVersion = metadata?.promptVersion || DEFAULT_TRY_ON_PROMPT_VERSION
 
         logger.warn('tryon-service', 'Retrying GrsAi task after timeout', {
           taskId,
@@ -530,7 +550,8 @@ export async function getTryOnResult(taskId: string): Promise<TryOnPollResult> {
           const retriedExternalTaskId = await submitAsyncTask(
             task.userImageUrl,
             task.itemImageUrl,
-            retryPrompt
+            retryPrompt,
+            retryPromptVersion
           )
 
           await prisma.tryOnTask.update({
@@ -546,6 +567,7 @@ export async function getTryOnResult(taskId: string): Promise<TryOnPollResult> {
                 lastRetryReason: pollResult.error,
                 previousExternalTaskId: metadata.externalTaskId,
                 effectivePrompt: retryPrompt,
+                promptVersion: retryPromptVersion,
               }
             }
           })
