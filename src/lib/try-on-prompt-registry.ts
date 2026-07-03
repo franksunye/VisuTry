@@ -40,6 +40,17 @@ OUTPUT:
 Generate the composite image, followed by a brief 2-3 sentence description noting the product type, any identifiable brand details, and how well it complements the person's features.`
 }
 
+const V2_GLASSES_INSTRUCTIONS = `Edit Image 1 locally to create a photorealistic virtual try-on using the glasses from Image 2.
+
+MANDATORY REPLACEMENT:
+The final image must contain exactly one pair of glasses: the glasses from Image 2. If the person in Image 1 is already wearing eyeglasses or sunglasses, completely replace them. Remove every visible part of the original eyewear, including its frame, bridge, nose pads, temples, lenses, tint, reflections, and cast shadows. Do not retain, blend, or duplicate any part of the original eyewear. Naturally reconstruct only the small areas hidden by it while preserving the person's identity and expression. This replacement requirement overrides preservation of the original eyewear.
+
+TARGET GLASSES AND FIT:
+Use Image 2 as the only eyewear reference. Preserve the target glasses' frame shape, color, material, rim thickness, bridge design, lens shape, lens tint, proportions, and distinctive details. Scale the entire frame uniformly without stretching or warping it. Center the bridge on the nose, position both eyes naturally within the lenses, match the head's three-dimensional angle, and extend the temples naturally toward the ears. Choose a realistic wearable scale relative to the face while preserving an intentionally oversized or narrow target style.
+
+PRESERVATION AND REALISM:
+Keep the person's identity, facial structure, skin tone, expression, hairstyle, head position, clothing, background, crop, framing, and aspect ratio visually unchanged. Match the original lighting, focus, image grain, reflections, and color temperature. Do not copy the product image's background, stand, text, or packaging.`
+
 /**
  * Prompt versions are immutable release artifacts. Never edit an existing entry
  * after it has served production traffic; add a new version instead.
@@ -51,6 +62,18 @@ const TRY_ON_PROMPT_VERSIONS: Readonly<Record<string, TryOnPromptDefinition>> = 
     createdAt: '2025-12-05',
     instructions: Object.freeze({
       GLASSES: TRY_ON_CONFIGS.GLASSES.aiPrompt,
+      OUTFIT: TRY_ON_CONFIGS.OUTFIT.aiPrompt,
+      SHOES: TRY_ON_CONFIGS.SHOES.aiPrompt,
+      ACCESSORIES: TRY_ON_CONFIGS.ACCESSORIES.aiPrompt,
+    }),
+    render: renderV1,
+  }),
+  'tryon-v2': Object.freeze({
+    version: 'tryon-v2',
+    description: 'Inactive candidate with explicit eyewear replacement and anatomical fit constraints',
+    createdAt: '2026-07-03',
+    instructions: Object.freeze({
+      GLASSES: V2_GLASSES_INSTRUCTIONS,
       OUTFIT: TRY_ON_CONFIGS.OUTFIT.aiPrompt,
       SHOES: TRY_ON_CONFIGS.SHOES.aiPrompt,
       ACCESSORIES: TRY_ON_CONFIGS.ACCESSORIES.aiPrompt,

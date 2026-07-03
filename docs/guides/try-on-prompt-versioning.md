@@ -19,6 +19,13 @@ TRY_ON_PROMPT_VERSION=tryon-v2
 
 An unknown version fails the request instead of silently falling back.
 
+Registered versions:
+
+- `tryon-v1`: active production baseline.
+- `tryon-v2`: inactive eyewear-replacement candidate. Its presence in the
+  registry does not activate it; activation still requires explicitly setting
+  `TRY_ON_PROMPT_VERSION=tryon-v2`.
+
 ## Create an upgrade
 
 1. Add a new immutable entry such as `tryon-v2` to the registry. Copy the
