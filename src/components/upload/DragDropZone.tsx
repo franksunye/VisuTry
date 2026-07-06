@@ -103,10 +103,10 @@ export function DragDropZone({
         <div className="absolute inset-0 bg-blue-100 bg-opacity-80 border-2 border-dashed border-blue-400 rounded-lg flex items-center justify-center z-10">
           <div className="text-center">
             <div className="text-blue-600 text-lg font-medium mb-2">
-              释放文件以上传
+              Drop files to upload
             </div>
             <div className="text-blue-500 text-sm">
-              {multiple ? "支持多个文件" : "单个文件"}
+              {multiple ? "Multiple files supported" : "Single file only"}
             </div>
           </div>
         </div>

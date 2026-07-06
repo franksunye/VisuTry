@@ -85,7 +85,7 @@ export function PublicTryOnGallery({ tryOns }: PublicTryOnGalleryProps) {
         </div>
       </div>
 
-      {/* 图片预览模态框 */}
+      {/* Image preview modal */}
       {selectedImage && (
         <div
           className="fixed inset-0 bg-black bg-opacity-75 z-50 flex items-center justify-center p-4"
@@ -110,7 +110,7 @@ export function PublicTryOnGallery({ tryOns }: PublicTryOnGalleryProps) {
               ✕
             </button>
             
-            {/* 查看详情按钮 */}
+            {/* View details button */}
             <div className="absolute bottom-4 left-4 right-4 flex justify-center">
               <Link
                 href={`/share/${tryOns.find(t => t.resultImageUrl === selectedImage)?.id}`}
@@ -118,7 +118,7 @@ export function PublicTryOnGallery({ tryOns }: PublicTryOnGalleryProps) {
                 onClick={(e) => e.stopPropagation()}
               >
                 <ExternalLink className="w-5 h-5 mr-2" />
-                查看详情
+                View Details
               </Link>
             </div>
           </div>

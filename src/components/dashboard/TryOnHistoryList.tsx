@@ -132,8 +132,8 @@ export function TryOnHistoryList({
       
       window.URL.revokeObjectURL(url)
     } catch (error) {
-      console.error("下载失败:", error)
-      alert("下载失败，请重试")
+      console.error("Download failed:", error)
+      alert("Download failed, please try again")
     }
   }
 
@@ -167,7 +167,7 @@ export function TryOnHistoryList({
             <div className="aspect-square bg-gray-100 relative">
               <TryOnThumbnail
                 src={task.resultImageUrl || task.userImageUrl}
-                alt={task.status === "COMPLETED" ? "试戴结果" : "用户照片"}
+                alt={task.status === "COMPLETED" ? "Try-on result" : "User photo"}
                 index={index}
                 className={cn(
                   "object-cover",
@@ -198,7 +198,7 @@ export function TryOnHistoryList({
                     <button
                       onClick={() => handleDownload(task.resultImageUrl!, task.id)}
                       className="w-8 h-8 bg-white bg-opacity-80 hover:bg-opacity-100 rounded-full flex items-center justify-center transition-colors"
-                      title="下载图片"
+                      title="Download image"
                     >
                       <Download className="w-4 h-4 text-gray-700" />
                     </button>
@@ -206,7 +206,7 @@ export function TryOnHistoryList({
                     <Link
                       href={`/share/${task.id}`}
                       className="w-8 h-8 bg-white bg-opacity-80 hover:bg-opacity-100 rounded-full flex items-center justify-center transition-colors"
-                      title="查看分享页面"
+                      title="View share page"
                     >
                       <ExternalLink className="w-4 h-4 text-gray-700" />
                     </Link>
@@ -217,7 +217,7 @@ export function TryOnHistoryList({
                   onClick={() => handleDelete(task.id)}
                   disabled={deletingId === task.id}
                   className="w-8 h-8 bg-white bg-opacity-80 hover:bg-opacity-100 rounded-full flex items-center justify-center transition-colors disabled:opacity-50"
-                  title="删除记录"
+                  title="Delete record"
                 >
                   {deletingId === task.id ? (
                     <Loader2 className="w-4 h-4 text-gray-700 animate-spin" />

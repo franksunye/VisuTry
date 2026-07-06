@@ -21,7 +21,7 @@ export function UserProfile({ className, showDetails = true, variant = "light" }
   const isPremiumActive = user.isPremiumActive
   const remainingTrials = user.remainingTrials
 
-  // 根据 variant 定义样式
+  // Define styles based on variant
   const containerStyles = variant === "dark"
     ? "bg-gray-800 border-gray-700"
     : "bg-white border"
@@ -72,30 +72,30 @@ export function UserProfile({ className, showDetails = true, variant = "light" }
 
       {showDetails && (
         <>
-          {/* 会员状态 */}
+          {/* Membership status */}
           <div className="mb-4">
             {isPremiumActive ? (
               <div className="flex items-center space-x-2 text-yellow-500">
                 <Crown className="w-5 h-5" />
-                <span className="font-medium">高级会员</span>
+                <span className="font-medium">Premium</span>
                 {user.premiumExpiresAt && (
                   <span className={cn("text-sm", textSecondaryStyles)}>
-                    到期: {new Date(user.premiumExpiresAt).toLocaleDateString()}
+                    Expires: {new Date(user.premiumExpiresAt).toLocaleDateString()}
                   </span>
                 )}
               </div>
             ) : (
               <div className={cn("flex items-center space-x-2", textTertiaryStyles)}>
                 <Zap className="w-5 h-5" />
-                <span className="font-medium">免费用户</span>
+                <span className="font-medium">Free</span>
               </div>
             )}
           </div>
 
-          {/* 使用统计 */}
+          {/* Usage stats */}
           <div className="space-y-3">
             <div className="flex items-center justify-between">
-              <span className={cn("text-sm", textTertiaryStyles)}>剩余免费次数</span>
+              <span className={cn("text-sm", textTertiaryStyles)}>Remaining Free Trials</span>
               <span className={cn(
                 "font-semibold",
                 remainingTrials > 0 ? "text-green-500" : "text-red-500"
@@ -105,13 +105,13 @@ export function UserProfile({ className, showDetails = true, variant = "light" }
             </div>
 
             <div className="flex items-center justify-between">
-              <span className={cn("text-sm", textTertiaryStyles)}>已使用次数</span>
+              <span className={cn("text-sm", textTertiaryStyles)}>Used</span>
               <span className={cn("font-semibold", textPrimaryStyles)}>
                 {user.freeTrialsUsed}
               </span>
             </div>
 
-            {/* 进度条 */}
+            {/* Progress bar */}
             <div className={cn(
               "w-full rounded-full h-2",
               variant === "dark" ? "bg-gray-700" : "bg-gray-200"
@@ -128,7 +128,7 @@ export function UserProfile({ className, showDetails = true, variant = "light" }
             </div>
           </div>
 
-          {/* 升级提示 */}
+          {/* Upgrade prompt */}
           {!isPremiumActive && remainingTrials === 0 && (
             <div className={cn(
               "mt-4 p-3 rounded-lg",
@@ -140,7 +140,7 @@ export function UserProfile({ className, showDetails = true, variant = "light" }
                 "text-sm",
                 variant === "dark" ? "text-blue-300" : "text-blue-800"
               )}>
-                免费次数已用完，升级到高级会员享受无限试戴！
+                Free trials used up. Upgrade to Premium for unlimited try-ons!
               </p>
             </div>
           )}
