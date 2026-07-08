@@ -68,6 +68,8 @@ What becomes easier, harder, required, or deferred because of this decision?
 | --- | --- | --- | --- |
 | ADR-001 | Documentation Governance Structure | Accepted | 2026-07-08 |
 | ADR-002 | Separate Commercial Benchmarks from Commercial Strategy | Accepted | 2026-07-08 |
+| ADR-003 | Product Plan Is the Execution Source of Truth | Accepted | 2026-07-08 |
+| ADR-004 | Frame Compare Core Is Implemented; Next Work Is Productization | Accepted | 2026-07-08 |
 
 ---
 
@@ -76,3 +78,4 @@ What becomes easier, harder, required, or deferred because of this decision?
 | Date | Change |
 | --- | --- |
 | 2026-07-08 | Created decision record guide and initial ADR index. |
+| 2026-07-08 | Added ADR-003 and ADR-004 to the index. |
