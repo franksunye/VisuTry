@@ -40,7 +40,7 @@ It should answer:
 | Path | Type | Status | Owner | Last reviewed | Action |
 | --- | --- | --- | --- | --- | --- |
 | `docs/README.md` | Documentation map | Active source of truth | Product / Engineering | 2026-07-08 | Keep current. |
-| `docs/document-inventory.md` | Documentation governance | Active operating plan | Product / Engineering | 2026-07-08 | Review weekly during cleanup. |
+| `docs/document-inventory.md` | Documentation governance | Active operating plan | Product / Engineering | 2026-07-08 | Review monthly after stabilization. |
 | `docs/decisions/README.md` | Decision log guide | Active source of truth | Product / Engineering | 2026-07-08 | Keep current. |
 | `docs/strategy/commercial-strategy.md` | Commercial strategy | Active source of truth | Product / Strategy | 2026-07-08 | Keep concise; do not add benchmark detail. |
 | `docs/strategy/commercial-benchmarks.md` | Benchmark / market reference | Living supporting reference | Product / Strategy | 2026-07-08 | Add external references here first. |
@@ -57,15 +57,15 @@ It should answer:
 | Path | Type | Status | Owner | Last reviewed | Action |
 | --- | --- | --- | --- | --- | --- |
 | `docs/strategy/legacy-document-audit.md` | Legacy document audit | Active operating audit | Product / Strategy | 2026-07-08 | Use to guide cleanup of dated strategy docs. |
-| `docs/strategy/2026-05-25-b2b-commerce-commercialization-roadmap.md` | B2B roadmap | Active supporting roadmap | Product / Strategy | 2026-07-08 | Add status header if missing; keep as B2B reference. |
-| `docs/strategy/2026-06-28-free-face-shape-growth-commercialization-plan.md` | Free detector / growth plan | Active supporting plan | Product / Growth | 2026-07-08 | Add status header if missing; keep as supporting plan. |
+| `docs/strategy/2026-05-25-b2b-commerce-commercialization-roadmap.md` | B2B roadmap | Active supporting roadmap | Product / Strategy | 2026-07-08 | Status header added; use as B2B reference only. |
+| `docs/strategy/2026-06-28-free-face-shape-growth-commercialization-plan.md` | Free detector / growth plan | Active supporting plan | Product / Growth | 2026-07-08 | Has status; later normalize header format if editing for content. |
 | `docs/strategy/seo/2026-06-30-product-architecture-seo-geo-sync.md` | SEO/GEO product architecture | Active source of truth for SEO/GEO page architecture | Product / Growth | 2026-07-08 | Keep active. |
 | `docs/strategy/seo/2026-06-12-growth-kpi-operating-plan.md` | Growth KPI plan | Active operating plan | Growth | 2026-07-08 | Keep active; reconcile with product-plan when needed. |
 | `docs/strategy/growth/2026-06-18-external-growth-sprint.md` | External growth sprint | Time-boxed operating plan | Growth | 2026-07-08 | Keep until sprint is closed; then archive or mark completed. |
-| `docs/strategy/analytics/gtm.md` | GTM / analytics handbook | Execution document | Growth / Analytics | 2026-07-08 | Keep; consider adding source-of-truth references. |
+| `docs/strategy/analytics/gtm.md` | GTM / analytics handbook | Execution document | Growth / Analytics | 2026-07-08 | Source-of-truth header added. |
 | `docs/strategy/reseller-technical-roadmap.md` | Reseller technical roadmap | Supporting technical roadmap | Product / Engineering | 2026-07-08 | Keep as supporting reference; not current priority unless pulled forward. |
 | `docs/strategy/2026-05-25-paid-customer-seo-geo-relaunch-plan.md` | Paid customer / SEO relaunch plan | Historical commercial evidence | Product / Growth | 2026-07-08 | Keep or archive after evidence is reflected in strategy/product plan. |
-| `docs/strategy/content/3-month-content-strategy.md` | Q4 2025 content plan | Historical / likely archive candidate | Growth | 2026-07-08 | Archive or mark historical; time window expired. |
+| `docs/strategy/content/3-month-content-strategy.md` | Q4 2025 content plan | Historical / archive candidate | Growth | 2026-07-08 | Historical notice added; consider moving to archive later. |
 | `docs/strategy/archive/seo/programmatic-seo-execution-plan.md` | Old programmatic SEO plan | Archived historical reference | Growth | 2026-07-08 | Keep archived. |
 
 ---
@@ -97,8 +97,9 @@ It should answer:
 | P0 | Add decisions directory and first ADRs. | Done |
 | P0 | Add first product specs. | Done |
 | P0 | Add legacy strategy document audit. | Done |
-| P1 | Add status headers to active dated strategy documents. | Planned |
-| P1 | Mark or archive expired content strategy documents. | Planned |
+| P1 | Add status headers to active dated strategy documents. | Partially done |
+| P1 | Mark or archive expired content strategy documents. | Done: marked historical; archive move later if needed. |
+| P1 | Add source-of-truth references to GTM handbook. | Done |
 | P1 | Review architecture and development guide against current code. | Planned |
 | P2 | Consider moving all historical strategy documents into archive after status review. | Later |
 
@@ -122,3 +123,4 @@ During each documentation review, answer:
 | --- | --- |
 | 2026-07-08 | Created v0.1 document inventory and cleanup backlog. |
 | 2026-07-08 | Updated inventory after adding decisions, product specs, and legacy document audit. |
+| 2026-07-08 | Updated P1 governance status after adding B2B roadmap header, GTM source-of-truth header, and historical notice to Q4 content plan. |
