@@ -1,6 +1,6 @@
 # VisuTry Store MVP Spec
 
-**Status:** Draft  
+**Status:** Ready for validation — not ready for full engineering build  
 **Owner:** Product  
 **Created:** 2026-07-08  
 **Last updated:** 2026-07-08  
@@ -23,9 +23,23 @@ Define the smallest VisuTry Store MVP that can validate merchant demand without 
 
 The first version should be a hosted advisor / try-on workflow that a merchant can share or preview before any public app-store launch.
 
+This spec is ready for merchant / agency validation. It is not yet an engineering-ready full implementation spec.
+
 ---
 
-## 3. Non-goals
+## 3. Validation Thesis
+
+The first B2B validation should test whether merchants value a hosted eyewear decision workflow enough to continue into a paid pilot or deeper integration.
+
+Validation question:
+
+> Will an eyewear seller, optical store, or commerce agency use a hosted VisuTry link to help shoppers choose frames, capture intent, and measure frame interest before asking for Shopify, WooCommerce, widget, or API work?
+
+Validation should prioritize workflow demand, not platform completeness.
+
+---
+
+## 4. Non-goals
 
 This MVP does not include:
 
@@ -40,7 +54,7 @@ This MVP does not include:
 
 ---
 
-## 4. Target Users
+## 5. Target Users
 
 Primary early buyers / validators:
 
@@ -59,7 +73,7 @@ Avoid as first customers:
 
 ---
 
-## 5. MVP Product Shape
+## 6. MVP Product Shape
 
 ### Merchant setup
 
@@ -75,17 +89,17 @@ Start with a small top-SKU set, not a full catalog.
 
 Minimum frame fields:
 
-| Field | Purpose |
-| --- | --- |
-| `frameId` | Internal identifier. |
-| `merchantId` | Owner. |
-| `name` | Display name. |
-| `sku` | Merchant reference. |
-| `imageUrl` | Frame image for try-on. |
-| `productUrl` | Optional purchase or product page link. |
-| `price` | Optional display / analytics. |
-| `status` | Active / inactive. |
-| `tags` | Shape, material, width, style, gender, etc. |
+| Field | Purpose | Required for validation |
+| --- | --- | --- |
+| `frameId` | Internal identifier. | Yes |
+| `merchantId` | Owner. | Yes |
+| `name` | Display name. | Yes |
+| `sku` | Merchant reference. | Yes |
+| `imageUrl` | Frame image for try-on. | Yes |
+| `productUrl` | Optional purchase or product page link. | Preferred |
+| `price` | Optional display / analytics. | Optional |
+| `status` | Active / inactive. | Yes |
+| `tags` | Shape, material, width, style, gender, etc. | Preferred |
 
 ### Hosted shopper flow
 
@@ -100,7 +114,7 @@ Minimum frame fields:
 
 ### Merchant dashboard
 
-First version can be simple:
+First version can be simple and may be admin-assisted during validation:
 
 - enabled frames;
 - try-on opens;
@@ -113,7 +127,45 @@ First version can be simple:
 
 ---
 
-## 6. Functional Requirements
+## 7. Validation Package v0
+
+The first validation package should be small enough to show, sell, or manually operate.
+
+### Offer shape
+
+**VisuTry Store Pilot v0**
+
+- merchant name / logo;
+- 8-20 frames in a small catalog;
+- hosted advisor / compare link;
+- shopper photo upload;
+- frame try-on and comparison;
+- favorites or lead capture;
+- simple weekly usage report;
+- 30-day pilot window.
+
+### Validation assets
+
+Before engineering a full merchant system, prepare:
+
+1. one-page merchant pitch;
+2. clickable or live hosted demo using representative frames;
+3. pilot onboarding checklist;
+4. privacy and image-retention explanation;
+5. expected metrics report template;
+6. pricing hypothesis for pilot and continuation.
+
+### Validation target
+
+Validate with:
+
+- 3 eyewear merchants; or
+- 1 boutique agency with 2-3 relevant merchant clients; or
+- 5 stylist / eyewear consultant conversations if merchant access is slower.
+
+---
+
+## 8. Functional Requirements
 
 ### Merchant account
 
@@ -153,7 +205,7 @@ First version can be simple:
 
 ---
 
-## 7. Data and Events
+## 9. Data and Events
 
 Minimum events:
 
@@ -181,7 +233,7 @@ Minimum data entities to evaluate:
 
 ---
 
-## 8. Pricing / Packaging Direction
+## 10. Pricing / Packaging Direction
 
 Do not expose consumer credits as the primary merchant concept.
 
@@ -194,9 +246,17 @@ Early package options:
 
 Internal cost control may still use successful render quota.
 
+Validation pricing hypotheses:
+
+| Package | Use case | Notes |
+| --- | --- | --- |
+| Free discovery demo | Sales conversation / pitch only | No real merchant traffic; not a real pilot. |
+| Design Partner Pilot | 30-day validation with real or realistic traffic | Setup fee or refundable deposit preferred to filter serious merchants. |
+| Starter Store | Continuation after pilot | Small monthly plan with included successful renders. |
+
 ---
 
-## 9. Privacy and Trust Requirements
+## 11. Privacy and Trust Requirements
 
 - Merchant should not receive raw shopper face images by default.
 - Shopper should see a clear privacy and retention notice before upload.
@@ -206,22 +266,35 @@ Internal cost control may still use successful render quota.
 
 ---
 
-## 10. Acceptance Criteria
+## 12. Acceptance Criteria
 
-The MVP is acceptable when:
+### Ready for validation
 
-1. A merchant can have a profile and small frame catalog.
-2. A hosted merchant advisor / try-on link can be opened on mobile.
-3. Shopper can upload photo, try one or more frames, and see results.
-4. Shopper can save favorite or submit contact / intent.
-5. Merchant usage and frame interest can be measured.
-6. Merchant quota is separate from consumer credits.
-7. Privacy boundaries are clear and do not expose raw shopper images to merchant by default.
-8. The workflow can be shown to at least 3 merchants or 1 agency-backed merchant group.
+This spec is ready for validation when:
+
+1. The target merchant / agency audience is clear.
+2. The hosted link workflow is clear enough to explain in a sales conversation.
+3. The minimum frame catalog fields are defined.
+4. The minimum merchant events and metrics are defined.
+5. The privacy boundary is clear.
+6. The first validation package can be pitched without promising Shopify, WooCommerce, API, or EHR/PMS integration.
+
+Current status: ready for validation.
+
+### Ready for engineering
+
+This spec should become engineering-ready only when at least one of the following is true:
+
+1. 3 merchants agree to evaluate the hosted workflow;
+2. 1 agency agrees to test with 2-3 relevant merchant clients;
+3. a merchant agrees to a paid or deposit-backed pilot;
+4. internal team decides to build a demo because sales conversations require it.
+
+Engineering-ready acceptance criteria should then be expanded to include route structure, database schema, admin flows, permission model, and deployment plan.
 
 ---
 
-## 11. Open Questions
+## 13. Open Questions
 
 1. Should the first MVP include AI recommendation, or start with merchant-selected top frames?
 2. Should hosted links be public, password-protected, or demo-only for pilots?
@@ -230,11 +303,13 @@ The MVP is acceptable when:
 5. What is the minimum merchant catalog schema needed for useful recommendation?
 6. Should shoppers be allowed to save results without login?
 7. What exact retention policy should merchant sessions use?
+8. Should merchant pilot quota be based on successful renders, sessions, or enabled frames?
 
 ---
 
-## 12. Change Log
+## 14. Change Log
 
 | Date | Change |
 | --- | --- |
 | 2026-07-08 | Created draft VisuTry Store MVP spec. |
+| 2026-07-08 | Advanced to ready for validation and added validation package, gating criteria, and validation-focused acceptance criteria. |
