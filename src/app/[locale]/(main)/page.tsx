@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { Database, ScanFace, ArrowRight, Grid2X2, Glasses, LockKeyhole, Sparkles } from 'lucide-react'
+import { Database, ScanFace, ArrowRight, Grid2X2, Glasses, LockKeyhole, Sparkles, Store } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import { FaceAnalysisPreviewVisual } from '@/components/face-analysis/FaceAnalysisPreviewVisual'
 import { ModelTryOnSlides } from '@/components/marketing/ModelTryOnSlides'
@@ -175,6 +175,31 @@ export default function Home({
               </div>
             )
           })}
+        </div>
+      </section>
+
+      {/* Quiet B2B bridge */}
+      <section className="max-w-6xl mx-auto mb-16">
+        <div className="flex flex-col gap-5 rounded-lg border border-blue-100 bg-white p-5 shadow-sm md:flex-row md:items-center md:justify-between md:p-6">
+          <div className="flex gap-4">
+            <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-lg bg-blue-50 text-blue-600">
+              <Store className="h-5 w-5" />
+            </div>
+            <div>
+              <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-blue-600">For optical stores and eyewear sellers</p>
+              <h2 className="text-xl font-bold text-gray-950">Offer shoppers a hosted AI eyewear advisor and try-on link.</h2>
+              <p className="mt-2 max-w-2xl text-sm leading-6 text-gray-600">
+                VisuTry Store is a lightweight pilot for merchants who want frame guidance, virtual try-on, comparison, and lead capture before building a full integration.
+              </p>
+            </div>
+          </div>
+          <Link
+            href={`/${locale}/store`}
+            className="inline-flex flex-shrink-0 items-center justify-center rounded-lg border border-blue-200 bg-blue-50 px-5 py-3 text-sm font-bold text-blue-700 transition hover:border-blue-300 hover:bg-blue-100"
+          >
+            Explore VisuTry Store
+            <ArrowRight className="ml-2 h-4 w-4" />
+          </Link>
         </div>
       </section>
 
