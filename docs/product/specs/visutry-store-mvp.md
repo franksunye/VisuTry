@@ -5,6 +5,7 @@
 **Created:** 2026-07-08  
 **Last updated:** 2026-07-08  
 **Related plan:** `docs/product/product-plan.md`  
+**Related validation spec:** `docs/product/specs/visutry-store-landing-page.md`  
 **Related roadmap:** `docs/strategy/2026-05-25-b2b-commerce-commercialization-roadmap.md`
 
 ---
@@ -25,6 +26,8 @@ The first version should be a hosted advisor / try-on workflow that a merchant c
 
 This spec is ready for merchant / agency validation. It is not yet an engineering-ready full implementation spec.
 
+The immediate validation asset should be the Store landing page defined in `docs/product/specs/visutry-store-landing-page.md`. The landing page tests positioning, ICP, and pilot interest before full Store MVP engineering starts.
+
 ---
 
 ## 3. Validation Thesis
@@ -36,6 +39,10 @@ Validation question:
 > Will an eyewear seller, optical store, or commerce agency use a hosted VisuTry link to help shoppers choose frames, capture intent, and measure frame interest before asking for Shopify, WooCommerce, widget, or API work?
 
 Validation should prioritize workflow demand, not platform completeness.
+
+First validation step:
+
+> Launch a Store landing page with a sample Store Link / pilot CTA, then use targeted outreach to collect qualified merchant, agency, or stylist interest before building full Store infrastructure.
 
 ---
 
@@ -148,12 +155,15 @@ The first validation package should be small enough to show, sell, or manually o
 
 Before engineering a full merchant system, prepare:
 
-1. one-page merchant pitch;
-2. clickable or live hosted demo using representative frames;
-3. pilot onboarding checklist;
-4. privacy and image-retention explanation;
-5. expected metrics report template;
-6. pricing hypothesis for pilot and continuation.
+1. Store landing page with clear ICP, workflow, and pilot CTA;
+2. one-page merchant pitch;
+3. clickable or live hosted demo using representative frames;
+4. pilot onboarding checklist;
+5. privacy and image-retention explanation;
+6. expected metrics report template;
+7. pricing hypothesis for pilot and continuation.
+
+The landing page is the first validation asset and should be used before building merchant account, catalog management, or dashboard infrastructure.
 
 ### Validation target
 
@@ -222,6 +232,8 @@ Minimum events:
 | `merchant_lead_submitted` | Shopper submits contact / intent. |
 | `merchant_product_clicked` | Shopper clicks product URL. |
 
+Landing-page validation events are defined separately in `docs/product/specs/visutry-store-landing-page.md`.
+
 Minimum data entities to evaluate:
 
 - `Merchant` or `Store`;
@@ -278,6 +290,7 @@ This spec is ready for validation when:
 4. The minimum merchant events and metrics are defined.
 5. The privacy boundary is clear.
 6. The first validation package can be pitched without promising Shopify, WooCommerce, API, or EHR/PMS integration.
+7. The Store landing page validation spec defines the first market test.
 
 Current status: ready for validation.
 
@@ -288,7 +301,8 @@ This spec should become engineering-ready only when at least one of the followin
 1. 3 merchants agree to evaluate the hosted workflow;
 2. 1 agency agrees to test with 2-3 relevant merchant clients;
 3. a merchant agrees to a paid or deposit-backed pilot;
-4. internal team decides to build a demo because sales conversations require it.
+4. Store landing page and targeted outreach produce enough qualified interest that a hosted demo is required to continue sales conversations;
+5. internal team decides to build a demo because sales conversations require it.
 
 Engineering-ready acceptance criteria should then be expanded to include route structure, database schema, admin flows, permission model, and deployment plan.
 
@@ -304,6 +318,7 @@ Engineering-ready acceptance criteria should then be expanded to include route s
 6. Should shoppers be allowed to save results without login?
 7. What exact retention policy should merchant sessions use?
 8. Should merchant pilot quota be based on successful renders, sessions, or enabled frames?
+9. Should the landing page primary CTA be `Get a sample Store Link`, `Join the pilot`, or `Book a demo`?
 
 ---
 
@@ -313,3 +328,4 @@ Engineering-ready acceptance criteria should then be expanded to include route s
 | --- | --- |
 | 2026-07-08 | Created draft VisuTry Store MVP spec. |
 | 2026-07-08 | Advanced to ready for validation and added validation package, gating criteria, and validation-focused acceptance criteria. |
+| 2026-07-08 | Added Store landing page as the first validation asset before full Store engineering. |
