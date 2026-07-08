@@ -127,6 +127,11 @@ export function Footer() {
                 </Link>
               </li>
               <li>
+                <Link href={`/${locale}/store`} className="text-gray-600 hover:text-blue-600 text-sm transition-colors">
+                  Store for Businesses
+                </Link>
+              </li>
+              <li>
                 <a
                   href="https://ziso.cc"
                   target="_blank"
