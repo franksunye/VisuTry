@@ -1,6 +1,6 @@
 'use client'
 
-import { FormEvent, useMemo, useState } from 'react'
+import { FormEvent, useMemo, useRef, useState } from 'react'
 import { ArrowRight, Mail } from 'lucide-react'
 import { analytics } from '@/lib/analytics'
 
@@ -34,6 +34,7 @@ export function StoreLeadForm({ locale }: StoreLeadFormProps) {
   const [intent, setIntent] = useState(intentOptions[0])
   const [notes, setNotes] = useState('')
   const [submitted, setSubmitted] = useState(false)
+  const hasTrackedFormStart = useRef(false)
 
   const mailtoHref = useMemo(() => {
     const subject = `VisuTry Store pilot inquiry - ${businessName || name || 'New lead'}`
@@ -59,6 +60,9 @@ export function StoreLeadForm({ locale }: StoreLeadFormProps) {
   }, [businessName, businessType, email, frameCount, intent, locale, name, notes, website])
 
   function handleFocus() {
+    if (hasTrackedFormStart.current) return
+    hasTrackedFormStart.current = true
+
     analytics.trackCustomEvent('store_lead_form_started', {
       source: 'store_landing',
       locale,
