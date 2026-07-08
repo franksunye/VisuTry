@@ -2,7 +2,7 @@ import { Metadata } from 'next'
 import { getServerSession } from 'next-auth/next'
 import { headers } from 'next/headers'
 import Link from 'next/link'
-import { CheckCircle2, Grid2X2, Sparkles } from 'lucide-react'
+import { CheckCircle2, Grid2X2, Sparkles, Store } from 'lucide-react'
 import { authOptions } from '@/lib/auth'
 import { AutoRefreshWrapper } from '@/components/payments/AutoRefreshWrapper'
 import { FrameCompareInterface } from '@/components/compare/FrameCompareInterface'
@@ -149,6 +149,26 @@ async function PublicFrameCompareLanding({ locale }: { locale: string }) {
             {t('viewPricing')}
           </Link>
         </div>
+      </section>
+
+      <section className="mt-6 rounded-lg border border-gray-200 bg-white p-5 shadow-sm sm:flex sm:items-center sm:justify-between">
+        <div className="flex gap-3">
+          <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-blue-50 text-blue-600">
+            <Store className="h-5 w-5" />
+          </span>
+          <div>
+            <h2 className="text-base font-bold text-gray-950">Selling frames?</h2>
+            <p className="mt-1 max-w-2xl text-sm leading-6 text-gray-600">
+              Use VisuTry Store to offer shoppers a hosted advisor, try-on, comparison, and lead capture workflow.
+            </p>
+          </div>
+        </div>
+        <Link
+          href={`/${locale}/store`}
+          className="mt-4 inline-flex items-center justify-center rounded-lg border border-gray-300 bg-white px-5 py-3 text-sm font-bold text-gray-700 hover:border-blue-300 hover:text-blue-700 sm:mt-0"
+        >
+          Explore Store
+        </Link>
       </section>
     </main>
   )
