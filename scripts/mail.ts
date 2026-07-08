@@ -16,6 +16,7 @@ type MessageSummary = {
   uid: number;
   date: string | null;
   from: string | null;
+  to: string[];
   subject: string | null;
   messageId: string | null;
   seen: boolean;
@@ -27,10 +28,10 @@ type ThreadMessage = MessageSummary & {
 
 function printUsage(): never {
   console.error(`Usage:
-  npx tsx scripts/mail.ts list [--limit 20] [--unread] [--from email] [--subject keyword] [--json]
-  npx tsx scripts/mail.ts thread [--from email] [--message-id id] [--subject keyword] [--limit 20] [--json]
-  npx tsx scripts/mail.ts send --from-email sun@visutry.com --to user@example.com --subject "..." (--body "..." | --body-file path) [--in-reply-to id] [--dry-run] [--json]
-  npx tsx scripts/mail.ts reply --message-id id [--from-email sun@visutry.com] (--body "..." | --body-file path) [--quote] [--dry-run] [--json]`);
+  npx tsx scripts/mail.ts list [--mailbox INBOX] [--limit 20] [--unread] [--from email] [--to email] [--subject keyword] [--json]
+  npx tsx scripts/mail.ts thread [--mailbox INBOX] [--from email] [--to email] [--message-id id] [--subject keyword] [--limit 20] [--json]
+  npx tsx scripts/mail.ts send --from-email sun@visutry.com --to user@example.com [--cc support@visutry.com] --subject "..." (--body "..." | --body-file path) [--in-reply-to id] [--dry-run] [--json]
+  npx tsx scripts/mail.ts reply [--mailbox INBOX] --message-id id [--from-email sun@visutry.com] (--body "..." | --body-file path) [--quote] [--dry-run] [--json]`);
   process.exit(1);
 }
 
@@ -99,6 +100,10 @@ function getBody(options: Record<string, string | boolean>): string {
   throw new Error('Missing email body. Use --body or --body-file.');
 }
 
+function getMailbox(options: Record<string, string | boolean>): string {
+  return getOption(options, 'mailbox') || 'INBOX';
+}
+
 function getEnv(name: string): string {
   const value = process.env[name];
   if (!value) {
@@ -154,6 +159,7 @@ export function createSmtpTransport(fromEmail: string) {
 export type SendMailParams = {
   fromEmail: string;
   to: string;
+  cc?: string;
   subject: string;
   text: string;
   html?: string;
@@ -170,6 +176,9 @@ export async function sendMail(params: SendMailParams): Promise<SMTPTransport.Se
     text: params.text,
   };
 
+  if (params.cc) {
+    mailOptions.cc = params.cc;
+  }
   if (params.html) {
     mailOptions.html = params.html;
   }
@@ -189,18 +198,19 @@ function toSummary(message: any): MessageSummary {
     uid: message.uid,
     date: envelope?.date ? new Date(envelope.date).toISOString() : null,
     from: envelope?.from?.[0]?.address || null,
+    to: envelope?.to?.map((recipient: { address?: string }) => recipient?.address).filter(Boolean) || [],
     subject: envelope?.subject || null,
     messageId: envelope?.messageId || null,
     seen: Boolean(message.flags?.has?.('\\Seen') || message.flags?.includes?.('\\Seen')),
   };
 }
 
-async function fetchMailboxMessages(): Promise<any[]> {
+async function fetchMailboxMessages(mailbox: string): Promise<any[]> {
   const client = createImapClient();
   const messages: any[] = [];
 
   await client.connect();
-  const lock = await client.getMailboxLock('INBOX');
+  const lock = await client.getMailboxLock(mailbox);
 
   try {
     for await (const message of client.fetch('1:*', {
@@ -220,6 +230,7 @@ async function fetchMailboxMessages(): Promise<any[]> {
 
 function filterMessages(messages: MessageSummary[], options: Record<string, string | boolean>): MessageSummary[] {
   const from = getOption(options, 'from')?.toLowerCase();
+  const to = getOption(options, 'to')?.toLowerCase();
   const subject = getOption(options, 'subject')?.toLowerCase();
   const unread = hasFlag(options, 'unread');
 
@@ -228,6 +239,9 @@ function filterMessages(messages: MessageSummary[], options: Record<string, stri
       return false;
     }
     if (from && !message.from?.toLowerCase().includes(from)) {
+      return false;
+    }
+    if (to && !message.to.some((recipient) => recipient.toLowerCase().includes(to))) {
       return false;
     }
     if (subject && !message.subject?.toLowerCase().includes(subject)) {
@@ -245,14 +259,15 @@ function outputList(messages: MessageSummary[], asJson: boolean): void {
 
   messages.forEach((message, index) => {
     console.log(
-      `[${index + 1}] ${message.date || 'no-date'} | ${message.from || 'unknown'} | ${message.subject || '(no subject)'} | uid=${message.uid} | seen=${message.seen ? 'yes' : 'no'} | messageId=${message.messageId || 'n/a'}`,
+      `[${index + 1}] ${message.date || 'no-date'} | from=${message.from || 'unknown'} | to=${message.to.join(',') || 'unknown'} | ${message.subject || '(no subject)'} | uid=${message.uid} | seen=${message.seen ? 'yes' : 'no'} | messageId=${message.messageId || 'n/a'}`,
     );
   });
 }
 
 async function handleList(options: Record<string, string | boolean>): Promise<void> {
+  const mailbox = getMailbox(options);
   const limit = Number(getOption(options, 'limit') || '20');
-  const messages = (await fetchMailboxMessages())
+  const messages = (await fetchMailboxMessages(mailbox))
     .map(toSummary)
     .sort((a, b) => b.uid - a.uid);
 
@@ -261,20 +276,22 @@ async function handleList(options: Record<string, string | boolean>): Promise<vo
 }
 
 async function handleThread(options: Record<string, string | boolean>): Promise<void> {
+  const mailbox = getMailbox(options);
   const limit = Number(getOption(options, 'limit') || '20');
   const from = getOption(options, 'from')?.toLowerCase();
+  const to = getOption(options, 'to')?.toLowerCase();
   const messageId = getOption(options, 'message-id');
   const subject = getOption(options, 'subject')?.toLowerCase();
 
-  if (!from && !messageId && !subject) {
-    throw new Error('thread requires one of --from, --message-id, or --subject');
+  if (!from && !to && !messageId && !subject) {
+    throw new Error('thread requires one of --from, --to, --message-id, or --subject');
   }
 
   const client = createImapClient();
   const threadMessages: ThreadMessage[] = [];
 
   await client.connect();
-  const lock = await client.getMailboxLock('INBOX');
+  const lock = await client.getMailboxLock(mailbox);
 
   try {
     const candidates: any[] = [];
@@ -286,10 +303,11 @@ async function handleThread(options: Record<string, string | boolean>): Promise<
     })) {
       const summary = toSummary(message);
       const fromMatch = !from || summary.from?.toLowerCase().includes(from);
+      const toMatch = !to || summary.to.some((recipient) => recipient.toLowerCase().includes(to));
       const subjectMatch = !subject || summary.subject?.toLowerCase().includes(subject);
       const idMatch = !messageId || summary.messageId === messageId;
 
-      if (fromMatch && subjectMatch && idMatch) {
+      if (fromMatch && toMatch && subjectMatch && idMatch) {
         candidates.push(message);
       }
     }
@@ -325,6 +343,7 @@ async function handleThread(options: Record<string, string | boolean>): Promise<
 async function handleSend(options: Record<string, string | boolean>): Promise<void> {
   const fromEmail = requireString(options, 'from-email');
   const to = requireString(options, 'to');
+  const cc = getOption(options, 'cc');
   const subject = requireString(options, 'subject');
   const body = getBody(options);
   const inReplyTo = getOption(options, 'in-reply-to');
@@ -335,6 +354,7 @@ async function handleSend(options: Record<string, string | boolean>): Promise<vo
   const mailOptions: Record<string, unknown> = {
     from: `"${getDisplayName(fromEmail)}" <${fromEmail}>`,
     to,
+    ...(cc ? { cc } : {}),
     subject,
     text: body,
     ...(inReplyTo ? { inReplyTo } : {}),
@@ -354,6 +374,7 @@ async function handleSend(options: Record<string, string | boolean>): Promise<vo
   const info = await sendMail({
     fromEmail,
     to,
+    ...(cc ? { cc } : {}),
     subject,
     text: body,
     ...(inReplyTo ? { inReplyTo } : {}),
@@ -369,17 +390,17 @@ async function handleSend(options: Record<string, string | boolean>): Promise<vo
   console.log(`Message ID: ${info.messageId}`);
 }
 
-async function findMessageById(messageId: string): Promise<MessageSummary | null> {
-  const messages = await fetchMailboxMessages();
+async function findMessageById(messageId: string, mailbox: string): Promise<MessageSummary | null> {
+  const messages = await fetchMailboxMessages(mailbox);
   const found = messages.find((message) => toSummary(message).messageId === messageId);
   return found ? toSummary(found) : null;
 }
 
-async function fetchMessageDetailsById(messageId: string): Promise<ThreadMessage | null> {
+async function fetchMessageDetailsById(messageId: string, mailbox: string): Promise<ThreadMessage | null> {
   const client = createImapClient();
 
   await client.connect();
-  const lock = await client.getMailboxLock('INBOX');
+  const lock = await client.getMailboxLock(mailbox);
 
   try {
     for await (const message of client.fetch('1:*', {
@@ -437,13 +458,14 @@ function formatQuotedReplyBody(original: ThreadMessage): string {
 }
 
 async function handleReply(options: Record<string, string | boolean>): Promise<void> {
+  const mailbox = getMailbox(options);
   const messageId = requireString(options, 'message-id');
   const baseBody = getBody(options);
   const includeQuote = hasFlag(options, 'quote');
   const fromEmail = getOption(options, 'from-email') || getEnv('EXMAIL_USER');
   const original = includeQuote
-    ? await fetchMessageDetailsById(messageId)
-    : await findMessageById(messageId);
+    ? await fetchMessageDetailsById(messageId, mailbox)
+    : await findMessageById(messageId, mailbox);
 
   if (!original?.from) {
     throw new Error(`Original message not found for message-id: ${messageId}`);

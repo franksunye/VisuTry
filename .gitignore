@@ -150,6 +150,7 @@ scripts/list-*.js
 scripts/install-*.ps1
 scripts/install-*.md
 scripts/cleanup-report.json
+scripts/logs/
 
 # Confidential Business Documents
 docs/crm/

@@ -196,7 +196,7 @@ https://www.visutry.com
 | 1 | Existing X account | Publish short product demonstration | Face shape to try-on | [Live](https://x.com/franksunye/status/2067479409209344093) |
 | 2 | Product Hunt | Prepare launch page, gallery, maker comment, and launch-day response block | Face shape to try-on | Preparation required |
 | 3 | Reddit eyewear communities | Answer an existing selection question with builder disclosure | Which glasses suit my face | Rule and thread research required |
-| 4 | Existing X account | Publish a second demonstration with a different asset and campaign | Photo try-on | Ready after first-post measurement |
+| 4 | Existing X account | Publish a second demonstration with a different asset and campaign | Frame comparison | Draft and image reviewed; awaiting final publish confirmation |
 | 5 | SaaSHub | Claim or update the existing outdated VisuTry listing | General product | Existing listing found; refresh required |
 | 6 | SaaSCity | Submit the free indexed listing | General product | Free route verified; account required |
 | 7 | AlternativeTo | Check for an existing item, then add or update VisuTry | Photo try-on | Account and duplicate check required |
@@ -212,4 +212,4 @@ https://www.visutry.com
 
 | Date | Channel | Live URL | Campaign | Sessions | Product actions | Reply/link | Next action |
 | --- | --- | --- | --- | ---: | ---: | --- | --- |
-| 2026-06-18 | X | [Post](https://x.com/franksunye/status/2067479409209344093) | `june_face_shape` | Pending | Pending | Pending | Check attributed traffic and actions after 24 hours |
+| 2026-06-18 | X | [Post](https://x.com/franksunye/status/2067479409209344093) | `june_face_shape` | 0 attributable sessions (0 link clicks) | 0 attributable product actions | 5 impressions; 4 engagements; 3 detail expands; 1 like; 0 replies | Test the frame-comparison angle with a clearer visual reason to click |

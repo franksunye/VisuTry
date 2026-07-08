@@ -1,0 +1,19 @@
+Hi {{FIRST_NAME}},
+
+We just launched AI Face Analysis on VisuTry — a faster way to find glasses that suit your face.
+
+What you can do now:
+- Upload a photo and get an AI face shape analysis
+- See frame style recommendations matched to your features
+- Jump straight into virtual try-on with your top picks
+
+Try it free: https://www.visutry.com/en/face-analysis
+
+Your existing account, credits, and try-on history are unchanged. This is a new tool to help you shop with more confidence.
+
+Best regards,
+The VisuTry Team
+support@visutry.com
+
+---
+You received this email because you have a VisuTry account.
