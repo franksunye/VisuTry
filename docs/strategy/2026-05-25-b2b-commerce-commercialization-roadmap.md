@@ -1,8 +1,12 @@
 # VisuTry B2B Commerce Commercialization Roadmap
 
-**Date**: 2026-05-25
-
-**Scope**: Productize the proven VisuTry glasses try-on pipeline for merchants, eyewear brands, resellers, and commerce platforms.
+**Status:** Active supporting roadmap  
+**Created:** 2026-05-25  
+**Last reviewed:** 2026-07-08  
+**Owner:** Product / Strategy  
+**Review cadence:** Monthly, or before B2B execution begins  
+**Scope:** Productize the proven VisuTry glasses try-on pipeline for merchants, eyewear brands, resellers, and commerce platforms.  
+**Current guidance:** This document informs B2B direction. Current product execution priority lives in `docs/product/product-plan.md`; detailed implementation should be pulled into specs under `docs/product/specs/` before engineering work begins.
 
 **Primary goal**: Convert VisuTry from a B2C try-on product into a reusable B2B commerce capability, with the generic widget and agency/design-partner motion as the main validation path and Shopify/WooCommerce beta work running in parallel where AI-assisted development keeps cost low.
 
