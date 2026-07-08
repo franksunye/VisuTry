@@ -48,7 +48,7 @@ It should answer:
 | `docs/strategy/commercial-strategy.md` | Commercial strategy | Active source of truth | Product / Strategy | 2026-07-08 | Keep concise; do not add benchmark detail. |
 | `docs/strategy/commercial-benchmarks.md` | Benchmark / market reference | Living supporting reference | Product / Strategy | 2026-07-08 | Add external references here first. |
 | `docs/product/README.md` | Product documentation guide | Active source of truth | Product | 2026-07-08 | Keep current. |
-| `docs/product/product-plan.md` | Product execution plan | Active source of truth | Product | 2026-07-08 | Now includes execution board and weekly operating structure. |
+| `docs/product/product-plan.md` | Product execution plan | Active source of truth | Product | 2026-07-08 | Now prioritizes Store landing page validation before full Store engineering. |
 | `docs/project/architecture.md` | Technical architecture | Active source of truth for current technical reality | Engineering | 2026-07-08 | Refreshed against current stack and product direction. |
 | `docs/guides/development-guide.md` | Development guide | Active operating guide | Engineering | 2026-07-08 | Refreshed against `.env.example` and `package.json`. |
 | `docs/project/seo-backlog.md` | SEO / growth backlog | Active operating plan | Growth / Product | 2026-07-08 | Keep as SEO/Growth execution backlog. |
@@ -79,7 +79,8 @@ It should answer:
 | --- | --- | --- | --- | --- | --- |
 | `docs/product/specs/frame-compare.md` | Product spec | Implemented core version | Product | 2026-07-08 | Core route exists; track analytics, homepage/product exposure, sharing, and custom-frame enhancements. |
 | `docs/product/specs/credits-pack-conversion.md` | Product spec | Partially implemented | Product | 2026-07-08 | Payment/quota foundation exists; complete conversion UX, post-result CTA, and event mapping. |
-| `docs/product/specs/visutry-store-mvp.md` | Product spec | Ready for validation | Product | 2026-07-08 | Validate hosted merchant workflow before engineering full Store infrastructure. |
+| `docs/product/specs/visutry-store-landing-page.md` | Product spec / market validation asset | Ready for validation | Product / Growth | 2026-07-08 | First Store validation step before full Store MVP engineering; define landing page, pilot CTA, lead form, and metrics. |
+| `docs/product/specs/visutry-store-mvp.md` | Product spec | Ready for validation | Product | 2026-07-08 | Validate hosted merchant workflow after landing page / outreach signals before engineering full Store infrastructure. |
 
 ---
 
@@ -109,6 +110,7 @@ It should answer:
 | P1 | Align first specs with actual implementation state. | Done |
 | P1 | Strengthen product plan into execution board. | Done |
 | P1 | Advance Store MVP spec to ready for validation. | Done |
+| P1 | Add Store landing page validation spec and product-plan alignment. | Done |
 | P2 | Consider moving all historical strategy documents into archive after status review. | Later |
 
 ---
@@ -136,3 +138,4 @@ During each documentation review, answer:
 | 2026-07-08 | Marked technical documentation review complete after refreshing architecture and development guide. |
 | 2026-07-08 | Updated first product spec statuses after code review: Frame Compare implemented core; Credits Pack conversion partially implemented. |
 | 2026-07-08 | Updated inventory after adding ADR-003, ADR-004, execution board, and Store MVP validation-ready status. |
+| 2026-07-08 | Added Store landing page validation spec and aligned product plan / Store MVP sequence around landing-page-first validation. |
