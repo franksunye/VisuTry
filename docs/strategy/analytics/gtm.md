@@ -1,6 +1,13 @@
 # 🧭 VisuTry GTM + SEO 增长策略手册
 
-**版本 1.0 | 适用于 2025 Q4 ~ 2026 Q2**
+**Status:** Execution document  
+**Version:** 1.0  
+**Created / active window:** 2025 Q4 ~ 2026 Q2  
+**Last reviewed:** 2026-07-08  
+**Owner:** Growth / Analytics  
+**Review cadence:** Monthly while active  
+**Scope:** GTM, SEO, analytics, content, and growth execution references.  
+**Current guidance:** This is an execution handbook, not the commercial strategy source of truth. Commercial direction lives in `docs/strategy/commercial-strategy.md`; current product execution priority lives in `docs/product/product-plan.md`; SEO/Growth task tracking lives in `docs/project/seo-backlog.md`.
 
 ---
 
@@ -175,7 +182,6 @@
    * 使用 `next-i18next`
    * 中英文页面各自优化关键词（例：“虚拟眼镜试戴” vs “virtual glasses try-on”）
 
-
 5. **结构化数据（Schema.org）** ✅ **已实施**
 
    结构化数据帮助搜索引擎更好地理解页面内容，提升搜索结果展示效果（Rich Snippets）。
@@ -295,8 +301,3 @@
 | 技术优化   | 静态化 + 多语言 + Schema   | 提升收录率   |
 | 数据分析   | GA4 + Search Console | 精准追踪效果  |
 | 品牌传播   | 技术社区 + 产品榜单曝光        | 品牌信任度提升 |
-
----
-
-是否希望我将这份手册导出成一份 **PDF 文件（《VisuTry GTM + SEO策略执行手册》）**，方便你在团队内部共享和打印？
-（我可以自动格式化、分页、生成标题目录和章节结构）
