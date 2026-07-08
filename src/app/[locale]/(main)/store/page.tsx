@@ -15,6 +15,7 @@ import {
   Upload,
   Users,
 } from 'lucide-react'
+import { StoreLandingTracker, StoreCtaLink } from '@/components/store/StoreLandingAnalytics'
 import { StoreLeadForm } from '@/components/store/StoreLeadForm'
 import { generateI18nSEO, generateStructuredData } from '@/lib/seo'
 import { Locale } from '@/i18n'
@@ -117,6 +118,7 @@ export default function StoreLandingPage({ params }: StorePageProps) {
 
   return (
     <main className="container mx-auto px-4 py-8">
+      <StoreLandingTracker locale={locale} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(storeSchema) }} />
 
       <section className="mb-14 overflow-hidden rounded-lg border border-blue-100 bg-white shadow-sm">
@@ -133,19 +135,23 @@ export default function StoreLandingPage({ params }: StorePageProps) {
               Help shoppers choose frames online with face-shape guidance, virtual try-on, side-by-side comparison, and lead capture — without building a full AR commerce stack.
             </p>
             <div className="mt-7 flex flex-col gap-3 sm:flex-row">
-              <a
+              <StoreCtaLink
                 href="#pilot-form"
+                locale={locale}
+                ctaLocation="hero_primary"
                 className="inline-flex items-center justify-center gap-2 rounded-lg bg-blue-600 px-6 py-3 text-sm font-bold text-white shadow-sm shadow-blue-600/20 transition hover:bg-blue-700"
               >
                 Get a sample Store Link
                 <ArrowRight className="h-4 w-4" />
-              </a>
-              <a
+              </StoreCtaLink>
+              <StoreCtaLink
                 href="#workflow"
+                locale={locale}
+                ctaLocation="hero_secondary"
                 className="inline-flex items-center justify-center rounded-lg border border-gray-300 bg-white px-6 py-3 text-sm font-bold text-gray-700 transition hover:border-blue-300 hover:text-blue-700"
               >
                 See how it works
-              </a>
+              </StoreCtaLink>
             </div>
             <p className="mt-5 text-sm font-medium text-gray-500">
               Built for small eyewear teams that want to test online frame selection before committing to a full ecommerce integration.
