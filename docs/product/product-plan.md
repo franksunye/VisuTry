@@ -35,6 +35,7 @@ This plan is derived from:
 | `docs/strategy/2026-05-25-b2b-commerce-commercialization-roadmap.md` | Defines B2B merchant/widget roadmap and pilot logic. |
 | `docs/project/seo-backlog.md` | Tracks current SEO/Growth tasks and external acquisition sprint. |
 | `docs/decisions/ADR-004-frame-compare-core-implemented.md` | Confirms Frame Compare core is implemented and next work is productization. |
+| `docs/product/specs/visutry-store-landing-page.md` | Defines the first Store market validation asset before full Store engineering. |
 
 ---
 
@@ -64,7 +65,7 @@ Current focus:
 2. Make Credits Pack conversion clearer.
 3. Polish and measure the implemented Frame Compare core experience.
 4. Instrument the funnel so usage and paid intent are measurable.
-5. Validate VisuTry Store before building full merchant infrastructure.
+5. Validate VisuTry Store with a focused landing page and pilot CTA before building full merchant infrastructure.
 
 ---
 
@@ -95,13 +96,14 @@ Current focus:
 | P0 | Credits Pack conversion loop | Clearest casual paid product; payment/quota foundation exists, conversion UX/events need completion. | Partially implemented |
 | P0 | Frame Compare polish / analytics / homepage exposure | Core Compare is implemented at `/try-on/glasses/compare`; next work is product exposure, analytics, and conversion polish. | Implemented core |
 | P0 | Core funnel events and baseline metrics | Product decisions require visibility into upload, completion, continuation, pricing, checkout, and paid usage. | Ready |
+| P1 | Store landing page market validation | Tests merchant interest and pilot demand before Store MVP engineering. | Ready for validation |
 | P1 | Product documentation governance | Clear docs are required for ordered execution by humans and agents. | Shipped / Measuring |
 
 ### Next
 
 | Priority | Workstream | Why it matters | Status |
 | --- | --- | --- | --- |
-| P1 | VisuTry Store validation | Tests recurring merchant workflow before Shopify, widget, API, or full dashboard work. | Ready for validation |
+| P1 | VisuTry Store validation package | Extends the landing page into merchant pitch, demo outline, pilot checklist, and outreach. | Ready for validation |
 | P1 | Merchant / Store / Frame Catalog data model | Needed only after validation or if internal demo requires it. | Backlog |
 | P1 | VisuTry Studio MVP definition | Validates repeated professional client workflow for stylists / advisors. | Backlog |
 | P1 | First merchant / stylist discovery list | Needed to validate demand before overbuilding. | Ready |
@@ -121,9 +123,9 @@ Current focus:
 
 ## 7. Current Sprint
 
-**Sprint name:** Consumer Decision Path, Conversion, and Merchant Validation Prep  
+**Sprint name:** Consumer Decision Path, Conversion, and Store Market Validation Prep  
 **Target window:** 2026-07-08 to 2026-07-22  
-**Goal:** Strengthen the existing consumer path, make implemented Compare measurable and visible, complete the Credits Pack conversion plan, and prepare VisuTry Store for external validation.
+**Goal:** Strengthen the existing consumer path, make implemented Compare measurable and visible, complete the Credits Pack conversion plan, and prepare Store landing page validation before deeper merchant engineering.
 
 ### Sprint outcomes
 
@@ -134,6 +136,7 @@ Current focus:
 | Consumer path is measurable | Detector upload, completion, continuation, try-on start, compare start, pricing click, checkout start, payment completion, and paid usage are tracked or explicitly queued. | Ready |
 | Credits Pack is visibly connected to high-intent moments | Post-result and compare flows clearly route users to Credits Pack when appropriate. | Partially implemented |
 | Frame Compare is visible in product architecture | Compare is represented as an independent product route/page/flow rather than buried inside carousel or history. | Shipped; exposure review needed |
+| Store landing page validation is specified | Landing page positioning, CTA, lead form, validation metrics, and non-goals are defined. | Shipped |
 | VisuTry Store is validation-ready | Store MVP spec defines target users, hosted workflow, validation package, data/events, privacy, and gates to engineering. | Shipped |
 
 ---
@@ -145,7 +148,8 @@ Current focus:
 | P0 | Credits Pack conversion UX | Product / Growth | Partially implemented | Define exact post-result and post-compare CTA placements and event mapping. | `docs/product/specs/credits-pack-conversion.md` | Current sprint |
 | P0 | Frame Compare exposure and analytics | Product / Growth | Implemented core | Review homepage/product path exposure and add or map `frame_compare_*` events. | `docs/product/specs/frame-compare.md`, ADR-004 | Current sprint |
 | P0 | Consumer funnel baseline | Product / Analytics | Ready | Define minimum event checklist across Detector → Advisor → Try-On → Compare → Pricing → Checkout → Paid usage. | `docs/project/seo-backlog.md`, `docs/strategy/seo/2026-06-30-product-architecture-seo-geo-sync.md` | Current sprint |
-| P1 | VisuTry Store validation | Product / Strategy | Ready for validation | Prepare merchant pitch, demo outline, pilot checklist, and target list. | `docs/product/specs/visutry-store-mvp.md` | Next sprint |
+| P1 | Store landing page validation | Product / Growth | Ready for validation | Implement or prepare `/en/store` with pilot CTA, lead form, validation metrics, and privacy copy. | `docs/product/specs/visutry-store-landing-page.md` | Current / next sprint |
+| P1 | VisuTry Store validation package | Product / Strategy | Ready for validation | Prepare merchant pitch, demo outline, pilot checklist, and target list. | `docs/product/specs/visutry-store-mvp.md` | Next sprint |
 | P1 | Merchant / stylist discovery list | Product / Growth | Ready | Build a focused list of 20-50 relevant merchants, brands, agencies, or stylists. | Store MVP spec, B2B roadmap | Next sprint |
 | P1 | Frame Compare enhancement decisions | Product | Ready | Decide whether custom uploaded frames and public board sharing are needed before Store / Studio. | Frame Compare spec | Next review |
 | P2 | Historical document archive moves | Product / Engineering | Deferred | Only move files after status review confirms they are not active. | `docs/strategy/legacy-document-audit.md` | Later |
@@ -227,7 +231,30 @@ Current focus:
 - Compare actions are measurable.
 - Compare contributes to Credits Pack conversion.
 
-### Initiative 4: VisuTry Store Validation
+### Initiative 4: Store Landing Page Market Validation
+
+**Goal:** Validate Store demand through a focused B2B landing page before full merchant infrastructure is built.
+
+**Current status:** Ready for validation.
+
+**Validation asset:** `docs/product/specs/visutry-store-landing-page.md`
+
+**Current tasks:**
+
+- Prepare or implement `/en/store`.
+- Use `Get a sample Store Link` as the primary CTA unless testing suggests otherwise.
+- Include workflow, problem, product preview, pilot offer, lead form, privacy note, and validation events.
+- Capture or route leads to an operational destination.
+- Pair the page with targeted merchant / agency outreach.
+
+**Success criteria:**
+
+- Store page can explain the hosted advisor / try-on / compare workflow clearly.
+- Qualified visitors can request a sample link, pilot, or demo.
+- Form submissions identify business type, website, frame count, and intent.
+- Store validation has measurable CTA and lead events.
+
+### Initiative 5: VisuTry Store Validation Package
 
 **Goal:** Validate the smallest merchant workflow before building a full widget, Shopify app, public API, or merchant dashboard.
 
@@ -259,95 +286,12 @@ Current focus:
 - 1 merchant agrees to a paid or deposit-backed pilot; or
 - internal team decides a demo is required to unlock sales conversations.
 
-### Initiative 5: VisuTry Studio MVP Definition
-
-**Goal:** Define the smallest professional workflow for stylists, consultants, or eyewear advisors.
-
-**Why later:** Studio may become valuable, but Store validation currently has stronger recurring revenue potential.
-
-**Candidate MVP:**
-
-- client/session profile;
-- face analysis and recommendation report;
-- multi-frame comparison;
-- advisor notes;
-- shareable report link;
-- lightweight branding.
-
 ---
 
-## 10. Product Backlog
-
-| Priority | Item | Type | Status | Source | Acceptance criteria |
-| --- | --- | --- | --- | --- | --- |
-| P0 | Create documentation entry points | Docs | Shipped | Current governance need | `docs/README.md`, `docs/product/README.md`, and this file exist. |
-| P0 | Establish current product plan | Docs / Product | Shipped | ADR-003 | Now / Next / Later, execution board, and sprint outcomes are documented. |
-| P0 | Clarify Credits Pack conversion moments | Product / Monetization | Partially implemented | Commercial strategy, Credits Pack spec | Credits Pack appears after high-intent result/compare moments. |
-| P0 | Polish Frame Compare entry and tracking | Product / UX / Analytics | Implemented core | Commercial strategy, homepage discussion, Frame Compare spec, ADR-004 | Compare remains explicit and measurable; homepage/product exposure is reviewed. |
-| P0 | Track consumer funnel events | Analytics | Ready | B2B roadmap Phase 0, SEO backlog | Upload → completion → continuation → pricing → checkout → paid usage can be measured. |
-| P1 | Validate Detector continuation CTAs | Product / Growth | Ready | SEO/GEO sync, SEO backlog | Detector result routes clearly to Advisor, Try-On, and/or Compare. |
-| P1 | Maintain Frame Compare spec | Spec | Implemented core; enhancement tracking | Product plan | Spec reflects current implementation and remaining enhancements. |
-| P1 | Maintain Credits Pack conversion spec | Spec | Partially implemented | Product plan | Spec separates implemented payment/quota foundation from conversion UX/events. |
-| P1 | Validate VisuTry Store MVP | Product / Strategy | Ready for validation | Store MVP spec, B2B roadmap | Merchant pitch, pilot checklist, and target list are ready. |
-| P1 | Define merchant frame catalog schema | Data / Product | Backlog | B2B roadmap, benchmarks | Promote only after Store validation requires engineering. |
-| P1 | Draft VisuTry Studio MVP spec | Spec | Backlog | Commercial strategy | Start only after Store validation or clear professional-user pull. |
-| P2 | Shopify beta wrapper | Platform | Deferred | B2B roadmap | Only after generic hosted/widget flow is validated. |
-| P2 | WooCommerce beta wrapper | Platform | Deferred | B2B roadmap | Only after Shopify/generic widget proof and support model are understood. |
-| P2 | Public merchant API | API | Deferred | B2B roadmap | Only after repeated technical buyer demand. |
-
----
-
-## 11. Decisions Needed
-
-| Decision | Why it matters | Target timing |
-| --- | --- | --- |
-| Should uploaded/custom frames be added to Frame Compare before Studio / Store? | Determines whether Compare becomes more flexible for consumers before professional workflows. | Now |
-| Should comparison boards have public share URLs? | Determines data model and sharing surface. | Next |
-| What exact event set is mandatory for consumer funnel measurement? | Prevents blind iteration on conversion and acquisition. | Now |
-| Which merchant segment should validate Store first: DTC eyewear, optical store, agency, or stylist? | Determines pitch, demo, and target list. | Next |
-| Should VisuTry Store start with hosted links only? | Avoids widget/platform complexity too early. | Next |
-| What is the minimum frame catalog schema? | Needed only if Store validation moves to engineering. | Next |
-
----
-
-## 12. Deferred / Not Now
-
-The following work is intentionally deferred:
-
-- public Shopify app listing;
-- WooCommerce plugin;
-- public API sales;
-- EHR/PMS integration;
-- medical-grade PD measurement;
-- full white-label deployments;
-- large-scale thin programmatic SEO pages;
-- broad non-eyewear try-on categories.
-
-These can be revisited only if they are pulled forward by validated demand or required by a current strategic decision.
-
----
-
-## 13. Review Process
-
-Review this document weekly.
-
-Each review should answer:
-
-1. Did any Now item ship or become measurable?
-2. Should any Next item move into Now?
-3. Did any Later item get pulled forward by real demand?
-4. Are there new decisions that need to be added?
-5. Did any spec become necessary for engineering execution?
-6. Did any implemented feature need its spec status corrected?
-
-When a product item becomes ready for engineering, create or update a spec under `docs/product/specs/`.
-
----
-
-## 14. Change Log
+## 10. Change Log
 
 | Date | Change |
 | --- | --- |
-| 2026-07-08 | Created v0.1 active product plan with Now / Next / Later, current sprint, initiatives, backlog, and decision log. |
-| 2026-07-08 | Updated plan after code review: Frame Compare core is implemented; Credits Pack conversion is partially implemented. |
-| 2026-07-08 | Strengthened product plan into an execution board and advanced VisuTry Store to ready for validation. |
+| 2026-07-08 | Created product plan and execution board. |
+| 2026-07-08 | Updated Frame Compare and Credits Pack status after implementation review. |
+| 2026-07-08 | Added Store landing page as first Store market validation step before full MVP engineering. |
