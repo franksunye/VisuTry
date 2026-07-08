@@ -30,6 +30,8 @@ It should answer:
 | Active operating plan | Current execution or governance plan for a bounded area. |
 | Living supporting reference | Evidence, benchmark, or research reference that informs decisions. |
 | Draft | Under discussion; should not yet drive execution alone. |
+| Partially implemented | Some implementation exists, but planned UX, analytics, acceptance criteria, or edge cases remain incomplete. |
+| Implemented core version | Core functionality exists; remaining work is polish, measurement, or enhancement tracking. |
 | Superseded | Replaced by newer guidance. |
 | Archived historical reference | Kept for context only; not current guidance. |
 
@@ -74,8 +76,8 @@ It should answer:
 
 | Path | Type | Status | Owner | Last reviewed | Action |
 | --- | --- | --- | --- | --- | --- |
-| `docs/product/specs/frame-compare.md` | Product spec | Draft | Product | 2026-07-08 | First priority spec. |
-| `docs/product/specs/credits-pack-conversion.md` | Product spec | Draft | Product | 2026-07-08 | First priority monetization spec. |
+| `docs/product/specs/frame-compare.md` | Product spec | Implemented core version | Product | 2026-07-08 | Core route exists; track analytics, homepage/product exposure, sharing, and custom-frame enhancements. |
+| `docs/product/specs/credits-pack-conversion.md` | Product spec | Partially implemented | Product | 2026-07-08 | Payment/quota foundation exists; complete conversion UX, post-result CTA, and event mapping. |
 | `docs/product/specs/visutry-store-mvp.md` | Product spec | Draft | Product | 2026-07-08 | First B2B MVP spec. |
 
 ---
@@ -101,6 +103,7 @@ It should answer:
 | P1 | Mark or archive expired content strategy documents. | Done: marked historical; archive move later if needed. |
 | P1 | Add source-of-truth references to GTM handbook. | Done |
 | P1 | Review architecture and development guide against current code. | Done |
+| P1 | Align first specs with actual implementation state. | Done |
 | P2 | Consider moving all historical strategy documents into archive after status review. | Later |
 
 ---
@@ -125,3 +128,4 @@ During each documentation review, answer:
 | 2026-07-08 | Updated inventory after adding decisions, product specs, and legacy document audit. |
 | 2026-07-08 | Updated P1 governance status after adding B2B roadmap header, GTM source-of-truth header, and historical notice to Q4 content plan. |
 | 2026-07-08 | Marked technical documentation review complete after refreshing architecture and development guide. |
+| 2026-07-08 | Updated first product spec statuses after code review: Frame Compare implemented core; Credits Pack conversion partially implemented. |
