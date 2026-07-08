@@ -29,9 +29,9 @@ interface StorePageProps {
 export async function generateMetadata({ params }: StorePageProps): Promise<Metadata> {
   return generateI18nSEO({
     locale: params.locale as Locale,
-    title: 'VisuTry Store — AI eyewear advisor and try-on link for optical stores',
+    title: 'VisuTry Store — AI try-on and frame comparison for eyewear sellers',
     description:
-      'Create a hosted AI eyewear advisor and virtual try-on link for your optical store, eyewear brand, or frame styling workflow.',
+      'Give shoppers a hosted AI eyewear advisor, virtual try-on, frame comparison, and lead capture page for your optical store or eyewear brand.',
     pathname: '/store',
   })
 }
@@ -39,63 +39,63 @@ export async function generateMetadata({ params }: StorePageProps): Promise<Meta
 const workflow = [
   {
     icon: Upload,
-    title: 'Add your top frames',
-    description: 'Start with 8-20 priority frames instead of a full catalog migration.',
+    title: 'Choose the frames you want to promote',
+    description: 'Start with your best sellers, new arrivals, or seasonal collection. No full catalog migration required.',
   },
   {
     icon: Link2,
-    title: 'Share one Store link',
-    description: 'Send shoppers to a hosted advisor and try-on flow before they visit, message, or buy.',
+    title: 'Share one beautiful Store link',
+    description: 'Use it on your website, Instagram, email, QR code, or customer chat before shoppers visit or buy.',
   },
   {
     icon: Grid2X2,
-    title: 'Let shoppers compare',
-    description: 'Customers upload one photo, try selected frames, and review results side by side.',
+    title: 'Let shoppers try and compare',
+    description: 'Customers upload one photo, preview selected frames, and compare looks side by side.',
   },
   {
     icon: BarChart3,
-    title: 'Receive intent signals',
-    description: 'Capture favorites, lead interest, frame clicks, and simple usage signals.',
+    title: 'Follow up with real interest',
+    description: 'See which frames attract attention so your team can recommend, follow up, or prepare appointments faster.',
   },
 ]
 
 const proofCards = [
   {
     icon: ScanFace,
-    title: 'Face-shape guidance',
-    description: 'Give shoppers a reasoned starting point before they browse every frame.',
+    title: 'Guide the first choice',
+    description: 'Help shoppers start from frame directions that make sense for their face and style.',
   },
   {
     icon: Glasses,
-    title: 'Virtual try-on',
-    description: 'Turn a static frame image into a more confident visual decision.',
+    title: 'Show frames on their face',
+    description: 'Turn product images into a more confident online shopping experience.',
   },
   {
     icon: Grid2X2,
-    title: 'Frame comparison',
-    description: 'Help customers shortlist several looks instead of judging one frame at a time.',
+    title: 'Compare shortlists',
+    description: 'Make it easier for shoppers to choose between several good options.',
   },
   {
     icon: ClipboardList,
-    title: 'Lead capture',
-    description: 'Collect interest signals that can support follow-up, appointment, or purchase intent.',
+    title: 'Capture buying signals',
+    description: 'Collect interest before the shopper disappears, so your team knows what to recommend next.',
   },
 ]
 
 const audiences = [
   'Independent optical stores',
-  'Small eyewear ecommerce brands',
+  'Eyewear ecommerce brands',
   'Frame stylists and image consultants',
-  'Boutique agencies serving eyewear merchants',
+  'Agencies building stores for eyewear clients',
 ]
 
-const pilotItems = [
-  'Merchant name and lightweight branding',
-  '8-20 priority frames',
-  'Hosted advisor / compare link',
-  'Shopper upload and try-on flow',
-  'Favorites or lead capture concept',
-  'Simple usage summary during the pilot',
+const setupItems = [
+  'A hosted Store page with your brand name',
+  'Your first 8-20 priority frames',
+  'AI eyewear guidance and try-on flow',
+  'Side-by-side frame comparison',
+  'Favorite / inquiry collection concept',
+  'A simple view of shopper interest signals',
 ]
 
 export default function StoreLandingPage({ params }: StorePageProps) {
@@ -106,13 +106,13 @@ export default function StoreLandingPage({ params }: StorePageProps) {
     applicationCategory: 'ShoppingApplication',
     operatingSystem: 'Web Browser',
     description:
-      'A hosted AI eyewear advisor and virtual try-on link for optical stores, eyewear sellers, and frame stylists.',
+      'A hosted AI eyewear advisor, virtual try-on, and frame comparison page for optical stores and eyewear sellers.',
     featureList: [
-      'Hosted merchant Store link',
+      'Hosted eyewear Store link',
       'AI frame guidance',
       'Virtual glasses try-on',
       'Side-by-side frame comparison',
-      'Lead and favorite capture concept',
+      'Favorite and lead capture concept',
     ],
   })
 
@@ -126,13 +126,13 @@ export default function StoreLandingPage({ params }: StorePageProps) {
           <div className="flex flex-col justify-center bg-gradient-to-br from-white via-blue-50/80 to-white p-6 md:p-8 lg:p-10">
             <p className="mb-4 inline-flex w-fit items-center rounded-lg border border-blue-200 bg-white px-3 py-1 text-sm font-semibold text-blue-700">
               <Store className="mr-2 h-4 w-4" />
-              VisuTry Store pilot
+              For eyewear sellers
             </p>
             <h1 className="max-w-2xl text-3xl font-bold leading-tight text-gray-950 md:text-5xl">
-              AI eyewear advisor & try-on link for optical stores.
+              Help shoppers choose frames before they walk away.
             </h1>
             <p className="mt-5 max-w-2xl text-base leading-7 text-gray-600 md:text-lg">
-              Help shoppers choose frames online with face-shape guidance, virtual try-on, side-by-side comparison, and lead capture — without building a full AR commerce stack.
+              Give your customers a hosted AI eyewear advisor where they can upload a photo, try your frames, compare looks, and share what they like with your team.
             </p>
             <div className="mt-7 flex flex-col gap-3 sm:flex-row">
               <StoreCtaLink
@@ -141,7 +141,7 @@ export default function StoreLandingPage({ params }: StorePageProps) {
                 ctaLocation="hero_primary"
                 className="inline-flex items-center justify-center gap-2 rounded-lg bg-blue-600 px-6 py-3 text-sm font-bold text-white shadow-sm shadow-blue-600/20 transition hover:bg-blue-700"
               >
-                Get a sample Store Link
+                Create my sample store
                 <ArrowRight className="h-4 w-4" />
               </StoreCtaLink>
               <StoreCtaLink
@@ -150,11 +150,11 @@ export default function StoreLandingPage({ params }: StorePageProps) {
                 ctaLocation="hero_secondary"
                 className="inline-flex items-center justify-center rounded-lg border border-gray-300 bg-white px-6 py-3 text-sm font-bold text-gray-700 transition hover:border-blue-300 hover:text-blue-700"
               >
-                See how it works
+                See how it helps
               </StoreCtaLink>
             </div>
             <p className="mt-5 text-sm font-medium text-gray-500">
-              Built for small eyewear teams that want to test online frame selection before committing to a full ecommerce integration.
+              Designed for small eyewear teams that want more online confidence without building a custom try-on system.
             </p>
           </div>
 
@@ -162,10 +162,10 @@ export default function StoreLandingPage({ params }: StorePageProps) {
             <div className="mx-auto max-w-xl rounded-[1.4rem] border border-white/80 bg-white p-4 shadow-xl shadow-blue-900/10">
               <div className="mb-4 flex items-center justify-between rounded-lg border border-gray-200 bg-gray-50 px-4 py-3">
                 <div>
-                  <p className="text-xs font-semibold uppercase tracking-wide text-blue-600">Sample Store</p>
+                  <p className="text-xs font-semibold uppercase tracking-wide text-blue-600">Your Store link</p>
                   <p className="text-sm font-bold text-gray-950">Luna Optical · Frame Advisor</p>
                 </div>
-                <span className="rounded-full bg-green-50 px-3 py-1 text-xs font-bold text-green-700">Pilot</span>
+                <span className="rounded-full bg-green-50 px-3 py-1 text-xs font-bold text-green-700">Live sample</span>
               </div>
 
               <div className="grid gap-3 sm:grid-cols-[0.9fr_1.1fr]">
@@ -177,8 +177,8 @@ export default function StoreLandingPage({ params }: StorePageProps) {
                       <div className="absolute left-6 top-9 h-1 w-12 rounded-full bg-gray-800" />
                     </div>
                   </div>
-                  <p className="mt-3 text-xs font-semibold text-gray-500">Shopper photo + advisor result</p>
-                  <p className="mt-1 text-sm font-bold text-gray-950">Oval face · 4 frame picks</p>
+                  <p className="mt-3 text-xs font-semibold text-gray-500">Customer photo + frame guidance</p>
+                  <p className="mt-1 text-sm font-bold text-gray-950">4 frames ready to compare</p>
                 </div>
 
                 <div className="grid grid-cols-2 gap-3">
@@ -188,7 +188,7 @@ export default function StoreLandingPage({ params }: StorePageProps) {
                         <div className={`h-5 w-16 rounded-full border-2 ${index === 2 ? 'border-blue-700' : 'border-gray-800'}`} />
                       </div>
                       <p className="text-xs font-bold text-gray-900">{item}</p>
-                      <p className="mt-0.5 text-[11px] text-gray-500">Try-on ready</p>
+                      <p className="mt-0.5 text-[11px] text-gray-500">Customer interest</p>
                     </div>
                   ))}
                 </div>
@@ -196,9 +196,9 @@ export default function StoreLandingPage({ params }: StorePageProps) {
 
               <div className="mt-4 grid gap-3 rounded-lg border border-blue-100 bg-blue-50 p-4 sm:grid-cols-3">
                 {[
-                  ['38', 'link opens'],
+                  ['38', 'store visits'],
                   ['21', 'try-ons'],
-                  ['7', 'leads'],
+                  ['7', 'frame inquiries'],
                 ].map(([value, label]) => (
                   <div key={label}>
                     <p className="text-xl font-bold text-blue-900">{value}</p>
@@ -213,10 +213,10 @@ export default function StoreLandingPage({ params }: StorePageProps) {
 
       <section id="workflow" className="mx-auto mb-14 max-w-6xl">
         <div className="mb-7 max-w-3xl">
-          <p className="mb-3 text-sm font-semibold uppercase tracking-wide text-blue-600">Workflow first</p>
-          <h2 className="text-3xl font-bold text-gray-950 md:text-4xl">A Store link your shoppers can actually use.</h2>
+          <p className="mb-3 text-sm font-semibold uppercase tracking-wide text-blue-600">How it works</p>
+          <h2 className="text-3xl font-bold text-gray-950 md:text-4xl">Turn your frame catalog into a guided shopping experience.</h2>
           <p className="mt-4 text-base leading-7 text-gray-600">
-            VisuTry Store is designed as a decision workflow: frame guidance, try-on, comparison, and follow-up signals in one hosted experience.
+            VisuTry Store gives you a simple, shareable path from frame discovery to try-on, comparison, and follow-up.
           </p>
         </div>
 
@@ -244,16 +244,16 @@ export default function StoreLandingPage({ params }: StorePageProps) {
           <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm">
             <p className="mb-3 inline-flex items-center rounded-lg border border-blue-100 bg-blue-50 px-3 py-1 text-sm font-semibold text-blue-700">
               <Sparkles className="mr-2 h-4 w-4" />
-              Why not just virtual try-on?
+              More than a try-on image
             </p>
             <h2 className="text-2xl font-bold leading-tight text-gray-950 md:text-3xl">
-              Try-on is useful. The business value is helping shoppers decide.
+              Help customers move from “maybe” to a shortlist.
             </h2>
             <p className="mt-4 text-sm leading-6 text-gray-600">
-              A small eyewear business does not only need another image tool. It needs a simple way to guide shoppers, understand what they like, and follow up with confidence.
+              Shoppers often leave because they cannot tell which frames suit them. VisuTry Store helps them narrow options and gives your team a clearer reason to follow up.
             </p>
             <div className="mt-5 grid gap-3">
-              {['Recommendation', 'Try-on', 'Comparison', 'Favorites / lead capture'].map((item) => (
+              {['Start with a guided recommendation', 'Preview frames on their own photo', 'Compare several options at once', 'Capture favorites and inquiries'].map((item) => (
                 <div key={item} className="flex items-center gap-2 text-sm font-semibold text-gray-800">
                   <CheckCircle2 className="h-4 w-4 text-green-600" />
                   <span>{item}</span>
@@ -281,9 +281,9 @@ export default function StoreLandingPage({ params }: StorePageProps) {
         <div className="grid gap-8 lg:grid-cols-[0.9fr_1.1fr] lg:items-start">
           <div>
             <p className="mb-3 text-sm font-semibold uppercase tracking-wide text-blue-600">Who it is for</p>
-            <h2 className="text-3xl font-bold text-gray-950">Start with teams that already sell frames visually.</h2>
+            <h2 className="text-3xl font-bold text-gray-950">For teams that sell frames visually.</h2>
             <p className="mt-4 text-sm leading-6 text-gray-600">
-              The first pilot should stay narrow. We are looking for teams that can test a hosted frame advisor without waiting for a full platform integration.
+              Use VisuTry Store when shoppers discover you online, ask for recommendations, or need confidence before booking, visiting, or buying.
             </p>
           </div>
           <div className="grid gap-3 sm:grid-cols-2">
@@ -302,14 +302,14 @@ export default function StoreLandingPage({ params }: StorePageProps) {
           <div className="rounded-lg border border-blue-100 bg-gradient-to-br from-white via-blue-50/70 to-white p-6 shadow-sm md:p-8">
             <p className="mb-3 inline-flex items-center rounded-lg border border-blue-200 bg-white px-3 py-1 text-sm font-semibold text-blue-700">
               <ClipboardList className="mr-2 h-4 w-4" />
-              30-day pilot shape
+              Early access setup
             </p>
-            <h2 className="text-3xl font-bold text-gray-950">A small validation package, not a heavy integration.</h2>
+            <h2 className="text-3xl font-bold text-gray-950">Start with a small set of frames and a shareable Store link.</h2>
             <p className="mt-4 text-sm leading-6 text-gray-600">
-              We help set up a small catalog, create a hosted Store link, and use real or realistic shopper sessions to learn whether the workflow creates value.
+              We can help you shape a simple first version using a focused selection of frames, so you can show customers a better way to choose before investing in a full integration.
             </p>
             <div className="mt-6 grid gap-3">
-              {pilotItems.map((item) => (
+              {setupItems.map((item) => (
                 <div key={item} className="flex items-center gap-2 text-sm font-semibold text-gray-800">
                   <span className="h-1.5 w-1.5 rounded-full bg-blue-600" />
                   <span>{item}</span>
@@ -329,9 +329,9 @@ export default function StoreLandingPage({ params }: StorePageProps) {
           <div className="flex gap-3">
             <ShieldCheck className="mt-0.5 h-5 w-5 flex-shrink-0 text-green-600" />
             <div>
-              <h2 className="text-base font-bold text-gray-950">Privacy and fit boundaries are part of the product.</h2>
+              <h2 className="text-base font-bold text-gray-950">Designed to protect customer trust.</h2>
               <p className="mt-1 max-w-3xl text-sm leading-6 text-gray-600">
-                VisuTry Store should show clear privacy and retention copy before upload. Merchants should receive interest signals by default, not raw shopper face images. Virtual try-on is visual decision support, not an optical or medical fit guarantee.
+                Customers should see clear privacy information before uploading a photo. Your team can focus on frame interest and follow-up signals; virtual try-on remains visual guidance, not a medical or optical fit guarantee.
               </p>
             </div>
           </div>
