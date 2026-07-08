@@ -41,6 +41,7 @@ It should answer:
 | --- | --- | --- | --- | --- | --- |
 | `docs/README.md` | Documentation map | Active source of truth | Product / Engineering | 2026-07-08 | Keep current. |
 | `docs/document-inventory.md` | Documentation governance | Active operating plan | Product / Engineering | 2026-07-08 | Review weekly during cleanup. |
+| `docs/decisions/README.md` | Decision log guide | Active source of truth | Product / Engineering | 2026-07-08 | Keep current. |
 | `docs/strategy/commercial-strategy.md` | Commercial strategy | Active source of truth | Product / Strategy | 2026-07-08 | Keep concise; do not add benchmark detail. |
 | `docs/strategy/commercial-benchmarks.md` | Benchmark / market reference | Living supporting reference | Product / Strategy | 2026-07-08 | Add external references here first. |
 | `docs/product/README.md` | Product documentation guide | Active source of truth | Product | 2026-07-08 | Keep current. |
@@ -55,6 +56,7 @@ It should answer:
 
 | Path | Type | Status | Owner | Last reviewed | Action |
 | --- | --- | --- | --- | --- | --- |
+| `docs/strategy/legacy-document-audit.md` | Legacy document audit | Active operating audit | Product / Strategy | 2026-07-08 | Use to guide cleanup of dated strategy docs. |
 | `docs/strategy/2026-05-25-b2b-commerce-commercialization-roadmap.md` | B2B roadmap | Active supporting roadmap | Product / Strategy | 2026-07-08 | Add status header if missing; keep as B2B reference. |
 | `docs/strategy/2026-06-28-free-face-shape-growth-commercialization-plan.md` | Free detector / growth plan | Active supporting plan | Product / Growth | 2026-07-08 | Add status header if missing; keep as supporting plan. |
 | `docs/strategy/seo/2026-06-30-product-architecture-seo-geo-sync.md` | SEO/GEO product architecture | Active source of truth for SEO/GEO page architecture | Product / Growth | 2026-07-08 | Keep active. |
@@ -78,13 +80,23 @@ It should answer:
 
 ---
 
-## 6. Cleanup Backlog
+## 6. Decision Records Inventory
+
+| Path | Type | Status | Owner | Last reviewed | Action |
+| --- | --- | --- | --- | --- | --- |
+| `docs/decisions/ADR-001-documentation-governance.md` | Decision record | Accepted | Product / Engineering | 2026-07-08 | Keep. |
+| `docs/decisions/ADR-002-commercial-strategy-benchmark-split.md` | Decision record | Accepted | Product / Strategy | 2026-07-08 | Keep. |
+
+---
+
+## 7. Cleanup Backlog
 
 | Priority | Task | Status |
 | --- | --- | --- |
 | P0 | Add documentation map and product plan. | Done |
-| P0 | Add decisions directory and first ADRs. | In progress |
-| P0 | Add first product specs. | In progress |
+| P0 | Add decisions directory and first ADRs. | Done |
+| P0 | Add first product specs. | Done |
+| P0 | Add legacy strategy document audit. | Done |
 | P1 | Add status headers to active dated strategy documents. | Planned |
 | P1 | Mark or archive expired content strategy documents. | Planned |
 | P1 | Review architecture and development guide against current code. | Planned |
@@ -92,7 +104,7 @@ It should answer:
 
 ---
 
-## 7. Review Questions
+## 8. Review Questions
 
 During each documentation review, answer:
 
@@ -104,8 +116,9 @@ During each documentation review, answer:
 
 ---
 
-## 8. Change Log
+## 9. Change Log
 
 | Date | Change |
 | --- | --- |
 | 2026-07-08 | Created v0.1 document inventory and cleanup backlog. |
+| 2026-07-08 | Updated inventory after adding decisions, product specs, and legacy document audit. |
