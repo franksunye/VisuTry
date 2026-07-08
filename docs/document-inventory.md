@@ -32,6 +32,7 @@ It should answer:
 | Draft | Under discussion; should not yet drive execution alone. |
 | Partially implemented | Some implementation exists, but planned UX, analytics, acceptance criteria, or edge cases remain incomplete. |
 | Implemented core version | Core functionality exists; remaining work is polish, measurement, or enhancement tracking. |
+| Ready for validation | Clear enough to pitch, demo, or test with target users, but not yet ready for full engineering build. |
 | Superseded | Replaced by newer guidance. |
 | Archived historical reference | Kept for context only; not current guidance. |
 
@@ -47,7 +48,7 @@ It should answer:
 | `docs/strategy/commercial-strategy.md` | Commercial strategy | Active source of truth | Product / Strategy | 2026-07-08 | Keep concise; do not add benchmark detail. |
 | `docs/strategy/commercial-benchmarks.md` | Benchmark / market reference | Living supporting reference | Product / Strategy | 2026-07-08 | Add external references here first. |
 | `docs/product/README.md` | Product documentation guide | Active source of truth | Product | 2026-07-08 | Keep current. |
-| `docs/product/product-plan.md` | Product execution plan | Active source of truth | Product | 2026-07-08 | Review weekly. |
+| `docs/product/product-plan.md` | Product execution plan | Active source of truth | Product | 2026-07-08 | Now includes execution board and weekly operating structure. |
 | `docs/project/architecture.md` | Technical architecture | Active source of truth for current technical reality | Engineering | 2026-07-08 | Refreshed against current stack and product direction. |
 | `docs/guides/development-guide.md` | Development guide | Active operating guide | Engineering | 2026-07-08 | Refreshed against `.env.example` and `package.json`. |
 | `docs/project/seo-backlog.md` | SEO / growth backlog | Active operating plan | Growth / Product | 2026-07-08 | Keep as SEO/Growth execution backlog. |
@@ -78,7 +79,7 @@ It should answer:
 | --- | --- | --- | --- | --- | --- |
 | `docs/product/specs/frame-compare.md` | Product spec | Implemented core version | Product | 2026-07-08 | Core route exists; track analytics, homepage/product exposure, sharing, and custom-frame enhancements. |
 | `docs/product/specs/credits-pack-conversion.md` | Product spec | Partially implemented | Product | 2026-07-08 | Payment/quota foundation exists; complete conversion UX, post-result CTA, and event mapping. |
-| `docs/product/specs/visutry-store-mvp.md` | Product spec | Draft | Product | 2026-07-08 | First B2B MVP spec. |
+| `docs/product/specs/visutry-store-mvp.md` | Product spec | Ready for validation | Product | 2026-07-08 | Validate hosted merchant workflow before engineering full Store infrastructure. |
 
 ---
 
@@ -88,6 +89,8 @@ It should answer:
 | --- | --- | --- | --- | --- | --- |
 | `docs/decisions/ADR-001-documentation-governance.md` | Decision record | Accepted | Product / Engineering | 2026-07-08 | Keep. |
 | `docs/decisions/ADR-002-commercial-strategy-benchmark-split.md` | Decision record | Accepted | Product / Strategy | 2026-07-08 | Keep. |
+| `docs/decisions/ADR-003-product-plan-execution-source-of-truth.md` | Decision record | Accepted | Product | 2026-07-08 | Keep. |
+| `docs/decisions/ADR-004-frame-compare-core-implemented.md` | Decision record | Accepted | Product / Engineering | 2026-07-08 | Keep. |
 
 ---
 
@@ -104,6 +107,8 @@ It should answer:
 | P1 | Add source-of-truth references to GTM handbook. | Done |
 | P1 | Review architecture and development guide against current code. | Done |
 | P1 | Align first specs with actual implementation state. | Done |
+| P1 | Strengthen product plan into execution board. | Done |
+| P1 | Advance Store MVP spec to ready for validation. | Done |
 | P2 | Consider moving all historical strategy documents into archive after status review. | Later |
 
 ---
@@ -117,6 +122,7 @@ During each documentation review, answer:
 3. Did a new decision happen that should become an ADR?
 4. Did a product plan item become ready for a spec?
 5. Did a dated operating plan expire and need archive or completion status?
+6. Did any spec status drift from implementation reality?
 
 ---
 
@@ -129,3 +135,4 @@ During each documentation review, answer:
 | 2026-07-08 | Updated P1 governance status after adding B2B roadmap header, GTM source-of-truth header, and historical notice to Q4 content plan. |
 | 2026-07-08 | Marked technical documentation review complete after refreshing architecture and development guide. |
 | 2026-07-08 | Updated first product spec statuses after code review: Frame Compare implemented core; Credits Pack conversion partially implemented. |
+| 2026-07-08 | Updated inventory after adding ADR-003, ADR-004, execution board, and Store MVP validation-ready status. |
