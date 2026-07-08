@@ -58,7 +58,7 @@ Current focus:
 
 1. Strengthen the consumer decision path.
 2. Make Credits Pack conversion clearer.
-3. Productize Frame Compare as a visible decision-support feature.
+3. Polish and measure the implemented Frame Compare core experience.
 4. Instrument the funnel so usage and paid intent are measurable.
 5. Prepare the minimum validation path for VisuTry Studio and VisuTry Store.
 
@@ -73,8 +73,8 @@ These are current product priorities.
 | Priority | Workstream | Why it matters | Status |
 | --- | --- | --- | --- |
 | P0 | Free Detector → Advisor → Try-On continuation | This is the main consumer acquisition and activation path. | Active |
-| P0 | Credits Pack conversion loop | Credits Pack is the clearest casual paid product. | Active |
-| P0 | Frame Compare productization | Comparison is a high-intent eyewear decision behavior and should not be hidden. | Planned |
+| P0 | Credits Pack conversion loop | Credits Pack is the clearest casual paid product; payment/quota foundation exists, conversion UX/events need completion. | Partially implemented |
+| P0 | Frame Compare polish / analytics / homepage exposure | Core Compare is implemented at `/try-on/glasses/compare`; next work is product exposure, analytics, and conversion polish. | Implemented core; enhancement active |
 | P0 | Core funnel events and baseline metrics | Product decisions require visibility into upload, completion, continuation, pricing, checkout, and paid usage. | Active |
 | P1 | Product documentation governance | Clear docs are required for ordered execution by humans and agents. | Active |
 
@@ -114,11 +114,11 @@ These should not drive current engineering unless a high-quality buyer pulls the
 
 | Outcome | Acceptance criteria | Status |
 | --- | --- | --- |
-| Documentation entry points exist | `docs/README.md`, `docs/product/README.md`, and `docs/product/product-plan.md` exist and define document ownership. | In progress |
-| Product priority is explicit | Now / Next / Later is documented and can guide engineering or Codex work. | In progress |
+| Documentation entry points exist | `docs/README.md`, `docs/product/README.md`, and `docs/product/product-plan.md` exist and define document ownership. | Done |
+| Product priority is explicit | Now / Next / Later is documented and can guide engineering or Codex work. | Done |
 | Consumer path is measurable | Detector upload, completion, continuation, try-on start, compare start, pricing click, checkout start, payment completion, and paid usage are tracked or explicitly queued. | Planned |
-| Credits Pack is visibly connected to high-intent moments | Post-result and compare flows clearly route users to Credits Pack when appropriate. | Planned |
-| Frame Compare is visible in product architecture | Compare is represented as an independent product section/page/flow rather than buried inside carousel or history. | Planned |
+| Credits Pack is visibly connected to high-intent moments | Post-result and compare flows clearly route users to Credits Pack when appropriate. | Partially implemented |
+| Frame Compare is visible in product architecture | Compare is represented as an independent product route/page/flow rather than buried inside carousel or history. | Done; needs homepage/product exposure review |
 
 ---
 
@@ -149,12 +149,20 @@ These should not drive current engineering unless a high-quality buyer pulls the
 
 **Why now:** Consumer subscription-first pricing is weak. Low-friction credits match episodic eyewear shopping better.
 
+**Current implementation:**
+
+- Credits Pack pricing and Stripe checkout exist.
+- Webhook updates purchased credits.
+- Quota deduction happens after successful generation.
+- Try-On and Compare have basic insufficient-credit routing.
+
 **Current tasks:**
 
 - Add or verify post-result Credits Pack CTA.
+- Strengthen Compare completion CTA for continued comparison.
 - Clarify that free Detector does not consume credits.
 - Ensure failed generations do not create confusing credit behavior.
-- Track pricing click, checkout start, payment completion, and paid usage.
+- Track pricing click, checkout start, payment completion, and paid usage with explicit or mapped events.
 
 **Success criteria:**
 
@@ -162,24 +170,36 @@ These should not drive current engineering unless a high-quality buyer pulls the
 - Credits Pack is visible at the right high-intent moments.
 - Credits conversion and paid usage can be measured.
 
-### Initiative 3: Frame Compare Productization
+### Initiative 3: Frame Compare Polish / Analytics / Exposure
 
-**Goal:** Make Frame Compare a first-class product capability.
+**Goal:** Make the implemented Frame Compare core experience visible, measurable, and conversion-ready.
 
 **Why now:** Comparing multiple frames is a validated high-intent behavior and strongly aligned with eyewear decision support.
 
+**Current implementation:**
+
+- Standalone route exists: `/try-on/glasses/compare`.
+- Public landing exists for anonymous users.
+- Authenticated users can upload one photo and compare up to 4 preset frames.
+- Compare respects available credits.
+- Generation runs per frame and displays queued / processing / completed / failed states.
+- Failed frames can be retried.
+- Completed outputs save to Dashboard History.
+
 **Current tasks:**
 
-- Give Frame Compare a clear product section or page entry.
-- Support comparing multiple candidate frames in a clean visual flow.
-- Connect Compare to Credits Pack when more generations are needed.
-- Track compare start, compare completion, and save/share actions.
+- Ensure Frame Compare is exposed from homepage and relevant product CTAs.
+- Add or map dedicated compare analytics events.
+- Add stronger post-completion Credits Pack CTA.
+- Decide whether comparison-board sharing is required now or later.
+- Decide whether uploaded/custom frames belong in this flow before Studio / Store.
 
 **Success criteria:**
 
 - Users can understand Compare as a separate decision-support feature.
 - Compare is not hidden inside a deep carousel or history flow.
 - Compare actions are measurable.
+- Compare contributes to Credits Pack conversion.
 
 ### Initiative 4: VisuTry Studio MVP Definition
 
@@ -230,15 +250,16 @@ These should not drive current engineering unless a high-quality buyer pulls the
 
 | Priority | Item | Type | Status | Source | Acceptance criteria |
 | --- | --- | --- | --- | --- | --- |
-| P0 | Create documentation entry points | Docs | In progress | Current governance need | `docs/README.md`, `docs/product/README.md`, and this file exist. |
-| P0 | Establish current product plan | Docs / Product | In progress | Current governance need | Now / Next / Later and sprint outcomes are documented. |
+| P0 | Create documentation entry points | Docs | Done | Current governance need | `docs/README.md`, `docs/product/README.md`, and this file exist. |
+| P0 | Establish current product plan | Docs / Product | Done | Current governance need | Now / Next / Later and sprint outcomes are documented. |
 | P0 | Validate Detector continuation CTAs | Product / Growth | Planned | SEO/GEO sync, SEO backlog | Detector result routes clearly to Advisor, Try-On, and/or Compare. |
 | P0 | Track consumer funnel events | Analytics | Planned | B2B roadmap Phase 0, SEO backlog | Upload → completion → continuation → pricing → checkout → paid usage can be measured. |
-| P0 | Clarify Credits Pack conversion moments | Product / Monetization | Planned | Commercial strategy | Credits Pack appears after high-intent result/compare moments. |
-| P0 | Productize Frame Compare entry | Product / UX | Planned | Commercial strategy, homepage discussion | Compare has an explicit product entry and not only a hidden carousel. |
-| P1 | Draft Frame Compare spec | Spec | Planned | Product plan | Spec defines flow, limits, events, credits behavior, and acceptance criteria. |
+| P0 | Clarify Credits Pack conversion moments | Product / Monetization | Partially implemented | Commercial strategy, Credits Pack spec | Credits Pack appears after high-intent result/compare moments. |
+| P0 | Polish Frame Compare entry and tracking | Product / UX / Analytics | Implemented core; needs polish | Commercial strategy, homepage discussion, Frame Compare spec | Compare remains explicit and measurable; homepage/product exposure is reviewed. |
+| P1 | Maintain Frame Compare spec | Spec | Implemented core; enhancement tracking | Product plan | Spec reflects current implementation and remaining enhancements. |
+| P1 | Maintain Credits Pack conversion spec | Spec | Partially implemented | Product plan | Spec separates implemented payment/quota foundation from conversion UX/events. |
 | P1 | Draft VisuTry Studio MVP spec | Spec | Planned | Commercial strategy | Spec defines client/session workflow and report link. |
-| P1 | Draft VisuTry Store MVP spec | Spec | Planned | B2B roadmap | Spec defines merchant profile, catalog, hosted link, lead capture, analytics. |
+| P1 | Draft VisuTry Store MVP spec | Spec | Draft | B2B roadmap | Spec defines merchant profile, catalog, hosted link, lead capture, analytics. |
 | P1 | Define merchant frame catalog schema | Data / Product | Planned | B2B roadmap, benchmarks | Minimal schema supports recommendation, display, tracking, and merchant analytics. |
 | P2 | Shopify beta wrapper | Platform | Later | B2B roadmap | Only after generic hosted/widget flow is validated. |
 | P2 | WooCommerce beta wrapper | Platform | Later | B2B roadmap | Only after Shopify/generic widget proof and support model are understood. |
@@ -250,7 +271,8 @@ These should not drive current engineering unless a high-quality buyer pulls the
 
 | Decision | Why it matters | Target timing |
 | --- | --- | --- |
-| Should Frame Compare be a standalone page, homepage section, or integrated flow only? | Determines IA, UX, and tracking. | Now |
+| Should uploaded/custom frames be added to Frame Compare before Studio / Store? | Determines whether Compare becomes more flexible for consumers before professional workflows. | Now |
+| Should comparison boards have public share URLs? | Determines data model and sharing surface. | Next |
 | Should the first professional workflow be Studio or Store? | Determines whether first validation targets stylists/consultants or merchants. | Next |
 | Should VisuTry Store start with hosted links only? | Avoids widget/platform complexity too early. | Next |
 | What is the minimum frame catalog schema? | Needed for Store, recommendations, analytics, and future widget. | Next |
@@ -296,3 +318,4 @@ When a product item becomes ready for engineering, create or update a spec under
 | Date | Change |
 | --- | --- |
 | 2026-07-08 | Created v0.1 active product plan with Now / Next / Later, current sprint, initiatives, backlog, and decision log. |
+| 2026-07-08 | Updated plan after code review: Frame Compare core is implemented; Credits Pack conversion is partially implemented. |
