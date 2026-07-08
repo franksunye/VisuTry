@@ -18,10 +18,10 @@ const businessTypes = [
 ]
 
 const intentOptions = [
-  'Get a sample Store Link',
-  'Join the pilot',
+  'Create my sample store',
   'Book a demo',
-  'Discuss agency partnership',
+  'Discuss my frame catalog',
+  'Explore agency partnership',
 ]
 
 export function StoreLeadForm({ locale }: StoreLeadFormProps) {
@@ -37,11 +37,11 @@ export function StoreLeadForm({ locale }: StoreLeadFormProps) {
   const hasTrackedFormStart = useRef(false)
 
   const mailtoHref = useMemo(() => {
-    const subject = `VisuTry Store pilot inquiry - ${businessName || name || 'New lead'}`
+    const subject = `VisuTry Store request - ${businessName || name || 'New lead'}`
     const body = [
       'Hi VisuTry team,',
       '',
-      'I am interested in VisuTry Store.',
+      'I would like to see how VisuTry Store could work for my eyewear business.',
       '',
       `Name: ${name}`,
       `Email: ${email}`,
@@ -79,16 +79,8 @@ export function StoreLeadForm({ locale }: StoreLeadFormProps) {
       frame_count: frameCount,
     })
 
-    if (intent === 'Get a sample Store Link') {
+    if (intent === 'Create my sample store') {
       analytics.trackCustomEvent('store_sample_link_requested', {
-        source: 'store_landing',
-        locale,
-        business_type: businessType,
-      })
-    }
-
-    if (intent === 'Join the pilot') {
-      analytics.trackCustomEvent('store_pilot_requested', {
         source: 'store_landing',
         locale,
         business_type: businessType,
@@ -97,6 +89,14 @@ export function StoreLeadForm({ locale }: StoreLeadFormProps) {
 
     if (intent === 'Book a demo') {
       analytics.trackCustomEvent('store_demo_requested', {
+        source: 'store_landing',
+        locale,
+        business_type: businessType,
+      })
+    }
+
+    if (intent === 'Discuss my frame catalog') {
+      analytics.trackCustomEvent('store_pilot_requested', {
         source: 'store_landing',
         locale,
         business_type: businessType,
@@ -112,11 +112,11 @@ export function StoreLeadForm({ locale }: StoreLeadFormProps) {
       <div className="mb-5">
         <div className="mb-2 inline-flex items-center gap-2 rounded-lg border border-blue-100 bg-blue-50 px-3 py-1 text-sm font-semibold text-blue-700">
           <Mail className="h-4 w-4" />
-          Pilot interest
+          Early access
         </div>
-        <h2 className="text-2xl font-bold text-gray-950">Get a sample Store Link</h2>
+        <h2 className="text-2xl font-bold text-gray-950">Create a sample store for your frames</h2>
         <p className="mt-2 text-sm leading-6 text-gray-600">
-          Tell us about your frames. We will use this to understand whether VisuTry Store is useful for your sales workflow.
+          Share a few details and we will help you see what a hosted AI try-on and frame comparison experience could look like for your business.
         </p>
       </div>
 
@@ -133,7 +133,7 @@ export function StoreLeadForm({ locale }: StoreLeadFormProps) {
         </label>
 
         <label className="block">
-          <span className="mb-1 block text-sm font-semibold text-gray-800">Email</span>
+          <span className="mb-1 block text-sm font-semibold text-gray-800">Work email</span>
           <input
             required
             type="email"
@@ -179,7 +179,7 @@ export function StoreLeadForm({ locale }: StoreLeadFormProps) {
         </label>
 
         <label className="block">
-          <span className="mb-1 block text-sm font-semibold text-gray-800">Approximate frame count</span>
+          <span className="mb-1 block text-sm font-semibold text-gray-800">How many frames do you want to show first?</span>
           <select
             value={frameCount}
             onChange={(event) => setFrameCount(event.target.value)}
@@ -193,7 +193,7 @@ export function StoreLeadForm({ locale }: StoreLeadFormProps) {
         </label>
 
         <label className="block">
-          <span className="mb-1 block text-sm font-semibold text-gray-800">What would you like?</span>
+          <span className="mb-1 block text-sm font-semibold text-gray-800">What would help you most?</span>
           <select
             value={intent}
             onChange={(event) => setIntent(event.target.value)}
@@ -206,13 +206,13 @@ export function StoreLeadForm({ locale }: StoreLeadFormProps) {
         </label>
 
         <label className="block sm:col-span-2">
-          <span className="mb-1 block text-sm font-semibold text-gray-800">Notes</span>
+          <span className="mb-1 block text-sm font-semibold text-gray-800">Anything we should know?</span>
           <textarea
             value={notes}
             onChange={(event) => setNotes(event.target.value)}
             rows={3}
             className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 outline-none transition focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
-            placeholder="Tell us what you sell, where your shoppers come from, or what you want to test."
+            placeholder="Tell us where shoppers find you, what frames you sell, or what you want to improve online."
           />
         </label>
       </div>
@@ -221,18 +221,18 @@ export function StoreLeadForm({ locale }: StoreLeadFormProps) {
         type="submit"
         className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-lg bg-blue-600 px-5 py-3 text-sm font-bold text-white shadow-sm shadow-blue-600/20 transition hover:bg-blue-700 sm:w-auto"
       >
-        Send pilot inquiry
+        Request my sample store
         <ArrowRight className="h-4 w-4" />
       </button>
 
       {submitted && (
         <p className="mt-3 text-sm leading-6 text-green-700">
-          Opening your email client with the inquiry details. If it does not open, email hello@visutry.com with your store information.
+          Opening your email client with the request details. If it does not open, email hello@visutry.com with your store information.
         </p>
       )}
 
       <p className="mt-4 text-xs leading-5 text-gray-500">
-        v0 uses email-based lead capture for validation. We will move to a database or CRM workflow after the pilot process is confirmed.
+        No commitment. We will use your information only to respond to your Store request.
       </p>
     </form>
   )
