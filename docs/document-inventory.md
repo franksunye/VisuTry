@@ -46,8 +46,8 @@ It should answer:
 | `docs/strategy/commercial-benchmarks.md` | Benchmark / market reference | Living supporting reference | Product / Strategy | 2026-07-08 | Add external references here first. |
 | `docs/product/README.md` | Product documentation guide | Active source of truth | Product | 2026-07-08 | Keep current. |
 | `docs/product/product-plan.md` | Product execution plan | Active source of truth | Product | 2026-07-08 | Review weekly. |
-| `docs/project/architecture.md` | Technical architecture | Active source of truth for current technical reality | Engineering | 2026-07-08 | Needs future review against current code. |
-| `docs/guides/development-guide.md` | Development guide | Active operating guide | Engineering | 2026-07-08 | Needs future review for current env and workflows. |
+| `docs/project/architecture.md` | Technical architecture | Active source of truth for current technical reality | Engineering | 2026-07-08 | Refreshed against current stack and product direction. |
+| `docs/guides/development-guide.md` | Development guide | Active operating guide | Engineering | 2026-07-08 | Refreshed against `.env.example` and `package.json`. |
 | `docs/project/seo-backlog.md` | SEO / growth backlog | Active operating plan | Growth / Product | 2026-07-08 | Keep as SEO/Growth execution backlog. |
 
 ---
@@ -100,7 +100,7 @@ It should answer:
 | P1 | Add status headers to active dated strategy documents. | Partially done |
 | P1 | Mark or archive expired content strategy documents. | Done: marked historical; archive move later if needed. |
 | P1 | Add source-of-truth references to GTM handbook. | Done |
-| P1 | Review architecture and development guide against current code. | Planned |
+| P1 | Review architecture and development guide against current code. | Done |
 | P2 | Consider moving all historical strategy documents into archive after status review. | Later |
 
 ---
@@ -124,3 +124,4 @@ During each documentation review, answer:
 | 2026-07-08 | Created v0.1 document inventory and cleanup backlog. |
 | 2026-07-08 | Updated inventory after adding decisions, product specs, and legacy document audit. |
 | 2026-07-08 | Updated P1 governance status after adding B2B roadmap header, GTM source-of-truth header, and historical notice to Q4 content plan. |
+| 2026-07-08 | Marked technical documentation review complete after refreshing architecture and development guide. |
