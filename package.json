@@ -104,7 +104,6 @@
   },
   "devDependencies": {
     "@next/bundle-analyzer": "^14.0.0",
-    "@next/swc-darwin-arm64": "^16.2.10",
     "@playwright/test": "^1.55.0",
     "@testing-library/dom": "^10.4.1",
     "@testing-library/jest-dom": "^6.8.0",
@@ -128,6 +127,7 @@
     "typescript": "^5.3.3"
   },
   "optionalDependencies": {
+    "@next/swc-darwin-arm64": "^16.2.10",
     "canvas": "^3.2.0"
   }
 }
