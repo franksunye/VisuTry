@@ -7,6 +7,7 @@ import { AlertCircle, CheckCircle2, Loader2, RotateCcw, Upload } from 'lucide-re
 import { FreeFaceShapeResult } from '@/components/face-shape/FreeFaceShapeResult'
 import { analyzeFaceLandmarkFile } from '@/lib/face-landmark-client'
 import { analytics } from '@/lib/analytics'
+import type { FaceShapeFailureReason } from '@/config/face-analysis'
 import type { FaceLandmarkDetectionResult } from '@/lib/face-landmark-client'
 import type { FaceGeometryAnalysis } from '@/types/face-analysis'
 
@@ -23,11 +24,11 @@ const DETECTOR_FEATURES = [
   'Quality checks for multiple faces, tilt, and face size',
 ] as const
 
-function recordDetection(status: 'COMPLETED' | 'FAILED') {
+function recordDetection(status: 'COMPLETED' | 'FAILED', failureReason?: FaceShapeFailureReason) {
   void fetch('/api/face-shape-detector/usage', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ status }),
+    body: JSON.stringify({ status, failureReason }),
     keepalive: true,
   }).catch(() => {
     // Business telemetry must never interrupt the on-device detector experience.
@@ -98,13 +99,13 @@ export function FreeFaceShapeDetector({ locale }: FreeFaceShapeDetectorProps) {
         const message = analysis.geometry.warnings[0] ?? 'This photo could not be measured. Try a clear, straight-on image.'
         setError(message)
         analytics.trackFaceShapeDetectorFailed(message)
-        recordDetection('FAILED')
+        recordDetection('FAILED', analysis.geometry.failureReason ?? 'unknown')
       }
     } catch {
       const message = 'Face analysis could not start in this browser. Try a recent version of Chrome, Edge, or Safari.'
       setError(message)
       analytics.trackFaceShapeDetectorFailed(message)
-      recordDetection('FAILED')
+      recordDetection('FAILED', 'unknown')
     } finally {
       setIsAnalyzing(false)
     }

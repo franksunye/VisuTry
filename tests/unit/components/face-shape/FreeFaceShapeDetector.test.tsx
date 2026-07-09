@@ -57,9 +57,13 @@ const measuredFileResult = {
 }
 
 describe('FreeFaceShapeDetector', () => {
+  const mockFetch = jest.fn(() => Promise.resolve({ ok: true }))
+
   beforeEach(() => {
     mockAnalyzeFaceLandmarkFile.mockClear()
     mockAnalyzeFaceLandmarkFile.mockResolvedValue(measuredFileResult)
+    mockFetch.mockClear()
+    global.fetch = mockFetch as unknown as typeof global.fetch
     Object.defineProperty(URL, 'createObjectURL', {
       configurable: true,
       value: jest.fn(() => 'blob:face-photo'),
@@ -116,5 +120,39 @@ describe('FreeFaceShapeDetector', () => {
     expect(await screen.findByText('Choose a JPG, PNG, or WebP image.')).toBeInTheDocument()
     expect(trackFailed).toHaveBeenCalledWith('Choose a JPG, PNG, or WebP image.')
     expect(mockAnalyzeFaceLandmarkFile).not.toHaveBeenCalled()
+  })
+
+  it('records FAILED with failure reason when measurement is unavailable', async () => {
+    const unavailableResult: FaceGeometryAnalysis = {
+      version: 'landmark-v1',
+      status: 'unavailable',
+      source: 'ai-fallback',
+      faceDetected: false,
+      faceCount: 0,
+      qualityScore: 0,
+      signals: [],
+      warnings: ['Face landmarks were not available for this photo.'],
+      failureReason: 'no_face',
+    }
+    mockAnalyzeFaceLandmarkFile.mockResolvedValue({
+      geometry: unavailableResult,
+      detection: null,
+    })
+
+    render(<FreeFaceShapeDetector locale="en" />)
+
+    const input = screen.getByLabelText(/choose a face photo/i)
+    const file = new File(['portrait'], 'portrait.jpg', { type: 'image/jpeg' })
+    fireEvent.change(input, { target: { files: [file] } })
+
+    expect(await screen.findByText(/face landmarks were not available/i)).toBeInTheDocument()
+
+    expect(mockFetch).toHaveBeenCalledWith(
+      '/api/face-shape-detector/usage',
+      expect.objectContaining({
+        method: 'POST',
+        body: JSON.stringify({ status: 'FAILED', failureReason: 'no_face' }),
+      }),
+    )
   })
 })

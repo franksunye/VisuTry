@@ -138,6 +138,22 @@ describe('face-landmark-metrics', () => {
     expect(geometry.status).toBe('unavailable')
     expect(geometry.faceCount).toBe(2)
     expect(geometry.warnings[0]).toContain('exactly one face')
+    expect(geometry.failureReason).toBe('multiple_faces')
+  })
+
+  it('reports no_face when no landmarks are provided', () => {
+    const geometry = analyzeFaceLandmarks(null, { faceCount: 0 })
+
+    expect(geometry.status).toBe('unavailable')
+    expect(geometry.failureReason).toBe('no_face')
+  })
+
+  it('reports missing_landmarks when face is detected but landmarks are insufficient', () => {
+    const shortLandmarks = Array.from({ length: 100 }, (_, i) => ({ x: 0.5, y: 0.5, z: 0 }))
+    const geometry = analyzeFaceLandmarks(shortLandmarks, { faceCount: 1 })
+
+    expect(geometry.status).toBe('unavailable')
+    expect(geometry.failureReason).toBe('missing_landmarks')
   })
 
   it('rejects a face that is too tilted for reliable measurement', () => {
@@ -148,6 +164,17 @@ describe('face-landmark-metrics', () => {
 
     expect(geometry.status).toBe('unavailable')
     expect(geometry.warnings[0]).toContain('too tilted')
+    expect(geometry.failureReason).toBe('tilted')
+  })
+
+  it('rejects a face that is off-center', () => {
+    const geometry = analyzeFaceLandmarks(makeLandmarks({
+      noseBridge: { x: 0.62, y: 0.42 },
+    }), { faceCount: 1 })
+
+    expect(geometry.status).toBe('unavailable')
+    expect(geometry.warnings[0]).toContain('off-center')
+    expect(geometry.failureReason).toBe('off_center')
   })
 
   it('rejects a face that occupies too little of the image', () => {
@@ -161,6 +188,7 @@ describe('face-landmark-metrics', () => {
 
     expect(geometry.status).toBe('unavailable')
     expect(geometry.warnings[0]).toContain('too small')
+    expect(geometry.failureReason).toBe('too_small')
   })
 
   it('builds landmark-sourced metrics when geometry is measured', () => {
@@ -210,5 +238,50 @@ describe('face-landmark-metrics', () => {
     expect(normalized?.alternativeShapes).toEqual(['oval', 'round'])
     expect(normalized?.ratios?.faceAspectRatio).toBe(2.2)
     expect(normalized?.ratios?.eyeLineTiltDeg).toBe(35)
+    expect(normalized?.failureReason).toBeUndefined()
+  })
+
+  it('preserves failureReason for unavailable geometry and rejects invalid values', () => {
+    const valid = normalizeGeometryAnalysis({
+      version: 'landmark-v1',
+      status: 'unavailable',
+      source: 'ai-fallback',
+      faceDetected: false,
+      faceCount: 0,
+      qualityScore: 0,
+      signals: [],
+      warnings: ['No face detected'],
+      failureReason: 'no_face',
+    })
+
+    expect(valid?.failureReason).toBe('no_face')
+
+    const invalid = normalizeGeometryAnalysis({
+      version: 'landmark-v1',
+      status: 'unavailable',
+      source: 'ai-fallback',
+      faceDetected: false,
+      faceCount: 0,
+      qualityScore: 0,
+      signals: [],
+      warnings: ['Something'],
+      failureReason: 'bogus_reason',
+    })
+
+    expect(invalid?.failureReason).toBeUndefined()
+
+    const measuredWithReason = normalizeGeometryAnalysis({
+      version: 'landmark-v1',
+      status: 'measured',
+      source: 'mediapipe-face-landmarker',
+      faceDetected: true,
+      faceCount: 1,
+      qualityScore: 90,
+      signals: [],
+      warnings: [],
+      failureReason: 'no_face',
+    })
+
+    expect(measuredWithReason?.failureReason).toBeUndefined()
   })
 })

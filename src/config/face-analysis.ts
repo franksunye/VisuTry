@@ -64,3 +64,64 @@ export const FACE_ANALYSIS_LAYOUT = {
 export function isCanonicalFaceShape(value: string): value is CanonicalFaceShape {
   return (CANONICAL_FACE_SHAPES as readonly string[]).includes(value)
 }
+
+/**
+ * Categorized failure reasons for the on-device face-shape detector.
+ *
+ * Photo-quality issues (user-fixable):
+ *   no_face, multiple_faces, too_small, tilted, off_center,
+ *   missing_landmarks, geometry_error
+ *
+ * Infrastructure issues (not user-fixable):
+ *   model_load_failed, unsupported_browser
+ *
+ * Fallback:
+ *   unknown
+ */
+export const FACE_SHAPE_FAILURE_REASONS = [
+  'no_face',
+  'multiple_faces',
+  'too_small',
+  'tilted',
+  'off_center',
+  'missing_landmarks',
+  'geometry_error',
+  'model_load_failed',
+  'unsupported_browser',
+  'unknown',
+] as const
+
+export type FaceShapeFailureReason = (typeof FACE_SHAPE_FAILURE_REASONS)[number]
+
+export const FACE_SHAPE_FAILURE_REASON_LABELS: Record<FaceShapeFailureReason, string> = {
+  no_face: 'No face detected',
+  multiple_faces: 'Multiple faces',
+  too_small: 'Face too small',
+  tilted: 'Photo tilted',
+  off_center: 'Face off-center',
+  missing_landmarks: 'Landmarks incomplete',
+  geometry_error: 'Geometry error',
+  model_load_failed: 'Model load failed',
+  unsupported_browser: 'Unsupported browser',
+  unknown: 'Unknown',
+}
+
+export const FACE_SHAPE_FAILURE_REASON_GROUPS: Record<
+  'photo_quality' | 'infrastructure',
+  FaceShapeFailureReason[]
+> = {
+  photo_quality: [
+    'no_face',
+    'multiple_faces',
+    'too_small',
+    'tilted',
+    'off_center',
+    'missing_landmarks',
+    'geometry_error',
+  ],
+  infrastructure: ['model_load_failed', 'unsupported_browser'],
+}
+
+export function isFaceShapeFailureReason(value: string): value is FaceShapeFailureReason {
+  return (FACE_SHAPE_FAILURE_REASONS as readonly string[]).includes(value)
+}

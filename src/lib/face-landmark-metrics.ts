@@ -1,7 +1,9 @@
 import {
   CANONICAL_FACE_SHAPES,
   CanonicalFaceShape,
+  FaceShapeFailureReason,
   isCanonicalFaceShape,
+  isFaceShapeFailureReason,
 } from '@/config/face-analysis'
 import {
   FaceAnalysisMetric,
@@ -81,7 +83,11 @@ function clamp(value: number, min: number, max: number): number {
   return Math.min(max, Math.max(min, value))
 }
 
-function buildUnavailable(reason: string, faceCount = 0): FaceGeometryAnalysis {
+function buildUnavailable(
+  reason: FaceShapeFailureReason,
+  message: string,
+  faceCount = 0,
+): FaceGeometryAnalysis {
   return {
     version: 'landmark-v1',
     status: 'unavailable',
@@ -90,7 +96,8 @@ function buildUnavailable(reason: string, faceCount = 0): FaceGeometryAnalysis {
     faceCount,
     qualityScore: 0,
     signals: [],
-    warnings: [reason],
+    warnings: [message],
+    failureReason: reason,
   }
 }
 
@@ -101,12 +108,17 @@ export function analyzeFaceLandmarks(
   const faceCount = options?.faceCount ?? (landmarks?.length ? 1 : 0)
   if (faceCount > 1) {
     return buildUnavailable(
+      'multiple_faces',
       'Multiple faces were detected. Use a photo with exactly one face.',
-      faceCount
+      faceCount,
     )
   }
   if (!landmarks || landmarks.length < MIN_FACE_MESH_POINTS) {
-    return buildUnavailable('Face landmarks were not available for this photo.', faceCount)
+    return buildUnavailable(
+      faceCount === 0 ? 'no_face' : 'missing_landmarks',
+      'Face landmarks were not available for this photo.',
+      faceCount,
+    )
   }
 
   const imageWidth = normalizeDimension(options?.imageWidth)
@@ -131,7 +143,7 @@ export function analyzeFaceLandmarks(
   }
 
   if (Object.values(required).some((point) => !point)) {
-    return buildUnavailable('Required facial reference points were missing.', faceCount)
+    return buildUnavailable('missing_landmarks', 'Required facial reference points were missing.', faceCount)
   }
 
   const top = required.top!
@@ -167,15 +179,16 @@ export function analyzeFaceLandmarks(
     Math.abs(noseBridge.x - faceCenterX) * imageWidth / Math.max(faceWidth, 0.001)
 
   if (faceHeight <= 0 || faceWidth <= 0 || cheekWidth <= 0) {
-    return buildUnavailable('Face geometry could not be measured from this photo.', faceCount)
+    return buildUnavailable('geometry_error', 'Face geometry could not be measured from this photo.', faceCount)
   }
 
   const horizontalFaceSpan = Math.abs(rightFace.x - leftFace.x)
   const verticalFaceSpan = Math.abs(chin.y - top.y)
   if (horizontalFaceSpan < MIN_FACE_SPAN || verticalFaceSpan < MIN_FACE_SPAN) {
     return buildUnavailable(
+      'too_small',
       'The face is too small in the photo. Move closer and keep the full face visible.',
-      faceCount
+      faceCount,
     )
   }
 
@@ -193,14 +206,16 @@ export function analyzeFaceLandmarks(
   const warnings: string[] = []
   if (Math.abs(ratios.eyeLineTiltDeg) > MAX_EYE_LINE_TILT_DEG) {
     return buildUnavailable(
+      'tilted',
       'The photo is too tilted for reliable face-shape measurement. Keep both eyes level and try again.',
-      faceCount
+      faceCount,
     )
   }
   if (ratios.symmetryOffset > MAX_SYMMETRY_OFFSET) {
     return buildUnavailable(
+      'off_center',
       'The face appears turned or off-center. Use a straight-on photo and try again.',
-      faceCount
+      faceCount,
     )
   }
   if (Math.abs(ratios.eyeLineTiltDeg) > 8) {
@@ -426,6 +441,12 @@ export function normalizeGeometryAnalysis(value: unknown): FaceGeometryAnalysis 
         .slice(0, 2)
     : undefined
   const ratios = normalizeRatios(candidate.ratios)
+  const failureReason =
+    candidate.status === 'unavailable' &&
+    typeof candidate.failureReason === 'string' &&
+    isFaceShapeFailureReason(candidate.failureReason)
+      ? candidate.failureReason
+      : undefined
 
   return {
     version: 'landmark-v1',
@@ -440,6 +461,7 @@ export function normalizeGeometryAnalysis(value: unknown): FaceGeometryAnalysis 
     ratios: candidate.status === 'measured' ? ratios : undefined,
     signals: normalizeStringArray(candidate.signals, 6),
     warnings: normalizeStringArray(candidate.warnings, 6),
+    failureReason,
   }
 }
 

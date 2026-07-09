@@ -1,4 +1,4 @@
-import { CanonicalFaceShape } from '@/config/face-analysis'
+import { CanonicalFaceShape, FaceShapeFailureReason } from '@/config/face-analysis'
 
 export interface FaceAnalysisAiResult {
   faceShape: CanonicalFaceShape
@@ -88,6 +88,8 @@ export interface FaceGeometryAnalysis {
   ratios?: FaceGeometryRatios
   signals: string[]
   warnings: string[]
+  /** Categorized failure reason; only set when status is 'unavailable'. */
+  failureReason?: FaceShapeFailureReason
 }
 
 export interface FrameRecommendation {

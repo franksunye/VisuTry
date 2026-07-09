@@ -1,4 +1,5 @@
 import { analyzeFaceLandmarks } from '@/lib/face-landmark-metrics'
+import { FaceShapeFailureReason } from '@/config/face-analysis'
 import { FaceGeometryAnalysis, FaceLandmarkPoint } from '@/types/face-analysis'
 
 const MEDIAPIPE_VERSION = '0.10.35'
@@ -99,7 +100,7 @@ export async function detectFaceLandmarksFromImage(
 export async function analyzeFaceLandmarkFile(file: File): Promise<FaceLandmarkFileResult> {
   if (typeof window === 'undefined' || typeof createImageBitmap === 'undefined') {
     return {
-      geometry: unavailableGeometry('Face landmark detection is not available in this browser.'),
+      geometry: unavailableGeometry('unsupported_browser', 'Face landmark detection is not available in this browser.'),
       detection: null,
     }
   }
@@ -119,9 +120,10 @@ export async function analyzeFaceLandmarkFile(file: File): Promise<FaceLandmarkF
   } catch (error) {
     return {
       geometry: unavailableGeometry(
+        'model_load_failed',
         error instanceof Error
           ? `Face landmark detection failed: ${error.message}`
-          : 'Face landmark detection failed.'
+          : 'Face landmark detection failed.',
       ),
       detection: null,
     }
@@ -135,7 +137,10 @@ export async function analyzeFaceGeometryFromFile(file: File): Promise<FaceGeome
   return geometry
 }
 
-function unavailableGeometry(message: string): FaceGeometryAnalysis {
+function unavailableGeometry(
+  reason: FaceShapeFailureReason,
+  message: string,
+): FaceGeometryAnalysis {
   return {
     version: 'landmark-v1',
     status: 'unavailable',
@@ -145,5 +150,6 @@ function unavailableGeometry(message: string): FaceGeometryAnalysis {
     qualityScore: 0,
     signals: [],
     warnings: [message],
+    failureReason: reason,
   }
 }

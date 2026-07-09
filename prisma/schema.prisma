@@ -147,11 +147,13 @@ model FaceAnalysisTask {
 }
 
 model FaceShapeDetection {
-  id        String     @id @default(cuid())
-  status    TaskStatus
-  createdAt DateTime   @default(now())
+  id            String     @id @default(cuid())
+  status        TaskStatus
+  failureReason String?
+  createdAt     DateTime   @default(now())
 
   @@index([status, createdAt])
+  @@index([failureReason, createdAt])
 }
 
 model Payment {
