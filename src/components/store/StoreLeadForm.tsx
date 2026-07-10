@@ -56,7 +56,7 @@ export function StoreLeadForm({ locale }: StoreLeadFormProps) {
       `Locale: ${locale}`,
     ].join('\n')
 
-    return `mailto:hello@visutry.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`
+    return `mailto:support@visutry.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`
   }, [businessName, businessType, email, frameCount, intent, locale, name, notes, website])
 
   function handleFocus() {
@@ -227,7 +227,7 @@ export function StoreLeadForm({ locale }: StoreLeadFormProps) {
 
       {submitted && (
         <p className="mt-3 text-sm leading-6 text-green-700">
-          Opening your email client with the request details. If it does not open, email hello@visutry.com with your store information.
+          Opening your email client with the request details. If it does not open, email support@visutry.com with your store information.
         </p>
       )}
 
