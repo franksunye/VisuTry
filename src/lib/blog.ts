@@ -20,6 +20,19 @@ export interface BlogPost {
 // Static blog posts list (can be fetched from database in the future)
 export const staticBlogPosts: BlogPost[] = [
   {
+    slug: 'eyewear-trends-2026-glasses-sunglasses',
+    title: 'Eyewear Trends 2026: 16 Glasses and Sunglasses Styles to Try',
+    description: 'Explore 16 defining eyewear styles for 2026, from timeless Wayfarers and refined optical frames to shield sunglasses, rimless geometry, and bold statement looks.',
+    publishedAt: '2026-07-20T10:00:00Z',
+    modifiedAt: '2026-07-20T10:00:00Z',
+    author: 'VisuTry Team',
+    category: 'Eyewear Trends',
+    readTime: '12 min read',
+    tags: ['Eyewear Trends', 'Glasses Trends 2026', 'Sunglasses Trends', 'Style Explorer', 'Virtual Try-On'],
+    isPublished: true,
+    coverImage: '/blog-covers/ai-virtual-tryon.jpg',
+  },
+  {
     slug: 'ai-face-analysis-for-glasses-guide',
     title: 'AI Face Shape Detector for Glasses - Which Glasses Suit My Face?',
     description: 'Use AI face shape detection to find which glasses suit your face, shortlist frame styles, and move from face analysis to virtual try-on.',
