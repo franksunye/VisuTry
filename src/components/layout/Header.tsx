@@ -3,7 +3,7 @@
 import { useSession } from 'next-auth/react'
 import Link from 'next/link'
 import { usePathname, useParams } from 'next/navigation'
-import { Glasses, Menu, X, Sparkles } from 'lucide-react'
+import { ChevronDown, Glasses, Menu, X, Sparkles } from 'lucide-react'
 import { LoginButton } from '@/components/auth/LoginButton'
 import { UserMenu } from '@/components/auth/UserMenu'
 import { LanguageSwitcher } from '@/components/LanguageSwitcher'
@@ -31,15 +31,26 @@ export function Header({ transparent = false }: HeaderProps) {
   // Check if current path is the home page for this locale
   const isHomePage = pathname === `/${locale}` || pathname === `/${locale}/`
 
-  // Navigation links with locale prefix
-  const navLinks = useMemo(() => [
+  const discoveryLinks = useMemo(() => [
     { href: `/${locale}/face-shape-detector`, label: t('faceShapeDetector') },
     { href: `/${locale}/face-analysis`, label: t('faceAnalysis') },
-    { href: `/${locale}/try-on/glasses`, label: t('tryGlasses') },
-    { href: `/${locale}/style-explorer`, label: 'Style Explorer' },
-    { href: `/${locale}/try-on/glasses/compare`, label: t('compare') },
+    { href: `/${locale}/style-explorer`, label: t('styleExplorer') },
+  ], [locale, t])
+
+  const desktopNavLinks = useMemo(() => [
+    { href: `/${locale}/try-on/glasses`, label: t('tryOnShort') },
+    { href: `/${locale}/try-on/glasses/compare`, label: t('compareShort') },
     { href: `/${locale}/pricing`, label: t('pricing') },
   ], [locale, t])
+
+  const mobileNavLinks = useMemo(() => [
+    ...discoveryLinks,
+    { href: `/${locale}/try-on/glasses`, label: t('tryGlasses') },
+    { href: `/${locale}/try-on/glasses/compare`, label: t('compare') },
+    { href: `/${locale}/pricing`, label: t('pricing') },
+  ], [discoveryLinks, locale, t])
+
+  const isDiscoveryActive = discoveryLinks.some((link) => pathname === link.href)
   
   return (
     <header className={cn(
@@ -49,11 +60,11 @@ export function Header({ transparent = false }: HeaderProps) {
         : "bg-white/80 backdrop-blur-sm"
     )}>
       <nav className="container mx-auto px-4 py-3" aria-label="Main navigation">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between gap-4">
           {/* Logo */}
           <Link
             href={`/${locale}`}
-            className="flex items-center space-x-2 hover:opacity-80 transition-opacity"
+            className="flex shrink-0 items-center space-x-2 transition-opacity hover:opacity-80"
             aria-label="VisuTry Home"
           >
             <Glasses className="w-8 h-8 text-blue-600" />
@@ -61,8 +72,34 @@ export function Header({ transparent = false }: HeaderProps) {
           </Link>
           
           {/* Desktop Navigation */}
-          <div className="hidden lg:flex items-center space-x-6">
-            {navLinks.map((link) => {
+          <div className="hidden items-center gap-6 lg:flex">
+            <details className="group relative">
+              <summary
+                className={cn(
+                  'flex cursor-pointer list-none items-center gap-1 whitespace-nowrap text-sm font-medium transition-colors hover:text-blue-600 [&::-webkit-details-marker]:hidden',
+                  isDiscoveryActive ? 'text-blue-600' : 'text-gray-700',
+                )}
+              >
+                {t('discover')}
+                <ChevronDown className="h-3.5 w-3.5 transition-transform group-open:rotate-180" />
+              </summary>
+              <div className="absolute left-1/2 top-full z-50 mt-3 w-64 -translate-x-1/2 rounded-xl border border-gray-200 bg-white p-2 shadow-xl">
+                {discoveryLinks.map((link) => (
+                  <Link
+                    key={link.href}
+                    href={link.href}
+                    className={cn(
+                      'block rounded-lg px-3 py-2.5 text-sm font-medium transition-colors hover:bg-blue-50 hover:text-blue-700',
+                      pathname === link.href ? 'bg-blue-50 text-blue-700' : 'text-gray-700',
+                    )}
+                  >
+                    {link.label}
+                  </Link>
+                ))}
+              </div>
+            </details>
+
+            {desktopNavLinks.map((link) => {
               const isPricingLink = link.href.includes('/pricing')
               return (
                 <div key={link.href} className="relative flex items-center">
@@ -82,7 +119,7 @@ export function Header({ transparent = false }: HeaderProps) {
                       }
                     }}
                     className={cn(
-                      'text-sm font-medium transition-colors hover:text-blue-600',
+                      'whitespace-nowrap text-sm font-medium transition-colors hover:text-blue-600',
                       pathname === link.href
                         ? 'text-blue-600 border-b-2 border-blue-600 pb-1'
                         : 'text-gray-700'
@@ -96,7 +133,7 @@ export function Header({ transparent = false }: HeaderProps) {
           </div>
           
           {/* CTA + Auth Section */}
-          <div className="flex items-center space-x-3">
+          <div className="flex shrink-0 items-center space-x-3">
             {/* Language Switcher - Desktop */}
             <div className="hidden lg:block">
               <LanguageSwitcher />
@@ -106,10 +143,10 @@ export function Header({ transparent = false }: HeaderProps) {
             {isAuthenticated ? (
               <Link
                 href={`/${locale}/try-on`}
-                className="hidden sm:flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium text-sm"
+                className="hidden items-center whitespace-nowrap rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700 sm:flex"
               >
                 <Sparkles className="w-4 h-4 mr-2" />
-                {tCommon('startTryOn')}
+                {t('tryOnShort')}
               </Link>
             ) : !isHomePage ? (
               <Link
@@ -151,7 +188,7 @@ export function Header({ transparent = false }: HeaderProps) {
         >
           <div className="border-t border-gray-200 pt-4 pb-4 mt-3">
             <div className="flex flex-col space-y-3">
-              {navLinks.map((link) => {
+              {mobileNavLinks.map((link) => {
                 return (
                   <Link
                     key={link.href}
