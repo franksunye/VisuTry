@@ -3,7 +3,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import {
   ArrowRight,
-  BriefcaseBusiness,
+  Briefcase as BriefcaseBusiness,
   CheckCircle2,
   Glasses,
   ShieldCheck,
