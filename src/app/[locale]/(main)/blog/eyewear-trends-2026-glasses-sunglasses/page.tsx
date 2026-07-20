@@ -18,7 +18,7 @@ const description =
   'Explore 16 defining eyewear styles for 2026, from timeless Wayfarers and refined optical frames to shield sunglasses, rimless geometry, and bold statement looks.'
 const coverImage = '/blog-covers/ai-virtual-tryon.jpg'
 const publishedAt = '2026-07-20T10:00:00Z'
-const modifiedAt = '2026-07-20T10:00:00Z'
+const modifiedAt = '2026-07-20T15:00:00Z'
 
 export async function generateMetadata({ params }: { params: { locale: string } }): Promise<Metadata> {
   return generateI18nSEO({
@@ -67,7 +67,7 @@ const groups: Array<{
         id: 'sun-wayfarer-black',
         name: 'Classic Black Wayfarer',
         category: 'Sunglasses',
-        image: '/assets/glasses-presets/sun-wayfarer-black.png',
+        image: '/assets/glasses-presets/style-explorer/sun-wayfarer-black.jpg',
         signal: 'Direct, versatile, and quietly confident.',
         bestFor: 'Everyday wear, travel, casual tailoring, and a first serious pair of sunglasses.',
         intensity: 3,
@@ -77,7 +77,7 @@ const groups: Array<{
         id: 'sun-aviator-gold',
         name: 'Gold Aviator',
         category: 'Sunglasses',
-        image: '/assets/glasses-presets/sun-aviator-gold.png',
+        image: '/assets/glasses-presets/style-explorer/sun-aviator-gold.jpg',
         signal: 'Relaxed confidence with a recognizable vintage reference.',
         bestFor: 'Travel, outdoor use, casual looks, and users who prefer metal over acetate.',
         intensity: 3,
@@ -87,7 +87,7 @@ const groups: Array<{
         id: 'optical-warm-tortoise',
         name: 'Warm Tortoise Acetate',
         category: 'Optical',
-        image: '/assets/glasses-presets/optical-warm-tortoise.png',
+        image: '/assets/glasses-presets/style-explorer/optical-warm-tortoise.jpg',
         signal: 'Approachable, warm, and more dimensional than a plain black frame.',
         bestFor: 'Work, everyday wear, and users moving from utility frames into personal style.',
         intensity: 3,
@@ -97,7 +97,7 @@ const groups: Array<{
         id: 'optical-slim-browline',
         name: 'Slim Browline',
         category: 'Optical',
-        image: '/assets/glasses-presets/optical-slim-browline.png',
+        image: '/assets/glasses-presets/style-explorer/optical-slim-browline.jpg',
         signal: 'Structured and capable without the weight of a traditional heavy browline.',
         bestFor: 'Work, presentations, smart casual outfits, and confident professional looks.',
         intensity: 3,
@@ -115,7 +115,7 @@ const groups: Array<{
         id: 'optical-thin-gold-oval',
         name: 'Thin Gold Metal Oval',
         category: 'Optical',
-        image: '/assets/glasses-presets/optical-thin-gold-oval.png',
+        image: '/assets/glasses-presets/style-explorer/optical-thin-gold-oval.jpg',
         signal: 'Light, polished, and quietly refined.',
         bestFor: 'Work, everyday use, minimal wardrobes, and people who dislike heavy frames.',
         intensity: 2,
@@ -125,7 +125,7 @@ const groups: Array<{
         id: 'optical-clear-soft-square',
         name: 'Clear Soft Square',
         category: 'Optical',
-        image: '/assets/glasses-presets/optical-clear-soft-square.png',
+        image: '/assets/glasses-presets/style-explorer/optical-clear-soft-square.jpg',
         signal: 'Clean and contemporary with a softer visual footprint than black acetate.',
         bestFor: 'Everyday wear, creative offices, neutral wardrobes, and a safe first style experiment.',
         intensity: 2,
@@ -135,7 +135,7 @@ const groups: Array<{
         id: 'optical-rimless-geometric',
         name: 'Rimless Geometric',
         category: 'Optical',
-        image: '/assets/glasses-presets/optical-rimless-geometric.png',
+        image: '/assets/glasses-presets/style-explorer/optical-rimless-geometric.jpg',
         signal: 'Precise, technical, and nearly weightless.',
         bestFor: 'Professional settings, modern minimal looks, and users who want shape without a visible rim.',
         intensity: 1,
@@ -145,7 +145,7 @@ const groups: Array<{
         id: 'optical-slim-black-oval',
         name: 'Slim Black Oval',
         category: 'Optical',
-        image: '/assets/glasses-presets/optical-slim-black-oval.png',
+        image: '/assets/glasses-presets/style-explorer/optical-slim-black-oval.jpg',
         signal: 'A cool 1990s reference with an intellectual, fashion-aware edge.',
         bestFor: 'Work, understated fashion, monochrome wardrobes, and users exploring smaller lenses.',
         intensity: 2,
@@ -163,7 +163,7 @@ const groups: Array<{
         id: 'sun-cat-eye-black',
         name: 'Black Cat-Eye',
         category: 'Sunglasses',
-        image: '/assets/glasses-presets/sun-cat-eye-black.png',
+        image: '/assets/glasses-presets/style-explorer/sun-cat-eye-black.jpg',
         signal: 'Elegant, directional, and deliberately expressive.',
         bestFor: 'Events, weekends, travel, and users who want an upswept silhouette.',
         intensity: 4,
@@ -173,7 +173,7 @@ const groups: Array<{
         id: 'sun-oversized-gradient',
         name: 'Oversized Gradient',
         category: 'Sunglasses',
-        image: '/assets/glasses-presets/sun-oversized-gradient.png',
+        image: '/assets/glasses-presets/style-explorer/sun-oversized-gradient.jpg',
         signal: 'Glamorous, protective, and intentionally visible.',
         bestFor: 'Vacation, strong outerwear, large-scale accessories, and high-impact looks.',
         intensity: 5,
@@ -183,7 +183,7 @@ const groups: Array<{
         id: 'optical-transparent-geometric',
         name: 'Transparent Geometric',
         category: 'Optical',
-        image: '/assets/glasses-presets/optical-transparent-geometric.png',
+        image: '/assets/glasses-presets/style-explorer/optical-transparent-geometric.jpg',
         signal: 'Modern and creative without relying on dark color or heavy thickness.',
         bestFor: 'Creative work, weekends, design-led wardrobes, and a noticeable but wearable update.',
         intensity: 3,
@@ -193,7 +193,7 @@ const groups: Array<{
         id: 'optical-statement-color',
         name: 'Statement Color Optical',
         category: 'Optical',
-        image: '/assets/glasses-presets/optical-statement-color.png',
+        image: '/assets/glasses-presets/style-explorer/optical-statement-color.jpg',
         signal: 'Individual, expressive, and intentionally less neutral.',
         bestFor: 'Creative settings, weekends, social occasions, and users ready to make color part of their identity.',
         intensity: 5,
@@ -211,7 +211,7 @@ const groups: Array<{
         id: 'sun-shield-wraparound-black',
         name: 'Shield Wraparound',
         category: 'Sunglasses',
-        image: '/assets/glasses-presets/sun-shield-wraparound-black.png',
+        image: '/assets/glasses-presets/style-explorer/sun-shield-wraparound-black.jpg',
         signal: 'Sporty, futuristic, and built to become the focal accessory.',
         bestFor: 'Outdoor looks, travel, streetwear, and users who want a high-energy style shift.',
         intensity: 5,
@@ -221,7 +221,7 @@ const groups: Array<{
         id: 'sun-curved-flat-top-black',
         name: 'Curved Flat-Top',
         category: 'Sunglasses',
-        image: '/assets/glasses-presets/sun-curved-flat-top-black.png',
+        image: '/assets/glasses-presets/style-explorer/sun-curved-flat-top-black.jpg',
         signal: 'Architectural, controlled, and strongly modern.',
         bestFor: 'Minimal outfits that need one strong accessory, weekends, and fashion-forward styling.',
         intensity: 5,
@@ -231,7 +231,7 @@ const groups: Array<{
         id: 'sun-narrow-rectangle-black',
         name: 'Narrow Rectangle Sunglasses',
         category: 'Sunglasses',
-        image: '/assets/glasses-presets/sun-narrow-rectangle-black.png',
+        image: '/assets/glasses-presets/style-explorer/sun-narrow-rectangle-black.jpg',
         signal: 'Sleek, sharp, and intentionally fashion-led.',
         bestFor: 'Weekend looks, events, Y2K references, and users comfortable with shallow lenses.',
         intensity: 4,
@@ -241,7 +241,7 @@ const groups: Array<{
         id: 'sun-round-tortoise',
         name: 'Tortoise Round Sunglasses',
         category: 'Sunglasses',
-        image: '/assets/glasses-presets/sun-round-tortoise.png',
+        image: '/assets/glasses-presets/style-explorer/sun-round-tortoise.jpg',
         signal: 'Warm, relaxed, and vintage without feeling costume-like.',
         bestFor: 'Travel, weekends, casual layers, and users who prefer softer silhouettes.',
         intensity: 3,
@@ -334,10 +334,10 @@ export default function BlogPostPage({ params }: { params: { locale: string } })
               </p>
               <div className="mt-7 flex flex-col gap-3 sm:flex-row">
                 <Link
-                  href={`${localePrefix}/try-on/glasses`}
+                  href={`${localePrefix}/style-explorer`}
                   className="inline-flex items-center justify-center rounded-lg bg-blue-600 px-5 py-3 font-semibold text-white transition-colors hover:bg-blue-700"
                 >
-                  Try Glasses on Your Photo
+                  Explore My Eyewear Style
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Link>
                 <Link
@@ -446,25 +446,25 @@ export default function BlogPostPage({ params }: { params: { locale: string } })
 
               <div className="not-prose my-12 rounded-2xl bg-gray-950 p-7 text-white md:p-9">
                 <p className="text-sm font-semibold uppercase tracking-wider text-blue-300">From inspiration to evidence</p>
-                <h2 className="mt-2 text-2xl font-bold text-white">Do not spend four credits on four frames you already dislike</h2>
+                <h2 className="mt-2 text-2xl font-bold text-white">Turn one style direction into four visible looks</h2>
                 <p className="mt-3 max-w-3xl text-gray-300">
-                  First shortlist the directions that match your style intent. Then use virtual try-on
-                  or Frame Compare to evaluate the real result on the same portrait. Generated results
-                  are saved automatically to your Dashboard, where you can download or share them.
+                  Style Explorer recommends four visibly different frames from the same style intent,
+                  lets you review and adjust the exact selection before generation, then creates every
+                  look from the same portrait. Completed results are saved automatically to Dashboard History.
                 </p>
                 <div className="mt-6 flex flex-col gap-3 sm:flex-row">
                   <Link
-                    href={`${localePrefix}/try-on/glasses/compare`}
+                    href={`${localePrefix}/style-explorer`}
                     className="inline-flex items-center justify-center rounded-lg bg-blue-600 px-5 py-3 font-semibold text-white hover:bg-blue-700"
                   >
-                    Compare Specific Frames
+                    Discover Four Looks
                     <ArrowRight className="ml-2 h-4 w-4" />
                   </Link>
                   <Link
-                    href={`${localePrefix}/try-on/glasses`}
+                    href={`${localePrefix}/try-on/glasses/compare`}
                     className="inline-flex items-center justify-center rounded-lg border border-gray-600 px-5 py-3 font-semibold text-white hover:bg-gray-900"
                   >
-                    Start a Single Try-On
+                    Compare Specific Frames
                   </Link>
                 </div>
               </div>
@@ -546,16 +546,24 @@ export default function BlogPostPage({ params }: { params: { locale: string } })
                 <Glasses className="mx-auto h-8 w-8 text-blue-600" />
                 <h2 className="mt-3 text-2xl font-bold text-gray-950">Turn the guide into a real decision</h2>
                 <p className="mx-auto mt-3 max-w-2xl text-gray-600">
-                  Upload one clear portrait, try the directions that interest you, and compare the
-                  results on the same face instead of relying on product photos alone.
+                  Choose a style intent, review four recommended frames, and generate four comparable
+                  looks from the same portrait instead of relying on product photos alone.
                 </p>
-                <Link
-                  href={`${localePrefix}/try-on/glasses/compare`}
-                  className="mt-6 inline-flex items-center rounded-lg bg-blue-600 px-5 py-3 font-semibold text-white hover:bg-blue-700"
-                >
-                  Open Frame Compare
-                  <ArrowRight className="ml-2 h-4 w-4" />
-                </Link>
+                <div className="mt-6 flex flex-col items-center justify-center gap-3 sm:flex-row">
+                  <Link
+                    href={`${localePrefix}/style-explorer`}
+                    className="inline-flex items-center rounded-lg bg-blue-600 px-5 py-3 font-semibold text-white hover:bg-blue-700"
+                  >
+                    Explore Four Styles on My Photo
+                    <ArrowRight className="ml-2 h-4 w-4" />
+                  </Link>
+                  <Link
+                    href={`${localePrefix}/try-on/glasses/compare`}
+                    className="inline-flex items-center rounded-lg border border-blue-200 bg-white px-5 py-3 font-semibold text-blue-700 hover:bg-blue-50"
+                  >
+                    Open Frame Compare
+                  </Link>
+                </div>
               </div>
 
               <div className="mt-10 border-t border-gray-200 pt-6 text-sm text-gray-500">
