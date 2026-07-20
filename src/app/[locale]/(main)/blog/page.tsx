@@ -93,68 +93,72 @@ export default async function BlogPage({ params }: Props) {
 
           {/* Blog posts list */}
           <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3 max-w-6xl mx-auto">
-            {posts.map((post, index) => (
-              <article
-                key={post.slug}
-                className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow"
-              >
-                <Link href={`./${post.slug}`} className="block">
-                  <div className="relative h-48 w-full overflow-hidden">
-                    <Image
-                      src={post.coverImage}
-                      alt={post.title}
-                      fill
-                      className="object-cover"
-                      priority={index < 3}
-                    />
-                  </div>
-                </Link>
+            {posts.map((post, index) => {
+              const articleHref = `${localePrefix}/blog/${post.slug}`
 
-                {/* Article content */}
-                <div className="p-6">
-                  {/* Category tag */}
-                  <div className="flex items-center justify-between mb-3">
-                    <span className="inline-block bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full">
-                      {post.category}
-                    </span>
-                    <span className="text-sm text-gray-500">{post.readTime}</span>
-                  </div>
+              return (
+                <article
+                  key={post.slug}
+                  className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow"
+                >
+                  <Link href={articleHref} className="block">
+                    <div className="relative h-48 w-full overflow-hidden">
+                      <Image
+                        src={post.coverImage}
+                        alt={post.title}
+                        fill
+                        className="object-cover"
+                        priority={index < 3}
+                      />
+                    </div>
+                  </Link>
 
-                  {/* Article title */}
-                  <h2 className="text-xl font-bold text-gray-900 mb-3 line-clamp-2">
-                    {post.title}
-                  </h2>
+                  {/* Article content */}
+                  <div className="p-6">
+                    {/* Category tag */}
+                    <div className="flex items-center justify-between mb-3">
+                      <span className="inline-block bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full">
+                        {post.category}
+                      </span>
+                      <span className="text-sm text-gray-500">{post.readTime}</span>
+                    </div>
 
-                  {/* Article description */}
-                  <p className="text-gray-600 mb-4 line-clamp-3">
-                    {post.description}
-                  </p>
+                    {/* Article title */}
+                    <h2 className="text-xl font-bold text-gray-900 mb-3 line-clamp-2">
+                      {post.title}
+                    </h2>
 
-                  {/* Article metadata */}
-                  <div className="flex items-center justify-between text-sm text-gray-500 mb-4">
-                    <div className="flex items-center space-x-4">
-                      <div className="flex items-center">
-                        <User className="w-4 h-4 mr-1" />
-                        {post.author}
-                      </div>
-                      <div className="flex items-center">
-                        <Calendar className="w-4 h-4 mr-1" />
-                        {getDisplayDate(post)}
+                    {/* Article description */}
+                    <p className="text-gray-600 mb-4 line-clamp-3">
+                      {post.description}
+                    </p>
+
+                    {/* Article metadata */}
+                    <div className="flex items-center justify-between text-sm text-gray-500 mb-4">
+                      <div className="flex items-center space-x-4">
+                        <div className="flex items-center">
+                          <User className="w-4 h-4 mr-1" />
+                          {post.author}
+                        </div>
+                        <div className="flex items-center">
+                          <Calendar className="w-4 h-4 mr-1" />
+                          {getDisplayDate(post)}
+                        </div>
                       </div>
                     </div>
-                  </div>
 
-                  {/* Read more link */}
-                  <Link
-                    href={`./${post.slug}`}
-                    className="inline-flex items-center text-blue-600 hover:text-blue-800 font-medium"
-                  >
-                    Read Full Article
-                    <ArrowRight className="w-4 h-4 ml-1" />
-                  </Link>
-                </div>
-              </article>
-            ))}
+                    {/* Read more link */}
+                    <Link
+                      href={articleHref}
+                      className="inline-flex items-center text-blue-600 hover:text-blue-800 font-medium"
+                    >
+                      Read Full Article
+                      <ArrowRight className="w-4 h-4 ml-1" />
+                    </Link>
+                  </div>
+                </article>
+              )
+            })}
           </div>
         </main>
       </div>
