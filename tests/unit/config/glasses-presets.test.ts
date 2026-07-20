@@ -4,6 +4,7 @@ import { CANONICAL_FACE_SHAPES } from '@/config/face-analysis'
 import {
   getTopPickPresetById,
   getTopPickPresetForStyle,
+  STYLE_EXPLORER_GLASSES_PRESETS,
   TOP_PICK_GLASSES_PRESETS,
 } from '@/config/glasses-presets'
 import {
@@ -30,6 +31,19 @@ describe('glasses presets', () => {
     for (const style of styles) {
       const preset = getTopPickPresetForStyle(style.displayName)
       expect(getTopPickPresetById(preset.id)).toBeTruthy()
+      expect(existsSync(join(process.cwd(), 'public', preset.assetPath))).toBe(true)
+    }
+  })
+
+  it('contains 16 Style Explorer PNG presets with balanced categories', () => {
+    expect(STYLE_EXPLORER_GLASSES_PRESETS).toHaveLength(16)
+    expect(STYLE_EXPLORER_GLASSES_PRESETS.filter((preset) => preset.category === 'optical')).toHaveLength(8)
+    expect(STYLE_EXPLORER_GLASSES_PRESETS.filter((preset) => preset.category === 'sunglasses')).toHaveLength(8)
+
+    for (const preset of STYLE_EXPLORER_GLASSES_PRESETS) {
+      expect(preset.assetPath).toMatch(/style-explorer\/.+\.png$/)
+      expect(preset.isStyleExplorerEnabled).toBe(true)
+      expect(getTopPickPresetById(preset.id)).toEqual(preset)
       expect(existsSync(join(process.cwd(), 'public', preset.assetPath))).toBe(true)
     }
   })

@@ -1,12 +1,50 @@
+import { STYLE_EXPLORER_GLASSES_PRESETS } from '@/config/style-explorer-presets'
+
+export type EyewearCategory = 'optical' | 'sunglasses'
+export type FrameShape =
+  | 'wayfarer'
+  | 'aviator'
+  | 'cat-eye'
+  | 'oversized-square'
+  | 'narrow-rectangle'
+  | 'round'
+  | 'shield'
+  | 'flat-top'
+  | 'geometric'
+  | 'square'
+  | 'oval'
+  | 'browline'
+  | 'rimless-geometric'
+  | 'rectangle'
+export type FrameRimType = 'full-rim' | 'semi-rimless' | 'rimless' | 'shield'
+export type FrameMaterial = 'acetate' | 'metal' | 'mixed' | 'rimless' | 'sport-polymer'
+export type FrameColorFamily = 'black' | 'gold' | 'tortoise' | 'transparent' | 'burgundy' | 'silver'
+export type StyleIntent = 'professional' | 'minimal' | 'classic' | 'creative' | 'bold' | 'vacation'
+export type StyleOccasion = 'everyday' | 'work' | 'weekend' | 'outdoor'
+export type FaceShape = 'oval' | 'round' | 'square' | 'heart' | 'diamond' | 'oblong'
+
 export interface GlassesPreset {
   id: string
   name: string
   style: string
   assetPath: string
   promptHint: string
+  category: EyewearCategory
+  shape: FrameShape
+  rimType: FrameRimType
+  material: FrameMaterial
+  colorFamily: FrameColorFamily
+  visualWeight: 1 | 2 | 3 | 4 | 5
+  styleTags: StyleIntent[]
+  occasionTags: StyleOccasion[]
+  suitableFaceShapes?: FaceShape[]
+  isStyleExplorerEnabled?: boolean
+  collection?: 'base' | 'style-explorer'
 }
 
-export const TOP_PICK_GLASSES_PRESETS: GlassesPreset[] = [
+type LegacyGlassesPreset = Pick<GlassesPreset, 'id' | 'name' | 'style' | 'assetPath' | 'promptHint'>
+
+const BASE_GLASSES_PRESETS: LegacyGlassesPreset[] = [
   {
     id: 'round-classic',
     name: 'Round',
@@ -121,6 +159,41 @@ export const TOP_PICK_GLASSES_PRESETS: GlassesPreset[] = [
   },
 ]
 
+function inferBaseShape(id: string): FrameShape {
+  if (id.includes('aviator')) return 'aviator'
+  if (id.includes('browline') || id.includes('top-accent')) return 'browline'
+  if (id.includes('wayfarer')) return 'wayfarer'
+  if (id.includes('geometric')) return 'geometric'
+  if (id.includes('cat-eye')) return 'cat-eye'
+  if (id.includes('oval')) return 'oval'
+  if (id.includes('round')) return 'round'
+  if (id.includes('square')) return 'square'
+  return 'rectangle'
+}
+
+// Keep the original catalog stable for Frame Compare while normalizing it to the
+// richer metadata model required by Style Explorer.
+export const TOP_PICK_GLASSES_PRESETS: GlassesPreset[] = BASE_GLASSES_PRESETS.map((preset) => ({
+  ...preset,
+  category: 'optical',
+  shape: inferBaseShape(preset.id),
+  rimType: preset.id.includes('rimless') ? 'rimless' : preset.id.includes('browline') ? 'semi-rimless' : 'full-rim',
+  material: preset.id.includes('rimless') ? 'rimless' : preset.id.includes('aviator') || preset.id.includes('oval') ? 'metal' : 'acetate',
+  colorFamily: 'black',
+  visualWeight: preset.id.includes('rimless') ? 1 : preset.id.includes('oversized') || preset.id.includes('large') ? 5 : 3,
+  styleTags: ['classic'],
+  occasionTags: ['everyday', 'work'],
+  isStyleExplorerEnabled: false,
+  collection: 'base',
+}))
+
+export { STYLE_EXPLORER_GLASSES_PRESETS }
+
+export const ALL_GLASSES_PRESETS: GlassesPreset[] = [
+  ...TOP_PICK_GLASSES_PRESETS,
+  ...STYLE_EXPLORER_GLASSES_PRESETS,
+]
+
 export const DEFAULT_TOP_PICK_PRESET_IDS = [
   'rectangle-classic',
   'browline-classic',
@@ -129,7 +202,7 @@ export const DEFAULT_TOP_PICK_PRESET_IDS = [
 ]
 
 export function getTopPickPresetById(id: string): GlassesPreset | undefined {
-  return TOP_PICK_GLASSES_PRESETS.find((preset) => preset.id === id)
+  return ALL_GLASSES_PRESETS.find((preset) => preset.id === id)
 }
 
 export function getTopPickPresetForStyle(style: string): GlassesPreset {

@@ -78,6 +78,11 @@ export function Footer() {
                 </Link>
               </li>
               <li>
+                <Link href={`/${locale}/style-explorer`} className="text-gray-600 hover:text-blue-600 text-sm transition-colors">
+                  Style Explorer
+                </Link>
+              </li>
+              <li>
                 <Link href={`/${locale}/pricing`} className="text-gray-600 hover:text-blue-600 text-sm transition-colors">
                   {t('links.pricing')}
                 </Link>

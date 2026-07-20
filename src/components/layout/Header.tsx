@@ -36,6 +36,7 @@ export function Header({ transparent = false }: HeaderProps) {
     { href: `/${locale}/face-shape-detector`, label: t('faceShapeDetector') },
     { href: `/${locale}/face-analysis`, label: t('faceAnalysis') },
     { href: `/${locale}/try-on/glasses`, label: t('tryGlasses') },
+    { href: `/${locale}/style-explorer`, label: 'Style Explorer' },
     { href: `/${locale}/try-on/glasses/compare`, label: t('compare') },
     { href: `/${locale}/pricing`, label: t('pricing') },
   ], [locale, t])

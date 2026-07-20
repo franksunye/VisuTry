@@ -1,5 +1,6 @@
 import { readFile } from 'node:fs/promises'
 import { join } from 'node:path'
+import { extname } from 'node:path'
 import { TaskStatus, TryOnType, type User } from '@prisma/client'
 import { getTryOnConfig } from '@/config/try-on-types'
 import { type GlassesPreset } from '@/config/glasses-presets'
@@ -12,7 +13,9 @@ export const FRAME_COMPARE_SUBMISSION_STAGGER_MS = 3000
 async function createPresetFile(preset: GlassesPreset) {
   const assetPath = join(process.cwd(), 'public', preset.assetPath)
   const buffer = await readFile(assetPath)
-  return new File([new Uint8Array(buffer)], `${preset.id}.jpg`, { type: 'image/jpeg' })
+  const extension = extname(preset.assetPath).toLowerCase()
+  const type = extension === '.png' ? 'image/png' : extension === '.webp' ? 'image/webp' : 'image/jpeg'
+  return new File([new Uint8Array(buffer)], `${preset.id}${extension || '.jpg'}`, { type })
 }
 
 function buildPresetPrompt(preset: GlassesPreset) {
