@@ -1,4 +1,4 @@
-import { existsSync } from 'node:fs'
+import { existsSync, statSync } from 'node:fs'
 import { join } from 'node:path'
 import { CANONICAL_FACE_SHAPES } from '@/config/face-analysis'
 import {
@@ -35,16 +35,18 @@ describe('glasses presets', () => {
     }
   })
 
-  it('contains 16 Style Explorer PNG presets with balanced categories', () => {
+  it('contains 16 optimized Style Explorer JPEG presets with balanced categories', () => {
     expect(STYLE_EXPLORER_GLASSES_PRESETS).toHaveLength(16)
     expect(STYLE_EXPLORER_GLASSES_PRESETS.filter((preset) => preset.category === 'optical')).toHaveLength(8)
     expect(STYLE_EXPLORER_GLASSES_PRESETS.filter((preset) => preset.category === 'sunglasses')).toHaveLength(8)
 
     for (const preset of STYLE_EXPLORER_GLASSES_PRESETS) {
-      expect(preset.assetPath).toMatch(/style-explorer\/.+\.png$/)
+      expect(preset.assetPath).toMatch(/style-explorer\/.+\.jpg$/)
       expect(preset.isStyleExplorerEnabled).toBe(true)
       expect(getTopPickPresetById(preset.id)).toEqual(preset)
-      expect(existsSync(join(process.cwd(), 'public', preset.assetPath))).toBe(true)
+      const assetPath = join(process.cwd(), 'public', preset.assetPath)
+      expect(existsSync(assetPath)).toBe(true)
+      expect(statSync(assetPath).size).toBeLessThan(120 * 1024)
     }
   })
 })

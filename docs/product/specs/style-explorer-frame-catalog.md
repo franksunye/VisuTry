@@ -122,14 +122,15 @@ Every Style Explorer frame asset must follow the same production rules:
 
 1. One frame per image.
 2. Square image: `1024 × 1024`.
-3. Pure white background.
-4. Front-facing, centered composition.
-5. No text, numbering, labels, watermarks or surrounding objects.
-6. Consistent frame scale and whitespace across the collection.
-7. Both lenses fully visible.
-8. Temples may be visible behind the lenses, but must not obscure the frame silhouette.
-9. No human model, face outline or try-on simulation.
-10. Repository-managed asset path under:
+3. JPEG format, quality approximately 78–82, with a target size below `120 KB`.
+4. Pure white background.
+5. Front-facing, centered composition.
+6. No text, numbering, labels, watermarks or surrounding objects.
+7. Consistent frame scale and whitespace across the collection.
+8. Both lenses fully visible.
+9. Temples may be visible behind the lenses, but must not obscure the frame silhouette.
+10. No human model, face outline or try-on simulation.
+11. Repository-managed asset path under:
 
 ```text
 public/assets/glasses-presets/style-explorer/
@@ -138,7 +139,7 @@ public/assets/glasses-presets/style-explorer/
 Recommended path convention:
 
 ```text
-assets/glasses-presets/style-explorer/<preset-id>.png
+assets/glasses-presets/style-explorer/<preset-id>.jpg
 ```
 
 ---
@@ -176,7 +177,7 @@ export const STYLE_EXPLORER_GLASSES_PRESETS: GlassesPreset[] = [
     id: 'sun-wayfarer-black',
     name: 'Classic Black Wayfarer',
     style: 'Wayfarer Sunglasses',
-    assetPath: 'assets/glasses-presets/style-explorer/sun-wayfarer-black.png',
+    assetPath: 'assets/glasses-presets/style-explorer/sun-wayfarer-black.jpg',
     promptHint:
       'classic glossy black wayfarer sunglasses with dark gray lenses and subtle silver rivets',
     category: 'sunglasses',
@@ -195,7 +196,7 @@ export const STYLE_EXPLORER_GLASSES_PRESETS: GlassesPreset[] = [
     id: 'sun-aviator-gold',
     name: 'Gold Aviator',
     style: 'Aviator Sunglasses',
-    assetPath: 'assets/glasses-presets/style-explorer/sun-aviator-gold.png',
+    assetPath: 'assets/glasses-presets/style-explorer/sun-aviator-gold.jpg',
     promptHint:
       'thin gold metal aviator sunglasses with a double bridge and dark olive green teardrop lenses',
     category: 'sunglasses',
@@ -214,7 +215,7 @@ export const STYLE_EXPLORER_GLASSES_PRESETS: GlassesPreset[] = [
     id: 'sun-cat-eye-black',
     name: 'Black Cat-Eye',
     style: 'Cat-Eye Sunglasses',
-    assetPath: 'assets/glasses-presets/style-explorer/sun-cat-eye-black.png',
+    assetPath: 'assets/glasses-presets/style-explorer/sun-cat-eye-black.jpg',
     promptHint:
       'glossy black acetate cat-eye sunglasses with elegant upswept corners and dark gradient lenses',
     category: 'sunglasses',
@@ -233,7 +234,7 @@ export const STYLE_EXPLORER_GLASSES_PRESETS: GlassesPreset[] = [
     id: 'sun-oversized-gradient',
     name: 'Oversized Gradient',
     style: 'Oversized Sunglasses',
-    assetPath: 'assets/glasses-presets/style-explorer/sun-oversized-gradient.png',
+    assetPath: 'assets/glasses-presets/style-explorer/sun-oversized-gradient.jpg',
     promptHint:
       'oversized tortoise acetate sunglasses with large softly square lenses and warm brown gradient tint',
     category: 'sunglasses',
@@ -253,7 +254,7 @@ export const STYLE_EXPLORER_GLASSES_PRESETS: GlassesPreset[] = [
     name: 'Narrow Rectangle',
     style: 'Narrow Rectangle Sunglasses',
     assetPath:
-      'assets/glasses-presets/style-explorer/sun-narrow-rectangle-black.png',
+      'assets/glasses-presets/style-explorer/sun-narrow-rectangle-black.jpg',
     promptHint:
       'slim glossy black narrow rectangular sunglasses with shallow dark lenses and a clean minimal silhouette',
     category: 'sunglasses',
@@ -272,7 +273,7 @@ export const STYLE_EXPLORER_GLASSES_PRESETS: GlassesPreset[] = [
     id: 'sun-round-tortoise',
     name: 'Tortoise Round',
     style: 'Round Sunglasses',
-    assetPath: 'assets/glasses-presets/style-explorer/sun-round-tortoise.png',
+    assetPath: 'assets/glasses-presets/style-explorer/sun-round-tortoise.jpg',
     promptHint:
       'warm tortoise acetate round sunglasses with brown lenses and a relaxed vintage character',
     category: 'sunglasses',
@@ -292,7 +293,7 @@ export const STYLE_EXPLORER_GLASSES_PRESETS: GlassesPreset[] = [
     name: 'Transparent Geometric',
     style: 'Transparent Geometric Optical',
     assetPath:
-      'assets/glasses-presets/style-explorer/optical-transparent-geometric.png',
+      'assets/glasses-presets/style-explorer/optical-transparent-geometric.jpg',
     promptHint:
       'transparent clear acetate geometric optical glasses with softly faceted lenses and a modern lightweight appearance',
     category: 'optical',
@@ -312,7 +313,7 @@ export const STYLE_EXPLORER_GLASSES_PRESETS: GlassesPreset[] = [
     name: 'Statement Color',
     style: 'Statement Color Optical',
     assetPath:
-      'assets/glasses-presets/style-explorer/optical-statement-color.png',
+      'assets/glasses-presets/style-explorer/optical-statement-color.jpg',
     promptHint:
       'deep burgundy acetate statement optical glasses with a bold softly square silhouette and clear lenses',
     category: 'optical',
@@ -332,7 +333,7 @@ export const STYLE_EXPLORER_GLASSES_PRESETS: GlassesPreset[] = [
     name: 'Warm Tortoise Acetate',
     style: 'Warm Tortoise Optical',
     assetPath:
-      'assets/glasses-presets/style-explorer/optical-warm-tortoise.png',
+      'assets/glasses-presets/style-explorer/optical-warm-tortoise.jpg',
     promptHint:
       'warm tortoise acetate optical glasses with a softly square wayfarer-inspired shape and clear lenses',
     category: 'optical',
@@ -352,7 +353,7 @@ export const STYLE_EXPLORER_GLASSES_PRESETS: GlassesPreset[] = [
     name: 'Thin Gold Metal Oval',
     style: 'Thin Gold Oval Optical',
     assetPath:
-      'assets/glasses-presets/style-explorer/optical-thin-gold-oval.png',
+      'assets/glasses-presets/style-explorer/optical-thin-gold-oval.jpg',
     promptHint:
       'thin gold metal oval optical glasses with clear lenses, delicate bridge and transparent nose pads',
     category: 'optical',
@@ -372,7 +373,7 @@ export const STYLE_EXPLORER_GLASSES_PRESETS: GlassesPreset[] = [
     name: 'Clear Soft Square',
     style: 'Clear Soft Square Optical',
     assetPath:
-      'assets/glasses-presets/style-explorer/optical-clear-soft-square.png',
+      'assets/glasses-presets/style-explorer/optical-clear-soft-square.jpg',
     promptHint:
       'clear transparent acetate optical glasses with a soft square shape, subtle rounded corners and clear lenses',
     category: 'optical',
@@ -392,7 +393,7 @@ export const STYLE_EXPLORER_GLASSES_PRESETS: GlassesPreset[] = [
     name: 'Slim Browline',
     style: 'Slim Browline Optical',
     assetPath:
-      'assets/glasses-presets/style-explorer/optical-slim-browline.png',
+      'assets/glasses-presets/style-explorer/optical-slim-browline.jpg',
     promptHint:
       'slim black and gold mixed-material browline optical glasses with a light upper accent and thin metal lower rim',
     category: 'optical',
@@ -412,7 +413,7 @@ export const STYLE_EXPLORER_GLASSES_PRESETS: GlassesPreset[] = [
     name: 'Black Shield Wraparound',
     style: 'Shield Wraparound Sunglasses',
     assetPath:
-      'assets/glasses-presets/style-explorer/sun-shield-wraparound-black.png',
+      'assets/glasses-presets/style-explorer/sun-shield-wraparound-black.jpg',
     promptHint:
       'fashion-oriented black shield wraparound sunglasses with a single dark smoke lens, sculpted brow line and streamlined sport silhouette',
     category: 'sunglasses',
@@ -432,7 +433,7 @@ export const STYLE_EXPLORER_GLASSES_PRESETS: GlassesPreset[] = [
     name: 'Curved Flat-Top Black',
     style: 'Curved Flat-Top Sunglasses',
     assetPath:
-      'assets/glasses-presets/style-explorer/sun-curved-flat-top-black.png',
+      'assets/glasses-presets/style-explorer/sun-curved-flat-top-black.jpg',
     promptHint:
       'architectural black acetate sunglasses with a strong curved flat top, wide rectangular lenses and dark smoke tint',
     category: 'sunglasses',
@@ -452,7 +453,7 @@ export const STYLE_EXPLORER_GLASSES_PRESETS: GlassesPreset[] = [
     name: 'Rimless Geometric',
     style: 'Rimless Geometric Optical',
     assetPath:
-      'assets/glasses-presets/style-explorer/optical-rimless-geometric.png',
+      'assets/glasses-presets/style-explorer/optical-rimless-geometric.jpg',
     promptHint:
       'true rimless geometric optical glasses with clear softly hexagonal lenses, a thin silver bridge and minimal transparent nose pads',
     category: 'optical',
@@ -472,7 +473,7 @@ export const STYLE_EXPLORER_GLASSES_PRESETS: GlassesPreset[] = [
     name: 'Slim Black Oval',
     style: 'Slim Black Oval Optical',
     assetPath:
-      'assets/glasses-presets/style-explorer/optical-slim-black-oval.png',
+      'assets/glasses-presets/style-explorer/optical-slim-black-oval.jpg',
     promptHint:
       'slim glossy black oval optical glasses with low-profile lenses, fine acetate rims and a clean 1990s minimal character',
     category: 'optical',
