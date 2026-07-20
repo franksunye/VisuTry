@@ -1,32 +1,32 @@
 # VisuTry Style Explorer Technical Spec
 
-**Status:** Ready for product and engineering review  
+**Status:** Ready for product and engineering implementation review  
 **Owner:** Product / Engineering  
 **Created:** 2026-07-20  
 **Last updated:** 2026-07-20  
 **Related plan:** `docs/product/product-plan.md`  
 **Related capability:** `docs/product/specs/frame-compare.md`  
-**Proposed route:** `/[locale]/style-explorer`  
+**Proposed route:** `/[locale]/style-explorer`
 
 ---
 
 ## 1. Summary
 
-Style Explorer is a new user-visible product module that helps a user explore distinct eyewear looks based on style intent, occasion, frame category, and optional face-shape context.
+Style Explorer is a new user-visible VisuTry product module for exploring distinct eyewear looks based on style intent, occasion, frame category, optional face-shape context, and a system-selected set of frame presets.
 
-It should not be implemented as a second try-on engine or as a fork of Frame Compare.
+It is an independent product module, but it must reuse the existing Frame Compare / Try-On execution foundation rather than introduce another generation engine.
 
-The first version should reuse the existing Frame Compare generation pipeline, task lifecycle, credit behavior, polling, failure handling, recovery behavior, and result-grid foundation. Style Explorer adds a new upstream selection layer and a new result interpretation layer:
+The v0.1 execution model is:
 
-> Style intent / occasion / category → deterministic frame-set selection → existing per-frame try-on pipeline → style-oriented result presentation.
+> Style intent / occasion / category → deterministic frame recommendation → user-visible frame confirmation → existing per-frame try-on pipeline → style-oriented result presentation.
 
-The implementation goal is to validate whether existing serious eyewear-decision users also demonstrate repeated style-exploration behavior before VisuTry invests in a larger Studio workspace.
+Style Explorer validates whether current serious eyewear-decision users also exhibit repeated style-exploration behavior before VisuTry invests in a broader Studio workspace.
 
 ---
 
 ## 2. Product Position
 
-The current public consumer workflow is:
+The current consumer workflow is:
 
 > Face Shape Detector → Glasses Advisor → Virtual Try-On → Frame Compare
 
@@ -34,16 +34,12 @@ Style Explorer becomes a fifth product module with a different user question:
 
 > What different eyewear styles could express different sides of me?
 
-The module is independent at the product level but shared at the technical platform level.
-
-### Product distinction
-
-| Capability | Primary user intent | Selection behavior | Result meaning |
+| Capability | Primary intent | Frame selection | Result meaning |
 | --- | --- | --- | --- |
-| Glasses Advisor | Find suitable frame types | System narrows choices | Recommendation |
-| Virtual Try-On | See one frame on the face | User supplies or selects one frame | Visual validation |
-| Frame Compare | Decide among known candidates | User manually selects up to 4 frames | Side-by-side decision |
-| Style Explorer | Explore distinct looks | System assembles a diverse set from style input | Style discovery |
+| Glasses Advisor | Find suitable frame types | System narrows options | Recommendation |
+| Virtual Try-On | Validate one frame visually | User provides or selects one frame | Single-frame validation |
+| Frame Compare | Decide among known candidates | User manually selects up to 4 frames | Decision comparison |
+| Style Explorer | Discover distinct looks | System recommends 4 diverse frames; user may adjust | Style discovery |
 
 Style Explorer is the consumer validation layer for a future VisuTry Studio. It is not the Studio MVP itself.
 
@@ -51,31 +47,31 @@ Style Explorer is the consumer validation layer for a future VisuTry Studio. It 
 
 ## 3. Current Code Baseline
 
-The existing Frame Compare implementation already provides the main execution foundation required by Style Explorer.
-
-### Current implementation files
+The existing Frame Compare implementation already provides the core execution capability required by Style Explorer.
 
 | Area | Current file | Relevant behavior |
 | --- | --- | --- |
-| Compare UI | `src/components/compare/FrameCompareInterface.tsx` | Photo upload, preset selection, credit-aware limits, batch initialization, staggered dispatch, polling, failure retry, batch recovery, result grid. |
-| Batch initialization API | `src/app/api/try-on/glasses/compare/route.ts` | Validates selected presets and available credits, creates a batch ID, returns ordered preset descriptors. |
-| Per-frame dispatch API | `src/app/api/try-on/glasses/compare/frame/route.ts` | Validates user/photo/frame/batch, checks credits, submits one frame task. |
-| Server-side compare helper | `src/lib/compare-tryon-server.ts` | Loads preset asset, builds prompt, attaches batch metadata, calls the common try-on service, normalizes response. |
-| Preset catalog | `src/config/glasses-presets.ts` | Defines the current 16 built-in optical-frame presets and their prompt hints. |
-| Common try-on service | `src/lib/tryon-service.ts` | Existing generation, persistence, quota, and task integration layer. |
-| Compare response normalization | `src/lib/compare-tryon.ts` | Maps persisted task metadata into compare task responses. |
+| Compare UI | `src/components/compare/FrameCompareInterface.tsx` | Photo upload, credit-aware selection, batch initialization, staggered dispatch, polling, retry, recovery, result grid. |
+| Batch initialization | `src/app/api/try-on/glasses/compare/route.ts` | Validates selected presets and available credits, returns ordered presets and batch ID. |
+| Per-frame dispatch | `src/app/api/try-on/glasses/compare/frame/route.ts` | Validates photo, preset, batch and credits, then submits one normal try-on task. |
+| Compare server helper | `src/lib/compare-tryon-server.ts` | Loads preset assets, builds prompt, attaches metadata, calls common try-on service. |
+| Preset catalog | `src/config/glasses-presets.ts` | Current built-in frame presets and prompt hints. |
+| Common try-on service | `src/lib/tryon-service.ts` | Generation, persistence, quota, task lifecycle and result storage. |
+| Dashboard history | `src/app/[locale]/(main)/dashboard/history/page.tsx` | Reads the user's persisted try-on tasks. |
+| History actions | `src/components/dashboard/TryOnHistoryList.tsx` | Download, open share page and delete result. |
+| Public share page | `src/app/[locale]/(main)/share/[id]/page.tsx` | Public result page, Open Graph metadata, image download and VisuTry continuation CTA. |
 
 ### Existing behavior that must be preserved
 
-1. One selected frame creates one normal glasses try-on task.
-2. A comparison batch contains at most 4 frames.
-3. Task submissions are staggered by 3 seconds.
-4. Tasks independently reach queued, processing, completed, or failed states.
-5. One failed frame does not invalidate successful frames.
-6. Failed frames can be retried when credits are available.
-7. Successful outputs remain part of normal dashboard history.
-8. Batch metadata is used to recover an in-progress or recently completed comparison.
-9. Credit deduction remains governed by the existing try-on task pipeline rather than by a new Style Explorer billing implementation.
+1. One frame generation creates one normal `TryOnTask`.
+2. A Style Explorer run contains at most 4 frames.
+3. Frame submissions are staggered using the existing compare pattern.
+4. Tasks independently reach queued, processing, completed or failed states.
+5. One failed task does not invalidate successful results.
+6. Retry follows existing credit behavior.
+7. Successful results are persisted automatically and appear in Dashboard History.
+8. Credit deduction remains governed by the existing try-on task pipeline.
+9. Batch metadata supports recovery after refresh or navigation.
 
 ---
 
@@ -83,18 +79,19 @@ The existing Frame Compare implementation already provides the main execution fo
 
 ### Product goals
 
-1. Validate demand for style-led eyewear exploration without changing VisuTry into a generic fashion-image product.
-2. Introduce sunglasses and more expressive frames in a controlled, measurable module.
-3. Detect a Style Explorer user segment through generation, regeneration, save, share, and return behavior.
-4. Establish a clean technical path from consumer Style Explorer to a later Studio project workflow.
+1. Validate style-led eyewear exploration without turning VisuTry into a generic fashion image product.
+2. Introduce sunglasses and more expressive frames in a controlled module.
+3. Make frame recommendations transparent before the user spends credits.
+4. Measure repeat exploration, frame replacement, regeneration, download, share and Dashboard return behavior.
+5. Establish a credible path toward a later Studio workflow.
 
 ### Engineering goals
 
-1. Reuse the current compare and try-on execution path.
-2. Avoid duplicating polling, task state, retry, recovery, quota, and image-generation code.
-3. Separate reusable compare infrastructure from Compare-specific manual-selection UI.
-4. Add style metadata to the frame catalog without breaking Advisor or Compare consumers.
-5. Make the first version deterministic and testable without requiring a new LLM recommendation service.
+1. Reuse current generation, task, polling, retry, recovery, credit and persistence logic.
+2. Avoid copying Frame Compare into a second large component.
+3. Add structured style metadata to the frame catalog.
+4. Make frame selection deterministic and unit-testable.
+5. Keep v0.1 implementable without a new LLM selection service or face-overlay renderer.
 
 ---
 
@@ -102,66 +99,208 @@ The existing Frame Compare implementation already provides the main execution fo
 
 The first version does not include:
 
-- full VisuTry Studio project management;
-- client records or professional advisor workflow;
-- free-form prompt-based fashion generation;
-- hair, makeup, clothing, face, body, or background editing;
-- social feed, follows, likes, or public creator profiles;
-- merchant frame catalog ingestion;
+- Studio projects, client records or professional advisor workflow;
+- free-form prompting;
+- hair, makeup, clothing, face, body or background editing;
+- social feed, likes, follows or creator profiles;
+- merchant catalog ingestion;
 - uploaded custom frames inside Style Explorer;
-- automatic shopping links;
-- a new subscription or credit product;
-- a separate AI generation provider;
-- a separate task table or batch persistence model;
-- an LLM-controlled frame-selection decision in the critical path.
+- a new payment or subscription product;
+- a separate generation provider;
+- a separate try-on task table;
+- LLM-controlled frame selection in the critical path;
+- synthetic face silhouettes with projected frame overlays;
+- a dedicated comparison mode for already generated Style Explorer results;
+- persistent favorites or a separate `Saved Look` object.
 
 ---
 
-## 6. Proposed User Flow
+## 6. Final v0.1 User Flow
 
 ### Entry
 
-Style Explorer can be entered from:
+Style Explorer may be entered from:
 
-- a standalone product page;
+- standalone product navigation;
 - Face Shape result: `Explore styles for your face`;
 - Glasses Advisor result: `See different looks`;
 - Frame Compare completion: `Explore another style direction`;
-- homepage experiment module.
+- homepage experiment section.
 
-### Authenticated v0.1 flow
+### Authenticated flow
 
 1. User opens `/[locale]/style-explorer`.
-2. User uploads a front-facing photo using the existing upload component.
+2. User uploads one clear front-facing photo using the existing upload component.
 3. User selects one style intent.
-4. User optionally selects an occasion.
-5. User selects `Optical`, `Sunglasses`, or `All`.
-6. System selects up to 4 diverse frame presets.
-7. UI shows the selected look set and credit cost before generation.
-8. User starts generation.
-9. System initializes one style-explorer batch.
-10. Client dispatches one normal try-on task per frame using the existing staggered pattern.
-11. Results appear independently as they complete.
-12. Each result displays a look name, frame metadata, and concise explanation.
-13. User can save a result, share a result, regenerate a new set, or move to Frame Compare.
+4. User optionally selects one occasion.
+5. User selects `All`, `Optical` or `Sunglasses`.
+6. System deterministically recommends 4 diverse frames.
+7. The recommended frames are shown explicitly before generation.
+8. User may refresh the set or replace an individual recommended frame.
+9. User sees the exact cost: one credit per generated result.
+10. User starts `Explore 4 Looks`.
+11. System initializes one Style Explorer batch.
+12. Client dispatches one normal try-on task per selected frame using the existing staggered pattern.
+13. Results appear independently as tasks complete.
+14. Each completed result displays a look name, tags and concise explanation.
+15. Results are saved automatically to Dashboard History.
+16. User may download, share, view results in Dashboard, or explore another set.
 
 ### Anonymous behavior
 
-v0.1 should follow the existing Compare authentication policy:
+v0.1 follows the existing Compare policy:
 
-- anonymous visitor sees a public Style Explorer landing state;
+- anonymous visitors see the public module state;
 - generation requires sign-in;
-- callback URL returns the user to Style Explorer.
-
-Anonymous generation is explicitly deferred.
+- callback URL returns the user to Style Explorer;
+- anonymous generation is deferred.
 
 ---
 
-## 7. Style Taxonomy
+## 7. UI / UX Specification
 
-### Required style intents
+The desktop layout should remain visually consistent with the current Frame Compare page:
 
-The initial supported values are:
+- existing VisuTry global navigation and footer;
+- light blue-gray page background;
+- white rounded cards;
+- VisuTry blue as primary accent;
+- left configuration column and right result workspace;
+- responsive stacking on mobile.
+
+### 7.1 Desktop layout
+
+Recommended desktop grid:
+
+```text
+Left configuration column: approximately 390–420px
+Right workspace: remaining width
+```
+
+Left column:
+
+1. `Your Photo`
+2. `Define Your Style`
+3. Style Intent
+4. Frame Category
+5. Occasion
+6. Recommended Frames
+7. Primary CTA and credit cost
+
+Right column:
+
+1. `Explore Your Looks`
+2. Current state-specific content
+3. Result actions when available
+
+### 7.2 Required five design states
+
+#### State A — Empty / initial
+
+- Photo is not uploaded.
+- Style controls may show safe defaults but generation remains disabled.
+- Recommended frames may use default example recommendations, clearly labeled as auto-selected.
+- Right workspace uses a single explanatory empty state.
+- Do not show a face silhouette with glasses projected onto it.
+- Any four small placeholders should show neutral frame icons or frame thumbnails only.
+
+Recommended empty-state copy:
+
+> Discover four distinct looks  
+> We’ll select frames that match your style and create four different looks for you.
+
+#### State B — Configuration completed
+
+- Uploaded face photo is visible.
+- Selected style, category and occasion are clearly highlighted.
+- Four recommended frames are visible in both the compact left recommendation strip and the right preview cards.
+- Right preview cards show actual frame product assets, not generated portraits.
+- Each preview card contains:
+  - frame image;
+  - look name;
+  - style tags;
+  - short explanation.
+- Primary CTA is enabled.
+
+#### State C — Generating
+
+- Left configuration remains visible but is locked from destructive changes.
+- Four right-side task cards show actual task states.
+- Generating tasks may show the user's photo blurred with a loading indicator.
+- Queued tasks use a neutral queued placeholder.
+- Use real states only: queued, processing, completed, failed.
+- Do not fake precise server-side percentages unless the backend provides them. An indeterminate progress bar is preferred.
+- Show a clear note:
+
+> This may take a few moments. You can leave this page and check completed results in Dashboard History.
+
+#### State D — Results generated
+
+- Four generated try-on images appear in a 2 × 2 result grid.
+- Each result card shows:
+  - generated image;
+  - look name;
+  - frame/style tags;
+  - one-sentence explanation;
+  - `Download`;
+  - `Share`.
+- Page-level actions:
+  - `Explore Again`;
+  - `View in Dashboard`.
+- Show an informational confirmation:
+
+> Saved automatically to your Dashboard History.
+
+- Do not show `Save Look`.
+- Do not show `Compare This Look`.
+- Do not show `Compare These Looks` in v0.1.
+
+#### State E — Look detail drawer
+
+A result card may open a right-side drawer containing:
+
+- generated result image;
+- look name;
+- style tags;
+- `Why it works` explanation;
+- frame details;
+- automatic-save confirmation;
+- `Download Image` primary action;
+- `Share Look` secondary action;
+- `View in Dashboard` tertiary action.
+
+The drawer must not include `Save Look` or `Compare This Look`.
+
+### 7.3 Recommended Frames behavior
+
+Recommended Frames are system-selected, but they are not hidden.
+
+Rules:
+
+1. Always show the exact 4 frames before generation.
+2. Each compact card shows frame thumbnail, frame name and look direction.
+3. `Refresh` requests a different recommended set where inventory permits.
+4. Clicking a frame opens a lightweight replacement selector.
+5. Replacing one frame does not reshuffle the other three.
+6. The interface must not use Compare language such as `4/4 selected`; Style Explorer is system-led recommendation with user correction.
+
+### 7.4 No pre-generation face overlay
+
+The pre-generation workspace must not render a synthetic face outline or attempt to position frame line art on a face.
+
+Reason:
+
+- it requires landmark detection, asset normalization, scaling and rotation rules;
+- it can be mistaken for a real try-on result;
+- it adds a second approximate rendering path that is unnecessary for v0.1.
+
+Pre-generation cards therefore show real frame assets only.
+
+---
+
+## 8. Style Taxonomy
+
+### Style intent
 
 ```ts
 type StyleIntent =
@@ -173,35 +312,32 @@ type StyleIntent =
   | 'vacation'
 ```
 
-### Optional occasions
+### Occasion
+
+The v0.1 UI should expose only four options to keep the interface compact:
 
 ```ts
 type StyleOccasion =
-  | 'work'
   | 'everyday'
-  | 'social'
+  | 'work'
+  | 'weekend'
   | 'outdoor'
-  | 'travel'
-  | 'special-event'
 ```
 
-### Frame category
+Additional internal tags may be added later, but must not appear in v0.1 UI without product review.
+
+### Category
 
 ```ts
 type EyewearCategory = 'optical' | 'sunglasses'
-
 type StyleExplorerCategoryFilter = 'optical' | 'sunglasses' | 'all'
 ```
 
-The taxonomy must remain small in v0.1. Adding near-duplicate labels will reduce measurement quality and make selection rules harder to reason about.
-
 ---
 
-## 8. Frame Catalog Extension
+## 9. Frame Catalog Extension
 
-The current `GlassesPreset` type contains only `id`, `name`, `style`, `assetPath`, and `promptHint`. Style Explorer requires explicit structured metadata.
-
-### Proposed compatible type
+The current `GlassesPreset` model must be extended with structured metadata.
 
 ```ts
 export interface GlassesPreset {
@@ -226,44 +362,36 @@ export interface GlassesPreset {
 
 ### Compatibility rule
 
-All existing optical presets must receive explicit values for the new required fields in the same change that introduces the type. Do not make application behavior depend on implicit defaults distributed across multiple components.
+All current presets must receive explicit metadata in the same change that introduces required fields. If migration must be staged, use one catalog normalization function rather than scattered defaults.
 
-If a staged migration is necessary, use one normalization function in `src/config/glasses-presets.ts`; do not add ad hoc fallbacks in Advisor, Compare, and Style Explorer separately.
-
-### New preset assets
+### Initial new assets
 
 v0.1 should add 8 style-focused assets:
 
 - 4 sunglasses archetypes;
 - 2 expressive optical frames;
-- 2 moderate bridge frames between current utility selection and stronger fashion styling.
+- 2 moderate bridge frames between current utility and fashion styling.
 
-Suggested initial coverage:
+Suggested coverage:
 
-| Preset | Category | Main style signals |
+| Preset | Category | Main signals |
 | --- | --- | --- |
 | Classic Wayfarer Sunglasses | Sunglasses | classic, vacation, everyday |
 | Aviator Sunglasses | Sunglasses | classic, bold, outdoor |
-| Cat-Eye Sunglasses | Sunglasses | bold, creative, social |
-| Oversized Sunglasses | Sunglasses | bold, vacation, special-event |
+| Cat-Eye Sunglasses | Sunglasses | bold, creative, weekend |
+| Oversized Sunglasses | Sunglasses | bold, vacation, weekend |
 | Transparent Geometric Optical | Optical | minimal, creative, everyday |
-| Thin Metal Color Optical | Optical | creative, minimal, social |
+| Thin Metal Color Optical | Optical | minimal, creative, work |
 | Warm Acetate Optical | Optical | classic, professional, everyday |
-| Statement Narrow Optical | Optical | bold, creative, special-event |
+| Statement Narrow Optical | Optical | bold, creative, weekend |
 
-All preset images must continue to be static repository assets under the existing preset asset convention unless a separate asset-storage decision is approved.
+All assets remain repository-managed preset assets for v0.1.
 
 ---
 
-## 9. Frame-Set Selection Engine
+## 10. Frame Selection Engine
 
-### Implementation location
-
-Create a pure, deterministic module:
-
-`src/lib/style-explorer/frame-selector.ts`
-
-Supporting types and rules can be placed under:
+Create a pure deterministic module:
 
 ```text
 src/lib/style-explorer/
@@ -273,7 +401,7 @@ src/lib/style-explorer/
 └── look-copy.ts
 ```
 
-Do not place frame-selection logic directly inside a React component or API route.
+Do not place selection logic inside React components or route handlers.
 
 ### Input
 
@@ -285,6 +413,7 @@ interface StyleExplorerSelectionInput {
   faceShape?: FaceShape
   limit: number
   exclusionIds?: string[]
+  pinnedPresetIds?: string[]
 }
 ```
 
@@ -305,11 +434,7 @@ interface StyleLookCandidate {
 }
 ```
 
-### Base scoring
-
-The selector must use explicit weights stored in code and covered by unit tests.
-
-Recommended v0.1 weights:
+### Recommended scoring
 
 ```text
 Style tag match             +40
@@ -317,52 +442,36 @@ Occasion tag match          +20
 Requested category match    required filter
 Face-shape suitability      +15
 Moderate novelty bonus      +5
-Excluded/recently used      remove from candidate set
+Excluded/recently used      remove when inventory permits
 ```
 
 ### Diversity constraints
 
-Selecting the four highest raw scores is insufficient because it may produce near-identical looks.
+1. No duplicate preset.
+2. No more than 2 frames with the same shape.
+3. At least 2 visual-weight levels when possible.
+4. At least 2 materials when possible.
+5. For `all`, include both optical and sunglasses when eligible inventory permits.
+6. Penalize candidates that closely resemble already selected frames.
+7. Preserve user-pinned or manually replaced frames when refreshing the remaining set.
 
-The final set should enforce:
+A deterministic greedy maximum-marginal-relevance approach is sufficient.
 
-1. no duplicate preset;
-2. no more than 2 frames with the same shape;
-3. at least 2 different visual-weight levels when inventory permits;
-4. at least 2 different materials when inventory permits;
-5. for `all`, include both optical and sunglasses when eligible inventory permits;
-6. each additional frame receives a diversity penalty when it closely matches already selected frames.
+### Face-shape context
 
-A greedy maximum-marginal-relevance approach is sufficient for v0.1. The result must remain deterministic for the same input and catalog version.
-
-### Face-shape input
-
-Face shape is optional.
-
-- When Style Explorer is entered from a valid face analysis, pass the known face shape.
-- When entered directly, do not block the flow to force face analysis.
-- Missing face shape contributes zero points rather than excluding a frame.
-- Style intent should remain the dominant signal; Style Explorer must not collapse into another Advisor result.
-
-### Regeneration
-
-`Explore another set` should call the selector with the previous preset IDs in `exclusionIds` where inventory permits.
-
-If there are not enough unused eligible presets, the selector may reuse prior presets but should maximize set-level difference.
+- Face shape is optional.
+- Known face shape may contribute to score.
+- Direct entry must not force a face-shape analysis.
+- Missing face shape contributes zero rather than excluding frames.
+- Style intent remains the dominant signal.
 
 ---
 
-## 10. Shared Compare Execution Refactor
+## 11. Shared Execution Architecture
 
-### Principle
+Do not implement Style Explorer as `mode === 'style'` inside an increasingly large `FrameCompareInterface.tsx`.
 
-Do not add Style Explorer behavior by expanding `FrameCompareInterface.tsx` into a large `mode === 'style'` component.
-
-The current component owns multiple reusable concerns that should be extracted gradually.
-
-### Required shared hooks/components
-
-Recommended extraction targets:
+Recommended shared extraction:
 
 ```text
 src/components/try-on-batch/
@@ -371,102 +480,63 @@ src/components/try-on-batch/
 ├── useTryOnTaskPolling.ts
 ├── useTryOnBatchRecovery.ts
 ├── TryOnBatchProgress.tsx
-├── TryOnResultGrid.tsx
-└── TryOnResultCard.tsx
+└── TryOnResultGrid.tsx
 ```
 
-The exact naming can change, but the responsibility boundaries must be preserved.
-
-### Shared responsibilities
-
-The shared batch layer should own:
-
-- batch initialization state;
-- queued task placeholders;
-- staggered per-frame dispatch;
-- polling active tasks;
-- processing-duration notices;
-- completed/failed/active counts;
-- failed-task retry;
-- session credit refresh after completion;
-- recoverable batch hydration;
-- normalized task states.
-
-### Business-specific containers
-
-Keep separate top-level feature containers:
+Business-specific containers remain separate:
 
 ```text
 src/components/compare/FrameCompareInterface.tsx
 src/components/style-explorer/StyleExplorerInterface.tsx
 ```
 
-Frame Compare owns:
+Shared concerns:
 
-- manual frame selection;
-- selected-count and credit-constrained selection UX;
-- comparison-oriented labels;
-- compare-again behavior.
+- task status normalization;
+- polling;
+- batch recovery;
+- retry;
+- credit refresh;
+- result-grid shell;
+- common download action;
+- common share action.
 
-Style Explorer owns:
+Style Explorer-specific concerns:
 
-- style intent selection;
-- occasion selection;
-- category selection;
-- generated frame-set preview;
+- style controls;
+- recommendation selector;
+- frame replacement;
 - look naming and explanation;
-- regenerate-set behavior;
-- Style Explorer events.
-
-### Refactor sequencing
-
-The Style Explorer implementation should not begin with a high-risk full rewrite of Compare.
-
-Use this sequence:
-
-1. Extract shared task types and status normalization.
-2. Extract polling and completion/session-refresh behavior.
-3. Extract result-grid primitives with render slots for metadata/actions.
-4. Keep existing Compare API behavior unchanged and verify regression tests.
-5. Build Style Explorer container using the extracted primitives.
-6. Extract dispatch/recovery hooks only where duplication becomes concrete.
+- style analytics;
+- pre-generation frame preview.
 
 ---
 
-## 11. API Design
+## 12. API Design
 
-### Proposed endpoints
+Use separate Style Explorer routes while calling shared helpers.
+
+### Batch initialization
 
 ```text
-POST /api/style-explorer/select
-POST /api/style-explorer/batch
-POST /api/style-explorer/frame
-GET  /api/style-explorer/current
+POST /api/try-on/glasses/style-explorer
 ```
 
-`select` may be implemented as a client-side pure call in v0.1 because the catalog and rules are static. If selection rules are server-side, the endpoint must return only approved preset descriptors.
-
-### Batch initialization request
+Request:
 
 ```json
 {
-  "styleIntent": "creative",
-  "occasion": "social",
+  "styleIntent": "minimal",
+  "occasion": "work",
   "category": "all",
   "faceShape": "oval",
-  "presetIds": [
-    "transparent-geometric-optical",
-    "thin-metal-color-optical",
-    "cat-eye-sunglasses",
-    "statement-narrow-optical"
-  ],
-  "entrySource": "advisor-result"
+  "presetIds": ["preset-a", "preset-b", "preset-c", "preset-d"]
 }
 ```
 
-The server must recompute or validate eligibility. It must not trust arbitrary client-supplied asset paths or prompt text.
+The server must validate that submitted presets are enabled for Style Explorer and match the allowed maximum count.
 
-### Batch initialization response
+Response:
 
 ```json
 {
@@ -474,446 +544,313 @@ The server must recompute or validate eligibility. It must not trust arbitrary c
   "data": {
     "batchId": "style-explorer-userId-timestamp",
     "requiredCredits": 4,
-    "remainingCreditsBefore": 12,
-    "submissionStaggerMs": 3000,
-    "context": {
-      "styleIntent": "creative",
-      "occasion": "social",
-      "category": "all",
-      "entrySource": "advisor-result"
-    },
-    "looks": [
-      {
-        "preset": {
-          "id": "transparent-geometric-optical",
-          "name": "Transparent Geometric",
-          "style": "Geometric",
-          "assetPath": "assets/glasses-presets/transparent-geometric-optical.jpg"
-        },
-        "lookKey": "creative-light",
-        "batchIndex": 0
-      }
-    ]
+    "remainingCreditsBefore": 45,
+    "presets": [],
+    "tasks": []
   }
 }
 ```
 
 ### Per-frame dispatch
 
-Style Explorer should call a Style Explorer frame endpoint that internally uses the same shared submission service as Compare.
+```text
+POST /api/try-on/glasses/style-explorer/frame
+```
 
-Do not call the Compare endpoint with a hidden mode flag. Separate endpoints provide clearer validation, analytics, recovery filtering, logging, and future evolution while still sharing server helpers.
+This route should use the common compare/try-on submission helper with Style Explorer metadata rather than copy the generation implementation.
 
-### Shared server helper
-
-Refactor the current helper into a general preset try-on submission function, for example:
+### Required metadata
 
 ```ts
-submitPresetTryOnTask({
-  user,
-  userImageFile,
-  preset,
-  batch,
-  promptContext,
-  index,
+{
+  batchId,
+  source: 'style-explorer',
+  styleIntent,
+  occasion,
+  category,
+  lookKey,
+  framePresetId,
+  framePresetName,
+  framePresetStyle,
+  batchSize,
+  batchIndex
+}
+```
+
+### Recovery isolation
+
+Recovery queries must filter by `metadata.source === 'style-explorer'` so Compare and Style Explorer batches cannot be confused.
+
+---
+
+## 13. Credits and Persistence
+
+1. One successful generated image uses one credit under the existing pipeline.
+2. A full four-look run requires up to four credits.
+3. The required credit cost must be shown before generation.
+4. Existing failed-task credit behavior remains unchanged.
+5. Results are persisted automatically as normal `TryOnTask` records.
+6. No separate Save API is required.
+7. The UI must not imply that results disappear unless the user clicks Save.
+
+Recommended result message:
+
+> Saved automatically to your Dashboard History.
+
+---
+
+## 14. Download and Share
+
+### Download
+
+`Download Image` downloads the generated `resultImageUrl` using the same behavior already available in Dashboard History.
+
+### Share v0.1
+
+The first feasible share experience uses the existing public result page:
+
+```text
+/[locale]/share/[taskId]
+```
+
+#### Mobile
+
+When supported, call the Web Share API with the public result URL:
+
+```ts
+await navigator.share({
+  title: 'My VisuTry eyewear look',
+  text: 'Check out this eyewear look I created with VisuTry.',
+  url: shareUrl,
 })
 ```
 
-Compare and Style Explorer should supply feature-specific prompt context and metadata.
+Share the URL by default, not a file attachment.
 
-### Prompt behavior
+#### Desktop / fallback
 
-Style Explorer prompts may add style context, but must retain the existing identity-preservation rules:
+Show a compact action menu:
 
-- do not change the person's face;
-- do not change expression or head size;
-- do not change background or composition;
-- use the supplied frame asset as the eyewear reference;
-- keep output realistic and useful for eyewear evaluation.
+- `Copy Link`;
+- `Download Image`.
 
-The style label must not authorize unrelated visual restyling of the person or scene.
+No direct Facebook, Instagram, Pinterest, WeChat or email SDK integration is required in v0.1.
 
----
+### Locale correctness
 
-## 12. Batch and Task Metadata
-
-Style Explorer should reuse the existing try-on task persistence model and store feature context in metadata.
-
-### Required batch metadata
-
-```ts
-{
-  batchId: string
-  source: 'style-explorer'
-  batchSize: number
-  serviceType: 'grsai'
-  submissionStaggerMs: number
-  styleIntent: StyleIntent
-  occasion?: StyleOccasion
-  category: StyleExplorerCategoryFilter
-  faceShape?: FaceShape
-  entrySource: StyleExplorerEntrySource
-  selectorVersion: string
-  catalogVersion: string
-}
-```
-
-### Required frame metadata
-
-```ts
-{
-  framePresetId: string
-  framePresetName: string
-  framePresetStyle: string
-  frameCategory: EyewearCategory
-  lookKey: string
-  batchIndex: number
-}
-```
-
-### Batch ID
-
-Use:
-
-```text
-style-explorer-{userId}-{timestamp}
-```
-
-Recovery queries must filter `metadata.source === 'style-explorer'`. Style Explorer must never recover a Frame Compare batch, and Compare must never recover a Style Explorer batch.
+Any Dashboard History link to a share page should use the localized route helper rather than a hard-coded `/share/{id}` path.
 
 ---
 
-## 13. Credit and Failure Behavior
+## 15. Compare Behavior
 
-v0.1 uses the existing credit rules.
+`Compare This Look` and `Compare These Looks` are explicitly excluded from v0.1.
 
-1. One successful generated result consumes one credit under the existing try-on pipeline.
-2. A 4-look set requires up to 4 available credits before batch start.
-3. The UI must display required credits before generation.
-4. Users with 1-3 credits may generate the same number of looks; selection limit follows available credits, matching Compare's current behavior.
-5. A failed frame must not hide completed results.
-6. Retry checks credits again.
-7. Style Explorer must not implement a separate deduction or refund path.
-8. Credit behavior should be tested against partial success and retry cases.
+Reasons:
 
----
+1. Style Explorer already presents four results side by side.
+2. The existing Compare flow accepts source photo + preset IDs and generates new tasks; it does not compare already generated images directly.
+3. Sending one Style Explorer result into Compare would require a second generation and could consume credits again.
+4. The label would therefore misrepresent current capability.
 
-## 14. Result Presentation
+A low-priority cross-product link may be shown after completion:
 
-The result grid can reuse the current Compare grid foundation, but result semantics differ.
+> Want to try other specific frames? Open Frame Compare.
 
-### Required card content
-
-Each completed result displays:
-
-- generated image;
-- look name;
-- frame name;
-- 1-3 style tags;
-- concise reason;
-- `Save Look`;
-- `Share` where current single-result sharing supports it;
-- optional `Compare` action.
-
-### Look explanation
-
-v0.1 explanations should be produced from deterministic templates based on selected metadata. Do not call an LLM solely to write short card copy.
-
-Example:
-
-> A lighter geometric frame adds creative definition while keeping the overall look clean and wearable.
-
-Copy must avoid medical, biometric, or guaranteed-fit claims.
-
-### Save behavior
-
-If the existing dashboard already exposes completed try-on tasks, v0.1 can treat the generated result as saved in history and use `Save Look` as a lightweight favorite action only when a favorite field/object is available.
-
-Do not create a new `StyleProject` database model solely to satisfy v0.1 card copy. If favorite persistence is not ready, label the action according to actual behavior.
-
-### Comparison transition
-
-A user may send selected Style Explorer results into Frame Compare only when the current Compare data model can accept those preset IDs cleanly. Otherwise, link to Compare with the same photo and require re-selection.
-
-Do not promise cross-module state transfer before it is implemented.
+This must be described as a new flow, not a continuation of the current generated set.
 
 ---
 
-## 15. Analytics
+## 16. Analytics
 
-Style Explorer must be measured independently from Frame Compare even when execution components are shared.
-
-### Minimum events
+Minimum events:
 
 | Event | Trigger |
 | --- | --- |
-| `style_explorer_viewed` | Module page becomes visible. |
-| `style_explorer_photo_added` | Valid photo is selected. |
-| `style_explorer_style_selected` | User selects style intent. |
-| `style_explorer_occasion_selected` | User selects occasion. |
-| `style_explorer_category_selected` | User selects category. |
-| `style_explorer_set_created` | Selector produces a candidate set. |
-| `style_explorer_generation_started` | User confirms credit cost and starts batch. |
-| `style_explorer_frame_completed` | One frame completes. |
-| `style_explorer_frame_failed` | One frame fails. |
-| `style_explorer_generation_completed` | Batch has no active tasks. |
-| `style_explorer_regenerated` | User requests another frame set. |
-| `style_explorer_look_saved` | Look favorite/save succeeds. |
-| `style_explorer_look_shared` | Share action succeeds or share surface opens, according to existing analytics convention. |
-| `style_explorer_compare_clicked` | User continues to Compare. |
-| `style_explorer_pricing_clicked` | User clicks a credit CTA. |
+| `style_explorer_viewed` | Module page loaded. |
+| `style_explorer_photo_uploaded` | Valid photo selected. |
+| `style_explorer_style_selected` | Style intent changed. |
+| `style_explorer_category_selected` | Category changed. |
+| `style_explorer_occasion_selected` | Occasion changed. |
+| `style_explorer_frames_recommended` | Recommendation set produced. |
+| `style_explorer_frame_replaced` | User replaces one frame. |
+| `style_explorer_frames_refreshed` | User requests another set. |
+| `style_explorer_generation_started` | Batch initialized. |
+| `style_explorer_generation_completed` | All tasks reach terminal state. |
+| `style_explorer_generation_partial` | Mixed completed / failed result. |
+| `style_explorer_download_clicked` | User downloads a result. |
+| `style_explorer_share_clicked` | User opens native share or copy-link action. |
+| `style_explorer_share_completed` | Native share resolves or link is copied. |
+| `style_explorer_dashboard_clicked` | User opens Dashboard History. |
+| `style_explorer_explore_again_clicked` | User begins another set. |
+| `style_explorer_pricing_clicked` | User enters pricing due to insufficient credits. |
 
-### Required properties
+Useful properties:
 
-```text
-batch_id
-entry_source
-style_intent
-occasion
-category
-face_shape_available
-selected_preset_ids
-selected_count
-required_credits
-remaining_credits
-completed_count
-failed_count
-selector_version
-catalog_version
-device_type
-locale
-```
-
-### Validation metrics
-
-The product review should compare Style Explorer users against normal Compare users:
-
-- module entry rate;
-- photo-to-generation conversion;
-- average generated looks;
-- regeneration rate;
-- save rate;
-- share rate;
-- Compare continuation rate;
-- pricing-click rate;
-- credit consumption per user;
-- 7-day return rate.
-
-A Studio MVP should not be approved solely because users click sunglasses. Evidence should show repeated look creation, saving/sharing, or return behavior.
+- style intent;
+- occasion;
+- category;
+- face-shape context present;
+- recommended preset IDs;
+- manually replaced preset IDs;
+- batch ID;
+- task count;
+- completed count;
+- failed count;
+- remaining credits;
+- entry source;
+- device class;
+- Web Share API availability.
 
 ---
 
-## 16. Suggested Frontend Structure
+## 17. Error and Edge Cases
 
-```text
-src/components/style-explorer/
-├── StyleExplorerInterface.tsx
-├── StyleIntentSelector.tsx
-├── StyleOccasionSelector.tsx
-├── StyleCategorySelector.tsx
-├── StyleSetPreview.tsx
-├── StyleLookMeta.tsx
-└── StyleExplorerLanding.tsx
-
-src/components/try-on-batch/
-├── types.ts
-├── useTryOnTaskPolling.ts
-├── TryOnBatchProgress.tsx
-├── TryOnResultGrid.tsx
-└── TryOnResultCard.tsx
-
-src/lib/style-explorer/
-├── types.ts
-├── frame-selector.ts
-├── scoring.ts
-└── look-copy.ts
-```
-
-The exact structure may be adapted to existing repository conventions, but UI, domain logic, and execution infrastructure must not be collapsed into one component.
+1. No photo: generation disabled.
+2. Zero credits: show pricing CTA before generation.
+3. One to three credits: either limit generated looks to available credits with explicit copy, or require four credits; product must choose one rule before implementation.
+4. Recommendation inventory cannot satisfy diversity: return the best valid deterministic set and record a diagnostic flag.
+5. One task fails: successful results remain visible and failed task can be retried.
+6. Refresh during generation: recover the Style Explorer batch only.
+7. User changes style after generation: require `Explore Again`; do not silently mutate completed metadata.
+8. User replaces one frame: preserve the other three recommendations.
+9. Share API unavailable: fall back to copy link.
+10. Public share task is incomplete or missing: show not found; never expose unfinished output.
+11. Dashboard history contains many tasks: `View in Dashboard` may initially open history generally; task-specific deep linking is a later enhancement.
 
 ---
 
-## 17. Testing Requirements
+## 18. Testing Requirements
 
 ### Unit tests
 
-Add tests for:
-
-1. style and category filtering;
-2. deterministic results for identical input;
-3. face-shape scoring with and without face context;
-4. diversity constraints;
-5. exclusion IDs during regeneration;
-6. inventory-shortage fallback;
-7. look-copy template mapping;
-8. metadata serialization.
-
-Suggested locations:
-
-```text
-src/lib/style-explorer/__tests__/frame-selector.test.ts
-src/lib/style-explorer/__tests__/look-copy.test.ts
-```
+- scoring weights;
+- category filter;
+- diversity constraints;
+- deterministic output;
+- exclusion and pinned-frame behavior;
+- look-name generation;
+- share fallback decision logic;
+- status normalization.
 
 ### API tests
 
-Cover:
-
-- unauthorized request;
-- unknown preset ID;
-- preset not enabled for Style Explorer;
+- authentication;
+- invalid preset rejection;
 - insufficient credits;
-- valid 1-4 look batch;
-- category mismatch tampering;
-- partial dispatch failure;
+- maximum four frames;
+- Style Explorer metadata;
 - recovery source isolation;
-- retry with insufficient and sufficient credits.
+- partial failure response.
 
 ### Component tests
 
-Cover:
+- all five UI states;
+- recommended frame visibility;
+- single-frame replacement;
+- disabled CTA without photo;
+- correct credit cost;
+- no `Save Look` action;
+- no Compare action;
+- automatic-save confirmation;
+- download and share actions;
+- Dashboard navigation.
 
-- required style selection;
-- optional occasion;
-- category changes regenerate the candidate set;
-- credit-limited look count;
-- loading and partial completion states;
-- result metadata rendering;
-- regenerate behavior;
-- zero-credit pricing CTA.
+### End-to-end tests
 
-### End-to-end test
-
-One Playwright scenario must cover:
-
-1. sign in through test mode;
-2. open Style Explorer;
-3. upload a test portrait;
-4. choose `Creative` and `All`;
-5. receive four candidate presets;
-6. start generation;
-7. observe queued/processing/completed states;
-8. verify four result cards or explicit partial failure state;
-9. regenerate another set;
-10. verify analytics calls or test-visible event transport where supported.
-
-### Regression tests
-
-Frame Compare must retain:
-
-- manual selection;
-- credit-aware limit;
-- staggered dispatch;
-- task polling;
-- retry;
-- current batch recovery;
-- result history persistence.
-
----
-
-## 18. Rollout Plan
-
-### Phase 0 — Catalog and instrumentation preparation
-
-- extend preset metadata;
-- add 8 style-focused assets;
-- implement selector and tests;
-- confirm analytics transport;
-- no public navigation entry.
-
-### Phase 1 — Internal route
-
-- implement authenticated Style Explorer route;
-- reuse/extract shared batch components;
-- validate generation quality and prompt consistency;
-- run internal test accounts only.
-
-### Phase 2 — Controlled Beta
-
-- expose `New — Style Explorer` to a percentage of signed-in users;
-- add entry from Advisor or Compare completion;
-- retain current four-module homepage hierarchy;
-- review behavior weekly.
-
-### Phase 3 — Product-module decision
-
-Promote Style Explorer to a fully exposed fifth module only if behavior demonstrates meaningful exploration demand.
-
-Suggested decision signals over a statistically useful sample:
-
-- at least 15% of eligible users enter Style Explorer;
-- generation completion is not materially worse than Compare;
-- at least 20% of generators request another set, save, share, or return;
-- Style Explorer produces higher average credit usage without disproportionate failure/support cost;
-- qualitative feedback confirms style discovery rather than novelty-only use.
-
-Thresholds are starting hypotheses and should be revised after baseline data exists.
+1. Sign in.
+2. Upload photo.
+3. Select style/category/occasion.
+4. Verify four recommended frames.
+5. Replace one frame.
+6. Start generation.
+7. Observe independent task states.
+8. Verify completed results.
+9. Download one result.
+10. Share or copy one public result URL.
+11. Open Dashboard History and confirm generated results exist.
+12. Refresh mid-generation and verify batch recovery.
 
 ---
 
 ## 19. Implementation Sequence
 
-Recommended engineering order:
+### Phase 1 — Catalog and selector
 
-1. Add structured metadata to all existing presets.
-2. Add new style/sunglasses preset assets.
-3. Implement and test deterministic selector.
-4. Extract compare result-grid and polling primitives without changing current behavior.
-5. Add Style Explorer route and landing/auth gate.
-6. Add Style Explorer batch initialization and per-frame endpoints.
-7. Refactor shared server preset submission helper.
-8. Add Style Explorer interface and style-oriented result metadata.
-9. Add recovery isolation by feature source.
-10. Add analytics.
-11. Add Playwright and regression coverage.
-12. Release behind a feature flag or controlled navigation exposure.
+1. Extend preset metadata.
+2. Add new style-focused assets.
+3. Implement deterministic selector.
+4. Add unit tests.
+
+### Phase 2 — Shared batch extraction
+
+1. Extract polling and recovery hooks from Compare without changing behavior.
+2. Extract reusable result-grid shell and common task state components.
+3. Verify Compare regression tests.
+
+### Phase 3 — Style Explorer UI and routes
+
+1. Add page route and public state.
+2. Add style controls and recommendation preview.
+3. Add frame refresh and single replacement.
+4. Add Style Explorer API routes using shared helpers.
+5. Add five required UI states.
+
+### Phase 4 — Result actions and measurement
+
+1. Add common download action.
+2. Add Web Share / copy-link fallback.
+3. Add Dashboard navigation and automatic-save message.
+4. Add analytics.
+5. Add end-to-end tests.
+
+### Phase 5 — Controlled release
+
+1. Release behind feature flag.
+2. Expose to a limited percentage of authenticated users.
+3. Review engagement, regeneration, download, share and credit behavior.
+4. Decide whether to expand module exposure or continue toward Studio.
 
 ---
 
 ## 20. Acceptance Criteria
 
-Style Explorer v0.1 is ready for controlled Beta when:
+Style Explorer v0.1 is acceptable when:
 
-1. It exists as an independent route and user-visible module concept.
-2. User can upload one photo and choose style intent, optional occasion, and category.
-3. System returns up to 4 deterministic and meaningfully diverse eligible presets.
-4. User sees exact credit cost before generation.
-5. Each selected frame uses the existing try-on task pipeline.
-6. Queued, processing, completed, and failed states render independently.
-7. Failed frames can be retried under existing credit rules.
-8. Refresh recovery cannot mix Compare and Style Explorer batches.
-9. Completed results show style-specific metadata and explanation.
-10. Existing Frame Compare behavior passes regression tests.
-11. Required Style Explorer events and properties are observable.
-12. The feature can be disabled without affecting Compare or normal Try-On.
-13. No new Studio, project, merchant, or social data model is introduced unless separately approved.
-
----
-
-## 21. Open Decisions Before Engineering Start
-
-1. Confirm the 8 initial style/sunglasses assets and their quality standard.
-2. Confirm whether Style Explorer Beta supports 1-4 looks based on credits or requires exactly 4 credits.
-3. Confirm the existing analytics helper/event transport to use.
-4. Confirm whether `Save Look` maps to current history, a favorite flag, or is deferred.
-5. Confirm the initial entry points and Beta audience percentage.
-6. Confirm whether known face shape is passed through URL/session/result context or fetched from the latest valid analysis.
-7. Confirm whether shared batch extraction occurs before Style Explorer UI work or incrementally during implementation.
+1. It exists as an independent route and product module.
+2. It uses the existing try-on task and persistence pipeline.
+3. User can select style, category and optional occasion.
+4. System recommends four diverse frames deterministically.
+5. User sees and may adjust the recommended frames before spending credits.
+6. Pre-generation cards show actual frame assets, not simulated face overlays.
+7. User sees exact credit cost before generation.
+8. Four tasks progress independently and survive partial failure.
+9. Completed results display look names, tags and concise explanations.
+10. Results are saved automatically to Dashboard History.
+11. `Save Look`, `Compare This Look` and `Compare These Looks` are absent.
+12. User can download each completed result.
+13. User can share the existing public result URL through Web Share or copy-link fallback.
+14. User can open Dashboard History from the completion state and detail drawer.
+15. Compare continues to function without regression.
+16. Minimum analytics events are emitted.
+17. Mobile and desktop flows are usable.
 
 ---
 
-## 22. Decision Record
+## 21. Product Decisions Required Before Build
 
-The technical direction is:
-
-> Style Explorer is a separate product module implemented as a new business orchestration over the existing Frame Compare and Try-On execution foundation.
-
-It must reuse generation, task lifecycle, credits, polling, retry, recovery patterns, and result primitives. It must not reuse the full Compare page as a mode-switched monolith, and it must not create a duplicate generation pipeline.
+1. Should users with fewer than four credits generate fewer looks, or be required to obtain four credits?
+2. Which exact eight new frame assets are approved for v0.1?
+3. Is individual frame replacement included in first release or immediately after Beta launch?
+4. Should the public Style Explorer landing page show a real demonstration image or only product explanation?
+5. Should `View in Dashboard` initially open general history, or should engineering add task/batch deep linking?
+6. What percentage of authenticated users should receive the first feature-flag rollout?
 
 ---
 
-## 23. Change Log
+## 22. Change Log
 
 | Date | Change |
 | --- | --- |
-| 2026-07-20 | Created initial technical specification after review of the current Frame Compare UI, APIs, server helper, preset catalog, product plan, and documentation conventions. |
+| 2026-07-20 | Initial technical specification created after Compare code review. |
+| 2026-07-20 | Revised after UI review: added transparent recommended-frame confirmation, removed pre-generation face overlays, removed Save and Compare actions, specified automatic Dashboard persistence, download behavior, public-link share flow, five required UI states and implementation-ready UX rules. |
