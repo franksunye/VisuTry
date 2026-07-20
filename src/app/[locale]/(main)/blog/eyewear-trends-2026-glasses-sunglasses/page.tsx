@@ -360,7 +360,7 @@ export default function BlogPostPage({ params }: { params: { locale: string } })
 
               <p>
                 That creates a practical problem: trend articles can tell you what is visible in the
-                market, but they cannot tell you which frame looks convincing on your face. VisuTry's
+                market, but they cannot tell you which frame looks convincing on your face. VisuTry&apos;s
                 approach is to combine three signals: <strong>face proportion</strong>, <strong>style intent</strong>,
                 and <strong>actual try-on results</strong>.
               </p>
@@ -504,7 +504,7 @@ export default function BlogPostPage({ params }: { params: { locale: string } })
                 and trend-led silhouettes, and settings ranging from work to vacation.
               </p>
               <p>
-                They are also designed to complement VisuTry's existing 16 practical optical presets.
+                They are also designed to complement VisuTry&apos;s existing 16 practical optical presets.
                 Together, the 32-frame system supports two different jobs: a reliable face-shape and
                 fit shortlist, and a broader exploration of personal style.
               </p>
