@@ -70,7 +70,7 @@ async function main(): Promise<void> {
       AND a.state     = 'idle'
       AND a.state_change < NOW() - INTERVAL '60 seconds'
   `;
-  const killed = result.filter((r: { killed: boolean }) => r.killed).length;
+  const killed = result.filter((r) => Boolean(r.killed)).length;
   console.log(`  ✓ terminated ${killed} stale backend(s)`);
 }
 
