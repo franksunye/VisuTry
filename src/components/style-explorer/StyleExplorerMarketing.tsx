@@ -10,7 +10,7 @@ import {
   ChevronRight,
   Cloud,
   Eye,
-  Images,
+  Image as ImageIcon,
   Sparkles,
 } from 'lucide-react'
 
@@ -112,7 +112,7 @@ export function StyleExplorerMarketing({ locale, signInHref }: StyleExplorerMark
                 <CheckCircle2 className="h-4 w-4 text-blue-600" /> Preview before generating
               </span>
               <span className="inline-flex items-center gap-2">
-                <Images className="h-4 w-4 text-blue-600" /> Four looks, one portrait
+                <ImageIcon className="h-4 w-4 text-blue-600" /> Four looks, one portrait
               </span>
             </div>
           </div>
