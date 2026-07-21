@@ -4,6 +4,8 @@ import Link from 'next/link'
 import { ArrowLeft, RefreshCw } from 'lucide-react'
 import { localizedPath } from '@/lib/localized-path'
 
+export const dynamic = 'force-static'
+
 export const metadata: Metadata = generateSEO({
   title: 'Refund Policy | VisuTry',
   description: 'Learn about VisuTry refund policy, cancellation terms, and how to request a refund for our AI glasses try-on service.',
