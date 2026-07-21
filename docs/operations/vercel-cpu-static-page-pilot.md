@@ -64,9 +64,29 @@ The following ISR pages were audited but intentionally excluded because they hav
 
 ## Out of scope
 
-No changes are made to authentication, payments, credits, database access, image uploads, AI generation, try-on, compare, middleware, root layouts, or shared navigation.
+No changes are made to authentication, payments, credits, database access, image uploads, AI generation, try-on, compare, root layouts, or shared navigation.
 
 Note: `src/app/layout.tsx` still resolves session for `SessionProvider`. Leaf-page static rendering reduces page-segment work and improves CDN cacheability; it does not remove root-layout session lookup. Shared layout optimization remains a later phase.
+
+### Phase 3 — Middleware matcher narrowing
+
+Previously the middleware matcher was extremely broad — it matched every page request (excluding only `api`, `_next`, `_vercel`, and paths with a dot). This meant that even fully static pages (blog, legal, SEO guides) still triggered an Edge Function invocation on every request, even though the middleware did nothing useful for paths that already had a locale prefix.
+
+The matcher has been narrowed to three rules:
+
+| Matcher rule | Purpose |
+| --- | --- |
+| `/` | Root path — needs locale detection redirect (e.g. `/` → `/en`) |
+| `/admin/:path*` | Admin routes — needs JWT authentication |
+| `((?!(?:en\|id\|ar\|ru\|de\|ja\|es\|pt\|fr)(?:/\|$)\|api\|_next\|_vercel\|admin\|.*\\..*).*)` | Routes without a locale prefix — needs locale detection redirect |
+
+Routes with an existing locale prefix (e.g. `/en/blog`, `/es/face-shapes/oval`) no longer trigger middleware at all. This is safe because:
+
+- Locale is resolved from the `[locale]` route segment parameter (`src/i18n/request.ts`), not from middleware.
+- `generateStaticParams` in `src/app/[locale]/layout.tsx` enumerates all 9 locales at build time.
+- Legacy non-locale paths are already handled by `next.config.js` `redirects()` (18 permanent redirects), which execute before middleware.
+
+Admin debug `console.log` statements (including `JSON.stringify(token)`) were also removed from the admin auth branch.
 
 ## Preview verification
 

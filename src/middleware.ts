@@ -17,7 +17,11 @@ const intlMiddleware = createIntlMiddleware({
  * Combined Middleware: i18n + Admin Authentication
  *
  * 1. For /admin routes: Apply admin authentication
- * 2. For all other routes: Apply i18n routing
+ * 2. For routes without a locale prefix: Apply i18n locale detection and redirect
+ * 3. Routes with an existing locale prefix (e.g. /en/blog) are excluded by the
+ *    matcher below — they are served directly as static or dynamic pages without
+ *    middleware overhead. Locale is resolved from the [locale] route segment,
+ *    not from middleware.
  */
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl
@@ -33,24 +37,13 @@ export async function middleware(req: NextRequest) {
   }
 
   const ctx = getRequestContext(req)
-  // Optimization: Use debug level for high-frequency logs to save Vercel CPU duration
   logger.debug('web', 'Page request', { pathname }, ctx)
 
   // Handle /admin routes with authentication
   if (pathname.startsWith('/admin')) {
     const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET })
 
-    console.log('[Admin Middleware] Access attempt:', {
-      pathname,
-      hasToken: !!token,
-      userEmail: token?.email,
-      userRole: token?.role,
-      tokenKeys: token ? Object.keys(token) : [],
-      timestamp: new Date().toISOString()
-    })
-
     if (!token) {
-      console.log('[Admin Middleware] No token - redirecting to login')
       const url = new URL('/api/auth/signin', req.url)
       url.searchParams.set('callbackUrl', req.url)
       return NextResponse.redirect(url)
@@ -59,29 +52,27 @@ export async function middleware(req: NextRequest) {
     const userRole = token.role
 
     if (userRole !== 'ADMIN') {
-      console.log('[Admin Middleware] Access DENIED - User role:', userRole, 'Email:', token.email, 'Full token:', JSON.stringify(token, null, 2))
       const url = new URL(`/${defaultLocale}`, req.url)
       url.searchParams.set('error', 'Forbidden')
-      url.searchParams.set('debug_role', userRole || 'undefined')
-      url.searchParams.set('debug_email', token.email || 'no-email')
       return NextResponse.redirect(url)
     }
 
-    console.log('[Admin Middleware] Access GRANTED - Admin user:', token.email)
     return NextResponse.next()
   }
 
-  // Apply i18n middleware for all other routes
+  // Apply i18n middleware for routes without a locale prefix
   return intlMiddleware(req)
 }
 
 export const config = {
   matcher: [
-    // Match all pathnames except for
-    // - … if they start with `/api`, `/_next` or `/_vercel`
-    // - … the ones containing a dot (e.g. `favicon.ico`)
-    '/((?!api|_next|_vercel|.*\\..*).*)',
-    // However, match all pathnames within `/admin`
-    '/admin/:path*'
+    // Root path — needs locale detection redirect (e.g. / → /en)
+    '/',
+    // Admin routes — need JWT authentication
+    '/admin/:path*',
+    // Routes without a locale prefix — needs locale detection redirect.
+    // Excludes: locale-prefixed paths (en/id/ar/ru/de/ja/es/pt/fr),
+    // api, _next, _vercel, admin, and paths containing a dot.
+    '/((?!(?:en|id|ar|ru|de|ja|es|pt|fr)(?:/|$)|api|_next|_vercel|admin|.*\\..*).*)',
   ]
 }
