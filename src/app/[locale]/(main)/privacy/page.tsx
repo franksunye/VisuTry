@@ -5,6 +5,8 @@ import { ArrowLeft, Shield } from 'lucide-react'
 import { Breadcrumbs } from '@/components/seo/Breadcrumbs'
 import { localizedPath } from '@/lib/localized-path'
 
+export const dynamic = 'force-static'
+
 export const metadata: Metadata = generateSEO({
   title: 'Privacy Policy | VisuTry',
   description: 'Learn how VisuTry collects, uses, and protects your personal information. Our commitment to your privacy and data security.',

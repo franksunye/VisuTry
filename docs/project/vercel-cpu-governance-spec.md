@@ -56,21 +56,27 @@ This plan is based on current implementation evidence, not a generic Next.js opt
 
 These facts are important because they mean some public leaf pages can potentially be made static without first rewriting the global header or authentication flow.
 
-### 2.3 First completed pilot
+### 2.3 First-tier static rendering (deployed)
 
-The refund policy page now contains:
+The following leaf pages use explicit static rendering:
 
 ```ts
 export const dynamic = 'force-static'
 ```
 
-in:
+Deployed routes:
 
-```text
-src/app/[locale]/(main)/refund/page.tsx
-```
+- `src/app/[locale]/(main)/refund/page.tsx`
+- `src/app/[locale]/(main)/privacy/page.tsx`
+- `src/app/[locale]/(main)/terms/page.tsx`
+- `src/app/[locale]/(main)/page.tsx` (home)
+- `src/app/[locale]/(main)/face-shape-detector/page.tsx`
+- `src/app/[locale]/(main)/store/page.tsx`
+- `src/app/[locale]/(main)/blog/oliver-peoples-finley-vintage-review/page.tsx` (blog pilot)
 
-This was intentionally limited to one leaf page. It changed no content, route, shared layout, authentication, payment, credits, database, upload, or AI logic.
+The refund page was the initial pilot. The remaining first-tier routes followed the same bounded pattern: no content, route, authentication, payment, credits, database, upload, or AI logic changes.
+
+Root layout session lookup (`src/app/layout.tsx`) is unchanged; leaf static rendering reduces page-segment work and improves CDN cacheability for these routes.
 
 ### 2.4 Critical product workflows that must remain protected
 
@@ -201,8 +207,10 @@ Do not estimate route CPU solely from invocation count. Where Vercel cannot prov
 Order:
 
 1. Refund — completed pilot.
-2. Privacy.
-3. Terms.
+2. Privacy — completed.
+3. Terms — completed.
+4. Home, Face Shape Detector, Store — completed.
+5. One blog article pilot — completed (`oliver-peoples-finley-vintage-review`).
 
 For each page:
 
@@ -504,9 +512,12 @@ Because traffic varies, compare equivalent windows where possible and avoid clai
 | Priority | Candidate | Category | Risk | Expected benefit | Status |
 | --- | --- | --- | --- | --- | --- |
 | P0 | Refund policy static rendering | A | Very low | Low per route | Deployed pilot |
-| P0 | Privacy policy static rendering | A | Very low | Low per route | Next candidate |
-| P0 | Terms static rendering | A | Very low | Low per route | Next candidate |
-| P1 | One stable blog article static pilot | B | Low | Medium | Not started |
+| P0 | Privacy policy static rendering | A | Very low | Low per route | Deployed |
+| P0 | Terms static rendering | A | Very low | Low per route | Deployed |
+| P0 | Home static rendering | C | Very low | Medium/high | Deployed |
+| P0 | Face Shape Detector static rendering | C | Very low | Medium/high | Deployed |
+| P0 | Store landing static rendering | C | Very low | Low/medium | Deployed |
+| P1 | One stable blog article static pilot | B | Low | Medium | Deployed (oliver-peoples-finley-vintage-review) |
 | P1 | Blog article route inventory | B | Low | Enables medium/high benefit | Not started |
 | P1 | Polling request count per try-on/compare task | F | Low measurement risk | Potentially high | Audit first |
 | P1 | Session request duplication audit | E | Low measurement risk | Medium | Audit first |

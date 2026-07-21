@@ -22,6 +22,8 @@ interface StorePageProps {
   }
 }
 
+export const dynamic = 'force-static'
+
 export async function generateMetadata({ params }: StorePageProps): Promise<Metadata> {
   return generateI18nSEO({
     locale: params.locale as Locale,

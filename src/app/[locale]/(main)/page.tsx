@@ -4,6 +4,8 @@ import { useTranslations } from 'next-intl'
 import { FaceAnalysisPreviewVisual } from '@/components/face-analysis/FaceAnalysisPreviewVisual'
 import { ModelTryOnSlides } from '@/components/marketing/ModelTryOnSlides'
 
+export const dynamic = 'force-static'
+
 export default function Home({
   params,
 }: {

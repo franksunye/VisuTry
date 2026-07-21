@@ -5,6 +5,8 @@ import { ArrowLeft, FileText } from 'lucide-react'
 import { Breadcrumbs } from '@/components/seo/Breadcrumbs'
 import { localizedPath } from '@/lib/localized-path'
 
+export const dynamic = 'force-static'
+
 export const metadata: Metadata = generateSEO({
   title: 'Terms of Service | VisuTry',
   description: 'Read VisuTry Terms of Service. Learn about user responsibilities, service usage rules, and legal terms for our AI virtual try-on platform for glasses, outfits, shoes, and accessories.',
