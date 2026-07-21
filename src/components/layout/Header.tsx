@@ -17,7 +17,7 @@ interface HeaderProps {
 }
 
 export function Header({ transparent = false }: HeaderProps) {
-  const { data: session } = useSession()
+  const { data: session, status } = useSession()
   const { testSession } = useTestSession()
   const pathname = usePathname()
   const params = useParams()
@@ -26,6 +26,9 @@ export function Header({ transparent = false }: HeaderProps) {
   const t = useTranslations('nav')
   const tCommon = useTranslations('common')
 
+  // While session is loading, render a neutral placeholder to avoid flashing
+  // LoginButton → UserMenu for authenticated users on page refresh.
+  const sessionLoading = status === 'loading' && !testSession
   const isAuthenticated = !!(session || testSession)
   // Check if current path is the home page for this locale
   const isHomePage = pathname === `/${locale}` || pathname === `/${locale}/`
@@ -86,7 +89,9 @@ export function Header({ transparent = false }: HeaderProps) {
             </div>
 
             {/* CTA Button - Desktop only */}
-            {isAuthenticated ? (
+            {sessionLoading ? (
+              <div className="hidden sm:flex items-center px-4 py-2 w-24" aria-hidden="true" />
+            ) : isAuthenticated ? (
               <Link
                 href={`/${locale}/try-on`}
                 className="hidden items-center whitespace-nowrap rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700 sm:flex"
@@ -103,8 +108,10 @@ export function Header({ transparent = false }: HeaderProps) {
               </Link>
             ) : null}
 
-            {/* User Menu or Login Button */}
-            {isAuthenticated ? (
+            {/* User Menu or Login Button (placeholder while session loads) */}
+            {sessionLoading ? (
+              <div className="h-9 w-20 rounded-lg bg-gray-100 animate-pulse" aria-hidden="true" />
+            ) : isAuthenticated ? (
               <UserMenu />
             ) : (
               <LoginButton variant="outline" />
@@ -160,7 +167,7 @@ export function Header({ transparent = false }: HeaderProps) {
 
               {/* Mobile CTA */}
               <div className="pt-3">
-                {isAuthenticated ? (
+                {sessionLoading ? null : isAuthenticated ? (
                   <Link
                     href={`/${locale}/try-on`}
                     onClick={() => setMobileMenuOpen(false)}
