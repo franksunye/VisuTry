@@ -247,6 +247,9 @@ export function generateSEO({
     title: seoTitle,
     description: seoDescription,
     
+    // Ensure relative OG/Twitter image URLs resolve correctly
+    metadataBase: new URL(SITE_CONFIG.url),
+    
     openGraph: {
       type,
       url: seoUrl,

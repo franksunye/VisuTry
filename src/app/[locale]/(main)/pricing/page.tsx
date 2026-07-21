@@ -7,7 +7,7 @@ import { generateI18nSEO, generateStructuredData } from '@/lib/seo'
 import { PRODUCT_METADATA, formatPrice, getPricingQuotas } from '@/config/pricing'
 import { Locale } from '@/i18n'
 import { CheckCircle2, Glasses, Grid2X2, ScanFace, Sparkles } from 'lucide-react'
-import { getTranslations } from 'next-intl/server'
+import { getTranslations, setRequestLocale } from 'next-intl/server'
 
 type Props = {
   params: Promise<{ locale: string }>
@@ -15,6 +15,7 @@ type Props = {
 
 export async function generateMetadata(props: Props): Promise<Metadata> {
   const params = await props.params
+  setRequestLocale(params.locale)
   const t = await getTranslations({ locale: params.locale, namespace: 'marketing.pricing' })
 
   return generateI18nSEO({
@@ -29,6 +30,7 @@ export async function generateMetadata(props: Props): Promise<Metadata> {
 export const revalidate = 60
 
 export default async function PricingPage({ params }: { params: { locale: string } }) {
+  setRequestLocale(params.locale)
   const quotas = getPricingQuotas()
   const session = await getServerSession(authOptions)
   const t = await getTranslations({ locale: params.locale, namespace: 'marketing.pricing' })

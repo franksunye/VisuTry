@@ -10,7 +10,7 @@ import { TryOnType, getTryOnConfig, urlToTryOnType, getAllTryOnTypes, tryOnTypeT
 import Link from "next/link"
 import { ArrowRight, CheckCircle2, CreditCard, Image, Shield, Upload } from "lucide-react"
 import { ModelTryOnSlides } from "@/components/marketing/ModelTryOnSlides"
-import { getTranslations } from "next-intl/server"
+import { getTranslations, setRequestLocale } from "next-intl/server"
 
 interface TryOnPageProps {
   params: {
@@ -21,6 +21,7 @@ interface TryOnPageProps {
 
 // Generate metadata dynamically based on try-on type
 export async function generateMetadata({ params }: TryOnPageProps): Promise<Metadata> {
+  setRequestLocale(params.locale)
   const marketingT = await getTranslations({ locale: params.locale, namespace: 'marketing.tryOnLanding' })
   const tryOnType = urlToTryOnType(params.type)
   
@@ -64,6 +65,7 @@ export function generateStaticParams() {
 
 export default async function TryOnTypePage({ params }: TryOnPageProps) {
   const { locale, type } = params
+  setRequestLocale(locale)
   
   // Convert URL type to TryOnType enum
   const tryOnType = urlToTryOnType(type)

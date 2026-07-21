@@ -1,6 +1,6 @@
 import { Metadata } from 'next'
 import { getServerSession } from 'next-auth/next'
-import { getTranslations } from 'next-intl/server'
+import { getTranslations, setRequestLocale } from 'next-intl/server'
 import { authOptions } from '@/lib/auth'
 import { generateI18nSEO } from '@/lib/seo'
 import { Locale } from '@/i18n'
@@ -13,6 +13,7 @@ type Props = {
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  setRequestLocale(params.locale)
   const t = await getTranslations({ locale: params.locale, namespace: 'faceAnalysis.meta' })
 
   return generateI18nSEO({
@@ -27,6 +28,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 export default async function FaceAnalysisPage({ params }: Props) {
+  setRequestLocale(params.locale)
   const session = await getServerSession(authOptions)
   const t = await getTranslations('common')
 

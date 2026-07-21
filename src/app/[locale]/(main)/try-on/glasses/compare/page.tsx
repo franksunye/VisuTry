@@ -9,7 +9,7 @@ import { FrameCompareInterface } from '@/components/compare/FrameCompareInterfac
 import { getRemainingQuotaCount } from '@/lib/quota'
 import { prisma } from '@/lib/prisma'
 import { CompareLandingVisual } from '@/components/marketing/CompareLandingVisual'
-import { getTranslations } from 'next-intl/server'
+import { getTranslations, setRequestLocale } from 'next-intl/server'
 import { generateStructuredData } from '@/lib/seo'
 
 interface FrameComparePageProps {
@@ -19,6 +19,7 @@ interface FrameComparePageProps {
 }
 
 export async function generateMetadata({ params }: FrameComparePageProps): Promise<Metadata> {
+  setRequestLocale(params.locale)
   const t = await getTranslations({ locale: params.locale, namespace: 'marketing.compareLanding' })
   return {
     title: t('metaTitle'),
@@ -36,6 +37,7 @@ export async function generateMetadata({ params }: FrameComparePageProps): Promi
 }
 
 export default async function FrameComparePage({ params }: FrameComparePageProps) {
+  setRequestLocale(params.locale)
   const session = await getServerSession(authOptions)
   let initialRemainingCredits = session?.user?.remainingTrials ?? 0
 

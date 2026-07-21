@@ -3,7 +3,7 @@ import { Metadata } from 'next'
 import { ArrowRight, Glasses, Grid2X2, ScanFace, Shield, Sparkles } from 'lucide-react'
 import { generateI18nSEO, generateStructuredData } from '@/lib/seo'
 import { Locale } from '@/i18n'
-import { getTranslations } from 'next-intl/server'
+import { getTranslations, setRequestLocale } from 'next-intl/server'
 
 type Props = {
   params: { locale: string }
@@ -14,6 +14,7 @@ function toAnchorId(value: string) {
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  setRequestLocale(params.locale)
   const t = await getTranslations({ locale: params.locale, namespace: 'marketing.faqPage' })
   return generateI18nSEO({
     locale: params.locale as Locale,
@@ -24,6 +25,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 export default async function FaqPage({ params }: Props) {
+  setRequestLocale(params.locale)
   const t = await getTranslations({ locale: params.locale, namespace: 'marketing.faqPage' })
   const tNav = await getTranslations({ locale: params.locale, namespace: 'nav' })
   const faqGroups = [

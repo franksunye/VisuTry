@@ -1,5 +1,5 @@
 import { NextIntlClientProvider } from 'next-intl'
-import { getMessages, getTranslations } from 'next-intl/server'
+import { getMessages, getTranslations, setRequestLocale } from 'next-intl/server'
 import { notFound } from 'next/navigation'
 import { locales, type Locale } from '@/i18n'
 import { GoogleAnalytics } from '@/components/analytics/GoogleAnalytics'
@@ -20,6 +20,7 @@ export function generateStaticParams() {
 
 export async function generateMetadata(props: Props): Promise<Metadata> {
   const params = await props.params
+  setRequestLocale(params.locale)
   const t = await getTranslations({ locale: params.locale, namespace: 'marketing.home' })
 
   return generateI18nSEO({
@@ -38,6 +39,9 @@ export default async function LocaleLayout(props: Props) {
   if (!locales.includes(locale as Locale)) {
     notFound()
   }
+
+  // Enable static rendering for this locale (next-intl requirement)
+  setRequestLocale(locale)
 
   const messages = await getMessages()
 
