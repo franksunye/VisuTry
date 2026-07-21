@@ -6,8 +6,6 @@ import { CheckCircle2, Grid2X2, Sparkles, Store } from 'lucide-react'
 import { authOptions } from '@/lib/auth'
 import { AutoRefreshWrapper } from '@/components/payments/AutoRefreshWrapper'
 import { FrameCompareInterface } from '@/components/compare/FrameCompareInterface'
-import { getRemainingQuotaCount } from '@/lib/quota'
-import { prisma } from '@/lib/prisma'
 import { CompareLandingVisual } from '@/components/marketing/CompareLandingVisual'
 import { getTranslations, setRequestLocale } from 'next-intl/server'
 import { generateStructuredData } from '@/lib/seo'
@@ -39,7 +37,6 @@ export async function generateMetadata({ params }: FrameComparePageProps): Promi
 export default async function FrameComparePage({ params }: FrameComparePageProps) {
   setRequestLocale(params.locale)
   const session = await getServerSession(authOptions)
-  let initialRemainingCredits = session?.user?.remainingTrials ?? 0
 
   let testSession = null
   if (!session) {
@@ -54,12 +51,8 @@ export default async function FrameComparePage({ params }: FrameComparePageProps
     }
   }
 
-  if (session?.user?.id) {
-    const user = await prisma.user.findUnique({ where: { id: session.user.id } })
-    if (user) {
-      initialRemainingCredits = getRemainingQuotaCount(user)
-    }
-  }
+  // Use remainingTrials from JWT token (synced in jwt callback) — no DB query needed.
+  const initialRemainingCredits = session?.user?.remainingTrials ?? testSession?.user?.remainingTrials ?? 0
 
   if (!session && !testSession) {
     return <PublicFrameCompareLanding locale={params.locale} />

@@ -2,8 +2,6 @@ import type { Metadata } from 'next'
 import { getServerSession } from 'next-auth/next'
 import { headers } from 'next/headers'
 import { authOptions } from '@/lib/auth'
-import { prisma } from '@/lib/prisma'
-import { getRemainingQuotaCount } from '@/lib/quota'
 import { AutoRefreshWrapper } from '@/components/payments/AutoRefreshWrapper'
 import { StyleExplorerInterface } from '@/components/style-explorer/StyleExplorerInterface'
 import { StyleExplorerMarketing } from '@/components/style-explorer/StyleExplorerMarketing'
@@ -57,11 +55,9 @@ export default async function StyleExplorerPage({ params }: StyleExplorerPagePro
     return <StyleExplorerMarketing locale={params.locale} signInHref={signInHref} />
   }
 
-  let initialRemainingCredits = session?.user?.remainingTrials ?? testSession?.user?.remainingTrials ?? 0
-  if (session?.user?.id) {
-    const user = await prisma.user.findUnique({ where: { id: session.user.id } })
-    if (user) initialRemainingCredits = getRemainingQuotaCount(user)
-  }
+  // Use remainingTrials from JWT token (synced in jwt callback) — no DB query needed.
+  // The client component also reads this via useSession() and re-fetches after actions.
+  const initialRemainingCredits = session?.user?.remainingTrials ?? testSession?.user?.remainingTrials ?? 0
 
   return (
     <AutoRefreshWrapper>
