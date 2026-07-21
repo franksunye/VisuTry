@@ -30,6 +30,7 @@ Use it to answer:
 | Product specs | How a specific product capability should work. | `docs/product/specs/` |
 | Growth / SEO / GTM | How VisuTry acquires traffic, demand, and product actions. | `docs/strategy/seo/`, `docs/strategy/growth/`, `docs/strategy/analytics/gtm.md`, `docs/project/seo-backlog.md` |
 | Technical architecture | How the current system is built and operated. | `docs/project/architecture.md`, `docs/guides/development-guide.md` |
+| Technical operations | How bounded engineering governance work is executed and verified. | `docs/project/vercel-cpu-governance-spec.md` |
 | Archive | Historical or superseded strategy/planning documents. | `docs/strategy/archive/` |
 
 ---
@@ -41,7 +42,8 @@ Use it to answer:
 3. **Current product execution** lives in `docs/product/product-plan.md`.
 4. **Detailed feature behavior** lives in `docs/product/specs/`.
 5. **SEO/GEO execution tasks** can remain in `docs/project/seo-backlog.md`.
-6. **Historical plans** should be moved to `docs/strategy/archive/` or clearly marked as historical.
+6. **CPU governance execution** lives in `docs/project/vercel-cpu-governance-spec.md`.
+7. **Historical plans** should be moved to `docs/strategy/archive/` or clearly marked as historical.
 
 If two documents conflict:
 
@@ -49,6 +51,7 @@ If two documents conflict:
 - Product plan wins over older roadmap documents for current execution priority.
 - Feature specs win over product plan for detailed acceptance criteria after the spec is approved.
 - Architecture documents win only for current technical reality, not commercial direction.
+- The CPU governance spec controls the delivery sequence, safety boundaries, and acceptance criteria for Vercel CPU work; it does not override product behavior or architecture facts.
 
 ---
 
@@ -68,8 +71,9 @@ For engineering work, read in this order:
 1. `docs/product/product-plan.md`
 2. Relevant spec under `docs/product/specs/`
 3. `docs/project/architecture.md`
-4. `docs/guides/development-guide.md`
-5. Current implementation files in `src/`, `prisma/`, and configuration files.
+4. `docs/project/vercel-cpu-governance-spec.md` when changing rendering, runtime invocation, polling, caching, image paths, or server-side work
+5. `docs/guides/development-guide.md`
+6. Current implementation files in `src/`, `prisma/`, and configuration files.
 
 ---
 
