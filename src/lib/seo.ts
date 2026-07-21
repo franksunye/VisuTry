@@ -477,6 +477,9 @@ export function getAlternateLanguages(
   availableLocales.forEach((locale) => {
     alternates[locale] = `${baseUrl}/${locale}${pathWithoutLocale ? `/${pathWithoutLocale}` : ''}`
   })
+  if (availableLocales.includes('en')) {
+    alternates['x-default'] = `${baseUrl}/en${pathWithoutLocale ? `/${pathWithoutLocale}` : ''}`
+  }
 
   return alternates
 }

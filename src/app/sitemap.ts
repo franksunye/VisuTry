@@ -16,6 +16,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     locales.forEach(locale => {
       alternates[locale] = `${baseUrl}/${locale}${path}`
     })
+    alternates['x-default'] = `${baseUrl}/en${path}`
     return alternates
   }
 
@@ -23,6 +24,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const staticPagePaths = [
     { path: '', priority: 1, changeFrequency: 'daily' as const },
     { path: '/face-analysis', priority: 0.9, changeFrequency: 'weekly' as const },
+    { path: '/face-shape-detector', priority: 1, changeFrequency: 'weekly' as const },
+    { path: '/glasses-for-face-shape', priority: 0.9, changeFrequency: 'weekly' as const },
+    { path: '/sunglasses-for-face-shape', priority: 0.9, changeFrequency: 'weekly' as const },
     { path: '/try-on/glasses', priority: 0.9, changeFrequency: 'weekly' as const },
     { path: '/blog', priority: 0.8, changeFrequency: 'weekly' as const },
     { path: '/pricing', priority: 0.7, changeFrequency: 'weekly' as const },
@@ -32,12 +36,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { path: '/refund', priority: 0.5, changeFrequency: 'monthly' as const },
   ]
   const englishOnlyStaticPagePaths = [
-    { path: '/face-shape-detector', priority: 1, changeFrequency: 'weekly' as const },
     { path: '/face-shape-measurement', priority: 0.85, changeFrequency: 'monthly' as const },
     { path: '/face-shapes', priority: 0.9, changeFrequency: 'weekly' as const },
-    { path: '/glasses-for-face-shape', priority: 0.9, changeFrequency: 'weekly' as const },
     { path: '/hairstyles-for-face-shape', priority: 0.85, changeFrequency: 'weekly' as const },
   ]
+  const localizedSunglassesPaths = FACE_SHAPE_SLUGS.map((slug) => `/sunglasses-for/${slug}-face`)
   const staticFaceShapePaths = FACE_SHAPE_SLUGS.flatMap((slug) => [
     `/face-shapes/${slug}`,
     `/style/${slug}-face`,
@@ -66,6 +69,17 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency,
       priority,
       alternates: { languages: { en: `${baseUrl}/en${path}` } },
+    })
+  })
+  localizedSunglassesPaths.forEach((path) => {
+    locales.forEach((locale) => {
+      staticPages.push({
+        url: `${baseUrl}/${locale}${path}`,
+        lastModified: new Date(),
+        changeFrequency: 'weekly',
+        priority: 0.8,
+        alternates: { languages: generateAlternates(path) },
+      })
     })
   })
   staticFaceShapePaths.forEach((path) => {

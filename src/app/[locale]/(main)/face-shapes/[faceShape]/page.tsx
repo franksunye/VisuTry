@@ -160,6 +160,9 @@ export default function FaceShapeGuidePage({ params }: FaceShapeGuidePageProps) 
             <Link href={`/${locale}/style/${guide.styleSlug}`} className="inline-flex items-center gap-1 font-semibold text-blue-700 hover:text-blue-900">
               Open the full glasses guide <ArrowRight className="h-4 w-4" />
             </Link>
+            <Link href={`/${locale}/sunglasses-for/${guide.styleSlug}`} className="mt-3 inline-flex items-center gap-1 font-semibold text-blue-700 hover:text-blue-900">
+              Compare sunglasses for this face shape <ArrowRight className="h-4 w-4" />
+            </Link>
           </article>
 
           <article className="rounded-lg border border-gray-200 bg-white p-6">

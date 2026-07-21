@@ -116,6 +116,9 @@ export default function FaceShapesPage({ params }: FaceShapesPageProps) {
                     <Link href={`/${locale}/style/${guide.styleSlug}`} className="text-gray-700 hover:text-gray-950">
                       Glasses
                     </Link>
+                    <Link href={`/${locale}/sunglasses-for/${guide.styleSlug}`} className="text-gray-700 hover:text-gray-950">
+                      Sunglasses
+                    </Link>
                     <Link href={`/${locale}/hairstyles-for/${guide.styleSlug}`} className="text-gray-700 hover:text-gray-950">
                       Hairstyles
                     </Link>
