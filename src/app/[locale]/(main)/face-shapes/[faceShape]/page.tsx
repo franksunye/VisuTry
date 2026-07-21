@@ -20,7 +20,7 @@ export function generateStaticParams() {
 }
 
 export const dynamicParams = false
-export const revalidate = 86400
+export const dynamic = 'force-static'
 
 export async function generateMetadata({ params }: FaceShapeGuidePageProps): Promise<Metadata> {
   const guide = getFaceShapeContent(params.faceShape)

@@ -6,6 +6,8 @@ import BlogTags from '@/components/BlogTags'
 import { FaceAnalysisFunnelCTA } from '@/components/blog/FaceAnalysisFunnelCTA'
 import { Breadcrumbs } from '@/components/seo/Breadcrumbs'
 
+export const dynamic = 'force-static'
+
 const title = 'How to Choose the Right Glasses for Your Face Shape? Complete Guide'
 const description = 'Detailed analysis of suitable glasses styles for different face shapes, including round, square, long faces and professional advice. Use AI try-on tool to find your perfect match.'
 const coverImage = '/blog-covers/face-shape-guide.jpg'

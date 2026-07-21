@@ -6,6 +6,8 @@ import Image from 'next/image'
 import BlogTags from '@/components/BlogTags'
 import { Breadcrumbs } from '@/components/seo/Breadcrumbs'
 
+export const dynamic = 'force-static'
+
 export async function generateMetadata({ params }: { params: { locale: string } }): Promise<Metadata> {
   return generateI18nSEO({
     locale: params.locale as any,

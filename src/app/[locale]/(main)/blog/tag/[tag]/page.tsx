@@ -19,7 +19,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   })
 }
 
-export const revalidate = 3600 // 1 hour
+export const dynamic = 'force-static'
+
+export async function generateStaticParams() {
+  const posts = await getAllBlogPosts()
+  const uniqueTags = Array.from(new Set(posts.flatMap((post) => post.tags)))
+  return uniqueTags.map((tag) => ({ tag }))
+}
 
 export default async function TagPage({ params }: Props) {
   const tag = decodeURIComponent(params.tag)

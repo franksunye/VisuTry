@@ -4,6 +4,8 @@ import { Metadata } from 'next'
 import { generateStructuredData, generateI18nSEO } from '@/lib/seo'
 import { Breadcrumbs } from '@/components/seo/Breadcrumbs'
 
+export const dynamic = 'force-static'
+
 const structuredData = generateStructuredData('article', {
   title: 'Prescription Glasses Virtual Try-On Guide - Find Your Perfect Fit Online',
   description: 'Complete guide to using virtual try-on tools for prescription glasses. Learn how to find the perfect fit online without visiting a store.',

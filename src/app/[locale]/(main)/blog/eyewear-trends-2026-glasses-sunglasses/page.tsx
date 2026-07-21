@@ -13,6 +13,8 @@ import {
 import { Breadcrumbs } from '@/components/seo/Breadcrumbs'
 import { generateI18nSEO, generateStructuredData } from '@/lib/seo'
 
+export const dynamic = 'force-static'
+
 const title = 'Eyewear Trends 2026: 16 Glasses and Sunglasses Styles to Try'
 const description =
   'Explore 16 defining eyewear styles for 2026, from timeless Wayfarers and refined optical frames to shield sunglasses, rimless geometry, and bold statement looks.'

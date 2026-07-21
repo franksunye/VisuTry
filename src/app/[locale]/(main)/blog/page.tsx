@@ -20,8 +20,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   })
 }
 
-// 1 hour ISR for blog listings
-export const revalidate = 3600
+export const dynamic = 'force-static'
 
 export default async function BlogPage({ params }: Props) {
   const posts = await getAllBlogPosts()

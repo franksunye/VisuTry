@@ -7,6 +7,8 @@ import BlogTags from '@/components/BlogTags'
 import { Breadcrumbs } from '@/components/seo/Breadcrumbs'
 import { localizedPath } from '@/lib/localized-path'
 
+export const dynamic = 'force-static'
+
 const title = 'Acetate vs Plastic Eyeglass Frames 2025 - Complete Comparison Guide'
 const description = 'Discover the key differences between acetate and plastic eyeglass frames. Learn about durability, comfort, style, and which material is best for your needs.'
 const coverImage = '/Classic Acetate Rectangle.jpg'

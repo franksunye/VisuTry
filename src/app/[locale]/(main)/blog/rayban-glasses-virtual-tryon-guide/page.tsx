@@ -6,6 +6,8 @@ import Image from 'next/image'
 import { Breadcrumbs } from '@/components/seo/Breadcrumbs'
 import { localizedPath } from '@/lib/localized-path'
 
+export const dynamic = 'force-static'
+
 const title = 'Ray-Ban Glasses Virtual Try-On Guide 2025 - Find Your Perfect Style'
 const description = 'Complete guide to Ray-Ban glasses styles with virtual try-on. Explore iconic Wayfarer, Clubmaster, and Aviator frames. Try them on virtually before you buy.'
 const coverImage = '/Ray-Ban RB5154 Clubmaster - Browline Black Frame Eyeglasses.jpg'

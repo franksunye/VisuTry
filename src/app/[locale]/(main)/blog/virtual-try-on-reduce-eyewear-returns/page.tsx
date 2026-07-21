@@ -6,6 +6,8 @@ import { Breadcrumbs } from '@/components/seo/Breadcrumbs'
 import { generateI18nSEO, generateStructuredData } from '@/lib/seo'
 import { localizedPath } from '@/lib/localized-path'
 
+export const dynamic = 'force-static'
+
 const title = 'How Virtual Try-On Helps Online Eyewear Stores Reduce Returns'
 const description = 'A practical guide for eyewear ecommerce teams on using virtual try-on to improve buyer confidence, set better expectations, and reduce avoidable frame-fit returns.'
 const coverImage = '/blog-covers/virtual-try-on-reduce-returns.jpg'

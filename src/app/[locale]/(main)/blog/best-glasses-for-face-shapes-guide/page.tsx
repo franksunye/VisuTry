@@ -4,6 +4,8 @@ import { generateStructuredData } from '@/lib/seo'
 import { Breadcrumbs } from '@/components/seo/Breadcrumbs'
 import { FaceAnalysisFunnelCTA } from '@/components/blog/FaceAnalysisFunnelCTA'
 
+export const dynamic = 'force-static'
+
 const structuredData = generateStructuredData('article', {
   title: 'Best Glasses for Different Face Shapes - Complete Guide 2026',
   description: 'Find the best glasses for your face shape, then use AI face analysis and virtual try-on to compare recommended frames on your own photo.',

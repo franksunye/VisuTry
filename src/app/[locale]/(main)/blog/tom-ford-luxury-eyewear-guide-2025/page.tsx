@@ -7,6 +7,8 @@ import BlogTags from '@/components/BlogTags'
 import { Breadcrumbs } from '@/components/seo/Breadcrumbs'
 import { localizedPath } from '@/lib/localized-path'
 
+export const dynamic = 'force-static'
+
 const title = 'Tom Ford Luxury Eyewear Guide 2025 - Ultimate Style & Quality'
 const description = 'Explore Tom Ford luxury eyeglasses collection. Discover iconic styles, premium craftsmanship, and why Tom Ford frames are the ultimate status symbol in eyewear.'
 const coverImage = '/Tom Ford FT5873.jpg'

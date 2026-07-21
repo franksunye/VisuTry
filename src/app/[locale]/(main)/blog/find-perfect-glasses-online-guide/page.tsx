@@ -4,6 +4,8 @@ import { generateStructuredData } from '@/lib/seo'
 import { Breadcrumbs } from '@/components/seo/Breadcrumbs'
 import { localizedPath } from '@/lib/localized-path'
 
+export const dynamic = 'force-static'
+
 const structuredData = generateStructuredData('article', {
   title: 'How to Find Your Perfect Glasses Online - Step-by-Step Guide',
   description: 'Complete step-by-step guide to finding and buying the perfect glasses online. Learn how to choose frames, use virtual try-on, and make confident purchases.',

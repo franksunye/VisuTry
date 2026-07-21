@@ -7,6 +7,8 @@ import BlogTags from '@/components/BlogTags'
 import { Breadcrumbs } from '@/components/seo/Breadcrumbs'
 import { localizedPath } from '@/lib/localized-path'
 
+export const dynamic = 'force-static'
+
 const title = 'How to Buy Prescription Glasses Online 2025 - Complete Shopping Guide'
 const description = 'Learn how to safely buy prescription glasses online. Get tips on measuring PD, reading prescriptions, choosing lenses, and avoiding common mistakes.'
 const coverImage = '/blog-covers/prescription-online-shopping.jpg'

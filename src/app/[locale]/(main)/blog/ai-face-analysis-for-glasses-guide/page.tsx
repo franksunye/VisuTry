@@ -6,6 +6,8 @@ import { FaceAnalysisFunnelCTA } from '@/components/blog/FaceAnalysisFunnelCTA'
 import { Breadcrumbs } from '@/components/seo/Breadcrumbs'
 import { generateI18nSEO, generateStructuredData } from '@/lib/seo'
 
+export const dynamic = 'force-static'
+
 const title = 'AI Face Shape Detector for Glasses - Which Glasses Suit My Face?'
 const description = 'Use AI face shape detection to find which glasses suit your face, shortlist frame styles, and move from face analysis to virtual try-on.'
 const coverImage = '/blog-covers/face-shape-guide.jpg'
