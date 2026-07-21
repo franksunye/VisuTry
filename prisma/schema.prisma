@@ -7,7 +7,12 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-
+  // The `url` is intentionally omitted here. Prisma 7 resolves it from
+  // prisma.config.ts, which forces CLI commands (migrate deploy / status)
+  // onto a DIRECT (unpooled) Neon connection to avoid P1002 advisory lock
+  // timeouts caused by PgBouncer transaction-mode pooling.
+  // Runtime PrismaClient uses @prisma/adapter-neon over the pooled
+  // DATABASE_URL — see src/lib/prisma.ts.
 }
 
 model Account {
