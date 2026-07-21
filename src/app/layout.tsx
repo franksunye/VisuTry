@@ -6,21 +6,20 @@
  */
 
 import { SessionProvider } from '@/components/providers/SessionProvider'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
 import { Inter } from 'next/font/google'
 import './globals.css'
 
 const inter = Inter({ subsets: ['latin'] })
 
-export default async function RootLayout({
+export default function RootLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
-  // Get server session for SSR
-  const session = await getServerSession(authOptions)
-
+  // SessionProvider without a server-side session prop — next-auth will fetch
+  // the session on the client via /api/auth/session. This avoids calling
+  // getServerSession (which reads cookies()) in the root layout, which would
+  // force every page into dynamic rendering and trigger a DB query per request.
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
@@ -32,7 +31,7 @@ export default async function RootLayout({
         <link rel="dns-prefetch" href="https://www.googletagmanager.com" />
       </head>
       <body className={inter.className} suppressHydrationWarning>
-        <SessionProvider session={session}>
+        <SessionProvider>
           {children}
         </SessionProvider>
       </body>

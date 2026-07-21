@@ -1,14 +1,11 @@
 import type { Metadata } from 'next'
-import { getServerSession } from 'next-auth/next'
-import { headers } from 'next/headers'
-import { authOptions } from '@/lib/auth'
-import { AutoRefreshWrapper } from '@/components/payments/AutoRefreshWrapper'
-import { StyleExplorerInterface } from '@/components/style-explorer/StyleExplorerInterface'
-import { StyleExplorerMarketing } from '@/components/style-explorer/StyleExplorerMarketing'
+import { StyleExplorerGate } from '@/components/style-explorer/StyleExplorerGate'
 
 interface StyleExplorerPageProps {
   params: { locale: string }
 }
+
+export const dynamic = 'force-static'
 
 export function generateMetadata({ params }: StyleExplorerPageProps): Metadata {
   const canonical = `https://www.visutry.com/${params.locale}/style-explorer`
@@ -33,35 +30,9 @@ export function generateMetadata({ params }: StyleExplorerPageProps): Metadata {
   }
 }
 
-export default async function StyleExplorerPage({ params }: StyleExplorerPageProps) {
-  const session = await getServerSession(authOptions)
-  let testSession = null
+export default function StyleExplorerPage({ params }: StyleExplorerPageProps) {
+  const callbackUrl = `/${params.locale}/style-explorer`
+  const signInHref = `/${params.locale}/auth/signin?callbackUrl=${encodeURIComponent(callbackUrl)}`
 
-  if (!session) {
-    const raw = headers().get('x-test-session')
-    if (raw) {
-      try {
-        testSession = JSON.parse(raw)
-      } catch {
-        testSession = null
-      }
-    }
-  }
-
-  if (!session && !testSession) {
-    const callbackUrl = `/${params.locale}/style-explorer`
-    const signInHref = `/${params.locale}/auth/signin?callbackUrl=${encodeURIComponent(callbackUrl)}`
-
-    return <StyleExplorerMarketing locale={params.locale} signInHref={signInHref} />
-  }
-
-  // Use remainingTrials from JWT token (synced in jwt callback) — no DB query needed.
-  // The client component also reads this via useSession() and re-fetches after actions.
-  const initialRemainingCredits = session?.user?.remainingTrials ?? testSession?.user?.remainingTrials ?? 0
-
-  return (
-    <AutoRefreshWrapper>
-      <StyleExplorerInterface initialRemainingCredits={initialRemainingCredits} />
-    </AutoRefreshWrapper>
-  )
+  return <StyleExplorerGate locale={params.locale} signInHref={signInHref} />
 }

@@ -1,5 +1,3 @@
-import { getServerSession } from "next-auth/next"
-import { authOptions } from "@/lib/auth"
 import { PricingSection } from "@/components/pricing/PricingSection"
 import Link from "next/link"
 import { Metadata } from 'next'
@@ -26,32 +24,16 @@ export async function generateMetadata(props: Props): Promise<Metadata> {
   })
 }
 
-// 🔥 优化：不再使用缓存，直接使用 session 作为唯一数据源
-export const revalidate = 60
+export const dynamic = 'force-static'
 
 export default async function PricingPage({ params }: { params: { locale: string } }) {
   setRequestLocale(params.locale)
   const quotas = getPricingQuotas()
-  const session = await getServerSession(authOptions)
   const t = await getTranslations({ locale: params.locale, namespace: 'marketing.pricing' })
 
-  // 🔥 优化：直接从 session 读取用户数据，不再查询数据库
-  // session.user 已经包含了所有必要的用户信息（来自 JWT token）
-  let isPremiumActive = false
-  let remainingTrials = 1 // 默认免费试用次数
-
-  if (session) {
-    // 直接使用 session 中的数据
-    isPremiumActive = session.user.isPremiumActive || false
-    remainingTrials = session.user.remainingTrials || 1
-  }
-
-  // 🔥 优化：直接使用 session.user，不需要重新构建
-  const userForDisplay = session ? {
-    ...session.user,
-    isPremiumActive: isPremiumActive,
-    remainingTrials: remainingTrials,
-  } : null
+  // User data is fetched on the client via useSession() inside PricingSection,
+  // so we pass null here to allow static rendering.
+  const userForDisplay = null
 
   // Generate structured data for pricing offers from Metadata directly
   // We only include standard plans in initial SEO schema

@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import { useSession } from "next-auth/react"
 import { Glasses, Star, Zap } from "lucide-react"
 import { useTranslations } from 'next-intl'
 import { PricingCard } from "@/components/pricing/PricingCard"
@@ -21,8 +22,13 @@ interface PricingSectionProps {
   quotas: PricingQuotas
 }
 
-export function PricingSection({ user, quotas }: PricingSectionProps) {
+export function PricingSection({ user: serverUser, quotas }: PricingSectionProps) {
+  const { data: session } = useSession()
   const [activeCode, setActiveCode] = useState<string | null>(null)
+
+  // Prefer client-side session; fall back to server-provided user (null for
+  // static rendering) so the page can be fully static-rendered.
+  const user = session?.user ?? serverUser
   const tPricing = useTranslations('pricing')
 
   useEffect(() => {

@@ -1,16 +1,15 @@
 import { Metadata } from 'next'
-import { getServerSession } from 'next-auth/next'
 import { getTranslations, setRequestLocale } from 'next-intl/server'
-import { authOptions } from '@/lib/auth'
 import { generateI18nSEO } from '@/lib/seo'
 import { Locale } from '@/i18n'
-import { FaceAnalysisInterface } from '@/components/face-analysis/FaceAnalysisInterface'
 import { FaceAnalysisLanding } from '@/components/face-analysis/FaceAnalysisLanding'
-import { Suspense } from 'react'
+import { FaceAnalysisGate } from '@/components/face-analysis/FaceAnalysisGate'
 
 type Props = {
   params: { locale: string }
 }
+
+export const dynamic = 'force-static'
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   setRequestLocale(params.locale)
@@ -29,18 +28,12 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function FaceAnalysisPage({ params }: Props) {
   setRequestLocale(params.locale)
-  const session = await getServerSession(authOptions)
   const t = await getTranslations('common')
 
-  if (!session) {
-    return <FaceAnalysisLanding locale={params.locale} />
-  }
-
   return (
-    <div className="container mx-auto px-4 py-8">
-      <Suspense fallback={<div className="text-center py-12 text-gray-500">{t('loading')}</div>}>
-        <FaceAnalysisInterface />
-      </Suspense>
-    </div>
+    <FaceAnalysisGate
+      landing={<FaceAnalysisLanding locale={params.locale} />}
+      loadingText={t('loading')}
+    />
   )
 }

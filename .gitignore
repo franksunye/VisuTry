@@ -29,6 +29,9 @@ yarn-error.log*
 .env*.local
 .env
 
+# env backup (contains decrypted secrets — never commit)
+.env-backup/
+
 # vercel
 .vercel
 

@@ -1,11 +1,7 @@
 import { Metadata } from 'next'
-import { getServerSession } from 'next-auth/next'
-import { headers } from 'next/headers'
 import Link from 'next/link'
 import { CheckCircle2, Grid2X2, Sparkles, Store } from 'lucide-react'
-import { authOptions } from '@/lib/auth'
-import { AutoRefreshWrapper } from '@/components/payments/AutoRefreshWrapper'
-import { FrameCompareInterface } from '@/components/compare/FrameCompareInterface'
+import { ComparePageClient } from '@/components/compare/ComparePageClient'
 import { CompareLandingVisual } from '@/components/marketing/CompareLandingVisual'
 import { getTranslations, setRequestLocale } from 'next-intl/server'
 import { generateStructuredData } from '@/lib/seo'
@@ -15,6 +11,8 @@ interface FrameComparePageProps {
     locale: string
   }
 }
+
+export const dynamic = 'force-static'
 
 export async function generateMetadata({ params }: FrameComparePageProps): Promise<Metadata> {
   setRequestLocale(params.locale)
@@ -36,32 +34,11 @@ export async function generateMetadata({ params }: FrameComparePageProps): Promi
 
 export default async function FrameComparePage({ params }: FrameComparePageProps) {
   setRequestLocale(params.locale)
-  const session = await getServerSession(authOptions)
-
-  let testSession = null
-  if (!session) {
-    const headersList = headers()
-    const testSessionHeader = headersList.get('x-test-session')
-    if (testSessionHeader) {
-      try {
-        testSession = JSON.parse(testSessionHeader)
-      } catch (error) {
-        console.error('Failed to parse test session:', error)
-      }
-    }
-  }
-
-  // Use remainingTrials from JWT token (synced in jwt callback) — no DB query needed.
-  const initialRemainingCredits = session?.user?.remainingTrials ?? testSession?.user?.remainingTrials ?? 0
-
-  if (!session && !testSession) {
-    return <PublicFrameCompareLanding locale={params.locale} />
-  }
 
   return (
-    <AutoRefreshWrapper>
-      <FrameCompareInterface initialRemainingCredits={initialRemainingCredits} />
-    </AutoRefreshWrapper>
+    <ComparePageClient
+      landing={<PublicFrameCompareLanding locale={params.locale} />}
+    />
   )
 }
 

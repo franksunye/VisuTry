@@ -1,9 +1,5 @@
-import { redirect, notFound } from "next/navigation"
-import { getServerSession } from "next-auth/next"
-import { authOptions } from "@/lib/auth"
-import { TryOnInterface } from "@/components/try-on/TryOnInterface"
-import { AutoRefreshWrapper } from "@/components/payments/AutoRefreshWrapper"
-import { headers } from "next/headers"
+import { notFound } from "next/navigation"
+import { TryOnGate } from "@/components/try-on/TryOnGate"
 import { generateStructuredData } from "@/lib/seo"
 import { Metadata } from 'next'
 import { TryOnType, getTryOnConfig, urlToTryOnType, getAllTryOnTypes, tryOnTypeToUrl } from "@/config/try-on-types"
@@ -77,49 +73,23 @@ export default async function TryOnTypePage({ params }: TryOnPageProps) {
 
   const config = getTryOnConfig(tryOnType)
 
-  // Check authentication
-  const session = await getServerSession(authOptions)
-  
-  // Get test session from headers if no real session
-  let testSession = null
-  if (!session) {
-    const headersList = headers()
-    const testSessionHeader = headersList.get('x-test-session')
-    if (testSessionHeader) {
-      try {
-        testSession = JSON.parse(testSessionHeader)
-      } catch (e) {
-        console.error('Failed to parse test session:', e)
-      }
-    }
-  }
-
-  // Show an indexable public landing page for unauthenticated visitors.
-  // The actual try-on tool still requires sign-in after the user chooses to start.
-  if (!session && !testSession) {
-    return <PublicTryOnLanding locale={locale} type={type} tryOnType={tryOnType} />
-  }
-
-  // Generate structured data for SEO
+  // Generate structured data for SEO (used by the gate when authenticated)
   const structuredData = generateStructuredData('softwareApplication', {
     name: `VisuTry - ${config.displayName}`,
     description: `Virtual ${config.name} try-on powered by AI`,
     url: `https://www.visutry.com/${locale}/try-on/${type}`,
   })
 
+  // Render landing + client gate. The gate uses useSession() to decide whether
+  // to show the landing (unauthenticated) or the TryOnInterface (authenticated).
+  // This avoids calling getServerSession (cookies()) which would force dynamic
+  // rendering and trigger a DB query per request.
   return (
-    <AutoRefreshWrapper>
-      <div className="container mx-auto px-4 py-8">
-      {/* Structured Data for SEO */}
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
-      />
-
-      {/* Try-On Interface */}
-      <TryOnInterface type={tryOnType} />
-      </div>
-    </AutoRefreshWrapper>
+    <TryOnGate
+      tryOnType={tryOnType}
+      structuredData={structuredData}
+      landing={<PublicTryOnLanding locale={locale} type={type} tryOnType={tryOnType} />}
+    />
   )
 }
 
