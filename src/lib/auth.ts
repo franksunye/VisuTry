@@ -138,12 +138,15 @@ export const authOptions: NextAuthOptions = {
 
       // 🔥 优化：改进同步策略，确保数据及时更新
       // 1. First login (user exists)
-      // 2. Manual trigger update (trigger === 'update')
+      // 2. Manual trigger update (trigger === 'update') — rate-limited to 30s
       // 3. Token has no user data (isPremium is undefined)
       // 4. Periodic sync: every 15 minutes to catch subscription changes
-      const tokenAge = token.iat ? Date.now() - (Number(token.iat) * 1000) : Infinity
+      const now = Date.now()
+      const lastSync = (token.lastSyncTime as number) || 0
+      const minUpdateSyncInterval = 30 * 1000 // 30 seconds
+      const tokenAge = token.iat ? now - (Number(token.iat) * 1000) : Infinity
       const shouldSync = user ||
-                        trigger === 'update' ||
+                        (trigger === 'update' && (now - lastSync) > minUpdateSyncInterval) ||
                         token.isPremium === undefined ||
                         tokenAge > 15 * 60 * 1000  // 15 minutes
 
@@ -177,6 +180,9 @@ export const authOptions: NextAuthOptions = {
           })
 
           if (dbUser) {
+            // Record sync time for rate-limiting future 'update' triggers
+            token.lastSyncTime = now
+
             // Update all user info to token
             token.name = dbUser.name
             token.email = dbUser.email

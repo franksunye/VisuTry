@@ -41,7 +41,9 @@ class PerformanceLogger {
 
     const startTime = this.startTimes.get(operation)
     if (!startTime) {
-      console.warn(`⚠️ [Performance] No start time found for operation: ${operation}`)
+      // In serverless environments, concurrent requests sharing a singleton
+      // can cause start() to be overwritten by another request before end()
+      // is called. This is expected — silently skip rather than log a warning.
       return 0
     }
 
