@@ -180,10 +180,10 @@ export default async function ProductPage({ params }: ProductPageProps) {
                 <span className="ml-2 text-gray-600">{frame.color}</span>
               </div>
             )}
-            {frame.price && (
+            {frame.price != null && (
               <div>
                 <span className="font-semibold text-gray-700">Price:</span>
-                <span className="ml-2 text-gray-600">${frame.price}</span>
+                <span className="ml-2 text-gray-600">${(frame.price / 100).toFixed(2)}</span>
               </div>
             )}
           </div>
@@ -231,7 +231,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
               description: frame.description || '',
               image: frame.imageUrl,
               brand: frame.brand || 'Unknown',
-              price: frame.price || undefined,
+              price: frame.price != null ? frame.price / 100 : undefined,
               url: generateCanonicalUrl(`/try/${params.slug}`),
             })
           ),

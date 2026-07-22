@@ -45,30 +45,40 @@ export async function GET(request: NextRequest) {
     const totalSize = allBlobs.reduce((sum, blob) => sum + blob.size, 0);
     const totalFiles = allBlobs.length;
 
+    // NOTE: This route needs the actual URL values (not just counts) because it
+    // builds a `dbUrls` Set used for orphaned-file detection via `dbUrls.has(blob.url)`.
+    // Replacing with `count` would break that logic, so we cap each distinct scan
+    // with `take: 1000` to avoid full-table scans on unindexed URL columns.
     const [userUrls, itemUrls, glassesUrls, resultUrls, frameUrls, userAvatarUrls] = await Promise.all([
       prisma.tryOnTask.findMany({
         select: { userImageUrl: true },
         distinct: ['userImageUrl'],
+        take: 1000,
       }),
       prisma.tryOnTask.findMany({
         select: { itemImageUrl: true },
         distinct: ['itemImageUrl'],
+        take: 1000,
       }),
       prisma.tryOnTask.findMany({
         select: { glassesImageUrl: true },
         distinct: ['glassesImageUrl'],
+        take: 1000,
       }),
       prisma.tryOnTask.findMany({
         select: { resultImageUrl: true },
         distinct: ['resultImageUrl'],
+        take: 1000,
       }),
       prisma.glassesFrame.findMany({
         select: { imageUrl: true },
         distinct: ['imageUrl'],
+        take: 1000,
       }),
       prisma.user.findMany({
         select: { image: true },
         distinct: ['image'],
+        take: 1000,
       }),
     ]);
 

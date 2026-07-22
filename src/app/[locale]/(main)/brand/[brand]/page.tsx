@@ -157,8 +157,8 @@ export default async function BrandPage({ params }: BrandPageProps) {
                   {frame.category && (
                     <p className="text-xs text-gray-500 mt-1">{frame.category}</p>
                   )}
-                  {frame.price && (
-                    <p className="text-lg font-bold text-gray-900 mt-2">${frame.price}</p>
+                  {frame.price != null && (
+                    <p className="text-lg font-bold text-gray-900 mt-2">${(frame.price / 100).toFixed(2)}</p>
                   )}
                 </div>
               </Link>

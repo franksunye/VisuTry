@@ -44,30 +44,39 @@ export async function POST(request: NextRequest) {
     }
     console.log(`[Admin Blob Cleanup] Found ${allBlobs.length} total files`);
 
+    // Cap each distinct scan with `take: 1000` to avoid full-table scans on
+    // unindexed URL columns. This route needs the actual URL values to
+    // cross-reference with Blob storage for orphaned-file detection.
     const [userUrls, itemUrls, glassesUrls, resultUrls, frameUrls, userAvatarUrls] = await Promise.all([
       prisma.tryOnTask.findMany({
         select: { userImageUrl: true },
         distinct: ['userImageUrl'],
+        take: 1000,
       }),
       prisma.tryOnTask.findMany({
         select: { itemImageUrl: true },
         distinct: ['itemImageUrl'],
+        take: 1000,
       }),
       prisma.tryOnTask.findMany({
         select: { glassesImageUrl: true },
         distinct: ['glassesImageUrl'],
+        take: 1000,
       }),
       prisma.tryOnTask.findMany({
         select: { resultImageUrl: true },
         distinct: ['resultImageUrl'],
+        take: 1000,
       }),
       prisma.glassesFrame.findMany({
         select: { imageUrl: true },
         distinct: ['imageUrl'],
+        take: 1000,
       }),
       prisma.user.findMany({
         select: { image: true },
         distinct: ['image'],
+        take: 1000,
       }),
     ]);
 

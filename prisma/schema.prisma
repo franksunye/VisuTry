@@ -32,6 +32,7 @@ model Account {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([provider, providerAccountId])
+  @@index([userId])
 }
 
 model Session {
@@ -40,6 +41,8 @@ model Session {
   userId       String
   expires      DateTime
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
 }
 
 model User {
@@ -184,6 +187,7 @@ model Payment {
   @@index([userId])
   @@index([status])
   @@index([stripeSubscriptionId])
+  @@index([userId, createdAt(sort: Desc)])
 }
 
 model GlassesFrame {
@@ -193,11 +197,11 @@ model GlassesFrame {
   imageUrl    String
   category    String?
   brand       String?
-  model       String?  // 型号代码
-  price       Float?   // 价格
-  style       String?  // 风格（clubmaster, round, cat-eye, etc.）
-  material    String?  // 材质（acetate, metal, plastic）
-  color       String?  // 颜色
+  model       String?
+  price       Int?     // Price in cents
+  style       String?
+  material    String?
+  color       String?
   isActive    Boolean  @default(true)
 
   // 关联
@@ -210,6 +214,11 @@ model GlassesFrame {
   @@index([brand])
   @@index([category])
   @@index([isActive])
+  @@index([style])
+  @@index([material])
+  @@index([isActive, category])
+  @@index([isActive, brand])
+  @@index([isActive, createdAt])
 }
 
 enum TaskStatus {

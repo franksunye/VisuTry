@@ -94,7 +94,7 @@ export async function POST(request: NextRequest) {
           style: frameData.style || null,
           material: frameData.material || null,
           color: frameData.color || null,
-          price: frameData.price ? parseFloat(String(frameData.price)) : null,
+          price: frameData.price ? Math.round(parseFloat(String(frameData.price)) * 100) : null,
           isActive: frameData.isActive !== undefined ? frameData.isActive : true,
         }
 

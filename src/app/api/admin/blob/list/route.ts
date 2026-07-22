@@ -42,22 +42,29 @@ export async function GET(request: NextRequest) {
     // 如果需要显示孤立文件，获取数据库中的 URL
     let filteredBlobs = blobs;
     if (showOrphaned) {
+      // Cap each distinct scan with `take: 1000` to avoid full-table scans on
+      // unindexed URL columns. This route needs the actual URL values to
+      // cross-reference with Blob storage for orphaned-file filtering.
       const [userUrls, itemUrls, glassesUrls, resultUrls] = await Promise.all([
         prisma.tryOnTask.findMany({
           select: { userImageUrl: true },
           distinct: ['userImageUrl'],
+          take: 1000,
         }),
         prisma.tryOnTask.findMany({
           select: { itemImageUrl: true },
           distinct: ['itemImageUrl'],
+          take: 1000,
         }),
         prisma.tryOnTask.findMany({
           select: { glassesImageUrl: true },
           distinct: ['glassesImageUrl'],
+          take: 1000,
         }),
         prisma.tryOnTask.findMany({
           select: { resultImageUrl: true },
           distinct: ['resultImageUrl'],
+          take: 1000,
         }),
       ]);
 

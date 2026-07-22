@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth/next'
 import { revalidateTag } from 'next/cache'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import { User } from '@prisma/client'
 import { getRemainingQuotaCount } from '@/lib/quota'
 import { getRequestContext, logger } from '@/lib/logger'
 import {
@@ -26,7 +27,19 @@ export async function POST(request: NextRequest) {
     if (!session?.user?.id) {
       return NextResponse.json({ success: false, error: 'Unauthorized access' }, { status: 401 })
     }
-    const user = await prisma.user.findUnique({ where: { id: session.user.id } })
+    const user = (await prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: {
+        id: true,
+        isPremium: true,
+        premiumExpiresAt: true,
+        currentSubscriptionType: true,
+        freeTrialsUsed: true,
+        premiumUsageCount: true,
+        creditsPurchased: true,
+        creditsUsed: true,
+      }
+    })) as User | null
     if (!user) {
       return NextResponse.json({ success: false, error: 'User not found' }, { status: 404 })
     }

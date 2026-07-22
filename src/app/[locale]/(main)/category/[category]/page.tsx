@@ -150,8 +150,8 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
                     {frame.name}
                   </h3>
                   <p className="text-sm text-gray-600 mt-1">{frame.brand}</p>
-                  {frame.price && (
-                    <p className="text-lg font-bold text-gray-900 mt-2">${frame.price}</p>
+                  {frame.price != null && (
+                    <p className="text-lg font-bold text-gray-900 mt-2">${(frame.price / 100).toFixed(2)}</p>
                   )}
                 </div>
               </Link>

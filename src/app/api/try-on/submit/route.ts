@@ -26,9 +26,19 @@ export async function POST(request: NextRequest) {
     }
 
     // Get full user data
-    const user = await prisma.user.findUnique({
-      where: { email: session.user.email }
-    })
+    const user = (await prisma.user.findUnique({
+      where: { email: session.user.email },
+      select: {
+        id: true,
+        isPremium: true,
+        premiumExpiresAt: true,
+        currentSubscriptionType: true,
+        freeTrialsUsed: true,
+        premiumUsageCount: true,
+        creditsPurchased: true,
+        creditsUsed: true,
+      }
+    })) as User | null
 
     if (!user) {
       return NextResponse.json(
