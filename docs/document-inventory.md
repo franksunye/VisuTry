@@ -55,6 +55,7 @@ It should answer:
 | `docs/guides/development-guide.md` | Development guide | Active operating guide | Engineering | 2026-07-08 | Refreshed against `.env.example` and `package.json`. |
 | `docs/project/vercel-cpu-governance-spec.md` | CPU governance spec | Active operating plan | Engineering | 2026-07-22 | Updated verified facts: all public pages now SSG, root layout session removed, backlog statuses updated. |
 | `docs/operations/vercel-cpu-static-page-pilot.md` | Static page pilot | Active operating plan | Engineering | 2026-07-22 | Updated: Phase 4 (ADR-005) added, excluded pages status corrected. |
+| `docs/project/engineering-optimization-plan.md` | Engineering optimization plan | Active operating plan | Engineering | 2026-07-22 | Three-axis audit (dependencies, architecture, performance). 31 items: 5 P0, 14 P1, 12 P2. Implementation ordered in 7 batches. |
 | `docs/project/seo-backlog.md` | SEO / growth backlog | Active operating plan | Growth / Product | 2026-07-08 | Keep as SEO/Growth execution backlog. |
 
 ---
