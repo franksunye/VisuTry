@@ -119,14 +119,20 @@ async function testTryOnAPI() {
   try {
     log('Testing AI try-on API...')
     
-    const tryOnData = {
-      userImageUrl: 'https://via.placeholder.com/400x400/87CEEB/000000?text=Test+User',
-      frameId: 'frame-1'
-    }
+    const FormData = require('form-data')
+    const tryOnData = new FormData()
+    tryOnData.append('userImage', Buffer.from('fake user image data'), {
+      filename: 'user.jpg',
+      contentType: 'image/jpeg'
+    })
+    tryOnData.append('itemImage', Buffer.from('fake glasses image data'), {
+      filename: 'glasses.jpg',
+      contentType: 'image/jpeg'
+    })
     
-    const response = await axios.post(`${BASE_URL}/api/try-on`, tryOnData, {
+    const response = await axios.post(`${BASE_URL}/api/try-on/submit`, tryOnData, {
       headers: {
-        'Content-Type': 'application/json',
+        ...tryOnData.getHeaders(),
       },
     })
     

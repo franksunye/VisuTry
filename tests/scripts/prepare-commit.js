@@ -83,7 +83,7 @@ class CommitPreparer {
     // API更新
     this.changes.apiUpdates = [
       'src/app/api/upload/route.ts',
-      'src/app/api/try-on/route.ts',
+      'src/app/api/try-on/submit/route.ts',
       'src/app/api/try-on/history/route.ts',
       'src/app/api/payment/create-session/route.ts',
       'src/app/api/frames/route.ts'

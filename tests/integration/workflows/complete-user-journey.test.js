@@ -8,6 +8,7 @@ const path = require('path')
 describe('Complete User Journey Tests', () => {
   let baseURL
   let testImagePath
+  let testGlassesPath
 
   beforeAll(async () => {
     await TestEnvironment.waitForServer()
@@ -16,12 +17,17 @@ describe('Complete User Journey Tests', () => {
     // 创建测试图片
     testImagePath = path.join(__dirname, '../../temp/test-user-image.jpg')
     await TestEnvironment.createTestImage(testImagePath)
+    testGlassesPath = path.join(__dirname, '../../temp/test-glasses-image.jpg')
+    await TestEnvironment.createTestImage(testGlassesPath, 300, 300)
   }, 60000)
 
   afterAll(async () => {
     // 清理测试文件
     if (fs.existsSync(testImagePath)) {
       fs.unlinkSync(testImagePath)
+    }
+    if (fs.existsSync(testGlassesPath)) {
+      fs.unlinkSync(testGlassesPath)
     }
     await TestEnvironment.cleanup()
   })
@@ -87,16 +93,20 @@ describe('Complete User Journey Tests', () => {
       
       for (let i = 0; i < 6; i++) { // 尝试超过免费限制
         try {
-          const tryOnResponse = await axios.post(`${baseURL}/api/try-on`, {
-            userImageUrl,
-            frameId: freeFrames[i % freeFrames.length].id
-          }, {
-            headers: { 'Cookie': authCookies }
+          const tryOnForm = new FormData()
+          tryOnForm.append('userImage', fs.createReadStream(testImagePath))
+          tryOnForm.append('itemImage', fs.createReadStream(testGlassesPath))
+
+          const tryOnResponse = await axios.post(`${baseURL}/api/try-on/submit`, tryOnForm, {
+            headers: {
+              ...tryOnForm.getHeaders(),
+              'Cookie': authCookies
+            }
           })
           
           if (tryOnResponse.status === 200) {
             tryOnCount++
-            expect(tryOnResponse.data.resultUrl).toBeDefined()
+            expect(tryOnResponse.data.success).toBe(true)
           }
         } catch (error) {
           if (error.response.status === 429) { // 达到限制
@@ -161,14 +171,18 @@ describe('Complete User Journey Tests', () => {
 
       // 15. 进行多次试戴验证无限制
       for (let i = 0; i < 3; i++) {
-        const tryOnResponse = await axios.post(`${baseURL}/api/try-on`, {
-          userImageUrl,
-          frameId: premiumFrames[i % premiumFrames.length].id
-        }, {
-          headers: { 'Cookie': premiumCookies }
+        const tryOnForm = new FormData()
+        tryOnForm.append('userImage', fs.createReadStream(testImagePath))
+        tryOnForm.append('itemImage', fs.createReadStream(testGlassesPath))
+
+        const tryOnResponse = await axios.post(`${baseURL}/api/try-on/submit`, tryOnForm, {
+          headers: {
+            ...tryOnForm.getHeaders(),
+            'Cookie': premiumCookies
+          }
         })
         expect(tryOnResponse.status).toBe(200)
-        expect(tryOnResponse.data.resultUrl).toBeDefined()
+        expect(tryOnResponse.data.success).toBe(true)
       }
     }, 120000) // 2分钟超时，因为这是完整流程测试
   })

@@ -181,15 +181,18 @@ class ApiTestHelper {
   /**
    * 测试试戴API
    */
-  async testTryOn(frameId = 'frame-1', userImageContent = 'fake image data') {
+  async testTryOn(userImageContent = 'fake user image data', itemImageContent = 'fake glasses image data') {
     const form = new FormData()
     form.append('userImage', Buffer.from(userImageContent), {
       filename: 'user.jpg',
       contentType: 'image/jpeg'
     })
-    form.append('frameId', frameId)
+    form.append('itemImage', Buffer.from(itemImageContent), {
+      filename: 'glasses.jpg',
+      contentType: 'image/jpeg'
+    })
 
-    return this.authenticatedRequest('POST', '/api/try-on', form)
+    return this.authenticatedRequest('POST', '/api/try-on/submit', form)
   }
 
   /**

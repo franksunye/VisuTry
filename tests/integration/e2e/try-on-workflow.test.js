@@ -9,6 +9,7 @@ describe('Try-On Workflow E2E Tests', () => {
   let baseURL
   let authCookies
   let testImagePath
+  let testGlassesPath
 
   beforeAll(async () => {
     await TestEnvironment.waitForServer()
@@ -17,6 +18,8 @@ describe('Try-On Workflow E2E Tests', () => {
     // 创建测试图片
     testImagePath = path.join(__dirname, '../../temp/test-image.jpg')
     await TestEnvironment.createTestImage(testImagePath)
+    testGlassesPath = path.join(__dirname, '../../temp/test-glasses.jpg')
+    await TestEnvironment.createTestImage(testGlassesPath, 300, 300)
     
     // 登录获取认证
     const csrfResponse = await axios.get(`${baseURL}/api/auth/csrf`)
@@ -31,6 +34,9 @@ describe('Try-On Workflow E2E Tests', () => {
     // 清理测试文件
     if (fs.existsSync(testImagePath)) {
       fs.unlinkSync(testImagePath)
+    }
+    if (fs.existsSync(testGlassesPath)) {
+      fs.unlinkSync(testGlassesPath)
     }
     await TestEnvironment.cleanup()
   })
@@ -63,23 +69,29 @@ describe('Try-On Workflow E2E Tests', () => {
       const selectedFrame = framesResponse.data.frames[0]
 
       // 3. 执行试戴
-      const tryOnResponse = await axios.post(`${baseURL}/api/try-on`, {
-        userImageUrl,
-        frameId: selectedFrame.id
-      }, {
-        headers: { 'Cookie': authCookies }
+      const tryOnForm = new FormData()
+      tryOnForm.append('userImage', fs.createReadStream(testImagePath))
+      tryOnForm.append('itemImage', fs.createReadStream(testGlassesPath))
+
+      const tryOnResponse = await axios.post(`${baseURL}/api/try-on/submit`, tryOnForm, {
+        headers: {
+          ...tryOnForm.getHeaders(),
+          'Cookie': authCookies
+        }
       })
       expect(tryOnResponse.status).toBe(200)
-      expect(tryOnResponse.data.resultUrl).toBeDefined()
-      expect(tryOnResponse.data.processingTime).toBeDefined()
+      expect(tryOnResponse.data.success).toBe(true)
+      expect(tryOnResponse.data.data).toBeDefined()
 
       // 4. 验证结果
-      const resultUrl = tryOnResponse.data.resultUrl
-      expect(resultUrl).toMatch(/^https?:\/\//)
+      const result = tryOnResponse.data.data
+      expect(result.status).toBeDefined()
       
-      // 验证结果图片可访问
-      const resultResponse = await axios.head(resultUrl)
-      expect(resultResponse.status).toBe(200)
+      // 验证结果（同步返回 resultUrl 或异步返回 taskId）
+      if (result.resultUrl) {
+        const resultResponse = await axios.head(result.resultUrl)
+        expect(resultResponse.status).toBe(200)
+      }
     }, 60000)
 
     test('should handle multiple frame selections', async () => {
@@ -101,14 +113,18 @@ describe('Try-On Workflow E2E Tests', () => {
 
       // 依次试戴多个框架
       for (const frame of frames) {
-        const tryOnResponse = await axios.post(`${baseURL}/api/try-on`, {
-          userImageUrl,
-          frameId: frame.id
-        }, {
-          headers: { 'Cookie': authCookies }
+        const tryOnForm = new FormData()
+        tryOnForm.append('userImage', fs.createReadStream(testImagePath))
+        tryOnForm.append('itemImage', fs.createReadStream(testGlassesPath))
+
+        const tryOnResponse = await axios.post(`${baseURL}/api/try-on/submit`, tryOnForm, {
+          headers: {
+            ...tryOnForm.getHeaders(),
+            'Cookie': authCookies
+          }
         })
         expect(tryOnResponse.status).toBe(200)
-        expect(tryOnResponse.data.resultUrl).toBeDefined()
+        expect(tryOnResponse.data.success).toBe(true)
       }
     }, 90000)
   })
@@ -130,36 +146,31 @@ describe('Try-On Workflow E2E Tests', () => {
       }
     }, 30000)
 
-    test('should handle invalid frame selection', async () => {
-      // 上传有效图片
-      const formData = new FormData()
-      formData.append('image', fs.createReadStream(testImagePath))
-      
-      const uploadResponse = await axios.post(`${baseURL}/api/upload`, formData, {
-        headers: {
-          ...formData.getHeaders(),
-          'Cookie': authCookies
-        }
-      })
+    test('should handle missing item image', async () => {
+      // 提交只有 userImage 没有 itemImage 的请求
+      const tryOnForm = new FormData()
+      tryOnForm.append('userImage', fs.createReadStream(testImagePath))
 
-      // 尝试使用无效框架ID
       try {
-        await axios.post(`${baseURL}/api/try-on`, {
-          userImageUrl: uploadResponse.data.url,
-          frameId: 'invalid-frame-id'
-        }, {
-          headers: { 'Cookie': authCookies }
+        await axios.post(`${baseURL}/api/try-on/submit`, tryOnForm, {
+          headers: {
+            ...tryOnForm.getHeaders(),
+            'Cookie': authCookies
+          }
         })
       } catch (error) {
-        expect(error.response.status).toBe(404)
+        expect(error.response.status).toBe(400)
       }
     }, 30000)
 
     test('should require authentication for try-on', async () => {
+      const tryOnForm = new FormData()
+      tryOnForm.append('userImage', fs.createReadStream(testImagePath))
+      tryOnForm.append('itemImage', fs.createReadStream(testGlassesPath))
+
       try {
-        await axios.post(`${baseURL}/api/try-on`, {
-          userImageUrl: 'https://example.com/image.jpg',
-          frameId: 'frame-1'
+        await axios.post(`${baseURL}/api/try-on/submit`, tryOnForm, {
+          headers: { ...tryOnForm.getHeaders() }
         })
       } catch (error) {
         expect(error.response.status).toBe(401)
@@ -186,11 +197,15 @@ describe('Try-On Workflow E2E Tests', () => {
 
       // 测试试戴性能
       const startTime = Date.now()
-      const tryOnResponse = await axios.post(`${baseURL}/api/try-on`, {
-        userImageUrl: uploadResponse.data.url,
-        frameId: frame.id
-      }, {
-        headers: { 'Cookie': authCookies }
+      const tryOnForm = new FormData()
+      tryOnForm.append('userImage', fs.createReadStream(testImagePath))
+      tryOnForm.append('itemImage', fs.createReadStream(testGlassesPath))
+
+      const tryOnResponse = await axios.post(`${baseURL}/api/try-on/submit`, tryOnForm, {
+        headers: {
+          ...tryOnForm.getHeaders(),
+          'Cookie': authCookies
+        }
       })
       const endTime = Date.now()
 
@@ -199,9 +214,6 @@ describe('Try-On Workflow E2E Tests', () => {
       // 验证处理时间在合理范围内（< 10秒）
       const processingTime = endTime - startTime
       expect(processingTime).toBeLessThan(10000)
-      
-      // 验证API返回的处理时间
-      expect(tryOnResponse.data.processingTime).toBeLessThan(5000)
     }, 30000)
   })
 
@@ -227,11 +239,15 @@ describe('Try-On Workflow E2E Tests', () => {
 
       for (let i = 0; i < 10; i++) {
         try {
-          const tryOnResponse = await axios.post(`${baseURL}/api/try-on`, {
-            userImageUrl: uploadResponse.data.url,
-            frameId: frame.id
-          }, {
-            headers: { 'Cookie': authCookies }
+          const tryOnForm = new FormData()
+          tryOnForm.append('userImage', fs.createReadStream(testImagePath))
+          tryOnForm.append('itemImage', fs.createReadStream(testGlassesPath))
+
+          const tryOnResponse = await axios.post(`${baseURL}/api/try-on/submit`, tryOnForm, {
+            headers: {
+              ...tryOnForm.getHeaders(),
+              'Cookie': authCookies
+            }
           })
           
           if (tryOnResponse.status === 200) {

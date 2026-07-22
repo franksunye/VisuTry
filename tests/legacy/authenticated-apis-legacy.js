@@ -131,13 +131,16 @@ class AuthenticatedTester {
     console.log('📋 Testing Try-On API with authentication...')
     try {
       const tryOnData = new FormData()
-      tryOnData.append('userImage', Buffer.from('fake image data'), {
+      tryOnData.append('userImage', Buffer.from('fake user image data'), {
         filename: 'user.jpg',
         contentType: 'image/jpeg'
       })
-      tryOnData.append('frameId', 'frame-1')
+      tryOnData.append('itemImage', Buffer.from('fake glasses image data'), {
+        filename: 'glasses.jpg',
+        contentType: 'image/jpeg'
+      })
 
-      const response = await axios.post(`${BASE_URL}/api/try-on`, tryOnData, {
+      const response = await axios.post(`${BASE_URL}/api/try-on/submit`, tryOnData, {
         headers: {
           ...tryOnData.getHeaders(),
           'Cookie': this.cookies

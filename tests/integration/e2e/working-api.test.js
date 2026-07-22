@@ -42,15 +42,19 @@ describe('Working API E2E Tests', () => {
     }, 30000)
 
     test('should require authentication for try-on', async () => {
+      const FormData = require('form-data')
+      const formData = new FormData()
+      formData.append('userImage', 'test-content')
+      formData.append('itemImage', 'test-content')
+
       try {
-        await axios.post(`${baseURL}/api/try-on`, {
-          userImageUrl: 'https://example.com/image.jpg',
-          glassesImageUrl: 'https://example.com/glasses.jpg'
+        await axios.post(`${baseURL}/api/try-on/submit`, formData, {
+          headers: { ...formData.getHeaders() }
         })
       } catch (error) {
         expect(error.response.status).toBe(401)
         expect(error.response.data.success).toBe(false)
-        expect(error.response.data.error).toContain('未授权')
+        expect(error.response.data.error).toContain('Unauthorized')
       }
     }, 30000)
 
