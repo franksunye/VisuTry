@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
-import { getServerSession } from "next-auth/next"
-import { authOptions } from "@/lib/auth"
+import { requireAuth } from "@/lib/api-auth"
 import { prisma } from "@/lib/prisma"
 
 // 标记为动态路由，避免静态生成
@@ -12,16 +11,9 @@ export const dynamic = 'force-dynamic'
  */
 export async function GET(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions)
-    
-    if (!session?.user?.id) {
-      return NextResponse.json({ 
-        error: "Not authenticated",
-        message: "Please sign in to view your balance"
-      }, { status: 401 })
-    }
-
-    const userId = session.user.id
+    const auth = await requireAuth()
+    if (!auth.ok) return auth.response
+    const userId = auth.userId
 
     // 直接从数据库获取最新数据（绕过所有缓存）
     const user = await prisma.user.findUnique({

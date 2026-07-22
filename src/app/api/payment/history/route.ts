@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth/next'
-import { authOptions } from '@/lib/auth'
+import { requireAuth } from '@/lib/api-auth'
 import { prisma } from '@/lib/prisma'
 
 export const dynamic = 'force-dynamic'
@@ -14,13 +13,9 @@ const DEFAULT_LIMIT = 50
  */
 export async function GET(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions)
-    if (!session?.user?.id) {
-      return NextResponse.json(
-        { success: false, error: 'Not authenticated' },
-        { status: 401 }
-      )
-    }
+    const auth = await requireAuth()
+    if (!auth.ok) return auth.response
+    const userId = auth.userId
 
     const { searchParams } = new URL(request.url)
     const page = Math.max(1, parseInt(searchParams.get('page') || '1', 10))
@@ -31,7 +26,7 @@ export async function GET(request: NextRequest) {
 
     const [payments, total] = await Promise.all([
       prisma.payment.findMany({
-        where: { userId: session.user.id },
+        where: { userId: userId },
         orderBy: { createdAt: 'desc' },
         skip: (page - 1) * limit,
         take: limit,
@@ -47,7 +42,7 @@ export async function GET(request: NextRequest) {
         },
       }),
       prisma.payment.count({
-        where: { userId: session.user.id },
+        where: { userId: userId },
       }),
     ])
 

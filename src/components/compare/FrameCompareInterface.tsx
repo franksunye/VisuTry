@@ -20,29 +20,19 @@ import { ImageUpload } from '@/components/upload/ImageUpload'
 import {
   DEFAULT_TOP_PICK_PRESET_IDS,
   TOP_PICK_GLASSES_PRESETS,
-  type GlassesPreset,
 } from '@/config/glasses-presets'
+import {
+  type BatchTask,
+  type BatchResult,
+  type BatchTaskPreset,
+  FRAME_DISPATCH_STAGGER_MS,
+  sleep,
+  normalizeTryOnStatus,
+  createQueuedTask,
+} from '@/lib/try-on/batch-types'
 import { cn } from '@/utils/cn'
 
-type CompareTaskStatus = 'queued' | 'processing' | 'completed' | 'failed'
-
-interface CompareTask {
-  taskId: string
-  status: CompareTaskStatus
-  resultImageUrl?: string | null
-  errorMessage?: string | null
-  preset: Pick<GlassesPreset, 'id' | 'name' | 'style' | 'assetPath'>
-}
-
-interface CompareBatchResult {
-  batchId: string
-  requiredCredits: number
-  remainingCreditsBefore: number
-  recovered?: boolean
-  startedAt?: string
-  userImageUrl?: string | null
-  tasks: CompareTask[]
-}
+interface FramePreset extends BatchTaskPreset {}
 
 interface UploadedImage {
   file?: File
@@ -51,7 +41,6 @@ interface UploadedImage {
 
 const MAX_SELECTED_FRAMES = 4
 const LONG_PROCESSING_THRESHOLD_MS = 90_000
-const FRAME_DISPATCH_STAGGER_MS = 3000
 
 function pluralizeFrame(count: number) {
   return count === 1 ? 'Frame' : 'Frames'
@@ -59,27 +48,6 @@ function pluralizeFrame(count: number) {
 
 function pluralizeCredit(count: number) {
   return count === 1 ? 'credit' : 'credits'
-}
-
-function sleep(ms: number) {
-  return new Promise((resolve) => window.setTimeout(resolve, ms))
-}
-
-function normalizeTaskStatus(status: unknown): CompareTaskStatus {
-  const normalized = String(status || '').toLowerCase()
-  if (normalized === 'queued') return 'queued'
-  if (normalized === 'completed' || normalized === 'failed') return normalized
-  return 'processing'
-}
-
-function createQueuedTask(batchId: string, preset: Pick<GlassesPreset, 'id' | 'name' | 'style' | 'assetPath'>, index: number): CompareTask {
-  return {
-    taskId: `queued-${batchId}-${preset.id}-${index}`,
-    status: 'queued',
-    resultImageUrl: null,
-    errorMessage: null,
-    preset,
-  }
 }
 
 export function FrameCompareInterface({ initialRemainingCredits = 0 }: { initialRemainingCredits?: number }) {
@@ -96,7 +64,7 @@ export function FrameCompareInterface({ initialRemainingCredits = 0 }: { initial
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isRetryingFailed, setIsRetryingFailed] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [batchResult, setBatchResult] = useState<CompareBatchResult | null>(null)
+  const [batchResult, setBatchResult] = useState<BatchResult<FramePreset> | null>(null)
   const [batchStartedAt, setBatchStartedAt] = useState<number | null>(null)
   const [now, setNow] = useState(() => Date.now())
 
@@ -182,7 +150,7 @@ export function FrameCompareInterface({ initialRemainingCredits = 0 }: { initial
 
               return {
                 taskId: task.taskId,
-                status: normalizeTaskStatus(payload.data?.status),
+                status: normalizeTryOnStatus(payload.data?.status),
                 resultImageUrl: payload.data?.resultImageUrl ?? task.resultImageUrl ?? null,
                 errorMessage: payload.data?.error ?? payload.data?.errorMessage ?? task.errorMessage ?? null,
               }
@@ -194,7 +162,7 @@ export function FrameCompareInterface({ initialRemainingCredits = 0 }: { initial
 
       if (cancelled) return
 
-      const validUpdates = updates.filter(Boolean) as Array<Partial<CompareTask> & { taskId: string }>
+      const validUpdates = updates.filter(Boolean) as Array<Partial<BatchTask<FramePreset>> & { taskId: string }>
       if (validUpdates.length === 0) return
 
       setBatchResult((current) => {
@@ -247,11 +215,11 @@ export function FrameCompareInterface({ initialRemainingCredits = 0 }: { initial
 
         const recoveredBatch = {
           ...payload.data,
-          tasks: payload.data.tasks.map((task: CompareTask) => ({
+          tasks: payload.data.tasks.map((task: BatchTask<FramePreset>) => ({
             ...task,
-            status: normalizeTaskStatus(task.status),
+            status: normalizeTryOnStatus(task.status),
           })),
-        } as CompareBatchResult
+        } as BatchResult<FramePreset>
 
         setBatchResult(recoveredBatch)
         setSelectedIds(recoveredBatch.tasks.map((task) => task.preset.id).filter(Boolean))
@@ -317,10 +285,10 @@ export function FrameCompareInterface({ initialRemainingCredits = 0 }: { initial
 
       const batch = {
         ...payload.data,
-        tasks: payload.data.presets.map((preset: CompareTask['preset'], index: number) =>
+        tasks: payload.data.presets.map((preset: FramePreset, index: number) =>
           createQueuedTask(payload.data.batchId, preset, index)
         ),
-      } as CompareBatchResult
+      } as BatchResult<FramePreset>
 
       setBatchResult(batch)
       setBatchStartedAt(Date.now())
@@ -343,7 +311,7 @@ export function FrameCompareInterface({ initialRemainingCredits = 0 }: { initial
     batchSize,
   }: {
     batchId: string
-    presets: Array<CompareTask['preset'] & { batchIndex?: number }>
+    presets: Array<FramePreset & { batchIndex?: number }>
     batchSize: number
   }) => {
     if (!userImage?.file) return
@@ -376,8 +344,8 @@ export function FrameCompareInterface({ initialRemainingCredits = 0 }: { initial
 
         const dispatchedTask = {
           ...payload.data.task,
-          status: normalizeTaskStatus(payload.data.task.status),
-        } as CompareTask
+          status: normalizeTryOnStatus(payload.data.task.status),
+        } as BatchTask<FramePreset>
 
         setBatchResult((current) => {
           if (!current) return current
@@ -390,7 +358,7 @@ export function FrameCompareInterface({ initialRemainingCredits = 0 }: { initial
         })
       } catch (err) {
         const message = err instanceof Error ? err.message : `Failed to submit ${preset.name}`
-        const failedTask: CompareTask = {
+        const failedTask: BatchTask<FramePreset> = {
           ...createQueuedTask(batchId, preset, batchIndex),
           status: 'failed',
           errorMessage: message,

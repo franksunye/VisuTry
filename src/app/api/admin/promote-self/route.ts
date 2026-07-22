@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
+import { requireAuth } from '@/lib/api-auth'
 import { prisma } from '@/lib/prisma'
 
 export const dynamic = 'force-dynamic'
@@ -15,14 +14,8 @@ export const dynamic = 'force-dynamic'
  */
 export async function POST() {
   try {
-    const session = await getServerSession(authOptions)
-    
-    if (!session?.user?.id) {
-      return NextResponse.json({
-        success: false,
-        error: 'Not authenticated'
-      }, { status: 401 })
-    }
+    const auth = await requireAuth()
+    if (!auth.ok) return auth.response
 
     // Whitelist of emails that can be promoted to admin
     // IMPORTANT: Change this to your actual admin email
@@ -31,7 +24,7 @@ export async function POST() {
       // Add other admin emails here if needed
     ]
 
-    if (!ADMIN_WHITELIST.includes(session.user.email || '')) {
+    if (!ADMIN_WHITELIST.includes(auth.session.user.email || '')) {
       return NextResponse.json({
         success: false,
         error: 'Email not in admin whitelist'
@@ -40,7 +33,7 @@ export async function POST() {
 
     // Update user role to ADMIN
     const updatedUser = await prisma.user.update({
-      where: { id: session.user.id },
+      where: { id: auth.userId },
       data: { role: 'ADMIN' },
       select: {
         id: true,

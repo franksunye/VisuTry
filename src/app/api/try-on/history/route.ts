@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
-import { getServerSession } from "next-auth/next"
-import { authOptions } from "@/lib/auth"
+import { requireAuth } from "@/lib/api-auth"
 import { prisma } from "@/lib/prisma"
 import { isMockMode } from "@/lib/mocks"
 import { MockDatabase } from "@/lib/mocks/database"
@@ -11,13 +10,9 @@ export const dynamic = 'force-dynamic'
 export async function GET(request: NextRequest) {
   try {
     // 检查用户认证
-    const session = await getServerSession(authOptions)
-    if (!session || !session.user) {
-      return NextResponse.json(
-        { success: false, error: "未授权访问" },
-        { status: 401 }
-      )
-    }
+    const auth = await requireAuth()
+    if (!auth.ok) return auth.response
+    const userId = auth.userId
 
     // 获取查询参数
     const { searchParams } = new URL(request.url)
@@ -29,7 +24,7 @@ export async function GET(request: NextRequest) {
 
     // 构建查询条件
     const where: any = {
-      userId: session.user.id
+      userId: userId
     }
 
     if (status) {
@@ -41,7 +36,7 @@ export async function GET(request: NextRequest) {
 
     if (isMockMode) {
       console.log('🧪 Mock Try-On History: Using mock database')
-      const allTasks = await MockDatabase.findUserTryOnTasks(session.user.id)
+      const allTasks = await MockDatabase.findUserTryOnTasks(userId)
 
       // 应用状态过滤
       let filteredTasks = allTasks

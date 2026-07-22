@@ -1,10 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth/next'
 import { revalidateTag } from 'next/cache'
 import { readFile } from 'node:fs/promises'
 import { join } from 'node:path'
 import { TaskStatus, TryOnType, type User } from '@prisma/client'
-import { authOptions } from '@/lib/auth'
+import { requireAuthWithUser } from '@/lib/api-auth'
 import { prisma } from '@/lib/prisma'
 import { getRemainingQuotaCount } from '@/lib/quota'
 import { logger, getRequestContext } from '@/lib/logger'
@@ -169,10 +168,9 @@ export async function POST(request: NextRequest) {
   const ctx = getRequestContext(request)
 
   try {
-    const session = await getServerSession(authOptions)
-    if (!session?.user?.id) {
-      return NextResponse.json({ success: false, error: 'Unauthorized access' }, { status: 401 })
-    }
+    const auth = await requireAuthWithUser()
+    if (!auth.ok) return auth.response
+    const user = auth.user
 
     const body = (await request.json()) as TopPicksRequestBody
     if (!body.faceAnalysisTaskId) {
@@ -180,11 +178,6 @@ export async function POST(request: NextRequest) {
         { success: false, error: 'faceAnalysisTaskId is required' },
         { status: 400 }
       )
-    }
-
-    const user = await prisma.user.findUnique({ where: { id: session.user.id } })
-    if (!user) {
-      return NextResponse.json({ success: false, error: 'User not found' }, { status: 404 })
     }
 
     const presetIds = normalizePresetIds(body.framePresetIds)

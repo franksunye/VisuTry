@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
-import { getServerSession } from "next-auth/next"
-import { authOptions } from "@/lib/auth"
+import { requireAuth } from "@/lib/api-auth"
 import { put } from "@vercel/blob"
 import { isMockMode } from "@/lib/mocks"
 import { mockBlobUpload } from "@/lib/mocks/blob"
@@ -13,18 +12,14 @@ export async function POST(request: NextRequest) {
   const ctx = getRequestContext(request)
   try {
     // 检查用户认证
-    const session = await getServerSession(authOptions)
-    if (!session || !session.user) {
-      return NextResponse.json(
-        { success: false, error: "未授权访问" },
-        { status: 401 }
-      )
-    }
+    const auth = await requireAuth()
+    if (!auth.ok) return auth.response
+    const userId = auth.userId
 
     // 获取上传的文件
     const formData = await request.formData()
     const file = formData.get("file") as File
-    
+
     if (!file) {
       return NextResponse.json(
         { success: false, error: "未找到文件" },
@@ -53,7 +48,7 @@ export async function POST(request: NextRequest) {
     // 生成文件名
     const timestamp = Date.now()
     const extension = file.name.split(".").pop()
-    const filename = `${session.user.id}/${timestamp}.${extension}`
+    const filename = `${userId}/${timestamp}.${extension}`
 
     try {
       let blob

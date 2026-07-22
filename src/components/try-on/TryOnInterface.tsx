@@ -10,11 +10,12 @@ import { EmptyState } from "@/components/try-on/EmptyState"
 import { FaceAnalysisNudge } from "@/components/try-on/FaceAnalysisNudge"
 import { Sparkles, ArrowRight, User, Glasses, AlertCircle, X, Shirt, Footprints, Watch } from "lucide-react"
 import Link from "next/link"
-import { analytics, getUserType } from "@/lib/analytics"
+import { analytics } from "@/lib/analytics"
 import { TryOnType, getTryOnConfig } from "@/config/try-on-types"
 import { logger } from "@/lib/logger"
 import { cn } from "@/utils/cn"
 import { localizedPath } from "@/lib/localized-path"
+import { useQuota } from "@/hooks/useQuota"
 
 interface ErrorState {
   message: string
@@ -31,6 +32,7 @@ export function TryOnInterface({ type = 'GLASSES' }: TryOnInterfaceProps) {
   const params = useParams()
   const locale = (params.locale as string) || 'en'
   const { data: session, update } = useSession()
+  const quota = useQuota()
   const [userImage, setUserImage] = useState<{ file: File; preview: string } | null>(null)
   const [itemImage, setItemImage] = useState<{ file: File; preview: string } | null>(null)
   const [isProcessing, setIsProcessing] = useState(false)
@@ -91,7 +93,7 @@ export function TryOnInterface({ type = 'GLASSES' }: TryOnInterfaceProps) {
     if (!currentTaskId || !isProcessing) return
 
     let pollCount = 0
-    const maxPolls = 150 // 5 minutes at 2s interval (safety timeout)
+    const maxPolls = 100 // 5 minutes at 3s interval (safety timeout)
 
     const pollInterval = setInterval(async () => {
       pollCount++
@@ -164,7 +166,7 @@ export function TryOnInterface({ type = 'GLASSES' }: TryOnInterfaceProps) {
         console.error("Failed to check task status:", error)
         logger.error('general', 'Failed to check task status', err)
       }
-    }, 2000) // Check every 2 seconds to avoid hitting rate limits
+    }, 3000) // Check every 3 seconds to avoid hitting rate limits
 
     return () => clearInterval(pollInterval)
   }, [currentTaskId, isProcessing])
@@ -294,14 +296,7 @@ export function TryOnInterface({ type = 'GLASSES' }: TryOnInterfaceProps) {
     setError(null)
 
     try {
-      const creditsPurchased = (session?.user as any)?.creditsPurchased || 0
-      const creditsUsed = (session?.user as any)?.creditsUsed || 0
-      const creditsRemaining = creditsPurchased - creditsUsed
-      const userType = getUserType(
-        session?.user?.isPremiumActive || false,
-        creditsRemaining,
-        !!session
-      )
+      const userType = quota.userType
       analytics.trackTryOnStart(userType, remainingTrials, undefined, undefined, type)
 
       const formData = new FormData()
@@ -390,14 +385,7 @@ export function TryOnInterface({ type = 'GLASSES' }: TryOnInterfaceProps) {
   const canProceed = userImage && itemImage
 
   const trackFaceAnalysisNudgeClick = (stage: 'pre' | 'post') => {
-    const creditsPurchased = (session?.user as any)?.creditsPurchased || 0
-    const creditsUsed = (session?.user as any)?.creditsUsed || 0
-    const creditsRemaining = creditsPurchased - creditsUsed
-    const userType = getUserType(
-      session?.user?.isPremiumActive || false,
-      creditsRemaining,
-      !!session
-    )
+    const userType = quota.userType
 
     analytics.trackCustomEvent('try_on_face_analysis_nudge_click', {
       stage,
@@ -464,14 +452,7 @@ export function TryOnInterface({ type = 'GLASSES' }: TryOnInterfaceProps) {
               <Link
                 href={pricingHref}
                 onClick={() => {
-                  const creditsPurchased = (session?.user as any)?.creditsPurchased || 0
-                  const creditsUsed = (session?.user as any)?.creditsUsed || 0
-                  const creditsRemaining = creditsPurchased - creditsUsed
-                  const userType = getUserType(
-                    session?.user?.isPremiumActive || false,
-                    creditsRemaining,
-                    !!session
-                  )
+                  const userType = quota.userType
                   analytics.trackQuotaExhaustedCTA('error_modal', userType)
                 }}
                 className="flex-1 px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors text-center"
@@ -625,14 +606,7 @@ export function TryOnInterface({ type = 'GLASSES' }: TryOnInterfaceProps) {
                 <Link
                   href={pricingHref}
                   onClick={() => {
-                    const creditsPurchased = (session?.user as any)?.creditsPurchased || 0
-                    const creditsUsed = (session?.user as any)?.creditsUsed || 0
-                    const creditsRemaining = creditsPurchased - creditsUsed
-                    const userType = getUserType(
-                      session?.user?.isPremiumActive || false,
-                      creditsRemaining,
-                      !!session
-                    )
+                    const userType = quota.userType
                     analytics.trackQuotaExhaustedCTA('try_on', userType)
                   }}
                   className="flex items-center gap-2 px-6 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg font-medium text-sm hover:from-blue-700 hover:to-indigo-700 transition-all shadow-md hover:shadow-lg animate-pulse"

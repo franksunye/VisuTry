@@ -4,8 +4,9 @@ import { useState } from "react"
 import { useParams } from "next/navigation"
 import { Check, Loader2 } from "lucide-react"
 import { cn } from "@/utils/cn"
-import { analytics, getUserType, type ProductType } from "@/lib/analytics"
+import { analytics, type ProductType } from "@/lib/analytics"
 import { localizedPath } from "@/lib/localized-path"
+import { useQuota } from "@/hooks/useQuota"
 
 interface PricingPlan {
   id: string
@@ -35,6 +36,7 @@ export function PricingCard({ plan, currentUser }: PricingCardProps) {
   const [loading, setLoading] = useState(false)
   const params = useParams()
   const locale = params.locale as string | undefined
+  const quota = useQuota()
   const pricingHref = localizedPath(locale, '/pricing')
   const dashboardHref = localizedPath(locale, '/dashboard')
   const signInHref = localizedPath(locale, '/auth/signin')
@@ -50,11 +52,7 @@ export function PricingCard({ plan, currentUser }: PricingCardProps) {
 
     try {
       // 追踪点击购买按钮
-      const userType = getUserType(
-        currentUser.isPremiumActive,
-        0, // creditsBalance 不在 currentUser 中，使用 0
-        true // 已认证
-      )
+      const userType = quota.userType
       const planPrice = parseFloat(plan.price.replace('$', '').replace('/month', '').replace('/year', ''))
       analytics.trackClickPurchase(
         plan.id as ProductType,

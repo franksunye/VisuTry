@@ -5,7 +5,7 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { CreditCard, CheckCircle, XCircle, Clock } from 'lucide-react'
 import Link from 'next/link'
-import { getSubscriptionQuotaLabel } from '@/config/pricing'
+import { useQuota } from '@/hooks/useQuota'
 import { AutoRefreshWrapper } from '@/components/payments/AutoRefreshWrapper'
 import { ManageSubscriptionButton } from '@/components/payments/ManageSubscriptionButton'
 import { localizedPath } from '@/lib/localized-path'
@@ -34,6 +34,7 @@ interface PaymentsPageClientProps {
 export function PaymentsPageClient({ locale }: PaymentsPageClientProps) {
   const { data: session, status } = useSession()
   const router = useRouter()
+  const quota = useQuota()
   const [payments, setPayments] = useState<Payment[] | null>(null)
   const [error, setError] = useState<string | null>(null)
 
@@ -111,20 +112,10 @@ export function PaymentsPageClient({ locale }: PaymentsPageClientProps) {
   const user = session?.user as any
   if (!user) return null
 
-  const creditsPurchased = user.creditsPurchased || 0
-  const creditsUsed = user.creditsUsed || 0
-  const creditsRemaining = creditsPurchased - creditsUsed
-
-  const latestSubscriptionPayment = payments?.find(
-    (p) => p.productType === 'PREMIUM_YEARLY' || p.productType === 'PREMIUM_MONTHLY'
-  )
-
-  const usageCount = user.isPremiumActive ? user.premiumUsageCount || 0 : user.freeTrialsUsed
-  const { quota: subscriptionQuota, label: subscriptionQuotaLabel } = getSubscriptionQuotaLabel(
-    user.isPremiumActive,
-    latestSubscriptionPayment?.productType ?? null,
-    usageCount
-  )
+  const creditsRemaining = quota.creditsRemaining
+  const creditsPurchased = quota.creditsPurchased
+  const subscriptionQuota = quota.quotaLabelCount
+  const subscriptionQuotaLabel = quota.quotaLabel
 
   const paymentList = payments || []
 

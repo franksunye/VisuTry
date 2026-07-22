@@ -60,8 +60,8 @@ export async function GET(request: NextRequest) {
     let errorCount = 0
     const errors: string[] = []
 
-    // Process each pending task
-    for (const task of pendingTasks) {
+    // Process a single pending task (preserves all logging/monitoring behavior)
+    const processTask = async (task: typeof pendingTasks[number]) => {
       try {
         logger.info('cron', `Processing task ${task.id}`)
         
@@ -88,6 +88,16 @@ export async function GET(request: NextRequest) {
         errors.push(errorMsg)
         logger.error('cron', `Error processing task ${task.id}`, error as Error)
       }
+    }
+
+    // Process tasks in parallel with concurrency limit
+    // (Promise.allSettled ensures one failure doesn't stop others)
+    const CONCURRENCY = 5
+    for (let i = 0; i < pendingTasks.length; i += CONCURRENCY) {
+      const batch = pendingTasks.slice(i, i + CONCURRENCY)
+      await Promise.allSettled(
+        batch.map(task => processTask(task))
+      )
     }
 
     const duration = Date.now() - startTime

@@ -1,7 +1,7 @@
 import { DashboardStats } from "./DashboardStats"
 import { perfLogger } from "@/lib/performance-logger"
 import { getCachedUserStats } from "@/lib/cache"
-import { QUOTA_CONFIG } from "@/config/pricing"
+import { calculateRemainingQuota, QUOTA_CONFIG } from "@/config/pricing"
 
 interface DashboardStatsAsyncProps {
   userId: string
@@ -58,24 +58,28 @@ export async function DashboardStatsAsync({
     // 🔥 计数器模式：
     // - Premium 用户：使用 premiumUsageCount（从 session 传入，每次使用递增，续费时重置）
     // - 免费用户：使用 freeTrialsUsed（免费试用的使用次数）
+    // 使用统一的 calculateRemainingQuota 计算剩余额度
+    const { subscriptionRemaining, creditsRemaining, totalRemaining } = calculateRemainingQuota(
+      isPremiumActive,
+      subscriptionType,
+      freeTrialsUsed,
+      premiumUsageCount,
+      creditsPurchased,
+      creditsUsed,
+    )
+
     let remainingDisplay: string | number
     let remainingDescription: string
-
-    const creditsRemaining = creditsPurchased - creditsUsed
 
     if (isPremiumActive) {
       if (isYearlySubscription) {
         // 年费用户：使用 premiumUsageCount 计数器
-        const subscriptionRemaining = Math.max(0, QUOTA_CONFIG.YEARLY_SUBSCRIPTION - premiumUsageCount)
-        const totalRemaining = subscriptionRemaining + creditsRemaining
         remainingDisplay = totalRemaining
         remainingDescription = creditsRemaining > 0
           ? `Annual (${subscriptionRemaining}) + Credits (${creditsRemaining}/${creditsPurchased})`
           : "Annual Plan"
       } else if (isMonthlySubscription) {
         // 月费用户：使用 premiumUsageCount 计数器
-        const subscriptionRemaining = Math.max(0, QUOTA_CONFIG.MONTHLY_SUBSCRIPTION - premiumUsageCount)
-        const totalRemaining = subscriptionRemaining + creditsRemaining
         remainingDisplay = totalRemaining
         remainingDescription = creditsRemaining > 0
           ? `Monthly (${subscriptionRemaining}) + Credits (${creditsRemaining}/${creditsPurchased})`
@@ -87,11 +91,9 @@ export async function DashboardStatsAsync({
       }
     } else {
       // 免费用户：使用 freeTrialsUsed（只计算免费试用期的使用）
-      const freeRemaining = Math.max(0, QUOTA_CONFIG.FREE_TRIAL - freeTrialsUsed)
-      const totalRemaining = freeRemaining + creditsRemaining
       remainingDisplay = totalRemaining
       remainingDescription = creditsRemaining > 0
-        ? `Free (${freeRemaining}) + Credits (${creditsRemaining}/${creditsPurchased})`
+        ? `Free (${subscriptionRemaining}) + Credits (${creditsRemaining}/${creditsPurchased})`
         : "Free Quota"
     }
 

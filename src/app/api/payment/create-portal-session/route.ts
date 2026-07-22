@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
-import { getServerSession } from "next-auth/next"
-import { authOptions } from "@/lib/auth"
+import { requireAuth } from "@/lib/api-auth"
 import { prisma } from "@/lib/prisma"
 import { createBillingPortalSession, stripe } from "@/lib/stripe"
 import { isMockMode } from "@/lib/mocks"
@@ -12,13 +11,9 @@ export async function POST(request: NextRequest) {
   const ctx = getRequestContext(request)
 
   try {
-    const session = await getServerSession(authOptions)
-    if (!session?.user?.id) {
-      return NextResponse.json(
-        { success: false, error: "Unauthorized" },
-        { status: 401 }
-      )
-    }
+    const auth = await requireAuth()
+    if (!auth.ok) return auth.response
+    const userId = auth.userId
 
     const body = await request.json().catch(() => ({}))
     const returnUrl =
@@ -35,7 +30,7 @@ export async function POST(request: NextRequest) {
 
     const latestSubscriptionPayment = await prisma.payment.findFirst({
       where: {
-        userId: session.user.id,
+        userId: userId,
         stripeSubscriptionId: { not: null },
       },
       orderBy: { createdAt: "desc" },
@@ -68,7 +63,7 @@ export async function POST(request: NextRequest) {
     logger.info(
       "payment",
       "Billing portal session created",
-      { userId: session.user.id, customerId },
+      { userId: userId, customerId },
       ctx
     )
 

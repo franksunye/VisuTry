@@ -58,7 +58,7 @@ export function useTestSession() {
     checkTestSession()
 
     // Listen for cookie changes (when test login/logout happens)
-    const interval = setInterval(checkTestSession, 1000)
+    const interval = setInterval(checkTestSession, 5000)
     
     return () => clearInterval(interval)
   }, [])

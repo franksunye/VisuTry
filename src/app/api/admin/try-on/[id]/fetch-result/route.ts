@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth/next';
-import { authOptions } from '@/lib/auth';
+import { requireAdmin } from '@/lib/api-auth';
 import { prisma } from '@/lib/prisma';
 import { getTryOnResult } from '@/lib/tryon-service';
 import { TaskStatus } from '@prisma/client';
@@ -30,32 +29,10 @@ export async function POST(
 
     try {
         // 1. Verify admin permissions
-        const session = await getServerSession(authOptions);
-        if (!session || !session.user) {
-            logger.warn('api', `[Admin Fetch Result] Unauthorized access attempt`, {
-                taskId,
-                ...ctx,
-            });
-            return NextResponse.json(
-                { success: false, error: 'Unauthorized' },
-                { status: 401 }
-            );
-        }
+        const auth = await requireAdmin();
+        if (!auth.ok) return auth.response;
 
-        if (session.user.role !== 'ADMIN') {
-            logger.warn('api', `[Admin Fetch Result] Non-admin access attempt`, {
-                taskId,
-                userId: session.user.id,
-                userEmail: session.user.email,
-                ...ctx,
-            });
-            return NextResponse.json(
-                { success: false, error: 'Forbidden - Admin access required' },
-                { status: 403 }
-            );
-        }
-
-        const adminEmail = session.user.email;
+        const adminEmail = auth.session.user.email;
         logger.info('api', `[Admin Fetch Result] Admin authenticated`, {
             taskId,
             adminEmail,

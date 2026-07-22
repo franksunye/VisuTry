@@ -1,12 +1,9 @@
 import { NextRequest, NextResponse } from "next/server"
-import { getServerSession } from "next-auth/next"
-import { authOptions } from "@/lib/auth"
-import { prisma } from "@/lib/prisma"
+import { requireAuthWithUser } from "@/lib/api-auth"
 import { getRequestContext, logger } from "@/lib/logger"
 import { checkUserQuota, deductUserQuota } from "@/lib/quota"
 import { submitTryOnTask } from "@/lib/tryon-service"
 import { TryOnType, isValidTryOnType } from "@/config/try-on-types"
-import { User } from "@prisma/client"
 import { createHash } from "node:crypto"
 
 export const dynamic = 'force-dynamic'
@@ -16,38 +13,10 @@ export async function POST(request: NextRequest) {
   const ctx = getRequestContext(request)
   try {
     // 1. Authentication
-    const session = await getServerSession(authOptions)
-    
-    if (!session?.user?.email) {
-      return NextResponse.json(
-        { success: false, error: "Unauthorized access" },
-        { status: 401 }
-      )
-    }
-
-    // Get full user data
-    const user = (await prisma.user.findUnique({
-      where: { email: session.user.email },
-      select: {
-        id: true,
-        isPremium: true,
-        premiumExpiresAt: true,
-        currentSubscriptionType: true,
-        freeTrialsUsed: true,
-        premiumUsageCount: true,
-        creditsPurchased: true,
-        creditsUsed: true,
-      }
-    })) as User | null
-
-    if (!user) {
-      return NextResponse.json(
-        { success: false, error: "User not found" },
-        { status: 404 }
-      )
-    }
-
-    const userId = user.id
+    const auth = await requireAuthWithUser()
+    if (!auth.ok) return auth.response
+    const user = auth.user
+    const userId = auth.userId
 
     // 2. Check Quota
     const quotaCheck = checkUserQuota(user)

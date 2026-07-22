@@ -6,6 +6,7 @@ import { useParams } from "next/navigation"
 import { formatDistanceToNow } from "date-fns"
 import { analytics } from "@/lib/analytics"
 import { QUOTA_CONFIG } from "@/config/pricing"
+import { useQuota } from "@/hooks/useQuota"
 import { localizedPath } from "@/lib/localized-path"
 
 interface User {
@@ -30,43 +31,42 @@ interface SubscriptionCardProps {
 export function SubscriptionCard({ user }: SubscriptionCardProps) {
   const params = useParams()
   const locale = params.locale as string | undefined
-  const freeTrialLimit = 3
+  const quota = useQuota()
 
-  // Calculate quota for all user types
-  const isPremiumActive = user.isPremiumActive || false
-  const subscriptionType = user.subscriptionType
-  const isYearlySubscription = user.isYearlySubscription || false
+  // Quota values from the unified hook
+  const isPremiumActive = quota.isPremiumActive
+  const isYearlySubscription = quota.isYearlySubscription
 
-  // Subscription quota
+  // Subscription quota (display values)
   let subscriptionQuota = 0
   let subscriptionUsed = 0
   let subscriptionLabel = ''
 
-  if (isPremiumActive && subscriptionType) {
+  if (isPremiumActive && quota.subscriptionType) {
     subscriptionQuota = isYearlySubscription ? QUOTA_CONFIG.YEARLY_SUBSCRIPTION : QUOTA_CONFIG.MONTHLY_SUBSCRIPTION
-    subscriptionUsed = user.premiumUsageCount || 0
+    subscriptionUsed = quota.premiumUsageCount
     subscriptionLabel = isYearlySubscription ? 'Annual' : 'Monthly'
   } else {
-    subscriptionQuota = freeTrialLimit
-    subscriptionUsed = user.freeTrialsUsed || 0
+    subscriptionQuota = QUOTA_CONFIG.FREE_TRIAL
+    subscriptionUsed = quota.freeTrialsUsed
     subscriptionLabel = 'Free'
   }
 
   // Credits quota
-  const creditsPurchased = user.creditsPurchased || 0
-  const creditsUsed = user.creditsUsed || 0
+  const creditsPurchased = quota.creditsPurchased
+  const creditsUsed = quota.creditsUsed
 
   // Total quota
   const totalQuota = subscriptionQuota + creditsPurchased
   const totalUsed = subscriptionUsed + creditsUsed
-  const totalRemaining = totalQuota - totalUsed
+  const totalRemaining = quota.totalRemaining
 
   // Progress percentage
   const usagePercentage = totalQuota > 0 ? (totalUsed / totalQuota) * 100 : 0
 
   // Detail text
-  const subscriptionRemaining = subscriptionQuota - subscriptionUsed
-  const creditsRemaining = creditsPurchased - creditsUsed
+  const subscriptionRemaining = quota.subscriptionRemaining
+  const creditsRemaining = quota.creditsRemaining
 
   let detailText = ''
   if (creditsPurchased > 0) {

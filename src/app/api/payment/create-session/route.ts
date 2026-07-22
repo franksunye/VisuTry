@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
-import { getServerSession } from "next-auth/next"
-import { authOptions } from "@/lib/auth"
+import { requireAuth } from "@/lib/api-auth"
 import { createCheckoutSession, ProductType } from "@/lib/stripe"
 import { isMockMode } from "@/lib/mocks"
 import { mockCreateCheckoutSession } from "@/lib/mocks/stripe"
@@ -13,13 +12,9 @@ export async function POST(request: NextRequest) {
   const ctx = getRequestContext(request)
   try {
     // 检查用户认证
-    const session = await getServerSession(authOptions)
-    if (!session || !session.user) {
-      return NextResponse.json(
-        { success: false, error: "未授权访问" },
-        { status: 401 }
-      )
-    }
+    const auth = await requireAuth()
+    if (!auth.ok) return auth.response
+    const userId = auth.userId
 
     const body = await request.json()
     const { productType, priceId, successUrl, cancelUrl, unlockTaskId } = body
@@ -72,17 +67,17 @@ export async function POST(request: NextRequest) {
 
     if (isMockMode) {
       console.log('🧪 Mock Payment: Creating mock checkout session')
-      logger.info('payment', 'Creating mock checkout session', { productType: finalProductType, userId: session.user.id }, ctx)
+      logger.info('payment', 'Creating mock checkout session', { productType: finalProductType, userId: userId }, ctx)
       checkoutSession = await mockCreateCheckoutSession({
         productType: finalProductType,
-        userId: session.user.id,
+        userId: userId,
         successUrl: successUrl || 'http://localhost:3000/success',
         cancelUrl: cancelUrl || 'http://localhost:3000/cancel',
       })
     } else {
       checkoutSession = await createCheckoutSession({
         productType: finalProductType,
-        userId: session.user.id,
+        userId: userId,
         successUrl,
         cancelUrl,
         unlockTaskId: typeof unlockTaskId === 'string' ? unlockTaskId : undefined,

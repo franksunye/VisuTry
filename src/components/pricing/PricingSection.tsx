@@ -6,7 +6,8 @@ import { Glasses, Star, Zap } from "lucide-react"
 import { useTranslations } from 'next-intl'
 import { PricingCard } from "@/components/pricing/PricingCard"
 import { PromoInput } from "@/components/pricing/PromoInput"
-import { analytics, getUserType } from "@/lib/analytics"
+import { analytics } from "@/lib/analytics"
+import { useQuota } from '@/hooks/useQuota'
 import {
   PRODUCT_METADATA,
   PricingQuotas,
@@ -24,6 +25,7 @@ interface PricingSectionProps {
 
 export function PricingSection({ user: serverUser, quotas }: PricingSectionProps) {
   const { data: session } = useSession()
+  const quota = useQuota()
   const [activeCode, setActiveCode] = useState<string | null>(null)
 
   // Prefer client-side session; fall back to server-provided user (null for
@@ -32,17 +34,8 @@ export function PricingSection({ user: serverUser, quotas }: PricingSectionProps
   const tPricing = useTranslations('pricing')
 
   useEffect(() => {
-    const creditsPurchased = user?.creditsPurchased || 0
-    const creditsUsed = user?.creditsUsed || 0
-    const creditsRemaining = creditsPurchased - creditsUsed
-    const userType = getUserType(
-      user?.isPremiumActive || false,
-      creditsRemaining,
-      Boolean(user)
-    )
-
-    analytics.trackViewPricing('pricing', userType, user?.remainingTrials || 0)
-  }, [user])
+    analytics.trackViewPricing('pricing', quota.userType, user?.remainingTrials || 0)
+  }, [quota.userType, user])
 
   // Determine if any promo code is valid
   const promoProductType = activeCode ? resolvePromoCode(activeCode) : null

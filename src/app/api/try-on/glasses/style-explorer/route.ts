@@ -1,8 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth/next'
-import { authOptions } from '@/lib/auth'
-import { prisma } from '@/lib/prisma'
-import { User } from '@prisma/client'
+import { requireAuthWithUser } from '@/lib/api-auth'
 import { getRemainingQuotaCount } from '@/lib/quota'
 import { getRequestContext, logger } from '@/lib/logger'
 import {
@@ -25,27 +22,9 @@ export async function POST(request: NextRequest) {
   const ctx = getRequestContext(request)
 
   try {
-    const session = await getServerSession(authOptions)
-    if (!session?.user?.id) {
-      return NextResponse.json({ success: false, error: 'Unauthorized access' }, { status: 401 })
-    }
-
-    const user = (await prisma.user.findUnique({
-      where: { id: session.user.id },
-      select: {
-        id: true,
-        isPremium: true,
-        premiumExpiresAt: true,
-        currentSubscriptionType: true,
-        freeTrialsUsed: true,
-        premiumUsageCount: true,
-        creditsPurchased: true,
-        creditsUsed: true,
-      }
-    })) as User | null
-    if (!user) {
-      return NextResponse.json({ success: false, error: 'User not found' }, { status: 404 })
-    }
+    const auth = await requireAuthWithUser()
+    if (!auth.ok) return auth.response
+    const user = auth.user
 
     const body = await request.json()
     const styleIntent = body.styleIntent as StyleIntent

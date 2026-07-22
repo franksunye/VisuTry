@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
-import { getServerSession } from "next-auth/next"
-import { authOptions } from "@/lib/auth"
+import { requireAuth } from "@/lib/api-auth"
 import { prisma } from "@/lib/prisma"
 import { getRequestContext, logger } from "@/lib/logger"
 import { TaskStatus } from "@prisma/client"
@@ -11,26 +10,10 @@ export async function GET(request: NextRequest) {
   const ctx = getRequestContext(request)
   try {
     // 1. Authentication
-    const session = await getServerSession(authOptions)
-    
-    if (!session?.user?.email) {
-      return NextResponse.json(
-        { success: false, error: "Unauthorized access" },
-        { status: 401 }
-      )
-    }
+    const auth = await requireAuth()
+    if (!auth.ok) return auth.response
 
-    const user = await prisma.user.findUnique({
-      where: { email: session.user.email },
-      select: { id: true }
-    })
-
-    if (!user) {
-      return NextResponse.json(
-        { success: false, error: "User not found" },
-        { status: 404 }
-      )
-    }
+    const userId = auth.userId
 
     // 2. Find latest task that is still processing
     // Logic:
@@ -44,7 +27,7 @@ export async function GET(request: NextRequest) {
 
     const pendingTask = await prisma.tryOnTask.findFirst({
       where: {
-        userId: user.id,
+        userId: userId,
         status: {
           in: [TaskStatus.PENDING, TaskStatus.PROCESSING]
         },

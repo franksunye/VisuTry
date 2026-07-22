@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth/next'
-import { authOptions } from '@/lib/auth'
+import { requireAuthWithUser } from '@/lib/api-auth'
 import { prisma } from '@/lib/prisma'
 import { getRequestContext, logger } from '@/lib/logger'
 import { checkUserQuota, deductUserQuota, getNextQuotaSource } from '@/lib/quota'
@@ -13,15 +12,9 @@ export const maxDuration = 60
 export async function POST(request: NextRequest) {
   const ctx = getRequestContext(request)
   try {
-    const session = await getServerSession(authOptions)
-    if (!session?.user?.email) {
-      return NextResponse.json({ success: false, error: 'Unauthorized access' }, { status: 401 })
-    }
-
-    const user = await prisma.user.findUnique({ where: { email: session.user.email } })
-    if (!user) {
-      return NextResponse.json({ success: false, error: 'User not found' }, { status: 404 })
-    }
+    const auth = await requireAuthWithUser()
+    if (!auth.ok) return auth.response
+    const user = auth.user
 
     const quotaCheck = checkUserQuota(user)
     if (!quotaCheck.allowed) {

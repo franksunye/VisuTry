@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth/next'
-import { authOptions } from '@/lib/auth'
+import { requireAuth } from '@/lib/api-auth'
 import { prisma } from '@/lib/prisma'
 import { getRequestContext, logger } from '@/lib/logger'
 import { getFaceAnalysisTaskForUser } from '@/lib/face-analysis-service'
@@ -12,17 +11,11 @@ type RouteParams = { params: { id: string } }
 export async function GET(request: NextRequest, { params }: RouteParams) {
   const ctx = getRequestContext(request)
   try {
-    const session = await getServerSession(authOptions)
-    if (!session?.user?.email) {
-      return NextResponse.json({ success: false, error: 'Unauthorized access' }, { status: 401 })
-    }
+    const auth = await requireAuth()
+    if (!auth.ok) return auth.response
+    const userId = auth.userId
 
-    const user = await prisma.user.findUnique({ where: { email: session.user.email } })
-    if (!user) {
-      return NextResponse.json({ success: false, error: 'User not found' }, { status: 404 })
-    }
-
-    const task = await getFaceAnalysisTaskForUser(params.id, user.id)
+    const task = await getFaceAnalysisTaskForUser(params.id, userId)
     if (!task) {
       return NextResponse.json({ success: false, error: 'Task not found' }, { status: 404 })
     }
@@ -40,18 +33,12 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 export async function DELETE(request: NextRequest, { params }: RouteParams) {
   const ctx = getRequestContext(request)
   try {
-    const session = await getServerSession(authOptions)
-    if (!session?.user?.email) {
-      return NextResponse.json({ success: false, error: 'Unauthorized access' }, { status: 401 })
-    }
-
-    const user = await prisma.user.findUnique({ where: { email: session.user.email } })
-    if (!user) {
-      return NextResponse.json({ success: false, error: 'User not found' }, { status: 404 })
-    }
+    const auth = await requireAuth()
+    if (!auth.ok) return auth.response
+    const userId = auth.userId
 
     const deleted = await prisma.faceAnalysisTask.deleteMany({
-      where: { id: params.id, userId: user.id },
+      where: { id: params.id, userId: userId },
     })
 
     if (deleted.count === 0) {

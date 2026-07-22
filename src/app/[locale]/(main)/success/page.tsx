@@ -40,7 +40,7 @@ function SuccessContent() {
       setInitialBalance(currentBalance)
 
       let attempts = 0
-      const maxAttempts = 15 // Max 15 attempts (15 seconds)
+      const maxAttempts = 15 // Max 15 attempts (~30 seconds at 2s interval)
 
       const checkBalanceUpdate = async () => {
         try {
@@ -95,7 +95,7 @@ function SuccessContent() {
 
           } else {
             // Continue polling
-            setTimeout(checkBalanceUpdate, 1000) // Check every second
+            setTimeout(checkBalanceUpdate, 2000) // Check every 2 seconds
           }
 
         } catch (error) {
@@ -119,7 +119,7 @@ function SuccessContent() {
             }
           } else {
             // Continue trying
-            setTimeout(checkBalanceUpdate, 1000)
+            setTimeout(checkBalanceUpdate, 2000)
           }
         }
       }

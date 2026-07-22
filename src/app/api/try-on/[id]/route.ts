@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
-import { getServerSession } from "next-auth/next"
-import { authOptions } from "@/lib/auth"
+import { requireAuth } from "@/lib/api-auth"
 import { prisma } from "@/lib/prisma"
 
 // Force dynamic rendering for this route
@@ -12,13 +11,9 @@ export async function GET(
 ) {
   try {
     // 检查用户认证
-    const session = await getServerSession(authOptions)
-    if (!session || !session.user) {
-      return NextResponse.json(
-        { success: false, error: "未授权访问" },
-        { status: 401 }
-      )
-    }
+    const auth = await requireAuth()
+    if (!auth.ok) return auth.response
+    const userId = auth.userId
 
     const taskId = params.id
 
@@ -44,7 +39,7 @@ export async function GET(
     }
 
     // 检查权限：只有任务创建者可以查看
-    if (task.userId !== session.user.id) {
+    if (task.userId !== userId) {
       return NextResponse.json(
         { success: false, error: "无权访问此任务" },
         { status: 403 }
@@ -83,13 +78,9 @@ export async function DELETE(
 ) {
   try {
     // 检查用户认证
-    const session = await getServerSession(authOptions)
-    if (!session || !session.user) {
-      return NextResponse.json(
-        { success: false, error: "未授权访问" },
-        { status: 401 }
-      )
-    }
+    const auth = await requireAuth()
+    if (!auth.ok) return auth.response
+    const userId = auth.userId
 
     const taskId = params.id
 
@@ -106,7 +97,7 @@ export async function DELETE(
     }
 
     // 检查权限：只有任务创建者可以删除
-    if (task.userId !== session.user.id) {
+    if (task.userId !== userId) {
       return NextResponse.json(
         { success: false, error: "无权删除此任务" },
         { status: 403 }

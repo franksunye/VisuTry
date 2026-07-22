@@ -13,6 +13,7 @@ import { DashboardQuickActions } from '@/components/dashboard/DashboardQuickActi
 import { Glasses, Plus } from 'lucide-react'
 import Link from 'next/link'
 import { localizedPath } from '@/lib/localized-path'
+import { useQuota } from '@/hooks/useQuota'
 
 interface RecentTryOn {
   id: string
@@ -36,6 +37,7 @@ interface DashboardPageClientProps {
 export function DashboardPageClient({ locale }: DashboardPageClientProps) {
   const { data: session, status } = useSession()
   const router = useRouter()
+  const quota = useQuota()
 
   const [recentTryOns, setRecentTryOns] = useState<RecentTryOn[] | null>(null)
   const [userBalance, setUserBalance] = useState<{
@@ -119,7 +121,7 @@ export function DashboardPageClient({ locale }: DashboardPageClientProps) {
     isYearlySubscription,
   }
 
-  const userType = isPremiumActive ? 'premium' : (creditsPurchased - creditsUsed) > 0 ? 'credits' : 'free'
+  const userType = quota.userType
 
   return (
     <div className="container px-4 py-8 mx-auto">

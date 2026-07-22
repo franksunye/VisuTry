@@ -1,7 +1,5 @@
 'use client'
 
-/* eslint-disable @next/next/no-img-element */
-
 import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { useParams } from 'next/navigation'
@@ -21,6 +19,7 @@ import {
   X,
   XCircle,
 } from 'lucide-react'
+import OptimizedImage from '@/components/OptimizedImage'
 import { ImageUpload } from '@/components/upload/ImageUpload'
 import {
   STYLE_EXPLORER_GLASSES_PRESETS,
@@ -36,28 +35,19 @@ import type {
   StyleExplorerCategoryFilter,
   StyleLookCopy,
 } from '@/lib/style-explorer/types'
+import {
+  type BatchTask,
+  type BatchResult,
+  type BatchTaskPreset,
+  FRAME_DISPATCH_STAGGER_MS,
+  sleep,
+  normalizeTryOnStatus,
+  createQueuedTask,
+} from '@/lib/try-on/batch-types'
 import { cn } from '@/utils/cn'
+import { downloadImage, generateResultFilename, shareOrCopy } from '@/utils/download'
 
-type TaskStatus = 'queued' | 'processing' | 'completed' | 'failed'
-type TaskPreset = Pick<GlassesPreset, 'id' | 'name' | 'style' | 'assetPath'>
-
-interface ExplorerTask {
-  taskId: string
-  status: TaskStatus
-  resultImageUrl?: string | null
-  errorMessage?: string | null
-  preset: TaskPreset
-}
-
-interface ExplorerBatch {
-  batchId: string
-  requiredCredits: number
-  remainingCreditsBefore: number
-  recovered?: boolean
-  startedAt?: string
-  userImageUrl?: string | null
-  tasks: ExplorerTask[]
-}
+interface FramePreset extends BatchTaskPreset {}
 
 interface UploadedImage {
   file?: File
@@ -86,28 +76,6 @@ const OCCASION_OPTIONS: Array<{ value: StyleOccasion; label: string }> = [
   { value: 'outdoor', label: 'Outdoor' },
 ]
 
-const FRAME_DISPATCH_STAGGER_MS = 3000
-
-function sleep(ms: number) {
-  return new Promise((resolve) => window.setTimeout(resolve, ms))
-}
-
-function normalizeStatus(status: unknown): TaskStatus {
-  const value = String(status || '').toLowerCase()
-  if (value === 'queued' || value === 'completed' || value === 'failed') return value
-  return 'processing'
-}
-
-function queuedTask(batchId: string, preset: TaskPreset, index: number): ExplorerTask {
-  return {
-    taskId: `queued-${batchId}-${preset.id}-${index}`,
-    status: 'queued',
-    resultImageUrl: null,
-    errorMessage: null,
-    preset,
-  }
-}
-
 export function StyleExplorerInterface({ initialRemainingCredits = 0 }: { initialRemainingCredits?: number }) {
   const params = useParams()
   const locale = (params.locale as string) || 'en'
@@ -121,12 +89,12 @@ export function StyleExplorerInterface({ initialRemainingCredits = 0 }: { initia
     selectStyleExplorerFrames({ styleIntent: 'minimal', category: 'all', occasion: 'work', limit: 4 })
       .map((item) => item.presetId),
   )
-  const [batch, setBatch] = useState<ExplorerBatch | null>(null)
+  const [batch, setBatch] = useState<BatchResult<FramePreset> | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isRetrying, setIsRetrying] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [replaceIndex, setReplaceIndex] = useState<number | null>(null)
-  const [detailTask, setDetailTask] = useState<ExplorerTask | null>(null)
+  const [detailTask, setDetailTask] = useState<BatchTask<FramePreset> | null>(null)
   const [shareNotice, setShareNotice] = useState<string | null>(null)
 
   const recommendedPresets = useMemo(
@@ -185,7 +153,7 @@ export function StyleExplorerInterface({ initialRemainingCredits = 0 }: { initia
             if (!response.ok || !payload.success) return null
             return {
               taskId: task.taskId,
-              status: normalizeStatus(payload.data?.status),
+              status: normalizeTryOnStatus(payload.data?.status),
               resultImageUrl: payload.data?.resultImageUrl ?? task.resultImageUrl ?? null,
               errorMessage: payload.data?.error ?? payload.data?.errorMessage ?? task.errorMessage ?? null,
             }
@@ -195,7 +163,7 @@ export function StyleExplorerInterface({ initialRemainingCredits = 0 }: { initia
         }))
 
       if (cancelled) return
-      const valid = updates.filter(Boolean) as Array<Partial<ExplorerTask> & { taskId: string }>
+      const valid = updates.filter(Boolean) as Array<Partial<BatchTask<FramePreset>> & { taskId: string }>
       if (!valid.length) return
       setBatch((current) => current ? ({
         ...current,
@@ -236,8 +204,8 @@ export function StyleExplorerInterface({ initialRemainingCredits = 0 }: { initia
         if (!response.ok || !payload.success || !payload.data || cancelled) return
         const recovered = {
           ...payload.data,
-          tasks: payload.data.tasks.map((task: ExplorerTask) => ({ ...task, status: normalizeStatus(task.status) })),
-        } as ExplorerBatch
+          tasks: payload.data.tasks.map((task: BatchTask<FramePreset>) => ({ ...task, status: normalizeTryOnStatus(task.status) })),
+        } as BatchResult<FramePreset>
         setBatch(recovered)
         setRecommendationIds(recovered.tasks.map((task) => task.preset.id))
         if (recovered.userImageUrl) setUserImage({ preview: recovered.userImageUrl })
@@ -257,7 +225,7 @@ export function StyleExplorerInterface({ initialRemainingCredits = 0 }: { initia
 
   const dispatchFrames = async (
     batchId: string,
-    presets: Array<TaskPreset & { batchIndex?: number; lookKey?: string }>,
+    presets: Array<FramePreset & { batchIndex?: number; lookKey?: string }>,
     batchSize: number,
   ) => {
     if (!userImage?.file) return
@@ -281,14 +249,14 @@ export function StyleExplorerInterface({ initialRemainingCredits = 0 }: { initia
         const response = await fetch('/api/try-on/glasses/style-explorer/frame', { method: 'POST', body: formData })
         const payload = await response.json()
         if (!response.ok || !payload.success) throw new Error(payload.error || `Failed to submit ${preset.name}`)
-        const task = { ...payload.data.task, status: normalizeStatus(payload.data.task.status) } as ExplorerTask
+        const task = { ...payload.data.task, status: normalizeTryOnStatus(payload.data.task.status) } as BatchTask<FramePreset>
         setBatch((current) => current ? ({
           ...current,
           tasks: current.tasks.map((item) => item.preset.id === preset.id ? task : item),
         }) : current)
       } catch (reason) {
         const failed = {
-          ...queuedTask(batchId, preset, batchIndex),
+          ...createQueuedTask(batchId, preset, batchIndex),
           status: 'failed' as const,
           errorMessage: reason instanceof Error ? reason.message : `Failed to submit ${preset.name}`,
         }
@@ -319,9 +287,9 @@ export function StyleExplorerInterface({ initialRemainingCredits = 0 }: { initia
       if (!response.ok || !payload.success) throw new Error(payload.error || 'Style Explorer failed to start')
       const nextBatch = {
         ...payload.data,
-        tasks: payload.data.presets.map((preset: TaskPreset, index: number) =>
-          queuedTask(payload.data.batchId, preset, index)),
-      } as ExplorerBatch
+        tasks: payload.data.presets.map((preset: FramePreset, index: number) =>
+          createQueuedTask(payload.data.batchId, preset, index)),
+      } as BatchResult<FramePreset>
       setBatch(nextBatch)
       analytics.trackCustomEvent('style_explorer_generation_started', {
         batch_id: payload.data.batchId,
@@ -354,58 +322,34 @@ export function StyleExplorerInterface({ initialRemainingCredits = 0 }: { initia
       ...current,
       tasks: current.tasks.map((task) => {
         const retry = retryPresets.find((preset) => preset.id === task.preset.id)
-        return retry ? queuedTask(current.batchId, retry, retry.batchIndex) : task
+        return retry ? createQueuedTask(current.batchId, retry, retry.batchIndex) : task
       }),
     }) : current)
     await dispatchFrames(batch.batchId, retryPresets, batch.tasks.length)
     setIsRetrying(false)
   }
 
-  const download = async (task: ExplorerTask) => {
+  const download = async (task: BatchTask<FramePreset>) => {
     if (!task.resultImageUrl) return
     analytics.trackCustomEvent('style_explorer_download_clicked', { task_id: task.taskId })
     try {
-      const response = await fetch(task.resultImageUrl)
-      const blob = await response.blob()
-      const url = URL.createObjectURL(blob)
-      const anchor = document.createElement('a')
-      anchor.href = url
-      anchor.download = `visutry-style-${task.taskId}.jpg`
-      document.body.appendChild(anchor)
-      anchor.click()
-      anchor.remove()
-      URL.revokeObjectURL(url)
+      await downloadImage(task.resultImageUrl, generateResultFilename('visutry-style', task.taskId))
     } catch {
       setError('Download failed. Please try again.')
     }
   }
 
-  const share = async (task: ExplorerTask) => {
+  const share = async (task: BatchTask<FramePreset>) => {
     const shareUrl = `${window.location.origin}/${locale}/share/${task.taskId}`
     analytics.trackCustomEvent('style_explorer_share_clicked', { task_id: task.taskId })
-    try {
-      if (navigator.share) {
-        await navigator.share({
-          title: 'My VisuTry eyewear look',
-          text: 'Check out this eyewear look I created with VisuTry.',
-          url: shareUrl,
-        })
-        setShareNotice('Shared')
-      } else {
-        await navigator.clipboard.writeText(shareUrl)
-        setShareNotice('Link copied')
-      }
-      analytics.trackCustomEvent('style_explorer_share_completed', { task_id: task.taskId })
-      window.setTimeout(() => setShareNotice(null), 2000)
-    } catch (reason) {
-      if (reason instanceof DOMException && reason.name === 'AbortError') return
-      try {
-        await navigator.clipboard.writeText(shareUrl)
-        setShareNotice('Link copied')
-      } catch {
-        setError('Could not share this look.')
-      }
+    const result = await shareOrCopy(shareUrl, { title: 'VisuTry Style', text: 'Check out my virtual try-on look!' })
+    if (result === 'failed') {
+      setError('Could not share this look.')
+      return
     }
+    setShareNotice(result === 'shared' ? 'Shared' : 'Link copied')
+    analytics.trackCustomEvent('style_explorer_share_completed', { task_id: task.taskId })
+    window.setTimeout(() => setShareNotice(null), 2000)
   }
 
   const reset = () => {
@@ -542,7 +486,13 @@ export function StyleExplorerInterface({ initialRemainingCredits = 0 }: { initia
                   className="rounded-md border border-gray-200 p-1.5 text-center hover:border-blue-400 disabled:cursor-not-allowed"
                   title={`Replace ${preset.name}`}
                 >
-                  <img src={`/${preset.assetPath}`} alt={preset.name} className="aspect-square w-full object-contain" />
+                  <OptimizedImage
+                    src={`/${preset.assetPath}`}
+                    alt={preset.name}
+                    width={400}
+                    height={400}
+                    className="aspect-square w-full object-contain"
+                  />
                   <span className="mt-1 block truncate text-[10px] font-semibold text-gray-700">{preset.name}</span>
                 </button>
               ))}
@@ -676,7 +626,13 @@ export function StyleExplorerInterface({ initialRemainingCredits = 0 }: { initia
                   }}
                   className="rounded-lg border border-gray-200 p-3 text-left hover:border-blue-400"
                 >
-                  <img src={`/${preset.assetPath}`} alt={preset.name} className="aspect-square w-full object-contain" />
+                  <OptimizedImage
+                    src={`/${preset.assetPath}`}
+                    alt={preset.name}
+                    width={400}
+                    height={400}
+                    className="aspect-square w-full object-contain"
+                  />
                   <p className="mt-2 text-xs font-bold text-gray-900">{preset.name}</p>
                 </button>
               ))}
@@ -752,7 +708,13 @@ function EmptyWorkspace({ presets }: { presets: GlassesPreset[] }) {
       <div className="mt-8 grid w-full max-w-2xl grid-cols-2 gap-3 sm:grid-cols-4">
         {presets.map((preset, index) => (
           <div key={preset.id} className="rounded-lg border border-gray-200 bg-gray-50 p-3">
-            <img src={`/${preset.assetPath}`} alt="" className="aspect-square w-full object-contain opacity-50" />
+            <OptimizedImage
+              src={`/${preset.assetPath}`}
+              alt=""
+              width={400}
+              height={400}
+              className="aspect-square w-full object-contain opacity-50"
+            />
             <p className="mt-2 text-xs font-semibold text-gray-500">Look {index + 1}</p>
           </div>
         ))}
@@ -775,7 +737,13 @@ function PreviewGrid({ presets, styleIntent, occasion }: {
           return (
             <article key={preset.id} className="overflow-hidden rounded-lg border border-gray-200">
               <div className="flex aspect-[2/1] items-center justify-center bg-gray-50 p-5">
-                <img src={`/${preset.assetPath}`} alt={preset.name} className="h-full w-full object-contain" />
+                <OptimizedImage
+                  src={`/${preset.assetPath}`}
+                  alt={preset.name}
+                  fill
+                  wrapperClassName="relative h-full w-full"
+                  className="object-contain"
+                />
               </div>
               <div className="p-4">
                 <h3 className="text-sm font-bold text-gray-950">{index + 1}. {look.name}</h3>
@@ -791,7 +759,7 @@ function PreviewGrid({ presets, styleIntent, occasion }: {
 }
 
 function ResultCard({ task, look, onDetail, onDownload, onShare }: {
-  task: ExplorerTask
+  task: BatchTask<FramePreset>
   look: StyleLookCopy | null
   onDetail: () => void
   onDownload: () => void
@@ -801,7 +769,13 @@ function ResultCard({ task, look, onDetail, onDownload, onShare }: {
     <article className="overflow-hidden rounded-lg border border-gray-200 bg-white">
       <button type="button" onClick={onDetail} className="relative block aspect-[4/3] w-full bg-gray-50 text-left">
         {task.status === 'completed' && task.resultImageUrl ? (
-          <img src={task.resultImageUrl} alt={`${look?.name ?? task.preset.name} result`} className="h-full w-full object-cover" />
+          <OptimizedImage
+            src={task.resultImageUrl}
+            alt={`${look?.name ?? task.preset.name} result`}
+            fill
+            wrapperClassName="relative h-full w-full"
+            className="object-cover"
+          />
         ) : task.status === 'failed' ? (
           <span className="flex h-full flex-col items-center justify-center px-6 text-center text-red-600">
             <XCircle className="mb-3 h-8 w-8" />
@@ -850,7 +824,7 @@ function TagList({ tags }: { tags: string[] }) {
 }
 
 function LookDrawer({ task, locale, styleIntent, occasion, onClose, onDownload, onShare }: {
-  task: ExplorerTask
+  task: BatchTask<FramePreset>
   locale: string
   styleIntent: StyleIntent
   occasion: StyleOccasion
@@ -875,7 +849,13 @@ function LookDrawer({ task, locale, styleIntent, occasion, onClose, onDownload, 
           <span className="text-sm font-bold text-gray-950">Look Detail</span>
           <button onClick={onClose} aria-label="Close details"><X className="h-5 w-5" /></button>
         </div>
-        <img src={task.resultImageUrl} alt={look.name} className="aspect-[4/3] w-full object-cover" />
+        <OptimizedImage
+          src={task.resultImageUrl}
+          alt={look.name}
+          width={800}
+          height={600}
+          className="aspect-[4/3] w-full object-cover"
+        />
         <div className="space-y-5 p-5">
           <div>
             <h2 id="look-detail-title" className="text-lg font-bold text-gray-950">{look.name}</h2>

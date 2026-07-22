@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth/next'
-import { TaskStatus, User } from '@prisma/client'
-import { authOptions } from '@/lib/auth'
+import { TaskStatus } from '@prisma/client'
+import { requireAuthWithUser } from '@/lib/api-auth'
 import { prisma } from '@/lib/prisma'
 import { getRequestContext, logger } from '@/lib/logger'
 import { getRemainingQuotaCount } from '@/lib/quota'
@@ -18,24 +17,9 @@ function metadataValue(metadata: unknown, key: string) {
 export async function GET(request: NextRequest) {
   const ctx = getRequestContext(request)
   try {
-    const session = await getServerSession(authOptions)
-    if (!session?.user?.id) {
-      return NextResponse.json({ success: false, error: 'Unauthorized access' }, { status: 401 })
-    }
-    const user = (await prisma.user.findUnique({
-      where: { id: session.user.id },
-      select: {
-        id: true,
-        isPremium: true,
-        premiumExpiresAt: true,
-        currentSubscriptionType: true,
-        freeTrialsUsed: true,
-        premiumUsageCount: true,
-        creditsPurchased: true,
-        creditsUsed: true,
-      }
-    })) as User | null
-    if (!user) return NextResponse.json({ success: false, error: 'User not found' }, { status: 404 })
+    const auth = await requireAuthWithUser()
+    if (!auth.ok) return auth.response
+    const user = auth.user
 
     const pending = await prisma.tryOnTask.findFirst({
       where: {
