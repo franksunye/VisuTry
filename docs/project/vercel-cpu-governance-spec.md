@@ -3,10 +3,10 @@
 **Status:** Active operating plan  
 **Owner:** Engineering  
 **Created:** 2026-07-21  
-**Last updated:** 2026-07-21  
+**Last updated:** 2026-07-22  
 **Review cadence:** Weekly while Vercel Hobby CPU remains constrained; monthly after stabilization  
 **Scope:** Runtime CPU governance for the current Next.js application on Vercel. This specification does not authorize a platform migration, database replacement, authentication rewrite, payment rewrite, or product behavior change.  
-**Related source-of-truth documents:** `docs/project/architecture.md`, `docs/guides/development-guide.md`, `docs/product/product-plan.md`
+**Related source-of-truth documents:** `docs/project/architecture.md`, `docs/decisions/ADR-005-ssr-to-client-gate.md`, `docs/guides/development-guide.md`, `docs/product/product-plan.md`
 
 ---
 
@@ -34,7 +34,7 @@ This plan is based on current implementation evidence, not a generic Next.js opt
 
 ### 2.1 Runtime and deployment facts
 
-- The application uses Next.js 14 App Router, React 18, TypeScript, `next-intl`, NextAuth/Auth0, Prisma with Neon PostgreSQL, Vercel Blob, Stripe, Gemini, MediaPipe, Resend, and related server-side dependencies.
+- The application uses Next.js 15 App Router, React 19, TypeScript, `next-intl` v4, NextAuth/Auth0, Prisma v7 with Neon PostgreSQL (`@prisma/adapter-neon` HTTP driver), Vercel Blob, Stripe, Gemini, MediaPipe, Resend, and related server-side dependencies.
 - The application is deployed on Vercel and currently produces Node.js Lambda functions.
 - Recent Vercel runtime logs show server-side invocations for public routes including:
   - `/` and `/en`;
@@ -49,34 +49,37 @@ This plan is based on current implementation evidence, not a generic Next.js opt
 
 ### 2.2 Internationalization and layout facts
 
-- `src/app/[locale]/layout.tsx` already defines `generateStaticParams()` for all configured locales.
+- `src/app/[locale]/layout.tsx` defines `generateStaticParams()` for all configured locales and calls `setRequestLocale()` for static rendering support.
 - The locale layout loads translations with `getMessages()` and metadata translations with `getTranslations()`.
 - `src/app/[locale]/(main)/layout.tsx` renders shared structured data, `Header`, and `Footer`.
-- `Header` is a client component. It reads session state through `useSession()` and test-session state through `useTestSession()` in the browser. It does not perform a server-side session lookup inside the shared main layout.
+- `Header` is a client component. It reads session state through `useSession()` and test-session state through `useTestSession()` in the browser. It shows a neutral placeholder while session is loading.
+- **The root layout (`src/app/layout.tsx`) no longer calls `getServerSession()`.** This was removed in ADR-005 (2026-07-22). `SessionProvider` receives no server-side session — next-auth fetches it on the client. This was the root cause of all public pages being forced into dynamic rendering.
 
-These facts are important because they mean some public leaf pages can potentially be made static without first rewriting the global header or authentication flow.
+### 2.3 Static rendering — all public pages (deployed)
 
-### 2.3 First-tier static rendering (deployed)
+All public-facing pages now use explicit static rendering and render as SSG (●) in `next build` output. This includes pages that previously used `getServerSession()` — they now use the **client-side gate pattern** (see ADR-005).
 
-The following leaf pages use explicit static rendering:
+**Phase 1 — Legal and content pages (force-static):**
+- `/{locale}/refund`, `/{locale}/privacy`, `/{locale}/terms`
+- `/{locale}` (home), `/{locale}/face-shape-detector`, `/{locale}/store`
+- Blog articles and blog index (ISR), SEO guide pages (ISR)
 
-```ts
-export const dynamic = 'force-static'
-```
+**Phase 2 — Public tool pages (force-static + client gate):**
+- `/{locale}/style-explorer` — `StyleExplorerGate`
+- `/{locale}/try-on/[type]` — `TryOnGate`
+- `/{locale}/try-on/glasses/compare` — `ComparePageClient`
+- `/{locale}/face-analysis` — `FaceAnalysisGate`
+- `/{locale}/pricing` — `PricingSection` uses `useSession()` internally
 
-Deployed routes:
+**Phase 3 — Protected pages (SSG + client gate with data fetching):**
+- `/{locale}/dashboard` — `DashboardPageClient` (fetches `/api/user/balance` + `/api/try-on/history`)
+- `/{locale}/dashboard/history` — `HistoryPageClient` (fetches `/api/try-on/history`)
+- `/{locale}/payments` — `PaymentsPageClient` (fetches `/api/payment/history`)
+- `/{locale}/debug-images` — `DebugImagesPageClient` (fetches `/api/try-on/history`)
 
-- `src/app/[locale]/(main)/refund/page.tsx`
-- `src/app/[locale]/(main)/privacy/page.tsx`
-- `src/app/[locale]/(main)/terms/page.tsx`
-- `src/app/[locale]/(main)/page.tsx` (home)
-- `src/app/[locale]/(main)/face-shape-detector/page.tsx`
-- `src/app/[locale]/(main)/store/page.tsx`
-- `src/app/[locale]/(main)/blog/oliver-peoples-finley-vintage-review/page.tsx` (blog pilot)
+**Only dynamic (ƒ) routes remaining:** `/admin/*` pages and `/api/*` route handlers.
 
-The refund page was the initial pilot. The remaining first-tier routes followed the same bounded pattern: no content, route, authentication, payment, credits, database, upload, or AI logic changes.
-
-Root layout session lookup (`src/app/layout.tsx`) is unchanged; leaf static rendering reduces page-segment work and improves CDN cacheability for these routes.
+**Key change:** Root layout session lookup was removed (ADR-005). `setRequestLocale()` was added to all layouts and pages using `next-intl/server` functions. `prisma.$connect()` warm-up was removed (no-op for Neon HTTP driver).
 
 ### 2.4 Critical product workflows that must remain protected
 
@@ -511,24 +514,30 @@ Because traffic varies, compare equivalent windows where possible and avoid clai
 
 | Priority | Candidate | Category | Risk | Expected benefit | Status |
 | --- | --- | --- | --- | --- | --- |
-| P0 | Refund policy static rendering | A | Very low | Low per route | Deployed pilot |
+| P0 | Refund policy static rendering | A | Very low | Low per route | Deployed |
 | P0 | Privacy policy static rendering | A | Very low | Low per route | Deployed |
 | P0 | Terms static rendering | A | Very low | Low per route | Deployed |
 | P0 | Home static rendering | C | Very low | Medium/high | Deployed |
 | P0 | Face Shape Detector static rendering | C | Very low | Medium/high | Deployed |
 | P0 | Store landing static rendering | C | Very low | Low/medium | Deployed |
 | P1 | One stable blog article static pilot | B | Low | Medium | Deployed (oliver-peoples-finley-vintage-review) |
-| P1 | Blog article route inventory | B | Low | Enables medium/high benefit | Not started |
+| P1 | Blog article route inventory | B | Low | Enables medium/high benefit | Deployed (all blog articles + index + tags) |
 | P1 | Polling request count per try-on/compare task | F | Low measurement risk | Potentially high | Audit first |
-| P1 | Session request duplication audit | E | Low measurement risk | Medium | Audit first |
-| P2 | Face Shape Detector initial route rendering audit | C | Medium | Medium/high | Not started |
-| P2 | Style Explorer initial route rendering audit | C | Medium | Medium/high | Not started |
-| P2 | Try-on and Compare static-shell audit | C | Medium | High | Not started |
+| P1 | Session request duplication audit | E | Low measurement risk | Medium | Deployed (JWT update rate-limited to 30s, redundant prisma queries removed) |
+| P2 | Face Shape Detector initial route rendering audit | C | Medium | Medium/high | Deployed (SSG, client-side MediaPipe) |
+| P2 | Style Explorer initial route rendering audit | C | Medium | Medium/high | Deployed (SSG + StyleExplorerGate) |
+| P2 | Try-on and Compare static-shell audit | C | Medium | High | Deployed (SSG + TryOnGate/ComparePageClient) |
+| P2 | Pricing static rendering | C | Medium | Medium | Deployed (SSG, PricingSection uses useSession) |
+| P2 | Dashboard and history client-side rendering | C/D | Medium | High | Deployed (SSG + client data fetching) |
+| P2 | Payments client-side rendering | C/D | Medium | Medium | Deployed (SSG + PaymentsPageClient) |
+| P2 | Root layout getServerSession removal | D/E | High | Critical | Deployed (ADR-005) |
+| P2 | setRequestLocale addition | D | Low | High | Deployed (all layouts and pages) |
+| P2 | prisma.$connect() warm-up removal | I | Very low | Low (noise reduction) | Deployed |
 | P2 | Image upload path trace | G | Low measurement risk | Enables high benefit | Audit first |
-| P3 | Prisma query inventory for polling/history | I | Medium | Medium | Not started |
-| P3 | Middleware matcher and bot-path audit | J | Medium | Medium | Not started |
+| P3 | Prisma query inventory for polling/history | I | Medium | Medium | Partially done (redundant queries removed) |
+| P3 | Middleware matcher and bot-path audit | J | Medium | Medium | Deployed (Phase 3 in static-page-pilot.md) |
 | P3 | Server bundle dependency analysis | L | Medium | Medium | Not started |
-| P4 | Shared locale/layout optimization | D | Medium/high | Medium across site | Deferred |
+| P4 | Shared locale/layout optimization | D | Medium/high | Medium across site | Deployed (setRequestLocale + root layout fix) |
 | P4 | AI request-processing optimization | H | High | Medium/high | Deferred until instrumented |
 
 ---

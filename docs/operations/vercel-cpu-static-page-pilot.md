@@ -49,24 +49,57 @@ export const dynamic = 'force-static'
 
 The blog tag page also has a new `generateStaticParams()` that enumerates all tags from the static blog post list, ensuring every tag route is pre-rendered at build time.
 
-### Excluded from Phase 2 (not safe for force-static)
+### Excluded from Phase 2 (not safe for force-static at that time)
 
-The following ISR pages were audited but intentionally excluded because they have request-time dependencies:
+The following pages were audited but intentionally excluded in Phase 2 because they had request-time dependencies. **Most were later converted in Phase 4 (ADR-005) using the client-side gate pattern:**
 
-| Route pattern | File | Reason |
-| --- | --- | --- |
-| `/{locale}/pricing` | `src/app/[locale]/(main)/pricing/page.tsx` | `getServerSession()` — displays personalized pricing based on user session |
-| `/{locale}/style/{faceShape}` | `src/app/[locale]/(main)/style/[faceShape]/page.tsx` | Prisma DB call (`prisma.faceShape.findFirst`) + `dynamicParams = true` |
-| `/{locale}/try/{slug}` | `src/app/[locale]/(main)/try/[slug]/page.tsx` | Prisma DB call (`prisma.glassesFrame.findUnique`) |
-| `/{locale}/category/{category}` | `src/app/[locale]/(main)/category/[category]/page.tsx` | Prisma DB calls (2 queries) |
-| `/{locale}/brand/{brand}` | `src/app/[locale]/(main)/brand/[brand]/page.tsx` | Prisma DB call (`prisma.glassesFrame.findMany`) |
-| `/sitemap.xml` | `src/app/sitemap.ts` | Prisma DB calls (4 queries) — sitemap must reflect latest DB data |
+| Route pattern | File | Reason (Phase 2) | Status |
+| --- | --- | --- | --- |
+| `/{locale}/pricing` | `src/app/[locale]/(main)/pricing/page.tsx` | `getServerSession()` — displays personalized pricing | **Converted in Phase 4** (PricingSection uses `useSession`) |
+| `/{locale}/style/{faceShape}` | `src/app/[locale]/(main)/style/[faceShape]/page.tsx` | Prisma DB call (`prisma.faceShape.findFirst`) + `dynamicParams = true` | Still dynamic |
+| `/{locale}/try/{slug}` | `src/app/[locale]/(main)/try/[slug]/page.tsx` | Prisma DB call (`prisma.glassesFrame.findUnique`) | Still dynamic |
+| `/{locale}/category/{category}` | `src/app/[locale]/(main)/category/[category]/page.tsx` | Prisma DB calls (2 queries) | Still dynamic |
+| `/{locale}/brand/{brand}` | `src/app/[locale]/(main)/brand/[brand]/page.tsx` | Prisma DB call (`prisma.glassesFrame.findMany`) | Still dynamic |
+| `/sitemap.xml` | `src/app/sitemap.ts` | Prisma DB calls (4 queries) — sitemap must reflect latest DB data | Still dynamic |
 
 ## Out of scope
 
-No changes are made to authentication, payments, credits, database access, image uploads, AI generation, try-on, compare, root layouts, or shared navigation.
+No changes are made to authentication, payments, credits, database access, image uploads, AI generation, try-on, compare, or shared navigation **logic**. However, the rendering strategy for these pages has changed — see Phase 4 below.
 
-Note: `src/app/layout.tsx` still resolves session for `SessionProvider`. Leaf-page static rendering reduces page-segment work and improves CDN cacheability; it does not remove root-layout session lookup. Shared layout optimization remains a later phase.
+**Root layout (`src/app/layout.tsx`) no longer resolves session for `SessionProvider`.** This was removed in ADR-005 (2026-07-22). The root layout now renders `SessionProvider` without a server-side session prop — next-auth fetches the session on the client. This was the critical change that allowed all public pages to render as SSG.
+
+### Phase 4 — ADR-005: SSR to client-side gate (2026-07-22)
+
+All remaining public pages that used `getServerSession()` were converted to the **client-side gate pattern**. See `docs/decisions/ADR-005-ssr-to-client-gate.md` for the full decision record.
+
+| Route pattern | Gate component | Previous mode | Current mode |
+| --- | --- | --- | --- |
+| `/{locale}/style-explorer` | `StyleExplorerGate` | Dynamic (getServerSession) | SSG (●) |
+| `/{locale}/try-on/[type]` | `TryOnGate` | Dynamic (getServerSession) | SSG (●) |
+| `/{locale}/try-on/glasses/compare` | `ComparePageClient` | Dynamic (getServerSession) | SSG (●) |
+| `/{locale}/face-analysis` | `FaceAnalysisGate` | Dynamic (getServerSession) | SSG (●) |
+| `/{locale}/pricing` | `PricingSection` (uses `useSession`) | Dynamic (getServerSession) | SSG (●) |
+| `/{locale}/dashboard` | `DashboardPageClient` | Dynamic (getServerSession + prisma) | SSG (●) |
+| `/{locale}/dashboard/history` | `HistoryPageClient` | Dynamic (getServerSession + prisma) | SSG (●) |
+| `/{locale}/payments` | `PaymentsPageClient` | Dynamic (getServerSession + prisma) | SSG (●) |
+| `/{locale}/debug-images` | `DebugImagesPageClient` | Dynamic (getServerSession + prisma) | SSG (●) |
+
+**Supporting changes in the same phase:**
+- `setRequestLocale()` added to all layouts and pages using `next-intl/server` functions
+- `prisma.$connect()` warm-up removed (no-op for Neon HTTP driver)
+- JWT callback `trigger='update'` rate-limited to 30 seconds via `lastSyncTime` in token
+- `perfLogger` race condition fixed (silent skip in serverless concurrent execution)
+- `metadataBase` added to `generateSEO()` for OG image URL resolution
+- Header component: loading placeholder added to prevent LoginButton → UserMenu flash
+
+**Pages that remain excluded from SSG (still dynamic ƒ):**
+- `/{locale}/style/{faceShape}` — Prisma DB call + `dynamicParams = true`
+- `/{locale}/try/{slug}` — Prisma DB call
+- `/{locale}/category/{category}` — Prisma DB calls
+- `/{locale}/brand/{brand}` — Prisma DB call
+- `/sitemap.xml` — Prisma DB calls (must reflect latest data)
+- `/{locale}/admin/*` — Requires server-side auth
+- `/api/*` — Route handlers (on-demand)
 
 ### Phase 3 — Middleware matcher narrowing
 

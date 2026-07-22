@@ -70,6 +70,7 @@ What becomes easier, harder, required, or deferred because of this decision?
 | ADR-002 | Separate Commercial Benchmarks from Commercial Strategy | Accepted | 2026-07-08 |
 | ADR-003 | Product Plan Is the Execution Source of Truth | Accepted | 2026-07-08 |
 | ADR-004 | Frame Compare Core Is Implemented; Next Work Is Productization | Accepted | 2026-07-08 |
+| ADR-005 | Remove SSR getServerSession from All Public Pages — Client-Side Gate Pattern | Accepted | 2026-07-22 |
 
 ---
 
@@ -79,3 +80,4 @@ What becomes easier, harder, required, or deferred because of this decision?
 | --- | --- |
 | 2026-07-08 | Created decision record guide and initial ADR index. |
 | 2026-07-08 | Added ADR-003 and ADR-004 to the index. |
+| 2026-07-22 | Added ADR-005: SSR to client-side gate pattern. |

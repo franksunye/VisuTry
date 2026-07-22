@@ -2,6 +2,7 @@
 
 **Status:** Active operating plan  
 **Created:** 2026-07-08  
+**Last updated:** 2026-07-22  
 **Owner:** Product / Engineering  
 **Review cadence:** Weekly during cleanup, monthly after stabilization  
 **Scope:** Document status, ownership, current role, and cleanup actions.
@@ -43,14 +44,17 @@ It should answer:
 | Path | Type | Status | Owner | Last reviewed | Action |
 | --- | --- | --- | --- | --- | --- |
 | `docs/README.md` | Documentation map | Active source of truth | Product / Engineering | 2026-07-08 | Keep current. |
-| `docs/document-inventory.md` | Documentation governance | Active operating plan | Product / Engineering | 2026-07-08 | Review monthly after stabilization. |
-| `docs/decisions/README.md` | Decision log guide | Active source of truth | Product / Engineering | 2026-07-08 | Keep current. |
+| `docs/document-inventory.md` | Documentation governance | Active operating plan | Product / Engineering | 2026-07-22 | Review monthly after stabilization. |
+| `docs/AGENT.md` | Agent instructions | Active source of truth | Engineering | 2026-07-22 | Rewritten as structured agent guide; keep current with architectural rules. |
+| `docs/decisions/README.md` | Decision log guide | Active source of truth | Product / Engineering | 2026-07-22 | Keep current. |
 | `docs/strategy/commercial-strategy.md` | Commercial strategy | Active source of truth | Product / Strategy | 2026-07-08 | Keep concise; do not add benchmark detail. |
 | `docs/strategy/commercial-benchmarks.md` | Benchmark / market reference | Living supporting reference | Product / Strategy | 2026-07-08 | Add external references here first. |
 | `docs/product/README.md` | Product documentation guide | Active source of truth | Product | 2026-07-08 | Keep current. |
 | `docs/product/product-plan.md` | Product execution plan | Active source of truth | Product | 2026-07-08 | Now prioritizes Store landing page validation before full Store engineering. |
-| `docs/project/architecture.md` | Technical architecture | Active source of truth for current technical reality | Engineering | 2026-07-08 | Refreshed against current stack and product direction. |
+| `docs/project/architecture.md` | Technical architecture | Active source of truth for current technical reality | Engineering | 2026-07-22 | Rewritten with rendering strategy, session data flow, Neon driver, corrected schema. |
 | `docs/guides/development-guide.md` | Development guide | Active operating guide | Engineering | 2026-07-08 | Refreshed against `.env.example` and `package.json`. |
+| `docs/project/vercel-cpu-governance-spec.md` | CPU governance spec | Active operating plan | Engineering | 2026-07-22 | Updated verified facts: all public pages now SSG, root layout session removed, backlog statuses updated. |
+| `docs/operations/vercel-cpu-static-page-pilot.md` | Static page pilot | Active operating plan | Engineering | 2026-07-22 | Updated: Phase 4 (ADR-005) added, excluded pages status corrected. |
 | `docs/project/seo-backlog.md` | SEO / growth backlog | Active operating plan | Growth / Product | 2026-07-08 | Keep as SEO/Growth execution backlog. |
 
 ---
@@ -92,10 +96,29 @@ It should answer:
 | `docs/decisions/ADR-002-commercial-strategy-benchmark-split.md` | Decision record | Accepted | Product / Strategy | 2026-07-08 | Keep. |
 | `docs/decisions/ADR-003-product-plan-execution-source-of-truth.md` | Decision record | Accepted | Product | 2026-07-08 | Keep. |
 | `docs/decisions/ADR-004-frame-compare-core-implemented.md` | Decision record | Accepted | Product / Engineering | 2026-07-08 | Keep. |
+| `docs/decisions/ADR-005-ssr-to-client-gate.md` | Decision record | Accepted | Engineering | 2026-07-22 | Records decision to remove SSR getServerSession from all public pages and adopt client-side gate pattern. |
 
 ---
 
-## 7. Cleanup Backlog
+## 7. New Source Files (ADR-005 era, 2026-07-22)
+
+The following source files were created or significantly modified during the rendering strategy migration (commits `011381e` through `48fbce9`):
+
+| File | Purpose |
+| --- | --- |
+| `src/components/style-explorer/StyleExplorerGate.tsx` | Client gate for style-explorer page |
+| `src/components/compare/ComparePageClient.tsx` | Client gate for compare page |
+| `src/components/try-on/TryOnGate.tsx` | Client gate for try-on/[type] page |
+| `src/components/face-analysis/FaceAnalysisGate.tsx` | Client gate for face-analysis page |
+| `src/components/dashboard/DashboardPageClient.tsx` | Client gate for dashboard page |
+| `src/components/dashboard/HistoryPageClient.tsx` | Client gate for dashboard/history page |
+| `src/components/payments/PaymentsPageClient.tsx` | Client gate for payments page |
+| `src/components/debug-images/DebugImagesPageClient.tsx` | Client gate for debug-images page |
+| `src/app/api/payment/history/route.ts` | Payment history API endpoint (for PaymentsPageClient) |
+
+---
+
+## 8. Cleanup Backlog
 
 | Priority | Task | Status |
 | --- | --- | --- |
@@ -103,19 +126,26 @@ It should answer:
 | P0 | Add decisions directory and first ADRs. | Done |
 | P0 | Add first product specs. | Done |
 | P0 | Add legacy strategy document audit. | Done |
+| P0 | Create ADR-005 for SSR to client-gate migration. | Done (2026-07-22) |
+| P0 | Update architecture.md with rendering strategy and session data flow. | Done (2026-07-22) |
+| P0 | Rewrite AGENT.md as structured agent guide. | Done (2026-07-22) |
+| P0 | Update cpu-governance-spec.md and static-page-pilot.md verified facts. | Done (2026-07-22) |
 | P1 | Add status headers to active dated strategy documents. | Partially done |
 | P1 | Mark or archive expired content strategy documents. | Done: marked historical; archive move later if needed. |
 | P1 | Add source-of-truth references to GTM handbook. | Done |
-| P1 | Review architecture and development guide against current code. | Done |
+| P1 | Review architecture and development guide against current code. | Done (architecture.md refreshed 2026-07-22) |
 | P1 | Align first specs with actual implementation state. | Done |
 | P1 | Strengthen product plan into execution board. | Done |
 | P1 | Advance Store MVP spec to ready for validation. | Done |
 | P1 | Add Store landing page validation spec and product-plan alignment. | Done |
 | P2 | Consider moving all historical strategy documents into archive after status review. | Later |
+| P2 | Fix 3 pre-existing unit test failures (locale URL routing). | Not started |
+| P2 | Add E2E tests for authenticated user flows (login → try-on → history). | Not started |
+| P2 | Refactor perfLogger to use AsyncLocalStorage for request-scoped state. | Not started |
 
 ---
 
-## 8. Review Questions
+## 9. Review Questions
 
 During each documentation review, answer:
 
@@ -128,7 +158,7 @@ During each documentation review, answer:
 
 ---
 
-## 9. Change Log
+## 10. Change Log
 
 | Date | Change |
 | --- | --- |
@@ -139,3 +169,4 @@ During each documentation review, answer:
 | 2026-07-08 | Updated first product spec statuses after code review: Frame Compare implemented core; Credits Pack conversion partially implemented. |
 | 2026-07-08 | Updated inventory after adding ADR-003, ADR-004, execution board, and Store MVP validation-ready status. |
 | 2026-07-08 | Added Store landing page validation spec and aligned product plan / Store MVP sequence around landing-page-first validation. |
+| 2026-07-22 | Major update: Added ADR-005, updated architecture.md (rendering strategy, session data flow, Neon driver, corrected schema), rewrote AGENT.md, updated cpu-governance-spec.md and static-page-pilot.md verified facts, added new source files inventory section. |
