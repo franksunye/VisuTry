@@ -422,7 +422,16 @@
       },
       "compareDescription": "Utilisez la comparaison de montures pour examiner rapidement plusieurs options côte à côte.",
       "shortlistPrefix": "Vous ne savez pas quelles montures comparer ?",
-      "shortlistLink": "Commencez par le détecteur gratuit."
+      "shortlistLink": "Commencez par le détecteur gratuit.",
+      "featureList": {
+        "f1": "Comparez jusqu'à quatre montures de lunettes prédéfinies",
+        "f2": "Utilisez le même portrait pour chaque résultat",
+        "f3": "Examinez les looks générés côte à côte",
+        "f4": "Enregistrez les résultats terminés dans l'historique du compte"
+      },
+      "sellingFramesTitle": "Vous vendez des montures ?",
+      "sellingFramesDescription": "Utilisez VisuTry Store pour offrir aux acheteurs un conseiller hébergé, un essayage virtuel, une comparaison et un flux de capture de prospects.",
+      "sellingFramesCta": "Explorer le Store"
     },
     "faceAnalysisLanding": {
       "badge": "Conseiller lunettes IA",
@@ -570,6 +579,57 @@
         "next": "Diapositive suivante",
         "show": "Afficher {name}",
         "alt": "{name} dans le flux VisuTry {mode}"
+      }
+    },
+    "styleExplorer": {
+      "metaTitle": "Style Explorer : Découvrez vos looks de lunettes | VisuTry",
+      "metaDescription": "Choisissez une direction de style et découvrez quatre looks d'essayage de lunettes IA distincts, sélectionnés pour vous.",
+      "ogTitle": "VisuTry Style Explorer",
+      "ogDescription": "Découvrez quatre looks de lunettes distincts à partir d'une seule photo.",
+      "ogImageAlt": "Quatre looks de lunettes générés à partir d'un portrait dans VisuTry Style Explorer",
+      "heroBadge": "NOUVEAU · STYLE EXPLORER",
+      "heroTitle": "Découvrez les quatre facettes de votre style de lunettes",
+      "heroDescription": "Choisissez une direction et une occasion. VisuTry recommande quatre montures distinctes, puis crée quatre looks à partir du même portrait.",
+      "heroCtaPrimary": "Commencer l'exploration",
+      "heroCtaSecondary": "Voir les tarifs",
+      "heroFeature1": "Aperçu avant génération",
+      "heroFeature2": "Quatre looks, un portrait",
+      "slides": {
+        "s1Label": "Femme · Moderne / Travail",
+        "s1Alt": "Style Explorer montrant quatre looks de lunettes sur le même portrait féminin",
+        "s2Label": "Homme · Classique / Quotidien",
+        "s2Alt": "Style Explorer montrant quatre looks de lunettes sur le même portrait masculin"
+      },
+      "features": {
+        "f1Title": "Recommandations transparentes",
+        "f1Description": "Examinez et ajustez les quatre montures exactes avant la génération.",
+        "f2Title": "Un pipeline d'essayage éprouvé",
+        "f2Description": "Chaque look utilise le même système de génération fiable VisuTry.",
+        "f3Title": "Enregistré automatiquement",
+        "f3Description": "Les résultats apparaissent dans l'historique du tableau de bord, prêts à télécharger ou partager."
+      },
+      "howItWorksEyebrow": "Comment ça marche",
+      "howItWorksTitle": "D'un portrait à quatre looks distincts",
+      "steps": {
+        "s1Title": "Choisissez votre direction",
+        "s1Description": "Choisissez le style et l'occasion que vous souhaitez explorer.",
+        "s1Alt": "Contrôles de direction de style et d'occasion",
+        "s2Title": "Examinez quatre montures",
+        "s2Description": "Consultez et ajustez la recommandation avant la génération.",
+        "s2Alt": "Quatre montures de lunettes recommandées",
+        "s3Title": "Comparez vos looks",
+        "s3Description": "Générez quatre résultats à partir du même portrait.",
+        "s3Alt": "Quatre looks de lunettes générés sur un portrait"
+      },
+      "ctaTitle": "Voyez comment différents styles de lunettes changent votre look",
+      "ctaDescription": "Explorez quatre directions distinctes sans deviner à partir des seules photos produit.",
+      "ctaPrimary": "Ouvrir Style Explorer",
+      "ctaSecondary": "Vérifier d'abord la forme du visage",
+      "a11y": {
+        "previousExample": "Afficher l'exemple précédent de Style Explorer",
+        "nextExample": "Afficher l'exemple suivant de Style Explorer",
+        "examplesLabel": "Exemples de Style Explorer",
+        "showExample": "Afficher l'exemple {index}"
       }
     }
   }

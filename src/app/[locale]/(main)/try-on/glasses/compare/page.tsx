@@ -51,10 +51,10 @@ async function PublicFrameCompareLanding({ locale }: { locale: string }) {
     operatingSystem: 'Web Browser',
     description: t('metaDescription'),
     featureList: [
-      'Compare up to four preset glasses frames',
-      'Use the same portrait for every result',
-      'Review generated looks side by side',
-      'Save completed results to account history',
+      t('featureList.f1'),
+      t('featureList.f2'),
+      t('featureList.f3'),
+      t('featureList.f4'),
     ],
   })
   const signInHref = `/${locale}/auth/signin?callbackUrl=${encodeURIComponent(
@@ -129,9 +129,9 @@ async function PublicFrameCompareLanding({ locale }: { locale: string }) {
             <Store className="h-5 w-5" />
           </span>
           <div>
-            <h2 className="text-base font-bold text-gray-950">Selling frames?</h2>
+            <h2 className="text-base font-bold text-gray-950">{t('sellingFramesTitle')}</h2>
             <p className="mt-1 max-w-2xl text-sm leading-6 text-gray-600">
-              Use VisuTry Store to offer shoppers a hosted advisor, try-on, comparison, and lead capture workflow.
+              {t('sellingFramesDescription')}
             </p>
           </div>
         </div>
@@ -139,7 +139,7 @@ async function PublicFrameCompareLanding({ locale }: { locale: string }) {
           href={`/${locale}/store`}
           className="mt-4 inline-flex items-center justify-center rounded-lg border border-gray-300 bg-white px-5 py-3 text-sm font-bold text-gray-700 hover:border-blue-300 hover:text-blue-700 sm:mt-0"
         >
-          Explore Store
+          {t('sellingFramesCta')}
         </Link>
       </section>
     </main>

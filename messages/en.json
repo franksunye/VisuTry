@@ -396,7 +396,16 @@
       },
       "compareDescription": "Use Frame Compare when you have several likely frame shapes and want a fast side-by-side view. Use Virtual Try-On when you already have a specific product image or screenshot.",
       "shortlistPrefix": "Not sure which frame shapes to compare?",
-      "shortlistLink": "Start with the free Face Shape Detector."
+      "shortlistLink": "Start with the free Face Shape Detector.",
+      "featureList": {
+        "f1": "Compare up to four preset glasses frames",
+        "f2": "Use the same portrait for every result",
+        "f3": "Review generated looks side by side",
+        "f4": "Save completed results to account history"
+      },
+      "sellingFramesTitle": "Selling frames?",
+      "sellingFramesDescription": "Use VisuTry Store to offer shoppers a hosted advisor, try-on, comparison, and lead capture workflow.",
+      "sellingFramesCta": "Explore Store"
     },
     "faceAnalysisLanding": {
       "badge": "AI Glasses Advisor",
@@ -544,6 +553,57 @@
         "next": "Next slide",
         "show": "Show {name}",
         "alt": "{name} using VisuTry {mode} workflow"
+      }
+    },
+    "styleExplorer": {
+      "metaTitle": "Style Explorer: Discover Your Eyewear Looks | VisuTry",
+      "metaDescription": "Choose a style direction and discover four distinct AI glasses try-on looks selected for you.",
+      "ogTitle": "VisuTry Style Explorer",
+      "ogDescription": "Discover four distinct eyewear looks from one photo.",
+      "ogImageAlt": "Four eyewear looks generated from one portrait in VisuTry Style Explorer",
+      "heroBadge": "NEW · STYLE EXPLORER",
+      "heroTitle": "Discover four sides of your eyewear style",
+      "heroDescription": "Choose a direction and occasion. VisuTry recommends four distinct frames, then creates four looks from the same portrait.",
+      "heroCtaPrimary": "Start Exploring",
+      "heroCtaSecondary": "View Pricing",
+      "heroFeature1": "Preview before generating",
+      "heroFeature2": "Four looks, one portrait",
+      "slides": {
+        "s1Label": "Female · Modern / Work",
+        "s1Alt": "Style Explorer showing four eyewear looks on the same female portrait",
+        "s2Label": "Male · Classic / Everyday",
+        "s2Alt": "Style Explorer showing four eyewear looks on the same male portrait"
+      },
+      "features": {
+        "f1Title": "Transparent recommendations",
+        "f1Description": "Review and adjust the exact four frames before generation.",
+        "f2Title": "One proven try-on pipeline",
+        "f2Description": "Every look uses the same reliable VisuTry generation system.",
+        "f3Title": "Saved automatically",
+        "f3Description": "Results appear in Dashboard History, ready to download or share."
+      },
+      "howItWorksEyebrow": "How it works",
+      "howItWorksTitle": "From one portrait to four distinct looks",
+      "steps": {
+        "s1Title": "Pick your direction",
+        "s1Description": "Choose the style and occasion you want to explore.",
+        "s1Alt": "Style direction and occasion controls",
+        "s2Title": "Review four frames",
+        "s2Description": "See and adjust the recommendation before generating.",
+        "s2Alt": "Four recommended eyewear frames",
+        "s3Title": "Compare your looks",
+        "s3Description": "Generate four results from the same portrait.",
+        "s3Alt": "Four generated eyewear looks on one portrait"
+      },
+      "ctaTitle": "See how different eyewear styles change your look",
+      "ctaDescription": "Explore four distinct directions without guessing from product photos alone.",
+      "ctaPrimary": "Open Style Explorer",
+      "ctaSecondary": "Check face shape first",
+      "a11y": {
+        "previousExample": "Show previous Style Explorer example",
+        "nextExample": "Show next Style Explorer example",
+        "examplesLabel": "Style Explorer examples",
+        "showExample": "Show example {index}"
       }
     }
   },

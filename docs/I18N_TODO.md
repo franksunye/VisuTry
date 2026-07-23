@@ -1,6 +1,6 @@
 # i18n Scope And Current Policy
 
-**Last Updated**: 2026-06-16  
+**Last Updated**: 2026-07-24
 **Supported Locales**: `en`, `id`, `ar`, `ru`, `de`, `ja`, `es`, `pt`, `fr`  
 **Default Locale**: `en`
 
@@ -21,6 +21,7 @@ VisuTry now uses a **marketing-first localization** strategy.
   - `src/app/[locale]/(main)/faq/page.tsx`
   - `src/app/[locale]/(main)/try-on/[type]/page.tsx` (public landing content only)
   - `src/app/[locale]/(main)/try-on/glasses/compare/page.tsx` (public landing content only)
+  - `src/app/[locale]/(main)/style-explorer/page.tsx` (public landing content only)
   - `src/app/[locale]/(main)/face-analysis/page.tsx` (landing/marketing content)
 - Marketing components used by those pages
 - Locale metadata and marketing structured data text

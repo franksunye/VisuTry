@@ -32,7 +32,7 @@ export async function generateMetadata({ params }: TryOnPageProps): Promise<Meta
 
   if (tryOnType === "GLASSES") {
     return {
-      title: "Virtual Glasses Try On Online from Photo | VisuTry",
+      title: marketingT('metaTitle'),
       description: marketingT('metaDescription'),
       alternates: {
         canonical: `https://www.visutry.com/${params.locale}/try-on/glasses`,

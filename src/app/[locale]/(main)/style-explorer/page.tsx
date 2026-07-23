@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { getTranslations, setRequestLocale } from 'next-intl/server'
 import { StyleExplorerGate } from '@/components/style-explorer/StyleExplorerGate'
 
 interface StyleExplorerPageProps {
@@ -7,15 +8,17 @@ interface StyleExplorerPageProps {
 
 export const dynamic = 'force-static'
 
-export function generateMetadata({ params }: StyleExplorerPageProps): Metadata {
+export async function generateMetadata({ params }: StyleExplorerPageProps): Promise<Metadata> {
+  setRequestLocale(params.locale)
+  const t = await getTranslations({ locale: params.locale, namespace: 'marketing.styleExplorer' })
   const canonical = `https://www.visutry.com/${params.locale}/style-explorer`
   return {
-    title: 'Style Explorer: Discover Your Eyewear Looks | VisuTry',
-    description: 'Choose a style direction and discover four distinct AI glasses try-on looks selected for you.',
+    title: t('metaTitle'),
+    description: t('metaDescription'),
     alternates: { canonical },
     openGraph: {
-      title: 'VisuTry Style Explorer',
-      description: 'Discover four distinct eyewear looks from one photo.',
+      title: t('ogTitle'),
+      description: t('ogDescription'),
       url: canonical,
       type: 'website',
       images: [
@@ -23,7 +26,7 @@ export function generateMetadata({ params }: StyleExplorerPageProps): Metadata {
           url: 'https://www.visutry.com/assets/marketing/style-explorer-female-results.jpg',
           width: 1536,
           height: 1024,
-          alt: 'Four eyewear looks generated from one portrait in VisuTry Style Explorer',
+          alt: t('ogImageAlt'),
         },
       ],
     },
@@ -31,6 +34,7 @@ export function generateMetadata({ params }: StyleExplorerPageProps): Metadata {
 }
 
 export default function StyleExplorerPage({ params }: StyleExplorerPageProps) {
+  setRequestLocale(params.locale)
   const callbackUrl = `/${params.locale}/style-explorer`
   const signInHref = `/${params.locale}/auth/signin?callbackUrl=${encodeURIComponent(callbackUrl)}`
 

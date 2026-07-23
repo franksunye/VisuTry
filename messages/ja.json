@@ -422,7 +422,16 @@
       },
       "compareDescription": "複数の候補フレームを同じ写真で生成し、横並びで比較できます。",
       "shortlistPrefix": "比較するフレームに迷っていますか？",
-      "shortlistLink": "無料の顔型診断から始めましょう。"
+      "shortlistLink": "無料の顔型診断から始めましょう。",
+      "featureList": {
+        "f1": "最大4つのプリセット眼鏡フレームを比較",
+        "f2": "同じポートレートをすべての結果に使用",
+        "f3": "生成されたルックを並べて確認",
+        "f4": "完了した結果をアカウント履歴に保存"
+      },
+      "sellingFramesTitle": "フレームを販売していますか？",
+      "sellingFramesDescription": "VisuTry Storeを使用して、買い物客にホスト型アドバイザー、試着、比較、リード獲得ワークフローを提供しましょう。",
+      "sellingFramesCta": "Storeを探索"
     },
     "faceAnalysisLanding": {
       "badge": "AIメガネアドバイザー",
@@ -570,6 +579,57 @@
         "next": "次のスライド",
         "show": "{name}を表示",
         "alt": "{name} の VisuTry {mode} ワークフロー"
+      }
+    },
+    "styleExplorer": {
+      "metaTitle": "Style Explorer：メガネスタイルを発見 | VisuTry",
+      "metaDescription": "スタイルの方向性を選び、あなた向けに厳選された4つのAIメガネ試着ルックを発見しましょう。",
+      "ogTitle": "VisuTry Style Explorer",
+      "ogDescription": "1枚の写真から4つの異なるメガネルックを発見。",
+      "ogImageAlt": "VisuTry Style Explorerで1枚のポートレートから生成された4つのメガネルック",
+      "heroBadge": "新機能 · STYLE EXPLORER",
+      "heroTitle": "あなたのメガネスタイルの4つの面を発見",
+      "heroDescription": "方向性とシーンを選ぶと、VisuTryが4つの異なるフレームを提案し、同じポートレートから4つのルックを作成します。",
+      "heroCtaPrimary": "探索を開始",
+      "heroCtaSecondary": "料金を見る",
+      "heroFeature1": "生成前にプレビュー",
+      "heroFeature2": "1枚のポートレートで4つのルック",
+      "slides": {
+        "s1Label": "女性 · モダン / ワーク",
+        "s1Alt": "同じ女性ポートレートに4つのメガネルックを表示するStyle Explorer",
+        "s2Label": "男性 · クラシック / 毎日",
+        "s2Alt": "同じ男性ポートレートに4つのメガネルックを表示するStyle Explorer"
+      },
+      "features": {
+        "f1Title": "透明なレコメンド",
+        "f1Description": "生成前に4つのフレームを確認・調整できます。",
+        "f2Title": "実績のある試着パイプライン",
+        "f2Description": "すべてのルックが同じ信頼できるVisuTry生成システムを使用します。",
+        "f3Title": "自動的に保存",
+        "f3Description": "結果はダッシュボード履歴に表示され、ダウンロードや共有が可能です。"
+      },
+      "howItWorksEyebrow": "使い方",
+      "howItWorksTitle": "1枚のポートレートから4つの異なるルックへ",
+      "steps": {
+        "s1Title": "方向性を選ぶ",
+        "s1Description": "探索したいスタイルとシーンを選択します。",
+        "s1Alt": "スタイル方向性とシーンのコントロール",
+        "s2Title": "4つのフレームを確認",
+        "s2Description": "生成前に推奨内容を確認・調整します。",
+        "s2Alt": "推奨される4つのメガネフレーム",
+        "s3Title": "ルックを比較",
+        "s3Description": "同じポートレートから4つの結果を生成します。",
+        "s3Alt": "1枚のポートレートに生成された4つのメガネルック"
+      },
+      "ctaTitle": "異なるメガネスタイルがルックをどう変えるか確認",
+      "ctaDescription": "商品写真だけでの推測なしに、4つの異なる方向性を探索できます。",
+      "ctaPrimary": "Style Explorerを開く",
+      "ctaSecondary": "まず顔型をチェック",
+      "a11y": {
+        "previousExample": "前のStyle Explorerの例を表示",
+        "nextExample": "次のStyle Explorerの例を表示",
+        "examplesLabel": "Style Explorerの例",
+        "showExample": "例{index}を表示"
       }
     }
   }

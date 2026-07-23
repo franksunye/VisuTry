@@ -422,7 +422,16 @@
       },
       "compareDescription": "Gunakan perbandingan bingkai untuk meninjau beberapa pilihan secara berdampingan. Gunakan coba virtual jika Anda sudah memiliki gambar produk.",
       "shortlistPrefix": "Belum yakin bingkai mana yang perlu dibandingkan?",
-      "shortlistLink": "Mulai dengan Detektor Bentuk Wajah gratis."
+      "shortlistLink": "Mulai dengan Detektor Bentuk Wajah gratis.",
+      "featureList": {
+        "f1": "Bandingkan hingga empat bingkai kacamata preset",
+        "f2": "Gunakan foto yang sama untuk setiap hasil",
+        "f3": "Tinjau hasil yang dihasilkan berdampingan",
+        "f4": "Simpan hasil yang selesai ke riwayat akun"
+      },
+      "sellingFramesTitle": "Menjual bingkai?",
+      "sellingFramesDescription": "Gunakan VisuTry Store untuk menawarkan pembeli advisor yang dihosting, coba virtual, perbandingan, dan alur pengambilan prospek.",
+      "sellingFramesCta": "Jelajahi Store"
     },
     "faceAnalysisLanding": {
       "badge": "Penasihat Kacamata AI",
@@ -570,6 +579,57 @@
         "next": "Next slide",
         "show": "Show {name}",
         "alt": "{name} using VisuTry {mode} workflow"
+      }
+    },
+    "styleExplorer": {
+      "metaTitle": "Style Explorer: Temukan Tampilan Kacamata Anda | VisuTry",
+      "metaDescription": "Pilih arah gaya dan temukan empat tampilan try-on kacamata AI yang berbeda, dipilih untuk Anda.",
+      "ogTitle": "VisuTry Style Explorer",
+      "ogDescription": "Temukan empat tampilan kacamata berbeda dari satu foto.",
+      "ogImageAlt": "Empat tampilan kacamata yang dihasilkan dari satu potret di VisuTry Style Explorer",
+      "heroBadge": "BARU · STYLE EXPLORER",
+      "heroTitle": "Temukan empat sisi gaya kacamata Anda",
+      "heroDescription": "Pilih arah dan acara. VisuTry merekomendasikan empat bingkai berbeda, lalu membuat empat tampilan dari potret yang sama.",
+      "heroCtaPrimary": "Mulai Menjelajahi",
+      "heroCtaSecondary": "Lihat Harga",
+      "heroFeature1": "Pratinjau sebelum membuat",
+      "heroFeature2": "Empat tampilan, satu potret",
+      "slides": {
+        "s1Label": "Wanita · Modern / Kerja",
+        "s1Alt": "Style Explorer menampilkan empat tampilan kacamata pada potret wanita yang sama",
+        "s2Label": "Pria · Klasik / Sehari-hari",
+        "s2Alt": "Style Explorer menampilkan empat tampilan kacamata pada potret pria yang sama"
+      },
+      "features": {
+        "f1Title": "Rekomendasi transparan",
+        "f1Description": "Tinjau dan sesuaikan empat bingkai persis sebelum dibuat.",
+        "f2Title": "Satu pipeline try-on yang terbukti",
+        "f2Description": "Setiap tampilan menggunakan sistem pembuatan VisuTry yang sama dan andal.",
+        "f3Title": "Tersimpan otomatis",
+        "f3Description": "Hasil muncul di Riwayat Dasbor, siap diunduh atau dibagikan."
+      },
+      "howItWorksEyebrow": "Cara kerja",
+      "howItWorksTitle": "Dari satu potret ke empat tampilan berbeda",
+      "steps": {
+        "s1Title": "Pilih arah Anda",
+        "s1Description": "Pilih gaya dan acara yang ingin Anda jelajahi.",
+        "s1Alt": "Kontrol arah gaya dan acara",
+        "s2Title": "Tinjau empat bingkai",
+        "s2Description": "Lihat dan sesuaikan rekomendasi sebelum dibuat.",
+        "s2Alt": "Empat bingkai kacamata yang direkomendasikan",
+        "s3Title": "Bandingkan tampilan Anda",
+        "s3Description": "Buat empat hasil dari potret yang sama.",
+        "s3Alt": "Empat tampilan kacamata yang dihasilkan pada satu potret"
+      },
+      "ctaTitle": "Lihat bagaimana gaya kacamata berbeda mengubah penampilan Anda",
+      "ctaDescription": "Jelajahi empat arah berbeda tanpa menebak hanya dari foto produk.",
+      "ctaPrimary": "Buka Style Explorer",
+      "ctaSecondary": "Periksa bentuk wajah dulu",
+      "a11y": {
+        "previousExample": "Tampilkan contoh Style Explorer sebelumnya",
+        "nextExample": "Tampilkan contoh Style Explorer berikutnya",
+        "examplesLabel": "Contoh Style Explorer",
+        "showExample": "Tampilkan contoh {index}"
       }
     }
   }

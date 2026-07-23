@@ -422,7 +422,16 @@
       },
       "compareDescription": "Nutzen Sie den Fassungsvergleich für eine schnelle Gegenüberstellung. Verwenden Sie die virtuelle Anprobe für ein bestimmtes Produktbild.",
       "shortlistPrefix": "Unsicher, welche Fassungen Sie vergleichen sollen?",
-      "shortlistLink": "Starten Sie mit dem kostenlosen Gesichtsform-Detektor."
+      "shortlistLink": "Starten Sie mit dem kostenlosen Gesichtsform-Detektor.",
+      "featureList": {
+        "f1": "Bis zu vier voreingestellte Brillenmodelle vergleichen",
+        "f2": "Gleiches Porträt für jedes Ergebnis verwenden",
+        "f3": "Generierte Looks nebeneinander ansehen",
+        "f4": "Abgeschlossene Ergebnisse im Kontoverlauf speichern"
+      },
+      "sellingFramesTitle": "Brillen verkaufen?",
+      "sellingFramesDescription": "Nutzen Sie den VisuTry Store, um Käufern einen gehosteten Berater, Anprobe, Vergleich und Lead-Erfassungs-Workflow anzubieten.",
+      "sellingFramesCta": "Store entdecken"
     },
     "faceAnalysisLanding": {
       "badge": "KI-Brillenberater",
@@ -570,6 +579,57 @@
         "next": "Nächste Folie",
         "show": "{name} anzeigen",
         "alt": "{name} im VisuTry-{mode}-Workflow"
+      }
+    },
+    "styleExplorer": {
+      "metaTitle": "Style Explorer: Entdecken Sie Ihre Brillen-Looks | VisuTry",
+      "metaDescription": "Wählen Sie eine Stilrichtung und entdecken Sie vier ausgewählte KI-Brillenanprobe-Looks.",
+      "ogTitle": "VisuTry Style Explorer",
+      "ogDescription": "Entdecken Sie vier unterschiedliche Brillen-Looks aus einem Foto.",
+      "ogImageAlt": "Vier Brillen-Looks aus einem Porträt im VisuTry Style Explorer",
+      "heroBadge": "NEU · STYLE EXPLORER",
+      "heroTitle": "Entdecken Sie vier Seiten Ihres Brillenstils",
+      "heroDescription": "Wählen Sie Richtung und Anlass. VisuTry empfiehlt vier unterschiedliche Fassungen und erzeugt dann vier Looks aus demselben Porträt.",
+      "heroCtaPrimary": "Jetzt entdecken",
+      "heroCtaSecondary": "Preise ansehen",
+      "heroFeature1": "Vorschau vor der Generierung",
+      "heroFeature2": "Vier Looks, ein Porträt",
+      "slides": {
+        "s1Label": "Weiblich · Modern / Arbeit",
+        "s1Alt": "Style Explorer mit vier Brillen-Looks auf demselben weiblichen Porträt",
+        "s2Label": "Männlich · Klassisch / Alltag",
+        "s2Alt": "Style Explorer mit vier Brillen-Looks auf demselben männlichen Porträt"
+      },
+      "features": {
+        "f1Title": "Transparente Empfehlungen",
+        "f1Description": "Prüfen und passen Sie die genauen vier Fassungen vor der Generierung an.",
+        "f2Title": "Eine bewährte Anprobe-Pipeline",
+        "f2Description": "Jeder Look nutzt dasselbe zuverlässige VisuTry-Generierungssystem.",
+        "f3Title": "Automatisch gespeichert",
+        "f3Description": "Ergebnisse erscheinen im Dashboard-Verlauf, bereit zum Download oder Teilen."
+      },
+      "howItWorksEyebrow": "So funktioniert's",
+      "howItWorksTitle": "Von einem Porträt zu vier unterschiedlichen Looks",
+      "steps": {
+        "s1Title": "Richtung wählen",
+        "s1Description": "Wählen Sie den Stil und Anlass, die Sie erkunden möchten.",
+        "s1Alt": "Stilrichtungs- und Anlass-Steuerelemente",
+        "s2Title": "Vier Fassungen prüfen",
+        "s2Description": "Sehen und passen Sie die Empfehlung vor der Generierung an.",
+        "s2Alt": "Vier empfohlene Brillenfassungen",
+        "s3Title": "Looks vergleichen",
+        "s3Description": "Generieren Sie vier Ergebnisse aus demselben Porträt.",
+        "s3Alt": "Vier generierte Brillen-Looks auf einem Porträt"
+      },
+      "ctaTitle": "Sehen Sie, wie verschiedene Brillenstile Ihr Aussehen verändern",
+      "ctaDescription": "Entdecken Sie vier unterschiedliche Richtungen, ohne aus Produktfotos raten zu müssen.",
+      "ctaPrimary": "Style Explorer öffnen",
+      "ctaSecondary": "Zuerst Gesichtsform prüfen",
+      "a11y": {
+        "previousExample": "Vorheriges Style-Explorer-Beispiel anzeigen",
+        "nextExample": "Nächstes Style-Explorer-Beispiel anzeigen",
+        "examplesLabel": "Style-Explorer-Beispiele",
+        "showExample": "Beispiel {index} anzeigen"
       }
     }
   }

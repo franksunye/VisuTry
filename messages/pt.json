@@ -422,7 +422,16 @@
       },
       "compareDescription": "Use a comparação de armações para ver opções lado a lado. Use a prova virtual se já tiver uma imagem específica do produto.",
       "shortlistPrefix": "Não sabe quais armações comparar?",
-      "shortlistLink": "Comece pelo detector facial gratuito."
+      "shortlistLink": "Comece pelo detector facial gratuito.",
+      "featureList": {
+        "f1": "Compare até quatro armações de óculos predefinidas",
+        "f2": "Use o mesmo retrato para cada resultado",
+        "f3": "Revise os looks gerados lado a lado",
+        "f4": "Salve os resultados concluídos no histórico da conta"
+      },
+      "sellingFramesTitle": "Vendendo armações?",
+      "sellingFramesDescription": "Use o VisuTry Store para oferecer aos compradores um consultor hospedado, experimentação virtual, comparação e fluxo de captura de leads.",
+      "sellingFramesCta": "Explorar Store"
     },
     "faceAnalysisLanding": {
       "badge": "Consultor de óculos com IA",
@@ -570,6 +579,57 @@
         "next": "Próximo slide",
         "show": "Mostrar {name}",
         "alt": "{name} no fluxo VisuTry {mode}"
+      }
+    },
+    "styleExplorer": {
+      "metaTitle": "Style Explorer: Descubra seus looks de óculos | VisuTry",
+      "metaDescription": "Escolha uma direção de estilo e descubra quatro looks distintos de prova virtual de óculos com IA selecionados para você.",
+      "ogTitle": "VisuTry Style Explorer",
+      "ogDescription": "Descubra quatro looks distintos de óculos a partir de uma foto.",
+      "ogImageAlt": "Quatro looks de óculos gerados a partir de um retrato no VisuTry Style Explorer",
+      "heroBadge": "NOVO · STYLE EXPLORER",
+      "heroTitle": "Descubra quatro lados do seu estilo de óculos",
+      "heroDescription": "Escolha uma direção e ocasião. O VisuTry recomenda quatro armações distintas e depois cria quatro looks a partir do mesmo retrato.",
+      "heroCtaPrimary": "Começar a explorar",
+      "heroCtaSecondary": "Ver preços",
+      "heroFeature1": "Prévia antes de gerar",
+      "heroFeature2": "Quatro looks, um retrato",
+      "slides": {
+        "s1Label": "Feminino · Moderno / Trabalho",
+        "s1Alt": "Style Explorer mostrando quatro looks de óculos no mesmo retrato feminino",
+        "s2Label": "Masculino · Clássico / Dia a dia",
+        "s2Alt": "Style Explorer mostrando quatro looks de óculos no mesmo retrato masculino"
+      },
+      "features": {
+        "f1Title": "Recomendações transparentes",
+        "f1Description": "Revise e ajuste as quatro armações exatas antes da geração.",
+        "f2Title": "Um pipeline de prova comprovado",
+        "f2Description": "Cada look usa o mesmo sistema confiável de geração do VisuTry.",
+        "f3Title": "Salvo automaticamente",
+        "f3Description": "Os resultados aparecem no Histórico do Painel, prontos para baixar ou compartilhar."
+      },
+      "howItWorksEyebrow": "Como funciona",
+      "howItWorksTitle": "De um retrato a quatro looks distintos",
+      "steps": {
+        "s1Title": "Escolha sua direção",
+        "s1Description": "Escolha o estilo e a ocasião que deseja explorar.",
+        "s1Alt": "Controles de direção de estilo e ocasião",
+        "s2Title": "Revise quatro armações",
+        "s2Description": "Veja e ajuste a recomendação antes de gerar.",
+        "s2Alt": "Quatro armações de óculos recomendadas",
+        "s3Title": "Compare seus looks",
+        "s3Description": "Gere quatro resultados a partir do mesmo retrato.",
+        "s3Alt": "Quatro looks de óculos gerados em um retrato"
+      },
+      "ctaTitle": "Veja como diferentes estilos de óculos mudam seu visual",
+      "ctaDescription": "Explore quatro direções distintas sem adivinhar apenas pelas fotos do produto.",
+      "ctaPrimary": "Abrir Style Explorer",
+      "ctaSecondary": "Verificar formato do rosto primeiro",
+      "a11y": {
+        "previousExample": "Mostrar exemplo anterior do Style Explorer",
+        "nextExample": "Mostrar próximo exemplo do Style Explorer",
+        "examplesLabel": "Exemplos do Style Explorer",
+        "showExample": "Mostrar exemplo {index}"
       }
     }
   }
