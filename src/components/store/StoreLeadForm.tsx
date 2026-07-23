@@ -2,41 +2,32 @@
 
 import { FormEvent, useMemo, useRef, useState } from 'react'
 import { ArrowRight, Mail } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 import { analytics } from '@/lib/analytics'
 
 interface StoreLeadFormProps {
   locale: string
 }
 
-const businessTypes = [
-  'Independent optical store',
-  'Eyewear ecommerce brand',
-  'Frame stylist / consultant',
-  'Boutique ecommerce agency',
-  'Social seller',
-  'Other',
-]
-
-const intentOptions = [
-  'Create my sample store',
-  'Book a demo',
-  'Discuss my frame catalog',
-  'Explore agency partnership',
-]
-
 export function StoreLeadForm({ locale }: StoreLeadFormProps) {
+  const t = useTranslations('marketing.store')
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [businessName, setBusinessName] = useState('')
-  const [businessType, setBusinessType] = useState(businessTypes[0])
+  const [businessType, setBusinessType] = useState('opticalStore')
   const [website, setWebsite] = useState('')
   const [frameCount, setFrameCount] = useState('8-20')
-  const [intent, setIntent] = useState(intentOptions[0])
+  const [intent, setIntent] = useState('sample')
   const [notes, setNotes] = useState('')
   const [submitted, setSubmitted] = useState(false)
   const hasTrackedFormStart = useRef(false)
 
+  const businessTypeKeys = ['opticalStore', 'ecommerce', 'stylist', 'agency', 'socialSeller', 'other'] as const
+  const intentKeys = ['sample', 'demo', 'catalog', 'partnership'] as const
+
   const mailtoHref = useMemo(() => {
+    const businessTypeLabel = t(`formBusinessTypes.${businessType}`)
+    const intentLabel = t(`formIntents.${intent}`)
     const subject = `VisuTry Store request - ${businessName || name || 'New lead'}`
     const body = [
       'Hi VisuTry team,',
@@ -46,10 +37,10 @@ export function StoreLeadForm({ locale }: StoreLeadFormProps) {
       `Name: ${name}`,
       `Email: ${email}`,
       `Business name: ${businessName}`,
-      `Business type: ${businessType}`,
+      `Business type: ${businessTypeLabel}`,
       `Website / Instagram / store link: ${website}`,
       `Approximate number of frames: ${frameCount}`,
-      `Requested action: ${intent}`,
+      `Requested action: ${intentLabel}`,
       '',
       `Notes: ${notes}`,
       '',
@@ -57,7 +48,7 @@ export function StoreLeadForm({ locale }: StoreLeadFormProps) {
     ].join('\n')
 
     return `mailto:support@visutry.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`
-  }, [businessName, businessType, email, frameCount, intent, locale, name, notes, website])
+  }, [businessName, businessType, email, frameCount, intent, locale, name, notes, t, website])
 
   function handleFocus() {
     if (hasTrackedFormStart.current) return
@@ -79,7 +70,7 @@ export function StoreLeadForm({ locale }: StoreLeadFormProps) {
       frame_count: frameCount,
     })
 
-    if (intent === 'Create my sample store') {
+    if (intent === 'sample') {
       analytics.trackCustomEvent('store_sample_link_requested', {
         source: 'store_landing',
         locale,
@@ -87,7 +78,7 @@ export function StoreLeadForm({ locale }: StoreLeadFormProps) {
       })
     }
 
-    if (intent === 'Book a demo') {
+    if (intent === 'demo') {
       analytics.trackCustomEvent('store_demo_requested', {
         source: 'store_landing',
         locale,
@@ -95,7 +86,7 @@ export function StoreLeadForm({ locale }: StoreLeadFormProps) {
       })
     }
 
-    if (intent === 'Discuss my frame catalog') {
+    if (intent === 'catalog') {
       analytics.trackCustomEvent('store_pilot_requested', {
         source: 'store_landing',
         locale,
@@ -112,74 +103,74 @@ export function StoreLeadForm({ locale }: StoreLeadFormProps) {
       <div className="mb-5">
         <div className="mb-2 inline-flex items-center gap-2 rounded-lg border border-blue-100 bg-blue-50 px-3 py-1 text-sm font-semibold text-blue-700">
           <Mail className="h-4 w-4" />
-          Early access
+          {t('formBadge')}
         </div>
-        <h2 className="text-2xl font-bold text-gray-950">Create a sample store for your frames</h2>
+        <h2 className="text-2xl font-bold text-gray-950">{t('formHeading')}</h2>
         <p className="mt-2 text-sm leading-6 text-gray-600">
-          Share a few details and we will help you see what a hosted AI try-on and frame comparison experience could look like for your business.
+          {t('formSubheading')}
         </p>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2">
         <label className="block">
-          <span className="mb-1 block text-sm font-semibold text-gray-800">Name</span>
+          <span className="mb-1 block text-sm font-semibold text-gray-800">{t('formLabels.name')}</span>
           <input
             required
             value={name}
             onChange={(event) => setName(event.target.value)}
             className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 outline-none transition focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
-            placeholder="Your name"
+            placeholder={t('formLabels.namePlaceholder')}
           />
         </label>
 
         <label className="block">
-          <span className="mb-1 block text-sm font-semibold text-gray-800">Work email</span>
+          <span className="mb-1 block text-sm font-semibold text-gray-800">{t('formLabels.email')}</span>
           <input
             required
             type="email"
             value={email}
             onChange={(event) => setEmail(event.target.value)}
             className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 outline-none transition focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
-            placeholder="you@company.com"
+            placeholder={t('formLabels.emailPlaceholder')}
           />
         </label>
 
         <label className="block">
-          <span className="mb-1 block text-sm font-semibold text-gray-800">Business name</span>
+          <span className="mb-1 block text-sm font-semibold text-gray-800">{t('formLabels.businessName')}</span>
           <input
             required
             value={businessName}
             onChange={(event) => setBusinessName(event.target.value)}
             className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 outline-none transition focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
-            placeholder="Store or brand name"
+            placeholder={t('formLabels.businessNamePlaceholder')}
           />
         </label>
 
         <label className="block">
-          <span className="mb-1 block text-sm font-semibold text-gray-800">Business type</span>
+          <span className="mb-1 block text-sm font-semibold text-gray-800">{t('formLabels.businessType')}</span>
           <select
             value={businessType}
             onChange={(event) => setBusinessType(event.target.value)}
             className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 outline-none transition focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
           >
-            {businessTypes.map((item) => (
-              <option key={item}>{item}</option>
+            {businessTypeKeys.map((key) => (
+              <option key={key} value={key}>{t(`formBusinessTypes.${key}`)}</option>
             ))}
           </select>
         </label>
 
         <label className="block sm:col-span-2">
-          <span className="mb-1 block text-sm font-semibold text-gray-800">Website, Instagram, or store link</span>
+          <span className="mb-1 block text-sm font-semibold text-gray-800">{t('formLabels.website')}</span>
           <input
             value={website}
             onChange={(event) => setWebsite(event.target.value)}
             className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 outline-none transition focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
-            placeholder="https://..."
+            placeholder={t('formLabels.websitePlaceholder')}
           />
         </label>
 
         <label className="block">
-          <span className="mb-1 block text-sm font-semibold text-gray-800">How many frames do you want to show first?</span>
+          <span className="mb-1 block text-sm font-semibold text-gray-800">{t('formLabels.frameCount')}</span>
           <select
             value={frameCount}
             onChange={(event) => setFrameCount(event.target.value)}
@@ -193,26 +184,26 @@ export function StoreLeadForm({ locale }: StoreLeadFormProps) {
         </label>
 
         <label className="block">
-          <span className="mb-1 block text-sm font-semibold text-gray-800">What would help you most?</span>
+          <span className="mb-1 block text-sm font-semibold text-gray-800">{t('formLabels.intent')}</span>
           <select
             value={intent}
             onChange={(event) => setIntent(event.target.value)}
             className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 outline-none transition focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
           >
-            {intentOptions.map((item) => (
-              <option key={item}>{item}</option>
+            {intentKeys.map((key) => (
+              <option key={key} value={key}>{t(`formIntents.${key}`)}</option>
             ))}
           </select>
         </label>
 
         <label className="block sm:col-span-2">
-          <span className="mb-1 block text-sm font-semibold text-gray-800">Anything we should know?</span>
+          <span className="mb-1 block text-sm font-semibold text-gray-800">{t('formLabels.notes')}</span>
           <textarea
             value={notes}
             onChange={(event) => setNotes(event.target.value)}
             rows={3}
             className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 outline-none transition focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
-            placeholder="Tell us where shoppers find you, what frames you sell, or what you want to improve online."
+            placeholder={t('formLabels.notesPlaceholder')}
           />
         </label>
       </div>
@@ -221,18 +212,18 @@ export function StoreLeadForm({ locale }: StoreLeadFormProps) {
         type="submit"
         className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-lg bg-blue-600 px-5 py-3 text-sm font-bold text-white shadow-sm shadow-blue-600/20 transition hover:bg-blue-700 sm:w-auto"
       >
-        Request my sample store
+        {t('formSubmit')}
         <ArrowRight className="h-4 w-4" />
       </button>
 
       {submitted && (
         <p className="mt-3 text-sm leading-6 text-green-700">
-          Opening your email client with the request details. If it does not open, email support@visutry.com with your store information.
+          {t('formSuccessMessage')}
         </p>
       )}
 
       <p className="mt-4 text-xs leading-5 text-gray-500">
-        No commitment. We will use your information only to respond to your Store request.
+        {t('formDisclaimer')}
       </p>
     </form>
   )

@@ -605,6 +605,100 @@
         "examplesLabel": "Style Explorer examples",
         "showExample": "Show example {index}"
       }
+    },
+    "store": {
+      "metaTitle": "VisuTry Store — AI try-on for independent eyewear stores",
+      "metaDescription": "Give shoppers a branded AI eyewear try-on and frame comparison experience, then see which frames attract the most interest.",
+      "heroBadge": "VisuTry Store",
+      "heroTitle": "Give shoppers a simpler way to choose frames.",
+      "heroDescription": "A branded try-on and frame comparison experience for your optical store — simple for customers and easy for your team to share.",
+      "heroCtaPrimary": "Create my sample store",
+      "heroCtaSecondary": "See how it works",
+      "heroNote": "Start with a small frame selection. No full ecommerce integration required.",
+      "heroImageAlt": "A simple branded eyewear store where a shopper uploads a photo, chooses frames, and sees a virtual try-on result",
+      "workflowEyebrow": "How it works",
+      "workflowTitle": "From your frame catalog to a shopper-ready link.",
+      "workflowDescription": "A focused workflow for small eyewear businesses, without a complicated implementation.",
+      "workflow": {
+        "s1Title": "Add your frames",
+        "s1Description": "Start with 8–20 best sellers, new arrivals, or frames you want to promote.",
+        "s2Title": "Share your Store link",
+        "s2Description": "Add it to your website, Instagram, email, QR code, or customer conversations.",
+        "s3Title": "Shoppers try and compare",
+        "s3Description": "Customers upload one photo, choose frames, and see their results in one clean flow.",
+        "s4Title": "Follow up with context",
+        "s4Description": "See popular frames and new inquiries so your team can recommend the right next step."
+      },
+      "shopperEyebrow": "What your shoppers see",
+      "shopperTitle": "One clear path from photo to shortlist.",
+      "shopperDescription": "Customers do not need to learn a complicated tool. They upload a photo, choose frames, and review the results that matter.",
+      "shopperBenefits": {
+        "b1": "Upload one clear photo",
+        "b2": "Choose one or several frames",
+        "b3": "See realistic try-on results",
+        "b4": "Compare a shortlist before inquiring"
+      },
+      "shopperImageAlt": "Detailed shopper experience showing photo upload, AI frame suggestions, virtual try-on, and frame comparison",
+      "merchantEyebrow": "What you see as the store owner",
+      "merchantTitle": "See what shoppers like before they buy.",
+      "merchantDescription": "Track the few signals that matter: try-ons, favorites, inquiries, and the frames receiving the most attention.",
+      "merchantBenefits": {
+        "b1": "See which frames receive the most attention",
+        "b2": "Review recent inquiries in one place",
+        "b3": "Understand shopper interest before they buy"
+      },
+      "merchantImageAlt": "Simple merchant dashboard showing try-on sessions, inquiries, favorites, top frames, and recent shopper activity",
+      "formEyebrow": "Start small",
+      "formTitle": "Create a sample Store using your frames.",
+      "formDescription": "Share a few details about your store and catalog. We will help you understand what the first branded shopper experience could look like.",
+      "formTrustTitle": "Designed around customer trust",
+      "formTrustDescription": "Shoppers see clear privacy information before uploading. Your team focuses on frame interest and inquiries, not raw customer photos.",
+      "formTrustLink": "Read our privacy policy",
+      "formBadge": "Early access",
+      "formHeading": "Create a sample store for your frames",
+      "formSubheading": "Share a few details and we will help you see what a hosted AI try-on and frame comparison experience could look like for your business.",
+      "formLabels": {
+        "name": "Name",
+        "namePlaceholder": "Your name",
+        "email": "Work email",
+        "emailPlaceholder": "you@company.com",
+        "businessName": "Business name",
+        "businessNamePlaceholder": "Store or brand name",
+        "businessType": "Business type",
+        "website": "Website, Instagram, or store link",
+        "websitePlaceholder": "https://...",
+        "frameCount": "How many frames do you want to show first?",
+        "intent": "What would help you most?",
+        "notes": "Anything we should know?",
+        "notesPlaceholder": "Tell us where shoppers find you, what frames you sell, or what you want to improve online."
+      },
+      "formBusinessTypes": {
+        "opticalStore": "Independent optical store",
+        "ecommerce": "Eyewear ecommerce brand",
+        "stylist": "Frame stylist / consultant",
+        "agency": "Boutique ecommerce agency",
+        "socialSeller": "Social seller",
+        "other": "Other"
+      },
+      "formIntents": {
+        "sample": "Create my sample store",
+        "demo": "Book a demo",
+        "catalog": "Discuss my frame catalog",
+        "partnership": "Explore agency partnership"
+      },
+      "formSubmit": "Request my sample store",
+      "formSuccessMessage": "Opening your email client with the request details. If it does not open, email support@visutry.com with your store information.",
+      "formDisclaimer": "No commitment. We will use your information only to respond to your Store request.",
+      "schema": {
+        "appName": "VisuTry Store",
+        "appDescription": "A branded AI eyewear try-on and frame comparison experience for independent optical stores and eyewear sellers.",
+        "feature1": "Branded shopper Store link",
+        "feature2": "Photo-based virtual glasses try-on",
+        "feature3": "Single and multi-frame selection",
+        "feature4": "Side-by-side frame comparison",
+        "feature5": "Favorites and inquiry capture",
+        "feature6": "Lightweight merchant dashboard"
+      }
     }
   },
   "footer": {

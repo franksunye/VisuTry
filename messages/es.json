@@ -633,6 +633,100 @@
         "examplesLabel": "Ejemplos de Style Explorer",
         "showExample": "Mostrar ejemplo {index}"
       }
+    },
+    "store": {
+      "metaTitle": "VisuTry Store — prueba virtual con IA para tiendas de gafas independientes",
+      "metaDescription": "Ofrece a los compradores una experiencia de prueba virtual y comparación de monturas con tu marca, y descubre qué monturas generan más interés.",
+      "heroBadge": "VisuTry Store",
+      "heroTitle": "Ofrece a los compradores una forma más sencilla de elegir monturas.",
+      "heroDescription": "Una experiencia de prueba y comparación de monturas con tu marca para tu tienda de óptica — sencilla para los clientes y fácil de compartir para tu equipo.",
+      "heroCtaPrimary": "Crear mi tienda de muestra",
+      "heroCtaSecondary": "Ver cómo funciona",
+      "heroNote": "Empieza con una pequeña selección de monturas. No se necesita integración de comercio electrónico completa.",
+      "heroImageAlt": "Una sencilla tienda de gafas con marca propia donde un comprador sube una foto, elige monturas y ve el resultado de la prueba virtual",
+      "workflowEyebrow": "Cómo funciona",
+      "workflowTitle": "De tu catálogo de monturas a un enlace listo para el comprador.",
+      "workflowDescription": "Un flujo de trabajo enfocado para pequeños negocios de gafas, sin una implementación complicada.",
+      "workflow": {
+        "s1Title": "Añade tus monturas",
+        "s1Description": "Empieza con 8–20 modelos más vendidos, novedades o monturas que quieras promocionar.",
+        "s2Title": "Comparte el enlace de tu Store",
+        "s2Description": "Añádelo a tu sitio web, Instagram, correo electrónico, código QR o conversaciones con clientes.",
+        "s3Title": "Los compradores prueban y comparan",
+        "s3Description": "Los clientes suben una foto, eligen monturas y ven sus resultados en un flujo claro.",
+        "s4Title": "Da seguimiento con contexto",
+        "s4Description": "Consulta las monturas populares y las nuevas consultas para que tu equipo recomiende el siguiente paso adecuado."
+      },
+      "shopperEyebrow": "Lo que ven tus compradores",
+      "shopperTitle": "Un camino claro de la foto a la lista corta.",
+      "shopperDescription": "Los clientes no necesitan aprender una herramienta complicada. Suben una foto, eligen monturas y revisan los resultados que importan.",
+      "shopperBenefits": {
+        "b1": "Sube una foto clara",
+        "b2": "Elige una o varias monturas",
+        "b3": "Ve resultados de prueba realistas",
+        "b4": "Compara una lista corta antes de consultar"
+      },
+      "shopperImageAlt": "Experiencia detallada del comprador que muestra subida de foto, sugerencias de monturas con IA, prueba virtual y comparación de monturas",
+      "merchantEyebrow": "Lo que ves como dueño de la tienda",
+      "merchantTitle": "Descubre qué le gusta a los compradores antes de comprar.",
+      "merchantDescription": "Haz seguimiento de las pocas señales que importan: pruebas, favoritos, consultas y las monturas que reciben más atención.",
+      "merchantBenefits": {
+        "b1": "Consulta qué monturas reciben más atención",
+        "b2": "Revisa las consultas recientes en un solo lugar",
+        "b3": "Entiende el interés del comprador antes de comprar"
+      },
+      "merchantImageAlt": "Panel sencillo del comerciante que muestra sesiones de prueba, consultas, favoritos, monturas destacadas y actividad reciente de compradores",
+      "formEyebrow": "Empieza pequeño",
+      "formTitle": "Crea una tienda de muestra con tus monturas.",
+      "formDescription": "Comparte algunos detalles sobre tu tienda y catálogo. Te ayudaremos a entender cómo podría ser la primera experiencia de comprador con tu marca.",
+      "formTrustTitle": "Diseñado en torno a la confianza del cliente",
+      "formTrustDescription": "Los compradores ven información clara de privacidad antes de subir. Tu equipo se centra en el interés por las monturas y las consultas, no en las fotos en bruto de los clientes.",
+      "formTrustLink": "Lee nuestra política de privacidad",
+      "formBadge": "Acceso anticipado",
+      "formHeading": "Crea una tienda de muestra para tus monturas",
+      "formSubheading": "Comparte algunos detalles y te ayudaremos a ver cómo podría ser una experiencia alojada de prueba virtual con IA y comparación de monturas para tu negocio.",
+      "formLabels": {
+        "name": "Nombre",
+        "namePlaceholder": "Tu nombre",
+        "email": "Correo laboral",
+        "emailPlaceholder": "you@company.com",
+        "businessName": "Nombre del negocio",
+        "businessNamePlaceholder": "Nombre de la tienda o marca",
+        "businessType": "Tipo de negocio",
+        "website": "Sitio web, Instagram o enlace de la tienda",
+        "websitePlaceholder": "https://...",
+        "frameCount": "¿Cuántas monturas quieres mostrar primero?",
+        "intent": "¿Qué te ayudaría más?",
+        "notes": "¿Algo que debamos saber?",
+        "notesPlaceholder": "Cuéntanos dónde te encuentran los compradores, qué monturas vendes o qué quieres mejorar online."
+      },
+      "formBusinessTypes": {
+        "opticalStore": "Óptica independiente",
+        "ecommerce": "Marca de gafas online",
+        "stylist": "Estilista / asesor de monturas",
+        "agency": "Agencia boutique de e-commerce",
+        "socialSeller": "Vendedor en redes sociales",
+        "other": "Otro"
+      },
+      "formIntents": {
+        "sample": "Crear mi tienda de muestra",
+        "demo": "Reservar una demo",
+        "catalog": "Hablar sobre mi catálogo de monturas",
+        "partnership": "Explorar partnership de agencia"
+      },
+      "formSubmit": "Solicitar mi tienda de muestra",
+      "formSuccessMessage": "Abriendo tu cliente de correo con los detalles de la solicitud. Si no se abre, escribe a support@visutry.com con la información de tu tienda.",
+      "formDisclaimer": "Sin compromiso. Usaremos tu información solo para responder a tu solicitud de Store.",
+      "schema": {
+        "appName": "VisuTry Store",
+        "appDescription": "Una experiencia de prueba virtual con IA y comparación de monturas con marca propia para ópticas independientes y vendedores de gafas.",
+        "feature1": "Enlace de Store de comprador con marca propia",
+        "feature2": "Prueba virtual de gafas basada en fotos",
+        "feature3": "Selección de una o varias monturas",
+        "feature4": "Comparación de monturas lado a lado",
+        "feature5": "Captura de favoritos y consultas",
+        "feature6": "Panel ligero del comerciante"
+      }
     }
   }
 }

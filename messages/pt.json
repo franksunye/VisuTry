@@ -633,6 +633,100 @@
         "examplesLabel": "Exemplos do Style Explorer",
         "showExample": "Mostrar exemplo {index}"
       }
+    },
+    "store": {
+      "metaTitle": "VisuTry Store — Prova de óculos com IA para óticas independentes",
+      "metaDescription": "Ofereça aos compradores uma experiência de prova de óculos com IA e comparação de armações com a sua marca, e veja quais armações despertam mais interesse.",
+      "heroBadge": "VisuTry Store",
+      "heroTitle": "Ofereça aos compradores uma maneira mais simples de escolher armações.",
+      "heroDescription": "Uma experiência de prova e comparação de armações com a sua marca para a sua ótica — simples para os clientes e fácil para a sua equipe compartilhar.",
+      "heroCtaPrimary": "Criar minha loja de exemplo",
+      "heroCtaSecondary": "Ver como funciona",
+      "heroNote": "Comece com uma pequena seleção de armações. Não é necessária integração completa de e-commerce.",
+      "heroImageAlt": "Uma loja de óculos simples com a sua marca, onde um comprador envia uma foto, escolhe armações e vê o resultado da prova virtual",
+      "workflowEyebrow": "Como funciona",
+      "workflowTitle": "Do seu catálogo de armações a um link pronto para o comprador.",
+      "workflowDescription": "Um fluxo de trabalho focado para pequenos negócios de óculos, sem uma implementação complexa.",
+      "workflow": {
+        "s1Title": "Adicione suas armações",
+        "s1Description": "Comece com 8 a 20 melhores vendas, novidades ou armações que deseja promover.",
+        "s2Title": "Compartilhe o link da sua Store",
+        "s2Description": "Adicione-o ao seu site, Instagram, e-mail, QR code ou conversas com clientes.",
+        "s3Title": "Compradores provam e comparam",
+        "s3Description": "Os clientes enviam uma foto, escolhem armações e veem os resultados em um fluxo limpo.",
+        "s4Title": "Acompanhe com contexto",
+        "s4Description": "Veja armações populares e novos pedidos para que sua equipe recomende o próximo passo certo."
+      },
+      "shopperEyebrow": "O que seus compradores veem",
+      "shopperTitle": "Um caminho claro da foto à lista de favoritos.",
+      "shopperDescription": "Os clientes não precisam aprender uma ferramenta complexa. Eles enviam uma foto, escolhem armações e revisam os resultados que importam.",
+      "shopperBenefits": {
+        "b1": "Enviar uma foto nítida",
+        "b2": "Escolher uma ou várias armações",
+        "b3": "Ver resultados realistas de prova",
+        "b4": "Comparar uma lista de favoritos antes de consultar"
+      },
+      "shopperImageAlt": "Experiência detalhada do comprador mostrando envio de foto, sugestões de armações com IA, prova virtual e comparação de armações",
+      "merchantEyebrow": "O que você vê como dono da loja",
+      "merchantTitle": "Veja o que os compradores gostam antes de comprar.",
+      "merchantDescription": "Acompanhe os poucos sinais que importam: provas, favoritos, consultas e as armações que recebem mais atenção.",
+      "merchantBenefits": {
+        "b1": "Veja quais armações recebem mais atenção",
+        "b2": "Revise consultas recentes em um só lugar",
+        "b3": "Entenda o interesse do comprador antes da compra"
+      },
+      "merchantImageAlt": "Painel simples do lojista mostrando sessões de prova, consultas, favoritos, armações mais populares e atividade recente dos compradores",
+      "formEyebrow": "Comece pequeno",
+      "formTitle": "Crie uma Store de exemplo com suas armações.",
+      "formDescription": "Compartilhe alguns detalhes sobre sua loja e catálogo. Ajudaremos você a entender como poderia ser a primeira experiência de compra com a sua marca.",
+      "formTrustTitle": "Projetado em torno da confiança do cliente",
+      "formTrustDescription": "Os compradores veem informações claras de privacidade antes de enviar a foto. Sua equipe se concentra no interesse pelas armações e nas consultas, não nas fotos brutas dos clientes.",
+      "formTrustLink": "Leia nossa política de privacidade",
+      "formBadge": "Acesso antecipado",
+      "formHeading": "Crie uma loja de exemplo para suas armações",
+      "formSubheading": "Compartilhe alguns detalhes e ajudaremos você a ver como poderia ser uma experiência de prova com IA e comparação de armações hospedada para o seu negócio.",
+      "formLabels": {
+        "name": "Nome",
+        "namePlaceholder": "Seu nome",
+        "email": "E-mail profissional",
+        "emailPlaceholder": "you@company.com",
+        "businessName": "Nome da empresa",
+        "businessNamePlaceholder": "Nome da loja ou marca",
+        "businessType": "Tipo de empresa",
+        "website": "Site, Instagram ou link da loja",
+        "websitePlaceholder": "https://...",
+        "frameCount": "Quantas armações você quer mostrar primeiro?",
+        "intent": "O que ajudaria mais?",
+        "notes": "Algo que devemos saber?",
+        "notesPlaceholder": "Conte-nos onde os compradores encontram você, quais armações você vende ou o que deseja melhorar online."
+      },
+      "formBusinessTypes": {
+        "opticalStore": "Ótica independente",
+        "ecommerce": "Marca de e-commerce de óculos",
+        "stylist": "Consultor de estilo de armações",
+        "agency": "Agência de e-commerce boutique",
+        "socialSeller": "Vendedor nas redes sociais",
+        "other": "Outro"
+      },
+      "formIntents": {
+        "sample": "Criar minha loja de exemplo",
+        "demo": "Agendar uma demonstração",
+        "catalog": "Discutir meu catálogo de armações",
+        "partnership": "Explorar parceria de agência"
+      },
+      "formSubmit": "Solicitar minha loja de exemplo",
+      "formSuccessMessage": "Abrindo seu cliente de e-mail com os detalhes da solicitação. Se não abrir, envie um e-mail para support@visutry.com com as informações da sua loja.",
+      "formDisclaimer": "Sem compromisso. Usaremos suas informações apenas para responder à sua solicitação de Store.",
+      "schema": {
+        "appName": "VisuTry Store",
+        "appDescription": "Uma experiência de prova de óculos com IA e comparação de armações com a sua marca para óticas independentes e vendedores de óculos.",
+        "feature1": "Link de Store com a marca para o comprador",
+        "feature2": "Prova virtual de óculos por foto",
+        "feature3": "Seleção de uma ou várias armações",
+        "feature4": "Comparação de armações lado a lado",
+        "feature5": "Captura de favoritos e consultas",
+        "feature6": "Painel leve do lojista"
+      }
     }
   }
 }

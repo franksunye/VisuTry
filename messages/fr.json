@@ -633,6 +633,100 @@
         "examplesLabel": "Exemples de Style Explorer",
         "showExample": "Afficher l'exemple {index}"
       }
+    },
+    "store": {
+      "metaTitle": "VisuTry Store — Essayage IA pour opticiens indépendants",
+      "metaDescription": "Offrez à vos clients une expérience d'essayage IA de lunettes et de comparaison de montures sous votre marque, puis découvrez quelles montures attirent le plus d'intérêt.",
+      "heroBadge": "VisuTry Store",
+      "heroTitle": "Offrez à vos clients un moyen plus simple de choisir leurs montures.",
+      "heroDescription": "Une expérience d'essayage et de comparaison de montures sous votre marque pour votre magasin d'optique — simple pour les clients et facile à partager par votre équipe.",
+      "heroCtaPrimary": "Créer ma boutique exemple",
+      "heroCtaSecondary": "Voir comment ça marche",
+      "heroNote": "Commencez avec une petite sélection de montures. Aucune intégration e-commerce complète requise.",
+      "heroImageAlt": "Une boutique de lunettes simple sous votre marque où un client télécharge une photo, choisit des montures et voit un résultat d'essayage virtuel",
+      "workflowEyebrow": "Comment ça marche",
+      "workflowTitle": "De votre catalogue de montures à un lien prêt pour vos clients.",
+      "workflowDescription": "Un flux de travail ciblé pour les petits commerces d'optique, sans implémentation complexe.",
+      "workflow": {
+        "s1Title": "Ajoutez vos montures",
+        "s1Description": "Commencez avec 8 à 20 best-sellers, nouveautés ou montures que vous souhaitez promouvoir.",
+        "s2Title": "Partagez le lien de votre Store",
+        "s2Description": "Ajoutez-le à votre site web, Instagram, e-mail, QR code ou conversations clients.",
+        "s3Title": "Les clients essaient et comparent",
+        "s3Description": "Les clients téléchargent une photo, choisissent des montures et voient leurs résultats dans un flux épuré.",
+        "s4Title": "Faites le suivi avec contexte",
+        "s4Description": "Consultez les montures populaires et les nouvelles demandes pour que votre équipe recommande la bonne prochaine étape."
+      },
+      "shopperEyebrow": "Ce que vos clients voient",
+      "shopperTitle": "Un parcours clair de la photo à la sélection finale.",
+      "shopperDescription": "Les clients n'ont pas besoin d'apprendre un outil complexe. Ils téléchargent une photo, choisissent des montures et examinent les résultats qui comptent.",
+      "shopperBenefits": {
+        "b1": "Téléchargez une photo claire",
+        "b2": "Choisissez une ou plusieurs montures",
+        "b3": "Voyez des résultats d'essayage réalistes",
+        "b4": "Comparez une sélection avant de demander"
+      },
+      "shopperImageAlt": "Expérience détaillée du client montrant le téléchargement de photo, les suggestions de montures IA, l'essayage virtuel et la comparaison de montures",
+      "merchantEyebrow": "Ce que vous voyez en tant que propriétaire du magasin",
+      "merchantTitle": "Découvrez ce que les clients aiment avant d'acheter.",
+      "merchantDescription": "Suivez les quelques signaux qui comptent : essayages, favoris, demandes et les montures qui reçoivent le plus d'attention.",
+      "merchantBenefits": {
+        "b1": "Voyez quelles montures reçoivent le plus d'attention",
+        "b2": "Consultez les demandes récentes au même endroit",
+        "b3": "Comprenez l'intérêt des clients avant l'achat"
+      },
+      "merchantImageAlt": "Tableau de bord marchand simple montrant les sessions d'essayage, les demandes, les favoris, les montures populaires et l'activité récente des clients",
+      "formEyebrow": "Commencez petit",
+      "formTitle": "Créez un Store exemple avec vos montures.",
+      "formDescription": "Partagez quelques détails sur votre magasin et votre catalogue. Nous vous aiderons à comprendre à quoi pourrait ressembler la première expérience client sous votre marque.",
+      "formTrustTitle": "Conçu autour de la confiance des clients",
+      "formTrustDescription": "Les clients voient des informations de confidentialité claires avant de télécharger. Votre équipe se concentre sur l'intérêt pour les montures et les demandes, pas sur les photos brutes des clients.",
+      "formTrustLink": "Lire notre politique de confidentialité",
+      "formBadge": "Accès anticipé",
+      "formHeading": "Créer une boutique exemple pour vos montures",
+      "formSubheading": "Partagez quelques détails et nous vous aiderons à visualiser à quoi pourrait ressembler une expérience d'essayage IA hébergée et de comparaison de montures pour votre entreprise.",
+      "formLabels": {
+        "name": "Nom",
+        "namePlaceholder": "Votre nom",
+        "email": "E-mail professionnel",
+        "emailPlaceholder": "you@company.com",
+        "businessName": "Nom de l'entreprise",
+        "businessNamePlaceholder": "Nom du magasin ou de la marque",
+        "businessType": "Type d'entreprise",
+        "website": "Site web, Instagram ou lien du magasin",
+        "websitePlaceholder": "https://...",
+        "frameCount": "Combien de montures souhaitez-vous présenter en premier ?",
+        "intent": "Qu'est-ce qui vous aiderait le plus ?",
+        "notes": "Quelque chose que nous devrions savoir ?",
+        "notesPlaceholder": "Dites-nous où les clients vous trouvent, quelles montures vous vendez ou ce que vous souhaitez améliorer en ligne."
+      },
+      "formBusinessTypes": {
+        "opticalStore": "Magasin d'optique indépendant",
+        "ecommerce": "Marque e-commerce de lunettes",
+        "stylist": "Styliste / conseiller en montures",
+        "agency": "Agence e-commerce boutique",
+        "socialSeller": "Vendeur sur les réseaux sociaux",
+        "other": "Autre"
+      },
+      "formIntents": {
+        "sample": "Créer ma boutique exemple",
+        "demo": "Réserver une démo",
+        "catalog": "Discuter de mon catalogue de montures",
+        "partnership": "Explorer un partenariat d'agence"
+      },
+      "formSubmit": "Demander ma boutique exemple",
+      "formSuccessMessage": "Ouverture de votre client e-mail avec les détails de la demande. S'il ne s'ouvre pas, écrivez à support@visutry.com avec les informations de votre magasin.",
+      "formDisclaimer": "Sans engagement. Nous utiliserons vos informations uniquement pour répondre à votre demande de Store.",
+      "schema": {
+        "appName": "VisuTry Store",
+        "appDescription": "Une expérience d'essayage IA de lunettes et de comparaison de montures sous votre marque pour les magasins d'optique indépendants et les vendeurs de lunettes.",
+        "feature1": "Lien Store client sous votre marque",
+        "feature2": "Essayage virtuel de lunettes par photo",
+        "feature3": "Sélection de montures unique et multiple",
+        "feature4": "Comparaison de montures côte à côte",
+        "feature5": "Favoris et capture de demandes",
+        "feature6": "Tableau de bord marchand léger"
+      }
     }
   }
 }

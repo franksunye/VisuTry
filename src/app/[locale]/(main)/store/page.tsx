@@ -13,8 +13,8 @@ import {
 import { StoreLandingTracker, StoreCtaLink } from '@/components/store/StoreLandingAnalytics'
 import { StoreLeadForm } from '@/components/store/StoreLeadForm'
 import { StoreMarketingVisual } from '@/components/store/StoreMarketingVisual'
-import { generateI18nSEO, generateStructuredData } from '@/lib/seo'
-import { Locale } from '@/i18n'
+import { generateStructuredData } from '@/lib/seo'
+import { getTranslations, setRequestLocale } from 'next-intl/server'
 
 interface StorePageProps {
   params: {
@@ -25,67 +25,77 @@ interface StorePageProps {
 export const dynamic = 'force-static'
 
 export async function generateMetadata({ params }: StorePageProps): Promise<Metadata> {
-  return generateI18nSEO({
-    locale: params.locale as Locale,
-    title: 'VisuTry Store — AI try-on for independent eyewear stores',
-    description:
-      'Give shoppers a branded AI eyewear try-on and frame comparison experience, then see which frames attract the most interest.',
-    pathname: '/store',
-  })
+  setRequestLocale(params.locale)
+  const t = await getTranslations({ locale: params.locale, namespace: 'marketing.store' })
+  return {
+    title: t('metaTitle'),
+    description: t('metaDescription'),
+    alternates: {
+      canonical: `https://www.visutry.com/${params.locale}/store`,
+    },
+    openGraph: {
+      title: t('metaTitle'),
+      description: t('metaDescription'),
+      url: `https://www.visutry.com/${params.locale}/store`,
+      type: 'website',
+    },
+  }
 }
 
-const workflow = [
-  {
-    icon: Upload,
-    title: 'Add your frames',
-    description: 'Start with 8–20 best sellers, new arrivals, or frames you want to promote.',
-  },
-  {
-    icon: Link2,
-    title: 'Share your Store link',
-    description: 'Add it to your website, Instagram, email, QR code, or customer conversations.',
-  },
-  {
-    icon: Grid2X2,
-    title: 'Shoppers try and compare',
-    description: 'Customers upload one photo, choose frames, and see their results in one clean flow.',
-  },
-  {
-    icon: BarChart3,
-    title: 'Follow up with context',
-    description: 'See popular frames and new inquiries so your team can recommend the right next step.',
-  },
-]
-
-const shopperBenefits = [
-  'Upload one clear photo',
-  'Choose one or several frames',
-  'See realistic try-on results',
-  'Compare a shortlist before inquiring',
-]
-
-const merchantBenefits = [
-  'See which frames receive the most attention',
-  'Review recent inquiries in one place',
-  'Understand shopper interest before they buy',
-]
-
-export default function StoreLandingPage({ params }: StorePageProps) {
+export default async function StoreLandingPage({ params }: StorePageProps) {
+  setRequestLocale(params.locale)
   const locale = params.locale
+  const t = await getTranslations({ locale, namespace: 'marketing.store' })
+
+  const workflow = [
+    {
+      icon: Upload,
+      title: t('workflow.s1Title'),
+      description: t('workflow.s1Description'),
+    },
+    {
+      icon: Link2,
+      title: t('workflow.s2Title'),
+      description: t('workflow.s2Description'),
+    },
+    {
+      icon: Grid2X2,
+      title: t('workflow.s3Title'),
+      description: t('workflow.s3Description'),
+    },
+    {
+      icon: BarChart3,
+      title: t('workflow.s4Title'),
+      description: t('workflow.s4Description'),
+    },
+  ]
+
+  const shopperBenefits = [
+    t('shopperBenefits.b1'),
+    t('shopperBenefits.b2'),
+    t('shopperBenefits.b3'),
+    t('shopperBenefits.b4'),
+  ]
+
+  const merchantBenefits = [
+    t('merchantBenefits.b1'),
+    t('merchantBenefits.b2'),
+    t('merchantBenefits.b3'),
+  ]
+
   const storeSchema = generateStructuredData('softwareApplication', {
-    name: 'VisuTry Store',
+    name: t('schema.appName'),
     url: `https://www.visutry.com/${locale}/store`,
     applicationCategory: 'ShoppingApplication',
     operatingSystem: 'Web Browser',
-    description:
-      'A branded AI eyewear try-on and frame comparison experience for independent optical stores and eyewear sellers.',
+    description: t('schema.appDescription'),
     featureList: [
-      'Branded shopper Store link',
-      'Photo-based virtual glasses try-on',
-      'Single and multi-frame selection',
-      'Side-by-side frame comparison',
-      'Favorites and inquiry capture',
-      'Lightweight merchant dashboard',
+      t('schema.feature1'),
+      t('schema.feature2'),
+      t('schema.feature3'),
+      t('schema.feature4'),
+      t('schema.feature5'),
+      t('schema.feature6'),
     ],
   })
 
@@ -99,13 +109,13 @@ export default function StoreLandingPage({ params }: StorePageProps) {
           <div>
             <p className="mb-4 inline-flex items-center rounded-full border border-blue-100 bg-blue-50 px-3 py-1 text-sm font-semibold text-blue-700">
               <Store className="mr-2 h-4 w-4" />
-              VisuTry Store
+              {t('heroBadge')}
             </p>
             <h1 className="max-w-xl text-4xl font-bold leading-tight text-gray-950 md:text-5xl lg:text-6xl">
-              Give shoppers a simpler way to choose frames.
+              {t('heroTitle')}
             </h1>
             <p className="mt-5 max-w-xl text-base leading-7 text-gray-600 md:text-lg">
-              A branded try-on and frame comparison experience for your optical store — simple for customers and easy for your team to share.
+              {t('heroDescription')}
             </p>
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
               <StoreCtaLink
@@ -114,7 +124,7 @@ export default function StoreLandingPage({ params }: StorePageProps) {
                 ctaLocation="hero_primary"
                 className="inline-flex items-center justify-center gap-2 rounded-lg bg-blue-600 px-6 py-3 text-sm font-bold text-white shadow-lg shadow-blue-600/20 transition hover:bg-blue-700"
               >
-                Create my sample store
+                {t('heroCtaPrimary')}
                 <ArrowRight className="h-4 w-4" />
               </StoreCtaLink>
               <StoreCtaLink
@@ -123,15 +133,15 @@ export default function StoreLandingPage({ params }: StorePageProps) {
                 ctaLocation="hero_secondary"
                 className="inline-flex items-center justify-center rounded-lg border border-gray-300 bg-white px-6 py-3 text-sm font-bold text-gray-700 transition hover:border-blue-300 hover:text-blue-700"
               >
-                See how it works
+                {t('heroCtaSecondary')}
               </StoreCtaLink>
             </div>
-            <p className="mt-5 text-sm text-gray-500">Start with a small frame selection. No full ecommerce integration required.</p>
+            <p className="mt-5 text-sm text-gray-500">{t('heroNote')}</p>
           </div>
 
           <StoreMarketingVisual
             src="/images/store/store-hero-shopper.png"
-            alt="A simple branded eyewear store where a shopper uploads a photo, chooses frames, and sees a virtual try-on result"
+            alt={t('heroImageAlt')}
             label="Hero shopper visual"
             description="Upload the approved Asset A as public/images/store/store-hero-shopper.png."
             aspectClass="aspect-[4/3]"
@@ -142,9 +152,9 @@ export default function StoreLandingPage({ params }: StorePageProps) {
 
       <section id="workflow" className="mx-auto mb-20 max-w-6xl scroll-mt-24">
         <div className="mx-auto mb-8 max-w-3xl text-center">
-          <p className="text-sm font-semibold uppercase tracking-wide text-blue-600">How it works</p>
-          <h2 className="mt-3 text-3xl font-bold text-gray-950 md:text-4xl">From your frame catalog to a shopper-ready link.</h2>
-          <p className="mt-4 text-base leading-7 text-gray-600">A focused workflow for small eyewear businesses, without a complicated implementation.</p>
+          <p className="text-sm font-semibold uppercase tracking-wide text-blue-600">{t('workflowEyebrow')}</p>
+          <h2 className="mt-3 text-3xl font-bold text-gray-950 md:text-4xl">{t('workflowTitle')}</h2>
+          <p className="mt-4 text-base leading-7 text-gray-600">{t('workflowDescription')}</p>
         </div>
         <div className="grid gap-4 md:grid-cols-4">
           {workflow.map((item, index) => {
@@ -168,10 +178,10 @@ export default function StoreLandingPage({ params }: StorePageProps) {
       <section className="mx-auto mb-20 max-w-7xl">
         <div className="grid gap-10 lg:grid-cols-[0.38fr_0.62fr] lg:items-center">
           <div>
-            <p className="text-sm font-semibold uppercase tracking-wide text-blue-600">What your shoppers see</p>
-            <h2 className="mt-3 text-3xl font-bold leading-tight text-gray-950 md:text-4xl">One clear path from photo to shortlist.</h2>
+            <p className="text-sm font-semibold uppercase tracking-wide text-blue-600">{t('shopperEyebrow')}</p>
+            <h2 className="mt-3 text-3xl font-bold leading-tight text-gray-950 md:text-4xl">{t('shopperTitle')}</h2>
             <p className="mt-4 text-base leading-7 text-gray-600">
-              Customers do not need to learn a complicated tool. They upload a photo, choose frames, and review the results that matter.
+              {t('shopperDescription')}
             </p>
             <div className="mt-6 grid gap-3">
               {shopperBenefits.map((item) => (
@@ -185,7 +195,7 @@ export default function StoreLandingPage({ params }: StorePageProps) {
 
           <StoreMarketingVisual
             src="/images/store/store-shopper-experience.png"
-            alt="Detailed shopper experience showing photo upload, AI frame suggestions, virtual try-on, and frame comparison"
+            alt={t('shopperImageAlt')}
             label="Shopper experience visual"
             description="Upload the approved Asset B as public/images/store/store-shopper-experience.png."
             aspectClass="aspect-[16/10]"
@@ -197,17 +207,17 @@ export default function StoreLandingPage({ params }: StorePageProps) {
         <div className="grid gap-10 lg:grid-cols-[0.62fr_0.38fr] lg:items-center">
           <StoreMarketingVisual
             src="/images/store/store-owner-dashboard.png"
-            alt="Simple merchant dashboard showing try-on sessions, inquiries, favorites, top frames, and recent shopper activity"
+            alt={t('merchantImageAlt')}
             label="Store owner dashboard visual"
             description="Upload the approved Asset C as public/images/store/store-owner-dashboard.png."
             aspectClass="aspect-[4/3]"
           />
 
           <div>
-            <p className="text-sm font-semibold uppercase tracking-wide text-blue-600">What you see as the store owner</p>
-            <h2 className="mt-3 text-3xl font-bold leading-tight text-gray-950 md:text-4xl">See what shoppers like before they buy.</h2>
+            <p className="text-sm font-semibold uppercase tracking-wide text-blue-600">{t('merchantEyebrow')}</p>
+            <h2 className="mt-3 text-3xl font-bold leading-tight text-gray-950 md:text-4xl">{t('merchantTitle')}</h2>
             <p className="mt-4 text-base leading-7 text-gray-600">
-              Track the few signals that matter: try-ons, favorites, inquiries, and the frames receiving the most attention.
+              {t('merchantDescription')}
             </p>
             <div className="mt-6 grid gap-3">
               {merchantBenefits.map((item) => (
@@ -224,21 +234,21 @@ export default function StoreLandingPage({ params }: StorePageProps) {
       <section id="store-form" className="mx-auto mb-14 max-w-6xl scroll-mt-24">
         <div className="grid gap-8 lg:grid-cols-[0.42fr_0.58fr] lg:items-start">
           <div className="pt-2">
-            <p className="text-sm font-semibold uppercase tracking-wide text-blue-600">Start small</p>
-            <h2 className="mt-3 text-3xl font-bold leading-tight text-gray-950 md:text-4xl">Create a sample Store using your frames.</h2>
+            <p className="text-sm font-semibold uppercase tracking-wide text-blue-600">{t('formEyebrow')}</p>
+            <h2 className="mt-3 text-3xl font-bold leading-tight text-gray-950 md:text-4xl">{t('formTitle')}</h2>
             <p className="mt-4 text-base leading-7 text-gray-600">
-              Share a few details about your store and catalog. We will help you understand what the first branded shopper experience could look like.
+              {t('formDescription')}
             </p>
             <div className="mt-6 rounded-xl border border-gray-200 bg-gray-50 p-5">
               <div className="flex gap-3">
                 <ShieldCheck className="mt-0.5 h-5 w-5 flex-shrink-0 text-green-600" />
                 <div>
-                  <h3 className="text-sm font-bold text-gray-950">Designed around customer trust</h3>
+                  <h3 className="text-sm font-bold text-gray-950">{t('formTrustTitle')}</h3>
                   <p className="mt-1 text-sm leading-6 text-gray-600">
-                    Shoppers see clear privacy information before uploading. Your team focuses on frame interest and inquiries, not raw customer photos.
+                    {t('formTrustDescription')}
                   </p>
                   <Link href={`/${locale}/privacy`} className="mt-3 inline-flex text-sm font-bold text-blue-700 hover:text-blue-900">
-                    Read our privacy policy
+                    {t('formTrustLink')}
                   </Link>
                 </div>
               </div>

@@ -633,6 +633,100 @@
         "examplesLabel": "Contoh Style Explorer",
         "showExample": "Tampilkan contoh {index}"
       }
+    },
+    "store": {
+      "metaTitle": "VisuTry Store — Coba AI untuk toko kacamata independen",
+      "metaDescription": "Berikan pembeli pengalaman coba kacamata AI dan perbandingan bingkai dengan merek Anda, lalu lihat bingkai mana yang menarik paling banyak minat.",
+      "heroBadge": "VisuTry Store",
+      "heroTitle": "Berikan pembeli cara yang lebih sederhana untuk memilih bingkai.",
+      "heroDescription": "Pengalaman coba dan bandingkan bingkai dengan merek Anda untuk toko optik Anda — sederhana untuk pelanggan dan mudah dibagikan tim Anda.",
+      "heroCtaPrimary": "Buat toko contoh saya",
+      "heroCtaSecondary": "Lihat cara kerjanya",
+      "heroNote": "Mulai dengan pilihan bingkai kecil. Tidak perlu integrasi e-commerce penuh.",
+      "heroImageAlt": "Toko kacamata bermerek sederhana tempat pembeli mengunggah foto, memilih bingkai, dan melihat hasil coba virtual",
+      "workflowEyebrow": "Cara kerja",
+      "workflowTitle": "Dari katalog bingkai Anda ke tautan siap untuk pembeli.",
+      "workflowDescription": "Alur kerja terfokus untuk bisnis kacamata kecil, tanpa implementasi yang rumit.",
+      "workflow": {
+        "s1Title": "Tambahkan bingkai Anda",
+        "s1Description": "Mulai dengan 8–20 produk terlaris, produk baru, atau bingkai yang ingin Anda promosikan.",
+        "s2Title": "Bagikan tautan Store Anda",
+        "s2Description": "Tambahkan ke situs web, Instagram, email, kode QR, atau percakapan pelanggan Anda.",
+        "s3Title": "Pembeli mencoba dan membandingkan",
+        "s3Description": "Pelanggan mengunggah satu foto, memilih bingkai, dan melihat hasilnya dalam satu alur yang rapi.",
+        "s4Title": "Tindak lanjuti dengan konteks",
+        "s4Description": "Lihat bingkai populer dan pertanyaan baru agar tim Anda dapat merekomendasikan langkah selanjutnya yang tepat."
+      },
+      "shopperEyebrow": "Apa yang dilihat pembeli Anda",
+      "shopperTitle": "Satu jalur jelas dari foto ke daftar singkat.",
+      "shopperDescription": "Pelanggan tidak perlu mempelajari alat yang rumit. Mereka mengunggah foto, memilih bingkai, dan meninjau hasil yang penting.",
+      "shopperBenefits": {
+        "b1": "Unggah satu foto yang jelas",
+        "b2": "Pilih satu atau beberapa bingkai",
+        "b3": "Lihat hasil coba yang realistis",
+        "b4": "Bandingkan daftar singkat sebelum bertanya"
+      },
+      "shopperImageAlt": "Pengalaman pembeli terperinci yang menampilkan unggahan foto, saran bingkai AI, coba virtual, dan perbandingan bingkai",
+      "merchantEyebrow": "Apa yang Anda lihat sebagai pemilik toko",
+      "merchantTitle": "Lihat apa yang disukai pembeli sebelum membeli.",
+      "merchantDescription": "Lacak beberapa sinyal yang penting: percobaan, favorit, pertanyaan, dan bingkai yang paling banyak diperhatikan.",
+      "merchantBenefits": {
+        "b1": "Lihat bingkai mana yang paling banyak diperhatikan",
+        "b2": "Tinjau pertanyaan terbaru di satu tempat",
+        "b3": "Pahami minat pembeli sebelum membeli"
+      },
+      "merchantImageAlt": "Dasbor merchant sederhana yang menampilkan sesi coba, pertanyaan, favorit, bingkai teratas, dan aktivitas pembeli terbaru",
+      "formEyebrow": "Mulai kecil",
+      "formTitle": "Buat Store contoh menggunakan bingkai Anda.",
+      "formDescription": "Bagikan beberapa detail tentang toko dan katalog Anda. Kami akan membantu Anda memahami seperti apa pengalaman pembeli bermerek pertama.",
+      "formTrustTitle": "Dirancang dengan kepercayaan pelanggan",
+      "formTrustDescription": "Pembeli melihat informasi privasi yang jelas sebelum mengunggah. Tim Anda fokus pada minat bingkai dan pertanyaan, bukan foto pelanggan mentah.",
+      "formTrustLink": "Baca kebijakan privasi kami",
+      "formBadge": "Akses awal",
+      "formHeading": "Buat toko contoh untuk bingkai Anda",
+      "formSubheading": "Bagikan beberapa detail dan kami akan membantu Anda melihat seperti apa pengalaman coba AI dan perbandingan bingkai yang dihosting untuk bisnis Anda.",
+      "formLabels": {
+        "name": "Nama",
+        "namePlaceholder": "Nama Anda",
+        "email": "Email kerja",
+        "emailPlaceholder": "you@company.com",
+        "businessName": "Nama bisnis",
+        "businessNamePlaceholder": "Nama toko atau merek",
+        "businessType": "Jenis bisnis",
+        "website": "Situs web, Instagram, atau tautan toko",
+        "websitePlaceholder": "https://...",
+        "frameCount": "Berapa banyak bingkai yang ingin Anda tampilkan pertama?",
+        "intent": "Apa yang paling membantu Anda?",
+        "notes": "Ada yang perlu kami tahu?",
+        "notesPlaceholder": "Ceritakan di mana pembeli menemukan Anda, bingkai apa yang Anda jual, atau apa yang ingin Anda tingkatkan secara online."
+      },
+      "formBusinessTypes": {
+        "opticalStore": "Toko optik independen",
+        "ecommerce": "Merek e-commerce kacamata",
+        "stylist": "Stylist / konsultan bingkai",
+        "agency": "Agen e-commerce butik",
+        "socialSeller": "Penjual sosial",
+        "other": "Lainnya"
+      },
+      "formIntents": {
+        "sample": "Buat toko contoh saya",
+        "demo": "Pesan demo",
+        "catalog": "Diskusikan katalog bingkai saya",
+        "partnership": "Jelajahi kemitraan agen"
+      },
+      "formSubmit": "Minta toko contoh saya",
+      "formSuccessMessage": "Membuka klien email Anda dengan detail permintaan. Jika tidak terbuka, kirim email ke support@visutry.com dengan informasi toko Anda.",
+      "formDisclaimer": "Tanpa komitmen. Kami hanya menggunakan informasi Anda untuk merespons permintaan Store Anda.",
+      "schema": {
+        "appName": "VisuTry Store",
+        "appDescription": "Pengalaman coba kacamata AI dan perbandingan bingkai bermerek untuk toko optik independen dan penjual kacamata.",
+        "feature1": "Tautan Store pembeli bermerek",
+        "feature2": "Coba kacamata virtual berbasis foto",
+        "feature3": "Pemilihan bingkai tunggal dan multi",
+        "feature4": "Perbandingan bingkai berdampingan",
+        "feature5": "Favorit dan pengambilan pertanyaan",
+        "feature6": "Dasbor merchant ringan"
+      }
     }
   }
 }

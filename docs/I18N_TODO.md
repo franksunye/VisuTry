@@ -22,6 +22,7 @@ VisuTry now uses a **marketing-first localization** strategy.
   - `src/app/[locale]/(main)/try-on/[type]/page.tsx` (public landing content only)
   - `src/app/[locale]/(main)/try-on/glasses/compare/page.tsx` (public landing content only)
   - `src/app/[locale]/(main)/style-explorer/page.tsx` (public landing content only)
+  - `src/app/[locale]/(main)/store/page.tsx` (public landing content only)
   - `src/app/[locale]/(main)/face-analysis/page.tsx` (landing/marketing content)
 - Marketing components used by those pages
 - Locale metadata and marketing structured data text

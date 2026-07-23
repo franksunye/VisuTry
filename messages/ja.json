@@ -633,6 +633,100 @@
         "examplesLabel": "Style Explorerの例",
         "showExample": "例{index}を表示"
       }
+    },
+    "store": {
+      "metaTitle": "VisuTry Store — 独立系眼鏡店向けAI試着",
+      "metaDescription": "店舗ブランドのAI眼鏡試着・フレーム比較体験を買い物客に提供し、どのフレームが最も関心を集めているか確認できます。",
+      "heroBadge": "VisuTry Store",
+      "heroTitle": "フレーム選びをもっとシンプルな方法で買い物客へ。",
+      "heroDescription": "あなたのメガネ店向けブランド試着・フレーム比較体験 — お客様にはシンプルで、チームにも共有しやすい設計です。",
+      "heroCtaPrimary": "サンプルストアを作成",
+      "heroCtaSecondary": "仕組みを見る",
+      "heroNote": "少数のフレーム選択から始められます。本格的なEC連携は不要です。",
+      "heroImageAlt": "ブランド化されたシンプルな眼鏡ストアで、買い物客が写真をアップロードし、フレームを選んでバーチャル試着結果を確認する様子",
+      "workflowEyebrow": "仕組み",
+      "workflowTitle": "フレームカタログから買い物客向けリンクへ。",
+      "workflowDescription": "小規模な眼鏡ビジネス向けの集中的なワークフローで、複雑な実装は不要です。",
+      "workflow": {
+        "s1Title": "フレームを追加",
+        "s1Description": "ベストセラーや新着、促進したいフレームを8〜20点から始めましょう。",
+        "s2Title": "Storeリンクを共有",
+        "s2Description": "ウェブサイト、Instagram、メール、QRコード、顧客との会話に追加できます。",
+        "s3Title": "買い物客が試着・比較",
+        "s3Description": "お客様は写真を1枚アップロードし、フレームを選んで、1つのすっきりした流れで結果を確認します。",
+        "s4Title": "文脈を持ってフォローアップ",
+        "s4Description": "人気フレームや新規問い合わせを確認し、チームが適切な次のステップを提案できます。"
+      },
+      "shopperEyebrow": "買い物客に見えるもの",
+      "shopperTitle": "写真から候補絞りまで、1つの明確な道筋。",
+      "shopperDescription": "お客様は複雑なツールを学ぶ必要はありません。写真をアップロードし、フレームを選び、重要な結果を確認します。",
+      "shopperBenefits": {
+        "b1": "鮮明な写真を1枚アップロード",
+        "b2": "1つまたは複数のフレームを選択",
+        "b3": "リアルな試着結果を確認",
+        "b4": "問い合わせ前に候補を比較"
+      },
+      "shopperImageAlt": "写真アップロード、AIフレーム提案、バーチャル試着、フレーム比較を示す詳細な買い物客体験",
+      "merchantEyebrow": "店舗オーナーに見えるもの",
+      "merchantTitle": "購入前に買い物客の好みを把握。",
+      "merchantDescription": "重要な少数のシグナルを追跡：試着回数、お気に入り、問い合わせ、最も注目を集めるフレーム。",
+      "merchantBenefits": {
+        "b1": "最も注目されるフレームを把握",
+        "b2": "最近の問い合わせを1箇所で確認",
+        "b3": "購入前の関心を理解"
+      },
+      "merchantImageAlt": "試着セッション、問い合わせ、お気に入り、上位フレーム、最近の買い物客アクティビティを示すシンプルなマーチャントダッシュボード",
+      "formEyebrow": "小さく始める",
+      "formTitle": "あなたのフレームでサンプルStoreを作成。",
+      "formDescription": "店舗とカタログについていくつか詳細を教えてください。最初のブランド体験がどのようなものか一緒に検討します。",
+      "formTrustTitle": "顧客の信頼を中心に設計",
+      "formTrustDescription": "買い物客はアップロード前に明確なプライバシー情報を確認します。チームは顧客の生の写真ではなく、フレームへの関心と問い合わせに集中できます。",
+      "formTrustLink": "プライバシーポリシーを読む",
+      "formBadge": "早期アクセス",
+      "formHeading": "あなたのフレームのサンプルストアを作成",
+      "formSubheading": "いくつか詳細を教えていただければ、ホスト型AI試着・フレーム比較体験がビジネスでどのように見えるかご案内します。",
+      "formLabels": {
+        "name": "お名前",
+        "namePlaceholder": "お名前",
+        "email": "勤務先メール",
+        "emailPlaceholder": "you@company.com",
+        "businessName": "ビジネス名",
+        "businessNamePlaceholder": "店舗名またはブランド名",
+        "businessType": "ビジネスの種類",
+        "website": "ウェブサイト、Instagram、またはストアリンク",
+        "websitePlaceholder": "https://...",
+        "frameCount": "最初に表示したいフレーム数は？",
+        "intent": "何が最も役立ちますか？",
+        "notes": "何か伝えることはありますか？",
+        "notesPlaceholder": "買い物客がどこであなたを見つけるか、販売しているフレーム、またはオンラインで改善したいことをお聞かせください。"
+      },
+      "formBusinessTypes": {
+        "opticalStore": "独立系メガネ店",
+        "ecommerce": "眼鏡ECブランド",
+        "stylist": "フレームスタイリスト・コンサルタント",
+        "agency": "ブティック型ECエージェンシー",
+        "socialSeller": "ソーシャルセラー",
+        "other": "その他"
+      },
+      "formIntents": {
+        "sample": "サンプルストアを作成",
+        "demo": "デモを予約",
+        "catalog": "フレームカタログについて相談",
+        "partnership": "エージェンシーパートナーシップを検討"
+      },
+      "formSubmit": "サンプルストアをリクエスト",
+      "formSuccessMessage": "リクエスト詳細を記載したメールクライアントを開いています。開かない場合は、店舗情報を support@visutry.com までお送りください。",
+      "formDisclaimer": "購入義務はありません。お預かりした情報はStoreリクエストへの対応のみに使用します。",
+      "schema": {
+        "appName": "VisuTry Store",
+        "appDescription": "独立系メガネ店や眼鏡販売者向けの、ブランド化されたAI眼鏡試着・フレーム比較体験。",
+        "feature1": "ブランド化された買い物客向けStoreリンク",
+        "feature2": "写真ベースのバーチャル眼鏡試着",
+        "feature3": "単一および複数フレーム選択",
+        "feature4": "フレームの横並び比較",
+        "feature5": "お気に入りと問い合わせ取得",
+        "feature6": "軽量なマーチャントダッシュボード"
+      }
     }
   }
 }

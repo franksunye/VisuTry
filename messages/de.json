@@ -633,6 +633,100 @@
         "examplesLabel": "Style-Explorer-Beispiele",
         "showExample": "Beispiel {index} anzeigen"
       }
+    },
+    "store": {
+      "metaTitle": "VisuTry Store — KI-Anprobe für unabhängige Brillengeschäfte",
+      "metaDescription": "Bieten Sie Käufern ein KI-gestütztes Brillen-Anprobe- und Fassungsvergleichserlebnis mit Ihrer Marke und sehen Sie, welche Fassungen das meiste Interesse wecken.",
+      "heroBadge": "VisuTry Store",
+      "heroTitle": "Geben Sie Käufern einen einfacheren Weg, Fassungen zu wählen.",
+      "heroDescription": "Ein Anprobe- und Fassungsvergleichserlebnis mit Ihrer Marke für Ihr Brillengeschäft — einfach für Kunden und leicht für Ihr Team zu teilen.",
+      "heroCtaPrimary": "Beispiel-Store erstellen",
+      "heroCtaSecondary": "So funktioniert es",
+      "heroNote": "Starten Sie mit einer kleinen Fassungsauswahl. Keine vollständige E-Commerce-Integration erforderlich.",
+      "heroImageAlt": "Ein einfacher Brillenstore mit eigener Marke, in dem ein Käufer ein Foto hochlädt, Fassungen wählt und ein virtuelles Anprobeergebnis sieht",
+      "workflowEyebrow": "So funktioniert es",
+      "workflowTitle": "Von Ihrem Fassungskatalog zu einem käuferfertigen Link.",
+      "workflowDescription": "Ein fokussierter Workflow für kleine Brillengeschäfte, ohne komplizierte Implementierung.",
+      "workflow": {
+        "s1Title": "Fassungen hinzufügen",
+        "s1Description": "Starten Sie mit 8–20 Bestsellern, Neuheiten oder Fassungen, die Sie bewerben möchten.",
+        "s2Title": "Store-Link teilen",
+        "s2Description": "Fügen Sie ihn zu Ihrer Website, Instagram, E-Mail, QR-Code oder Kundengesprächen hinzu.",
+        "s3Title": "Käufer probieren und vergleichen",
+        "s3Description": "Kunden laden ein Foto hoch, wählen Fassungen und sehen ihre Ergebnisse in einem klaren Ablauf.",
+        "s4Title": "Mit Kontext nachfassen",
+        "s4Description": "Sehen Sie beliebte Fassungen und neue Anfragen, damit Ihr Team den richtigen nächsten Schritt empfehlen kann."
+      },
+      "shopperEyebrow": "Was Ihre Käufer sehen",
+      "shopperTitle": "Ein klarer Weg vom Foto zur Vorauswahl.",
+      "shopperDescription": "Kunden müssen kein kompliziertes Werkzeug lernen. Sie laden ein Foto hoch, wählen Fassungen und prüfen die Ergebnisse, die zählen.",
+      "shopperBenefits": {
+        "b1": "Ein klares Foto hochladen",
+        "b2": "Eine oder mehrere Fassungen wählen",
+        "b3": "Realistische Anprobeergebnisse sehen",
+        "b4": "Eine Vorauswahl vor der Anfrage vergleichen"
+      },
+      "shopperImageAlt": "Detaillierte Käufererfahrung mit Foto-Upload, KI-Fassungsvorschlägen, virtueller Anprobe und Fassungsvergleich",
+      "merchantEyebrow": "Was Sie als Store-Inhaber sehen",
+      "merchantTitle": "Sehen Sie, was Käufer mögen, bevor sie kaufen.",
+      "merchantDescription": "Verfolgen Sie die wenigen Signale, die zählen: Anproben, Favoriten, Anfragen und die Fassungen mit der meisten Aufmerksamkeit.",
+      "merchantBenefits": {
+        "b1": "Sehen Sie, welche Fassungen die meiste Aufmerksamkeit erhalten",
+        "b2": "Aktuelle Anfragen an einem Ort prüfen",
+        "b3": "Käuferinteresse vor dem Kauf verstehen"
+      },
+      "merchantImageAlt": "Einfaches Händler-Dashboard mit Anprobesitzungen, Anfragen, Favoriten, Top-Fassungen und aktueller Käuferaktivität",
+      "formEyebrow": "Klein anfangen",
+      "formTitle": "Erstellen Sie einen Beispiel-Store mit Ihren Fassungen.",
+      "formDescription": "Teilen Sie einige Details zu Ihrem Store und Katalog. Wir helfen Ihnen zu verstehen, wie das erste markenbasierte Käufererlebnis aussehen könnte.",
+      "formTrustTitle": "Auf Kundenvertrauen ausgerichtet",
+      "formTrustDescription": "Käufer sehen klare Datenschutzinformationen vor dem Upload. Ihr Team konzentriert sich auf Fassungsinteresse und Anfragen, nicht auf rohe Kundenfotos.",
+      "formTrustLink": "Datenschutzerklärung lesen",
+      "formBadge": "Early Access",
+      "formHeading": "Beispiel-Store für Ihre Fassungen erstellen",
+      "formSubheading": "Teilen Sie einige Details und wir helfen Ihnen zu sehen, wie ein gehostetes KI-Anprobe- und Fassungsvergleichserlebnis für Ihr Geschäft aussehen könnte.",
+      "formLabels": {
+        "name": "Name",
+        "namePlaceholder": "Ihr Name",
+        "email": "Geschäftliche E-Mail",
+        "emailPlaceholder": "you@company.com",
+        "businessName": "Firmenname",
+        "businessNamePlaceholder": "Store- oder Markenname",
+        "businessType": "Unternehmenstyp",
+        "website": "Website, Instagram oder Store-Link",
+        "websitePlaceholder": "https://...",
+        "frameCount": "Wie viele Fassungen möchten Sie zuerst zeigen?",
+        "intent": "Was würde Ihnen am meisten helfen?",
+        "notes": "Gibt es etwas, das wir wissen sollten?",
+        "notesPlaceholder": "Erzählen Sie uns, wo Käufer Sie finden, welche Fassungen Sie verkaufen oder was Sie online verbessern möchten."
+      },
+      "formBusinessTypes": {
+        "opticalStore": "Unabhängiges Brillengeschäft",
+        "ecommerce": "Brillen-E-Commerce-Marke",
+        "stylist": "Fassungs-Stylist / Berater",
+        "agency": "Boutique-E-Commerce-Agentur",
+        "socialSeller": "Social-Media-Verkäufer",
+        "other": "Sonstige"
+      },
+      "formIntents": {
+        "sample": "Beispiel-Store erstellen",
+        "demo": "Demo buchen",
+        "catalog": "Meinen Fassungskatalog besprechen",
+        "partnership": "Agentur-Partnerschaft erkunden"
+      },
+      "formSubmit": "Beispiel-Store anfordern",
+      "formSuccessMessage": "Ihr E-Mail-Programm wird mit den Anfragedetails geöffnet. Wenn es sich nicht öffnet, schreiben Sie an support@visutry.com mit Ihren Store-Informationen.",
+      "formDisclaimer": "Keine Verpflichtung. Wir verwenden Ihre Informationen nur, um auf Ihre Store-Anfrage zu antworten.",
+      "schema": {
+        "appName": "VisuTry Store",
+        "appDescription": "Ein KI-Anprobe- und Fassungsvergleichserlebnis mit eigener Marke für unabhängige Brillengeschäfte und Brillenverkäufer.",
+        "feature1": "Markenbasierter Käufer-Store-Link",
+        "feature2": "Foto-basierte virtuelle Brillenanprobe",
+        "feature3": "Einzel- und Mehrfach-Fassungsauswahl",
+        "feature4": "Fassungsvergleich Seite an Seite",
+        "feature5": "Favoriten- und Anfrageerfassung",
+        "feature6": "Leichtgewichtiges Händler-Dashboard"
+      }
     }
   }
 }
