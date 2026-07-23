@@ -627,7 +627,9 @@
       "tryGlasses": "Virtual Glasses Try-On",
       "frameCompare": "Frame Compare",
       "moreTryOn": "More Try-On",
-      "faceShapeGuide": "Face Shape Guide"
+      "faceShapeGuide": "Face Shape Guide",
+      "styleExplorer": "Style Explorer",
+      "storeForBusinesses": "Store for Businesses"
     },
     "copyright": "© {year} VisuTry. All rights reserved.",
     "madeWith": "Made with ❤️ using AI technology",

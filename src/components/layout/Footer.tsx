@@ -79,7 +79,7 @@ export function Footer() {
               </li>
               <li>
                 <Link href={`/${locale}/style-explorer`} className="text-gray-600 hover:text-blue-600 text-sm transition-colors">
-                  Style Explorer
+                  {t('links.styleExplorer')}
                 </Link>
               </li>
               <li>
@@ -133,7 +133,7 @@ export function Footer() {
               </li>
               <li>
                 <Link href={`/${locale}/store`} className="text-gray-600 hover:text-blue-600 text-sm transition-colors">
-                  Store for Businesses
+                  {t('links.storeForBusinesses')}
                 </Link>
               </li>
               <li>
