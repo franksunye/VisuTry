@@ -95,7 +95,7 @@ export default async function LocaleLayout(props: Props) {
       <body className={`${inter.variable} ${notoSansArabic.variable}`} suppressHydrationWarning>
         <SessionProvider>
           {gtmId && <GoogleTagManager gtmId={gtmId} />}
-          {gaId && <GoogleAnalytics gaId={gaId} />}
+          {gaId && <GoogleAnalytics gaId={gaId} locale={locale} />}
           <NextIntlClientProvider messages={messages}>{children}</NextIntlClientProvider>
         </SessionProvider>
       </body>

@@ -6,16 +6,18 @@ import { setLanguageUserProperties } from '@/lib/analytics'
 
 interface GoogleAnalyticsProps {
   gaId: string
+  locale?: string
 }
 
-export function GoogleAnalytics({ gaId }: GoogleAnalyticsProps) {
-  // Set language user properties after gtag loads
+export function GoogleAnalytics({ gaId, locale }: GoogleAnalyticsProps) {
+  // Set language user properties after gtag loads and on locale changes.
   // The inline script below handles the initial load;
-  // this useEffect is a safety net for client-side locale switches
+  // this useEffect re-syncs user_properties when the user switches locale
+  // (e.g. navigating from /en to /ar), keeping audience segmentation accurate.
   useEffect(() => {
     if (!gaId) return
     setLanguageUserProperties()
-  }, [gaId])
+  }, [gaId, locale])
 
   if (!gaId) {
     return null
