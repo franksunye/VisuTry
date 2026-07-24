@@ -1,7 +1,7 @@
 # VisuTry Project Architecture & Features
 
 **Status:** Active source of truth for current technical reality  
-**Last reviewed:** 2026-07-22  
+**Last reviewed:** 2026-07-24
 **Owner:** Engineering  
 **Review cadence:** Monthly, or before major product architecture work  
 **Scope:** Current VisuTry technical stack, rendering strategy, session data flow, implemented capabilities, core data model, APIs, pages, components, and workflows.  
@@ -130,8 +130,10 @@ The JWT callback (`callbacks.jwt`) is the single point where user data is synced
 
 1. **On login** (`user` object present): Reads the full user record from DB, populates token fields
 2. **On `trigger === 'update'`**: Rate-limited to once per 30 seconds (`lastSyncTime` in token). Reads user from DB to catch subscription/quota changes
-3. **Periodically**: Every 15 minutes (`tokenAge > 15 * 60 * 1000`) — catches subscription changes
+3. **Periodically**: Every 15 minutes from the last successful database sync (`lastSyncTime`) — catches subscription changes
 4. **On first token** (`isPremium === undefined`): Initializes token with DB data
+
+Failed JWT database syncs retain the last valid token fields and record `lastSyncAttemptTime`; retries observe a 60-second cooldown so a Neon outage cannot make every authenticated request retry immediately. Sync telemetry records one of `first-login`, `missing-data`, `manual-update`, or `periodic`.
 
 ### Token Fields
 
@@ -143,6 +145,7 @@ The JWT token carries these user fields (synced from DB):
 - `creditsPurchased`, `creditsUsed`
 - `freeTrialsUsed`, `premiumUsageCount`
 - `lastSyncTime` (for rate-limiting `update` triggers)
+- `lastSyncAttemptTime` (for failed-sync retry cooldown)
 
 ### Session Callback (`callbacks.session`)
 
@@ -184,6 +187,7 @@ VisuTry uses `@prisma/adapter-neon` which connects over **HTTP**, not persistent
    - `type`: `GLASSES`, `OUTFIT`, `SHOES`, `ACCESSORIES`
    - `userImageUrl`, `itemImageUrl`, `glassesImageUrl` (backward compat), `resultImageUrl`
    - `status`: `PENDING`, `PROCESSING`, `COMPLETED`, `FAILED`
+   - `quotaSettledAt`, `quotaSource`: durable exactly-once quota settlement state for successful Try-On tasks
    - `prompt`, `metadata`: AI generation details
    - `expiresAt`: Data retention expiry
    - Indexes optimized for: user+type queries, dashboard recent tasks, dashboard stats, expiry cleanup
@@ -309,7 +313,7 @@ src/components/
 ## Core Workflows
 
 - **Authentication**: User signs in via Auth0 / NextAuth.js → JWT token created → user data synced from DB to token → `useSession()` provides session on client
-- **Try-On**: User uploads images → API creates a `TryOnTask` → Gemini AI processes → result saved to Vercel Blob → `session.update()` refreshes quota → history updated
+- **Try-On**: User uploads images → API creates a `TryOnTask` → Gemini/GrsAi processes → result saved to Vercel Blob → a serializable transaction settles task quota exactly once → `session.update()` refreshes quota → history updated
 - **Payment / Credits**: User selects a paid option → Stripe Checkout → Stripe webhook updates DB (credits, entitlement) → `session.update()` syncs token
 - **Face Analysis**: Free detector runs client-side (MediaPipe). Paid deeper analysis uses server-side VLM flow.
 - **Sharing**: Completed try-on results exposed through `/share/[id]` surfaces.

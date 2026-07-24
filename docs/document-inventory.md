@@ -2,7 +2,7 @@
 
 **Status:** Active operating plan  
 **Created:** 2026-07-08  
-**Last updated:** 2026-07-22  
+**Last updated:** 2026-07-24
 **Owner:** Product / Engineering  
 **Review cadence:** Weekly during cleanup, monthly after stabilization  
 **Scope:** Document status, ownership, current role, and cleanup actions.
@@ -53,7 +53,7 @@ It should answer:
 | `docs/product/product-plan.md` | Product execution plan | Active source of truth | Product | 2026-07-08 | Now prioritizes Store landing page validation before full Store engineering. |
 | `docs/project/architecture.md` | Technical architecture | Active source of truth for current technical reality | Engineering | 2026-07-22 | Rewritten with rendering strategy, session data flow, Neon driver, corrected schema. |
 | `docs/guides/development-guide.md` | Development guide | Active operating guide | Engineering | 2026-07-08 | Refreshed against `.env.example` and `package.json`. |
-| `docs/project/vercel-cpu-governance-spec.md` | CPU governance spec | Active operating plan | Engineering | 2026-07-22 | Updated verified facts: all public pages now SSG, root layout session removed, backlog statuses updated. |
+| `docs/project/vercel-cpu-governance-spec.md` | CPU governance spec | Active operating plan | Engineering | 2026-07-24 | Tracks AP-1 through AP-5 authentication/polling stability work, delivery order, acceptance criteria, and rollback gates. |
 | `docs/operations/vercel-cpu-static-page-pilot.md` | Static page pilot | Active operating plan | Engineering | 2026-07-22 | Updated: Phase 4 (ADR-005) added, excluded pages status corrected. |
 | `docs/project/engineering-optimization-plan.md` | Engineering optimization plan | Active operating plan | Engineering | 2026-07-22 | Three-axis audit (dependencies, architecture, performance). 31 items: 5 P0, 14 P1, 12 P2. Implementation ordered in 7 batches. |
 | `docs/project/seo-backlog.md` | SEO / growth backlog | Active operating plan | Growth / Product | 2026-07-08 | Keep as SEO/Growth execution backlog. |
@@ -171,3 +171,4 @@ During each documentation review, answer:
 | 2026-07-08 | Updated inventory after adding ADR-003, ADR-004, execution board, and Store MVP validation-ready status. |
 | 2026-07-08 | Added Store landing page validation spec and aligned product plan / Store MVP sequence around landing-page-first validation. |
 | 2026-07-22 | Major update: Added ADR-005, updated architecture.md (rendering strategy, session data flow, Neon driver, corrected schema), rewrote AGENT.md, updated cpu-governance-spec.md and static-page-pilot.md verified facts, added new source files inventory section. |
+| 2026-07-24 | Updated the CPU governance inventory entry for the AP-1 through AP-5 authentication/polling stability backlog. |

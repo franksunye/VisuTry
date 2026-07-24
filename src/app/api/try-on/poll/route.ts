@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { requireAuth } from "@/lib/api-auth"
 import { prisma } from "@/lib/prisma"
 import { getRequestContext, logger } from "@/lib/logger"
-import { deductUserQuota } from "@/lib/quota"
+import { settleTryOnTaskQuota } from "@/lib/quota"
 import { getTryOnResult } from "@/lib/tryon-service"
 
 export const dynamic = 'force-dynamic'
@@ -50,10 +50,10 @@ export async function POST(request: NextRequest) {
     // 4. Get/Poll Result
     const result = await getTryOnResult(taskId)
 
-    // 5. Handle Quota Deduction (Atomic)
-    if (result.status === 'COMPLETED' && result.isNewCompletion) {
-      console.log(`✅ [Task ${taskId}] Async task completed, deducting quota...`)
-      await deductUserQuota(userId, ctx)
+    // Settle every completed response idempotently so a transient failure is
+    // recoverable on the next poll.
+    if (result.status === 'COMPLETED') {
+      await settleTryOnTaskQuota(taskId, userId, ctx)
     }
 
     return NextResponse.json({

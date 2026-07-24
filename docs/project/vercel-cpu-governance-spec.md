@@ -3,7 +3,7 @@
 **Status:** Active operating plan  
 **Owner:** Engineering  
 **Created:** 2026-07-21  
-**Last updated:** 2026-07-22  
+**Last updated:** 2026-07-24
 **Review cadence:** Weekly while Vercel Hobby CPU remains constrained; monthly after stabilization  
 **Scope:** Runtime CPU governance for the current Next.js application on Vercel. This specification does not authorize a platform migration, database replacement, authentication rewrite, payment rewrite, or product behavior change.  
 **Related source-of-truth documents:** `docs/project/architecture.md`, `docs/decisions/ADR-005-ssr-to-client-gate.md`, `docs/guides/development-guide.md`, `docs/product/product-plan.md`
@@ -522,8 +522,13 @@ Because traffic varies, compare equivalent windows where possible and avoid clai
 | P0 | Store landing static rendering | C | Very low | Low/medium | Deployed |
 | P1 | One stable blog article static pilot | B | Low | Medium | Deployed (oliver-peoples-finley-vintage-review) |
 | P1 | Blog article route inventory | B | Low | Enables medium/high benefit | Deployed (all blog articles + index + tags) |
-| P1 | Polling request count per try-on/compare task | F | Low measurement risk | Potentially high | Audit first |
-| P1 | Session request duplication audit | E | Low measurement risk | Medium | Deployed (JWT update rate-limited to 30s, redundant prisma queries removed) |
+| P1 | Polling request count per try-on/compare task | F | Low measurement risk | Potentially high | Superseded by AP-1 and AP-5 below |
+| P1 | Session request duplication audit | E | Low measurement risk | Medium | Initial work deployed; follow-up AP-3 below |
+| P0 | AP-1: Serialize single-task Try-On polling without changing cadence or timeout | F | Low | High during active jobs | Implemented; pending deploy and production verification |
+| P1 | AP-2: Gate pending-task recovery by authenticated session and Try-On type | E/F | Low | Low/medium; removes invalid calls and cross-type recovery | Implemented; pending deploy and production verification |
+| P1 | AP-3: Base periodic JWT data sync on `lastSyncTime`, with sync-reason telemetry and failure cooldown | E | Low/medium | Correct session freshness; CPU effect must be measured | Implemented; pending deploy and production verification |
+| P0 | AP-4: Make task completion and quota settlement durable and idempotent across poll, retry, and cron paths | H/I | Medium | Critical data-integrity protection | Implemented with additive migration; pending deploy and reconciliation |
+| P2 | AP-5: Add bounded polling backoff and hidden-tab low-frequency mode | F | Medium | High invocation reduction for long-running jobs | Blocked by AP-1/AP-4 production baselines |
 | P2 | Face Shape Detector initial route rendering audit | C | Medium | Medium/high | Deployed (SSG, client-side MediaPipe) |
 | P2 | Style Explorer initial route rendering audit | C | Medium | Medium/high | Deployed (SSG + StyleExplorerGate) |
 | P2 | Try-on and Compare static-shell audit | C | Medium | High | Deployed (SSG + TryOnGate/ComparePageClient) |
@@ -539,6 +544,146 @@ Because traffic varies, compare equivalent windows where possible and avoid clai
 | P3 | Server bundle dependency analysis | L | Medium | Medium | Not started |
 | P4 | Shared locale/layout optimization | D | Medium/high | Medium across site | Deployed (setRequestLocale + root layout fix) |
 | P4 | AI request-processing optimization | H | High | Medium/high | Deferred until instrumented |
+
+### 11.1 Authentication and polling stability plan
+
+#### Decision summary
+
+All five AP items are recommended, but they must not ship as one change. The required delivery order is:
+
+1. AP-1 serial polling;
+2. AP-2 authenticated, type-aware recovery;
+3. AP-3 JWT synchronization semantics and observability;
+4. AP-4 durable, idempotent quota settlement;
+5. AP-5 bounded backoff and visibility-aware polling.
+
+This sequence removes proven request amplification while preserving current user-visible behavior first, then establishes the data-integrity invariant required before polling frequency is reduced further.
+
+#### AP-1 — Serialize polling while preserving behavior
+
+**Implementation boundary**
+
+- Replace the async `setInterval` in `TryOnInterface` with a recursive `setTimeout` or equivalent single-flight loop.
+- Keep the initial delay and active interval at 3 seconds.
+- Preserve the five-minute wall-clock deadline using an absolute deadline, not a count of 100 completed requests.
+- Cancel the timer and abort the active request when the effect is cleaned up or the task changes.
+- Do not change the poll API contract, task statuses, completion handling, quota handling, or UI copy in this item.
+
+**Acceptance criteria**
+
+- At most one `/api/try-on/poll` request is in flight for a task in one browser tab.
+- `COMPLETED` and `FAILED` still stop polling and produce the same UI state.
+- A task that does not terminate still times out after approximately five minutes of wall-clock time.
+- Refresh/recovery continues to work.
+- Tests cover slow responses longer than three seconds, cleanup, terminal states, and deadline behavior.
+
+**Rollback condition:** Any increase in missed completions, stuck processing UI, duplicate result handling, or recovery failures.
+
+#### AP-2 — Make pending-task recovery authenticated and type-aware
+
+**Implementation boundary**
+
+- Wait until `useSession()` reports `authenticated` before calling `/api/try-on/pending-tasks`.
+- Pass the current `TryOnType` and filter by both `userId` and `type` in the API query.
+- Preserve recovery for authenticated users who have a matching recent pending task.
+- Do not add a localStorage marker in this item; that is a separate optional optimization after recovery metrics exist.
+
+**Acceptance criteria**
+
+- Anonymous and session-loading page visits do not call the recovery API.
+- A Glasses page cannot recover an Outfit, Shoes, or Accessories task.
+- A matching task created within the existing recovery window is still restored.
+
+**Rollback condition:** Authenticated users can no longer recover a matching in-progress task.
+
+#### AP-3 — Correct JWT periodic synchronization semantics
+
+**Implementation boundary**
+
+- Use elapsed time since `lastSyncTime` for periodic database synchronization instead of treating JWT `iat` as the last database synchronization time.
+- Preserve first-login sync, missing-token-data sync, and the existing 30-second rate limit for explicit `session.update()` requests.
+- Record a bounded `lastSyncAttemptTime` or equivalent failure cooldown so a Neon outage cannot cause every authenticated request to retry immediately.
+- Record a low-cardinality sync reason: `first-login`, `missing-data`, `manual-update`, or `periodic`.
+- Do not move session reads into the server root layout or replace NextAuth/Auth0.
+
+**Acceptance criteria**
+
+- Normal authenticated requests within the sync window do not query the user table from the JWT callback.
+- Explicit updates refresh quota/session data subject to the existing cooldown.
+- Periodic sync occurs from the last successful database sync, not JWT issuance time.
+- A failed database sync retains the last valid token data and observes the retry cooldown.
+- Tests cover first login, missing legacy token fields, manual update, interval boundaries, and database failure.
+
+**Measurement note:** This is primarily a correctness fix. Because NextAuth reissues JWTs with a new `iat`, its net database/CPU effect must be measured rather than assumed.
+
+**Rollback condition:** Login/session failures, stale quota after explicit update, increased auth error rate, or an unexpected sustained increase in JWT database synchronization.
+
+#### AP-4 — Make quota settlement durable and idempotent
+
+**Implementation boundary**
+
+- Add an additive persisted settlement marker such as `quotaDeductedAt`, or introduce an append-only usage ledger with a unique task key.
+- Use a transaction or compare-and-set operation so only one caller obtains the right to settle a completed task.
+- Route browser polling, retries, and cron/background completion through the same settlement operation.
+- Make a failed deduction safely retryable; do not leave a permanently completed-but-unsettled task.
+- Preserve the existing quota-source priority and never charge failed tasks.
+
+**Acceptance criteria**
+
+- One successful task consumes exactly one quota unit under concurrent polls.
+- Repeated poll, retry, cron, and recovery calls do not consume additional quota.
+- A transient database error between task completion and settlement can be retried to convergence.
+- Failed tasks consume zero quota.
+- Reconciliation can identify completed-but-unsettled tasks.
+
+**Rollout rule:** Use an additive migration. Deploy code that understands both unsettled legacy rows and newly settled rows before relying on the marker for enforcement.
+
+**Rollback condition:** Any duplicate charge, missed charge without recoverability, quota-source change, or transaction-related completion failure.
+
+#### AP-5 — Add bounded backoff and visibility-aware polling
+
+**Prerequisites:** AP-4 is deployed and reconciles correctly; AP-1 request-count and completion-latency baselines are available.
+
+**Initial policy for validation**
+
+- 0–30 seconds: 3-second interval.
+- 30–90 seconds: 5-second interval.
+- After 90 seconds: 10-second interval.
+- Hidden tab: poll at a low frequency such as 30 seconds rather than fully pausing in the first release.
+- Returning to visible or online state triggers one immediate single-flight poll.
+- Preserve the existing five-minute foreground timeout and recovery path.
+
+**Acceptance criteria**
+
+- Median and p95 poll requests per completed long-running task decrease materially.
+- Completion-detection latency remains within the approved product tolerance.
+- Terminal states, refresh/recovery, offline/online transitions, and hidden/visible transitions work.
+- 403 and 404 terminate polling; 429, 5xx, and network failures use bounded retries within the workflow deadline. A 401 receives at most one session recovery attempt before stopping.
+
+**Rollback condition:** Increased workflow failure/abandonment, unacceptable completion-display delay, recovery regressions, or quota reconciliation drift.
+
+### 11.2 Delivery, measurement, and release gates
+
+Each AP item must be a separate commit and preferably a separate pull request, except AP-1 and AP-2 may share one release if their changes remain independently reviewable.
+
+Before AP-1, capture a baseline for:
+
+- poll requests per completed task;
+- workflows with overlapping poll requests;
+- poll route p50/p95 latency and timeout/error rate;
+- completion success rate and completion-detection latency;
+- JWT database sync count grouped by trigger/reason where available;
+- completed tasks with no corresponding quota consumption, if currently measurable.
+
+For every release:
+
+1. run focused unit/integration tests and the normal build/type checks;
+2. deploy only one behavior-changing wave;
+3. verify a free user, credits user, and premium user success path where applicable;
+4. verify failure, refresh/recovery, and slow-provider paths;
+5. observe production for a representative completed-workflow sample before starting the next wave;
+6. compare equivalent traffic windows and workflow-level request counts, not only total daily CPU;
+7. roll back the application change when a rollback condition is met; keep additive schema changes in place unless a separate safe migration is approved.
 
 ---
 
@@ -570,3 +715,12 @@ Engineering should proceed to the next page or category only when the previous b
 5. the next change does not materially enlarge the blast radius without new evidence.
 
 The intended pace is deliberately incremental. A one-page improvement is valid progress when it is safe, measurable, and repeatable.
+
+---
+
+## 14. Change Log
+
+| Date | Change |
+| --- | --- |
+| 2026-07-24 | Added AP-1 through AP-5 authentication/polling stability backlog, delivery sequence, acceptance criteria, measurement gates, and rollback conditions. |
+| 2026-07-24 | Implemented AP-1 through AP-4 with focused tests; AP-5 remains gated on production baselines and quota reconciliation. |

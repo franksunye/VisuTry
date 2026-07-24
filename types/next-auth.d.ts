@@ -48,6 +48,7 @@ declare module "next-auth/jwt" {
     isPremiumActive?: boolean
     remainingTrials?: number
     subscriptionType?: string | null
+    lastSyncTime?: number
+    lastSyncAttemptTime?: number
   }
 }
-

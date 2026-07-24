@@ -4,6 +4,7 @@ import { prisma } from '@/lib/prisma';
 import { getTryOnResult } from '@/lib/tryon-service';
 import { TaskStatus } from '@prisma/client';
 import { logger, getRequestContext } from '@/lib/logger';
+import { settleTryOnTaskQuota } from '@/lib/quota';
 
 // Force dynamic rendering for this route
 export const dynamic = 'force-dynamic'
@@ -76,9 +77,12 @@ export async function POST(
 
         // 3. Check if task is eligible for result fetching
         if (task.status === TaskStatus.COMPLETED) {
+            const settlement = await settleTryOnTaskQuota(taskId, task.userId, ctx);
             logger.info('api', `[Admin Fetch Result] Task already completed, skipping`, {
                 taskId,
                 status: task.status,
+                quotaSettled: settlement.settled,
+                quotaAlreadySettled: settlement.alreadySettled,
             });
             return NextResponse.json({
                 success: true,
@@ -127,6 +131,9 @@ export async function POST(
         // 5. Call getTryOnResult to poll and update the task
         const pollStartTime = Date.now();
         const result = await getTryOnResult(taskId);
+        if (result.status === TaskStatus.COMPLETED) {
+            await settleTryOnTaskQuota(taskId, task.userId, ctx);
+        }
         const pollDuration = Date.now() - pollStartTime;
 
         logger.info('grsai', `[Admin Fetch Result] GrsAi polling completed`, {

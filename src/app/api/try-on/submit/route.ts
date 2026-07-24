@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { requireAuthWithUser } from "@/lib/api-auth"
 import { getRequestContext, logger } from "@/lib/logger"
-import { checkUserQuota, deductUserQuota } from "@/lib/quota"
+import { checkUserQuota, settleTryOnTaskQuota } from "@/lib/quota"
 import { submitTryOnTask } from "@/lib/tryon-service"
 import { TryOnType, isValidTryOnType } from "@/config/try-on-types"
 import { createHash } from "node:crypto"
@@ -126,8 +126,7 @@ export async function POST(request: NextRequest) {
 
     // 5. Handle Synchronous Completion (e.g. Gemini Premium)
     if (result.status === 'completed') {
-      // Deduct quota immediately for synchronous success
-      await deductUserQuota(userId, ctx)
+      await settleTryOnTaskQuota(result.taskId, userId, ctx)
     }
 
     return NextResponse.json({

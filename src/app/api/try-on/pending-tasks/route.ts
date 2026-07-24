@@ -3,6 +3,7 @@ import { requireAuth } from "@/lib/api-auth"
 import { prisma } from "@/lib/prisma"
 import { getRequestContext, logger } from "@/lib/logger"
 import { TaskStatus } from "@prisma/client"
+import { isValidTryOnType } from "@/config/try-on-types"
 
 export const dynamic = 'force-dynamic'
 
@@ -14,6 +15,14 @@ export async function GET(request: NextRequest) {
     if (!auth.ok) return auth.response
 
     const userId = auth.userId
+
+    const type = request.nextUrl.searchParams.get('type')?.toUpperCase()
+    if (!type || !isValidTryOnType(type)) {
+      return NextResponse.json(
+        { success: false, error: "A valid Try-On type is required" },
+        { status: 400 }
+      )
+    }
 
     // 2. Find latest task that is still processing
     // Logic:
@@ -28,6 +37,7 @@ export async function GET(request: NextRequest) {
     const pendingTask = await prisma.tryOnTask.findFirst({
       where: {
         userId: userId,
+        type,
         status: {
           in: [TaskStatus.PENDING, TaskStatus.PROCESSING]
         },

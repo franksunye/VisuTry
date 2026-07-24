@@ -1,10 +1,21 @@
 import { prisma } from "@/lib/prisma"
 import { QUOTA_CONFIG } from "@/config/pricing"
-import { User } from "@prisma/client"
+import { Prisma, TaskStatus, User } from "@prisma/client"
 import { logger } from "@/lib/logger"
 import { revalidateTag } from "next/cache"
 
 export type QuotaSource = "subscription" | "credit" | "free_trial"
+
+interface QuotaDeductionResult {
+  source: QuotaSource | null
+  remaining?: number
+}
+
+export interface TryOnQuotaSettlementResult {
+  settled: boolean
+  alreadySettled: boolean
+  source: QuotaSource | null
+}
 
 export function getRemainingQuotaCount(user: User): number {
   const isPremiumActive =
@@ -96,72 +107,158 @@ export function checkUserQuota(user: User): { allowed: boolean; reason?: string 
   return { allowed: true }
 }
 
-/**
- * Deduct quota from user after successful task
- */
-export async function deductUserQuota(userId: string, ctx?: any): Promise<void> {
-  const user = await prisma.user.findUnique({ where: { id: userId } })
-  if (!user) return
+type QuotaClient = Prisma.TransactionClient | typeof prisma
 
-  const isPremiumActive =
-    user.isPremium && (!user.premiumExpiresAt || user.premiumExpiresAt > new Date())
+async function applyQuotaDeduction(
+  client: QuotaClient,
+  userId: string,
+): Promise<QuotaDeductionResult> {
+  const user = await client.user.findUnique({ where: { id: userId } })
+  if (!user) return { source: null }
 
-  if (!isPremiumActive) {
-    // 免费用户：优先消费 credits，如果没有 credits 则消费免费试用
-    const creditsRemaining = (user.creditsPurchased || 0) - (user.creditsUsed || 0)
-    const hasCredits = creditsRemaining > 0
-
-    if (hasCredits) {
-      // 有 credits：增加已使用计数
-      await prisma.user.update({
-        where: { id: userId },
-        data: { creditsUsed: { increment: 1 } },
-      })
-      logger.info("quota", "User consumed credit", { userId, remaining: creditsRemaining - 1 }, ctx)
-    } else {
-      // 没有 credits：使用免费试用
-      await prisma.user.update({
-        where: { id: userId },
-        data: { freeTrialsUsed: { increment: 1 } },
-      })
-      logger.info(
-        "quota",
-        "User used free trial",
-        { userId, trialsUsed: user.freeTrialsUsed + 1 },
-        ctx
-      )
-    }
-  } else {
-    // Premium用户：优先使用订阅配额，然后使用 credits
-    const quota =
-      user.currentSubscriptionType === "PREMIUM_YEARLY"
-        ? QUOTA_CONFIG.YEARLY_SUBSCRIPTION
-        : QUOTA_CONFIG.MONTHLY_SUBSCRIPTION
-    const subscriptionRemaining = Math.max(0, quota - (user.premiumUsageCount || 0))
-    const creditsRemaining = (user.creditsPurchased || 0) - (user.creditsUsed || 0)
-
-    if (subscriptionRemaining > 0) {
-      // 有订阅配额：增加 premiumUsageCount
-      await prisma.user.update({
-        where: { id: userId },
-        data: { premiumUsageCount: { increment: 1 } },
-      })
-      logger.info(
-        "quota",
-        "Premium user used subscription quota",
-        { userId, remaining: subscriptionRemaining - 1 },
-        ctx
-      )
-    } else if (creditsRemaining > 0) {
-      // 订阅配额用完，使用 credits
-      await prisma.user.update({
-        where: { id: userId },
-        data: { creditsUsed: { increment: 1 } },
-      })
-      logger.info("quota", "Premium user used credit", { userId, remaining: creditsRemaining - 1 }, ctx)
+  const source = getNextQuotaSource(user)
+  if (source === "credit") {
+    await client.user.update({
+      where: { id: userId },
+      data: { creditsUsed: { increment: 1 } },
+    })
+    return {
+      source,
+      remaining: Math.max(0, user.creditsPurchased - user.creditsUsed - 1),
     }
   }
 
-  // Clear cache
+  if (source === "free_trial") {
+    await client.user.update({
+      where: { id: userId },
+      data: { freeTrialsUsed: { increment: 1 } },
+    })
+    return {
+      source,
+      remaining: Math.max(0, QUOTA_CONFIG.FREE_TRIAL - user.freeTrialsUsed - 1),
+    }
+  }
+
+  if (source === "subscription") {
+    const quota = user.currentSubscriptionType === "PREMIUM_YEARLY"
+      ? QUOTA_CONFIG.YEARLY_SUBSCRIPTION
+      : QUOTA_CONFIG.MONTHLY_SUBSCRIPTION
+    await client.user.update({
+      where: { id: userId },
+      data: { premiumUsageCount: { increment: 1 } },
+    })
+    return {
+      source,
+      remaining: Math.max(0, quota - user.premiumUsageCount - 1),
+    }
+  }
+
+  return { source: null }
+}
+
+function logQuotaDeduction(
+  userId: string,
+  result: QuotaDeductionResult,
+  ctx?: unknown,
+) {
+  if (result.source === "credit") {
+    logger.info("quota", "User consumed credit", { userId, remaining: result.remaining }, ctx)
+  } else if (result.source === "free_trial") {
+    logger.info("quota", "User used free trial", { userId, remaining: result.remaining }, ctx)
+  } else if (result.source === "subscription") {
+    logger.info("quota", "Premium user used subscription quota", { userId, remaining: result.remaining }, ctx)
+  } else {
+    logger.warn("quota", "Quota settlement found no available quota source", { userId }, ctx)
+  }
+}
+
+/**
+ * Deduct quota from user after a successful non-Try-On workflow.
+ */
+export async function deductUserQuota(userId: string, ctx?: unknown): Promise<void> {
+  const result = await applyQuotaDeduction(prisma, userId)
+  logQuotaDeduction(userId, result, ctx)
   revalidateTag(`user-${userId}`)
+}
+
+/**
+ * Settle one completed Try-On task exactly once. The task marker and user quota
+ * counter update commit in the same serializable transaction. Transaction
+ * conflicts are retried because concurrent poll/cron callers are expected.
+ */
+export async function settleTryOnTaskQuota(
+  taskId: string,
+  userId: string,
+  ctx?: unknown,
+): Promise<TryOnQuotaSettlementResult> {
+  const maxAttempts = 3
+
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    try {
+      const transactionResult = await prisma.$transaction(async (tx) => {
+        const claim = await tx.tryOnTask.updateMany({
+          where: {
+            id: taskId,
+            userId,
+            status: TaskStatus.COMPLETED,
+            quotaSettledAt: null,
+          },
+          data: { quotaSettledAt: new Date() },
+        })
+
+        if (claim.count === 0) {
+          const task = await tx.tryOnTask.findUnique({
+            where: { id: taskId },
+            select: { userId: true, status: true, quotaSettledAt: true, quotaSource: true },
+          })
+          if (!task || task.userId !== userId) {
+            throw new Error("Try-On task not found for quota settlement")
+          }
+          if (task.status !== TaskStatus.COMPLETED) {
+            throw new Error("Try-On task must be completed before quota settlement")
+          }
+          if (!task.quotaSettledAt) {
+            throw new Error("Try-On quota settlement could not be claimed")
+          }
+          return {
+            settled: false,
+            alreadySettled: true,
+            source: task.quotaSource as QuotaSource | null,
+            deduction: null,
+          }
+        }
+
+        const deduction = await applyQuotaDeduction(tx, userId)
+        await tx.tryOnTask.update({
+          where: { id: taskId },
+          data: { quotaSource: deduction.source },
+        })
+
+        return {
+          settled: true,
+          alreadySettled: false,
+          source: deduction.source,
+          deduction,
+        }
+      }, {
+        isolationLevel: Prisma.TransactionIsolationLevel.Serializable,
+      })
+
+      if (transactionResult.settled && transactionResult.deduction) {
+        logQuotaDeduction(userId, transactionResult.deduction, ctx)
+        revalidateTag(`user-${userId}`)
+      }
+
+      return {
+        settled: transactionResult.settled,
+        alreadySettled: transactionResult.alreadySettled,
+        source: transactionResult.source,
+      }
+    } catch (error) {
+      const isWriteConflict = (error as { code?: string })?.code === 'P2034'
+      if (!isWriteConflict || attempt === maxAttempts) throw error
+    }
+  }
+
+  throw new Error("Try-On quota settlement retry limit exceeded")
 }

@@ -102,6 +102,8 @@ model TryOnTask {
   // Task status
   status      TaskStatus @default(PENDING)
   errorMessage String?
+  quotaSettledAt DateTime? // Successful task quota was settled exactly once
+  quotaSource    String?   // subscription | credit | free_trial
 
   // Metadata
   prompt      String?
@@ -121,6 +123,7 @@ model TryOnTask {
   @@index([userId, type, createdAt(sort: Desc)]) // Optimized type queries
   @@index([userId, createdAt(sort: Desc)])       // Optimize dashboard recent tasks query
   @@index([userId, status])                      // Optimize dashboard stats query
+  @@index([status, quotaSettledAt])               // Reconcile completed but unsettled tasks
   @@index([expiresAt])                           // Index for expiry cleanup cron
 }
 

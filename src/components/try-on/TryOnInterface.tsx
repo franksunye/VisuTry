@@ -16,6 +16,7 @@ import { logger } from "@/lib/logger"
 import { cn } from "@/utils/cn"
 import { localizedPath } from "@/lib/localized-path"
 import { useQuota } from "@/hooks/useQuota"
+import { useTryOnTaskPolling } from "@/hooks/useTryOnTaskPolling"
 
 interface ErrorState {
   message: string
@@ -31,7 +32,7 @@ export function TryOnInterface({ type = 'GLASSES' }: TryOnInterfaceProps) {
   const config = getTryOnConfig(type)
   const params = useParams()
   const locale = (params.locale as string) || 'en'
-  const { data: session, update } = useSession()
+  const { data: session, status: sessionStatus, update } = useSession()
   const quota = useQuota()
   const [userImage, setUserImage] = useState<{ file: File; preview: string } | null>(null)
   const [itemImage, setItemImage] = useState<{ file: File; preview: string } | null>(null)
@@ -88,94 +89,63 @@ export function TryOnInterface({ type = 'GLASSES' }: TryOnInterfaceProps) {
   const faceAnalysisHref = localizedPath(locale, '/face-analysis')
   const pricingHref = localizedPath(locale, '/pricing')
 
-  // Poll task status
-  useEffect(() => {
-    if (!currentTaskId || !isProcessing) return
+  useTryOnTaskPolling({
+    taskId: currentTaskId,
+    enabled: isProcessing,
+    onCompleted: (task) => {
+      if (!currentTaskId || !task.resultImageUrl) return
+      setResult({ imageUrl: task.resultImageUrl, taskId: currentTaskId })
+      setCurrentStep("result")
+      setIsProcessing(false)
+      setCurrentTaskId(null)
 
-    let pollCount = 0
-    const maxPolls = 100 // 5 minutes at 3s interval (safety timeout)
-
-    const pollInterval = setInterval(async () => {
-      pollCount++
-      
-      // Safety timeout check
-      if (pollCount > maxPolls) {
-        clearInterval(pollInterval)
-        setIsProcessing(false)
-        setCurrentTaskId(null)
-        setError({
-          message: "Processing timed out. Please try again.",
-          type: 'generic'
-        })
-        return
-      }
-
-      try {
-        // Use the new polling endpoint
-        const response = await fetch('/api/try-on/poll', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({ taskId: currentTaskId })
-        })
-        
-        const data = await response.json()
-
-        if (data.success) {
-          const task = data.data
-
-          if (task.status === "COMPLETED" && task.resultImageUrl) {
-            setResult({
-              imageUrl: task.resultImageUrl,
-              taskId: currentTaskId
-            })
-            setCurrentStep("result")
-            setIsProcessing(false)
-            setCurrentTaskId(null)
-            clearInterval(pollInterval)
-
-            // 🔥 关键修复：Try-on完成后刷新session，确保显示最新的使用次数和credits余额
-            console.log('✅ Try-on completed: Refreshing session to update usage count...')
-            logger.info('general', 'Try-on completed, refreshing session')
-            update().catch((error) => {
-              const err = error instanceof Error ? error : new Error(String(error))
-              console.error('❌ Failed to refresh session after try-on:', error)
-              logger.error('general', 'Failed to refresh session after try-on', err)
-            })
-          } else if (task.status === "FAILED") {
-            // Fix: Ensure error message is extracted correctly
-            const errorMsg = task.error || task.errorMessage || "Processing failed, please try again"
-            setError({
-              message: errorMsg,
-              type: 'generic'
-            })
-            setCurrentStep("select")
-            setIsProcessing(false)
-            setCurrentTaskId(null)
-            clearInterval(pollInterval)
-          } else if (task.status === "PROCESSING" || task.status === "PENDING") {
-            // Update progress if available
-            if (task.progress) {
-              setProcessingMessage(`Processing... ${task.progress}%`)
-            }
-          }
-        }
-      } catch (error) {
+      console.log('✅ Try-on completed: Refreshing session to update usage count...')
+      logger.info('general', 'Try-on completed, refreshing session')
+      update().catch((error) => {
         const err = error instanceof Error ? error : new Error(String(error))
-        console.error("Failed to check task status:", error)
-        logger.error('general', 'Failed to check task status', err)
+        console.error('❌ Failed to refresh session after try-on:', error)
+        logger.error('general', 'Failed to refresh session after try-on', err)
+      })
+    },
+    onFailed: (task) => {
+      setError({
+        message: task.error || task.errorMessage || "Processing failed, please try again",
+        type: 'generic'
+      })
+      setCurrentStep("select")
+      setIsProcessing(false)
+      setCurrentTaskId(null)
+    },
+    onProgress: (task) => {
+      if (task.progress !== undefined) {
+        setProcessingMessage(`Processing... ${task.progress}%`)
       }
-    }, 3000) // Check every 3 seconds to avoid hitting rate limits
-
-    return () => clearInterval(pollInterval)
-  }, [currentTaskId, isProcessing])
+    },
+    onTimeout: () => {
+      setIsProcessing(false)
+      setCurrentTaskId(null)
+      setError({
+        message: "Processing timed out. Please try again.",
+        type: 'generic'
+      })
+    },
+    onError: (error) => {
+      const err = error instanceof Error ? error : new Error(String(error))
+      console.error("Failed to check task status:", error)
+      logger.error('general', 'Failed to check task status', err)
+    },
+  })
 
   // Check for pending tasks on mount (Recovery)
   useEffect(() => {
+    if (sessionStatus !== 'authenticated') return
+
+    const controller = new AbortController()
     const checkPendingTasks = async () => {
       try {
-        const response = await fetch('/api/try-on/pending-tasks')
+        const response = await fetch(`/api/try-on/pending-tasks?type=${encodeURIComponent(type)}`, {
+          signal: controller.signal,
+        })
         if (!response.ok) return
         
         const tasks = await response.json()
@@ -194,12 +164,15 @@ export function TryOnInterface({ type = 'GLASSES' }: TryOnInterfaceProps) {
           }
         }
       } catch (error) {
-        console.error("Failed to check pending tasks:", error)
+        if (!controller.signal.aborted) {
+          console.error("Failed to check pending tasks:", error)
+        }
       }
     }
 
-    checkPendingTasks()
-  }, [])
+    void checkPendingTasks()
+    return () => controller.abort()
+  }, [sessionStatus, type])
 
   const handleUserImageSelect = (file: File, preview: string) => {
     setUserImage({ file, preview })

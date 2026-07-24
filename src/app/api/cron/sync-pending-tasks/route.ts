@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma"
 import { getTryOnResult } from "@/lib/tryon-service"
 import { logger } from "@/lib/logger"
 import { TaskStatus } from "@prisma/client"
+import { settleTryOnTaskQuota } from "@/lib/quota"
 
 export const dynamic = 'force-dynamic'
 export const maxDuration = 300 // 5 minutes
@@ -24,14 +25,22 @@ export async function GET(request: NextRequest) {
 
     logger.info('cron', 'Starting sync of pending GrsAi tasks')
 
-    // Find all PROCESSING tasks that use GrsAi service
+    // Find active GrsAi tasks plus completed tasks whose quota settlement needs retry.
     const pendingTasks = await prisma.tryOnTask.findMany({
       where: {
-        status: TaskStatus.PROCESSING,
-        metadata: {
-          path: ['serviceType'],
-          equals: 'grsai'
-        }
+        OR: [
+          {
+            status: TaskStatus.PROCESSING,
+            metadata: {
+              path: ['serviceType'],
+              equals: 'grsai'
+            }
+          },
+          {
+            status: TaskStatus.COMPLETED,
+            quotaSettledAt: null,
+          }
+        ]
       },
       select: {
         id: true,
@@ -68,9 +77,12 @@ export async function GET(request: NextRequest) {
         const result = await getTryOnResult(task.id)
         
         if (result.status === TaskStatus.COMPLETED) {
+          const settlement = await settleTryOnTaskQuota(task.id, task.userId)
           successCount++
           logger.info('cron', `Task ${task.id} completed successfully`, {
-            isNewCompletion: result.isNewCompletion
+            isNewCompletion: result.isNewCompletion,
+            quotaSettled: settlement.settled,
+            quotaAlreadySettled: settlement.alreadySettled,
           })
         } else if (result.status === TaskStatus.FAILED) {
           errorCount++

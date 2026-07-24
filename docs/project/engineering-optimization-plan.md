@@ -389,6 +389,7 @@ Recommended execution sequence (each batch can be a single PR):
 - Parallelize cron tasks — `Promise.allSettled` with concurrency=5
 - Optimize client polling intervals — TryOn 2s→3s, success 1s→2s
 - Fix useTestSession interval — 1s→5s
+- **Follow-up:** This batch changed polling cadence only. AP-1 through AP-4 (serial polling, type-aware recovery, JWT periodic-sync semantics, and idempotent quota settlement) were implemented on 2026-07-24. AP-5 bounded backoff remains gated on production baselines. The authoritative status is tracked in `docs/project/vercel-cpu-governance-spec.md`.
 - **Estimated effort:** 3-4 hours
 - **Risk:** Low
 
@@ -408,3 +409,5 @@ Recommended execution sequence (each batch can be a single PR):
 | 2026-07-22 | Created v0.1 engineering optimization plan from three-axis audit (dependencies, architecture, performance). |
 | 2026-07-22 | Completed Batch 1-4: P0-1 through P0-5, P1-6, P1-9, P1-10, P2-7, P2-8, P2-12. Removed 12 unused deps, fixed SWC mismatch, tsconfig target, next.config no-ops, price Float→Int, Prisma indexes, deleted legacy route, added select clauses to 9 routes, blob DISTINCT take limits, payment history pagination. tsc + next build pass. |
 | 2026-07-22 | Completed Batch 5-7: P1-2 through P1-5, P1-8, P1-12-14, P2-10-11. Created `api-auth.ts` (35 routes migrated), `batch-types.ts` (StyleExplorer+FrameCompare refactored), `useQuota.ts` (7 components migrated), `api-client.ts`, `utils/download.ts`. Replaced 6 `<img>` with OptimizedImage. Parallelized cron with concurrency=5. Optimized polling intervals. tsc + next build pass. |
+| 2026-07-24 | Clarified that Batch 7 covered polling cadence only and linked the remaining authentication/polling stability work to AP-1 through AP-5 in the CPU governance backlog. |
+| 2026-07-24 | Recorded AP-1 through AP-4 implementation; AP-5 remains a separately gated production optimization. |

@@ -10,6 +10,7 @@ import { logger } from "@/lib/logger"
 import { perfLogger } from "@/lib/performance-logger"
 import { clearUserCache } from "@/lib/cache"
 import { QUOTA_CONFIG } from "@/config/pricing"
+import { getJwtSyncDecision } from "@/lib/auth-sync"
 
 // Lightweight debug sink to file for local dev (so we can read errors without terminal access)
 const __debugWrite = (label: string, data: any) => {
@@ -136,21 +137,24 @@ export const authOptions: NextAuthOptions = {
         if (!token.email) token.email = p?.email ?? token.email
       }
 
-      // 🔥 优化：改进同步策略，确保数据及时更新
-      // 1. First login (user exists)
-      // 2. Manual trigger update (trigger === 'update') — rate-limited to 30s
-      // 3. Token has no user data (isPremium is undefined)
-      // 4. Periodic sync: every 15 minutes to catch subscription changes
+      // Sync user fields on login, explicit update, missing legacy token data,
+      // or 15 minutes after the last successful DB sync.
       const now = Date.now()
-      const lastSync = (token.lastSyncTime as number) || 0
-      const minUpdateSyncInterval = 30 * 1000 // 30 seconds
-      const tokenAge = token.iat ? now - (Number(token.iat) * 1000) : Infinity
-      const shouldSync = user ||
-                        (trigger === 'update' && (now - lastSync) > minUpdateSyncInterval) ||
-                        token.isPremium === undefined ||
-                        tokenAge > 15 * 60 * 1000  // 15 minutes
+      const syncDecision = getJwtSyncDecision({
+        hasUser: Boolean(user),
+        trigger,
+        hasRequiredUserData: token.isPremium !== undefined,
+        lastSyncTime: token.lastSyncTime,
+        lastSyncAttemptTime: token.lastSyncAttemptTime,
+        now,
+      })
+      const shouldSync = syncDecision.shouldSync
+      const syncReason = syncDecision.reason
 
       if (token.sub && shouldSync) {
+        // This timestamp is persisted even when the DB read fails, preventing
+        // a transient Neon outage from turning every auth request into a retry.
+        token.lastSyncAttemptTime = now
         try {
           // 🔍 监控数据库同步
           perfLogger.start('auth:jwt:db-sync')
@@ -176,12 +180,14 @@ export const authOptions: NextAuthOptions = {
           perfLogger.end('auth:jwt:db-sync', {
             userId: token.sub,
             userFound: !!dbUser,
-            trigger
+            trigger,
+            syncReason,
           })
 
           if (dbUser) {
             // Record sync time for rate-limiting future 'update' triggers
             token.lastSyncTime = now
+            token.lastSyncAttemptTime = now
 
             // Update all user info to token
             token.name = dbUser.name
@@ -201,9 +207,10 @@ export const authOptions: NextAuthOptions = {
               userId: token.sub,
               email: dbUser.email,
               role: dbUser.role,
-              trigger
+              trigger,
+              syncReason,
             })
-            logger.info('auth', 'User role synced from database', { userId: token.sub, email: dbUser.email, role: dbUser.role, isPremium: dbUser.isPremium })
+            logger.info('auth', 'User role synced from database', { userId: token.sub, email: dbUser.email, role: dbUser.role, isPremium: dbUser.isPremium, syncReason })
 
             // Calculate active status
             token.isPremiumActive = dbUser.isPremium &&
@@ -242,14 +249,14 @@ export const authOptions: NextAuthOptions = {
               userId: token.sub,
               trigger
             })
-            logger.warn('auth', 'User not found in database during JWT sync', { userId: token.sub, trigger })
+            logger.warn('auth', 'User not found in database during JWT sync', { userId: token.sub, trigger, syncReason })
           }
         } catch (error) {
           const err = error instanceof Error ? error : new Error(String(error))
           perfLogger.end('auth:jwt:db-sync', { success: false, error: true })
           console.error('❌ Error syncing user data to token in jwt callback:', error)
           console.error('   This may indicate database connection issues in Vercel')
-          logger.error('auth', 'Error syncing user data to token in JWT callback', err, { userId: token.sub })
+          logger.error('auth', 'Error syncing user data to token in JWT callback', err, { userId: token.sub, syncReason })
           __debugWrite('jwt.db_error', { error, userId: token.sub })
         }
       }
@@ -257,7 +264,8 @@ export const authOptions: NextAuthOptions = {
       perfLogger.end('auth:jwt-callback', {
         userId: token.sub,
         shouldSync,
-        trigger
+        trigger,
+        syncReason,
       })
 
       return token
