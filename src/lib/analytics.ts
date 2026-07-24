@@ -1,6 +1,14 @@
 /**
  * 统一的 Google Analytics 追踪工具
  * 提供类型安全的事件追踪接口
+ *
+ * 语言维度策略：
+ * 每个事件自动注入两个 GA4 自定义维度：
+ * - landing_locale: 用户当前浏览的页面语言（从 <html lang> 读取，服务端静态输出）
+ * - browser_language: 浏览器首选语言（navigator.language）
+ *
+ * 这使得所有核心业务漏斗事件都可以按语言拆分分析，
+ * 无需在各调用方手动传参。
  */
 
 // 用户类型
@@ -24,27 +32,87 @@ export type UpgradeLocation = 'quick_actions' | 'subscription_card' | 'nav'
 export type ProductType = 'CREDITS_PACK' | 'PREMIUM_MONTHLY' | 'PREMIUM_YEARLY'
 
 /**
+ * 获取用户当前浏览的页面语言（landing_locale）
+ *
+ * 从 <html lang="xx"> 属性读取，该属性由服务端布局静态输出，
+ * 因此在页面首次加载时即可用，无需等待客户端 hydration。
+ */
+function getLandingLocale(): string {
+  if (typeof document === 'undefined') return 'en'
+  return document.documentElement.lang || 'en'
+}
+
+/**
+ * 获取浏览器首选语言（browser_language）
+ *
+ * 返回完整的 BCP 47 标签（如 "ar-SA", "en-US", "ja-JP"），
+ * 与 landing_locale 的短标签（如 "ar", "en", "ja"）互补，
+ * 可用于分析"浏览器语言与页面语言不一致"的情景。
+ */
+function getBrowserLanguage(): string {
+  if (typeof navigator === 'undefined') return 'en'
+  return navigator.language || 'en'
+}
+
+/**
  * 发送事件到 Google Analytics
+ *
+ * 自动注入 landing_locale 和 browser_language 维度，
+ * 使所有事件均可按语言拆分分析。
  */
 function sendEvent(eventName: string, parameters: Record<string, any> = {}) {
   if (typeof window === 'undefined') return
 
+  // 注入语言维度（所有事件统一携带）
+  const enrichedParameters: Record<string, any> = {
+    ...parameters,
+    landing_locale: getLandingLocale(),
+    browser_language: getBrowserLanguage(),
+  }
+
   // Google Analytics 4
   if (window.gtag) {
-    window.gtag('event', eventName, parameters)
+    window.gtag('event', eventName, enrichedParameters)
   }
 
   // Google Tag Manager (备用)
   if (window.dataLayer) {
     window.dataLayer.push({
       event: eventName,
-      ...parameters,
+      ...enrichedParameters,
     })
   }
 
   // 开发环境日志
   if (process.env.NODE_ENV === 'development') {
-    console.log('📊 Analytics Event:', eventName, parameters)
+    console.log('📊 Analytics Event:', eventName, enrichedParameters)
+  }
+}
+
+/**
+ * 设置 GA4 用户级语言属性
+ *
+ * 在页面加载或语言切换时调用一次，
+ * 将 landing_locale 和 browser_language 设为用户属性，
+ * 使 GA4 受众报告和用户画像也支持按语言筛选。
+ *
+ * 事件级维度（由 sendEvent 自动注入）用于漏斗分析，
+ * 用户级维度（由此函数设置）用于受众细分，两者互补。
+ */
+export function setLanguageUserProperties() {
+  if (typeof window === 'undefined') return
+  if (!window.gtag) return
+
+  const landingLocale = getLandingLocale()
+  const browserLanguage = getBrowserLanguage()
+
+  window.gtag('set', 'user_properties', {
+    landing_locale: landingLocale,
+    browser_language: browserLanguage,
+  })
+
+  if (process.env.NODE_ENV === 'development') {
+    console.log('📊 GA4 User Properties set:', { landing_locale: landingLocale, browser_language: browserLanguage })
   }
 }
 
@@ -355,7 +423,11 @@ export function getUserType(isPremiumActive: boolean, creditsRemaining: number, 
 // 声明全局类型
 declare global {
   interface Window {
-    gtag: (command: 'config' | 'event', targetId: string, config?: Record<string, any>) => void
+    gtag: (
+      command: 'config' | 'event' | 'set',
+      targetId: string,
+      config?: Record<string, any>
+    ) => void
     dataLayer: Array<Record<string, any>>
   }
 }

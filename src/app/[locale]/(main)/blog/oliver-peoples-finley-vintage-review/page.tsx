@@ -83,7 +83,7 @@ export default function BlogPostPage({ params }: { params: { locale: string } })
 
             <div className="p-8 border-b">
               <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center space-x-4 text-sm text-gray-600">
+                <div className="flex items-center gap-x-4 text-sm text-gray-600">
                   <span>Author: VisuTry Team</span>
                   <span>Published: October 21, 2025</span>
                   <span>Read time: 8 min</span>
@@ -314,9 +314,9 @@ export default function BlogPostPage({ params }: { params: { locale: string } })
                 <table className="min-w-full bg-white border border-gray-300">
                   <thead className="bg-gray-100">
                     <tr>
-                      <th className="px-4 py-2 border text-left">Feature</th>
-                      <th className="px-4 py-2 border text-left">Oliver Peoples</th>
-                      <th className="px-4 py-2 border text-left">Budget Alternative</th>
+                      <th className="px-4 py-2 border text-start">Feature</th>
+                      <th className="px-4 py-2 border text-start">Oliver Peoples</th>
+                      <th className="px-4 py-2 border text-start">Budget Alternative</th>
                     </tr>
                   </thead>
                   <tbody>

@@ -199,7 +199,7 @@ export default function BlogPostPage({ params }: { params: { locale: string } })
 
               <div className="not-prose my-8 rounded-lg bg-blue-600 p-6 text-white">
                 <h3 className="mb-3 text-2xl font-bold">Quick evaluation checklist</h3>
-                <ul className="space-y-2">
+                <ul className="flex flex-col gap-y-2">
                   <li className="flex gap-2"><CheckCircle2 className="mt-1 h-5 w-5" /> Does the preview help a buyer make a decision?</li>
                   <li className="flex gap-2"><CheckCircle2 className="mt-1 h-5 w-5" /> Can you test frames before building a large catalog?</li>
                   <li className="flex gap-2"><CheckCircle2 className="mt-1 h-5 w-5" /> Are photo handling and storage expectations clear?</li>

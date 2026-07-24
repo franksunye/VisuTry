@@ -34,12 +34,12 @@ export default async function TermsPage({ params }: { params: { locale: string }
             href={localizedPath(params.locale, '/')}
             className="inline-flex items-center text-blue-600 hover:text-blue-700 mb-4"
           >
-            <ArrowLeft className="w-4 h-4 mr-2" />
+            <ArrowLeft className="w-4 h-4 me-2" />
             Back to Home
           </Link>
 
           <div className="flex items-center mb-4">
-            <FileText className="w-10 h-10 text-blue-600 mr-3" />
+            <FileText className="w-10 h-10 text-blue-600 me-3" />
             <h1 className="text-4xl font-bold text-gray-900">Terms of Service</h1>
           </div>
 

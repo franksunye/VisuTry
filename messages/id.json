@@ -728,5 +728,19 @@
         "feature6": "Dasbor merchant ringan"
       }
     }
+  },
+  "notFound": {
+    "title": "404 - Halaman Tidak Ditemukan | VisuTry",
+    "description": "Halaman yang Anda cari tidak dapat ditemukan.",
+    "heading": "404",
+    "subheading": "Halaman Tidak Ditemukan",
+    "message": "Maaf, halaman yang Anda cari tidak ada atau telah dipindahkan.",
+    "backToHome": "Kembali ke Beranda",
+    "tryOn": "Coba Virtual Try-On AI",
+    "browseBlog": "Jelajahi Blog",
+    "popularPages": "Halaman Populer:",
+    "faceShapeGuide": "Panduan Bentuk Wajah",
+    "aiTryOnTools": "Alat Try-On AI",
+    "pricing": "Harga"
   }
 }

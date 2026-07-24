@@ -728,5 +728,19 @@
     "copyright": "© {year} VisuTry. All rights reserved.",
     "madeWith": "Made with ❤️ using AI technology",
     "tagline": "Free face-shape discovery, personalized glasses advice, virtual try-on, and frame comparison."
+  },
+  "notFound": {
+    "title": "404 - Page Not Found | VisuTry",
+    "description": "The page you are looking for could not be found.",
+    "heading": "404",
+    "subheading": "Page Not Found",
+    "message": "Sorry, the page you're looking for doesn't exist or has been moved.",
+    "backToHome": "Back to Home",
+    "tryOn": "Try AI Virtual Try-On",
+    "browseBlog": "Browse Blog",
+    "popularPages": "Popular Pages:",
+    "faceShapeGuide": "Face Shape Guide",
+    "aiTryOnTools": "AI Try-On Tools",
+    "pricing": "Pricing"
   }
 }

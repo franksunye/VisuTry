@@ -128,5 +128,10 @@
   }
   body {
     @apply bg-background text-foreground;
+    font-family: var(--font-inter), system-ui, -apple-system, sans-serif;
+  }
+  /* Arabic locale: use Noto Sans Arabic as primary font */
+  html[lang="ar"] body {
+    font-family: var(--font-arabic), var(--font-inter), system-ui, sans-serif;
   }
 }

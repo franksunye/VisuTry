@@ -39,7 +39,7 @@ export function Breadcrumbs({ items, className = '' }: BreadcrumbsProps) {
       {/* Visual Breadcrumbs */}
       <nav
         aria-label="Breadcrumb"
-        className={`flex items-center space-x-2 text-sm ${className}`}
+        className={`flex items-center gap-x-2 text-sm ${className}`}
       >
         {allItems.map((item, index) => {
           const isLast = index === allItems.length - 1
@@ -60,7 +60,7 @@ export function Breadcrumbs({ items, className = '' }: BreadcrumbsProps) {
                   href={item.url || '/'}
                   className="text-blue-600 hover:text-blue-800 hover:underline flex items-center"
                 >
-                  {isFirst && <Home className="w-4 h-4 mr-1" />}
+                  {isFirst && <Home className="w-4 h-4 me-1" />}
                   {item.name}
                 </Link>
               )}

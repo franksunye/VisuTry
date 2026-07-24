@@ -14,7 +14,7 @@ export default function UserNotFound() {
       <div className="max-w-md w-full text-center">
         {/* Logo */}
         <div className="flex items-center justify-center mb-8">
-          <Glasses className="w-12 h-12 text-blue-600 mr-3" />
+          <Glasses className="w-12 h-12 text-blue-600 me-3" />
           <h1 className="text-3xl font-bold text-gray-900">VisuTry</h1>
         </div>
 
@@ -32,7 +32,7 @@ export default function UserNotFound() {
           Possible reasons:
         </p>
 
-        <ul className="text-left text-sm text-gray-600 mb-8 space-y-2">
+        <ul className="text-start text-sm text-gray-600 mb-8 flex flex-col gap-y-2">
           <li>• Username entered incorrectly</li>
           <li>• User has deleted their account</li>
           <li>• User has set privacy protection</li>
@@ -40,12 +40,12 @@ export default function UserNotFound() {
         </ul>
 
         {/* Action Buttons */}
-        <div className="space-y-3">
+        <div className="flex flex-col gap-y-3">
           <Link
             href={localizedPath(locale, "/try-on")}
             className="w-full flex items-center justify-center px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
           >
-            <Glasses className="w-5 h-5 mr-2" />
+            <Glasses className="w-5 h-5 me-2" />
             Start AI Try-On
           </Link>
 
@@ -53,7 +53,7 @@ export default function UserNotFound() {
             href={localizedPath(locale, "/")}
             className="w-full flex items-center justify-center px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
           >
-            <ArrowLeft className="w-5 h-5 mr-2" />
+            <ArrowLeft className="w-5 h-5 me-2" />
             Back to Home
           </Link>
         </div>

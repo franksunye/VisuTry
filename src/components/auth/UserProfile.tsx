@@ -45,7 +45,7 @@ export function UserProfile({ className, showDetails = true, variant = "light" }
   return (
     <div className={cn("rounded-lg shadow-sm p-4", containerStyles, className)}>
       {/* User Basic Info */}
-      <div className="flex items-center space-x-3 mb-4">
+      <div className="flex items-center gap-x-3 mb-4">
         {user.image ? (
           <img
             src={user.image}
@@ -75,7 +75,7 @@ export function UserProfile({ className, showDetails = true, variant = "light" }
           {/* Membership status */}
           <div className="mb-4">
             {isPremiumActive ? (
-              <div className="flex items-center space-x-2 text-yellow-500">
+              <div className="flex items-center gap-x-2 text-yellow-500">
                 <Crown className="w-5 h-5" />
                 <span className="font-medium">Premium</span>
                 {user.premiumExpiresAt && (
@@ -85,7 +85,7 @@ export function UserProfile({ className, showDetails = true, variant = "light" }
                 )}
               </div>
             ) : (
-              <div className={cn("flex items-center space-x-2", textTertiaryStyles)}>
+              <div className={cn("flex items-center gap-x-2", textTertiaryStyles)}>
                 <Zap className="w-5 h-5" />
                 <span className="font-medium">Free</span>
               </div>
@@ -93,7 +93,7 @@ export function UserProfile({ className, showDetails = true, variant = "light" }
           </div>
 
           {/* Usage stats */}
-          <div className="space-y-3">
+          <div className="flex flex-col gap-y-3">
             <div className="flex items-center justify-between">
               <span className={cn("text-sm", textTertiaryStyles)}>Remaining Free Trials</span>
               <span className={cn(

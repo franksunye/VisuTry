@@ -66,7 +66,7 @@ export function CompareLandingSlides() {
         <button
           type="button"
           onClick={goToPrevious}
-          className="absolute left-3 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-gray-700 shadow-sm hover:text-blue-600"
+          className="absolute start-3 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-gray-700 shadow-sm hover:text-blue-600"
           aria-label="Previous compare preview"
         >
           <ChevronLeft className="h-5 w-5" />
@@ -74,7 +74,7 @@ export function CompareLandingSlides() {
         <button
           type="button"
           onClick={goToNext}
-          className="absolute right-3 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-gray-700 shadow-sm hover:text-blue-600"
+          className="absolute end-3 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-gray-700 shadow-sm hover:text-blue-600"
           aria-label="Next compare preview"
         >
           <ChevronRight className="h-5 w-5" />

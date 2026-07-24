@@ -116,7 +116,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
 
       {/* Back Button */}
       <Link href={localizedPath(params.locale, '/')} className="inline-flex items-center text-blue-600 hover:text-blue-700 mb-6">
-        <ArrowLeft className="w-4 h-4 mr-2" />
+        <ArrowLeft className="w-4 h-4 me-2" />
         Back
       </Link>
 
@@ -138,17 +138,17 @@ export default async function ProductPage({ params }: ProductPageProps) {
           <p className="text-gray-600 mb-4">{frame.description}</p>
 
           {/* Product Details */}
-          <div className="space-y-3 mb-6">
+          <div className="flex flex-col gap-y-3 mb-6">
             {frame.brand && (
               <div>
                 <span className="font-semibold text-gray-700">Brand:</span>
-                <span className="ml-2 text-gray-600">{frame.brand}</span>
+                <span className="ms-2 text-gray-600">{frame.brand}</span>
               </div>
             )}
             {frame.model && (
               <div>
                 <span className="font-semibold text-gray-700">Model:</span>
-                <span className="ml-2 text-gray-600">{frame.model}</span>
+                <span className="ms-2 text-gray-600">{frame.model}</span>
               </div>
             )}
             {frame.category && (
@@ -156,7 +156,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
                 <span className="font-semibold text-gray-700">Category:</span>
                 <Link
                   href={`/category/${slugify(frame.category)}`}
-                  className="ml-2 text-blue-600 hover:text-blue-700"
+                  className="ms-2 text-blue-600 hover:text-blue-700"
                 >
                   {frame.category}
                 </Link>
@@ -165,25 +165,25 @@ export default async function ProductPage({ params }: ProductPageProps) {
             {frame.style && (
               <div>
                 <span className="font-semibold text-gray-700">Style:</span>
-                <span className="ml-2 text-gray-600">{frame.style}</span>
+                <span className="ms-2 text-gray-600">{frame.style}</span>
               </div>
             )}
             {frame.material && (
               <div>
                 <span className="font-semibold text-gray-700">Material:</span>
-                <span className="ml-2 text-gray-600">{frame.material}</span>
+                <span className="ms-2 text-gray-600">{frame.material}</span>
               </div>
             )}
             {frame.color && (
               <div>
                 <span className="font-semibold text-gray-700">Color:</span>
-                <span className="ml-2 text-gray-600">{frame.color}</span>
+                <span className="ms-2 text-gray-600">{frame.color}</span>
               </div>
             )}
             {frame.price != null && (
               <div>
                 <span className="font-semibold text-gray-700">Price:</span>
-                <span className="ml-2 text-gray-600">${(frame.price / 100).toFixed(2)}</span>
+                <span className="ms-2 text-gray-600">${(frame.price / 100).toFixed(2)}</span>
               </div>
             )}
           </div>
@@ -191,11 +191,11 @@ export default async function ProductPage({ params }: ProductPageProps) {
           {/* CTA Buttons */}
           <div className="flex gap-4">
             <button className="flex-1 bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition flex items-center justify-center">
-              <Glasses className="w-5 h-5 mr-2" />
+              <Glasses className="w-5 h-5 me-2" />
               Try On Virtually
             </button>
             <button className="flex-1 border border-gray-300 text-gray-700 py-3 rounded-lg hover:bg-gray-50 transition flex items-center justify-center">
-              <Heart className="w-5 h-5 mr-2" />
+              <Heart className="w-5 h-5 me-2" />
               Save
             </button>
           </div>

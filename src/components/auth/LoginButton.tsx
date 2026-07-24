@@ -37,7 +37,7 @@ export function LoginButton({
         "bg-gray-100 text-gray-400",
         className
       )}>
-        <div className="w-4 h-4 mr-2 border-2 border-gray-300 rounded-full border-t-transparent animate-spin" />
+        <div className="w-4 h-4 me-2 border-2 border-gray-300 rounded-full border-t-transparent animate-spin" />
         Loading...
       </div>
     )
@@ -48,8 +48,8 @@ export function LoginButton({
     const isTestSession = testSession !== null
 
     return (
-      <div className="flex items-center space-x-3">
-        <div className="flex items-center space-x-2">
+      <div className="flex items-center gap-x-3">
+        <div className="flex items-center gap-x-2">
           {user.image ? (
             <img
               src={user.image}
@@ -67,7 +67,7 @@ export function LoginButton({
             </span>
             {isTestSession && (
               <span className="flex items-center text-xs text-orange-600">
-                <TestTube className="w-3 h-3 mr-1" />
+                <TestTube className="w-3 h-3 me-1" />
                 Test Mode
               </span>
             )}
@@ -84,7 +84,7 @@ export function LoginButton({
             className
           )}
         >
-          <LogOut className="w-4 h-4 mr-1" />
+          <LogOut className="w-4 h-4 me-1" />
           Sign Out
         </button>
       </div>
@@ -107,7 +107,7 @@ export function LoginButton({
         className
       )}
     >
-      <Shield className="w-4 h-4 mr-2" />
+      <Shield className="w-4 h-4 me-2" />
       {label || "Sign in"}
     </button>
   )

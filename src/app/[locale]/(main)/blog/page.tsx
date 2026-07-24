@@ -134,13 +134,13 @@ export default async function BlogPage({ params }: Props) {
 
                     {/* Article metadata */}
                     <div className="flex items-center justify-between text-sm text-gray-500 mb-4">
-                      <div className="flex items-center space-x-4">
+                      <div className="flex items-center gap-x-4">
                         <div className="flex items-center">
-                          <User className="w-4 h-4 mr-1" />
+                          <User className="w-4 h-4 me-1" />
                           {post.author}
                         </div>
                         <div className="flex items-center">
-                          <Calendar className="w-4 h-4 mr-1" />
+                          <Calendar className="w-4 h-4 me-1" />
                           {getDisplayDate(post)}
                         </div>
                       </div>
@@ -152,7 +152,7 @@ export default async function BlogPage({ params }: Props) {
                       className="inline-flex items-center text-blue-600 hover:text-blue-800 font-medium"
                     >
                       Read Full Article
-                      <ArrowRight className="w-4 h-4 ml-1" />
+                      <ArrowRight className="w-4 h-4 ms-1" />
                     </Link>
                   </div>
                 </article>

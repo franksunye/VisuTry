@@ -159,7 +159,7 @@ export function PromoInput({ onPromoChange, activeCode }: PromoInputProps) {
             </button>
           </div>
           {validationStatus === "invalid" && (
-            <p className="mt-2 ml-13 text-xs text-red-600 font-medium">
+            <p className="mt-2 ms-13 text-xs text-red-600 font-medium">
               Invalid code. Please check and try again.
             </p>
           )}

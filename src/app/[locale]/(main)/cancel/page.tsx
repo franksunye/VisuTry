@@ -86,23 +86,23 @@ function CancelContent() {
             {/* Why did this happen? */}
             <div className="mb-8">
               <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                <HelpCircle className="w-5 h-5 text-blue-600 mr-2" />
+                <HelpCircle className="w-5 h-5 text-blue-600 me-2" />
                 Common Reasons for Cancellation
               </h3>
-              <div className="space-y-3">
-                <div className="flex items-start space-x-3 p-3 bg-gray-50 rounded-lg">
+              <div className="flex flex-col gap-y-3">
+                <div className="flex items-start gap-x-3 p-3 bg-gray-50 rounded-lg">
                   <div className="w-2 h-2 bg-gray-400 rounded-full mt-2 flex-shrink-0"></div>
                   <div>
                     <p className="text-gray-800">You clicked the back button or closed the payment window</p>
                   </div>
                 </div>
-                <div className="flex items-start space-x-3 p-3 bg-gray-50 rounded-lg">
+                <div className="flex items-start gap-x-3 p-3 bg-gray-50 rounded-lg">
                   <div className="w-2 h-2 bg-gray-400 rounded-full mt-2 flex-shrink-0"></div>
                   <div>
                     <p className="text-gray-800">You decided to review the pricing options again</p>
                   </div>
                 </div>
-                <div className="flex items-start space-x-3 p-3 bg-gray-50 rounded-lg">
+                <div className="flex items-start gap-x-3 p-3 bg-gray-50 rounded-lg">
                   <div className="w-2 h-2 bg-gray-400 rounded-full mt-2 flex-shrink-0"></div>
                   <div>
                     <p className="text-gray-800">There was an issue with your payment method</p>
@@ -114,7 +114,7 @@ function CancelContent() {
             {/* User Info */}
             {session?.user && (
               <div className="bg-blue-50 rounded-lg p-4 mb-6 border border-blue-200">
-                <div className="flex items-center space-x-3">
+                <div className="flex items-center gap-x-3">
                   {session.user.image && (
                     <img
                       src={session.user.image}
@@ -130,8 +130,8 @@ function CancelContent() {
                       {session.user.email}
                     </p>
                   </div>
-                  <div className="ml-auto">
-                    <div className="flex items-center space-x-1 bg-gray-100 text-gray-700 px-3 py-1 rounded-full text-sm font-medium">
+                  <div className="ms-auto">
+                    <div className="flex items-center gap-x-1 bg-gray-100 text-gray-700 px-3 py-1 rounded-full text-sm font-medium">
                       <Glasses className="w-4 h-4" />
                       <span>Free User</span>
                     </div>
@@ -145,29 +145,29 @@ function CancelContent() {
               <h3 className="text-lg font-semibold text-gray-900 mb-3">
                 What would you like to do?
               </h3>
-              <div className="space-y-2 text-sm text-gray-700">
+              <div className="flex flex-col gap-y-2 text-sm text-gray-700">
                 <p className="flex items-start">
-                  <span className="mr-2">•</span>
+                  <span className="me-2">•</span>
                   <span>Review our pricing plans and choose the one that fits your needs</span>
                 </p>
                 <p className="flex items-start">
-                  <span className="mr-2">•</span>
+                  <span className="me-2">•</span>
                   <span>Continue using VisuTry with your free trial credits</span>
                 </p>
                 <p className="flex items-start">
-                  <span className="mr-2">•</span>
+                  <span className="me-2">•</span>
                   <span>Contact our support team if you need assistance</span>
                 </p>
               </div>
             </div>
 
             {/* Action Buttons */}
-            <div className="space-y-3">
+            <div className="flex flex-col gap-y-3">
               <Link
                 href={localizedPath(locale, '/pricing')}
                 className="w-full flex items-center justify-center px-6 py-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all duration-200 shadow-lg hover:shadow-xl"
               >
-                <RefreshCw className="w-5 h-5 mr-2" />
+                <RefreshCw className="w-5 h-5 me-2" />
                 Try Again - View Pricing
               </Link>
 
@@ -175,7 +175,7 @@ function CancelContent() {
                 href={localizedPath(locale, '/try-on')}
                 className="w-full flex items-center justify-center px-6 py-3 bg-white border-2 border-blue-600 text-blue-600 rounded-lg hover:bg-blue-50 transition-colors"
               >
-                <Glasses className="w-5 h-5 mr-2" />
+                <Glasses className="w-5 h-5 me-2" />
                 Continue with Free Trial
               </Link>
 
@@ -183,7 +183,7 @@ function CancelContent() {
                 href={session ? localizedPath(locale, "/dashboard") : localizedPath(locale, "/")}
                 className="w-full flex items-center justify-center px-6 py-3 bg-white border-2 border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
               >
-                <ArrowLeft className="w-5 h-5 mr-2" />
+                <ArrowLeft className="w-5 h-5 me-2" />
                 {session ? "Back to Dashboard" : "Back to Home"}
               </Link>
             </div>
@@ -198,10 +198,10 @@ function CancelContent() {
         </div>
 
         {/* Additional Info */}
-        <div className="mt-6 space-y-3">
+        <div className="mt-6 flex flex-col gap-y-3">
           {/* Support */}
           <div className="bg-white rounded-lg shadow-sm border p-4">
-            <div className="flex items-start space-x-3">
+            <div className="flex items-start gap-x-3">
               <HelpCircle className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
               <div>
                 <h4 className="font-semibold text-gray-900 mb-1">Need Help?</h4>
@@ -213,7 +213,7 @@ function CancelContent() {
                   className="text-sm text-blue-600 hover:underline inline-flex items-center"
                 >
                   Contact Support
-                  <ArrowLeft className="w-3 h-3 ml-1 rotate-180" />
+                  <ArrowLeft className="w-3 h-3 ms-1 rotate-180" />
                 </a>
               </div>
             </div>
@@ -221,7 +221,7 @@ function CancelContent() {
 
           {/* Payment Methods */}
           <div className="bg-white rounded-lg shadow-sm border p-4">
-            <div className="flex items-start space-x-3">
+            <div className="flex items-start gap-x-3">
               <CreditCard className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" />
               <div>
                 <h4 className="font-semibold text-gray-900 mb-1">Secure Payment</h4>

@@ -43,7 +43,7 @@ export function LanguageSwitcher() {
       {/* Trigger Button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center space-x-2 px-3 py-2 text-sm font-medium text-gray-700 hover:text-blue-600 transition-colors rounded-lg hover:bg-gray-100"
+        className="flex items-center gap-x-2 px-3 py-2 text-sm font-medium text-gray-700 hover:text-blue-600 transition-colors rounded-lg hover:bg-gray-100"
         aria-label="Change language"
         aria-expanded={isOpen}
         aria-haspopup="true"
@@ -66,13 +66,13 @@ export function LanguageSwitcher() {
 
       {/* Dropdown Menu */}
       {isOpen && (
-        <div className="absolute right-0 mt-2 w-56 sm:w-48 max-h-96 overflow-y-auto bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50">
+        <div className="absolute end-0 mt-2 w-56 sm:w-48 max-h-96 overflow-y-auto bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50">
           {locales.map((locale) => (
             <button
               key={locale}
               onClick={() => handleLanguageChange(locale)}
               className={cn(
-                "w-full text-left px-4 py-2 text-sm transition-colors whitespace-nowrap",
+                "w-full text-start px-4 py-2 text-sm transition-colors whitespace-nowrap",
                 locale === currentLocale
                   ? "bg-blue-50 text-blue-600 font-medium"
                   : "text-gray-700 hover:bg-gray-50"

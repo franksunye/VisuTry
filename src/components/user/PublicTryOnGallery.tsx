@@ -67,7 +67,7 @@ export function PublicTryOnGallery({ tryOns }: PublicTryOnGalleryProps) {
               </div>
               
               {/* Time and Type labels */}
-              <div className="absolute bottom-2 left-2 right-2 flex flex-col gap-1">
+              <div className="absolute bottom-2 start-2 end-2 flex flex-col gap-1">
                 <div className="bg-black bg-opacity-50 text-white text-xs px-2 py-1 rounded backdrop-blur-sm">
                   {formatDistanceToNow(new Date(tryOn.createdAt), {
                     addSuffix: true,
@@ -105,19 +105,19 @@ export function PublicTryOnGallery({ tryOns }: PublicTryOnGalleryProps) {
             {/* Close button */}
             <button
               onClick={() => setSelectedImage(null)}
-              className="absolute top-4 right-4 w-10 h-10 bg-black bg-opacity-50 text-white rounded-full flex items-center justify-center hover:bg-opacity-75 transition-colors"
+              className="absolute top-4 end-4 w-10 h-10 bg-black bg-opacity-50 text-white rounded-full flex items-center justify-center hover:bg-opacity-75 transition-colors"
             >
               ✕
             </button>
             
             {/* View details button */}
-            <div className="absolute bottom-4 left-4 right-4 flex justify-center">
+            <div className="absolute bottom-4 start-4 end-4 flex justify-center">
               <Link
                 href={`/share/${tryOns.find(t => t.resultImageUrl === selectedImage)?.id}`}
                 className="flex items-center px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
                 onClick={(e) => e.stopPropagation()}
               >
-                <ExternalLink className="w-5 h-5 mr-2" />
+                <ExternalLink className="w-5 h-5 me-2" />
                 View Details
               </Link>
             </div>

@@ -42,7 +42,7 @@ export function FreeFaceShapeResult({
   const closestAlternative = geometry.alternativeShapes?.[0]
 
   return (
-    <div className="space-y-5" aria-live="polite">
+    <div className="flex flex-col gap-y-5" aria-live="polite">
       <div className="grid gap-4 lg:grid-cols-[minmax(260px,0.78fr)_minmax(0,1.22fr)]">
         <section className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
           <div className="relative mx-auto aspect-[4/5] w-full max-w-[360px] overflow-hidden rounded-lg bg-gray-100">
@@ -123,7 +123,7 @@ export function FreeFaceShapeResult({
           onClick={() => analytics.trackFaceShapeDetectorCta(guide.slug, 'virtual_try_on')}
           className="mt-3 inline-flex w-full shrink-0 items-center justify-center rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-blue-700 sm:mt-0 sm:w-auto"
         >
-          <Glasses className="mr-2 h-4 w-4" />
+          <Glasses className="me-2 h-4 w-4" />
           Open virtual try-on
         </Link>
       </section>
@@ -147,7 +147,7 @@ export function FreeFaceShapeResult({
             onClick={() => analytics.trackFaceShapeDetectorCta(guide.slug, 'glasses_advisor')}
             className="inline-flex items-center justify-center rounded-lg bg-violet-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-violet-700"
           >
-            Get personalized advice <ArrowRight className="ml-2 h-4 w-4" />
+            Get personalized advice <ArrowRight className="ms-2 h-4 w-4" />
           </Link>
           <Link
             href={`/${locale}/face-shapes/${guide.slug}`}

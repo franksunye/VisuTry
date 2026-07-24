@@ -269,7 +269,7 @@ async function PublicTryOnLanding({
               className="inline-flex items-center justify-center rounded-lg bg-blue-600 px-5 py-3 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-blue-700"
             >
               {t('startButton')}
-              <ArrowRight className="ml-2 h-4 w-4" />
+              <ArrowRight className="ms-2 h-4 w-4" />
             </Link>
             <Link
               href={`/${locale}/pricing`}

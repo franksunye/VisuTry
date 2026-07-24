@@ -131,7 +131,7 @@ export default async function UserPage({ params }: UserPageProps) {
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center">
-              <Glasses className="w-8 h-8 text-blue-600 mr-3" />
+              <Glasses className="w-8 h-8 text-blue-600 me-3" />
               <h1 className="text-2xl font-bold text-gray-900">VisuTry</h1>
             </div>
             <a
@@ -150,10 +150,10 @@ export default async function UserPage({ params }: UserPageProps) {
           <div className="relative h-32 bg-gradient-to-r from-blue-500 to-purple-600">
             {/* 装饰性图案 */}
             <div className="absolute inset-0 opacity-20">
-              <div className="absolute top-4 left-4">
+              <div className="absolute top-4 start-4">
                 <Glasses className="w-8 h-8 text-white" />
               </div>
-              <div className="absolute top-8 right-8">
+              <div className="absolute top-8 end-8">
                 <Star className="w-6 h-6 text-white" />
               </div>
               <div className="absolute bottom-4 left-1/3">
@@ -164,7 +164,7 @@ export default async function UserPage({ params }: UserPageProps) {
           
           <div className="relative px-6 pb-6">
             {/* 头像 */}
-            <div className="absolute -top-16 left-6">
+            <div className="absolute -top-16 start-6">
               <div className="w-32 h-32 bg-white rounded-full p-2 shadow-lg">
                 {user.image ? (
                   <img
@@ -189,11 +189,11 @@ export default async function UserPage({ params }: UserPageProps) {
                   <h2 className="text-2xl font-bold text-gray-900 mb-2">
                     {displayName}
                     {user.isPremium && (
-                      <Star className="w-6 h-6 text-yellow-500 inline ml-2" />
+                      <Star className="w-6 h-6 text-yellow-500 inline ms-2" />
                     )}
                   </h2>
                   <div className="flex items-center text-gray-600 mb-4">
-                    <Calendar className="w-4 h-4 mr-2" />
+                    <Calendar className="w-4 h-4 me-2" />
                     <span>Joined {joinDate}</span>
                   </div>
                 </div>
@@ -255,7 +255,7 @@ export default async function UserPage({ params }: UserPageProps) {
               href={localizedPath(params.locale, "/try-on")}
               className="inline-flex items-center px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
             >
-              <Glasses className="w-5 h-5 mr-2" />
+              <Glasses className="w-5 h-5 me-2" />
               Start Try-On
             </a>
           </div>

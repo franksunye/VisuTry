@@ -231,7 +231,7 @@ function SuccessContent() {
           <div className="p-8">
             {/* Success Message */}
             <div className="mb-8 text-center">
-              <div className="inline-flex items-center justify-center mb-4 space-x-2">
+              <div className="inline-flex items-center justify-center mb-4 gap-x-2">
                 <Sparkles className="w-6 h-6 text-yellow-500" />
                 <h2 className="text-2xl font-semibold text-gray-900">
                   Account Updated!
@@ -256,32 +256,32 @@ function SuccessContent() {
             {/* Features Unlocked */}
             <div className="mb-8">
               <h3 className="flex items-center mb-4 text-lg font-semibold text-gray-900">
-                <Crown className="w-5 h-5 mr-2 text-yellow-500" />
+                <Crown className="w-5 h-5 me-2 text-yellow-500" />
                 Features Unlocked
               </h3>
               <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
-                <div className="flex items-start p-3 space-x-3 rounded-lg bg-blue-50">
+                <div className="flex items-start p-3 gap-x-3 rounded-lg bg-blue-50">
                   <CheckCircle className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
                   <div>
                     <p className="font-medium text-blue-900">Unlimited AI Try-Ons</p>
                     <p className="text-sm text-blue-700">No more limits on virtual try-ons</p>
                   </div>
                 </div>
-                <div className="flex items-start p-3 space-x-3 rounded-lg bg-purple-50">
+                <div className="flex items-start p-3 gap-x-3 rounded-lg bg-purple-50">
                   <CheckCircle className="w-5 h-5 text-purple-600 mt-0.5 flex-shrink-0" />
                   <div>
                     <p className="font-medium text-purple-900">High-Quality Processing</p>
                     <p className="text-sm text-purple-700">Best image quality available</p>
                   </div>
                 </div>
-                <div className="flex items-start p-3 space-x-3 rounded-lg bg-green-50">
+                <div className="flex items-start p-3 gap-x-3 rounded-lg bg-green-50">
                   <CheckCircle className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" />
                   <div>
                     <p className="font-medium text-green-900">Priority Processing</p>
                     <p className="text-sm text-green-700">Faster results for your try-ons</p>
                   </div>
                 </div>
-                <div className="flex items-start p-3 space-x-3 rounded-lg bg-yellow-50">
+                <div className="flex items-start p-3 gap-x-3 rounded-lg bg-yellow-50">
                   <CheckCircle className="w-5 h-5 text-yellow-600 mt-0.5 flex-shrink-0" />
                   <div>
                     <p className="font-medium text-yellow-900">Premium Support</p>
@@ -294,7 +294,7 @@ function SuccessContent() {
             {/* User Info */}
             {session?.user && (
               <div className="p-4 mb-6 border border-blue-200 rounded-lg bg-gradient-to-r from-blue-50 to-purple-50">
-                <div className="flex items-center space-x-3">
+                <div className="flex items-center gap-x-3">
                   {session.user.image && (
                     <img
                       src={session.user.image}
@@ -310,8 +310,8 @@ function SuccessContent() {
                       {session.user.email}
                     </p>
                   </div>
-                  <div className="ml-auto">
-                    <div className="flex items-center px-3 py-1 space-x-1 text-sm font-medium text-yellow-800 bg-yellow-100 rounded-full">
+                  <div className="ms-auto">
+                    <div className="flex items-center px-3 py-1 gap-x-1 text-sm font-medium text-yellow-800 bg-yellow-100 rounded-full">
                       <Crown className="w-4 h-4" />
                       <span>Premium</span>
                     </div>
@@ -321,14 +321,14 @@ function SuccessContent() {
             )}
 
             {/* Action Buttons */}
-            <div className="space-y-3">
+            <div className="flex flex-col gap-y-3">
               <Link
                 href={localizedPath(locale, '/try-on')}
                 className="flex items-center justify-center w-full px-6 py-4 text-white transition-all duration-200 rounded-lg shadow-lg bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 hover:shadow-xl"
               >
-                <Glasses className="w-5 h-5 mr-2" />
+                <Glasses className="w-5 h-5 me-2" />
                 Start AI Try-On Now
-                <ArrowRight className="w-5 h-5 ml-2" />
+                <ArrowRight className="w-5 h-5 ms-2" />
               </Link>
 
               <Link
@@ -341,7 +341,7 @@ function SuccessContent() {
 
             {/* Auto Redirect Notice */}
             <div className="mt-6 text-center">
-              <div className="inline-flex items-center justify-center space-x-2 text-sm text-gray-500">
+              <div className="inline-flex items-center justify-center gap-x-2 text-sm text-gray-500">
                 <Loader2 className="w-4 h-4 text-blue-600 animate-spin" />
                 <p>
                   Redirecting to dashboard in {countdown} seconds...

@@ -95,14 +95,14 @@ export function TryOnShowcase() {
           {/* Navigation Arrows */}
           <button
             onClick={goToPrevious}
-            className="absolute p-2 text-gray-800 transition-all -translate-y-1/2 rounded-full shadow-lg left-2 md:left-4 top-1/2 bg-white/90 hover:bg-white md:p-3 hover:scale-110 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="absolute p-2 text-gray-800 transition-all -translate-y-1/2 rounded-full shadow-lg start-2 md:start-4 top-1/2 bg-white/90 hover:bg-white md:p-3 hover:scale-110 focus:outline-none focus:ring-2 focus:ring-blue-500"
             aria-label="Previous showcase"
           >
             <ChevronLeft className="w-5 h-5 md:w-6 md:h-6" />
           </button>
           <button
             onClick={goToNext}
-            className="absolute p-2 text-gray-800 transition-all -translate-y-1/2 rounded-full shadow-lg right-2 md:right-4 top-1/2 bg-white/90 hover:bg-white md:p-3 hover:scale-110 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="absolute p-2 text-gray-800 transition-all -translate-y-1/2 rounded-full shadow-lg end-2 md:end-4 top-1/2 bg-white/90 hover:bg-white md:p-3 hover:scale-110 focus:outline-none focus:ring-2 focus:ring-blue-500"
             aria-label="Next showcase"
           >
             <ChevronRight className="w-5 h-5 md:w-6 md:h-6" />
@@ -113,7 +113,7 @@ export function TryOnShowcase() {
         <div className="px-6 py-4 bg-white/95 backdrop-blur-sm md:py-6">
           <div className="flex flex-col items-center justify-between gap-4 md:flex-row">
             {/* User Info */}
-            <div className="text-center md:text-left">
+            <div className="text-center md:text-start">
               <h3 className="text-lg font-bold text-gray-900 md:text-xl">
                 {t(showcaseItems[currentIndex].nameKey)}
               </h3>

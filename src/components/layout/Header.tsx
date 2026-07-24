@@ -53,7 +53,7 @@ export function Header({ transparent = false }: HeaderProps) {
           {/* Logo */}
           <Link
             href={`/${locale}`}
-            className="flex shrink-0 items-center space-x-2 transition-opacity hover:opacity-80"
+            className="flex shrink-0 items-center gap-x-2 transition-opacity hover:opacity-80"
             aria-label="VisuTry Home"
           >
             <Glasses className="w-8 h-8 text-blue-600" />
@@ -82,7 +82,7 @@ export function Header({ transparent = false }: HeaderProps) {
           </div>
           
           {/* CTA + Auth Section */}
-          <div className="flex shrink-0 items-center space-x-3">
+          <div className="flex shrink-0 items-center gap-x-3">
             {/* Language Switcher - Desktop */}
             <div className="hidden lg:block">
               <LanguageSwitcher />
@@ -96,7 +96,7 @@ export function Header({ transparent = false }: HeaderProps) {
                 href={`/${locale}/try-on`}
                 className="hidden items-center whitespace-nowrap rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700 sm:flex"
               >
-                <Sparkles className="w-4 h-4 mr-2" />
+                <Sparkles className="w-4 h-4 me-2" />
                 {t('tryOnShort')}
               </Link>
             ) : !isHomePage ? (
@@ -140,7 +140,7 @@ export function Header({ transparent = false }: HeaderProps) {
           role="menu"
         >
           <div className="border-t border-gray-200 pt-4 pb-4 mt-3">
-            <div className="flex flex-col space-y-3">
+            <div className="flex flex-col gap-y-3">
               {navLinks.map((link) => {
                 return (
                   <Link
@@ -173,7 +173,7 @@ export function Header({ transparent = false }: HeaderProps) {
                     onClick={() => setMobileMenuOpen(false)}
                     className="flex items-center justify-center w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium text-sm"
                   >
-                    <Sparkles className="w-4 h-4 mr-2" />
+                    <Sparkles className="w-4 h-4 me-2" />
                     {tCommon('startTryOn')}
                   </Link>
                 ) : !isHomePage ? (

@@ -18,13 +18,13 @@ export function Footer() {
           {/* Brand Section */}
           <div className="col-span-1 md:col-span-2">
             <div className="flex items-center mb-4">
-              <Glasses className="w-8 h-8 text-blue-600 mr-2" />
+              <Glasses className="w-8 h-8 text-blue-600 me-2" />
               <span className="text-xl font-bold text-gray-800">VisuTry</span>
             </div>
             <p className="text-gray-600 text-sm mb-6">
               {t('tagline')}
             </p>
-            <div className="flex space-x-4">
+            <div className="flex gap-x-4">
               <a
                 href="https://twitter.com/visutry"
                 target="_blank"
@@ -56,7 +56,7 @@ export function Footer() {
           {/* Product Links */}
           <div>
             <h3 className="font-semibold text-gray-900 mb-4">{t('links.product')}</h3>
-            <ul className="space-y-2">
+            <ul className="flex flex-col gap-y-2">
               <li>
                 <Link href={`/${locale}/face-shape-detector`} className="text-gray-600 hover:text-blue-600 text-sm transition-colors">
                   {t('links.faceShapeDetector')}
@@ -93,7 +93,7 @@ export function Footer() {
           {/* More Try-On Links */}
           <div>
             <h3 className="font-semibold text-gray-900 mb-4">{t('links.moreTryOn')}</h3>
-            <ul className="space-y-2">
+            <ul className="flex flex-col gap-y-2">
               <li>
                 <Link href={`/${locale}/try-on/outfit`} className="text-gray-600 hover:text-blue-600 text-sm transition-colors">
                   {t('links.tryOutfit')}
@@ -115,7 +115,7 @@ export function Footer() {
           {/* Resources Links */}
           <div>
             <h3 className="font-semibold text-gray-900 mb-4">{t('links.resources')}</h3>
-            <ul className="space-y-2">
+            <ul className="flex flex-col gap-y-2">
               <li>
                 <Link href={`/${locale}/blog`} className="text-gray-600 hover:text-blue-600 text-sm transition-colors">
                   {t('links.blog')}
@@ -152,7 +152,7 @@ export function Footer() {
           {/* Legal Links */}
           <div>
             <h3 className="font-semibold text-gray-900 mb-4">{t('links.legal')}</h3>
-            <ul className="space-y-2">
+            <ul className="flex flex-col gap-y-2">
               <li>
                 <Link href={`/${locale}/privacy`} className="text-gray-600 hover:text-blue-600 text-sm transition-colors">
                   {t('links.privacy')}

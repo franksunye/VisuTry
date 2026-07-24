@@ -340,7 +340,7 @@ export default function BlogPostPage({ params }: { params: { locale: string } })
                   className="inline-flex items-center justify-center rounded-lg bg-blue-600 px-5 py-3 font-semibold text-white transition-colors hover:bg-blue-700"
                 >
                   Explore My Eyewear Style
-                  <ArrowRight className="ml-2 h-4 w-4" />
+                  <ArrowRight className="ms-2 h-4 w-4" />
                 </Link>
                 <Link
                   href={`${localePrefix}/face-shape-detector`}
@@ -460,7 +460,7 @@ export default function BlogPostPage({ params }: { params: { locale: string } })
                     className="inline-flex items-center justify-center rounded-lg bg-blue-600 px-5 py-3 font-semibold text-white hover:bg-blue-700"
                   >
                     Discover Four Looks
-                    <ArrowRight className="ml-2 h-4 w-4" />
+                    <ArrowRight className="ms-2 h-4 w-4" />
                   </Link>
                   <Link
                     href={`${localePrefix}/try-on/glasses/compare`}
@@ -557,7 +557,7 @@ export default function BlogPostPage({ params }: { params: { locale: string } })
                     className="inline-flex items-center rounded-lg bg-blue-600 px-5 py-3 font-semibold text-white hover:bg-blue-700"
                   >
                     Explore Four Styles on My Photo
-                    <ArrowRight className="ml-2 h-4 w-4" />
+                    <ArrowRight className="ms-2 h-4 w-4" />
                   </Link>
                   <Link
                     href={`${localePrefix}/try-on/glasses/compare`}

@@ -66,7 +66,7 @@ export default function AuthErrorPage({ params, searchParams }: ErrorPageProps) 
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-red-50 to-orange-100 px-4">
-      <div className="max-w-md w-full space-y-8">
+      <div className="max-w-md w-full flex flex-col gap-y-8">
         <div className="text-center">
           <div className="flex items-center justify-center mb-4">
             <AlertCircle className="w-16 h-16 text-red-500" />
@@ -80,10 +80,10 @@ export default function AuthErrorPage({ params, searchParams }: ErrorPageProps) 
         </div>
 
         <div className="bg-white rounded-2xl shadow-lg p-8">
-          <div className="space-y-6">
-            {/* Error Details */}
+          <div className="flex flex-col gap-y-4">
+                {/* Error Details */}
             {errorDetails && (
-              <div className="space-y-4">
+              <div className="flex flex-col gap-y-4">
                 <div className="bg-red-50 border border-red-200 rounded-lg p-4">
                   <h3 className="font-semibold text-red-800 mb-2">Error Details</h3>
                   <p className="text-red-700 text-sm">{errorDetails.description}</p>
@@ -94,7 +94,7 @@ export default function AuthErrorPage({ params, searchParams }: ErrorPageProps) 
 
                 <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
                   <h3 className="font-semibold text-yellow-800 mb-2">Possible Causes</h3>
-                  <ul className="text-yellow-700 text-sm space-y-1">
+                  <ul className="text-yellow-700 text-sm flex flex-col gap-y-1">
                     {errorDetails.possibleCauses.map((cause, index) => (
                       <li key={index}>• {cause}</li>
                     ))}
@@ -103,7 +103,7 @@ export default function AuthErrorPage({ params, searchParams }: ErrorPageProps) 
 
                 <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
                   <h3 className="font-semibold text-blue-800 mb-2">Solutions</h3>
-                  <ul className="text-blue-700 text-sm space-y-1">
+                  <ul className="text-blue-700 text-sm flex flex-col gap-y-1">
                     {errorDetails.solutions.map((solution, index) => (
                       <li key={index}>• {solution}</li>
                     ))}
@@ -118,7 +118,7 @@ export default function AuthErrorPage({ params, searchParams }: ErrorPageProps) 
                 <h2 className="text-lg font-semibold text-gray-900 mb-2">
                   Possible Solutions
                 </h2>
-                <ul className="text-sm text-gray-600 space-y-2 text-left">
+                <ul className="text-sm text-gray-600 flex flex-col gap-y-2 text-start">
                   <li>• Check your network connection</li>
                   <li>• Make sure your Twitter account is in good standing</li>
                   <li>• Clear your browser cache and try again</li>
@@ -127,7 +127,7 @@ export default function AuthErrorPage({ params, searchParams }: ErrorPageProps) 
               </div>
             )}
 
-            <div className="space-y-3">
+            <div className="flex flex-col gap-y-3">
               <Link
                 href={localizedPath(params.locale, "/auth/signin")}
                 className="w-full flex items-center justify-center px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
@@ -139,7 +139,7 @@ export default function AuthErrorPage({ params, searchParams }: ErrorPageProps) 
                 href={localizedPath(params.locale, "/")}
                 className="w-full flex items-center justify-center px-4 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
               >
-                <ArrowLeft className="w-4 h-4 mr-2" />
+                <ArrowLeft className="w-4 h-4 me-2" />
                 Back to Home
               </Link>
             </div>
@@ -150,7 +150,7 @@ export default function AuthErrorPage({ params, searchParams }: ErrorPageProps) 
         {process.env.NODE_ENV === 'development' && (
           <div className="mt-6 p-4 bg-gray-50 rounded-lg">
             <h3 className="font-semibold text-gray-900 mb-2">Debug Info (Development)</h3>
-            <div className="space-y-2 text-sm">
+            <div className="flex flex-col gap-y-2 text-sm">
               <div><span className="font-medium">Error Type:</span> <span className="text-red-600">{error || 'Unknown'}</span></div>
               {errorDescription && <div><span className="font-medium">Error Description:</span> <span className="text-gray-700">{errorDescription}</span></div>}
               {callbackUrl && <div><span className="font-medium">Callback URL:</span> <span className="text-blue-600 break-all">{callbackUrl}</span></div>}

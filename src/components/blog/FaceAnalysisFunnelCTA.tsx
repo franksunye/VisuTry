@@ -68,7 +68,7 @@ export function FaceAnalysisFunnelCTA({
           }`}
         >
           Detect my face shape — free
-          <ArrowRight className="ml-2 h-4 w-4" />
+          <ArrowRight className="ms-2 h-4 w-4" />
         </Link>
         <Link
           href={`${localePrefix}/try-on/glasses`}
@@ -86,7 +86,7 @@ export function FaceAnalysisFunnelCTA({
               : 'border-gray-300 bg-white text-gray-700 hover:bg-gray-50'
           }`}
         >
-          <Glasses className="mr-2 h-4 w-4" />
+          <Glasses className="me-2 h-4 w-4" />
           Try on glasses
         </Link>
       </div>

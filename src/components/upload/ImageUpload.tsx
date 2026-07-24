@@ -183,7 +183,7 @@ export function ImageUpload({
             />
             <button
               onClick={handleRemove}
-              className="absolute top-2 right-2 w-8 h-8 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600 transition-colors shadow-lg"
+              className="absolute top-2 end-2 w-8 h-8 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600 transition-colors shadow-lg"
               disabled={isLoading}
               aria-label={`Remove ${label?.toLowerCase() || 'image'}`}
             >

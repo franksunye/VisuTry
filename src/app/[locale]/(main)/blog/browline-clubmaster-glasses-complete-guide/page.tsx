@@ -56,7 +56,7 @@ export default function BlogPostPage({ params }: { params: { locale: string } })
             </div>
             <div className="p-8 border-b">
               <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center space-x-4 text-sm text-gray-600">
+                <div className="flex items-center gap-x-4 text-sm text-gray-600">
                   <span>Author: VisuTry Team</span>
                   <span>Published: October 21, 2025</span>
                   <span>Read time: 8 min</span>

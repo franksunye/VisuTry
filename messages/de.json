@@ -728,5 +728,19 @@
         "feature6": "Leichtgewichtiges Händler-Dashboard"
       }
     }
+  },
+  "notFound": {
+    "title": "404 - Seite nicht gefunden | VisuTry",
+    "description": "Die Seite, nach der Sie suchen, konnte nicht gefunden werden.",
+    "heading": "404",
+    "subheading": "Seite nicht gefunden",
+    "message": "Leider existiert die gesuchte Seite nicht oder wurde verschoben.",
+    "backToHome": "Zurück zur Startseite",
+    "tryOn": "Virtuelle Anprobe mit KI testen",
+    "browseBlog": "Blog durchsuchen",
+    "popularPages": "Beliebte Seiten:",
+    "faceShapeGuide": "Gesichtsform-Leitfaden",
+    "aiTryOnTools": "KI-Anprobe-Tools",
+    "pricing": "Preise"
   }
 }

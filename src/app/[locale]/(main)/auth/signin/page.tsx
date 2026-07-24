@@ -39,10 +39,10 @@ export default async function SignInPage(props: Props) {
               Discover the best glasses for your face — quickly, easily, and realistically.
             </p>
           </div>
-          <div className="space-y-6">
+          <div className="flex flex-col gap-y-6">
             {/* Features */}
-            <div className="space-y-4">
-              <div className="flex items-center space-x-3">
+            <div className="flex flex-col gap-y-4">
+              <div className="flex items-center gap-x-3">
                 <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
                   <Zap className="w-5 h-5 text-blue-600" />
                 </div>
@@ -52,7 +52,7 @@ export default async function SignInPage(props: Props) {
                 </div>
               </div>
 
-              <div className="flex items-center space-x-3">
+              <div className="flex items-center gap-x-3">
                 <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
                   <Shield className="w-5 h-5 text-green-600" />
                 </div>
@@ -74,7 +74,7 @@ export default async function SignInPage(props: Props) {
             </div>
 
             {/* Sign In Button */}
-            <div className="space-y-4">
+            <div className="flex flex-col gap-y-4">
               <LoginButton className="w-full justify-center py-3" />
 
               <p className="text-xs text-gray-500 text-center">

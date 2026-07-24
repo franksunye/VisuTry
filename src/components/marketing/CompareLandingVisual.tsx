@@ -18,7 +18,7 @@ export async function CompareLandingVisual({
       <div className="grid gap-0 lg:grid-cols-[0.34fr_0.66fr] lg:items-stretch">
         <div className="flex flex-col justify-center bg-gradient-to-br from-white via-blue-50 to-white p-6 lg:p-8">
           <p className="mb-3 inline-flex w-fit items-center rounded-lg border border-blue-200 bg-white px-3 py-1 text-sm font-semibold text-blue-700">
-            <Grid2X2 className="mr-2 h-4 w-4" />
+            <Grid2X2 className="me-2 h-4 w-4" />
             {t('badge')}
           </p>
           <h2 className="text-3xl font-bold leading-tight text-gray-950 md:text-4xl">

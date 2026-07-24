@@ -92,13 +92,13 @@ export default function BlogPostPage({ params }: { params: { locale: string } })
             {/* Article metadata */}
             <div className="p-8 border-b">
               <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center space-x-4 text-sm text-gray-600">
+                <div className="flex items-center gap-x-4 text-sm text-gray-600">
                   <span>Author: VisuTry Team</span>
                   <span>Published: October 15, 2025</span>
                   <span>Read time: 5 min</span>
                 </div>
                 <button className="flex items-center text-blue-600 hover:text-blue-800">
-                  <Share2 className="w-4 h-4 mr-1" />
+                  <Share2 className="w-4 h-4 me-1" />
                   Share
                 </button>
               </div>

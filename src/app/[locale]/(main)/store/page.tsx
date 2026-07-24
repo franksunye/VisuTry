@@ -108,7 +108,7 @@ export default async function StoreLandingPage({ params }: StorePageProps) {
         <div className="grid gap-10 lg:grid-cols-[0.42fr_0.58fr] lg:items-center">
           <div>
             <p className="mb-4 inline-flex items-center rounded-full border border-blue-100 bg-blue-50 px-3 py-1 text-sm font-semibold text-blue-700">
-              <Store className="mr-2 h-4 w-4" />
+              <Store className="me-2 h-4 w-4" />
               {t('heroBadge')}
             </p>
             <h1 className="max-w-xl text-4xl font-bold leading-tight text-gray-950 md:text-5xl lg:text-6xl">

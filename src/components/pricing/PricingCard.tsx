@@ -117,7 +117,7 @@ export function PricingCard({ plan, currentUser }: PricingCardProps) {
         {/* Icon and Title */}
         <div className="flex items-center mb-4">
           <div className={cn(
-            "w-12 h-12 rounded-lg flex items-center justify-center mr-4",
+            "w-12 h-12 rounded-lg flex items-center justify-center me-4",
             plan.popular ? "bg-blue-100 text-blue-600" : "bg-gray-100 text-gray-600"
           )}>
             {plan.icon}
@@ -132,21 +132,21 @@ export function PricingCard({ plan, currentUser }: PricingCardProps) {
         <div className="mb-6">
           <div className="flex items-baseline">
             <span className="text-3xl font-bold text-gray-900">{plan.price}</span>
-            <span className="text-gray-600 ml-2">/ {plan.period}</span>
+            <span className="text-gray-600 ms-2">/ {plan.period}</span>
           </div>
           {plan.originalPrice && (
             <div className="flex items-center mt-1">
               <span className="text-gray-500 line-through text-sm">{plan.originalPrice}</span>
-              <span className="text-green-600 text-sm ml-2 font-medium">Save 17%</span>
+              <span className="text-green-600 text-sm ms-2 font-medium">Save 17%</span>
             </div>
           )}
         </div>
 
         {/* Features List */}
-        <ul className="space-y-3 mb-8">
+        <ul className="flex flex-col gap-y-3 mb-8">
           {plan.features.map((feature, index) => (
             <li key={index} className="flex items-start">
-              <Check className="w-5 h-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
+              <Check className="w-5 h-5 text-green-500 me-3 mt-0.5 flex-shrink-0" />
               <span className="text-gray-700 text-sm">{feature}</span>
             </li>
           ))}
@@ -167,7 +167,7 @@ export function PricingCard({ plan, currentUser }: PricingCardProps) {
         >
           {loading ? (
             <div className="flex items-center justify-center">
-              <Loader2 className="w-4 h-4 animate-spin mr-2" />
+              <Loader2 className="w-4 h-4 animate-spin me-2" />
               Processing...
             </div>
           ) : isCurrentPlan ? (

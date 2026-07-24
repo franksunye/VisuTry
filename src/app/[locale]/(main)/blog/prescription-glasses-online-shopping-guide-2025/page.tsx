@@ -75,7 +75,7 @@ export default function BlogPostPage({ params }: BlogPostPageProps) {
             </div>
             <div className="p-8 border-b">
               <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center space-x-4 text-sm text-gray-600">
+                <div className="flex items-center gap-x-4 text-sm text-gray-600">
                   <span>Author: VisuTry Team</span>
                   <span>Published: October 21, 2025</span>
                   <span>Read time: 10 min</span>
@@ -119,7 +119,7 @@ export default function BlogPostPage({ params }: BlogPostPageProps) {
                 <li><strong>Add</strong> - Reading addition for bifocals/progressives (if needed)</li>
                 <li><strong>Pupillary Distance (PD)</strong> - Distance between pupils</li>
               </ul>
-              <div className="bg-yellow-50 border-l-4 border-yellow-400 p-6 my-8">
+              <div className="bg-yellow-50 border-s-4 border-yellow-400 p-6 my-8">
                 <h3 className="text-lg font-bold text-yellow-900 mb-2">⚠️ Important Note</h3>
                 <p className="text-gray-800 mb-0">
                   By law in the US, your eye doctor must provide you with a copy of your prescription after 
@@ -202,7 +202,7 @@ export default function BlogPostPage({ params }: BlogPostPageProps) {
                 <li>All decimal points</li>
                 <li>PD measurement</li>
               </ul>
-              <div className="bg-red-50 border-l-4 border-red-400 p-6 my-8">
+              <div className="bg-red-50 border-s-4 border-red-400 p-6 my-8">
                 <h3 className="text-lg font-bold text-red-900 mb-2">🚨 Common Mistake</h3>
                 <p className="text-gray-800 mb-0">
                   Entering the wrong prescription is the #1 cause of returns. Take your time and verify 
@@ -226,10 +226,10 @@ export default function BlogPostPage({ params }: BlogPostPageProps) {
                 <table className="min-w-full bg-white border border-gray-300">
                   <thead className="bg-gray-100">
                     <tr>
-                      <th className="px-4 py-3 border text-left">Retailer</th>
-                      <th className="px-4 py-3 border text-left">Price Range</th>
-                      <th className="px-4 py-3 border text-left">Best For</th>
-                      <th className="px-4 py-3 border text-left">Return Policy</th>
+                      <th className="px-4 py-3 border text-start">Retailer</th>
+                      <th className="px-4 py-3 border text-start">Price Range</th>
+                      <th className="px-4 py-3 border text-start">Best For</th>
+                      <th className="px-4 py-3 border text-start">Return Policy</th>
                     </tr>
                   </thead>
                   <tbody>

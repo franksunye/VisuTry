@@ -195,7 +195,7 @@ export function ModelTryOnSlides({
           <button
             type="button"
             onClick={goToPrevious}
-            className="absolute left-3 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-gray-700 shadow-sm hover:text-blue-600"
+            className="absolute start-3 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-gray-700 shadow-sm hover:text-blue-600"
             aria-label={t('a11y.previous')}
           >
             <ChevronLeft className="h-5 w-5" />
@@ -203,7 +203,7 @@ export function ModelTryOnSlides({
           <button
             type="button"
             onClick={goToNext}
-            className="absolute right-3 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-gray-700 shadow-sm hover:text-blue-600"
+            className="absolute end-3 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-gray-700 shadow-sm hover:text-blue-600"
             aria-label={t('a11y.next')}
           >
             <ChevronRight className="h-5 w-5" />

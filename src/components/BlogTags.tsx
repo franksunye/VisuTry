@@ -10,7 +10,7 @@ export default function BlogTags({ tags, className = '' }: BlogTagsProps) {
   return (
     <div className={`flex items-center flex-wrap gap-2 ${className}`}>
       <Tag className="w-4 h-4 text-gray-500" />
-      <span className="text-sm text-gray-600 mr-1">Tags:</span>
+      <span className="text-sm text-gray-600 me-1">Tags:</span>
       {tags.map((tag, index) => (
         <Link
           key={tag}

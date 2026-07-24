@@ -313,7 +313,7 @@ export default function BlogPostPage({ params }: { params: { locale: string } })
                   <ShieldCheck className="h-6 w-6 text-green-700" />
                   <h2 className="text-xl font-bold text-green-950">A practical final checklist</h2>
                 </div>
-                <ul className="space-y-3 text-green-900">
+                <ul className="flex flex-col gap-y-3 text-green-900">
                   <li className="flex gap-2"><CheckCircle2 className="mt-1 h-5 w-5 flex-shrink-0" /> Know your face shape before browsing hundreds of frames.</li>
                   <li className="flex gap-2"><CheckCircle2 className="mt-1 h-5 w-5 flex-shrink-0" /> Try several recommended styles, not just one pair.</li>
                   <li className="flex gap-2"><CheckCircle2 className="mt-1 h-5 w-5 flex-shrink-0" /> Compare the try-on result with frame measurements and lens needs.</li>

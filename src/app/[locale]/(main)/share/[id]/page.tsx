@@ -103,7 +103,7 @@ export default async function SharePage({ params }: SharePageProps) {
             <h2 className="text-3xl font-bold text-gray-900 mb-4">
               {config.icon} AI {config.name} Try-On Result
             </h2>
-            <div className="flex items-center justify-center space-x-4 text-gray-600">
+            <div className="flex items-center justify-center gap-x-4 text-gray-600">
               {task.user.image && (
                 <img
                   src={task.user.image}
@@ -136,7 +136,7 @@ export default async function SharePage({ params }: SharePageProps) {
                   download={`visutry-result-${task.id}.jpg`}
                   className="flex items-center justify-center px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
                 >
-                  <Download className="w-5 h-5 mr-2" />
+                  <Download className="w-5 h-5 me-2" />
                   Download Image
                 </a>
 
@@ -144,7 +144,7 @@ export default async function SharePage({ params }: SharePageProps) {
                   href={localizedPath(params.locale, "/try-on")}
                   className="flex items-center justify-center px-6 py-3 border border-blue-600 text-blue-600 rounded-lg hover:bg-blue-50 transition-colors"
                 >
-                  <Glasses className="w-5 h-5 mr-2" />
+                  <Glasses className="w-5 h-5 me-2" />
                   Try It Yourself
                 </Link>
               </div>

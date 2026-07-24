@@ -69,7 +69,7 @@ export default function BlogPostPage({ params }: BlogPostPageProps) {
 
             <div className="p-8 border-b">
               <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center space-x-4 text-sm text-gray-600">
+                <div className="flex items-center gap-x-4 text-sm text-gray-600">
                   <span>Author: VisuTry Team</span>
                   <span>Published: October 21, 2025</span>
                   <span>Read time: 7 min</span>
@@ -147,9 +147,9 @@ export default function BlogPostPage({ params }: BlogPostPageProps) {
                 <table className="min-w-full bg-white border border-gray-300">
                   <thead className="bg-gray-100">
                     <tr>
-                      <th className="px-4 py-3 border text-left font-bold">Feature</th>
-                      <th className="px-4 py-3 border text-left font-bold">Acetate</th>
-                      <th className="px-4 py-3 border text-left font-bold">Plastic (Zyl)</th>
+                      <th className="px-4 py-3 border text-start font-bold">Feature</th>
+                      <th className="px-4 py-3 border text-start font-bold">Acetate</th>
+                      <th className="px-4 py-3 border text-start font-bold">Plastic (Zyl)</th>
                     </tr>
                   </thead>
                   <tbody>

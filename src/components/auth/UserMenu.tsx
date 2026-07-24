@@ -49,7 +49,7 @@ export function UserMenu() {
     <div className="relative" ref={menuRef}>
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center space-x-2 px-3 py-2 rounded-lg hover:bg-gray-100 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+        className="flex items-center gap-x-2 px-3 py-2 rounded-lg hover:bg-gray-100 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
         aria-expanded={isOpen}
         aria-haspopup="true"
         aria-label="User menu"
@@ -65,7 +65,7 @@ export function UserMenu() {
             <User className="w-4 h-4 text-gray-500" />
           </div>
         )}
-        <div className="hidden sm:block text-left">
+        <div className="hidden sm:block text-start">
           <div className="text-sm font-medium text-gray-700">
             {user?.name || 'User'}
           </div>
@@ -78,7 +78,7 @@ export function UserMenu() {
       
       {isOpen && (
         <div 
-          className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-200 py-1"
+          className="absolute end-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-200 py-1"
           role="menu"
         >
           {/* User Info */}
@@ -97,7 +97,7 @@ export function UserMenu() {
             className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
             role="menuitem"
           >
-            <LayoutDashboard className="w-4 h-4 mr-3 text-gray-500" />
+            <LayoutDashboard className="w-4 h-4 me-3 text-gray-500" />
             Dashboard
           </Link>
 
@@ -107,7 +107,7 @@ export function UserMenu() {
             className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
             role="menuitem"
           >
-            <History className="w-4 h-4 mr-3 text-gray-500" />
+            <History className="w-4 h-4 me-3 text-gray-500" />
             History
           </Link>
 
@@ -117,7 +117,7 @@ export function UserMenu() {
             className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
             role="menuitem"
           >
-            <CreditCard className="w-4 h-4 mr-3 text-gray-500" />
+            <CreditCard className="w-4 h-4 me-3 text-gray-500" />
             Payments
           </Link>
           
@@ -137,7 +137,7 @@ export function UserMenu() {
             className="w-full flex items-center px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors"
             role="menuitem"
           >
-            <LogOut className="w-4 h-4 mr-3" />
+            <LogOut className="w-4 h-4 me-3" />
             Sign Out
           </button>
         </div>

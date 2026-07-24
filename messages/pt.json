@@ -728,5 +728,19 @@
         "feature6": "Painel leve do lojista"
       }
     }
+  },
+  "notFound": {
+    "title": "404 - Página não encontrada | VisuTry",
+    "description": "A página que você procura não pôde ser encontrada.",
+    "heading": "404",
+    "subheading": "Página não encontrada",
+    "message": "Desculpe, a página que você procura não existe ou foi movida.",
+    "backToHome": "Voltar ao início",
+    "tryOn": "Experimente o provador virtual com IA",
+    "browseBlog": "Explorar o blog",
+    "popularPages": "Páginas populares:",
+    "faceShapeGuide": "Guia de formato de rosto",
+    "aiTryOnTools": "Ferramentas de provador com IA",
+    "pricing": "Preços"
   }
 }

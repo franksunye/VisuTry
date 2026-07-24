@@ -85,7 +85,7 @@ export default function Home({
           {toolPath.map((item) => {
             const Icon = item.icon
             return (
-              <li key={item.href} className="border-b border-gray-200 last:border-b-0 sm:[&:nth-child(odd)]:border-r lg:border-b-0 lg:border-r lg:last:border-r-0">
+              <li key={item.href} className="border-b border-gray-200 last:border-b-0 sm:[&:nth-child(odd)]:border-e lg:border-b-0 lg:border-e lg:last:border-e-0">
                 <Link
                   href={item.href}
                   className="flex min-h-20 items-center gap-3 px-4 py-3 transition-colors hover:bg-blue-50/60"
@@ -111,7 +111,7 @@ export default function Home({
         <div className="grid gap-8 overflow-hidden rounded-lg border border-blue-100 bg-gradient-to-br from-white via-blue-50/70 to-white p-5 shadow-sm md:p-8 lg:grid-cols-[0.76fr_1.24fr] lg:items-center">
           <div>
             <p className="mb-3 inline-flex items-center rounded-lg border border-blue-200 bg-white px-3 py-1 text-sm font-semibold text-blue-700">
-              <ScanFace className="mr-2 h-4 w-4" />
+              <ScanFace className="me-2 h-4 w-4" />
               {t('workflow.badge')}
             </p>
             <h2 className="mb-4 text-3xl font-bold leading-tight text-gray-950 md:text-4xl">
@@ -133,7 +133,7 @@ export default function Home({
               className="inline-flex items-center justify-center rounded-lg bg-blue-600 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-blue-600/20 transition-colors hover:bg-blue-700"
             >
               {t('workflow.cta')}
-              <ArrowRight className="ml-2 h-4 w-4" />
+              <ArrowRight className="ms-2 h-4 w-4" />
             </Link>
           </div>
           <FaceAnalysisPreviewVisual variant="workflow" />
@@ -200,7 +200,7 @@ export default function Home({
             className="inline-flex flex-shrink-0 items-center justify-center rounded-lg border border-blue-200 bg-blue-50 px-5 py-3 text-sm font-bold text-blue-700 transition hover:border-blue-300 hover:bg-blue-100"
           >
             Explore VisuTry Store
-            <ArrowRight className="ml-2 h-4 w-4" />
+            <ArrowRight className="ms-2 h-4 w-4" />
           </Link>
         </div>
       </section>
@@ -212,14 +212,14 @@ export default function Home({
           <p className="text-lg text-gray-600">{t('faqSubtitle')}</p>
         </div>
 
-        <div className="space-y-6">
+        <div className="flex flex-col gap-y-6">
           {faqItems.map((item, index) => (
             <details
               key={index}
               className="group bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-md transition-shadow"
             >
               <summary className="flex items-center justify-between p-6 cursor-pointer list-none">
-                <h3 className="text-lg font-semibold text-gray-900 pr-4">
+                <h3 className="text-lg font-semibold text-gray-900 pe-4">
                   {item.question}
                 </h3>
                 <span className="text-gray-400 group-open:rotate-180 transition-transform">

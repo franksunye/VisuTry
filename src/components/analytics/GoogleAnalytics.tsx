@@ -1,12 +1,22 @@
 'use client'
 
 import Script from 'next/script'
+import { useEffect } from 'react'
+import { setLanguageUserProperties } from '@/lib/analytics'
 
 interface GoogleAnalyticsProps {
   gaId: string
 }
 
 export function GoogleAnalytics({ gaId }: GoogleAnalyticsProps) {
+  // Set language user properties after gtag loads
+  // The inline script below handles the initial load;
+  // this useEffect is a safety net for client-side locale switches
+  useEffect(() => {
+    if (!gaId) return
+    setLanguageUserProperties()
+  }, [gaId])
+
   if (!gaId) {
     return null
   }
@@ -29,6 +39,11 @@ export function GoogleAnalytics({ gaId }: GoogleAnalyticsProps) {
             gtag('config', '${gaId}', {
               page_title: document.title,
               page_location: window.location.href,
+            });
+            // Set language user properties for audience segmentation
+            gtag('set', 'user_properties', {
+              landing_locale: document.documentElement.lang || 'en',
+              browser_language: navigator.language || 'en',
             });
           `,
         }}
@@ -89,15 +104,4 @@ export const trackSignUp = (method: string) => {
 // 登录事件追踪
 export const trackSignIn = (method: string) => {
   trackEvent('login', 'user', method)
-}
-
-// 声明全局gtag类型
-declare global {
-  interface Window {
-    gtag: (
-      command: 'config' | 'event',
-      targetId: string,
-      config?: Record<string, any>
-    ) => void
-  }
 }

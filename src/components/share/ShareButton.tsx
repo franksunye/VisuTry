@@ -51,7 +51,7 @@ export function ShareButton({ taskId, className }: ShareButtonProps) {
           className
         )}
       >
-        <Share2 className="w-4 h-4 mr-2" />
+        <Share2 className="w-4 h-4 me-2" />
         Share
       </button>
     )
@@ -66,7 +66,7 @@ export function ShareButton({ taskId, className }: ShareButtonProps) {
       />
 
       {/* Share Panel */}
-      <div className="absolute top-full right-0 mt-2 w-80 bg-white rounded-xl shadow-lg border z-50 p-6">
+      <div className="absolute top-full end-0 mt-2 w-80 bg-white rounded-xl shadow-lg border z-50 p-6">
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-lg font-semibold text-gray-900">Share Try-On Result</h3>
           <button
@@ -82,7 +82,7 @@ export function ShareButton({ taskId, className }: ShareButtonProps) {
           <label className="block text-sm font-medium text-gray-700 mb-2">
             Share Link
           </label>
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center gap-x-2">
             <input
               type="text"
               value={shareUrl}
@@ -95,12 +95,12 @@ export function ShareButton({ taskId, className }: ShareButtonProps) {
             >
               {copied ? (
                 <>
-                  <Check className="w-4 h-4 mr-1" />
+                  <Check className="w-4 h-4 me-1" />
                   Copied
                 </>
               ) : (
                 <>
-                  <Copy className="w-4 h-4 mr-1" />
+                  <Copy className="w-4 h-4 me-1" />
                   Copy
                 </>
               )}

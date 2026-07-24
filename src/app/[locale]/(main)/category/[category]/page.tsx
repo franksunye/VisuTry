@@ -110,7 +110,7 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
 
       {/* Back Button */}
       <Link href={localizedPath(params.locale, '/')} className="inline-flex items-center text-blue-600 hover:text-blue-700 mb-6">
-        <ArrowLeft className="w-4 h-4 mr-2" />
+        <ArrowLeft className="w-4 h-4 me-2" />
         Back
       </Link>
 

@@ -46,7 +46,7 @@ export default async function TagPage({ params }: Props) {
             href={`/${locale}/blog`}
             className="inline-flex items-center text-blue-600 hover:text-blue-800"
           >
-            <ArrowLeft className="w-4 h-4 mr-2" />
+            <ArrowLeft className="w-4 h-4 me-2" />
             Back to Blog
           </Link>
         </div>
@@ -54,7 +54,7 @@ export default async function TagPage({ params }: Props) {
         {/* Page header */}
         <div className="text-center mb-12">
           <div className="inline-flex items-center justify-center bg-blue-100 text-blue-800 px-4 py-2 rounded-full mb-4">
-            <TagIcon className="w-5 h-5 mr-2" />
+            <TagIcon className="w-5 h-5 me-2" />
             <span className="font-semibold">{tag}</span>
           </div>
           <h1 className="text-4xl font-bold text-gray-900 mb-4">
@@ -102,13 +102,13 @@ export default async function TagPage({ params }: Props) {
 
                   {/* Article metadata */}
                   <div className="flex items-center justify-between text-sm text-gray-500 mb-4">
-                    <div className="flex items-center space-x-4">
+                    <div className="flex items-center gap-x-4">
                       <div className="flex items-center">
-                        <User className="w-4 h-4 mr-1" />
+                        <User className="w-4 h-4 me-1" />
                         {post.author}
                       </div>
                       <div className="flex items-center">
-                        <Calendar className="w-4 h-4 mr-1" />
+                        <Calendar className="w-4 h-4 me-1" />
                         {new Date(post.publishedAt).toLocaleDateString('en-US', {
                           year: 'numeric',
                           month: 'short',
@@ -124,7 +124,7 @@ export default async function TagPage({ params }: Props) {
                     className="inline-flex items-center text-blue-600 hover:text-blue-800 font-medium"
                   >
                     Read Full Article
-                    <ArrowRight className="w-4 h-4 ml-1" />
+                    <ArrowRight className="w-4 h-4 ms-1" />
                   </Link>
                 </div>
               </article>

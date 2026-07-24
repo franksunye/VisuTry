@@ -110,7 +110,7 @@ export function PricingSection({ user: serverUser, quotas }: PricingSectionProps
           <table className="w-full">
             <thead className="bg-gray-50">
               <tr>
-                <th className="px-6 py-3 text-sm font-medium text-left text-gray-900">Feature</th>
+                <th className="px-6 py-3 text-sm font-medium text-start text-gray-900">Feature</th>
                 <th className="px-6 py-3 text-sm font-medium text-center text-gray-900">Free</th>
                 <th className="px-6 py-3 text-sm font-medium text-center text-gray-900">
                   Credits Pack

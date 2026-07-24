@@ -42,10 +42,10 @@ export function UserPublicProfile({ user, publicTryOnsCount }: UserPublicProfile
       {/* Background Banner */}
       <div className="relative h-32 bg-gradient-to-r from-blue-500 to-purple-600">
         <div className="absolute inset-0 opacity-20">
-          <div className="absolute top-4 left-4">
+          <div className="absolute top-4 start-4">
             <Glasses className="w-8 h-8 text-white" />
           </div>
-          <div className="absolute top-8 right-8">
+          <div className="absolute top-8 end-8">
             <Star className="w-6 h-6 text-white" />
           </div>
           <div className="absolute bottom-4 left-1/3">
@@ -56,7 +56,7 @@ export function UserPublicProfile({ user, publicTryOnsCount }: UserPublicProfile
       
       <div className="relative px-6 pb-6">
         {/* Avatar */}
-        <div className="absolute -top-16 left-6">
+        <div className="absolute -top-16 start-6">
           <div className="w-32 h-32 bg-white rounded-full p-2 shadow-lg">
             {user.image ? (
               <img
@@ -81,20 +81,20 @@ export function UserPublicProfile({ user, publicTryOnsCount }: UserPublicProfile
               <h2 className="text-2xl font-bold text-gray-900 mb-2 flex items-center">
                 {displayName}
                 {user.isPremium && (
-                  <div className="ml-2 flex items-center">
+                  <div className="ms-2 flex items-center">
                     <Star className="w-5 h-5 text-yellow-500" />
-                    <span className="text-sm text-yellow-600 ml-1">Premium Member</span>
+                    <span className="text-sm text-yellow-600 ms-1">Premium Member</span>
                   </div>
                 )}
               </h2>
               
               <div className="flex items-center text-gray-600 mb-2">
-                <Calendar className="w-4 h-4 mr-2" />
+                <Calendar className="w-4 h-4 me-2" />
                 <span>Joined {joinDate}</span>
               </div>
               
               <div className="flex items-center">
-                <LevelIcon className={`w-4 h-4 mr-2 ${userLevel.color}`} />
+                <LevelIcon className={`w-4 h-4 me-2 ${userLevel.color}`} />
                 <span className={`text-sm font-medium ${userLevel.color}`}>
                   {userLevel.level} User
                 </span>
@@ -133,25 +133,25 @@ export function UserPublicProfile({ user, publicTryOnsCount }: UserPublicProfile
               <div className="flex flex-wrap gap-2">
                 {publicTryOnsCount >= 1 && (
                   <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                    <Glasses className="w-3 h-3 mr-1" />
+                    <Glasses className="w-3 h-3 me-1" />
                     First Share
                   </span>
                 )}
                 {publicTryOnsCount >= 5 && (
                   <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                    <Star className="w-3 h-3 mr-1" />
+                    <Star className="w-3 h-3 me-1" />
                     Active User
                   </span>
                 )}
                 {publicTryOnsCount >= 10 && (
                   <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
-                    <Award className="w-3 h-3 mr-1" />
+                    <Award className="w-3 h-3 me-1" />
                     Creator Pro
                   </span>
                 )}
                 {user.isPremium && (
                   <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
-                    <Star className="w-3 h-3 mr-1" />
+                    <Star className="w-3 h-3 me-1" />
                     Premium Member
                   </span>
                 )}

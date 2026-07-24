@@ -728,5 +728,19 @@
         "feature6": "Tableau de bord marchand léger"
       }
     }
+  },
+  "notFound": {
+    "title": "404 - Page introuvable | VisuTry",
+    "description": "La page que vous recherchez est introuvable.",
+    "heading": "404",
+    "subheading": "Page introuvable",
+    "message": "Désolé, la page que vous recherchez n'existe pas ou a été déplacée.",
+    "backToHome": "Retour à l'accueil",
+    "tryOn": "Essayer l'essayage virtuel par IA",
+    "browseBlog": "Parcourir le blog",
+    "popularPages": "Pages populaires :",
+    "faceShapeGuide": "Guide des formes de visage",
+    "aiTryOnTools": "Outils d'essayage par IA",
+    "pricing": "Tarifs"
   }
 }

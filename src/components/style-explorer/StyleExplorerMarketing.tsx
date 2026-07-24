@@ -164,7 +164,7 @@ export function StyleExplorerMarketing({ locale, signInHref }: StyleExplorerMark
                   </div>
                 ))}
 
-                <div className="absolute left-4 top-4 rounded-full border border-white/80 bg-white/90 px-3 py-1.5 text-xs font-semibold text-slate-700 shadow-sm backdrop-blur">
+                <div className="absolute start-4 top-4 rounded-full border border-white/80 bg-white/90 px-3 py-1.5 text-xs font-semibold text-slate-700 shadow-sm backdrop-blur">
                   {slides[activeSlide].label}
                 </div>
 
@@ -172,7 +172,7 @@ export function StyleExplorerMarketing({ locale, signInHref }: StyleExplorerMark
                   type="button"
                   onClick={showPrevious}
                   aria-label={t('a11y.previousExample')}
-                  className="absolute left-3 top-1/2 -translate-y-1/2 rounded-full border border-slate-200 bg-white/95 p-2 text-slate-700 shadow-md transition hover:text-blue-600"
+                  className="absolute start-3 top-1/2 -translate-y-1/2 rounded-full border border-slate-200 bg-white/95 p-2 text-slate-700 shadow-md transition hover:text-blue-600"
                 >
                   <ChevronLeft className="h-5 w-5" />
                 </button>
@@ -180,7 +180,7 @@ export function StyleExplorerMarketing({ locale, signInHref }: StyleExplorerMark
                   type="button"
                   onClick={showNext}
                   aria-label={t('a11y.nextExample')}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full border border-slate-200 bg-white/95 p-2 text-slate-700 shadow-md transition hover:text-blue-600"
+                  className="absolute end-3 top-1/2 -translate-y-1/2 rounded-full border border-slate-200 bg-white/95 p-2 text-slate-700 shadow-md transition hover:text-blue-600"
                 >
                   <ChevronRight className="h-5 w-5" />
                 </button>

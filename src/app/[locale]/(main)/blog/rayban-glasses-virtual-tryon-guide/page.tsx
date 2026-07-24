@@ -66,7 +66,7 @@ export default function BlogPostPage({ params }: BlogPostPageProps) {
 
             <div className="p-8 border-b">
               <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center space-x-4 text-sm text-gray-600">
+                <div className="flex items-center gap-x-4 text-sm text-gray-600">
                   <span>Author: VisuTry Team</span>
                   <span>Published: October 21, 2025</span>
                   <span>Read time: 10 min</span>
@@ -359,7 +359,7 @@ export default function BlogPostPage({ params }: BlogPostPageProps) {
                 <li><strong>Avoid marketplace sellers</strong> - High risk of counterfeits</li>
               </ul>
 
-              <div className="bg-yellow-50 border-l-4 border-yellow-400 p-6 my-8">
+              <div className="bg-yellow-50 border-s-4 border-yellow-400 p-6 my-8">
                 <h3 className="text-lg font-bold text-yellow-900 mb-2">⚠️ Beware of Counterfeits</h3>
                 <p className="text-gray-800 mb-0">
                   Ray-Ban is one of the most counterfeited eyewear brands. Always buy from authorized retailers 

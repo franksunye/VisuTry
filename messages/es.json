@@ -728,5 +728,19 @@
         "feature6": "Panel ligero del comerciante"
       }
     }
+  },
+  "notFound": {
+    "title": "404 - Página no encontrada | VisuTry",
+    "description": "No se pudo encontrar la página que busca.",
+    "heading": "404",
+    "subheading": "Página no encontrada",
+    "message": "Lo sentimos, la página que busca no existe o ha sido movida.",
+    "backToHome": "Volver al inicio",
+    "tryOn": "Probar el probador virtual con IA",
+    "browseBlog": "Explorar el blog",
+    "popularPages": "Páginas populares:",
+    "faceShapeGuide": "Guía de forma de rostro",
+    "aiTryOnTools": "Herramientas de probador con IA",
+    "pricing": "Precios"
   }
 }

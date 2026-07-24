@@ -728,5 +728,19 @@
         "feature6": "軽量なマーチャントダッシュボード"
       }
     }
+  },
+  "notFound": {
+    "title": "404 - ページが見つかりません | VisuTry",
+    "description": "お探しのページは見つかりませんでした。",
+    "heading": "404",
+    "subheading": "ページが見つかりません",
+    "message": "申し訳ありません。お探しのページは存在しないか、移動されました。",
+    "backToHome": "ホームに戻る",
+    "tryOn": "AIバーチャル試着を試す",
+    "browseBlog": "ブログを見る",
+    "popularPages": "人気のページ:",
+    "faceShapeGuide": "顔型ガイド",
+    "aiTryOnTools": "AI試着ツール",
+    "pricing": "料金"
   }
 }

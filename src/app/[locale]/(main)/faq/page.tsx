@@ -88,7 +88,7 @@ export default async function FaqPage({ params }: Props) {
               <Link key={item.label} href={item.href} className="flex items-center gap-3 rounded-lg border border-gray-200 bg-gray-50 p-3 text-sm font-semibold text-gray-800 hover:border-blue-200 hover:text-blue-700">
                 <Icon className="h-4 w-4 text-blue-600" />
                 {item.label}
-                <ArrowRight className="ml-auto h-4 w-4" />
+                <ArrowRight className="ms-auto h-4 w-4" />
               </Link>
             )
           })}
@@ -98,7 +98,7 @@ export default async function FaqPage({ params }: Props) {
       <div className="grid gap-6 lg:grid-cols-[260px_minmax(0,1fr)]">
         <aside className="h-fit rounded-lg border border-gray-200 bg-white p-5 shadow-sm">
           <h2 className="mb-4 text-sm font-bold uppercase text-gray-500">{t('topics')}</h2>
-          <div className="space-y-2">
+          <div className="flex flex-col gap-y-2">
             {faqGroups.map((group) => (
               <a key={group.title} href={`#${toAnchorId(group.title)}`} className="block rounded-md px-3 py-2 text-sm font-semibold text-gray-700 hover:bg-blue-50 hover:text-blue-700">
                 {group.title}
@@ -107,11 +107,11 @@ export default async function FaqPage({ params }: Props) {
           </div>
         </aside>
 
-        <section className="space-y-6">
+        <section className="flex flex-col gap-y-6">
           {faqGroups.map((group) => (
             <div key={group.title} id={toAnchorId(group.title)} className="rounded-lg border border-gray-200 bg-white p-5 shadow-sm">
               <h2 className="mb-4 text-xl font-bold text-gray-950">{group.title}</h2>
-              <div className="space-y-3">
+              <div className="flex flex-col gap-y-3">
                 {group.items.map((item) => (
                   <details key={item.question} className="group rounded-lg border border-gray-200 p-4">
                     <summary className="cursor-pointer list-none text-base font-semibold text-gray-950">
