@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { ArrowRight, Glasses, ScanFace } from 'lucide-react'
+import { ArrowRight, Glasses, ScanFace, Sparkles } from 'lucide-react'
 import { analytics } from '@/lib/analytics'
 
 type FaceAnalysisFunnelCTAProps = {
@@ -11,6 +11,9 @@ type FaceAnalysisFunnelCTAProps = {
   tone?: 'blue' | 'light'
   sourcePage?: string
   ctaLocation?: string
+  primaryLabel?: string
+  secondaryAction?: 'try_on' | 'advisor'
+  secondaryLabel?: string
 }
 
 export function FaceAnalysisFunnelCTA({
@@ -20,9 +23,21 @@ export function FaceAnalysisFunnelCTA({
   tone = 'blue',
   sourcePage,
   ctaLocation = 'blog_funnel_cta',
+  primaryLabel = 'Detect my face shape — free',
+  secondaryAction = 'try_on',
+  secondaryLabel,
 }: FaceAnalysisFunnelCTAProps) {
   const localePrefix = `/${locale}`
   const isBlue = tone === 'blue'
+  const isAdvisorAction = secondaryAction === 'advisor'
+  const SecondaryIcon = isAdvisorAction ? Sparkles : Glasses
+  const secondaryHref = isAdvisorAction
+    ? `${localePrefix}/face-analysis`
+    : `${localePrefix}/try-on/glasses`
+  const secondaryDestination = isAdvisorAction ? 'face_analysis' : 'glasses_try_on'
+  const resolvedSecondaryLabel = secondaryLabel || (isAdvisorAction
+    ? 'Get personalized glasses advice'
+    : 'Try on glasses')
   const getSourcePage = () => sourcePage || window.location.pathname
 
   return (
@@ -67,15 +82,15 @@ export function FaceAnalysisFunnelCTA({
               : 'bg-blue-600 text-white hover:bg-blue-700'
           }`}
         >
-          Detect my face shape — free
+          {primaryLabel}
           <ArrowRight className="ms-2 h-4 w-4" />
         </Link>
         <Link
-          href={`${localePrefix}/try-on/glasses`}
+          href={secondaryHref}
           onClick={() =>
             analytics.trackBlogFunnelClick({
               sourcePage: getSourcePage(),
-              destination: 'glasses_try_on',
+              destination: secondaryDestination,
               ctaLocation,
               locale,
             })
@@ -86,8 +101,8 @@ export function FaceAnalysisFunnelCTA({
               : 'border-gray-300 bg-white text-gray-700 hover:bg-gray-50'
           }`}
         >
-          <Glasses className="me-2 h-4 w-4" />
-          Try on glasses
+          <SecondaryIcon className="me-2 h-4 w-4" />
+          {resolvedSecondaryLabel}
         </Link>
       </div>
     </div>

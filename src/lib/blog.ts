@@ -34,10 +34,10 @@ export const staticBlogPosts: BlogPost[] = [
   },
   {
     slug: 'ai-face-analysis-for-glasses-guide',
-    title: 'AI Face Shape Detector for Glasses - Which Glasses Suit My Face?',
-    description: 'Use AI face shape detection to find which glasses suit your face, shortlist frame styles, and move from face analysis to virtual try-on.',
+    title: 'Which Glasses Suit My Face? Free AI Face Shape Detector',
+    description: 'Upload a photo to find your face shape free, see which glasses may suit your face, and continue to personalized AI frame advice or virtual try-on.',
     publishedAt: '2026-06-08T10:00:00Z',
-    modifiedAt: '2026-06-24T05:45:00Z',
+    modifiedAt: '2026-07-27T04:00:00Z',
     author: 'VisuTry Team',
     category: 'Face Shape Guide',
     readTime: '8 min read',

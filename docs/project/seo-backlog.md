@@ -41,6 +41,32 @@ Decision on 2026-08-10:
 - Fix intent or CTA mismatch where traffic grows but detector continuation falls.
 - Stop channels that create sessions without detector, try-on, checkout, or purchase behavior.
 
+## Current SEO Allocation: GSC Coverage Matrix
+
+Priority: P0
+Status: Execution active
+Baseline: 2026-07-27
+
+Findings:
+
+- [x] Export current GSC query, page, country, device, and date data for the latest 28-day and selected 90-day windows.
+- [x] Confirm that the latest 28 days produced 404 clicks and 8,158 impressions.
+- [x] Confirm that the AI face-analysis article owns the highest-volume `which glasses suit my face` queries.
+- [x] Confirm that `/en/face-shape-detector` is discovered but not indexed.
+- [x] Map current query clusters to their intended product-led owners.
+
+Next execution:
+
+- [x] Verify crawlable internal links to the English free detector from the winning article, face-analysis page, homepage, and glasses hub; strengthen the winning article's hero link.
+- [ ] Verify the detector's canonical, robots, sitemap entry, rendered status, and mobile first screen after deployment.
+- [x] Request detector indexing after verifying the live page returns 200, `index,follow`, the correct canonical, sitemap inclusion, and crawlable internal links (submitted 2026-07-27).
+- [x] Improve the winning AI article's first-screen free-detector CTA while preserving advisor and try-on paths.
+- [ ] Genuinely localize the winning advisor article for `fr`, `ru`, `de`, `pt`, `id`, `ja`, `es`, and `ar`.
+- [ ] Localize ordinary-glasses `/style/{faceShape}` pages and remove non-English `noindex` only after content QA.
+- [ ] Optimize the existing Ray-Ban guide's snippet and try-on CTA instead of creating a duplicate article.
+
+Reference: [GSC Query Coverage Matrix](../strategy/seo/2026-07-27-gsc-query-coverage-matrix.md)
+
 ## Product Architecture Sync
 
 Priority: P0

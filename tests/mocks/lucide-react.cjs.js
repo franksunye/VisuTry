@@ -24,4 +24,7 @@ module.exports = {
   Shield: createIcon('shield'),
   CheckCircle: createIcon('check-circle'),
   Clock: createIcon('clock'),
+  ArrowRight: createIcon('arrow-right'),
+  ScanFace: createIcon('scan-face'),
+  Sparkles: createIcon('sparkles'),
 }

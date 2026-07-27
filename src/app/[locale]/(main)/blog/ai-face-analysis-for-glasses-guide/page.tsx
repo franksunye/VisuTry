@@ -8,11 +8,11 @@ import { generateI18nSEO, generateStructuredData } from '@/lib/seo'
 
 export const dynamic = 'force-static'
 
-const title = 'AI Face Shape Detector for Glasses - Which Glasses Suit My Face?'
-const description = 'Use AI face shape detection to find which glasses suit your face, shortlist frame styles, and move from face analysis to virtual try-on.'
+const title = 'Which Glasses Suit My Face? Free AI Face Shape Detector'
+const description = 'Upload a photo to find your face shape free, see which glasses may suit your face, and continue to personalized AI frame advice or virtual try-on.'
 const coverImage = '/blog-covers/face-shape-guide.jpg'
 const publishedAt = '2026-06-08T10:00:00Z'
-const modifiedAt = '2026-06-24T05:45:00Z'
+const modifiedAt = '2026-07-27T04:00:00Z'
 
 export async function generateMetadata({ params }: { params: { locale: string } }): Promise<Metadata> {
   return generateI18nSEO({
@@ -148,14 +148,28 @@ export default function BlogPostPage({ params }: { params: { locale: string } })
                 <span>Published Jun 8, 2026</span>
                 <span>8 min read</span>
               </div>
+              <p className="mb-3 text-sm font-semibold text-blue-700">
+                Free face shape detector · No login · Photo stays in your browser
+              </p>
               <h1 className="mb-4 text-3xl font-bold text-gray-900 md:text-4xl">
-                AI Face Shape Detector for Glasses: Which Glasses Suit My Face?
+                Which Glasses Suit My Face? Start With a Free AI Face Shape Detector
               </h1>
               <p className="text-xl text-gray-600">
-                Choosing glasses online gets much easier when you know your face shape first.
-                AI face analysis can turn one photo into a practical frame shortlist, then
-                virtual try-on helps you see which styles actually feel like you.
+                Upload one photo to find your likely face shape free, then turn the result into
+                a practical glasses shortlist. Continue to personalized AI advice when you want
+                more detail, or validate the styles with virtual try-on.
               </p>
+              <FaceAnalysisFunnelCTA
+                locale={params.locale}
+                title="Find which glasses suit your face"
+                body="Start with the free private detector. If you want a personalized frame shortlist, continue to the AI Glasses Advisor."
+                tone="light"
+                sourcePage={`${localePrefix}/blog/ai-face-analysis-for-glasses-guide`}
+                ctaLocation="article_hero"
+                primaryLabel="Find my face shape — free"
+                secondaryAction="advisor"
+                secondaryLabel="Get my glasses advice"
+              />
             </div>
 
             <div className="prose prose-lg max-w-none p-8">
@@ -178,13 +192,6 @@ export default function BlogPostPage({ params }: { params: { locale: string } })
                 start with the free detector first, then return to this guide to understand
                 why each frame direction may suit your face.
               </p>
-
-              <FaceAnalysisFunnelCTA
-                locale={params.locale}
-                title="Turn face shape advice into a try-on shortlist"
-                body="Start with one portrait, get frame directions, then test the recommended styles on your own photo instead of browsing hundreds of frames cold."
-                tone="light"
-              />
 
               <div className="not-prose my-8 grid gap-4 md:grid-cols-3">
                 {workflowSteps.map((item) => {
@@ -259,7 +266,11 @@ export default function BlogPostPage({ params }: { params: { locale: string } })
                 <li><strong>Check real-world details</strong> such as frame measurements, bridge fit, prescription lens options, and return policy before buying.</li>
               </ol>
 
-              <FaceAnalysisFunnelCTA locale={params.locale} />
+              <FaceAnalysisFunnelCTA
+                locale={params.locale}
+                sourcePage={`${localePrefix}/blog/ai-face-analysis-for-glasses-guide`}
+                ctaLocation="article_midpoint"
+              />
 
               <h2>Quick answers for shoppers comparing AI glasses tools</h2>
               <p>
