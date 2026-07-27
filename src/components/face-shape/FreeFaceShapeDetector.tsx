@@ -65,6 +65,7 @@ export function FreeFaceShapeDetector({ locale }: FreeFaceShapeDetectorProps) {
       return
     }
 
+    analytics.trackFaceShapeDetectorStart()
     analytics.trackFaceShapeDetectorUpload(file.type, file.size)
     const startedAt = performance.now()
     const nextPreviewUrl = URL.createObjectURL(file)

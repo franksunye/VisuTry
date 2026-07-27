@@ -5,6 +5,10 @@ Revised: 2026-06-30
 Owner: Codex
 Scope: Website commercial traffic growth
 
+Status: Superseded on 2026-07-27
+
+> Historical KPI baseline and experiment record only. Current metrics, priorities, and operating cadence live in `docs/strategy/analytics/gtm.md`.
+
 ## 2026-06-18 Goal Reset
 
 The original 30-day targets remain the minimum floor. They are not large enough to solve the current small-sample problem, and SEO alone is unlikely to reach the desired traffic level within the remaining 24 days.

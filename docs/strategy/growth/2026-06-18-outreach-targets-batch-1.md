@@ -1,7 +1,9 @@
 # VisuTry Outreach Targets - Batch 1
 
 Date researched: 2026-06-18
-Status: Research complete; contact routes and messages pending
+Status: Historical research asset; no messages are currently pending
+
+> A target becomes active only when selected for a bounded experiment under `docs/strategy/analytics/gtm.md` and separately approved for outreach.
 
 ## Selection Rule
 

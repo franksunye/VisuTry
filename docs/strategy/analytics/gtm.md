@@ -1,303 +1,268 @@
-# 🧭 VisuTry GTM + SEO 增长策略手册
+# VisuTry GTM：高意图流量增长与收入转化
 
-**Status:** Execution document  
-**Version:** 1.0  
-**Created / active window:** 2025 Q4 ~ 2026 Q2  
-**Last reviewed:** 2026-07-08  
-**Owner:** Growth / Analytics  
-**Review cadence:** Monthly while active  
-**Scope:** GTM, SEO, analytics, content, and growth execution references.  
-**Current guidance:** This is an execution handbook, not the commercial strategy source of truth. Commercial direction lives in `docs/strategy/commercial-strategy.md`; current product execution priority lives in `docs/product/product-plan.md`; SEO/Growth task tracking lives in `docs/project/seo-backlog.md`.
+**Status:** Active source of truth for GTM execution
+**Version:** 2.0
+**Last updated:** 2026-07-27
+**Owner:** Growth / Product / Analytics
+**Review cadence:** Weekly
+**Scope:** 获客、SEO、多语言增长、站内转化、分发和增长分析。
 
----
+> 本文取代此前按页面数量、渠道数量或活动数量推进的 GTM 执行计划。旧计划仅保留为历史资料；当前执行、排序和复盘以本文为准。
 
-## 一、总体目标与战略定位
+## 1. 当前阶段
 
-### 🎯 核心目标
+VisuTry 已经不再处于“寻找任意可行获客路径”的阶段。
 
-构建一个以 **“AI虚拟眼镜试戴工具”** 为核心的增长引擎，通过：
+2026 年 6–7 月，VisuTry 已经产生 10 笔有效的 Credits Pack 支付，对应 10 个不同用户；每笔 USD 2.99，累计支付金额 USD 29.90。用户从脸型检测及相关内容进入产品后产生的付费，以及 GA 中 Free Face Shape Detector、AI Face Shape Detector、Virtual Glasses Try-On、AI Glasses Advisor 和俄语、法语相关页面的访问增长，共同构成当前 GTM 方向的商业信号。
 
-1. SEO + 内容营销获取自然流量；
-2. 工具功能吸引用户体验；
-3. 工具嵌入与品牌合作推动商业转化。
+这证明以下路径存在真实商业信号：
 
----
+> 高意图搜索 → 免费脸型检测 → 眼镜建议 → 虚拟试戴 / 比较 → Credits Pack 付费
 
-### 💡 核心增长逻辑：内容 × 工具双引擎
+10 个有效支付足以决定当前优先方向，并且比此前记录的 6 个付费用户形成了更强的连续转化信号；但现有样本仍不足以证明流量与收入会永久线性增长。因此，下一阶段必须同时扩大合格流量并保护转化质量。
 
-| 引擎                        | 目标      | 形式             | 转化路径              |
-| ------------------------- | ------- | -------------- | ----------------- |
-| **内容引擎（Content SEO）**     | 获取精准流量  | 博客 / 教程 / 对比文章 | 搜索 → 内容 → 工具体验    |
-| **工具引擎（Product-Led SEO）** | 提升停留与转化 | 在线试戴工具 / 程序化页面 | 搜索 → 功能 → 注册 / 合作 |
+## 2. 唯一 GTM 目标
 
----
+> 扩大进入“脸型检测 → 眼镜推荐 → 虚拟试戴 / 比较 → 付费”路径的高意图流量，同时保持或提高每 1,000 次自然搜索访问带来的收入。
 
-## 二、SEO战略蓝图
+这里的“流量”不包括与产品路径无关的泛时尚访问。增长只有在用户完成检测、继续试戴、开始结账或付费时才具有商业意义。
 
-### 1️⃣ 关键词战略
+### 北极星与护栏指标
 
-关键词分三类：
+| 类型 | 指标 | 用途 |
+| --- | --- | --- |
+| 北极星 | 每 1,000 次自然搜索访问收入 | 判断流量增长是否真正带来收益 |
+| 获客 | 高意图自然搜索点击数 | 判断合格需求是否扩大 |
+| 激活 | 检测开始率、检测完成率 | 判断落地页与工具是否匹配 |
+| 延续 | 结果页到 Advisor / Try-On / Compare 的点击率 | 判断免费结果是否进入商业路径 |
+| 购买 | `begin_checkout`、`purchase`、购买转化率 | 判断付费闭环 |
+| 质量护栏 | 按落地页、语言、国家拆分的每千次访问收入 | 防止低质量流量稀释整体数据 |
 
-| 类别             | 示例关键词                                 | 意图        |
-| -------------- | ------------------------------------- | --------- |
-| **工具型（高转化）**   | “虚拟眼镜试戴”、"AI glasses try-on"、“在线试眼镜”  | 明确使用工具意图  |
-| **产品/品牌型（长尾）** | “Ray-Ban 眼镜试戴”、“Gentle Monster 太阳镜试戴” | 品牌精准流量    |
-| **教育型（引导）**    | “如何选适合自己脸型的眼镜”、“圆脸适合什么眼镜”             | 流量入口、品牌认知 |
+页面浏览量、内容发布数、提交数、外联数和引用域数量只能作为诊断数据，不能单独作为成功标准。
 
-💡 建议：
-优先布局「工具型 + 品牌型」，后续扩展教育型。
+## 3. 当前受众和搜索意图
 
-#### ✅ **当前关键词配置状态（已实施 - 2025-10-21）**
+当前优先服务的是正在做眼镜决策的消费者：
 
-**核心关键词（Core Keywords）：**
-- virtual glasses try-on
-- AI glasses try-on
-- online glasses fitting
-- virtual eyewear try-on
-- glasses try-on tool
+1. 想知道自己是什么脸型；
+2. 想知道什么眼镜或太阳镜适合自己的脸型；
+3. 已经有一副具体眼镜，想确认戴上后的效果；
+4. 想在多个镜框之间做比较；
+5. 愿意为具体试戴和决策结果购买 Credits Pack。
 
-**功能关键词（Feature Keywords）：**
-- face shape glasses matcher
-- smart glasses recommendation
-- AI-powered eyewear fitting
-- virtual frame fitting
-- online optical try-on
+### 优先搜索集群
 
-**长尾关键词（Long-tail Keywords）：**
-- best glasses for round face
-- how to choose glasses online
-- prescription glasses virtual try-on
-- try on glasses before buying
-- virtual glasses fitting app
-- online eyewear shopping tool
+| 集群 | 示例意图 | 产品下一步 |
+| --- | --- | --- |
+| 脸型检测 | `face shape detector`、`face shape finder`、`face shape test` | 直接开始免费检测 |
+| 眼镜匹配 | `glasses for my face shape`、`what glasses suit me` | 检测后进入眼镜建议 |
+| 太阳镜匹配 | `sunglasses for face shape`、具体脸型太阳镜 | 使用真实素材推荐并进入试戴 |
+| 具体脸型 | `glasses for round face`、`glasses for square face` | 对应脸型建议和镜框示例 |
+| 脸型辨别 | `oval vs oblong face`、`round vs square face` | 帮助判断后进入检测 |
+| 试戴决策 | `virtual glasses try on`、`try glasses on my photo` | 直接进入试戴 / 比较 |
 
-**品牌关键词（Brand Keywords）：**
-- Ray-Ban virtual try-on
-- designer glasses online
-- premium eyewear try-on
-- luxury glasses virtual fitting
+不优先扩张与检测、推荐或试戴没有自然连接的泛眼镜资讯。
 
-**问题解决型关键词（Problem-solving Keywords）：**
-- find perfect glasses online
-- glasses shopping made easy
-- try glasses without visiting store
+## 4. 增长顺序
 
-**总计：27个关键词** 覆盖不同用户搜索意图和转化阶段。
+### 4.1 先放大已有信号
 
-**关键词管理方式：**
-- 集中配置在 `src/lib/seo.ts` 文件
-- 使用分层结构（core, features, longTail, brands, problemSolving）
-- 支持按页面类型动态选择关键词组合
-- 无需每个页面单独配置，统一维护
+每周从 Google Search Console 按“查询 × 页面 × 国家 × 设备”查看最近 28 天和 90 天数据，优先处理：
 
----
+- 已有展示量；
+- 平均排名约 4–20；
+- 搜索意图明确；
+- CTR 或产品延续率仍有提升空间；
+- 已经出现访问或付费信号的语言和国家。
 
-### 2️⃣ 内容结构（Content Architecture）
+当前顺序是：英语高意图词、已有增长的俄语页面、法语检测页面，然后根据真实展示量决定其他语言投入。
 
-#### 目录规划：
+### 4.2 先优化现有集群，再增加 URL
 
-```
-/blog
-  ├── how-to-choose-glasses-for-your-face
-  ├── round-face-best-glasses
-  ├── ai-glasses-tryon-tools-comparison
-  ├── rayban-try-on-guide
-  ├── best-glasses-for-students
-```
+已经部署的多语言脸型内容集群应先完成收录、内部链接、CTR 和转化验证。新增页面必须满足以下至少一项：
 
-#### 每篇文章结构模板：
+- Search Console 已出现对应查询；
+- 能解决现有页面无法完整覆盖的独立问题；
+- 能自然进入 Detector、Advisor、Try-On 或 Compare；
+- 能提供真实工具、测量方法、镜框素材或原创比较，而不是改写通用知识。
 
-| 区块    | 内容示例                             |
-| ----- | -------------------------------- |
-| H1    | 圆脸适合什么眼镜？附AI试戴体验                 |
-| 引言    | 为什么选对眼镜这么难？                      |
-| 主体    | 脸型分析 + 风格建议                      |
-| 插入工具  | 👉「立即上传照片试戴看看！」（嵌入VisuTry）       |
-| 结论    | 鼓励分享或收藏                          |
-| SEO优化 | meta、title、结构化数据（Article Schema） |
+不再以“1000+ 页面”或固定周更数量作为目标。页面数量增加本身不代表增长。
 
----
+### 4.3 让所有高意图页面进入同一产品路径
 
-### 3️⃣ 工具型SEO（Programmatic SEO）
+站内默认路径：
 
-利用工具生成大量 **可索引页面**：
+`搜索落地页 → 免费检测 → 脸型结果和镜框方向 → 具体镜框试戴 → 多框比较 → Credits Pack`
 
-| 页面类型   | URL 示例                      | 内容要素                     |
-| ------ | --------------------------- | ------------------------ |
-| 品牌/型号页 | `/try/rayban-rx5121`        | 眼镜图 + 试戴模块 + 产品描述 + 相似推荐 |
-| 脸型风格页  | `/style/round-face-glasses` | 推荐眼镜 + 试戴入口              |
-| 类别页    | `/try/sunglasses`           | 类别导航 + 热门款式 + 试戴入口       |
+执行要求：
 
-每个页面：
+- 高流量相关页面必须链接至免费检测器；
+- 检测结果页必须提供与脸型相关的 Advisor、Try-On 或 Compare 下一步；
+- 使用 `public/assets/glasses-presets/style-explorer` 的真实眼镜和太阳镜素材；
+- CTA 使用明确动作，例如 “Detect my face shape”、“See glasses for my face”、“Try these frames on”；
+- 首页不是高意图搜索流量的默认落地页。
 
-* 静态生成（Next.js `getStaticProps`）
-* 含独立 meta/title
-* 提供试戴入口（或预加载功能）
-* 收录到 sitemap.xml
+### 4.4 多语言按需求经营
 
-📈 目标：生成 **1000+ 长尾可索引URL**，覆盖眼镜品牌生态。
+英语、俄语、法语及其他已支持语言共享同一产品路径，但每种语言必须使用当地真实搜索表达、完整正文、FAQ、CTA 和内部链接。
 
----
+多语言页面需要保持：
 
-## 三、执行路线图
+- 正确 canonical；
+- 自引用和互相引用的 `hreflang`；
+- `x-default`；
+- sitemap 覆盖；
+- 语言一致的页面正文和产品界面。
 
-| 阶段                       | 时间    | 目标         | 关键任务                                                       | 状态 |
-| ------------------------ | ----- | ---------- | ---------------------------------------------------------- | --- |
-| **阶段1：SEO基础建设**          | 第1月   | 可被Google识别 | robots.txt / sitemap.xml / meta优化 / GA4 / Search Console接入 | ✅ 已完成 |
-| **阶段1.5：关键词优化**          | 第1月   | 提升关键词覆盖 | 扩展关键词至27个 / 优化页面内容关键词密度 / 分层关键词管理 | ✅ 已完成 (2025-10-21) |
-| **阶段1.6：结构化数据优化**       | 第1月   | 提升搜索展示效果 | Schema.org标记 / Rich Snippets / FAQ/Offer/Organization Schema | 🔄 进行中 (2025-10-21) |
-| **阶段2：内容中心建设**           | 第2~3月 | 建立流量入口     | `/blog`结构搭建 + 每周2篇内容                                       | 🔄 进行中 |
-| **阶段3：Programmatic SEO** | 第3~6月 | 扩展规模化页面    | 自动生成品牌/款式试戴页                                               | ⏳ 待开始 |
-| **阶段4：外链与传播**            | 第4~7月 | 提升权重       | 在 Reddit / Medium / 产品榜单投稿                                 | ⏳ 待开始 |
-| **阶段5：分析与转化优化**          | 第5~9月 | 追踪效果并优化    | GA4 + 热图 + 试戴转化漏斗分析                                        | ⏳ 待开始 |
+机械翻译、仅更换关键词的近重复页和没有当地需求证据的批量扩张，不进入当前队列。
 
----
+## 5. 三个执行队列
 
-## 四、网站技术与结构优化
+所有 GTM 工作只进入以下三个队列之一：
 
-### 🔧 技术建议（Next.js）
+### 流量
 
-1. **静态生成（SSG）**
+- 高意图 SEO 页面优化；
+- 多语言查询与落地页匹配；
+- 从现有高流量页面增加内部链接；
+- 与检测工具直接相关的演示、引用和分发；
+- 高质量、主题相关且可验证的外链机会。
 
-   * 内容页与品牌试戴页使用 `getStaticProps` 生成
-   * 确保每个页面在构建时就生成 HTML（可被Google索引）
+### 转化
 
-2. **动态试戴模块**
+- Detector → Advisor / Try-On / Compare 的延续 CTA；
+- 结果页镜框推荐和真实素材；
+- 免费与付费边界说明；
+- Pricing、Checkout 和 Credits Pack 的高意图入口；
+- 移动端上传、检测和试戴体验。
 
-   * 用 `<iframe>` 或组件异步加载
-   * 避免阻塞首屏加载速度
+### 验证
 
-3. **SEO元数据自动化**
+- GA4 产品漏斗事件；
+- Search Console 查询、页面、国家和索引数据；
+- 按落地页与语言归因的付费；
+- 每周增长复盘和停止 / 扩大决策。
 
-   * 使用 Next.js 的 `next-seo` 插件
-   * 自动为每个试戴页生成：
+不能明确影响以上队列及核心指标的新活动，默认不做。
 
-     ```js
-     <title>Ray-Ban RX5121 虚拟试戴 | VisuTry</title>
-     <meta name="description" content="在线试戴 Ray-Ban RX5121，看看是否适合你。支持AI脸型识别。">
-     ```
+## 6. 最小分析规范
 
-4. **多语言支持**
+至少记录以下事件：
 
-   * 使用 `next-i18next`
-   * 中英文页面各自优化关键词（例：“虚拟眼镜试戴” vs “virtual glasses try-on”）
+- `face_shape_detector_start`
+- `face_shape_detector_upload`
+- `face_shape_detector_complete`
+- `face_shape_detector_cta_click`
+- `seo_funnel_click`
+- `try_on_start`
+- `try_on_complete`
+- `frame_compare_start`
+- `view_pricing`
+- `begin_checkout`
+- `purchase`
 
-5. **结构化数据（Schema.org）** ✅ **已实施**
+事件应尽可能携带：
 
-   结构化数据帮助搜索引擎更好地理解页面内容，提升搜索结果展示效果（Rich Snippets）。
+- `landing_page`
+- `landing_locale`
+- `page_path`
+- `country`
+- `source` / `medium`
+- `growth_source`
+- `query_cluster`
+- `face_shape`
+- `product_path`
+- `value` / `currency`
 
-   **已实现的 Schema 类型：**
+隐私原则保持不变：不为增长分析记录用户照片、生物特征原始数据或可识别面部信息。
 
-   * ✅ **Article Schema** - 博客文章（9篇已实施）
-   * ✅ **Organization Schema** - 主页组织信息
-   * ✅ **WebSite Schema** - 网站基本信息
-   * ✅ **SoftwareApplication Schema** - 工具应用描述
-   * ✅ **FAQPage Schema** - 常见问题
-   * ✅ **Offer Schema** - 定价信息
-   * ✅ **BreadcrumbList Schema** - 面包屑导航
+`purchase` 必须由已登录用户的服务端支付记录验证后发送，并使用 Stripe Checkout Session ID 作为 `transaction_id` 去重。不能仅根据成功页面或查询参数报告收入。
 
-   **实施方式：**
-   ```typescript
-   // 使用统一的工具函数生成结构化数据
-   const structuredData = generateStructuredData('article', {
-     title: '...',
-     description: '...',
-     publishedAt: '2025-10-21T10:00:00Z',
-     author: 'VisuTry Team',
-   })
+## 7. 工作方式：两周实验，不再启动长期悬空计划
 
-   // 在页面中嵌入
-   <script type="application/ld+json">
-     {JSON.stringify(structuredData)}
-   </script>
-   ```
+每个增长动作必须写清楚：
 
-   **预期效果：**
-   - 🎯 搜索结果显示富媒体片段（评分、价格、FAQ等）
-   - 📈 点击率提升 20-30%
-   - ⭐ 提升品牌可信度和专业形象
-   - 🔍 更好的搜索可见性
+1. 假设；
+2. 目标页面、语言或渠道；
+3. 主要指标和质量护栏；
+4. 开始与结束日期；
+5. 扩大、修改或停止条件。
 
-   **验证工具：**
-   - Google Rich Results Test: https://search.google.com/test/rich-results
-   - Schema.org Validator: https://validator.schema.org/
+默认实验周期为 14 天。SEO 收录和排名需要更长观察期时，可以延长数据窗口，但执行动作仍必须按周复盘。
 
----
+### 判断规则
 
-## 五、内容生产计划
+| 观察结果 | 处理 |
+| --- | --- |
+| 搜索点击增长，检测和收入质量稳定或上升 | 继续扩大该页面、查询或语言 |
+| 流量增长，检测开始率明显下降 | 检查意图错配、首屏表达和 CTA |
+| 检测完成增长，后续试戴不增长 | 优化结果页推荐和延续路径 |
+| Checkout 增长，Purchase 不增长 | 检查价格、信任、支付和失败问题 |
+| 页面长期无展示且与其他页面意图重叠 | 合并、重写或停止维护 |
+| 渠道产生访问但没有产品行为 | 停止或降低该渠道优先级 |
 
-| 周期  | 目标        | 内容类型                             | 发布节奏 |
-| --- | --------- | -------------------------------- | ---- |
-| 每周  | 教育型 + 工具型 | 「如何选眼镜」、「最佳AI试戴工具」               | 1~2篇 |
-| 每两周 | 品牌/款式     | 「Ray-Ban 试戴」、「Gentle Monster 试戴」 | 1篇   |
-| 每月  | 合作/案例     | 「如何将VisuTry嵌入你的电商网站」             | 1篇   |
+## 8. 当前 30 天执行重点
 
-💡 每篇文章都应引导用户：
+### 第 1 周：建立基线
 
-> “上传照片立即试戴” → 跳转到 `/try` 页面。
+- 验证新多语言页面的索引、canonical、`hreflang` 和 sitemap；
+- 建立查询 × 页面 × 国家 × 语言机会表；
+- 核对从 Detector 到 Purchase 的漏斗事件；
+- 选出最接近排名和转化突破的 10 个页面。
 
-这一步是转化关键。
+### 第 2 周：优化前 10 个机会
 
----
+- 优化标题、首屏答案、FAQ、内部链接和 CTA；
+- 将已有流量页面连接到 Detector；
+- 将真实眼镜 / 太阳镜素材放入推荐和试戴路径；
+- 检查移动端检测和继续操作体验。
 
-## 六、追踪与分析体系
+### 第 3 周：本地化和分发
 
-### 📊 必备工具
+- 根据真实查询强化英语、俄语、法语页面；
+- 为高意图页面制作可引用的检测方法、脸型比较或镜框示例；
+- 只向主题相关页面和渠道分发具体工具或资产。
 
-| 工具                             | 用途         |
-| ------------------------------ | ---------- |
-| **Google Analytics 4 (GA4)**   | 用户行为与转化追踪  |
-| **Google Search Console**      | 关键词排名、索引监控 |
-| **Vercel Analytics**           | 页面访问与性能监控  |
-| **Hotjar / Microsoft Clarity** | 热图、滚动深度分析  |
-| **Ahrefs / SEMrush**           | 外链与关键词竞争分析 |
+### 第 4 周：复盘并重排
 
-### 🔁 关键指标（KPI）
+- 按页面、查询、语言和国家比较流量与收入质量；
+- 扩大有效页面和语言；
+- 合并或停止低意图、重复或没有信号的动作；
+- 形成下一轮 14 天队列，不创建新的长期 GTM 计划。
 
-| 指标      | 目标（6个月内）      |
-| ------- | ------------- |
-| 每月自然访问量 | ≥ 10,000      |
-| 主要关键词排名 | Top 10 至少 5 个 |
-| 平均停留时长  | > 1分30秒       |
-| 工具试戴转化率 | ≥ 3%          |
-| 邮件/注册转化 | ≥ 2%          |
+## 9. 暂不优先
 
----
+未来 60–90 天默认不优先：
 
-## 七、品牌与传播建议
+- 泛眼镜、泛时尚内容扩张；
+- 没有搜索数据或独立用户价值的大规模程序化页面；
+- 宽泛展示广告和宽匹配获客；
+- 以提交量、邮件量、文章量或引用域数量代替收入结果；
+- 与消费者眼镜决策路径无直接关系的大型产品方向；
+- 新建另一份并行 GTM 总计划。
 
-| 渠道                              | 内容类型                | 目的             |
-| ------------------------------- | ------------------- | -------------- |
-| **Product Hunt / IndieHackers** | 产品发布介绍              | 获取初期曝光与反馈      |
-| **Medium / Substack**           | 技术 + 产品文章           | 展示技术实力，提升权威性   |
-| **Reddit / Twitter (X)**        | 有趣试戴内容              | 获取自然传播         |
-| **合作伙伴页面**                      | “Integrate VisuTry” | 为B端客户提供API接入说明 |
+B2B、Store、Studio、API 和合作伙伴方向继续作为商业战略与产品验证方向保留，但不分散当前高意图消费者流量增长的执行注意力。
 
----
+## 10. 文档治理
 
-## 八、长期发展方向（GTM扩展）
+### 当前有效文档
 
-1. **B2B商业化路径**
+| 文档 | 角色 |
+| --- | --- |
+| `docs/strategy/commercial-strategy.md` | 商业方向来源 |
+| `docs/product/product-plan.md` | 产品执行优先级来源 |
+| `docs/strategy/analytics/gtm.md` | 唯一 GTM 执行口径 |
+| `docs/strategy/seo/2026-06-30-product-architecture-seo-geo-sync.md` | SEO/GEO 页面与产品路径架构 |
+| `docs/project/seo-backlog.md` | 经本文排序后的任务队列 |
 
-   * 提供 iframe / JS SDK 嵌入试戴模块
-   * SaaS化收费（按月 / 按API调用）
-2. **B2C社区扩展**
+### 旧 GTM 计划处理规则
 
-   * 用户上传照片 → 保存试戴图 → 可分享社交平台
-   * 形成“UGC内容 + 二次SEO流量”
-3. **AI推荐算法**
+- 旧计划中的客户证据、渠道结果、素材和技术结论可以继续引用；
+- 旧计划的日期、任务量、渠道配额和“active source of truth”状态全部失效；
+- 有价值的未完成动作只有迁入当前两周队列后才重新生效；
+- 未迁入的动作视为停止，而不是“以后继续”；
+- 旧文件应标记为 `Superseded` 或 `Archived historical reference`，不再维护执行进度。
 
-   * 通过脸型识别 + 推荐算法 → “最适合你脸型的眼镜”
-   * 提升转化率与品牌壁垒
+## 11. 一句话决策标准
 
----
-
-## ✅ 最后总结
-
-| 模块     | 核心动作                 | 目标      |
-| ------ | -------------------- | ------- |
-| 内容中心   | 每周发布文章，嵌入试戴工具        | 获取自然流量  |
-| 工具页SEO | 程序化生成品牌/款式页面         | 扩展长尾流量  |
-| 技术优化   | 静态化 + 多语言 + Schema   | 提升收录率   |
-| 数据分析   | GA4 + Search Console | 精准追踪效果  |
-| 品牌传播   | 技术社区 + 产品榜单曝光        | 品牌信任度提升 |
+> 如果一项工作不能更快地带来高意图访问、让用户更顺畅地完成检测并进入试戴，或帮助我们判断这些访问是否产生收入，就不应成为当前 GTM 优先事项。

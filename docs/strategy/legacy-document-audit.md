@@ -25,11 +25,11 @@ Working rule:
 | Document | Current role | Status | Recommended action |
 | --- | --- | --- | --- |
 | `docs/strategy/2026-05-25-b2b-commerce-commercialization-roadmap.md` | B2B merchant/widget roadmap | Active supporting roadmap | Keep. Add status header later if needed. Use `product-plan.md` for current priority. |
-| `docs/strategy/2026-06-28-free-face-shape-growth-commercialization-plan.md` | Free detector and growth commercialization plan | Active supporting plan | Keep. Use as supporting reference for Detector → Advisor → Try-On path. |
+| `docs/strategy/2026-06-28-free-face-shape-growth-commercialization-plan.md` | Free detector and growth commercialization research | Living supporting reference | Keep the evidence; current execution priority lives in `analytics/gtm.md`. |
 | `docs/strategy/seo/2026-06-30-product-architecture-seo-geo-sync.md` | SEO/GEO product architecture | Active source of truth for SEO/GEO page architecture | Keep active. Align product pages to this unless product strategy changes. |
-| `docs/strategy/seo/2026-06-12-growth-kpi-operating-plan.md` | Commercial traffic KPI plan | Active operating plan | Keep active. Reconcile with `product-plan.md` during weekly review. |
+| `docs/strategy/seo/2026-06-12-growth-kpi-operating-plan.md` | Earlier commercial traffic KPI plan | Superseded historical reference | Preserve its baseline; use `analytics/gtm.md` for current metrics and cadence. |
 | `docs/strategy/growth/2026-06-18-external-growth-sprint.md` | External acquisition sprint | Time-boxed operating plan | Keep until sprint closes. Then mark completed or archive. |
-| `docs/strategy/analytics/gtm.md` | GTM / analytics handbook | Execution document | Keep. Add references to `commercial-strategy.md` and `product-plan.md` if needed. |
+| `docs/strategy/analytics/gtm.md` | Qualified-traffic GTM operating strategy | Active source of truth for GTM execution | Keep as the only current GTM execution strategy. |
 | `docs/strategy/reseller-technical-roadmap.md` | Reseller/co-branding technical roadmap | Supporting technical roadmap | Keep as supporting reference. Not current priority unless pulled forward by demand. |
 | `docs/strategy/2026-05-25-paid-customer-seo-geo-relaunch-plan.md` | Paid customer and SEO relaunch evidence | Historical commercial evidence | Keep or archive after evidence is fully reflected in strategy and benchmarks. |
 | `docs/strategy/content/3-month-content-strategy.md` | Q4 2025 content plan | Historical / archive candidate | Archive or mark historical. Time window expired. |

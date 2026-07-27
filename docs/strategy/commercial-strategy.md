@@ -85,7 +85,7 @@ Current evidence should be interpreted conservatively but clearly.
 
 ### 4.1 Paid consumer evidence
 
-Existing paid customers have bought the low-friction USD 2.99 Credits Pack. The paid behavior is concentrated in glasses try-on rather than broad universal try-on categories.
+From 2026-06-23 through 2026-07-26, VisuTry recorded 10 completed USD 2.99 Credits Pack payments from 10 distinct user records, for USD 29.90 in gross transaction value. The paid behavior is concentrated in glasses try-on rather than broad universal try-on categories.
 
 This supports the following conclusion:
 
@@ -497,11 +497,11 @@ This section defines the role of existing documents so the strategy system does 
 | `docs/strategy/commercial-strategy.md` | Top-level commercial source of truth. | Active source of truth. |
 | `docs/strategy/commercial-benchmarks.md` | External benchmark and market reference library for commercial strategy. | Living supporting reference. |
 | `docs/strategy/2026-05-25-b2b-commerce-commercialization-roadmap.md` | B2B commerce roadmap and merchant/widget strategy. | Active supporting roadmap. |
-| `docs/strategy/2026-06-28-free-face-shape-growth-commercialization-plan.md` | Free detector, consumer growth, credits conversion, ads/API sequencing. | Active supporting plan. |
+| `docs/strategy/2026-06-28-free-face-shape-growth-commercialization-plan.md` | Free detector research, consumer growth evidence, credits conversion, ads/API sequencing. | Living supporting reference; not an execution plan. |
 | `docs/strategy/seo/2026-06-30-product-architecture-seo-geo-sync.md` | Public product path, SEO/GEO page contracts, keyword ownership. | Active source of truth for SEO/GEO and public page architecture. |
-| `docs/strategy/analytics/gtm.md` | GTM, SEO, analytics, and channel execution handbook. | Execution document. |
-| `docs/strategy/seo/2026-06-12-growth-kpi-operating-plan.md` | Commercial traffic KPI operating plan. | Active operating plan. |
-| `docs/strategy/growth/2026-06-18-external-growth-sprint.md` | Short-term external traffic sprint. | Time-boxed execution plan. |
+| `docs/strategy/analytics/gtm.md` | Qualified-traffic acquisition, conversion, and measurement operating strategy. | Active source of truth for GTM execution. |
+| `docs/strategy/seo/2026-06-12-growth-kpi-operating-plan.md` | Earlier commercial traffic KPI baseline and operating plan. | Superseded historical reference. |
+| `docs/strategy/growth/2026-06-18-external-growth-sprint.md` | Earlier short-term external traffic sprint. | Superseded time-boxed plan. |
 | `docs/strategy/reseller-technical-roadmap.md` | Reseller/co-branding technical considerations. | Supporting technical roadmap. |
 | `docs/strategy/archive/seo/programmatic-seo-execution-plan.md` | Earlier large-scale programmatic SEO plan. | Archived historical reference; not current first-priority strategy. |
 | `docs/project/seo-backlog.md` | SEO implementation backlog. | Active task backlog. |
@@ -509,6 +509,7 @@ This section defines the role of existing documents so the strategy system does 
 Guideline:
 
 - If a document conflicts with this commercial strategy, update the lower-level document or mark the conflict explicitly.
+- If an older growth or channel plan conflicts with the GTM operating strategy, follow `docs/strategy/analytics/gtm.md`; historical tasks become active only after they are migrated into its current 14-day queue.
 - If SEO/GEO page copy conflicts with the SEO/GEO sync document, follow the SEO/GEO sync document.
 - If B2B implementation details conflict with the B2B commerce roadmap, resolve inside that roadmap and reference the decision here only if it changes the top-level strategy.
 - If external benchmark notes become detailed, keep them in `docs/strategy/commercial-benchmarks.md`, not in this document.

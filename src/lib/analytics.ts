@@ -29,7 +29,11 @@ export type EventSource =
 export type UpgradeLocation = 'quick_actions' | 'subscription_card' | 'nav'
 
 // 产品类型
-export type ProductType = 'CREDITS_PACK' | 'PREMIUM_MONTHLY' | 'PREMIUM_YEARLY'
+export type { ProductType } from '@/config/pricing'
+import type { ProductType } from '@/config/pricing'
+
+const LANDING_PAGE_KEY = 'visutry_landing_page'
+const GROWTH_SOURCE_KEY = 'visutry_growth_source'
 
 /**
  * 获取用户当前浏览的页面语言（landing_locale）
@@ -55,6 +59,44 @@ function getBrowserLanguage(): string {
 }
 
 /**
+ * Preserve the first page and explicit growth source for the current browser
+ * session so downstream product and revenue events can be attributed back to
+ * the acquisition entry point.
+ */
+function getSessionAttribution(): { landing_page: string; page_path: string; growth_source?: string } {
+  if (typeof window === 'undefined') {
+    return { landing_page: '/', page_path: '/' }
+  }
+
+  const pagePath = window.location.pathname
+
+  try {
+    const searchParams = new URLSearchParams(window.location.search)
+    const explicitSource = searchParams.get('source') || searchParams.get('utm_source')
+    const storedLandingPage = window.sessionStorage.getItem(LANDING_PAGE_KEY)
+    const storedGrowthSource = window.sessionStorage.getItem(GROWTH_SOURCE_KEY)
+
+    if (!storedLandingPage) {
+      window.sessionStorage.setItem(LANDING_PAGE_KEY, pagePath)
+    }
+    if (explicitSource) {
+      window.sessionStorage.setItem(GROWTH_SOURCE_KEY, explicitSource)
+    }
+
+    const growthSource = explicitSource || storedGrowthSource || undefined
+    return {
+      landing_page: storedLandingPage || pagePath,
+      page_path: pagePath,
+      ...(growthSource ? { growth_source: growthSource } : {}),
+    }
+  } catch {
+    // Storage can be unavailable in privacy-restricted browsers. Attribution
+    // should degrade gracefully without interrupting the product flow.
+    return { landing_page: pagePath, page_path: pagePath }
+  }
+}
+
+/**
  * 发送事件到 Google Analytics
  *
  * 自动注入 landing_locale 和 browser_language 维度，
@@ -66,6 +108,7 @@ function sendEvent(eventName: string, parameters: Record<string, any> = {}) {
   // 注入语言维度（所有事件统一携带）
   const enrichedParameters: Record<string, any> = {
     ...parameters,
+    ...getSessionAttribution(),
     landing_locale: getLandingLocale(),
     browser_language: getBrowserLanguage(),
   }
@@ -320,6 +363,12 @@ export const analytics = {
     sendEvent('face_shape_detector_upload', {
       file_type: fileType,
       file_size_bytes: fileSizeBytes,
+      processing_mode: 'on_device',
+    })
+  },
+
+  trackFaceShapeDetectorStart() {
+    sendEvent('face_shape_detector_start', {
       processing_mode: 'on_device',
     })
   },

@@ -146,7 +146,7 @@ export function FaceAnalysisInterface() {
     setError(null)
 
     try {
-      const successUrl = `${window.location.origin}/${locale}/face-analysis?unlock=success&taskId=${task.id}`
+      const successUrl = `${window.location.origin}/${locale}/face-analysis?unlock=success&taskId=${task.id}&session_id={CHECKOUT_SESSION_ID}`
       const cancelUrl = `${window.location.origin}/${locale}/face-analysis?unlock=cancel&taskId=${task.id}`
 
       const response = await fetch('/api/payment/create-session', {

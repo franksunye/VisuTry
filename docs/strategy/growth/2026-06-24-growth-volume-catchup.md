@@ -2,7 +2,9 @@
 
 Date: 2026-06-24
 Owner: Frank + Codex
-Status: Catch-up queue partially executed
+Status: Superseded; remaining catch-up tasks are stopped
+
+> Historical execution record only. Nothing in this file remains queued unless explicitly migrated into the current GTM experiment queue.
 
 ## Reality Check
 

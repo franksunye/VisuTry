@@ -3,7 +3,9 @@
 Date: 2026-06-24
 Window: 2026-06-24 to 2026-06-30
 Owner: Frank + Codex
-Status: Active
+Status: Superseded on 2026-07-27
+
+> The operating window has ended. Use this file as evidence only; current growth execution is governed by `docs/strategy/analytics/gtm.md`.
 
 Related execution docs:
 

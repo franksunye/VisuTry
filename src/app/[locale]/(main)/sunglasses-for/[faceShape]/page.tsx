@@ -13,6 +13,7 @@ import type { Locale } from '@/i18n'
 import { generateI18nSEO, generateStructuredData } from '@/lib/seo'
 import { generateBreadcrumbSchema, generateCollectionPageSchema } from '@/lib/programmatic-seo'
 import { getFaceShapeSeoCopy, interpolateSeoCopy } from '@/config/face-shape-seo-locales'
+import { GrowthFunnelLink } from '@/components/analytics/GrowthFunnelLink'
 
 interface SunglassesGuidePageProps {
   params: { locale: string; faceShape: string }
@@ -112,19 +113,27 @@ export default function SunglassesGuidePage({ params }: SunglassesGuidePageProps
               {copy.detail.goalLabel}: {copy.sunglasses.goals[guide.faceShape]}
             </p>
             <div className="flex flex-col gap-3 sm:flex-row">
-              <Link
+              <GrowthFunnelLink
                 href={`/${locale}/face-shape-detector`}
+                sourcePage={`sunglasses-for/${guide.slug}`}
+                destination="face-shape-detector"
+                ctaLocation="hero-primary"
+                queryCluster="sunglasses-by-face-shape"
                 className="inline-flex items-center justify-center gap-2 rounded-lg bg-blue-600 px-5 py-3 font-semibold text-white hover:bg-blue-700"
               >
                 {copy.detail.detectorCta}
                 <ArrowRight className="h-4 w-4" />
-              </Link>
-              <Link
+              </GrowthFunnelLink>
+              <GrowthFunnelLink
                 href={`/${locale}/style-explorer`}
+                sourcePage={`sunglasses-for/${guide.slug}`}
+                destination="style-explorer"
+                ctaLocation="hero-secondary"
+                queryCluster="sunglasses-by-face-shape"
                 className="inline-flex items-center justify-center gap-2 rounded-lg border border-gray-300 px-5 py-3 font-semibold text-gray-700 hover:bg-gray-50"
               >
                 {copy.detail.explorerCta}
-              </Link>
+              </GrowthFunnelLink>
             </div>
           </div>
 
@@ -231,12 +240,16 @@ export default function SunglassesGuidePage({ params }: SunglassesGuidePageProps
                 {copy.detail.conversionText}
               </p>
             </div>
-            <Link
+            <GrowthFunnelLink
               href={`/${locale}/style-explorer`}
+              sourcePage={`sunglasses-for/${guide.slug}`}
+              destination="style-explorer"
+              ctaLocation="conversion-primary"
+              queryCluster="sunglasses-by-face-shape"
               className="inline-flex flex-shrink-0 items-center justify-center gap-2 rounded-lg bg-blue-700 px-5 py-3 font-semibold text-white hover:bg-blue-800"
             >
               {copy.detail.conversionCta} <ArrowRight className="h-4 w-4" />
-            </Link>
+            </GrowthFunnelLink>
           </div>
         </section>
 

@@ -1,8 +1,45 @@
 # SEO Backlog
 
-Last updated: 2026-06-30
-Current sprint: Free Detector to Glasses Decision Growth
+Last updated: 2026-07-27
+Current sprint: Qualified Traffic → Detector → Try-On → Paid
 Owner: Codex
+
+> This file is a task ledger, not a parallel GTM plan. Task priority and activation are governed by `docs/strategy/analytics/gtm.md`.
+
+## Current GTM Experiment: Revenue Attribution and High-Intent Continuation
+
+Priority: P0
+Status: Implemented; awaiting production measurement
+Window: 2026-07-27 to 2026-08-10
+
+Hypothesis:
+
+> If every high-intent entry and completed payment is attributable to its landing page, locale, intent cluster, and CTA, VisuTry can expand the traffic sources that preserve or improve revenue per 1,000 organic sessions.
+
+Completed:
+
+- [x] Preserve the first landing page and explicit growth source for the browser session.
+- [x] Add `face_shape_detector_start` before detector analysis.
+- [x] Add `seo_funnel_click` to the main CTAs on glasses-for-face-shape, sunglasses hub, and localized sunglasses-by-face-shape pages.
+- [x] Add Stripe Checkout Session ID to pricing and face-analysis success return URLs.
+- [x] Verify completed payments against the authenticated user's server-side Payment row.
+- [x] Send the GA4 recommended `purchase` event with transaction ID, product, value, currency, locale, landing page, and page path.
+- [x] Deduplicate client purchase reporting by Checkout Session ID.
+- [x] Add focused attribution and funnel-link tests.
+- [x] Confirm the production build and SSG output for all public growth pages.
+
+Production measurement:
+
+- [ ] Confirm `face_shape_detector_start`, `seo_funnel_click`, and `purchase` in GA4 DebugView / Realtime after deployment.
+- [ ] Register or verify custom dimensions for `landing_page`, `page_path`, `growth_source`, `query_cluster`, `source_page`, `destination`, and `cta_location`.
+- [ ] Record the first 7-day funnel by landing page and locale.
+- [ ] Compare revenue per 1,000 organic sessions against the pre-deployment baseline.
+
+Decision on 2026-08-10:
+
+- Expand pages/locales where qualified clicks grow and revenue quality is stable or higher.
+- Fix intent or CTA mismatch where traffic grows but detector continuation falls.
+- Stop channels that create sessions without detector, try-on, checkout, or purchase behavior.
 
 ## Product Architecture Sync
 
@@ -24,25 +61,29 @@ Reference: [Product Architecture SEO/GEO Sync](../strategy/seo/2026-06-30-produc
 ## External Acquisition Sprint
 
 Priority: P0
-Status: Active
+Status: Superseded; remaining tasks stopped on 2026-07-27
 
 Goal:
 
 - Reach 200 qualified external sessions and 20 external high-value product actions by 2026-07-12.
 
-Tasks:
+Historical completed work:
 
 - [x] Reset the 30-day stretch targets around external traffic.
 - [x] Define three reusable campaign angles and public proof assets.
 - [x] Prepare UTM links and channel-specific copy.
 - [x] Create the first distribution and outreach queue.
 - [x] Research and rank the first ten outreach targets.
-- [ ] Publish the first three X/Reddit placements.
-- [ ] Prepare the Product Hunt launch page, gallery, and maker comment.
-- [ ] Submit four relevant directory listings.
-- [ ] Publish three useful community contributions with builder disclosure.
-- [ ] Research and send the first ten personalized outreach messages.
-- [ ] Record live placement URLs, sessions, product actions, and replies.
+
+Stopped rather than carried forward:
+
+- Publish additional X/Reddit placements.
+- Prepare the Product Hunt launch page, gallery, and maker comment.
+- Submit four directory listings.
+- Publish three community contributions.
+- Send another fixed-volume outreach batch.
+
+These actions may resume only as a bounded experiment under the active GTM strategy; the old quotas and deadlines no longer apply.
 
 Acceptance:
 

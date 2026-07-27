@@ -159,7 +159,7 @@ describe('PricingCard', () => {
         },
         body: JSON.stringify({
           productType: 'PREMIUM_MONTHLY',
-          successUrl: `${window.location.origin}/dashboard?payment=success`,
+          successUrl: `${window.location.origin}/dashboard?payment=success&session_id={CHECKOUT_SESSION_ID}`,
           cancelUrl: `${window.location.origin}/pricing?payment=cancelled`
         })
       })

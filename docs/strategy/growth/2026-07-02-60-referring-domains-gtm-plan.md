@@ -1,11 +1,13 @@
 # VisuTry 60 Referring Domains GTM Plan
 
 Date: 2026-07-02
-Status: Active source of truth
+Status: Superseded on 2026-07-27
 Owner: Codex, with founder support where login, 2FA, or outbound approval is required
 Public founder identity: Frank Sun
 Primary product: Free Face Shape Detector
 Primary URL: `https://www.visutry.com/en/face-shape-detector`
+
+> Historical execution reference only. The fixed “60 referring domains” target and twelve-week channel quotas are no longer active. Reusable research, qualified domains, outreach history, and linkable-asset ideas may be migrated into a current 14-day experiment under `docs/strategy/analytics/gtm.md`; unmigrated tasks are stopped.
 
 ## 1. Outcome
 

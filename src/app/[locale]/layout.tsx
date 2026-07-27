@@ -17,6 +17,7 @@ import { Inter, Noto_Sans_Arabic } from 'next/font/google'
 import { locales, localeDirections, type Locale } from '@/i18n'
 import { GoogleAnalytics } from '@/components/analytics/GoogleAnalytics'
 import { GoogleTagManager } from '@/components/analytics/GoogleTagManager'
+import { PaymentConversionTracker } from '@/components/analytics/PaymentConversionTracker'
 import { SessionProvider } from '@/components/providers/SessionProvider'
 import { generateI18nSEO } from '@/lib/seo'
 import { Metadata } from 'next'
@@ -96,6 +97,7 @@ export default async function LocaleLayout(props: Props) {
         <SessionProvider>
           {gtmId && <GoogleTagManager gtmId={gtmId} />}
           {gaId && <GoogleAnalytics gaId={gaId} locale={locale} />}
+          <PaymentConversionTracker />
           <NextIntlClientProvider messages={messages}>{children}</NextIntlClientProvider>
         </SessionProvider>
       </body>

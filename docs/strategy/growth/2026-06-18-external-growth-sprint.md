@@ -3,7 +3,9 @@
 Date: 2026-06-18
 Window: 2026-06-18 to 2026-07-12
 Owner: Codex
-Status: Active
+Status: Superseded on 2026-07-27
+
+> The sprint window has ended. Results remain historical evidence; unfinished tasks are stopped unless migrated into a current 14-day experiment under `docs/strategy/analytics/gtm.md`.
 
 ## Objective
 

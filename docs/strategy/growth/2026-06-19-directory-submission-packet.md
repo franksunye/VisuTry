@@ -1,8 +1,10 @@
 # VisuTry Directory Submission Packet
 
 Date: 2026-06-19
-Status: Ready for assisted submissions
+Status: Reusable supporting asset; no submission campaign is active
 Owner: Frank + Codex
+
+> This packet may support a future bounded experiment under `docs/strategy/analytics/gtm.md`. Its existence does not create a submission queue.
 
 ## Purpose
 

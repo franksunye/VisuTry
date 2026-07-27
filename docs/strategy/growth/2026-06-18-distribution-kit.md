@@ -2,7 +2,9 @@
 
 Date: 2026-06-18
 Revised: 2026-06-30 for the four-product GTM path
-Status: Active for X, Reddit, Product Hunt, and evergreen directories
+Status: Reusable supporting asset; campaigns must be activated through the current GTM queue
+
+> This file provides reusable copy and links. It is not an active channel plan. Use it only for a bounded experiment selected under `docs/strategy/analytics/gtm.md`.
 
 ## Campaign Links
 

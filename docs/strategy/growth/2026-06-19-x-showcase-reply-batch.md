@@ -1,7 +1,7 @@
 # VisuTry X Showcase Reply Batch
 
 Date: 2026-06-19
-Status: Published; 24-hour measurement pending
+Status: Archived execution record; no measurement task remains active
 Account: `@franksunye`
 
 ## Operating Rule

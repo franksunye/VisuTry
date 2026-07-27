@@ -9,6 +9,7 @@ import type { Locale } from '@/i18n'
 import { generateI18nSEO, generateStructuredData } from '@/lib/seo'
 import { generateBreadcrumbSchema } from '@/lib/programmatic-seo'
 import { getFaceShapeSeoCopy, interpolateSeoCopy } from '@/config/face-shape-seo-locales'
+import { GrowthFunnelLink } from '@/components/analytics/GrowthFunnelLink'
 
 interface SunglassesHubPageProps {
   params: { locale: string }
@@ -58,19 +59,27 @@ export default function SunglassesForFaceShapePage({ params }: SunglassesHubPage
               {copy.sunglasses.intro}
             </p>
             <div className="flex flex-col gap-3 sm:flex-row">
-              <Link
+              <GrowthFunnelLink
                 href={`/${locale}/face-shape-detector`}
+                sourcePage="sunglasses-for-face-shape"
+                destination="face-shape-detector"
+                ctaLocation="hero-primary"
+                queryCluster="sunglasses-for-face-shape"
                 className="inline-flex items-center justify-center gap-2 rounded-lg bg-blue-600 px-5 py-3 font-semibold text-white hover:bg-blue-700"
               >
                 {copy.sunglasses.detectorCta}
                 <ArrowRight className="h-4 w-4" />
-              </Link>
-              <Link
+              </GrowthFunnelLink>
+              <GrowthFunnelLink
                 href={`/${locale}/style-explorer`}
+                sourcePage="sunglasses-for-face-shape"
+                destination="style-explorer"
+                ctaLocation="hero-secondary"
+                queryCluster="sunglasses-for-face-shape"
                 className="inline-flex items-center justify-center gap-2 rounded-lg border border-gray-300 px-5 py-3 font-semibold text-gray-700 hover:bg-gray-50"
               >
                 {copy.sunglasses.explorerCta}
-              </Link>
+              </GrowthFunnelLink>
             </div>
           </div>
 

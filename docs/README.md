@@ -41,7 +41,7 @@ Use it to answer:
 2. **External references** live in `docs/strategy/commercial-benchmarks.md`.
 3. **Current product execution** lives in `docs/product/product-plan.md`.
 4. **Detailed feature behavior** lives in `docs/product/specs/`.
-5. **SEO/GEO execution tasks** can remain in `docs/project/seo-backlog.md`.
+5. **GTM execution priority** lives in `docs/strategy/analytics/gtm.md`; SEO/Growth tasks can remain in `docs/project/seo-backlog.md` only after they are ordered by that strategy.
 6. **CPU governance execution** lives in `docs/project/vercel-cpu-governance-spec.md`.
 7. **Historical plans** should be moved to `docs/strategy/archive/` or clearly marked as historical.
 

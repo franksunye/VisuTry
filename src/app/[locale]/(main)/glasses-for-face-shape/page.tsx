@@ -5,6 +5,7 @@ import { Locale } from '@/i18n'
 import { generateI18nSEO, generateStructuredData } from '@/lib/seo'
 import { FACE_SHAPE_SLUGS } from '@/config/face-shape-content'
 import { getFaceShapeSeoCopy } from '@/config/face-shape-seo-locales'
+import { GrowthFunnelLink } from '@/components/analytics/GrowthFunnelLink'
 
 type Props = {
   params: { locale: string }
@@ -55,20 +56,28 @@ export default function GlassesForFaceShapePage({ params }: Props) {
               {copy.glasses.intro}
             </p>
             <div className="flex flex-col gap-3 sm:flex-row">
-              <Link
+              <GrowthFunnelLink
                 href={`/${locale}/face-shape-detector`}
+                sourcePage="glasses-for-face-shape"
+                destination="face-shape-detector"
+                ctaLocation="hero-primary"
+                queryCluster="glasses-for-face-shape"
                 className="inline-flex items-center justify-center gap-2 rounded-lg bg-blue-600 px-5 py-3 font-semibold text-white hover:bg-blue-700"
               >
                 {copy.glasses.detectorCta}
                 <ArrowRight className="h-4 w-4" />
-              </Link>
-              <Link
+              </GrowthFunnelLink>
+              <GrowthFunnelLink
                 href={`/${locale}/try-on/glasses`}
+                sourcePage="glasses-for-face-shape"
+                destination="virtual-try-on"
+                ctaLocation="hero-secondary"
+                queryCluster="glasses-for-face-shape"
                 className="inline-flex items-center justify-center gap-2 rounded-lg border border-gray-300 px-5 py-3 font-semibold text-gray-700 hover:bg-gray-50"
               >
                 {copy.glasses.tryOnCta}
                 <ArrowRight className="h-4 w-4" />
-              </Link>
+              </GrowthFunnelLink>
             </div>
             <div className="mt-4 flex flex-wrap gap-x-5 gap-y-2 text-sm font-semibold">
               <Link href={locale === 'en' ? `/${locale}/face-shapes` : `/${locale}/face-shape-detector`} className="text-blue-700 hover:text-blue-900">
@@ -153,13 +162,17 @@ export default function GlassesForFaceShapePage({ params }: Props) {
                 {copy.glasses.nextTitle}
               </h2>
             </div>
-            <Link
+            <GrowthFunnelLink
               href={`/${locale}/face-shape-detector`}
+              sourcePage="glasses-for-face-shape"
+              destination="face-shape-detector"
+              ctaLocation="faq-primary"
+              queryCluster="glasses-for-face-shape"
               className="inline-flex items-center justify-center gap-2 rounded-lg bg-gray-950 px-4 py-3 text-sm font-semibold text-white hover:bg-gray-800"
             >
               {copy.glasses.detectorCta}
               <ArrowRight className="h-4 w-4" />
-            </Link>
+            </GrowthFunnelLink>
           </div>
           <div className="grid gap-4 md:grid-cols-2">
             {copy.glasses.faq.map((item) => (

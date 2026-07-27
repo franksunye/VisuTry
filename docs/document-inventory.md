@@ -56,7 +56,7 @@ It should answer:
 | `docs/project/vercel-cpu-governance-spec.md` | CPU governance spec | Active operating plan | Engineering | 2026-07-24 | Tracks AP-1 through AP-5 authentication/polling stability work, delivery order, acceptance criteria, and rollback gates. |
 | `docs/operations/vercel-cpu-static-page-pilot.md` | Static page pilot | Active operating plan | Engineering | 2026-07-22 | Updated: Phase 4 (ADR-005) added, excluded pages status corrected. |
 | `docs/project/engineering-optimization-plan.md` | Engineering optimization plan | Active operating plan | Engineering | 2026-07-22 | Three-axis audit (dependencies, architecture, performance). 31 items: 5 P0, 14 P1, 12 P2. Implementation ordered in 7 batches. |
-| `docs/project/seo-backlog.md` | SEO / growth backlog | Active operating plan | Growth / Product | 2026-07-08 | Keep as SEO/Growth execution backlog. |
+| `docs/project/seo-backlog.md` | SEO / growth backlog | Active task ledger | Growth / Product | 2026-07-27 | Contains tasks only; priority and activation are governed by the GTM source of truth. |
 
 ---
 
@@ -66,11 +66,12 @@ It should answer:
 | --- | --- | --- | --- | --- | --- |
 | `docs/strategy/legacy-document-audit.md` | Legacy document audit | Active operating audit | Product / Strategy | 2026-07-08 | Use to guide cleanup of dated strategy docs. |
 | `docs/strategy/2026-05-25-b2b-commerce-commercialization-roadmap.md` | B2B roadmap | Active supporting roadmap | Product / Strategy | 2026-07-08 | Status header added; use as B2B reference only. |
-| `docs/strategy/2026-06-28-free-face-shape-growth-commercialization-plan.md` | Free detector / growth plan | Active supporting plan | Product / Growth | 2026-07-08 | Has status; later normalize header format if editing for content. |
+| `docs/strategy/2026-06-28-free-face-shape-growth-commercialization-plan.md` | Free detector / growth research | Living supporting reference | Product / Growth | 2026-07-27 | Preserve product and market evidence; current execution priority lives in the GTM source of truth. |
 | `docs/strategy/seo/2026-06-30-product-architecture-seo-geo-sync.md` | SEO/GEO product architecture | Active source of truth for SEO/GEO page architecture | Product / Growth | 2026-07-08 | Keep active. |
-| `docs/strategy/seo/2026-06-12-growth-kpi-operating-plan.md` | Growth KPI plan | Active operating plan | Growth | 2026-07-08 | Keep active; reconcile with product-plan when needed. |
-| `docs/strategy/growth/2026-06-18-external-growth-sprint.md` | External growth sprint | Time-boxed operating plan | Growth | 2026-07-08 | Keep until sprint is closed; then archive or mark completed. |
-| `docs/strategy/analytics/gtm.md` | GTM / analytics handbook | Execution document | Growth / Analytics | 2026-07-08 | Source-of-truth header added. |
+| `docs/strategy/seo/2026-06-12-growth-kpi-operating-plan.md` | Growth KPI plan | Superseded historical reference | Growth | 2026-07-27 | Preserve historical baselines; current metrics and cadence live in the GTM source of truth. |
+| `docs/strategy/growth/2026-06-18-external-growth-sprint.md` | External growth sprint | Superseded time-boxed plan | Growth | 2026-07-27 | Sprint window ended; unfinished tasks are stopped unless migrated into a current GTM experiment. |
+| `docs/strategy/analytics/gtm.md` | Qualified-traffic GTM operating strategy | Active source of truth for GTM execution | Growth / Product / Analytics | 2026-07-27 | Rewritten around the validated Detector → Advisor → Try-On / Compare → paid path; supersedes parallel GTM plans. |
+| `docs/strategy/growth/2026-07-02-60-referring-domains-gtm-plan.md` | Referring-domain campaign | Superseded historical execution reference | Growth | 2026-07-27 | Fixed 60-domain target and channel quotas are stopped; reuse evidence only through the active GTM queue. |
 | `docs/strategy/reseller-technical-roadmap.md` | Reseller technical roadmap | Supporting technical roadmap | Product / Engineering | 2026-07-08 | Keep as supporting reference; not current priority unless pulled forward. |
 | `docs/strategy/2026-05-25-paid-customer-seo-geo-relaunch-plan.md` | Paid customer / SEO relaunch plan | Historical commercial evidence | Product / Growth | 2026-07-08 | Keep or archive after evidence is reflected in strategy/product plan. |
 | `docs/strategy/content/3-month-content-strategy.md` | Q4 2025 content plan | Historical / archive candidate | Growth | 2026-07-08 | Historical notice added; consider moving to archive later. |
