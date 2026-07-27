@@ -35,7 +35,7 @@ Cluster figures below aggregate the exported query rows using mutually exclusive
 | P1 | Ray-Ban virtual try-on | 8 / 873 | 0.92% / 6.71 | 8 / 873 | `/en/blog/rayban-glasses-virtual-tryon-guide` | Keep article as owner and route directly into `/en/try-on/glasses` | Strong ranking, weak snippet/CTR; optimize existing page before creating another |
 | P1 | Generic virtual glasses try-on | 2 / 188 | 1.06% / 17.59 | 2 / 201 | Fragmented; tool URL does not appear in exported top pages | `/en/try-on/glasses`, supported by comparison/editorial pages | Partial coverage; verify indexing and strengthen internal ownership |
 | P2 | Sunglasses for face shape | 2 / 50 | 4.00% / 37.32 | 2 / 50 | New localized hubs/details have very small visibility | `/{locale}/sunglasses-for-face-shape` and `/{locale}/sunglasses-for/{shape}` | Built but immature; improve discovery/internal links, then measure |
-| P2 | Ordinary glasses by exact face shape | Included mainly in advisor/detector long tail | — | — | English `/style/{shape}` pages; non-English variants are `noindex` and English-only | `/{locale}/style/{shape}` for all nine supported locales | Material multilingual gap; localize before enabling indexation |
+| P2 | Ordinary glasses by exact face shape | Included mainly in advisor/detector long tail | — | — | Localized `/style/{shape}` pages across all nine locales | `/{locale}/style/{shape}` for all nine supported locales | Covered and indexable as of 2026-07-27; monitor impressions by shape and locale |
 | Observe | Oliver Peoples product review | 0 / 99 visible-query rows | 0% / 7.18 | 0 / 104 | `/en/blog/oliver-peoples-finley-vintage-review` | Existing review to try-on bridge | Ranking is healthy but this is below the detector/advisor opportunity |
 
 ## Exact query ownership evidence
@@ -77,7 +77,7 @@ The GSC URL inspection for `/en/face-shape-detector` returned **“Discovered �
 Two multilingual gaps are concrete in the repository:
 
 - Resolved 2026-07-27: `/[locale]/blog/ai-face-analysis-for-glasses-guide` now renders localized metadata, article copy, CTAs, FAQs/schema, internal links, and localized article data on blog cards for all nine supported locales.
-- `/[locale]/style/[faceShape]` sets non-English pages to `noindex` and `availableLocales: ['en']`; ordinary-glasses detail content is therefore English-only.
+- Resolved 2026-07-27: `/[locale]/style/[faceShape]` now has localized metadata, page UI, FAQ/schema, conversion links, optical-frame examples, and full sitemap/hreflang coverage for 63 locale/shape combinations.
 
 ## Device constraint
 
@@ -88,7 +88,7 @@ Mobile generated 317 of 404 clicks (78.5%) and 4,916 impressions, with 6.45% CTR
 1. **Index and establish the free detector owner.** Add prominent crawlable links to `/en/face-shape-detector` from the winning AI article, `/en/face-analysis`, homepage, and glasses hub; verify canonical/robots/sitemap; deploy; then request indexing and recheck.
 2. **Monetize the current winner before publishing more pages.** Rewrite the winning AI article's first screen around the proven queries, present “free detector” as the primary path, and preserve direct paid-advisor and try-on continuations with GTM attribution.
 3. **Completed 2026-07-27 — localize the winning intent path across all nine locales.** The AI advisor article, detector-to-advisor bridge, metadata, FAQ/schema, and localized blog entry are now present for `en`, `fr`, `ru`, `de`, `pt`, `id`, `ja`, `es`, and `ar`.
-4. **Complete ordinary-glasses face-shape details.** Localize `/style/{shape}`, remove non-English `noindex` only after content is complete, and use the existing glasses preset assets for contextual try-on examples.
+4. **Completed 2026-07-27 — ordinary-glasses face-shape details.** Localized `/style/{shape}`, removed non-English `noindex`, added all 63 URLs to sitemap/hreflang, and connected existing optical-frame assets to try-on CTAs.
 5. **Optimize existing high-impression pages.** Improve the Ray-Ban guide title/snippet and above-fold try-on CTA; strengthen `/en/try-on/glasses` ownership. Do not add a duplicate Ray-Ban or generic try-on article.
 6. **Measure for 14 days.** Compare GSC query/page movement with `seo_funnel_click`, detector start/completion, checkout, and verified purchase by landing page and locale.
 

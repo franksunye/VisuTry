@@ -62,7 +62,7 @@ Next execution:
 - [x] Request detector indexing after verifying the live page returns 200, `index,follow`, the correct canonical, sitemap inclusion, and crawlable internal links (submitted 2026-07-27).
 - [x] Improve the winning AI article's first-screen free-detector CTA while preserving advisor and try-on paths.
 - [x] Genuinely localize the winning advisor article for `fr`, `ru`, `de`, `pt`, `id`, `ja`, `es`, and `ar` (metadata, body, CTAs, FAQ/schema, internal links, and localized article data on blog cards).
-- [ ] Localize ordinary-glasses `/style/{faceShape}` pages and remove non-English `noindex` only after content QA.
+- [x] Localize ordinary-glasses `/style/{faceShape}` pages, add all 63 locale/shape URLs to sitemap with hreflang, and remove non-English `noindex` after build QA.
 - [ ] Optimize the existing Ray-Ban guide's snippet and try-on CTA instead of creating a duplicate article.
 
 Reference: [GSC Query Coverage Matrix](../strategy/seo/2026-07-27-gsc-query-coverage-matrix.md)

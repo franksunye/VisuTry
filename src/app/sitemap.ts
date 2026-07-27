@@ -41,9 +41,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { path: '/hairstyles-for-face-shape', priority: 0.85, changeFrequency: 'weekly' as const },
   ]
   const localizedSunglassesPaths = FACE_SHAPE_SLUGS.map((slug) => `/sunglasses-for/${slug}-face`)
+  const localizedOrdinaryGlassesPaths = FACE_SHAPE_SLUGS.map((slug) => `/style/${slug}-face`)
   const staticFaceShapePaths = FACE_SHAPE_SLUGS.flatMap((slug) => [
     `/face-shapes/${slug}`,
-    `/style/${slug}-face`,
     `/hairstyles-for/${slug}-face`,
   ]).concat(FACE_SHAPE_COMPARISON_SLUGS.map((slug) => `/face-shapes/compare/${slug}`))
 
@@ -72,6 +72,17 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     })
   })
   localizedSunglassesPaths.forEach((path) => {
+    locales.forEach((locale) => {
+      staticPages.push({
+        url: `${baseUrl}/${locale}${path}`,
+        lastModified: new Date(),
+        changeFrequency: 'weekly',
+        priority: 0.8,
+        alternates: { languages: generateAlternates(path) },
+      })
+    })
+  })
+  localizedOrdinaryGlassesPaths.forEach((path) => {
     locales.forEach((locale) => {
       staticPages.push({
         url: `${baseUrl}/${locale}${path}`,
