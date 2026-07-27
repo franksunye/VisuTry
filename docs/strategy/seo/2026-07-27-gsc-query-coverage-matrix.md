@@ -30,7 +30,7 @@ Cluster figures below aggregate the exported query rows using mutually exclusive
 
 | Priority | Intent cluster | 28d clicks / impressions | 28d CTR / position | 90d clicks / impressions | Current Google landing page(s) | Intended owner and funnel | Coverage decision |
 | --- | --- | ---: | ---: | ---: | --- | --- | --- |
-| P0 | Glasses advisor: `which/what glasses suit my face`, `best glasses for my face` | 61 / 1,199 | 5.09% / 10.03 | 61 / 1,233 | `/en/blog/ai-face-analysis-for-glasses-guide` dominates; `/en/face-analysis` is secondary | Keep the article as the acquisition owner; send primary CTA to `/en/face-analysis`, with free detector and try-on alternatives | Covered, but conversion bridge and multilingual copies are incomplete |
+| P0 | Glasses advisor: `which/what glasses suit my face`, `best glasses for my face` | 61 / 1,199 | 5.09% / 10.03 | 61 / 1,233 | `/en/blog/ai-face-analysis-for-glasses-guide` dominates; `/en/face-analysis` is secondary | Keep the article as the acquisition owner; connect the free detector, paid advisor, guide, and try-on paths | Covered; conversion bridge and all nine locale copies completed 2026-07-27 |
 | P0 | Face-shape detector for glasses: detector, scanner, analyzer, finder | 20 / 433 | 4.62% / 9.72 | 23 / 454 | English AI article and `/en/face-analysis`; detector hub receives no measurable query exposure | `/en/face-shape-detector` owns free detector terms; article explains; `/en/face-analysis` owns paid personalized advice | Blocked by detector indexing plus keyword cannibalization |
 | P1 | Ray-Ban virtual try-on | 8 / 873 | 0.92% / 6.71 | 8 / 873 | `/en/blog/rayban-glasses-virtual-tryon-guide` | Keep article as owner and route directly into `/en/try-on/glasses` | Strong ranking, weak snippet/CTR; optimize existing page before creating another |
 | P1 | Generic virtual glasses try-on | 2 / 188 | 1.06% / 17.59 | 2 / 201 | Fragmented; tool URL does not appear in exported top pages | `/en/try-on/glasses`, supported by comparison/editorial pages | Partial coverage; verify indexing and strengthen internal ownership |
@@ -76,7 +76,7 @@ The GSC URL inspection for `/en/face-shape-detector` returned **“Discovered �
 
 Two multilingual gaps are concrete in the repository:
 
-- `/[locale]/blog/ai-face-analysis-for-glasses-guide` renders hardcoded English content and metadata for every locale. It has not yet been genuinely localized despite being the strongest organic entry page.
+- Resolved 2026-07-27: `/[locale]/blog/ai-face-analysis-for-glasses-guide` now renders localized metadata, article copy, CTAs, FAQs/schema, internal links, and localized article data on blog cards for all nine supported locales.
 - `/[locale]/style/[faceShape]` sets non-English pages to `noindex` and `availableLocales: ['en']`; ordinary-glasses detail content is therefore English-only.
 
 ## Device constraint
@@ -87,7 +87,7 @@ Mobile generated 317 of 404 clicks (78.5%) and 4,916 impressions, with 6.45% CTR
 
 1. **Index and establish the free detector owner.** Add prominent crawlable links to `/en/face-shape-detector` from the winning AI article, `/en/face-analysis`, homepage, and glasses hub; verify canonical/robots/sitemap; deploy; then request indexing and recheck.
 2. **Monetize the current winner before publishing more pages.** Rewrite the winning AI article's first screen around the proven queries, present “free detector” as the primary path, and preserve direct paid-advisor and try-on continuations with GTM attribution.
-3. **Localize the winning intent path across all nine locales.** Translate the AI advisor article, detector-to-advisor bridge, metadata, FAQ, and schema. QA in the order `fr`, `ru`, `de`, then `pt`, `id`, `ja`, `es`, `ar`.
+3. **Completed 2026-07-27 — localize the winning intent path across all nine locales.** The AI advisor article, detector-to-advisor bridge, metadata, FAQ/schema, and localized blog entry are now present for `en`, `fr`, `ru`, `de`, `pt`, `id`, `ja`, `es`, and `ar`.
 4. **Complete ordinary-glasses face-shape details.** Localize `/style/{shape}`, remove non-English `noindex` only after content is complete, and use the existing glasses preset assets for contextual try-on examples.
 5. **Optimize existing high-impression pages.** Improve the Ray-Ban guide title/snippet and above-fold try-on CTA; strengthen `/en/try-on/glasses` ownership. Do not add a duplicate Ray-Ban or generic try-on article.
 6. **Measure for 14 days.** Compare GSC query/page movement with `seo_funnel_click`, detector start/completion, checkout, and verified purchase by landing page and locale.

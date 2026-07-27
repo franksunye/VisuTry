@@ -23,10 +23,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export const dynamic = 'force-static'
 
 export default async function BlogPage({ params }: Props) {
-  const posts = await getAllBlogPosts()
+  const posts = await getAllBlogPosts(params.locale)
   const localePrefix = `/${params.locale}`
   const getDisplayDate = (post: Awaited<ReturnType<typeof getAllBlogPosts>>[number]) =>
-    new Date(post.modifiedAt || post.publishedAt).toLocaleDateString('en-US', {
+    new Date(post.modifiedAt || post.publishedAt).toLocaleDateString(params.locale, {
       year: 'numeric',
       month: 'short',
       day: 'numeric',

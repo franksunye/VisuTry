@@ -3,6 +3,8 @@
  * Supports static articles and future dynamic articles
  */
 
+import { getAiGlassesAdvisorArticleCopy } from '@/config/ai-glasses-advisor-article-locales'
+
 export interface BlogPost {
   slug: string
   title: string
@@ -219,10 +221,21 @@ export const staticBlogPosts: BlogPost[] = [
 /**
  * Get all published blog posts
  */
-export async function getAllBlogPosts(): Promise<BlogPost[]> {
+export async function getAllBlogPosts(locale = 'en'): Promise<BlogPost[]> {
+  const advisorCopy = getAiGlassesAdvisorArticleCopy(locale)
+
   // Currently returns static articles, can be fetched from database in the future
   return staticBlogPosts
     .filter(post => post.isPublished)
+    .map((post) => post.slug === 'ai-face-analysis-for-glasses-guide'
+      ? {
+          ...post,
+          title: advisorCopy.metaTitle,
+          description: advisorCopy.metaDescription,
+          category: advisorCopy.articleLabel,
+          readTime: advisorCopy.readTime,
+        }
+      : post)
     .sort((a, b) => {
       const dateA = new Date(a.modifiedAt || a.publishedAt).getTime()
       const dateB = new Date(b.modifiedAt || b.publishedAt).getTime()
