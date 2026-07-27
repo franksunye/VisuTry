@@ -5,6 +5,7 @@ import { slugify } from '@/lib/programmatic-seo'
 import { locales } from '@/i18n'
 import { FACE_SHAPE_SLUGS } from '@/config/face-shape-content'
 import { FACE_SHAPE_COMPARISON_SLUGS } from '@/config/face-shape-comparisons'
+import { CURATED_BRAND_SLUGS, isCuratedBrandSlug } from '@/config/brand-try-on-content'
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.visutry.com'
@@ -109,15 +110,30 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   blogPagesBase.forEach(page => {
     // Extract path from URL
     const path = page.url.replace(baseUrl, '')
-    locales.forEach(locale => {
+    const blogLocales = path === '/blog/rayban-glasses-virtual-tryon-guide' ? ['en'] : locales
+    blogLocales.forEach(locale => {
       blogPages.push({
         ...page,
         url: `${baseUrl}/${locale}${path}`,
         alternates: {
-          languages: generateAlternates(path),
+          languages: path === '/blog/rayban-glasses-virtual-tryon-guide'
+            ? { en: `${baseUrl}/en${path}` }
+            : generateAlternates(path),
         },
       })
     })
+  })
+
+  // Stable, editorial brand-intent pages. These do not depend on the product database flag.
+  const curatedBrandPages: MetadataRoute.Sitemap = CURATED_BRAND_SLUGS.map(brand => {
+    const path = `/brand/${brand}`
+    return {
+      url: `${baseUrl}/en${path}`,
+      lastModified: new Date('2026-07-27T10:00:00Z'),
+      changeFrequency: 'weekly' as const,
+      priority: 0.8,
+      alternates: { languages: { en: `${baseUrl}/en${path}` } },
+    }
   })
 
   // Dynamic product pages (frames) with i18n
@@ -208,6 +224,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         .filter((b): b is { brand: string; updatedAt: Date } => b.brand !== null && b.brand !== undefined)
         .forEach(brand => {
           const path = `/brand/${slugify(brand.brand)}`
+          if (isCuratedBrandSlug(slugify(brand.brand))) return
           locales.forEach(locale => {
             brandPages.push({
               url: `${baseUrl}/${locale}${path}`,
@@ -283,6 +300,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   return [
     ...staticPages,
     ...blogPages,
+    ...curatedBrandPages,
     ...productPages,
     ...faceShapePages,
     ...categoryPages,

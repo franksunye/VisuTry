@@ -89,8 +89,9 @@ Mobile generated 317 of 404 clicks (78.5%) and 4,916 impressions, with 6.45% CTR
 2. **Monetize the current winner before publishing more pages.** Rewrite the winning AI article's first screen around the proven queries, present “free detector” as the primary path, and preserve direct paid-advisor and try-on continuations with GTM attribution.
 3. **Completed 2026-07-27 — localize the winning intent path across all nine locales.** The AI advisor article, detector-to-advisor bridge, metadata, FAQ/schema, and localized blog entry are now present for `en`, `fr`, `ru`, `de`, `pt`, `id`, `ja`, `es`, and `ar`.
 4. **Completed 2026-07-27 — ordinary-glasses face-shape details.** Localized `/style/{shape}`, removed non-English `noindex`, added all 63 URLs to sitemap/hreflang, and connected existing optical-frame assets to try-on CTAs.
-5. **Optimize existing high-impression pages.** Improve the Ray-Ban guide title/snippet and above-fold try-on CTA; strengthen `/en/try-on/glasses` ownership. Do not add a duplicate Ray-Ban or generic try-on article.
-6. **Measure for 14 days.** Compare GSC query/page movement with `seo_funnel_click`, detector start/completion, checkout, and verified purchase by landing page and locale.
+5. **Completed 2026-07-27 — optimize the existing Ray-Ban owner.** Rewrote its title/snippet around the proven query, added an above-fold tracked try-on CTA, connected four visual style directions, added FAQ/breadcrumb schema, and retained the existing URL instead of creating a duplicate.
+6. **Completed 2026-07-27 — test adjacent brand demand.** Published stable English search-intent pages for `/en/brand/warby-parker`, `/en/brand/oakley`, `/en/brand/zenni`, and `/en/brand/gentle-monster`; each routes directly to try-on and records the brand in `query_cluster`.
+7. **Measure for 14 days.** Compare GSC query/page movement with `seo_funnel_click`, detector start/completion, checkout, and verified purchase by landing page and locale.
 
 ## Decision rules
 

@@ -1,406 +1,170 @@
-import { Metadata } from 'next'
-import { generateI18nSEO, generateStructuredData } from '@/lib/seo'
-import Link from 'next/link'
-import { Star, Eye, TrendingUp } from 'lucide-react'
+import type { Metadata } from 'next'
 import Image from 'next/image'
-import { Breadcrumbs } from '@/components/seo/Breadcrumbs'
-import { localizedPath } from '@/lib/localized-path'
+import Link from 'next/link'
+import { ArrowRight, CheckCircle2, ScanFace } from 'lucide-react'
+import { GrowthFunnelLink } from '@/components/analytics/GrowthFunnelLink'
+import { BRAND_TRY_ON_CONTENT, CURATED_BRAND_SLUGS } from '@/config/brand-try-on-content'
+import type { Locale } from '@/i18n'
+import { generateI18nSEO, generateStructuredData } from '@/lib/seo'
+import { generateBreadcrumbSchema, generateCollectionPageSchema } from '@/lib/programmatic-seo'
 
 export const dynamic = 'force-static'
 
-const title = 'Ray-Ban Glasses Virtual Try-On Guide 2025 - Find Your Perfect Style'
-const description = 'Complete guide to Ray-Ban glasses styles with virtual try-on. Explore iconic Wayfarer, Clubmaster, and Aviator frames. Try them on virtually before you buy.'
+const pagePath = '/blog/rayban-glasses-virtual-tryon-guide'
+const title = 'Ray-Ban Virtual Try-On Guide: Compare Iconic Frame Styles'
+const description = 'Compare Ray-Ban Wayfarer, Aviator, Clubmaster, round, and rectangular style directions on your photo, then confirm the exact model and fit before buying.'
 const coverImage = '/Ray-Ban RB5154 Clubmaster - Browline Black Frame Eyeglasses.jpg'
+
+const styles = [
+  { name: 'Wayfarer direction', image: '/assets/glasses-presets/style-explorer/sun-wayfarer-black.jpg', text: 'A strong trapezoid-like front with a clear brow line. It adds definition and works as the most recognizable starting point for a Ray-Ban style comparison.', fit: 'Compare first on round, oval, and heart-shaped faces.' },
+  { name: 'Aviator direction', image: '/assets/glasses-presets/style-explorer/sun-aviator-gold.jpg', text: 'Thin metal, a double bridge, and a curved lens shape create a lighter look than thick acetate frames.', fit: 'The curved outline can soften square and angular features.' },
+  { name: 'Clubmaster direction', image: '/assets/glasses-presets/style-explorer/optical-slim-browline.jpg', text: 'A defined upper rim and lighter lower lens combine vintage structure with an optical-friendly profile.', fit: 'Worth testing on oval, diamond, oblong, and softly rounded faces.' },
+  { name: 'Round direction', image: '/assets/glasses-presets/style-explorer/sun-round-tortoise.jpg', text: 'A curved silhouette creates a softer, more vintage impression than Wayfarer-style frames.', fit: 'A useful contrast for square, rectangular, and angular faces.' },
+]
+
+const faqs = [
+  { question: 'Can I try Ray-Ban glasses on virtually with VisuTry?', answer: 'You can use VisuTry to compare Wayfarer, Aviator, browline, round, and other close style directions on your photo. These are independent visual references, not an official Ray-Ban catalog.' },
+  { question: 'Which Ray-Ban style is best for a round face?', answer: 'Angular Wayfarer or browline directions are useful first tests because their stronger lines can add definition. Frame width and personal preference still matter more than any single face-shape rule.' },
+  { question: 'Which Ray-Ban style is best for a square face?', answer: 'Aviator and round directions can provide contrast with an angular jaw. Also compare lens width and bridge placement to avoid choosing on shape alone.' },
+  { question: 'Does virtual try-on confirm the exact size?', answer: 'No. It helps compare appearance. Confirm lens width, bridge width, temple length, and total frame width with Ray-Ban or an authorized retailer before buying.' },
+]
 
 export async function generateMetadata({ params }: { params: { locale: string } }): Promise<Metadata> {
   return generateI18nSEO({
-    locale: params.locale as any,
-    title,
+    locale: params.locale as Locale,
+    title: `${title} | VisuTry`,
     description,
     image: coverImage,
-    pathname: '/blog/rayban-glasses-virtual-tryon-guide',
+    pathname: pagePath,
     type: 'article',
+    noIndex: params.locale !== 'en',
+    availableLocales: ['en'] as const,
   })
 }
 
-const structuredData = generateStructuredData('article', {
-  title,
-  description: 'Complete guide to Ray-Ban glasses styles with virtual try-on capabilities.',
-  publishedAt: '2025-10-21T10:00:00Z',
-  modifiedAt: '2025-10-21T10:00:00Z',
-  author: 'VisuTry Team',
-  image: coverImage,
-})
+export default function RayBanGuidePage({ params }: { params: { locale: string } }) {
+  const locale = params.locale
+  const pageUrl = `https://www.visutry.com/${locale}${pagePath}`
+  const schemas = [
+    generateStructuredData('article', {
+      title,
+      description,
+      publishedAt: '2025-10-16T10:00:00Z',
+      modifiedAt: '2026-07-27T10:00:00Z',
+      author: 'VisuTry Team',
+      image: coverImage,
+    }),
+    generateStructuredData('faqPage', { questions: faqs }),
+    generateBreadcrumbSchema([
+      { name: 'Home', url: `https://www.visutry.com/${locale}` },
+      { name: 'Blog', url: `https://www.visutry.com/${locale}/blog` },
+      { name: 'Ray-Ban virtual try-on guide', url: pageUrl },
+    ]),
+    generateCollectionPageSchema({ name: title, description, url: pageUrl, itemCount: styles.length }),
+  ]
 
-type BlogPostPageProps = {
-  params: { locale: string }
-}
-
-export default function BlogPostPage({ params }: BlogPostPageProps) {
   return (
     <>
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
-      />
+      {schemas.map((schema, index) => <script key={index} type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }} />)}
+      <main className="mx-auto max-w-6xl px-4 py-8 md:py-12">
+        <nav className="mb-7 flex items-center gap-2 text-sm text-gray-600" aria-label="Breadcrumb">
+          <Link href={`/${locale}`} className="hover:text-gray-950">Home</Link><span>/</span>
+          <Link href={`/${locale}/blog`} className="hover:text-gray-950">Blog</Link><span>/</span>
+          <span className="text-gray-950">Ray-Ban virtual try-on</span>
+        </nav>
 
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
-        <main className="container mx-auto px-4 py-12">
-          {/* Breadcrumbs */}
-          <div className="mb-6">
-            <Breadcrumbs
-              items={[
-                { name: 'Blog', url: localizedPath(params.locale, '/blog') },
-                { name: 'Ray-Ban Virtual Try-On Guide' },
-              ]}
-            />
+        <section className="grid gap-8 lg:grid-cols-[1.05fr_0.95fr] lg:items-center">
+          <div>
+            <p className="mb-3 text-sm font-semibold uppercase tracking-wide text-blue-700">Updated July 27, 2026 · 7 min read</p>
+            <h1 className="text-3xl font-bold leading-tight text-gray-950 md:text-5xl">{title}</h1>
+            <p className="mt-5 text-lg leading-8 text-gray-600">{description}</p>
+            <p className="mt-4 leading-7 text-gray-700">Start by comparing clearly different silhouettes. Once one direction feels right, use it to narrow the official catalog by shape and measurements.</p>
+            <div className="mt-7 flex flex-col gap-3 sm:flex-row">
+              <GrowthFunnelLink
+                href={`/${locale}/try-on/glasses`}
+                sourcePage={pagePath}
+                destination="glasses-try-on"
+                ctaLocation="hero-primary"
+                queryCluster="brand-virtual-try-on:ray-ban"
+                className="inline-flex items-center justify-center gap-2 rounded-lg bg-blue-600 px-5 py-3 font-semibold text-white hover:bg-blue-700"
+              >Try glasses on your photo <ArrowRight className="h-4 w-4" /></GrowthFunnelLink>
+              <GrowthFunnelLink
+                href={`/${locale}/face-shape-detector`}
+                sourcePage={pagePath}
+                destination="face-shape-detector"
+                ctaLocation="hero-secondary"
+                queryCluster="brand-virtual-try-on:ray-ban"
+                className="inline-flex items-center justify-center gap-2 rounded-lg border border-gray-300 px-5 py-3 font-semibold text-gray-700 hover:bg-gray-50"
+              >Find my face shape <ScanFace className="h-4 w-4" /></GrowthFunnelLink>
+            </div>
           </div>
+          <div className="relative min-h-80 overflow-hidden rounded-2xl bg-gray-100 shadow-sm">
+            <Image src={coverImage} alt="Black browline frame for Ray-Ban style comparison" fill priority className="object-cover" sizes="(min-width: 1024px) 45vw, 100vw" />
+          </div>
+        </section>
 
-          <article className="max-w-4xl mx-auto bg-white rounded-lg shadow-lg overflow-hidden">
-            <div className="h-64 bg-gradient-to-r from-amber-500 to-red-500 flex items-center justify-center">
-              <div className="text-center text-white">
-                <Star className="w-16 h-16 mx-auto mb-4" />
-                <h1 className="text-3xl font-bold">Ray-Ban Virtual Try-On Guide</h1>
-              </div>
-            </div>
+        <section className="mt-14 rounded-xl border border-gray-200 bg-blue-50 p-6 md:p-8">
+          <h2 className="text-2xl font-bold text-gray-950">How to use a Ray-Ban virtual try-on</h2>
+          <div className="mt-6 grid gap-5 md:grid-cols-3">
+            {[
+              ['1. Upload one clear photo', 'Use a straight-on image with even light and no glasses covering your eyes.'],
+              ['2. Compare silhouettes', 'Test Wayfarer, Aviator, browline, and round directions instead of small variations of one frame.'],
+              ['3. Confirm the exact model', 'Check official dimensions, prescription options, seller authorization, and return terms.'],
+            ].map(([heading, text]) => <article key={heading} className="rounded-lg bg-white p-5"><h3 className="font-semibold text-gray-950">{heading}</h3><p className="mt-2 text-sm leading-6 text-gray-600">{text}</p></article>)}
+          </div>
+        </section>
 
-            <div className="p-8 border-b">
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-x-4 text-sm text-gray-600">
-                  <span>Author: VisuTry Team</span>
-                  <span>Published: October 21, 2025</span>
-                  <span>Read time: 10 min</span>
-                </div>
-              </div>
-              <h1 className="text-3xl font-bold text-gray-900 mb-4">
-                Ray-Ban Glasses Virtual Try-On Guide 2025: Find Your Perfect Style
-              </h1>
-              <p className="text-xl text-gray-600">
-                Discover the complete guide to Ray-Ban&apos;s iconic eyewear collection. Learn about their
-                most popular styles and try them on virtually to find your perfect match. Check out our <Link href={localizedPath(params.locale, '/blog/how-to-choose-glasses-for-your-face')} className="text-blue-600 hover:text-blue-800">face shape guide</Link> to find the best Ray-Ban style for you.
-              </p>
-            </div>
+        <section className="mt-14">
+          <p className="text-sm font-semibold uppercase tracking-wide text-blue-700">Ray-Ban style finder</p>
+          <h2 className="mt-2 text-2xl font-bold text-gray-950 md:text-3xl">Compare four iconic frame directions</h2>
+          <div className="mt-6 grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+            {styles.map((style, index) => (
+              <GrowthFunnelLink
+                key={style.name}
+                href={`/${locale}/try-on/glasses`}
+                sourcePage={pagePath}
+                destination="glasses-try-on"
+                ctaLocation={`style-card-${index + 1}`}
+                queryCluster="brand-virtual-try-on:ray-ban"
+                className="group overflow-hidden rounded-xl border border-gray-200 bg-white transition hover:-translate-y-0.5 hover:shadow-lg"
+              >
+                <div className="relative h-48 bg-gray-100"><Image src={style.image} alt={style.name} fill className="object-cover transition group-hover:scale-105" sizes="(min-width: 1024px) 25vw, (min-width: 768px) 50vw, 100vw" /></div>
+                <div className="p-5"><h3 className="font-semibold text-gray-950 group-hover:text-blue-700">{style.name}</h3><p className="mt-2 text-sm leading-6 text-gray-600">{style.text}</p><p className="mt-3 text-sm leading-6 text-gray-700">{style.fit}</p><p className="mt-4 inline-flex items-center gap-1 text-sm font-semibold text-blue-700">Try this direction <ArrowRight className="h-4 w-4" /></p></div>
+              </GrowthFunnelLink>
+            ))}
+          </div>
+        </section>
 
-            <div className="p-8 prose prose-lg max-w-none">
-              <h2>Why Ray-Ban Remains the Gold Standard</h2>
-              <p>
-                Since 1937, Ray-Ban has been synonymous with quality eyewear and timeless style. From Hollywood 
-                icons to everyday fashion enthusiasts, Ray-Ban glasses have adorned the faces of millions, 
-                becoming cultural symbols in their own right.
-              </p>
-              <p>
-                In 2025, Ray-Ban continues to dominate the eyewear market with a perfect blend of:
-              </p>
-              <ul>
-                <li><strong>Heritage craftsmanship</strong> with nearly 90 years of expertise</li>
-                <li><strong>Iconic designs</strong> that never go out of style</li>
-                <li><strong>Premium quality</strong> materials and construction</li>
-                <li><strong>Versatile styles</strong> suitable for any face shape or occasion</li>
-                <li><strong>Innovation</strong> in lens technology and frame materials</li>
-              </ul>
-
-              <div className="bg-blue-50 p-6 rounded-lg my-8">
-                <h3 className="text-xl font-bold text-blue-900 mb-3">💡 Try Before You Buy</h3>
-                <p className="text-gray-700 mb-4">
-                  Not sure which Ray-Ban style suits you? Use our AI-powered virtual try-on tool to see how 
-                  different Ray-Ban frames look on your face instantly. It&apos;s free and takes just seconds!
-                </p>
-                <Link
-                  href={localizedPath(params.locale, '/')}
-                  className="inline-block bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors font-bold"
-                >
-                  Try Ray-Ban Virtually →
-                </Link>
-              </div>
-
-              <h2>Ray-Ban&apos;s Most Iconic Eyeglass Styles</h2>
-
-              <h3>1. Ray-Ban Wayfarer - The Timeless Classic</h3>
-              <div className="bg-gray-50 p-6 rounded-lg my-6">
-                <p className="mb-4">
-                  <strong>Originally launched in 1952</strong>, the Wayfarer revolutionized eyewear design with 
-                  its bold, plastic frame construction. It remains one of the most recognizable and best-selling 
-                  styles in history.
-                </p>
-                <p className="font-bold text-gray-900 mb-2">Key Features:</p>
-                <ul>
-                  <li>Distinctive trapezoidal shape</li>
-                  <li>Thick acetate frames</li>
-                  <li>Available in classic black, tortoise, and modern colors</li>
-                  <li>Unisex design suitable for most face shapes</li>
-                </ul>
-                <p className="mt-4">
-                  <strong>Best For:</strong> Round and oval faces. The angular design adds definition and 
-                  structure to softer facial features.
-                </p>
-                <p className="mt-4">
-                  <strong>Popular Models:</strong> RB2140 Original Wayfarer, RB4340 Wayfarer, RB2132 New Wayfarer
-                </p>
-                <p className="mt-4 text-sm italic">
-                  <strong>Celebrity Fans:</strong> Audrey Hepburn, Bob Dylan, Bruno Mars, and countless others 
-                  have made the Wayfarer their signature look.
-                </p>
-              </div>
-
-              <h3>2. Ray-Ban Clubmaster - Retro Sophistication</h3>
-              <div className="bg-gray-50 p-6 rounded-lg my-6">
-                <div className="mb-4">
-                  <Image
-                    src="/Ray-Ban RB5154 Clubmaster - Browline Black Frame Eyeglasses.jpg"
-                    alt="Ray-Ban Clubmaster Eyeglasses"
-                    width={600}
-                    height={400}
-                    className="rounded-lg"
-                  />
-                </div>
-                <p className="mb-4">
-                  <strong>Introduced in the 1980s</strong>, the Clubmaster (also known as the Browline) combines
-                  vintage appeal with modern sophistication. Its distinctive half-frame design makes it instantly
-                  recognizable. Learn more about this iconic style in our <Link href={localizedPath(params.locale, '/blog/browline-clubmaster-glasses-complete-guide')} className="text-blue-600 hover:text-blue-800">complete browline/clubmaster guide</Link>.
-                </p>
-                <p className="font-bold text-gray-900 mb-2">Key Features:</p>
-                <ul>
-                  <li>Bold upper frame with thin metal lower rim</li>
-                  <li>Retro-inspired browline design</li>
-                  <li>Acetate and metal combination</li>
-                  <li>Intellectual, sophisticated aesthetic</li>
-                </ul>
-                <p className="mt-4">
-                  <strong>Best For:</strong> Oval, square, and triangle face shapes. The prominent upper frame 
-                  balances facial proportions beautifully.
-                </p>
-                <p className="mt-4">
-                  <strong>Popular Models:</strong> RB5154 Clubmaster Optics, RB3016 Clubmaster Classic
-                </p>
-                <p className="mt-4 text-sm italic">
-                  <strong>Style Note:</strong> The Clubmaster exudes intellectual charm and works exceptionally 
-                  well in professional settings while maintaining a creative edge.
-                </p>
-              </div>
-
-              <h3>3. Ray-Ban Aviator - The Icon of Cool</h3>
-              <div className="bg-gray-50 p-6 rounded-lg my-6">
-                <p className="mb-4">
-                  <strong>Created in 1937</strong> for U.S. Air Force pilots, the Aviator is Ray-Ban&apos;s 
-                  original and most legendary design. While primarily known as sunglasses, optical versions 
-                  are equally stylish.
-                </p>
-                <p className="font-bold text-gray-900 mb-2">Key Features:</p>
-                <ul>
-                  <li>Teardrop-shaped lenses</li>
-                  <li>Thin metal frames</li>
-                  <li>Double or triple bridge design</li>
-                  <li>Lightweight and comfortable</li>
-                </ul>
-                <p className="mt-4">
-                  <strong>Best For:</strong> Square, rectangular, and heart-shaped faces. The curved design 
-                  softens angular features.
-                </p>
-                <p className="mt-4">
-                  <strong>Popular Models:</strong> RB6489 Aviator Optics, RB3025 Aviator Classic
-                </p>
-              </div>
-
-              <h3>4. Ray-Ban Round - Vintage Charm</h3>
-              <div className="bg-gray-50 p-6 rounded-lg my-6">
-                <p className="mb-4">
-                  Inspired by 1960s counterculture, Ray-Ban&apos;s round frames offer a vintage, artistic vibe 
-                  that&apos;s experienced a major resurgence in recent years.
-                </p>
-                <p className="font-bold text-gray-900 mb-2">Key Features:</p>
-                <ul>
-                  <li>Perfectly circular lenses</li>
-                  <li>Thin metal or acetate frames</li>
-                  <li>Minimalist, retro aesthetic</li>
-                  <li>Lightweight construction</li>
-                </ul>
-                <p className="mt-4">
-                  <strong>Best For:</strong> Square and rectangular faces. The circular shape provides contrast 
-                  to angular features.
-                </p>
-                <p className="mt-4">
-                  <strong>Popular Models:</strong> RB2180V Round Optics, RB3447V Round Metal
-                </p>
-                <p className="mt-4 text-sm italic">
-                  <strong>Celebrity Fans:</strong> John Lennon made round glasses iconic, and modern celebrities 
-                  like Harry Styles continue the tradition.
-                </p>
-              </div>
-
-              <h3>5. Ray-Ban Justin - Modern Casual</h3>
-              <div className="bg-gray-50 p-6 rounded-lg my-6">
-                <p className="mb-4">
-                  A contemporary take on the Wayfarer, the Justin offers a slightly larger, more relaxed fit 
-                  perfect for casual everyday wear.
-                </p>
-                <p className="font-bold text-gray-900 mb-2">Key Features:</p>
-                <ul>
-                  <li>Larger frame size than classic Wayfarer</li>
-                  <li>Rubber finish for modern look</li>
-                  <li>Comfortable, lightweight feel</li>
-                  <li>Trendy color options</li>
-                </ul>
-                <p className="mt-4">
-                  <strong>Best For:</strong> Most face shapes, especially those who want a relaxed, contemporary 
-                  style.
-                </p>
-              </div>
-
-              <h2>How to Choose Your Perfect Ray-Ban Style</h2>
-              
-              <h3>By Face Shape</h3>
-              <div className="overflow-x-auto my-6">
-                <table className="min-w-full bg-white border border-gray-300">
-                  <thead className="bg-gray-100">
-                    <tr>
-                      <th className="px-4 py-2 border">Face Shape</th>
-                      <th className="px-4 py-2 border">Best Ray-Ban Styles</th>
-                      <th className="px-4 py-2 border">Why It Works</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      <td className="px-4 py-2 border font-bold">Round</td>
-                      <td className="px-4 py-2 border">Wayfarer, Clubmaster</td>
-                      <td className="px-4 py-2 border">Angular frames add definition</td>
-                    </tr>
-                    <tr className="bg-gray-50">
-                      <td className="px-4 py-2 border font-bold">Square</td>
-                      <td className="px-4 py-2 border">Aviator, Round</td>
-                      <td className="px-4 py-2 border">Curved shapes soften angles</td>
-                    </tr>
-                    <tr>
-                      <td className="px-4 py-2 border font-bold">Oval</td>
-                      <td className="px-4 py-2 border">Any style!</td>
-                      <td className="px-4 py-2 border">Balanced proportions suit all</td>
-                    </tr>
-                    <tr className="bg-gray-50">
-                      <td className="px-4 py-2 border font-bold">Heart</td>
-                      <td className="px-4 py-2 border">Aviator, Round</td>
-                      <td className="px-4 py-2 border">Balances wider forehead</td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-
-              <h3>By Lifestyle & Occasion</h3>
-              <ul>
-                <li>
-                  <strong>Professional/Business:</strong> Clubmaster for sophisticated, intellectual appeal
-                </li>
-                <li>
-                  <strong>Casual/Everyday:</strong> Wayfarer or Justin for versatile, timeless style
-                </li>
-                <li>
-                  <strong>Creative/Artistic:</strong> Round frames for vintage, bohemian vibe
-                </li>
-                <li>
-                  <strong>Active/Sporty:</strong> Aviator for lightweight comfort
-                </li>
-              </ul>
-
-              <div className="bg-gradient-to-r from-amber-500 to-red-500 text-white p-8 rounded-lg my-8">
-                <h3 className="text-2xl font-bold mb-4">See Yourself in Ray-Ban</h3>
-                <p className="mb-6">
-                  Why guess when you can see? Try on every Ray-Ban style virtually with our AI-powered tool. 
-                  Upload your photo or use your camera to see exactly how each frame looks on your face.
-                </p>
-                <Link
-                  href={localizedPath(params.locale, '/')}
-                  className="inline-block bg-white text-red-600 px-8 py-3 rounded-lg font-bold hover:bg-gray-100 transition-colors"
-                >
-                  Virtual Try-On Now →
-                </Link>
-              </div>
-
-              <h2>Ray-Ban Quality & Materials</h2>
-              <p>
-                What sets Ray-Ban apart from competitors isn&apos;t just design—it&apos;s the quality of
-                materials and construction. For a detailed comparison of frame materials, check out our <Link href={localizedPath(params.locale, '/blog/acetate-vs-plastic-eyeglass-frames-guide')} className="text-blue-600 hover:text-blue-800">acetate vs plastic frames guide</Link>.
-              </p>
-              <ul>
-                <li>
-                  <strong>Premium Acetate:</strong> Durable, hypoallergenic, and available in rich colors
-                </li>
-                <li>
-                  <strong>High-Grade Metals:</strong> Lightweight titanium and stainless steel for metal frames
-                </li>
-                <li>
-                  <strong>Quality Hinges:</strong> Precision-engineered for smooth operation and longevity
-                </li>
-                <li>
-                  <strong>Lens Technology:</strong> Crystal-clear optics with optional blue light filtering
-                </li>
-                <li>
-                  <strong>Comfort Features:</strong> Adjustable nose pads and temple tips for all-day wear
-                </li>
-              </ul>
-
-              <h2>Caring for Your Ray-Ban Glasses</h2>
-              <p>
-                Protect your investment with proper care:
-              </p>
-              <ol>
-                <li><strong>Clean regularly</strong> with microfiber cloth and lens cleaner</li>
-                <li><strong>Store in case</strong> when not wearing to prevent scratches</li>
-                <li><strong>Avoid extreme heat</strong> which can warp frames</li>
-                <li><strong>Professional adjustments</strong> for optimal fit</li>
-                <li><strong>Replace nose pads</strong> annually for hygiene and comfort</li>
-              </ol>
-
-              <h2>Where to Buy Authentic Ray-Ban Glasses</h2>
-              <p>
-                Ensure you&apos;re getting genuine Ray-Ban quality:
-              </p>
-              <ul>
-                <li><strong>Official Ray-Ban website</strong> - Direct from the manufacturer</li>
-                <li><strong>Authorized optical retailers</strong> - LensCrafters, Sunglass Hut, etc.</li>
-                <li><strong>Licensed online retailers</strong> - Verify authorization before purchasing</li>
-                <li><strong>Avoid marketplace sellers</strong> - High risk of counterfeits</li>
-              </ul>
-
-              <div className="bg-yellow-50 border-s-4 border-yellow-400 p-6 my-8">
-                <h3 className="text-lg font-bold text-yellow-900 mb-2">⚠️ Beware of Counterfeits</h3>
-                <p className="text-gray-800 mb-0">
-                  Ray-Ban is one of the most counterfeited eyewear brands. Always buy from authorized retailers 
-                  and check for quality markers: engraved logo on lenses, RB etching on left lens, quality 
-                  hinges, and proper packaging with authenticity cards.
-                </p>
-              </div>
-
-              <h2>Conclusion: Your Ray-Ban Journey Starts Here</h2>
-              <p>
-                Ray-Ban glasses represent more than just vision correction—they&apos;re a statement of style, 
-                quality, and timeless design. Whether you choose the classic Wayfarer, sophisticated Clubmaster, 
-                iconic Aviator, or any other style, you&apos;re investing in eyewear that will serve you well 
-                for years to come.
-              </p>
-              <p>
-                The best way to find your perfect Ray-Ban style is to try them on. With virtual try-on technology, 
-                you can explore the entire collection from home, comparing styles side-by-side to find the one 
-                that makes you look and feel your best.
-              </p>
-              <p className="font-bold text-lg mt-6">
-                Ready to discover your perfect Ray-Ban? Start your virtual try-on journey today!
-              </p>
-            </div>
-
-            <div className="p-8 bg-gray-50 border-t">
-              <div className="flex items-center justify-between">
-                <div className="text-sm text-gray-600">
-                  Tags: Ray-Ban, Designer Glasses, Virtual Try-On, Eyewear Guide, Style Tips
-                </div>
-                <Link
-                  href={localizedPath(params.locale, '/')}
-                  className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors"
-                >
-                  Try Ray-Ban Now
-                </Link>
-              </div>
-            </div>
+        <section className="mt-14 grid gap-6 lg:grid-cols-2">
+          <article className="rounded-xl border border-gray-200 p-6">
+            <h2 className="text-xl font-bold text-gray-950">Face shape is a filter, not a rule</h2>
+            <p className="mt-4 leading-7 text-gray-700">Angular frames can add definition to round features; curved frames can soften stronger angles. But the better choice is the one whose width, bridge, lens height, and visual weight feel balanced on you.</p>
+            <GrowthFunnelLink href={`/${locale}/glasses-for-face-shape`} sourcePage={pagePath} destination="glasses-for-face-shape" ctaLocation="face-shape-guide" queryCluster="brand-virtual-try-on:ray-ban" className="mt-5 inline-flex items-center gap-2 font-semibold text-blue-700 hover:text-blue-900">Compare glasses by face shape <ArrowRight className="h-4 w-4" /></GrowthFunnelLink>
           </article>
-        </main>
-      </div>
+          <article className="rounded-xl border border-gray-200 p-6">
+            <h2 className="text-xl font-bold text-gray-950">Before buying an exact model</h2>
+            <ul className="mt-4 space-y-3 text-sm leading-6 text-gray-700">
+              {['Compare lens, bridge, temple, and total frame width.', 'Confirm prescription and lens compatibility.', 'Buy through Ray-Ban or an authorized retailer if authenticity matters.', 'Review the seller’s return and adjustment policy.'].map(item => <li key={item} className="flex gap-3"><CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-emerald-600" />{item}</li>)}
+            </ul>
+          </article>
+        </section>
+
+        <section className="mt-14">
+          <h2 className="text-2xl font-bold text-gray-950">Ray-Ban virtual try-on FAQ</h2>
+          <div className="mt-5 grid gap-4 md:grid-cols-2">
+            {faqs.map(item => <article key={item.question} className="rounded-xl border border-gray-200 p-5"><h3 className="font-semibold text-gray-950">{item.question}</h3><p className="mt-3 text-sm leading-6 text-gray-600">{item.answer}</p></article>)}
+          </div>
+        </section>
+
+        <section className="mt-14 rounded-xl border border-gray-200 p-6">
+          <h2 className="text-xl font-bold text-gray-950">Compare other high-intent brand styles</h2>
+          <div className="mt-4 flex flex-wrap gap-3">
+            {CURATED_BRAND_SLUGS.map(brand => <Link key={brand} href={`/${locale}/brand/${brand}`} className="rounded-full border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-700 hover:border-blue-400 hover:text-blue-700">{BRAND_TRY_ON_CONTENT[brand].name}</Link>)}
+          </div>
+        </section>
+
+        <p className="mt-8 text-xs leading-5 text-gray-500">VisuTry is an independent styling and visualization tool and is not affiliated with, endorsed by, or sponsored by Ray-Ban. Ray-Ban and its model names are trademarks of their respective owner. Confirm exact models, sizing, authenticity, pricing, and availability with Ray-Ban or an authorized retailer.</p>
+      </main>
     </>
   )
 }
