@@ -12,13 +12,14 @@ interface FaceAnalysisGateProps {
 /**
  * Client-side gate for the Face Analysis page.
  *
- * Shows the server-rendered landing content while session is loading or
- * unauthenticated. When authenticated, renders the FaceAnalysisInterface.
+ * Shows the server-rendered landing content until the first session resolves.
+ * Once authenticated, keep the interface mounted while session.update() is
+ * refreshing so task recovery effects cannot restart from a clean mount.
  */
 export function FaceAnalysisGate({ landing, loadingText }: FaceAnalysisGateProps) {
   const { data: session, status } = useSession()
 
-  if (status === 'loading' || !session) {
+  if (status === 'unauthenticated' || !session) {
     return <>{landing}</>
   }
 

@@ -444,23 +444,32 @@ function TryOnTopPicksPanel({
   const generatedTasks = batchResult?.tasks ?? []
   const completedCount = generatedTasks.filter((task) => task.status === 'completed').length
   const processingCount = generatedTasks.filter((task) => task.status === 'processing').length
+  const processingTaskKey = generatedTasks
+    .filter((task) => task.status === 'processing')
+    .map((task) => task.taskId)
+    .join(',')
   const presetIds = getPresetIdsForStyles(styles)
 
   useEffect(() => {
-    if (!batchResult || processingCount === 0) return
+    if (!processingTaskKey) return
 
     let cancelled = false
+    let pollInFlight = false
+    let timeoutId: number | undefined
+    const taskIds = processingTaskKey.split(',')
 
     const pollProcessingTasks = async () => {
-      const updates = await Promise.all(
-        batchResult.tasks
-          .filter((task) => task.status === 'processing')
-          .map(async (task) => {
+      if (cancelled || pollInFlight) return
+      pollInFlight = true
+
+      try {
+        const updates = await Promise.all(
+          taskIds.map(async (taskId) => {
             try {
               const response = await fetch('/api/try-on/poll', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ taskId: task.taskId }),
+                body: JSON.stringify({ taskId }),
               })
               const payload = await response.json()
               if (!response.ok || !payload.success) return null
@@ -469,48 +478,61 @@ function TryOnTopPicksPanel({
               if (!['completed', 'failed', 'processing', 'pending'].includes(status)) return null
 
               return {
-                taskId: task.taskId,
+                taskId,
                 status: status === 'pending' ? 'processing' : status,
-                resultImageUrl: payload.data?.resultImageUrl ?? task.resultImageUrl ?? null,
-                errorMessage: payload.data?.error ?? task.errorMessage ?? null,
+                resultImageUrl: payload.data?.resultImageUrl ?? null,
+                errorMessage: payload.data?.error ?? null,
               }
             } catch {
               return null
             }
           })
-      )
+        )
 
-      if (cancelled) return
+        if (cancelled) return
 
-      const validUpdates = updates.filter(Boolean) as Array<{
-        taskId: string
-        status: TopPicksBatchResult['tasks'][number]['status']
-        resultImageUrl?: string | null
-        errorMessage?: string | null
-      }>
+        const validUpdates = updates.filter(Boolean) as Array<{
+          taskId: string
+          status: TopPicksBatchResult['tasks'][number]['status']
+          resultImageUrl?: string | null
+          errorMessage?: string | null
+        }>
 
-      if (validUpdates.length === 0) return
+        if (validUpdates.length === 0) return
 
-      setBatchResult((current) => {
-        if (!current) return current
-        return {
-          ...current,
-          tasks: current.tasks.map((task) => {
-            const update = validUpdates.find((item) => item.taskId === task.taskId)
-            return update ? { ...task, ...update } : task
-          }),
+        setBatchResult((current) => {
+          if (!current) return current
+          return {
+            ...current,
+            tasks: current.tasks.map((task) => {
+              const update = validUpdates.find((item) => item.taskId === task.taskId)
+              if (!update) return task
+              return {
+                ...task,
+                ...update,
+                resultImageUrl: update.resultImageUrl ?? task.resultImageUrl ?? null,
+                errorMessage: update.errorMessage ?? task.errorMessage ?? null,
+              }
+            }),
+          }
+        })
+      } finally {
+        pollInFlight = false
+        if (!cancelled) {
+          timeoutId = window.setTimeout(pollProcessingTasks, 7000)
         }
-      })
+      }
     }
 
-    const intervalId = window.setInterval(pollProcessingTasks, 7000)
     void pollProcessingTasks()
 
     return () => {
       cancelled = true
-      window.clearInterval(intervalId)
+      if (timeoutId !== undefined) {
+        window.clearTimeout(timeoutId)
+      }
     }
-  }, [batchResult, processingCount])
+  }, [processingTaskKey])
 
   const handleGenerateTopPicks = async () => {
     setIsGenerating(true)

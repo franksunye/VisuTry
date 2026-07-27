@@ -186,6 +186,15 @@ export function FaceAnalysisInterface() {
     handledQueryRef.current = queryKey
 
     if (unlock === 'success') {
+      // Consume the one-shot payment return marker before refreshing the
+      // session. session.update() temporarily sets NextAuth to loading; if a
+      // gate ever remounts this component, the clean URL prevents the unlock
+      // flow from starting again.
+      const nextUrl = new URL(window.location.href)
+      nextUrl.searchParams.delete('unlock')
+      handledQueryRef.current = `${taskId}:`
+      window.history.replaceState(null, '', nextUrl.toString())
+
       setIsRestoringTask(true)
       refreshTask(taskId, { syncSession: true })
         .then(() => {

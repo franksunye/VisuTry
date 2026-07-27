@@ -1,5 +1,5 @@
 import React from 'react'
-import { fireEvent, render, screen } from '@testing-library/react'
+import { act, fireEvent, render, screen } from '@testing-library/react'
 import { FaceAnalysisResult } from '@/components/face-analysis/FaceAnalysisResult'
 import { FaceAnalysisTaskResponse } from '@/types/face-analysis'
 import { buildFullResult, parseFaceAnalysisContent } from '@/lib/face-analysis-parser'
@@ -60,6 +60,7 @@ function makeTask(overrides: Partial<FaceAnalysisTaskResponse> = {}): FaceAnalys
 
 describe('FaceAnalysisResult', () => {
   afterEach(() => {
+    jest.useRealTimers()
     jest.restoreAllMocks()
   })
 
@@ -140,5 +141,79 @@ describe('FaceAnalysisResult', () => {
     fireEvent.click(link)
 
     expect(trackTryOn).toHaveBeenCalledWith('task-1', 0, 0, 'open_try_on')
+  })
+
+  it('polls processing top picks at most once per seven-second cycle', async () => {
+    jest.useFakeTimers()
+
+    const processingTasks = Array.from({ length: 4 }, (_, index) => ({
+      taskId: `try-on-${index + 1}`,
+      status: 'processing' as const,
+      resultImageUrl: null,
+      errorMessage: null,
+      preset: {
+        id: `preset-${index + 1}`,
+        name: `Preset ${index + 1}`,
+        style: 'round',
+      },
+    }))
+
+    const fetchMock = jest.fn(async (input: RequestInfo | URL) => {
+      const url = String(input)
+      if (url === '/api/face-analysis/top-picks-try-on') {
+        return {
+          ok: true,
+          json: async () => ({
+            success: true,
+            data: {
+              batchId: 'batch-1',
+              requiredCredits: 4,
+              creditsUsed: 0,
+              tasks: processingTasks,
+            },
+          }),
+        }
+      }
+
+      return {
+        ok: true,
+        json: async () => ({
+          success: true,
+          data: {
+            status: 'processing',
+            resultImageUrl: null,
+            error: null,
+          },
+        }),
+      }
+    })
+    global.fetch = fetchMock as jest.Mock
+
+    render(<FaceAnalysisResult task={makeTask()} onUnlock={jest.fn()} remainingCredits={5} />)
+
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: /top picks/i }))
+      await Promise.resolve()
+      await Promise.resolve()
+      await Promise.resolve()
+    })
+
+    const pollCalls = () =>
+      fetchMock.mock.calls.filter(([input]) => String(input) === '/api/try-on/poll').length
+
+    expect(pollCalls()).toBe(4)
+
+    await act(async () => {
+      jest.advanceTimersByTime(6999)
+      await Promise.resolve()
+    })
+    expect(pollCalls()).toBe(4)
+
+    await act(async () => {
+      jest.advanceTimersByTime(1)
+      await Promise.resolve()
+      await Promise.resolve()
+    })
+    expect(pollCalls()).toBe(8)
   })
 })
