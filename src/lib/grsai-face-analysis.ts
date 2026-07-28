@@ -2,6 +2,8 @@ import { FACE_ANALYSIS_MODEL } from '@/config/face-analysis'
 import { logger } from '@/lib/logger'
 
 const CHAT_API_TIMEOUT_MS = 45_000
+const MAX_CHAT_API_ATTEMPTS = 2
+const CHAT_API_RETRY_DELAY_MS = 1_500
 const MAX_INLINE_IMAGE_BYTES = 800 * 1024
 
 function getGrsAiConfig() {
@@ -27,6 +29,19 @@ function estimateInlineImageBytes(imageInput: string): number | null {
   const match = imageInput.match(/^data:([^;]+);base64,(.+)$/i)
   if (!match) return null
   return Math.ceil((match[2].length * 3) / 4)
+}
+
+function isRetryableRixApiError(status: number, errorText: string): boolean {
+  if (status !== 400) return false
+
+  try {
+    const response = JSON.parse(errorText) as {
+      error?: { type?: string }
+    }
+    return response.error?.type === 'rix_api_error'
+  } catch {
+    return false
+  }
 }
 
 /**
@@ -74,13 +89,14 @@ export async function analyzeFaceWithGrsAi(
   })
 
   let response: Response | undefined
-  let lastError: unknown
 
-  for (let attempt = 1; attempt <= 2; attempt++) {
+  for (let attempt = 1; attempt <= MAX_CHAT_API_ATTEMPTS; attempt++) {
     const controller = new AbortController()
     const timeoutId = setTimeout(() => controller.abort(), CHAT_API_TIMEOUT_MS)
+    let attemptResponse: Response
+
     try {
-      response = await fetch(url, {
+      attemptResponse = await fetch(url, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -89,38 +105,61 @@ export async function analyzeFaceWithGrsAi(
         body: JSON.stringify(payload),
         signal: controller.signal,
       })
-      break
     } catch (error) {
-      lastError = error
       const isTimeout = error instanceof Error && error.name === 'AbortError'
       logger.warn('grsai-face', `Chat API network error (attempt ${attempt})`, undefined, {
         attempt,
         isTimeout,
         imageTransport: usesDataUri ? 'data-uri' : 'url',
       })
-      if (attempt === 2) {
+
+      if (attempt === MAX_CHAT_API_ATTEMPTS) {
         throw isTimeout
           ? new Error('Face analysis timed out. Please try again with a clearer front-facing photo.')
           : error
       }
-      await new Promise((resolve) => setTimeout(resolve, 1500))
+
+      await new Promise((resolve) => setTimeout(resolve, CHAT_API_RETRY_DELAY_MS))
+      continue
     } finally {
       clearTimeout(timeoutId)
     }
-  }
 
-  if (!response) {
-    throw lastError instanceof Error ? lastError : new Error('GrsAi request failed')
-  }
+    if (attemptResponse.ok) {
+      response = attemptResponse
+      if (attempt > 1) {
+        logger.info('grsai-face', 'Chat API recovered after retry', {
+          attempt,
+          status: attemptResponse.status,
+        })
+      }
+      break
+    }
 
-  if (!response.ok) {
-    const errorText = await response.text()
-    logger.error('grsai-face', `Chat API failed: ${response.status}`, undefined, {
+    const errorText = await attemptResponse.text()
+    const shouldRetry = isRetryableRixApiError(attemptResponse.status, errorText)
+
+    if (shouldRetry && attempt < MAX_CHAT_API_ATTEMPTS) {
+      logger.warn('grsai-face', `Chat API transient provider error (attempt ${attempt})`, {
+        attempt,
+        status: attemptResponse.status,
+        errorType: 'rix_api_error',
+      })
+      await new Promise((resolve) => setTimeout(resolve, CHAT_API_RETRY_DELAY_MS))
+      continue
+    }
+
+    logger.error('grsai-face', `Chat API failed: ${attemptResponse.status}`, undefined, {
+      attempt,
       error: errorText.slice(0, 500),
     })
     throw new Error(
-      `GrsAi face analysis failed: ${response.statusText} — ${errorText.slice(0, 200)}`
+      `GrsAi face analysis failed: ${attemptResponse.statusText} — ${errorText.slice(0, 200)}`
     )
+  }
+
+  if (!response) {
+    throw new Error('GrsAi request failed')
   }
 
   const data = (await response.json()) as ChatCompletionResponse
