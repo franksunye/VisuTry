@@ -32,6 +32,10 @@ interface PricingCardProps {
   currentUser: User | null
 }
 
+function isCreditsPack(productId: string): boolean {
+  return productId === "CREDITS_PACK" || productId === "CREDITS_PACK_PROMO_60"
+}
+
 export function PricingCard({ plan, currentUser }: PricingCardProps) {
   const [loading, setLoading] = useState(false)
   const params = useParams()
@@ -40,9 +44,11 @@ export function PricingCard({ plan, currentUser }: PricingCardProps) {
   const pricingHref = localizedPath(locale, '/pricing')
   const dashboardHref = localizedPath(locale, '/dashboard')
   const signInHref = localizedPath(locale, '/auth/signin')
+  const creditsPack = isCreditsPack(plan.id)
+  const signedOutButtonText = creditsPack ? "Sign in to buy credits" : "Sign in to subscribe"
 
-  const handleSubscribe = async () => {
-    // 如果用户未登录，重定向到登录页并设置回调URL
+  const handlePurchase = async () => {
+    // If the user is not signed in, return them to pricing after authentication.
     if (!currentUser) {
       window.location.href = `${signInHref}?callbackUrl=${encodeURIComponent(pricingHref)}`
       return
@@ -51,7 +57,7 @@ export function PricingCard({ plan, currentUser }: PricingCardProps) {
     setLoading(true)
 
     try {
-      // 追踪点击购买按钮
+      // Track purchase intent before creating the Stripe Checkout session.
       const userType = quota.userType
       const planPrice = parseFloat(plan.price.replace('$', '').replace('/month', '').replace('/year', ''))
       analytics.trackClickPurchase(
@@ -76,10 +82,7 @@ export function PricingCard({ plan, currentUser }: PricingCardProps) {
       const data = await response.json()
 
       if (data.success && data.data.url) {
-        // 追踪开始结账
         analytics.trackBeginCheckout(plan.id as ProductType, planPrice)
-
-        // Redirect to Stripe Checkout
         window.location.href = data.data.url
       } else {
         throw new Error(data.error || "Failed to create payment session")
@@ -104,7 +107,6 @@ export function PricingCard({ plan, currentUser }: PricingCardProps) {
         ? "border-blue-500 ring-2 ring-blue-200 z-10"
         : "border-gray-200 hover:border-gray-300 hover:shadow-md"
     )}>
-      {/* Popular Badge */}
       {plan.popular && (
         <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
           <span className="bg-blue-600 text-white px-4 py-1 rounded-full text-sm font-medium">
@@ -114,7 +116,6 @@ export function PricingCard({ plan, currentUser }: PricingCardProps) {
       )}
 
       <div className="flex flex-1 flex-col p-6">
-        {/* Icon and Title */}
         <div className="flex items-center mb-4">
           <div className={cn(
             "w-12 h-12 rounded-lg flex items-center justify-center me-4",
@@ -128,7 +129,6 @@ export function PricingCard({ plan, currentUser }: PricingCardProps) {
           </div>
         </div>
 
-        {/* Price */}
         <div className="mb-6">
           <div className="flex items-baseline">
             <span className="text-3xl font-bold text-gray-900">{plan.price}</span>
@@ -142,7 +142,6 @@ export function PricingCard({ plan, currentUser }: PricingCardProps) {
           )}
         </div>
 
-        {/* Features List */}
         <ul className="flex flex-col gap-y-3 mb-8">
           {plan.features.map((feature, index) => (
             <li key={index} className="flex items-start">
@@ -153,44 +152,42 @@ export function PricingCard({ plan, currentUser }: PricingCardProps) {
         </ul>
 
         <div className="mt-auto">
-        {/* Button */}
-        <button
-          onClick={handleSubscribe}
-          disabled={isDisabled}
-          className={cn(
-            "w-full py-3 px-4 rounded-lg font-medium transition-colors",
-            plan.popular
-              ? "bg-blue-600 text-white hover:bg-blue-700 disabled:bg-blue-400"
-              : "bg-gray-900 text-white hover:bg-gray-800 disabled:bg-gray-400",
-            "disabled:cursor-not-allowed"
-          )}
-        >
-          {loading ? (
-            <div className="flex items-center justify-center">
-              <Loader2 className="w-4 h-4 animate-spin me-2" />
-              Processing...
-            </div>
-          ) : isCurrentPlan ? (
-            "Current Plan"
-          ) : !currentUser ? (
-            "Sign In to Subscribe"
-          ) : (
-            plan.buttonText
-          )}
-        </button>
+          <button
+            onClick={handlePurchase}
+            disabled={isDisabled}
+            className={cn(
+              "w-full py-3 px-4 rounded-lg font-medium transition-colors",
+              plan.popular
+                ? "bg-blue-600 text-white hover:bg-blue-700 disabled:bg-blue-400"
+                : "bg-gray-900 text-white hover:bg-gray-800 disabled:bg-gray-400",
+              "disabled:cursor-not-allowed"
+            )}
+          >
+            {loading ? (
+              <div className="flex items-center justify-center">
+                <Loader2 className="w-4 h-4 animate-spin me-2" />
+                Processing...
+              </div>
+            ) : isCurrentPlan ? (
+              "Current Plan"
+            ) : !currentUser ? (
+              signedOutButtonText
+            ) : (
+              plan.buttonText
+            )}
+          </button>
 
-        {/* Additional Info */}
-        {plan.id === "CREDITS_PACK" && (
-          <p className="text-xs text-gray-500 text-center mt-3">
-            Credits never expire, use anytime
-          </p>
-        )}
+          {creditsPack && (
+            <p className="text-xs text-gray-500 text-center mt-3">
+              Purchased credits do not expire. Images and generated results follow the plan&apos;s data-retention period.
+            </p>
+          )}
 
-        {(plan.id === "PREMIUM_MONTHLY" || plan.id === "PREMIUM_YEARLY") && (
-          <p className="text-xs text-gray-500 text-center mt-3">
-            Cancel anytime, no long-term contract
-          </p>
-        )}
+          {(plan.id === "PREMIUM_MONTHLY" || plan.id === "PREMIUM_YEARLY") && (
+            <p className="text-xs text-gray-500 text-center mt-3">
+              Cancel anytime, no long-term contract
+            </p>
+          )}
         </div>
       </div>
     </div>

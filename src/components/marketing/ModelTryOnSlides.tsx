@@ -82,6 +82,18 @@ const modeSteps: Record<ShowcaseMode, Array<{ icon: typeof ScanFace; key: string
   ],
 }
 
+const fitDisclaimers: Record<string, string> = {
+  en: 'Visual preview only. Confirm frame width, bridge width, temple length, prescription compatibility, and the seller\'s return policy before buying.',
+  fr: 'Aperçu visuel uniquement. Vérifiez la largeur de la monture, le pont, la longueur des branches, la compatibilité avec votre correction et la politique de retour du vendeur avant l’achat.',
+  ru: 'Это только визуальный предварительный просмотр. Перед покупкой уточните ширину оправы, ширину моста, длину заушников, совместимость с рецептом и условия возврата продавца.',
+  de: 'Nur eine visuelle Vorschau. Prüfen Sie vor dem Kauf Fassungsbreite, Stegbreite, Bügellänge, Eignung für Ihre Sehstärke und die Rückgabebedingungen des Verkäufers.',
+  pt: 'Apenas uma prévia visual. Antes de comprar, confirme a largura da armação, a ponte, o comprimento das hastes, a compatibilidade com a receita e a política de devolução do vendedor.',
+  id: 'Hanya pratinjau visual. Sebelum membeli, pastikan lebar bingkai, lebar jembatan, panjang tangkai, kompatibilitas resep, dan kebijakan pengembalian penjual.',
+  ja: 'これは見た目のプレビューです。購入前に、フレーム幅、ブリッジ幅、テンプル長、度数対応、販売店の返品条件を確認してください。',
+  es: 'Solo es una vista previa visual. Antes de comprar, confirma el ancho de la montura, el puente, la longitud de las varillas, la compatibilidad con tu graduación y la política de devolución del vendedor.',
+  ar: 'هذه معاينة بصرية فقط. قبل الشراء، تحقّق من عرض الإطار وعرض الجسر وطول الذراعين وتوافق العدسات الطبية وسياسة الإرجاع لدى البائع.',
+}
+
 export function ModelTryOnSlides({
   locale,
   mode = 'home',
@@ -134,6 +146,11 @@ export function ModelTryOnSlides({
         <p className="mt-4 max-w-xl text-base leading-7 text-gray-600">
           {t(`modes.${mode}.description`)}
         </p>
+        {mode === 'glasses' && (
+          <p className="mt-3 max-w-xl text-sm leading-6 text-gray-500">
+            {fitDisclaimers[locale] ?? fitDisclaimers.en}
+          </p>
+        )}
         <div className={cn('mt-6 grid gap-3', mode === 'home' ? 'sm:grid-cols-2' : 'sm:grid-cols-3')}>
           {steps.map((step) => {
             const Icon = step.icon
