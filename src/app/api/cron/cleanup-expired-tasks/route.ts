@@ -7,19 +7,28 @@ import { sendRetentionDeletedEmail } from '@/lib/resend'
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 
+type RetentionUser = {
+  id: string
+  email: string | null
+  name: string | null
+  lastRetentionDeletedEmailSent: Date | null
+}
+
+type UserExpiry = {
+  user: RetentionUser
+  expiryDate: Date
+}
+
 /**
- * Cron job to cleanup expired try-on tasks and send deletion notifications
- * 
- * 1. Find all expired tasks
- * 2. Group by user for sending deletion emails
- * 3. Delete blob storage files
- * 4. Delete database records
- * 5. Send deletion notification emails
- * 
- * Runs daily at 2:00 AM UTC
+ * Cron job to clean up expired try-on and face-analysis data.
+ *
+ * Safety rule: associated blobs are deleted before database rows. If blob
+ * deletion fails, records are retained so the job can retry with the original
+ * URLs on the next run.
+ *
+ * Runs daily at 2:00 AM UTC.
  */
 export async function GET(request: NextRequest) {
-  // Verify cron secret for security
   const authHeader = request.headers.get('authorization')
   if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
     logger.warn('api', 'Unauthorized cron access attempt', { endpoint: 'cleanup-expired-tasks' })
@@ -28,38 +37,56 @@ export async function GET(request: NextRequest) {
 
   const now = new Date()
   const results = {
-    tasksDeleted: 0,
+    tryOnTasksDeleted: 0,
+    faceAnalysisTasksDeleted: 0,
     blobsDeleted: 0,
     emailsSent: 0,
     emailsFailed: 0,
   }
 
   try {
-    // Find expired tasks with user info
-    const expiredTasks = await prisma.tryOnTask.findMany({
-      where: {
-        expiresAt: { lte: now },
-      },
-      select: {
-        id: true,
-        userId: true,
-        userImageUrl: true,
-        itemImageUrl: true,
-        glassesImageUrl: true,
-        resultImageUrl: true,
-        expiresAt: true,
-        user: {
-          select: {
-            id: true,
-            email: true,
-            name: true,
-            lastRetentionDeletedEmailSent: true,
+    const [expiredTryOnTasks, expiredFaceAnalysisTasks] = await Promise.all([
+      prisma.tryOnTask.findMany({
+        where: { expiresAt: { lte: now } },
+        select: {
+          id: true,
+          userId: true,
+          userImageUrl: true,
+          itemImageUrl: true,
+          glassesImageUrl: true,
+          resultImageUrl: true,
+          expiresAt: true,
+          user: {
+            select: {
+              id: true,
+              email: true,
+              name: true,
+              lastRetentionDeletedEmailSent: true,
+            },
           },
         },
-      },
-    })
+      }),
+      prisma.faceAnalysisTask.findMany({
+        where: { expiresAt: { lte: now } },
+        select: {
+          id: true,
+          userId: true,
+          userImageUrl: true,
+          expiresAt: true,
+          user: {
+            select: {
+              id: true,
+              email: true,
+              name: true,
+              lastRetentionDeletedEmailSent: true,
+            },
+          },
+        },
+      }),
+    ])
 
-    if (expiredTasks.length === 0) {
+    const expiredCount = expiredTryOnTasks.length + expiredFaceAnalysisTasks.length
+    if (expiredCount === 0) {
       logger.info('api', 'No expired tasks to cleanup')
       return NextResponse.json({
         success: true,
@@ -69,56 +96,75 @@ export async function GET(request: NextRequest) {
       })
     }
 
-    console.log(`[Cleanup] Found ${expiredTasks.length} expired tasks`)
-
-    // Collect blob URLs to delete
-    const urlsToDelete: string[] = []
-    expiredTasks.forEach(task => {
-      if (task.userImageUrl) urlsToDelete.push(task.userImageUrl)
-      if (task.itemImageUrl) urlsToDelete.push(task.itemImageUrl)
-      if (task.glassesImageUrl) urlsToDelete.push(task.glassesImageUrl)
-      if (task.resultImageUrl) urlsToDelete.push(task.resultImageUrl)
+    logger.info('api', 'Expired retention data found', {
+      tryOnTasks: expiredTryOnTasks.length,
+      faceAnalysisTasks: expiredFaceAnalysisTasks.length,
     })
 
-    // Group tasks by user for email notifications
-    const userTaskMap = new Map<string, {
-      user: typeof expiredTasks[0]['user']
-      expiryDate: Date
-    }>()
+    const urlsToDelete = Array.from(
+      new Set(
+        [
+          ...expiredTryOnTasks.flatMap((task) => [
+            task.userImageUrl,
+            task.itemImageUrl,
+            task.glassesImageUrl,
+            task.resultImageUrl,
+          ]),
+          ...expiredFaceAnalysisTasks.map((task) => task.userImageUrl),
+        ].filter((url): url is string => Boolean(url)),
+      ),
+    )
 
-    expiredTasks.forEach(task => {
-      if (!userTaskMap.has(task.userId) && task.user.email) {
-        userTaskMap.set(task.userId, {
-          user: task.user,
-          expiryDate: task.expiresAt || now,
-        })
-      }
-    })
-
-    // Delete database records
-    const deleteResult = await prisma.tryOnTask.deleteMany({
-      where: { id: { in: expiredTasks.map(t => t.id) } },
-    })
-    results.tasksDeleted = deleteResult.count
-
-    // Delete blob files
     if (urlsToDelete.length > 0) {
       try {
         await del(urlsToDelete)
         results.blobsDeleted = urlsToDelete.length
-        console.log(`[Cleanup] Deleted ${urlsToDelete.length} blob files`)
       } catch (blobError) {
-        logger.error('api', 'Failed to delete some blob files', 
-          blobError instanceof Error ? blobError : new Error(String(blobError)))
+        const error = blobError instanceof Error ? blobError : new Error(String(blobError))
+        logger.error('api', 'Expired blob deletion failed; database records retained for retry', error, {
+          blobCount: urlsToDelete.length,
+        })
+        return NextResponse.json(
+          {
+            error: 'Blob cleanup failed; records retained for retry',
+            timestamp: now.toISOString(),
+            results,
+          },
+          { status: 500 },
+        )
       }
     }
 
-    // Send deletion notification emails
-    const userEntries = Array.from(userTaskMap.entries())
-    for (const [userId, { user, expiryDate }] of userEntries) {
-      // Skip if already sent deletion email recently (within 24 hours)
+    const [tryOnDeleteResult, faceAnalysisDeleteResult] = await prisma.$transaction([
+      prisma.tryOnTask.deleteMany({
+        where: { id: { in: expiredTryOnTasks.map((task) => task.id) } },
+      }),
+      prisma.faceAnalysisTask.deleteMany({
+        where: { id: { in: expiredFaceAnalysisTasks.map((task) => task.id) } },
+      }),
+    ])
+
+    results.tryOnTasksDeleted = tryOnDeleteResult.count
+    results.faceAnalysisTasksDeleted = faceAnalysisDeleteResult.count
+
+    const userExpiryMap = new Map<string, UserExpiry>()
+    const registerUserExpiry = (userId: string, user: RetentionUser, expiresAt: Date | null) => {
+      if (!user.email) return
+      const expiryDate = expiresAt || now
+      const existing = userExpiryMap.get(userId)
+      if (!existing || expiryDate < existing.expiryDate) {
+        userExpiryMap.set(userId, { user, expiryDate })
+      }
+    }
+
+    expiredTryOnTasks.forEach((task) => registerUserExpiry(task.userId, task.user, task.expiresAt))
+    expiredFaceAnalysisTasks.forEach((task) =>
+      registerUserExpiry(task.userId, task.user, task.expiresAt),
+    )
+
+    for (const [userId, { user, expiryDate }] of userExpiryMap.entries()) {
       const lastSent = user.lastRetentionDeletedEmailSent
-      if (lastSent && (now.getTime() - lastSent.getTime()) < 24 * 60 * 60 * 1000) {
+      if (lastSent && now.getTime() - lastSent.getTime() < 24 * 60 * 60 * 1000) {
         continue
       }
 
@@ -153,4 +199,3 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }
-
