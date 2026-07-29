@@ -35,6 +35,7 @@ Status: working baseline for public website copy, AEO pages, structured data, pr
 - Try-on and face-analysis tasks both have `expiresAt` and are included in the scheduled cleanup path.
 - Associated blobs are deleted before database rows. If blob deletion fails, database records are retained so cleanup can retry with the original URLs.
 - The cleanup schedule is daily, so public copy should not promise deletion at the exact expiry timestamp.
+- Focused unit coverage verifies face-analysis deletion and the blob-failure retry-safety path.
 
 ## Wording controls
 
