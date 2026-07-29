@@ -32,8 +32,9 @@ Status: working baseline for public website copy, AEO pages, structured data, pr
 - Purchased credits and stored images/results have different lifecycles.
 - Public copy must not imply that non-expiring credits mean permanent image storage.
 - Current card copy: “Purchased credits do not expire. Images and generated results follow the plan's data-retention period.”
-- Try-on tasks have `expiresAt` and a scheduled cleanup path.
-- Face-analysis cleanup requires separate implementation verification before making a universal deletion claim.
+- Try-on and face-analysis tasks both have `expiresAt` and are included in the scheduled cleanup path.
+- Associated blobs are deleted before database rows. If blob deletion fails, database records are retained so cleanup can retry with the original URLs.
+- The cleanup schedule is daily, so public copy should not promise deletion at the exact expiry timestamp.
 
 ## Wording controls
 
@@ -52,5 +53,6 @@ Do not publish these statements without supporting evidence:
 - [ ] Replace subscription-only legal copy for one-time purchases.
 - [ ] Correct English indefinite articles on face-shape pages.
 - [ ] Add visual-preview versus physical-fit limitation to the try-on page.
-- [ ] Include face-analysis records and files in expiry cleanup.
+- [x] Include face-analysis records and files in expiry cleanup.
+- [x] Retain database records when blob deletion fails, allowing cleanup retry.
 - [ ] Verify successful-only quota settlement and partial Compare outcomes.
