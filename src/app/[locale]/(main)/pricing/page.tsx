@@ -187,24 +187,22 @@ export default async function PricingPage({ params }: { params: { locale: string
         </div>
       </div>
 
-      {/* Legal Links */}
+      {/* Neutral legal links apply to both one-time purchases and subscriptions. */}
       <div className="p-4 mt-8 bg-blue-50 rounded-lg border border-blue-200">
         <p className="flex flex-col items-center justify-center gap-2 text-sm text-gray-700 sm:flex-row">
           <CheckCircle2 className="h-4 w-4 text-green-600" />
-          <span>
-          {t('legal.prefix')}{' '}
-          <Link href={`/${params.locale}/terms`} className="font-medium text-blue-600 hover:underline">
-            {t('legal.terms')}
-          </Link>
-          {' '}{t('legal.and')}{' '}
-          <Link href={`/${params.locale}/privacy`} className="font-medium text-blue-600 hover:underline">
-            {t('legal.privacy')}
-          </Link>
-          {t('legal.middle')}{' '}
-          <Link href={`/${params.locale}/refund`} className="font-medium text-blue-600 hover:underline">
-            {t('legal.refund')}
-          </Link>
-          {' '}{t('legal.suffix')}
+          <span className="flex flex-wrap items-center justify-center gap-x-2 gap-y-1">
+            <Link href={`/${params.locale}/terms`} className="font-medium text-blue-600 hover:underline">
+              {t('legal.terms')}
+            </Link>
+            <span aria-hidden="true">·</span>
+            <Link href={`/${params.locale}/privacy`} className="font-medium text-blue-600 hover:underline">
+              {t('legal.privacy')}
+            </Link>
+            <span aria-hidden="true">·</span>
+            <Link href={`/${params.locale}/refund`} className="font-medium text-blue-600 hover:underline">
+              {t('legal.refund')}
+            </Link>
           </span>
         </p>
       </div>
