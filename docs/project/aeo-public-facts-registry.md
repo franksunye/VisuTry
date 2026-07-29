@@ -51,7 +51,7 @@ Do not publish these statements without supporting evidence:
 
 - [x] Credits Pack signed-out CTA uses purchase language.
 - [x] Credit lifetime is explicitly separated from image/result retention.
-- [ ] Replace subscription-only legal copy for one-time purchases.
+- [x] Replace subscription-only legal copy with neutral links that apply to both one-time purchases and subscriptions.
 - [ ] Correct English indefinite articles on face-shape pages.
 - [ ] Add visual-preview versus physical-fit limitation to the try-on page.
 - [x] Include face-analysis records and files in expiry cleanup.
