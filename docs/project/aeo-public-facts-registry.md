@@ -37,6 +37,12 @@ Status: working baseline for public website copy, AEO pages, structured data, pr
 - The cleanup schedule is daily, so public copy should not promise deletion at the exact expiry timestamp.
 - Focused unit coverage verifies face-analysis deletion and the blob-failure retry-safety path.
 
+## Fit and output boundaries
+
+- Virtual Try-On is a visual preview, not a physical fitting measurement.
+- Public copy should direct shoppers to confirm frame width, bridge width, temple length, prescription compatibility, and the seller's return policy before buying.
+- The fit limitation is displayed on the glasses landing experience in all currently supported locales, with English fallback for unknown locales.
+
 ## Wording controls
 
 Do not publish these statements without supporting evidence:
@@ -53,7 +59,7 @@ Do not publish these statements without supporting evidence:
 - [x] Credit lifetime is explicitly separated from image/result retention.
 - [x] Replace subscription-only legal copy with neutral links that apply to both one-time purchases and subscriptions.
 - [ ] Correct English indefinite articles on face-shape pages.
-- [ ] Add visual-preview versus physical-fit limitation to the try-on page.
+- [x] Add visual-preview versus physical-fit limitation to the try-on page.
 - [x] Include face-analysis records and files in expiry cleanup.
 - [x] Retain database records when blob deletion fails, allowing cleanup retry.
 - [ ] Verify successful-only quota settlement and partial Compare outcomes.
