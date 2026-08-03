@@ -4,6 +4,7 @@ import { getSearchToToolRouteCopy, type SearchToToolPhaseARouteId } from '@/conf
 import { getSearchToToolShellCopy } from '@/config/search-to-tool-shell-locales'
 import { getGlassesGuideHubCopy } from '@/config/glasses-guide-hub-locales'
 import { getAlternateLanguages } from '@/lib/seo'
+import { normalizeSearchToToolUrl } from '@/lib/search-to-tool-seo'
 
 const phaseARoutes: SearchToToolPhaseARouteId[] = [
   'find-glasses-for-my-face',
@@ -120,5 +121,12 @@ describe('Search→Tool Phase A i18n', () => {
       expect(alternates[locale]).toContain(`/${locale}/what-is-my-face-shape`)
     }
     expect(alternates['x-default']).toContain('/en/what-is-my-face-shape')
+  })
+
+  test('normalizes duplicate slash in absolute canonical and hreflang URLs', () => {
+    expect(normalizeSearchToToolUrl('https://example.com//ja/what-is-my-face-shape'))
+      .toBe('https://example.com/ja/what-is-my-face-shape')
+    expect(normalizeSearchToToolUrl('https://example.com/ja/what-is-my-face-shape'))
+      .toBe('https://example.com/ja/what-is-my-face-shape')
   })
 })
