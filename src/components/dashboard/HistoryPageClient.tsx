@@ -1,8 +1,8 @@
 'use client'
 
 import { useSession } from 'next-auth/react'
-import { useEffect, useState, use } from 'react'
-import { useRouter } from 'next/navigation'
+import { useEffect, useState } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { TryOnHistoryList } from '@/components/dashboard/TryOnHistoryList'
 import { History } from 'lucide-react'
 import Link from 'next/link'
@@ -35,10 +35,6 @@ interface HistoryData {
 }
 
 interface HistoryPageClientProps {
-  searchParamsPromise: Promise<{
-    page?: string
-    status?: string
-  }>
   locale: string
 }
 
@@ -48,13 +44,13 @@ interface HistoryPageClientProps {
  * Replaces the previous server-side getServerSession + prisma queries to avoid
  * Neon HTTP driver timeouts during SSR. Auth and data are fetched on the client.
  */
-export function HistoryPageClient({ searchParamsPromise, locale }: HistoryPageClientProps) {
+export function HistoryPageClient({ locale }: HistoryPageClientProps) {
   const { data: session, status: authStatus } = useSession()
   const router = useRouter()
-  const searchParams = use(searchParamsPromise)
+  const searchParams = useSearchParams()
 
-  const page = parseInt(searchParams.page || '1')
-  const statusFilter = searchParams.status || 'all'
+  const page = parseInt(searchParams.get('page') || '1')
+  const statusFilter = searchParams.get('status') || 'all'
 
   const [data, setData] = useState<HistoryData | null>(null)
   const [loading, setLoading] = useState(true)
