@@ -44,8 +44,38 @@ type TryOnInputDiagnostics = Prisma.InputJsonObject
 type TryOnUploadDiagnostics = Prisma.InputJsonObject
 interface TryOnSubmissionOptions {
   clientSubmissionId?: string
+  enforceIdempotency?: boolean
   metadata?: Record<string, unknown>
   forceServiceType?: 'grsai' | 'gemini'
+}
+
+function submissionResultFromTask(task: {
+  id: string
+  status: TaskStatus
+  resultImageUrl?: string | null
+  errorMessage?: string | null
+  metadata?: unknown
+}): TryOnSubmissionResult {
+  const metadata = (task.metadata ?? {}) as Record<string, unknown>
+  const serviceType = typeof metadata.serviceType === 'string' ? metadata.serviceType : 'grsai'
+  const status = task.status === TaskStatus.COMPLETED
+    ? 'completed'
+    : task.status === TaskStatus.FAILED
+      ? 'failed'
+      : 'submitted'
+
+  return {
+    taskId: task.id,
+    status,
+    serviceType,
+    isAsync: metadata.isAsync !== false,
+    resultImageUrl: task.resultImageUrl ?? undefined,
+    error: task.errorMessage ?? undefined,
+  }
+}
+
+function isUniqueConstraintError(error: unknown) {
+  return Boolean(error && typeof error === 'object' && (error as { code?: string }).code === 'P2002')
 }
 
 function shouldRetryGrsAiTimeout(error?: string): boolean {
@@ -98,6 +128,26 @@ export async function submitTryOnTask(
   const clientSubmissionId = options?.clientSubmissionId
   const startTime = Date.now()
   logger.info('tryon-service', `Starting try-on task for user ${user.id}`, { type, clientSubmissionId })
+
+  if (clientSubmissionId && options?.enforceIdempotency) {
+    const existingTask = await prisma.tryOnTask.findUnique({
+      where: {
+        userId_clientSubmissionId: {
+          userId: user.id,
+          clientSubmissionId,
+        },
+      },
+    })
+
+    if (existingTask) {
+      logger.info('tryon-service', 'Reusing idempotent try-on submission', {
+        userId: user.id,
+        clientSubmissionId: options?.enforceIdempotency ? clientSubmissionId : null,
+        taskId: existingTask.id,
+      })
+      return submissionResultFromTask(existingTask)
+    }
+  }
 
   // Resolve once so dispatch, persistence, and retries all use the same immutable version.
   const resolvedPrompt = resolveTryOnPrompt(type, prompt)
@@ -217,30 +267,53 @@ export async function submitTryOnTask(
   }
 
   // 3. Create Task in DB
-  const task = await prisma.tryOnTask.create({
-    data: {
-      userId: user.id,
-      type: type,
-      userImageUrl: userBlob.url,
-      itemImageUrl: itemBlob.url,
-      status: TaskStatus.PENDING,
-      metadata: {
-        ...(options?.metadata || {}),
-        serviceType,
-        isAsync,
-        effectivePrompt,
-        renderedPrompt: resolvedPrompt.renderedPrompt,
-        promptVersion,
-        promptSource: resolvedPrompt.source,
-        retryCount: 0,
+  let task
+  try {
+    task = await prisma.tryOnTask.create({
+      data: {
+        userId: user.id,
+        type: type,
+        userImageUrl: userBlob.url,
+        itemImageUrl: itemBlob.url,
+        status: TaskStatus.PENDING,
         clientSubmissionId,
-        originalUserFileName: userImageFile.name,
-        originalItemFileName: itemImageFile.name,
-        inputDiagnostics,
-        uploadDiagnostics,
+        metadata: {
+          ...(options?.metadata || {}),
+          serviceType,
+          isAsync,
+          effectivePrompt,
+          renderedPrompt: resolvedPrompt.renderedPrompt,
+          promptVersion,
+          promptSource: resolvedPrompt.source,
+          retryCount: 0,
+          clientSubmissionId,
+          originalUserFileName: userImageFile.name,
+          originalItemFileName: itemImageFile.name,
+          inputDiagnostics,
+          uploadDiagnostics,
+        }
       }
-    }
-  })
+    })
+  } catch (error) {
+    if (!clientSubmissionId || !options?.enforceIdempotency || !isUniqueConstraintError(error)) throw error
+
+    const existingTask = await prisma.tryOnTask.findUnique({
+      where: {
+        userId_clientSubmissionId: {
+          userId: user.id,
+          clientSubmissionId,
+        },
+      },
+    })
+    if (!existingTask) throw error
+
+    logger.info('tryon-service', 'Recovered concurrent idempotent try-on submission', {
+      userId: user.id,
+      clientSubmissionId,
+      taskId: existingTask.id,
+    })
+    return submissionResultFromTask(existingTask)
+  }
 
   // 4. Dispatch to Service
   if (serviceType === 'gemini') {

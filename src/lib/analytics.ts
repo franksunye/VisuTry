@@ -529,6 +529,62 @@ export const analytics = {
     })
   },
 
+  trackFaceAnalysisTopPicksStart(
+    faceAnalysisTaskId: string,
+    styleCount: number,
+    requiredCredits: number,
+    mode: 'generate' | 'complete',
+  ) {
+    // Keep the established continuation event for existing dashboards while
+    // adding a dedicated activation event for the paid Analysis funnel.
+    sendEvent('try_on_from_face_analysis', {
+      face_analysis_task_id: faceAnalysisTaskId,
+      style_count: styleCount,
+      required_credits: requiredCredits,
+      continuation_action: 'generate_top_picks',
+      generation_mode: mode,
+    })
+    sendEvent('face_analysis_top_picks_start', {
+      face_analysis_task_id: faceAnalysisTaskId,
+      style_count: styleCount,
+      required_credits: requiredCredits,
+      generation_mode: mode,
+      product_path: 'face_analysis',
+    })
+  },
+
+  trackFaceAnalysisTopPicksComplete({
+    faceAnalysisTaskId,
+    batchId,
+    completedCount,
+    failedCount,
+    processingTimeMs,
+  }: {
+    faceAnalysisTaskId: string
+    batchId: string
+    completedCount: number
+    failedCount: number
+    processingTimeMs: number
+  }) {
+    sendEvent('face_analysis_top_picks_complete', {
+      face_analysis_task_id: faceAnalysisTaskId,
+      batch_id: batchId,
+      completed_count: completedCount,
+      failed_count: failedCount,
+      processing_time_ms: processingTimeMs,
+      success: completedCount === 4,
+      product_path: 'face_analysis',
+    })
+  },
+
+  trackFaceAnalysisExploreMoreStyles(faceAnalysisTaskId: string, batchId?: string) {
+    sendEvent('face_analysis_explore_more_styles_click', {
+      face_analysis_task_id: faceAnalysisTaskId,
+      ...(batchId ? { batch_id: batchId } : {}),
+      product_path: 'face_analysis',
+    })
+  },
+
   trackBlogFunnelClick({
     sourcePage,
     destination,

@@ -1,5 +1,5 @@
 import React from 'react'
-import { act, fireEvent, render, screen } from '@testing-library/react'
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { FaceAnalysisResult } from '@/components/face-analysis/FaceAnalysisResult'
 import { FaceAnalysisTaskResponse } from '@/types/face-analysis'
 import { buildFullResult, parseFaceAnalysisContent } from '@/lib/face-analysis-parser'
@@ -59,12 +59,25 @@ function makeTask(overrides: Partial<FaceAnalysisTaskResponse> = {}): FaceAnalys
 }
 
 describe('FaceAnalysisResult', () => {
+  beforeEach(() => {
+    global.fetch = jest.fn(async (input: RequestInfo | URL) => {
+      if (String(input).startsWith('/api/face-analysis/top-picks-try-on?')) {
+        return {
+          ok: true,
+          json: async () => ({ success: true, data: null }),
+        } as Response
+      }
+
+      throw new Error(`Unexpected fetch: ${String(input)}`)
+    }) as jest.Mock
+  })
+
   afterEach(() => {
     jest.useRealTimers()
     jest.restoreAllMocks()
   })
 
-  it('renders the premium full report sections when unlocked', () => {
+  it('renders the premium full report sections when unlocked', async () => {
     render(<FaceAnalysisResult task={makeTask()} onUnlock={jest.fn()} remainingCredits={5} />)
 
     expect(screen.getByText('Your AI Face Shape Report')).toBeInTheDocument()
@@ -76,20 +89,21 @@ describe('FaceAnalysisResult', () => {
     expect(screen.queryByText(/Each AI glasses try-on uses 1 credit per generated photo/i)).not.toBeInTheDocument()
     expect(screen.queryByAltText('Style guide preview')).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: /download report/i })).not.toBeInTheDocument()
+    expect(await screen.findByRole('button', { name: /try top picks on your photo/i })).toBeEnabled()
   })
 
-  it('starts top picks generation when credits are available', () => {
+  it('starts top picks generation when credits are available', async () => {
     render(<FaceAnalysisResult task={makeTask()} onUnlock={jest.fn()} remainingCredits={5} />)
 
-    expect(screen.getByRole('button', { name: /try top picks on your photo/i })).toBeEnabled()
+    expect(await screen.findByRole('button', { name: /try top picks on your photo/i })).toBeEnabled()
     expect(screen.queryByText('5 credits')).not.toBeInTheDocument()
     expect(screen.queryByText(/failed generations are not charged/i)).not.toBeInTheDocument()
   })
 
-  it('links top picks to pricing when credits are insufficient', () => {
+  it('links top picks to pricing when credits are insufficient', async () => {
     render(<FaceAnalysisResult task={makeTask()} onUnlock={jest.fn()} remainingCredits={2} />)
 
-    const link = screen.getByRole('link', { name: /get credits to try top picks/i })
+    const link = await screen.findByRole('link', { name: /get credits to try top picks/i })
     expect(link).toHaveAttribute('href', '/en/pricing')
     expect(screen.queryByText(/You need/i)).not.toBeInTheDocument()
     expect(screen.queryByText('2 credits')).not.toBeInTheDocument()
@@ -135,8 +149,9 @@ describe('FaceAnalysisResult', () => {
       />
     )
 
-    const link = screen.getByRole('link', { name: /open virtual try-on/i })
+    const link = screen.getByRole('link', { name: /try any frame instead/i })
     expect(link).toHaveAttribute('href', '/en/try-on/glasses?source=face-analysis')
+    link.addEventListener('click', (event) => event.preventDefault())
 
     fireEvent.click(link)
 
@@ -160,6 +175,12 @@ describe('FaceAnalysisResult', () => {
 
     const fetchMock = jest.fn(async (input: RequestInfo | URL) => {
       const url = String(input)
+      if (url.startsWith('/api/face-analysis/top-picks-try-on?')) {
+        return {
+          ok: true,
+          json: async () => ({ success: true, data: null }),
+        }
+      }
       if (url === '/api/face-analysis/top-picks-try-on') {
         return {
           ok: true,
@@ -191,6 +212,10 @@ describe('FaceAnalysisResult', () => {
 
     render(<FaceAnalysisResult task={makeTask()} onUnlock={jest.fn()} remainingCredits={5} />)
 
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /try top picks on your photo/i })).toBeEnabled()
+    })
+
     await act(async () => {
       fireEvent.click(screen.getByRole('button', { name: /top picks/i }))
       await Promise.resolve()
@@ -215,5 +240,88 @@ describe('FaceAnalysisResult', () => {
       await Promise.resolve()
     })
     expect(pollCalls()).toBe(8)
+  })
+
+  it('recovers a completed batch into the in-page compare state without a generate button', async () => {
+    const completedTasks = Array.from({ length: 4 }, (_, index) => ({
+      taskId: `try-on-${index + 1}`,
+      status: 'completed' as const,
+      resultImageUrl: `https://example.com/result-${index + 1}.jpg`,
+      errorMessage: null,
+      preset: {
+        id: `preset-${index + 1}`,
+        name: `Preset ${index + 1}`,
+        style: 'round',
+      },
+    }))
+    global.fetch = jest.fn(async () => ({
+      ok: true,
+      json: async () => ({
+        success: true,
+        data: {
+          batchId: 'batch-complete',
+          requiredCredits: 4,
+          creditsUsed: 4,
+          recovered: true,
+          tasks: completedTasks,
+        },
+      }),
+    })) as jest.Mock
+
+    render(<FaceAnalysisResult task={makeTask()} onUnlock={jest.fn()} remainingCredits={26} />)
+
+    expect(await screen.findByText('Compare your top picks')).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /explore more styles/i })).toHaveAttribute(
+      'href',
+      '/en/style-explorer?source=face-analysis&taskId=task-1',
+    )
+    expect(screen.queryByRole('button', { name: /try top picks/i })).not.toBeInTheDocument()
+  })
+
+  it('submits only the completion mode after a recovered partial batch', async () => {
+    const partialTasks = Array.from({ length: 4 }, (_, index) => ({
+      taskId: `try-on-${index + 1}`,
+      status: index === 3 ? 'failed' as const : 'completed' as const,
+      resultImageUrl: index === 3 ? null : `https://example.com/result-${index + 1}.jpg`,
+      errorMessage: index === 3 ? 'Generation failed' : null,
+      preset: {
+        id: `preset-${index + 1}`,
+        name: `Preset ${index + 1}`,
+        style: 'round',
+      },
+    }))
+    const fetchMock = jest.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+      if (String(input).startsWith('/api/face-analysis/top-picks-try-on?')) {
+        return {
+          ok: true,
+          json: async () => ({
+            success: true,
+            data: {
+              batchId: 'batch-partial',
+              requiredCredits: 4,
+              creditsUsed: 3,
+              recovered: true,
+              tasks: partialTasks,
+            },
+          }),
+        }
+      }
+
+      return {
+        ok: true,
+        json: async () => ({ success: true, data: { batchId: 'batch-partial', tasks: partialTasks } }),
+      }
+    })
+    global.fetch = fetchMock as jest.Mock
+
+    render(<FaceAnalysisResult task={makeTask()} onUnlock={jest.fn()} remainingCredits={3} />)
+
+    fireEvent.click(await screen.findByRole('button', { name: /complete your top picks/i }))
+
+    await waitFor(() => {
+      const postCall = fetchMock.mock.calls.find(([input]) => String(input) === '/api/face-analysis/top-picks-try-on')
+      expect(postCall).toBeDefined()
+      expect(JSON.parse(String(postCall?.[1]?.body))).toMatchObject({ mode: 'complete' })
+    })
   })
 })
