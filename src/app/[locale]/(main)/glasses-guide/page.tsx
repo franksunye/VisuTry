@@ -15,6 +15,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     title: copy.metaTitle,
     description: copy.metaDescription,
     pathname: '/glasses-guide',
+    noIndex: params.locale !== 'en',
+    availableLocales: ['en'] as const,
   })
 }
 
