@@ -279,6 +279,13 @@ export default function FaceShapePage({ params }: FaceShapePageProps) {
               </Link>
             ))}
           </div>
+          {locale === 'en' && (
+            <div className="mt-5">
+              <Link href={`/${locale}/glasses-guide`} className="text-sm font-semibold text-blue-700 hover:text-blue-900">
+                Explore more glasses guides →
+              </Link>
+            </div>
+          )}
         </section>
       </main>
     </>
