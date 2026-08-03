@@ -9,7 +9,7 @@ import { CURATED_BRAND_SLUGS, isCuratedBrandSlug } from '@/config/brand-try-on-c
 import { COMBINATION_SEARCH_PAGES } from '@/config/search-combination-pages'
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.visutry.com'
+  const baseUrl = (process.env.NEXT_PUBLIC_SITE_URL || 'https://www.visutry.com').replace(/\/+$/, '')
   const programmaticEnabled = process.env.PROGRAMMATIC_SEO_ENABLED === 'true'
 
   // Helper function to generate alternate languages
@@ -30,6 +30,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { path: '/glasses-for-face-shape', priority: 0.9, changeFrequency: 'weekly' as const },
     { path: '/sunglasses-for-face-shape', priority: 0.9, changeFrequency: 'weekly' as const },
     { path: '/try-on/glasses', priority: 0.9, changeFrequency: 'weekly' as const },
+    { path: '/what-is-my-face-shape', priority: 0.95, changeFrequency: 'weekly' as const },
+    { path: '/what-glasses-suit-my-face', priority: 0.9, changeFrequency: 'weekly' as const },
+    { path: '/find-glasses-for-my-face', priority: 0.9, changeFrequency: 'weekly' as const },
+    { path: '/virtual-glasses-try-on', priority: 0.9, changeFrequency: 'weekly' as const },
+    { path: '/try-glasses-on-photo', priority: 0.9, changeFrequency: 'weekly' as const },
+    { path: '/compare-glasses-frames', priority: 0.9, changeFrequency: 'weekly' as const },
+    { path: '/ai-glasses-advisor', priority: 0.9, changeFrequency: 'weekly' as const },
     { path: '/blog', priority: 0.8, changeFrequency: 'weekly' as const },
     { path: '/pricing', priority: 0.7, changeFrequency: 'weekly' as const },
     { path: '/store', priority: 0.6, changeFrequency: 'weekly' as const },
@@ -41,13 +48,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { path: '/face-shape-measurement', priority: 0.85, changeFrequency: 'monthly' as const },
     { path: '/face-shapes', priority: 0.9, changeFrequency: 'weekly' as const },
     { path: '/hairstyles-for-face-shape', priority: 0.85, changeFrequency: 'weekly' as const },
-    { path: '/what-is-my-face-shape', priority: 0.95, changeFrequency: 'weekly' as const },
-    { path: '/what-glasses-suit-my-face', priority: 0.9, changeFrequency: 'weekly' as const },
-    { path: '/find-glasses-for-my-face', priority: 0.9, changeFrequency: 'weekly' as const },
-    { path: '/virtual-glasses-try-on', priority: 0.9, changeFrequency: 'weekly' as const },
-    { path: '/try-glasses-on-photo', priority: 0.9, changeFrequency: 'weekly' as const },
-    { path: '/compare-glasses-frames', priority: 0.9, changeFrequency: 'weekly' as const },
-    { path: '/ai-glasses-advisor', priority: 0.9, changeFrequency: 'weekly' as const },
     { path: '/glasses-guide', priority: 0.85, changeFrequency: 'weekly' as const },
   ]
   const localizedSunglassesPaths = FACE_SHAPE_SLUGS.map((slug) => `/sunglasses-for/${slug}-face`)

@@ -5,6 +5,7 @@ import {
   ProductContinuationCtas,
   type ProductContinuationAction,
 } from '@/components/growth/ProductContinuationCtas'
+import { getSearchToToolShellCopy } from '@/config/search-to-tool-shell-locales'
 
 export type SearchToToolFaqItem = {
   question: string
@@ -66,13 +67,17 @@ export function SearchToToolLanding({
   afterCtas,
   children,
   faq,
-  faqTitle = 'Common questions',
-  faqEyebrow = 'Next step',
+  faqTitle,
+  faqEyebrow,
   ctaLabels,
   includeCtas = ['detector', 'try_on', 'compare'],
   bottomCtas = ['detector'],
   principles,
 }: SearchToToolLandingProps) {
+  const shellCopy = getSearchToToolShellCopy(locale)
+  const resolvedFaqTitle = faqTitle ?? shellCopy.commonQuestions
+  const resolvedFaqEyebrow = faqEyebrow ?? shellCopy.nextStep
+
   return (
     <>
       {schemas.map((schema, index) => (
@@ -149,9 +154,9 @@ export function SearchToToolLanding({
             <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
               <div>
                 <p className="mb-2 text-sm font-semibold uppercase tracking-normal text-blue-600">
-                  {faqEyebrow}
+                  {resolvedFaqEyebrow}
                 </p>
-                <h2 className="text-2xl font-bold text-gray-950">{faqTitle}</h2>
+                <h2 className="text-2xl font-bold text-gray-950">{resolvedFaqTitle}</h2>
               </div>
               {bottomCtas.length > 0 && (
                 <ProductContinuationCtas
