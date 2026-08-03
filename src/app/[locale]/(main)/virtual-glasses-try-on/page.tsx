@@ -75,6 +75,7 @@ export default function VirtualGlassesTryOnPage({ params }: Props) {
         { title: 'Preview and decide', text: 'Check the look, then compare alternatives if needed.', icon: Camera },
       ]}
       includeCtas={['try_on', 'compare', 'detector']}
+      bottomCtas={['try_on']}
       ctaLabels={{
         tryOn: 'Open virtual try-on',
         compare: 'Compare frames',
