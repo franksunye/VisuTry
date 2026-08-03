@@ -40,6 +40,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { path: '/face-shape-measurement', priority: 0.85, changeFrequency: 'monthly' as const },
     { path: '/face-shapes', priority: 0.9, changeFrequency: 'weekly' as const },
     { path: '/hairstyles-for-face-shape', priority: 0.85, changeFrequency: 'weekly' as const },
+    { path: '/what-glasses-suit-my-face', priority: 0.9, changeFrequency: 'weekly' as const },
+    { path: '/virtual-glasses-try-on', priority: 0.9, changeFrequency: 'weekly' as const },
+    { path: '/compare-glasses-frames', priority: 0.9, changeFrequency: 'weekly' as const },
   ]
   const localizedSunglassesPaths = FACE_SHAPE_SLUGS.map((slug) => `/sunglasses-for/${slug}-face`)
   const localizedOrdinaryGlassesPaths = FACE_SHAPE_SLUGS.map((slug) => `/style/${slug}-face`)

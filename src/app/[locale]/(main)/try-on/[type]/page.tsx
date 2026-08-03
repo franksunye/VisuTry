@@ -6,6 +6,7 @@ import { TryOnType, getTryOnConfig, urlToTryOnType, getAllTryOnTypes, tryOnTypeT
 import Link from "next/link"
 import { ArrowRight, CheckCircle2, CreditCard, Image, Shield, Upload } from "lucide-react"
 import { ModelTryOnSlides } from "@/components/marketing/ModelTryOnSlides"
+import { GrowthFunnelLink } from "@/components/analytics/GrowthFunnelLink"
 import { getTranslations, setRequestLocale } from "next-intl/server"
 
 interface TryOnPageProps {
@@ -263,7 +264,7 @@ async function PublicTryOnLanding({
               </div>
             ))}
           </div>
-          <div className="flex flex-col gap-3 sm:flex-row">
+          <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
             <Link
               href={startHref}
               className="inline-flex items-center justify-center rounded-lg bg-blue-600 px-5 py-3 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-blue-700"
@@ -271,6 +272,20 @@ async function PublicTryOnLanding({
               {t('startButton')}
               <ArrowRight className="ms-2 h-4 w-4" />
             </Link>
+            {isGlasses && (
+              <GrowthFunnelLink
+                href={`/${locale}/try-on/glasses/compare`}
+                sourcePage={`/try-on/${type}`}
+                destination="frame-compare"
+                ctaLocation="try-on-landing"
+                queryCluster="virtual-glasses-try-on"
+                contentCluster="search-tool"
+                productPath="frame_compare"
+                className="inline-flex items-center justify-center rounded-lg border border-gray-300 px-5 py-3 text-sm font-semibold text-gray-900 transition-colors hover:bg-gray-50"
+              >
+                Compare frames
+              </GrowthFunnelLink>
+            )}
             <Link
               href={`/${locale}/pricing`}
               className="inline-flex items-center justify-center rounded-lg border border-gray-300 px-5 py-3 text-sm font-semibold text-gray-900 transition-colors hover:bg-gray-50"

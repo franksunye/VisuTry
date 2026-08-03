@@ -14,7 +14,7 @@ export const dynamic = 'force-static'
 
 const coverImage = '/blog-covers/face-shape-guide.jpg'
 const publishedAt = '2026-06-08T10:00:00Z'
-const modifiedAt = '2026-07-27T04:00:00Z'
+const modifiedAt = '2026-08-03T06:00:00Z'
 const pathname = '/blog/ai-face-analysis-for-glasses-guide'
 
 type PageProps = { params: { locale: string } }

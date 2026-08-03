@@ -11,8 +11,8 @@ import { generateBreadcrumbSchema, generateCollectionPageSchema } from '@/lib/pr
 export const dynamic = 'force-static'
 
 const pagePath = '/blog/rayban-glasses-virtual-tryon-guide'
-const title = 'Ray-Ban Virtual Try-On Guide: Compare Iconic Frame Styles'
-const description = 'Compare Ray-Ban Wayfarer, Aviator, Clubmaster, round, and rectangular style directions on your photo, then confirm the exact model and fit before buying.'
+const title = 'Ray-Ban Virtual Try On: Compare Iconic Styles on Your Photo'
+const description = 'Ray-Ban virtual try on from your photo. Compare Wayfarer, Aviator, Clubmaster, and round directions, then confirm the exact model and fit before you buy.'
 const coverImage = '/Ray-Ban RB5154 Clubmaster - Browline Black Frame Eyeglasses.jpg'
 
 const styles = [
@@ -50,7 +50,7 @@ export default function RayBanGuidePage({ params }: { params: { locale: string }
       title,
       description,
       publishedAt: '2025-10-16T10:00:00Z',
-      modifiedAt: '2026-07-27T10:00:00Z',
+      modifiedAt: '2026-08-03T06:00:00Z',
       author: 'VisuTry Team',
       image: coverImage,
     }),
@@ -75,7 +75,7 @@ export default function RayBanGuidePage({ params }: { params: { locale: string }
 
         <section className="grid gap-8 lg:grid-cols-[1.05fr_0.95fr] lg:items-center">
           <div>
-            <p className="mb-3 text-sm font-semibold uppercase tracking-wide text-blue-700">Updated July 27, 2026 · 7 min read</p>
+            <p className="mb-3 text-sm font-semibold uppercase tracking-wide text-blue-700">Updated August 3, 2026 · 7 min read</p>
             <h1 className="text-3xl font-bold leading-tight text-gray-950 md:text-5xl">{title}</h1>
             <p className="mt-5 text-lg leading-8 text-gray-600">{description}</p>
             <p className="mt-4 leading-7 text-gray-700">Start by comparing clearly different silhouettes. Once one direction feels right, use it to narrow the official catalog by shape and measurements.</p>
@@ -85,8 +85,10 @@ export default function RayBanGuidePage({ params }: { params: { locale: string }
                 sourcePage={pagePath}
                 destination="glasses-try-on"
                 ctaLocation="hero-primary"
-                queryCluster="brand-virtual-try-on:ray-ban"
-                className="inline-flex items-center justify-center gap-2 rounded-lg bg-blue-600 px-5 py-3 font-semibold text-white hover:bg-blue-700"
+                  queryCluster="brand-virtual-try-on:ray-ban"
+                  contentCluster="search-tool"
+                  productPath="virtual_try_on"
+                  className="inline-flex items-center justify-center gap-2 rounded-lg bg-blue-600 px-5 py-3 font-semibold text-white hover:bg-blue-700"
               >Try glasses on your photo <ArrowRight className="h-4 w-4" /></GrowthFunnelLink>
               <GrowthFunnelLink
                 href={`/${locale}/face-shape-detector`}
@@ -94,6 +96,8 @@ export default function RayBanGuidePage({ params }: { params: { locale: string }
                 destination="face-shape-detector"
                 ctaLocation="hero-secondary"
                 queryCluster="brand-virtual-try-on:ray-ban"
+                contentCluster="search-tool"
+                productPath="face_shape_detector"
                 className="inline-flex items-center justify-center gap-2 rounded-lg border border-gray-300 px-5 py-3 font-semibold text-gray-700 hover:bg-gray-50"
               >Find my face shape <ScanFace className="h-4 w-4" /></GrowthFunnelLink>
             </div>

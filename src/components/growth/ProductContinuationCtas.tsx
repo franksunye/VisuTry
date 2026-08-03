@@ -1,7 +1,9 @@
 'use client'
 
-import { ArrowRight, Glasses, Grid2X2, ScanFace } from 'lucide-react'
+import { ArrowRight, Glasses, Grid2X2, ScanFace, Sparkles } from 'lucide-react'
 import { GrowthFunnelLink } from '@/components/analytics/GrowthFunnelLink'
+
+export type ProductContinuationAction = 'detector' | 'try_on' | 'compare' | 'advisor'
 
 export type ProductContinuationCtasProps = {
   locale: string
@@ -15,8 +17,8 @@ export type ProductContinuationCtasProps = {
     compare?: string
     advisor?: string
   }
-  /** Which product paths to expose. Defaults to the full GTM continuation set. */
-  include?: Array<'detector' | 'try_on' | 'compare' | 'advisor'>
+  /** Which product paths to expose, in display order. First item is the primary CTA. */
+  include?: ProductContinuationAction[]
   layout?: 'hero' | 'stack' | 'compact'
   className?: string
 }
@@ -26,6 +28,48 @@ const DEFAULT_LABELS = {
   tryOn: 'Open virtual try-on',
   compare: 'Compare frames',
   advisor: 'Get glasses advice',
+}
+
+const ACTION_CONFIG: Record<
+  ProductContinuationAction,
+  {
+    destination: string
+    productPath: string
+    href: (locale: string, sourcePage: string) => string
+    icon: typeof ScanFace
+    labelKey: keyof typeof DEFAULT_LABELS
+  }
+> = {
+  detector: {
+    destination: 'face-shape-detector',
+    productPath: 'face_shape_detector',
+    href: (locale) => `/${locale}/face-shape-detector`,
+    icon: ScanFace,
+    labelKey: 'detector',
+  },
+  try_on: {
+    destination: 'virtual-try-on',
+    productPath: 'virtual_try_on',
+    href: (locale, sourcePage) =>
+      `/${locale}/try-on/glasses?source=${encodeURIComponent(sourcePage)}`,
+    icon: Glasses,
+    labelKey: 'tryOn',
+  },
+  compare: {
+    destination: 'frame-compare',
+    productPath: 'frame_compare',
+    href: (locale, sourcePage) =>
+      `/${locale}/try-on/glasses/compare?source=${encodeURIComponent(sourcePage)}`,
+    icon: Grid2X2,
+    labelKey: 'compare',
+  },
+  advisor: {
+    destination: 'glasses-advisor',
+    productPath: 'glasses_advisor',
+    href: (locale) => `/${locale}/face-analysis`,
+    icon: Sparkles,
+    labelKey: 'advisor',
+  },
 }
 
 /**
@@ -65,69 +109,27 @@ export function ProductContinuationCtas({
 
   return (
     <div className={containerClass}>
-      {include.includes('detector') && (
-        <GrowthFunnelLink
-          href={`/${locale}/face-shape-detector`}
-          sourcePage={sourcePage}
-          destination="face-shape-detector"
-          ctaLocation={`${ctaLocation}-detector`}
-          queryCluster={queryCluster}
-          contentCluster={contentCluster}
-          productPath="face_shape_detector"
-          className={primaryClass}
-        >
-          <ScanFace className="h-4 w-4" />
-          {copy.detector}
-          <ArrowRight className="h-4 w-4" />
-        </GrowthFunnelLink>
-      )}
-      {include.includes('try_on') && (
-        <GrowthFunnelLink
-          href={`/${locale}/try-on/glasses?source=${encodeURIComponent(sourcePage)}`}
-          sourcePage={sourcePage}
-          destination="virtual-try-on"
-          ctaLocation={`${ctaLocation}-try-on`}
-          queryCluster={queryCluster}
-          contentCluster={contentCluster}
-          productPath="virtual_try_on"
-          className={include.includes('detector') ? linkClass : primaryClass}
-        >
-          <Glasses className="h-4 w-4" />
-          {copy.tryOn}
-          <ArrowRight className="h-4 w-4" />
-        </GrowthFunnelLink>
-      )}
-      {include.includes('compare') && (
-        <GrowthFunnelLink
-          href={`/${locale}/try-on/glasses/compare?source=${encodeURIComponent(sourcePage)}`}
-          sourcePage={sourcePage}
-          destination="frame-compare"
-          ctaLocation={`${ctaLocation}-compare`}
-          queryCluster={queryCluster}
-          contentCluster={contentCluster}
-          productPath="frame_compare"
-          className={linkClass}
-        >
-          <Grid2X2 className="h-4 w-4" />
-          {copy.compare}
-          <ArrowRight className="h-4 w-4" />
-        </GrowthFunnelLink>
-      )}
-      {include.includes('advisor') && (
-        <GrowthFunnelLink
-          href={`/${locale}/face-analysis`}
-          sourcePage={sourcePage}
-          destination="glasses-advisor"
-          ctaLocation={`${ctaLocation}-advisor`}
-          queryCluster={queryCluster}
-          contentCluster={contentCluster}
-          productPath="glasses_advisor"
-          className={linkClass}
-        >
-          {copy.advisor}
-          <ArrowRight className="h-4 w-4" />
-        </GrowthFunnelLink>
-      )}
+      {include.map((action, index) => {
+        const config = ACTION_CONFIG[action]
+        const Icon = config.icon
+        return (
+          <GrowthFunnelLink
+            key={action}
+            href={config.href(locale, sourcePage)}
+            sourcePage={sourcePage}
+            destination={config.destination}
+            ctaLocation={`${ctaLocation}-${action.replace('_', '-')}`}
+            queryCluster={queryCluster}
+            contentCluster={contentCluster}
+            productPath={config.productPath}
+            className={index === 0 ? primaryClass : linkClass}
+          >
+            <Icon className="h-4 w-4" />
+            {copy[config.labelKey]}
+            <ArrowRight className="h-4 w-4" />
+          </GrowthFunnelLink>
+        )
+      })}
     </div>
   )
 }
