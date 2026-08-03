@@ -74,6 +74,7 @@ export default function CompareGlassesFramesPage({ params }: Props) {
         { title: 'Review side by side', text: 'Decide with a cleaner board instead of memory alone.', icon: Grid2X2 },
       ]}
       includeCtas={['compare', 'try_on', 'detector']}
+      bottomCtas={['compare']}
       ctaLabels={{
         compare: 'Open frame compare',
         tryOn: 'Try one pair first',
