@@ -5,21 +5,21 @@ import { generateStructuredData } from '@/lib/seo'
  * Page-specific SoftwareApplication, Article, FAQ, and HowTo schemas should live on the page.
  */
 export function HomeStructuredData() {
-  // Organization Schema
   const organizationSchema = generateStructuredData('organization', {})
 
-  // WebSite Schema
-  const websiteSchema = generateStructuredData('website', {})
+  // VisuTry has no public site-search route. Override the generator default so
+  // we do not advertise a SearchAction that resolves to a non-functional URL.
+  const websiteSchema = generateStructuredData('website', {
+    potentialAction: undefined,
+  })
 
   return (
     <>
-      {/* Organization Schema */}
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }}
       />
 
-      {/* WebSite Schema */}
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteSchema) }}
