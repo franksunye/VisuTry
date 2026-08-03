@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import { DashboardStats } from '@/components/dashboard/DashboardStats'
 import { DashboardStatsSkeleton } from '@/components/dashboard/DashboardStatsSkeleton'
 import { RecentTryOnsSkeleton } from '@/components/dashboard/RecentTryOnsSkeleton'
+import { RecentFaceAnalyses } from '@/components/dashboard/RecentFaceAnalyses'
 import { RecentFaceAnalysesSkeleton } from '@/components/dashboard/RecentFaceAnalysesSkeleton'
 import { SubscriptionCard } from '@/components/dashboard/SubscriptionCard'
 import { PaymentSuccessHandler } from '@/components/dashboard/PaymentSuccessHandler'
@@ -14,6 +15,7 @@ import { Glasses, Plus } from 'lucide-react'
 import Link from 'next/link'
 import { localizedPath } from '@/lib/localized-path'
 import { useQuota } from '@/hooks/useQuota'
+import type { FaceAnalysisTaskResponse } from '@/types/face-analysis'
 
 interface RecentTryOn {
   id: string
@@ -40,6 +42,7 @@ export function DashboardPageClient({ locale }: DashboardPageClientProps) {
   const quota = useQuota()
 
   const [recentTryOns, setRecentTryOns] = useState<RecentTryOn[] | null>(null)
+  const [recentFaceAnalyses, setRecentFaceAnalyses] = useState<FaceAnalysisTaskResponse[] | null>(null)
   const [userBalance, setUserBalance] = useState<{
     creditsPurchased: number
     creditsUsed: number
@@ -68,6 +71,25 @@ export function DashboardPageClient({ locale }: DashboardPageClientProps) {
         }
       })
       .catch(() => setRecentTryOns([]))
+  }, [status])
+
+  // Fetch recent face analyses
+  useEffect(() => {
+    if (status !== 'authenticated') return
+    fetch('/api/face-analysis/history?page=1&limit=6')
+      .then(async (res) => {
+        if (!res.ok) {
+          setRecentFaceAnalyses([])
+          return
+        }
+        const json = await res.json()
+        if (json.success) {
+          setRecentFaceAnalyses(json.data.tasks)
+        } else {
+          setRecentFaceAnalyses([])
+        }
+      })
+      .catch(() => setRecentFaceAnalyses([]))
   }, [status])
 
   // Fetch user balance
@@ -168,8 +190,12 @@ export function DashboardPageClient({ locale }: DashboardPageClientProps) {
             <RecentTryOnsSkeleton />
           )}
 
-          {/* Recent Face Analyses - skeleton for now, loads on client */}
-          <RecentFaceAnalysesSkeleton />
+          {/* Recent Face Analyses */}
+          {recentFaceAnalyses !== null ? (
+            <RecentFaceAnalyses locale={locale} analyses={recentFaceAnalyses} />
+          ) : (
+            <RecentFaceAnalysesSkeleton />
+          )}
         </div>
 
         {/* Sidebar */}
