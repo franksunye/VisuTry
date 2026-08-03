@@ -7,7 +7,6 @@ import {
   XCircle,
   Loader2,
   Download,
-  Share2,
   Trash2,
   ExternalLink,
   ChevronLeft,
@@ -52,8 +51,11 @@ export function TryOnHistoryList({
   const locale = params.locale as string | undefined
   const [deletingId, setDeletingId] = useState<string | null>(null)
 
+  // History API returns lowercase statuses; Prisma used uppercase COMPLETED.
+  const normalizeStatus = (status: string) => status.toLowerCase()
+
   const getStatusIcon = (status: string) => {
-    switch (status.toLowerCase()) {
+    switch (normalizeStatus(status)) {
       case "completed":
         return <CheckCircle className="w-5 h-5 text-green-500" />
       case "processing":
@@ -66,7 +68,7 @@ export function TryOnHistoryList({
   }
 
   const getStatusText = (status: string) => {
-    switch (status.toLowerCase()) {
+    switch (normalizeStatus(status)) {
       case "completed":
         return "Completed"
       case "processing":
@@ -79,7 +81,7 @@ export function TryOnHistoryList({
   }
 
   const getStatusColor = (status: string) => {
-    switch (status.toLowerCase()) {
+    switch (normalizeStatus(status)) {
       case "completed":
         return "text-green-600 bg-green-50 border-green-200"
       case "processing":
@@ -161,22 +163,36 @@ export function TryOnHistoryList({
     <div className="space-y-6">
       {/* 任务网格 */}
       <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {tasks.map((task, index) => (
+        {tasks.map((task, index) => {
+          const isCompleted = normalizeStatus(task.status) === "completed"
+          const isFailed = normalizeStatus(task.status) === "failed"
+          const canOpenResult = isCompleted && !!task.resultImageUrl
+
+          return (
           <div key={task.id} className="bg-white rounded-lg shadow-sm border overflow-hidden hover:shadow-md transition-shadow">
             {/* 图片预览 - Optimized with Next.js Image */}
             <div className="aspect-square bg-gray-100 relative">
               <TryOnThumbnail
                 src={task.resultImageUrl || task.userImageUrl}
-                alt={task.status === "COMPLETED" ? "Try-on result" : "User photo"}
+                alt={isCompleted ? "Try-on result" : "User photo"}
                 index={index}
                 className={cn(
                   "object-cover",
-                  task.status !== "COMPLETED" && "opacity-50"
+                  !isCompleted && "opacity-50"
                 )}
               />
+
+              {canOpenResult && (
+                <Link
+                  href={`/share/${task.id}`}
+                  className="absolute inset-0 z-[1]"
+                  title="View result"
+                  aria-label="View try-on result"
+                />
+              )}
               
-              {/* 状态标签和类型标签 */}
-              <div className="absolute top-3 left-3 flex flex-col gap-1">
+              {/* 状态徽章和类型标签 */}
+              <div className="absolute top-3 left-3 z-10 flex flex-col gap-1 pointer-events-none">
                 <span className={cn(
                   "inline-flex items-center px-2 py-1 rounded-full text-xs font-medium border",
                   getStatusColor(task.status)
@@ -192,8 +208,8 @@ export function TryOnHistoryList({
               </div>
 
               {/* 操作按钮 */}
-              <div className="absolute top-3 right-3 flex space-x-1">
-                {task.status === "COMPLETED" && task.resultImageUrl && (
+              <div className="absolute top-3 right-3 z-10 flex space-x-1">
+                {canOpenResult && (
                   <>
                     <button
                       onClick={() => handleDownload(task.resultImageUrl!, task.id)}
@@ -238,14 +254,15 @@ export function TryOnHistoryList({
                 </span>
               </div>
               
-              {task.status === "FAILED" && task.errorMessage && (
+              {isFailed && task.errorMessage && (
                 <p className="text-xs text-red-600 mt-2 line-clamp-2">
                   {task.errorMessage}
                 </p>
               )}
             </div>
           </div>
-        ))}
+          )
+        })}
       </div>
 
       {/* 分页 */}
