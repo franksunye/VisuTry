@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import { Camera, Glasses, Grid2X2 } from 'lucide-react'
 import { SearchToToolLanding } from '@/components/growth/SearchToToolLanding'
-import { getSearchToToolPhaseACopy } from '@/config/search-to-tool-phase-a-locales'
+import { getSearchToToolRouteCopy } from '@/config/search-to-tool-route-copy'
 import type { Locale } from '@/i18n'
 import { generateI18nSEO, generateStructuredData } from '@/lib/seo'
 
@@ -11,7 +11,7 @@ const routeId = 'try-glasses-on-photo' as const
 type Props = { params: { locale: string } }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const copy = getSearchToToolPhaseACopy(params.locale, routeId)
+  const copy = getSearchToToolRouteCopy(params.locale, routeId)
   return generateI18nSEO({
     locale: params.locale as Locale,
     title: copy.metaTitle,
@@ -22,7 +22,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default function TryGlassesOnPhotoPage({ params }: Props) {
   const locale = params.locale
-  const copy = getSearchToToolPhaseACopy(locale, routeId)
+  const copy = getSearchToToolRouteCopy(locale, routeId)
   const sourcePage = pathname
   const queryCluster = 'try-glasses-on-photo'
 
