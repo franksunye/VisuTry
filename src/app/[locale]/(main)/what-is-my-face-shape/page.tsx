@@ -3,7 +3,8 @@ import { Camera, ScanFace, Sparkles } from 'lucide-react'
 import { SearchToToolLanding } from '@/components/growth/SearchToToolLanding'
 import { getSearchToToolLandingCopy } from '@/config/search-to-tool-locales'
 import type { Locale } from '@/i18n'
-import { generateI18nSEO, generateStructuredData } from '@/lib/seo'
+import { generateStructuredData } from '@/lib/seo'
+import { generateSearchToToolSEO } from '@/lib/search-to-tool-seo'
 
 const pathname = '/what-is-my-face-shape'
 const routeId = 'what-is-my-face-shape' as const
@@ -12,7 +13,7 @@ type Props = { params: { locale: string } }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const copy = getSearchToToolLandingCopy(params.locale, routeId)
-  return generateI18nSEO({
+  return generateSearchToToolSEO({
     locale: params.locale as Locale,
     title: copy.metaTitle,
     description: copy.metaDescription,
