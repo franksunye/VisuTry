@@ -24,12 +24,12 @@ export type SearchToToolLandingProps = {
   intro: string
   schemas?: object[]
   visual?: ReactNode
-  steps?: SearchToToolStep[]
+  steps?: readonly SearchToToolStep[]
   /** Content rendered under the hero CTAs (related links, notes). */
   afterCtas?: ReactNode
   /** Middle-of-page content unique to the query cluster. */
   children?: ReactNode
-  faq?: SearchToToolFaqItem[]
+  faq?: readonly SearchToToolFaqItem[]
   faqTitle?: string
   faqEyebrow?: string
   ctaLabels?: {
@@ -39,7 +39,7 @@ export type SearchToToolLandingProps = {
   }
   /** Defaults to Detector + Try-On + Compare. */
   includeCtas?: Array<'detector' | 'try_on' | 'compare' | 'advisor'>
-  principles?: string[]
+  principles?: readonly string[]
 }
 
 /**
