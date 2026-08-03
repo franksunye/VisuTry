@@ -1,5 +1,7 @@
 'use client'
 
+import Link from 'next/link'
+import { useParams } from 'next/navigation'
 import { ExternalLink } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import { buildGoogleFrameSearchUrl, getFrameSearchStyles } from '@/lib/face-search'
@@ -16,6 +18,8 @@ export function FrameSearchSuggestions({
   catalogStyles,
 }: FrameSearchSuggestionsProps) {
   const t = useTranslations('faceAnalysis.frameSearch')
+  const params = useParams()
+  const locale = (params.locale as string) || 'en'
   const styles = getFrameSearchStyles(catalogStyles, faceShape)
 
   if (styles.length === 0) return null
@@ -44,6 +48,21 @@ export function FrameSearchSuggestions({
         ))}
       </div>
       <p className="text-xs text-gray-500 mt-3">{t('opensGoogle')}</p>
+
+      <div className="mt-4 border-t border-gray-100 pt-3 text-sm">
+        <span className="text-gray-500">Already have a specific frame in mind? </span>
+        <Link
+          href={`/${locale}/try-on/glasses?source=face-analysis`}
+          onClick={() => analytics.trackCustomEvent('face_analysis_direct_frame_try_on_click', {
+            source: 'frame_search_suggestions',
+            face_shape: faceShape,
+            product_path: 'virtual_try_on',
+          })}
+          className="font-semibold text-blue-700 hover:text-blue-900"
+        >
+          Try that frame instead →
+        </Link>
+      </div>
     </div>
   )
 }
