@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { ArrowRight } from 'lucide-react'
-import { COMBINATION_SEARCH_PAGES } from '@/config/search-combination-pages'
+import { getLocalizedCombinationSearchPages } from '@/config/search-combination-locales'
 import { getGlassesGuideHubCopy } from '@/config/glasses-guide-hub-locales'
 import type { Locale } from '@/i18n'
 import { generateStructuredData } from '@/lib/seo'
@@ -16,14 +16,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     title: copy.metaTitle,
     description: copy.metaDescription,
     pathname: '/glasses-guide',
-    noIndex: params.locale !== 'en',
-    availableLocales: ['en'] as const,
   })
 }
 
 export default function GlassesGuideHub({ params }: Props) {
   const locale = params.locale
   const copy = getGlassesGuideHubCopy(locale)
+  const localizedPages = getLocalizedCombinationSearchPages(locale)
   const groups = [
     { type: 'face-frame' as const, ...copy.groups.faceFrame },
     { type: 'gender-style' as const, ...copy.groups.genderStyle },
@@ -52,7 +51,7 @@ export default function GlassesGuideHub({ params }: Props) {
         </section>
 
         {groups.map((group) => {
-          const pages = COMBINATION_SEARCH_PAGES.filter((page) => page.type === group.type)
+          const pages = localizedPages.filter((page) => page.type === group.type)
           return (
             <section key={group.type} className="mt-12">
               <div className="mb-5 max-w-3xl">
@@ -61,27 +60,21 @@ export default function GlassesGuideHub({ params }: Props) {
                 <p className="text-sm leading-6 text-gray-600">{group.description}</p>
               </div>
 
-              {locale === 'en' ? (
-                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                  {pages.map((page) => (
-                    <Link
-                      key={page.slug}
-                      href={`/${locale}/glasses-guide/${page.slug}`}
-                      className="group rounded-lg border border-gray-200 bg-white p-5 transition hover:border-blue-200 hover:shadow-sm"
-                    >
-                      <h3 className="mb-2 font-semibold text-gray-950 group-hover:text-blue-700">{page.title}</h3>
-                      <p className="text-sm leading-6 text-gray-600">{page.metaDescription}</p>
-                      <span className="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-blue-700">
-                        {copy.openGuide} <ArrowRight className="h-4 w-4" />
-                      </span>
-                    </Link>
-                  ))}
-                </div>
-              ) : (
-                <p className="rounded-lg border border-gray-200 bg-gray-50 p-5 text-sm leading-6 text-gray-600">
-                  {copy.englishGuidesNote}
-                </p>
-              )}
+              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                {pages.map((page) => (
+                  <Link
+                    key={page.slug}
+                    href={`/${locale}/glasses-guide/${page.slug}`}
+                    className="group rounded-lg border border-gray-200 bg-white p-5 transition hover:border-blue-200 hover:shadow-sm"
+                  >
+                    <h3 className="mb-2 font-semibold text-gray-950 group-hover:text-blue-700">{page.title}</h3>
+                    <p className="text-sm leading-6 text-gray-600">{page.metaDescription}</p>
+                    <span className="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-blue-700">
+                      {copy.openGuide} <ArrowRight className="h-4 w-4" />
+                    </span>
+                  </Link>
+                ))}
+              </div>
             </section>
           )
         })}
