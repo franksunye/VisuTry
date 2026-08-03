@@ -106,7 +106,8 @@
       "button": "Mein Gesicht analysieren",
       "again": "Erneut analysieren",
       "analyzing": "Analysiere...",
-      "creditNote": "{count} Credit wird verwendet"
+      "creditNote": "{count} Credit wird verwendet",
+      "includedCreditNote": "Verwendet dein enthaltenes Analyse-Guthaben"
     },
     "loading": {
       "message": "KI analysiert Ihre Gesichtsform und Merkmale..."
@@ -203,7 +204,7 @@
         "compareDescription": "Integrierte Presets wählen und mehrere Fassungsresultate in einem Board prüfen."
       },
       "ctaPrimary": "Gesichtsform kostenlos bestimmen",
-      "ctaSecondary": "Brille virtuell anprobieren",
+      "ctaSecondary": "Ich habe schon eine Fassung",
       "featureCards": {
         "faceTitle": "Brillenberater",
         "faceDescription": "A professional face-shape report with Fassung style recommendations.",

@@ -106,7 +106,8 @@
       "button": "顔を分析する",
       "again": "再分析する",
       "analyzing": "分析中...",
-      "creditNote": "{count}クレジットを使用します"
+      "creditNote": "{count}クレジットを使用します",
+      "includedCreditNote": "付与された分析クレジットを使用します"
     },
     "loading": {
       "message": "AIが顔の形と特徴を分析しています..."
@@ -203,7 +204,7 @@
         "compareDescription": "内蔵プリセットを選び、複数フレーム結果を1つのボードで確認できます。"
       },
       "ctaPrimary": "無料で顔型を診断",
-      "ctaSecondary": "メガネを試着",
+      "ctaSecondary": "試したいフレームがある",
       "featureCards": {
         "faceTitle": "メガネアドバイザー",
         "faceDescription": "顔型レポートとフレーム提案をまとめて確認できます。",

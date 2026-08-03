@@ -93,11 +93,11 @@ export function Header({ transparent = false }: HeaderProps) {
               <div className="hidden sm:flex items-center px-4 py-2 w-24" aria-hidden="true" />
             ) : isAuthenticated ? (
               <Link
-                href={`/${locale}/try-on`}
+                href={`/${locale}/face-analysis`}
                 className="hidden items-center whitespace-nowrap rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700 sm:flex"
               >
                 <Sparkles className="w-4 h-4 me-2" />
-                {t('tryOnShort')}
+                {t('faceAnalysis')}
               </Link>
             ) : !isHomePage ? (
               <Link
@@ -169,12 +169,12 @@ export function Header({ transparent = false }: HeaderProps) {
               <div className="pt-3">
                 {sessionLoading ? null : isAuthenticated ? (
                   <Link
-                    href={`/${locale}/try-on`}
+                    href={`/${locale}/face-analysis`}
                     onClick={() => setMobileMenuOpen(false)}
                     className="flex items-center justify-center w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium text-sm"
                   >
                     <Sparkles className="w-4 h-4 me-2" />
-                    {tCommon('startTryOn')}
+                    {t('faceAnalysis')}
                   </Link>
                 ) : !isHomePage ? (
                   <Link

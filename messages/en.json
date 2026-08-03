@@ -78,7 +78,8 @@
       "button": "Analyze My Face",
       "again": "Analyze Again",
       "analyzing": "Analyzing...",
-      "creditNote": "{count} credit will be used"
+      "creditNote": "{count} credit will be used",
+      "includedCreditNote": "Uses your included analysis credit"
     },
     "loading": {
       "message": "AI is analyzing your face shape and features..."
@@ -113,12 +114,12 @@
       "styleGuide": "Personal Style Guide"
     },
     "unlock": {
-      "title": "Unlock Full AI Report",
-      "feature1": "Detailed frame recommendations and style guide",
-      "feature2": "{count} try-on credits included",
-      "feature3": "One-time unlock — report stays unlocked",
+      "title": "Complete Your Personalized Frame Decision",
+      "feature1": "Unlock recommended and avoid-first frames with clear reasons",
+      "feature2": "{count} credits to try and compare your shortlist",
+      "feature3": "One-time purchase — your report stays unlocked",
       "price": "${price} one-time",
-      "button": "Unlock Now",
+      "button": "Unlock My Recommendations",
       "redirecting": "Redirecting..."
     },
     "frameSearch": {
@@ -175,7 +176,7 @@
         "compareDescription": "Compare several looks side by side before deciding."
       },
       "ctaPrimary": "Check my face shape — free",
-      "ctaSecondary": "Try on glasses",
+      "ctaSecondary": "I already have a frame",
       "featureCards": {
         "faceTitle": "Face Analysis",
         "faceDescription": "A professional face-shape report with frame style recommendations.",
@@ -216,11 +217,11 @@
       }
     },
     "pricing": {
-      "metaTitle": "Credits Pack Pricing for AI Glasses Try-On | VisuTry",
-      "metaDescription": "Continue AI glasses try-on with 30 credits for USD 2.99. Upload your own glasses product images or screenshots, no subscription required.",
-      "eyebrow": "Simple credits for Advisor, Try-On, and Compare",
-      "title": "Start with 1 free credit, then continue with {count} AI credits for USD 2.99",
-      "description": "The Face Shape Detector is always free. Use credits for the AI Glasses Advisor, custom virtual try-on, and frame comparison.",
+      "metaTitle": "Eyewear Decision Credits for Advisor, Try-On & Compare | VisuTry",
+      "metaDescription": "Continue from personalized recommendations into try-on and side-by-side comparison with non-expiring credits for USD 2.99.",
+      "eyebrow": "Credits to complete your eyewear decision",
+      "title": "Start with 1 included credit, then continue with {count} decision credits for USD 2.99",
+      "description": "The Face Shape Detector is always free. Use your included credit for the Glasses Advisor, then use credits to try and compare your recommended frames.",
       "freeDetector": {
         "title": "Face Shape Detector is free",
         "description": "No account, credits, or server photo upload. Run the first step privately in your browser.",
@@ -237,7 +238,7 @@
       },
       "faq": {
         "q1Title": "Is the Credits Pack a subscription?",
-        "q1Answer": "No. The Credits Pack is a one-time USD 2.99 purchase for {count} AI try-ons. It is designed for occasional users who want to compare glasses without starting a monthly plan.",
+        "q1Answer": "No. The Credits Pack is a one-time USD 2.99 purchase for {count} decision credits. Use them to turn personalized recommendations into a try-on shortlist and side-by-side comparison.",
         "q2Title": "Can I use credits with my own glasses screenshots?",
         "q2Answer": "Yes. Credits work with the glasses try-on flow where you upload your face photo and a glasses product image, store image, or screenshot.",
         "q3Title": "How many credits does Frame Compare use?",
@@ -245,7 +246,7 @@
         "q4Title": "Do credits expire?",
         "q4Answer": "Credits never expire after purchase. You can use them anytime at your convenience.",
         "q5Title": "What can I do with one free credit?",
-        "q5Answer": "You can run one Glasses Advisor report, one custom virtual try-on, or one frame inside Frame Compare. The Face Shape Detector remains free and does not use this credit.",
+        "q5Answer": "Your included credit can run one Glasses Advisor report, one custom virtual try-on, or one frame inside Frame Compare. For the clearest decision path, we recommend using it for the Advisor first. The Face Shape Detector remains free.",
         "q6Title": "What payment methods are supported?",
         "q6Answer": "We support all major credit and debit cards, including Visa, Mastercard, American Express, and more.",
         "q7Title": "How do I contact support?",

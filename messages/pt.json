@@ -106,7 +106,8 @@
       "button": "Analisar meu rosto",
       "again": "Analisar novamente",
       "analyzing": "Analisando...",
-      "creditNote": "{count} crédito será usado"
+      "creditNote": "{count} crédito será usado",
+      "includedCreditNote": "Usa seu crédito de análise incluído"
     },
     "loading": {
       "message": "A IA está analisando o formato e os traços do seu rosto..."
@@ -203,7 +204,7 @@
         "compareDescription": "Escolha presets integrados e revise vários resultados no mesmo painel."
       },
       "ctaPrimary": "Detectar formato gratuitamente",
-      "ctaSecondary": "Provar óculos",
+      "ctaSecondary": "Já tenho uma armação",
       "featureCards": {
         "faceTitle": "Consultor de óculos",
         "faceDescription": "A professional face-shape report with armação style recommendations.",

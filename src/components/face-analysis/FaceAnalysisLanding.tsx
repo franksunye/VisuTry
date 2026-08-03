@@ -146,7 +146,7 @@ export async function FaceAnalysisLanding({ locale }: FaceAnalysisLandingProps) 
             <div className="flex flex-col gap-3 sm:flex-row">
               <LoginButton
                 className="justify-center px-5 py-3"
-                callbackUrl={`/${locale}/face-analysis`}
+                preserveCurrentUrl
                 eventName="face_analysis_signin_click"
                 eventParameters={{ source: 'face_analysis_landing' }}
                 label={tm('startFaceAnalysis')}

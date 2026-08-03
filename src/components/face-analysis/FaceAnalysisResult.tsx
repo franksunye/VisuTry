@@ -238,22 +238,6 @@ export function FaceAnalysisResult({
         />
       )}
 
-      {!isUnlocked && (
-        <div className="flex flex-col items-start gap-1 rounded-xl border border-gray-200 bg-white p-4 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <p className="text-sm font-semibold text-gray-900">Already have a specific frame in mind?</p>
-            <p className="mt-1 text-sm text-gray-500">You can try one frame without unlocking the full report.</p>
-          </div>
-          <Link
-            href={`/${locale}/try-on/glasses?source=face-analysis`}
-            onClick={() => analytics.trackTryOnFromFaceAnalysis(task.id, 0, 0, 'open_try_on')}
-            className="mt-2 inline-flex items-center text-sm font-semibold text-blue-700 hover:text-blue-900 sm:mt-0"
-          >
-            Try any frame instead →
-          </Link>
-        </div>
-      )}
-
       <FrameSearchSuggestions
         faceShape={basic.faceShape}
         catalogStyles={searchStyles}
@@ -784,13 +768,25 @@ function TryOnTopPicksPanel({
           {isPartial ? 'Complete your top picks' : 'Try top picks on your photo'}
         </button>
       ) : (
-        <Link
-          href={`/${locale}/pricing`}
-          className="mt-5 inline-flex w-full items-center justify-center rounded-lg border border-amber-200 bg-white px-4 py-3 text-sm font-semibold text-amber-800 transition-colors hover:bg-amber-50"
-        >
-          <Glasses className="mr-2 h-4 w-4" />
-          {isPartial ? 'Get credits to complete your top picks' : 'Get credits to try top picks'}
-        </Link>
+        <div className="mt-5">
+          <Link
+            href={`/${locale}/pricing?source=face-analysis-top-picks`}
+            onClick={() => analytics.trackFaceAnalysisTopPicksPricingClick(
+              faceAnalysisTaskId,
+              requiredCredits,
+              isPartial ? 'complete' : 'generate',
+            )}
+            className="inline-flex w-full items-center justify-center rounded-lg border border-amber-200 bg-white px-4 py-3 text-sm font-semibold text-amber-800 transition-colors hover:bg-amber-50"
+          >
+            <Glasses className="mr-2 h-4 w-4" />
+            {isPartial ? 'Complete my top picks' : 'Continue with my top picks'}
+          </Link>
+          <p className="mt-2 text-center text-xs leading-5 text-gray-500">
+            {isPartial
+              ? `Finish the missing directions to complete your comparison · requires ${requiredCredits} ${requiredCredits === 1 ? 'credit' : 'credits'}.`
+              : `Generate all four recommended looks, then compare them side by side · requires ${requiredCredits} credits.`}
+          </p>
+        </div>
       )}
     </section>
   )

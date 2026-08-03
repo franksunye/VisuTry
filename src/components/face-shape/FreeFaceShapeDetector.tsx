@@ -31,6 +31,7 @@ function recordDetection(status: 'COMPLETED' | 'FAILED', failureReason?: FaceSha
 
 export function FreeFaceShapeDetector({ locale }: FreeFaceShapeDetectorProps) {
   const copy = getFaceShapeDetectorUiCopy(locale)
+  const [photoFile, setPhotoFile] = useState<File | null>(null)
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
   const [result, setResult] = useState<FaceGeometryAnalysis | null>(null)
   const [detection, setDetection] = useState<FaceLandmarkDetectionResult | null>(null)
@@ -51,6 +52,7 @@ export function FreeFaceShapeDetector({ locale }: FreeFaceShapeDetectorProps) {
     setError(null)
     setResult(null)
     setDetection(null)
+    setPhotoFile(null)
 
     if (!ACCEPTED_TYPES.has(file.type)) {
       const message = 'Choose a JPG, PNG, or WebP image.'
@@ -69,6 +71,7 @@ export function FreeFaceShapeDetector({ locale }: FreeFaceShapeDetectorProps) {
     analytics.trackFaceShapeDetectorUpload(file.type, file.size)
     const startedAt = performance.now()
     const nextPreviewUrl = URL.createObjectURL(file)
+    setPhotoFile(file)
     setPreviewUrl((currentUrl) => {
       if (currentUrl) URL.revokeObjectURL(currentUrl)
       return nextPreviewUrl
@@ -110,6 +113,7 @@ export function FreeFaceShapeDetector({ locale }: FreeFaceShapeDetectorProps) {
   function reset() {
     if (previewUrl) URL.revokeObjectURL(previewUrl)
     setPreviewUrl(null)
+    setPhotoFile(null)
     setResult(null)
     setDetection(null)
     setError(null)
@@ -118,6 +122,7 @@ export function FreeFaceShapeDetector({ locale }: FreeFaceShapeDetectorProps) {
 
   const hasMeasuredResult = Boolean(
     previewUrl &&
+    photoFile &&
     detection &&
     result?.status === 'measured' &&
     result.measuredShape &&
@@ -148,9 +153,10 @@ export function FreeFaceShapeDetector({ locale }: FreeFaceShapeDetectorProps) {
         )}
       </div>
 
-      {hasMeasuredResult && previewUrl && detection && result ? (
+      {hasMeasuredResult && photoFile && previewUrl && detection && result ? (
         <FreeFaceShapeResult
           locale={locale}
+          photoFile={photoFile}
           imageUrl={previewUrl}
           geometry={result}
           detection={detection}

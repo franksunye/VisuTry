@@ -16,7 +16,8 @@ import {
 import { FaceAnalysisTaskResponse } from '@/types/face-analysis'
 import { analytics, getAcquisitionContext, getUserType, type ProductType } from '@/lib/analytics'
 import { analyzeFaceGeometryFromFile } from '@/lib/face-landmark-client'
-import { PRICE_CONFIG } from '@/config/pricing'
+import { consumeFaceAnalysisPhotoHandoff } from '@/lib/face-analysis-photo-handoff'
+import { PRICE_CONFIG, QUOTA_CONFIG } from '@/config/pricing'
 import { FaceAnalysisStepper } from './FaceAnalysisStepper'
 import { FaceAnalysisResult } from './FaceAnalysisResult'
 import { cn } from '@/utils/cn'
@@ -45,12 +46,24 @@ export function FaceAnalysisInterface() {
   const [error, setError] = useState<string | null>(null)
   const submitInFlightRef = useRef(false)
   const handledQueryRef = useRef<string | null>(null)
+  const handledPhotoHandoffRef = useRef<string | null>(null)
+  const handoffPreviewUrlRef = useRef<string | null>(null)
 
   const remainingTrials = session?.user?.remainingTrials ?? 0
   const hasQuota = remainingTrials >= FACE_ANALYSIS_CREDIT_COST
+  const purchasedCreditsRemaining = Math.max(
+    0,
+    (session?.user?.creditsPurchased ?? 0) - (session?.user?.creditsUsed ?? 0)
+  )
+  const willUseIncludedAnalysisCredit = Boolean(
+    session
+      && !session.user.isPremiumActive
+      && purchasedCreditsRemaining === 0
+      && (session.user.freeTrialsUsed ?? 0) < QUOTA_CONFIG.FREE_TRIAL
+  )
   const userType = getUserType(
     !!session?.user?.isPremiumActive,
-    remainingTrials,
+    purchasedCreditsRemaining,
     !!session
   )
   const isCompleted = task?.status === 'completed' && !isProcessing
@@ -185,6 +198,51 @@ export function FaceAnalysisInterface() {
   }
 
   useEffect(() => {
+    const source = searchParams.get('source')
+    const handoffId = searchParams.get('photoHandoff')
+    if (source !== 'free-face-shape-detector' || !handoffId) return
+    if (handledPhotoHandoffRef.current === handoffId) return
+    handledPhotoHandoffRef.current = handoffId
+
+    let cancelled = false
+    consumeFaceAnalysisPhotoHandoff(handoffId)
+      .then((file) => {
+        if (cancelled || !file) return
+
+        const preview = URL.createObjectURL(file)
+        handoffPreviewUrlRef.current = preview
+        setUserImage({ file, preview })
+        setCurrentStep('analysis')
+        setTask(null)
+        setError(null)
+        analytics.trackFaceAnalysisUpload(file.type || 'unknown', file.size, userType)
+        analytics.trackFaceAnalysisPhotoHandoffRestored(searchParams.get('faceShape'))
+      })
+      .catch(() => {
+        // Private browsing and browser storage policies may make the handoff unavailable.
+        // The standard upload control remains the safe fallback.
+      })
+      .finally(() => {
+        if (cancelled) return
+        const nextUrl = new URL(window.location.href)
+        if (nextUrl.searchParams.get('photoHandoff') === handoffId) {
+          nextUrl.searchParams.delete('photoHandoff')
+          window.history.replaceState(null, '', nextUrl.toString())
+        }
+      })
+
+    return () => {
+      cancelled = true
+    }
+  }, [searchParams, userType])
+
+  useEffect(() => {
+    return () => {
+      if (handoffPreviewUrlRef.current) URL.revokeObjectURL(handoffPreviewUrlRef.current)
+    }
+  }, [])
+
+  useEffect(() => {
     const unlock = searchParams.get('unlock')
     const taskId = searchParams.get('taskId')
     if (!taskId) return
@@ -267,6 +325,10 @@ export function FaceAnalysisInterface() {
                 </div>
                 <ImageUpload
                   onImageSelect={(file, preview) => {
+                    if (handoffPreviewUrlRef.current) {
+                      URL.revokeObjectURL(handoffPreviewUrlRef.current)
+                      handoffPreviewUrlRef.current = null
+                    }
                     analytics.trackFaceAnalysisUpload(file.type || 'unknown', file.size, userType)
                     setUserImage({ file, preview })
                     setCurrentStep('analysis')
@@ -274,6 +336,10 @@ export function FaceAnalysisInterface() {
                     setError(null)
                   }}
                   onImageRemove={() => {
+                    if (handoffPreviewUrlRef.current) {
+                      URL.revokeObjectURL(handoffPreviewUrlRef.current)
+                      handoffPreviewUrlRef.current = null
+                    }
                     setUserImage(null)
                     setCurrentStep('photo')
                     setTask(null)
@@ -316,7 +382,9 @@ export function FaceAnalysisInterface() {
                 </button>
                 <p className="flex items-center gap-1 text-xs text-gray-500 mt-3">
                   <HelpCircle className="w-3.5 h-3.5" />
-                  {t('analyze.creditNote', { count: FACE_ANALYSIS_CREDIT_COST })}
+                  {willUseIncludedAnalysisCredit
+                    ? t('analyze.includedCreditNote')
+                    : t('analyze.creditNote', { count: FACE_ANALYSIS_CREDIT_COST })}
                 </p>
               </div>
             </>
@@ -373,7 +441,7 @@ export function FaceAnalysisInterface() {
           </div>
         </div>
 
-        {!hasQuota && (
+        {!hasQuota && !hasResult && (
           <div className="order-3 2xl:order-3 2xl:col-span-2 py-4 2xl:py-0">
             <div className="rounded-xl border border-blue-200 bg-blue-50 p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
               <p className="text-sm text-gray-700">{t('footer.noCredits')}</p>

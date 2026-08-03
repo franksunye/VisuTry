@@ -10,6 +10,7 @@ interface LoginButtonProps {
   className?: string
   variant?: "default" | "outline" | "ghost"
   callbackUrl?: string
+  preserveCurrentUrl?: boolean
   eventName?: string
   eventParameters?: Record<string, any>
   label?: string
@@ -19,6 +20,7 @@ export function LoginButton({
   className,
   variant = "default",
   callbackUrl,
+  preserveCurrentUrl = false,
   eventName,
   eventParameters,
   label,
@@ -97,7 +99,10 @@ export function LoginButton({
         if (eventName) {
           analytics.trackCustomEvent(eventName, eventParameters)
         }
-        signIn("auth0", { callbackUrl: callbackUrl || "/try-on" })
+        const resolvedCallbackUrl = preserveCurrentUrl
+          ? `${window.location.pathname}${window.location.search}`
+          : callbackUrl || "/try-on"
+        signIn("auth0", { callbackUrl: resolvedCallbackUrl })
       }}
       className={cn(
         "flex items-center justify-center px-4 py-2 rounded-lg text-sm font-medium transition-colors",

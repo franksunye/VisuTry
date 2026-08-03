@@ -1,13 +1,28 @@
 import React from 'react'
-import { fireEvent, render, screen } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { FreeFaceShapeDetector } from '@/components/face-shape/FreeFaceShapeDetector'
 import { analytics } from '@/lib/analytics'
 import type { FaceGeometryAnalysis, FaceLandmarkPoint } from '@/types/face-analysis'
 
 const mockAnalyzeFaceLandmarkFile = jest.fn()
+const mockCompressImage = jest.fn()
+const mockSavePhotoHandoff = jest.fn()
+const mockRouterPush = jest.fn()
+
+jest.mock('next/navigation', () => ({
+  useRouter: () => ({ push: mockRouterPush }),
+}))
 
 jest.mock('@/lib/face-landmark-client', () => ({
   analyzeFaceLandmarkFile: (...args: unknown[]) => mockAnalyzeFaceLandmarkFile(...args),
+}))
+
+jest.mock('@/utils/image', () => ({
+  compressImage: (...args: unknown[]) => mockCompressImage(...args),
+}))
+
+jest.mock('@/lib/face-analysis-photo-handoff', () => ({
+  saveFaceAnalysisPhotoHandoff: (...args: unknown[]) => mockSavePhotoHandoff(...args),
 }))
 
 jest.mock('@/components/face-analysis/FaceLandmarkMeshOverlay', () => ({
@@ -62,6 +77,9 @@ describe('FreeFaceShapeDetector', () => {
   beforeEach(() => {
     mockAnalyzeFaceLandmarkFile.mockClear()
     mockAnalyzeFaceLandmarkFile.mockResolvedValue(measuredFileResult)
+    mockCompressImage.mockImplementation((file: File) => Promise.resolve(file))
+    mockSavePhotoHandoff.mockResolvedValue('handoff-1')
+    mockRouterPush.mockClear()
     mockFetch.mockClear()
     global.fetch = mockFetch as unknown as typeof global.fetch
     Object.defineProperty(URL, 'createObjectURL', {
@@ -100,12 +118,38 @@ describe('FreeFaceShapeDetector', () => {
     expect(mockAnalyzeFaceLandmarkFile).toHaveBeenCalledTimes(1)
     expect(trackComplete).toHaveBeenCalledWith('oval', 92, expect.any(Number))
 
-    const advisorLink = screen.getByRole('link', { name: /get personalized advice/i })
-    expect(advisorLink).toHaveAttribute('href', '/en/face-analysis')
-    advisorLink.addEventListener('click', (event) => event.preventDefault())
-    fireEvent.click(advisorLink)
+    expect(screen.queryByRole('link', { name: /open virtual try-on/i })).not.toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: /compare frames side by side/i })).not.toBeInTheDocument()
 
-    expect(trackCta).toHaveBeenCalledWith('oval', 'glasses_advisor')
+    fireEvent.click(screen.getByRole('button', { name: /get personalized frame recommendations/i }))
+
+    await waitFor(() => {
+      expect(mockRouterPush).toHaveBeenCalledWith(
+        '/en/face-analysis?source=free-face-shape-detector&faceShape=oval&photoHandoff=handoff-1',
+      )
+    })
+    expect(mockCompressImage).toHaveBeenCalledWith(file, undefined, undefined, { profile: 'user-photo' })
+    expect(mockSavePhotoHandoff).toHaveBeenCalledWith(file)
+    expect(trackCta).toHaveBeenCalledWith('oval', 'face_analysis')
+  })
+
+  it('continues to Face Analysis when local photo handoff is unavailable', async () => {
+    const trackHandoff = jest.spyOn(analytics, 'trackFaceShapeDetectorPhotoHandoff')
+    mockSavePhotoHandoff.mockRejectedValue(new Error('storage blocked'))
+
+    render(<FreeFaceShapeDetector locale="en" />)
+
+    const file = new File(['portrait'], 'portrait.jpg', { type: 'image/jpeg' })
+    fireEvent.change(screen.getByLabelText(/choose a face photo/i), { target: { files: [file] } })
+    await screen.findByRole('heading', { name: 'Oval' })
+    fireEvent.click(screen.getByRole('button', { name: /get personalized frame recommendations/i }))
+
+    await waitFor(() => {
+      expect(mockRouterPush).toHaveBeenCalledWith(
+        '/en/face-analysis?source=free-face-shape-detector&faceShape=oval',
+      )
+    })
+    expect(trackHandoff).toHaveBeenCalledWith('oval', 'fallback')
   })
 
   it('tracks invalid input without starting analysis', async () => {

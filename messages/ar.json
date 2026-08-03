@@ -106,7 +106,8 @@
       "button": "حلّل وجهي",
       "again": "حلّل مرة أخرى",
       "analyzing": "جارٍ التحليل...",
-      "creditNote": "سيتم استخدام {count} رصيد"
+      "creditNote": "سيتم استخدام {count} رصيد",
+      "includedCreditNote": "يستخدم رصيد التحليل المجاني المرفق"
     },
     "loading": {
       "message": "الذكاء الاصطناعي يحلّل شكل وجهك وملامحك..."
@@ -203,7 +204,7 @@
         "compareDescription": "اختر القوالب الجاهزة وراجع عدة نتائج في لوحة واحدة."
       },
       "ctaPrimary": "اكتشف شكل وجهي مجاناً",
-      "ctaSecondary": "جرّب النظارات",
+      "ctaSecondary": "لديّ إطار بالفعل",
       "featureCards": {
         "faceTitle": "مستشار النظارات",
         "faceDescription": "A professional face-shape report with إطار style recommendations.",

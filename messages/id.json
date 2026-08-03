@@ -106,7 +106,8 @@
       "button": "Analisis Wajah Saya",
       "again": "Analisis Lagi",
       "analyzing": "Menganalisis...",
-      "creditNote": "{count} kredit akan digunakan"
+      "creditNote": "{count} kredit akan digunakan",
+      "includedCreditNote": "Menggunakan kredit analisis yang disertakan"
     },
     "loading": {
       "message": "AI sedang menganalisis bentuk dan fitur wajah Anda..."
@@ -203,7 +204,7 @@
         "compareDescription": "Pilih preset bawaan dan tinjau beberapa hasil bingkai dalam satu papan."
       },
       "ctaPrimary": "Deteksi bentuk wajah gratis",
-      "ctaSecondary": "Coba kacamata",
+      "ctaSecondary": "Saya sudah punya bingkai",
       "featureCards": {
         "faceTitle": "Penasihat Kacamata",
         "faceDescription": "Laporan profesional bentuk wajah dengan rekomendasi gaya bingkai.",

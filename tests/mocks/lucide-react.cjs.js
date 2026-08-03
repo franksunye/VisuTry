@@ -12,6 +12,7 @@ function createIcon(name) {
 module.exports = {
   Upload: createIcon('upload'),
   X: createIcon('x'),
+  Menu: createIcon('menu'),
   Image: createIcon('image'),
   Loader2: createIcon('loader2'),
   User: createIcon('user'),
@@ -22,6 +23,7 @@ module.exports = {
   LogOut: createIcon('logout'),
   TestTube: createIcon('testtube'),
   Shield: createIcon('shield'),
+  ShieldCheck: createIcon('shield-check'),
   CheckCircle: createIcon('check-circle'),
   CheckCircle2: createIcon('check-circle-2'),
   Check: createIcon('check'),
@@ -40,6 +42,7 @@ module.exports = {
   RefreshCw: createIcon('refresh-cw'),
   Share2: createIcon('share-2'),
   AlertTriangle: createIcon('alert-triangle'),
+  AlertCircle: createIcon('alert-circle'),
   ExternalLink: createIcon('external-link'),
   Info: createIcon('info'),
   Lock: createIcon('lock'),

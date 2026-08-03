@@ -106,7 +106,8 @@
       "button": "Analyser mon visage",
       "again": "Analyser à nouveau",
       "analyzing": "Analyse en cours...",
-      "creditNote": "{count} crédit sera utilisé"
+      "creditNote": "{count} crédit sera utilisé",
+      "includedCreditNote": "Utilise votre crédit d’analyse inclus"
     },
     "loading": {
       "message": "L'IA analyse la forme et les traits de votre visage..."
@@ -203,7 +204,7 @@
         "compareDescription": "Choisissez des presets intégrés et examinez plusieurs résultats de montures sur un seul panneau."
       },
       "ctaPrimary": "Détecter ma forme gratuitement",
-      "ctaSecondary": "Essayer des lunettes",
+      "ctaSecondary": "J’ai déjà une monture",
       "featureCards": {
         "faceTitle": "Conseiller lunettes",
         "faceDescription": "Un rapport professionnel de forme du visage avec recommandations de montures.",

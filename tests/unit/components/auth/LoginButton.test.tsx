@@ -72,6 +72,21 @@ describe('LoginButton', () => {
     expect(mockSignIn).toHaveBeenCalledWith('auth0', { callbackUrl: '/dashboard' })
   })
 
+  it('preserves the current Face Analysis continuation URL when requested', () => {
+    window.history.replaceState(
+      null,
+      '',
+      '/en/face-analysis?source=free-face-shape-detector&faceShape=oval&photoHandoff=handoff-1',
+    )
+    render(<LoginButton preserveCurrentUrl />)
+
+    fireEvent.click(screen.getByRole('button', { name: /sign in/i }))
+
+    expect(mockSignIn).toHaveBeenCalledWith('auth0', {
+      callbackUrl: '/en/face-analysis?source=free-face-shape-detector&faceShape=oval&photoHandoff=handoff-1',
+    })
+  })
+
   it('renders authenticated next-auth users and signs out', () => {
     mockNextAuthSession({
       status: 'authenticated',

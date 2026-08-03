@@ -106,7 +106,8 @@
       "button": "Analizar mi rostro",
       "again": "Analizar de nuevo",
       "analyzing": "Analizando...",
-      "creditNote": "Se usará {count} crédito"
+      "creditNote": "Se usará {count} crédito",
+      "includedCreditNote": "Usa tu crédito de análisis incluido"
     },
     "loading": {
       "message": "La IA está analizando la forma y los rasgos de tu rostro..."
@@ -203,7 +204,7 @@
         "compareDescription": "Elige preajustes integrados y revisa varios resultados de monturas en un solo panel."
       },
       "ctaPrimary": "Detectar mi forma facial gratis",
-      "ctaSecondary": "Probar gafas",
+      "ctaSecondary": "Ya tengo una montura",
       "featureCards": {
         "faceTitle": "Asesor de gafas",
         "faceDescription": "Un informe profesional de forma facial con recomendaciones de monturas.",

@@ -15,12 +15,12 @@ jest.mock('next-intl', () => ({
     if (key === 'frameSearch.description') return 'Search these styles'
     if (key === 'frameSearch.opensGoogle') return 'Opens Google'
     if (key === 'frameSearch.searchStyle') return `Search ${values?.style} frames`
-    if (key === 'title') return 'Unlock Full AI Report'
+    if (key === 'title') return 'Complete Your Personalized Frame Decision'
     if (key === 'feature1') return 'Detailed recommendations'
     if (key === 'feature2') return 'Try-on credits included'
     if (key === 'feature3') return 'One-time unlock'
     if (key === 'price') return 'One-time price'
-    if (key === 'button') return 'Unlock Now'
+    if (key === 'button') return 'Unlock My Recommendations'
     if (key === 'redirecting') return 'Redirecting'
     return key
   },
@@ -103,10 +103,10 @@ describe('FaceAnalysisResult', () => {
   it('links top picks to pricing when credits are insufficient', async () => {
     render(<FaceAnalysisResult task={makeTask()} onUnlock={jest.fn()} remainingCredits={2} />)
 
-    const link = await screen.findByRole('link', { name: /get credits to try top picks/i })
-    expect(link).toHaveAttribute('href', '/en/pricing')
-    expect(screen.queryByText(/You need/i)).not.toBeInTheDocument()
-    expect(screen.queryByText('2 credits')).not.toBeInTheDocument()
+    const link = await screen.findByRole('link', { name: /continue with my top picks/i })
+    expect(link).toHaveAttribute('href', '/en/pricing?source=face-analysis-top-picks')
+    expect(screen.getByText(/generate all four recommended looks/i)).toBeInTheDocument()
+    expect(screen.getByText(/requires 4 credits/i)).toBeInTheDocument()
   })
 
   it('renders a locked premium preview when the report is not unlocked', () => {
@@ -127,13 +127,11 @@ describe('FaceAnalysisResult', () => {
 
     expect(screen.getByText('Unlock your complete report')).toBeInTheDocument()
     expect(screen.getByText('Preview: best frame directions')).toBeInTheDocument()
-    expect(screen.getAllByText('Unlock Full AI Report').length).toBeGreaterThan(0)
+    expect(screen.getAllByText('Complete Your Personalized Frame Decision').length).toBeGreaterThan(0)
     expect(screen.queryByRole('button', { name: /unlock to download/i })).not.toBeInTheDocument()
   })
 
-  it('offers direct try-on from the free result and tracks the continuation', () => {
-    const trackTryOn = jest.spyOn(analytics, 'trackTryOnFromFaceAnalysis')
-
+  it('keeps the locked result focused on unlocking personalized recommendations', () => {
     render(
       <FaceAnalysisResult
         task={makeTask({
@@ -149,13 +147,19 @@ describe('FaceAnalysisResult', () => {
       />
     )
 
-    const link = screen.getByRole('link', { name: /try any frame instead/i })
-    expect(link).toHaveAttribute('href', '/en/try-on/glasses?source=face-analysis')
-    link.addEventListener('click', (event) => event.preventDefault())
+    expect(screen.queryByRole('link', { name: /try any frame instead/i })).not.toBeInTheDocument()
+    expect(screen.getAllByText('Complete Your Personalized Frame Decision').length).toBeGreaterThan(0)
+  })
 
+  it('tracks the recommendation continuation before opening pricing', async () => {
+    const trackPricing = jest.spyOn(analytics, 'trackFaceAnalysisTopPicksPricingClick')
+    render(<FaceAnalysisResult task={makeTask()} onUnlock={jest.fn()} remainingCredits={2} />)
+
+    const link = await screen.findByRole('link', { name: /continue with my top picks/i })
+    link.addEventListener('click', (event) => event.preventDefault())
     fireEvent.click(link)
 
-    expect(trackTryOn).toHaveBeenCalledWith('task-1', 0, 0, 'open_try_on')
+    expect(trackPricing).toHaveBeenCalledWith('task-1', 4, 'generate')
   })
 
   it('polls processing top picks at most once per seven-second cycle', async () => {

@@ -2,18 +2,23 @@
 
 import Image from 'next/image'
 import Link from 'next/link'
-import { ArrowRight, CheckCircle2, Glasses, Grid2X2, Info, Sparkles } from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import { useState } from 'react'
+import { ArrowRight, CheckCircle2, Info, Loader2, ShieldCheck, Sparkles } from 'lucide-react'
 import { getFaceShapeIcon } from '@/config/face-analysis'
 import { getFaceShapeContent } from '@/config/face-shape-content'
 import { FaceLandmarkMeshOverlay } from '@/components/face-analysis/FaceLandmarkMeshOverlay'
 import { FaceLandmarkMetricVisual } from '@/components/face-analysis/FaceLandmarkMetricVisual'
 import { buildMeasuredFaceMetrics } from '@/lib/face-landmark-metrics'
 import { analytics } from '@/lib/analytics'
+import { saveFaceAnalysisPhotoHandoff } from '@/lib/face-analysis-photo-handoff'
+import { compressImage } from '@/utils/image'
 import type { FaceLandmarkDetectionResult } from '@/lib/face-landmark-client'
 import type { FaceAnalysisMetric, FaceGeometryAnalysis } from '@/types/face-analysis'
 
 interface FreeFaceShapeResultProps {
   locale: string
+  photoFile: File
   imageUrl: string
   geometry: FaceGeometryAnalysis
   detection: FaceLandmarkDetectionResult
@@ -21,14 +26,19 @@ interface FreeFaceShapeResultProps {
 
 export function FreeFaceShapeResult({
   locale,
+  photoFile,
   imageUrl,
   geometry,
   detection,
 }: FreeFaceShapeResultProps) {
+  const router = useRouter()
+  const [isContinuing, setIsContinuing] = useState(false)
+
   if (geometry.status !== 'measured' || !geometry.measuredShape || !geometry.ratios) return null
 
   const guide = getFaceShapeContent(geometry.measuredShape)
   if (!guide) return null
+  const continuationFaceShape = guide.slug
 
   const ShapeIcon = getFaceShapeIcon(geometry.measuredShape)
   const metrics = buildMeasuredFaceMetrics(
@@ -40,6 +50,33 @@ export function FreeFaceShapeResult({
   const summaryMetrics = metrics.filter((metric) => metric.id !== 'faceShape' && metric.id !== 'symmetry').slice(0, 4)
   const matchLabel = getGeometryMatchLabel(geometry.measuredConfidence)
   const closestAlternative = geometry.alternativeShapes?.[0]
+
+  async function continueToFaceAnalysis() {
+    if (isContinuing) return
+
+    setIsContinuing(true)
+    analytics.trackFaceShapeDetectorCta(continuationFaceShape, 'face_analysis')
+
+    const query = new URLSearchParams({
+      source: 'free-face-shape-detector',
+      faceShape: continuationFaceShape,
+    })
+
+    try {
+      const optimizedPhoto = await compressImage(photoFile, undefined, undefined, {
+        profile: 'user-photo',
+      })
+      const handoffId = await saveFaceAnalysisPhotoHandoff(optimizedPhoto)
+      query.set('photoHandoff', handoffId)
+      analytics.trackFaceShapeDetectorPhotoHandoff(continuationFaceShape, 'stored')
+    } catch {
+      // The funnel remains usable when private browsing or storage policies block IndexedDB.
+      // Face Analysis will ask the user to choose a photo again.
+      analytics.trackFaceShapeDetectorPhotoHandoff(continuationFaceShape, 'fallback')
+    }
+
+    router.push(`/${locale}/face-analysis?${query.toString()}`)
+  }
 
   return (
     <div className="flex flex-col gap-y-5" aria-live="polite">
@@ -113,63 +150,60 @@ export function FreeFaceShapeResult({
         </section>
       </div>
 
-      <section className="rounded-lg border border-blue-200 bg-blue-50 p-4 sm:p-5">
-        <div className="sm:flex sm:items-start sm:justify-between sm:gap-5">
+      <section className="overflow-hidden rounded-lg border border-violet-200 bg-gradient-to-r from-violet-50 via-blue-50 to-white p-5 shadow-sm sm:p-6">
+        <div className="sm:flex sm:items-center sm:justify-between sm:gap-6">
           <div>
-            <p className="text-sm font-semibold text-blue-950">See how frames look on your {guide.name.toLowerCase()} face</p>
-            <p className="mt-1 text-sm leading-6 text-blue-800">Continue into try-on or side-by-side compare before you decide.</p>
+            <div className="flex items-center gap-2 text-sm font-semibold text-violet-800">
+              <Sparkles className="h-4 w-4" />
+              Your next step
+            </div>
+            <h3 className="mt-2 text-xl font-bold text-gray-950 sm:text-2xl">
+              Get frame recommendations picked for your face
+            </h3>
+            <p className="mt-2 max-w-2xl text-sm leading-6 text-gray-700">
+              Go beyond face shape with a personalized AI analysis, four recommended frame directions, and try-on-ready top picks.
+            </p>
           </div>
-          <div className="mt-3 flex w-full flex-col gap-2 sm:mt-0 sm:w-auto sm:items-stretch">
-            <Link
-              href={`/${locale}/try-on/glasses?source=free-face-shape-detector`}
-              onClick={() => analytics.trackFaceShapeDetectorCta(guide.slug, 'virtual_try_on')}
-              className="inline-flex w-full items-center justify-center rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-blue-700"
+          <div className="mt-5 flex w-full shrink-0 flex-col gap-3 sm:mt-0 sm:w-auto sm:min-w-[280px]">
+            <button
+              type="button"
+              onClick={continueToFaceAnalysis}
+              disabled={isContinuing}
+              aria-busy={isContinuing}
+              className="inline-flex w-full items-center justify-center rounded-lg bg-violet-600 px-5 py-3 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-violet-700 disabled:cursor-wait disabled:opacity-75"
             >
-              <Glasses className="me-2 h-4 w-4" />
-              Open virtual try-on
-            </Link>
-            <Link
-              href={`/${locale}/try-on/glasses/compare?source=free-face-shape-detector`}
-              onClick={() => analytics.trackFaceShapeDetectorCta(guide.slug, 'frame_compare')}
-              className="inline-flex w-full items-center justify-center rounded-lg border border-blue-300 bg-white px-4 py-2.5 text-sm font-semibold text-blue-800 hover:bg-blue-50"
-            >
-              <Grid2X2 className="me-2 h-4 w-4" />
-              Compare frames side by side
-            </Link>
+              {isContinuing ? (
+                <>
+                  <Loader2 className="me-2 h-4 w-4 animate-spin" />
+                  Preparing your photo…
+                </>
+              ) : (
+                <>
+                  Get personalized frame recommendations
+                  <ArrowRight className="ms-2 h-4 w-4" />
+                </>
+              )}
+            </button>
+            <div className="flex items-start gap-2 text-xs leading-5 text-gray-600">
+              <ShieldCheck className="mt-0.5 h-3.5 w-3.5 shrink-0 text-green-600" />
+              <span>
+                When you continue, a compressed copy is kept temporarily in this browser. It is uploaded only after you choose to start the AI analysis.
+              </span>
+            </div>
           </div>
+        </div>
+        <div className="mt-4 border-t border-violet-100 pt-4 text-sm">
+          <Link
+            href={`/${locale}/face-shapes/${guide.slug}`}
+            onClick={() => analytics.trackFaceShapeDetectorCta(guide.slug, 'face_shape_guide')}
+            className="font-semibold text-blue-700 hover:text-blue-900"
+          >
+            Read the {guide.name.toLowerCase()} face guide <ArrowRight className="ms-1 inline h-3.5 w-3.5" />
+          </Link>
         </div>
       </section>
 
       <MeasurementDetails metrics={metrics} detection={detection} warnings={geometry.warnings} />
-
-      <section className="rounded-lg border border-violet-200 bg-gradient-to-r from-violet-50 to-white p-5 sm:flex sm:items-center sm:justify-between sm:gap-6">
-        <div>
-          <div className="flex items-center gap-2 text-sm font-semibold text-violet-800">
-            <Sparkles className="h-4 w-4" />
-            AI Glasses Advisor
-          </div>
-          <h3 className="mt-2 text-lg font-bold text-gray-950">Turn these measurements into a frame shortlist</h3>
-          <p className="mt-1 max-w-2xl text-sm leading-6 text-gray-600">
-            Add AI styling review for recommended frames, avoid-first styles, reasons, and try-on suggestions.
-          </p>
-        </div>
-        <div className="mt-4 flex shrink-0 flex-col gap-2 sm:mt-0 sm:items-end">
-          <Link
-            href={`/${locale}/face-analysis`}
-            onClick={() => analytics.trackFaceShapeDetectorCta(guide.slug, 'glasses_advisor')}
-            className="inline-flex items-center justify-center rounded-lg bg-violet-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-violet-700"
-          >
-            Get personalized advice <ArrowRight className="ms-2 h-4 w-4" />
-          </Link>
-          <Link
-            href={`/${locale}/face-shapes/${guide.slug}`}
-            onClick={() => analytics.trackFaceShapeDetectorCta(guide.slug, 'face_shape_guide')}
-            className="text-center text-sm font-semibold text-blue-700 hover:text-blue-900"
-          >
-            Read the {guide.name.toLowerCase()} face guide
-          </Link>
-        </div>
-      </section>
 
       <div className="flex items-start gap-2 text-xs leading-5 text-gray-500">
         <Info className="mt-0.5 h-3.5 w-3.5 shrink-0" />

@@ -472,16 +472,9 @@ export const analytics = {
 
   trackFaceShapeDetectorCta(
     faceShape: string,
-    destination: 'glasses_advisor' | 'virtual_try_on' | 'frame_compare' | 'face_shape_guide',
+    destination: 'face_analysis' | 'glasses_advisor' | 'virtual_try_on' | 'frame_compare' | 'face_shape_guide',
   ) {
-    const productPath =
-      destination === 'glasses_advisor'
-        ? 'glasses_advisor'
-        : destination === 'virtual_try_on'
-          ? 'virtual_try_on'
-          : destination === 'frame_compare'
-            ? 'frame_compare'
-            : undefined
+    const productPath = destination === 'face_shape_guide' ? undefined : destination
 
     if (productPath) {
       setGrowthContext({ product_path: productPath })
@@ -491,6 +484,24 @@ export const analytics = {
       face_shape: faceShape,
       destination,
       ...(productPath ? { product_path: productPath } : {}),
+    })
+  },
+
+  trackFaceShapeDetectorPhotoHandoff(
+    faceShape: string,
+    status: 'stored' | 'fallback',
+  ) {
+    sendEvent('face_shape_detector_photo_handoff', {
+      face_shape: faceShape,
+      status,
+      storage: status === 'stored' ? 'indexed_db' : 'unavailable',
+    })
+  },
+
+  trackFaceAnalysisPhotoHandoffRestored(faceShape: string | null) {
+    sendEvent('face_analysis_photo_handoff_restored', {
+      source: 'free_face_shape_detector',
+      ...(faceShape ? { face_shape: faceShape } : {}),
     })
   },
 
@@ -547,6 +558,19 @@ export const analytics = {
     sendEvent('face_analysis_top_picks_start', {
       face_analysis_task_id: faceAnalysisTaskId,
       style_count: styleCount,
+      required_credits: requiredCredits,
+      generation_mode: mode,
+      product_path: 'face_analysis',
+    })
+  },
+
+  trackFaceAnalysisTopPicksPricingClick(
+    faceAnalysisTaskId: string,
+    requiredCredits: number,
+    mode: 'generate' | 'complete',
+  ) {
+    sendEvent('face_analysis_top_picks_pricing_click', {
+      face_analysis_task_id: faceAnalysisTaskId,
       required_credits: requiredCredits,
       generation_mode: mode,
       product_path: 'face_analysis',

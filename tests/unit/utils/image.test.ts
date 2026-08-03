@@ -9,6 +9,7 @@ describe('image utils', () => {
   const originalCreateElement = document.createElement.bind(document)
   const originalImage = global.Image
   const originalCreateObjectURL = URL.createObjectURL
+  const originalRevokeObjectURL = URL.revokeObjectURL
   let consoleLogSpy: jest.SpyInstance
 
   function installCanvasMocks(alphaValues: number[]) {
@@ -53,6 +54,7 @@ describe('image utils', () => {
   beforeEach(() => {
     consoleLogSpy = jest.spyOn(console, 'log').mockImplementation(() => {})
     URL.createObjectURL = jest.fn().mockReturnValue('blob:mock-url')
+    URL.revokeObjectURL = jest.fn()
 
     class MockImage {
       onload: null | (() => void) = null
@@ -72,6 +74,7 @@ describe('image utils', () => {
     jest.restoreAllMocks()
     global.Image = originalImage
     URL.createObjectURL = originalCreateObjectURL
+    URL.revokeObjectURL = originalRevokeObjectURL
   })
 
   it('should normalize user photos to jpeg', async () => {
@@ -82,6 +85,7 @@ describe('image utils', () => {
 
     expect(output.type).toBe('image/jpeg')
     expect(output.name).toBe('portrait.jpg')
+    expect(URL.revokeObjectURL).toHaveBeenCalledWith('blob:mock-url')
   })
 
   it('should preserve transparency for item images by outputting png', async () => {

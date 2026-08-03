@@ -48,12 +48,14 @@ export function compressImage(
     const canvas = document.createElement('canvas')
     const ctx = canvas.getContext('2d')
     const img = new Image()
+    const sourceUrl = URL.createObjectURL(file)
     const profile = options.profile || 'item-photo'
 
     console.log(`🖼️ Compressing image: ${file.name}`)
     console.log(`   Original size: ${(file.size / 1024).toFixed(2)}KB`)
 
     img.onload = () => {
+      URL.revokeObjectURL(sourceUrl)
       console.log(`   Original dimensions: ${img.width}x${img.height}`)
 
       // Calculate new dimensions maintaining aspect ratio
@@ -108,8 +110,11 @@ export function compressImage(
       )
     }
 
-    img.onerror = () => reject(new Error('Image loading failed'))
-    img.src = URL.createObjectURL(file)
+    img.onerror = () => {
+      URL.revokeObjectURL(sourceUrl)
+      reject(new Error('Image loading failed'))
+    }
+    img.src = sourceUrl
   })
 }
 

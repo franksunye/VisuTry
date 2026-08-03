@@ -106,7 +106,8 @@
       "button": "Анализировать лицо",
       "again": "Анализировать снова",
       "analyzing": "Анализ...",
-      "creditNote": "Будет использован {count} кредит"
+      "creditNote": "Будет использован {count} кредит",
+      "includedCreditNote": "Используется включённый кредит на анализ"
     },
     "loading": {
       "message": "ИИ анализирует форму и черты вашего лица..."
@@ -203,7 +204,7 @@
         "compareDescription": "Выбирайте встроенные пресеты и проверяйте несколько результатов в одном борде."
       },
       "ctaPrimary": "Определить форму бесплатно",
-      "ctaSecondary": "Примерить очки",
+      "ctaSecondary": "У меня уже есть оправа",
       "featureCards": {
         "faceTitle": "Подбор очков",
         "faceDescription": "A professional face-shape report with оправа style recommendations.",
