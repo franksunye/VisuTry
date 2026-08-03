@@ -3,7 +3,8 @@ import { Camera, Glasses, Upload } from 'lucide-react'
 import { SearchToToolLanding } from '@/components/growth/SearchToToolLanding'
 import { getSearchToToolRouteCopy } from '@/config/search-to-tool-route-copy'
 import type { Locale } from '@/i18n'
-import { generateI18nSEO, generateStructuredData } from '@/lib/seo'
+import { generateStructuredData } from '@/lib/seo'
+import { generateSearchToToolSEO } from '@/lib/search-to-tool-seo'
 
 const pathname = '/virtual-glasses-try-on'
 const routeId = 'virtual-glasses-try-on' as const
@@ -12,7 +13,7 @@ type Props = { params: { locale: string } }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const copy = getSearchToToolRouteCopy(params.locale, routeId)
-  return generateI18nSEO({
+  return generateSearchToToolSEO({
     locale: params.locale as Locale,
     title: copy.metaTitle,
     description: copy.metaDescription,
