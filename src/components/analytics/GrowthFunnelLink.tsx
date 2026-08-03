@@ -34,6 +34,7 @@ export function GrowthFunnelLink({
       className={className}
       onClick={() => {
         setGrowthContext({
+          source_page: sourcePage,
           query_cluster: queryCluster,
           ...(contentCluster ? { content_cluster: contentCluster } : {}),
           ...(productPath ? { product_path: productPath } : {}),
