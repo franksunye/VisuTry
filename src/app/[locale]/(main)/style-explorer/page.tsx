@@ -4,9 +4,13 @@ import { StyleExplorerGate } from '@/components/style-explorer/StyleExplorerGate
 
 interface StyleExplorerPageProps {
   params: { locale: string }
+  searchParams?: {
+    source?: string | string[]
+    taskId?: string | string[]
+  }
 }
 
-export const dynamic = 'force-static'
+export const dynamic = 'force-dynamic'
 
 export async function generateMetadata({ params }: StyleExplorerPageProps): Promise<Metadata> {
   setRequestLocale(params.locale)
@@ -33,10 +37,27 @@ export async function generateMetadata({ params }: StyleExplorerPageProps): Prom
   }
 }
 
-export default function StyleExplorerPage({ params }: StyleExplorerPageProps) {
+export default function StyleExplorerPage({ params, searchParams }: StyleExplorerPageProps) {
   setRequestLocale(params.locale)
-  const callbackUrl = `/${params.locale}/style-explorer`
+  const source = typeof searchParams?.source === 'string' ? searchParams.source : null
+  const taskId = typeof searchParams?.taskId === 'string' ? searchParams.taskId : null
+  const faceAnalysisTaskId = source === 'face-analysis' && taskId ? taskId : null
+  const callbackParams = new URLSearchParams()
+
+  if (faceAnalysisTaskId) {
+    callbackParams.set('source', 'face-analysis')
+    callbackParams.set('taskId', faceAnalysisTaskId)
+  }
+
+  const callbackQuery = callbackParams.toString()
+  const callbackUrl = `/${params.locale}/style-explorer${callbackQuery ? `?${callbackQuery}` : ''}`
   const signInHref = `/${params.locale}/auth/signin?callbackUrl=${encodeURIComponent(callbackUrl)}`
 
-  return <StyleExplorerGate locale={params.locale} signInHref={signInHref} />
+  return (
+    <StyleExplorerGate
+      locale={params.locale}
+      signInHref={signInHref}
+      faceAnalysisTaskId={faceAnalysisTaskId}
+    />
+  )
 }

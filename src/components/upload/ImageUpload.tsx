@@ -11,6 +11,7 @@ interface ImageUploadProps {
   onImageRemove: () => void
   currentImage?: string
   loading?: boolean
+  loadingText?: string
   className?: string
   label?: string
   description?: string
@@ -24,6 +25,7 @@ export function ImageUpload({
   onImageRemove,
   currentImage,
   loading = false,
+  loadingText = "Processing image...",
   className,
   label = "Upload Image",
   description = "JPEG, PNG, or WebP",
@@ -200,7 +202,7 @@ export function ImageUpload({
             {isLoading ? (
               <div className="flex flex-col items-center">
                 <Loader2 className="w-12 h-12 text-blue-500 animate-spin mb-4" />
-                <p className="text-sm text-gray-600">Processing image...</p>
+                <p className="text-sm text-gray-600">{loadingText}</p>
               </div>
             ) : (
               <div className="flex flex-col items-center">

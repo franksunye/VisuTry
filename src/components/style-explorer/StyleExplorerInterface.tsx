@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import Link from 'next/link'
 import { useParams } from 'next/navigation'
 import { useSession } from 'next-auth/react'
@@ -52,6 +52,14 @@ interface FramePreset extends BatchTaskPreset {}
 interface UploadedImage {
   file?: File
   preview: string
+  source?: 'face-analysis' | 'upload'
+}
+
+type SourcePhotoStatus = 'idle' | 'waiting' | 'loading' | 'restored' | 'error' | 'dismissed' | 'overridden'
+
+interface StyleExplorerInterfaceProps {
+  initialRemainingCredits?: number
+  faceAnalysisTaskId?: string | null
 }
 
 const STYLE_OPTIONS: Array<{ value: StyleIntent; label: string }> = [
@@ -76,7 +84,10 @@ const OCCASION_OPTIONS: Array<{ value: StyleOccasion; label: string }> = [
   { value: 'outdoor', label: 'Outdoor' },
 ]
 
-export function StyleExplorerInterface({ initialRemainingCredits = 0 }: { initialRemainingCredits?: number }) {
+export function StyleExplorerInterface({
+  initialRemainingCredits = 0,
+  faceAnalysisTaskId = null,
+}: StyleExplorerInterfaceProps) {
   const params = useParams()
   const locale = (params.locale as string) || 'en'
   const { data: session, update } = useSession()
@@ -96,6 +107,12 @@ export function StyleExplorerInterface({ initialRemainingCredits = 0 }: { initia
   const [replaceIndex, setReplaceIndex] = useState<number | null>(null)
   const [detailTask, setDetailTask] = useState<BatchTask<FramePreset> | null>(null)
   const [shareNotice, setShareNotice] = useState<string | null>(null)
+  const [batchRecoveryComplete, setBatchRecoveryComplete] = useState(false)
+  const [sourcePhotoStatus, setSourcePhotoStatus] = useState<SourcePhotoStatus>(
+    faceAnalysisTaskId ? 'waiting' : 'idle',
+  )
+  const sourcePhotoAttemptRef = useRef<string | null>(null)
+  const sourcePreviewUrlRef = useRef<string | null>(null)
 
   const recommendedPresets = useMemo(
     () => recommendationIds.map(getTopPickPresetById).filter(Boolean) as GlassesPreset[],
@@ -106,6 +123,13 @@ export function StyleExplorerInterface({ initialRemainingCredits = 0 }: { initia
   const activeCount = batch?.tasks.filter((task) => task.status === 'queued' || task.status === 'processing').length ?? 0
   const isLocked = isSubmitting || isRetrying || activeCount > 0
   const canGenerate = Boolean(userImage?.file && !batch && recommendationIds.length === 4 && remainingCredits >= 4 && !isLocked)
+  const isSourcePhotoLoading = sourcePhotoStatus === 'waiting' || sourcePhotoStatus === 'loading'
+
+  const releaseSourcePreview = useCallback(() => {
+    if (!sourcePreviewUrlRef.current) return
+    URL.revokeObjectURL(sourcePreviewUrlRef.current)
+    sourcePreviewUrlRef.current = null
+  }, [])
 
   const recommend = (
     nextStyle = styleIntent,
@@ -133,6 +157,10 @@ export function StyleExplorerInterface({ initialRemainingCredits = 0 }: { initia
 
   useEffect(() => {
     analytics.trackCustomEvent('style_explorer_viewed')
+  }, [])
+
+  useEffect(() => () => {
+    if (sourcePreviewUrlRef.current) URL.revokeObjectURL(sourcePreviewUrlRef.current)
   }, [])
 
   useEffect(() => {
@@ -194,7 +222,10 @@ export function StyleExplorerInterface({ initialRemainingCredits = 0 }: { initia
   }, [activeCount, batch, completedCount, update])
 
   useEffect(() => {
-    if (batch || isSubmitting || isRetrying) return
+    if (batch || isSubmitting || isRetrying) {
+      setBatchRecoveryComplete(true)
+      return
+    }
     let cancelled = false
 
     const recover = async () => {
@@ -214,6 +245,8 @@ export function StyleExplorerInterface({ initialRemainingCredits = 0 }: { initia
         if (payload.data.category) setCategory(payload.data.category)
       } catch {
         // Recovery is opportunistic.
+      } finally {
+        if (!cancelled) setBatchRecoveryComplete(true)
       }
     }
 
@@ -222,6 +255,77 @@ export function StyleExplorerInterface({ initialRemainingCredits = 0 }: { initia
       cancelled = true
     }
   }, [batch, isRetrying, isSubmitting])
+
+  useEffect(() => {
+    if (!faceAnalysisTaskId) {
+      setSourcePhotoStatus('idle')
+      return
+    }
+    if (!batchRecoveryComplete) {
+      setSourcePhotoStatus('waiting')
+      return
+    }
+    if (batch) {
+      setSourcePhotoStatus((current) => (
+        current === 'waiting' || current === 'loading' ? 'idle' : current
+      ))
+      return
+    }
+    if (sourcePhotoAttemptRef.current === faceAnalysisTaskId) return
+
+    sourcePhotoAttemptRef.current = faceAnalysisTaskId
+    const controller = new AbortController()
+    let cancelled = false
+
+    const restoreFaceAnalysisPhoto = async () => {
+      setSourcePhotoStatus('loading')
+      setError(null)
+
+      try {
+        const response = await fetch(
+          `/api/face-analysis/${encodeURIComponent(faceAnalysisTaskId)}/photo`,
+          { signal: controller.signal },
+        )
+        if (!response.ok) throw new Error('Face Analysis photo is unavailable')
+
+        const blob = await response.blob()
+        if (!blob.type.startsWith('image/') || blob.size === 0) {
+          throw new Error('Face Analysis photo is invalid')
+        }
+
+        const extension = blob.type === 'image/png' ? 'png' : blob.type === 'image/webp' ? 'webp' : 'jpg'
+        const file = new File([blob], `face-analysis-${faceAnalysisTaskId}.${extension}`, { type: blob.type })
+        const preview = URL.createObjectURL(blob)
+
+        if (cancelled) {
+          URL.revokeObjectURL(preview)
+          return
+        }
+
+        releaseSourcePreview()
+        sourcePreviewUrlRef.current = preview
+        setUserImage({ file, preview, source: 'face-analysis' })
+        setSourcePhotoStatus('restored')
+        analytics.trackCustomEvent('style_explorer_source_photo_restored', {
+          source: 'face-analysis',
+          task_id: faceAnalysisTaskId,
+        })
+      } catch (reason) {
+        if (cancelled || (reason instanceof DOMException && reason.name === 'AbortError')) return
+        setSourcePhotoStatus('error')
+        analytics.trackCustomEvent('style_explorer_source_photo_restore_failed', {
+          source: 'face-analysis',
+          task_id: faceAnalysisTaskId,
+        })
+      }
+    }
+
+    void restoreFaceAnalysisPhoto()
+    return () => {
+      cancelled = true
+      controller.abort()
+    }
+  }, [batch, batchRecoveryComplete, faceAnalysisTaskId, releaseSourcePreview])
 
   const dispatchFrames = async (
     batchId: string,
@@ -385,21 +489,42 @@ export function StyleExplorerInterface({ initialRemainingCredits = 0 }: { initia
             <StepHeading number="1" title="Your Photo" />
             <ImageUpload
               currentImage={userImage?.preview}
-              loading={isLocked}
+              loading={isLocked || isSourcePhotoLoading}
+              loadingText={isSourcePhotoLoading ? 'Loading your Face Analysis photo…' : undefined}
               onImageSelect={(file, preview) => {
-                setUserImage({ file, preview })
+                releaseSourcePreview()
+                setUserImage({ file, preview, source: 'upload' })
                 setBatch(null)
+                setSourcePhotoStatus('overridden')
+                setError(null)
                 analytics.trackCustomEvent('style_explorer_photo_uploaded', { file_type: file.type })
               }}
               onImageRemove={() => {
+                releaseSourcePreview()
                 setUserImage(null)
                 setBatch(null)
+                setSourcePhotoStatus('dismissed')
+                setError(null)
               }}
               label="Your photo"
               description="Clear front-facing photo"
               height="h-[210px]"
               iconType="user"
             />
+            {sourcePhotoStatus === 'restored' && (
+              <div
+                className="mt-2 flex items-start gap-2 rounded-md bg-blue-50 px-2.5 py-2 text-xs font-medium text-blue-700"
+                role="status"
+              >
+                <CheckCircle2 className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+                <span>Loaded from your Face Analysis. Click the photo to replace it.</span>
+              </div>
+            )}
+            {sourcePhotoStatus === 'error' && (
+              <p className="mt-2 text-xs font-medium text-amber-700" role="alert">
+                We couldn&apos;t restore your Face Analysis photo. Please upload it again.
+              </p>
+            )}
           </section>
 
           <section className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm">

@@ -8,6 +8,7 @@ import { StyleExplorerMarketing } from '@/components/style-explorer/StyleExplore
 interface StyleExplorerGateProps {
   locale: string
   signInHref: string
+  faceAnalysisTaskId?: string | null
 }
 
 /**
@@ -17,7 +18,7 @@ interface StyleExplorerGateProps {
  * fully static-rendered. The session is resolved on the client via useSession(),
  * which fetches /api/auth/session on mount.
  */
-export function StyleExplorerGate({ locale, signInHref }: StyleExplorerGateProps) {
+export function StyleExplorerGate({ locale, signInHref, faceAnalysisTaskId }: StyleExplorerGateProps) {
   const { data: session, status } = useSession()
 
   // While session is loading, render marketing to avoid layout shift for
@@ -31,7 +32,10 @@ export function StyleExplorerGate({ locale, signInHref }: StyleExplorerGateProps
 
   return (
     <AutoRefreshWrapper>
-      <StyleExplorerInterface initialRemainingCredits={initialRemainingCredits} />
+      <StyleExplorerInterface
+        initialRemainingCredits={initialRemainingCredits}
+        faceAnalysisTaskId={faceAnalysisTaskId}
+      />
     </AutoRefreshWrapper>
   )
 }
