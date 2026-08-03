@@ -55,7 +55,7 @@ Measurement tags: `query_cluster`, `content_cluster=search-tool`, `product_path`
 - More brand pages beyond Ray-Ban optimization  
 - Sunglasses expansion (immature; pos ~40)  
 - Hairstyle / beard adjacent content  
-- Locale forks (English first; localize only after EN winners prove continuation)  
+- Locale forks (English first in Batch 1; full 9-locale + sitemap follow-up is specified in [`2026-08-03-search-to-tool-i18n-spec.md`](./2026-08-03-search-to-tool-i18n-spec.md))  
 - Arbitrary page-count fill to “look complete”
 
 ---
@@ -70,3 +70,9 @@ Measurement tags: `query_cluster`, `content_cluster=search-tool`, `product_path`
 | Close | #9–#10 (shape + comparison refresh) |
 
 **30-day gate still holds:** do not expand past these 10 until GSC shows indexing/impressions and Analytics shows Detector / Try-On / Compare continuation from the new/refreshed URLs.
+
+---
+
+## Related
+
+- Locale + sitemap follow-up: [`docs/strategy/growth/2026-08-03-search-to-tool-i18n-spec.md`](./2026-08-03-search-to-tool-i18n-spec.md)

@@ -1,6 +1,6 @@
 # i18n Scope And Current Policy
 
-**Last Updated**: 2026-07-24
+**Last Updated**: 2026-08-03
 **Supported Locales**: `en`, `id`, `ar`, `ru`, `de`, `ja`, `es`, `pt`, `fr`  
 **Default Locale**: `en`
 
@@ -26,6 +26,16 @@ VisuTry now uses a **marketing-first localization** strategy.
   - `src/app/[locale]/(main)/face-analysis/page.tsx` (landing/marketing content)
 - Marketing components used by those pages
 - Locale metadata and marketing structured data text
+
+### Search→Tool Batch 1 (pending implementation)
+
+Long-form SEO / Search→Tool landings use **config locale TS modules** (same pattern as `face-shape-seo-locales.ts`), not `messages/*.json`.
+
+Spec: [`docs/strategy/growth/2026-08-03-search-to-tool-i18n-spec.md`](strategy/growth/2026-08-03-search-to-tool-i18n-spec.md)
+
+- Phase A: 7 query landings + `/glasses-guide` hub → 9-locale index + sitemap
+- Phase B: `/glasses-guide/[slug]` × 30 combination guides → 9-locale index + sitemap
+- Until a Phase ships translations, those routes stay EN-only in sitemap/hreflang per geo-sync §8
 
 ## Out Of Scope
 
