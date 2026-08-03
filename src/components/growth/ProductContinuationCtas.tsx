@@ -2,6 +2,7 @@
 
 import { ArrowRight, Glasses, Grid2X2, ScanFace, Sparkles } from 'lucide-react'
 import { GrowthFunnelLink } from '@/components/analytics/GrowthFunnelLink'
+import { getSearchToToolSharedCopy } from '@/config/search-to-tool-locales'
 
 export type ProductContinuationAction = 'detector' | 'try_on' | 'compare' | 'advisor'
 
@@ -23,13 +24,6 @@ export type ProductContinuationCtasProps = {
   className?: string
 }
 
-const DEFAULT_LABELS = {
-  detector: 'Detect my face shape',
-  tryOn: 'Open virtual try-on',
-  compare: 'Compare frames',
-  advisor: 'Get glasses advice',
-}
-
 const ACTION_CONFIG: Record<
   ProductContinuationAction,
   {
@@ -37,7 +31,7 @@ const ACTION_CONFIG: Record<
     productPath: string
     href: (locale: string, sourcePage: string) => string
     icon: typeof ScanFace
-    labelKey: keyof typeof DEFAULT_LABELS
+    labelKey: keyof ProductContinuationCtasProps['labels']
   }
 > = {
   detector: {
@@ -87,7 +81,7 @@ export function ProductContinuationCtas({
   layout = 'hero',
   className = '',
 }: ProductContinuationCtasProps) {
-  const copy = { ...DEFAULT_LABELS, ...labels }
+  const copy = { ...getSearchToToolSharedCopy(locale).ctaLabels, ...labels }
   const linkClass =
     layout === 'compact'
       ? 'inline-flex items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-semibold text-gray-800 hover:bg-gray-50'
