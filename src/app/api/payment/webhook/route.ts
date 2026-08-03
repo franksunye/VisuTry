@@ -101,6 +101,9 @@ async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session, 
         status: "COMPLETED",
         productType: paymentData.productType,
         description: getProductDescription(paymentData.productType),
+        ...(paymentData.attribution
+          ? { attribution: paymentData.attribution }
+          : {}),
       }
     })
 

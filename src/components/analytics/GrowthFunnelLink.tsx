@@ -2,7 +2,7 @@
 
 import type { ReactNode } from 'react'
 import Link from 'next/link'
-import { analytics } from '@/lib/analytics'
+import { analytics, setGrowthContext } from '@/lib/analytics'
 
 interface GrowthFunnelLinkProps {
   href: string
@@ -10,6 +10,8 @@ interface GrowthFunnelLinkProps {
   destination: string
   ctaLocation: string
   queryCluster: string
+  contentCluster?: string
+  productPath?: string
   className?: string
   children: ReactNode
 }
@@ -21,6 +23,8 @@ export function GrowthFunnelLink({
   destination,
   ctaLocation,
   queryCluster,
+  contentCluster,
+  productPath,
   className,
   children,
 }: GrowthFunnelLinkProps) {
@@ -29,11 +33,18 @@ export function GrowthFunnelLink({
       href={href}
       className={className}
       onClick={() => {
+        setGrowthContext({
+          query_cluster: queryCluster,
+          ...(contentCluster ? { content_cluster: contentCluster } : {}),
+          ...(productPath ? { product_path: productPath } : {}),
+        })
         analytics.trackCustomEvent('seo_funnel_click', {
           source_page: sourcePage,
           destination,
           cta_location: ctaLocation,
           query_cluster: queryCluster,
+          ...(contentCluster ? { content_cluster: contentCluster } : {}),
+          ...(productPath ? { product_path: productPath } : {}),
         })
       }}
     >

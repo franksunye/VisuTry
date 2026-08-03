@@ -4,7 +4,7 @@ import { useState } from "react"
 import { useParams } from "next/navigation"
 import { Check, Loader2 } from "lucide-react"
 import { cn } from "@/utils/cn"
-import { analytics, type ProductType } from "@/lib/analytics"
+import { analytics, getAcquisitionContext, type ProductType } from "@/lib/analytics"
 import { localizedPath } from "@/lib/localized-path"
 import { useQuota } from "@/hooks/useQuota"
 
@@ -76,6 +76,7 @@ export function PricingCard({ plan, currentUser }: PricingCardProps) {
           productType: plan.id,
           successUrl: `${window.location.origin}${dashboardHref}?payment=success&session_id={CHECKOUT_SESSION_ID}`,
           cancelUrl: `${window.location.origin}${pricingHref}?payment=cancelled`,
+          attribution: getAcquisitionContext(),
         }),
       })
 

@@ -1,6 +1,12 @@
 import Stripe from "stripe"
 import { mockStripe, isMockMode } from './mocks/stripe'
 import { PRODUCT_METADATA, QUOTA_CONFIG } from '@/config/pricing'
+import type { AcquisitionAttribution } from '@/lib/acquisition-attribution'
+import {
+  parseAttributionFromStripeMetadata,
+  sanitizeAcquisitionAttribution,
+  serializeAttributionForStripe,
+} from '@/lib/acquisition-attribution'
 
 // Only require Stripe key in production mode
 if (!process.env.STRIPE_SECRET_KEY && !isMockMode && !process.env.SKIP_ENV_VALIDATION) {
@@ -73,18 +79,23 @@ export async function createCheckoutSession({
   successUrl,
   cancelUrl,
   unlockTaskId,
+  attribution,
 }: {
   productType: ProductType
   userId: string
   successUrl: string
   cancelUrl: string
   unlockTaskId?: string
+  attribution?: AcquisitionAttribution
 }) {
   const product = PRODUCTS[productType]
 
   if (!product.priceId) {
     throw new Error(`Price ID not configured for product: ${productType}`)
   }
+
+  const sanitizedAttribution = sanitizeAcquisitionAttribution(attribution)
+  const serializedAttribution = serializeAttributionForStripe(sanitizedAttribution)
 
   const sessionParams: Stripe.Checkout.SessionCreateParams = {
     mode: productType.startsWith("CREDITS_PACK") ? "payment" : "subscription",
@@ -102,6 +113,7 @@ export async function createCheckoutSession({
       userId,
       productType,
       ...(unlockTaskId ? { unlockTaskId } : {}),
+      ...(serializedAttribution ? { attribution: serializedAttribution } : {}),
     },
   }
 
@@ -171,6 +183,7 @@ export async function handleSuccessfulPayment(session: Stripe.Checkout.Session) 
     sessionId: session.id,
     paymentIntentId: session.payment_intent as string,
     unlockTaskId: session.metadata?.unlockTaskId,
+    attribution: parseAttributionFromStripeMetadata(session.metadata),
   }
 }
 

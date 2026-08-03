@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { ArrowRight, CheckCircle2, Glasses, ScanFace } from 'lucide-react'
 import { GrowthFunnelLink } from '@/components/analytics/GrowthFunnelLink'
+import { ProductContinuationCtas } from '@/components/growth/ProductContinuationCtas'
 import { FACE_SHAPE_SLUGS, type FaceShapeContentSlug } from '@/config/face-shape-content'
 import { getFaceShapeSeoCopy } from '@/config/face-shape-seo-locales'
 import { getTopPickPresetById, type GlassesPreset } from '@/config/glasses-presets'
@@ -133,28 +134,18 @@ export default function FaceShapePage({ params }: FaceShapePageProps) {
             </p>
             <h1 className="mb-4 text-3xl font-bold leading-tight text-gray-950 md:text-5xl">{title}</h1>
             <p className="mb-6 text-lg leading-8 text-gray-600">{description}</p>
-            <div className="flex flex-col gap-3 sm:flex-row">
-              <GrowthFunnelLink
-                href={`/${locale}/face-shape-detector`}
-                sourcePage={pagePath}
-                destination="face-shape-detector"
-                ctaLocation="hero-primary"
-                queryCluster="glasses-by-face-shape"
-                className="inline-flex items-center justify-center gap-2 rounded-lg bg-blue-600 px-5 py-3 font-semibold text-white hover:bg-blue-700"
-              >
-                {seoCopy.glasses.detectorCta}<ArrowRight className="h-4 w-4" />
-              </GrowthFunnelLink>
-              <GrowthFunnelLink
-                href={`/${locale}/try-on/glasses`}
-                sourcePage={pagePath}
-                destination="glasses-try-on"
-                ctaLocation="hero-secondary"
-                queryCluster="glasses-by-face-shape"
-                className="inline-flex items-center justify-center gap-2 rounded-lg border border-gray-300 px-5 py-3 font-semibold text-gray-700 hover:bg-gray-50"
-              >
-                {seoCopy.glasses.tryOnCta}<ArrowRight className="h-4 w-4" />
-              </GrowthFunnelLink>
-            </div>
+            <ProductContinuationCtas
+              locale={locale}
+              sourcePage={pagePath}
+              queryCluster="glasses-by-face-shape"
+              contentCluster="search-tool"
+              ctaLocation="hero"
+              labels={{
+                detector: seoCopy.glasses.detectorCta,
+                tryOn: seoCopy.glasses.tryOnCta,
+                compare: 'Compare frames',
+              }}
+            />
           </div>
 
           <div className="rounded-lg border border-gray-200 bg-white p-5 shadow-sm">

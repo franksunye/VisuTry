@@ -4,6 +4,10 @@ import { createCheckoutSession, ProductType } from "@/lib/stripe"
 import { isMockMode } from "@/lib/mocks"
 import { mockCreateCheckoutSession } from "@/lib/mocks/stripe"
 import { logger, getRequestContext } from "@/lib/logger"
+import {
+  sanitizeAcquisitionAttribution,
+  serializeAttributionForStripe,
+} from "@/lib/acquisition-attribution"
 
 // Force dynamic rendering for this route
 export const dynamic = 'force-dynamic'
@@ -17,7 +21,8 @@ export async function POST(request: NextRequest) {
     const userId = auth.userId
 
     const body = await request.json()
-    const { productType, priceId, successUrl, cancelUrl, unlockTaskId } = body
+    const { productType, priceId, successUrl, cancelUrl, unlockTaskId, attribution } = body
+    const sanitizedAttribution = sanitizeAcquisitionAttribution(attribution)
 
     // 支持两种参数格式：productType 或 priceId
     let finalProductType: ProductType
@@ -68,11 +73,13 @@ export async function POST(request: NextRequest) {
     if (isMockMode) {
       console.log('🧪 Mock Payment: Creating mock checkout session')
       logger.info('payment', 'Creating mock checkout session', { productType: finalProductType, userId: userId }, ctx)
+      const serializedAttribution = serializeAttributionForStripe(sanitizedAttribution)
       checkoutSession = await mockCreateCheckoutSession({
         productType: finalProductType,
         userId: userId,
         successUrl: successUrl || 'http://localhost:3000/success',
         cancelUrl: cancelUrl || 'http://localhost:3000/cancel',
+        ...(serializedAttribution ? { attribution: serializedAttribution } : {}),
       })
     } else {
       checkoutSession = await createCheckoutSession({
@@ -81,6 +88,7 @@ export async function POST(request: NextRequest) {
         successUrl,
         cancelUrl,
         unlockTaskId: typeof unlockTaskId === 'string' ? unlockTaskId : undefined,
+        attribution: sanitizedAttribution,
       })
     }
 

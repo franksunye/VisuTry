@@ -16,6 +16,7 @@ type CompletedPaymentResponse = {
     productType: ProductType
     value: number
     currency: string
+    attribution?: Record<string, string>
   }
 }
 
@@ -64,6 +65,7 @@ export function PaymentConversionTracker() {
             completed.data.transactionId,
             completed.data.productType,
             completed.data.value,
+            completed.data.attribution,
           )
           try {
             window.localStorage.setItem(storageKey, new Date().toISOString())

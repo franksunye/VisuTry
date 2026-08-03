@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { requireAuth } from '@/lib/api-auth'
 import { prisma } from '@/lib/prisma'
+import { sanitizeAcquisitionAttribution } from '@/lib/acquisition-attribution'
 
 export const dynamic = 'force-dynamic'
 
@@ -25,6 +26,7 @@ export async function GET(request: NextRequest) {
       currency: true,
       status: true,
       productType: true,
+      attribution: true,
     },
   })
 
@@ -49,6 +51,8 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ success: true, status: payment.status.toLowerCase() })
   }
 
+  const attribution = sanitizeAcquisitionAttribution(payment.attribution)
+
   return NextResponse.json({
     success: true,
     status: 'completed',
@@ -57,6 +61,7 @@ export async function GET(request: NextRequest) {
       productType: payment.productType,
       value: payment.amount / 100,
       currency: payment.currency.toUpperCase(),
+      ...(attribution ? { attribution } : {}),
     },
   })
 }

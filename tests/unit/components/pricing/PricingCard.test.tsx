@@ -9,6 +9,41 @@ jest.mock('lucide-react', () => ({
   Loader2: ({ className }: { className?: string }) => <div data-testid="loader-icon" className={className} />
 }))
 
+jest.mock('next-auth/react', () => ({
+  useSession: () => ({
+    data: {
+      user: {
+        id: 'user-1',
+        remainingTrials: 3,
+        isPremiumActive: false,
+      },
+    },
+    status: 'authenticated',
+  }),
+}))
+
+jest.mock('@/lib/analytics', () => ({
+  analytics: {
+    trackClickPurchase: jest.fn(),
+    trackBeginCheckout: jest.fn(),
+  },
+  getAcquisitionContext: () => ({
+    landing_page: '/en/pricing',
+    page_path: '/en/pricing',
+    landing_locale: 'en',
+  }),
+  getUserType: () => 'free',
+}))
+
+jest.mock('@/hooks/useQuota', () => ({
+  useQuota: () => ({
+    userType: 'free',
+    remainingTrials: 3,
+    isPremiumActive: false,
+    isAuthenticated: true,
+  }),
+}))
+
 // Mock fetch
 global.fetch = jest.fn()
 const mockFetch = fetch as jest.MockedFunction<typeof fetch>
@@ -152,17 +187,29 @@ describe('PricingCard', () => {
       const button = screen.getByRole('button', { name: 'Start Premium' })
       await user.click(button)
 
-      expect(mockFetch).toHaveBeenCalledWith('/api/payment/create-session', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          productType: 'PREMIUM_MONTHLY',
-          successUrl: `${window.location.origin}/dashboard?payment=success&session_id={CHECKOUT_SESSION_ID}`,
-          cancelUrl: `${window.location.origin}/pricing?payment=cancelled`
-        })
+      expect(mockFetch).toHaveBeenCalledWith(
+        '/api/payment/create-session',
+        expect.objectContaining({
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        }),
+      )
+
+      const requestInit = mockFetch.mock.calls[0]?.[1] as RequestInit
+      const body = JSON.parse(String(requestInit.body))
+      expect(body).toMatchObject({
+        productType: 'PREMIUM_MONTHLY',
+        successUrl: `${window.location.origin}/en/dashboard?payment=success&session_id={CHECKOUT_SESSION_ID}`,
+        cancelUrl: `${window.location.origin}/en/pricing?payment=cancelled`,
       })
+      expect(body.attribution).toEqual(
+        expect.objectContaining({
+          landing_page: expect.any(String),
+          page_path: expect.any(String),
+        }),
+      )
     })
 
     it('should redirect to Stripe checkout on successful payment session creation', async () => {

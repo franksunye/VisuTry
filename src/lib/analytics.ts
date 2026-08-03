@@ -31,9 +31,30 @@ export type UpgradeLocation = 'quick_actions' | 'subscription_card' | 'nav'
 // 产品类型
 export type { ProductType } from '@/config/pricing'
 import type { ProductType } from '@/config/pricing'
+import type { AcquisitionAttribution } from '@/lib/acquisition-attribution'
+import { sanitizeAcquisitionAttribution } from '@/lib/acquisition-attribution'
 
 const LANDING_PAGE_KEY = 'visutry_landing_page'
 const GROWTH_SOURCE_KEY = 'visutry_growth_source'
+const GROWTH_MEDIUM_KEY = 'visutry_growth_medium'
+const GROWTH_CONTEXT_KEY = 'visutry_growth_context'
+
+export type AcquisitionContext = {
+  landing_page: string
+  page_path: string
+  growth_source?: string
+  medium?: string
+  query_cluster?: string
+  content_cluster?: string
+  product_path?: string
+  landing_locale?: string
+}
+
+type GrowthContext = {
+  query_cluster?: string
+  content_cluster?: string
+  product_path?: string
+}
 
 /**
  * 获取用户当前浏览的页面语言（landing_locale）
@@ -58,23 +79,70 @@ function getBrowserLanguage(): string {
   return navigator.language || 'en'
 }
 
+function readGrowthContext(): GrowthContext {
+  if (typeof window === 'undefined') return {}
+
+  try {
+    const raw = window.sessionStorage.getItem(GROWTH_CONTEXT_KEY)
+    if (!raw) return {}
+    const parsed = sanitizeAcquisitionAttribution(JSON.parse(raw))
+    if (!parsed) return {}
+    return {
+      ...(parsed.query_cluster ? { query_cluster: parsed.query_cluster } : {}),
+      ...(parsed.content_cluster ? { content_cluster: parsed.content_cluster } : {}),
+      ...(parsed.product_path ? { product_path: parsed.product_path } : {}),
+    }
+  } catch {
+    return {}
+  }
+}
+
+/**
+ * Persist growth taxonomy for later product / purchase events in this session.
+ * Funnel links and tool CTAs should call this when the user continues.
+ */
+export function setGrowthContext(context: GrowthContext) {
+  if (typeof window === 'undefined') return
+
+  try {
+    const next = sanitizeAcquisitionAttribution({
+      ...readGrowthContext(),
+      ...context,
+    })
+    if (!next) return
+    window.sessionStorage.setItem(
+      GROWTH_CONTEXT_KEY,
+      JSON.stringify({
+        ...(next.query_cluster ? { query_cluster: next.query_cluster } : {}),
+        ...(next.content_cluster ? { content_cluster: next.content_cluster } : {}),
+        ...(next.product_path ? { product_path: next.product_path } : {}),
+      }),
+    )
+  } catch {
+    // Ignore storage failures; analytics should never block UX.
+  }
+}
+
 /**
  * Preserve the first page and explicit growth source for the current browser
  * session so downstream product and revenue events can be attributed back to
  * the acquisition entry point.
  */
-function getSessionAttribution(): { landing_page: string; page_path: string; growth_source?: string } {
+function getSessionAttribution(): AcquisitionContext {
   if (typeof window === 'undefined') {
     return { landing_page: '/', page_path: '/' }
   }
 
   const pagePath = window.location.pathname
+  const landingLocale = getLandingLocale()
 
   try {
     const searchParams = new URLSearchParams(window.location.search)
     const explicitSource = searchParams.get('source') || searchParams.get('utm_source')
+    const explicitMedium = searchParams.get('medium') || searchParams.get('utm_medium')
     const storedLandingPage = window.sessionStorage.getItem(LANDING_PAGE_KEY)
     const storedGrowthSource = window.sessionStorage.getItem(GROWTH_SOURCE_KEY)
+    const storedMedium = window.sessionStorage.getItem(GROWTH_MEDIUM_KEY)
 
     if (!storedLandingPage) {
       window.sessionStorage.setItem(LANDING_PAGE_KEY, pagePath)
@@ -82,18 +150,36 @@ function getSessionAttribution(): { landing_page: string; page_path: string; gro
     if (explicitSource) {
       window.sessionStorage.setItem(GROWTH_SOURCE_KEY, explicitSource)
     }
+    if (explicitMedium) {
+      window.sessionStorage.setItem(GROWTH_MEDIUM_KEY, explicitMedium)
+    }
 
     const growthSource = explicitSource || storedGrowthSource || undefined
+    const medium = explicitMedium || storedMedium || undefined
+    const growthContext = readGrowthContext()
+
     return {
       landing_page: storedLandingPage || pagePath,
       page_path: pagePath,
+      landing_locale: landingLocale,
       ...(growthSource ? { growth_source: growthSource } : {}),
+      ...(medium ? { medium } : {}),
+      ...growthContext,
     }
   } catch {
     // Storage can be unavailable in privacy-restricted browsers. Attribution
     // should degrade gracefully without interrupting the product flow.
-    return { landing_page: pagePath, page_path: pagePath }
+    return {
+      landing_page: pagePath,
+      page_path: pagePath,
+      landing_locale: landingLocale,
+    }
   }
+}
+
+/** Snapshot used when creating Checkout so attribution survives Stripe return. */
+export function getAcquisitionContext(): AcquisitionContext {
+  return getSessionAttribution()
 }
 
 /**
@@ -105,12 +191,13 @@ function getSessionAttribution(): { landing_page: string; page_path: string; gro
 function sendEvent(eventName: string, parameters: Record<string, any> = {}) {
   if (typeof window === 'undefined') return
 
-  // 注入语言维度（所有事件统一携带）
+  // Session attribution fills defaults; explicit event parameters win so
+  // server-verified purchase attribution can overlay a cleared session.
   const enrichedParameters: Record<string, any> = {
-    ...parameters,
     ...getSessionAttribution(),
     landing_locale: getLandingLocale(),
     browser_language: getBrowserLanguage(),
+    ...parameters,
   }
 
   // Google Analytics 4
@@ -202,17 +289,60 @@ export const analytics = {
       glasses_id: glassesId,
       glasses_name: glassesName,
       try_on_type: tryOnType,
+      product_path: 'virtual_try_on',
     })
   },
 
   /**
    * 追踪试戴完成
    */
-  trackTryOnComplete(userType: UserType, processingTime: number, success: boolean) {
+  trackTryOnComplete(
+    userType: UserType,
+    processingTime: number,
+    success: boolean,
+    tryOnType?: string,
+  ) {
     sendEvent('try_on_complete', {
       user_type: userType,
       processing_time: processingTime,
       success,
+      ...(tryOnType ? { try_on_type: tryOnType } : {}),
+      product_path: 'virtual_try_on',
+    })
+  },
+
+  /**
+   * 追踪 Frame Compare 开始
+   */
+  trackFrameCompareStart(frameCount: number, remainingCredits: number) {
+    sendEvent('frame_compare_start', {
+      frame_count: frameCount,
+      remaining_credits: remainingCredits,
+      product_path: 'frame_compare',
+    })
+  },
+
+  /**
+   * 追踪 Frame Compare 完成（batch 全部结束）
+   */
+  trackFrameCompareComplete({
+    frameCount,
+    completedCount,
+    failedCount,
+    processingTimeMs,
+  }: {
+    frameCount: number
+    completedCount: number
+    failedCount: number
+    processingTimeMs: number
+  }) {
+    sendEvent('frame_compare_complete', {
+      frame_count: frameCount,
+      completed_count: completedCount,
+      failed_count: failedCount,
+      processing_time_ms: processingTimeMs,
+      success: completedCount > 0,
+      product_path: 'frame_compare',
     })
   },
 
@@ -295,8 +425,15 @@ export const analytics = {
 
   /**
    * 追踪购买成功（GA4 推荐事件）
+   * Optional server attribution overlays session storage after Stripe return.
    */
-  trackPurchase(transactionId: string, planType: ProductType, value: number) {
+  trackPurchase(
+    transactionId: string,
+    planType: ProductType,
+    value: number,
+    attribution?: AcquisitionAttribution,
+  ) {
+    const verifiedAttribution = sanitizeAcquisitionAttribution(attribution)
     sendEvent('purchase', {
       transaction_id: transactionId,
       currency: 'USD',
@@ -306,6 +443,7 @@ export const analytics = {
         item_name: planType,
         price: value,
       }],
+      ...(verifiedAttribution || {}),
     })
   },
 
@@ -395,11 +533,25 @@ export const analytics = {
 
   trackFaceShapeDetectorCta(
     faceShape: string,
-    destination: 'glasses_advisor' | 'virtual_try_on' | 'face_shape_guide',
+    destination: 'glasses_advisor' | 'virtual_try_on' | 'frame_compare' | 'face_shape_guide',
   ) {
+    const productPath =
+      destination === 'glasses_advisor'
+        ? 'glasses_advisor'
+        : destination === 'virtual_try_on'
+          ? 'virtual_try_on'
+          : destination === 'frame_compare'
+            ? 'frame_compare'
+            : undefined
+
+    if (productPath) {
+      setGrowthContext({ product_path: productPath })
+    }
+
     sendEvent('face_shape_detector_cta_click', {
       face_shape: faceShape,
       destination,
+      ...(productPath ? { product_path: productPath } : {}),
     })
   },
 

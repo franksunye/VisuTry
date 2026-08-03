@@ -14,7 +14,7 @@ import {
   FACE_ANALYSIS_LAYOUT,
 } from '@/config/face-analysis'
 import { FaceAnalysisTaskResponse } from '@/types/face-analysis'
-import { analytics, getUserType, type ProductType } from '@/lib/analytics'
+import { analytics, getAcquisitionContext, getUserType, type ProductType } from '@/lib/analytics'
 import { analyzeFaceGeometryFromFile } from '@/lib/face-landmark-client'
 import { PRICE_CONFIG } from '@/config/pricing'
 import { FaceAnalysisStepper } from './FaceAnalysisStepper'
@@ -157,6 +157,7 @@ export function FaceAnalysisInterface() {
           successUrl,
           cancelUrl,
           unlockTaskId: task.id,
+          attribution: getAcquisitionContext(),
         }),
       })
 

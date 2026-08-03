@@ -36,6 +36,10 @@ describe('PaymentConversionTracker', () => {
           productType: 'CREDITS_PACK',
           value: 2.99,
           currency: 'USD',
+          attribution: {
+            landing_page: '/en/face-shape-detector',
+            growth_source: 'seo-cluster',
+          },
         },
       }),
     } as Response)
@@ -47,6 +51,10 @@ describe('PaymentConversionTracker', () => {
         'cs_test_123',
         'CREDITS_PACK',
         2.99,
+        {
+          landing_page: '/en/face-shape-detector',
+          growth_source: 'seo-cluster',
+        },
       )
     })
 

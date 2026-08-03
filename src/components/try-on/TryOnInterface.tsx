@@ -60,6 +60,7 @@ export function TryOnInterface({ type = 'GLASSES' }: TryOnInterfaceProps) {
   const [processingMessage, setProcessingMessage] = useState(`AI is processing your ${config.name.toLowerCase()} try-on request...`)
   const [error, setError] = useState<ErrorState | null>(null)
   const submitInFlightRef = useRef(false)
+  const tryOnStartedAtRef = useRef<number | null>(null)
 
   const fileMeta = (file: File) => ({
     name: file.name,
@@ -94,6 +95,11 @@ export function TryOnInterface({ type = 'GLASSES' }: TryOnInterfaceProps) {
     enabled: isProcessing,
     onCompleted: (task) => {
       if (!currentTaskId || !task.resultImageUrl) return
+      const processingTime = tryOnStartedAtRef.current
+        ? Date.now() - tryOnStartedAtRef.current
+        : 0
+      tryOnStartedAtRef.current = null
+      analytics.trackTryOnComplete(quota.userType, processingTime, true, type)
       setResult({ imageUrl: task.resultImageUrl, taskId: currentTaskId })
       setCurrentStep("result")
       setIsProcessing(false)
@@ -108,6 +114,11 @@ export function TryOnInterface({ type = 'GLASSES' }: TryOnInterfaceProps) {
       })
     },
     onFailed: (task) => {
+      const processingTime = tryOnStartedAtRef.current
+        ? Date.now() - tryOnStartedAtRef.current
+        : 0
+      tryOnStartedAtRef.current = null
+      analytics.trackTryOnComplete(quota.userType, processingTime, false, type)
       setError({
         message: task.error || task.errorMessage || "Processing failed, please try again",
         type: 'generic'
@@ -270,6 +281,7 @@ export function TryOnInterface({ type = 'GLASSES' }: TryOnInterfaceProps) {
 
     try {
       const userType = quota.userType
+      tryOnStartedAtRef.current = Date.now()
       analytics.trackTryOnStart(userType, remainingTrials, undefined, undefined, type)
 
       const formData = new FormData()
@@ -292,6 +304,11 @@ export function TryOnInterface({ type = 'GLASSES' }: TryOnInterfaceProps) {
         // Check if task is already completed (synchronous processing)
         if (taskData.status === "completed" && taskData.resultImageUrl) {
           // Task completed immediately, display result
+          const processingTime = tryOnStartedAtRef.current
+            ? Date.now() - tryOnStartedAtRef.current
+            : 0
+          tryOnStartedAtRef.current = null
+          analytics.trackTryOnComplete(userType, processingTime, true, type)
           setResult({
             imageUrl: taskData.resultImageUrl,
             taskId: taskData.taskId
@@ -322,6 +339,11 @@ export function TryOnInterface({ type = 'GLASSES' }: TryOnInterfaceProps) {
         }
       } else {
         // Handle API errors with specific error types
+        const processingTime = tryOnStartedAtRef.current
+          ? Date.now() - tryOnStartedAtRef.current
+          : 0
+        tryOnStartedAtRef.current = null
+        analytics.trackTryOnComplete(userType, processingTime, false, type)
         const errorMessage = data.error || "Try-on failed"
         const isQuotaError = response.status === 403 && errorMessage.includes("quota")
 
@@ -335,6 +357,11 @@ export function TryOnInterface({ type = 'GLASSES' }: TryOnInterfaceProps) {
         setIsProcessing(false)
       }
     } catch (error) {
+      const processingTime = tryOnStartedAtRef.current
+        ? Date.now() - tryOnStartedAtRef.current
+        : 0
+      tryOnStartedAtRef.current = null
+      analytics.trackTryOnComplete(quota.userType, processingTime, false, type)
       const err = error instanceof Error ? error : new Error(String(error))
       console.error("Try-on failed:", error)
       logger.error('general', 'Try-on failed', err)

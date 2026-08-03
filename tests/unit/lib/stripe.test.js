@@ -140,6 +140,38 @@ describe('Stripe Library Unit Tests', () => {
         currency: 'usd',
         sessionId: 'cs_test_123',
         paymentIntentId: 'pi_test_123',
+        unlockTaskId: undefined,
+        attribution: undefined,
+      })
+    })
+
+    test('should extract attribution from checkout session metadata', async () => {
+      const mockSession = {
+        id: 'cs_test_attr',
+        client_reference_id: 'user-123',
+        metadata: {
+          productType: 'CREDITS_PACK',
+          attribution: JSON.stringify({
+            landing_page: '/en/face-shape-detector',
+            growth_source: 'seo-cluster',
+            medium: 'organic',
+            query_cluster: 'face-shape-detector',
+            product_path: 'credits_pack',
+          }),
+        },
+        amount_total: 299,
+        currency: 'usd',
+        payment_intent: 'pi_test_attr',
+      }
+
+      const result = await handleSuccessfulPayment(mockSession)
+
+      expect(result.attribution).toEqual({
+        landing_page: '/en/face-shape-detector',
+        growth_source: 'seo-cluster',
+        medium: 'organic',
+        query_cluster: 'face-shape-detector',
+        product_path: 'credits_pack',
       })
     })
 

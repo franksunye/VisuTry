@@ -2,7 +2,7 @@
 
 /* eslint-disable @next/next/no-img-element */
 
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useParams } from 'next/navigation'
@@ -30,6 +30,7 @@ import {
   normalizeTryOnStatus,
   createQueuedTask,
 } from '@/lib/try-on/batch-types'
+import { analytics } from '@/lib/analytics'
 import { cn } from '@/utils/cn'
 
 interface FramePreset extends BatchTaskPreset {}
@@ -67,6 +68,9 @@ export function FrameCompareInterface({ initialRemainingCredits = 0 }: { initial
   const [batchResult, setBatchResult] = useState<BatchResult<FramePreset> | null>(null)
   const [batchStartedAt, setBatchStartedAt] = useState<number | null>(null)
   const [now, setNow] = useState(() => Date.now())
+  const trackedCompleteBatchIdRef = useRef<string | null>(null)
+  const compareStartedAtRef = useRef<number | null>(null)
+  const sawActiveBatchRef = useRef(false)
 
   const selectedPresets = useMemo(
     () => TOP_PICK_GLASSES_PRESETS.filter((preset) => selectedIds.includes(preset.id)),
@@ -187,10 +191,34 @@ export function FrameCompareInterface({ initialRemainingCredits = 0 }: { initial
   }, [batchResult, processingCount])
 
   useEffect(() => {
-    if (batchResult && activeCount === 0) {
-      void update()
+    if (activeCount > 0) {
+      sawActiveBatchRef.current = true
     }
-  }, [activeCount, batchResult, update])
+  }, [activeCount])
+
+  useEffect(() => {
+    if (!batchResult || activeCount > 0) return
+    if (trackedCompleteBatchIdRef.current === batchResult.batchId) return
+    // Skip recovered already-complete batches that this session never ran.
+    if (!compareStartedAtRef.current && !sawActiveBatchRef.current) return
+
+    trackedCompleteBatchIdRef.current = batchResult.batchId
+    const processingTimeMs = compareStartedAtRef.current
+      ? Date.now() - compareStartedAtRef.current
+      : batchStartedAt
+        ? Date.now() - batchStartedAt
+        : 0
+    compareStartedAtRef.current = null
+    sawActiveBatchRef.current = false
+
+    analytics.trackFrameCompareComplete({
+      frameCount: batchResult.tasks.length,
+      completedCount,
+      failedCount,
+      processingTimeMs,
+    })
+    void update()
+  }, [activeCount, batchResult, batchStartedAt, completedCount, failedCount, update])
 
   useEffect(() => {
     if (!isBatchProcessing) return
@@ -268,6 +296,9 @@ export function FrameCompareInterface({ initialRemainingCredits = 0 }: { initial
     setIsSubmitting(true)
     setError(null)
     setBatchResult(null)
+    trackedCompleteBatchIdRef.current = null
+    compareStartedAtRef.current = Date.now()
+    analytics.trackFrameCompareStart(selectedIds.length, remainingCredits)
 
     try {
       const formData = new FormData()

@@ -2,7 +2,7 @@
 
 import Image from 'next/image'
 import Link from 'next/link'
-import { ArrowRight, CheckCircle2, Glasses, Info, Sparkles } from 'lucide-react'
+import { ArrowRight, CheckCircle2, Glasses, Grid2X2, Info, Sparkles } from 'lucide-react'
 import { getFaceShapeIcon } from '@/config/face-analysis'
 import { getFaceShapeContent } from '@/config/face-shape-content'
 import { FaceLandmarkMeshOverlay } from '@/components/face-analysis/FaceLandmarkMeshOverlay'
@@ -113,19 +113,31 @@ export function FreeFaceShapeResult({
         </section>
       </div>
 
-      <section className="rounded-lg border border-blue-200 bg-blue-50 p-4 sm:flex sm:items-center sm:justify-between sm:gap-5 sm:p-5">
-        <div>
-          <p className="text-sm font-semibold text-blue-950">See how frames look on your {guide.name.toLowerCase()} face</p>
-          <p className="mt-1 text-sm leading-6 text-blue-800">Use your own glasses image as the visual check before deciding.</p>
+      <section className="rounded-lg border border-blue-200 bg-blue-50 p-4 sm:p-5">
+        <div className="sm:flex sm:items-start sm:justify-between sm:gap-5">
+          <div>
+            <p className="text-sm font-semibold text-blue-950">See how frames look on your {guide.name.toLowerCase()} face</p>
+            <p className="mt-1 text-sm leading-6 text-blue-800">Continue into try-on or side-by-side compare before you decide.</p>
+          </div>
+          <div className="mt-3 flex w-full flex-col gap-2 sm:mt-0 sm:w-auto sm:items-stretch">
+            <Link
+              href={`/${locale}/try-on/glasses?source=free-face-shape-detector`}
+              onClick={() => analytics.trackFaceShapeDetectorCta(guide.slug, 'virtual_try_on')}
+              className="inline-flex w-full items-center justify-center rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-blue-700"
+            >
+              <Glasses className="me-2 h-4 w-4" />
+              Open virtual try-on
+            </Link>
+            <Link
+              href={`/${locale}/try-on/glasses/compare?source=free-face-shape-detector`}
+              onClick={() => analytics.trackFaceShapeDetectorCta(guide.slug, 'frame_compare')}
+              className="inline-flex w-full items-center justify-center rounded-lg border border-blue-300 bg-white px-4 py-2.5 text-sm font-semibold text-blue-800 hover:bg-blue-50"
+            >
+              <Grid2X2 className="me-2 h-4 w-4" />
+              Compare frames side by side
+            </Link>
+          </div>
         </div>
-        <Link
-          href={`/${locale}/try-on/glasses?source=free-face-shape-detector`}
-          onClick={() => analytics.trackFaceShapeDetectorCta(guide.slug, 'virtual_try_on')}
-          className="mt-3 inline-flex w-full shrink-0 items-center justify-center rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-blue-700 sm:mt-0 sm:w-auto"
-        >
-          <Glasses className="me-2 h-4 w-4" />
-          Open virtual try-on
-        </Link>
       </section>
 
       <MeasurementDetails metrics={metrics} detection={detection} warnings={geometry.warnings} />

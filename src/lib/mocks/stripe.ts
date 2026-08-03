@@ -185,6 +185,7 @@ export async function mockCreateCheckoutSession(params: {
   userId: string
   successUrl: string
   cancelUrl: string
+  attribution?: string
 }): Promise<MockPaymentSession> {
   return mockStripe.checkout.sessions.create({
     mode: 'subscription',
@@ -196,7 +197,8 @@ export async function mockCreateCheckoutSession(params: {
     cancel_url: params.cancelUrl,
     metadata: {
       userId: params.userId,
-      productType: params.productType
+      productType: params.productType,
+      ...(params.attribution ? { attribution: params.attribution } : {}),
     }
   })
 }
