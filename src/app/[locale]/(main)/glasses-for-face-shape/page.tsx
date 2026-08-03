@@ -70,6 +70,11 @@ export default function GlassesForFaceShapePage({ params }: Props) {
           <Link href={`/${locale}/sunglasses-for-face-shape`} className="text-blue-700 hover:text-blue-900">
             {copy.glasses.sunglassesLink}
           </Link>
+          {locale === 'en' && (
+            <Link href={`/${locale}/glasses-guide`} className="text-blue-700 hover:text-blue-900">
+              Explore glasses guides →
+            </Link>
+          )}
         </div>
       )}
     >
