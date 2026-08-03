@@ -1,6 +1,6 @@
 # GTM Batch 1 — First 10 Search→Tool pages (2026-08-03)
 
-**Status:** Batch 1 implemented 2026-08-03 (refresh + 3 new EN Search→Tool pages)  
+**Status:** ✅ Batch 1 implemented; 9-locale Search→Tool follow-up also completed 2026-08-03  
 **Source:** GSC export 2026-07-27 + GTM v3.1 + Engineering P0 template  
 **Rule:** Refresh ranking owners before creating weak new pages. Ship only these 10 first; expand after indexing + impression review.
 
@@ -50,29 +50,50 @@ Measurement tags: `query_cluster`, `content_cluster=search-tool`, `product_path`
 
 ---
 
-## Explicitly **not** in Batch 1
+## Localization follow-up — completed
+
+The original Batch 1 intentionally launched English-first. The planned locale/sitemap follow-up is now complete.
+
+Completion record: [`2026-08-03-search-to-tool-i18n-spec.md`](./2026-08-03-search-to-tool-i18n-spec.md)
+
+Delivered:
+
+- 7 core Search→Tool query landings + `/glasses-guide` hub across all 9 supported locales
+- 30 `/glasses-guide/[slug]` detail guides across all 9 locales
+- localized metadata, visible copy, FAQ, CTA and structured data
+- full sitemap/hreflang topology with `x-default` → English
+- route-intent protection for overlapping query owners
+- Phase A merged via PR #16
+- Phase B merged via PR #17
+
+The original “Locale forks” exclusion therefore applies only to the initial English-first Batch 1 shipment, not the current production state.
+
+---
+
+## Still explicitly outside Batch 1
 
 - More brand pages beyond Ray-Ban optimization  
 - Sunglasses expansion (immature; pos ~40)  
 - Hairstyle / beard adjacent content  
-- Locale forks (English first in Batch 1; full 9-locale + sitemap follow-up is specified in [`2026-08-03-search-to-tool-i18n-spec.md`](./2026-08-03-search-to-tool-i18n-spec.md))  
 - Arbitrary page-count fill to “look complete”
 
 ---
 
-## Week 2 operating order
+## Post-launch operating order
 
-| Day focus | Items |
-| --- | --- |
-| First | #1–#3 (detector ownership + convert current winner + hub) |
-| Next | #4–#5 (Ray-Ban CTR + VTO tool ownership) |
-| Then | #6–#8 (three new Search→Tool owners) |
-| Close | #9–#10 (shape + comparison refresh) |
+The implementation work is closed. Continue with measurement rather than immediate page-count expansion.
 
-**30-day gate still holds:** do not expand past these 10 until GSC shows indexing/impressions and Analytics shows Detector / Try-On / Compare continuation from the new/refreshed URLs.
+Monitor:
+
+- GSC indexing / impressions / CTR by query cluster and locale
+- duplicate/canonical/hreflang signals
+- Detector / Advisor / Try-On / Compare continuation from Search→Tool pages
+- whether the 30 localized detail guides generate enough demand to justify the next query batch
+
+**30-day gate still holds:** do not expand mechanically beyond the validated query set until GSC and Analytics show where Search→Tool demand and product continuation are actually accumulating.
 
 ---
 
 ## Related
 
-- Locale + sitemap follow-up: [`docs/strategy/growth/2026-08-03-search-to-tool-i18n-spec.md`](./2026-08-03-search-to-tool-i18n-spec.md)
+- Completed locale + sitemap rollout: [`docs/strategy/growth/2026-08-03-search-to-tool-i18n-spec.md`](./2026-08-03-search-to-tool-i18n-spec.md)
