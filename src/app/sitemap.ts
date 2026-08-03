@@ -6,6 +6,7 @@ import { locales } from '@/i18n'
 import { FACE_SHAPE_SLUGS } from '@/config/face-shape-content'
 import { FACE_SHAPE_COMPARISON_SLUGS } from '@/config/face-shape-comparisons'
 import { CURATED_BRAND_SLUGS, isCuratedBrandSlug } from '@/config/brand-try-on-content'
+import { COMBINATION_SEARCH_PAGES } from '@/config/search-combination-pages'
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.visutry.com'
@@ -47,6 +48,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { path: '/try-glasses-on-photo', priority: 0.9, changeFrequency: 'weekly' as const },
     { path: '/compare-glasses-frames', priority: 0.9, changeFrequency: 'weekly' as const },
     { path: '/ai-glasses-advisor', priority: 0.9, changeFrequency: 'weekly' as const },
+    { path: '/glasses-guide', priority: 0.85, changeFrequency: 'weekly' as const },
   ]
   const localizedSunglassesPaths = FACE_SHAPE_SLUGS.map((slug) => `/sunglasses-for/${slug}-face`)
   const localizedOrdinaryGlassesPaths = FACE_SHAPE_SLUGS.map((slug) => `/style/${slug}-face`)
@@ -54,6 +56,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     `/face-shapes/${slug}`,
     `/hairstyles-for/${slug}-face`,
   ]).concat(FACE_SHAPE_COMPARISON_SLUGS.map((slug) => `/face-shapes/compare/${slug}`))
+  const combinationSearchPaths = COMBINATION_SEARCH_PAGES.map((page) => `/glasses-guide/${page.slug}`)
 
   // Generate static pages for all locales
   const staticPages: MetadataRoute.Sitemap = []
@@ -107,6 +110,15 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       lastModified: new Date(),
       changeFrequency: 'weekly',
       priority: 0.75,
+      alternates: { languages: { en: `${baseUrl}/en${path}` } },
+    })
+  })
+  combinationSearchPaths.forEach((path) => {
+    staticPages.push({
+      url: `${baseUrl}/en${path}`,
+      lastModified: new Date(),
+      changeFrequency: 'weekly',
+      priority: 0.8,
       alternates: { languages: { en: `${baseUrl}/en${path}` } },
     })
   })
@@ -268,7 +280,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   //   userPages = publicUsers.map(user => ({
   //     url: `${baseUrl}/user/${user.name}`,
   //     lastModified: user.updatedAt,
-  //     changeFrequency: 'monthly' as const,
+  //     changeFrequency: 'monthly',
   //     priority: 0.5,
   //   }))
   // } catch (error) {
@@ -295,7 +307,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   //   sharePages = publicShares.map(share => ({
   //     url: `${baseUrl}/share/${share.id}`,
   //     lastModified: share.updatedAt,
-  //     changeFrequency: 'monthly' as const,
+  //     changeFrequency: 'monthly',
   //     priority: 0.6,
   //   }))
   // } catch (error) {
