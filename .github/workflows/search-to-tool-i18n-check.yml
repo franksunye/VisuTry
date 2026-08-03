@@ -1,9 +1,9 @@
 name: Search to Tool i18n check
 
 on:
-  push:
+  pull_request:
     branches:
-      - feat/search-to-tool-i18n-phase-b
+      - feat/search-to-tool-i18n-phase-a-impl-5
 
 jobs:
   unit:
