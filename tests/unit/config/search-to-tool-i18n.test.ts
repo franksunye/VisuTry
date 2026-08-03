@@ -1,6 +1,6 @@
 import { locales } from '@/i18n'
 import { getSearchToToolLandingCopy } from '@/config/search-to-tool-locales'
-import { getSearchToToolPhaseACopy, type SearchToToolPhaseARouteId } from '@/config/search-to-tool-phase-a-locales'
+import { getSearchToToolRouteCopy, type SearchToToolPhaseARouteId } from '@/config/search-to-tool-route-copy'
 import { getSearchToToolShellCopy } from '@/config/search-to-tool-shell-locales'
 import { getGlassesGuideHubCopy } from '@/config/glasses-guide-hub-locales'
 import { getAlternateLanguages } from '@/lib/seo'
@@ -37,10 +37,10 @@ describe('Search→Tool Phase A i18n', () => {
   })
 
   test.each(phaseARoutes)('%s has complete localized copy for all supported locales', (routeId) => {
-    const en = getSearchToToolPhaseACopy('en', routeId)
+    const en = getSearchToToolRouteCopy('en', routeId)
 
     for (const locale of locales) {
-      const copy = getSearchToToolPhaseACopy(locale, routeId)
+      const copy = getSearchToToolRouteCopy(locale, routeId)
       expect(copy.metaTitle).toBeTruthy()
       expect(copy.metaDescription).toBeTruthy()
       expect(copy.eyebrow).toBeTruthy()
@@ -69,6 +69,22 @@ describe('Search→Tool Phase A i18n', () => {
     }
   })
 
+  test('overlapping query clusters keep distinct route-level intent in every locale', () => {
+    for (const locale of locales) {
+      const find = getSearchToToolRouteCopy(locale, 'find-glasses-for-my-face')
+      const suits = getSearchToToolRouteCopy(locale, 'what-glasses-suit-my-face')
+      const photoTryOn = getSearchToToolRouteCopy(locale, 'try-glasses-on-photo')
+      const virtualTryOn = getSearchToToolRouteCopy(locale, 'virtual-glasses-try-on')
+
+      expect(suits.steps).not.toEqual(find.steps)
+      expect(suits.faq).not.toEqual(find.faq)
+      expect(suits.howTo).not.toEqual(find.howTo)
+      expect(virtualTryOn.steps).not.toEqual(photoTryOn.steps)
+      expect(virtualTryOn.faq).not.toEqual(photoTryOn.faq)
+      expect(virtualTryOn.software).not.toEqual(photoTryOn.software)
+    }
+  })
+
   test('shared shell defaults are localized for every non-English locale', () => {
     const en = getSearchToToolShellCopy('en')
     for (const locale of locales) {
@@ -83,7 +99,7 @@ describe('Search→Tool Phase A i18n', () => {
     }
   })
 
-  test('glasses guide hub is localized while Phase B remains explicitly deferred', () => {
+  test('glasses guide hub is localized for users while Phase B indexing remains deferred', () => {
     const en = getGlassesGuideHubCopy('en')
     expect(en.englishGuidesNote).toBe('')
 
@@ -97,7 +113,7 @@ describe('Search→Tool Phase A i18n', () => {
     }
   })
 
-  test('hreflang helper emits all locales plus x-default', () => {
+  test('hreflang helper emits all locales plus x-default for indexed Phase A landings', () => {
     const alternates = getAlternateLanguages('/what-is-my-face-shape')
     expect(Object.keys(alternates)).toHaveLength(locales.length + 1)
     for (const locale of locales) {
