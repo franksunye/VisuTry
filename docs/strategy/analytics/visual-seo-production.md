@@ -1,4 +1,4 @@
-# VisuTry Visual SEO Production v1.1
+# VisuTry Visual SEO Production v1.2
 
 **Status:** Active execution specification  
 **Last updated:** 2026-08-03  
@@ -6,7 +6,7 @@
 **Parent strategy:** `docs/strategy/analytics/gtm.md` → Engine 2 — Visual Discovery  
 **Scope:** Google Images, Search→Tool page visuals, image SEO, Pinterest-ready source assets, and Codex-assisted production/integration.
 
-> This document is the single source of truth for the current Visual SEO image-production program. Do not create a parallel image plan in another document. If the asset list, naming rules, templates, or completion state changes, update this file.
+> This document is the single source of truth for the current Visual SEO image-production program. Do not create a parallel image plan in another document. If the asset list, naming rules, templates, batching rules, or completion state changes, update this file.
 
 ---
 
@@ -33,7 +33,7 @@ Primary distribution surfaces:
 
 ### Total target
 
-**182 production images**
+**182 master production images**
 
 ### Current accepted progress
 
@@ -171,6 +171,8 @@ When needed, derive from the approved master:
 1000×1500
 ```
 
+The first production objective is the 182 master assets. Pinterest derivatives are a second-stage distribution layer and must not distract from completing the master library.
+
 ---
 
 ## 6. Visual language
@@ -189,6 +191,23 @@ All production images should feel like one VisuTry visual knowledge system.
 - minimal text inside the generated image;
 - high information density without looking like an ad banner.
 
+### Standalone visual-answer rule
+
+Every master must work as a **standalone visual answer**, not as a webpage screenshot, landing-page mockup, PPT slide, or long-form infographic page.
+
+Default constraints:
+
+- one visual question / concept per image;
+- one dominant subject or one intentional same-person comparison;
+- one short title, normally no more than 8–10 words;
+- normally no more than 2–4 short labels/cues;
+- no body paragraphs inside the image;
+- no navigation bars, breadcrumbs, footers, privacy panels, pricing blocks, or marketing feature stacks;
+- no generated CTA button unless the specific template genuinely requires a minimal workflow cue;
+- main visual should carry the meaning at thumbnail size.
+
+A useful test is: **if the image is reduced to a Google Images thumbnail, can a user still understand what question it answers within roughly three seconds?** If not, simplify it before acceptance.
+
 ### Avoid
 
 - heavy gradients;
@@ -197,7 +216,9 @@ All production images should feel like one VisuTry visual knowledge system.
 - overly pink or playful cosmetic styling;
 - unrealistic frame dimensions;
 - generated fake UI that contradicts the real VisuTry product;
-- generated VisuTry logos.
+- generated VisuTry logos;
+- webpage-like multi-section compositions;
+- dense explanatory text that belongs in surrounding HTML.
 
 **Important:** Do not ask the image model to render the VisuTry logo. If branding is needed, Codex/design code may overlay the real project logo after generation.
 
@@ -278,7 +299,7 @@ Canonical flow:
 
 > Upload / Detect → Advisor → Try-On → Compare
 
-Use real product screenshots only when supplied/available; otherwise use abstract UI-safe cards/icons.
+Use real product screenshots only when supplied/available; otherwise use abstract UI-safe cards/icons. Keep the workflow visually minimal; do not turn it into a full landing page.
 
 **Default size:** `1200×800`.
 
@@ -315,19 +336,22 @@ A generation prompt must describe **only one final image**.
 
 ### Rule 2 — Batch size is operational, not visual
 
-We may plan in batches of up to 10, but Codex must still orchestrate **10 separate image-generation jobs**.
+The 182 masters are organized into 19 operational batches. A batch is a planning and consistency unit only. Each image must still be generated as an independent image-generation job.
+
+**Never generate a visual representation of a batch.** A batch is text metadata, not an image subject.
 
 ### Rule 3 — Reject without advancing
 
 Reject an output if it:
 
-- becomes a collage/contact sheet;
+- becomes a collage/contact sheet unless the comparison itself is the intended single asset;
 - depicts the wrong face shape;
 - uses the wrong frame family;
 - contains broken or misleading text;
 - creates inconsistent/fictional VisuTry branding;
 - makes the glasses obviously unrealistic;
-- fails the intended search question.
+- fails the intended search question;
+- looks primarily like a webpage, presentation slide, dashboard, or long-form infographic rather than a standalone visual answer.
 
 Rejected assets do not advance the production counter.
 
@@ -345,18 +369,108 @@ Inside-image copy should normally be limited to:
 
 If an image requires an exact VisuTry screen, use a real screenshot or create the composition in code/design tooling. Image generation should not invent authoritative-looking product screens.
 
+### Rule 6 — Manifest is the requirement source; the generation brief is compiled
+
+`visual-seo-prompt-manifest.md` is the authoritative registry for ID, filename, page owner, canonical model, template, and asset-specific intent. Before generation, compile that row into a simplified visual brief that preserves the manifest facts but removes wording likely to induce webpage-like overproduction.
+
+The compiled brief must explicitly state:
+
+- this is one standalone final asset;
+- the single visual question;
+- canonical model / face shape / frame family;
+- template;
+- allowed title and labels;
+- 4:3 composition;
+- prohibition on webpage UI, navigation, footer, body paragraphs, batch overview, contact sheet, and unrelated modules.
+
 ---
 
-## 9. Desktop Codex production workflow
+## 9. 19-batch master production plan
 
-### Step A — Determine next asset
+### Purpose
 
-Read this document and find the lowest `VSEO-###` not marked accepted.
+The 182 master assets are grouped into 19 batches so visually similar work is executed together and reviewed before moving to the next family. The batches reduce prompt drift, identity drift, template drift, and information-density drift.
 
-Current next item:
+Batch membership is **operational grouping only**. Canonical asset identity remains the `VSEO-###` row in `visual-seo-prompt-manifest.md`.
+
+### Batch execution rule
+
+For each batch:
+
+1. read this batch brief and the relevant manifest rows;
+2. generate exactly one VSEO image at a time;
+3. QA each image independently;
+4. reject and regenerate failures without advancing;
+5. after the batch is visually complete, perform a batch-level consistency review;
+6. do not generate a batch overview, contact sheet, montage, dashboard, or summary image.
+
+### Batch plan
+
+| Batch | VSEO range | Count | Primary task family | Main templates / consistency focus |
+| --- | --- | ---: | --- | --- |
+| B01 | VSEO-001–008 | 8 | Core commercial foundations A | D / A / B; detector, face-shape fundamentals, first recommendation assets; establish the visual baseline |
+| B02 | VSEO-009–016 | 8 | Core commercial foundations B | A / B / E; Search→Tool workflow, find-glasses, virtual try-on foundations; primarily F-OVAL-01 |
+| B03 | VSEO-017–024 | 8 | Core commercial foundations C | B / D / E; Try-On comparison, Compare, Advisor; lock same-person comparison behavior |
+| B04 | VSEO-025–033 | 9 | Face Style owner pages A | A / B / C; round / oval / square owner-page visual system |
+| B05 | VSEO-034–042 | 9 | Face Style owner pages B | A / B / C; heart / diamond / oblong owner-page visual system |
+| B06 | VSEO-043–054 | 12 | Face Shape explainers | D / F; educational face-shape definitions, identification, and comparisons; low text density |
+| B07 | VSEO-055–064 | 10 | Face × Frame pairings A | A; round + oval pairings; consistent hero composition |
+| B08 | VSEO-065–074 | 10 | Face × Frame pairings B | A; square + heart pairings; consistent hero composition |
+| B09 | VSEO-075–084 | 10 | Face × Frame pairings C | A; diamond + oblong pairings; consistent hero composition |
+| B10 | VSEO-085–094 | 10 | Face × Frame pairings D | A / B; round + oval second pairing set; recommendation + comparison consistency |
+| B11 | VSEO-095–106 | 12 | Face × Frame pairings E | A / B; square + heart second pairing set; recommendation + comparison consistency |
+| B12 | VSEO-107–118 | 12 | Face × Frame pairings F | A / B; diamond + oblong second pairing set; recommendation + comparison consistency |
+| B13 | VSEO-119–128 | 10 | Gender / styling A | A / B; women-oriented styling intents; female canonical models |
+| B14 | VSEO-129–138 | 10 | Gender / styling B | A / B; men-oriented styling intents; male canonical models |
+| B15 | VSEO-139–150 | 12 | Gender / styling C | A / B / F; broader styling / situational intents; restrained visual cues |
+| B16 | VSEO-151–158 | 8 | Decision questions A | C / F; fit, width, eyebrow alignment, proportions; measurement clarity |
+| B17 | VSEO-159–166 | 8 | Decision questions B | B / F; suitability and frame-shape choice questions; direct visual answers |
+| B18 | VSEO-167–174 | 8 | Decision questions C | B / E / F; compare, try-on, buying-confidence questions; decision support |
+| B19 | VSEO-175–182 | 8 | Hub / navigation assets | E / A / D; minimal overview / map / workflow assets; no page-like dashboards |
+| **Total** | **VSEO-001–182** | **182** |  |  |
+
+### Batch brief format
+
+Before starting a batch, resolve the following as text only:
 
 ```text
-VSEO-001
+Batch ID:
+VSEO range:
+Count:
+Theme:
+Primary templates:
+Canonical models:
+Allowed text level:
+Hard prohibitions:
+Acceptance focus:
+```
+
+### Batch-level acceptance focus
+
+At the end of each batch, review the group for:
+
+- consistent background / blue accent / whitespace;
+- consistent portrait treatment and canonical identity where applicable;
+- consistent title scale and label density;
+- consistent frame rendering and comparison geometry;
+- no drift toward webpage screenshots or PPT-style information boards;
+- each image remains understandable as an independent Google Images thumbnail;
+- the batch looks like part of one VisuTry visual knowledge system.
+
+Do not advance to the next batch if the current batch reveals a systemic style or prompt problem. Fix the batch rule first, then continue.
+
+---
+
+## 10. Desktop Codex production workflow
+
+### Step A — Determine current batch and next asset
+
+Read the batch plan above and the manifest. Find the current batch, then find the lowest `VSEO-###` in that batch not marked accepted.
+
+Current starting point:
+
+```text
+Batch B01 → VSEO-001
 ```
 
 ### Step B — Generate one image
@@ -369,9 +483,10 @@ Each generation brief must include:
 - template A–F;
 - single visual purpose;
 - required face shape / frame family;
+- canonical model reference where applicable;
 - 4:3 composition;
 - visual-language constraints;
-- explicit prohibition on grids/contact sheets/batch overviews.
+- explicit prohibition on webpage layouts, grids/contact sheets/batch overviews, and body-text-heavy infographic compositions.
 
 ### Step C — Save source
 
@@ -389,7 +504,9 @@ Codex checks:
 4. image topic matches page intent;
 5. no duplicate destination filename exists;
 6. public page exists or is explicitly approved in the GTM plan;
-7. visual/factual quality is acceptable.
+7. visual/factual quality is acceptable;
+8. image is a standalone visual answer, not a webpage / PPT / dashboard composition;
+9. information density remains readable at thumbnail scale.
 
 ### Step E — Optimize
 
@@ -421,9 +538,13 @@ Verify:
 
 Run project checks/build, then update the progress ledger in this document.
 
+### Step I — Batch review
+
+When the last image in a batch passes image-level QA, perform the batch-level consistency review before starting the next batch.
+
 ---
 
-## 10. Canonical queue — VSEO-001 onward
+## 11. Canonical queue — VSEO-001 onward
 
 The entire program restarts here. The first 40 items are explicitly defined below; none are accepted at restart time.
 
@@ -474,9 +595,9 @@ Earlier conversational labels such as `B01-11` are superseded by `VSEO-###`.
 
 ---
 
-## 11. Deterministic naming for remaining page families
+## 12. Deterministic naming for remaining page families
 
-### 11.1 Face Style owner pages
+### 12.1 Face Style owner pages
 
 Code owner pattern:
 
@@ -492,7 +613,7 @@ best-glasses-for-{face}-face.webp
 {face}-face-glasses-proportions.webp
 ```
 
-### 11.2 Face Shape explainer pages
+### 12.2 Face Shape explainer pages
 
 Owner pattern:
 
@@ -507,7 +628,7 @@ For each face:
 how-to-identify-{face}-face.webp
 ```
 
-### 11.3 Face × Frame combination pages
+### 12.3 Face × Frame combination pages
 
 Public page pattern:
 
@@ -533,7 +654,7 @@ Template mapping:
 - `03-watch-for` → C;
 - `04-compare` → B.
 
-### 11.4 Gender / styling intent pages
+### 12.4 Gender / styling intent pages
 
 For each approved gender/styling slug:
 
@@ -546,7 +667,7 @@ For each approved gender/styling slug:
 
 Template mapping: A / A / A / B.
 
-### 11.5 Decision-question pages
+### 12.5 Decision-question pages
 
 For each approved decision question:
 
@@ -568,7 +689,7 @@ Canonical decision topics:
 
 Template mapping: F / A-or-F / C / B.
 
-### 11.6 Hub pages
+### 12.6 Hub pages
 
 Owners:
 
@@ -593,7 +714,7 @@ visutry-eyewear-decision-workflow.webp
 
 ---
 
-## 12. Page integration requirements
+## 13. Page integration requirements
 
 Every accepted image needs:
 
@@ -612,7 +733,7 @@ Avoid keyword stuffing.
 
 ---
 
-## 13. Image SEO engineering checklist
+## 14. Image SEO engineering checklist
 
 Codex should verify or implement:
 
@@ -634,7 +755,7 @@ Image performance must not materially regress acquisition-page Core Web Vitals.
 
 ---
 
-## 14. QA rubric
+## 15. QA rubric
 
 An image is **Accepted** only when all required checks pass.
 
@@ -644,7 +765,8 @@ An image is **Accepted** only when all required checks pass.
 - intended frame family is recognizable;
 - glasses are aligned realistically;
 - comparison uses a sufficiently consistent person/crop;
-- proportions are not obviously distorted.
+- proportions are not obviously distorted;
+- the image remains understandable at search-thumbnail scale.
 
 ### Information correctness
 
@@ -659,7 +781,8 @@ An image is **Accepted** only when all required checks pass.
 - no fake VisuTry logo;
 - visual style fits the white + restrained blue system;
 - no batch labels or production metadata appear in the public visual;
-- no contact sheet/grid unless the asset itself intentionally compares options.
+- no contact sheet/grid unless the asset itself intentionally compares options;
+- no webpage-like navigation, footer, marketing panels, or dense body text.
 
 ### Technical correctness
 
@@ -671,45 +794,63 @@ An image is **Accepted** only when all required checks pass.
 
 ---
 
-## 15. Codex execution algorithm
+## 16. Codex execution algorithm
 
 ```text
 1. Read visual-seo-production.md.
-2. Start at VSEO-001 because accepted progress is 0/182.
-3. Find the lowest incomplete VSEO ID.
-4. Generate exactly one independent image for that ID.
-5. Save source to .local-assets/visual-seo/inbox/ using the canonical handoff filename.
-6. Inspect visual/factual correctness and dimensions.
-7. Convert/export optimized WebP to public/images/seo/... .
-8. Integrate into the mapped owner page/config.
-9. Add alt/caption and preserve Search→Tool CTA.
-10. Update image sitemap/infrastructure if required.
-11. Run tests/build.
-12. Mark the item accepted only after successful QA/build.
-13. Update the progress ledger.
-14. Continue to the next ID.
+2. Read visual-seo-prompt-manifest.md for canonical per-asset requirements.
+3. Resolve the current batch from the 19-batch plan.
+4. Start at the lowest incomplete VSEO ID in that batch.
+5. Compile the manifest row into a simplified standalone-visual generation brief.
+6. Generate exactly one independent image for that ID.
+7. Save source to .local-assets/visual-seo/inbox/ using the canonical handoff filename.
+8. Inspect visual/factual correctness, standalone composition, thumbnail readability, identity consistency, and dimensions.
+9. Reject and regenerate without advancing if any required check fails.
+10. Convert/export optimized WebP to public/images/seo/... .
+11. Integrate into the mapped owner page/config.
+12. Add alt/caption and preserve Search→Tool CTA.
+13. Update image sitemap/infrastructure if required.
+14. Run tests/build.
+15. Mark the item accepted only after successful QA/build.
+16. Update the progress ledger.
+17. After the final item in a batch, perform batch-level consistency QA before advancing.
 ```
 
 If Codex detects a discrepancy between this document and the current route registry, preserve the current canonical route and update this document rather than silently creating duplicate pages.
 
 ---
 
-## 16. Progress ledger
+## 17. Progress ledger
 
-| Range | Status | Notes |
-| --- | --- | --- |
-| VSEO-001–010 | ⏳ Not started | Restart from zero with Desktop Codex |
-| VSEO-011–020 | ⏳ Not started | Previous conversational generations are reference-only |
-| VSEO-021–030 | ⏳ Planned | No accepted production assets yet |
-| VSEO-031–182 | ⏳ Planned | Generate from canonical page/template rules |
+| Batch | Range | Status | Notes |
+| --- | --- | --- | --- |
+| B01 | VSEO-001–008 | ⏳ Not started | Establish canonical master visual baseline |
+| B02 | VSEO-009–016 | ⏳ Planned | Core workflow / try-on foundations |
+| B03 | VSEO-017–024 | ⏳ Planned | Compare / Advisor foundations |
+| B04 | VSEO-025–033 | ⏳ Planned | Face Style owners A |
+| B05 | VSEO-034–042 | ⏳ Planned | Face Style owners B |
+| B06 | VSEO-043–054 | ⏳ Planned | Face Shape explainers |
+| B07 | VSEO-055–064 | ⏳ Planned | Face × Frame A |
+| B08 | VSEO-065–074 | ⏳ Planned | Face × Frame B |
+| B09 | VSEO-075–084 | ⏳ Planned | Face × Frame C |
+| B10 | VSEO-085–094 | ⏳ Planned | Face × Frame D |
+| B11 | VSEO-095–106 | ⏳ Planned | Face × Frame E |
+| B12 | VSEO-107–118 | ⏳ Planned | Face × Frame F |
+| B13 | VSEO-119–128 | ⏳ Planned | Gender / styling A |
+| B14 | VSEO-129–138 | ⏳ Planned | Gender / styling B |
+| B15 | VSEO-139–150 | ⏳ Planned | Gender / styling C |
+| B16 | VSEO-151–158 | ⏳ Planned | Decision questions A |
+| B17 | VSEO-159–166 | ⏳ Planned | Decision questions B |
+| B18 | VSEO-167–174 | ⏳ Planned | Decision questions C |
+| B19 | VSEO-175–182 | ⏳ Planned | Hub / navigation assets |
 
 ### Current next action
 
-> Start with `VSEO-001__ai-face-shape-detector-example.png` as one independent production asset. After QA, optimization, integration, and successful build, mark only VSEO-001 accepted and advance progress to 1 / 182.
+> Start Batch B01 with `VSEO-001__ai-face-shape-detector-example.png` as one independent master asset. After image-level QA, optimization, integration, and successful build, mark only VSEO-001 accepted. Do not generate any batch overview image.
 
 ---
 
-## 17. Relation to the 10× GTM plan
+## 18. Relation to the 10× GTM plan
 
 Visual production is valuable only if it contributes to qualified discovery and product continuation.
 
