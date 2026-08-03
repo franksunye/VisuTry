@@ -1,7 +1,10 @@
 import type { ReactNode } from 'react'
 import type { LucideIcon } from 'lucide-react'
 import { CheckCircle2 } from 'lucide-react'
-import { ProductContinuationCtas } from '@/components/growth/ProductContinuationCtas'
+import {
+  ProductContinuationCtas,
+  type ProductContinuationAction,
+} from '@/components/growth/ProductContinuationCtas'
 
 export type SearchToToolFaqItem = {
   question: string
@@ -36,9 +39,12 @@ export type SearchToToolLandingProps = {
     detector?: string
     tryOn?: string
     compare?: string
+    advisor?: string
   }
   /** Defaults to Detector + Try-On + Compare. */
-  includeCtas?: Array<'detector' | 'try_on' | 'compare' | 'advisor'>
+  includeCtas?: ProductContinuationAction[]
+  /** FAQ/footer continuation actions. Defaults to Detector for compatibility. */
+  bottomCtas?: ProductContinuationAction[]
   principles?: readonly string[]
 }
 
@@ -64,6 +70,7 @@ export function SearchToToolLanding({
   faqEyebrow = 'Next step',
   ctaLabels,
   includeCtas = ['detector', 'try_on', 'compare'],
+  bottomCtas = ['detector'],
   principles,
 }: SearchToToolLandingProps) {
   return (
@@ -146,16 +153,18 @@ export function SearchToToolLanding({
                 </p>
                 <h2 className="text-2xl font-bold text-gray-950">{faqTitle}</h2>
               </div>
-              <ProductContinuationCtas
-                locale={locale}
-                sourcePage={sourcePage}
-                queryCluster={queryCluster}
-                contentCluster={contentCluster}
-                ctaLocation="faq"
-                labels={ctaLabels}
-                include={['detector']}
-                layout="compact"
-              />
+              {bottomCtas.length > 0 && (
+                <ProductContinuationCtas
+                  locale={locale}
+                  sourcePage={sourcePage}
+                  queryCluster={queryCluster}
+                  contentCluster={contentCluster}
+                  ctaLocation="faq"
+                  labels={ctaLabels}
+                  include={bottomCtas}
+                  layout="compact"
+                />
+              )}
             </div>
             <div className="grid gap-4 md:grid-cols-2">
               {faq.map((item) => (
