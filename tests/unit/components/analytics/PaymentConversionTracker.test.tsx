@@ -38,7 +38,9 @@ describe('PaymentConversionTracker', () => {
           currency: 'USD',
           attribution: {
             landing_page: '/en/face-shape-detector',
-            growth_source: 'seo-cluster',
+            acquisition_source: 'google.com',
+            acquisition_medium: 'organic',
+            source_page: '/what-glasses-suit-my-face',
           },
         },
       }),
@@ -53,7 +55,9 @@ describe('PaymentConversionTracker', () => {
         2.99,
         {
           landing_page: '/en/face-shape-detector',
-          growth_source: 'seo-cluster',
+          acquisition_source: 'google.com',
+          acquisition_medium: 'organic',
+          source_page: '/what-glasses-suit-my-face',
         },
       )
     })
