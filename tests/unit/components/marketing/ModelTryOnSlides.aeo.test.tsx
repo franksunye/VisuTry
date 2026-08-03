@@ -4,7 +4,13 @@ import { ModelTryOnSlides } from '@/components/marketing/ModelTryOnSlides'
 
 jest.mock('next/image', () => ({
   __esModule: true,
-  default: (props: React.ImgHTMLAttributes<HTMLImageElement>) => <img {...props} alt={props.alt ?? ''} />,
+  default: ({
+    fill: _fill,
+    priority: _priority,
+    ...props
+  }: React.ImgHTMLAttributes<HTMLImageElement> & { fill?: boolean; priority?: boolean }) => (
+    <img {...props} alt={props.alt ?? ''} />
+  ),
 }))
 
 jest.mock('next/link', () => ({
@@ -23,7 +29,9 @@ jest.mock('next-intl', () => ({
 
 describe('ModelTryOnSlides AEO disclosures', () => {
   beforeEach(() => {
-    jest.spyOn(window, 'setInterval').mockImplementation(() => 1 as unknown as number)
+    jest.spyOn(window, 'setInterval').mockImplementation(
+      () => 1 as unknown as ReturnType<typeof window.setInterval>,
+    )
     jest.spyOn(window, 'clearInterval').mockImplementation(() => undefined)
   })
 

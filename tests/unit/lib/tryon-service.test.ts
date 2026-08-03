@@ -86,12 +86,62 @@ describe('TryOnService', () => {
 
   beforeEach(() => {
     jest.clearAllMocks()
+    ;(prisma.tryOnTask.findUnique as jest.Mock).mockReset()
     ;(put as jest.Mock).mockImplementation((path: string) => ({
       url: `http://blob/${path}`,
     }))
   })
 
   describe('submitTryOnTask', () => {
+    it('reuses an existing client submission before uploading or dispatching again', async () => {
+      ;(prisma.tryOnTask.findUnique as jest.Mock).mockResolvedValue({
+        id: 'existing-task',
+        status: TaskStatus.PROCESSING,
+        resultImageUrl: null,
+        errorMessage: null,
+        metadata: { serviceType: 'grsai', isAsync: true },
+      })
+
+      const result = await submitTryOnTask(
+        mockUser as any,
+        mockFile,
+        mockFile,
+        'GLASSES',
+        undefined,
+        { clientSubmissionId: 'submission-1', enforceIdempotency: true },
+      )
+
+      expect(result).toMatchObject({ taskId: 'existing-task', status: 'submitted' })
+      expect(put).not.toHaveBeenCalled()
+      expect(prisma.tryOnTask.create).not.toHaveBeenCalled()
+      expect(submitAsyncTask).not.toHaveBeenCalled()
+    })
+
+    it('recovers a concurrent unique-constraint race without dispatching twice', async () => {
+      ;(prisma.tryOnTask.findUnique as jest.Mock)
+        .mockResolvedValueOnce(null)
+        .mockResolvedValueOnce({
+          id: 'winning-task',
+          status: TaskStatus.PENDING,
+          resultImageUrl: null,
+          errorMessage: null,
+          metadata: { serviceType: 'grsai', isAsync: true },
+        })
+      ;(prisma.tryOnTask.create as jest.Mock).mockRejectedValue({ code: 'P2002' })
+
+      const result = await submitTryOnTask(
+        mockUser as any,
+        mockFile,
+        mockFile,
+        'GLASSES',
+        undefined,
+        { clientSubmissionId: 'submission-race', enforceIdempotency: true },
+      )
+
+      expect(result).toMatchObject({ taskId: 'winning-task', status: 'submitted' })
+      expect(submitAsyncTask).not.toHaveBeenCalled()
+    })
+
     it('should use GrsAi for free users and keep user/item URLs distinct', async () => {
       ;(submitAsyncTask as jest.Mock).mockResolvedValue('grsai-task-id')
       ;(prisma.tryOnTask.create as jest.Mock).mockResolvedValue({

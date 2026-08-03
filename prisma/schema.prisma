@@ -106,8 +106,9 @@ model TryOnTask {
   quotaSource    String?   // subscription | credit | free_trial
 
   // Metadata
-  prompt      String?
-  metadata    Json?
+  prompt             String?
+  clientSubmissionId String?
+  metadata           Json?
 
   // Data retention
   expiresAt   DateTime?  // When this task data will be deleted
@@ -125,6 +126,7 @@ model TryOnTask {
   @@index([userId, status])                      // Optimize dashboard stats query
   @@index([status, quotaSettledAt])               // Reconcile completed but unsettled tasks
   @@index([expiresAt])                           // Index for expiry cleanup cron
+  @@unique([userId, clientSubmissionId])          // Prevent duplicate client/batch submissions
 }
 
 model FaceAnalysisTask {

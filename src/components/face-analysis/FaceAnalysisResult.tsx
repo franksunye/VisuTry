@@ -3,11 +3,10 @@
 import Image from 'next/image'
 import Link from 'next/link'
 import { useParams } from 'next/navigation'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import {
   AlertTriangle,
   CheckCircle2,
-  ExternalLink,
   Glasses,
   Info,
   Loader2,
@@ -35,6 +34,7 @@ import { cn } from '@/utils/cn'
 import { analytics } from '@/lib/analytics'
 import {
   DEFAULT_TOP_PICK_PRESET_IDS,
+  getTopPickPresetById,
   getTopPickPresetForStyle,
   type GlassesPreset,
 } from '@/config/glasses-presets'
@@ -44,6 +44,7 @@ interface FaceAnalysisResultProps {
   onUnlock: () => void
   isUnlocking?: boolean
   remainingCredits?: number
+  onCreditsChanged?: () => void | Promise<unknown>
 }
 
 export function FaceAnalysisResult({
@@ -51,6 +52,7 @@ export function FaceAnalysisResult({
   onUnlock,
   isUnlocking,
   remainingCredits = 0,
+  onCreditsChanged,
 }: FaceAnalysisResultProps) {
   const params = useParams()
   const locale = (params.locale as string) || 'en'
@@ -179,35 +181,8 @@ export function FaceAnalysisResult({
         </div>
       </div>
 
-      <section className="rounded-xl border border-blue-200 bg-blue-50 p-4 sm:flex sm:items-center sm:justify-between sm:gap-5 sm:p-5">
-        <div>
-          <p className="text-sm font-semibold text-blue-950">
-            See which frames suit your {basic.faceShapeDisplayName?.toLowerCase() || `${basic.faceShape} face`}
-          </p>
-          <p className="mt-1 text-sm leading-6 text-blue-800">
-            Use virtual try-on as the visual check before choosing a frame.
-          </p>
-        </div>
-        <Link
-          href={`/${locale}/try-on/glasses?source=face-analysis`}
-          onClick={() => analytics.trackTryOnFromFaceAnalysis(task.id, 0, 0, 'open_try_on')}
-          className="mt-3 inline-flex w-full shrink-0 items-center justify-center rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-blue-700 sm:mt-0 sm:w-auto"
-        >
-          <Glasses className="mr-2 h-4 w-4" />
-          Open virtual try-on
-        </Link>
-      </section>
-
       {isUnlocked ? (
         <>
-          {metrics.length > 0 && (
-            <MetricsSection
-              metrics={metrics}
-              geometry={geometry}
-              imageUrl={task.userImageUrl}
-            />
-          )}
-
           <div id="recommendations" className="scroll-mt-28 grid items-start gap-5 xl:grid-cols-2">
             <FrameRecommendationPanel
               title="Frames to Wear"
@@ -226,16 +201,25 @@ export function FaceAnalysisResult({
             />
           </div>
 
-          <div id="style-guide" className="scroll-mt-28 grid items-start gap-5 xl:grid-cols-2">
-            <StyleGuidePanel tips={styleTips} />
-            <TryOnTopPicksPanel
-              styles={tryOnStyles}
-              locale={locale}
-              faceAnalysisTaskId={task.id}
-              remainingCredits={remainingCredits}
-              note={full?.tryOnGuidance?.note}
-              cta={full?.tryOnGuidance?.cta}
+          <TryOnTopPicksPanel
+            styles={tryOnStyles}
+            locale={locale}
+            faceAnalysisTaskId={task.id}
+            remainingCredits={remainingCredits}
+            note={full?.tryOnGuidance?.note}
+            onCreditsChanged={onCreditsChanged}
+          />
+
+          {metrics.length > 0 && (
+            <MetricsSection
+              metrics={metrics}
+              geometry={geometry}
+              imageUrl={task.userImageUrl}
             />
+          )}
+
+          <div id="style-guide" className="scroll-mt-28">
+            <StyleGuidePanel tips={styleTips} />
           </div>
 
           <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm leading-6 text-amber-900">
@@ -252,6 +236,22 @@ export function FaceAnalysisResult({
           isUnlocking={isUnlocking}
           faceShape={basic.faceShape}
         />
+      )}
+
+      {!isUnlocked && (
+        <div className="flex flex-col items-start gap-1 rounded-xl border border-gray-200 bg-white p-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <p className="text-sm font-semibold text-gray-900">Already have a specific frame in mind?</p>
+            <p className="mt-1 text-sm text-gray-500">You can try one frame without unlocking the full report.</p>
+          </div>
+          <Link
+            href={`/${locale}/try-on/glasses?source=face-analysis`}
+            onClick={() => analytics.trackTryOnFromFaceAnalysis(task.id, 0, 0, 'open_try_on')}
+            className="mt-2 inline-flex items-center text-sm font-semibold text-blue-700 hover:text-blue-900 sm:mt-0"
+          >
+            Try any frame instead →
+          </Link>
+        </div>
       )}
 
       <FrameSearchSuggestions
@@ -427,28 +427,71 @@ function TryOnTopPicksPanel({
   faceAnalysisTaskId,
   remainingCredits,
   note,
-  cta,
+  onCreditsChanged,
 }: {
   styles: string[]
   locale: string
   faceAnalysisTaskId: string
   remainingCredits: number
   note?: string
-  cta?: string
+  onCreditsChanged?: () => void | Promise<unknown>
 }) {
-  const [isGenerating, setIsGenerating] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isRecovering, setIsRecovering] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [batchResult, setBatchResult] = useState<TopPicksBatchResult | null>(null)
-  const requiredCredits = Math.min(Math.max(styles.length, 4), 4)
-  const hasCredits = remainingCredits >= requiredCredits
+  const requestInFlightRef = useRef(false)
+  const batchStartedAtRef = useRef<number | null>(null)
+  const trackedTerminalBatchRef = useRef<string | null>(null)
+  const syncedTerminalBatchRef = useRef<string | null>(null)
+  const presetIds = getPresetIdsForStyles(styles)
+  const directionPresets = presetIds
+    .map(getTopPickPresetById)
+    .filter((preset): preset is GlassesPreset => Boolean(preset))
   const generatedTasks = batchResult?.tasks ?? []
   const completedCount = generatedTasks.filter((task) => task.status === 'completed').length
+  const failedCount = generatedTasks.filter((task) => task.status === 'failed').length
   const processingCount = generatedTasks.filter((task) => task.status === 'processing').length
+  const expectedCount = presetIds.length
+  const incompleteCount = Math.max(expectedCount - completedCount, failedCount)
+  const isComplete = generatedTasks.length === expectedCount
+    && completedCount === expectedCount
+    && generatedTasks.every((task) => Boolean(task.resultImageUrl))
+  const isProcessing = processingCount > 0
+  const isPartial = generatedTasks.length > 0 && !isProcessing && !isComplete
+  const requiredCredits = isPartial ? incompleteCount : expectedCount
+  const hasCredits = remainingCredits >= requiredCredits
   const processingTaskKey = generatedTasks
-    .filter((task) => task.status === 'processing')
+    .filter((task) => task.status === 'processing' && !task.taskId.startsWith('missing-'))
     .map((task) => task.taskId)
     .join(',')
-  const presetIds = getPresetIdsForStyles(styles)
+
+  useEffect(() => {
+    let cancelled = false
+
+    const recoverBatch = async () => {
+      try {
+        const response = await fetch(
+          `/api/face-analysis/top-picks-try-on?faceAnalysisTaskId=${encodeURIComponent(faceAnalysisTaskId)}`,
+        )
+        const payload = await response.json()
+        if (!cancelled && response.ok && payload.success) {
+          setBatchResult(payload.data ?? null)
+        }
+      } catch {
+        // Recovery is intentionally non-blocking. The server still protects a
+        // later generate request from creating a duplicate batch.
+      } finally {
+        if (!cancelled) setIsRecovering(false)
+      }
+    }
+
+    void recoverBatch()
+
+    return () => {
+      cancelled = true
+    }
+  }, [faceAnalysisTaskId])
 
   useEffect(() => {
     if (!processingTaskKey) return
@@ -534,22 +577,51 @@ function TryOnTopPicksPanel({
     }
   }, [processingTaskKey])
 
-  const handleGenerateTopPicks = async () => {
-    setIsGenerating(true)
+  useEffect(() => {
+    if (!batchResult || isProcessing || isSubmitting) return
+
+    if (syncedTerminalBatchRef.current !== batchResult.batchId) {
+      syncedTerminalBatchRef.current = batchResult.batchId
+      void onCreditsChanged?.()
+    }
+
+    if (
+      batchStartedAtRef.current !== null
+      && trackedTerminalBatchRef.current !== batchResult.batchId
+    ) {
+      trackedTerminalBatchRef.current = batchResult.batchId
+      analytics.trackFaceAnalysisTopPicksComplete({
+        faceAnalysisTaskId,
+        batchId: batchResult.batchId,
+        completedCount,
+        failedCount,
+        processingTimeMs: Date.now() - batchStartedAtRef.current,
+      })
+      batchStartedAtRef.current = null
+    }
+  }, [
+    batchResult,
+    completedCount,
+    faceAnalysisTaskId,
+    failedCount,
+    isProcessing,
+    isSubmitting,
+    onCreditsChanged,
+  ])
+
+  const submitTopPicks = async (mode: 'generate' | 'complete') => {
+    if (requestInFlightRef.current) return
+    requestInFlightRef.current = true
+    setIsSubmitting(true)
     setError(null)
-    setBatchResult(null)
-    analytics.trackTryOnFromFaceAnalysis(
-      faceAnalysisTaskId,
-      presetIds.length,
-      requiredCredits,
-      'generate_top_picks'
-    )
+    batchStartedAtRef.current = Date.now()
+    analytics.trackFaceAnalysisTopPicksStart(faceAnalysisTaskId, presetIds.length, requiredCredits, mode)
 
     try {
       const response = await fetch('/api/face-analysis/top-picks-try-on', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ faceAnalysisTaskId, framePresetIds: presetIds }),
+        body: JSON.stringify({ faceAnalysisTaskId, framePresetIds: presetIds, mode }),
       })
       const payload = await response.json()
 
@@ -560,50 +632,87 @@ function TryOnTopPicksPanel({
       setBatchResult(payload.data)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to generate top picks try-on.')
+      batchStartedAtRef.current = null
     } finally {
-      setIsGenerating(false)
+      requestInFlightRef.current = false
+      setIsSubmitting(false)
     }
   }
 
+  const heading = isComplete
+    ? 'Compare your top picks'
+    : isPartial
+      ? 'Complete your top picks'
+      : 'Try On Your Top Picks'
+  const supportingCopy = isComplete
+    ? 'Your recommended directions are ready side by side. Compare shape, visual weight, and overall balance.'
+    : isPartial
+      ? `${completedCount} of ${expectedCount} looks are ready. Retry only the missing directions to complete your comparison.`
+      : note || 'See your four recommended frame directions on the photo you already uploaded.'
+  const resultStatusCopy = isProcessing
+    ? `${completedCount}/${expectedCount} ready · ${processingCount} generating`
+    : isPartial
+      ? `${completedCount}/${expectedCount} ready · ${incompleteCount} ${incompleteCount === 1 ? 'needs' : 'need'} retry`
+      : `${completedCount}/${expectedCount} ready`
+
   return (
-    <section className={cn(FACE_ANALYSIS_LAYOUT.card, 'p-5')}>
-      <h3 className="text-base font-semibold text-gray-950">Try On Your Top Picks</h3>
-      <p className="mt-1 text-sm leading-6 text-gray-500">
-        {note || 'Use these frame directions as your next try-on starting point before deciding what to buy.'}
-      </p>
-      <div className="mt-5 grid gap-3 sm:grid-cols-2">
-        {styles.slice(0, 4).map((style) => (
-          <div key={style} className="rounded-xl border border-gray-200 bg-white p-4">
-            <div className="mb-3 flex items-center justify-between gap-3">
-              <FramePresetThumbnail
-                preset={getTopPickPresetForStyle(style)}
-                alt={`${style} glasses`}
-              />
-              <span className="rounded-full bg-blue-50 px-2 py-0.5 text-xs font-semibold text-blue-700">
-                Direction
+    <section className={cn(
+      FACE_ANALYSIS_LAYOUT.card,
+      'scroll-mt-28 p-5',
+      isComplete && 'border-blue-200 bg-blue-50/30',
+    )}>
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <div className="flex items-center gap-2">
+            <h3 className="text-base font-semibold text-gray-950">{heading}</h3>
+            {isComplete && (
+              <span className="rounded-full bg-green-100 px-2.5 py-1 text-xs font-semibold text-green-700">
+                4 ready
               </span>
-            </div>
-            <p className="text-sm font-semibold text-gray-950">{style}</p>
-            <p className="mt-1 text-xs leading-5 text-gray-500">Try this frame direction with a real glasses image.</p>
+            )}
           </div>
-        ))}
+          <p className="mt-1 max-w-2xl text-sm leading-6 text-gray-500">{supportingCopy}</p>
+        </div>
+        {!isComplete && !isRecovering && generatedTasks.length === 0 && (
+          <span className="rounded-full bg-blue-50 px-2.5 py-1 text-xs font-semibold text-blue-700">
+            Uses {expectedCount} credits
+          </span>
+        )}
       </div>
+
+      {generatedTasks.length === 0 && (
+        <div className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+          {directionPresets.map((preset) => (
+            <div key={preset.id} className="rounded-xl border border-gray-200 bg-white p-4">
+              <div className="mb-3 flex items-center justify-between gap-3">
+                <FramePresetThumbnail preset={preset} alt={`${preset.style} glasses`} />
+                <span className="rounded-full bg-blue-50 px-2 py-0.5 text-xs font-semibold text-blue-700">
+                  Direction
+                </span>
+              </div>
+              <p className="text-sm font-semibold text-gray-950">{preset.style}</p>
+            </div>
+          ))}
+        </div>
+      )}
+
       {generatedTasks.length > 0 && (
         <div className="mt-5">
           <div className="mb-3 flex items-center justify-between gap-3">
             <p className="text-sm font-semibold text-gray-950">
-              Generated top picks
+              {isComplete ? 'Your four looks' : 'Preparing your four looks'}
             </p>
-            <span className="rounded-full bg-blue-50 px-2 py-0.5 text-xs font-semibold text-blue-700">
-              {processingCount > 0
-                ? `${processingCount} processing`
-                : `${completedCount}/${generatedTasks.length} completed`}
+            <span className={cn(
+              'rounded-full px-2 py-0.5 text-xs font-semibold',
+              isPartial ? 'bg-amber-100 text-amber-800' : 'bg-blue-50 text-blue-700',
+            )}>
+              {resultStatusCopy}
             </span>
           </div>
-          <div className="grid gap-3 sm:grid-cols-2">
+          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
             {generatedTasks.map((task) => (
               <div key={task.taskId} className="overflow-hidden rounded-xl border border-gray-200 bg-white">
-                <div className="relative aspect-square bg-gray-50">
+                <div className="relative aspect-[4/5] bg-gray-50">
                   {task.resultImageUrl ? (
                     <Image
                       src={task.resultImageUrl}
@@ -613,8 +722,13 @@ function TryOnTopPicksPanel({
                       sizes="(max-width: 768px) 45vw, 240px"
                     />
                   ) : (
-                    <div className="flex h-full items-center justify-center p-4 text-center text-xs text-gray-500">
-                      {task.status === 'failed' ? 'Generation failed' : 'Processing'}
+                    <div className="flex h-full flex-col items-center justify-center p-4 text-center text-xs text-gray-500">
+                      {task.status === 'failed' ? (
+                        <AlertTriangle className="mb-2 h-5 w-5 text-amber-600" />
+                      ) : (
+                        <Loader2 className="mb-2 h-5 w-5 animate-spin text-blue-600" />
+                      )}
+                      {task.status === 'failed' ? 'Needs another try' : 'Generating…'}
                     </div>
                   )}
                 </div>
@@ -628,19 +742,12 @@ function TryOnTopPicksPanel({
                         ? 'text-blue-700'
                         : 'text-red-600'
                   )}>
-                    {task.status}
+                    {task.status === 'completed' ? 'Ready' : task.status}
                   </p>
                 </div>
               </div>
             ))}
           </div>
-          <Link
-            href={`/${locale}/dashboard`}
-            className="mt-4 inline-flex w-full items-center justify-center rounded-lg border border-gray-200 px-4 py-3 text-sm font-semibold text-gray-800 transition-colors hover:bg-gray-50"
-          >
-            View in Dashboard
-            <ExternalLink className="ml-2 h-4 w-4" />
-          </Link>
         </div>
       )}
 
@@ -650,19 +757,31 @@ function TryOnTopPicksPanel({
         </div>
       )}
 
-      {hasCredits ? (
+      {isComplete ? (
+        <Link
+          href={`/${locale}/style-explorer?source=face-analysis&taskId=${encodeURIComponent(faceAnalysisTaskId)}`}
+          onClick={() => analytics.trackFaceAnalysisExploreMoreStyles(faceAnalysisTaskId, batchResult?.batchId)}
+          className="mt-5 inline-flex items-center text-sm font-semibold text-blue-700 transition-colors hover:text-blue-900"
+        >
+          Explore more styles →
+        </Link>
+      ) : isRecovering || isSubmitting || isProcessing ? (
         <button
           type="button"
-          onClick={handleGenerateTopPicks}
-          disabled={isGenerating}
-          className="mt-5 inline-flex w-full items-center justify-center rounded-lg border border-blue-200 px-4 py-3 text-sm font-semibold text-blue-700 transition-colors hover:bg-blue-50 disabled:cursor-not-allowed disabled:opacity-70"
+          disabled
+          className="mt-5 inline-flex w-full cursor-not-allowed items-center justify-center rounded-lg bg-blue-600 px-4 py-3 text-sm font-semibold text-white opacity-75"
         >
-          {isGenerating ? (
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-          ) : (
-            <Glasses className="mr-2 h-4 w-4" />
-          )}
-          {isGenerating ? 'Submitting 4 top picks...' : (cta || 'Generate 4 top picks on your photo')}
+          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+          {isRecovering ? 'Restoring your top picks…' : 'Generating your top picks…'}
+        </button>
+      ) : hasCredits ? (
+        <button
+          type="button"
+          onClick={() => void submitTopPicks(isPartial ? 'complete' : 'generate')}
+          className="mt-5 inline-flex w-full items-center justify-center rounded-lg bg-blue-600 px-4 py-3 text-sm font-semibold text-white transition-colors hover:bg-blue-700"
+        >
+          <Glasses className="mr-2 h-4 w-4" />
+          {isPartial ? 'Complete your top picks' : 'Try top picks on your photo'}
         </button>
       ) : (
         <Link
@@ -670,7 +789,7 @@ function TryOnTopPicksPanel({
           className="mt-5 inline-flex w-full items-center justify-center rounded-lg border border-amber-200 bg-white px-4 py-3 text-sm font-semibold text-amber-800 transition-colors hover:bg-amber-50"
         >
           <Glasses className="mr-2 h-4 w-4" />
-          Get credits to try top picks
+          {isPartial ? 'Get credits to complete your top picks' : 'Get credits to try top picks'}
         </Link>
       )}
     </section>
@@ -681,6 +800,8 @@ interface TopPicksBatchResult {
   batchId: string
   requiredCredits: number
   creditsUsed: number
+  remainingCredits?: number
+  recovered?: boolean
   tasks: Array<{
     taskId: string
     status: 'completed' | 'failed' | 'processing'

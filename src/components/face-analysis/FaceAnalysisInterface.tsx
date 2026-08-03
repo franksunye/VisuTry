@@ -23,6 +23,13 @@ import { cn } from '@/utils/cn'
 
 type Step = 'photo' | 'analysis' | 'report' | 'analyzing'
 
+const REPORT_NAV_ITEMS = [
+  { label: 'Overview', href: '#overview' },
+  { label: 'Face Analysis', href: '#face-analysis-details' },
+  { label: 'Recommendations', href: '#recommendations' },
+  { label: 'Style Guide', href: '#style-guide' },
+]
+
 export function FaceAnalysisInterface() {
   const { data: session, update } = useSession()
   const params = useParams()
@@ -335,6 +342,7 @@ export function FaceAnalysisInterface() {
                 onUnlock={handleUnlock}
                 isUnlocking={isUnlocking}
                 remainingCredits={remainingTrials}
+                onCreditsChanged={() => update()}
               />
             )}
 
@@ -423,18 +431,12 @@ function ReportSideRail({
     day: 'numeric',
     year: 'numeric',
   })
-  const navItems = [
-    { label: 'Overview', href: '#overview' },
-    { label: 'Face Analysis', href: '#face-analysis-details' },
-    { label: 'Recommendations', href: '#recommendations' },
-    { label: 'Style Guide', href: '#style-guide' },
-  ]
   const [activeHref, setActiveHref] = useState('#overview')
 
   useEffect(() => {
     const syncFromHash = () => {
       const hash = window.location.hash
-      if (navItems.some((item) => item.href === hash)) {
+      if (REPORT_NAV_ITEMS.some((item) => item.href === hash)) {
         setActiveHref(hash)
       }
     }
@@ -462,7 +464,7 @@ function ReportSideRail({
       }
     )
 
-    navItems.forEach((item) => {
+    REPORT_NAV_ITEMS.forEach((item) => {
       const target = document.getElementById(item.href.slice(1))
       if (target) observer.observe(target)
     })
@@ -495,7 +497,7 @@ function ReportSideRail({
       </div>
 
       <nav className={cn(FACE_ANALYSIS_LAYOUT.card, 'hidden p-2 2xl:block')}>
-        {navItems.map((item, index) => {
+        {REPORT_NAV_ITEMS.map((item, index) => {
           const isActive = activeHref === item.href
           return (
           <a
