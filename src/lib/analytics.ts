@@ -11,10 +11,8 @@
  * 无需在各调用方手动传参。
  */
 
-// 用户类型
 export type UserType = 'anonymous' | 'free' | 'premium' | 'credits'
 
-// 事件来源
 export type EventSource =
   | 'nav'
   | 'dashboard'
@@ -25,25 +23,24 @@ export type EventSource =
   | 'face_analysis'
   | 'blog'
 
-// 升级按钮位置
 export type UpgradeLocation = 'quick_actions' | 'subscription_card' | 'nav'
 
-// 产品类型
 export type { ProductType } from '@/config/pricing'
 import type { ProductType } from '@/config/pricing'
 import type { AcquisitionAttribution } from '@/lib/acquisition-attribution'
 import { sanitizeAcquisitionAttribution } from '@/lib/acquisition-attribution'
 
 const LANDING_PAGE_KEY = 'visutry_landing_page'
-const GROWTH_SOURCE_KEY = 'visutry_growth_source'
-const GROWTH_MEDIUM_KEY = 'visutry_growth_medium'
+const ACQUISITION_SOURCE_KEY = 'visutry_acquisition_source'
+const ACQUISITION_MEDIUM_KEY = 'visutry_acquisition_medium'
 const GROWTH_CONTEXT_KEY = 'visutry_growth_context'
 
 export type AcquisitionContext = {
   landing_page: string
   page_path: string
-  growth_source?: string
-  medium?: string
+  acquisition_source?: string
+  acquisition_medium?: string
+  source_page?: string
   query_cluster?: string
   content_cluster?: string
   product_path?: string
@@ -51,32 +48,51 @@ export type AcquisitionContext = {
 }
 
 type GrowthContext = {
+  source_page?: string
   query_cluster?: string
   content_cluster?: string
   product_path?: string
 }
 
-/**
- * 获取用户当前浏览的页面语言（landing_locale）
- *
- * 从 <html lang="xx"> 属性读取，该属性由服务端布局静态输出，
- * 因此在页面首次加载时即可用，无需等待客户端 hydration。
- */
 function getLandingLocale(): string {
   if (typeof document === 'undefined') return 'en'
   return document.documentElement.lang || 'en'
 }
 
-/**
- * 获取浏览器首选语言（browser_language）
- *
- * 返回完整的 BCP 47 标签（如 "ar-SA", "en-US", "ja-JP"），
- * 与 landing_locale 的短标签（如 "ar", "en", "ja"）互补，
- * 可用于分析"浏览器语言与页面语言不一致"的情景。
- */
 function getBrowserLanguage(): string {
   if (typeof navigator === 'undefined') return 'en'
   return navigator.language || 'en'
+}
+
+function inferReferrerAttribution(): { source?: string; medium?: string } {
+  if (typeof document === 'undefined' || typeof window === 'undefined') return {}
+
+  try {
+    if (!document.referrer) return { source: 'direct', medium: 'none' }
+    const referrer = new URL(document.referrer)
+    if (referrer.origin === window.location.origin) return {}
+
+    const host = referrer.hostname.replace(/^www\./, '')
+    const organicHosts = [
+      'google.com',
+      'bing.com',
+      'yahoo.com',
+      'duckduckgo.com',
+      'yandex.com',
+      'yandex.ru',
+      'baidu.com',
+    ]
+    const isOrganic = organicHosts.some(
+      (domain) => host === domain || host.endsWith(`.${domain}`),
+    )
+
+    return {
+      source: host,
+      medium: isOrganic ? 'organic' : 'referral',
+    }
+  } catch {
+    return {}
+  }
 }
 
 function readGrowthContext(): GrowthContext {
@@ -88,6 +104,7 @@ function readGrowthContext(): GrowthContext {
     const parsed = sanitizeAcquisitionAttribution(JSON.parse(raw))
     if (!parsed) return {}
     return {
+      ...(parsed.source_page ? { source_page: parsed.source_page } : {}),
       ...(parsed.query_cluster ? { query_cluster: parsed.query_cluster } : {}),
       ...(parsed.content_cluster ? { content_cluster: parsed.content_cluster } : {}),
       ...(parsed.product_path ? { product_path: parsed.product_path } : {}),
@@ -97,10 +114,7 @@ function readGrowthContext(): GrowthContext {
   }
 }
 
-/**
- * Persist growth taxonomy for later product / purchase events in this session.
- * Funnel links and tool CTAs should call this when the user continues.
- */
+/** Persist internal funnel context. This must never overwrite acquisition source. */
 export function setGrowthContext(context: GrowthContext) {
   if (typeof window === 'undefined') return
 
@@ -113,20 +127,21 @@ export function setGrowthContext(context: GrowthContext) {
     window.sessionStorage.setItem(
       GROWTH_CONTEXT_KEY,
       JSON.stringify({
+        ...(next.source_page ? { source_page: next.source_page } : {}),
         ...(next.query_cluster ? { query_cluster: next.query_cluster } : {}),
         ...(next.content_cluster ? { content_cluster: next.content_cluster } : {}),
         ...(next.product_path ? { product_path: next.product_path } : {}),
       }),
     )
   } catch {
-    // Ignore storage failures; analytics should never block UX.
+    // Analytics must never block UX.
   }
 }
 
 /**
- * Preserve the first page and explicit growth source for the current browser
- * session so downstream product and revenue events can be attributed back to
- * the acquisition entry point.
+ * Preserve first-touch acquisition separately from internal continuation.
+ * UTM values win on entry; otherwise use the external referrer, then direct.
+ * Once stored for the browser session, acquisition source/medium are frozen.
  */
 function getSessionAttribution(): AcquisitionContext {
   if (typeof window === 'undefined') {
@@ -138,37 +153,43 @@ function getSessionAttribution(): AcquisitionContext {
 
   try {
     const searchParams = new URLSearchParams(window.location.search)
-    const explicitSource = searchParams.get('source') || searchParams.get('utm_source')
-    const explicitMedium = searchParams.get('medium') || searchParams.get('utm_medium')
     const storedLandingPage = window.sessionStorage.getItem(LANDING_PAGE_KEY)
-    const storedGrowthSource = window.sessionStorage.getItem(GROWTH_SOURCE_KEY)
-    const storedMedium = window.sessionStorage.getItem(GROWTH_MEDIUM_KEY)
+    const storedAcquisitionSource = window.sessionStorage.getItem(ACQUISITION_SOURCE_KEY)
+    const storedAcquisitionMedium = window.sessionStorage.getItem(ACQUISITION_MEDIUM_KEY)
 
     if (!storedLandingPage) {
       window.sessionStorage.setItem(LANDING_PAGE_KEY, pagePath)
     }
-    if (explicitSource) {
-      window.sessionStorage.setItem(GROWTH_SOURCE_KEY, explicitSource)
-    }
-    if (explicitMedium) {
-      window.sessionStorage.setItem(GROWTH_MEDIUM_KEY, explicitMedium)
+
+    let acquisitionSource = storedAcquisitionSource || undefined
+    let acquisitionMedium = storedAcquisitionMedium || undefined
+
+    if (!storedAcquisitionSource) {
+      const utmSource = searchParams.get('utm_source') || undefined
+      const utmMedium = searchParams.get('utm_medium') || undefined
+      const inferred = inferReferrerAttribution()
+      acquisitionSource = utmSource || inferred.source
+      acquisitionMedium = utmMedium || inferred.medium
+
+      if (acquisitionSource) {
+        window.sessionStorage.setItem(ACQUISITION_SOURCE_KEY, acquisitionSource)
+      }
+      if (acquisitionMedium) {
+        window.sessionStorage.setItem(ACQUISITION_MEDIUM_KEY, acquisitionMedium)
+      }
     }
 
-    const growthSource = explicitSource || storedGrowthSource || undefined
-    const medium = explicitMedium || storedMedium || undefined
     const growthContext = readGrowthContext()
 
     return {
       landing_page: storedLandingPage || pagePath,
       page_path: pagePath,
       landing_locale: landingLocale,
-      ...(growthSource ? { growth_source: growthSource } : {}),
-      ...(medium ? { medium } : {}),
+      ...(acquisitionSource ? { acquisition_source: acquisitionSource } : {}),
+      ...(acquisitionMedium ? { acquisition_medium: acquisitionMedium } : {}),
       ...growthContext,
     }
   } catch {
-    // Storage can be unavailable in privacy-restricted browsers. Attribution
-    // should degrade gracefully without interrupting the product flow.
     return {
       landing_page: pagePath,
       page_path: pagePath,
@@ -177,22 +198,13 @@ function getSessionAttribution(): AcquisitionContext {
   }
 }
 
-/** Snapshot used when creating Checkout so attribution survives Stripe return. */
 export function getAcquisitionContext(): AcquisitionContext {
   return getSessionAttribution()
 }
 
-/**
- * 发送事件到 Google Analytics
- *
- * 自动注入 landing_locale 和 browser_language 维度，
- * 使所有事件均可按语言拆分分析。
- */
 function sendEvent(eventName: string, parameters: Record<string, any> = {}) {
   if (typeof window === 'undefined') return
 
-  // Session attribution fills defaults; explicit event parameters win so
-  // server-verified purchase attribution can overlay a cleared session.
   const enrichedParameters: Record<string, any> = {
     ...getSessionAttribution(),
     landing_locale: getLandingLocale(),
@@ -200,12 +212,10 @@ function sendEvent(eventName: string, parameters: Record<string, any> = {}) {
     ...parameters,
   }
 
-  // Google Analytics 4
   if (window.gtag) {
     window.gtag('event', eventName, enrichedParameters)
   }
 
-  // Google Tag Manager (备用)
   if (window.dataLayer) {
     window.dataLayer.push({
       event: eventName,
@@ -213,22 +223,11 @@ function sendEvent(eventName: string, parameters: Record<string, any> = {}) {
     })
   }
 
-  // 开发环境日志
   if (process.env.NODE_ENV === 'development') {
     console.log('📊 Analytics Event:', eventName, enrichedParameters)
   }
 }
 
-/**
- * 设置 GA4 用户级语言属性
- *
- * 在页面加载或语言切换时调用一次，
- * 将 landing_locale 和 browser_language 设为用户属性，
- * 使 GA4 受众报告和用户画像也支持按语言筛选。
- *
- * 事件级维度（由 sendEvent 自动注入）用于漏斗分析，
- * 用户级维度（由此函数设置）用于受众细分，两者互补。
- */
 export function setLanguageUserProperties() {
   if (typeof window === 'undefined') return
   if (!window.gtag) return
@@ -246,19 +245,11 @@ export function setLanguageUserProperties() {
   }
 }
 
-/**
- * 统一的分析追踪接口
- */
 export const analytics = {
   trackCustomEvent(eventName: string, parameters: Record<string, any> = {}) {
     sendEvent(eventName, parameters)
   },
 
-  // ==================== 用户认证事件 ====================
-  
-  /**
-   * 追踪用户登录成功
-   */
   trackLogin(method: string, isNewUser: boolean, isPremium: boolean) {
     sendEvent('login_success', {
       method,
@@ -267,9 +258,6 @@ export const analytics = {
     })
   },
 
-  /**
-   * 追踪首次试戴
-   */
   trackFirstTryOn(userId: string, timeSinceSignup: number) {
     sendEvent('first_try_on', {
       user_id: userId,
@@ -277,11 +265,6 @@ export const analytics = {
     })
   },
 
-  // ==================== Try-On 相关事件 ====================
-  
-  /**
-   * 追踪开始试戴
-   */
   trackTryOnStart(userType: UserType, remainingQuota: number, glassesId?: string, glassesName?: string, tryOnType?: string) {
     sendEvent('try_on_start', {
       user_type: userType,
@@ -293,9 +276,6 @@ export const analytics = {
     })
   },
 
-  /**
-   * 追踪试戴完成
-   */
   trackTryOnComplete(
     userType: UserType,
     processingTime: number,
@@ -311,9 +291,6 @@ export const analytics = {
     })
   },
 
-  /**
-   * 追踪 Frame Compare 开始
-   */
   trackFrameCompareStart(frameCount: number, remainingCredits: number) {
     sendEvent('frame_compare_start', {
       frame_count: frameCount,
@@ -322,9 +299,6 @@ export const analytics = {
     })
   },
 
-  /**
-   * 追踪 Frame Compare 完成（batch 全部结束）
-   */
   trackFrameCompareComplete({
     frameCount,
     completedCount,
@@ -346,9 +320,6 @@ export const analytics = {
     })
   },
 
-  /**
-   * 追踪配额用尽后点击 CTA
-   */
   trackQuotaExhaustedCTA(source: EventSource, userType: UserType) {
     sendEvent('quota_exhausted_cta', {
       source,
@@ -357,11 +328,6 @@ export const analytics = {
     })
   },
 
-  // ==================== 定价页面事件 ====================
-  
-  /**
-   * 追踪查看定价页面
-   */
   trackViewPricing(source: EventSource, userType: UserType, remainingQuota: number) {
     sendEvent('view_pricing', {
       source,
@@ -370,9 +336,6 @@ export const analytics = {
     })
   },
 
-  /**
-   * 追踪点击购买按钮
-   */
   trackClickPurchase(planType: ProductType, planPrice: number, userType: UserType, sourcePage: string) {
     sendEvent('click_purchase_button', {
       plan_type: planType,
@@ -382,11 +345,6 @@ export const analytics = {
     })
   },
 
-  // ==================== Dashboard 事件 ====================
-  
-  /**
-   * 追踪点击升级按钮
-   */
   trackUpgradeClick(location: UpgradeLocation, userType: UserType, remainingQuota: number, quotaWarning: boolean = false) {
     sendEvent('click_upgrade_button', {
       location,
@@ -396,9 +354,6 @@ export const analytics = {
     })
   },
 
-  /**
-   * 追踪查看支付历史
-   */
   trackViewPaymentHistory(userType: UserType, hasPayments: boolean) {
     sendEvent('view_payment_history', {
       user_type: userType,
@@ -406,11 +361,6 @@ export const analytics = {
     })
   },
 
-  // ==================== 购买流程事件 ====================
-  
-  /**
-   * 追踪开始结账（GA4 推荐事件）
-   */
   trackBeginCheckout(planType: ProductType, value: number) {
     sendEvent('begin_checkout', {
       currency: 'USD',
@@ -423,10 +373,6 @@ export const analytics = {
     })
   },
 
-  /**
-   * 追踪购买成功（GA4 推荐事件）
-   * Optional server attribution overlays session storage after Stripe return.
-   */
   trackPurchase(
     transactionId: string,
     planType: ProductType,
@@ -447,17 +393,12 @@ export const analytics = {
     })
   },
 
-  /**
-   * 追踪结账取消
-   */
   trackCheckoutCancelled(planType: ProductType, value: number) {
     sendEvent('checkout_cancelled', {
       plan_type: planType,
       value,
     })
   },
-
-  // ==================== Face Analysis 事件 ====================
 
   trackFaceAnalysisStart(userType: UserType, remainingQuota: number) {
     sendEvent('face_analysis_start', {
@@ -494,8 +435,6 @@ export const analytics = {
       user_type: userType,
     })
   },
-
-  // ==================== Free Face Shape Detector 事件 ====================
 
   trackFaceShapeDetectorUpload(fileType: string, fileSizeBytes: number) {
     sendEvent('face_shape_detector_upload', {
@@ -611,9 +550,6 @@ export const analytics = {
   },
 }
 
-/**
- * 辅助函数：获取用户类型
- */
 export function getUserType(isPremiumActive: boolean, creditsRemaining: number, isAuthenticated: boolean): UserType {
   if (!isAuthenticated) return 'anonymous'
   if (isPremiumActive) return 'premium'
@@ -621,7 +557,6 @@ export function getUserType(isPremiumActive: boolean, creditsRemaining: number, 
   return 'free'
 }
 
-// 声明全局类型
 declare global {
   interface Window {
     gtag: (
