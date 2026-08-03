@@ -7,8 +7,9 @@
 export type AcquisitionAttribution = {
   landing_page?: string
   page_path?: string
-  growth_source?: string
-  medium?: string
+  acquisition_source?: string
+  acquisition_medium?: string
+  source_page?: string
   query_cluster?: string
   content_cluster?: string
   product_path?: string
@@ -21,8 +22,9 @@ const MAX_SERIALIZED_LENGTH = 500
 const ATTRIBUTION_KEYS: Array<keyof AcquisitionAttribution> = [
   'landing_page',
   'page_path',
-  'growth_source',
-  'medium',
+  'acquisition_source',
+  'acquisition_medium',
+  'source_page',
   'query_cluster',
   'content_cluster',
   'product_path',
@@ -58,47 +60,105 @@ export function sanitizeAcquisitionAttribution(
     }
   }
 
+  // Backward compatibility for payloads created before the attribution split.
+  // Never map an internal `/path` source into acquisition_source.
+  if (!sanitized.acquisition_source) {
+    const legacySource = cleanString(record.growth_source)
+    if (legacySource && !legacySource.startsWith('/')) {
+      sanitized.acquisition_source = legacySource
+    }
+  }
+  if (!sanitized.acquisition_medium) {
+    const legacyMedium = cleanString(record.medium)
+    if (legacyMedium) sanitized.acquisition_medium = legacyMedium
+  }
+  if (!sanitized.source_page) {
+    const legacySource = cleanString(record.growth_source)
+    if (legacySource?.startsWith('/')) sanitized.source_page = legacySource
+  }
+
   return Object.keys(sanitized).length > 0 ? sanitized : undefined
 }
 
-/** Serialize attribution for a single Stripe Checkout metadata field. */
+function serializeIfFits(attribution: AcquisitionAttribution): string | undefined {
+  const serialized = JSON.stringify(attribution)
+  return serialized.length <= MAX_SERIALIZED_LENGTH ? serialized : undefined
+}
+
+/**
+ * Serialize attribution for a single Stripe Checkout metadata field.
+ * Always returns valid JSON; it never slices the serialized JSON string.
+ */
 export function serializeAttributionForStripe(
   attribution: AcquisitionAttribution | undefined,
 ): string | undefined {
-  if (!attribution) return undefined
+  const sanitized = sanitizeAcquisitionAttribution(attribution)
+  if (!sanitized) return undefined
 
-  const serialized = JSON.stringify(attribution)
-  if (serialized.length <= MAX_SERIALIZED_LENGTH) {
-    return serialized
-  }
+  const direct = serializeIfFits(sanitized)
+  if (direct) return direct
 
-  // Prefer the acquisition entry point over the checkout page path.
   const compact: AcquisitionAttribution = {
-    ...(attribution.landing_page
-      ? { landing_page: truncate(attribution.landing_page, 120) }
+    ...(sanitized.landing_page
+      ? { landing_page: truncate(sanitized.landing_page, 120) }
       : {}),
-    ...(attribution.growth_source
-      ? { growth_source: truncate(attribution.growth_source, 80) }
+    ...(sanitized.page_path ? { page_path: truncate(sanitized.page_path, 100) } : {}),
+    ...(sanitized.acquisition_source
+      ? { acquisition_source: truncate(sanitized.acquisition_source, 80) }
       : {}),
-    ...(attribution.medium ? { medium: truncate(attribution.medium, 40) } : {}),
-    ...(attribution.query_cluster
-      ? { query_cluster: truncate(attribution.query_cluster, 80) }
+    ...(sanitized.acquisition_medium
+      ? { acquisition_medium: truncate(sanitized.acquisition_medium, 40) }
       : {}),
-    ...(attribution.content_cluster
-      ? { content_cluster: truncate(attribution.content_cluster, 80) }
+    ...(sanitized.source_page
+      ? { source_page: truncate(sanitized.source_page, 100) }
       : {}),
-    ...(attribution.product_path
-      ? { product_path: truncate(attribution.product_path, 40) }
+    ...(sanitized.query_cluster
+      ? { query_cluster: truncate(sanitized.query_cluster, 80) }
       : {}),
-    ...(attribution.landing_locale
-      ? { landing_locale: truncate(attribution.landing_locale, 16) }
+    ...(sanitized.content_cluster
+      ? { content_cluster: truncate(sanitized.content_cluster, 60) }
+      : {}),
+    ...(sanitized.product_path
+      ? { product_path: truncate(sanitized.product_path, 40) }
+      : {}),
+    ...(sanitized.landing_locale
+      ? { landing_locale: truncate(sanitized.landing_locale, 16) }
       : {}),
   }
 
-  const compactSerialized = JSON.stringify(compact)
-  return compactSerialized.length <= MAX_SERIALIZED_LENGTH
-    ? compactSerialized
-    : compactSerialized.slice(0, MAX_SERIALIZED_LENGTH)
+  const compactDirect = serializeIfFits(compact)
+  if (compactDirect) return compactDirect
+
+  // Drop lower-value fields first. Acquisition entry point + internal source
+  // page + query cluster are the last fields removed.
+  const dropOrder: Array<keyof AcquisitionAttribution> = [
+    'page_path',
+    'content_cluster',
+    'landing_locale',
+    'product_path',
+    'acquisition_medium',
+    'query_cluster',
+    'source_page',
+  ]
+
+  for (const key of dropOrder) {
+    delete compact[key]
+    const serialized = serializeIfFits(compact)
+    if (serialized) return serialized
+  }
+
+  // Final safety: preserve the acquisition source whenever possible and
+  // progressively shorten remaining values. JSON remains valid at every step.
+  for (const limit of [80, 60, 40, 24]) {
+    if (compact.landing_page) compact.landing_page = truncate(compact.landing_page, limit)
+    if (compact.acquisition_source) {
+      compact.acquisition_source = truncate(compact.acquisition_source, limit)
+    }
+    const serialized = serializeIfFits(compact)
+    if (serialized) return serialized
+  }
+
+  return undefined
 }
 
 /** Parse attribution stored on Stripe Checkout Session metadata. */
