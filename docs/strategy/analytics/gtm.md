@@ -1,173 +1,405 @@
-# VisuTry GTM：高意图流量增长与收入转化
+# VisuTry GTM v3.0：10× Qualified Traffic Growth Plan
 
-**Status:** Active source of truth for GTM execution
-**Version:** 2.2
-**Last updated:** 2026-07-27
-**Owner:** Growth / Product / Analytics
-**Review cadence:** Weekly
-**Scope:** 获客、SEO、多语言增长、站内转化、分发和增长分析。
+**Status:** Active source of truth for GTM execution  
+**Version:** 3.0  
+**Last updated:** 2026-08-03  
+**Owner:** Growth / Product / Analytics  
+**Review cadence:** Weekly  
+**Execution horizon:** 60–90 days  
+**Scope:** Consumer acquisition, SEO, AI discovery, visual discovery, external distribution, funnel conversion, and growth measurement.
 
-> 本文取代此前按页面数量、渠道数量或活动数量推进的 GTM 执行计划。旧计划仅保留为历史资料；当前执行、排序和复盘以本文为准。
+> This is the only active GTM execution plan for VisuTry. Historical SEO, backlink, directory, outreach, GEO, brand-page, and growth-sprint documents remain evidence or supporting references only. They do not create parallel GTM priorities.
 
-## 1. 当前阶段
+---
 
-VisuTry 已经不再处于“寻找任意可行获客路径”的阶段。
+## 1. Current stage
 
-2026 年 6–7 月，VisuTry 已经产生 10 笔有效的 Credits Pack 支付，对应 10 个不同用户；每笔 USD 2.99，累计支付金额 USD 29.90。用户从脸型检测及相关内容进入产品后产生的付费，以及 GA 中 Free Face Shape Detector、AI Face Shape Detector、Virtual Glasses Try-On、AI Glasses Advisor 和俄语、法语相关页面的访问增长，共同构成当前 GTM 方向的商业信号。
+VisuTry has moved beyond the question of whether any stranger will pay for the product.
 
-这证明以下路径存在真实商业信号：
+The current evidence is still early, but it is strong enough to define the next operating problem:
 
-> 高意图搜索 → 免费脸型检测 → 眼镜建议 → 虚拟试戴 / 比较 → Credits Pack 付费
+> The consumer decision workflow is producing repeated paid behavior, but the traffic sample is still too small to make high-confidence decisions about conversion, pricing, channel quality, and the long-term consumer business.
 
-10 个有效支付足以决定当前优先方向，并且比此前记录的 6 个付费用户形成了更强的连续转化信号；但现有样本仍不足以证明流量与收入会永久线性增长。因此，下一阶段必须同时扩大合格流量并保护转化质量。
+The current public product path is:
 
-## 2. 唯一 GTM 目标
+> **Face Shape Detector → Glasses Advisor → Virtual Try-On → Frame Compare → Credits Pack**
 
-> 扩大进入“脸型检测 → 眼镜推荐 → 虚拟试戴 / 比较 → 付费”路径的高意图流量，同时保持或提高每 1,000 次自然搜索访问带来的收入。
+The strongest current commercial interpretation is:
 
-这里的“流量”不包括与产品路径无关的泛时尚访问。增长只有在用户完成检测、继续试戴、开始结账或付费时才具有商业意义。
+- free face-shape detection acquires and activates high-intent users;
+- Advisor helps narrow frame directions;
+- Try-On provides visual proof for a specific frame;
+- Compare supports the final purchase decision;
+- Credits Pack monetizes immediate, episodic consumer intent;
+- consumer subscription remains secondary unless future repeat-use data proves otherwise.
 
-### 6–12 个月规模目标
+The immediate GTM task is therefore not to invent more channels or add more product surface area. It is to scale the number of qualified users entering this workflow.
 
-以 2026-07-27 GA 最近 30 天快照中的约 **649 次 Organic Search 会话**作为当前方向性基线，目标是在 6–12 个月内达到 **每月 6,500+ 次 Organic Search 会话**，即约 10 倍自然搜索流量。
+---
 
-10 倍是 GTM 的规模方向，不是当前 5 个页面或两周实验的结果承诺。只有在新增流量继续进入检测、试戴、结账和有效支付时，10 倍才算实现；如果访问增长但每千次自然搜索访问收入持续下降，则不能把它报告为 GTM 成功。
+## 2. Operating baseline — 2026-08-03
 
-| 阶段 | Organic Search 月会话目标 | 这一阶段要证明什么 |
+### 2.1 Traffic baseline
+
+Latest GA operating snapshot:
+
+| Metric | Current directional baseline |
+| --- | ---: |
+| Active users, last 30 days | ~1,651 |
+| Sessions, last 30 days | ~1,824 |
+| Organic Search | Current largest acquisition channel |
+| Direct | Meaningful secondary source |
+| AI Assistant | Already a material source; ChatGPT is the main identifiable AI referrer |
+
+The recent 7-day source mix shows that VisuTry is no longer dependent on only one discovery surface. Organic Search is the largest source, while direct traffic and AI-assistant referrals are already visible.
+
+This changes the GTM framing from **SEO growth only** to **qualified traffic growth across several compounding discovery engines**.
+
+### 2.2 Revenue baseline
+
+Latest Stripe export reviewed on 2026-08-03:
+
+| Metric | Current directional baseline |
+| --- | ---: |
+| Successful payments in export | 22 |
+| Gross revenue in export | USD 83.78 |
+| Stripe fees | USD 9.91 |
+| Net after Stripe fees | ~USD 73.87 |
+| Dominant consumer purchase | USD 2.99 Credits Pack |
+| Subscription signal | One user has renewed across multiple months |
+
+Recent payment density is materially stronger than the earliest months after launch. The business signal is therefore no longer only “someone paid once”; payment is beginning to repeat across unrelated users.
+
+The absolute revenue is still small. The important constraint is sample size.
+
+---
+
+## 3. The only GTM objective
+
+> **Increase VisuTry from roughly 1,800 monthly sessions to 15,000–20,000 qualified monthly sessions within 60–90 days, while preserving or improving traffic quality and paid conversion.**
+
+“Qualified” means the traffic has a plausible path into the eyewear decision workflow. Generic fashion traffic, low-intent bot-like traffic, or visits that cannot reasonably continue into Detector, Advisor, Try-On, or Compare do not count as strategic growth.
+
+### 3.1 Milestones
+
+| Horizon | Monthly sessions target | What must be proven |
 | --- | ---: | --- |
-| 当前基线 | 约 649 | 已出现 10 笔有效支付，商业路径存在真实信号 |
-| 第一里程碑 | 1,500–2,000 | 现有高意图内容集群能够持续扩大合格流量 |
-| 第二里程碑 | 3,000–4,000 | 成功的查询、页面、品牌和语言模板可以复制 |
-| 10 倍目标 | 6,500+ | SEO 获客与检测、试戴、付费已经形成稳定增长系统 |
+| Current | ~1,800 | Repeated paid behavior exists |
+| ~30 days | 3,000–5,000 | At least two traffic engines show measurable incremental demand |
+| ~60 days | 7,000–10,000 | Successful query / visual / distribution patterns can be replicated |
+| ~90 days | 15,000–20,000 | VisuTry has enough traffic and paid events for more reliable commercial decisions |
 
-目标关系必须始终保持为：
+The 10× target is a directional operating goal, not a guarantee that every engine will scale linearly within exactly 90 days. If one engine underperforms, resources shift to the engines producing qualified product behavior.
 
-> 高意图自然搜索增长 × 产品路径延续率 × 购买转化率 = 有效支付与收入增长
+---
 
-因此，所有 GTM 动作都必须注明它服务哪个阶段目标，以及用什么数据证明有效。不能回答这两个问题的任务不进入执行队列。
+## 4. The growth equation
 
-### 北极星与护栏指标
+All GTM decisions reduce to three variables:
 
-| 类型 | 指标 | 用途 |
+> **Qualified Traffic × Paid Conversion × Revenue per Payer = Consumer Revenue**
+
+The current phase deliberately attacks the first variable first, while protecting the second and measuring the third.
+
+### 4.1 Revenue expectation at 10× traffic
+
+If traffic scales approximately 10× while current monetization quality remains unchanged, the current revenue run-rate implies roughly:
+
+> **USD 400–500 monthly consumer revenue**
+
+If funnel continuation and purchase conversion improve while traffic scales, the target range becomes:
+
+> **USD 500–1,000 monthly consumer revenue**
+
+These are operating ranges, not forecasts or commitments.
+
+### 4.2 What success means
+
+Traffic growth alone is not success.
+
+A 10× increase in sessions is successful only if it also produces one or more of the following:
+
+- materially more Detector starts and completions;
+- materially more Advisor / Try-On / Compare continuation;
+- materially more checkout starts;
+- materially more verified successful payments;
+- stable or improving revenue per 1,000 qualified sessions.
+
+If sessions grow but commercial behavior collapses, the new traffic is low quality and the engine should be reduced or stopped.
+
+---
+
+## 5. North star and guardrails
+
+### 5.1 North star
+
+**Qualified monthly sessions**
+
+This is the operating scale metric for the next 60–90 days because the current commercial sample is too small.
+
+### 5.2 Commercial guardrails
+
+| Metric | Why it matters |
+| --- | --- |
+| Revenue per 1,000 qualified sessions | Prevents low-quality traffic inflation |
+| Paid conversion rate | Measures whether intent survives scaling |
+| Monthly successful payments | Creates the sample needed for pricing and product decisions |
+| Revenue per payer | Measures monetization depth without confusing it with traffic growth |
+
+### 5.3 Funnel diagnostics
+
+| Stage | Core metrics |
+| --- | --- |
+| Acquisition | sessions, landing sessions, source / medium, landing page, query cluster |
+| Activation | Detector start rate, upload rate, completion rate |
+| Continuation | result → Advisor, Try-On, Compare click-through |
+| Product use | try-on start / complete, compare start / complete |
+| Purchase | pricing view, begin checkout, verified purchase |
+| Quality | revenue / 1,000 sessions by source, page, language, country |
+
+Page count, article count, backlink count, outreach volume, YouTube comment count, directory submissions, and Pinterest post count are input metrics only. They are never GTM success metrics by themselves.
+
+---
+
+## 6. The four traffic engines
+
+All active acquisition work must belong to one of these four engines. No fifth parallel GTM program should be created without replacing or explicitly re-ranking an existing engine.
+
+### Engine 1 — Search → Tool
+
+**Role:** Primary compounding acquisition engine.
+
+The unit of growth is not a generic article. It is:
+
+> **Search query → intent-matched landing page → interactive tool → personalized result → next decision step**
+
+Priority query clusters:
+
+| Cluster | Example intent | Product continuation |
 | --- | --- | --- |
-| 北极星 | 每 1,000 次自然搜索访问收入 | 判断流量增长是否真正带来收益 |
-| 获客 | 高意图自然搜索点击数 | 判断合格需求是否扩大 |
-| 激活 | 检测开始率、检测完成率 | 判断落地页与工具是否匹配 |
-| 延续 | 结果页到 Advisor / Try-On / Compare 的点击率 | 判断免费结果是否进入商业路径 |
-| 购买 | `begin_checkout`、`purchase`、购买转化率 | 判断付费闭环 |
-| 质量护栏 | 按落地页、语言、国家拆分的每千次访问收入 | 防止低质量流量稀释整体数据 |
+| Face-shape detection | `face shape detector`, `what is my face shape` | Start free Detector |
+| Glasses recommendation | `what glasses suit my face`, `glasses for my face shape` | Detector → Advisor |
+| Specific face shape | `glasses for round face`, `glasses for square face` | relevant guide → Detector / Advisor |
+| Face-shape comparison | `oval vs oblong face`, `round vs square face` | resolve confusion → Detector |
+| Virtual try-on | `virtual glasses try on`, `try glasses on photo` | Try-On |
+| Frame comparison | `compare glasses frames`, `which glasses look better` | Compare |
+| Brand try-on | `ray ban virtual try on`, `warby parker virtual try on` | brand intent → Try-On |
+| Decision questions | sizing, proportion, frame-shape questions | relevant answer → tool |
 
-页面浏览量、内容发布数、提交数、外联数和引用域数量只能作为诊断数据，不能单独作为成功标准。
+#### Search execution rules
 
-## 3. 当前受众和搜索意图
+1. Build and optimize **20–30 high-intent Search→Tool pages first**.
+2. Expand toward **50–80 useful pages only from evidence**, not from a page-count quota.
+3. New pages require at least one of:
+   - existing Search Console impressions;
+   - clearly distinct high-intent query demand;
+   - a unique useful tool, comparison, measurement, or visual;
+   - a natural continuation into Detector, Advisor, Try-On, or Compare.
+4. Do not revive the old “1,000+ programmatic pages” goal during this phase.
+5. The homepage is not the default landing page for high-intent search demand.
+6. Brand pages are a sub-experiment inside this engine, not the GTM strategy itself.
 
-当前优先服务的是正在做眼镜决策的消费者：
+#### First page families
 
-1. 想知道自己是什么脸型；
-2. 想知道什么眼镜或太阳镜适合自己的脸型；
-3. 已经有一副具体眼镜，想确认戴上后的效果；
-4. 想在多个镜框之间做比较；
-5. 愿意为具体试戴和决策结果购买 Credits Pack。
+Initial priorities include:
 
-### 优先搜索集群
+- `/face-shape-detector`
+- `/what-is-my-face-shape`
+- face-shape reference pages
+- glasses-for-face-shape pages
+- `/what-glasses-suit-my-face`
+- `/virtual-glasses-try-on`
+- `/try-glasses-on-photo`
+- `/compare-glasses-frames`
+- `/ai-glasses-advisor`
+- brand try-on pages only where query evidence exists
 
-| 集群 | 示例意图 | 产品下一步 |
-| --- | --- | --- |
-| 脸型检测 | `face shape detector`、`face shape finder`、`face shape test` | 直接开始免费检测 |
-| 眼镜匹配 | `glasses for my face shape`、`what glasses suit me` | 检测后进入眼镜建议 |
-| 太阳镜匹配 | `sunglasses for face shape`、具体脸型太阳镜 | 使用真实素材推荐并进入试戴 |
-| 具体脸型 | `glasses for round face`、`glasses for square face` | 对应脸型建议和镜框示例 |
-| 脸型辨别 | `oval vs oblong face`、`round vs square face` | 帮助判断后进入检测 |
-| 试戴决策 | `virtual glasses try on`、`try glasses on my photo` | 直接进入试戴 / 比较 |
-| 品牌试戴 | `ray ban virtual try on`、`warby parker virtual try on` 等 | 比较品牌相关风格方向并进入试戴 |
+#### Multilingual rule
 
-不优先扩张与检测、推荐或试戴没有自然连接的泛眼镜资讯。
+English remains the primary expansion language. Russian, French, Arabic, and other supported languages are expanded only where Search Console or current acquisition data shows real demand.
 
-## 4. 增长顺序
+Localization must preserve:
 
-### 4.1 先放大已有信号
+- correct canonical;
+- valid `hreflang` and `x-default`;
+- language-consistent body copy and CTA;
+- local query vocabulary;
+- the same product continuation path.
 
-每周从 Google Search Console 按“查询 × 页面 × 国家 × 设备”查看最近 28 天和 90 天数据，优先处理：
+Mechanical translation without demand evidence does not enter the active queue.
 
-- 已有展示量；
-- 平均排名约 4–20；
-- 搜索意图明确；
-- CTR 或产品延续率仍有提升空间；
-- 已经出现访问或付费信号的语言和国家。
+---
 
-当前顺序是：英语高意图词、已有增长的俄语页面、法语检测页面，然后根据真实展示量决定其他语言投入。
+### Engine 2 — Visual Discovery
 
-### 4.2 先优化现有集群，再增加 URL
+**Role:** Exploit VisuTry’s naturally visual product and create reusable assets for both search and social discovery.
 
-已经部署的多语言脸型内容集群应先完成收录、内部链接、CTR 和转化验证。新增页面必须满足以下至少一项：
+Primary surfaces:
 
-- Search Console 已出现对应查询；
-- 能解决现有页面无法完整覆盖的独立问题；
-- 能自然进入 Detector、Advisor、Try-On 或 Compare；
-- 能提供真实工具、测量方法、镜框素材或原创比较，而不是改写通用知识。
+- Google Images;
+- Pinterest;
+- visual assets embedded in Search→Tool pages.
 
-不再以“1000+ 页面”或固定周更数量作为目标。页面数量增加本身不代表增长。
+The content unit is a useful eyewear decision visual, not decorative stock photography.
 
-### 4.3 让所有高意图页面进入同一产品路径
+Priority asset families:
 
-站内默认路径：
+- face shape → recommended frame geometry;
+- round vs rectangular frame comparisons;
+- cat-eye / browline / aviator direction examples;
+- face-shape comparison diagrams;
+- before / after try-on examples;
+- multi-frame side-by-side comparisons;
+- frame proportion and width guidance.
 
-`搜索落地页 → 免费检测 → 脸型结果和镜框方向 → 具体镜框试戴 → 多框比较 → Credits Pack`
+#### Visual execution rules
 
-执行要求：
+Each priority Search→Tool page should normally contain several original, useful visual assets when the topic benefits from them.
 
-- 高流量相关页面必须链接至免费检测器；
-- 检测结果页必须提供与脸型相关的 Advisor、Try-On 或 Compare 下一步；
-- 使用 `public/assets/glasses-presets/style-explorer` 的真实眼镜和太阳镜素材；
-- CTA 使用明确动作，例如 “Detect my face shape”、“See glasses for my face”、“Try these frames on”；
-- 首页不是高意图搜索流量的默认落地页。
+Assets should use:
 
-### 4.4 多语言按需求经营
+- descriptive filenames;
+- useful alt text;
+- nearby explanatory copy;
+- stable landing URLs;
+- suitable WebP / AVIF optimization;
+- image dimensions that avoid layout shift;
+- image sitemap support where useful.
 
-英语、俄语、法语及其他已支持语言共享同一产品路径，但每种语言必须使用当地真实搜索表达、完整正文、FAQ、CTA 和内部链接。
+The same high-quality asset may be repurposed across the site, Google Images, Pinterest, YouTube thumbnails, and external references, but each distribution surface must still point users back to a relevant VisuTry landing page.
 
-多语言页面需要保持：
+Visual output count is an input metric. Qualified sessions and product continuation are the outcome metrics.
 
-- 正确 canonical；
-- 自引用和互相引用的 `hreflang`；
-- `x-default`；
-- sitemap 覆盖；
-- 语言一致的页面正文和产品界面。
+---
 
-机械翻译、仅更换关键词的近重复页和没有当地需求证据的批量扩张，不进入当前队列。
+### Engine 3 — AI Discovery
 
-## 5. 三个执行队列
+**Role:** Scale a channel that is already producing identifiable referrals, especially from ChatGPT.
 
-所有 GTM 工作只进入以下三个队列之一：
+The objective is not to create a separate “AI SEO” content factory. It is to make VisuTry easy for AI systems and search experiences to understand, retrieve, and cite when users ask eyewear decision questions.
 
-### 流量
+Core requirements:
 
-- 高意图 SEO 页面优化；
-- 多语言查询与落地页匹配；
-- 从现有高流量页面增加内部链接；
-- 与检测工具直接相关的演示、引用和分发；
-- 高质量、主题相关且可验证的外链机会。
+1. Maintain one consistent product identity:
+   - Face Shape Detector;
+   - Glasses Advisor;
+   - Virtual Try-On;
+   - Frame Compare.
+2. Keep important product facts as crawlable text, not image-only content.
+3. Ensure relevant search / AI crawlers are allowed where intended.
+4. Maintain consistent pricing, positioning, capability, privacy, and product terminology across first-party pages.
+5. Publish pages that directly answer concrete user questions and then route the user into the product.
+6. Create original methodology, comparisons, and visuals that third parties can legitimately reference.
+7. Build third-party references where they are earned and useful, because external consistency improves both human and machine confidence.
 
-### 转化
+Primary AI metrics:
 
-- Detector → Advisor / Try-On / Compare 的延续 CTA；
-- 结果页镜框推荐和真实素材；
-- 免费与付费边界说明；
-- Pricing、Checkout 和 Credits Pack 的高意图入口；
-- 移动端上传、检测和试戴体验。
+- sessions from ChatGPT and other identifiable AI assistants;
+- landing pages receiving AI referrals;
+- product continuation rate from AI traffic;
+- purchase rate and revenue / 1,000 AI sessions.
 
-### 验证
+AI referral volume by itself is not success if those users do not engage with the decision workflow.
 
-- GA4 产品漏斗事件；
-- Search Console 查询、页面、国家和索引数据；
-- 按落地页与语言归因的付费；
-- 每周增长复盘和停止 / 扩大决策。
+---
 
-不能明确影响以上队列及核心指标的新活动，默认不做。
+### Engine 4 — External Distribution & Authority
 
-## 6. 最小分析规范
+**Role:** Create qualified external discovery, third-party references, and authority for Engines 1–3.
 
-至少记录以下事件：
+This engine absorbs previously separate plans for:
+
+- YouTube comments / participation;
+- Reddit participation;
+- backlink outreach;
+- product and AI directories;
+- founder communities;
+- relevant publishers;
+- selected partnerships;
+- resource-page outreach.
+
+#### Distribution rule
+
+External activity must start from an existing user question or a useful VisuTry asset. It should not be generic promotion.
+
+Examples:
+
+- answer a YouTube question about choosing glasses for a face shape;
+- contribute a useful explanation to a Reddit thread about try-on accuracy or frame fit;
+- offer an original visual to an eyewear guide;
+- submit the free Detector to a legitimate tool directory;
+- pitch a methodology page to a relevant publisher;
+- request inclusion on a resource page only when VisuTry genuinely improves that page.
+
+#### Backlink plan status
+
+The historical “60 referring domains” campaign is not an active GTM objective. Its research, targets, outreach history, and live placements remain reusable evidence.
+
+Backlinks now matter only when they support one or more of:
+
+- qualified referral sessions;
+- Search→Tool ranking / discovery;
+- credible third-party product references;
+- AI discovery and entity confidence.
+
+#### YouTube / Reddit rule
+
+The first batch of 25 YouTube comments is treated as an experiment and execution history, not as proof that comment volume drives growth.
+
+Future YouTube and Reddit work is measured by:
+
+- relevant referral sessions;
+- assisted product behavior where measurable;
+- repeated user questions that can become Search→Tool pages;
+- useful third-party visibility or references.
+
+Do not create activity quotas that substitute for traffic and product behavior.
+
+---
+
+## 7. Product work during the 10× phase
+
+For the next 60–90 days, consumer product development is subordinate to GTM validation.
+
+A product task is prioritized only if it materially improves at least one of:
+
+1. acquisition;
+2. Detector activation;
+3. workflow continuation;
+4. purchase conversion;
+5. measurement accuracy.
+
+### Prioritize
+
+- Search→Tool landing templates;
+- internal linking and indexability;
+- image SEO infrastructure;
+- source / landing-page attribution;
+- Detector continuation CTA;
+- Advisor / Try-On / Compare visibility;
+- Credits Pack value communication;
+- mobile upload / try-on friction fixes;
+- payment failure diagnosis;
+- funnel instrumentation.
+
+### Do not prioritize during this phase unless backed by new evidence
+
+- large Studio build-out;
+- heavy Store / merchant dashboard;
+- Shopify public app;
+- WooCommerce plugin;
+- public API;
+- broad SDK expansion unrelated to acquisition;
+- large-scale programmatic SEO;
+- unrelated consumer feature expansion.
+
+Studio, Store, B2B, SDK, API, and partner strategies remain valid commercial directions, but they must not fragment the current consumer traffic experiment.
+
+---
+
+## 8. Measurement specification
+
+At minimum, preserve or implement the following events:
 
 - `face_shape_detector_start`
 - `face_shape_detector_upload`
@@ -177,308 +409,227 @@ VisuTry 已经不再处于“寻找任意可行获客路径”的阶段。
 - `try_on_start`
 - `try_on_complete`
 - `frame_compare_start`
+- `frame_compare_complete` where available
 - `view_pricing`
 - `begin_checkout`
 - `purchase`
 
-事件应尽可能携带：
+Events should carry, where technically appropriate:
 
 - `landing_page`
 - `landing_locale`
 - `page_path`
 - `country`
-- `source` / `medium`
+- `source`
+- `medium`
 - `growth_source`
 - `query_cluster`
-- `face_shape`
+- `content_cluster`
 - `product_path`
-- `value` / `currency`
+- `face_shape` only when represented as non-identifying derived category data and permitted by the privacy model
+- `value`
+- `currency`
 
-隐私原则保持不变：不为增长分析记录用户照片、生物特征原始数据或可识别面部信息。
+Privacy requirements remain strict:
 
-`purchase` 必须由已登录用户的服务端支付记录验证后发送，并使用 Stripe Checkout Session ID 作为 `transaction_id` 去重。不能仅根据成功页面或查询参数报告收入。
+- do not send user face photos to analytics;
+- do not record raw biometric landmarks for GTM measurement;
+- do not add personally identifying facial data to analytics events.
 
-## 7. 工作方式：两周实验，不再启动长期悬空计划
+`purchase` must remain server-verified and deduplicated by transaction identifier. A success-page visit alone is not revenue evidence.
 
-每个增长动作必须写清楚：
+---
 
-1. 假设；
-2. 目标页面、语言或渠道；
-3. 主要指标和质量护栏；
-4. 开始与结束日期；
-5. 扩大、修改或停止条件。
+## 9. Weekly operating system
 
-默认实验周期为 14 天。SEO 收录和排名需要更长观察期时，可以延长数据窗口，但执行动作仍必须按周复盘。
+The GTM cadence is weekly, with 14-day experiment windows where useful.
 
-### 判断规则
+Every active experiment must state:
 
-| 观察结果 | 处理 |
+1. traffic engine;
+2. hypothesis;
+3. target page / query / asset / channel;
+4. baseline;
+5. primary metric;
+6. commercial guardrail;
+7. start date;
+8. review date;
+9. expand / modify / stop condition.
+
+### Weekly review questions
+
+1. Which engine created incremental qualified sessions?
+2. Which pages or sources produced Detector / Try-On / Compare behavior?
+3. Did paid conversion or revenue / 1,000 sessions change?
+4. Which queries, languages, countries, or channels are showing emerging demand?
+5. What should be copied next week?
+6. What should be stopped?
+
+No active experiment should survive multiple review cycles only because the team invested effort in it.
+
+---
+
+## 10. 30 / 60 / 90-day execution plan
+
+### Days 0–30 — Build the scaling infrastructure and reach 3K–5K sessions
+
+Primary work:
+
+- verify source-to-purchase attribution;
+- establish the Search→Tool landing template;
+- publish / optimize the first 20–30 high-intent pages;
+- connect all relevant high-traffic pages to Detector / Advisor / Try-On / Compare;
+- produce the first reusable visual asset library;
+- ensure image discovery infrastructure is correct;
+- continue AI crawler / entity consistency work;
+- run focused YouTube, Reddit, directory, and outreach distribution around actual user questions and existing assets;
+- use Search Console to identify queries with impressions and ranking potential.
+
+Exit criteria:
+
+- monthly run-rate trending toward 3,000–5,000 sessions;
+- at least two engines show incremental qualified traffic;
+- funnel data can attribute source / landing page through major product actions;
+- no material collapse in paid-conversion quality.
+
+### Days 31–60 — Replicate proven patterns and reach 7K–10K sessions
+
+Primary work:
+
+- expand only the page families showing impressions, clicks, or product behavior;
+- improve CTR and ranking for positions with realistic upside;
+- scale the visual formats generating discovery;
+- strengthen internal linking around winning intent clusters;
+- deepen AI-answerable pages around questions already producing traffic;
+- concentrate external distribution on sources producing referral or authority value;
+- improve Detector → Advisor / Try-On / Compare continuation from observed funnel loss.
+
+Exit criteria:
+
+- monthly run-rate trending toward 7,000–10,000 sessions;
+- several repeatable acquisition templates exist;
+- payer count rises with traffic;
+- revenue / 1,000 qualified sessions remains within an acceptable range or improves.
+
+### Days 61–90 — Scale winners and reach 15K–20K sessions
+
+Primary work:
+
+- scale proven query clusters, languages, visual templates, and distribution surfaces;
+- stop low-quality channels even if they create raw pageviews;
+- optimize the highest-volume landing pages for workflow continuation;
+- test Credits Pack messaging / packaging only after traffic sample is large enough;
+- compare conversion and revenue by source, intent cluster, language, and country.
+
+Target commercial sample:
+
+- **15,000–20,000 monthly sessions**;
+- **100–200 successful paid transactions per month** as a directional validation target;
+- **USD 500–1,000 monthly consumer revenue** as a directional target if conversion quality holds or improves.
+
+The payer and revenue ranges are validation targets, not commitments.
+
+---
+
+## 11. Decision rules
+
+| Observation | Decision |
 | --- | --- |
-| 搜索点击增长，检测和收入质量稳定或上升 | 继续扩大该页面、查询或语言 |
-| 流量增长，检测开始率明显下降 | 检查意图错配、首屏表达和 CTA |
-| 检测完成增长，后续试戴不增长 | 优化结果页推荐和延续路径 |
-| Checkout 增长，Purchase 不增长 | 检查价格、信任、支付和失败问题 |
-| 页面长期无展示且与其他页面意图重叠 | 合并、重写或停止维护 |
-| 渠道产生访问但没有产品行为 | 停止或降低该渠道优先级 |
+| Sessions increase and product continuation is stable or higher | Scale the source / template |
+| Search impressions increase but CTR is weak | Improve title, snippet, intent match, and visual presentation |
+| Landing traffic rises but Detector / Try-On entry is weak | Fix intent-to-product connection |
+| Detector completion rises but Advisor / Try-On / Compare does not | Fix result-page continuation |
+| Checkout rises but purchase does not | Inspect price, trust, payment, and technical failures |
+| AI referrals rise but product behavior is weak | Reassess answer / landing intent match |
+| Visual discovery rises but produces low engagement | Change asset intent or landing destination |
+| External distribution creates no referral, reference, or content insight | Stop or reduce it |
+| Page family remains unindexed or has no demand after a reasonable window | Fix technical issue, merge, rewrite, or stop |
+| Revenue / 1,000 sessions falls materially as traffic scales | Treat growth as low quality and reallocate effort |
 
-## 8. 当前唯一实验：品牌高意图入口
+---
 
-**假设：** 既然脸型检测、眼镜建议和试戴路径已经产生 10 笔有效支付，增加能够直接进入试戴的品牌搜索流量，应当增加产品使用和有效支付机会。
+## 12. Explicit non-priorities
 
-**启动日：** 2026-07-27
+During the current 60–90-day phase, default to **not doing** the following as independent initiatives:
 
-**14 天检查：** 2026-08-10
+- a new GTM master plan;
+- a separate SEO master plan;
+- a separate GEO / AI-search master plan;
+- a separate backlink KPI program;
+- a separate YouTube-comment KPI program;
+- a separate Pinterest KPI program;
+- page-count targets detached from demand;
+- 1,000+ page programmatic SEO expansion;
+- large paid-acquisition campaigns intended to manufacture traction;
+- large consumer feature projects unrelated to the growth funnel;
+- large B2B implementation before merchant validation.
 
-**28 天决策：** 2026-08-24
+Paid acquisition may be tested later for CAC once the organic / AI / distribution funnel has enough data. It is not the current mechanism for manufacturing a 10× traffic result.
 
-### 已完成动作
+---
 
-- 优化已有 Ray-Ban 高曝光页面的标题、摘要、首屏 CTA、结构化数据和试戴连接；
-- 新增 Warby Parker、Oakley、Zenni、Gentle Monster 四个英文品牌试戴入口；
-- 使用 Style Explorer 真实素材表达可比较的风格方向，不冒充品牌官方商品；
-- 使用 `seo_funnel_click` 和 `brand-virtual-try-on:{brand}` 区分品牌、来源页和 CTA 位置；
-- 将 5 个英文 URL 纳入 sitemap，未翻译版本保持 `noindex`；
-- 暂停继续增加品牌页，避免在第一批数据出现前扩大无效模板。
+## 13. Document governance
 
-### 当前 5 个观察 URL
+### 13.1 Three-level strategy system
 
-1. `/en/blog/rayban-glasses-virtual-tryon-guide`
-2. `/en/brand/warby-parker`
-3. `/en/brand/oakley`
-4. `/en/brand/zenni`
-5. `/en/brand/gentle-monster`
+#### Level 1 — Commercial strategy
 
-### 14 天只检查领先信号
+`docs/strategy/commercial-strategy.md`
 
-- URL 是否被 Google 收录；
-- 是否出现对应品牌查询和非零展示；
-- 展示量、点击、CTR 和平均排名的初始变化；
-- Organic landing sessions；
-- `seo_funnel_click` 是否进入 Try-On、Detector 或脸型眼镜指南。
+Answers:
 
-14 天内不因为购买样本少而否定实验，也不频繁修改标题和正文。若页面尚未收录，先处理索引问题，观察窗口从稳定收录后重新计算。
+> What business should VisuTry become, and what roles do Consumer, Studio, Store, SDK, and B2B play?
 
-### 28 天做扩大、修改或停止决策
+#### Level 2 — Current GTM execution source of truth
 
-| 结果 | 决策 |
+`docs/strategy/analytics/gtm.md`
+
+Answers:
+
+> What must the team do now to scale qualified consumer traffic and create a larger commercial sample?
+
+This document is the **only active GTM execution source of truth**.
+
+#### Level 3 — Evidence, supporting references, backlog, and archive
+
+Examples include:
+
+- SEO / GEO architecture documents;
+- keyword research;
+- backlink research and ledgers;
+- YouTube / Reddit execution history;
+- competitor research;
+- previous growth sprints;
+- programmatic SEO plans;
+- channel-specific packets;
+- analytics implementation notes.
+
+These documents may provide evidence, tactics, target lists, or historical results. They do not create independent current priorities.
+
+### 13.2 Status of existing GTM-related plans
+
+| Document / plan | Current role |
 | --- | --- |
-| 品牌展示和进入试戴的点击同时增长 | 扩大成功品牌的内容和内部链接，并研究下一批品牌 |
-| 有展示和排名，但 CTR 弱 | 优化标题、摘要和首屏搜索意图匹配 |
-| 有落地访问，但几乎不进入试戴 | 调整素材、CTA 和品牌意图到产品的连接 |
-| 已收录但持续没有相关展示 | 暂停该品牌，不复制模板 |
-| 进入试戴、Checkout 或 Purchase 增长 | 优先扩张同类品牌与相邻查询，并保护收入质量 |
+| `docs/strategy/commercial-strategy.md` | Active commercial source of truth |
+| `docs/strategy/analytics/gtm.md` | **Only active GTM execution source of truth** |
+| `docs/strategy/seo/2026-06-30-product-architecture-seo-geo-sync.md` | Supporting SEO/GEO and public architecture reference |
+| `docs/strategy/2026-06-28-free-face-shape-growth-commercialization-plan.md` | Supporting research / evidence |
+| `docs/strategy/growth/2026-07-02-60-referring-domains-gtm-plan.md` | Superseded historical execution reference |
+| `docs/strategy/growth/2026-06-18-external-growth-sprint.md` | Superseded historical sprint |
+| `docs/strategy/seo/2026-06-12-growth-kpi-operating-plan.md` | Superseded historical baseline |
+| `docs/strategy/archive/seo/programmatic-seo-execution-plan.md` | Archived historical plan |
+| brand-page experiment | Sub-experiment under Engine 1, not an independent GTM plan |
+| YouTube / Reddit activity | Tactics under Engine 4, not independent GTM plans |
+| backlink / directory work | Tactics under Engine 4, not independent GTM plans |
 
-下一批 Maui Jim、Gucci、Prada 等品牌不自动进入生产。只有第一批数据证明品牌词能带来相关展示和产品行为，或新的 Keyword Planner / GSC 数据显示更强的品牌试戴需求时，才进入下一轮 14 天队列。
+If another document conflicts with this document on current GTM priority, this document wins unless it is explicitly replaced by a later source-of-truth version.
 
-## 9. 10 倍目标的扩张路径
+---
 
-达到 6,500+ 月自然搜索会话需要多轮复利，而不是一次批量发布：
+## 14. One-line decision standard
 
-1. 让现有高意图页面稳定收录并获得展示；
-2. 提升已有页面的排名、CTR 和进入检测 / 试戴的比例；
-3. 从 GSC 找出已经出现需求的品牌、脸型、镜框类型和本地语言表达；
-4. 只复制已经证明有效的页面和产品连接模板；
-5. 增强相关内部链接、可引用资产和主题权威度；
-6. 每达到一个流量里程碑，都检查每千次自然搜索访问收入和有效支付是否同步增长。
+> **If a task cannot plausibly increase qualified traffic, improve the Detector → Advisor → Try-On → Compare → Purchase path, or improve our ability to measure those outcomes, it is not a current GTM priority.**
 
-## 10. 可执行 Growth 策略库
+And for the next 60–90 days, every weekly GTM review should end with one question:
 
-本节保存已经认可、可以被立项的增长策略，但**不代表这些策略已经进入当前执行队列**。任何策略只有完成第 11 节的立项卡、获得明确优先级并进入一个 14 天窗口后，才成为 active work。
-
-当前品牌 SEO 实验可以继续被动观察；同一时间最多再启动一个需要产品、内容或渠道投入的主动实验，避免同时改变流量、转化和价格后无法归因。
-
-### 10.1 Credits Pack 转化率优化
-
-**目标：** 提高已经完成检测、试戴或比较的高意图用户购买 USD 2.99 Credits Pack 的比例。
-
-**假设：** 用户已经看到一次有价值的结果后，清楚说明“一次购买、无需订阅、Credits 不过期”的延续入口，会比在通用页面提前推销更容易转化。
-
-**最小实验：**
-
-- 只选择一个高意图时刻，例如首次成功试戴后、Compare 完成后或免费额度不足时；
-- 记录 CTA 展示、点击、`begin_checkout` 和服务端验证的 `purchase`；
-- 保持价格、免费额度和其他页面不变，避免多个变量同时变化；
-- 用实验前后相同来源、设备和落地页的用户进行比较。
-
-**主要指标：** 高意图结果用户到有效支付的转化率。
-
-**质量护栏：** 试戴完成率、退款 / 支付失败、单次付费毛利、移动端退出率。
-
-**启动条件：** 漏斗事件能够稳定区分 CTA 位置、产品、来源和有效支付，并已取得至少 7 天基线。
-
-**扩大 / 停止条件：** 有效支付率提高且产品完成率不下降则扩大到第二个高意图位置；只有点击增长但 Checkout 或 Purchase 不增长时，修改价值表达或停止该位置。
-
-### 10.2 产品分享传播循环
-
-**目标：** 让满意用户自愿分享眼镜试戴或镜框比较结果，带回新的高意图用户。
-
-**假设：** “哪副眼镜更适合我”天然需要朋友或顾问反馈，可分享的比较结果比通用邀请链接更有传播价值。
-
-**最小实验：**
-
-- 在一个完成结果页提供明确、自愿的分享动作；
-- 分享链接携带不可识别个人信息的 referral 标识；
-- 接收者进入可理解的结果或产品落地页，并能继续检测或试戴；
-- 不默认公开用户照片，不把面部数据用于营销，不在未经同意时生成公开页面。
-
-**主要指标：** 每 100 个完成结果产生的分享数、分享访问数、分享访问到检测 / 试戴完成率。
-
-**质量护栏：** 用户撤回和删除能力、隐私投诉、垃圾流量比例、分享页加载和转化质量。
-
-**启动条件：** 分享对象、访问权限、数据保留和删除规则已经明确，referral attribution 可验证。
-
-**扩大 / 停止条件：** 分享访问能产生产品行为则扩展到 Compare 等场景；只有链接点击而没有检测或试戴时，调整分享内容或停止。
-
-### 10.3 社区与创作者分发
-
-**目标：** 用真实的脸型判断、镜框比较或试戴案例触达已有眼镜决策需求的人群。
-
-**假设：** 具体问题和可视化结果比泛品牌宣传更容易获得相关访问和产品行为。
-
-**最小实验：**
-
-- 选择一个内容主题和一个匹配渠道，不跨平台批量铺量；
-- 与少量相关创作者合作，或在允许自我推荐的社区回答真实问题；
-- 每个合作方和内容使用独立 UTM；
-- 披露合作关系，不伪装用户口碑，不使用重复灌水模板。
-
-**主要指标：** 每个来源带来的合格访问、检测 / 试戴开始和完成、Checkout 与 Purchase。
-
-**质量护栏：** 每个合格产品行为的成本、跳出或无行为访问比例、内容删除和社区负面反馈。
-
-**启动条件：** 已有一个可演示的真实案例、可归因链接和明确渠道规则。
-
-**扩大 / 停止条件：** 一个来源持续产生产品行为时复制其主题或合作方式；只有曝光和访问而没有产品行为时停止。
-
-### 10.4 眼镜博客、造型师和验光相关合作
-
-**目标：** 通过与眼镜决策直接相关的专业受众获得信任、引荐和可归因转化。
-
-**假设：** 主题相关合作方可以把 VisuTry 放进真实选镜流程，其访问质量应高于宽泛展示广告。
-
-**最小实验：**
-
-- 选择少量与脸型、镜框选择或线上配镜直接相关的合作方；
-- 优先测试按有效购买、合格预约或验证线索结算的绩效模式；
-- 为每个合作方提供独立落地页或 UTM，并明确披露利益关系；
-- 不购买或伪装编辑型外链，不把付费合作报告为自然引用。
-
-**主要指标：** 合作方带来的产品完成、有效支付、收入和单位获客成本。
-
-**质量护栏：** 佣金后的毛利、退款和无效线索、品牌与合规风险。
-
-**启动条件：** `purchase` 归因可靠，已计算可承受 CAC，并有清晰的合作条款和结算口径。
-
-**扩大 / 停止条件：** 合作 CAC 不高于可承受 CAC 且访问质量稳定时扩大；无法验证归因或佣金侵蚀毛利时停止。
-
-### 10.5 专业用户验证
-
-**目标：** 判断造型师、眼镜顾问、验光师或小型眼镜商是否因重复为客户选镜而拥有更高使用频率、付费意愿和 LTV。
-
-**假设：** 专业用户的重复工作流可能比偶发消费者的一次 Credits Pack 更能支撑订阅、较高客单价和未来付费获客。
-
-**最小实验：**
-
-- 先进行少量访谈和手工辅助试用，不先建设完整 Studio 或商家平台；
-- 观察同一专业用户是否重复创建客户建议、比较多个镜框并返回使用；
-- 询问其当前替代方案、工作频率、愿意支付的结果和采购方式；
-- 将“表示感兴趣”和“真实重复使用 / 愿意付款”分开记录。
-
-**主要指标：** 激活的专业用户数、每周重复使用率、每个专业用户完成的客户工作流、真实付费或明确采购承诺。
-
-**质量护栏：** 手工服务时间、支持成本、隐私与客户照片授权、对当前消费者产品的工程干扰。
-
-**启动条件：** 当前消费者增长实验进入稳定观察期，并能用现有产品完成核心专业任务而无需大型开发。
-
-**扩大 / 停止条件：** 出现重复使用和真实付费意愿后才立项 Studio / 商家 MVP；只有访谈兴趣而没有使用行为时停止开发投入。
-
-### 10.6 付费广告准入与扩量
-
-付费广告分为“有限验证”和“规模增长”，不能把第一次投放直接视为扩量。
-
-**有限验证启动条件：**
-
-- `purchase` 已按交易 ID 去重，并能从广告点击追踪到服务端支付；
-- 试戴完成、Pricing 和 Checkout 作为辅助观察事件，不能替代 Purchase 成为最终成功；
-- 已知一次试戴、Credits Pack 履约、支付和退款后的实际毛利；
-- 已获得稳定的自然流量漏斗基线；
-- 同一漏斗接近每月 15–30 笔有效支付，或另有明确预算只用于验证 CPC 与转化假设。
-
-**最小实验：** 只使用一个国家 / 语言、一个高意图落地页和少量精确搜索词；设置总预算上限，完整运行一个学习窗口，期间不频繁修改预算、出价目标和转化目标。
-
-**主要指标：** 有效 Purchase CAC、广告毛利、付费访问到试戴完成率和 Purchase 转化率。
-
-**规模增长条件：**
-
-- `90 天毛利 LTV ÷ CAC ≥ 3`；
-- 获客成本可以在 30–60 天内回收；
-- 至少两个完整转化周期达到门槛；
-- 提高预算后 CAC、退款和产品完成质量没有明显恶化。
-
-如果用户只购买一次 USD 2.99 Credits Pack，且可承受 CAC 无法覆盖市场 CPC，则不通过提高预算解决；应先提高重复购买、订阅转化、客单价或专业用户 LTV。
-
-平台依据：Google Ads 将主要转化用于出价、次要转化用于观察，并提示智能出价通常需要 7–14 天学习期；其价值型出价指南建议优化目标至少约 15 次月转化，Target CPA 评估则建议查看至少 30 天和约 30 次转化。参见 [Primary and secondary conversion actions](https://support.google.com/google-ads/answer/11461796?hl=en)、[Value-based bidding](https://support.google.com/google-ads/answer/15099424?hl=en) 和 [Target CPA bidding](https://support.google.com/google-ads/answer/6268632?hl=en)。这些是平台学习与评估参考，不替代 VisuTry 自己的毛利和回收期门槛。
-
-## 11. 从策略到项目的立项规则
-
-策略进入执行前必须建立一张项目卡，至少包含：
-
-| 字段 | 必须回答的问题 |
-| --- | --- |
-| 目标 | 服务 1,500–2,000、3,000–4,000 还是 6,500+ 月会话阶段？如何影响收入？ |
-| 假设 | 为什么这个动作会改变用户行为？ |
-| 范围 | 哪个页面、用户、语言、国家或渠道进入实验？ |
-| 唯一主要指标 | 最终使用哪个指标做扩大 / 停止决定？ |
-| 质量护栏 | 哪些收入、成本、隐私或产品指标不能恶化？ |
-| 基线 | 实验前数值和数据窗口是什么？ |
-| 时间 | 默认 14 天；SEO 或低频购买可设 28 天决策点 |
-| 成本 | 工程、内容、合作和现金预算上限是多少？ |
-| 决策规则 | 什么结果扩大、修改或停止？ |
-| Owner | 谁负责执行、数据检查和最终决策？ |
-
-立项顺序遵循以下原则：
-
-1. 先完成测量或经济模型这一类前置依赖；
-2. 在相同预期影响下，优先选择成本更低、反馈更快、可逆性更强的实验；
-3. 不同时启动会改变同一漏斗位置的多个实验；
-4. 被动观察中的 SEO 页面可以与一个主动实验共存；
-5. 新项目必须写回本文或其管理的任务队列，不能创建新的 GTM 总计划。
-
-当前推荐候选顺序是：购买归因与单位经济核对 → Credits Pack 转化率优化 → 分享循环 → 社区 / 创作者或绩效合作（二选一）→ 专业用户验证 → 付费广告有限验证。该顺序是候选依赖关系，不等于所有项目已经获准启动。
-
-## 12. 暂不优先
-
-未来 60–90 天默认不优先：
-
-- 泛眼镜、泛时尚内容扩张；
-- 没有搜索数据或独立用户价值的大规模程序化页面；
-- 宽泛展示广告和宽匹配获客；
-- 以提交量、邮件量、文章量或引用域数量代替收入结果；
-- 与消费者眼镜决策路径无直接关系的大型产品方向；
-- 新建另一份并行 GTM 总计划。
-
-B2B、Store、Studio、API 和合作伙伴方向继续作为商业战略与产品验证方向保留，但不分散当前高意图消费者流量增长的执行注意力。
-
-## 13. 文档治理
-
-### 当前有效文档
-
-| 文档 | 角色 |
-| --- | --- |
-| `docs/strategy/commercial-strategy.md` | 商业方向来源 |
-| `docs/product/product-plan.md` | 产品执行优先级来源 |
-| `docs/strategy/analytics/gtm.md` | 唯一 GTM 执行口径 |
-| `docs/strategy/seo/2026-06-30-product-architecture-seo-geo-sync.md` | SEO/GEO 页面与产品路径架构 |
-| `docs/project/seo-backlog.md` | 经本文排序后的任务队列 |
-
-### 旧 GTM 计划处理规则
-
-- 旧计划中的客户证据、渠道结果、素材和技术结论可以继续引用；
-- 旧计划的日期、任务量、渠道配额和“active source of truth”状态全部失效；
-- 有价值的未完成动作只有迁入当前两周队列后才重新生效；
-- 未迁入的动作视为停止，而不是“以后继续”；
-- 旧文件应标记为 `Superseded` 或 `Archived historical reference`，不再维护执行进度。
-
-## 14. 一句话决策标准
-
-> 如果一项工作不能更快地带来高意图访问、让用户更顺畅地完成检测并进入试戴，或帮助我们判断这些访问是否产生收入，就不应成为当前 GTM 优先事项。
+> **Which engine is moving VisuTry from ~1.8K monthly sessions toward 15K–20K, and which engine should lose resources next week?**
