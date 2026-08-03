@@ -4,13 +4,14 @@ import { ArrowRight } from 'lucide-react'
 import { COMBINATION_SEARCH_PAGES } from '@/config/search-combination-pages'
 import { getGlassesGuideHubCopy } from '@/config/glasses-guide-hub-locales'
 import type { Locale } from '@/i18n'
-import { generateI18nSEO, generateStructuredData } from '@/lib/seo'
+import { generateStructuredData } from '@/lib/seo'
+import { generateSearchToToolSEO } from '@/lib/search-to-tool-seo'
 
 type Props = { params: { locale: string } }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const copy = getGlassesGuideHubCopy(params.locale)
-  return generateI18nSEO({
+  return generateSearchToToolSEO({
     locale: params.locale as Locale,
     title: copy.metaTitle,
     description: copy.metaDescription,
