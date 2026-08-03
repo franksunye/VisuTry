@@ -51,7 +51,7 @@ const ACTION_CONFIG: Record<
     destination: 'virtual-try-on',
     productPath: 'virtual_try_on',
     href: (locale, sourcePage) =>
-      `/${locale}/try-on/glasses?source=${encodeURIComponent(sourcePage)}`,
+      `/${locale}/try-on/glasses?source_page=${encodeURIComponent(sourcePage)}`,
     icon: Glasses,
     labelKey: 'tryOn',
   },
@@ -59,7 +59,7 @@ const ACTION_CONFIG: Record<
     destination: 'frame-compare',
     productPath: 'frame_compare',
     href: (locale, sourcePage) =>
-      `/${locale}/try-on/glasses/compare?source=${encodeURIComponent(sourcePage)}`,
+      `/${locale}/try-on/glasses/compare?source_page=${encodeURIComponent(sourcePage)}`,
     icon: Grid2X2,
     labelKey: 'compare',
   },
