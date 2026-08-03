@@ -3,41 +3,38 @@ const withBundleAnalyzer = require('@next/bundle-analyzer')({
 })
 
 const withNextIntl = require('next-intl/plugin')(
-  // Specify the path to the request config
   './src/i18n/request.ts'
 )
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   images: {
-    // 允许的图片域名
     remotePatterns: [
       {
         protocol: 'https',
-        hostname: '**.public.blob.vercel-storage.com', // Vercel Blob Storage
+        hostname: '**.public.blob.vercel-storage.com',
       },
       {
         protocol: 'https',
-        hostname: 'mock-blob-storage.vercel.app', // Mock Blob Storage (测试环境)
+        hostname: 'mock-blob-storage.vercel.app',
       },
       {
         protocol: 'https',
-        hostname: 'via.placeholder.com', // Mock 占位图
+        hostname: 'via.placeholder.com',
       },
       {
         protocol: 'https',
-        hostname: 'lh3.googleusercontent.com', // Google OAuth 头像
+        hostname: 'lh3.googleusercontent.com',
       },
       {
         protocol: 'https',
-        hostname: 'pbs.twimg.com', // Twitter 头像
+        hostname: 'pbs.twimg.com',
       },
     ],
-    // 图片优化配置
-    formats: ['image/avif', 'image/webp'], // AVIF + WebP
+    formats: ['image/avif', 'image/webp'],
     deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
     imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
-    minimumCacheTTL: 3600, // 1 hour
+    minimumCacheTTL: 3600,
   },
   env: {
     NEXTAUTH_URL: process.env.NEXTAUTH_URL,
@@ -46,12 +43,10 @@ const nextConfig = {
   poweredByHeader: false,
   reactStrictMode: true,
 
-  // 优化生产构建
   experimental: {
     optimizePackageImports: ['lucide-react', '@radix-ui/react-dialog', '@radix-ui/react-select'],
   },
 
-  // 移除 console.log（生产环境保留 error/warn）
   compiler: {
     removeConsole: process.env.NODE_ENV === 'production' ? {
       exclude: ['error', 'warn'],
@@ -64,6 +59,22 @@ const nextConfig = {
   output: 'standalone',
   async redirects() {
     return [
+      // First-batch SEO aliases converge onto existing canonical owner pages.
+      // This avoids duplicate indexable pages and keyword cannibalization while
+      // preserving the clearer search-language slugs as permanent entry aliases.
+      { source: '/:locale/oval-face-shape', destination: '/:locale/face-shapes/oval', permanent: true },
+      { source: '/:locale/round-face-shape', destination: '/:locale/face-shapes/round', permanent: true },
+      { source: '/:locale/square-face-shape', destination: '/:locale/face-shapes/square', permanent: true },
+      { source: '/:locale/heart-face-shape', destination: '/:locale/face-shapes/heart', permanent: true },
+      { source: '/:locale/diamond-face-shape', destination: '/:locale/face-shapes/diamond', permanent: true },
+      { source: '/:locale/oblong-face-shape', destination: '/:locale/face-shapes/oblong', permanent: true },
+      { source: '/:locale/glasses-for-round-face', destination: '/:locale/style/round-face', permanent: true },
+      { source: '/:locale/glasses-for-oval-face', destination: '/:locale/style/oval-face', permanent: true },
+      { source: '/:locale/glasses-for-square-face', destination: '/:locale/style/square-face', permanent: true },
+      { source: '/:locale/glasses-for-heart-shaped-face', destination: '/:locale/style/heart-face', permanent: true },
+      { source: '/:locale/glasses-for-diamond-face', destination: '/:locale/style/diamond-face', permanent: true },
+      { source: '/:locale/glasses-for-long-face', destination: '/:locale/style/oblong-face', permanent: true },
+
       // Clean up legacy non-locale SEO URLs that Google already discovered.
       // The app uses locale-prefixed routes, so keep old blog/tag/share URLs
       // from becoming long-lived 404 examples in Search Console.
