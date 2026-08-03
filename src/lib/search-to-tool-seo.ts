@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import type { Locale } from '@/i18n'
 import { generateI18nSEO } from '@/lib/seo'
 
-function normalizeAbsoluteUrl(value: string | URL | null | undefined): string | URL | undefined {
+export function normalizeSearchToToolUrl(value: string | URL | null | undefined): string | URL | undefined {
   if (!value) return undefined
   const raw = value instanceof URL ? value.toString() : value
   return raw.replace(/^(https?:\/\/[^/]+)\/{2,}/, '$1/')
@@ -33,12 +33,12 @@ export function generateSearchToToolSEO(args: {
     alternates: metadata.alternates
       ? {
           ...metadata.alternates,
-          canonical: normalizeAbsoluteUrl(metadata.alternates.canonical as string | URL | undefined),
+          canonical: normalizeSearchToToolUrl(metadata.alternates.canonical as string | URL | undefined),
           languages: languages
             ? Object.fromEntries(
                 Object.entries(languages).map(([locale, url]) => [
                   locale,
-                  normalizeAbsoluteUrl(url as string | URL) as string,
+                  normalizeSearchToToolUrl(url as string | URL) as string,
                 ]),
               )
             : undefined,
@@ -47,7 +47,7 @@ export function generateSearchToToolSEO(args: {
     openGraph: metadata.openGraph
       ? {
           ...metadata.openGraph,
-          url: normalizeAbsoluteUrl(metadata.openGraph.url as string | URL | undefined),
+          url: normalizeSearchToToolUrl(metadata.openGraph.url as string | URL | undefined),
         }
       : undefined,
   }
