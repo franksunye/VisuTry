@@ -12,7 +12,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = (process.env.NEXT_PUBLIC_SITE_URL || 'https://www.visutry.com').replace(/\/+$/, '')
   const programmaticEnabled = process.env.PROGRAMMATIC_SEO_ENABLED === 'true'
 
-  // Helper function to generate alternate languages
   const generateAlternates = (path: string) => {
     const alternates: { [key: string]: string } = {}
     locales.forEach(locale => {
@@ -22,7 +21,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     return alternates
   }
 
-  // Static pages with i18n support
   const staticPagePaths = [
     { path: '', priority: 1, changeFrequency: 'daily' as const },
     { path: '/face-analysis', priority: 0.9, changeFrequency: 'weekly' as const },
@@ -37,6 +35,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { path: '/try-glasses-on-photo', priority: 0.9, changeFrequency: 'weekly' as const },
     { path: '/compare-glasses-frames', priority: 0.9, changeFrequency: 'weekly' as const },
     { path: '/ai-glasses-advisor', priority: 0.9, changeFrequency: 'weekly' as const },
+    { path: '/glasses-guide', priority: 0.85, changeFrequency: 'weekly' as const },
     { path: '/blog', priority: 0.8, changeFrequency: 'weekly' as const },
     { path: '/pricing', priority: 0.7, changeFrequency: 'weekly' as const },
     { path: '/store', priority: 0.6, changeFrequency: 'weekly' as const },
@@ -48,7 +47,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { path: '/face-shape-measurement', priority: 0.85, changeFrequency: 'monthly' as const },
     { path: '/face-shapes', priority: 0.9, changeFrequency: 'weekly' as const },
     { path: '/hairstyles-for-face-shape', priority: 0.85, changeFrequency: 'weekly' as const },
-    { path: '/glasses-guide', priority: 0.85, changeFrequency: 'weekly' as const },
   ]
   const localizedSunglassesPaths = FACE_SHAPE_SLUGS.map((slug) => `/sunglasses-for/${slug}-face`)
   const localizedOrdinaryGlassesPaths = FACE_SHAPE_SLUGS.map((slug) => `/style/${slug}-face`)
@@ -58,7 +56,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   ]).concat(FACE_SHAPE_COMPARISON_SLUGS.map((slug) => `/face-shapes/compare/${slug}`))
   const combinationSearchPaths = COMBINATION_SEARCH_PAGES.map((page) => `/glasses-guide/${page.slug}`)
 
-  // Generate static pages for all locales
   const staticPages: MetadataRoute.Sitemap = []
   staticPagePaths.forEach(({ path, priority, changeFrequency }) => {
     locales.forEach(locale => {
@@ -67,9 +64,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         lastModified: new Date(),
         changeFrequency,
         priority,
-        alternates: {
-          languages: generateAlternates(path),
-        },
+        alternates: { languages: generateAlternates(path) },
       })
     })
   })
@@ -114,20 +109,20 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     })
   })
   combinationSearchPaths.forEach((path) => {
-    staticPages.push({
-      url: `${baseUrl}/en${path}`,
-      lastModified: new Date(),
-      changeFrequency: 'weekly',
-      priority: 0.8,
-      alternates: { languages: { en: `${baseUrl}/en${path}` } },
+    locales.forEach((locale) => {
+      staticPages.push({
+        url: `${baseUrl}/${locale}${path}`,
+        lastModified: new Date(),
+        changeFrequency: 'weekly',
+        priority: 0.8,
+        alternates: { languages: generateAlternates(path) },
+      })
     })
   })
 
-  // Dynamic blog post pages (with i18n)
   const blogPagesBase: MetadataRoute.Sitemap = await getBlogSitemapEntries()
   const blogPages: MetadataRoute.Sitemap = []
   blogPagesBase.forEach(page => {
-    // Extract path from URL
     const path = page.url.replace(baseUrl, '')
     const blogLocales = path === '/blog/rayban-glasses-virtual-tryon-guide' ? ['en'] : locales
     blogLocales.forEach(locale => {
@@ -143,7 +138,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     })
   })
 
-  // Stable, editorial brand-intent pages. These do not depend on the product database flag.
   const curatedBrandPages: MetadataRoute.Sitemap = CURATED_BRAND_SLUGS.map(brand => {
     const path = `/brand/${brand}`
     return {
@@ -155,7 +149,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     }
   })
 
-  // Dynamic product pages (frames) with i18n
   let productPages: MetadataRoute.Sitemap = []
   if (programmaticEnabled) {
     try {
@@ -171,9 +164,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
             lastModified: frame.updatedAt,
             changeFrequency: 'monthly' as const,
             priority: 0.8,
-            alternates: {
-              languages: generateAlternates(path),
-            },
+            alternates: { languages: generateAlternates(path) },
           })
         })
       })
@@ -182,7 +173,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     }
   }
 
-  // Dynamic face shape pages with i18n
   let faceShapePages: MetadataRoute.Sitemap = []
   if (programmaticEnabled) {
     try {
@@ -194,7 +184,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         faceShapePages.push({
           url: `${baseUrl}/en${path}`,
           lastModified: shape.updatedAt,
-          changeFrequency: 'monthly' as const,
+          changeFrequency: 'monthly',
           priority: 0.7,
           alternates: { languages: { en: `${baseUrl}/en${path}` } },
         })
@@ -204,7 +194,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     }
   }
 
-  // Dynamic category pages with i18n
   let categoryPages: MetadataRoute.Sitemap = []
   if (programmaticEnabled) {
     try {
@@ -219,9 +208,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
             lastModified: category.updatedAt,
             changeFrequency: 'monthly' as const,
             priority: 0.7,
-            alternates: {
-              languages: generateAlternates(path),
-            },
+            alternates: { languages: generateAlternates(path) },
           })
         })
       })
@@ -230,7 +217,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     }
   }
 
-  // Dynamic brand pages with i18n
   let brandPages: MetadataRoute.Sitemap = []
   if (programmaticEnabled) {
     try {
@@ -250,72 +236,18 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
               lastModified: brand.updatedAt,
               changeFrequency: 'monthly' as const,
               priority: 0.6,
-              alternates: {
-                languages: generateAlternates(path),
-              },
+              alternates: { languages: generateAlternates(path) },
             })
           })
         })
     } catch (error) {
-      console.log('Unable to fetch brand pages, skipping brand sitemap generation')
+      console.log('Unable to fetch brand pages, skipping brand page generation')
     }
   }
 
-  // Dynamic user public pages - DISABLED to prevent 404 errors
-  // Reason: User pages are dynamic and may not exist, causing 404s in Google Search Console
-  // Only enable when we have a proper "isPublic" field in the User model
   let userPages: MetadataRoute.Sitemap = []
-  // try {
-  //   const publicUsers = await prisma.user.findMany({
-  //     where: {
-  //       isPublic: true, // Only include users who explicitly made their profile public
-  //     },
-  //     select: {
-  //       id: true,
-  //       name: true,
-  //       updatedAt: true,
-  //     },
-  //     take: 1000,
-  //   })
-  //   userPages = publicUsers.map(user => ({
-  //     url: `${baseUrl}/user/${user.name}`,
-  //     lastModified: user.updatedAt,
-  //     changeFrequency: 'monthly',
-  //     priority: 0.5,
-  //   }))
-  // } catch (error) {
-  //   console.log('Unable to fetch user pages, skipping user sitemap generation')
-  //   userPages = []
-  // }
-
-  // Dynamic try-on share pages - DISABLED to prevent 404 errors
-  // Reason: Share pages are dynamic and may not exist, causing 404s in Google Search Console
-  // Only enable when we have a proper "isPublic" field in the TryOnTask model
   let sharePages: MetadataRoute.Sitemap = []
-  // try {
-  //   const publicShares = await prisma.tryOnTask.findMany({
-  //     where: {
-  //       isPublic: true, // Only include explicitly public shares
-  //       status: 'COMPLETED', // Only include completed tasks
-  //     },
-  //     select: {
-  //       id: true,
-  //       updatedAt: true,
-  //     },
-  //     take: 100,
-  //   })
-  //   sharePages = publicShares.map(share => ({
-  //     url: `${baseUrl}/share/${share.id}`,
-  //     lastModified: share.updatedAt,
-  //     changeFrequency: 'monthly',
-  //     priority: 0.6,
-  //   }))
-  // } catch (error) {
-  //   console.log('Unable to fetch share pages, skipping share page generation')
-  //   sharePages = []
-  // }
 
-  // Merge all pages
   return [
     ...staticPages,
     ...blogPages,
@@ -329,5 +261,4 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   ]
 }
 
-// Optional: Configure sitemap revalidation frequency
-export const revalidate = 3600 // Regenerate every hour
+export const revalidate = 3600
