@@ -45,6 +45,7 @@ export async function GET(request: NextRequest) {
       select: {
         id: true,
         userId: true,
+        origin: true,
         createdAt: true,
         metadata: true
       },
@@ -77,13 +78,24 @@ export async function GET(request: NextRequest) {
         const result = await getTryOnResult(task.id)
         
         if (result.status === TaskStatus.COMPLETED) {
-          const settlement = await settleTryOnTaskQuota(task.id, task.userId)
-          successCount++
-          logger.info('cron', `Task ${task.id} completed successfully`, {
-            isNewCompletion: result.isNewCompletion,
-            quotaSettled: settlement.settled,
-            quotaAlreadySettled: settlement.alreadySettled,
-          })
+          // Store usage is settled via Store UsagePolicy — never touch consumer credits.
+          if (task.origin === 'CONSUMER' && task.userId) {
+            const settlement = await settleTryOnTaskQuota(task.id, task.userId)
+            successCount++
+            logger.info('cron', `Task ${task.id} completed successfully`, {
+              isNewCompletion: result.isNewCompletion,
+              quotaSettled: settlement.settled,
+              quotaAlreadySettled: settlement.alreadySettled,
+            })
+          } else {
+            successCount++
+            logger.info('cron', `Task ${task.id} completed successfully`, {
+              isNewCompletion: result.isNewCompletion,
+              origin: task.origin,
+              quotaSettled: false,
+              storeUsageDeferred: task.origin !== 'CONSUMER',
+            })
+          }
         } else if (result.status === TaskStatus.FAILED) {
           errorCount++
           logger.warn('cron', `Task ${task.id} failed`, { error: result.error })

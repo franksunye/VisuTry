@@ -90,6 +90,8 @@ async function main() {
   const updates: { id: string; expiresAt: Date }[] = []
 
   for (const task of tasksWithoutExpiry) {
+    if (!task.user) continue
+
     const retentionDays = getRetentionDays(task.user)
     const expiresAt = calculateExpiresAt(task.createdAt, retentionDays)
     const isExpired = expiresAt <= now

@@ -71,6 +71,7 @@ What becomes easier, harder, required, or deferred because of this decision?
 | ADR-003 | Product Plan Is the Execution Source of Truth | Accepted | 2026-07-08 |
 | ADR-004 | Frame Compare Core Is Implemented; Next Work Is Productization | Accepted | 2026-07-08 |
 | ADR-005 | Remove SSR getServerSession from All Public Pages — Client-Side Gate Pattern | Accepted | 2026-07-22 |
+| ADR-006 | Store Uses a Modular, Multi-Tenant Foundation on the Existing Generation Core | Accepted | 2026-08-05 |
 
 ---
 
@@ -81,3 +82,4 @@ What becomes easier, harder, required, or deferred because of this decision?
 | 2026-07-08 | Created decision record guide and initial ADR index. |
 | 2026-07-08 | Added ADR-003 and ADR-004 to the index. |
 | 2026-07-22 | Added ADR-005: SSR to client-side gate pattern. |
+| 2026-08-05 | Added ADR-006: modular, multi-tenant Store foundation on the existing generation core. |

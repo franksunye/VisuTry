@@ -88,7 +88,8 @@ model VerificationToken {
 
 model TryOnTask {
   id          String   @id @default(cuid())
-  userId      String
+  /// Optional for anonymous Store sessions; required for CONSUMER origin (DB CHECK).
+  userId      String?
   type        TryOnType @default(GLASSES)  // Try-on category
 
   // Input images
@@ -103,7 +104,15 @@ model TryOnTask {
   status      TaskStatus @default(PENDING)
   errorMessage String?
   quotaSettledAt DateTime? // Successful task quota was settled exactly once
-  quotaSource    String?   // subscription | credit | free_trial
+  quotaSource    String?   // subscription | credit | free_trial | store_demo | merchant_allowance
+
+  // Actor / tenant attribution (first-class; not metadata-only)
+  origin             TryOnOrigin @default(CONSUMER)
+  merchantId         String?
+  merchantSessionId  String?
+  merchantFrameId    String?
+  /// Store: store:{session}:{frame}:{clientSubmissionId}; unique when present
+  idempotencyKey     String?     @unique
 
   // Metadata
   prompt             String?
@@ -113,7 +122,10 @@ model TryOnTask {
   // Data retention
   expiresAt   DateTime?  // When this task data will be deleted
 
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user            User?           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  merchant        Merchant?       @relation(fields: [merchantId], references: [id], onDelete: Restrict)
+  merchantSession MerchantSession? @relation(fields: [merchantSessionId], references: [id], onDelete: Restrict)
+  merchantFrame   MerchantFrame?  @relation(fields: [merchantFrameId], references: [id], onDelete: Restrict)
 
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
@@ -126,6 +138,10 @@ model TryOnTask {
   @@index([userId, status])                      // Optimize dashboard stats query
   @@index([status, quotaSettledAt])               // Reconcile completed but unsettled tasks
   @@index([expiresAt])                           // Index for expiry cleanup cron
+  @@index([origin])
+  @@index([merchantId, createdAt(sort: Desc)])
+  @@index([merchantSessionId])
+  @@index([merchantFrameId])
   @@unique([userId, clientSubmissionId])          // Prevent duplicate client/batch submissions
 }
 
@@ -310,4 +326,256 @@ model FrameCategoryAssociation {
 enum UserRole {
   USER
   ADMIN
+}
+
+enum TryOnOrigin {
+  CONSUMER
+  STORE_DEMO
+  STORE_PILOT
+}
+
+enum MerchantStatus {
+  ACTIVE
+  SUSPENDED
+  INACTIVE
+}
+
+enum MerchantFrameStatus {
+  DRAFT
+  ACTIVE
+  INACTIVE
+}
+
+enum MerchantFrameSource {
+  SEED
+  MANUAL
+  CSV
+  EXTERNAL
+}
+
+enum EnrichmentStatus {
+  NOT_REQUIRED
+  PENDING
+  REVIEW_REQUIRED
+  APPROVED
+}
+
+enum MerchantSessionStatus {
+  ACTIVE
+  COMPLETED
+  EXPIRED
+}
+
+enum MerchantIntentType {
+  FAVORITE
+  PRODUCT_CLICK
+  INQUIRY
+}
+
+enum StoreEventSource {
+  CLIENT
+  SERVER
+}
+
+enum StoreAssetPurpose {
+  SHOPPER_PHOTO
+  FRAME_INPUT
+  GENERATED_RESULT
+}
+
+enum StoreAssetAccessMode {
+  PUBLIC_TEMPORARY
+  PRIVATE_SIGNED
+}
+
+enum MerchantUsageKind {
+  RENDER_ATTEMPT
+  RENDER_SUCCESS
+  RENDER_FAILURE
+  SESSION
+}
+
+/// Store tenant boundary.
+model Merchant {
+  id           String         @id @default(cuid())
+  slug         String         @unique
+  name         String
+  logoUrl      String?
+  websiteUrl   String?
+  contactEmail String?
+  accentColor  String?
+  status       MerchantStatus @default(ACTIVE)
+
+  frames   MerchantFrame[]
+  sessions MerchantSession[]
+  intents  MerchantIntent[]
+  events   MerchantEvent[]
+  assets   StoreAsset[]
+  usage    MerchantUsageLedger[]
+  tryOnTasks TryOnTask[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([status])
+  @@index([updatedAt])
+}
+
+/// Merchant-owned catalog listing (separate from global GlassesFrame).
+model MerchantFrame {
+  id               String              @id @default(cuid())
+  merchantId       String
+  sku              String?
+  name             String
+  imageUrl         String?
+  imageAssetId     String?
+  productUrl       String?
+  /// Integer minor currency units — never float.
+  price            Int?
+  /// Normalized ISO-style lowercase code (e.g. usd).
+  currency         String?
+  shape            String
+  material         String?
+  color            String?
+  widthClass       String?
+  styleTags        String[]            @default([])
+  source           MerchantFrameSource @default(SEED)
+  externalId       String?
+  enrichmentStatus EnrichmentStatus    @default(APPROVED)
+  status           MerchantFrameStatus @default(DRAFT)
+
+  merchant   Merchant         @relation(fields: [merchantId], references: [id], onDelete: Restrict)
+  intents    MerchantIntent[]
+  events     MerchantEvent[]
+  tryOnTasks TryOnTask[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([merchantId, sku])
+  @@unique([merchantId, source, externalId])
+  @@index([merchantId, status])
+  @@index([merchantId, updatedAt])
+}
+
+/// Anonymous shopper session scoped to one merchant.
+model MerchantSession {
+  id                  String                @id @default(cuid())
+  merchantId          String
+  anonymousVisitorId  String?
+  photoAssetId        String?
+  /// SHA-256 hex of opaque capability token — never store plaintext.
+  capabilityTokenHash String
+  locale              String?
+  status              MerchantSessionStatus @default(ACTIVE)
+  lastActiveAt        DateTime              @default(now())
+  expiresAt           DateTime
+
+  merchant   Merchant         @relation(fields: [merchantId], references: [id], onDelete: Restrict)
+  photoAsset StoreAsset?      @relation("SessionPhotoAsset", fields: [photoAssetId], references: [id], onDelete: SetNull)
+  intents    MerchantIntent[]
+  events     MerchantEvent[]
+  assets     StoreAsset[]     @relation("SessionAssets")
+  usage      MerchantUsageLedger[]
+  tryOnTasks TryOnTask[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([merchantId, status])
+  @@index([merchantId, createdAt(sort: Desc)])
+  @@index([expiresAt])
+  @@index([capabilityTokenHash])
+}
+
+model MerchantIntent {
+  id                String             @id @default(cuid())
+  merchantId        String
+  merchantSessionId String
+  merchantFrameId   String?
+  type              MerchantIntentType
+  idempotencyKey    String             @unique
+  email             String?
+  name              String?
+  note              String?            @db.Text
+
+  merchant Merchant         @relation(fields: [merchantId], references: [id], onDelete: Restrict)
+  session  MerchantSession  @relation(fields: [merchantSessionId], references: [id], onDelete: Restrict)
+  frame    MerchantFrame?   @relation(fields: [merchantFrameId], references: [id], onDelete: Restrict)
+
+  createdAt DateTime @default(now())
+
+  @@index([merchantId, createdAt(sort: Desc)])
+  @@index([merchantId, type])
+  @@index([merchantSessionId])
+}
+
+/// Append-only durable Store events (source of truth for merchant insights).
+model MerchantEvent {
+  id                String           @id @default(cuid())
+  eventId           String           @unique
+  type              String
+  merchantId        String
+  merchantSessionId String?
+  merchantFrameId   String?
+  tryOnTaskId       String?
+  source            StoreEventSource
+  locale            String?
+  deviceType        String?
+  /// Sanitized non-sensitive metadata only.
+  metadata          Json?
+
+  merchant Merchant         @relation(fields: [merchantId], references: [id], onDelete: Restrict)
+  session  MerchantSession? @relation(fields: [merchantSessionId], references: [id], onDelete: Restrict)
+  frame    MerchantFrame?   @relation(fields: [merchantFrameId], references: [id], onDelete: Restrict)
+
+  createdAt DateTime @default(now())
+
+  @@index([merchantId, createdAt(sort: Desc)])
+  @@index([merchantId, type])
+  @@index([merchantSessionId])
+  @@index([tryOnTaskId])
+}
+
+model StoreAsset {
+  id                String               @id @default(cuid())
+  merchantId        String
+  merchantSessionId String?
+  ownerType         String
+  ownerId           String
+  purpose           StoreAssetPurpose
+  storageKey        String
+  accessMode        StoreAssetAccessMode @default(PUBLIC_TEMPORARY)
+  providerUrl       String?
+  expiresAt         DateTime
+  deletedAt         DateTime?
+
+  merchant          Merchant          @relation(fields: [merchantId], references: [id], onDelete: Restrict)
+  session           MerchantSession?  @relation("SessionAssets", fields: [merchantSessionId], references: [id], onDelete: Restrict)
+  sessionsWithPhoto MerchantSession[] @relation("SessionPhotoAsset")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([merchantId, purpose])
+  @@index([expiresAt, deletedAt])
+  @@index([merchantSessionId])
+  @@index([storageKey])
+}
+
+model MerchantUsageLedger {
+  id                String            @id @default(cuid())
+  merchantId        String
+  merchantSessionId String?
+  tryOnTaskId       String?
+  kind              MerchantUsageKind
+
+  merchant Merchant         @relation(fields: [merchantId], references: [id], onDelete: Restrict)
+  session  MerchantSession? @relation(fields: [merchantSessionId], references: [id], onDelete: Restrict)
+
+  createdAt DateTime @default(now())
+
+  @@index([merchantId, kind])
+  @@index([merchantId, merchantSessionId, kind])
+  @@index([tryOnTaskId])
 }

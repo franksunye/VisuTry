@@ -82,6 +82,7 @@ async function main() {
     // 2. 核心逻辑：基于当前 Plan 状态重新评估过期时间
     for (const task of allTasks) {
       const { user } = task;
+      if (!user) continue
       
       // 根据用户【当前】身份确定保留天数
       let retentionDays: number = config.FREE_DAYS;

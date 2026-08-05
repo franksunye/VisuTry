@@ -12,7 +12,7 @@ import { RefreshCw } from 'lucide-react';
 
 interface Task {
   id: string;
-  userId: string;
+  userId: string | null;
   type: TryOnType;
   status: TaskStatus;
   createdAt: Date;
@@ -20,7 +20,7 @@ interface Task {
     id: string;
     email: string | null;
     name: string | null;
-  };
+  } | null;
 }
 
 interface TryOnActivityTableProps {
@@ -150,8 +150,8 @@ export default function TryOnActivityTable({ tasks, currentPage, totalPages }: T
                 <TableRow key={task.id}>
                   <TableCell>
                     <div className="flex flex-col">
-                      <span className="font-medium">{task.user.email || 'N/A'}</span>
-                      {task.user.name && (
+                      <span className="font-medium">{task.user?.email || 'N/A'}</span>
+                      {task.user?.name && (
                         <span className="text-sm text-muted-foreground">{task.user.name}</span>
                       )}
                     </div>

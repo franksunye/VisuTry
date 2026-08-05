@@ -8,6 +8,7 @@
 **Related LP:** `docs/product/specs/visutry-store-landing-page.md`  
 **Related MVP:** `docs/product/specs/visutry-store-mvp.md`  
 **Related plan:** `docs/product/plans/visutry-store-implementation-plan.md`
+**Required engineering foundation:** `docs/product/specs/visutry-store-engineering-foundation.md`
 
 ---
 
@@ -398,7 +399,7 @@ createdAt
 Required Sales Demo events:
 
 ```text
-store_demo_viewed
+merchant_page_viewed
 merchant_photo_uploaded
 merchant_recommendation_started
 merchant_recommendation_completed
@@ -501,19 +502,21 @@ Do not build for D0:
 
 The Sales Demo is complete when all are true:
 
-1. A merchant-specific demo URL can be opened without developer intervention.
-2. The demo contains 12-20 merchant frames with product metadata.
-3. A shopper can upload one photo.
-4. The system produces a personalized shortlist from merchant frames.
-5. A shopper can select frames from the shortlist and generate try-on results.
-6. A shopper can compare up to 4 merchant frames side by side.
-7. A shopper can favorite / express interest in a frame.
-8. A shopper can click through to a merchant product URL.
-9. Merchant attribution persists across recommendation, try-on, compare, and intent events.
-10. Merchant insight view shows sessions, try-ons, compares, intent signals, and top frames.
-11. Merchant insight does not expose raw shopper face images by default.
-12. No consumer credit prompt appears inside the merchant shopper workflow.
-13. The demo can be run end-to-end during a 10-minute sales call on desktop and mobile web.
+1. D0-0 in the Store engineering foundation spec is complete.
+2. A merchant-specific demo URL can be opened without developer intervention.
+3. The demo contains 12-20 merchant frames with product metadata.
+4. A shopper can upload one photo.
+5. The system produces a personalized shortlist from merchant frames.
+6. A shopper can select frames from the shortlist and generate try-on results.
+7. A shopper can compare up to 4 merchant frames side by side.
+8. A shopper can favorite / express interest in a frame.
+9. A shopper can click through to a merchant product URL.
+10. Merchant attribution persists across recommendation, try-on, compare, and intent events.
+11. Merchant insight view shows sessions, try-ons, compares, intent signals, and top frames.
+12. Merchant insight does not expose raw shopper face images by default.
+13. No consumer credit prompt appears inside the merchant shopper workflow.
+14. The demo can be run end-to-end during a 10-minute sales call on desktop and mobile web.
+15. Gate A1 is complete before the URL is shared for independent non-team shopper use.
 
 ---
 
@@ -554,3 +557,4 @@ These are intentionally deferred and must not block Sales Demo engineering:
 | Date | Change |
 | --- | --- |
 | 2026-08-05 | Created engineering-ready Store Sales Demo spec and made AI-assisted merchant-catalog recommendation a required demo capability. |
+| 2026-08-05 | Linked the mandatory engineering foundation, standardized `merchant_page_viewed`, and added D0-0 / external-traffic acceptance requirements. |

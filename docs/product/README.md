@@ -23,6 +23,7 @@ The main goal is to make it clear what should be built next, why it matters, how
 | `docs/product/product-plan.md` | Current product operating plan: Now / Next / Later, current sprint, initiatives, backlog, and decisions needed. | Active source of truth for product execution. |
 | `docs/product/specs/` | Detailed specs for individual product capabilities. | Created as needed. |
 | `docs/product/specs/visutry-store-sales-demo.md` | Working Store Sales Demo: 10-minute merchant story, shopper flow, merchant insights, data/events, and D0 acceptance criteria. | **Approved for engineering.** |
+| `docs/product/specs/visutry-store-engineering-foundation.md` | Mandatory Store architecture and engineering constraints: modular boundary, tenancy, actor/usage policy, shared generation, events, assets, idempotency, and tests. | **Approved; required before Store feature work is merge-ready.** |
 | `docs/product/specs/visutry-store-mvp.md` | Store M1 product scope for the first 3-5 merchant pilots. | **Approved scope; D0 → M1 gated execution.** |
 | `docs/product/plans/visutry-store-implementation-plan.md` | Store execution sequence, engineering epics, gates, validation sprint, and definition of done. | **Active execution plan.** |
 | `docs/product/specs/visutry-store-landing-page.md` | Merchant validation landing page and lead-capture surface. | Shipped / measuring. |
@@ -49,6 +50,8 @@ Current sequence:
 ```text
 Store LP
   ↓
+D0-0 Engineering Foundation
+  ↓
 D0 Working Sales Demo
   ↓
 Merchant demos / own-frame sample requests
@@ -62,11 +65,13 @@ Only then evaluate Shopify / broader integrations
 
 Engineering should start with:
 
-1. `docs/product/specs/visutry-store-sales-demo.md`
-2. `docs/product/plans/visutry-store-implementation-plan.md`
-3. `docs/product/specs/visutry-store-mvp.md`
+1. `docs/product/specs/visutry-store-engineering-foundation.md`
+2. `docs/decisions/ADR-006-store-modular-multitenant-foundation.md`
+3. `docs/product/specs/visutry-store-sales-demo.md`
+4. `docs/product/plans/visutry-store-implementation-plan.md`
+5. `docs/product/specs/visutry-store-mvp.md`
 
-The Sales Demo is approved to start now. M1 hardening follows the explicit Gate B conditions in the implementation plan or a direct Product decision to operationalize a live pilot.
+The Sales Demo is approved to start now. D0 feature implementation must first satisfy the D0-0 foundation gate. M1 hardening follows the explicit Gate B conditions in the implementation plan or a direct Product decision to operationalize a live pilot.
 
 ---
 

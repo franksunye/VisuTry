@@ -77,13 +77,20 @@ export async function POST(
 
         // 3. Check if task is eligible for result fetching
         if (task.status === TaskStatus.COMPLETED) {
-            const settlement = await settleTryOnTaskQuota(taskId, task.userId, ctx);
-            logger.info('api', `[Admin Fetch Result] Task already completed, skipping`, {
-                taskId,
-                status: task.status,
-                quotaSettled: settlement.settled,
-                quotaAlreadySettled: settlement.alreadySettled,
-            });
+            if (task.userId) {
+                const settlement = await settleTryOnTaskQuota(taskId, task.userId, ctx);
+                logger.info('api', `[Admin Fetch Result] Task already completed, skipping`, {
+                    taskId,
+                    status: task.status,
+                    quotaSettled: settlement.settled,
+                    quotaAlreadySettled: settlement.alreadySettled,
+                });
+            } else {
+                logger.info('api', `[Admin Fetch Result] Task already completed (store/no user), skipping`, {
+                    taskId,
+                    status: task.status,
+                });
+            }
             return NextResponse.json({
                 success: true,
                 data: {
@@ -131,7 +138,7 @@ export async function POST(
         // 5. Call getTryOnResult to poll and update the task
         const pollStartTime = Date.now();
         const result = await getTryOnResult(taskId);
-        if (result.status === TaskStatus.COMPLETED) {
+        if (result.status === TaskStatus.COMPLETED && task.userId) {
             await settleTryOnTaskQuota(taskId, task.userId, ctx);
         }
         const pollDuration = Date.now() - pollStartTime;

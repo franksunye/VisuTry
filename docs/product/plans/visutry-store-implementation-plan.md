@@ -6,6 +6,8 @@
 **Last updated:** 2026-08-05  
 **Related demo spec:** `docs/product/specs/visutry-store-sales-demo.md`  
 **Related MVP spec:** `docs/product/specs/visutry-store-mvp.md`  
+**Required engineering foundation:** `docs/product/specs/visutry-store-engineering-foundation.md`
+**Architecture decision:** `docs/decisions/ADR-006-store-modular-multitenant-foundation.md`
 **Related landing page:** `docs/product/specs/visutry-store-landing-page.md`
 
 ---
@@ -18,10 +20,11 @@ The guiding rule is:
 
 > Build the minimum reusable commerce workflow required to close and operate real merchant pilots; do not build platform integrations before demand requires them.
 
-Store engineering will therefore proceed in two distinct stages:
+Store engineering will therefore proceed in three gated stages:
 
-1. **D0 — Sales Demo:** a working merchant-specific experience used in outreach and demos.
-2. **M1 — Pilot MVP:** a reusable hosted Store product for the first 3-5 merchants.
+1. **D0-0 — Engineering Foundation:** mandatory tenant, actor, usage, event, asset, and module boundaries.
+2. **D0 — Sales Demo:** a working merchant-specific experience used in outreach and demos.
+3. **M1 — Pilot MVP:** a reusable hosted Store product for the first 3-5 merchants.
 
 A public Shopify app, WooCommerce plugin, EHR/PMS integration, or broad merchant platform is outside this plan.
 
@@ -59,6 +62,27 @@ The commercial value to validate is:
 
 ## 3. Execution Gates
 
+### Gate A0 — D0 engineering foundation
+
+Approved now and mandatory before Store feature work is merge-ready.
+
+Engineering must satisfy the D0-0 acceptance criteria in:
+
+- `docs/product/specs/visutry-store-engineering-foundation.md`
+
+This gate establishes:
+
+- modular-monolith Store boundaries;
+- merchant tenant isolation;
+- anonymous merchant session capability;
+- server-owned Store usage policy;
+- shared Try-On attribution and idempotency;
+- durable Store events;
+- asset/privacy boundary;
+- isolation and regression test skeletons.
+
+Implementation may combine D0-0 and STORE-1 in one PR, but shopper UI work must not be merged on top of undefined tenant, usage, idempotency, or privacy behavior.
+
 ### Gate A — Start D0 engineering
 
 Approved now.
@@ -69,6 +93,19 @@ Reason:
 - core consumer Advisor, Try-On, and Compare capabilities already exist;
 - current commercial strategy requires merchant conversations;
 - a real demo materially improves those conversations.
+
+### Gate A1 — Allow non-team shopper traffic
+
+Do not share a working Store URL for independent use by merchants or shoppers until all are true:
+
+- server-issued MerchantSession capability is enforced;
+- Store Demo allowance and abuse limits are server-enforced;
+- shopper assets use controlled access rather than permanent public URLs as authorization;
+- privacy notice and explicit retention / cleanup behavior are active;
+- merchant insight, events, analytics, and logs exclude raw shopper images and sensitive face payloads;
+- external-traffic tenant, authorization, abuse, and privacy tests pass.
+
+Internal team-operated screen-share demos may proceed before Gate A1 if no external shopper is given independent access and the operator note records the limitation.
 
 ### Gate B — Start M1 pilot MVP hardening
 
@@ -98,6 +135,23 @@ Potential later work:
 
 **Target:** 7-14 engineering days depending on reuse effort.  
 **Goal:** Support a credible 10-minute sales demo and merchant-specific sample Store.
+
+### D0.0 Engineering foundation
+
+Complete Gate A0 before feature work is considered merge-ready.
+
+Required:
+
+- `src/modules/store` domain/application/infrastructure/contracts boundary;
+- Store actor and usage-policy contracts;
+- tenant-scoped repository contracts;
+- schema and migration plan covering merchant, frame, session, intent, events, and Try-On attribution;
+- Store idempotency strategy;
+- asset access and retention boundary;
+- runtime request validation approach;
+- tenant isolation, quota isolation, privacy, idempotency, and consumer regression tests.
+
+Do not use fake consumer users, a client-controlled quota bypass, or a second Store generation task system.
 
 ### D0.1 Merchant foundation
 
@@ -211,6 +265,7 @@ Required test scenarios:
 
 Engineering deliverables:
 
+- completed D0-0 foundation gate;
 - working merchant demo URL;
 - seeded sample merchant and frame catalog;
 - merchant-specific shopper workflow;
@@ -398,6 +453,24 @@ Store should be a new commerce workflow on top of existing VisuTry capabilities,
 
 ## 9. Recommended Engineering Work Breakdown
 
+### Epic STORE-0 — Engineering Foundation
+
+Tasks:
+
+- establish `src/modules/store` dependency boundary;
+- define tenant-scoped repository contracts;
+- define Store actor and server-owned usage policy;
+- define Try-On attribution and idempotency invariants;
+- define durable Store event contract;
+- define asset access / retention seam;
+- add required test skeletons and consumer regression coverage.
+
+Done when:
+
+- all D0-0 acceptance criteria in the engineering foundation spec are demonstrated in code, migration design, and tests.
+
+STORE-0 is a mandatory prerequisite. It may ship in the same PR as STORE-1 but must be reviewed independently from feature behavior.
+
 ### Epic STORE-1 — Merchant & Catalog Foundation
 
 Tasks:
@@ -493,19 +566,20 @@ This epic belongs mainly to M1, not D0.
 
 M1 is ready for a real paid merchant pilot when:
 
-1. A merchant can be provisioned without code changes.
-2. 8-50 frames can be onboarded through CSV or admin tools.
-3. AI-enriched frame metadata can be reviewed before activation.
-4. Shopper Store works on mobile and desktop.
-5. Shopper receives personalized recommendations from merchant frames.
-6. Shopper can try and compare selected merchant frames.
-7. Product click / favorite / inquiry can be attributed to merchant + frame + session.
-8. Merchant can log in and view basic insights.
-9. Merchant usage is isolated from consumer credits.
-10. Failed generation is observable and retryable.
-11. Privacy notice and retention policy are implemented.
-12. Merchant cannot access raw shopper face images by default.
-13. At least one pilot merchant has completed end-to-end acceptance testing with its own catalog.
+1. The Store engineering foundation remains compliant with its mandatory spec.
+2. A merchant can be provisioned without code changes.
+3. 8-50 frames can be onboarded through CSV or admin tools.
+4. AI-enriched frame metadata can be reviewed before activation.
+5. Shopper Store works on mobile and desktop.
+6. Shopper receives personalized recommendations from merchant frames.
+7. Shopper can try and compare selected merchant frames.
+8. Product click / favorite / inquiry can be attributed to merchant + frame + session.
+9. Merchant can log in and view basic insights.
+10. Merchant usage is isolated from consumer credits.
+11. Failed generation is observable and retryable.
+12. Privacy notice and retention policy are implemented.
+13. Merchant cannot access raw shopper face images by default.
+14. At least one pilot merchant has completed end-to-end acceptance testing with its own catalog.
 
 ---
 
@@ -572,6 +646,7 @@ As of 2026-08-05:
 - Store is the primary long-term revenue engine to validate.
 - Consumer remains the acquisition and proof layer.
 - Existing Store LP remains the first inbound validation surface.
+- D0-0 engineering foundation is mandatory before Store feature work is merge-ready.
 - A working Sales Demo is now approved for engineering.
 - AI-assisted recommendation from merchant catalog is required in the Sales Demo and MVP.
 - Catalog onboarding starts assisted; CSV is the first repeatable M1 import path.
@@ -587,3 +662,4 @@ As of 2026-08-05:
 | Date | Change |
 | --- | --- |
 | 2026-08-05 | Created execution plan separating D0 Sales Demo from M1 first-pilot MVP and defined engineering gates, epics, and acceptance criteria. |
+| 2026-08-05 | Added mandatory D0-0 engineering foundation gate and STORE-0 work breakdown for modular boundaries, tenant isolation, usage policy, events, assets, idempotency, and tests. |

@@ -48,8 +48,8 @@ export async function GET(
         resultImageUrl: task.resultImageUrl,
         createdAt: task.createdAt,
         user: {
-          name: task.user.name,
-          image: task.user.image
+          name: task.user?.name ?? null,
+          image: task.user?.image ?? null
         }
       }
     })

@@ -7,6 +7,7 @@
 **Related plan:** `docs/product/product-plan.md`  
 **Related sales demo:** `docs/product/specs/visutry-store-sales-demo.md`  
 **Related implementation plan:** `docs/product/plans/visutry-store-implementation-plan.md`  
+**Required engineering foundation:** `docs/product/specs/visutry-store-engineering-foundation.md`
 **Related landing page:** `docs/product/specs/visutry-store-landing-page.md`  
 **Related roadmap:** `docs/strategy/2026-05-25-b2b-commerce-commercialization-roadmap.md`
 
@@ -536,21 +537,22 @@ Avoid parallel Store-specific generation infrastructure.
 
 M1 is ready for a real paid pilot when all are true:
 
-1. A merchant can be provisioned without application code changes.
-2. 8-50 merchant frames can be onboarded through CSV or admin tooling.
-3. AI-enriched frame metadata can be reviewed before going live.
-4. Shopper Store works on mobile and desktop.
-5. Shopper receives personalized recommendations from merchant frames.
-6. Shopper can generate try-ons for selected merchant frames.
-7. Shopper can compare up to 4 merchant frames.
-8. Product click / favorite / inquiry is attributed to merchant + frame + session.
-9. Merchant can authenticate and see its own basic dashboard.
-10. Merchant usage is isolated from consumer credits.
-11. Failed generation is observable and retryable.
-12. Privacy notice and retention behavior are implemented.
-13. Merchant does not see raw shopper face images by default.
-14. At least one pilot merchant completes end-to-end acceptance testing using its own catalog.
-15. The workflow can be operated for 3-5 pilots without normal shopper usage requiring developer intervention.
+1. The mandatory Store engineering foundation remains compliant.
+2. A merchant can be provisioned without application code changes.
+3. 8-50 merchant frames can be onboarded through CSV or admin tooling.
+4. AI-enriched frame metadata can be reviewed before going live.
+5. Shopper Store works on mobile and desktop.
+6. Shopper receives personalized recommendations from merchant frames.
+7. Shopper can generate try-ons for selected merchant frames.
+8. Shopper can compare up to 4 merchant frames.
+9. Product click / favorite / inquiry is attributed to merchant + frame + session.
+10. Merchant can authenticate and see its own basic dashboard.
+11. Merchant usage is isolated from consumer credits.
+12. Failed generation is observable and retryable.
+13. Privacy notice and retention behavior are implemented.
+14. Merchant does not see raw shopper face images by default.
+15. At least one pilot merchant completes end-to-end acceptance testing using its own catalog.
+16. The workflow can be operated for 3-5 pilots without normal shopper usage requiring developer intervention.
 
 ---
 

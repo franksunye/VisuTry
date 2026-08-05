@@ -33,6 +33,8 @@ async function main() {
     }
 
     for (const task of allTasks) {
+      if (!task.user) continue
+
       if (task.expiresAt && task.expiresAt <= now) {
         stats.expired++
       }

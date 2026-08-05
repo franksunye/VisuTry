@@ -38,7 +38,7 @@ export async function generateMetadata({ params }: SharePageProps): Promise<Meta
     }
   }
 
-  const userName = task.user.name || "User"
+  const userName = task.user?.name || "User"
   const taskType = (task as any).type as TryOnType || 'GLASSES'
   const config = getTryOnConfig(taskType)
 
@@ -88,7 +88,7 @@ export default async function SharePage({ params }: SharePageProps) {
     notFound()
   }
 
-  const userName = task.user.name || "User"
+  const userName = task.user?.name || "User"
   const taskType = (task as any).type as TryOnType || 'GLASSES'
   const config = getTryOnConfig(taskType)
   const createdDate = new Date(task.createdAt).toLocaleDateString("en-US")
@@ -104,7 +104,7 @@ export default async function SharePage({ params }: SharePageProps) {
               {config.icon} AI {config.name} Try-On Result
             </h2>
             <div className="flex items-center justify-center gap-x-4 text-gray-600">
-              {task.user.image && (
+              {task.user?.image && (
                 <img
                   src={task.user.image}
                   alt={userName}

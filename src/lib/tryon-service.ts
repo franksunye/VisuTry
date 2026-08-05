@@ -338,7 +338,8 @@ export async function submitTryOnTask(
           const file = new File([blob], `result-${task.id}.png`, { type: blob.type })
           
           // Upload to Vercel Blob
-          const uploadedBlob = await put(`tryon/result/${task.userId}/${task.id}.png`, file, { access: 'public' })
+          const resultOwnerKey = task.userId ?? `store/${task.merchantId ?? task.id}`
+          const uploadedBlob = await put(`tryon/result/${resultOwnerKey}/${task.id}.png`, file, { access: 'public' })
           finalResultUrl = uploadedBlob.url
           logger.info('tryon-service', 'Gemini result uploaded to blob', {
             taskId: task.id,
@@ -517,7 +518,8 @@ export async function getTryOnResult(taskId: string): Promise<TryOnPollResult> {
           const file = new File([blob], `result-${taskId}.png`, { type: blob.type })
           
           // Upload to Vercel Blob
-          const uploadedBlob = await put(`tryon/result/${task.userId}/${taskId}.png`, file, { access: 'public' })
+          const resultOwnerKey = task.userId ?? `store/${task.merchantId ?? taskId}`
+          const uploadedBlob = await put(`tryon/result/${resultOwnerKey}/${taskId}.png`, file, { access: 'public' })
           resultImageUrl = uploadedBlob.url
           logger.info('tryon-service', 'GrsAi result uploaded to blob', { taskId, url: resultImageUrl })
         } else {

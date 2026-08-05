@@ -1,7 +1,7 @@
 # VisuTry Project Architecture & Features
 
 **Status:** Active source of truth for current technical reality  
-**Last reviewed:** 2026-07-24
+**Last reviewed:** 2026-08-05
 **Owner:** Engineering  
 **Review cadence:** Monthly, or before major product architecture work  
 **Scope:** Current VisuTry technical stack, rendering strategy, session data flow, implemented capabilities, core data model, APIs, pages, components, and workflows.  
@@ -25,8 +25,8 @@ The current product direction is documented in `docs/product/product-plan.md`:
 
 ### Frontend
 
-- **Framework**: Next.js 15 App Router
-- **UI Library**: React 19 + TypeScript
+- **Framework**: Next.js 14 App Router
+- **UI Library**: React 18 + TypeScript
 - **Styling**: Tailwind CSS + Lucide React Icons
 - **State Management**: React Hooks
 - **Localization**: `next-intl` v4
@@ -331,3 +331,10 @@ This document should be reviewed against the codebase before major work in the f
 5. Shopify / widget / public API work.
 
 Detailed specs should be created or updated under `docs/product/specs/` before engineering starts on those capabilities.
+
+For Store work, the mandatory engineering authority is:
+
+- `docs/product/specs/visutry-store-engineering-foundation.md`
+- `docs/decisions/ADR-006-store-modular-multitenant-foundation.md`
+
+Store remains a module in the current application, uses `Merchant` as the tenant boundary, and reuses the existing generation core through explicit actor, usage-policy, attribution, event, and asset contracts.

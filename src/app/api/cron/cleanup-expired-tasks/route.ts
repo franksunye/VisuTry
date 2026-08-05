@@ -87,7 +87,7 @@ export async function GET(request: NextRequest) {
     }>()
 
     expiredTasks.forEach(task => {
-      if (!userTaskMap.has(task.userId) && task.user.email) {
+      if (task.userId && task.user?.email && !userTaskMap.has(task.userId)) {
         userTaskMap.set(task.userId, {
           user: task.user,
           expiryDate: task.expiresAt || now,
@@ -113,9 +113,11 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    // Send deletion notification emails
+    // Send deletion notification emails (consumer tasks only)
     const userEntries = Array.from(userTaskMap.entries())
     for (const [userId, { user, expiryDate }] of userEntries) {
+      if (!user) continue
+
       // Skip if already sent deletion email recently (within 24 hours)
       const lastSent = user.lastRetentionDeletedEmailSent
       if (lastSent && (now.getTime() - lastSent.getTime()) < 24 * 60 * 60 * 1000) {
