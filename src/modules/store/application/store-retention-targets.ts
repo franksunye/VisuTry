@@ -5,7 +5,15 @@
 export function isDeletableBlobRef(value: string | null | undefined): value is string {
   if (!value) return false
   if (value.startsWith('pending:')) return false
-  return true
+  // Storage pathnames are owned by this Blob store. Absolute URLs are only
+  // deletable when they are Vercel Blob URLs; provider/CDN URLs are not ours.
+  if (!value.includes('://')) return value.startsWith('tryon/')
+  try {
+    const hostname = new URL(value).hostname.toLowerCase()
+    return hostname === 'blob.vercel-storage.com' || hostname.endsWith('.blob.vercel-storage.com')
+  } catch {
+    return false
+  }
 }
 
 /**

@@ -1,16 +1,16 @@
 import { prisma } from "@/lib/prisma"
 import { del, head, put } from "@vercel/blob"
 import {
-  buildResultPersistLeaseFields,
+  buildDispatchLeaseFields,
   isBlobConflictError,
-  isResultPersistLeaseActive,
+  type DispatchFence,
 } from "@/modules/store/application/store-dispatch-lease"
 import { generateTryOnImage } from "@/lib/gemini"
 import { submitAsyncTask, pollTaskResult } from "@/lib/grsai"
 import { logger } from "@/lib/logger"
 import { Prisma, TaskStatus, TryOnType, User } from "@prisma/client"
 import { TRY_ON_CONFIGS } from "@/config/try-on-types"
-import { createHash } from "node:crypto"
+import { createHash, randomUUID } from "node:crypto"
 import {
   DEFAULT_TRY_ON_PROMPT_VERSION,
   resolveTryOnPrompt,
@@ -18,6 +18,7 @@ import {
 import { recordStoreOrphanBlob } from '@/modules/store/application/cleanup-store-orphan-blobs'
 import { isMockMode } from '@/lib/mocks'
 import { mockBlobUpload } from '@/lib/mocks/blob'
+import { acquireStoreResultPersistLease } from '@/modules/store/application/store-task-leases'
 
 // Service Tiering Config
 const ENABLE_SERVICE_TIERING = process.env.ENABLE_SERVICE_TIERING !== 'false' // Default to true, unless explicitly set to false
@@ -495,6 +496,7 @@ export async function submitStoreTryOnTask(
     metadata?: Record<string, unknown>
     prompt?: string
     preClaimedTaskId?: string
+    dispatchLease?: DispatchFence
   },
 ): Promise<TryOnSubmissionResult> {
   const clientSubmissionId = options?.clientSubmissionId
@@ -517,6 +519,11 @@ export async function submitStoreTryOnTask(
   const isAsync = true
 
   // Claim-first: prefer pre-claimed task from atomic reservation; otherwise create here.
+  const directLease = buildDispatchLeaseFields()
+  let dispatchFence: DispatchFence = options?.dispatchLease ?? {
+    owner: randomUUID(),
+    version: 1,
+  }
   let task: Awaited<ReturnType<typeof prisma.tryOnTask.create>>
   if (options?.preClaimedTaskId) {
     const claimed = await prisma.tryOnTask.findFirst({
@@ -536,6 +543,17 @@ export async function submitStoreTryOnTask(
     if (!claimed.userImageUrl.startsWith('pending:')) {
       return submissionResultFromTask(claimed)
     }
+    if (
+      !options.dispatchLease ||
+      claimed.dispatchLeaseOwner !== options.dispatchLease.owner ||
+      claimed.dispatchVersion !== options.dispatchLease.version
+    ) {
+      logger.info('tryon-service', 'Store dispatch lease is owned by another request', {
+        taskId: claimed.id,
+      })
+      return submissionResultFromTask(claimed)
+    }
+    dispatchFence = options.dispatchLease
     task = claimed
   } else {
     try {
@@ -569,6 +587,9 @@ export async function submitStoreTryOnTask(
             originalUserFileName: userImageFile.name,
             originalItemFileName: itemImageFile.name,
           },
+          dispatchLeaseOwner: dispatchFence.owner,
+          dispatchLeaseUntil: new Date(directLease.dispatchLeaseUntil),
+          dispatchVersion: dispatchFence.version,
         },
       })
     } catch (error) {
@@ -592,8 +613,14 @@ export async function submitStoreTryOnTask(
 
   // Refresh metadata for pre-claimed rows that still need prompt/dispatch fields.
   if (options?.preClaimedTaskId) {
-    task = await prisma.tryOnTask.update({
-      where: { id: task.id },
+    const refreshed = await prisma.tryOnTask.updateMany({
+      where: {
+        id: task.id,
+        dispatchLeaseOwner: dispatchFence.owner,
+        dispatchVersion: dispatchFence.version,
+        status: TaskStatus.PENDING,
+        userImageUrl: { startsWith: 'pending:' },
+      },
       data: {
         metadata: {
           ...((task.metadata as object) || {}),
@@ -613,11 +640,17 @@ export async function submitStoreTryOnTask(
         },
       },
     })
+    if (refreshed.count !== 1) throw new Error('Store dispatch lease lost before upload')
+    const refreshedTask = await prisma.tryOnTask.findUnique({ where: { id: task.id } })
+    if (!refreshedTask) throw new Error('Store try-on task disappeared before upload')
+    task = refreshedTask
   }
 
   const ownerKey = `store/${merchantId}`
-  const userPath = `tryon/user/${ownerKey}/${task.id}-${userImageFile.name}`
-  const itemPath = `tryon/item/${ownerKey}/${task.id}-${itemImageFile.name}`
+  // A takeover gets a distinct path generation. A stale owner can therefore
+  // compensate only its own uploads, never assets created by the new owner.
+  const userPath = `tryon/user/${ownerKey}/${task.id}-v${dispatchFence.version}-${userImageFile.name}`
+  const itemPath = `tryon/item/${ownerKey}/${task.id}-v${dispatchFence.version}-${itemImageFile.name}`
   let userBlobUrl: string | null = null
   let itemBlobUrl: string | null = null
 
@@ -684,8 +717,12 @@ export async function submitStoreTryOnTask(
       taskId: task.id,
     })
     await compensateUploaded()
-    await prisma.tryOnTask.update({
-      where: { id: task.id },
+    await prisma.tryOnTask.updateMany({
+      where: {
+        id: task.id,
+        dispatchLeaseOwner: dispatchFence.owner,
+        dispatchVersion: dispatchFence.version,
+      },
       data: {
         status: TaskStatus.FAILED,
         errorMessage: 'Failed to upload images to private storage',
@@ -695,8 +732,14 @@ export async function submitStoreTryOnTask(
   }
 
   try {
-    task = await prisma.tryOnTask.update({
-      where: { id: task.id },
+    const attached = await prisma.tryOnTask.updateMany({
+      where: {
+        id: task.id,
+        dispatchLeaseOwner: dispatchFence.owner,
+        dispatchVersion: dispatchFence.version,
+        status: TaskStatus.PENDING,
+        userImageUrl: { startsWith: 'pending:' },
+      },
       data: {
         userImageUrl: userBlobUrl!,
         itemImageUrl: itemBlobUrl!,
@@ -708,6 +751,10 @@ export async function submitStoreTryOnTask(
         },
       },
     })
+    if (attached.count !== 1) throw new Error('Store dispatch lease lost after upload')
+    const attachedTask = await prisma.tryOnTask.findUnique({ where: { id: task.id } })
+    if (!attachedTask) throw new Error('Store try-on task disappeared after upload')
+    task = attachedTask
   } catch (error) {
     await compensateUploaded()
     throw error
@@ -728,10 +775,17 @@ export async function submitStoreTryOnTask(
       promptVersion,
     )
 
-    await prisma.tryOnTask.update({
-      where: { id: task.id },
+    const dispatched = await prisma.tryOnTask.updateMany({
+      where: {
+        id: task.id,
+        dispatchLeaseOwner: dispatchFence.owner,
+        dispatchVersion: dispatchFence.version,
+        status: TaskStatus.PENDING,
+      },
       data: {
         status: TaskStatus.PROCESSING,
+        dispatchLeaseOwner: null,
+        dispatchLeaseUntil: null,
         metadata: {
           ...(task.metadata as object),
           externalTaskId,
@@ -747,6 +801,9 @@ export async function submitStoreTryOnTask(
         },
       },
     })
+    if (dispatched.count !== 1) {
+      throw new Error('Store dispatch lease lost after provider submission')
+    }
 
     return {
       taskId: task.id,
@@ -760,8 +817,13 @@ export async function submitStoreTryOnTask(
       taskId: task.id,
       merchantId,
     })
-    await prisma.tryOnTask.update({
-      where: { id: task.id },
+    await prisma.tryOnTask.updateMany({
+      where: {
+        id: task.id,
+        dispatchLeaseOwner: dispatchFence.owner,
+        dispatchVersion: dispatchFence.version,
+        status: { not: TaskStatus.COMPLETED },
+      },
       data: {
         status: TaskStatus.FAILED,
         errorMessage,
@@ -823,7 +885,14 @@ export async function getTryOnResult(taskId: string): Promise<TryOnPollResult> {
       // Re-read before persist — another poll may have completed already.
       const latestBeforePersist = await prisma.tryOnTask.findUnique({
         where: { id: taskId },
-        select: { status: true, resultImageUrl: true, metadata: true },
+        select: {
+          status: true,
+          resultImageUrl: true,
+          metadata: true,
+          resultPersistLeaseOwner: true,
+          resultPersistLeaseUntil: true,
+          resultPersistVersion: true,
+        },
       })
       if (latestBeforePersist?.status === TaskStatus.COMPLETED) {
         return {
@@ -834,9 +903,14 @@ export async function getTryOnResult(taskId: string): Promise<TryOnPollResult> {
         }
       }
 
+      let resultPersistFence: DispatchFence | null = null
       if (isStoreTask && !isMockMode) {
         const metaBefore = (latestBeforePersist?.metadata ?? {}) as Record<string, unknown>
-        if (isResultPersistLeaseActive(metaBefore)) {
+        const now = new Date()
+        const leaseIsActive =
+          latestBeforePersist?.resultPersistLeaseUntil != null &&
+          latestBeforePersist.resultPersistLeaseUntil.getTime() > now.getTime()
+        if (leaseIsActive) {
           // Another poll owns persistence; wait or reconcile existing blob.
           try {
             const existing = await head(resultPathname)
@@ -859,6 +933,8 @@ export async function getTryOnResult(taskId: string): Promise<TryOnPollResult> {
                   completionTime: Date.now(),
                   resultReconciledFromExistingBlob: true,
                 },
+                resultPersistLeaseOwner: null,
+                resultPersistLeaseUntil: null,
               },
             })
             return {
@@ -876,21 +952,50 @@ export async function getTryOnResult(taskId: string): Promise<TryOnPollResult> {
           }
         }
 
-        const leaseFields = buildResultPersistLeaseFields()
-        await prisma.tryOnTask.updateMany({
-          where: {
-            id: taskId,
-            status: { notIn: [TaskStatus.COMPLETED, TaskStatus.FAILED] },
-          },
-          data: {
-            metadata: {
-              ...metaBefore,
-              ...externalPollMetadata,
-              ...leaseFields,
-              privatePersistPending: true,
-            },
-          },
+        const expectedVersion = latestBeforePersist?.resultPersistVersion ?? 0
+        const acquired = await acquireStoreResultPersistLease({
+          taskId,
+          expectedVersion,
+          now,
         })
+        if (!acquired) {
+          // Lost the CAS. The winner may already have uploaded the deterministic blob.
+          try {
+            const existing = await head(resultPathname)
+            const reconciled = await prisma.tryOnTask.updateMany({
+              where: { id: taskId, status: { not: TaskStatus.COMPLETED } },
+              data: {
+                status: TaskStatus.COMPLETED,
+                resultImageUrl: existing.url,
+                errorMessage: null,
+                metadata: {
+                  ...metaBefore,
+                  ...externalPollMetadata,
+                  resultPathname,
+                  privateBlob: true,
+                  privatePersistPending: false,
+                  privatePersistError: null,
+                  completionTime: Date.now(),
+                  resultReconciledFromExistingBlob: true,
+                },
+                resultPersistLeaseOwner: null,
+                resultPersistLeaseUntil: null,
+              },
+            })
+            return {
+              status: TaskStatus.COMPLETED,
+              resultImageUrl: existing.url,
+              progress: 100,
+              isNewCompletion: reconciled.count > 0,
+            }
+          } catch {
+            return {
+              status: TaskStatus.PROCESSING,
+              progress: pollResult.progress ?? 90,
+            }
+          }
+        }
+        resultPersistFence = acquired
       }
 
       let persistedUrl: string | null = null
@@ -958,7 +1063,13 @@ export async function getTryOnResult(taskId: string): Promise<TryOnPollResult> {
             await prisma.tryOnTask.updateMany({
               where: {
                 id: taskId,
-                status: { notIn: [TaskStatus.COMPLETED, TaskStatus.FAILED] },
+                status: { not: TaskStatus.COMPLETED },
+                ...(resultPersistFence
+                  ? {
+                      resultPersistLeaseOwner: resultPersistFence.owner,
+                      resultPersistVersion: resultPersistFence.version,
+                    }
+                  : {}),
               },
               data: {
                 status: TaskStatus.PROCESSING,
@@ -972,6 +1083,12 @@ export async function getTryOnResult(taskId: string): Promise<TryOnPollResult> {
                       : 'persist_failed',
                   providerResultPresent: true,
                 },
+                ...(resultPersistFence
+                  ? {
+                      resultPersistLeaseOwner: null,
+                      resultPersistLeaseUntil: null,
+                    }
+                  : {}),
               },
             })
             const afterFail = await prisma.tryOnTask.findUnique({
@@ -1009,6 +1126,12 @@ export async function getTryOnResult(taskId: string): Promise<TryOnPollResult> {
         where: {
           id: taskId,
           status: { not: TaskStatus.COMPLETED },
+          ...(resultPersistFence
+            ? {
+                resultPersistLeaseOwner: resultPersistFence.owner,
+                resultPersistVersion: resultPersistFence.version,
+              }
+            : {}),
         },
         data: {
           status: TaskStatus.COMPLETED,
@@ -1025,6 +1148,12 @@ export async function getTryOnResult(taskId: string): Promise<TryOnPollResult> {
             // Never put raw provider URL into first-class Store result delivery.
             ...(isStoreTask ? {} : { originalResultUrl: pollResult.imageUrl }),
           },
+          ...(resultPersistFence
+            ? {
+                resultPersistLeaseOwner: null,
+                resultPersistLeaseUntil: null,
+              }
+            : {}),
         },
       })
 
@@ -1032,11 +1161,18 @@ export async function getTryOnResult(taskId: string): Promise<TryOnPollResult> {
       if (!isNewCompletion) {
         const completed = await prisma.tryOnTask.findUnique({
           where: { id: taskId },
-          select: { resultImageUrl: true },
+          select: { status: true, resultImageUrl: true },
         })
+        if (completed?.status !== TaskStatus.COMPLETED) {
+          return {
+            status: TaskStatus.PROCESSING,
+            progress: pollResult.progress ?? 90,
+            isNewCompletion: false,
+          }
+        }
         return {
           status: TaskStatus.COMPLETED,
-          resultImageUrl: completed?.resultImageUrl || persistedUrl,
+          resultImageUrl: completed.resultImageUrl || persistedUrl,
           progress: 100,
           isNewCompletion: false,
         }

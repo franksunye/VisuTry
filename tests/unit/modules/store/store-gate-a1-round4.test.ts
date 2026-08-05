@@ -135,4 +135,26 @@ describe('TryOn retention per-field delete targets', () => {
     })
     expect(targets).toEqual(['https://blob.vercel-storage.com/item.png'])
   })
+
+  it('never sends external provider URLs to Vercel Blob deletion', () => {
+    const targets = collectTryOnRetentionDeleteTargets({
+      userImageUrl: 'tryon/user/owned.png',
+      itemImageUrl: 'https://cdn.provider.example/frame.png',
+      resultImageUrl: 'https://results.grsai.example/result.png',
+      metadata: {},
+    })
+
+    expect(targets).toEqual(['tryon/user/owned.png'])
+  })
+
+  it('rejects malformed and unowned non-URL deletion targets', () => {
+    const targets = collectTryOnRetentionDeleteTargets({
+      userImageUrl: 'data:image/png;base64,unsafe',
+      itemImageUrl: 'arbitrary-storage-key',
+      resultImageUrl: 'javascript:alert(1)',
+      metadata: {},
+    })
+
+    expect(targets).toEqual([])
+  })
 })

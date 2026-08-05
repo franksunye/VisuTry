@@ -6,7 +6,6 @@
 import { prisma } from '@/lib/prisma'
 import { logger } from '@/lib/logger'
 import { TaskStatus } from '@prisma/client'
-import { isDispatchLeaseExpired } from './store-dispatch-lease'
 
 export type ReconcileStaleStoreClaimsResult = {
   scanned: number
@@ -31,6 +30,7 @@ export async function reconcileStaleStoreClaims(input?: {
       origin: { in: ['STORE_DEMO', 'STORE_PILOT'] },
       status: TaskStatus.PENDING,
       userImageUrl: { startsWith: 'pending:' },
+      OR: [{ dispatchLeaseUntil: null }, { dispatchLeaseUntil: { lte: now } }],
     },
     take: limit,
     orderBy: { createdAt: 'asc' },
@@ -38,6 +38,8 @@ export async function reconcileStaleStoreClaims(input?: {
       id: true,
       metadata: true,
       createdAt: true,
+      dispatchLeaseOwner: true,
+      dispatchVersion: true,
     },
   })
 
@@ -51,19 +53,19 @@ export async function reconcileStaleStoreClaims(input?: {
     ) {
       continue
     }
-    if (!isDispatchLeaseExpired(metadata, now)) {
-      continue
-    }
-
     const updated = await prisma.tryOnTask.updateMany({
       where: {
         id: task.id,
         status: TaskStatus.PENDING,
         userImageUrl: { startsWith: 'pending:' },
+        dispatchLeaseOwner: task.dispatchLeaseOwner,
+        dispatchVersion: task.dispatchVersion,
+        OR: [{ dispatchLeaseUntil: null }, { dispatchLeaseUntil: { lte: now } }],
       },
       data: {
         status: TaskStatus.FAILED,
         errorMessage: 'Store try-on claim expired before provider dispatch.',
+        dispatchLeaseUntil: null,
         metadata: {
           ...metadata,
           staleClaimReconciledAt: now.toISOString(),

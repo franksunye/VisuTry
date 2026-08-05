@@ -5,7 +5,7 @@
 import type { TryOnActor } from '../../domain/actor'
 import type { UsagePolicy } from '../../domain/usage-policy'
 
-export type StoreGenerationSubmitInput = {
+type StoreGenerationSubmitBase = {
   actor: TryOnActor
   usagePolicy: UsagePolicy
   userImage: File | Blob
@@ -13,9 +13,21 @@ export type StoreGenerationSubmitInput = {
   idempotencyKey: string
   clientSubmissionId: string
   prompt?: string
-  /** When set, generation uploads into this already-claimed task row. */
-  preClaimedTaskId?: string
 }
+
+export type StoreGenerationSubmitInput = StoreGenerationSubmitBase &
+  (
+    | {
+        /** Generation uploads into this already-claimed task row. */
+        preClaimedTaskId: string
+        /** Fences stale dispatch owners. */
+        dispatchLease: { owner: string; version: number }
+      }
+    | {
+        preClaimedTaskId?: undefined
+        dispatchLease?: undefined
+      }
+  )
 
 export type StoreGenerationSubmitResult = {
   taskId: string

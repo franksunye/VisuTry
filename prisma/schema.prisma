@@ -119,6 +119,15 @@ model TryOnTask {
   clientSubmissionId String?
   metadata           Json?
 
+  // Database-backed leases. Owner + monotonically increasing version provide
+  // fencing so a stale request cannot overwrite a newer dispatcher/persister.
+  dispatchLeaseOwner      String?
+  dispatchLeaseUntil      DateTime?
+  dispatchVersion         Int       @default(0)
+  resultPersistLeaseOwner String?
+  resultPersistLeaseUntil DateTime?
+  resultPersistVersion    Int       @default(0)
+
   // Data retention
   expiresAt             DateTime?  // When this task data will be deleted
   retentionStatus       RetentionStatus @default(ACTIVE)
@@ -143,6 +152,7 @@ model TryOnTask {
   @@index([status, quotaSettledAt])               // Reconcile completed but unsettled tasks
   @@index([expiresAt])                           // Index for expiry cleanup cron
   @@index([retentionStatus, expiresAt])
+  @@index([origin, status, dispatchLeaseUntil])
   @@index([retentionStatus, deleteFailCount, lastDeleteAttemptAt])
   @@index([origin])
   @@index([merchantId, createdAt(sort: Desc)])

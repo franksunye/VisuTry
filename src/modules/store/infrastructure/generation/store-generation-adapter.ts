@@ -78,6 +78,7 @@ export function createStoreGenerationAdapter(): StoreGenerationPort {
           clientSubmissionId: input.clientSubmissionId,
           prompt: input.prompt,
           preClaimedTaskId: input.preClaimedTaskId,
+          dispatchLease: input.dispatchLease,
           metadata: {
             usagePolicyKind: input.usagePolicy.kind,
           },

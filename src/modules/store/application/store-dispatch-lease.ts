@@ -14,6 +14,11 @@ export type DispatchLeaseFields = {
   source: 'store'
 }
 
+export type DispatchFence = {
+  owner: string
+  version: number
+}
+
 export function buildDispatchLeaseFields(now = new Date()): DispatchLeaseFields {
   return {
     dispatchClaimedAt: now.toISOString(),
@@ -56,6 +61,7 @@ export function resolvePlaceholderReuseAction(input: {
   status: string
   userImageUrl: string
   metadata: Record<string, unknown> | null | undefined
+  dispatchLeaseUntil?: Date | string | null
   now?: Date
 }): 'return_existing' | 'wait_inflight' | 'takeover' {
   const now = input.now ?? new Date()
@@ -76,7 +82,17 @@ export function resolvePlaceholderReuseAction(input: {
     return 'return_existing'
   }
   // PENDING + pending://
-  if (!isDispatchLeaseExpired(input.metadata, now)) {
+  const firstClassLease =
+    input.dispatchLeaseUntil instanceof Date
+      ? input.dispatchLeaseUntil
+      : typeof input.dispatchLeaseUntil === 'string'
+        ? new Date(input.dispatchLeaseUntil)
+        : null
+  const leaseExpired =
+    input.dispatchLeaseUntil !== undefined
+      ? !firstClassLease || firstClassLease.getTime() <= now.getTime()
+      : isDispatchLeaseExpired(input.metadata, now)
+  if (!leaseExpired) {
     return 'wait_inflight'
   }
   return 'takeover'

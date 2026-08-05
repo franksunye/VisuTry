@@ -1,5 +1,6 @@
 import { getTryOnConfig } from '@/config/try-on-types'
 import { Prisma, TaskStatus, TryOnType } from '@prisma/client'
+import { randomUUID } from 'node:crypto'
 import { prisma } from '@/lib/prisma'
 import {
   DEFAULT_STORE_DEMO_LIMITS,
@@ -32,8 +33,10 @@ import {
 import { computeStoreAssetExpiresAt } from '../infrastructure/config/store-demo-limits'
 import {
   buildDispatchLeaseFields,
+  type DispatchFence,
   resolvePlaceholderReuseAction,
 } from './store-dispatch-lease'
+import { acquireStoreDispatchTakeover } from './store-task-leases'
 
 export type SubmitStoreTryOnInput = {
   merchants: MerchantRepository
@@ -90,22 +93,39 @@ function frameDto(frame: {
   }
 }
 
-async function markStoreClaimFailed(taskId: string, error: unknown): Promise<void> {
+async function markStoreClaimFailed(
+  taskId: string,
+  lease: DispatchFence,
+  error: unknown,
+): Promise<boolean> {
   const now = new Date()
   const reason =
     error instanceof Error ? error.message.slice(0, 500) : 'claim_post_commit_failed'
   const existing = await prisma.tryOnTask.findUnique({
     where: { id: taskId },
-    select: { metadata: true, status: true },
+    select: {
+      metadata: true,
+      status: true,
+      dispatchLeaseOwner: true,
+      dispatchVersion: true,
+    },
   })
-  if (!existing) return
-  if (existing.status === TaskStatus.COMPLETED || existing.status === TaskStatus.FAILED) {
-    return
+  if (!existing) return false
+  if (existing.status === TaskStatus.COMPLETED) {
+    return false
+  }
+  if (existing.status === TaskStatus.FAILED) {
+    return (
+      existing.dispatchLeaseOwner === lease.owner &&
+      existing.dispatchVersion === lease.version
+    )
   }
   const metadata = (existing.metadata ?? {}) as Record<string, unknown>
-  await prisma.tryOnTask.updateMany({
+  const updated = await prisma.tryOnTask.updateMany({
     where: {
       id: taskId,
+      dispatchLeaseOwner: lease.owner,
+      dispatchVersion: lease.version,
       status: { notIn: [TaskStatus.COMPLETED, TaskStatus.FAILED] },
       userImageUrl: { startsWith: 'pending:' },
     },
@@ -116,34 +136,6 @@ async function markStoreClaimFailed(taskId: string, error: unknown): Promise<voi
         ...metadata,
         claimFailedAt: now.toISOString(),
         claimFailureReason: reason,
-      },
-    },
-  })
-}
-
-/**
- * Renew dispatch lease for a stale PENDING placeholder (CAS).
- * Returns true when this request owns the takeover.
- */
-async function tryTakeOverStalePlaceholder(taskId: string): Promise<boolean> {
-  const lease = buildDispatchLeaseFields()
-  const existing = await prisma.tryOnTask.findUnique({
-    where: { id: taskId },
-    select: { metadata: true },
-  })
-  if (!existing) return false
-  const metadata = (existing.metadata ?? {}) as Record<string, unknown>
-  const updated = await prisma.tryOnTask.updateMany({
-    where: {
-      id: taskId,
-      status: TaskStatus.PENDING,
-      userImageUrl: { startsWith: 'pending:' },
-    },
-    data: {
-      metadata: {
-        ...metadata,
-        ...lease,
-        dispatchTakeoverAt: lease.dispatchClaimedAt,
       },
     },
   })
@@ -162,11 +154,16 @@ async function claimStoreTryOnSlot(input: {
   clientSubmissionId: string
   clientIp?: string | null
   expiresAt?: Date
-}): Promise<{ taskId: string; reusedExisting: boolean }> {
+}): Promise<{
+  taskId: string
+  reusedExisting: boolean
+  dispatchLease: DispatchFence | null
+}> {
   const maxAttempts = 3
   const abuseWindow = dayWindowStart()
   const ip = input.clientIp || 'unknown'
   const lease = buildDispatchLeaseFields()
+  const leaseOwner = randomUUID()
 
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
     try {
@@ -183,7 +180,7 @@ async function claimStoreTryOnSlot(input: {
                 409,
               )
             }
-            return { taskId: existing.id, reusedExisting: true }
+            return { taskId: existing.id, reusedExisting: true, dispatchLease: null }
           }
 
           const [merchantSuccessfulRenders, sessionSuccessfulRenders, sessionAttempts] =
@@ -306,6 +303,9 @@ async function claimStoreTryOnSlot(input: {
               metadata: {
                 ...lease,
               },
+              dispatchLeaseOwner: leaseOwner,
+              dispatchLeaseUntil: new Date(lease.dispatchLeaseUntil),
+              dispatchVersion: 1,
             },
           })
 
@@ -318,7 +318,11 @@ async function claimStoreTryOnSlot(input: {
             },
           })
 
-          return { taskId: task.id, reusedExisting: false }
+          return {
+            taskId: task.id,
+            reusedExisting: false,
+            dispatchLease: { owner: leaseOwner, version: 1 },
+          }
         },
         { isolationLevel: Prisma.TransactionIsolationLevel.Serializable },
       )
@@ -329,7 +333,9 @@ async function claimStoreTryOnSlot(input: {
         const raced = await prisma.tryOnTask.findUnique({
           where: { idempotencyKey: input.idempotencyKey },
         })
-        if (raced) return { taskId: raced.id, reusedExisting: true }
+        if (raced) {
+          return { taskId: raced.id, reusedExisting: true, dispatchLease: null }
+        }
       }
       if (code !== 'P2034' || attempt === maxAttempts) throw error
     }
@@ -422,6 +428,7 @@ export async function submitStoreFrameTryOn(
   })
 
   let shouldDispatch = !claim.reusedExisting
+  let dispatchLease = claim.dispatchLease
 
   if (claim.reusedExisting) {
     const existingTask = await prisma.tryOnTask.findUnique({
@@ -431,6 +438,7 @@ export async function submitStoreFrameTryOn(
       status: existingTask?.status ?? 'PENDING',
       userImageUrl: existingTask?.userImageUrl ?? 'pending://user',
       metadata: (existingTask?.metadata ?? {}) as Record<string, unknown>,
+      dispatchLeaseUntil: existingTask?.dispatchLeaseUntil,
     })
 
     if (action === 'return_existing' || action === 'wait_inflight') {
@@ -454,8 +462,8 @@ export async function submitStoreFrameTryOn(
     }
 
     // Stale placeholder — take over lease and continue dispatch.
-    const tookOver = await tryTakeOverStalePlaceholder(claim.taskId)
-    if (!tookOver) {
+    const takeoverLease = await acquireStoreDispatchTakeover({ taskId: claim.taskId })
+    if (!takeoverLease) {
       return {
         taskId: claim.taskId,
         status: 'submitted',
@@ -464,7 +472,12 @@ export async function submitStoreFrameTryOn(
         frame: frameDto(frame),
       }
     }
+    dispatchLease = takeoverLease
     shouldDispatch = true
+  }
+
+  if (!dispatchLease) {
+    throw new Error('Store dispatch lease was not acquired')
   }
 
   if (!shouldDispatch) {
@@ -528,6 +541,7 @@ Merchant store frame:
       clientSubmissionId: input.clientSubmissionId,
       prompt,
       preClaimedTaskId: claim.taskId,
+      dispatchLease,
     })
 
     return {
@@ -538,7 +552,8 @@ Merchant store frame:
       frame: frameDto(frame),
     }
   } catch (error) {
-    await markStoreClaimFailed(claim.taskId, error)
+    const markedFailed = await markStoreClaimFailed(claim.taskId, dispatchLease, error)
+    if (!markedFailed) throw error
 
     await recordStoreTryOnAttempt({
       usage: input.usage,
