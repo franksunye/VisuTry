@@ -47,6 +47,7 @@ type RecommendedFrame = {
 type StoreShopperExperienceProps = {
   merchantSlug: string
   locale: string
+  publicPocStorage: boolean
 }
 
 type LoadState = 'loading' | 'ready' | 'unavailable' | 'error'
@@ -74,6 +75,7 @@ function formatPrice(price: number | null, currency: string | null): string | nu
 export function StoreShopperExperience({
   merchantSlug,
   locale,
+  publicPocStorage,
 }: StoreShopperExperienceProps) {
   const t = useTranslations('storeShopper')
   const [loadState, setLoadState] = useState<LoadState>('loading')
@@ -380,6 +382,11 @@ export function StoreShopperExperience({
                 <li>{t('privacy.point2')}</li>
                 <li>{t('privacy.point3')}</li>
               </ul>
+              {publicPocStorage ? (
+                <p className="mt-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm leading-relaxed text-amber-900">
+                  {t('privacy.publicPocNotice')}
+                </p>
+              ) : null}
             </div>
           </div>
           {errorMessage && (

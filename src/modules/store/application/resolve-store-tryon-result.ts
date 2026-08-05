@@ -25,11 +25,15 @@ export type ResolveStoreTryOnResult = {
   body: Buffer
 }
 
-async function readPrivateResultBytes(input: {
+async function readStoreResultBytes(input: {
   resultImageUrl: string
   resultPathname?: string | null
+  accessMode: unknown
 }): Promise<{ body: Buffer; contentType: string }> {
-  if (isMockMode) {
+  if (isMockMode || input.accessMode === 'PUBLIC_TEMPORARY') {
+    if (!isMockMode && !isVercelBlobUrl(input.resultImageUrl)) {
+      throw new StoreDomainError('VALIDATION_ERROR', 'Result image unavailable.', 404)
+    }
     const response = await fetch(input.resultImageUrl)
     if (!response.ok) {
       throw new StoreDomainError('VALIDATION_ERROR', 'Result image unavailable.', 404)
@@ -55,6 +59,15 @@ async function readPrivateResultBytes(input: {
   return {
     body: Buffer.concat(chunks.map((c) => Buffer.from(c))),
     contentType: result.blob.contentType || 'image/png',
+  }
+}
+
+function isVercelBlobUrl(value: string): boolean {
+  try {
+    const hostname = new URL(value).hostname.toLowerCase()
+    return hostname === 'blob.vercel-storage.com' || hostname.endsWith('.blob.vercel-storage.com')
+  } catch {
+    return false
   }
 }
 
@@ -107,10 +120,14 @@ export async function resolveStoreTryOnResult(input: {
   const metadata = (task.metadata ?? {}) as Record<string, unknown>
   const resultPathname =
     typeof metadata.resultPathname === 'string' ? metadata.resultPathname : null
+  const resultAccessMode =
+    metadata.resultAssetAccessMode ??
+    (metadata.privateBlob === false ? 'PUBLIC_TEMPORARY' : 'PRIVATE_SIGNED')
 
-  const bytes = await readPrivateResultBytes({
+  const bytes = await readStoreResultBytes({
     resultImageUrl: task.resultImageUrl,
     resultPathname,
+    accessMode: resultAccessMode,
   })
 
   return {

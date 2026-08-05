@@ -1,9 +1,11 @@
+import { randomUUID } from 'node:crypto'
 import {
   StoreDomainError,
   buildStoreEventIdempotencyKey,
   merchantInactive,
   merchantNotFound,
 } from '../domain'
+import type { StoreAssetAccessMode } from '../domain/enums'
 import type { AssetStore } from './ports/asset-store'
 import type {
   MerchantEventRepository,
@@ -25,6 +27,8 @@ export type UploadShopperPhotoInput = {
   deviceType?: string | null
   /** Retention expiry — computed by infrastructure/config before calling. */
   assetExpiresAt: Date
+  /** Explicit infrastructure-selected policy; private remains the default. */
+  assetAccessMode: StoreAssetAccessMode
 }
 
 export type UploadShopperPhotoResult = {
@@ -67,7 +71,7 @@ export async function uploadShopperPhoto(
   })
 
   const extension = extensionForType(input.file.type)
-  const storageKey = `store/${merchant.id}/sessions/${session.id}/photo-${Date.now()}.${extension}`
+  const storageKey = `store/${merchant.id}/sessions/${session.id}/photo-${randomUUID()}.${extension}`
 
   const { asset, deliveryUrl } = await input.assets.put({
     merchantId: merchant.id,
@@ -76,7 +80,7 @@ export async function uploadShopperPhoto(
     ownerId: session.id,
     purpose: 'SHOPPER_PHOTO',
     storageKey,
-    accessMode: 'PRIVATE_SIGNED',
+    accessMode: input.assetAccessMode,
     body: input.file,
     contentType: input.file.type,
     expiresAt: input.assetExpiresAt,
@@ -104,7 +108,7 @@ export async function uploadShopperPhoto(
     metadata: {
       contentType: input.file.type,
       byteSize: input.file.size,
-      accessMode: 'PRIVATE_SIGNED',
+      accessMode: input.assetAccessMode,
     },
   })
 

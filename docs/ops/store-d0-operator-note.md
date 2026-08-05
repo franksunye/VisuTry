@@ -18,24 +18,29 @@ Operator reference for seeding sample merchants, verifying the catalog, and know
 /{locale}/store/luna-optical
 ```
 
-Flow uses **private** Blobs for shopper photos and Store try-on inputs/results. Browser delivery is only via capability-authenticated routes:
+The current D0 deployment explicitly uses **temporary public Blob objects** through
+`STORE_ASSET_ACCESS_MODE=public-poc`. This is limited to controlled demos and early
+validation; Gate External Traffic remains closed. Browser delivery still uses only
+capability-authenticated application routes:
 
 - `/api/store/sessions/assets/[assetId]`
 - `/api/store/sessions/try-on/[taskId]/result`
 
-Poll APIs never return raw private Blob URLs.
+Poll and upload APIs never return raw provider Blob URLs.
 
 Gate A1 remains closed for independent external traffic.
 
 ---
 
-## Ops prerequisite — private Blob store
+## Temporary Public POC storage policy
 
-1. Private Vercel Blob store connected to the project.
-2. `BLOB_READ_WRITE_TOKEN` / OIDC can write private objects.
-3. Private put fails closed (no public fallback).
-4. Store result completion fails closed if private persistence fails (task stays PROCESSING for retry).
-5. Concurrent poll: blob already-exists is treated as persistence success; COMPLETED is never rolled back.
+1. Public mode activates only with the exact value `STORE_ASSET_ACCESS_MODE=public-poc`.
+2. Missing configuration defaults to private; invalid values fail closed.
+3. Use synthetic, operator-owned, or explicitly authorized photos only.
+4. Raw provider URLs must not appear in shopper API responses, analytics, or general Store events.
+5. Retention cleanup remains mandatory for photos, inputs, and generated results.
+6. Before independent external traffic, connect a private Blob store, set the mode to `private`, redeploy, and rerun Gate A1 verification.
+7. Concurrent result persistence remains fenced; COMPLETED is never rolled back.
 
 ---
 
@@ -82,7 +87,7 @@ Before opening external Gate A1:
 1. deploy migration `20260805190000_add_tryon_task_fenced_leases`;
 2. run two-request takeover smoke against the deployed PostgreSQL database and confirm one owner/version wins;
 3. run takeover-versus-reconciler smoke and confirm a renewed task is not failed;
-4. run concurrent result polling against the private Blob store and confirm one persister wins or the loser reconciles the deterministic Blob;
+4. after restoring private storage, run concurrent result polling and confirm one persister wins or the loser reconciles the deterministic Blob;
 5. confirm expired Consumer tasks containing external provider result URLs do not enter `DELETE_BLOCKED`.
 
 Still deferred: session/batch restore, multi-merchant cookies, full composite tenant FKs, shared generation pipeline, browser Compare E2E.

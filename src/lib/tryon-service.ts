@@ -19,6 +19,7 @@ import { recordStoreOrphanBlob } from '@/modules/store/application/cleanup-store
 import { isMockMode } from '@/lib/mocks'
 import { mockBlobUpload } from '@/lib/mocks/blob'
 import { acquireStoreResultPersistLease } from '@/modules/store/application/store-task-leases'
+import { resolveStoreAssetAccessPolicy } from '@/modules/store/infrastructure/config/store-asset-access-policy'
 
 // Service Tiering Config
 const ENABLE_SERVICE_TIERING = process.env.ENABLE_SERVICE_TIERING !== 'false' // Default to true, unless explicitly set to false
@@ -517,6 +518,7 @@ export async function submitStoreTryOnTask(
   const promptVersion = resolvedPrompt.version
   const serviceType = 'grsai'
   const isAsync = true
+  const storeAssetPolicy = resolveStoreAssetAccessPolicy()
 
   // Claim-first: prefer pre-claimed task from atomic reservation; otherwise create here.
   const directLease = buildDispatchLeaseFields()
@@ -649,8 +651,8 @@ export async function submitStoreTryOnTask(
   const ownerKey = `store/${merchantId}`
   // A takeover gets a distinct path generation. A stale owner can therefore
   // compensate only its own uploads, never assets created by the new owner.
-  const userPath = `tryon/user/${ownerKey}/${task.id}-v${dispatchFence.version}-${userImageFile.name}`
-  const itemPath = `tryon/item/${ownerKey}/${task.id}-v${dispatchFence.version}-${itemImageFile.name}`
+  const userPath = `tryon/user/${ownerKey}/${task.id}-v${dispatchFence.version}-${randomUUID()}`
+  const itemPath = `tryon/item/${ownerKey}/${task.id}-v${dispatchFence.version}-${randomUUID()}`
   let userBlobUrl: string | null = null
   let itemBlobUrl: string | null = null
 
@@ -692,11 +694,11 @@ export async function submitStoreTryOnTask(
     } else {
       const settled = await Promise.allSettled([
         put(userPath, userImageFile, {
-          access: 'private',
+          access: storeAssetPolicy.blobAccess,
           contentType: userImageFile.type || 'image/jpeg',
         }),
         put(itemPath, itemImageFile, {
-          access: 'private',
+          access: storeAssetPolicy.blobAccess,
           contentType: itemImageFile.type || 'image/jpeg',
         }),
       ])
@@ -711,7 +713,7 @@ export async function submitStoreTryOnTask(
       }
     }
   } catch (error) {
-    logger.error('tryon-service', 'Failed to upload Store images to private blob', error as Error, {
+    logger.error('tryon-service', 'Failed to upload Store images to blob', error as Error, {
       merchantId,
       merchantSessionId,
       taskId: task.id,
@@ -725,7 +727,7 @@ export async function submitStoreTryOnTask(
       },
       data: {
         status: TaskStatus.FAILED,
-        errorMessage: 'Failed to upload images to private storage',
+        errorMessage: 'Failed to upload images to Store storage',
       },
     })
     throw new Error('Failed to upload images')
@@ -747,7 +749,8 @@ export async function submitStoreTryOnTask(
           ...(task.metadata as object),
           userPathname: userPath,
           itemPathname: itemPath,
-          privateBlob: true,
+          inputAssetAccessMode: storeAssetPolicy.assetAccessMode,
+          privateBlob: !storeAssetPolicy.publicPoc,
         },
       },
     })
@@ -797,7 +800,8 @@ export async function submitStoreTryOnTask(
           promptSource: resolvedPrompt.source,
           retryCount: 0,
           dispatchMs: Date.now() - startTime,
-          privateBlob: true,
+          inputAssetAccessMode: storeAssetPolicy.assetAccessMode,
+          privateBlob: !storeAssetPolicy.publicPoc,
         },
       },
     })
@@ -879,6 +883,7 @@ export async function getTryOnResult(taskId: string): Promise<TryOnPollResult> {
     if (pollResult.status === 'succeeded' && pollResult.imageUrl) {
       const isStoreTask =
         task.origin === 'STORE_DEMO' || task.origin === 'STORE_PILOT'
+      const storeResultPolicy = isStoreTask ? resolveStoreAssetAccessPolicy() : null
       const resultOwnerKey = task.userId ?? `store/${task.merchantId ?? taskId}`
       const resultPathname = `tryon/result/${resultOwnerKey}/${taskId}.png`
 
@@ -927,7 +932,8 @@ export async function getTryOnResult(taskId: string): Promise<TryOnPollResult> {
                   ...metaBefore,
                   ...externalPollMetadata,
                   resultPathname,
-                  privateBlob: true,
+                  resultAssetAccessMode: storeResultPolicy!.assetAccessMode,
+                  privateBlob: !storeResultPolicy!.publicPoc,
                   privatePersistPending: false,
                   privatePersistError: null,
                   completionTime: Date.now(),
@@ -972,7 +978,8 @@ export async function getTryOnResult(taskId: string): Promise<TryOnPollResult> {
                   ...metaBefore,
                   ...externalPollMetadata,
                   resultPathname,
-                  privateBlob: true,
+                  resultAssetAccessMode: storeResultPolicy!.assetAccessMode,
+                  privateBlob: !storeResultPolicy!.publicPoc,
                   privatePersistPending: false,
                   privatePersistError: null,
                   completionTime: Date.now(),
@@ -1014,7 +1021,7 @@ export async function getTryOnResult(taskId: string): Promise<TryOnPollResult> {
           } else {
             try {
               const uploadedBlob = await put(resultPathname, file, {
-                access: 'private',
+                access: storeResultPolicy!.blobAccess,
                 contentType: file.type || 'image/png',
               })
               persistedUrl = uploadedBlob.url
@@ -1029,10 +1036,10 @@ export async function getTryOnResult(taskId: string): Promise<TryOnPollResult> {
               })
             }
           }
-          logger.info('tryon-service', 'Store GrsAi result persisted to private blob', {
+          logger.info('tryon-service', 'Store GrsAi result persisted to blob', {
             taskId,
             pathname: resultPathname,
-            access: 'private',
+            access: storeResultPolicy!.blobAccess,
           })
         } else {
           const uploadedBlob = await put(resultPathname, file, { access: 'public' })
@@ -1141,7 +1148,10 @@ export async function getTryOnResult(taskId: string): Promise<TryOnPollResult> {
             ...(pollResult.metadata || {}),
             ...externalPollMetadata,
             resultPathname,
-            privateBlob: isStoreTask,
+            ...(isStoreTask
+              ? { resultAssetAccessMode: storeResultPolicy!.assetAccessMode }
+              : {}),
+            privateBlob: isStoreTask && !storeResultPolicy!.publicPoc,
             privatePersistPending: false,
             privatePersistError: null,
             completionTime: Date.now(),

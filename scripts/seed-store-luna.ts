@@ -11,9 +11,8 @@
  *   STORE_SEED_CONFIRM=yes npx tsx scripts/seed-store-luna.ts   # production guard override
  */
 
-import { PrismaClient } from '@prisma/client'
-
-const prisma = new PrismaClient()
+import 'dotenv/config'
+import { prisma } from '../src/lib/prisma'
 
 const LUNA_SLUG = 'luna-optical'
 

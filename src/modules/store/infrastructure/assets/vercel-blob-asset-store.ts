@@ -1,7 +1,7 @@
 /**
- * Vercel Blob adapter for Store assets — physically private objects.
- * Shopper delivery is capability-authenticated; provider URL is not authorization.
- * Private put fails closed (no silent public fallback).
+ * Vercel Blob adapter for Store assets.
+ * Shopper delivery is capability-authenticated; provider URL is never authorization.
+ * Private remains the default; public writes require an explicit upstream POC policy.
  */
 
 import { del, get, put } from '@vercel/blob'

@@ -10,6 +10,7 @@ import {
 import {
   computeStoreAssetExpiresAt,
   readStoreCapabilityToken,
+  resolveStoreAssetAccessPolicy,
 } from '@/modules/store/infrastructure'
 
 export const dynamic = 'force-dynamic'
@@ -52,6 +53,7 @@ export async function POST(request: NextRequest) {
       })
     }
 
+    const assetPolicy = resolveStoreAssetAccessPolicy()
     const result = await uploadShopperPhoto({
       merchants: runtime.merchants,
       sessions: runtime.sessions,
@@ -64,6 +66,7 @@ export async function POST(request: NextRequest) {
       locale: typeof locale === 'string' ? locale : null,
       deviceType: typeof deviceType === 'string' ? deviceType : null,
       assetExpiresAt: computeStoreAssetExpiresAt(),
+      assetAccessMode: assetPolicy.assetAccessMode,
     })
 
     return NextResponse.json({

@@ -1,4 +1,5 @@
 export * from './config/store-demo-limits'
+export * from './config/store-asset-access-policy'
 export * from './prisma/merchant-repository'
 export * from './prisma/frame-repository'
 export * from './prisma/session-repository'

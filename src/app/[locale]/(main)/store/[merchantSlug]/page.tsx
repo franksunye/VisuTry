@@ -1,6 +1,7 @@
 import { Metadata } from 'next'
 import { getTranslations, setRequestLocale } from 'next-intl/server'
 import { StoreShopperExperience } from '@/components/store/StoreShopperExperience'
+import { resolveStoreAssetAccessPolicy } from '@/modules/store/infrastructure/config/store-asset-access-policy'
 
 interface MerchantStorePageProps {
   params: {
@@ -32,11 +33,13 @@ export async function generateMetadata({
 
 export default async function MerchantStorePage({ params }: MerchantStorePageProps) {
   setRequestLocale(params.locale)
+  const assetPolicy = resolveStoreAssetAccessPolicy()
 
   return (
     <StoreShopperExperience
       merchantSlug={params.merchantSlug}
       locale={params.locale}
+      publicPocStorage={assetPolicy.publicPoc}
     />
   )
 }

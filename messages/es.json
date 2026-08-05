@@ -759,6 +759,7 @@
       "point1": "Photo is stored temporarily for this shopping session.",
       "point2": "Expired photos are deleted according to the retention policy.",
       "point3": "This is visual decision support — not a medical or fit guarantee.",
+      "publicPocNotice": "Early-access notice: photos and generated images are stored temporarily using hard-to-guess public object URLs. Continue only with a photo you are authorized to use.",
       "accept": "I understand — continue",
       "starting": "Starting session…"
     },
