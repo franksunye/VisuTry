@@ -1,0 +1,92 @@
+import {
+  StoreDomainError,
+  buildStoreEventIdempotencyKey,
+  merchantInactive,
+  merchantNotFound,
+} from '../domain'
+import type {
+  MerchantEventRepository,
+  MerchantFrameRepository,
+  MerchantRepository,
+  MerchantSessionRepository,
+} from './ports/repositories'
+import { requireOperableStoreSession } from './require-store-session'
+
+export type RecordFrameSelectionsInput = {
+  merchants: MerchantRepository
+  frames: MerchantFrameRepository
+  sessions: MerchantSessionRepository
+  events: MerchantEventRepository
+  slug: string
+  merchantSessionId: string
+  capabilityToken: string | null
+  frameIds: string[]
+  locale?: string | null
+  deviceType?: string | null
+  clientActionId?: string | null
+}
+
+export type RecordFrameSelectionsResult = {
+  selectedFrameIds: string[]
+}
+
+const MAX_SELECTED = 4
+
+export async function recordFrameSelections(
+  input: RecordFrameSelectionsInput,
+): Promise<RecordFrameSelectionsResult> {
+  const merchant = await input.merchants.findBySlug(input.slug)
+  if (!merchant) throw merchantNotFound()
+  if (merchant.status !== 'ACTIVE') throw merchantInactive()
+
+  await requireOperableStoreSession({
+    sessions: input.sessions,
+    merchantId: merchant.id,
+    merchantSessionId: input.merchantSessionId,
+    capabilityToken: input.capabilityToken,
+  })
+
+  const uniqueIds = Array.from(new Set(input.frameIds.filter(Boolean)))
+  if (uniqueIds.length === 0 || uniqueIds.length > MAX_SELECTED) {
+    throw new StoreDomainError(
+      'VALIDATION_ERROR',
+      `Select between 1 and ${MAX_SELECTED} frames.`,
+      400,
+    )
+  }
+
+  for (const frameId of uniqueIds) {
+    const frame = await input.frames.findActiveByMerchantAndId(merchant.id, frameId)
+    if (!frame) {
+      throw new StoreDomainError(
+        'FRAME_INACTIVE',
+        'One or more selected frames are unavailable.',
+        409,
+      )
+    }
+
+    const actionId =
+      input.clientActionId ?? `select:${input.merchantSessionId}:${frameId}`
+
+    await input.events.appendIdempotent({
+      eventId: buildStoreEventIdempotencyKey({
+        type: 'merchant_frame_selected',
+        merchantId: merchant.id,
+        merchantSessionId: input.merchantSessionId,
+        merchantFrameId: frameId,
+        clientActionId: actionId,
+      }),
+      type: 'merchant_frame_selected',
+      merchantId: merchant.id,
+      merchantSessionId: input.merchantSessionId,
+      merchantFrameId: frameId,
+      source: 'SERVER',
+      locale: input.locale ?? null,
+      deviceType: input.deviceType ?? null,
+    })
+  }
+
+  await input.sessions.touch(merchant.id, input.merchantSessionId, new Date())
+
+  return { selectedFrameIds: uniqueIds }
+}

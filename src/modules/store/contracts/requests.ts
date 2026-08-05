@@ -137,6 +137,114 @@ export function parseProductRedirectRequest(
   return ok({ productUrl: record.productUrl })
 }
 
+export type RecommendFramesRequest = {
+  merchantSlug: string
+  merchantSessionId: string
+  measuredShape?: string
+  faceAspectRatio?: number
+  styleHints?: string[]
+  locale?: string
+  deviceType?: string
+  limit?: number
+  clientActionId?: string
+}
+
+export function parseRecommendFramesRequest(
+  body: unknown,
+): ValidationResult<RecommendFramesRequest> {
+  if (!body || typeof body !== 'object') {
+    return fail([{ path: 'body', message: 'Request body must be an object' }])
+  }
+  const record = body as Record<string, unknown>
+  const issues = [
+    requireString(record.merchantSlug, 'merchantSlug', 120),
+    requireString(record.merchantSessionId, 'merchantSessionId', 120),
+  ].filter(Boolean) as { path: string; message: string }[]
+
+  if (
+    record.faceAspectRatio !== undefined &&
+    record.faceAspectRatio !== null &&
+    (typeof record.faceAspectRatio !== 'number' || !Number.isFinite(record.faceAspectRatio))
+  ) {
+    issues.push({ path: 'faceAspectRatio', message: 'faceAspectRatio must be a number' })
+  }
+
+  if (record.styleHints !== undefined && !Array.isArray(record.styleHints)) {
+    issues.push({ path: 'styleHints', message: 'styleHints must be an array of strings' })
+  }
+
+  if (issues.length) return fail(issues)
+
+  const styleHints = Array.isArray(record.styleHints)
+    ? record.styleHints.filter((h): h is string => typeof h === 'string').slice(0, 12)
+    : undefined
+
+  const limit =
+    typeof record.limit === 'number' && Number.isInteger(record.limit)
+      ? Math.min(8, Math.max(4, record.limit))
+      : undefined
+
+  return ok({
+    merchantSlug: String(record.merchantSlug).trim(),
+    merchantSessionId: String(record.merchantSessionId).trim(),
+    measuredShape:
+      typeof record.measuredShape === 'string' ? record.measuredShape : undefined,
+    faceAspectRatio:
+      typeof record.faceAspectRatio === 'number' ? record.faceAspectRatio : undefined,
+    styleHints,
+    locale: typeof record.locale === 'string' ? record.locale : undefined,
+    deviceType: typeof record.deviceType === 'string' ? record.deviceType : undefined,
+    limit,
+    clientActionId:
+      typeof record.clientActionId === 'string' ? record.clientActionId : undefined,
+  })
+}
+
+export type SelectFramesRequest = {
+  merchantSlug: string
+  merchantSessionId: string
+  frameIds: string[]
+  locale?: string
+  deviceType?: string
+  clientActionId?: string
+}
+
+export function parseSelectFramesRequest(body: unknown): ValidationResult<SelectFramesRequest> {
+  if (!body || typeof body !== 'object') {
+    return fail([{ path: 'body', message: 'Request body must be an object' }])
+  }
+  const record = body as Record<string, unknown>
+  const issues = [
+    requireString(record.merchantSlug, 'merchantSlug', 120),
+    requireString(record.merchantSessionId, 'merchantSessionId', 120),
+  ].filter(Boolean) as { path: string; message: string }[]
+
+  if (!Array.isArray(record.frameIds) || record.frameIds.length === 0) {
+    issues.push({ path: 'frameIds', message: 'frameIds must be a non-empty array' })
+  }
+
+  if (issues.length) return fail(issues)
+
+  const frameIds = (record.frameIds as unknown[])
+    .filter((id): id is string => typeof id === 'string' && id.trim().length > 0)
+    .map((id) => id.trim())
+    .slice(0, 4)
+
+  if (frameIds.length === 0) {
+    return fail([{ path: 'frameIds', message: 'frameIds must include valid ids' }])
+  }
+
+  return ok({
+    merchantSlug: String(record.merchantSlug).trim(),
+    merchantSessionId: String(record.merchantSessionId).trim(),
+    frameIds,
+    locale: typeof record.locale === 'string' ? record.locale : undefined,
+    deviceType: typeof record.deviceType === 'string' ? record.deviceType : undefined,
+    clientActionId:
+      typeof record.clientActionId === 'string' ? record.clientActionId : undefined,
+  })
+}
+
 /** Shared API error envelope for Store routes. */
 export type StoreApiErrorBody = {
   success: false

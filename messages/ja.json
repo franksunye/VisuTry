@@ -769,7 +769,7 @@
       "guidance": "Use a well-lit, front-facing portrait without sunglasses. JPEG, PNG, or WebP up to 5MB.",
       "uploading": "Uploading photo…",
       "readyTitle": "Photo ready",
-      "readyBody": "Your session is set. Personalized frame recommendations come next.",
+      "readyBody": "Building your personalized shortlist…",
       "nextComingSoon": "Continue to recommendations (next)"
     },
     "noCreditsNote": "No VisuTry consumer credits are used in this merchant store session.",
@@ -778,7 +778,21 @@
       "unavailableTitle": "Store unavailable",
       "unavailable": "This store link is not available right now.",
       "session": "Could not start your session. Please try again.",
-      "upload": "Photo upload failed. Please try another image."
+      "upload": "Photo upload failed. Please try another image.",
+      "recommend": "Could not build recommendations. Please try again.",
+      "select": "Could not save your frame selection."
+    },
+    "recommend": {
+      "analyzing": "Finding frames that suit you…",
+      "title": "Recommended for you",
+      "subtitle": "Personalized from this store’s catalog. Select up to 4 to try on.",
+      "version": "Ranking {version}",
+      "selectHint": "Selected {count} of {max}",
+      "confirm": "Save selection ({count})",
+      "saving": "Saving…",
+      "savedTitle": "Selection saved",
+      "savedBody": "Virtual try-on for your selected frames is next.",
+      "tryOnComingSoon": "Continue to try-on (next)"
     }
   }
 }

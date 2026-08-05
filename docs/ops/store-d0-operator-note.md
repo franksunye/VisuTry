@@ -27,6 +27,8 @@ Flow:
 1. Merchant branding + privacy notice
 2. Accept privacy → server creates `MerchantSession` and sets HttpOnly `vt_store_cap` cookie
 3. Upload front-facing photo → stored via AssetStore, bound to session
+4. On-device face landmarks → `POST /api/store/sessions/recommend` → merchant-only shortlist
+5. Select up to 4 frames → `POST /api/store/sessions/select-frames`
 
 Gate A1 remains closed for independent external traffic.
 

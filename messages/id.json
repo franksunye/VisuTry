@@ -768,8 +768,8 @@
       "description": "Foto menghadap depan yang jelas",
       "guidance": "Use a well-lit, front-facing portrait without sunglasses. JPEG, PNG, or WebP up to 5MB.",
       "uploading": "Mengunggah foto…",
-      "readyTitle": "Foto siap",
-      "readyBody": "Your session is set. Personalized frame recommendations come next.",
+      "readyTitle": "Photo ready",
+      "readyBody": "Building your personalized shortlist…",
       "nextComingSoon": "Continue to recommendations (next)"
     },
     "noCreditsNote": "No VisuTry consumer credits are used in this merchant store session.",
@@ -778,7 +778,21 @@
       "unavailableTitle": "Store unavailable",
       "unavailable": "This store link is not available right now.",
       "session": "Could not start your session. Please try again.",
-      "upload": "Photo upload failed. Please try another image."
+      "upload": "Photo upload failed. Please try another image.",
+      "recommend": "Could not build recommendations. Please try again.",
+      "select": "Could not save your frame selection."
+    },
+    "recommend": {
+      "analyzing": "Mencari bingkai yang cocok…",
+      "title": "Rekomendasi untuk Anda",
+      "subtitle": "Dari katalog toko ini. Pilih hingga 4 untuk dicoba.",
+      "version": "Ranking {version}",
+      "selectHint": "Selected {count} of {max}",
+      "confirm": "Simpan pilihan ({count})",
+      "saving": "Saving…",
+      "savedTitle": "Pilihan tersimpan",
+      "savedBody": "Virtual try-on for your selected frames is next.",
+      "tryOnComingSoon": "Lanjut ke try-on (berikutnya)"
     }
   }
 }

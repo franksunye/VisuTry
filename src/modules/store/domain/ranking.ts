@@ -40,6 +40,7 @@ const FACE_SHAPE_PREFERRED_SHAPES: Record<string, string[]> = {
   heart: ['cat-eye', 'aviator', 'round', 'browline'],
   oblong: ['aviator', 'round', 'cat-eye', 'browline'],
   diamond: ['oval', 'round', 'aviator', 'cat-eye'],
+  triangle: ['aviator', 'cat-eye', 'browline', 'geometric'],
 }
 
 function normalize(value: string | null | undefined): string {
