@@ -743,5 +743,42 @@
     "faceShapeGuide": "Gesichtsform-Leitfaden",
     "aiTryOnTools": "KI-Anprobe-Tools",
     "pricing": "Preise"
+  },
+  "storeShopper": {
+    "meta": {
+      "title": "Virtual try-on — {slug}",
+      "description": "Upload a photo to get personalized frame recommendations from this eyewear store."
+    },
+    "loading": "Loading store…",
+    "brandedBy": "Powered for {merchant}",
+    "headline": "Find frames that suit you — then try them on.",
+    "catalogHint": "{count} frames ready for personalized recommendations",
+    "privacy": {
+      "title": "Privacy & photo retention",
+      "body": "Your photo is used only to recommend and virtually try on this store’s frames. The merchant does not receive your raw face photo by default.",
+      "point1": "Photo is stored temporarily for this shopping session.",
+      "point2": "Expired photos are deleted according to the retention policy.",
+      "point3": "This is visual decision support — not a medical or fit guarantee.",
+      "accept": "I understand — continue",
+      "starting": "Starting session…"
+    },
+    "upload": {
+      "title": "Upload your photo",
+      "label": "Your photo",
+      "description": "Clear front-facing photo",
+      "guidance": "Use a well-lit, front-facing portrait without sunglasses. JPEG, PNG, or WebP up to 5MB.",
+      "uploading": "Uploading photo…",
+      "readyTitle": "Photo ready",
+      "readyBody": "Your session is set. Personalized frame recommendations come next.",
+      "nextComingSoon": "Continue to recommendations (next)"
+    },
+    "noCreditsNote": "No VisuTry consumer credits are used in this merchant store session.",
+    "errors": {
+      "generic": "Something went wrong. Please try again.",
+      "unavailableTitle": "Store unavailable",
+      "unavailable": "This store link is not available right now.",
+      "session": "Could not start your session. Please try again.",
+      "upload": "Photo upload failed. Please try another image."
+    }
   }
 }

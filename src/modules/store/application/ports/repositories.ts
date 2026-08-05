@@ -143,6 +143,11 @@ export interface MerchantSessionRepository {
   ): Promise<MerchantSessionRecord | null>
   touch(merchantId: string, sessionId: string, lastActiveAt: Date): Promise<void>
   markExpired(merchantId: string, sessionId: string): Promise<void>
+  attachPhotoAsset(input: {
+    merchantId: string
+    sessionId: string
+    photoAssetId: string
+  }): Promise<void>
 }
 
 export interface MerchantIntentRepository {

@@ -12,6 +12,26 @@ Operator reference for seeding sample merchants, verifying the catalog, and know
 
 ---
 
+## Shopper Store URL (STORE-2)
+
+After seeding Luna Optical:
+
+```text
+/{locale}/store/luna-optical
+```
+
+Example: `/en/store/luna-optical`
+
+Flow:
+
+1. Merchant branding + privacy notice
+2. Accept privacy → server creates `MerchantSession` and sets HttpOnly `vt_store_cap` cookie
+3. Upload front-facing photo → stored via AssetStore, bound to session
+
+Gate A1 remains closed for independent external traffic.
+
+---
+
 ## Seed a sample merchant (Luna Optical)
 
 Non-destructive upsert by stable slug / SKU. Does **not** call `deleteMany()` on shared tables.

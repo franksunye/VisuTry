@@ -55,5 +55,14 @@ export function createPrismaMerchantSessionRepository(): MerchantSessionReposito
         data: { status: 'EXPIRED' },
       })
     },
+    async attachPhotoAsset({ merchantId, sessionId, photoAssetId }) {
+      await prisma.merchantSession.updateMany({
+        where: { id: sessionId, merchantId },
+        data: {
+          photoAssetId,
+          lastActiveAt: new Date(),
+        },
+      })
+    },
   }
 }

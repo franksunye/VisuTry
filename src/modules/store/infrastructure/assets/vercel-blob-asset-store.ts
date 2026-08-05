@@ -10,6 +10,8 @@
 import { del, put } from '@vercel/blob'
 import type { StoreAsset } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
+import { isMockMode } from '@/lib/mocks'
+import { mockBlobUpload } from '@/lib/mocks/blob'
 import type { AssetStore, PutStoreAssetInput } from '../../application/ports/asset-store'
 import type { StoreAssetRecord } from '../../application/ports/repositories'
 import type { StoreAssetAccessMode, StoreAssetPurpose } from '../../domain/enums'
@@ -36,10 +38,17 @@ function mapAsset(row: StoreAsset): StoreAssetRecord {
 export function createVercelBlobAssetStore(): AssetStore {
   return {
     async put(input: PutStoreAssetInput) {
-      const blob = await put(input.storageKey, input.body, {
-        access: 'public',
-        contentType: input.contentType,
-      })
+      let providerUrl: string
+      if (isMockMode) {
+        const blob = await mockBlobUpload(input.storageKey, input.body as File)
+        providerUrl = blob.url
+      } else {
+        const blob = await put(input.storageKey, input.body, {
+          access: 'public',
+          contentType: input.contentType,
+        })
+        providerUrl = blob.url
+      }
 
       const row = await prisma.storeAsset.create({
         data: {
@@ -50,12 +59,12 @@ export function createVercelBlobAssetStore(): AssetStore {
           purpose: input.purpose,
           storageKey: input.storageKey,
           accessMode: input.accessMode,
-          providerUrl: blob.url,
+          providerUrl,
           expiresAt: input.expiresAt,
         },
       })
 
-      return { asset: mapAsset(row), deliveryUrl: blob.url }
+      return { asset: mapAsset(row), deliveryUrl: providerUrl }
     },
 
     async getProviderDeliveryUrl(assetId, merchantId) {
@@ -71,7 +80,7 @@ export function createVercelBlobAssetStore(): AssetStore {
       })
       if (!row || row.deletedAt) return
 
-      if (row.providerUrl) {
+      if (row.providerUrl && !isMockMode) {
         try {
           await del(row.providerUrl)
         } catch {
