@@ -1,0 +1,589 @@
+# VisuTry Store Implementation Plan
+
+**Status:** Active execution plan  
+**Owner:** Product / Engineering / Growth  
+**Created:** 2026-08-05  
+**Last updated:** 2026-08-05  
+**Related demo spec:** `docs/product/specs/visutry-store-sales-demo.md`  
+**Related MVP spec:** `docs/product/specs/visutry-store-mvp.md`  
+**Related landing page:** `docs/product/specs/visutry-store-landing-page.md`
+
+---
+
+## 1. Purpose
+
+This plan defines the execution sequence for VisuTry Store from sales demo to first paid merchant MVP.
+
+The guiding rule is:
+
+> Build the minimum reusable commerce workflow required to close and operate real merchant pilots; do not build platform integrations before demand requires them.
+
+Store engineering will therefore proceed in two distinct stages:
+
+1. **D0 — Sales Demo:** a working merchant-specific experience used in outreach and demos.
+2. **M1 — Pilot MVP:** a reusable hosted Store product for the first 3-5 merchants.
+
+A public Shopify app, WooCommerce plugin, EHR/PMS integration, or broad merchant platform is outside this plan.
+
+---
+
+## 2. Product Thesis
+
+VisuTry Store is not positioned as another virtual try-on widget.
+
+The product should prove this workflow:
+
+```text
+Merchant Catalog
+      ↓
+AI Frame Intelligence
+      ↓
+Shopper Photo / Face Understanding
+      ↓
+Personalized Merchant-Frame Shortlist
+      ↓
+Virtual Try-On
+      ↓
+Frame Compare
+      ↓
+Product Click / Favorite / Inquiry
+      ↓
+Merchant Intent Insights
+```
+
+The commercial value to validate is:
+
+> Help eyewear merchants reduce shopper choice friction and turn frame browsing into measurable purchase intent.
+
+---
+
+## 3. Execution Gates
+
+### Gate A — Start D0 engineering
+
+Approved now.
+
+Reason:
+
+- Store LP exists;
+- core consumer Advisor, Try-On, and Compare capabilities already exist;
+- current commercial strategy requires merchant conversations;
+- a real demo materially improves those conversations.
+
+### Gate B — Start M1 pilot MVP hardening
+
+Proceed when one or more are true:
+
+- 3 merchants request a sample Store using their own frames;
+- 1 merchant agrees to a paid or deposit-backed pilot;
+- 5+ demo calls consistently confirm the same workflow need;
+- Product explicitly decides to operationalize the first pilot before payment in order to capture conversion data.
+
+### Gate C — Build self-service commerce integration
+
+Do not start until M1 has at least 3 active merchant pilots and repeated onboarding pain is visible.
+
+Potential later work:
+
+- Shopify OAuth / product sync;
+- WooCommerce;
+- public widget / SDK;
+- automated website catalog import;
+- merchant billing;
+- advanced analytics.
+
+---
+
+## 4. D0 — Sales Demo Build
+
+**Target:** 7-14 engineering days depending on reuse effort.  
+**Goal:** Support a credible 10-minute sales demo and merchant-specific sample Store.
+
+### D0.1 Merchant foundation
+
+Build:
+
+- `Merchant` data model;
+- `MerchantFrame` data model;
+- one seeded merchant (`Luna Optical` or equivalent);
+- 12-20 realistic merchant frames;
+- merchant slug / ID propagation;
+- basic admin or seed workflow for catalog loading.
+
+Do not build a full merchant CRUD console if seed/admin tooling is faster.
+
+### D0.2 Shopper Store route
+
+Build merchant-scoped hosted shopper experience:
+
+- merchant branding;
+- privacy notice;
+- photo upload;
+- merchant catalog context;
+- AI-assisted shortlist;
+- select up to 4 frames;
+- continue to try-on;
+- continue to compare;
+- favorite / interest;
+- product click.
+
+### D0.3 Recommendation adapter
+
+Implement a Store-specific ranking adapter that reuses existing face / advisor signals.
+
+Input:
+
+```text
+shopper analysis signals
++
+MerchantFrame metadata
+```
+
+Output:
+
+```text
+ranked merchant frames
++
+short recommendation reason
+```
+
+Initial ranking can be deterministic and rules-assisted. It does not need a new model-training project.
+
+### D0.4 Try-On attribution
+
+Reuse existing generation pipeline and add optional merchant attribution:
+
+- `merchantId`;
+- `merchantSessionId`;
+- `merchantFrameId`.
+
+Do not charge consumer credits for merchant demo sessions.
+
+### D0.5 Compare adaptation
+
+Reuse Frame Compare UI / task handling where possible.
+
+Store differences:
+
+- frames come from merchant catalog;
+- product metadata remains attached to results;
+- comparison action records merchant intent;
+- no consumer pricing upsell.
+
+### D0.6 Merchant insight view
+
+Build a lightweight read-only insight page for demo purposes.
+
+Required:
+
+- sessions;
+- recommendation completions;
+- try-on completions;
+- compare starts;
+- favorites;
+- product clicks;
+- inquiries if enabled;
+- top frames;
+- recent anonymous session activity.
+
+### D0.7 Analytics
+
+Implement Store events from the Sales Demo spec and validate event attribution.
+
+### D0.8 D0 QA
+
+Required test scenarios:
+
+1. desktop happy path;
+2. mobile happy path;
+3. upload invalid image;
+4. recommendation returns fewer than 4 frames;
+5. one try-on fails while others succeed;
+6. compare with 2 / 3 / 4 frames;
+7. product click attribution;
+8. merchant insight totals update;
+9. no consumer Credits Pack prompt appears;
+10. merchant insight does not expose raw shopper image.
+
+---
+
+## 5. D0 Deliverables
+
+Engineering deliverables:
+
+- working merchant demo URL;
+- seeded sample merchant and frame catalog;
+- merchant-specific shopper workflow;
+- merchant recommendation shortlist;
+- merchant-attributed Try-On + Compare;
+- merchant insight screen;
+- event instrumentation;
+- short README / operator note for seeding a new sample merchant.
+
+Product / Growth deliverables in parallel:
+
+- merchant prospect list, first 50;
+- demo-call script;
+- outreach message;
+- sample-Store request process;
+- pilot pricing hypothesis;
+- demo feedback capture template.
+
+D0 is not complete if only the code is done but the team cannot run a merchant demo immediately.
+
+---
+
+## 6. Merchant Validation Sprint
+
+**Target:** immediately after D0, 2-4 weeks.  
+**Goal:** convert product comprehension into pilot intent.
+
+### Outreach funnel
+
+Target first batch:
+
+| Stage | Target |
+| --- | ---: |
+| Qualified merchants | 50-100 |
+| Positive replies | 10-20 |
+| Demo calls | 5-10 |
+| Own-frame sample requests | 3-5 |
+| Pilot commitments | 1-3 |
+
+### Feedback to capture after each demo
+
+Ask and record:
+
+1. Where would you place this experience today: product page, dedicated link, pre-shop, social, or in-store follow-up?
+2. How do you currently maintain frame product data?
+3. Would starting with 8-20 top frames be acceptable?
+4. Is personalized recommendation valuable, or is Try-On alone enough?
+5. Which merchant metric matters most: product clicks, inquiries, add-to-cart, conversion, or appointment intent?
+6. What would prevent you from launching a pilot?
+7. Would USD 99-199/month be acceptable if the workflow produces useful shopper engagement / purchase intent?
+
+Do not turn discovery calls into open-ended feature collection. Classify requests as:
+
+- required to run pilot;
+- useful after pilot;
+- enterprise / later.
+
+---
+
+## 7. M1 — First Pilot Merchant MVP
+
+**Target:** 2-4 weeks after Gate B.  
+**Goal:** operate 3-5 real merchants without developer intervention for normal shopper usage.
+
+### M1 scope
+
+M1 includes:
+
+1. merchant profile;
+2. small frame catalog;
+3. assisted catalog onboarding;
+4. AI frame metadata enrichment;
+5. hosted merchant Store link;
+6. personalized shortlist;
+7. virtual try-on;
+8. frame comparison;
+9. product click / favorite / inquiry intent;
+10. merchant analytics;
+11. merchant-specific usage limits;
+12. basic merchant authentication for dashboard;
+13. privacy / retention behavior;
+14. operational failure monitoring.
+
+### M1 catalog onboarding
+
+Approved priority:
+
+1. **CSV import** — first repeatable onboarding path;
+2. **manual / admin add** — fallback and correction path;
+3. **URL-assisted import** — optional if it materially reduces first-pilot onboarding;
+4. **Shopify product sync** — after repeated pilot demand, not required for M1.
+
+CSV should support at minimum:
+
+```text
+name
+sku
+image_url
+product_url
+price
+currency
+```
+
+System enriches or allows review of:
+
+```text
+shape
+material
+color
+width_class
+style_tags
+```
+
+M1 should include a review step before AI-enriched catalog data becomes active.
+
+### M1 merchant dashboard
+
+Required pages / views:
+
+- Overview;
+- Frames;
+- Shopper activity / intents;
+- Usage.
+
+Not required:
+
+- complex report builder;
+- cohorts;
+- attribution modeling;
+- team roles;
+- custom dashboards.
+
+### M1 usage model
+
+Merchant usage must remain separate from consumer credits.
+
+Track at minimum:
+
+- successful renders;
+- failed renders;
+- active frames;
+- shopper sessions.
+
+Do not implement elaborate merchant billing until packaging is validated. Manual Stripe invoice / payment link is acceptable for first pilots if operationally easier.
+
+---
+
+## 8. Technical Reuse Strategy
+
+Store should be a new commerce workflow on top of existing VisuTry capabilities, not a second product stack.
+
+### Reuse directly where possible
+
+- face photo validation;
+- face-analysis signals;
+- Glasses Advisor recommendation concepts;
+- generation queue / task model;
+- image storage;
+- Try-On generation;
+- Frame Compare task orchestration;
+- authentication;
+- analytics helpers;
+- existing design system.
+
+### Add Store-specific layers
+
+- merchant identity;
+- merchant frame catalog;
+- frame intelligence metadata;
+- merchant ranking adapter;
+- merchant session;
+- merchant intent;
+- merchant usage attribution;
+- merchant dashboard / insights.
+
+### Avoid
+
+- duplicated generation services;
+- Store-specific model fork;
+- parallel user/account system;
+- Store-specific storage stack unless required by privacy boundary;
+- premature external API surface.
+
+---
+
+## 9. Recommended Engineering Work Breakdown
+
+### Epic STORE-1 — Merchant & Catalog Foundation
+
+Tasks:
+
+- schema / migration for Merchant;
+- schema / migration for MerchantFrame;
+- seed sample merchant;
+- seed sample frames;
+- catalog validation helpers;
+- operator seed/import note.
+
+Done when:
+
+- sample merchant and 12-20 frames are queryable by merchant slug.
+
+### Epic STORE-2 — Merchant Shopper Session
+
+Tasks:
+
+- merchant Store route;
+- session creation;
+- photo upload;
+- privacy copy;
+- merchant context;
+- mobile layout.
+
+Done when:
+
+- shopper can begin a merchant-scoped session from mobile or desktop.
+
+### Epic STORE-3 — Recommendation
+
+Tasks:
+
+- map current face/advisor output to ranking inputs;
+- normalize MerchantFrame tags;
+- implement ranking adapter;
+- return 4-8 frames with reasons;
+- handle sparse metadata.
+
+Done when:
+
+- a shopper photo produces a credible merchant-only shortlist.
+
+### Epic STORE-4 — Try-On & Compare Reuse
+
+Tasks:
+
+- add merchant attribution to generation;
+- adapt frame selection;
+- adapt compare UI;
+- preserve merchant product metadata;
+- retry / partial failure handling;
+- bypass consumer credit prompts.
+
+Done when:
+
+- selected merchant frames can be generated and compared reliably.
+
+### Epic STORE-5 — Intent & Insights
+
+Tasks:
+
+- MerchantIntent entity;
+- favorite / product click;
+- optional inquiry;
+- aggregate metrics;
+- top frames;
+- recent sessions;
+- insight page.
+
+Done when:
+
+- merchant can see useful purchase-intent signals without shopper raw images.
+
+### Epic STORE-6 — Pilot Operations
+
+Tasks:
+
+- CSV import;
+- enrichment / review;
+- merchant dashboard auth;
+- usage limits;
+- monitoring;
+- pilot onboarding checklist;
+- operator tooling.
+
+This epic belongs mainly to M1, not D0.
+
+---
+
+## 10. Definition of Done for M1
+
+M1 is ready for a real paid merchant pilot when:
+
+1. A merchant can be provisioned without code changes.
+2. 8-50 frames can be onboarded through CSV or admin tools.
+3. AI-enriched frame metadata can be reviewed before activation.
+4. Shopper Store works on mobile and desktop.
+5. Shopper receives personalized recommendations from merchant frames.
+6. Shopper can try and compare selected merchant frames.
+7. Product click / favorite / inquiry can be attributed to merchant + frame + session.
+8. Merchant can log in and view basic insights.
+9. Merchant usage is isolated from consumer credits.
+10. Failed generation is observable and retryable.
+11. Privacy notice and retention policy are implemented.
+12. Merchant cannot access raw shopper face images by default.
+13. At least one pilot merchant has completed end-to-end acceptance testing with its own catalog.
+
+---
+
+## 11. Metrics for First 3-5 Pilots
+
+Do not judge Store only by raw try-on volume.
+
+Track funnel:
+
+```text
+Store sessions
+→ photo uploads
+→ recommendations viewed
+→ frame selected
+→ try-on completed
+→ compare started
+→ favorite / product click / inquiry
+```
+
+Merchant-level metrics:
+
+- Store session rate from placement;
+- upload rate;
+- recommendation-to-try rate;
+- compare rate;
+- product click rate;
+- favorite / inquiry rate;
+- top-frame concentration;
+- successful render cost per engaged shopper;
+- merchant continuation / willingness to pay.
+
+The strongest early business signal is:
+
+> merchant chooses to keep the workflow live and pay after seeing real shopper behavior.
+
+---
+
+## 12. Explicitly Deferred
+
+Do not add to D0 or M1 unless a pilot cannot proceed without it:
+
+- Shopify public app;
+- WooCommerce plugin;
+- EHR/PMS;
+- real-time inventory counts;
+- prescription / insurance workflow;
+- PD measurement claims;
+- public API;
+- full widget SDK distribution;
+- team RBAC;
+- enterprise SSO;
+- complex merchant billing;
+- transaction take-rate system;
+- advanced attribution;
+- large-scale catalog crawler;
+- mobile native Store app.
+
+---
+
+## 13. Current Decision Summary
+
+As of 2026-08-05:
+
+- Store is the primary long-term revenue engine to validate.
+- Consumer remains the acquisition and proof layer.
+- Existing Store LP remains the first inbound validation surface.
+- A working Sales Demo is now approved for engineering.
+- AI-assisted recommendation from merchant catalog is required in the Sales Demo and MVP.
+- Catalog onboarding starts assisted; CSV is the first repeatable M1 import path.
+- Shopify sync is a later optimization, not an MVP dependency.
+- EHR/PMS integration is explicitly deferred.
+- Store reuses VisuTry Advisor, Try-On, and Compare infrastructure.
+- First commercial validation target is 3-5 merchant pilots, with USD 99-199/month as the working willingness-to-pay range rather than a finalized public price.
+
+---
+
+## 14. Change Log
+
+| Date | Change |
+| --- | --- |
+| 2026-08-05 | Created execution plan separating D0 Sales Demo from M1 first-pilot MVP and defined engineering gates, epics, and acceptance criteria. |
