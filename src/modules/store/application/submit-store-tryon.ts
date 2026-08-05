@@ -30,6 +30,10 @@ import {
   retryAfterSeconds,
 } from './store-abuse-limits'
 import { computeStoreAssetExpiresAt } from '../infrastructure/config/store-demo-limits'
+import {
+  buildDispatchLeaseFields,
+  resolvePlaceholderReuseAction,
+} from './store-dispatch-lease'
 
 export type SubmitStoreTryOnInput = {
   merchants: MerchantRepository
@@ -86,6 +90,66 @@ function frameDto(frame: {
   }
 }
 
+async function markStoreClaimFailed(taskId: string, error: unknown): Promise<void> {
+  const now = new Date()
+  const reason =
+    error instanceof Error ? error.message.slice(0, 500) : 'claim_post_commit_failed'
+  const existing = await prisma.tryOnTask.findUnique({
+    where: { id: taskId },
+    select: { metadata: true, status: true },
+  })
+  if (!existing) return
+  if (existing.status === TaskStatus.COMPLETED || existing.status === TaskStatus.FAILED) {
+    return
+  }
+  const metadata = (existing.metadata ?? {}) as Record<string, unknown>
+  await prisma.tryOnTask.updateMany({
+    where: {
+      id: taskId,
+      status: { notIn: [TaskStatus.COMPLETED, TaskStatus.FAILED] },
+      userImageUrl: { startsWith: 'pending:' },
+    },
+    data: {
+      status: TaskStatus.FAILED,
+      errorMessage: reason,
+      metadata: {
+        ...metadata,
+        claimFailedAt: now.toISOString(),
+        claimFailureReason: reason,
+      },
+    },
+  })
+}
+
+/**
+ * Renew dispatch lease for a stale PENDING placeholder (CAS).
+ * Returns true when this request owns the takeover.
+ */
+async function tryTakeOverStalePlaceholder(taskId: string): Promise<boolean> {
+  const lease = buildDispatchLeaseFields()
+  const existing = await prisma.tryOnTask.findUnique({
+    where: { id: taskId },
+    select: { metadata: true },
+  })
+  if (!existing) return false
+  const metadata = (existing.metadata ?? {}) as Record<string, unknown>
+  const updated = await prisma.tryOnTask.updateMany({
+    where: {
+      id: taskId,
+      status: TaskStatus.PENDING,
+      userImageUrl: { startsWith: 'pending:' },
+    },
+    data: {
+      metadata: {
+        ...metadata,
+        ...lease,
+        dispatchTakeoverAt: lease.dispatchClaimedAt,
+      },
+    },
+  })
+  return updated.count > 0
+}
+
 /**
  * Atomically claim a placeholder TryOnTask + RENDER_ATTEMPT (+ merchant abuse bump).
  * Reuse of the same idempotency key burns no additional attempt.
@@ -102,6 +166,7 @@ async function claimStoreTryOnSlot(input: {
   const maxAttempts = 3
   const abuseWindow = dayWindowStart()
   const ip = input.clientIp || 'unknown'
+  const lease = buildDispatchLeaseFields()
 
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
     try {
@@ -239,9 +304,7 @@ async function claimStoreTryOnSlot(input: {
               expiresAt: input.expiresAt ?? computeStoreAssetExpiresAt(),
               retentionStatus: 'ACTIVE',
               metadata: {
-                source: 'store',
-                claimFirst: true,
-                atomicClaim: true,
+                ...lease,
               },
             },
           })
@@ -328,6 +391,21 @@ export async function submitStoreFrameTryOn(
     )
   }
 
+  // Frame bytes before claim — network/size failures must not leave placeholders.
+  const userImage = new File([new Uint8Array(photoBytes.body)], `shopper-${session.id}.jpg`, {
+    type: photoBytes.contentType || 'image/jpeg',
+  })
+  let itemImage: File
+  try {
+    itemImage = await fetchImageAsFile(frameImageUrl, `frame-${frame.id}.jpg`)
+  } catch {
+    throw new StoreDomainError(
+      'FRAME_INACTIVE',
+      'This frame image could not be loaded. Please try another frame.',
+      409,
+    )
+  }
+
   const idempotencyKey = buildStoreGenerationIdempotencyKey({
     merchantSessionId: session.id,
     merchantFrameId: frame.id,
@@ -343,14 +421,56 @@ export async function submitStoreFrameTryOn(
     clientIp: input.clientIp,
   })
 
+  let shouldDispatch = !claim.reusedExisting
+
   if (claim.reusedExisting) {
-    const reused = await input.generation.findExistingByIdempotencyKey(
-      idempotencyKey,
-      merchant.id,
-    )
+    const existingTask = await prisma.tryOnTask.findUnique({
+      where: { id: claim.taskId },
+    })
+    const action = resolvePlaceholderReuseAction({
+      status: existingTask?.status ?? 'PENDING',
+      userImageUrl: existingTask?.userImageUrl ?? 'pending://user',
+      metadata: (existingTask?.metadata ?? {}) as Record<string, unknown>,
+    })
+
+    if (action === 'return_existing' || action === 'wait_inflight') {
+      const reused = await input.generation.findExistingByIdempotencyKey(
+        idempotencyKey,
+        merchant.id,
+      )
+      return {
+        taskId: claim.taskId,
+        status:
+          reused?.status ??
+          (existingTask?.status === TaskStatus.FAILED
+            ? 'failed'
+            : existingTask?.status === TaskStatus.COMPLETED
+              ? 'completed'
+              : 'submitted'),
+        merchantFrameId: frame.id,
+        reusedExisting: true,
+        frame: frameDto(frame),
+      }
+    }
+
+    // Stale placeholder — take over lease and continue dispatch.
+    const tookOver = await tryTakeOverStalePlaceholder(claim.taskId)
+    if (!tookOver) {
+      return {
+        taskId: claim.taskId,
+        status: 'submitted',
+        merchantFrameId: frame.id,
+        reusedExisting: true,
+        frame: frameDto(frame),
+      }
+    }
+    shouldDispatch = true
+  }
+
+  if (!shouldDispatch) {
     return {
       taskId: claim.taskId,
-      status: reused?.status ?? 'submitted',
+      status: 'submitted',
       merchantFrameId: frame.id,
       reusedExisting: true,
       frame: frameDto(frame),
@@ -367,11 +487,6 @@ export async function submitStoreFrameTryOn(
     'STORE_DEMO',
   )
 
-  const userImage = new File([new Uint8Array(photoBytes.body)], `shopper-${session.id}.jpg`, {
-    type: photoBytes.contentType || 'image/jpeg',
-  })
-  const itemImage = await fetchImageAsFile(frameImageUrl, `frame-${frame.id}.jpg`)
-
   const config = getTryOnConfig('GLASSES')
   const prompt = `${config.aiPrompt}
 
@@ -380,25 +495,25 @@ Merchant store frame:
 - Keep the person's face, expression, head size, background, and photo composition unchanged.
 - Do not make medical, prescription, or guaranteed-fit claims in the visual.`
 
-  await input.events.appendIdempotent({
-    eventId: buildStoreEventIdempotencyKey({
+  try {
+    await input.events.appendIdempotent({
+      eventId: buildStoreEventIdempotencyKey({
+        type: 'merchant_tryon_started',
+        merchantId: merchant.id,
+        merchantSessionId: session.id,
+        merchantFrameId: frame.id,
+        clientActionId: input.clientSubmissionId,
+      }),
       type: 'merchant_tryon_started',
       merchantId: merchant.id,
       merchantSessionId: session.id,
       merchantFrameId: frame.id,
-      clientActionId: input.clientSubmissionId,
-    }),
-    type: 'merchant_tryon_started',
-    merchantId: merchant.id,
-    merchantSessionId: session.id,
-    merchantFrameId: frame.id,
-    source: 'SERVER',
-    locale: input.locale ?? null,
-    deviceType: input.deviceType ?? null,
-    metadata: { batchId: input.batchId },
-  })
+      source: 'SERVER',
+      locale: input.locale ?? null,
+      deviceType: input.deviceType ?? null,
+      metadata: { batchId: input.batchId },
+    })
 
-  try {
     const submitted = await input.generation.submit({
       actor: {
         kind: 'store',
@@ -419,10 +534,12 @@ Merchant store frame:
       taskId: submitted.taskId,
       status: submitted.status,
       merchantFrameId: frame.id,
-      reusedExisting: submitted.reusedExisting,
+      reusedExisting: submitted.reusedExisting || claim.reusedExisting,
       frame: frameDto(frame),
     }
   } catch (error) {
+    await markStoreClaimFailed(claim.taskId, error)
+
     await recordStoreTryOnAttempt({
       usage: input.usage,
       merchantId: merchant.id,
@@ -448,22 +565,26 @@ Merchant store frame:
       },
       update: { count: { increment: 1 } },
     })
-    await input.events.appendIdempotent({
-      eventId: buildStoreEventIdempotencyKey({
+    try {
+      await input.events.appendIdempotent({
+        eventId: buildStoreEventIdempotencyKey({
+          type: 'merchant_tryon_failed',
+          merchantId: merchant.id,
+          merchantSessionId: session.id,
+          merchantFrameId: frame.id,
+          clientActionId: `${input.clientSubmissionId}:fail`,
+        }),
         type: 'merchant_tryon_failed',
         merchantId: merchant.id,
         merchantSessionId: session.id,
         merchantFrameId: frame.id,
-        clientActionId: `${input.clientSubmissionId}:fail`,
-      }),
-      type: 'merchant_tryon_failed',
-      merchantId: merchant.id,
-      merchantSessionId: session.id,
-      merchantFrameId: frame.id,
-      source: 'SERVER',
-      locale: input.locale ?? null,
-      deviceType: input.deviceType ?? null,
-    })
+        source: 'SERVER',
+        locale: input.locale ?? null,
+        deviceType: input.deviceType ?? null,
+      })
+    } catch {
+      // Event write is best-effort after failure marking.
+    }
     if (failure.count >= DEFAULT_STORE_ABUSE_LIMITS.maxFailuresPerMerchantPerDay) {
       throw new StoreDomainError(
         'ALLOWANCE_EXCEEDED',

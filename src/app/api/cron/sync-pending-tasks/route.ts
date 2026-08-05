@@ -6,6 +6,7 @@ import { TaskStatus } from "@prisma/client"
 import { settleTryOnTaskQuota } from "@/lib/quota"
 import { createPrismaStoreUsageRepository } from "@/modules/store/infrastructure"
 import { settleStoreTryOnUsage } from "@/modules/store/application/settle-store-usage"
+import { reconcileStaleStoreClaims } from "@/modules/store/application/reconcile-stale-store-claims"
 
 export const dynamic = 'force-dynamic'
 export const maxDuration = 300 // 5 minutes
@@ -26,6 +27,14 @@ export async function GET(request: NextRequest) {
     }
 
     logger.info('cron', 'Starting sync of pending GrsAi tasks')
+
+    const staleClaims = await reconcileStaleStoreClaims({ limit: 50 })
+    if (staleClaims.markedFailed > 0) {
+      logger.warn('cron', 'Reconciled stale Store claim placeholders', {
+        scanned: staleClaims.scanned,
+        markedFailed: staleClaims.markedFailed,
+      })
+    }
 
     // Find active GrsAi tasks plus completed tasks whose quota settlement needs retry.
     const pendingTasks = await prisma.tryOnTask.findMany({

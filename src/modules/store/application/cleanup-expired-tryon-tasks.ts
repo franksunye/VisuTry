@@ -11,6 +11,7 @@ import {
   retentionBackoffMs,
   shouldMarkDeleteBlocked,
 } from '../domain/retention'
+import { collectTryOnRetentionDeleteTargets } from './store-retention-targets'
 
 function isBlobNotFoundError(error: unknown): boolean {
   const message = error instanceof Error ? error.message.toLowerCase() : String(error).toLowerCase()
@@ -20,30 +21,6 @@ function isBlobNotFoundError(error: unknown): boolean {
     message.includes('not found') ||
     message.includes('404')
   )
-}
-
-function collectTaskUrls(task: {
-  userImageUrl: string
-  itemImageUrl: string
-  glassesImageUrl: string | null
-  resultImageUrl: string | null
-}): string[] {
-  const urls: string[] = []
-  for (const url of [
-    task.userImageUrl,
-    task.itemImageUrl,
-    task.glassesImageUrl,
-    task.resultImageUrl,
-  ]) {
-    if (!url) continue
-    if (url.startsWith('pending:')) continue
-    // Skip non-Vercel provider URLs that Store fail-closed should never persist.
-    if (url.startsWith('http') && !url.includes('blob.vercel-storage.com') && !url.includes('public.blob')) {
-      // Still attempt delete; not-found is OK. Non-Vercel URLs may fail and block.
-    }
-    urls.push(url)
-  }
-  return urls
 }
 
 export type CleanupExpiredTryOnTasksResult = {
@@ -117,18 +94,17 @@ export async function cleanupExpiredTryOnTasks(input?: {
       })
 
       const metadata = (task.metadata ?? {}) as Record<string, unknown>
-      const pathnames = [
-        typeof metadata.userPathname === 'string' ? metadata.userPathname : null,
-        typeof metadata.itemPathname === 'string' ? metadata.itemPathname : null,
-        typeof metadata.resultPathname === 'string' ? metadata.resultPathname : null,
-      ].filter(Boolean) as string[]
-
-      const urls = collectTaskUrls(task)
+      const targets = collectTryOnRetentionDeleteTargets({
+        userImageUrl: task.userImageUrl,
+        itemImageUrl: task.itemImageUrl,
+        glassesImageUrl: task.glassesImageUrl,
+        resultImageUrl: task.resultImageUrl,
+        metadata,
+      })
       let blobOk = true
       let lastError: string | undefined
 
       if (!isMockMode) {
-        const targets = pathnames.length > 0 ? pathnames : urls
         for (const target of targets) {
           try {
             await del(target)

@@ -1,5 +1,10 @@
 import { prisma } from "@/lib/prisma"
-import { del, put } from "@vercel/blob"
+import { del, head, put } from "@vercel/blob"
+import {
+  buildResultPersistLeaseFields,
+  isBlobConflictError,
+  isResultPersistLeaseActive,
+} from "@/modules/store/application/store-dispatch-lease"
 import { generateTryOnImage } from "@/lib/gemini"
 import { submitAsyncTask, pollTaskResult } from "@/lib/grsai"
 import { logger } from "@/lib/logger"
@@ -815,6 +820,79 @@ export async function getTryOnResult(taskId: string): Promise<TryOnPollResult> {
       const resultOwnerKey = task.userId ?? `store/${task.merchantId ?? taskId}`
       const resultPathname = `tryon/result/${resultOwnerKey}/${taskId}.png`
 
+      // Re-read before persist — another poll may have completed already.
+      const latestBeforePersist = await prisma.tryOnTask.findUnique({
+        where: { id: taskId },
+        select: { status: true, resultImageUrl: true, metadata: true },
+      })
+      if (latestBeforePersist?.status === TaskStatus.COMPLETED) {
+        return {
+          status: TaskStatus.COMPLETED,
+          resultImageUrl: latestBeforePersist.resultImageUrl || undefined,
+          progress: 100,
+          isNewCompletion: false,
+        }
+      }
+
+      if (isStoreTask && !isMockMode) {
+        const metaBefore = (latestBeforePersist?.metadata ?? {}) as Record<string, unknown>
+        if (isResultPersistLeaseActive(metaBefore)) {
+          // Another poll owns persistence; wait or reconcile existing blob.
+          try {
+            const existing = await head(resultPathname)
+            const updateResult = await prisma.tryOnTask.updateMany({
+              where: {
+                id: taskId,
+                status: { not: TaskStatus.COMPLETED },
+              },
+              data: {
+                status: TaskStatus.COMPLETED,
+                resultImageUrl: existing.url,
+                errorMessage: null,
+                metadata: {
+                  ...metaBefore,
+                  ...externalPollMetadata,
+                  resultPathname,
+                  privateBlob: true,
+                  privatePersistPending: false,
+                  privatePersistError: null,
+                  completionTime: Date.now(),
+                  resultReconciledFromExistingBlob: true,
+                },
+              },
+            })
+            return {
+              status: TaskStatus.COMPLETED,
+              resultImageUrl: existing.url,
+              progress: 100,
+              isNewCompletion: updateResult.count > 0,
+            }
+          } catch {
+            // Lease holder still uploading
+          }
+          return {
+            status: TaskStatus.PROCESSING,
+            progress: pollResult.progress ?? 90,
+          }
+        }
+
+        const leaseFields = buildResultPersistLeaseFields()
+        await prisma.tryOnTask.updateMany({
+          where: {
+            id: taskId,
+            status: { notIn: [TaskStatus.COMPLETED, TaskStatus.FAILED] },
+          },
+          data: {
+            metadata: {
+              ...metaBefore,
+              ...externalPollMetadata,
+              ...leaseFields,
+              privatePersistPending: true,
+            },
+          },
+        })
+      }
+
       let persistedUrl: string | null = null
       try {
         const response = await fetch(pollResult.imageUrl)
@@ -829,11 +907,22 @@ export async function getTryOnResult(taskId: string): Promise<TryOnPollResult> {
             const uploaded = await mockBlobUpload(resultPathname, file)
             persistedUrl = uploaded.url
           } else {
-            const uploadedBlob = await put(resultPathname, file, {
-              access: 'private',
-              contentType: file.type || 'image/png',
-            })
-            persistedUrl = uploadedBlob.url
+            try {
+              const uploadedBlob = await put(resultPathname, file, {
+                access: 'private',
+                contentType: file.type || 'image/png',
+              })
+              persistedUrl = uploadedBlob.url
+            } catch (putError) {
+              if (!isBlobConflictError(putError)) throw putError
+              // Concurrent put or crash-after-put: treat existing object as success.
+              const existing = await head(resultPathname)
+              persistedUrl = existing.url
+              logger.info('tryon-service', 'Store result blob already present; reconciling', {
+                taskId,
+                pathname: resultPathname,
+              })
+            }
           }
           logger.info('tryon-service', 'Store GrsAi result persisted to private blob', {
             taskId,
@@ -855,31 +944,58 @@ export async function getTryOnResult(taskId: string): Promise<TryOnPollResult> {
         })
 
         if (isStoreTask) {
-          // Fail closed: never complete Store tasks on external/provider URLs.
-          await prisma.tryOnTask.update({
-            where: { id: taskId },
-            data: {
-              status: TaskStatus.PROCESSING,
-              errorMessage: null,
-              metadata: {
-                ...externalPollMetadata,
-                privatePersistPending: true,
-                privatePersistError:
-                  uploadError instanceof Error
-                    ? uploadError.message.slice(0, 500)
-                    : 'persist_failed',
-                providerResultPresent: true,
-              },
-            },
-          })
-          return {
-            status: TaskStatus.PROCESSING,
-            progress: pollResult.progress ?? 90,
-            error: undefined,
+          // Fail closed: never complete on provider URLs; never roll back COMPLETED.
+          if (isBlobConflictError(uploadError) && !isMockMode) {
+            try {
+              const existing = await head(resultPathname)
+              persistedUrl = existing.url
+            } catch {
+              persistedUrl = null
+            }
           }
+
+          if (!persistedUrl) {
+            await prisma.tryOnTask.updateMany({
+              where: {
+                id: taskId,
+                status: { notIn: [TaskStatus.COMPLETED, TaskStatus.FAILED] },
+              },
+              data: {
+                status: TaskStatus.PROCESSING,
+                errorMessage: null,
+                metadata: {
+                  ...externalPollMetadata,
+                  privatePersistPending: true,
+                  privatePersistError:
+                    uploadError instanceof Error
+                      ? uploadError.message.slice(0, 500)
+                      : 'persist_failed',
+                  providerResultPresent: true,
+                },
+              },
+            })
+            const afterFail = await prisma.tryOnTask.findUnique({
+              where: { id: taskId },
+              select: { status: true, resultImageUrl: true },
+            })
+            if (afterFail?.status === TaskStatus.COMPLETED) {
+              return {
+                status: TaskStatus.COMPLETED,
+                resultImageUrl: afterFail.resultImageUrl || undefined,
+                progress: 100,
+                isNewCompletion: false,
+              }
+            }
+            return {
+              status: TaskStatus.PROCESSING,
+              progress: pollResult.progress ?? 90,
+              error: undefined,
+            }
+          }
+        } else {
+          // Consumer: keep legacy fallback to provider URL
+          persistedUrl = pollResult.imageUrl
         }
-        // Consumer: keep legacy fallback to provider URL
-        persistedUrl = pollResult.imageUrl
       }
 
       if (!persistedUrl) {
@@ -897,11 +1013,14 @@ export async function getTryOnResult(taskId: string): Promise<TryOnPollResult> {
         data: {
           status: TaskStatus.COMPLETED,
           resultImageUrl: persistedUrl,
+          errorMessage: null,
           metadata: {
             ...(pollResult.metadata || {}),
             ...externalPollMetadata,
             resultPathname,
             privateBlob: isStoreTask,
+            privatePersistPending: false,
+            privatePersistError: null,
             completionTime: Date.now(),
             // Never put raw provider URL into first-class Store result delivery.
             ...(isStoreTask ? {} : { originalResultUrl: pollResult.imageUrl }),
@@ -910,6 +1029,18 @@ export async function getTryOnResult(taskId: string): Promise<TryOnPollResult> {
       })
 
       const isNewCompletion = updateResult.count > 0
+      if (!isNewCompletion) {
+        const completed = await prisma.tryOnTask.findUnique({
+          where: { id: taskId },
+          select: { resultImageUrl: true },
+        })
+        return {
+          status: TaskStatus.COMPLETED,
+          resultImageUrl: completed?.resultImageUrl || persistedUrl,
+          progress: 100,
+          isNewCompletion: false,
+        }
+      }
 
       return {
         status: TaskStatus.COMPLETED,
