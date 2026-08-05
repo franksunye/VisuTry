@@ -17,6 +17,7 @@ async function getTryOnTasks({ page = 1 }: { page?: number }) {
 
   const [tasks, totalTasks] = await Promise.all([
     prisma.tryOnTask.findMany({
+      where: { origin: 'CONSUMER' },
       take: ITEMS_PER_PAGE,
       skip: offset,
       orderBy: {
@@ -38,7 +39,7 @@ async function getTryOnTasks({ page = 1 }: { page?: number }) {
         },
       },
     }),
-    prisma.tryOnTask.count(),
+    prisma.tryOnTask.count({ where: { origin: 'CONSUMER' } }),
   ]);
 
   const totalPages = Math.ceil(totalTasks / ITEMS_PER_PAGE);

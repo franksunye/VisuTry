@@ -1,4 +1,6 @@
+import { prisma } from '@/lib/prisma'
 import {
+  StoreDomainError,
   buildStoreEventIdempotencyKey,
   merchantInactive,
   merchantNotFound,
@@ -32,6 +34,23 @@ export async function recordCompareStarted(input: {
     capabilityToken: input.capabilityToken,
   })
 
+  const completedTryOns = await prisma.tryOnTask.count({
+    where: {
+      merchantId: merchant.id,
+      merchantSessionId: input.merchantSessionId,
+      origin: { in: ['STORE_DEMO', 'STORE_PILOT'] },
+      status: 'COMPLETED',
+    },
+  })
+
+  if (completedTryOns < 2) {
+    throw new StoreDomainError(
+      'VALIDATION_ERROR',
+      'Compare requires at least two completed try-on results.',
+      400,
+    )
+  }
+
   const result = await input.events.appendIdempotent({
     eventId: buildStoreEventIdempotencyKey({
       type: 'merchant_compare_started',
@@ -45,6 +64,7 @@ export async function recordCompareStarted(input: {
     source: 'SERVER',
     locale: input.locale ?? null,
     deviceType: input.deviceType ?? null,
+    metadata: { completedTryOns },
   })
 
   return { recorded: result.created }

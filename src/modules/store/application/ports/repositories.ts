@@ -106,6 +106,9 @@ export type StoreAssetRecord = {
   providerUrl: string | null
   expiresAt: Date
   deletedAt: Date | null
+  deleteFailCount: number
+  lastDeleteError: string | null
+  lastDeleteAttemptAt: Date | null
   createdAt: Date
   updatedAt: Date
 }

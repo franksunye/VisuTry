@@ -22,6 +22,7 @@ export async function GET(request: NextRequest) {
     // 获取任务列表和总数
     const [tasks, total] = await Promise.all([
       prisma.tryOnTask.findMany({
+        where: { origin: 'CONSUMER' },
         take: limit,
         skip: skip,
         orderBy: {
@@ -42,7 +43,7 @@ export async function GET(request: NextRequest) {
           },
         },
       }),
-      prisma.tryOnTask.count(),
+      prisma.tryOnTask.count({ where: { origin: 'CONSUMER' } }),
     ]);
 
     const totalPages = Math.ceil(total / limit);

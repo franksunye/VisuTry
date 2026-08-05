@@ -22,6 +22,10 @@ export type StoreGenerationSubmitResult = {
 }
 
 export interface StoreGenerationPort {
+  findExistingByIdempotencyKey(
+    idempotencyKey: string,
+    merchantId: string,
+  ): Promise<StoreGenerationSubmitResult | null>
   submit(input: StoreGenerationSubmitInput): Promise<StoreGenerationSubmitResult>
   getStatus(taskId: string, merchantId: string): Promise<{
     taskId: string

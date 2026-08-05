@@ -16,7 +16,7 @@ import { getTryOnConfig, type TryOnType } from '@/config/try-on-types';
 
 interface TryOnTask {
   id: string;
-  userId: string;
+  userId: string | null;
   type?: TryOnType;
   userImageUrl: string;
   itemImageUrl?: string;
@@ -32,7 +32,7 @@ interface TryOnTask {
     name: string | null;
     email: string;
     createdAt: string;
-  };
+  } | null;
 }
 
 interface FileDiagnostics {
@@ -205,14 +205,16 @@ export default function TryOnDetailDialog({
             <h3 className="text-sm font-medium mb-2">User Information</h3>
             <div className="grid grid-cols-2 gap-2 text-sm">
               <div>
-                <span className="text-muted-foreground">Name:</span> {task.user.name || 'N/A'}
+                <span className="text-muted-foreground">Name:</span>{' '}
+                {task.user?.name || 'N/A'}
               </div>
               <div>
-                <span className="text-muted-foreground">Email:</span> {task.user.email}
+                <span className="text-muted-foreground">Email:</span>{' '}
+                {task.user?.email || 'N/A'}
               </div>
               <div>
                 <span className="text-muted-foreground">User ID:</span>{' '}
-                <span className="font-mono text-xs">{task.user.id}</span>
+                <span className="font-mono text-xs">{task.user?.id || task.userId || 'N/A'}</span>
               </div>
             </div>
           </div>

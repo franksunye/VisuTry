@@ -76,7 +76,7 @@ export async function uploadShopperPhoto(
     ownerId: session.id,
     purpose: 'SHOPPER_PHOTO',
     storageKey,
-    accessMode: 'PUBLIC_TEMPORARY',
+    accessMode: 'PRIVATE_SIGNED',
     body: input.file,
     contentType: input.file.type,
     expiresAt: input.assetExpiresAt,
@@ -104,13 +104,17 @@ export async function uploadShopperPhoto(
     metadata: {
       contentType: input.file.type,
       byteSize: input.file.size,
+      accessMode: 'PRIVATE_SIGNED',
     },
   })
+
+  // Always return capability-bound app URL (never raw Blob URL as auth).
+  const previewUrl = `${deliveryUrl}?merchantSlug=${encodeURIComponent(merchant.slug)}&merchantSessionId=${encodeURIComponent(session.id)}`
 
   return {
     merchantSessionId: session.id,
     photoAssetId: asset.id,
-    previewUrl: deliveryUrl,
+    previewUrl,
   }
 }
 

@@ -6,6 +6,26 @@ import { computeStoreAssetExpiresAt } from '../config/store-demo-limits'
 
 export function createStoreGenerationAdapter(): StoreGenerationPort {
   return {
+    async findExistingByIdempotencyKey(idempotencyKey, merchantId) {
+      const existing = await prisma.tryOnTask.findUnique({
+        where: { idempotencyKey },
+      })
+      if (!existing) return null
+      if (existing.merchantId !== merchantId) {
+        throw new Error('Store idempotency key belongs to another merchant')
+      }
+      return {
+        taskId: existing.id,
+        status:
+          existing.status === 'COMPLETED'
+            ? 'completed'
+            : existing.status === 'FAILED'
+              ? 'failed'
+              : 'submitted',
+        reusedExisting: true,
+      }
+    },
+
     async submit(input: StoreGenerationSubmitInput) {
       if (!isStoreActor(input.actor)) {
         throw new Error('Store generation adapter requires a store actor')

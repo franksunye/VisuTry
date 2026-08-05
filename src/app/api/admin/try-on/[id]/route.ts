@@ -18,9 +18,9 @@ export async function GET(
 
     const taskId = params.id;
 
-    // 获取任务详情
-    const task = await prisma.tryOnTask.findUnique({
-      where: { id: taskId },
+    // 获取任务详情 — consumer admin surface only
+    const task = await prisma.tryOnTask.findFirst({
+      where: { id: taskId, origin: 'CONSUMER' },
       include: {
         user: {
           select: {
@@ -66,8 +66,8 @@ export async function DELETE(
     const taskId = params.id;
 
     // 获取任务详情
-    const task = await prisma.tryOnTask.findUnique({
-      where: { id: taskId },
+    const task = await prisma.tryOnTask.findFirst({
+      where: { id: taskId, origin: 'CONSUMER' },
     });
 
     if (!task) {

@@ -174,7 +174,7 @@ export function createPrismaStoreUsageRepository(): StoreUsageRepository {
         where: {
           merchantId,
           merchantSessionId,
-          kind: { in: ['RENDER_ATTEMPT', 'RENDER_SUCCESS', 'RENDER_FAILURE'] },
+          kind: 'RENDER_ATTEMPT',
         },
       })
     },

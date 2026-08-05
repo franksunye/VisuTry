@@ -7,6 +7,9 @@
     "src/app/api/cron/cleanup-expired-tasks/route.ts": {
       "maxDuration": 300
     },
+    "src/app/api/cron/cleanup-store-assets/route.ts": {
+      "maxDuration": 300
+    },
     "src/app/api/cron/retention-notifications/route.ts": {
       "maxDuration": 300
     },
@@ -22,6 +25,10 @@
     {
       "path": "/api/cron/cleanup-expired-tasks",
       "schedule": "0 2 * * *"
+    },
+    {
+      "path": "/api/cron/cleanup-store-assets",
+      "schedule": "30 2 * * *"
     }
   ]
 }

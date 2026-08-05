@@ -15,8 +15,12 @@ import type {
   MerchantSessionRepository,
 } from './ports/repositories'
 import { requireOperableStoreSession } from './require-store-session'
+import { assertSameMerchantTenant } from './tenant-guards'
 
-const EVENT_BY_INTENT: Record<MerchantIntentType, 'merchant_favorite_saved' | 'merchant_product_clicked' | 'merchant_inquiry_submitted'> = {
+const EVENT_BY_INTENT: Record<
+  MerchantIntentType,
+  'merchant_favorite_saved' | 'merchant_product_clicked' | 'merchant_inquiry_submitted'
+> = {
   FAVORITE: 'merchant_favorite_saved',
   PRODUCT_CLICK: 'merchant_product_clicked',
   INQUIRY: 'merchant_inquiry_submitted',
@@ -37,6 +41,7 @@ export type RecordStoreIntentInput = {
   email?: string | null
   name?: string | null
   note?: string | null
+  /** Ignored for PRODUCT_CLICK — server resolves canonical frame.productUrl. */
   productUrl?: string | null
   locale?: string | null
   deviceType?: string | null
@@ -56,18 +61,45 @@ export async function recordStoreIntent(
   if (!merchant) throw merchantNotFound()
   if (merchant.status !== 'ACTIVE') throw merchantInactive()
 
-  await requireOperableStoreSession({
+  const session = await requireOperableStoreSession({
     sessions: input.sessions,
     merchantId: merchant.id,
     merchantSessionId: input.merchantSessionId,
     capabilityToken: input.capabilityToken,
   })
+  assertSameMerchantTenant(merchant.id, session.merchantId, 'session')
 
-  if (input.merchantFrameId) {
+  let canonicalProductUrl: string | null = null
+  let resolvedFrameId = input.merchantFrameId ?? null
+
+  if (input.type === 'PRODUCT_CLICK') {
+    if (!input.merchantFrameId) {
+      throw new StoreDomainError(
+        'VALIDATION_ERROR',
+        'A frame is required for product clicks.',
+        400,
+      )
+    }
     const frame = await input.frames.findByMerchantAndId(merchant.id, input.merchantFrameId)
     if (!frame) {
       throw new StoreDomainError('FRAME_NOT_FOUND', 'Frame not found.', 404)
     }
+    assertSameMerchantTenant(merchant.id, frame.merchantId, 'frame')
+    if (!frame.productUrl || !isHttpOrHttpsUrl(frame.productUrl)) {
+      throw new StoreDomainError(
+        'VALIDATION_ERROR',
+        'This frame has no product URL.',
+        400,
+      )
+    }
+    canonicalProductUrl = frame.productUrl
+    resolvedFrameId = frame.id
+  } else if (input.merchantFrameId) {
+    const frame = await input.frames.findByMerchantAndId(merchant.id, input.merchantFrameId)
+    if (!frame) {
+      throw new StoreDomainError('FRAME_NOT_FOUND', 'Frame not found.', 404)
+    }
+    assertSameMerchantTenant(merchant.id, frame.merchantId, 'frame')
   }
 
   if (input.type === 'INQUIRY') {
@@ -77,22 +109,18 @@ export async function recordStoreIntent(
     }
   }
 
-  if (input.type === 'PRODUCT_CLICK' && input.productUrl && !isHttpOrHttpsUrl(input.productUrl)) {
-    throw new StoreDomainError('VALIDATION_ERROR', 'Product URL must be http or https.', 400)
-  }
-
   const idempotencyKey = buildIntentIdempotencyKey({
     type: input.type,
     merchantId: merchant.id,
     merchantSessionId: input.merchantSessionId,
-    merchantFrameId: input.merchantFrameId,
+    merchantFrameId: resolvedFrameId,
     clientActionId: input.clientActionId,
   })
 
   const { record, created } = await input.intents.createIdempotent({
     merchantId: merchant.id,
     merchantSessionId: input.merchantSessionId,
-    merchantFrameId: input.merchantFrameId ?? null,
+    merchantFrameId: resolvedFrameId,
     type: input.type,
     idempotencyKey,
     email: input.type === 'INQUIRY' ? input.email ?? null : null,
@@ -106,19 +134,20 @@ export async function recordStoreIntent(
       type: eventType,
       merchantId: merchant.id,
       merchantSessionId: input.merchantSessionId,
-      merchantFrameId: input.merchantFrameId,
+      merchantFrameId: resolvedFrameId,
       clientActionId: input.clientActionId,
     }),
     type: eventType,
     merchantId: merchant.id,
     merchantSessionId: input.merchantSessionId,
-    merchantFrameId: input.merchantFrameId ?? null,
+    merchantFrameId: resolvedFrameId,
     source: 'SERVER',
     locale: input.locale ?? null,
     deviceType: input.deviceType ?? null,
     metadata: {
       intentId: record.id,
       created,
+      ...(input.type === 'PRODUCT_CLICK' ? { productUrl: canonicalProductUrl } : {}),
     },
   })
 
@@ -128,6 +157,6 @@ export async function recordStoreIntent(
     intentId: record.id,
     type: record.type,
     created,
-    productUrl: input.type === 'PRODUCT_CLICK' ? input.productUrl ?? null : null,
+    productUrl: input.type === 'PRODUCT_CLICK' ? canonicalProductUrl : null,
   }
 }

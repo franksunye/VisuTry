@@ -21,6 +21,7 @@ import type {
 import { requireOperableStoreSession } from './require-store-session'
 import { recordStoreTryOnAttempt } from './settle-store-usage'
 import { fetchImageAsFile } from './fetch-image-file'
+import { assertSameMerchantTenant } from './tenant-guards'
 
 export type SubmitStoreTryOnInput = {
   merchants: MerchantRepository
@@ -56,6 +57,26 @@ export type SubmitStoreTryOnResult = {
   }
 }
 
+function frameDto(frame: {
+  id: string
+  name: string
+  imageUrl: string | null
+  productUrl: string | null
+  price: number | null
+  currency: string | null
+  shape: string
+}) {
+  return {
+    id: frame.id,
+    name: frame.name,
+    imageUrl: frame.imageUrl,
+    productUrl: frame.productUrl,
+    price: frame.price,
+    currency: frame.currency,
+    shape: frame.shape,
+  }
+}
+
 export async function submitStoreFrameTryOn(
   input: SubmitStoreTryOnInput,
 ): Promise<SubmitStoreTryOnResult> {
@@ -69,6 +90,7 @@ export async function submitStoreFrameTryOn(
     merchantSessionId: input.merchantSessionId,
     capabilityToken: input.capabilityToken,
   })
+  assertSameMerchantTenant(merchant.id, session.merchantId, 'session')
 
   const frame = await input.frames.findActiveByMerchantAndId(
     merchant.id,
@@ -76,6 +98,28 @@ export async function submitStoreFrameTryOn(
   )
   if (!frame) {
     throw new StoreDomainError('FRAME_INACTIVE', 'This frame is no longer available.', 409)
+  }
+  assertSameMerchantTenant(merchant.id, frame.merchantId, 'frame')
+
+  const idempotencyKey = buildStoreGenerationIdempotencyKey({
+    merchantSessionId: session.id,
+    merchantFrameId: frame.id,
+    clientSubmissionId: input.clientSubmissionId,
+  })
+
+  // Resolve idempotency before downloads, events, or attempt ledger writes.
+  const existing = await input.generation.findExistingByIdempotencyKey(
+    idempotencyKey,
+    merchant.id,
+  )
+  if (existing) {
+    return {
+      taskId: existing.taskId,
+      status: existing.status,
+      merchantFrameId: frame.id,
+      reusedExisting: true,
+      frame: frameDto(frame),
+    }
   }
 
   const usagePolicy = selectUsagePolicy(
@@ -110,11 +154,8 @@ export async function submitStoreFrameTryOn(
     )
   }
 
-  const photoUrl = await input.assets.getProviderDeliveryUrl(
-    session.photoAssetId,
-    merchant.id,
-  )
-  if (!photoUrl) {
+  const photoBytes = await input.assets.getBytes(session.photoAssetId, merchant.id)
+  if (!photoBytes) {
     throw new StoreDomainError(
       'VALIDATION_ERROR',
       'Your session photo is unavailable. Please upload again.',
@@ -134,16 +175,10 @@ export async function submitStoreFrameTryOn(
     )
   }
 
-  const [userImage, itemImage] = await Promise.all([
-    fetchImageAsFile(photoUrl, `shopper-${session.id}.jpg`),
-    fetchImageAsFile(frameImageUrl, `frame-${frame.id}.jpg`),
-  ])
-
-  const idempotencyKey = buildStoreGenerationIdempotencyKey({
-    merchantSessionId: session.id,
-    merchantFrameId: frame.id,
-    clientSubmissionId: input.clientSubmissionId,
+  const userImage = new File([new Uint8Array(photoBytes.body)], `shopper-${session.id}.jpg`, {
+    type: photoBytes.contentType || 'image/jpeg',
   })
+  const itemImage = await fetchImageAsFile(frameImageUrl, `frame-${frame.id}.jpg`)
 
   const config = getTryOnConfig('GLASSES')
   const prompt = `${config.aiPrompt}
@@ -199,15 +234,7 @@ Merchant store frame:
       status: submitted.status,
       merchantFrameId: frame.id,
       reusedExisting: submitted.reusedExisting,
-      frame: {
-        id: frame.id,
-        name: frame.name,
-        imageUrl: frame.imageUrl,
-        productUrl: frame.productUrl,
-        price: frame.price,
-        currency: frame.currency,
-        shape: frame.shape,
-      },
+      frame: frameDto(frame),
     }
   } catch (error) {
     await recordStoreTryOnAttempt({

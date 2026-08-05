@@ -538,17 +538,20 @@ model MerchantEvent {
 }
 
 model StoreAsset {
-  id                String               @id @default(cuid())
-  merchantId        String
-  merchantSessionId String?
-  ownerType         String
-  ownerId           String
-  purpose           StoreAssetPurpose
-  storageKey        String
-  accessMode        StoreAssetAccessMode @default(PUBLIC_TEMPORARY)
-  providerUrl       String?
-  expiresAt         DateTime
-  deletedAt         DateTime?
+  id                  String               @id @default(cuid())
+  merchantId          String
+  merchantSessionId   String?
+  ownerType           String
+  ownerId             String
+  purpose             StoreAssetPurpose
+  storageKey          String
+  accessMode          StoreAssetAccessMode @default(PUBLIC_TEMPORARY)
+  providerUrl         String?
+  expiresAt           DateTime
+  deletedAt           DateTime?
+  deleteFailCount     Int                  @default(0)
+  lastDeleteError     String?
+  lastDeleteAttemptAt DateTime?
 
   merchant          Merchant          @relation(fields: [merchantId], references: [id], onDelete: Restrict)
   session           MerchantSession?  @relation("SessionAssets", fields: [merchantSessionId], references: [id], onDelete: Restrict)
@@ -561,6 +564,7 @@ model StoreAsset {
   @@index([expiresAt, deletedAt])
   @@index([merchantSessionId])
   @@index([storageKey])
+  @@index([deletedAt, deleteFailCount, lastDeleteAttemptAt])
 }
 
 model MerchantUsageLedger {
@@ -575,6 +579,7 @@ model MerchantUsageLedger {
 
   createdAt DateTime @default(now())
 
+  @@unique([tryOnTaskId, kind])
   @@index([merchantId, kind])
   @@index([merchantId, merchantSessionId, kind])
   @@index([tryOnTaskId])

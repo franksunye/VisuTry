@@ -1,6 +1,6 @@
 # VisuTry Store D0 Operator Note
 
-**Status:** Active for D0 Sales Demo  
+**Status:** Active for D0 Sales Demo (Gate A1 still CLOSED)  
 **Last updated:** 2026-08-05  
 **Related:** `docs/product/specs/visutry-store-engineering-foundation.md`, ADR-006
 
@@ -12,7 +12,7 @@ Operator reference for seeding sample merchants, verifying the catalog, and know
 
 ---
 
-## Shopper Store URL (STORE-2)
+## Shopper Store URL (STORE-2+)
 
 After seeding Luna Optical:
 
@@ -26,12 +26,12 @@ Flow:
 
 1. Merchant branding + privacy notice
 2. Accept privacy → server creates `MerchantSession` and sets HttpOnly `vt_store_cap` cookie
-3. Upload front-facing photo → stored via AssetStore, bound to session
+3. Upload front-facing photo → AssetStore (`PRIVATE_SIGNED` access mode); shopper preview via capability-authenticated `/api/store/sessions/assets/[assetId]`
 4. On-device face landmarks → `POST /api/store/sessions/recommend` → merchant-only shortlist
 5. Select up to 4 frames → `POST /api/store/sessions/select-frames`
 6. Try-on selected frames → `POST /api/store/sessions/try-on` + poll (Store Demo allowance; no consumer credits)
-7. Compare completed results in-page → `POST /api/store/sessions/compare`
-8. Favorite / product click / inquiry → `POST /api/store/sessions/intent` (no raw shopper photo shared with merchant)
+7. Compare completed results in-page → `POST /api/store/sessions/compare` (requires ≥2 completed Store tasks)
+8. Favorite / product click / inquiry → `POST /api/store/sessions/intent` (product URL resolved server-side from frame)
 
 Gate A1 remains closed for independent external traffic.
 
@@ -47,6 +47,8 @@ D0 insights are **admin-only** (not merchant login):
 ```
 
 Shows sessions, photos uploaded (counts only), recommendations, try-ons, compares, favorites, product clicks, inquiries, top frames, and recent session signal flags. Shopper photos and face payloads are never shown.
+
+Consumer Admin Try-On (`/admin/try-on`) lists **CONSUMER** origin only; Store tasks belong under `/admin/store`.
 
 ---
 
@@ -82,7 +84,7 @@ To suspend a merchant: set `status = SUSPENDED` or `INACTIVE` — do not hard-de
 
 ---
 
-## Gate A1 — external shopper traffic (CLOSED until complete)
+## Gate A1 — external shopper traffic (CLOSED until re-review)
 
 Do **not** share a working Store URL for independent non-team shopper use until all are true:
 
@@ -94,13 +96,22 @@ Do **not** share a working Store URL for independent non-team shopper use until 
 6. insights/events/logs exclude raw shopper images and sensitive face payloads;
 7. external-traffic isolation / privacy tests pass.
 
-### D0 asset limitation (current)
+### Hardening landed (pre–Gate A1 re-review)
 
-Store asset uploads may still use **publicly addressable Vercel Blob URLs** via the AssetStore adapter.
+- StoreAsset cleanup cron: `/api/cron/cleanup-store-assets` (daily 02:30 UTC).
+- Blob delete must succeed (or blob already gone) before `deletedAt` is written; failures increment `deleteFailCount` and remain retryable.
+- Shopper preview is capability-bound via app media route; provider URL alone is not shopper authorization.
+- Store usage settle is transactional (claim + `RENDER_SUCCESS` ledger); attempt limits count `RENDER_ATTEMPT` only; submit resolves idempotency before attempt writes.
+- Product click / compare metrics are server-validated against catalog URL and completed tasks.
 
-- Permanent public URLs are **not** an authorization mechanism.
-- Merchant insight APIs/UI must still omit raw shopper images.
-- Internal team-operated **screen-share demos** may proceed before Gate A1 if no external shopper receives independent access.
+### Residual limitations (keep Gate A1 closed)
+
+- Underlying Blob SDK still uploads with public-read store URLs for StoreAsset / Store TryOnTask inputs; **authorization** is app-mediated, but the physical object may remain fetchable if the provider URL leaks.
+- Session/batch recovery after refresh and multi-merchant cookie coexistence are **not** done (pre-M1).
+- Shared Consumer/Store generation pipeline extraction is deferred (P2).
+- Full Postgres composite FK / trigger suite for every cross-table tenant edge is partial; application tenant guards cover hot write paths.
+
+Internal team-operated **screen-share demos** may proceed if no external shopper receives independent access.
 
 ---
 
