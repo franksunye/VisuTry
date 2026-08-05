@@ -4,6 +4,79 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 
 export const dynamic = 'force-dynamic'
 
+async function RetentionHealthCard() {
+  const now = new Date()
+  const [
+    blockedAssets,
+    blockedTasks,
+    oldestBlockedAsset,
+    oldestBlockedTask,
+    pendingOrphans,
+  ] = await Promise.all([
+    prisma.storeAsset.count({
+      where: { retentionStatus: 'DELETE_BLOCKED', deletedAt: null },
+    }),
+    prisma.tryOnTask.count({
+      where: {
+        retentionStatus: 'DELETE_BLOCKED',
+        origin: { in: ['STORE_DEMO', 'STORE_PILOT'] },
+      },
+    }),
+    prisma.storeAsset.findFirst({
+      where: { retentionStatus: 'DELETE_BLOCKED', deletedAt: null },
+      orderBy: { expiresAt: 'asc' },
+      select: { expiresAt: true },
+    }),
+    prisma.tryOnTask.findFirst({
+      where: {
+        retentionStatus: 'DELETE_BLOCKED',
+        origin: { in: ['STORE_DEMO', 'STORE_PILOT'] },
+      },
+      orderBy: { expiresAt: 'asc' },
+      select: { expiresAt: true },
+    }),
+    prisma.storeOrphanBlob.count({ where: { deletedAt: null } }),
+  ])
+
+  const oldestCandidates = [oldestBlockedAsset?.expiresAt, oldestBlockedTask?.expiresAt].filter(
+    Boolean,
+  ) as Date[]
+  const oldest =
+    oldestCandidates.length > 0
+      ? new Date(Math.min(...oldestCandidates.map((d) => d.getTime())))
+      : null
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Retention health</CardTitle>
+        <CardDescription>
+          DELETE_BLOCKED rows keep retrying on a slow schedule — they are never abandoned.
+          As of {now.toISOString()}.
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="grid gap-3 sm:grid-cols-3 text-sm">
+        <div>
+          <div className="text-muted-foreground">Blocked StoreAssets</div>
+          <div className="text-2xl font-semibold">{blockedAssets}</div>
+        </div>
+        <div>
+          <div className="text-muted-foreground">Blocked Store TryOnTasks</div>
+          <div className="text-2xl font-semibold">{blockedTasks}</div>
+        </div>
+        <div>
+          <div className="text-muted-foreground">Pending orphan blobs</div>
+          <div className="text-2xl font-semibold">{pendingOrphans}</div>
+        </div>
+        <div className="sm:col-span-3 text-muted-foreground">
+          Oldest blocked expiry:{' '}
+          {oldest ? oldest.toISOString() : 'none'}
+        </div>
+      </CardContent>
+    </Card>
+  )
+}
+
 export default async function AdminStoreMerchantsPage() {
   const merchants = await prisma.merchant.findMany({
     orderBy: { updatedAt: 'desc' },
@@ -32,6 +105,8 @@ export default async function AdminStoreMerchantsPage() {
           D0 internal insights for merchant demos. Shopper photos are never shown here.
         </p>
       </div>
+
+      <RetentionHealthCard />
 
       <Card>
         <CardHeader>

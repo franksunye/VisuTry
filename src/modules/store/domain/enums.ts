@@ -41,6 +41,14 @@ export const STORE_ASSET_ACCESS_MODES = [
 ] as const
 export type StoreAssetAccessMode = (typeof STORE_ASSET_ACCESS_MODES)[number]
 
+export const RETENTION_STATUSES = [
+  'ACTIVE',
+  'PENDING_DELETE',
+  'DELETE_BLOCKED',
+  'DELETED',
+] as const
+export type RetentionStatus = (typeof RETENTION_STATUSES)[number]
+
 export const STORE_EVENT_SOURCES = ['CLIENT', 'SERVER'] as const
 export type StoreEventSource = (typeof STORE_EVENT_SOURCES)[number]
 

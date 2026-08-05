@@ -1,4 +1,6 @@
 import { getTryOnConfig } from '@/config/try-on-types'
+import { Prisma } from '@prisma/client'
+import { prisma } from '@/lib/prisma'
 import {
   DEFAULT_STORE_DEMO_LIMITS,
   StoreDomainError,
@@ -22,6 +24,10 @@ import { requireOperableStoreSession } from './require-store-session'
 import { recordStoreTryOnAttempt } from './settle-store-usage'
 import { fetchImageAsFile } from './fetch-image-file'
 import { assertSameMerchantTenant } from './tenant-guards'
+import {
+  assertStoreMerchantAttemptAllowed,
+  recordStoreMerchantFailureAbuse,
+} from './store-abuse-limits'
 
 export type SubmitStoreTryOnInput = {
   merchants: MerchantRepository
@@ -77,6 +83,87 @@ function frameDto(frame: {
   }
 }
 
+/**
+ * Atomically reserve a session attempt slot unless the generation idempotency
+ * key already owns a task (reuse path burns no attempt).
+ */
+async function reserveStoreAttemptOrReuse(input: {
+  merchantId: string
+  merchantSessionId: string
+  merchantFrameId: string
+  idempotencyKey: string
+}): Promise<{ reusedTaskId: string | null }> {
+  const maxAttempts = 3
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    try {
+      return await prisma.$transaction(
+        async (tx) => {
+          const existing = await tx.tryOnTask.findUnique({
+            where: { idempotencyKey: input.idempotencyKey },
+            select: { id: true, merchantId: true },
+          })
+          if (existing) {
+            if (existing.merchantId !== input.merchantId) {
+              throw new StoreDomainError(
+                'IDEMPOTENCY_CONFLICT',
+                'Try-on submission conflict.',
+                409,
+              )
+            }
+            return { reusedTaskId: existing.id }
+          }
+
+          const [merchantSuccessfulRenders, sessionSuccessfulRenders, sessionAttempts] =
+            await Promise.all([
+              tx.merchantUsageLedger.count({
+                where: { merchantId: input.merchantId, kind: 'RENDER_SUCCESS' },
+              }),
+              tx.merchantUsageLedger.count({
+                where: {
+                  merchantId: input.merchantId,
+                  merchantSessionId: input.merchantSessionId,
+                  kind: 'RENDER_SUCCESS',
+                },
+              }),
+              tx.merchantUsageLedger.count({
+                where: {
+                  merchantId: input.merchantId,
+                  merchantSessionId: input.merchantSessionId,
+                  kind: 'RENDER_ATTEMPT',
+                },
+              }),
+            ])
+
+          const allowance = evaluateStoreDemoAllowance(DEFAULT_STORE_DEMO_LIMITS, {
+            merchantSuccessfulRenders,
+            sessionSuccessfulRenders,
+            sessionAttempts,
+          })
+          if (!allowance.allowed) {
+            throw new StoreDomainError('ALLOWANCE_EXCEEDED', allowance.reason, 429)
+          }
+
+          await tx.merchantUsageLedger.create({
+            data: {
+              merchantId: input.merchantId,
+              merchantSessionId: input.merchantSessionId,
+              kind: 'RENDER_ATTEMPT',
+            },
+          })
+
+          return { reusedTaskId: null }
+        },
+        { isolationLevel: Prisma.TransactionIsolationLevel.Serializable },
+      )
+    } catch (error) {
+      if (error instanceof StoreDomainError) throw error
+      const isWriteConflict = (error as { code?: string })?.code === 'P2034'
+      if (!isWriteConflict || attempt === maxAttempts) throw error
+    }
+  }
+  throw new Error('Store attempt reservation retry limit exceeded')
+}
+
 export async function submitStoreFrameTryOn(
   input: SubmitStoreTryOnInput,
 ): Promise<SubmitStoreTryOnResult> {
@@ -107,7 +194,6 @@ export async function submitStoreFrameTryOn(
     clientSubmissionId: input.clientSubmissionId,
   })
 
-  // Resolve idempotency before downloads, events, or attempt ledger writes.
   const existing = await input.generation.findExistingByIdempotencyKey(
     idempotencyKey,
     merchant.id,
@@ -116,6 +202,28 @@ export async function submitStoreFrameTryOn(
     return {
       taskId: existing.taskId,
       status: existing.status,
+      merchantFrameId: frame.id,
+      reusedExisting: true,
+      frame: frameDto(frame),
+    }
+  }
+
+  await assertStoreMerchantAttemptAllowed({ merchantId: merchant.id })
+
+  const reservation = await reserveStoreAttemptOrReuse({
+    merchantId: merchant.id,
+    merchantSessionId: session.id,
+    merchantFrameId: frame.id,
+    idempotencyKey,
+  })
+  if (reservation.reusedTaskId) {
+    const reused = await input.generation.findExistingByIdempotencyKey(
+      idempotencyKey,
+      merchant.id,
+    )
+    return {
+      taskId: reservation.reusedTaskId,
+      status: reused?.status ?? 'submitted',
       merchantFrameId: frame.id,
       reusedExisting: true,
       frame: frameDto(frame),
@@ -131,20 +239,6 @@ export async function submitStoreFrameTryOn(
     },
     'STORE_DEMO',
   )
-
-  const limits = DEFAULT_STORE_DEMO_LIMITS
-  const snapshot = {
-    merchantSuccessfulRenders: await input.usage.countSuccessfulRenders(merchant.id),
-    sessionSuccessfulRenders: await input.usage.countSessionSuccessfulRenders(
-      merchant.id,
-      session.id,
-    ),
-    sessionAttempts: await input.usage.countSessionAttempts(merchant.id, session.id),
-  }
-  const allowance = evaluateStoreDemoAllowance(limits, snapshot)
-  if (!allowance.allowed) {
-    throw new StoreDomainError('ALLOWANCE_EXCEEDED', allowance.reason, 429)
-  }
 
   if (!session.photoAssetId) {
     throw new StoreDomainError(
@@ -206,13 +300,6 @@ Merchant store frame:
     metadata: { batchId: input.batchId },
   })
 
-  await recordStoreTryOnAttempt({
-    usage: input.usage,
-    merchantId: merchant.id,
-    merchantSessionId: session.id,
-    kind: 'RENDER_ATTEMPT',
-  })
-
   try {
     const submitted = await input.generation.submit({
       actor: {
@@ -243,6 +330,11 @@ Merchant store frame:
       merchantSessionId: session.id,
       kind: 'RENDER_FAILURE',
     })
+    try {
+      await recordStoreMerchantFailureAbuse({ merchantId: merchant.id })
+    } catch {
+      // failure abuse limit may 429 subsequent requests; original error still thrown
+    }
     await input.events.appendIdempotent({
       eventId: buildStoreEventIdempotencyKey({
         type: 'merchant_tryon_failed',

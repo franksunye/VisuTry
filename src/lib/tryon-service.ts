@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma"
-import { put } from "@vercel/blob"
+import { del, put } from "@vercel/blob"
 import { generateTryOnImage } from "@/lib/gemini"
 import { submitAsyncTask, pollTaskResult } from "@/lib/grsai"
 import { logger } from "@/lib/logger"
@@ -10,6 +10,9 @@ import {
   DEFAULT_TRY_ON_PROMPT_VERSION,
   resolveTryOnPrompt,
 } from '@/lib/try-on-prompt-registry'
+import { recordStoreOrphanBlob } from '@/modules/store/application/cleanup-store-orphan-blobs'
+import { isMockMode } from '@/lib/mocks'
+import { mockBlobUpload } from '@/lib/mocks/blob'
 
 // Service Tiering Config
 const ENABLE_SERVICE_TIERING = process.env.ENABLE_SERVICE_TIERING !== 'false' // Default to true, unless explicitly set to false
@@ -500,63 +503,21 @@ export async function submitStoreTryOnTask(
     clientSubmissionId,
   })
 
-  const existingByKey = await prisma.tryOnTask.findUnique({
-    where: { idempotencyKey },
-  })
-  if (existingByKey) {
-    if (
-      existingByKey.merchantId !== merchantId ||
-      existingByKey.merchantSessionId !== merchantSessionId ||
-      existingByKey.merchantFrameId !== merchantFrameId
-    ) {
-      throw new Error('Store idempotency key conflict')
-    }
-    logger.info('tryon-service', 'Reusing Store idempotent try-on submission', {
-      taskId: existingByKey.id,
-      idempotencyKey,
-    })
-    return submissionResultFromTask(existingByKey)
-  }
-
   const resolvedPrompt = resolveTryOnPrompt(TryOnType.GLASSES, options?.prompt)
   const effectivePrompt = resolvedPrompt.detailedInstructions
   const promptVersion = resolvedPrompt.version
-
-  const ownerKey = `store/${merchantId}`
-  let userBlob
-  let itemBlob
-  try {
-    ;[userBlob, itemBlob] = await Promise.all([
-      put(
-        `tryon/user/${ownerKey}/${Date.now()}-${userImageFile.name}`,
-        userImageFile,
-        { access: 'public' },
-      ),
-      put(
-        `tryon/item/${ownerKey}/${Date.now()}-${itemImageFile.name}`,
-        itemImageFile,
-        { access: 'public' },
-      ),
-    ])
-  } catch (error) {
-    logger.error('tryon-service', 'Failed to upload Store images to blob', error as Error, {
-      merchantId,
-      merchantSessionId,
-    })
-    throw new Error('Failed to upload images')
-  }
-
   const serviceType = 'grsai'
   const isAsync = true
 
+  // Claim-first: create durable task row before any Blob upload so unique races never orphan files.
   let task
   try {
     task = await prisma.tryOnTask.create({
       data: {
         userId: null,
         type: TryOnType.GLASSES,
-        userImageUrl: userBlob.url,
-        itemImageUrl: itemBlob.url,
+        userImageUrl: 'pending://user',
+        itemImageUrl: 'pending://item',
         status: TaskStatus.PENDING,
         origin,
         merchantId,
@@ -565,6 +526,7 @@ export async function submitStoreTryOnTask(
         idempotencyKey,
         clientSubmissionId,
         expiresAt: attribution.expiresAt,
+        retentionStatus: 'ACTIVE',
         metadata: {
           ...(options?.metadata || {}),
           serviceType,
@@ -576,6 +538,7 @@ export async function submitStoreTryOnTask(
           retryCount: 0,
           clientSubmissionId,
           source: 'store',
+          claimFirst: true,
           originalUserFileName: userImageFile.name,
           originalItemFileName: itemImageFile.name,
         },
@@ -585,7 +548,86 @@ export async function submitStoreTryOnTask(
     if (!isUniqueConstraintError(error)) throw error
     const raced = await prisma.tryOnTask.findUnique({ where: { idempotencyKey } })
     if (!raced) throw error
+    if (
+      raced.merchantId !== merchantId ||
+      raced.merchantSessionId !== merchantSessionId ||
+      raced.merchantFrameId !== merchantFrameId
+    ) {
+      throw new Error('Store idempotency key conflict')
+    }
+    logger.info('tryon-service', 'Reusing Store idempotent try-on submission (claim race)', {
+      taskId: raced.id,
+      idempotencyKey,
+    })
     return submissionResultFromTask(raced)
+  }
+
+  const ownerKey = `store/${merchantId}`
+  const userPath = `tryon/user/${ownerKey}/${task.id}-${userImageFile.name}`
+  const itemPath = `tryon/item/${ownerKey}/${task.id}-${itemImageFile.name}`
+  let userBlobUrl: string | null = null
+  let itemBlobUrl: string | null = null
+
+  try {
+    if (isMockMode) {
+      const [userBlob, itemBlob] = await Promise.all([
+        mockBlobUpload(userPath, userImageFile),
+        mockBlobUpload(itemPath, itemImageFile),
+      ])
+      userBlobUrl = userBlob.url
+      itemBlobUrl = itemBlob.url
+    } else {
+      const [userBlob, itemBlob] = await Promise.all([
+        put(userPath, userImageFile, { access: 'private', contentType: userImageFile.type || 'image/jpeg' }),
+        put(itemPath, itemImageFile, { access: 'private', contentType: itemImageFile.type || 'image/jpeg' }),
+      ])
+      userBlobUrl = userBlob.url
+      itemBlobUrl = itemBlob.url
+    }
+  } catch (error) {
+    logger.error('tryon-service', 'Failed to upload Store images to private blob', error as Error, {
+      merchantId,
+      merchantSessionId,
+      taskId: task.id,
+    })
+    await prisma.tryOnTask.update({
+      where: { id: task.id },
+      data: {
+        status: TaskStatus.FAILED,
+        errorMessage: 'Failed to upload images to private storage',
+      },
+    })
+    throw new Error('Failed to upload images')
+  }
+
+  try {
+    task = await prisma.tryOnTask.update({
+      where: { id: task.id },
+      data: {
+        userImageUrl: userBlobUrl,
+        itemImageUrl: itemBlobUrl,
+      },
+    })
+  } catch (error) {
+    // Compensate uploads if we cannot attach them to the claimed task.
+    for (const [url, path] of [
+      [userBlobUrl, userPath],
+      [itemBlobUrl, itemPath],
+    ] as const) {
+      if (!url) continue
+      try {
+        if (!isMockMode) await del(path)
+      } catch (delError) {
+        await recordStoreOrphanBlob({
+          url,
+          pathname: path,
+          merchantId,
+          tryOnTaskId: task.id,
+          error: delError instanceof Error ? delError.message : 'compensate_failed',
+        })
+      }
+    }
+    throw error
   }
 
   try {
@@ -618,6 +660,7 @@ export async function submitStoreTryOnTask(
           promptSource: resolvedPrompt.source,
           retryCount: 0,
           dispatchMs: Date.now() - startTime,
+          privateBlob: true,
         },
       },
     })
@@ -700,9 +743,19 @@ export async function getTryOnResult(taskId: string): Promise<TryOnPollResult> {
           
           // Upload to Vercel Blob
           const resultOwnerKey = task.userId ?? `store/${task.merchantId ?? taskId}`
-          const uploadedBlob = await put(`tryon/result/${resultOwnerKey}/${taskId}.png`, file, { access: 'public' })
+          const isStoreTask =
+            task.origin === 'STORE_DEMO' || task.origin === 'STORE_PILOT'
+          const uploadedBlob = await put(
+            `tryon/result/${resultOwnerKey}/${taskId}.png`,
+            file,
+            { access: isStoreTask ? 'private' : 'public' },
+          )
           resultImageUrl = uploadedBlob.url
-          logger.info('tryon-service', 'GrsAi result uploaded to blob', { taskId, url: resultImageUrl })
+          logger.info('tryon-service', 'GrsAi result uploaded to blob', {
+            taskId,
+            url: resultImageUrl,
+            access: isStoreTask ? 'private' : 'public',
+          })
         } else {
           logger.warn('tryon-service', 'Failed to fetch GrsAi result for upload', { taskId, status: response.status })
         }

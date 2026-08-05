@@ -120,7 +120,11 @@ model TryOnTask {
   metadata           Json?
 
   // Data retention
-  expiresAt   DateTime?  // When this task data will be deleted
+  expiresAt             DateTime?  // When this task data will be deleted
+  retentionStatus       RetentionStatus @default(ACTIVE)
+  deleteFailCount       Int             @default(0)
+  lastDeleteError       String?
+  lastDeleteAttemptAt   DateTime?
 
   user            User?           @relation(fields: [userId], references: [id], onDelete: Cascade)
   merchant        Merchant?       @relation(fields: [merchantId], references: [id], onDelete: Restrict)
@@ -138,6 +142,8 @@ model TryOnTask {
   @@index([userId, status])                      // Optimize dashboard stats query
   @@index([status, quotaSettledAt])               // Reconcile completed but unsettled tasks
   @@index([expiresAt])                           // Index for expiry cleanup cron
+  @@index([retentionStatus, expiresAt])
+  @@index([retentionStatus, deleteFailCount, lastDeleteAttemptAt])
   @@index([origin])
   @@index([merchantId, createdAt(sort: Desc)])
   @@index([merchantSessionId])
@@ -388,6 +394,13 @@ enum StoreAssetAccessMode {
   PRIVATE_SIGNED
 }
 
+enum RetentionStatus {
+  ACTIVE
+  PENDING_DELETE
+  DELETE_BLOCKED
+  DELETED
+}
+
 enum MerchantUsageKind {
   RENDER_ATTEMPT
   RENDER_SUCCESS
@@ -413,6 +426,8 @@ model Merchant {
   assets   StoreAsset[]
   usage    MerchantUsageLedger[]
   tryOnTasks TryOnTask[]
+  orphanBlobs StoreOrphanBlob[]
+  abuseCounters StoreAbuseCounter[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -549,6 +564,7 @@ model StoreAsset {
   providerUrl         String?
   expiresAt           DateTime
   deletedAt           DateTime?
+  retentionStatus     RetentionStatus      @default(ACTIVE)
   deleteFailCount     Int                  @default(0)
   lastDeleteError     String?
   lastDeleteAttemptAt DateTime?
@@ -564,7 +580,8 @@ model StoreAsset {
   @@index([expiresAt, deletedAt])
   @@index([merchantSessionId])
   @@index([storageKey])
-  @@index([deletedAt, deleteFailCount, lastDeleteAttemptAt])
+  @@index([retentionStatus, expiresAt])
+  @@index([retentionStatus, deleteFailCount, lastDeleteAttemptAt])
 }
 
 model MerchantUsageLedger {
@@ -583,4 +600,45 @@ model MerchantUsageLedger {
   @@index([merchantId, kind])
   @@index([merchantId, merchantSessionId, kind])
   @@index([tryOnTaskId])
+}
+
+/// Blobs uploaded without a durable task/asset row — cleaned by cron.
+model StoreOrphanBlob {
+  id                String    @id @default(cuid())
+  url               String
+  pathname          String?
+  merchantId        String?
+  tryOnTaskId       String?
+  failCount         Int       @default(0)
+  lastError         String?
+  lastDeleteAttemptAt DateTime?
+  deletedAt         DateTime?
+
+  merchant Merchant? @relation(fields: [merchantId], references: [id], onDelete: SetNull)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([deletedAt, failCount, lastDeleteAttemptAt])
+  @@index([merchantId])
+  @@unique([url])
+}
+
+/// Durable abuse / rate-limit counters (serverless-safe).
+model StoreAbuseCounter {
+  id          String   @id @default(cuid())
+  merchantId  String
+  /// e.g. session_create:ip:1.2.3.4
+  bucket      String
+  windowStart DateTime
+  count       Int      @default(0)
+  bytes       BigInt   @default(0)
+
+  merchant Merchant @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([merchantId, bucket, windowStart])
+  @@index([merchantId, bucket])
 }

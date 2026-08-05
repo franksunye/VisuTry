@@ -1,6 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { parseCreateSessionRequest, storeApiError } from '@/modules/store/contracts'
-import { createStoreRuntime, createStoreSession, storeErrorResponse } from '@/modules/store/application'
+import {
+  assertStoreSessionCreateAllowed,
+  clientIpFromRequest,
+  createStoreRuntime,
+  createStoreSession,
+  storeErrorResponse,
+} from '@/modules/store/application'
 import { applyStoreCapabilityCookie } from '@/modules/store/infrastructure'
 
 export const dynamic = 'force-dynamic'
@@ -17,6 +23,14 @@ export async function POST(request: NextRequest) {
     }
 
     const runtime = createStoreRuntime()
+    const merchant = await runtime.merchants.findBySlug(parsed.data.merchantSlug)
+    if (merchant) {
+      await assertStoreSessionCreateAllowed({
+        merchantId: merchant.id,
+        ip: clientIpFromRequest(request.headers),
+      })
+    }
+
     const result = await createStoreSession({
       merchants: runtime.merchants,
       sessions: runtime.sessions,

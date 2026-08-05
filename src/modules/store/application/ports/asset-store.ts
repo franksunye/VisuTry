@@ -47,6 +47,8 @@ export type ListExpiredAssetsOptions = {
   maxFailCount?: number
   /** Skip assets whose last failed attempt is newer than now - backoffMs. */
   backoffMs?: number
+  /** Include DELETE_BLOCKED rows for slow forever-retry. */
+  includeBlocked?: boolean
 }
 
 export interface AssetStore {

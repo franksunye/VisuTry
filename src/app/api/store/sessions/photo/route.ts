@@ -1,6 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { storeApiError } from '@/modules/store/contracts'
-import { createStoreRuntime, storeErrorResponse, uploadShopperPhoto } from '@/modules/store/application'
+import {
+  assertStorePhotoUploadAllowed,
+  clientIpFromRequest,
+  createStoreRuntime,
+  storeErrorResponse,
+  uploadShopperPhoto,
+} from '@/modules/store/application'
 import {
   computeStoreAssetExpiresAt,
   readStoreCapabilityToken,
@@ -37,6 +43,15 @@ export async function POST(request: NextRequest) {
     }
 
     const runtime = createStoreRuntime()
+    const merchant = await runtime.merchants.findBySlug(merchantSlug.trim())
+    if (merchant) {
+      await assertStorePhotoUploadAllowed({
+        merchantId: merchant.id,
+        ip: clientIpFromRequest(request.headers),
+        byteSize: file.size,
+      })
+    }
+
     const result = await uploadShopperPhoto({
       merchants: runtime.merchants,
       sessions: runtime.sessions,

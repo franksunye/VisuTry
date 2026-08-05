@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { logger } from '@/lib/logger'
 import {
   cleanupExpiredStoreAssets,
+  cleanupStoreOrphanBlobs,
   createStoreRuntime,
 } from '@/modules/store/application'
 
@@ -10,8 +11,7 @@ export const dynamic = 'force-dynamic'
 export const maxDuration = 300
 
 /**
- * Cron: delete expired StoreAsset blobs, then soft-delete DB rows.
- * Only marks deletedAt after Blob deletion succeeds (or blob is already gone).
+ * Cron: StoreAsset + orphan Blob retention (blob-first, retryable, blocked slow-retry).
  */
 export async function GET(request: NextRequest) {
   const authHeader = request.headers.get('authorization')
@@ -25,12 +25,15 @@ export async function GET(request: NextRequest) {
   const now = new Date()
   try {
     const runtime = createStoreRuntime()
-    const results = await cleanupExpiredStoreAssets({
+    const assets = await cleanupExpiredStoreAssets({
       assets: runtime.assets,
       now,
       limit: 100,
+      maxRounds: 5,
     })
+    const orphans = await cleanupStoreOrphanBlobs({ now, limit: 100 })
 
+    const results = { assets, orphans }
     logger.info('api', 'Cleanup store assets cron completed', results)
 
     return NextResponse.json({

@@ -1,0 +1,178 @@
+/**
+ * Durable Store abuse / rate limits (serverless-safe via Postgres counters).
+ */
+
+import { prisma } from '@/lib/prisma'
+import { StoreDomainError } from '../domain/errors'
+
+export type StoreAbuseLimits = {
+  maxSessionCreatesPerIpPerHour: number
+  maxPhotoUploadsPerIpPerHour: number
+  maxPhotoBytesPerIpPerDay: number
+  maxAttemptsPerMerchantPerDay: number
+  maxFailuresPerMerchantPerDay: number
+}
+
+export const DEFAULT_STORE_ABUSE_LIMITS: StoreAbuseLimits = {
+  maxSessionCreatesPerIpPerHour: 30,
+  maxPhotoUploadsPerIpPerHour: 40,
+  maxPhotoBytesPerIpPerDay: 200 * 1024 * 1024,
+  maxAttemptsPerMerchantPerDay: 200,
+  maxFailuresPerMerchantPerDay: 200,
+}
+
+function hourWindowStart(now = new Date()): Date {
+  return new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), now.getUTCHours()))
+}
+
+function dayWindowStart(now = new Date()): Date {
+  return new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()))
+}
+
+function retryAfterSeconds(windowStart: Date, windowMs: number, now = new Date()): number {
+  const end = windowStart.getTime() + windowMs
+  return Math.max(1, Math.ceil((end - now.getTime()) / 1000))
+}
+
+export function clientIpFromRequest(headers: Headers): string {
+  const forwarded = headers.get('x-forwarded-for')
+  if (forwarded) return forwarded.split(',')[0]?.trim() || 'unknown'
+  return headers.get('x-real-ip')?.trim() || 'unknown'
+}
+
+async function bumpCounter(input: {
+  merchantId: string
+  bucket: string
+  windowStart: Date
+  increment?: number
+  bytes?: number
+}): Promise<{ count: number; bytes: bigint }> {
+  const increment = input.increment ?? 1
+  const bytes = BigInt(input.bytes ?? 0)
+  const row = await prisma.storeAbuseCounter.upsert({
+    where: {
+      merchantId_bucket_windowStart: {
+        merchantId: input.merchantId,
+        bucket: input.bucket,
+        windowStart: input.windowStart,
+      },
+    },
+    create: {
+      merchantId: input.merchantId,
+      bucket: input.bucket,
+      windowStart: input.windowStart,
+      count: increment,
+      bytes,
+    },
+    update: {
+      count: { increment },
+      bytes: { increment: bytes },
+    },
+  })
+  return { count: row.count, bytes: row.bytes }
+}
+
+export async function assertStoreSessionCreateAllowed(input: {
+  merchantId: string
+  ip: string
+  limits?: Partial<StoreAbuseLimits>
+}): Promise<void> {
+  const limits = { ...DEFAULT_STORE_ABUSE_LIMITS, ...input.limits }
+  const windowStart = hourWindowStart()
+  const { count } = await bumpCounter({
+    merchantId: input.merchantId,
+    bucket: `session_create:ip:${input.ip}`,
+    windowStart,
+  })
+  if (count > limits.maxSessionCreatesPerIpPerHour) {
+    throw new StoreDomainError(
+      'ALLOWANCE_EXCEEDED',
+      'Too many store sessions from this network. Please try again later.',
+      429,
+      `retry_after=${retryAfterSeconds(windowStart, 3600_000)}`,
+    )
+  }
+}
+
+export async function assertStorePhotoUploadAllowed(input: {
+  merchantId: string
+  ip: string
+  byteSize: number
+  limits?: Partial<StoreAbuseLimits>
+}): Promise<void> {
+  const limits = { ...DEFAULT_STORE_ABUSE_LIMITS, ...input.limits }
+  const hourStart = hourWindowStart()
+  const dayStart = dayWindowStart()
+
+  const uploads = await bumpCounter({
+    merchantId: input.merchantId,
+    bucket: `photo_upload:ip:${input.ip}`,
+    windowStart: hourStart,
+  })
+  if (uploads.count > limits.maxPhotoUploadsPerIpPerHour) {
+    throw new StoreDomainError(
+      'ALLOWANCE_EXCEEDED',
+      'Too many photo uploads from this network. Please try again later.',
+      429,
+      `retry_after=${retryAfterSeconds(hourStart, 3600_000)}`,
+    )
+  }
+
+  const bytes = await bumpCounter({
+    merchantId: input.merchantId,
+    bucket: `photo_bytes:ip:${input.ip}`,
+    windowStart: dayStart,
+    increment: 1,
+    bytes: input.byteSize,
+  })
+  if (Number(bytes.bytes) > limits.maxPhotoBytesPerIpPerDay) {
+    throw new StoreDomainError(
+      'ALLOWANCE_EXCEEDED',
+      'Daily photo upload limit reached for this network.',
+      429,
+      `retry_after=${retryAfterSeconds(dayStart, 86400_000)}`,
+    )
+  }
+}
+
+export async function assertStoreMerchantAttemptAllowed(input: {
+  merchantId: string
+  limits?: Partial<StoreAbuseLimits>
+}): Promise<void> {
+  const limits = { ...DEFAULT_STORE_ABUSE_LIMITS, ...input.limits }
+  const windowStart = dayWindowStart()
+  const { count } = await bumpCounter({
+    merchantId: input.merchantId,
+    bucket: 'attempt:merchant',
+    windowStart,
+  })
+  if (count > limits.maxAttemptsPerMerchantPerDay) {
+    throw new StoreDomainError(
+      'ALLOWANCE_EXCEEDED',
+      'Merchant daily try-on attempt limit reached.',
+      429,
+      `retry_after=${retryAfterSeconds(windowStart, 86400_000)}`,
+    )
+  }
+}
+
+export async function recordStoreMerchantFailureAbuse(input: {
+  merchantId: string
+  limits?: Partial<StoreAbuseLimits>
+}): Promise<void> {
+  const limits = { ...DEFAULT_STORE_ABUSE_LIMITS, ...input.limits }
+  const windowStart = dayWindowStart()
+  const { count } = await bumpCounter({
+    merchantId: input.merchantId,
+    bucket: 'failure:merchant',
+    windowStart,
+  })
+  if (count > limits.maxFailuresPerMerchantPerDay) {
+    throw new StoreDomainError(
+      'ALLOWANCE_EXCEEDED',
+      'Merchant daily try-on failure limit reached.',
+      429,
+      `retry_after=${retryAfterSeconds(windowStart, 86400_000)}`,
+    )
+  }
+}

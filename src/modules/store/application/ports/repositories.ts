@@ -10,6 +10,7 @@ import type {
   MerchantIntentType,
   MerchantSessionStatus,
   MerchantStatus,
+  RetentionStatus,
   StoreAssetAccessMode,
   StoreAssetPurpose,
   StoreEventSource,
@@ -106,6 +107,7 @@ export type StoreAssetRecord = {
   providerUrl: string | null
   expiresAt: Date
   deletedAt: Date | null
+  retentionStatus: RetentionStatus
   deleteFailCount: number
   lastDeleteError: string | null
   lastDeleteAttemptAt: Date | null
