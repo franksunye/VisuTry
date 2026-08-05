@@ -30,9 +30,23 @@ Flow:
 4. On-device face landmarks → `POST /api/store/sessions/recommend` → merchant-only shortlist
 5. Select up to 4 frames → `POST /api/store/sessions/select-frames`
 6. Try-on selected frames → `POST /api/store/sessions/try-on` + poll (Store Demo allowance; no consumer credits)
-7. Compare completed results in-page
+7. Compare completed results in-page → `POST /api/store/sessions/compare`
+8. Favorite / product click / inquiry → `POST /api/store/sessions/intent` (no raw shopper photo shared with merchant)
 
 Gate A1 remains closed for independent external traffic.
+
+---
+
+## Internal merchant insights (STORE-5)
+
+D0 insights are **admin-only** (not merchant login):
+
+```text
+/admin/store
+/admin/store/merchants/{merchantId}
+```
+
+Shows sessions, photos uploaded (counts only), recommendations, try-ons, compares, favorites, product clicks, inquiries, top frames, and recent session signal flags. Shopper photos and face payloads are never shown.
 
 ---
 

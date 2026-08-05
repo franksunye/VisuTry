@@ -46,6 +46,9 @@ export type RecordIntentRequest = {
   email?: string
   name?: string
   note?: string
+  productUrl?: string
+  locale?: string
+  deviceType?: string
 }
 
 export function parseRecordIntentRequest(body: unknown): ValidationResult<RecordIntentRequest> {
@@ -72,6 +75,9 @@ export function parseRecordIntentRequest(body: unknown): ValidationResult<Record
     email: typeof record.email === 'string' ? record.email : undefined,
     name: typeof record.name === 'string' ? record.name : undefined,
     note: typeof record.note === 'string' ? record.note : undefined,
+    productUrl: typeof record.productUrl === 'string' ? record.productUrl : undefined,
+    locale: typeof record.locale === 'string' ? record.locale : undefined,
+    deviceType: typeof record.deviceType === 'string' ? record.deviceType : undefined,
   })
 }
 

@@ -61,6 +61,15 @@ const primaryNavItems: NavItem[] = [
     ),
   },
   {
+    title: 'Store',
+    href: '/admin/store',
+    icon: (
+      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7l1.5-3h15L21 7M4 7h16v11a2 2 0 01-2 2H6a2 2 0 01-2-2V7zm4 4h8" />
+      </svg>
+    ),
+  },
+  {
     title: 'Orders',
     href: '/admin/orders',
     icon: (

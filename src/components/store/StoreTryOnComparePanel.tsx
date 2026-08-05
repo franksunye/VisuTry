@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useTranslations } from 'next-intl'
-import { Loader2, RefreshCw, Sparkles } from 'lucide-react'
+import { Heart, Loader2, RefreshCw, Sparkles } from 'lucide-react'
 import { FRAME_DISPATCH_STAGGER_MS, sleep } from '@/lib/try-on/batch-types'
 
 type FrameMeta = {
@@ -66,7 +66,49 @@ export function StoreTryOnComparePanel({
   const [batchId, setBatchId] = useState<string | null>(null)
   const [dispatching, setDispatching] = useState(false)
   const [compareStarted, setCompareStarted] = useState(false)
+  const [favoritedIds, setFavoritedIds] = useState<string[]>([])
+  const [inquiryFrameId, setInquiryFrameId] = useState<string | null>(null)
+  const [inquiryEmail, setInquiryEmail] = useState('')
+  const [inquiryName, setInquiryName] = useState('')
+  const [inquiryNote, setInquiryNote] = useState('')
+  const [inquirySending, setInquirySending] = useState(false)
+  const [inquirySent, setInquirySent] = useState(false)
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null)
+
+  const postIntent = useCallback(
+    async (input: {
+      type: 'FAVORITE' | 'PRODUCT_CLICK' | 'INQUIRY'
+      merchantFrameId: string
+      productUrl?: string | null
+      email?: string
+      name?: string
+      note?: string
+    }) => {
+      const res = await fetch('/api/store/sessions/intent', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          merchantSlug,
+          merchantSessionId,
+          type: input.type,
+          merchantFrameId: input.merchantFrameId,
+          clientActionId: `${input.type.toLowerCase()}:${merchantSessionId}:${input.merchantFrameId}:${Date.now()}`,
+          productUrl: input.productUrl ?? undefined,
+          email: input.email,
+          name: input.name,
+          note: input.note,
+          locale,
+          deviceType: deviceTypeLabel(),
+        }),
+      })
+      const json = await res.json()
+      if (!res.ok || !json.success) {
+        throw new Error(json.error || t('errors.intent'))
+      }
+      return json.data
+    },
+    [merchantSlug, merchantSessionId, locale, t],
+  )
 
   const startTryOn = useCallback(async () => {
     if (selectedFrames.length === 0 || dispatching) return
@@ -386,26 +428,166 @@ export function StoreTryOnComparePanel({
                       <p className="text-sm font-medium text-gray-800">{priceLabel}</p>
                     )}
                     {tile.frame.productUrl && (
-                      <a
-                        href={tile.frame.productUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
+                      <button
+                        type="button"
                         className="text-sm font-medium underline"
                         style={{ color: accent }}
+                        onClick={async () => {
+                          try {
+                            await postIntent({
+                              type: 'PRODUCT_CLICK',
+                              merchantFrameId: tile.merchantFrameId,
+                              productUrl: tile.frame.productUrl,
+                            })
+                            window.open(tile.frame.productUrl!, '_blank', 'noopener,noreferrer')
+                          } catch (error) {
+                            onError(error instanceof Error ? error.message : t('errors.intent'))
+                          }
+                        }}
                       >
                         {t('tryOn.viewProduct')}
-                      </a>
+                      </button>
                     )}
+                    <div className="mt-2 flex flex-wrap gap-2">
+                      <button
+                        type="button"
+                        disabled={favoritedIds.includes(tile.merchantFrameId)}
+                        onClick={async () => {
+                          try {
+                            await postIntent({
+                              type: 'FAVORITE',
+                              merchantFrameId: tile.merchantFrameId,
+                            })
+                            setFavoritedIds((ids) =>
+                              ids.includes(tile.merchantFrameId)
+                                ? ids
+                                : [...ids, tile.merchantFrameId],
+                            )
+                          } catch (error) {
+                            onError(error instanceof Error ? error.message : t('errors.intent'))
+                          }
+                        }}
+                        className="inline-flex items-center gap-1 rounded-md border border-gray-200 px-2 py-1 text-xs font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-60"
+                      >
+                        <Heart
+                          className="h-3.5 w-3.5"
+                          fill={favoritedIds.includes(tile.merchantFrameId) ? accent : 'none'}
+                          style={{ color: accent }}
+                        />
+                        {favoritedIds.includes(tile.merchantFrameId)
+                          ? t('intent.favorited')
+                          : t('intent.favorite')}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setInquiryFrameId(tile.merchantFrameId)
+                          setInquirySent(false)
+                        }}
+                        className="rounded-md border border-gray-200 px-2 py-1 text-xs font-medium text-gray-700 hover:bg-gray-50"
+                      >
+                        {t('intent.inquire')}
+                      </button>
+                    </div>
                   </div>
                 </div>
               )
             })}
           </div>
 
+          {inquiryFrameId && (
+            <div className="mt-4 rounded-xl border border-gray-200 bg-gray-50 p-4">
+              <h3 className="text-sm font-semibold text-gray-900">{t('intent.inquiryTitle')}</h3>
+              <p className="mt-1 text-xs text-gray-600">{t('intent.inquirySubtitle')}</p>
+              <div className="mt-3 grid gap-2 sm:grid-cols-2">
+                <input
+                  type="email"
+                  value={inquiryEmail}
+                  onChange={(e) => setInquiryEmail(e.target.value)}
+                  placeholder={t('intent.email')}
+                  className="rounded-lg border border-gray-300 px-3 py-2 text-sm"
+                />
+                <input
+                  type="text"
+                  value={inquiryName}
+                  onChange={(e) => setInquiryName(e.target.value)}
+                  placeholder={t('intent.nameOptional')}
+                  className="rounded-lg border border-gray-300 px-3 py-2 text-sm"
+                />
+              </div>
+              <textarea
+                value={inquiryNote}
+                onChange={(e) => setInquiryNote(e.target.value)}
+                placeholder={t('intent.noteOptional')}
+                className="mt-2 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
+                rows={3}
+              />
+              <div className="mt-3 flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  disabled={inquirySending}
+                  onClick={async () => {
+                    setInquirySending(true)
+                    try {
+                      await postIntent({
+                        type: 'INQUIRY',
+                        merchantFrameId: inquiryFrameId,
+                        email: inquiryEmail,
+                        name: inquiryName || undefined,
+                        note: inquiryNote || undefined,
+                      })
+                      setInquirySent(true)
+                      setInquiryFrameId(null)
+                      setInquiryEmail('')
+                      setInquiryName('')
+                      setInquiryNote('')
+                    } catch (error) {
+                      onError(error instanceof Error ? error.message : t('errors.intent'))
+                    } finally {
+                      setInquirySending(false)
+                    }
+                  }}
+                  className="rounded-lg px-3 py-2 text-sm font-semibold text-white"
+                  style={{ backgroundColor: accent }}
+                >
+                  {inquirySending ? t('intent.sending') : t('intent.send')}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setInquiryFrameId(null)}
+                  className="rounded-lg border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700"
+                >
+                  {t('intent.cancel')}
+                </button>
+              </div>
+            </div>
+          )}
+
+          {inquirySent && (
+            <p className="mt-3 text-sm text-emerald-700">{t('intent.sent')}</p>
+          )}
+
           {completed.length >= 2 && !showCompare && (
             <button
               type="button"
-              onClick={() => setCompareStarted(true)}
+              onClick={async () => {
+                setCompareStarted(true)
+                try {
+                  await fetch('/api/store/sessions/compare', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                      merchantSlug,
+                      merchantSessionId,
+                      clientActionId: `compare:${merchantSessionId}:${Date.now()}`,
+                      locale,
+                      deviceType: deviceTypeLabel(),
+                    }),
+                  })
+                } catch {
+                  // compare UI still opens; event is best-effort
+                }
+              }}
               className="mt-4 flex w-full items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm font-semibold text-gray-900 hover:bg-gray-50"
             >
               {t('tryOn.openCompare', { count: completed.length })}

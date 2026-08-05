@@ -781,7 +781,8 @@
       "upload": "Photo upload failed. Please try another image.",
       "recommend": "Could not build recommendations. Please try again.",
       "select": "Could not save your frame selection.",
-      "tryOn": "Try-on could not start. Please try again."
+      "tryOn": "Try-on could not start. Please try again.",
+      "intent": "Could not save that action. Please try again."
     },
     "recommend": {
       "analyzing": "Finding frames that suit you…",
@@ -808,6 +809,20 @@
       "openCompare": "Compare {count} results",
       "compareTitle": "Side-by-side compare",
       "compareHint": "Same shopper photo across selected frames."
+    },
+    "intent": {
+      "favorite": "Favorite",
+      "favorited": "Favorited",
+      "inquire": "Ask store",
+      "inquiryTitle": "Ask this store about a frame",
+      "inquirySubtitle": "Leave your email and the store can follow up. Your face photo is not shared.",
+      "email": "Email",
+      "nameOptional": "Name (optional)",
+      "noteOptional": "Note (optional)",
+      "send": "Send inquiry",
+      "sending": "Sending…",
+      "cancel": "Cancel",
+      "sent": "Inquiry sent — thank you."
     }
   }
 }
