@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-labelledby="title desc">
+  <title id="title">Luna Optical</title>
+  <desc id="desc">A crescent moon and optical lens mark.</desc>
+  <rect width="128" height="128" rx="32" fill="#173F4B"/>
+  <circle cx="57" cy="59" r="30" fill="#F4D9A6"/>
+  <circle cx="69" cy="49" r="30" fill="#173F4B"/>
+  <circle cx="86" cy="77" r="18" fill="none" stroke="#FFFFFF" stroke-width="6"/>
+  <path d="M102 91l11 11" fill="none" stroke="#FFFFFF" stroke-linecap="round" stroke-width="6"/>
+</svg>

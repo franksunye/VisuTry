@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { ChevronDown } from 'lucide-react';
+import { ArrowLeft, ChevronDown, LayoutDashboard, Sparkles } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
 
@@ -139,6 +139,7 @@ export default function AdminLayout({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
+  const isStoreSection = pathname.startsWith('/admin/store');
   const isCatalogActive = catalogNavItems.some((item) => isNavItemActive(pathname, item.href));
   const [catalogOpen, setCatalogOpen] = useState(isCatalogActive);
 
@@ -147,6 +148,46 @@ export default function AdminLayout({
       setCatalogOpen(true);
     }
   }, [isCatalogActive]);
+
+  if (isStoreSection) {
+    return (
+      <div className="min-h-screen bg-[#f6f7fb] text-slate-950">
+        <header className="sticky top-0 z-40 border-b border-slate-200/80 bg-white/90 backdrop-blur-xl">
+          <div className="mx-auto flex max-w-[1540px] items-center justify-between gap-4 px-5 py-3.5 sm:px-8">
+            <Link href="/admin/store" className="flex items-center gap-3">
+              <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[#122f3a] text-white shadow-sm">
+                <Sparkles className="h-5 w-5" aria-hidden="true" />
+              </span>
+              <span>
+                <span className="block text-sm font-semibold tracking-tight text-slate-950">VisuTry Store</span>
+                <span className="block text-[11px] font-medium uppercase tracking-[0.16em] text-slate-400">Merchant intelligence</span>
+              </span>
+            </Link>
+
+            <nav className="flex items-center gap-2" aria-label="Store administration">
+              <Link
+                href="/admin/store"
+                className="inline-flex items-center gap-2 rounded-xl bg-slate-100 px-3.5 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-200"
+              >
+                <LayoutDashboard className="h-4 w-4" aria-hidden="true" />
+                <span className="hidden sm:inline">Store portfolio</span>
+              </Link>
+              <Link
+                href="/admin/dashboard"
+                className="inline-flex items-center gap-2 rounded-xl px-3.5 py-2 text-sm font-medium text-slate-500 transition hover:bg-slate-100 hover:text-slate-900"
+              >
+                <ArrowLeft className="h-4 w-4" aria-hidden="true" />
+                <span className="hidden sm:inline">Back to admin</span>
+              </Link>
+            </nav>
+          </div>
+        </header>
+        <main className="mx-auto max-w-[1540px] px-5 py-6 sm:px-8 sm:py-8">
+          {children}
+        </main>
+      </div>
+    );
+  }
 
   return (
     <div className="flex h-screen bg-gray-50">

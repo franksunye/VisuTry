@@ -1,9 +1,9 @@
 # VisuTry Store Landing Page Spec
 
-**Status:** Ready for validation — first market test before Store MVP engineering  
+**Status:** Shipped / Measuring
 **Owner:** Product / Growth  
 **Created:** 2026-07-08  
-**Last updated:** 2026-07-08  
+**Last updated:** 2026-08-05
 **Related plan:** `docs/product/product-plan.md`  
 **Related spec:** `docs/product/specs/visutry-store-mvp.md`
 
@@ -19,7 +19,7 @@ The goal is not to launch the full Store product. The goal is to validate whethe
 
 ## 2. Decision
 
-Before building full Store MVP infrastructure, VisuTry should create a Store landing page.
+VisuTry created the Store landing page before D0 and now uses it as the inbound validation surface paired with the working merchant demo.
 
 The landing page should validate demand for:
 
@@ -113,18 +113,18 @@ Avoid `Buy now` in v0. This is a validation page, not a mature self-serve checko
 
 ---
 
-## 7. Proposed Route
+## 7. Implemented Route
 
-Preferred route:
+Localized public route:
+
+```text
+/{locale}/store
+```
+
+Current English production route:
 
 ```text
 /en/store
-```
-
-Potential localized route later:
-
-```text
-/[locale]/store
 ```
 
 The page should be public and indexable unless a separate private pilot page is created.
@@ -320,29 +320,27 @@ The landing page is ready for engineering when:
 6. page sections are approved;
 7. first validation target list or outbound motion is prepared.
 
-Current status: ready for validation planning; route and lead capture implementation can proceed as a lightweight product / growth task.
+Current status: complete. The static localized route, CTA analytics, privacy copy, and mailto-based lead form are implemented and deployed. The active work is qualified-traffic measurement and follow-up, not landing-page engineering.
 
 ---
 
 ## 14. Relationship to Store MVP
 
-This page is the entry point for Store MVP validation.
+This page remains the inbound entry point for Store validation and routes qualified prospects toward the D0 merchant demo.
 
-If the landing page and outbound validation produce qualified interest, update `docs/product/specs/visutry-store-mvp.md` from `Ready for validation` toward `Ready for engineering`.
+The D0 demo is already implemented. Landing-page and outbound evidence now contributes to Gate B: own-frame sample requests, repeated workflow confirmation, or a paid/deposit-backed pilot before M1 hardening.
 
-If the landing page does not produce qualified interest after targeted outreach, revisit the ICP, positioning, offer shape, or pricing before building Store infrastructure.
+If the landing page and targeted outreach do not produce qualified interest, revisit the ICP, positioning, offer shape, or pricing before M1 or platform integrations.
 
 ---
 
 ## 15. Open Questions
 
-1. Should the first CTA submit to email only, or create a database lead?
-2. Should the primary CTA be `Get a sample Store Link` or `Join the pilot`?
-3. Should the page show current Frame Compare screenshots or custom Store mockups?
-4. Should we offer a free discovery demo or require a small setup fee / refundable deposit?
-5. Should initial validation target optical stores, Shopify eyewear brands, stylists, or agencies first?
-6. Should the first Store demo use VisuTry's 16 preset frames or a sample merchant-style catalog?
-7. Should the page be English-only first, or also localized?
+1. When does mailto-based lead capture become insufficient and require durable CRM/database storage?
+2. Which CTA produces the strongest qualified signal: sample Store, demo, or pilot?
+3. Should the next validation wave require a small setup fee or refundable deposit?
+4. Which ICP converts best: optical stores, Shopify eyewear brands, stylists, or agencies?
+5. Which additional locale is justified by qualified traffic or merchant outreach?
 
 ---
 
@@ -351,3 +349,4 @@ If the landing page does not produce qualified interest after targeted outreach,
 | Date | Change |
 | --- | --- |
 | 2026-07-08 | Created Store landing page validation spec. |
+| 2026-08-05 | Marked the localized landing page, lead form, and analytics as shipped; moved its role to measurement and D0 demo qualification. |

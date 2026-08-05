@@ -1,12 +1,13 @@
 # VisuTry Store Engineering Foundation Spec
 
-**Status:** Approved for engineering
+**Status:** Implemented for D0; mandatory ongoing engineering baseline
 **Owner:** Engineering / Product
 **Created:** 2026-08-05
 **Last updated:** 2026-08-05
 **Applies to:** D0 Sales Demo and all later Store work
 **Related ADR:** `docs/decisions/ADR-006-store-modular-multitenant-foundation.md`
 **Related execution plan:** `docs/product/plans/visutry-store-implementation-plan.md`
+**Production verification:** `docs/ops/store-d0-production-verification-2026-08-05.md`
 
 ---
 
@@ -23,6 +24,12 @@ Normative language:
 - **MAY** — optional and must not delay D0.
 
 If this document conflicts with older Store architecture wording, this document controls engineering structure. Product behavior remains controlled by the Sales Demo and MVP specs.
+
+### 1.1 Implemented D0 baseline
+
+As of 2026-08-05, the D0-0 baseline is implemented: Store has a bounded module, tenant-scoped repositories, server-issued shopper capability, server-owned usage policy, shared generation adapters, durable events and intent, asset-access seam, runtime validation, database constraints, migrations, and isolation/regression tests.
+
+The production D0 currently uses the explicitly documented `public-poc` Blob mode. Public URLs are storage locations, not authorization: protected capability and result APIs still enforce the MerchantSession token, and merchant insights do not expose shopper asset URLs. This is a temporary D0 operating exception under the asset rules below, so the external-traffic gate remains closed until private or otherwise controlled asset delivery and the remaining gate evidence are complete.
 
 ---
 
@@ -532,6 +539,8 @@ D0 cannot be accepted without automated coverage for:
 
 STORE-1 through STORE-5 feature work MUST NOT be considered merge-ready until the D0-0 foundation gate is satisfied.
 
+**Current status:** Satisfied for the D0 implementation. These criteria remain a regression and merge gate for every later Store change.
+
 D0-0 acceptance criteria:
 
 1. This specification and ADR-006 are linked from the active Store execution plan.
@@ -562,6 +571,8 @@ A working D0 URL MUST NOT be shared for independent non-team shopper use until a
 7. external-traffic tenant, authorization, abuse, and privacy tests pass.
 
 An internal team-operated screen-share demo MAY run before this gate if no external shopper receives independent access and the D0 operator note records the limitation.
+
+**Current status:** Closed. Controlled team-operated demos are permitted; independent non-team shopper traffic is not.
 
 ---
 
@@ -604,3 +615,4 @@ Adapters added later MUST enter through the Store application contracts defined 
 | Date | Change |
 | --- | --- |
 | 2026-08-05 | Created mandatory Store engineering foundation for D0, including modular-monolith boundaries, tenant isolation, Store actor/usage policy, shared Try-On attribution, durable events, asset privacy, idempotency, tests, and D0-0 gate. |
+| 2026-08-05 | Recorded the implemented D0 baseline and temporary Public Blob POC exception; retained the closed external-traffic gate. |

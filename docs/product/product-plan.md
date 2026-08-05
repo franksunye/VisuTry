@@ -2,7 +2,7 @@
 
 **Status:** Active source of truth for product execution  
 **Created:** 2026-07-08  
-**Last updated:** 2026-07-08  
+**Last updated:** 2026-08-05
 **Owner:** Product  
 **Review cadence:** Weekly  
 **Scope:** Current product focus, Now / Next / Later priorities, current sprint, product initiatives, backlog, decisions needed, and execution board.
@@ -36,6 +36,10 @@ This plan is derived from:
 | `docs/project/seo-backlog.md` | Tracks current SEO/Growth tasks and external acquisition sprint. |
 | `docs/decisions/ADR-004-frame-compare-core-implemented.md` | Confirms Frame Compare core is implemented and next work is productization. |
 | `docs/product/specs/visutry-store-landing-page.md` | Defines the first Store market validation asset before full Store engineering. |
+| `docs/product/specs/visutry-store-engineering-foundation.md` | Defines the mandatory Store architecture, tenancy, usage, privacy, idempotency, and test constraints. |
+| `docs/product/specs/visutry-store-sales-demo.md` | Defines the implemented D0 merchant demo workflow and acceptance criteria. |
+| `docs/product/plans/visutry-store-implementation-plan.md` | Defines current Store gates, completed D0 slices, merchant validation, and M1 sequencing. |
+| `docs/ops/store-d0-production-verification-2026-08-05.md` | Records the production D0 evidence baseline and remaining Gate A1 work. |
 
 ---
 
@@ -65,7 +69,7 @@ Current focus:
 2. Make Credits Pack conversion clearer.
 3. Polish and measure the implemented Frame Compare core experience.
 4. Instrument the funnel so usage and paid intent are measurable.
-5. Validate VisuTry Store with a focused landing page and pilot CTA before building full merchant infrastructure.
+5. Use the production-verified Store D0 demo to validate merchant demand before M1 hardening or platform integrations.
 
 ---
 
@@ -96,15 +100,17 @@ Current focus:
 | P0 | Credits Pack conversion loop | Clearest casual paid product; payment/quota foundation exists, conversion UX/events need completion. | Partially implemented |
 | P0 | Frame Compare polish / analytics / homepage exposure | Core Compare is implemented at `/try-on/glasses/compare`; next work is product exposure, analytics, and conversion polish. | Implemented core |
 | P0 | Core funnel events and baseline metrics | Product decisions require visibility into upload, completion, continuation, pricing, checkout, and paid usage. | Ready |
-| P1 | Store landing page market validation | Tests merchant interest and pilot demand before Store MVP engineering. | Ready for validation |
+| P1 | Store D0 merchant validation | Uses the working Luna Optical Store to test merchant comprehension, own-frame sample demand, and willingness to pilot. | Ready for controlled validation |
+| P1 | Store landing page market validation | Tests inbound merchant interest and pilot demand. | Shipped / Measuring |
 | P1 | Product documentation governance | Clear docs are required for ordered execution by humans and agents. | Shipped / Measuring |
 
 ### Next
 
 | Priority | Workstream | Why it matters | Status |
 | --- | --- | --- | --- |
-| P1 | VisuTry Store validation package | Extends the landing page into merchant pitch, demo outline, pilot checklist, and outreach. | Ready for validation |
-| P1 | Merchant / Store / Frame Catalog data model | Needed only after validation or if internal demo requires it. | Backlog |
+| P1 | Store merchant validation sprint | Run demos, capture structured evidence, and seek own-frame sample or paid-pilot commitments. | Ready |
+| P1 | Store M1 pilot hardening | CSV onboarding, merchant access, pilot operations, and monitoring after Gate B. | Gated / Not started |
+| P1 | Merchant / Store / Frame Catalog data model | D0 tenant, catalog, session, intent, event, asset, and attribution models are implemented. | Shipped |
 | P1 | VisuTry Studio MVP definition | Validates repeated professional client workflow for stylists / advisors. | Backlog |
 | P1 | First merchant / stylist discovery list | Needed to validate demand before overbuilding. | Ready |
 
@@ -123,9 +129,9 @@ Current focus:
 
 ## 7. Current Sprint
 
-**Sprint name:** Consumer Decision Path, Conversion, and Store Market Validation Prep  
-**Target window:** 2026-07-08 to 2026-07-22  
-**Goal:** Strengthen the existing consumer path, make implemented Compare measurable and visible, complete the Credits Pack conversion plan, and prepare Store landing page validation before deeper merchant engineering.
+**Sprint name:** Store D0 Merchant Validation and Core Funnel Continuity
+**Target window:** 2026-08-05 to 2026-08-19
+**Goal:** Use the production-verified Store D0 demo in controlled merchant conversations, capture pilot evidence, and preserve the existing consumer conversion work without starting M1 or platform integrations early.
 
 ### Sprint outcomes
 
@@ -138,6 +144,7 @@ Current focus:
 | Frame Compare is visible in product architecture | Compare is represented as an independent product route/page/flow rather than buried inside carousel or history. | Shipped; exposure review needed |
 | Store landing page validation is specified | Landing page positioning, CTA, lead form, validation metrics, and non-goals are defined. | Shipped |
 | VisuTry Store is validation-ready | Store MVP spec defines target users, hosted workflow, validation package, data/events, privacy, and gates to engineering. | Shipped |
+| Store D0 engineering is production-verified | Luna Optical seed, capability session, Public POC upload, recommendation, Store Try-On, result delivery, usage, and retention evidence are recorded. | Shipped; Gate A1 closed |
 
 ---
 
@@ -148,8 +155,9 @@ Current focus:
 | P0 | Credits Pack conversion UX | Product / Growth | Partially implemented | Define exact post-result and post-compare CTA placements and event mapping. | `docs/product/specs/credits-pack-conversion.md` | Current sprint |
 | P0 | Frame Compare exposure and analytics | Product / Growth | Implemented core | Review homepage/product path exposure and add or map `frame_compare_*` events. | `docs/product/specs/frame-compare.md`, ADR-004 | Current sprint |
 | P0 | Consumer funnel baseline | Product / Analytics | Ready | Define minimum event checklist across Detector → Advisor → Try-On → Compare → Pricing → Checkout → Paid usage. | `docs/project/seo-backlog.md`, `docs/strategy/seo/2026-06-30-product-architecture-seo-geo-sync.md` | Current sprint |
-| P1 | Store landing page validation | Product / Growth | Ready for validation | Implement or prepare `/en/store` with pilot CTA, lead form, validation metrics, and privacy copy. | `docs/product/specs/visutry-store-landing-page.md` | Current / next sprint |
-| P1 | VisuTry Store validation package | Product / Strategy | Ready for validation | Prepare merchant pitch, demo outline, pilot checklist, and target list. | `docs/product/specs/visutry-store-mvp.md` | Next sprint |
+| P1 | Store landing page validation | Product / Growth | Shipped / Measuring | Review qualified CTA and lead evidence while pairing the page with targeted outreach. | `docs/product/specs/visutry-store-landing-page.md` | Current sprint |
+| P1 | Store D0 merchant validation | Product / Growth | Ready for controlled validation | Run the 10-minute Luna Optical demo; capture own-frame sample requests, objections, KPI preference, and pilot intent. | Store Sales Demo spec, production verification record | Current sprint |
+| P1 | Store M1 pilot hardening | Product / Engineering | Gated / Not started | Start only when Gate B is met or Product explicitly approves a real pilot. | Store implementation plan, Store MVP spec | Next after evidence |
 | P1 | Merchant / stylist discovery list | Product / Growth | Ready | Build a focused list of 20-50 relevant merchants, brands, agencies, or stylists. | Store MVP spec, B2B roadmap | Next sprint |
 | P1 | Frame Compare enhancement decisions | Product | Ready | Decide whether custom uploaded frames and public board sharing are needed before Store / Studio. | Frame Compare spec | Next review |
 | P2 | Historical document archive moves | Product / Engineering | Deferred | Only move files after status review confirms they are not active. | `docs/strategy/legacy-document-audit.md` | Later |
@@ -233,15 +241,15 @@ Current focus:
 
 ### Initiative 4: Store Landing Page Market Validation
 
-**Goal:** Validate Store demand through a focused B2B landing page before full merchant infrastructure is built.
+**Goal:** Continue measuring Store demand through the shipped B2B landing page and route qualified prospects into the working D0 demo.
 
-**Current status:** Ready for validation.
+**Current status:** Shipped / Measuring.
 
 **Validation asset:** `docs/product/specs/visutry-store-landing-page.md`
 
 **Current tasks:**
 
-- Prepare or implement `/en/store`.
+- Measure `/en/store` qualified CTA and lead behavior.
 - Use `Get a sample Store Link` as the primary CTA unless testing suggests otherwise.
 - Include workflow, problem, product preview, pilot offer, lead form, privacy note, and validation events.
 - Capture or route leads to an operational destination.
@@ -256,9 +264,9 @@ Current focus:
 
 ### Initiative 5: VisuTry Store Validation Package
 
-**Goal:** Validate the smallest merchant workflow before building a full widget, Shopify app, public API, or merchant dashboard.
+**Goal:** Validate the implemented D0 merchant workflow before M1 hardening, a full widget, Shopify app, or public API.
 
-**Current status:** Ready for validation.
+**Current status:** D0 implemented; ready for controlled merchant validation.
 
 **Validation package:**
 
@@ -273,8 +281,9 @@ Current focus:
 
 **Current tasks:**
 
-- Prepare one-page merchant pitch.
-- Prepare demo outline or lightweight hosted demo concept.
+- Run the production Luna Optical demo in merchant conversations.
+- Record structured demo feedback and objections.
+- Offer an own-frame sample Store as the next commitment step.
 - Prepare pilot onboarding checklist.
 - Prepare privacy and image-retention explanation.
 - Build target list of merchants / agencies / stylists.
@@ -295,3 +304,4 @@ Current focus:
 | 2026-07-08 | Created product plan and execution board. |
 | 2026-07-08 | Updated Frame Compare and Credits Pack status after implementation review. |
 | 2026-07-08 | Added Store landing page as first Store market validation step before full MVP engineering. |
+| 2026-08-05 | Promoted Store D0 to production-verified controlled validation; moved the next action to merchant demos and kept Gate A1 / M1 gated. |

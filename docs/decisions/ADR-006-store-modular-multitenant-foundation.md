@@ -33,6 +33,12 @@ Building Store by adding route-level exceptions or a client-controlled quota byp
 9. D0 begins with a mandatory D0-0 foundation gate defined in `docs/product/specs/visutry-store-engineering-foundation.md`.
 10. Microservices, public integration SDKs, generic commerce abstractions, and complex merchant RBAC remain deferred.
 
+## Implementation Status
+
+The D0 implementation satisfies this decision's modular, tenant, capability, usage, event, idempotency, and shared-generation boundaries. Production verification was completed on 2026-08-05 for a controlled Luna Optical demonstration.
+
+The deployment currently uses the documented `public-poc` Vercel Blob mode. This does not change the authorization model: protected Store APIs require the server-issued MerchantSession capability, and public Blob URLs are not treated as authorization. Because private or otherwise controlled asset delivery and remaining external-traffic evidence are not complete, Gate A1 remains closed and the URL is not approved for independent non-team shopper use.
+
 ## Consequences
 
 ### Easier
@@ -72,6 +78,8 @@ Building Store by adding route-level exceptions or a client-controlled quota byp
 - `docs/product/plans/visutry-store-implementation-plan.md`
 - `docs/product/specs/visutry-store-sales-demo.md`
 - `docs/product/specs/visutry-store-mvp.md`
+- `docs/ops/store-d0-operator-note.md`
+- `docs/ops/store-d0-production-verification-2026-08-05.md`
 - `docs/project/architecture.md`
 
 ## Change Log
@@ -79,3 +87,4 @@ Building Store by adding route-level exceptions or a client-controlled quota byp
 | Date | Change |
 | --- | --- |
 | 2026-08-05 | Accepted the modular-monolith, multi-tenant Store foundation and mandatory D0-0 engineering gate. |
+| 2026-08-05 | Recorded D0 implementation and controlled production verification, including the temporary Public Blob POC boundary and closed Gate A1. |

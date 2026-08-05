@@ -1,6 +1,6 @@
 # VisuTry Store Sales Demo Spec
 
-**Status:** Approved for engineering  
+**Status:** Implemented — controlled production validation active; Gate A1 closed
 **Owner:** Product / Engineering / Growth  
 **Created:** 2026-08-05  
 **Last updated:** 2026-08-05  
@@ -9,6 +9,7 @@
 **Related MVP:** `docs/product/specs/visutry-store-mvp.md`  
 **Related plan:** `docs/product/plans/visutry-store-implementation-plan.md`
 **Required engineering foundation:** `docs/product/specs/visutry-store-engineering-foundation.md`
+**Production verification:** `docs/ops/store-d0-production-verification-2026-08-05.md`
 
 ---
 
@@ -23,6 +24,26 @@ The product story is:
 > Merchant catalog → AI-assisted frame discovery → Virtual Try-On → Frame Compare → Product / inquiry intent → Merchant insight.
 
 The demo must make clear that VisuTry is not only a virtual try-on feature. It is an AI decision layer that helps eyewear shoppers narrow a merchant's catalog and gives the merchant measurable purchase-intent signals.
+
+### 1.1 Implementation status
+
+- STORE-1 through STORE-5 are implemented on the mandatory D0-0 foundation.
+- Luna Optical is seeded with 16 active representative frames using unique, reviewed,
+  local product assets. Product imagery must be centered, large enough to read at card
+  size, low-noise, and free of broken or duplicate URLs.
+- The admin demo includes a customer-presentable Store portfolio and merchant
+  intelligence page with conversion, catalog-health, merchandising, inventory, and
+  anonymous-session views.
+- The shopper demo uses a dedicated merchant-first visual shell rather than the
+  VisuTry consumer-site navigation. Its branded entry state shows a real four-frame
+  catalog preview, an above-the-fold CTA, progressive privacy disclosure, and a
+  visible upload → recommendation → try-on journey with a persistent shortlist.
+- Store administration uses a dedicated merchant-intelligence shell rather than the
+  general VisuTry operations sidebar. All displayed KPIs and sessions remain backed
+  by Store records; no concept-only analytics are fabricated.
+- The production merchant page, capability session, upload, recommendation, one-frame Try-On, result authorization, events, usage settlement, retention metadata, and lease cleanup have passed smoke verification.
+- Controlled, team-operated merchant demos may proceed under the D0 operator note.
+- Gate A1 remains closed: the Public Blob POC is temporary, and independent non-team shopper traffic is not approved.
 
 ---
 
@@ -87,17 +108,92 @@ Primary CTA after the demo:
 
 The first demo should use a dedicated sample merchant, for example `Luna Optical`, matching the current Store landing-page visuals.
 
-Recommended route shape:
+Implemented route shape:
 
 ```text
-/store/demo/luna
-/store/demo/luna/catalog
-/store/demo/luna/insights
+/{locale}/store/luna-optical
+/admin/store
 ```
 
-Exact route naming may follow the existing Next.js architecture, but the implementation must preserve one merchant-scoped identifier through the entire flow.
+The shopper route uses the merchant slug and preserves the server-resolved merchant identifier through the entire flow. The authenticated admin route exposes merchant-scoped insights without raw shopper images.
 
 The demo can use seeded merchant and frame data. It must not depend on a production Shopify installation.
+
+### 5.1 Sales Demo design decision
+
+The three Store concept visuals are the product direction, not a requirement to
+simulate a finished commerce platform in D0. Sales Demo design must communicate the
+future product clearly while every interactive control continues to represent a real,
+implemented capability.
+
+Reference priority:
+
+1. The branded upload / try-on concept is the primary reference for the shopper entry
+   state: merchant identity, calm product photography, one dominant upload action,
+   visible frame choice, privacy reassurance, and restrained `Powered by VisuTry`.
+2. The full shopper workspace is a north-star reference for the post-upload journey.
+   D0 may reuse its visual hierarchy, recommendation explanation, large try-on result,
+   product cards, and persistent shortlist, but must keep the implemented sequential
+   workflow and real asynchronous states.
+3. The merchant dashboard is the primary visual reference for merchant insights. D0
+   must show catalog performance, trend, inquiry, recommendation-fit, shortlist, and
+   shopper-journey stories backed by persisted Store records. A repeatable synthetic
+   Luna Optical activity dataset is permitted for the sales workspace, but it must be
+   identifiable as demo data and must use the same event and intent paths as live data.
+
+Required D0 visual language:
+
+- merchant-first header and logo, with VisuTry shown as the enabling platform;
+- warm white / very light blue surfaces, deep navy text, restrained blue accents;
+- large, centered, low-noise frame photography and clear selected states;
+- numbered or otherwise obvious journey progression;
+- a visually persistent shortlist once frames have been selected;
+- one primary CTA per state and honest queued / processing / failed / completed states;
+- an admin presentation centered on conversion story, catalog health, top frames,
+  inventory, seven-day trends, inquiries, and privacy-safe shopper intent;
+- privacy-safe identity avatars derived from inquiry names or initials; shopper face
+  photos must never be reused as dashboard avatars;
+- a recommendation `Fit Score` that is explicitly defined as catalog recommendation
+  alignment, never as a physical fit, optical measurement, or prescription claim;
+- a shortlist / high-intent journey view as the D0 proxy for cart intent. It must not
+  be labelled as a completed cart or checkout event until those events exist.
+
+Explicit D0 exclusions even when they appear in concept art:
+
+- fake retailer navigation, search, checkout, or inventory quantity;
+- live video try-on or model-avatar selection;
+- unsupported physical-fit, pupillary-distance, or prescription claims;
+- “thousands of styles” claims for a 12-20 frame sample catalog;
+- trend, inquiry, shopper identity, or avatar values that are not traceable to either
+  persisted live records or the explicitly identified synthetic sales-demo dataset;
+- merchant notifications, settings, role management, or full CRM behavior;
+- controls that are decorative but appear clickable.
+
+### 5.2 Merchant dashboard metric contract
+
+The dashboard is a sales tool, but its semantics remain production-grade:
+
+| Surface | Required source and definition |
+|---|---|
+| Try-on sessions | Distinct merchant sessions with at least one completed try-on. |
+| Inquiries | Persisted `MerchantIntent(type=INQUIRY)` records. Contact data is visible only in authenticated merchant/admin scope. |
+| Favorites | Persisted `MerchantIntent(type=FAVORITE)` records. |
+| Top frame | Ranked from persisted selection, try-on, favorite, and product-click activity. |
+| Seven-day trend | Current UTC seven-day window compared with the immediately preceding UTC seven-day window. A zero previous value is shown as `New`, not infinite growth. |
+| Shopper interest series | Daily selections plus favorite, product-click, and inquiry intents. |
+| Fit Score | Top recommendation score emitted by the Store ranking adapter; display copy must say recommendation alignment. |
+| Avatar | Initials generated from shopper-provided inquiry name/email or an anonymous session label. No shopper image is exposed. |
+| Shortlist / high intent | Frames selected in a merchant session. This is not a cart unless an add-to-cart event is later implemented. |
+
+Luna Optical seed records must use stable IDs/idempotency keys, reserved `demo_luna_*`
+session IDs, and synthetic `example.com` contacts. Re-running the seed may refresh
+relative timestamps, but must not multiply records or delete genuine merchant data.
+
+Privacy consent remains mandatory before photo upload, but should be presented as a
+clear branded entry step rather than making the first screen look like an internal
+compliance form. The shopper must understand the value proposition before accepting,
+and the complete retention notice must remain accessible without being visually
+hidden.
 
 ### Required demo data
 
@@ -305,6 +401,20 @@ Show only non-sensitive intent context:
 - favorite / product click / inquiry status.
 
 Do not display raw shopper face photos in merchant insights by default.
+
+### Required catalog / inventory view
+
+The merchant insight page must also make the seeded catalog credible during a sales
+demo. Each inventory card must show, when available:
+
+- product image, product name, SKU, price, and active status;
+- shape, material, color, width class, and merchandising tags;
+- selections, completed try-ons, favorites, and product clicks;
+- catalog-level active/enriched counts and average price.
+
+The admin experience is part of the sales demo, not an internal database viewer. It
+must use clear hierarchy, merchant branding, readable KPI cards, a decision funnel,
+and product-led merchandising visuals. Raw shopper photos remain excluded.
 
 ---
 
@@ -517,6 +627,15 @@ The Sales Demo is complete when all are true:
 13. No consumer credit prompt appears inside the merchant shopper workflow.
 14. The demo can be run end-to-end during a 10-minute sales call on desktop and mobile web.
 15. Gate A1 is complete before the URL is shared for independent non-team shopper use.
+16. All seeded product images are unique, load successfully, and use reviewed low-noise product photography.
+17. The merchant admin shows the full catalog/inventory metadata and per-frame engagement without exposing shopper photos.
+
+Implementation assessment as of 2026-08-05:
+
+- Criteria 1-6, 8-13, 16, and 17 are implemented and covered by automated, build, or local browser evidence.
+- Criterion 7 is implemented at the engineering level; browser-level 2/3/4-frame Compare and partial-failure verification remains open.
+- Criterion 14 is approved only for controlled, team-operated demonstrations until the complete browser story is recorded.
+- Criterion 15 is not met. Gate A1 remains closed.
 
 ---
 
@@ -558,3 +677,8 @@ These are intentionally deferred and must not block Sales Demo engineering:
 | --- | --- |
 | 2026-08-05 | Created engineering-ready Store Sales Demo spec and made AI-assisted merchant-catalog recommendation a required demo capability. |
 | 2026-08-05 | Linked the mandatory engineering foundation, standardized `merchant_page_viewed`, and added D0-0 / external-traffic acceptance requirements. |
+| 2026-08-05 | Marked D0 implemented and production-verified for controlled demos, documented the actual routes, and retained Gate A1 restrictions for independent traffic. |
+| 2026-08-05 | Added the customer-facing admin presentation standard, full inventory requirements, and a reviewed 16-image local catalog asset set. |
+| 2026-08-05 | Defined the concept-to-D0 design decision: adopt merchant branding, product-led hierarchy, shortlist, and traceable insight storytelling while excluding simulated commerce, live video, physical-fit claims, and untraceable analytics. |
+| 2026-08-05 | Implemented the Sales Demo visual upgrade with dedicated shopper/admin shells, real catalog preview, above-the-fold CTA, staged journey, persistent shortlist, and polished try-on presentation. |
+| 2026-08-05 | Added the merchant sales-intelligence contract and implementation for seven-day trends, recent inquiries, privacy-safe avatars, recommendation-alignment Fit Score, high-intent shortlists, and clearly identified idempotent synthetic demo activity. |

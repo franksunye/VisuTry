@@ -1,11 +1,16 @@
 'use client'
 
 import { useCallback, useEffect, useState } from 'react'
+import Image from 'next/image'
 import { useTranslations } from 'next-intl'
 import {
+  ArrowRight,
   CheckCircle2,
+  Glasses,
   Loader2,
+  LockKeyhole,
   ShieldCheck,
+  Sparkles,
   Store,
 } from 'lucide-react'
 import { ImageUpload } from '@/components/upload/ImageUpload'
@@ -20,6 +25,13 @@ type MerchantProfile = {
   websiteUrl: string | null
   accentColor: string | null
   activeFrameCount: number
+  featuredFrames: Array<{
+    id: string
+    name: string
+    imageUrl: string | null
+    shape: string
+    color: string | null
+  }>
 }
 
 type SessionState = {
@@ -70,6 +82,56 @@ function formatPrice(price: number | null, currency: string | null): string | nu
   } catch {
     return `${(price / 100).toFixed(2)} ${code}`
   }
+}
+
+function MerchantMark({ merchant, accent }: { merchant: MerchantProfile; accent: string }) {
+  return (
+    <div className="flex items-center gap-3">
+      <div className="relative flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-slate-200">
+        {merchant.logoUrl ? (
+          <Image src={merchant.logoUrl} alt="" fill sizes="48px" className="object-contain p-1.5" />
+        ) : (
+          <Store className="h-6 w-6" style={{ color: accent }} aria-hidden="true" />
+        )}
+      </div>
+      <div>
+        <p className="font-serif text-xl font-semibold tracking-tight text-slate-950 sm:text-2xl">
+          {merchant.name}
+        </p>
+        <p className="text-[10px] font-semibold uppercase tracking-[0.24em] text-slate-400">
+          Optical collection
+        </p>
+      </div>
+    </div>
+  )
+}
+
+function JourneyStep({
+  number,
+  label,
+  active,
+  complete,
+  accent,
+}: {
+  number: number
+  label: string
+  active: boolean
+  complete: boolean
+  accent: string
+}) {
+  return (
+    <div className="flex min-w-0 flex-1 items-center gap-2.5">
+      <span
+        className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-bold transition"
+        style={active || complete ? { backgroundColor: accent, color: 'white' } : { backgroundColor: '#eef1f5', color: '#94a3b8' }}
+      >
+        {complete ? <CheckCircle2 className="h-4 w-4" aria-hidden="true" /> : number}
+      </span>
+      <span className={`truncate text-xs font-semibold sm:text-sm ${active || complete ? 'text-slate-900' : 'text-slate-400'}`}>
+        {label}
+      </span>
+    </div>
+  )
 }
 
 export function StoreShopperExperience({
@@ -338,233 +400,264 @@ export function StoreShopperExperience({
     )
   }
 
-  return (
-    <div className="mx-auto max-w-2xl px-4 py-8 sm:py-12">
-      <header className="mb-8 text-center">
-        <div className="mb-4 flex justify-center">
-          {merchant.logoUrl ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={merchant.logoUrl}
-              alt={merchant.name}
-              className="h-16 w-16 rounded-full object-cover shadow-sm ring-2 ring-white"
-            />
-          ) : (
-            <div
-              className="flex h-16 w-16 items-center justify-center rounded-full text-white shadow-sm"
-              style={{ backgroundColor: accent }}
-            >
-              <Store className="h-7 w-7" />
-            </div>
-          )}
-        </div>
-        <p className="text-sm font-medium uppercase tracking-wide text-gray-500">
-          {t('brandedBy', { merchant: merchant.name })}
-        </p>
-        <h1 className="mt-2 text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
-          {merchant.name}
-        </h1>
-        <p className="mt-3 text-base text-gray-600">{t('headline')}</p>
-        <p className="mt-2 text-sm text-gray-500">
-          {t('catalogHint', { count: merchant.activeFrameCount })}
-        </p>
-      </header>
+  const currentStep = selectionSaved ? 3 : photoReady ? 2 : 1
+  const selectedFrames = recommendations.filter((frame) => selectedIds.includes(frame.id))
 
-      {!privacyAccepted ? (
-        <section className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm sm:p-6">
-          <div className="mb-4 flex items-start gap-3">
-            <ShieldCheck className="mt-0.5 h-6 w-6 shrink-0" style={{ color: accent }} />
-            <div>
-              <h2 className="text-lg font-semibold text-gray-900">{t('privacy.title')}</h2>
-              <p className="mt-2 text-sm leading-relaxed text-gray-600">{t('privacy.body')}</p>
-              <ul className="mt-3 list-disc space-y-1 pl-5 text-sm text-gray-600">
-                <li>{t('privacy.point1')}</li>
-                <li>{t('privacy.point2')}</li>
-                <li>{t('privacy.point3')}</li>
-              </ul>
-              {publicPocStorage ? (
-                <p className="mt-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm leading-relaxed text-amber-900">
-                  {t('privacy.publicPocNotice')}
-                </p>
+  return (
+    <div className="relative min-h-screen overflow-hidden bg-[#f7f8fb] text-slate-950">
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-[540px] bg-[radial-gradient(circle_at_78%_18%,rgba(191,219,254,0.42),transparent_33%),radial-gradient(circle_at_16%_8%,rgba(254,243,199,0.42),transparent_30%)]" />
+      <div className="relative mx-auto max-w-[1440px] px-5 pb-10 pt-5 sm:px-8 lg:px-10">
+        <header className="flex items-center justify-between gap-5 rounded-3xl border border-white/80 bg-white/75 px-5 py-4 shadow-[0_18px_60px_rgba(15,23,42,0.06)] backdrop-blur-xl sm:px-7">
+          <MerchantMark merchant={merchant} accent={accent} />
+          <div className="flex items-center gap-2 text-xs font-medium text-slate-400 sm:text-sm">
+            <span className="hidden sm:inline">Powered by</span>
+            <span className="font-semibold text-blue-600">VisuTry</span>
+            <Sparkles className="h-4 w-4 text-blue-500" aria-hidden="true" />
+          </div>
+        </header>
+
+        {!privacyAccepted ? (
+          <main className="grid items-center gap-10 py-10 lg:min-h-[calc(100vh-150px)] lg:grid-cols-[0.82fr_1.18fr] lg:gap-14 lg:py-14">
+            <section className="max-w-xl">
+              <div className="inline-flex items-center gap-2 rounded-full border border-blue-100 bg-white/80 px-3 py-1.5 text-xs font-semibold text-blue-700 shadow-sm">
+                <Sparkles className="h-3.5 w-3.5" aria-hidden="true" />
+                AI-assisted frame discovery
+              </div>
+              <h1 className="mt-6 font-serif text-4xl font-semibold leading-[1.08] tracking-[-0.035em] text-slate-950 sm:text-5xl lg:text-6xl">
+                {t('headline')}
+              </h1>
+              <p className="mt-5 max-w-lg text-base leading-7 text-slate-600 sm:text-lg">
+                {t('catalogHint', { count: merchant.activeFrameCount })}
+              </p>
+
+              {errorMessage ? <p className="mt-4 text-sm text-red-600" role="alert">{errorMessage}</p> : null}
+              <button
+                type="button"
+                onClick={handleAcceptPrivacy}
+                disabled={sessionStarting}
+                aria-describedby="privacy-details"
+                className="mt-6 flex w-full max-w-sm items-center justify-center gap-2 rounded-2xl px-5 py-3.5 text-sm font-semibold text-white shadow-lg transition hover:-translate-y-0.5 hover:shadow-xl disabled:cursor-not-allowed disabled:opacity-60"
+                style={{ backgroundColor: accent }}
+              >
+                {sessionStarting ? <><Loader2 className="h-4 w-4 animate-spin" />{t('privacy.starting')}</> : <>{t('privacy.accept')}<ArrowRight className="h-4 w-4" /></>}
+              </button>
+              <p className="mt-2 flex items-center gap-2 text-xs text-slate-400">
+                <LockKeyhole className="h-3.5 w-3.5" aria-hidden="true" />
+                Review the privacy details below before continuing.
+              </p>
+
+              <div className="mt-7 grid grid-cols-3 gap-2 rounded-2xl border border-white bg-white/70 p-3 shadow-sm backdrop-blur">
+                {[t('upload.title'), t('recommend.title'), t('tryOn.title')].map((label, index) => (
+                  <div key={label} className="rounded-xl px-2 py-3 text-center">
+                    <span className="mx-auto flex h-7 w-7 items-center justify-center rounded-full bg-slate-950 text-[11px] font-bold text-white">
+                      {index + 1}
+                    </span>
+                    <p className="mt-2 text-[11px] font-semibold leading-4 text-slate-600 sm:text-xs">{label}</p>
+                  </div>
+                ))}
+              </div>
+
+              <div id="privacy-details" className="mt-6 rounded-3xl border border-slate-200/80 bg-white/90 p-5 shadow-[0_20px_60px_rgba(15,23,42,0.07)] sm:p-6">
+                <div className="flex gap-3">
+                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-700">
+                    <ShieldCheck className="h-5 w-5" aria-hidden="true" />
+                  </span>
+                  <div>
+                    <h2 className="font-semibold text-slate-950">{t('privacy.title')}</h2>
+                    <p className="mt-1.5 text-sm leading-6 text-slate-600">{t('privacy.body')}</p>
+                  </div>
+                </div>
+                <div className="mt-4 grid gap-2 text-xs text-slate-500 sm:grid-cols-2">
+                  <p className="flex items-start gap-2"><LockKeyhole className="mt-0.5 h-3.5 w-3.5 shrink-0 text-emerald-700" />{t('privacy.point1')}</p>
+                  <p className="flex items-start gap-2"><ShieldCheck className="mt-0.5 h-3.5 w-3.5 shrink-0 text-emerald-700" />{t('privacy.point3')}</p>
+                </div>
+                {publicPocStorage ? (
+                  <details className="mt-4 rounded-xl border border-amber-200 bg-amber-50 px-3.5 py-2.5 text-xs leading-5 text-amber-900">
+                    <summary className="cursor-pointer font-semibold">Early-access storage notice</summary>
+                    <p className="mt-2">{t('privacy.publicPocNotice')}</p>
+                  </details>
+                ) : null}
+              </div>
+            </section>
+
+            <section className="relative mx-auto w-full max-w-3xl">
+              <div className="absolute -right-8 -top-8 h-32 w-32 rounded-full bg-blue-200/50 blur-3xl" />
+              <div className="relative overflow-hidden rounded-[2.25rem] border border-white bg-white/90 p-5 shadow-[0_35px_100px_rgba(30,64,175,0.14)] sm:p-7">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-xs font-semibold uppercase tracking-[0.18em] text-blue-600">Your frame edit</p>
+                    <p className="mt-1 text-sm text-slate-500">A focused collection, personalized for you</p>
+                  </div>
+                  <span className="flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-700">
+                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />Live catalog
+                  </span>
+                </div>
+
+                <div className="mt-6 flex min-h-[280px] items-center justify-center overflow-hidden rounded-[1.75rem] bg-[linear-gradient(145deg,#edf3fb,#faf7f2)] px-6 py-10 sm:min-h-[360px]">
+                  <div className="text-center">
+                    <span className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-white text-blue-600 shadow-lg ring-1 ring-blue-100">
+                      <Glasses className="h-9 w-9" aria-hidden="true" />
+                    </span>
+                    <p className="mt-5 font-serif text-2xl font-semibold text-slate-900 sm:text-3xl">One photo. Your best frames.</p>
+                    <p className="mx-auto mt-2 max-w-sm text-sm leading-6 text-slate-500">Discover a shortlist, preview each look, and compare before you choose.</p>
+                  </div>
+                </div>
+
+                <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
+                  {merchant.featuredFrames.map((frame, index) => (
+                    <article key={frame.id} className={`group rounded-2xl border bg-white p-2.5 ${index === 0 ? 'border-blue-400 ring-2 ring-blue-100' : 'border-slate-200'}`}>
+                      <div className="relative aspect-[4/3] overflow-hidden rounded-xl bg-slate-50">
+                        {frame.imageUrl ? <Image src={frame.imageUrl} alt={frame.name} fill sizes="(max-width: 640px) 50vw, 160px" className="object-contain p-2" /> : <Glasses className="absolute inset-0 m-auto h-8 w-8 text-slate-300" />}
+                      </div>
+                      <p className="mt-2 truncate text-xs font-semibold text-slate-800">{frame.name}</p>
+                      <p className="mt-0.5 truncate text-[10px] capitalize text-slate-400">{[frame.shape, frame.color].filter(Boolean).join(' · ')}</p>
+                    </article>
+                  ))}
+                </div>
+                <p className="mt-5 flex items-center justify-center gap-2 text-xs text-slate-400"><LockKeyhole className="h-3.5 w-3.5" />{t('privacy.point2')}</p>
+              </div>
+            </section>
+          </main>
+        ) : (
+          <main className="py-7 sm:py-10">
+            <section className="mx-auto mb-7 flex max-w-4xl items-center gap-3 rounded-2xl border border-white bg-white/80 p-3 shadow-sm backdrop-blur sm:gap-6 sm:px-5">
+              <JourneyStep number={1} label={t('upload.title')} active={currentStep === 1} complete={currentStep > 1} accent={accent} />
+              <div className="h-px flex-1 bg-slate-200" />
+              <JourneyStep number={2} label={t('recommend.title')} active={currentStep === 2} complete={currentStep > 2} accent={accent} />
+              <div className="h-px flex-1 bg-slate-200" />
+              <JourneyStep number={3} label={t('tryOn.title')} active={currentStep === 3} complete={false} accent={accent} />
+            </section>
+
+            <div className={`grid gap-6 ${recommendations.length > 0 ? 'xl:grid-cols-[minmax(0,1fr)_340px]' : ''}`}>
+              <div className="space-y-6">
+                <section className="overflow-hidden rounded-[2rem] border border-slate-200/80 bg-white p-5 shadow-[0_22px_70px_rgba(15,23,42,0.07)] sm:p-7">
+                  <div className="mb-5 flex flex-wrap items-start justify-between gap-3">
+                    <div>
+                      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-blue-600">Step 1</p>
+                      <h1 className="mt-2 font-serif text-2xl font-semibold text-slate-950 sm:text-3xl">{t('upload.title')}</h1>
+                      <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-500">{t('upload.guidance')}</p>
+                    </div>
+                    <span className="flex items-center gap-2 rounded-full bg-emerald-50 px-3 py-1.5 text-xs font-medium text-emerald-700"><ShieldCheck className="h-3.5 w-3.5" />Private session</span>
+                  </div>
+                  <ImageUpload
+                    label={t('upload.label')}
+                    description={t('upload.description')}
+                    iconType="user"
+                    height="h-[340px] sm:h-[460px]"
+                    currentImage={photoPreview}
+                    loading={photoUploading || recommending}
+                    loadingText={photoUploading ? t('upload.uploading') : recommending ? t('recommend.analyzing') : t('upload.uploading')}
+                    onImageSelect={handleImageSelect}
+                    onImageRemove={handleImageRemove}
+                  />
+                  {errorMessage ? <p className="mt-4 rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700" role="alert">{errorMessage}</p> : null}
+                </section>
+
+                {photoReady && recommending ? (
+                  <div className="flex min-h-36 items-center justify-center gap-3 rounded-[2rem] border border-slate-200 bg-white p-7 text-slate-600 shadow-sm">
+                    <Loader2 className="h-5 w-5 animate-spin text-blue-600" />
+                    <span className="font-medium">{t('recommend.analyzing')}</span>
+                  </div>
+                ) : null}
+
+                {photoReady && !recommending && recommendations.length > 0 ? (
+                  <section className="rounded-[2rem] border border-slate-200/80 bg-white p-5 shadow-[0_22px_70px_rgba(15,23,42,0.07)] sm:p-7">
+                    <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
+                      <div>
+                        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-blue-600">Step 2 · AI edit</p>
+                        <h2 className="mt-2 font-serif text-2xl font-semibold text-slate-950 sm:text-3xl">{t('recommend.title')}</h2>
+                        <p className="mt-2 text-sm text-slate-500">{t('recommend.subtitle')}</p>
+                      </div>
+                      {rankingVersion ? <span className="rounded-full bg-slate-100 px-3 py-1.5 text-[10px] font-medium text-slate-400">{t('recommend.version', { version: rankingVersion })}</span> : null}
+                    </div>
+
+                    <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                      {recommendations.map((frame, index) => {
+                        const selected = selectedIds.includes(frame.id)
+                        const priceLabel = formatPrice(frame.price, frame.currency)
+                        return (
+                          <li key={frame.id}>
+                            <button
+                              type="button"
+                              onClick={() => toggleFrame(frame.id)}
+                              className={`group h-full w-full overflow-hidden rounded-2xl border bg-white text-left transition hover:-translate-y-0.5 hover:shadow-lg ${selected ? 'border-transparent shadow-lg' : 'border-slate-200'}`}
+                              style={selected ? { boxShadow: `0 0 0 2px ${accent}, 0 16px 35px rgba(15,23,42,0.1)` } : undefined}
+                            >
+                              <div className="relative aspect-[4/3] overflow-hidden bg-gradient-to-b from-white to-slate-50">
+                                {frame.imageUrl ? <Image src={frame.imageUrl} alt={frame.name} fill sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw" className="object-contain p-5 transition duration-300 group-hover:scale-[1.04]" /> : null}
+                                <span className="absolute left-3 top-3 rounded-full bg-white/90 px-2.5 py-1 text-[10px] font-bold text-slate-600 shadow-sm">#{index + 1}</span>
+                                {selected ? <CheckCircle2 className="absolute right-3 top-3 h-6 w-6 rounded-full bg-white" style={{ color: accent }} /> : null}
+                              </div>
+                              <div className="p-4">
+                                <div className="flex items-start justify-between gap-3">
+                                  <p className="font-semibold text-slate-900">{frame.name}</p>
+                                  {priceLabel ? <p className="shrink-0 text-sm font-semibold text-slate-900">{priceLabel}</p> : null}
+                                </div>
+                                <p className="mt-1 text-xs capitalize text-slate-400">{[frame.shape, frame.color, frame.widthClass].filter(Boolean).join(' · ')}</p>
+                                <p className="mt-3 text-xs leading-5 text-slate-600">{frame.reason}</p>
+                              </div>
+                            </button>
+                          </li>
+                        )
+                      })}
+                    </ul>
+                  </section>
+                ) : null}
+
+                {selectionSaved && session ? (
+                  <StoreTryOnComparePanel
+                    merchantSlug={merchantSlug}
+                    locale={locale}
+                    merchantSessionId={session.merchantSessionId}
+                    selectedFrames={selectedFrames.map((frame) => ({ id: frame.id, name: frame.name, imageUrl: frame.imageUrl, productUrl: frame.productUrl, price: frame.price, currency: frame.currency, shape: frame.shape }))}
+                    photoPreview={photoPreview}
+                    accent={accent}
+                    onError={(message) => setErrorMessage(message || null)}
+                  />
+                ) : null}
+              </div>
+
+              {recommendations.length > 0 ? (
+                <aside className="xl:sticky xl:top-6 xl:self-start">
+                  <div className="rounded-[2rem] border border-slate-200 bg-white p-5 shadow-[0_22px_70px_rgba(15,23,42,0.08)]">
+                    <div className="flex items-center justify-between gap-3">
+                      <div>
+                        <p className="text-xs font-semibold uppercase tracking-[0.16em] text-blue-600">Your shortlist</p>
+                        <p className="mt-1 text-sm text-slate-500">{t('recommend.selectHint', { max: MAX_SELECT, count: selectedIds.length })}</p>
+                      </div>
+                      <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-blue-50 text-sm font-bold text-blue-700">{selectedIds.length}</span>
+                    </div>
+                    <div className="mt-5 space-y-2.5">
+                      {selectedFrames.length > 0 ? selectedFrames.map((frame) => (
+                        <div key={frame.id} className="flex items-center gap-3 rounded-2xl bg-slate-50 p-2.5">
+                          <div className="relative h-14 w-16 shrink-0 overflow-hidden rounded-xl bg-white">{frame.imageUrl ? <Image src={frame.imageUrl} alt="" fill sizes="64px" className="object-contain p-1.5" /> : null}</div>
+                          <div className="min-w-0 flex-1"><p className="truncate text-sm font-semibold text-slate-800">{frame.name}</p><p className="mt-0.5 text-xs capitalize text-slate-400">{frame.shape}</p></div>
+                          <CheckCircle2 className="h-4 w-4 shrink-0" style={{ color: accent }} />
+                        </div>
+                      )) : <div className="rounded-2xl border border-dashed border-slate-200 px-4 py-8 text-center text-xs leading-5 text-slate-400">Select the frames you want to see on your photo.</div>}
+                    </div>
+                    <button
+                      type="button"
+                      onClick={handleConfirmSelection}
+                      disabled={selectedIds.length === 0 || selectionSaving}
+                      className="mt-5 flex w-full items-center justify-center gap-2 rounded-2xl px-4 py-3.5 text-sm font-semibold text-white shadow-lg transition hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-50"
+                      style={{ backgroundColor: accent }}
+                    >
+                      {selectionSaving ? <><Loader2 className="h-4 w-4 animate-spin" />{t('recommend.saving')}</> : <>{t('recommend.confirm', { count: selectedIds.length })}<ArrowRight className="h-4 w-4" /></>}
+                    </button>
+                    {selectionSaved ? <div className="mt-4 flex gap-2 rounded-2xl bg-emerald-50 p-3 text-sm text-emerald-800"><CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0" /><div><p className="font-semibold">{t('recommend.savedTitle')}</p><p className="mt-0.5 text-xs leading-5">{t('recommend.savedBody')}</p></div></div> : null}
+                  </div>
+                </aside>
               ) : null}
             </div>
-          </div>
-          {errorMessage && (
-            <p className="mb-3 text-sm text-red-600" role="alert">
-              {errorMessage}
-            </p>
-          )}
-          <button
-            type="button"
-            onClick={handleAcceptPrivacy}
-            disabled={sessionStarting}
-            className="flex w-full items-center justify-center gap-2 rounded-lg px-4 py-3 text-sm font-semibold text-white transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
-            style={{ backgroundColor: accent }}
-          >
-            {sessionStarting ? (
-              <>
-                <Loader2 className="h-4 w-4 animate-spin" />
-                {t('privacy.starting')}
-              </>
-            ) : (
-              t('privacy.accept')
-            )}
-          </button>
-        </section>
-      ) : (
-        <section className="space-y-5">
-          <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm sm:p-6">
-            <h2 className="mb-1 text-lg font-semibold text-gray-900">{t('upload.title')}</h2>
-            <p className="mb-4 text-sm text-gray-600">{t('upload.guidance')}</p>
-            <ImageUpload
-              label={t('upload.label')}
-              description={t('upload.description')}
-              iconType="user"
-              currentImage={photoPreview}
-              loading={photoUploading || recommending}
-              loadingText={
-                photoUploading
-                  ? t('upload.uploading')
-                  : recommending
-                    ? t('recommend.analyzing')
-                    : t('upload.uploading')
-              }
-              onImageSelect={handleImageSelect}
-              onImageRemove={handleImageRemove}
-            />
-            {errorMessage && (
-              <p className="mt-3 text-sm text-red-600" role="alert">
-                {errorMessage}
-              </p>
-            )}
-          </div>
 
-          {photoReady && recommending && (
-            <div className="flex items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white p-6 text-gray-600">
-              <Loader2 className="h-5 w-5 animate-spin" />
-              <span>{t('recommend.analyzing')}</span>
-            </div>
-          )}
-
-          {photoReady && !recommending && recommendations.length > 0 && (
-            <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm sm:p-6">
-              <div className="mb-4">
-                <h2 className="text-lg font-semibold text-gray-900">{t('recommend.title')}</h2>
-                <p className="mt-1 text-sm text-gray-600">{t('recommend.subtitle')}</p>
-                {rankingVersion && (
-                  <p className="mt-1 text-xs text-gray-400">{t('recommend.version', { version: rankingVersion })}</p>
-                )}
-              </div>
-
-              <ul className="grid gap-3 sm:grid-cols-2">
-                {recommendations.map((frame) => {
-                  const selected = selectedIds.includes(frame.id)
-                  const priceLabel = formatPrice(frame.price, frame.currency)
-                  return (
-                    <li key={frame.id}>
-                      <button
-                        type="button"
-                        onClick={() => toggleFrame(frame.id)}
-                        className={`w-full rounded-xl border p-3 text-left transition ${
-                          selected
-                            ? 'border-transparent ring-2'
-                            : 'border-gray-200 hover:border-gray-300'
-                        }`}
-                        style={selected ? { boxShadow: `0 0 0 2px ${accent}` } : undefined}
-                      >
-                        <div className="flex gap-3">
-                          <div className="h-20 w-20 shrink-0 overflow-hidden rounded-lg bg-gray-100">
-                            {frame.imageUrl ? (
-                              // eslint-disable-next-line @next/next/no-img-element
-                              <img
-                                src={frame.imageUrl}
-                                alt={frame.name}
-                                className="h-full w-full object-cover"
-                              />
-                            ) : null}
-                          </div>
-                          <div className="min-w-0 flex-1">
-                            <div className="flex items-start justify-between gap-2">
-                              <p className="truncate font-medium text-gray-900">{frame.name}</p>
-                              {selected && (
-                                <CheckCircle2 className="h-5 w-5 shrink-0" style={{ color: accent }} />
-                              )}
-                            </div>
-                            <p className="mt-0.5 text-xs capitalize text-gray-500">
-                              {[frame.shape, frame.color, frame.widthClass].filter(Boolean).join(' · ')}
-                            </p>
-                            {priceLabel && (
-                              <p className="mt-0.5 text-sm font-medium text-gray-800">{priceLabel}</p>
-                            )}
-                            <p className="mt-2 text-xs leading-snug text-gray-600">{frame.reason}</p>
-                          </div>
-                        </div>
-                      </button>
-                    </li>
-                  )
-                })}
-              </ul>
-
-              <div className="mt-5 space-y-3">
-                <p className="text-sm text-gray-600">
-                  {t('recommend.selectHint', { max: MAX_SELECT, count: selectedIds.length })}
-                </p>
-                <button
-                  type="button"
-                  onClick={handleConfirmSelection}
-                  disabled={selectedIds.length === 0 || selectionSaving}
-                  className="flex w-full items-center justify-center gap-2 rounded-lg px-4 py-3 text-sm font-semibold text-white transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
-                  style={{ backgroundColor: accent }}
-                >
-                  {selectionSaving ? (
-                    <>
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                      {t('recommend.saving')}
-                    </>
-                  ) : (
-                    t('recommend.confirm', { count: selectedIds.length })
-                  )}
-                </button>
-
-                {selectionSaved && session && (
-                  <div className="space-y-4">
-                    <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-4">
-                      <div className="flex items-start gap-2">
-                        <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-emerald-600" />
-                        <div>
-                          <p className="font-medium text-emerald-900">{t('recommend.savedTitle')}</p>
-                          <p className="mt-1 text-sm text-emerald-800">{t('recommend.savedBody')}</p>
-                        </div>
-                      </div>
-                    </div>
-                    <StoreTryOnComparePanel
-                      merchantSlug={merchantSlug}
-                      locale={locale}
-                      merchantSessionId={session.merchantSessionId}
-                      selectedFrames={recommendations
-                        .filter((frame) => selectedIds.includes(frame.id))
-                        .map((frame) => ({
-                          id: frame.id,
-                          name: frame.name,
-                          imageUrl: frame.imageUrl,
-                          productUrl: frame.productUrl,
-                          price: frame.price,
-                          currency: frame.currency,
-                          shape: frame.shape,
-                        }))}
-                      photoPreview={photoPreview}
-                      accent={accent}
-                      onError={(message) => setErrorMessage(message || null)}
-                    />
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
-
-          <p className="text-center text-xs text-gray-500">{t('noCreditsNote')}</p>
-        </section>
-      )}
+            <footer className="mt-8 flex flex-wrap items-center justify-between gap-3 border-t border-slate-200 px-2 pt-6 text-xs text-slate-400">
+              <p className="flex items-center gap-2"><LockKeyhole className="h-3.5 w-3.5" />{t('noCreditsNote')}</p>
+              <p>Powered by <span className="font-semibold text-blue-600">VisuTry</span></p>
+            </footer>
+          </main>
+        )}
+      </div>
     </div>
   )
 }

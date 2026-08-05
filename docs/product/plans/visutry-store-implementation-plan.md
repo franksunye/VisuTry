@@ -1,6 +1,6 @@
 # VisuTry Store Implementation Plan
 
-**Status:** Active execution plan  
+**Status:** D0 implemented and production-verified; merchant validation active; M1 gated
 **Owner:** Product / Engineering / Growth  
 **Created:** 2026-08-05  
 **Last updated:** 2026-08-05  
@@ -9,6 +9,7 @@
 **Required engineering foundation:** `docs/product/specs/visutry-store-engineering-foundation.md`
 **Architecture decision:** `docs/decisions/ADR-006-store-modular-multitenant-foundation.md`
 **Related landing page:** `docs/product/specs/visutry-store-landing-page.md`
+**Production verification:** `docs/ops/store-d0-production-verification-2026-08-05.md`
 
 ---
 
@@ -27,6 +28,22 @@ Store engineering will therefore proceed in three gated stages:
 3. **M1 — Pilot MVP:** a reusable hosted Store product for the first 3-5 merchants.
 
 A public Shopify app, WooCommerce plugin, EHR/PMS integration, or broad merchant platform is outside this plan.
+
+### 1.1 Current implementation status
+
+| Stage | Status | Evidence / boundary |
+| --- | --- | --- |
+| D0-0 / STORE-0 foundation | Complete | Module boundary, tenant model, session capability, usage policy, asset seam, idempotency, events, validation, migrations, and tests are implemented. |
+| STORE-1 merchant foundation | Complete | Luna Optical is seeded with 16 active representative frames backed by unique, reviewed local product assets. |
+| STORE-2 shopper route | Complete | Production merchant route, privacy notice, session issuance, upload, catalog, and recommendation are operational. |
+| STORE-3 recommendation | Complete | Merchant-scoped deterministic shortlist is operational. |
+| STORE-4 Try-On / Compare | Engineering complete | Production one-frame Try-On smoke passed. Browser-level 2/3/4-frame Compare and partial-failure evidence remains a Gate A1 item. |
+| STORE-5 intent / insights | Complete | Durable intent/events, merchant-scoped aggregation, seven-day trends, recent inquiries, recommendation Fit Score, high-intent shortlists, portfolio KPIs, conversion funnel, catalog health, full inventory, and privacy-safe activity views are implemented. |
+| Sales Demo visual layer | Complete | Dedicated merchant shopper/admin shells, real catalog preview, staged journey, shortlist, and polished try-on presentation are implemented without concept-only controls. |
+| Controlled D0 production QA | Passed | See the production verification record linked above. |
+| Gate A1 external traffic | Closed | Public Blob POC is temporary; private asset access and remaining concurrency/browser evidence are required. |
+| Merchant validation | Active | Run team-operated demos and collect own-frame sample / pilot evidence. |
+| M1 pilot hardening | Not started | Starts only after Gate B or an explicit Product decision. |
 
 ---
 
@@ -64,7 +81,7 @@ The commercial value to validate is:
 
 ### Gate A0 — D0 engineering foundation
 
-Approved now and mandatory before Store feature work is merge-ready.
+Complete for D0 and mandatory as an ongoing merge gate for later Store work.
 
 Engineering must satisfy the D0-0 acceptance criteria in:
 
@@ -85,7 +102,7 @@ Implementation may combine D0-0 and STORE-1 in one PR, but shopper UI work must 
 
 ### Gate A — Start D0 engineering
 
-Approved now.
+Complete for D0.
 
 Reason:
 
@@ -105,7 +122,7 @@ Do not share a working Store URL for independent use by merchants or shoppers un
 - merchant insight, events, analytics, and logs exclude raw shopper images and sensitive face payloads;
 - external-traffic tenant, authorization, abuse, and privacy tests pass.
 
-Internal team-operated screen-share demos may proceed before Gate A1 if no external shopper is given independent access and the operator note records the limitation.
+Current status: **closed**. Internal team-operated screen-share demos may proceed if no external shopper is given independent access and the operator note records the limitation.
 
 ### Gate B — Start M1 pilot MVP hardening
 
@@ -133,7 +150,7 @@ Potential later work:
 
 ## 4. D0 — Sales Demo Build
 
-**Target:** 7-14 engineering days depending on reuse effort.  
+**Delivery status:** Engineering complete; production-verified for controlled use on 2026-08-05.
 **Goal:** Support a credible 10-minute sales demo and merchant-specific sample Store.
 
 ### D0.0 Engineering foundation
@@ -180,6 +197,16 @@ Build merchant-scoped hosted shopper experience:
 - continue to compare;
 - favorite / interest;
 - product click.
+
+Design scope for D0:
+
+- use the branded upload concept as the entry-state reference;
+- use the full shopper workspace only as a visual north star for recommendation,
+  try-on, and shortlist hierarchy;
+- keep the real sequential workflow and do not simulate live video, cart, search,
+  model avatars, or physical-fit percentages;
+- make privacy consent a clear entry step without allowing it to obscure the merchant
+  value proposition.
 
 ### D0.3 Recommendation adapter
 
@@ -239,6 +266,25 @@ Required:
 - inquiries if enabled;
 - top frames;
 - recent anonymous session activity.
+- current-versus-previous seven-day trends and a seven-day shopper-interest series;
+- recent inquiries with shopper-provided identity and privacy-safe initials avatars;
+- recent shortlists / high-intent journeys;
+- recommendation Fit Score, explicitly labelled as recommendation alignment rather
+  than a physical or optical measurement.
+
+Sales-demo presentation requirements:
+
+- branded Store portfolio and merchant hero rather than a raw operations table;
+- conversion and catalog-health KPIs with explicit definitions;
+- top-frame merchandising cards with product imagery;
+- complete frame inventory showing SKU, price, attributes, status, tags, and engagement;
+- no raw shopper photo, asset URL, or sensitive face-analysis payload;
+- use the merchant-dashboard concept for visual hierarchy;
+- permit a stable, repeatable, explicitly identified Luna Optical synthetic activity
+  dataset for the sales workspace. It must persist through normal Store models, remain
+  idempotent, and never delete or masquerade as genuine merchant activity;
+- do not call a shortlist a cart and do not present recommendation Fit Score as
+  physical fit.
 
 ### D0.7 Analytics
 
@@ -268,6 +314,7 @@ Engineering deliverables:
 - completed D0-0 foundation gate;
 - working merchant demo URL;
 - seeded sample merchant and frame catalog;
+- 16 unique, reviewed, low-noise local catalog images with no broken references;
 - merchant-specific shopper workflow;
 - merchant recommendation shortlist;
 - merchant-attributed Try-On + Compare;
@@ -646,8 +693,10 @@ As of 2026-08-05:
 - Store is the primary long-term revenue engine to validate.
 - Consumer remains the acquisition and proof layer.
 - Existing Store LP remains the first inbound validation surface.
-- D0-0 engineering foundation is mandatory before Store feature work is merge-ready.
-- A working Sales Demo is now approved for engineering.
+- D0-0 engineering foundation is implemented and remains mandatory for future Store changes.
+- The working Sales Demo is implemented and production-verified for controlled merchant validation.
+- Gate A1 remains closed; independent non-team shopper traffic is not approved.
+- The current next step is merchant validation, not additional platform engineering.
 - AI-assisted recommendation from merchant catalog is required in the Sales Demo and MVP.
 - Catalog onboarding starts assisted; CSV is the first repeatable M1 import path.
 - Shopify sync is a later optimization, not an MVP dependency.
@@ -663,3 +712,7 @@ As of 2026-08-05:
 | --- | --- |
 | 2026-08-05 | Created execution plan separating D0 Sales Demo from M1 first-pilot MVP and defined engineering gates, epics, and acceptance criteria. |
 | 2026-08-05 | Added mandatory D0-0 engineering foundation gate and STORE-0 work breakdown for modular boundaries, tenant isolation, usage policy, events, assets, idempotency, and tests. |
+| 2026-08-05 | Recorded STORE-0 through STORE-5 completion and controlled production verification; moved execution to merchant validation while keeping Gate A1 closed and M1 gated. |
+| 2026-08-05 | Polished the Store sales demo with a customer-presentable admin, complete inventory visibility, and a reviewed local catalog image set. |
+| 2026-08-05 | Implemented the concept-guided Sales Demo visual layer while retaining real D0 capabilities and excluding simulated final-platform features. |
+| 2026-08-05 | Added the merchant sales-intelligence layer: persisted seven-day trends, inquiries, initials avatars, recommendation-alignment Fit Score, high-intent shortlists, and an idempotent 14-day synthetic Luna activity seed with explicit provenance. |

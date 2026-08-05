@@ -6,6 +6,7 @@ import {
   StoreDomainError,
 } from '@/modules/store/domain'
 import { recordStoreIntent } from '@/modules/store/application/record-store-intent'
+import { calculateTrendDelta } from '@/modules/store/application/get-merchant-insights'
 import { parseRecordIntentRequest } from '@/modules/store/contracts'
 import type {
   MerchantEventRepository,
@@ -42,6 +43,14 @@ describe('Store intent idempotency and insight privacy', () => {
         clientActionId: 'act-1',
       }),
     ).toBe('intent:FAVORITE:m1:s1:f1:act-1')
+  })
+
+  it('calculates finite period deltas and treats a zero baseline as new activity', () => {
+    expect(calculateTrendDelta(12, 10)).toBe(20)
+    expect(calculateTrendDelta(8, 10)).toBe(-20)
+    expect(calculateTrendDelta(10, 10)).toBe(0)
+    expect(calculateTrendDelta(3, 0)).toBeNull()
+    expect(calculateTrendDelta(0, 0)).toBe(0)
   })
 
   it('parses intent contracts including productUrl', () => {
@@ -233,7 +242,8 @@ describe('Store intent idempotency and insight privacy', () => {
           favorites: 1,
         },
         topFrames: [{ name: 'Frame A', imageUrl: 'https://cdn.example/catalog.jpg' }],
-        recentSessions: [{ shortLabel: 'Session abc123', favorited: true }],
+        recentSessions: [{ shortLabel: 'Session abc123', favorited: true, fitScore: 92 }],
+        recentInquiries: [{ name: 'Sarah J.', initials: 'SJ', email: 'sarah@example.com' }],
       }),
     ).not.toThrow()
   })

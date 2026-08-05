@@ -144,6 +144,14 @@ export async function recommendMerchantFrames(
     metadata: {
       rankingVersion: ranking.rankingVersion,
       resultCount: frames.length,
+      topMatchScore: frames.length > 0 ? Math.min(99, Math.round(frames[0].score)) : null,
+      averageMatchScore:
+        frames.length > 0
+          ? Math.min(
+              99,
+              Math.round(frames.reduce((sum, frame) => sum + frame.score, 0) / frames.length),
+            )
+          : null,
       faceShape: signals.faceShape ?? null,
       preferredWidthClass: signals.preferredWidthClass ?? null,
     },

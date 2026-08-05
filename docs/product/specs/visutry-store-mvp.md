@@ -1,6 +1,6 @@
 # VisuTry Store MVP Spec
 
-**Status:** Approved scope — engineering proceeds in D0 → M1 stages  
+**Status:** D0 implemented / controlled validation; M1 approved scope and gated
 **Owner:** Product / Engineering  
 **Created:** 2026-07-08  
 **Last updated:** 2026-08-05  
@@ -10,6 +10,7 @@
 **Required engineering foundation:** `docs/product/specs/visutry-store-engineering-foundation.md`
 **Related landing page:** `docs/product/specs/visutry-store-landing-page.md`  
 **Related roadmap:** `docs/strategy/2026-05-25-b2b-commerce-commercialization-roadmap.md`
+**Production verification:** `docs/ops/store-d0-production-verification-2026-08-05.md`
 
 ---
 
@@ -57,6 +58,13 @@ The implementation is split into:
 - **M1 — Pilot MVP:** reusable merchant product for real traffic and first paid pilots.
 
 Detailed sequencing is defined in `docs/product/plans/visutry-store-implementation-plan.md`.
+
+Current state as of 2026-08-05:
+
+- D0 is implemented and production-verified for controlled, team-operated demonstrations.
+- Merchant validation is active; own-frame sample requests and pilot commitments are the next evidence target.
+- Gate A1 remains closed, so independent non-team shopper traffic is not approved.
+- M1 engineering has not started and remains subject to Gate B or an explicit Product decision.
 
 ---
 
@@ -593,7 +601,7 @@ It is:
 
 ### D0 Sales Demo
 
-Approved now. Build according to `visutry-store-sales-demo.md`.
+Implemented and production-verified for controlled demonstrations. Operate according to `visutry-store-sales-demo.md` and the D0 operator note; do not treat this as Gate A1 approval.
 
 ### M1 Pilot MVP
 
@@ -626,3 +634,4 @@ These do not block D0 engineering and should be resolved through pilot evidence:
 | 2026-07-08 | Advanced to validation-ready and added validation package and engineering gates. |
 | 2026-07-08 | Added Store landing page as the first validation asset. |
 | 2026-08-05 | Reframed Store as AI merchant decision layer, made merchant-catalog recommendation mandatory, separated D0 Sales Demo from M1 Pilot MVP, defined assisted catalog onboarding, concrete data model, acceptance criteria, and engineering gates. |
+| 2026-08-05 | Marked D0 implemented and production-verified for controlled merchant validation; kept Gate A1 closed and M1 subject to Gate B. |

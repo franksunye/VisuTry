@@ -2,6 +2,7 @@
 
 **Status:** Active documentation entry point  
 **Created:** 2026-07-08  
+**Last updated:** 2026-08-05
 **Owner:** Product / Engineering  
 **Review cadence:** Monthly, or whenever the product direction materially changes.
 
@@ -30,7 +31,7 @@ Use it to answer:
 | Product specs | How a specific product capability should work. | `docs/product/specs/` |
 | Growth / SEO / GTM | How VisuTry acquires traffic, demand, and product actions. | `docs/strategy/seo/`, `docs/strategy/growth/`, `docs/strategy/analytics/gtm.md`, `docs/project/seo-backlog.md` |
 | Technical architecture | How the current system is built and operated. | `docs/project/architecture.md`, `docs/guides/development-guide.md` |
-| Technical operations | How bounded engineering governance work is executed and verified. | `docs/project/vercel-cpu-governance-spec.md` |
+| Technical operations | How bounded engineering governance work is executed and verified. | `docs/project/vercel-cpu-governance-spec.md`, `docs/ops/` |
 | Archive | Historical or superseded strategy/planning documents. | `docs/strategy/archive/` |
 
 ---
@@ -74,6 +75,17 @@ For engineering work, read in this order:
 4. `docs/project/vercel-cpu-governance-spec.md` when changing rendering, runtime invocation, polling, caching, image paths, or server-side work
 5. `docs/guides/development-guide.md`
 6. Current implementation files in `src/`, `prisma/`, and configuration files.
+
+For current Store work, read in this order:
+
+1. `docs/product/product-plan.md`
+2. `docs/product/specs/visutry-store-engineering-foundation.md`
+3. `docs/decisions/ADR-006-store-modular-multitenant-foundation.md`
+4. `docs/product/specs/visutry-store-sales-demo.md`
+5. `docs/product/plans/visutry-store-implementation-plan.md`
+6. `docs/ops/store-d0-operator-note.md`
+7. `docs/ops/store-d0-production-verification-2026-08-05.md`
+8. `docs/product/specs/visutry-store-mvp.md` only when Gate B or an explicit Product decision authorizes M1.
 
 ---
 

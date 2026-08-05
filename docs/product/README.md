@@ -22,11 +22,12 @@ The main goal is to make it clear what should be built next, why it matters, how
 | --- | --- | --- |
 | `docs/product/product-plan.md` | Current product operating plan: Now / Next / Later, current sprint, initiatives, backlog, and decisions needed. | Active source of truth for product execution. |
 | `docs/product/specs/` | Detailed specs for individual product capabilities. | Created as needed. |
-| `docs/product/specs/visutry-store-sales-demo.md` | Working Store Sales Demo: 10-minute merchant story, shopper flow, merchant insights, data/events, and D0 acceptance criteria. | **Approved for engineering.** |
-| `docs/product/specs/visutry-store-engineering-foundation.md` | Mandatory Store architecture and engineering constraints: modular boundary, tenancy, actor/usage policy, shared generation, events, assets, idempotency, and tests. | **Approved; required before Store feature work is merge-ready.** |
-| `docs/product/specs/visutry-store-mvp.md` | Store M1 product scope for the first 3-5 merchant pilots. | **Approved scope; D0 → M1 gated execution.** |
-| `docs/product/plans/visutry-store-implementation-plan.md` | Store execution sequence, engineering epics, gates, validation sprint, and definition of done. | **Active execution plan.** |
+| `docs/product/specs/visutry-store-sales-demo.md` | Working Store Sales Demo: 10-minute merchant story, shopper flow, merchant insights, data/events, and D0 acceptance criteria. | **D0 implemented; controlled merchant validation active.** |
+| `docs/product/specs/visutry-store-engineering-foundation.md` | Mandatory Store architecture and engineering constraints: modular boundary, tenancy, actor/usage policy, shared generation, events, assets, idempotency, and tests. | **Implemented for D0; mandatory for all later Store work.** |
+| `docs/product/specs/visutry-store-mvp.md` | Store M1 product scope for the first 3-5 merchant pilots. | **D0 implemented; M1 approved but gated.** |
+| `docs/product/plans/visutry-store-implementation-plan.md` | Store execution sequence, engineering epics, gates, validation sprint, and definition of done. | **D0 shipped; merchant validation active; M1 gated.** |
 | `docs/product/specs/visutry-store-landing-page.md` | Merchant validation landing page and lead-capture surface. | Shipped / measuring. |
+| `docs/ops/store-d0-production-verification-2026-08-05.md` | Immutable evidence record for the D0 production deployment, seed, API flow, generation, usage, retention, and remaining gate work. | **Production verification passed; Gate A1 remains closed.** |
 
 ---
 
@@ -43,20 +44,20 @@ The main goal is to make it clear what should be built next, why it matters, how
 
 ## 4. Current Store Execution Rule
 
-As of 2026-08-05, VisuTry Store has moved from landing-page-only validation into a gated engineering phase.
+As of 2026-08-05, VisuTry Store D0 is implemented and production-verified for controlled, team-operated merchant demonstrations. Merchant validation is the active phase; M1 and independent external shopper traffic remain gated.
 
 Current sequence:
 
 ```text
-Store LP
+Store LP [complete]
   ↓
-D0-0 Engineering Foundation
+D0-0 Engineering Foundation [complete]
   ↓
-D0 Working Sales Demo
+D0 Working Sales Demo [complete]
   ↓
-Merchant demos / own-frame sample requests
+Merchant demos / own-frame sample requests [current]
   ↓
-M1 First-Pilot MVP
+M1 First-Pilot MVP [Gate B]
   ↓
 3-5 active merchant pilots
   ↓
@@ -71,7 +72,7 @@ Engineering should start with:
 4. `docs/product/plans/visutry-store-implementation-plan.md`
 5. `docs/product/specs/visutry-store-mvp.md`
 
-The Sales Demo is approved to start now. D0 feature implementation must first satisfy the D0-0 foundation gate. M1 hardening follows the explicit Gate B conditions in the implementation plan or a direct Product decision to operationalize a live pilot.
+D0 engineering and its controlled production smoke are complete. Team-operated merchant demos may proceed under `docs/ops/store-d0-operator-note.md`; Gate A1 remains closed, so the URL must not be distributed for independent non-team shopper use. M1 hardening starts only after the explicit Gate B conditions in the implementation plan or a direct Product decision to operationalize a live pilot.
 
 ---
 

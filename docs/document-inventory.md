@@ -2,7 +2,7 @@
 
 **Status:** Active operating plan  
 **Created:** 2026-07-08  
-**Last updated:** 2026-07-24
+**Last updated:** 2026-08-05
 **Owner:** Product / Engineering  
 **Review cadence:** Weekly during cleanup, monthly after stabilization  
 **Scope:** Document status, ownership, current role, and cleanup actions.
@@ -43,14 +43,14 @@ It should answer:
 
 | Path | Type | Status | Owner | Last reviewed | Action |
 | --- | --- | --- | --- | --- | --- |
-| `docs/README.md` | Documentation map | Active source of truth | Product / Engineering | 2026-07-08 | Keep current. |
-| `docs/document-inventory.md` | Documentation governance | Active operating plan | Product / Engineering | 2026-07-22 | Review monthly after stabilization. |
+| `docs/README.md` | Documentation map | Active source of truth | Product / Engineering | 2026-08-05 | Includes the active Store reading path and operations evidence. |
+| `docs/document-inventory.md` | Documentation governance | Active operating plan | Product / Engineering | 2026-08-05 | Review monthly after stabilization. |
 | `docs/AGENT.md` | Agent instructions | Active source of truth | Engineering | 2026-07-22 | Rewritten as structured agent guide; keep current with architectural rules. |
 | `docs/decisions/README.md` | Decision log guide | Active source of truth | Product / Engineering | 2026-07-22 | Keep current. |
 | `docs/strategy/commercial-strategy.md` | Commercial strategy | Active source of truth | Product / Strategy | 2026-07-08 | Keep concise; do not add benchmark detail. |
 | `docs/strategy/commercial-benchmarks.md` | Benchmark / market reference | Living supporting reference | Product / Strategy | 2026-07-08 | Add external references here first. |
-| `docs/product/README.md` | Product documentation guide | Active source of truth | Product | 2026-07-08 | Keep current. |
-| `docs/product/product-plan.md` | Product execution plan | Active source of truth | Product | 2026-07-08 | Now prioritizes Store landing page validation before full Store engineering. |
+| `docs/product/README.md` | Product documentation guide | Active source of truth | Product | 2026-08-05 | Store D0 is complete; merchant validation is current; M1 remains gated. |
+| `docs/product/product-plan.md` | Product execution plan | Active source of truth | Product | 2026-08-05 | Run controlled Store merchant validation before M1 hardening or platform integrations. |
 | `docs/project/architecture.md` | Technical architecture | Active source of truth for current technical reality | Engineering | 2026-07-22 | Rewritten with rendering strategy, session data flow, Neon driver, corrected schema. |
 | `docs/guides/development-guide.md` | Development guide | Active operating guide | Engineering | 2026-07-08 | Refreshed against `.env.example` and `package.json`. |
 | `docs/project/vercel-cpu-governance-spec.md` | CPU governance spec | Active operating plan | Engineering | 2026-07-24 | Tracks AP-1 through AP-5 authentication/polling stability work, delivery order, acceptance criteria, and rollback gates. |
@@ -85,8 +85,13 @@ It should answer:
 | --- | --- | --- | --- | --- | --- |
 | `docs/product/specs/frame-compare.md` | Product spec | Implemented core version | Product | 2026-07-08 | Core route exists; track analytics, homepage/product exposure, sharing, and custom-frame enhancements. |
 | `docs/product/specs/credits-pack-conversion.md` | Product spec | Partially implemented | Product | 2026-07-08 | Payment/quota foundation exists; complete conversion UX, post-result CTA, and event mapping. |
-| `docs/product/specs/visutry-store-landing-page.md` | Product spec / market validation asset | Ready for validation | Product / Growth | 2026-07-08 | First Store validation step before full Store MVP engineering; define landing page, pilot CTA, lead form, and metrics. |
-| `docs/product/specs/visutry-store-mvp.md` | Product spec | Ready for validation | Product | 2026-07-08 | Validate hosted merchant workflow after landing page / outreach signals before engineering full Store infrastructure. |
+| `docs/product/specs/visutry-store-landing-page.md` | Product spec / market validation asset | Shipped / Measuring | Product / Growth | 2026-08-05 | Continue measuring qualified CTA and lead evidence alongside outreach. |
+| `docs/product/specs/visutry-store-engineering-foundation.md` | Mandatory engineering spec | Implemented for D0 / Ongoing baseline | Engineering / Product | 2026-08-05 | Enforce on every later Store change; Gate A1 remains closed. |
+| `docs/product/specs/visutry-store-sales-demo.md` | Product / engineering spec | Implemented / Controlled validation | Product / Engineering / Growth | 2026-08-05 | Run team-operated demos and collect own-frame sample and pilot evidence. |
+| `docs/product/specs/visutry-store-mvp.md` | Product spec | D0 implemented / M1 gated | Product / Engineering | 2026-08-05 | Start M1 only after Gate B or an explicit Product decision. |
+| `docs/product/plans/visutry-store-implementation-plan.md` | Active execution plan | D0 shipped / Merchant validation active | Product / Engineering / Growth | 2026-08-05 | Use as Store sequencing and gate authority. |
+| `docs/ops/store-d0-operator-note.md` | Operating note | Active controlled-demo runbook | Engineering / Product | 2026-08-05 | Follow for every D0 demo while Gate A1 is closed. |
+| `docs/ops/store-d0-production-verification-2026-08-05.md` | Verification record | Passed controlled D0 baseline | Engineering | 2026-08-05 | Preserve as release evidence; add a new dated record for later verification rounds. |
 
 ---
 
@@ -99,6 +104,7 @@ It should answer:
 | `docs/decisions/ADR-003-product-plan-execution-source-of-truth.md` | Decision record | Accepted | Product | 2026-07-08 | Keep. |
 | `docs/decisions/ADR-004-frame-compare-core-implemented.md` | Decision record | Accepted | Product / Engineering | 2026-07-08 | Keep. |
 | `docs/decisions/ADR-005-ssr-to-client-gate.md` | Decision record | Accepted | Engineering | 2026-07-22 | Records decision to remove SSR getServerSession from all public pages and adopt client-side gate pattern. |
+| `docs/decisions/ADR-006-store-modular-multitenant-foundation.md` | Decision record | Accepted / Implemented at D0 | Product / Engineering | 2026-08-05 | Keep as the Store architecture authority; Public Blob POC does not open Gate A1. |
 
 ---
 
@@ -140,6 +146,7 @@ The following source files were created or significantly modified during the ren
 | P1 | Strengthen product plan into execution board. | Done |
 | P1 | Advance Store MVP spec to ready for validation. | Done |
 | P1 | Add Store landing page validation spec and product-plan alignment. | Done |
+| P1 | Align Store plan, specs, ADR, operator note, and inventory with the production-verified D0 state. | Done (2026-08-05) |
 | P2 | Consider moving all historical strategy documents into archive after status review. | Later |
 | P2 | Fix 3 pre-existing unit test failures (locale URL routing). | Not started |
 | P2 | Add E2E tests for authenticated user flows (login → try-on → history). | Not started |
@@ -173,3 +180,4 @@ During each documentation review, answer:
 | 2026-07-08 | Added Store landing page validation spec and aligned product plan / Store MVP sequence around landing-page-first validation. |
 | 2026-07-22 | Major update: Added ADR-005, updated architecture.md (rendering strategy, session data flow, Neon driver, corrected schema), rewrote AGENT.md, updated cpu-governance-spec.md and static-page-pilot.md verified facts, added new source files inventory section. |
 | 2026-07-24 | Updated the CPU governance inventory entry for the AP-1 through AP-5 authentication/polling stability backlog. |
+| 2026-08-05 | Aligned Store documentation with completed D0 engineering and controlled production verification; recorded merchant validation as current, Gate A1 as closed, and M1 as gated. |

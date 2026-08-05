@@ -89,6 +89,14 @@ describe('STORE-2 contracts and merchant resolution', () => {
 
     expect(profile.name).toBe('Luna Optical')
     expect(profile.activeFrameCount).toBe(16)
+    expect(profile.featuredFrames).toHaveLength(4)
+    expect(profile.featuredFrames[0]).toEqual({
+      id: 'f0',
+      name: 'Frame 0',
+      imageUrl: null,
+      shape: 'round',
+      color: null,
+    })
     expect(profile).not.toHaveProperty('contactEmail')
   })
 })

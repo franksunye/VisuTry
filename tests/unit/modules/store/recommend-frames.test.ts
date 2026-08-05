@@ -177,6 +177,15 @@ describe('recommendMerchantFrames', () => {
     expect(result.frames[0]?.reason).toBeTruthy()
     expect(result.rankingVersion).toMatch(/^store-rank-/)
     expect(events.appendIdempotent).toHaveBeenCalled()
+    expect(events.appendIdempotent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: 'merchant_recommendation_completed',
+        metadata: expect.objectContaining({
+          topMatchScore: expect.any(Number),
+          averageMatchScore: expect.any(Number),
+        }),
+      }),
+    )
 
     // Deterministic for same signals
     const again = rankMerchantFrames(

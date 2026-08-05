@@ -346,18 +346,19 @@ export function StoreTryOnComparePanel({
   }
 
   return (
-    <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm sm:p-6">
-      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+    <section className="rounded-[2rem] border border-slate-200/80 bg-white p-5 shadow-[0_22px_70px_rgba(15,23,42,0.07)] sm:p-7">
+      <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h2 className="text-lg font-semibold text-gray-900">{t('tryOn.title')}</h2>
-          <p className="mt-1 text-sm text-gray-600">{t('tryOn.subtitle')}</p>
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-blue-600">Step 3 · Realistic preview</p>
+          <h2 className="mt-2 font-serif text-2xl font-semibold text-slate-950 sm:text-3xl">{t('tryOn.title')}</h2>
+          <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-500">{t('tryOn.subtitle')}</p>
         </div>
         {tiles.length === 0 ? (
           <button
             type="button"
             onClick={() => void startTryOn()}
             disabled={dispatching}
-            className="inline-flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold text-white transition hover:opacity-90 disabled:opacity-60"
+            className="inline-flex items-center gap-2 rounded-2xl px-5 py-3 text-sm font-semibold text-white shadow-lg transition hover:-translate-y-0.5 hover:shadow-xl disabled:opacity-60"
             style={{ backgroundColor: accent }}
           >
             {dispatching ? (
@@ -377,15 +378,15 @@ export function StoreTryOnComparePanel({
 
       {tiles.length > 0 && (
         <>
-          <div className="grid gap-3 sm:grid-cols-2">
+          <div className="grid gap-4 sm:grid-cols-2">
             {tiles.map((tile) => {
               const priceLabel = formatPrice(tile.frame.price, tile.frame.currency)
               return (
                 <div
                   key={tile.merchantFrameId}
-                  className="overflow-hidden rounded-xl border border-gray-200"
+                  className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm"
                 >
-                  <div className="relative aspect-[4/5] bg-gray-100">
+                  <div className="relative aspect-[4/5] bg-gradient-to-b from-slate-50 to-slate-100">
                     {tile.status === 'completed' && tile.resultImageUrl ? (
                       // eslint-disable-next-line @next/next/no-img-element
                       <img
@@ -394,7 +395,7 @@ export function StoreTryOnComparePanel({
                         className="h-full w-full object-cover"
                       />
                     ) : (
-                      <div className="flex h-full flex-col items-center justify-center gap-2 p-4 text-center text-sm text-gray-500">
+                      <div className="flex h-full flex-col items-center justify-center gap-3 p-5 text-center text-sm text-slate-500">
                         {(tile.status === 'queued' || tile.status === 'processing') && (
                           <>
                             <Loader2 className="h-5 w-5 animate-spin" />
@@ -421,9 +422,9 @@ export function StoreTryOnComparePanel({
                       </div>
                     )}
                   </div>
-                  <div className="space-y-1 p-3">
-                    <p className="font-medium text-gray-900">{tile.frame.name}</p>
-                    <p className="text-xs capitalize text-gray-500">{tile.frame.shape}</p>
+                  <div className="space-y-1 p-4">
+                    <p className="font-semibold text-slate-900">{tile.frame.name}</p>
+                    <p className="text-xs capitalize text-slate-400">{tile.frame.shape}</p>
                     {priceLabel && (
                       <p className="text-sm font-medium text-gray-800">{priceLabel}</p>
                     )}
@@ -496,7 +497,7 @@ export function StoreTryOnComparePanel({
           </div>
 
           {inquiryFrameId && (
-            <div className="mt-4 rounded-xl border border-gray-200 bg-gray-50 p-4">
+            <div className="mt-5 rounded-2xl border border-slate-200 bg-slate-50 p-5">
               <h3 className="text-sm font-semibold text-gray-900">{t('intent.inquiryTitle')}</h3>
               <p className="mt-1 text-xs text-gray-600">{t('intent.inquirySubtitle')}</p>
               <div className="mt-3 grid gap-2 sm:grid-cols-2">
@@ -588,21 +589,21 @@ export function StoreTryOnComparePanel({
                   // compare UI still opens; event is best-effort
                 }
               }}
-              className="mt-4 flex w-full items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm font-semibold text-gray-900 hover:bg-gray-50"
+              className="mt-5 flex w-full items-center justify-center gap-2 rounded-2xl border border-slate-300 bg-white px-4 py-3.5 text-sm font-semibold text-slate-900 transition hover:border-slate-400 hover:bg-slate-50"
             >
               {t('tryOn.openCompare', { count: completed.length })}
             </button>
           )}
 
           {showCompare && (
-            <div className="mt-5 rounded-xl border border-gray-200 bg-gray-50 p-4">
-              <h3 className="mb-3 text-base font-semibold text-gray-900">{t('tryOn.compareTitle')}</h3>
+            <div className="mt-6 rounded-2xl border border-slate-200 bg-slate-50 p-5">
+              <h3 className="mb-3 font-serif text-xl font-semibold text-slate-900">{t('tryOn.compareTitle')}</h3>
               {photoPreview && (
                 <p className="mb-3 text-xs text-gray-500">{t('tryOn.compareHint')}</p>
               )}
               <div className="grid gap-3 sm:grid-cols-2">
                 {completed.map((tile) => (
-                  <div key={`compare-${tile.merchantFrameId}`} className="overflow-hidden rounded-lg bg-white">
+                  <div key={`compare-${tile.merchantFrameId}`} className="overflow-hidden rounded-2xl bg-white shadow-sm">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                       src={tile.resultImageUrl!}
@@ -617,6 +618,6 @@ export function StoreTryOnComparePanel({
           )}
         </>
       )}
-    </div>
+    </section>
   )
 }
