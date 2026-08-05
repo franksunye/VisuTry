@@ -1,331 +1,626 @@
 # VisuTry Store MVP Spec
 
-**Status:** Ready for validation — not ready for full engineering build  
-**Owner:** Product  
+**Status:** Approved scope — engineering proceeds in D0 → M1 stages  
+**Owner:** Product / Engineering  
 **Created:** 2026-07-08  
-**Last updated:** 2026-07-08  
+**Last updated:** 2026-08-05  
 **Related plan:** `docs/product/product-plan.md`  
-**Related validation spec:** `docs/product/specs/visutry-store-landing-page.md`  
+**Related sales demo:** `docs/product/specs/visutry-store-sales-demo.md`  
+**Related implementation plan:** `docs/product/plans/visutry-store-implementation-plan.md`  
+**Related landing page:** `docs/product/specs/visutry-store-landing-page.md`  
 **Related roadmap:** `docs/strategy/2026-05-25-b2b-commerce-commercialization-roadmap.md`
 
 ---
 
-## 1. Problem
+## 1. Product Decision
 
-VisuTry's stronger recurring revenue opportunity is not casual consumer subscription. It is a merchant workflow that helps eyewear sellers and optical stores create shopper confidence, frame interest, lead capture, and measurable purchase intent.
+VisuTry Store is the merchant-facing commerce layer of VisuTry.
 
-However, building a full Shopify app, WooCommerce plugin, public API, or EHR/PMS integration before workflow validation would be premature.
+It should not be built as a generic virtual try-on plugin. Its core value proposition is:
+
+> Help eyewear merchants reduce shopper choice friction by turning the merchant's own catalog into a personalized discovery, try-on, comparison, and purchase-intent workflow.
+
+The Store product is built on the existing VisuTry consumer intelligence and generation capabilities:
+
+```text
+Merchant Catalog
+      ↓
+AI Frame Intelligence
+      ↓
+Face Understanding
+      ↓
+Personalized Recommendation
+      ↓
+Virtual Try-On
+      ↓
+Frame Compare
+      ↓
+Product / Inquiry Intent
+      ↓
+Merchant Insight
+```
+
+Consumer remains the acquisition and proof layer. Store is the primary recurring-revenue engine to validate.
 
 ---
 
 ## 2. Goal
 
-Define the smallest VisuTry Store MVP that can validate merchant demand without overbuilding platform integrations.
+Build the smallest reusable merchant product that can support the first 3-5 real merchant pilots and validate willingness to pay in the approximate USD 99-199/month range.
 
-The first version should be a hosted advisor / try-on workflow that a merchant can share or preview before any public app-store launch.
+The first productized version is a hosted merchant Store, not a public app-store integration.
 
-This spec is ready for merchant / agency validation. It is not yet an engineering-ready full implementation spec.
+The implementation is split into:
 
-The immediate validation asset should be the Store landing page defined in `docs/product/specs/visutry-store-landing-page.md`. The landing page tests positioning, ICP, and pilot interest before full Store MVP engineering starts.
+- **D0 — Sales Demo:** working demo and sample Store used in merchant outreach;
+- **M1 — Pilot MVP:** reusable merchant product for real traffic and first paid pilots.
 
----
-
-## 3. Validation Thesis
-
-The first B2B validation should test whether merchants value a hosted eyewear decision workflow enough to continue into a paid pilot or deeper integration.
-
-Validation question:
-
-> Will an eyewear seller, optical store, or commerce agency use a hosted VisuTry link to help shoppers choose frames, capture intent, and measure frame interest before asking for Shopify, WooCommerce, widget, or API work?
-
-Validation should prioritize workflow demand, not platform completeness.
-
-First validation step:
-
-> Launch a Store landing page with a sample Store Link / pilot CTA, then use targeted outreach to collect qualified merchant, agency, or stylist interest before building full Store infrastructure.
+Detailed sequencing is defined in `docs/product/plans/visutry-store-implementation-plan.md`.
 
 ---
 
-## 4. Non-goals
+## 3. Commercial Validation Thesis
 
-This MVP does not include:
+The commercial question is:
+
+> Will an eyewear merchant pay VisuTry to help shoppers discover suitable frames from its own catalog, try and compare them, and produce measurable purchase intent?
+
+Success is not defined by merchants saying that virtual try-on is interesting.
+
+The stronger validation signals are:
+
+- merchant asks to load its own frames;
+- merchant agrees to launch with real shopper traffic;
+- merchant asks to connect product clicks or inquiries to its selling flow;
+- merchant is willing to pay or place a pilot deposit;
+- merchant continues after observing real shopper behavior.
+
+---
+
+## 4. Target Users
+
+Primary early buyers:
+
+- Shopify-native DTC eyewear brands;
+- independent optical stores with online sales or pre-shop interest;
+- small-to-mid eyewear ecommerce merchants;
+- social-first eyewear sellers with an existing catalog;
+- boutique ecommerce agencies serving eyewear merchants.
+
+Preferred early merchant characteristics:
+
+- 20-500 frame SKUs;
+- usable product images already exist;
+- owner / ecommerce / growth decision-maker is reachable;
+- can test with a representative 8-50 frame subset;
+- does not require EHR/PMS or medical-grade fit claims to start.
+
+Avoid as first customers:
+
+- enterprise retailers requiring long procurement cycles;
+- prescription-first clinical workflows;
+- merchants requiring real-time inventory sync before testing;
+- merchants demanding full custom white-label deployment;
+- buyers requiring real-time 3D AR as a prerequisite.
+
+---
+
+## 5. Explicit Non-Goals
+
+D0 and M1 do not include unless a pilot cannot proceed without them:
 
 - public Shopify app listing;
 - WooCommerce plugin;
 - EHR/PMS integration;
+- inventory quantity synchronization;
 - medical-grade PD measurement;
-- full white-label deployment;
-- full inventory sync;
+- prescription or insurance workflows;
+- full white-label theme builder;
 - enterprise SSO;
-- raw public API as the primary product.
+- team RBAC;
+- public API as the primary product;
+- real-time 3D AR;
+- advanced attribution / BI;
+- transaction take-rate implementation;
+- large-scale automated catalog crawling.
 
----
-
-## 5. Target Users
-
-Primary early buyers / validators:
-
-- small eyewear sellers;
-- Shopify-native DTC eyewear brands;
-- independent optical stores with online sales or pre-shop interest;
-- social sellers on Instagram / TikTok;
-- boutique ecommerce agencies serving eyewear, fashion, or accessories merchants.
-
-Avoid as first customers:
-
-- large enterprise retailers requiring procurement and security review;
-- prescription-first clinics requiring medical-grade claims;
-- partners demanding full custom white-label deployment;
-- merchants requiring real-time 3D AR before testing the workflow.
+These are later platform concerns, not first-pilot requirements.
 
 ---
 
 ## 6. MVP Product Shape
 
-### Merchant setup
+### 6.1 Merchant profile
 
-- Merchant profile.
-- Store name and logo.
-- Contact email.
-- Privacy / retention defaults.
-- Optional brand color or lightweight theme.
+Minimum merchant profile:
 
-### Frame catalog
+```text
+id
+slug
+name
+logoUrl
+websiteUrl
+contactEmail
+accentColor?
+status
+createdAt
+updatedAt
+```
 
-Start with a small top-SKU set, not a full catalog.
+Merchant is a separate business entity from a consumer user account.
+
+M1 should support merchant dashboard authentication using the existing account/auth foundation where practical.
+
+### 6.2 Frame catalog
+
+Start with a representative subset, not full inventory sync.
 
 Minimum frame fields:
 
-| Field | Purpose | Required for validation |
+| Field | Required | Purpose |
 | --- | --- | --- |
-| `frameId` | Internal identifier. | Yes |
-| `merchantId` | Owner. | Yes |
-| `name` | Display name. | Yes |
-| `sku` | Merchant reference. | Yes |
-| `imageUrl` | Frame image for try-on. | Yes |
-| `productUrl` | Optional purchase or product page link. | Preferred |
-| `price` | Optional display / analytics. | Optional |
-| `status` | Active / inactive. | Yes |
-| `tags` | Shape, material, width, style, gender, etc. | Preferred |
+| `id` | Yes | Internal frame identifier. |
+| `merchantId` | Yes | Catalog ownership. |
+| `sku` | Preferred | Merchant reference. |
+| `name` | Yes | Shopper-facing display name. |
+| `imageUrl` | Yes | Product / try-on source image. |
+| `productUrl` | Preferred | Product page / purchase destination. |
+| `price` | Optional | Shopper context. |
+| `currency` | Optional | Price display. |
+| `shape` | Yes after enrichment | Recommendation input. |
+| `material` | Preferred | Recommendation / filtering input. |
+| `color` | Preferred | Style input. |
+| `widthClass` | Preferred | Narrow / medium / wide directional input. |
+| `styleTags` | Preferred | Classic, minimal, bold, professional, etc. |
+| `status` | Yes | Active / inactive. |
 
-### Hosted shopper flow
+### 6.3 Catalog onboarding
 
-1. Shopper opens merchant-specific hosted link.
-2. Shopper sees merchant context and privacy notice.
-3. Shopper uploads photo.
-4. Shopper selects or receives recommended frames.
-5. VisuTry generates try-on results.
-6. Shopper can compare frames.
-7. Shopper saves favorites or submits contact / purchase intent.
-8. Merchant can review basic interest signals.
+Approved M1 priority:
 
-### Merchant dashboard
+1. CSV import;
+2. manual/admin add and correction;
+3. AI/rules enrichment of frame metadata;
+4. review before activation;
+5. URL-assisted import if it materially reduces pilot onboarding;
+6. Shopify sync later, after repeated demand.
 
-First version can be simple and may be admin-assisted during validation:
+The first repeatable CSV format must support:
 
-- enabled frames;
-- try-on opens;
-- completed try-ons;
+```text
+name
+sku
+image_url
+product_url
+price
+currency
+```
+
+VisuTry enriches:
+
+```text
+shape
+material
+color
+width_class
+style_tags
+```
+
+Do not require merchants to manually classify every frame before receiving value.
+
+### 6.4 Hosted shopper Store
+
+Merchant-specific hosted route must support:
+
+1. merchant branding and context;
+2. privacy / retention notice;
+3. shopper photo upload;
+4. face understanding / recommendation;
+5. merchant-only personalized shortlist;
+6. select up to 4 frames;
+7. virtual try-on;
+8. side-by-side comparison;
+9. favorite / interest;
+10. product click;
+11. optional lightweight inquiry.
+
+No consumer Credits Pack prompt should appear inside a merchant-paid Store session.
+
+### 6.5 AI-assisted recommendation
+
+Recommendation is required in Store D0 and M1. It is a core differentiator, not an optional future enhancement.
+
+Recommendation should reuse existing face-analysis / Glasses Advisor signals plus MerchantFrame metadata.
+
+Minimum behavior:
+
+- return 4-8 merchant frames;
+- rank merchant frames, not generic presets;
+- include a short human-readable reason per frame;
+- tolerate incomplete metadata;
+- allow merchant-selected frames to remain available even if not top-ranked.
+
+The first version can use deterministic rules plus current AI-generated / enriched tags. It does not require a new training pipeline.
+
+### 6.6 Virtual Try-On
+
+Reuse the existing VisuTry generation pipeline.
+
+Requirements:
+
+- merchant frame images feed the same generation path;
+- each task retains `merchantId`, `merchantSessionId`, and `merchantFrameId` when applicable;
+- failures remain retryable;
+- partial success is supported;
+- Store usage is isolated from consumer credits.
+
+### 6.7 Frame Compare
+
+Reuse existing Frame Compare orchestration and result-state patterns.
+
+Store-specific behavior:
+
+- compare up to 4 merchant frames;
+- keep product metadata attached to each result;
+- allow shopper to remove or replace finalists;
+- expose product and interest actions from compare results;
+- record comparison and intent attribution.
+
+### 6.8 Shopper intent
+
+Minimum actions:
+
+- `FAVORITE` / `INTEREST`;
+- `PRODUCT_CLICK`.
+
+M1 should also support lightweight `INQUIRY` unless pilot merchants do not need lead capture.
+
+Inquiry minimum fields:
+
+- email;
+- optional name;
+- optional note.
+
+Appointment scheduling is out of scope for M1.
+
+### 6.9 Merchant dashboard
+
+M1 dashboard should remain intentionally small.
+
+Required views:
+
+- Overview;
+- Frames;
+- Shopper activity / intent;
+- Usage.
+
+Required metrics:
+
+- Store sessions;
+- photo uploads;
+- recommendation completions;
+- successful try-ons;
 - failed try-ons;
-- top frames by interest;
-- lead submissions;
-- render usage and quota;
-- basic failure report.
+- compare starts;
+- favorites / interests;
+- product clicks;
+- inquiries;
+- top frames;
+- usage quota / render consumption.
+
+Do not expose raw shopper face images by default.
 
 ---
 
-## 7. Validation Package v0
+## 7. Data Model
 
-The first validation package should be small enough to show, sell, or manually operate.
+Use or evaluate the following entities. Exact names may follow current Prisma conventions.
 
-### Offer shape
+### `Merchant`
 
-**VisuTry Store Pilot v0**
+Business identity and settings.
 
-- merchant name / logo;
-- 8-20 frames in a small catalog;
-- hosted advisor / compare link;
-- shopper photo upload;
-- frame try-on and comparison;
-- favorites or lead capture;
-- simple weekly usage report;
-- 30-day pilot window.
+### `MerchantFrame`
 
-### Validation assets
+Merchant-owned catalog record plus recommendation metadata.
 
-Before engineering a full merchant system, prepare:
+### `MerchantSession`
 
-1. Store landing page with clear ICP, workflow, and pilot CTA;
-2. one-page merchant pitch;
-3. clickable or live hosted demo using representative frames;
-4. pilot onboarding checklist;
-5. privacy and image-retention explanation;
-6. expected metrics report template;
-7. pricing hypothesis for pilot and continuation.
+Anonymous or identified shopper session scoped to a merchant.
 
-The landing page is the first validation asset and should be used before building merchant account, catalog management, or dashboard infrastructure.
+Minimum fields:
 
-### Validation target
+```text
+id
+merchantId
+anonymousVisitorId?
+photoAssetId?
+status
+createdAt
+lastActiveAt
+```
 
-Validate with:
+### Merchant-attributed Try-On
 
-- 3 eyewear merchants; or
-- 1 boutique agency with 2-3 relevant merchant clients; or
-- 5 stylist / eyewear consultant conversations if merchant access is slower.
+Prefer extending the existing generation task model with optional attribution:
 
----
+```text
+merchantId?
+merchantSessionId?
+merchantFrameId?
+```
 
-## 8. Functional Requirements
+Do not create a second generation task system unless technically necessary.
 
-### Merchant account
+### `MerchantIntent`
 
-- Create merchant profile manually or through admin in first version.
-- Assign hosted link slug or store ID.
-- Associate frame records with merchant.
-- Track merchant usage separately from consumer credits.
+Minimum fields:
 
-### Hosted link
+```text
+id
+merchantId
+merchantSessionId
+merchantFrameId?
+type: FAVORITE | PRODUCT_CLICK | INQUIRY
+email?
+name?
+note?
+createdAt
+```
 
-- Public or semi-public merchant link.
-- Merchant branding visible but not full white-label.
-- Clear privacy and retention notice.
-- Mobile-first flow.
-- No B2C pricing prompts inside merchant-paid sessions unless configured.
+### `MerchantUsage`
 
-### Frame catalog
-
-- Add, edit, deactivate frames.
-- Upload or reference frame images.
-- Allow a small top-SKU list first.
-- Do not require full inventory sync.
-
-### Shopper flow
-
-- Upload user photo.
-- Choose frame or receive recommendation.
-- Generate try-on.
-- Compare selected frames.
-- Save favorite or submit contact.
-
-### Analytics
-
-- Track merchant, frame, session, and event attribution.
-- Show basic counts in merchant or admin dashboard.
-- Track generation cost, completion, failure, and usage quota.
+May be materialized or calculated initially. Must allow merchant-level successful render and session tracking.
 
 ---
 
-## 9. Data and Events
+## 8. Event Model
 
-Minimum events:
+Required Store shopper events:
 
 | Event | Trigger |
 | --- | --- |
-| `merchant_page_viewed` | Hosted merchant link opened. |
+| `merchant_page_viewed` | Merchant Store opened. |
 | `merchant_photo_uploaded` | Shopper uploads photo. |
+| `merchant_recommendation_started` | Recommendation begins. |
+| `merchant_recommendation_completed` | Merchant shortlist returned. |
 | `merchant_frame_selected` | Shopper selects frame. |
-| `merchant_tryon_started` | Try-on generation starts. |
-| `merchant_tryon_completed` | Try-on completes. |
+| `merchant_tryon_started` | Try-on begins. |
+| `merchant_tryon_completed` | Try-on succeeds. |
 | `merchant_tryon_failed` | Try-on fails. |
-| `merchant_compare_started` | Shopper starts compare. |
-| `merchant_favorite_saved` | Shopper saves a frame. |
-| `merchant_lead_submitted` | Shopper submits contact / intent. |
-| `merchant_product_clicked` | Shopper clicks product URL. |
+| `merchant_compare_started` | Shopper opens compare. |
+| `merchant_favorite_saved` | Shopper expresses frame interest. |
+| `merchant_product_clicked` | Shopper opens merchant product URL. |
+| `merchant_inquiry_submitted` | Shopper submits lead. |
 
-Landing-page validation events are defined separately in `docs/product/specs/visutry-store-landing-page.md`.
+Required attribution where applicable:
 
-Minimum data entities to evaluate:
+```text
+merchant_id
+merchant_session_id
+merchant_frame_id
+source
+locale
+device_type
+```
 
-- `Merchant` or `Store`;
-- `MerchantFrame`;
-- `MerchantSession`;
-- `MerchantTryOnTask` or merchant-attributed `TryOnTask`;
-- `MerchantLead`;
-- `MerchantUsage`.
+Do not place raw image URLs or sensitive face-analysis payloads in general analytics events.
 
----
-
-## 10. Pricing / Packaging Direction
-
-Do not expose consumer credits as the primary merchant concept.
-
-Early package options:
-
-- Design Partner Pilot: setup fee + 30-day quota.
-- Starter Store: small catalog + hosted link + included successful renders.
-- Store: larger catalog + dashboard + analytics.
-- Pro: widget, branding, higher quota, support.
-
-Internal cost control may still use successful render quota.
-
-Validation pricing hypotheses:
-
-| Package | Use case | Notes |
-| --- | --- | --- |
-| Free discovery demo | Sales conversation / pitch only | No real merchant traffic; not a real pilot. |
-| Design Partner Pilot | 30-day validation with real or realistic traffic | Setup fee or refundable deposit preferred to filter serious merchants. |
-| Starter Store | Continuation after pilot | Small monthly plan with included successful renders. |
+Landing-page marketing events remain defined in `docs/product/specs/visutry-store-landing-page.md`.
 
 ---
 
-## 11. Privacy and Trust Requirements
+## 9. Merchant Usage and Packaging
 
-- Merchant should not receive raw shopper face images by default.
-- Shopper should see a clear privacy and retention notice before upload.
-- Merchant dashboard should show interest signals, not sensitive face data by default.
-- Avoid medical or fit guarantees.
-- Use clear disclaimers that virtual try-on is visual decision support, not optical fit validation.
+Consumer credits are not the merchant billing concept.
 
----
+Merchant usage should track:
 
-## 12. Acceptance Criteria
+- successful renders;
+- failed renders;
+- shopper sessions;
+- active frames.
 
-### Ready for validation
+First pilots may be billed manually using Stripe invoice / payment link if that accelerates learning.
 
-This spec is ready for validation when:
+Working commercial hypothesis:
 
-1. The target merchant / agency audience is clear.
-2. The hosted link workflow is clear enough to explain in a sales conversation.
-3. The minimum frame catalog fields are defined.
-4. The minimum merchant events and metrics are defined.
-5. The privacy boundary is clear.
-6. The first validation package can be pitched without promising Shopify, WooCommerce, API, or EHR/PMS integration.
-7. The Store landing page validation spec defines the first market test.
+| Stage | Working offer |
+| --- | --- |
+| Sales demo | Free, no production traffic. |
+| Sample Store | 8-20 merchant frames, assisted setup. |
+| Founding pilot | Approx. USD 99/month or deposit-backed 30-day pilot. |
+| Early paid Store | Approx. USD 99-199/month depending on usage / analytics. |
 
-Current status: ready for validation.
+These are validation hypotheses, not finalized public pricing.
 
-### Ready for engineering
-
-This spec should become engineering-ready only when at least one of the following is true:
-
-1. 3 merchants agree to evaluate the hosted workflow;
-2. 1 agency agrees to test with 2-3 relevant merchant clients;
-3. a merchant agrees to a paid or deposit-backed pilot;
-4. Store landing page and targeted outreach produce enough qualified interest that a hosted demo is required to continue sales conversations;
-5. internal team decides to build a demo because sales conversations require it.
-
-Engineering-ready acceptance criteria should then be expanded to include route structure, database schema, admin flows, permission model, and deployment plan.
+Do not build complex merchant billing before pilot packaging is validated.
 
 ---
 
-## 13. Open Questions
+## 10. Privacy, Trust, and Claims
 
-1. Should the first MVP include AI recommendation, or start with merchant-selected top frames?
-2. Should hosted links be public, password-protected, or demo-only for pilots?
-3. Should merchant dashboard be built as a new area or initially admin-only?
-4. Should leads include email only, or also phone / appointment request?
-5. What is the minimum merchant catalog schema needed for useful recommendation?
-6. Should shoppers be allowed to save results without login?
-7. What exact retention policy should merchant sessions use?
-8. Should merchant pilot quota be based on successful renders, sessions, or enabled frames?
-9. Should the landing page primary CTA be `Get a sample Store Link`, `Join the pilot`, or `Book a demo`?
+Required principles:
+
+- shopper sees privacy / retention notice before photo upload;
+- merchant does not receive raw shopper face images by default;
+- merchant dashboard focuses on frame interest and conversion signals;
+- no medical diagnosis claims;
+- no prescription claims;
+- no guaranteed physical fit claims;
+- no unvalidated PD accuracy claims;
+- virtual try-on is visual decision support.
+
+Store retention policy should use the existing storage/retention foundation where compatible, but merchant-specific policy must be explicit before M1 production traffic.
 
 ---
 
-## 14. Change Log
+## 11. Reuse Requirements
+
+Store must reuse existing VisuTry foundations wherever practical:
+
+- photo validation;
+- face-analysis signals;
+- Glasses Advisor concepts;
+- virtual glasses Try-On;
+- Frame Compare;
+- generation queue / task handling;
+- image storage;
+- authentication;
+- analytics conventions;
+- design system.
+
+Store adds:
+
+- merchant identity;
+- merchant catalog;
+- frame intelligence metadata;
+- merchant ranking adapter;
+- merchant session;
+- merchant intent;
+- merchant usage;
+- merchant insights.
+
+Avoid parallel Store-specific generation infrastructure.
+
+---
+
+## 12. M1 Functional Requirements
+
+### Merchant provisioning
+
+- create merchant without code changes;
+- assign slug;
+- upload logo / merchant metadata;
+- set Store status;
+- configure basic usage limit.
+
+### Catalog
+
+- import 8-50 frames through CSV or admin tool;
+- edit frame metadata;
+- deactivate frame;
+- enrich tags;
+- review enrichment before activation.
+
+### Shopper workflow
+
+- merchant Store opens mobile-first;
+- shopper uploads photo;
+- shopper receives merchant-frame shortlist;
+- shopper selects frames;
+- shopper generates try-ons;
+- shopper compares finalists;
+- shopper favorites / clicks product / submits inquiry.
+
+### Merchant dashboard
+
+- authenticated merchant can view own Store only;
+- overview metrics;
+- frames view;
+- shopper intent activity;
+- usage view;
+- no raw shopper photos by default.
+
+### Operations
+
+- Store generation failures visible to internal operations;
+- retry supported;
+- merchant usage measurable;
+- pilot can be enabled / disabled;
+- catalog changes do not require deployment.
+
+---
+
+## 13. Acceptance Criteria
+
+M1 is ready for a real paid pilot when all are true:
+
+1. A merchant can be provisioned without application code changes.
+2. 8-50 merchant frames can be onboarded through CSV or admin tooling.
+3. AI-enriched frame metadata can be reviewed before going live.
+4. Shopper Store works on mobile and desktop.
+5. Shopper receives personalized recommendations from merchant frames.
+6. Shopper can generate try-ons for selected merchant frames.
+7. Shopper can compare up to 4 merchant frames.
+8. Product click / favorite / inquiry is attributed to merchant + frame + session.
+9. Merchant can authenticate and see its own basic dashboard.
+10. Merchant usage is isolated from consumer credits.
+11. Failed generation is observable and retryable.
+12. Privacy notice and retention behavior are implemented.
+13. Merchant does not see raw shopper face images by default.
+14. At least one pilot merchant completes end-to-end acceptance testing using its own catalog.
+15. The workflow can be operated for 3-5 pilots without normal shopper usage requiring developer intervention.
+
+---
+
+## 14. Validation Metrics
+
+Track the merchant shopper funnel:
+
+```text
+Store session
+→ photo upload
+→ recommendation viewed
+→ frame selected
+→ try-on completed
+→ compare started
+→ favorite / product click / inquiry
+```
+
+Key merchant metrics:
+
+- upload rate;
+- recommendation-to-try rate;
+- compare rate;
+- product click rate;
+- favorite / inquiry rate;
+- top-frame concentration;
+- successful render cost per engaged shopper;
+- merchant willingness to continue paying.
+
+The strongest early business outcome is not try-on volume alone.
+
+It is:
+
+> Merchant keeps the Store live and pays after seeing real shopper behavior.
+
+---
+
+## 15. Engineering Gates
+
+### D0 Sales Demo
+
+Approved now. Build according to `visutry-store-sales-demo.md`.
+
+### M1 Pilot MVP
+
+Proceed after the Gate B conditions in `visutry-store-implementation-plan.md` are met or Product explicitly approves operationalizing a live pilot.
+
+### Shopify / platform integrations
+
+Deferred until at least 3 active pilot merchants show repeated onboarding or integration demand.
+
+---
+
+## 16. Remaining Open Questions
+
+These do not block D0 engineering and should be resolved through pilot evidence:
+
+1. Is hosted Store link the long-term default, or does product-page widget become dominant?
+2. Which merchant KPI is most valuable: product click, add-to-cart, inquiry, or appointment intent?
+3. How much catalog metadata is required for recommendation quality at 50+ SKUs?
+4. Should URL-assisted catalog import precede Shopify sync?
+5. What monthly usage unit best fits pricing: successful renders, sessions, or a blended tier?
+6. Should transaction / affiliate revenue become part of the model after SaaS is validated?
+
+---
+
+## 17. Change Log
 
 | Date | Change |
 | --- | --- |
 | 2026-07-08 | Created draft VisuTry Store MVP spec. |
-| 2026-07-08 | Advanced to ready for validation and added validation package, gating criteria, and validation-focused acceptance criteria. |
-| 2026-07-08 | Added Store landing page as the first validation asset before full Store engineering. |
+| 2026-07-08 | Advanced to validation-ready and added validation package and engineering gates. |
+| 2026-07-08 | Added Store landing page as the first validation asset. |
+| 2026-08-05 | Reframed Store as AI merchant decision layer, made merchant-catalog recommendation mandatory, separated D0 Sales Demo from M1 Pilot MVP, defined assisted catalog onboarding, concrete data model, acceptance criteria, and engineering gates. |
