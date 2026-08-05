@@ -1,5 +1,5 @@
 import { getTryOnConfig } from '@/config/try-on-types'
-import { Prisma } from '@prisma/client'
+import { Prisma, TaskStatus, TryOnType } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import {
   DEFAULT_STORE_DEMO_LIMITS,
@@ -25,9 +25,11 @@ import { recordStoreTryOnAttempt } from './settle-store-usage'
 import { fetchImageAsFile } from './fetch-image-file'
 import { assertSameMerchantTenant } from './tenant-guards'
 import {
-  assertStoreMerchantAttemptAllowed,
-  recordStoreMerchantFailureAbuse,
+  DEFAULT_STORE_ABUSE_LIMITS,
+  dayWindowStart,
+  retryAfterSeconds,
 } from './store-abuse-limits'
+import { computeStoreAssetExpiresAt } from '../infrastructure/config/store-demo-limits'
 
 export type SubmitStoreTryOnInput = {
   merchants: MerchantRepository
@@ -45,6 +47,7 @@ export type SubmitStoreTryOnInput = {
   clientSubmissionId: string
   locale?: string | null
   deviceType?: string | null
+  clientIp?: string | null
 }
 
 export type SubmitStoreTryOnResult = {
@@ -84,23 +87,28 @@ function frameDto(frame: {
 }
 
 /**
- * Atomically reserve a session attempt slot unless the generation idempotency
- * key already owns a task (reuse path burns no attempt).
+ * Atomically claim a placeholder TryOnTask + RENDER_ATTEMPT (+ merchant abuse bump).
+ * Reuse of the same idempotency key burns no additional attempt.
  */
-async function reserveStoreAttemptOrReuse(input: {
+async function claimStoreTryOnSlot(input: {
   merchantId: string
   merchantSessionId: string
   merchantFrameId: string
   idempotencyKey: string
-}): Promise<{ reusedTaskId: string | null }> {
+  clientSubmissionId: string
+  clientIp?: string | null
+  expiresAt?: Date
+}): Promise<{ taskId: string; reusedExisting: boolean }> {
   const maxAttempts = 3
+  const abuseWindow = dayWindowStart()
+  const ip = input.clientIp || 'unknown'
+
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
     try {
       return await prisma.$transaction(
         async (tx) => {
           const existing = await tx.tryOnTask.findUnique({
             where: { idempotencyKey: input.idempotencyKey },
-            select: { id: true, merchantId: true },
           })
           if (existing) {
             if (existing.merchantId !== input.merchantId) {
@@ -110,7 +118,7 @@ async function reserveStoreAttemptOrReuse(input: {
                 409,
               )
             }
-            return { reusedTaskId: existing.id }
+            return { taskId: existing.id, reusedExisting: true }
           }
 
           const [merchantSuccessfulRenders, sessionSuccessfulRenders, sessionAttempts] =
@@ -143,25 +151,127 @@ async function reserveStoreAttemptOrReuse(input: {
             throw new StoreDomainError('ALLOWANCE_EXCEEDED', allowance.reason, 429)
           }
 
+          // Merchant + IP attempt abuse — only counted when claiming a new generation.
+          const merchantAbuse = await tx.storeAbuseCounter.upsert({
+            where: {
+              merchantId_bucket_windowStart: {
+                merchantId: input.merchantId,
+                bucket: 'attempt:merchant',
+                windowStart: abuseWindow,
+              },
+            },
+            create: {
+              merchantId: input.merchantId,
+              bucket: 'attempt:merchant',
+              windowStart: abuseWindow,
+              count: 1,
+            },
+            update: { count: { increment: 1 } },
+          })
+          if (merchantAbuse.count > DEFAULT_STORE_ABUSE_LIMITS.maxAttemptsPerMerchantPerDay) {
+            throw new StoreDomainError(
+              'ALLOWANCE_EXCEEDED',
+              'Merchant daily try-on attempt limit reached.',
+              429,
+              `retry_after=${retryAfterSeconds(abuseWindow, 86400_000)}`,
+            )
+          }
+
+          const ipAbuse = await tx.storeAbuseCounter.upsert({
+            where: {
+              merchantId_bucket_windowStart: {
+                merchantId: input.merchantId,
+                bucket: `attempt:ip:${ip}`,
+                windowStart: abuseWindow,
+              },
+            },
+            create: {
+              merchantId: input.merchantId,
+              bucket: `attempt:ip:${ip}`,
+              windowStart: abuseWindow,
+              count: 1,
+            },
+            update: { count: { increment: 1 } },
+          })
+          if (ipAbuse.count > 40) {
+            throw new StoreDomainError(
+              'ALLOWANCE_EXCEEDED',
+              'Too many try-on attempts from this network.',
+              429,
+              `retry_after=${retryAfterSeconds(abuseWindow, 86400_000)}`,
+            )
+          }
+
+          const failureAbuse = await tx.storeAbuseCounter.findUnique({
+            where: {
+              merchantId_bucket_windowStart: {
+                merchantId: input.merchantId,
+                bucket: 'failure:merchant',
+                windowStart: abuseWindow,
+              },
+            },
+          })
+          if (
+            failureAbuse &&
+            failureAbuse.count >= DEFAULT_STORE_ABUSE_LIMITS.maxFailuresPerMerchantPerDay
+          ) {
+            throw new StoreDomainError(
+              'ALLOWANCE_EXCEEDED',
+              'Merchant daily try-on failure limit reached.',
+              429,
+              `retry_after=${retryAfterSeconds(abuseWindow, 86400_000)}`,
+            )
+          }
+
+          const task = await tx.tryOnTask.create({
+            data: {
+              userId: null,
+              type: TryOnType.GLASSES,
+              userImageUrl: 'pending://user',
+              itemImageUrl: 'pending://item',
+              status: TaskStatus.PENDING,
+              origin: 'STORE_DEMO',
+              merchantId: input.merchantId,
+              merchantSessionId: input.merchantSessionId,
+              merchantFrameId: input.merchantFrameId,
+              idempotencyKey: input.idempotencyKey,
+              clientSubmissionId: input.clientSubmissionId,
+              expiresAt: input.expiresAt ?? computeStoreAssetExpiresAt(),
+              retentionStatus: 'ACTIVE',
+              metadata: {
+                source: 'store',
+                claimFirst: true,
+                atomicClaim: true,
+              },
+            },
+          })
+
           await tx.merchantUsageLedger.create({
             data: {
               merchantId: input.merchantId,
               merchantSessionId: input.merchantSessionId,
+              tryOnTaskId: task.id,
               kind: 'RENDER_ATTEMPT',
             },
           })
 
-          return { reusedTaskId: null }
+          return { taskId: task.id, reusedExisting: false }
         },
         { isolationLevel: Prisma.TransactionIsolationLevel.Serializable },
       )
     } catch (error) {
       if (error instanceof StoreDomainError) throw error
-      const isWriteConflict = (error as { code?: string })?.code === 'P2034'
-      if (!isWriteConflict || attempt === maxAttempts) throw error
+      const code = (error as { code?: string })?.code
+      if (code === 'P2002') {
+        const raced = await prisma.tryOnTask.findUnique({
+          where: { idempotencyKey: input.idempotencyKey },
+        })
+        if (raced) return { taskId: raced.id, reusedExisting: true }
+      }
+      if (code !== 'P2034' || attempt === maxAttempts) throw error
     }
   }
-  throw new Error('Store attempt reservation retry limit exceeded')
+  throw new Error('Store try-on claim retry limit exceeded')
 }
 
 export async function submitStoreFrameTryOn(
@@ -188,58 +298,7 @@ export async function submitStoreFrameTryOn(
   }
   assertSameMerchantTenant(merchant.id, frame.merchantId, 'frame')
 
-  const idempotencyKey = buildStoreGenerationIdempotencyKey({
-    merchantSessionId: session.id,
-    merchantFrameId: frame.id,
-    clientSubmissionId: input.clientSubmissionId,
-  })
-
-  const existing = await input.generation.findExistingByIdempotencyKey(
-    idempotencyKey,
-    merchant.id,
-  )
-  if (existing) {
-    return {
-      taskId: existing.taskId,
-      status: existing.status,
-      merchantFrameId: frame.id,
-      reusedExisting: true,
-      frame: frameDto(frame),
-    }
-  }
-
-  await assertStoreMerchantAttemptAllowed({ merchantId: merchant.id })
-
-  const reservation = await reserveStoreAttemptOrReuse({
-    merchantId: merchant.id,
-    merchantSessionId: session.id,
-    merchantFrameId: frame.id,
-    idempotencyKey,
-  })
-  if (reservation.reusedTaskId) {
-    const reused = await input.generation.findExistingByIdempotencyKey(
-      idempotencyKey,
-      merchant.id,
-    )
-    return {
-      taskId: reservation.reusedTaskId,
-      status: reused?.status ?? 'submitted',
-      merchantFrameId: frame.id,
-      reusedExisting: true,
-      frame: frameDto(frame),
-    }
-  }
-
-  const usagePolicy = selectUsagePolicy(
-    {
-      kind: 'store',
-      merchantId: merchant.id,
-      merchantSessionId: session.id,
-      merchantFrameId: frame.id,
-    },
-    'STORE_DEMO',
-  )
-
+  // Validate generation prerequisites BEFORE burning attempt / abuse budget.
   if (!session.photoAssetId) {
     throw new StoreDomainError(
       'VALIDATION_ERROR',
@@ -268,6 +327,45 @@ export async function submitStoreFrameTryOn(
       409,
     )
   }
+
+  const idempotencyKey = buildStoreGenerationIdempotencyKey({
+    merchantSessionId: session.id,
+    merchantFrameId: frame.id,
+    clientSubmissionId: input.clientSubmissionId,
+  })
+
+  const claim = await claimStoreTryOnSlot({
+    merchantId: merchant.id,
+    merchantSessionId: session.id,
+    merchantFrameId: frame.id,
+    idempotencyKey,
+    clientSubmissionId: input.clientSubmissionId,
+    clientIp: input.clientIp,
+  })
+
+  if (claim.reusedExisting) {
+    const reused = await input.generation.findExistingByIdempotencyKey(
+      idempotencyKey,
+      merchant.id,
+    )
+    return {
+      taskId: claim.taskId,
+      status: reused?.status ?? 'submitted',
+      merchantFrameId: frame.id,
+      reusedExisting: true,
+      frame: frameDto(frame),
+    }
+  }
+
+  const usagePolicy = selectUsagePolicy(
+    {
+      kind: 'store',
+      merchantId: merchant.id,
+      merchantSessionId: session.id,
+      merchantFrameId: frame.id,
+    },
+    'STORE_DEMO',
+  )
 
   const userImage = new File([new Uint8Array(photoBytes.body)], `shopper-${session.id}.jpg`, {
     type: photoBytes.contentType || 'image/jpeg',
@@ -314,6 +412,7 @@ Merchant store frame:
       idempotencyKey,
       clientSubmissionId: input.clientSubmissionId,
       prompt,
+      preClaimedTaskId: claim.taskId,
     })
 
     return {
@@ -328,13 +427,27 @@ Merchant store frame:
       usage: input.usage,
       merchantId: merchant.id,
       merchantSessionId: session.id,
+      tryOnTaskId: claim.taskId,
       kind: 'RENDER_FAILURE',
     })
-    try {
-      await recordStoreMerchantFailureAbuse({ merchantId: merchant.id })
-    } catch {
-      // failure abuse limit may 429 subsequent requests; original error still thrown
-    }
+    // Failure budget must block subsequent dispatch.
+    const windowStart = dayWindowStart()
+    const failure = await prisma.storeAbuseCounter.upsert({
+      where: {
+        merchantId_bucket_windowStart: {
+          merchantId: merchant.id,
+          bucket: 'failure:merchant',
+          windowStart,
+        },
+      },
+      create: {
+        merchantId: merchant.id,
+        bucket: 'failure:merchant',
+        windowStart,
+        count: 1,
+      },
+      update: { count: { increment: 1 } },
+    })
     await input.events.appendIdempotent({
       eventId: buildStoreEventIdempotencyKey({
         type: 'merchant_tryon_failed',
@@ -351,6 +464,14 @@ Merchant store frame:
       locale: input.locale ?? null,
       deviceType: input.deviceType ?? null,
     })
+    if (failure.count >= DEFAULT_STORE_ABUSE_LIMITS.maxFailuresPerMerchantPerDay) {
+      throw new StoreDomainError(
+        'ALLOWANCE_EXCEEDED',
+        'Merchant daily try-on failure limit reached.',
+        429,
+        `retry_after=${retryAfterSeconds(windowStart, 86400_000)}`,
+      )
+    }
     throw error
   }
 }

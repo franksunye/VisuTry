@@ -110,53 +110,74 @@ async function readPrivateOrPublicBytes(
 export function createVercelBlobAssetStore(): AssetStore {
   return {
     async put(input: PutStoreAssetInput) {
-      let providerUrl: string
-      if (isMockMode) {
-        const blob = await mockBlobUpload(input.storageKey, input.body as File)
-        providerUrl = blob.url
-      } else if (input.accessMode === 'PRIVATE_SIGNED') {
-        try {
+      let providerUrl: string | null = null
+      try {
+        if (isMockMode) {
+          const blob = await mockBlobUpload(input.storageKey, input.body as File)
+          providerUrl = blob.url
+        } else if (input.accessMode === 'PRIVATE_SIGNED') {
+          try {
+            const blob = await put(input.storageKey, input.body, {
+              access: 'private',
+              contentType: input.contentType,
+            })
+            providerUrl = blob.url
+          } catch (error) {
+            const message =
+              error instanceof Error ? error.message : 'Private blob upload failed'
+            throw new StoreDomainError(
+              'INTERNAL_ERROR',
+              'Private object storage is required for Store photos. Upload aborted.',
+              503,
+              message,
+            )
+          }
+        } else {
           const blob = await put(input.storageKey, input.body, {
-            access: 'private',
+            access: 'public',
             contentType: input.contentType,
           })
           providerUrl = blob.url
-        } catch (error) {
-          const message =
-            error instanceof Error ? error.message : 'Private blob upload failed'
-          throw new StoreDomainError(
-            'INTERNAL_ERROR',
-            'Private object storage is required for Store photos. Upload aborted.',
-            503,
-            message,
-          )
         }
-      } else {
-        const blob = await put(input.storageKey, input.body, {
-          access: 'public',
-          contentType: input.contentType,
+
+        const row = await prisma.storeAsset.create({
+          data: {
+            merchantId: input.merchantId,
+            merchantSessionId: input.merchantSessionId ?? null,
+            ownerType: input.ownerType,
+            ownerId: input.ownerId,
+            purpose: input.purpose,
+            storageKey: input.storageKey,
+            accessMode: input.accessMode,
+            providerUrl,
+            expiresAt: input.expiresAt,
+            retentionStatus: 'ACTIVE',
+          },
         })
-        providerUrl = blob.url
+
+        const asset = mapAsset(row)
+        const deliveryUrl = controlledDeliveryUrl(asset.id)
+        return { asset, deliveryUrl }
+      } catch (error) {
+        if (providerUrl && !isMockMode) {
+          try {
+            await del(
+              input.accessMode === 'PRIVATE_SIGNED' ? input.storageKey : providerUrl,
+            )
+          } catch (delError) {
+            const { recordStoreOrphanBlob } = await import(
+              '../../application/cleanup-store-orphan-blobs'
+            )
+            await recordStoreOrphanBlob({
+              url: providerUrl,
+              pathname: input.storageKey,
+              merchantId: input.merchantId,
+              error: delError instanceof Error ? delError.message : 'asset_create_compensate_failed',
+            })
+          }
+        }
+        throw error
       }
-
-      const row = await prisma.storeAsset.create({
-        data: {
-          merchantId: input.merchantId,
-          merchantSessionId: input.merchantSessionId ?? null,
-          ownerType: input.ownerType,
-          ownerId: input.ownerId,
-          purpose: input.purpose,
-          storageKey: input.storageKey,
-          accessMode: input.accessMode,
-          providerUrl,
-          expiresAt: input.expiresAt,
-          retentionStatus: 'ACTIVE',
-        },
-      })
-
-      const asset = mapAsset(row)
-      const deliveryUrl = controlledDeliveryUrl(asset.id)
-      return { asset, deliveryUrl }
     },
 
     async getProviderDeliveryUrl(assetId, merchantId) {

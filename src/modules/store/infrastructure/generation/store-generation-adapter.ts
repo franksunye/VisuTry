@@ -47,7 +47,7 @@ export function createStoreGenerationAdapter(): StoreGenerationPort {
       const existing = await prisma.tryOnTask.findUnique({
         where: { idempotencyKey: input.idempotencyKey },
       })
-      if (existing) {
+      if (existing && existing.id !== input.preClaimedTaskId) {
         return {
           taskId: existing.id,
           status:
@@ -77,6 +77,7 @@ export function createStoreGenerationAdapter(): StoreGenerationPort {
         {
           clientSubmissionId: input.clientSubmissionId,
           prompt: input.prompt,
+          preClaimedTaskId: input.preClaimedTaskId,
           metadata: {
             usagePolicyKind: input.usagePolicy.kind,
           },

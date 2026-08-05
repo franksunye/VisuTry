@@ -4,6 +4,7 @@ import {
   createStoreRuntime,
   storeErrorResponse,
   submitStoreFrameTryOn,
+  clientIpFromRequest,
 } from '@/modules/store/application'
 import { readStoreCapabilityToken } from '@/modules/store/infrastructure'
 
@@ -38,6 +39,7 @@ export async function POST(request: NextRequest) {
       clientSubmissionId: parsed.data.clientSubmissionId,
       locale: parsed.data.locale ?? null,
       deviceType: parsed.data.deviceType ?? null,
+      clientIp: clientIpFromRequest(request.headers),
     })
 
     return NextResponse.json({ success: true, data: result })

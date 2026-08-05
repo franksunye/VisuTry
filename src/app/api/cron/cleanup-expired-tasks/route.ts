@@ -9,7 +9,7 @@ export const dynamic = 'force-dynamic'
 
 /**
  * Cron: blob-first TryOnTask retention cleanup (Consumer + Store).
- * Database rows are removed only after Blob deletion succeeds or is confirmed missing.
+ * Deletion emails are sent only for users whose tasks were confirmed deleted.
  */
 export async function GET(request: NextRequest) {
   const authHeader = request.headers.get('authorization')
@@ -29,69 +29,47 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    // Collect consumer emails before deletion (URLs still present).
-    const expiredForEmail = await prisma.tryOnTask.findMany({
-      where: {
-        expiresAt: { lte: now },
-        origin: 'CONSUMER',
-        retentionStatus: { in: ['ACTIVE', 'PENDING_DELETE', 'DELETE_BLOCKED'] },
-        userId: { not: null },
-      },
-      take: 200,
-      select: {
-        userId: true,
-        expiresAt: true,
-        user: {
-          select: {
-            id: true,
-            email: true,
-            name: true,
-            lastRetentionDeletedEmailSent: true,
-          },
-        },
-      },
-    })
-
     const cleanup = await cleanupExpiredTryOnTasks({ now, limit: 100, maxRounds: 5 })
     results.tasksDeleted = cleanup.deleted
     results.tasksFailed = cleanup.failed
     results.tasksScanned = cleanup.scanned
     results.blockedRetried = cleanup.blockedRetried
 
-    const userTaskMap = new Map<
-      string,
-      { user: NonNullable<(typeof expiredForEmail)[0]['user']>; expiryDate: Date }
-    >()
-    for (const task of expiredForEmail) {
-      if (task.userId && task.user?.email && !userTaskMap.has(task.userId)) {
-        userTaskMap.set(task.userId, {
-          user: task.user,
-          expiryDate: task.expiresAt || now,
-        })
-      }
-    }
-
-    for (const [userId, { user, expiryDate }] of userTaskMap.entries()) {
-      const lastSent = user.lastRetentionDeletedEmailSent
-      if (lastSent && now.getTime() - lastSent.getTime() < 24 * 60 * 60 * 1000) {
-        continue
-      }
-
-      const emailResult = await sendRetentionDeletedEmail({
-        id: user.id,
-        email: user.email,
-        name: user.name,
-        expiryDate,
+    const confirmedUserIds = Array.from(new Set(cleanup.deletedUserIds))
+    if (confirmedUserIds.length > 0) {
+      const users = await prisma.user.findMany({
+        where: { id: { in: confirmedUserIds } },
+        select: {
+          id: true,
+          email: true,
+          name: true,
+          lastRetentionDeletedEmailSent: true,
+        },
       })
 
-      if (emailResult.success) {
-        await prisma.user.update({
-          where: { id: userId },
-          data: { lastRetentionDeletedEmailSent: now },
+      for (const user of users) {
+        if (!user.email) continue
+        const lastSent = user.lastRetentionDeletedEmailSent
+        if (lastSent && now.getTime() - lastSent.getTime() < 24 * 60 * 60 * 1000) {
+          continue
+        }
+
+        const emailResult = await sendRetentionDeletedEmail({
+          id: user.id,
+          email: user.email,
+          name: user.name,
+          expiryDate: now,
         })
-        results.emailsSent++
-      } else {
-        results.emailsFailed++
+
+        if (emailResult.success) {
+          await prisma.user.update({
+            where: { id: user.id },
+            data: { lastRetentionDeletedEmailSent: now },
+          })
+          results.emailsSent++
+        } else {
+          results.emailsFailed++
+        }
       }
     }
 

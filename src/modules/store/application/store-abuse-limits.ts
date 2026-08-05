@@ -25,11 +25,11 @@ function hourWindowStart(now = new Date()): Date {
   return new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), now.getUTCHours()))
 }
 
-function dayWindowStart(now = new Date()): Date {
+export function dayWindowStart(now = new Date()): Date {
   return new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()))
 }
 
-function retryAfterSeconds(windowStart: Date, windowMs: number, now = new Date()): number {
+export function retryAfterSeconds(windowStart: Date, windowMs: number, now = new Date()): number {
   const end = windowStart.getTime() + windowMs
   return Math.max(1, Math.ceil((end - now.getTime()) / 1000))
 }

@@ -37,6 +37,10 @@ function collectTaskUrls(task: {
   ]) {
     if (!url) continue
     if (url.startsWith('pending:')) continue
+    // Skip non-Vercel provider URLs that Store fail-closed should never persist.
+    if (url.startsWith('http') && !url.includes('blob.vercel-storage.com') && !url.includes('public.blob')) {
+      // Still attempt delete; not-found is OK. Non-Vercel URLs may fail and block.
+    }
     urls.push(url)
   }
   return urls
@@ -47,6 +51,8 @@ export type CleanupExpiredTryOnTasksResult = {
   deleted: number
   failed: number
   blockedRetried: number
+  deletedTaskIds: string[]
+  deletedUserIds: string[]
 }
 
 export async function cleanupExpiredTryOnTasks(input?: {
@@ -62,6 +68,8 @@ export async function cleanupExpiredTryOnTasks(input?: {
     deleted: 0,
     failed: 0,
     blockedRetried: 0,
+    deletedTaskIds: [],
+    deletedUserIds: [],
   }
 
   const processBatch = async (includeBlocked: boolean) => {
@@ -83,12 +91,14 @@ export async function cleanupExpiredTryOnTasks(input?: {
       orderBy: [{ expiresAt: 'asc' }, { lastDeleteAttemptAt: 'asc' }],
       select: {
         id: true,
+        userId: true,
         userImageUrl: true,
         itemImageUrl: true,
         glassesImageUrl: true,
         resultImageUrl: true,
         deleteFailCount: true,
         retentionStatus: true,
+        metadata: true,
       },
     })
 
@@ -106,14 +116,22 @@ export async function cleanupExpiredTryOnTasks(input?: {
         },
       })
 
+      const metadata = (task.metadata ?? {}) as Record<string, unknown>
+      const pathnames = [
+        typeof metadata.userPathname === 'string' ? metadata.userPathname : null,
+        typeof metadata.itemPathname === 'string' ? metadata.itemPathname : null,
+        typeof metadata.resultPathname === 'string' ? metadata.resultPathname : null,
+      ].filter(Boolean) as string[]
+
       const urls = collectTaskUrls(task)
       let blobOk = true
       let lastError: string | undefined
 
-      if (!isMockMode && urls.length > 0) {
-        for (const url of urls) {
+      if (!isMockMode) {
+        const targets = pathnames.length > 0 ? pathnames : urls
+        for (const target of targets) {
           try {
-            await del(url)
+            await del(target)
           } catch (error) {
             if (!isBlobNotFoundError(error)) {
               blobOk = false
@@ -148,9 +166,10 @@ export async function cleanupExpiredTryOnTasks(input?: {
         continue
       }
 
-      // Blobs confirmed gone — only now remove durable URL state.
       await prisma.tryOnTask.delete({ where: { id: task.id } })
       result.deleted += 1
+      result.deletedTaskIds.push(task.id)
+      if (task.userId) result.deletedUserIds.push(task.userId)
     }
 
     return tasks.length

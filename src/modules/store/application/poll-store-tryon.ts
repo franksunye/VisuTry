@@ -15,6 +15,7 @@ import type {
 } from './ports/repositories'
 import { requireOperableStoreSession } from './require-store-session'
 import { settleStoreTryOnUsage } from './settle-store-usage'
+import { buildStoreTryOnResultDeliveryUrl } from './store-result-delivery'
 import { prisma } from '@/lib/prisma'
 
 export type PollStoreTryOnInput = {
@@ -157,7 +158,14 @@ export async function pollStoreFrameTryOn(
   return {
     taskId: status.taskId,
     status: status.status,
-    resultImageUrl: status.resultImageUrl ?? null,
+    resultImageUrl:
+      status.status === 'COMPLETED'
+        ? buildStoreTryOnResultDeliveryUrl({
+            taskId: status.taskId,
+            merchantSlug: merchant.slug,
+            merchantSessionId: session.id,
+          })
+        : null,
     errorMessage: status.errorMessage ?? null,
     merchantFrameId: owned.merchantFrameId,
     frame: frameDto,

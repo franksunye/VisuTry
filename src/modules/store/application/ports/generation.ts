@@ -13,6 +13,8 @@ export type StoreGenerationSubmitInput = {
   idempotencyKey: string
   clientSubmissionId: string
   prompt?: string
+  /** When set, generation uploads into this already-claimed task row. */
+  preClaimedTaskId?: string
 }
 
 export type StoreGenerationSubmitResult = {
