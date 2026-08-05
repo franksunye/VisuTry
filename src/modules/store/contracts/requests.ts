@@ -245,6 +245,76 @@ export function parseSelectFramesRequest(body: unknown): ValidationResult<Select
   })
 }
 
+export type StoreTryOnSubmitRequest = {
+  merchantSlug: string
+  merchantSessionId: string
+  merchantFrameId: string
+  batchId: string
+  clientSubmissionId: string
+  locale?: string
+  deviceType?: string
+}
+
+export function parseStoreTryOnSubmitRequest(
+  body: unknown,
+): ValidationResult<StoreTryOnSubmitRequest> {
+  if (!body || typeof body !== 'object') {
+    return fail([{ path: 'body', message: 'Request body must be an object' }])
+  }
+  const record = body as Record<string, unknown>
+  const issues = [
+    requireString(record.merchantSlug, 'merchantSlug', 120),
+    requireString(record.merchantSessionId, 'merchantSessionId', 120),
+    requireString(record.merchantFrameId, 'merchantFrameId', 120),
+    requireString(record.batchId, 'batchId', 120),
+    requireString(record.clientSubmissionId, 'clientSubmissionId', 200),
+  ].filter(Boolean) as { path: string; message: string }[]
+
+  if (issues.length) return fail(issues)
+
+  return ok({
+    merchantSlug: String(record.merchantSlug).trim(),
+    merchantSessionId: String(record.merchantSessionId).trim(),
+    merchantFrameId: String(record.merchantFrameId).trim(),
+    batchId: String(record.batchId).trim(),
+    clientSubmissionId: String(record.clientSubmissionId).trim(),
+    locale: typeof record.locale === 'string' ? record.locale : undefined,
+    deviceType: typeof record.deviceType === 'string' ? record.deviceType : undefined,
+  })
+}
+
+export type StoreTryOnPollRequest = {
+  merchantSlug: string
+  merchantSessionId: string
+  taskId: string
+  locale?: string
+  deviceType?: string
+}
+
+export function parseStoreTryOnPollRequest(
+  body: unknown,
+): ValidationResult<StoreTryOnPollRequest> {
+  if (!body || typeof body !== 'object') {
+    return fail([{ path: 'body', message: 'Request body must be an object' }])
+  }
+  const record = body as Record<string, unknown>
+  const issues = [
+    requireString(record.merchantSlug, 'merchantSlug', 120),
+    requireString(record.merchantSessionId, 'merchantSessionId', 120),
+    requireString(record.taskId, 'taskId', 120),
+  ].filter(Boolean) as { path: string; message: string }[]
+
+  if (issues.length) return fail(issues)
+
+  return ok({
+    merchantSlug: String(record.merchantSlug).trim(),
+    merchantSessionId: String(record.merchantSessionId).trim(),
+    taskId: String(record.taskId).trim(),
+    locale: typeof record.locale === 'string' ? record.locale : undefined,
+    deviceType: typeof record.deviceType === 'string' ? record.deviceType : undefined,
+  })
+}
+
 /** Shared API error envelope for Store routes. */
 export type StoreApiErrorBody = {
   success: false

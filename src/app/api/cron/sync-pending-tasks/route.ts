@@ -4,6 +4,8 @@ import { getTryOnResult } from "@/lib/tryon-service"
 import { logger } from "@/lib/logger"
 import { TaskStatus } from "@prisma/client"
 import { settleTryOnTaskQuota } from "@/lib/quota"
+import { createPrismaStoreUsageRepository } from "@/modules/store/infrastructure"
+import { settleStoreTryOnUsage } from "@/modules/store/application/settle-store-usage"
 
 export const dynamic = 'force-dynamic'
 export const maxDuration = 300 // 5 minutes
@@ -46,6 +48,8 @@ export async function GET(request: NextRequest) {
         id: true,
         userId: true,
         origin: true,
+        merchantId: true,
+        merchantSessionId: true,
         createdAt: true,
         metadata: true
       },
@@ -87,13 +91,35 @@ export async function GET(request: NextRequest) {
               quotaSettled: settlement.settled,
               quotaAlreadySettled: settlement.alreadySettled,
             })
+          } else if (
+            (task.origin === 'STORE_DEMO' || task.origin === 'STORE_PILOT') &&
+            task.merchantId &&
+            task.merchantSessionId
+          ) {
+            const usagePolicy =
+              task.origin === 'STORE_PILOT'
+                ? { kind: 'merchant_allowance' as const, merchantId: task.merchantId }
+                : { kind: 'store_demo_allowance' as const, merchantId: task.merchantId }
+            const settlement = await settleStoreTryOnUsage({
+              taskId: task.id,
+              merchantId: task.merchantId,
+              merchantSessionId: task.merchantSessionId,
+              usagePolicy,
+              usage: createPrismaStoreUsageRepository(),
+            })
+            successCount++
+            logger.info('cron', `Task ${task.id} completed successfully`, {
+              isNewCompletion: result.isNewCompletion,
+              origin: task.origin,
+              quotaSettled: settlement.settled,
+              quotaAlreadySettled: settlement.alreadySettled,
+            })
           } else {
             successCount++
             logger.info('cron', `Task ${task.id} completed successfully`, {
               isNewCompletion: result.isNewCompletion,
               origin: task.origin,
               quotaSettled: false,
-              storeUsageDeferred: task.origin !== 'CONSUMER',
             })
           }
         } else if (result.status === TaskStatus.FAILED) {

@@ -780,7 +780,8 @@
       "session": "Could not start your session. Please try again.",
       "upload": "Photo upload failed. Please try another image.",
       "recommend": "Could not build recommendations. Please try again.",
-      "select": "Could not save your frame selection."
+      "select": "Could not save your frame selection.",
+      "tryOn": "Try-on could not start. Please try again."
     },
     "recommend": {
       "analyzing": "Finding frames that suit you…",
@@ -791,8 +792,22 @@
       "confirm": "Save selection ({count})",
       "saving": "Saving…",
       "savedTitle": "Selection saved",
-      "savedBody": "Virtual try-on for your selected frames is next.",
+      "savedBody": "Start virtual try-on for your selected frames below.",
       "tryOnComingSoon": "Continue to try-on (next)"
+    },
+    "tryOn": {
+      "title": "Virtual try-on",
+      "subtitle": "Generate try-on results for your selected merchant frames. No consumer credits are used.",
+      "start": "Try on {count} frames",
+      "starting": "Starting try-on…",
+      "queued": "Queued…",
+      "processing": "Generating…",
+      "failed": "Try-on failed",
+      "retry": "Retry",
+      "viewProduct": "View product",
+      "openCompare": "Compare {count} results",
+      "compareTitle": "Side-by-side compare",
+      "compareHint": "Same shopper photo across selected frames."
     }
   }
 }

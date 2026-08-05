@@ -464,6 +464,187 @@ export async function submitTryOnTask(
   }
 }
 
+export type StoreTryOnAttribution = {
+  merchantId: string
+  merchantSessionId: string
+  merchantFrameId: string
+  origin: 'STORE_DEMO' | 'STORE_PILOT'
+  idempotencyKey: string
+  expiresAt?: Date
+}
+
+/**
+ * Store-attributed Try-On submission.
+ * Does not require a consumer User and never settles consumer credits.
+ * Forces GrsAI async path for D0 parity with Frame Compare.
+ */
+export async function submitStoreTryOnTask(
+  attribution: StoreTryOnAttribution,
+  userImageFile: File,
+  itemImageFile: File,
+  options?: {
+    clientSubmissionId?: string
+    metadata?: Record<string, unknown>
+    prompt?: string
+  },
+): Promise<TryOnSubmissionResult> {
+  const clientSubmissionId = options?.clientSubmissionId
+  const startTime = Date.now()
+  const { merchantId, merchantSessionId, merchantFrameId, origin, idempotencyKey } = attribution
+
+  logger.info('tryon-service', 'Starting Store try-on task', {
+    merchantId,
+    merchantSessionId,
+    merchantFrameId,
+    origin,
+    clientSubmissionId,
+  })
+
+  const existingByKey = await prisma.tryOnTask.findUnique({
+    where: { idempotencyKey },
+  })
+  if (existingByKey) {
+    if (
+      existingByKey.merchantId !== merchantId ||
+      existingByKey.merchantSessionId !== merchantSessionId ||
+      existingByKey.merchantFrameId !== merchantFrameId
+    ) {
+      throw new Error('Store idempotency key conflict')
+    }
+    logger.info('tryon-service', 'Reusing Store idempotent try-on submission', {
+      taskId: existingByKey.id,
+      idempotencyKey,
+    })
+    return submissionResultFromTask(existingByKey)
+  }
+
+  const resolvedPrompt = resolveTryOnPrompt(TryOnType.GLASSES, options?.prompt)
+  const effectivePrompt = resolvedPrompt.detailedInstructions
+  const promptVersion = resolvedPrompt.version
+
+  const ownerKey = `store/${merchantId}`
+  let userBlob
+  let itemBlob
+  try {
+    ;[userBlob, itemBlob] = await Promise.all([
+      put(
+        `tryon/user/${ownerKey}/${Date.now()}-${userImageFile.name}`,
+        userImageFile,
+        { access: 'public' },
+      ),
+      put(
+        `tryon/item/${ownerKey}/${Date.now()}-${itemImageFile.name}`,
+        itemImageFile,
+        { access: 'public' },
+      ),
+    ])
+  } catch (error) {
+    logger.error('tryon-service', 'Failed to upload Store images to blob', error as Error, {
+      merchantId,
+      merchantSessionId,
+    })
+    throw new Error('Failed to upload images')
+  }
+
+  const serviceType = 'grsai'
+  const isAsync = true
+
+  let task
+  try {
+    task = await prisma.tryOnTask.create({
+      data: {
+        userId: null,
+        type: TryOnType.GLASSES,
+        userImageUrl: userBlob.url,
+        itemImageUrl: itemBlob.url,
+        status: TaskStatus.PENDING,
+        origin,
+        merchantId,
+        merchantSessionId,
+        merchantFrameId,
+        idempotencyKey,
+        clientSubmissionId,
+        expiresAt: attribution.expiresAt,
+        metadata: {
+          ...(options?.metadata || {}),
+          serviceType,
+          isAsync,
+          effectivePrompt,
+          renderedPrompt: resolvedPrompt.renderedPrompt,
+          promptVersion,
+          promptSource: resolvedPrompt.source,
+          retryCount: 0,
+          clientSubmissionId,
+          source: 'store',
+          originalUserFileName: userImageFile.name,
+          originalItemFileName: itemImageFile.name,
+        },
+      },
+    })
+  } catch (error) {
+    if (!isUniqueConstraintError(error)) throw error
+    const raced = await prisma.tryOnTask.findUnique({ where: { idempotencyKey } })
+    if (!raced) throw error
+    return submissionResultFromTask(raced)
+  }
+
+  try {
+    const userBuffer = Buffer.from(await userImageFile.arrayBuffer())
+    const itemBuffer = Buffer.from(await itemImageFile.arrayBuffer())
+    const userMime = userImageFile.type || 'image/jpeg'
+    const itemMime = itemImageFile.type || 'image/jpeg'
+    const userDataUri = `data:${userMime};base64,${userBuffer.toString('base64')}`
+    const itemDataUri = `data:${itemMime};base64,${itemBuffer.toString('base64')}`
+
+    const externalTaskId = await submitAsyncTask(
+      userDataUri,
+      itemDataUri,
+      effectivePrompt,
+      promptVersion,
+    )
+
+    await prisma.tryOnTask.update({
+      where: { id: task.id },
+      data: {
+        status: TaskStatus.PROCESSING,
+        metadata: {
+          ...(task.metadata as object),
+          externalTaskId,
+          serviceType,
+          isAsync,
+          effectivePrompt,
+          renderedPrompt: resolvedPrompt.renderedPrompt,
+          promptVersion,
+          promptSource: resolvedPrompt.source,
+          retryCount: 0,
+          dispatchMs: Date.now() - startTime,
+        },
+      },
+    })
+
+    return {
+      taskId: task.id,
+      status: 'submitted',
+      serviceType,
+      isAsync,
+    }
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+    logger.error('tryon-service', 'Store GrsAi submission failed', error as Error, {
+      taskId: task.id,
+      merchantId,
+    })
+    await prisma.tryOnTask.update({
+      where: { id: task.id },
+      data: {
+        status: TaskStatus.FAILED,
+        errorMessage,
+      },
+    })
+    throw error
+  }
+}
+
 export async function getTryOnResult(taskId: string): Promise<TryOnPollResult> {
   // 1. Fetch task from DB
   const task = await prisma.tryOnTask.findUnique({

@@ -6,10 +6,10 @@ import {
   CheckCircle2,
   Loader2,
   ShieldCheck,
-  Sparkles,
   Store,
 } from 'lucide-react'
 import { ImageUpload } from '@/components/upload/ImageUpload'
+import { StoreTryOnComparePanel } from '@/components/store/StoreTryOnComparePanel'
 import { analyzeFaceLandmarkFile } from '@/lib/face-landmark-client'
 
 type MerchantProfile = {
@@ -519,23 +519,36 @@ export function StoreShopperExperience({
                   )}
                 </button>
 
-                {selectionSaved && (
-                  <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-4">
-                    <div className="flex items-start gap-2">
-                      <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-emerald-600" />
-                      <div>
-                        <p className="font-medium text-emerald-900">{t('recommend.savedTitle')}</p>
-                        <p className="mt-1 text-sm text-emerald-800">{t('recommend.savedBody')}</p>
-                        <button
-                          type="button"
-                          disabled
-                          className="mt-3 flex w-full cursor-not-allowed items-center justify-center gap-2 rounded-lg bg-gray-300 px-4 py-3 text-sm font-semibold text-gray-600"
-                        >
-                          <Sparkles className="h-4 w-4" />
-                          {t('recommend.tryOnComingSoon')}
-                        </button>
+                {selectionSaved && session && (
+                  <div className="space-y-4">
+                    <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-4">
+                      <div className="flex items-start gap-2">
+                        <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-emerald-600" />
+                        <div>
+                          <p className="font-medium text-emerald-900">{t('recommend.savedTitle')}</p>
+                          <p className="mt-1 text-sm text-emerald-800">{t('recommend.savedBody')}</p>
+                        </div>
                       </div>
                     </div>
+                    <StoreTryOnComparePanel
+                      merchantSlug={merchantSlug}
+                      locale={locale}
+                      merchantSessionId={session.merchantSessionId}
+                      selectedFrames={recommendations
+                        .filter((frame) => selectedIds.includes(frame.id))
+                        .map((frame) => ({
+                          id: frame.id,
+                          name: frame.name,
+                          imageUrl: frame.imageUrl,
+                          productUrl: frame.productUrl,
+                          price: frame.price,
+                          currency: frame.currency,
+                          shape: frame.shape,
+                        }))}
+                      photoPreview={photoPreview}
+                      accent={accent}
+                      onError={(message) => setErrorMessage(message || null)}
+                    />
                   </div>
                 )}
               </div>

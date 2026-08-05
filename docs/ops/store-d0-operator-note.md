@@ -29,6 +29,8 @@ Flow:
 3. Upload front-facing photo → stored via AssetStore, bound to session
 4. On-device face landmarks → `POST /api/store/sessions/recommend` → merchant-only shortlist
 5. Select up to 4 frames → `POST /api/store/sessions/select-frames`
+6. Try-on selected frames → `POST /api/store/sessions/try-on` + poll (Store Demo allowance; no consumer credits)
+7. Compare completed results in-page
 
 Gate A1 remains closed for independent external traffic.
 
