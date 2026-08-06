@@ -1,38 +1,32 @@
 # Merchant Pricing & Entitlement Implementation Plan
 
-**Status:** Approved execution plan for Demo revision and Pilot readiness — v3  
+**Status:** Approved execution plan for Demo revision and Pilot readiness — AI-Native Market Economics v4  
 **Owner:** Product / Engineering / Sales  
 **Created:** 2026-08-06  
 **Last updated:** 2026-08-06  
 **Related pricing:** `docs/strategy/merchant-pricing-packaging-unit-economics.md`  
 **Related entitlement spec:** `docs/product/specs/merchant-commercial-entitlements.md`  
-**Related provider risk:** `docs/strategy/merchant-provider-risk-and-fallback-economics.md`  
-**Related Store plan:** `docs/product/plans/visutry-store-demo-pilot-readiness-plan.md`  
-**Related commerce architecture:** `docs/product/specs/visutry-commerce-architecture.md`
+**Related provider risk:** `docs/strategy/merchant-provider-risk-and-fallback-economics.md`
 
 ---
 
 ## 1. Objective
 
-Turn the merchant pricing model into an operational product contract before the first non-team merchant pilots.
+Turn the merchant pricing model into an operational product contract before the first external paid pilots.
 
-The implementation rule is:
+Operating rule:
 
 > **What Sales quotes, what the merchant receives, what the UI shows, what the backend meters, and what Finance expects must describe the same product.**
 
-The architecture rule remains:
+Commercial rule:
 
-> **Commerce is the domain; Storefront is one delivery surface.**
+> **Merchant Value First. Sustainable Economics Always. Margin Expansion Over Time.**
 
-The v3 commercial correction is:
-
-> **Do not use an unusually cheap provider to define customer capacity, but also do not use a four-render worst-case cost ceiling to make the merchant offer commercially unattractive.**
-
-Merchant-facing Commerce Session capacity and render-cost control are therefore implemented as separate meters.
+The implementation must not optimize only for a static 75% GM target. It must support market capture, real merchant usage, measurable value and improving economics over time.
 
 ---
 
-## 2. Immediate Commercial Baseline — v3
+## 2. Immediate Commercial Baseline
 
 Current internal anchors:
 
@@ -41,138 +35,111 @@ Current internal anchors:
 - Growth: **$499/month / 1,500 sessions / 3,000 Standard renders**;
 - Scale: **$999/month / 4,000 sessions / 8,000 Standard renders**;
 - Enterprise: **$2,500+/month / custom**;
-- annual prepay baseline: 10 months paid / 12 months service;
-- referral partner baseline: 20% of collected recurring revenue for first 12 months;
-- agency / solution partner baseline: up to 30% recurring margin;
-- direct/channel planning mix: approximately 50/50;
-- Standard rendering is the default quality mode;
-- Premium rendering is a separate entitlement/add-on;
-- AI Commerce Session is the preferred merchant-facing shopper-capacity unit;
-- Standard/Premium render pools are the primary AI-cost meters.
+- annual prepay: 10 months paid / 12 months service;
+- referral partner: 20% of collected recurring revenue for first 12 months;
+- agency / solution partner: up to 30% recurring margin;
+- Standard/Premium render pools are cost meters;
+- AI Commerce Session is the merchant-facing shopper-capacity unit.
 
-Commercial economics must continue to be reviewed under:
-
-```text
-BEST      = low-cost provider / procurement alpha
-BASE      = sustainable long-term procurement assumption
-STRESS    = official API / emergency fallback
-```
-
-The Base Case is the pricing baseline; the Stress Case is the continuity check.
+Economics are reviewed under Best / Base / Stress provider cases.
 
 ---
 
-## 3. P0 — Align Sales Demo With the Sellable Product
+## 3. Stage-Based GM Operating Rules
+
+Engineering and Sales should not treat 75% as a hard Pilot acceptance criterion.
+
+Use:
+
+| Stage | GM guidance |
+| --- | ---: |
+| Pilot / Market Capture | **50–65% acceptable** |
+| Early Scale | **60–70%+ target** |
+| Mature Platform | **70–80% target** |
+| Long-term preferred benchmark | **~75%+ blended** |
+
+A lower-GM Pilot is acceptable if it creates valuable merchant evidence and remains within approved economics.
+
+Sustained direct GM below ~50% requires explicit approval.
+
+---
+
+## 4. P0 — Sales Demo Must Prove Merchant Value
 
 ### Shopper Demo
 
-Ensure the demo proves:
+The demo must prove:
 
 1. merchant-specific catalog;
 2. campaign/source context;
-3. AI recommendation;
+3. recommendation;
 4. Try-On;
 5. Compare;
 6. product destination;
 7. Favorite / Product Click / Inquiry;
-8. anonymous-first shopper journey.
-
-Do not expose quotas or provider/model names in the shopper journey.
+8. anonymous-first flow.
 
 ### Merchant/Admin Demo
 
-Add or revise the admin story so Sales can explain:
+Show:
 
-- current plan / Pilot status;
-- AI Commerce Sessions used / allowance;
+- plan/Pilot status;
+- Commerce Sessions used / allowance;
 - Standard renders used / allowance;
 - source/campaign traffic;
 - recommendation funnel;
 - Try-On / Compare funnel;
 - intent signals;
 - top frames;
-- Premium usage when enabled;
 - high-intent / conversion signals where available.
 
-Pilot admin does not need a full billing/settings product. Read-only internal/admin configuration is sufficient.
+The demo story must explain why VisuTry is more than VTO volume.
 
-### Sales Demo Close
-
-Use:
+Sales close:
 
 > **Start a 30-day Founding Merchant Pilot with your own frames for $149, including up to 500 AI Commerce Sessions and 1,000 Standard Try-On renders.**
 
-Sales should explain that formal plans scale by:
-
-- shopper capacity;
-- campaign count;
-- AI usage;
-- intelligence depth;
-- Premium rendering;
-- integrations/support.
-
-Do not position pricing as cost per generated image.
-
 ---
 
-## 4. P0 — Server-Side Pilot Entitlement
-
-Before the first independent pilot, implement the smallest durable commercial policy.
+## 5. P0 — Server-Side Pilot Entitlement
 
 Required:
 
-- assign merchant to `FOUNDING_PILOT`;
-- billing period start/end;
-- **Commerce Session allowance = 500**;
-- **Standard Render allowance = 1,000**;
-- Premium Render allowance = 0 unless manually granted;
-- Standard quality policy;
+- `FOUNDING_PILOT` assignment;
+- billing period;
+- Commerce Session allowance = 500;
+- Standard Render allowance = 1,000;
+- Premium = 0 unless granted;
 - campaign allowance = 1;
-- catalog guideline = 8–50 reviewed frames;
-- usage counters queryable by merchant and billing period;
+- catalog guideline = 8–50;
+- usage counters;
 - server-side enforcement;
-- internal override with audit trail.
+- audited override.
 
 A generic billing engine is not required.
 
 ---
 
-## 5. P0 — Commerce Session Meter
+## 6. P0 — Dual Usage Meter
 
-Count one Commerce Session when a valid merchant session first executes recommendation / enters the AI decision journey.
+### Commerce Session
 
-Required behavior:
+Count once when the shopper first enters the AI decision journey.
 
-- refresh does not increment;
-- retry does not increment;
-- polling does not increment;
-- Compare does not create a new Commerce Session;
-- repeated renders remain individually measurable but stay within the same Commerce Session;
-- usage is merchant- and billing-period-scoped;
-- Store usage never touches Consumer Credits/subscription counters.
+Must be idempotent across refresh, retry, polling, Compare reopen and duplicate events.
 
----
-
-## 6. P0 — Standard / Premium Render Meter
-
-Implement a second independent meter.
+### Render Meter
 
 Record separately:
 
-- Standard render attempts;
-- Standard successful renders;
-- Premium render attempts;
-- Premium successful renders;
-- failed/retried renders;
-- provider;
-- model;
-- merchant/session/campaign context;
-- recoverable unit-cost version;
-- fallback reason where applicable.
+- Standard/Premium attempts and successes;
+- failures/retries;
+- provider/model;
+- merchant/session/campaign;
+- unit-cost version;
+- fallback reason.
 
-A shopper may render multiple frames in one Commerce Session.
-
-The UI should not enforce a fixed two-frame limit merely because the packaging model assumes an average of two renders/session.
+The UI must not enforce a fixed two-frame limit merely because packaging assumes ~2 renders/session.
 
 ---
 
@@ -190,16 +157,9 @@ Primary Provider
 Fallback Provider
 ```
 
-Minimum requirements:
+Provider switch must not change merchant entitlement.
 
-1. Provider/model selection is server-owned.
-2. `STANDARD` / `PREMIUM` remain merchant-facing abstractions.
-3. Provider switch does not change merchant entitlement.
-4. AI tasks can be reconciled to provider/model.
-5. Fallback reason is recoverable where practical.
-6. Finance/Product can calculate Best/Base/Stress economics by merchant.
-
-Do not expose provider names as a contractual feature.
+Product/Finance must be able to calculate actual and Base/Stress economics by merchant/cohort.
 
 ---
 
@@ -216,51 +176,43 @@ commissionStartAt?
 commissionEndAt?
 ```
 
-Payout may remain spreadsheet-operated initially, but merchant-partner attribution should be durable.
+Merchant-partner attribution should be durable even if payout calculation is manual initially.
 
 ---
 
 ## 9. P1 — Pilot Operations Package
 
-### Sales / Commercial
-
 Prepare:
 
+### Sales
+
 - Founding Pilot one-page offer;
-- $149 / 30-day term;
-- **500-session allowance**;
-- **1,000 Standard render pool**;
-- included scope;
-- explicit exclusions;
-- privacy/data-processing summary;
-- no guaranteed conversion-uplift language;
-- Launch/Growth/Scale continuation discussion.
+- $149 / 30 days;
+- 500 sessions;
+- 1,000 Standard renders;
+- included/excluded scope;
+- no guaranteed uplift language;
+- continuation path to Launch/Growth/Scale.
 
 ### Product / Operations
 
-Prepare:
-
-- merchant onboarding checklist;
-- catalog CSV template;
-- frame enrichment/review workflow;
-- source/campaign setup worksheet;
+- onboarding checklist;
+- CSV template;
+- catalog review workflow;
+- campaign/source worksheet;
 - merchant KPI selection;
-- pilot launch checklist;
-- weekly performance report;
-- end-of-pilot ROI/continuation review.
+- weekly report;
+- end-of-Pilot ROI / continuation review.
 
 ### Engineering
 
-Prepare:
-
 - entitlement assignment;
-- dual usage meters;
-- usage dashboard/query;
-- source attribution continuity;
+- dual meters;
+- source continuity;
 - provider/cost observability;
-- privacy/retention readiness;
-- operational monitoring;
-- Consumer regression suite.
+- privacy/retention;
+- monitoring;
+- Consumer regression checks.
 
 ---
 
@@ -278,9 +230,8 @@ Standard Quality: Enabled
 Premium Quality: Not enabled
 ```
 
-Internal admin may additionally expose:
+Internal admin should additionally show:
 
-- recommendation count;
 - average renders/session;
 - provider/model;
 - actual estimated AI COGS;
@@ -290,11 +241,11 @@ Internal admin may additionally expose:
 - partner source;
 - commercial exception.
 
-Do not expose model cost, provider name, partner payout or GM to the merchant.
+Do not expose provider or margin internals to the merchant.
 
 ---
 
-## 11. P1 — Limit and Overage Readiness
+## 11. P1 — Limit, Extension and Market-Capture Policy
 
 Support:
 
@@ -308,40 +259,38 @@ OVERAGE_ENABLED
 
 Pilot behavior:
 
-- alert internally before 80% of either session or render allowance;
-- notify Sales/Product before exhaustion;
-- do not surprise-charge Pilot merchants;
-- allow audited temporary extension when commercially approved.
+- alert before ~80% of either meter;
+- no surprise charging;
+- audited temporary extension allowed;
+- Product/Sales may extend capacity when additional traffic creates high-value learning or case-study evidence;
+- an extension should remain gross-profit positive where possible, or receive explicit strategic approval.
 
-Working post-pilot render anchors:
+Working post-pilot anchors:
 
 - +500 Standard renders = $49;
 - +1,000 Standard renders = $99.
-
-Do not hard-code public overage pricing until pilot review approves it.
 
 ---
 
 ## 12. P1 — Premium Quality Switch
 
-Requirements:
+Implement:
 
-- canonical policy: `STANDARD | PREMIUM`;
-- server-side model/provider resolution;
-- campaign/merchant entitlement check;
-- independent Premium render meter;
-- merchant-facing quality naming without provider model name;
-- ability to grant temporary Premium evaluation allowance.
+- `STANDARD | PREMIUM` policy;
+- server-side provider/model resolution;
+- entitlement check;
+- independent Premium meter;
+- temporary Premium evaluation allowance.
 
-The +$99 Premium commercial anchor remains provisional; included Premium volume must wait for sustainable procurement and pilot evidence.
++$99 Premium remains provisional until quality and sustainable cost are validated.
 
 ---
 
 ## 13. P2 — Formal Plan Productization
 
-Do not fully productize Launch/Growth/Scale billing before pilot evidence.
+Do not fully productize Launch/Growth/Scale before pilot evidence.
 
-When approved, use versioned entitlements:
+Versioned entitlements:
 
 ```text
 LAUNCH
@@ -360,82 +309,47 @@ ENTERPRISE
   Custom
 ```
 
-Required dimensions:
-
-- Commerce Session allowance;
-- Standard render pool;
-- Premium render pool;
-- campaign allowance;
-- catalog guideline;
-- analytics level;
-- integration level;
-- support level.
-
-Billing requirements:
-
-- Stripe recurring price mapping;
-- monthly/annual contracts;
-- billing status sync;
-- grace/suspension policy;
-- manual enterprise contract support;
-- credits/discount support where needed.
-
-Do not derive entitlement only from Stripe price amount.
+Formal productization requires evidence that merchants understand and value the package, not only that Finance can model acceptable GM.
 
 ---
 
-## 14. P2 — Campaign as Commercial Expansion Object
+## 14. P2 — Campaign as Expansion Object
 
-Promote Campaign into a first-class Commerce entity when real merchants require persistent multi-campaign workflow.
+Promote Campaign to a first-class Commerce entity when merchants need persistent multi-campaign workflow.
 
-Triggers include:
+Campaign, analytics and Commerce Intelligence are strategically important because they should increase merchant value and revenue faster than AI COGS.
 
-- multiple simultaneous acquisition campaigns;
-- different catalog subsets;
-- different landing/offer configuration;
-- campaign-by-campaign performance;
-- additional-campaign pricing.
-
-Then implement:
-
-- lifecycle/status;
-- merchant ownership;
-- attribution identity;
-- catalog subset;
-- experience config;
-- campaign usage/reporting;
-- campaign entitlement checks.
-
-Do not build a generalized marketing automation builder at this stage.
+Do not build a generalized marketing automation suite prematurely.
 
 ---
 
-## 15. Unit Economics and Merchant Value Instrumentation
+## 15. Required Instrumentation — Economics + Value
 
-Every pilot must make the following recoverable.
+Every Pilot must make these recoverable.
 
-### Revenue
+### Revenue / acquisition
 
 - contracted price;
-- amount collected;
-- discount/credit;
-- partner relationship.
+- collected amount;
+- discounts/credits;
+- partner relationship;
+- CAC where measurable.
 
 ### AI cost
 
 - recommendation count;
-- Standard/Premium render count;
+- Standard/Premium renders;
 - provider/model;
-- provider unit-cost mapping;
+- unit-cost mapping;
 - fallback events;
-- average renders/session;
-- actual AI COGS/merchant;
-- Base Case modeled COGS/merchant.
+- renders/session;
+- actual AI COGS;
+- Base Case COGS.
 
 ### Merchant demand
 
-- merchant monthly traffic;
-- campaign traffic routed to VisuTry;
+- monthly merchant traffic;
+- traffic routed to VisuTry;
 - AI experience entry rate.
 
 ### Commerce value
@@ -446,109 +360,127 @@ Every pilot must make the following recoverable.
 - product clicks;
 - favorites;
 - inquiries;
-- verified orders/revenue where supplied;
-- merchant-reported conversion impact.
+- verified orders/revenue where available;
+- merchant-reported conversion impact;
+- merchant-perceived ROI.
 
 ### Human delivery
 
-- onboarding time;
-- catalog review time;
-- campaign setup time;
-- QA time;
-- support time.
+- onboarding/catalog/campaign/QA/support time.
 
 ---
 
-## 16. Pilot Review Gates
+## 16. Pilot Review Gates v4
 
 ### After first merchant
 
 Review:
 
-- 500-session meter correctness;
-- 1,000-render meter correctness;
-- actual renders/session;
+- meter correctness;
+- renders/session;
 - provider/cost attribution;
-- no Consumer contamination;
-- merchant understanding of the offer;
-- onboarding/support hours.
+- merchant understanding;
+- onboarding/support effort;
+- initial perceived value.
 
 ### After 3 merchants
 
 Review:
 
-- whether 500 Pilot sessions are sufficient for meaningful traffic;
-- render-pool utilization;
+- whether 500 Pilot sessions are enough for meaningful traffic;
+- render utilization;
 - $149 willingness to pay;
 - traffic-to-AI entry rate;
 - merchant ROI narrative;
-- campaign value;
-- Premium demand.
+- actual gross profit / GM;
+- whether a deliberate lower-GM extension would increase learning or market capture.
 
 ### After 5 merchants
 
-Decide whether Launch/Growth can be publicly productized at 750 / 1,500 sessions.
+Decide whether Launch/Growth are market-ready.
+
+Decision priority:
+
+1. merchant value / perceived differentiation;
+2. retention / continuation intent;
+3. willingness to pay;
+4. sustainable positive unit economics;
+5. current-period GM percentage.
 
 ### After 10 paying merchants
 
 Recalculate:
 
-- effective Stripe cost;
-- actual blended provider cost;
-- sustainable procurement benchmark;
-- official fallback delta;
-- average renders/session;
-- render-pool utilization;
+- sustainable provider cost;
+- actual GM and gross profit by plan;
+- merchant ROI evidence;
+- retention/expansion;
 - support cost;
-- GM by plan;
-- partner economics;
+- partner contribution;
 - overage design;
-- annual-plan economics;
-- merchant ROI evidence.
+- annual economics.
+
+### Quarterly after early scale
+
+Review whether cohorts are moving toward **60–70%+ GM**, with a mature target of **70–80% / ~75% preferred blended benchmark**.
 
 ---
 
-## 17. Acceptance Criteria Before First External Paid Pilot
+## 17. Margin-Trajectory Planning
 
-All must be true:
+Do not assume current AI cost remains constant for 3–5 years.
 
-1. `FOUNDING_PILOT` scope is approved.
-2. Merchant has durable Pilot entitlement.
-3. **500 Commerce Session allowance is server-enforced.**
-4. **1,000 Standard render pool is server-enforced.**
-5. Both meters are idempotent.
-6. AI usage can be reconciled to merchant/session/provider.
-7. Standard quality policy is server-owned.
-8. Provider routing/fallback does not alter merchant entitlement.
-9. Partner/direct acquisition source can be recorded.
-10. Shopper source/campaign context persists to intent.
-11. Merchant/admin can see meaningful usage/funnel data.
-12. Sales collateral only describes implemented or explicitly assisted capabilities.
-13. Pilot agreement does not promise guaranteed conversion/revenue uplift.
-14. Consumer stability/privacy gates remain satisfied.
+Track:
+
+- equivalent-quality model cost over time;
+- provider procurement improvements;
+- average renders/session;
+- Campaign/Intelligence revenue share;
+- gross margin by cohort vintage.
+
+The expected direction is margin expansion, but this is a planning thesis rather than a guaranteed forecast.
 
 ---
 
-## 18. Non-Goals Before Pilot Evidence
+## 18. Acceptance Criteria Before First External Paid Pilot
 
-Do not delay first merchants to build:
+1. `FOUNDING_PILOT` scope approved.
+2. 500 Commerce Sessions server-metered.
+3. 1,000 Standard renders server-metered.
+4. meters idempotent.
+5. usage reconciles to merchant/session/provider.
+6. provider routing is abstracted.
+7. partner/direct source can be recorded.
+8. source/campaign context persists to intent.
+9. merchant/admin shows meaningful funnel and usage data.
+10. Sales promises only implemented/assisted capabilities.
+11. no guaranteed conversion/revenue claim.
+12. Consumer isolation/privacy remains intact.
 
-- full pricing-page self-checkout;
-- public partner portal;
-- automated commission payout;
-- generalized coupon engine;
+A 75% projected GM is **not** an acceptance criterion for the first Pilot.
+
+---
+
+## 19. Non-Goals Before Pilot Evidence
+
+Do not delay Pilot for:
+
+- full self-checkout;
+- partner portal/automated payouts;
+- generalized coupon system;
 - advanced multi-touch attribution;
-- automatic performance-fee settlement;
+- performance-fee settlement;
 - enterprise CPQ;
 - generalized campaign builder;
 - public Shopify marketplace listing.
 
 ---
 
-## 19. Change Log
+## 20. Change Log
 
 | Date | Change |
 | --- | --- |
-| 2026-08-06 | Created implementation plan linking pricing, entitlement, metering, partner attribution and Pilot readiness. |
-| 2026-08-06 | v2: introduced sustainable procurement economics, Provider Router and conservative session allowances. |
-| 2026-08-06 | **v3: replaced finance-floor-only packaging with dual-meter merchant-capacity model; Pilot/Launch/Growth/Scale session entitlements revised to 500 / 750 / 1,500 / 4,000 and Standard render pools to 1,000 / 1,500 / 3,000 / 8,000; added merchant-value instrumentation and render-based overage readiness.** |
+| 2026-08-06 | Created pricing/entitlement implementation plan. |
+| 2026-08-06 | v2: sustainable procurement + Provider Router. |
+| 2026-08-06 | v3: dual-meter market-aware packaging. |
+| 2026-08-06 | **v4: replaced 75%-GM-first execution criteria with Merchant Value First economics; added market-capture extensions, stage-based GM targets, perceived-value/ROI/retention review priority, and 3–5 year margin-trajectory instrumentation.** |
