@@ -1,6 +1,6 @@
 # VisuTry Merchant Commercial Entitlements Spec
 
-**Status:** Approved Demo/Pilot baseline — AI-Native Market Economics v4  
+**Status:** Approved Demo/Pilot baseline — Intent-First AI Commerce v5  
 **Owner:** Product / Engineering / Sales  
 **Created:** 2026-08-06  
 **Last updated:** 2026-08-06  
@@ -19,18 +19,62 @@ Operating rule:
 
 > **Sales promise = merchant value = product entitlement = server-side policy = measurable usage.**
 
-The entitlement philosophy is no longer “maximize theoretical GM first.” Entitlements must balance:
+Current product value is intentionally scoped to:
 
-- merchant-perceived value;
-- market competitiveness;
-- shopper capacity;
-- sustainable AI COGS;
-- product adoption;
-- long-term margin trajectory.
+> **AI-powered shopping decision experience + measurable purchase-intent intelligence.**
+
+Revenue attribution and incrementality are later maturity layers, not Pilot requirements.
 
 ---
 
-## 2. Commercial Objects
+## 2. Evidence-Level Rule
+
+Every merchant-facing metric must be classified into one of three evidence levels.
+
+### Level 1 — Observed Intent / Current
+
+Directly observable within VisuTry:
+
+- AI Commerce Sessions;
+- recommendation completion;
+- Try-On;
+- Compare;
+- Product Click;
+- Favorite;
+- Inquiry;
+- source/campaign context;
+- top frames;
+- high-intent shopper behavior.
+
+These are the primary Pilot and early-plan analytics.
+
+### Level 2 — Attributed Conversion / Integration-Dependent
+
+Only available where merchant commerce data is connected:
+
+- orders touched by VisuTry;
+- attributed orders;
+- attributed revenue;
+- checkout behavior;
+- conversion rate among VisuTry-engaged shoppers.
+
+These are not automatically incremental outcomes.
+
+### Level 3 — Incremental Outcome / Experiment-Dependent
+
+Requires credible causal design:
+
+- conversion uplift;
+- incremental orders;
+- incremental revenue;
+- incremental GMV;
+- causal ROI.
+
+These must never be inferred from attribution alone.
+
+---
+
+## 3. Commercial Objects
 
 Minimum commercial model:
 
@@ -42,7 +86,7 @@ Merchant
   ├── Premium Render Pool?
   ├── Campaign Entitlements
   ├── Catalog Entitlements
-  ├── Analytics Entitlements
+  ├── Intent Analytics Entitlements
   └── Partner Attribution?
 ```
 
@@ -68,7 +112,7 @@ Price and entitlement version must be independently changeable.
 
 ---
 
-## 3. Plan Codes
+## 4. Plan Codes
 
 ```text
 FOUNDING_PILOT
@@ -80,7 +124,7 @@ ENTERPRISE
 
 ---
 
-## 4. Founding Pilot Entitlement
+## 5. Founding Pilot Entitlement
 
 Commercial anchor:
 
@@ -97,14 +141,14 @@ Included baseline:
 - Try-On / Frame Compare;
 - source / campaign continuity;
 - product destination continuity;
-- favorite / product click / inquiry signals;
-- merchant/admin performance view;
+- Product Click / Favorite / Inquiry signals;
+- merchant/admin intent-performance view;
 - assisted setup;
-- weekly pilot report.
+- weekly Pilot report.
 
 The Pilot must provide enough real shopper capacity to test merchant value. It must not be reduced merely to preserve a theoretical 75% GM.
 
-Pilot exclusions unless agreed:
+Pilot exclusions unless explicitly agreed:
 
 - unlimited traffic;
 - public Shopify app;
@@ -112,13 +156,15 @@ Pilot exclusions unless agreed:
 - custom API;
 - real-time inventory sync;
 - enterprise SSO;
-- guaranteed revenue uplift;
+- attributed revenue guarantee;
+- guaranteed conversion uplift;
+- incremental GMV claim;
 - autonomous agent checkout;
 - medical/optical measurement claims.
 
 ---
 
-## 5. Formal Entitlement Matrix
+## 6. Formal Entitlement Matrix
 
 | Entitlement | Launch | Growth | Scale | Enterprise |
 | --- | --- | --- | --- | --- |
@@ -130,11 +176,11 @@ Pilot exclusions unless agreed:
 | Recommendation | Included | Included | Included | Included |
 | Standard Try-On | Included within render pool | Included | Included | Custom |
 | Compare | Included | Included | Included | Included |
-| Product click / favorite / inquiry | Included | Included | Included | Included |
-| Source attribution | Basic | Advanced | Advanced | Custom |
-| AI-agent source classification | Included | Included | Included | Included |
-| Commerce intelligence | Basic | Advanced | Advanced | Custom |
-| Conversion/revenue linkage | When connected | When connected | Where connected | Custom |
+| Product Click / Favorite / Inquiry | Included | Included | Included | Included |
+| Source / campaign insight | Basic | Advanced | Advanced | Custom |
+| Intent intelligence | Basic | Advanced | Advanced | Custom |
+| Attributed conversion/revenue | Not required / future | When connected | When connected | Custom |
+| Incrementality measurement | Not offered | Not offered | Future / gated | Custom |
 | Premium rendering | Add-on | Allowance/add-on | Larger allowance | Custom |
 | CSV onboarding | Included | Included | Included | Included |
 | URL-assisted import | Gated | Gated | Gated | Custom |
@@ -142,27 +188,28 @@ Pilot exclusions unless agreed:
 | API | No | Gated | Gated / included | Custom |
 | Support | Standard | Priority | Priority | SLA / dedicated |
 
-These values remain hypotheses until pilot evidence confirms them.
+These values remain hypotheses until Pilot evidence confirms them.
 
 ---
 
-## 6. Entitlement Decision Rule
+## 7. Entitlement Decision Rule
 
 A plan entitlement must not be determined only by AI cost.
 
-When revising session/render allowances, Product and Finance must evaluate five dimensions together:
+When revising session/render allowances, Product and Finance evaluate:
 
-1. **Merchant usability** — enough capacity to run a meaningful campaign.
-2. **Market credibility** — competitive against VTO and optical-commerce alternatives.
-3. **Merchant ROI** — plausible path to value greater than software fee.
-4. **Sustainable COGS** — Base Case economics remain viable.
-5. **Margin trajectory** — credible path toward mature 70–80% economics.
+1. **Merchant usability** — enough capacity for meaningful traffic.
+2. **Market credibility** — competitive against VTO / optical-commerce alternatives.
+3. **Perceived decision value** — merchant understands why the product is more than VTO.
+4. **Observed purchase-intent signals** — Product Click / Favorite / Inquiry and journey depth.
+5. **Sustainable COGS** — Base Case economics remain viable.
+6. **Margin trajectory** — credible path toward mature 70–80% economics.
 
-A plan may operate at ~50–65% GM during market capture if the exception is deliberate and the commercial evidence justifies it.
+A plan may operate at ~50–65% GM during market capture when this is deliberate and evidence-producing.
 
 ---
 
-## 7. AI Commerce Session Meter
+## 8. AI Commerce Session Meter
 
 An AI Commerce Session is a merchant-scoped shopper session that first reaches the AI recommendation / decision boundary.
 
@@ -176,7 +223,7 @@ The meter must be idempotent across refresh, retry, polling, Compare reopen and 
 
 ---
 
-## 8. Render Pool Meter
+## 9. Render Pool Meter
 
 Render consumption is independent from Commerce Session consumption.
 
@@ -191,11 +238,11 @@ Instrument:
 - unit-cost version;
 - fallback reason.
 
-A shopper may render multiple frames in one Commerce Session. Do not force exactly two frames just because packaging assumes an average of two renders/session.
+Do not force exactly two frames merely because packaging assumes an average of two renders/session.
 
 ---
 
-## 9. Limit Behavior
+## 10. Limit Behavior
 
 Supported states:
 
@@ -215,13 +262,13 @@ Rules:
 - temporary audited extension may be approved;
 - limit handling never mutates Consumer credits/quotas.
 
-During Pilot, Product may extend usage intentionally when additional real traffic has high learning or case-study value, provided economics remain gross-profit positive or are explicitly approved as market-capture investment.
+During Pilot, Product may extend usage when additional traffic has high learning or case-study value, provided economics remain gross-profit positive or are explicitly approved.
 
 ---
 
-## 10. Overage Policy
+## 11. Overage Policy
 
-Working post-pilot anchors:
+Working post-Pilot anchors:
 
 - **+500 Standard renders: $49**;
 - **+1,000 Standard renders: $99**.
@@ -232,7 +279,7 @@ Overage exists to protect cost and support expansion, not to make the base packa
 
 ---
 
-## 11. Render Quality Policy
+## 12. Render Quality Policy
 
 Merchant-facing modes:
 
@@ -247,7 +294,7 @@ Premium usage is separately metered and must use sustainable procurement economi
 
 ---
 
-## 12. Campaign Entitlement
+## 13. Campaign Entitlement
 
 Campaign becomes a first-class Commerce object once merchants require persistent multi-campaign workflow.
 
@@ -255,39 +302,54 @@ Working additional-campaign anchor:
 
 > **+$99–199 / active campaign / month**
 
-Campaign and Commerce Intelligence are strategically important because they can increase merchant value and revenue without increasing rendering COGS proportionally.
+Campaign and Intent Intelligence are strategically important because they can increase merchant value without increasing rendering COGS proportionally.
 
 ---
 
-## 13. Analytics Entitlement
+## 14. Analytics Entitlement
 
-### Basic
+### Basic — Current Sellable
 
 - Commerce Sessions;
 - recommendation completion;
 - Try-On / Compare;
-- favorites;
-- product clicks;
-- inquiries;
+- Product Click;
+- Favorite;
+- Inquiry;
 - top frames;
 - basic source/campaign view;
 - session/render usage.
 
-### Advanced
+### Advanced — Current / Near-Term
 
 - source/campaign comparison;
 - high-intent shopper analysis;
 - catalog/frame performance;
 - funnel segmentation;
-- AI-agent segmentation where reliable;
-- conversion linkage where connected;
+- AI-agent source segmentation where reliable;
 - period-over-period reporting.
 
-Analytics must distinguish observed event, inferred intent, verified conversion and attributed revenue.
+### Integration-Dependent
+
+Only where merchant commerce data is connected:
+
+- attributed order count;
+- attributed revenue;
+- downstream conversion linkage.
+
+### Experiment-Dependent
+
+Only after credible experimental design:
+
+- conversion uplift;
+- incremental orders;
+- incremental revenue / GMV.
+
+Analytics copy must never collapse these evidence levels.
 
 ---
 
-## 14. Provider / Cost Attribution
+## 15. Provider / Cost Attribution
 
 Every merchant AI task should be attributable where practical to:
 
@@ -306,7 +368,7 @@ Customer entitlement must not depend on provider identity.
 
 ---
 
-## 15. Channel Attribution
+## 16. Channel Attribution
 
 Supported merchant acquisition relationships:
 
@@ -317,11 +379,11 @@ AGENCY_PARTNER
 STRATEGIC_PARTNER
 ```
 
-Partner attribution must be durable and not depend on a coupon alone.
+Partner attribution must be durable and not depend on coupon alone.
 
 ---
 
-## 16. Production-Readiness Rule for Sales
+## 17. Production-Readiness Rule for Sales
 
 Every entitlement status:
 
@@ -332,29 +394,35 @@ PLANNED
 NOT_OFFERED
 ```
 
-Sales may contract only production-ready or explicitly approved pilot-assisted capabilities.
+Sales may contract only production-ready or explicitly approved Pilot-assisted capabilities.
+
+Revenue attribution must not be sold as current functionality unless the specific merchant integration exists.
+
+Incrementality must not be sold as current functionality unless an approved experiment framework exists.
 
 ---
 
-## 17. Pilot Data Required
+## 18. Pilot Data Required
 
-For every Pilot collect:
-
-### Merchant value
+### Current mandatory merchant-value evidence
 
 - merchant monthly traffic;
 - traffic routed to VisuTry;
 - AI experience entry rate;
-- recommendation/Try-On/Compare usage;
-- product clicks/favorites/inquiries;
-- verified conversion/revenue where available;
+- Commerce Sessions;
+- recommendation completion;
+- Try-On completion;
+- Compare usage;
+- Product Clicks;
+- Favorites;
+- Inquiries;
+- top frames / intent concentration;
 - merchant-perceived value;
 - willingness to pay;
-- retention/continuation decision.
+- continuation / expansion decision.
 
 ### AI economics
 
-- Commerce Sessions;
 - Standard/Premium renders;
 - renders/session;
 - render-pool utilization;
@@ -371,18 +439,25 @@ For every Pilot collect:
 - actual GM;
 - CAC where measurable.
 
+### Optional / later
+
+- orders/revenue where already available from merchant data;
+- attributed conversion when integration exists;
+- incrementality only when experiment design exists.
+
 Highest-priority unknowns:
 
 1. merchant-perceived value;
 2. AI experience entry rate;
 3. renders / Commerce Session;
-4. intent/conversion uplift;
+4. Product Click / Favorite / Inquiry behavior;
 5. willingness to pay;
-6. margin trajectory.
+6. continuation / expansion intent;
+7. margin trajectory.
 
 ---
 
-## 18. Acceptance Criteria for First External Paid Pilot
+## 19. Acceptance Criteria for First External Paid Pilot
 
 1. Merchant has `FOUNDING_PILOT` server-side.
 2. 500 Commerce Sessions are metered.
@@ -392,18 +467,21 @@ Highest-priority unknowns:
 6. Standard quality policy is server-owned.
 7. Limit state/manual extension are operational.
 8. Source/campaign context persists through intent.
-9. Merchant/admin can see meaningful usage/funnel data.
+9. Merchant/admin can see meaningful usage + intent funnel data.
 10. Partner attribution can be recorded.
 11. Consumer counters remain isolated.
-12. Sales does not promise guaranteed conversion or unimplemented features.
+12. Sales does not promise revenue attribution, conversion uplift or incremental GMV unless separately implemented and evidenced.
+
+Revenue attribution is **not** a Pilot-readiness requirement.
 
 ---
 
-## 19. Change Log
+## 20. Change Log
 
 | Date | Change |
 | --- | --- |
 | 2026-08-06 | Created merchant entitlement baseline. |
 | 2026-08-06 | v2: sustainable procurement rebasing. |
 | 2026-08-06 | v3: dual-meter market-aware capacity model. |
-| 2026-08-06 | **v4: aligned entitlement decisions to Merchant Value First economics; added market-credibility, merchant ROI, stage-based GM flexibility, market-capture extensions and margin-trajectory evidence requirements.** |
+| 2026-08-06 | v4: aligned entitlements to AI-native Merchant Value First economics. |
+| 2026-08-06 | **v5: moved early merchant entitlement to Intent-First AI Commerce. Added evidence-level separation between observed intent, attributed conversion and experiment-dependent incrementality; removed revenue attribution from Pilot requirements and current Sales promise.** |
