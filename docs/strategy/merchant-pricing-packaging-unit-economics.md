@@ -1,132 +1,173 @@
 # VisuTry Merchant Pricing, Packaging & Unit Economics
 
-**Status:** Active internal commercial baseline — Market-Aware Economics v3  
+**Status:** Active internal commercial baseline — AI-Native Market Economics v4  
 **Owner:** Product / Strategy / Engineering / Sales  
 **Created:** 2026-08-06  
 **Last updated:** 2026-08-06  
 **Review cadence:** Monthly during pilot stage; quarterly after pricing stabilizes  
 **Related strategy:** `docs/strategy/commercial-strategy.md`  
 **Related provider risk:** `docs/strategy/merchant-provider-risk-and-fallback-economics.md`  
-**Related Store MVP:** `docs/product/specs/visutry-store-mvp.md`  
-**Related commerce architecture:** `docs/product/specs/visutry-commerce-architecture.md`  
-**Related pilot plan:** `docs/product/plans/visutry-store-demo-pilot-readiness-plan.md`  
-**Related entitlement spec:** `docs/product/specs/merchant-commercial-entitlements.md`
+**Related entitlement spec:** `docs/product/specs/merchant-commercial-entitlements.md`  
+**Related implementation plan:** `docs/product/plans/merchant-pricing-entitlement-implementation-plan.md`
 
 ---
 
 ## 1. Purpose
 
-This document is the internal commercial baseline for VisuTry merchant pricing.
+This document is the internal source of truth for merchant pricing, packaging, unit economics and gross-margin philosophy.
 
-Pricing is treated as a cross-functional operating contract:
+Pricing is a cross-functional operating contract:
 
-> **Sales promise = packaging = merchant value = feature entitlement = usage meter = delivery cost = gross margin = channel economics.**
+> **Sales promise = merchant value = packaging = entitlement = usage meter = delivery cost = gross profit = channel economics.**
 
-The governing product thesis remains:
+The product thesis remains:
 
 > **Storefront is the delivery surface. AI Commerce / Campaign Engine is the business.**
 
-The governing pricing thesis remains:
+The pricing thesis remains:
 
 > **VisuTry does not charge merchants for an AI try-on feature. It charges for an AI commerce system that turns traffic into measurable shopping intent and conversion.**
 
-### v3 correction
+The v4 operating principle is:
 
-v2 corrected the opposite problem of v1: it stopped relying on unusually low provider pricing, but it pushed customer-facing session allowances too low by treating the conservative four-render cost ceiling as if it were normal shopper behavior.
+> **Merchant Value First. Sustainable Economics Always. Margin Expansion Over Time.**
 
-v3 therefore introduces a more practical rule:
-
-> **Merchant-facing capacity and internal render-cost control are related, but they are not the same entitlement.**
-
-VisuTry should sell enough shopper capacity for a merchant to run a meaningful campaign, while controlling COGS through a separate render pool and real usage instrumentation.
+This explicitly replaces a traditional SaaS interpretation in which every plan must show ~75% gross margin from Day 1.
 
 ---
 
-## 2. External Market Reality
+## 2. Why AI-Native Martech Needs a Different Margin Model
 
-Current market references show that merchants already see virtual try-on capacity in the hundreds to thousands of shoppers per month at sub-$200 price points.
+Traditional SaaS often targets ~75–85%+ gross margin because marginal software-delivery cost is low.
 
-Relevant examples researched for planning:
+AI-native products introduce a material variable COGS layer:
 
-- Fittingbox Shopify pricing includes materially more VTO-user capacity at roughly $59–199/month depending on tier.
-- Banuba and other VTO vendors similarly package thousands of monthly try-ons/users at low-to-mid hundreds of dollars.
-- Optify proves optical merchants will pay roughly $149–299/month for a broader workflow that includes catalog, VTO, pre-shop and conversion/analytics value.
+- model inference;
+- image generation;
+- provider routing/fallback;
+- storage/observability at scale;
+- usage that increases directly with customer activity.
 
-These products are not identical to VisuTry. VisuTry intends to sell a broader decision/conversion workflow:
+Therefore 75% remains a useful **mature software-quality benchmark**, but should not be treated as an absolute early-stage constraint.
 
-> recommendation → try-on → compare → intent → attribution → commerce intelligence.
+VisuTry is also creating a new category and must optimize for market adoption, merchant proof and learning velocity. A plan with 80% theoretical GM but insufficient merchant value is commercially worse than a 55–65% GM plan that produces strong adoption, retention and merchant ROI.
 
-However, merchants will still compare effective shopper capacity. A plan that costs $199 but serves only ~250 shoppers/month is difficult to justify unless the value per shopper is already proven.
+The correct objective is:
 
-Therefore:
-
-> **Usage packaging must be financially sustainable and market-credible at the same time.**
+> **Maximize merchant value and market adoption subject to sustainable unit economics.**
 
 ---
 
-## 3. Cost Philosophy — Three Procurement Cases
+## 3. Gross-Margin Philosophy v4
 
-VisuTry maintains three AI cost views.
+### 3.1 Stage targets
+
+| Stage | Gross-margin guidance | Operating objective |
+| --- | ---: | --- |
+| Pilot / Market Capture | **50–65% acceptable** | merchant adoption, proof, case studies, learning |
+| Early Scale | **60–70%+ target** | growth with improving cost control |
+| Mature Platform | **70–80% target** | scalable software economics |
+| Long-term preferred benchmark | **~75%+ blended** | high-quality mature economics |
+
+### 3.2 Floors
+
+- Recurring direct GM should not remain **below ~50%** without explicit strategic approval.
+- Stress/fallback operation must remain **gross-profit positive**.
+- Channel deals must preserve positive contribution after partner share and direct delivery cost.
+- Low-margin acquisition exceptions must be time-limited and tied to a clear strategic objective.
+
+### 3.3 What matters more than a single GM percentage
+
+VisuTry should track:
+
+- gross profit dollars / merchant;
+- merchant ROI;
+- attributed or verified commerce value / VisuTry fee;
+- commerce value / AI COGS;
+- actual renders / Commerce Session;
+- retention and expansion;
+- CAC payback;
+- gross-margin trajectory by cohort and plan.
+
+A 60% GM customer that clearly generates merchant value and expands may be superior to an 80% GM customer that does not retain.
+
+---
+
+## 4. Margin Trajectory Is a First-Class Metric
+
+AI inference cost should not be modeled as permanently static.
+
+The strategic planning assumption is:
+
+> **Over a 3–5 year horizon, cost per unit of equivalent AI capability is expected to decline structurally, although product quality and usage intensity may increase at the same time.**
+
+This is a planning assumption, not a contractual guarantee.
+
+Margin expansion can come from:
+
+- lower model/provider prices;
+- negotiated volume procurement;
+- provider routing;
+- cheaper models for low-value steps;
+- batch/caching where applicable;
+- lower renders/session through better recommendation quality;
+- product price increases;
+- higher-margin Campaign / Commerce Intelligence revenue;
+- integration/API/enterprise revenue;
+- better support efficiency.
+
+VisuTry should retain part of future cost improvement as margin expansion rather than automatically passing all savings into higher free usage.
+
+---
+
+## 5. Cost Philosophy — Three Procurement Cases
 
 | Cost case | Meaning | Use |
 | --- | --- | --- |
-| **Best / Procurement Alpha** | unusually favorable provider price such as current grsai pricing | upside, extra margin, CAC/channel buffer |
-| **Base / Sustainable Procurement** | repeatable long-term commercial procurement level | primary pricing and entitlement baseline |
-| **Stress / Official API** | direct official API list pricing / emergency fallback | continuity and downside stress test |
+| **Best / Procurement Alpha** | unusually favorable provider pricing such as current grsai | upside, CAC/channel buffer, extra margin |
+| **Base / Sustainable Procurement** | repeatable long-term commercial procurement level | primary pricing and entitlement planning |
+| **Stress / Official API** | direct official list price / emergency fallback | continuity and downside test |
 
-### 3.1 Best Case — current grsai observed cost
+### 5.1 Current Best Case
 
-| Capability | Model | Current unit cost |
+Current observed grsai costs:
+
+| Capability | Model | Unit cost |
 | --- | --- | ---: |
-| Recommendation | `gemini-3.1-flash-lite` | RMB 0.0007425 / recommendation |
-| Standard Try-On | `nano-banana-2-lite` | RMB 0.02725 / generated try-on |
-| Premium Try-On | `nano-banana-2` | RMB 0.07425 / generated try-on |
-| Failed / retried request | Current provider behavior | No model cost |
-| Compare | Reuses existing try-ons | No additional model cost |
+| Recommendation | `gemini-3.1-flash-lite` | RMB 0.0007425 |
+| Standard Try-On | `nano-banana-2-lite` | RMB 0.02725 |
+| Premium Try-On | `nano-banana-2` | RMB 0.07425 |
+| Failed/retried request | current provider behavior | no model cost |
+| Compare | reuses existing renders | no extra model cost |
 
-Planning FX remains RMB 7.0 = USD 1.00 for internal modeling only.
+Planning FX: RMB 7.0 = USD 1.00.
 
-Approximate Best-Case USD costs:
+### 5.2 Base Case
 
-- Recommendation: ~$0.00011
-- Standard render: ~$0.00389
-- Premium render: ~$0.01061
+Until stable multi-provider quotes exist, planning assumptions remain:
 
-### 3.2 Base Case — sustainable procurement planning assumption
+- Standard successful render: **$0.025**;
+- Recommendation reserve: **$0.0002 / Commerce Session**.
 
-Until VisuTry has negotiated quotes from multiple stable providers, use:
+These are internal planning assumptions, not public market claims.
 
-> **Standard render = $0.025 / successful render**
+### 5.3 Stress Case
 
-Recommendation reserve:
-
-> **$0.0002 / Commerce Session**
-
-These are planning assumptions, not claims about a specific supplier.
-
-### 3.3 Stress Case — official API planning assumption
-
-For downside planning use:
-
-> **Standard render = ~$0.0336 / successful render**
-
-The provider-risk document owns detailed fallback assumptions.
+Use approximately **$0.0336 / Standard render** for official-API stress planning until the provider-risk document is refreshed.
 
 ---
 
-## 4. Commercial Usage Model — Dual Meter
+## 6. Commercial Usage Model — Dual Meter
 
-### 4.1 Merchant-facing unit: AI Commerce Session
+Merchant-facing capacity and AI cost control are separate.
 
-An **AI Commerce Session** is one merchant-scoped shopper decision journey that reaches the AI recommendation/decision boundary.
+### Merchant-facing unit
 
-It represents a shopper served, not an image.
+> **AI Commerce Session** = one merchant-scoped shopper decision journey that reaches the AI recommendation / decision boundary.
 
-### 4.2 Internal cost unit: render pool
+### Cost unit
 
-A shopper session may generate zero, one, two, three or four try-on renders.
-
-Therefore the commercial system must meter separately:
+Meter separately:
 
 ```text
 Commerce Sessions
@@ -134,23 +175,13 @@ Standard Renders
 Premium Renders
 ```
 
-The previous v2 assumption of four renders for every session remains useful only as a stress ceiling. It must not define normal customer capacity.
+A shopper may generate zero to several renders. Two Standard renders per Commerce Session remains the current packaging planning average; actual pilot data must replace it.
 
-### 4.3 Planning average
-
-Until pilot evidence exists, v3 uses:
-
-> **2 standard renders per Commerce Session as the packaging planning average**
-
-This is deliberately more realistic than the v2 four-render ceiling while remaining conservative enough for early planning.
-
-Actual average renders/session is a primary pilot metric and must replace this assumption.
+The shopper UX must not be forced into an artificial fixed two-frame limit.
 
 ---
 
-## 5. Pricing Architecture v3
-
-List prices remain value-based:
+## 7. Pricing Architecture v4
 
 | Plan | Founding Pilot | Launch | Growth | Scale | Enterprise |
 | --- | ---: | ---: | ---: | ---: | ---: |
@@ -158,87 +189,81 @@ List prices remain value-based:
 | AI Commerce Sessions | **500** | **750** | **1,500** | **4,000** | Custom |
 | Standard Render Pool | **1,000** | **1,500** | **3,000** | **8,000** | Custom |
 | Active campaigns | 1 | 1 | 3 | 10 | Custom |
-| Catalog guideline | 8–50 | Up to 100 | Up to 500 | Up to 2,000 | Custom |
+| Catalog guideline | 8–50 | 100 | 500 | 2,000 | Custom |
 | Recommendation | Yes | Yes | Yes | Yes | Yes |
 | Try-On / Compare | Yes | Yes | Yes | Yes | Yes |
 | Source attribution | Pilot | Basic | Advanced | Advanced | Custom |
-| AI-agent attribution | Yes | Yes | Yes | Yes | Custom |
 | Commerce intelligence | Pilot report | Basic | Advanced | Advanced | Custom |
-| Conversion/revenue linkage | Assisted | When connected | When connected | Included where connected | Custom |
-| Premium rendering | Evaluation only | Add-on | Allowance/add-on | Larger allowance | Custom |
+| Conversion/revenue linkage | Assisted | When connected | When connected | Where connected | Custom |
+| Premium rendering | Evaluation | Add-on | Allowance/add-on | Larger allowance | Custom |
 | Support | Assisted | Standard | Priority | Priority | SLA / dedicated |
 
-These values supersede both the original 1,000 / 5,000 / 10,000 session baseline and the v2 250 / 600 / 1,200 finance-floor baseline.
-
-### Why v3 is better
-
-- v1 was supplier-cost optimistic.
-- v2 was financially safe but commercially too restrictive.
-- v3 separates shopper capacity from render consumption and therefore better reflects how merchants actually evaluate the product.
+These values remain market hypotheses until pilot evidence confirms them.
 
 ---
 
-## 6. Merchant Economics / ROI Logic
+## 8. Merchant Value and Competitive Positioning
 
-Pricing must be defensible from the merchant side, not only from VisuTry gross margin.
+VisuTry must not compete on raw VTO volume alone.
 
-Working internal planning assumptions until pilot data exists:
+If a merchant perceives the offer as:
 
-- eyewear merchant AOV: **~$150**;
-- baseline ecommerce conversion: **~2%**;
-- Growth ICP monthly traffic: **~10K–50K visits**;
-- Launch ICP monthly traffic: **~2K–10K visits**;
-- Scale ICP: **50K+ visits and/or multiple campaigns/markets**.
+> `$499 for 1,500 try-ons`
 
-### 6.1 Growth plan example
+then the product will be compared unfavorably with lower-cost VTO vendors.
 
-Growth includes 1,500 AI Commerce Sessions.
+The merchant must instead understand the value chain:
 
-At $499/month and $150 AOV, merchant fee is recovered by roughly:
+> **campaign traffic → AI recommendation → shortlist → try-on → compare → product intent → attribution → commerce intelligence.**
 
-> **4 incremental orders/month**
+The commercial question is not only “how many renders?” but:
 
-because 4 × $150 = $600.
+> **How much merchant decision value is created per shopper served?**
 
-Across 1,500 engaged shoppers, four incremental orders correspond to only about:
+### Growth-plan hurdle example
 
-> **0.27 percentage points of incremental conversion within the served cohort**
+Working planning assumptions:
 
-This does not prove VisuTry will achieve that uplift. It establishes that the economic hurdle is plausible enough to test.
+- AOV: ~$150;
+- Growth fee: $499;
+- included Commerce Sessions: 1,500.
 
-### 6.2 Value proof requirement
+Roughly 4 incremental orders × $150 = $600, which covers the monthly fee.
 
-A $499 Growth plan is only defensible if VisuTry can show more than VTO volume.
+Across 1,500 engaged shoppers this is ~0.27 percentage points of incremental conversion in the served cohort.
 
-The product must increasingly prove:
+This is **not a promised uplift**. It is an internal plausibility test.
 
-- Recommendation completion;
-- Try-On / Compare engagement;
-- Product clicks;
-- Favorites / inquiries;
-- high-intent shoppers;
-- verified orders where connected;
-- attributed revenue where evidence is reliable.
-
-If VisuTry cannot connect usage to merchant outcomes, merchants will benchmark it as a VTO widget and $499 becomes difficult to defend.
+A strong long-term target is for a merchant to perceive and eventually verify **3×+ value / fee**, with higher targets where attribution quality allows.
 
 ---
 
-## 7. Gross Margin Model v3
+## 9. Market Capture Policy
 
-### 7.1 Internal targets
+VisuTry is an innovative product entering an undeveloped category. Early economics may deliberately trade margin for:
 
-| Metric | Target |
-| --- | ---: |
-| Mature blended gross margin | **≥70–75%** |
-| Mature direct SMB target | **~70–80%** |
-| Enterprise / high-service target | **≥65–70%** |
-| Contribution after channel share | **≥60% of retained revenue where practical** |
-| Absolute recurring-contract exception floor | **50% contribution margin** |
+- reference merchants;
+- conversion case studies;
+- real traffic data;
+- campaign data;
+- stronger frame intelligence;
+- integration learning;
+- partner distribution;
+- faster category occupation.
 
-The previous hard assumption that every standard SMB plan must show ≥75% gross margin at 100% maximum theoretical usage is intentionally relaxed. A market-usable product with measured overage is preferable to an unattractive plan with theoretical margin purity.
+Strategic low-margin offers are acceptable when:
 
-### 7.2 Base Case at full render-pool consumption
+1. expected GM remains roughly 50%+ or has explicit approval;
+2. scope/time are defined;
+3. merchant learning value is high;
+4. the offer creates reusable product or GTM evidence;
+5. there is a credible path to higher future margin.
+
+Do not use low margin merely to hide weak merchant value.
+
+---
+
+## 10. Current Base-Case Economics
 
 Assumptions:
 
@@ -247,140 +272,89 @@ Assumptions:
 - infra/observability reserve: 2% revenue;
 - support reserve: Launch $10 / Growth $20 / Scale $40.
 
-| Plan | Revenue | Render Pool | AI Cost | Payment | Infra | Support | Direct Cost | Full-pool GM |
-| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| Launch | $199 | 1,500 | ~$37.5 | ~$10 | ~$4 | $10 | **~$61.5** | **~69%** |
-| Growth | $499 | 3,000 | ~$75 | ~$25 | ~$10 | $20 | **~$130** | **~74%** |
-| Scale | $999 | 8,000 | ~$200 | ~$50 | ~$20 | $40 | **~$310** | **~69%** |
+At full included Standard Render Pool consumption:
 
-Recommendation cost is immaterial at this scale and included in planning reserve.
+| Plan | Revenue | AI Cost | Other direct reserves | Approx. direct cost | Approx. GM |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| Launch | $199 | ~$37.5 | ~$24 | ~$61.5 | **~69%** |
+| Growth | $499 | ~$75 | ~$55 | ~$130 | **~74%** |
+| Scale | $999 | ~$200 | ~$110 | ~$310 | **~69%** |
 
-These are worst-case included-pool economics. Actual GM should be calculated from real render utilization.
+These are planning stress-within-base-case figures, not required minimums or promises.
 
-### 7.3 Stress Case
-
-At official-price stress cost (~$0.0336/render), the same pools reduce margin materially but remain manageable for temporary failover.
-
-Sustained stress-mode operation requires one or more of:
-
-- provider renegotiation;
-- lower render pool on new contracts;
-- overage activation;
-- plan repricing;
-- quality-routing changes.
-
-Do not promise annual economics that assume the Best Case.
+The important test is whether real merchant cohorts produce enough value and retain while blended GM moves toward the long-term target.
 
 ---
 
-## 8. Overage / Expansion
-
-The first Pilot must not surprise-charge merchants.
-
-Usage states:
-
-```text
-NORMAL
-APPROACHING_LIMIT
-LIMIT_REACHED
-MANUAL_EXTENSION
-OVERAGE_ENABLED
-```
-
-Working post-pilot anchors:
-
-- additional **500 standard renders: +$49**;
-- additional **1,000 standard renders: +$99**;
-- larger volume bundles: negotiated / plan upgrade.
-
-Why render-based overage instead of session-only overage:
-
-> the merchant buys shopper capacity, while rendering is the dominant variable AI cost.
-
-This protects both merchant usability and VisuTry margin.
-
-Public overage pricing remains provisional until 3–5 merchant pilots provide real distribution data.
-
----
-
-## 9. Procurement Alpha Policy
+## 11. Procurement Alpha Policy
 
 Low-cost provider advantage is strategic margin, not customer entitlement.
 
-Procurement alpha should fund:
+Use procurement alpha to fund:
 
 - CAC recovery;
-- channel commissions;
-- promotions;
+- partner share;
+- market-capture promotions;
+- provider fallback;
 - R&D;
-- provider switching risk;
-- temporary fallback cost;
 - margin buffer.
 
-Do not automatically increase contractual render pools because a temporary provider is unusually inexpensive.
+Do not convert temporary low provider pricing into irreversible customer allowances.
 
 ---
 
-## 10. Premium Rendering
+## 12. Overage and Expansion
 
-Merchant-facing quality modes remain:
+The merchant buys shopper capacity; rendering is the dominant variable AI cost.
 
-```text
-STANDARD
-PREMIUM
-```
+Working post-pilot anchors remain:
 
-Provider/model names are implementation details.
+- +500 Standard renders: **$49**;
+- +1,000 Standard renders: **$99**;
+- larger bundles: negotiated / plan upgrade.
 
-Working commercial anchor:
-
-> **Premium Visual Quality: +$99/month**
-
-The included Premium render pool is not yet fixed. It must be based on:
-
-- sustainable Premium procurement cost;
-- measured quality improvement;
-- actual merchant demand;
-- average premium renders/session.
+No Pilot merchant should receive surprise automatic overage billing.
 
 ---
 
-## 11. Campaign Expansion Pricing
+## 13. Premium, Campaign and Higher-Margin Expansion
 
-Campaign remains both a product object and an expansion-revenue object.
+### Premium Rendering
 
-Working anchor:
+Working anchor: **+$99/month**, allowance TBD from sustainable Premium cost and merchant demand.
 
-> **Additional active campaign: +$99 to +$199/month**
+### Additional Campaign
 
-The longer-term revenue equation remains:
+Working anchor: **+$99–199 / active campaign / month**.
+
+### Strategic importance
+
+Campaign, analytics, attribution and Commerce Intelligence are important because they can increase revenue without increasing AI COGS proportionally.
+
+Long-term revenue equation:
 
 > **Merchant × Campaigns × Usage × Conversion Value**
 
-Campaign price is driven by additional merchant value, traffic, measurement and operational scope, not arbitrary configuration count.
+This is also a primary route to blended margin expansion.
 
 ---
 
-## 12. Channel Economics
+## 14. Channel Economics
 
-Long-term acquisition mix assumption:
-
-> **~50% direct / ~50% channel**
-
-Baseline policies:
+Planning mix remains approximately **50% direct / 50% channel**.
 
 - Referral Partner: **20% of net collected recurring subscription revenue for first 12 months**;
 - Agency / Solution Partner: **up to 30% recurring margin/revenue share**;
-- Strategic partner: negotiated wholesale/revenue share/minimum commitment;
-- Merchant-to-merchant referral: prefer account credit over perpetual cash share.
+- Strategic Partner: negotiated;
+- Merchant referral: prefer account credit.
 
-Channel margin must be recalculated using actual render utilization. Heavy-usage or highly serviced merchants may require different channel economics.
+Channel economics must be reviewed using actual usage and support cost, not theoretical plan averages alone.
 
 ---
 
-## 13. Discount Policy
+## 15. Discount Policy
 
-Default annual offer:
+Default annual offer remains:
 
 > **Pay for 10 months, receive 12 months.**
 
@@ -388,129 +362,108 @@ Default rule:
 
 > **One primary commercial discount only unless explicitly approved.**
 
-Partner payout is calculated on net collected revenue after approved customer discount.
-
-Annual contracts must be reviewed against Base and Stress procurement cases.
+Annual contracts must be reviewed under Base and Stress procurement cases.
 
 ---
 
-## 14. Onboarding / Human Delivery Cost
-
-Until real tracking exists, use:
-
-> **$50/hour loaded delivery cost**
-
-Pilot planning estimate:
-
-- merchant setup: ~1 h;
-- 8–50 frame catalog prep/review: ~1.5–2 h;
-- campaign setup: ~0.5 h;
-- QA: ~0.5 h;
-- kickoff/training: ~0.5 h.
-
-Expected initial Pilot labor: **~4–5 h / $200–250 internal cost**.
-
-Pilot remains a validation/acquisition investment. Mature onboarding target: **≤2 h/customer**.
-
----
-
-## 15. Required Pilot Evidence
+## 16. Pilot Evidence Required
 
 Every pilot must capture:
 
-### Merchant demand / traffic
+### Merchant value
 
-- monthly site traffic;
-- campaign traffic routed to VisuTry;
-- AI Commerce Sessions;
-- AI experience entry rate.
-
-### AI usage
-
-- recommendations/session;
-- renders/session;
-- standard/premium split;
-- render pool utilization;
-- provider/model distribution;
-- actual AI COGS.
-
-### Commerce value
-
-- recommendation completion;
-- Try-On completion;
-- Compare usage;
-- product clicks;
-- favorites;
-- inquiries;
+- merchant traffic;
+- traffic routed to VisuTry;
+- AI experience entry rate;
+- recommendation/Try-On/Compare funnel;
+- product clicks/favorites/inquiries;
 - verified orders/revenue where available;
-- merchant-reported conversion impact.
+- merchant-reported value;
+- willingness to pay.
 
-### Commercial delivery
+### AI economics
 
-- contracted price;
+- Commerce Sessions;
+- Standard/Premium renders;
+- average renders/session;
+- provider/model distribution;
+- actual AI COGS;
+- render-pool utilization.
+
+### Commercial economics
+
+- collected revenue;
 - discount;
 - partner source;
-- onboarding hours;
-- support hours;
-- willingness-to-pay feedback.
+- onboarding/support hours;
+- gross profit dollars;
+- actual GM;
+- CAC where measurable.
 
-The four highest-priority unknowns are:
+Priority unknowns:
 
-1. AI experience entry rate;
-2. average renders / Commerce Session;
-3. measurable intent / conversion uplift;
-4. willingness to pay by merchant segment.
+1. Merchant perceived value;
+2. AI experience entry rate;
+3. average renders / Commerce Session;
+4. intent/conversion uplift;
+5. willingness to pay;
+6. gross-margin trajectory.
 
 ---
 
-## 16. Recalibration Gates
+## 17. Recalibration Gates
 
-### After first merchant
+### After 1 merchant
 
-Validate meter correctness and actual renders/session.
+Validate meters, renders/session, support effort and merchant understanding.
 
 ### After 3 merchants
 
-Review 500-session Pilot capacity, render-pool utilization, $149 willingness to pay and merchant ROI narrative.
+Review Pilot capacity, merchant perceived value, ROI narrative and actual GM.
 
 ### After 5 merchants
 
-Decide whether Launch/Growth pricing and 750/1,500 session capacities are ready for public productization.
+Decide whether Launch/Growth packaging is market-ready; prioritize merchant adoption evidence over preserving a theoretical 75% GM.
 
 ### After 10 paying merchants
 
 Recalculate:
 
-- effective Stripe cost;
-- actual sustainable provider cost;
-- render utilization;
+- sustainable provider cost;
+- actual GM and gross profit by plan;
+- merchant ROI evidence;
+- retention/expansion;
 - support cost;
-- gross margin by plan;
-- channel contribution;
-- overage bundles;
-- annual-plan economics;
-- actual merchant ROI evidence.
+- partner contribution;
+- overage design;
+- annual economics.
 
-No allowance should become a long-term immutable promise before these reviews.
+### Quarterly after early scale
 
----
-
-## 17. Operating Principles
-
-1. **Price on merchant value, not current provider cost.**
-2. **Base entitlement on sustainable procurement, not procurement alpha.**
-3. **Do not confuse four-render stress cost with average shopper behavior.**
-4. **Merchant-facing shopper capacity and internal render-cost control must be separately measurable.**
-5. **A commercially unusable plan is not made correct by showing a high theoretical gross margin.**
-6. **A higher-priced plan must prove conversion/commerce intelligence value, not only VTO volume.**
-7. **Pilot evidence overrides planning assumptions.**
+Track whether gross margin is moving toward **60–70%+**, then **70–80% mature-state economics**.
 
 ---
 
-## 18. Change Log
+## 18. Operating Principles
+
+1. **Merchant Value First. Sustainable Economics Always. Margin Expansion Over Time.**
+2. **75% is a mature benchmark, not an early-stage sacred constraint.**
+3. **A 50–65% GM market-capture offer can be rational if it creates adoption, retention and evidence.**
+4. **Do not use procurement alpha to define permanent customer entitlement.**
+5. **Do not sacrifice product usability for theoretical margin purity.**
+6. **Do not sacrifice positive unit economics simply to buy revenue.**
+7. **Price on merchant value; meter variable AI cost separately.**
+8. **Margin trajectory matters more than one-period margin snapshot.**
+9. **Campaign and Commerce Intelligence should increase value faster than AI COGS.**
+10. **Pilot evidence overrides planning assumptions.**
+
+---
+
+## 19. Change Log
 
 | Date | Change |
 | --- | --- |
-| 2026-08-06 | Created initial merchant pricing, packaging and unit-economics baseline. |
-| 2026-08-06 | v2: rebased allowances on sustainable procurement economics and introduced Best/Base/Stress provider cases. |
-| 2026-08-06 | **v3: market-aware revision. Replaced finance-floor 250/600/1,200 session entitlements with 500 Pilot / 750 Launch / 1,500 Growth / 4,000 Scale; introduced independent Standard Render Pools (1,000 / 1,500 / 3,000 / 8,000), merchant ROI tests, render-based overage, and market-credibility requirements.** |
+| 2026-08-06 | Initial merchant pricing and unit-economics baseline. |
+| 2026-08-06 | v2: introduced sustainable procurement economics and provider-risk cases. |
+| 2026-08-06 | v3: introduced market-aware dual-meter packaging and merchant ROI tests. |
+| 2026-08-06 | **v4: replaced 75%-GM-first thinking with AI-native market economics; added stage-based GM targets, market-capture policy, margin-trajectory principle, 3–5 year AI-cost-decline assumption, Merchant Value First operating principle, and stronger ROI/retention/gross-profit review gates.** |
