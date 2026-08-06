@@ -38,11 +38,11 @@
     },
     {
       "path": "/api/cron/sync-pending-consumer-tasks",
-      "schedule": "*/3 * * * *"
+      "schedule": "15 3 * * *"
     },
     {
       "path": "/api/cron/sync-pending-store-tasks",
-      "schedule": "*/3 * * * *"
+      "schedule": "45 3 * * *"
     }
   ]
 }
