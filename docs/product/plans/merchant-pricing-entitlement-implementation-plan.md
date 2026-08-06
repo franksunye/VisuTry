@@ -1,6 +1,6 @@
 # Merchant Pricing & Entitlement Implementation Plan
 
-**Status:** Approved execution plan for Demo revision and Pilot readiness — Sales-First Founding Pilot v7  
+**Status:** Approved execution plan — Market-Capture Competitive Offer v8  
 **Owner:** Product / Engineering / Sales  
 **Created:** 2026-08-06  
 **Last updated:** 2026-08-06  
@@ -13,259 +13,140 @@
 
 ## 1. Objective
 
-Turn the current Merchant pricing model into an operational product contract for the first external paid Pilots, while preserving the ability to change pricing as product maturity and market evidence evolve.
+Operationalize the current Market Capture conclusion:
 
-Operating rule:
+> **Offer VTO capacity that is easy for merchants to compare and accept, then win on Recommendation + Compare + Intent Intelligence.**
 
-> **What Sales quotes, what the merchant receives, what the UI shows, what the backend meters, and what Finance expects must describe the same product.**
-
-Commercial rule:
-
-> **Merchant Value First. Sustainable Economics Always. Margin Expansion Over Time.**
-
-Current-stage rule:
-
-> **The Founding Pilot should be easy to understand and easy to try even before VisuTry can prove downstream revenue attribution.**
-
-Sales-first rule:
-
-> **The merchant should buy a 30-day assisted AI shopping experiment; session/render limits are fair-use boundaries, not the headline product.**
+The current Pilot should not create a visible disadvantage on raw VTO capacity.
 
 ---
 
-## 2. Pricing Is Stage-Based
+## 2. Current External Commercial Baseline
 
-| Stage | Main objective | GM guidance | Product / pricing implication |
-| --- | --- | ---: | --- |
-| Market Capture / Pilot | close first merchants and learn quickly | 50–65% acceptable | low-friction Pilot, assisted setup, bounded term |
-| Early Scale | repeatable recurring revenue | 60–70%+ target | validated plan tiers, clearer allowances and upgrades |
-| Mature Platform | monetize differentiated platform value | 70–80% target | higher ARPU, integrations, enterprise/API, advanced intelligence |
-| Long-term | strong blended economics | ~75%+ blended | optimize plan mix and margin trajectory |
-
-A Pilot price is not a commitment to preserve the same price indefinitely.
-
----
-
-## 3. Current External Commercial Baseline
-
-The **only current standard external sales anchor** is:
+The active standard external offer is:
 
 > **Founding Merchant Pilot — $149 / 30 days**
 
-### Headline package
+Included:
 
 - merchant's own frames;
+- 8–50 reviewed catalog items;
 - personalized AI recommendation;
 - AI Try-On;
 - multi-frame Compare;
-- Product Click / Favorite / Inquiry intent tracking;
+- Product Click / Favorite / Inquiry tracking;
 - merchant intent report;
 - assisted setup;
-- weekly review.
+- weekly review;
+- **up to 1,500 AI-assisted shoppers / Commerce Sessions**;
+- **up to 3,500 Standard Try-On generations**.
 
-### Fair-use scope
+Optional approved launch bonus:
 
-- up to **500 AI-assisted shoppers / AI Commerce Sessions**;
-- up to **1,000 Standard Try-On generations**;
-- one hosted Store / campaign experience;
-- 8–50 reviewed merchant frames.
+> **up to 5,000 Standard Try-On generations** for selected early merchants.
 
-Primary sales promise:
-
-> **Turn eyewear traffic into personalized shopping decisions and measurable purchase intent.**
-
-Do not standardize Launch/Growth/Scale as public commitments before Pilot evidence approves them.
+The bonus must be recorded as a commercial exception.
 
 ---
 
-## 4. Sales Messaging Contract
+## 3. Sales Messaging Contract
 
-### 4.1 Primary pitch
+### Primary pitch
 
-> **VisuTry helps eyewear shoppers decide what to try, not just visualize a frame. For $149, we can run a 30-day Pilot using your real frames: shoppers get personalized recommendations, Try-On and Compare, and you see which frames and journeys create stronger purchase intent. We handle the initial setup.**
+> **You get a competitive virtual try-on package, but VisuTry also helps shoppers decide what to try. For $149, we run a 30-day Pilot with your real frames: personalized recommendations, Try-On, Compare, and measurable shopper-intent signals. We handle the initial setup.**
 
-### 4.2 Capacity wording
+### Capacity wording
 
-Preferred:
+> **The Pilot includes up to 1,500 AI-assisted shoppers and 3,500 Standard Try-On generations.**
 
-> **The Pilot includes up to 500 AI-assisted shoppers and up to 1,000 standard Try-On generations.**
+### Direct VTO comparison
 
-Avoid leading with:
+> **We designed the Founding Pilot to be competitive on VTO capacity as well. You are not paying more just to get fewer try-ons. VisuTry adds recommendation, comparison and intent insight on top of the VTO experience.**
 
-> `500 AI Commerce Sessions / 1,000 renders`
+### ROI objection
 
-and avoid:
+> **We do not want to overclaim revenue uplift before deeper commerce integration exists. The first Pilot measures whether shoppers use recommendation, Try-On and Compare, and which products create stronger purchase intent.**
 
-> `$149 for 1,000 generations`
+### Close
 
-The internal term `AI Commerce Session` can appear in contract/admin language after the merchant understands the value proposition.
-
-### 4.3 VTO comparison objection
-
-> **If you only need a high-volume VTO widget, there are lower-cost options. Our Pilot is for merchants who want to test a guided shopping experience: recommendation, Try-On, Compare and measurable intent, using their own catalog, with setup included.**
-
-### 4.4 ROI objection
-
-> **We do not want to overclaim revenue uplift before the commerce integration exists. The first Pilot measures the shopping journey and purchase-intent signals inside VisuTry. The goal is to see whether shoppers use the experience and whether the resulting intent data is useful enough for you to continue.**
-
-### 4.5 Close
-
-> **The simplest next step is to start with 8–50 representative frames for 30 days. It is $149, we help set it up, and then we review what your shoppers actually did before you decide whether to continue.**
+> **The simplest next step is a 30-day Pilot for $149. We set up 8–50 of your frames, include up to 1,500 AI-assisted shoppers and 3,500 Try-On generations, and review the results with you before you decide whether to continue.**
 
 ---
 
-## 5. Future Pricing Hypotheses
-
-Internal working anchors remain:
-
-```text
-LAUNCH
-  $199/month
-  750 Commerce Sessions
-  1,500 Standard Renders
-
-GROWTH
-  $499/month
-  1,500 Commerce Sessions
-  3,000 Standard Renders
-
-SCALE
-  $999/month
-  4,000 Commerce Sessions
-  8,000 Standard Renders
-
-ENTERPRISE
-  $2,500+/month / custom
-```
-
-These are planning hypotheses, not immutable public price cards.
-
----
-
-## 6. Value-Maturity Boundary
-
-### Level 1 — Current Pilot: Observed Intent
+## 4. P0 — Server-Side Pilot Entitlement
 
 Required:
 
-- source/campaign traffic;
-- Commerce Sessions;
-- recommendation completion;
-- Try-On;
-- Compare;
-- Product Click;
-- Favorite;
-- Inquiry;
-- top frames / high-intent behavior.
-
-### Level 2 — Later: Attributed Conversion
-
-Requires merchant commerce integration or order-data access. Not required for the first Pilot.
-
-### Level 3 — Future: Incrementality
-
-Requires credible experiment design. Explicitly outside first-Pilot scope.
-
----
-
-## 7. P0 — Sales Demo Must Make the Pilot Easy to Buy
-
-### Shopper Demo
-
-Prove:
-
-1. merchant-specific catalog;
-2. source/campaign context;
-3. recommendation;
-4. Try-On;
-5. Compare;
-6. product destination;
-7. Product Click / Favorite / Inquiry;
-8. anonymous-first flow.
-
-### Merchant/Admin Demo
-
-Show:
-
-- Pilot status;
-- source/campaign traffic;
-- recommendation funnel;
-- Try-On / Compare funnel;
-- Product Click / Favorite / Inquiry;
-- top frames;
-- high-intent shopper signals.
-
-Usage can be visible in a secondary section:
-
-- AI-assisted shoppers used / allowance;
-- Standard Try-On generations used / allowance.
-
-Do **not** make quota cards the first merchant dashboard story.
-
-Do **not** make attributed revenue, ROI, conversion uplift or incremental GMV part of the standard Pilot demo.
-
----
-
-## 8. P0 — Server-Side Pilot Entitlement
-
-Required:
-
-- `FOUNDING_PILOT` assignment;
+- `planCode = FOUNDING_PILOT`;
 - `commercialStage = MARKET_CAPTURE`;
-- pricing version;
-- entitlement version;
-- billing period;
-- contract price;
-- Commerce Session allowance = 500;
-- Standard Render allowance = 1,000;
-- Premium = 0 unless granted;
+- pricing version = v8 or equivalent durable identifier;
+- entitlement version = v8 or equivalent;
+- billing period = 30 days;
+- contract price = $149 unless approved exception;
+- Commerce Session allowance = **1,500**;
+- Standard Render allowance = **3,500**;
+- Premium allowance = 0 unless granted;
 - campaign allowance = 1;
 - catalog guideline = 8–50;
-- usage counters;
-- server-side enforcement;
-- audited override.
+- server-side usage enforcement;
+- audited manual extension/bonus support.
 
-A generic billing engine is not required.
-
----
-
-## 9. P0 — Pricing Versioning Support
-
-Minimum durable concepts:
+Founding Launch Bonus implementation:
 
 ```text
-commercialStage
-planCode
-pricingVersion
-entitlementVersion
-effectiveFrom
-contractPrice
-listPrice
-approvedDiscount?
-renewalPolicy?
+commercialExceptionCode = FOUNDING_LAUNCH_BONUS
+standardRenderAllowance = up to 5000
 ```
 
-Historical merchant terms remain auditable; new pricing can be activated for new merchants without mutating old contracts; renewals may move to a newer pricing version when policy permits.
+---
+
+## 5. P0 — Dual Usage Meter
+
+Commerce Session:
+
+- count once when shopper enters the AI recommendation/decision journey;
+- idempotent across refresh/retry/polling/Compare reopen.
+
+Render meter:
+
+- count successful Standard/Premium Try-On renders separately;
+- record provider/model/cost version/fallback reason;
+- reconcile to merchant/session/campaign.
+
+Do not impose a fixed two-render shopper UX.
 
 ---
 
-## 10. P0 — Dual Usage Meter
+## 6. P0 — Provider Routing and Cost Observability
 
-### Commerce Session
+Required architecture:
 
-Count once when the shopper first enters the AI decision journey. Must be idempotent across refresh, retry, polling, Compare reopen and duplicate events.
+```text
+Commercial Quality Policy
+        ↓
+Provider Router
+        ↓
+Approved Primary Provider
+        ↓ failure / policy
+Approved Fallback Provider
+```
 
-### Render Meter
+The application must support current low-cost procurement without exposing a provider dependency to merchants.
 
-Record separately Standard/Premium attempts and successes, failures/retries, provider/model, merchant/session/campaign, unit-cost version and fallback reason.
+Required reporting:
 
-The UI must not enforce a fixed two-frame limit merely because packaging assumes ~2 renders/session.
+- actual Standard render COGS;
+- actual cost per Commerce Session;
+- provider mix;
+- fallback rate;
+- renders/session distribution;
+- merchant-level AI COGS.
 
 ---
 
-## 11. P0 — Intent Event Instrumentation
+## 7. P0 — Intent Event Instrumentation
 
-Required merchant-scoped events:
+Required events:
 
 ```text
 COMMERCE_SESSION_STARTED
@@ -278,77 +159,60 @@ INQUIRY_STARTED
 INQUIRY_SUBMITTED
 ```
 
-Do not delay Pilot to implement order or checkout events.
+Do not delay Pilot for checkout/order events.
 
 ---
 
-## 12. P0 — Provider Routing and Cost Observability
-
-Required architecture:
-
-```text
-Commercial Quality Policy
-        ↓
-Provider Router
-        ↓
-Primary Provider
-        ↓ failure / policy
-Fallback Provider
-```
-
-Provider switch must not change merchant entitlement.
-
----
-
-## 13. P1 — Pilot Operations Package
-
-### Sales
-
-Prepare:
-
-- one-page Founding Pilot offer with **$149 / 30 days** as the main commercial anchor;
-- value bullets before usage bullets;
-- fair-use line: **up to 500 AI-assisted shoppers / 1,000 Standard Try-On generations**;
-- included/excluded scope;
-- VTO comparison talk track;
-- ROI objection talk track;
-- no guaranteed-uplift language;
-- explicit statement that Pilot pricing is a founding-stage offer and post-Pilot plans may differ.
-
-### Product / Operations
-
-Prepare onboarding checklist, CSV template, catalog review workflow, source/campaign worksheet, weekly intent report and end-of-Pilot continuation review.
-
-### Engineering
-
-Prepare pricing/entitlement version assignment, dual meters, intent events, source continuity, provider/cost observability, privacy/retention, monitoring and Consumer regression checks.
-
----
-
-## 14. P1 — Pilot Pricing-Aware Admin
+## 8. P1 — Merchant/Admin Presentation
 
 Merchant-facing hierarchy:
 
 ```text
-1. Shopping / intent performance
+1. Shopping / decision funnel
 2. Top frames and high-intent journeys
-3. Usage / fair-use status
+3. Source / campaign context
+4. Usage / capacity status
 ```
 
-Usage section may show:
+Usage may show:
 
 ```text
-AI-assisted shoppers: 236 / 500
-Standard Try-On generations: 418 / 1,000
+AI-assisted shoppers: 420 / 1,500
+Standard Try-On generations: 910 / 3,500
 ```
 
-Internal admin may also show pricing version, contract price, approved discount, partner source, average renders/session, actual AI COGS, Base Case COGS, fallback usage and commercial exception.
+If a Founding Launch Bonus exists, display the merchant's actual contractual allowance without exposing internal exception terminology.
 
 ---
 
-## 15. P1 — Limit, Extension and Market-Capture Policy
+## 9. P1 — Pilot Operations Package
 
-Support:
+Sales package must contain:
+
+- one-page $149 / 30-day offer;
+- value proposition before usage details;
+- competitive capacity line: 1,500 shoppers / 3,500 Try-On generations;
+- assisted setup statement;
+- no revenue-uplift guarantee;
+- no lifetime-price statement;
+- direct VTO comparison talk track;
+- post-Pilot review statement.
+
+Operations must capture:
+
+- merchant's named competitors/alternatives;
+- objection to VTO price/volume, if any;
+- time to close;
+- onboarding hours;
+- render utilization;
+- shopper entry rate;
+- continuation intent.
+
+---
+
+## 10. P1 — Limit and Extension Behavior
+
+States:
 
 ```text
 NORMAL
@@ -360,88 +224,115 @@ OVERAGE_ENABLED
 
 Pilot behavior:
 
-- alert before ~80% of either meter;
-- no surprise charging;
-- audited temporary extension allowed;
-- Sales/Product may extend capacity when it improves evidence collection or merchant experience;
-- a lower-GM extension may be accepted when explicitly approved for market capture.
+- internal alert at ~80%;
+- no surprise overage charge;
+- do not interrupt a strategically important Pilot without Sales/Product review;
+- manual extension allowed;
+- Founding Launch Bonus may raise Standard Render Pool up to 5,000;
+- all exceptions auditable.
 
 ---
 
-## 16. P2 — Pricing Review Before Formal Plan Productization
+## 11. Market-Capture Procurement Policy
 
-Before formal public plans, review Pilot close rate, sales objections, merchant comparison products, willingness to pay, continuation rate, willingness to route more traffic, actual usage, perceived differentiation, support burden, actual GM/gross profit and partner economics.
+For the first 3–6 months, current low-cost procurement may be deliberately used to support aggressive merchant capacity.
 
-Then create a **new pricing version** for Early Scale.
+Engineering must make this reversible:
+
+- customer entitlement is versioned;
+- provider routing is abstracted;
+- cost telemetry is available;
+- new pricing versions can change allowance for new cohorts;
+- sustained provider-cost deterioration triggers review.
+
+Do not encode the current provider's unit cost into merchant-facing semantics.
 
 ---
 
-## 17. Pricing Review Gates
+## 12. Future Pricing Productization
+
+Do not automatically implement the previous $199 / $499 / $999 hypotheses as public plans.
+
+After the first cohort, Product/Sales/Finance should create a new Early Scale pricing version from evidence.
+
+Possible future structure may differ materially from v8.
+
+Engineering should preserve flexibility for:
+
+- plan price changes;
+- different session/render ratios;
+- usage add-ons;
+- campaign pricing;
+- Premium rendering;
+- setup fee;
+- enterprise/API packaging.
+
+---
+
+## 13. Review Gates
 
 ### After first paid merchant
 
-Review whether $149 was easy to explain, whether approval friction was low enough, whether merchant understood value without ROI attribution, whether capacity was sufficient, and whether the merchant compared VisuTry primarily on raw VTO volume.
+Review whether the increased capacity removed the obvious VTO comparison objection.
 
 ### After 3 paid merchants
 
-Review objections, competitor comparisons, willingness to pay, continuation intent, usage/support and actual GM. Pricing is explicitly allowed to change here.
+Review:
+
+- close rate;
+- competitor comparisons;
+- actual Standard Render Pool utilization;
+- actual AI COGS;
+- onboarding/support burden;
+- willingness to pay;
+- continuation intent.
 
 ### After 5 paid merchants
 
-Decide whether Pilot remains $149, whether capacity changes, whether assisted setup remains included, whether Launch should be productized and whether future recurring pricing should move up/down or change structure.
+Decide whether to change price/capacity or continue the Founding offer.
 
-### After 10 paying merchants
+### 3–6 month gate
 
-Create the next formal pricing/entitlement version based on actual evidence.
+Create the next pricing/entitlement version. Do not preserve v8 by default.
 
 ---
 
-## 18. Stage-Based GM Operating Rules
+## 14. Stage-Based GM Rules
 
 | Stage | GM guidance |
 | --- | ---: |
-| Pilot / Market Capture | **50–65% acceptable** |
+| Market Capture / Pilot | **50–65% acceptable** |
 | Early Scale | **60–70%+ target** |
 | Mature Platform | **70–80% target** |
 | Long-term preferred benchmark | **~75%+ blended** |
 
-A 75% projected GM is **not** an acceptance criterion for the first Pilot. Sustained direct GM below ~50% requires explicit approval.
+A 75% projected GM is not a Pilot acceptance requirement.
+
+The v8 Pilot is allowed to invest procurement alpha in competitive capacity during Market Capture.
 
 ---
 
-## 19. Acceptance Criteria Before First External Paid Pilot
+## 15. Acceptance Criteria Before External Paid Pilot
 
-1. `FOUNDING_PILOT` scope approved.
-2. `MARKET_CAPTURE` stage recorded.
-3. pricing and entitlement versions recorded.
-4. 500 Commerce Sessions server-metered.
-5. 1,000 Standard renders server-metered.
-6. meters idempotent.
-7. intent events implemented.
-8. usage reconciles to merchant/session/provider.
-9. source/campaign context persists to intent.
-10. Merchant/Admin shows meaningful funnel and usage data.
-11. Sales can explain value without ROI/revenue claims.
-12. Sales can explain value without leading with price-per-render comparison.
-13. Founding price is not presented as lifetime pricing.
-14. Consumer isolation/privacy remains intact.
-
----
-
-## 20. Non-Goals Before Pilot Evidence
-
-Do not delay Pilot for revenue attribution infrastructure, incrementality experiments, full self-checkout, public partner portal, automated partner payout, enterprise CPQ, generalized campaign builder or public Shopify marketplace listing.
+1. `FOUNDING_PILOT` and `MARKET_CAPTURE` are durable.
+2. Pricing/entitlement versioning works.
+3. Commerce Session allowance = 1,500.
+4. Standard Render allowance = 3,500.
+5. Optional audited bonus can raise renders to 5,000.
+6. Usage meters are idempotent.
+7. provider/model/cost attribution is recoverable.
+8. intent events work.
+9. source/campaign context persists.
+10. merchant dashboard prioritizes intent before quota.
+11. Sales can state a competitive VTO capacity clearly.
+12. Sales does not promise revenue uplift or lifetime pricing.
+13. Consumer entitlements remain isolated.
 
 ---
 
-## 21. Change Log
+## 16. Change Log
 
 | Date | Change |
 | --- | --- |
-| 2026-08-06 | Created pricing/entitlement implementation plan. |
-| 2026-08-06 | v2: sustainable procurement + Provider Router. |
-| 2026-08-06 | v3: dual-meter market-aware packaging. |
-| 2026-08-06 | v4: Merchant Value First / stage-based GM. |
-| 2026-08-06 | v5: Intent-First Pilot boundary; revenue attribution removed from Pilot scope. |
-| 2026-08-06 | v6: pricing stage/version support and external Pilot separation. |
-| 2026-08-06 | **v7: added explicit sales messaging contract, VTO and ROI objection handling, moved capacity to fair-use presentation, and made the Merchant/Admin story value-first before usage.** |
+| 2026-08-06 | v1–v7 | Built merchant pricing/entitlement execution framework. |
+| 2026-08-06 | **v8: changed active Pilot entitlement from 500 sessions / 1,000 renders to 1,500 sessions / 3,500 renders; added optional 5,000-render Founding Launch Bonus; made procurement alpha an explicit temporary Market Capture lever and stopped treating previous Launch/Growth/Scale hypotheses as automatic public plans.** |
