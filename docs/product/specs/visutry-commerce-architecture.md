@@ -3,10 +3,13 @@
 **Status:** Approved direction / incremental adoption  
 **Owner:** Product / Engineering  
 **Created:** 2026-08-06  
+**Last updated:** 2026-08-06  
 **Primary ADR:** `docs/decisions/ADR-008-commerce-domain-over-storefront.md`  
 **Consumer stability ADR:** `docs/decisions/ADR-007-store-consumer-stability-boundary.md`  
 **Current Store foundation:** `docs/product/specs/visutry-store-engineering-foundation.md`  
-**Pilot execution plan:** `docs/product/plans/visutry-store-demo-pilot-readiness-plan.md`
+**Pilot execution plan:** `docs/product/plans/visutry-store-demo-pilot-readiness-plan.md`  
+**Commercial baseline:** `docs/strategy/merchant-pricing-packaging-unit-economics.md`  
+**Commercial entitlement:** `docs/product/specs/merchant-commercial-entitlements.md`
 
 ---
 
@@ -29,6 +32,14 @@ Storefront
 
 This spec does not require a rewrite of the current Store implementation. It defines the boundaries that new pilot work must preserve so future campaign, measurement, integration, and agent capabilities can be added without replacing the core.
 
+### Current maturity boundary
+
+The long-term architecture supports intent, verified conversion, attribution and merchant outcomes. The current Market-Capture / Founding Pilot phase is intentionally narrower:
+
+> **Current Pilot ends at personalized shopping decisions + measurable purchase intent. Verified conversion, revenue attribution and incrementality are later maturity layers.**
+
+This is a delivery-stage boundary, not a change to the long-term domain model.
+
 ---
 
 ## 2. Architecture Principles
@@ -38,11 +49,12 @@ This spec does not require a rewrite of the current Store implementation. It def
 3. **Shopper is anonymous-first for acquisition / campaign experiences.**
 4. **Catalog product identity is durable commerce infrastructure.**
 5. **Face understanding, recommendation, Try-On, and Compare are reusable capabilities.**
-6. **Intent and verified Conversion are separate concepts.**
+6. **Observed Intent, verified Conversion, attributed Revenue and Incremental Outcome are distinct evidence levels.**
 7. **Attribution must use durable first-party data, not only third-party analytics.**
 8. **Human and AI-agent traffic use one commerce core.**
 9. **Do not implement generalized martech breadth before pilot evidence.**
-10. **Consumer stability remains governed by ADR-007.**
+10. **Commercial policy is versioned and provider-independent; pricing/allowance changes must not require changing the Commerce domain model.**
+11. **Consumer stability remains governed by ADR-007.**
 
 ---
 
@@ -83,6 +95,8 @@ This spec does not require a rewrite of the current Store implementation. It def
                          Merchant Outcome
 ```
 
+The logical architecture is intentionally broader than the current Pilot. In the Market-Capture phase, the implemented path may stop at `Intent`; `Conversion -> Attribution -> Merchant Outcome` remains a future extension until trustworthy commerce data exists.
+
 External systems surround this core:
 
 ```text
@@ -111,8 +125,11 @@ It owns or scopes:
 - intents;
 - conversions;
 - usage;
+- commercial policy / entitlement references;
 - merchant analytics;
 - integrations.
+
+Commercial pricing itself is not a Commerce-domain invariant. Merchant records may reference a versioned commercial policy without embedding permanent prices or provider-specific economics into core domain behavior.
 
 ### 4.2 Catalog / Product Identity
 
@@ -237,7 +254,7 @@ The session should be capable of preserving:
 - selected/recommended products;
 - generated Try-On tasks;
 - intents;
-- conversion references;
+- future conversion references;
 - locale and privacy/retention state.
 
 Shopper login is not required for the first useful experience.
@@ -255,6 +272,8 @@ Behavioral intent can include:
 - appointment intent.
 
 Current MerchantIntent can continue for the existing explicit intent types.
+
+For the current Market-Capture phase, these observed intent signals are the primary merchant-value evidence and should be treated as first-class measurable outcomes without pretending they are completed commerce conversions.
 
 ### 4.8 Conversion
 
@@ -287,11 +306,13 @@ occurredAt
 verificationSource
 ```
 
+A first-class conversion model is **not required for the Founding Pilot**.
+
 Do not claim attributed revenue before a trustworthy conversion source exists.
 
 ### 4.9 Attribution / Measurement
 
-Measurement should support the funnel:
+Long-term measurement should support the full funnel:
 
 ```text
 Traffic
@@ -304,20 +325,66 @@ Traffic
  -> Attributed Revenue
 ```
 
-M1 requirements:
+Current Market-Capture boundary:
+
+```text
+Traffic
+ -> Engaged Shopper
+ -> Recommendation
+ -> Try-On
+ -> Compare
+ -> Product Click / Favorite / Inquiry
+ -> Measurable Intent
+```
+
+Current M1 / Pilot requirements:
 
 - durable source/campaign context;
 - merchant/session/product linkage;
 - event timestamps;
 - consistent event semantics;
-- admin funnel by source where sample size allows.
+- admin funnel by source where sample size allows;
+- observed intent reporting.
 
-Later requirements:
+Later, integration-dependent requirements:
 
-- campaign-level reporting;
 - conversion import/webhooks;
-- revenue attribution;
+- checkout/order linkage;
+- attributed revenue.
+
+Future, experiment-dependent requirements:
+
+- controlled incrementality measurement;
+- causal uplift claims;
 - multi-touch only if justified.
+
+Revenue attribution is not a Pilot-readiness requirement.
+
+### 4.10 Commercial Policy / Entitlement Boundary
+
+Commercial policy is a versioned cross-cutting concern around the Commerce domain, not a permanent domain constant.
+
+The system should be able to represent or reference concepts such as:
+
+```text
+commercialStage
+planCode
+pricingVersion
+entitlementVersion
+commerceSessionAllowance
+standardRenderAllowance
+premiumRenderAllowance?
+campaignAllowance?
+effectiveFrom
+```
+
+Rules:
+
+- pricing and entitlement versions may change without changing Merchant, Catalog, Journey, Intent or Conversion identities;
+- provider/model identity must not leak into merchant-facing entitlement contracts;
+- Market-Capture pricing can deliberately use favorable procurement economics without making those economics permanent architecture assumptions;
+- historical merchant entitlements remain auditable;
+- the Commerce domain must remain stable across future Pricing Versions.
 
 ---
 
@@ -343,6 +410,8 @@ src/modules/store/
 src/lib/
   # shared technical primitives, including generation core
 ```
+
+Commercial policy may remain as a dedicated cross-cutting application/domain-support boundary rather than being coupled to Storefront UI or generation providers.
 
 ### Extraction triggers
 
@@ -383,7 +452,8 @@ Rules:
 - no sensitive face-analysis payload in analytics events;
 - event names describe business behavior, not UI implementation details where possible;
 - synthetic demo records remain identifiable;
-- event semantics must remain stable enough for funnel reporting.
+- event semantics must remain stable enough for funnel reporting;
+- current events must not imply verified conversion when they only represent observed intent.
 
 ---
 
@@ -400,9 +470,11 @@ Before real pilot traffic, the system should support:
 7. Product destination attached to selected/recommended frames.
 8. Durable commerce events.
 9. Merchant-facing funnel and intent insight.
-10. Merchant-specific usage controls.
+10. Merchant-specific, versioned usage controls independent from provider/model identity.
 11. Consumer isolation / regression safety.
 12. A migration path to Campaign and Conversion without replacing session/catalog/event identity.
+
+The Founding Pilot does **not** require order/checkout integration, revenue attribution, incrementality experimentation, or a first-class Conversion aggregate.
 
 ---
 
@@ -415,6 +487,8 @@ Do not build before evidence requires them:
 - email/SMS sending system;
 - CRM/CDP replacement;
 - audience segmentation engine;
+- conversion/order integration unless repeated merchant demand justifies it;
+- revenue attribution infrastructure as a Pilot prerequisite;
 - multi-touch attribution;
 - ad-platform bid optimization;
 - enterprise data warehouse;
@@ -423,7 +497,7 @@ Do not build before evidence requires them:
 - autonomous checkout;
 - generic ecommerce back office.
 
-VisuTry should become a vertical commerce conversion / intelligence layer, not rebuild the entire martech stack.
+VisuTry should become a vertical commerce decision / intelligence layer first, and mature toward conversion / attribution capabilities only when merchant evidence justifies the integration cost.
 
 ---
 
@@ -436,10 +510,11 @@ Every material Store / Pilot PR should ask:
 3. Is product identity stable and merchant-owned?
 4. Does source/campaign context survive the shopper journey?
 5. Is the event durable and measurement-safe?
-6. Are intent and verified conversion being confused?
+6. Are observed intent, verified conversion, attributed revenue and incrementality being confused?
 7. Is this capability reusable by a later widget / Campaign / agent surface?
-8. Are we prematurely building a generalized martech platform?
-9. Does Consumer remain isolated under ADR-007?
+8. Are we prematurely building a generalized martech or attribution platform?
+9. Can pricing/entitlement/provider policy change without mutating the core Commerce domain?
+10. Does Consumer remain isolated under ADR-007?
 
 ---
 
@@ -448,3 +523,4 @@ Every material Store / Pilot PR should ask:
 | Date | Change |
 | --- | --- |
 | 2026-08-06 | Created architecture North Star for evolution from Storefront to vertical commerce / martech platform. |
+| 2026-08-06 | **Calibrated the architecture to the current Intent-First Market-Capture phase: made the Pilot boundary explicitly end at measurable intent, deferred conversion/revenue attribution/incrementality, and formalized pricing/entitlement as a versioned provider-independent commercial-policy boundary that can change without changing the Commerce domain.** |
