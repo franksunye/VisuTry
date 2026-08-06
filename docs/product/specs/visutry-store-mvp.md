@@ -3,7 +3,7 @@
 **Status:** D0 implemented / controlled validation; M1 approved scope and gated
 **Owner:** Product / Engineering  
 **Created:** 2026-07-08  
-**Last updated:** 2026-08-05  
+**Last updated:** 2026-08-06  
 **Related plan:** `docs/product/product-plan.md`  
 **Related sales demo:** `docs/product/specs/visutry-store-sales-demo.md`  
 **Related implementation plan:** `docs/product/plans/visutry-store-implementation-plan.md`  
@@ -18,18 +18,26 @@
 
 VisuTry Store is the merchant-facing commerce layer of VisuTry.
 
-It should not be built as a generic virtual try-on plugin. Its core value proposition is:
+It should not be built as a generic virtual try-on plugin or a generic merchant website builder. Its core value proposition is:
 
-> Help eyewear merchants reduce shopper choice friction by turning the merchant's own catalog into a personalized discovery, try-on, comparison, and purchase-intent workflow.
+> Help eyewear merchants turn qualified traffic into personalized frame discovery, try-on, comparison, measurable purchase intent, and ultimately more revenue.
+
+The hosted merchant Storefront is the first delivery surface because it is the fastest surface to demo, sell, operate, and validate.
+
+The broader product direction is:
+
+> **Storefront is the delivery surface. AI Commerce / Campaign Engine is the business.**
 
 The Store product is built on the existing VisuTry consumer intelligence and generation capabilities:
 
 ```text
+Traffic / Audience
+      ↓
 Merchant Catalog
       ↓
 AI Frame Intelligence
       ↓
-Face Understanding
+Face / Shopper Understanding
       ↓
 Personalized Recommendation
       ↓
@@ -39,10 +47,19 @@ Frame Compare
       ↓
 Product / Inquiry Intent
       ↓
-Merchant Insight
+Conversion Insight
+      ↓
+Merchant Commerce System
 ```
 
 Consumer remains the acquisition and proof layer. Store is the primary recurring-revenue engine to validate.
+
+Store must be designed to accept both:
+
+- **human traffic** — Search, Social, Ads, Email, QR, Direct, Referral;
+- **AI-agent traffic** — ChatGPT, Claude, Perplexity, Gemini, and future shopping/search agents.
+
+Agent-readiness is a product/data-contract direction now; a broad public agent API is not an M1 requirement.
 
 ---
 
@@ -56,6 +73,18 @@ The implementation is split into:
 
 - **D0 — Sales Demo:** working demo and sample Store used in merchant outreach;
 - **M1 — Pilot MVP:** reusable merchant product for real traffic and first paid pilots.
+
+M1 should preserve a future path toward:
+
+```text
+Merchant
+→ Campaign / Audience / Intent
+→ Catalog subset
+→ AI decision experience
+→ Conversion metrics
+```
+
+The first pilot does not require a generalized campaign-builder UI or a dedicated `Campaign` entity if one Store-wide experience is sufficient. Campaign concepts should be introduced only where they improve attribution or are required by real merchant use.
 
 Detailed sequencing is defined in `docs/product/plans/visutry-store-implementation-plan.md`.
 
@@ -72,7 +101,7 @@ Current state as of 2026-08-05:
 
 The commercial question is:
 
-> Will an eyewear merchant pay VisuTry to help shoppers discover suitable frames from its own catalog, try and compare them, and produce measurable purchase intent?
+> Will an eyewear merchant pay VisuTry to route real traffic through a personalized decision experience and receive measurable recommendation, try-on, compare, product-intent, and conversion signals?
 
 Success is not defined by merchants saying that virtual try-on is interesting.
 
@@ -80,9 +109,17 @@ The stronger validation signals are:
 
 - merchant asks to load its own frames;
 - merchant agrees to launch with real shopper traffic;
-- merchant asks to connect product clicks or inquiries to its selling flow;
+- merchant identifies one or more acquisition sources/campaigns it wants to send through VisuTry;
+- merchant asks to connect product clicks, inquiries, add-to-cart, or revenue to the VisuTry journey;
 - merchant is willing to pay or place a pilot deposit;
 - merchant continues after observing real shopper behavior.
+
+The first merchant conversation should therefore validate not only product comprehension but also:
+
+- where traffic originates;
+- which conversion KPI matters;
+- whether merchant traffic can be routed through a hosted campaign/Store experience;
+- whether AI-assistant / agent referrals are relevant to the merchant today or expected to become relevant.
 
 ---
 
@@ -102,6 +139,7 @@ Preferred early merchant characteristics:
 - usable product images already exist;
 - owner / ecommerce / growth decision-maker is reachable;
 - can test with a representative 8-50 frame subset;
+- has identifiable traffic sources or campaigns that can be used in a pilot;
 - does not require EHR/PMS or medical-grade fit claims to start.
 
 Avoid as first customers:
@@ -128,8 +166,10 @@ D0 and M1 do not include unless a pilot cannot proceed without them:
 - enterprise SSO;
 - team RBAC;
 - public API as the primary product;
+- public agent API / autonomous checkout;
+- generalized campaign builder / marketing automation suite;
 - real-time 3D AR;
-- advanced attribution / BI;
+- advanced multi-touch attribution / BI;
 - transaction take-rate implementation;
 - large-scale automated catalog crawling.
 
@@ -170,11 +210,11 @@ Minimum frame fields:
 | --- | --- | --- |
 | `id` | Yes | Internal frame identifier. |
 | `merchantId` | Yes | Catalog ownership. |
-| `sku` | Preferred | Merchant reference. |
+| `sku` | Preferred | Merchant reference and machine-readable product identity. |
 | `name` | Yes | Shopper-facing display name. |
 | `imageUrl` | Yes | Product / try-on source image. |
-| `productUrl` | Preferred | Product page / purchase destination. |
-| `price` | Optional | Shopper context. |
+| `productUrl` | Preferred | Canonical product page / purchase destination. |
+| `price` | Optional | Shopper and agent-readable commerce context. |
 | `currency` | Optional | Price display. |
 | `shape` | Yes after enrichment | Recommendation input. |
 | `material` | Preferred | Recommendation / filtering input. |
@@ -182,6 +222,8 @@ Minimum frame fields:
 | `widthClass` | Preferred | Narrow / medium / wide directional input. |
 | `styleTags` | Preferred | Classic, minimal, bold, professional, etc. |
 | `status` | Yes | Active / inactive. |
+
+Where merchant source data provides them, M1 may also preserve brand, variant, availability, or collection metadata. Do not invent commerce facts that the merchant has not provided or that VisuTry cannot verify.
 
 ### 6.3 Catalog onboarding
 
@@ -217,6 +259,8 @@ style_tags
 
 Do not require merchants to manually classify every frame before receiving value.
 
+Catalog output should be useful to both the human shopper workflow and future machine-readable/agent discovery. This means product/frame identity and destination URLs should remain stable and explicit even if no public agent API exists.
+
 ### 6.4 Hosted shopper Store
 
 Merchant-specific hosted route must support:
@@ -232,6 +276,10 @@ Merchant-specific hosted route must support:
 9. favorite / interest;
 10. product click;
 11. optional lightweight inquiry.
+
+The shopper flow is anonymous-first. Store MUST NOT require a VisuTry consumer login before the first useful recommendation/try-on flow.
+
+Identity may be requested later only where it creates merchant/customer value, such as inquiry, save-for-later, cross-device continuation, appointment, checkout, or merchant-owned customer account integration.
 
 No consumer Credits Pack prompt should appear inside a merchant-paid Store session.
 
@@ -317,7 +365,64 @@ Required metrics:
 - top frames;
 - usage quota / render consumption.
 
+When pilot volume supports it, the dashboard should also break the funnel down by acquisition source / campaign class, including AI-assistant / agent referral as a distinct source class where reliably identifiable.
+
 Do not expose raw shopper face images by default.
+
+### 6.10 Campaign-ready attribution baseline
+
+M1 should preserve enough acquisition context to evolve from one hosted Store into a Campaign Engine without requiring a rewrite.
+
+Minimum context where available:
+
+```text
+source
+medium?
+campaign?
+referrer?
+landing_url?
+ai_agent_source?
+locale
+device_type
+```
+
+Rules:
+
+1. A Store session should retain acquisition context from entry through recommendation, try-on, compare, and intent.
+2. UTM or equivalent campaign parameters may be accepted for attribution but MUST NOT be trusted as authorization.
+3. Known AI-assistant / agent referrals should be classified separately from generic referral traffic when detection is reliable.
+4. Attribution must not include raw face images or sensitive analysis payloads.
+5. M1 does not require multi-touch attribution; first-touch/session-level attribution is sufficient.
+6. The data model should not require a dedicated `Campaign` record until merchant workflows need reusable campaign configuration.
+
+### 6.11 Agent-ready commerce baseline
+
+Store should be designed around four capabilities:
+
+1. **Discoverable** — intended-public Store, merchant, campaign, and product/frame surfaces have stable crawlable URLs where appropriate.
+2. **Understandable** — merchant/frame facts use consistent human-readable text and machine-readable metadata where appropriate.
+3. **Actionable later** — recommendation, try-on, compare, and product-destination capabilities remain behind stable application/service contracts so future agent interfaces can reuse them.
+4. **Measurable** — agent-originated sessions and downstream intent can be attributed.
+
+M1 baseline should include where applicable:
+
+- stable canonical merchant Store URL;
+- stable product destination URLs;
+- explicit merchant name and product/frame identity;
+- structured product/frame metadata using appropriate web standards where the surface is public;
+- price/currency/availability only when merchant-provided and current;
+- descriptive frame attributes useful for matching shopper intent;
+- source/referrer classification for AI-assistant traffic;
+- no sensitive shopper data in public metadata.
+
+M1 explicitly does **not** require:
+
+- a public agent tool protocol;
+- agent-specific recommendation logic;
+- agent access to shopper photos;
+- autonomous purchase execution.
+
+Agent traffic must reuse the same Store intelligence and conversion core as human traffic.
 
 ---
 
@@ -349,6 +454,8 @@ createdAt
 lastActiveAt
 ```
 
+Acquisition/campaign attribution may live on the session or in a normalized event/attribution record depending on implementation. It must remain merchant-scoped and privacy-safe.
+
 ### Merchant-attributed Try-On
 
 Prefer extending the existing generation task model with optional attribution:
@@ -377,9 +484,31 @@ note?
 createdAt
 ```
 
+Intent should remain attributable back to the Store session and therefore to its acquisition/campaign context.
+
 ### `MerchantUsage`
 
 May be materialized or calculated initially. Must allow merchant-level successful render and session tracking.
+
+### Future `MerchantCampaign`
+
+A first-class Campaign entity is optional and deferred until real merchant workflow requires multiple persistent campaign configurations.
+
+If introduced later, it should represent business configuration such as:
+
+```text
+merchantId
+name
+slug?
+audience_or_intent?
+catalog_subset?
+landing_copy_or_theme?
+status
+startAt?
+endAt?
+```
+
+Do not create campaign-specific generation, session, or analytics stacks. Campaign must reuse the existing MerchantSession / Store event / Try-On core.
 
 ---
 
@@ -409,6 +538,10 @@ merchant_id
 merchant_session_id
 merchant_frame_id
 source
+medium?
+campaign?
+referrer?
+ai_agent_source?
 locale
 device_type
 ```
@@ -443,6 +576,14 @@ Working commercial hypothesis:
 
 These are validation hypotheses, not finalized public pricing.
 
+After merchant willingness-to-pay and attribution are proven, pricing may expand toward:
+
+- higher merchant tiers;
+- campaign or active-audience tiers;
+- engaged-shopper / successful-render usage;
+- premium conversion analytics;
+- attributed transaction / affiliate / performance-linked revenue where evidence supports it.
+
 Do not build complex merchant billing before pilot packaging is validated.
 
 ---
@@ -454,6 +595,8 @@ Required principles:
 - shopper sees privacy / retention notice before photo upload;
 - merchant does not receive raw shopper face images by default;
 - merchant dashboard focuses on frame interest and conversion signals;
+- shopper does not need a VisuTry consumer account for the anonymous Store journey;
+- public/agent-readable surfaces contain merchant/product facts, not shopper biometric or sensitive analysis data;
 - no medical diagnosis claims;
 - no prescription claims;
 - no guaranteed physical fit claims;
@@ -475,7 +618,7 @@ Store must reuse existing VisuTry foundations wherever practical:
 - Frame Compare;
 - generation queue / task handling;
 - image storage;
-- authentication;
+- authentication where merchant/admin identity requires it;
 - analytics conventions;
 - design system.
 
@@ -488,9 +631,11 @@ Store adds:
 - merchant session;
 - merchant intent;
 - merchant usage;
-- merchant insights.
+- merchant insights;
+- source/campaign attribution;
+- public merchant/product metadata suitable for search and agent discovery where appropriate.
 
-Avoid parallel Store-specific generation infrastructure.
+Avoid parallel Store-specific generation infrastructure or agent-specific duplicate intelligence stacks.
 
 ---
 
@@ -510,17 +655,26 @@ Avoid parallel Store-specific generation infrastructure.
 - edit frame metadata;
 - deactivate frame;
 - enrich tags;
-- review enrichment before activation.
+- review enrichment before activation;
+- preserve canonical product destination URLs and reliable commerce facts.
 
 ### Shopper workflow
 
 - merchant Store opens mobile-first;
+- shopper can enter anonymously;
 - shopper uploads photo;
 - shopper receives merchant-frame shortlist;
 - shopper selects frames;
 - shopper generates try-ons;
 - shopper compares finalists;
 - shopper favorites / clicks product / submits inquiry.
+
+### Attribution
+
+- Store session records available first-touch source / campaign context;
+- recommendation, try-on, compare, and intent remain attributable to the session;
+- known AI-assistant / agent source can be separated where reliably detected;
+- campaign/referral parameters do not grant authorization.
 
 ### Merchant dashboard
 
@@ -529,7 +683,16 @@ Avoid parallel Store-specific generation infrastructure.
 - frames view;
 - shopper intent activity;
 - usage view;
+- source/campaign funnel breakdown when volume supports it;
 - no raw shopper photos by default.
+
+### Agent-ready public surface
+
+- public Store URL has stable merchant identity and descriptive content;
+- public frame/product facts are explicit and machine-understandable where appropriate;
+- canonical product destinations are preserved;
+- no shopper-sensitive data is exposed for discoverability;
+- no public agent action API is required for M1.
 
 ### Operations
 
@@ -550,17 +713,21 @@ M1 is ready for a real paid pilot when all are true:
 3. 8-50 merchant frames can be onboarded through CSV or admin tooling.
 4. AI-enriched frame metadata can be reviewed before going live.
 5. Shopper Store works on mobile and desktop.
-6. Shopper receives personalized recommendations from merchant frames.
-7. Shopper can generate try-ons for selected merchant frames.
-8. Shopper can compare up to 4 merchant frames.
-9. Product click / favorite / inquiry is attributed to merchant + frame + session.
-10. Merchant can authenticate and see its own basic dashboard.
-11. Merchant usage is isolated from consumer credits.
-12. Failed generation is observable and retryable.
-13. Privacy notice and retention behavior are implemented.
-14. Merchant does not see raw shopper face images by default.
-15. At least one pilot merchant completes end-to-end acceptance testing using its own catalog.
-16. The workflow can be operated for 3-5 pilots without normal shopper usage requiring developer intervention.
+6. Shopper can enter the core Store journey without a mandatory VisuTry consumer login.
+7. Shopper receives personalized recommendations from merchant frames.
+8. Shopper can generate try-ons for selected merchant frames.
+9. Shopper can compare up to 4 merchant frames.
+10. Product click / favorite / inquiry is attributed to merchant + frame + session.
+11. Session-level traffic source / campaign context is preserved where available.
+12. Known AI-assistant / agent referral can be classified where technically reliable.
+13. Merchant can authenticate and see its own basic dashboard.
+14. Merchant usage is isolated from consumer credits.
+15. Failed generation is observable and retryable.
+16. Privacy notice and retention behavior are implemented.
+17. Merchant does not see raw shopper face images by default.
+18. Public merchant/product metadata does not expose shopper-sensitive data.
+19. At least one pilot merchant completes end-to-end acceptance testing using its own catalog.
+20. The workflow can be operated for 3-5 pilots without normal shopper usage requiring developer intervention.
 
 ---
 
@@ -569,17 +736,20 @@ M1 is ready for a real paid pilot when all are true:
 Track the merchant shopper funnel:
 
 ```text
-Store session
+Traffic source / campaign
+→ Store session
 → photo upload
 → recommendation viewed
 → frame selected
 → try-on completed
 → compare started
 → favorite / product click / inquiry
+→ later: add-to-cart / checkout / revenue attribution
 ```
 
 Key merchant metrics:
 
+- sessions by acquisition source;
 - upload rate;
 - recommendation-to-try rate;
 - compare rate;
@@ -587,13 +757,15 @@ Key merchant metrics:
 - favorite / inquiry rate;
 - top-frame concentration;
 - successful render cost per engaged shopper;
+- high-intent shopper count;
+- AI-assistant / agent-originated engagement when sample size supports it;
 - merchant willingness to continue paying.
 
 The strongest early business outcome is not try-on volume alone.
 
 It is:
 
-> Merchant keeps the Store live and pays after seeing real shopper behavior.
+> Merchant routes real traffic through the Store, observes useful downstream purchase intent, and keeps paying.
 
 ---
 
@@ -607,9 +779,15 @@ Implemented and production-verified for controlled demonstrations. Operate accor
 
 Proceed after the Gate B conditions in `visutry-store-implementation-plan.md` are met or Product explicitly approves operationalizing a live pilot.
 
+M1 should include the minimum source/campaign attribution and agent-ready metadata baseline required by this spec, but should not expand into a generalized campaign platform.
+
 ### Shopify / platform integrations
 
 Deferred until at least 3 active pilot merchants show repeated onboarding or integration demand.
+
+### Public agent/action interfaces
+
+Deferred until merchant or agent-channel evidence shows that machine action, not only discovery/referral, is needed.
 
 ---
 
@@ -617,12 +795,15 @@ Deferred until at least 3 active pilot merchants show repeated onboarding or int
 
 These do not block D0 engineering and should be resolved through pilot evidence:
 
-1. Is hosted Store link the long-term default, or does product-page widget become dominant?
-2. Which merchant KPI is most valuable: product click, add-to-cart, inquiry, or appointment intent?
+1. Is hosted Store link the long-term default, or primarily the first delivery surface for the Campaign Engine?
+2. Which merchant KPI is most valuable: product click, add-to-cart, inquiry, appointment intent, conversion, or attributed revenue?
 3. How much catalog metadata is required for recommendation quality at 50+ SKUs?
 4. Should URL-assisted catalog import precede Shopify sync?
-5. What monthly usage unit best fits pricing: successful renders, sessions, or a blended tier?
-6. Should transaction / affiliate revenue become part of the model after SaaS is validated?
+5. What monthly usage unit best fits pricing: successful renders, engaged sessions, active campaigns, or a blended tier?
+6. When do merchants need multiple persistent campaign configurations rather than one Store-wide experience?
+7. Which acquisition sources should be first-class in reporting: Search, Social, Paid, Email, QR, Direct, Referral, AI Assistant / Agent?
+8. When does agent-readiness require a public action/API layer instead of high-quality public metadata and deep links?
+9. Should transaction / affiliate / performance revenue become part of the model after SaaS and attribution are validated?
 
 ---
 
@@ -635,3 +816,4 @@ These do not block D0 engineering and should be resolved through pilot evidence:
 | 2026-07-08 | Added Store landing page as the first validation asset. |
 | 2026-08-05 | Reframed Store as AI merchant decision layer, made merchant-catalog recommendation mandatory, separated D0 Sales Demo from M1 Pilot MVP, defined assisted catalog onboarding, concrete data model, acceptance criteria, and engineering gates. |
 | 2026-08-05 | Marked D0 implemented and production-verified for controlled merchant validation; kept Gate A1 closed and M1 subject to Gate B. |
+| 2026-08-06 | Clarified Storefront as the first delivery surface and AI Commerce / Campaign Engine as the larger product direction; added anonymous-first shopper policy, source/campaign attribution baseline, Agent-Ready Commerce requirements, and conversion-oriented validation while keeping generalized campaign builder and public agent API out of M1 scope. |
