@@ -74,7 +74,7 @@ export async function syncPendingStoreTryOnTasks(): Promise<SyncPendingStoreStat
   })
 
   if (pendingTasks.length === 0) {
-    logger.info('cron', 'No pending store GrsAi tasks found')
+    logger.debug('cron', 'No pending store GrsAi tasks found')
     return {
       scope: 'store',
       total: 0,
@@ -85,7 +85,7 @@ export async function syncPendingStoreTryOnTasks(): Promise<SyncPendingStoreStat
     }
   }
 
-  logger.info('cron', `Found ${pendingTasks.length} pending store GrsAi tasks`)
+  logger.debug('cron', `Found ${pendingTasks.length} pending store GrsAi tasks`)
 
   let successCount = 0
   let errorCount = 0
@@ -93,7 +93,7 @@ export async function syncPendingStoreTryOnTasks(): Promise<SyncPendingStoreStat
 
   const processTask = async (task: (typeof pendingTasks)[number]) => {
     try {
-      logger.info('cron', `Processing store task ${task.id}`)
+      logger.debug('cron', `Processing store task ${task.id}`)
 
       const result = await getTryOnResult(task.id)
 
@@ -111,15 +111,22 @@ export async function syncPendingStoreTryOnTasks(): Promise<SyncPendingStoreStat
             usage: createPrismaStoreUsageRepository(),
           })
           successCount++
-          logger.info('cron', `Store task ${task.id} completed successfully`, {
-            isNewCompletion: result.isNewCompletion,
-            origin: task.origin,
-            quotaSettled: settlement.settled,
-            quotaAlreadySettled: settlement.alreadySettled,
-          })
+          if (result.isNewCompletion || settlement.settled) {
+            logger.info('cron', `Store task ${task.id} completed successfully`, {
+              isNewCompletion: result.isNewCompletion,
+              origin: task.origin,
+              quotaSettled: settlement.settled,
+              quotaAlreadySettled: settlement.alreadySettled,
+            })
+          } else {
+            logger.debug('cron', `Store task ${task.id} already settled`, {
+              origin: task.origin,
+              quotaAlreadySettled: settlement.alreadySettled,
+            })
+          }
         } else {
           successCount++
-          logger.info('cron', `Store task ${task.id} completed without settlement context`, {
+          logger.warn('cron', `Store task ${task.id} completed without settlement context`, {
             isNewCompletion: result.isNewCompletion,
             origin: task.origin,
           })
@@ -147,12 +154,20 @@ export async function syncPendingStoreTryOnTasks(): Promise<SyncPendingStoreStat
   }
 
   const duration = Date.now() - startTime
-  logger.info('cron', 'Sync pending store tasks completed', {
-    total: pendingTasks.length,
-    successful: successCount,
-    errors: errorCount,
-    duration,
-  })
+  if (successCount > 0 || errorCount > 0 || staleClaimsMarkedFailed > 0) {
+    logger.info('cron', 'Sync pending store tasks completed', {
+      total: pendingTasks.length,
+      successful: successCount,
+      errors: errorCount,
+      staleClaimsMarkedFailed,
+      duration,
+    })
+  } else {
+    logger.debug('cron', 'Sync pending store tasks completed with no state changes', {
+      total: pendingTasks.length,
+      duration,
+    })
+  }
 
   return {
     scope: 'store',

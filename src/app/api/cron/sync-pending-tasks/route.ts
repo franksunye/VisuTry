@@ -20,7 +20,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    logger.info('cron', 'Starting isolated Consumer + Store pending sync')
+    logger.debug('cron', 'Starting isolated Consumer + Store pending sync')
 
     let consumerStats: Awaited<ReturnType<typeof syncPendingConsumerTryOnTasks>> | null = null
     let storeStats: Awaited<

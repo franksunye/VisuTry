@@ -50,7 +50,7 @@ export async function syncPendingConsumerTryOnTasks(): Promise<SyncPendingConsum
   })
 
   if (pendingTasks.length === 0) {
-    logger.info('cron', 'No pending consumer GrsAi tasks found')
+    logger.debug('cron', 'No pending consumer GrsAi tasks found')
     return {
       scope: 'consumer',
       total: 0,
@@ -60,7 +60,7 @@ export async function syncPendingConsumerTryOnTasks(): Promise<SyncPendingConsum
     }
   }
 
-  logger.info('cron', `Found ${pendingTasks.length} pending consumer GrsAi tasks`)
+  logger.debug('cron', `Found ${pendingTasks.length} pending consumer GrsAi tasks`)
 
   let successCount = 0
   let errorCount = 0
@@ -68,7 +68,7 @@ export async function syncPendingConsumerTryOnTasks(): Promise<SyncPendingConsum
 
   const processTask = async (task: (typeof pendingTasks)[number]) => {
     try {
-      logger.info('cron', `Processing consumer task ${task.id}`)
+      logger.debug('cron', `Processing consumer task ${task.id}`)
 
       const result = await getTryOnResult(task.id)
 
@@ -76,14 +76,20 @@ export async function syncPendingConsumerTryOnTasks(): Promise<SyncPendingConsum
         if (task.userId) {
           const settlement = await settleTryOnTaskQuota(task.id, task.userId)
           successCount++
-          logger.info('cron', `Consumer task ${task.id} completed successfully`, {
-            isNewCompletion: result.isNewCompletion,
-            quotaSettled: settlement.settled,
-            quotaAlreadySettled: settlement.alreadySettled,
-          })
+          if (result.isNewCompletion || settlement.settled) {
+            logger.info('cron', `Consumer task ${task.id} completed successfully`, {
+              isNewCompletion: result.isNewCompletion,
+              quotaSettled: settlement.settled,
+              quotaAlreadySettled: settlement.alreadySettled,
+            })
+          } else {
+            logger.debug('cron', `Consumer task ${task.id} already settled`, {
+              quotaAlreadySettled: settlement.alreadySettled,
+            })
+          }
         } else {
           successCount++
-          logger.info('cron', `Consumer task ${task.id} completed without userId`, {
+          logger.warn('cron', `Consumer task ${task.id} completed without userId`, {
             isNewCompletion: result.isNewCompletion,
           })
         }
@@ -110,12 +116,19 @@ export async function syncPendingConsumerTryOnTasks(): Promise<SyncPendingConsum
   }
 
   const duration = Date.now() - startTime
-  logger.info('cron', 'Sync pending consumer tasks completed', {
-    total: pendingTasks.length,
-    successful: successCount,
-    errors: errorCount,
-    duration,
-  })
+  if (successCount > 0 || errorCount > 0) {
+    logger.info('cron', 'Sync pending consumer tasks completed', {
+      total: pendingTasks.length,
+      successful: successCount,
+      errors: errorCount,
+      duration,
+    })
+  } else {
+    logger.debug('cron', 'Sync pending consumer tasks completed with no state changes', {
+      total: pendingTasks.length,
+      duration,
+    })
+  }
 
   return {
     scope: 'consumer',

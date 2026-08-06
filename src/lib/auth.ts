@@ -34,15 +34,11 @@ const validateEnvVars = () => {
     throw new Error(`Missing required environment variables: ${missing.join(', ')}`)
   }
 
-  // Log environment info (without sensitive data)
-  console.log('✅ NextAuth Environment Check:')
-  logger.info('auth', 'NextAuth environment check passed', { nodeEnv: process.env.NODE_ENV, vercel: !!process.env.VERCEL })
-  console.log('  - NODE_ENV:', process.env.NODE_ENV)
-  console.log('  - NEXTAUTH_URL:', process.env.NEXTAUTH_URL || '(not set - will use default)')
-  console.log('  - VERCEL:', process.env.VERCEL ? 'Yes' : 'No')
-  console.log('  - VERCEL_URL:', process.env.VERCEL_URL || '(not set)')
-  console.log('  - Database:', process.env.DATABASE_URL ? 'Configured' : 'Missing')
-  console.log('  - Auth0:', 'Configured')
+  // Mechanism/startup check — debug only (filtered from Axiom in production).
+  logger.debug('auth', 'NextAuth environment check passed', {
+    nodeEnv: process.env.NODE_ENV,
+    vercel: !!process.env.VERCEL,
+  })
 }
 
 // Run validation (only once at module load)
@@ -121,13 +117,11 @@ export const authOptions: NextAuthOptions = {
         // If role is not set, it will be fetched from DB in the sync section below
         token.role = user.role || 'USER'
 
-        // Debug logging for first login
-        console.log('[Auth JWT] First login - role set:', {
+        logger.debug('auth', 'First login - role set', {
           userId: user.id,
           email: user.email,
-          role: token.role
+          role: token.role,
         })
-        logger.info('auth', 'First login - role set', { userId: user.id, email: user.email, role: token.role })
       }
 
       // Auth0: extract profile data
@@ -202,15 +196,14 @@ export const authOptions: NextAuthOptions = {
             token.isPremium = dbUser.isPremium
             token.premiumExpiresAt = dbUser.premiumExpiresAt
 
-            // Debug logging for role assignment
-            console.log('[Auth JWT] User role synced from DB:', {
+            // Periodic JWT sync is mechanism noise — keep sign-in/createUser at info.
+            logger.debug('auth', 'User role synced from database', {
               userId: token.sub,
               email: dbUser.email,
               role: dbUser.role,
-              trigger,
+              isPremium: dbUser.isPremium,
               syncReason,
             })
-            logger.info('auth', 'User role synced from database', { userId: token.sub, email: dbUser.email, role: dbUser.role, isPremium: dbUser.isPremium, syncReason })
 
             // Calculate active status
             token.isPremiumActive = dbUser.isPremium &&
@@ -294,9 +287,9 @@ export const authOptions: NextAuthOptions = {
         redirectUrl = `${baseUrl}/try-on`
       }
 
-      logger.info('auth', 'OAuth redirect completed', {
+      logger.debug('auth', 'OAuth redirect completed', {
         originalUrl: url,
-        finalUrl: redirectUrl
+        finalUrl: redirectUrl,
       })
 
       return redirectUrl
