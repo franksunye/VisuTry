@@ -58,8 +58,10 @@ Production verification passed on commit `a36e9ae` and deployment
 | Cron | Schedule | Role |
 |------|----------|------|
 | `/api/cron/cleanup-store-assets` | 02:30 UTC | StoreAsset + orphan Blob cleanup |
-| `/api/cron/cleanup-expired-tasks` | 02:00 UTC | TryOnTask blob-first cleanup (per-field pathname ?? URL) |
-| `/api/cron/sync-pending-tasks` | (existing) | GrsAi sync + **stale Store claim reconcile** |
+| `/api/cron/cleanup-expired-tasks` | 02:00 UTC | TryOnTask blob-first cleanup (Consumer + Store batches isolated; ADR-007) |
+| `/api/cron/sync-pending-consumer-tasks` | every 3 min | Consumer GrsAi sync + Consumer quota settlement |
+| `/api/cron/sync-pending-store-tasks` | every 3 min | Store GrsAi sync + Store usage settlement + **stale Store claim reconcile** |
+| `/api/cron/sync-pending-tasks` | (legacy combined) | Runs Consumer then Store with isolated failure domains; prefer dedicated crons |
 
 Deletion emails are sent **only** for users whose tasks were confirmed deleted in that cron run.
 

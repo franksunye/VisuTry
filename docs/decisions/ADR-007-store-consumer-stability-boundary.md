@@ -212,8 +212,18 @@ Where practical, these should be automated integration/behavior tests rather tha
 - `docs/product/plans/visutry-store-implementation-plan.md`
 - `docs/project/architecture.md`
 
+## Implementation Notes
+
+As of 2026-08-06 the following enforcement landed in code:
+
+- Shared TryOnTask retention lives in `src/lib/retention/**` (Store re-exports only).
+- Consumer / Store pending sync use separate cron entry points with isolated failure domains.
+- `src/lib/tryon-service.ts` no longer imports `src/modules/store/**`; Store submit/persist live under Store generation adapters and register into shared poll core.
+- Regression suite: `tests/unit/lib/adr-007-consumer-stability.test.ts`.
+
 ## Change Log
 
 | Date | Change |
 | --- | --- |
 | 2026-08-06 | Accepted Consumer stability boundary and Store-to-shared-core dependency direction. |
+| 2026-08-06 | Landed failure-domain split, shared retention core, tryon-service Store decoupling, and Consumer stability suite. |

@@ -165,6 +165,10 @@ describe('TryOnService', () => {
       )
       expect(prisma.tryOnTask.create).toHaveBeenCalledWith({
         data: expect.objectContaining({
+          userId: 'user-1',
+          origin: 'CONSUMER',
+          retentionStatus: 'ACTIVE',
+          expiresAt: expect.any(Date),
           userImageUrl: expect.stringContaining('tryon/user/user-1/'),
           itemImageUrl: expect.stringContaining('tryon/item/user-1/'),
           metadata: expect.objectContaining({

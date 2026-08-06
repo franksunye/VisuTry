@@ -1,0 +1,374 @@
+/**
+ * ADR-007 Consumer stability regression suite.
+ * Required evidence for Store PRs that touch shared generation/poll/retention/quota/cron.
+ */
+
+import { readFileSync, readdirSync, statSync } from 'node:fs'
+import { join } from 'node:path'
+import { submitTryOnTask, getTryOnResult } from '@/lib/tryon-service'
+import { prisma } from '@/lib/prisma'
+import { pollTaskResult, submitAsyncTask } from '@/lib/grsai'
+import { put } from '@vercel/blob'
+import {
+  __resetStoreGrsaiSucceededPersistHandlerForTests,
+  getStoreGrsaiSucceededPersistHandler,
+  registerStoreGrsaiSucceededPersistHandler,
+} from '@/lib/generation/tryon-result-persist'
+import { collectTryOnRetentionDeleteTargets } from '@/lib/retention/tryon-retention-targets'
+
+jest.mock('@prisma/client', () => ({
+  TaskStatus: {
+    PENDING: 'PENDING',
+    PROCESSING: 'PROCESSING',
+    COMPLETED: 'COMPLETED',
+    FAILED: 'FAILED',
+  },
+  TryOnType: {
+    GLASSES: 'GLASSES',
+  },
+}))
+
+jest.mock('@/lib/prisma', () => ({
+  prisma: {
+    tryOnTask: {
+      create: jest.fn(),
+      findUnique: jest.fn(),
+      update: jest.fn(),
+      updateMany: jest.fn(),
+    },
+    user: {
+      update: jest.fn(),
+      findUnique: jest.fn(),
+    },
+    $transaction: jest.fn(),
+  },
+}))
+
+jest.mock('@vercel/blob', () => ({
+  put: jest.fn(),
+}))
+
+jest.mock('@/lib/grsai', () => ({
+  submitAsyncTask: jest.fn(),
+  pollTaskResult: jest.fn(),
+}))
+
+jest.mock('@/lib/gemini', () => ({
+  generateTryOnImage: jest.fn(),
+}))
+
+jest.mock('@/lib/logger', () => ({
+  logger: {
+    info: jest.fn(),
+    warn: jest.fn(),
+    error: jest.fn(),
+    debug: jest.fn(),
+  },
+}))
+
+jest.mock('next/cache', () => ({
+  revalidateTag: jest.fn(),
+}))
+
+const TaskStatus = {
+  PENDING: 'PENDING',
+  PROCESSING: 'PROCESSING',
+  COMPLETED: 'COMPLETED',
+  FAILED: 'FAILED',
+}
+
+function walkTsFiles(dir: string, acc: string[] = []): string[] {
+  for (const name of readdirSync(dir)) {
+    const full = join(dir, name)
+    const st = statSync(full)
+    if (st.isDirectory()) {
+      if (name === 'node_modules' || name === '.next' || name === 'store') continue
+      walkTsFiles(full, acc)
+    } else if (/\.(ts|tsx)$/.test(name)) {
+      acc.push(full)
+    }
+  }
+  return acc
+}
+
+describe('ADR-007 Consumer stability boundary', () => {
+  const mockUser = {
+    id: 'user-1',
+    isPremium: false,
+    premiumExpiresAt: null,
+    creditsPurchased: 0,
+    creditsUsed: 0,
+  }
+
+  const mockFile = {
+    name: 'face.jpg',
+    type: 'image/jpeg',
+    arrayBuffer: jest.fn().mockResolvedValue(new ArrayBuffer(8)),
+  } as unknown as File
+
+  beforeEach(() => {
+    jest.clearAllMocks()
+    __resetStoreGrsaiSucceededPersistHandlerForTests()
+    ;(put as jest.Mock).mockImplementation((path: string) => ({
+      url: `https://blob.vercel-storage.com/${path}`,
+    }))
+    ;(submitAsyncTask as jest.Mock).mockResolvedValue('ext-1')
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      blob: jest.fn().mockResolvedValue(new Blob(['fake'], { type: 'image/png' })),
+    }) as any
+  })
+
+  it('Consumer Try-On submission creates CONSUMER task with userId and no merchant attribution', async () => {
+    ;(prisma.tryOnTask.create as jest.Mock).mockResolvedValue({
+      id: 'consumer-task-1',
+      status: TaskStatus.PENDING,
+      userId: 'user-1',
+      metadata: { serviceType: 'grsai', isAsync: true },
+    })
+    ;(prisma.tryOnTask.update as jest.Mock).mockResolvedValue({})
+
+    await submitTryOnTask(mockUser as any, mockFile, mockFile, 'GLASSES')
+
+    expect(prisma.tryOnTask.create).toHaveBeenCalledWith({
+      data: expect.objectContaining({
+        userId: 'user-1',
+        origin: 'CONSUMER',
+        retentionStatus: 'ACTIVE',
+        expiresAt: expect.any(Date),
+      }),
+    })
+    const createData = (prisma.tryOnTask.create as jest.Mock).mock.calls[0][0].data
+    expect(createData.merchantId).toBeUndefined()
+    expect(createData.merchantSessionId).toBeUndefined()
+    expect(createData.merchantFrameId).toBeUndefined()
+  })
+
+  it('Consumer success completes and returns a usable result', async () => {
+    ;(prisma.tryOnTask.findUnique as jest.Mock)
+      .mockResolvedValueOnce({
+        id: 'task-1',
+        origin: 'CONSUMER',
+        userId: 'user-1',
+        merchantId: null,
+        status: TaskStatus.PROCESSING,
+        userImageUrl: 'https://blob/user.jpg',
+        itemImageUrl: 'https://blob/item.jpg',
+        metadata: { serviceType: 'grsai', externalTaskId: 'ext-1', retryCount: 0 },
+      })
+      .mockResolvedValueOnce({
+        status: TaskStatus.PROCESSING,
+        resultImageUrl: null,
+        metadata: {},
+        resultPersistLeaseOwner: null,
+        resultPersistLeaseUntil: null,
+        resultPersistVersion: 0,
+      })
+    ;(pollTaskResult as jest.Mock).mockResolvedValue({
+      status: 'succeeded',
+      imageUrl: 'https://provider/result.png',
+      progress: 100,
+      metadata: {},
+    })
+    ;(prisma.tryOnTask.updateMany as jest.Mock).mockResolvedValue({ count: 1 })
+
+    const result = await getTryOnResult('task-1')
+
+    expect(result.status).toBe(TaskStatus.COMPLETED)
+    expect(result.resultImageUrl).toBeTruthy()
+    expect(result.isNewCompletion).toBe(true)
+  })
+
+  it('Consumer async polling remains functional when Store persist registration is absent / fails', async () => {
+    expect(getStoreGrsaiSucceededPersistHandler()).toBeNull()
+
+    ;(prisma.tryOnTask.findUnique as jest.Mock)
+      .mockResolvedValueOnce({
+        id: 'task-consumer',
+        origin: 'CONSUMER',
+        userId: 'user-1',
+        merchantId: null,
+        status: TaskStatus.PROCESSING,
+        userImageUrl: 'https://blob/user.jpg',
+        itemImageUrl: 'https://blob/item.jpg',
+        metadata: { serviceType: 'grsai', externalTaskId: 'ext-c', retryCount: 0 },
+      })
+      .mockResolvedValueOnce({
+        status: TaskStatus.PROCESSING,
+        resultImageUrl: null,
+        metadata: {},
+        resultPersistLeaseOwner: null,
+        resultPersistLeaseUntil: null,
+        resultPersistVersion: 0,
+      })
+    ;(pollTaskResult as jest.Mock).mockResolvedValue({
+      status: 'succeeded',
+      imageUrl: 'https://provider/result.png',
+      progress: 100,
+    })
+    ;(prisma.tryOnTask.updateMany as jest.Mock).mockResolvedValue({ count: 1 })
+
+    const result = await getTryOnResult('task-consumer')
+    expect(result.status).toBe(TaskStatus.COMPLETED)
+
+    // Store task without handler must not complete via Consumer provider-URL fallback
+    ;(prisma.tryOnTask.findUnique as jest.Mock)
+      .mockResolvedValueOnce({
+        id: 'task-store',
+        origin: 'STORE_DEMO',
+        userId: null,
+        merchantId: 'm1',
+        status: TaskStatus.PROCESSING,
+        userImageUrl: 'pending://user',
+        itemImageUrl: 'pending://item',
+        metadata: { serviceType: 'grsai', externalTaskId: 'ext-s', retryCount: 0 },
+      })
+      .mockResolvedValueOnce({
+        status: TaskStatus.PROCESSING,
+        resultImageUrl: null,
+        metadata: {},
+        resultPersistLeaseOwner: null,
+        resultPersistLeaseUntil: null,
+        resultPersistVersion: 0,
+      })
+
+    const storeResult = await getTryOnResult('task-store')
+    expect(storeResult.status).toBe(TaskStatus.PROCESSING)
+    expect(prisma.tryOnTask.updateMany).toHaveBeenCalledTimes(1) // only Consumer completed
+  })
+
+  it('Store completion handler never mutates Consumer counters (settlement stays separate)', async () => {
+    const consumerUpdate = jest.fn()
+    registerStoreGrsaiSucceededPersistHandler(async () => {
+      // Store handler must not touch User counters
+      expect(consumerUpdate).not.toHaveBeenCalled()
+      return {
+        status: TaskStatus.COMPLETED as any,
+        resultImageUrl: 'https://blob/store-result.png',
+        progress: 100,
+        isNewCompletion: true,
+      }
+    })
+
+    ;(prisma.tryOnTask.findUnique as jest.Mock)
+      .mockResolvedValueOnce({
+        id: 'task-store-2',
+        origin: 'STORE_DEMO',
+        userId: null,
+        merchantId: 'm1',
+        status: TaskStatus.PROCESSING,
+        metadata: { serviceType: 'grsai', externalTaskId: 'ext-s2', retryCount: 0 },
+      })
+      .mockResolvedValueOnce({
+        status: TaskStatus.PROCESSING,
+        resultImageUrl: null,
+        metadata: {},
+        resultPersistLeaseOwner: null,
+        resultPersistLeaseUntil: null,
+        resultPersistVersion: 0,
+      })
+    ;(pollTaskResult as jest.Mock).mockResolvedValue({
+      status: 'succeeded',
+      imageUrl: 'https://provider/result.png',
+      progress: 100,
+    })
+
+    const result = await getTryOnResult('task-store-2')
+    expect(result.status).toBe(TaskStatus.COMPLETED)
+    expect(prisma.user.update).not.toHaveBeenCalled()
+  })
+
+  it('Consumer quota settlement remains a separate Consumer policy module', () => {
+    const quotaSource = readFileSync(join(process.cwd(), 'src/lib/quota.ts'), 'utf8')
+    expect(quotaSource).toContain('settleTryOnTaskQuota')
+    expect(quotaSource).not.toContain('modules/store')
+    expect(quotaSource).not.toContain('MerchantUsage')
+  })
+
+  it('Consumer result persistence falls back to provider URL when blob upload fails', async () => {
+    ;(prisma.tryOnTask.findUnique as jest.Mock)
+      .mockResolvedValueOnce({
+        id: 'task-fallback',
+        origin: 'CONSUMER',
+        userId: 'user-1',
+        merchantId: null,
+        status: TaskStatus.PROCESSING,
+        metadata: { serviceType: 'grsai', externalTaskId: 'ext-f', retryCount: 0 },
+      })
+      .mockResolvedValueOnce({
+        status: TaskStatus.PROCESSING,
+        resultImageUrl: null,
+        metadata: {},
+        resultPersistLeaseOwner: null,
+        resultPersistLeaseUntil: null,
+        resultPersistVersion: 0,
+      })
+    ;(pollTaskResult as jest.Mock).mockResolvedValue({
+      status: 'succeeded',
+      imageUrl: 'https://provider/fallback.png',
+      progress: 100,
+    })
+    ;(put as jest.Mock).mockRejectedValue(new Error('blob unavailable'))
+    ;(prisma.tryOnTask.updateMany as jest.Mock).mockResolvedValue({ count: 1 })
+
+    const result = await getTryOnResult('task-fallback')
+    expect(result.status).toBe(TaskStatus.COMPLETED)
+    expect(result.resultImageUrl).toBe('https://provider/fallback.png')
+  })
+
+  it('shared retention targets collect Consumer and Store blob refs without Store imports', () => {
+    const targets = collectTryOnRetentionDeleteTargets({
+      userImageUrl: 'https://blob.vercel-storage.com/tryon/user/u1/a.jpg',
+      itemImageUrl: 'https://blob.vercel-storage.com/tryon/item/u1/b.jpg',
+      resultImageUrl: 'https://provider.example/should-skip.png',
+      metadata: {
+        resultPathname: 'tryon/result/u1/task.png',
+      },
+    })
+    expect(targets).toEqual([
+      'https://blob.vercel-storage.com/tryon/user/u1/a.jpg',
+      'https://blob.vercel-storage.com/tryon/item/u1/b.jpg',
+      'tryon/result/u1/task.png',
+    ])
+  })
+
+  it('Consumer-facing lib and Consumer cron sources must not import modules/store', () => {
+    const roots = [
+      join(process.cwd(), 'src/lib/tryon-service.ts'),
+      join(process.cwd(), 'src/lib/quota.ts'),
+      join(process.cwd(), 'src/lib/compare-tryon-server.ts'),
+      join(process.cwd(), 'src/lib/cron/sync-pending-consumer-tasks.ts'),
+      join(process.cwd(), 'src/app/api/cron/cleanup-expired-tasks/route.ts'),
+      join(process.cwd(), 'src/app/api/cron/sync-pending-consumer-tasks/route.ts'),
+      join(process.cwd(), 'src/app/api/try-on'),
+    ]
+
+    const files: string[] = []
+    for (const root of roots) {
+      const st = statSync(root)
+      if (st.isDirectory()) walkTsFiles(root, files)
+      else files.push(root)
+    }
+
+    const violations: string[] = []
+    for (const file of files) {
+      const source = readFileSync(file, 'utf8')
+      if (source.includes("@/modules/store") || source.includes("modules/store/")) {
+        violations.push(file.replace(process.cwd() + '/', ''))
+      }
+    }
+
+    expect(violations).toEqual([])
+  })
+
+  it('Frame Compare entrypoint still routes through Consumer submitTryOnTask (no Store dependency)', () => {
+    const source = readFileSync(
+      join(process.cwd(), 'src/lib/compare-tryon-server.ts'),
+      'utf8',
+    )
+    expect(source).toContain("from '@/lib/tryon-service'")
+    expect(source).toContain('submitTryOnTask')
+    expect(source).not.toContain('modules/store')
+    expect(source).not.toContain('submitStoreTryOnTask')
+  })
+})

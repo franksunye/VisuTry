@@ -1,10 +1,17 @@
-import { getTryOnResult, submitStoreTryOnTask } from '@/lib/tryon-service'
+import {
+  getTryOnResult,
+  type TryOnSubmissionResult,
+} from '@/lib/tryon-service'
 import { prisma } from '@/lib/prisma'
 import type { StoreGenerationPort, StoreGenerationSubmitInput } from '../../application/ports/generation'
 import { isStoreActor } from '../../domain/actor'
 import { computeStoreAssetExpiresAt } from '../config/store-demo-limits'
+import { submitStoreTryOnTask } from './submit-store-tryon-task'
+import { ensureStoreTryOnPersistRegistered } from './ensure-store-tryon-persist-registered'
 
 export function createStoreGenerationAdapter(): StoreGenerationPort {
+  ensureStoreTryOnPersistRegistered()
+
   return {
     async findExistingByIdempotencyKey(idempotencyKey, merchantId) {
       const existing = await prisma.tryOnTask.findUnique({
@@ -63,7 +70,7 @@ export function createStoreGenerationAdapter(): StoreGenerationPort {
       const origin =
         input.usagePolicy.kind === 'merchant_allowance' ? 'STORE_PILOT' : 'STORE_DEMO'
 
-      const result = await submitStoreTryOnTask(
+      const result: TryOnSubmissionResult = await submitStoreTryOnTask(
         {
           merchantId: input.actor.merchantId,
           merchantSessionId: input.actor.merchantSessionId,
@@ -93,6 +100,8 @@ export function createStoreGenerationAdapter(): StoreGenerationPort {
     },
 
     async getStatus(taskId, merchantId) {
+      ensureStoreTryOnPersistRegistered()
+
       const task = await prisma.tryOnTask.findFirst({
         where: {
           id: taskId,

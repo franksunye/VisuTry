@@ -1,47 +1,28 @@
 import { prisma } from "@/lib/prisma"
-import { del, head, put } from "@vercel/blob"
-import {
-  buildDispatchLeaseFields,
-  isBlobConflictError,
-  type DispatchFence,
-} from "@/modules/store/application/store-dispatch-lease"
+import { put } from "@vercel/blob"
 import { generateTryOnImage } from "@/lib/gemini"
 import { submitAsyncTask, pollTaskResult } from "@/lib/grsai"
 import { logger } from "@/lib/logger"
 import { Prisma, TaskStatus, TryOnType, User } from "@prisma/client"
 import { TRY_ON_CONFIGS } from "@/config/try-on-types"
-import { createHash, randomUUID } from "node:crypto"
+import { calculateExpiresAt } from "@/config/retention"
+import { createHash } from "node:crypto"
 import {
   DEFAULT_TRY_ON_PROMPT_VERSION,
   resolveTryOnPrompt,
 } from '@/lib/try-on-prompt-registry'
-import { recordStoreOrphanBlob } from '@/modules/store/application/cleanup-store-orphan-blobs'
-import { isMockMode } from '@/lib/mocks'
-import { mockBlobUpload } from '@/lib/mocks/blob'
-import { acquireStoreResultPersistLease } from '@/modules/store/application/store-task-leases'
-import { resolveStoreAssetAccessPolicy } from '@/modules/store/infrastructure/config/store-asset-access-policy'
+import {
+  getStoreGrsaiSucceededPersistHandler,
+  isStoreTryOnOrigin,
+} from '@/lib/generation/tryon-result-persist'
+import type { TryOnPollResult, TryOnSubmissionResult } from '@/lib/generation/tryon-types'
+
+export type { TryOnPollResult, TryOnSubmissionResult }
 
 // Service Tiering Config
 const ENABLE_SERVICE_TIERING = process.env.ENABLE_SERVICE_TIERING !== 'false' // Default to true, unless explicitly set to false
 const GEMINI_PREMIUM_ONLY = process.env.GEMINI_PREMIUM_ONLY !== 'false'
 const MAX_GRSAI_TIMEOUT_RETRIES = 1
-
-export interface TryOnSubmissionResult {
-  taskId: string
-  status: string // 'submitted' | 'completed' | 'failed'
-  serviceType: string
-  isAsync: boolean
-  resultImageUrl?: string
-  error?: string
-}
-
-export interface TryOnPollResult {
-  status: TaskStatus
-  resultImageUrl?: string
-  progress?: number
-  error?: string
-  isNewCompletion?: boolean
-}
 
 interface FileInspection {
   name: string
@@ -286,7 +267,10 @@ export async function submitTryOnTask(
         userImageUrl: userBlob.url,
         itemImageUrl: itemBlob.url,
         status: TaskStatus.PENDING,
+        origin: 'CONSUMER',
         clientSubmissionId,
+        expiresAt: calculateExpiresAt(user),
+        retentionStatus: 'ACTIVE',
         metadata: {
           ...(options?.metadata || {}),
           serviceType,
@@ -348,7 +332,7 @@ export async function submitTryOnTask(
           const file = new File([blob], `result-${task.id}.png`, { type: blob.type })
           
           // Upload to Vercel Blob
-          const resultOwnerKey = task.userId ?? `store/${task.merchantId ?? task.id}`
+          const resultOwnerKey = task.userId ?? task.id
           const uploadedBlob = await put(`tryon/result/${resultOwnerKey}/${task.id}.png`, file, { access: 'public' })
           finalResultUrl = uploadedBlob.url
           logger.info('tryon-service', 'Gemini result uploaded to blob', {
@@ -474,369 +458,6 @@ export async function submitTryOnTask(
   }
 }
 
-export type StoreTryOnAttribution = {
-  merchantId: string
-  merchantSessionId: string
-  merchantFrameId: string
-  origin: 'STORE_DEMO' | 'STORE_PILOT'
-  idempotencyKey: string
-  expiresAt?: Date
-}
-
-/**
- * Store-attributed Try-On submission.
- * Does not require a consumer User and never settles consumer credits.
- * Forces GrsAI async path for D0 parity with Frame Compare.
- */
-export async function submitStoreTryOnTask(
-  attribution: StoreTryOnAttribution,
-  userImageFile: File,
-  itemImageFile: File,
-  options?: {
-    clientSubmissionId?: string
-    metadata?: Record<string, unknown>
-    prompt?: string
-    preClaimedTaskId?: string
-    dispatchLease?: DispatchFence
-  },
-): Promise<TryOnSubmissionResult> {
-  const clientSubmissionId = options?.clientSubmissionId
-  const startTime = Date.now()
-  const { merchantId, merchantSessionId, merchantFrameId, origin, idempotencyKey } = attribution
-
-  logger.info('tryon-service', 'Starting Store try-on task', {
-    merchantId,
-    merchantSessionId,
-    merchantFrameId,
-    origin,
-    clientSubmissionId,
-    preClaimedTaskId: options?.preClaimedTaskId,
-  })
-
-  const resolvedPrompt = resolveTryOnPrompt(TryOnType.GLASSES, options?.prompt)
-  const effectivePrompt = resolvedPrompt.detailedInstructions
-  const promptVersion = resolvedPrompt.version
-  const serviceType = 'grsai'
-  const isAsync = true
-  const storeAssetPolicy = resolveStoreAssetAccessPolicy()
-
-  // Claim-first: prefer pre-claimed task from atomic reservation; otherwise create here.
-  const directLease = buildDispatchLeaseFields()
-  let dispatchFence: DispatchFence = options?.dispatchLease ?? {
-    owner: randomUUID(),
-    version: 1,
-  }
-  let task: Awaited<ReturnType<typeof prisma.tryOnTask.create>>
-  if (options?.preClaimedTaskId) {
-    const claimed = await prisma.tryOnTask.findFirst({
-      where: {
-        id: options.preClaimedTaskId,
-        merchantId,
-        merchantSessionId,
-        merchantFrameId,
-        idempotencyKey,
-        origin: { in: ['STORE_DEMO', 'STORE_PILOT'] },
-      },
-    })
-    if (!claimed) {
-      throw new Error('Pre-claimed Store try-on task not found')
-    }
-    // Already uploaded / dispatched — idempotent reuse
-    if (!claimed.userImageUrl.startsWith('pending:')) {
-      return submissionResultFromTask(claimed)
-    }
-    if (
-      !options.dispatchLease ||
-      claimed.dispatchLeaseOwner !== options.dispatchLease.owner ||
-      claimed.dispatchVersion !== options.dispatchLease.version
-    ) {
-      logger.info('tryon-service', 'Store dispatch lease is owned by another request', {
-        taskId: claimed.id,
-      })
-      return submissionResultFromTask(claimed)
-    }
-    dispatchFence = options.dispatchLease
-    task = claimed
-  } else {
-    try {
-      task = await prisma.tryOnTask.create({
-        data: {
-          userId: null,
-          type: TryOnType.GLASSES,
-          userImageUrl: 'pending://user',
-          itemImageUrl: 'pending://item',
-          status: TaskStatus.PENDING,
-          origin,
-          merchantId,
-          merchantSessionId,
-          merchantFrameId,
-          idempotencyKey,
-          clientSubmissionId,
-          expiresAt: attribution.expiresAt,
-          retentionStatus: 'ACTIVE',
-          metadata: {
-            ...(options?.metadata || {}),
-            serviceType,
-            isAsync,
-            effectivePrompt,
-            renderedPrompt: resolvedPrompt.renderedPrompt,
-            promptVersion,
-            promptSource: resolvedPrompt.source,
-            retryCount: 0,
-            clientSubmissionId,
-            source: 'store',
-            claimFirst: true,
-            originalUserFileName: userImageFile.name,
-            originalItemFileName: itemImageFile.name,
-          },
-          dispatchLeaseOwner: dispatchFence.owner,
-          dispatchLeaseUntil: new Date(directLease.dispatchLeaseUntil),
-          dispatchVersion: dispatchFence.version,
-        },
-      })
-    } catch (error) {
-      if (!isUniqueConstraintError(error)) throw error
-      const raced = await prisma.tryOnTask.findUnique({ where: { idempotencyKey } })
-      if (!raced) throw error
-      if (
-        raced.merchantId !== merchantId ||
-        raced.merchantSessionId !== merchantSessionId ||
-        raced.merchantFrameId !== merchantFrameId
-      ) {
-        throw new Error('Store idempotency key conflict')
-      }
-      logger.info('tryon-service', 'Reusing Store idempotent try-on submission (claim race)', {
-        taskId: raced.id,
-        idempotencyKey,
-      })
-      return submissionResultFromTask(raced)
-    }
-  }
-
-  // Refresh metadata for pre-claimed rows that still need prompt/dispatch fields.
-  if (options?.preClaimedTaskId) {
-    const refreshed = await prisma.tryOnTask.updateMany({
-      where: {
-        id: task.id,
-        dispatchLeaseOwner: dispatchFence.owner,
-        dispatchVersion: dispatchFence.version,
-        status: TaskStatus.PENDING,
-        userImageUrl: { startsWith: 'pending:' },
-      },
-      data: {
-        metadata: {
-          ...((task.metadata as object) || {}),
-          ...(options?.metadata || {}),
-          serviceType,
-          isAsync,
-          effectivePrompt,
-          renderedPrompt: resolvedPrompt.renderedPrompt,
-          promptVersion,
-          promptSource: resolvedPrompt.source,
-          retryCount: 0,
-          clientSubmissionId,
-          source: 'store',
-          claimFirst: true,
-          originalUserFileName: userImageFile.name,
-          originalItemFileName: itemImageFile.name,
-        },
-      },
-    })
-    if (refreshed.count !== 1) throw new Error('Store dispatch lease lost before upload')
-    const refreshedTask = await prisma.tryOnTask.findUnique({ where: { id: task.id } })
-    if (!refreshedTask) throw new Error('Store try-on task disappeared before upload')
-    task = refreshedTask
-  }
-
-  const ownerKey = `store/${merchantId}`
-  // A takeover gets a distinct path generation. A stale owner can therefore
-  // compensate only its own uploads, never assets created by the new owner.
-  const userPath = `tryon/user/${ownerKey}/${task.id}-v${dispatchFence.version}-${randomUUID()}`
-  const itemPath = `tryon/item/${ownerKey}/${task.id}-v${dispatchFence.version}-${randomUUID()}`
-  let userBlobUrl: string | null = null
-  let itemBlobUrl: string | null = null
-
-  const compensateUploaded = async () => {
-    for (const [url, path] of [
-      [userBlobUrl, userPath],
-      [itemBlobUrl, itemPath],
-    ] as const) {
-      if (!url) continue
-      try {
-        if (!isMockMode) await del(path)
-      } catch (delError) {
-        await recordStoreOrphanBlob({
-          url,
-          pathname: path,
-          merchantId,
-          tryOnTaskId: task.id,
-          error: delError instanceof Error ? delError.message : 'compensate_failed',
-        })
-      }
-    }
-  }
-
-  try {
-    if (isMockMode) {
-      const settled = await Promise.allSettled([
-        mockBlobUpload(userPath, userImageFile),
-        mockBlobUpload(itemPath, itemImageFile),
-      ])
-      if (settled[0].status === 'fulfilled') userBlobUrl = settled[0].value.url
-      if (settled[1].status === 'fulfilled') itemBlobUrl = settled[1].value.url
-      if (settled[0].status === 'rejected' || settled[1].status === 'rejected') {
-        const reason =
-          settled[0].status === 'rejected'
-            ? settled[0].reason
-            : (settled[1] as PromiseRejectedResult).reason
-        throw reason
-      }
-    } else {
-      const settled = await Promise.allSettled([
-        put(userPath, userImageFile, {
-          access: storeAssetPolicy.blobAccess,
-          contentType: userImageFile.type || 'image/jpeg',
-        }),
-        put(itemPath, itemImageFile, {
-          access: storeAssetPolicy.blobAccess,
-          contentType: itemImageFile.type || 'image/jpeg',
-        }),
-      ])
-      if (settled[0].status === 'fulfilled') userBlobUrl = settled[0].value.url
-      if (settled[1].status === 'fulfilled') itemBlobUrl = settled[1].value.url
-      if (settled[0].status === 'rejected' || settled[1].status === 'rejected') {
-        const reason =
-          settled[0].status === 'rejected'
-            ? settled[0].reason
-            : (settled[1] as PromiseRejectedResult).reason
-        throw reason
-      }
-    }
-  } catch (error) {
-    logger.error('tryon-service', 'Failed to upload Store images to blob', error as Error, {
-      merchantId,
-      merchantSessionId,
-      taskId: task.id,
-    })
-    await compensateUploaded()
-    await prisma.tryOnTask.updateMany({
-      where: {
-        id: task.id,
-        dispatchLeaseOwner: dispatchFence.owner,
-        dispatchVersion: dispatchFence.version,
-      },
-      data: {
-        status: TaskStatus.FAILED,
-        errorMessage: 'Failed to upload images to Store storage',
-      },
-    })
-    throw new Error('Failed to upload images')
-  }
-
-  try {
-    const attached = await prisma.tryOnTask.updateMany({
-      where: {
-        id: task.id,
-        dispatchLeaseOwner: dispatchFence.owner,
-        dispatchVersion: dispatchFence.version,
-        status: TaskStatus.PENDING,
-        userImageUrl: { startsWith: 'pending:' },
-      },
-      data: {
-        userImageUrl: userBlobUrl!,
-        itemImageUrl: itemBlobUrl!,
-        metadata: {
-          ...(task.metadata as object),
-          userPathname: userPath,
-          itemPathname: itemPath,
-          inputAssetAccessMode: storeAssetPolicy.assetAccessMode,
-          privateBlob: !storeAssetPolicy.publicPoc,
-        },
-      },
-    })
-    if (attached.count !== 1) throw new Error('Store dispatch lease lost after upload')
-    const attachedTask = await prisma.tryOnTask.findUnique({ where: { id: task.id } })
-    if (!attachedTask) throw new Error('Store try-on task disappeared after upload')
-    task = attachedTask
-  } catch (error) {
-    await compensateUploaded()
-    throw error
-  }
-
-  try {
-    const userBuffer = Buffer.from(await userImageFile.arrayBuffer())
-    const itemBuffer = Buffer.from(await itemImageFile.arrayBuffer())
-    const userMime = userImageFile.type || 'image/jpeg'
-    const itemMime = itemImageFile.type || 'image/jpeg'
-    const userDataUri = `data:${userMime};base64,${userBuffer.toString('base64')}`
-    const itemDataUri = `data:${itemMime};base64,${itemBuffer.toString('base64')}`
-
-    const externalTaskId = await submitAsyncTask(
-      userDataUri,
-      itemDataUri,
-      effectivePrompt,
-      promptVersion,
-    )
-
-    const dispatched = await prisma.tryOnTask.updateMany({
-      where: {
-        id: task.id,
-        dispatchLeaseOwner: dispatchFence.owner,
-        dispatchVersion: dispatchFence.version,
-        status: TaskStatus.PENDING,
-      },
-      data: {
-        status: TaskStatus.PROCESSING,
-        dispatchLeaseOwner: null,
-        dispatchLeaseUntil: null,
-        metadata: {
-          ...(task.metadata as object),
-          externalTaskId,
-          serviceType,
-          isAsync,
-          effectivePrompt,
-          renderedPrompt: resolvedPrompt.renderedPrompt,
-          promptVersion,
-          promptSource: resolvedPrompt.source,
-          retryCount: 0,
-          dispatchMs: Date.now() - startTime,
-          inputAssetAccessMode: storeAssetPolicy.assetAccessMode,
-          privateBlob: !storeAssetPolicy.publicPoc,
-        },
-      },
-    })
-    if (dispatched.count !== 1) {
-      throw new Error('Store dispatch lease lost after provider submission')
-    }
-
-    return {
-      taskId: task.id,
-      status: 'submitted',
-      serviceType,
-      isAsync,
-    }
-  } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error'
-    logger.error('tryon-service', 'Store GrsAi submission failed', error as Error, {
-      taskId: task.id,
-      merchantId,
-    })
-    await prisma.tryOnTask.updateMany({
-      where: {
-        id: task.id,
-        dispatchLeaseOwner: dispatchFence.owner,
-        dispatchVersion: dispatchFence.version,
-        status: { not: TaskStatus.COMPLETED },
-      },
-      data: {
-        status: TaskStatus.FAILED,
-        errorMessage,
-      },
-    })
-    throw error
-  }
-}
-
 export async function getTryOnResult(taskId: string): Promise<TryOnPollResult> {
   // 1. Fetch task from DB
   const task = await prisma.tryOnTask.findUnique({
@@ -881,12 +502,6 @@ export async function getTryOnResult(taskId: string): Promise<TryOnPollResult> {
     }
     
     if (pollResult.status === 'succeeded' && pollResult.imageUrl) {
-      const isStoreTask =
-        task.origin === 'STORE_DEMO' || task.origin === 'STORE_PILOT'
-      const storeResultPolicy = isStoreTask ? resolveStoreAssetAccessPolicy() : null
-      const resultOwnerKey = task.userId ?? `store/${task.merchantId ?? taskId}`
-      const resultPathname = `tryon/result/${resultOwnerKey}/${taskId}.png`
-
       // Re-read before persist — another poll may have completed already.
       const latestBeforePersist = await prisma.tryOnTask.findUnique({
         where: { id: taskId },
@@ -908,102 +523,36 @@ export async function getTryOnResult(taskId: string): Promise<TryOnPollResult> {
         }
       }
 
-      let resultPersistFence: DispatchFence | null = null
-      if (isStoreTask && !isMockMode) {
-        const metaBefore = (latestBeforePersist?.metadata ?? {}) as Record<string, unknown>
-        const now = new Date()
-        const leaseIsActive =
-          latestBeforePersist?.resultPersistLeaseUntil != null &&
-          latestBeforePersist.resultPersistLeaseUntil.getTime() > now.getTime()
-        if (leaseIsActive) {
-          // Another poll owns persistence; wait or reconcile existing blob.
-          try {
-            const existing = await head(resultPathname)
-            const updateResult = await prisma.tryOnTask.updateMany({
-              where: {
-                id: taskId,
-                status: { not: TaskStatus.COMPLETED },
-              },
-              data: {
-                status: TaskStatus.COMPLETED,
-                resultImageUrl: existing.url,
-                errorMessage: null,
-                metadata: {
-                  ...metaBefore,
-                  ...externalPollMetadata,
-                  resultPathname,
-                  resultAssetAccessMode: storeResultPolicy!.assetAccessMode,
-                  privateBlob: !storeResultPolicy!.publicPoc,
-                  privatePersistPending: false,
-                  privatePersistError: null,
-                  completionTime: Date.now(),
-                  resultReconciledFromExistingBlob: true,
-                },
-                resultPersistLeaseOwner: null,
-                resultPersistLeaseUntil: null,
-              },
-            })
-            return {
-              status: TaskStatus.COMPLETED,
-              resultImageUrl: existing.url,
-              progress: 100,
-              isNewCompletion: updateResult.count > 0,
-            }
-          } catch {
-            // Lease holder still uploading
-          }
+      // Store persist is injected by Store adapters/crons (ADR-007).
+      if (isStoreTryOnOrigin(task.origin)) {
+        const storePersist = getStoreGrsaiSucceededPersistHandler()
+        if (!storePersist) {
+          logger.warn(
+            'tryon-service',
+            'Store result persist handler not registered; leaving task processing',
+            { taskId, origin: task.origin },
+          )
           return {
             status: TaskStatus.PROCESSING,
             progress: pollResult.progress ?? 90,
           }
         }
-
-        const expectedVersion = latestBeforePersist?.resultPersistVersion ?? 0
-        const acquired = await acquireStoreResultPersistLease({
+        return storePersist({
           taskId,
-          expectedVersion,
-          now,
+          origin: task.origin,
+          userId: task.userId,
+          merchantId: task.merchantId,
+          pollImageUrl: pollResult.imageUrl,
+          pollProgress: pollResult.progress,
+          pollMetadata: pollResult.metadata as Record<string, unknown> | undefined,
+          externalPollMetadata,
+          latestBeforePersist,
         })
-        if (!acquired) {
-          // Lost the CAS. The winner may already have uploaded the deterministic blob.
-          try {
-            const existing = await head(resultPathname)
-            const reconciled = await prisma.tryOnTask.updateMany({
-              where: { id: taskId, status: { not: TaskStatus.COMPLETED } },
-              data: {
-                status: TaskStatus.COMPLETED,
-                resultImageUrl: existing.url,
-                errorMessage: null,
-                metadata: {
-                  ...metaBefore,
-                  ...externalPollMetadata,
-                  resultPathname,
-                  resultAssetAccessMode: storeResultPolicy!.assetAccessMode,
-                  privateBlob: !storeResultPolicy!.publicPoc,
-                  privatePersistPending: false,
-                  privatePersistError: null,
-                  completionTime: Date.now(),
-                  resultReconciledFromExistingBlob: true,
-                },
-                resultPersistLeaseOwner: null,
-                resultPersistLeaseUntil: null,
-              },
-            })
-            return {
-              status: TaskStatus.COMPLETED,
-              resultImageUrl: existing.url,
-              progress: 100,
-              isNewCompletion: reconciled.count > 0,
-            }
-          } catch {
-            return {
-              status: TaskStatus.PROCESSING,
-              progress: pollResult.progress ?? 90,
-            }
-          }
-        }
-        resultPersistFence = acquired
       }
+
+      // Consumer path: public blob persist with provider-URL fallback.
+      const resultOwnerKey = task.userId ?? taskId
+      const resultPathname = `tryon/result/${resultOwnerKey}/${taskId}.png`
 
       let persistedUrl: string | null = null
       try {
@@ -1013,113 +562,18 @@ export async function getTryOnResult(taskId: string): Promise<TryOnPollResult> {
         }
         const blob = await response.blob()
         const file = new File([blob], `result-${taskId}.png`, { type: blob.type || 'image/png' })
-
-        if (isStoreTask) {
-          if (isMockMode) {
-            const uploaded = await mockBlobUpload(resultPathname, file)
-            persistedUrl = uploaded.url
-          } else {
-            try {
-              const uploadedBlob = await put(resultPathname, file, {
-                access: storeResultPolicy!.blobAccess,
-                contentType: file.type || 'image/png',
-              })
-              persistedUrl = uploadedBlob.url
-            } catch (putError) {
-              if (!isBlobConflictError(putError)) throw putError
-              // Concurrent put or crash-after-put: treat existing object as success.
-              const existing = await head(resultPathname)
-              persistedUrl = existing.url
-              logger.info('tryon-service', 'Store result blob already present; reconciling', {
-                taskId,
-                pathname: resultPathname,
-              })
-            }
-          }
-          logger.info('tryon-service', 'Store GrsAi result persisted to blob', {
-            taskId,
-            pathname: resultPathname,
-            access: storeResultPolicy!.blobAccess,
-          })
-        } else {
-          const uploadedBlob = await put(resultPathname, file, { access: 'public' })
-          persistedUrl = uploadedBlob.url
-          logger.info('tryon-service', 'GrsAi result uploaded to blob', {
-            taskId,
-            access: 'public',
-          })
-        }
+        const uploadedBlob = await put(resultPathname, file, { access: 'public' })
+        persistedUrl = uploadedBlob.url
+        logger.info('tryon-service', 'GrsAi result uploaded to blob', {
+          taskId,
+          access: 'public',
+        })
       } catch (uploadError) {
         logger.error('tryon-service', 'Failed to persist GrsAi result to blob', uploadError as Error, {
           taskId,
-          isStoreTask,
         })
-
-        if (isStoreTask) {
-          // Fail closed: never complete on provider URLs; never roll back COMPLETED.
-          if (isBlobConflictError(uploadError) && !isMockMode) {
-            try {
-              const existing = await head(resultPathname)
-              persistedUrl = existing.url
-            } catch {
-              persistedUrl = null
-            }
-          }
-
-          if (!persistedUrl) {
-            await prisma.tryOnTask.updateMany({
-              where: {
-                id: taskId,
-                status: { not: TaskStatus.COMPLETED },
-                ...(resultPersistFence
-                  ? {
-                      resultPersistLeaseOwner: resultPersistFence.owner,
-                      resultPersistVersion: resultPersistFence.version,
-                    }
-                  : {}),
-              },
-              data: {
-                status: TaskStatus.PROCESSING,
-                errorMessage: null,
-                metadata: {
-                  ...externalPollMetadata,
-                  privatePersistPending: true,
-                  privatePersistError:
-                    uploadError instanceof Error
-                      ? uploadError.message.slice(0, 500)
-                      : 'persist_failed',
-                  providerResultPresent: true,
-                },
-                ...(resultPersistFence
-                  ? {
-                      resultPersistLeaseOwner: null,
-                      resultPersistLeaseUntil: null,
-                    }
-                  : {}),
-              },
-            })
-            const afterFail = await prisma.tryOnTask.findUnique({
-              where: { id: taskId },
-              select: { status: true, resultImageUrl: true },
-            })
-            if (afterFail?.status === TaskStatus.COMPLETED) {
-              return {
-                status: TaskStatus.COMPLETED,
-                resultImageUrl: afterFail.resultImageUrl || undefined,
-                progress: 100,
-                isNewCompletion: false,
-              }
-            }
-            return {
-              status: TaskStatus.PROCESSING,
-              progress: pollResult.progress ?? 90,
-              error: undefined,
-            }
-          }
-        } else {
-          // Consumer: keep legacy fallback to provider URL
-          persistedUrl = pollResult.imageUrl
-        }
+        // Consumer: keep legacy fallback to provider URL
+        persistedUrl = pollResult.imageUrl
       }
 
       if (!persistedUrl) {
@@ -1133,12 +587,6 @@ export async function getTryOnResult(taskId: string): Promise<TryOnPollResult> {
         where: {
           id: taskId,
           status: { not: TaskStatus.COMPLETED },
-          ...(resultPersistFence
-            ? {
-                resultPersistLeaseOwner: resultPersistFence.owner,
-                resultPersistVersion: resultPersistFence.version,
-              }
-            : {}),
         },
         data: {
           status: TaskStatus.COMPLETED,
@@ -1148,22 +596,12 @@ export async function getTryOnResult(taskId: string): Promise<TryOnPollResult> {
             ...(pollResult.metadata || {}),
             ...externalPollMetadata,
             resultPathname,
-            ...(isStoreTask
-              ? { resultAssetAccessMode: storeResultPolicy!.assetAccessMode }
-              : {}),
-            privateBlob: isStoreTask && !storeResultPolicy!.publicPoc,
+            privateBlob: false,
             privatePersistPending: false,
             privatePersistError: null,
             completionTime: Date.now(),
-            // Never put raw provider URL into first-class Store result delivery.
-            ...(isStoreTask ? {} : { originalResultUrl: pollResult.imageUrl }),
+            originalResultUrl: pollResult.imageUrl,
           },
-          ...(resultPersistFence
-            ? {
-                resultPersistLeaseOwner: null,
-                resultPersistLeaseUntil: null,
-              }
-            : {}),
         },
       })
 
@@ -1194,7 +632,7 @@ export async function getTryOnResult(taskId: string): Promise<TryOnPollResult> {
         progress: 100,
         isNewCompletion,
       }
-    } else if (pollResult.status === 'succeeded' && !pollResult.imageUrl) {
+        } else if (pollResult.status === 'succeeded' && !pollResult.imageUrl) {
       const errorMessage = 'GrsAi task succeeded without a result image URL'
 
       logger.error('tryon-service', errorMessage, undefined, {

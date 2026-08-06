@@ -15,6 +15,12 @@
     },
     "src/app/api/cron/sync-pending-tasks/route.ts": {
       "maxDuration": 300
+    },
+    "src/app/api/cron/sync-pending-consumer-tasks/route.ts": {
+      "maxDuration": 300
+    },
+    "src/app/api/cron/sync-pending-store-tasks/route.ts": {
+      "maxDuration": 300
     }
   },
   "crons": [
@@ -29,6 +35,14 @@
     {
       "path": "/api/cron/cleanup-store-assets",
       "schedule": "30 2 * * *"
+    },
+    {
+      "path": "/api/cron/sync-pending-consumer-tasks",
+      "schedule": "*/3 * * * *"
+    },
+    {
+      "path": "/api/cron/sync-pending-store-tasks",
+      "schedule": "*/3 * * * *"
     }
   ]
 }
