@@ -1,6 +1,6 @@
 # Merchant Pricing & Entitlement Implementation Plan
 
-**Status:** Approved execution plan for Demo revision and Pilot readiness — AI-Native Market Economics v4  
+**Status:** Approved execution plan for Demo revision and Pilot readiness — Intent-First AI Commerce v5  
 **Owner:** Product / Engineering / Sales  
 **Created:** 2026-08-06  
 **Last updated:** 2026-08-06  
@@ -22,7 +22,11 @@ Commercial rule:
 
 > **Merchant Value First. Sustainable Economics Always. Margin Expansion Over Time.**
 
-The implementation must not optimize only for a static 75% GM target. It must support market capture, real merchant usage, measurable value and improving economics over time.
+Early-stage value rule:
+
+> **Pilot proves personalized shopping decisions and measurable purchase intent. It does not require revenue attribution or incrementality infrastructure.**
+
+This prevents the first Merchant MVP from becoming unnecessarily integration-heavy.
 
 ---
 
@@ -45,11 +49,52 @@ Economics are reviewed under Best / Base / Stress provider cases.
 
 ---
 
-## 3. Stage-Based GM Operating Rules
+## 3. Value-Maturity Boundary
+
+Engineering and Sales must use three evidence levels.
+
+### Level 1 — Current Pilot Scope: Observed Intent
+
+Required:
+
+- source/campaign traffic;
+- Commerce Sessions;
+- recommendation completion;
+- Try-On;
+- Compare;
+- Product Click;
+- Favorite;
+- Inquiry;
+- top frames / high-intent behavior.
+
+### Level 2 — Later: Attributed Conversion
+
+Requires merchant commerce integration or order-data access:
+
+- attributed orders;
+- attributed revenue;
+- checkout linkage;
+- downstream conversion analysis.
+
+This is not required for the first Pilot.
+
+### Level 3 — Future: Incrementality
+
+Requires credible experiment design:
+
+- A/B or holdout;
+- conversion uplift;
+- incremental orders;
+- incremental revenue / GMV;
+- causal ROI.
+
+This is explicitly outside first-Pilot scope.
+
+---
+
+## 4. Stage-Based GM Operating Rules
 
 Engineering and Sales should not treat 75% as a hard Pilot acceptance criterion.
-
-Use:
 
 | Stage | GM guidance |
 | --- | ---: |
@@ -58,25 +103,23 @@ Use:
 | Mature Platform | **70–80% target** |
 | Long-term preferred benchmark | **~75%+ blended** |
 
-A lower-GM Pilot is acceptable if it creates valuable merchant evidence and remains within approved economics.
-
 Sustained direct GM below ~50% requires explicit approval.
 
 ---
 
-## 4. P0 — Sales Demo Must Prove Merchant Value
+## 5. P0 — Sales Demo Must Prove Current Merchant Value
 
 ### Shopper Demo
 
 The demo must prove:
 
 1. merchant-specific catalog;
-2. campaign/source context;
+2. source/campaign context;
 3. recommendation;
 4. Try-On;
 5. Compare;
 6. product destination;
-7. Favorite / Product Click / Inquiry;
+7. Product Click / Favorite / Inquiry;
 8. anonymous-first flow.
 
 ### Merchant/Admin Demo
@@ -89,19 +132,23 @@ Show:
 - source/campaign traffic;
 - recommendation funnel;
 - Try-On / Compare funnel;
-- intent signals;
+- Product Click / Favorite / Inquiry;
 - top frames;
-- high-intent / conversion signals where available.
+- high-intent shopper signals.
 
-The demo story must explain why VisuTry is more than VTO volume.
+Do **not** make attributed revenue, ROI, conversion uplift or incremental GMV part of the standard Pilot demo.
 
 Sales close:
 
 > **Start a 30-day Founding Merchant Pilot with your own frames for $149, including up to 500 AI Commerce Sessions and 1,000 Standard Try-On renders.**
 
+Primary sales promise:
+
+> **Turn eyewear traffic into personalized shopping decisions and measurable purchase intent.**
+
 ---
 
-## 5. P0 — Server-Side Pilot Entitlement
+## 6. P0 — Server-Side Pilot Entitlement
 
 Required:
 
@@ -120,7 +167,7 @@ A generic billing engine is not required.
 
 ---
 
-## 6. P0 — Dual Usage Meter
+## 7. P0 — Dual Usage Meter
 
 ### Commerce Session
 
@@ -143,7 +190,38 @@ The UI must not enforce a fixed two-frame limit merely because packaging assumes
 
 ---
 
-## 7. P0 — Provider Routing and Cost Observability
+## 8. P0 — Intent Event Instrumentation
+
+The first Pilot must have durable, merchant-scoped events for:
+
+```text
+COMMERCE_SESSION_STARTED
+RECOMMENDATION_COMPLETED
+TRYON_COMPLETED
+COMPARE_VIEWED
+FAVORITE_ADDED
+PRODUCT_CLICKED
+INQUIRY_STARTED / INQUIRY_SUBMITTED
+```
+
+Each event should preserve where available:
+
+```text
+merchantId
+merchantSessionId
+campaignId?
+source/referrer?
+frame/productId?
+timestamp
+```
+
+These events form the first sellable Commerce Intelligence layer.
+
+Do not delay Pilot to implement order or checkout events.
+
+---
+
+## 9. P0 — Provider Routing and Cost Observability
 
 Required architecture:
 
@@ -163,7 +241,7 @@ Product/Finance must be able to calculate actual and Base/Stress economics by me
 
 ---
 
-## 8. P0 — Partner Attribution
+## 10. P0 — Partner Attribution
 
 Required concepts:
 
@@ -180,34 +258,49 @@ Merchant-partner attribution should be durable even if payout calculation is man
 
 ---
 
-## 9. P1 — Pilot Operations Package
-
-Prepare:
+## 11. P1 — Pilot Operations Package
 
 ### Sales
+
+Prepare:
 
 - Founding Pilot one-page offer;
 - $149 / 30 days;
 - 500 sessions;
 - 1,000 Standard renders;
 - included/excluded scope;
-- no guaranteed uplift language;
+- explicit Intent-First value proposition;
+- no revenue-attribution or guaranteed-uplift language;
 - continuation path to Launch/Growth/Scale.
 
 ### Product / Operations
+
+Prepare:
 
 - onboarding checklist;
 - CSV template;
 - catalog review workflow;
 - campaign/source worksheet;
-- merchant KPI selection;
+- merchant KPI selection focused on intent;
 - weekly report;
-- end-of-Pilot ROI / continuation review.
+- end-of-Pilot continuation review.
+
+Weekly report should prioritize:
+
+- traffic routed into VisuTry;
+- AI experience entry rate;
+- recommendation/Try-On/Compare funnel;
+- Product Click / Favorite / Inquiry;
+- top frames;
+- usage and qualitative merchant feedback.
 
 ### Engineering
 
+Prepare:
+
 - entitlement assignment;
 - dual meters;
+- intent event model;
 - source continuity;
 - provider/cost observability;
 - privacy/retention;
@@ -216,7 +309,7 @@ Prepare:
 
 ---
 
-## 10. P1 — Pricing-Aware Admin Surface
+## 12. P1 — Pricing-Aware Admin Surface
 
 Pilot minimum:
 
@@ -229,6 +322,17 @@ Active Campaigns: 1 / 1
 Standard Quality: Enabled
 Premium Quality: Not enabled
 ```
+
+Merchant-facing analytics should show:
+
+- recommendation completion;
+- Try-On / Compare;
+- Product Clicks;
+- Favorites;
+- Inquiries;
+- top frames;
+- source/campaign mix;
+- usage.
 
 Internal admin should additionally show:
 
@@ -245,7 +349,7 @@ Do not expose provider or margin internals to the merchant.
 
 ---
 
-## 11. P1 — Limit, Extension and Market-Capture Policy
+## 13. P1 — Limit, Extension and Market-Capture Policy
 
 Support:
 
@@ -265,14 +369,14 @@ Pilot behavior:
 - Product/Sales may extend capacity when additional traffic creates high-value learning or case-study evidence;
 - an extension should remain gross-profit positive where possible, or receive explicit strategic approval.
 
-Working post-pilot anchors:
+Working post-Pilot anchors:
 
 - +500 Standard renders = $49;
 - +1,000 Standard renders = $99.
 
 ---
 
-## 12. P1 — Premium Quality Switch
+## 14. P1 — Premium Quality Switch
 
 Implement:
 
@@ -286,9 +390,9 @@ Implement:
 
 ---
 
-## 13. P2 — Formal Plan Productization
+## 15. P2 — Formal Plan Productization
 
-Do not fully productize Launch/Growth/Scale before pilot evidence.
+Do not fully productize Launch/Growth/Scale before Pilot evidence.
 
 Versioned entitlements:
 
@@ -309,23 +413,67 @@ ENTERPRISE
   Custom
 ```
 
-Formal productization requires evidence that merchants understand and value the package, not only that Finance can model acceptable GM.
+Formal productization requires evidence that merchants understand and value the package, not only acceptable modeled GM.
+
+Revenue attribution is not required for Launch/Growth productization.
 
 ---
 
-## 14. P2 — Campaign as Expansion Object
+## 16. P2 — Campaign as Expansion Object
 
 Promote Campaign to a first-class Commerce entity when merchants need persistent multi-campaign workflow.
 
-Campaign, analytics and Commerce Intelligence are strategically important because they should increase merchant value and revenue faster than AI COGS.
+Campaign and Intent Intelligence should increase merchant value faster than AI COGS.
 
 Do not build a generalized marketing automation suite prematurely.
 
 ---
 
-## 15. Required Instrumentation — Economics + Value
+## 17. P3 — Commerce Integration, Only When Justified
 
-Every Pilot must make these recoverable.
+Commerce integration becomes justified when repeated merchant demand requires downstream measurement.
+
+Possible triggers:
+
+- multiple paying merchants ask for order linkage;
+- merchant renewal depends on attributed conversion evidence;
+- Shopify/WooCommerce integration materially reduces sales friction;
+- enough traffic exists to make downstream analysis meaningful.
+
+Then consider:
+
+- product/cart/order event integration;
+- `visutry_session_id` continuity;
+- attributed order/revenue reporting;
+- merchant order-data import.
+
+Do not call attributed revenue incremental revenue.
+
+---
+
+## 18. P4 — Incrementality, Only After Scale
+
+Incrementality requires credible experimentation.
+
+Potential future methods:
+
+- A/B traffic split;
+- holdout cohort;
+- campaign split;
+- geo split;
+- matched control where appropriate.
+
+Only after such evidence may product/reporting use claims such as:
+
+- conversion uplift;
+- incremental orders;
+- incremental GMV.
+
+This is not an early engineering priority.
+
+---
+
+## 19. Required Instrumentation — Current Economics + Value
 
 ### Revenue / acquisition
 
@@ -352,31 +500,35 @@ Every Pilot must make these recoverable.
 - traffic routed to VisuTry;
 - AI experience entry rate.
 
-### Commerce value
+### Current commerce-intent value
 
 - recommendation completion;
 - Try-On;
 - Compare;
-- product clicks;
-- favorites;
-- inquiries;
-- verified orders/revenue where available;
-- merchant-reported conversion impact;
-- merchant-perceived ROI.
+- Product Click;
+- Favorite;
+- Inquiry;
+- top frames;
+- source/campaign intent distribution;
+- merchant-perceived value;
+- continuation/expansion intent.
 
 ### Human delivery
 
 - onboarding/catalog/campaign/QA/support time.
 
+Orders/revenue are optional where already available; they are not required Pilot instrumentation.
+
 ---
 
-## 16. Pilot Review Gates v4
+## 20. Pilot Review Gates v5
 
 ### After first merchant
 
 Review:
 
 - meter correctness;
+- intent event correctness;
 - renders/session;
 - provider/cost attribution;
 - merchant understanding;
@@ -391,9 +543,10 @@ Review:
 - render utilization;
 - $149 willingness to pay;
 - traffic-to-AI entry rate;
-- merchant ROI narrative;
+- Product Click / Favorite / Inquiry behavior;
+- merchant-perceived value;
 - actual gross profit / GM;
-- whether a deliberate lower-GM extension would increase learning or market capture.
+- whether a lower-GM extension would increase learning or market capture.
 
 ### After 5 merchants
 
@@ -401,11 +554,14 @@ Decide whether Launch/Growth are market-ready.
 
 Decision priority:
 
-1. merchant value / perceived differentiation;
-2. retention / continuation intent;
+1. merchant understands differentiated value;
+2. merchant wants to continue / expand traffic;
 3. willingness to pay;
-4. sustainable positive unit economics;
-5. current-period GM percentage.
+4. observed purchase-intent behavior;
+5. sustainable positive unit economics;
+6. current-period GM percentage.
+
+Do not require attributed revenue.
 
 ### After 10 paying merchants
 
@@ -413,62 +569,46 @@ Recalculate:
 
 - sustainable provider cost;
 - actual GM and gross profit by plan;
-- merchant ROI evidence;
 - retention/expansion;
 - support cost;
 - partner contribution;
 - overage design;
-- annual economics.
-
-### Quarterly after early scale
-
-Review whether cohorts are moving toward **60–70%+ GM**, with a mature target of **70–80% / ~75% preferred blended benchmark**.
+- annual economics;
+- whether commerce integration has become commercially justified.
 
 ---
 
-## 17. Margin-Trajectory Planning
-
-Do not assume current AI cost remains constant for 3–5 years.
-
-Track:
-
-- equivalent-quality model cost over time;
-- provider procurement improvements;
-- average renders/session;
-- Campaign/Intelligence revenue share;
-- gross margin by cohort vintage.
-
-The expected direction is margin expansion, but this is a planning thesis rather than a guaranteed forecast.
-
----
-
-## 18. Acceptance Criteria Before First External Paid Pilot
+## 21. Acceptance Criteria Before First External Paid Pilot
 
 1. `FOUNDING_PILOT` scope approved.
 2. 500 Commerce Sessions server-metered.
 3. 1,000 Standard renders server-metered.
 4. meters idempotent.
 5. usage reconciles to merchant/session/provider.
-6. provider routing is abstracted.
-7. partner/direct source can be recorded.
-8. source/campaign context persists to intent.
-9. merchant/admin shows meaningful funnel and usage data.
-10. Sales promises only implemented/assisted capabilities.
-11. no guaranteed conversion/revenue claim.
-12. Consumer isolation/privacy remains intact.
+6. core intent events are durable and merchant-scoped.
+7. provider routing is abstracted.
+8. partner/direct source can be recorded.
+9. source/campaign context persists to Product Click / Favorite / Inquiry.
+10. merchant/admin shows meaningful funnel, intent and usage data.
+11. Sales promises only implemented/assisted capabilities.
+12. no attributed-revenue, conversion-uplift or incremental-GMV claim unless separately supported.
+13. Consumer isolation/privacy remains intact.
 
-A 75% projected GM is **not** an acceptance criterion for the first Pilot.
+A 75% projected GM is not an acceptance criterion. Revenue attribution is also not an acceptance criterion.
 
 ---
 
-## 19. Non-Goals Before Pilot Evidence
+## 22. Non-Goals Before Pilot Evidence
 
 Do not delay Pilot for:
 
+- checkout/order integration;
+- revenue attribution infrastructure;
+- A/B incrementality framework;
+- advanced multi-touch attribution;
 - full self-checkout;
 - partner portal/automated payouts;
 - generalized coupon system;
-- advanced multi-touch attribution;
 - performance-fee settlement;
 - enterprise CPQ;
 - generalized campaign builder;
@@ -476,11 +616,12 @@ Do not delay Pilot for:
 
 ---
 
-## 20. Change Log
+## 23. Change Log
 
 | Date | Change |
 | --- | --- |
 | 2026-08-06 | Created pricing/entitlement implementation plan. |
 | 2026-08-06 | v2: sustainable procurement + Provider Router. |
 | 2026-08-06 | v3: dual-meter market-aware packaging. |
-| 2026-08-06 | **v4: replaced 75%-GM-first execution criteria with Merchant Value First economics; added market-capture extensions, stage-based GM targets, perceived-value/ROI/retention review priority, and 3–5 year margin-trajectory instrumentation.** |
+| 2026-08-06 | v4: introduced AI-native stage-based GM and market-capture economics. |
+| 2026-08-06 | **v5: refocused first Pilot on observable shopping intent rather than revenue attribution. Added durable intent events, separated current intent / later attribution / future incrementality, made commerce integration P3 and incrementality P4, and removed both from first-Pilot acceptance criteria.** |
