@@ -1,6 +1,6 @@
 # VisuTry Merchant Commercial Entitlements Spec
 
-**Status:** Approved Demo/Pilot baseline — Stage-Based Intent-First Pricing v6  
+**Status:** Approved Demo/Pilot baseline — Sales-First Founding Pilot v7  
 **Owner:** Product / Engineering / Sales  
 **Created:** 2026-08-06  
 **Last updated:** 2026-08-06  
@@ -25,9 +25,11 @@ Current-stage product value is intentionally scoped to:
 
 Revenue attribution and incrementality are later maturity layers, not Pilot requirements.
 
-A new v6 rule is mandatory:
+Pricing and entitlement are versioned by commercial stage. Founding Pilot terms must not be assumed to be the permanent Launch/Growth/Scale contract.
 
-> **Pricing and entitlement are versioned by commercial stage. Founding Pilot terms must not be assumed to be the permanent Launch/Growth/Scale contract.**
+A v7 presentation rule is mandatory:
+
+> **Capacity limits protect cost and define fair use, but they must not replace the merchant value proposition in Sales messaging.**
 
 ---
 
@@ -74,8 +76,6 @@ These are never inferred from attribution alone.
 
 ## 3. Commercial Stage Model
 
-Entitlement must distinguish current Pilot from future recurring-plan hypotheses.
-
 ```text
 MARKET_CAPTURE / PILOT
     ↓
@@ -84,16 +84,7 @@ EARLY_SCALE
 MATURE_PLATFORM
 ```
 
-Each stage may have different:
-
-- price;
-- session allowance;
-- render allowance;
-- campaign allowance;
-- discount policy;
-- support scope;
-- integration level;
-- contract term.
+Each stage may have different price, session allowance, render allowance, campaign allowance, discount policy, support scope, integration level and contract term.
 
 Do not assume that a Founding Pilot entitlement persists unchanged after the Pilot period.
 
@@ -166,31 +157,30 @@ Commercial anchor:
 
 > **USD 149 / 30 days**
 
-Included baseline:
+### Merchant-facing package
 
-- one merchant tenant;
-- one hosted Store / campaign experience;
-- 8–50 reviewed frames;
-- **500 AI Commerce Sessions**;
-- **1,000 Standard Try-On renders**;
-- AI recommendation;
-- Try-On / Frame Compare;
-- source / campaign continuity;
-- product destination continuity;
-- Product Click / Favorite / Inquiry signals;
-- merchant/admin intent-performance view;
+- one hosted merchant-specific AI shopping experience;
+- 8–50 reviewed merchant frames;
+- AI frame recommendation;
+- Standard Try-On;
+- Frame Compare;
+- Product Click / Favorite / Inquiry intent signals;
+- source/campaign continuity;
+- merchant intent-performance view;
 - assisted setup;
-- weekly Pilot report.
+- weekly Pilot report/review.
 
-The Pilot is intentionally optimized for:
+### Fair-use / operational limits
 
-- easy comparison;
-- low-friction commercial approval;
-- visible shopper value;
-- meaningful real-traffic testing;
-- fast merchant learning.
+- **up to 500 AI-assisted shoppers / AI Commerce Sessions**;
+- **up to 1,000 Standard Try-On generations**;
+- one active hosted Store / campaign experience.
 
-It is **not** optimized for mature ARPU or maximum GM.
+Merchant-facing Sales copy should normally say **“up to 500 AI-assisted shoppers”** before introducing the internal term `AI Commerce Session`.
+
+The 500 / 1,000 limits should appear in the one-page offer, agreement, usage section, admin and FAQ, but they should not become the primary headline or first comparison point.
+
+The Pilot is optimized for easy comparison, low-friction approval, visible shopper value, meaningful real-traffic testing and fast merchant learning. It is not optimized for mature ARPU or maximum GM.
 
 Do not promise lifetime Pilot pricing.
 
@@ -212,8 +202,6 @@ Pilot exclusions unless explicitly agreed:
 
 ## 7. Future Formal Entitlement Matrix — Internal Hypothesis
 
-These are post-Pilot planning hypotheses, not current immutable public commitments.
-
 | Entitlement | Launch | Growth | Scale | Enterprise |
 | --- | --- | --- | --- | --- |
 | Working monthly price | $199 | $499 | $999 | $2,500+ / custom |
@@ -234,13 +222,11 @@ These are post-Pilot planning hypotheses, not current immutable public commitmen
 | API | No | Gated | Gated / included | Custom |
 | Support | Standard | Priority | Priority | SLA / dedicated |
 
-These values may be changed after Pilot evidence.
+These are post-Pilot hypotheses and may change after Pilot evidence.
 
 ---
 
 ## 8. Entitlement Decision Rule
-
-A plan entitlement must not be determined only by AI cost.
 
 When revising plan structure, Product / Finance / Sales evaluate together:
 
@@ -259,14 +245,12 @@ A plan may operate at ~50–65% GM during market capture when this is deliberate
 
 ## 9. Pricing / Entitlement Change Policy
 
-Rules:
-
 - internal pricing and entitlement hypotheses may be revised after any commercial review gate;
 - new merchants may be offered the latest approved pricing version;
 - signed merchant terms remain effective for their contractual period unless the agreement allows change;
 - renewal may migrate to a newer pricing version subject to Sales and contract policy;
 - Founding/Pilot pricing should be time-boxed or contract-boxed;
-- pricing changes do not require changing plan codes if a new pricing/entitlement version can represent them cleanly;
+- pricing changes do not require changing plan codes if a new pricing/entitlement version represents them cleanly;
 - historical merchants must remain auditable against the pricing version they bought.
 
 ---
@@ -275,9 +259,7 @@ Rules:
 
 An AI Commerce Session is a merchant-scoped shopper session that first reaches the AI recommendation / decision boundary.
 
-Do not count ordinary page views.
-
-The meter must be idempotent across refresh, retry, polling, Compare reopen and duplicated events.
+Do not count ordinary page views. The meter must be idempotent across refresh, retry, polling, Compare reopen and duplicated events.
 
 ---
 
@@ -285,14 +267,7 @@ The meter must be idempotent across refresh, retry, polling, Compare reopen and 
 
 Count each successful Standard or Premium Try-On render against the appropriate pool.
 
-Instrument:
-
-- render attempt/success/failure;
-- Standard vs Premium;
-- provider/model;
-- merchant/session/campaign;
-- unit-cost version;
-- fallback reason.
+Instrument render attempt/success/failure, Standard vs Premium, provider/model, merchant/session/campaign, unit-cost version and fallback reason.
 
 Do not force exactly two frames because packaging assumes ~2 renders/session.
 
@@ -325,8 +300,8 @@ Rules:
 
 Working post-Pilot anchors remain provisional:
 
-- **+500 Standard renders: $49**;
-- **+1,000 Standard renders: $99**.
+- +500 Standard renders: $49;
+- +1,000 Standard renders: $99.
 
 Overage exists to protect cost and enable expansion, not to make the base package feel artificially constrained.
 
@@ -373,19 +348,18 @@ NOT_OFFERED
 
 Sales may contract only production-ready or explicitly approved pilot-assisted capabilities.
 
-The current Founding Pilot must be sellable without claiming revenue attribution.
+The current Founding Pilot must be sellable without claiming revenue attribution and without making raw render volume the core value proposition.
 
 ---
 
 ## 16. Pilot Data Required
-
-Collect:
 
 ### Sales / Merchant Value
 
 - sales objections;
 - time from demo to Pilot decision;
 - merchant comparison set;
+- whether merchant first compared on VTO volume or broader decision value;
 - merchant-perceived value;
 - willingness to pay;
 - continuation intent;
@@ -431,8 +405,9 @@ Collect:
 7. source/campaign context persists through intent.
 8. Merchant/Admin shows meaningful intent funnel and usage.
 9. Sales can explain the Pilot without revenue-ROI claims.
-10. no lifetime price promise is implied.
-11. Consumer counters remain isolated.
+10. Sales can explain the Pilot without leading with price-per-render comparison.
+11. no lifetime price promise is implied.
+12. Consumer counters remain isolated.
 
 ---
 
@@ -445,4 +420,5 @@ Collect:
 | 2026-08-06 | v3: dual-meter market-aware capacity model. |
 | 2026-08-06 | v4: Merchant Value First economics. |
 | 2026-08-06 | v5: Intent-First evidence hierarchy and no Pilot revenue-attribution requirement. |
-| 2026-08-06 | **v6: made commercial stage, pricing version and entitlement version explicit; separated current Founding Pilot from future plan hypotheses; added Pilot trialability as an entitlement decision factor and formalized customer-cohort / renewal pricing-change rules.** |
+| 2026-08-06 | v6: commercial stage, pricing version and entitlement version made explicit. |
+| 2026-08-06 | **v7: separated external Pilot value package from fair-use limits; standardized merchant-facing wording as “up to 500 AI-assisted shoppers” and made raw generation limits secondary to assisted AI commerce value.** |
