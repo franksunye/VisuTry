@@ -73,6 +73,7 @@ What becomes easier, harder, required, or deferred because of this decision?
 | ADR-005 | Remove SSR getServerSession from All Public Pages — Client-Side Gate Pattern | Accepted | 2026-07-22 |
 | ADR-006 | Store Uses a Modular, Multi-Tenant Foundation on the Existing Generation Core | Accepted | 2026-08-05 |
 | ADR-007 | Store May Evolve Without Disrupting Stable Consumer Workflows | Accepted | 2026-08-06 |
+| ADR-008 | Commerce Is the Domain; Storefront Is a Delivery Surface | Accepted | 2026-08-06 |
 
 ---
 
@@ -85,3 +86,4 @@ What becomes easier, harder, required, or deferred because of this decision?
 | 2026-07-22 | Added ADR-005: SSR to client-side gate pattern. |
 | 2026-08-05 | Added ADR-006: modular, multi-tenant Store foundation on the existing generation core. |
 | 2026-08-06 | Added ADR-007: Store / Consumer stability boundary and dependency direction. |
+| 2026-08-06 | Added ADR-008: commerce-domain architecture with Storefront as a delivery surface. |
