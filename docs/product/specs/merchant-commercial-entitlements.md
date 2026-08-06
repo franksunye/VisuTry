@@ -3,7 +3,9 @@
 **Status:** Approved baseline for Demo/Pilot alignment; formal Launch/Growth/Scale entitlements gated by implementation status  
 **Owner:** Product / Engineering / Sales  
 **Created:** 2026-08-06  
+**Last updated:** 2026-08-06  
 **Related pricing:** `docs/strategy/merchant-pricing-packaging-unit-economics.md`  
+**Related provider risk:** `docs/strategy/merchant-provider-risk-and-fallback-economics.md`  
 **Related Store MVP:** `docs/product/specs/visutry-store-mvp.md`  
 **Related sales demo:** `docs/product/specs/visutry-store-sales-demo.md`  
 **Related pilot plan:** `docs/product/plans/visutry-store-demo-pilot-readiness-plan.md`
@@ -20,11 +22,7 @@ The operating rule is:
 
 No merchant plan may depend only on frontend copy or manual convention.
 
-This document separates:
-
-- commercial entitlement;
-- production readiness;
-- future packaging direction.
+The current entitlement baseline is based on **Sustainable Procurement Economics v2**, not on unusually low current provider pricing.
 
 A feature may appear in the pricing direction without being immediately sellable. Sales may only promise capabilities marked production-ready or explicitly included in a controlled pilot agreement.
 
@@ -95,9 +93,9 @@ Minimum deliverable:
 - one merchant tenant;
 - one hosted Store / campaign experience;
 - 8–50 reviewed frames;
-- up to 1,000 AI Commerce Sessions;
+- up to **250 AI Commerce Sessions**;
 - AI frame recommendation;
-- standard Try-On;
+- Standard Try-On;
 - Frame Compare;
 - source / campaign continuity;
 - product destination continuity;
@@ -120,7 +118,7 @@ Pilot exclusions unless explicitly agreed:
 - autonomous agent checkout;
 - medical / optical measurement claims.
 
-The pilot is successful when it operates real merchant traffic and produces commercial evidence, not when every future platform capability exists.
+The Pilot is a validation product. Its 250-session allowance is deliberately based on sustainable procurement economics and is large enough to observe shopper behavior without creating a long-term usage promise from exceptional provider pricing.
 
 ---
 
@@ -131,7 +129,7 @@ This matrix defines the target packaging contract. Production availability must 
 | Entitlement | Launch | Growth | Scale | Enterprise |
 | --- | --- | --- | --- | --- |
 | Merchant tenant | 1 | 1 | 1 | Custom / multi-brand |
-| Monthly AI Commerce Sessions | 1,000 | 5,000 | 10,000 | Custom |
+| Monthly AI Commerce Sessions | **250** | **600** | **1,200** | Custom |
 | Active campaigns | 1 | 3 | 10 | Custom |
 | Catalog guideline | 100 | 500 | 2,000 | Custom |
 | Recommendation | Included | Included | Included | Included |
@@ -148,6 +146,8 @@ This matrix defines the target packaging contract. Production availability must 
 | Shopify / commerce integration | Future / no | Limited when available | Included where available | Custom |
 | API | No | Gated | Gated / included | Custom |
 | Support | Standard | Priority | Priority | SLA / dedicated |
+
+The entitlement values above supersede the earlier 1,000 / 5,000 / 10,000 session baseline.
 
 ---
 
@@ -172,12 +172,13 @@ Backend instrumentation must still record:
 - recommendation attempts / successes;
 - standard render attempts / successes;
 - premium render attempts / successes;
-- provider / cost metadata;
+- provider / model;
+- recoverable provider cost metadata;
 - failed attempts;
 - number of frames rendered;
 - compare use.
 
-This allows Finance/Product to reconcile commercial usage with actual cost.
+This allows Product/Finance to reconcile commercial usage with actual cost and compare Best/Base/Stress provider economics.
 
 ### 6.3 Idempotency
 
@@ -204,11 +205,6 @@ PREMIUM
 
 Provider model names are implementation details and must not be exposed as plan features.
 
-Current intended mapping:
-
-- `STANDARD` → lower-cost production Try-On model;
-- `PREMIUM` → higher-quality optional model.
-
 Rules:
 
 1. Server chooses the permitted quality mode from merchant/campaign entitlement.
@@ -216,6 +212,7 @@ Rules:
 3. Premium usage must be independently measurable.
 4. Provider changes must not require repricing the public feature name.
 5. A merchant may be allowed campaign-level premium policy later.
+6. Premium allowance must be set from a sustainable Premium procurement benchmark, not the current low-cost provider price.
 
 ---
 
@@ -299,20 +296,13 @@ Intended Growth/Scale baseline:
 - period-over-period reporting;
 - export / scheduled report later when implemented.
 
-Analytics copy must distinguish:
-
-- observed event;
-- inferred intent;
-- verified conversion;
-- attributed revenue.
-
-Never label Favorite/Product Click/Inquiry as completed purchase revenue.
+Analytics copy must distinguish observed event, inferred intent, verified conversion and attributed revenue.
 
 ---
 
 ## 11. Overage Policy
 
-The first pilot stage should not launch a complex public overage schedule.
+The first Pilot stage should not launch surprise automated overage billing.
 
 Initial policy:
 
@@ -322,17 +312,42 @@ Initial policy:
 4. Hard stop, soft overage, or automatic overage is configured server-side.
 5. Pilot merchants should not unexpectedly incur uncommunicated overage charges.
 
-Before public automated overage pricing is introduced, Product/Finance must review real distribution for:
+Working post-pilot commercial anchors:
 
-- sessions/merchant;
-- renders/session;
-- cost/session;
-- merchant traffic seasonality;
-- channel margin.
+- **100 additional Commerce Sessions: $49**;
+- **1,000 additional Commerce Sessions: $399**.
+
+These anchors remain subject to pilot validation and sustainable procurement review.
 
 ---
 
-## 12. Channel Attribution Requirement
+## 12. Provider / Cost Attribution Requirement
+
+Because provider cost is a commercial risk, every merchant AI task should be attributable where practical to:
+
+```text
+provider
+model
+qualityMode
+merchantId
+merchantSessionId
+campaignId?
+unitCostVersion?
+fallbackReason?
+```
+
+This enables:
+
+- provider failover analysis;
+- procurement alpha calculation;
+- official-fallback stress analysis;
+- merchant/cohort gross-margin reconciliation.
+
+Customer entitlements must not depend on provider identity.
+
+---
+
+## 13. Channel Attribution Requirement
 
 A merchant account may have an acquisition relationship:
 
@@ -355,13 +370,11 @@ commissionEndAt?
 
 Partner attribution must not depend on a temporary coupon code alone.
 
-Commission calculations use net collected revenue according to the pricing strategy document.
-
 ---
 
-## 13. Discount and Contract Metadata
+## 14. Discount and Contract Metadata
 
-The system should eventually be able to distinguish:
+The system should eventually distinguish:
 
 - list price;
 - approved discount;
@@ -374,11 +387,9 @@ The system should eventually be able to distinguish:
 
 Do not infer plan entitlement from Stripe price amount alone.
 
-The canonical entitlement must resolve from an internal plan/contract record or stable mapping.
-
 ---
 
-## 14. Production-Readiness Rule for Sales
+## 15. Production-Readiness Rule for Sales
 
 Every entitlement should have one of these statuses internally:
 
@@ -393,14 +404,12 @@ Sales rules:
 
 - `PRODUCTION_READY`: may be included in standard offer.
 - `PILOT_ASSISTED`: may be offered only with explicit operational ownership.
-- `PLANNED`: may be discussed as roadmap, not contractual current functionality.
+- `PLANNED`: roadmap only, not current contractual functionality.
 - `NOT_OFFERED`: must not be represented as available.
-
-This status should become part of the internal commercial checklist even if it is not initially persisted in code.
 
 ---
 
-## 15. Pilot Data Required to Recalibrate Entitlements
+## 16. Pilot Data Required to Recalibrate Entitlements
 
 For every pilot merchant collect:
 
@@ -411,6 +420,8 @@ For every pilot merchant collect:
 - average renders/session;
 - Try-On completion;
 - Compare use;
+- provider/model distribution;
+- actual AI cost/session;
 - premium-render requests;
 - product clicks;
 - favorites;
@@ -426,14 +437,14 @@ After 3–5 real merchants, entitlement values should be reviewed before being t
 
 ---
 
-## 16. Acceptance Criteria for Pilot Commercial Readiness
+## 17. Acceptance Criteria for Pilot Commercial Readiness
 
 Before a non-team merchant pilot is considered commercially ready:
 
 1. Merchant is assigned a plan / pilot entitlement server-side.
-2. Usage allowance is server-enforced.
+2. **250 Commerce Session allowance** is server-enforced for `FOUNDING_PILOT`.
 3. Commerce Session meter is durable and idempotent.
-4. Recommendation and render usage can be reconciled to merchant/session.
+4. Recommendation and render usage can be reconciled to merchant/session/provider.
 5. Source/campaign context persists through intent.
 6. Product destination remains attached to merchant frames.
 7. Merchant/admin can view commercially relevant funnel signals.
@@ -443,8 +454,9 @@ Before a non-team merchant pilot is considered commercially ready:
 
 ---
 
-## 17. Change Log
+## 18. Change Log
 
 | Date | Change |
 | --- | --- |
 | 2026-08-06 | Created first merchant commercial entitlement and backend metering baseline aligned to pricing/unit economics. |
+| 2026-08-06 | **v2:** rebased Commerce Session entitlements on sustainable procurement economics; Pilot/Launch/Growth/Scale allowances changed to **250 / 250 / 600 / 1,200**; added provider/cost attribution and working overage anchors. |
