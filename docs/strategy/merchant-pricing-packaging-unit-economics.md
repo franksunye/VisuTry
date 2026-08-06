@@ -1,13 +1,14 @@
 # VisuTry Merchant Pricing, Packaging & Unit Economics
 
-**Status:** Active internal commercial baseline — Stage-Based Intent-First Pricing v6  
+**Status:** Active internal commercial baseline — Sales-First Founding Pilot v7  
 **Owner:** Product / Strategy / Engineering / Sales  
 **Created:** 2026-08-06  
 **Last updated:** 2026-08-06  
 **Review cadence:** Monthly during Pilot / market-capture stage; at every major product-maturity gate thereafter  
 **Related provider risk:** `docs/strategy/merchant-provider-risk-and-fallback-economics.md`  
 **Related entitlement spec:** `docs/product/specs/merchant-commercial-entitlements.md`  
-**Related implementation plan:** `docs/product/plans/merchant-pricing-entitlement-implementation-plan.md`
+**Related implementation plan:** `docs/product/plans/merchant-pricing-entitlement-implementation-plan.md`  
+**Related sales demo:** `docs/product/specs/visutry-store-sales-demo.md`
 
 ---
 
@@ -31,9 +32,11 @@ The operating principle is:
 
 > **Merchant Value First. Sustainable Economics Always. Margin Expansion Over Time.**
 
-A second v6 principle is now explicit:
+The v7 sales principle is:
 
-> **Pricing is stage-dependent and versioned. The price that best accelerates the first 3–10 merchants is not assumed to be the price that maximizes value at Early Scale or Mature Platform stage.**
+> **The Founding Pilot is sold as a low-risk 30-day AI commerce experiment, not as a bundle of AI generations.**
+
+Pricing is stage-dependent and versioned. The price that best accelerates the first 3–10 merchants is not assumed to be the price that maximizes value at Early Scale or Mature Platform stage.
 
 ---
 
@@ -80,8 +83,6 @@ Incremental Conversion / Revenue
 
 ## 3. Pricing Is a Product-Lifecycle Decision
 
-VisuTry should not assume one static public pricing structure from Pilot through maturity.
-
 | Commercial stage | Primary pricing objective | GM guidance | Pricing posture |
 | --- | --- | ---: | --- |
 | **Market Capture / Pilot** | make the first purchase easy to understand and easy to justify without ROI proof | **50–65% acceptable** | low-friction, time-boxed, evidence-oriented offer |
@@ -93,7 +94,7 @@ The stages do **not** require the same price, allowance, discount or contract st
 
 ### 3.1 Current sales priority
 
-For the first stage, Sales must be able to answer a simple merchant question:
+For the first stage, Sales must answer:
 
 > **“Why is this Pilot worth trying now, even before VisuTry can prove downstream revenue attribution?”**
 
@@ -106,7 +107,7 @@ The answer must be easy to perceive:
 - learn which frames and traffic sources create stronger shopping intent;
 - do it in a bounded 30-day experiment with limited implementation burden.
 
-The current Pilot therefore optimizes for **trialability and visible decision value**, not maximum ARPU.
+The current Pilot optimizes for **trialability and visible decision value**, not maximum ARPU.
 
 ---
 
@@ -118,33 +119,90 @@ The current Pilot therefore optimizes for **trialability and visible decision va
 
 > **USD 149 / 30 days**
 
-Included baseline:
+External-facing offer should lead with:
+
+- merchant's own eyewear catalog;
+- personalized AI frame recommendation;
+- AI Virtual Try-On;
+- multi-frame Compare;
+- Product Click / Favorite / Inquiry intent tracking;
+- merchant intent report;
+- assisted setup;
+- weekly review.
+
+Operational entitlement:
 
 - 1 merchant;
 - 1 hosted Store / campaign experience;
 - 8–50 reviewed frames;
-- **500 AI Commerce Sessions**;
-- **1,000 Standard Try-On renders**;
-- recommendation;
-- Try-On;
-- Compare;
-- Product Click / Favorite / Inquiry tracking;
-- source / campaign context;
-- merchant intent report;
-- assisted onboarding;
-- weekly review.
+- **up to 500 AI-assisted shoppers / AI Commerce Sessions**;
+- **up to 1,000 Standard Try-On generations**.
 
-This offer is intentionally easy to compare with existing VTO / optical-commerce tools while providing a broader decision workflow.
+### 4.1 External wording rule
 
-It is a **Founding Pilot offer**, not a permanent public price promise.
+Do **not** headline the offer as:
 
-Do not promise lifetime pricing.
+> `$149 / 500 AI Commerce Sessions / 1,000 renders`
+
+or:
+
+> `$149 for 1,000 AI generations`
+
+That framing pushes the merchant into a commodity VTO price-per-generation comparison.
+
+Preferred sales framing:
+
+> **Founding Merchant Pilot — $149 for 30 days. We set up your real frames in a personalized AI shopping experience, let shoppers get recommendations, Try-On and Compare, and show you measurable purchase-intent signals.**
+
+Capacity should be explained as fair-use scope, preferably in merchant language:
+
+> **Includes up to 500 AI-assisted shoppers during the 30-day Pilot and up to 1,000 standard Try-On generations.**
+
+`AI Commerce Session` remains the internal/commercial contract term but is not required in the first 30 seconds of a sales conversation.
+
+### 4.2 Why this is sellable against VTO products
+
+The Pilot should not attempt to win on raw generation volume.
+
+The merchant should compare:
+
+> **VTO feature**
+
+versus:
+
+> **assisted 30-day AI shopping experiment using the merchant's own catalog, with recommendation + Try-On + Compare + intent measurement.**
+
+The $149 includes assisted setup and review. That service layer is part of the Founding Pilot value and should be stated clearly.
+
+This is a **Founding Pilot offer**, not a permanent public price promise. Do not promise lifetime pricing.
 
 ---
 
-## 5. Future Packaging Hypotheses — Not Current Public Commitments
+## 5. Sales Talk Track — Current Stage
 
-The following remain internal planning hypotheses for post-Pilot productization:
+### 5.1 Primary 20-second pitch
+
+> **VisuTry helps eyewear shoppers decide what to try, not just visualize a frame. For $149, we can run a 30-day Pilot using your real frames: shoppers get personalized recommendations, Try-On and Compare, and you see which frames and journeys create stronger purchase intent. We handle the initial setup.**
+
+### 5.2 If the merchant asks “How is this different from a VTO widget?”
+
+> **Virtual Try-On is one step. VisuTry starts earlier in the decision: it helps the shopper narrow your catalog, then Try-On and Compare the finalists, and gives you measurable Product Click, Favorite and Inquiry signals.**
+
+### 5.3 If the merchant asks “Can you prove revenue uplift?”
+
+> **Not yet, and we do not want to overclaim. The first Pilot measures the shopping journey and purchase-intent signals inside VisuTry. Revenue attribution needs deeper commerce integration, which we only add when it is justified. The purpose of the 30-day Pilot is to see whether shoppers actually use the experience and whether the intent data is useful to you.**
+
+### 5.4 If the merchant compares raw usage with cheaper VTO vendors
+
+> **If you only need a high-volume VTO widget, there are lower-cost options. Our Pilot is for merchants who want to test a guided shopping experience: recommendation, Try-On, Compare and measurable intent, using their own catalog, with setup included.**
+
+### 5.5 Close
+
+> **The simplest next step is to start with 8–50 representative frames for 30 days. It is $149, we help set it up, and then we review what your shoppers actually did before you decide whether to continue.**
+
+---
+
+## 6. Future Packaging Hypotheses — Not Current Public Commitments
 
 | Plan | Launch | Growth | Scale | Enterprise |
 | --- | ---: | ---: | ---: | ---: |
@@ -157,26 +215,11 @@ The following remain internal planning hypotheses for post-Pilot productization:
 | Commerce integration | Future / when justified | Gated | Where connected | Custom |
 | Support | Standard | Priority | Priority | SLA / dedicated |
 
-These values are **not immutable price cards**.
-
-They may change after merchant evidence on:
-
-- willingness to pay;
-- perceived differentiation;
-- actual Commerce Session demand;
-- actual renders/session;
-- competitor pricing;
-- provider cost;
-- support burden;
-- channel economics;
-- product maturity;
-- integration depth.
+These are **not immutable price cards** and may change after merchant evidence on willingness to pay, perceived differentiation, usage, competitor pricing, provider cost, support burden, channel economics, product maturity and integration depth.
 
 ---
 
-## 6. Pricing Versioning and Change Policy
-
-Pricing must be treated as a versioned commercial artifact.
+## 7. Pricing Versioning and Change Policy
 
 Minimum concepts:
 
@@ -193,8 +236,8 @@ renewalPolicy
 
 Rules:
 
-1. **Internal pricing may be revised at any review gate.**
-2. **Public pricing may change for new merchants when product value, market position or costs change.**
+1. Internal pricing may be revised at any review gate.
+2. Public pricing may change for new merchants when product value, market position or costs change.
 3. Existing signed terms are honored for their contract period unless the agreement explicitly allows adjustment.
 4. Renewal pricing may migrate to a newer pricing version subject to contract and Sales policy.
 5. Founding/Pilot pricing should be time-boxed or contract-boxed, not lifetime locked by default.
@@ -206,9 +249,7 @@ Pricing evolution is expected, not treated as a failure of the initial model.
 
 ---
 
-## 7. Gross-Margin Philosophy
-
-AI-native Martech carries material variable inference COGS. Traditional SaaS margin standards are mature-state references, not Day-1 constraints.
+## 8. Gross-Margin Philosophy
 
 | Stage | GM guidance | Meaning |
 | --- | ---: | --- |
@@ -224,53 +265,29 @@ Rules:
 - channel deals must preserve positive contribution;
 - low-margin offers must be purposeful and time-limited.
 
-The important operating rule is:
-
 > **A commercially weak 80% GM offer is worse than a 55–65% GM offer that is easy to buy, easy to understand and creates strong merchant learning.**
 
 ---
 
-## 8. Margin Trajectory
+## 9. Margin Trajectory
 
 Strategic planning assumption:
 
 > **Over a 3–5 year horizon, cost per unit of equivalent AI capability is expected to decline structurally, while product quality and usage intensity may also rise.**
 
-This is a planning thesis, not a guarantee.
-
-Margin expansion may come from:
-
-- lower model/provider prices;
-- volume procurement;
-- provider routing;
-- cheaper models for lower-value steps;
-- lower renders/session through better recommendation;
-- higher plan prices as value becomes clearer;
-- Campaign / Commerce Intelligence expansion;
-- integration/API/enterprise revenue;
-- support efficiency.
+Margin expansion may come from lower model/provider prices, volume procurement, routing, model mix, lower renders/session, higher plan prices as value becomes clearer, Campaign / Commerce Intelligence expansion, integration/API/enterprise revenue, and support efficiency.
 
 Future cost reductions should partly improve margin, CAC capacity and channel economics rather than being fully passed through as free usage.
 
 ---
 
-## 9. Cost Philosophy — Three Procurement Cases
+## 10. Cost Philosophy — Three Procurement Cases
 
 | Cost case | Meaning | Use |
 | --- | --- | --- |
 | **Best / Procurement Alpha** | unusually favorable provider pricing such as current grsai | upside and commercial buffer |
 | **Base / Sustainable Procurement** | repeatable long-term commercial procurement level | primary planning case |
 | **Stress / Official API** | direct official list price / emergency fallback | continuity test |
-
-Current observed Best Case:
-
-| Capability | Model | Unit cost |
-| --- | --- | ---: |
-| Recommendation | `gemini-3.1-flash-lite` | RMB 0.0007425 |
-| Standard Try-On | `nano-banana-2-lite` | RMB 0.02725 |
-| Premium Try-On | `nano-banana-2` | RMB 0.07425 |
-| Failed/retried request | current provider behavior | no model cost |
-| Compare | reuses existing renders | no extra model cost |
 
 Current internal planning assumptions:
 
@@ -280,7 +297,7 @@ Current internal planning assumptions:
 
 ---
 
-## 10. Commercial Usage Model — Dual Meter
+## 11. Commercial Usage Model — Dual Meter
 
 Merchant-facing unit:
 
@@ -294,54 +311,13 @@ Standard Renders
 Premium Renders
 ```
 
-Current packaging planning average:
-
-> **~2 Standard renders per Commerce Session**
-
-This is a hypothesis only; Pilot data must replace it.
-
----
-
-## 11. Merchant Value and Sales Positioning
-
-Current value proposition:
-
-> **Turn eyewear traffic into personalized shopping decisions and measurable purchase intent.**
-
-The Merchant must not hear:
-
-> `$149 for 1,000 generated images`
-
-or:
-
-> `we will increase your revenue by X%`.
-
-The Merchant should hear:
-
-> **Use your own catalog to run a 30-day AI shopping experience. See how shoppers move from recommendation to Try-On, Compare and purchase-intent actions.**
-
-The first-stage product should be easy to compare against VTO products but visibly broader than VTO through:
-
-- recommendation;
-- shortlist / decision support;
-- Compare;
-- product intent signals;
-- source/campaign insight;
-- merchant-specific frame intelligence.
+Current packaging planning average: **~2 Standard renders per Commerce Session**. This is a hypothesis only; Pilot data must replace it.
 
 ---
 
 ## 12. Value Hurdles, Not ROI Claims
 
 Internal economics may use hypothetical value hurdles, but Sales must not represent them as observed ROI.
-
-Example:
-
-- Growth hypothesis: $499/month;
-- illustrative AOV: ~$150;
-- mathematically, ~4 additional orders would cover the fee.
-
-This is only a **commercial plausibility check**.
 
 Early Pilot decisions should prioritize:
 
@@ -379,23 +355,12 @@ These figures are planning references, not required current-stage thresholds.
 
 Planning channel mix remains approximately **50% direct / 50% channel**.
 
-- Referral Partner: **20% of net collected recurring subscription revenue for first 12 months**;
-- Agency / Solution Partner: **up to 30% recurring margin/revenue share**;
+- Referral Partner: 20% of net collected recurring subscription revenue for first 12 months;
+- Agency / Solution Partner: up to 30% recurring margin/revenue share;
 - Strategic Partner: negotiated;
 - Merchant referral: prefer account credit.
 
-Default annual hypothesis remains:
-
-> **Pay for 10 months, receive 12 months.**
-
-But annual terms should not be pushed during the first Pilot unless the merchant explicitly wants them. Early-stage Sales should optimize for low-friction entry rather than maximum contract value.
-
-Working future expansion anchors remain provisional:
-
-- +500 Standard renders: $49;
-- +1,000 Standard renders: $99;
-- Premium Quality: +$99/month anchor;
-- additional Campaign: +$99–199/month anchor.
+Annual terms should not be pushed during the first Pilot unless the merchant explicitly wants them. Early-stage Sales should optimize for low-friction entry rather than maximum contract value.
 
 ---
 
@@ -403,59 +368,19 @@ Working future expansion anchors remain provisional:
 
 ### After first paid Pilot
 
-Review:
-
-- was $149 easy to explain and close?
-- did the merchant understand the value without ROI attribution?
-- did 500 Commerce Sessions / 1,000 renders feel sufficient?
-- what objections appeared?
+Review whether $149 was easy to explain and close, whether the merchant understood the value without ROI attribution, whether capacity felt sufficient, and which objections appeared.
 
 ### After 3 paid merchants
 
-Review:
-
-- willingness to pay;
-- perceived comparison against VTO / optical-commerce alternatives;
-- continuation intent;
-- usage distribution;
-- support burden;
-- actual GM.
-
-Pricing may be revised at this gate.
+Review willingness to pay, competitor comparisons, continuation intent, usage distribution, support burden and actual GM. Pricing may be revised at this gate.
 
 ### After 5 paid merchants
 
-Decide whether to:
-
-- keep Pilot at $149;
-- raise/lower the Pilot price;
-- change included capacity;
-- introduce a setup fee;
-- productize Launch;
-- change Launch/Growth hypotheses.
+Decide whether to keep/adjust Pilot price, change capacity, introduce a setup fee, productize Launch or revise future plan hypotheses.
 
 ### After 10 paying merchants
 
-Create the next formal pricing version using:
-
-- merchant conversion from Pilot to recurring plan;
-- actual willingness to pay;
-- retention/expansion;
-- competitive alternatives;
-- AI COGS;
-- channel economics;
-- support cost;
-- product maturity.
-
-### Early Scale / Mature gates
-
-Pricing should be reviewed again when:
-
-- commerce integrations become standard;
-- Campaign becomes a first-class paid object;
-- intent analytics becomes materially differentiated;
-- enterprise/API capabilities are sellable;
-- procurement cost changes materially.
+Create the next formal pricing version using conversion from Pilot to recurring plan, willingness to pay, retention/expansion, competitive alternatives, AI COGS, channel economics, support cost and product maturity.
 
 ---
 
@@ -463,11 +388,11 @@ Pricing should be reviewed again when:
 
 1. **Merchant Value First. Sustainable Economics Always. Margin Expansion Over Time.**
 2. **Pricing is stage-dependent and versioned.**
-3. **The first Pilot price optimizes trialability, not mature-platform ARPU.**
-4. **Current product sells decision experience + measurable purchase intent, not revenue attribution.**
-5. **Observed intent, attributed conversion and incremental revenue are different evidence levels.**
-6. **75% is a mature benchmark, not an early-stage sacred constraint.**
-7. **Do not use procurement alpha to define permanent entitlement.**
+3. **The first Pilot is sold as a low-risk AI commerce experiment, not a generation bundle.**
+4. **The first Pilot price optimizes trialability, not mature-platform ARPU.**
+5. **Current product sells decision experience + measurable purchase intent, not revenue attribution.**
+6. **Capacity is a fair-use boundary; it is not the headline value proposition.**
+7. **75% is a mature benchmark, not an early-stage sacred constraint.**
 8. **Do not preserve an early price after product value and maturity have materially increased.**
 9. **Do not make future pricing changes retroactively without contract support.**
 10. **Pilot evidence overrides planning assumptions.**
@@ -483,4 +408,5 @@ Pricing should be reviewed again when:
 | 2026-08-06 | v3: market-aware dual-meter packaging. |
 | 2026-08-06 | v4: AI-native stage-based GM and margin trajectory. |
 | 2026-08-06 | v5: Intent-First value framing; revenue attribution removed from Pilot prerequisites. |
-| 2026-08-06 | **v6: made pricing explicitly stage-dependent and versioned; separated current external Founding Pilot pricing from future Launch/Growth/Scale hypotheses; added sales-first Pilot trialability objective, pricing-change policy, customer-cohort/version rules and recurring pricing review gates.** |
+| 2026-08-06 | v6: pricing explicitly stage-dependent and versioned. |
+| 2026-08-06 | **v7: made the Founding Pilot sales-first. Reframed $149 as a 30-day assisted AI commerce experiment, moved 500 sessions / 1,000 renders into fair-use scope instead of headline value, and added concrete sales talk tracks and objection handling.** |
