@@ -12,7 +12,11 @@ That foundation remains valid, but the commercial direction is now clearer:
 
 > **Storefront is the delivery surface. AI Commerce / Campaign Engine is the business.**
 
-The long-term product is not a merchant website builder and not a virtual try-on plugin. It is a vertical AI commerce / martech platform for eyewear that turns human and AI-agent traffic into measurable shopper intent, conversion, and merchant revenue.
+The long-term product is not a merchant website builder and not a virtual try-on plugin. It is a vertical AI commerce / martech platform for eyewear that turns human and AI-agent traffic into measurable shopper intent and, at later maturity stages, verified conversion and merchant outcomes.
+
+The current Market-Capture / Founding Pilot phase is intentionally narrower:
+
+> **Current Pilot scope ends at personalized shopping decisions + measurable purchase intent. Verified conversion, revenue attribution and incrementality are later, integration- or experiment-dependent layers.**
 
 The expected progression is:
 
@@ -50,6 +54,8 @@ The long-term commerce domain centers on:
 - `Merchant Usage / Commercial Policy`.
 
 Generation capabilities such as face understanding, recommendation, Try-On, and Compare are reusable commerce capabilities. They are not the top-level business domain.
+
+The current Pilot does not need every long-term domain concept to be first-class in code. In particular, `Conversion` and advanced `Attribution` remain future maturity layers until trustworthy commerce data exists.
 
 ### 2. Delivery surfaces
 
@@ -127,7 +133,7 @@ Collection Entry -> Recommendation -> Try-On -> Inquiry
 
 The project MUST NOT build a generalized visual workflow builder now. The requirement is only to keep reusable commerce capabilities callable from application-level journey orchestration rather than tightly coupling them to a specific page.
 
-### 6. Intent and Conversion are distinct
+### 6. Intent, Conversion, Attribution and Incrementality are distinct
 
 `MerchantIntent` remains valid for behavioral intent such as:
 
@@ -136,20 +142,23 @@ The project MUST NOT build a generalized visual workflow builder now. The requir
 - inquiry;
 - shortlist / high-intent behavior.
 
-The future commerce domain must distinguish these from verified conversion outcomes such as:
+These observed intent signals are the primary measurable outcome for the current Founding Pilot.
+
+The future commerce domain must distinguish intent from verified conversion outcomes such as:
 
 - lead created;
 - appointment booked;
 - add to cart;
 - checkout started;
-- purchase;
-- attributed revenue.
+- purchase.
 
-A first-class conversion model becomes required before VisuTry claims merchant revenue attribution.
+Attributed revenue requires a trustworthy conversion/order source. Incremental conversion/revenue requires credible causal experimentation and MUST NOT be inferred from attribution alone.
 
-### 7. Attribution is a core commerce capability
+A first-class conversion model becomes required before VisuTry claims merchant revenue attribution. It is **not required for the current Founding Pilot**.
 
-M1 may use first-touch/session attribution.
+### 7. Attribution is a core long-term commerce capability, not a Pilot prerequisite
+
+M1 may use first-touch/session source context to explain where shopper intent originated.
 
 The data model MUST preserve a path toward richer measurement. Durable first-party records should be able to associate relevant events with:
 
@@ -169,6 +178,30 @@ metadata
 ```
 
 Campaign/source context MUST NOT exist only in GA4 or external analytics.
+
+For the current Market-Capture phase, architecture is complete enough when it can reliably measure the intent journey:
+
+```text
+Traffic
+ -> Recommendation
+ -> Try-On
+ -> Compare
+ -> Product Click / Favorite / Inquiry
+ -> Measurable Intent
+```
+
+Later, integration-dependent layers may add:
+
+```text
+Conversion
+ -> Attributed Revenue
+```
+
+Future experiment-dependent layers may add:
+
+```text
+Incremental Conversion / Revenue
+```
 
 Multi-touch attribution is explicitly deferred until real merchant demand and sufficient volume exist.
 
@@ -191,7 +224,35 @@ Merchant source facts and AI-derived enrichment MUST remain distinguishable.
 
 This identity is the common reference point for recommendation, Campaign, agent discovery, product click, conversion, and later Shopify / API integration.
 
-### 9. Human + AI-agent traffic share the same commerce core
+### 9. Commercial policy is versioned and provider-independent
+
+Merchant Usage / Commercial Policy is a cross-cutting commercial boundary around the Commerce domain.
+
+The architecture MUST allow pricing and entitlement changes without changing Merchant, Catalog, Journey, Intent, Conversion, or delivery-surface identities.
+
+At minimum, the system should be capable of representing or referencing concepts such as:
+
+```text
+commercialStage
+planCode
+pricingVersion
+entitlementVersion
+commerceSessionAllowance
+standardRenderAllowance
+premiumRenderAllowance?
+campaignAllowance?
+effectiveFrom
+```
+
+Rules:
+
+- provider/model identity must remain an implementation concern and must not define merchant-facing entitlement contracts;
+- Market-Capture pricing may deliberately exploit favorable procurement economics without making those economics permanent architecture assumptions;
+- pricing/allowances may evolve across Pilot, Early Scale and Mature Platform stages;
+- historical merchant entitlements must remain auditable;
+- changing a Pricing Version must not require changing the Commerce domain model.
+
+### 10. Human + AI-agent traffic share the same commerce core
 
 Agent-ready commerce is a distribution requirement, not a second product stack.
 
@@ -202,11 +263,11 @@ The system should evolve around four principles:
 - **Discoverable** — stable intended-public merchant / campaign / product surfaces;
 - **Understandable** — verified structured commerce facts;
 - **Actionable** — reusable application contracts for recommendation, Try-On, Compare, and product destination;
-- **Measurable** — agent-originated sessions and commerce outcomes can be attributed.
+- **Measurable** — agent-originated sessions and commerce outcomes can be attributed when evidence exists.
 
 A broad public agent API, autonomous purchase execution, or agent access to shopper photos is not required now.
 
-### 10. Architecture dependency direction
+### 11. Architecture dependency direction
 
 The desired long-term direction is:
 
@@ -232,22 +293,28 @@ The commerce domain may reuse Consumer-proven shared technical capabilities, but
 ### Easier
 
 - Storefront can remain the fastest pilot surface without defining the long-term platform boundary.
+- The current Pilot can stop at measurable intent without prematurely building checkout/revenue infrastructure.
 - Campaign Engine can become first-class without rewriting Try-On, Compare, catalog, or merchant identity.
 - Shopify, widget, APIs, and AI-agent interfaces can reuse one commerce model.
 - Attribution and conversion can mature incrementally from pilot evidence.
+- Pricing and entitlement can change across commercial stages without changing the Commerce domain.
 - The project avoids becoming a generic website builder or duplicate ecommerce platform.
 
 ### Harder
 
 - Engineers must distinguish Storefront UI concerns from durable commerce concepts.
+- Engineers must distinguish observed intent from verified conversion, attribution and incrementality.
 - Some Store-owned code will later need incremental extraction into neutral commerce modules.
-- Event, product identity, and session contracts require stronger discipline now because they become future measurement infrastructure.
+- Event, product identity, session, and commercial-policy contracts require discipline because they become future measurement and billing infrastructure.
 
 ### Explicit Non-Decision
 
 This ADR does **not** authorize immediate implementation of:
 
 - a generic campaign builder;
+- order/checkout integration solely for the Founding Pilot;
+- revenue-attribution infrastructure as a Pilot prerequisite;
+- incrementality experimentation infrastructure;
 - multi-touch attribution;
 - CDP / CRM functionality;
 - marketing automation;
@@ -266,9 +333,12 @@ Those remain gated by merchant pilot evidence.
 - `docs/product/specs/visutry-store-mvp.md`
 - `docs/product/plans/visutry-store-demo-pilot-readiness-plan.md`
 - `docs/product/plans/visutry-store-implementation-plan.md`
+- `docs/strategy/merchant-pricing-packaging-unit-economics.md`
+- `docs/product/specs/merchant-commercial-entitlements.md`
 
 ## Change Log
 
 | Date | Change |
 | --- | --- |
 | 2026-08-06 | Accepted commerce-domain / Storefront-surface architecture direction. |
+| 2026-08-06 | **Calibrated ADR-008 to the Intent-First Market-Capture phase: clarified that current Pilot scope ends at measurable intent, deferred conversion/revenue attribution/incrementality, and formalized versioned provider-independent commercial policy as a cross-cutting boundary that can evolve without changing the Commerce domain.** |
