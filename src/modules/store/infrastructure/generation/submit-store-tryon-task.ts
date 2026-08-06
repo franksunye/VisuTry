@@ -80,7 +80,7 @@ export async function submitStoreTryOnTask(
   const startTime = Date.now()
   const { merchantId, merchantSessionId, merchantFrameId, origin, idempotencyKey } = attribution
 
-  logger.info('tryon-service', 'Starting Store try-on task', {
+  logger.debug('store', 'Starting Store try-on task', {
     merchantId,
     merchantSessionId,
     merchantFrameId,
@@ -126,7 +126,7 @@ export async function submitStoreTryOnTask(
       claimed.dispatchLeaseOwner !== options.dispatchLease.owner ||
       claimed.dispatchVersion !== options.dispatchLease.version
     ) {
-      logger.info('tryon-service', 'Store dispatch lease is owned by another request', {
+      logger.debug('store', 'Store dispatch lease is owned by another request', {
         taskId: claimed.id,
       })
       return submissionResultFromTask(claimed)
@@ -181,7 +181,7 @@ export async function submitStoreTryOnTask(
       ) {
         throw new Error('Store idempotency key conflict')
       }
-      logger.info('tryon-service', 'Reusing Store idempotent try-on submission (claim race)', {
+      logger.debug('store', 'Reusing Store idempotent try-on submission (claim race)', {
         taskId: raced.id,
         idempotencyKey,
       })
@@ -289,7 +289,7 @@ export async function submitStoreTryOnTask(
       }
     }
   } catch (error) {
-    logger.error('tryon-service', 'Failed to upload Store images to blob', error as Error, {
+    logger.error('store', 'Failed to upload Store images to blob', error as Error, {
       merchantId,
       merchantSessionId,
       taskId: task.id,
@@ -393,7 +393,7 @@ export async function submitStoreTryOnTask(
     }
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error'
-    logger.error('tryon-service', 'Store GrsAi submission failed', error as Error, {
+    logger.error('store', 'Store GrsAi submission failed', error as Error, {
       taskId: task.id,
       merchantId,
     })

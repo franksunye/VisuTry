@@ -60,6 +60,13 @@ export async function POST(request: NextRequest) {
     const remainingCredits = getRemainingQuotaCount(user)
     const effectiveRequiredCredits = Number.isFinite(requiredCredits) && requiredCredits > 0 ? requiredCredits : 1
     if (remainingCredits < effectiveRequiredCredits) {
+      logger.warn('frame-compare', 'Frame compare frame quota denied', {
+        userId: user.id,
+        batchId,
+        framePresetId,
+        requiredCredits: effectiveRequiredCredits,
+        remainingCredits,
+      }, ctx)
       return NextResponse.json(
         {
           success: false,
@@ -89,6 +96,15 @@ export async function POST(request: NextRequest) {
 
     revalidateTag(`user-${user.id}`)
 
+    logger.info('frame-compare', 'Frame compare frame submitted', {
+      userId: user.id,
+      batchId,
+      framePresetId: preset.id,
+      taskId: task.taskId,
+      status: task.status,
+      batchIndex: Number.isFinite(batchIndex) ? batchIndex : 0,
+    }, ctx)
+
     return NextResponse.json({
       success: true,
       data: {
@@ -98,7 +114,7 @@ export async function POST(request: NextRequest) {
     })
   } catch (error) {
     const err = error instanceof Error ? error : new Error(String(error))
-    logger.error('api', 'Frame compare frame dispatch failed', err, ctx)
+    logger.error('frame-compare', 'Frame compare frame dispatch failed', err, ctx)
     return NextResponse.json(
       { success: false, error: err.message || 'Internal server error' },
       { status: 500 },

@@ -1,4 +1,5 @@
 import { randomUUID } from 'node:crypto'
+import { logger } from '@/lib/logger'
 import {
   StoreDomainError,
   buildStoreEventIdempotencyKey,
@@ -114,6 +115,15 @@ export async function uploadShopperPhoto(
 
   // Always return capability-bound app URL (never raw Blob URL as auth).
   const previewUrl = `${deliveryUrl}?merchantSlug=${encodeURIComponent(merchant.slug)}&merchantSessionId=${encodeURIComponent(session.id)}`
+
+  logger.info('store', 'Store shopper photo uploaded', {
+    merchantId: merchant.id,
+    merchantSessionId: session.id,
+    photoAssetId: asset.id,
+    contentType: input.file.type,
+    byteSize: input.file.size,
+    accessMode: input.assetAccessMode,
+  })
 
   return {
     merchantSessionId: session.id,

@@ -1,10 +1,6 @@
-/**
- * Exactly-once Store usage settlement — never touches consumer User counters.
- * Claim + RENDER_SUCCESS ledger must commit in the same transaction.
- */
-
 import { Prisma, TaskStatus } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
+import { logger } from '@/lib/logger'
 import type { UsagePolicy } from '../domain/usage-policy'
 import type { StoreUsageRepository } from './ports/repositories'
 
@@ -27,7 +23,7 @@ export async function settleStoreTryOnUsage(input: {
   const maxAttempts = 3
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
     try {
-      return await prisma.$transaction(
+      const result: StoreUsageSettlementResult = await prisma.$transaction(
         async (tx) => {
           const claim = await tx.tryOnTask.updateMany({
             where: {
@@ -83,6 +79,25 @@ export async function settleStoreTryOnUsage(input: {
         },
         { isolationLevel: Prisma.TransactionIsolationLevel.Serializable },
       )
+
+      if (result.settled) {
+        logger.info('store', 'Store usage settled', {
+          taskId: input.taskId,
+          merchantId: input.merchantId,
+          merchantSessionId: input.merchantSessionId,
+          source: result.source,
+          usagePolicyKind: input.usagePolicy.kind,
+        })
+      } else {
+        logger.debug('store', 'Store usage settlement no-op', {
+          taskId: input.taskId,
+          merchantId: input.merchantId,
+          alreadySettled: result.alreadySettled,
+          source: result.source,
+        })
+      }
+
+      return result
     } catch (error) {
       const isWriteConflict = (error as { code?: string })?.code === 'P2034'
       if (!isWriteConflict || attempt === maxAttempts) throw error

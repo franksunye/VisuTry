@@ -99,7 +99,7 @@ export async function GET(request: NextRequest) {
     })
   } catch (error) {
     const err = error instanceof Error ? error : new Error(String(error))
-    logger.error('api', 'Frame compare recovery failed', err, ctx)
+    logger.error('frame-compare', 'Frame compare recovery failed', err, ctx)
     return NextResponse.json(
       { success: false, error: err.message || 'Internal server error' },
       { status: 500 },

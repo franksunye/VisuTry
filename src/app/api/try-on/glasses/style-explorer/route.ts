@@ -51,6 +51,14 @@ export async function POST(request: NextRequest) {
     const requiredCredits = 4
     const remainingCredits = getRemainingQuotaCount(user)
     if (remainingCredits < requiredCredits) {
+      logger.warn('style-explorer', 'Style Explorer quota denied', {
+        userId: user.id,
+        requiredCredits,
+        remainingCredits,
+        styleIntent,
+        occasion: occasion ?? null,
+        category,
+      }, ctx)
       return NextResponse.json({
         success: false,
         error: 'Style Explorer requires 4 credits.',
@@ -59,6 +67,16 @@ export async function POST(request: NextRequest) {
     }
 
     const batchId = `style-explorer-${user.id}-${Date.now()}`
+    logger.info('style-explorer', 'Style Explorer batch started', {
+      userId: user.id,
+      batchId,
+      styleIntent,
+      occasion: occasion ?? null,
+      category,
+      presetIds,
+      remainingCredits,
+    }, ctx)
+
     return NextResponse.json({
       success: true,
       data: {
@@ -84,7 +102,7 @@ export async function POST(request: NextRequest) {
     })
   } catch (error) {
     const err = error instanceof Error ? error : new Error(String(error))
-    logger.error('api', 'Style Explorer batch init failed', err, ctx)
+    logger.error('style-explorer', 'Style Explorer batch init failed', err, ctx)
     return NextResponse.json({ success: false, error: err.message || 'Internal server error' }, { status: 500 })
   }
 }

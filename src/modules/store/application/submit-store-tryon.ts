@@ -2,6 +2,7 @@ import { getTryOnConfig } from '@/config/try-on-types'
 import { Prisma, TaskStatus, TryOnType } from '@prisma/client'
 import { randomUUID } from 'node:crypto'
 import { prisma } from '@/lib/prisma'
+import { logger } from '@/lib/logger'
 import {
   DEFAULT_STORE_DEMO_LIMITS,
   StoreDomainError,
@@ -542,6 +543,16 @@ Merchant store frame:
       prompt,
       preClaimedTaskId: claim.taskId,
       dispatchLease,
+    })
+
+    logger.info('store', 'Store try-on submitted', {
+      taskId: submitted.taskId,
+      merchantId: merchant.id,
+      merchantSessionId: session.id,
+      merchantFrameId: frame.id,
+      status: submitted.status,
+      reusedExisting: submitted.reusedExisting || claim.reusedExisting,
+      usagePolicyKind: usagePolicy.kind,
     })
 
     return {

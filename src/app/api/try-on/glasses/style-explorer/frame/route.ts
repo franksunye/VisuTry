@@ -47,6 +47,11 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: false, error: 'Invalid Style Explorer frame preset' }, { status: 400 })
     }
     if (getRemainingQuotaCount(user) < 1) {
+      logger.warn('style-explorer', 'Style Explorer frame quota denied', {
+        userId: user.id,
+        batchId,
+        framePresetId,
+      }, ctx)
       return NextResponse.json({ success: false, error: 'No credits remaining' }, { status: 403 })
     }
 
@@ -69,10 +74,19 @@ export async function POST(request: NextRequest) {
     })
 
     revalidateTag(`user-${user.id}`)
+    logger.info('style-explorer', 'Style Explorer frame submitted', {
+      userId: user.id,
+      batchId,
+      framePresetId: preset.id,
+      taskId: task.taskId,
+      status: task.status,
+      styleIntent,
+      batchIndex: Number.isFinite(batchIndex) ? batchIndex : 0,
+    }, ctx)
     return NextResponse.json({ success: true, data: { batchId, task } })
   } catch (error) {
     const err = error instanceof Error ? error : new Error(String(error))
-    logger.error('api', 'Style Explorer frame dispatch failed', err, ctx)
+    logger.error('style-explorer', 'Style Explorer frame dispatch failed', err, ctx)
     return NextResponse.json({ success: false, error: err.message || 'Internal server error' }, { status: 500 })
   }
 }

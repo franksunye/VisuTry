@@ -58,6 +58,11 @@ export async function POST(request: NextRequest) {
     const requiredCredits = presets.length
     const remainingCredits = getRemainingQuotaCount(user)
     if (remainingCredits < requiredCredits) {
+      logger.warn('frame-compare', 'Frame compare quota denied', {
+        userId: user.id,
+        requiredCredits,
+        remainingCredits,
+      }, ctx)
       return NextResponse.json(
         {
           success: false,
@@ -72,6 +77,14 @@ export async function POST(request: NextRequest) {
     }
 
     const batchId = `frame-compare-${user.id}-${Date.now()}`
+
+    logger.info('frame-compare', 'Frame compare batch started', {
+      userId: user.id,
+      batchId,
+      presetCount: presets.length,
+      presetIds: presets.map((preset) => preset.id),
+      remainingCredits,
+    }, ctx)
 
     return NextResponse.json({
       success: true,
@@ -93,7 +106,7 @@ export async function POST(request: NextRequest) {
     })
   } catch (error) {
     const err = error instanceof Error ? error : new Error(String(error))
-    logger.error('api', 'Frame compare batch init failed', err, ctx)
+    logger.error('frame-compare', 'Frame compare batch init failed', err, ctx)
     return NextResponse.json(
       { success: false, error: err.message || 'Internal server error' },
       { status: 500 },

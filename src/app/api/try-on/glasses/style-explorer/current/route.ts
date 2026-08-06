@@ -72,7 +72,7 @@ export async function GET(request: NextRequest) {
     })
   } catch (error) {
     const err = error instanceof Error ? error : new Error(String(error))
-    logger.error('api', 'Style Explorer recovery failed', err, ctx)
+    logger.error('style-explorer', 'Style Explorer recovery failed', err, ctx)
     return NextResponse.json({ success: false, error: err.message || 'Internal server error' }, { status: 500 })
   }
 }

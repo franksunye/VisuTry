@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { TaskStatus } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { FACE_SHAPE_FAILURE_REASONS } from '@/config/face-analysis'
+import { getRequestContext, logger } from '@/lib/logger'
 
 const ALLOWED_STATUSES = new Set<TaskStatus>([
   TaskStatus.COMPLETED,
@@ -11,6 +12,7 @@ const ALLOWED_STATUSES = new Set<TaskStatus>([
 const ALLOWED_FAILURE_REASONS = new Set<string>(FACE_SHAPE_FAILURE_REASONS)
 
 export async function POST(request: Request) {
+  const ctx = getRequestContext(request)
   try {
     const body = await request.json() as { status?: unknown; failureReason?: unknown }
     const status = body.status
@@ -35,8 +37,22 @@ export async function POST(request: Request) {
       },
     })
 
+    if (status === TaskStatus.COMPLETED) {
+      logger.info('face-shape', 'Free face shape detection completed', {}, ctx)
+    } else {
+      logger.warn('face-shape', 'Free face shape detection failed', {
+        failureReason,
+      }, ctx)
+    }
+
     return NextResponse.json({ success: true }, { status: 201 })
-  } catch {
+  } catch (error) {
+    logger.error(
+      'face-shape',
+      'Free face shape detection usage write failed',
+      error instanceof Error ? error : new Error(String(error)),
+      ctx,
+    )
     return NextResponse.json({ success: false }, { status: 500 })
   }
 }

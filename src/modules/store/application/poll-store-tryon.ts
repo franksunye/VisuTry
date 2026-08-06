@@ -17,6 +17,7 @@ import { requireOperableStoreSession } from './require-store-session'
 import { settleStoreTryOnUsage } from './settle-store-usage'
 import { buildStoreTryOnResultDeliveryUrl } from './store-result-delivery'
 import { prisma } from '@/lib/prisma'
+import { logger } from '@/lib/logger'
 
 export type PollStoreTryOnInput = {
   merchants: MerchantRepository
@@ -93,14 +94,14 @@ export async function pollStoreFrameTryOn(
       },
       owned.origin === 'STORE_PILOT' ? 'STORE_PILOT' : 'STORE_DEMO',
     )
-    await settleStoreTryOnUsage({
+    const settlement = await settleStoreTryOnUsage({
       taskId: input.taskId,
       merchantId: merchant.id,
       merchantSessionId: session.id,
       usagePolicy,
       usage: input.usage,
     })
-    await input.events.appendIdempotent({
+    const completedEvent = await input.events.appendIdempotent({
       eventId: buildStoreEventIdempotencyKey({
         type: 'merchant_tryon_completed',
         merchantId: merchant.id,
@@ -117,10 +118,21 @@ export async function pollStoreFrameTryOn(
       locale: input.locale ?? null,
       deviceType: input.deviceType ?? null,
     })
+    if (completedEvent.created || settlement.settled) {
+      logger.info('store', 'Store try-on completed', {
+        taskId: input.taskId,
+        merchantId: merchant.id,
+        merchantSessionId: session.id,
+        merchantFrameId: owned.merchantFrameId,
+        origin: owned.origin,
+        usageSettled: settlement.settled,
+        eventCreated: completedEvent.created,
+      })
+    }
   }
 
   if (status.status === 'FAILED' && owned.merchantFrameId) {
-    await input.events.appendIdempotent({
+    const failedEvent = await input.events.appendIdempotent({
       eventId: buildStoreEventIdempotencyKey({
         type: 'merchant_tryon_failed',
         merchantId: merchant.id,
@@ -136,6 +148,22 @@ export async function pollStoreFrameTryOn(
       source: 'SERVER',
       locale: input.locale ?? null,
       deviceType: input.deviceType ?? null,
+    })
+    if (failedEvent.created) {
+      logger.warn('store', 'Store try-on failed', {
+        taskId: input.taskId,
+        merchantId: merchant.id,
+        merchantSessionId: session.id,
+        merchantFrameId: owned.merchantFrameId,
+        origin: owned.origin,
+        errorMessage: status.errorMessage ?? null,
+      })
+    }
+  } else if (status.status !== 'COMPLETED') {
+    logger.debug('store', 'Store try-on poll status', {
+      taskId: input.taskId,
+      merchantId: merchant.id,
+      status: status.status,
     })
   }
 

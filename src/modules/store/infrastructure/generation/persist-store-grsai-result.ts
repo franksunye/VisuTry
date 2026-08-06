@@ -162,20 +162,20 @@ export const persistStoreGrsaiSucceededResult: GrsaiSucceededPersistHandler = as
         if (!isBlobConflictError(putError)) throw putError
         const existing = await head(resultPathname)
         persistedUrl = existing.url
-        logger.info('tryon-service', 'Store result blob already present; reconciling', {
+        logger.debug('store', 'Store result blob already present; reconciling', {
           taskId,
           pathname: resultPathname,
         })
       }
     }
-    logger.info('tryon-service', 'Store GrsAi result persisted to blob', {
+    logger.info('store', 'Store GrsAi result persisted to blob', {
       taskId,
       pathname: resultPathname,
       access: storeResultPolicy.blobAccess,
     })
   } catch (uploadError) {
     logger.error(
-      'tryon-service',
+      'store',
       'Failed to persist Store GrsAi result to blob',
       uploadError as Error,
       { taskId },

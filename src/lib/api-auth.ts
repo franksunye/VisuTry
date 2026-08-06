@@ -2,6 +2,7 @@ import { getServerSession } from 'next-auth/next'
 import { NextResponse } from 'next/server'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import { logger } from '@/lib/logger'
 import type { Prisma, User } from '@prisma/client'
 import type { Session } from 'next-auth'
 
@@ -56,6 +57,7 @@ const QUOTA_SELECT = {
 } satisfies Prisma.UserSelect
 
 function unauthorized(error = 'Unauthorized'): AuthFailure {
+  logger.debug('auth', 'API auth denied', { status: 401, error })
   return {
     ok: false,
     response: NextResponse.json({ success: false, error }, { status: 401 }),
@@ -63,6 +65,7 @@ function unauthorized(error = 'Unauthorized'): AuthFailure {
 }
 
 function forbidden(error = 'Forbidden - Admin access required'): AuthFailure {
+  logger.warn('auth', 'API access forbidden', { status: 403, error })
   return {
     ok: false,
     response: NextResponse.json({ success: false, error }, { status: 403 }),
@@ -70,6 +73,7 @@ function forbidden(error = 'Forbidden - Admin access required'): AuthFailure {
 }
 
 function notFound(error = 'User not found'): AuthFailure {
+  logger.warn('auth', 'API auth user not found', { status: 404, error })
   return {
     ok: false,
     response: NextResponse.json({ success: false, error }, { status: 404 }),

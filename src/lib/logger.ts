@@ -7,7 +7,7 @@
 import { Axiom } from '@axiomhq/js'
 
 export type LogLevel = 'debug' | 'info' | 'warn' | 'error'
-export type LogCategory = 'auth' | 'oauth' | 'api' | 'database' | 'upload' | 'payment' | 'web' | 'general' | 'email' | 'grsai' | 'grsai-face' | 'tryon-service' | 'face-analysis' | 'face-analysis-service' | 'quota' | 'cron'
+export type LogCategory = 'auth' | 'oauth' | 'api' | 'database' | 'upload' | 'payment' | 'web' | 'general' | 'email' | 'grsai' | 'grsai-face' | 'tryon-service' | 'face-analysis' | 'face-analysis-service' | 'quota' | 'cron' | 'store' | 'face-shape' | 'frame-compare' | 'style-explorer'
 
 export interface LogEntry {
   id: string
@@ -193,6 +193,8 @@ class Logger {
 
   // 公共日志方法
   debug(category: LogCategory, message: string, data?: any, context?: any) {
+    // Production drops debug from Axiom/Vercel — skip entry construction too.
+    if (this.isProduction) return
     this.addLog(this.createLogEntry('debug', category, message, data, context))
   }
 

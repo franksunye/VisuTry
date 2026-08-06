@@ -78,7 +78,7 @@ export async function reconcileStaleStoreClaims(input?: {
     if (updated.count > 0) {
       result.markedFailed += 1
       result.taskIds.push(task.id)
-      logger.warn('api', 'Reconciled stale Store try-on placeholder', {
+      logger.warn('store', 'Reconciled stale Store try-on placeholder', {
         taskId: task.id,
       })
     }

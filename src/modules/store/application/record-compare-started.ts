@@ -1,4 +1,5 @@
 import { prisma } from '@/lib/prisma'
+import { logger } from '@/lib/logger'
 import {
   StoreDomainError,
   buildStoreEventIdempotencyKey,
@@ -66,6 +67,14 @@ export async function recordCompareStarted(input: {
     deviceType: input.deviceType ?? null,
     metadata: { completedTryOns },
   })
+
+  if (result.created) {
+    logger.info('store', 'Store compare started', {
+      merchantId: merchant.id,
+      merchantSessionId: input.merchantSessionId,
+      completedTryOns,
+    })
+  }
 
   return { recorded: result.created }
 }

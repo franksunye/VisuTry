@@ -2,6 +2,7 @@
  * Resolve a StoreAsset for the capability-authenticated shopper session and stream bytes.
  */
 
+import { logger } from '@/lib/logger'
 import { StoreDomainError, merchantInactive, merchantNotFound } from '../domain'
 import type { AssetStore } from './ports/asset-store'
 import type {
@@ -44,6 +45,12 @@ export async function resolveStoreSessionAsset(input: {
   })
 
   if (asset.merchantSessionId && asset.merchantSessionId !== session.id) {
+    logger.warn('store', 'Store asset access denied (session mismatch)', {
+      merchantId: merchant.id,
+      merchantSessionId: session.id,
+      assetId: input.assetId,
+      assetSessionId: asset.merchantSessionId,
+    })
     throw new StoreDomainError('SESSION_UNAUTHORIZED', 'Asset is not part of this session.', 403)
   }
 

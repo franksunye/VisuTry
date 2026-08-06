@@ -142,6 +142,15 @@ export async function submitFaceAnalysis(
       },
     })
 
+    logger.info('face-analysis-service', 'Face analysis task completed', {
+      taskId: task.id,
+      userId: user.id,
+      detectedShape: aiResult.faceShape,
+      confidence: aiResult.confidence,
+      reportUnlocked,
+      completionTimeMs: Date.now() - startTime,
+    })
+
     return {
       taskId: task.id,
       status: 'completed',

@@ -1,3 +1,4 @@
+import { logger } from '@/lib/logger'
 import {
   StoreDomainError,
   buildIntentIdempotencyKey,
@@ -152,6 +153,23 @@ export async function recordStoreIntent(
   })
 
   await input.sessions.touch(merchant.id, input.merchantSessionId, new Date())
+
+  if (created) {
+    logger.info('store', 'Store intent recorded', {
+      merchantId: merchant.id,
+      merchantSessionId: input.merchantSessionId,
+      intentId: record.id,
+      type: record.type,
+      merchantFrameId: resolvedFrameId,
+    })
+  } else {
+    logger.debug('store', 'Store intent idempotent reuse', {
+      merchantId: merchant.id,
+      merchantSessionId: input.merchantSessionId,
+      intentId: record.id,
+      type: record.type,
+    })
+  }
 
   return {
     intentId: record.id,

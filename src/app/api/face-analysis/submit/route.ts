@@ -18,11 +18,19 @@ export async function POST(request: NextRequest) {
 
     const quotaCheck = checkUserQuota(user)
     if (!quotaCheck.allowed) {
+      logger.warn('face-analysis', 'Face analysis quota denied', {
+        userId: user.id,
+        reason: quotaCheck.reason,
+      }, ctx)
       return NextResponse.json({ success: false, error: quotaCheck.reason }, { status: 403 })
     }
 
     const quotaSource = getNextQuotaSource(user)
     if (!quotaSource) {
+      logger.warn('face-analysis', 'Face analysis quota denied', {
+        userId: user.id,
+        reason: 'No remaining quota',
+      }, ctx)
       return NextResponse.json({ success: false, error: 'No remaining quota' }, { status: 403 })
     }
 
@@ -58,6 +66,13 @@ export async function POST(request: NextRequest) {
 
     if (result.status === 'completed') {
       await deductUserQuota(user.id, ctx)
+      logger.info('face-analysis', 'Face analysis submit completed', {
+        userId: user.id,
+        taskId: result.taskId,
+        quotaSource,
+        reportUnlocked: result.reportUnlocked,
+        detectedShape: result.basicResult?.faceShape,
+      }, ctx)
     }
 
     const task = await prisma.faceAnalysisTask.findUnique({ where: { id: result.taskId } })

@@ -1,3 +1,4 @@
+import { logger } from '@/lib/logger'
 import {
   buildStoreEventIdempotencyKey,
   createMerchantSessionCapability,
@@ -62,6 +63,14 @@ export async function createStoreSession(input: {
     merchantId: merchant.id,
     merchantSessionId: session.id,
     source: 'SERVER',
+    locale: input.locale ?? null,
+    deviceType: input.deviceType ?? null,
+  })
+
+  logger.info('store', 'Store session created', {
+    merchantId: merchant.id,
+    merchantSlug: input.slug,
+    merchantSessionId: session.id,
     locale: input.locale ?? null,
     deviceType: input.deviceType ?? null,
   })

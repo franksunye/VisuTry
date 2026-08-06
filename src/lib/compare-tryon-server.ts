@@ -76,10 +76,13 @@ export async function submitCompareFrameTask({
     })
   } catch (error) {
     const err = error instanceof Error ? error : new Error(String(error))
-    logger.error('api', 'Frame compare preset failed', err, {
+    const source = typeof batchMetadata.source === 'string' ? batchMetadata.source : 'frame-compare'
+    const category = source === 'style-explorer' ? 'style-explorer' : 'frame-compare'
+    logger.error(category, `${source} preset failed`, err, {
       userId: user.id,
       batchId,
       presetId: preset.id,
+      source,
     })
 
     return toCompareTaskResponse({
