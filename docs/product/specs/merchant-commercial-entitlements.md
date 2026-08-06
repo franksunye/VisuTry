@@ -18,32 +18,53 @@ This spec translates merchant pricing into concrete product entitlement and back
 
 The operating rule is:
 
-> **Sales promise = product entitlement = server-side policy = measurable usage.**
+> **Sales promise = merchant value = product entitlement = server-side policy = measurable usage.**
 
-No merchant plan may depend only on frontend copy or manual convention.
+The current baseline follows Market-Aware Economics v3.
 
-The current entitlement baseline is based on **Sustainable Procurement Economics v2**, not on unusually low current provider pricing.
+Key correction:
 
-A feature may appear in the pricing direction without being immediately sellable. Sales may only promise capabilities marked production-ready or explicitly included in a controlled pilot agreement.
+> **AI Commerce Session allowance and AI render allowance are separate entitlements.**
+
+A merchant buys shopper capacity. Rendering is the dominant variable cost and must be controlled independently.
 
 ---
 
 ## 2. Commercial Objects
 
-The minimum commercial model must be able to represent:
+The minimum commercial model must represent:
 
 ```text
 Merchant
   ├── Merchant Plan
-  ├── Usage Allowance
+  ├── Commerce Session Allowance
+  ├── Standard Render Pool
+  ├── Premium Render Pool?
   ├── Campaign Entitlements
   ├── Catalog Entitlements
-  ├── Render Quality Entitlements
   ├── Analytics Entitlements
   └── Partner Attribution?
 ```
 
-The future Commerce domain may introduce dedicated plan/subscription/campaign entities when real workflow requires them. The current implementation may use configuration or policy records provided the commercial contract is server-owned and durable.
+Each merchant commercial state should eventually resolve at minimum:
+
+```text
+planCode
+entitlementVersion
+billingStatus
+billingPeriodStart
+billingPeriodEnd
+commerceSessionAllowance
+commerceSessionsUsed
+standardRenderAllowance
+standardRendersUsed
+premiumRenderAllowance?
+premiumRendersUsed?
+campaignAllowance
+partnerId?
+```
+
+Do not infer entitlement from frontend copy or Stripe price amount alone.
 
 ---
 
@@ -59,26 +80,7 @@ SCALE
 ENTERPRISE
 ```
 
-Do not encode display price in the plan code.
-
-Price may change independently from entitlement version.
-
-Each merchant commercial state should eventually resolve at minimum:
-
-```text
-planCode
-entitlementVersion
-billingStatus
-billingPeriodStart
-billingPeriodEnd
-commerceSessionAllowance
-commerceSessionsUsed
-campaignAllowance
-premiumRenderAllowance?
-partnerId?
-```
-
-Exact schema may evolve, but these concepts must remain explicit.
+Price and entitlement version must be independently changeable.
 
 ---
 
@@ -93,7 +95,8 @@ Minimum deliverable:
 - one merchant tenant;
 - one hosted Store / campaign experience;
 - 8–50 reviewed frames;
-- up to **250 AI Commerce Sessions**;
+- up to **500 AI Commerce Sessions**;
+- up to **1,000 Standard Try-On renders**;
 - AI frame recommendation;
 - Standard Try-On;
 - Frame Compare;
@@ -104,36 +107,35 @@ Minimum deliverable:
 - assisted setup;
 - weekly pilot report;
 - privacy / retention controls;
-- merchant-specific usage policy.
+- merchant-specific session and render policies.
+
+The Pilot is a validation product. It should provide enough capacity for meaningful real traffic while preserving explicit render-cost control.
 
 Pilot exclusions unless explicitly agreed:
 
+- unlimited traffic;
 - public Shopify app;
 - generalized campaign builder;
 - custom API;
 - real-time inventory sync;
 - enterprise SSO;
 - guaranteed revenue uplift;
-- unlimited traffic;
 - autonomous agent checkout;
 - medical / optical measurement claims.
 
-The Pilot is a validation product. Its 250-session allowance is deliberately based on sustainable procurement economics and is large enough to observe shopper behavior without creating a long-term usage promise from exceptional provider pricing.
-
 ---
 
-## 5. Formal Entitlement Matrix
-
-This matrix defines the target packaging contract. Production availability must be checked separately.
+## 5. Formal Entitlement Matrix — v3
 
 | Entitlement | Launch | Growth | Scale | Enterprise |
 | --- | --- | --- | --- | --- |
 | Merchant tenant | 1 | 1 | 1 | Custom / multi-brand |
-| Monthly AI Commerce Sessions | **250** | **600** | **1,200** | Custom |
+| Monthly AI Commerce Sessions | **750** | **1,500** | **4,000** | Custom |
+| Standard Render Pool | **1,500** | **3,000** | **8,000** | Custom |
 | Active campaigns | 1 | 3 | 10 | Custom |
 | Catalog guideline | 100 | 500 | 2,000 | Custom |
 | Recommendation | Included | Included | Included | Included |
-| Standard Try-On | Included | Included | Included | Included |
+| Standard Try-On | Included within render pool | Included within render pool | Included within render pool | Custom |
 | Compare | Included | Included | Included | Included |
 | Product click / favorite / inquiry | Included | Included | Included | Included |
 | Source attribution | Basic | Advanced | Advanced | Custom |
@@ -147,82 +149,130 @@ This matrix defines the target packaging contract. Production availability must 
 | API | No | Gated | Gated / included | Custom |
 | Support | Standard | Priority | Priority | SLA / dedicated |
 
-The entitlement values above supersede the earlier 1,000 / 5,000 / 10,000 session baseline.
+These values supersede both:
+
+- the original 1,000 / 5,000 / 10,000 session baseline;
+- the v2 finance-floor 250 / 600 / 1,200 baseline.
 
 ---
 
 ## 6. AI Commerce Session Meter
 
-### 6.1 Definition
+### Definition
 
-An AI Commerce Session is a merchant-scoped shopper decision session that enters a recommendation / try-on commerce journey.
+An AI Commerce Session is a merchant-scoped shopper session that first reaches the AI recommendation / decision boundary.
 
-Recommended meter rule for v1:
+Do not count ordinary page views.
 
-> Count one Commerce Session when a valid merchant shopper session first reaches the recommendation execution boundary or another explicitly configured decision-start event.
+Recommended v1 rule:
 
-Do not count ordinary page views as Commerce Sessions.
+> Count one Commerce Session when the shopper first executes recommendation or another explicitly configured decision-start event.
 
-### 6.2 Why session-level metering
+### Idempotency
 
-Merchant-facing pricing should correspond to shoppers served, not model internals.
+Do not count again for:
 
-Backend instrumentation must still record:
-
-- recommendation attempts / successes;
-- standard render attempts / successes;
-- premium render attempts / successes;
-- provider / model;
-- recoverable provider cost metadata;
-- failed attempts;
-- number of frames rendered;
-- compare use.
-
-This allows Product/Finance to reconcile commercial usage with actual cost and compare Best/Base/Stress provider economics.
-
-### 6.3 Idempotency
-
-A single shopper session must not be billed repeatedly because of:
-
-- page refresh;
+- refresh;
 - retry;
 - polling;
 - reopening Compare;
-- duplicated event delivery.
-
-The meter must be idempotent.
+- duplicated events.
 
 ---
 
-## 7. Render Quality Policy
+## 7. Render Pool Meter
 
-Canonical merchant-facing quality modes:
+Render consumption is separate from Commerce Session consumption.
+
+Count each successful Standard or Premium Try-On render against the appropriate render pool according to server-side policy.
+
+Required instrumentation:
+
+- render attempt;
+- successful render;
+- failed/retried render;
+- Standard vs Premium;
+- provider/model;
+- merchantId;
+- merchantSessionId;
+- campaignId where available;
+- unit-cost version / recoverable cost mapping.
+
+A shopper may use multiple renders within one Commerce Session.
+
+The shopper experience should not be hard-limited to exactly two frames merely because the packaging model assumes an average of two renders/session.
+
+---
+
+## 8. Limit Behavior
+
+Commerce Session and render-pool limits are independent.
+
+Suggested states:
+
+```text
+NORMAL
+APPROACHING_LIMIT
+LIMIT_REACHED
+MANUAL_EXTENSION
+OVERAGE_ENABLED
+```
+
+Rules:
+
+1. The server owns limit enforcement.
+2. Merchant-facing UX must not fail silently.
+3. First Pilot merchants must not receive surprise charges.
+4. Product/Sales should be alerted before 80% exhaustion.
+5. A temporary audited extension may be granted during Pilot.
+6. Reaching the render pool must not accidentally mutate Consumer credits or quotas.
+
+---
+
+## 9. Overage Policy
+
+Working post-pilot anchors:
+
+- **500 additional Standard renders: $49**;
+- **1,000 additional Standard renders: $99**.
+
+These prices are provisional until pilot data confirms:
+
+- actual renders/session;
+- sustainable provider cost;
+- utilization distribution;
+- merchant willingness to pay.
+
+Session expansion may later be sold through a plan upgrade or a traffic bundle if merchants value shopper capacity separately from renders.
+
+---
+
+## 10. Render Quality Policy
+
+Canonical merchant-facing modes:
 
 ```text
 STANDARD
 PREMIUM
 ```
 
-Provider model names are implementation details and must not be exposed as plan features.
+Provider/model names are implementation details.
 
 Rules:
 
-1. Server chooses the permitted quality mode from merchant/campaign entitlement.
-2. Shopper UI must not bypass merchant allowance.
-3. Premium usage must be independently measurable.
-4. Provider changes must not require repricing the public feature name.
-5. A merchant may be allowed campaign-level premium policy later.
-6. Premium allowance must be set from a sustainable Premium procurement benchmark, not the current low-cost provider price.
+1. Server chooses the permitted quality mode.
+2. Shopper UI cannot bypass merchant entitlement.
+3. Premium usage is independently metered.
+4. Provider change must not alter the commercial product name.
+5. Premium allowance must use sustainable procurement economics.
 
 ---
 
-## 8. Campaign Entitlement
+## 11. Campaign Entitlement
 
-Campaign is expected to become a first-class Commerce domain object once merchant workflow requires persistent campaign configuration.
+Campaign becomes a first-class Commerce entity once persistent multi-campaign workflow is required.
 
-Until then, campaign allowance may be represented by durable merchant/campaign attribution/configuration records.
-
-A commercially active campaign is a merchant experience with a distinct combination of one or more of:
+A commercially active campaign may differ by:
 
 - acquisition source / audience;
 - catalog subset;
@@ -230,48 +280,38 @@ A commercially active campaign is a merchant experience with a distinct combinat
 - offer / merchandising context;
 - measurement/reporting scope.
 
-Do not count ordinary UTM values as separately billable campaigns unless the merchant has a configured commercial campaign object or equivalent product configuration.
+Working additional-campaign pricing:
 
-Future additional-campaign pricing baseline:
+> **+$99 to +$199 / active campaign / month**
 
-> **+$99 to +$199 per active campaign / month**
-
-Product must preserve the ability to meter active campaigns per billing period.
+Do not count ordinary UTM values as billable campaigns without persistent commercial configuration.
 
 ---
 
-## 9. Catalog Entitlement
+## 12. Catalog Entitlement
 
-Catalog count is a packaging guideline and operational fence, not a claim that each plan requires a separate storage architecture.
+Count active merchant product/frame records eligible for recommendation and commerce experience.
 
-Meter:
+Do not count inactive/history-only records.
 
-> Count active merchant product/frame records eligible for recommendation and commerce experiences.
-
-Do not bill inactive/history-only frames as active catalog entitlement.
-
-Merchant product identity should include stable commerce fields where available:
+Stable commerce identity should preserve where available:
 
 - merchant ID;
 - SKU / product ID;
 - canonical product URL;
 - name;
-- price / currency where verified;
+- price/currency;
 - image;
 - enriched frame attributes;
 - status.
 
-Catalog limits may later be replaced by product-sync or integration economics if pilot evidence shows SKU count is not a meaningful buying fence.
-
 ---
 
-## 10. Analytics Entitlement
+## 13. Analytics Entitlement
 
 ### Basic
 
-Intended Launch baseline:
-
-- shopper sessions;
+- Commerce Sessions;
 - recommendation completion;
 - Try-On rate;
 - Compare rate;
@@ -280,50 +320,27 @@ Intended Launch baseline:
 - inquiries;
 - top frames;
 - basic source/campaign view;
-- usage allowance view.
+- session and render usage.
 
 ### Advanced
-
-Intended Growth/Scale baseline:
 
 - source comparison;
 - campaign comparison;
 - high-intent shopper analysis;
-- catalog / frame performance;
+- catalog/frame performance;
 - funnel segmentation;
 - AI-agent source segmentation where reliable;
-- conversion linkage where integrated;
+- conversion linkage where connected;
 - period-over-period reporting;
-- export / scheduled report later when implemented.
+- later export/scheduled reporting.
 
 Analytics copy must distinguish observed event, inferred intent, verified conversion and attributed revenue.
 
 ---
 
-## 11. Overage Policy
+## 14. Provider / Cost Attribution
 
-The first Pilot stage should not launch surprise automated overage billing.
-
-Initial policy:
-
-1. Merchant receives an included monthly Commerce Session allowance.
-2. Usage is visible internally and preferably to the merchant.
-3. Approaching allowance triggers upgrade / sales review.
-4. Hard stop, soft overage, or automatic overage is configured server-side.
-5. Pilot merchants should not unexpectedly incur uncommunicated overage charges.
-
-Working post-pilot commercial anchors:
-
-- **100 additional Commerce Sessions: $49**;
-- **1,000 additional Commerce Sessions: $399**.
-
-These anchors remain subject to pilot validation and sustainable procurement review.
-
----
-
-## 12. Provider / Cost Attribution Requirement
-
-Because provider cost is a commercial risk, every merchant AI task should be attributable where practical to:
+Every merchant AI task should be attributable where practical to:
 
 ```text
 provider
@@ -336,20 +353,20 @@ unitCostVersion?
 fallbackReason?
 ```
 
-This enables:
+Customer entitlement must not depend on provider identity.
+
+This supports:
 
 - provider failover analysis;
 - procurement alpha calculation;
 - official-fallback stress analysis;
 - merchant/cohort gross-margin reconciliation.
 
-Customer entitlements must not depend on provider identity.
-
 ---
 
-## 13. Channel Attribution Requirement
+## 15. Channel Attribution
 
-A merchant account may have an acquisition relationship:
+Supported acquisition relationships:
 
 ```text
 DIRECT
@@ -358,7 +375,7 @@ AGENCY_PARTNER
 STRATEGIC_PARTNER
 ```
 
-Minimum durable commercial fields eventually required:
+Minimum durable concepts:
 
 ```text
 partnerId?
@@ -368,30 +385,13 @@ commissionStartAt?
 commissionEndAt?
 ```
 
-Partner attribution must not depend on a temporary coupon code alone.
+Partner attribution must not depend on coupon code alone.
 
 ---
 
-## 14. Discount and Contract Metadata
+## 16. Production-Readiness Rule for Sales
 
-The system should eventually distinguish:
-
-- list price;
-- approved discount;
-- net contract price;
-- annual prepay;
-- founding price;
-- partner relationship;
-- credit balance;
-- manual commercial exception.
-
-Do not infer plan entitlement from Stripe price amount alone.
-
----
-
-## 15. Production-Readiness Rule for Sales
-
-Every entitlement should have one of these statuses internally:
+Every entitlement should be classified:
 
 ```text
 PRODUCTION_READY
@@ -400,63 +400,69 @@ PLANNED
 NOT_OFFERED
 ```
 
-Sales rules:
-
-- `PRODUCTION_READY`: may be included in standard offer.
-- `PILOT_ASSISTED`: may be offered only with explicit operational ownership.
-- `PLANNED`: roadmap only, not current contractual functionality.
-- `NOT_OFFERED`: must not be represented as available.
+Sales may contract only `PRODUCTION_READY` or explicitly approved `PILOT_ASSISTED` capabilities.
 
 ---
 
-## 16. Pilot Data Required to Recalibrate Entitlements
+## 17. Pilot Data Required to Recalibrate Entitlements
 
-For every pilot merchant collect:
+For every Pilot merchant collect:
 
-- active frames;
-- traffic source mix;
+- merchant monthly traffic;
+- traffic routed to VisuTry;
+- AI experience entry rate;
 - Commerce Sessions;
 - recommendation completion;
-- average renders/session;
+- Standard renders/session;
+- Premium renders/session;
+- render-pool utilization;
 - Try-On completion;
 - Compare use;
 - provider/model distribution;
 - actual AI cost/session;
-- premium-render requests;
 - product clicks;
 - favorites;
 - inquiries;
-- verified conversions where available;
+- verified conversions/revenue where available;
 - support hours;
 - onboarding hours;
-- merchant-requested campaign count;
+- requested campaign count;
 - requested integrations;
 - willingness-to-pay feedback.
 
-After 3–5 real merchants, entitlement values should be reviewed before being treated as permanent public limits.
+The highest-priority unknowns are:
+
+1. AI experience entry rate;
+2. average renders / Commerce Session;
+3. intent / conversion uplift;
+4. willingness to pay by merchant segment.
 
 ---
 
-## 17. Acceptance Criteria for Pilot Commercial Readiness
+## 18. Acceptance Criteria for First External Paid Pilot
 
-Before a non-team merchant pilot is considered commercially ready:
+Before a non-team Merchant Pilot is commercially ready:
 
-1. Merchant is assigned a plan / pilot entitlement server-side.
-2. **250 Commerce Session allowance** is server-enforced for `FOUNDING_PILOT`.
-3. Commerce Session meter is durable and idempotent.
-4. Recommendation and render usage can be reconciled to merchant/session/provider.
-5. Source/campaign context persists through intent.
-6. Product destination remains attached to merchant frames.
-7. Merchant/admin can view commercially relevant funnel signals.
-8. Partner attribution can be recorded manually if the pilot came through a partner.
-9. Consumer credit/subscription counters remain isolated.
-10. Pilot agreement does not promise unimplemented Scale/Enterprise functionality.
+1. Merchant is assigned `FOUNDING_PILOT` server-side.
+2. **500 Commerce Sessions** are server-metered.
+3. **1,000 Standard renders** are server-metered.
+4. Both meters are durable and idempotent.
+5. AI usage can be reconciled to merchant/session/provider.
+6. Standard quality policy is server-owned.
+7. Limit state and manual extension are operational.
+8. Source/campaign context persists through intent.
+9. Product destination remains attached to frames.
+10. Merchant/admin can view commercially relevant usage and funnel data.
+11. Partner attribution can be recorded manually where needed.
+12. Consumer credit/subscription counters remain isolated.
+13. Sales does not promise guaranteed conversion or unimplemented Scale/Enterprise features.
 
 ---
 
-## 18. Change Log
+## 19. Change Log
 
 | Date | Change |
 | --- | --- |
-| 2026-08-06 | Created first merchant commercial entitlement and backend metering baseline aligned to pricing/unit economics. |
-| 2026-08-06 | **v2:** rebased Commerce Session entitlements on sustainable procurement economics; Pilot/Launch/Growth/Scale allowances changed to **250 / 250 / 600 / 1,200**; added provider/cost attribution and working overage anchors. |
+| 2026-08-06 | Created first merchant commercial entitlement baseline. |
+| 2026-08-06 | v2: rebased session allowances on sustainable procurement economics. |
+| 2026-08-06 | **v3: separated Commerce Session capacity from Standard Render Pool; Pilot/Launch/Growth/Scale session allowances revised to 500 / 750 / 1,500 / 4,000 and Standard render pools to 1,000 / 1,500 / 3,000 / 8,000; added dual-meter limit and overage rules.** |
