@@ -13,4 +13,6 @@ export * from './ranking'
 export * from './signals'
 export * from './errors'
 export * from './retention'
+export * from './session-acquisition'
+export * from './merchant-entitlement'
 

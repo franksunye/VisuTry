@@ -24,7 +24,9 @@ export async function GET(request: NextRequest) {
 
     let consumerStats: Awaited<ReturnType<typeof syncPendingConsumerTryOnTasks>> | null = null
     let storeStats: Awaited<
-      ReturnType<typeof import('@/lib/cron/sync-pending-store-tasks').syncPendingStoreTryOnTasks>
+      ReturnType<
+        typeof import('@/modules/store/infrastructure/cron/sync-pending-store-tasks').syncPendingStoreTryOnTasks
+      >
     > | null = null
     let consumerError: string | null = null
     let storeError: string | null = null
@@ -41,7 +43,9 @@ export async function GET(request: NextRequest) {
     }
 
     try {
-      const { syncPendingStoreTryOnTasks } = await import('@/lib/cron/sync-pending-store-tasks')
+      const { syncPendingStoreTryOnTasks } = await import(
+        '@/modules/store/infrastructure/cron/sync-pending-store-tasks'
+      )
       storeStats = await syncPendingStoreTryOnTasks()
     } catch (error) {
       storeError = error instanceof Error ? error.message : String(error)

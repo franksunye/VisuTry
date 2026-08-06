@@ -13,6 +13,14 @@ export type CreateSessionRequest = {
   locale?: string
   anonymousVisitorId?: string
   deviceType?: string
+  acquisition?: {
+    source?: string
+    medium?: string
+    campaign?: string
+    referrer?: string
+    landingUrl?: string
+    aiAgentSource?: string
+  }
 }
 
 export function parseCreateSessionRequest(body: unknown): ValidationResult<CreateSessionRequest> {
@@ -26,6 +34,19 @@ export function parseCreateSessionRequest(body: unknown): ValidationResult<Creat
 
   if (issues.length) return fail(issues)
 
+  let acquisition: CreateSessionRequest['acquisition']
+  if (record.acquisition && typeof record.acquisition === 'object' && !Array.isArray(record.acquisition)) {
+    const a = record.acquisition as Record<string, unknown>
+    acquisition = {
+      source: typeof a.source === 'string' ? a.source : undefined,
+      medium: typeof a.medium === 'string' ? a.medium : undefined,
+      campaign: typeof a.campaign === 'string' ? a.campaign : undefined,
+      referrer: typeof a.referrer === 'string' ? a.referrer : undefined,
+      landingUrl: typeof a.landingUrl === 'string' ? a.landingUrl : undefined,
+      aiAgentSource: typeof a.aiAgentSource === 'string' ? a.aiAgentSource : undefined,
+    }
+  }
+
   return ok({
     merchantSlug: String(record.merchantSlug).trim(),
     locale: typeof record.locale === 'string' ? record.locale : undefined,
@@ -34,6 +55,7 @@ export function parseCreateSessionRequest(body: unknown): ValidationResult<Creat
         ? record.anonymousVisitorId
         : undefined,
     deviceType: typeof record.deviceType === 'string' ? record.deviceType : undefined,
+    acquisition,
   })
 }
 

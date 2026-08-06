@@ -159,6 +159,11 @@ export function createPrismaStoreUsageRepository(): StoreUsageRepository {
         },
       })
     },
+    async countCommerceSessions(merchantId) {
+      return prisma.merchantUsageLedger.count({
+        where: { merchantId, kind: 'SESSION' },
+      })
+    },
     async countSuccessfulRenders(merchantId) {
       return prisma.merchantUsageLedger.count({
         where: { merchantId, kind: 'RENDER_SUCCESS' },

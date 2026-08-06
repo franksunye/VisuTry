@@ -4,13 +4,13 @@ import { randomUUID } from 'node:crypto'
 import { prisma } from '@/lib/prisma'
 import { logger } from '@/lib/logger'
 import {
-  DEFAULT_STORE_DEMO_LIMITS,
   StoreDomainError,
   buildStoreEventIdempotencyKey,
   buildStoreGenerationIdempotencyKey,
   evaluateStoreDemoAllowance,
   merchantInactive,
   merchantNotFound,
+  resolveMerchantEntitlement,
   selectUsagePolicy,
 } from '../domain'
 import type { AssetStore } from './ports/asset-store'
@@ -155,6 +155,8 @@ async function claimStoreTryOnSlot(input: {
   clientSubmissionId: string
   clientIp?: string | null
   expiresAt?: Date
+  renderLimits: import('../domain').StoreDemoLimits
+  tryOnOrigin: 'STORE_DEMO' | 'STORE_PILOT'
 }): Promise<{
   taskId: string
   reusedExisting: boolean
@@ -205,7 +207,7 @@ async function claimStoreTryOnSlot(input: {
               }),
             ])
 
-          const allowance = evaluateStoreDemoAllowance(DEFAULT_STORE_DEMO_LIMITS, {
+          const allowance = evaluateStoreDemoAllowance(input.renderLimits, {
             merchantSuccessfulRenders,
             sessionSuccessfulRenders,
             sessionAttempts,
@@ -293,7 +295,7 @@ async function claimStoreTryOnSlot(input: {
               userImageUrl: 'pending://user',
               itemImageUrl: 'pending://item',
               status: TaskStatus.PENDING,
-              origin: 'STORE_DEMO',
+              origin: input.tryOnOrigin,
               merchantId: input.merchantId,
               merchantSessionId: input.merchantSessionId,
               merchantFrameId: input.merchantFrameId,
@@ -413,6 +415,8 @@ export async function submitStoreFrameTryOn(
     )
   }
 
+  const entitlement = resolveMerchantEntitlement(merchant)
+
   const idempotencyKey = buildStoreGenerationIdempotencyKey({
     merchantSessionId: session.id,
     merchantFrameId: frame.id,
@@ -426,6 +430,8 @@ export async function submitStoreFrameTryOn(
     idempotencyKey,
     clientSubmissionId: input.clientSubmissionId,
     clientIp: input.clientIp,
+    renderLimits: entitlement.renderLimits,
+    tryOnOrigin: entitlement.tryOnOrigin,
   })
 
   let shouldDispatch = !claim.reusedExisting
@@ -498,7 +504,7 @@ export async function submitStoreFrameTryOn(
       merchantSessionId: session.id,
       merchantFrameId: frame.id,
     },
-    'STORE_DEMO',
+    entitlement.tryOnOrigin,
   )
 
   const config = getTryOnConfig('GLASSES')

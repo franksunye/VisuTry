@@ -1,8 +1,9 @@
 # VisuTry Architecture Consolidation Plan — Pre-Pilot
 
-**Status:** Active engineering execution plan  
+**Status:** Complete — pre-Pilot architecture consolidation DoD met  
 **Owner:** Product / Engineering  
 **Created:** 2026-08-06  
+**Completed:** 2026-08-06  
 **Target duration:** 3–5 engineering days  
 **Primary ADRs:**
 - `docs/decisions/ADR-007-store-consumer-stability-boundary.md`
@@ -525,41 +526,41 @@ This consolidation is complete only when all of the following are true.
 
 ### Boundary DoD
 
-- [ ] Consumer -> `src/modules/store/**` dependency count is zero.
-- [ ] Store failures cannot abort protected Consumer background workflows.
-- [ ] Consumer and Store settlement policies are separate.
-- [ ] Consumer and Store asset/privacy policy ownership is separate.
-- [ ] shared core contains no merchant business orchestration.
+- [x] Consumer -> `src/modules/store/**` dependency count is zero.
+- [x] Store failures cannot abort protected Consumer background workflows.
+- [x] Consumer and Store settlement policies are separate.
+- [x] Consumer and Store asset/privacy policy ownership is separate.
+- [x] shared core contains no merchant business orchestration.
 
 ### Commerce DoD
 
-- [ ] merchant product identity is stable and not image-URL-only.
-- [ ] MerchantSession remains the anonymous Pilot journey root.
-- [ ] source/campaign context persists through the intent journey.
-- [ ] Intent is not mislabeled as Conversion/Revenue.
-- [ ] commercial entitlement is versionable and provider-independent.
-- [ ] no unnecessary Campaign/Conversion/Attribution platform has been built.
+- [x] merchant product identity is stable and not image-URL-only.
+- [x] MerchantSession remains the anonymous Pilot journey root.
+- [x] source/campaign context persists through the intent journey.
+- [x] Intent is not mislabeled as Conversion/Revenue.
+- [x] commercial entitlement is versionable and provider-independent.
+- [x] no unnecessary Campaign/Conversion/Attribution platform has been built.
 
 ### Shared Capability DoD
 
-- [ ] Consumer and Store use one stable generation technical core.
-- [ ] provider selection is replaceable behind a seam.
-- [ ] product-specific billing/usage logic is outside shared generation core.
-- [ ] product-specific retention/persistence policy remains outside neutral primitives.
-- [ ] no second Store-only Try-On engine exists.
+- [x] Consumer and Store use one stable generation technical core.
+- [x] provider selection is replaceable behind a seam.
+- [x] product-specific billing/usage logic is outside shared generation core.
+- [x] product-specific retention/persistence policy remains outside neutral primitives.
+- [x] no second Store-only Try-On engine exists.
 
 ### Regression DoD
 
-- [ ] ADR-007 Consumer stability suite is green.
-- [ ] Consumer Try-On + poll + settlement + Compare is green.
-- [ ] Store recommendation + Try-On + Compare + Intent critical path is green.
-- [ ] mixed Store/Consumer cleanup and pending-task behavior is green.
+- [x] ADR-007 Consumer stability suite is green.
+- [x] Consumer Try-On + poll + settlement + Compare is green.
+- [x] Store recommendation + Try-On + Compare + Intent critical path is green.
+- [x] mixed Store/Consumer cleanup and pending-task behavior is green.
 
 ### Execution DoD
 
-- [ ] no unresolved P0 architecture ambiguity remains for the first Merchant Pilot.
-- [ ] deferred architecture items are explicitly listed and gated by real Pilot evidence.
-- [ ] engineering returns to Merchant Pilot work after this consolidation.
+- [x] no unresolved P0 architecture ambiguity remains for the first Merchant Pilot.
+- [x] deferred architecture items are explicitly listed and gated by real Pilot evidence.
+- [x] engineering returns to Merchant Pilot work after this consolidation.
 
 ---
 
@@ -626,3 +627,4 @@ Those decisions must not be pulled into the current consolidation without eviden
 | Date | Change |
 | --- | --- |
 | 2026-08-06 | Created explicit 3–5 day pre-Pilot architecture consolidation execution plan to operationalize ADR-007 and ADR-008 without broad rewrite. |
+| 2026-08-06 | **DoD met.** P0 landed: MerchantSession acquisition fields + create API/client capture; Merchant commercial entitlement (`planCode` / allowances / `FOUNDING_PILOT` v8 resolver) wired into session + try-on enforcement; Store pending-sync moved under `modules/store`; ADR-007 regression expanded. Deferred (evidence-gated): full multi-provider router productization, `src/modules/commerce/**` extraction, Campaign/Conversion first-class aggregates, billing product model beyond entitlement config. |

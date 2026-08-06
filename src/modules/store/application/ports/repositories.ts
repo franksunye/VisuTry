@@ -27,6 +27,17 @@ export type MerchantRecord = {
   contactEmail: string | null
   accentColor: string | null
   status: MerchantStatus
+  planCode: string | null
+  commercialStage: string | null
+  pricingVersion: string | null
+  entitlementVersion: string | null
+  commerceSessionAllowance: number | null
+  standardRenderAllowance: number | null
+  premiumRenderAllowance: number | null
+  campaignAllowance: number | null
+  entitlementEffectiveFrom: Date | null
+  billingPeriodEnd: Date | null
+  commercialExceptionCode: string | null
   createdAt: Date
   updatedAt: Date
 }
@@ -62,6 +73,12 @@ export type MerchantSessionRecord = {
   capabilityTokenHash: string
   locale: string | null
   status: MerchantSessionStatus
+  source: string | null
+  medium: string | null
+  campaign: string | null
+  referrer: string | null
+  landingUrl: string | null
+  aiAgentSource: string | null
   createdAt: Date
   lastActiveAt: Date
   expiresAt: Date
@@ -141,6 +158,12 @@ export interface MerchantSessionRepository {
     anonymousVisitorId?: string | null
     locale?: string | null
     expiresAt: Date
+    source?: string | null
+    medium?: string | null
+    campaign?: string | null
+    referrer?: string | null
+    landingUrl?: string | null
+    aiAgentSource?: string | null
   }): Promise<MerchantSessionRecord>
   findByMerchantAndId(
     merchantId: string,
@@ -198,6 +221,7 @@ export interface StoreUsageRepository {
     tryOnTaskId?: string | null
     kind: StoreUsageKind
   }): Promise<void>
+  countCommerceSessions(merchantId: string): Promise<number>
   countSuccessfulRenders(merchantId: string): Promise<number>
   countSessionSuccessfulRenders(
     merchantId: string,

@@ -1,10 +1,15 @@
 import { logger } from '@/lib/logger'
 import {
+  StoreDomainError,
   buildStoreEventIdempotencyKey,
   createMerchantSessionCapability,
   computeSessionExpiresAt,
   merchantInactive,
   merchantNotFound,
+  resolveMerchantEntitlement,
+  sanitizeSessionAcquisition,
+  sessionAcquisitionToMetadata,
+  type SessionAcquisitionInput,
 } from '../domain'
 import type {
   MerchantEventRepository,
@@ -30,13 +35,27 @@ export async function createStoreSession(input: {
   locale?: string | null
   anonymousVisitorId?: string | null
   deviceType?: string | null
+  acquisition?: SessionAcquisitionInput | null
 }): Promise<CreateStoreSessionResult> {
   const merchant = await input.merchants.findBySlug(input.slug)
   if (!merchant) throw merchantNotFound()
   if (merchant.status !== 'ACTIVE') throw merchantInactive()
 
+  const entitlement = resolveMerchantEntitlement(merchant)
+  if (Number.isFinite(entitlement.commerceSessionAllowance)) {
+    const usedSessions = await input.usage.countCommerceSessions(merchant.id)
+    if (usedSessions >= entitlement.commerceSessionAllowance) {
+      throw new StoreDomainError(
+        'ALLOWANCE_EXCEEDED',
+        'Merchant commerce session allowance reached.',
+        429,
+      )
+    }
+  }
+
   const capability = createMerchantSessionCapability()
   const expiresAt = computeSessionExpiresAt()
+  const acquisition = sanitizeSessionAcquisition(input.acquisition)
 
   const session = await input.sessions.create({
     merchantId: merchant.id,
@@ -44,6 +63,7 @@ export async function createStoreSession(input: {
     anonymousVisitorId: input.anonymousVisitorId ?? null,
     locale: input.locale ?? null,
     expiresAt,
+    ...acquisition,
   })
 
   await input.usage.record({
@@ -51,6 +71,8 @@ export async function createStoreSession(input: {
     merchantSessionId: session.id,
     kind: 'SESSION',
   })
+
+  const acquisitionMeta = sessionAcquisitionToMetadata(acquisition)
 
   await input.events.appendIdempotent({
     eventId: buildStoreEventIdempotencyKey({
@@ -65,6 +87,11 @@ export async function createStoreSession(input: {
     source: 'SERVER',
     locale: input.locale ?? null,
     deviceType: input.deviceType ?? null,
+    metadata: {
+      planCode: entitlement.planCode,
+      entitlementVersion: entitlement.entitlementVersion,
+      ...(acquisitionMeta ?? {}),
+    },
   })
 
   logger.info('store', 'Store session created', {
@@ -73,6 +100,9 @@ export async function createStoreSession(input: {
     merchantSessionId: session.id,
     locale: input.locale ?? null,
     deviceType: input.deviceType ?? null,
+    planCode: entitlement.planCode,
+    source: acquisition.source,
+    campaign: acquisition.campaign,
   })
 
   return {

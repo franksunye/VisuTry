@@ -371,4 +371,47 @@ describe('ADR-007 Consumer stability boundary', () => {
     expect(source).not.toContain('modules/store')
     expect(source).not.toContain('submitStoreTryOnTask')
   })
+
+  it('combined pending sync isolates Store failure from Consumer processing', () => {
+    const source = readFileSync(
+      join(process.cwd(), 'src/app/api/cron/sync-pending-tasks/route.ts'),
+      'utf8',
+    )
+    expect(source).toContain('syncPendingConsumerTryOnTasks')
+    expect(source).toContain('consumerError')
+    expect(source).toContain('storeError')
+    // Store sync is dynamically imported so a Store module throw cannot
+    // prevent Consumer catch block from existing independently.
+    expect(source).toMatch(/try \{[\s\S]*syncPendingConsumerTryOnTasks[\s\S]*\} catch/)
+    expect(source).toMatch(/try \{[\s\S]*syncPendingStoreTryOnTasks[\s\S]*\} catch/)
+  })
+
+  it('cleanup route batches Consumer and Store origins separately', () => {
+    const source = readFileSync(
+      join(process.cwd(), 'src/app/api/cron/cleanup-expired-tasks/route.ts'),
+      'utf8',
+    )
+    expect(source).toContain("origins: ['CONSUMER']")
+    expect(source).toContain("origins: ['STORE_DEMO', 'STORE_PILOT']")
+  })
+
+  it('Store pending sync helper lives under modules/store (not shared Consumer cron core)', () => {
+    const storeCron = readFileSync(
+      join(
+        process.cwd(),
+        'src/modules/store/infrastructure/cron/sync-pending-store-tasks.ts',
+      ),
+      'utf8',
+    )
+    expect(storeCron).toContain('syncPendingStoreTryOnTasks')
+    expect(storeCron).toContain('settleStoreTryOnUsage')
+    expect(storeCron).not.toContain('settleTryOnTaskQuota')
+
+    const consumerCron = readFileSync(
+      join(process.cwd(), 'src/lib/cron/sync-pending-consumer-tasks.ts'),
+      'utf8',
+    )
+    expect(consumerCron).toContain("origin: 'CONSUMER'")
+    expect(consumerCron).not.toContain('modules/store')
+  })
 })

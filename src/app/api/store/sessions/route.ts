@@ -40,6 +40,7 @@ export async function POST(request: NextRequest) {
       locale: parsed.data.locale ?? null,
       anonymousVisitorId: parsed.data.anonymousVisitorId ?? null,
       deviceType: parsed.data.deviceType ?? null,
+      acquisition: parsed.data.acquisition ?? null,
     })
 
     const response = NextResponse.json({

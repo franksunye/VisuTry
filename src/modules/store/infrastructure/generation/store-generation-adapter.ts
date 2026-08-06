@@ -1,3 +1,8 @@
+/**
+ * Store product orchestration adapter around the shared generation core.
+ * Provider selection stays replaceable behind tryon-service / config seams;
+ * this adapter must not encode merchant commercial assumptions.
+ */
 import {
   getTryOnResult,
   type TryOnSubmissionResult,

@@ -60,7 +60,7 @@ Production verification passed on commit `a36e9ae` and deployment
 | `/api/cron/cleanup-store-assets` | 02:30 UTC | StoreAsset + orphan Blob cleanup |
 | `/api/cron/cleanup-expired-tasks` | 02:00 UTC | TryOnTask blob-first cleanup (Consumer + Store batches isolated; ADR-007) |
 | `/api/cron/sync-pending-consumer-tasks` | 03:15 UTC daily | Consumer GrsAi sync + Consumer quota settlement (Hobby-safe; live UX still uses client poll) |
-| `/api/cron/sync-pending-store-tasks` | 03:45 UTC daily | Store GrsAi sync + Store usage settlement + **stale Store claim reconcile** |
+| `/api/cron/sync-pending-store-tasks` | 03:45 UTC daily | Store GrsAi sync + Store usage settlement + **stale Store claim reconcile** (impl: `src/modules/store/infrastructure/cron/sync-pending-store-tasks.ts`) |
 | `/api/cron/sync-pending-tasks` | (legacy combined) | Runs Consumer then Store with isolated failure domains; prefer dedicated crons |
 
 > Note: Vercel Hobby only allows cron expressions that run **once per day**. More frequent pending-sync requires Pro (or an external scheduler).

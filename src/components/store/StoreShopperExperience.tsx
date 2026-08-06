@@ -71,6 +71,40 @@ function deviceTypeLabel(): string {
   return window.matchMedia('(max-width: 768px)').matches ? 'mobile' : 'desktop'
 }
 
+/** Capture UTM / referrer / AI-agent hints for MerchantSession acquisition. */
+function captureStoreAcquisition(): {
+  source?: string
+  medium?: string
+  campaign?: string
+  referrer?: string
+  landingUrl?: string
+  aiAgentSource?: string
+} {
+  if (typeof window === 'undefined') return {}
+  const params = new URLSearchParams(window.location.search)
+  const ua = navigator.userAgent.toLowerCase()
+  let aiAgentSource: string | undefined
+  if (ua.includes('chatgpt') || ua.includes('gptbot')) aiAgentSource = 'chatgpt'
+  else if (ua.includes('claude') || ua.includes('anthropic')) aiAgentSource = 'claude'
+  else if (ua.includes('perplexity')) aiAgentSource = 'perplexity'
+  else if (ua.includes('gemini') || ua.includes('google-extended')) aiAgentSource = 'gemini'
+
+  const source = params.get('utm_source') || undefined
+  const medium = params.get('utm_medium') || undefined
+  const campaign = params.get('utm_campaign') || undefined
+  const referrer = document.referrer || undefined
+  const landingUrl = `${window.location.pathname}${window.location.search}` || undefined
+
+  return {
+    ...(source ? { source } : {}),
+    ...(medium ? { medium } : {}),
+    ...(campaign ? { campaign } : {}),
+    ...(referrer ? { referrer } : {}),
+    ...(landingUrl ? { landingUrl } : {}),
+    ...(aiAgentSource ? { aiAgentSource } : {}),
+  }
+}
+
 function formatPrice(price: number | null, currency: string | null): string | null {
   if (price === null || price === undefined) return null
   const code = (currency || 'usd').toUpperCase()
@@ -204,6 +238,7 @@ export function StoreShopperExperience({
           merchantSlug,
           locale,
           deviceType: deviceTypeLabel(),
+          acquisition: captureStoreAcquisition(),
         }),
       })
       const json = await res.json()

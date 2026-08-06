@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { logger } from '@/lib/logger'
-import { syncPendingStoreTryOnTasks } from '@/lib/cron/sync-pending-store-tasks'
+import { syncPendingStoreTryOnTasks } from '@/modules/store/infrastructure/cron/sync-pending-store-tasks'
 
 export const dynamic = 'force-dynamic'
 export const maxDuration = 300

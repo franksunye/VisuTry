@@ -10,6 +10,23 @@ describe('STORE-2 contracts and merchant resolution', () => {
     if (ok.ok) expect(ok.data.merchantSlug).toBe('luna-optical')
   })
 
+  it('accepts optional acquisition context on session create', () => {
+    const ok = parseCreateSessionRequest({
+      merchantSlug: 'luna-optical',
+      acquisition: {
+        source: 'google',
+        medium: 'cpc',
+        campaign: 'pilot',
+        landingUrl: '/store/luna',
+      },
+    })
+    expect(ok.ok).toBe(true)
+    if (ok.ok) {
+      expect(ok.data.acquisition?.source).toBe('google')
+      expect(ok.data.acquisition?.campaign).toBe('pilot')
+    }
+  })
+
   it('hides inactive merchants behind shopper-safe unavailable error', async () => {
     await expect(
       getPublicMerchantProfile({
@@ -23,6 +40,17 @@ describe('STORE-2 contracts and merchant resolution', () => {
             contactEmail: null,
             accentColor: null,
             status: 'SUSPENDED',
+            planCode: null,
+            commercialStage: null,
+            pricingVersion: null,
+            entitlementVersion: null,
+            commerceSessionAllowance: null,
+            standardRenderAllowance: null,
+            premiumRenderAllowance: null,
+            campaignAllowance: null,
+            entitlementEffectiveFrom: null,
+            billingPeriodEnd: null,
+            commercialExceptionCode: null,
             createdAt: new Date(),
             updatedAt: new Date(),
           }),
@@ -51,6 +79,17 @@ describe('STORE-2 contracts and merchant resolution', () => {
           contactEmail: 'secret@example.com',
           accentColor: '#1F4B5A',
           status: 'ACTIVE',
+          planCode: null,
+          commercialStage: null,
+          pricingVersion: null,
+          entitlementVersion: null,
+          commerceSessionAllowance: null,
+          standardRenderAllowance: null,
+          premiumRenderAllowance: null,
+          campaignAllowance: null,
+          entitlementEffectiveFrom: null,
+          billingPeriodEnd: null,
+          commercialExceptionCode: null,
           createdAt: new Date(),
           updatedAt: new Date(),
         }),
