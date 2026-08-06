@@ -1,35 +1,34 @@
-# VisuTry Merchant Provider Risk & Official-API Fallback Economics
+# VisuTry Merchant Provider Risk & Fallback Economics
 
-**Status:** Active internal risk baseline  
+**Status:** Active internal risk baseline — Market-Capture Procurement v8  
 **Owner:** Product / Strategy / Engineering  
 **Created:** 2026-08-06  
-**Review cadence:** Monthly during pilot stage, and immediately after any provider/model/pricing change  
+**Last updated:** 2026-08-06  
+**Review cadence:** Monthly during first 3–6 months and immediately after any provider/model/pricing change  
 **Related pricing baseline:** `docs/strategy/merchant-pricing-packaging-unit-economics.md`  
-**Related entitlement spec:** `docs/product/specs/merchant-commercial-entitlements.md`  
-**Related engineering foundation:** `docs/product/specs/visutry-store-engineering-foundation.md`
+**Related entitlement spec:** `docs/product/specs/merchant-commercial-entitlements.md`
 
 ---
 
 ## 1. Purpose
 
-VisuTry currently obtains materially discounted model economics through `grsai.com`. This is commercially attractive, but it introduces supplier concentration risk.
+VisuTry currently has materially favorable Standard Try-On economics through `grsai.com`.
 
-The business must therefore be able to answer two different questions:
+The current strategy deliberately uses part of this procurement advantage during the first 3–6 months to make the merchant offer competitive on VTO capacity.
 
-1. **Primary economics:** What does the merchant business look like under the current grsai routing and cost structure?
-2. **Business-continuity economics:** What happens if grsai is unavailable and VisuTry must route directly to the official Gemini API at official list pricing?
+The governing risk principle remains:
 
-The governing risk principle is:
+> **Merchant contracts must not assume that one discounted provider is permanently available.**
 
-> **Merchant pricing must not assume that one discounted model reseller is permanently available.**
+The new Market Capture principle is:
 
-The governing engineering principle is:
+> **Temporary procurement alpha may be intentionally invested in competitive capacity, merchant acquisition, and product learning.**
 
-> **Provider routing must remain replaceable without changing merchant-facing product contracts.**
+These two principles are compatible because the current offer is explicitly stage-based, versioned, and time-bounded.
 
 ---
 
-## 2. Current Primary-Provider Cost Baseline
+## 2. Current Observed Provider Economics
 
 Current grsai costs supplied from the live VisuTry stack:
 
@@ -41,378 +40,270 @@ Current grsai costs supplied from the live VisuTry stack:
 | Failed / retried request | Current provider behavior | No model cost |
 | Compare | Reuses completed renders | No additional model cost |
 
-Using the pricing baseline planning FX of RMB 7.0 = USD 1.00:
+Using internal planning FX RMB 7/USD:
 
-- recommendation ≈ **$0.00011**;
-- standard try-on ≈ **$0.00389**;
-- premium try-on ≈ **$0.01061**.
+- Standard Try-On ≈ **$0.00389 / render**;
+- Premium Try-On ≈ **$0.01061 / render**.
 
-Modeled AI Commerce Session:
+Approximate Standard render cost at current Market Capture allowances:
 
-```text
-1 recommendation
-+ up to 4 try-on renders
-+ compare using those renders
-```
+| Standard renders | Approx. grsai render COGS |
+| ---: | ---: |
+| 3,500 | **~$13.6** |
+| 5,000 | **~$19.5** |
 
-Primary-provider modeled cost:
-
-- Standard: ≈ **$0.01568 / Commerce Session**;
-- Premium: ≈ **$0.04253 / Commerce Session**.
+Therefore AI inference is not currently the dominant Pilot cost. Sales, onboarding, catalog preparation, and support remain more material early-stage cost drivers.
 
 ---
 
-## 3. Official Gemini API Fallback Baseline
+## 3. Current Market-Capture Entitlement
 
-Official pricing reference reviewed on 2026-08-06:
+Active Founding Merchant Pilot:
 
-- Google Gemini Developer API Pricing: `https://ai.google.dev/gemini-api/docs/pricing`
-- Gemini image-generation model guide: `https://ai.google.dev/gemini-api/docs/image-generation`
+> **$149 / 30 days**
 
-Relevant official Standard prices at the time of review:
+Default capacity:
 
-### 3.1 Nano Banana 2 Lite
+- **1,500 AI Commerce Sessions / AI-assisted shoppers**;
+- **3,500 Standard Try-On renders**.
 
-Official model: `gemini-3.1-flash-lite-image`
+Optional selected-merchant bonus:
 
-- image output: **$0.0336 per 1K image**;
-- input: $0.25 / 1M tokens;
-- text/thinking output: $1.50 / 1M tokens.
+- up to **5,000 Standard renders**.
 
-### 3.2 Nano Banana 2
+This offer intentionally uses current procurement alpha to remove a visible VTO price/volume disadvantage.
 
-Official model: `gemini-3.1-flash-image`
-
-- image output: **$0.067 per 1K image**;
-- image output: $0.045 at 0.5K, $0.101 at 2K, $0.151 at 4K;
-- input: $0.50 / 1M tokens;
-- text/thinking output: $3.00 / 1M tokens.
-
-### 3.3 Recommendation model
-
-Official `gemini-3.1-flash-lite` Standard pricing:
-
-- input: **$0.25 / 1M text/image/video tokens**;
-- output including thinking: **$1.50 / 1M tokens**.
-
-Recommendation cost therefore depends on actual input/output token consumption and must be measured in production before an exact official-fallback recommendation unit cost is locked.
-
-For the stress test below, recommendation is modeled at **$0.00125 per call**, corresponding illustratively to approximately 2,000 input tokens + 500 output/thinking tokens. This is a conservative planning assumption, not an observed production number.
-
-The image generation cost dominates the fallback model, so reasonable recommendation-token variation does not materially change the core conclusion.
+It must not be interpreted as a permanent mature-state allowance.
 
 ---
 
-## 4. Official-API Commerce Session Cost
+## 4. Three Cost Cases
 
-Using the same commercial session assumption:
+VisuTry should maintain three distinct cost views:
 
-```text
-1 recommendation
-+ 4 × 1K try-on renders
-```
+| Cost case | Meaning | Role |
+| --- | --- | --- |
+| **Procurement Alpha / Best** | current unusually favorable qualified-provider cost | Market Capture flexibility and upside |
+| **Sustainable Base** | repeatable long-term qualified-provider cost | long-term pricing planning |
+| **Stress / Official** | official API/list-price fallback | continuity and downside planning |
 
-### Standard fallback — Nano Banana 2 Lite
+Current internal planning references:
 
-```text
-4 × $0.0336 image output
-+ ~$0.00125 recommendation
-≈ $0.13565 / Commerce Session
-```
+- Best Standard render: **~$0.00389**;
+- Sustainable Base Standard render: **$0.025** planning assumption;
+- Stress Standard render: **~$0.0336** planning reference.
 
-Rounded operational baseline:
-
-> **Official fallback Standard ≈ $0.136 / Commerce Session**
-
-Compared with grsai Standard ≈ $0.01568/session:
-
-> **official direct fallback is roughly 8.6× more expensive per modeled session.**
-
-### Premium fallback — Nano Banana 2
-
-```text
-4 × $0.067 image output
-+ ~$0.00125 recommendation
-≈ $0.26925 / Commerce Session
-```
-
-Rounded operational baseline:
-
-> **Official fallback Premium ≈ $0.269 / Commerce Session**
-
-Compared with grsai Premium ≈ $0.04253/session:
-
-> **official direct fallback is roughly 6.3× more expensive per modeled session.**
+The Base Case is not a verified market quote. It is a planning assumption until stable provider quotes exist.
 
 ---
 
-## 5. Stress Test Against Current Merchant Packaging
+## 5. Why v8 Is Still Economically Rational
 
-Current commercial baseline:
+At current grsai pricing:
 
-| Plan | Price | Included Commerce Sessions |
-| --- | ---: | ---: |
-| Launch | $199 | 1,000 |
-| Growth | $499 | 5,000 |
-| Scale | $999 | 10,000 |
+- 3,500 renders cost only about $13.6;
+- 5,000 renders cost only about $19.5.
 
-For comparability with the existing pricing baseline, this stress test uses:
+Therefore using higher VTO capacity to improve conversion from sales conversation to paid Pilot is economically rational during Market Capture.
 
-- payment/billing cost = 5% of revenue;
-- support allowance: Launch $10, Growth $20, Scale $40;
-- marginal infra = 0 for current pilot-scale planning;
-- official Standard model = Nano Banana 2 Lite;
-- recommendation fallback planning cost ≈ $0.00125/call.
+The decision rule is:
 
-### 5.1 If full included usage is consumed under official Standard pricing
+> **Do not save a few dollars of AI COGS if doing so creates an obvious competitive sales disadvantage.**
 
-| Plan | Revenue | AI cost | Payment + Support | Total modeled direct cost | Modeled GM |
-| --- | ---: | ---: | ---: | ---: | ---: |
-| Launch | $199 | ~$136 | ~$20 | **~$156** | **~22%** |
-| Growth | $499 | ~$678 | ~$45 | **~$723** | **negative (~-45%)** |
-| Scale | $999 | ~$1,357 | ~$90 | **~$1,447** | **negative (~-45%)** |
-
-Exact values move slightly with real recommendation token usage and payment cost, but the conclusion does not change:
-
-> **The current 1K / 5K / 10K session allowances are economically viable under grsai pricing but are not viable as permanent unconditional allowances if VisuTry must run entirely on the official Standard Gemini API at list price.**
-
-### 5.2 Premium official fallback is not a default continuity mode
-
-If all sessions used Nano Banana 2 at approximately $0.269/session, even Launch becomes structurally loss-making at full included usage.
-
-Therefore:
-
-> **Premium rendering must never become the automatic emergency fallback for all traffic.**
-
-Use Premium only when specifically entitled, manually approved, or required by a quality incident.
+The main current cost question is not whether the render pool is theoretically expensive. It is whether the total merchant acquisition and delivery economics remain sensible.
 
 ---
 
-## 6. Gross-Margin-Safe Session Capacity Under Official Pricing
+## 6. Fallback Reality
 
-If VisuTry wanted to preserve approximately **75% direct gross margin** under official Standard fallback pricing while keeping current list prices and current support/payment assumptions, approximate included-session ceilings would be:
+A provider outage or permanent price deterioration materially changes economics.
 
-| Plan | Approx. 75% GM-safe official sessions |
-| --- | ---: |
-| Launch | **~220–230 sessions** |
-| Growth | **~600–625 sessions** |
-| Scale | **~1,200–1,250 sessions** |
+The official fallback reference is substantially more expensive than current grsai pricing.
 
-These are not recommended merchant-facing allowances. They are risk-capacity numbers showing the magnitude of provider-price sensitivity.
+Therefore the current aggressive Pilot entitlement is safe only as a **time-boxed Market Capture version**, not as a perpetual unconditional allowance.
 
-A temporary continuity event may accept lower margin. For example, at roughly **30% gross margin**, approximate safe official Standard capacity rises to:
+During a temporary fallback event:
 
-| Plan | Approx. 30% GM-safe official sessions |
-| --- | ---: |
-| Launch | **~900 sessions** |
-| Growth | **~2,250 sessions** |
-| Scale | **~4,500 sessions** |
-
-This supports a practical continuity policy:
-
-> **A short provider outage can be absorbed with margin compression; a long-term move to official list pricing requires entitlement, price, or usage redesign.**
-
----
-
-## 7. Business-Continuity Policy
-
-VisuTry should distinguish three operating states.
-
-### State A — Normal
-
-Primary provider: grsai or another approved low-cost provider.
-
-Policy:
-
-- current list pricing and allowances apply;
-- Standard uses the efficient render model;
-- Premium remains a paid / tiered capability;
-- target direct GM remains ≥75%.
-
-### State B — Temporary provider failover
-
-Trigger examples:
-
-- grsai outage;
-- severe latency / error spike;
-- account or routing incident;
-- short-duration regional availability issue.
-
-Policy:
-
-- automatically or operationally fail over to official Nano Banana 2 Lite;
-- preserve active merchant sessions and paid customer continuity;
+- preserve merchant continuity where possible;
 - accept temporary margin compression;
-- do not silently switch all traffic to Premium;
+- prioritize active paid Pilots;
+- do not silently route all traffic to Premium;
+- track incremental fallback cost;
+- apply abuse/concurrency controls if necessary.
+
+During sustained high-cost operation:
+
+- stop selling the existing v8 entitlement to new customers unless explicitly approved;
+- create a new pricing/entitlement version;
+- review price, capacity, provider mix, and overage design;
+- accelerate qualification of alternative providers.
+
+---
+
+## 7. Operating States
+
+### State A — Market Capture / Normal
+
+Primary condition:
+
+- current qualified low-cost provider economics are available and quality/reliability are acceptable.
+
+Policy:
+
+- v8 $149 / 1,500 shoppers / 3,500 renders may be sold;
+- selected strategic merchants may receive up to 5,000 renders;
+- use procurement alpha for market acquisition;
+- track actual cost and usage closely.
+
+### State B — Temporary Failover
+
+Policy:
+
+- route to approved fallback provider;
+- preserve active customer experience;
+- accept short-term margin compression;
 - alert Product/Engineering/Operations;
-- track fallback usage and incremental cost separately;
-- apply reasonable concurrency / abuse controls.
+- monitor cost daily;
+- do not change signed merchant terms mid-Pilot unless contract/safety requires it.
 
 Target duration:
 
-> **hours to a few days, not a permanent operating mode.**
+> hours to a few days, not a permanent operating model.
 
-### State C — Sustained loss of discounted provider economics
+### State C — Sustained Cost Deterioration
 
 Trigger examples:
 
-- primary provider unavailable for an extended period;
+- low-cost provider disappears;
 - material permanent price increase;
-- reliability or compliance makes provider unusable;
-- no equivalent discounted replacement available.
+- reliability/compliance makes provider unusable;
+- no equivalent alternative can be qualified.
 
-Required commercial response:
+Required response:
 
-1. reforecast merchant gross margin immediately;
-2. stop selling old usage allowances to new customers unless economics are approved;
-3. reduce included Commerce Sessions for new contracts, raise price, or introduce overage / usage packs;
-4. preserve contracted customers according to contract terms while applying fair-use and abuse protections;
-5. accelerate alternative provider qualification;
-6. review channel shares and discounts before approving new channel deals;
-7. re-evaluate Premium Rendering allowance.
-
----
-
-## 8. Pricing Design Implications
-
-This stress test changes how pricing should be interpreted.
-
-### 8.1 The list price remains value-based
-
-Do not reprice VisuTry today as if official API list price were the normal supplier cost.
-
-The current provider economics are real and commercially advantageous.
-
-However, the pricing model must contain enough controls to survive supplier changes.
-
-### 8.2 Included sessions are an entitlement, not an unlimited promise
-
-Merchant contracts and product UI should avoid language that implies unlimited generation.
-
-Backend must enforce:
-
-- plan session allowance;
-- render count;
-- premium render allowance;
-- campaign usage;
-- overage / exhaustion behavior.
-
-### 8.3 Contract language should preserve provider flexibility
-
-Merchant-facing contracts should sell service quality and outcomes, not a named model provider.
-
-VisuTry must retain the right to:
-
-- change underlying AI provider/model;
-- route across approved providers;
-- adjust model quality tier within the contracted entitlement;
-- apply fair-use / abuse limits;
-- revise pricing or allowances at renewal where upstream cost changes materially.
-
-Do not promise a permanent model name or permanent lifetime usage allowance.
-
-### 8.4 Annual contracts need cost-change protection
-
-Annual prepay is commercially useful, but long commitments increase provider-cost exposure.
-
-Before scaling annual sales:
-
-- define contract renewal mechanics;
-- prohibit permanent lifetime pricing;
-- reserve emergency fair-use controls;
-- maintain a supplier-cost reserve in annual-plan planning;
-- review upstream model costs before each annual pricing cycle.
+1. stop default sale of v8 entitlement to new customers;
+2. calculate actual stressed GM using observed renders/session;
+3. issue a new pricing/entitlement version;
+4. revise included capacity and/or price;
+5. review discounts and partner economics;
+6. preserve existing contracted customers according to contract terms;
+7. accelerate alternative procurement.
 
 ---
 
-## 9. Channel Economics Under Fallback
+## 8. Provider Acceptance Gates
 
-The current 20% referral / up-to-30% agency model is healthy under grsai economics.
+A provider is not qualified only because it is cheap.
 
-It is **not** automatically healthy if a merchant consumes its full existing allowance under official API pricing.
+Evaluate:
 
-Therefore:
+- output quality;
+- success rate;
+- latency;
+- uptime;
+- billing transparency;
+- effective cost per successful render;
+- retry/failure billing behavior;
+- data/privacy terms;
+- regional routing/availability;
+- operational support;
+- model/version stability.
 
-> **Channel share is calculated from collected revenue, but new channel commitments must also pass provider-stress economics.**
-
-During a sustained official-price operating state:
-
-- no new exceptional discount + agency margin stacking;
-- Growth/Scale high-usage deals require explicit margin review;
-- partner economics may need to be based on a lower wholesale entitlement or usage-based overage;
-- strategic/platform deals require a minimum commitment and usage economics rather than flat unlimited access.
+A provider may be used as Market Capture infrastructure only if quality and operational risk are acceptable.
 
 ---
 
-## 10. Engineering Requirements
-
-Provider resilience is now a commercial requirement, not only an infrastructure preference.
+## 9. Engineering Requirements
 
 The generation layer must support:
 
 1. provider-neutral application contracts;
-2. explicit provider/model routing configuration;
-3. merchant-safe failover to an approved official provider;
+2. server-side provider/model routing;
+3. Standard/Premium abstraction;
 4. per-provider cost attribution;
-5. per-task provider and model observability;
+5. per-task provider/model observability;
 6. usage metering independent from provider billing units;
-7. circuit breaker / failure-rate monitoring;
-8. configurable quality tier and fallback order;
-9. no merchant-facing dependency on grsai-specific response fields;
-10. the ability to disable Premium fallback independently from Standard fallback.
+7. fallback reason logging;
+8. circuit-breaker/failure monitoring;
+9. configurable provider priority;
+10. merchant-facing entitlements that do not name or depend on grsai.
 
-Recommended routing concept:
+Recommended concept:
 
 ```text
 Commerce Generation Request
         ↓
 Provider Router
         ↓
-Primary: approved low-cost provider
+Approved low-cost provider
         ↓ failure / policy
-Fallback: official Gemini API — Nano Banana 2 Lite
-        ↓ explicit premium entitlement only
-Premium: Nano Banana 2
+Approved fallback provider
+        ↓ explicit entitlement only
+Premium provider/model
 ```
-
-Provider selection remains an infrastructure concern. Merchant pricing and entitlements remain stable product concepts.
 
 ---
 
-## 11. Required Measurements During Pilot
+## 10. Required Market-Capture Measurements
 
-The fallback model becomes materially more accurate once the first real pilot usage exists.
+Capture per merchant:
 
-Capture at minimum:
+- Commerce Sessions;
+- Standard renders;
+- mean/median/p90 renders per Commerce Session;
+- render-pool utilization;
+- failed/retried renders;
+- provider-specific cost;
+- provider-specific latency/success rate;
+- fallback share;
+- AI COGS;
+- onboarding hours;
+- support hours;
+- collected revenue;
+- merchant continuation intent.
 
-- Commerce Sessions / merchant / month;
-- recommendation token input/output distribution;
-- renders / Commerce Session — mean, median, p90;
-- percent of sessions that use 1 / 2 / 3 / 4 renders;
-- failed render rate;
-- retry behavior by provider;
-- Standard vs Premium usage;
-- provider-specific cost per successful session;
-- provider-specific latency and success rate;
-- actual merchant payment processing cost;
-- support hours / merchant.
+The first 3–5 paid merchants should replace theoretical assumptions with observed distributions.
 
-After the first 3–5 pilots, replace the conservative four-render/session assumption with observed usage distributions.
+---
+
+## 11. 3–6 Month Review
+
+At the end of the initial Market Capture period, decide:
+
+- whether low-cost provider economics remain reliable;
+- whether 3,500/5,000 render allowances are actually consumed;
+- whether the higher capacity improved sales conversion;
+- whether Merchant WTP supports higher future pricing;
+- whether a new sustainable provider quote changes the Base Case;
+- whether a new Early Scale pricing version should retain, reduce, or increase usage capacity.
+
+Do not preserve v8 merely because it exists.
 
 ---
 
 ## 12. Risk Conclusion
 
-Current economics under grsai remain highly attractive and support the existing merchant pricing baseline.
+The current low-cost provider advantage is real and commercially valuable.
 
-However:
+The correct response is neither:
 
-> **The current margin profile contains a meaningful supplier-economics dependency.**
+> **ignore the advantage and price as if official API cost were normal**
 
-At official Gemini API Standard list price, one modeled four-render Commerce Session rises from roughly **$0.016 to $0.136**, an approximately **8× increase**. If current 1K / 5K / 10K allowances were fully consumed under that fallback, Launch margin compresses sharply and Growth / Scale become loss-making.
+nor:
 
-This does **not** invalidate the pricing strategy. It means the business must treat provider resilience as part of commercial architecture:
+> **promise the advantage to customers forever.**
 
-> **low-cost provider for normal economics + official API for continuity + metered entitlements + contract flexibility + alternative-provider qualification.**
+The v8 strategy is:
 
-The operational objective is not to guarantee 75% margin during a short supplier outage. It is to guarantee service continuity without allowing a temporary fallback to become an unnoticed permanent loss-making operating mode.
+> **Use procurement alpha now to remove obvious VTO sales friction and acquire merchants; keep provider routing, versioned entitlements, telemetry, and repricing freedom so the business can adapt if upstream economics change.**
+
+This is the approved Market Capture risk posture for the first 3–6 months.
+
+---
+
+## 13. Change Log
+
+| Date | Change |
+| --- | --- |
+| 2026-08-06 | Created provider-risk and fallback baseline. |
+| 2026-08-06 | **v8: replaced the old 75%-GM-safe allowance framing with a stage-aware Market Capture policy; aligned risk controls to the active $149 / 1,500 shopper / 3,500 render Pilot, optional 5,000-render bonus, and explicit temporary use of grsai procurement alpha while preserving fallback/versioning protections.** |
