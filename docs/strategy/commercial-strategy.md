@@ -2,6 +2,7 @@
 
 **Status:** Active source of truth  
 **Created:** 2026-07-08  
+**Last updated:** 2026-08-06  
 **Scope:** Commercial direction, product packaging, target customer layers, and the relationship between VisuTry's consumer, prosumer, and B2B strategies.
 
 ---
@@ -20,8 +21,10 @@ The key questions answered here are:
 2. What role should the consumer product play?
 3. Why is consumer subscription not the strongest primary monetization path?
 4. How should Face Shape Detector, Glasses Advisor, Virtual Try-On, and Frame Compare be assembled into commercial workflows?
-5. Which existing strategy documents remain active, supporting, or historical?
-6. What should the next product and GTM work optimize for?
+5. What is VisuTry Store ultimately selling to merchants?
+6. How should Store support both human traffic and AI-agent traffic?
+7. Which existing strategy documents remain active, supporting, or historical?
+8. What should the next product and GTM work optimize for?
 
 ---
 
@@ -61,21 +64,28 @@ VisuTry should not be positioned primarily as a consumer subscription product.
 
 The stronger commercial thesis is:
 
-> Use the consumer product to capture high-intent eyewear decision demand, then convert the same capabilities into professional and merchant workflows where repeated usage, customer service, and sales conversion justify recurring payment.
+> Use the consumer product to capture high-intent eyewear decision demand, then convert the same capabilities into professional and merchant workflows where repeated usage, customer service, sales conversion, and measurable purchase intent justify recurring payment.
 
 In practical terms:
 
 1. **2C is the acquisition and proof layer.**  
-   Free detector, one-time report, credits pack, try-on, comparison, and shareable results create traffic, usage data, and lightweight revenue.
+   Free detector, one-time report, credits pack, try-on, comparison, and shareable results create traffic, usage data, product proof, and lightweight revenue.
 
 2. **Prosumer is the service workflow layer.**  
    Eyewear stylists, image consultants, and small service providers can use VisuTry repeatedly for client recommendations and report generation.
 
-3. **B2B is the stronger recurring revenue layer.**  
-   Optical stores, eyewear sellers, DTC eyewear brands, Shopify/WooCommerce merchants, and agencies need tools that improve shopper confidence, shortlist frames, and create purchase intent.
+3. **B2B is the primary recurring-revenue layer to validate.**  
+   Optical stores, eyewear sellers, DTC eyewear brands, Shopify/WooCommerce merchants, and agencies need tools that improve shopper confidence, shortlist frames, create purchase intent, and connect that intent to revenue.
 
-4. **The durable moat is workflow depth, not image generation alone.**  
-   Basic virtual try-on can be copied. Harder-to-copy value comes from merchant onboarding, frame catalog management, recommendation logic, privacy trust, analytics, client reports, and eventually optical workflows.
+4. **Storefront is the delivery surface; the larger business is the AI Commerce / Campaign Engine.**  
+   The hosted Store is the simplest way to deliver and validate the workflow. The long-term product is not a merchant website builder. It is a conversion layer that can power campaign-specific shopper experiences across hosted pages, ecommerce sites, ads, social traffic, email, QR, and future agent channels.
+
+5. **The durable moat is workflow + intent intelligence, not image generation alone.**  
+   Basic virtual try-on can be copied. Harder-to-copy value comes from merchant onboarding, frame intelligence, recommendation logic, shopper intent, attribution, privacy trust, campaign optimization, analytics, and eventually agent-ready commerce interfaces.
+
+Internal north star:
+
+> **VisuTry is AI commerce infrastructure for eyewear, built to turn both human and AI-agent traffic into measurable purchase intent and revenue.**
 
 ---
 
@@ -114,10 +124,19 @@ VisuTry already has reusable commercial infrastructure:
 - Admin visibility.
 - Face-landmark geometry foundation.
 - Frame recommendation and comparison product concepts.
+- Merchant Store D0 with merchant catalog, anonymous session, recommendation, try-on, compare, intent, and insight foundations.
 
-This means the core commercial unit is already visible:
+This means the core commercial unit is no longer only an image-generation unit. The more valuable unit is:
 
-> One shopper photo + one frame/product image → one useful try-on or recommendation outcome.
+> Shopper intent + merchant catalog → personalized recommendation → visual validation → measurable conversion signal.
+
+### 4.4 AI discovery evidence
+
+VisuTry already receives meaningful AI-assistant referral traffic in addition to search traffic.
+
+This should be treated as an early operating signal, not proof of a finished channel strategy:
+
+> AI assistants and future shopping agents are becoming an additional acquisition surface that Store should be designed to understand, attribute, and eventually serve directly.
 
 ---
 
@@ -159,9 +178,29 @@ Older plans to generate 1000+ pages should not be treated as the first commercia
 
 The current priority is not more pages by default. It is a tighter commercial loop:
 
-> qualified traffic → free detector/advisor/try-on → continuation → credits/report/merchant intent.
+> qualified traffic → useful decision experience → recommendation / try-on / compare → intent → conversion.
 
 Programmatic SEO may still matter later, but only when each page has a distinct user intent, clear product continuation, and enough quality to avoid thin-page risk.
+
+### 5.4 Generic merchant storefront positioning
+
+VisuTry should not compete primarily as a generic ecommerce storefront, website builder, EHR/PMS replacement, inventory ERP, or CRM.
+
+Those categories create heavy integration and implementation requirements while moving VisuTry away from its strongest differentiated asset: eyewear decision intelligence.
+
+The Store product should sit between traffic and commerce:
+
+```text
+Traffic / Audience
+      ↓
+VisuTry AI Commerce Experience
+      ↓
+Recommendation / Try-On / Compare
+      ↓
+Purchase Intent
+      ↓
+Merchant Commerce System
+```
 
 ---
 
@@ -234,23 +273,26 @@ B2B users may include:
 
 Their commercial job is not entertainment. Their job is:
 
-> Help shoppers choose frames with more confidence and create purchase, lead, or appointment intent.
+> Turn qualified traffic into confident shoppers, measurable purchase intent, and more revenue.
 
 B2B product opportunity:
 
-> VisuTry Store: an AI eyewear advisor and try-on workspace for small optical businesses and eyewear sellers.
+> **VisuTry Store: an AI Commerce / Campaign Engine for eyewear merchants.**
+
+The hosted merchant Storefront remains the first delivery surface, but it should be treated as one deployment mode of a broader engine rather than the final product definition.
 
 Core capabilities:
 
-- merchant account;
-- frame catalog;
-- hosted advisor/try-on link;
-- shopper face-shape and frame-interest flow;
-- lead capture;
-- saved favorites;
-- merchant dashboard;
-- lightweight analytics;
-- branded report or result link.
+- merchant identity and catalog;
+- AI frame intelligence;
+- shopper face/style understanding;
+- merchant-specific recommendation;
+- virtual try-on and frame compare;
+- purchase-intent capture;
+- source / campaign attribution;
+- conversion-oriented merchant analytics;
+- agent-ready product and campaign surfaces;
+- hosted experience first, widget / platform / API surfaces later when justified by demand.
 
 ### 6.4 Partner channel: agencies, resellers, and platform wrappers
 
@@ -266,7 +308,7 @@ Partner strategy should be cautious.
 
 The goal is not to build bespoke white-label systems too early. The better path is:
 
-1. Use generic widget and hosted flows as the core.
+1. Use generic hosted campaign/store flows as the core.
 2. Allow co-branding or reseller rollout only where it supports real merchant distribution.
 3. Keep privacy boundaries strict: partners should not access raw end-user face images by default.
 4. Avoid partner-specific engineering unless there is active demand and a clear path to recurring revenue.
@@ -352,27 +394,37 @@ Possible pricing:
 - usage-based bundle;
 - report quota.
 
-### 7.5 VisuTry Store
+### 7.5 VisuTry Store / Campaign Engine
 
 Target:
 
 - independent optical stores;
 - eyewear sellers;
-- small DTC brands;
-- social sellers.
+- DTC brands;
+- social sellers;
+- ecommerce/growth teams running traffic campaigns.
 
 Purpose:
 
-- shopper-facing advisor link;
-- merchant catalog;
-- lead capture;
-- try-on analytics.
+- convert merchant traffic into personalized eyewear decisions;
+- connect shopper intent to the merchant's own catalog;
+- measure recommendation, try-on, compare, product click, inquiry, and later revenue outcomes;
+- support both human discovery traffic and AI-assistant / agent-originated traffic.
 
-Possible pricing:
+Product hierarchy:
 
-- Starter: small catalog / hosted link;
-- Store: catalog + dashboard + analytics;
-- Pro: widget, branding, higher quota, support.
+1. **Storefront — delivery surface.** Hosted merchant-specific experience that is easiest to demo, sell, and deploy.
+2. **Campaign Engine — commercial product.** Merchant → campaign/audience/intent → catalog subset → AI experience → conversion metrics.
+3. **Commerce Intelligence — expansion layer.** Understand which shoppers, frames, sources, and campaigns produce stronger intent and conversion.
+4. **Commerce Infrastructure — later distribution layer.** Widget, Shopify/WooCommerce wrappers, APIs, agent actions, and platform integrations after repeated demand.
+
+Possible pricing evolution:
+
+- first pilots: merchant SaaS + included usage;
+- early growth: merchant plan + campaign/usage tiers;
+- later: higher-value analytics, attributed conversion, transaction/affiliate, or performance-linked components when evidence supports them.
+
+Do not force the mature pricing model into the first pilot. The immediate objective remains willingness-to-pay and workflow validation.
 
 ### 7.6 VisuTry Widget / SDK
 
@@ -384,15 +436,15 @@ Target:
 
 Purpose:
 
-- embed try-on/advisor capability into product pages or store flows.
+- embed recommendation / try-on / compare capability into product pages or campaign flows.
 
 Sequence:
 
-1. Hosted advisor/try-on link first.
-2. Generic iframe/script widget second.
+1. Hosted advisor/campaign Store first.
+2. Generic iframe/script widget second when placement demand repeats.
 3. Shopify beta wrapper after merchant validation.
 4. WooCommerce wrapper after generic widget is stable.
-5. Public API only after repeated technical buyer demand.
+5. Public API and agent-action interfaces only after repeated technical buyer or agent-channel demand.
 
 ---
 
@@ -433,16 +485,43 @@ Key principle:
 
 Recommended merchant path:
 
-1. Merchant creates store profile.
-2. Merchant uploads frame catalog or starts with a small top-SKU set.
-3. VisuTry generates hosted advisor/try-on link or widget snippet.
-4. Shopper uploads photo and receives recommendation/try-on flow.
-5. Shopper saves favorites or submits contact/purchase intent.
-6. Merchant dashboard records lead, interest, frame, and conversion signals.
+1. Merchant creates a Store/campaign profile.
+2. Merchant uploads or connects a representative frame catalog.
+3. Merchant chooses a campaign intent, audience, or catalog subset where useful; the first MVP may default to one Store-wide campaign.
+4. VisuTry exposes a hosted shopper experience first, then later widget/platform surfaces when demand is proven.
+5. Anonymous shopper enters from search, social, ads, email, QR, direct, referral, or an AI assistant/agent.
+6. Shopper receives personalized recommendation, try-on, and compare without mandatory account creation.
+7. Shopper expresses product, favorite, inquiry, or later checkout intent.
+8. Merchant dashboard records source, journey, frame, intent, and conversion signals.
 
 Key principle:
 
-> The merchant does not buy image generation. The merchant buys better shopper decision support and measurable purchase intent.
+> The merchant does not buy image generation or a generic storefront. The merchant buys a measurable AI conversion experience.
+
+### 8.4 Agent-ready commerce workflow
+
+Store should increasingly support two acquisition classes:
+
+```text
+Human Traffic
+Search / Social / Ads / Email / QR / Direct
+
+AI-Agent Traffic
+ChatGPT / Claude / Perplexity / Gemini / future shopping agents
+```
+
+The required capability model is:
+
+1. **Discoverable** — merchant, campaign, and product/frame surfaces can be found by search and AI systems when intended to be public.
+2. **Understandable** — merchant catalog and campaign information use stable URLs, explicit product facts, structured metadata, and consistent semantics.
+3. **Actionable** — later interfaces may allow agents to request recommendation, product shortlist, try-on/compare continuation, or purchase destinations without duplicating the Store core.
+4. **Measurable** — source/referrer, campaign attribution, agent-originated sessions, recommendation, try-on, intent, and revenue can be measured.
+
+Important boundary:
+
+> Agent-readiness is a product and data-contract requirement now; broad public agent APIs are not an immediate build requirement.
+
+The first implementation should optimize public Store/campaign pages, catalog metadata, source attribution, and conversion measurement before building autonomous agent actions.
 
 ---
 
@@ -478,13 +557,22 @@ Possible model:
 
 B2B pricing should not expose consumer credits as the main concept.
 
-Possible model:
+Near-term validation model:
 
-- monthly plan by catalog size or enabled SKUs;
-- included render quota;
-- overage by successful render;
-- setup fee for design partners;
-- agency or reseller terms only after demand is proven.
+- monthly merchant plan;
+- included successful-render / shopper-session allowance;
+- simple usage overage where needed;
+- optional setup fee for assisted onboarding;
+- manual billing is acceptable for first pilots.
+
+Longer-term expansion model, only after evidence:
+
+- campaign tiers or active-campaign limits;
+- traffic / engaged-shopper / successful-render usage tiers;
+- premium conversion analytics;
+- attributed transaction / affiliate / performance-linked revenue where technically and commercially justified.
+
+The strategic objective is to move Store budget perception from a low-value VTO utility toward a measurable ecommerce / growth / revenue product.
 
 ---
 
@@ -496,7 +584,7 @@ This section defines the role of existing documents so the strategy system does 
 | --- | --- | --- |
 | `docs/strategy/commercial-strategy.md` | Top-level commercial source of truth. | Active source of truth. |
 | `docs/strategy/commercial-benchmarks.md` | External benchmark and market reference library for commercial strategy. | Living supporting reference. |
-| `docs/strategy/2026-05-25-b2b-commerce-commercialization-roadmap.md` | B2B commerce roadmap and merchant/widget strategy. | Active supporting roadmap. |
+| `docs/strategy/2026-05-25-b2b-commerce-commercialization-roadmap.md` | B2B commerce roadmap and merchant/widget strategy. | Active supporting roadmap; lower-level wording should follow this Store / Campaign Engine thesis. |
 | `docs/strategy/2026-06-28-free-face-shape-growth-commercialization-plan.md` | Free detector research, consumer growth evidence, credits conversion, ads/API sequencing. | Living supporting reference; not an execution plan. |
 | `docs/strategy/seo/2026-06-30-product-architecture-seo-geo-sync.md` | Public product path, SEO/GEO page contracts, keyword ownership. | Active source of truth for SEO/GEO and public page architecture. |
 | `docs/strategy/analytics/gtm.md` | Qualified-traffic acquisition, conversion, and measurement operating strategy. | Active source of truth for GTM execution. |
@@ -509,9 +597,9 @@ This section defines the role of existing documents so the strategy system does 
 Guideline:
 
 - If a document conflicts with this commercial strategy, update the lower-level document or mark the conflict explicitly.
-- If an older growth or channel plan conflicts with the GTM operating strategy, follow `docs/strategy/analytics/gtm.md`; historical tasks become active only after they are migrated into its current 14-day queue.
+- If an older growth or channel plan conflicts with the GTM operating strategy, follow `docs/strategy/analytics/gtm.md`; historical tasks become active only after they are migrated into its current queue.
 - If SEO/GEO page copy conflicts with the SEO/GEO sync document, follow the SEO/GEO sync document.
-- If B2B implementation details conflict with the B2B commerce roadmap, resolve inside that roadmap and reference the decision here only if it changes the top-level strategy.
+- If B2B implementation details conflict with the Store MVP / implementation plan, follow the current Store product specs and gates.
 - If external benchmark notes become detailed, keep them in `docs/strategy/commercial-benchmarks.md`, not in this document.
 
 ---
@@ -534,88 +622,102 @@ Work:
 - track result-to-paid-intent funnel;
 - avoid consumer subscription-first messaging.
 
-### Phase B: Define VisuTry Studio MVP
+### Phase B: Validate Store as the AI commerce conversion layer
 
 Goal:
 
-- validate whether professional individuals need repeated client-facing reports.
+- prove that merchants value measurable shopper intent and conversion, not merely VTO functionality.
 
-MVP capabilities:
+Current delivery surface:
 
-- client profile or session;
-- advisor report;
-- multi-frame comparison;
-- shareable report link;
-- lightweight branding.
+- hosted merchant Store;
+- small merchant catalog;
+- anonymous shopper workflow;
+- recommendation;
+- try-on;
+- compare;
+- intent and merchant insight.
 
 Validation:
 
-- 5-10 stylists/consultants interviewed;
-- 2-3 real client workflows tested;
-- willingness to pay for recurring use or report bundles.
+- 3 merchants request own-frame samples, or equivalent evidence;
+- 1 merchant agrees to a paid/deposit-backed pilot, or Product explicitly authorizes a live-data pilot;
+- merchant conversations identify the KPI they will pay to improve: product click, inquiry, add-to-cart, conversion, appointment, or attributed revenue.
 
-### Phase C: Define VisuTry Store MVP
-
-Goal:
-
-- validate merchant workflow before building a full platform app.
-
-MVP capabilities:
-
-- merchant profile;
-- small frame catalog;
-- hosted advisor/try-on link;
-- lead capture;
-- basic merchant dashboard;
-- frame-interest analytics.
-
-Validation:
-
-- 3 merchants or 1 agency-backed merchant group;
-- top-SKU pilot;
-- measurable try-on opens and completions;
-- merchant feedback on whether this helps sales or customer confidence.
-
-### Phase D: Widget and platform wrappers
+### Phase C: Make Store campaign-ready and agent-ready
 
 Goal:
 
-- turn the hosted workflow into embeddable commerce infrastructure.
+- turn the hosted Store from a single merchant experience into a reusable conversion engine that can accept multiple traffic sources and campaign intents.
+
+Capabilities to add only as needed for pilot operation:
+
+- stable source/campaign attribution;
+- optional campaign/audience/catalog-subset configuration;
+- conversion funnel by acquisition source;
+- public, machine-understandable merchant and product/frame metadata where privacy-safe;
+- AI-assistant / agent referral classification;
+- agent-originated intent and revenue attribution.
+
+Do not require a generalized campaign builder or public agent API for the first pilot.
+
+### Phase D: Distribution surfaces and commerce infrastructure
+
+Goal:
+
+- distribute the proven conversion engine into merchant systems and agent ecosystems.
 
 Sequence:
 
-1. Generic hosted page.
-2. iframe or script widget.
+1. Hosted Store / campaign surface.
+2. Generic iframe or script widget when merchant placement demand repeats.
 3. Shopify beta wrapper.
 4. WooCommerce beta wrapper.
-5. Public API only after technical buyer pull.
+5. Public API / agent actions after technical buyer or agent-channel pull.
+
+### Phase E: VisuTry Studio validation
+
+Studio remains a separate professional-workflow opportunity, but Store is the current primary B2B revenue engine to validate.
 
 ---
 
 ## 12. Open Questions
 
-1. Should VisuTry Studio and VisuTry Store be separate products, or one merchant/pro dashboard with different modes?
-2. Should the first professional workflow focus on eyewear stylists or independent optical stores?
-3. Should the merchant MVP start with hosted links only, or include a basic embeddable widget from day one?
+1. Which first merchant KPI best predicts willingness to pay: product click, inquiry, add-to-cart, conversion, appointment intent, attributed revenue, or merchant retention?
+2. Is the hosted Store the dominant long-term surface, or primarily the first surface for a broader Campaign Engine?
+3. When do merchants need multiple explicit campaigns versus one Store-wide conversion experience?
 4. What is the minimum frame catalog schema needed for useful recommendation without becoming a full inventory system?
-5. Should credits remain visible in B2B plans, or be fully abstracted into render quota?
-6. How should privacy be presented when the consumer uses free browser-side detection versus merchant-paid try-on flows?
-7. Which metric should become the B2B north star: try-on completion, saved frame, lead submission, add-to-cart lift, appointment request, or merchant retention?
+5. Which traffic/source dimensions are most valuable to merchants: search, social, ads, direct, referral, AI assistant/agent, or campaign-specific tags?
+6. When does agent-readiness require an explicit action/API surface rather than strong public metadata and links?
+7. What monthly usage unit best fits pricing: successful renders, engaged shopper sessions, active campaigns, conversion value, or a blended tier?
+8. Should transaction / affiliate / performance revenue become part of the model after SaaS and attribution are validated?
+9. How should privacy be presented when an anonymous shopper comes through merchant-paid or agent-originated flows?
 
 ---
 
 ## 13. Strategic Summary
 
-VisuTry should be understood as an eyewear decision platform, not merely a virtual try-on image generator.
+VisuTry should be understood as an eyewear decision and conversion platform, not merely a virtual try-on image generator.
 
 The recommended commercial direction is:
 
-1. Use free consumer tools to capture high-intent eyewear decision demand.
+1. Use free consumer tools to capture high-intent eyewear decision demand and prove the intelligence layer.
 2. Monetize casual consumers through one-time reports and credits packs rather than subscription-first pricing.
-3. Convert proven consumer workflows into prosumer and merchant workflows.
-4. Build toward VisuTry Studio, VisuTry Store, and VisuTry Widget as recurring revenue products.
-5. Let existing strategy documents remain as supporting roadmaps and operating plans, while this document defines the unified commercial direction.
+3. Treat Store as the primary recurring-revenue engine to validate.
+4. Use the hosted Storefront as the first delivery surface, while building toward an AI Commerce / Campaign Engine.
+5. Measure the merchant funnel from traffic source through recommendation, try-on, compare, purchase intent, and eventually revenue.
+6. Design Store for both human traffic and AI-agent traffic through discoverable, understandable, actionable, and measurable commerce surfaces.
+7. Add widget, Shopify/WooCommerce, public API, and agent actions only when repeated demand proves the need.
 
 One-line internal strategy:
 
-> Free tools create demand, credits monetize immediate decisions, and professional workflows create recurring revenue.
+> **Free tools create demand; Store turns human and agent traffic into measurable eyewear purchase intent and recurring merchant revenue.**
+
+---
+
+## 14. Change Log
+
+| Date | Change |
+| --- | --- |
+| 2026-07-08 | Created unified commercial strategy and product-layer model. |
+| 2026-08-06 | Reframed Store from merchant storefront/workspace to AI Commerce / Campaign Engine; defined Storefront as the first delivery surface, added human + AI-agent traffic strategy, agent-ready commerce requirements, conversion/revenue positioning, and campaign-oriented expansion path. |
