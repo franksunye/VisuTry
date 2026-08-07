@@ -25,6 +25,8 @@ export const FOUNDING_PILOT_V8 = {
 } as const
 
 export const FOUNDING_LAUNCH_BONUS_STANDARD_RENDERS = 5000
+export const FOUNDING_PILOT_PERIOD_DAYS = 30
+const DAY_MS = 86_400_000
 
 export type MerchantEntitlementFields = {
   planCode?: string | null
@@ -38,6 +40,8 @@ export type MerchantEntitlementFields = {
   entitlementEffectiveFrom?: Date | null
   billingPeriodEnd?: Date | null
   commercialExceptionCode?: string | null
+  /** Stable fallback anchor for legacy Pilot rows that predate explicit period fields. */
+  createdAt?: Date | null
 }
 
 export type ResolvedMerchantEntitlement = {
@@ -54,6 +58,9 @@ export type ResolvedMerchantEntitlement = {
   renderLimits: StoreDemoLimits
   billingPeriodEnd: Date | null
   entitlementEffectiveFrom: Date | null
+  /** Half-open usage window: [usagePeriodStart, usagePeriodEnd). */
+  usagePeriodStart: Date | null
+  usagePeriodEnd: Date | null
 }
 
 function isFoundingPilot(fields: MerchantEntitlementFields): boolean {
@@ -77,12 +84,76 @@ function resolveStandardRenderAllowance(fields: MerchantEntitlementFields): numb
   return FOUNDING_PILOT_V8.standardRenderAllowance
 }
 
+function addDays(value: Date, days: number): Date {
+  return new Date(value.getTime() + days * DAY_MS)
+}
+
+/**
+ * Resolve a deterministic 30-day Pilot usage period.
+ * New paid rows should always persist entitlementEffectiveFrom + billingPeriodEnd.
+ * createdAt is only a backward-compatible anchor for legacy Pilot rows.
+ */
+export function resolveMerchantUsagePeriod(
+  fields: MerchantEntitlementFields,
+  now = new Date(),
+): { start: Date | null; end: Date | null } {
+  if (!isFoundingPilot(fields)) return { start: null, end: null }
+
+  const explicitStart = fields.entitlementEffectiveFrom ?? null
+  const explicitEnd = fields.billingPeriodEnd ?? null
+
+  if (explicitStart && explicitEnd) {
+    return { start: explicitStart, end: explicitEnd }
+  }
+  if (explicitStart) {
+    return { start: explicitStart, end: addDays(explicitStart, FOUNDING_PILOT_PERIOD_DAYS) }
+  }
+  if (explicitEnd) {
+    return { start: addDays(explicitEnd, -FOUNDING_PILOT_PERIOD_DAYS), end: explicitEnd }
+  }
+
+  const anchor = fields.createdAt ?? now
+  if (anchor.getTime() >= now.getTime()) {
+    return { start: anchor, end: addDays(anchor, FOUNDING_PILOT_PERIOD_DAYS) }
+  }
+
+  const periodMs = FOUNDING_PILOT_PERIOD_DAYS * DAY_MS
+  const completedPeriods = Math.floor((now.getTime() - anchor.getTime()) / periodMs)
+  const start = new Date(anchor.getTime() + completedPeriods * periodMs)
+  return { start, end: new Date(start.getTime() + periodMs) }
+}
+
+export function merchantUsageCreatedAtFilter(
+  entitlement: Pick<ResolvedMerchantEntitlement, 'usagePeriodStart' | 'usagePeriodEnd'>,
+): { gte?: Date; lt?: Date } | undefined {
+  if (!entitlement.usagePeriodStart && !entitlement.usagePeriodEnd) return undefined
+  return {
+    ...(entitlement.usagePeriodStart ? { gte: entitlement.usagePeriodStart } : {}),
+    ...(entitlement.usagePeriodEnd ? { lt: entitlement.usagePeriodEnd } : {}),
+  }
+}
+
+export function isMerchantEntitlementActive(
+  entitlement: Pick<ResolvedMerchantEntitlement, 'tryOnOrigin' | 'usagePeriodStart' | 'usagePeriodEnd'>,
+  now = new Date(),
+): boolean {
+  if (entitlement.tryOnOrigin !== 'STORE_PILOT') return true
+  if (entitlement.usagePeriodStart && now.getTime() < entitlement.usagePeriodStart.getTime()) {
+    return false
+  }
+  if (entitlement.usagePeriodEnd && now.getTime() >= entitlement.usagePeriodEnd.getTime()) {
+    return false
+  }
+  return true
+}
+
 /**
  * Resolve server-trusted entitlement from Merchant row fields.
  * Missing commercial fields → DEMO defaults (safe for seed/dev merchants).
  */
 export function resolveMerchantEntitlement(
   fields: MerchantEntitlementFields,
+  now = new Date(),
 ): ResolvedMerchantEntitlement {
   if (!isFoundingPilot(fields)) {
     return {
@@ -106,6 +177,8 @@ export function resolveMerchantEntitlement(
       renderLimits: { ...DEFAULT_STORE_DEMO_LIMITS },
       billingPeriodEnd: fields.billingPeriodEnd ?? null,
       entitlementEffectiveFrom: fields.entitlementEffectiveFrom ?? null,
+      usagePeriodStart: null,
+      usagePeriodEnd: null,
     }
   }
 
@@ -114,6 +187,7 @@ export function resolveMerchantEntitlement(
     typeof fields.commerceSessionAllowance === 'number'
       ? fields.commerceSessionAllowance
       : FOUNDING_PILOT_V8.commerceSessionAllowance
+  const usagePeriod = resolveMerchantUsagePeriod(fields, now)
 
   return {
     planCode: 'FOUNDING_PILOT',
@@ -139,7 +213,9 @@ export function resolveMerchantEntitlement(
       maxAttemptsPerSession: FOUNDING_PILOT_V8.maxAttemptsPerSession,
       failedAttemptsCountTowardMerchantAllowance: false,
     },
-    billingPeriodEnd: fields.billingPeriodEnd ?? null,
-    entitlementEffectiveFrom: fields.entitlementEffectiveFrom ?? null,
+    billingPeriodEnd: fields.billingPeriodEnd ?? usagePeriod.end,
+    entitlementEffectiveFrom: fields.entitlementEffectiveFrom ?? usagePeriod.start,
+    usagePeriodStart: usagePeriod.start,
+    usagePeriodEnd: usagePeriod.end,
   }
 }

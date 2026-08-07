@@ -8,8 +8,10 @@ import {
   buildStoreEventIdempotencyKey,
   buildStoreGenerationIdempotencyKey,
   evaluateStoreDemoAllowance,
+  isMerchantEntitlementActive,
   merchantInactive,
   merchantNotFound,
+  merchantUsageCreatedAtFilter,
   resolveMerchantEntitlement,
   selectUsagePolicy,
 } from '../domain'
@@ -156,6 +158,7 @@ async function claimStoreTryOnSlot(input: {
   clientIp?: string | null
   expiresAt?: Date
   renderLimits: import('../domain').StoreDemoLimits
+  usageCreatedAt?: { gte?: Date; lt?: Date }
   tryOnOrigin: 'STORE_DEMO' | 'STORE_PILOT'
 }): Promise<{
   taskId: string
@@ -189,7 +192,11 @@ async function claimStoreTryOnSlot(input: {
           const [merchantSuccessfulRenders, sessionSuccessfulRenders, sessionAttempts] =
             await Promise.all([
               tx.merchantUsageLedger.count({
-                where: { merchantId: input.merchantId, kind: 'RENDER_SUCCESS' },
+                where: {
+                  merchantId: input.merchantId,
+                  kind: 'RENDER_SUCCESS',
+                  ...(input.usageCreatedAt ? { createdAt: input.usageCreatedAt } : {}),
+                },
               }),
               tx.merchantUsageLedger.count({
                 where: {
@@ -216,7 +223,6 @@ async function claimStoreTryOnSlot(input: {
             throw new StoreDomainError('ALLOWANCE_EXCEEDED', allowance.reason, 429)
           }
 
-          // Merchant + IP attempt abuse — only counted when claiming a new generation.
           const merchantAbuse = await tx.storeAbuseCounter.upsert({
             where: {
               merchantId_bucket_windowStart: {
@@ -370,7 +376,6 @@ export async function submitStoreFrameTryOn(
   }
   assertSameMerchantTenant(merchant.id, frame.merchantId, 'frame')
 
-  // Validate generation prerequisites BEFORE burning attempt / abuse budget.
   if (!session.photoAssetId) {
     throw new StoreDomainError(
       'VALIDATION_ERROR',
@@ -400,7 +405,6 @@ export async function submitStoreFrameTryOn(
     )
   }
 
-  // Frame bytes before claim — network/size failures must not leave placeholders.
   const userImage = new File([new Uint8Array(photoBytes.body)], `shopper-${session.id}.jpg`, {
     type: photoBytes.contentType || 'image/jpeg',
   })
@@ -416,6 +420,15 @@ export async function submitStoreFrameTryOn(
   }
 
   const entitlement = resolveMerchantEntitlement(merchant)
+  if (!isMerchantEntitlementActive(entitlement)) {
+    throw new StoreDomainError(
+      'MERCHANT_INACTIVE',
+      'This store is temporarily unavailable.',
+      403,
+      'Merchant Pilot entitlement period is not active.',
+    )
+  }
+  const usageCreatedAt = merchantUsageCreatedAtFilter(entitlement)
 
   const idempotencyKey = buildStoreGenerationIdempotencyKey({
     merchantSessionId: session.id,
@@ -431,6 +444,7 @@ export async function submitStoreFrameTryOn(
     clientSubmissionId: input.clientSubmissionId,
     clientIp: input.clientIp,
     renderLimits: entitlement.renderLimits,
+    usageCreatedAt,
     tryOnOrigin: entitlement.tryOnOrigin,
   })
 
@@ -468,7 +482,6 @@ export async function submitStoreFrameTryOn(
       }
     }
 
-    // Stale placeholder — take over lease and continue dispatch.
     const takeoverLease = await acquireStoreDispatchTakeover({ taskId: claim.taskId })
     if (!takeoverLease) {
       return {
@@ -508,12 +521,7 @@ export async function submitStoreFrameTryOn(
   )
 
   const config = getTryOnConfig('GLASSES')
-  const prompt = `${config.aiPrompt}
-
-Merchant store frame:
-- Use the provided item image as "${frame.name}" (${frame.shape}${frame.color ? `, ${frame.color}` : ''}).
-- Keep the person's face, expression, head size, background, and photo composition unchanged.
-- Do not make medical, prescription, or guaranteed-fit claims in the visual.`
+  const prompt = `${config.aiPrompt}\n\nMerchant store frame:\n- Use the provided item image as "${frame.name}" (${frame.shape}${frame.color ? `, ${frame.color}` : ''}).\n- Keep the person's face, expression, head size, background, and photo composition unchanged.\n- Do not make medical, prescription, or guaranteed-fit claims in the visual.`
 
   try {
     await input.events.appendIdempotent({
@@ -579,7 +587,6 @@ Merchant store frame:
       tryOnTaskId: claim.taskId,
       kind: 'RENDER_FAILURE',
     })
-    // Failure budget must block subsequent dispatch.
     const windowStart = dayWindowStart()
     const failure = await prisma.storeAbuseCounter.upsert({
       where: {

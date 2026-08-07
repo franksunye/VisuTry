@@ -30,6 +30,57 @@ function clean(value: unknown, max = MAX_FIELD): string | null {
   return trimmed.length > max ? trimmed.slice(0, max) : trimmed
 }
 
+function normalizeToken(value: string | null): string {
+  return (value ?? '').trim().toLowerCase()
+}
+
+function classifyAiSourceToken(value: string | null): string | null {
+  const token = normalizeToken(value)
+  if (!token) return null
+  if (token.includes('chatgpt') || token === 'openai') return 'chatgpt'
+  if (token.includes('claude') || token.includes('anthropic')) return 'claude'
+  if (token.includes('perplexity')) return 'perplexity'
+  if (token.includes('gemini')) return 'gemini'
+  return null
+}
+
+function classifyAiReferrer(referrer: string | null): string | null {
+  if (!referrer) return null
+  try {
+    const hostname = new URL(referrer).hostname.toLowerCase()
+    if (hostname === 'chatgpt.com' || hostname.endsWith('.chatgpt.com')) return 'chatgpt'
+    if (hostname === 'claude.ai' || hostname.endsWith('.claude.ai')) return 'claude'
+    if (hostname === 'perplexity.ai' || hostname.endsWith('.perplexity.ai')) return 'perplexity'
+    if (hostname === 'gemini.google.com' || hostname.endsWith('.gemini.google.com')) return 'gemini'
+  } catch {
+    return null
+  }
+  return null
+}
+
+/**
+ * AI referral classification is intentionally evidence-first:
+ * explicit campaign/source > trusted referrer hostname > no classification.
+ *
+ * Client UA hints are not trusted on their own because crawler identities such
+ * as GPTBot / Google-Extended are not shopper referrals.
+ */
+export function inferAiReferralSource(input: {
+  source: string | null
+  referrer: string | null
+  aiAgentHint?: string | null
+}): string | null {
+  const sourceMatch = classifyAiSourceToken(input.source)
+  if (sourceMatch) return sourceMatch
+
+  const referrerMatch = classifyAiReferrer(input.referrer)
+  if (referrerMatch) return referrerMatch
+
+  // Preserve a client hint only when it is corroborated by an AI-assistant medium.
+  // This supports explicit campaign tagging without promoting crawler-only UAs.
+  return null
+}
+
 /** Normalize client/server acquisition payload for MerchantSession persistence. */
 export function sanitizeSessionAcquisition(
   input: unknown,
@@ -47,22 +98,32 @@ export function sanitizeSessionAcquisition(
   }
 
   const record = input as Record<string, unknown>
+  const source =
+    clean(record.source) ??
+    clean(record.utm_source) ??
+    clean(record.acquisition_source)
+  const medium =
+    clean(record.medium, 120) ??
+    clean(record.utm_medium, 120) ??
+    clean(record.acquisition_medium, 120)
+  const campaign = clean(record.campaign) ?? clean(record.utm_campaign)
+  const referrer = clean(record.referrer)
+  const landingUrl = clean(record.landingUrl) ?? clean(record.landing_page)
+  const aiAgentHint = clean(record.aiAgentSource, 120)
 
-  // Accept both Store field names and UTM aliases from the client.
+  const explicitAiSource = inferAiReferralSource({ source, referrer, aiAgentHint })
+  const corroboratedHint =
+    normalizeToken(medium).includes('ai-assistant') || normalizeToken(medium).includes('ai_assistant')
+      ? classifyAiSourceToken(aiAgentHint)
+      : null
+
   return {
-    source:
-      clean(record.source) ??
-      clean(record.utm_source) ??
-      clean(record.acquisition_source),
-    medium:
-      clean(record.medium, 120) ??
-      clean(record.utm_medium, 120) ??
-      clean(record.acquisition_medium, 120),
-    campaign:
-      clean(record.campaign) ?? clean(record.utm_campaign),
-    referrer: clean(record.referrer),
-    landingUrl: clean(record.landingUrl) ?? clean(record.landing_page),
-    aiAgentSource: clean(record.aiAgentSource, 120),
+    source,
+    medium,
+    campaign,
+    referrer,
+    landingUrl,
+    aiAgentSource: explicitAiSource ?? corroboratedHint,
   }
 }
 
