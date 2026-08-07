@@ -10,6 +10,7 @@ import {
   evaluateStoreDemoAllowance,
   merchantInactive,
   merchantNotFound,
+  merchantUsageCreatedAtFilter,
   resolveMerchantEntitlement,
   selectUsagePolicy,
 } from '../domain'
@@ -156,6 +157,7 @@ async function claimStoreTryOnSlot(input: {
   clientIp?: string | null
   expiresAt?: Date
   renderLimits: import('../domain').StoreDemoLimits
+  usageCreatedAt?: { gte?: Date; lt?: Date }
   tryOnOrigin: 'STORE_DEMO' | 'STORE_PILOT'
 }): Promise<{
   taskId: string
@@ -189,7 +191,11 @@ async function claimStoreTryOnSlot(input: {
           const [merchantSuccessfulRenders, sessionSuccessfulRenders, sessionAttempts] =
             await Promise.all([
               tx.merchantUsageLedger.count({
-                where: { merchantId: input.merchantId, kind: 'RENDER_SUCCESS' },
+                where: {
+                  merchantId: input.merchantId,
+                  kind: 'RENDER_SUCCESS',
+                  ...(input.usageCreatedAt ? { createdAt: input.usageCreatedAt } : {}),
+                },
               }),
               tx.merchantUsageLedger.count({
                 where: {
@@ -416,6 +422,7 @@ export async function submitStoreFrameTryOn(
   }
 
   const entitlement = resolveMerchantEntitlement(merchant)
+  const usageCreatedAt = merchantUsageCreatedAtFilter(entitlement)
 
   const idempotencyKey = buildStoreGenerationIdempotencyKey({
     merchantSessionId: session.id,
@@ -431,6 +438,7 @@ export async function submitStoreFrameTryOn(
     clientSubmissionId: input.clientSubmissionId,
     clientIp: input.clientIp,
     renderLimits: entitlement.renderLimits,
+    usageCreatedAt,
     tryOnOrigin: entitlement.tryOnOrigin,
   })
 
@@ -508,12 +516,7 @@ export async function submitStoreFrameTryOn(
   )
 
   const config = getTryOnConfig('GLASSES')
-  const prompt = `${config.aiPrompt}
-
-Merchant store frame:
-- Use the provided item image as "${frame.name}" (${frame.shape}${frame.color ? `, ${frame.color}` : ''}).
-- Keep the person's face, expression, head size, background, and photo composition unchanged.
-- Do not make medical, prescription, or guaranteed-fit claims in the visual.`
+  const prompt = `${config.aiPrompt}\n\nMerchant store frame:\n- Use the provided item image as "${frame.name}" (${frame.shape}${frame.color ? `, ${frame.color}` : ''}).\n- Keep the person's face, expression, head size, background, and photo composition unchanged.\n- Do not make medical, prescription, or guaranteed-fit claims in the visual.`
 
   try {
     await input.events.appendIdempotent({
