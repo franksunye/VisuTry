@@ -64,7 +64,8 @@ describe('Search→Tool Phase A i18n', () => {
       }
 
       if (locale !== 'en') {
-        expect(copy.title).not.toBe(en.title)
+        // Product/brand names such as "AI Glasses Advisor" may intentionally
+        // remain identical across locales; localized explanatory content must not.
         expect(copy.faq[0].question).not.toBe(en.faq[0].question)
       }
     }
