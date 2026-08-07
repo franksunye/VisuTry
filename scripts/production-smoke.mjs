@@ -1,5 +1,12 @@
 const baseUrl = (process.env.SMOKE_BASE_URL || 'https://www.visutry.com').replace(/\/$/, '');
-const routes = ['/', '/en/face-analysis', '/en/try-on', '/en/store'];
+const routes = [
+  '/',
+  '/en/face-shape-detector',
+  '/en/face-analysis',
+  '/en/try-on/glasses',
+  '/en/try-on/glasses/compare',
+  '/en/store',
+];
 const attempts = Number(process.env.SMOKE_ATTEMPTS || 6);
 const delayMs = Number(process.env.SMOKE_DELAY_MS || 15000);
 
@@ -20,9 +27,17 @@ async function checkRoute(path) {
     throw new Error(`${url} returned ${response.status}`);
   }
 
+  if (response.url !== url) {
+    throw new Error(`${url} unexpectedly redirected to ${response.url}`);
+  }
+
   const body = await response.text();
   if (!body || body.length < 100) {
     throw new Error(`${url} returned an unexpectedly small response body`);
+  }
+
+  if (/application error|internal server error/i.test(body)) {
+    throw new Error(`${url} rendered an application/server error marker`);
   }
 
   return response.status;
