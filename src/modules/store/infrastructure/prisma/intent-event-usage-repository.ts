@@ -1,6 +1,10 @@
 import type { MerchantEvent, MerchantIntent, Prisma } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { sanitizeEventMetadata } from '../../domain/privacy'
+import {
+  merchantUsageCreatedAtFilter,
+  resolveMerchantEntitlement,
+} from '../../domain/merchant-entitlement'
 import type {
   MerchantEventRecord,
   MerchantEventRepository,
@@ -44,6 +48,30 @@ function mapEvent(row: MerchantEvent): MerchantEventRecord {
     metadata: (row.metadata as Record<string, unknown> | null) ?? null,
     createdAt: row.createdAt,
   }
+}
+
+async function usageCreatedAtForMerchant(
+  merchantId: string,
+): Promise<{ gte?: Date; lt?: Date } | undefined> {
+  const merchant = await prisma.merchant.findUnique({
+    where: { id: merchantId },
+    select: {
+      planCode: true,
+      commercialStage: true,
+      pricingVersion: true,
+      entitlementVersion: true,
+      commerceSessionAllowance: true,
+      standardRenderAllowance: true,
+      premiumRenderAllowance: true,
+      campaignAllowance: true,
+      entitlementEffectiveFrom: true,
+      billingPeriodEnd: true,
+      commercialExceptionCode: true,
+      createdAt: true,
+    },
+  })
+  if (!merchant) return undefined
+  return merchantUsageCreatedAtFilter(resolveMerchantEntitlement(merchant))
 }
 
 export function createPrismaMerchantIntentRepository(): MerchantIntentRepository {
@@ -160,13 +188,23 @@ export function createPrismaStoreUsageRepository(): StoreUsageRepository {
       })
     },
     async countCommerceSessions(merchantId) {
+      const createdAt = await usageCreatedAtForMerchant(merchantId)
       return prisma.merchantUsageLedger.count({
-        where: { merchantId, kind: 'SESSION' },
+        where: {
+          merchantId,
+          kind: 'SESSION',
+          ...(createdAt ? { createdAt } : {}),
+        },
       })
     },
     async countSuccessfulRenders(merchantId) {
+      const createdAt = await usageCreatedAtForMerchant(merchantId)
       return prisma.merchantUsageLedger.count({
-        where: { merchantId, kind: 'RENDER_SUCCESS' },
+        where: {
+          merchantId,
+          kind: 'RENDER_SUCCESS',
+          ...(createdAt ? { createdAt } : {}),
+        },
       })
     },
     async countSessionSuccessfulRenders(merchantId, merchantSessionId) {
