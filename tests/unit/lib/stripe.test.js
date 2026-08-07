@@ -46,7 +46,6 @@ describe('Stripe Library Unit Tests', () => {
     })
 
     test('should have price IDs configured', () => {
-      // 在 Mock 模式下，使用 placeholder price IDs
       expect(PRODUCTS.PREMIUM_MONTHLY.priceId).toBeDefined()
       expect(PRODUCTS.PREMIUM_YEARLY.priceId).toBeDefined()
       expect(PRODUCTS.CREDITS_PACK.priceId).toBeDefined()
@@ -100,7 +99,6 @@ describe('Stripe Library Unit Tests', () => {
     })
 
     test('should throw error if price ID not configured', async () => {
-      // 临时移除 price ID
       const originalPriceId = PRODUCTS.PREMIUM_MONTHLY.priceId
       PRODUCTS.PREMIUM_MONTHLY.priceId = undefined
 
@@ -113,7 +111,6 @@ describe('Stripe Library Unit Tests', () => {
         })
       ).rejects.toThrow('Price ID not configured')
 
-      // 恢复 price ID
       PRODUCTS.PREMIUM_MONTHLY.priceId = originalPriceId
     })
   })
@@ -145,7 +142,7 @@ describe('Stripe Library Unit Tests', () => {
       })
     })
 
-    test('should extract attribution from checkout session metadata', async () => {
+    test('should normalize legacy attribution keys from checkout session metadata', async () => {
       const mockSession = {
         id: 'cs_test_attr',
         client_reference_id: 'user-123',
@@ -168,8 +165,8 @@ describe('Stripe Library Unit Tests', () => {
 
       expect(result.attribution).toEqual({
         landing_page: '/en/face-shape-detector',
-        growth_source: 'seo-cluster',
-        medium: 'organic',
+        acquisition_source: 'seo-cluster',
+        acquisition_medium: 'organic',
         query_cluster: 'face-shape-detector',
         product_path: 'credits_pack',
       })
@@ -215,7 +212,7 @@ describe('Stripe Library Unit Tests', () => {
           productType: 'PREMIUM_MONTHLY',
         },
         status: 'active',
-        current_period_end: now + 30 * 24 * 60 * 60, // 30 days from now
+        current_period_end: now + 30 * 24 * 60 * 60,
       }
 
       const result = await handleSubscriptionCreated(mockSubscription)

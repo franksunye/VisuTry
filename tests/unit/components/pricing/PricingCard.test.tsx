@@ -150,10 +150,11 @@ describe('PricingCard', () => {
       expect(screen.getByText('Most Popular')).toBeInTheDocument()
     })
 
-    it('should apply popular styling', () => {
+    it('should apply popular styling without layout scaling', () => {
       const { container } = render(<PricingCard plan={mockPlan} currentUser={mockUser} />)
       const card = container.firstChild
-      expect(card).toHaveClass('border-blue-500', 'ring-2', 'ring-blue-200', 'scale-105')
+      expect(card).toHaveClass('border-blue-500', 'ring-2', 'ring-blue-200', 'z-10')
+      expect(card).not.toHaveClass('scale-105')
     })
 
     it('should not show popular badge for non-popular plans', () => {
@@ -225,7 +226,6 @@ describe('PricingCard', () => {
     })
 
     it('should show loading state during payment processing', async () => {
-      // Make fetch take some time
       mockFetch.mockImplementation(() => new Promise(resolve => 
         setTimeout(() => resolve({
           ok: true,
@@ -312,11 +312,15 @@ describe('PricingCard', () => {
   })
 
   describe('Plan-specific Information', () => {
-    it('should show credits pack information', () => {
+    it('should explain credit lifetime separately from data retention', () => {
       const creditsPlan = { ...mockPlan, id: 'CREDITS_PACK' }
       render(<PricingCard plan={creditsPlan} currentUser={mockUser} />)
 
-      expect(screen.getByText('Credits never expire, use anytime')).toBeInTheDocument()
+      expect(
+        screen.getByText(
+          "Purchased credits do not expire. Images and generated results follow the plan's data-retention period.",
+        ),
+      ).toBeInTheDocument()
     })
 
     it('should show premium plan cancellation info', () => {
@@ -336,7 +340,7 @@ describe('PricingCard', () => {
       const otherPlan = { ...mockPlan, id: 'OTHER_PLAN' }
       render(<PricingCard plan={otherPlan} currentUser={mockUser} />)
 
-      expect(screen.queryByText('Credits never expire, use anytime')).not.toBeInTheDocument()
+      expect(screen.queryByText(/Purchased credits do not expire/)).not.toBeInTheDocument()
       expect(screen.queryByText('Cancel anytime, no long-term contract')).not.toBeInTheDocument()
     })
   })

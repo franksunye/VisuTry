@@ -1,4 +1,5 @@
 import { User } from '@prisma/client'
+import { QUOTA_CONFIG } from '@/config/pricing'
 import { getNextQuotaSource, getRemainingQuotaCount } from '@/lib/quota'
 
 function makeUser(overrides: Partial<User> = {}): User {
@@ -72,14 +73,16 @@ describe('getNextQuotaSource', () => {
 })
 
 describe('getRemainingQuotaCount', () => {
-  it('adds credits and free trials for non-premium users', () => {
+  it('adds current configured free trials and credits for non-premium users', () => {
     const user = makeUser({
       creditsPurchased: 10,
       creditsUsed: 4,
       freeTrialsUsed: 1,
     })
 
-    expect(getRemainingQuotaCount(user)).toBe(8)
+    const expectedFree = Math.max(0, QUOTA_CONFIG.FREE_TRIAL - user.freeTrialsUsed)
+    const expectedCredits = user.creditsPurchased - user.creditsUsed
+    expect(getRemainingQuotaCount(user)).toBe(expectedFree + expectedCredits)
   })
 
   it('adds subscription quota and credits for premium users', () => {
@@ -92,6 +95,11 @@ describe('getRemainingQuotaCount', () => {
       creditsUsed: 2,
     })
 
-    expect(getRemainingQuotaCount(user)).toBeGreaterThan(3)
+    const expectedSubscription = Math.max(
+      0,
+      QUOTA_CONFIG.MONTHLY_SUBSCRIPTION - user.premiumUsageCount,
+    )
+    const expectedCredits = user.creditsPurchased - user.creditsUsed
+    expect(getRemainingQuotaCount(user)).toBe(expectedSubscription + expectedCredits)
   })
 })
