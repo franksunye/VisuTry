@@ -1,6 +1,7 @@
 import {
   FOUNDING_LAUNCH_BONUS_STANDARD_RENDERS,
   FOUNDING_PILOT_V8,
+  isMerchantEntitlementActive,
   merchantUsageCreatedAtFilter,
   resolveMerchantEntitlement,
 } from '@/modules/store/domain/merchant-entitlement'
@@ -18,6 +19,7 @@ describe('merchant commercial entitlement', () => {
     expect(resolved.renderLimits.maxSuccessfulRendersPerMerchant).toBe(500)
     expect(Number.isFinite(resolved.commerceSessionAllowance)).toBe(false)
     expect(merchantUsageCreatedAtFilter(resolved)).toBeUndefined()
+    expect(isMerchantEntitlementActive(resolved)).toBe(true)
   })
 
   it('resolves FOUNDING_PILOT Market Capture v8 allowances', () => {
@@ -42,6 +44,7 @@ describe('merchant commercial entitlement', () => {
     expect(resolved.renderLimits.maxSuccessfulRendersPerMerchant).toBe(3500)
     expect(resolved.usagePeriodStart?.toISOString()).toBe('2026-08-01T00:00:00.000Z')
     expect(resolved.usagePeriodEnd?.toISOString()).toBe('2026-08-31T00:00:00.000Z')
+    expect(isMerchantEntitlementActive(resolved, now)).toBe(true)
   })
 
   it('uses explicit entitlement dates as the usage window', () => {
@@ -53,6 +56,17 @@ describe('merchant commercial entitlement', () => {
       billingPeriodEnd: end,
     })
     expect(merchantUsageCreatedAtFilter(resolved)).toEqual({ gte: start, lt: end })
+  })
+
+  it('rejects a Pilot entitlement outside its explicit billing period', () => {
+    const resolved = resolveMerchantEntitlement({
+      planCode: 'FOUNDING_PILOT',
+      entitlementEffectiveFrom: new Date('2026-07-01T00:00:00.000Z'),
+      billingPeriodEnd: new Date('2026-07-31T00:00:00.000Z'),
+    })
+    expect(
+      isMerchantEntitlementActive(resolved, new Date('2026-08-07T00:00:00.000Z')),
+    ).toBe(false)
   })
 
   it('rolls a legacy Pilot row into the current 30-day period from createdAt', () => {
