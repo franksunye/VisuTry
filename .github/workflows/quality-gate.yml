@@ -23,6 +23,10 @@ jobs:
     env:
       CI: true
       NEXT_TELEMETRY_DISABLED: 1
+      # Prisma generate loads prisma.config.ts and requires a URL, but does not
+      # connect to the database. Keep PR L1/L2 fully isolated from real DBs.
+      DATABASE_URL: postgresql://ci:ci@localhost:5432/visutry_ci
+      DATABASE_URL_UNPOOLED: postgresql://ci:ci@localhost:5432/visutry_ci
 
     steps:
       - name: Checkout
