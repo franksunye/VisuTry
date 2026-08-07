@@ -30,6 +30,7 @@ describe('GrowthFunnelLink', () => {
     fireEvent.click(screen.getByRole('link', { name: 'Detect my face shape' }))
 
     expect(setGrowthContext).toHaveBeenCalledWith({
+      source_page: 'glasses-for-face-shape',
       query_cluster: 'glasses-for-face-shape',
       content_cluster: 'search-tool',
       product_path: 'face_shape_detector',
