@@ -4,6 +4,7 @@ import {
   buildStoreEventIdempotencyKey,
   createMerchantSessionCapability,
   computeSessionExpiresAt,
+  isMerchantEntitlementActive,
   merchantInactive,
   merchantNotFound,
   resolveMerchantEntitlement,
@@ -42,6 +43,14 @@ export async function createStoreSession(input: {
   if (merchant.status !== 'ACTIVE') throw merchantInactive()
 
   const entitlement = resolveMerchantEntitlement(merchant)
+  if (!isMerchantEntitlementActive(entitlement)) {
+    throw new StoreDomainError(
+      'MERCHANT_INACTIVE',
+      'This store is temporarily unavailable.',
+      403,
+      'Merchant Pilot entitlement period is not active.',
+    )
+  }
   if (Number.isFinite(entitlement.commerceSessionAllowance)) {
     const usedSessions = await input.usage.countCommerceSessions(merchant.id)
     if (usedSessions >= entitlement.commerceSessionAllowance) {
