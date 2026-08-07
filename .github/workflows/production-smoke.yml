@@ -1,0 +1,40 @@
+name: Production Smoke
+
+on:
+  push:
+    branches: [main]
+  schedule:
+    - cron: '17 */6 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: production-smoke
+  cancel-in-progress: true
+
+jobs:
+  route-health:
+    name: Production Route Health
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Wait briefly for main deployment propagation
+        if: github.event_name == 'push'
+        run: sleep 45
+
+      - name: Run zero-AI production smoke
+        env:
+          SMOKE_BASE_URL: https://www.visutry.com
+          SMOKE_ATTEMPTS: '8'
+          SMOKE_DELAY_MS: '15000'
+        run: node scripts/production-smoke.mjs

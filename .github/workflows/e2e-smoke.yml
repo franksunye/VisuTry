@@ -1,0 +1,43 @@
+name: Browser Smoke
+
+on:
+  schedule:
+    - cron: '47 2 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: browser-smoke
+  cancel-in-progress: true
+
+jobs:
+  chromium-smoke:
+    name: Chromium Smoke + Critical Routes
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    env:
+      DATABASE_URL: postgresql://visutry_ci:visutry_ci@127.0.0.1:5432/visutry_ci
+      PLAYWRIGHT_BASE_URL: https://www.visutry.com
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Run browser smoke without AI provider calls
+        run: npm run test:e2e:smoke
+
+      - name: Run critical Consumer and Store route checks
+        run: npm run test:e2e:critical
