@@ -14,7 +14,7 @@ concurrency:
 
 jobs:
   chromium-smoke:
-    name: Chromium Smoke
+    name: Chromium Smoke + Critical Routes
     runs-on: ubuntu-latest
     timeout-minutes: 12
     env:
@@ -38,3 +38,6 @@ jobs:
 
       - name: Run browser smoke without AI provider calls
         run: npm run test:e2e:smoke
+
+      - name: Run critical Consumer and Store route checks
+        run: npm run test:e2e:critical
