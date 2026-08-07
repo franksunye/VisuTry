@@ -39,6 +39,10 @@ Command:
 
 - `npm run test:unit:ci`
 
+Local equivalent for L1 + L2:
+
+- `npm run qa:pr`
+
 Rules:
 
 - deterministic only
