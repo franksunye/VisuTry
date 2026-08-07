@@ -133,6 +133,20 @@ export function merchantUsageCreatedAtFilter(
   }
 }
 
+export function isMerchantEntitlementActive(
+  entitlement: Pick<ResolvedMerchantEntitlement, 'tryOnOrigin' | 'usagePeriodStart' | 'usagePeriodEnd'>,
+  now = new Date(),
+): boolean {
+  if (entitlement.tryOnOrigin !== 'STORE_PILOT') return true
+  if (entitlement.usagePeriodStart && now.getTime() < entitlement.usagePeriodStart.getTime()) {
+    return false
+  }
+  if (entitlement.usagePeriodEnd && now.getTime() >= entitlement.usagePeriodEnd.getTime()) {
+    return false
+  }
+  return true
+}
+
 /**
  * Resolve server-trusted entitlement from Merchant row fields.
  * Missing commercial fields → DEMO defaults (safe for seed/dev merchants).
