@@ -352,6 +352,11 @@ export async function submitStoreTryOnTask(
       itemDataUri,
       effectivePrompt,
       promptVersion,
+      {
+        taskId: task.id,
+        clientSubmissionId,
+        origin,
+      },
     )
 
     const dispatched = await prisma.tryOnTask.updateMany({
@@ -412,4 +417,3 @@ export async function submitStoreTryOnTask(
     throw error
   }
 }
-

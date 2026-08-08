@@ -161,7 +161,12 @@ describe('TryOnService', () => {
         expect.stringContaining('data:image/jpeg;base64,'),
         expect.stringContaining('data:image/jpeg;base64,'),
         expect.any(String),
-        'tryon-v1'
+        'tryon-v1',
+        {
+          taskId: 'task-1',
+          clientSubmissionId: undefined,
+          origin: 'CONSUMER',
+        },
       )
       expect(prisma.tryOnTask.create).toHaveBeenCalledWith({
         data: expect.objectContaining({
@@ -299,6 +304,28 @@ describe('TryOnService', () => {
   })
 
   describe('getTryOnResult', () => {
+    it('fails a stale Consumer PENDING task with no external ID during polling', async () => {
+      const createdAt = new Date(Date.now() - 3 * 60 * 1000)
+      ;(prisma.tryOnTask.findUnique as jest.Mock).mockResolvedValue({
+        id: 'stale-consumer-task',
+        origin: 'CONSUMER',
+        userId: 'user-1',
+        status: TaskStatus.PENDING,
+        createdAt,
+        updatedAt: createdAt,
+        metadata: { serviceType: 'grsai', clientSubmissionId: 'submission-1' },
+      })
+      ;(prisma.tryOnTask.updateMany as jest.Mock).mockResolvedValue({ count: 1 })
+
+      const result = await getTryOnResult('stale-consumer-task')
+
+      expect(result).toEqual({
+        status: TaskStatus.FAILED,
+        error: expect.stringContaining('Please retry'),
+      })
+      expect(pollTaskResult).not.toHaveBeenCalled()
+    })
+
     it('should poll GrsAi and return isNewCompletion=true when task completes', async () => {
       const mockTask = {
         id: 'task-1',
@@ -484,7 +511,12 @@ describe('TryOnService', () => {
         'http://blob/user.jpg',
         'http://blob/item.jpg',
         'retry prompt',
-        'tryon-v1'
+        'tryon-v1',
+        {
+          taskId: 'task-3',
+          clientSubmissionId: undefined,
+          origin: 'CONSUMER',
+        },
       )
       expect(prisma.tryOnTask.update).toHaveBeenCalledWith({
         where: { id: 'task-3' },

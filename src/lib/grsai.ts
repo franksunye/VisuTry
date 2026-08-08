@@ -5,6 +5,20 @@ const GRSAI_API_KEY = process.env.GRSAI_API_KEY || process.env.GEMINI_API_KEY
 // Default to the current overseas GrsAi host from vendor docs.
 const GRSAI_BASE_URL = (process.env.GRSAI_BASE_URL || process.env.GEMINI_API_BASE_URL || "https://grsaiapi.com").replace(/\/$/, "")
 const MODEL_NAME = "nano-banana-fast"
+const DEFAULT_SUBMIT_TIMEOUT_MS = 25_000
+const MAX_SUBMIT_TIMEOUT_MS = 45_000
+
+export interface GrsAiRequestContext {
+  taskId?: string
+  clientSubmissionId?: string
+  origin?: 'CONSUMER' | 'STORE_DEMO' | 'STORE_PILOT'
+}
+
+function getSubmitTimeoutMs(): number {
+  const configured = Number(process.env.GRSAI_SUBMIT_TIMEOUT_MS)
+  if (!Number.isFinite(configured) || configured <= 0) return DEFAULT_SUBMIT_TIMEOUT_MS
+  return Math.min(configured, MAX_SUBMIT_TIMEOUT_MS)
+}
 
 interface GrsAiSubmitResponse {
   code: number
@@ -58,9 +72,12 @@ export async function submitAsyncTask(
   userImageDataUri: string,
   itemImageDataUri: string,
   detailedInstructions: string,
-  promptVersion?: string
+  promptVersion?: string,
+  context: GrsAiRequestContext = {},
 ): Promise<string> {
   const url = `${GRSAI_BASE_URL}/v1/draw/nano-banana`
+  const timeoutMs = getSubmitTimeoutMs()
+  const startedAt = Date.now()
 
   // Build the complete prompt using the unified prompt builder
   // This ensures consistency with Gemini direct API calls
@@ -79,7 +96,11 @@ export async function submitAsyncTask(
     shutProgress: false
   }
 
-  logger.info('grsai', `Submitting task to: ${url}`, { baseUrl: GRSAI_BASE_URL })
+  logger.info('grsai', `Submitting task to: ${url}`, {
+    baseUrl: GRSAI_BASE_URL,
+    timeoutMs,
+    ...context,
+  })
 
   try {
     const response = await fetch(url, {
@@ -88,14 +109,17 @@ export async function submitAsyncTask(
         "Content-Type": "application/json",
         "Authorization": `Bearer ${GRSAI_API_KEY}`
       },
-      body: JSON.stringify(payload)
+      body: JSON.stringify(payload),
+      signal: AbortSignal.timeout(timeoutMs),
     })
 
     if (!response.ok) {
       const errorText = await response.text()
       logger.error('grsai', `Submission failed: ${response.status} ${response.statusText}`, undefined, {
         url,
-        error: errorText
+        error: errorText,
+        durationMs: Date.now() - startedAt,
+        ...context,
       })
       throw new Error(`GrsAi Submission failed: ${response.statusText}`)
     }
@@ -107,22 +131,44 @@ export async function submitAsyncTask(
       code: data.code,
       msg: data.msg,
       hasData: !!data.data,
-      hasId: !!data.data?.id
+      hasId: !!data.data?.id,
+      durationMs: Date.now() - startedAt,
+      ...context,
     })
 
     if (data.code === 0 && data.data?.id) {
-      logger.info('grsai', `Task submitted successfully`, { taskId: data.data.id })
+      logger.info('grsai', `Task submitted successfully`, {
+        externalTaskId: data.data.id,
+        durationMs: Date.now() - startedAt,
+        ...context,
+      })
       return data.data.id
     } else {
       // Log full response for debugging unexpected formats
       logger.error('grsai', 'Unexpected response format', undefined, {
-        fullResponse: JSON.stringify(data).substring(0, 500) // Limit length
+        fullResponse: JSON.stringify(data).substring(0, 500), // Limit length
+        durationMs: Date.now() - startedAt,
+        ...context,
       })
       throw new Error("No Task ID received from GrsAi")
     }
   } catch (error) {
-    logger.error('grsai', 'Network error during submission', error as Error, { url })
-    throw error
+    const isTimeout =
+      error instanceof Error &&
+      (error.name === 'AbortError' || error.name === 'TimeoutError')
+    const reportedError = isTimeout
+      ? new Error(`GrsAi submission timed out after ${timeoutMs}ms`)
+      : error instanceof Error
+        ? error
+        : new Error(String(error))
+
+    logger.error('grsai', 'Network error during submission', reportedError, {
+      url,
+      timeoutMs,
+      durationMs: Date.now() - startedAt,
+      ...context,
+    })
+    throw reportedError
   }
 }
 

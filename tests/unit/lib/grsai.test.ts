@@ -1,4 +1,4 @@
-import { pollTaskResult } from '@/lib/grsai'
+import { pollTaskResult, submitAsyncTask } from '@/lib/grsai'
 import { logger } from '@/lib/logger'
 
 // Mock fetch
@@ -17,6 +17,51 @@ jest.mock('@/lib/logger', () => ({
 describe('GrsAi Library', () => {
   beforeEach(() => {
     jest.clearAllMocks()
+    delete process.env.GRSAI_SUBMIT_TIMEOUT_MS
+  })
+
+  describe('submitAsyncTask', () => {
+    it('adds a bounded timeout and correlated task context', async () => {
+      ;(global.fetch as jest.Mock).mockResolvedValue({
+        ok: true,
+        json: jest.fn().mockResolvedValue({ code: 0, msg: 'ok', data: { id: 'ext-1' } }),
+      })
+
+      await expect(submitAsyncTask(
+        'data:image/jpeg;base64,user',
+        'data:image/jpeg;base64,item',
+        'prompt',
+        'tryon-v1',
+        { taskId: 'task-1', clientSubmissionId: 'submission-1', origin: 'CONSUMER' },
+      )).resolves.toBe('ext-1')
+
+      expect(global.fetch).toHaveBeenCalledWith(
+        expect.any(String),
+        expect.objectContaining({ signal: expect.any(AbortSignal) }),
+      )
+      expect(logger.info).toHaveBeenCalledWith(
+        'grsai',
+        'Task submitted successfully',
+        expect.objectContaining({
+          externalTaskId: 'ext-1',
+          taskId: 'task-1',
+          clientSubmissionId: 'submission-1',
+          origin: 'CONSUMER',
+        }),
+      )
+    })
+
+    it('converts provider aborts into an explicit submission timeout', async () => {
+      process.env.GRSAI_SUBMIT_TIMEOUT_MS = '1234'
+      const timeout = Object.assign(new Error('aborted'), { name: 'TimeoutError' })
+      ;(global.fetch as jest.Mock).mockRejectedValue(timeout)
+
+      await expect(submitAsyncTask(
+        'data:image/jpeg;base64,user',
+        'data:image/jpeg;base64,item',
+        'prompt',
+      )).rejects.toThrow('GrsAi submission timed out after 1234ms')
+    })
   })
 
   describe('pollTaskResult', () => {

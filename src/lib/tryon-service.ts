@@ -16,6 +16,10 @@ import {
   isStoreTryOnOrigin,
 } from '@/lib/generation/tryon-result-persist'
 import type { TryOnPollResult, TryOnSubmissionResult } from '@/lib/generation/tryon-types'
+import {
+  reconcileStaleConsumerDispatch,
+  STALE_CONSUMER_DISPATCH_ERROR,
+} from '@/lib/generation/reconcile-stale-consumer-dispatch'
 
 export type { TryOnPollResult, TryOnSubmissionResult }
 
@@ -409,7 +413,12 @@ export async function submitTryOnTask(
         userDataUri,
         itemDataUri,
         effectivePrompt,
-        promptVersion
+        promptVersion,
+        {
+          taskId: task.id,
+          clientSubmissionId,
+          origin: 'CONSUMER',
+        },
       )
 
       // Update task with external ID
@@ -478,6 +487,17 @@ export async function getTryOnResult(taskId: string): Promise<TryOnPollResult> {
   }
 
   const metadata = task.metadata as any
+
+  if (
+    task.createdAt instanceof Date &&
+    task.updatedAt instanceof Date &&
+    await reconcileStaleConsumerDispatch(task, new Date(), 'poll')
+  ) {
+    return {
+      status: TaskStatus.FAILED,
+      error: STALE_CONSUMER_DISPATCH_ERROR,
+    }
+  }
 
   if (task.status === TaskStatus.FAILED && !metadata?.externalTaskId) {
     return {
@@ -700,7 +720,15 @@ export async function getTryOnResult(taskId: string): Promise<TryOnPollResult> {
             task.userImageUrl,
             task.itemImageUrl,
             retryPrompt,
-            retryPromptVersion
+            retryPromptVersion,
+            {
+              taskId,
+              clientSubmissionId:
+                typeof metadata?.clientSubmissionId === 'string'
+                  ? metadata.clientSubmissionId
+                  : undefined,
+              origin: 'CONSUMER',
+            },
           )
 
           await prisma.tryOnTask.update({
