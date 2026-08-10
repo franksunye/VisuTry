@@ -436,12 +436,17 @@ export const analytics = {
     })
   },
 
-  trackFaceAnalysisUpload(fileType: string, fileSizeBytes: number, userType: UserType) {
+  trackFaceAnalysisUpload(
+    fileType: string,
+    fileSizeBytes: number,
+    userType: UserType,
+    photoSource: 'upload' | 'camera' | 'template' | 'detector_handoff' = 'upload',
+  ) {
     sendEvent(AnalyticsEvent.FaceAnalysisPhotoUploaded, {
       file_type: fileType,
       file_size_bytes: fileSizeBytes,
       user_type: userType,
-      photo_source: 'upload',
+      photo_source: photoSource,
       product_path: 'face_analysis',
     })
   },

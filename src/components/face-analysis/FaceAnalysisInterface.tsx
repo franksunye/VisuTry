@@ -221,7 +221,7 @@ export function FaceAnalysisInterface() {
         setCurrentStep('analysis')
         setTask(null)
         setError(null)
-        analytics.trackFaceAnalysisUpload(file.type || 'unknown', file.size, userType)
+        analytics.trackFaceAnalysisUpload(file.type || 'unknown', file.size, userType, 'detector_handoff')
         analytics.trackFaceAnalysisPhotoHandoffRestored(searchParams.get('faceShape'))
       })
       .catch(() => {

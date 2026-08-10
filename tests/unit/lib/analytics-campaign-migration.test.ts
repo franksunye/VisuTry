@@ -376,4 +376,14 @@ describe('campaign intelligence analytics migration', () => {
     expect(eventNames).not.toContain('checkout_completed')
     expect(eventNames).not.toContain('purchase')
   })
+
+  it('tags detector handoff uploads with photo_source=detector_handoff', () => {
+    analytics.trackFaceAnalysisUpload('image/jpeg', 1024, 'free', 'detector_handoff')
+
+    expect(window.gtag).toHaveBeenCalledWith(
+      'event',
+      AnalyticsEvent.FaceAnalysisPhotoUploaded,
+      expect.objectContaining({ photo_source: 'detector_handoff' }),
+    )
+  })
 })

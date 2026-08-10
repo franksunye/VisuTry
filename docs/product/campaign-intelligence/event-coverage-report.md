@@ -1,21 +1,27 @@
 # Campaign Intelligence Event Coverage Report
 
-Status: Generated during engineering migration  
-Date: 2026-08-10  
+Status: Updated after Phase 1–3 engineering cutover  
+Date: 2026-08-11  
 Scope: `src/app/**`, `src/components/**`, `src/lib/**`
 
 ## Summary
 
 | Area | Call sites | Migration status |
 |---|---|---|
-| P0 Face Analysis | `FaceAnalysisInterface` via `analytics.trackFaceAnalysis*` | Migrated in `analytics.ts` → canonical names |
-| P0 Try-On | `TryOnInterface` via `analytics.trackTryOn*` | Migrated; `success` splits `tryon_completed` / `tryon_failed` |
-| P0 Compare | `FrameCompareInterface` via `analytics.trackFrameCompare*` | Migrated to `comparison_created` / `comparison_completed` |
-| Ecommerce (GA4 standard) | Pricing / payment trackers | Keep `begin_checkout` / `purchase` names |
-| Store / Style / Paywall custom events | Multiple components | Deferred; still via `trackCustomEvent` + v2 transport |
-| Direct `gtag` / `dataLayer` | GA bootstrap only | Infrastructure — do not move business events here |
+| P0 Face Analysis | `FaceAnalysisInterface` via `analytics.trackFaceAnalysis*` | **Done** — canonical names; handoff uses `photo_source=detector_handoff` |
+| P0 Try-On | `TryOnInterface` via `analytics.trackTryOn*` | **Done** — `tryon_started` / `tryon_completed` / `tryon_failed` |
+| P0 Compare | `FrameCompareInterface` via `analytics.trackFrameCompare*` | **Done** — `comparison_created` / `comparison_completed` |
+| Face Shape Detector | `FreeFaceShapeDetector*` via `trackFaceShapeDetector*` | **Done** — detection events + `journey_continued` |
+| Store / B2B | Store landing + lead form | **Done** — `campaign_landed` / intent / `lead_created` |
+| Style Explorer | core funnel via typed APIs | **Done** — recommendation / try-on events |
+| Paywall | `ConversionPaywallBoundary` | **Done** — `paywall_viewed` / intent / `begin_checkout` / return verified |
+| Face Analysis continuations | top picks / unlock / blog | **Done** — journey / recommendation / intent remaps |
+| Ecommerce (GA4 standard) | Pricing / PaymentConversionTracker | Keep `begin_checkout` / `purchase` |
+| Style Explorer micro-interactions | chips / download / restore custom events | Still feature-level `trackCustomEvent` via v2 |
+| Direct `gtag` / `dataLayer` | GA bootstrap only | Infrastructure only |
+| GA4 Admin console | custom dimensions / key events | **Deferred** — `ga4-console-checklist.md` |
 
-**Architecture after this migration:**
+**Architecture:**
 
 ```text
 Component
@@ -44,7 +50,7 @@ Note: Compare maps to `comparison_created` (canonical registry / taxonomy), not 
 | `src/components/try-on/TryOnInterface.tsx` | `try_on_face_analysis_nudge_click` | Cross-sell nudge | keep / later `journey_continued` | Defer |
 | `src/components/try-on/TryOnInterface.tsx` | `quota_exhausted_cta` | Paywall CTA | keep for now | Later map to commerce intent |
 | `src/components/compare/FrameCompareInterface.tsx` | `trackFrameCompareStart/Complete` | Compare funnel | via facade → P0 canonical | No component change |
-| `src/components/face-analysis/FaceAnalysisInterface.tsx` | `trackFaceAnalysis*` | Full face analysis funnel | via facade → P0 canonical | Later: handoff upload → `photo_source=detector_handoff` |
+| `src/components/face-analysis/FaceAnalysisInterface.tsx` | `trackFaceAnalysis*` | Full face analysis funnel | via facade → P0 canonical | Handoff upload uses `photo_source=detector_handoff` |
 | `src/components/face-analysis/FaceAnalysisInterface.tsx` | `begin_checkout` / `view_pricing` | Monetization | keep GA4 ecommerce names | Attach campaign context only |
 | `src/components/face-analysis/FaceAnalysisInterface.tsx` | `face_analysis_photo_handoff_restored` | Detector → analysis handoff | keep operational | Do not treat as KPI |
 | `src/components/face-analysis/FaceAnalysisInterface.tsx` | `face_analysis_unlock_success` | Report unlock | keep / later commerce outcome | Defer |
@@ -91,5 +97,8 @@ Note: Compare maps to `comparison_created` (canonical registry / taxonomy), not 
 - [x] `analytics_schema_version=2` on every event
 - [x] Campaign / merchant / store / surface / entry_point injected when available
 - [x] Acquisition + locale fields retained
-- [ ] GA4 DebugView spot-check on Face Analysis / Try-On / Compare
+- [x] Phase 2 detector + store migrated
+- [x] Phase 3 style explorer + paywall migrated
+- [ ] GA4 Admin custom dimensions / key events (`ga4-console-checklist.md`)
+- [ ] GA4 DebugView spot-check on Face Analysis / Try-On / Compare / Store
 - [ ] Update saved GA4 explorations for renamed events

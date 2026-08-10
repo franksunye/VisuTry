@@ -12,18 +12,19 @@ Status: Complete
 
 Status: Complete
 
-Completed:
+## Ops / Follow-ups
 
-- Style Explorer core funnel → `campaign_engaged` / `recommendation_viewed` / `tryon_*` / `tryon_shared`
-- Paywall → `paywall_viewed` / `purchase_intent_clicked` / `begin_checkout` / `checkout_return_verified`
-- Face Analysis top-picks / unlock / blog funnel remapped to recommendation / journey / intent events
-- Registry additions: `recommendation_started`, `paywall_viewed`, `tryon_shared`
-- Phase 3 completion report
+| Item | Status |
+|---|---|
+| Engineering event layer (Phases 1–3) | Complete |
+| Face Analysis `photo_source=detector_handoff` | Complete |
+| GA4 console custom dimensions + key events | **Deferred** (see `ga4-console-checklist.md`) |
+| GA4 DebugView smoke | Deferred with console access |
+| `frame_favorited` product instrumentation | Not started (needs explicit favorite UX) |
+| First-party analytics sink / Store Dashboard warehouse | Future |
 
-## Remaining / Ops
+## Notes
 
-1. `frame_favorited` instrumentation where product UX has explicit favorites
-2. Configure GA4 custom dimensions + key events per `ga4-dashboard-spec.md`
-3. DebugView validation across Phase 1–3 funnels
-4. Optional: Face Analysis handoff `photo_source=detector_handoff`
-5. First-party analytics sink for merchant dashboards (beyond GA4)
+- Cursor browser cannot use the operator’s already-logged-in Chrome session.
+- GA4 Admin changes are paused until console access is available without password recovery friction.
+- All product analytics emissions already include `analytics_schema_version=2` and campaign context when present; console config only unlocks reporting UX.
