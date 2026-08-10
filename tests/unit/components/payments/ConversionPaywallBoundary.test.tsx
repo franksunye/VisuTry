@@ -93,7 +93,7 @@ describe('ConversionPaywallBoundary', () => {
     )
   })
 
-  it('uses comparison-specific copy for Frame Compare', () => {
+  it('uses decision-expansion copy for Frame Compare', () => {
     render(
       <ConversionPaywallBoundary source="frame_compare">
         <a href="/en/pricing">Get credits</a>
@@ -102,9 +102,78 @@ describe('ConversionPaywallBoundary', () => {
 
     fireEvent.click(screen.getByRole('link', { name: 'Get credits' }))
 
-    expect(screen.getByRole('heading', { name: 'Keep comparing your options' })).toBeInTheDocument()
-    expect(screen.getByText('Compare more frames')).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Finish your comparison — and keep exploring' })).toBeInTheDocument()
+    expect(screen.getByText('Try more frames from the collection')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Continue for $2.99' })).toBeInTheDocument()
+  })
+
+  it('routes Style Explorer credit exhaustion into the compact paywall', () => {
+    window.history.replaceState({}, '', '/en/style-explorer?source=face-analysis&taskId=task-style')
+
+    render(
+      <ConversionPaywallBoundary source="style_explorer">
+        <a href="/en/pricing">Get credits</a>
+      </ConversionPaywallBoundary>,
+    )
+
+    fireEvent.click(screen.getByRole('link', { name: 'Get credits' }))
+
+    expect(screen.getByRole('heading', { name: 'Explore 4 new looks — and keep discovering your style' })).toBeInTheDocument()
+    expect(screen.getByText('Explore optical frames and sunglasses')).toBeInTheDocument()
+  })
+
+  it('routes Face Analysis Top Picks into the Top Picks purchase context', () => {
+    window.history.replaceState({}, '', '/en/face-analysis?taskId=task-top-picks')
+
+    render(
+      <ConversionPaywallBoundary source="face_analysis">
+        <a href="/en/pricing?source=face-analysis-top-picks">Continue with my top picks</a>
+      </ConversionPaywallBoundary>,
+    )
+
+    fireEvent.click(screen.getByRole('link', { name: 'Continue with my top picks' }))
+
+    expect(screen.getByRole('heading', { name: 'Try your recommended frames — and keep exploring' })).toBeInTheDocument()
+    expect(screen.getByText('Try your 4 recommended frames')).toBeInTheDocument()
+  })
+
+  it('keeps generic Face Analysis pricing links on the full Pricing page', () => {
+    render(
+      <ConversionPaywallBoundary source="face_analysis">
+        <a href="/en/pricing">Pricing</a>
+      </ConversionPaywallBoundary>,
+    )
+
+    fireEvent.click(screen.getByRole('link', { name: 'Pricing' }))
+
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+  })
+
+  it('passes the Face Analysis task into Checkout when unlocking the report', async () => {
+    window.history.replaceState({}, '', '/en/face-analysis?taskId=task-unlock')
+    const fetchMock = global.fetch as jest.Mock
+    fetchMock.mockResolvedValue(response(false, { success: false, error: 'test checkout failure' }, 500))
+
+    render(
+      <ConversionPaywallBoundary source="face_analysis">
+        <a href="/en/pricing?source=face-analysis-unlock&taskId=task-unlock">Unlock report</a>
+      </ConversionPaywallBoundary>,
+    )
+
+    fireEvent.click(screen.getByRole('link', { name: 'Unlock report' }))
+    expect(screen.getByRole('heading', { name: 'Unlock your full eyewear report' })).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Unlock for $2.99' }))
+
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(1))
+    const [, init] = fetchMock.mock.calls[0]
+    const body = JSON.parse((init as RequestInit).body as string)
+
+    expect(body.unlockTaskId).toBe('task-unlock')
+    expect(body.successUrl).toContain('taskId=task-unlock')
+    expect(body.successUrl).toContain('conversion=face_analysis_unlock')
+    expect(body.successUrl).toContain('conversion_task_id=task-unlock')
+    expect(body.successUrl).toContain('session_id={CHECKOUT_SESSION_ID}')
+    expect(await screen.findByText('test checkout failure')).toBeInTheDocument()
   })
 
   it('does not intercept unrelated links', () => {
