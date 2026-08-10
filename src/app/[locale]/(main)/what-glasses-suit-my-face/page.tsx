@@ -5,6 +5,7 @@ import { getSearchToToolRouteCopy } from '@/config/search-to-tool-route-copy'
 import type { Locale } from '@/i18n'
 import { generateStructuredData } from '@/lib/seo'
 import { generateSearchToToolSEO } from '@/lib/search-to-tool-seo'
+import { B01VisualSeoSections } from '@/components/seo/B01VisualSeoSections'
 
 const pathname = '/what-glasses-suit-my-face'
 const routeId = 'what-glasses-suit-my-face' as const
@@ -57,6 +58,8 @@ export default function WhatGlassesSuitMyFacePage({ params }: Props) {
       faq={copy.faq}
       faqEyebrow={copy.faqEyebrow}
       faqTitle={copy.faqTitle}
-    />
+    >
+      <B01VisualSeoSections locale={locale} pagePath="/what-glasses-suit-my-face" />
+    </SearchToToolLanding>
   )
 }

@@ -1,7 +1,7 @@
-# VisuTry Visual SEO Production v1.2
+# VisuTry Visual SEO Production v1.3
 
 **Status:** Active execution specification  
-**Last updated:** 2026-08-03  
+**Last updated:** 2026-08-10
 **Owner:** Growth / Product / Engineering  
 **Parent strategy:** `docs/strategy/analytics/gtm.md` → Engine 2 — Visual Discovery  
 **Scope:** Google Images, Search→Tool page visuals, image SEO, Pinterest-ready source assets, and Codex-assisted production/integration.
@@ -37,14 +37,14 @@ Primary distribution surfaces:
 
 ### Current accepted progress
 
-**0 / 182 accepted images**
+**8 / 182 accepted images**
 
-This program is being restarted from zero for Desktop Codex execution.
+This program was restarted from zero for Desktop Codex execution. Batch B01 is now the first accepted production unit.
 
 - No previously generated conversational image is considered accepted production output.
 - Previous ChatGPT-generated images may be used only as visual references if useful.
 - Contact sheets, batch overviews, accidental grids, wrong-topic generations, cancelled generations, and earlier experimental outputs do **not** count.
-- The first canonical production item is `VSEO-001`.
+- The first canonical production unit is Batch B01 (`VSEO-001`–`VSEO-008`).
 - Progress advances only after Codex has completed QA, optimization, page integration, build verification, and manifest update.
 
 ### Planned composition
@@ -494,6 +494,12 @@ Each generation brief must include:
 .local-assets/visual-seo/inbox/VSEO-###__semantic-name.png
 ```
 
+Accepted source masters are committed separately from the public web assets under:
+
+```text
+assets/visual-seo/B01/source/
+```
+
 ### Step D — Codex QA
 
 Codex checks:
@@ -546,18 +552,20 @@ When the last image in a batch passes image-level QA, perform the batch-level co
 
 ## 11. Canonical queue — VSEO-001 onward
 
-The entire program restarts here. The first 40 items are explicitly defined below; none are accepted at restart time.
+The entire program restarts here. The first 40 items are explicitly defined below; B01 is now accepted and the remaining items are pending.
+
+The B01 mappings below are the current canonical assignment for the first eight assets. They supersede earlier conversational or draft mappings.
 
 | ID | Source semantic name | Public filename | Primary page owner / intent | Template |
 | --- | --- | --- | --- | --- |
-| VSEO-001 | `ai-face-shape-detector-example` | `ai-face-shape-detector-example.webp` | `/en/face-shape-detector` | D/E |
-| VSEO-002 | `common-face-shapes-guide` | `common-face-shapes-guide.webp` | `/en/face-shape-detector` | D |
-| VSEO-003 | `what-is-my-face-shape-result` | `what-is-my-face-shape-result.webp` | `/en/what-is-my-face-shape` | D/E |
-| VSEO-004 | `what-glasses-suit-my-face-guide` | `what-glasses-suit-my-face-guide.webp` | `/en/what-glasses-suit-my-face` | A/E |
-| VSEO-005 | `virtual-glasses-try-on-before-after` | `virtual-glasses-try-on-before-after.webp` | `/en/virtual-glasses-try-on` | B/E |
-| VSEO-006 | `compare-four-glasses-frames` | `compare-four-glasses-frames.webp` | `/en/compare-glasses-frames` | B |
-| VSEO-007 | `ai-glasses-advisor-analysis` | `ai-glasses-advisor-analysis.webp` | `/en/ai-glasses-advisor` | A/E |
-| VSEO-008 | `best-glasses-for-round-face` | `best-glasses-for-round-face.webp` | `/en/style/round-face` | A |
+| VSEO-001 | `ai-face-shape-detector-example` | `ai-face-shape-detector-example.webp` | `/en/face-shape-detector` — what the AI measures | D/E |
+| VSEO-002 | `common-face-shapes-guide` | `common-face-shapes-guide.webp` | `/en/face-shape-detector` — common face shapes | D |
+| VSEO-003 | `face-shape-photo-analysis-result` | `face-shape-photo-analysis-result.webp` | `/en/face-shape-detector` — example result | D/E |
+| VSEO-004 | `how-to-identify-your-face-shape` | `how-to-identify-your-face-shape.webp` | `/en/what-is-my-face-shape` — identification method | D |
+| VSEO-005 | `face-shape-comparison-guide` | `face-shape-comparison-guide.webp` | `/en/what-is-my-face-shape` — six-shape comparison | D |
+| VSEO-006 | `what-is-my-face-shape-result` | `what-is-my-face-shape-result.webp` | `/en/what-is-my-face-shape` — result to detector CTA | D/E |
+| VSEO-007 | `what-glasses-suit-my-face-guide` | `what-glasses-suit-my-face-guide.webp` | `/en/what-glasses-suit-my-face` — recommendation logic | A/E |
+| VSEO-008 | `compare-glasses-for-your-face` | `compare-glasses-for-your-face.webp` | `/en/what-glasses-suit-my-face` — compare entry | B |
 | VSEO-009 | `best-glasses-for-oval-face` | `best-glasses-for-oval-face.webp` | `/en/style/oval-face` | A |
 | VSEO-010 | `rectangle-glasses-round-face-01-hero` | `rectangle-glasses-round-face-01-hero.webp` | `/en/glasses-guide/best-rectangle-glasses-for-round-face` | A |
 | VSEO-011 | `best-glasses-for-square-face` | `best-glasses-for-square-face.webp` | `/en/style/square-face` | A |
@@ -589,7 +597,7 @@ The entire program restarts here. The first 40 items are explicitly defined belo
 | VSEO-037 | `how-to-identify-diamond-face` | `how-to-identify-diamond-face.webp` | `/en/face-shapes/diamond` | D |
 | VSEO-038 | `oblong-face-shape-characteristics` | `oblong-face-shape-characteristics.webp` | `/en/face-shapes/oblong` | D |
 | VSEO-039 | `how-to-identify-oblong-face` | `how-to-identify-oblong-face.webp` | `/en/face-shapes/oblong` | D |
-| VSEO-040 | `face-shape-photo-analysis-result` | `face-shape-photo-analysis-result.webp` | `/en/face-shape-detector` / `/en/what-is-my-face-shape` | D/E |
+| VSEO-040 | `face-shape-measurement-breakdown` | `face-shape-measurement-breakdown.webp` | future face-shape measurement intent | D |
 
 Earlier conversational labels such as `B01-11` are superseded by `VSEO-###`.
 
@@ -824,7 +832,7 @@ If Codex detects a discrepancy between this document and the current route regis
 
 | Batch | Range | Status | Notes |
 | --- | --- | --- | --- |
-| B01 | VSEO-001–008 | ⏳ Not started | Establish canonical master visual baseline |
+| B01 | VSEO-001–008 | ✅ Accepted | Eight canonical master assets integrated into three English Search→Tool pages; WebP, source archive, image sitemap, and QA manifest complete |
 | B02 | VSEO-009–016 | ⏳ Planned | Core workflow / try-on foundations |
 | B03 | VSEO-017–024 | ⏳ Planned | Compare / Advisor foundations |
 | B04 | VSEO-025–033 | ⏳ Planned | Face Style owners A |
@@ -846,7 +854,7 @@ If Codex detects a discrepancy between this document and the current route regis
 
 ### Current next action
 
-> Start Batch B01 with `VSEO-001__ai-face-shape-detector-example.png` as one independent master asset. After image-level QA, optimization, integration, and successful build, mark only VSEO-001 accepted. Do not generate any batch overview image.
+> Batch B01 is complete. The next production unit is B02, beginning with `VSEO-009`; preserve the same source archive, WebP, adjacent-copy, internal-link, and image-sitemap checks. Do not generate any batch overview image.
 
 ---
 

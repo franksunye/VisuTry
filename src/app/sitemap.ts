@@ -7,6 +7,7 @@ import { FACE_SHAPE_SLUGS } from '@/config/face-shape-content'
 import { FACE_SHAPE_COMPARISON_SLUGS } from '@/config/face-shape-comparisons'
 import { CURATED_BRAND_SLUGS, isCuratedBrandSlug } from '@/config/brand-try-on-content'
 import { COMBINATION_SEARCH_PAGES } from '@/config/search-combination-pages'
+import { getVisualSeoAssetsForPage } from '@/config/visual-seo-assets'
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = (process.env.NEXT_PUBLIC_SITE_URL || 'https://www.visutry.com').replace(/\/+$/, '')
@@ -19,6 +20,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     })
     alternates['x-default'] = `${baseUrl}/en${path}`
     return alternates
+  }
+
+  const visualSeoImages = (path: string) => {
+    const assets = getVisualSeoAssetsForPage(path)
+    return assets.length > 0 ? assets.map((asset) => `${baseUrl}${asset.publicPath}`) : undefined
   }
 
   const staticPagePaths = [
@@ -65,6 +71,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         changeFrequency,
         priority,
         alternates: { languages: generateAlternates(path) },
+        ...(locale === 'en' && visualSeoImages(path) ? { images: visualSeoImages(path) } : {}),
       })
     })
   })

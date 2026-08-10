@@ -5,6 +5,7 @@ import { getSearchToToolLandingCopy } from '@/config/search-to-tool-locales'
 import type { Locale } from '@/i18n'
 import { generateStructuredData } from '@/lib/seo'
 import { generateSearchToToolSEO } from '@/lib/search-to-tool-seo'
+import { B01VisualSeoSections } from '@/components/seo/B01VisualSeoSections'
 
 const pathname = '/what-is-my-face-shape'
 const routeId = 'what-is-my-face-shape' as const
@@ -59,6 +60,8 @@ export default function WhatIsMyFaceShapePage({ params }: Props) {
       faq={copy.faq}
       faqEyebrow={copy.faqEyebrow}
       faqTitle={copy.faqTitle}
-    />
+    >
+      <B01VisualSeoSections locale={locale} pagePath="/what-is-my-face-shape" />
+    </SearchToToolLanding>
   )
 }

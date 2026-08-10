@@ -5,6 +5,7 @@ import { FreeFaceShapeDetector } from '@/components/face-shape/FreeFaceShapeDete
 import type { Locale } from '@/i18n'
 import { generateI18nSEO, generateStructuredData } from '@/lib/seo'
 import { getFaceShapeSeoCopy } from '@/config/face-shape-seo-locales'
+import { B01VisualSeoSections } from '@/components/seo/B01VisualSeoSections'
 
 interface FaceShapeDetectorPageProps {
   params: { locale: string }
@@ -71,6 +72,8 @@ export default function FaceShapeDetectorPage({ params }: FaceShapeDetectorPageP
           </div>
 
           <FreeFaceShapeDetector locale={locale} />
+
+          <B01VisualSeoSections locale={locale} pagePath="/face-shape-detector" />
 
           <section className="mt-10 grid gap-4 md:grid-cols-3">
             {copy.detector.trust.map(({ title, text }, index) => {
