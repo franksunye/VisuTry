@@ -29,6 +29,20 @@ class FaceLandmarkRuntimeError extends Error {
   }
 }
 
+class FaceImageDecodeError extends Error {
+  constructor(message: string) {
+    super(message)
+    this.name = 'FaceImageDecodeError'
+  }
+}
+
+type DecodedImageSource = {
+  image: ImageBitmap | HTMLImageElement
+  width: number
+  height: number
+  close: () => void
+}
+
 const landmarkerPromises: Partial<Record<string, Promise<FaceLandmarkerInstance>>> = {}
 const imageDetectionPromises = new Map<string, Promise<FaceLandmarkDetectionResult | null>>()
 let visionPromise: Promise<typeof import('@mediapipe/tasks-vision')> | null = null
@@ -225,38 +239,32 @@ export async function detectFaceLandmarksFromImage(
 }
 
 export async function analyzeFaceLandmarkFile(file: File): Promise<FaceLandmarkFileResult> {
-  if (typeof window === 'undefined' || typeof createImageBitmap === 'undefined') {
+  if (typeof window === 'undefined' || typeof Image === 'undefined') {
     return {
       geometry: unavailableGeometry('unsupported_browser', 'Face landmark detection is not available in this browser.'),
       detection: null,
     }
   }
 
-  let bitmap: ImageBitmap | null = null
+  let decodedImage: DecodedImageSource | null = null
   try {
-    try {
-      bitmap = await createImageBitmap(file)
-    } catch (error) {
-      return {
-        geometry: unavailableGeometry(
-          'image_decode_failed',
-          error instanceof Error ? `Image could not be decoded: ${error.message}` : 'Image could not be decoded.',
-        ),
-        detection: null,
-      }
-    }
+    decodedImage = await decodeImageFile(file)
 
-    const detection = await detectFaceLandmarksFromImage(bitmap)
+    const detection = await detectFaceLandmarksFromImage(decodedImage.image)
     return {
       geometry: analyzeFaceLandmarks(detection?.landmarks, {
         faceCount: detection?.faceCount ?? 0,
-        imageWidth: bitmap.width,
-        imageHeight: bitmap.height,
+        imageWidth: decodedImage.width,
+        imageHeight: decodedImage.height,
       }),
       detection,
     }
   } catch (error) {
-    const reason = error instanceof FaceLandmarkRuntimeError ? error.reason : 'unknown'
+    const reason = error instanceof FaceLandmarkRuntimeError
+      ? error.reason
+      : error instanceof FaceImageDecodeError
+        ? 'image_decode_failed'
+        : 'unknown'
     return {
       geometry: unavailableGeometry(
         reason,
@@ -265,7 +273,70 @@ export async function analyzeFaceLandmarkFile(file: File): Promise<FaceLandmarkF
       detection: null,
     }
   } finally {
-    bitmap?.close()
+    decodedImage?.close()
+  }
+}
+
+async function decodeImageFile(file: File): Promise<DecodedImageSource> {
+  if (!file || file.size === 0) {
+    throw new FaceImageDecodeError('Image file is empty.')
+  }
+
+  let bitmapError: unknown
+  if (typeof createImageBitmap === 'function') {
+    try {
+      const bitmap = await createImageBitmap(file)
+      return {
+        image: bitmap,
+        width: bitmap.width,
+        height: bitmap.height,
+        close: () => bitmap.close(),
+      }
+    } catch (error) {
+      bitmapError = error
+    }
+  } else {
+    bitmapError = new Error('createImageBitmap is unavailable')
+  }
+
+  const objectUrl = URL.createObjectURL(file)
+  const image = new Image()
+  image.decoding = 'async'
+
+  try {
+    if (typeof image.decode === 'function') {
+      image.src = objectUrl
+      await image.decode()
+    } else {
+      await new Promise<void>((resolve, reject) => {
+        image.onload = () => resolve()
+        image.onerror = () => reject(new Error('Image element could not be decoded.'))
+        image.src = objectUrl
+      })
+    }
+
+    const width = image.naturalWidth || image.width
+    const height = image.naturalHeight || image.height
+    if (!width || !height) {
+      throw new Error('Decoded image has no dimensions.')
+    }
+
+    return {
+      image,
+      width,
+      height,
+      close: () => {
+        image.onload = null
+        image.onerror = null
+        image.src = ''
+      },
+    }
+  } catch (imageError) {
+    const bitmapMessage = bitmapError instanceof Error ? bitmapError.message : 'bitmap decoder rejected the file'
+    const imageMessage = imageError instanceof Error ? imageError.message : 'image element decoder rejected the file'
+    throw new FaceImageDecodeError(`Image could not be decoded (${bitmapMessage}; fallback: ${imageMessage}).`)
+  } finally {
+    URL.revokeObjectURL(objectUrl)
   }
 }
 

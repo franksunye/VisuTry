@@ -22,11 +22,30 @@ const DETECTOR_MAX_DIMENSION = 1280
 const DETECTOR_QUALITY = 0.88
 const ACCEPTED_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp'])
 
-function recordDetection(status: 'COMPLETED' | 'FAILED', failureReason?: FaceShapeFailureReason) {
+interface DetectionDiagnostics {
+  sourceFileType: string
+  sourceFileSize: number
+  detectorFileType: string
+  detectorFileSize: number
+  compressionFailed?: boolean
+  compressionErrorName?: string
+}
+
+function recordDetection(
+  status: 'COMPLETED' | 'FAILED',
+  failureReason?: FaceShapeFailureReason,
+  diagnostics?: DetectionDiagnostics,
+) {
+  const payload = {
+    status,
+    ...(failureReason ? { failureReason } : {}),
+    ...(diagnostics ? { diagnostics } : {}),
+  }
+
   void fetch('/api/face-shape-detector/usage', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ status, failureReason }),
+    body: JSON.stringify(payload),
     keepalive: true,
   }).catch(() => {
     // Business telemetry must never interrupt the on-device detector experience.
@@ -85,12 +104,23 @@ export function FreeFaceShapeDetector({ locale }: FreeFaceShapeDetectorProps) {
     try {
       // Preserve the original file for preview/commercial handoff, while giving
       // MediaPipe a bounded working image to reduce mobile decode/GPU memory cost.
-      const detectorFile = await compressImage(
-        file,
-        DETECTOR_MAX_DIMENSION,
-        DETECTOR_QUALITY,
-        { profile: 'user-photo' },
-      ).catch(() => file)
+      let detectorFile = file
+      let compressionErrorName: string | undefined
+      try {
+        detectorFile = await compressImage(
+          file,
+          DETECTOR_MAX_DIMENSION,
+          DETECTOR_QUALITY,
+          { profile: 'user-photo' },
+        )
+      } catch (compressionError) {
+        // The raw file is still a valid compatibility fallback. The decoder
+        // itself has a second HTMLImageElement path for browsers where canvas
+        // conversion or createImageBitmap is unavailable for this file.
+        compressionErrorName = compressionError instanceof Error
+          ? compressionError.name
+          : 'UnknownError'
+      }
 
       const analysis = await analyzeFaceLandmarkFile(detectorFile)
       setResult(analysis.geometry)
@@ -111,7 +141,15 @@ export function FreeFaceShapeDetector({ locale }: FreeFaceShapeDetectorProps) {
         const message = analysis.geometry.warnings[0] ?? 'This photo could not be measured. Try a clear, straight-on image.'
         setError(message)
         analytics.trackFaceShapeDetectorFailed(message)
-        recordDetection('FAILED', analysis.geometry.failureReason ?? 'unknown')
+        recordDetection('FAILED', analysis.geometry.failureReason ?? 'unknown', {
+          sourceFileType: file.type,
+          sourceFileSize: file.size,
+          detectorFileType: detectorFile.type,
+          detectorFileSize: detectorFile.size,
+          ...(compressionErrorName
+            ? { compressionFailed: true, compressionErrorName }
+            : {}),
+        })
       }
     } catch {
       const message = 'Face analysis could not start in this browser. Try a recent version of Chrome, Edge, or Safari.'

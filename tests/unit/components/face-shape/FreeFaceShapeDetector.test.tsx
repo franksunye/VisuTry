@@ -196,12 +196,33 @@ describe('FreeFaceShapeDetector', () => {
 
     expect(await screen.findByText(/face landmarks were not available/i)).toBeInTheDocument()
 
-    expect(mockFetch).toHaveBeenCalledWith(
-      '/api/face-shape-detector/usage',
-      expect.objectContaining({
-        method: 'POST',
-        body: JSON.stringify({ status: 'FAILED', failureReason: 'no_face' }),
-      }),
-    )
+    const usageCalls = mockFetch.mock.calls as unknown as Array<[string, RequestInit]>
+    const usageCall = usageCalls.find(([url]) => url === '/api/face-shape-detector/usage')
+    expect(usageCall).toBeDefined()
+    if (!usageCall) throw new Error('Usage request was not recorded')
+    const usageRequest = usageCall[1]
+    expect(JSON.parse(String(usageRequest.body))).toEqual({
+      status: 'FAILED',
+      failureReason: 'no_face',
+      diagnostics: {
+        sourceFileType: 'image/jpeg',
+        sourceFileSize: 8,
+        detectorFileType: 'image/jpeg',
+        detectorFileSize: 8,
+      },
+    })
+  })
+
+  it('continues with the original file when preprocessing fails', async () => {
+    const compressionError = new Error('Image loading failed')
+    mockCompressImage.mockRejectedValue(compressionError)
+
+    render(<FreeFaceShapeDetector locale="en" />)
+
+    const file = new File(['portrait'], 'portrait.jpg', { type: 'image/jpeg' })
+    fireEvent.change(getPhotoLibraryInput(), { target: { files: [file] } })
+
+    expect(await screen.findByRole('heading', { name: 'Oval' })).toBeInTheDocument()
+    expect(mockAnalyzeFaceLandmarkFile).toHaveBeenCalledWith(file)
   })
 })
