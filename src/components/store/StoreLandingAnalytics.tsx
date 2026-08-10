@@ -17,9 +17,9 @@ interface StoreCtaLinkProps {
 
 export function StoreLandingTracker({ locale }: StoreLandingTrackerProps) {
   useEffect(() => {
-    analytics.trackCustomEvent('store_landing_viewed', {
-      source: 'store_landing',
+    analytics.trackStoreLandingViewed({
       locale,
+      landingSurface: 'store_marketing',
     })
   }, [locale])
 
@@ -32,11 +32,12 @@ export function StoreCtaLink({ href, locale, ctaLocation, children, className }:
       href={href}
       className={className}
       onClick={() => {
-        analytics.trackCustomEvent('store_cta_clicked', {
-          source: 'store_landing',
+        analytics.trackStoreCtaClicked({
           locale,
-          cta_location: ctaLocation,
+          ctaLocation,
           href,
+          intentType: ctaLocation,
+          productCategory: 'store_solution',
         })
       }}
     >

@@ -166,4 +166,120 @@ describe('campaign intelligence analytics migration', () => {
       }),
     )
   })
+
+  it('migrates face shape detector APIs to canonical events and journey_continued', () => {
+    analytics.trackFaceShapeDetectorStart()
+    analytics.trackFaceShapeDetectorUpload('image/jpeg', 2048)
+    analytics.trackFaceShapeDetectorComplete('oval', 0.88, 900)
+    analytics.trackFaceShapeDetectorFailed('no face')
+    analytics.trackFaceShapeDetectorCta('oval', 'face_analysis')
+
+    expect(window.gtag).toHaveBeenCalledWith(
+      'event',
+      AnalyticsEvent.FaceShapeDetectionStarted,
+      expect.objectContaining({ analysis_mode: 'on_device_detector' }),
+    )
+    expect(window.gtag).toHaveBeenCalledWith(
+      'event',
+      AnalyticsEvent.FaceShapePhotoUploaded,
+      expect.objectContaining({ file_type: 'image/jpeg' }),
+    )
+    expect(window.gtag).toHaveBeenCalledWith(
+      'event',
+      AnalyticsEvent.FaceShapeDetectionCompleted,
+      expect.objectContaining({ face_shape: 'oval' }),
+    )
+    expect(window.gtag).toHaveBeenCalledWith(
+      'event',
+      AnalyticsEvent.FaceShapeDetectionFailed,
+      expect.objectContaining({ failure_reason: 'no face' }),
+    )
+    expect(window.gtag).toHaveBeenCalledWith(
+      'event',
+      AnalyticsEvent.JourneyContinued,
+      expect.objectContaining({
+        source_journey: 'face_shape_detection',
+        destination: 'face_analysis',
+        face_shape: 'oval',
+      }),
+    )
+
+    const eventNames = (window.gtag as jest.Mock).mock.calls
+      .filter((call) => call[0] === 'event')
+      .map((call) => call[1])
+    expect(eventNames).not.toContain('face_shape_detector_start')
+    expect(eventNames).not.toContain('face_shape_detector_upload')
+    expect(eventNames).not.toContain('face_shape_detector_complete')
+    expect(eventNames).not.toContain('face_shape_detector_failed')
+    expect(eventNames).not.toContain('face_shape_detector_cta_click')
+    expect(eventNames).not.toContain(AnalyticsEvent.FaceAnalysisStarted)
+  })
+
+  it('migrates store landing/lead events to campaign intelligence model', () => {
+    analytics.trackStoreLandingViewed({
+      locale: 'en',
+      campaignId: 'cmp_store',
+      merchantId: 'm_store',
+      storeId: 's_store',
+    })
+    analytics.trackStoreCtaClicked({
+      locale: 'en',
+      ctaLocation: 'hero_primary',
+      href: '/en/store#lead',
+      intentType: 'request_demo',
+      productCategory: 'store_solution',
+      merchantId: 'm_store',
+    })
+    analytics.trackStoreLeadFormStarted({ locale: 'en' })
+    analytics.trackStoreLeadCreated({
+      locale: 'en',
+      businessType: 'opticalStore',
+      intent: 'demo',
+      frameCount: '8-20',
+      campaignId: 'cmp_store',
+      merchantId: 'm_store',
+      storeId: 's_store',
+    })
+
+    expect(window.gtag).toHaveBeenCalledWith(
+      'event',
+      AnalyticsEvent.CampaignLanded,
+      expect.objectContaining({
+        campaign_id: 'cmp_store',
+        merchant_id: 'm_store',
+        store_id: 's_store',
+        landing_surface: 'store_marketing',
+        entry_point: 'store',
+      }),
+    )
+    expect(window.gtag).toHaveBeenCalledWith(
+      'event',
+      AnalyticsEvent.PurchaseIntentClicked,
+      expect.objectContaining({
+        intent_type: 'request_demo',
+        product_category: 'store_solution',
+      }),
+    )
+    expect(window.gtag).toHaveBeenCalledWith(
+      'event',
+      AnalyticsEvent.CampaignEngaged,
+      expect.objectContaining({ engagement_type: 'lead_form_started' }),
+    )
+    expect(window.gtag).toHaveBeenCalledWith(
+      'event',
+      AnalyticsEvent.LeadCreated,
+      expect.objectContaining({
+        lead_type: 'demo',
+        user_intent: 'demo',
+        business_type: 'opticalStore',
+      }),
+    )
+
+    const eventNames = (window.gtag as jest.Mock).mock.calls
+      .filter((call) => call[0] === 'event')
+      .map((call) => call[1])
+    expect(eventNames).not.toContain('store_landing_viewed')
+    expect(eventNames).not.toContain('store_cta_clicked')
+    expect(eventNames).not.toContain('store_lead_submitted')
+  })
 })

@@ -2,7 +2,7 @@
 
 ## Phase 1 - Analytics Foundation
 
-Status: Complete (foundation + P0 cutover)
+Status: Complete
 
 Completed:
 
@@ -12,17 +12,27 @@ Completed:
 - Analytics layer v2 specification
 - Canonical event registry (`src/lib/analytics-events.ts`)
 - Campaign Event Layer (`src/lib/analytics-v2.ts`)
-- Event coverage report (`event-coverage-report.md`)
+- Event coverage report
 - `analytics.ts` routes all emissions through `trackCampaignEvent`
-- P0 funnel rename (single emission, no dual-write):
-  - Face Analysis → `face_analysis_started` / `face_analysis_photo_uploaded` / `face_analysis_completed` / `face_analysis_failed`
-  - Try-On → `tryon_started` / `tryon_completed` / `tryon_failed`
-  - Compare → `comparison_created` / `comparison_completed`
+- P0 funnel rename (Face Analysis / Try-On / Compare)
 
-## Next Implementation Steps
+## Phase 2 - Detector + Store + GA4 Dashboard Spec
 
-1. Migrate Face Shape Detector events to `face_shape_detection_*` / `journey_continued`
-2. Map Store / lead custom events to `campaign_landed` / `lead_created`
-3. Map Style Explorer subset to recommendation / try-on stages
-4. Validate GA4 DebugView + update saved explorations for renamed P0 events
-5. Optionally pass `photo_source=detector_handoff` from Face Analysis handoff path
+Status: Complete
+
+Completed:
+
+- Free Face Shape Detector → canonical detection events + `journey_continued`
+- Store landing / CTA / lead → `campaign_landed` / `purchase_intent_clicked` / `campaign_engaged` / `lead_created`
+- GA4 dashboard specification (`ga4-dashboard-spec.md`)
+- Phase 2 completion report (`phase2-completion-report.md`)
+- Extended unit coverage in `analytics-campaign-migration.test.ts`
+
+## Next Implementation Steps (Phase 3+)
+
+1. Style Explorer → recommendation / try-on stage mapping
+2. Paywall custom events → purchase-intent / commerce outcomes
+3. `frame_favorited` and richer frame interest dimensions
+4. Configure GA4 custom dimensions + key events per `ga4-dashboard-spec.md`
+5. DebugView validation for detector bridge and store lead funnel
+6. Optional: `photo_source=detector_handoff` on Face Analysis upload path

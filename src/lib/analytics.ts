@@ -32,7 +32,7 @@ import type { ProductType } from '@/config/pricing'
 import type { AcquisitionAttribution } from '@/lib/acquisition-attribution'
 import { sanitizeAcquisitionAttribution } from '@/lib/acquisition-attribution'
 import { AnalyticsEvent } from '@/lib/analytics-events'
-import { trackCampaignEvent } from '@/lib/analytics-v2'
+import { setCampaignAnalyticsContext, trackCampaignEvent } from '@/lib/analytics-v2'
 
 const LANDING_PAGE_KEY = 'visutry_landing_page'
 const ACQUISITION_SOURCE_KEY = 'visutry_acquisition_source'
@@ -470,16 +470,20 @@ export const analytics = {
   },
 
   trackFaceShapeDetectorUpload(fileType: string, fileSizeBytes: number) {
-    sendEvent('face_shape_detector_upload', {
+    sendEvent(AnalyticsEvent.FaceShapePhotoUploaded, {
       file_type: fileType,
       file_size_bytes: fileSizeBytes,
       processing_mode: 'on_device',
+      analysis_mode: 'on_device_detector',
+      product_path: 'face_shape_detector',
     })
   },
 
   trackFaceShapeDetectorStart() {
-    sendEvent('face_shape_detector_start', {
+    sendEvent(AnalyticsEvent.FaceShapeDetectionStarted, {
       processing_mode: 'on_device',
+      analysis_mode: 'on_device_detector',
+      product_path: 'face_shape_detector',
     })
   },
 
@@ -488,21 +492,29 @@ export const analytics = {
     qualityScore: number,
     processingTimeMs: number,
   ) {
-    sendEvent('face_shape_detector_complete', {
+    sendEvent(AnalyticsEvent.FaceShapeDetectionCompleted, {
       face_shape: faceShape,
       quality_score: qualityScore,
       processing_time_ms: processingTimeMs,
       processing_mode: 'on_device',
+      analysis_mode: 'on_device_detector',
+      product_path: 'face_shape_detector',
     })
   },
 
   trackFaceShapeDetectorFailed(reason: string) {
-    sendEvent('face_shape_detector_failed', {
+    sendEvent(AnalyticsEvent.FaceShapeDetectionFailed, {
       failure_reason: reason.slice(0, 200),
       processing_mode: 'on_device',
+      analysis_mode: 'on_device_detector',
+      product_path: 'face_shape_detector',
     })
   },
 
+  /**
+   * CTA from Free Face Shape Result — journey continuation only.
+   * Does NOT fire face_analysis_started (that happens when analysis actually begins).
+   */
   trackFaceShapeDetectorCta(
     faceShape: string,
     destination: 'face_analysis' | 'glasses_advisor' | 'virtual_try_on' | 'frame_compare' | 'face_shape_guide',
@@ -513,9 +525,11 @@ export const analytics = {
       setGrowthContext({ product_path: productPath })
     }
 
-    sendEvent('face_shape_detector_cta_click', {
-      face_shape: faceShape,
+    sendEvent(AnalyticsEvent.JourneyContinued, {
+      source_journey: 'face_shape_detection',
+      from_stage: 'face_shape_detection',
       destination,
+      face_shape: faceShape,
       ...(productPath ? { product_path: productPath } : {}),
     })
   },
@@ -524,10 +538,91 @@ export const analytics = {
     faceShape: string,
     status: 'stored' | 'fallback',
   ) {
+    // Operational transition — keep dedicated name for reliability diagnosis.
     sendEvent('face_shape_detector_photo_handoff', {
       face_shape: faceShape,
       status,
       storage: status === 'stored' ? 'indexed_db' : 'unavailable',
+      source_journey: 'face_shape_detection',
+    })
+  },
+
+  trackStoreLandingViewed(params: {
+    locale: string
+    campaignId?: string
+    merchantId?: string
+    storeId?: string
+    landingSurface?: string
+  }) {
+    setCampaignAnalyticsContext({
+      entry_point: 'store',
+      surface: 'merchant_store',
+      ...(params.campaignId ? { campaign_id: params.campaignId } : {}),
+      ...(params.merchantId ? { merchant_id: params.merchantId } : {}),
+      ...(params.storeId ? { store_id: params.storeId } : {}),
+    })
+
+    sendEvent(AnalyticsEvent.CampaignLanded, {
+      source: 'store_landing',
+      locale: params.locale,
+      landing_surface: params.landingSurface || 'store_marketing',
+      entry_point: 'store',
+      ...(params.campaignId ? { campaign_id: params.campaignId } : {}),
+      ...(params.merchantId ? { merchant_id: params.merchantId } : {}),
+      ...(params.storeId ? { store_id: params.storeId } : {}),
+    })
+  },
+
+  trackStoreCtaClicked(params: {
+    locale: string
+    ctaLocation: string
+    href: string
+    intentType?: string
+    productCategory?: string
+    merchantId?: string
+  }) {
+    sendEvent(AnalyticsEvent.PurchaseIntentClicked, {
+      source: 'store_landing',
+      locale: params.locale,
+      cta_location: params.ctaLocation,
+      href: params.href,
+      intent_type: params.intentType || params.ctaLocation,
+      ...(params.productCategory ? { product_category: params.productCategory } : {}),
+      ...(params.merchantId ? { merchant_id: params.merchantId } : {}),
+      entry_point: 'store',
+    })
+  },
+
+  trackStoreLeadFormStarted(params: { locale: string }) {
+    sendEvent(AnalyticsEvent.CampaignEngaged, {
+      source: 'store_landing',
+      locale: params.locale,
+      engagement_type: 'lead_form_started',
+      entry_point: 'store',
+    })
+  },
+
+  trackStoreLeadCreated(params: {
+    locale: string
+    businessType: string
+    intent: string
+    frameCount?: string
+    campaignId?: string
+    merchantId?: string
+    storeId?: string
+    leadType?: string
+  }) {
+    sendEvent(AnalyticsEvent.LeadCreated, {
+      source: 'store_landing',
+      locale: params.locale,
+      business_type: params.businessType,
+      user_intent: params.intent,
+      lead_type: params.leadType || params.intent,
+      ...(params.frameCount ? { frame_count: params.frameCount } : {}),
+      ...(params.campaignId ? { campaign_id: params.campaignId } : {}),
+      ...(params.merchantId ? { merchant_id: params.merchantId } : {}),
+      ...(params.storeId ? { store_id: params.storeId } : {}),
+      entry_point: 'store',
     })
   },
 

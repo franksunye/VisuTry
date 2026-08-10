@@ -59,6 +59,18 @@ export type AnalyticsEntryPoint =
 
 export type ComparisonCompletionStatus = 'full' | 'partial' | 'failed'
 
+export type JourneyDestination =
+  | 'face_analysis'
+  | 'glasses_advisor'
+  | 'virtual_try_on'
+  | 'frame_compare'
+  | 'face_shape_guide'
+  | 'store'
+  | 'pricing'
+  | string
+
+export type StoreLeadType = 'sample' | 'demo' | 'catalog' | 'partnership' | string
+
 export type AnalyticsCommonContext = {
   analytics_schema_version: typeof ANALYTICS_SCHEMA_VERSION
   landing_page?: string
@@ -76,4 +88,12 @@ export type AnalyticsCommonContext = {
   store_id?: string
   surface?: AnalyticsSurface
   entry_point?: AnalyticsEntryPoint
+  source_journey?: string
+  destination?: JourneyDestination
+  landing_surface?: string
+  intent_type?: string
+  lead_type?: StoreLeadType
+  user_intent?: string
+  face_shape?: string
+  frame_category?: string
 }

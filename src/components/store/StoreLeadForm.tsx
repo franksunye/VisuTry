@@ -54,45 +54,18 @@ export function StoreLeadForm({ locale }: StoreLeadFormProps) {
     if (hasTrackedFormStart.current) return
     hasTrackedFormStart.current = true
 
-    analytics.trackCustomEvent('store_lead_form_started', {
-      source: 'store_landing',
-      locale,
-    })
+    analytics.trackStoreLeadFormStarted({ locale })
   }
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
-    analytics.trackCustomEvent('store_lead_submitted', {
-      source: 'store_landing',
+    analytics.trackStoreLeadCreated({
       locale,
-      business_type: businessType,
+      businessType,
       intent,
-      frame_count: frameCount,
+      frameCount,
+      leadType: intent,
     })
-
-    if (intent === 'sample') {
-      analytics.trackCustomEvent('store_sample_link_requested', {
-        source: 'store_landing',
-        locale,
-        business_type: businessType,
-      })
-    }
-
-    if (intent === 'demo') {
-      analytics.trackCustomEvent('store_demo_requested', {
-        source: 'store_landing',
-        locale,
-        business_type: businessType,
-      })
-    }
-
-    if (intent === 'catalog') {
-      analytics.trackCustomEvent('store_pilot_requested', {
-        source: 'store_landing',
-        locale,
-        business_type: businessType,
-      })
-    }
 
     setSubmitted(true)
     window.location.href = mailtoHref
