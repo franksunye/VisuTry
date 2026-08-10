@@ -3,6 +3,7 @@
 import { useSession } from 'next-auth/react'
 import { ReactNode, Suspense } from 'react'
 import { FaceAnalysisInterface } from '@/components/face-analysis/FaceAnalysisInterface'
+import styles from './FaceAnalysisGate.module.css'
 
 interface FaceAnalysisGateProps {
   landing: ReactNode
@@ -24,7 +25,7 @@ export function FaceAnalysisGate({ landing, loadingText }: FaceAnalysisGateProps
   }
 
   return (
-    <div className="container mx-auto px-4 py-5 sm:py-8">
+    <div className={`${styles.app} container mx-auto px-4 py-5 sm:py-8`}>
       <Suspense fallback={<div className="py-12 text-center text-gray-500">{loadingText}</div>}>
         <FaceAnalysisInterface />
       </Suspense>
