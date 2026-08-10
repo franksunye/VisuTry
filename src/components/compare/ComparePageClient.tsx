@@ -3,6 +3,7 @@
 import { useSession } from 'next-auth/react'
 import { ReactNode } from 'react'
 import { AutoRefreshWrapper } from '@/components/payments/AutoRefreshWrapper'
+import { ConversionPaywallBoundary } from '@/components/payments/ConversionPaywallBoundary'
 import { FrameCompareInterface } from '@/components/compare/FrameCompareInterface'
 
 interface ComparePageClientProps {
@@ -14,7 +15,7 @@ interface ComparePageClientProps {
  *
  * The server-rendered landing content (SEO-optimized, with structured data) is
  * shown by default. When useSession resolves as authenticated, the landing is
- * hidden and the FrameCompareInterface is rendered instead.
+ * hidden and Frame Compare renders inside the contextual purchase boundary.
  */
 export function ComparePageClient({ landing }: ComparePageClientProps) {
   const { data: session, status } = useSession()
@@ -27,7 +28,9 @@ export function ComparePageClient({ landing }: ComparePageClientProps) {
 
   return (
     <AutoRefreshWrapper>
-      <FrameCompareInterface initialRemainingCredits={initialRemainingCredits} />
+      <ConversionPaywallBoundary source="frame_compare">
+        <FrameCompareInterface initialRemainingCredits={initialRemainingCredits} />
+      </ConversionPaywallBoundary>
     </AutoRefreshWrapper>
   )
 }
