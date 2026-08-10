@@ -4,6 +4,7 @@ import { useSession } from 'next-auth/react'
 import { ReactNode } from 'react'
 import { AutoRefreshWrapper } from '@/components/payments/AutoRefreshWrapper'
 import { ConversionPaywallBoundary } from '@/components/payments/ConversionPaywallBoundary'
+import { CreditExhaustedSurface } from '@/components/payments/CreditExhaustedBar'
 import { TryOnInterface } from '@/components/try-on/TryOnInterface'
 import type { TryOnType } from '@/config/try-on-types'
 
@@ -27,18 +28,22 @@ export function TryOnGate({ tryOnType, landing, structuredData }: TryOnGateProps
     return <>{landing}</>
   }
 
+  const remainingCredits = session.user?.remainingTrials ?? 0
+
   return (
     <AutoRefreshWrapper>
       <ConversionPaywallBoundary source="try_on">
-        <div className="container mx-auto px-4 py-8">
-          {structuredData && (
-            <script
-              type="application/ld+json"
-              dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
-            />
-          )}
-          <TryOnInterface type={tryOnType} />
-        </div>
+        <CreditExhaustedSurface kind="try_on" availableCredits={remainingCredits} requiredCredits={1}>
+          <div className="container mx-auto px-4 py-8">
+            {structuredData && (
+              <script
+                type="application/ld+json"
+                dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
+              />
+            )}
+            <TryOnInterface type={tryOnType} />
+          </div>
+        </CreditExhaustedSurface>
       </ConversionPaywallBoundary>
     </AutoRefreshWrapper>
   )
