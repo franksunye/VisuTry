@@ -23,7 +23,9 @@ export function B01VisualSeoSections({ locale, pagePath }: B01VisualSeoSectionsP
   return (
     <section className="mt-12 space-y-5 sm:space-y-6" aria-label="Visual face shape guides">
       <VisualSeoAsset asset={primaryAsset} />
-      {supportingAssets.length > 0 ? (
+      {supportingAssets.length === 1 ? (
+        <VisualSeoAsset asset={supportingAssets[0]} variant="supporting-wide" />
+      ) : supportingAssets.length > 1 ? (
         <div className="grid gap-4 md:grid-cols-2">
           {supportingAssets.map((asset) => (
             <VisualSeoAsset key={asset.id} asset={asset} variant="compact" />
