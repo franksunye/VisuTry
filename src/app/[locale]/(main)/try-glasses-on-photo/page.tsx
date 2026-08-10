@@ -1,11 +1,12 @@
 import type { Metadata } from 'next'
 import { Camera, Glasses, Grid2X2 } from 'lucide-react'
 import { SearchToToolLanding } from '@/components/growth/SearchToToolLanding'
+import { B02VisualSeoSections } from '@/components/seo/B02VisualSeoSections'
+import { B03VisualSeoSections } from '@/components/seo/B03VisualSeoSections'
 import { getSearchToToolRouteCopy } from '@/config/search-to-tool-route-copy'
 import type { Locale } from '@/i18n'
 import { generateStructuredData } from '@/lib/seo'
 import { generateSearchToToolSEO } from '@/lib/search-to-tool-seo'
-import { B02VisualSeoSections } from '@/components/seo/B02VisualSeoSections'
 
 const pathname = '/try-glasses-on-photo'
 const routeId = 'try-glasses-on-photo' as const
@@ -64,6 +65,7 @@ export default function TryGlassesOnPhotoPage({ params }: Props) {
       faqTitle={copy.faqTitle}
     >
       <B02VisualSeoSections locale={locale} pagePath="/try-glasses-on-photo" />
+      <B03VisualSeoSections locale={locale} pagePath="/try-glasses-on-photo" />
     </SearchToToolLanding>
   )
 }
