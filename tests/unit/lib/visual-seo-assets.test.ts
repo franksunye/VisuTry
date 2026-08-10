@@ -51,6 +51,10 @@ describe('B01, B02, and B03 visual SEO master assets', () => {
 
     expect(B03_VISUAL_SEO_ASSETS.find((asset) => asset.id === 'VSEO-019')?.displayWidth).toBe('primary')
     expect(B03_VISUAL_SEO_ASSETS.find((asset) => asset.id === 'VSEO-023')?.displayWidth).toBe('primary')
-    expect(B03_VISUAL_SEO_ASSETS.filter((asset) => asset.pagePath === '/try-glasses-on-photo').every((asset) => asset.displayWidth !== 'primary')).toBe(true)
+    expect(
+      B03_VISUAL_SEO_ASSETS
+        .filter((asset) => asset.pagePath === '/try-glasses-on-photo')
+        .map((asset) => asset.displayWidth),
+    ).toEqual(['compare', 'secondary'])
   })
 })
