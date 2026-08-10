@@ -22,66 +22,64 @@ export function VisualSeoAsset({
 
   if (isCompact) {
     return (
-      <article className="rounded-xl border border-slate-200 bg-white p-3 shadow-sm sm:p-4">
-        <figure className="grid grid-cols-[112px_minmax(0,1fr)] gap-3 sm:block">
+      <article className="grid grid-cols-[112px_minmax(0,1fr)] gap-x-3 gap-y-2 rounded-xl border border-slate-200 bg-white p-3 shadow-sm md:block md:p-4">
+        <figure className="col-start-1 row-start-1">
           <Image
             src={asset.publicPath}
             alt={asset.alt}
             width={asset.width}
             height={asset.height}
-            sizes="(max-width: 639px) 112px, (max-width: 768px) 100vw, 480px"
-            className="h-[84px] w-[112px] rounded-lg border border-slate-100 bg-slate-50 object-cover sm:h-auto sm:w-full sm:rounded-xl"
+            sizes="(max-width: 767px) 112px, 480px"
+            className="h-[84px] w-[112px] rounded-lg border border-slate-100 bg-slate-50 object-cover md:h-auto md:w-full md:rounded-xl"
           />
-          <figcaption className="min-w-0 sm:pt-3">
-            <h2 className={headingClass('text-base font-bold leading-5 tracking-tight text-slate-950 sm:text-xl')}>
-              {asset.heading}
-            </h2>
-            <p className="mt-2 hidden text-sm leading-6 text-slate-600 sm:block">{asset.body}</p>
-            {asset.link ? (
-              <Link
-                href={asset.link.href}
-                className="mt-2 inline-flex text-sm font-semibold leading-5 text-blue-700 underline decoration-blue-200 underline-offset-4 hover:text-blue-900 sm:mt-3"
-              >
-                {asset.link.label} <span aria-hidden="true" className="ml-1">→</span>
-              </Link>
-            ) : null}
-          </figcaption>
         </figure>
-        <p className="mt-3 text-sm leading-6 text-slate-600 sm:hidden">{asset.body}</p>
+        <div className="col-start-2 row-start-1 min-w-0 md:pt-3">
+          <h2 className={headingClass('text-base font-bold leading-5 tracking-tight text-slate-950 md:text-xl')}>
+            {asset.heading}
+          </h2>
+        </div>
+        <p className="col-span-2 row-start-2 text-sm leading-6 text-slate-600 md:mt-2">{asset.body}</p>
+        {asset.link ? (
+          <Link
+            href={asset.link.href}
+            className="col-span-2 row-start-3 inline-flex text-sm font-semibold leading-5 text-blue-700 underline decoration-blue-200 underline-offset-4 hover:text-blue-900 md:mt-3"
+          >
+            {asset.link.label} <span aria-hidden="true" className="ml-1">→</span>
+          </Link>
+        ) : null}
       </article>
     )
   }
 
   if (isSupportingWide) {
     return (
-      <article className="rounded-xl border border-slate-200 bg-white p-3 shadow-sm sm:p-4">
-        <figure className="grid grid-cols-[112px_minmax(0,1fr)] gap-3 md:grid-cols-[minmax(280px,40%)_minmax(0,1fr)] md:items-center md:gap-6">
+      <article className="grid grid-cols-[112px_minmax(0,1fr)] gap-x-3 gap-y-2 rounded-xl border border-slate-200 bg-white p-3 shadow-sm md:grid-cols-[minmax(280px,40%)_minmax(0,1fr)] md:items-start md:gap-x-6 md:gap-y-2 md:p-4">
+        <figure className="col-start-1 row-start-1 md:row-span-3">
           <Image
             src={asset.publicPath}
             alt={asset.alt}
             width={asset.width}
             height={asset.height}
-            sizes="(max-width: 639px) 112px, (max-width: 767px) 100vw, 420px"
+            sizes="(max-width: 767px) 112px, 420px"
             className="h-[84px] w-[112px] rounded-lg border border-slate-100 bg-slate-50 object-cover md:h-auto md:w-full md:rounded-xl"
           />
-          <figcaption className="min-w-0">
-            <h2 className={headingClass('text-base font-bold leading-5 tracking-tight text-slate-950 sm:text-xl md:text-2xl')}>
-              {asset.heading}
-            </h2>
-            <p className="mt-2 hidden text-sm leading-6 text-slate-600 sm:block md:text-base md:leading-7">
-              {asset.body}
-            </p>
-            {asset.link ? (
-              <Link
-                href={asset.link.href}
-                className="mt-2 inline-flex text-sm font-semibold leading-5 text-blue-700 underline decoration-blue-200 underline-offset-4 hover:text-blue-900 sm:mt-3 md:text-base"
-              >
-                {asset.link.label} <span aria-hidden="true" className="ml-1">→</span>
-              </Link>
-            ) : null}
-          </figcaption>
         </figure>
-        <p className="mt-3 text-sm leading-6 text-slate-600 sm:hidden">{asset.body}</p>
+        <div className="col-start-2 row-start-1 min-w-0 md:self-end">
+          <h2 className={headingClass('text-base font-bold leading-5 tracking-tight text-slate-950 md:text-2xl')}>
+            {asset.heading}
+          </h2>
+        </div>
+        <p className="col-span-2 row-start-2 text-sm leading-6 text-slate-600 md:col-span-1 md:col-start-2 md:text-base md:leading-7">
+          {asset.body}
+        </p>
+        {asset.link ? (
+          <Link
+            href={asset.link.href}
+            className="col-span-2 row-start-3 inline-flex text-sm font-semibold leading-5 text-blue-700 underline decoration-blue-200 underline-offset-4 hover:text-blue-900 md:col-span-1 md:col-start-2 md:text-base"
+          >
+            {asset.link.label} <span aria-hidden="true" className="ml-1">→</span>
+          </Link>
+        ) : null}
       </article>
     )
   }
