@@ -75,17 +75,34 @@ export default function FaceShapeDetectorPage({ params }: FaceShapeDetectorPageP
 
           <B01VisualSeoSections locale={locale} pagePath="/face-shape-detector" />
 
-          <section className="mt-10 grid gap-4 md:grid-cols-3">
-            {copy.detector.trust.map(({ title, text }, index) => {
-              const Icon = [LockKeyhole, ScanFace, ShieldCheck][index]
-              return (
-              <article key={title} className="rounded-lg border border-gray-200 bg-white p-5">
-                <Icon className="mb-3 h-5 w-5 text-blue-600" />
-                <h2 className="mb-2 font-semibold text-gray-950">{title}</h2>
-                <p className="text-sm leading-6 text-gray-600">{text}</p>
-              </article>
-              )
-            })}
+          <section className="mt-6 md:mt-10" aria-label="Detector trust and method">
+            <div className="rounded-lg border border-gray-200 bg-white px-4 py-2.5 md:hidden">
+              {copy.detector.trust.map(({ title }, index) => {
+                const Icon = [LockKeyhole, ScanFace, ShieldCheck][index]
+                return (
+                  <div
+                    key={title}
+                    className="flex items-center gap-2.5 border-b border-gray-100 py-2.5 last:border-b-0"
+                  >
+                    <Icon className="h-4 w-4 shrink-0 text-blue-600" />
+                    <span className="text-sm font-medium text-gray-800">{title}</span>
+                  </div>
+                )
+              })}
+            </div>
+
+            <div className="hidden gap-4 md:grid md:grid-cols-3">
+              {copy.detector.trust.map(({ title, text }, index) => {
+                const Icon = [LockKeyhole, ScanFace, ShieldCheck][index]
+                return (
+                  <article key={title} className="rounded-lg border border-gray-200 bg-white p-5">
+                    <Icon className="mb-3 h-5 w-5 text-blue-600" />
+                    <h2 className="mb-2 font-semibold text-gray-950">{title}</h2>
+                    <p className="text-sm leading-6 text-gray-600">{text}</p>
+                  </article>
+                )
+              })}
+            </div>
           </section>
 
           <section className="mt-12 grid gap-6 lg:grid-cols-[1.05fr_0.95fr]">
