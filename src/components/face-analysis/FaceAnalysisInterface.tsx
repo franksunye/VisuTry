@@ -167,7 +167,7 @@ export function FaceAnalysisInterface() {
 
     try {
       const successUrl = `${window.location.origin}/${locale}/face-analysis?unlock=success&taskId=${task.id}&session_id={CHECKOUT_SESSION_ID}`
-      const cancelUrl = `${window.location.origin}/${locale}/face-analysis?unlock=cancel&taskId=${task.id}`
+      const cancelUrl = `${window.location.origin}/${locale}/face-analysis?unlock=cancel&taskId=${task.id}&checkout_product=CREDITS_PACK&checkout_value=${PRICE_CONFIG.CREDITS_PACK / 100}`
 
       const response = await fetch('/api/payment/create-session', {
         method: 'POST',
@@ -178,6 +178,7 @@ export function FaceAnalysisInterface() {
           cancelUrl,
           unlockTaskId: task.id,
           attribution: getAcquisitionContext(),
+          locale,
         }),
       })
 

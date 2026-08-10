@@ -7,6 +7,7 @@ import {
   sanitizeAcquisitionAttribution,
   serializeAttributionForStripe,
 } from '@/lib/acquisition-attribution'
+import type { Locale } from '@/i18n'
 
 // Only require Stripe key in production mode
 if (!process.env.STRIPE_SECRET_KEY && !isMockMode && !process.env.SKIP_ENV_VALIDATION) {
@@ -72,6 +73,44 @@ export const PRODUCTS = {
 
 export type ProductType = keyof typeof PRODUCTS
 
+const STRIPE_CHECKOUT_LOCALES: Record<Locale, Stripe.Checkout.SessionCreateParams.Locale> = {
+  en: 'en',
+  id: 'id',
+  // The pinned Stripe API version doesn't expose Arabic as an explicit locale.
+  // Auto still lets Checkout use the customer's browser language when supported.
+  ar: 'auto',
+  ru: 'ru',
+  de: 'de',
+  ja: 'ja',
+  es: 'es',
+  pt: 'pt',
+  fr: 'fr',
+}
+
+const CREDIT_CHECKOUT_MESSAGES: Record<Locale, (credits: number) => string> = {
+  en: (credits) => `One-time purchase: ${credits} AI credits that never expire. Face analysis purchases unlock the full report automatically.`,
+  id: (credits) => `Pembelian satu kali: ${credits} kredit AI yang tidak kedaluwarsa. Pembelian dari analisis wajah membuka laporan lengkap secara otomatis.`,
+  ar: (credits) => `عملية شراء لمرة واحدة: ${credits} رصيدًا للذكاء الاصطناعي لا تنتهي صلاحيته. عند الشراء من تحليل الوجه، يُفتح التقرير الكامل تلقائيًا.`,
+  ru: (credits) => `Разовая покупка: ${credits} AI-кредитов без ограничения срока действия. При покупке из анализа лица полный отчёт откроется автоматически.`,
+  de: (credits) => `Einmaliger Kauf: ${credits} AI-Credits ohne Ablaufdatum. Beim Kauf über die Gesichtsanalyse wird der vollständige Bericht automatisch freigeschaltet.`,
+  ja: (credits) => `1回限りの購入：有効期限のないAIクレジット${credits}回分。顔分析から購入すると、完全版レポートが自動で解除されます。`,
+  es: (credits) => `Compra única: ${credits} créditos de IA que no caducan. Si compras desde el análisis facial, el informe completo se desbloquea automáticamente.`,
+  pt: (credits) => `Compra única: ${credits} créditos de IA que não expiram. Ao comprar pela análise facial, o relatório completo é desbloqueado automaticamente.`,
+  fr: (credits) => `Achat unique : ${credits} crédits IA sans expiration. Depuis l’analyse du visage, le rapport complet est débloqué automatiquement.`,
+}
+
+const SUBSCRIPTION_CHECKOUT_MESSAGES: Record<Locale, string> = {
+  en: 'Secure subscription. Manage or cancel anytime from your billing portal.',
+  id: 'Langganan aman. Kelola atau batalkan kapan saja melalui portal penagihan.',
+  ar: 'اشتراك آمن. يمكنك إدارته أو إلغاؤه في أي وقت من بوابة الفوترة.',
+  ru: 'Безопасная подписка. Управлять подпиской или отменить её можно в любое время в платёжном кабинете.',
+  de: 'Sicheres Abonnement. Jederzeit im Abrechnungsportal verwalten oder kündigen.',
+  ja: '安全なサブスクリプションです。請求ポータルからいつでも管理・解約できます。',
+  es: 'Suscripción segura. Puedes gestionarla o cancelarla en cualquier momento desde el portal de facturación.',
+  pt: 'Subscrição segura. Pode geri-la ou cancelá-la a qualquer momento no portal de faturação.',
+  fr: 'Abonnement sécurisé. Gérez-le ou résiliez-le à tout moment depuis le portail de facturation.',
+}
+
 // 创建Checkout会话
 export async function createCheckoutSession({
   productType,
@@ -80,6 +119,8 @@ export async function createCheckoutSession({
   cancelUrl,
   unlockTaskId,
   attribution,
+  customerEmail,
+  checkoutLocale = 'en',
 }: {
   productType: ProductType
   userId: string
@@ -87,6 +128,8 @@ export async function createCheckoutSession({
   cancelUrl: string
   unlockTaskId?: string
   attribution?: AcquisitionAttribution
+  customerEmail?: string | null
+  checkoutLocale?: Locale
 }) {
   const product = PRODUCTS[productType]
 
@@ -96,9 +139,11 @@ export async function createCheckoutSession({
 
   const sanitizedAttribution = sanitizeAcquisitionAttribution(attribution)
   const serializedAttribution = serializeAttributionForStripe(sanitizedAttribution)
+  const normalizedEmail = customerEmail?.trim()
+  const isCreditsPurchase = productType.startsWith("CREDITS_PACK")
 
   const sessionParams: Stripe.Checkout.SessionCreateParams = {
-    mode: productType.startsWith("CREDITS_PACK") ? "payment" : "subscription",
+    mode: isCreditsPurchase ? "payment" : "subscription",
     // Let Stripe dynamically show the enabled methods that best match the
     // customer's device, currency, and location (for example, Google Pay).
     after_expiration: {
@@ -115,6 +160,17 @@ export async function createCheckoutSession({
     success_url: successUrl,
     cancel_url: cancelUrl,
     client_reference_id: userId,
+    locale: STRIPE_CHECKOUT_LOCALES[checkoutLocale],
+    custom_text: {
+      submit: {
+        message: isCreditsPurchase
+          ? CREDIT_CHECKOUT_MESSAGES[checkoutLocale](PRODUCT_METADATA[productType].quota)
+          : SUBSCRIPTION_CHECKOUT_MESSAGES[checkoutLocale],
+      },
+    },
+    ...(normalizedEmail && normalizedEmail.length <= 800 && normalizedEmail.includes('@')
+      ? { customer_email: normalizedEmail }
+      : {}),
     metadata: {
       userId,
       productType,
@@ -124,7 +180,7 @@ export async function createCheckoutSession({
   }
 
   // 对于订阅，添加订阅元数据（Credits Pack 系列都是一次性付款，不需要）
-  if (!productType.startsWith("CREDITS_PACK")) {
+  if (!isCreditsPurchase) {
     sessionParams.subscription_data = {
       metadata: {
         userId,
@@ -187,7 +243,10 @@ export async function handleSuccessfulPayment(session: Stripe.Checkout.Session) 
     amount: session.amount_total || 0,
     currency: session.currency || "usd",
     sessionId: session.id,
-    paymentIntentId: session.payment_intent as string,
+    paymentIntentId:
+      typeof session.payment_intent === 'string'
+        ? session.payment_intent
+        : session.payment_intent?.id || null,
     unlockTaskId: session.metadata?.unlockTaskId,
     attribution: parseAttributionFromStripeMetadata(session.metadata),
   }

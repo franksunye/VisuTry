@@ -13,7 +13,6 @@ import {
 import Stripe from "stripe"
 import { QUOTA_CONFIG, PRODUCT_METADATA, getProductQuota } from "@/config/pricing"
 import { logger, getRequestContext } from "@/lib/logger"
-import { unlockFaceAnalysisReport } from "@/lib/face-analysis-service"
 
 // Force dynamic rendering for this route
 export const dynamic = 'force-dynamic'
@@ -44,6 +43,18 @@ export async function POST(request: NextRequest) {
     switch (event.type) {
       case "checkout.session.completed":
         await handleCheckoutSessionCompleted(event.data.object as Stripe.Checkout.Session, ctx)
+        break
+
+      case "checkout.session.async_payment_succeeded":
+        await handleCheckoutSessionCompleted(event.data.object as Stripe.Checkout.Session, ctx)
+        break
+
+      case "checkout.session.async_payment_failed":
+        handleCheckoutSessionPaymentFailed(event.data.object as Stripe.Checkout.Session, ctx)
+        break
+
+      case "checkout.session.expired":
+        handleCheckoutSessionExpired(event.data.object as Stripe.Checkout.Session, ctx)
         break
 
       case "customer.subscription.created":
@@ -86,53 +97,61 @@ export async function POST(request: NextRequest) {
 
 // 处理Checkout会话完成
 async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session, context?: any) {
+  if (session.payment_status !== 'paid' && session.payment_status !== 'no_payment_required') {
+    logger.info('payment', 'Checkout completed with payment still pending', {
+      sessionId: session.id,
+      paymentStatus: session.payment_status,
+      userId: session.client_reference_id,
+      productType: session.metadata?.productType,
+    }, context)
+    return
+  }
+
   try {
     const paymentData = await handleSuccessfulPayment(session)
 
-    // 创建支付记录
-    await prisma.payment.create({
-      data: {
-        userId: paymentData.userId,
-        stripeSessionId: paymentData.sessionId,
-        stripePaymentId: paymentData.paymentIntentId,
-        stripeSubscriptionId: session.subscription as string | null,
-        amount: paymentData.amount,
-        currency: paymentData.currency,
-        status: "COMPLETED",
-        productType: paymentData.productType,
-        description: getProductDescription(paymentData.productType),
-        ...(paymentData.attribution
-          ? { attribution: paymentData.attribution }
-          : {}),
-      }
-    })
-
-    // 如果是次数包（包含促销包），增加用户的 credits 购买总数
-    // Refactored to support generic credit packs (standard or promo)
-    if (paymentData.productType.startsWith("CREDITS_PACK")) {
-      const quota = getProductQuota(paymentData.productType)
-      await prisma.user.update({
-        where: { id: paymentData.userId },
+    // Payment creation, credit fulfillment, and report unlocking are atomic.
+    // The unique stripeSessionId makes retries and concurrent webhook deliveries safe.
+    await prisma.$transaction(async (tx) => {
+      await tx.payment.create({
         data: {
-          creditsPurchased: {
-            increment: quota
-          }
+          userId: paymentData.userId,
+          stripeSessionId: paymentData.sessionId,
+          stripePaymentId: paymentData.paymentIntentId,
+          stripeSubscriptionId: session.subscription as string | null,
+          amount: paymentData.amount,
+          currency: paymentData.currency,
+          status: "COMPLETED",
+          productType: paymentData.productType,
+          description: getProductDescription(paymentData.productType),
+          ...(paymentData.attribution
+            ? { attribution: paymentData.attribution }
+            : {}),
         }
       })
-    }
 
-    if (paymentData.unlockTaskId) {
-      const unlocked = await unlockFaceAnalysisReport(
-        paymentData.unlockTaskId,
-        paymentData.userId
-      )
-      if (unlocked) {
-        logger.info('payment', 'Face analysis report unlocked', {
-          userId: paymentData.userId,
-          taskId: paymentData.unlockTaskId,
-        }, context)
+      if (paymentData.productType.startsWith("CREDITS_PACK")) {
+        const quota = getProductQuota(paymentData.productType)
+        await tx.user.update({
+          where: { id: paymentData.userId },
+          data: {
+            creditsPurchased: {
+              increment: quota
+            }
+          }
+        })
       }
-    }
+
+      if (paymentData.unlockTaskId) {
+        await tx.faceAnalysisTask.updateMany({
+          where: {
+            id: paymentData.unlockTaskId,
+            userId: paymentData.userId,
+          },
+          data: { reportUnlocked: true },
+        })
+      }
+    })
 
     // 清除用户缓存，确保所有页面立即显示最新数据
     clearUserCache(paymentData.userId)
@@ -140,10 +159,45 @@ async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session, 
     console.log(`Payment completed for user ${paymentData.userId}`)
     logger.info('payment', 'Payment completed', { userId: paymentData.userId, amount: paymentData.amount, productType: paymentData.productType }, context)
   } catch (error) {
+    // A repeated Stripe event is already fulfilled; acknowledge it without
+    // incrementing credits or unlocking the report again.
+    if (
+      typeof error === 'object' &&
+      error !== null &&
+      'code' in error &&
+      error.code === 'P2002'
+    ) {
+      logger.info('payment', 'Checkout session already fulfilled', {
+        sessionId: session.id,
+      }, context)
+      return
+    }
+
     const err = error instanceof Error ? error : new Error(String(error))
     console.error("处理支付完成事件失败:", error)
     logger.error('payment', '处理支付完成事件失败', err, undefined, context)
+    // Returning a non-2xx response lets Stripe retry transient fulfillment failures.
+    throw err
   }
+}
+
+function handleCheckoutSessionPaymentFailed(session: Stripe.Checkout.Session, context?: any) {
+  logger.warn('payment', 'Asynchronous Checkout payment failed', {
+    sessionId: session.id,
+    userId: session.client_reference_id,
+    productType: session.metadata?.productType,
+    paymentStatus: session.payment_status,
+  }, context)
+}
+
+function handleCheckoutSessionExpired(session: Stripe.Checkout.Session, context?: any) {
+  logger.info('payment', 'Checkout session expired before payment', {
+    sessionId: session.id,
+    userId: session.client_reference_id,
+    productType: session.metadata?.productType,
+    paymentStatus: session.payment_status,
+    attribution: session.metadata?.attribution,
+  }, context)
 }
 
 // 处理订阅创建

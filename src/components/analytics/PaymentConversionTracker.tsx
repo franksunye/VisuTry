@@ -5,8 +5,18 @@ import { useSession } from 'next-auth/react'
 import { analytics, type ProductType } from '@/lib/analytics'
 
 const TRACKED_PAYMENT_PREFIX = 'visutry_purchase_tracked:'
+const TRACKED_CANCELLATION_PREFIX = 'visutry_checkout_cancelled_tracked:'
 const MAX_ATTEMPTS = 12
 const RETRY_DELAY_MS = 1500
+
+const PRODUCT_TYPES: ProductType[] = [
+  'PREMIUM_MONTHLY',
+  'PREMIUM_YEARLY',
+  'CREDITS_PACK',
+  'CREDITS_PACK_PROMO_60',
+  'PREMIUM_MONTHLY_PROMO',
+  'PREMIUM_YEARLY_PROMO',
+]
 
 type CompletedPaymentResponse = {
   success: true
@@ -31,7 +41,28 @@ export function PaymentConversionTracker() {
   useEffect(() => {
     if (status !== 'authenticated') return
 
-    const sessionId = new URLSearchParams(window.location.search).get('session_id')
+    const searchParams = new URLSearchParams(window.location.search)
+    const isCancelled =
+      searchParams.get('payment') === 'cancelled' || searchParams.get('unlock') === 'cancel'
+
+    if (isCancelled) {
+      const productType = searchParams.get('checkout_product') as ProductType | null
+      const value = Number(searchParams.get('checkout_value'))
+
+      if (productType && PRODUCT_TYPES.includes(productType) && Number.isFinite(value) && value >= 0) {
+        const cancellationKey = `${TRACKED_CANCELLATION_PREFIX}${window.location.pathname}:${productType}:${searchParams.get('taskId') || ''}`
+        try {
+          if (!window.sessionStorage.getItem(cancellationKey)) {
+            analytics.trackCheckoutCancelled(productType, value)
+            window.sessionStorage.setItem(cancellationKey, new Date().toISOString())
+          }
+        } catch {
+          analytics.trackCheckoutCancelled(productType, value)
+        }
+      }
+    }
+
+    const sessionId = searchParams.get('session_id')
     if (!sessionId) return
 
     const storageKey = `${TRACKED_PAYMENT_PREFIX}${sessionId}`

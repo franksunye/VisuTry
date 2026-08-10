@@ -8,9 +8,21 @@ import {
   sanitizeAcquisitionAttribution,
   serializeAttributionForStripe,
 } from "@/lib/acquisition-attribution"
+import { isValidLocale } from "@/i18n"
 
 // Force dynamic rendering for this route
 export const dynamic = 'force-dynamic'
+
+function isSafeCheckoutReturnUrl(value: unknown, requestOrigin: string): value is string {
+  if (typeof value !== 'string') return false
+
+  try {
+    const url = new URL(value)
+    return (url.protocol === 'https:' || url.protocol === 'http:') && url.origin === requestOrigin
+  } catch {
+    return false
+  }
+}
 
 export async function POST(request: NextRequest) {
   const ctx = getRequestContext(request)
@@ -21,7 +33,7 @@ export async function POST(request: NextRequest) {
     const userId = auth.userId
 
     const body = await request.json()
-    const { productType, priceId, successUrl, cancelUrl, unlockTaskId, attribution } = body
+    const { productType, priceId, successUrl, cancelUrl, unlockTaskId, attribution, locale } = body
     const sanitizedAttribution = sanitizeAcquisitionAttribution(attribution)
 
     // 支持两种参数格式：productType 或 priceId
@@ -59,13 +71,17 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // 在Mock模式下，URL是可选的
-    if (!isMockMode && (!successUrl || !cancelUrl)) {
+    if (
+      !isSafeCheckoutReturnUrl(successUrl, request.nextUrl.origin) ||
+      !isSafeCheckoutReturnUrl(cancelUrl, request.nextUrl.origin)
+    ) {
       return NextResponse.json(
-        { success: false, error: "成功和取消URL是必需的" },
+        { success: false, error: "成功和取消URL必须使用当前站点域名" },
         { status: 400 }
       )
     }
+
+    const checkoutLocale = typeof locale === 'string' && isValidLocale(locale) ? locale : 'en'
 
     // 创建Stripe Checkout会话
     let checkoutSession
@@ -89,6 +105,8 @@ export async function POST(request: NextRequest) {
         cancelUrl,
         unlockTaskId: typeof unlockTaskId === 'string' ? unlockTaskId : undefined,
         attribution: sanitizedAttribution,
+        customerEmail: auth.session.user?.email,
+        checkoutLocale,
       })
     }
 

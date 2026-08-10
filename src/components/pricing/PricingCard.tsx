@@ -75,8 +75,9 @@ export function PricingCard({ plan, currentUser }: PricingCardProps) {
         body: JSON.stringify({
           productType: plan.id,
           successUrl: `${window.location.origin}${dashboardHref}?payment=success&session_id={CHECKOUT_SESSION_ID}`,
-          cancelUrl: `${window.location.origin}${pricingHref}?payment=cancelled`,
+          cancelUrl: `${window.location.origin}${pricingHref}?payment=cancelled&checkout_product=${encodeURIComponent(plan.id)}&checkout_value=${planPrice}`,
           attribution: getAcquisitionContext(),
+          locale,
         }),
       })
 

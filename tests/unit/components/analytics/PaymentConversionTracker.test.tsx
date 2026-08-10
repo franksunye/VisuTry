@@ -10,16 +10,19 @@ jest.mock('next-auth/react', () => ({
 jest.mock('@/lib/analytics', () => ({
   analytics: {
     trackPurchase: jest.fn(),
+    trackCheckoutCancelled: jest.fn(),
   },
 }))
 
 const mockUseSession = useSession as jest.Mock
 const mockTrackPurchase = analytics.trackPurchase as jest.Mock
+const mockTrackCheckoutCancelled = analytics.trackCheckoutCancelled as jest.Mock
 
 describe('PaymentConversionTracker', () => {
   beforeEach(() => {
     jest.clearAllMocks()
     window.localStorage.clear()
+    window.sessionStorage.clear()
     window.dataLayer = []
     window.history.pushState({}, '', '/en/dashboard?payment=success&session_id=cs_test_123')
     mockUseSession.mockReturnValue({ status: 'authenticated' })
@@ -77,5 +80,22 @@ describe('PaymentConversionTracker', () => {
 
     expect(global.fetch).not.toHaveBeenCalled()
     expect(mockTrackPurchase).not.toHaveBeenCalled()
+  })
+
+  it('tracks a checkout cancellation once per return', () => {
+    window.history.pushState(
+      {},
+      '',
+      '/en/pricing?payment=cancelled&checkout_product=CREDITS_PACK&checkout_value=2.99',
+    )
+    global.fetch = jest.fn()
+
+    const firstRender = render(<PaymentConversionTracker />)
+
+    expect(mockTrackCheckoutCancelled).toHaveBeenCalledWith('CREDITS_PACK', 2.99)
+    firstRender.unmount()
+
+    render(<PaymentConversionTracker />)
+    expect(mockTrackCheckoutCancelled).toHaveBeenCalledTimes(1)
   })
 })

@@ -91,11 +91,14 @@ describe('Stripe Library Unit Tests', () => {
         userId: 'test-user-789',
         successUrl: 'http://localhost:3000/success',
         cancelUrl: 'http://localhost:3000/cancel',
+        customerEmail: 'buyer@example.com',
+        checkoutLocale: 'fr',
       })
 
       expect(session).toBeDefined()
       expect(session.id).toMatch(/^cs_mock_/)
       expect(session.metadata.productType).toBe('CREDITS_PACK')
+      expect(session.customer_email).toBe('buyer@example.com')
     })
 
     test('should throw error if price ID not configured', async () => {
