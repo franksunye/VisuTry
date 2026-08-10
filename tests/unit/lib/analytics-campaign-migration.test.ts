@@ -282,4 +282,98 @@ describe('campaign intelligence analytics migration', () => {
     expect(eventNames).not.toContain('store_cta_clicked')
     expect(eventNames).not.toContain('store_lead_submitted')
   })
+
+  it('migrates style explorer core funnel to recommendation/try-on events', () => {
+    analytics.trackStyleExplorerViewed()
+    analytics.trackStyleExplorerFramesRecommended({
+      styleIntent: 'minimal',
+      category: 'metal',
+      occasion: 'work',
+      presetIds: ['a', 'b', 'c', 'd'],
+    })
+    analytics.trackStyleExplorerGenerationStarted({
+      batchId: 'batch-1',
+      presetIds: ['a', 'b', 'c', 'd'],
+      styleIntent: 'minimal',
+      occasion: 'work',
+      category: 'metal',
+    })
+    analytics.trackStyleExplorerGenerationFinished({
+      batchId: 'batch-1',
+      completedCount: 3,
+      failedCount: 1,
+    })
+    analytics.trackStyleExplorerShareCompleted('task-1')
+
+    expect(window.gtag).toHaveBeenCalledWith(
+      'event',
+      AnalyticsEvent.CampaignEngaged,
+      expect.objectContaining({ engagement_type: 'style_explorer_viewed' }),
+    )
+    expect(window.gtag).toHaveBeenCalledWith(
+      'event',
+      AnalyticsEvent.RecommendationViewed,
+      expect.objectContaining({ frame_category: 'metal', style_count: 4 }),
+    )
+    expect(window.gtag).toHaveBeenCalledWith(
+      'event',
+      AnalyticsEvent.TryOnStarted,
+      expect.objectContaining({ try_on_type: 'style_explorer' }),
+    )
+    expect(window.gtag).toHaveBeenCalledWith(
+      'event',
+      AnalyticsEvent.TryOnCompleted,
+      expect.objectContaining({ completion_status: 'partial', success: true }),
+    )
+    expect(window.gtag).toHaveBeenCalledWith(
+      'event',
+      AnalyticsEvent.TryOnShared,
+      expect.objectContaining({ task_id: 'task-1' }),
+    )
+  })
+
+  it('migrates paywall commerce signals without dual checkout naming', () => {
+    analytics.trackPaywallViewed({ source: 'try_on', product_type: 'CREDITS_PACK' })
+    analytics.trackCreditsPurchaseClick({ source: 'try_on', value: 2.99 })
+    analytics.trackPaywallCheckoutStarted({
+      source: 'try_on',
+      productType: 'CREDITS_PACK',
+      checkoutSessionId: 'cs_test',
+      value: 2.99,
+    })
+    analytics.trackPaywallCheckoutReturnVerified({
+      source: 'try_on',
+      checkout_session_id: 'cs_test',
+    })
+
+    expect(window.gtag).toHaveBeenCalledWith(
+      'event',
+      AnalyticsEvent.PaywallViewed,
+      expect.objectContaining({ source: 'try_on' }),
+    )
+    expect(window.gtag).toHaveBeenCalledWith(
+      'event',
+      AnalyticsEvent.PurchaseIntentClicked,
+      expect.objectContaining({ intent_type: 'credits_pack' }),
+    )
+    expect(window.gtag).toHaveBeenCalledWith(
+      'event',
+      'begin_checkout',
+      expect.objectContaining({ checkout_session_id: 'cs_test', value: 2.99 }),
+    )
+    expect(window.gtag).toHaveBeenCalledWith(
+      'event',
+      'checkout_return_verified',
+      expect.objectContaining({ checkout_session_id: 'cs_test' }),
+    )
+
+    const eventNames = (window.gtag as jest.Mock).mock.calls
+      .filter((call) => call[0] === 'event')
+      .map((call) => call[1])
+    expect(eventNames).not.toContain('paywall_view')
+    expect(eventNames).not.toContain('credits_purchase_click')
+    expect(eventNames).not.toContain('checkout_started')
+    expect(eventNames).not.toContain('checkout_completed')
+    expect(eventNames).not.toContain('purchase')
+  })
 })

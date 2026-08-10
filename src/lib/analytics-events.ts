@@ -28,15 +28,18 @@ export const AnalyticsEvent = {
   TryOnCompleted: 'tryon_completed',
   TryOnFailed: 'tryon_failed',
 
+  RecommendationStarted: 'recommendation_started',
   RecommendationViewed: 'recommendation_viewed',
   ComparisonCreated: 'comparison_created',
   ComparisonCompleted: 'comparison_completed',
   FrameFavorited: 'frame_favorited',
 
   PurchaseIntentClicked: 'purchase_intent_clicked',
+  PaywallViewed: 'paywall_viewed',
   StoreVisitRequested: 'store_visit_requested',
   LeadCreated: 'lead_created',
   JourneyContinued: 'journey_continued',
+  TryOnShared: 'tryon_shared',
 } as const
 
 export type AnalyticsEventName =

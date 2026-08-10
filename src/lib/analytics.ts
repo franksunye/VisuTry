@@ -634,23 +634,30 @@ export const analytics = {
   },
 
   trackFaceAnalysisUnlockClick(faceShape: string, source: EventSource = 'face_analysis') {
-    sendEvent('face_analysis_unlock_click', {
+    sendEvent(AnalyticsEvent.PurchaseIntentClicked, {
       face_shape: faceShape,
       source,
+      intent_type: 'face_analysis_unlock',
+      product_path: 'face_analysis',
     })
   },
 
   trackFaceAnalysisUnlockSuccess(taskId: string) {
+    // Operational unlock confirmation — not a GA4 purchase conversion.
     sendEvent('face_analysis_unlock_success', {
       task_id: taskId,
+      product_path: 'face_analysis',
     })
   },
 
   trackFaceAnalysisFrameSearch(faceShape: string, style: string, query: string) {
-    sendEvent('face_analysis_frame_search', {
+    // Avoid unrestricted free-text query cardinality in GA4 primary reporting.
+    sendEvent(AnalyticsEvent.RecommendationStarted, {
       face_shape: faceShape,
       style,
-      query,
+      frame_category: style,
+      query_present: Boolean(query),
+      product_path: 'face_analysis',
     })
   },
 
@@ -660,11 +667,14 @@ export const analytics = {
     requiredCredits: number,
     action: 'open_try_on' | 'generate_top_picks' = 'generate_top_picks'
   ) {
-    sendEvent('try_on_from_face_analysis', {
+    sendEvent(AnalyticsEvent.JourneyContinued, {
+      source_journey: 'face_analysis',
+      destination: action === 'open_try_on' ? 'virtual_try_on' : 'recommendation',
       face_analysis_task_id: faceAnalysisTaskId,
       style_count: styleCount,
       required_credits: requiredCredits,
       continuation_action: action,
+      product_path: 'face_analysis',
     })
   },
 
@@ -674,16 +684,17 @@ export const analytics = {
     requiredCredits: number,
     mode: 'generate' | 'complete',
   ) {
-    // Keep the established continuation event for existing dashboards while
-    // adding a dedicated activation event for the paid Analysis funnel.
-    sendEvent('try_on_from_face_analysis', {
+    sendEvent(AnalyticsEvent.JourneyContinued, {
+      source_journey: 'face_analysis',
+      destination: 'recommendation',
       face_analysis_task_id: faceAnalysisTaskId,
       style_count: styleCount,
       required_credits: requiredCredits,
       continuation_action: 'generate_top_picks',
       generation_mode: mode,
+      product_path: 'face_analysis',
     })
-    sendEvent('face_analysis_top_picks_start', {
+    sendEvent(AnalyticsEvent.RecommendationStarted, {
       face_analysis_task_id: faceAnalysisTaskId,
       style_count: styleCount,
       required_credits: requiredCredits,
@@ -697,10 +708,11 @@ export const analytics = {
     requiredCredits: number,
     mode: 'generate' | 'complete',
   ) {
-    sendEvent('face_analysis_top_picks_pricing_click', {
+    sendEvent(AnalyticsEvent.PurchaseIntentClicked, {
       face_analysis_task_id: faceAnalysisTaskId,
       required_credits: requiredCredits,
       generation_mode: mode,
+      intent_type: 'top_picks_credits',
       product_path: 'face_analysis',
     })
   },
@@ -718,7 +730,7 @@ export const analytics = {
     failedCount: number
     processingTimeMs: number
   }) {
-    sendEvent('face_analysis_top_picks_complete', {
+    sendEvent(AnalyticsEvent.RecommendationViewed, {
       face_analysis_task_id: faceAnalysisTaskId,
       batch_id: batchId,
       completed_count: completedCount,
@@ -730,7 +742,9 @@ export const analytics = {
   },
 
   trackFaceAnalysisExploreMoreStyles(faceAnalysisTaskId: string, batchId?: string) {
-    sendEvent('face_analysis_explore_more_styles_click', {
+    sendEvent(AnalyticsEvent.JourneyContinued, {
+      source_journey: 'face_analysis',
+      destination: 'style_explorer',
       face_analysis_task_id: faceAnalysisTaskId,
       ...(batchId ? { batch_id: batchId } : {}),
       product_path: 'face_analysis',
@@ -748,14 +762,154 @@ export const analytics = {
     ctaLocation: string
     locale: string
   }) {
-    sendEvent('blog_funnel_click', {
+    sendEvent(AnalyticsEvent.JourneyContinued, {
       source: 'blog',
+      source_journey: 'blog',
       source_page: sourcePage,
       destination,
       cta_location: ctaLocation,
       locale,
+      entry_point: 'blog',
     })
   },
+
+  trackStyleExplorerViewed() {
+    sendEvent(AnalyticsEvent.CampaignEngaged, {
+      engagement_type: 'style_explorer_viewed',
+      product_path: 'style_explorer',
+    })
+  },
+
+  trackStyleExplorerFramesRecommended(params: {
+    styleIntent: string
+    category: string
+    occasion: string
+    presetIds: string[]
+  }) {
+    sendEvent(AnalyticsEvent.RecommendationViewed, {
+      style_intent: params.styleIntent,
+      frame_category: params.category,
+      occasion: params.occasion,
+      preset_ids: params.presetIds.join(','),
+      style_count: params.presetIds.length,
+      product_path: 'style_explorer',
+    })
+  },
+
+  trackStyleExplorerGenerationStarted(params: {
+    batchId: string
+    presetIds: string[]
+    styleIntent: string
+    occasion: string
+    category: string
+  }) {
+    sendEvent(AnalyticsEvent.TryOnStarted, {
+      batch_id: params.batchId,
+      preset_ids: params.presetIds.join(','),
+      style_intent: params.styleIntent,
+      occasion: params.occasion,
+      frame_category: params.category,
+      try_on_type: 'style_explorer',
+      product_path: 'style_explorer',
+    })
+  },
+
+  trackStyleExplorerGenerationFinished(params: {
+    batchId: string
+    completedCount: number
+    failedCount: number
+  }) {
+    const total = params.completedCount + params.failedCount
+    if (params.completedCount === 0) {
+      sendEvent(AnalyticsEvent.TryOnFailed, {
+        batch_id: params.batchId,
+        completed_count: params.completedCount,
+        failed_count: params.failedCount,
+        try_on_type: 'style_explorer',
+        product_path: 'style_explorer',
+        success: false,
+      })
+      return
+    }
+
+    sendEvent(AnalyticsEvent.TryOnCompleted, {
+      batch_id: params.batchId,
+      completed_count: params.completedCount,
+      failed_count: params.failedCount,
+      completion_status: params.failedCount > 0 ? 'partial' : (total > 0 ? 'full' : 'failed'),
+      try_on_type: 'style_explorer',
+      product_path: 'style_explorer',
+      success: true,
+    })
+  },
+
+  trackStyleExplorerShareCompleted(taskId: string) {
+    sendEvent(AnalyticsEvent.TryOnShared, {
+      task_id: taskId,
+      try_on_type: 'style_explorer',
+      product_path: 'style_explorer',
+    })
+  },
+
+  trackStyleExplorerExploreAgain() {
+    sendEvent(AnalyticsEvent.JourneyContinued, {
+      source_journey: 'style_explorer',
+      destination: 'style_explorer',
+      product_path: 'style_explorer',
+    })
+  },
+
+  trackPaywallViewed(params: Record<string, unknown>) {
+    sendEvent(AnalyticsEvent.PaywallViewed, {
+      ...params,
+      product_path: 'credits_pack',
+    })
+  },
+
+  trackCreditsPurchaseClick(params: Record<string, unknown>) {
+    sendEvent(AnalyticsEvent.PurchaseIntentClicked, {
+      ...params,
+      intent_type: 'credits_pack',
+      product_path: 'credits_pack',
+    })
+  },
+
+  trackPaywallCheckoutStarted(params: {
+    source: string
+    productType?: string
+    checkoutSessionId?: string
+    value: number
+    availableCredits?: number | null
+    requiredCredits?: number | null
+    creditsNeeded?: number | null
+  }) {
+    // GA4 standard ecommerce event — no parallel checkout_started emission.
+    sendEvent('begin_checkout', {
+      currency: 'USD',
+      value: params.value,
+      source: params.source,
+      purchase_context: params.source,
+      ...(params.checkoutSessionId ? { checkout_session_id: params.checkoutSessionId } : {}),
+      ...(params.availableCredits != null ? { available_credits: params.availableCredits } : {}),
+      ...(params.requiredCredits != null ? { required_credits: params.requiredCredits } : {}),
+      ...(params.creditsNeeded != null ? { credits_needed: params.creditsNeeded } : {}),
+      items: [{
+        item_id: params.productType || 'CREDITS_PACK',
+        item_name: params.productType || 'CREDITS_PACK',
+        price: params.value,
+      }],
+      product_path: 'credits_pack',
+    })
+  },
+
+  trackPaywallCheckoutReturnVerified(params: Record<string, unknown>) {
+    // Operational return signal after server verification — not a purchase conversion.
+    sendEvent('checkout_return_verified', {
+      ...params,
+      product_path: 'credits_pack',
+    })
+  },
+
 }
 
 export function getUserType(isPremiumActive: boolean, creditsRemaining: number, isAuthenticated: boolean): UserType {

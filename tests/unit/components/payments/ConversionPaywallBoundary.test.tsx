@@ -4,6 +4,10 @@ import { ConversionPaywallBoundary } from '@/components/payments/ConversionPaywa
 import { QUOTA_CONFIG } from '@/config/pricing'
 
 const trackCustomEvent = jest.fn()
+const trackPaywallViewed = jest.fn()
+const trackCreditsPurchaseClick = jest.fn()
+const trackPaywallCheckoutStarted = jest.fn()
+const trackPaywallCheckoutReturnVerified = jest.fn()
 const updateSession = jest.fn()
 let mockSessionData: any
 let mockLocale = 'en'
@@ -22,6 +26,10 @@ jest.mock('next-auth/react', () => ({
 jest.mock('@/lib/analytics', () => ({
   analytics: {
     trackCustomEvent: (...args: unknown[]) => trackCustomEvent(...args),
+    trackPaywallViewed: (...args: unknown[]) => trackPaywallViewed(...args),
+    trackCreditsPurchaseClick: (...args: unknown[]) => trackCreditsPurchaseClick(...args),
+    trackPaywallCheckoutStarted: (...args: unknown[]) => trackPaywallCheckoutStarted(...args),
+    trackPaywallCheckoutReturnVerified: (...args: unknown[]) => trackPaywallCheckoutReturnVerified(...args),
   },
   getAcquisitionContext: () => ({
     landing_page: '/en/try-on/glasses',
@@ -45,6 +53,10 @@ describe('ConversionPaywallBoundary', () => {
   beforeEach(() => {
     mockLocale = 'en'
     trackCustomEvent.mockClear()
+    trackPaywallViewed.mockClear()
+    trackCreditsPurchaseClick.mockClear()
+    trackPaywallCheckoutStarted.mockClear()
+    trackPaywallCheckoutReturnVerified.mockClear()
     updateSession.mockReset()
     mockSessionData = {
       user: {
@@ -84,8 +96,7 @@ describe('ConversionPaywallBoundary', () => {
     expect(screen.getByRole('button', { name: 'Continue for $2.99' })).toBeInTheDocument()
     expect(screen.getByRole('link', { name: /View subscription plans/ })).toHaveAttribute('href', '/en/pricing')
 
-    expect(trackCustomEvent).toHaveBeenCalledWith(
-      'paywall_view',
+    expect(trackPaywallViewed).toHaveBeenCalledWith(
       expect.objectContaining({
         source: 'try_on',
         product_type: 'CREDITS_PACK',
@@ -117,8 +128,7 @@ describe('ConversionPaywallBoundary', () => {
     expect(screen.getByTestId('conversion-credit-shortfall')).toHaveTextContent(
       'You’re 2 credits short. This step needs 4; you have 2.',
     )
-    expect(trackCustomEvent).toHaveBeenCalledWith(
-      'paywall_view',
+    expect(trackPaywallViewed).toHaveBeenCalledWith(
       expect.objectContaining({
         source: 'frame_compare',
         available_credits: 2,
@@ -297,7 +307,7 @@ describe('ConversionPaywallBoundary', () => {
     fireEvent.click(screen.getByRole('link', { name: 'Dashboard' }))
 
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
-    expect(trackCustomEvent).not.toHaveBeenCalledWith('paywall_view', expect.anything())
+    expect(trackPaywallViewed).not.toHaveBeenCalled()
   })
 
   it('starts the Checkout API request even when IndexedDB never responds', async () => {
@@ -417,7 +427,7 @@ describe('ConversionPaywallBoundary', () => {
     )
 
     expect(await screen.findByText('Confirming payment')).toBeInTheDocument()
-    expect(trackCustomEvent).not.toHaveBeenCalledWith('checkout_completed', expect.anything())
+    expect(trackPaywallCheckoutReturnVerified).not.toHaveBeenCalled()
 
     resolveVerification(response(true, {
       success: true,
@@ -429,8 +439,7 @@ describe('ConversionPaywallBoundary', () => {
     }))
 
     await waitFor(() => {
-      expect(trackCustomEvent).toHaveBeenCalledWith(
-        'checkout_completed',
+      expect(trackPaywallCheckoutReturnVerified).toHaveBeenCalledWith(
         expect.objectContaining({
           checkout_session_id: 'cs_test_verified',
           product_type: 'CREDITS_PACK',

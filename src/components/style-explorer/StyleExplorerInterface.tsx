@@ -147,16 +147,16 @@ export function StyleExplorerInterface({
       pinnedPresetIds: pins,
     }).map((item) => item.presetId)
     setRecommendationIds(ids)
-    analytics.trackCustomEvent('style_explorer_frames_recommended', {
-      style_intent: nextStyle,
+    analytics.trackStyleExplorerFramesRecommended({
+      styleIntent: nextStyle,
       category: nextCategory,
       occasion: nextOccasion,
-      preset_ids: ids.join(','),
+      presetIds: ids,
     })
   }
 
   useEffect(() => {
-    analytics.trackCustomEvent('style_explorer_viewed')
+    analytics.trackStyleExplorerViewed()
   }, [])
 
   useEffect(() => () => {
@@ -214,10 +214,10 @@ export function StyleExplorerInterface({
     if (!batch || activeCount !== 0) return
     void update()
     const failed = batch.tasks.filter((task) => task.status === 'failed').length
-    analytics.trackCustomEvent(failed ? 'style_explorer_generation_partial' : 'style_explorer_generation_completed', {
-      batch_id: batch.batchId,
-      completed_count: completedCount,
-      failed_count: failed,
+    analytics.trackStyleExplorerGenerationFinished({
+      batchId: batch.batchId,
+      completedCount,
+      failedCount: failed,
     })
   }, [activeCount, batch, completedCount, update])
 
@@ -395,10 +395,10 @@ export function StyleExplorerInterface({
           createQueuedTask(payload.data.batchId, preset, index)),
       } as BatchResult<FramePreset>
       setBatch(nextBatch)
-      analytics.trackCustomEvent('style_explorer_generation_started', {
-        batch_id: payload.data.batchId,
-        preset_ids: recommendationIds.join(','),
-        style_intent: styleIntent,
+      analytics.trackStyleExplorerGenerationStarted({
+        batchId: payload.data.batchId,
+        presetIds: recommendationIds,
+        styleIntent,
         occasion,
         category,
       })
@@ -452,7 +452,7 @@ export function StyleExplorerInterface({
       return
     }
     setShareNotice(result === 'shared' ? 'Shared' : 'Link copied')
-    analytics.trackCustomEvent('style_explorer_share_completed', { task_id: task.taskId })
+    analytics.trackStyleExplorerShareCompleted(task.taskId)
     window.setTimeout(() => setShareNotice(null), 2000)
   }
 
@@ -460,7 +460,7 @@ export function StyleExplorerInterface({
     setBatch(null)
     setError(null)
     setDetailTask(null)
-    analytics.trackCustomEvent('style_explorer_explore_again_clicked')
+    analytics.trackStyleExplorerExploreAgain()
   }
 
   const replacementOptions = STYLE_EXPLORER_GLASSES_PRESETS.filter((preset) => (

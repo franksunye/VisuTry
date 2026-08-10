@@ -635,7 +635,7 @@ export function ConversionPaywallBoundary({ children, source }: ConversionPaywal
     const trackingKey = `${context}:${requiredCredits ?? 'na'}:${currentAvailableCredits}`
     if (trackedPaywallKeysRef.current.has(trackingKey)) return
     trackedPaywallKeysRef.current.add(trackingKey)
-    analytics.trackCustomEvent('paywall_view', {
+    analytics.trackPaywallViewed({
       source: context,
       trigger: 'quota_or_credits_cta',
       remaining_quota: session?.user?.remainingTrials ?? 0,
@@ -743,7 +743,7 @@ export function ConversionPaywallBoundary({ children, source }: ConversionPaywal
       ? Math.max(0, activeRequiredCredits - currentAvailableCredits)
       : null
 
-    analytics.trackCustomEvent('credits_purchase_click', {
+    analytics.trackCreditsPurchaseClick({
       source: context,
       product_type: 'CREDITS_PACK',
       credits_count: creditsCount,
@@ -793,14 +793,14 @@ export function ConversionPaywallBoundary({ children, source }: ConversionPaywal
 
       if (controller.signal.aborted) throw new DOMException('Aborted', 'AbortError')
 
-      analytics.trackCustomEvent('checkout_started', {
+      analytics.trackPaywallCheckoutStarted({
         source: context,
-        product_type: 'CREDITS_PACK',
-        checkout_session_id: payload.data.sessionId,
+        productType: 'CREDITS_PACK',
+        checkoutSessionId: payload.data.sessionId,
         value: PRICE_CONFIG.CREDITS_PACK / 100,
-        available_credits: currentAvailableCredits,
-        required_credits: activeRequiredCredits,
-        credits_needed: needed,
+        availableCredits: currentAvailableCredits,
+        requiredCredits: activeRequiredCredits,
+        creditsNeeded: needed,
       })
 
       await Promise.race([persistencePromise, delay(CONTEXT_IO_TIMEOUT_MS)])
@@ -912,6 +912,7 @@ export function ConversionPaywallBoundary({ children, source }: ConversionPaywal
           product_type: 'CREDITS_PACK',
           restored_uploads: restoredUploads,
           restored_frames_exactly: framesRestored,
+          value: PRICE_CONFIG.CREDITS_PACK / 100,
         })
         setReturnState('cancelled')
         setReturnMessage(returnCopy.cancelledBody)
@@ -949,7 +950,7 @@ export function ConversionPaywallBoundary({ children, source }: ConversionPaywal
         return
       }
 
-      analytics.trackCustomEvent('checkout_completed', {
+      analytics.trackPaywallCheckoutReturnVerified({
         source: conversion,
         product_type: 'CREDITS_PACK',
         checkout_session_id: sessionId,
