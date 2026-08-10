@@ -86,6 +86,10 @@ function getCopy(locale: string): Copy {
   }
 }
 
+function creditSourceParam(kind: CreditExhaustedKind) {
+  return kind.split('_').join('-')
+}
+
 export function CreditExhaustedBar({
   kind,
   availableCredits,
@@ -103,7 +107,7 @@ export function CreditExhaustedBar({
   const available = Math.max(0, availableCredits)
   const shortfall = Math.max(0, requiredCredits - available)
   const price = `$${(PRICE_CONFIG.CREDITS_PACK / 100).toFixed(2)}`
-  const pricingHref = `${localizedPath(locale, '/pricing')}?source=${kind.replaceAll('_', '-')}&requiredCredits=${requiredCredits}`
+  const pricingHref = `${localizedPath(locale, '/pricing')}?source=${creditSourceParam(kind)}&requiredCredits=${requiredCredits}`
 
   if (shortfall <= 0) return null
 
