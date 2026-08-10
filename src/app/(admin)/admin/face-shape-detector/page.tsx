@@ -39,6 +39,12 @@ function filterPillClass(active: boolean) {
     : 'rounded-full border border-gray-300 px-3 py-1 text-xs font-medium text-gray-600 hover:bg-gray-50'
 }
 
+function reasonTextClass(reason: FaceShapeFailureReason) {
+  if (FACE_SHAPE_FAILURE_REASON_GROUPS.infrastructure.includes(reason)) return 'text-orange-600'
+  if (FACE_SHAPE_FAILURE_REASON_GROUPS.detection.includes(reason)) return 'text-indigo-600'
+  return 'text-gray-600'
+}
+
 export default async function FaceShapeDetectorPage({ searchParams }: FaceShapeDetectorPageProps) {
   const requestedPage = Number.parseInt(searchParams.page ?? '1', 10)
   const currentPage = Number.isFinite(requestedPage) ? Math.max(requestedPage, 1) : 1
@@ -97,6 +103,10 @@ export default async function FaceShapeDetectorPage({ searchParams }: FaceShapeD
     : null
   const topFailureCount = topFailure?.[1] ?? 0
 
+  const detectionCount = FACE_SHAPE_FAILURE_REASON_GROUPS.detection.reduce(
+    (sum, reason) => sum + (reasonCountMap.get(reason) ?? 0),
+    0,
+  )
   const photoQualityCount = FACE_SHAPE_FAILURE_REASON_GROUPS.photo_quality.reduce(
     (sum, reason) => sum + (reasonCountMap.get(reason) ?? 0),
     0,
@@ -105,6 +115,7 @@ export default async function FaceShapeDetectorPage({ searchParams }: FaceShapeD
     (sum, reason) => sum + (reasonCountMap.get(reason) ?? 0),
     0,
   )
+  const unspecifiedCount = failedCount - detectionCount - photoQualityCount - infrastructureCount
 
   const activeReasons = FACE_SHAPE_FAILURE_REASONS.filter(
     (reason) => (reasonCountMap.get(reason) ?? 0) > 0,
@@ -165,9 +176,8 @@ export default async function FaceShapeDetectorPage({ searchParams }: FaceShapeD
           <CardHeader>
             <CardTitle>Failure Breakdown</CardTitle>
             <CardDescription>
-              {photoQualityCount} photo-quality · {infrastructureCount} infrastructure
-              {failedCount - photoQualityCount - infrastructureCount > 0 &&
-                ` · ${failedCount - photoQualityCount - infrastructureCount} unspecified`}
+              {detectionCount} detector misses · {photoQualityCount} photo-quality · {infrastructureCount} infrastructure
+              {unspecifiedCount > 0 && ` · ${unspecifiedCount} unspecified`}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -177,13 +187,16 @@ export default async function FaceShapeDetectorPage({ searchParams }: FaceShapeD
               ).map((reason) => {
                 const count = reasonCountMap.get(reason) ?? 0
                 const isInfra = FACE_SHAPE_FAILURE_REASON_GROUPS.infrastructure.includes(reason)
+                const isDetection = FACE_SHAPE_FAILURE_REASON_GROUPS.detection.includes(reason)
                 return (
                   <span
                     key={reason}
                     className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium ${
                       isInfra
                         ? 'bg-orange-100 text-orange-800'
-                        : 'bg-blue-50 text-blue-800'
+                        : isDetection
+                          ? 'bg-indigo-50 text-indigo-800'
+                          : 'bg-blue-50 text-blue-800'
                     }`}
                   >
                     {FACE_SHAPE_FAILURE_REASON_LABELS[reason]}
@@ -201,7 +214,8 @@ export default async function FaceShapeDetectorPage({ searchParams }: FaceShapeD
           <CardTitle>Detection Records</CardTitle>
           <CardDescription>
             Only completion status, failure reason, and time are stored. Photos and detection
-            results remain on device.
+            results remain on device. “Face not detected” means the detector returned zero faces;
+            it does not prove the uploaded image contained no face.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -267,13 +281,9 @@ export default async function FaceShapeDetectorPage({ searchParams }: FaceShapeD
                       <TableCell>
                         {detection.failureReason ? (
                           <span
-                            className={`text-sm font-medium ${
-                              FACE_SHAPE_FAILURE_REASON_GROUPS.infrastructure.includes(
-                                detection.failureReason as FaceShapeFailureReason,
-                              )
-                                ? 'text-orange-600'
-                                : 'text-gray-600'
-                            }`}
+                            className={`text-sm font-medium ${reasonTextClass(
+                              detection.failureReason as FaceShapeFailureReason,
+                            )}`}
                           >
                             {FACE_SHAPE_FAILURE_REASON_LABELS[
                               detection.failureReason as FaceShapeFailureReason
