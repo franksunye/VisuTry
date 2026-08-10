@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { Glasses, ScanFace, Sparkles } from 'lucide-react'
 import { SearchToToolLanding } from '@/components/growth/SearchToToolLanding'
+import { B03VisualSeoSections } from '@/components/seo/B03VisualSeoSections'
 import { getSearchToToolRouteCopy } from '@/config/search-to-tool-route-copy'
 import type { Locale } from '@/i18n'
 import { generateStructuredData } from '@/lib/seo'
@@ -61,6 +62,8 @@ export default function AiGlassesAdvisorPage({ params }: Props) {
       faq={copy.faq}
       faqEyebrow={copy.faqEyebrow}
       faqTitle={copy.faqTitle}
-    />
+    >
+      <B03VisualSeoSections locale={locale} pagePath="/ai-glasses-advisor" />
+    </SearchToToolLanding>
   )
 }
