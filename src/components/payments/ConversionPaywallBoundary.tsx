@@ -240,8 +240,33 @@ const CONTEXT_DB = 'visutry-conversion-context'
 const CONTEXT_STORE = 'contexts'
 const CONTEXT_VERSION = 1
 const CONTEXT_IO_TIMEOUT_MS = 250
+const CHECKOUT_REQUEST_TIMEOUT_MS = 15_000
 const PAYMENT_VERIFY_ATTEMPTS = 24
 const PAYMENT_VERIFY_DELAY_MS = 1250
+const CONTEXT_MAX_AGE_MS = 2 * 60 * 60 * 1000
+
+function conversionContextKey(source: ConversionPaywallSource, attemptId?: string) {
+  return `visutry_conversion_context_${source}${attemptId ? `_${attemptId}` : ''}`
+}
+
+function createCheckoutAttemptId() {
+  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+    return crypto.randomUUID()
+  }
+
+  return `${Date.now()}_${Math.random().toString(36).slice(2)}`
+}
+
+function isRestorableContext(
+  context: PersistedConversionContext | null,
+  source: ConversionPaywallSource,
+  pathname: string,
+) {
+  if (!context) return false
+  return context.source === source
+    && context.pathname === pathname
+    && Date.now() - context.createdAt <= CONTEXT_MAX_AGE_MS
+}
 
 function delay(ms: number) {
   return new Promise<void>((resolve) => window.setTimeout(resolve, ms))
@@ -572,6 +597,10 @@ export function ConversionPaywallBoundary({ children, source }: ConversionPaywal
   const primaryButtonRef = useRef<HTMLButtonElement>(null)
   const paywallTrackedRef = useRef(false)
   const returnHandledRef = useRef(false)
+  const checkoutRequestRef = useRef<{
+    controller: AbortController
+    reason: 'user' | 'timeout' | null
+  } | null>(null)
   const [open, setOpen] = useState(false)
   const [checkoutLoading, setCheckoutLoading] = useState(false)
   const [checkoutError, setCheckoutError] = useState<string | null>(null)
@@ -583,7 +612,7 @@ export function ConversionPaywallBoundary({ children, source }: ConversionPaywal
   const creditsCount = QUOTA_CONFIG.CREDITS_PACK
   const creditsPrice = `$${(PRICE_CONFIG.CREDITS_PACK / 100).toFixed(2)}`
   const monthlyPrice = `$${(PRICE_CONFIG.MONTHLY_SUBSCRIPTION / 100).toFixed(2)}`
-  const contextKey = `visutry_conversion_context_${source}`
+  const legacyContextKey = conversionContextKey(source)
   const currentCreditsBalance = useMemo(() => getCreditsBalance(session), [session])
 
   const trackPaywallView = useCallback(() => {
@@ -606,6 +635,15 @@ export function ConversionPaywallBoundary({ children, source }: ConversionPaywal
     trackPaywallView()
   }, [trackPaywallView])
 
+  const dismissPaywall = useCallback(() => {
+    if (checkoutRequestRef.current) {
+      checkoutRequestRef.current.reason = 'user'
+      checkoutRequestRef.current.controller.abort()
+    }
+    setCheckoutLoading(false)
+    setOpen(false)
+  }, [])
+
   const handleBoundaryClickCapture = useCallback((event: ReactMouseEvent<HTMLDivElement>) => {
     if (typeof window === 'undefined') return
     const target = event.target
@@ -624,7 +662,7 @@ export function ConversionPaywallBoundary({ children, source }: ConversionPaywal
     }
   }, [pricingHref, showPaywall])
 
-  const persistCurrentContext = useCallback(() => {
+  const persistCurrentContext = useCallback((contextKey: string) => {
     const context: PersistedConversionContext = {
       source,
       pathname: window.location.pathname,
@@ -636,13 +674,23 @@ export function ConversionPaywallBoundary({ children, source }: ConversionPaywal
 
     writeSessionMetadata(contextKey, context)
     return writeContextToDb(contextKey, context).catch(() => undefined)
-  }, [contextKey, currentCreditsBalance, source])
+  }, [currentCreditsBalance, source])
 
   const handleCheckout = useCallback(async () => {
     if (checkoutLoading || typeof window === 'undefined') return
 
     setCheckoutLoading(true)
     setCheckoutError(null)
+
+    const checkoutAttemptId = createCheckoutAttemptId()
+    const contextKey = conversionContextKey(source, checkoutAttemptId)
+    const controller = new AbortController()
+    const checkoutRequest = { controller, reason: null as 'user' | 'timeout' | null }
+    checkoutRequestRef.current = checkoutRequest
+    const checkoutTimeoutId = window.setTimeout(() => {
+      checkoutRequest.reason = 'timeout'
+      controller.abort()
+    }, CHECKOUT_REQUEST_TIMEOUT_MS)
 
     analytics.trackCustomEvent('credits_purchase_click', {
       source,
@@ -656,7 +704,7 @@ export function ConversionPaywallBoundary({ children, source }: ConversionPaywal
     // Context persistence is deliberately fire-and-bounded. Stripe Checkout is
     // started independently so storage/IndexedDB/browser quirks can never block payment.
     const persistencePromise = Promise.resolve()
-      .then(() => persistCurrentContext())
+      .then(() => persistCurrentContext(contextKey))
       .catch(() => undefined)
 
     try {
@@ -664,10 +712,11 @@ export function ConversionPaywallBoundary({ children, source }: ConversionPaywal
       const response = await fetch('/api/payment/create-session', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        signal: controller.signal,
         body: JSON.stringify({
           productType: 'CREDITS_PACK',
-          successUrl: `${returnBase}?payment=success&conversion=${source}&session_id={CHECKOUT_SESSION_ID}`,
-          cancelUrl: `${returnBase}?payment=cancelled&conversion=${source}`,
+          successUrl: `${returnBase}?payment=success&conversion=${source}&conversion_attempt=${encodeURIComponent(checkoutAttemptId)}&session_id={CHECKOUT_SESSION_ID}`,
+          cancelUrl: `${returnBase}?payment=cancelled&conversion=${source}&conversion_attempt=${encodeURIComponent(checkoutAttemptId)}`,
           attribution: getAcquisitionContext(),
           locale,
         }),
@@ -677,6 +726,8 @@ export function ConversionPaywallBoundary({ children, source }: ConversionPaywal
       if (!response.ok || !payload.success || !payload.data?.url) {
         throw new Error(payload.error || copy.paymentError)
       }
+
+      if (controller.signal.aborted) throw new DOMException('Aborted', 'AbortError')
 
       analytics.trackCustomEvent('checkout_started', {
         source,
@@ -688,11 +739,21 @@ export function ConversionPaywallBoundary({ children, source }: ConversionPaywal
       // Give IndexedDB a tiny opportunity to finish only after Checkout exists.
       // The hard timeout means it can never hold the customer on this page.
       await Promise.race([persistencePromise, delay(CONTEXT_IO_TIMEOUT_MS)])
+      if (controller.signal.aborted) throw new DOMException('Aborted', 'AbortError')
       window.location.assign(payload.data.url)
     } catch (error) {
-      console.error('Contextual checkout failed:', error)
-      setCheckoutError(error instanceof Error ? error.message : copy.paymentError)
+      if (checkoutRequest.reason !== 'user') {
+        console.error('Contextual checkout failed:', error)
+        setCheckoutError(
+          checkoutRequest.reason === 'timeout'
+            ? copy.paymentError
+            : error instanceof Error ? error.message : copy.paymentError,
+        )
+      }
       setCheckoutLoading(false)
+    } finally {
+      window.clearTimeout(checkoutTimeoutId)
+      if (checkoutRequestRef.current === checkoutRequest) checkoutRequestRef.current = null
     }
   }, [checkoutLoading, copy.paymentError, creditsCount, currentCreditsBalance, locale, persistCurrentContext, session?.user?.remainingTrials, source])
 
@@ -702,7 +763,7 @@ export function ConversionPaywallBoundary({ children, source }: ConversionPaywal
     const previousOverflow = document.body.style.overflow
     document.body.style.overflow = 'hidden'
     const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape' && !checkoutLoading) setOpen(false)
+      if (event.key === 'Escape') dismissPaywall()
     }
     document.addEventListener('keydown', onKeyDown)
     window.setTimeout(() => primaryButtonRef.current?.focus(), 20)
@@ -711,7 +772,7 @@ export function ConversionPaywallBoundary({ children, source }: ConversionPaywal
       document.body.style.overflow = previousOverflow
       document.removeEventListener('keydown', onKeyDown)
     }
-  }, [checkoutLoading, open])
+  }, [dismissPaywall, open])
 
   useEffect(() => {
     if (returnHandledRef.current || typeof window === 'undefined') return
@@ -722,16 +783,24 @@ export function ConversionPaywallBoundary({ children, source }: ConversionPaywal
     if ((payment !== 'success' && payment !== 'cancelled') || conversion !== source) return
 
     returnHandledRef.current = true
+    const checkoutAttemptId = url.searchParams.get('conversion_attempt')?.trim() || ''
+    const contextKey = checkoutAttemptId
+      ? conversionContextKey(source, checkoutAttemptId)
+      : legacyContextKey
 
     const cleanReturnParams = () => {
       url.searchParams.delete('payment')
       url.searchParams.delete('conversion')
+      url.searchParams.delete('conversion_attempt')
       url.searchParams.delete('session_id')
       window.history.replaceState(window.history.state, '', `${url.pathname}${url.search}${url.hash}`)
     }
 
     const restoreReturnContext = async () => {
-      const context = await readPersistedContext(contextKey)
+      const persistedContext = await readPersistedContext(contextKey)
+      const context = isRestorableContext(persistedContext, source, window.location.pathname)
+        ? persistedContext
+        : null
       await delay(120)
 
       if (payment === 'cancelled') {
@@ -846,7 +915,7 @@ export function ConversionPaywallBoundary({ children, source }: ConversionPaywal
     }
 
     void restoreReturnContext()
-  }, [contextKey, copy.cancelledBody, copy.successBody, currentCreditsBalance, source, update])
+  }, [legacyContextKey, copy.cancelledBody, copy.successBody, currentCreditsBalance, source, update])
 
   const returnTitle = returnState === 'success'
     ? copy.successTitle
@@ -908,8 +977,7 @@ export function ConversionPaywallBoundary({ children, source }: ConversionPaywal
               <span className="text-sm font-bold tracking-tight text-slate-950">VisuTry</span>
               <button
                 type="button"
-                onClick={() => setOpen(false)}
-                disabled={checkoutLoading}
+                onClick={dismissPaywall}
                 className="rounded-full p-2 text-slate-500 transition hover:bg-slate-100 hover:text-slate-800 disabled:opacity-40"
                 aria-label={copy.close}
               >
