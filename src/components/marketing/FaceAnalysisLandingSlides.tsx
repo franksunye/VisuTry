@@ -27,6 +27,10 @@ export function FaceAnalysisLandingSlides() {
   const currentSlide = faceAnalysisSlides[currentIndex]
 
   useEffect(() => {
+    const isNarrowScreen = window.matchMedia('(max-width: 639px)').matches
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    if (isNarrowScreen || prefersReducedMotion) return
+
     const intervalId = window.setInterval(() => {
       setCurrentIndex((index) => (index + 1) % faceAnalysisSlides.length)
     }, 4500)
@@ -43,49 +47,41 @@ export function FaceAnalysisLandingSlides() {
   }
 
   return (
-    <div className="flex h-full flex-col overflow-hidden rounded-lg border border-blue-100 bg-white shadow-xl">
-      <div className="relative min-h-[300px] flex-1 bg-white md:min-h-[380px]">
-        {faceAnalysisSlides.map((slide, index) => (
-          <div
-            key={slide.name}
-            className={cn(
-              'absolute inset-0 transition-opacity duration-700',
-              index === currentIndex ? 'opacity-100' : 'opacity-0',
-            )}
-          >
-            <Image
-              src={slide.image}
-              alt={`${slide.label} — VisuTry AI face analysis for glasses`}
-              fill
-              className="object-contain p-2 md:p-3"
-              priority={index === 0}
-              sizes="(max-width: 1024px) 100vw, 720px"
-            />
-          </div>
-        ))}
+    <div className="flex h-full flex-col overflow-hidden rounded-lg border border-blue-100 bg-white shadow-lg md:shadow-xl">
+      <div className="relative min-h-[240px] flex-1 bg-white sm:min-h-[300px] md:min-h-[380px]">
+        <div key={currentSlide.name} className="absolute inset-0">
+          <Image
+            src={currentSlide.image}
+            alt={`${currentSlide.label} — VisuTry AI face analysis for glasses`}
+            fill
+            className="object-contain p-2 md:p-3"
+            priority={currentIndex === 0}
+            sizes="(max-width: 639px) 100vw, (max-width: 1024px) 100vw, 720px"
+          />
+        </div>
         <button
           type="button"
           onClick={goToPrevious}
-          className="absolute start-3 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-gray-700 shadow-sm hover:text-blue-600"
+          className="absolute start-2 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-gray-700 shadow-sm hover:text-blue-600 sm:start-3 sm:h-9 sm:w-9"
           aria-label="Previous face analysis preview"
         >
-          <ChevronLeft className="h-5 w-5" />
+          <ChevronLeft className="h-4 w-4 sm:h-5 sm:w-5" />
         </button>
         <button
           type="button"
           onClick={goToNext}
-          className="absolute end-3 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-gray-700 shadow-sm hover:text-blue-600"
+          className="absolute end-2 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 text-gray-700 shadow-sm hover:text-blue-600 sm:end-3 sm:h-9 sm:w-9"
           aria-label="Next face analysis preview"
         >
-          <ChevronRight className="h-5 w-5" />
+          <ChevronRight className="h-4 w-4 sm:h-5 sm:w-5" />
         </button>
       </div>
-      <div className="flex flex-col gap-3 border-t border-gray-200 bg-white px-4 py-4 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col gap-2 border-t border-gray-200 bg-white px-3 py-3 sm:flex-row sm:items-center sm:justify-between sm:gap-3 sm:px-4 sm:py-4">
         <div>
-          <p className="text-sm font-bold text-gray-950">
+          <p className="text-xs font-bold text-gray-950 sm:text-sm">
             {currentSlide.label} · {currentSlide.frame}
           </p>
-          <p className="mt-1 text-sm text-gray-600">{currentSlide.note}</p>
+          <p className="mt-1 text-xs leading-5 text-gray-600 sm:text-sm">{currentSlide.note}</p>
         </div>
         <div className="flex gap-2">
           {faceAnalysisSlides.map((slide, index) => (
