@@ -71,6 +71,10 @@ const measuredFileResult = {
   },
 }
 
+function getPhotoLibraryInput() {
+  return screen.getAllByLabelText(/choose a face photo/i)[0]
+}
+
 describe('FreeFaceShapeDetector', () => {
   const mockFetch = jest.fn(() => Promise.resolve({ ok: true }))
 
@@ -103,7 +107,7 @@ describe('FreeFaceShapeDetector', () => {
 
     render(<FreeFaceShapeDetector locale="en" />)
 
-    const input = screen.getByLabelText(/choose a face photo/i)
+    const input = getPhotoLibraryInput()
     const file = new File(['portrait'], 'portrait.jpg', { type: 'image/jpeg' })
     fireEvent.change(input, { target: { files: [file] } })
 
@@ -116,6 +120,7 @@ describe('FreeFaceShapeDetector', () => {
     expect(screen.getAllByText('Photo Alignment')).toHaveLength(2)
     expect(screen.getByTestId('landmark-mesh')).toBeInTheDocument()
     expect(mockAnalyzeFaceLandmarkFile).toHaveBeenCalledTimes(1)
+    expect(mockCompressImage).toHaveBeenCalledWith(file, 1280, 0.88, { profile: 'user-photo' })
     expect(trackComplete).toHaveBeenCalledWith('oval', 92, expect.any(Number))
 
     expect(screen.queryByRole('link', { name: /open virtual try-on/i })).not.toBeInTheDocument()
@@ -140,7 +145,7 @@ describe('FreeFaceShapeDetector', () => {
     render(<FreeFaceShapeDetector locale="en" />)
 
     const file = new File(['portrait'], 'portrait.jpg', { type: 'image/jpeg' })
-    fireEvent.change(screen.getByLabelText(/choose a face photo/i), { target: { files: [file] } })
+    fireEvent.change(getPhotoLibraryInput(), { target: { files: [file] } })
     await screen.findByRole('heading', { name: 'Oval' })
     fireEvent.click(screen.getByRole('button', { name: /get personalized frame recommendations/i }))
 
@@ -157,7 +162,7 @@ describe('FreeFaceShapeDetector', () => {
 
     render(<FreeFaceShapeDetector locale="en" />)
 
-    const input = screen.getByLabelText(/choose a face photo/i)
+    const input = getPhotoLibraryInput()
     const file = new File(['portrait'], 'portrait.gif', { type: 'image/gif' })
     fireEvent.change(input, { target: { files: [file] } })
 
@@ -185,7 +190,7 @@ describe('FreeFaceShapeDetector', () => {
 
     render(<FreeFaceShapeDetector locale="en" />)
 
-    const input = screen.getByLabelText(/choose a face photo/i)
+    const input = getPhotoLibraryInput()
     const file = new File(['portrait'], 'portrait.jpg', { type: 'image/jpeg' })
     fireEvent.change(input, { target: { files: [file] } })
 
