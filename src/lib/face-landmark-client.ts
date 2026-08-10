@@ -303,6 +303,13 @@ async function decodeImageFile(file: File): Promise<DecodedImageSource> {
   const image = new Image()
   image.decoding = 'async'
 
+  const releaseObjectUrl = () => {
+    image.onload = null
+    image.onerror = null
+    image.src = ''
+    URL.revokeObjectURL(objectUrl)
+  }
+
   try {
     if (typeof image.decode === 'function') {
       image.src = objectUrl
@@ -325,18 +332,13 @@ async function decodeImageFile(file: File): Promise<DecodedImageSource> {
       image,
       width,
       height,
-      close: () => {
-        image.onload = null
-        image.onerror = null
-        image.src = ''
-      },
+      close: releaseObjectUrl,
     }
   } catch (imageError) {
+    releaseObjectUrl()
     const bitmapMessage = bitmapError instanceof Error ? bitmapError.message : 'bitmap decoder rejected the file'
     const imageMessage = imageError instanceof Error ? imageError.message : 'image element decoder rejected the file'
     throw new FaceImageDecodeError(`Image could not be decoded (${bitmapMessage}; fallback: ${imageMessage}).`)
-  } finally {
-    URL.revokeObjectURL(objectUrl)
   }
 }
 

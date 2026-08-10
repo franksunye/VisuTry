@@ -82,7 +82,12 @@ describe('face-landmark-client detector fallback', () => {
   it('falls back to HTMLImageElement when createImageBitmap rejects', async () => {
     const createImageBitmap = globalThis.createImageBitmap as jest.Mock
     createImageBitmap.mockRejectedValue(new DOMException('Unsupported image', 'EncodingError'))
-    mockGpuDetect.mockReturnValue({ faceLandmarks: [landmarks] })
+    mockGpuDetect.mockImplementation((image: HTMLImageElement) => {
+      // Object URL must stay alive through MediaPipe inference.
+      expect(URL.revokeObjectURL).not.toHaveBeenCalled()
+      expect(image.src).toBe('blob:face-input')
+      return { faceLandmarks: [landmarks] }
+    })
 
     class MockImage {
       decoding = 'async'
@@ -91,6 +96,8 @@ describe('face-landmark-client detector fallback', () => {
       width = 640
       height = 480
       src = ''
+      onload: ((event: Event) => void) | null = null
+      onerror: ((event: Event) => void) | null = null
       decode = jest.fn().mockResolvedValue(undefined)
     }
     Object.defineProperty(globalThis, 'Image', { configurable: true, value: MockImage })
@@ -99,14 +106,21 @@ describe('face-landmark-client detector fallback', () => {
     const result = await analyzeFaceLandmarkFile(file)
 
     expect(result.detection).not.toBeNull()
+    expect(result.geometry.failureReason).not.toBe('image_decode_failed')
     expect(createImageBitmap).toHaveBeenCalledWith(file)
     expect(URL.createObjectURL).toHaveBeenCalledWith(file)
+    // Revoke happens in DecodedImageSource.close(), after inference.
     expect(URL.revokeObjectURL).toHaveBeenCalledWith('blob:face-input')
+    expect(URL.revokeObjectURL).toHaveBeenCalledTimes(1)
   })
 
   it('uses HTMLImageElement when createImageBitmap is unavailable', async () => {
     Reflect.deleteProperty(globalThis, 'createImageBitmap')
-    mockGpuDetect.mockReturnValue({ faceLandmarks: [landmarks] })
+    mockGpuDetect.mockImplementation((image: HTMLImageElement) => {
+      expect(URL.revokeObjectURL).not.toHaveBeenCalled()
+      expect(image.src).toBe('blob:face-input')
+      return { faceLandmarks: [landmarks] }
+    })
 
     class MockImage {
       decoding = 'async'
@@ -115,6 +129,8 @@ describe('face-landmark-client detector fallback', () => {
       width = 640
       height = 480
       src = ''
+      onload: ((event: Event) => void) | null = null
+      onerror: ((event: Event) => void) | null = null
       decode = jest.fn().mockResolvedValue(undefined)
     }
     Object.defineProperty(globalThis, 'Image', { configurable: true, value: MockImage })
@@ -123,7 +139,28 @@ describe('face-landmark-client detector fallback', () => {
     const result = await analyzeFaceLandmarkFile(file)
 
     expect(result.detection).not.toBeNull()
+    expect(result.geometry.failureReason).not.toBe('image_decode_failed')
     expect(URL.createObjectURL).toHaveBeenCalledWith(file)
+    expect(URL.revokeObjectURL).toHaveBeenCalledWith('blob:face-input')
+  })
+
+  it('keeps ImageBitmap path free of object URLs', async () => {
+    const bitmap = {
+      width: 640,
+      height: 480,
+      close: jest.fn(),
+    }
+    const createImageBitmap = globalThis.createImageBitmap as jest.Mock
+    createImageBitmap.mockResolvedValue(bitmap)
+    mockGpuDetect.mockReturnValue({ faceLandmarks: [landmarks] })
+
+    const file = new File(['portrait'], 'portrait.jpg', { type: 'image/jpeg' })
+    const result = await analyzeFaceLandmarkFile(file)
+
+    expect(result.detection).not.toBeNull()
+    expect(URL.createObjectURL).not.toHaveBeenCalled()
+    expect(URL.revokeObjectURL).not.toHaveBeenCalled()
+    expect(bitmap.close).toHaveBeenCalledTimes(1)
   })
 
   it('reports image_decode_failed only after both decoders reject', async () => {
@@ -137,6 +174,8 @@ describe('face-landmark-client detector fallback', () => {
       width = 0
       height = 0
       src = ''
+      onload: ((event: Event) => void) | null = null
+      onerror: ((event: Event) => void) | null = null
       decode = jest.fn().mockRejectedValue(new DOMException('Decode failed', 'EncodingError'))
     }
     Object.defineProperty(globalThis, 'Image', { configurable: true, value: MockImage })
@@ -146,6 +185,8 @@ describe('face-landmark-client detector fallback', () => {
 
     expect(result.geometry.failureReason).toBe('image_decode_failed')
     expect(result.geometry.warnings[0]).toMatch(/fallback: Decode failed/)
+    // Failed decode path must still revoke the object URL it created.
+    expect(URL.revokeObjectURL).toHaveBeenCalledWith('blob:face-input')
   })
 
   it('rejects empty files before invoking a browser decoder', async () => {
