@@ -5,14 +5,20 @@ import type { VisualSeoAsset as VisualSeoAssetData } from '@/config/visual-seo-a
 type VisualSeoAssetProps = {
   asset: VisualSeoAssetData
   variant?: 'default' | 'compact' | 'editorial' | 'supporting-wide'
+  headingDisplay?: 'visible' | 'sr-only'
 }
 
-export function VisualSeoAsset({ asset, variant = 'default' }: VisualSeoAssetProps) {
+export function VisualSeoAsset({
+  asset,
+  variant = 'default',
+  headingDisplay = 'visible',
+}: VisualSeoAssetProps) {
   const isCompact = variant === 'compact'
   const isEditorial = variant === 'editorial'
   const isSupportingWide = variant === 'supporting-wide'
   const displayWidth = asset.displayWidth === 'secondary' ? 'max-w-4xl' : 'max-w-6xl'
   const body = <p className="text-base leading-7 text-slate-600">{asset.body}</p>
+  const headingClass = (visibleClassName: string) => (headingDisplay === 'sr-only' ? 'sr-only' : visibleClassName)
 
   if (isCompact) {
     return (
@@ -27,7 +33,7 @@ export function VisualSeoAsset({ asset, variant = 'default' }: VisualSeoAssetPro
             className="h-[84px] w-[112px] rounded-lg border border-slate-100 bg-slate-50 object-cover sm:h-auto sm:w-full sm:rounded-xl"
           />
           <figcaption className="min-w-0 sm:pt-3">
-            <h2 className="text-base font-bold leading-5 tracking-tight text-slate-950 sm:text-xl">
+            <h2 className={headingClass('text-base font-bold leading-5 tracking-tight text-slate-950 sm:text-xl')}>
               {asset.heading}
             </h2>
             <p className="mt-2 hidden text-sm leading-6 text-slate-600 sm:block">{asset.body}</p>
@@ -59,7 +65,7 @@ export function VisualSeoAsset({ asset, variant = 'default' }: VisualSeoAssetPro
             className="h-[84px] w-[112px] rounded-lg border border-slate-100 bg-slate-50 object-cover md:h-auto md:w-full md:rounded-xl"
           />
           <figcaption className="min-w-0">
-            <h2 className="text-base font-bold leading-5 tracking-tight text-slate-950 sm:text-xl md:text-2xl">
+            <h2 className={headingClass('text-base font-bold leading-5 tracking-tight text-slate-950 sm:text-xl md:text-2xl')}>
               {asset.heading}
             </h2>
             <p className="mt-2 hidden text-sm leading-6 text-slate-600 sm:block md:text-base md:leading-7">
@@ -83,7 +89,7 @@ export function VisualSeoAsset({ asset, variant = 'default' }: VisualSeoAssetPro
   if (isEditorial) {
     return (
       <article className={`mx-auto ${displayWidth}`}>
-        <h2 className="mb-4 text-2xl font-bold tracking-tight text-slate-950 md:text-3xl">
+        <h2 className={headingClass('mb-4 text-2xl font-bold tracking-tight text-slate-950 md:text-3xl')}>
           {asset.heading}
         </h2>
         {asset.bodyPosition === 'before' ? <div className="mb-5">{body}</div> : null}
@@ -114,7 +120,7 @@ export function VisualSeoAsset({ asset, variant = 'default' }: VisualSeoAssetPro
 
   return (
     <article className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-6">
-      <h2 className="mb-4 text-2xl font-bold tracking-tight text-slate-950 md:text-3xl">
+      <h2 className={headingClass('mb-4 text-2xl font-bold tracking-tight text-slate-950 md:text-3xl')}>
         {asset.heading}
       </h2>
       <figure>
