@@ -24,8 +24,8 @@ export function FaceAnalysisGate({ landing, loadingText }: FaceAnalysisGateProps
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <Suspense fallback={<div className="text-center py-12 text-gray-500">{loadingText}</div>}>
+    <div className="container mx-auto px-4 py-5 sm:py-8">
+      <Suspense fallback={<div className="py-12 text-center text-gray-500">{loadingText}</div>}>
         <FaceAnalysisInterface />
       </Suspense>
     </div>

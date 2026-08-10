@@ -286,6 +286,7 @@ export function FaceAnalysisInterface() {
     currentStep === 'analyzing' ? 'analyzing' : currentStep === 'report' ? 'report' : currentStep
 
   const hasResult = !isProcessing && task?.status === 'completed' && !!task.basicResult
+  const hideEmptyResultOnMobile = !userImage && !isProcessing && !isRestoringTask && !task
 
   return (
     <div className={FACE_ANALYSIS_LAYOUT.container}>
@@ -298,7 +299,7 @@ export function FaceAnalysisInterface() {
             : FACE_ANALYSIS_LAYOUT.grid
         )}
       >
-        <div className="space-y-5 order-1">
+        <div className="order-1 space-y-4 sm:space-y-5">
           {hasResult && task?.basicResult ? (
             <ReportSideRail
               task={task}
@@ -317,14 +318,14 @@ export function FaceAnalysisInterface() {
             <ReportRailSkeleton />
           ) : (
             <>
-              <div className={cn(FACE_ANALYSIS_LAYOUT.card, 'p-5')}>
-                <div className="flex items-center justify-between mb-4">
+              <div className={cn(FACE_ANALYSIS_LAYOUT.card, 'p-4 sm:p-5')}>
+                <div className="mb-3 flex items-center justify-between sm:mb-4">
                   <h3 className="font-semibold text-gray-900">
-                    <span className="text-blue-600 mr-2">1</span>
+                    <span className="mr-2 text-blue-600">1</span>
                     {t('upload.title')}
                   </h3>
                   {userImage && (
-                    <span className="text-xs font-medium text-green-700 bg-green-100 px-2 py-0.5 rounded-full">
+                    <span className="rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-700">
                       {t('upload.uploaded')}
                     </span>
                   )}
@@ -354,53 +355,65 @@ export function FaceAnalysisInterface() {
                   label={t('upload.label')}
                   description={t('upload.description')}
                   loading={isProcessing}
-                  height="h-[220px]"
+                  height="h-[176px] sm:h-[220px]"
                   iconType="user"
                 />
                 {userImage && (
-                  <p className="text-sm text-green-700 mt-3">{t('upload.ready')}</p>
+                  <p className="mt-2 text-sm text-green-700 sm:mt-3">{t('upload.ready')}</p>
                 )}
               </div>
 
-              <div className={cn(FACE_ANALYSIS_LAYOUT.card, 'p-5')}>
-                <h3 className="font-semibold text-gray-900 mb-2">
-                  <span className="text-blue-600 mr-2">2</span>
+              <div className={cn(FACE_ANALYSIS_LAYOUT.card, 'p-4 sm:p-5')}>
+                <h3 className="mb-2 font-semibold text-gray-900">
+                  <span className="mr-2 text-blue-600">2</span>
                   {t('analyze.title')}
                 </h3>
-                <p className="text-sm text-gray-600 mb-4">{t('analyze.description')}</p>
-                <button
-                  type="button"
-                  onClick={handleAnalyze}
-                  disabled={!userImage || isProcessing || !hasQuota}
-                  className={cn(FACE_ANALYSIS_LAYOUT.primaryButton, 'w-full')}
-                >
-                  {isProcessing ? (
-                    <>
-                      <div className="w-4 h-4 mr-2 border-2 border-white rounded-full border-t-transparent animate-spin" />
-                      {t('analyze.analyzing')}
-                    </>
-                  ) : (
-                    <>
-                      <ScanFace className="w-4 h-4 mr-2" />
-                      {isCompleted ? t('analyze.again') : t('analyze.button')}
-                    </>
-                  )}
-                </button>
-                <p className="flex items-center gap-1 text-xs text-gray-500 mt-3">
-                  <HelpCircle className="w-3.5 h-3.5" />
-                  {willUseIncludedAnalysisCredit
-                    ? t('analyze.includedCreditNote')
-                    : t('analyze.creditNote', { count: FACE_ANALYSIS_CREDIT_COST })}
+                <p className="mb-3 text-sm text-gray-600 sm:mb-4">{t('analyze.description')}</p>
+                {hasQuota ? (
+                  <button
+                    type="button"
+                    onClick={handleAnalyze}
+                    disabled={!userImage || isProcessing}
+                    className={cn(FACE_ANALYSIS_LAYOUT.primaryButton, 'w-full')}
+                  >
+                    {isProcessing ? (
+                      <>
+                        <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                        {t('analyze.analyzing')}
+                      </>
+                    ) : (
+                      <>
+                        <ScanFace className="mr-2 h-4 w-4" />
+                        {isCompleted ? t('analyze.again') : t('analyze.button')}
+                      </>
+                    )}
+                  </button>
+                ) : (
+                  <Link
+                    href={`/${locale}/pricing`}
+                    className={cn(FACE_ANALYSIS_LAYOUT.primaryButton, 'w-full')}
+                    onClick={() => analytics.trackViewPricing('face_analysis', userType, remainingTrials)}
+                  >
+                    {t('footer.getCredits')}
+                  </Link>
+                )}
+                <p className="mt-3 flex items-center gap-1 text-xs text-gray-500">
+                  <HelpCircle className="h-3.5 w-3.5 shrink-0" />
+                  {hasQuota
+                    ? willUseIncludedAnalysisCredit
+                      ? t('analyze.includedCreditNote')
+                      : t('analyze.creditNote', { count: FACE_ANALYSIS_CREDIT_COST })
+                    : t('footer.noCredits')}
                 </p>
               </div>
             </>
           )}
         </div>
 
-        <div className="order-2 2xl:order-2">
+        <div className={cn('order-2 2xl:order-2', hideEmptyResultOnMobile && 'hidden lg:block')}>
           <div
             className={cn(
-              hasResult ? 'p-5 sm:p-6' : 'p-6',
+              hasResult ? 'p-4 sm:p-6' : 'p-3 sm:p-5 lg:p-6',
               hasResult
                 ? FACE_ANALYSIS_LAYOUT.resultPanelFilled
                 : FACE_ANALYSIS_LAYOUT.resultPanelEmpty
@@ -421,50 +434,35 @@ export function FaceAnalysisInterface() {
             )}
 
             {!isProcessing && !isRestoringTask && !task && (
-              <div className="flex flex-col items-center justify-center h-full p-6 text-center">
-                <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mb-4">
-                  <Sparkles className="w-10 h-10 text-gray-400" />
+              <div className="flex h-full flex-col items-center justify-center p-2 text-center sm:p-6">
+                <div className="mb-2 flex h-10 w-10 items-center justify-center rounded-full bg-gray-100 sm:mb-4 sm:h-20 sm:w-20">
+                  <Sparkles className="h-5 w-5 text-gray-400 sm:h-10 sm:w-10" />
                 </div>
-                <p className="text-base font-medium text-gray-700 mb-2">{t('empty.title')}</p>
-                <p className="text-sm text-gray-500 max-w-md">{t('empty.description')}</p>
+                <p className="mb-1 text-sm font-medium text-gray-700 sm:mb-2 sm:text-base">{t('empty.title')}</p>
+                <p className="max-w-md text-xs leading-5 text-gray-500 sm:text-sm">{t('empty.description')}</p>
               </div>
             )}
 
             {!isProcessing && task?.status === 'failed' && (
-              <div className="flex flex-col items-center justify-center h-full text-center p-6">
-                <p className="text-red-600 font-medium mb-2">{t('failed.title')}</p>
-                <p className="text-sm text-gray-600 mb-4">{task.errorMessage || error}</p>
+              <div className="flex h-full flex-col items-center justify-center p-6 text-center">
+                <p className="mb-2 font-medium text-red-600">{t('failed.title')}</p>
+                <p className="mb-4 text-sm text-gray-600">{task.errorMessage || error}</p>
                 <button
                   type="button"
                   onClick={handleAnalyze}
                   className={FACE_ANALYSIS_LAYOUT.secondaryButton}
                 >
-                  <Camera className="w-4 h-4 mr-2" />
+                  <Camera className="mr-2 h-4 w-4" />
                   {t('failed.retry')}
                 </button>
               </div>
             )}
           </div>
         </div>
-
-        {!hasQuota && !hasResult && (
-          <div className="order-3 2xl:order-3 2xl:col-span-2 py-4 2xl:py-0">
-            <div className="rounded-xl border border-blue-200 bg-blue-50 p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-              <p className="text-sm text-gray-700">{t('footer.noCredits')}</p>
-              <Link
-                href={`/${locale}/pricing`}
-                className={FACE_ANALYSIS_LAYOUT.primaryButton}
-                onClick={() => analytics.trackViewPricing('face_analysis', userType, remainingTrials)}
-              >
-                {t('footer.getCredits')}
-              </Link>
-            </div>
-          </div>
-        )}
       </div>
 
       {error && !task?.errorMessage && (
-        <p className="mt-4 text-sm text-red-600 text-center">{error}</p>
+        <p className="mt-4 text-center text-sm text-red-600">{error}</p>
       )}
     </div>
   )
@@ -574,24 +572,26 @@ function ReportSideRail({
         {REPORT_NAV_ITEMS.map((item, index) => {
           const isActive = activeHref === item.href
           return (
-          <a
-            key={item.label}
-            href={item.href}
-            aria-current={isActive ? 'true' : undefined}
-            onClick={() => setActiveHref(item.href)}
-            className={cn(
-              'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors hover:bg-blue-50 hover:text-blue-700',
-              isActive ? 'bg-blue-50 text-blue-700' : 'text-gray-600'
-            )}
-          >
-            <span className={cn(
-              'flex h-6 w-6 items-center justify-center rounded-full bg-white text-xs font-semibold shadow-sm',
-              isActive ? 'text-blue-700' : 'text-gray-600'
-            )}>
-              {index + 1}
-            </span>
-            {item.label}
-          </a>
+            <a
+              key={item.label}
+              href={item.href}
+              aria-current={isActive ? 'true' : undefined}
+              onClick={() => setActiveHref(item.href)}
+              className={cn(
+                'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors hover:bg-blue-50 hover:text-blue-700',
+                isActive ? 'bg-blue-50 text-blue-700' : 'text-gray-600'
+              )}
+            >
+              <span
+                className={cn(
+                  'flex h-6 w-6 items-center justify-center rounded-full bg-white text-xs font-semibold shadow-sm',
+                  isActive ? 'text-blue-700' : 'text-gray-600'
+                )}
+              >
+                {index + 1}
+              </span>
+              {item.label}
+            </a>
           )
         })}
       </nav>

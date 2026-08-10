@@ -51,9 +51,10 @@ export function getFaceShapeIcon(shape: string): LucideIcon {
 
 export const FACE_ANALYSIS_LAYOUT = {
   container: 'max-w-7xl mx-auto',
-  grid: 'flex flex-col lg:grid lg:grid-cols-[320px_minmax(0,1fr)] gap-6',
+  grid: 'flex flex-col lg:grid lg:grid-cols-[320px_minmax(0,1fr)] gap-4 sm:gap-5 lg:gap-6',
   card: 'rounded-xl border border-gray-200 bg-white shadow-sm',
-  resultPanelEmpty: 'border-2 border-gray-300 border-dashed rounded-lg bg-gray-50 min-h-[400px]',
+  resultPanelEmpty:
+    'border-2 border-gray-300 border-dashed rounded-lg bg-gray-50 min-h-[112px] sm:min-h-[260px] lg:min-h-[400px]',
   resultPanelFilled: 'border border-gray-200 rounded-xl bg-white shadow-sm min-h-[400px]',
   primaryButton:
     'flex items-center justify-center px-6 py-3 text-white transition-colors bg-blue-600 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed',

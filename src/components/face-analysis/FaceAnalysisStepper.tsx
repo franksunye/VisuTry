@@ -22,8 +22,8 @@ export function FaceAnalysisStepper({ currentStep }: FaceAnalysisStepperProps) {
   const activeIndex = stepIndex(currentStep)
 
   return (
-    <div className="flex items-center justify-center mb-8">
-      <div className="flex items-center space-x-4">
+    <div className="mb-5 flex items-center justify-center sm:mb-8">
+      <div className="flex items-center space-x-2 sm:space-x-4">
         {stepIds.map((stepId, index) => {
           const Icon = stepIcons[stepId as keyof typeof stepIcons]
           const isComplete = index < activeIndex
@@ -41,16 +41,16 @@ export function FaceAnalysisStepper({ currentStep }: FaceAnalysisStepperProps) {
               >
                 <div
                   className={cn(
-                    'w-8 h-8 rounded-full flex items-center justify-center',
+                    'flex h-8 w-8 items-center justify-center rounded-full',
                     isComplete ? 'bg-green-100' : isActive ? 'bg-blue-100' : 'bg-gray-100'
                   )}
                 >
-                  <Icon className="w-4 h-4" />
+                  <Icon className="h-4 w-4" />
                 </div>
-                <span className="ml-2 font-medium hidden sm:inline">{label}</span>
+                <span className="ml-2 hidden font-medium sm:inline">{label}</span>
               </div>
               {index < stepIds.length - 1 && (
-                <ArrowRight className="w-4 h-4 text-gray-400 mx-4" />
+                <ArrowRight className="mx-3 h-4 w-4 text-gray-400 sm:mx-4" />
               )}
             </div>
           )
