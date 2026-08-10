@@ -8,6 +8,7 @@ const FALLBACK_WASM_ASSET_URL = `https://cdn.jsdelivr.net/npm/@mediapipe/tasks-v
 const PRIMARY_MODEL_ASSET_URL = '/mediapipe/models/face_landmarker.task'
 const FALLBACK_MODEL_ASSET_URL =
   'https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task'
+const MAX_IMAGE_DETECTION_CACHE_ENTRIES = 8
 
 type FaceLandmarkerDelegate = 'GPU' | 'CPU'
 type FaceLandmarkerAssetSource = 'primary' | 'fallback'
@@ -29,6 +30,7 @@ class FaceLandmarkRuntimeError extends Error {
 }
 
 const landmarkerPromises: Partial<Record<string, Promise<FaceLandmarkerInstance>>> = {}
+const imageDetectionPromises = new Map<string, Promise<FaceLandmarkDetectionResult | null>>()
 let visionPromise: Promise<typeof import('@mediapipe/tasks-vision')> | null = null
 
 function loadVisionTasks() {
@@ -158,7 +160,7 @@ async function detectWithDelegate(
   }
 }
 
-export async function detectFaceLandmarksFromImage(
+async function detectFaceLandmarksUncached(
   image: ImageBitmap | HTMLImageElement | HTMLCanvasElement
 ): Promise<FaceLandmarkDetectionResult | null> {
   let gpuError: unknown = null
@@ -176,6 +178,49 @@ export async function detectFaceLandmarksFromImage(
     if (cpuError instanceof FaceLandmarkRuntimeError) throw cpuError
     if (gpuError instanceof FaceLandmarkRuntimeError) throw gpuError
     throw cpuError
+  }
+}
+
+function getImageDetectionCacheKey(
+  image: ImageBitmap | HTMLImageElement | HTMLCanvasElement
+): string | null {
+  if (typeof HTMLImageElement === 'undefined' || !(image instanceof HTMLImageElement)) {
+    return null
+  }
+
+  return image.currentSrc || image.src || null
+}
+
+function rememberImageDetection(
+  key: string,
+  promise: Promise<FaceLandmarkDetectionResult | null>,
+) {
+  if (imageDetectionPromises.size >= MAX_IMAGE_DETECTION_CACHE_ENTRIES) {
+    const oldestKey = imageDetectionPromises.keys().next().value
+    if (oldestKey) imageDetectionPromises.delete(oldestKey)
+  }
+  imageDetectionPromises.set(key, promise)
+}
+
+export async function detectFaceLandmarksFromImage(
+  image: ImageBitmap | HTMLImageElement | HTMLCanvasElement
+): Promise<FaceLandmarkDetectionResult | null> {
+  const cacheKey = getImageDetectionCacheKey(image)
+  if (!cacheKey) {
+    return detectFaceLandmarksUncached(image)
+  }
+
+  const cached = imageDetectionPromises.get(cacheKey)
+  if (cached) return cached
+
+  const detectionPromise = detectFaceLandmarksUncached(image)
+  rememberImageDetection(cacheKey, detectionPromise)
+
+  try {
+    return await detectionPromise
+  } catch (error) {
+    imageDetectionPromises.delete(cacheKey)
+    throw error
   }
 }
 
