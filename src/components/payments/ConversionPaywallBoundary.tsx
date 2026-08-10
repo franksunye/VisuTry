@@ -16,15 +16,14 @@ import { analytics, getAcquisitionContext } from '@/lib/analytics'
 import { localizedPath } from '@/lib/localized-path'
 import { PRICE_CONFIG, QUOTA_CONFIG } from '@/config/pricing'
 import { TOP_PICK_GLASSES_PRESETS } from '@/config/glasses-presets'
+import {
+  type ConversionPurchaseContext,
+  getPaywallCopy,
+  getShortfallCopy,
+  isRtlLocale,
+} from '@/components/payments/conversion-paywall-copy'
 
 export type ConversionPaywallSource = 'try_on' | 'frame_compare' | 'style_explorer' | 'face_analysis'
-
-type ConversionPurchaseContext =
-  | 'try_on'
-  | 'frame_compare'
-  | 'style_explorer'
-  | 'face_analysis_top_picks'
-  | 'face_analysis_unlock'
 
 interface ConversionPaywallBoundaryProps {
   children: ReactNode
@@ -50,279 +49,6 @@ type PersistedConversionContext = {
 
 type PersistedConversionMetadata = Omit<PersistedConversionContext, 'uploads'>
 
-type PaywallCopy = {
-  eyebrow: string
-  title: string
-  description: string
-  packTitle: (count: number) => string
-  oneTime: string
-  benefits: string[]
-  continueLabel: (price: string) => string
-  processing: string
-  regularUse: string
-  standardFrom: (price: string) => string
-  viewPlans: string
-  secureCheckout: string
-  close: string
-  successTitle: string
-  successBody: string
-  cancelledTitle: string
-  cancelledBody: string
-  paymentError: string
-}
-
-const EN_COPY: Record<ConversionPurchaseContext, PaywallCopy> = {
-  try_on: {
-    eyebrow: 'TRY-ON',
-    title: 'Keep trying',
-    description: 'Add credits and continue where you left off without choosing a subscription.',
-    packTitle: (count) => `${count} Decision Credits`,
-    oneTime: 'One-time purchase',
-    benefits: ['Continue virtual try-on', 'Use across VisuTry', 'Credits do not expire', 'No subscription'],
-    continueLabel: (price) => `Continue for ${price}`,
-    processing: 'Opening secure checkout…',
-    regularUse: 'Need credits regularly?',
-    standardFrom: (price) => `Standard starts at ${price}/month`,
-    viewPlans: 'View subscription plans',
-    secureCheckout: 'Secure checkout · One-time purchase',
-    close: 'Close',
-    successTitle: 'Credits added',
-    successBody: 'Your credits are verified. Your previous selections have been restored when the browser allowed it.',
-    cancelledTitle: 'Payment not completed',
-    cancelledBody: 'Your previous selections have been restored when possible. You can continue whenever you are ready.',
-    paymentError: 'Checkout could not be started. Please try again.',
-  },
-  frame_compare: {
-    eyebrow: 'FRAME COMPARE',
-    title: 'Finish your comparison — and keep exploring',
-    description: 'Use credits to complete your current comparison, then try more frames and styles. Unused credits never expire.',
-    packTitle: (count) => `${count} Decision Credits`,
-    oneTime: 'One-time purchase',
-    benefits: [
-      'Complete your frame comparison',
-      'Try more frames from the collection',
-      'Explore different Style looks',
-      'Unused credits never expire',
-    ],
-    continueLabel: (price) => `Continue for ${price}`,
-    processing: 'Opening secure checkout…',
-    regularUse: 'Need credits regularly?',
-    standardFrom: (price) => `Standard starts at ${price}/month`,
-    viewPlans: 'View subscription plans',
-    secureCheckout: 'Secure checkout · One-time purchase',
-    close: 'Close',
-    successTitle: 'Credits added',
-    successBody: 'Your credits are verified. Review your restored photo and frame choices, then start the comparison when ready.',
-    cancelledTitle: 'Payment not completed',
-    cancelledBody: 'Your comparison context has been restored when possible. You can continue whenever you are ready.',
-    paymentError: 'Checkout could not be started. Please try again.',
-  },
-  style_explorer: {
-    eyebrow: 'STYLE EXPLORER',
-    title: 'Explore 4 new looks — and keep discovering your style',
-    description: 'Create your four selected looks, then keep exploring optical frames, sunglasses, and new style directions. Unused credits never expire.',
-    packTitle: (count) => `${count} Decision Credits`,
-    oneTime: 'One-time purchase',
-    benefits: [
-      'Create your next 4 Style looks',
-      'Explore optical frames and sunglasses',
-      'Try more styles whenever you want',
-      'Unused credits never expire',
-    ],
-    continueLabel: (price) => `Continue for ${price}`,
-    processing: 'Opening secure checkout…',
-    regularUse: 'Need credits regularly?',
-    standardFrom: (price) => `Standard starts at ${price}/month`,
-    viewPlans: 'View subscription plans',
-    secureCheckout: 'Secure checkout · One-time purchase',
-    close: 'Close',
-    successTitle: 'Credits added',
-    successBody: 'Your credits are verified. Review your style choices, then create your four looks when ready.',
-    cancelledTitle: 'Payment not completed',
-    cancelledBody: 'Your Style Explorer context has been restored when possible. You can continue whenever you are ready.',
-    paymentError: 'Checkout could not be started. Please try again.',
-  },
-  face_analysis_top_picks: {
-    eyebrow: 'YOUR TOP PICKS',
-    title: 'Try your recommended frames — and keep exploring',
-    description: 'Start with your 4 Face Analysis Top Picks, then compare more frames and explore different styles. Unused credits never expire.',
-    packTitle: (count) => `${count} Decision Credits`,
-    oneTime: 'One-time purchase',
-    benefits: [
-      'Try your 4 recommended frames',
-      'Compare more frames from the collection',
-      'Explore different Style looks',
-      'Unused credits never expire',
-    ],
-    continueLabel: (price) => `Continue for ${price}`,
-    processing: 'Opening secure checkout…',
-    regularUse: 'Need credits regularly?',
-    standardFrom: (price) => `Standard starts at ${price}/month`,
-    viewPlans: 'View subscription plans',
-    secureCheckout: 'Secure checkout · One-time purchase',
-    close: 'Close',
-    successTitle: 'Credits added',
-    successBody: 'Your credits are verified. Your Face Analysis is still here—try your Top Picks whenever you are ready.',
-    cancelledTitle: 'Payment not completed',
-    cancelledBody: 'Your Face Analysis is still here. You can continue with your Top Picks whenever you are ready.',
-    paymentError: 'Checkout could not be started. Please try again.',
-  },
-  face_analysis_unlock: {
-    eyebrow: 'FACE ANALYSIS',
-    title: 'Unlock your full eyewear report',
-    description: 'Get your complete recommendations, styling guidance, and 30 non-expiring credits to try the frames you discover.',
-    packTitle: (count) => `Full report + ${count} Decision Credits`,
-    oneTime: 'One-time purchase',
-    benefits: [
-      'Unlock your complete Face Analysis report',
-      'See personalized frame recommendations',
-      'Try recommended frames and more styles',
-      'Unused credits never expire',
-    ],
-    continueLabel: (price) => `Unlock for ${price}`,
-    processing: 'Opening secure checkout…',
-    regularUse: 'Need credits regularly?',
-    standardFrom: (price) => `Standard starts at ${price}/month`,
-    viewPlans: 'View subscription plans',
-    secureCheckout: 'Secure checkout · One-time purchase',
-    close: 'Close',
-    successTitle: 'Report unlocked',
-    successBody: 'Your payment is verified. VisuTry is reopening your complete report now.',
-    cancelledTitle: 'Payment not completed',
-    cancelledBody: 'Your Face Analysis report is still here. You can unlock it whenever you are ready.',
-    paymentError: 'Checkout could not be started. Please try again.',
-  },
-}
-
-const LOCALIZED_COPY: Record<string, Partial<Record<ConversionPurchaseContext, Partial<PaywallCopy>>>> = {
-  id: {
-    try_on: {
-      eyebrow: 'COBA VIRTUAL', title: 'Lanjutkan mencoba', description: 'Tambahkan kredit dan lanjutkan dari posisi terakhir tanpa berlangganan.',
-      packTitle: (count) => `${count} Kredit Keputusan`, oneTime: 'Pembelian satu kali',
-      benefits: ['Lanjutkan coba virtual', 'Gunakan di seluruh VisuTry', 'Kredit tidak kedaluwarsa', 'Tanpa langganan'],
-      continueLabel: (price) => `Lanjutkan dengan ${price}`, processing: 'Membuka pembayaran aman…', regularUse: 'Butuh kredit secara rutin?',
-      standardFrom: (price) => `Standard mulai ${price}/bulan`, viewPlans: 'Lihat paket langganan', secureCheckout: 'Pembayaran aman · Pembelian satu kali', close: 'Tutup',
-      successTitle: 'Kredit ditambahkan', cancelledTitle: 'Pembayaran belum selesai', paymentError: 'Pembayaran tidak dapat dimulai. Silakan coba lagi.',
-    },
-    frame_compare: {
-      eyebrow: 'BANDINGKAN FRAME', title: 'Lanjutkan membandingkan pilihan', description: 'Tambahkan kredit untuk membandingkan lebih banyak frame tanpa meninggalkan alur keputusan saat ini.',
-      packTitle: (count) => `${count} Kredit Keputusan`, oneTime: 'Pembelian satu kali',
-      benefits: ['Bandingkan lebih banyak frame', 'Lanjutkan coba virtual', 'Kredit tidak kedaluwarsa', 'Tanpa langganan'],
-      continueLabel: (price) => `Lanjutkan dengan ${price}`, processing: 'Membuka pembayaran aman…', regularUse: 'Butuh kredit secara rutin?',
-      standardFrom: (price) => `Standard mulai ${price}/bulan`, viewPlans: 'Lihat paket langganan', secureCheckout: 'Pembayaran aman · Pembelian satu kali', close: 'Tutup',
-      successTitle: 'Kredit ditambahkan', cancelledTitle: 'Pembayaran belum selesai', paymentError: 'Pembayaran tidak dapat dimulai. Silakan coba lagi.',
-    },
-  },
-  ar: {
-    try_on: {
-      eyebrow: 'التجربة الافتراضية', title: 'تابع التجربة', description: 'أضف رصيدًا وتابع من حيث توقفت من دون الاشتراك.',
-      packTitle: (count) => `${count} رصيد قرار`, oneTime: 'شراء لمرة واحدة',
-      benefits: ['تابع التجربة الافتراضية', 'استخدم الرصيد في VisuTry', 'الرصيد لا تنتهي صلاحيته', 'لا اشتراك'],
-      continueLabel: (price) => `تابع مقابل ${price}`, processing: 'جارٍ فتح الدفع الآمن…', regularUse: 'تحتاج رصيدًا بانتظام؟',
-      standardFrom: (price) => `تبدأ Standard من ${price}/شهريًا`, viewPlans: 'عرض خطط الاشتراك', secureCheckout: 'دفع آمن · شراء لمرة واحدة', close: 'إغلاق',
-      successTitle: 'تمت إضافة الرصيد', cancelledTitle: 'لم يكتمل الدفع', paymentError: 'تعذر بدء الدفع. حاول مرة أخرى.',
-    },
-    frame_compare: {
-      eyebrow: 'مقارنة الإطارات', title: 'تابع مقارنة خياراتك', description: 'أضف رصيدًا لمقارنة المزيد من الإطارات من دون مغادرة مسار القرار الحالي.',
-      packTitle: (count) => `${count} رصيد قرار`, oneTime: 'شراء لمرة واحدة',
-      benefits: ['قارن المزيد من الإطارات', 'تابع التجربة الافتراضية', 'الرصيد لا تنتهي صلاحيته', 'لا اشتراك'],
-      continueLabel: (price) => `تابع مقابل ${price}`, processing: 'جارٍ فتح الدفع الآمن…', regularUse: 'تحتاج رصيدًا بانتظام؟',
-      standardFrom: (price) => `تبدأ Standard من ${price}/شهريًا`, viewPlans: 'عرض خطط الاشتراك', secureCheckout: 'دفع آمن · شراء لمرة واحدة', close: 'إغلاق',
-      successTitle: 'تمت إضافة الرصيد', cancelledTitle: 'لم يكتمل الدفع', paymentError: 'تعذر بدء الدفع. حاول مرة أخرى.',
-    },
-  },
-  ru: {
-    try_on: {
-      eyebrow: 'ВИРТУАЛЬНАЯ ПРИМЕРКА', title: 'Продолжить примерку', description: 'Добавьте кредиты и продолжите с того же места без подписки.',
-      oneTime: 'Разовая покупка', benefits: ['Продолжить виртуальную примерку', 'Использовать во всём VisuTry', 'Кредиты не сгорают', 'Без подписки'],
-      continueLabel: (price) => `Продолжить за ${price}`, processing: 'Открываем безопасную оплату…', regularUse: 'Нужны кредиты регулярно?',
-      standardFrom: (price) => `Standard от ${price}/мес.`, viewPlans: 'Посмотреть подписки', secureCheckout: 'Безопасная оплата · Разовая покупка', close: 'Закрыть',
-      successTitle: 'Кредиты добавлены', cancelledTitle: 'Оплата не завершена', paymentError: 'Не удалось начать оплату. Попробуйте ещё раз.',
-    },
-    frame_compare: {
-      eyebrow: 'СРАВНЕНИЕ ОПРАВ', title: 'Продолжить сравнение', description: 'Добавьте кредиты для новых сравнений, не покидая текущий сценарий выбора.',
-      oneTime: 'Разовая покупка', benefits: ['Сравнить больше оправ', 'Продолжить виртуальную примерку', 'Кредиты не сгорают', 'Без подписки'],
-      continueLabel: (price) => `Продолжить за ${price}`, processing: 'Открываем безопасную оплату…', regularUse: 'Нужны кредиты регулярно?',
-      standardFrom: (price) => `Standard от ${price}/мес.`, viewPlans: 'Посмотреть подписки', secureCheckout: 'Безопасная оплата · Разовая покупка', close: 'Закрыть',
-      successTitle: 'Кредиты добавлены', cancelledTitle: 'Оплата не завершена', paymentError: 'Не удалось начать оплату. Попробуйте ещё раз.',
-    },
-  },
-  de: {
-    try_on: {
-      eyebrow: 'VIRTUELLE ANPROBE', title: 'Weiter anprobieren', description: 'Füge Credits hinzu und mache ohne Abo dort weiter, wo du aufgehört hast.',
-      oneTime: 'Einmaliger Kauf', benefits: ['Virtuelle Anprobe fortsetzen', 'In VisuTry verwenden', 'Credits verfallen nicht', 'Kein Abo'],
-      continueLabel: (price) => `Für ${price} fortfahren`, processing: 'Sicherer Checkout wird geöffnet…', regularUse: 'Brauchst du regelmäßig Credits?',
-      standardFrom: (price) => `Standard ab ${price}/Monat`, viewPlans: 'Abos ansehen', secureCheckout: 'Sicherer Checkout · Einmaliger Kauf', close: 'Schließen',
-      successTitle: 'Credits hinzugefügt', cancelledTitle: 'Zahlung nicht abgeschlossen', paymentError: 'Checkout konnte nicht gestartet werden. Bitte versuche es erneut.',
-    },
-    frame_compare: {
-      eyebrow: 'FASSUNGEN VERGLEICHEN', title: 'Vergleich fortsetzen', description: 'Füge Credits für weitere Fassungsvergleiche hinzu, ohne deinen aktuellen Entscheidungsfluss zu verlassen.',
-      oneTime: 'Einmaliger Kauf', benefits: ['Mehr Fassungen vergleichen', 'Virtuelle Anprobe fortsetzen', 'Credits verfallen nicht', 'Kein Abo'],
-      continueLabel: (price) => `Für ${price} fortfahren`, processing: 'Sicherer Checkout wird geöffnet…', regularUse: 'Brauchst du regelmäßig Credits?',
-      standardFrom: (price) => `Standard ab ${price}/Monat`, viewPlans: 'Abos ansehen', secureCheckout: 'Sicherer Checkout · Einmaliger Kauf', close: 'Schließen',
-      successTitle: 'Credits hinzugefügt', cancelledTitle: 'Zahlung nicht abgeschlossen', paymentError: 'Checkout konnte nicht gestartet werden. Bitte versuche es erneut.',
-    },
-  },
-  ja: {
-    try_on: {
-      eyebrow: 'バーチャル試着', title: '試着を続ける', description: 'クレジットを追加して、サブスクリプションなしで続きから再開できます。', oneTime: '1回限りの購入',
-      benefits: ['バーチャル試着を続ける', 'VisuTry 全体で利用可能', 'クレジットは失効しません', 'サブスクリプション不要'],
-      continueLabel: (price) => `${price} で続ける`, processing: '安全な決済を開いています…', regularUse: '定期的にクレジットが必要ですか？',
-      standardFrom: (price) => `Standard は月額 ${price} から`, viewPlans: 'サブスクリプションを見る', secureCheckout: '安全な決済 · 1回限りの購入', close: '閉じる',
-      successTitle: 'クレジットを追加しました', cancelledTitle: '支払いは完了していません', paymentError: '決済を開始できませんでした。もう一度お試しください。',
-    },
-    frame_compare: {
-      eyebrow: 'フレーム比較', title: '比較を続ける', description: '現在の比較フローを離れずに、クレジットを追加してより多くのフレームを比較できます。', oneTime: '1回限りの購入',
-      benefits: ['より多くのフレームを比較', 'バーチャル試着を続ける', 'クレジットは失効しません', 'サブスクリプション不要'],
-      continueLabel: (price) => `${price} で続ける`, processing: '安全な決済を開いています…', regularUse: '定期的にクレジットが必要ですか？',
-      standardFrom: (price) => `Standard は月額 ${price} から`, viewPlans: 'サブスクリプションを見る', secureCheckout: '安全な決済 · 1回限りの購入', close: '閉じる',
-      successTitle: 'クレジットを追加しました', cancelledTitle: '支払いは完了していません', paymentError: '決済を開始できませんでした。もう一度お試しください。',
-    },
-  },
-  es: {
-    try_on: {
-      eyebrow: 'PRUEBA VIRTUAL', title: 'Seguir probando', description: 'Añade créditos y continúa donde lo dejaste sin elegir una suscripción.', oneTime: 'Compra única',
-      benefits: ['Continuar la prueba virtual', 'Usar en todo VisuTry', 'Los créditos no caducan', 'Sin suscripción'], continueLabel: (price) => `Continuar por ${price}`,
-      processing: 'Abriendo pago seguro…', regularUse: '¿Necesitas créditos con frecuencia?', standardFrom: (price) => `Standard desde ${price}/mes`,
-      viewPlans: 'Ver suscripciones', secureCheckout: 'Pago seguro · Compra única', close: 'Cerrar', successTitle: 'Créditos añadidos', cancelledTitle: 'Pago no completado', paymentError: 'No se pudo iniciar el pago. Inténtalo de nuevo.',
-    },
-    frame_compare: {
-      eyebrow: 'COMPARAR MONTURAS', title: 'Seguir comparando opciones', description: 'Añade créditos para comparar más monturas sin salir de tu flujo de decisión.', oneTime: 'Compra única',
-      benefits: ['Comparar más monturas', 'Continuar la prueba virtual', 'Los créditos no caducan', 'Sin suscripción'], continueLabel: (price) => `Continuar por ${price}`,
-      processing: 'Abriendo pago seguro…', regularUse: '¿Necesitas créditos con frecuencia?', standardFrom: (price) => `Standard desde ${price}/mes`,
-      viewPlans: 'Ver suscripciones', secureCheckout: 'Pago seguro · Compra única', close: 'Cerrar', successTitle: 'Créditos añadidos', cancelledTitle: 'Pago no completado', paymentError: 'No se pudo iniciar el pago. Inténtalo de nuevo.',
-    },
-  },
-  pt: {
-    try_on: {
-      eyebrow: 'PROVA VIRTUAL', title: 'Continue experimentando', description: 'Adicione créditos e continue de onde parou sem escolher uma assinatura.', oneTime: 'Compra única',
-      benefits: ['Continuar a prova virtual', 'Usar em todo o VisuTry', 'Créditos não expiram', 'Sem assinatura'], continueLabel: (price) => `Continuar por ${price}`,
-      processing: 'Abrindo pagamento seguro…', regularUse: 'Precisa de créditos regularmente?', standardFrom: (price) => `Standard a partir de ${price}/mês`,
-      viewPlans: 'Ver assinaturas', secureCheckout: 'Pagamento seguro · Compra única', close: 'Fechar', successTitle: 'Créditos adicionados', cancelledTitle: 'Pagamento não concluído', paymentError: 'Não foi possível iniciar o pagamento. Tente novamente.',
-    },
-    frame_compare: {
-      eyebrow: 'COMPARAR ARMAÇÕES', title: 'Continue comparando opções', description: 'Adicione créditos para comparar mais armações sem sair do seu fluxo atual.', oneTime: 'Compra única',
-      benefits: ['Comparar mais armações', 'Continuar a prova virtual', 'Créditos não expiram', 'Sem assinatura'], continueLabel: (price) => `Continuar por ${price}`,
-      processing: 'Abrindo pagamento seguro…', regularUse: 'Precisa de créditos regularmente?', standardFrom: (price) => `Standard a partir de ${price}/mês`,
-      viewPlans: 'Ver assinaturas', secureCheckout: 'Pagamento seguro · Compra única', close: 'Fechar', successTitle: 'Créditos adicionados', cancelledTitle: 'Pagamento não concluído', paymentError: 'Não foi possível iniciar o pagamento. Tente novamente.',
-    },
-  },
-  fr: {
-    try_on: {
-      eyebrow: 'ESSAYAGE VIRTUEL', title: 'Continuer les essayages', description: 'Ajoutez des crédits et reprenez là où vous vous êtes arrêté, sans abonnement.', oneTime: 'Achat unique',
-      benefits: ['Continuer l’essayage virtuel', 'Utiliser dans tout VisuTry', 'Les crédits n’expirent pas', 'Sans abonnement'], continueLabel: (price) => `Continuer pour ${price}`,
-      processing: 'Ouverture du paiement sécurisé…', regularUse: 'Besoin de crédits régulièrement ?', standardFrom: (price) => `Standard à partir de ${price}/mois`,
-      viewPlans: 'Voir les abonnements', secureCheckout: 'Paiement sécurisé · Achat unique', close: 'Fermer', successTitle: 'Crédits ajoutés', cancelledTitle: 'Paiement non terminé', paymentError: 'Impossible de lancer le paiement. Veuillez réessayer.',
-    },
-    frame_compare: {
-      eyebrow: 'COMPARER LES MONTURES', title: 'Continuer à comparer', description: 'Ajoutez des crédits pour comparer davantage de montures sans quitter votre parcours de décision.', oneTime: 'Achat unique',
-      benefits: ['Comparer plus de montures', 'Continuer l’essayage virtuel', 'Les crédits n’expirent pas', 'Sans abonnement'], continueLabel: (price) => `Continuer pour ${price}`,
-      processing: 'Ouverture du paiement sécurisé…', regularUse: 'Besoin de crédits régulièrement ?', standardFrom: (price) => `Standard à partir de ${price}/mois`,
-      viewPlans: 'Voir les abonnements', secureCheckout: 'Paiement sécurisé · Achat unique', close: 'Fermer', successTitle: 'Crédits ajoutés', cancelledTitle: 'Paiement non terminé', paymentError: 'Impossible de lancer le paiement. Veuillez réessayer.',
-    },
-  },
-}
-
 const CONTEXT_DB = 'visutry-conversion-context'
 const CONTEXT_STORE = 'contexts'
 const CONTEXT_VERSION = 1
@@ -331,10 +57,24 @@ const CHECKOUT_REQUEST_TIMEOUT_MS = 15_000
 const PAYMENT_VERIFY_ATTEMPTS = 24
 const PAYMENT_VERIFY_DELAY_MS = 1250
 const CONTEXT_MAX_AGE_MS = 2 * 60 * 60 * 1000
+const PAYWALL_HISTORY_KEY = '__visutryConversionPaywall'
 
 function defaultContextForSource(source: ConversionPaywallSource): ConversionPurchaseContext | null {
   if (source === 'face_analysis') return null
   return source
+}
+
+function defaultRequiredCredits(context: ConversionPurchaseContext): number | null {
+  switch (context) {
+    case 'try_on':
+      return 1
+    case 'frame_compare':
+    case 'style_explorer':
+    case 'face_analysis_top_picks':
+      return 4
+    case 'face_analysis_unlock':
+      return null
+  }
 }
 
 function normalizeRequestedContext(value: string | null): ConversionPurchaseContext | null {
@@ -376,6 +116,30 @@ function contextAllowedForSource(source: ConversionPaywallSource, context: Conve
   return source === context
 }
 
+function parsePositiveCreditCount(value: string | null | undefined) {
+  if (!value) return null
+  const parsed = Number.parseInt(value, 10)
+  if (!Number.isFinite(parsed) || parsed <= 0 || parsed > 100) return null
+  return parsed
+}
+
+function inferRequiredCredits(
+  anchor: HTMLAnchorElement,
+  destination: URL,
+  context: ConversionPurchaseContext,
+) {
+  const explicit = parsePositiveCreditCount(anchor.dataset.requiredCredits)
+    ?? parsePositiveCreditCount(destination.searchParams.get('requiredCredits'))
+    ?? parsePositiveCreditCount(destination.searchParams.get('required_credits'))
+  if (explicit) return explicit
+
+  const nearbyText = anchor.closest('p,div')?.textContent || ''
+  const requirementMatch = nearbyText.match(/(?:require|requires|required|need|needs)\s+(\d+)\s+credits?/i)
+    ?? nearbyText.match(/(\d+)\s+credits?\s+(?:to|for)\b/i)
+  const inferred = parsePositiveCreditCount(requirementMatch?.[1])
+  return inferred ?? defaultRequiredCredits(context)
+}
+
 function conversionContextKey(source: ConversionPurchaseContext, attemptId?: string) {
   return `visutry_conversion_context_${source}${attemptId ? `_${attemptId}` : ''}`
 }
@@ -402,16 +166,16 @@ function delay(ms: number) {
   return new Promise<void>((resolve) => window.setTimeout(resolve, ms))
 }
 
-function getCopy(locale: string, source: ConversionPurchaseContext): PaywallCopy {
-  return {
-    ...EN_COPY[source],
-    ...(LOCALIZED_COPY[locale]?.[source] || {}),
-  }
-}
-
 function getCreditsBalance(session: ReturnType<typeof useSession>['data']) {
   if (!session?.user) return 0
   return Math.max(0, (session.user.creditsPurchased || 0) - (session.user.creditsUsed || 0))
+}
+
+function getAvailableCredits(session: ReturnType<typeof useSession>['data']) {
+  if (!session?.user) return 0
+  const remaining = session.user.remainingTrials
+  if (typeof remaining === 'number' && Number.isFinite(remaining)) return Math.max(0, remaining)
+  return getCreditsBalance(session)
 }
 
 function openContextDb(): Promise<IDBDatabase | null> {
@@ -749,14 +513,21 @@ function buildCheckoutReturnUrl({
   return next.toString()
 }
 
+function historyStateObject() {
+  const state = window.history.state
+  return state && typeof state === 'object' ? { ...state } : {}
+}
+
 export function ConversionPaywallBoundary({ children, source }: ConversionPaywallBoundaryProps) {
   const params = useParams()
   const locale = typeof params.locale === 'string' ? params.locale : 'en'
   const { data: session, update } = useSession()
   const boundaryRef = useRef<HTMLDivElement>(null)
   const primaryButtonRef = useRef<HTMLButtonElement>(null)
-  const trackedContextsRef = useRef<Set<ConversionPurchaseContext>>(new Set())
+  const trackedPaywallKeysRef = useRef<Set<string>>(new Set())
   const returnHandledRef = useRef(false)
+  const paywallHistoryEntryRef = useRef(false)
+  const closeFallbackTimerRef = useRef<number | null>(null)
   const checkoutRequestRef = useRef<{
     controller: AbortController
     reason: 'user' | 'timeout' | null
@@ -765,6 +536,10 @@ export function ConversionPaywallBoundary({ children, source }: ConversionPaywal
   const [activeContext, setActiveContext] = useState<ConversionPurchaseContext | null>(
     () => defaultContextForSource(source),
   )
+  const [activeRequiredCredits, setActiveRequiredCredits] = useState<number | null>(() => {
+    const context = defaultContextForSource(source)
+    return context ? defaultRequiredCredits(context) : null
+  })
   const [activeUnlockTaskId, setActiveUnlockTaskId] = useState<string | null>(null)
   const [checkoutLoading, setCheckoutLoading] = useState(false)
   const [checkoutError, setCheckoutError] = useState<string | null>(null)
@@ -772,43 +547,135 @@ export function ConversionPaywallBoundary({ children, source }: ConversionPaywal
   const [returnMessage, setReturnMessage] = useState<string | null>(null)
 
   const effectiveContext = activeContext ?? defaultContextForSource(source) ?? 'face_analysis_top_picks'
-  const copy = useMemo(() => getCopy(locale, effectiveContext), [effectiveContext, locale])
+  const copy = useMemo(() => getPaywallCopy(locale, effectiveContext), [effectiveContext, locale])
   const pricingHref = localizedPath(locale, '/pricing')
   const creditsCount = QUOTA_CONFIG.CREDITS_PACK
   const creditsPrice = `$${(PRICE_CONFIG.CREDITS_PACK / 100).toFixed(2)}`
   const monthlyPrice = `$${(PRICE_CONFIG.MONTHLY_SUBSCRIPTION / 100).toFixed(2)}`
   const currentCreditsBalance = useMemo(() => getCreditsBalance(session), [session])
+  const currentAvailableCredits = useMemo(() => getAvailableCredits(session), [session])
+  const creditsNeeded = activeRequiredCredits
+    ? Math.max(0, activeRequiredCredits - currentAvailableCredits)
+    : null
+  const shortfallMessage = activeRequiredCredits && creditsNeeded && creditsNeeded > 0
+    ? getShortfallCopy(locale, creditsNeeded, activeRequiredCredits, currentAvailableCredits)
+    : null
 
-  const trackPaywallView = useCallback((context: ConversionPurchaseContext) => {
-    if (trackedContextsRef.current.has(context)) return
-    trackedContextsRef.current.add(context)
+  const abortPendingCheckout = useCallback(() => {
+    if (!checkoutRequestRef.current) return
+    checkoutRequestRef.current.reason = 'user'
+    checkoutRequestRef.current.controller.abort()
+    checkoutRequestRef.current = null
+    setCheckoutLoading(false)
+  }, [])
+
+  const clearCloseFallback = useCallback(() => {
+    if (closeFallbackTimerRef.current === null) return
+    window.clearTimeout(closeFallbackTimerRef.current)
+    closeFallbackTimerRef.current = null
+  }, [])
+
+  const consumePaywallHistoryMarker = useCallback(() => {
+    if (typeof window === 'undefined' || !paywallHistoryEntryRef.current) return
+    paywallHistoryEntryRef.current = false
+    clearCloseFallback()
+    try {
+      const state = historyStateObject()
+      delete state[PAYWALL_HISTORY_KEY]
+      window.history.replaceState(state, '', window.location.href)
+    } catch {
+      // History enhancement must never block navigation or Checkout.
+    }
+  }, [clearCloseFallback])
+
+  const closePaywallState = useCallback(() => {
+    setCheckoutLoading(false)
+    setOpen(false)
+  }, [])
+
+  const dismissPaywall = useCallback(() => {
+    abortPendingCheckout()
+    if (typeof window !== 'undefined' && paywallHistoryEntryRef.current) {
+      try {
+        window.history.back()
+        clearCloseFallback()
+        closeFallbackTimerRef.current = window.setTimeout(() => {
+          if (!paywallHistoryEntryRef.current) return
+          paywallHistoryEntryRef.current = false
+          closePaywallState()
+        }, 300)
+        return
+      } catch {
+        paywallHistoryEntryRef.current = false
+      }
+    }
+    closePaywallState()
+  }, [abortPendingCheckout, clearCloseFallback, closePaywallState])
+
+  useEffect(() => {
+    const handlePopState = () => {
+      if (!paywallHistoryEntryRef.current) return
+      paywallHistoryEntryRef.current = false
+      clearCloseFallback()
+      abortPendingCheckout()
+      closePaywallState()
+    }
+    window.addEventListener('popstate', handlePopState)
+    return () => {
+      window.removeEventListener('popstate', handlePopState)
+      clearCloseFallback()
+    }
+  }, [abortPendingCheckout, clearCloseFallback, closePaywallState])
+
+  const trackPaywallView = useCallback((
+    context: ConversionPurchaseContext,
+    requiredCredits: number | null,
+  ) => {
+    const needed = requiredCredits ? Math.max(0, requiredCredits - currentAvailableCredits) : null
+    const trackingKey = `${context}:${requiredCredits ?? 'na'}:${currentAvailableCredits}`
+    if (trackedPaywallKeysRef.current.has(trackingKey)) return
+    trackedPaywallKeysRef.current.add(trackingKey)
     analytics.trackCustomEvent('paywall_view', {
       source: context,
       trigger: 'quota_or_credits_cta',
       remaining_quota: session?.user?.remainingTrials ?? 0,
       credits_balance: currentCreditsBalance,
+      available_credits: currentAvailableCredits,
+      required_credits: requiredCredits,
+      credits_needed: needed,
       product_type: 'CREDITS_PACK',
       credits_count: creditsCount,
       price: PRICE_CONFIG.CREDITS_PACK / 100,
     })
-  }, [creditsCount, currentCreditsBalance, session?.user?.remainingTrials])
+  }, [creditsCount, currentAvailableCredits, currentCreditsBalance, session?.user?.remainingTrials])
 
-  const showPaywall = useCallback((context: ConversionPurchaseContext, unlockTaskId?: string | null) => {
+  const showPaywall = useCallback((
+    context: ConversionPurchaseContext,
+    unlockTaskId?: string | null,
+    requiredCredits?: number | null,
+  ) => {
+    const resolvedRequiredCredits = requiredCredits ?? defaultRequiredCredits(context)
     setCheckoutError(null)
     setActiveContext(context)
+    setActiveRequiredCredits(resolvedRequiredCredits)
     setActiveUnlockTaskId(unlockTaskId?.trim() || null)
-    setOpen(true)
-    trackPaywallView(context)
-  }, [trackPaywallView])
 
-  const dismissPaywall = useCallback(() => {
-    if (checkoutRequestRef.current) {
-      checkoutRequestRef.current.reason = 'user'
-      checkoutRequestRef.current.controller.abort()
+    if (typeof window !== 'undefined' && !paywallHistoryEntryRef.current) {
+      try {
+        window.history.pushState(
+          { ...historyStateObject(), [PAYWALL_HISTORY_KEY]: true },
+          '',
+          window.location.href,
+        )
+        paywallHistoryEntryRef.current = true
+      } catch {
+        // The modal still opens if browser history is unavailable.
+      }
     }
-    setCheckoutLoading(false)
-    setOpen(false)
-  }, [])
+
+    setOpen(true)
+    trackPaywallView(context, resolvedRequiredCredits)
+  }, [trackPaywallView])
 
   const handleBoundaryClickCapture = useCallback((event: ReactMouseEvent<HTMLDivElement>) => {
     if (typeof window === 'undefined') return
@@ -826,10 +693,11 @@ export function ConversionPaywallBoundary({ children, source }: ConversionPaywal
       const unlockTaskId = context === 'face_analysis_unlock'
         ? destination.searchParams.get('taskId') || new URL(window.location.href).searchParams.get('taskId')
         : null
+      const requiredCredits = inferRequiredCredits(anchor, destination, context)
 
       event.preventDefault()
       event.stopPropagation()
-      showPaywall(context, unlockTaskId)
+      showPaywall(context, unlockTaskId, requiredCredits)
     } catch {
       // Malformed links should fall through to normal browser handling.
     }
@@ -871,6 +739,9 @@ export function ConversionPaywallBoundary({ children, source }: ConversionPaywal
       checkoutRequest.reason = 'timeout'
       controller.abort()
     }, CHECKOUT_REQUEST_TIMEOUT_MS)
+    const needed = activeRequiredCredits
+      ? Math.max(0, activeRequiredCredits - currentAvailableCredits)
+      : null
 
     analytics.trackCustomEvent('credits_purchase_click', {
       source: context,
@@ -879,6 +750,9 @@ export function ConversionPaywallBoundary({ children, source }: ConversionPaywal
       value: PRICE_CONFIG.CREDITS_PACK / 100,
       remaining_quota: session?.user?.remainingTrials ?? 0,
       credits_balance: currentCreditsBalance,
+      available_credits: currentAvailableCredits,
+      required_credits: activeRequiredCredits,
+      credits_needed: needed,
     })
 
     const persistencePromise = Promise.resolve()
@@ -924,10 +798,16 @@ export function ConversionPaywallBoundary({ children, source }: ConversionPaywal
         product_type: 'CREDITS_PACK',
         checkout_session_id: payload.data.sessionId,
         value: PRICE_CONFIG.CREDITS_PACK / 100,
+        available_credits: currentAvailableCredits,
+        required_credits: activeRequiredCredits,
+        credits_needed: needed,
       })
 
       await Promise.race([persistencePromise, delay(CONTEXT_IO_TIMEOUT_MS)])
       if (controller.signal.aborted) throw new DOMException('Aborted', 'AbortError')
+
+      // History is a UX enhancement only. Never wait for popstate before entering Stripe.
+      consumePaywallHistoryMarker()
       window.location.assign(payload.data.url)
     } catch (error) {
       if (checkoutRequest.reason !== 'user') {
@@ -945,10 +825,13 @@ export function ConversionPaywallBoundary({ children, source }: ConversionPaywal
     }
   }, [
     activeContext,
+    activeRequiredCredits,
     activeUnlockTaskId,
     checkoutLoading,
+    consumePaywallHistoryMarker,
     copy.paymentError,
     creditsCount,
+    currentAvailableCredits,
     currentCreditsBalance,
     locale,
     persistCurrentContext,
@@ -961,6 +844,10 @@ export function ConversionPaywallBoundary({ children, source }: ConversionPaywal
 
     const previousOverflow = document.body.style.overflow
     document.body.style.overflow = 'hidden'
+    const boundary = boundaryRef.current as (HTMLDivElement & { inert?: boolean }) | null
+    const hadInert = Boolean(boundary?.inert)
+    if (boundary) boundary.inert = true
+
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') dismissPaywall()
     }
@@ -969,6 +856,7 @@ export function ConversionPaywallBoundary({ children, source }: ConversionPaywal
 
     return () => {
       document.body.style.overflow = previousOverflow
+      if (boundary) boundary.inert = hadInert
       document.removeEventListener('keydown', onKeyDown)
     }
   }, [dismissPaywall, open])
@@ -984,7 +872,8 @@ export function ConversionPaywallBoundary({ children, source }: ConversionPaywal
 
     returnHandledRef.current = true
     setActiveContext(conversion)
-    const returnCopy = getCopy(locale, conversion)
+    setActiveRequiredCredits(defaultRequiredCredits(conversion))
+    const returnCopy = getPaywallCopy(locale, conversion)
     const checkoutAttemptId = url.searchParams.get('conversion_attempt')?.trim() || ''
     const contextKey = checkoutAttemptId
       ? conversionContextKey(conversion, checkoutAttemptId)
@@ -1159,6 +1048,10 @@ export function ConversionPaywallBoundary({ children, source }: ConversionPaywal
         ? 'border-red-200 bg-red-50 text-red-900'
         : 'border-blue-200 bg-blue-50 text-blue-900'
 
+  const handleViewPlans = useCallback(() => {
+    consumePaywallHistoryMarker()
+  }, [consumePaywallHistoryMarker])
+
   return (
     <>
       <div ref={boundaryRef} onClickCapture={handleBoundaryClickCapture}>
@@ -1167,7 +1060,8 @@ export function ConversionPaywallBoundary({ children, source }: ConversionPaywal
 
       {returnState && returnMessage && (
         <div
-          className={`fixed left-4 right-4 top-4 z-[90] mx-auto max-w-xl rounded-xl border px-4 py-3 shadow-lg ${returnTone}`}
+          className={`fixed left-4 right-4 z-[90] mx-auto max-w-xl rounded-xl border px-4 py-3 shadow-lg ${returnTone}`}
+          style={{ top: 'max(16px, calc(env(safe-area-inset-top) + 8px))' }}
           role="status"
           aria-live="polite"
         >
@@ -1192,39 +1086,52 @@ export function ConversionPaywallBoundary({ children, source }: ConversionPaywal
       )}
 
       {open && (
-        <div className="fixed inset-0 z-[80] bg-slate-950/45 backdrop-blur-[1px] sm:flex sm:items-center sm:justify-center sm:p-6">
+        <div
+          data-testid="conversion-paywall-overlay"
+          className="fixed inset-0 z-[80] h-[100dvh] min-h-[100dvh] bg-slate-950/45 backdrop-blur-[1px] sm:flex sm:items-center sm:justify-center sm:p-6"
+        >
           <section
             role="dialog"
             aria-modal="true"
             aria-labelledby={`conversion-paywall-${effectiveContext}`}
-            className="flex min-h-full w-full flex-col overflow-y-auto bg-slate-50 sm:min-h-0 sm:max-h-[92vh] sm:max-w-[500px] sm:rounded-2xl sm:border sm:border-slate-200 sm:shadow-2xl"
+            dir={isRtlLocale(locale) ? 'rtl' : 'ltr'}
+            className="flex h-[100dvh] min-h-[100dvh] max-h-[100dvh] w-full flex-col overflow-y-auto bg-slate-50 sm:h-auto sm:min-h-0 sm:max-h-[92vh] sm:max-w-[500px] sm:rounded-2xl sm:border sm:border-slate-200 sm:shadow-2xl"
           >
-            <div className="flex items-center justify-between border-b border-slate-200 bg-white px-5 py-4 sm:rounded-t-2xl">
+            <div
+              className="sticky top-0 z-20 flex items-center justify-between border-b border-slate-200 bg-white px-5 pb-4 sm:rounded-t-2xl sm:pt-4"
+              style={{ paddingTop: 'max(16px, calc(env(safe-area-inset-top) + 8px))' }}
+            >
               <span className="text-sm font-bold tracking-tight text-slate-950">VisuTry</span>
               <button
                 type="button"
                 onClick={dismissPaywall}
-                className="rounded-full p-2 text-slate-500 transition hover:bg-slate-100 hover:text-slate-800 disabled:opacity-40"
+                className="flex h-11 w-11 items-center justify-center rounded-full text-slate-500 transition hover:bg-slate-100 hover:text-slate-800 disabled:opacity-40"
                 aria-label={copy.close}
               >
                 <X className="h-5 w-5" />
               </button>
             </div>
 
-            <div className="mx-auto flex w-full max-w-md flex-1 flex-col px-5 py-7 sm:px-7 sm:py-8">
+            <div className="mx-auto flex w-full max-w-md flex-1 flex-col px-5 pb-32 pt-6 sm:px-7 sm:pb-8 sm:pt-8">
               <p className="text-xs font-bold uppercase tracking-[0.16em] text-blue-600">{copy.eyebrow}</p>
-              <h2 id={`conversion-paywall-${effectiveContext}`} className="mt-2 text-3xl font-bold tracking-tight text-slate-950">
+              <h2 id={`conversion-paywall-${effectiveContext}`} className="mt-2 text-[28px] font-bold leading-[1.12] tracking-tight text-slate-950 sm:text-3xl">
                 {copy.title}
               </h2>
               <p className="mt-3 text-sm leading-6 text-slate-600">{copy.description}</p>
 
-              <div className="mt-6 rounded-2xl border border-blue-200 bg-white p-5 shadow-sm">
+              {shortfallMessage && (
+                <div className="mt-4 rounded-xl border border-blue-100 bg-blue-50 px-4 py-3 text-sm leading-5 text-blue-950" data-testid="conversion-credit-shortfall">
+                  <span className="font-bold">{shortfallMessage}</span>
+                </div>
+              )}
+
+              <div className="mt-5 rounded-2xl border border-blue-200 bg-white p-5 shadow-sm">
                 <div className="flex items-start justify-between gap-4">
                   <div>
                     <h3 className="text-base font-bold text-slate-950">{copy.packTitle(creditsCount)}</h3>
                     <p className="mt-1 text-xs font-medium text-slate-500">{copy.oneTime}</p>
                   </div>
-                  <div className="text-right">
+                  <div className="text-end">
                     <div className="text-3xl font-bold tracking-tight text-slate-950">{creditsPrice}</div>
                   </div>
                 </div>
@@ -1246,29 +1153,45 @@ export function ConversionPaywallBoundary({ children, source }: ConversionPaywal
                   </div>
                 )}
 
-                <button
-                  ref={primaryButtonRef}
-                  type="button"
-                  onClick={handleCheckout}
-                  disabled={checkoutLoading}
-                  className="mt-6 inline-flex w-full items-center justify-center rounded-xl bg-blue-600 px-4 py-3.5 text-sm font-bold text-white shadow-sm transition hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:bg-blue-400"
+                <div
+                  className="fixed inset-x-0 bottom-0 z-[95] border-t border-slate-200 bg-white/95 px-5 pt-3 shadow-[0_-8px_24px_rgba(15,23,42,0.08)] backdrop-blur sm:static sm:mt-6 sm:border-0 sm:bg-transparent sm:p-0 sm:shadow-none sm:backdrop-blur-0"
+                  style={{ paddingBottom: 'max(12px, env(safe-area-inset-bottom))' }}
+                  data-testid="conversion-paywall-action-bar"
                 >
-                  {checkoutLoading ? (
-                    <>
-                      <Loader2 className="me-2 h-4 w-4 animate-spin" />
-                      {copy.processing}
-                    </>
-                  ) : (
-                    copy.continueLabel(creditsPrice)
-                  )}
-                </button>
+                  <div className="mx-auto flex max-w-md items-center gap-3 sm:block">
+                    <div className="min-w-0 flex-1 sm:hidden">
+                      <p className="truncate text-xs font-semibold text-slate-500">{creditsCount} credits · {copy.oneTime}</p>
+                      <p className="mt-0.5 text-lg font-bold text-slate-950">{creditsPrice}</p>
+                    </div>
+                    <button
+                      ref={primaryButtonRef}
+                      type="button"
+                      onClick={handleCheckout}
+                      disabled={checkoutLoading}
+                      className="inline-flex min-h-12 flex-[1.35] items-center justify-center rounded-xl bg-blue-600 px-4 py-3.5 text-sm font-bold text-white shadow-sm transition hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:bg-blue-400 sm:w-full"
+                    >
+                      {checkoutLoading ? (
+                        <>
+                          <Loader2 className="me-2 h-4 w-4 animate-spin" />
+                          {copy.processing}
+                        </>
+                      ) : (
+                        copy.continueLabel(creditsPrice)
+                      )}
+                    </button>
+                  </div>
+                </div>
               </div>
 
               <div className="mt-5 rounded-xl border border-slate-200 bg-white px-4 py-3.5">
                 <p className="text-sm font-semibold text-slate-800">{copy.regularUse}</p>
                 <div className="mt-1 flex flex-wrap items-center justify-between gap-2 text-sm">
                   <span className="text-slate-500">{copy.standardFrom(monthlyPrice)}</span>
-                  <a href={pricingHref} className="font-semibold text-blue-600 hover:text-blue-700 hover:underline">
+                  <a
+                    href={pricingHref}
+                    onClick={handleViewPlans}
+                    className="font-semibold text-blue-600 hover:text-blue-700 hover:underline"
+                  >
                     {copy.viewPlans} →
                   </a>
                 </div>
