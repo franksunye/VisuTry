@@ -11,6 +11,8 @@ type B01VisualSeoSectionsProps = {
 /**
  * Render English B01 visual-answer blocks on their canonical pages only.
  * Acquisition pages keep one dominant Visual SEO asset; additional assets are supporting visuals.
+ * B01 primary masters already carry a prominent in-image headline, so the equivalent HTML h2
+ * remains semantic/accessibility content without being visually repeated above the image.
  */
 export function B01VisualSeoSections({ locale, pagePath }: B01VisualSeoSectionsProps) {
   if (locale !== 'en') return null
@@ -22,7 +24,7 @@ export function B01VisualSeoSections({ locale, pagePath }: B01VisualSeoSectionsP
 
   return (
     <section className="mt-12 space-y-5 sm:space-y-6" aria-label="Visual face shape guides">
-      <VisualSeoAsset asset={primaryAsset} />
+      <VisualSeoAsset asset={primaryAsset} headingDisplay="sr-only" />
       {supportingAssets.length === 1 ? (
         <VisualSeoAsset asset={supportingAssets[0]} variant="supporting-wide" />
       ) : supportingAssets.length > 1 ? (
