@@ -24,6 +24,19 @@ For a single Search→Tool acquisition page:
 6. When a page has two assets, the default hierarchy is **1 primary + 1 supporting**.
 7. **Do not force a two-column desktop grid when there is only one supporting asset.** A single supporting asset should use one full-row horizontal supporting card, typically with the visual taking roughly 35–45% of the row and explanatory content taking the remaining space. This avoids an empty half-column while keeping the supporting asset visually subordinate to the primary asset.
 
+## Heading duplication rule
+
+Many VSEO masters intentionally include a short, prominent headline inside the image so the asset remains understandable in Google Images.
+
+Do **not** visually repeat an equivalent HTML heading immediately above that image.
+
+- If the image already contains a prominent headline that is substantially equivalent to the page-side heading, keep the semantic HTML heading in the DOM but render it with a visually-hidden (`sr-only`) treatment.
+- Do not crop, mask, cover, or otherwise alter the source image merely to remove its embedded headline.
+- Keep the HTML heading visible when the image does not contain a clear headline, when the HTML heading adds materially different context, or when the asset is rendered as a small supporting thumbnail whose in-image text is no longer reliably readable.
+- Supporting cards should generally keep their HTML heading visible.
+
+The objective is to preserve semantic structure and accessibility while avoiding obvious visual repetition.
+
 ## Placement rule
 
 Visual SEO blocks must not interrupt the page's primary conversion path.
@@ -51,7 +64,7 @@ Reducing visual weight must not remove the SEO signals that make the asset usefu
 - crawlable image URL;
 - descriptive filename;
 - descriptive `alt`;
-- semantic heading;
+- semantic heading, even when visually hidden to avoid duplicate display copy;
 - adjacent explanatory HTML;
 - canonical owner page;
 - relevant internal link where applicable;
@@ -68,6 +81,7 @@ Before merging a page integration, confirm:
 - additional assets read as supporting education;
 - mobile does not contain consecutive large 4:3 SEO cards;
 - a single desktop supporting asset does not leave an artificial empty grid column;
+- an embedded image headline is not redundantly repeated as a visible HTML heading directly above it;
 - Visual SEO content sits after the core conversion content unless there is a specific product reason otherwise;
 - the page still feels like a VisuTry product/acquisition page rather than an SEO image gallery;
 - image SEO metadata and crawlability remain intact.
@@ -79,5 +93,6 @@ For the first accepted B01 pages:
 - `/en/face-shape-detector`: VSEO-001 primary; VSEO-002 and VSEO-003 supporting.
 - `/en/what-is-my-face-shape`: VSEO-004 primary; VSEO-005 and VSEO-006 supporting.
 - `/en/what-glasses-suit-my-face`: VSEO-007 primary; VSEO-008 as a single full-row horizontal supporting card on desktop and a compact supporting card on mobile.
+- B01 primary masters already contain prominent in-image headlines, so their equivalent HTML H2 headings remain semantic but are visually hidden. Supporting-card headings remain visible.
 
-Future B02+ integrations should apply the same hierarchy by default rather than repeating multiple full-size cards per page.
+Future B02+ integrations should apply the same hierarchy and heading-duplication checks by default rather than repeating multiple full-size cards or duplicate titles per page.
