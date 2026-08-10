@@ -267,7 +267,7 @@ export const B02_VISUAL_SEO_ASSETS = [
     displayWidth: 'secondary',
     bodyPosition: 'before',
     heading: 'How Virtual Glasses Try-On Works',
-    alt: 'Virtual glasses try-on workflow connecting a face photo, a frame image, and a rendered result',
+    alt: 'Virtual glasses try-on workflow connecting a face photo, a selected frame, and a rendered result',
     body: 'Virtual try-on connects your face photo with a selected frame image and returns a rendered preview. The preview helps you assess appearance and proportion before moving to a closer product or fit check.',
     link: {
       href: '/en/virtual-glasses-try-on',
