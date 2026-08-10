@@ -1,4 +1,4 @@
-# VisuTry Visual SEO Production v1.3
+# VisuTry Visual SEO Production v1.4
 
 **Status:** Active execution specification  
 **Last updated:** 2026-08-10
@@ -37,14 +37,14 @@ Primary distribution surfaces:
 
 ### Current accepted progress
 
-**16 / 182 accepted images**
+**24 / 182 accepted images**
 
-This program was restarted from zero for Desktop Codex execution. Batches B01 and B02 are now the first accepted production units.
+This program was restarted from zero for Desktop Codex execution. Batches B01, B02, and B03 are now accepted production units, completing the first 24 core commercial / product-intent masters.
 
 - No previously generated conversational image is considered accepted production output.
 - Previous ChatGPT-generated images may be used only as visual references if useful.
 - Contact sheets, batch overviews, accidental grids, wrong-topic generations, cancelled generations, and earlier experimental outputs do **not** count.
-- The first canonical production units are Batch B01 (`VSEO-001`–`VSEO-008`) and Batch B02 (`VSEO-009`–`VSEO-016`).
+- The first canonical production units are Batch B01 (`VSEO-001`–`VSEO-008`), Batch B02 (`VSEO-009`–`VSEO-016`), and Batch B03 (`VSEO-017`–`VSEO-024`).
 - Progress advances only after Codex has completed QA, optimization, page integration, build verification, and manifest update.
 
 ### Planned composition
@@ -470,7 +470,7 @@ Read the batch plan above and the manifest. Find the current batch, then find th
 Current starting point:
 
 ```text
-Batch B01 → VSEO-001
+Batch B04 → VSEO-025
 ```
 
 ### Step B — Generate one image
@@ -494,10 +494,10 @@ Each generation brief must include:
 .local-assets/visual-seo/inbox/VSEO-###__semantic-name.png
 ```
 
-Accepted source masters are committed separately from the public web assets under:
+Accepted source masters are committed separately from the public web assets under the matching batch directory:
 
 ```text
-assets/visual-seo/B01/source/
+assets/visual-seo/B##/source/
 ```
 
 ### Step D — Codex QA
@@ -550,11 +550,11 @@ When the last image in a batch passes image-level QA, perform the batch-level co
 
 ---
 
-## 11. Canonical queue — VSEO-001 onward
+## 11. Accepted canonical queue — VSEO-001 to VSEO-024
 
-The entire program restarts here. The first 40 items are explicitly defined below; B01 is now accepted and the remaining items are pending.
+The first 24 core commercial / product-intent assets are accepted and are listed here as the current canonical published mapping. For `VSEO-025` onward, use `visual-seo-prompt-manifest.md` as the authoritative per-asset generation registry rather than duplicating the pending queue in this workflow document.
 
-The B01 and B02 mappings below are the current canonical assignment for the first sixteen assets. They supersede earlier conversational or draft mappings.
+These mappings supersede earlier conversational or draft mappings.
 
 | ID | Source semantic name | Public filename | Primary page owner / intent | Template |
 | --- | --- | --- | --- | --- |
@@ -572,32 +572,16 @@ The B01 and B02 mappings below are the current canonical assignment for the firs
 | VSEO-012 | `try-glasses-before-choosing` | `try-glasses-before-choosing.webp` | `/en/find-glasses-for-my-face` — shortlist to proof | E |
 | VSEO-013 | `virtual-glasses-try-on-before-after` | `virtual-glasses-try-on-before-after.webp` | `/en/virtual-glasses-try-on` — before / after proof | A/E |
 | VSEO-014 | `virtual-try-on-different-glasses` | `virtual-try-on-different-glasses.webp` | `/en/virtual-glasses-try-on` — style comparison | B |
-| VSEO-015 | `how-virtual-glasses-try-on-works` | `how-virtual-glasses-try-on-works.webp` | `/en/virtual-glasses-try-on` — workflow explanation | D |
-| VSEO-016 | `try-glasses-on-your-photo` | `try-glasses-on-your-photo.webp` | `/en/try-glasses-on-photo` — photo to result | A/E |
-| VSEO-017 | `square-face-frame-comparison` | `square-face-frame-comparison.webp` | `/en/style/square-face` | B |
-| VSEO-018 | `glasses-eyebrow-alignment` | `glasses-eyebrow-alignment.webp` | decision intent: eyebrows / frame height | C/F |
-| VSEO-019 | `how-wide-should-glasses-be` | `how-wide-should-glasses-be.webp` | decision intent: frame width | C/F |
-| VSEO-020 | `cat-eye-glasses-round-face-01-hero` | `cat-eye-glasses-round-face-01-hero.webp` | Face × Frame: cat-eye × round face | A |
-| VSEO-021 | `square-face-glasses-proportions` | `square-face-glasses-proportions.webp` | `/en/style/square-face` | C |
-| VSEO-022 | `heart-face-frame-comparison` | `heart-face-frame-comparison.webp` | `/en/style/heart-face` | B |
-| VSEO-023 | `heart-face-glasses-proportions` | `heart-face-glasses-proportions.webp` | `/en/style/heart-face` | C |
-| VSEO-024 | `diamond-face-frame-comparison` | `diamond-face-frame-comparison.webp` | `/en/style/diamond-face` | B |
-| VSEO-025 | `diamond-face-glasses-proportions` | `diamond-face-glasses-proportions.webp` | `/en/style/diamond-face` | C |
-| VSEO-026 | `oblong-face-frame-comparison` | `oblong-face-frame-comparison.webp` | `/en/style/oblong-face` | B |
-| VSEO-027 | `oblong-face-glasses-proportions` | `oblong-face-glasses-proportions.webp` | `/en/style/oblong-face` | C |
-| VSEO-028 | `round-face-shape-characteristics` | `round-face-shape-characteristics.webp` | `/en/face-shapes/round` | D |
-| VSEO-029 | `how-to-identify-round-face` | `how-to-identify-round-face.webp` | `/en/face-shapes/round` | D |
-| VSEO-030 | `oval-face-shape-characteristics` | `oval-face-shape-characteristics.webp` | `/en/face-shapes/oval` | D |
-| VSEO-031 | `how-to-identify-oval-face` | `how-to-identify-oval-face.webp` | `/en/face-shapes/oval` | D |
-| VSEO-032 | `square-face-shape-characteristics` | `square-face-shape-characteristics.webp` | `/en/face-shapes/square` | D |
-| VSEO-033 | `how-to-identify-square-face` | `how-to-identify-square-face.webp` | `/en/face-shapes/square` | D |
-| VSEO-034 | `heart-face-shape-characteristics` | `heart-face-shape-characteristics.webp` | `/en/face-shapes/heart` | D |
-| VSEO-035 | `how-to-identify-heart-face` | `how-to-identify-heart-face.webp` | `/en/face-shapes/heart` | D |
-| VSEO-036 | `diamond-face-shape-characteristics` | `diamond-face-shape-characteristics.webp` | `/en/face-shapes/diamond` | D |
-| VSEO-037 | `how-to-identify-diamond-face` | `how-to-identify-diamond-face.webp` | `/en/face-shapes/diamond` | D |
-| VSEO-038 | `oblong-face-shape-characteristics` | `oblong-face-shape-characteristics.webp` | `/en/face-shapes/oblong` | D |
-| VSEO-039 | `how-to-identify-oblong-face` | `how-to-identify-oblong-face.webp` | `/en/face-shapes/oblong` | D |
-| VSEO-040 | `face-shape-measurement-breakdown` | `face-shape-measurement-breakdown.webp` | future face-shape measurement intent | D |
+| VSEO-015 | `how-virtual-glasses-try-on-works` | `how-virtual-glasses-try-on-works.webp` | `/en/virtual-glasses-try-on` — workflow explanation | E |
+| VSEO-016 | `try-glasses-on-your-photo` | `try-glasses-on-your-photo.webp` | `/en/try-glasses-on-photo` — photo to result | A |
+| VSEO-017 | `photo-four-glasses-frames` | `photo-four-glasses-frames.webp` | `/en/try-glasses-on-photo` — four-frame same-photo comparison | B |
+| VSEO-018 | `glasses-photo-try-on-comparison` | `glasses-photo-try-on-comparison.webp` | `/en/try-glasses-on-photo` — lift vs structure A/B | B |
+| VSEO-019 | `compare-four-glasses-frames` | `compare-four-glasses-frames.webp` | `/en/compare-glasses-frames` — four common frame styles | B |
+| VSEO-020 | `glasses-frame-a-vs-b` | `glasses-frame-a-vs-b.webp` | `/en/compare-glasses-frames` — shortlisted A/B comparison | B |
+| VSEO-021 | `best-glasses-frame-comparison-result` | `best-glasses-frame-comparison-result.webp` | `/en/compare-glasses-frames` — narrow shortlist to a strong match | B |
+| VSEO-022 | `ai-glasses-advisor-analysis` | `ai-glasses-advisor-analysis.webp` | `/en/ai-glasses-advisor` — visible proportion analysis | D |
+| VSEO-023 | `ai-glasses-recommendations` | `ai-glasses-recommendations.webp` | `/en/ai-glasses-advisor` — recommendation directions | A |
+| VSEO-024 | `ai-glasses-advisor-try-on` | `ai-glasses-advisor-try-on.webp` | `/en/ai-glasses-advisor` — advisor to try-on / compare workflow | E |
 
 Earlier conversational labels such as `B01-11` are superseded by `VSEO-###`.
 
@@ -834,7 +818,7 @@ If Codex detects a discrepancy between this document and the current route regis
 | --- | --- | --- | --- |
 | B01 | VSEO-001–008 | ✅ Accepted | Eight canonical master assets integrated into three English Search→Tool pages; WebP, source archive, image sitemap, and QA manifest complete |
 | B02 | VSEO-009–016 | ✅ Accepted | Eight visual explanation assets integrated into four English Search→Tool pages; editorial layout, WebP, source archive, image sitemap, and QA manifest complete |
-| B03 | VSEO-017–024 | ⏳ Planned | Compare / Advisor foundations |
+| B03 | VSEO-017–024 | ✅ Accepted | Eight comparison / advisor assets integrated into three English Search→Tool pages; one-primary hierarchy, compact supporting layout, source archive, WebP, image sitemap, and build verification complete |
 | B04 | VSEO-025–033 | ⏳ Planned | Face Style owners A |
 | B05 | VSEO-034–042 | ⏳ Planned | Face Style owners B |
 | B06 | VSEO-043–054 | ⏳ Planned | Face Shape explainers |
@@ -854,7 +838,7 @@ If Codex detects a discrepancy between this document and the current route regis
 
 ### Current next action
 
-> Batches B01 and B02 are complete. The next production unit is B03, beginning with `VSEO-017`; preserve the same source archive, WebP, adjacent-copy, internal-link, and image-sitemap checks. Do not generate any batch overview image.
+> Batches B01, B02, and B03 are complete. The next production unit is B04, beginning with `VSEO-025`; preserve the established source archive, WebP, adjacent-copy, internal-link, page-level one-primary hierarchy, compact mobile supporting layout, and image-sitemap checks. Do not generate any batch overview image.
 
 ---
 
