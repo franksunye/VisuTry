@@ -7,13 +7,15 @@ const WASM_ASSET_URL = `https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@${M
 const MODEL_ASSET_URL =
   'https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task'
 
+type FaceLandmarkerDelegate = 'GPU' | 'CPU'
+
 type FaceLandmarkerInstance = {
   detect: (image: ImageBitmap | HTMLImageElement | HTMLCanvasElement) => {
     faceLandmarks?: FaceLandmarkPoint[][]
   }
 }
 
-let landmarkerPromise: Promise<FaceLandmarkerInstance> | null = null
+const landmarkerPromises: Partial<Record<FaceLandmarkerDelegate, Promise<FaceLandmarkerInstance>>> = {}
 let visionPromise: Promise<typeof import('@mediapipe/tasks-vision')> | null = null
 
 function loadVisionTasks() {
@@ -23,42 +25,29 @@ function loadVisionTasks() {
   return visionPromise
 }
 
-async function getFaceLandmarker(): Promise<FaceLandmarkerInstance> {
-  if (!landmarkerPromise) {
-    landmarkerPromise = loadVisionTasks().then(async (vision) => {
+async function getFaceLandmarker(delegate: FaceLandmarkerDelegate): Promise<FaceLandmarkerInstance> {
+  if (!landmarkerPromises[delegate]) {
+    landmarkerPromises[delegate] = loadVisionTasks().then(async (vision) => {
       const fileset = await vision.FilesetResolver.forVisionTasks(WASM_ASSET_URL)
-      const options = {
+      return (await vision.FaceLandmarker.createFromOptions(fileset, {
         baseOptions: {
           modelAssetPath: MODEL_ASSET_URL,
-          delegate: 'GPU' as const,
+          delegate,
         },
         runningMode: 'IMAGE' as const,
         numFaces: 2,
-      }
-
-      try {
-        return (await vision.FaceLandmarker.createFromOptions(
-          fileset,
-          options
-        )) as FaceLandmarkerInstance
-      } catch {
-        return (await vision.FaceLandmarker.createFromOptions(fileset, {
-          ...options,
-          baseOptions: {
-            modelAssetPath: MODEL_ASSET_URL,
-            delegate: 'CPU' as const,
-          },
-        })) as FaceLandmarkerInstance
-      }
+      })) as FaceLandmarkerInstance
     })
   }
 
-  return landmarkerPromise
+  return landmarkerPromises[delegate]!
 }
 
 export interface FaceLandmarkDetectionResult {
   landmarks: FaceLandmarkPoint[]
   faceCount: number
+  delegate: FaceLandmarkerDelegate
+  fallbackUsed: boolean
   connections: {
     tesselation: Array<{ start: number; end: number }>
     contours: Array<{ start: number; end: number }>
@@ -71,10 +60,12 @@ export interface FaceLandmarkFileResult {
   detection: FaceLandmarkDetectionResult | null
 }
 
-export async function detectFaceLandmarksFromImage(
-  image: ImageBitmap | HTMLImageElement | HTMLCanvasElement
+async function detectWithDelegate(
+  image: ImageBitmap | HTMLImageElement | HTMLCanvasElement,
+  delegate: FaceLandmarkerDelegate,
+  fallbackUsed: boolean,
 ): Promise<FaceLandmarkDetectionResult | null> {
-  const [vision, landmarker] = await Promise.all([loadVisionTasks(), getFaceLandmarker()])
+  const [vision, landmarker] = await Promise.all([loadVisionTasks(), getFaceLandmarker(delegate)])
   const result = landmarker.detect(image)
   const faces = result.faceLandmarks ?? []
   const firstFace = faces[0]
@@ -89,11 +80,38 @@ export async function detectFaceLandmarksFromImage(
   return {
     landmarks: firstFace,
     faceCount: faces.length,
+    delegate,
+    fallbackUsed,
     connections: {
       tesselation: FaceLandmarker.FACE_LANDMARKS_TESSELATION ?? [],
       contours: FaceLandmarker.FACE_LANDMARKS_CONTOURS ?? [],
       irises: FaceLandmarker.FACE_LANDMARKS_IRISES ?? [],
     },
+  }
+}
+
+export async function detectFaceLandmarksFromImage(
+  image: ImageBitmap | HTMLImageElement | HTMLCanvasElement
+): Promise<FaceLandmarkDetectionResult | null> {
+  let gpuError: unknown = null
+
+  try {
+    const gpuDetection = await detectWithDelegate(image, 'GPU', false)
+    if (gpuDetection) return gpuDetection
+  } catch (error) {
+    gpuError = error
+  }
+
+  try {
+    return await detectWithDelegate(image, 'CPU', true)
+  } catch (cpuError) {
+    // Preserve the CPU error when both paths fail because it reflects the
+    // final fallback attempt. If GPU failed but CPU returned zero faces,
+    // detectWithDelegate returns null and the caller correctly classifies
+    // the result as a detection miss rather than a model-load failure.
+    if (cpuError) throw cpuError
+    if (gpuError) throw gpuError
+    throw new Error('Face landmark detection failed on both GPU and CPU.')
   }
 }
 

@@ -68,8 +68,11 @@ export function isCanonicalFaceShape(value: string): value is CanonicalFaceShape
 /**
  * Categorized failure reasons for the on-device face-shape detector.
  *
+ * Detection outcome (ambiguous: may be the photo or a detector false negative):
+ *   no_face
+ *
  * Photo-quality issues (user-fixable):
- *   no_face, multiple_faces, too_small, tilted, off_center,
+ *   multiple_faces, too_small, tilted, off_center,
  *   missing_landmarks, geometry_error
  *
  * Infrastructure issues (not user-fixable):
@@ -94,7 +97,7 @@ export const FACE_SHAPE_FAILURE_REASONS = [
 export type FaceShapeFailureReason = (typeof FACE_SHAPE_FAILURE_REASONS)[number]
 
 export const FACE_SHAPE_FAILURE_REASON_LABELS: Record<FaceShapeFailureReason, string> = {
-  no_face: 'No face detected',
+  no_face: 'Face not detected',
   multiple_faces: 'Multiple faces',
   too_small: 'Face too small',
   tilted: 'Photo tilted',
@@ -107,11 +110,11 @@ export const FACE_SHAPE_FAILURE_REASON_LABELS: Record<FaceShapeFailureReason, st
 }
 
 export const FACE_SHAPE_FAILURE_REASON_GROUPS: Record<
-  'photo_quality' | 'infrastructure',
+  'detection' | 'photo_quality' | 'infrastructure',
   FaceShapeFailureReason[]
 > = {
+  detection: ['no_face'],
   photo_quality: [
-    'no_face',
     'multiple_faces',
     'too_small',
     'tilted',
