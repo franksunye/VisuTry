@@ -23,6 +23,7 @@ For a single Search→Tool acquisition page:
 5. When a page has three assets, the default hierarchy is **1 primary + 2 supporting**.
 6. When a page has two assets, the default hierarchy is **1 primary + 1 supporting**.
 7. **Do not force a two-column desktop grid when there is only one supporting asset.** A single supporting asset should use one full-row horizontal supporting card, typically with the visual taking roughly 35–45% of the row and explanatory content taking the remaining space. This avoids an empty half-column while keeping the supporting asset visually subordinate to the primary asset.
+8. **Density is evaluated at the page level, not the batch level.** If multiple VSEO batches contribute assets to the same route, they share the same one-primary budget. A later batch must not create a second dominant visual simply because it is rendered by a different component.
 
 ## Heading duplication rule
 
@@ -46,6 +47,8 @@ Preferred order:
 > Hero / intent → core tool or commercial CTA → trust / task guidance → Visual SEO education → FAQ / secondary navigation
 
 For pages where the main tool produces an in-page result, the result and its continuation CTA must retain higher priority than Visual SEO content.
+
+When more than one batch contributes to a page, render the page's established primary visual first, then later-batch assets as supporting education unless the page is intentionally being re-authored around a new primary asset.
 
 ## Mobile rule
 
@@ -77,7 +80,7 @@ The objective is **lower UI weight, not lower semantic quality**.
 Before merging a page integration, confirm:
 
 - the page still has one obvious primary user action;
-- no more than one VSEO asset dominates the page visually;
+- no more than one VSEO asset dominates the page visually, including across multiple batches;
 - additional assets read as supporting education;
 - mobile does not contain consecutive large 4:3 SEO cards;
 - a single desktop supporting asset does not leave an artificial empty grid column;
@@ -95,4 +98,12 @@ For the first accepted B01 pages:
 - `/en/what-glasses-suit-my-face`: VSEO-007 primary; VSEO-008 as a single full-row horizontal supporting card on desktop and a compact supporting card on mobile.
 - B01 primary masters already contain prominent in-image headlines, so their equivalent HTML H2 headings remain semantic but are visually hidden. Supporting-card headings remain visible.
 
-Future B02+ integrations should apply the same hierarchy and heading-duplication checks by default rather than repeating multiple full-size cards or duplicate titles per page.
+## B02 implementation baseline
+
+- `/en/what-glasses-suit-my-face`: the existing B01 primary remains dominant; VSEO-009 is supporting workflow education and must not become a second primary visual.
+- `/en/find-glasses-for-my-face`: VSEO-010 primary; VSEO-011 and VSEO-012 supporting.
+- `/en/virtual-glasses-try-on`: VSEO-013 primary; VSEO-014 and VSEO-015 supporting.
+- `/en/try-glasses-on-photo`: VSEO-016 primary.
+- B02 primary/editorial masters use visually hidden HTML H2 headings when their in-image headline already communicates the same title. Supporting-card headings remain visible.
+
+Future B03+ integrations should apply the same page-level hierarchy and heading-duplication checks by default rather than repeating multiple full-size cards or duplicate titles per page.
