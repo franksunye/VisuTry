@@ -99,7 +99,13 @@ export async function createCheckoutSession({
 
   const sessionParams: Stripe.Checkout.SessionCreateParams = {
     mode: productType.startsWith("CREDITS_PACK") ? "payment" : "subscription",
-    payment_method_types: ["card"],
+    // Let Stripe dynamically show the enabled methods that best match the
+    // customer's device, currency, and location (for example, Google Pay).
+    after_expiration: {
+      recovery: {
+        enabled: true,
+      },
+    },
     line_items: [
       {
         price: product.priceId,
