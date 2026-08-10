@@ -2,7 +2,7 @@
 
 **Status:** Active source of truth for product execution  
 **Created:** 2026-07-08  
-**Last updated:** 2026-08-06
+**Last updated:** 2026-08-10
 **Owner:** Product  
 **Review cadence:** Weekly  
 **Scope:** Current product focus, Now / Next / Later priorities, current sprint, product initiatives, backlog, decisions needed, and execution board.
@@ -150,7 +150,7 @@ Current focus:
 | Documentation entry points exist | `docs/README.md`, `docs/product/README.md`, and `docs/product/product-plan.md` exist and define document ownership. | Shipped |
 | Product priority is explicit | Now / Next / Later and execution board are documented and can guide engineering or Codex work. | Shipped |
 | Consumer path is measurable | Detector upload, completion, continuation, try-on start, compare start, pricing click, checkout start, payment completion, and paid usage are tracked or explicitly queued. | Ready |
-| Credits Pack is visibly connected to high-intent moments | Post-result and compare flows clearly route users to Credits Pack when appropriate. | Partially implemented |
+| Credits Pack is visibly connected to high-intent moments | Face Analysis unlocks the current report through a one-time offer; broader Try-On / Compare merchandising is deferred. | Shipped / Measuring |
 | Frame Compare is visible in product architecture | Compare is represented as an independent product route/page/flow rather than buried inside carousel or history. | Shipped; exposure review needed |
 | Store landing page validation is specified | Landing page positioning, CTA, lead form, validation metrics, and non-goals are defined. | Shipped |
 | VisuTry Store is validation-ready | Store MVP spec defines target users, hosted workflow, validation package, data/events, privacy, campaign/agent-ready direction, and gates to engineering. | Shipped |
@@ -163,9 +163,9 @@ Current focus:
 
 | Priority | Initiative | Owner | Status | Next action | Evidence / Source | Target |
 | --- | --- | --- | --- | --- | --- | --- |
-| P0 | Credits Pack conversion UX | Product / Growth | Partially implemented | Define exact post-result and post-compare CTA placements and event mapping. | `docs/product/specs/credits-pack-conversion.md` | Current sprint |
+| P0 | Credits Pack conversion UX | Product / Growth | Shipped / Measuring | Keep Checkout stable until at least 14 days and 30–50 unique Sessions; then review by purchase context. | `docs/product/specs/credits-pack-conversion.md`, `docs/ops/consumer-checkout-observation-2026-08-10.md` | Observation |
 | P0 | Frame Compare exposure and analytics | Product / Growth | Implemented core | Review homepage/product path exposure and add or map `frame_compare_*` events. | `docs/product/specs/frame-compare.md`, ADR-004 | Current sprint |
-| P0 | Consumer funnel baseline | Product / Analytics | Ready | Define minimum event checklist across Detector → Advisor → Try-On → Compare → Pricing → Checkout → Paid usage. | `docs/project/seo-backlog.md`, `docs/strategy/seo/2026-06-30-product-architecture-seo-geo-sync.md` | Current sprint |
+| P0 | Consumer funnel baseline | Product / Analytics | Shipped / Measuring | Reconcile unique pending/completed/failed Checkout Sessions with GA and Stripe after the observation threshold. | `docs/strategy/analytics/gtm.md`, `docs/ops/consumer-checkout-observation-2026-08-10.md` | Observation |
 | P1 | Store landing page validation | Product / Growth | Shipped / Measuring | Review qualified CTA and lead evidence while pairing the page with targeted outreach. | `docs/product/specs/visutry-store-landing-page.md` | Current sprint |
 | P1 | Store D0 merchant validation | Product / Growth | Ready for controlled validation | Run the 10-minute Luna Optical demo; capture own-frame sample requests, objections, preferred acquisition sources, KPI preference, and pilot intent. | Store Sales Demo spec, production verification record | Current sprint |
 | P1 | Store positioning: Campaign Engine | Product / Growth | In Progress | Update merchant pitch to “turn traffic into personalized recommendation, try-on and measurable purchase intent”; keep hosted Store as first delivery surface. | `docs/strategy/commercial-strategy.md`, Store MVP spec | Current sprint |
@@ -212,11 +212,11 @@ Current focus:
 
 **Current tasks:**
 
-- Add or verify post-result Credits Pack CTA.
-- Strengthen Compare completion CTA for continued comparison.
-- Clarify that free Detector does not consume credits.
-- Ensure failed generations do not create confusing credit behavior.
-- Track pricing click, checkout start, payment completion, and paid usage with explicit or mapped events.
+- Do not modify Checkout during the baseline observation window without an incident signal.
+- Accumulate at least 14 days and 30–50 unique Checkout Sessions.
+- Compare terminal completion for `face_analysis_report` and `pricing` separately.
+- Reconcile GA Purchase, Payment rows, and Stripe Session status.
+- Reopen generic Try-On / Compare merchandising only if evidence identifies it as the dominant constraint.
 
 **Success criteria:**
 

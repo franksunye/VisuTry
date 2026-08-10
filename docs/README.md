@@ -2,7 +2,7 @@
 
 **Status:** Active documentation entry point  
 **Created:** 2026-07-08  
-**Last updated:** 2026-08-05
+**Last updated:** 2026-08-10
 **Owner:** Product / Engineering  
 **Review cadence:** Monthly, or whenever the product direction materially changes.
 
@@ -75,6 +75,13 @@ For engineering work, read in this order:
 4. `docs/project/vercel-cpu-governance-spec.md` when changing rendering, runtime invocation, polling, caching, image paths, or server-side work
 5. `docs/guides/development-guide.md`
 6. Current implementation files in `src/`, `prisma/`, and configuration files.
+
+For consumer GTM and paid-conversion follow-up, read in this order:
+
+1. `docs/strategy/analytics/gtm.md`
+2. `docs/ops/consumer-checkout-observation-2026-08-10.md`
+3. `docs/product/specs/credits-pack-conversion.md`
+4. `docs/product/product-plan.md`
 
 For current Store work, read in this order:
 

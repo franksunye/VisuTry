@@ -458,6 +458,12 @@ Stripe Checkout lifecycle is also persisted server-side. A row is created as
 `async_payment_failed`. GA is the behavioral view; Stripe plus the Payment
 table is the payment-system source of truth.
 
+The current consumer Checkout baseline and reopening conditions are defined in
+`docs/ops/consumer-checkout-observation-2026-08-10.md`. Checkout is in an
+observation period: do not change price, Link, payment-method presentation,
+report-unlock copy, or Checkout layout until at least 14 days and 30–50 unique
+Sessions have accumulated, unless a payment-integrity incident is found.
+
 ### P0 — Weekly dashboard
 
 Maintain one weekly view containing at least:
@@ -752,5 +758,5 @@ And every weekly review ends with:
 
 | Version | Date | Change |
 | --- | --- | --- |
-| 3.2 | 2026-08-10 | Froze the consumer and merchant AI-facing message contract; added the two-week AI traffic-quality baseline, machine-readable surface requirements, claim boundaries, acceptance conditions, and qualified-AI-traffic decision rules. |
+| 3.2 | 2026-08-10 | Froze the consumer and merchant AI-facing message contract; added the AI traffic-quality baseline and claim boundaries; closed the current Checkout optimization round with a server-side lifecycle observation protocol and evidence-based reopening conditions. |
 | 3.1 | 2026-08-03 | Split the 10× qualified-traffic plan into Engineering, Growth, and Product / Analytics execution backlogs. |

@@ -2,7 +2,7 @@
 
 **Status:** Active operating plan  
 **Created:** 2026-07-08  
-**Last updated:** 2026-08-05
+**Last updated:** 2026-08-10
 **Owner:** Product / Engineering  
 **Review cadence:** Weekly during cleanup, monthly after stabilization  
 **Scope:** Document status, ownership, current role, and cleanup actions.
@@ -70,7 +70,7 @@ It should answer:
 | `docs/strategy/seo/2026-06-30-product-architecture-seo-geo-sync.md` | SEO/GEO product architecture | Active source of truth for SEO/GEO page architecture | Product / Growth | 2026-07-08 | Keep active. |
 | `docs/strategy/seo/2026-06-12-growth-kpi-operating-plan.md` | Growth KPI plan | Superseded historical reference | Growth | 2026-07-27 | Preserve historical baselines; current metrics and cadence live in the GTM source of truth. |
 | `docs/strategy/growth/2026-06-18-external-growth-sprint.md` | External growth sprint | Superseded time-boxed plan | Growth | 2026-07-27 | Sprint window ended; unfinished tasks are stopped unless migrated into a current GTM experiment. |
-| `docs/strategy/analytics/gtm.md` | Qualified-traffic GTM operating strategy | Active source of truth for GTM execution | Growth / Product / Analytics | 2026-07-27 | Rewritten around the validated Detector → Advisor → Try-On / Compare → paid path; supersedes parallel GTM plans. |
+| `docs/strategy/analytics/gtm.md` | Qualified-traffic GTM operating strategy | Active source of truth for GTM execution | Growth / Product / Analytics | 2026-08-10 | v3.2 freezes AI-facing positioning and defines qualified-traffic and Checkout measurement rules. |
 | `docs/strategy/growth/2026-07-02-60-referring-domains-gtm-plan.md` | Referring-domain campaign | Superseded historical execution reference | Growth | 2026-07-27 | Fixed 60-domain target and channel quotas are stopped; reuse evidence only through the active GTM queue. |
 | `docs/strategy/reseller-technical-roadmap.md` | Reseller technical roadmap | Supporting technical roadmap | Product / Engineering | 2026-07-08 | Keep as supporting reference; not current priority unless pulled forward. |
 | `docs/strategy/2026-05-25-paid-customer-seo-geo-relaunch-plan.md` | Paid customer / SEO relaunch plan | Historical commercial evidence | Product / Growth | 2026-07-08 | Keep or archive after evidence is reflected in strategy/product plan. |
@@ -84,7 +84,8 @@ It should answer:
 | Path | Type | Status | Owner | Last reviewed | Action |
 | --- | --- | --- | --- | --- | --- |
 | `docs/product/specs/frame-compare.md` | Product spec | Implemented core version | Product | 2026-07-08 | Core route exists; track analytics, homepage/product exposure, sharing, and custom-frame enhancements. |
-| `docs/product/specs/credits-pack-conversion.md` | Product spec | Partially implemented | Product | 2026-07-08 | Payment/quota foundation exists; complete conversion UX, post-result CTA, and event mapping. |
+| `docs/product/specs/credits-pack-conversion.md` | Product spec | Implemented core / Measuring | Product | 2026-08-10 | Face Analysis report unlock and Checkout lifecycle measurement shipped; keep stable during observation. |
+| `docs/ops/consumer-checkout-observation-2026-08-10.md` | Consumer Checkout runbook / release record | Active observation runbook | Product / Growth / Engineering | 2026-08-10 | Use for the next 14-day / 30–50 Session review; do not restart from raw event-count comparisons. |
 | `docs/product/specs/visutry-store-landing-page.md` | Product spec / market validation asset | Shipped / Measuring | Product / Growth | 2026-08-05 | Continue measuring qualified CTA and lead evidence alongside outreach. |
 | `docs/product/specs/visutry-store-engineering-foundation.md` | Mandatory engineering spec | Implemented for D0 / Ongoing baseline | Engineering / Product | 2026-08-05 | Enforce on every later Store change; Gate A1 remains closed. |
 | `docs/product/specs/visutry-store-sales-demo.md` | Product / engineering spec | Implemented / Controlled validation | Product / Engineering / Growth | 2026-08-05 | Run team-operated demos and collect own-frame sample and pilot evidence. |

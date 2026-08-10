@@ -1,9 +1,9 @@
 # Credits Pack Conversion Spec
 
-**Status:** Partially implemented — payment and quota foundation complete; conversion UX and events need completion  
+**Status:** Implemented core / Measuring — report unlock and Checkout observability shipped; broader merchandising deferred
 **Owner:** Product  
 **Created:** 2026-07-08  
-**Last updated:** 2026-07-08  
+**Last updated:** 2026-08-10
 **Related plan:** `docs/product/product-plan.md`
 
 ---
@@ -24,7 +24,7 @@ Make Credits Pack the primary consumer paid conversion path for users who want a
 
 ## 3. Current Implementation Summary
 
-The payment and quota foundation is already implemented.
+The payment, quota, Face Analysis report-unlock, and Checkout-observability foundation is implemented.
 
 Implemented foundation:
 
@@ -32,13 +32,18 @@ Implemented foundation:
 - Stripe price ID is configured through `STRIPE_CREDITS_PACK_PRICE_ID`.
 - Credits Pack uses Stripe Checkout payment mode, not subscription mode.
 - Checkout session creation accepts `CREDITS_PACK` and promo credit-pack variants.
-- Stripe webhook creates a completed payment record.
+- Checkout creation writes a pending Payment row before redirect.
+- Signed Stripe webhooks move the same row to completed or failed and record the terminal reason.
 - Stripe webhook increments `creditsPurchased` after successful Credits Pack payment.
 - Quota calculation includes purchased credits.
 - Try-on quota deduction happens after successful generation completion.
 - Failed / incomplete tasks should not consume quota through the normal success-only deduction path.
 - Try-on quota-exhausted UI can route users to pricing.
 - Frame Compare already constrains frame selection by available credits and routes users to pricing when credits are insufficient.
+- Face Analysis offers a one-time USD 2.99 unlock for the current personalized report and includes non-expiring continuation credits.
+- Stripe supporting copy preserves the report-unlock meaning across all supported Checkout locales.
+- GA `begin_checkout` and verified `purchase` share `purchase_context`; the GA custom dimension is registered.
+- Admin Orders exposes pending, completed, expired, and failed Checkout attempts.
 
 Key implementation files:
 
@@ -48,6 +53,9 @@ Key implementation files:
 | Checkout API | `src/app/api/payment/create-session/route.ts` |
 | Stripe helper | `src/lib/stripe.ts` |
 | Stripe webhook | `src/app/api/payment/webhook/route.ts` |
+| Verified Purchase bridge | `src/app/api/payment/conversion/route.ts`, `src/components/analytics/PaymentConversionTracker.tsx` |
+| Face Analysis unlock | `src/components/face-analysis/FaceAnalysisInterface.tsx`, `src/components/face-analysis/UnlockCreditsBanner.tsx` |
+| Observation runbook | `docs/ops/consumer-checkout-observation-2026-08-10.md` |
 | Quota logic | `src/lib/quota.ts` |
 | Try-on submit / poll | `src/app/api/try-on/submit/route.ts`, `src/app/api/try-on/poll/route.ts` |
 | Try-on UI quota CTA | `src/components/try-on/TryOnInterface.tsx` |
@@ -78,18 +86,17 @@ This spec does not cover:
 5. User can purchase Credits Pack through Stripe Checkout.
 6. Stripe webhook updates credits after successful payment.
 
-### Desired high-intent post-result flow
+### Implemented Face Analysis high-intent flow
 
-1. User completes a try-on or comparison.
-2. User sees the result and a clear next action.
-3. If user wants to continue generating more results, Credits Pack is presented as the low-friction paid option.
-4. User clicks Credits Pack CTA.
-5. User starts checkout.
-6. User completes payment.
-7. Credits balance updates.
-8. User returns to continue try-on or compare.
+1. User completes Face Analysis and sees a useful basic result plus a personalized full-report preview.
+2. User chooses `Unlock This Report` for USD 2.99 one-time.
+3. The system validates ownership of the completed, locked analysis task.
+4. A pending Payment row is recorded and the user enters Stripe Checkout.
+5. Stripe supporting copy explains the report unlock first and included non-expiring credits second.
+6. A signed paid webhook atomically completes the Payment, adds credits, and unlocks the same report.
+7. The return URL restores the same Face Analysis task and emits a verified, deduplicated GA Purchase.
 
-This post-result flow still needs UX and event completion.
+Post-result merchandising in generic Try-On and Compare may still be improved later, but it is deferred during the current observation period.
 
 ---
 
@@ -105,7 +112,7 @@ This post-result flow still needs UX and event completion.
 - Insufficient-quota CTA from Try-On.
 - Credit-limited selection and pricing link from Frame Compare.
 
-### Still needed
+### Deferred enhancement surface
 
 #### Placement
 
@@ -122,7 +129,8 @@ Current status:
 
 - Insufficient-quota placement exists.
 - Compare credit-limited placement exists.
-- Post-result Credits Pack CTA still needs stronger productization.
+- Face Analysis report-unlock placement is shipped.
+- Generic Try-On / Compare post-result merchandising remains optional future work and is not a current Checkout blocker.
 
 #### Messaging
 
@@ -162,17 +170,17 @@ Return-context behavior needs review.
 
 ### Current state
 
-General purchase, checkout, pricing, and quota-exhausted analytics utilities exist, but this spec's dedicated Credits Pack conversion event names still need implementation or mapping.
+The canonical paid funnel uses existing GA4-compatible events plus server-side Payment lifecycle state. Do not create duplicate Credits-specific events when an established event and context property answer the same question.
 
 ### Desired minimum events
 
 | Event | Trigger | Status |
 | --- | --- | --- |
-| `credits_cta_viewed` | Credits Pack CTA is shown. | Needs implementation / mapping. |
-| `credits_cta_clicked` | User clicks Credits Pack CTA. | Needs implementation / mapping. |
-| `pricing_viewed` | User views pricing page. | Existing event likely covers pricing view, verify naming. |
-| `checkout_started` | Stripe checkout starts. | Existing begin checkout event likely covers this, verify naming. |
-| `payment_completed` | Payment succeeds. | Webhook exists; client-side / analytics mapping needs review. |
+| `face_analysis_unlock_click` | User selects the report-unlock offer. | Implemented. |
+| `view_pricing` | User views pricing. | Implemented. |
+| `click_purchase_button` | User selects an offer on pricing. | Implemented. |
+| `begin_checkout` | A recorded Stripe Checkout Session is ready for redirect. | Implemented with Session and purchase context. |
+| `purchase` | Server-verified completed Payment is observed on return. | Implemented and deduplicated by Session ID. |
 | `credits_balance_updated` | Credits balance changes. | Backend update exists; analytics event needs review. |
 | `paid_tryon_started` | User starts generation after payment. | Needs implementation / mapping. |
 | `paid_tryon_completed` | Paid generation completes. | Needs implementation / mapping. |
@@ -231,26 +239,23 @@ The payment / quota foundation is considered implemented because:
 4. Try-on generation consumes quota after successful completion.
 5. Try-On and Compare have at least basic insufficient-credit routing.
 
-### Remaining acceptance criteria for conversion completion
+### Core conversion acceptance status
 
-1. Credits Pack CTA appears in at least one post-result high-intent moment.
-2. CTA copy explicitly positions Credits Pack as one-time, no-subscription continuation.
-3. Compare completion has a clear `continue comparing / get credits` path.
-4. Dedicated Credits Pack CTA events are implemented or formally mapped to existing analytics events.
-5. User return path after checkout is reviewed and documented.
-6. Failed generation credit behavior is documented in user-facing and internal terms.
-7. Funnel from CTA view to paid usage is measurable.
+1. Shipped: Credits Pack appears as a Face Analysis post-result report unlock.
+2. Shipped: CTA and Stripe supporting copy position it as one-time and preserve the current-report context.
+3. Shipped: existing analytics events are formally mapped to the paid funnel.
+4. Shipped: return path restores the same analysis task.
+5. Shipped: Checkout creation, completion, expiration, and async failure are measurable server-side.
+6. Shipped: GA can segment `pricing` and `face_analysis_report` through `purchase_context`.
+7. Deferred: stronger generic Try-On / Compare post-result merchandising; reopen only with evidence after the observation period.
 
 ---
 
 ## 11. Open Questions
 
-1. Should anonymous users be allowed to start checkout, or should login be required first?
-2. What is the current exact Credits Pack size and price to expose in UI?
-3. Should Credits Pack be offered before or after first free try-on?
-4. Should subscription plans remain visible on pricing page, or be secondary?
-5. Should Compare have a bundled discount or simply consume one credit per successful generation?
-6. Should post-payment return preserve a compare batch context?
+1. Should generic Try-On / Compare receive stronger post-result merchandising after the new baseline is measured?
+2. Should Compare have a bundled discount, or continue consuming one credit per successful generation?
+3. Is a compare-batch return context justified by observed paid demand?
 
 ---
 
@@ -260,3 +265,4 @@ The payment / quota foundation is considered implemented because:
 | --- | --- |
 | 2026-07-08 | Created draft Credits Pack conversion spec. |
 | 2026-07-08 | Updated status to partially implemented after code review of pricing, Stripe, quota, Try-On, and Frame Compare flows. |
+| 2026-08-10 | Shipped Face Analysis report-unlock positioning, pending/terminal Checkout lifecycle persistence, server-verified GA Purchase context, admin visibility, and the observation protocol. |
