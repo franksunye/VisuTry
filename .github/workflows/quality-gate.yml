@@ -17,20 +17,26 @@ permissions:
 
 jobs:
   static-and-unit:
-    name: Static + Unit Regression
+    name: Static + Critical Business Regression
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
     env:
       CI: true
       NEXT_TELEMETRY_DISABLED: 1
-      # Prisma generate loads prisma.config.ts and requires a URL, but does not
-      # connect to the database. Keep PR L1/L2 fully isolated from real DBs.
+      SKIP_ENV_VALIDATION: 1
+      NEXTAUTH_SECRET: ci-only-nextauth-secret
+      NEXTAUTH_URL: http://127.0.0.1:3001
+      STRIPE_SECRET_KEY: sk_test_ci_placeholder
+      # Prisma generate loads prisma.config.ts and requires a URL. The PR gate
+      # intentionally stays isolated from production data and external DBs.
       DATABASE_URL: postgresql://ci:ci@localhost:5432/visutry_ci
       DATABASE_URL_UNPOOLED: postgresql://ci:ci@localhost:5432/visutry_ci
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -41,8 +47,33 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Critical scope report
+        if: github.event_name == 'pull_request'
+        shell: bash
+        run: |
+          echo '### Critical business scope' >> "$GITHUB_STEP_SUMMARY"
+          git diff --name-only "origin/${GITHUB_BASE_REF}...HEAD" > /tmp/changed-files.txt
+          if grep -E '^(src/app/api/face-analysis/|src/app/api/payment/|src/lib/(api-auth|quota|stripe|face-analysis-service)\.ts|src/components/face-analysis/)' /tmp/changed-files.txt > /tmp/critical-files.txt; then
+            echo 'Critical Face Analysis/Auth/Credits/Payment files changed:' >> "$GITHUB_STEP_SUMMARY"
+            sed 's/^/- `/' /tmp/critical-files.txt | sed 's/$/`/' >> "$GITHUB_STEP_SUMMARY"
+            echo '' >> "$GITHUB_STEP_SUMMARY"
+            echo 'The dedicated critical-business tests below are mandatory for this PR.' >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo 'No critical Face Analysis/Auth/Credits/Payment runtime files changed.' >> "$GITHUB_STEP_SUMMARY"
+          fi
+
       - name: TypeScript gate
         run: npm run typecheck
 
-      - name: Unit and regression gate
+      - name: Critical business journey gate
+        run: npm run test:critical:ci
+
+      - name: Full unit and regression gate
         run: npm run test:unit:ci
+
+      - name: Playwright suite discovery gate
+        run: npm run test:e2e:list
+
+      # A full `next build` needs real database-backed admin prerender data in
+      # this application. Vercel's preview/production deployment remains the
+      # authoritative build gate; PR CI deliberately never connects to prod DB.
