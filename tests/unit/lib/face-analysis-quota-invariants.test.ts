@@ -1,3 +1,4 @@
+import { QUOTA_CONFIG } from '@/config/pricing'
 import { checkUserQuota, getNextQuotaSource } from '@/lib/quota'
 
 function makeUser(overrides: Record<string, unknown> = {}) {
@@ -54,7 +55,7 @@ describe('Face Analysis quota invariants', () => {
       isPremium: true,
       premiumExpiresAt: new Date(Date.now() + 86400000),
       currentSubscriptionType: 'PREMIUM_MONTHLY',
-      premiumUsageCount: 60,
+      premiumUsageCount: QUOTA_CONFIG.MONTHLY_SUBSCRIPTION,
       creditsPurchased: 2,
       creditsUsed: 1,
     })
@@ -64,7 +65,11 @@ describe('Face Analysis quota invariants', () => {
   })
 
   it('denies analysis when every quota bucket is exhausted', () => {
-    const user = makeUser({ creditsPurchased: 1, creditsUsed: 1, freeTrialsUsed: 1 })
+    const user = makeUser({
+      creditsPurchased: 1,
+      creditsUsed: 1,
+      freeTrialsUsed: QUOTA_CONFIG.FREE_TRIAL,
+    })
 
     expect(checkUserQuota(user).allowed).toBe(false)
     expect(getNextQuotaSource(user)).toBeNull()
