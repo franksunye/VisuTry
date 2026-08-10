@@ -8,34 +8,28 @@ type B01VisualSeoSectionsProps = {
   pagePath: B01VisualSeoPage
 }
 
-/** Render the English B01 visual-answer blocks on their canonical pages only. */
+/**
+ * Render English B01 visual-answer blocks on their canonical pages only.
+ * Acquisition pages keep one dominant Visual SEO asset; additional assets are supporting visuals.
+ */
 export function B01VisualSeoSections({ locale, pagePath }: B01VisualSeoSectionsProps) {
   if (locale !== 'en') return null
 
   const assets = getVisualSeoAssetsForPage(pagePath)
+  if (assets.length === 0) return null
 
-  if (pagePath === '/face-shape-detector' && assets.length > 0) {
-    const [primaryAsset, ...supportingAssets] = assets
-
-    return (
-      <section className="mt-12 space-y-5 sm:space-y-6" aria-label="Visual face shape guides">
-        <VisualSeoAsset asset={primaryAsset} />
-        {supportingAssets.length > 0 ? (
-          <div className="grid gap-4 md:grid-cols-2">
-            {supportingAssets.map((asset) => (
-              <VisualSeoAsset key={asset.id} asset={asset} variant="compact" />
-            ))}
-          </div>
-        ) : null}
-      </section>
-    )
-  }
+  const [primaryAsset, ...supportingAssets] = assets
 
   return (
-    <section className="mt-12 space-y-8" aria-label="Visual face shape guides">
-      {assets.map((asset) => (
-        <VisualSeoAsset key={asset.id} asset={asset} />
-      ))}
+    <section className="mt-12 space-y-5 sm:space-y-6" aria-label="Visual face shape guides">
+      <VisualSeoAsset asset={primaryAsset} />
+      {supportingAssets.length > 0 ? (
+        <div className="grid gap-4 md:grid-cols-2">
+          {supportingAssets.map((asset) => (
+            <VisualSeoAsset key={asset.id} asset={asset} variant="compact" />
+          ))}
+        </div>
+      ) : null}
     </section>
   )
 }
