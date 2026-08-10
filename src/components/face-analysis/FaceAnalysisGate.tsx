@@ -3,6 +3,7 @@
 import { useSession } from 'next-auth/react'
 import { ReactNode, Suspense } from 'react'
 import { FaceAnalysisInterface } from '@/components/face-analysis/FaceAnalysisInterface'
+import { ConversionPaywallBoundary } from '@/components/payments/ConversionPaywallBoundary'
 import styles from './FaceAnalysisGate.module.css'
 
 interface FaceAnalysisGateProps {
@@ -27,7 +28,9 @@ export function FaceAnalysisGate({ landing, loadingText }: FaceAnalysisGateProps
   return (
     <div className={`${styles.app} container mx-auto px-4 py-5 sm:py-8`}>
       <Suspense fallback={<div className="py-12 text-center text-gray-500">{loadingText}</div>}>
-        <FaceAnalysisInterface />
+        <ConversionPaywallBoundary source="face_analysis">
+          <FaceAnalysisInterface />
+        </ConversionPaywallBoundary>
       </Suspense>
     </div>
   )

@@ -2,6 +2,8 @@
 
 import { useSession } from 'next-auth/react'
 import { AutoRefreshWrapper } from '@/components/payments/AutoRefreshWrapper'
+import { ConversionPaywallBoundary } from '@/components/payments/ConversionPaywallBoundary'
+import { CreditExhaustedSurface } from '@/components/payments/CreditExhaustedBar'
 import { StyleExplorerInterface } from '@/components/style-explorer/StyleExplorerInterface'
 import { StyleExplorerMarketing } from '@/components/style-explorer/StyleExplorerMarketing'
 
@@ -32,10 +34,18 @@ export function StyleExplorerGate({ locale, signInHref, faceAnalysisTaskId }: St
 
   return (
     <AutoRefreshWrapper>
-      <StyleExplorerInterface
-        initialRemainingCredits={initialRemainingCredits}
-        faceAnalysisTaskId={faceAnalysisTaskId}
-      />
+      <ConversionPaywallBoundary source="style_explorer">
+        <CreditExhaustedSurface
+          kind="style_explorer"
+          availableCredits={initialRemainingCredits}
+          requiredCredits={4}
+        >
+          <StyleExplorerInterface
+            initialRemainingCredits={initialRemainingCredits}
+            faceAnalysisTaskId={faceAnalysisTaskId}
+          />
+        </CreditExhaustedSurface>
+      </ConversionPaywallBoundary>
     </AutoRefreshWrapper>
   )
 }

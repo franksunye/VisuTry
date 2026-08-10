@@ -1,5 +1,7 @@
 'use client'
 
+import Link from 'next/link'
+import { useParams, useSearchParams } from 'next/navigation'
 import { Lock, Sparkles } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import { FACE_ANALYSIS_LAYOUT } from '@/config/face-analysis'
@@ -18,14 +20,37 @@ export function UnlockCreditsBanner({
   faceShape,
 }: UnlockCreditsBannerProps) {
   const t = useTranslations('faceAnalysis.unlock')
+  const params = useParams()
+  const searchParams = useSearchParams()
+  const locale = (params.locale as string) || 'en'
+  const taskId = searchParams.get('taskId')?.trim() || ''
   const price = (PRICE_CONFIG.CREDITS_PACK / 100).toFixed(2)
+  const paywallHref = taskId
+    ? `/${locale}/pricing?source=face-analysis-unlock&taskId=${encodeURIComponent(taskId)}`
+    : null
 
-  const handleClick = () => {
+  const trackClick = () => {
     if (faceShape) {
       analytics.trackFaceAnalysisUnlockClick(faceShape, 'face_analysis')
     }
+  }
+
+  const handleFallbackClick = () => {
+    trackClick()
     onUnlock()
   }
+
+  const buttonContent = isLoading ? (
+    <>
+      <div className="w-4 h-4 mr-2 border-2 border-white rounded-full border-t-transparent animate-spin" />
+      {t('redirecting')}
+    </>
+  ) : (
+    <>
+      <Lock className="w-4 h-4 mr-2" />
+      {t('button', { price })}
+    </>
+  )
 
   return (
     <div className="rounded-2xl border border-blue-200 bg-gradient-to-r from-blue-50 via-indigo-50 to-purple-50 p-6">
@@ -43,24 +68,24 @@ export function UnlockCreditsBanner({
         </div>
         <div className="flex flex-col items-stretch sm:items-end gap-2">
           <p className="text-sm text-gray-600 text-right">{t('price', { price })}</p>
-          <button
-            type="button"
-            onClick={handleClick}
-            disabled={isLoading}
-            className={FACE_ANALYSIS_LAYOUT.primaryButton}
-          >
-            {isLoading ? (
-              <>
-                <div className="w-4 h-4 mr-2 border-2 border-white rounded-full border-t-transparent animate-spin" />
-                {t('redirecting')}
-              </>
-            ) : (
-              <>
-                <Lock className="w-4 h-4 mr-2" />
-                {t('button', { price })}
-              </>
-            )}
-          </button>
+          {paywallHref ? (
+            <Link
+              href={paywallHref}
+              onClick={trackClick}
+              className={FACE_ANALYSIS_LAYOUT.primaryButton}
+            >
+              {buttonContent}
+            </Link>
+          ) : (
+            <button
+              type="button"
+              onClick={handleFallbackClick}
+              disabled={isLoading}
+              className={FACE_ANALYSIS_LAYOUT.primaryButton}
+            >
+              {buttonContent}
+            </button>
+          )}
         </div>
       </div>
     </div>
