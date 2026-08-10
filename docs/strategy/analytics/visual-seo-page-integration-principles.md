@@ -56,8 +56,10 @@ Mobile is the strictest density constraint.
 
 - The primary VSEO asset may remain full width when it materially explains the page intent.
 - Supporting assets should be compact and may use thumbnail-led horizontal cards.
+- Thumbnail-led supporting cards should remain compact across sub-768px widths; do not expand them into full-width 4:3 cards merely because the viewport crosses a 640px breakpoint.
 - A single supporting asset should remain compact on mobile even if it uses a full-row horizontal treatment on desktop.
 - Supporting copy can be visually condensed, but the descriptive HTML, alt text, heading, and internal link should remain present in the rendered document.
+- Prefer one semantic copy node per supporting asset. Do not duplicate the same explanatory paragraph solely to switch responsive layouts at different breakpoints.
 - Adding VSEO assets must not materially push the core action farther down the initial experience or recreate long scroll depth immediately after the tool.
 
 ## SEO preservation rule
@@ -83,8 +85,10 @@ Before merging a page integration, confirm:
 - no more than one VSEO asset dominates the page visually, including across multiple batches;
 - additional assets read as supporting education;
 - mobile does not contain consecutive large 4:3 SEO cards;
+- supporting cards remain compact throughout sub-768px layouts;
 - a single desktop supporting asset does not leave an artificial empty grid column;
 - an embedded image headline is not redundantly repeated as a visible HTML heading directly above it;
+- responsive layout does not duplicate the same explanatory copy in multiple DOM nodes;
 - Visual SEO content sits after the core conversion content unless there is a specific product reason otherwise;
 - the page still feels like a VisuTry product/acquisition page rather than an SEO image gallery;
 - image SEO metadata and crawlability remain intact.
@@ -106,4 +110,12 @@ For the first accepted B01 pages:
 - `/en/try-glasses-on-photo`: VSEO-016 primary.
 - B02 primary/editorial masters use visually hidden HTML H2 headings when their in-image headline already communicates the same title. Supporting-card headings remain visible.
 
-Future B03+ integrations should apply the same page-level hierarchy and heading-duplication checks by default rather than repeating multiple full-size cards or duplicate titles per page.
+## B03 implementation baseline
+
+- `/en/try-glasses-on-photo`: VSEO-016 from B02 remains the page primary; VSEO-017 and VSEO-018 are supporting comparisons only.
+- `/en/compare-glasses-frames`: VSEO-019 primary; VSEO-020 and VSEO-021 supporting.
+- `/en/ai-glasses-advisor`: VSEO-023 primary recommendation visual; VSEO-022 and VSEO-024 supporting.
+- B03 primary masters keep equivalent HTML H2 headings semantic but visually hidden. Supporting-card headings remain visible.
+- B03 supporting cards use the shared compact component and remain thumbnail-led until the desktop two-column layout begins at 768px.
+
+Future B04+ integrations should apply the same page-level hierarchy, breakpoint-density, semantic-copy, and heading-duplication checks by default rather than repeating multiple full-size cards or duplicate titles per page.
