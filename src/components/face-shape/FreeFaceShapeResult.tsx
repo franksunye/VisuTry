@@ -3,7 +3,7 @@
 import Image from 'next/image'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { ArrowRight, CheckCircle2, Info, Loader2, ShieldCheck, Sparkles } from 'lucide-react'
 import { getFaceShapeIcon } from '@/config/face-analysis'
 import { getFaceShapeContent } from '@/config/face-shape-content'
@@ -203,7 +203,7 @@ export function FreeFaceShapeResult({
         </div>
       </section>
 
-      <MeasurementDetails metrics={metrics} detection={detection} warnings={geometry.warnings} />
+      <DeferredMeasurementDetails metrics={metrics} detection={detection} warnings={geometry.warnings} />
 
       <div className="flex items-start gap-2 text-xs leading-5 text-gray-500">
         <Info className="mt-0.5 h-3.5 w-3.5 shrink-0" />
@@ -211,6 +211,67 @@ export function FreeFaceShapeResult({
           Ratios are estimated from this photo, not physical dimensions. Camera angle, expression, hair, and lighting can change the result. Raw landmarks remain in browser memory and are not uploaded by this tool.
         </p>
       </div>
+    </div>
+  )
+}
+
+function DeferredMeasurementDetails({
+  metrics,
+  detection,
+  warnings,
+}: {
+  metrics: FaceAnalysisMetric[]
+  detection: FaceLandmarkDetectionResult
+  warnings: string[]
+}) {
+  const containerRef = useRef<HTMLDivElement>(null)
+  const [shouldRender, setShouldRender] = useState(false)
+
+  useEffect(() => {
+    if (shouldRender) return
+
+    if (typeof IntersectionObserver === 'undefined') {
+      setShouldRender(true)
+      return
+    }
+
+    const node = containerRef.current
+    if (!node) return
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((entry) => entry.isIntersecting)) {
+          setShouldRender(true)
+          observer.disconnect()
+        }
+      },
+      { rootMargin: '240px 0px' },
+    )
+
+    observer.observe(node)
+    return () => observer.disconnect()
+  }, [shouldRender])
+
+  return (
+    <div ref={containerRef}>
+      {shouldRender ? (
+        <MeasurementDetails metrics={metrics} detection={detection} warnings={warnings} />
+      ) : (
+        <section
+          className="min-h-24 rounded-lg border border-gray-200 bg-white p-4 shadow-sm sm:min-h-28 sm:p-5"
+          aria-label="Measured face details"
+        >
+          <div className="flex items-center gap-2">
+            <span className="flex h-6 w-6 items-center justify-center rounded-full bg-blue-50 text-blue-600">
+              <Sparkles className="h-3.5 w-3.5" />
+            </span>
+            <h3 className="text-sm font-semibold text-gray-950">Measured face details</h3>
+          </div>
+          <p className="mt-2 text-xs leading-5 text-gray-500">
+            Detailed landmark visuals load as you scroll to this section.
+          </p>
+        </section>
+      )}
     </div>
   )
 }
