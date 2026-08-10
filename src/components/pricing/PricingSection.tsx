@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { useSession } from "next-auth/react"
-import { Glasses, Star, Zap } from "lucide-react"
+import { ChevronDown, Glasses, Star, Zap } from "lucide-react"
 import { useTranslations } from 'next-intl'
 import { PricingCard } from "@/components/pricing/PricingCard"
 import { PromoInput } from "@/components/pricing/PromoInput"
@@ -21,6 +21,13 @@ import {
 interface PricingSectionProps {
   user: any // Typed as any for simplicity, effectively UserForDisplay
   quotas: PricingQuotas
+}
+
+type ComparisonRow = {
+  feature: string
+  free: React.ReactNode
+  credits: React.ReactNode
+  standard: React.ReactNode
 }
 
 export function PricingSection({ user: serverUser, quotas }: PricingSectionProps) {
@@ -57,7 +64,7 @@ export function PricingSection({ user: serverUser, quotas }: PricingSectionProps
       price: formatPrice(creditPackData.price),
       period: tPricing('plans.creditsPack.period'),
       features: buildPlanFeatures(creditPackId, quotas),
-      buttonText: creditPackData.id.includes("PROMO") ? "Buy Credits Pack" : "Buy Credits Pack",
+      buttonText: "Buy Credits Pack",
       popular: creditPackData.popular,
       icon: <Zap className="w-6 h-6" />
     },
@@ -68,7 +75,7 @@ export function PricingSection({ user: serverUser, quotas }: PricingSectionProps
       price: formatPrice(monthlyData.price),
       period: tPricing('plans.monthly.period'),
       features: buildPlanFeatures(monthlyId, quotas),
-      buttonText: monthlyData.id.includes("PROMO") ? "Start Monthly Subscription" : "Start Monthly Subscription",
+      buttonText: "Start Monthly Subscription",
       popular: monthlyData.popular,
       icon: <Star className="w-6 h-6" />
     },
@@ -80,17 +87,74 @@ export function PricingSection({ user: serverUser, quotas }: PricingSectionProps
       period: tPricing('plans.yearly.period'),
       originalPrice: "$107.88",
       features: buildPlanFeatures(yearlyId, quotas),
-      buttonText: yearlyData.id.includes("PROMO") ? "Start Annual Subscription" : "Start Annual Subscription",
+      buttonText: "Start Annual Subscription",
       popular: yearlyData.popular,
       icon: <Star className="w-6 h-6" />
     }
   ]
 
+  const comparisonRows: ComparisonRow[] = [
+    {
+      feature: 'AI Try-ons',
+      free: `${quotas.freeTrial} times`,
+      credits: <span className="font-bold text-blue-600">+{getPlanQuota(creditPackId, quotas)} times</span>,
+      standard: <span className="text-green-600">{quotas.monthly}/month or {quotas.yearly}/year</span>,
+    },
+    {
+      feature: 'AI Face Analysis',
+      free: 'Included with credit',
+      credits: 'Included',
+      standard: <span className="text-green-600">Included</span>,
+    },
+    {
+      feature: 'Frame Compare',
+      free: '1 frame trial',
+      credits: '1 credit per frame',
+      standard: <span className="text-green-600">1 credit per frame</span>,
+    },
+    {
+      feature: 'Image Quality',
+      free: <><div>Standard</div><div className="text-xs text-gray-500">(800×800)</div></>,
+      credits: <><div>High Quality</div><div className="text-xs text-gray-500">(1200×1200)</div></>,
+      standard: <><div className="text-green-600">High Quality</div><div className="text-xs text-green-500">(1200×1200)</div></>,
+    },
+    {
+      feature: 'Watermark',
+      free: 'Yes',
+      credits: 'No',
+      standard: <span className="text-green-600">No</span>,
+    },
+    {
+      feature: 'Generation Speed',
+      free: <><div>Standard</div><div className="text-xs text-gray-500">(Queue-based)</div></>,
+      credits: <><div>Standard</div><div className="text-xs text-gray-500">(Queue-based)</div></>,
+      standard: <><div className="text-green-600">Fast</div><div className="text-xs text-green-500">(Real-time)</div></>,
+    },
+    {
+      feature: 'Processing Priority',
+      free: 'Normal',
+      credits: 'Normal',
+      standard: <span className="text-green-600">Priority</span>,
+    },
+    {
+      feature: 'Data Retention',
+      free: <><div>7 days</div><div className="text-xs text-gray-500">Auto-delete after expiry</div></>,
+      credits: <><div>90 days</div><div className="text-xs text-gray-500">Extended storage</div></>,
+      standard: <><div className="text-green-600">1 year</div><div className="text-xs text-green-500">Long-term storage</div></>,
+    },
+    {
+      feature: 'Customer Support',
+      free: 'Email',
+      credits: 'Priority Email',
+      standard: <span className="text-green-600">Priority Support</span>,
+    },
+  ]
+
   return (
     <div>
       <PromoInput onPromoChange={setActiveCode} activeCode={activeCode} />
-      
-      <div className="grid gap-8 mb-12 md:grid-cols-3 items-stretch">
+
+      <div className="grid gap-5 mb-8 md:grid-cols-3 md:gap-8 md:mb-12 items-stretch">
         {pricingPlans.map((plan) => (
           <PricingCard
             key={plan.id}
@@ -100,115 +164,65 @@ export function PricingSection({ user: serverUser, quotas }: PricingSectionProps
         ))}
       </div>
 
-      {/* Comparison Table can optionally be updated here too if needed, doing static for now */}
-      <div className="overflow-hidden bg-white rounded-xl border shadow-sm">
-        <div className="p-6 border-b border-gray-200">
-          <h2 className="text-xl font-semibold text-gray-900">{tPricing('comparison.title')}</h2>
+      <section className="overflow-hidden bg-white rounded-xl border shadow-sm">
+        <div className="p-5 border-b border-gray-200 md:p-6">
+          <h2 className="text-lg font-semibold text-gray-900 md:text-xl">{tPricing('comparison.title')}</h2>
+          <p className="mt-1 text-sm text-gray-500 md:hidden">
+            Tap a feature to compare Free, Credits Pack, and Standard.
+          </p>
         </div>
 
-        <div className="overflow-x-auto">
+        {/* Mobile: vertical disclosure list avoids squeezing a four-column table
+            into a narrow viewport and keeps each decision understandable. */}
+        <div className="divide-y divide-gray-200 md:hidden">
+          {comparisonRows.map((row) => (
+            <details key={row.feature} className="group">
+              <summary className="flex cursor-pointer list-none items-center justify-between gap-4 px-5 py-4 text-sm font-semibold text-gray-900 marker:content-none [&::-webkit-details-marker]:hidden">
+                <span>{row.feature}</span>
+                <ChevronDown className="h-4 w-4 flex-shrink-0 text-gray-400 transition-transform group-open:rotate-180" />
+              </summary>
+              <div className="grid gap-3 bg-gray-50 px-5 pb-4 pt-1 text-sm">
+                <ComparisonValue label="Free">{row.free}</ComparisonValue>
+                <ComparisonValue label="Credits Pack">{row.credits}</ComparisonValue>
+                <ComparisonValue label="Standard">{row.standard}</ComparisonValue>
+              </div>
+            </details>
+          ))}
+        </div>
+
+        {/* Desktop: retain the familiar compact comparison table. */}
+        <div className="hidden overflow-x-auto md:block">
           <table className="w-full">
             <thead className="bg-gray-50">
               <tr>
                 <th className="px-6 py-3 text-sm font-medium text-start text-gray-900">Feature</th>
                 <th className="px-6 py-3 text-sm font-medium text-center text-gray-900">Free</th>
-                <th className="px-6 py-3 text-sm font-medium text-center text-gray-900">
-                  Credits Pack
-                </th>
+                <th className="px-6 py-3 text-sm font-medium text-center text-gray-900">Credits Pack</th>
                 <th className="px-6 py-3 text-sm font-medium text-center text-gray-900">Standard</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
-              <tr>
-                <td className="px-6 py-4 text-sm text-gray-900">AI Try-ons</td>
-                <td className="px-6 py-4 text-sm text-center text-gray-600">{quotas.freeTrial} times</td>
-                <td className="px-6 py-4 text-sm font-bold text-center text-blue-600">
-                  +{getPlanQuota(creditPackId, quotas)} times
-                </td>
-                <td className="px-6 py-4 text-sm text-center text-green-600">
-                  {quotas.monthly}/month or {quotas.yearly}/year
-                </td>
-              </tr>
-              <tr>
-                <td className="px-6 py-4 text-sm text-gray-900">AI Face Analysis</td>
-                <td className="px-6 py-4 text-sm text-center text-gray-600">Included with credit</td>
-                <td className="px-6 py-4 text-sm text-center text-gray-600">Included</td>
-                <td className="px-6 py-4 text-sm text-center text-green-600">Included</td>
-              </tr>
-              <tr>
-                <td className="px-6 py-4 text-sm text-gray-900">Frame Compare</td>
-                <td className="px-6 py-4 text-sm text-center text-gray-600">1 frame trial</td>
-                <td className="px-6 py-4 text-sm text-center text-gray-600">1 credit per frame</td>
-                <td className="px-6 py-4 text-sm text-center text-green-600">1 credit per frame</td>
-              </tr>
-              {/* Other rows remain static as they don't change with quota */}
-               <tr>
-                <td className="px-6 py-4 text-sm text-gray-900">Image Quality</td>
-                <td className="px-6 py-4 text-sm text-center text-gray-600">
-                  <div>Standard</div>
-                  <div className="text-xs text-gray-500">(800×800)</div>
-                </td>
-                <td className="px-6 py-4 text-sm text-center text-gray-600">
-                  <div>High Quality</div>
-                  <div className="text-xs text-gray-500">(1200×1200)</div>
-                </td>
-                <td className="px-6 py-4 text-sm text-center text-green-600">
-                  <div>High Quality</div>
-                  <div className="text-xs text-green-500">(1200×1200)</div>
-                </td>
-              </tr>
-              <tr>
-                <td className="px-6 py-4 text-sm text-gray-900">Watermark</td>
-                <td className="px-6 py-4 text-sm text-center text-gray-600">Yes</td>
-                <td className="px-6 py-4 text-sm text-center text-gray-600">No</td>
-                <td className="px-6 py-4 text-sm text-center text-green-600">No</td>
-              </tr>
-              <tr>
-                <td className="px-6 py-4 text-sm text-gray-900">Generation Speed</td>
-                <td className="px-6 py-4 text-sm text-center text-gray-600">
-                  <div>Standard</div>
-                  <div className="text-xs text-gray-500">(Queue-based)</div>
-                </td>
-                <td className="px-6 py-4 text-sm text-center text-gray-600">
-                  <div>Standard</div>
-                  <div className="text-xs text-gray-500">(Queue-based)</div>
-                </td>
-                <td className="px-6 py-4 text-sm text-center text-green-600">
-                  <div>Fast</div>
-                  <div className="text-xs text-green-500">(Real-time)</div>
-                </td>
-              </tr>
-              <tr>
-                <td className="px-6 py-4 text-sm text-gray-900">Processing Priority</td>
-                <td className="px-6 py-4 text-sm text-center text-gray-600">Normal</td>
-                <td className="px-6 py-4 text-sm text-center text-gray-600">Normal</td>
-                <td className="px-6 py-4 text-sm text-center text-green-600">Priority</td>
-              </tr>
-              <tr>
-                <td className="px-6 py-4 text-sm text-gray-900">Data Retention</td>
-                <td className="px-6 py-4 text-sm text-center text-gray-600">
-                  <div>7 days</div>
-                  <div className="text-xs text-gray-500">Auto-delete after expiry</div>
-                </td>
-                <td className="px-6 py-4 text-sm text-center text-gray-600">
-                  <div>90 days</div>
-                  <div className="text-xs text-gray-500">Extended storage</div>
-                </td>
-                <td className="px-6 py-4 text-sm text-center text-green-600">
-                  <div>1 year</div>
-                  <div className="text-xs text-green-500">Long-term storage</div>
-                </td>
-              </tr>
-              <tr>
-                <td className="px-6 py-4 text-sm text-gray-900">Customer Support</td>
-                <td className="px-6 py-4 text-sm text-center text-gray-600">Email</td>
-                <td className="px-6 py-4 text-sm text-center text-gray-600">Priority Email</td>
-                <td className="px-6 py-4 text-sm text-center text-green-600">Priority Support</td>
-              </tr>
+              {comparisonRows.map((row) => (
+                <tr key={row.feature}>
+                  <td className="px-6 py-4 text-sm text-gray-900">{row.feature}</td>
+                  <td className="px-6 py-4 text-sm text-center text-gray-600">{row.free}</td>
+                  <td className="px-6 py-4 text-sm text-center text-gray-600">{row.credits}</td>
+                  <td className="px-6 py-4 text-sm text-center text-gray-600">{row.standard}</td>
+                </tr>
+              ))}
             </tbody>
           </table>
         </div>
-      </div>
+      </section>
+    </div>
+  )
+}
+
+function ComparisonValue({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div className="flex items-start justify-between gap-4 rounded-lg border border-gray-200 bg-white px-3 py-2.5">
+      <span className="text-xs font-semibold uppercase tracking-wide text-gray-500">{label}</span>
+      <div className="text-right text-sm text-gray-700">{children}</div>
     </div>
   )
 }
