@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { useParams } from 'next/navigation'
-import { PRICE_CONFIG } from '@/config/pricing'
+import { PRICE_CONFIG, QUOTA_CONFIG } from '@/config/pricing'
 import { localizedPath } from '@/lib/localized-path'
 
 export type CreditExhaustedKind = 'try_on' | 'style_explorer' | 'frame_compare'
@@ -94,7 +94,7 @@ export function CreditExhaustedBar({
   kind,
   availableCredits,
   requiredCredits,
-  packCredits = 30,
+  packCredits = QUOTA_CONFIG.CREDITS_PACK,
 }: {
   kind: CreditExhaustedKind
   availableCredits: number
@@ -129,6 +129,7 @@ export function CreditExhaustedBar({
         </div>
         <Link
           href={pricingHref}
+          data-credit-exhausted-cta
           className="inline-flex min-h-11 shrink-0 items-center justify-center rounded-xl bg-blue-600 px-4 text-sm font-bold text-white shadow-sm transition hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
         >
           {copy.cta(price)}
@@ -169,8 +170,8 @@ export function CreditExhaustedSurface({
           [data-credit-exhausted-surface="try_on"] .sticky.bottom-0 {
             display: none !important;
           }
-          [data-credit-exhausted-surface="style_explorer"] a[href*="/pricing"],
-          [data-credit-exhausted-surface="frame_compare"] a[href*="/pricing"] {
+          [data-credit-exhausted-surface="style_explorer"] a[href*="/pricing"]:not([data-credit-exhausted-cta]),
+          [data-credit-exhausted-surface="frame_compare"] a[href*="/pricing"]:not([data-credit-exhausted-cta]) {
             display: none !important;
           }
           [data-credit-exhausted-surface="style_explorer"] .border-amber-200.bg-amber-50,

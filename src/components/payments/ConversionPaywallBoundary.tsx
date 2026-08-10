@@ -1160,7 +1160,9 @@ export function ConversionPaywallBoundary({ children, source }: ConversionPaywal
                 >
                   <div className="mx-auto flex max-w-md items-center gap-3 sm:block">
                     <div className="min-w-0 flex-1 sm:hidden">
-                      <p className="truncate text-xs font-semibold text-slate-500">{creditsCount} credits · {copy.oneTime}</p>
+                      <p className="text-xs font-semibold leading-4 text-slate-500">
+                        {copy.packTitle(creditsCount)} · {copy.oneTime}
+                      </p>
                       <p className="mt-0.5 text-lg font-bold text-slate-950">{creditsPrice}</p>
                     </div>
                     <button
