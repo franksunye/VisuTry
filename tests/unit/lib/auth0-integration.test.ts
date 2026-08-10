@@ -164,4 +164,58 @@ describe('Auth0 Integration', () => {
       process.env = originalEnv
     })
   })
+
+  describe('NextAuth client error logging', () => {
+    it('keeps client fetch failures observable without classifying them as server errors', () => {
+      const originalEnv = process.env
+      process.env = {
+        ...originalEnv,
+        AUTH0_ID: 'auth0-id',
+        AUTH0_SECRET: 'auth0-secret',
+        AUTH0_ISSUER_BASE_URL: 'https://test.auth0.com',
+        ENABLE_MOCKS: 'false',
+        NEXTAUTH_SECRET: 'test-secret',
+      }
+
+      delete require.cache[require.resolve('@/lib/auth')]
+      const { authOptions } = require('@/lib/auth')
+      const { logger } = require('@/lib/logger')
+      const warnSpy = jest.spyOn(logger, 'warn').mockImplementation(() => undefined)
+      const errorSpy = jest.spyOn(logger, 'error').mockImplementation(() => undefined)
+      const consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation(() => undefined)
+      const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => undefined)
+
+      ;(authOptions.logger as any).error('CLIENT_FETCH_ERROR', {
+        client: 'true',
+        url: '/api/auth/session',
+        message: 'Failed to fetch',
+        error: '[object Object]',
+      })
+
+      expect(warnSpy).toHaveBeenCalledWith(
+        'auth',
+        'NextAuth client fetch warning',
+        expect.objectContaining({
+          code: 'CLIENT_FETCH_ERROR',
+          metadata: expect.objectContaining({
+            url: '/api/auth/session',
+            message: 'Failed to fetch',
+          }),
+        }),
+      )
+      expect(errorSpy).not.toHaveBeenCalled()
+      expect(consoleWarnSpy).toHaveBeenCalledWith(
+        'NextAuth Client Warning:',
+        'CLIENT_FETCH_ERROR',
+        expect.objectContaining({ url: '/api/auth/session' }),
+      )
+      expect(consoleErrorSpy).not.toHaveBeenCalled()
+
+      warnSpy.mockRestore()
+      errorSpy.mockRestore()
+      consoleWarnSpy.mockRestore()
+      consoleErrorSpy.mockRestore()
+      process.env = originalEnv
+    })
+  })
 })

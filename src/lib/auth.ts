@@ -23,6 +23,64 @@ const __debugWrite = (label: string, data: any) => {
   } catch {}
 }
 
+/**
+ * Keep NextAuth's client-reported metadata useful after it has crossed the
+ * `_log` endpoint. The browser logger serializes nested values through
+ * URLSearchParams, which otherwise turns objects into "[object Object]".
+ */
+const serializeNextAuthMetadata = (metadata: unknown): Record<string, unknown> => {
+  if (metadata instanceof Error) {
+    return {
+      error: {
+        name: metadata.name,
+        message: metadata.message,
+      },
+    }
+  }
+
+  if (!metadata || typeof metadata !== 'object') {
+    return metadata === undefined ? {} : { value: String(metadata) }
+  }
+
+  const serialized: Record<string, unknown> = {}
+  for (const [key, value] of Object.entries(metadata as Record<string, unknown>)) {
+    if (value instanceof Error) {
+      serialized[key] = {
+        name: value.name,
+        message: value.message,
+      }
+      continue
+    }
+
+    if (typeof value === 'bigint') {
+      serialized[key] = value.toString()
+      continue
+    }
+
+    if (value && typeof value === 'object') {
+      try {
+        serialized[key] = JSON.parse(JSON.stringify(value))
+      } catch {
+        serialized[key] = String(value)
+      }
+      continue
+    }
+
+    serialized[key] = value
+  }
+
+  return serialized
+}
+
+const isClientFetchError = (code: string, metadata: unknown) => {
+  if (code !== 'CLIENT_FETCH_ERROR' || !metadata || typeof metadata !== 'object') {
+    return false
+  }
+
+  const client = (metadata as Record<string, unknown>).client
+  return client === true || client === 'true'
+}
+
 // Validate critical environment variables at startup
 const validateEnvVars = () => {
   const required = ['NEXTAUTH_SECRET', 'AUTH0_ID', 'AUTH0_SECRET', 'AUTH0_ISSUER_BASE_URL']
@@ -306,9 +364,27 @@ export const authOptions: NextAuthOptions = {
   debug: process.env.NODE_ENV === "development",
   logger: {
     error(code, metadata) {
-      console.error('NextAuth Error:', code, metadata)
-      logger.error('auth', 'NextAuth error', new Error(code), { code, metadata })
-      __debugWrite('logger.error', { code, metadata })
+      const serializedMetadata = serializeNextAuthMetadata(metadata)
+
+      // Client fetch failures are commonly caused by a page being abandoned
+      // while a crawler or browser is rendering it. Keep them observable, but
+      // do not classify them as server/auth failures in production telemetry.
+      if (isClientFetchError(code, metadata)) {
+        console.warn('NextAuth Client Warning:', code, serializedMetadata)
+        logger.warn('auth', 'NextAuth client fetch warning', {
+          code,
+          metadata: serializedMetadata,
+        })
+        __debugWrite('logger.warn', { code, metadata: serializedMetadata })
+        return
+      }
+
+      console.error('NextAuth Error:', code, serializedMetadata)
+      logger.error('auth', 'NextAuth error', new Error(code), {
+        code,
+        metadata: serializedMetadata,
+      })
+      __debugWrite('logger.error', { code, metadata: serializedMetadata })
     },
     warn(code) {
       console.warn('NextAuth Warning:', code)
