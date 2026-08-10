@@ -76,7 +76,11 @@ export function isCanonicalFaceShape(value: string): value is CanonicalFaceShape
  *   missing_landmarks, geometry_error
  *
  * Infrastructure issues (not user-fixable):
- *   model_load_failed, unsupported_browser
+ *   wasm_load_failed, runtime_init_failed, runtime_failed,
+ *   image_decode_failed, unsupported_browser
+ *
+ * Legacy:
+ *   model_load_failed — historical catch-all retained for existing records
  *
  * Fallback:
  *   unknown
@@ -89,6 +93,10 @@ export const FACE_SHAPE_FAILURE_REASONS = [
   'off_center',
   'missing_landmarks',
   'geometry_error',
+  'wasm_load_failed',
+  'runtime_init_failed',
+  'runtime_failed',
+  'image_decode_failed',
   'model_load_failed',
   'unsupported_browser',
   'unknown',
@@ -104,7 +112,11 @@ export const FACE_SHAPE_FAILURE_REASON_LABELS: Record<FaceShapeFailureReason, st
   off_center: 'Face off-center',
   missing_landmarks: 'Landmarks incomplete',
   geometry_error: 'Geometry error',
-  model_load_failed: 'Model load failed',
+  wasm_load_failed: 'WASM load failed',
+  runtime_init_failed: 'Detector init failed',
+  runtime_failed: 'Detector runtime failed',
+  image_decode_failed: 'Image decode failed',
+  model_load_failed: 'Model load failed (legacy)',
   unsupported_browser: 'Unsupported browser',
   unknown: 'Unknown',
 }
@@ -122,7 +134,14 @@ export const FACE_SHAPE_FAILURE_REASON_GROUPS: Record<
     'missing_landmarks',
     'geometry_error',
   ],
-  infrastructure: ['model_load_failed', 'unsupported_browser'],
+  infrastructure: [
+    'wasm_load_failed',
+    'runtime_init_failed',
+    'runtime_failed',
+    'image_decode_failed',
+    'model_load_failed',
+    'unsupported_browser',
+  ],
 }
 
 export function isFaceShapeFailureReason(value: string): value is FaceShapeFailureReason {
