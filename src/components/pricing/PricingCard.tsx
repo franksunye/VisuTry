@@ -84,7 +84,10 @@ export function PricingCard({ plan, currentUser }: PricingCardProps) {
       const data = await response.json()
 
       if (data.success && data.data.url) {
-        analytics.trackBeginCheckout(plan.id as ProductType, planPrice)
+        analytics.trackBeginCheckout(plan.id as ProductType, planPrice, {
+          checkoutSessionId: data.data.sessionId,
+          purchaseContext: 'pricing',
+        })
         window.location.href = data.data.url
       } else {
         throw new Error(data.error || "Failed to create payment session")

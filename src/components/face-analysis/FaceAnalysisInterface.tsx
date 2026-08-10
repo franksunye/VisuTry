@@ -189,7 +189,12 @@ export function FaceAnalysisInterface() {
 
       analytics.trackBeginCheckout(
         'CREDITS_PACK' as ProductType,
-        PRICE_CONFIG.CREDITS_PACK / 100
+        PRICE_CONFIG.CREDITS_PACK / 100,
+        {
+          checkoutSessionId: json.data.sessionId,
+          purchaseContext: 'face_analysis_report',
+          faceAnalysisTaskId: task.id,
+        },
       )
       window.location.href = json.data.url
     } catch (err) {

@@ -44,7 +44,11 @@ const mockTransaction = prisma.$transaction as jest.Mock
 const mockClearUserCache = clearUserCache as jest.Mock
 
 const tx = {
-  payment: { create: jest.fn() },
+  payment: {
+    create: jest.fn(),
+    updateMany: jest.fn(),
+    findUnique: jest.fn(),
+  },
   user: { update: jest.fn() },
   faceAnalysisTask: { updateMany: jest.fn() },
 }
@@ -100,6 +104,9 @@ describe('/api/payment/webhook checkout fulfillment', () => {
       attribution: undefined,
     })
     mockTransaction.mockImplementation(async (callback) => callback(tx))
+    tx.payment.updateMany.mockResolvedValue({ count: 1 })
+    tx.payment.findUnique.mockResolvedValue(null)
+    ;(prisma.payment as any).updateMany = jest.fn().mockResolvedValue({ count: 1 })
   })
 
   it('waits to fulfill a completed Checkout Session while payment is unpaid', async () => {
@@ -124,8 +131,12 @@ describe('/api/payment/webhook checkout fulfillment', () => {
     const response = await POST(webhookRequest())
 
     expect(response.status).toBe(200)
-    expect(tx.payment.create).toHaveBeenCalledWith(expect.objectContaining({
-      data: expect.objectContaining({ stripeSessionId: 'cs_test_checkout' }),
+    expect(tx.payment.updateMany).toHaveBeenCalledWith(expect.objectContaining({
+      where: expect.objectContaining({ stripeSessionId: 'cs_test_checkout' }),
+      data: expect.objectContaining({
+        status: 'COMPLETED',
+        statusReason: 'stripe_webhook_paid',
+      }),
     }))
     expect(tx.user.update).toHaveBeenCalledWith(expect.objectContaining({
       where: { id: 'user-1' },
@@ -143,12 +154,33 @@ describe('/api/payment/webhook checkout fulfillment', () => {
       type: 'checkout.session.completed',
       data: { object: checkoutSession('paid') },
     })
-    mockTransaction.mockRejectedValue({ code: 'P2002' })
+    tx.payment.updateMany.mockResolvedValue({ count: 0 })
+    tx.payment.findUnique.mockResolvedValue({ status: 'COMPLETED' })
 
     const response = await POST(webhookRequest())
 
     expect(response.status).toBe(200)
     expect(mockClearUserCache).not.toHaveBeenCalled()
+    expect(tx.user.update).not.toHaveBeenCalled()
+  })
+
+  it('marks an expired Checkout attempt as failed without granting credits', async () => {
+    mockVerifyWebhookSignature.mockReturnValue({
+      type: 'checkout.session.expired',
+      data: { object: checkoutSession('unpaid') },
+    })
+
+    const response = await POST(webhookRequest())
+
+    expect(response.status).toBe(200)
+    expect((prisma.payment as any).updateMany).toHaveBeenCalledWith({
+      where: { stripeSessionId: 'cs_test_checkout', status: 'PENDING' },
+      data: expect.objectContaining({
+        status: 'FAILED',
+        statusReason: 'checkout_session_expired',
+      }),
+    })
+    expect(mockTransaction).not.toHaveBeenCalled()
   })
 
   it('returns a non-2xx response so Stripe retries transient fulfillment failures', async () => {

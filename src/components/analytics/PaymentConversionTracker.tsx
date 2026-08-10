@@ -27,6 +27,8 @@ type CompletedPaymentResponse = {
     value: number
     currency: string
     attribution?: Record<string, string>
+    purchaseContext: 'pricing' | 'face_analysis_report'
+    faceAnalysisTaskId?: string
   }
 }
 
@@ -97,6 +99,10 @@ export function PaymentConversionTracker() {
             completed.data.productType,
             completed.data.value,
             completed.data.attribution,
+            {
+              purchaseContext: completed.data.purchaseContext,
+              faceAnalysisTaskId: completed.data.faceAnalysisTaskId,
+            },
           )
           try {
             window.localStorage.setItem(storageKey, new Date().toISOString())

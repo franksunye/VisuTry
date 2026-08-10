@@ -57,7 +57,7 @@ export function UnlockCreditsBanner({
             ) : (
               <>
                 <Lock className="w-4 h-4 mr-2" />
-                {t('button')}
+                {t('button', { price })}
               </>
             )}
           </button>

@@ -114,12 +114,12 @@
       "styleGuide": "Personal Style Guide"
     },
     "unlock": {
-      "title": "Complete Your Personalized Frame Decision",
+      "title": "Unlock This Personalized Glasses Report",
       "feature1": "Unlock recommended and avoid-first frames with clear reasons",
       "feature2": "{count} credits to try and compare your shortlist",
       "feature3": "One-time purchase — your report stays unlocked",
-      "price": "${price} one-time",
-      "button": "Unlock My Recommendations",
+      "price": "${price} one-time · report stays unlocked",
+      "button": "Unlock This Report — ${price}",
       "redirecting": "Redirecting..."
     },
     "frameSearch": {

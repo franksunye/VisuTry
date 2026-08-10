@@ -50,11 +50,11 @@ export async function POST(request: NextRequest) {
         break
 
       case "checkout.session.async_payment_failed":
-        handleCheckoutSessionPaymentFailed(event.data.object as Stripe.Checkout.Session, ctx)
+        await handleCheckoutSessionPaymentFailed(event.data.object as Stripe.Checkout.Session, ctx)
         break
 
       case "checkout.session.expired":
-        handleCheckoutSessionExpired(event.data.object as Stripe.Checkout.Session, ctx)
+        await handleCheckoutSessionExpired(event.data.object as Stripe.Checkout.Session, ctx)
         break
 
       case "customer.subscription.created":
@@ -112,23 +112,58 @@ async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session, 
 
     // Payment creation, credit fulfillment, and report unlocking are atomic.
     // The unique stripeSessionId makes retries and concurrent webhook deliveries safe.
-    await prisma.$transaction(async (tx) => {
-      await tx.payment.create({
-        data: {
-          userId: paymentData.userId,
+    const fulfilled = await prisma.$transaction(async (tx) => {
+      const claimed = await tx.payment.updateMany({
+        where: {
           stripeSessionId: paymentData.sessionId,
+          userId: paymentData.userId,
+          status: { in: ['PENDING', 'FAILED'] },
+        },
+        data: {
           stripePaymentId: paymentData.paymentIntentId,
           stripeSubscriptionId: session.subscription as string | null,
           amount: paymentData.amount,
           currency: paymentData.currency,
-          status: "COMPLETED",
-          productType: paymentData.productType,
-          description: getProductDescription(paymentData.productType),
-          ...(paymentData.attribution
-            ? { attribution: paymentData.attribution }
-            : {}),
-        }
+          status: 'COMPLETED',
+          statusReason: 'stripe_webhook_paid',
+          completedAt: new Date(),
+          failedAt: null,
+          description: getProductDescription(paymentData.productType, paymentData.unlockTaskId),
+          ...(paymentData.attribution ? { attribution: paymentData.attribution } : {}),
+          ...(paymentData.unlockTaskId ? { unlockTaskId: paymentData.unlockTaskId } : {}),
+        },
       })
+
+      if (claimed.count === 0) {
+        const existing = await tx.payment.findUnique({
+          where: { stripeSessionId: paymentData.sessionId },
+          select: { status: true },
+        })
+
+        if (existing?.status === 'COMPLETED') return false
+
+        // Backward compatibility for Sessions created before pending Checkout
+        // rows were introduced.
+        await tx.payment.create({
+          data: {
+            userId: paymentData.userId,
+            stripeSessionId: paymentData.sessionId,
+            stripePaymentId: paymentData.paymentIntentId,
+            stripeSubscriptionId: session.subscription as string | null,
+            amount: paymentData.amount,
+            currency: paymentData.currency,
+            status: "COMPLETED",
+            statusReason: 'stripe_webhook_paid',
+            completedAt: new Date(),
+            productType: paymentData.productType,
+            description: getProductDescription(paymentData.productType, paymentData.unlockTaskId),
+            unlockTaskId: paymentData.unlockTaskId,
+            ...(paymentData.attribution
+              ? { attribution: paymentData.attribution }
+              : {}),
+          },
+        })
+      }
 
       if (paymentData.productType.startsWith("CREDITS_PACK")) {
         const quota = getProductQuota(paymentData.productType)
@@ -151,7 +186,16 @@ async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session, 
           data: { reportUnlocked: true },
         })
       }
+
+      return true
     })
+
+    if (!fulfilled) {
+      logger.info('payment', 'Checkout session already fulfilled', {
+        sessionId: session.id,
+      }, context)
+      return
+    }
 
     // 清除用户缓存，确保所有页面立即显示最新数据
     clearUserCache(paymentData.userId)
@@ -181,7 +225,8 @@ async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session, 
   }
 }
 
-function handleCheckoutSessionPaymentFailed(session: Stripe.Checkout.Session, context?: any) {
+async function handleCheckoutSessionPaymentFailed(session: Stripe.Checkout.Session, context?: any) {
+  await markCheckoutFailed(session, 'async_payment_failed')
   logger.warn('payment', 'Asynchronous Checkout payment failed', {
     sessionId: session.id,
     userId: session.client_reference_id,
@@ -190,7 +235,8 @@ function handleCheckoutSessionPaymentFailed(session: Stripe.Checkout.Session, co
   }, context)
 }
 
-function handleCheckoutSessionExpired(session: Stripe.Checkout.Session, context?: any) {
+async function handleCheckoutSessionExpired(session: Stripe.Checkout.Session, context?: any) {
+  await markCheckoutFailed(session, 'checkout_session_expired')
   logger.info('payment', 'Checkout session expired before payment', {
     sessionId: session.id,
     userId: session.client_reference_id,
@@ -198,6 +244,20 @@ function handleCheckoutSessionExpired(session: Stripe.Checkout.Session, context?
     paymentStatus: session.payment_status,
     attribution: session.metadata?.attribution,
   }, context)
+}
+
+async function markCheckoutFailed(session: Stripe.Checkout.Session, reason: string) {
+  await prisma.payment.updateMany({
+    where: {
+      stripeSessionId: session.id,
+      status: 'PENDING',
+    },
+    data: {
+      status: 'FAILED',
+      statusReason: reason,
+      failedAt: new Date(),
+    },
+  })
 }
 
 // 处理订阅创建
@@ -345,10 +405,14 @@ async function handleInvoicePaymentFailed(invoice: Stripe.Invoice, context?: any
 
 // 获取产品描述
 // 🔥 使用统一的价格配置，确保描述与产品元数据一致
-function getProductDescription(productType: ProductType): string {
+function getProductDescription(productType: ProductType, unlockTaskId?: string): string {
   const product = PRODUCT_METADATA[productType]
   if (!product) {
     return "Unknown Product"
+  }
+
+  if (unlockTaskId) {
+    return `Personalized Glasses Advisor Report + ${getProductQuota(productType)} non-expiring credits`
   }
 
   // 使用专门为支付记录设计的详细描述

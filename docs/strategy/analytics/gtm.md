@@ -444,10 +444,19 @@ Events should carry where technically appropriate:
 - `product_path`
 - `value`
 - `currency`
+- `checkout_session_id` on `begin_checkout`
+- `purchase_context` (`pricing` or `face_analysis_report`)
+- `face_analysis_task_id` for report-unlock Checkout flows
 
 Privacy requirements remain strict: no user face photos, raw biometric landmarks, or personally identifying facial information may be sent to growth analytics.
 
 `purchase` must be server-verified and deduplicated by transaction identifier.
+
+Stripe Checkout lifecycle is also persisted server-side. A row is created as
+`PENDING` before redirect, then signed webhooks move it to `COMPLETED` or
+`FAILED` with a reason such as `checkout_session_expired` or
+`async_payment_failed`. GA is the behavioral view; Stripe plus the Payment
+table is the payment-system source of truth.
 
 ### P0 — Weekly dashboard
 

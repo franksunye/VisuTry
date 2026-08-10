@@ -39,6 +39,8 @@ describe('PaymentConversionTracker', () => {
           productType: 'CREDITS_PACK',
           value: 2.99,
           currency: 'USD',
+          purchaseContext: 'face_analysis_report',
+          faceAnalysisTaskId: 'analysis-1',
           attribution: {
             landing_page: '/en/face-shape-detector',
             acquisition_source: 'google.com',
@@ -61,6 +63,10 @@ describe('PaymentConversionTracker', () => {
           acquisition_source: 'google.com',
           acquisition_medium: 'organic',
           source_page: '/what-glasses-suit-my-face',
+        },
+        {
+          purchaseContext: 'face_analysis_report',
+          faceAnalysisTaskId: 'analysis-1',
         },
       )
     })

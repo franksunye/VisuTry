@@ -27,6 +27,7 @@ export async function GET(request: NextRequest) {
       status: true,
       productType: true,
       attribution: true,
+      unlockTaskId: true,
     },
   })
 
@@ -61,6 +62,8 @@ export async function GET(request: NextRequest) {
       productType: payment.productType,
       value: payment.amount / 100,
       currency: payment.currency.toUpperCase(),
+      purchaseContext: payment.unlockTaskId ? 'face_analysis_report' : 'pricing',
+      ...(payment.unlockTaskId ? { faceAnalysisTaskId: payment.unlockTaskId } : {}),
       ...(attribution ? { attribution } : {}),
     },
   })

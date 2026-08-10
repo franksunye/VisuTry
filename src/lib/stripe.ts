@@ -99,6 +99,18 @@ const CREDIT_CHECKOUT_MESSAGES: Record<Locale, (credits: number) => string> = {
   fr: (credits) => `Achat unique : ${credits} crédits IA sans expiration. Depuis l’analyse du visage, le rapport complet est débloqué automatiquement.`,
 }
 
+const REPORT_UNLOCK_CHECKOUT_MESSAGES: Record<Locale, (credits: number) => string> = {
+  en: (credits) => `Pay once to unlock this personalized glasses report. You will also receive ${credits} non-expiring credits to try and compare your shortlist.`,
+  id: (credits) => `Bayar sekali untuk membuka laporan kacamata personal ini. Anda juga menerima ${credits} kredit tanpa kedaluwarsa untuk mencoba dan membandingkan pilihan Anda.`,
+  ar: (credits) => `ادفع مرة واحدة لفتح تقرير النظارات المخصص هذا. ستحصل أيضًا على ${credits} رصيدًا لا تنتهي صلاحيته لتجربة خياراتك ومقارنتها.`,
+  ru: (credits) => `Оплатите один раз, чтобы открыть этот персональный отчёт по очкам. Вы также получите ${credits} бессрочных кредитов для примерки и сравнения выбранных оправ.`,
+  de: (credits) => `Einmal bezahlen und diesen persönlichen Brillenbericht freischalten. Zusätzlich erhalten Sie ${credits} Credits ohne Ablaufdatum, um Ihre Auswahl anzuprobieren und zu vergleichen.`,
+  ja: (credits) => `1回のお支払いで、このパーソナライズされたメガネレポートを解除できます。候補の試着・比較に使える有効期限なしのクレジット${credits}回分も含まれます。`,
+  es: (credits) => `Paga una vez para desbloquear este informe personalizado de gafas. También recibirás ${credits} créditos sin caducidad para probar y comparar tu selección.`,
+  pt: (credits) => `Pague uma vez para desbloquear este relatório personalizado de óculos. Também recebe ${credits} créditos sem validade para experimentar e comparar a sua seleção.`,
+  fr: (credits) => `Payez une fois pour débloquer ce rapport de lunettes personnalisé. Vous recevrez aussi ${credits} crédits sans expiration pour essayer et comparer votre sélection.`,
+}
+
 const SUBSCRIPTION_CHECKOUT_MESSAGES: Record<Locale, string> = {
   en: 'Secure subscription. Manage or cancel anytime from your billing portal.',
   id: 'Langganan aman. Kelola atau batalkan kapan saja melalui portal penagihan.',
@@ -164,7 +176,9 @@ export async function createCheckoutSession({
     custom_text: {
       submit: {
         message: isCreditsPurchase
-          ? CREDIT_CHECKOUT_MESSAGES[checkoutLocale](PRODUCT_METADATA[productType].quota)
+          ? unlockTaskId
+            ? REPORT_UNLOCK_CHECKOUT_MESSAGES[checkoutLocale](PRODUCT_METADATA[productType].quota)
+            : CREDIT_CHECKOUT_MESSAGES[checkoutLocale](PRODUCT_METADATA[productType].quota)
           : SUBSCRIPTION_CHECKOUT_MESSAGES[checkoutLocale],
       },
     },

@@ -361,13 +361,25 @@ export const analytics = {
     })
   },
 
-  trackBeginCheckout(planType: ProductType, value: number) {
+  trackBeginCheckout(
+    planType: ProductType,
+    value: number,
+    context?: {
+      checkoutSessionId?: string
+      purchaseContext?: 'pricing' | 'face_analysis_report'
+      faceAnalysisTaskId?: string
+    },
+  ) {
+    const isReportUnlock = context?.purchaseContext === 'face_analysis_report'
     sendEvent('begin_checkout', {
       currency: 'USD',
       value,
+      ...(context?.checkoutSessionId ? { checkout_session_id: context.checkoutSessionId } : {}),
+      ...(context?.purchaseContext ? { purchase_context: context.purchaseContext } : {}),
+      ...(context?.faceAnalysisTaskId ? { face_analysis_task_id: context.faceAnalysisTaskId } : {}),
       items: [{
         item_id: planType,
-        item_name: planType,
+        item_name: isReportUnlock ? 'Personalized Glasses Advisor Report' : planType,
         price: value,
       }],
     })
@@ -378,15 +390,22 @@ export const analytics = {
     planType: ProductType,
     value: number,
     attribution?: AcquisitionAttribution,
+    context?: {
+      purchaseContext?: 'pricing' | 'face_analysis_report'
+      faceAnalysisTaskId?: string
+    },
   ) {
     const verifiedAttribution = sanitizeAcquisitionAttribution(attribution)
+    const isReportUnlock = context?.purchaseContext === 'face_analysis_report'
     sendEvent('purchase', {
       transaction_id: transactionId,
       currency: 'USD',
       value,
+      ...(context?.purchaseContext ? { purchase_context: context.purchaseContext } : {}),
+      ...(context?.faceAnalysisTaskId ? { face_analysis_task_id: context.faceAnalysisTaskId } : {}),
       items: [{
         item_id: planType,
-        item_name: planType,
+        item_name: isReportUnlock ? 'Personalized Glasses Advisor Report' : planType,
         price: value,
       }],
       ...(verifiedAttribution || {}),

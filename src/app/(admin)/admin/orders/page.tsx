@@ -41,6 +41,7 @@ async function getOrders({ page = 1, status }: { page?: number; status?: string 
         productType: true,
         amount: true,
         status: true,
+        unlockTaskId: true,
         createdAt: true,
         user: {
           select: {
@@ -95,6 +96,7 @@ export default async function OrdersPage({ searchParams }: OrdersPageProps) {
                   <TableHead>Order ID</TableHead>
                   <TableHead>User</TableHead>
                   <TableHead>Product</TableHead>
+                  <TableHead>Context</TableHead>
                   <TableHead>Amount</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Date</TableHead>
@@ -117,6 +119,9 @@ export default async function OrdersPage({ searchParams }: OrdersPageProps) {
                     </TableCell>
                     <TableCell className="text-sm">
                       {order.productType.replace(/_/g, ' ')}
+                    </TableCell>
+                    <TableCell className="text-sm">
+                      {order.unlockTaskId ? 'REPORT UNLOCK' : 'PRICING'}
                     </TableCell>
                     <TableCell className="font-medium">
                       ${(order.amount / 100).toFixed(2)}

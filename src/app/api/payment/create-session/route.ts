@@ -9,6 +9,8 @@ import {
   serializeAttributionForStripe,
 } from "@/lib/acquisition-attribution"
 import { isValidLocale } from "@/i18n"
+import { prisma } from "@/lib/prisma"
+import { PRODUCT_METADATA, getProductQuota } from "@/config/pricing"
 
 // Force dynamic rendering for this route
 export const dynamic = 'force-dynamic'
@@ -82,6 +84,41 @@ export async function POST(request: NextRequest) {
     }
 
     const checkoutLocale = typeof locale === 'string' && isValidLocale(locale) ? locale : 'en'
+    const normalizedUnlockTaskId = typeof unlockTaskId === 'string' && unlockTaskId.trim()
+      ? unlockTaskId.trim()
+      : undefined
+
+    if (normalizedUnlockTaskId && !finalProductType.startsWith('CREDITS_PACK')) {
+      return NextResponse.json(
+        { success: false, error: "分析报告只能通过一次性 Credits Pack 解锁" },
+        { status: 400 },
+      )
+    }
+
+    if (normalizedUnlockTaskId) {
+      const unlockTask = await prisma.faceAnalysisTask.findFirst({
+        where: {
+          id: normalizedUnlockTaskId,
+          userId,
+          status: 'COMPLETED',
+        },
+        select: { reportUnlocked: true },
+      })
+
+      if (!unlockTask) {
+        return NextResponse.json(
+          { success: false, error: "找不到可解锁的分析报告" },
+          { status: 404 },
+        )
+      }
+
+      if (unlockTask.reportUnlocked) {
+        return NextResponse.json(
+          { success: false, error: "该分析报告已经解锁" },
+          { status: 409 },
+        )
+      }
+    }
 
     // 创建Stripe Checkout会话
     let checkoutSession
@@ -103,14 +140,38 @@ export async function POST(request: NextRequest) {
         userId: userId,
         successUrl,
         cancelUrl,
-        unlockTaskId: typeof unlockTaskId === 'string' ? unlockTaskId : undefined,
+        unlockTaskId: normalizedUnlockTaskId,
         attribution: sanitizedAttribution,
         customerEmail: auth.session.user?.email,
         checkoutLocale,
       })
     }
 
-    logger.info('payment', 'Checkout session created successfully', { sessionId: checkoutSession.id, productType: finalProductType }, ctx)
+    // Record the Session before the client leaves VisuTry. Signed Stripe
+    // webhooks transition this row to COMPLETED or FAILED, so unpaid Checkout
+    // attempts remain observable instead of disappearing into logs.
+    await prisma.payment.create({
+      data: {
+        userId,
+        stripeSessionId: checkoutSession.id,
+        amount: PRODUCT_METADATA[finalProductType].price,
+        currency: PRODUCT_METADATA[finalProductType].currency,
+        status: 'PENDING',
+        productType: finalProductType,
+        description: normalizedUnlockTaskId
+          ? `Personalized Glasses Advisor Report + ${getProductQuota(finalProductType)} non-expiring credits`
+          : PRODUCT_METADATA[finalProductType].paymentDescription,
+        unlockTaskId: normalizedUnlockTaskId,
+        ...(sanitizedAttribution ? { attribution: sanitizedAttribution } : {}),
+      },
+    })
+
+    logger.info('payment', 'Checkout session created and recorded', {
+      sessionId: checkoutSession.id,
+      productType: finalProductType,
+      checkoutContext: normalizedUnlockTaskId ? 'face_analysis_report' : 'pricing',
+      unlockTaskId: normalizedUnlockTaskId,
+    }, ctx)
     return NextResponse.json({
       success: true,
       data: {

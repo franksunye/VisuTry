@@ -219,6 +219,13 @@ model Payment {
   // Acquisition context captured at Checkout creation (landing, source, clusters)
   attribution     Json?
 
+  // Checkout lifecycle context. Pending rows are created before redirecting to
+  // Stripe, then finalized by signed webhook events.
+  unlockTaskId    String?
+  statusReason    String?
+  completedAt     DateTime?
+  failedAt        DateTime?
+
   user            User          @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   createdAt       DateTime      @default(now())
@@ -227,6 +234,7 @@ model Payment {
   @@index([userId])
   @@index([status])
   @@index([stripeSubscriptionId])
+  @@index([unlockTaskId])
   @@index([userId, createdAt(sort: Desc)])
 }
 

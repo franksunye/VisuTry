@@ -23,6 +23,10 @@ async function getOrderDetails(orderId: string) {
       description: true,
       stripeSessionId: true,
       stripePaymentId: true,
+      unlockTaskId: true,
+      statusReason: true,
+      completedAt: true,
+      failedAt: true,
       createdAt: true,
       updatedAt: true,
       user: {
@@ -142,7 +146,7 @@ export default async function OrderDetailPage({ params }: OrderDetailPageProps) 
               <p className="text-sm uppercase">{order.currency}</p>
             </div>
             <div>
-              <p className="text-sm font-medium text-muted-foreground">Payment Date</p>
+              <p className="text-sm font-medium text-muted-foreground">Checkout Started</p>
               <p className="text-sm">{new Date(order.createdAt).toLocaleString()}</p>
             </div>
             <div>
@@ -170,6 +174,18 @@ export default async function OrderDetailPage({ params }: OrderDetailPageProps) 
               <p className="text-sm font-medium text-muted-foreground">Description</p>
               <p className="text-sm">{order.description || 'N/A'}</p>
             </div>
+            <div>
+              <p className="text-sm font-medium text-muted-foreground">Checkout Context</p>
+              <p className="text-sm font-semibold">
+                {order.unlockTaskId ? 'Face Analysis report unlock' : 'Pricing page'}
+              </p>
+            </div>
+            {order.unlockTaskId && (
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">Face Analysis Task</p>
+                <p className="text-sm font-mono break-all">{order.unlockTaskId}</p>
+              </div>
+            )}
           </div>
         </CardContent>
       </Card>
@@ -243,7 +259,19 @@ export default async function OrderDetailPage({ params }: OrderDetailPageProps) 
                 <div>
                   <p className="text-sm font-medium">Payment Completed</p>
                   <p className="text-xs text-muted-foreground">
-                    {new Date(order.updatedAt).toLocaleString()}
+                    {new Date(order.completedAt || order.updatedAt).toLocaleString()}
+                  </p>
+                </div>
+              </div>
+            )}
+            {order.status === 'FAILED' && (
+              <div className="flex items-start space-x-3">
+                <div className="mt-2 h-2 w-2 flex-shrink-0 rounded-full bg-red-600"></div>
+                <div>
+                  <p className="text-sm font-medium">Checkout Not Completed</p>
+                  <p className="text-xs text-muted-foreground">
+                    {order.statusReason || 'payment_failed'} · {' '}
+                    {new Date(order.failedAt || order.updatedAt).toLocaleString()}
                   </p>
                 </div>
               </div>

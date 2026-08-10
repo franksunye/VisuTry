@@ -26,7 +26,12 @@ export async function GET(request: NextRequest) {
 
     const [payments, total] = await Promise.all([
       prisma.payment.findMany({
-        where: { userId: userId },
+        // Customer-facing history contains actual payments only. Pending and
+        // failed Checkout attempts remain visible to admins for funnel analysis.
+        where: {
+          userId,
+          status: { in: ['COMPLETED', 'REFUNDED'] },
+        },
         orderBy: { createdAt: 'desc' },
         skip: (page - 1) * limit,
         take: limit,
@@ -42,7 +47,10 @@ export async function GET(request: NextRequest) {
         },
       }),
       prisma.payment.count({
-        where: { userId: userId },
+        where: {
+          userId,
+          status: { in: ['COMPLETED', 'REFUNDED'] },
+        },
       }),
     ])
 
