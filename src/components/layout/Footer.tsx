@@ -14,7 +14,7 @@ export function Footer() {
   return (
     <footer className="bg-white/80 backdrop-blur-sm border-t border-gray-200 mt-auto">
       <div className="container mx-auto px-4 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-6 gap-8 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-8 mb-8">
           {/* Brand Section */}
           <div className="col-span-1 md:col-span-2">
             <div className="flex items-center mb-4">
@@ -85,28 +85,6 @@ export function Footer() {
               <li>
                 <Link href={`/${locale}/pricing`} className="text-gray-600 hover:text-blue-600 text-sm transition-colors">
                   {t('links.pricing')}
-                </Link>
-              </li>
-            </ul>
-          </div>
-
-          {/* More Try-On Links */}
-          <div>
-            <h3 className="font-semibold text-gray-900 mb-4">{t('links.moreTryOn')}</h3>
-            <ul className="flex flex-col gap-y-2">
-              <li>
-                <Link href={`/${locale}/try-on/outfit`} className="text-gray-600 hover:text-blue-600 text-sm transition-colors">
-                  {t('links.tryOutfit')}
-                </Link>
-              </li>
-              <li>
-                <Link href={`/${locale}/try-on/shoes`} className="text-gray-600 hover:text-blue-600 text-sm transition-colors">
-                  {t('links.tryShoes')}
-                </Link>
-              </li>
-              <li>
-                <Link href={`/${locale}/try-on/accessories`} className="text-gray-600 hover:text-blue-600 text-sm transition-colors">
-                  {t('links.tryAccessories')}
                 </Link>
               </li>
             </ul>

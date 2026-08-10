@@ -231,9 +231,15 @@
         "privacyTitle": "Privado por defecto",
         "privacyDescription": "Tus fotos y resultados permanecen privados en tu cuenta y nunca se publican."
       },
+      "business": {
+        "eyebrow": "Para ópticas y vendedores de gafas",
+        "title": "Convierte el tráfico humano y de asistentes de IA en decisiones de compra más seguras.",
+        "description": "VisuTry Store conecta el catálogo del comercio con el descubrimiento de monturas, la prueba virtual, la comparación, las señales de intención y una conversión medible en una experiencia de comercio con IA alojada.",
+        "cta": "Explorar VisuTry Store"
+      },
       "faq": {
         "q1Question": "¿Cómo funciona la prueba virtual con IA de VisuTry?",
-        "q1Answer": "VisuTry utiliza Google Nano Banana IA para analizar tus rasgos faciales y superponer gafas de forma realista en tu foto. La IA comprende la forma del rostro, la iluminación y la perspectiva para crear resultados de aspecto natural en segundos.",
+        "q1Answer": "VisuTry utiliza IA para analizar rasgos visibles y mostrar las gafas de forma realista en tu foto, teniendo en cuenta la iluminación y la perspectiva.",
         "q2Question": "¿Mis datos fotográficos están seguros y privados?",
         "q2Answer": "¡Absolutamente! Tus fotos se encriptan durante la carga y el procesamiento. Nunca compartimos tus imágenes públicamente ni las usamos para entrenamiento de IA sin permiso explícito. Los datos de usuarios gratuitos se almacenan durante 7 días, usuarios de Créditos durante 90 días y miembros Premium durante 1 año.",
         "q3Question": "¿Cuál es la diferencia entre la calidad gratuita y Premium?",
@@ -246,7 +252,7 @@
     },
     "pricing": {
       "metaTitle": "Planes de Precios - Prueba Virtual de IA para Todas las Categorías | VisuTry",
-      "metaDescription": "Elige el plan perfecto para prueba virtual instantánea impulsada por IA. Prueba gafas, ropa, zapatos y accesorios con Nano Banana IA (Gemini 2.5 Flash Image). Pruebas gratuitas disponibles, funciones premium para ajuste virtual ilimitado.",
+      "metaDescription": "Elige créditos para el asesor de gafas, la prueba virtual y la comparación de monturas. El detector facial es gratis y el paquete de créditos es una compra única.",
       "eyebrow": "Créditos simples para Face, Glasses y Compare",
       "title": "Empieza con 1 crédito gratis y continúa con {count} créditos de IA por USD 2.99",
       "description": "Usa créditos en análisis facial con IA, prueba personalizada de gafas y comparación de monturas.",

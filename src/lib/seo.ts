@@ -1,11 +1,12 @@
 // SEO configuration and utility functions
 import { Metadata } from 'next'
 import { locales, type Locale, localeToOGLocale } from '@/i18n'
+import { VISUTRY_POSITIONING } from '@/lib/product-positioning'
 
 /**
  * Keyword Categories for SEO Optimization
  * Organized by intent and conversion potential
- * Updated with multi-category support: Glasses, Outfits, Shoes, and Accessories
+ * Keep global identity focused on the validated eyewear decision workflow.
  */
 export const KEYWORDS = {
   // Core tool keywords (high conversion intent) - Priority A
@@ -18,51 +19,39 @@ export const KEYWORDS = {
     'virtual try-on glasses',
     'personalized glasses recommendations',
     'frame compare',
-    'virtual try-on outfit',
-    'virtual try-on shoes',
-    'virtual try-on accessories',
-    'online try-on tool',
-    'free virtual try-on',
-    'AI-powered virtual fitting',
+    'online glasses try-on tool',
+    'eyewear decision platform',
   ],
 
-  // AI Model & Technology - Priority A
-  aiModel: [
-    'Nano Banana AI Gemini 2.5 Flash Image virtual try-on',
-    'Nano Banana AI powered try-on',
-    'Gemini 2.5 Flash Image virtual fitting',
-    'AI-powered virtual fitting tool',
-    'virtual fitting with Nano Banana AI',
-    'Nano Banana online try-on platform',
-    'AI virtual try-on technology',
+  // AI discovery terms describe durable capabilities, not model suppliers.
+  aiDiscovery: [
+    'AI glasses advisor',
+    'AI eyewear recommendations',
+    'AI virtual glasses try-on',
+    'AI frame comparison',
+    'AI eyewear shopping assistant',
   ],
 
   // Feature-based keywords - Priority A/B
   features: [
     'on-device face shape detector',
     'private face shape analysis',
-    'smart style recommendation',
+    'eyewear style recommendation',
     'face shape analysis',
     'personalized glasses recommendations',
-    'AI-powered virtual fitting',
-    'instant virtual try-on',
-    'no download virtual try-on',
-    'browser-based virtual fitting',
-    'realistic virtual try-on',
-    'photorealistic virtual fitting',
-    'multi-category virtual try-on',
+    'instant virtual glasses try-on',
+    'no download glasses try-on',
+    'browser-based eyewear tools',
+    'realistic virtual glasses try-on',
   ],
 
   // Convenience & Access - Priority A/B
   convenience: [
-    'try before you buy',
-    'virtual shopping assistant',
-    'online style preview',
-    'instant style visualization',
-    'web-based virtual fitting',
-    'try on anything online',
-    'all-in-one virtual try-on',
-    'style preview tool',
+    'try glasses before you buy',
+    'virtual eyewear shopping assistant',
+    'online frame preview',
+    'web-based glasses fitting preview',
+    'compare glasses online',
   ],
 
   // Long-tail keywords (traffic generation) - Priority B/C
@@ -73,25 +62,18 @@ export const KEYWORDS = {
     'how to choose glasses online',
     'how to find glasses for my face shape',
     'virtual glasses fitting app',
-    'try on clothes online',
-    'virtual shoe fitting',
-    'online accessory preview',
-    'find perfect style online',
-    'virtual wardrobe try-on',
-    'how to try on shoes online',
-    'virtual jewelry try-on',
+    'which glasses suit my face',
+    'compare glasses frames on my face',
+    'try glasses from a screenshot',
   ],
 
-  // Category-specific keywords - Priority B
-  categories: [
+  // Merchant and commerce positioning.
+  merchant: [
     'virtual eyewear try-on',
-    'online clothing try-on',
-    'virtual footwear fitting',
-    'accessory virtual try-on',
-    'designer glasses virtual try-on',
-    'fashion outfit virtual try-on',
-    'shoe size virtual fitting',
-    'jewelry virtual try-on',
+    'AI commerce for eyewear',
+    'virtual try-on for optical stores',
+    'eyewear purchase intent',
+    'eyewear conversion platform',
   ],
 
   // Brand-related keywords - Priority B
@@ -107,11 +89,11 @@ export const KEYWORDS = {
 // Flatten all keywords for meta tags
 const ALL_KEYWORDS = [
   ...KEYWORDS.core,
-  ...KEYWORDS.aiModel,
+  ...KEYWORDS.aiDiscovery,
   ...KEYWORDS.features,
   ...KEYWORDS.convenience,
   ...KEYWORDS.longTail,
-  ...KEYWORDS.categories,
+  ...KEYWORDS.merchant,
   ...KEYWORDS.brands,
 ]
 
@@ -119,7 +101,7 @@ const ALL_KEYWORDS = [
 export const SITE_CONFIG = {
   name: 'VisuTry',
   title: 'VisuTry - Free Face Shape Detector & Virtual Glasses Try-On',
-  description: 'Find your face shape for free, get personalized glasses advice, try any frame image on your photo, and compare your best looks side by side.',
+  description: VISUTRY_POSITIONING.organization,
   url: process.env.NEXT_PUBLIC_SITE_URL || 'https://www.visutry.com',
   ogImage: '/blog-covers/ai-virtual-tryon.jpg',
   keywords: ALL_KEYWORDS,
@@ -135,7 +117,7 @@ export const SITE_CONFIG = {
 export function getKeywordsByType(type: 'home' | 'blog' | 'product' | 'pricing'): string[] {
   switch (type) {
     case 'home':
-      return [...KEYWORDS.core, ...KEYWORDS.aiModel, ...KEYWORDS.features, ...KEYWORDS.convenience]
+      return [...KEYWORDS.core, ...KEYWORDS.aiDiscovery, ...KEYWORDS.features, ...KEYWORDS.convenience]
     case 'blog':
       return [...KEYWORDS.core, ...KEYWORDS.longTail]
     case 'product':

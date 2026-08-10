@@ -229,11 +229,17 @@
         "historyTitle": "Saved to Verlauf",
         "historyDescription": "Completed results stay available in Dashboard History based on your plan. (DE)",
         "privacyTitle": "Private by default (DE)",
-        "privacyDescription": "Photos and results stay privat to your account and are never published."
+        "privacyDescription": "Fotos und Ergebnisse bleiben in Ihrem Konto privat und werden nie veröffentlicht."
+      },
+      "business": {
+        "eyebrow": "Für Optiker und Brillenhändler",
+        "title": "Verwandeln Sie menschlichen und KI-gestützten Traffic in sichere Brillenentscheidungen.",
+        "description": "VisuTry Store verbindet Händlerkataloge mit Fassungsentdeckung, virtueller Anprobe, Vergleich, Kaufsignalen und messbarer Conversion in einer gehosteten KI-Commerce-Erfahrung.",
+        "cta": "VisuTry Store entdecken"
       },
       "faq": {
         "q1Question": "How does VisuTry's AI try-on work? (DE)",
-        "q1Answer": "VisuTry uses Google Nano Banana AI to analyze your facial features and realistically overlay glasses onto your photo. The AI understands face shape, lighting, and perspective to create natural-looking results in seconds.",
+        "q1Answer": "VisuTry nutzt KI, um sichtbare Gesichtsmerkmale zu analysieren und Brillen unter Berücksichtigung von Licht und Perspektive realistisch auf Ihrem Foto darzustellen.",
         "q2Question": "Is my photo data safe and private?",
         "q2Answer": "Absolutely! Your photos are encrypted during upload and processing. We never share your images publicly or use them for AI training without explicit permission. Free users' data is stored for 7 days, Credits users for 90 days, and Premium members for 1 year.",
         "q3Question": "What's the difference between free and Premium quality?",
@@ -246,7 +252,7 @@
     },
     "pricing": {
       "metaTitle": "Preispläne - KI-Virtuelle Anprobe für Alle Kategorien | VisuTry",
-      "metaDescription": "Wählen Sie den perfekten Plan für sofortige KI-gestützte virtuelle Anprobe. Probieren Sie Brillen, Kleidung, Schuhe und Accessoires mit Nano Banana KI (Gemini 2.5 Flash Image) an. Kostenlose Testversionen verfügbar, Premium-Funktionen für unbegrenzte virtuelle Anpassung.",
+      "metaDescription": "Wählen Sie Credits für Brillenberatung, virtuelle Anprobe und Fassungsvergleich. Der Gesichtsform-Detektor ist kostenlos; das Credits Pack ist ein Einmalkauf.",
       "eyebrow": "Einfache Credits für Face, Glasses und Compare",
       "title": "Starten Sie mit 1 Gratis-Credit und machen Sie mit {count} KI-Credits für 2,99 USD weiter",
       "description": "Nutzen Sie Credits für KI-Gesichtsanalyse, individuelle Brillenanprobe und Fassungsvergleich.",

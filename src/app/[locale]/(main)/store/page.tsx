@@ -15,6 +15,7 @@ import { StoreLeadForm } from '@/components/store/StoreLeadForm'
 import { StoreMarketingVisual } from '@/components/store/StoreMarketingVisual'
 import { generateStructuredData } from '@/lib/seo'
 import { getTranslations, setRequestLocale } from 'next-intl/server'
+import { VISUTRY_POSITIONING } from '@/lib/product-positioning'
 
 interface StorePageProps {
   params: {
@@ -89,6 +90,17 @@ export default async function StoreLandingPage({ params }: StorePageProps) {
     applicationCategory: 'ShoppingApplication',
     operatingSystem: 'Web Browser',
     description: t('schema.appDescription'),
+    abstract: VISUTRY_POSITIONING.merchant,
+    applicationSubCategory: 'Eyewear commerce and conversion',
+    audience: {
+      '@type': 'BusinessAudience',
+      audienceType: 'Optical stores, eyewear sellers, DTC eyewear brands, and ecommerce teams',
+    },
+    provider: {
+      '@type': 'Organization',
+      name: 'VisuTry',
+      url: 'https://www.visutry.com/',
+    },
     featureList: [
       t('schema.feature1'),
       t('schema.feature2'),
@@ -96,6 +108,8 @@ export default async function StoreLandingPage({ params }: StorePageProps) {
       t('schema.feature4'),
       t('schema.feature5'),
       t('schema.feature6'),
+      'Human and AI-assistant traffic attribution',
+      'Purchase-intent and conversion signals',
     ],
   })
 

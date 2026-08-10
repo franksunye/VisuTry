@@ -1,16 +1,42 @@
 # VisuTry
 
-> VisuTry helps online eyewear shoppers move from face-shape discovery to personalized glasses advice, virtual try-on, and side-by-side frame comparison.
+> VisuTry is an eyewear decision and conversion platform that helps shoppers discover suitable frames, preview them, compare options, and move toward purchase.
 
 Website: https://www.visutry.com/
 
-## Products
+## Consumer workflow
+
+The canonical consumer path is:
+
+Face Shape Detector → Glasses Advisor → Virtual Try-On → Frame Compare
+
+VisuTry focuses on eyewear decisions. It should not be described as a general-purpose fashion, clothing, footwear, or accessories try-on platform.
+
+## Consumer products
 
 - [Free Face Shape Detector](https://www.visutry.com/en/face-shape-detector): A free, no-login face-shape estimate. The selected photo is processed in browser memory and is not sent to VisuTry by this tool.
 - [AI Glasses Advisor](https://www.visutry.com/en/face-analysis): A credit-based personalized report with likely face shape, visible feature guidance, and frame recommendations.
 - [Virtual Glasses Try-On](https://www.visutry.com/en/try-on/glasses): Upload a portrait plus a glasses product image or screenshot to generate a visual preview.
 - [Frame Compare](https://www.visutry.com/en/try-on/glasses/compare): Generate preset frame looks from one portrait and review them side by side.
 - [Pricing](https://www.visutry.com/en/pricing): Face Shape Detector is free. Advisor, Try-On, and Frame Compare use trials or credits. The Credits Pack is a one-time purchase and purchased credits do not expire.
+
+## For eyewear merchants
+
+- [VisuTry Store](https://www.visutry.com/en/store): A hosted AI commerce and campaign experience for optical stores, eyewear sellers, DTC brands, and ecommerce teams.
+- VisuTry Store connects a merchant catalog with personalized frame discovery, virtual try-on, side-by-side comparison, purchase-intent capture, source attribution, and conversion signals.
+- The Storefront is the current delivery surface. The broader product direction is an AI Commerce / Campaign Engine for eyewear merchants.
+- Store is designed to understand traffic from both people and AI assistants or agents through stable public URLs, explicit product facts, structured metadata, and source attribution.
+- VisuTry does not currently claim a public agent action API, public SDK, Shopify app, or WooCommerce plugin.
+
+## Stable product facts
+
+- The Face Shape Detector is free, requires no login, and processes the selected photo in browser memory without uploading it to VisuTry.
+- Glasses Advisor is a personalized, credit-based eyewear recommendation report.
+- Virtual Try-On accepts a portrait plus a glasses product image, store image, or screenshot.
+- Frame Compare uses one portrait to generate multiple preset frame looks for side-by-side review.
+- The Credits Pack is a one-time purchase. Purchased credits do not expire.
+- Account-based photos and results are private by default and are never published by VisuTry.
+- Consumer subscriptions exist but are not the primary casual-purchase positioning; the Credits Pack is the clearest one-time option.
 
 ## Guides
 
@@ -26,6 +52,7 @@ Website: https://www.visutry.com/
 - VisuTry does not provide prescriptions or guarantee physical frame fit, bridge comfort, or optical measurements.
 - Virtual try-on is a visual shopping aid. Product dimensions and in-person comfort checks remain important.
 - VisuTry does not claim a calibrated face-shape accuracy percentage without a labeled validation benchmark.
+- VisuTry is agent-ready through public facts and metadata, but it does not claim autonomous purchasing or a public agent API.
 
 ## Contact
 

@@ -188,10 +188,10 @@ export default function Home({
               <Store className="h-5 w-5" />
             </div>
             <div>
-              <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-blue-600">For optical stores and eyewear sellers</p>
-              <h2 className="text-xl font-bold text-gray-950">Offer shoppers a hosted AI eyewear advisor and try-on link.</h2>
+              <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-blue-600">{t('business.eyebrow')}</p>
+              <h2 className="text-xl font-bold text-gray-950">{t('business.title')}</h2>
               <p className="mt-2 max-w-2xl text-sm leading-6 text-gray-600">
-                VisuTry Store is a lightweight pilot for merchants who want frame guidance, virtual try-on, comparison, and lead capture before building a full integration.
+                {t('business.description')}
               </p>
             </div>
           </div>
@@ -199,7 +199,7 @@ export default function Home({
             href={`/${locale}/store`}
             className="inline-flex flex-shrink-0 items-center justify-center rounded-lg border border-blue-200 bg-blue-50 px-5 py-3 text-sm font-bold text-blue-700 transition hover:border-blue-300 hover:bg-blue-100"
           >
-            Explore VisuTry Store
+            {t('business.cta')}
             <ArrowRight className="ms-2 h-4 w-4" />
           </Link>
         </div>

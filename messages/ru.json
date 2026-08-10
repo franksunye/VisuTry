@@ -229,11 +229,17 @@
         "historyTitle": "Saved to история",
         "historyDescription": "Completed results stay available in Dashboard History based on your plan. (RU)",
         "privacyTitle": "Private by default (RU)",
-        "privacyDescription": "Photos and results stay приватно to your account and are never published."
+        "privacyDescription": "Фотографии и результаты остаются приватными в вашем аккаунте и никогда не публикуются."
+      },
+      "business": {
+        "eyebrow": "Для оптик и продавцов очков",
+        "title": "Превращайте трафик людей и ИИ-ассистентов в уверенный выбор очков.",
+        "description": "VisuTry Store связывает каталог продавца с подбором оправ, виртуальной примеркой, сравнением, сигналами намерения купить и измеримой конверсией в едином размещённом ИИ-коммерческом опыте.",
+        "cta": "Открыть VisuTry Store"
       },
       "faq": {
         "q1Question": "How does VisuTry's AI try-on work? (RU)",
-        "q1Answer": "VisuTry uses Google Nano Banana AI to analyze your facial features and realistically overlay glasses onto your photo. The AI understands face shape, lighting, and perspective to create natural-looking results in seconds.",
+        "q1Answer": "VisuTry использует ИИ для анализа видимых черт лица и реалистичного отображения очков на фотографии с учётом освещения и перспективы.",
         "q2Question": "Is my photo data safe and private?",
         "q2Answer": "Absolutely! Your photos are encrypted during upload and processing. We never share your images publicly or use them for AI training without explicit permission. Free users' data is stored for 7 days, Credits users for 90 days, and Premium members for 1 year.",
         "q3Question": "What's the difference between free and Premium quality?",
@@ -246,7 +252,7 @@
     },
     "pricing": {
       "metaTitle": "Тарифные Планы - Виртуальная Примерка ИИ для Всех Категорий | VisuTry",
-      "metaDescription": "Выберите идеальный план для мгновенной виртуальной примерки на базе ИИ. Примеряйте очки, одежду, обувь и аксессуары с Nano Banana ИИ (Gemini 2.5 Flash Image). Доступны бесплатные пробные версии, премиум-функции для неограниченной виртуальной подгонки.",
+      "metaDescription": "Выберите кредиты для подбора очков, виртуальной примерки и сравнения оправ. Определитель формы лица бесплатен, а пакет кредитов приобретается один раз.",
       "eyebrow": "Простые кредиты для Face, Glasses и Compare",
       "title": "Начните с 1 бесплатного кредита и продолжайте с {count} AI-кредитами за 2.99 USD",
       "description": "Используйте кредиты для ИИ-анализа лица, персональной примерки очков и сравнения оправ.",

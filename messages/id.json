@@ -231,9 +231,15 @@
         "privacyTitle": "Privat secara default",
         "privacyDescription": "Foto dan hasil Anda tetap privat di akun dan tidak pernah dipublikasikan."
       },
+      "business": {
+        "eyebrow": "Untuk toko optik dan penjual kacamata",
+        "title": "Ubah traffic manusia dan asisten AI menjadi keputusan kacamata yang lebih yakin.",
+        "description": "VisuTry Store menghubungkan katalog merchant dengan penemuan bingkai, coba virtual, perbandingan, sinyal niat beli, dan konversi terukur dalam satu pengalaman AI commerce yang dihosting.",
+        "cta": "Jelajahi VisuTry Store"
+      },
       "faq": {
         "q1Question": "Bagaimana cara kerja AI try-on VisuTry?",
-        "q1Answer": "VisuTry uses Google Nano Banana AI to analyze your facial features and realistically overlay glasses onto your photo. The AI understands face shape, lighting, and perspective to create natural-looking results in seconds.",
+        "q1Answer": "VisuTry menggunakan AI untuk menganalisis fitur wajah yang terlihat dan menampilkan kacamata secara realistis pada foto dengan mempertimbangkan cahaya dan perspektif.",
         "q2Question": "Is my photo data safe and private?",
         "q2Answer": "Absolutely! Your photos are encrypted during upload and processing. We never share your images publicly or use them for AI training without explicit permission. Free users' data is stored for 7 days, Credits users for 90 days, and Premium members for 1 year.",
         "q3Question": "What's the difference between free and Premium quality?",

@@ -9,7 +9,7 @@ export const dynamic = 'force-static'
 
 export const metadata: Metadata = generateSEO({
   title: 'Terms of Service | VisuTry',
-  description: 'Read VisuTry Terms of Service. Learn about user responsibilities, service usage rules, and legal terms for our AI virtual try-on platform for glasses, outfits, shoes, and accessories.',
+  description: 'Read the VisuTry Terms of Service for our face-shape, glasses advice, virtual try-on, frame comparison, credits, and merchant experiences.',
   url: '/terms',
 })
 

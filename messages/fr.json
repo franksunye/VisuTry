@@ -231,9 +231,15 @@
         "privacyTitle": "Privé par défaut",
         "privacyDescription": "Vos photos et résultats restent privés dans votre compte et ne sont jamais publiés."
       },
+      "business": {
+        "eyebrow": "Pour les opticiens et vendeurs de lunettes",
+        "title": "Transformez le trafic humain et issu des assistants IA en décisions lunettes plus sûres.",
+        "description": "VisuTry Store relie le catalogue du marchand à la découverte de montures, l’essayage virtuel, la comparaison, les signaux d’intention et une conversion mesurable dans une expérience de commerce IA hébergée.",
+        "cta": "Découvrir VisuTry Store"
+      },
       "faq": {
         "q1Question": "Comment fonctionne l'essayage IA de VisuTry ?",
-        "q1Answer": "VisuTry utilise Google Nano Banana IA pour analyser vos traits faciaux et superposer de manière réaliste des lunettes sur votre photo. L'IA comprend la forme du visage, l'éclairage et la perspective pour créer des résultats d'apparence naturelle en quelques secondes.",
+        "q1Answer": "VisuTry utilise l’IA pour analyser les traits visibles et présenter les lunettes de façon réaliste sur votre photo en tenant compte de la lumière et de la perspective.",
         "q2Question": "Mes données photographiques sont-elles sûres et privées ?",
         "q2Answer": "Absolument ! Vos photos sont cryptées pendant le téléchargement et le traitement. Nous ne partageons jamais vos images publiquement ni ne les utilisons pour l'entraînement de l'IA sans autorisation explicite. Les données des utilisateurs gratuits sont stockées pendant 7 jours, les utilisateurs de Crédits pendant 90 jours et les membres Premium pendant 1 an.",
         "q3Question": "Quelle est la différence entre la qualité gratuite et Premium ?",
@@ -246,7 +252,7 @@
     },
     "pricing": {
       "metaTitle": "Plans Tarifaires - Essayage Virtuel IA pour Toutes les Catégories | VisuTry",
-      "metaDescription": "Choisissez le forfait parfait pour l'essayage virtuel instantané propulsé par l'IA. Essayez des lunettes, vêtements, chaussures et accessoires avec Nano Banana IA (Gemini 2.5 Flash Image). Essais gratuits disponibles, fonctionnalités premium pour ajustement virtuel illimité.",
+      "metaDescription": "Choisissez des crédits pour le conseil lunettes, l’essayage virtuel et la comparaison de montures. Le détecteur est gratuit et le pack de crédits est un achat unique.",
       "eyebrow": "Crédits simples pour Face, Glasses et Compare",
       "title": "Commencez avec 1 crédit gratuit, puis continuez avec {count} crédits IA pour 2,99 USD",
       "description": "Utilisez les crédits pour l’analyse du visage IA, l’essayage lunettes personnalisé et la comparaison de montures.",

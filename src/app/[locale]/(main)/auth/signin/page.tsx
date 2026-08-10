@@ -16,7 +16,7 @@ export async function generateMetadata(props: Props): Promise<Metadata> {
   return generateI18nSEO({
     locale: params.locale as Locale,
     title: 'Sign In - AI Virtual Try-On | VisuTry',
-    description: 'Sign in to VisuTry to start your AI virtual try-on experience. Get free trials for glasses, outfits, shoes, and accessories.',
+    description: 'Sign in to VisuTry for personalized glasses advice, virtual glasses try-on, frame comparison, credits, and saved results.',
     pathname: '/auth/signin',
     noIndex: true,
   })

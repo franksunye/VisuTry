@@ -229,11 +229,17 @@
         "historyTitle": "Saved to السجل",
         "historyDescription": "Completed results stay available in Dashboard History based on your plan. (AR)",
         "privacyTitle": "Private by default (AR)",
-        "privacyDescription": "Photos and results stay خاص to your account and are never published."
+        "privacyDescription": "تبقى الصور والنتائج خاصة بحسابك ولا يتم نشرها أبداً."
+      },
+      "business": {
+        "eyebrow": "لمتاجر النظارات وبائعيها",
+        "title": "حوّل زيارات البشر ومساعدات الذكاء الاصطناعي إلى قرارات واثقة لشراء النظارات.",
+        "description": "يربط VisuTry Store كتالوج المتجر باكتشاف الإطارات والتجربة الافتراضية والمقارنة وإشارات نية الشراء وقياس التحويل ضمن تجربة تجارة مستضافة بالذكاء الاصطناعي.",
+        "cta": "استكشف VisuTry Store"
       },
       "faq": {
         "q1Question": "How does VisuTry's AI try-on work? (AR)",
-        "q1Answer": "VisuTry uses Google Nano Banana AI to analyze your facial features and realistically overlay glasses onto your photo. The AI understands face shape, lighting, and perspective to create natural-looking results in seconds.",
+        "q1Answer": "يستخدم VisuTry الذكاء الاصطناعي لتحليل خصائص الوجه وعرض النظارات على صورتك بصورة واقعية مع مراعاة الإضاءة والمنظور.",
         "q2Question": "Is my photo data safe and private?",
         "q2Answer": "Absolutely! Your photos are encrypted during upload and processing. We never share your images publicly or use them for AI training without explicit permission. Free users' data is stored for 7 days, Credits users for 90 days, and Premium members for 1 year.",
         "q3Question": "What's the difference between free and Premium quality?",
@@ -246,7 +252,7 @@
     },
     "pricing": {
       "metaTitle": "خطط الأسعار - التجربة الافتراضية بالذكاء الاصطناعي لجميع الفئات | VisuTry",
-      "metaDescription": "اختر الخطة المثالية للتجربة الافتراضية الفورية المدعومة بالذكاء الاصطناعي. جرب النظارات والملابس والأحذية والإكسسوارات مع Nano Banana AI (Gemini 2.5 Flash Image). تتوفر تجارب مجانية، ميزات مميزة للتركيب الافتراضي غير المحدود.",
+      "metaDescription": "اختر رصيداً لتوصيات النظارات والتجربة الافتراضية ومقارنة الإطارات. كاشف شكل الوجه مجاني، وحزمة الرصيد عملية شراء لمرة واحدة.",
       "eyebrow": "رصيد بسيط لـ Face وGlasses وCompare",
       "title": "ابدأ برصيد مجاني واحد ثم واصل مع {count} رصيد AI مقابل 2.99 دولار",
       "description": "استخدم الرصيد لتحليل الوجه وتجربة النظارات المخصصة ومقارنة الإطارات.",

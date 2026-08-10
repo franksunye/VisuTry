@@ -1,8 +1,8 @@
-# VisuTry GTM v3.1：10× Qualified Traffic Execution Plan
+# VisuTry GTM v3.2：10× Qualified Traffic Execution Plan
 
 **Status:** Active source of truth for GTM execution  
-**Version:** 3.1  
-**Last updated:** 2026-08-03  
+**Version:** 3.2
+**Last updated:** 2026-08-10
 **Owner:** Growth / Product / Engineering / Analytics  
 **Review cadence:** Weekly  
 **Execution horizon:** 60–90 days  
@@ -48,6 +48,23 @@ The immediate GTM task is therefore not to invent more product surface area. It 
 | Organic Search | Largest acquisition channel |
 | Direct | Meaningful secondary source |
 | AI Assistant | Material source; ChatGPT is the main identifiable AI referrer |
+
+### AI discovery quality check — 2026-08-10
+
+GA comparison for 2026-07-27–2026-08-09 versus the preceding 14 days:
+
+| AI Assistant metric | Current 14 days | Previous 14 days | Interpretation |
+| --- | ---: | ---: | --- |
+| Sessions | 223 | 184 | Raw discovery increased ~21% |
+| Engaged sessions | 148 | 151 | Qualified volume was flat / slightly down |
+| Engagement rate | 66.37% | 82.07% | Landing and intent quality weakened |
+| Average engagement time / session | 57 sec | 73 sec | Visitors found less continuation value |
+| Key events | 46 | 50 | Product-intent actions did not grow |
+| ChatGPT sessions | 217 | 174 | ChatGPT remained the dominant identifiable AI source |
+
+Operating interpretation:
+
+> AI exposure is growing, but qualified AI traffic is not. The immediate AI-discovery priority is message and landing-intent consistency, not more generic AI content volume.
 
 The current acquisition mix means the operating model is no longer “SEO only”. It is qualified traffic growth across several compounding discovery engines.
 
@@ -325,14 +342,49 @@ This is the authoritative marketing execution scope for the 10× phase.
 
 ### P0 — AI discovery consistency
 
-1. Audit first-party product descriptions for consistent naming:
+The canonical public identity is:
+
+> **VisuTry is an eyewear decision and conversion platform that helps shoppers discover suitable frames, preview them, compare options, and move toward purchase.**
+
+The canonical consumer path is:
+
+> **Face Shape Detector → Glasses Advisor → Virtual Try-On → Frame Compare**
+
+The canonical merchant position is:
+
+> **VisuTry Store is an AI Commerce / Campaign Engine for eyewear merchants that turns human and AI-assistant traffic into personalized frame discovery, measurable purchase intent, and conversion signals.**
+
+Execution requirements:
+
+1. Keep first-party product descriptions and names consistent:
    - Face Shape Detector;
    - Glasses Advisor;
    - Virtual Try-On;
    - Frame Compare.
-2. Keep pricing, privacy, capability, and limitation facts consistent.
-3. Convert recurring concrete eyewear questions into answerable first-party pages.
-4. Track ChatGPT and other identifiable AI landing pages and continuation behavior.
+2. Treat `src/lib/product-positioning.ts` as the code-level public-facts contract for metadata and structured data.
+3. Keep `public/llms.txt`, homepage metadata/schema, Store metadata/schema, pricing, FAQ, privacy, and visible product copy aligned with that contract.
+4. Keep pricing, privacy, capability, and limitation facts consistent:
+   - the Face Shape Detector is free, no-login, and on-device;
+   - Advisor, Try-On, and Compare use account-based trials or credits;
+   - the Credits Pack is a one-time purchase and purchased credits do not expire;
+   - account uploads and results are private by default;
+   - face shape is a styling estimate, not medical or identity recognition;
+   - virtual try-on does not guarantee physical fit, prescription, or comfort.
+5. Do not make model-vendor names part of VisuTry's durable public identity.
+6. Do not describe VisuTry globally as a general clothing, footwear, accessories, or universal fashion try-on platform. Legacy capabilities may remain available without defining the brand.
+7. Describe Store as agent-ready through public facts, stable URLs, structured metadata, and attribution. Do not claim a public agent API, autonomous purchase action, SDK, Shopify app, or WooCommerce plugin before those surfaces exist.
+8. Convert recurring concrete eyewear questions into answerable first-party pages.
+9. Track ChatGPT and other identifiable AI landing pages and continuation behavior.
+
+Acceptance conditions:
+
+- the canonical descriptions above appear without contradictory global claims across machine-readable and primary visible surfaces;
+- `llms.txt` covers both the consumer workflow and merchant product;
+- Organization, WebSite, and Store structured data describe the same eyewear decision / conversion category;
+- global metadata contains no model-vendor positioning and no multi-category try-on identity;
+- all supported locales preserve the four product roles and the same privacy / pricing boundaries;
+- the weekly dashboard compares AI Assistant sessions, engaged sessions, engagement rate, continuation events, landing pages, and verified revenue;
+- any AI landing page with rising sessions but falling qualified continuation receives an improve / merge / stop decision.
 
 ### P1 — External distribution
 
@@ -684,3 +736,12 @@ If another document conflicts with this document on current GTM priority, this d
 And every weekly review ends with:
 
 > **Which engine is moving VisuTry from ~1.8K monthly sessions toward 15K–20K, what must Engineering remove to let it scale, and what should Growth stop doing next week?**
+
+---
+
+## 18. Change log
+
+| Version | Date | Change |
+| --- | --- | --- |
+| 3.2 | 2026-08-10 | Froze the consumer and merchant AI-facing message contract; added the two-week AI traffic-quality baseline, machine-readable surface requirements, claim boundaries, acceptance conditions, and qualified-AI-traffic decision rules. |
+| 3.1 | 2026-08-03 | Split the 10× qualified-traffic plan into Engineering, Growth, and Product / Analytics execution backlogs. |

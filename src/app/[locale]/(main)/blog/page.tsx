@@ -5,7 +5,7 @@ import { Calendar, User, ArrowRight } from 'lucide-react'
 import { getAllBlogPosts } from '@/lib/blog'
 import Image from 'next/image'
 
-const blogDescription = 'Discover the latest trends, style tips, and guides for glasses, outfits, shoes, and accessories. Learn how to find your perfect style with AI virtual try-on.'
+const blogDescription = 'Practical guides for face shape, frame selection, eyewear sizing, virtual glasses try-on, frame comparison, and confident online eyewear decisions.'
 
 type Props = {
   params: { locale: string }

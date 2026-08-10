@@ -27,15 +27,15 @@
       },
       "ethan": {
         "name": "Ethan",
-        "description": "Discovered his signature outfit with AI"
+        "description": "Compared frame directions with AI guidance"
       },
       "sophia": {
         "name": "Sophia",
-        "description": "Styled the perfect outfit with AI recommendations"
+        "description": "Found a more confident eyewear shortlist"
       },
       "encouragement": {
         "title": "✨ Join thousands who found their perfect style",
-        "subtitle": "Try on glasses, outfits, shoes & accessories with AI-powered precision"
+        "subtitle": "Discover, preview, and compare glasses before you buy"
       }
     }
   },
@@ -202,6 +202,12 @@
         "historyDescription": "Completed results stay available in Dashboard History based on your plan.",
         "privacyTitle": "Private by default",
         "privacyDescription": "The free detector keeps your photo on-device. Account tools keep uploads and results private and never publish them."
+      },
+      "business": {
+        "eyebrow": "For optical stores and eyewear sellers",
+        "title": "Turn human and AI-assistant traffic into confident eyewear decisions.",
+        "description": "VisuTry Store connects merchant catalogs with frame discovery, virtual try-on, comparison, purchase-intent signals, and measurable conversion in one hosted AI commerce experience.",
+        "cta": "Explore VisuTry Store"
       },
       "faq": {
         "q1Question": "Where should I start?",
@@ -608,8 +614,8 @@
       }
     },
     "store": {
-      "metaTitle": "VisuTry Store — AI frame discovery & virtual try-on for eyewear stores",
-      "metaDescription": "Help shoppers find frames that suit them, try them on, compare a shortlist, and give your store clearer signals of purchase intent.",
+      "metaTitle": "VisuTry Store — AI Commerce for Eyewear Merchants",
+      "metaDescription": "Turn human and AI-assistant traffic into personalized frame discovery, virtual try-on, comparison, purchase-intent signals, and measurable conversion.",
       "heroBadge": "VisuTry Store",
       "heroTitle": "Help shoppers find the right frames faster.",
       "heroDescription": "A branded AI-assisted frame discovery, try-on, and comparison experience for your optical store — simple for shoppers and easy for your team to launch.",
@@ -692,7 +698,7 @@
       "formDisclaimer": "No commitment. We will use your information only to respond to your Store request.",
       "schema": {
         "appName": "VisuTry Store",
-        "appDescription": "An AI-assisted frame discovery, virtual try-on, and comparison experience for independent optical stores and eyewear sellers.",
+        "appDescription": "An AI commerce and campaign experience that helps eyewear merchants convert human and AI-assistant traffic into personalized frame discovery, virtual try-on, comparison, and measurable purchase intent.",
         "feature1": "Branded shopper Store link",
         "feature2": "AI-assisted frame discovery",
         "feature3": "Photo-based virtual glasses try-on",
