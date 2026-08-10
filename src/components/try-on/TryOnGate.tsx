@@ -3,6 +3,7 @@
 import { useSession } from 'next-auth/react'
 import { ReactNode } from 'react'
 import { AutoRefreshWrapper } from '@/components/payments/AutoRefreshWrapper'
+import { ConversionPaywallBoundary } from '@/components/payments/ConversionPaywallBoundary'
 import { TryOnInterface } from '@/components/try-on/TryOnInterface'
 import type { TryOnType } from '@/config/try-on-types'
 
@@ -16,7 +17,8 @@ interface TryOnGateProps {
  * Client-side gate for the Try-On page.
  *
  * Shows the server-rendered landing content while session is loading or
- * unauthenticated. When authenticated, renders the TryOnInterface.
+ * unauthenticated. When authenticated, renders the TryOnInterface and keeps
+ * quota-exhausted purchase actions inside the current try-on context.
  */
 export function TryOnGate({ tryOnType, landing, structuredData }: TryOnGateProps) {
   const { data: session, status } = useSession()
@@ -27,15 +29,17 @@ export function TryOnGate({ tryOnType, landing, structuredData }: TryOnGateProps
 
   return (
     <AutoRefreshWrapper>
-      <div className="container mx-auto px-4 py-8">
-        {structuredData && (
-          <script
-            type="application/ld+json"
-            dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
-          />
-        )}
-        <TryOnInterface type={tryOnType} />
-      </div>
+      <ConversionPaywallBoundary source="try_on">
+        <div className="container mx-auto px-4 py-8">
+          {structuredData && (
+            <script
+              type="application/ld+json"
+              dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
+            />
+          )}
+          <TryOnInterface type={tryOnType} />
+        </div>
+      </ConversionPaywallBoundary>
     </AutoRefreshWrapper>
   )
 }

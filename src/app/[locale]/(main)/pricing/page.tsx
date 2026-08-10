@@ -59,7 +59,7 @@ export default async function PricingPage({ params }: { params: { locale: string
   )
 
   return (
-    <div className="container px-4 py-8 mx-auto">
+    <div className="container px-4 py-6 mx-auto md:py-8">
       {/* Structured Data for Offers */}
       {offerSchemas.map((schema, index) => (
         <script
@@ -70,35 +70,38 @@ export default async function PricingPage({ params }: { params: { locale: string
       ))}
 
       {/* Page Header */}
-      <div className="mb-8 max-w-3xl">
-        <p className="mb-3 text-sm font-semibold uppercase tracking-wide text-blue-600">
+      <div className="mb-6 max-w-3xl md:mb-8">
+        <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-blue-600 md:mb-3 md:text-sm">
           {t('eyebrow')}
         </p>
-        <h1 className="mb-4 text-3xl font-bold text-gray-900 md:text-4xl">
+        <h1 className="mb-3 text-2xl font-bold leading-tight text-gray-900 md:mb-4 md:text-4xl">
           {t('title', { count: quotas.creditsPack })}
         </h1>
-        <p className="text-base leading-7 text-gray-600">
+        <p className="text-sm leading-6 text-gray-600 md:text-base md:leading-7">
           {t('description')}
         </p>
       </div>
 
       <Link
         href={`/${params.locale}/face-shape-detector`}
-        className="mb-8 flex flex-col gap-3 rounded-lg border border-green-200 bg-green-50 p-5 transition hover:border-green-300 sm:flex-row sm:items-center sm:justify-between"
+        className="mb-5 flex gap-3 rounded-lg border border-green-200 bg-green-50 p-4 transition hover:border-green-300 md:mb-8 md:flex-row md:items-center md:justify-between md:p-5"
       >
         <span className="flex items-start gap-3">
-          <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-white text-green-700">
+          <span className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg bg-white text-green-700 md:h-10 md:w-10">
             <ScanFace className="h-5 w-5" />
           </span>
           <span>
-            <span className="block font-bold text-green-950">{t('freeDetector.title')}</span>
-            <span className="mt-1 block text-sm leading-6 text-green-900">{t('freeDetector.description')}</span>
+            <span className="block text-sm font-bold text-green-950 md:text-base">{t('freeDetector.title')}</span>
+            <span className="mt-1 block text-xs leading-5 text-green-900 md:text-sm md:leading-6">{t('freeDetector.description')}</span>
           </span>
         </span>
-        <span className="font-semibold text-green-800">{t('freeDetector.cta')} →</span>
+        <span className="hidden flex-shrink-0 font-semibold text-green-800 sm:inline">{t('freeDetector.cta')} →</span>
       </Link>
 
-      <div className="mb-8 grid gap-4 md:grid-cols-3">
+      {/* These education cards are useful on desktop, but on mobile they delay
+          the first purchase decision by several screens. Keep the compact
+          free-detector note above and move straight into pricing on phones. */}
+      <div className="mb-8 hidden gap-4 md:grid md:grid-cols-3">
         {[
           {
             icon: Sparkles,
@@ -127,58 +130,56 @@ export default async function PricingPage({ params }: { params: { locale: string
         })}
       </div>
 
-      {/* Promo Input is now inside PricingSection */}
-
       {/* Pricing Section (Cards + Comparison + Promo Input) */}
       <PricingSection user={userForDisplay} quotas={quotas} />
 
       {/* FAQ */}
-      <div className="mt-12">
-        <h2 className="mb-6 text-2xl font-bold text-center text-gray-900">{t('faqTitle')}</h2>
-        <div className="grid gap-6 md:grid-cols-2">
-          <div className="p-6 bg-white rounded-lg border shadow-sm">
+      <div className="mt-10 md:mt-12">
+        <h2 className="mb-5 text-xl font-bold text-center text-gray-900 md:mb-6 md:text-2xl">{t('faqTitle')}</h2>
+        <div className="grid gap-4 md:grid-cols-2 md:gap-6">
+          <div className="p-5 bg-white rounded-lg border shadow-sm md:p-6">
             <h3 className="mb-2 font-semibold text-gray-900">{t('faq.q1Title')}</h3>
             <p className="text-sm text-gray-600">
               {t('faq.q1Answer', { count: quotas.creditsPack })}
             </p>
           </div>
 
-          <div className="p-6 bg-white rounded-lg border shadow-sm">
+          <div className="p-5 bg-white rounded-lg border shadow-sm md:p-6">
             <h3 className="mb-2 font-semibold text-gray-900">{t('faq.q2Title')}</h3>
             <p className="text-sm text-gray-600">
               {t('faq.q2Answer')}
             </p>
           </div>
 
-          <div className="p-6 bg-white rounded-lg border shadow-sm">
+          <div className="p-5 bg-white rounded-lg border shadow-sm md:p-6">
             <h3 className="mb-2 font-semibold text-gray-900">{t('faq.q3Title')}</h3>
             <p className="text-sm text-gray-600">
               {t('faq.q3Answer')}
             </p>
           </div>
 
-          <div className="p-6 bg-white rounded-lg border shadow-sm">
+          <div className="p-5 bg-white rounded-lg border shadow-sm md:p-6">
             <h3 className="mb-2 font-semibold text-gray-900">{t('faq.q4Title')}</h3>
             <p className="text-sm text-gray-600">
               {t('faq.q4Answer')}
             </p>
           </div>
 
-          <div className="p-6 bg-white rounded-lg border shadow-sm">
+          <div className="p-5 bg-white rounded-lg border shadow-sm md:p-6">
             <h3 className="mb-2 font-semibold text-gray-900">{t('faq.q5Title')}</h3>
             <p className="text-sm text-gray-600">
               {t('faq.q5Answer')}
             </p>
           </div>
 
-          <div className="p-6 bg-white rounded-lg border shadow-sm">
+          <div className="p-5 bg-white rounded-lg border shadow-sm md:p-6">
             <h3 className="mb-2 font-semibold text-gray-900">{t('faq.q6Title')}</h3>
             <p className="text-sm text-gray-600">
               {t('faq.q6Answer')}
             </p>
           </div>
 
-          <div className="p-6 bg-white rounded-lg border shadow-sm">
+          <div className="p-5 bg-white rounded-lg border shadow-sm md:p-6">
             <h3 className="mb-2 font-semibold text-gray-900">{t('faq.q7Title')}</h3>
             <p className="text-sm text-gray-600">
               {t('faq.q7Answer')}
