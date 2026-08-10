@@ -8,7 +8,7 @@
  * - future merchant / SDK analytics
  */
 
-export const ANALYTICS_SCHEMA_VERSION = '2'
+export const ANALYTICS_SCHEMA_VERSION = '2' as const
 
 export const AnalyticsEvent = {
   CampaignLanded: 'campaign_landed',
@@ -22,6 +22,7 @@ export const AnalyticsEvent = {
   FaceShapeDetectionStarted: 'face_shape_detection_started',
   FaceShapeDetectionCompleted: 'face_shape_detection_completed',
   FaceShapeDetectionFailed: 'face_shape_detection_failed',
+  FaceShapePhotoUploaded: 'face_shape_photo_uploaded',
 
   TryOnStarted: 'tryon_started',
   TryOnCompleted: 'tryon_completed',
@@ -35,16 +36,44 @@ export const AnalyticsEvent = {
   PurchaseIntentClicked: 'purchase_intent_clicked',
   StoreVisitRequested: 'store_visit_requested',
   LeadCreated: 'lead_created',
+  JourneyContinued: 'journey_continued',
 } as const
 
 export type AnalyticsEventName =
   (typeof AnalyticsEvent)[keyof typeof AnalyticsEvent]
 
+export type AnalyticsSurface =
+  | 'web'
+  | 'mobile_web'
+  | 'pwa'
+  | 'sdk'
+  | 'merchant_store'
+
+export type AnalyticsEntryPoint =
+  | 'consumer'
+  | 'campaign'
+  | 'store'
+  | 'blog'
+  | 'sdk'
+  | 'unknown'
+
+export type ComparisonCompletionStatus = 'full' | 'partial' | 'failed'
+
 export type AnalyticsCommonContext = {
   analytics_schema_version: typeof ANALYTICS_SCHEMA_VERSION
+  landing_page?: string
+  page_path?: string
+  acquisition_source?: string
+  acquisition_medium?: string
+  landing_locale?: string
+  browser_language?: string
+  source_page?: string
+  query_cluster?: string
+  content_cluster?: string
+  product_path?: string
   campaign_id?: string
   merchant_id?: string
   store_id?: string
-  surface?: string
-  entry_point?: string
+  surface?: AnalyticsSurface
+  entry_point?: AnalyticsEntryPoint
 }

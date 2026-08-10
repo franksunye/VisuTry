@@ -1,14 +1,16 @@
 /**
- * 统一的 Google Analytics 追踪工具
- * 提供类型安全的事件追踪接口
+ * VisuTry Analytics API (legacy-compatible facade)
  *
- * 语言维度策略：
- * 每个事件自动注入两个 GA4 自定义维度：
- * - landing_locale: 用户当前浏览的页面语言（从 <html lang> 读取，服务端静态输出）
- * - browser_language: 浏览器首选语言（navigator.language）
+ * Public methods stay stable for feature components.
+ * Transport and campaign context live in analytics-v2 (Campaign Event Layer).
  *
- * 这使得所有核心业务漏斗事件都可以按语言拆分分析，
- * 无需在各调用方手动传参。
+ * Pipeline:
+ *   Component → analytics.ts → analytics-v2.ts → GA4 + dataLayer
+ *
+ * Every event automatically receives:
+ * - analytics_schema_version=2
+ * - campaign_id / merchant_id / store_id / surface / entry_point (when available)
+ * - landing_page / acquisition_* / landing_locale / browser_language
  */
 
 export type UserType = 'anonymous' | 'free' | 'premium' | 'credits'
@@ -29,6 +31,8 @@ export type { ProductType } from '@/config/pricing'
 import type { ProductType } from '@/config/pricing'
 import type { AcquisitionAttribution } from '@/lib/acquisition-attribution'
 import { sanitizeAcquisitionAttribution } from '@/lib/acquisition-attribution'
+import { AnalyticsEvent } from '@/lib/analytics-events'
+import { trackCampaignEvent } from '@/lib/analytics-v2'
 
 const LANDING_PAGE_KEY = 'visutry_landing_page'
 const ACQUISITION_SOURCE_KEY = 'visutry_acquisition_source'
@@ -205,27 +209,27 @@ export function getAcquisitionContext(): AcquisitionContext {
 function sendEvent(eventName: string, parameters: Record<string, any> = {}) {
   if (typeof window === 'undefined') return
 
-  const enrichedParameters: Record<string, any> = {
+  // Route through Campaign Event Layer — single emission to GA4 + dataLayer.
+  trackCampaignEvent(eventName, {
     ...getSessionAttribution(),
     landing_locale: getLandingLocale(),
     browser_language: getBrowserLanguage(),
     ...parameters,
-  }
+  })
+}
 
-  if (window.gtag) {
-    window.gtag('event', eventName, enrichedParameters)
-  }
-
-  if (window.dataLayer) {
-    window.dataLayer.push({
-      event: eventName,
-      ...enrichedParameters,
-    })
-  }
-
-  if (process.env.NODE_ENV === 'development') {
-    console.log('📊 Analytics Event:', eventName, enrichedParameters)
-  }
+function resolveComparisonCompletionStatus(
+  frameCount: number,
+  completedCount: number,
+  failedCount: number,
+): 'full' | 'partial' | 'failed' {
+  if (completedCount === frameCount && frameCount > 0) return 'full'
+  if (completedCount > 0 && failedCount > 0) return 'partial'
+  if (completedCount === 0) return 'failed'
+  // All requested frames completed but failedCount is 0 and counts may differ
+  // (e.g. completed_count < frame_count with no failures recorded yet).
+  if (completedCount > 0 && completedCount < frameCount) return 'partial'
+  return 'full'
 }
 
 export function setLanguageUserProperties() {
@@ -266,7 +270,7 @@ export const analytics = {
   },
 
   trackTryOnStart(userType: UserType, remainingQuota: number, glassesId?: string, glassesName?: string, tryOnType?: string) {
-    sendEvent('try_on_start', {
+    sendEvent(AnalyticsEvent.TryOnStarted, {
       user_type: userType,
       remaining_quota: remainingQuota,
       glasses_id: glassesId,
@@ -276,13 +280,17 @@ export const analytics = {
     })
   },
 
+  /**
+   * Legacy API kept for call-site compatibility.
+   * Internally emits tryon_completed or tryon_failed (never mixed-outcome try_on_complete).
+   */
   trackTryOnComplete(
     userType: UserType,
     processingTime: number,
     success: boolean,
     tryOnType?: string,
   ) {
-    sendEvent('try_on_complete', {
+    sendEvent(success ? AnalyticsEvent.TryOnCompleted : AnalyticsEvent.TryOnFailed, {
       user_type: userType,
       processing_time: processingTime,
       success,
@@ -292,7 +300,7 @@ export const analytics = {
   },
 
   trackFrameCompareStart(frameCount: number, remainingCredits: number) {
-    sendEvent('frame_compare_start', {
+    sendEvent(AnalyticsEvent.ComparisonCreated, {
       frame_count: frameCount,
       remaining_credits: remainingCredits,
       product_path: 'frame_compare',
@@ -310,11 +318,12 @@ export const analytics = {
     failedCount: number
     processingTimeMs: number
   }) {
-    sendEvent('frame_compare_complete', {
+    sendEvent(AnalyticsEvent.ComparisonCompleted, {
       frame_count: frameCount,
       completed_count: completedCount,
       failed_count: failedCount,
       processing_time_ms: processingTimeMs,
+      completion_status: resolveComparisonCompletionStatus(frameCount, completedCount, failedCount),
       success: completedCount > 0,
       product_path: 'frame_compare',
     })
@@ -420,17 +429,20 @@ export const analytics = {
   },
 
   trackFaceAnalysisStart(userType: UserType, remainingQuota: number) {
-    sendEvent('face_analysis_start', {
+    sendEvent(AnalyticsEvent.FaceAnalysisStarted, {
       user_type: userType,
       remaining_quota: remainingQuota,
+      product_path: 'face_analysis',
     })
   },
 
   trackFaceAnalysisUpload(fileType: string, fileSizeBytes: number, userType: UserType) {
-    sendEvent('face_analysis_upload', {
+    sendEvent(AnalyticsEvent.FaceAnalysisPhotoUploaded, {
       file_type: fileType,
       file_size_bytes: fileSizeBytes,
       user_type: userType,
+      photo_source: 'upload',
+      product_path: 'face_analysis',
     })
   },
 
@@ -440,18 +452,20 @@ export const analytics = {
     processingTimeMs: number,
     userType: UserType
   ) {
-    sendEvent('face_analysis_complete', {
+    sendEvent(AnalyticsEvent.FaceAnalysisCompleted, {
       face_shape: faceShape,
       confidence,
       processing_time_ms: processingTimeMs,
       user_type: userType,
+      product_path: 'face_analysis',
     })
   },
 
   trackFaceAnalysisFailed(errorMessage: string, userType: UserType) {
-    sendEvent('face_analysis_failed', {
+    sendEvent(AnalyticsEvent.FaceAnalysisFailed, {
       error_message: errorMessage.slice(0, 200),
       user_type: userType,
+      product_path: 'face_analysis',
     })
   },
 
