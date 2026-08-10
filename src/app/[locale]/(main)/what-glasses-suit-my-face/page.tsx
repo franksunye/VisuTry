@@ -60,8 +60,8 @@ export default function WhatGlassesSuitMyFacePage({ params }: Props) {
       faqEyebrow={copy.faqEyebrow}
       faqTitle={copy.faqTitle}
     >
-      <B02VisualSeoSections locale={locale} pagePath="/what-glasses-suit-my-face" />
       <B01VisualSeoSections locale={locale} pagePath="/what-glasses-suit-my-face" />
+      <B02VisualSeoSections locale={locale} pagePath="/what-glasses-suit-my-face" />
     </SearchToToolLanding>
   )
 }
