@@ -5,6 +5,7 @@ import { getSearchToToolRouteCopy } from '@/config/search-to-tool-route-copy'
 import type { Locale } from '@/i18n'
 import { generateStructuredData } from '@/lib/seo'
 import { generateSearchToToolSEO } from '@/lib/search-to-tool-seo'
+import { B02VisualSeoSections } from '@/components/seo/B02VisualSeoSections'
 
 const pathname = '/try-glasses-on-photo'
 const routeId = 'try-glasses-on-photo' as const
@@ -61,6 +62,8 @@ export default function TryGlassesOnPhotoPage({ params }: Props) {
       faq={copy.faq}
       faqEyebrow={copy.faqEyebrow}
       faqTitle={copy.faqTitle}
-    />
+    >
+      <B02VisualSeoSections locale={locale} pagePath="/try-glasses-on-photo" />
+    </SearchToToolLanding>
   )
 }

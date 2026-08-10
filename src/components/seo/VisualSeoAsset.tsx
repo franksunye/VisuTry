@@ -4,11 +4,14 @@ import type { VisualSeoAsset as VisualSeoAssetData } from '@/config/visual-seo-a
 
 type VisualSeoAssetProps = {
   asset: VisualSeoAssetData
-  variant?: 'default' | 'compact'
+  variant?: 'default' | 'compact' | 'editorial'
 }
 
 export function VisualSeoAsset({ asset, variant = 'default' }: VisualSeoAssetProps) {
   const isCompact = variant === 'compact'
+  const isEditorial = variant === 'editorial'
+  const displayWidth = asset.displayWidth === 'secondary' ? 'max-w-4xl' : 'max-w-6xl'
+  const body = <p className="text-base leading-7 text-slate-600">{asset.body}</p>
 
   if (isCompact) {
     return (
@@ -38,6 +41,38 @@ export function VisualSeoAsset({ asset, variant = 'default' }: VisualSeoAssetPro
           </figcaption>
         </figure>
         <p className="mt-3 text-sm leading-6 text-slate-600 sm:hidden">{asset.body}</p>
+      </article>
+    )
+  }
+
+  if (isEditorial) {
+    return (
+      <article className={`mx-auto ${displayWidth}`}>
+        <h2 className="mb-4 text-2xl font-bold tracking-tight text-slate-950 md:text-3xl">
+          {asset.heading}
+        </h2>
+        {asset.bodyPosition === 'before' ? <div className="mb-5">{body}</div> : null}
+        <figure>
+          <Image
+            src={asset.publicPath}
+            alt={asset.alt}
+            width={asset.width}
+            height={asset.height}
+            sizes="(max-width: 768px) 100vw, 1120px"
+            className="h-auto w-full"
+          />
+          <figcaption className="pt-4">
+            {asset.bodyPosition === 'before' ? null : body}
+            {asset.link ? (
+              <Link
+                href={asset.link.href}
+                className="mt-4 inline-flex items-center font-semibold text-blue-700 underline decoration-blue-200 underline-offset-4 hover:text-blue-900"
+              >
+                {asset.link.label} <span aria-hidden="true" className="ml-1">→</span>
+              </Link>
+            ) : null}
+          </figcaption>
+        </figure>
       </article>
     )
   }

@@ -5,6 +5,7 @@ import { getSearchToToolRouteCopy } from '@/config/search-to-tool-route-copy'
 import type { Locale } from '@/i18n'
 import { generateStructuredData } from '@/lib/seo'
 import { generateSearchToToolSEO } from '@/lib/search-to-tool-seo'
+import { B02VisualSeoSections } from '@/components/seo/B02VisualSeoSections'
 
 const pathname = '/virtual-glasses-try-on'
 const routeId = 'virtual-glasses-try-on' as const
@@ -61,6 +62,8 @@ export default function VirtualGlassesTryOnPage({ params }: Props) {
       faq={copy.faq}
       faqEyebrow={copy.faqEyebrow}
       faqTitle={copy.faqTitle}
-    />
+    >
+      <B02VisualSeoSections locale={locale} pagePath="/virtual-glasses-try-on" />
+    </SearchToToolLanding>
   )
 }

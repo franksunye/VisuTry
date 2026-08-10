@@ -37,14 +37,14 @@ Primary distribution surfaces:
 
 ### Current accepted progress
 
-**8 / 182 accepted images**
+**16 / 182 accepted images**
 
-This program was restarted from zero for Desktop Codex execution. Batch B01 is now the first accepted production unit.
+This program was restarted from zero for Desktop Codex execution. Batches B01 and B02 are now the first accepted production units.
 
 - No previously generated conversational image is considered accepted production output.
 - Previous ChatGPT-generated images may be used only as visual references if useful.
 - Contact sheets, batch overviews, accidental grids, wrong-topic generations, cancelled generations, and earlier experimental outputs do **not** count.
-- The first canonical production unit is Batch B01 (`VSEO-001`–`VSEO-008`).
+- The first canonical production units are Batch B01 (`VSEO-001`–`VSEO-008`) and Batch B02 (`VSEO-009`–`VSEO-016`).
 - Progress advances only after Codex has completed QA, optimization, page integration, build verification, and manifest update.
 
 ### Planned composition
@@ -554,7 +554,7 @@ When the last image in a batch passes image-level QA, perform the batch-level co
 
 The entire program restarts here. The first 40 items are explicitly defined below; B01 is now accepted and the remaining items are pending.
 
-The B01 mappings below are the current canonical assignment for the first eight assets. They supersede earlier conversational or draft mappings.
+The B01 and B02 mappings below are the current canonical assignment for the first sixteen assets. They supersede earlier conversational or draft mappings.
 
 | ID | Source semantic name | Public filename | Primary page owner / intent | Template |
 | --- | --- | --- | --- | --- |
@@ -566,14 +566,14 @@ The B01 mappings below are the current canonical assignment for the first eight 
 | VSEO-006 | `what-is-my-face-shape-result` | `what-is-my-face-shape-result.webp` | `/en/what-is-my-face-shape` — result to detector CTA | D/E |
 | VSEO-007 | `what-glasses-suit-my-face-guide` | `what-glasses-suit-my-face-guide.webp` | `/en/what-glasses-suit-my-face` — recommendation logic | A/E |
 | VSEO-008 | `compare-glasses-for-your-face` | `compare-glasses-for-your-face.webp` | `/en/what-glasses-suit-my-face` — compare entry | B |
-| VSEO-009 | `best-glasses-for-oval-face` | `best-glasses-for-oval-face.webp` | `/en/style/oval-face` | A |
-| VSEO-010 | `rectangle-glasses-round-face-01-hero` | `rectangle-glasses-round-face-01-hero.webp` | `/en/glasses-guide/best-rectangle-glasses-for-round-face` | A |
-| VSEO-011 | `best-glasses-for-square-face` | `best-glasses-for-square-face.webp` | `/en/style/square-face` | A |
-| VSEO-012 | `best-glasses-for-heart-face` | `best-glasses-for-heart-face.webp` | `/en/style/heart-face` | A |
-| VSEO-013 | `best-glasses-for-diamond-face` | `best-glasses-for-diamond-face.webp` | `/en/style/diamond-face` | A |
-| VSEO-014 | `best-glasses-for-oblong-face` | `best-glasses-for-oblong-face.webp` | `/en/style/oblong-face` | A |
-| VSEO-015 | `round-face-frame-comparison` | `round-face-frame-comparison.webp` | `/en/style/round-face` | B |
-| VSEO-016 | `oval-face-frame-comparison` | `oval-face-frame-comparison.webp` | `/en/style/oval-face` | B |
+| VSEO-009 | `find-glasses-for-your-face-workflow` | `find-glasses-for-your-face-workflow.webp` | `/en/what-glasses-suit-my-face` — the search workflow | A/E |
+| VSEO-010 | `find-glasses-for-my-face` | `find-glasses-for-my-face.webp` | `/en/find-glasses-for-my-face` — frame directions | A |
+| VSEO-011 | `glasses-frame-shapes-comparison` | `glasses-frame-shapes-comparison.webp` | `/en/find-glasses-for-my-face` — shape comparison | B |
+| VSEO-012 | `try-glasses-before-choosing` | `try-glasses-before-choosing.webp` | `/en/find-glasses-for-my-face` — shortlist to proof | E |
+| VSEO-013 | `virtual-glasses-try-on-before-after` | `virtual-glasses-try-on-before-after.webp` | `/en/virtual-glasses-try-on` — before / after proof | A/E |
+| VSEO-014 | `virtual-try-on-different-glasses` | `virtual-try-on-different-glasses.webp` | `/en/virtual-glasses-try-on` — style comparison | B |
+| VSEO-015 | `how-virtual-glasses-try-on-works` | `how-virtual-glasses-try-on-works.webp` | `/en/virtual-glasses-try-on` — workflow explanation | D |
+| VSEO-016 | `try-glasses-on-your-photo` | `try-glasses-on-your-photo.webp` | `/en/try-glasses-on-photo` — photo to result | A/E |
 | VSEO-017 | `square-face-frame-comparison` | `square-face-frame-comparison.webp` | `/en/style/square-face` | B |
 | VSEO-018 | `glasses-eyebrow-alignment` | `glasses-eyebrow-alignment.webp` | decision intent: eyebrows / frame height | C/F |
 | VSEO-019 | `how-wide-should-glasses-be` | `how-wide-should-glasses-be.webp` | decision intent: frame width | C/F |
@@ -833,7 +833,7 @@ If Codex detects a discrepancy between this document and the current route regis
 | Batch | Range | Status | Notes |
 | --- | --- | --- | --- |
 | B01 | VSEO-001–008 | ✅ Accepted | Eight canonical master assets integrated into three English Search→Tool pages; WebP, source archive, image sitemap, and QA manifest complete |
-| B02 | VSEO-009–016 | ⏳ Planned | Core workflow / try-on foundations |
+| B02 | VSEO-009–016 | ✅ Accepted | Eight visual explanation assets integrated into four English Search→Tool pages; editorial layout, WebP, source archive, image sitemap, and QA manifest complete |
 | B03 | VSEO-017–024 | ⏳ Planned | Compare / Advisor foundations |
 | B04 | VSEO-025–033 | ⏳ Planned | Face Style owners A |
 | B05 | VSEO-034–042 | ⏳ Planned | Face Style owners B |
@@ -854,7 +854,7 @@ If Codex detects a discrepancy between this document and the current route regis
 
 ### Current next action
 
-> Batch B01 is complete. The next production unit is B02, beginning with `VSEO-009`; preserve the same source archive, WebP, adjacent-copy, internal-link, and image-sitemap checks. Do not generate any batch overview image.
+> Batches B01 and B02 are complete. The next production unit is B03, beginning with `VSEO-017`; preserve the same source archive, WebP, adjacent-copy, internal-link, and image-sitemap checks. Do not generate any batch overview image.
 
 ---
 

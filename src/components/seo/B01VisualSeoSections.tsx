@@ -15,7 +15,7 @@ type B01VisualSeoSectionsProps = {
 export function B01VisualSeoSections({ locale, pagePath }: B01VisualSeoSectionsProps) {
   if (locale !== 'en') return null
 
-  const assets = getVisualSeoAssetsForPage(pagePath)
+  const assets = getVisualSeoAssetsForPage(pagePath, 'B01')
   if (assets.length === 0) return null
 
   const [primaryAsset, ...supportingAssets] = assets

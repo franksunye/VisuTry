@@ -6,6 +6,7 @@ import type { Locale } from '@/i18n'
 import { generateStructuredData } from '@/lib/seo'
 import { generateSearchToToolSEO } from '@/lib/search-to-tool-seo'
 import { B01VisualSeoSections } from '@/components/seo/B01VisualSeoSections'
+import { B02VisualSeoSections } from '@/components/seo/B02VisualSeoSections'
 
 const pathname = '/what-glasses-suit-my-face'
 const routeId = 'what-glasses-suit-my-face' as const
@@ -59,6 +60,7 @@ export default function WhatGlassesSuitMyFacePage({ params }: Props) {
       faqEyebrow={copy.faqEyebrow}
       faqTitle={copy.faqTitle}
     >
+      <B02VisualSeoSections locale={locale} pagePath="/what-glasses-suit-my-face" />
       <B01VisualSeoSections locale={locale} pagePath="/what-glasses-suit-my-face" />
     </SearchToToolLanding>
   )
