@@ -149,7 +149,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     const path = `/brand/${brand}`
     return {
       url: `${baseUrl}/en${path}`,
-      lastModified: new Date('2026-07-27T10:00:00Z'),
+      lastModified: new Date('2026-08-10T00:00:00Z'),
       changeFrequency: 'weekly' as const,
       priority: 0.8,
       alternates: { languages: { en: `${baseUrl}/en${path}` } },

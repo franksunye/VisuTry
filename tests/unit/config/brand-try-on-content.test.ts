@@ -7,6 +7,16 @@ import {
 } from '@/config/brand-try-on-content'
 
 describe('brand virtual try-on content', () => {
+  it('includes the current Gentle Monster expansion batch', () => {
+    expect(CURATED_BRAND_SLUGS).toEqual(expect.arrayContaining([
+      'maui-jim',
+      'miu-miu',
+      'moscot',
+      'prada',
+      'gucci',
+    ]))
+  })
+
   it('defines one complete entry for every curated brand slug', () => {
     expect(Object.keys(BRAND_TRY_ON_CONTENT).sort()).toEqual([...CURATED_BRAND_SLUGS].sort())
     for (const slug of CURATED_BRAND_SLUGS) {
@@ -28,6 +38,6 @@ describe('brand virtual try-on content', () => {
   })
 
   it('returns null for brands that have not been editorially approved', () => {
-    expect(getCuratedBrandContent('gucci')).toBeNull()
+    expect(getCuratedBrandContent('chanel')).toBeNull()
   })
 })

@@ -131,6 +131,8 @@ function CuratedBrandPage({ locale, slug }: { locale: string; slug: string }) {
                 destination="glasses-try-on"
                 ctaLocation="hero-primary"
                 queryCluster={`brand-virtual-try-on:${content.slug}`}
+                contentCluster="search-tool"
+                productPath="virtual_try_on"
                 className="inline-flex items-center justify-center gap-2 rounded-lg bg-blue-500 px-5 py-3 font-semibold text-white hover:bg-blue-400"
               >
                 Try glasses on your photo <ArrowRight className="h-4 w-4" />
@@ -141,6 +143,8 @@ function CuratedBrandPage({ locale, slug }: { locale: string; slug: string }) {
                 destination="face-shape-detector"
                 ctaLocation="hero-secondary"
                 queryCluster={`brand-virtual-try-on:${content.slug}`}
+                contentCluster="search-tool"
+                productPath="face_shape_detector"
                 className="inline-flex items-center justify-center gap-2 rounded-lg border border-slate-500 px-5 py-3 font-semibold text-white hover:bg-white/10"
               >
                 Find my face shape <ScanFace className="h-4 w-4" />
@@ -165,6 +169,8 @@ function CuratedBrandPage({ locale, slug }: { locale: string; slug: string }) {
                 destination="glasses-try-on"
                 ctaLocation={`style-card-${index + 1}`}
                 queryCluster={`brand-virtual-try-on:${content.slug}`}
+                contentCluster="search-tool"
+                productPath="virtual_try_on"
                 className="group overflow-hidden rounded-xl border border-gray-200 bg-white transition hover:-translate-y-0.5 hover:shadow-lg"
               >
                 <div className="relative h-48 bg-gray-100">
@@ -199,6 +205,8 @@ function CuratedBrandPage({ locale, slug }: { locale: string; slug: string }) {
               destination="glasses-for-face-shape"
               ctaLocation="fit-guide"
               queryCluster={`brand-virtual-try-on:${content.slug}`}
+              contentCluster="search-tool"
+              productPath="glasses_for_face_shape"
               className="mt-5 inline-flex items-center gap-2 font-semibold text-blue-700 hover:text-blue-900"
             >
               See the face-shape glasses guide <ArrowRight className="h-4 w-4" />
