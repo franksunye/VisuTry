@@ -22,6 +22,7 @@ For a single Search→Tool acquisition page:
 4. Do not stack multiple full-width 4:3 Visual SEO cards consecutively on mobile.
 5. When a page has three assets, the default hierarchy is **1 primary + 2 supporting**.
 6. When a page has two assets, the default hierarchy is **1 primary + 1 supporting**.
+7. **Do not force a two-column desktop grid when there is only one supporting asset.** A single supporting asset should use one full-row horizontal supporting card, typically with the visual taking roughly 35–45% of the row and explanatory content taking the remaining space. This avoids an empty half-column while keeping the supporting asset visually subordinate to the primary asset.
 
 ## Placement rule
 
@@ -39,6 +40,7 @@ Mobile is the strictest density constraint.
 
 - The primary VSEO asset may remain full width when it materially explains the page intent.
 - Supporting assets should be compact and may use thumbnail-led horizontal cards.
+- A single supporting asset should remain compact on mobile even if it uses a full-row horizontal treatment on desktop.
 - Supporting copy can be visually condensed, but the descriptive HTML, alt text, heading, and internal link should remain present in the rendered document.
 - Adding VSEO assets must not materially push the core action farther down the initial experience or recreate long scroll depth immediately after the tool.
 
@@ -65,6 +67,7 @@ Before merging a page integration, confirm:
 - no more than one VSEO asset dominates the page visually;
 - additional assets read as supporting education;
 - mobile does not contain consecutive large 4:3 SEO cards;
+- a single desktop supporting asset does not leave an artificial empty grid column;
 - Visual SEO content sits after the core conversion content unless there is a specific product reason otherwise;
 - the page still feels like a VisuTry product/acquisition page rather than an SEO image gallery;
 - image SEO metadata and crawlability remain intact.
@@ -75,6 +78,6 @@ For the first accepted B01 pages:
 
 - `/en/face-shape-detector`: VSEO-001 primary; VSEO-002 and VSEO-003 supporting.
 - `/en/what-is-my-face-shape`: VSEO-004 primary; VSEO-005 and VSEO-006 supporting.
-- `/en/what-glasses-suit-my-face`: VSEO-007 primary; VSEO-008 supporting.
+- `/en/what-glasses-suit-my-face`: VSEO-007 primary; VSEO-008 as a single full-row horizontal supporting card on desktop and a compact supporting card on mobile.
 
 Future B02+ integrations should apply the same hierarchy by default rather than repeating multiple full-size cards per page.
