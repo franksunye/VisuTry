@@ -61,11 +61,20 @@ const nextConfig = {
   transpilePackages: [],
 
   output: 'standalone',
+  async rewrites() {
+    return [
+      {
+        source: '/mediapipe/wasm/:path*',
+        destination: 'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.35/wasm/:path*',
+      },
+      {
+        source: '/mediapipe/models/face_landmarker.task',
+        destination: 'https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task',
+      },
+    ]
+  },
   async redirects() {
     return [
-      // First-batch SEO aliases converge onto existing canonical owner pages.
-      // This avoids duplicate indexable pages and keyword cannibalization while
-      // preserving the clearer search-language slugs as permanent entry aliases.
       { source: '/:locale/oval-face-shape', destination: '/:locale/face-shapes/oval', permanent: true },
       { source: '/:locale/round-face-shape', destination: '/:locale/face-shapes/round', permanent: true },
       { source: '/:locale/square-face-shape', destination: '/:locale/face-shapes/square', permanent: true },
@@ -78,10 +87,6 @@ const nextConfig = {
       { source: '/:locale/glasses-for-heart-shaped-face', destination: '/:locale/style/heart-face', permanent: true },
       { source: '/:locale/glasses-for-diamond-face', destination: '/:locale/style/diamond-face', permanent: true },
       { source: '/:locale/glasses-for-long-face', destination: '/:locale/style/oblong-face', permanent: true },
-
-      // Clean up legacy non-locale SEO URLs that Google already discovered.
-      // The app uses locale-prefixed routes, so keep old blog/tag/share URLs
-      // from becoming long-lived 404 examples in Search Console.
       { source: '/blog/tag/:tag', destination: '/en/blog/tag/:tag', permanent: true },
       { source: '/blog/:slug', destination: '/en/blog/:slug', permanent: true },
       { source: '/tag/:tag', destination: '/en/blog/tag/:tag', permanent: true },

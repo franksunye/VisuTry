@@ -3,11 +3,14 @@ import { FaceShapeFailureReason } from '@/config/face-analysis'
 import { FaceGeometryAnalysis, FaceLandmarkPoint } from '@/types/face-analysis'
 
 const MEDIAPIPE_VERSION = '0.10.35'
-const WASM_ASSET_URL = `https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@${MEDIAPIPE_VERSION}/wasm`
-const MODEL_ASSET_URL =
+const PRIMARY_WASM_ASSET_URL = '/mediapipe/wasm'
+const FALLBACK_WASM_ASSET_URL = `https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@${MEDIAPIPE_VERSION}/wasm`
+const PRIMARY_MODEL_ASSET_URL = '/mediapipe/models/face_landmarker.task'
+const FALLBACK_MODEL_ASSET_URL =
   'https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task'
 
 type FaceLandmarkerDelegate = 'GPU' | 'CPU'
+type FaceLandmarkerAssetSource = 'primary' | 'fallback'
 
 type FaceLandmarkerInstance = {
   detect: (image: ImageBitmap | HTMLImageElement | HTMLCanvasElement) => {
@@ -15,7 +18,17 @@ type FaceLandmarkerInstance = {
   }
 }
 
-const landmarkerPromises: Partial<Record<FaceLandmarkerDelegate, Promise<FaceLandmarkerInstance>>> = {}
+class FaceLandmarkRuntimeError extends Error {
+  reason: FaceShapeFailureReason
+
+  constructor(reason: FaceShapeFailureReason, message: string) {
+    super(message)
+    this.name = 'FaceLandmarkRuntimeError'
+    this.reason = reason
+  }
+}
+
+const landmarkerPromises: Partial<Record<string, Promise<FaceLandmarkerInstance>>> = {}
 let visionPromise: Promise<typeof import('@mediapipe/tasks-vision')> | null = null
 
 function loadVisionTasks() {
@@ -25,22 +38,67 @@ function loadVisionTasks() {
   return visionPromise
 }
 
-async function getFaceLandmarker(delegate: FaceLandmarkerDelegate): Promise<FaceLandmarkerInstance> {
-  if (!landmarkerPromises[delegate]) {
-    landmarkerPromises[delegate] = loadVisionTasks().then(async (vision) => {
-      const fileset = await vision.FilesetResolver.forVisionTasks(WASM_ASSET_URL)
-      return (await vision.FaceLandmarker.createFromOptions(fileset, {
-        baseOptions: {
-          modelAssetPath: MODEL_ASSET_URL,
-          delegate,
-        },
-        runningMode: 'IMAGE' as const,
-        numFaces: 2,
-      })) as FaceLandmarkerInstance
-    })
+function assetUrls(source: FaceLandmarkerAssetSource) {
+  return source === 'primary'
+    ? { wasm: PRIMARY_WASM_ASSET_URL, model: PRIMARY_MODEL_ASSET_URL }
+    : { wasm: FALLBACK_WASM_ASSET_URL, model: FALLBACK_MODEL_ASSET_URL }
+}
+
+async function createFaceLandmarker(
+  delegate: FaceLandmarkerDelegate,
+  source: FaceLandmarkerAssetSource,
+): Promise<FaceLandmarkerInstance> {
+  const vision = await loadVisionTasks()
+  const urls = assetUrls(source)
+
+  let fileset: Awaited<ReturnType<typeof vision.FilesetResolver.forVisionTasks>>
+  try {
+    fileset = await vision.FilesetResolver.forVisionTasks(urls.wasm)
+  } catch (error) {
+    throw new FaceLandmarkRuntimeError(
+      'wasm_load_failed',
+      error instanceof Error ? `MediaPipe WASM failed to load: ${error.message}` : 'MediaPipe WASM failed to load.',
+    )
   }
 
-  return landmarkerPromises[delegate]!
+  try {
+    return (await vision.FaceLandmarker.createFromOptions(fileset, {
+      baseOptions: {
+        modelAssetPath: urls.model,
+        delegate,
+      },
+      runningMode: 'IMAGE' as const,
+      numFaces: 2,
+    })) as FaceLandmarkerInstance
+  } catch (error) {
+    throw new FaceLandmarkRuntimeError(
+      'runtime_init_failed',
+      error instanceof Error
+        ? `Face detector initialization failed: ${error.message}`
+        : 'Face detector initialization failed.',
+    )
+  }
+}
+
+async function getFaceLandmarker(delegate: FaceLandmarkerDelegate): Promise<FaceLandmarkerInstance> {
+  const key = `${delegate}:resilient`
+  if (!landmarkerPromises[key]) {
+    landmarkerPromises[key] = (async () => {
+      try {
+        return await createFaceLandmarker(delegate, 'primary')
+      } catch (primaryError) {
+        try {
+          return await createFaceLandmarker(delegate, 'fallback')
+        } catch (fallbackError) {
+          if (fallbackError instanceof FaceLandmarkRuntimeError) throw fallbackError
+          if (primaryError instanceof FaceLandmarkRuntimeError) throw primaryError
+          throw fallbackError
+        }
+      }
+    })()
+  }
+
+  return landmarkerPromises[key]!
 }
 
 export interface FaceLandmarkDetectionResult {
@@ -66,7 +124,17 @@ async function detectWithDelegate(
   fallbackUsed: boolean,
 ): Promise<FaceLandmarkDetectionResult | null> {
   const [vision, landmarker] = await Promise.all([loadVisionTasks(), getFaceLandmarker(delegate)])
-  const result = landmarker.detect(image)
+
+  let result: ReturnType<FaceLandmarkerInstance['detect']>
+  try {
+    result = landmarker.detect(image)
+  } catch (error) {
+    throw new FaceLandmarkRuntimeError(
+      'runtime_failed',
+      error instanceof Error ? `Face detector runtime failed: ${error.message}` : 'Face detector runtime failed.',
+    )
+  }
+
   const faces = result.faceLandmarks ?? []
   const firstFace = faces[0]
   if (!firstFace) return null
@@ -105,13 +173,9 @@ export async function detectFaceLandmarksFromImage(
   try {
     return await detectWithDelegate(image, 'CPU', true)
   } catch (cpuError) {
-    // Preserve the CPU error when both paths fail because it reflects the
-    // final fallback attempt. If GPU failed but CPU returned zero faces,
-    // detectWithDelegate returns null and the caller correctly classifies
-    // the result as a detection miss rather than a model-load failure.
-    if (cpuError) throw cpuError
-    if (gpuError) throw gpuError
-    throw new Error('Face landmark detection failed on both GPU and CPU.')
+    if (cpuError instanceof FaceLandmarkRuntimeError) throw cpuError
+    if (gpuError instanceof FaceLandmarkRuntimeError) throw gpuError
+    throw cpuError
   }
 }
 
@@ -125,7 +189,18 @@ export async function analyzeFaceLandmarkFile(file: File): Promise<FaceLandmarkF
 
   let bitmap: ImageBitmap | null = null
   try {
-    bitmap = await createImageBitmap(file)
+    try {
+      bitmap = await createImageBitmap(file)
+    } catch (error) {
+      return {
+        geometry: unavailableGeometry(
+          'image_decode_failed',
+          error instanceof Error ? `Image could not be decoded: ${error.message}` : 'Image could not be decoded.',
+        ),
+        detection: null,
+      }
+    }
+
     const detection = await detectFaceLandmarksFromImage(bitmap)
     return {
       geometry: analyzeFaceLandmarks(detection?.landmarks, {
@@ -136,12 +211,11 @@ export async function analyzeFaceLandmarkFile(file: File): Promise<FaceLandmarkF
       detection,
     }
   } catch (error) {
+    const reason = error instanceof FaceLandmarkRuntimeError ? error.reason : 'unknown'
     return {
       geometry: unavailableGeometry(
-        'model_load_failed',
-        error instanceof Error
-          ? `Face landmark detection failed: ${error.message}`
-          : 'Face landmark detection failed.',
+        reason,
+        error instanceof Error ? error.message : 'Face landmark detection failed.',
       ),
       detection: null,
     }
