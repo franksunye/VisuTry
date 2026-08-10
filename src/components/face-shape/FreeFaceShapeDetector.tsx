@@ -3,10 +3,11 @@
 import Image from 'next/image'
 import { useEffect, useState } from 'react'
 import type { ChangeEvent } from 'react'
-import { AlertCircle, CheckCircle2, Loader2, RotateCcw, Upload } from 'lucide-react'
+import { AlertCircle, Camera, CheckCircle2, Loader2, RotateCcw, Upload } from 'lucide-react'
 import { FreeFaceShapeResult } from '@/components/face-shape/FreeFaceShapeResult'
 import { analyzeFaceLandmarkFile } from '@/lib/face-landmark-client'
 import { analytics } from '@/lib/analytics'
+import { compressImage } from '@/utils/image'
 import type { FaceShapeFailureReason } from '@/config/face-analysis'
 import type { FaceLandmarkDetectionResult } from '@/lib/face-landmark-client'
 import type { FaceGeometryAnalysis } from '@/types/face-analysis'
@@ -17,7 +18,10 @@ interface FreeFaceShapeDetectorProps {
 }
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024
+const DETECTOR_MAX_DIMENSION = 1280
+const DETECTOR_QUALITY = 0.88
 const ACCEPTED_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp'])
+
 function recordDetection(status: 'COMPLETED' | 'FAILED', failureReason?: FaceShapeFailureReason) {
   void fetch('/api/face-shape-detector/usage', {
     method: 'POST',
@@ -79,7 +83,16 @@ export function FreeFaceShapeDetector({ locale }: FreeFaceShapeDetectorProps) {
     setIsAnalyzing(true)
 
     try {
-      const analysis = await analyzeFaceLandmarkFile(file)
+      // Preserve the original file for preview/commercial handoff, while giving
+      // MediaPipe a bounded working image to reduce mobile decode/GPU memory cost.
+      const detectorFile = await compressImage(
+        file,
+        DETECTOR_MAX_DIMENSION,
+        DETECTOR_QUALITY,
+        { profile: 'user-photo' },
+      ).catch(() => file)
+
+      const analysis = await analyzeFaceLandmarkFile(detectorFile)
       setResult(analysis.geometry)
       setDetection(analysis.detection)
 
@@ -129,15 +142,17 @@ export function FreeFaceShapeDetector({ locale }: FreeFaceShapeDetectorProps) {
     result.ratios,
   )
 
+  const hasMobileDualActions = Boolean(copy.takeSelfie && copy.chooseFromPhotos)
+
   return (
-    <section className="rounded-lg border border-gray-200 bg-white p-5 shadow-lg md:p-7" aria-labelledby="detector-title">
-      <div className="mb-5 flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+    <section className="rounded-lg border border-gray-200 bg-white p-4 shadow-lg sm:p-5 md:p-7" aria-labelledby="detector-title">
+      <div className="mb-4 flex flex-col gap-2 sm:mb-5 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <p className="mb-2 text-sm font-semibold uppercase tracking-normal text-blue-600">{copy.toolLabel}</p>
-          <h2 id="detector-title" className="text-2xl font-bold text-gray-950">
+          <p className="mb-1.5 text-xs font-semibold uppercase tracking-normal text-blue-600 sm:mb-2 sm:text-sm">{copy.toolLabel}</p>
+          <h2 id="detector-title" className="text-xl font-bold text-gray-950 sm:text-2xl">
             {hasMeasuredResult ? copy.resultTitle : copy.uploadTitle}
           </h2>
-          <p className="mt-2 max-w-2xl text-sm leading-6 text-gray-600">
+          <p className="mt-1.5 max-w-2xl text-xs leading-5 text-gray-600 sm:mt-2 sm:text-sm sm:leading-6">
             {copy.privacyText}
           </p>
         </div>
@@ -162,18 +177,71 @@ export function FreeFaceShapeDetector({ locale }: FreeFaceShapeDetectorProps) {
           detection={detection}
         />
       ) : (
-        <div className="grid gap-6 lg:grid-cols-[0.9fr_1.1fr]">
+        <div className="grid gap-4 sm:gap-6 lg:grid-cols-[0.9fr_1.1fr]">
           <div>
-            <label className="group flex min-h-[280px] cursor-pointer flex-col items-center justify-center overflow-hidden rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 p-5 text-center hover:border-blue-400 hover:bg-blue-50/40">
+            {!previewUrl && (
+              <div className="sm:hidden">
+                {hasMobileDualActions ? (
+                  <div className="grid gap-2.5">
+                    <label className="inline-flex min-h-12 cursor-pointer items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-3 text-sm font-semibold text-white shadow-sm active:bg-blue-700">
+                      <Camera className="h-4 w-4" />
+                      {copy.takeSelfie}
+                      <input
+                        type="file"
+                        accept="image/jpeg,image/png,image/webp"
+                        capture="user"
+                        className="sr-only"
+                        onChange={handleFileChange}
+                        disabled={isAnalyzing}
+                        aria-label={copy.takeSelfie}
+                      />
+                    </label>
+                    <label className="inline-flex min-h-12 cursor-pointer items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm font-semibold text-gray-800 shadow-sm active:bg-gray-50">
+                      <Upload className="h-4 w-4" />
+                      {copy.chooseFromPhotos}
+                      <input
+                        type="file"
+                        accept="image/jpeg,image/png,image/webp"
+                        className="sr-only"
+                        onChange={handleFileChange}
+                        disabled={isAnalyzing}
+                        aria-label={copy.choosePhoto}
+                      />
+                    </label>
+                  </div>
+                ) : (
+                  <label className="inline-flex min-h-12 w-full cursor-pointer items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-3 text-sm font-semibold text-white shadow-sm active:bg-blue-700">
+                    <Upload className="h-4 w-4" />
+                    {copy.choosePhoto}
+                    <input
+                      type="file"
+                      accept="image/jpeg,image/png,image/webp"
+                      className="sr-only"
+                      onChange={handleFileChange}
+                      disabled={isAnalyzing}
+                      aria-label={copy.choosePhoto}
+                    />
+                  </label>
+                )}
+                <p className="mt-2 text-center text-[11px] leading-4 text-gray-500">{copy.fileHint}</p>
+                <div className="mt-3 rounded-lg border border-green-100 bg-green-50/60 px-3 py-2.5 text-xs leading-5 text-gray-700">
+                  <p className="font-semibold text-gray-900">For the clearest result</p>
+                  <p className="mt-0.5">{copy.errorHint}</p>
+                </div>
+              </div>
+            )}
+
+            <label className={`${previewUrl ? 'flex' : 'hidden sm:flex'} group min-h-[220px] cursor-pointer flex-col items-center justify-center overflow-hidden rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 p-4 text-center hover:border-blue-400 hover:bg-blue-50/40 sm:min-h-[280px] sm:p-5`}>
               <input
                 type="file"
                 accept="image/jpeg,image/png,image/webp"
                 className="sr-only"
                 onChange={handleFileChange}
                 disabled={isAnalyzing}
+                aria-label={copy.choosePhoto}
               />
               {previewUrl ? (
-                <span className="relative block h-[250px] w-full overflow-hidden rounded-lg bg-gray-100">
+                <span className="relative block h-[220px] w-full overflow-hidden rounded-lg bg-gray-100 sm:h-[250px]">
                   <Image
                     src={previewUrl}
                     alt={copy.uploadTitle}
@@ -196,16 +264,16 @@ export function FreeFaceShapeDetector({ locale }: FreeFaceShapeDetectorProps) {
             </label>
           </div>
 
-          <div className="min-h-[280px] rounded-lg border border-gray-200 bg-gray-50 p-5" aria-live="polite">
+          <div className={`${!isAnalyzing && !error ? 'hidden sm:block' : 'block'} min-h-[180px] rounded-lg border border-gray-200 bg-gray-50 p-4 sm:min-h-[280px] sm:p-5`} aria-live="polite">
             {isAnalyzing ? (
-              <div className="flex h-full min-h-[240px] flex-col items-center justify-center text-center">
-                <Loader2 className="mb-4 h-8 w-8 animate-spin text-blue-600" />
+              <div className="flex h-full min-h-[160px] flex-col items-center justify-center text-center sm:min-h-[240px]">
+                <Loader2 className="mb-3 h-7 w-7 animate-spin text-blue-600 sm:mb-4 sm:h-8 sm:w-8" />
                 <h3 className="font-semibold text-gray-950">{copy.analyzingTitle}</h3>
                 <p className="mt-2 text-sm text-gray-600">{copy.analyzingText}</p>
               </div>
             ) : error ? (
-              <div className="flex h-full min-h-[240px] flex-col items-center justify-center text-center">
-                <AlertCircle className="mb-4 h-8 w-8 text-amber-600" />
+              <div className="flex h-full min-h-[160px] flex-col items-center justify-center text-center sm:min-h-[240px]">
+                <AlertCircle className="mb-3 h-7 w-7 text-amber-600 sm:mb-4 sm:h-8 sm:w-8" />
                 <h3 className="font-semibold text-gray-950">{copy.errorTitle}</h3>
                 <p className="mt-2 max-w-md text-sm leading-6 text-gray-600">{error}</p>
                 <p className="mt-4 text-xs leading-5 text-gray-500">{copy.errorHint}</p>
@@ -228,7 +296,7 @@ export function FreeFaceShapeDetector({ locale }: FreeFaceShapeDetectorProps) {
       )}
 
       {!hasMeasuredResult && (
-        <p className="mt-5 text-xs leading-5 text-gray-500">
+        <p className="mt-4 text-[11px] leading-4 text-gray-500 sm:mt-5 sm:text-xs sm:leading-5">
           {copy.disclaimer}
         </p>
       )}
