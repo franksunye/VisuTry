@@ -1,3 +1,5 @@
+/** @jest-environment node */
+
 import type { NextRequest } from 'next/server'
 import { POST } from '@/app/api/payment/create-session/route'
 
