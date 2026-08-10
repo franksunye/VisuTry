@@ -73,8 +73,6 @@ export default function FaceShapeDetectorPage({ params }: FaceShapeDetectorPageP
 
           <FreeFaceShapeDetector locale={locale} />
 
-          <B01VisualSeoSections locale={locale} pagePath="/face-shape-detector" />
-
           <section className="mt-6 md:mt-10" aria-label="Detector trust and method">
             <div className="rounded-lg border border-gray-200 bg-white px-4 py-2.5 md:hidden">
               {copy.detector.trust.map(({ title }, index) => {
@@ -128,6 +126,8 @@ export default function FaceShapeDetectorPage({ params }: FaceShapeDetectorPageP
               </Link>
             </article>
           </section>
+
+          <B01VisualSeoSections locale={locale} pagePath="/face-shape-detector" />
 
           <section className="mt-12">
             <h2 className="mb-5 text-2xl font-bold text-gray-950">{copy.detector.faqTitle}</h2>
