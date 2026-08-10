@@ -1,5 +1,5 @@
 export type VisualSeoAssetId = `VSEO-${string}`
-export type VisualSeoAssetBatch = 'B01' | 'B02'
+export type VisualSeoAssetBatch = 'B01' | 'B02' | 'B03'
 
 export type VisualSeoAsset = {
   id: VisualSeoAssetId
@@ -294,7 +294,158 @@ export const B02_VISUAL_SEO_ASSETS = [
   },
 ] as const satisfies readonly VisualSeoAsset[]
 
-export const VISUAL_SEO_ASSETS = [...B01_VISUAL_SEO_ASSETS, ...B02_VISUAL_SEO_ASSETS] as const
+export const B03_VISUAL_SEO_ASSETS = [
+  {
+    id: 'VSEO-017',
+    batch: 'B03',
+    sourcePath: 'assets/visual-seo/B03/source/VSEO-017__photo-four-glasses-frames.png',
+    publicPath: '/images/seo/core/photo-four-glasses-frames.webp',
+    pagePath: '/try-glasses-on-photo',
+    width: 1448,
+    height: 1086,
+    displayWidth: 'compare',
+    bodyPosition: 'before',
+    heading: 'See Four Frames on the Same Photo',
+    alt: 'Same woman comparing four different eyeglass frames on the same photo',
+    body: 'Keeping the photo, crop, pose, and lighting constant makes frame differences easier to judge. Compare several shapes on the same face so changes in outline and visual balance come from the eyewear rather than from a different photo.',
+    link: {
+      href: '/en/compare-glasses-frames',
+      label: 'Compare frames side by side',
+    },
+  },
+  {
+    id: 'VSEO-018',
+    batch: 'B03',
+    sourcePath: 'assets/visual-seo/B03/source/VSEO-018__glasses-photo-try-on-comparison.png',
+    publicPath: '/images/seo/core/glasses-photo-try-on-comparison.webp',
+    pagePath: '/try-glasses-on-photo',
+    width: 1448,
+    height: 1086,
+    displayWidth: 'secondary',
+    bodyPosition: 'before',
+    heading: 'Compare Lift and Structure on One Photo',
+    alt: 'Same woman comparing an upward lifting eyeglass frame with a more structured frame on one photo',
+    body: 'Two realistic frames can create different impressions even when everything else stays fixed. An upswept outline can add visual lift, while a more defined frame can add structure, making the comparison easier to evaluate on your own face.',
+    link: {
+      href: '/en/compare-glasses-frames',
+      label: 'Compare two shortlisted frames',
+    },
+  },
+  {
+    id: 'VSEO-019',
+    batch: 'B03',
+    sourcePath: 'assets/visual-seo/B03/source/VSEO-019__compare-four-glasses-frames.png',
+    publicPath: '/images/seo/core/compare-four-glasses-frames.webp',
+    pagePath: '/compare-glasses-frames',
+    width: 1448,
+    height: 1086,
+    displayWidth: 'primary',
+    bodyPosition: 'before',
+    heading: 'Compare Four Common Frame Styles',
+    alt: 'Same woman comparing rectangle, cat-eye, browline, and clear-lens aviator eyeglass frames',
+    body: 'Comparing common frame families on one consistent face makes their visual differences easy to see. Rectangle, cat-eye, browline, and clear-lens aviator frames each change the outline and emphasis without changing the person underneath.',
+    link: {
+      href: '/en/try-glasses-on-photo',
+      label: 'Try different frames on your photo',
+    },
+  },
+  {
+    id: 'VSEO-020',
+    batch: 'B03',
+    sourcePath: 'assets/visual-seo/B03/source/VSEO-020__glasses-frame-a-vs-b.png',
+    publicPath: '/images/seo/core/glasses-frame-a-vs-b.webp',
+    pagePath: '/compare-glasses-frames',
+    width: 1448,
+    height: 1086,
+    displayWidth: 'compare',
+    bodyPosition: 'before',
+    heading: 'Compare Two Shortlisted Frames',
+    alt: 'Same woman comparing two shortlisted eyeglass frames with defined and soft visual effects',
+    body: 'A close A/B comparison helps when two frames both seem plausible. Look at how each option changes definition, softness, brow emphasis, and overall proportion instead of forcing an artificial winner before you have enough visual evidence.',
+    link: {
+      href: '/en/try-glasses-on-photo',
+      label: 'Try a shortlisted frame on your photo',
+    },
+  },
+  {
+    id: 'VSEO-021',
+    batch: 'B03',
+    sourcePath: 'assets/visual-seo/B03/source/VSEO-021__best-glasses-frame-comparison-result.png',
+    publicPath: '/images/seo/core/best-glasses-frame-comparison-result.webp',
+    pagePath: '/compare-glasses-frames',
+    width: 1448,
+    height: 1086,
+    displayWidth: 'secondary',
+    bodyPosition: 'before',
+    heading: 'Narrow a Comparison to a Strong Match',
+    alt: 'Three eyeglass frame options on the same woman with one subtly highlighted as a strong visual match',
+    body: 'A shortlist can preserve several valid alternatives while still identifying one direction that appears especially balanced. The emphasis should remain qualitative and visual, without invented scores, percentages, or rankings that imply false precision.',
+    link: {
+      href: '/en/ai-glasses-advisor',
+      label: 'Explore personalized frame directions',
+    },
+  },
+  {
+    id: 'VSEO-022',
+    batch: 'B03',
+    sourcePath: 'assets/visual-seo/B03/source/VSEO-022__ai-glasses-advisor-analysis.png',
+    publicPath: '/images/seo/core/ai-glasses-advisor-analysis.webp',
+    pagePath: '/ai-glasses-advisor',
+    width: 1448,
+    height: 1086,
+    displayWidth: 'secondary',
+    bodyPosition: 'before',
+    heading: 'What an AI Glasses Advisor Can Consider',
+    alt: 'AI glasses advisor analysis showing balanced face width, gentle jaw taper, and moderate face length',
+    body: 'An advisor can use visible facial proportions as practical decision inputs. Balanced width, a gentle jaw taper, and moderate face length are examples of observations that can narrow frame directions without turning the analysis into a biometric score.',
+    link: {
+      href: '/en/face-shape-detector',
+      label: 'Understand your face proportions',
+    },
+  },
+  {
+    id: 'VSEO-023',
+    batch: 'B03',
+    sourcePath: 'assets/visual-seo/B03/source/VSEO-023__ai-glasses-recommendations.png',
+    publicPath: '/images/seo/core/ai-glasses-recommendations.webp',
+    pagePath: '/ai-glasses-advisor',
+    width: 1448,
+    height: 1086,
+    displayWidth: 'primary',
+    bodyPosition: 'before',
+    heading: 'Explore AI Glasses Advisor Recommendations',
+    alt: 'AI glasses advisor suggesting lift, structure, and balanced eyeglass frame directions',
+    body: 'Useful recommendations reduce a large catalog to a few directions worth testing. Lift, structure, and balanced shapes describe different visual effects you can evaluate on your own face rather than treating one frame family as universally best.',
+    link: {
+      href: '/en/try-glasses-on-photo',
+      label: 'Try a recommended frame on your photo',
+    },
+  },
+  {
+    id: 'VSEO-024',
+    batch: 'B03',
+    sourcePath: 'assets/visual-seo/B03/source/VSEO-024__ai-glasses-advisor-try-on.png',
+    publicPath: '/images/seo/core/ai-glasses-advisor-try-on.webp',
+    pagePath: '/ai-glasses-advisor',
+    width: 1448,
+    height: 1086,
+    displayWidth: 'secondary',
+    bodyPosition: 'before',
+    heading: 'From Face Analysis to Try-On and Compare',
+    alt: 'AI glasses advisor workflow from face proportions to recommendations, virtual try-on, and frame comparison',
+    body: 'The advisor is one step in a broader decision flow: understand visible proportions, narrow the frame directions, validate a candidate through virtual try-on, and compare the remaining options before choosing what to explore further.',
+    link: {
+      href: '/en/compare-glasses-frames',
+      label: 'Compare your shortlisted frames',
+    },
+  },
+] as const satisfies readonly VisualSeoAsset[]
+
+export const VISUAL_SEO_ASSETS = [
+  ...B01_VISUAL_SEO_ASSETS,
+  ...B02_VISUAL_SEO_ASSETS,
+  ...B03_VISUAL_SEO_ASSETS,
+] as const
 
 export function getVisualSeoAssetsForPage(pagePath: string, batch?: VisualSeoAssetBatch): readonly VisualSeoAsset[] {
   return VISUAL_SEO_ASSETS.filter((asset) => asset.pagePath === pagePath && (!batch || asset.batch === batch))
