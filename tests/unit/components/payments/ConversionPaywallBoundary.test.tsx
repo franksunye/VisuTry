@@ -6,9 +6,10 @@ import { QUOTA_CONFIG } from '@/config/pricing'
 const trackCustomEvent = jest.fn()
 const updateSession = jest.fn()
 let mockSessionData: any
+let mockLocale = 'en'
 
 jest.mock('next/navigation', () => ({
-  useParams: () => ({ locale: 'en' }),
+  useParams: () => ({ locale: mockLocale }),
 }))
 
 jest.mock('next-auth/react', () => ({
@@ -42,6 +43,7 @@ describe('ConversionPaywallBoundary', () => {
   const originalIndexedDb = window.indexedDB
 
   beforeEach(() => {
+    mockLocale = 'en'
     trackCustomEvent.mockClear()
     updateSession.mockReset()
     mockSessionData = {
@@ -76,7 +78,7 @@ describe('ConversionPaywallBoundary', () => {
     expect(screen.getByRole('dialog')).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: 'Keep trying' })).toBeInTheDocument()
     expect(screen.getByText(`${QUOTA_CONFIG.CREDITS_PACK} Decision Credits`)).toBeInTheDocument()
-    expect(screen.getByText('$2.99')).toBeInTheDocument()
+    expect(screen.getAllByText('$2.99').length).toBeGreaterThanOrEqual(1)
     expect(screen.getByText('One-time purchase')).toBeInTheDocument()
     expect(screen.getByText('No subscription')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Continue for $2.99' })).toBeInTheDocument()
@@ -88,8 +90,68 @@ describe('ConversionPaywallBoundary', () => {
         source: 'try_on',
         product_type: 'CREDITS_PACK',
         credits_count: QUOTA_CONFIG.CREDITS_PACK,
+        required_credits: 1,
+        credits_needed: 1,
         price: 2.99,
       }),
+    )
+  })
+
+  it('shows the live credit shortfall for a 4-credit comparison', () => {
+    mockSessionData = {
+      user: {
+        remainingTrials: 2,
+        creditsPurchased: 2,
+        creditsUsed: 0,
+      },
+    }
+
+    render(
+      <ConversionPaywallBoundary source="frame_compare">
+        <a href="/en/pricing">Get credits for the full 4-frame comparison</a>
+      </ConversionPaywallBoundary>,
+    )
+
+    fireEvent.click(screen.getByRole('link', { name: /Get credits for the full 4-frame comparison/ }))
+
+    expect(screen.getByTestId('conversion-credit-shortfall')).toHaveTextContent(
+      'You’re 2 credits short. This step needs 4; you have 2.',
+    )
+    expect(trackCustomEvent).toHaveBeenCalledWith(
+      'paywall_view',
+      expect.objectContaining({
+        source: 'frame_compare',
+        available_credits: 2,
+        required_credits: 4,
+        credits_needed: 2,
+      }),
+    )
+  })
+
+  it('uses an explicit required-credit hint when a task needs fewer than four credits', () => {
+    mockSessionData = {
+      user: {
+        remainingTrials: 1,
+        creditsPurchased: 1,
+        creditsUsed: 0,
+      },
+    }
+
+    render(
+      <ConversionPaywallBoundary source="face_analysis">
+        <a
+          href="/en/pricing?source=face-analysis-top-picks"
+          data-required-credits="3"
+        >
+          Complete my top picks
+        </a>
+      </ConversionPaywallBoundary>,
+    )
+
+    fireEvent.click(screen.getByRole('link', { name: 'Complete my top picks' }))
+
+    expect(screen.getByTestId('conversion-credit-shortfall')).toHaveTextContent(
+      'You’re 2 credits short. This step needs 3; you have 1.',
     )
   })
 
@@ -147,6 +209,55 @@ describe('ConversionPaywallBoundary', () => {
     fireEvent.click(screen.getByRole('link', { name: 'Pricing' }))
 
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+  })
+
+  it('uses a dynamic viewport and a safe-area-aware fixed mobile action bar', () => {
+    render(
+      <ConversionPaywallBoundary source="try_on">
+        <a href="/en/pricing">View Plans</a>
+      </ConversionPaywallBoundary>,
+    )
+
+    fireEvent.click(screen.getByRole('link', { name: 'View Plans' }))
+
+    expect(screen.getByTestId('conversion-paywall-overlay')).toHaveClass('h-[100dvh]', 'min-h-[100dvh]')
+    const actionBar = screen.getByTestId('conversion-paywall-action-bar')
+    expect(actionBar).toHaveClass('fixed', 'bottom-0', 'sm:static')
+    expect(actionBar).toHaveStyle({ paddingBottom: 'max(12px, env(safe-area-inset-bottom))' })
+  })
+
+  it('treats the browser back gesture as close-paywall before leaving the task', async () => {
+    render(
+      <ConversionPaywallBoundary source="try_on">
+        <a href="/en/pricing">View Plans</a>
+      </ConversionPaywallBoundary>,
+    )
+
+    fireEvent.click(screen.getByRole('link', { name: 'View Plans' }))
+    expect(screen.getByRole('dialog')).toBeInTheDocument()
+    expect(window.history.state).toEqual(expect.objectContaining({ __visutryConversionPaywall: true }))
+
+    fireEvent.popState(window)
+
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
+  })
+
+  it('localizes new contexts and switches the dialog to RTL for Arabic', () => {
+    mockLocale = 'ar'
+    window.history.replaceState({}, '', '/ar/style-explorer')
+
+    render(
+      <ConversionPaywallBoundary source="style_explorer">
+        <a href="/ar/pricing">Get credits</a>
+      </ConversionPaywallBoundary>,
+    )
+
+    fireEvent.click(screen.getByRole('link', { name: 'Get credits' }))
+
+    const dialog = screen.getByRole('dialog')
+    expect(dialog).toHaveAttribute('dir', 'rtl')
+    expect(screen.getByRole('heading', { name: 'استكشف 4 إطلالات جديدة — وواصل اكتشاف أسلوبك' })).toBeInTheDocument()
+    expect(screen.getByText('أنشئ 4 إطلالات Style جديدة')).toBeInTheDocument()
   })
 
   it('passes the Face Analysis task into Checkout when unlocking the report', async () => {
@@ -237,6 +348,7 @@ describe('ConversionPaywallBoundary', () => {
     const closeButton = screen.getByRole('dialog').querySelector('button[aria-label="Close"]')
     expect(closeButton).not.toBeDisabled()
     fireEvent.click(closeButton!)
+    fireEvent.popState(window)
 
     await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
     expect((fetchMock.mock.calls[0][1] as RequestInit).signal?.aborted).toBe(true)
