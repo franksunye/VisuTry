@@ -82,6 +82,7 @@ describe('PricingCard', () => {
 
   beforeEach(() => {
     jest.clearAllMocks()
+    window.history.replaceState({}, '', '/en/pricing')
     consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation((...args) => {
       const firstArg = args[0]
 
@@ -212,6 +213,27 @@ describe('PricingCard', () => {
           page_path: expect.any(String),
         }),
       )
+    })
+
+    it('preserves the Face Analysis report context on the full Pricing page', async () => {
+      window.history.replaceState(
+        {},
+        '',
+        '/en/pricing?source=face-analysis-unlock&taskId=analysis-1',
+      )
+      const creditsPlan = { ...mockPlan, id: 'CREDITS_PACK', buttonText: 'Buy Credits Pack' }
+
+      render(<PricingCard plan={creditsPlan} currentUser={mockUser} />)
+      await user.click(screen.getByRole('button', { name: 'Buy Credits Pack' }))
+
+      const requestInit = mockFetch.mock.calls[0]?.[1] as RequestInit
+      const body = JSON.parse(String(requestInit.body))
+      expect(body).toMatchObject({
+        productType: 'CREDITS_PACK',
+        unlockTaskId: 'analysis-1',
+        successUrl: `${window.location.origin}/en/face-analysis?unlock=success&taskId=analysis-1&session_id={CHECKOUT_SESSION_ID}`,
+        cancelUrl: `${window.location.origin}/en/pricing?source=face-analysis-unlock&taskId=analysis-1&payment=cancelled&checkout_product=CREDITS_PACK&checkout_value=9.99`,
+      })
     })
 
     it('should redirect to Stripe checkout on successful payment session creation', async () => {

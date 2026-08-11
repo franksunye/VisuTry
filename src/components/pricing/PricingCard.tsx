@@ -47,10 +47,24 @@ export function PricingCard({ plan, currentUser }: PricingCardProps) {
   const creditsPack = isCreditsPack(plan.id)
   const signedOutButtonText = creditsPack ? "Sign in to buy credits" : "Sign in to subscribe"
 
+  // Keep a report-unlock purchase bound to the report even when the user has
+  // landed on the full Pricing page instead of the compact contextual paywall.
+  // This is a defense-in-depth guard for mobile navigation, refreshes, and
+  // browsers that restore the pricing URL directly.
+  const reportUnlockTaskId = (() => {
+    if (!creditsPack || typeof window === 'undefined') return null
+    const url = new URL(window.location.href)
+    if (url.searchParams.get('source') !== 'face-analysis-unlock') return null
+    return url.searchParams.get('taskId')?.trim() || null
+  })()
+
   const handlePurchase = async () => {
     // If the user is not signed in, return them to pricing after authentication.
     if (!currentUser) {
-      window.location.href = `${signInHref}?callbackUrl=${encodeURIComponent(pricingHref)}`
+      const returnHref = reportUnlockTaskId
+        ? `${pricingHref}?source=face-analysis-unlock&taskId=${encodeURIComponent(reportUnlockTaskId)}`
+        : pricingHref
+      window.location.href = `${signInHref}?callbackUrl=${encodeURIComponent(returnHref)}`
       return
     }
 
@@ -64,8 +78,16 @@ export function PricingCard({ plan, currentUser }: PricingCardProps) {
         plan.id as ProductType,
         planPrice,
         userType,
-        'pricing'
+        reportUnlockTaskId ? 'face_analysis_report' : 'pricing'
       )
+
+      const purchaseContext = reportUnlockTaskId ? 'face_analysis_report' : 'pricing'
+      const successUrl = reportUnlockTaskId
+        ? `${window.location.origin}${localizedPath(locale, '/face-analysis')}?unlock=success&taskId=${encodeURIComponent(reportUnlockTaskId)}&session_id={CHECKOUT_SESSION_ID}`
+        : `${window.location.origin}${dashboardHref}?payment=success&session_id={CHECKOUT_SESSION_ID}`
+      const cancelUrl = reportUnlockTaskId
+        ? `${window.location.origin}${pricingHref}?source=face-analysis-unlock&taskId=${encodeURIComponent(reportUnlockTaskId)}&payment=cancelled&checkout_product=${encodeURIComponent(plan.id)}&checkout_value=${planPrice}`
+        : `${window.location.origin}${pricingHref}?payment=cancelled&checkout_product=${encodeURIComponent(plan.id)}&checkout_value=${planPrice}`
 
       const response = await fetch("/api/payment/create-session", {
         method: "POST",
@@ -74,8 +96,9 @@ export function PricingCard({ plan, currentUser }: PricingCardProps) {
         },
         body: JSON.stringify({
           productType: plan.id,
-          successUrl: `${window.location.origin}${dashboardHref}?payment=success&session_id={CHECKOUT_SESSION_ID}`,
-          cancelUrl: `${window.location.origin}${pricingHref}?payment=cancelled&checkout_product=${encodeURIComponent(plan.id)}&checkout_value=${planPrice}`,
+          successUrl,
+          cancelUrl,
+          ...(reportUnlockTaskId ? { unlockTaskId: reportUnlockTaskId } : {}),
           attribution: getAcquisitionContext(),
           locale,
         }),
@@ -86,7 +109,8 @@ export function PricingCard({ plan, currentUser }: PricingCardProps) {
       if (data.success && data.data.url) {
         analytics.trackBeginCheckout(plan.id as ProductType, planPrice, {
           checkoutSessionId: data.data.sessionId,
-          purchaseContext: 'pricing',
+          purchaseContext,
+          ...(reportUnlockTaskId ? { faceAnalysisTaskId: reportUnlockTaskId } : {}),
         })
         window.location.href = data.data.url
       } else {
