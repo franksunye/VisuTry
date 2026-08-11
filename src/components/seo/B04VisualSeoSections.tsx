@@ -37,7 +37,7 @@ export function B04VisualSeoSections({ locale, pagePath, stage }: B04VisualSeoSe
 
   return (
     <section className="mt-12 sm:mt-14" aria-label={label}>
-      <VisualSeoAssetView asset={asset} variant="owner-editorial" />
+      <VisualSeoAssetView asset={asset} variant="owner-editorial" headingDisplay="sr-only" />
     </section>
   )
 }
