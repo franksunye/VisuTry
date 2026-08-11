@@ -78,8 +78,8 @@ The equivalent first-time manual checklist was estimated at 38 operator minutes 
 
 ## Factory verdict
 
-Pending final post-deploy route smoke and reviewer checks.
+**FACTORY PASS — delivery/data path complete.** Article One was researched, normalized, configured, published through the shared importer, verified in production Neon, and exercised through a local production build with zero brand-specific runtime code. The live Vercel deployment still needs the reviewed shared image allowlist change to be deployed before the final public image smoke can be called green.
 
 ## Factory maturity verdict
 
-Pending final post-deploy verification. The current evidence supports `FACTORY REPEATABLE` if the final image allowlist deployment and route smoke pass.
+**FACTORY REPEATABLE — pending deployment confirmation.** Brand 2/3/4 use the same importer and Hardening lifecycle, and Article One required no archetype-specific architecture. Remaining work is the normal review/deploy gate for one reusable CDN allowlist entry, not a brand-specific implementation.
