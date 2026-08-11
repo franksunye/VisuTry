@@ -65,7 +65,16 @@ Minimum configuration:
   },
   "measurement": {
     "referenceTraffic": true,
-    "defaultSource": "visutry-reference-pilot"
+    "defaultSource": "visutry-reference-pilot",
+    "defaultCampaign": "reference-pilot"
+  },
+  "experience": {
+    "tryOnEnabled": true,
+    "compareEnabled": true,
+    "maxCompareFrames": 2
+  },
+  "commerce": {
+    "inquiryEnabled": false
   }
 }
 ```
@@ -78,6 +87,10 @@ Rules:
 - Theme configuration must remain within supported tokens; do not add merchant-only component forks.
 - Merchant configuration must not contain duplicated Campaign-specific catalog rows or page composition.
 - v1/v2 uses the shared Store capability set for recommendation, Try-On, Compare, and Intent; do not introduce separate merchant- or Campaign-specific generation stacks.
+- `experience` and `commerce` are the v1 merchant-level default policy contract. They are persisted on `Merchant`, surfaced through the public Store DTO, and enforced by the shared Store application boundary.
+- `maxCompareFrames` accepts only `2`, `3`, or `4`; it is enforced server-side as well as reflected in the shopper selection UI.
+- Policy precedence is intentionally merchant default → system default in v1. A future campaign policy may override the merchant default without introducing a Campaign entity in this increment.
+- Policy flags do not change Consumer behavior and must not be implemented as merchant-specific UI or API branches.
 
 ---
 

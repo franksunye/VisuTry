@@ -15,5 +15,13 @@
     "defaultSource": "visutry-reference-pilot",
     "defaultCampaign": "p1-ello-sunglasses"
   },
+  "experience": {
+    "tryOnEnabled": true,
+    "compareEnabled": true,
+    "maxCompareFrames": 2
+  },
+  "commerce": {
+    "inquiryEnabled": false
+  },
   "websiteUrl": "https://ellosunglasses.com/"
 }

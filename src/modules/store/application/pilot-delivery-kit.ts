@@ -1,5 +1,6 @@
 import { readFile } from 'node:fs/promises'
 import { join } from 'node:path'
+import { assertMaxCompareFrames, type MaxCompareFrames } from '../domain/experience-policy'
 
 export type PilotMerchantConfig = {
   merchantSlug: string
@@ -17,6 +18,14 @@ export type PilotMerchantConfig = {
     referenceTraffic: boolean
     defaultSource: string
     defaultCampaign: string
+  }
+  experience: {
+    tryOnEnabled: boolean
+    compareEnabled: boolean
+    maxCompareFrames: MaxCompareFrames
+  }
+  commerce: {
+    inquiryEnabled: boolean
   }
   websiteUrl?: string | null
 }
@@ -193,6 +202,17 @@ export function validatePilotConfig(config: PilotMerchantConfig): void {
   if (!ACCENT_TOKENS[config.theme.accentToken]) {
     throw new Error(`Unsupported accentToken: ${config.theme.accentToken}`)
   }
+  if (!config.experience || typeof config.experience.tryOnEnabled !== 'boolean' || typeof config.experience.compareEnabled !== 'boolean') {
+    throw new Error('experience.tryOnEnabled and experience.compareEnabled must be booleans')
+  }
+  try {
+    assertMaxCompareFrames(config.experience.maxCompareFrames)
+  } catch {
+    throw new Error('experience.maxCompareFrames must be 2, 3, or 4')
+  }
+  if (!config.commerce || typeof config.commerce.inquiryEnabled !== 'boolean') {
+    throw new Error('commerce.inquiryEnabled must be a boolean')
+  }
 }
 
 export function normalizePilotCatalog(records: Record<string, string>[]): PilotCatalogRow[] {
@@ -248,6 +268,15 @@ export function accentColorForToken(token: string): string {
   const color = ACCENT_TOKENS[token]
   if (!color) throw new Error(`Unsupported accentToken: ${token}`)
   return color
+}
+
+export function experiencePolicyForPilotConfig(config: PilotMerchantConfig) {
+  return {
+    tryOnEnabled: config.experience.tryOnEnabled,
+    compareEnabled: config.experience.compareEnabled,
+    maxCompareFrames: config.experience.maxCompareFrames,
+    inquiryEnabled: config.commerce.inquiryEnabled,
+  }
 }
 
 export async function readPilotPackage(packageDir: string): Promise<{

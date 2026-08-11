@@ -12,6 +12,7 @@ import {
   sessionAcquisitionToMetadata,
   type SessionAcquisitionInput,
 } from '../domain'
+import { experiencePolicyMetadata, resolveStoreExperiencePolicy } from '../domain/experience-policy'
 import type {
   MerchantEventRepository,
   MerchantRepository,
@@ -43,6 +44,7 @@ export async function createStoreSession(input: {
   if (merchant.status !== 'ACTIVE') throw merchantInactive()
 
   const entitlement = resolveMerchantEntitlement(merchant)
+  const experiencePolicy = resolveStoreExperiencePolicy(merchant)
   if (!isMerchantEntitlementActive(entitlement)) {
     throw new StoreDomainError(
       'MERCHANT_INACTIVE',
@@ -105,6 +107,7 @@ export async function createStoreSession(input: {
     metadata: {
       planCode: entitlement.planCode,
       entitlementVersion: entitlement.entitlementVersion,
+      ...experiencePolicyMetadata(experiencePolicy),
       ...(acquisitionMeta ?? {}),
     },
   })

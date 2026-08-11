@@ -14,6 +14,7 @@ import { prisma } from '../src/lib/prisma'
 import {
   accentColorForToken,
   assertPilotCatalogSourceOwnership,
+  experiencePolicyForPilotConfig,
   readPilotPackage,
 } from '../src/modules/store/application/pilot-delivery-kit'
 
@@ -28,6 +29,7 @@ async function main() {
   assertSeedEnvironment()
   const packageDir = resolve(process.argv[2] || 'pilot/ello-sunglasses')
   const { config, catalog } = await readPilotPackage(packageDir)
+  const experiencePolicy = experiencePolicyForPilotConfig(config)
   console.log(`Importing ${config.pilotType} pilot package: ${config.displayName} (${config.merchantSlug})`)
 
   const existingMerchant = await prisma.merchant.findUnique({
@@ -58,6 +60,7 @@ async function main() {
       referenceData: config.referenceData,
       defaultSource: config.measurement.defaultSource,
       defaultCampaign: config.measurement.defaultCampaign,
+      ...experiencePolicy,
       planCode: 'FOUNDING_PILOT',
       commercialStage: 'MARKET_CAPTURE',
       pricingVersion: 'pilot-kit-v1',
@@ -77,6 +80,7 @@ async function main() {
       referenceData: config.referenceData,
       defaultSource: config.measurement.defaultSource,
       defaultCampaign: config.measurement.defaultCampaign,
+      ...experiencePolicy,
     },
   })
 

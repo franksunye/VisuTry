@@ -14,6 +14,8 @@ import {
   merchantUsageCreatedAtFilter,
   resolveMerchantEntitlement,
   selectUsagePolicy,
+  resolveStoreExperiencePolicy,
+  experiencePolicyMetadata,
 } from '../domain'
 import type { AssetStore } from './ports/asset-store'
 import type { StoreGenerationPort } from './ports/generation'
@@ -96,6 +98,83 @@ function frameDto(frame: {
   }
 }
 
+async function assertStoreBatchFrameLimit(input: {
+  merchantId: string
+  merchantSessionId: string
+  merchantFrameId: string
+  batchId: string
+  maxCompareFrames: number
+}) {
+  const existingTasks = await prisma.tryOnTask.findMany({
+    where: {
+      merchantId: input.merchantId,
+      merchantSessionId: input.merchantSessionId,
+      origin: { in: ['STORE_DEMO', 'STORE_PILOT'] },
+    },
+    select: { merchantFrameId: true, batchId: true },
+  })
+  const batchFrameIds = new Set(
+    existingTasks
+      .filter((task) => task.batchId === input.batchId)
+      .map((task) => task.merchantFrameId)
+      .filter((frameId): frameId is string => Boolean(frameId)),
+  )
+  batchFrameIds.add(input.merchantFrameId)
+
+  if (batchFrameIds.size > input.maxCompareFrames) {
+    throw new StoreDomainError(
+      'VALIDATION_ERROR',
+      `Try-on supports up to ${input.maxCompareFrames} frames per batch.`,
+      400,
+    )
+  }
+}
+
+/**
+ * Reserve a distinct frame in a Store batch inside the claim transaction.
+ * PostgreSQL's transaction-scoped advisory lock serializes claims for the
+ * same merchant/session/batch without a process-local mutex.
+ */
+export async function reserveStoreBatchFrame(
+  tx: Prisma.TransactionClient,
+  input: {
+    merchantId: string
+    merchantSessionId: string
+    merchantFrameId: string
+    batchId: string
+    maxCompareFrames: number
+  },
+) {
+  const lockKey = `${input.merchantId}:${input.merchantSessionId}:${input.batchId}`
+  await tx.$executeRaw`
+    SELECT pg_advisory_xact_lock(hashtextextended(${lockKey}, 0))
+  `
+
+  const existingTasks = await tx.tryOnTask.findMany({
+    where: {
+      merchantId: input.merchantId,
+      merchantSessionId: input.merchantSessionId,
+      batchId: input.batchId,
+      origin: { in: ['STORE_DEMO', 'STORE_PILOT'] },
+    },
+    select: { merchantFrameId: true },
+  })
+  const batchFrameIds = new Set(
+    existingTasks
+      .map((task) => task.merchantFrameId)
+      .filter((frameId): frameId is string => Boolean(frameId)),
+  )
+  batchFrameIds.add(input.merchantFrameId)
+
+  if (batchFrameIds.size > input.maxCompareFrames) {
+    throw new StoreDomainError(
+      'VALIDATION_ERROR',
+      `Try-on supports up to ${input.maxCompareFrames} frames per batch.`,
+      400,
+    )
+  }
+}
+
 async function markStoreClaimFailed(
   taskId: string,
   lease: DispatchFence,
@@ -160,6 +239,8 @@ async function claimStoreTryOnSlot(input: {
   renderLimits: import('../domain').StoreDemoLimits
   usageCreatedAt?: { gte?: Date; lt?: Date }
   tryOnOrigin: 'STORE_DEMO' | 'STORE_PILOT'
+  batchId: string
+  maxCompareFrames: number
 }): Promise<{
   taskId: string
   reusedExisting: boolean
@@ -188,6 +269,14 @@ async function claimStoreTryOnSlot(input: {
             }
             return { taskId: existing.id, reusedExisting: true, dispatchLease: null }
           }
+
+          await reserveStoreBatchFrame(tx, {
+            merchantId: input.merchantId,
+            merchantSessionId: input.merchantSessionId,
+            merchantFrameId: input.merchantFrameId,
+            batchId: input.batchId,
+            maxCompareFrames: input.maxCompareFrames,
+          })
 
           const [merchantSuccessfulRenders, sessionSuccessfulRenders, sessionAttempts] =
             await Promise.all([
@@ -307,10 +396,12 @@ async function claimStoreTryOnSlot(input: {
               merchantFrameId: input.merchantFrameId,
               idempotencyKey: input.idempotencyKey,
               clientSubmissionId: input.clientSubmissionId,
+              batchId: input.batchId,
               expiresAt: input.expiresAt ?? computeStoreAssetExpiresAt(),
               retentionStatus: 'ACTIVE',
               metadata: {
                 ...lease,
+                batchId: input.batchId,
               },
               dispatchLeaseOwner: leaseOwner,
               dispatchLeaseUntil: new Date(lease.dispatchLeaseUntil),
@@ -358,6 +449,14 @@ export async function submitStoreFrameTryOn(
   const merchant = await input.merchants.findBySlug(input.slug)
   if (!merchant) throw merchantNotFound()
   if (merchant.status !== 'ACTIVE') throw merchantInactive()
+  const experiencePolicy = resolveStoreExperiencePolicy(merchant)
+  if (!experiencePolicy.tryOnEnabled) {
+    throw new StoreDomainError(
+      'CAPABILITY_DISABLED',
+      'Try-On is not enabled for this store.',
+      403,
+    )
+  }
 
   const session = await requireOperableStoreSession({
     sessions: input.sessions,
@@ -375,6 +474,14 @@ export async function submitStoreFrameTryOn(
     throw new StoreDomainError('FRAME_INACTIVE', 'This frame is no longer available.', 409)
   }
   assertSameMerchantTenant(merchant.id, frame.merchantId, 'frame')
+
+  await assertStoreBatchFrameLimit({
+    merchantId: merchant.id,
+    merchantSessionId: session.id,
+    merchantFrameId: frame.id,
+    batchId: input.batchId,
+    maxCompareFrames: experiencePolicy.maxCompareFrames,
+  })
 
   if (!session.photoAssetId) {
     throw new StoreDomainError(
@@ -446,6 +553,8 @@ export async function submitStoreFrameTryOn(
     renderLimits: entitlement.renderLimits,
     usageCreatedAt,
     tryOnOrigin: entitlement.tryOnOrigin,
+    batchId: input.batchId,
+    maxCompareFrames: experiencePolicy.maxCompareFrames,
   })
 
   let shouldDispatch = !claim.reusedExisting
@@ -539,7 +648,10 @@ export async function submitStoreFrameTryOn(
       source: 'SERVER',
       locale: input.locale ?? null,
       deviceType: input.deviceType ?? null,
-      metadata: { batchId: input.batchId },
+      metadata: experiencePolicyMetadata(experiencePolicy, {
+        batchId: input.batchId,
+        generatedFrameCount: 1,
+      }),
     })
 
     const submitted = await input.generation.submit({
@@ -620,6 +732,7 @@ export async function submitStoreFrameTryOn(
         source: 'SERVER',
         locale: input.locale ?? null,
         deviceType: input.deviceType ?? null,
+        metadata: experiencePolicyMetadata(experiencePolicy, { generatedFrameCount: 1 }),
       })
     } catch {
       // Event write is best-effort after failure marking.

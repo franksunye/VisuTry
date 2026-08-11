@@ -1,11 +1,13 @@
 import {
   assertPilotCatalogSourceOwnership,
+  experiencePolicyForPilotConfig,
   normalizePilotCatalog,
   parsePilotCsv,
   validatePilotConfig,
+  type PilotMerchantConfig,
 } from '@/modules/store/application/pilot-delivery-kit'
 
-const config = {
+const config: PilotMerchantConfig = {
   merchantSlug: 'example-eyewear',
   displayName: 'Example Eyewear',
   pilotType: 'REFERENCE' as const,
@@ -17,6 +19,14 @@ const config = {
     referenceTraffic: true,
     defaultSource: 'reference',
     defaultCampaign: 'pilot',
+  },
+  experience: {
+    tryOnEnabled: true,
+    compareEnabled: true,
+    maxCompareFrames: 2,
+  },
+  commerce: {
+    inquiryEnabled: false,
   },
 }
 
@@ -71,5 +81,24 @@ describe('Pilot Delivery Kit catalog contract', () => {
     expect(() => validatePilotConfig({ ...config, measurement: { ...config.measurement, referenceTraffic: false } })).toThrow(
       'referenceTraffic=true',
     )
+  })
+
+  it.each([2, 3, 4] as const)('accepts maxCompareFrames=%i', (maxCompareFrames) => {
+    expect(() => validatePilotConfig({ ...config, experience: { ...config.experience, maxCompareFrames } })).not.toThrow()
+  })
+
+  it.each([1, 5])('rejects maxCompareFrames=%i', (maxCompareFrames) => {
+    expect(() => validatePilotConfig({ ...config, experience: { ...config.experience, maxCompareFrames: maxCompareFrames as 2 } })).toThrow(
+      'maxCompareFrames must be 2, 3, or 4',
+    )
+  })
+
+  it('maps the standard merchant policy into importer fields', () => {
+    expect(experiencePolicyForPilotConfig(config)).toEqual({
+      tryOnEnabled: true,
+      compareEnabled: true,
+      maxCompareFrames: 2,
+      inquiryEnabled: false,
+    })
   })
 })

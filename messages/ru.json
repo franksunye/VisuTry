@@ -794,7 +794,8 @@
     "recommend": {
       "analyzing": "Finding frames that suit you…",
       "title": "Recommended for you",
-      "subtitle": "Personalized from this store’s catalog. Select up to 4 to try on.",
+      "subtitle": "Personalized from this store’s catalog. Select up to {max} to try on.",
+      "subtitleNoTryOn": "Personalized from this store’s catalog.",
       "version": "Ranking {version}",
       "selectHint": "Selected {count} of {max}",
       "confirm": "Save selection ({count})",

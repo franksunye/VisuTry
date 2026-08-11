@@ -117,6 +117,8 @@ model TryOnTask {
   // Metadata
   prompt             String?
   clientSubmissionId String?
+  /// Store batch identity used by the database-backed frame limit boundary.
+  batchId            String?
   metadata           Json?
 
   // Database-backed leases. Owner + monotonically increasing version provide
@@ -157,6 +159,7 @@ model TryOnTask {
   @@index([origin])
   @@index([merchantId, createdAt(sort: Desc)])
   @@index([merchantSessionId])
+  @@index([merchantSessionId, batchId])
   @@index([merchantFrameId])
   @@unique([userId, clientSubmissionId])          // Prevent duplicate client/batch submissions
 }
@@ -446,6 +449,12 @@ model Merchant {
   /// Optional default acquisition context for a hosted delivery surface.
   defaultSource String?
   defaultCampaign String?
+
+  /// Merchant-level default experience policy; future campaign policy may override it.
+  tryOnEnabled     Boolean @default(true)
+  compareEnabled   Boolean @default(true)
+  maxCompareFrames Int     @default(2)
+  inquiryEnabled   Boolean @default(false)
 
   /// Commercial offer identity — provider-independent (e.g. FOUNDING_PILOT, DEMO).
   planCode                   String?

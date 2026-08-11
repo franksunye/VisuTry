@@ -6,6 +6,7 @@ import {
   merchantInactive,
   merchantNotFound,
 } from '../domain'
+import { experiencePolicyMetadata, resolveStoreExperiencePolicy } from '../domain/experience-policy'
 import type {
   MerchantEventRepository,
   MerchantRepository,
@@ -23,10 +24,19 @@ export async function recordCompareStarted(input: {
   clientActionId: string
   locale?: string | null
   deviceType?: string | null
+  frameIds?: string[]
 }): Promise<{ recorded: boolean }> {
   const merchant = await input.merchants.findBySlug(input.slug)
   if (!merchant) throw merchantNotFound()
   if (merchant.status !== 'ACTIVE') throw merchantInactive()
+  const experiencePolicy = resolveStoreExperiencePolicy(merchant)
+  if (!experiencePolicy.compareEnabled) {
+    throw new StoreDomainError(
+      'CAPABILITY_DISABLED',
+      'Compare is not enabled for this store.',
+      403,
+    )
+  }
 
   await requireOperableStoreSession({
     sessions: input.sessions,
@@ -44,7 +54,34 @@ export async function recordCompareStarted(input: {
     },
   })
 
-  if (completedTryOns < 2) {
+  const selectedFrameIds = Array.from(new Set((input.frameIds ?? []).filter(Boolean)))
+  const selectedFrameCount = selectedFrameIds.length || completedTryOns
+  if (selectedFrameCount > experiencePolicy.maxCompareFrames) {
+    throw new StoreDomainError(
+      'VALIDATION_ERROR',
+      `Compare supports up to ${experiencePolicy.maxCompareFrames} frames for this store.`,
+      400,
+    )
+  }
+  if (selectedFrameIds.length > 0) {
+    const completedSelected = await prisma.tryOnTask.count({
+      where: {
+        merchantId: merchant.id,
+        merchantSessionId: input.merchantSessionId,
+        merchantFrameId: { in: selectedFrameIds },
+        origin: { in: ['STORE_DEMO', 'STORE_PILOT'] },
+        status: 'COMPLETED',
+      },
+    })
+    if (completedSelected !== selectedFrameIds.length) {
+      throw new StoreDomainError(
+        'VALIDATION_ERROR',
+        'Compare requires completed results for the selected frames.',
+        400,
+      )
+    }
+  }
+  if (selectedFrameCount < 2) {
     throw new StoreDomainError(
       'VALIDATION_ERROR',
       'Compare requires at least two completed try-on results.',
@@ -65,7 +102,10 @@ export async function recordCompareStarted(input: {
     source: 'SERVER',
     locale: input.locale ?? null,
     deviceType: input.deviceType ?? null,
-    metadata: { completedTryOns },
+    metadata: experiencePolicyMetadata(experiencePolicy, {
+      completedTryOns,
+      selectedFrameCount,
+    }),
   })
 
   if (result.created) {

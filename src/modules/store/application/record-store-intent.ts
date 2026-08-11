@@ -8,6 +8,7 @@ import {
   merchantNotFound,
   type MerchantIntentType,
 } from '../domain'
+import { experiencePolicyMetadata, resolveStoreExperiencePolicy } from '../domain/experience-policy'
 import type {
   MerchantEventRepository,
   MerchantFrameRepository,
@@ -61,6 +62,14 @@ export async function recordStoreIntent(
   const merchant = await input.merchants.findBySlug(input.slug)
   if (!merchant) throw merchantNotFound()
   if (merchant.status !== 'ACTIVE') throw merchantInactive()
+  const experiencePolicy = resolveStoreExperiencePolicy(merchant)
+  if (input.type === 'INQUIRY' && !experiencePolicy.inquiryEnabled) {
+    throw new StoreDomainError(
+      'CAPABILITY_DISABLED',
+      'Inquiry is not enabled for this store.',
+      403,
+    )
+  }
 
   const session = await requireOperableStoreSession({
     sessions: input.sessions,
@@ -148,6 +157,7 @@ export async function recordStoreIntent(
     metadata: {
       intentId: record.id,
       created,
+      ...experiencePolicyMetadata(experiencePolicy),
       ...(input.type === 'PRODUCT_CLICK' ? { productUrl: canonicalProductUrl } : {}),
     },
   })
