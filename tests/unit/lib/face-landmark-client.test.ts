@@ -83,7 +83,6 @@ describe('face-landmark-client detector fallback', () => {
     const createImageBitmap = globalThis.createImageBitmap as jest.Mock
     createImageBitmap.mockRejectedValue(new DOMException('Unsupported image', 'EncodingError'))
     mockGpuDetect.mockImplementation((image: HTMLImageElement) => {
-      // Object URL must stay alive through MediaPipe inference.
       expect(URL.revokeObjectURL).not.toHaveBeenCalled()
       expect(image.src).toBe('blob:face-input')
       return { faceLandmarks: [landmarks] }
@@ -109,7 +108,6 @@ describe('face-landmark-client detector fallback', () => {
     expect(result.geometry.failureReason).not.toBe('image_decode_failed')
     expect(createImageBitmap).toHaveBeenCalledWith(file)
     expect(URL.createObjectURL).toHaveBeenCalledWith(file)
-    // Revoke happens in DecodedImageSource.close(), after inference.
     expect(URL.revokeObjectURL).toHaveBeenCalledWith('blob:face-input')
     expect(URL.revokeObjectURL).toHaveBeenCalledTimes(1)
   })
@@ -163,6 +161,35 @@ describe('face-landmark-client detector fallback', () => {
     expect(bitmap.close).toHaveBeenCalledTimes(1)
   })
 
+  it('records normalized GPU and CPU runtime failures without raw messages', async () => {
+    const bitmap = {
+      width: 640,
+      height: 480,
+      close: jest.fn(),
+    }
+    const createImageBitmap = globalThis.createImageBitmap as jest.Mock
+    createImageBitmap.mockResolvedValue(bitmap)
+    mockGpuDetect.mockImplementation(() => {
+      throw new DOMException('WebGL context lost while processing secret-device-detail', 'OperationError')
+    })
+    mockCpuDetect.mockImplementation(() => {
+      throw new Error('WebAssembly memory allocation failed with secret-device-detail')
+    })
+
+    const file = new File(['portrait'], 'portrait.jpg', { type: 'image/jpeg' })
+    const result = await analyzeFaceLandmarkFile(file)
+
+    expect(result.geometry.failureReason).toBe('runtime_failed')
+    expect(result.decodeDiagnostics).toEqual({
+      gpuRuntimeErrorName: 'OperationError',
+      gpuRuntimeErrorMessage: 'graphics_context_error',
+      cpuRuntimeErrorName: 'Error',
+      cpuRuntimeErrorMessage: 'wasm_runtime_error',
+    })
+    expect(JSON.stringify(result.decodeDiagnostics)).not.toContain('secret-device-detail')
+    expect(bitmap.close).toHaveBeenCalledTimes(1)
+  })
+
   it('reports image_decode_failed only after both decoders reject', async () => {
     const createImageBitmap = globalThis.createImageBitmap as jest.Mock
     createImageBitmap.mockRejectedValue(new DOMException('Invalid image', 'EncodingError'))
@@ -192,7 +219,6 @@ describe('face-landmark-client detector fallback', () => {
       htmlImageDecodeErrorName: 'EncodingError',
       htmlImageDecodeErrorMessage: 'decode_failed',
     })
-    // Failed decode path must still revoke the object URL it created.
     expect(URL.revokeObjectURL).toHaveBeenCalledWith('blob:face-input')
   })
 
