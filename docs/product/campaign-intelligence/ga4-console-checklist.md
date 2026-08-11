@@ -24,6 +24,7 @@ Admin → Property → Data display → Custom definitions → Create custom dim
 | Dimension name | Event parameter | Scope |
 |---|---|---|
 | Campaign ID | `campaign_id` | Event |
+| Campaign name | `campaign_name` | Event |
 | Merchant ID | `merchant_id` | Event |
 | Store ID | `store_id` | Event |
 | Surface | `surface` | Event |
