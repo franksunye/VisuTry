@@ -1,0 +1,18 @@
+{
+  "experienceSlug": "default",
+  "type": "STORE",
+  "name": "Lowercase NYC Store",
+  "status": "ACTIVE",
+  "headline": "Explore independent eyewear shaped in Brooklyn",
+  "description": "Reference Store / Simulation using a curated public catalog of optical and sunglasses frames.",
+  "catalogSelection": "ALL_ACTIVE",
+  "primaryCta": {
+    "type": "PRODUCT_OR_COLLECTION",
+    "label": "View frame"
+  },
+  "referenceData": true,
+  "measurement": {
+    "defaultSource": "visutry-reference-pilot",
+    "defaultCampaign": "lowercase-nyc"
+  }
+}

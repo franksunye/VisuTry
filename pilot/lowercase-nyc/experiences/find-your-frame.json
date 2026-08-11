@@ -1,0 +1,29 @@
+{
+  "experienceSlug": "find-your-frame",
+  "type": "CAMPAIGN",
+  "name": "Find Your Frame",
+  "status": "ACTIVE",
+  "headline": "Find a frame with New York character",
+  "description": "Reference Campaign / Simulation combining optical and sun frames across distinct shapes and proportions.",
+  "catalogSelection": [
+    "39746693824592",
+    "41427312476240",
+    "40635588640848",
+    "41427310968912",
+    "40413544513616",
+    "41427314868304",
+    "41427313623120",
+    "41427313393744",
+    "41156365058128",
+    "41134597046352"
+  ],
+  "primaryCta": {
+    "type": "PRODUCT_OR_COLLECTION",
+    "label": "View frame"
+  },
+  "referenceData": true,
+  "measurement": {
+    "defaultSource": "visutry-reference-pilot",
+    "defaultCampaign": "find-your-frame"
+  }
+}
