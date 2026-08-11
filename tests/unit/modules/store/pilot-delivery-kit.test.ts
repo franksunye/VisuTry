@@ -1,6 +1,9 @@
 import {
   assertPilotCatalogSourceOwnership,
+  buildPilotPreflightReport,
   experiencePolicyForPilotConfig,
+  isSyntacticallyValidDestinationUrl,
+  isSyntacticallyValidHttpUrl,
   normalizePilotCatalog,
   parsePilotCsv,
   readPilotPackage,
@@ -127,4 +130,67 @@ describe('Pilot Delivery Kit catalog contract', () => {
     expect(() => validatePilotExperienceConfig({ ...base, experienceSlug: 'hosted-store' })).toThrow('slug default')
     expect(() => validatePilotExperienceConfig({ ...base, catalogSelection: ['frame-1', 'frame-1'] })).toThrow('duplicate')
   })
+
+  it('preflights active Store/Campaign selection and reference reporting', () => {
+    const catalog = normalizePilotCatalog(parsePilotCsv(
+      'external_id,name,brand,product_url,image_url,product_type,status\n' +
+      'frame-1,Frame One,Example,https://example.com/p1,https://example.com/i1,SUNGLASSES,ACTIVE\n' +
+      'frame-2,Frame Two,Example,https://example.com/p2,https://example.com/i2,SUNGLASSES,INACTIVE',
+    ))
+    const report = buildPilotPreflightReport({
+      config,
+      catalog,
+      experiences: [
+        { ...baseExperience(), experienceSlug: 'default', type: 'STORE', catalogSelection: 'ALL_ACTIVE' },
+        { ...baseExperience(), experienceSlug: 'campaign', type: 'CAMPAIGN', catalogSelection: ['frame-1'] },
+      ],
+    })
+    expect(report.errors).toEqual([])
+    expect(report.summary).toMatchObject({ catalogRows: 2, activeRows: 1, storeCount: 1, campaignCount: 1 })
+    expect(report.summary.selectedFrameCounts).toEqual([
+      { slug: 'default', type: 'STORE', count: 1 },
+      { slug: 'campaign', type: 'CAMPAIGN', count: 1 },
+    ])
+    expect(report.warnings).toContain('referenceData=true: treat all resulting traffic as Reference Pilot / Simulation, not live merchant traffic')
+  })
+
+  it('preflight rejects multiple active Stores and inactive selections', () => {
+    const catalog = normalizePilotCatalog(parsePilotCsv(
+      'external_id,name,brand,product_url,image_url,product_type,status\n' +
+      'frame-1,Frame One,Example,https://example.com/p1,https://example.com/i1,SUNGLASSES,INACTIVE',
+    ))
+    const report = buildPilotPreflightReport({
+      config,
+      catalog,
+      experiences: [
+        { ...baseExperience(), experienceSlug: 'default', type: 'STORE', catalogSelection: 'ALL_ACTIVE' },
+        { ...baseExperience(), experienceSlug: 'second-store', type: 'STORE', catalogSelection: ['frame-1'] },
+      ],
+    })
+    expect(report.errors).toEqual(expect.arrayContaining([
+      expect.stringContaining('At most one ACTIVE STORE'),
+      expect.stringContaining('ALL_ACTIVE resolves to zero ACTIVE catalog rows'),
+      expect.stringContaining('selected catalog row is not ACTIVE'),
+    ]))
+  })
+
+  it('validates product and destination URL syntax without following or writing URLs', () => {
+    expect(isSyntacticallyValidHttpUrl('https://example.com/products/frame')).toBe(true)
+    expect(isSyntacticallyValidHttpUrl('javascript:alert(1)')).toBe(false)
+    expect(isSyntacticallyValidHttpUrl('https://example.com/\nframe')).toBe(false)
+    expect(isSyntacticallyValidDestinationUrl('/en/store/example')).toBe(true)
+    expect(isSyntacticallyValidDestinationUrl('//evil.example')).toBe(false)
+    expect(isSyntacticallyValidDestinationUrl('http://example.com')).toBe(false)
+    expect(isSyntacticallyValidDestinationUrl('https://example.com/product')).toBe(true)
+  })
 })
+
+function baseExperience(): PilotExperienceConfig {
+  return {
+    experienceSlug: 'experience',
+    type: 'CAMPAIGN',
+    name: 'Experience',
+    status: 'ACTIVE',
+    catalogSelection: ['frame-1'],
+  }
+}

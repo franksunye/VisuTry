@@ -271,6 +271,39 @@ A normal second Campaign should not require:
 - a new admin stack;
 - product code changes.
 
+### 6.3 Standard publish lifecycle
+
+Every reference merchant delivery includes the following operator lifecycle:
+
+```text
+Research
+    → Catalog Normalize
+    → Enrichment Review
+    → Experience Config
+    → Preflight
+    → URL Health
+    → Dry Run
+    → Production Publish
+    → DB Read-back
+    → Route Smoke
+    → Evidence Pack
+    → Delivery Accounting
+```
+
+The shared commands are intentionally assisted-operations tooling, not a crawler or self-service onboarding product:
+
+```text
+npm run pilot:preflight -- pilot/<merchant-slug>
+npm run pilot:check-urls -- pilot/<merchant-slug>
+npm run db:seed:pilot -- pilot/<merchant-slug> --dry-run
+npm run db:seed:pilot -- pilot/<merchant-slug>              # production requires explicit confirmation
+npm run pilot:verify -- pilot/<merchant-slug>
+npm run pilot:route-smoke -- pilot/<merchant-slug>
+npm run pilot:qa -- pilot/<merchant-slug> --production
+```
+
+Preflight, URL health, dry-run and read-back are non-mutating. Production publish remains an explicit write operation guarded by the existing confirmation flag. Code merge alone does not complete merchant delivery; production read-back, route smoke, evidence and delivery accounting are part of the Definition of Done.
+
 ---
 
 ## 7. Delivery exception classification
@@ -300,6 +333,9 @@ A repeated Experience / Campaign need is stronger evidence of a reusable product
 - primary frame image is usable for Try-On;
 - no invented price / availability / product fact;
 - Experiences reference existing MerchantFrame identity rather than duplicate products.
+- the shared preflight command passes required fields, identity uniqueness, URL syntax, Experience selections, Store count and reference provenance;
+- product and image URL health has a recorded result before publish;
+- a seed dry-run records create/update/deactivate and ExperienceFrame plans before any production write.
 
 ### Experience / shopper journey
 
@@ -331,6 +367,9 @@ A repeated Experience / Campaign need is stronger evidence of a reusable product
 - no raw shopper face image is exposed in merchant analytics;
 - failed generation does not incorrectly create positive intent or consume consumer credits;
 - mobile viewport is usable for the full critical journey.
+- post-publish DB read-back matches the Delivery Kit catalog and Experience configuration;
+- deterministic Store/Campaign route smoke passes on desktop and mobile without calling a real AI provider;
+- the evidence pack records URL health, dry-run, read-back, route smoke and delivery accounting.
 
 ### Sales evidence
 

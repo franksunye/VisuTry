@@ -432,6 +432,23 @@ Raw face images and sensitive face-analysis payloads are not attribution data an
 - all active frames reviewed;
 - reference marker configured.
 
+The shared preflight command formalizes these checks without writing to a database:
+
+```text
+npm run pilot:preflight -- pilot/<merchant-slug>
+```
+
+It reports Merchant, catalog rows, active rows, Experience count, Store/Campaign counts, selected frame counts, warnings and errors. It must reject duplicate external IDs/SKUs, more than one ACTIVE Store, missing/inactive selected rows, invalid URL syntax, invalid Reference Pilot provenance, and malformed Experience selection contracts.
+
+Before production publish, URL health and the seed plan are also required:
+
+```text
+npm run pilot:check-urls -- pilot/<merchant-slug>
+npm run db:seed:pilot -- pilot/<merchant-slug> --dry-run
+```
+
+URL health prefers `HEAD`, falls back to `GET` when required, limits concurrency, records status/redirects/failures, and never edits catalog data. Dry-run reads the target database and reports planned Merchant, frame, Experience and ExperienceFrame changes, including deactivation warnings, without writing.
+
 ### Shopper critical flow
 
 Run at least once on desktop and one mobile viewport:
