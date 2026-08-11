@@ -16,8 +16,26 @@ type DetectionDiagnostics = {
   sourceFileSize?: number
   detectorFileType?: string
   detectorFileSize?: number
+  detectedFileFormat?: string
   compressionFailed?: boolean
   compressionErrorName?: string
+  compressionErrorMessage?: string
+  bitmapDecodeErrorName?: string
+  bitmapDecodeErrorMessage?: string
+  htmlImageDecodeErrorName?: string
+  htmlImageDecodeErrorMessage?: string
+}
+
+const DIAGNOSTIC_STRING_LIMITS: Record<string, number> = {
+  sourceFileType: 64,
+  detectorFileType: 64,
+  detectedFileFormat: 64,
+  compressionErrorName: 96,
+  compressionErrorMessage: 96,
+  bitmapDecodeErrorName: 96,
+  bitmapDecodeErrorMessage: 96,
+  htmlImageDecodeErrorName: 96,
+  htmlImageDecodeErrorMessage: 96,
 }
 
 function sanitizeDiagnostics(value: unknown): DetectionDiagnostics | undefined {
@@ -25,15 +43,14 @@ function sanitizeDiagnostics(value: unknown): DetectionDiagnostics | undefined {
 
   const raw = value as Record<string, unknown>
   const diagnostics: DetectionDiagnostics = {}
-  if (typeof raw.sourceFileType === 'string' && raw.sourceFileType.length > 0) {
-    diagnostics.sourceFileType = raw.sourceFileType.slice(0, 64)
+
+  for (const [key, limit] of Object.entries(DIAGNOSTIC_STRING_LIMITS)) {
+    const value = raw[key]
+    if (typeof value === 'string' && value.length > 0) {
+      ;(diagnostics as Record<string, unknown>)[key] = value.slice(0, limit)
+    }
   }
-  if (typeof raw.detectorFileType === 'string' && raw.detectorFileType.length > 0) {
-    diagnostics.detectorFileType = raw.detectorFileType.slice(0, 64)
-  }
-  if (typeof raw.compressionErrorName === 'string' && raw.compressionErrorName.length > 0) {
-    diagnostics.compressionErrorName = raw.compressionErrorName.slice(0, 96)
-  }
+
   if (typeof raw.sourceFileSize === 'number' && Number.isFinite(raw.sourceFileSize) && raw.sourceFileSize >= 0) {
     diagnostics.sourceFileSize = raw.sourceFileSize
   }

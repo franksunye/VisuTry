@@ -29,10 +29,21 @@ class FaceLandmarkRuntimeError extends Error {
   }
 }
 
+export type FaceImageDecodeDiagnostics = {
+  detectedFileFormat?: string
+  bitmapDecodeErrorName?: string
+  bitmapDecodeErrorMessage?: string
+  htmlImageDecodeErrorName?: string
+  htmlImageDecodeErrorMessage?: string
+}
+
 class FaceImageDecodeError extends Error {
-  constructor(message: string) {
+  diagnostics: FaceImageDecodeDiagnostics
+
+  constructor(message: string, diagnostics: FaceImageDecodeDiagnostics = {}) {
     super(message)
     this.name = 'FaceImageDecodeError'
+    this.diagnostics = diagnostics
   }
 }
 
@@ -132,6 +143,7 @@ export interface FaceLandmarkDetectionResult {
 export interface FaceLandmarkFileResult {
   geometry: FaceGeometryAnalysis
   detection: FaceLandmarkDetectionResult | null
+  decodeDiagnostics?: FaceImageDecodeDiagnostics
 }
 
 async function detectWithDelegate(
@@ -271,15 +283,89 @@ export async function analyzeFaceLandmarkFile(file: File): Promise<FaceLandmarkF
         error instanceof Error ? error.message : 'Face landmark detection failed.',
       ),
       detection: null,
+      ...(error instanceof FaceImageDecodeError
+        ? { decodeDiagnostics: error.diagnostics }
+        : {}),
     }
   } finally {
     decodedImage?.close()
   }
 }
 
+function normalizedError(error: unknown) {
+  const name = error instanceof Error && error.name ? error.name.slice(0, 64) : 'UnknownError'
+  const rawMessage = error instanceof Error ? error.message.toLowerCase() : ''
+
+  let message = 'other'
+  if (rawMessage.includes('unsupported')) message = 'unsupported_image'
+  else if (rawMessage.includes('decode')) message = 'decode_failed'
+  else if (rawMessage.includes('invalid')) message = 'invalid_image'
+  else if (rawMessage.includes('dimension')) message = 'invalid_dimensions'
+  else if (rawMessage.includes('abort')) message = 'aborted'
+  else if (rawMessage.includes('memory')) message = 'memory_error'
+
+  return { name, message }
+}
+
+async function readBlobBytes(blob: Blob): Promise<Uint8Array> {
+  const blobWithArrayBuffer = blob as Blob & { arrayBuffer?: () => Promise<ArrayBuffer> }
+  if (typeof blobWithArrayBuffer.arrayBuffer === 'function') {
+    return new Uint8Array(await blobWithArrayBuffer.arrayBuffer())
+  }
+
+  if (typeof FileReader !== 'undefined') {
+    return await new Promise<Uint8Array>((resolve, reject) => {
+      const reader = new FileReader()
+      reader.onload = () => {
+        if (reader.result instanceof ArrayBuffer) {
+          resolve(new Uint8Array(reader.result))
+        } else {
+          reject(new Error('FileReader returned an unexpected result.'))
+        }
+      }
+      reader.onerror = () => reject(reader.error ?? new Error('FileReader failed.'))
+      reader.readAsArrayBuffer(blob)
+    })
+  }
+
+  throw new Error('Blob byte reading is unavailable.')
+}
+
+async function detectFileFormat(file: File): Promise<string> {
+  try {
+    const bytes = await readBlobBytes(file.slice(0, 32))
+    if (bytes.length >= 3 && bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff) return 'jpeg'
+    if (
+      bytes.length >= 8 &&
+      bytes[0] === 0x89 && bytes[1] === 0x50 && bytes[2] === 0x4e && bytes[3] === 0x47 &&
+      bytes[4] === 0x0d && bytes[5] === 0x0a && bytes[6] === 0x1a && bytes[7] === 0x0a
+    ) return 'png'
+    if (
+      bytes.length >= 12 &&
+      String.fromCharCode(...bytes.slice(0, 4)) === 'RIFF' &&
+      String.fromCharCode(...bytes.slice(8, 12)) === 'WEBP'
+    ) return 'webp'
+    if (bytes.length >= 12 && String.fromCharCode(...bytes.slice(4, 8)) === 'ftyp') {
+      const brand = String.fromCharCode(...bytes.slice(8, 12)).toLowerCase()
+      if (brand === 'avif' || brand === 'avis') return 'avif'
+      if (['heic', 'heix', 'hevc', 'hevx'].includes(brand)) return 'heic'
+      if (['mif1', 'msf1'].includes(brand)) return 'heif'
+      return `iso-bmff:${brand}`
+    }
+    if (bytes.length >= 6) {
+      const signature = String.fromCharCode(...bytes.slice(0, 6))
+      if (signature === 'GIF87a' || signature === 'GIF89a') return 'gif'
+    }
+    return 'unknown'
+  } catch {
+    return 'unavailable'
+  }
+}
+
 async function decodeImageFile(file: File): Promise<DecodedImageSource> {
+  const detectedFileFormat = await detectFileFormat(file)
   if (!file || file.size === 0) {
-    throw new FaceImageDecodeError('Image file is empty.')
+    throw new FaceImageDecodeError('Image file is empty.', { detectedFileFormat })
   }
 
   let bitmapError: unknown
@@ -336,9 +422,18 @@ async function decodeImageFile(file: File): Promise<DecodedImageSource> {
     }
   } catch (imageError) {
     releaseObjectUrl()
-    const bitmapMessage = bitmapError instanceof Error ? bitmapError.message : 'bitmap decoder rejected the file'
-    const imageMessage = imageError instanceof Error ? imageError.message : 'image element decoder rejected the file'
-    throw new FaceImageDecodeError(`Image could not be decoded (${bitmapMessage}; fallback: ${imageMessage}).`)
+    const bitmap = normalizedError(bitmapError)
+    const htmlImage = normalizedError(imageError)
+    throw new FaceImageDecodeError(
+      `Image could not be decoded (${bitmap.message}; fallback: ${htmlImage.message}).`,
+      {
+        detectedFileFormat,
+        bitmapDecodeErrorName: bitmap.name,
+        bitmapDecodeErrorMessage: bitmap.message,
+        htmlImageDecodeErrorName: htmlImage.name,
+        htmlImageDecodeErrorMessage: htmlImage.message,
+      },
+    )
   }
 }
 
