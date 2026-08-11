@@ -1,45 +1,82 @@
 # VisuTry Pilot Delivery Factory Plan
 
-**Status:** Active planning / execution  
+**Status:** Active execution — Merchant Experience architecture upgrade  
 **Owner:** Product / Engineering / Growth  
 **Created:** 2026-08-11  
+**Updated:** 2026-08-11  
 **Related:** `docs/product/plans/visutry-store-implementation-plan.md`  
-**Related spec:** `docs/product/specs/pilot-delivery-kit-spec.md`
+**Related spec:** `docs/product/specs/pilot-delivery-kit-spec.md`  
+**Architecture baseline:** `docs/product/specs/merchant-experience-architecture.md`
 
 ---
 
 ## 1. Objective
 
-Build a repeatable capability to take a qualified eyewear brand or retailer from public catalog intake to a stable VisuTry hosted pilot in **1–2 days**, while producing five high-quality reference pilots that exercise different merchant archetypes.
+Build a repeatable delivery capability that can take a qualified eyewear brand or retailer from public catalog intake to a stable VisuTry hosted commerce experience in **1–2 days**, and then let the same merchant launch additional targeted Campaigns from the reviewed catalog in **1–2 hands-on hours** without product code changes.
 
-The work has two simultaneous goals:
+The reference portfolio is therefore upgraded from:
 
-1. **Delivery readiness** — prove that a new merchant can be onboarded without bespoke product development.
-2. **Sales proof** — provide five realistic, working reference pilots that demonstrate the breadth of the VisuTry commerce workflow beyond a generic demo.
+> **5 Reference Stores / Pilots**
 
-Success is not “five custom demos.” Success is:
+into:
 
-> By the sixth merchant, the normal path is configuration + catalog + QA + publish, not custom engineering.
+> **5 Reference Brands / Merchants × 2–3 Experiences each = approximately 10–15 Reference Experiences.**
 
-Target delivery progression:
+The work has three simultaneous goals:
 
-- Pilot 1: <= 2 working days.
-- Pilot 3: <= 1 working day for a clean catalog.
-- Pilot 5: <= 4–6 hands-on hours, excluding waiting/review.
-- Pilot 6+: no code change for a normal merchant unless a real product gap is found.
+1. **Merchant delivery readiness** — prove a new merchant can be onboarded without bespoke product development.
+2. **Campaign delivery readiness** — prove an existing merchant can launch differentiated journeys without duplicating catalog or forking the Store stack.
+3. **Sales proof** — give Sales multiple credible, brand-relevant examples before merchant outreach begins.
+
+Success is not “15 custom demos.” Success is:
+
+> By the sixth merchant, normal merchant delivery is configuration + catalog + QA + publish; by the second Campaign for an existing merchant, normal Campaign delivery is catalog selection + campaign configuration + QA + publish.
 
 ---
 
-## 2. Naming and evidence policy
+## 2. Architecture rule for the factory
 
-These first five are **Reference Pilots / Pilot Simulations**, not claimed merchant partnerships.
+All reference work follows the shared Merchant Experience architecture:
+
+```text
+Merchant / Brand
+│
+├── Brand / Theme
+├── Catalog
+└── Experiences
+    ├── Store Experience (optional)
+    ├── Campaign Experience A
+    ├── Campaign Experience B
+    └── Campaign Experience C
+```
+
+Key rules:
+
+- Catalog belongs to Merchant.
+- Store and Campaign are sibling Experiences.
+- Store is not a mandatory parent for Campaign.
+- `STORE` and `CAMPAIGN` reuse the same recommendation, Try-On, Compare, privacy, usage, intent, attribution, and event foundations.
+- An Experience selects from the Merchant catalog; it must not create duplicate product identity.
+- A merchant that only wants one 8–50 frame hosted Store remains a first-class, simple use case.
+- A merchant that only wants one Campaign does not need to configure a broad Store first.
+
+See `docs/product/specs/merchant-experience-architecture.md` for the domain contract.
+
+---
+
+## 3. Naming and evidence policy
+
+These first references are **Reference Experiences / Pilot Simulations**, not claimed merchant partnerships.
 
 Allowed wording:
 
+- Reference Brand
+- Reference Experience
 - Reference Pilot
 - Pilot Simulation
 - Sample Merchant Experience
 - Reference Store
+- Reference Campaign
 
 Do not claim:
 
@@ -52,127 +89,143 @@ Public brand assets and catalog facts may be used only for internal validation, 
 
 ---
 
-## 3. Selected Reference Pilot Portfolio
+## 4. Selected Reference Brand Portfolio
+
+The five selected brands remain useful because they exercise different merchant and shopper patterns. The change is that each brand should now prove more than one Experience where that adds meaningful learning value.
 
 Selection criteria:
 
 1. Independent or boutique-oriented eyewear business with a real public catalog.
 2. Public product imagery and product destinations are sufficiently structured for assisted catalog onboarding.
-3. Distinct merchant / shopper problem so each pilot tests a different delivery pattern.
+3. Distinct merchant / shopper problem so each brand tests a different delivery pattern.
 4. Representative of merchants VisuTry could plausibly sell to.
-5. Together the five must test DTC, premium brand, fashion / collaboration, existing-VTO differentiation, and multi-brand optical retail.
+5. Together the portfolio should exercise DTC, premium brand, fashion / collaboration, existing-VTO differentiation, and multi-brand optical retail.
 
-### P1 — ello sunglasses
+### B1 — ello sunglasses
 
 **Archetype:** Narrow-fit / problem-led DTC sunglasses brand.  
 **Why selected:** The brand is explicitly built for petite faces and smaller head sizes. Its public site describes six distinct petite-fit frame styles, detailed measurements, polarized UV400 lenses, and a 10-day home try-on. The site identifies itself as powered by Shopify. This creates an unusually clear shopper problem for recommendation: fit and proportion, not just style.
 
-**Reference pilot hypothesis:**
-
-> VisuTry can turn a fit-specific catalog into a guided “which petite frame suits me?” journey, then validate the shortlist with Try-On and Compare.
-
-**Primary test:** Fit metadata, size classes, recommendation reasons, small catalog onboarding, product click intent.
+**Merchant-level test:** Fit metadata, size classes, recommendation reasons, small catalog onboarding, stable product click destination.
 
 **Catalog target:** All 6 core styles, optionally selected colorways.
 
+**Reference Experience hypotheses:**
+
+1. **Hosted Store / Petite-fit Store** — broad persistent experience over the reviewed catalog.
+2. **Find Your Petite Fit** — intent-led Campaign focused on proportion / size guidance.
+3. **Summer Sunglasses / Best Frames for Small Faces** — collection or seasonal Campaign if it adds distinct presentation / CTA / analytics learning.
+
 **Research snapshot:** `https://ellosunglasses.com/`, `https://ellosunglasses.com/pages/petite-frame-size-guide`.
 
-### P2 — Lowercase NYC
+### B2 — Lowercase NYC
 
 **Archetype:** Premium independent optical + sunglasses brand.  
 **Why selected:** Lowercase is an independent Brooklyn eyewear brand with a strong premium identity, handmade production story, optical and sunglass ranges, and a public catalog of roughly 60 products. Its site identifies Shopify as the commerce platform. Product pages expose shape/design copy, size dimensions, variants, and product imagery.
 
-**Reference pilot hypothesis:**
-
-> VisuTry can preserve a premium brand aesthetic while reducing shopper uncertainty across a broader optical / sun catalog.
-
-**Primary test:** Brand theming, larger catalog normalization, optical + sun segmentation, recommendation shortlist, premium presentation.
+**Merchant-level test:** Brand theming, larger catalog normalization, optical + sun segmentation, premium presentation.
 
 **Catalog target:** 16–24 representative frames across optical and sun, not the entire catalog in v1.
 
+**Reference Experience hypotheses:**
+
+1. **Premium Brand Store** — broad optical + sun experience using shared theme primitives.
+2. **Optical Essentials** — optical-only Campaign / subset.
+3. **Sunglasses Collection** — sun-only Campaign with distinct hero / CTA.
+
 **Research snapshot:** `https://lowercasenyc.com/`, `https://lowercasenyc.com/collections/all`.
 
-### P3 — AKILA
+### B3 — AKILA
 
 **Archetype:** Fashion / culture / collaboration-led independent eyewear brand.  
 **Why selected:** AKILA describes itself as an independent Los Angeles eyewear brand focused on handmade limited-run eyewear, with optical and sunglasses collections, sustainability positioning, collaborations, and stores in Los Angeles and New York. The catalog is highly style-led and visually expressive.
 
-**Reference pilot hypothesis:**
-
-> VisuTry can support fashion-led discovery where the shopper is choosing a visual identity, not only solving a technical fit problem.
-
-**Primary test:** Style tags, campaign / collection entry, statement-frame recommendation, social-style traffic context, Compare.
+**Merchant-level test:** Style tags, collection context, visually expressive brand treatment, social-style traffic context, Compare.
 
 **Catalog target:** 12–20 current, visually distinct frames across core / collaboration / optical where product facts are public.
 
+**Reference Experience hypotheses:**
+
+1. **Brand / Style Store** — persistent discovery surface.
+2. **Statement Frames** — style-intent Campaign.
+3. **New Collection / Collaboration** — campaign-led discovery with selected frames and campaign creative.
+
 **Research snapshot:** `https://akila.la/`, `https://akila.la/en-gb/pages/akila-eyewear`.
 
-### P4 — Article One
+### B4 — Article One
 
 **Archetype:** Active / performance eyewear with existing VTO.  
-**Why selected:** Article One positions around independent optical, active use, practical fit technology, and premium design. Importantly, current product pages already include a 3D / AR Virtual Try-On experience. This makes Article One a deliberate benchmark rather than a greenfield VTO target.
+**Why selected:** Article One positions around independent optical, active use, practical fit technology, and premium design. Current product pages already include a 3D / AR Virtual Try-On experience. This makes Article One a deliberate benchmark rather than a greenfield VTO target.
 
-**Reference pilot hypothesis:**
-
-> VisuTry should demonstrate value beyond “has virtual try-on”: recommendation → shortlist → Try-On → Compare → measurable intent and campaign/source continuity.
-
-**Primary test:** Competitive differentiation, performance/fit metadata, recommendation reasons, existing-VTO benchmark, intent instrumentation.
+**Merchant-level test:** Competitive differentiation, performance/fit metadata, recommendation reasons, existing-VTO benchmark, intent instrumentation.
 
 **Catalog target:** 12–16 representative Active / sun frames.
 
+**Reference Experience hypotheses:**
+
+1. **Active Eyewear Store** — persistent experience over selected active / sun frames.
+2. **Find Your Fit** — fit / use-case Campaign.
+3. **Beyond VTO Decision Journey** — sales-reference Campaign explicitly demonstrating recommendation → Try-On → Compare → measurable intent.
+
 **Research snapshot:** `https://www.articleoneeyewear.com/optical`, representative product pages with the current Virtual Try-On section.
 
-### P5 — Framed EWE
+### B5 — Framed EWE
 
 **Archetype:** Multi-brand independent optical retailer.  
-**Why selected:** Framed EWE operates online and in Phoenix / Los Angeles, selling independent eyewear brands across eyeglasses and sunglasses and offering eye exams / prescription services. Unlike the first four pilots, the catalog is merchant-curated and multi-brand.
+**Why selected:** Framed EWE operates online and in Phoenix / Los Angeles, selling independent eyewear brands across eyeglasses and sunglasses and offering eye exams / prescription services. Unlike the first four brands, the catalog is merchant-curated and multi-brand.
 
-**Reference pilot hypothesis:**
-
-> VisuTry can function as a retailer-level decision layer over many brands, while keeping stable merchant product identity and product destinations.
-
-**Primary test:** Multi-brand catalog, brand filters, retailer attribution, retailer inquiry, mixed product identity, larger catalog curation.
+**Merchant-level test:** Multi-brand catalog, brand filters, retailer attribution, retailer inquiry, mixed product identity, larger catalog curation.
 
 **Catalog target:** 20–30 representative frames across 5–8 brands, curated rather than full-store import.
+
+**Reference Experience hypotheses:**
+
+1. **Multi-brand Optical Store** — persistent retailer-level decision surface.
+2. **Sunglasses Edit** — selected multi-brand Campaign.
+3. **Multi-brand Optical Selection** — optical-intent Campaign emphasizing retailer curation.
 
 **Research snapshot:** `https://framedewe.com/`.
 
 ---
 
-## 4. Why these five as a portfolio
+## 5. Why 5 Brands × 10–15 Experiences
 
-| Pilot | Business pattern | Primary complexity exercised |
-| --- | --- | --- |
-| ello | niche DTC | fit / proportion recommendation |
-| Lowercase | premium independent brand | brand fidelity + larger catalog |
-| AKILA | fashion / collaboration | style discovery + campaign context |
-| Article One | existing VTO / active | value beyond VTO + intent measurement |
-| Framed EWE | multi-brand optical retailer | multi-brand product identity + inquiry |
+The original five-merchant portfolio already tests merchant diversity. The expanded portfolio now tests **experience repeatability** inside the same merchant.
 
-This mix is intentionally not homogeneous. If the same delivery system can support all five without merchant-specific forks, it is stronger evidence that the Store / Commerce foundation is reusable.
+| Brand | Business pattern | Merchant complexity | Experience complexity |
+| --- | --- | --- | --- |
+| ello | niche DTC | fit / proportion data | intent-led petite-fit journey |
+| Lowercase | premium independent brand | brand fidelity + larger catalog | optical vs sun subsets / presentation |
+| AKILA | fashion / collaboration | style intelligence | campaign / collection context |
+| Article One | existing VTO / active | value beyond VTO | recommendation + comparison + intent continuity |
+| Framed EWE | multi-brand optical retailer | multi-brand identity + inquiry | retailer curation across subsets |
+
+The portfolio is intentionally not homogeneous.
+
+The strongest proof is not that VisuTry can make five different branded pages. It is that the same Merchant + Catalog + Experience system can support all five brands and multiple journeys per brand without merchant-specific forks.
 
 ---
 
-## 5. Delivery Factory Workflow
+## 6. Delivery Factory Workflow
 
-Every pilot must use the same operational path:
+### 6.1 New Brand / Merchant workflow
 
 ```text
 Merchant research
     ↓
-Pilot intake record
+Merchant intake record
     ↓
 Catalog capture / CSV normalization
     ↓
 Merchant facts vs AI enrichment separation
     ↓
-Select 8–50 pilot frames
+Select 8–50 reviewed merchant frames
     ↓
 Merchant configuration
     ↓
 Frame enrichment + review
     ↓
-Hosted Store / campaign route
+Create first Experience (usually Store)
     ↓
 Recommendation QA
     ↓
@@ -180,12 +233,49 @@ Try-On / Compare QA
     ↓
 Intent + attribution QA
     ↓
-Publish as private/reference pilot
+Publish private/reference Experience
     ↓
 Capture implementation time + exceptions
 ```
 
-A delivery exception must be classified as one of:
+### 6.2 Additional Campaign workflow
+
+```text
+Existing Merchant + reviewed Catalog
+    ↓
+Campaign hypothesis / objective
+    ↓
+Select catalog subset
+    ↓
+Campaign copy / creative / offer
+    ↓
+CTA / destination configuration
+    ↓
+Source / date / attribution context
+    ↓
+Journey + mobile QA
+    ↓
+Performance-view QA
+    ↓
+Publish Reference Campaign
+    ↓
+Capture campaign delivery time + exceptions
+```
+
+A normal second Campaign should not require:
+
+- a new merchant tenant;
+- duplicate frame rows;
+- a new recommendation engine;
+- a new Try-On flow;
+- a new admin stack;
+- product code changes.
+
+---
+
+## 7. Delivery exception classification
+
+Every delivery exception must be classified as one of:
 
 - data problem;
 - asset problem;
@@ -195,185 +285,199 @@ A delivery exception must be classified as one of:
 
 Only a reusable product gap should normally justify new platform code.
 
+A repeated Experience / Campaign need is stronger evidence of a reusable product gap than a one-off brand preference.
+
 ---
 
-## 6. Pilot Definition of Done
+## 8. Definition of Done
 
-A reference pilot is complete only when all of the following are true:
+### Merchant / Catalog
 
-### Catalog
-
-- 8–50 reviewed frames are active;
+- 8–50 reviewed frames are active where applicable;
 - every frame has stable merchant-scoped identity;
 - canonical product URL is present where public;
 - source facts are separated from AI-enriched attributes;
 - primary frame image is usable for Try-On;
-- no invented price / availability / product fact.
+- no invented price / availability / product fact;
+- Experiences reference existing MerchantFrame identity rather than duplicate products.
 
-### Shopper journey
+### Experience / shopper journey
 
-- reference/pilot URL opens correctly on desktop and mobile;
+- reference URL opens correctly on desktop and mobile;
+- merchant and Experience identity are correct;
 - privacy notice and anonymous session work;
-- recommendation produces a useful merchant-scoped shortlist;
+- recommendation produces a useful Experience-scoped shortlist from the selected merchant catalog;
 - shopper can select frames;
 - Try-On works on selected frames;
 - Compare works for completed results;
-- product click, favorite, and/or inquiry can be captured as applicable;
-- no Consumer credit prompt appears in Merchant Store flow.
+- favorite / shortlist and merchant conversion actions work where configured;
+- product click / inquiry / coupon / appointment / collection CTA points to the correct destination where applicable;
+- no Consumer credit prompt appears in Merchant Experience flow.
 
 ### Measurement
 
-- source / campaign context can be attached to the session;
-- recommendation, Try-On, Compare, favorite, product click and inquiry events are persisted where applicable;
-- merchant insight view shows the pilot activity;
-- synthetic/reference traffic is clearly tagged and distinguishable from future live merchant traffic.
+- `merchant_id` and Experience context are attached to the shopper session;
+- source / campaign context survives the full journey;
+- recommendation, Try-On, Compare, favorite / shortlist, product click and inquiry events are persisted where applicable;
+- Merchant Overview can aggregate across Experiences;
+- Experience / Campaign performance can be isolated;
+- synthetic/reference traffic is clearly distinguishable from future live merchant traffic.
 
 ### QA
 
-- Smoke checks pass for the pilot route;
+- smoke checks pass for the route;
 - no cross-merchant catalog leakage;
+- no cross-Experience catalog leakage;
 - no raw shopper face image is exposed in merchant analytics;
 - failed generation does not incorrectly create positive intent or consume consumer credits;
 - mobile viewport is usable for the full critical journey.
 
 ### Sales evidence
 
-Capture a standard evidence pack:
+Each brand should eventually have:
 
-1. Pilot overview card.
-2. Shopper entry screenshot.
-3. Recommendation screenshot.
-4. Try-On / Compare screenshot.
-5. Merchant insight screenshot using clearly synthetic/reference data.
-6. Catalog size / merchant archetype.
-7. Actual implementation time.
-8. Exceptions / manual steps required.
+1. Brand / merchant overview card.
+2. At least one persistent or broad Experience screenshot.
+3. At least one differentiated Campaign entry screenshot.
+4. Recommendation screenshot.
+5. Try-On / Compare screenshot.
+6. Campaign / Experience performance screenshot using clearly synthetic/reference data.
+7. Catalog size / merchant archetype.
+8. Actual merchant setup time and incremental Campaign setup time.
+9. Exceptions / manual steps required.
 
 ---
 
-## 7. Execution Sequence
+## 9. Execution Sequence
 
-### Stage A — Factory baseline before Pilot 1
+### Stage A — P1 ello baseline: complete / baseline proven
 
-Timebox: <= 1 day.
+P1 has already established the first generic Merchant / catalog delivery path and reusable Delivery Kit.
+
+The next work should not simply clone the same Store four more times.
+
+### Stage B — Architecture upgrade before broad reference production
+
+Timebox: minimal architecture slice, not a generalized Campaign Builder.
 
 Required:
 
-- freeze the Pilot Delivery Kit contract in the related spec;
-- define merchant config fields;
-- define catalog CSV contract;
-- define reference/synthetic traffic marker;
-- define QA checklist;
-- create implementation-time log template.
+- first-class Experience concept;
+- `STORE | CAMPAIGN` distinction;
+- merchant-owned catalog + Experience frame selection;
+- Experience-aware session / attribution context;
+- Experience-level presentation / CTA configuration needed by references;
+- campaign list / performance IA sufficient for sales demonstration;
+- compatibility with existing Store route / shopper flow;
+- reference/synthetic-data separation preserved.
 
-Do not build self-service onboarding yet.
+Pass condition:
 
-### Stage B — P1 ello
+> ello can support its current Store plus a second differentiated Campaign without duplicate catalog rows or merchant-specific product code.
 
-Timebox: <= 2 days.
+### Stage C — B2 Lowercase
 
-Purpose: establish the golden path with the smallest, clearest catalog.
+Purpose: force brand fidelity, larger catalog normalization, and at least one meaningful catalog subset Campaign.
 
-Output:
+Pass condition: no bespoke Lowercase Store / Campaign components beyond supported theme / Experience configuration.
 
-- first complete reference pilot;
-- first catalog CSV;
-- first merchant config;
-- first QA run;
-- list of every manual step.
+### Stage D — B3 AKILA
 
-### Stage C — P2 Lowercase
+Purpose: prove style / collection / campaign-led discovery.
 
-Timebox: <= 2 days.
+Pass condition: campaign / collection context changes entry, catalog subset, CTA, and reporting without forking recommendation or Try-On.
 
-Purpose: force brand fidelity and catalog scaling.
-
-Pass condition: no bespoke Store code for Lowercase-specific visual treatment beyond supported merchant theme/configuration.
-
-### Stage D — P3 AKILA
-
-Timebox: <= 1–2 days.
-
-Purpose: test style/campaign-led discovery and visually diverse frames.
-
-Pass condition: campaign / collection context can change entry and reporting without forking the recommendation or Store stack.
-
-### Stage E — P4 Article One
-
-Timebox: <= 1 day.
+### Stage E — B4 Article One
 
 Purpose: prove the sales narrative “beyond VTO.”
 
-Pass condition: reference pilot clearly demonstrates recommendation, comparison and intent continuity that a simple product-page VTO does not represent.
+Pass condition: recommendation, comparison, intent continuity, and Campaign performance are clearly demonstrable against a merchant that already has VTO.
 
-### Stage F — P5 Framed EWE
+### Stage F — B5 Framed EWE
 
-Timebox: <= 2 days.
+Purpose: test multi-brand merchant catalog behavior across multiple Experience subsets.
 
-Purpose: test multi-brand merchant catalog behavior.
-
-Pass condition: stable merchant product identity and brand distinctions survive recommendation, Try-On, Compare and product click/inquiry.
+Pass condition: stable merchant product identity and underlying brand distinctions survive Store, Campaign, recommendation, Try-On, Compare, product click and retailer inquiry.
 
 ### Stage G — Factory retrospective
 
-Immediately after P5:
+After the 5-brand / 10–15-Experience reference portfolio reaches sufficient coverage:
 
-- total hands-on time per pilot;
+- total hands-on time per new merchant;
+- incremental hands-on time per Campaign;
 - repeated manual tasks;
 - defects found;
 - configuration gaps;
 - catalog import pain;
+- Campaign setup pain;
 - top 3 automation candidates;
-- decide whether CSV/admin tooling is enough or URL-assisted import is now justified.
+- decide whether CSV/admin tooling is enough or URL-assisted import is justified;
+- decide when a self-service Campaign Builder becomes justified.
 
-The next product investment must be driven by repeated pain across these five pilots, not hypothetical onboarding complexity.
+The next product investment must be driven by repeated pain across real reference delivery, not hypothetical platform completeness.
 
 ---
 
-## 8. Metrics for this initiative
+## 10. Metrics for this initiative
 
-Primary operational metrics:
+### Operational metrics
 
-- time from intake to published reference pilot;
-- hands-on operator hours;
-- number of code changes per pilot;
-- number of merchant-specific forks: target **0**;
+- time from merchant intake to first published Experience;
+- hands-on operator hours per new merchant;
+- time from existing merchant to additional Campaign publish;
+- hands-on operator hours per additional Campaign;
+- number of code changes per merchant;
+- number of code changes per additional Campaign;
+- merchant-specific forks: target **0**;
+- Campaign-specific runtime forks: target **0**;
 - catalog acceptance rate without manual image repair;
-- QA defects per pilot;
-- repeated manual steps across >= 3 pilots.
+- QA defects per Experience;
+- repeated manual steps across >= 3 brands / Experiences.
 
-Primary sales-readiness metrics:
+### Sales-readiness metrics
 
-- 5 reference pilots complete;
+- 5 reference brands complete;
+- approximately 10–15 reference Experiences complete where each adds real learning / sales value;
 - 5 merchant archetypes represented;
-- at least 3 different catalog / shopping patterns proven;
-- standard evidence pack complete for all five;
-- sales can demo a merchant-relevant reference in <= 2 minutes.
+- Store-only use case demonstrable;
+- multi-Campaign merchant use case demonstrable;
+- at least 3 different catalog / shopping / campaign patterns proven;
+- standard evidence pack complete;
+- Sales can select a merchant-relevant reference and explain it in <=2 minutes.
 
-North-star acceptance:
+### North-star acceptance
 
-> A sixth normal eyewear merchant with 8–50 usable frames can be launched in <= 1 working day without product code changes.
+**Merchant delivery:**
+
+> A sixth normal eyewear merchant with 8–50 usable frames can be launched in <=1 working day without product code changes.
+
+**Campaign delivery:**
+
+> An existing merchant can launch a new Campaign from its reviewed catalog in <=1–2 hands-on hours without product code changes.
 
 ---
 
-## 9. What not to build during the five-pilot sprint
+## 11. What not to build during this sprint
 
-Unless a pilot is blocked, do not start:
+Unless the reference portfolio is blocked, do not start:
 
 - Shopify OAuth / app-store integration;
 - generic crawler platform;
-- merchant self-service builder;
-- generalized Campaign Builder;
-- custom recommendation engine per merchant;
+- merchant self-service onboarding;
+- drag-and-drop or generalized page builder;
+- generalized marketing automation;
+- email campaign delivery platform;
+- CRM;
+- custom recommendation engine per merchant / Campaign;
 - second Try-On pipeline;
-- full CRM;
-- verified revenue attribution claims;
-- broad enterprise permissions system.
+- verified revenue attribution claims without real commerce data;
+- broad enterprise permissions system;
+- autonomous AI-agent checkout.
 
-The sprint is a **repeatability test**, not a platform-expansion sprint.
+The sprint is a **Merchant + Experience repeatability test**, not a platform-completeness sprint.
 
 ---
 
-## 10. Research limitations
+## 12. Research limitations
 
-Brand facts above are based on publicly accessible website content reviewed on 2026-08-11. They are research candidates, not partnership claims. Catalog size, product availability, technology stack and site features may change. Before each pilot is built, perform a fresh catalog and asset review and record the snapshot date.
+Brand facts above are based on publicly accessible website content reviewed on 2026-08-11. They are research candidates, not partnership claims. Catalog size, product availability, technology stack and site features may change. Before each reference is built, perform a fresh catalog and asset review and record the snapshot date.
