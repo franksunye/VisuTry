@@ -307,9 +307,33 @@ function normalizedError(error: unknown) {
   return { name, message }
 }
 
+async function readBlobBytes(blob: Blob): Promise<Uint8Array> {
+  const blobWithArrayBuffer = blob as Blob & { arrayBuffer?: () => Promise<ArrayBuffer> }
+  if (typeof blobWithArrayBuffer.arrayBuffer === 'function') {
+    return new Uint8Array(await blobWithArrayBuffer.arrayBuffer())
+  }
+
+  if (typeof FileReader !== 'undefined') {
+    return await new Promise<Uint8Array>((resolve, reject) => {
+      const reader = new FileReader()
+      reader.onload = () => {
+        if (reader.result instanceof ArrayBuffer) {
+          resolve(new Uint8Array(reader.result))
+        } else {
+          reject(new Error('FileReader returned an unexpected result.'))
+        }
+      }
+      reader.onerror = () => reject(reader.error ?? new Error('FileReader failed.'))
+      reader.readAsArrayBuffer(blob)
+    })
+  }
+
+  throw new Error('Blob byte reading is unavailable.')
+}
+
 async function detectFileFormat(file: File): Promise<string> {
   try {
-    const bytes = new Uint8Array(await file.slice(0, 32).arrayBuffer())
+    const bytes = await readBlobBytes(file.slice(0, 32))
     if (bytes.length >= 3 && bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff) return 'jpeg'
     if (
       bytes.length >= 8 &&
