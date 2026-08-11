@@ -32,6 +32,7 @@ import type { ProductType } from '@/config/pricing'
 import type { AcquisitionAttribution } from '@/lib/acquisition-attribution'
 import { sanitizeAcquisitionAttribution } from '@/lib/acquisition-attribution'
 import { AnalyticsEvent } from '@/lib/analytics-events'
+import type { JourneyDestination, StoreLeadType } from '@/lib/analytics-events'
 import { setCampaignAnalyticsContext, trackCampaignEvent } from '@/lib/analytics-v2'
 
 const LANDING_PAGE_KEY = 'visutry_landing_page'
@@ -535,7 +536,10 @@ export const analytics = {
    */
   trackFaceShapeDetectorCta(
     faceShape: string,
-    destination: 'face_analysis' | 'glasses_advisor' | 'virtual_try_on' | 'frame_compare' | 'face_shape_guide',
+    destination: Extract<
+      JourneyDestination,
+      'face_analysis' | 'glasses_advisor' | 'virtual_try_on' | 'frame_compare' | 'face_shape_guide'
+    >,
   ) {
     const productPath = destination === 'face_shape_guide' ? undefined : destination
 
@@ -630,12 +634,12 @@ export const analytics = {
   trackStoreLeadCreated(params: {
     locale: string
     businessType: string
-    intent: string
+    intent: StoreLeadType
     frameCount?: string
     campaignId?: string
     merchantId?: string
     storeId?: string
-    leadType?: string
+    leadType?: StoreLeadType
   }) {
     sendEvent(AnalyticsEvent.B2bLeadCreated, {
       source: 'store_landing',
@@ -784,7 +788,10 @@ export const analytics = {
     locale,
   }: {
     sourcePage: string
-    destination: 'face_shape_detector' | 'face_analysis' | 'glasses_try_on' | 'glasses_for_face_shape'
+    destination: Extract<
+      JourneyDestination,
+      'face_shape_detector' | 'face_analysis' | 'glasses_try_on' | 'glasses_for_face_shape'
+    >
     ctaLocation: string
     locale: string
   }) {

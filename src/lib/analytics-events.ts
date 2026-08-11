@@ -88,15 +88,23 @@ export type ComparisonCompletionStatus = 'full' | 'partial' | 'failed'
 
 export type JourneyDestination =
   | 'face_analysis'
+  | 'face_shape_detector'
   | 'glasses_advisor'
+  | 'glasses_try_on'
+  | 'glasses_for_face_shape'
   | 'virtual_try_on'
   | 'frame_compare'
   | 'face_shape_guide'
+  | 'recommendation'
+  | 'style_explorer'
   | 'store'
   | 'pricing'
-  | string
 
-export type StoreLeadType = 'sample' | 'demo' | 'catalog' | 'partnership' | string
+export type StoreLeadType =
+  | 'sample'
+  | 'demo'
+  | 'catalog'
+  | 'partnership'
 
 export type FaceFailureReason =
   | 'no_face'

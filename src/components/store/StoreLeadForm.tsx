@@ -4,6 +4,7 @@ import { FormEvent, useMemo, useRef, useState } from 'react'
 import { ArrowRight, Mail } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import { analytics } from '@/lib/analytics'
+import type { StoreLeadType } from '@/lib/analytics-events'
 
 interface StoreLeadFormProps {
   locale: string
@@ -17,13 +18,13 @@ export function StoreLeadForm({ locale }: StoreLeadFormProps) {
   const [businessType, setBusinessType] = useState('opticalStore')
   const [website, setWebsite] = useState('')
   const [frameCount, setFrameCount] = useState('8-20')
-  const [intent, setIntent] = useState('sample')
+  const [intent, setIntent] = useState<StoreLeadType>('sample')
   const [notes, setNotes] = useState('')
   const [submitted, setSubmitted] = useState(false)
   const hasTrackedFormStart = useRef(false)
 
   const businessTypeKeys = ['opticalStore', 'ecommerce', 'stylist', 'agency', 'socialSeller', 'other'] as const
-  const intentKeys = ['sample', 'demo', 'catalog', 'partnership'] as const
+  const intentKeys = ['sample', 'demo', 'catalog', 'partnership'] as const satisfies readonly StoreLeadType[]
 
   const mailtoHref = useMemo(() => {
     const businessTypeLabel = t(`formBusinessTypes.${businessType}`)
@@ -160,7 +161,7 @@ export function StoreLeadForm({ locale }: StoreLeadFormProps) {
           <span className="mb-1 block text-sm font-semibold text-gray-800">{t('formLabels.intent')}</span>
           <select
             value={intent}
-            onChange={(event) => setIntent(event.target.value)}
+            onChange={(event) => setIntent(event.target.value as StoreLeadType)}
             className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 outline-none transition focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
           >
             {intentKeys.map((key) => (

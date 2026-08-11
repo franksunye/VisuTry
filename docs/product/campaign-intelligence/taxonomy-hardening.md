@@ -45,13 +45,33 @@ unknown
 
 ## v2 freeze note — closed journey enums
 
-`AnalyticsJourneyType` is a closed union (no `| string`):
+`AnalyticsJourneyType`, `JourneyDestination`, and `StoreLeadType` are closed unions (no `| string`):
 
 ```ts
 type AnalyticsJourneyType =
   | 'shopper_campaign'
   | 'visutry_b2b_acquisition'
   | 'consumer_organic'
+
+type JourneyDestination =
+  | 'face_analysis'
+  | 'face_shape_detector'
+  | 'glasses_advisor'
+  | 'glasses_try_on'
+  | 'glasses_for_face_shape'
+  | 'virtual_try_on'
+  | 'frame_compare'
+  | 'face_shape_guide'
+  | 'recommendation'
+  | 'style_explorer'
+  | 'store'
+  | 'pricing'
+
+type StoreLeadType =
+  | 'sample'
+  | 'demo'
+  | 'catalog'
+  | 'partnership'
 ```
 
-New journey types must be added explicitly in `analytics-events.ts`.
+New values must be added explicitly in `analytics-events.ts`.
