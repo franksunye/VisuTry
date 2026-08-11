@@ -1,0 +1,28 @@
+{
+  "experienceSlug": "statement-frames",
+  "type": "CAMPAIGN",
+  "name": "Statement Frames",
+  "status": "ACTIVE",
+  "headline": "Discover frames with a point of view",
+  "description": "Reference Pilot / Simulation: style-first discovery across bold, sculptural, soft, and colorful silhouettes.",
+  "catalogSelection": [
+    "AKILA-2647-93-33",
+    "AKILA-2640-92-32",
+    "AKILA-2610-99-06",
+    "AKILA-2641-01-01",
+    "AKILA-2607-01-01",
+    "AKILA-2639-33-03",
+    "AKILA-2636-54-64",
+    "AKILA-2608-01-32",
+    "AKILA-2619-01-01"
+  ],
+  "primaryCta": {
+    "type": "PRODUCT_OR_COLLECTION",
+    "label": "View frame"
+  },
+  "referenceData": true,
+  "measurement": {
+    "defaultSource": "visutry-reference-pilot",
+    "defaultCampaign": "akila-statement-frames"
+  }
+}

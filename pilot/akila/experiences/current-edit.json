@@ -1,0 +1,28 @@
+{
+  "experienceSlug": "current-edit",
+  "type": "CAMPAIGN",
+  "name": "Current Edit",
+  "status": "ACTIVE",
+  "headline": "Explore the current AKILA edit",
+  "description": "Reference Pilot / Simulation: a focused edit from the official SS26 catalog structure.",
+  "catalogSelection": [
+    "AKILA-2647-01-01",
+    "AKILA-2610-99-06",
+    "AKILA-2638-01-01",
+    "AKILA-2630-01-01",
+    "AKILA-2606-01-01",
+    "AKILA-2612-01-01",
+    "AKILA-2604-01-01",
+    "AKILA-2641-01-09",
+    "AKILA-2619-09-09"
+  ],
+  "primaryCta": {
+    "type": "PRODUCT_OR_COLLECTION",
+    "label": "View frame"
+  },
+  "referenceData": true,
+  "measurement": {
+    "defaultSource": "visutry-reference-pilot",
+    "defaultCampaign": "akila-current-edit"
+  }
+}

@@ -26,6 +26,14 @@ function assertSeedEnvironment() {
 }
 
 async function main() {
+  const dryRun = process.argv.includes('--dry-run')
+  if (dryRun) {
+    const packagePath = process.argv.slice(2).find((argument) => !argument.startsWith('--')) ?? 'pilot/ello-sunglasses'
+    const { runPilotSeedPlan } = await import('./pilot-seed-plan')
+    const plan = await runPilotSeedPlan(packagePath)
+    if (plan?.errors.length) process.exitCode = 1
+    return
+  }
   assertSeedEnvironment()
   const packageDir = resolve(process.argv[2] || 'pilot/ello-sunglasses')
   const { config, catalog, experiences } = await readPilotPackage(packageDir)

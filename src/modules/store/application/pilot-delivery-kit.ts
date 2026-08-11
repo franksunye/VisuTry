@@ -99,6 +99,22 @@ export type ExistingPilotFrame = {
   source: string
 }
 
+export type PilotPreflightSummary = {
+  merchant: string
+  catalogRows: number
+  activeRows: number
+  experienceCount: number
+  storeCount: number
+  campaignCount: number
+  selectedFrameCounts: Array<{ slug: string; type: PilotExperienceConfig['type']; count: number }>
+}
+
+export type PilotPreflightReport = {
+  summary: PilotPreflightSummary
+  warnings: string[]
+  errors: string[]
+}
+
 function clean(value: string | undefined): string {
   return (value ?? '').trim()
 }
@@ -135,6 +151,108 @@ function listValue(value: string | undefined): string[] {
     .split('|')
     .map((item) => item.trim())
     .filter(Boolean)
+}
+
+export function isSyntacticallyValidHttpUrl(value: string): boolean {
+  if (!value || /[\u0000-\u0020\u007f]/.test(value)) return false
+  try {
+    const url = new URL(value)
+    return (url.protocol === 'http:' || url.protocol === 'https:') && Boolean(url.hostname)
+  } catch {
+    return false
+  }
+}
+
+export function isSyntacticallyValidDestinationUrl(value: string): boolean {
+  if (!value || /[\u0000-\u0020\u007f]/.test(value)) return false
+  if (value.startsWith('/') && !value.startsWith('//')) return true
+  try {
+    const url = new URL(value)
+    return url.protocol === 'https:' && Boolean(url.hostname)
+  } catch {
+    return false
+  }
+}
+
+export function buildPilotPreflightReport(input: {
+  config: PilotMerchantConfig
+  catalog: PilotCatalogRow[]
+  experiences: PilotExperienceConfig[]
+}): PilotPreflightReport {
+  const { config, catalog, experiences } = input
+  const errors: string[] = []
+  const warnings: string[] = []
+  const activeRows = catalog.filter((row) => row.status === 'ACTIVE')
+  const activeIds = new Set(activeRows.map((row) => row.externalId))
+  const catalogIds = new Set(catalog.map((row) => row.externalId))
+  const activeStores = experiences.filter((experience) => experience.type === 'STORE' && experience.status === 'ACTIVE')
+
+  if (activeStores.length > 1) {
+    errors.push(`At most one ACTIVE STORE experience is allowed; found ${activeStores.length}`)
+  }
+  if (config.pilotType === 'REFERENCE' && !config.referenceData) {
+    errors.push('REFERENCE pilot must set referenceData=true')
+  }
+  if (config.referenceData && !config.measurement.referenceTraffic) {
+    errors.push('referenceData=true requires measurement.referenceTraffic=true')
+  }
+  if (!config.measurement.defaultSource.trim() || !config.measurement.defaultCampaign.trim()) {
+    errors.push('Reference/source defaults must include non-empty defaultSource and defaultCampaign')
+  }
+  if (config.websiteUrl && !isSyntacticallyValidHttpUrl(config.websiteUrl)) {
+    errors.push(`Invalid merchant website URL: ${config.websiteUrl}`)
+  }
+
+  for (const row of catalog) {
+    if (!isSyntacticallyValidHttpUrl(row.productUrl)) errors.push(`${row.externalId}: invalid product URL`)
+    if (!isSyntacticallyValidHttpUrl(row.imageUrl)) errors.push(`${row.externalId}: invalid image URL`)
+  }
+
+  for (const experience of experiences) {
+    const selectedIds = experience.catalogSelection === 'ALL_ACTIVE'
+      ? activeRows.map((row) => row.externalId)
+      : experience.catalogSelection
+    if (experience.catalogSelection === 'ALL_ACTIVE' && selectedIds.length === 0) {
+      errors.push(`${experience.experienceSlug}: ALL_ACTIVE resolves to zero ACTIVE catalog rows`)
+    }
+    for (const externalId of selectedIds) {
+      if (!catalogIds.has(externalId)) {
+        errors.push(`${experience.experienceSlug}: selected catalog row does not exist: ${externalId}`)
+      } else if (!activeIds.has(externalId)) {
+        errors.push(`${experience.experienceSlug}: selected catalog row is not ACTIVE: ${externalId}`)
+      }
+    }
+    if (experience.referenceData === false && config.referenceData) {
+      errors.push(`${experience.experienceSlug}: referenceData=false would hide a REFERENCE pilot marker`)
+    }
+    for (const destination of [experience.primaryCta?.url, experience.secondaryCta?.url]) {
+      if (destination && !isSyntacticallyValidDestinationUrl(destination)) {
+        errors.push(`${experience.experienceSlug}: invalid CTA destination URL`)
+      }
+    }
+  }
+
+  if (config.referenceData) {
+    warnings.push('referenceData=true: treat all resulting traffic as Reference Pilot / Simulation, not live merchant traffic')
+  }
+
+  return {
+    summary: {
+      merchant: `${config.displayName} (${config.merchantSlug})`,
+      catalogRows: catalog.length,
+      activeRows: activeRows.length,
+      experienceCount: experiences.length,
+      storeCount: experiences.filter((experience) => experience.type === 'STORE').length,
+      campaignCount: experiences.filter((experience) => experience.type === 'CAMPAIGN').length,
+      selectedFrameCounts: experiences.map((experience) => ({
+        slug: experience.experienceSlug,
+        type: experience.type,
+        count: experience.catalogSelection === 'ALL_ACTIVE' ? activeRows.length : experience.catalogSelection.length,
+      })),
+    },
+    warnings,
+    errors,
+  }
 }
 
 /** Small RFC 4180-compatible parser for the assisted pilot CSV contract. */

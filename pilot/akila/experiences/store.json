@@ -1,0 +1,18 @@
+{
+  "experienceSlug": "default",
+  "type": "STORE",
+  "name": "AKILA Store",
+  "status": "ACTIVE",
+  "headline": "Explore AKILA's current eyewear collection",
+  "description": "Reference Pilot / Simulation using a curated public catalog selected for shape, material, and color diversity.",
+  "catalogSelection": "ALL_ACTIVE",
+  "primaryCta": {
+    "type": "PRODUCT_OR_COLLECTION",
+    "label": "View frame"
+  },
+  "referenceData": true,
+  "measurement": {
+    "defaultSource": "visutry-reference-pilot",
+    "defaultCampaign": "akila"
+  }
+}
