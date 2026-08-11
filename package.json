@@ -8,6 +8,7 @@
     "dev:skip-prisma": "next dev",
     "dev:test": "next dev --port 3001",
     "mail": "tsx scripts/mail.ts",
+    "refund:payment": "tsx scripts/refund-payment.ts",
     "build": "prisma generate && bash scripts/migrate-deploy.sh && next build",
     "build:ci": "prisma generate && next build",
     "start": "next start",

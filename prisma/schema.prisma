@@ -225,6 +225,9 @@ model Payment {
   statusReason    String?
   completedAt     DateTime?
   failedAt        DateTime?
+  refundId        String?       @unique
+  refundedAt      DateTime?
+  creditsRevoked  Int           @default(0)
 
   user            User          @relation(fields: [userId], references: [id], onDelete: Cascade)
 
