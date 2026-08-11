@@ -1,0 +1,30 @@
+{
+  "experienceSlug": "find-your-frames",
+  "type": "CAMPAIGN",
+  "name": "Find Your Frames",
+  "status": "ACTIVE",
+  "headline": "Compare shapes and proportions across independent eyewear",
+  "description": "Reference Pilot / Simulation: a cross-brand discovery edit using public product facts and operator enrichment for shape and relative width. Measurements support comparison only and are not a fit guarantee.",
+  "catalogSelection": [
+    "FRAMED-EWE-10472967405856-51987850428704",
+    "FRAMED-EWE-10450696569120-51950672609568",
+    "FRAMED-EWE-10308458184992-51595211473184",
+    "FRAMED-EWE-10488944066848-52016548839712",
+    "FRAMED-EWE-10490500776224-52020666269984",
+    "FRAMED-EWE-10485428781344-52004437983520",
+    "FRAMED-EWE-10474890166560-51991096394016",
+    "FRAMED-EWE-10474887446816-51991092330784",
+    "FRAMED-EWE-10464586400032-51972569104672",
+    "FRAMED-EWE-10216407728416-51275447304480",
+    "FRAMED-EWE-10464548061472-51972550492448"
+  ],
+  "primaryCta": {
+    "type": "PRODUCT_OR_COLLECTION",
+    "label": "View frame"
+  },
+  "referenceData": true,
+  "measurement": {
+    "defaultSource": "visutry-reference-pilot",
+    "defaultCampaign": "framed-ewe-find-your-frames"
+  }
+}

@@ -1,0 +1,31 @@
+{
+  "experienceSlug": "sunglasses-edit",
+  "type": "CAMPAIGN",
+  "name": "Sunglasses Edit",
+  "status": "ACTIVE",
+  "headline": "Explore a cross-brand sunglasses edit",
+  "description": "Reference Pilot / Simulation: a cross-brand sunglasses selection from the Framed EWE retailer catalog. Product facts are public source facts; style labels are operator enrichment and make no popularity or performance claim.",
+  "catalogSelection": [
+    "FRAMED-EWE-10472967405856-51987850428704",
+    "FRAMED-EWE-10450729992480-51950719959328",
+    "FRAMED-EWE-10450711445792-51950692303136",
+    "FRAMED-EWE-10488944066848-52016548839712",
+    "FRAMED-EWE-10488935940384-52016531996960",
+    "FRAMED-EWE-10308451991840-51595190042912",
+    "FRAMED-EWE-10490557333792-52020703133984",
+    "FRAMED-EWE-10490544619808-52020699693344",
+    "FRAMED-EWE-10474953310496-51991134961952",
+    "FRAMED-EWE-10474916217120-51991102882080",
+    "FRAMED-EWE-10464586400032-51972569104672",
+    "FRAMED-EWE-10457316426016-51960624578848"
+  ],
+  "primaryCta": {
+    "type": "PRODUCT_OR_COLLECTION",
+    "label": "View frame"
+  },
+  "referenceData": true,
+  "measurement": {
+    "defaultSource": "visutry-reference-pilot",
+    "defaultCampaign": "framed-ewe-sunglasses-edit"
+  }
+}
