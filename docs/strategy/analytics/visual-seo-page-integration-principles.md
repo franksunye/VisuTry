@@ -125,4 +125,11 @@ For the first accepted B01 pages:
 - `/en/style/square-face`: VSEO-031 recommendation visual, VSEO-032 rounded-versus-strong-rectangle comparison, and VSEO-033 fit/proportion guidance.
 - B04 renders one full 4:3 editorial visual at each decision stage. The primary visual is capped at a focused desktop width; mobile keeps every image full-width and uncropped.
 
+## B05 implementation baseline
+
+- `/en/style/heart-face`: VSEO-034 recommendation visual, VSEO-035 rounded-versus-cat-eye comparison, and VSEO-036 fit/proportion guidance.
+- `/en/style/diamond-face`: VSEO-037 recommendation visual, VSEO-038 browline-versus-oval comparison, and VSEO-039 fit/proportion guidance.
+- `/en/style/oblong-face`: VSEO-040 recommendation visual, VSEO-041 oversized-versus-deeper-rounded comparison, and VSEO-042 fit/proportion guidance.
+- B05 reuses the shared Face Owner visual module: one full 4:3 editorial visual per decision stage, focused desktop width, full-width uncropped mobile rendering, and semantic headings kept screen-reader-only when the master image carries the visible title.
+
 Future B04+ integrations should apply the same page-level hierarchy, breakpoint-density, semantic-copy, and heading-duplication checks by default rather than repeating multiple full-size cards or duplicate titles per page.

@@ -5,18 +5,20 @@ import {
   B02_VISUAL_SEO_ASSETS,
   B03_VISUAL_SEO_ASSETS,
   B04_VISUAL_SEO_ASSETS,
+  B05_VISUAL_SEO_ASSETS,
   getVisualSeoAssetsForPage,
   VISUAL_SEO_ASSETS,
 } from '@/config/visual-seo-assets'
 
-describe('B01, B02, B03, and B04 visual SEO master assets', () => {
-  it('keeps all thirty-three source and public assets present with stable dimensions', () => {
+describe('B01 through B05 visual SEO master assets', () => {
+  it('keeps all forty-two source and public assets present with stable dimensions', () => {
     expect(B01_VISUAL_SEO_ASSETS).toHaveLength(8)
     expect(B02_VISUAL_SEO_ASSETS).toHaveLength(8)
     expect(B03_VISUAL_SEO_ASSETS).toHaveLength(8)
     expect(B04_VISUAL_SEO_ASSETS).toHaveLength(9)
-    expect(new Set(VISUAL_SEO_ASSETS.map((asset) => asset.id)).size).toBe(33)
-    expect(new Set(VISUAL_SEO_ASSETS.map((asset) => asset.publicPath)).size).toBe(33)
+    expect(B05_VISUAL_SEO_ASSETS).toHaveLength(9)
+    expect(new Set(VISUAL_SEO_ASSETS.map((asset) => asset.id)).size).toBe(42)
+    expect(new Set(VISUAL_SEO_ASSETS.map((asset) => asset.publicPath)).size).toBe(42)
 
     for (const asset of VISUAL_SEO_ASSETS) {
       expect(fs.existsSync(path.join(process.cwd(), asset.sourcePath))).toBe(true)
@@ -71,5 +73,18 @@ describe('B01, B02, B03, and B04 visual SEO master assets', () => {
       'hero', 'compare', 'fit',
     ])
     expect(B04_VISUAL_SEO_ASSETS.every((asset) => asset.bodyPosition === 'before')).toBe(true)
+  })
+
+  it('maps B05 to the three face style owner pages and decision stages', () => {
+    expect(B05_VISUAL_SEO_ASSETS).toHaveLength(9)
+    expect(getVisualSeoAssetsForPage('/style/heart-face', 'B05')).toHaveLength(3)
+    expect(getVisualSeoAssetsForPage('/style/diamond-face', 'B05')).toHaveLength(3)
+    expect(getVisualSeoAssetsForPage('/style/oblong-face', 'B05')).toHaveLength(3)
+    expect(B05_VISUAL_SEO_ASSETS.map((asset) => asset.stage)).toEqual([
+      'hero', 'compare', 'fit',
+      'hero', 'compare', 'fit',
+      'hero', 'compare', 'fit',
+    ])
+    expect(B05_VISUAL_SEO_ASSETS.every((asset) => asset.bodyPosition === 'before')).toBe(true)
   })
 })
