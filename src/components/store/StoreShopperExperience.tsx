@@ -16,6 +16,7 @@ import {
 import { ImageUpload } from '@/components/upload/ImageUpload'
 import { StoreTryOnComparePanel } from '@/components/store/StoreTryOnComparePanel'
 import { analyzeFaceLandmarkFile } from '@/lib/face-landmark-client'
+import { maxSelectableStoreFrames, type StoreExperiencePolicy } from '@/modules/store/domain/experience-policy'
 
 type MerchantProfile = {
   id: string
@@ -26,6 +27,7 @@ type MerchantProfile = {
   accentColor: string | null
   pilotType: string | null
   referenceData: boolean
+  experiencePolicy: StoreExperiencePolicy
   activeFrameCount: number
   featuredFrames: Array<{
     id: string
@@ -65,8 +67,6 @@ type StoreShopperExperienceProps = {
 }
 
 type LoadState = 'loading' | 'ready' | 'unavailable' | 'error'
-
-const MAX_SELECT = 4
 
 function deviceTypeLabel(): string {
   if (typeof window === 'undefined') return 'desktop'
@@ -381,7 +381,12 @@ export function StoreShopperExperience({
       if (current.includes(frameId)) {
         return current.filter((id) => id !== frameId)
       }
-      if (current.length >= MAX_SELECT) return current
+      if (current.length >= maxSelectableStoreFrames(merchant?.experiencePolicy ?? {
+        tryOnEnabled: true,
+        compareEnabled: true,
+        maxCompareFrames: 2,
+        inquiryEnabled: false,
+      })) return current
       return [...current, frameId]
     })
   }
@@ -437,7 +442,8 @@ export function StoreShopperExperience({
     )
   }
 
-  const currentStep = selectionSaved ? 3 : photoReady ? 2 : 1
+  const currentStep = selectionSaved && merchant.experiencePolicy.tryOnEnabled ? 3 : photoReady ? 2 : 1
+  const maxSelectableFrames = maxSelectableStoreFrames(merchant.experiencePolicy)
   const selectedFrames = recommendations.filter((frame) => selectedIds.includes(frame.id))
 
   return (
@@ -488,8 +494,8 @@ export function StoreShopperExperience({
                 Review the privacy details below before continuing.
               </p>
 
-              <div className="mt-7 grid grid-cols-3 gap-2 rounded-2xl border border-white bg-white/70 p-3 shadow-sm backdrop-blur">
-                {[t('upload.title'), t('recommend.title'), t('tryOn.title')].map((label, index) => (
+              <div className={`mt-7 grid ${merchant.experiencePolicy.tryOnEnabled ? 'grid-cols-3' : 'grid-cols-2'} gap-2 rounded-2xl border border-white bg-white/70 p-3 shadow-sm backdrop-blur`}>
+                {[t('upload.title'), t('recommend.title'), ...(merchant.experiencePolicy.tryOnEnabled ? [t('tryOn.title')] : [])].map((label, index) => (
                   <div key={label} className="rounded-xl px-2 py-3 text-center">
                     <span className="mx-auto flex h-7 w-7 items-center justify-center rounded-full bg-slate-950 text-[11px] font-bold text-white">
                       {index + 1}
@@ -566,8 +572,7 @@ export function StoreShopperExperience({
               <JourneyStep number={1} label={t('upload.title')} active={currentStep === 1} complete={currentStep > 1} accent={accent} />
               <div className="h-px flex-1 bg-slate-200" />
               <JourneyStep number={2} label={t('recommend.title')} active={currentStep === 2} complete={currentStep > 2} accent={accent} />
-              <div className="h-px flex-1 bg-slate-200" />
-              <JourneyStep number={3} label={t('tryOn.title')} active={currentStep === 3} complete={false} accent={accent} />
+              {merchant.experiencePolicy.tryOnEnabled ? <><div className="h-px flex-1 bg-slate-200" /><JourneyStep number={3} label={t('tryOn.title')} active={currentStep === 3} complete={false} accent={accent} /></> : null}
             </section>
 
             <div className={`grid gap-6 ${recommendations.length > 0 ? 'xl:grid-cols-[minmax(0,1fr)_340px]' : ''}`}>
@@ -608,7 +613,7 @@ export function StoreShopperExperience({
                       <div>
                         <p className="text-xs font-semibold uppercase tracking-[0.18em] text-blue-600">Step 2 · AI edit</p>
                         <h2 className="mt-2 font-serif text-2xl font-semibold text-slate-950 sm:text-3xl">{t('recommend.title')}</h2>
-                        <p className="mt-2 text-sm text-slate-500">{t('recommend.subtitle')}</p>
+                        <p className="mt-2 text-sm text-slate-500">{merchant.experiencePolicy.tryOnEnabled ? t('recommend.subtitle', { max: maxSelectableFrames }) : t('recommend.subtitleNoTryOn')}</p>
                       </div>
                       {rankingVersion ? <span className="rounded-full bg-slate-100 px-3 py-1.5 text-[10px] font-medium text-slate-400">{t('recommend.version', { version: rankingVersion })}</span> : null}
                     </div>
@@ -622,7 +627,8 @@ export function StoreShopperExperience({
                             <button
                               type="button"
                               onClick={() => toggleFrame(frame.id)}
-                              className={`group h-full w-full overflow-hidden rounded-2xl border bg-white text-left transition hover:-translate-y-0.5 hover:shadow-lg ${selected ? 'border-transparent shadow-lg' : 'border-slate-200'}`}
+                              disabled={!selected && selectedIds.length >= maxSelectableFrames}
+                              className={`group h-full w-full overflow-hidden rounded-2xl border bg-white text-left transition hover:-translate-y-0.5 hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-60 ${selected ? 'border-transparent shadow-lg' : 'border-slate-200'}`}
                               style={selected ? { boxShadow: `0 0 0 2px ${accent}, 0 16px 35px rgba(15,23,42,0.1)` } : undefined}
                             >
                               <div className="relative aspect-[4/3] overflow-hidden bg-gradient-to-b from-white to-slate-50">
@@ -646,7 +652,7 @@ export function StoreShopperExperience({
                   </section>
                 ) : null}
 
-                {selectionSaved && session ? (
+                {selectionSaved && session && merchant.experiencePolicy.tryOnEnabled ? (
                   <StoreTryOnComparePanel
                     merchantSlug={merchantSlug}
                     locale={locale}
@@ -654,6 +660,7 @@ export function StoreShopperExperience({
                     selectedFrames={selectedFrames.map((frame) => ({ id: frame.id, name: frame.name, imageUrl: frame.imageUrl, productUrl: frame.productUrl, price: frame.price, currency: frame.currency, shape: frame.shape }))}
                     photoPreview={photoPreview}
                     accent={accent}
+                    experiencePolicy={merchant.experiencePolicy}
                     onError={(message) => setErrorMessage(message || null)}
                   />
                 ) : null}
@@ -665,7 +672,7 @@ export function StoreShopperExperience({
                     <div className="flex items-center justify-between gap-3">
                       <div>
                         <p className="text-xs font-semibold uppercase tracking-[0.16em] text-blue-600">Your shortlist</p>
-                        <p className="mt-1 text-sm text-slate-500">{t('recommend.selectHint', { max: MAX_SELECT, count: selectedIds.length })}</p>
+                        <p className="mt-1 text-sm text-slate-500">{t('recommend.selectHint', { max: maxSelectableFrames, count: selectedIds.length })}</p>
                       </div>
                       <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-blue-50 text-sm font-bold text-blue-700">{selectedIds.length}</span>
                     </div>
@@ -687,7 +694,7 @@ export function StoreShopperExperience({
                     >
                       {selectionSaving ? <><Loader2 className="h-4 w-4 animate-spin" />{t('recommend.saving')}</> : <>{t('recommend.confirm', { count: selectedIds.length })}<ArrowRight className="h-4 w-4" /></>}
                     </button>
-                    {selectionSaved ? <div className="mt-4 flex gap-2 rounded-2xl bg-emerald-50 p-3 text-sm text-emerald-800"><CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0" /><div><p className="font-semibold">{t('recommend.savedTitle')}</p><p className="mt-0.5 text-xs leading-5">{t('recommend.savedBody')}</p></div></div> : null}
+                    {selectionSaved ? <div className="mt-4 flex gap-2 rounded-2xl bg-emerald-50 p-3 text-sm text-emerald-800"><CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0" /><div><p className="font-semibold">{t('recommend.savedTitle')}</p>{merchant.experiencePolicy.tryOnEnabled ? <p className="mt-0.5 text-xs leading-5">{t('recommend.savedBody')}</p> : null}</div></div> : null}
                   </div>
                 </aside>
               ) : null}

@@ -14,6 +14,8 @@ import {
   merchantUsageCreatedAtFilter,
   resolveMerchantEntitlement,
   selectUsagePolicy,
+  resolveStoreExperiencePolicy,
+  experiencePolicyMetadata,
 } from '../domain'
 import type { AssetStore } from './ports/asset-store'
 import type { StoreGenerationPort } from './ports/generation'
@@ -358,6 +360,14 @@ export async function submitStoreFrameTryOn(
   const merchant = await input.merchants.findBySlug(input.slug)
   if (!merchant) throw merchantNotFound()
   if (merchant.status !== 'ACTIVE') throw merchantInactive()
+  const experiencePolicy = resolveStoreExperiencePolicy(merchant)
+  if (!experiencePolicy.tryOnEnabled) {
+    throw new StoreDomainError(
+      'CAPABILITY_DISABLED',
+      'Try-On is not enabled for this store.',
+      403,
+    )
+  }
 
   const session = await requireOperableStoreSession({
     sessions: input.sessions,
@@ -539,7 +549,10 @@ export async function submitStoreFrameTryOn(
       source: 'SERVER',
       locale: input.locale ?? null,
       deviceType: input.deviceType ?? null,
-      metadata: { batchId: input.batchId },
+      metadata: experiencePolicyMetadata(experiencePolicy, {
+        batchId: input.batchId,
+        generatedFrameCount: 1,
+      }),
     })
 
     const submitted = await input.generation.submit({
@@ -620,6 +633,7 @@ export async function submitStoreFrameTryOn(
         source: 'SERVER',
         locale: input.locale ?? null,
         deviceType: input.deviceType ?? null,
+        metadata: experiencePolicyMetadata(experiencePolicy, { generatedFrameCount: 1 }),
       })
     } catch {
       // Event write is best-effort after failure marking.

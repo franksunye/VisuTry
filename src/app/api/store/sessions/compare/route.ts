@@ -25,6 +25,10 @@ export async function POST(request: NextRequest) {
       requireString(record.clientActionId, 'clientActionId', 200),
     ].filter(Boolean) as { path: string; message: string }[]
 
+    if (record.frameIds !== undefined && !Array.isArray(record.frameIds)) {
+      issues.push({ path: 'frameIds', message: 'frameIds must be an array of strings' })
+    }
+
     if (issues.length) {
       return NextResponse.json(
         storeApiError('VALIDATION_ERROR', 'Invalid compare request', issues),
@@ -43,6 +47,9 @@ export async function POST(request: NextRequest) {
       clientActionId: String(record.clientActionId).trim(),
       locale: typeof record.locale === 'string' ? record.locale : null,
       deviceType: typeof record.deviceType === 'string' ? record.deviceType : null,
+      frameIds: Array.isArray(record.frameIds)
+        ? record.frameIds.filter((id): id is string => typeof id === 'string').map((id) => id.trim()).filter(Boolean)
+        : undefined,
     })
 
     return NextResponse.json({ success: true, data: result })

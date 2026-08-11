@@ -447,6 +447,12 @@ model Merchant {
   defaultSource String?
   defaultCampaign String?
 
+  /// Merchant-level default experience policy; future campaign policy may override it.
+  tryOnEnabled     Boolean @default(true)
+  compareEnabled   Boolean @default(true)
+  maxCompareFrames Int     @default(2)
+  inquiryEnabled   Boolean @default(false)
+
   /// Commercial offer identity — provider-independent (e.g. FOUNDING_PILOT, DEMO).
   planCode                   String?
   /// Commercial stage (e.g. MARKET_CAPTURE).

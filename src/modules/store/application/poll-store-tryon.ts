@@ -18,6 +18,7 @@ import { settleStoreTryOnUsage } from './settle-store-usage'
 import { buildStoreTryOnResultDeliveryUrl } from './store-result-delivery'
 import { prisma } from '@/lib/prisma'
 import { logger } from '@/lib/logger'
+import { experiencePolicyMetadata, resolveStoreExperiencePolicy } from '../domain/experience-policy'
 
 export type PollStoreTryOnInput = {
   merchants: MerchantRepository
@@ -57,6 +58,7 @@ export async function pollStoreFrameTryOn(
   const merchant = await input.merchants.findBySlug(input.slug)
   if (!merchant) throw merchantNotFound()
   if (merchant.status !== 'ACTIVE') throw merchantInactive()
+  const experiencePolicy = resolveStoreExperiencePolicy(merchant)
 
   const session = await requireOperableStoreSession({
     sessions: input.sessions,
@@ -117,6 +119,7 @@ export async function pollStoreFrameTryOn(
       source: 'SERVER',
       locale: input.locale ?? null,
       deviceType: input.deviceType ?? null,
+      metadata: experiencePolicyMetadata(experiencePolicy, { generatedFrameCount: 1 }),
     })
     if (completedEvent.created || settlement.settled) {
       logger.info('store', 'Store try-on completed', {
@@ -148,6 +151,7 @@ export async function pollStoreFrameTryOn(
       source: 'SERVER',
       locale: input.locale ?? null,
       deviceType: input.deviceType ?? null,
+      metadata: experiencePolicyMetadata(experiencePolicy, { generatedFrameCount: 1 }),
     })
     if (failedEvent.created) {
       logger.warn('store', 'Store try-on failed', {

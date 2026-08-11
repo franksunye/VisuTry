@@ -31,6 +31,10 @@ export type MerchantRecord = {
   referenceData?: boolean
   defaultSource?: string | null
   defaultCampaign?: string | null
+  tryOnEnabled?: boolean
+  compareEnabled?: boolean
+  maxCompareFrames?: number
+  inquiryEnabled?: boolean
   planCode: string | null
   commercialStage: string | null
   pricingVersion: string | null

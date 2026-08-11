@@ -5,6 +5,7 @@ import {
   merchantNotFound,
 } from '../domain'
 import type { MerchantEventRepository, MerchantRepository } from './ports/repositories'
+import { resolveStoreExperiencePolicy, type StoreExperiencePolicy } from '../domain/experience-policy'
 
 export type MerchantInsightsDto = {
   dataProvenance: {
@@ -21,6 +22,7 @@ export type MerchantInsightsDto = {
     status: string
     pilotType: string | null
     referenceData: boolean
+    experiencePolicy: StoreExperiencePolicy
   }
   metrics: {
     sessions: number
@@ -485,6 +487,7 @@ export async function getMerchantInsights(input: {
       status: merchant.status,
       pilotType: merchant.pilotType ?? null,
       referenceData: merchant.referenceData === true,
+      experiencePolicy: resolveStoreExperiencePolicy(merchant),
     },
     metrics: {
       sessions,

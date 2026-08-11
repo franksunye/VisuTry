@@ -19,4 +19,86 @@ test.describe('@critical Store Pilot Flow', () => {
     await expect(page).toHaveURL(/\/en\/store\/ello-sunglasses$/);
     await expect(page.locator('body')).not.toContainText(/page not found|application error|internal server error/i);
   });
+
+  test('applies the merchant compare policy to the shortlist without generating AI output', async ({ page }) => {
+    const preview = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=';
+    const frames = [1, 2, 3].map((index) => ({
+      id: `frame-${index}`,
+      name: `ello Frame ${index}`,
+      imageUrl: null,
+      productUrl: `https://example.com/frame-${index}`,
+      price: null,
+      currency: null,
+      shape: 'round',
+      material: null,
+      color: null,
+      widthClass: 'petite',
+      styleTags: ['petite-fit'],
+      score: 90 - index,
+      reason: 'Petite-fit proportions',
+    }));
+
+    await page.route('**/api/store/merchants/ello-sunglasses', async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          success: true,
+          data: {
+            id: 'merchant-ello',
+            slug: 'ello-sunglasses',
+            name: 'ello sunglasses',
+            logoUrl: null,
+            websiteUrl: 'https://ellosunglasses.com/',
+            accentColor: '#1D4ED8',
+            pilotType: 'REFERENCE',
+            referenceData: true,
+            activeFrameCount: 3,
+            featuredFrames: frames,
+            status: 'ACTIVE',
+            experiencePolicy: {
+              tryOnEnabled: true,
+              compareEnabled: true,
+              maxCompareFrames: 2,
+              inquiryEnabled: false,
+            },
+          },
+        }),
+      });
+    });
+    await page.route('**/api/store/sessions', async (route) => {
+      if (route.request().method() !== 'POST') return route.continue();
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ success: true, data: { merchantId: 'merchant-ello', merchantSessionId: 'session-ello', expiresAt: new Date(Date.now() + 60_000).toISOString() } }),
+      });
+    });
+    await page.route('**/api/store/sessions/photo', async (route) => {
+      await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ success: true, data: { previewUrl: preview } }) });
+    });
+    await page.route('**/api/store/sessions/recommend', async (route) => {
+      await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ success: true, data: { rankingVersion: 'mock', frames } }) });
+    });
+    await page.route('**/api/store/sessions/select-frames', async (route) => {
+      await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ success: true, data: { selectedFrameIds: ['frame-1', 'frame-2'] } }) });
+    });
+    // Keep this policy smoke deterministic and free of MediaPipe/provider work.
+    await page.route('**/mediapipe/**', (route) => route.abort());
+    await page.route('https://cdn.jsdelivr.net/**', (route) => route.abort());
+    await page.route('https://storage.googleapis.com/**', (route) => route.abort());
+
+    await page.goto('/en/store/ello-sunglasses', { waitUntil: 'domcontentloaded' });
+    await page.getByRole('button', { name: /start|continue|privacy/i }).first().click();
+    await page.locator('input[type="file"]').setInputFiles({ name: 'shopper.png', mimeType: 'image/png', buffer: Buffer.from(preview.split(',')[1], 'base64') });
+
+    const recommendationSection = page.locator('section').filter({ hasText: 'Recommended for you' });
+    await expect(recommendationSection).toBeVisible();
+    await expect(page.getByText('Select up to 2 to try on')).toBeVisible();
+    const frameButtons = recommendationSection.getByRole('button');
+    await frameButtons.nth(0).click();
+    await frameButtons.nth(1).click();
+    await expect(frameButtons.nth(2)).toBeDisabled();
+    await expect(page.getByText('Selected 2 of 2')).toBeVisible();
+  });
 });

@@ -4,6 +4,7 @@ import {
   type MerchantStatus,
 } from '../domain'
 import type { MerchantRecord, MerchantRepository, MerchantFrameRepository } from './ports/repositories'
+import { resolveStoreExperiencePolicy, type StoreExperiencePolicy } from '../domain/experience-policy'
 
 export type PublicMerchantFramePreview = {
   id: string
@@ -22,6 +23,7 @@ export type PublicMerchantProfile = {
   accentColor: string | null
   pilotType: string | null
   referenceData: boolean
+  experiencePolicy: StoreExperiencePolicy
   activeFrameCount: number
   featuredFrames: PublicMerchantFramePreview[]
   status: MerchantStatus
@@ -58,6 +60,7 @@ export function toPublicMerchantProfile(
     accentColor: merchant.accentColor,
     pilotType: merchant.pilotType ?? null,
     referenceData: merchant.referenceData === true,
+    experiencePolicy: resolveStoreExperiencePolicy(merchant),
     activeFrameCount: activeFrames.length,
     featuredFrames: activeFrames.slice(0, 4).map((frame) => ({
       id: frame.id,

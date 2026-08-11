@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { useTranslations } from 'next-intl'
 import { Heart, Loader2, RefreshCw, Sparkles } from 'lucide-react'
 import { FRAME_DISPATCH_STAGGER_MS, sleep } from '@/lib/try-on/batch-types'
+import type { StoreExperiencePolicy } from '@/modules/store/domain/experience-policy'
 
 type FrameMeta = {
   id: string
@@ -32,6 +33,7 @@ type StoreTryOnComparePanelProps = {
   photoPreview?: string
   accent: string
   onError: (message: string) => void
+  experiencePolicy: StoreExperiencePolicy
 }
 
 function deviceTypeLabel(): string {
@@ -60,6 +62,7 @@ export function StoreTryOnComparePanel({
   photoPreview,
   accent,
   onError,
+  experiencePolicy,
 }: StoreTryOnComparePanelProps) {
   const t = useTranslations('storeShopper')
   const [tiles, setTiles] = useState<TryOnTile[]>([])
@@ -111,7 +114,7 @@ export function StoreTryOnComparePanel({
   )
 
   const startTryOn = useCallback(async () => {
-    if (selectedFrames.length === 0 || dispatching) return
+    if (!experiencePolicy.tryOnEnabled || selectedFrames.length === 0 || dispatching) return
     setDispatching(true)
     onError('')
     const nextBatchId =
@@ -203,6 +206,7 @@ export function StoreTryOnComparePanel({
     merchantSessionId,
     locale,
     onError,
+    experiencePolicy.tryOnEnabled,
     t,
   ])
 
@@ -283,7 +287,7 @@ export function StoreTryOnComparePanel({
   }, [activeTaskKey, merchantSlug, merchantSessionId, locale])
 
   const completed = tiles.filter((tile) => tile.status === 'completed' && tile.resultImageUrl)
-  const showCompare = compareStarted && completed.length >= 2
+  const showCompare = experiencePolicy.compareEnabled && compareStarted && completed.length >= 2
 
   const retryFailed = async (tile: TryOnTile) => {
     if (!batchId) return
@@ -450,7 +454,7 @@ export function StoreTryOnComparePanel({
                       </button>
                     )}
                     <div className="mt-2 flex flex-wrap gap-2">
-                      <button
+                      {experiencePolicy.inquiryEnabled ? <button
                         type="button"
                         disabled={favoritedIds.includes(tile.merchantFrameId)}
                         onClick={async () => {
@@ -478,7 +482,7 @@ export function StoreTryOnComparePanel({
                         {favoritedIds.includes(tile.merchantFrameId)
                           ? t('intent.favorited')
                           : t('intent.favorite')}
-                      </button>
+                      </button> : null}
                       <button
                         type="button"
                         onClick={() => {
@@ -496,7 +500,7 @@ export function StoreTryOnComparePanel({
             })}
           </div>
 
-          {inquiryFrameId && (
+          {experiencePolicy.inquiryEnabled && inquiryFrameId && (
             <div className="mt-5 rounded-2xl border border-slate-200 bg-slate-50 p-5">
               <h3 className="text-sm font-semibold text-gray-900">{t('intent.inquiryTitle')}</h3>
               <p className="mt-1 text-xs text-gray-600">{t('intent.inquirySubtitle')}</p>
@@ -564,29 +568,34 @@ export function StoreTryOnComparePanel({
             </div>
           )}
 
-          {inquirySent && (
+          {experiencePolicy.inquiryEnabled && inquirySent && (
             <p className="mt-3 text-sm text-emerald-700">{t('intent.sent')}</p>
           )}
 
-          {completed.length >= 2 && !showCompare && (
+          {experiencePolicy.compareEnabled && completed.length >= 2 && !showCompare && (
             <button
               type="button"
               onClick={async () => {
-                setCompareStarted(true)
                 try {
-                  await fetch('/api/store/sessions/compare', {
+                  const res = await fetch('/api/store/sessions/compare', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                       merchantSlug,
                       merchantSessionId,
                       clientActionId: `compare:${merchantSessionId}:${Date.now()}`,
+                      frameIds: completed.map((tile) => tile.merchantFrameId),
                       locale,
                       deviceType: deviceTypeLabel(),
                     }),
                   })
-                } catch {
-                  // compare UI still opens; event is best-effort
+                  const json = await res.json()
+                  if (!res.ok || !json.success) {
+                    throw new Error(json.error || t('errors.intent'))
+                  }
+                  setCompareStarted(true)
+                } catch (error) {
+                  onError(error instanceof Error ? error.message : t('errors.intent'))
                 }
               }}
               className="mt-5 flex w-full items-center justify-center gap-2 rounded-2xl border border-slate-300 bg-white px-4 py-3.5 text-sm font-semibold text-slate-900 transition hover:border-slate-400 hover:bg-slate-50"
