@@ -42,3 +42,16 @@ quota
 timeout
 unknown
 ```
+
+## v2 freeze note — closed journey enums
+
+`AnalyticsJourneyType` is a closed union (no `| string`):
+
+```ts
+type AnalyticsJourneyType =
+  | 'shopper_campaign'
+  | 'visutry_b2b_acquisition'
+  | 'consumer_organic'
+```
+
+New journey types must be added explicitly in `analytics-events.ts`.

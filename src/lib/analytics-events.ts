@@ -83,7 +83,6 @@ export type AnalyticsJourneyType =
   | 'shopper_campaign'
   | 'visutry_b2b_acquisition'
   | 'consumer_organic'
-  | string
 
 export type ComparisonCompletionStatus = 'full' | 'partial' | 'failed'
 
