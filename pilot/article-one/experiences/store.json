@@ -1,0 +1,18 @@
+{
+  "experienceSlug": "default",
+  "type": "STORE",
+  "name": "Article One Store",
+  "status": "ACTIVE",
+  "headline": "Explore Article One eyewear built for movement",
+  "description": "Reference Pilot / Simulation using a curated public catalog. Product facts are sourced from Article One public pages; fit and style labels are operator enrichment.",
+  "catalogSelection": "ALL_ACTIVE",
+  "primaryCta": {
+    "type": "PRODUCT_OR_COLLECTION",
+    "label": "View frame"
+  },
+  "referenceData": true,
+  "measurement": {
+    "defaultSource": "visutry-reference-pilot",
+    "defaultCampaign": "article-one"
+  }
+}
