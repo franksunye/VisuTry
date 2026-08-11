@@ -103,6 +103,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         changeFrequency: 'weekly',
         priority: 0.8,
         alternates: { languages: generateAlternates(path) },
+        ...(locale === 'en' && visualSeoImages(path) ? { images: visualSeoImages(path) } : {}),
       })
     })
   })

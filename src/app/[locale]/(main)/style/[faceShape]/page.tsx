@@ -5,6 +5,7 @@ import { notFound } from 'next/navigation'
 import { ArrowRight, CheckCircle2, Glasses, ScanFace } from 'lucide-react'
 import { GrowthFunnelLink } from '@/components/analytics/GrowthFunnelLink'
 import { ProductContinuationCtas } from '@/components/growth/ProductContinuationCtas'
+import { B04VisualSeoSections, type B04VisualSeoPage } from '@/components/seo/B04VisualSeoSections'
 import { FACE_SHAPE_SLUGS, type FaceShapeContentSlug } from '@/config/face-shape-content'
 import { getFaceShapeSeoCopy } from '@/config/face-shape-seo-locales'
 import { getTopPickPresetById, type GlassesPreset } from '@/config/glasses-presets'
@@ -79,6 +80,9 @@ export default function FaceShapePage({ params }: FaceShapePageProps) {
   const shapeName = seoCopy.shapeNames[shape]
   const templateShapeName = shapeName.toLocaleLowerCase(locale)
   const pagePath = `/style/${shape}-face`
+  const b04PagePath: B04VisualSeoPage | null = ['round', 'oval', 'square'].includes(shape)
+    ? pagePath as B04VisualSeoPage
+    : null
   const pageUrl = `https://www.visutry.com/${locale}${pagePath}`
   const presets = presetIds[shape].map(getTopPickPresetById).filter(isPreset)
   const title = interpolateOrdinaryGlassesCopy(detail.title, templateShapeName)
@@ -160,6 +164,8 @@ export default function FaceShapePage({ params }: FaceShapePageProps) {
           </div>
         </section>
 
+        {b04PagePath ? <B04VisualSeoSections locale={locale} pagePath={b04PagePath} stage="hero" /> : null}
+
         <section className="mt-12 grid gap-5 md:grid-cols-3">
           <article className="rounded-lg border border-gray-200 bg-white p-5">
             <div className="mb-3 flex items-center gap-2">
@@ -223,6 +229,8 @@ export default function FaceShapePage({ params }: FaceShapePageProps) {
           </div>
         </section>
 
+        {b04PagePath ? <B04VisualSeoSections locale={locale} pagePath={b04PagePath} stage="compare" /> : null}
+
         <section className="mt-12 rounded-lg border border-gray-200 bg-white p-6">
           <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
             <div>
@@ -251,6 +259,8 @@ export default function FaceShapePage({ params }: FaceShapePageProps) {
             ))}
           </div>
         </section>
+
+        {b04PagePath ? <B04VisualSeoSections locale={locale} pagePath={b04PagePath} stage="fit" /> : null}
 
         <section className="mt-12">
           <h2 className="mb-5 text-2xl font-bold text-gray-950">

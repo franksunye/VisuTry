@@ -4,17 +4,19 @@ import {
   B01_VISUAL_SEO_ASSETS,
   B02_VISUAL_SEO_ASSETS,
   B03_VISUAL_SEO_ASSETS,
+  B04_VISUAL_SEO_ASSETS,
   getVisualSeoAssetsForPage,
   VISUAL_SEO_ASSETS,
 } from '@/config/visual-seo-assets'
 
-describe('B01, B02, and B03 visual SEO master assets', () => {
-  it('keeps all twenty-four source and public assets present with stable dimensions', () => {
+describe('B01, B02, B03, and B04 visual SEO master assets', () => {
+  it('keeps all thirty-three source and public assets present with stable dimensions', () => {
     expect(B01_VISUAL_SEO_ASSETS).toHaveLength(8)
     expect(B02_VISUAL_SEO_ASSETS).toHaveLength(8)
     expect(B03_VISUAL_SEO_ASSETS).toHaveLength(8)
-    expect(new Set(VISUAL_SEO_ASSETS.map((asset) => asset.id)).size).toBe(24)
-    expect(new Set(VISUAL_SEO_ASSETS.map((asset) => asset.publicPath)).size).toBe(24)
+    expect(B04_VISUAL_SEO_ASSETS).toHaveLength(9)
+    expect(new Set(VISUAL_SEO_ASSETS.map((asset) => asset.id)).size).toBe(33)
+    expect(new Set(VISUAL_SEO_ASSETS.map((asset) => asset.publicPath)).size).toBe(33)
 
     for (const asset of VISUAL_SEO_ASSETS) {
       expect(fs.existsSync(path.join(process.cwd(), asset.sourcePath))).toBe(true)
@@ -56,5 +58,18 @@ describe('B01, B02, and B03 visual SEO master assets', () => {
         .filter((asset) => asset.pagePath === '/try-glasses-on-photo')
         .map((asset) => asset.displayWidth),
     ).toEqual(['compare', 'secondary'])
+  })
+
+  it('maps B04 to the three face style owner pages and decision stages', () => {
+    expect(B04_VISUAL_SEO_ASSETS).toHaveLength(9)
+    expect(getVisualSeoAssetsForPage('/style/round-face', 'B04')).toHaveLength(3)
+    expect(getVisualSeoAssetsForPage('/style/oval-face', 'B04')).toHaveLength(3)
+    expect(getVisualSeoAssetsForPage('/style/square-face', 'B04')).toHaveLength(3)
+    expect(B04_VISUAL_SEO_ASSETS.map((asset) => asset.stage)).toEqual([
+      'hero', 'compare', 'fit',
+      'hero', 'compare', 'fit',
+      'hero', 'compare', 'fit',
+    ])
+    expect(B04_VISUAL_SEO_ASSETS.every((asset) => asset.bodyPosition === 'before')).toBe(true)
   })
 })

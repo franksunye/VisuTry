@@ -4,7 +4,7 @@ import type { VisualSeoAsset as VisualSeoAssetData } from '@/config/visual-seo-a
 
 type VisualSeoAssetProps = {
   asset: VisualSeoAssetData
-  variant?: 'default' | 'compact' | 'editorial' | 'supporting-wide'
+  variant?: 'default' | 'compact' | 'editorial' | 'owner-editorial' | 'supporting-wide'
   headingDisplay?: 'visible' | 'sr-only'
 }
 
@@ -14,9 +14,12 @@ export function VisualSeoAsset({
   headingDisplay = 'visible',
 }: VisualSeoAssetProps) {
   const isCompact = variant === 'compact'
-  const isEditorial = variant === 'editorial'
+  const isEditorial = variant === 'editorial' || variant === 'owner-editorial'
+  const isOwnerEditorial = variant === 'owner-editorial'
   const isSupportingWide = variant === 'supporting-wide'
-  const displayWidth = asset.displayWidth === 'secondary' ? 'max-w-4xl' : 'max-w-6xl'
+  const displayWidth = isOwnerEditorial
+    ? asset.displayWidth === 'secondary' ? 'max-w-4xl' : 'max-w-5xl'
+    : asset.displayWidth === 'secondary' ? 'max-w-4xl' : 'max-w-6xl'
   const body = <p className="text-base leading-7 text-slate-600">{asset.body}</p>
   const headingClass = (visibleClassName: string) => (headingDisplay === 'sr-only' ? 'sr-only' : visibleClassName)
 

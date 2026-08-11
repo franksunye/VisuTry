@@ -1,5 +1,6 @@
 export type VisualSeoAssetId = `VSEO-${string}`
-export type VisualSeoAssetBatch = 'B01' | 'B02' | 'B03'
+export type VisualSeoAssetBatch = 'B01' | 'B02' | 'B03' | 'B04'
+export type VisualSeoAssetStage = 'hero' | 'compare' | 'fit'
 
 export type VisualSeoAsset = {
   id: VisualSeoAssetId
@@ -14,6 +15,7 @@ export type VisualSeoAsset = {
   body: string
   displayWidth?: 'primary' | 'secondary' | 'compare'
   bodyPosition?: 'before' | 'after'
+  stage?: VisualSeoAssetStage
   link?: {
     href: string
     label: string
@@ -441,10 +443,185 @@ export const B03_VISUAL_SEO_ASSETS = [
   },
 ] as const satisfies readonly VisualSeoAsset[]
 
+export const B04_VISUAL_SEO_ASSETS = [
+  {
+    id: 'VSEO-025',
+    batch: 'B04',
+    sourcePath: 'assets/visual-seo/B04/source/VSEO-025__best-glasses-for-round-face.png',
+    publicPath: '/images/seo/core/best-glasses-for-round-face.webp',
+    pagePath: '/style/round-face',
+    width: 1448,
+    height: 1086,
+    displayWidth: 'primary',
+    bodyPosition: 'before',
+    stage: 'hero',
+    heading: 'Best Glasses for Round Faces',
+    alt: 'Best glasses for a round face showing rectangle, browline, and geometric frame directions',
+    body: 'Rectangle, browline, and geometric frames can add structure and contrast to round proportions. Start with enough width and visible corners, then check how the frame sits relative to your cheeks and brows.',
+    link: {
+      href: '/en/try-on/glasses',
+      label: 'Try these frame directions on your photo',
+    },
+  },
+  {
+    id: 'VSEO-026',
+    batch: 'B04',
+    sourcePath: 'assets/visual-seo/B04/source/VSEO-026__round-face-frame-comparison.png',
+    publicPath: '/images/seo/core/round-face-frame-comparison.webp',
+    pagePath: '/style/round-face',
+    width: 1448,
+    height: 1086,
+    displayWidth: 'compare',
+    bodyPosition: 'before',
+    stage: 'compare',
+    heading: 'Rectangle vs Round Frames on a Round Face',
+    alt: 'Round face comparing rectangle and round eyeglass frames to show structure and softness',
+    body: 'Rectangle frames create a more defined outline against soft curves, while round frames continue the face shape for a gentler effect. Compare both directions on the same photo to decide which visual balance feels right.',
+    link: {
+      href: '/en/compare-glasses-frames',
+      label: 'Compare shortlisted frames',
+    },
+  },
+  {
+    id: 'VSEO-027',
+    batch: 'B04',
+    sourcePath: 'assets/visual-seo/B04/source/VSEO-027__round-face-glasses-proportions.png',
+    publicPath: '/images/seo/core/round-face-glasses-proportions.webp',
+    pagePath: '/style/round-face',
+    width: 1448,
+    height: 1086,
+    displayWidth: 'secondary',
+    bodyPosition: 'before',
+    stage: 'fit',
+    heading: 'Check Frame Proportions for a Round Face',
+    alt: 'Round face glasses fit guide showing frame width, lens depth, and a slightly angular silhouette',
+    body: 'Shape is only the first filter. Check that the frame has enough width for the cheek area, moderate lens depth, and a silhouette that adds direction without overwhelming the face.',
+    link: {
+      href: '/en/ai-glasses-advisor',
+      label: 'Get personalized frame directions',
+    },
+  },
+  {
+    id: 'VSEO-028',
+    batch: 'B04',
+    sourcePath: 'assets/visual-seo/B04/source/VSEO-028__best-glasses-for-oval-face.png',
+    publicPath: '/images/seo/core/best-glasses-for-oval-face.webp',
+    pagePath: '/style/oval-face',
+    width: 1448,
+    height: 1086,
+    displayWidth: 'primary',
+    bodyPosition: 'before',
+    stage: 'hero',
+    heading: 'Best Glasses for Oval Faces',
+    alt: 'Best glasses for an oval face showing cat-eye, aviator, and soft rectangle frame directions',
+    body: 'Oval proportions work with many frame directions, including cat-eye, aviator, and soft rectangle styles. Keep the frame in proportion with the face, then use shape and scale to choose the visual effect you want.',
+    link: {
+      href: '/en/try-on/glasses',
+      label: 'Try these frame directions on your photo',
+    },
+  },
+  {
+    id: 'VSEO-029',
+    batch: 'B04',
+    sourcePath: 'assets/visual-seo/B04/source/VSEO-029__oval-face-frame-comparison.png',
+    publicPath: '/images/seo/core/oval-face-frame-comparison.webp',
+    pagePath: '/style/oval-face',
+    width: 1448,
+    height: 1086,
+    displayWidth: 'compare',
+    bodyPosition: 'before',
+    stage: 'compare',
+    heading: 'Cat-Eye vs Aviator Frames on an Oval Face',
+    alt: 'Oval face comparing cat-eye and aviator eyeglass frames with different lift and openness',
+    body: 'A cat-eye frame can add more lift through the outer corners, while an aviator creates a more open and relaxed direction. Compare the same crop and face proportions before deciding which effect suits your style.',
+    link: {
+      href: '/en/compare-glasses-frames',
+      label: 'Compare shortlisted frames',
+    },
+  },
+  {
+    id: 'VSEO-030',
+    batch: 'B04',
+    sourcePath: 'assets/visual-seo/B04/source/VSEO-030__oval-face-glasses-proportions.png',
+    publicPath: '/images/seo/core/oval-face-glasses-proportions.webp',
+    pagePath: '/style/oval-face',
+    width: 1448,
+    height: 1086,
+    displayWidth: 'secondary',
+    bodyPosition: 'before',
+    stage: 'fit',
+    heading: 'Check Frame Proportions for an Oval Face',
+    alt: 'Oval face glasses fit guide showing frame width, lens depth, and brow relationship',
+    body: 'With an oval face, compare frame width with the temples and cheek area, then check lens depth and brow relationship. Balanced proportions usually matter more than choosing one supposedly ideal frame shape.',
+    link: {
+      href: '/en/ai-glasses-advisor',
+      label: 'Get personalized frame directions',
+    },
+  },
+  {
+    id: 'VSEO-031',
+    batch: 'B04',
+    sourcePath: 'assets/visual-seo/B04/source/VSEO-031__best-glasses-for-square-face.png',
+    publicPath: '/images/seo/core/best-glasses-for-square-face.webp',
+    pagePath: '/style/square-face',
+    width: 1448,
+    height: 1086,
+    displayWidth: 'primary',
+    bodyPosition: 'before',
+    stage: 'hero',
+    heading: 'Best Glasses for Square Faces',
+    alt: 'Best glasses for a square face showing rounded, aviator, and light rim frame directions',
+    body: 'Rounded, aviator, and light-rim frames can soften a strong jaw or create a lighter contrast with square proportions. Compare curved edges, construction, and width to choose whether you want softness or more emphasis.',
+    link: {
+      href: '/en/try-on/glasses',
+      label: 'Try these frame directions on your photo',
+    },
+  },
+  {
+    id: 'VSEO-032',
+    batch: 'B04',
+    sourcePath: 'assets/visual-seo/B04/source/VSEO-032__square-face-frame-comparison.png',
+    publicPath: '/images/seo/core/square-face-frame-comparison.webp',
+    pagePath: '/style/square-face',
+    width: 1448,
+    height: 1086,
+    displayWidth: 'compare',
+    bodyPosition: 'before',
+    stage: 'compare',
+    heading: 'Rounded vs Strong Rectangle Frames on a Square Face',
+    alt: 'Square face comparing rounded and strongly rectangular eyeglass frames with softer and more angular effects',
+    body: 'Rounded frames soften the outline around a defined jaw, while strong rectangles echo the face structure and create a more angular effect. A neutral side-by-side comparison helps you choose the direction intentionally.',
+    link: {
+      href: '/en/compare-glasses-frames',
+      label: 'Compare shortlisted frames',
+    },
+  },
+  {
+    id: 'VSEO-033',
+    batch: 'B04',
+    sourcePath: 'assets/visual-seo/B04/source/VSEO-033__square-face-glasses-proportions.png',
+    publicPath: '/images/seo/core/square-face-glasses-proportions.webp',
+    pagePath: '/style/square-face',
+    width: 1448,
+    height: 1086,
+    displayWidth: 'secondary',
+    bodyPosition: 'before',
+    stage: 'fit',
+    heading: 'Check Frame Proportions for a Square Face',
+    alt: 'Square face glasses fit guide showing balanced frame width, softened corners, and lens depth',
+    body: 'Look for a frame width that matches the face without copying the jaw exactly. Softened corners and adequate lens depth can reduce visual heaviness, while a lighter rim keeps the strong structure readable.',
+    link: {
+      href: '/en/ai-glasses-advisor',
+      label: 'Get personalized frame directions',
+    },
+  },
+] as const satisfies readonly VisualSeoAsset[]
+
 export const VISUAL_SEO_ASSETS = [
   ...B01_VISUAL_SEO_ASSETS,
   ...B02_VISUAL_SEO_ASSETS,
   ...B03_VISUAL_SEO_ASSETS,
+  ...B04_VISUAL_SEO_ASSETS,
 ] as const
 
 export function getVisualSeoAssetsForPage(pagePath: string, batch?: VisualSeoAssetBatch): readonly VisualSeoAsset[] {

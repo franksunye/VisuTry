@@ -819,7 +819,7 @@ If Codex detects a discrepancy between this document and the current route regis
 | B01 | VSEO-001–008 | ✅ Accepted | Eight canonical master assets integrated into three English Search→Tool pages; WebP, source archive, image sitemap, and QA manifest complete |
 | B02 | VSEO-009–016 | ✅ Accepted | Eight visual explanation assets integrated into four English Search→Tool pages; editorial layout, WebP, source archive, image sitemap, and QA manifest complete |
 | B03 | VSEO-017–024 | ✅ Accepted | Eight comparison / advisor assets integrated into three English Search→Tool pages; one-primary hierarchy, compact supporting layout, source archive, WebP, image sitemap, and build verification complete |
-| B04 | VSEO-025–033 | ⏳ Planned | Face Style owners A |
+| B04 | VSEO-025–033 | ✅ Accepted | Nine Face Style owner assets integrated into round, oval, and square English owner pages; staged editorial layout, WebP, source archive, image sitemap, and build verification complete |
 | B05 | VSEO-034–042 | ⏳ Planned | Face Style owners B |
 | B06 | VSEO-043–054 | ⏳ Planned | Face Shape explainers |
 | B07 | VSEO-055–064 | ⏳ Planned | Face × Frame A |
@@ -838,7 +838,7 @@ If Codex detects a discrepancy between this document and the current route regis
 
 ### Current next action
 
-> Batches B01, B02, and B03 are complete. The next production unit is B04, beginning with `VSEO-025`; preserve the established source archive, WebP, adjacent-copy, internal-link, page-level one-primary hierarchy, compact mobile supporting layout, and image-sitemap checks. Do not generate any batch overview image.
+> Batches B01, B02, B03, and B04 are complete. The next production unit is B05, beginning with `VSEO-034`; preserve the established source archive, WebP, adjacent-copy, internal-link, page-level one-primary hierarchy, compact mobile supporting layout, and image-sitemap checks. Do not generate any batch overview image.
 
 ---
 

@@ -118,4 +118,11 @@ For the first accepted B01 pages:
 - B03 primary masters keep equivalent HTML H2 headings semantic but visually hidden. Supporting-card headings remain visible.
 - B03 supporting cards use the shared compact component and remain thumbnail-led until the desktop two-column layout begins at 768px.
 
+## B04 implementation baseline
+
+- `/en/style/round-face`: VSEO-025 recommendation visual, VSEO-026 rectangle-versus-round comparison, and VSEO-027 fit/proportion guidance.
+- `/en/style/oval-face`: VSEO-028 recommendation visual, VSEO-029 cat-eye-versus-aviator comparison, and VSEO-030 fit/proportion guidance.
+- `/en/style/square-face`: VSEO-031 recommendation visual, VSEO-032 rounded-versus-strong-rectangle comparison, and VSEO-033 fit/proportion guidance.
+- B04 renders one full 4:3 editorial visual at each decision stage. The primary visual is capped at a focused desktop width; mobile keeps every image full-width and uncropped.
+
 Future B04+ integrations should apply the same page-level hierarchy, breakpoint-density, semantic-copy, and heading-duplication checks by default rather than repeating multiple full-size cards or duplicate titles per page.
