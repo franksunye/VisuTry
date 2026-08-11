@@ -14,7 +14,7 @@ Snapshot date: 2026-08-11. Publish used only the existing merchant-agnostic `db:
 
 ## Public route smoke
 
-The first live production smoke reached all three routes on desktop and mobile with HTTP 200, correct Article One identity, headline, frame count, Experience scope and Reference Pilot / Simulation marker. It exposed four 400 image-optimizer responses caused by the live shared Next image allowlist not yet including the official `cdn11.bigcommerce.com` host. The branch includes a generic allowlist entry. A local production build connected to the same production Neon data passed all six desktop/mobile checks with zero console/page errors. The Vercel Preview is deployed but anonymous smoke is blocked by Deployment Protection/Auth0; live confirmation awaits the reviewed config deployment.
+The first live production smoke reached all three routes on desktop and mobile with HTTP 200, correct Article One identity, headline, frame count, Experience scope and Reference Pilot / Simulation marker. It exposed four 400 image-optimizer responses caused by the live shared Next image allowlist not yet including the official `cdn11.bigcommerce.com` host. The branch includes a generic allowlist entry. A local production build connected to the same production Neon data passed all six desktop/mobile checks with zero console/page errors. The Vercel Preview deployment passed the same six checks through a temporary protected-deployment share URL; live confirmation awaits the reviewed config deployment.
 
 Routes:
 
