@@ -12,6 +12,7 @@ import type { FaceShapeFailureReason } from '@/config/face-analysis'
 import type { FaceLandmarkDetectionResult } from '@/lib/face-landmark-client'
 import type { FaceGeometryAnalysis } from '@/types/face-analysis'
 import { getFaceShapeDetectorUiCopy } from '@/config/face-shape-detector-ui-locales'
+import { getFaceShapeDetectorFailureCopy } from '@/config/face-shape-detector-error-copy'
 
 interface FreeFaceShapeDetectorProps {
   locale: string
@@ -161,10 +162,11 @@ export function FreeFaceShapeDetector({ locale }: FreeFaceShapeDetectorProps) {
         )
         recordDetection('COMPLETED')
       } else {
-        const message = analysis.geometry.warnings[0] ?? 'This photo could not be measured. Try a clear, straight-on image.'
+        const failureReason = analysis.geometry.failureReason ?? 'unknown'
+        const message = getFaceShapeDetectorFailureCopy(locale, failureReason).message
         setError(message)
         analytics.trackFaceShapeDetectorFailed(message)
-        recordDetection('FAILED', analysis.geometry.failureReason ?? 'unknown', {
+        recordDetection('FAILED', failureReason, {
           sourceFileType: file.type,
           sourceFileSize: file.size,
           detectorFileType: detectorFile.type,
@@ -180,7 +182,7 @@ export function FreeFaceShapeDetector({ locale }: FreeFaceShapeDetectorProps) {
         })
       }
     } catch {
-      const message = 'Face analysis could not start in this browser. Try a recent version of Chrome, Edge, or Safari.'
+      const message = getFaceShapeDetectorFailureCopy(locale, 'unknown').message
       setError(message)
       analytics.trackFaceShapeDetectorFailed(message)
       recordDetection('FAILED', 'unknown')
