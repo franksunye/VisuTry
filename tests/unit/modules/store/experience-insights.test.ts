@@ -84,5 +84,8 @@ describe('Experience analytics scope', () => {
         experienceFrames: { some: { experienceId: 'experience-1', active: true } },
       },
     }))
+    expect(db.merchantSession.findMany).toHaveBeenCalledWith(expect.objectContaining({
+      where: { merchantId: 'merchant-1', experienceId: 'experience-1', createdAt: expect.any(Object) },
+    }))
   })
 })

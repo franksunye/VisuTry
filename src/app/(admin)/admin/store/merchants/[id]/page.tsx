@@ -218,6 +218,12 @@ export default async function AdminMerchantInsightsPage({ params }: PageProps) {
           </div>
           <div className="flex flex-wrap gap-3">
             <Link
+              href={`/admin/store/merchants/${merchant.id}/experiences`}
+              className="inline-flex items-center gap-2 rounded-xl bg-white/10 px-4 py-2.5 text-sm font-semibold text-white ring-1 ring-white/20 transition hover:bg-white/15"
+            >
+              Experiences
+            </Link>
+            <Link
               href={`/en/store/${merchant.slug}`}
               target="_blank"
               className="inline-flex items-center gap-2 rounded-xl bg-white px-4 py-2.5 text-sm font-semibold text-slate-900 shadow-sm transition hover:bg-slate-100"

@@ -166,9 +166,12 @@ export default async function AdminStoreMerchantsPage() {
                 </dl>
                 <div className="mt-5 flex items-center justify-between gap-3">
                   <p className="text-xs text-slate-400">Updated {merchant.updatedAt.toLocaleDateString('en-US')}</p>
-                  <Link href={`/admin/store/merchants/${merchant.id}`} className="inline-flex items-center gap-2 text-sm font-semibold text-teal-700 transition group-hover:gap-3">
-                    Open intelligence <ArrowRight className="h-4 w-4" aria-hidden="true" />
-                  </Link>
+                  <div className="flex flex-wrap items-center gap-4">
+                    <Link href={`/admin/store/merchants/${merchant.id}/experiences`} className="text-sm font-semibold text-violet-700 transition hover:text-violet-900">Experiences</Link>
+                    <Link href={`/admin/store/merchants/${merchant.id}`} className="inline-flex items-center gap-2 text-sm font-semibold text-teal-700 transition group-hover:gap-3">
+                      Open intelligence <ArrowRight className="h-4 w-4" aria-hidden="true" />
+                    </Link>
+                  </div>
                 </div>
               </article>
             ))}

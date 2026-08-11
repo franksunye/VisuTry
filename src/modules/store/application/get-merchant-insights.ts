@@ -282,6 +282,7 @@ export async function getMerchantInsights(input: {
     prisma.merchantSession.findMany({
       where: {
         merchantId: input.merchantId,
+        ...(experienceId ? { experienceId } : {}),
         createdAt: { gte: previousWindowStart },
       },
       select: { id: true, createdAt: true },
