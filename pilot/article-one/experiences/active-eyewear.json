@@ -1,0 +1,28 @@
+{
+  "experienceSlug": "active-eyewear",
+  "type": "CAMPAIGN",
+  "name": "Active Eyewear",
+  "status": "ACTIVE",
+  "headline": "Discover eyewear designed for movement",
+  "description": "Reference Pilot / Simulation: an activity-led edit using official Article One Active descriptions and technical details. No sport suitability or performance outcome is inferred.",
+  "catalogSelection": [
+    "ARTICLE-ONE-AOMW",
+    "ARTICLE-ONE-SHADOW",
+    "ARTICLE-ONE-FIFE",
+    "ARTICLE-ONE-MYSTIC",
+    "ARTICLE-ONE-MEADOW",
+    "ARTICLE-ONE-TERRA",
+    "ARTICLE-ONE-GOGEBIC",
+    "ARTICLE-ONE-WABASIS",
+    "ARTICLE-ONE-VERMILLION"
+  ],
+  "primaryCta": {
+    "type": "PRODUCT_OR_COLLECTION",
+    "label": "View frame"
+  },
+  "referenceData": true,
+  "measurement": {
+    "defaultSource": "visutry-reference-pilot",
+    "defaultCampaign": "article-one-active-eyewear"
+  }
+}

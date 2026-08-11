@@ -1,0 +1,28 @@
+{
+  "experienceSlug": "find-your-fit",
+  "type": "CAMPAIGN",
+  "name": "Find Your Fit",
+  "status": "ACTIVE",
+  "headline": "Compare proportions across the Article One range",
+  "description": "Reference Pilot / Simulation: a size and proportion-led edit using published A/B/ED/DBL/TMPL measurements. Measurements support comparison only and are not a fit guarantee.",
+  "catalogSelection": [
+    "ARTICLE-ONE-HANLEY",
+    "ARTICLE-ONE-PEARL",
+    "ARTICLE-ONE-MOON-2-0",
+    "ARTICLE-ONE-COREY",
+    "ARTICLE-ONE-AVALON-2-0",
+    "ARTICLE-ONE-STONE",
+    "ARTICLE-ONE-FIFE",
+    "ARTICLE-ONE-AOMW-2-0",
+    "ARTICLE-ONE-SHADOW"
+  ],
+  "primaryCta": {
+    "type": "PRODUCT_OR_COLLECTION",
+    "label": "View frame"
+  },
+  "referenceData": true,
+  "measurement": {
+    "defaultSource": "visutry-reference-pilot",
+    "defaultCampaign": "article-one-find-your-fit"
+  }
+}

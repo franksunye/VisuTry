@@ -1,0 +1,27 @@
+{
+  "merchantSlug": "article-one",
+  "displayName": "Article One",
+  "pilotType": "REFERENCE",
+  "referenceData": true,
+  "catalogMode": "CURATED",
+  "defaultLocale": "en",
+  "theme": {
+    "logoUrl": null,
+    "brandName": "Article One",
+    "accentToken": "slate"
+  },
+  "measurement": {
+    "referenceTraffic": true,
+    "defaultSource": "visutry-reference-pilot",
+    "defaultCampaign": "article-one"
+  },
+  "experience": {
+    "tryOnEnabled": true,
+    "compareEnabled": true,
+    "maxCompareFrames": 2
+  },
+  "commerce": {
+    "inquiryEnabled": false
+  },
+  "websiteUrl": "https://www.articleoneeyewear.com/"
+}
