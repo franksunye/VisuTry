@@ -100,6 +100,7 @@ export function VisualSeoAsset({
             alt={asset.alt}
             width={asset.width}
             height={asset.height}
+            priority={asset.priority}
             sizes="(max-width: 768px) 100vw, 1120px"
             className="h-auto w-full"
           />

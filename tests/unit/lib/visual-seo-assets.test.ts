@@ -6,19 +6,21 @@ import {
   B03_VISUAL_SEO_ASSETS,
   B04_VISUAL_SEO_ASSETS,
   B05_VISUAL_SEO_ASSETS,
+  B06_VISUAL_SEO_ASSETS,
   getVisualSeoAssetsForPage,
   VISUAL_SEO_ASSETS,
 } from '@/config/visual-seo-assets'
 
-describe('B01 through B05 visual SEO master assets', () => {
-  it('keeps all forty-two source and public assets present with stable dimensions', () => {
+describe('B01 through B06 visual SEO master assets', () => {
+  it('keeps all fifty-four source and public assets present with stable dimensions', () => {
     expect(B01_VISUAL_SEO_ASSETS).toHaveLength(8)
     expect(B02_VISUAL_SEO_ASSETS).toHaveLength(8)
     expect(B03_VISUAL_SEO_ASSETS).toHaveLength(8)
     expect(B04_VISUAL_SEO_ASSETS).toHaveLength(9)
     expect(B05_VISUAL_SEO_ASSETS).toHaveLength(9)
-    expect(new Set(VISUAL_SEO_ASSETS.map((asset) => asset.id)).size).toBe(42)
-    expect(new Set(VISUAL_SEO_ASSETS.map((asset) => asset.publicPath)).size).toBe(42)
+    expect(B06_VISUAL_SEO_ASSETS).toHaveLength(12)
+    expect(new Set(VISUAL_SEO_ASSETS.map((asset) => asset.id)).size).toBe(54)
+    expect(new Set(VISUAL_SEO_ASSETS.map((asset) => asset.publicPath)).size).toBe(54)
 
     for (const asset of VISUAL_SEO_ASSETS) {
       expect(fs.existsSync(path.join(process.cwd(), asset.sourcePath))).toBe(true)
@@ -86,5 +88,16 @@ describe('B01 through B05 visual SEO master assets', () => {
       'hero', 'compare', 'fit',
     ])
     expect(B05_VISUAL_SEO_ASSETS.every((asset) => asset.bodyPosition === 'before')).toBe(true)
+  })
+
+  it('maps B06 to six face shape pages with characteristics and identification stages', () => {
+    expect(B06_VISUAL_SEO_ASSETS).toHaveLength(12)
+    for (const faceShape of ['round', 'oval', 'square', 'heart', 'diamond', 'oblong']) {
+      const assets = getVisualSeoAssetsForPage(`/face-shapes/${faceShape}`, 'B06')
+      expect(assets).toHaveLength(2)
+      expect(assets.map((asset) => asset.stage)).toEqual(['characteristics', 'identify'])
+    }
+    expect(B06_VISUAL_SEO_ASSETS.every((asset) => asset.bodyPosition === 'after')).toBe(true)
+    expect(B06_VISUAL_SEO_ASSETS.every((asset) => asset.priority === true)).toBe(true)
   })
 })

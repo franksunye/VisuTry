@@ -10,6 +10,7 @@ import {
 import type { Locale } from '@/i18n'
 import { generateI18nSEO, generateStructuredData } from '@/lib/seo'
 import { generateBreadcrumbSchema } from '@/lib/programmatic-seo'
+import { B06VisualSeoSections } from '@/components/seo/B06VisualSeoSections'
 
 interface FaceShapeGuidePageProps {
   params: { locale: string; faceShape: string }
@@ -118,6 +119,9 @@ export default function FaceShapeGuidePage({ params }: FaceShapeGuidePageProps) 
             </ul>
           </aside>
         </section>
+
+        <B06VisualSeoSections locale={locale} faceShape={guide.slug} stage="characteristics" />
+        <B06VisualSeoSections locale={locale} faceShape={guide.slug} stage="identify" />
 
         <section className="mt-12">
           <div className="mb-5 max-w-3xl">

@@ -821,7 +821,7 @@ If Codex detects a discrepancy between this document and the current route regis
 | B03 | VSEO-017–024 | ✅ Accepted | Eight comparison / advisor assets integrated into three English Search→Tool pages; one-primary hierarchy, compact supporting layout, source archive, WebP, image sitemap, and build verification complete |
 | B04 | VSEO-025–033 | ✅ Accepted | Nine Face Style owner assets integrated into round, oval, and square English owner pages; staged editorial layout, WebP, source archive, image sitemap, and build verification complete |
 | B05 | VSEO-034–042 | ✅ Accepted | Nine Face Style owner assets integrated into heart, diamond, and oblong English owner pages; shared Face Owner module, staged editorial layout, WebP source/public pipeline, image sitemap, responsive browser checks, targeted tests, `build:ci` verification, and successful Vercel deployment complete. |
-| B06 | VSEO-043–054 | ⏳ Planned | Face Shape explainers |
+| B06 | VSEO-043–054 | ⚠️ Integrated | Twelve Face Shape explainer assets integrated into the six English face-shape pages; characteristics and identification stages, WebP source/public pipeline, image sitemap, responsive browser checks, targeted tests, and `build:ci` verification complete. |
 | B07 | VSEO-055–064 | ⏳ Planned | Face × Frame A |
 | B08 | VSEO-065–074 | ⏳ Planned | Face × Frame B |
 | B09 | VSEO-075–084 | ⏳ Planned | Face × Frame C |
@@ -838,7 +838,7 @@ If Codex detects a discrepancy between this document and the current route regis
 
 ### Current next action
 
-> Batches B01 through B05 are complete. The next production unit is B06, beginning with `VSEO-043`; preserve the established source archive, WebP, adjacent-copy, internal-link, page-level one-primary hierarchy, compact mobile supporting layout, and image-sitemap checks. Track Neon migration connectivity separately as an infrastructure issue; it is not a Visual SEO batch acceptance blocker. Do not generate any batch overview image.
+> Batches B01 through B05 are complete, and B06 is integrated. The next production unit is B07; preserve the established source archive, WebP, adjacent-copy, internal-link, page-level one-primary hierarchy, compact mobile supporting layout, and image-sitemap checks. Track Neon migration connectivity separately as an infrastructure issue; it is not a Visual SEO batch acceptance blocker. Do not generate any batch overview image.
 
 ---
 

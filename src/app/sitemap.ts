@@ -114,6 +114,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: 'weekly',
       priority: 0.75,
       alternates: { languages: { en: `${baseUrl}/en${path}` } },
+      ...(visualSeoImages(path) ? { images: visualSeoImages(path) } : {}),
     })
   })
   combinationSearchPaths.forEach((path) => {
