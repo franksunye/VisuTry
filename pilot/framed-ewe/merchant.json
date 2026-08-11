@@ -1,0 +1,27 @@
+{
+  "merchantSlug": "framed-ewe",
+  "displayName": "Framed EWE",
+  "pilotType": "REFERENCE",
+  "referenceData": true,
+  "catalogMode": "CURATED",
+  "defaultLocale": "en",
+  "theme": {
+    "logoUrl": null,
+    "brandName": "Framed EWE",
+    "accentToken": "slate"
+  },
+  "measurement": {
+    "referenceTraffic": true,
+    "defaultSource": "visutry-reference-pilot",
+    "defaultCampaign": "framed-ewe"
+  },
+  "experience": {
+    "tryOnEnabled": true,
+    "compareEnabled": true,
+    "maxCompareFrames": 2
+  },
+  "commerce": {
+    "inquiryEnabled": false
+  },
+  "websiteUrl": "https://framedewe.com/"
+}
