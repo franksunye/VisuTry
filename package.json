@@ -18,6 +18,7 @@
     "db:seed": "tsx prisma/seed.ts",
     "db:seed:admin": "tsx scripts/seed-admin.ts",
     "db:seed:store": "tsx scripts/seed-store-luna.ts",
+    "db:seed:pilot": "tsx scripts/seed-store-pilot.ts",
     "test:mode": "cp .env.test .env.local && npm run dev",
     "test:integration": "node scripts/test-integration.js",
     "test:start": "bash scripts/start-test-mode.sh",

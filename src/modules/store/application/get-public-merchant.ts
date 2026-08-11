@@ -20,6 +20,8 @@ export type PublicMerchantProfile = {
   logoUrl: string | null
   websiteUrl: string | null
   accentColor: string | null
+  pilotType: string | null
+  referenceData: boolean
   activeFrameCount: number
   featuredFrames: PublicMerchantFramePreview[]
   status: MerchantStatus
@@ -54,6 +56,8 @@ export function toPublicMerchantProfile(
     logoUrl: merchant.logoUrl,
     websiteUrl: merchant.websiteUrl,
     accentColor: merchant.accentColor,
+    pilotType: merchant.pilotType ?? null,
+    referenceData: merchant.referenceData === true,
     activeFrameCount: activeFrames.length,
     featuredFrames: activeFrames.slice(0, 4).map((frame) => ({
       id: frame.id,

@@ -10,7 +10,10 @@ interface MerchantStorePageProps {
   }
 }
 
-export const dynamic = 'force-static'
+// Merchant slugs are provisioned from the catalog/config delivery path.
+// Keep the generic Store route dynamic so refresh and App Router navigation
+// work for newly imported merchants without a static-param build step.
+export const dynamic = 'force-dynamic'
 
 export async function generateMetadata({
   params,

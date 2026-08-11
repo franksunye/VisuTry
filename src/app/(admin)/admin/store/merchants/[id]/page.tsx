@@ -204,7 +204,11 @@ export default async function AdminMerchantInsightsPage({ params }: PageProps) {
                 <p className="mt-2 max-w-2xl text-sm leading-6 text-white/70">
                   Merchant intelligence · catalog performance · anonymous shopper intent
                 </p>
-                {dataProvenance.includesSyntheticActivity ? (
+                {dataProvenance.referenceData ? (
+                  <p className="mt-3 inline-flex rounded-full bg-amber-300/20 px-3 py-1 text-[11px] font-semibold text-amber-100 ring-1 ring-amber-200/30">
+                    Reference Pilot · Simulation · not live merchant traffic
+                  </p>
+                ) : dataProvenance.includesSyntheticActivity ? (
                   <p className="mt-3 inline-flex rounded-full bg-white/10 px-3 py-1 text-[11px] font-medium text-white/75 ring-1 ring-white/15">
                     Sales demo workspace · includes synthetic sample activity
                   </p>

@@ -9,6 +9,7 @@ import type { MerchantEventRepository, MerchantRepository } from './ports/reposi
 export type MerchantInsightsDto = {
   dataProvenance: {
     includesSyntheticActivity: boolean
+    referenceData: boolean
   }
   merchant: {
     id: string
@@ -18,6 +19,8 @@ export type MerchantInsightsDto = {
     websiteUrl: string | null
     accentColor: string | null
     status: string
+    pilotType: string | null
+    referenceData: boolean
   }
   metrics: {
     sessions: number
@@ -223,6 +226,7 @@ export async function getMerchantInsights(input: {
         id: true,
         createdAt: true,
         status: true,
+        referenceData: true,
       },
     }),
     prisma.merchantEvent.findMany({
@@ -232,6 +236,7 @@ export async function getMerchantInsights(input: {
         merchantSessionId: true,
         merchantFrameId: true,
         metadata: true,
+        referenceData: true,
         createdAt: true,
       },
       take: 5000,
@@ -468,6 +473,7 @@ export async function getMerchantInsights(input: {
         (event) => event.metadata && typeof event.metadata === 'object' &&
           !Array.isArray(event.metadata) && event.metadata.demoSeed === true,
       ),
+      referenceData: merchant.referenceData === true || eventRows.some((event) => event.referenceData === true),
     },
     merchant: {
       id: merchant.id,
@@ -477,6 +483,8 @@ export async function getMerchantInsights(input: {
       websiteUrl: merchant.websiteUrl,
       accentColor: merchant.accentColor,
       status: merchant.status,
+      pilotType: merchant.pilotType ?? null,
+      referenceData: merchant.referenceData === true,
     },
     metrics: {
       sessions,
