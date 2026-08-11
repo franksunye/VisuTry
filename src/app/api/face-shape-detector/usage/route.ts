@@ -24,6 +24,10 @@ type DetectionDiagnostics = {
   bitmapDecodeErrorMessage?: string
   htmlImageDecodeErrorName?: string
   htmlImageDecodeErrorMessage?: string
+  gpuRuntimeErrorName?: string
+  gpuRuntimeErrorMessage?: string
+  cpuRuntimeErrorName?: string
+  cpuRuntimeErrorMessage?: string
 }
 
 const DIAGNOSTIC_STRING_LIMITS: Record<string, number> = {
@@ -36,6 +40,10 @@ const DIAGNOSTIC_STRING_LIMITS: Record<string, number> = {
   bitmapDecodeErrorMessage: 96,
   htmlImageDecodeErrorName: 96,
   htmlImageDecodeErrorMessage: 96,
+  gpuRuntimeErrorName: 96,
+  gpuRuntimeErrorMessage: 96,
+  cpuRuntimeErrorName: 96,
+  cpuRuntimeErrorMessage: 96,
 }
 
 function sanitizeDiagnostics(value: unknown): DetectionDiagnostics | undefined {
