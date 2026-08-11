@@ -2,13 +2,18 @@ import { getPublicMerchantProfile } from '@/modules/store/application/get-public
 import { resolveMerchantExperience } from '@/modules/store/application/resolve-experience'
 import { createStoreSession } from '@/modules/store/application/create-store-session'
 import { recordCompareStarted } from '@/modules/store/application/record-compare-started'
-import { createMerchantSessionCapability } from '@/modules/store/domain'
-import { experienceContainsFrame } from '@/modules/store/domain'
+import { createMerchantSessionCapability, experienceContainsFrame } from '@/modules/store/domain'
 import type {
   ExperienceRecord,
   MerchantFrameRecord,
   MerchantRepository,
 } from '@/modules/store/application'
+
+jest.mock('@/lib/prisma', () => ({
+  prisma: {
+    tryOnTask: { count: jest.fn() },
+  },
+}))
 
 const now = new Date()
 
