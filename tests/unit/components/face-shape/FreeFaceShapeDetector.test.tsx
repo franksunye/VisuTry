@@ -225,4 +225,63 @@ describe('FreeFaceShapeDetector', () => {
     expect(await screen.findByRole('heading', { name: 'Oval' })).toBeInTheDocument()
     expect(mockAnalyzeFaceLandmarkFile).toHaveBeenCalledWith(file)
   })
+
+  it('records normalized compression and decoder diagnostics without image content', async () => {
+    mockCompressImage.mockRejectedValue(new Error('Image loading failed for local blob'))
+    const unavailableResult: FaceGeometryAnalysis = {
+      version: 'landmark-v1',
+      status: 'unavailable',
+      source: 'ai-fallback',
+      faceDetected: false,
+      faceCount: 0,
+      qualityScore: 0,
+      signals: [],
+      warnings: ['Image could not be decoded.'],
+      failureReason: 'image_decode_failed',
+    }
+    mockAnalyzeFaceLandmarkFile.mockResolvedValue({
+      geometry: unavailableResult,
+      detection: null,
+      decodeDiagnostics: {
+        detectedFileFormat: 'heic',
+        bitmapDecodeErrorName: 'EncodingError',
+        bitmapDecodeErrorMessage: 'unsupported_image',
+        htmlImageDecodeErrorName: 'EncodingError',
+        htmlImageDecodeErrorMessage: 'decode_failed',
+      },
+    })
+
+    render(<FreeFaceShapeDetector locale="en" />)
+
+    const file = new File(['portrait'], 'portrait.jpg', { type: 'image/jpeg' })
+    fireEvent.change(getPhotoLibraryInput(), { target: { files: [file] } })
+
+    expect(await screen.findByText('Image could not be decoded.')).toBeInTheDocument()
+
+    const usageCalls = mockFetch.mock.calls as unknown as Array<[string, RequestInit]>
+    const usageCall = usageCalls.find(([url]) => url === '/api/face-shape-detector/usage')
+    expect(usageCall).toBeDefined()
+    if (!usageCall) throw new Error('Usage request was not recorded')
+    const payload = JSON.parse(String(usageCall[1].body))
+
+    expect(payload).toEqual({
+      status: 'FAILED',
+      failureReason: 'image_decode_failed',
+      diagnostics: {
+        sourceFileType: 'image/jpeg',
+        sourceFileSize: 8,
+        detectorFileType: 'image/jpeg',
+        detectorFileSize: 8,
+        compressionFailed: true,
+        compressionErrorName: 'Error',
+        compressionErrorMessage: 'image_load_failed',
+        detectedFileFormat: 'heic',
+        bitmapDecodeErrorName: 'EncodingError',
+        bitmapDecodeErrorMessage: 'unsupported_image',
+        htmlImageDecodeErrorName: 'EncodingError',
+        htmlImageDecodeErrorMessage: 'decode_failed',
+      },
+    })
+    expect(JSON.stringify(payload)).not.toContain('local blob')
+  })
 })
