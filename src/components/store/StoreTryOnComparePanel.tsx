@@ -454,7 +454,7 @@ export function StoreTryOnComparePanel({
                       </button>
                     )}
                     <div className="mt-2 flex flex-wrap gap-2">
-                      {experiencePolicy.inquiryEnabled ? <button
+                      <button
                         type="button"
                         disabled={favoritedIds.includes(tile.merchantFrameId)}
                         onClick={async () => {
@@ -482,17 +482,19 @@ export function StoreTryOnComparePanel({
                         {favoritedIds.includes(tile.merchantFrameId)
                           ? t('intent.favorited')
                           : t('intent.favorite')}
-                      </button> : null}
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setInquiryFrameId(tile.merchantFrameId)
-                          setInquirySent(false)
-                        }}
-                        className="rounded-md border border-gray-200 px-2 py-1 text-xs font-medium text-gray-700 hover:bg-gray-50"
-                      >
-                        {t('intent.inquire')}
                       </button>
+                      {experiencePolicy.inquiryEnabled ? (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setInquiryFrameId(tile.merchantFrameId)
+                            setInquirySent(false)
+                          }}
+                          className="rounded-md border border-gray-200 px-2 py-1 text-xs font-medium text-gray-700 hover:bg-gray-50"
+                        >
+                          {t('intent.inquire')}
+                        </button>
+                      ) : null}
                     </div>
                   </div>
                 </div>

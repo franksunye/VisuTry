@@ -98,6 +98,41 @@ function frameDto(frame: {
   }
 }
 
+async function assertStoreBatchFrameLimit(input: {
+  merchantId: string
+  merchantSessionId: string
+  merchantFrameId: string
+  batchId: string
+  maxCompareFrames: number
+}) {
+  const existingTasks = await prisma.tryOnTask.findMany({
+    where: {
+      merchantId: input.merchantId,
+      merchantSessionId: input.merchantSessionId,
+      origin: { in: ['STORE_DEMO', 'STORE_PILOT'] },
+    },
+    select: { merchantFrameId: true, metadata: true },
+  })
+  const batchFrameIds = new Set(
+    existingTasks
+      .filter((task) => {
+        const metadata = task.metadata as { batchId?: unknown } | null
+        return metadata?.batchId === input.batchId
+      })
+      .map((task) => task.merchantFrameId)
+      .filter((frameId): frameId is string => Boolean(frameId)),
+  )
+  batchFrameIds.add(input.merchantFrameId)
+
+  if (batchFrameIds.size > input.maxCompareFrames) {
+    throw new StoreDomainError(
+      'VALIDATION_ERROR',
+      `Try-on supports up to ${input.maxCompareFrames} frames per batch.`,
+      400,
+    )
+  }
+}
+
 async function markStoreClaimFailed(
   taskId: string,
   lease: DispatchFence,
@@ -162,6 +197,7 @@ async function claimStoreTryOnSlot(input: {
   renderLimits: import('../domain').StoreDemoLimits
   usageCreatedAt?: { gte?: Date; lt?: Date }
   tryOnOrigin: 'STORE_DEMO' | 'STORE_PILOT'
+  batchId: string
 }): Promise<{
   taskId: string
   reusedExisting: boolean
@@ -313,6 +349,7 @@ async function claimStoreTryOnSlot(input: {
               retentionStatus: 'ACTIVE',
               metadata: {
                 ...lease,
+                batchId: input.batchId,
               },
               dispatchLeaseOwner: leaseOwner,
               dispatchLeaseUntil: new Date(lease.dispatchLeaseUntil),
@@ -386,6 +423,14 @@ export async function submitStoreFrameTryOn(
   }
   assertSameMerchantTenant(merchant.id, frame.merchantId, 'frame')
 
+  await assertStoreBatchFrameLimit({
+    merchantId: merchant.id,
+    merchantSessionId: session.id,
+    merchantFrameId: frame.id,
+    batchId: input.batchId,
+    maxCompareFrames: experiencePolicy.maxCompareFrames,
+  })
+
   if (!session.photoAssetId) {
     throw new StoreDomainError(
       'VALIDATION_ERROR',
@@ -456,6 +501,7 @@ export async function submitStoreFrameTryOn(
     renderLimits: entitlement.renderLimits,
     usageCreatedAt,
     tryOnOrigin: entitlement.tryOnOrigin,
+    batchId: input.batchId,
   })
 
   let shouldDispatch = !claim.reusedExisting

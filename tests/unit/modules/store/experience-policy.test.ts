@@ -19,7 +19,7 @@ import type {
 
 jest.mock('@/lib/prisma', () => ({
   prisma: {
-    tryOnTask: { count: jest.fn() },
+    tryOnTask: { count: jest.fn(), findMany: jest.fn() },
   },
 }))
 
@@ -37,12 +37,15 @@ function merchant(overrides: Record<string, unknown> = {}): MerchantRepository {
   }
 }
 
-function sessionRepository(capabilityTokenHash: string): MerchantSessionRepository {
+function sessionRepository(
+  capabilityTokenHash: string,
+  photoAssetId: string | null = null,
+): MerchantSessionRepository {
   const session: MerchantSessionRecord = {
     id: 'session-1',
     merchantId: 'merchant-1',
     anonymousVisitorId: null,
-    photoAssetId: null,
+    photoAssetId,
     capabilityTokenHash,
     locale: 'en',
     status: 'ACTIVE',
@@ -65,11 +68,22 @@ function sessionRepository(capabilityTokenHash: string): MerchantSessionReposito
   }
 }
 
-function frames(): MerchantFrameRepository {
+function frames(frameId = 'frame-1'): MerchantFrameRepository {
+  const frame = {
+    id: frameId,
+    merchantId: 'merchant-1',
+    name: 'Frame',
+    imageUrl: 'https://example.com/frame.jpg',
+    imageAssetId: null,
+    productUrl: null,
+    price: null,
+    currency: null,
+    shape: 'round',
+  }
   return {
     findActiveByMerchant: jest.fn(),
-    findByMerchantAndId: jest.fn(),
-    findActiveByMerchantAndId: jest.fn().mockResolvedValue({ id: 'frame-1', merchantId: 'merchant-1' }),
+    findByMerchantAndId: jest.fn().mockResolvedValue(frame),
+    findActiveByMerchantAndId: jest.fn().mockResolvedValue(frame),
   }
 }
 
@@ -113,6 +127,77 @@ describe('Campaign Experience Policy v1', () => {
         clientSubmissionId: 'submit-1',
       }),
     ).rejects.toMatchObject({ code: 'CAPABILITY_DISABLED', httpStatus: 403 })
+  })
+
+  it('keeps Favorite available when Inquiry is disabled', async () => {
+    const capability = createMerchantSessionCapability()
+    const intents = {
+      createIdempotent: jest.fn().mockResolvedValue({
+        record: {
+          id: 'intent-1',
+          merchantId: 'merchant-1',
+          merchantSessionId: 'session-1',
+          merchantFrameId: 'frame-1',
+          type: 'FAVORITE',
+          idempotencyKey: 'favorite-1',
+          email: null,
+          name: null,
+          note: null,
+          createdAt: new Date(),
+        },
+        created: true,
+      }),
+      listByMerchant: jest.fn(),
+    } as MerchantIntentRepository
+
+    const result = await recordStoreIntent({
+      merchants: merchant({ inquiryEnabled: false }),
+      frames: frames(),
+      sessions: sessionRepository(capability.tokenHash),
+      intents,
+      events: events(),
+      slug: 'ello-sunglasses',
+      merchantSessionId: 'session-1',
+      capabilityToken: capability.token,
+      type: 'FAVORITE',
+      merchantFrameId: 'frame-1',
+      clientActionId: 'favorite-1',
+    })
+
+    expect(result).toMatchObject({ type: 'FAVORITE', created: true })
+    expect(intents.createIdempotent).toHaveBeenCalled()
+  })
+
+  it('rejects a third distinct batch frame before calling generation', async () => {
+    const capability = createMerchantSessionCapability()
+    ;(prisma.tryOnTask.findMany as jest.Mock).mockResolvedValue([
+      { merchantFrameId: 'frame-1', metadata: { batchId: 'batch-1' } },
+      { merchantFrameId: 'frame-2', metadata: { batchId: 'batch-1' } },
+    ])
+    const generation = {
+      submit: jest.fn(),
+      findExistingByIdempotencyKey: jest.fn(),
+    } as never
+
+    await expect(
+      submitStoreFrameTryOn({
+        merchants: merchant({ maxCompareFrames: 2 }),
+        frames: frames('frame-3'),
+        sessions: sessionRepository(capability.tokenHash, 'photo-1'),
+        events: events(),
+        usage: {} as never,
+        assets: {} as never,
+        generation,
+        slug: 'ello-sunglasses',
+        merchantSessionId: 'session-1',
+        capabilityToken: capability.token,
+        merchantFrameId: 'frame-3',
+        batchId: 'batch-1',
+        clientSubmissionId: 'submit-3',
+      }),
+    ).rejects.toMatchObject({ code: 'VALIDATION_ERROR', httpStatus: 400 })
+
+    expect((generation as { submit: jest.Mock }).submit).not.toHaveBeenCalled()
   })
 
   it('rejects compare when disabled and rejects three frames for a two-frame policy', async () => {
