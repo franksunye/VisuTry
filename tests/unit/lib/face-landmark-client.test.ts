@@ -184,9 +184,47 @@ describe('face-landmark-client detector fallback', () => {
     const result = await analyzeFaceLandmarkFile(file)
 
     expect(result.geometry.failureReason).toBe('image_decode_failed')
-    expect(result.geometry.warnings[0]).toMatch(/fallback: Decode failed/)
+    expect(result.geometry.warnings[0]).toMatch(/fallback: decode_failed/)
+    expect(result.decodeDiagnostics).toEqual({
+      detectedFileFormat: 'unknown',
+      bitmapDecodeErrorName: 'EncodingError',
+      bitmapDecodeErrorMessage: 'invalid_image',
+      htmlImageDecodeErrorName: 'EncodingError',
+      htmlImageDecodeErrorMessage: 'decode_failed',
+    })
     // Failed decode path must still revoke the object URL it created.
     expect(URL.revokeObjectURL).toHaveBeenCalledWith('blob:face-input')
+  })
+
+  it('detects HEIC bytes even when the declared MIME type says JPEG', async () => {
+    const createImageBitmap = globalThis.createImageBitmap as jest.Mock
+    createImageBitmap.mockRejectedValue(new DOMException('Unsupported image', 'EncodingError'))
+
+    class MockImage {
+      decoding = 'async'
+      naturalWidth = 0
+      naturalHeight = 0
+      width = 0
+      height = 0
+      src = ''
+      onload: ((event: Event) => void) | null = null
+      onerror: ((event: Event) => void) | null = null
+      decode = jest.fn().mockRejectedValue(new DOMException('Decode failed', 'EncodingError'))
+    }
+    Object.defineProperty(globalThis, 'Image', { configurable: true, value: MockImage })
+
+    const bytes = new Uint8Array([
+      0x00, 0x00, 0x00, 0x18,
+      0x66, 0x74, 0x79, 0x70,
+      0x68, 0x65, 0x69, 0x63,
+      0x00, 0x00, 0x00, 0x00,
+    ])
+    const file = new File([bytes], 'camera.jpg', { type: 'image/jpeg' })
+    const result = await analyzeFaceLandmarkFile(file)
+
+    expect(result.geometry.failureReason).toBe('image_decode_failed')
+    expect(result.decodeDiagnostics?.detectedFileFormat).toBe('heic')
+    expect(result.decodeDiagnostics?.bitmapDecodeErrorMessage).toBe('unsupported_image')
   })
 
   it('rejects empty files before invoking a browser decoder', async () => {
@@ -196,6 +234,7 @@ describe('face-landmark-client detector fallback', () => {
 
     expect(result.geometry.failureReason).toBe('image_decode_failed')
     expect(result.geometry.warnings[0]).toBe('Image file is empty.')
+    expect(result.decodeDiagnostics?.detectedFileFormat).toBe('unknown')
     expect(createImageBitmap).not.toHaveBeenCalled()
   })
 })
