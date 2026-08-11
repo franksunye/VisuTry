@@ -2,7 +2,10 @@ import { prisma } from '@/lib/prisma'
 import { recordCompareStarted } from '@/modules/store/application/record-compare-started'
 import { recordFrameSelections } from '@/modules/store/application/record-frame-selections'
 import { recordStoreIntent } from '@/modules/store/application/record-store-intent'
-import { submitStoreFrameTryOn } from '@/modules/store/application/submit-store-tryon'
+import {
+  reserveStoreBatchFrame,
+  submitStoreFrameTryOn,
+} from '@/modules/store/application/submit-store-tryon'
 import {
   maxSelectableStoreFrames,
   resolveStoreExperiencePolicy,
@@ -171,8 +174,8 @@ describe('Campaign Experience Policy v1', () => {
   it('rejects a third distinct batch frame before calling generation', async () => {
     const capability = createMerchantSessionCapability()
     ;(prisma.tryOnTask.findMany as jest.Mock).mockResolvedValue([
-      { merchantFrameId: 'frame-1', metadata: { batchId: 'batch-1' } },
-      { merchantFrameId: 'frame-2', metadata: { batchId: 'batch-1' } },
+      { merchantFrameId: 'frame-1', batchId: 'batch-1' },
+      { merchantFrameId: 'frame-2', batchId: 'batch-1' },
     ])
     const generation = {
       submit: jest.fn(),
@@ -198,6 +201,70 @@ describe('Campaign Experience Policy v1', () => {
     ).rejects.toMatchObject({ code: 'VALIDATION_ERROR', httpStatus: 400 })
 
     expect((generation as { submit: jest.Mock }).submit).not.toHaveBeenCalled()
+  })
+
+  it('serializes concurrent batch reservations so only two tasks dispatch', async () => {
+    const committedTasks: Array<{ merchantFrameId: string; batchId: string }> = []
+    let transactionQueue = Promise.resolve()
+    let taskSequence = 0
+    const runTransaction = async (
+      callback: (tx: unknown) => Promise<unknown>,
+    ) => {
+      const previous = transactionQueue
+      let release!: () => void
+      transactionQueue = new Promise<void>((resolve) => {
+        release = resolve
+      })
+      await previous
+
+      const pendingTasks: Array<{ merchantFrameId: string; batchId: string }> = []
+      const tx = {
+        $executeRaw: jest.fn().mockResolvedValue(1),
+        tryOnTask: {
+          findMany: jest.fn().mockResolvedValue([...committedTasks]),
+          create: jest.fn().mockImplementation(async ({ data }: { data: { merchantFrameId: string; batchId: string } }) => {
+            pendingTasks.push({ merchantFrameId: data.merchantFrameId, batchId: data.batchId })
+            taskSequence += 1
+            return { id: `task-${taskSequence}` }
+          }),
+        },
+      }
+
+      try {
+        const result = await callback(tx)
+        committedTasks.push(...pendingTasks)
+        return result
+      } finally {
+        release()
+      }
+    }
+
+    const dispatched: string[] = []
+    const submit = async (merchantFrameId: string) => {
+      try {
+        await runTransaction(async (tx) => {
+          await reserveStoreBatchFrame(tx as never, {
+            merchantId: 'merchant-1',
+            merchantSessionId: 'session-1',
+            merchantFrameId,
+            batchId: 'batch-1',
+            maxCompareFrames: 2,
+          })
+          await (tx as { tryOnTask: { create: (input: unknown) => Promise<unknown> } }).tryOnTask.create({
+            data: { merchantFrameId, batchId: 'batch-1' },
+          })
+        })
+        dispatched.push(merchantFrameId)
+      } catch (error) {
+        expect(error).toMatchObject({ code: 'VALIDATION_ERROR', httpStatus: 400 })
+      }
+    }
+
+    await Promise.all(['frame-1', 'frame-2', 'frame-3'].map(submit))
+
+    expect(committedTasks).toHaveLength(2)
+    expect(dispatched).toHaveLength(2)
+    expect(new Set(dispatched)).toEqual(new Set(['frame-1', 'frame-2']))
   })
 
   it('rejects compare when disabled and rejects three frames for a two-frame policy', async () => {

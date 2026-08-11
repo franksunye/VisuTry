@@ -117,6 +117,8 @@ model TryOnTask {
   // Metadata
   prompt             String?
   clientSubmissionId String?
+  /// Store batch identity used by the database-backed frame limit boundary.
+  batchId            String?
   metadata           Json?
 
   // Database-backed leases. Owner + monotonically increasing version provide
@@ -157,6 +159,7 @@ model TryOnTask {
   @@index([origin])
   @@index([merchantId, createdAt(sort: Desc)])
   @@index([merchantSessionId])
+  @@index([merchantSessionId, batchId])
   @@index([merchantFrameId])
   @@unique([userId, clientSubmissionId])          // Prevent duplicate client/batch submissions
 }

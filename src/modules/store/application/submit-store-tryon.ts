@@ -111,14 +111,56 @@ async function assertStoreBatchFrameLimit(input: {
       merchantSessionId: input.merchantSessionId,
       origin: { in: ['STORE_DEMO', 'STORE_PILOT'] },
     },
-    select: { merchantFrameId: true, metadata: true },
+    select: { merchantFrameId: true, batchId: true },
   })
   const batchFrameIds = new Set(
     existingTasks
-      .filter((task) => {
-        const metadata = task.metadata as { batchId?: unknown } | null
-        return metadata?.batchId === input.batchId
-      })
+      .filter((task) => task.batchId === input.batchId)
+      .map((task) => task.merchantFrameId)
+      .filter((frameId): frameId is string => Boolean(frameId)),
+  )
+  batchFrameIds.add(input.merchantFrameId)
+
+  if (batchFrameIds.size > input.maxCompareFrames) {
+    throw new StoreDomainError(
+      'VALIDATION_ERROR',
+      `Try-on supports up to ${input.maxCompareFrames} frames per batch.`,
+      400,
+    )
+  }
+}
+
+/**
+ * Reserve a distinct frame in a Store batch inside the claim transaction.
+ * PostgreSQL's transaction-scoped advisory lock serializes claims for the
+ * same merchant/session/batch without a process-local mutex.
+ */
+export async function reserveStoreBatchFrame(
+  tx: Prisma.TransactionClient,
+  input: {
+    merchantId: string
+    merchantSessionId: string
+    merchantFrameId: string
+    batchId: string
+    maxCompareFrames: number
+  },
+) {
+  const lockKey = `${input.merchantId}:${input.merchantSessionId}:${input.batchId}`
+  await tx.$executeRaw`
+    SELECT pg_advisory_xact_lock(hashtextextended(${lockKey}, 0))
+  `
+
+  const existingTasks = await tx.tryOnTask.findMany({
+    where: {
+      merchantId: input.merchantId,
+      merchantSessionId: input.merchantSessionId,
+      batchId: input.batchId,
+      origin: { in: ['STORE_DEMO', 'STORE_PILOT'] },
+    },
+    select: { merchantFrameId: true },
+  })
+  const batchFrameIds = new Set(
+    existingTasks
       .map((task) => task.merchantFrameId)
       .filter((frameId): frameId is string => Boolean(frameId)),
   )
@@ -198,6 +240,7 @@ async function claimStoreTryOnSlot(input: {
   usageCreatedAt?: { gte?: Date; lt?: Date }
   tryOnOrigin: 'STORE_DEMO' | 'STORE_PILOT'
   batchId: string
+  maxCompareFrames: number
 }): Promise<{
   taskId: string
   reusedExisting: boolean
@@ -226,6 +269,14 @@ async function claimStoreTryOnSlot(input: {
             }
             return { taskId: existing.id, reusedExisting: true, dispatchLease: null }
           }
+
+          await reserveStoreBatchFrame(tx, {
+            merchantId: input.merchantId,
+            merchantSessionId: input.merchantSessionId,
+            merchantFrameId: input.merchantFrameId,
+            batchId: input.batchId,
+            maxCompareFrames: input.maxCompareFrames,
+          })
 
           const [merchantSuccessfulRenders, sessionSuccessfulRenders, sessionAttempts] =
             await Promise.all([
@@ -345,6 +396,7 @@ async function claimStoreTryOnSlot(input: {
               merchantFrameId: input.merchantFrameId,
               idempotencyKey: input.idempotencyKey,
               clientSubmissionId: input.clientSubmissionId,
+              batchId: input.batchId,
               expiresAt: input.expiresAt ?? computeStoreAssetExpiresAt(),
               retentionStatus: 'ACTIVE',
               metadata: {
@@ -502,6 +554,7 @@ export async function submitStoreFrameTryOn(
     usageCreatedAt,
     tryOnOrigin: entitlement.tryOnOrigin,
     batchId: input.batchId,
+    maxCompareFrames: experiencePolicy.maxCompareFrames,
   })
 
   let shouldDispatch = !claim.reusedExisting
