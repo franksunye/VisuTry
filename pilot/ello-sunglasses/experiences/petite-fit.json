@@ -1,0 +1,29 @@
+{
+  "experienceSlug": "petite-fit",
+  "type": "CAMPAIGN",
+  "name": "Petite Fit Reference Experience",
+  "status": "ACTIVE",
+  "headline": "Find frames for smaller faces",
+  "description": "Reference Campaign / Simulation focused on the catalog rows marked petite-fit.",
+  "catalogSelection": [
+    "50019508355374",
+    "50022250807598",
+    "50022381617454",
+    "50022344327470",
+    "50022429491502",
+    "50022431981870",
+    "50022493028654",
+    "50022496993582",
+    "50023876329774",
+    "50023832289582"
+  ],
+  "primaryCta": {
+    "type": "PRODUCT_OR_COLLECTION",
+    "label": "View frame"
+  },
+  "referenceData": true,
+  "measurement": {
+    "defaultSource": "visutry-reference-pilot",
+    "defaultCampaign": "petite-fit"
+  }
+}

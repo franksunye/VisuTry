@@ -3,8 +3,11 @@ import {
   experiencePolicyForPilotConfig,
   normalizePilotCatalog,
   parsePilotCsv,
+  readPilotPackage,
   validatePilotConfig,
+  validatePilotExperienceConfig,
   type PilotMerchantConfig,
+  type PilotExperienceConfig,
 } from '@/modules/store/application/pilot-delivery-kit'
 
 const config: PilotMerchantConfig = {
@@ -100,5 +103,28 @@ describe('Pilot Delivery Kit catalog contract', () => {
       maxCompareFrames: 2,
       inquiryEnabled: false,
     })
+  })
+
+  it('loads ello as one Store and two Campaign experiences without merchant branches', async () => {
+    const pkg = await readPilotPackage('pilot/ello-sunglasses')
+    expect(pkg.catalog).toHaveLength(12)
+    expect(pkg.experiences.map((item) => item.experienceSlug)).toEqual([
+      'petite-fit',
+      'default',
+      'summer-sunglasses',
+    ])
+  })
+
+  it('validates catalog selection and stable Store slug', () => {
+    const base: PilotExperienceConfig = {
+      experienceSlug: 'default',
+      type: 'STORE',
+      name: 'Store',
+      status: 'ACTIVE',
+      catalogSelection: 'ALL_ACTIVE',
+    }
+    expect(() => validatePilotExperienceConfig(base)).not.toThrow()
+    expect(() => validatePilotExperienceConfig({ ...base, experienceSlug: 'hosted-store' })).toThrow('slug default')
+    expect(() => validatePilotExperienceConfig({ ...base, catalogSelection: ['frame-1', 'frame-1'] })).toThrow('duplicate')
   })
 })

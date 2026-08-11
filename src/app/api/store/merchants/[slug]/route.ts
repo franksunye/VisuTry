@@ -4,15 +4,18 @@ import { createStoreRuntime, getPublicMerchantProfile, storeErrorResponse } from
 export const dynamic = 'force-dynamic'
 
 export async function GET(
-  _request: NextRequest,
+  request: NextRequest,
   { params }: { params: { slug: string } },
 ) {
   try {
     const runtime = createStoreRuntime()
+    const experienceSlug = request.nextUrl.searchParams.get('experienceSlug')
     const profile = await getPublicMerchantProfile({
       merchants: runtime.merchants,
       frames: runtime.frames,
+      experiences: runtime.experiences,
       slug: params.slug,
+      experienceSlug,
     })
 
     return NextResponse.json({

@@ -16,6 +16,7 @@ import {
   selectUsagePolicy,
   resolveStoreExperiencePolicy,
   experiencePolicyMetadata,
+  experienceContainsFrame,
 } from '../domain'
 import type { AssetStore } from './ports/asset-store'
 import type { StoreGenerationPort } from './ports/generation'
@@ -24,6 +25,7 @@ import type {
   MerchantFrameRepository,
   MerchantRepository,
   MerchantSessionRepository,
+  ExperienceRepository,
   StoreUsageRepository,
 } from './ports/repositories'
 import { requireOperableStoreSession } from './require-store-session'
@@ -51,6 +53,7 @@ export type SubmitStoreTryOnInput = {
   usage: StoreUsageRepository
   assets: AssetStore
   generation: StoreGenerationPort
+  experiences?: ExperienceRepository
   slug: string
   merchantSessionId: string
   capabilityToken: string | null
@@ -465,6 +468,9 @@ export async function submitStoreFrameTryOn(
     capabilityToken: input.capabilityToken,
   })
   assertSameMerchantTenant(merchant.id, session.merchantId, 'session')
+  const experience = session.experienceId && input.experiences
+    ? await input.experiences.findByMerchantAndId(merchant.id, session.experienceId)
+    : null
 
   const frame = await input.frames.findActiveByMerchantAndId(
     merchant.id,
@@ -474,6 +480,9 @@ export async function submitStoreFrameTryOn(
     throw new StoreDomainError('FRAME_INACTIVE', 'This frame is no longer available.', 409)
   }
   assertSameMerchantTenant(merchant.id, frame.merchantId, 'frame')
+  if (experience && !experienceContainsFrame(experience, frame.id)) {
+    throw new StoreDomainError('FRAME_INACTIVE', 'This frame is not part of the current experience.', 409)
+  }
 
   await assertStoreBatchFrameLimit({
     merchantId: merchant.id,

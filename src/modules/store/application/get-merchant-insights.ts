@@ -3,11 +3,13 @@ import {
   assertNoShopperImageInInsightPayload,
   buildStoreEventIdempotencyKey,
   merchantNotFound,
+  experienceNotFound,
 } from '../domain'
 import type { MerchantEventRepository, MerchantRepository } from './ports/repositories'
 import { resolveStoreExperiencePolicy, type StoreExperiencePolicy } from '../domain/experience-policy'
 
 export type MerchantInsightsDto = {
+  experienceId: string | null
   dataProvenance: {
     includesSyntheticActivity: boolean
     referenceData: boolean
@@ -149,10 +151,25 @@ export async function getMerchantInsights(input: {
   merchants: MerchantRepository
   events: MerchantEventRepository
   merchantId: string
+  experienceId?: string | null
   recordInsightsViewed?: boolean
 }): Promise<MerchantInsightsDto> {
   const merchant = await input.merchants.findById(input.merchantId)
   if (!merchant) throw merchantNotFound()
+
+  const experienceId = input.experienceId?.trim() || null
+  let experienceReferenceData = false
+  if (experienceId) {
+    const experience = await prisma.experience.findFirst({
+      where: { id: experienceId, merchantId: input.merchantId },
+      select: { id: true, referenceData: true },
+    })
+    if (!experience) throw experienceNotFound()
+    experienceReferenceData = experience.referenceData
+  }
+  const sessionScope = { merchantId: input.merchantId, ...(experienceId ? { experienceId } : {}) }
+  const eventScope = { merchantId: input.merchantId, ...(experienceId ? { experienceId } : {}) }
+  const intentScope = { merchantId: input.merchantId, ...(experienceId ? { experienceId } : {}) }
 
   const today = startOfUtcDay(new Date())
   const currentWindowStart = new Date(today.getTime() - 6 * DAY_MS)
@@ -174,33 +191,36 @@ export async function getMerchantInsights(input: {
     intentRows,
     trendSessionRows,
   ] = await Promise.all([
-    prisma.merchantSession.count({ where: { merchantId: input.merchantId } }),
+    prisma.merchantSession.count({ where: sessionScope }),
     prisma.merchantEvent.count({
-      where: { merchantId: input.merchantId, type: 'merchant_photo_uploaded' },
+      where: { ...eventScope, type: 'merchant_photo_uploaded' },
     }),
     prisma.merchantEvent.count({
-      where: { merchantId: input.merchantId, type: 'merchant_recommendation_completed' },
+      where: { ...eventScope, type: 'merchant_recommendation_completed' },
     }),
     prisma.merchantEvent.count({
-      where: { merchantId: input.merchantId, type: 'merchant_tryon_completed' },
+      where: { ...eventScope, type: 'merchant_tryon_completed' },
     }),
     prisma.merchantEvent.count({
-      where: { merchantId: input.merchantId, type: 'merchant_tryon_failed' },
+      where: { ...eventScope, type: 'merchant_tryon_failed' },
     }),
     prisma.merchantEvent.count({
-      where: { merchantId: input.merchantId, type: 'merchant_compare_started' },
+      where: { ...eventScope, type: 'merchant_compare_started' },
     }),
     prisma.merchantIntent.count({
-      where: { merchantId: input.merchantId, type: 'FAVORITE' },
+      where: { ...intentScope, type: 'FAVORITE' },
     }),
     prisma.merchantIntent.count({
-      where: { merchantId: input.merchantId, type: 'PRODUCT_CLICK' },
+      where: { ...intentScope, type: 'PRODUCT_CLICK' },
     }),
     prisma.merchantIntent.count({
-      where: { merchantId: input.merchantId, type: 'INQUIRY' },
+      where: { ...intentScope, type: 'INQUIRY' },
     }),
     prisma.merchantFrame.findMany({
-      where: { merchantId: input.merchantId },
+      where: {
+        merchantId: input.merchantId,
+        ...(experienceId ? { experienceFrames: { some: { experienceId, active: true } } } : {}),
+      },
       orderBy: [{ status: 'asc' }, { name: 'asc' }],
       select: {
         id: true,
@@ -221,7 +241,7 @@ export async function getMerchantInsights(input: {
       },
     }),
     prisma.merchantSession.findMany({
-      where: { merchantId: input.merchantId },
+      where: sessionScope,
       orderBy: { createdAt: 'desc' },
       take: 20,
       select: {
@@ -232,7 +252,7 @@ export async function getMerchantInsights(input: {
       },
     }),
     prisma.merchantEvent.findMany({
-      where: { merchantId: input.merchantId },
+      where: eventScope,
       select: {
         type: true,
         merchantSessionId: true,
@@ -245,7 +265,7 @@ export async function getMerchantInsights(input: {
       orderBy: { createdAt: 'desc' },
     }),
     prisma.merchantIntent.findMany({
-      where: { merchantId: input.merchantId },
+      where: intentScope,
       select: {
         id: true,
         type: true,
@@ -470,12 +490,13 @@ export async function getMerchantInsights(input: {
     })
 
   const payload: MerchantInsightsDto = {
+    experienceId,
     dataProvenance: {
       includesSyntheticActivity: eventRows.some(
         (event) => event.metadata && typeof event.metadata === 'object' &&
           !Array.isArray(event.metadata) && event.metadata.demoSeed === true,
       ),
-      referenceData: merchant.referenceData === true || eventRows.some((event) => event.referenceData === true),
+      referenceData: merchant.referenceData === true || experienceReferenceData || eventRows.some((event) => event.referenceData === true),
     },
     merchant: {
       id: merchant.id,
@@ -486,7 +507,7 @@ export async function getMerchantInsights(input: {
       accentColor: merchant.accentColor,
       status: merchant.status,
       pilotType: merchant.pilotType ?? null,
-      referenceData: merchant.referenceData === true,
+      referenceData: merchant.referenceData === true || experienceReferenceData,
       experiencePolicy: resolveStoreExperiencePolicy(merchant),
     },
     metrics: {
@@ -542,6 +563,7 @@ export async function getMerchantInsights(input: {
       }),
       type: 'merchant_insights_viewed',
       merchantId: merchant.id,
+      experienceId,
       source: 'SERVER',
     })
   }

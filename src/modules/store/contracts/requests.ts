@@ -10,6 +10,7 @@ import {
 
 export type CreateSessionRequest = {
   merchantSlug: string
+  experienceSlug?: string
   locale?: string
   anonymousVisitorId?: string
   deviceType?: string
@@ -49,6 +50,7 @@ export function parseCreateSessionRequest(body: unknown): ValidationResult<Creat
 
   return ok({
     merchantSlug: String(record.merchantSlug).trim(),
+    experienceSlug: typeof record.experienceSlug === 'string' ? record.experienceSlug.trim() : undefined,
     locale: typeof record.locale === 'string' ? record.locale : undefined,
     anonymousVisitorId:
       typeof record.anonymousVisitorId === 'string'

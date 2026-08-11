@@ -17,6 +17,7 @@ import type {
   StoreEventType,
   StoreUsageKind,
 } from '../../domain/enums'
+import type { ExperienceStatus, ExperienceType } from '../../domain/experience'
 
 export type MerchantRecord = {
   id: string
@@ -80,9 +81,40 @@ export type MerchantFrameRecord = {
   updatedAt: Date
 }
 
+export type ExperienceRecord = {
+  id: string
+  merchantId: string
+  type: ExperienceType
+  slug: string
+  name: string
+  status: ExperienceStatus
+  headline: string | null
+  description: string | null
+  heroAssetUrl: string | null
+  primaryCtaType: string | null
+  primaryCtaLabel: string | null
+  primaryCtaUrl: string | null
+  secondaryCtaType: string | null
+  secondaryCtaLabel: string | null
+  secondaryCtaUrl: string | null
+  offerLabel: string | null
+  offerCode: string | null
+  offerTerms: string | null
+  startAt: Date | null
+  endAt: Date | null
+  referenceData: boolean
+  defaultSource: string | null
+  defaultCampaign: string | null
+  referenceMetadata: Record<string, unknown> | null
+  frameIds: string[]
+  createdAt: Date
+  updatedAt: Date
+}
+
 export type MerchantSessionRecord = {
   id: string
   merchantId: string
+  experienceId?: string | null
   anonymousVisitorId: string | null
   photoAssetId: string | null
   capabilityTokenHash: string
@@ -104,6 +136,7 @@ export type MerchantIntentRecord = {
   id: string
   merchantId: string
   merchantSessionId: string
+  experienceId?: string | null
   merchantFrameId: string | null
   type: MerchantIntentType
   idempotencyKey: string
@@ -119,6 +152,7 @@ export type MerchantEventRecord = {
   type: StoreEventType
   merchantId: string
   merchantSessionId: string | null
+  experienceId?: string | null
   merchantFrameId: string | null
   tryOnTaskId: string | null
   source: StoreEventSource
@@ -156,6 +190,15 @@ export interface MerchantRepository {
   listAllAdmin(limit?: number): Promise<MerchantRecord[]>
 }
 
+export interface ExperienceRepository {
+  findDefaultStore(merchantId: string): Promise<ExperienceRecord | null>
+  findByMerchantAndId(merchantId: string, experienceId: string): Promise<ExperienceRecord | null>
+  findActiveByMerchantAndSlug(
+    merchantId: string,
+    slug: string,
+  ): Promise<ExperienceRecord | null>
+}
+
 export interface MerchantFrameRepository {
   findActiveByMerchant(merchantId: string): Promise<MerchantFrameRecord[]>
   findByMerchantAndId(
@@ -166,11 +209,16 @@ export interface MerchantFrameRepository {
     merchantId: string,
     frameId: string,
   ): Promise<MerchantFrameRecord | null>
+  findActiveByMerchantAndExperience?: (
+    merchantId: string,
+    experience: ExperienceRecord,
+  ) => Promise<MerchantFrameRecord[]>
 }
 
 export interface MerchantSessionRepository {
   create(input: {
     merchantId: string
+    experienceId?: string | null
     capabilityTokenHash: string
     anonymousVisitorId?: string | null
     locale?: string | null
@@ -200,6 +248,7 @@ export interface MerchantIntentRepository {
   createIdempotent(input: {
     merchantId: string
     merchantSessionId: string
+    experienceId?: string | null
     merchantFrameId?: string | null
     type: MerchantIntentType
     idempotencyKey: string
@@ -219,6 +268,7 @@ export interface MerchantEventRepository {
     type: StoreEventType
     merchantId: string
     merchantSessionId?: string | null
+    experienceId?: string | null
     merchantFrameId?: string | null
     tryOnTaskId?: string | null
     source: StoreEventSource

@@ -20,6 +20,15 @@ test.describe('@critical Store Pilot Flow', () => {
     await expect(page.locator('body')).not.toContainText(/page not found|application error|internal server error/i);
   });
 
+  test('campaign experience route reuses the Store shell', async ({ page }) => {
+    const response = await page.goto('/en/c/ello-sunglasses/petite-fit', { waitUntil: 'domcontentloaded' });
+
+    expect(response).not.toBeNull();
+    expect(response!.status()).toBeLessThan(400);
+    await expect(page).toHaveURL(/\/en\/c\/ello-sunglasses\/petite-fit$/);
+    await expect(page.locator('body')).not.toContainText(/application error|internal server error/i);
+  });
+
   test('applies the merchant compare policy to the shortlist without generating AI output', async ({ page }) => {
     const preview = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=';
     const frames = [1, 2, 3].map((index) => ({

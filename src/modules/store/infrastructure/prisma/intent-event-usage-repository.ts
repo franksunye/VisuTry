@@ -23,6 +23,7 @@ function mapIntent(row: MerchantIntent): MerchantIntentRecord {
     id: row.id,
     merchantId: row.merchantId,
     merchantSessionId: row.merchantSessionId,
+    experienceId: row.experienceId,
     merchantFrameId: row.merchantFrameId,
     type: row.type as MerchantIntentType,
     idempotencyKey: row.idempotencyKey,
@@ -40,6 +41,7 @@ function mapEvent(row: MerchantEvent): MerchantEventRecord {
     type: row.type as StoreEventType,
     merchantId: row.merchantId,
     merchantSessionId: row.merchantSessionId,
+    experienceId: row.experienceId,
     merchantFrameId: row.merchantFrameId,
     tryOnTaskId: row.tryOnTaskId,
     source: row.source as StoreEventSource,
@@ -78,6 +80,11 @@ async function usageCreatedAtForMerchant(
 export function createPrismaMerchantIntentRepository(): MerchantIntentRepository {
   return {
     async createIdempotent(input) {
+      const session = await prisma.merchantSession.findFirst({
+        where: { id: input.merchantSessionId, merchantId: input.merchantId },
+        select: { experienceId: true, referenceData: true },
+      })
+      const experienceId = input.experienceId ?? session?.experienceId ?? null
       const existing = await prisma.merchantIntent.findUnique({
         where: { idempotencyKey: input.idempotencyKey },
       })
@@ -93,6 +100,7 @@ export function createPrismaMerchantIntentRepository(): MerchantIntentRepository
           data: {
             merchantId: input.merchantId,
             merchantSessionId: input.merchantSessionId,
+            experienceId,
             merchantFrameId: input.merchantFrameId ?? null,
             type: input.type,
             idempotencyKey: input.idempotencyKey,
@@ -128,6 +136,13 @@ export function createPrismaMerchantEventRepository(): MerchantEventRepository {
   return {
     async appendIdempotent(input) {
       const sanitized = sanitizeEventMetadata(input.metadata ?? undefined) ?? null
+      const session = input.merchantSessionId
+        ? await prisma.merchantSession.findFirst({
+            where: { id: input.merchantSessionId, merchantId: input.merchantId },
+            select: { experienceId: true, referenceData: true },
+          })
+        : null
+      const experienceId = input.experienceId ?? session?.experienceId ?? null
       const existing = await prisma.merchantEvent.findUnique({
         where: { eventId: input.eventId },
       })
@@ -149,12 +164,13 @@ export function createPrismaMerchantEventRepository(): MerchantEventRepository {
             type: input.type,
             merchantId: input.merchantId,
             merchantSessionId: input.merchantSessionId ?? null,
+            experienceId,
             merchantFrameId: input.merchantFrameId ?? null,
             tryOnTaskId: input.tryOnTaskId ?? null,
             source: input.source,
             locale: input.locale ?? null,
             deviceType: input.deviceType ?? null,
-            referenceData: input.referenceData ?? merchant?.referenceData ?? false,
+            referenceData: input.referenceData ?? session?.referenceData ?? merchant?.referenceData ?? false,
             metadata: sanitized as Prisma.InputJsonValue,
           },
         })

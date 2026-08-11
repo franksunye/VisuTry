@@ -13,6 +13,7 @@ import type {
   MerchantFrameRepository,
   MerchantRepository,
   MerchantSessionRepository,
+  ExperienceRepository,
 } from './ports/repositories'
 import { requireOperableStoreSession } from './require-store-session'
 
@@ -20,6 +21,7 @@ export type RecommendFramesInput = {
   merchants: MerchantRepository
   frames: MerchantFrameRepository
   sessions: MerchantSessionRepository
+  experiences?: ExperienceRepository
   events: MerchantEventRepository
   slug: string
   merchantSessionId: string
@@ -64,12 +66,16 @@ export async function recommendMerchantFrames(
   if (!merchant) throw merchantNotFound()
   if (merchant.status !== 'ACTIVE') throw merchantInactive()
 
-  await requireOperableStoreSession({
+  const session = await requireOperableStoreSession({
     sessions: input.sessions,
     merchantId: merchant.id,
     merchantSessionId: input.merchantSessionId,
     capabilityToken: input.capabilityToken,
   })
+
+  const experience = session.experienceId && input.experiences
+    ? await input.experiences.findByMerchantAndId(merchant.id, session.experienceId)
+    : null
 
   const actionId = input.clientActionId ?? `recommend:${input.merchantSessionId}`
 
@@ -83,13 +89,16 @@ export async function recommendMerchantFrames(
     type: 'merchant_recommendation_started',
     merchantId: merchant.id,
     merchantSessionId: input.merchantSessionId,
+    experienceId: session.experienceId,
     source: 'SERVER',
     locale: input.locale ?? null,
     deviceType: input.deviceType ?? null,
   })
 
   const signals = mapGeometryToShopperSignals(input.signals)
-  const activeFrames = await input.frames.findActiveByMerchant(merchant.id)
+  const activeFrames = experience && input.frames.findActiveByMerchantAndExperience
+    ? await input.frames.findActiveByMerchantAndExperience(merchant.id, experience)
+    : await input.frames.findActiveByMerchant(merchant.id)
 
   if (activeFrames.length === 0) {
     throw new StoreDomainError(

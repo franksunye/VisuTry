@@ -9,7 +9,7 @@ import {
 export const dynamic = 'force-dynamic'
 
 export async function GET(
-  _request: NextRequest,
+  request: NextRequest,
   { params }: { params: { id: string } },
 ) {
   try {
@@ -21,6 +21,7 @@ export async function GET(
       merchants: runtime.merchants,
       events: runtime.events,
       merchantId: params.id,
+      experienceId: request.nextUrl.searchParams.get('experienceId'),
       recordInsightsViewed: true,
     })
 

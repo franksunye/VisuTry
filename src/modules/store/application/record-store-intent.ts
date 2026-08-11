@@ -3,6 +3,7 @@ import {
   StoreDomainError,
   buildIntentIdempotencyKey,
   buildStoreEventIdempotencyKey,
+  experienceContainsFrame,
   isHttpOrHttpsUrl,
   merchantInactive,
   merchantNotFound,
@@ -15,6 +16,7 @@ import type {
   MerchantIntentRepository,
   MerchantRepository,
   MerchantSessionRepository,
+  ExperienceRepository,
 } from './ports/repositories'
 import { requireOperableStoreSession } from './require-store-session'
 import { assertSameMerchantTenant } from './tenant-guards'
@@ -34,6 +36,7 @@ export type RecordStoreIntentInput = {
   sessions: MerchantSessionRepository
   intents: MerchantIntentRepository
   events: MerchantEventRepository
+  experiences?: ExperienceRepository
   slug: string
   merchantSessionId: string
   capabilityToken: string | null
@@ -78,6 +81,9 @@ export async function recordStoreIntent(
     capabilityToken: input.capabilityToken,
   })
   assertSameMerchantTenant(merchant.id, session.merchantId, 'session')
+  const experience = session.experienceId && input.experiences
+    ? await input.experiences.findByMerchantAndId(merchant.id, session.experienceId)
+    : null
 
   let canonicalProductUrl: string | null = null
   let resolvedFrameId = input.merchantFrameId ?? null
@@ -117,6 +123,10 @@ export async function recordStoreIntent(
     if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       throw new StoreDomainError('VALIDATION_ERROR', 'A valid email is required for inquiries.', 400)
     }
+  }
+
+  if (experience && resolvedFrameId && !experienceContainsFrame(experience, resolvedFrameId)) {
+    throw new StoreDomainError('FRAME_INACTIVE', 'This frame is not part of the current experience.', 409)
   }
 
   const idempotencyKey = buildIntentIdempotencyKey({
