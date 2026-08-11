@@ -194,7 +194,8 @@ describe('FreeFaceShapeDetector', () => {
     const file = new File(['portrait'], 'portrait.jpg', { type: 'image/jpeg' })
     fireEvent.change(input, { target: { files: [file] } })
 
-    expect(await screen.findByText(/face landmarks were not available/i)).toBeInTheDocument()
+    expect(await screen.findByText('Try a well-lit, straight-on photo with your full face visible.')).toBeInTheDocument()
+    expect(screen.queryByText(/face landmarks were not available/i)).not.toBeInTheDocument()
 
     const usageCalls = mockFetch.mock.calls as unknown as Array<[string, RequestInit]>
     const usageCall = usageCalls.find(([url]) => url === '/api/face-shape-detector/usage')
@@ -211,6 +212,34 @@ describe('FreeFaceShapeDetector', () => {
         detectorFileSize: 8,
       },
     })
+  })
+
+  it.each([
+    ['too_small', 'Your face is too small in the image for an accurate measurement.'],
+    ['multiple_faces', 'We found more than one face. Choose a photo that shows only you.'],
+    ['tilted', 'Keep your head upright and your eyes level with the camera.'],
+  ] as const)('shows actionable copy for %s', async (failureReason, expectedMessage) => {
+    mockAnalyzeFaceLandmarkFile.mockResolvedValue({
+      geometry: {
+        version: 'landmark-v1',
+        status: 'unavailable',
+        source: 'ai-fallback',
+        faceDetected: false,
+        faceCount: 0,
+        qualityScore: 0,
+        signals: [],
+        warnings: ['internal detector warning'],
+        failureReason,
+      } satisfies FaceGeometryAnalysis,
+      detection: null,
+    })
+
+    render(<FreeFaceShapeDetector locale="en" />)
+    const file = new File(['portrait'], 'portrait.jpg', { type: 'image/jpeg' })
+    fireEvent.change(getPhotoLibraryInput(), { target: { files: [file] } })
+
+    expect(await screen.findByText(expectedMessage)).toBeInTheDocument()
+    expect(screen.queryByText('internal detector warning')).not.toBeInTheDocument()
   })
 
   it('continues with the original file when preprocessing fails', async () => {
@@ -256,7 +285,8 @@ describe('FreeFaceShapeDetector', () => {
     const file = new File(['portrait'], 'portrait.jpg', { type: 'image/jpeg' })
     fireEvent.change(getPhotoLibraryInput(), { target: { files: [file] } })
 
-    expect(await screen.findByText('Image could not be decoded.')).toBeInTheDocument()
+    expect(await screen.findByText('Try another JPG, PNG, or WebP photo. Re-saving the image can also help.')).toBeInTheDocument()
+    expect(screen.queryByText('Image could not be decoded.')).not.toBeInTheDocument()
 
     const usageCalls = mockFetch.mock.calls as unknown as Array<[string, RequestInit]>
     const usageCall = usageCalls.find(([url]) => url === '/api/face-shape-detector/usage')
