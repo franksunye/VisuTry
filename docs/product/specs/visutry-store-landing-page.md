@@ -320,7 +320,7 @@ The landing page is ready for engineering when:
 6. page sections are approved;
 7. first validation target list or outbound motion is prepared.
 
-Current status: complete. The static localized route, CTA analytics, privacy copy, and mailto-based lead form are implemented and deployed. The active work is qualified-traffic measurement and follow-up, not landing-page engineering.
+Current status: deployed for manual validation. The static localized route, CTA analytics, privacy copy, and mailto-based lead form are implemented and deployed. Because the form does not yet persist a Merchant Lead with source, landing route and `submittedAt`, it is not a complete measured inbound funnel. Add minimal lead persistence only when the first outreach batch or inbound traffic requires durable funnel reporting.
 
 ---
 

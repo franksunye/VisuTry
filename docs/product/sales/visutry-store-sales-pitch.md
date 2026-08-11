@@ -351,14 +351,17 @@ Initial scope:
 - one primary traffic source / use case;
 - collaborative feedback review.
 
-### Commercial hypothesis
+### Current commercial offer
 
-Working validation range:
+Use the active Market-Capture baseline in
+`docs/strategy/merchant-pricing-packaging-unit-economics.md`:
 
-- **USD 99-199/month** for a lightweight Storefront pilot;
-- or a small paid / deposit-backed pilot where setup requires merchant-specific work.
+- **Founding Merchant Pilot: USD $149 / 30 days**;
+- 8–50 reviewed frames, with 8–20 recommended for the first focused test;
+- up to 1,500 AI-assisted shoppers and 3,500 Standard Try-On generations;
+- assisted setup, one hosted Store/Campaign Experience, intent signals and weekly review.
 
-This is a willingness-to-pay hypothesis, not final public pricing.
+The optional 5,000-generation Founding Launch Bonus is an approved exception, not the default public entitlement. The current offer is a versioned Market-Capture price, not a permanent price card.
 
 Do not promise campaign-performance pricing, transaction take-rate economics, or enterprise pricing before attribution and merchant value are proven.
 
@@ -383,7 +386,7 @@ Record these after each merchant conversation:
 9. Whether 8-20 frames are sufficient for first test.
 10. Whether merchant will provide own frames.
 11. Whether merchant will send real traffic.
-12. Whether merchant accepts USD 99-199/month or a pilot deposit.
+12. Whether merchant accepts the current USD $149 / 30-day pilot or needs a separately approved commercial exception.
 13. Blocking integration / privacy / operational requirements.
 14. Relevance of AI-assistant / agent traffic today or in the near future.
 
