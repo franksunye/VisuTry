@@ -45,6 +45,7 @@ function mapEvent(row: MerchantEvent): MerchantEventRecord {
     source: row.source as StoreEventSource,
     locale: row.locale,
     deviceType: row.deviceType,
+    referenceData: row.referenceData,
     metadata: (row.metadata as Record<string, unknown> | null) ?? null,
     createdAt: row.createdAt,
   }
@@ -138,6 +139,10 @@ export function createPrismaMerchantEventRepository(): MerchantEventRepository {
       }
 
       try {
+        const merchant = await prisma.merchant.findUnique({
+          where: { id: input.merchantId },
+          select: { referenceData: true },
+        })
         const row = await prisma.merchantEvent.create({
           data: {
             eventId: input.eventId,
@@ -149,6 +154,7 @@ export function createPrismaMerchantEventRepository(): MerchantEventRepository {
             source: input.source,
             locale: input.locale ?? null,
             deviceType: input.deviceType ?? null,
+            referenceData: input.referenceData ?? merchant?.referenceData ?? false,
             metadata: sanitized as Prisma.InputJsonValue,
           },
         })

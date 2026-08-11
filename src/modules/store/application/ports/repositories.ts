@@ -27,6 +27,10 @@ export type MerchantRecord = {
   contactEmail: string | null
   accentColor: string | null
   status: MerchantStatus
+  pilotType?: string | null
+  referenceData?: boolean
+  defaultSource?: string | null
+  defaultCampaign?: string | null
   planCode: string | null
   commercialStage: string | null
   pricingVersion: string | null
@@ -47,6 +51,7 @@ export type MerchantFrameRecord = {
   merchantId: string
   sku: string | null
   name: string
+  variant?: string | null
   imageUrl: string | null
   imageAssetId: string | null
   productUrl: string | null
@@ -56,7 +61,13 @@ export type MerchantFrameRecord = {
   material: string | null
   color: string | null
   widthClass: string | null
+  lensWidthMm?: number | null
+  bridgeWidthMm?: number | null
+  templeLengthMm?: number | null
+  frameWidthMm?: number | null
   styleTags: string[]
+  collectionTags?: string[]
+  sourceNotes?: string | null
   source: MerchantFrameSource
   externalId: string | null
   enrichmentStatus: EnrichmentStatus
@@ -73,6 +84,7 @@ export type MerchantSessionRecord = {
   capabilityTokenHash: string
   locale: string | null
   status: MerchantSessionStatus
+  referenceData?: boolean
   source: string | null
   medium: string | null
   campaign: string | null
@@ -108,6 +120,7 @@ export type MerchantEventRecord = {
   source: StoreEventSource
   locale: string | null
   deviceType: string | null
+  referenceData?: boolean
   metadata: Record<string, unknown> | null
   createdAt: Date
 }
@@ -158,6 +171,7 @@ export interface MerchantSessionRepository {
     anonymousVisitorId?: string | null
     locale?: string | null
     expiresAt: Date
+    referenceData?: boolean
     source?: string | null
     medium?: string | null
     campaign?: string | null
@@ -206,6 +220,7 @@ export interface MerchantEventRepository {
     source: StoreEventSource
     locale?: string | null
     deviceType?: string | null
+    referenceData?: boolean
     metadata?: Record<string, unknown> | null
   }): Promise<{ record: MerchantEventRecord; created: boolean }>
   listByMerchant(

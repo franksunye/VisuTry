@@ -24,6 +24,8 @@ type MerchantProfile = {
   logoUrl: string | null
   websiteUrl: string | null
   accentColor: string | null
+  pilotType: string | null
+  referenceData: boolean
   activeFrameCount: number
   featuredFrames: Array<{
     id: string
@@ -133,7 +135,7 @@ function MerchantMark({ merchant, accent }: { merchant: MerchantProfile; accent:
           {merchant.name}
         </p>
         <p className="text-[10px] font-semibold uppercase tracking-[0.24em] text-slate-400">
-          Optical collection
+          {merchant.referenceData ? 'Reference Pilot · Simulation' : 'Optical collection'}
         </p>
       </div>
     </div>
@@ -444,7 +446,12 @@ export function StoreShopperExperience({
       <div className="relative mx-auto max-w-[1440px] px-5 pb-10 pt-5 sm:px-8 lg:px-10">
         <header className="flex items-center justify-between gap-5 rounded-3xl border border-white/80 bg-white/75 px-5 py-4 shadow-[0_18px_60px_rgba(15,23,42,0.06)] backdrop-blur-xl sm:px-7">
           <MerchantMark merchant={merchant} accent={accent} />
-          <div className="flex items-center gap-2 text-xs font-medium text-slate-400 sm:text-sm">
+          <div className="flex flex-wrap items-center justify-end gap-2 text-xs font-medium text-slate-400 sm:text-sm">
+            {merchant.referenceData ? (
+              <span className="rounded-full border border-amber-200 bg-amber-50 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.12em] text-amber-800">
+                Reference Pilot · Simulation
+              </span>
+            ) : null}
             <span className="hidden sm:inline">Powered by</span>
             <span className="font-semibold text-blue-600">VisuTry</span>
             <Sparkles className="h-4 w-4 text-blue-500" aria-hidden="true" />

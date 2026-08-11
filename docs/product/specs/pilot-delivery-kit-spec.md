@@ -50,16 +50,6 @@ Minimum configuration:
     "brandName": "Example Eyewear",
     "accentToken": "neutral"
   },
-  "commerce": {
-    "primaryIntent": "PRODUCT_CLICK",
-    "inquiryEnabled": true
-  },
-  "experience": {
-    "recommendationEnabled": true,
-    "tryOnEnabled": true,
-    "compareEnabled": true,
-    "maxCompareFrames": 4
-  },
   "measurement": {
     "referenceTraffic": true,
     "defaultSource": "visutry-reference-pilot",
@@ -74,7 +64,7 @@ Rules:
 - `pilotType=REFERENCE` identifies non-customer pilot simulations.
 - Reference traffic must never be aggregated into future live merchant KPIs without an explicit filter.
 - Theme configuration must remain within supported tokens; do not add merchant-only component forks.
-- A pilot may disable inquiry if the merchant's public workflow has no appropriate inquiry destination.
+- v1 uses the existing Store capability set for recommendation, Try-On, Compare, and Intent; merchant.json does not expose capability flags until a shared merchant capability contract is implemented.
 
 ---
 

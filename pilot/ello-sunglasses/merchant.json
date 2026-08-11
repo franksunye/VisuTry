@@ -1,0 +1,19 @@
+{
+  "merchantSlug": "ello-sunglasses",
+  "displayName": "ello sunglasses",
+  "pilotType": "REFERENCE",
+  "referenceData": true,
+  "catalogMode": "CURATED",
+  "defaultLocale": "en",
+  "theme": {
+    "logoUrl": null,
+    "brandName": "ello sunglasses",
+    "accentToken": "sky"
+  },
+  "measurement": {
+    "referenceTraffic": true,
+    "defaultSource": "visutry-reference-pilot",
+    "defaultCampaign": "p1-ello-sunglasses"
+  },
+  "websiteUrl": "https://ellosunglasses.com/"
+}

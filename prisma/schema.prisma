@@ -439,6 +439,13 @@ model Merchant {
   contactEmail String?
   accentColor  String?
   status       MerchantStatus @default(ACTIVE)
+  /// Delivery identity: LIVE, DEMO, or REFERENCE.
+  pilotType    String @default("LIVE")
+  /// Durable marker used to keep pilot simulations out of live merchant KPIs.
+  referenceData Boolean @default(false)
+  /// Optional default acquisition context for a hosted delivery surface.
+  defaultSource String?
+  defaultCampaign String?
 
   /// Commercial offer identity — provider-independent (e.g. FOUNDING_PILOT, DEMO).
   planCode                   String?
@@ -479,6 +486,7 @@ model MerchantFrame {
   merchantId       String
   sku              String?
   name             String
+  variant          String?
   imageUrl         String?
   imageAssetId     String?
   productUrl       String?
@@ -490,7 +498,13 @@ model MerchantFrame {
   material         String?
   color            String?
   widthClass       String?
+  lensWidthMm      Int?
+  bridgeWidthMm    Int?
+  templeLengthMm   Int?
+  frameWidthMm     Int?
   styleTags        String[]            @default([])
+  collectionTags   String[]            @default([])
+  sourceNotes      String?             @db.Text
   source           MerchantFrameSource @default(SEED)
   externalId       String?
   enrichmentStatus EnrichmentStatus    @default(APPROVED)
@@ -520,6 +534,8 @@ model MerchantSession {
   capabilityTokenHash String
   locale              String?
   status              MerchantSessionStatus @default(ACTIVE)
+  /// Copied from Merchant at session creation so reference traffic remains filterable.
+  referenceData       Boolean @default(false)
   lastActiveAt        DateTime              @default(now())
   expiresAt           DateTime
 
@@ -584,6 +600,8 @@ model MerchantEvent {
   source            StoreEventSource
   locale            String?
   deviceType        String?
+  /// Copied from Merchant at event creation for durable provenance filtering.
+  referenceData      Boolean @default(false)
   /// Sanitized non-sensitive metadata only.
   metadata          Json?
 

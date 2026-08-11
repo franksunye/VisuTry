@@ -64,7 +64,12 @@ export async function createStoreSession(input: {
 
   const capability = createMerchantSessionCapability()
   const expiresAt = computeSessionExpiresAt()
-  const acquisition = sanitizeSessionAcquisition(input.acquisition)
+  const acquisitionInput = input.acquisition ?? {}
+  const acquisition = sanitizeSessionAcquisition({
+    ...acquisitionInput,
+    source: acquisitionInput.source ?? merchant.defaultSource,
+    campaign: acquisitionInput.campaign ?? merchant.defaultCampaign,
+  })
 
   const session = await input.sessions.create({
     merchantId: merchant.id,
@@ -72,6 +77,7 @@ export async function createStoreSession(input: {
     anonymousVisitorId: input.anonymousVisitorId ?? null,
     locale: input.locale ?? null,
     expiresAt,
+    referenceData: merchant.referenceData === true,
     ...acquisition,
   })
 
