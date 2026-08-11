@@ -634,7 +634,7 @@ model MerchantSession {
   aiAgentSource String?
 
   merchant   Merchant         @relation(fields: [merchantId], references: [id], onDelete: Restrict)
-  experience Experience?      @relation(fields: [experienceId], references: [id], onDelete: SetNull)
+  experience Experience?      @relation(fields: [experienceId, merchantId], references: [id, merchantId], onDelete: Restrict)
   photoAsset StoreAsset?      @relation("SessionPhotoAsset", fields: [photoAssetId], references: [id], onDelete: SetNull)
   intents    MerchantIntent[]
   events     MerchantEvent[]
@@ -668,7 +668,7 @@ model MerchantIntent {
 
   merchant Merchant         @relation(fields: [merchantId], references: [id], onDelete: Restrict)
   session  MerchantSession  @relation(fields: [merchantSessionId], references: [id], onDelete: Restrict)
-  experience Experience?     @relation(fields: [experienceId], references: [id], onDelete: SetNull)
+  experience Experience?     @relation(fields: [experienceId, merchantId], references: [id, merchantId], onDelete: Restrict)
   frame    MerchantFrame?   @relation(fields: [merchantFrameId], references: [id], onDelete: Restrict)
 
   createdAt DateTime @default(now())
@@ -699,7 +699,7 @@ model MerchantEvent {
 
   merchant Merchant         @relation(fields: [merchantId], references: [id], onDelete: Restrict)
   session  MerchantSession? @relation(fields: [merchantSessionId], references: [id], onDelete: Restrict)
-  experience Experience?    @relation(fields: [experienceId], references: [id], onDelete: SetNull)
+  experience Experience?    @relation(fields: [experienceId, merchantId], references: [id, merchantId], onDelete: Restrict)
   frame    MerchantFrame?   @relation(fields: [merchantFrameId], references: [id], onDelete: Restrict)
 
   createdAt DateTime @default(now())

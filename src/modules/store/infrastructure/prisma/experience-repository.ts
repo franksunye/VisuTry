@@ -89,10 +89,10 @@ export function createPrismaExperienceRepository(): ExperienceRepository {
         throw error
       }
     },
-    async findActiveByMerchantAndSlug(merchantId, slug) {
+    async findActiveCampaignByMerchantAndSlug(merchantId, slug) {
       try {
         const row = await prisma.experience.findFirst({
-          where: { merchantId, slug, status: 'ACTIVE' },
+          where: { merchantId, slug, type: 'CAMPAIGN', status: 'ACTIVE' },
           include: includeFrames,
         })
         return row ? mapExperience(row) : null

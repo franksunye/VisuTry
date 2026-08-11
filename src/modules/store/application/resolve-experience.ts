@@ -10,7 +10,7 @@ export async function resolveMerchantExperience(input: {
   if (!input.experiences) return null
 
   const experience = input.slug
-    ? await input.experiences.findActiveByMerchantAndSlug(input.merchant.id, input.slug)
+    ? await input.experiences.findActiveCampaignByMerchantAndSlug(input.merchant.id, input.slug)
     : await input.experiences.findDefaultStore(input.merchant.id)
 
   if (experience && experience.merchantId !== input.merchant.id) {

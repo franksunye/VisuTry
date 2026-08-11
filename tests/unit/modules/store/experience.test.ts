@@ -2,7 +2,9 @@ import { getPublicMerchantProfile } from '@/modules/store/application/get-public
 import { resolveMerchantExperience } from '@/modules/store/application/resolve-experience'
 import { createStoreSession } from '@/modules/store/application/create-store-session'
 import { recordCompareStarted } from '@/modules/store/application/record-compare-started'
+import { createPrismaExperienceRepository } from '@/modules/store/infrastructure/prisma/experience-repository'
 import { createMerchantSessionCapability, experienceContainsFrame } from '@/modules/store/domain'
+import { prisma } from '@/lib/prisma'
 import type {
   ExperienceRecord,
   MerchantFrameRecord,
@@ -12,6 +14,7 @@ import type {
 jest.mock('@/lib/prisma', () => ({
   prisma: {
     tryOnTask: { count: jest.fn() },
+    experience: { findFirst: jest.fn() },
   },
 }))
 
@@ -119,6 +122,96 @@ function merchant(): MerchantRepository {
 }
 
 describe('Experience foundation', () => {
+  it('resolves Campaign slugs through the Campaign-only repository contract', async () => {
+    const store = experience({ type: 'STORE', slug: 'default', name: 'Default Store' })
+    const campaign = experience({ type: 'CAMPAIGN', slug: 'petite-fit' })
+    const findDefaultStore = jest.fn().mockResolvedValue(store)
+    const findActiveCampaignByMerchantAndSlug = jest.fn().mockResolvedValue(campaign)
+
+    const result = await resolveMerchantExperience({
+      merchant: { id: 'merchant-1' } as never,
+      experiences: {
+        findDefaultStore,
+        hasAnyByMerchant: jest.fn().mockResolvedValue(true),
+        findByMerchantAndId: jest.fn(),
+        findActiveCampaignByMerchantAndSlug,
+      },
+      slug: 'petite-fit',
+    })
+
+    expect(result?.type).toBe('CAMPAIGN')
+    expect(findActiveCampaignByMerchantAndSlug).toHaveBeenCalledWith('merchant-1', 'petite-fit')
+    expect(findDefaultStore).not.toHaveBeenCalled()
+  })
+
+  it('never resolves an active Store through the Campaign route', async () => {
+    await expect(
+      resolveMerchantExperience({
+        merchant: { id: 'merchant-1' } as never,
+        experiences: {
+          findDefaultStore: jest.fn().mockResolvedValue(experience({ type: 'STORE', slug: 'default' })),
+          hasAnyByMerchant: jest.fn().mockResolvedValue(true),
+          findByMerchantAndId: jest.fn(),
+          findActiveCampaignByMerchantAndSlug: jest.fn().mockResolvedValue(null),
+        },
+        slug: 'default',
+      }),
+    ).rejects.toMatchObject({ code: 'EXPERIENCE_NOT_FOUND', httpStatus: 404 })
+  })
+
+  it('resolves the active Store only through the Store default lookup', async () => {
+    const store = experience({ type: 'STORE', slug: 'default' })
+    const findDefaultStore = jest.fn().mockResolvedValue(store)
+
+    const result = await resolveMerchantExperience({
+      merchant: { id: 'merchant-1' } as never,
+      experiences: {
+        findDefaultStore,
+        hasAnyByMerchant: jest.fn().mockResolvedValue(true),
+        findByMerchantAndId: jest.fn(),
+        findActiveCampaignByMerchantAndSlug: jest.fn(),
+      },
+    })
+
+    expect(result?.type).toBe('STORE')
+    expect(findDefaultStore).toHaveBeenCalledWith('merchant-1')
+  })
+
+  it('rejects the Store route when the merchant has only Campaign experiences', async () => {
+    await expect(
+      resolveMerchantExperience({
+        merchant: { id: 'merchant-1' } as never,
+        experiences: {
+          findDefaultStore: jest.fn().mockResolvedValue(null),
+          hasAnyByMerchant: jest.fn().mockResolvedValue(true),
+          findByMerchantAndId: jest.fn(),
+          findActiveCampaignByMerchantAndSlug: jest.fn().mockResolvedValue(
+            experience({ type: 'CAMPAIGN', slug: 'petite-fit' }),
+          ),
+        },
+      }),
+    ).rejects.toMatchObject({ code: 'EXPERIENCE_NOT_FOUND', httpStatus: 404 })
+  })
+
+  it('queries only active Campaign experiences for Campaign slugs', async () => {
+    const findFirst = prisma.experience.findFirst as jest.Mock
+    findFirst.mockResolvedValue(null)
+
+    await createPrismaExperienceRepository().findActiveCampaignByMerchantAndSlug(
+      'merchant-1',
+      'petite-fit',
+    )
+
+    expect(findFirst).toHaveBeenCalledWith(expect.objectContaining({
+      where: {
+        merchantId: 'merchant-1',
+        slug: 'petite-fit',
+        type: 'CAMPAIGN',
+        status: 'ACTIVE',
+      },
+    }))
+  })
+
   it('resolves an active campaign with merchant tenant scope', async () => {
     const result = await resolveMerchantExperience({
       merchant: { id: 'merchant-1' } as never,
@@ -126,7 +219,7 @@ describe('Experience foundation', () => {
         findDefaultStore: jest.fn(),
         hasAnyByMerchant: jest.fn().mockResolvedValue(true),
         findByMerchantAndId: jest.fn(),
-        findActiveByMerchantAndSlug: jest.fn().mockResolvedValue(experience()),
+        findActiveCampaignByMerchantAndSlug: jest.fn().mockResolvedValue(experience()),
       },
       slug: 'petite-fit',
     })
@@ -144,7 +237,7 @@ describe('Experience foundation', () => {
           findDefaultStore: jest.fn(),
           hasAnyByMerchant: jest.fn().mockResolvedValue(true),
           findByMerchantAndId: jest.fn(),
-          findActiveByMerchantAndSlug: jest.fn().mockResolvedValue(
+          findActiveCampaignByMerchantAndSlug: jest.fn().mockResolvedValue(
             experience({ merchantId: 'merchant-2' }),
           ),
         },
@@ -161,7 +254,7 @@ describe('Experience foundation', () => {
           findDefaultStore: jest.fn().mockResolvedValue(null),
           hasAnyByMerchant: jest.fn().mockResolvedValue(true),
           findByMerchantAndId: jest.fn(),
-          findActiveByMerchantAndSlug: jest.fn(),
+          findActiveCampaignByMerchantAndSlug: jest.fn(),
         },
       }),
     ).rejects.toMatchObject({ code: 'EXPERIENCE_NOT_FOUND' })
@@ -173,7 +266,7 @@ describe('Experience foundation', () => {
           findDefaultStore: jest.fn().mockResolvedValue(null),
           hasAnyByMerchant: jest.fn().mockResolvedValue(false),
           findByMerchantAndId: jest.fn(),
-          findActiveByMerchantAndSlug: jest.fn(),
+          findActiveCampaignByMerchantAndSlug: jest.fn(),
         },
       }),
     ).resolves.toBeNull()
@@ -186,7 +279,7 @@ describe('Experience foundation', () => {
         findDefaultStore: jest.fn(),
         hasAnyByMerchant: jest.fn().mockResolvedValue(true),
         findByMerchantAndId: jest.fn(),
-        findActiveByMerchantAndSlug: jest.fn().mockResolvedValue(experience()),
+        findActiveCampaignByMerchantAndSlug: jest.fn().mockResolvedValue(experience()),
       },
       frames: {
         findActiveByMerchant: jest.fn().mockResolvedValue([frame('frame-1'), frame('frame-2')]),
@@ -238,7 +331,7 @@ describe('Experience foundation', () => {
         findDefaultStore: jest.fn().mockResolvedValue(experience({ type: 'STORE', slug: 'default' })),
         hasAnyByMerchant: jest.fn().mockResolvedValue(true),
         findByMerchantAndId: jest.fn(),
-        findActiveByMerchantAndSlug: jest.fn(),
+        findActiveCampaignByMerchantAndSlug: jest.fn(),
       },
       events: { appendIdempotent: jest.fn().mockResolvedValue({ created: true }), listByMerchant: jest.fn() },
       usage: { countCommerceSessions: jest.fn().mockResolvedValue(0), record: jest.fn() } as never,
@@ -289,7 +382,7 @@ describe('Experience foundation', () => {
           findDefaultStore: jest.fn(),
           hasAnyByMerchant: jest.fn(),
           findByMerchantAndId: jest.fn().mockResolvedValue(experience({ frameIds: ['frame-1', 'frame-2'] })),
-          findActiveByMerchantAndSlug: jest.fn(),
+          findActiveCampaignByMerchantAndSlug: jest.fn(),
         },
         events: { appendIdempotent: jest.fn(), listByMerchant: jest.fn() },
         slug: 'ello-sunglasses',
