@@ -98,6 +98,6 @@ describe('B01 through B06 visual SEO master assets', () => {
       expect(assets.map((asset) => asset.stage)).toEqual(['characteristics', 'identify'])
     }
     expect(B06_VISUAL_SEO_ASSETS.every((asset) => asset.bodyPosition === 'after')).toBe(true)
-    expect(B06_VISUAL_SEO_ASSETS.every((asset) => asset.priority === true)).toBe(true)
+    expect(B06_VISUAL_SEO_ASSETS.every((asset) => !('priority' in asset))).toBe(true)
   })
 })

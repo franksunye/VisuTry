@@ -108,13 +108,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     })
   })
   staticFaceShapePaths.forEach((path) => {
+    const images = visualSeoImages(path)
     staticPages.push({
       url: `${baseUrl}/en${path}`,
       lastModified: new Date(),
       changeFrequency: 'weekly',
       priority: 0.75,
       alternates: { languages: { en: `${baseUrl}/en${path}` } },
-      ...(visualSeoImages(path) ? { images: visualSeoImages(path) } : {}),
+      ...(images ? { images } : {}),
     })
   })
   combinationSearchPaths.forEach((path) => {
