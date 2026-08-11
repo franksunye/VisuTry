@@ -1,11 +1,19 @@
-# GA4 Console Checklist (Deferred)
+# GA4 Console Checklist (Partially implemented)
 
-Status: **Deferred** — blocked on GA4 console access from Cursor browser (no shared Chrome login; password recovery pending)  
+Status: **Partially implemented** — Chrome access is available; remaining items are blocked until GA4 observes the new canonical event parameters/events
 Property: `G-6J4ZXNNL4F`  
 Spec source: `ga4-dashboard-spec.md`  
 Last updated: 2026-08-11
 
-When console access is available (Chrome already logged in, or Cursor browser login via phone/passkey), execute the steps below. Do not change product code for this checklist.
+Execution record (2026-08-11):
+
+- Created the event-scoped `Face shape` dimension mapped to `face_shape`.
+- Existing dimensions (`destination`, `purchase_context`, and the blog/continuation dimensions) were retained.
+- The GA4 parameter picker does not yet expose `campaign_id`, `merchant_id`, `store_id`, `surface`, `entry_point`, `frame_category`, `intent_type`, `lead_type`, `landing_surface`, `source_journey`, or `analytics_schema_version`; these cannot be safely registered until GA4 has received those parameters.
+- The canonical key events (`tryon_completed`, `comparison_completed`, `purchase_intent_clicked`, `lead_created`) are not yet present in the property. Existing legacy key events were left enabled to avoid a conversion-reporting gap.
+- Production smoke reached the Store CTA with `?campaign_id=cmp_debug`; photo-upload smoke was blocked by Chrome file-upload permission, so DebugView confirmation remains pending.
+
+For the remaining items below, wait until the corresponding canonical events/parameters have been observed in GA4, then execute the steps in Chrome. Do not change product code for this checklist.
 
 ---
 
@@ -44,10 +52,11 @@ Turn ON as key events / conversions:
 
 | Event | Why |
 |---|---|
-| `tryon_completed` | Core product outcome |
+| `tryon_completed` | Core shopper product outcome |
 | `comparison_completed` | Preference depth |
-| `purchase_intent_clicked` | Commerce intent |
-| `lead_created` | B2B / store lead |
+| `purchase_intent_clicked` | Shopper commerce intent (merchant campaign) |
+| `lead_created` | Shopper / campaign lead |
+| `b2b_lead_created` | VisuTry Store B2B sales lead (separate funnel) |
 
 Keep (if already conversions):
 
@@ -62,6 +71,9 @@ Optional secondary (campaign-dependent):
 |---|
 | `face_analysis_completed` |
 | `face_shape_detection_completed` |
+| `b2b_landing_viewed` |
+
+Important: do **not** treat `/store` marketing traffic as `campaign_landed`. B2B acquisition uses `b2b_*` events.
 
 ---
 

@@ -232,6 +232,19 @@ function resolveComparisonCompletionStatus(
   return 'full'
 }
 
+function normalizeFaceFailureReason(raw: string): string {
+  const message = raw.toLowerCase()
+  if (/no[\s_-]?face|face[\s_-]?not[\s_-]?found|undetect|missing face/.test(message)) return 'no_face'
+  if (/multiple[\s_-]?face/.test(message)) return 'multiple_faces'
+  if (/invalid[\s_-]?image|decode|corrupt|empty|unsupported/.test(message)) return 'invalid_image'
+  if (/quality|blur|too[\s_-]?small|too[\s_-]?dark|low[\s_-]?light/.test(message)) return 'quality_too_low'
+  if (/quota|credit|limit|insufficient/.test(message)) return 'quota'
+  if (/timeout|timed[\s_-]?out/.test(message)) return 'timeout'
+  if (/network|fetch|offline|failed to fetch/.test(message)) return 'network_error'
+  if (/process|runtime|landmarker|mediapipe/.test(message)) return 'processing_error'
+  return 'unknown'
+}
+
 export function setLanguageUserProperties() {
   if (typeof window === 'undefined') return
   if (!window.gtag) return
@@ -468,7 +481,7 @@ export const analytics = {
 
   trackFaceAnalysisFailed(errorMessage: string, userType: UserType) {
     sendEvent(AnalyticsEvent.FaceAnalysisFailed, {
-      error_message: errorMessage.slice(0, 200),
+      failure_reason: normalizeFaceFailureReason(errorMessage),
       user_type: userType,
       product_path: 'face_analysis',
     })
@@ -509,7 +522,7 @@ export const analytics = {
 
   trackFaceShapeDetectorFailed(reason: string) {
     sendEvent(AnalyticsEvent.FaceShapeDetectionFailed, {
-      failure_reason: reason.slice(0, 200),
+      failure_reason: normalizeFaceFailureReason(reason),
       processing_mode: 'on_device',
       analysis_mode: 'on_device_detector',
       product_path: 'face_shape_detector',
@@ -552,6 +565,10 @@ export const analytics = {
     })
   },
 
+  /**
+   * VisuTry /store marketing LP — B2B merchant-prospect acquisition.
+   * Do NOT emit shopper campaign_landed / purchase_intent_clicked / lead_created here.
+   */
   trackStoreLandingViewed(params: {
     locale: string
     campaignId?: string
@@ -560,21 +577,19 @@ export const analytics = {
     landingSurface?: string
   }) {
     setCampaignAnalyticsContext({
-      entry_point: 'store',
-      surface: 'merchant_store',
+      entry_point: 'b2b',
       ...(params.campaignId ? { campaign_id: params.campaignId } : {}),
-      ...(params.merchantId ? { merchant_id: params.merchantId } : {}),
-      ...(params.storeId ? { store_id: params.storeId } : {}),
     })
 
-    sendEvent(AnalyticsEvent.CampaignLanded, {
+    sendEvent(AnalyticsEvent.B2bLandingViewed, {
       source: 'store_landing',
       locale: params.locale,
       landing_surface: params.landingSurface || 'store_marketing',
-      entry_point: 'store',
+      actor_type: 'merchant_prospect',
+      journey_type: 'visutry_b2b_acquisition',
+      entry_point: 'b2b',
+      product_path: 'visutry_store_b2b',
       ...(params.campaignId ? { campaign_id: params.campaignId } : {}),
-      ...(params.merchantId ? { merchant_id: params.merchantId } : {}),
-      ...(params.storeId ? { store_id: params.storeId } : {}),
     })
   },
 
@@ -586,24 +601,29 @@ export const analytics = {
     productCategory?: string
     merchantId?: string
   }) {
-    sendEvent(AnalyticsEvent.PurchaseIntentClicked, {
+    // href is intentionally omitted from GA4 (high-cardinality / debug-only).
+    void params.href
+    sendEvent(AnalyticsEvent.B2bSalesIntentClicked, {
       source: 'store_landing',
       locale: params.locale,
       cta_location: params.ctaLocation,
-      href: params.href,
       intent_type: params.intentType || params.ctaLocation,
       ...(params.productCategory ? { product_category: params.productCategory } : {}),
-      ...(params.merchantId ? { merchant_id: params.merchantId } : {}),
-      entry_point: 'store',
+      actor_type: 'merchant_prospect',
+      journey_type: 'visutry_b2b_acquisition',
+      entry_point: 'b2b',
+      product_path: 'visutry_store_b2b',
     })
   },
 
   trackStoreLeadFormStarted(params: { locale: string }) {
-    sendEvent(AnalyticsEvent.CampaignEngaged, {
+    sendEvent(AnalyticsEvent.B2bLeadFormStarted, {
       source: 'store_landing',
       locale: params.locale,
-      engagement_type: 'lead_form_started',
-      entry_point: 'store',
+      actor_type: 'merchant_prospect',
+      journey_type: 'visutry_b2b_acquisition',
+      entry_point: 'b2b',
+      product_path: 'visutry_store_b2b',
     })
   },
 
@@ -617,7 +637,7 @@ export const analytics = {
     storeId?: string
     leadType?: string
   }) {
-    sendEvent(AnalyticsEvent.LeadCreated, {
+    sendEvent(AnalyticsEvent.B2bLeadCreated, {
       source: 'store_landing',
       locale: params.locale,
       business_type: params.businessType,
@@ -625,9 +645,10 @@ export const analytics = {
       lead_type: params.leadType || params.intent,
       ...(params.frameCount ? { frame_count: params.frameCount } : {}),
       ...(params.campaignId ? { campaign_id: params.campaignId } : {}),
-      ...(params.merchantId ? { merchant_id: params.merchantId } : {}),
-      ...(params.storeId ? { store_id: params.storeId } : {}),
-      entry_point: 'store',
+      actor_type: 'merchant_prospect',
+      journey_type: 'visutry_b2b_acquisition',
+      entry_point: 'b2b',
+      product_path: 'visutry_store_b2b',
     })
   },
 
@@ -795,7 +816,7 @@ export const analytics = {
       style_intent: params.styleIntent,
       frame_category: params.category,
       occasion: params.occasion,
-      preset_ids: params.presetIds.join(','),
+      recommendation_count: params.presetIds.length,
       style_count: params.presetIds.length,
       product_path: 'style_explorer',
     })
@@ -810,7 +831,7 @@ export const analytics = {
   }) {
     sendEvent(AnalyticsEvent.TryOnStarted, {
       batch_id: params.batchId,
-      preset_ids: params.presetIds.join(','),
+      recommendation_count: params.presetIds.length,
       style_intent: params.styleIntent,
       occasion: params.occasion,
       frame_category: params.category,

@@ -74,7 +74,7 @@ describe('campaign intelligence analytics migration', () => {
     expect(window.gtag).toHaveBeenCalledWith(
       'event',
       AnalyticsEvent.FaceAnalysisFailed,
-      expect.objectContaining({ error_message: 'no face detected' }),
+      expect.objectContaining({ failure_reason: 'no_face' }),
     )
 
     const eventNames = (window.gtag as jest.Mock).mock.calls
@@ -192,7 +192,7 @@ describe('campaign intelligence analytics migration', () => {
     expect(window.gtag).toHaveBeenCalledWith(
       'event',
       AnalyticsEvent.FaceShapeDetectionFailed,
-      expect.objectContaining({ failure_reason: 'no face' }),
+      expect.objectContaining({ failure_reason: 'no_face' }),
     )
     expect(window.gtag).toHaveBeenCalledWith(
       'event',
@@ -215,12 +215,10 @@ describe('campaign intelligence analytics migration', () => {
     expect(eventNames).not.toContain(AnalyticsEvent.FaceAnalysisStarted)
   })
 
-  it('migrates store landing/lead events to campaign intelligence model', () => {
+  it('keeps VisuTry /store marketing LP on B2B acquisition taxonomy', () => {
     analytics.trackStoreLandingViewed({
       locale: 'en',
-      campaignId: 'cmp_store',
-      merchantId: 'm_store',
-      storeId: 's_store',
+      landingSurface: 'store_marketing',
     })
     analytics.trackStoreCtaClicked({
       locale: 'en',
@@ -228,7 +226,6 @@ describe('campaign intelligence analytics migration', () => {
       href: '/en/store#lead',
       intentType: 'request_demo',
       productCategory: 'store_solution',
-      merchantId: 'm_store',
     })
     analytics.trackStoreLeadFormStarted({ locale: 'en' })
     analytics.trackStoreLeadCreated({
@@ -236,38 +233,36 @@ describe('campaign intelligence analytics migration', () => {
       businessType: 'opticalStore',
       intent: 'demo',
       frameCount: '8-20',
-      campaignId: 'cmp_store',
-      merchantId: 'm_store',
-      storeId: 's_store',
+      leadType: 'demo',
     })
 
     expect(window.gtag).toHaveBeenCalledWith(
       'event',
-      AnalyticsEvent.CampaignLanded,
+      AnalyticsEvent.B2bLandingViewed,
       expect.objectContaining({
-        campaign_id: 'cmp_store',
-        merchant_id: 'm_store',
-        store_id: 's_store',
+        actor_type: 'merchant_prospect',
+        journey_type: 'visutry_b2b_acquisition',
         landing_surface: 'store_marketing',
-        entry_point: 'store',
+        entry_point: 'b2b',
       }),
     )
     expect(window.gtag).toHaveBeenCalledWith(
       'event',
-      AnalyticsEvent.PurchaseIntentClicked,
+      AnalyticsEvent.B2bSalesIntentClicked,
       expect.objectContaining({
         intent_type: 'request_demo',
         product_category: 'store_solution',
+        actor_type: 'merchant_prospect',
       }),
     )
     expect(window.gtag).toHaveBeenCalledWith(
       'event',
-      AnalyticsEvent.CampaignEngaged,
-      expect.objectContaining({ engagement_type: 'lead_form_started' }),
+      AnalyticsEvent.B2bLeadFormStarted,
+      expect.objectContaining({ journey_type: 'visutry_b2b_acquisition' }),
     )
     expect(window.gtag).toHaveBeenCalledWith(
       'event',
-      AnalyticsEvent.LeadCreated,
+      AnalyticsEvent.B2bLeadCreated,
       expect.objectContaining({
         lead_type: 'demo',
         user_intent: 'demo',
@@ -275,12 +270,43 @@ describe('campaign intelligence analytics migration', () => {
       }),
     )
 
+    const payloads = (window.gtag as jest.Mock).mock.calls
+      .filter((call) => call[0] === 'event')
+      .map((call) => call[2] as Record<string, unknown>)
+    for (const payload of payloads) {
+      expect(payload).not.toHaveProperty('href')
+      expect(payload.surface).not.toBe('merchant_store')
+    }
+
     const eventNames = (window.gtag as jest.Mock).mock.calls
       .filter((call) => call[0] === 'event')
       .map((call) => call[1])
-    expect(eventNames).not.toContain('store_landing_viewed')
-    expect(eventNames).not.toContain('store_cta_clicked')
-    expect(eventNames).not.toContain('store_lead_submitted')
+    expect(eventNames).not.toContain(AnalyticsEvent.CampaignLanded)
+    expect(eventNames).not.toContain(AnalyticsEvent.PurchaseIntentClicked)
+    expect(eventNames).not.toContain(AnalyticsEvent.CampaignEngaged)
+    expect(eventNames).not.toContain(AnalyticsEvent.LeadCreated)
+  })
+
+  it('does not invent campaign_id from utm_campaign', () => {
+    window.history.pushState(
+      {},
+      '',
+      '/en/try-on/glasses?utm_source=meta&utm_medium=paid&utm_campaign=summer_glasses_2026',
+    )
+
+    analytics.trackCustomEvent('attribution_smoke')
+
+    expect(window.gtag).toHaveBeenCalledWith(
+      'event',
+      'attribution_smoke',
+      expect.objectContaining({
+        campaign_name: 'summer_glasses_2026',
+        acquisition_source: 'meta',
+        acquisition_medium: 'paid',
+      }),
+    )
+    const payload = (window.gtag as jest.Mock).mock.calls.at(-1)?.[2] as Record<string, unknown>
+    expect(payload.campaign_id).toBeUndefined()
   })
 
   it('migrates style explorer core funnel to recommendation/try-on events', () => {
@@ -313,12 +339,19 @@ describe('campaign intelligence analytics migration', () => {
     expect(window.gtag).toHaveBeenCalledWith(
       'event',
       AnalyticsEvent.RecommendationViewed,
-      expect.objectContaining({ frame_category: 'metal', style_count: 4 }),
+      expect.objectContaining({
+        frame_category: 'metal',
+        style_count: 4,
+        recommendation_count: 4,
+      }),
     )
     expect(window.gtag).toHaveBeenCalledWith(
       'event',
       AnalyticsEvent.TryOnStarted,
-      expect.objectContaining({ try_on_type: 'style_explorer' }),
+      expect.objectContaining({
+        try_on_type: 'style_explorer',
+        recommendation_count: 4,
+      }),
     )
     expect(window.gtag).toHaveBeenCalledWith(
       'event',
@@ -330,6 +363,13 @@ describe('campaign intelligence analytics migration', () => {
       AnalyticsEvent.TryOnShared,
       expect.objectContaining({ task_id: 'task-1' }),
     )
+
+    const stylePayloads = (window.gtag as jest.Mock).mock.calls
+      .filter((call) => call[0] === 'event')
+      .map((call) => call[2] as Record<string, unknown>)
+    for (const payload of stylePayloads) {
+      expect(payload).not.toHaveProperty('preset_ids')
+    }
   })
 
   it('migrates paywall commerce signals without dual checkout naming', () => {

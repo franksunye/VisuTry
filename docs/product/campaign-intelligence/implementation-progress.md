@@ -17,6 +17,7 @@ Status: Complete
 | Item | Status |
 |---|---|
 | Engineering event layer (Phases 1–3) | Complete |
+| Taxonomy hardening (B2B vs shopper, campaign_id, cardinality) | Complete — see `taxonomy-hardening.md` |
 | Face Analysis `photo_source=detector_handoff` | Complete |
 | GA4 console custom dimensions + key events | **Deferred** (see `ga4-console-checklist.md`) |
 | GA4 DebugView smoke | Deferred with console access |
@@ -27,4 +28,5 @@ Status: Complete
 
 - Cursor browser cannot use the operator’s already-logged-in Chrome session.
 - GA4 Admin changes are paused until console access is available without password recovery friction.
-- All product analytics emissions already include `analytics_schema_version=2` and campaign context when present; console config only unlocks reporting UX.
+- `/store` marketing LP now emits `b2b_*` events only — never shopper `campaign_landed`.
+- `campaign_id` is never manufactured from `utm_campaign` (`campaign_name` is used instead).
