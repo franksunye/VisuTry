@@ -1,0 +1,29 @@
+{
+  "experienceSlug": "sunglasses-edit",
+  "type": "CAMPAIGN",
+  "name": "Sunglasses Edit",
+  "status": "ACTIVE",
+  "headline": "Explore a focused sunglasses edit",
+  "description": "Reference Campaign / Simulation using a curated sun collection across classic, statement and wide-to-narrow proportions.",
+  "catalogSelection": [
+    "41427314933840",
+    "41427314868304",
+    "41427313623120",
+    "41427313393744",
+    "41156443373648",
+    "41156420075600",
+    "41156365058128",
+    "40527342960720",
+    "40527339225168",
+    "41134597046352"
+  ],
+  "primaryCta": {
+    "type": "PRODUCT_OR_COLLECTION",
+    "label": "View frame"
+  },
+  "referenceData": true,
+  "measurement": {
+    "defaultSource": "visutry-reference-pilot",
+    "defaultCampaign": "sunglasses-edit"
+  }
+}

@@ -1,0 +1,27 @@
+{
+  "merchantSlug": "lowercase-nyc",
+  "displayName": "Lowercase NYC",
+  "pilotType": "REFERENCE",
+  "referenceData": true,
+  "catalogMode": "CURATED",
+  "defaultLocale": "en",
+  "theme": {
+    "logoUrl": null,
+    "brandName": "Lowercase NYC",
+    "accentToken": "slate"
+  },
+  "measurement": {
+    "referenceTraffic": true,
+    "defaultSource": "visutry-reference-pilot",
+    "defaultCampaign": "lowercase-nyc"
+  },
+  "experience": {
+    "tryOnEnabled": true,
+    "compareEnabled": true,
+    "maxCompareFrames": 2
+  },
+  "commerce": {
+    "inquiryEnabled": false
+  },
+  "websiteUrl": "https://lowercasenyc.com/"
+}
