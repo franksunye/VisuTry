@@ -7,6 +7,8 @@ import { Button } from '@/components/ui/button'
 import { Progress } from '@/components/ui/progress'
 import { Upload, Database, TrendingUp } from 'lucide-react'
 
+export const dynamic = 'force-dynamic'
+
 async function getDataStats() {
   const [
     totalFrames,

@@ -820,7 +820,7 @@ If Codex detects a discrepancy between this document and the current route regis
 | B02 | VSEO-009–016 | ✅ Accepted | Eight visual explanation assets integrated into four English Search→Tool pages; editorial layout, WebP, source archive, image sitemap, and QA manifest complete |
 | B03 | VSEO-017–024 | ✅ Accepted | Eight comparison / advisor assets integrated into three English Search→Tool pages; one-primary hierarchy, compact supporting layout, source archive, WebP, image sitemap, and build verification complete |
 | B04 | VSEO-025–033 | ✅ Accepted | Nine Face Style owner assets integrated into round, oval, and square English owner pages; staged editorial layout, WebP, source archive, image sitemap, and build verification complete |
-| B05 | VSEO-034–042 | ⚠️ Integrated | Nine Face Style owner assets integrated into heart, diamond, and oblong English owner pages; shared Face Owner module, staged editorial layout, WebP, source archive, image sitemap, and targeted verification complete. Full build is currently blocked by the unrelated `/admin/data-stats` prerender dependency. |
+| B05 | VSEO-034–042 | ⚠️ Integrated | Nine Face Style owner assets integrated into heart, diamond, and oblong English owner pages; shared Face Owner module, staged editorial layout, WebP, source archive, image sitemap, responsive browser checks, targeted tests, and `build:ci` verification complete. `/admin/data-stats` is now explicitly dynamic; the standard build remains blocked before Next by the Neon migration deploy connection error. |
 | B06 | VSEO-043–054 | ⏳ Planned | Face Shape explainers |
 | B07 | VSEO-055–064 | ⏳ Planned | Face × Frame A |
 | B08 | VSEO-065–074 | ⏳ Planned | Face × Frame B |
@@ -838,7 +838,7 @@ If Codex detects a discrepancy between this document and the current route regis
 
 ### Current next action
 
-> Batches B01, B02, B03, and B04 are complete. B05 is integrated and awaiting an unrelated `/admin/data-stats` build-environment fix before acceptance. After that blocker is cleared, the next production unit is B06, beginning with `VSEO-043`; preserve the established source archive, WebP, adjacent-copy, internal-link, page-level one-primary hierarchy, compact mobile supporting layout, and image-sitemap checks. Do not generate any batch overview image.
+> Batches B01, B02, B03, and B04 are complete. B05 is fully integrated and has passed targeted tests, `build:ci`, and responsive browser checks; final acceptance is pending the standard build's Neon migration deploy connectivity. Once the database build prerequisite is healthy, the next production unit is B06, beginning with `VSEO-043`; preserve the established source archive, WebP, adjacent-copy, internal-link, page-level one-primary hierarchy, compact mobile supporting layout, and image-sitemap checks. Do not generate any batch overview image.
 
 ---
 
