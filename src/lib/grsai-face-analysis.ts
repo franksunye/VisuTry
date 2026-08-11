@@ -2,6 +2,7 @@ import { FACE_ANALYSIS_MODEL } from '@/config/face-analysis'
 import { logger } from '@/lib/logger'
 
 const CHAT_API_TIMEOUT_MS = 45_000
+const CHAT_API_TOTAL_BUDGET_MS = 55_000
 const MAX_CHAT_API_ATTEMPTS = 2
 const CHAT_API_RETRY_DELAY_MS = 1_500
 const MAX_INLINE_IMAGE_BYTES = 800 * 1024
@@ -89,10 +90,19 @@ export async function analyzeFaceWithGrsAi(
   })
 
   let response: Response | undefined
+  const deadline = Date.now() + CHAT_API_TOTAL_BUDGET_MS
 
   for (let attempt = 1; attempt <= MAX_CHAT_API_ATTEMPTS; attempt++) {
+    const remainingBudgetMs = deadline - Date.now()
+    if (remainingBudgetMs <= 0) {
+      throw new Error('Face analysis timed out. Please try again with a clearer front-facing photo.')
+    }
+
     const controller = new AbortController()
-    const timeoutId = setTimeout(() => controller.abort(), CHAT_API_TIMEOUT_MS)
+    const timeoutId = setTimeout(
+      () => controller.abort(),
+      Math.min(CHAT_API_TIMEOUT_MS, remainingBudgetMs),
+    )
     let attemptResponse: Response
 
     try {
@@ -113,14 +123,12 @@ export async function analyzeFaceWithGrsAi(
         imageTransport: usesDataUri ? 'data-uri' : 'url',
       })
 
-      if (attempt === MAX_CHAT_API_ATTEMPTS) {
-        throw isTimeout
-          ? new Error('Face analysis timed out. Please try again with a clearer front-facing photo.')
-          : error
-      }
-
-      await new Promise((resolve) => setTimeout(resolve, CHAT_API_RETRY_DELAY_MS))
-      continue
+      // A timeout has an ambiguous outcome: GrsAi may have accepted and
+      // processed the request even though our connection did not return.
+      // Do not submit the same image again automatically.
+      throw isTimeout
+        ? new Error('Face analysis timed out. Please try again with a clearer front-facing photo.')
+        : error
     } finally {
       clearTimeout(timeoutId)
     }
@@ -139,7 +147,11 @@ export async function analyzeFaceWithGrsAi(
     const errorText = await attemptResponse.text()
     const shouldRetry = isRetryableRixApiError(attemptResponse.status, errorText)
 
-    if (shouldRetry && attempt < MAX_CHAT_API_ATTEMPTS) {
+    if (
+      shouldRetry &&
+      attempt < MAX_CHAT_API_ATTEMPTS &&
+      Date.now() + CHAT_API_RETRY_DELAY_MS < deadline
+    ) {
       logger.warn('grsai-face', `Chat API transient provider error (attempt ${attempt})`, {
         attempt,
         status: attemptResponse.status,

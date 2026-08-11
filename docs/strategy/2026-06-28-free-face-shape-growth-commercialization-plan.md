@@ -1057,6 +1057,16 @@ API 应在以下条件满足后再启动：
 
 建议下一批由 Workstream B 与 Workstream C 并行推进：工程实现无需登录、无需积分、无需服务端上传的匿名检测 MVP；内容团队同时完成 URL 收敛、首批主题骨架和眼镜/发型页面发布。两条轨道通过统一 CTA 汇合，不互相等待。
 
+### 2026-08-11：付费 Face Analysis 的稳定性与 2.0 双轨治理
+
+Face Analysis 已成为报告解锁和后续试戴转化的关键节点。当前版本不得直接承载未经验证的融合架构变更。
+
+- 当前版本按批次只处理幂等、超时、重复调用、可观测性及报告质量保护；保持“照片 + VLM 深度报告”的既有产品语义。
+- Face Analysis 2.0 在独立版本与 feature flag 下验证 landmark 几何、VLM 视觉审阅和明确的冲突融合规则；达到稳定性、质量、商业与回退门槛后，才分批替换。
+- 免费 Face Shape Detector 继续遵守本地处理、无上传、无 Gemini 的产品承诺。
+
+执行批次、验收标准和替换门槛见：[Face Analysis 稳定性与 2.0 渐进式演进计划](../../product/plans/face-analysis-stability-and-v2-rollout.md)。
+
 ---
 
 ## 16. 外部参考

@@ -91,6 +91,22 @@ describe('analyzeFaceWithGrsAi', () => {
     expect(logger.error).toHaveBeenCalledTimes(1)
   })
 
+  it('does not retry network errors because the provider may have accepted the request', async () => {
+    ;(global.fetch as jest.Mock).mockRejectedValueOnce(new Error('socket closed'))
+
+    await expect(
+      analyzeFaceWithGrsAi('https://example.com/face.jpg', 'Analyze this face')
+    ).rejects.toThrow('socket closed')
+
+    expect(global.fetch).toHaveBeenCalledTimes(1)
+    expect(logger.warn).toHaveBeenCalledWith(
+      'grsai-face',
+      'Chat API network error (attempt 1)',
+      undefined,
+      expect.objectContaining({ attempt: 1, isTimeout: false })
+    )
+  })
+
   it('fails normally when the single rix_api_error retry is exhausted', async () => {
     ;(global.fetch as jest.Mock)
       .mockResolvedValueOnce(failedResponse('rix_api_error'))
