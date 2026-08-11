@@ -81,8 +81,8 @@ export function ExperiencesList({ workspace }: { workspace: ExperienceAdminWorks
           </div>
           <div className="rounded-2xl bg-white/10 p-4 ring-1 ring-white/15">
             <p className="text-xs uppercase tracking-wide text-white/55">Merchant catalog</p>
-            <p className="mt-1 text-2xl font-semibold">{workspace.experiences.reduce((sum, item) => Math.max(sum, item.catalogFrameCount), 0)}+</p>
-            <p className="text-xs text-white/60">selected frames across experiences</p>
+            <p className="mt-1 text-2xl font-semibold">{workspace.merchant.merchantCatalogFrameCount}</p>
+            <p className="text-xs text-white/60">active frames</p>
           </div>
         </div>
       </section>

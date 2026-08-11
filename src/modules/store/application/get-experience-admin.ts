@@ -34,6 +34,7 @@ export type ExperienceAdminWorkspace = {
     slug: string
     name: string
     referenceData: boolean
+    merchantCatalogFrameCount: number
   }
   experiences: ExperienceAdminSummary[]
   legacy: ExperienceAdminSummary
@@ -82,28 +83,33 @@ export async function getExperienceAdminWorkspace(input: {
   })
   if (!merchant) return null
 
-  const experiences = await prisma.experience.findMany({
-    where: {
-      merchantId: input.merchantId,
-      ...(filter === 'ALL' ? {} : { type: filter }),
-    },
-    orderBy: [{ type: 'asc' }, { createdAt: 'asc' }],
-    select: {
-      id: true,
-      merchantId: true,
-      type: true,
-      slug: true,
-      name: true,
-      status: true,
-      startAt: true,
-      endAt: true,
-      referenceData: true,
-      frames: {
-        where: { active: true },
-        select: { merchantFrameId: true },
+  const [experiences, merchantCatalogFrameCount] = await Promise.all([
+    prisma.experience.findMany({
+      where: {
+        merchantId: input.merchantId,
+        ...(filter === 'ALL' ? {} : { type: filter }),
       },
-    },
-  })
+      orderBy: [{ type: 'asc' }, { createdAt: 'asc' }],
+      select: {
+        id: true,
+        merchantId: true,
+        type: true,
+        slug: true,
+        name: true,
+        status: true,
+        startAt: true,
+        endAt: true,
+        referenceData: true,
+        frames: {
+          where: { active: true },
+          select: { merchantFrameId: true },
+        },
+      },
+    }),
+    prisma.merchantFrame.count({
+      where: { merchantId: input.merchantId, status: 'ACTIVE' },
+    }),
+  ])
 
   const [sessionGroups, eventGroups, intentGroups] = await Promise.all([
     prisma.merchantSession.groupBy({
@@ -171,7 +177,7 @@ export async function getExperienceAdminWorkspace(input: {
   }
 
   return {
-    merchant,
+    merchant: { ...merchant, merchantCatalogFrameCount },
     experiences: summaries,
     legacy,
   }

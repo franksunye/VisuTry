@@ -31,16 +31,33 @@ describe('Merchant Experience admin routes', () => {
 
   it('rejects unsafe CTA destinations before writing configuration', async () => {
     db.experience.findFirst.mockResolvedValue({ id: 'experience-1' })
+    for (const primaryCtaUrl of ['//evil.example.com', 'http://merchant.example', 'javascript:alert(1)', 'data:text/html,hello', 'ftp://merchant.example', 'https://', '/foo bar', `/foo${'\u0000'}bar`]) {
+      const response = await updateExperience(
+        new NextRequest('http://localhost/api/admin/store/merchants/merchant-a/experiences/experience-1', {
+          method: 'PUT',
+          body: JSON.stringify({ primaryCtaUrl }),
+        }),
+        { params: { id: 'merchant-a', experienceId: 'experience-1' } },
+      )
+      expect(response.status).toBe(400)
+    }
+    expect(db.experience.update).not.toHaveBeenCalled()
+  })
+
+  it.each(['/products/foo', 'https://merchant.example/product'])('accepts safe CTA destination %s', async (primaryCtaUrl) => {
+    db.experience.findFirst.mockResolvedValue({ id: 'experience-1' })
+    db.experience.update.mockResolvedValue({ id: 'experience-1', primaryCtaUrl })
+
     const response = await updateExperience(
       new NextRequest('http://localhost/api/admin/store/merchants/merchant-a/experiences/experience-1', {
         method: 'PUT',
-        body: JSON.stringify({ primaryCtaUrl: 'javascript:alert(1)' }),
+        body: JSON.stringify({ primaryCtaUrl }),
       }),
       { params: { id: 'merchant-a', experienceId: 'experience-1' } },
     )
 
-    expect(response.status).toBe(400)
-    expect(db.experience.update).not.toHaveBeenCalled()
+    expect(response.status).toBe(200)
+    expect(db.experience.update).toHaveBeenCalledWith(expect.objectContaining({ data: { primaryCtaUrl } }))
   })
 
   it('writes only the allowed tenant-owned frame selection and preserves order', async () => {

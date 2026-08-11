@@ -18,7 +18,22 @@ function optionalDate(value: unknown): Date | null | undefined {
 }
 
 function isSafeCtaUrl(value: string) {
-  return value.startsWith('/') || value.startsWith('https://')
+  if (/\s|[\u0000-\u001f\u007f]/u.test(value)) return false
+
+  if (value.startsWith('/') && !value.startsWith('//')) {
+    try {
+      const parsed = new URL(value, 'https://visutry.internal')
+      return parsed.origin === 'https://visutry.internal'
+    } catch {
+      return false
+    }
+  }
+
+  try {
+    return new URL(value).protocol === 'https:'
+  } catch {
+    return false
+  }
 }
 
 export async function GET(

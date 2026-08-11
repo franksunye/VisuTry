@@ -5,6 +5,7 @@ jest.mock('@/lib/prisma', () => ({
   prisma: {
     merchant: { findUnique: jest.fn() },
     experience: { findMany: jest.fn() },
+    merchantFrame: { count: jest.fn() },
     merchantSession: { groupBy: jest.fn() },
     merchantEvent: { groupBy: jest.fn() },
     merchantIntent: { groupBy: jest.fn() },
@@ -14,6 +15,7 @@ jest.mock('@/lib/prisma', () => ({
 const db = prisma as unknown as {
   merchant: { findUnique: jest.Mock }
   experience: { findMany: jest.Mock }
+  merchantFrame: { count: jest.Mock }
   merchantSession: { groupBy: jest.Mock }
   merchantEvent: { groupBy: jest.Mock }
   merchantIntent: { groupBy: jest.Mock }
@@ -39,7 +41,7 @@ describe('Merchant Experience admin analytics', () => {
         startAt: null,
         endAt: null,
         referenceData: true,
-        frames: [{ merchantFrameId: 'frame-1' }, { merchantFrameId: 'frame-2' }],
+        frames: Array.from({ length: 10 }, (_, index) => ({ merchantFrameId: `store-frame-${index}` })),
       },
       {
         id: 'campaign-a',
@@ -51,9 +53,22 @@ describe('Merchant Experience admin analytics', () => {
         startAt: new Date('2026-08-01T00:00:00Z'),
         endAt: null,
         referenceData: true,
-        frames: [{ merchantFrameId: 'frame-2' }],
+        frames: Array.from({ length: 4 }, (_, index) => ({ merchantFrameId: `campaign-a-frame-${index}` })),
+      },
+      {
+        id: 'campaign-b',
+        merchantId: 'merchant-a',
+        type: 'CAMPAIGN',
+        slug: 'summer-sunglasses',
+        name: 'Summer Sunglasses',
+        status: 'ACTIVE',
+        startAt: null,
+        endAt: null,
+        referenceData: true,
+        frames: Array.from({ length: 7 }, (_, index) => ({ merchantFrameId: `campaign-b-frame-${index}` })),
       },
     ])
+    db.merchantFrame.count.mockResolvedValue(20)
     db.merchantSession.groupBy.mockResolvedValue([
       { experienceId: 'store-a', _count: { _all: 10 } },
       { experienceId: 'campaign-a', _count: { _all: 4 } },
@@ -77,8 +92,12 @@ describe('Merchant Experience admin analytics', () => {
     expect(result?.experiences.map((experience) => [experience.type, experience.slug])).toEqual([
       ['STORE', 'default'],
       ['CAMPAIGN', 'petite-fit'],
+      ['CAMPAIGN', 'summer-sunglasses'],
     ])
-    expect(result?.experiences[1].catalogFrameCount).toBe(1)
+    expect(result?.merchant.merchantCatalogFrameCount).toBe(20)
+    expect(result?.experiences[0].catalogFrameCount).toBe(10)
+    expect(result?.experiences[1].catalogFrameCount).toBe(4)
+    expect(result?.experiences[2].catalogFrameCount).toBe(7)
     expect(result?.experiences[1].metrics).toEqual({
       sessions: 4,
       recommendations: 3,
@@ -91,6 +110,7 @@ describe('Merchant Experience admin analytics', () => {
     expect(result?.legacy.metrics.sessions).toBe(3)
     expect(result?.legacy.metrics.inquiries).toBe(1)
     expect(db.merchantSession.groupBy).toHaveBeenCalledWith(expect.objectContaining({ where: { merchantId: 'merchant-a' } }))
+    expect(db.merchantFrame.count).toHaveBeenCalledWith({ where: { merchantId: 'merchant-a', status: 'ACTIVE' } })
   })
 
   it('applies Store/Campaign filters without changing tenant scope', async () => {
