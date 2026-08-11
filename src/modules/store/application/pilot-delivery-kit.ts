@@ -13,16 +13,6 @@ export type PilotMerchantConfig = {
     brandName: string
     accentToken: string
   }
-  commerce: {
-    primaryIntent: 'PRODUCT_CLICK' | 'INQUIRY'
-    inquiryEnabled: boolean
-  }
-  experience: {
-    recommendationEnabled: boolean
-    tryOnEnabled: boolean
-    compareEnabled: boolean
-    maxCompareFrames: number
-  }
   measurement: {
     referenceTraffic: boolean
     defaultSource: string
@@ -72,6 +62,11 @@ const ACCENT_TOKENS: Record<string, string> = {
   sky: '#1D4ED8',
   sand: '#6B4F3A',
   rose: '#9F1239',
+}
+
+export type ExistingPilotFrame = {
+  sku: string | null
+  source: string
 }
 
 function clean(value: string | undefined): string {
@@ -159,15 +154,29 @@ export function parsePilotCsv(csv: string): Record<string, string>[] {
     if (!header.includes(column)) throw new Error(`Catalog CSV is missing required column: ${column}`)
   }
 
-  return rows
-    .filter((values) => values.some((value) => value.trim().length > 0))
-    .map((values, index) => Object.fromEntries(header.map((name, columnIndex) => [name, values[columnIndex] ?? ''])))
-    .map((record, index) => {
-      if (Object.keys(record).length !== header.length) {
-        throw new Error(`Catalog row ${index + 2}: column count does not match header`)
-      }
-      return record
-    })
+  return rows.filter((values) => values.some((value) => value.trim().length > 0)).map((values, index) => {
+    if (values.length !== header.length) {
+      throw new Error(`Catalog row ${index + 2}: column count does not match header`)
+    }
+    return Object.fromEntries(header.map((name, columnIndex) => [name, values[columnIndex]]))
+  })
+}
+
+export function assertPilotCatalogSourceOwnership(
+  existingFrames: ExistingPilotFrame[],
+  incomingSkus: Iterable<string>,
+): void {
+  const incomingSkuSet = new Set(incomingSkus)
+  const conflicts = existingFrames
+    .filter((frame) => frame.sku && incomingSkuSet.has(frame.sku) && frame.source !== 'CSV')
+    .map((frame) => `${frame.sku} (${frame.source})`)
+    .sort()
+
+  if (conflicts.length > 0) {
+    throw new Error(
+      `Pilot catalog import would overwrite non-CSV frame(s): ${conflicts.join(', ')}. Resolve source ownership before importing.`,
+    )
+  }
 }
 
 export function validatePilotConfig(config: PilotMerchantConfig): void {
@@ -180,9 +189,6 @@ export function validatePilotConfig(config: PilotMerchantConfig): void {
   }
   if (config.referenceData && !config.measurement.referenceTraffic) {
     throw new Error('referenceData requires measurement.referenceTraffic=true')
-  }
-  if (config.experience.maxCompareFrames < 2 || config.experience.maxCompareFrames > 4) {
-    throw new Error('maxCompareFrames must be between 2 and 4')
   }
   if (!ACCENT_TOKENS[config.theme.accentToken]) {
     throw new Error(`Unsupported accentToken: ${config.theme.accentToken}`)

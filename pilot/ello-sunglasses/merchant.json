@@ -10,16 +10,6 @@
     "brandName": "ello sunglasses",
     "accentToken": "sky"
   },
-  "commerce": {
-    "primaryIntent": "PRODUCT_CLICK",
-    "inquiryEnabled": true
-  },
-  "experience": {
-    "recommendationEnabled": true,
-    "tryOnEnabled": true,
-    "compareEnabled": true,
-    "maxCompareFrames": 4
-  },
   "measurement": {
     "referenceTraffic": true,
     "defaultSource": "visutry-reference-pilot",

@@ -11,7 +11,11 @@
 import 'dotenv/config'
 import { resolve } from 'node:path'
 import { prisma } from '../src/lib/prisma'
-import { accentColorForToken, readPilotPackage } from '../src/modules/store/application/pilot-delivery-kit'
+import {
+  accentColorForToken,
+  assertPilotCatalogSourceOwnership,
+  readPilotPackage,
+} from '../src/modules/store/application/pilot-delivery-kit'
 
 function assertSeedEnvironment() {
   const isProd = process.env.NODE_ENV === 'production' || process.env.VERCEL_ENV === 'production'
@@ -25,6 +29,21 @@ async function main() {
   const packageDir = resolve(process.argv[2] || 'pilot/ello-sunglasses')
   const { config, catalog } = await readPilotPackage(packageDir)
   console.log(`Importing ${config.pilotType} pilot package: ${config.displayName} (${config.merchantSlug})`)
+
+  const existingMerchant = await prisma.merchant.findUnique({
+    where: { slug: config.merchantSlug },
+    select: { id: true },
+  })
+  if (existingMerchant) {
+    const existingFrames = await prisma.merchantFrame.findMany({
+      where: {
+        merchantId: existingMerchant.id,
+        sku: { in: catalog.map((row) => row.sku) },
+      },
+      select: { sku: true, source: true },
+    })
+    assertPilotCatalogSourceOwnership(existingFrames, catalog.map((row) => row.sku))
+  }
 
   const merchant = await prisma.merchant.upsert({
     where: { slug: config.merchantSlug },
