@@ -19,13 +19,26 @@ type FaceLandmarkerInstance = {
   }
 }
 
+export type FaceRuntimeDiagnostics = {
+  gpuRuntimeErrorName?: string
+  gpuRuntimeErrorMessage?: string
+  cpuRuntimeErrorName?: string
+  cpuRuntimeErrorMessage?: string
+}
+
 class FaceLandmarkRuntimeError extends Error {
   reason: FaceShapeFailureReason
+  runtimeDiagnostics?: FaceRuntimeDiagnostics
 
-  constructor(reason: FaceShapeFailureReason, message: string) {
+  constructor(
+    reason: FaceShapeFailureReason,
+    message: string,
+    runtimeDiagnostics?: FaceRuntimeDiagnostics,
+  ) {
     super(message)
     this.name = 'FaceLandmarkRuntimeError'
     this.reason = reason
+    this.runtimeDiagnostics = runtimeDiagnostics
   }
 }
 
@@ -35,6 +48,12 @@ export type FaceImageDecodeDiagnostics = {
   bitmapDecodeErrorMessage?: string
   htmlImageDecodeErrorName?: string
   htmlImageDecodeErrorMessage?: string
+  // Runtime diagnostics share the existing failure-diagnostics envelope so
+  // callers can forward one privacy-safe object without changing the user flow.
+  gpuRuntimeErrorName?: string
+  gpuRuntimeErrorMessage?: string
+  cpuRuntimeErrorName?: string
+  cpuRuntimeErrorMessage?: string
 }
 
 class FaceImageDecodeError extends Error {
@@ -69,6 +88,50 @@ function assetUrls(source: FaceLandmarkerAssetSource) {
   return source === 'primary'
     ? { wasm: PRIMARY_WASM_ASSET_URL, model: PRIMARY_MODEL_ASSET_URL }
     : { wasm: FALLBACK_WASM_ASSET_URL, model: FALLBACK_MODEL_ASSET_URL }
+}
+
+function normalizeRuntimeError(error: unknown) {
+  const name = error instanceof Error && error.name ? error.name.slice(0, 64) : 'UnknownError'
+  const rawMessage = error instanceof Error ? error.message.toLowerCase() : ''
+
+  let message = 'other'
+  if (rawMessage.includes('context lost') || rawMessage.includes('webgl')) message = 'graphics_context_error'
+  else if (rawMessage.includes('wasm') || rawMessage.includes('webassembly')) message = 'wasm_runtime_error'
+  else if (rawMessage.includes('memory') || rawMessage.includes('allocation')) message = 'memory_error'
+  else if (rawMessage.includes('unsupported') || rawMessage.includes('not supported')) message = 'unsupported_runtime'
+  else if (rawMessage.includes('abort')) message = 'aborted'
+  else if (rawMessage.includes('invalid') || rawMessage.includes('tensor')) message = 'invalid_runtime_input'
+  else if (rawMessage.includes('assert') || rawMessage.includes('internal')) message = 'internal_runtime_error'
+
+  return { name, message }
+}
+
+function diagnosticsForDelegate(
+  delegate: FaceLandmarkerDelegate,
+  error: unknown,
+): FaceRuntimeDiagnostics {
+  const normalized = normalizeRuntimeError(error)
+  return delegate === 'GPU'
+    ? {
+        gpuRuntimeErrorName: normalized.name,
+        gpuRuntimeErrorMessage: normalized.message,
+      }
+    : {
+        cpuRuntimeErrorName: normalized.name,
+        cpuRuntimeErrorMessage: normalized.message,
+      }
+}
+
+function mergeRuntimeDiagnostics(
+  ...errors: unknown[]
+): FaceRuntimeDiagnostics | undefined {
+  const merged: FaceRuntimeDiagnostics = {}
+  for (const error of errors) {
+    if (error instanceof FaceLandmarkRuntimeError && error.runtimeDiagnostics) {
+      Object.assign(merged, error.runtimeDiagnostics)
+    }
+  }
+  return Object.keys(merged).length > 0 ? merged : undefined
 }
 
 async function createFaceLandmarker(
@@ -159,7 +222,8 @@ async function detectWithDelegate(
   } catch (error) {
     throw new FaceLandmarkRuntimeError(
       'runtime_failed',
-      error instanceof Error ? `Face detector runtime failed: ${error.message}` : 'Face detector runtime failed.',
+      'Face detector runtime failed.',
+      diagnosticsForDelegate(delegate, error),
     )
   }
 
@@ -201,8 +265,20 @@ async function detectFaceLandmarksUncached(
   try {
     return await detectWithDelegate(image, 'CPU', true)
   } catch (cpuError) {
-    if (cpuError instanceof FaceLandmarkRuntimeError) throw cpuError
-    if (gpuError instanceof FaceLandmarkRuntimeError) throw gpuError
+    const runtimeDiagnostics = mergeRuntimeDiagnostics(gpuError, cpuError)
+
+    if (cpuError instanceof FaceLandmarkRuntimeError) {
+      if (cpuError.reason === 'runtime_failed' && runtimeDiagnostics) {
+        throw new FaceLandmarkRuntimeError('runtime_failed', cpuError.message, runtimeDiagnostics)
+      }
+      throw cpuError
+    }
+    if (gpuError instanceof FaceLandmarkRuntimeError) {
+      if (gpuError.reason === 'runtime_failed' && runtimeDiagnostics) {
+        throw new FaceLandmarkRuntimeError('runtime_failed', gpuError.message, runtimeDiagnostics)
+      }
+      throw gpuError
+    }
     throw cpuError
   }
 }
@@ -285,7 +361,9 @@ export async function analyzeFaceLandmarkFile(file: File): Promise<FaceLandmarkF
       detection: null,
       ...(error instanceof FaceImageDecodeError
         ? { decodeDiagnostics: error.diagnostics }
-        : {}),
+        : error instanceof FaceLandmarkRuntimeError && error.runtimeDiagnostics
+          ? { decodeDiagnostics: error.runtimeDiagnostics }
+          : {}),
     }
   } finally {
     decodedImage?.close()
