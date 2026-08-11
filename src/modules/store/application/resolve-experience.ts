@@ -18,6 +18,9 @@ export async function resolveMerchantExperience(input: {
   }
 
   if (!experience && input.slug) throw experienceNotFound()
+  if (!experience && await input.experiences.hasAnyByMerchant(input.merchant.id)) {
+    throw experienceNotFound()
+  }
 
   return experience
 }

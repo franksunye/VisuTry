@@ -2,6 +2,7 @@ import {
   buildStoreEventIdempotencyKey,
   merchantInactive,
   merchantNotFound,
+  experienceContainsFrame,
   selectUsagePolicy,
   sessionUnauthorized,
 } from '../domain'
@@ -12,6 +13,7 @@ import type {
   MerchantRepository,
   MerchantSessionRepository,
   StoreUsageRepository,
+  ExperienceRepository,
 } from './ports/repositories'
 import { requireOperableStoreSession } from './require-store-session'
 import { settleStoreTryOnUsage } from './settle-store-usage'
@@ -27,6 +29,7 @@ export type PollStoreTryOnInput = {
   events: MerchantEventRepository
   usage: StoreUsageRepository
   generation: StoreGenerationPort
+  experiences?: ExperienceRepository
   slug: string
   merchantSessionId: string
   capabilityToken: string | null
@@ -82,6 +85,12 @@ export async function pollStoreFrameTryOn(
   })
   if (!owned) {
     throw sessionUnauthorized()
+  }
+  if (session.experienceId && input.experiences) {
+    const experience = await input.experiences.findByMerchantAndId(merchant.id, session.experienceId)
+    if (!experience || !owned.merchantFrameId || !experienceContainsFrame(experience, owned.merchantFrameId)) {
+      throw sessionUnauthorized()
+    }
   }
 
   const status = await input.generation.getStatus(input.taskId, merchant.id)

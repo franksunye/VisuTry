@@ -69,12 +69,23 @@ export function createPrismaExperienceRepository(): ExperienceRepository {
       try {
         const row = await prisma.experience.findFirst({
           where: { merchantId, type: 'STORE', status: 'ACTIVE' },
-          orderBy: { createdAt: 'asc' },
+          orderBy: [{ slug: 'asc' }, { createdAt: 'asc' }],
           include: includeFrames,
         })
         return row ? mapExperience(row) : null
       } catch (error) {
         if (isExperienceTableUnavailable(error)) return null
+        throw error
+      }
+    },
+    async hasAnyByMerchant(merchantId) {
+      try {
+        return Boolean(await prisma.experience.findFirst({
+          where: { merchantId },
+          select: { id: true },
+        }))
+      } catch (error) {
+        if (isExperienceTableUnavailable(error)) return false
         throw error
       }
     },

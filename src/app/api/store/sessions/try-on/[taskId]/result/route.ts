@@ -32,6 +32,7 @@ export async function GET(
     const result = await resolveStoreTryOnResult({
       merchants: runtime.merchants,
       sessions: runtime.sessions,
+      experiences: runtime.experiences,
       slug: merchantSlug,
       merchantSessionId,
       capabilityToken: readStoreCapabilityToken(request),

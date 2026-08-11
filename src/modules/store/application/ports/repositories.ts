@@ -192,6 +192,7 @@ export interface MerchantRepository {
 
 export interface ExperienceRepository {
   findDefaultStore(merchantId: string): Promise<ExperienceRecord | null>
+  hasAnyByMerchant(merchantId: string): Promise<boolean>
   findByMerchantAndId(merchantId: string, experienceId: string): Promise<ExperienceRecord | null>
   findActiveByMerchantAndSlug(
     merchantId: string,

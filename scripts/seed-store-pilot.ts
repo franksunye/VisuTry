@@ -194,7 +194,7 @@ async function main() {
         endAt: experienceConfig.endAt ? new Date(experienceConfig.endAt) : null,
         referenceData: experienceConfig.referenceData ?? config.referenceData,
         defaultSource: experienceConfig.measurement?.defaultSource ?? config.measurement.defaultSource,
-        defaultCampaign: experienceConfig.measurement?.defaultCampaign ?? experienceConfig.experienceSlug,
+        defaultCampaign: experienceConfig.measurement?.defaultCampaign ?? config.measurement.defaultCampaign,
       },
       update: {
         type: experienceConfig.type,
@@ -216,7 +216,7 @@ async function main() {
         endAt: experienceConfig.endAt ? new Date(experienceConfig.endAt) : null,
         referenceData: experienceConfig.referenceData ?? config.referenceData,
         defaultSource: experienceConfig.measurement?.defaultSource ?? config.measurement.defaultSource,
-        defaultCampaign: experienceConfig.measurement?.defaultCampaign ?? experienceConfig.experienceSlug,
+        defaultCampaign: experienceConfig.measurement?.defaultCampaign ?? config.measurement.defaultCampaign,
       },
     })
 

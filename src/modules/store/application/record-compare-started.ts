@@ -3,6 +3,7 @@ import { logger } from '@/lib/logger'
 import {
   StoreDomainError,
   buildStoreEventIdempotencyKey,
+  experienceContainsFrame,
   merchantInactive,
   merchantNotFound,
 } from '../domain'
@@ -11,6 +12,7 @@ import type {
   MerchantEventRepository,
   MerchantRepository,
   MerchantSessionRepository,
+  ExperienceRepository,
 } from './ports/repositories'
 import { requireOperableStoreSession } from './require-store-session'
 
@@ -18,6 +20,7 @@ export async function recordCompareStarted(input: {
   merchants: MerchantRepository
   sessions: MerchantSessionRepository
   events: MerchantEventRepository
+  experiences?: ExperienceRepository
   slug: string
   merchantSessionId: string
   capabilityToken: string | null
@@ -38,12 +41,15 @@ export async function recordCompareStarted(input: {
     )
   }
 
-  await requireOperableStoreSession({
+  const session = await requireOperableStoreSession({
     sessions: input.sessions,
     merchantId: merchant.id,
     merchantSessionId: input.merchantSessionId,
     capabilityToken: input.capabilityToken,
   })
+  const experience = session.experienceId && input.experiences
+    ? await input.experiences.findByMerchantAndId(merchant.id, session.experienceId)
+    : null
 
   const completedTryOns = await prisma.tryOnTask.count({
     where: {
@@ -55,6 +61,9 @@ export async function recordCompareStarted(input: {
   })
 
   const selectedFrameIds = Array.from(new Set((input.frameIds ?? []).filter(Boolean)))
+  if (experience && selectedFrameIds.some((frameId) => !experienceContainsFrame(experience, frameId))) {
+    throw new StoreDomainError('FRAME_INACTIVE', 'This frame is not part of the current experience.', 409)
+  }
   const selectedFrameCount = selectedFrameIds.length || completedTryOns
   if (selectedFrameCount > experiencePolicy.maxCompareFrames) {
     throw new StoreDomainError(

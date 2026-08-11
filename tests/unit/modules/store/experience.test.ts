@@ -1,6 +1,8 @@
 import { getPublicMerchantProfile } from '@/modules/store/application/get-public-merchant'
 import { resolveMerchantExperience } from '@/modules/store/application/resolve-experience'
 import { createStoreSession } from '@/modules/store/application/create-store-session'
+import { recordCompareStarted } from '@/modules/store/application/record-compare-started'
+import { createMerchantSessionCapability } from '@/modules/store/domain'
 import { experienceContainsFrame } from '@/modules/store/domain'
 import type {
   ExperienceRecord,
@@ -117,6 +119,7 @@ describe('Experience foundation', () => {
       merchant: { id: 'merchant-1' } as never,
       experiences: {
         findDefaultStore: jest.fn(),
+        hasAnyByMerchant: jest.fn().mockResolvedValue(true),
         findByMerchantAndId: jest.fn(),
         findActiveByMerchantAndSlug: jest.fn().mockResolvedValue(experience()),
       },
@@ -134,6 +137,7 @@ describe('Experience foundation', () => {
         merchant: { id: 'merchant-1' } as never,
         experiences: {
           findDefaultStore: jest.fn(),
+          hasAnyByMerchant: jest.fn().mockResolvedValue(true),
           findByMerchantAndId: jest.fn(),
           findActiveByMerchantAndSlug: jest.fn().mockResolvedValue(
             experience({ merchantId: 'merchant-2' }),
@@ -144,11 +148,38 @@ describe('Experience foundation', () => {
     ).rejects.toMatchObject({ code: 'EXPERIENCE_NOT_FOUND', httpStatus: 404 })
   })
 
+  it('does not silently use merchant-wide catalog when experiences exist without a Store', async () => {
+    await expect(
+      resolveMerchantExperience({
+        merchant: { id: 'merchant-1' } as never,
+        experiences: {
+          findDefaultStore: jest.fn().mockResolvedValue(null),
+          hasAnyByMerchant: jest.fn().mockResolvedValue(true),
+          findByMerchantAndId: jest.fn(),
+          findActiveByMerchantAndSlug: jest.fn(),
+        },
+      }),
+    ).rejects.toMatchObject({ code: 'EXPERIENCE_NOT_FOUND' })
+
+    await expect(
+      resolveMerchantExperience({
+        merchant: { id: 'legacy-merchant' } as never,
+        experiences: {
+          findDefaultStore: jest.fn().mockResolvedValue(null),
+          hasAnyByMerchant: jest.fn().mockResolvedValue(false),
+          findByMerchantAndId: jest.fn(),
+          findActiveByMerchantAndSlug: jest.fn(),
+        },
+      }),
+    ).resolves.toBeNull()
+  })
+
   it('returns only the selected catalog frames for a campaign profile', async () => {
     const profile = await getPublicMerchantProfile({
       merchants: merchant(),
       experiences: {
         findDefaultStore: jest.fn(),
+        hasAnyByMerchant: jest.fn().mockResolvedValue(true),
         findByMerchantAndId: jest.fn(),
         findActiveByMerchantAndSlug: jest.fn().mockResolvedValue(experience()),
       },
@@ -200,6 +231,7 @@ describe('Experience foundation', () => {
       },
       experiences: {
         findDefaultStore: jest.fn().mockResolvedValue(experience({ type: 'STORE', slug: 'default' })),
+        hasAnyByMerchant: jest.fn().mockResolvedValue(true),
         findByMerchantAndId: jest.fn(),
         findActiveByMerchantAndSlug: jest.fn(),
       },
@@ -207,12 +239,60 @@ describe('Experience foundation', () => {
       usage: { countCommerceSessions: jest.fn().mockResolvedValue(0), record: jest.fn() } as never,
       slug: 'ello-sunglasses',
       locale: 'en',
+      acquisition: { campaign: 'declared-campaign' },
     })
 
     expect(result.experienceId).toBe('experience-1')
     expect(sessionCreate).toHaveBeenCalledWith(expect.objectContaining({
       experienceId: 'experience-1',
-      campaign: 'petite-fit',
+      campaign: 'declared-campaign',
     }))
+  })
+
+  it('rejects compare requests for a frame outside the authoritative session Experience', async () => {
+    const capability = createMerchantSessionCapability()
+    await expect(
+      recordCompareStarted({
+        merchants: merchant(),
+        sessions: {
+          create: jest.fn(),
+          findByMerchantAndId: jest.fn().mockResolvedValue({
+            id: 'session-1',
+            merchantId: 'merchant-1',
+            experienceId: 'experience-1',
+            anonymousVisitorId: null,
+            photoAssetId: null,
+            capabilityTokenHash: capability.tokenHash,
+            locale: 'en',
+            status: 'ACTIVE',
+            referenceData: true,
+            source: 'reference',
+            medium: null,
+            campaign: 'declared-campaign',
+            referrer: null,
+            landingUrl: null,
+            aiAgentSource: null,
+            createdAt: now,
+            lastActiveAt: now,
+            expiresAt: new Date(now.getTime() + 60_000),
+          }),
+          touch: jest.fn(),
+          markExpired: jest.fn(),
+          attachPhotoAsset: jest.fn(),
+        },
+        experiences: {
+          findDefaultStore: jest.fn(),
+          hasAnyByMerchant: jest.fn(),
+          findByMerchantAndId: jest.fn().mockResolvedValue(experience({ frameIds: ['frame-1', 'frame-2'] })),
+          findActiveByMerchantAndSlug: jest.fn(),
+        },
+        events: { appendIdempotent: jest.fn(), listByMerchant: jest.fn() },
+        slug: 'ello-sunglasses',
+        merchantSessionId: 'session-1',
+        capabilityToken: capability.token,
+        clientActionId: 'compare-1',
+        frameIds: ['frame-4', 'frame-2'],
+      }),
+    ).rejects.toMatchObject({ code: 'FRAME_INACTIVE', httpStatus: 409 })
   })
 })

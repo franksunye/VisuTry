@@ -41,6 +41,7 @@ export async function POST(request: NextRequest) {
       merchants: runtime.merchants,
       sessions: runtime.sessions,
       events: runtime.events,
+      experiences: runtime.experiences,
       slug: String(record.merchantSlug).trim(),
       merchantSessionId: String(record.merchantSessionId).trim(),
       capabilityToken: readStoreCapabilityToken(request),

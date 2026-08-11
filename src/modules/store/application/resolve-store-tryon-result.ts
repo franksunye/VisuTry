@@ -10,10 +10,12 @@ import {
   merchantInactive,
   merchantNotFound,
   sessionUnauthorized,
+  experienceContainsFrame,
 } from '../domain'
 import type {
   MerchantRepository,
   MerchantSessionRepository,
+  ExperienceRepository,
 } from './ports/repositories'
 import { requireOperableStoreSession } from './require-store-session'
 
@@ -74,6 +76,7 @@ function isVercelBlobUrl(value: string): boolean {
 export async function resolveStoreTryOnResult(input: {
   merchants: MerchantRepository
   sessions: MerchantSessionRepository
+  experiences?: ExperienceRepository
   slug: string
   merchantSessionId: string
   capabilityToken: string | null
@@ -102,6 +105,7 @@ export async function resolveStoreTryOnResult(input: {
       id: true,
       resultImageUrl: true,
       metadata: true,
+      merchantFrameId: true,
       expiresAt: true,
       retentionStatus: true,
     },
@@ -109,6 +113,12 @@ export async function resolveStoreTryOnResult(input: {
 
   if (!task?.resultImageUrl || task.resultImageUrl.startsWith('pending:')) {
     throw sessionUnauthorized()
+  }
+  if (session.experienceId && input.experiences) {
+    const experience = await input.experiences.findByMerchantAndId(merchant.id, session.experienceId)
+    if (!experience || !task.merchantFrameId || !experienceContainsFrame(experience, task.merchantFrameId)) {
+      throw sessionUnauthorized()
+    }
   }
   if (task.retentionStatus === 'DELETED') {
     throw new StoreDomainError('VALIDATION_ERROR', 'Result image unavailable.', 404)

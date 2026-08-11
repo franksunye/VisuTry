@@ -61,6 +61,9 @@ WHERE event."merchantSessionId" = session."id";
 CREATE UNIQUE INDEX "MerchantFrame_id_merchantId_key" ON "MerchantFrame"("id", "merchantId");
 CREATE UNIQUE INDEX "Experience_merchantId_slug_key" ON "Experience"("merchantId", "slug");
 CREATE UNIQUE INDEX "Experience_id_merchantId_key" ON "Experience"("id", "merchantId");
+CREATE UNIQUE INDEX "Experience_one_active_store_per_merchant_idx"
+  ON "Experience"("merchantId")
+  WHERE "type" = 'STORE' AND "status" = 'ACTIVE';
 CREATE INDEX "Experience_merchantId_type_status_idx" ON "Experience"("merchantId", "type", "status");
 CREATE INDEX "ExperienceFrame_merchantId_experienceId_active_sortOrder_idx" ON "ExperienceFrame"("merchantId", "experienceId", "active", "sortOrder");
 CREATE INDEX "MerchantSession_merchantId_experienceId_idx" ON "MerchantSession"("merchantId", "experienceId");
