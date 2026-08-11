@@ -27,8 +27,30 @@ interface DetectionDiagnostics {
   sourceFileSize: number
   detectorFileType: string
   detectorFileSize: number
+  detectedFileFormat?: string
   compressionFailed?: boolean
   compressionErrorName?: string
+  compressionErrorMessage?: string
+  bitmapDecodeErrorName?: string
+  bitmapDecodeErrorMessage?: string
+  htmlImageDecodeErrorName?: string
+  htmlImageDecodeErrorMessage?: string
+}
+
+function normalizeImageError(error: unknown) {
+  const name = error instanceof Error && error.name ? error.name.slice(0, 64) : 'UnknownError'
+  const rawMessage = error instanceof Error ? error.message.toLowerCase() : ''
+
+  let message = 'other'
+  if (rawMessage.includes('unsupported')) message = 'unsupported_image'
+  else if (rawMessage.includes('decode')) message = 'decode_failed'
+  else if (rawMessage.includes('invalid')) message = 'invalid_image'
+  else if (rawMessage.includes('load')) message = 'image_load_failed'
+  else if (rawMessage.includes('dimension')) message = 'invalid_dimensions'
+  else if (rawMessage.includes('abort')) message = 'aborted'
+  else if (rawMessage.includes('memory')) message = 'memory_error'
+
+  return { name, message }
 }
 
 function recordDetection(
@@ -106,6 +128,7 @@ export function FreeFaceShapeDetector({ locale }: FreeFaceShapeDetectorProps) {
       // MediaPipe a bounded working image to reduce mobile decode/GPU memory cost.
       let detectorFile = file
       let compressionErrorName: string | undefined
+      let compressionErrorMessage: string | undefined
       try {
         detectorFile = await compressImage(
           file,
@@ -117,9 +140,9 @@ export function FreeFaceShapeDetector({ locale }: FreeFaceShapeDetectorProps) {
         // The raw file is still a valid compatibility fallback. The decoder
         // itself has a second HTMLImageElement path for browsers where canvas
         // conversion or createImageBitmap is unavailable for this file.
-        compressionErrorName = compressionError instanceof Error
-          ? compressionError.name
-          : 'UnknownError'
+        const normalized = normalizeImageError(compressionError)
+        compressionErrorName = normalized.name
+        compressionErrorMessage = normalized.message
       }
 
       const analysis = await analyzeFaceLandmarkFile(detectorFile)
@@ -147,8 +170,13 @@ export function FreeFaceShapeDetector({ locale }: FreeFaceShapeDetectorProps) {
           detectorFileType: detectorFile.type,
           detectorFileSize: detectorFile.size,
           ...(compressionErrorName
-            ? { compressionFailed: true, compressionErrorName }
+            ? {
+                compressionFailed: true,
+                compressionErrorName,
+                ...(compressionErrorMessage ? { compressionErrorMessage } : {}),
+              }
             : {}),
+          ...(analysis.decodeDiagnostics ?? {}),
         })
       }
     } catch {
