@@ -1,0 +1,25 @@
+{
+  "experienceSlug": "summer-sunglasses",
+  "type": "CAMPAIGN",
+  "name": "Summer Sunglasses Reference Experience",
+  "status": "ACTIVE",
+  "headline": "Explore a summer sunglasses edit",
+  "description": "Reference Campaign / Simulation using a small catalog subset for delivery validation.",
+  "catalogSelection": [
+    "50019508355374",
+    "50022381617454",
+    "50022521864494",
+    "50022556303662",
+    "50023876329774",
+    "50023832289582"
+  ],
+  "primaryCta": {
+    "type": "PRODUCT_OR_COLLECTION",
+    "label": "View frame"
+  },
+  "referenceData": true,
+  "measurement": {
+    "defaultSource": "visutry-reference-pilot",
+    "defaultCampaign": "summer-sunglasses"
+  }
+}

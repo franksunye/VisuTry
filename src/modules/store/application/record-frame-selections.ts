@@ -1,6 +1,7 @@
 import {
   StoreDomainError,
   buildStoreEventIdempotencyKey,
+  experienceContainsFrame,
   merchantInactive,
   merchantNotFound,
 } from '../domain'
@@ -10,6 +11,7 @@ import type {
   MerchantFrameRepository,
   MerchantRepository,
   MerchantSessionRepository,
+  ExperienceRepository,
 } from './ports/repositories'
 import { requireOperableStoreSession } from './require-store-session'
 
@@ -17,6 +19,7 @@ export type RecordFrameSelectionsInput = {
   merchants: MerchantRepository
   frames: MerchantFrameRepository
   sessions: MerchantSessionRepository
+  experiences?: ExperienceRepository
   events: MerchantEventRepository
   slug: string
   merchantSessionId: string
@@ -41,12 +44,15 @@ export async function recordFrameSelections(
   if (merchant.status !== 'ACTIVE') throw merchantInactive()
   const experiencePolicy = resolveStoreExperiencePolicy(merchant)
 
-  await requireOperableStoreSession({
+  const session = await requireOperableStoreSession({
     sessions: input.sessions,
     merchantId: merchant.id,
     merchantSessionId: input.merchantSessionId,
     capabilityToken: input.capabilityToken,
   })
+  const experience = session.experienceId && input.experiences
+    ? await input.experiences.findByMerchantAndId(merchant.id, session.experienceId)
+    : null
 
   const uniqueIds = Array.from(new Set(input.frameIds.filter(Boolean)))
   const maxSelected = Math.min(MAX_SELECTED, maxSelectableStoreFrames(experiencePolicy))
@@ -66,6 +72,9 @@ export async function recordFrameSelections(
         'One or more selected frames are unavailable.',
         409,
       )
+    }
+    if (experience && !experienceContainsFrame(experience, frame.id)) {
+      throw new StoreDomainError('FRAME_INACTIVE', 'This frame is not part of the current experience.', 409)
     }
 
     const actionId =

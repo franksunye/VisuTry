@@ -63,5 +63,17 @@ export function createPrismaMerchantFrameRepository(): MerchantFrameRepository {
       })
       return row ? mapFrame(row) : null
     },
+    async findActiveByMerchantAndExperience(merchantId, experience) {
+      if (experience.merchantId !== merchantId || experience.frameIds.length === 0) return []
+      const rows = await prisma.merchantFrame.findMany({
+        where: {
+          merchantId,
+          id: { in: experience.frameIds },
+          status: 'ACTIVE',
+        },
+      })
+      const order = new Map(experience.frameIds.map((id, index) => [id, index]))
+      return rows.sort((a, b) => (order.get(a.id) ?? 0) - (order.get(b.id) ?? 0)).map(mapFrame)
+    },
   }
 }

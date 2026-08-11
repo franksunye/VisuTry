@@ -5,6 +5,7 @@
 export type StoreErrorCode =
   | 'MERCHANT_NOT_FOUND'
   | 'MERCHANT_INACTIVE'
+  | 'EXPERIENCE_NOT_FOUND'
   | 'FRAME_NOT_FOUND'
   | 'FRAME_INACTIVE'
   | 'SESSION_NOT_FOUND'
@@ -49,6 +50,14 @@ export function merchantInactive(): StoreDomainError {
     'MERCHANT_INACTIVE',
     'This store is temporarily unavailable.',
     403,
+  )
+}
+
+export function experienceNotFound(): StoreDomainError {
+  return new StoreDomainError(
+    'EXPERIENCE_NOT_FOUND',
+    'This experience is unavailable.',
+    404,
   )
 }
 

@@ -28,7 +28,7 @@ function assertSeedEnvironment() {
 async function main() {
   assertSeedEnvironment()
   const packageDir = resolve(process.argv[2] || 'pilot/ello-sunglasses')
-  const { config, catalog } = await readPilotPackage(packageDir)
+  const { config, catalog, experiences } = await readPilotPackage(packageDir)
   const experiencePolicy = experiencePolicyForPilotConfig(config)
   console.log(`Importing ${config.pilotType} pilot package: ${config.displayName} (${config.merchantSlug})`)
 
@@ -148,9 +148,96 @@ async function main() {
     })
   }
 
+  const importedFrames = await prisma.merchantFrame.findMany({
+    where: { merchantId: merchant.id, externalId: { in: catalog.map((row) => row.externalId) } },
+    select: { id: true, externalId: true, status: true },
+  })
+  const framesByExternalId = new Map(
+    importedFrames.flatMap((frame) => frame.externalId ? [[frame.externalId, frame]] as const : []),
+  )
+
+  for (const experienceConfig of experiences) {
+    const selectedExternalIds = experienceConfig.catalogSelection === 'ALL_ACTIVE'
+      ? catalog.filter((row) => row.status === 'ACTIVE').map((row) => row.externalId)
+      : experienceConfig.catalogSelection
+    const selectedFrames = selectedExternalIds.map((externalId) => framesByExternalId.get(externalId))
+    if (selectedFrames.some((frame) => !frame || frame.status !== 'ACTIVE')) {
+      throw new Error(`Experience ${experienceConfig.experienceSlug} selects an unknown or inactive catalog row`)
+    }
+
+    const experience = await prisma.experience.upsert({
+      where: {
+        merchantId_slug: {
+          merchantId: merchant.id,
+          slug: experienceConfig.experienceSlug,
+        },
+      },
+      create: {
+        merchantId: merchant.id,
+        type: experienceConfig.type,
+        slug: experienceConfig.experienceSlug,
+        name: experienceConfig.name,
+        status: experienceConfig.status,
+        headline: experienceConfig.headline ?? null,
+        description: experienceConfig.description ?? null,
+        heroAssetUrl: experienceConfig.heroAsset ?? null,
+        primaryCtaType: experienceConfig.primaryCta?.type ?? null,
+        primaryCtaLabel: experienceConfig.primaryCta?.label ?? null,
+        primaryCtaUrl: experienceConfig.primaryCta?.url ?? null,
+        secondaryCtaType: experienceConfig.secondaryCta?.type ?? null,
+        secondaryCtaLabel: experienceConfig.secondaryCta?.label ?? null,
+        secondaryCtaUrl: experienceConfig.secondaryCta?.url ?? null,
+        offerLabel: experienceConfig.offer?.label ?? null,
+        offerCode: experienceConfig.offer?.code ?? null,
+        offerTerms: experienceConfig.offer?.terms ?? null,
+        startAt: experienceConfig.startAt ? new Date(experienceConfig.startAt) : null,
+        endAt: experienceConfig.endAt ? new Date(experienceConfig.endAt) : null,
+        referenceData: experienceConfig.referenceData ?? config.referenceData,
+        defaultSource: experienceConfig.measurement?.defaultSource ?? config.measurement.defaultSource,
+        defaultCampaign: experienceConfig.measurement?.defaultCampaign ?? config.measurement.defaultCampaign,
+      },
+      update: {
+        type: experienceConfig.type,
+        name: experienceConfig.name,
+        status: experienceConfig.status,
+        headline: experienceConfig.headline ?? null,
+        description: experienceConfig.description ?? null,
+        heroAssetUrl: experienceConfig.heroAsset ?? null,
+        primaryCtaType: experienceConfig.primaryCta?.type ?? null,
+        primaryCtaLabel: experienceConfig.primaryCta?.label ?? null,
+        primaryCtaUrl: experienceConfig.primaryCta?.url ?? null,
+        secondaryCtaType: experienceConfig.secondaryCta?.type ?? null,
+        secondaryCtaLabel: experienceConfig.secondaryCta?.label ?? null,
+        secondaryCtaUrl: experienceConfig.secondaryCta?.url ?? null,
+        offerLabel: experienceConfig.offer?.label ?? null,
+        offerCode: experienceConfig.offer?.code ?? null,
+        offerTerms: experienceConfig.offer?.terms ?? null,
+        startAt: experienceConfig.startAt ? new Date(experienceConfig.startAt) : null,
+        endAt: experienceConfig.endAt ? new Date(experienceConfig.endAt) : null,
+        referenceData: experienceConfig.referenceData ?? config.referenceData,
+        defaultSource: experienceConfig.measurement?.defaultSource ?? config.measurement.defaultSource,
+        defaultCampaign: experienceConfig.measurement?.defaultCampaign ?? config.measurement.defaultCampaign,
+      },
+    })
+
+    await prisma.experienceFrame.deleteMany({ where: { experienceId: experience.id, merchantId: merchant.id } })
+    if (selectedFrames.length > 0) {
+      await prisma.experienceFrame.createMany({
+        data: selectedFrames.map((frame, sortOrder) => ({
+          experienceId: experience.id,
+          merchantId: merchant.id,
+          merchantFrameId: frame!.id,
+          sortOrder,
+          active: true,
+        })),
+      })
+    }
+  }
+
   const activeCount = await prisma.merchantFrame.count({ where: { merchantId: merchant.id, status: 'ACTIVE' } })
   console.log(`Merchant id=${merchant.id}; imported ${catalog.length} rows; active frames=${activeCount}`)
   console.log(`Reference data: ${config.referenceData}; route: /${config.defaultLocale}/store/${config.merchantSlug}`)
+  console.log(`Experiences: ${experiences.map((experience) => experience.experienceSlug).join(', ')}`)
 }
 
 main()

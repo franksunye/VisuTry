@@ -432,6 +432,18 @@ enum MerchantUsageKind {
   SESSION
 }
 
+enum ExperienceType {
+  STORE
+  CAMPAIGN
+}
+
+enum ExperienceStatus {
+  DRAFT
+  ACTIVE
+  ENDED
+  ARCHIVED
+}
+
 /// Store tenant boundary.
 model Merchant {
   id           String         @id @default(cuid())
@@ -472,6 +484,7 @@ model Merchant {
   commercialExceptionCode    String?
 
   frames   MerchantFrame[]
+  experiences Experience[]
   sessions MerchantSession[]
   intents  MerchantIntent[]
   events   MerchantEvent[]
@@ -520,6 +533,7 @@ model MerchantFrame {
   status           MerchantFrameStatus @default(DRAFT)
 
   merchant   Merchant         @relation(fields: [merchantId], references: [id], onDelete: Restrict)
+  experienceFrames ExperienceFrame[]
   intents    MerchantIntent[]
   events     MerchantEvent[]
   tryOnTasks TryOnTask[]
@@ -529,14 +543,77 @@ model MerchantFrame {
 
   @@unique([merchantId, sku])
   @@unique([merchantId, source, externalId])
+  @@unique([id, merchantId])
   @@index([merchantId, status])
   @@index([merchantId, updatedAt])
+}
+
+/// A merchant-owned delivery surface. Store and Campaign are sibling experiences.
+model Experience {
+  id                String           @id @default(cuid())
+  merchantId        String
+  type              ExperienceType
+  slug              String
+  name              String
+  status            ExperienceStatus @default(DRAFT)
+  headline          String?
+  description       String?          @db.Text
+  heroAssetUrl      String?
+  primaryCtaType    String?
+  primaryCtaLabel   String?
+  primaryCtaUrl     String?
+  secondaryCtaType  String?
+  secondaryCtaLabel String?
+  secondaryCtaUrl   String?
+  offerLabel        String?
+  offerCode         String?
+  offerTerms        String?          @db.Text
+  startAt           DateTime?
+  endAt             DateTime?
+  referenceData     Boolean          @default(false)
+  defaultSource     String?
+  defaultCampaign   String?
+  referenceMetadata Json?
+
+  merchant Merchant         @relation(fields: [merchantId], references: [id], onDelete: Restrict)
+  frames   ExperienceFrame[]
+  sessions MerchantSession[]
+  intents  MerchantIntent[]
+  events   MerchantEvent[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([merchantId, slug])
+  @@unique([id, merchantId])
+  @@index([merchantId, type, status])
+}
+
+/// Join table selecting existing merchant catalog frames for an experience.
+/// merchantId participates in both composite foreign keys so cross-merchant
+/// ExperienceFrame rows cannot be committed by the database.
+model ExperienceFrame {
+  experienceId    String
+  merchantId      String
+  merchantFrameId String
+  sortOrder       Int?
+  active          Boolean @default(true)
+
+  experience    Experience    @relation(fields: [experienceId, merchantId], references: [id, merchantId], onDelete: Cascade)
+  merchantFrame MerchantFrame @relation(fields: [merchantFrameId, merchantId], references: [id, merchantId], onDelete: Restrict)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@id([experienceId, merchantFrameId])
+  @@index([merchantId, experienceId, active, sortOrder])
 }
 
 /// Anonymous shopper session scoped to one merchant.
 model MerchantSession {
   id                  String                @id @default(cuid())
   merchantId          String
+  experienceId        String?
   anonymousVisitorId  String?
   photoAssetId        String?
   /// SHA-256 hex of opaque capability token — never store plaintext.
@@ -557,6 +634,7 @@ model MerchantSession {
   aiAgentSource String?
 
   merchant   Merchant         @relation(fields: [merchantId], references: [id], onDelete: Restrict)
+  experience Experience?      @relation(fields: [experienceId, merchantId], references: [id, merchantId], onDelete: Restrict)
   photoAsset StoreAsset?      @relation("SessionPhotoAsset", fields: [photoAssetId], references: [id], onDelete: SetNull)
   intents    MerchantIntent[]
   events     MerchantEvent[]
@@ -573,12 +651,14 @@ model MerchantSession {
   @@index([capabilityTokenHash])
   @@index([merchantId, source])
   @@index([merchantId, campaign])
+  @@index([merchantId, experienceId])
 }
 
 model MerchantIntent {
   id                String             @id @default(cuid())
   merchantId        String
   merchantSessionId String
+  experienceId      String?
   merchantFrameId   String?
   type              MerchantIntentType
   idempotencyKey    String             @unique
@@ -588,6 +668,7 @@ model MerchantIntent {
 
   merchant Merchant         @relation(fields: [merchantId], references: [id], onDelete: Restrict)
   session  MerchantSession  @relation(fields: [merchantSessionId], references: [id], onDelete: Restrict)
+  experience Experience?     @relation(fields: [experienceId, merchantId], references: [id, merchantId], onDelete: Restrict)
   frame    MerchantFrame?   @relation(fields: [merchantFrameId], references: [id], onDelete: Restrict)
 
   createdAt DateTime @default(now())
@@ -595,6 +676,7 @@ model MerchantIntent {
   @@index([merchantId, createdAt(sort: Desc)])
   @@index([merchantId, type])
   @@index([merchantSessionId])
+  @@index([merchantId, experienceId])
 }
 
 /// Append-only durable Store events (source of truth for merchant insights).
@@ -604,6 +686,7 @@ model MerchantEvent {
   type              String
   merchantId        String
   merchantSessionId String?
+  experienceId      String?
   merchantFrameId   String?
   tryOnTaskId       String?
   source            StoreEventSource
@@ -616,6 +699,7 @@ model MerchantEvent {
 
   merchant Merchant         @relation(fields: [merchantId], references: [id], onDelete: Restrict)
   session  MerchantSession? @relation(fields: [merchantSessionId], references: [id], onDelete: Restrict)
+  experience Experience?    @relation(fields: [experienceId, merchantId], references: [id, merchantId], onDelete: Restrict)
   frame    MerchantFrame?   @relation(fields: [merchantFrameId], references: [id], onDelete: Restrict)
 
   createdAt DateTime @default(now())
@@ -624,6 +708,7 @@ model MerchantEvent {
   @@index([merchantId, type])
   @@index([merchantSessionId])
   @@index([tryOnTaskId])
+  @@index([merchantId, experienceId])
 }
 
 model StoreAsset {

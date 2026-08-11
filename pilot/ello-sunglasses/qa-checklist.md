@@ -22,6 +22,8 @@ Status: passed for the low-cost route/API/browser gate on 2026-08-11. Provider-b
 ## Route and shopper flow
 
 - [x] `GET /en/store/ello-sunglasses` returns the Store shell (HTTP 200 after hydration; no 404).
+- [x] `GET /en/c/ello-sunglasses/petite-fit` resolves the shared Store shopper shell with campaign context.
+- [x] Delivery Kit contains one active default STORE and two active reference CAMPAIGN configs; campaign subsets reuse MerchantFrame identities.
 - [x] Public merchant API returns ello identity and 12 active frames only.
 - [x] Desktop/mobile entry shell shows disclosure before privacy/session flow.
 - [x] Recommendation API is merchant-scoped and returned 6 rows with petite-fit metadata/reasons.

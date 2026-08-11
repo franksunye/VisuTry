@@ -1,0 +1,18 @@
+{
+  "experienceSlug": "default",
+  "type": "STORE",
+  "name": "ello sunglasses Store",
+  "status": "ACTIVE",
+  "headline": "Discover frames for smaller faces",
+  "description": "Reference Store / Simulation using the imported public catalog.",
+  "catalogSelection": "ALL_ACTIVE",
+  "primaryCta": {
+    "type": "PRODUCT_OR_COLLECTION",
+    "label": "View frame"
+  },
+  "referenceData": true,
+  "measurement": {
+    "defaultSource": "visutry-reference-pilot",
+    "defaultCampaign": "p1-ello-sunglasses"
+  }
+}

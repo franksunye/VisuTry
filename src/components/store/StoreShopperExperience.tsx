@@ -27,6 +27,16 @@ type MerchantProfile = {
   accentColor: string | null
   pilotType: string | null
   referenceData: boolean
+  experience: {
+    id: string
+    type: 'STORE' | 'CAMPAIGN'
+    slug: string
+    name: string
+    headline: string | null
+    description: string | null
+    heroAssetUrl: string | null
+    referenceData: boolean
+  } | null
   experiencePolicy: StoreExperiencePolicy
   activeFrameCount: number
   featuredFrames: Array<{
@@ -62,6 +72,7 @@ type RecommendedFrame = {
 
 type StoreShopperExperienceProps = {
   merchantSlug: string
+  experienceSlug?: string
   locale: string
   publicPocStorage: boolean
 }
@@ -172,6 +183,7 @@ function JourneyStep({
 
 export function StoreShopperExperience({
   merchantSlug,
+  experienceSlug,
   locale,
   publicPocStorage,
 }: StoreShopperExperienceProps) {
@@ -201,7 +213,8 @@ export function StoreShopperExperience({
       setLoadState('loading')
       setErrorMessage(null)
       try {
-        const res = await fetch(`/api/store/merchants/${encodeURIComponent(merchantSlug)}`)
+        const query = experienceSlug ? `?experienceSlug=${encodeURIComponent(experienceSlug)}` : ''
+        const res = await fetch(`/api/store/merchants/${encodeURIComponent(merchantSlug)}${query}`)
         const json = await res.json()
         if (cancelled) return
 
@@ -225,7 +238,7 @@ export function StoreShopperExperience({
     return () => {
       cancelled = true
     }
-  }, [merchantSlug, t])
+  }, [merchantSlug, experienceSlug, t])
 
   const ensureSession = useCallback(async (): Promise<SessionState | null> => {
     if (session) return session
@@ -238,6 +251,7 @@ export function StoreShopperExperience({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           merchantSlug,
+          ...(experienceSlug ? { experienceSlug } : {}),
           locale,
           deviceType: deviceTypeLabel(),
           acquisition: captureStoreAcquisition(),
@@ -256,7 +270,7 @@ export function StoreShopperExperience({
       }
       setSession(next)
       try {
-        sessionStorage.setItem(`vt_store_session:${merchantSlug}`, JSON.stringify(next))
+        sessionStorage.setItem(`vt_store_session:${merchantSlug}:${experienceSlug || 'store'}`, JSON.stringify(next))
       } catch {
         // ignore
       }
@@ -267,7 +281,7 @@ export function StoreShopperExperience({
     } finally {
       setSessionStarting(false)
     }
-  }, [session, merchantSlug, locale, t])
+  }, [session, merchantSlug, experienceSlug, locale, t])
 
   const runRecommendations = useCallback(
     async (activeSession: SessionState, file: File) => {
@@ -472,7 +486,7 @@ export function StoreShopperExperience({
                 AI-assisted frame discovery
               </div>
               <h1 className="mt-6 font-serif text-4xl font-semibold leading-[1.08] tracking-[-0.035em] text-slate-950 sm:text-5xl lg:text-6xl">
-                {t('headline')}
+                {merchant.experience?.headline || t('headline')}
               </h1>
               <p className="mt-5 max-w-lg text-base leading-7 text-slate-600 sm:text-lg">
                 {t('catalogHint', { count: merchant.activeFrameCount })}

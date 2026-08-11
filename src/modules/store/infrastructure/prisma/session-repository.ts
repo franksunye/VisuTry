@@ -10,6 +10,7 @@ function mapSession(row: MerchantSession): MerchantSessionRecord {
   return {
     id: row.id,
     merchantId: row.merchantId,
+    experienceId: row.experienceId,
     anonymousVisitorId: row.anonymousVisitorId,
     photoAssetId: row.photoAssetId,
     capabilityTokenHash: row.capabilityTokenHash,
@@ -34,6 +35,7 @@ export function createPrismaMerchantSessionRepository(): MerchantSessionReposito
       const row = await prisma.merchantSession.create({
         data: {
           merchantId: input.merchantId,
+          experienceId: input.experienceId ?? null,
           capabilityTokenHash: input.capabilityTokenHash,
           anonymousVisitorId: input.anonymousVisitorId ?? null,
           locale: input.locale ?? null,

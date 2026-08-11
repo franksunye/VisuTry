@@ -25,6 +25,7 @@ export async function POST(request: NextRequest) {
       merchants: runtime.merchants,
       frames: runtime.frames,
       sessions: runtime.sessions,
+      experiences: runtime.experiences,
       events: runtime.events,
       slug: parsed.data.merchantSlug,
       merchantSessionId: parsed.data.merchantSessionId,

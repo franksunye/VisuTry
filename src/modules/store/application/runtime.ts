@@ -1,6 +1,7 @@
 import {
   createPrismaMerchantRepository,
   createPrismaMerchantFrameRepository,
+  createPrismaExperienceRepository,
   createPrismaMerchantSessionRepository,
   createPrismaMerchantEventRepository,
   createPrismaMerchantIntentRepository,
@@ -14,6 +15,7 @@ export function createStoreRuntime() {
   return {
     merchants: createPrismaMerchantRepository(),
     frames: createPrismaMerchantFrameRepository(),
+    experiences: createPrismaExperienceRepository(),
     sessions: createPrismaMerchantSessionRepository(),
     events: createPrismaMerchantEventRepository(),
     intents: createPrismaMerchantIntentRepository(),

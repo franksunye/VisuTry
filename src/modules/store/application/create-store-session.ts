@@ -13,16 +13,19 @@ import {
   type SessionAcquisitionInput,
 } from '../domain'
 import { experiencePolicyMetadata, resolveStoreExperiencePolicy } from '../domain/experience-policy'
+import { resolveMerchantExperience } from './resolve-experience'
 import type {
   MerchantEventRepository,
   MerchantRepository,
   MerchantSessionRepository,
   StoreUsageRepository,
+  ExperienceRepository,
 } from './ports/repositories'
 
 export type CreateStoreSessionResult = {
   merchantId: string
   merchantSessionId: string
+  experienceId: string | null
   expiresAt: string
   /** Opaque capability — set as HttpOnly cookie; never persist client-side beyond cookie. */
   capabilityToken: string
@@ -33,7 +36,9 @@ export async function createStoreSession(input: {
   sessions: MerchantSessionRepository
   events: MerchantEventRepository
   usage: StoreUsageRepository
+  experiences?: ExperienceRepository
   slug: string
+  experienceSlug?: string | null
   locale?: string | null
   anonymousVisitorId?: string | null
   deviceType?: string | null
@@ -42,6 +47,12 @@ export async function createStoreSession(input: {
   const merchant = await input.merchants.findBySlug(input.slug)
   if (!merchant) throw merchantNotFound()
   if (merchant.status !== 'ACTIVE') throw merchantInactive()
+
+  const experience = await resolveMerchantExperience({
+    merchant,
+    experiences: input.experiences,
+    slug: input.experienceSlug ?? null,
+  })
 
   const entitlement = resolveMerchantEntitlement(merchant)
   const experiencePolicy = resolveStoreExperiencePolicy(merchant)
@@ -69,17 +80,21 @@ export async function createStoreSession(input: {
   const acquisitionInput = input.acquisition ?? {}
   const acquisition = sanitizeSessionAcquisition({
     ...acquisitionInput,
-    source: acquisitionInput.source ?? merchant.defaultSource,
-    campaign: acquisitionInput.campaign ?? merchant.defaultCampaign,
+    source: acquisitionInput.source ?? experience?.defaultSource ?? merchant.defaultSource,
+    campaign:
+      acquisitionInput.campaign ??
+      experience?.defaultCampaign ??
+      merchant.defaultCampaign,
   })
 
   const session = await input.sessions.create({
     merchantId: merchant.id,
+    experienceId: experience?.id ?? null,
     capabilityTokenHash: capability.tokenHash,
     anonymousVisitorId: input.anonymousVisitorId ?? null,
     locale: input.locale ?? null,
     expiresAt,
-    referenceData: merchant.referenceData === true,
+    referenceData: merchant.referenceData === true || experience?.referenceData === true,
     ...acquisition,
   })
 
@@ -101,6 +116,7 @@ export async function createStoreSession(input: {
     type: 'merchant_page_viewed',
     merchantId: merchant.id,
     merchantSessionId: session.id,
+    experienceId: experience?.id ?? null,
     source: 'SERVER',
     locale: input.locale ?? null,
     deviceType: input.deviceType ?? null,
@@ -115,6 +131,7 @@ export async function createStoreSession(input: {
   logger.info('store', 'Store session created', {
     merchantId: merchant.id,
     merchantSlug: input.slug,
+    experienceId: experience?.id ?? null,
     merchantSessionId: session.id,
     locale: input.locale ?? null,
     deviceType: input.deviceType ?? null,
@@ -126,6 +143,7 @@ export async function createStoreSession(input: {
   return {
     merchantId: merchant.id,
     merchantSessionId: session.id,
+    experienceId: experience?.id ?? null,
     expiresAt: expiresAt.toISOString(),
     capabilityToken: capability.token,
   }

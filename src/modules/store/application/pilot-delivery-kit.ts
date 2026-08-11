@@ -1,4 +1,4 @@
-import { readFile } from 'node:fs/promises'
+import { readdir, readFile } from 'node:fs/promises'
 import { join } from 'node:path'
 import { assertMaxCompareFrames, type MaxCompareFrames } from '../domain/experience-policy'
 
@@ -28,6 +28,27 @@ export type PilotMerchantConfig = {
     inquiryEnabled: boolean
   }
   websiteUrl?: string | null
+}
+
+export type PilotExperienceConfig = {
+  experienceSlug: string
+  type: 'STORE' | 'CAMPAIGN'
+  name: string
+  status: 'DRAFT' | 'ACTIVE' | 'ENDED' | 'ARCHIVED'
+  headline?: string | null
+  description?: string | null
+  heroAsset?: string | null
+  catalogSelection: 'ALL_ACTIVE' | string[]
+  primaryCta?: { type: string; label: string; url?: string | null } | null
+  secondaryCta?: { type: string; label: string; url?: string | null } | null
+  offer?: { label: string; code?: string | null; terms?: string | null } | null
+  startAt?: string | null
+  endAt?: string | null
+  referenceData?: boolean
+  measurement?: {
+    defaultSource?: string | null
+    defaultCampaign?: string | null
+  }
 }
 
 export type PilotCatalogRow = {
@@ -215,6 +236,31 @@ export function validatePilotConfig(config: PilotMerchantConfig): void {
   }
 }
 
+export function validatePilotExperienceConfig(config: PilotExperienceConfig): void {
+  if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(config.experienceSlug)) {
+    throw new Error('experienceSlug must be URL-safe kebab-case')
+  }
+  if (!config.name.trim()) throw new Error('experience name is required')
+  if (!['STORE', 'CAMPAIGN'].includes(config.type)) throw new Error('unsupported experience type')
+  if (!['DRAFT', 'ACTIVE', 'ENDED', 'ARCHIVED'].includes(config.status)) throw new Error('unsupported experience status')
+  if (config.type === 'STORE' && config.experienceSlug !== 'default') {
+    throw new Error('The default STORE experience must use slug default')
+  }
+  if (config.catalogSelection !== 'ALL_ACTIVE') {
+    if (!Array.isArray(config.catalogSelection) || config.catalogSelection.length === 0) {
+      throw new Error('catalogSelection must be ALL_ACTIVE or a non-empty external id array')
+    }
+    if (new Set(config.catalogSelection).size !== config.catalogSelection.length) {
+      throw new Error(`Experience ${config.experienceSlug} contains duplicate catalog selections`)
+    }
+  }
+  for (const value of [config.startAt, config.endAt]) {
+    if (value !== undefined && value !== null && Number.isNaN(Date.parse(value))) {
+      throw new Error(`Experience ${config.experienceSlug} has an invalid date`)
+    }
+  }
+}
+
 export function normalizePilotCatalog(records: Record<string, string>[]): PilotCatalogRow[] {
   const seenExternalIds = new Set<string>()
   const seenSkus = new Set<string>()
@@ -282,6 +328,7 @@ export function experiencePolicyForPilotConfig(config: PilotMerchantConfig) {
 export async function readPilotPackage(packageDir: string): Promise<{
   config: PilotMerchantConfig
   catalog: PilotCatalogRow[]
+  experiences: PilotExperienceConfig[]
 }> {
   const config = JSON.parse(await readFile(join(packageDir, 'merchant.json'), 'utf8')) as PilotMerchantConfig
   validatePilotConfig(config)
@@ -290,5 +337,44 @@ export async function readPilotPackage(packageDir: string): Promise<{
   if (catalog.length < 8 || catalog.length > 50) {
     throw new Error(`Catalog must contain 8–50 rows; received ${catalog.length}`)
   }
-  return { config, catalog }
+  let experienceFiles: string[] = []
+  try {
+    experienceFiles = (await readdir(join(packageDir, 'experiences')))
+      .filter((file) => file.endsWith('.json'))
+      .sort()
+  } catch (error) {
+    if ((error as { code?: string }).code !== 'ENOENT') throw error
+  }
+
+  const experiences = experienceFiles.length > 0
+    ? await Promise.all(
+        experienceFiles.map(async (file) => {
+          const experience = JSON.parse(
+            await readFile(join(packageDir, 'experiences', file), 'utf8'),
+          ) as PilotExperienceConfig
+          validatePilotExperienceConfig(experience)
+          return experience
+        }),
+      )
+    : [{
+        experienceSlug: 'default',
+        type: 'STORE' as const,
+        name: config.displayName,
+        status: 'ACTIVE' as const,
+        catalogSelection: 'ALL_ACTIVE' as const,
+        referenceData: config.referenceData,
+        measurement: {
+          defaultSource: config.measurement.defaultSource,
+          defaultCampaign: config.measurement.defaultCampaign,
+        },
+      }]
+
+  const experienceSlugs = new Set<string>()
+  for (const experience of experiences) {
+    if (experienceSlugs.has(experience.experienceSlug)) {
+      throw new Error(`Duplicate experience slug ${experience.experienceSlug}`)
+    }
+    experienceSlugs.add(experience.experienceSlug)
+  }
+  return { config, catalog, experiences }
 }
