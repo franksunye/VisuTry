@@ -1,21 +1,26 @@
 # VisuTry Pilot Delivery Kit Specification
 
-**Status:** v1 execution contract  
+**Status:** v2 execution contract — Merchant + Experience delivery  
 **Owner:** Product / Engineering / Growth  
 **Created:** 2026-08-11  
-**Related plan:** `docs/product/plans/pilot-delivery-factory-plan.md`
+**Updated:** 2026-08-11  
+**Related plan:** `docs/product/plans/pilot-delivery-factory-plan.md`  
+**Architecture baseline:** `docs/product/specs/merchant-experience-architecture.md`
 
 ---
 
 ## 1. Purpose
 
-Define the minimum reusable configuration, data, QA and evidence contract required to launch a new VisuTry merchant reference pilot in 1–2 days without merchant-specific product forks.
+Define the minimum reusable configuration, data, QA and evidence contract required to:
 
-This is an assisted-operations specification. It is not a self-service merchant onboarding product.
+1. launch a new VisuTry merchant reference Experience in 1–2 days without merchant-specific product forks; and
+2. launch an additional Campaign for an existing merchant from the reviewed catalog in 1–2 hands-on hours without product code changes.
+
+This remains an assisted-operations specification. It is not a self-service merchant onboarding or generalized Campaign Builder product.
 
 ---
 
-## 2. Pilot package structure
+## 2. Delivery package structure
 
 Recommended operational package per merchant:
 
@@ -24,16 +29,24 @@ pilot/<merchant-slug>/
 ├── merchant.json
 ├── catalog.csv
 ├── enrichment-review.csv
+├── experiences/
+│   ├── store.json
+│   ├── <campaign-slug-a>.json
+│   └── <campaign-slug-b>.json
 ├── qa-checklist.md
 ├── delivery-log.md
 └── evidence/
 ```
+
+A simple Store-only merchant may contain only one Experience config.
 
 The repository does not have to store third-party copyrighted source images if the application can reference approved source URLs or controlled imported assets. Do not commit secrets or private shopper data.
 
 ---
 
 ## 3. Merchant configuration contract
+
+Merchant configuration owns merchant identity, brand / theme defaults, catalog mode, locale and reference/live provenance.
 
 Minimum configuration:
 
@@ -52,8 +65,7 @@ Minimum configuration:
   },
   "measurement": {
     "referenceTraffic": true,
-    "defaultSource": "visutry-reference-pilot",
-    "defaultCampaign": "reference-pilot"
+    "defaultSource": "visutry-reference-pilot"
   }
 }
 ```
@@ -64,11 +76,62 @@ Rules:
 - `pilotType=REFERENCE` identifies non-customer pilot simulations.
 - Reference traffic must never be aggregated into future live merchant KPIs without an explicit filter.
 - Theme configuration must remain within supported tokens; do not add merchant-only component forks.
-- v1 uses the existing Store capability set for recommendation, Try-On, Compare, and Intent; merchant.json does not expose capability flags until a shared merchant capability contract is implemented.
+- Merchant configuration must not contain duplicated Campaign-specific catalog rows or page composition.
+- v1/v2 uses the shared Store capability set for recommendation, Try-On, Compare, and Intent; do not introduce separate merchant- or Campaign-specific generation stacks.
 
 ---
 
-## 4. Catalog CSV contract
+## 4. Experience configuration contract
+
+Experience configuration owns the specific shopper journey context.
+
+Minimum conceptual configuration:
+
+```json
+{
+  "experienceSlug": "summer-sunglasses",
+  "type": "CAMPAIGN",
+  "name": "Summer Sunglasses",
+  "status": "ACTIVE",
+  "headline": "Find your summer frames",
+  "description": null,
+  "heroAsset": null,
+  "catalogSelection": ["merchant-frame-id-1", "merchant-frame-id-2"],
+  "primaryCta": {
+    "type": "PRODUCT_OR_COLLECTION",
+    "label": "Shop this frame"
+  },
+  "secondaryCta": null,
+  "offer": null,
+  "startAt": null,
+  "endAt": null,
+  "measurement": {
+    "referenceTraffic": true,
+    "defaultCampaign": "summer-sunglasses"
+  }
+}
+```
+
+Allowed `type` values for the current architecture:
+
+```text
+STORE
+CAMPAIGN
+```
+
+Rules:
+
+- Experience belongs to exactly one Merchant.
+- Experience selects existing MerchantFrame identities; it does not own duplicated product truth.
+- `STORE` may be evergreen, broad and persistent.
+- `CAMPAIGN` may use a selected catalog subset, specific message / creative, offer, CTA, dates and source context.
+- A merchant may have Store only, Campaign only, Store + Campaigns, or multiple Campaigns.
+- Store is not a required parent for Campaign.
+- Do not expose arbitrary component composition or drag-and-drop page building in this phase.
+
+---
+
+## 5. Catalog CSV contract
 
 Required columns:
 
@@ -101,8 +164,6 @@ collection_tags
 source_notes
 ```
 
-Field rules:
-
 ### Merchant/source facts
 
 The following must come from public merchant data or other verified source data and must not be invented:
@@ -133,9 +194,9 @@ Every enriched value must be distinguishable from source facts in the import/rev
 
 ---
 
-## 5. Catalog acceptance criteria
+## 6. Catalog acceptance criteria
 
-A frame is pilot-ready when:
+A frame is delivery-ready when:
 
 1. product identity is stable;
 2. canonical public product URL resolves;
@@ -156,11 +217,11 @@ Reject or defer frames with:
 
 ---
 
-## 6. Curated catalog policy
+## 7. Curated catalog and Experience selection policy
 
-For reference pilots, prefer a representative curated catalog over full-site ingestion.
+For reference work, prefer a representative curated Merchant catalog over full-site ingestion.
 
-Recommended sizes:
+Recommended Merchant catalog sizes:
 
 - small niche brand: 6–12 core styles;
 - DTC / premium brand: 12–24 frames;
@@ -176,11 +237,24 @@ Selection should maximize diversity across:
 - collection / brand where relevant;
 - likely shopper recommendation outcomes.
 
-Do not import 100+ products merely to make the pilot look large.
+An Experience may select a subset from this reviewed Merchant catalog.
+
+Examples:
+
+```text
+Merchant catalog: 24 frames
+Store Experience: 20 frames
+Campaign A: 8 frames
+Campaign B: 10 frames
+```
+
+Do not duplicate product rows to create Campaign subsets.
+
+Do not import 100+ products merely to make the reference look large.
 
 ---
 
-## 7. Recommendation review contract
+## 8. Recommendation review contract
 
 Before publish, operator reviews:
 
@@ -189,15 +263,49 @@ Before publish, operator reviews:
 - recommendation reasons do not make medical or guaranteed-fit claims;
 - recommendation language is practical and merchant-specific;
 - no recommendation points to an inactive / unavailable frame;
-- the shortlist contains meaningful diversity rather than near-duplicate variants.
+- the shortlist contains meaningful diversity rather than near-duplicate variants;
+- recommendation only considers frames included in the current Experience catalog scope.
 
 For niche fit brands, source sizing data should take precedence over visual inference.
 
 ---
 
-## 8. Reference traffic and synthetic data contract
+## 9. Conversion action contract
 
-Every simulated pilot interaction used for sales evidence must be distinguishable from live traffic.
+The journey should not terminate at Try-On or Save Selection.
+
+Shared sequence:
+
+```text
+Entry
+→ Recommendation
+→ Frame Selection
+→ Try-On
+→ Compare / Shortlist
+→ Intent Capture
+→ Merchant Action
+```
+
+Supported merchant action patterns may include:
+
+- product click;
+- collection click;
+- external merchant website;
+- inquiry;
+- appointment / booking;
+- coupon / offer claim;
+- send / save shortlist;
+- visit-store destination where configured.
+
+`Favorite` / `Shortlist` is an intent signal. It is not automatically the final conversion action.
+
+Email capture should preferably appear after useful shopper value is delivered, such as saving / sending a shortlist or claiming an offer, rather than as an early blocking requirement.
+
+---
+
+## 10. Reference traffic and synthetic data contract
+
+Every simulated interaction used for sales evidence must be distinguishable from live traffic.
 
 Required marker concept:
 
@@ -213,15 +321,16 @@ Reference traffic rules:
 - may be used to demonstrate dashboards and funnel mechanics;
 - should use realistic but synthetic shopper behavior;
 - must not contain private real-person face data in merchant analytics;
-- must be filterable from future live pilot analytics.
+- must be filterable from future live pilot analytics;
+- must retain Merchant + Experience identity so Campaign performance demos do not mix synthetic sessions incorrectly.
 
 If the current schema lacks a durable reference marker, use an explicit source/campaign convention temporarily and record this as a product gap. Do not silently rely on memory or analyst interpretation.
 
 ---
 
-## 9. Pilot route contract
+## 11. Route contract
 
-Each pilot needs one stable hosted entry surface.
+### Store
 
 Preferred semantic pattern:
 
@@ -229,27 +338,80 @@ Preferred semantic pattern:
 /{locale}/store/{merchant-slug}
 ```
 
-or the existing canonical Store route convention if different.
+A current Store route may remain unchanged and map internally to a `STORE` Experience.
 
-The route must:
+### Campaign
+
+Recommended semantic pattern:
+
+```text
+/{locale}/c/{merchant-slug}/{campaign-slug}
+```
+
+or another documented stable campaign route using the same runtime.
+
+All Experience routes must:
 
 - resolve directly or through an intentional documented redirect;
 - identify the merchant correctly;
-- load only merchant-scoped frames;
+- identify the Experience correctly;
+- load only the Experience-selected Merchant frames;
 - preserve source / campaign parameters;
 - support mobile and desktop;
 - never expose Consumer credit purchase prompts;
 - display the privacy boundary before shopper photo upload.
 
-Do not introduce a separate app/router stack for reference pilots.
+Do not introduce a separate app/router stack for Campaigns.
 
 ---
 
-## 10. QA checklist
+## 12. Session / attribution contract
+
+Every shopper session should retain:
+
+```text
+merchant_id
+experience_id
+experience_type
+source
+medium?
+campaign?
+referrer?
+landing_url?
+ai_agent_source?
+reference_data
+locale
+device_type
+```
+
+The same context must survive:
+
+```text
+recommendation
+frame selection
+Try-On
+Compare
+favorite / shortlist
+email / coupon where applicable
+product click
+inquiry
+appointment / external conversion action
+```
+
+UTM / campaign context is attribution, never authorization.
+
+Raw face images and sensitive face-analysis payloads are not attribution data and must not be exposed in merchant analytics.
+
+---
+
+## 13. QA checklist
 
 ### Pre-publish static checks
 
 - merchant config valid;
+- Experience config valid;
+- Experience belongs to correct merchant;
+- all selected frame IDs exist in that merchant catalog;
 - catalog row count within intended range;
 - zero duplicate merchant/external identity conflicts;
 - product URLs sampled and valid;
@@ -270,15 +432,17 @@ Entry
 → Select 1–4 frames
 → Try-On
 → Compare where >=2 successful results
-→ Favorite / Product Click / Inquiry where enabled
+→ Favorite / Shortlist
+→ Merchant Action where configured
 ```
 
 Acceptance:
 
 - no application error;
 - no tenant leakage;
+- no cross-Experience catalog leakage;
 - no consumer Credits prompt;
-- source/campaign continuity retained;
+- source / campaign continuity retained;
 - failed render handled without corrupting other results;
 - canonical product destination remains attached;
 - mobile controls remain usable without horizontal layout breakage.
@@ -286,20 +450,23 @@ Acceptance:
 ### Merchant / insight checks
 
 - merchant identity correct;
+- Experience identity correct;
 - reference activity appears;
 - source / campaign visible where supported;
+- Merchant Overview aggregation is coherent;
+- Experience / Campaign Performance isolation is coherent;
 - Try-On / Compare / favorite / click / inquiry counts are coherent;
 - raw shopper face photo is not visible by default;
 - reference/synthetic nature is identifiable.
 
 ---
 
-## 11. Smoke requirement
+## 14. Smoke requirement
 
-At minimum, every published reference pilot route must be included in either:
+At minimum, every published reference Experience route must be included in either:
 
-1. a parameterized pilot smoke test; or
-2. an operator-run smoke checklist until the number of pilots justifies automation.
+1. a parameterized Experience smoke test; or
+2. an operator-run smoke checklist until the number of references justifies automation.
 
 Do not make routine smoke trigger AI generation.
 
@@ -307,7 +474,8 @@ Routine smoke should verify:
 
 - route HTTP success;
 - expected merchant identity;
-- non-empty catalog / shopper shell;
+- expected Experience identity;
+- non-empty scoped catalog / shopper shell;
 - no application/server error marker;
 - intentional redirects only.
 
@@ -315,16 +483,16 @@ AI-dependent flow validation remains a separate controlled test because it has c
 
 ---
 
-## 12. Delivery log contract
+## 15. Delivery log contract
 
-For every pilot record:
+For every new Merchant record:
 
 ```text
 research_minutes
 catalog_capture_minutes
 catalog_cleanup_minutes
 enrichment_review_minutes
-configuration_minutes
+merchant_configuration_minutes
 qa_minutes
 fix_minutes
 total_hands_on_minutes
@@ -333,33 +501,58 @@ manual_exceptions
 reusable_product_gaps
 ```
 
+For every additional Campaign record:
+
+```text
+campaign_definition_minutes
+catalog_selection_minutes
+copy_creative_minutes
+cta_offer_configuration_minutes
+qa_minutes
+fix_minutes
+total_campaign_hands_on_minutes
+code_changes_count
+manual_exceptions
+reusable_product_gaps
+```
+
 A manual step becomes an automation candidate when:
 
-- it appears in >=3 pilots; and
+- it appears in >=3 brands / Experiences; and
 - it consumes meaningful time or creates repeatable defects.
 
 Do not automate one-off friction prematurely.
 
 ---
 
-## 13. Evidence pack specification
+## 16. Evidence pack specification
 
-Each pilot produces the same compact sales artifact set.
+### Brand / Merchant evidence
 
-### Required screenshots
+1. Brand overview / archetype.
+2. Reviewed catalog summary.
+3. Persistent Store or broad Experience where useful.
+4. Merchant Overview with clearly marked reference data.
+5. Merchant setup time and exceptions.
 
-1. Branded pilot entry.
+### Campaign evidence
+
+1. Branded Campaign entry.
 2. Recommendation shortlist with reasons.
 3. One successful Try-On result.
 4. Compare board with 2–4 frames where feasible.
-5. Merchant insight view with clearly marked reference activity.
+5. Merchant action / intent step.
+6. Campaign Performance view with clearly marked reference activity.
+7. Incremental Campaign setup time.
 
 ### Required metadata
 
 ```text
 merchant archetype
-catalog size
-pilot use case
+merchant catalog size
+experience type
+experience catalog size
+campaign / shopper use case
 key differentiator demonstrated
 implementation time
 reference/simulation disclosure
@@ -369,7 +562,7 @@ reference/simulation disclosure
 
 Sales may say:
 
-> “This is a VisuTry reference pilot built from the brand's public catalog to show how the commerce workflow would work.”
+> “This is a VisuTry reference experience built from the brand's public catalog to show how the commerce workflow would work.”
 
 Sales must not say:
 
@@ -379,65 +572,69 @@ unless a real relationship exists.
 
 ---
 
-## 14. Pilot-specific configuration expectations
+## 17. Reference brand expectations
 
 ### ello
 
-- focus on petite-fit dimensions and shape diversity;
-- preserve verified size measurements;
-- recommendation reasons should emphasize proportion/size guidance without guaranteed-fit claims;
-- 6 core styles are sufficient for the first reference pilot.
+- preserve petite-fit dimensions and verified sizing data;
+- persistent Store may represent the broad petite-fit catalog;
+- at least one Campaign should test fit / proportion intent;
+- recommendation reasons should avoid guaranteed-fit claims.
 
 ### Lowercase
 
 - select representative optical + sun frames;
 - premium visual treatment must use shared theme primitives;
-- preserve product-size dimensions and variant distinctions;
+- use Experience subsets to test optical vs sun journeys;
 - do not fork components to copy the merchant website exactly.
 
 ### AKILA
 
 - emphasize style / collection tags;
-- test campaign/collection entry context;
+- test Campaign / collection entry context;
 - preserve limited-run / collaboration facts only when explicitly public;
 - validate visually distinctive Compare results.
 
 ### Article One
 
 - deliberately document existing VTO as the benchmark;
-- demo must emphasize recommendation, Compare, source continuity and intent capture rather than claiming novelty in Try-On itself;
-- use verified performance/fit facts carefully.
+- reference Campaign must emphasize recommendation, Compare, source continuity and intent capture rather than claiming novelty in Try-On itself;
+- use verified performance / fit facts carefully.
 
 ### Framed EWE
 
 - preserve both retailer and underlying brand identity;
 - each product click must return to the correct retailer product destination;
-- recommendation should not collapse different brands into a single product namespace;
+- Campaign subsets must not create duplicate product namespace;
 - inquiry belongs to the retailer, not the underlying brand, unless configured otherwise.
 
 ---
 
-## 15. Engineering escalation rule
+## 18. Engineering escalation rule
 
-During the five-pilot sprint, a code change is justified only when one of these is true:
+During the reference portfolio sprint, a code change is justified only when one of these is true:
 
 1. a normal merchant cannot be represented by current shared configuration;
-2. catalog identity / tenant isolation is unsafe;
-3. critical shopper flow is broken;
-4. measurement / reference-data separation is unreliable;
-5. the same manual problem appears repeatedly and materially affects delivery time.
+2. a normal Store or Campaign cannot be represented by the shared Experience contract;
+3. catalog identity / tenant / Experience isolation is unsafe;
+4. critical shopper flow is broken;
+5. measurement / reference-data separation is unreliable;
+6. the same manual problem appears repeatedly and materially affects delivery time.
 
-Visual preference, one-off merchant copy, and isolated catalog cleanup are not sufficient reasons to fork the platform.
+Visual preference, one-off merchant copy, one-off Campaign copy, and isolated catalog cleanup are not sufficient reasons to fork the platform.
 
 ---
 
-## 16. Acceptance target for the factory
+## 19. Acceptance target for the factory
 
-The Pilot Delivery Kit is validated when:
+The Delivery Kit is validated when:
 
-- five reference pilots are complete;
-- all five use the same Store / Commerce core;
+- five reference brands are represented;
+- approximately 10–15 reference Experiences exist where each adds meaningful learning or sales value;
+- all use the same Merchant / Catalog / Experience commerce core;
 - merchant-specific code forks = 0;
+- Campaign-specific runtime forks = 0;
 - a clean sixth merchant can be onboarded in <=1 working day;
+- an existing merchant can launch a new Campaign in <=1–2 hands-on hours;
 - recurring manual pain is measured rather than guessed;
-- sales has a standardized evidence pack for each merchant archetype.
+- Sales has standardized evidence for both Store-only and multi-Campaign merchant scenarios.
