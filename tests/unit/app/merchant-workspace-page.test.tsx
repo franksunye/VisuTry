@@ -1,0 +1,56 @@
+/** @jest-environment node */
+
+jest.mock('next-auth', () => ({ getServerSession: jest.fn() }))
+jest.mock('next/headers', () => ({ headers: jest.fn(() => new Headers({ host: 'www.visutry.com', 'x-forwarded-proto': 'https' })) }))
+jest.mock('next/navigation', () => ({ notFound: jest.fn(() => { throw new Error('NOT_FOUND') }), redirect: jest.fn((url: string) => { throw new Error(`REDIRECT:${url}`) }) }))
+jest.mock('@/lib/auth', () => ({ authOptions: {} }))
+jest.mock('@/modules/merchant', () => ({
+  listMerchantsForUser: jest.fn(),
+  listMerchantAgentCredentials: jest.fn(),
+  getMerchantControlCenter: jest.fn(),
+  requireMerchantMembership: jest.fn(),
+}))
+jest.mock('@/components/merchant/MerchantControlCenter', () => ({ MerchantControlCenter: (props: { selectedMerchantId: string }) => <div data-selected-merchant={props.selectedMerchantId} /> }))
+
+import { getServerSession } from 'next-auth'
+import { listMerchantsForUser, listMerchantAgentCredentials, getMerchantControlCenter, requireMerchantMembership } from '@/modules/merchant'
+import MerchantWorkspacePage from '@/app/[locale]/merchant/page'
+
+const session = getServerSession as jest.Mock
+const merchants = listMerchantsForUser as jest.Mock
+const credentials = listMerchantAgentCredentials as jest.Mock
+const control = getMerchantControlCenter as jest.Mock
+const membership = requireMerchantMembership as jest.Mock
+
+describe('Merchant workspace authorization', () => {
+  beforeEach(() => {
+    jest.clearAllMocks()
+    session.mockResolvedValue({ user: { id: 'user-a', role: 'ADMIN' } })
+    merchants.mockResolvedValue([
+      { merchant: { id: 'merchant-a', slug: 'alpha', name: 'Alpha', status: 'ACTIVE' }, membership: { role: 'OWNER' } },
+      { merchant: { id: 'merchant-b', slug: 'beta', name: 'Beta', status: 'ACTIVE' }, membership: { role: 'ADMIN' } },
+    ])
+    credentials.mockResolvedValue([])
+    control.mockResolvedValue({ merchant: { id: 'merchant-a', slug: 'alpha', name: 'Alpha', status: 'ACTIVE', referenceData: false }, store: null, experiences: [], activeCampaignCount: 0, shopperActivityAvailable: false, credentialUsage: { active: 0 } })
+  })
+
+  it('uses internal User.id and rechecks membership for the selected tenant', async () => {
+    const result = await MerchantWorkspacePage({ params: { locale: 'en' }, searchParams: { merchantId: 'merchant-b' } })
+    expect(result).toBeTruthy()
+    expect(merchants).toHaveBeenCalledWith('user-a')
+    expect(membership).toHaveBeenCalledWith({ userId: 'user-a', merchantId: 'merchant-b', roles: ['OWNER', 'ADMIN'] })
+    expect(credentials).toHaveBeenCalledWith({ userId: 'user-a', merchantId: 'merchant-b' })
+  })
+
+  it('denies a URL-selected merchant without membership instead of trusting the locator', async () => {
+    merchants.mockResolvedValue([{ merchant: { id: 'merchant-a', slug: 'alpha', name: 'Alpha', status: 'ACTIVE' }, membership: { role: 'OWNER' } }])
+    await expect(MerchantWorkspacePage({ params: { locale: 'en' }, searchParams: { merchantId: 'merchant-b' } })).rejects.toThrow('NOT_FOUND')
+    expect(membership).not.toHaveBeenCalled()
+  })
+
+  it('denies a global ADMIN with no MerchantMembership', async () => {
+    merchants.mockResolvedValue([])
+    await expect(MerchantWorkspacePage({ params: { locale: 'en' } })).rejects.toThrow('NOT_FOUND')
+    expect(control).not.toHaveBeenCalled()
+  })
+})
