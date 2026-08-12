@@ -16,8 +16,10 @@ import {
 } from 'lucide-react'
 import { ImageUpload } from '@/components/upload/ImageUpload'
 import { StoreTryOnComparePanel } from '@/components/store/StoreTryOnComparePanel'
+import { ExperiencePresentationShell, type ExperiencePresentationCopy } from '@/components/store/ExperiencePresentationShell'
 import { analyzeFaceLandmarkFile } from '@/lib/face-landmark-client'
 import { maxSelectableStoreFrames, type StoreExperiencePolicy } from '@/modules/store/domain/experience-policy'
+import { resolvePresentationMode } from '@/modules/store/domain/presentation-mode'
 
 type MerchantProfile = {
   id: string
@@ -480,6 +482,44 @@ export function StoreShopperExperience({
   const isCampaign = merchant.experience?.type === 'CAMPAIGN'
   const heroDescription = merchant.experience?.description?.trim() || t('catalogHint', { count: merchant.activeFrameCount })
   const continuationText = (key: string, fallback: string) => t.has(key) ? t(key) : fallback
+  const presentationAcquisition = captureStoreAcquisition()
+  const presentationMode = resolvePresentationMode({
+    experienceType: merchant.experience?.type || 'STORE',
+    acquisitionSurface:
+      presentationAcquisition.source === 'visutry' && presentationAcquisition.medium === 'internal'
+        ? presentationAcquisition.surface
+        : null,
+  })
+  const presentationCopy: ExperiencePresentationCopy = {
+    storeLabel: t('experience.storeLabel'),
+    campaignLabel: t('experience.campaignLabel'),
+    storeSubhead: t('experience.storeSubhead'),
+    storeHero: t('experience.storeHero'),
+    heroBody: t('experience.heroBody'),
+    referenceCatalog: t('experience.referenceCatalog'),
+    liveCatalog: t('experience.liveCatalog'),
+    featuredEyebrow: t('experience.featuredEyebrow'),
+    featuredTitle: t('experience.featuredTitle'),
+    featuredDescription: t('experience.featuredDescription'),
+    storeCta: t('experience.storeCta'),
+    campaignCta: t('experience.campaignCta'),
+    actionCta: t('experience.actionCta'),
+    ctaSupport: t('experience.ctaSupport'),
+    privacyTitle: t('privacy.title'),
+    privacyBody: t('privacy.body'),
+    privacyPoint1: t('privacy.point1'),
+    privacyPoint2: t('privacy.point2'),
+    privacyPoint3: t('privacy.point3'),
+    privacyPublicNoticeLabel: t('experience.privacyPublicNoticeLabel'),
+    privacyPublicNotice: t('privacy.publicPocNotice'),
+    privacyAccept: t('privacy.accept'),
+    privacyStarting: t('privacy.starting'),
+    privacyHint: t('experience.privacyHint'),
+    poweredBy: t('experience.poweredBy'),
+    uploadTitle: t('upload.title'),
+    recommendTitle: t('recommend.title'),
+    tryOnTitle: merchant.experiencePolicy.tryOnEnabled ? t('tryOn.title') : t('recommend.title'),
+  }
 
   return (
     <div className="relative min-h-screen overflow-hidden bg-[#f7f8fb] text-slate-950">
@@ -500,110 +540,18 @@ export function StoreShopperExperience({
         </header>
 
         {!privacyAccepted ? (
-          <main className="grid items-center gap-10 py-10 lg:min-h-[calc(100vh-150px)] lg:grid-cols-[0.82fr_1.18fr] lg:gap-14 lg:py-14">
-            <section className="max-w-xl">
-              <div className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-semibold shadow-sm ${isCampaign ? 'border-amber-200 bg-amber-50/90 text-amber-800' : 'border-blue-100 bg-white/80 text-blue-700'}`}>
-                <Sparkles className="h-3.5 w-3.5" aria-hidden="true" />
-                {isCampaign ? merchant.experience?.name || t('experience.campaignLabel') : t('experience.storeLabel')}
-              </div>
-              <h1 className="mt-6 font-serif text-4xl font-semibold leading-[1.08] tracking-[-0.035em] text-slate-950 sm:text-5xl lg:text-6xl">
-                {merchant.experience?.headline || t('headline')}
-              </h1>
-              <p className="mt-5 max-w-lg text-base leading-7 text-slate-600 sm:text-lg">
-                {heroDescription}
-              </p>
-
-              {errorMessage ? <p className="mt-4 text-sm text-red-600" role="alert">{errorMessage}</p> : null}
-              <button
-                type="button"
-                onClick={handleAcceptPrivacy}
-                disabled={sessionStarting}
-                aria-describedby="privacy-details"
-                className="mt-6 flex w-full max-w-sm items-center justify-center gap-2 rounded-2xl px-5 py-3.5 text-sm font-semibold text-white shadow-lg transition hover:-translate-y-0.5 hover:shadow-xl disabled:cursor-not-allowed disabled:opacity-60"
-                style={{ backgroundColor: accent }}
-              >
-                {sessionStarting ? <><Loader2 className="h-4 w-4 animate-spin" />{t('privacy.starting')}</> : <>{t('privacy.accept')}<ArrowRight className="h-4 w-4" /></>}
-              </button>
-              <p className="mt-2 flex items-center gap-2 text-xs text-slate-400">
-                <LockKeyhole className="h-3.5 w-3.5" aria-hidden="true" />
-                Review the privacy details below before continuing.
-              </p>
-
-              <div className={`mt-7 grid ${merchant.experiencePolicy.tryOnEnabled ? 'grid-cols-3' : 'grid-cols-2'} gap-2 rounded-2xl border border-white bg-white/70 p-3 shadow-sm backdrop-blur`}>
-                {[t('upload.title'), t('recommend.title'), ...(merchant.experiencePolicy.tryOnEnabled ? [t('tryOn.title')] : [])].map((label, index) => (
-                  <div key={label} className="rounded-xl px-2 py-3 text-center">
-                    <span className="mx-auto flex h-7 w-7 items-center justify-center rounded-full bg-slate-950 text-[11px] font-bold text-white">
-                      {index + 1}
-                    </span>
-                    <p className="mt-2 text-[11px] font-semibold leading-4 text-slate-600 sm:text-xs">{label}</p>
-                  </div>
-                ))}
-              </div>
-
-              <div id="privacy-details" className="mt-6 rounded-3xl border border-slate-200/80 bg-white/90 p-5 shadow-[0_20px_60px_rgba(15,23,42,0.07)] sm:p-6">
-                <div className="flex gap-3">
-                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-700">
-                    <ShieldCheck className="h-5 w-5" aria-hidden="true" />
-                  </span>
-                  <div>
-                    <h2 className="font-semibold text-slate-950">{t('privacy.title')}</h2>
-                    <p className="mt-1.5 text-sm leading-6 text-slate-600">{t('privacy.body')}</p>
-                  </div>
-                </div>
-                <div className="mt-4 grid gap-2 text-xs text-slate-500 sm:grid-cols-2">
-                  <p className="flex items-start gap-2"><LockKeyhole className="mt-0.5 h-3.5 w-3.5 shrink-0 text-emerald-700" />{t('privacy.point1')}</p>
-                  <p className="flex items-start gap-2"><ShieldCheck className="mt-0.5 h-3.5 w-3.5 shrink-0 text-emerald-700" />{t('privacy.point3')}</p>
-                </div>
-                {publicPocStorage ? (
-                  <details className="mt-4 rounded-xl border border-amber-200 bg-amber-50 px-3.5 py-2.5 text-xs leading-5 text-amber-900">
-                    <summary className="cursor-pointer font-semibold">Early-access storage notice</summary>
-                    <p className="mt-2">{t('privacy.publicPocNotice')}</p>
-                  </details>
-                ) : null}
-              </div>
-            </section>
-
-            <section className="relative mx-auto w-full max-w-3xl">
-              <div className="absolute -right-8 -top-8 h-32 w-32 rounded-full bg-blue-200/50 blur-3xl" />
-              <div className="relative overflow-hidden rounded-[2.25rem] border border-white bg-white/90 p-5 shadow-[0_35px_100px_rgba(30,64,175,0.14)] sm:p-7">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className={`text-xs font-semibold uppercase tracking-[0.18em] ${isCampaign ? 'text-amber-700' : 'text-blue-600'}`}>{isCampaign ? t('experience.campaignLabel') : t('experience.storeLabel')}</p>
-                    <p className="mt-1 max-w-md text-sm text-slate-500">{merchant.experience?.name || t('experience.storeSubhead')}</p>
-                  </div>
-                  <span className="flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-700">
-                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />{merchant.referenceData ? t('experience.referenceCatalog') : t('experience.liveCatalog')}
-                  </span>
-                </div>
-
-                <div className={`relative mt-6 aspect-[16/10] overflow-hidden rounded-[1.75rem] px-6 py-10 ${isCampaign ? 'bg-[linear-gradient(145deg,#f6eadf,#f7f1e8)]' : 'bg-[linear-gradient(145deg,#edf3fb,#faf7f2)]'}`}>
-                  {merchant.experience?.heroAssetUrl ? (
-                    /* eslint-disable-next-line @next/next/no-img-element */
-                    <img src={merchant.experience.heroAssetUrl} alt="" onError={(event) => event.currentTarget.remove()} className="absolute inset-0 h-full w-full object-cover" />
-                  ) : null}
-                  <div className="absolute inset-0 bg-gradient-to-t from-slate-950/50 via-slate-950/5 to-transparent" />
-                  <div className="absolute inset-x-6 bottom-6 text-white sm:inset-x-8 sm:bottom-8">
-                    <p className="font-serif text-2xl font-semibold sm:text-3xl">{isCampaign ? merchant.experience?.name : t('experience.storeHero')}</p>
-                    <p className="mt-2 max-w-md text-sm leading-6 text-white/80">{t('experience.heroBody')}</p>
-                  </div>
-                </div>
-
-                <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
-                  {merchant.featuredFrames.map((frame, index) => (
-                    <article key={frame.id} className={`group rounded-2xl border bg-white p-2.5 ${index === 0 ? 'border-blue-400 ring-2 ring-blue-100' : 'border-slate-200'}`}>
-                      <div className="relative aspect-[4/3] overflow-hidden rounded-xl bg-slate-50">
-                        {frame.imageUrl ? <Image src={frame.imageUrl} alt={frame.name} fill sizes="(max-width: 640px) 50vw, 160px" className="object-contain p-2" /> : <Glasses className="absolute inset-0 m-auto h-8 w-8 text-slate-300" />}
-                      </div>
-                      <p className="mt-2 truncate text-xs font-semibold text-slate-800">{frame.name}</p>
-                      {frame.productBrand ? <p className="mt-0.5 truncate text-[10px] font-medium uppercase tracking-[0.12em] text-slate-400">{frame.productBrand}</p> : null}
-                      <p className="mt-0.5 truncate text-[10px] capitalize text-slate-400">{[frame.shape, frame.color].filter(Boolean).join(' · ')}</p>
-                    </article>
-                  ))}
-                </div>
-                <p className="mt-5 flex items-center justify-center gap-2 text-xs text-slate-400"><LockKeyhole className="h-3.5 w-3.5" />{t('privacy.point2')}</p>
-              </div>
-            </section>
-          </main>
+          <ExperiencePresentationShell
+            mode={presentationMode}
+            merchant={merchant}
+            accent={accent}
+            featuredFrames={merchant.featuredFrames}
+            copy={presentationCopy}
+            publicPocStorage={publicPocStorage}
+            sessionStarting={sessionStarting}
+            errorMessage={errorMessage}
+            onStartRuntime={handleAcceptPrivacy}
+            onShoppingCta={() => document.getElementById('privacy-details')?.scrollIntoView({ behavior: 'smooth', block: 'center' })}
+          />
         ) : (
           <main className="py-7 sm:py-10">
             <section className="mx-auto mb-7 flex max-w-4xl items-center gap-3 rounded-2xl border border-white bg-white/80 p-3 shadow-sm backdrop-blur sm:gap-6 sm:px-5">

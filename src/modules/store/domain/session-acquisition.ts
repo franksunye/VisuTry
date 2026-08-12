@@ -18,6 +18,15 @@ export const INTERNAL_DISTRIBUTION_SURFACES = [
   'other',
 ] as const
 
+/** High-intent internal surfaces that can change the shopper's first action. */
+export const CONTEXTUAL_DISTRIBUTION_SURFACES = [
+  'face-analysis',
+  'compare',
+  'style-explorer',
+] as const
+
+export type ContextualDistributionSurface = (typeof CONTEXTUAL_DISTRIBUTION_SURFACES)[number]
+
 export type InternalDistributionSurface = (typeof INTERNAL_DISTRIBUTION_SURFACES)[number]
 
 export type SessionAcquisitionInput = {
