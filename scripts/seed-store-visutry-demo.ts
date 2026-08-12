@@ -20,7 +20,7 @@ const FRAME_DEFINITIONS = [
   {
     sku: 'VT-DEMO-ROUND-01',
     name: 'VisuTry Round',
-    imageUrl: '/glasses-presets/round-classic.jpg',
+    imageUrl: '/assets/glasses-presets/round-classic.jpg',
     shape: 'round',
     material: 'acetate',
     color: 'graphite',
@@ -30,7 +30,7 @@ const FRAME_DEFINITIONS = [
   {
     sku: 'VT-DEMO-RECT-01',
     name: 'VisuTry Rectangle',
-    imageUrl: '/glasses-presets/rectangle-classic.jpg',
+    imageUrl: '/assets/glasses-presets/rectangle-classic.jpg',
     shape: 'rectangle',
     material: 'acetate',
     color: 'black',
@@ -40,7 +40,7 @@ const FRAME_DEFINITIONS = [
   {
     sku: 'VT-DEMO-OVAL-01',
     name: 'VisuTry Oval',
-    imageUrl: '/glasses-presets/oval-classic.jpg',
+    imageUrl: '/assets/glasses-presets/oval-classic.jpg',
     shape: 'oval',
     material: 'acetate',
     color: 'smoke',
@@ -50,7 +50,7 @@ const FRAME_DEFINITIONS = [
   {
     sku: 'VT-DEMO-BROW-01',
     name: 'VisuTry Browline',
-    imageUrl: '/glasses-presets/browline-classic.jpg',
+    imageUrl: '/assets/glasses-presets/browline-classic.jpg',
     shape: 'browline',
     material: 'mixed',
     color: 'black-gold',
@@ -60,7 +60,7 @@ const FRAME_DEFINITIONS = [
   {
     sku: 'VT-DEMO-AVI-01',
     name: 'VisuTry Aviator',
-    imageUrl: '/glasses-presets/aviator-classic.jpg',
+    imageUrl: '/assets/glasses-presets/aviator-classic.jpg',
     shape: 'aviator',
     material: 'metal',
     color: 'silver',
@@ -70,7 +70,7 @@ const FRAME_DEFINITIONS = [
   {
     sku: 'VT-DEMO-CAT-01',
     name: 'VisuTry Cat-Eye',
-    imageUrl: '/glasses-presets/cat-eye-classic.jpg',
+    imageUrl: '/assets/glasses-presets/cat-eye-classic.jpg',
     shape: 'cat-eye',
     material: 'acetate',
     color: 'tortoise',
