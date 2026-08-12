@@ -37,14 +37,20 @@ function externalLinkProps(
 }
 
 function ExperienceHeroVisual({
+  experience,
   merchantName,
   heroImage,
   mode,
 }: {
+  experience: PublicExperienceDiscovery['experience']
   merchantName: string
   heroImage: string | null | undefined
   mode: PresentationMode
 }) {
+  const heroTitle = experience.type === 'CAMPAIGN'
+    ? experience.name
+    : `Shop the ${merchantName} eyewear collection`
+  const heroDescription = experience.description?.trim() || `Selected eyewear from ${merchantName}.`
   const heroBackground = mode === 'EDITORIAL_FIRST'
     ? 'bg-[linear-gradient(145deg,#f6eadf,#f7f1e8)]'
     : 'bg-[linear-gradient(145deg,#edf3fb,#faf7f2)]'
@@ -64,6 +70,14 @@ function ExperienceHeroVisual({
         />
       ) : null}
       <div className="absolute inset-0 bg-slate-950/10" aria-hidden="true" />
+      <div
+        className="absolute inset-0 bg-gradient-to-t from-slate-950/75 via-slate-950/18 to-transparent"
+        aria-hidden="true"
+      />
+      <div className="absolute inset-x-6 bottom-6 text-white sm:inset-x-8 sm:bottom-8">
+        <p className="font-serif text-2xl font-semibold sm:text-3xl">{heroTitle}</p>
+        <p className="mt-2 max-w-md text-sm leading-6 text-white/85">{heroDescription}</p>
+      </div>
     </div>
   )
 }
@@ -103,7 +117,7 @@ export function ExperienceDiscoveryContent({
 
       <div className="pointer-events-none absolute inset-x-0 top-0 h-[540px] bg-[radial-gradient(circle_at_78%_18%,rgba(191,219,254,0.42),transparent_33%),radial-gradient(circle_at_16%_8%,rgba(254,243,199,0.42),transparent_30%)]" />
       <div className="relative mx-auto max-w-[1440px] px-5 pb-10 pt-5 sm:px-8 lg:px-10">
-        <header className="flex items-center gap-3 rounded-3xl border border-white/80 bg-white/75 px-5 py-4 shadow-[0_18px_60px_rgba(15,23,42,0.06)] backdrop-blur-xl sm:px-7">
+        <header className="flex items-center justify-between gap-5 rounded-3xl border border-white/80 bg-white/75 px-5 py-4 shadow-[0_18px_60px_rgba(15,23,42,0.06)] backdrop-blur-xl sm:px-7">
           <div className="flex items-center gap-3">
             <div className="relative flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-slate-200">
               {merchant.logoUrl ? (
@@ -115,6 +129,10 @@ export function ExperienceDiscoveryContent({
             <div>
               <p className="font-serif text-xl font-semibold tracking-tight text-slate-950 sm:text-2xl">{merchant.name}</p>
             </div>
+          </div>
+          <div className="flex items-center gap-2 text-xs font-medium text-slate-400 sm:text-sm">
+            <span className="hidden sm:inline">Powered by</span>
+            <span className="font-semibold text-blue-600">VisuTry</span>
           </div>
         </header>
 
@@ -129,6 +147,7 @@ export function ExperienceDiscoveryContent({
             </div>
             <div>
               <ExperienceHeroVisual
+                experience={experience}
                 merchantName={merchant.name}
                 heroImage={heroImage}
                 mode={presentationMode}

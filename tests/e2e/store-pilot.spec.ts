@@ -31,9 +31,9 @@ test.describe('@critical Store Pilot Flow', () => {
     await expect(page.locator('body')).not.toContainText(/application error|internal server error/i);
     await expect(page.locator('[data-presentation-mode="EDITORIAL_FIRST"]')).toBeVisible();
     await expect(page.locator('[data-presentation-cta="shopping-interest"]').first()).toBeVisible();
-    await expect(page.locator('header')).not.toContainText('Powered by');
+    await expect(page.locator('header')).toContainText('Powered by');
     await expect(page.getByText('Powered by VisuTry')).toBeVisible();
-    await expect(page.getByText('Petite Fit Reference Experience', { exact: true })).toHaveCount(0);
+    await expect(page.getByText('Petite Fit Reference Experience', { exact: true })).toBeVisible();
     await expect(page.locator('body')).not.toContainText(/Campaign experience|search engines and agents|Reference catalog · VisuTry Reference|Optional interactive experience/i);
     await expect(page.locator('script[type="application/ld+json"]')).toHaveCount(1);
     await expect(page.locator('img[alt="ello sunglasses eyewear collection"]').first()).toBeVisible();

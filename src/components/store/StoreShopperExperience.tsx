@@ -544,8 +544,12 @@ export function StoreShopperExperience({
     <div className="relative min-h-screen overflow-hidden bg-[#f7f8fb] text-slate-950">
       <div className="pointer-events-none absolute inset-x-0 top-0 h-[540px] bg-[radial-gradient(circle_at_78%_18%,rgba(191,219,254,0.42),transparent_33%),radial-gradient(circle_at_16%_8%,rgba(254,243,199,0.42),transparent_30%)]" />
       <div className="relative mx-auto max-w-[1440px] px-5 pb-10 pt-5 sm:px-8 lg:px-10">
-        <header className="flex items-center rounded-3xl border border-white/80 bg-white/75 px-5 py-4 shadow-[0_18px_60px_rgba(15,23,42,0.06)] backdrop-blur-xl sm:px-7">
+        <header className="flex items-center justify-between gap-5 rounded-3xl border border-white/80 bg-white/75 px-5 py-4 shadow-[0_18px_60px_rgba(15,23,42,0.06)] backdrop-blur-xl sm:px-7">
           <MerchantMark merchant={merchant} accent={accent} />
+          <div className="flex items-center gap-2 text-xs font-medium text-slate-400 sm:text-sm">
+            <span className="hidden sm:inline">Powered by</span>
+            <span className="font-semibold text-blue-600">VisuTry</span>
+          </div>
         </header>
 
         {!privacyAccepted ? (
