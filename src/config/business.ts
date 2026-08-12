@@ -1,13 +1,21 @@
 import type { Locale } from '@/i18n'
+import { localizedBusinessCopy } from '@/config/business-locales'
 
 export type BusinessPageCopy = {
   metaTitle: string
   metaDescription: string
+  schemaName: string
+  microline: string
   eyebrow: string
   title: string
   description: string
   primaryCta: string
   secondaryCta: string
+  visuals: {
+    hero: { alt: string; label: string; description: string }
+    distribution: { alt: string; label: string; description: string }
+    intelligence: { alt: string; description: string }
+  }
   shopperJourney: {
     eyebrow: string
     title: string
@@ -20,8 +28,10 @@ export type BusinessPageCopy = {
     description: string
     storeTitle: string
     storeDescription: string
+    storeCta: string
     campaignTitle: string
     campaignDescription: string
+    campaignCta: string
   }
   distribution: {
     eyebrow: string
@@ -34,6 +44,8 @@ export type BusinessPageCopy = {
     title: string
     description: string
     signals: string[]
+    signalNote: string
+    signalSrPrefix: string
   }
   proof: {
     eyebrow: string
@@ -41,8 +53,10 @@ export type BusinessPageCopy = {
     description: string
     liveLabel: string
     liveDescription: string
+    liveCta: string
     referenceLabel: string
     referenceDescription: string
+    referenceCta: string
     disclosure: string
   }
   deployment: {
@@ -61,11 +75,29 @@ export type BusinessPageCopy = {
 }
 
 const baseCopy: Omit<BusinessPageCopy, 'metaTitle' | 'metaDescription'> = {
+  schemaName: 'VisuTry for Brands & Retailers',
+  microline: 'For brands & retailers · Catalog → Experience → Intent → Intelligence',
   eyebrow: 'For eyewear brands & retailers',
   title: 'Turn your eyewear catalog into an AI shopping experience.',
   description: 'Guide shoppers from discovery to a confident frame decision — while your team sees the intent forming across every Store and Campaign.',
   primaryCta: 'See a live experience',
   secondaryCta: 'Talk to VisuTry',
+  visuals: {
+    hero: {
+      alt: 'Shopper moving from a frame catalog into a guided eyewear experience',
+      label: 'Shopper Experience visual',
+      description: 'The existing production Store visual is used here as market-facing proof.',
+    },
+    distribution: {
+      alt: 'Guided shopper experience with frame recommendation and comparison steps',
+      label: 'Distribution visual',
+      description: 'The existing production shopper visual is used as proof of the shared runtime.',
+    },
+    intelligence: {
+      alt: 'Static merchant intelligence dashboard proof showing shopper signals and experience activity',
+      description: 'Static Admin intelligence proof. Detailed merchant surfaces remain protected behind authentication.',
+    },
+  },
   shopperJourney: {
     eyebrow: 'The shopper journey',
     title: 'A clearer path from first impression to shortlist.',
@@ -84,8 +116,10 @@ const baseCopy: Omit<BusinessPageCopy, 'metaTitle' | 'metaDescription'> = {
     description: 'Both delivery modes use the same merchant catalog and shared shopper runtime.',
     storeTitle: 'Store',
     storeDescription: 'An evergreen, broader catalog experience for shoppers who want to explore the merchant collection.',
+    storeCta: 'See the Store product',
     campaignTitle: 'Campaign',
     campaignDescription: 'A focused edit around a collection, fit, style, activity, or launch moment.',
+    campaignCta: 'Explore Campaigns',
   },
   distribution: {
     eyebrow: 'Owned distribution',
@@ -110,6 +144,8 @@ const baseCopy: Omit<BusinessPageCopy, 'metaTitle' | 'metaDescription'> = {
       'Source and surface attribution',
       'Shopper intent signals',
     ],
+    signalNote: 'Observable shopper signal',
+    signalSrPrefix: 'Signal',
   },
   proof: {
     eyebrow: 'Proof without overclaiming',
@@ -117,8 +153,10 @@ const baseCopy: Omit<BusinessPageCopy, 'metaTitle' | 'metaDescription'> = {
     description: 'Use the current shopper runtime as the proof point. Live merchant surfaces and Reference demonstrations are labeled separately.',
     liveLabel: 'Live Merchant Experience',
     liveDescription: 'Explore Luna Optical’s live hosted Store and the shopper journey it supports.',
+    liveCta: 'Open Live Store',
     referenceLabel: 'Reference Experiences',
     referenceDescription: 'Review focused Campaign demonstrations built from publicly available catalog information.',
+    referenceCta: 'Open Reference Campaign',
     disclosure: 'Reference Experiences are VisuTry product demonstrations built from publicly available catalog information and do not imply a customer or partner relationship.',
   },
   deployment: {
@@ -182,6 +220,10 @@ const localizedMeta: Record<Locale, Pick<BusinessPageCopy, 'metaTitle' | 'metaDe
 }
 
 export function getBusinessCopy(locale: string): BusinessPageCopy {
-  const metadata = localizedMeta[locale as Locale] ?? localizedMeta.en
-  return { ...baseCopy, ...metadata }
+  const validLocale = (locale in localizedMeta ? locale : 'en') as Locale
+  const metadata = localizedMeta[validLocale]
+  const body = validLocale === 'en'
+    ? baseCopy
+    : localizedBusinessCopy[validLocale as Exclude<Locale, 'en'>]
+  return { ...body, ...metadata }
 }

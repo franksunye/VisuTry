@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import Image from 'next/image'
 import Link from 'next/link'
 import {
   ArrowRight,
@@ -50,7 +51,7 @@ export default async function BusinessPage({ params }: BusinessPageProps) {
   const locale = params.locale
   const copy = getBusinessCopy(locale)
   const businessSchema = generateStructuredData('softwareApplication', {
-    name: 'VisuTry for Brands & Retailers',
+    name: copy.schemaName,
     url: `https://www.visutry.com/${locale}/business`,
     applicationCategory: 'ShoppingApplication',
     description: copy.metaDescription,
@@ -92,14 +93,14 @@ export default async function BusinessPage({ params }: BusinessPageProps) {
                 {copy.secondaryCta}
               </a>
             </div>
-            <p className="mt-5 text-xs leading-5 text-slate-500">For brands & retailers · Catalog → Experience → Intent → Intelligence</p>
+            <p className="mt-5 text-xs leading-5 text-slate-500">{copy.microline}</p>
           </div>
 
           <StoreMarketingVisual
             src="/images/store/store-hero-shopper.png"
-            alt="Shopper moving from a frame catalog into a guided eyewear experience"
-            label="Shopper Experience visual"
-            description="The existing production Store visual is used here as market-facing proof."
+            alt={copy.visuals.hero.alt}
+            label={copy.visuals.hero.label}
+            description={copy.visuals.hero.description}
             aspectClass="aspect-[4/3] rounded-[2rem]"
             priority
           />
@@ -141,13 +142,13 @@ export default async function BusinessPage({ params }: BusinessPageProps) {
               <Store className="h-6 w-6 text-blue-700" aria-hidden="true" />
               <h3 className="mt-5 text-xl font-semibold">{copy.experienceTypes.storeTitle}</h3>
               <p className="mt-3 text-sm leading-6 text-slate-600">{copy.experienceTypes.storeDescription}</p>
-              <Link href={`/${locale}/store`} className="mt-5 inline-flex items-center gap-2 text-sm font-bold text-blue-700 hover:text-blue-900">See the Store product <ArrowRight className="h-4 w-4" aria-hidden="true" /></Link>
+              <Link href={`/${locale}/store`} className="mt-5 inline-flex items-center gap-2 text-sm font-bold text-blue-700 hover:text-blue-900">{copy.experienceTypes.storeCta} <ArrowRight className="h-4 w-4" aria-hidden="true" /></Link>
             </article>
             <article className="rounded-2xl border border-slate-200 bg-slate-950 p-6 text-white shadow-sm">
               <Sparkles className="h-6 w-6 text-sky-300" aria-hidden="true" />
               <h3 className="mt-5 text-xl font-semibold">{copy.experienceTypes.campaignTitle}</h3>
               <p className="mt-3 text-sm leading-6 text-slate-300">{copy.experienceTypes.campaignDescription}</p>
-              <Link href={`/${locale}/discover`} className="mt-5 inline-flex items-center gap-2 text-sm font-bold text-sky-300 hover:text-white">Explore Campaigns <ArrowRight className="h-4 w-4" aria-hidden="true" /></Link>
+              <Link href={`/${locale}/discover`} className="mt-5 inline-flex items-center gap-2 text-sm font-bold text-sky-300 hover:text-white">{copy.experienceTypes.campaignCta} <ArrowRight className="h-4 w-4" aria-hidden="true" /></Link>
             </article>
           </div>
         </div>
@@ -167,9 +168,9 @@ export default async function BusinessPage({ params }: BusinessPageProps) {
         </div>
         <StoreMarketingVisual
           src="/images/store/store-shopper-experience.png"
-          alt="Guided shopper experience with frame recommendation and comparison steps"
-          label="Distribution visual"
-          description="The existing production shopper visual is used as proof of the shared runtime."
+          alt={copy.visuals.distribution.alt}
+          label={copy.visuals.distribution.label}
+          description={copy.visuals.distribution.description}
           aspectClass="aspect-[16/10] rounded-[2rem]"
         />
       </section>
@@ -180,10 +181,13 @@ export default async function BusinessPage({ params }: BusinessPageProps) {
             <p className="text-xs font-semibold uppercase tracking-[0.16em] text-sky-300">{copy.intelligence.eyebrow}</p>
             <h2 className="mt-3 text-3xl font-semibold tracking-tight sm:text-4xl">{copy.intelligence.title}</h2>
             <p className="mt-4 text-base leading-7 text-slate-300">{copy.intelligence.description}</p>
-            <Link href="/admin/store" className="mt-7 inline-flex items-center gap-2 text-sm font-bold text-sky-300 hover:text-white">See the Admin proof surface <ArrowRight className="h-4 w-4" aria-hidden="true" /></Link>
+            <div className="mt-7 overflow-hidden rounded-2xl border border-white/10 bg-white/95 shadow-xl shadow-black/20">
+              <Image src="/images/store/store-owner-dashboard.png" alt={copy.visuals.intelligence.alt} width={1448} height={1086} className="h-auto w-full" />
+              <p className="px-4 py-3 text-xs leading-5 text-slate-600">{copy.visuals.intelligence.description}</p>
+            </div>
           </div>
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {copy.intelligence.signals.map((signal, index) => <div key={signal} className="rounded-2xl border border-white/10 bg-white/[0.06] p-5"><div className="flex h-9 w-9 items-center justify-center rounded-xl bg-sky-300/10 text-sky-300"><LineChart className="h-4 w-4" aria-hidden="true" /></div><p className="mt-4 text-sm font-semibold text-white">{signal}</p><p className="mt-2 text-xs leading-5 text-slate-400">Observable shopper signal</p><span className="sr-only">Signal {index + 1}</span></div>)}
+            {copy.intelligence.signals.map((signal, index) => <div key={signal} className="rounded-2xl border border-white/10 bg-white/[0.06] p-5"><div className="flex h-9 w-9 items-center justify-center rounded-xl bg-sky-300/10 text-sky-300"><LineChart className="h-4 w-4" aria-hidden="true" /></div><p className="mt-4 text-sm font-semibold text-white">{signal}</p><p className="mt-2 text-xs leading-5 text-slate-400">{copy.intelligence.signalNote}</p><span className="sr-only">{copy.intelligence.signalSrPrefix} {index + 1}</span></div>)}
           </div>
         </div>
       </section>
@@ -199,13 +203,13 @@ export default async function BusinessPage({ params }: BusinessPageProps) {
             <p className="text-xs font-bold uppercase tracking-[0.16em] text-emerald-800">{copy.proof.liveLabel}</p>
             <h3 className="mt-3 text-2xl font-semibold">Luna Optical</h3>
             <p className="mt-3 max-w-lg text-sm leading-6 text-slate-600">{copy.proof.liveDescription}</p>
-            <Link href={`/${locale}/store/luna-optical`} className="mt-6 inline-flex items-center gap-2 rounded-xl bg-emerald-800 px-4 py-3 text-sm font-bold text-white hover:bg-emerald-900">Open Live Store <ArrowRight className="h-4 w-4" aria-hidden="true" /></Link>
+            <Link href={`/${locale}/store/luna-optical`} className="mt-6 inline-flex items-center gap-2 rounded-xl bg-emerald-800 px-4 py-3 text-sm font-bold text-white hover:bg-emerald-900">{copy.proof.liveCta} <ArrowRight className="h-4 w-4" aria-hidden="true" /></Link>
           </article>
           <article className="rounded-2xl border border-amber-200 bg-amber-50/70 p-6">
             <p className="text-xs font-bold uppercase tracking-[0.16em] text-amber-900">{copy.proof.referenceLabel}</p>
             <h3 className="mt-3 text-2xl font-semibold">AKILA · Statement Frames</h3>
             <p className="mt-3 max-w-lg text-sm leading-6 text-slate-600">{copy.proof.referenceDescription}</p>
-            <Link href={`/${locale}/c/akila/statement-frames`} className="mt-6 inline-flex items-center gap-2 rounded-xl bg-slate-950 px-4 py-3 text-sm font-bold text-white hover:bg-slate-800">Open Reference Campaign <ArrowRight className="h-4 w-4" aria-hidden="true" /></Link>
+            <Link href={`/${locale}/c/akila/statement-frames`} className="mt-6 inline-flex items-center gap-2 rounded-xl bg-slate-950 px-4 py-3 text-sm font-bold text-white hover:bg-slate-800">{copy.proof.referenceCta} <ArrowRight className="h-4 w-4" aria-hidden="true" /></Link>
           </article>
         </div>
         <p className="mx-auto mt-6 max-w-3xl rounded-xl border border-slate-200 bg-white px-4 py-3 text-xs leading-5 text-slate-500">{copy.proof.disclosure}</p>
