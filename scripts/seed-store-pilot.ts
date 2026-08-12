@@ -110,6 +110,7 @@ async function main() {
         merchantId: merchant.id,
         sku: row.sku,
         name: row.name,
+        brand: row.brand || null,
         variant: row.variant,
         imageUrl: row.imageUrl,
         productUrl: row.productUrl,
@@ -133,6 +134,7 @@ async function main() {
       },
       update: {
         name: row.name,
+        brand: row.brand || null,
         variant: row.variant,
         imageUrl: row.imageUrl,
         productUrl: row.productUrl,

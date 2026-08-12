@@ -31,4 +31,4 @@ The CSV `sku` and `external_id` values are internal stable catalog keys made fro
 
 ## Reusable gap
 
-The shared catalog schema has no typed product-brand, lens-feature or decimal-dimension field. The product brand remains in the Delivery Kit source/enrichment review and the technical details remain in `source_notes`; no schema expansion is introduced for one retailer.
+The shared catalog schema now carries the source `brand` as a nullable typed `MerchantFrame` field, while technical details remain in `source_notes`. Product brand is explicit catalog metadata, not a merchant or tenant boundary; lens-feature and decimal-dimension fields remain outside this A1 correction.

@@ -14,6 +14,7 @@ type FrameMeta = {
   price: number | null
   currency: string | null
   shape: string
+  productBrand: string | null
 }
 
 type TryOnTile = {
@@ -353,7 +354,7 @@ export function StoreTryOnComparePanel({
     <section className="rounded-[2rem] border border-slate-200/80 bg-white p-5 shadow-[0_22px_70px_rgba(15,23,42,0.07)] sm:p-7">
       <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-blue-600">Step 3 · Realistic preview</p>
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-blue-600">Step 3 · {t('tryOn.editLabel')}</p>
           <h2 className="mt-2 font-serif text-2xl font-semibold text-slate-950 sm:text-3xl">{t('tryOn.title')}</h2>
           <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-500">{t('tryOn.subtitle')}</p>
         </div>
@@ -399,7 +400,7 @@ export function StoreTryOnComparePanel({
                         className="h-full w-full object-cover"
                       />
                     ) : (
-                      <div className="flex h-full flex-col items-center justify-center gap-3 p-5 text-center text-sm text-slate-500">
+                      <div className="flex h-full flex-col items-center justify-center gap-3 p-5 text-center text-sm text-slate-500" role="status" aria-live="polite">
                         {(tile.status === 'queued' || tile.status === 'processing') && (
                           <>
                             <Loader2 className="h-5 w-5 animate-spin" />
@@ -428,6 +429,7 @@ export function StoreTryOnComparePanel({
                   </div>
                   <div className="space-y-1 p-4">
                     <p className="font-semibold text-slate-900">{tile.frame.name}</p>
+                    <p className="text-xs font-medium uppercase tracking-[0.12em] text-slate-400">{tile.frame.productBrand || t('tryOn.storeBrand')}</p>
                     <p className="text-xs capitalize text-slate-400">{tile.frame.shape}</p>
                     {priceLabel && (
                       <p className="text-sm font-medium text-gray-800">{priceLabel}</p>
@@ -621,7 +623,27 @@ export function StoreTryOnComparePanel({
                       alt={tile.frame.name}
                       className="aspect-[4/5] w-full object-cover"
                     />
-                    <div className="p-2 text-sm font-medium text-gray-900">{tile.frame.name}</div>
+                    <div className="p-3">
+                      <p className="text-sm font-semibold text-gray-900">{tile.frame.name}</p>
+                      <p className="mt-1 text-[10px] font-medium uppercase tracking-[0.12em] text-gray-400">{tile.frame.productBrand || t('tryOn.storeBrand')}</p>
+                      {tile.frame.productUrl ? (
+                        <button
+                          type="button"
+                          className="mt-2 text-xs font-semibold underline"
+                          style={{ color: accent }}
+                          onClick={async () => {
+                            try {
+                              await postIntent({ type: 'PRODUCT_CLICK', merchantFrameId: tile.merchantFrameId, productUrl: tile.frame.productUrl })
+                              window.open(tile.frame.productUrl!, '_blank', 'noopener,noreferrer')
+                            } catch (error) {
+                              onError(error instanceof Error ? error.message : t('errors.intent'))
+                            }
+                          }}
+                        >
+                          {t('tryOn.viewProduct')}
+                        </button>
+                      ) : null}
+                    </div>
                   </div>
                 ))}
               </div>

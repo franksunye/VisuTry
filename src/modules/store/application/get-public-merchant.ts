@@ -7,6 +7,7 @@ import type { MerchantRecord, MerchantRepository, MerchantFrameRepository } from
 import type { ExperienceRepository, ExperienceRecord } from './ports/repositories'
 import { resolveMerchantExperience } from './resolve-experience'
 import { resolveStoreExperiencePolicy, type StoreExperiencePolicy } from '../domain/experience-policy'
+import { productBrandForFrame } from './product-labels'
 
 export type PublicMerchantFramePreview = {
   id: string
@@ -14,6 +15,7 @@ export type PublicMerchantFramePreview = {
   imageUrl: string | null
   shape: string
   color: string | null
+  productBrand: string | null
 }
 
 export type PublicMerchantProfile = {
@@ -93,6 +95,7 @@ export function toPublicMerchantProfile(
       imageUrl: frame.imageUrl,
       shape: frame.shape,
       color: frame.color,
+      productBrand: productBrandForFrame(frame),
     })),
     status: merchant.status,
     experience: experience

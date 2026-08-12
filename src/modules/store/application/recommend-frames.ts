@@ -16,6 +16,7 @@ import type {
   ExperienceRepository,
 } from './ports/repositories'
 import { requireOperableStoreSession } from './require-store-session'
+import { productBrandForFrame } from './product-labels'
 
 export type RecommendFramesInput = {
   merchants: MerchantRepository
@@ -49,6 +50,7 @@ export type RecommendedFrameDto = {
   color: string | null
   widthClass: string | null
   styleTags: string[]
+  productBrand: string | null
   score: number
   reason: string
 }
@@ -131,6 +133,7 @@ export async function recommendMerchantFrames(
         color: frame.color,
         widthClass: frame.widthClass,
         styleTags: frame.styleTags,
+        productBrand: productBrandForFrame(frame),
         score: ranked.score,
         reason: ranked.reason,
       },

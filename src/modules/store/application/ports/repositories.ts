@@ -56,6 +56,7 @@ export type MerchantFrameRecord = {
   merchantId: string
   sku: string | null
   name: string
+  brand: string | null
   variant?: string | null
   imageUrl: string | null
   imageAssetId: string | null

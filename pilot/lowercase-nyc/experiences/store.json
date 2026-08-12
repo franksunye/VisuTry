@@ -4,7 +4,7 @@
   "name": "Lowercase NYC Store",
   "status": "ACTIVE",
   "headline": "Explore independent eyewear shaped in Brooklyn",
-  "description": "Reference Store / Simulation using a curated public catalog of optical and sunglasses frames.",
+  "description": "A curated collection of optical and sunglasses frames with a distinct New York point of view.",
   "catalogSelection": "ALL_ACTIVE",
   "primaryCta": {
     "type": "PRODUCT_OR_COLLECTION",

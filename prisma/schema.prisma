@@ -508,6 +508,7 @@ model MerchantFrame {
   merchantId       String
   sku              String?
   name             String
+  brand            String?
   variant          String?
   imageUrl         String?
   imageAssetId     String?

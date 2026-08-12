@@ -4,7 +4,7 @@
   "name": "ello sunglasses Store",
   "status": "ACTIVE",
   "headline": "Discover frames for smaller faces",
-  "description": "Reference Store / Simulation using the imported public catalog.",
+  "description": "A curated frame collection for exploring petite proportions.",
   "catalogSelection": "ALL_ACTIVE",
   "primaryCta": {
     "type": "PRODUCT_OR_COLLECTION",

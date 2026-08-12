@@ -759,6 +759,15 @@
     "brandedBy": "Powered for {merchant}",
     "headline": "Find frames that suit you — then try them on.",
     "catalogHint": "{count} frames ready for personalized recommendations",
+    "experience": {
+      "storeLabel": "Curated collection",
+      "campaignLabel": "The edit",
+      "storeSubhead": "A focused collection, ready to explore",
+      "storeHero": "One photo. Your best frames.",
+      "heroBody": "Shortlist a few looks, see them on your photo, and compare before you decide.",
+      "referenceCatalog": "Reference catalog",
+      "liveCatalog": "Live catalog"
+    },
     "privacy": {
       "title": "Privacy & photo retention",
       "body": "Your photo is used only to recommend and virtually try on this store’s frames. The merchant does not receive your raw face photo by default.",
@@ -779,7 +788,7 @@
       "readyBody": "Building your personalized shortlist…",
       "nextComingSoon": "Continue to recommendations (next)"
     },
-    "noCreditsNote": "No VisuTry consumer credits are used in this merchant store session.",
+    "noCreditsNote": "This shopping experience is free to explore. Consumer credits are not used.",
     "errors": {
       "generic": "Something went wrong. Please try again.",
       "unavailableTitle": "Store unavailable",
@@ -796,7 +805,11 @@
       "title": "Recommended for you",
       "subtitle": "Personalized from this store’s catalog. Select up to {max} to try on.",
       "subtitleNoTryOn": "Personalized from this store’s catalog.",
-      "version": "Ranking {version}",
+      "editLabel": "Your edit",
+      "curatedLabel": "Curated for you",
+      "imageUnavailable": "Product image unavailable",
+      "priceUnavailable": "Price unavailable",
+      "limitReached": "You’ve selected the maximum of {max}. Remove one frame to choose another, or continue below.",
       "selectHint": "Selected {count} of {max}",
       "confirm": "Save selection ({count})",
       "saving": "Saving…",
@@ -806,7 +819,9 @@
     },
     "tryOn": {
       "title": "Virtual try-on",
-      "subtitle": "Generate try-on results for your selected merchant frames. No consumer credits are used.",
+      "subtitle": "See your selected frames on the same photo, then compare the looks side by side.",
+      "editLabel": "Try them on",
+      "storeBrand": "Store collection",
       "start": "Try on {count} frames",
       "starting": "Starting try-on…",
       "queued": "Queued…",
