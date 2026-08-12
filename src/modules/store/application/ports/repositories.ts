@@ -188,6 +188,8 @@ export type StoreAssetRecord = {
 
 export interface MerchantRepository {
   findBySlug(slug: string): Promise<MerchantRecord | null>
+  /** Public discovery read with a minimal field selection. */
+  findPublicBySlug?(slug: string): Promise<MerchantRecord | null>
   findById(merchantId: string): Promise<MerchantRecord | null>
   /** Admin-only: list merchants without tenant filter. */
   listAllAdmin(limit?: number): Promise<MerchantRecord[]>
@@ -212,6 +214,11 @@ export interface ExperienceRepository {
 
 export interface MerchantFrameRepository {
   findActiveByMerchant(merchantId: string): Promise<MerchantFrameRecord[]>
+  /** Public discovery read with only fields exposed by SEO/GEO surfaces. */
+  findPublicActiveByMerchantAndExperience?(
+    merchantId: string,
+    experience: ExperienceRecord,
+  ): Promise<MerchantFrameRecord[]>
   findByMerchantAndId(
     merchantId: string,
     frameId: string,

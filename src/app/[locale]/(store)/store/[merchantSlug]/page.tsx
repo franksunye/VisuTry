@@ -2,7 +2,7 @@ import { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { setRequestLocale } from 'next-intl/server'
 import { ExperienceDiscoveryContent } from '@/components/store/ExperienceDiscoveryContent'
-import { StoreShopperExperience } from '@/components/store/StoreShopperExperience'
+import { InteractiveCommerceLauncher } from '@/components/store/InteractiveCommerceLauncher'
 import { resolveStoreAssetAccessPolicy } from '@/modules/store/infrastructure/config/store-asset-access-policy'
 import { getPublicExperienceDiscoveryForRoute } from '@/modules/store/application/get-public-experience-discovery-route'
 import { buildExperienceDiscoveryMetadata, discoveryCanonicalUrl } from '@/lib/store-discovery-seo'
@@ -15,10 +15,17 @@ interface MerchantStorePageProps {
   }
 }
 
-// Merchant slugs are provisioned from the catalog/config delivery path.
-// Keep the generic Store route dynamic so refresh and App Router navigation
-// work for newly imported merchants without a static-param build step.
-export const dynamic = 'force-dynamic'
+// Newly imported merchants remain eligible through dynamic params; stable
+// discovery HTML is served through ISR/data-cache rather than force-dynamic.
+export const revalidate = 30 * 60
+export const dynamicParams = true
+
+// Enable on-demand ISR for merchant slugs that are not known at build time.
+// Keeping this list empty prevents a catalog snapshot from becoming a build
+// dependency while allowing newly published merchants to render and cache.
+export function generateStaticParams() {
+  return []
+}
 
 export async function generateMetadata({
   params,
@@ -26,7 +33,7 @@ export async function generateMetadata({
   setRequestLocale(params.locale)
   const locale = getValidLocale(params.locale)
   const pathname = `/${locale}/store/${params.merchantSlug}`
-  const discovery = await getPublicExperienceDiscoveryForRoute(params.merchantSlug)
+  const discovery = await getPublicExperienceDiscoveryForRoute(params.merchantSlug, null, locale)
   if (!discovery) {
     return {
       title: 'Store not found | VisuTry',
@@ -41,7 +48,7 @@ export async function generateMetadata({
 export default async function MerchantStorePage({ params }: MerchantStorePageProps) {
   setRequestLocale(params.locale)
   const locale = getValidLocale(params.locale)
-  const discovery = await getPublicExperienceDiscoveryForRoute(params.merchantSlug)
+  const discovery = await getPublicExperienceDiscoveryForRoute(params.merchantSlug, null, locale)
   if (!discovery) notFound()
   const assetPolicy = resolveStoreAssetAccessPolicy()
 
@@ -51,12 +58,10 @@ export default async function MerchantStorePage({ params }: MerchantStorePagePro
       locale={locale}
       pathname={`/${locale}/store/${params.merchantSlug}`}
     />
-    <section aria-label="Interactive shopping experience">
-      <StoreShopperExperience
+    <InteractiveCommerceLauncher
         merchantSlug={params.merchantSlug}
         locale={locale}
         publicPocStorage={assetPolicy.publicPoc}
-      />
-    </section>
+    />
   </div>
 }

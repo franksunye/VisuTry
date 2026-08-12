@@ -46,7 +46,11 @@ export function ExperienceDiscoveryContent({
   const jsonLd = buildExperienceDiscoveryJsonLd({ discovery, pathname })
 
   return (
-    <main lang={locale} className="bg-[#f7f8fb] text-slate-950">
+    <main
+      lang={locale}
+      data-presentation-mode={experience.type === 'CAMPAIGN' ? 'EDITORIAL_FIRST' : 'PRODUCT_FIRST'}
+      className="bg-[#f7f8fb] text-slate-950"
+    >
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: serializeJsonLd(jsonLd) }}
@@ -65,7 +69,7 @@ export function ExperienceDiscoveryContent({
             {description ? <p className="mt-5 max-w-2xl text-base leading-8 text-slate-600 sm:text-lg">{description}</p> : null}
             {merchant.referenceData || experience.referenceData ? (
               <p className="mt-5 inline-flex rounded-full border border-amber-200 bg-amber-50 px-3 py-1.5 text-xs font-semibold text-amber-800">
-                Reference Experience · VisuTry Reference
+                Reference catalog · VisuTry Reference
               </p>
             ) : null}
             <p className="mt-6 max-w-2xl text-sm leading-6 text-slate-500">

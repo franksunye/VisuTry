@@ -45,6 +45,63 @@ function mapFrame(row: MerchantFrame): MerchantFrameRecord {
 
 export function createPrismaMerchantFrameRepository(): MerchantFrameRepository {
   return {
+    async findPublicActiveByMerchantAndExperience(merchantId, experience) {
+      if (experience.merchantId !== merchantId || experience.frameIds.length === 0) return []
+      const rows = await prisma.merchantFrame.findMany({
+        where: {
+          merchantId,
+          id: { in: experience.frameIds },
+          status: 'ACTIVE',
+        },
+        orderBy: { updatedAt: 'desc' },
+        select: {
+          id: true,
+          merchantId: true,
+          name: true,
+          brand: true,
+          imageUrl: true,
+          productUrl: true,
+          price: true,
+          currency: true,
+          shape: true,
+          material: true,
+          color: true,
+          widthClass: true,
+          updatedAt: true,
+        },
+      })
+      const order = new Map(experience.frameIds.map((id, index) => [id, index]))
+      return rows.sort((a, b) => (order.get(a.id) ?? 0) - (order.get(b.id) ?? 0)).map((row) => ({
+        id: row.id,
+        merchantId: row.merchantId,
+        sku: null,
+        name: row.name,
+        brand: row.brand,
+        variant: null,
+        imageUrl: row.imageUrl,
+        imageAssetId: null,
+        productUrl: row.productUrl,
+        price: row.price,
+        currency: row.currency,
+        shape: row.shape,
+        material: row.material,
+        color: row.color,
+        widthClass: row.widthClass,
+        lensWidthMm: null,
+        bridgeWidthMm: null,
+        templeLengthMm: null,
+        frameWidthMm: null,
+        styleTags: [],
+        collectionTags: [],
+        sourceNotes: null,
+        source: 'SEED',
+        externalId: null,
+        enrichmentStatus: 'APPROVED',
+        status: 'ACTIVE',
+        createdAt: row.updatedAt,
+        updatedAt: row.updatedAt,
+      }))
+    },
     async findActiveByMerchant(merchantId) {
       const rows = await prisma.merchantFrame.findMany({
         where: { merchantId, status: 'ACTIVE' },

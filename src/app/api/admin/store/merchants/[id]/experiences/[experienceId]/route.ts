@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { requireAdmin } from '@/lib/api-auth'
 import { prisma } from '@/lib/prisma'
 import { storeErrorResponse } from '@/modules/store/application'
+import { revalidatePublicDiscoveryByRoute } from '@/lib/store-discovery-cache'
 
 export const dynamic = 'force-dynamic'
 
@@ -77,7 +78,7 @@ export async function PUT(
     const body = await request.json() as Record<string, unknown>
     const existing = await prisma.experience.findFirst({
       where: { id: params.experienceId, merchantId: params.id },
-      select: { id: true },
+      select: { id: true, slug: true, merchant: { select: { slug: true } } },
     })
     if (!existing) return NextResponse.json({ success: false, error: 'Experience not found' }, { status: 404 })
 
@@ -117,6 +118,12 @@ export async function PUT(
       where: { id: params.experienceId },
       data,
     })
+    if (existing.merchant?.slug) {
+      revalidatePublicDiscoveryByRoute({
+        merchantSlug: existing.merchant.slug,
+        experienceSlug: existing.slug,
+      })
+    }
     return NextResponse.json({ success: true, data: experience })
   } catch (error) {
     return storeErrorResponse(error)

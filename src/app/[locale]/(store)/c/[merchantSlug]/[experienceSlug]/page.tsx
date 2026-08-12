@@ -2,7 +2,7 @@ import { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { setRequestLocale } from 'next-intl/server'
 import { ExperienceDiscoveryContent } from '@/components/store/ExperienceDiscoveryContent'
-import { StoreShopperExperience } from '@/components/store/StoreShopperExperience'
+import { InteractiveCommerceLauncher } from '@/components/store/InteractiveCommerceLauncher'
 import { resolveStoreAssetAccessPolicy } from '@/modules/store/infrastructure/config/store-asset-access-policy'
 import { getPublicExperienceDiscoveryForRoute } from '@/modules/store/application/get-public-experience-discovery-route'
 import { buildExperienceDiscoveryMetadata, discoveryCanonicalUrl } from '@/lib/store-discovery-seo'
@@ -16,7 +16,15 @@ interface CampaignExperiencePageProps {
   }
 }
 
-export const dynamic = 'force-dynamic'
+export const revalidate = 5 * 60
+export const dynamicParams = true
+
+// Campaign slugs are published after deploy; empty build-time params keep the
+// route eligible for on-demand ISR without baking a campaign snapshot into
+// the build.
+export function generateStaticParams() {
+  return []
+}
 
 export async function generateMetadata({
   params,
@@ -24,7 +32,7 @@ export async function generateMetadata({
   setRequestLocale(params.locale)
   const locale = getValidLocale(params.locale)
   const pathname = `/${locale}/c/${params.merchantSlug}/${params.experienceSlug}`
-  const discovery = await getPublicExperienceDiscoveryForRoute(params.merchantSlug, params.experienceSlug)
+  const discovery = await getPublicExperienceDiscoveryForRoute(params.merchantSlug, params.experienceSlug, locale)
   if (!discovery) {
     return {
       title: 'Campaign not found | VisuTry',
@@ -38,7 +46,7 @@ export async function generateMetadata({
 export default async function CampaignExperiencePage({ params }: CampaignExperiencePageProps) {
   setRequestLocale(params.locale)
   const locale = getValidLocale(params.locale)
-  const discovery = await getPublicExperienceDiscoveryForRoute(params.merchantSlug, params.experienceSlug)
+  const discovery = await getPublicExperienceDiscoveryForRoute(params.merchantSlug, params.experienceSlug, locale)
   if (!discovery) notFound()
   const assetPolicy = resolveStoreAssetAccessPolicy()
   return <div>
@@ -47,13 +55,11 @@ export default async function CampaignExperiencePage({ params }: CampaignExperie
       locale={locale}
       pathname={`/${locale}/c/${params.merchantSlug}/${params.experienceSlug}`}
     />
-    <section aria-label="Interactive shopping experience">
-      <StoreShopperExperience
+    <InteractiveCommerceLauncher
         merchantSlug={params.merchantSlug}
         experienceSlug={params.experienceSlug}
         locale={locale}
         publicPocStorage={assetPolicy.publicPoc}
-      />
-    </section>
+    />
   </div>
 }
