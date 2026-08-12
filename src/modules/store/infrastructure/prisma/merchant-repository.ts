@@ -14,6 +14,7 @@ function mapMerchant(row: Merchant): MerchantRecord {
     accentColor: row.accentColor,
     status: row.status as MerchantStatus,
     pilotType: row.pilotType,
+    sponsoredUsagePolicyKey: row.sponsoredUsagePolicyKey,
     referenceData: row.referenceData,
     defaultSource: row.defaultSource,
     defaultCampaign: row.defaultCampaign,

@@ -77,3 +77,9 @@ export const STORE_USAGE_KINDS = [
   'SESSION',
 ] as const
 export type StoreUsageKind = (typeof STORE_USAGE_KINDS)[number]
+
+export const MERCHANT_SPONSORED_USAGE_TYPES = [
+  'SPONSORED_GENERATION',
+  'SPONSORED_COMPARE',
+] as const
+export type MerchantSponsoredUsageType = (typeof MERCHANT_SPONSORED_USAGE_TYPES)[number]

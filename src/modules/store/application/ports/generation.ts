@@ -13,6 +13,9 @@ type StoreGenerationSubmitBase = {
   idempotencyKey: string
   clientSubmissionId: string
   prompt?: string
+  storeOrigin: 'STORE_DEMO' | 'STORE_PILOT'
+  userId?: string | null
+  onProviderAccepted?: () => Promise<void>
 }
 
 export type StoreGenerationSubmitInput = StoreGenerationSubmitBase &

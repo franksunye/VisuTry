@@ -18,10 +18,16 @@ export type MerchantAllowancePolicy = {
   merchantId: string
 }
 
+export type MerchantSponsoredAllowancePolicy = {
+  kind: 'merchant_sponsored'
+  merchantId: string
+}
+
 export type UsagePolicy =
   | ConsumerQuotaPolicy
   | StoreDemoAllowancePolicy
   | MerchantAllowancePolicy
+  | MerchantSponsoredAllowancePolicy
 
 /** Configurable Store Demo limits — change without touching shopper UI. */
 export type StoreDemoLimits = {

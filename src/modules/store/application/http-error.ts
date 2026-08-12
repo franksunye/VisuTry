@@ -43,6 +43,11 @@ function logStoreDomainError(error: StoreDomainError): void {
     case 'ALLOWANCE_EXCEEDED':
       logger.warn('store', 'Store allowance or abuse limit exceeded', data)
       return
+    case 'AUTH_REQUIRED':
+    case 'CONSUMER_CREDITS_REQUIRED':
+    case 'SPONSORED_ALLOWANCE_EXHAUSTED':
+      logger.info('store', 'Merchant sponsored usage requires consumer continuation', data)
+      return
     case 'SESSION_UNAUTHORIZED':
     case 'PRIVACY_VIOLATION':
       logger.warn('store', 'Store access denied', data)

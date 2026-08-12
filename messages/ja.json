@@ -828,7 +828,7 @@
       "readyBody": "Building your personalized shortlist…",
       "nextComingSoon": "Continue to recommendations (next)"
     },
-    "noCreditsNote": "No VisuTry consumer credits are used in this merchant store session.",
+    "sessionNote": "写真はこのショッピングセッション内でのみ扱われます。",
     "errors": {
       "generic": "Something went wrong. Please try again.",
       "unavailableTitle": "Store unavailable",

@@ -12,6 +12,9 @@ export type StoreErrorCode =
   | 'SESSION_EXPIRED'
   | 'SESSION_UNAUTHORIZED'
   | 'ALLOWANCE_EXCEEDED'
+  | 'AUTH_REQUIRED'
+  | 'CONSUMER_CREDITS_REQUIRED'
+  | 'SPONSORED_ALLOWANCE_EXHAUSTED'
   | 'CAPABILITY_DISABLED'
   | 'VALIDATION_ERROR'
   | 'IDEMPOTENCY_CONFLICT'
@@ -82,5 +85,21 @@ export function frameInactive(): StoreDomainError {
     'FRAME_INACTIVE',
     'This frame is no longer available.',
     409,
+  )
+}
+
+export function authRequiredForContinuation(): StoreDomainError {
+  return new StoreDomainError(
+    'AUTH_REQUIRED',
+    'Sign in to continue with more AI generations.',
+    401,
+  )
+}
+
+export function consumerEntitlementRequired(): StoreDomainError {
+  return new StoreDomainError(
+    'CONSUMER_CREDITS_REQUIRED',
+    'Continue with your VisuTry entitlement or Credits Pack.',
+    402,
   )
 }

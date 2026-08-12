@@ -6,6 +6,7 @@ import {
   createPrismaMerchantEventRepository,
   createPrismaMerchantIntentRepository,
   createPrismaStoreUsageRepository,
+  createPrismaMerchantSponsoredUsageRepository,
   createVercelBlobAssetStore,
   createStoreGenerationAdapter,
 } from '../infrastructure'
@@ -20,6 +21,7 @@ export function createStoreRuntime() {
     events: createPrismaMerchantEventRepository(),
     intents: createPrismaMerchantIntentRepository(),
     usage: createPrismaStoreUsageRepository(),
+    sponsoredUsage: createPrismaMerchantSponsoredUsageRepository(),
     assets: createVercelBlobAssetStore(),
     generation: createStoreGenerationAdapter(),
   }
