@@ -117,7 +117,11 @@ function ExperienceHeroVisual({
           className="absolute inset-0 h-full w-full object-cover"
         />
       ) : null}
-      <div className="absolute inset-0 bg-gradient-to-t from-slate-950/60 via-slate-950/10 to-transparent" />
+      <div className="absolute inset-0 bg-slate-950/10" aria-hidden="true" />
+      <div
+        className="absolute inset-0 bg-gradient-to-t from-slate-950/75 via-slate-950/18 to-transparent"
+        aria-hidden="true"
+      />
       <div className="absolute inset-x-6 bottom-6 text-white sm:inset-x-8 sm:bottom-8">
         <p className="font-serif text-2xl font-semibold sm:text-3xl">{heroTitle}</p>
         <p className="mt-2 max-w-md text-sm leading-6 text-white/85">{heroDescription}</p>
