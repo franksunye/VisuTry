@@ -1,5 +1,6 @@
-import { Prisma, type Experience, type MerchantFrameStatus } from '@prisma/client'
+import { Prisma, type Experience, type MerchantFrame } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
+import { validateCatalogFrame } from '@/modules/merchant/application/merchant-onboarding'
 import { resolveCampaignConversionPolicy, isCampaignGate, isCampaignObjective, isPresentationMode, type CampaignGate, type CampaignObjective } from '../domain/campaign-policy'
 import { resolvePresentationMode, type PresentationMode } from '../domain/presentation-mode'
 import { MerchantAccessError } from '@/modules/merchant/application/merchant-access'
@@ -43,13 +44,22 @@ export type CampaignReadModel = {
   readiness: { ready: boolean; blockingIssues: string[]; warnings: string[] }
 }
 
-type CampaignRow = Experience & { frames: Array<{ merchantFrameId: string; merchantFrame: { status: MerchantFrameStatus } | null }> }
+type CampaignFrame = {
+  merchantFrameId: string
+  merchantFrame: Pick<MerchantFrame, 'id' | 'sku' | 'name' | 'imageUrl' | 'shape' | 'widthClass' | 'status'> | null
+}
+
+type CampaignRow = Experience & { frames: CampaignFrame[] }
 
 const campaignFramesInclude = {
   frames: {
     where: { active: true },
     orderBy: [{ sortOrder: 'asc' as const }, { createdAt: 'asc' as const }],
-    include: { merchantFrame: { select: { status: true } } },
+    include: {
+      merchantFrame: {
+        select: { id: true, sku: true, name: true, imageUrl: true, shape: true, widthClass: true, status: true },
+      },
+    },
   },
 }
 
@@ -87,11 +97,16 @@ function mapCampaign(row: CampaignRow, merchantSlug: string, merchantReferenceDa
   const policy = resolveCampaignConversionPolicy(row)
   if (!policy) throw new CampaignServiceError('INVALID_REQUEST', 'Experience is not a Campaign.')
   const presentationMode = resolvePresentationMode({ experienceType: 'CAMPAIGN', persistedPresentationMode: row.presentationMode })
+  const frameChecks = row.frames.map((frame) => frame.merchantFrame
+    ? validateCatalogFrame(frame.merchantFrame)
+    : { valid: false, issues: ['FRAME_NOT_FOUND'], warnings: [] })
   const blockingIssues = [
     ...(row.name.trim() ? [] : ['NAME_REQUIRED']),
     ...(row.headline?.trim() ? [] : ['HEADLINE_REQUIRED']),
     ...(row.frames.length > 0 ? [] : ['FRAMES_REQUIRED']),
     ...(row.frames.every((frame) => frame.merchantFrame?.status === 'ACTIVE') ? [] : ['INACTIVE_FRAMES']),
+    ...(frameChecks.every((check) => check.valid) ? [] : ['INVALID_FRAMES']),
+    ...(row.status === 'DRAFT' || row.status === 'ACTIVE' ? [] : ['STATUS_NOT_PUBLISHABLE']),
     ...(row.startAt && row.endAt && row.startAt >= row.endAt ? ['INVALID_DATE_RANGE'] : []),
     ...(safeCtaUrl(row.primaryCtaUrl) ? [] : ['INVALID_PRIMARY_CTA']),
     ...(safeCtaUrl(row.secondaryCtaUrl) ? [] : ['INVALID_SECONDARY_CTA']),
@@ -168,6 +183,9 @@ export async function createCampaignDraft(input: {
   primaryCtaType?: string | null
   primaryCtaLabel?: string | null
   primaryCtaUrl?: string | null
+  secondaryCtaType?: string | null
+  secondaryCtaLabel?: string | null
+  secondaryCtaUrl?: string | null
 }) {
   const name = input.name.trim()
   if (!name) throw new CampaignServiceError('INVALID_REQUEST', 'Campaign name is required.')
@@ -178,17 +196,35 @@ export async function createCampaignDraft(input: {
   const startAt = parseDate(input.startAt, 'startAt') ?? null
   const endAt = parseDate(input.endAt, 'endAt') ?? null
   validateDateRange(startAt, endAt)
-  if (!safeCtaUrl(input.primaryCtaUrl)) throw new CampaignServiceError('INVALID_REQUEST', 'primaryCtaUrl must be an https URL or internal path.')
+  for (const [field, url] of [['primaryCtaUrl', input.primaryCtaUrl], ['secondaryCtaUrl', input.secondaryCtaUrl]] as const) {
+    if (!safeCtaUrl(url)) throw new CampaignServiceError('INVALID_REQUEST', `${field} must be an https URL or internal path.`)
+  }
   const merchant = await prisma.merchant.findUnique({ where: { id: input.merchantId }, select: { slug: true, referenceData: true } })
   if (!merchant) throw new MerchantAccessError()
   const requestedSlug = slugify(input.slug || name)
   const existing = await prisma.experience.findFirst({ where: { merchantId: input.merchantId, slug: requestedSlug } })
   if (existing) {
-    if (existing.type === 'CAMPAIGN' && existing.status === 'DRAFT' && existing.name === name) return mapCampaign(await campaignRow(input.merchantId, existing.id).then((result) => result.row), merchant.slug, merchant.referenceData)
+    const compatible = existing.type === 'CAMPAIGN'
+      && existing.status === 'DRAFT'
+      && existing.name === name
+      && (existing.campaignObjective ?? 'INTENT') === objective
+      && (existing.campaignGate ?? 'NONE') === gate
+      && (existing.presentationMode ?? 'EDITORIAL_FIRST') === presentationMode
+      && existing.headline === (input.headline?.trim() || null)
+      && existing.description === (input.description?.trim() || null)
+      && existing.startAt?.getTime() === startAt?.getTime()
+      && existing.endAt?.getTime() === endAt?.getTime()
+      && existing.primaryCtaType === (input.primaryCtaType?.trim() || null)
+      && existing.primaryCtaLabel === (input.primaryCtaLabel?.trim() || null)
+      && existing.primaryCtaUrl === (input.primaryCtaUrl?.trim() || null)
+      && existing.secondaryCtaType === (input.secondaryCtaType?.trim() || null)
+      && existing.secondaryCtaLabel === (input.secondaryCtaLabel?.trim() || null)
+      && existing.secondaryCtaUrl === (input.secondaryCtaUrl?.trim() || null)
+    if (compatible) return mapCampaign(await campaignRow(input.merchantId, existing.id).then((result) => result.row), merchant.slug, merchant.referenceData)
     throw new CampaignServiceError('CAMPAIGN_SLUG_CONFLICT', 'A Campaign already uses this slug.', 409)
   }
   const created = await prisma.experience.create({
-    data: { merchantId: input.merchantId, type: 'CAMPAIGN', slug: requestedSlug, name, status: 'DRAFT', headline: input.headline?.trim() || null, description: input.description?.trim() || null, campaignObjective: objective, campaignGate: gate, presentationMode, startAt, endAt, primaryCtaType: input.primaryCtaType?.trim() || null, primaryCtaLabel: input.primaryCtaLabel?.trim() || null, primaryCtaUrl: input.primaryCtaUrl?.trim() || null },
+    data: { merchantId: input.merchantId, type: 'CAMPAIGN', slug: requestedSlug, name, status: 'DRAFT', headline: input.headline?.trim() || null, description: input.description?.trim() || null, campaignObjective: objective, campaignGate: gate, presentationMode, startAt, endAt, primaryCtaType: input.primaryCtaType?.trim() || null, primaryCtaLabel: input.primaryCtaLabel?.trim() || null, primaryCtaUrl: input.primaryCtaUrl?.trim() || null, secondaryCtaType: input.secondaryCtaType?.trim() || null, secondaryCtaLabel: input.secondaryCtaLabel?.trim() || null, secondaryCtaUrl: input.secondaryCtaUrl?.trim() || null },
     include: campaignFramesInclude,
   })
   return mapCampaign(created, merchant.slug, merchant.referenceData)
@@ -234,8 +270,11 @@ export async function setCampaignFrames(input: { merchantId: string; campaignId:
   if (input.frameIds.length > MAX_CAMPAIGN_FRAMES) throw new CampaignServiceError('INVALID_REQUEST', `frameIds cannot exceed ${MAX_CAMPAIGN_FRAMES}.`)
   const frameIds = [...new Set(input.frameIds)]
   await campaignRow(input.merchantId, input.campaignId)
-  const frames = await prisma.merchantFrame.findMany({ where: { merchantId: input.merchantId, id: { in: frameIds }, status: 'ACTIVE' }, select: { id: true } })
-  if (frames.length !== frameIds.length) throw new MerchantAccessError()
+  const frames = await prisma.merchantFrame.findMany({
+    where: { merchantId: input.merchantId, id: { in: frameIds }, status: 'ACTIVE' },
+    select: { id: true, sku: true, name: true, imageUrl: true, shape: true, widthClass: true, status: true },
+  })
+  if (frames.length !== frameIds.length || frames.some((frame) => !validateCatalogFrame(frame).valid)) throw new MerchantAccessError()
   await prisma.$transaction(async (tx) => {
     await tx.experienceFrame.deleteMany({ where: { experienceId: input.campaignId, merchantId: input.merchantId } })
     if (frameIds.length) await tx.experienceFrame.createMany({ data: frameIds.map((merchantFrameId, sortOrder) => ({ experienceId: input.campaignId, merchantId: input.merchantId, merchantFrameId, sortOrder, active: true })) })
