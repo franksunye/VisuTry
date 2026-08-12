@@ -7,11 +7,17 @@ import { createHash, randomBytes, timingSafeEqual } from 'crypto'
 import type { MerchantSessionStatus } from './enums'
 
 export const MERCHANT_SESSION_TTL_HOURS = 24
+export const ANONYMOUS_SHOPPER_IDENTITY_TTL_DAYS = 180
 
 export type MerchantSessionCapability = {
   /** Opaque token returned once to the client (cookie or header). */
   token: string
   /** SHA-256 hex hash stored in the database. */
+  tokenHash: string
+}
+
+export type AnonymousShopperIdentity = {
+  token: string
   tokenHash: string
 }
 
@@ -22,6 +28,12 @@ export function createMerchantSessionCapability(): MerchantSessionCapability {
 
 export function hashSessionCapability(token: string): string {
   return createHash('sha256').update(token, 'utf8').digest('hex')
+}
+
+/** Stable, opaque browser identity. Only the hash should be persisted. */
+export function createAnonymousShopperIdentity(): AnonymousShopperIdentity {
+  const token = randomBytes(32).toString('base64url')
+  return { token, tokenHash: hashSessionCapability(token) }
 }
 
 export function verifySessionCapability(

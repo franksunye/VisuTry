@@ -828,7 +828,7 @@
       "readyBody": "Building your personalized shortlist…",
       "nextComingSoon": "Continue to recommendations (next)"
     },
-    "noCreditsNote": "This shopping experience is free to explore. Consumer credits are not used.",
+    "sessionNote": "Your photo stays within this shopping session.",
     "errors": {
       "generic": "Something went wrong. Please try again.",
       "unavailableTitle": "Store unavailable",

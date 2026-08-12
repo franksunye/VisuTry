@@ -7,7 +7,11 @@ import {
   createStoreSession,
   storeErrorResponse,
 } from '@/modules/store/application'
-import { applyStoreCapabilityCookie } from '@/modules/store/infrastructure'
+import {
+  applyStoreCapabilityCookie,
+  applyStoreVisitorCookie,
+  ensureStoreVisitorIdentity,
+} from '@/modules/store/infrastructure'
 
 export const dynamic = 'force-dynamic'
 
@@ -23,6 +27,7 @@ export async function POST(request: NextRequest) {
     }
 
     const runtime = createStoreRuntime()
+    const visitor = ensureStoreVisitorIdentity(request)
     const merchant = await runtime.merchants.findBySlug(parsed.data.merchantSlug)
     if (merchant) {
       await assertStoreSessionCreateAllowed({
@@ -40,7 +45,7 @@ export async function POST(request: NextRequest) {
       slug: parsed.data.merchantSlug,
       experienceSlug: parsed.data.experienceSlug ?? null,
       locale: parsed.data.locale ?? null,
-      anonymousVisitorId: parsed.data.anonymousVisitorId ?? null,
+      anonymousVisitorId: visitor.identity.tokenHash,
       deviceType: parsed.data.deviceType ?? null,
       acquisition: parsed.data.acquisition ?? null,
     })
@@ -55,6 +60,7 @@ export async function POST(request: NextRequest) {
     })
 
     applyStoreCapabilityCookie(response, result.capabilityToken)
+    if (visitor.created) applyStoreVisitorCookie(response, visitor.identity.token)
     return response
   } catch (error) {
     return storeErrorResponse(error)

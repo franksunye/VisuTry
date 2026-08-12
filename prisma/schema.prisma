@@ -73,6 +73,7 @@ model User {
   tryOnTasks         TryOnTask[]
   faceAnalysisTasks  FaceAnalysisTask[]
   payments           Payment[]
+  merchantSponsoredUsages MerchantSponsoredUsage[]
 
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
@@ -470,6 +471,8 @@ model Merchant {
 
   /// Commercial offer identity — provider-independent (e.g. FOUNDING_PILOT, DEMO).
   planCode                   String?
+  /// Explicit key for the merchant-sponsored usage policy. Null means sponsorship is disabled.
+  sponsoredUsagePolicyKey    String?
   /// Commercial stage (e.g. MARKET_CAPTURE).
   commercialStage            String?
   pricingVersion             String?
@@ -490,6 +493,7 @@ model Merchant {
   events   MerchantEvent[]
   assets   StoreAsset[]
   usage    MerchantUsageLedger[]
+  sponsoredUsages MerchantSponsoredUsage[]
   tryOnTasks TryOnTask[]
   orphanBlobs StoreOrphanBlob[]
   abuseCounters StoreAbuseCounter[]
@@ -581,6 +585,7 @@ model Experience {
   sessions MerchantSession[]
   intents  MerchantIntent[]
   events   MerchantEvent[]
+  sponsoredUsages MerchantSponsoredUsage[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -644,6 +649,7 @@ model MerchantSession {
   assets     StoreAsset[]     @relation("SessionAssets")
   usage      MerchantUsageLedger[]
   tryOnTasks TryOnTask[]
+  sponsoredUsages MerchantSponsoredUsage[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -763,6 +769,44 @@ model MerchantUsageLedger {
   @@index([merchantId, kind])
   @@index([merchantId, merchantSessionId, kind])
   @@index([tryOnTaskId])
+}
+
+enum MerchantSponsoredUsageType {
+  SPONSORED_GENERATION
+  SPONSORED_COMPARE
+}
+
+enum MerchantSponsoredUsageStatus {
+  RESERVED
+  CONSUMED
+  RELEASED
+}
+
+/// Separate, auditable merchant-funded usage. Never maps to User credits.
+model MerchantSponsoredUsage {
+  id                  String                       @id @default(cuid())
+  merchantId          String
+  merchantSessionId   String?
+  experienceId        String?
+  userId              String?
+  shopperIdentityHash String
+  usageType           MerchantSponsoredUsageType
+  status              MerchantSponsoredUsageStatus @default(RESERVED)
+  idempotencyKey      String                       @unique
+  reservedAt          DateTime                     @default(now())
+  consumedAt          DateTime?
+  releasedAt          DateTime?
+  createdAt           DateTime                     @default(now())
+  updatedAt           DateTime                     @updatedAt
+
+  merchant        Merchant         @relation(fields: [merchantId], references: [id], onDelete: Restrict)
+  merchantSession MerchantSession? @relation(fields: [merchantSessionId], references: [id], onDelete: SetNull)
+  experience      Experience?      @relation(fields: [experienceId], references: [id], onDelete: SetNull)
+  user            User?            @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([merchantId, shopperIdentityHash, usageType, createdAt])
+  @@index([merchantId, userId, usageType, createdAt])
+  @@index([status, reservedAt])
 }
 
 /// Blobs uploaded without a durable task/asset row — cleaned by cron.

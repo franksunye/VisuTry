@@ -17,7 +17,12 @@ import {
   resolveStoreExperiencePolicy,
   experiencePolicyMetadata,
   experienceContainsFrame,
+  resolveMerchantSponsoredUsagePolicy,
+  sponsoredUsageFailureAction,
+  authRequiredForContinuation,
+  consumerEntitlementRequired,
 } from '../domain'
+import { checkUserQuota } from '@/lib/quota'
 import type { AssetStore } from './ports/asset-store'
 import type { StoreGenerationPort } from './ports/generation'
 import type {
@@ -27,6 +32,7 @@ import type {
   MerchantSessionRepository,
   ExperienceRepository,
   StoreUsageRepository,
+  MerchantSponsoredUsageRepository,
 } from './ports/repositories'
 import { requireOperableStoreSession } from './require-store-session'
 import { recordStoreTryOnAttempt } from './settle-store-usage'
@@ -63,6 +69,8 @@ export type SubmitStoreTryOnInput = {
   locale?: string | null
   deviceType?: string | null
   clientIp?: string | null
+  userId?: string | null
+  sponsoredUsage?: MerchantSponsoredUsageRepository
 }
 
 export type SubmitStoreTryOnResult = {
@@ -70,6 +78,7 @@ export type SubmitStoreTryOnResult = {
   status: string
   merchantFrameId: string
   reusedExisting: boolean
+  entitlementSource: 'MERCHANT_SPONSORED' | 'CONSUMER_ENTITLEMENT' | 'LEGACY_STORE'
   frame: {
     id: string
     name: string
@@ -244,6 +253,9 @@ async function claimStoreTryOnSlot(input: {
   tryOnOrigin: 'STORE_DEMO' | 'STORE_PILOT'
   batchId: string
   maxCompareFrames: number
+  userId?: string | null
+  usagePolicyKind: 'store_demo_allowance' | 'merchant_allowance' | 'merchant_sponsored' | 'consumer_quota'
+  sponsoredReservationId?: string | null
 }): Promise<{
   taskId: string
   reusedExisting: boolean
@@ -388,7 +400,7 @@ async function claimStoreTryOnSlot(input: {
 
           const task = await tx.tryOnTask.create({
             data: {
-              userId: null,
+              userId: input.userId ?? null,
               type: TryOnType.GLASSES,
               userImageUrl: 'pending://user',
               itemImageUrl: 'pending://item',
@@ -405,6 +417,10 @@ async function claimStoreTryOnSlot(input: {
               metadata: {
                 ...lease,
                 batchId: input.batchId,
+                usagePolicyKind: input.usagePolicyKind,
+                ...(input.sponsoredReservationId
+                  ? { sponsoredReservationId: input.sponsoredReservationId }
+                  : {}),
               },
               dispatchLeaseOwner: leaseOwner,
               dispatchLeaseUntil: new Date(lease.dispatchLeaseUntil),
@@ -552,19 +568,108 @@ export async function submitStoreFrameTryOn(
     clientSubmissionId: input.clientSubmissionId,
   })
 
-  const claim = await claimStoreTryOnSlot({
-    merchantId: merchant.id,
-    merchantSessionId: session.id,
-    merchantFrameId: frame.id,
-    idempotencyKey,
-    clientSubmissionId: input.clientSubmissionId,
-    clientIp: input.clientIp,
-    renderLimits: entitlement.renderLimits,
-    usageCreatedAt,
-    tryOnOrigin: entitlement.tryOnOrigin,
-    batchId: input.batchId,
-    maxCompareFrames: experiencePolicy.maxCompareFrames,
+  const existingBeforeClaim = await prisma.tryOnTask.findUnique({
+    where: { idempotencyKey },
+    select: { id: true, userId: true, metadata: true },
   })
+  const existingMetadata = (existingBeforeClaim?.metadata ?? {}) as Record<string, unknown>
+  let usagePolicy = selectUsagePolicy(
+    {
+      kind: 'store',
+      merchantId: merchant.id,
+      merchantSessionId: session.id,
+      merchantFrameId: frame.id,
+    },
+    entitlement.tryOnOrigin,
+  )
+  let sponsoredReservationId: string | null = null
+  let taskUserId: string | null = null
+  let entitlementSource: SubmitStoreTryOnResult['entitlementSource'] = 'LEGACY_STORE'
+
+  if (existingBeforeClaim) {
+    if (existingMetadata.usagePolicyKind === 'consumer_quota') {
+      usagePolicy = { kind: 'consumer_quota' }
+      taskUserId = existingBeforeClaim.userId
+      entitlementSource = 'CONSUMER_ENTITLEMENT'
+    } else if (existingMetadata.usagePolicyKind === 'merchant_sponsored') {
+      usagePolicy = { kind: 'merchant_sponsored', merchantId: merchant.id }
+      sponsoredReservationId = typeof existingMetadata.sponsoredReservationId === 'string'
+        ? existingMetadata.sponsoredReservationId
+        : null
+      entitlementSource = 'MERCHANT_SPONSORED'
+    }
+  } else {
+    const sponsoredPolicy = resolveMerchantSponsoredUsagePolicy(merchant)
+    if (sponsoredPolicy.enabled) {
+      if (!input.sponsoredUsage) {
+        throw new StoreDomainError(
+          'INTERNAL_ERROR',
+          'Sponsored usage enforcement is unavailable.',
+          500,
+        )
+      }
+
+      const reservation = await input.sponsoredUsage.reserve({
+        merchantId: merchant.id,
+        merchantSessionId: session.id,
+        experienceId: session.experienceId,
+        userId: input.userId ?? null,
+        shopperIdentityHash: session.anonymousVisitorId ?? session.capabilityTokenHash,
+        usageType: 'SPONSORED_GENERATION',
+        limit: sponsoredPolicy.sponsoredGenerationLimit,
+        rollingWindowHours: sponsoredPolicy.rollingWindowHours,
+        idempotencyKey,
+      })
+
+      if (reservation && reservation.status !== 'RELEASED') {
+        sponsoredReservationId = reservation.id
+        usagePolicy = { kind: 'merchant_sponsored', merchantId: merchant.id }
+        entitlementSource = 'MERCHANT_SPONSORED'
+      } else {
+        if (!input.userId) throw authRequiredForContinuation()
+        const user = await prisma.user.findUnique({ where: { id: input.userId } })
+        if (!user || !checkUserQuota(user).allowed) {
+          throw consumerEntitlementRequired()
+        }
+        usagePolicy = { kind: 'consumer_quota' }
+        taskUserId = input.userId
+        entitlementSource = 'CONSUMER_ENTITLEMENT'
+      }
+    }
+  }
+
+  const claimRenderLimits = usagePolicy.kind === 'consumer_quota'
+    ? {
+        ...entitlement.renderLimits,
+        maxSuccessfulRendersPerMerchant: Number.POSITIVE_INFINITY,
+        maxSuccessfulRendersPerSession: Number.POSITIVE_INFINITY,
+      }
+    : entitlement.renderLimits
+
+  let claim: Awaited<ReturnType<typeof claimStoreTryOnSlot>>
+  try {
+    claim = await claimStoreTryOnSlot({
+      merchantId: merchant.id,
+      merchantSessionId: session.id,
+      merchantFrameId: frame.id,
+      idempotencyKey,
+      clientSubmissionId: input.clientSubmissionId,
+      clientIp: input.clientIp,
+      renderLimits: claimRenderLimits,
+      usageCreatedAt: usagePolicy.kind === 'consumer_quota' ? undefined : usageCreatedAt,
+      tryOnOrigin: entitlement.tryOnOrigin,
+      batchId: input.batchId,
+      maxCompareFrames: experiencePolicy.maxCompareFrames,
+      userId: taskUserId,
+      usagePolicyKind: usagePolicy.kind,
+      sponsoredReservationId,
+    })
+  } catch (error) {
+    if (sponsoredReservationId && input.sponsoredUsage) {
+      await input.sponsoredUsage.release(sponsoredReservationId).catch(() => undefined)
+    }
+    throw error
+  }
 
   let shouldDispatch = !claim.reusedExisting
   let dispatchLease = claim.dispatchLease
@@ -596,6 +701,7 @@ export async function submitStoreFrameTryOn(
               : 'submitted'),
         merchantFrameId: frame.id,
         reusedExisting: true,
+        entitlementSource,
         frame: frameDto(frame),
       }
     }
@@ -607,6 +713,7 @@ export async function submitStoreFrameTryOn(
         status: 'submitted',
         merchantFrameId: frame.id,
         reusedExisting: true,
+        entitlementSource,
         frame: frameDto(frame),
       }
     }
@@ -624,19 +731,10 @@ export async function submitStoreFrameTryOn(
       status: 'submitted',
       merchantFrameId: frame.id,
       reusedExisting: true,
+      entitlementSource,
       frame: frameDto(frame),
     }
   }
-
-  const usagePolicy = selectUsagePolicy(
-    {
-      kind: 'store',
-      merchantId: merchant.id,
-      merchantSessionId: session.id,
-      merchantFrameId: frame.id,
-    },
-    entitlement.tryOnOrigin,
-  )
 
   const config = getTryOnConfig('GLASSES')
   const prompt = `${config.aiPrompt}\n\nMerchant store frame:\n- Use the provided item image as "${frame.name}" (${frame.shape}${frame.color ? `, ${frame.color}` : ''}).\n- Keep the person's face, expression, head size, background, and photo composition unchanged.\n- Do not make medical, prescription, or guaranteed-fit claims in the visual.`
@@ -660,6 +758,7 @@ export async function submitStoreFrameTryOn(
       metadata: experiencePolicyMetadata(experiencePolicy, {
         batchId: input.batchId,
         generatedFrameCount: 1,
+        entitlementSource,
       }),
     })
 
@@ -676,6 +775,13 @@ export async function submitStoreFrameTryOn(
       idempotencyKey,
       clientSubmissionId: input.clientSubmissionId,
       prompt,
+      storeOrigin: entitlement.tryOnOrigin,
+      userId: taskUserId,
+      onProviderAccepted: sponsoredReservationId && input.sponsoredUsage
+        ? async () => {
+            await input.sponsoredUsage!.consume(sponsoredReservationId!)
+          }
+        : undefined,
       preClaimedTaskId: claim.taskId,
       dispatchLease,
     })
@@ -695,9 +801,17 @@ export async function submitStoreFrameTryOn(
       status: submitted.status,
       merchantFrameId: frame.id,
       reusedExisting: submitted.reusedExisting || claim.reusedExisting,
+      entitlementSource,
       frame: frameDto(frame),
     }
   } catch (error) {
+    if (
+      sponsoredReservationId &&
+      input.sponsoredUsage &&
+      sponsoredUsageFailureAction(error) === 'RELEASE'
+    ) {
+      await input.sponsoredUsage.release(sponsoredReservationId).catch(() => undefined)
+    }
     const markedFailed = await markStoreClaimFailed(claim.taskId, dispatchLease, error)
     if (!markedFailed) throw error
 

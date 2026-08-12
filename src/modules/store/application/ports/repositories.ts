@@ -29,6 +29,7 @@ export type MerchantRecord = {
   accentColor: string | null
   status: MerchantStatus
   pilotType?: string | null
+  sponsoredUsagePolicyKey?: string | null
   referenceData?: boolean
   defaultSource?: string | null
   defaultCampaign?: string | null
@@ -304,4 +305,26 @@ export interface StoreUsageRepository {
     merchantId: string,
     merchantSessionId: string,
   ): Promise<number>
+}
+
+export type SponsoredUsageReservation = {
+  id: string
+  status: 'RESERVED' | 'CONSUMED' | 'RELEASED'
+}
+
+export interface MerchantSponsoredUsageRepository {
+  reserve(input: {
+    merchantId: string
+    merchantSessionId?: string | null
+    experienceId?: string | null
+    userId?: string | null
+    shopperIdentityHash: string
+    usageType: 'SPONSORED_GENERATION' | 'SPONSORED_COMPARE'
+    limit: number
+    rollingWindowHours: number
+    idempotencyKey: string
+    now?: Date
+  }): Promise<SponsoredUsageReservation | null>
+  consume(reservationId: string): Promise<boolean>
+  release(reservationId: string): Promise<boolean>
 }

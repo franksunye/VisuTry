@@ -72,17 +72,15 @@ export function createStoreGenerationAdapter(): StoreGenerationPort {
         }
       }
 
-      const origin =
-        input.usagePolicy.kind === 'merchant_allowance' ? 'STORE_PILOT' : 'STORE_DEMO'
-
       const result: TryOnSubmissionResult = await submitStoreTryOnTask(
         {
           merchantId: input.actor.merchantId,
           merchantSessionId: input.actor.merchantSessionId,
           merchantFrameId: input.actor.merchantFrameId,
-          origin,
+          origin: input.storeOrigin,
           idempotencyKey: input.idempotencyKey,
           expiresAt: computeStoreAssetExpiresAt(),
+          userId: input.userId ?? null,
         },
         userImage,
         itemImage,
@@ -91,6 +89,7 @@ export function createStoreGenerationAdapter(): StoreGenerationPort {
           prompt: input.prompt,
           preClaimedTaskId: input.preClaimedTaskId,
           dispatchLease: input.dispatchLease,
+          onProviderAccepted: input.onProviderAccepted,
           metadata: {
             usagePolicyKind: input.usagePolicy.kind,
           },

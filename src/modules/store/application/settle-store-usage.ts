@@ -7,7 +7,7 @@ import type { StoreUsageRepository } from './ports/repositories'
 export type StoreUsageSettlementResult = {
   settled: boolean
   alreadySettled: boolean
-  source: 'store_demo' | 'merchant_allowance' | null
+  source: 'store_demo' | 'merchant_allowance' | 'merchant_sponsored' | null
 }
 
 export async function settleStoreTryOnUsage(input: {
@@ -18,7 +18,11 @@ export async function settleStoreTryOnUsage(input: {
   usage: StoreUsageRepository
 }): Promise<StoreUsageSettlementResult> {
   const quotaSource =
-    input.usagePolicy.kind === 'merchant_allowance' ? 'merchant_allowance' : 'store_demo'
+    input.usagePolicy.kind === 'merchant_sponsored'
+      ? 'merchant_sponsored'
+      : input.usagePolicy.kind === 'merchant_allowance'
+        ? 'merchant_allowance'
+        : 'store_demo'
 
   const maxAttempts = 3
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {

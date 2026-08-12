@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { getServerSession } from 'next-auth/next'
+import { authOptions } from '@/lib/auth'
 import { parseStoreTryOnSubmitRequest, storeApiError } from '@/modules/store/contracts'
 import {
   createStoreRuntime,
@@ -23,12 +25,14 @@ export async function POST(request: NextRequest) {
     }
 
     const runtime = createStoreRuntime()
+    const authSession = await getServerSession(authOptions)
     const result = await submitStoreFrameTryOn({
       merchants: runtime.merchants,
       frames: runtime.frames,
       sessions: runtime.sessions,
       events: runtime.events,
       usage: runtime.usage,
+      sponsoredUsage: runtime.sponsoredUsage,
       assets: runtime.assets,
       generation: runtime.generation,
       experiences: runtime.experiences,
@@ -41,6 +45,7 @@ export async function POST(request: NextRequest) {
       locale: parsed.data.locale ?? null,
       deviceType: parsed.data.deviceType ?? null,
       clientIp: clientIpFromRequest(request.headers),
+      userId: authSession?.user?.id ?? null,
     })
 
     return NextResponse.json({ success: true, data: result })

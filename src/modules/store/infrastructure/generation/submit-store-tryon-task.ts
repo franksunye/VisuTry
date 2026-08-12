@@ -55,6 +55,7 @@ export type StoreTryOnAttribution = {
   merchantSessionId: string
   merchantFrameId: string
   origin: 'STORE_DEMO' | 'STORE_PILOT'
+  userId?: string | null
   idempotencyKey: string
   expiresAt?: Date
 }
@@ -74,6 +75,7 @@ export async function submitStoreTryOnTask(
     prompt?: string
     preClaimedTaskId?: string
     dispatchLease?: DispatchFence
+    onProviderAccepted?: () => Promise<void>
   },
 ): Promise<TryOnSubmissionResult> {
   const clientSubmissionId = options?.clientSubmissionId
@@ -137,7 +139,7 @@ export async function submitStoreTryOnTask(
     try {
       task = await prisma.tryOnTask.create({
         data: {
-          userId: null,
+          userId: attribution.userId ?? null,
           type: TryOnType.GLASSES,
           userImageUrl: 'pending://user',
           itemImageUrl: 'pending://item',
@@ -252,6 +254,10 @@ export async function submitStoreTryOnTask(
     }
   }
 
+  // False means all work so far is local/pre-provider and a failure can
+  // release the sponsored reservation. True means the provider call has
+  // started; an exception is delivery-uncertain and must retain the row.
+  let providerStarted = false
   try {
     if (isMockMode) {
       const settled = await Promise.allSettled([
@@ -347,6 +353,9 @@ export async function submitStoreTryOnTask(
     const userDataUri = `data:${userMime};base64,${userBuffer.toString('base64')}`
     const itemDataUri = `data:${itemMime};base64,${itemBuffer.toString('base64')}`
 
+    // Set immediately before the provider call. A thrown request may have
+    // reached the provider, so the caller must retain the reservation.
+    providerStarted = true
     const externalTaskId = await submitAsyncTask(
       userDataUri,
       itemDataUri,
@@ -358,6 +367,18 @@ export async function submitStoreTryOnTask(
         origin,
       },
     )
+
+    // This callback is the cost boundary: the provider accepted a costly
+    // generation. It is intentionally best-effort; a failed accounting write
+    // leaves the reservation active and therefore cannot grant another free run.
+    try {
+      await options?.onProviderAccepted?.()
+    } catch (accountingError) {
+      logger.error('store', 'Failed to finalize sponsored usage after provider acceptance', accountingError as Error, {
+        taskId: task.id,
+        merchantId,
+      })
+    }
 
     const dispatched = await prisma.tryOnTask.updateMany({
       where: {
@@ -398,6 +419,9 @@ export async function submitStoreTryOnTask(
     }
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+    if (error && typeof error === 'object') {
+      ;(error as { providerStarted?: boolean }).providerStarted = providerStarted
+    }
     logger.error('store', 'Store GrsAi submission failed', error as Error, {
       taskId: task.id,
       merchantId,

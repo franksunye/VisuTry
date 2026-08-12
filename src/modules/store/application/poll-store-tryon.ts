@@ -17,10 +17,12 @@ import type {
 } from './ports/repositories'
 import { requireOperableStoreSession } from './require-store-session'
 import { settleStoreTryOnUsage } from './settle-store-usage'
+import { settleTryOnTaskQuota } from '@/lib/quota'
 import { buildStoreTryOnResultDeliveryUrl } from './store-result-delivery'
 import { prisma } from '@/lib/prisma'
 import { logger } from '@/lib/logger'
 import { experiencePolicyMetadata, resolveStoreExperiencePolicy } from '../domain/experience-policy'
+import { StoreDomainError } from '../domain/errors'
 
 export type PollStoreTryOnInput = {
   merchants: MerchantRepository
@@ -81,6 +83,8 @@ export async function pollStoreFrameTryOn(
       id: true,
       merchantFrameId: true,
       origin: true,
+      userId: true,
+      metadata: true,
     },
   })
   if (!owned) {
@@ -94,24 +98,42 @@ export async function pollStoreFrameTryOn(
   }
 
   const status = await input.generation.getStatus(input.taskId, merchant.id)
+  const taskMetadata = (owned.metadata ?? {}) as Record<string, unknown>
+  const usagePolicyKind = taskMetadata.usagePolicyKind
 
   if (status.status === 'COMPLETED' && owned.merchantFrameId) {
-    const usagePolicy = selectUsagePolicy(
-      {
-        kind: 'store',
-        merchantId: merchant.id,
-        merchantSessionId: session.id,
-        merchantFrameId: owned.merchantFrameId,
-      },
-      owned.origin === 'STORE_PILOT' ? 'STORE_PILOT' : 'STORE_DEMO',
-    )
-    const settlement = await settleStoreTryOnUsage({
-      taskId: input.taskId,
-      merchantId: merchant.id,
-      merchantSessionId: session.id,
-      usagePolicy,
-      usage: input.usage,
-    })
+    const usagePolicy = usagePolicyKind === 'merchant_sponsored'
+      ? { kind: 'merchant_sponsored' as const, merchantId: merchant.id }
+      : usagePolicyKind === 'consumer_quota'
+        ? { kind: 'consumer_quota' as const }
+        : selectUsagePolicy(
+            {
+              kind: 'store',
+              merchantId: merchant.id,
+              merchantSessionId: session.id,
+              merchantFrameId: owned.merchantFrameId,
+            },
+            owned.origin === 'STORE_PILOT' ? 'STORE_PILOT' : 'STORE_DEMO',
+          )
+    if (usagePolicy.kind === 'consumer_quota' && !owned.userId) {
+      throw new StoreDomainError(
+        'INTERNAL_ERROR',
+        'Consumer entitlement task is missing its user.',
+        500,
+      )
+    }
+    const settlement = usagePolicy.kind === 'consumer_quota'
+      ? await settleTryOnTaskQuota(input.taskId, owned.userId!, {
+          merchantId: merchant.id,
+          merchantSessionId: session.id,
+        })
+      : await settleStoreTryOnUsage({
+          taskId: input.taskId,
+          merchantId: merchant.id,
+          merchantSessionId: session.id,
+          usagePolicy,
+          usage: input.usage,
+        })
     const completedEvent = await input.events.appendIdempotent({
       eventId: buildStoreEventIdempotencyKey({
         type: 'merchant_tryon_completed',
@@ -128,7 +150,15 @@ export async function pollStoreFrameTryOn(
       source: 'SERVER',
       locale: input.locale ?? null,
       deviceType: input.deviceType ?? null,
-      metadata: experiencePolicyMetadata(experiencePolicy, { generatedFrameCount: 1 }),
+      metadata: experiencePolicyMetadata(experiencePolicy, {
+        generatedFrameCount: 1,
+        entitlementSource:
+          usagePolicy.kind === 'merchant_sponsored'
+            ? 'MERCHANT_SPONSORED'
+            : usagePolicy.kind === 'consumer_quota'
+              ? 'CONSUMER_ENTITLEMENT'
+              : 'LEGACY_STORE',
+      }),
     })
     if (completedEvent.created || settlement.settled) {
       logger.info('store', 'Store try-on completed', {
@@ -160,7 +190,15 @@ export async function pollStoreFrameTryOn(
       source: 'SERVER',
       locale: input.locale ?? null,
       deviceType: input.deviceType ?? null,
-      metadata: experiencePolicyMetadata(experiencePolicy, { generatedFrameCount: 1 }),
+      metadata: experiencePolicyMetadata(experiencePolicy, {
+        generatedFrameCount: 1,
+        entitlementSource:
+          usagePolicyKind === 'merchant_sponsored'
+            ? 'MERCHANT_SPONSORED'
+            : usagePolicyKind === 'consumer_quota'
+              ? 'CONSUMER_ENTITLEMENT'
+              : 'LEGACY_STORE',
+      }),
     })
     if (failedEvent.created) {
       logger.warn('store', 'Store try-on failed', {

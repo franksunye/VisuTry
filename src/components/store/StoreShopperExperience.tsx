@@ -11,6 +11,7 @@ import {
   Loader2,
   LockKeyhole,
   ShieldCheck,
+  Sparkles,
   Store,
 } from 'lucide-react'
 import { ImageUpload } from '@/components/upload/ImageUpload'
@@ -532,6 +533,9 @@ export function StoreShopperExperience({
                 Reference Pilot · Simulation
               </span>
             ) : null}
+            <span className="hidden sm:inline">Powered by</span>
+            <span className="font-semibold text-blue-600">VisuTry</span>
+            <Sparkles className="h-4 w-4 text-blue-500" aria-hidden="true" />
           </div>
         </header>
 
@@ -706,8 +710,8 @@ export function StoreShopperExperience({
             ) : null}
 
             <footer className="mt-8 flex flex-wrap items-center justify-between gap-3 border-t border-slate-200 px-2 pt-6 text-xs text-slate-400">
-              <p className="flex items-center gap-2"><LockKeyhole className="h-3.5 w-3.5" />{t('noCreditsNote')}</p>
-              <p>{t('experience.poweredBy')}</p>
+              <p className="flex items-center gap-2"><LockKeyhole className="h-3.5 w-3.5" />{t('sessionNote')}</p>
+              <p>Powered by <span className="font-semibold text-blue-600">VisuTry</span></p>
             </footer>
           </main>
         )}
