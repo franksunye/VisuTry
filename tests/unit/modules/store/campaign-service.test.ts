@@ -9,7 +9,7 @@ jest.mock('@/lib/prisma', () => ({
 }))
 
 import { prisma } from '@/lib/prisma'
-import { CampaignServiceError, createCampaignDraft, publishCampaign, setCampaignFrames, updateCampaign } from '@/modules/store/application/campaign-service'
+import { CampaignServiceError, createCampaignDraft, previewCampaign, publishCampaign, setCampaignFrames, updateCampaign } from '@/modules/store/application/campaign-service'
 import { MerchantAccessError } from '@/modules/merchant/application/merchant-access'
 
 const baseRow = {
@@ -18,7 +18,7 @@ const baseRow = {
   secondaryCtaType: null, secondaryCtaLabel: null, secondaryCtaUrl: null, offerLabel: null, offerCode: null, offerTerms: null,
   startAt: null, endAt: null, campaignObjective: 'INTENT' as const, campaignGate: 'NONE' as const, presentationMode: 'EDITORIAL_FIRST' as const,
   referenceData: false, defaultSource: null, defaultCampaign: null, referenceMetadata: null, createdAt: new Date(), updatedAt: new Date(),
-  frames: [{ merchantFrameId: 'frame-a', merchantFrame: { status: 'ACTIVE' as const } }],
+  frames: [{ merchantFrameId: 'frame-a', merchantFrame: { id: 'frame-a', sku: 'SKU-A', name: 'Frame A', imageUrl: 'https://cdn.example.test/frame-a.jpg', shape: 'round', widthClass: 'small', status: 'ACTIVE' as const } }],
 }
 
 describe('Campaign application service', () => {
@@ -43,6 +43,13 @@ describe('Campaign application service', () => {
     await expect(createCampaignDraft({ merchantId: 'merchant-a', name: 'Bad', startAt: '2026-01-02', endAt: '2026-01-01' })).rejects.toMatchObject({ code: 'INVALID_DATE_RANGE' })
   })
 
+  it('returns a stable conflict when an idempotent slug request changes policy', async () => {
+    ;(prisma.merchant.findUnique as jest.Mock).mockResolvedValue({ slug: 'merchant-a', referenceData: false })
+    ;(prisma.experience.findFirst as jest.Mock).mockResolvedValue(baseRow)
+
+    await expect(createCampaignDraft({ merchantId: 'merchant-a', name: 'Small Faces', objective: 'LEAD' })).rejects.toMatchObject({ code: 'CAMPAIGN_SLUG_CONFLICT' })
+  })
+
   it('updates only bounded policy fields and preserves tenant ownership', async () => {
     ;(prisma.experience.findFirst as jest.Mock).mockResolvedValue(baseRow)
     ;(prisma.merchant.findUnique as jest.Mock).mockResolvedValue({ slug: 'merchant-a', referenceData: false })
@@ -60,10 +67,38 @@ describe('Campaign application service', () => {
     await expect(setCampaignFrames({ merchantId: 'merchant-a', campaignId: 'campaign-b', frameIds: ['frame-b'] })).rejects.toBeInstanceOf(MerchantAccessError)
   })
 
+  it('rejects active but ineligible catalog frames', async () => {
+    ;(prisma.experience.findFirst as jest.Mock).mockResolvedValue(baseRow)
+    ;(prisma.merchant.findUnique as jest.Mock).mockResolvedValue({ slug: 'merchant-a', referenceData: false })
+    ;(prisma.merchantFrame.findMany as jest.Mock).mockResolvedValue([
+      { id: 'frame-a', sku: 'SKU-A', name: 'Frame A', imageUrl: null, shape: 'round', widthClass: 'small', status: 'ACTIVE' },
+    ])
+
+    await expect(setCampaignFrames({ merchantId: 'merchant-a', campaignId: 'campaign-a', frameIds: ['frame-a'] })).rejects.toBeInstanceOf(MerchantAccessError)
+  })
+
+  it('keeps Campaign preview side-effect free', async () => {
+    ;(prisma.experience.findFirst as jest.Mock).mockResolvedValue(baseRow)
+    ;(prisma.merchant.findUnique as jest.Mock).mockResolvedValue({ slug: 'merchant-a', referenceData: false })
+
+    const result = await previewCampaign({ merchantId: 'merchant-a', campaignId: 'campaign-a' })
+
+    expect(result.readiness.ready).toBe(true)
+    expect(prisma.experience.update).not.toHaveBeenCalled()
+    expect(prisma.$transaction).not.toHaveBeenCalled()
+  })
+
   it('requires approval and readiness before publishing', async () => {
     await expect(publishCampaign({ merchantId: 'merchant-a', campaignId: 'campaign-a', approved: false })).rejects.toMatchObject({ code: 'PUBLISH_APPROVAL_REQUIRED' })
     ;(prisma.experience.findFirst as jest.Mock).mockResolvedValue({ ...baseRow, frames: [] })
     ;(prisma.merchant.findUnique as jest.Mock).mockResolvedValue({ slug: 'merchant-a', referenceData: false })
+    await expect(publishCampaign({ merchantId: 'merchant-a', campaignId: 'campaign-a', approved: true })).rejects.toMatchObject({ code: 'CAMPAIGN_NOT_READY' })
+  })
+
+  it('keeps archived Campaigns from being republished', async () => {
+    ;(prisma.experience.findFirst as jest.Mock).mockResolvedValue({ ...baseRow, status: 'ARCHIVED' })
+    ;(prisma.merchant.findUnique as jest.Mock).mockResolvedValue({ slug: 'merchant-a', referenceData: false })
+
     await expect(publishCampaign({ merchantId: 'merchant-a', campaignId: 'campaign-a', approved: true })).rejects.toMatchObject({ code: 'CAMPAIGN_NOT_READY' })
   })
 })
