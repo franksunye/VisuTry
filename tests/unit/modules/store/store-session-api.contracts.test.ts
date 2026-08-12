@@ -17,6 +17,7 @@ describe('STORE-2 contracts and merchant resolution', () => {
         source: 'google',
         medium: 'cpc',
         campaign: 'pilot',
+        surface: 'discover',
         landingUrl: '/store/luna',
       },
     })
@@ -24,7 +25,11 @@ describe('STORE-2 contracts and merchant resolution', () => {
     if (ok.ok) {
       expect(ok.data.acquisition?.source).toBe('google')
       expect(ok.data.acquisition?.campaign).toBe('pilot')
+      expect(ok.data.acquisition?.surface).toBe('discover')
     }
+    const spoofed = parseCreateSessionRequest({ merchantSlug: 'luna-optical', experienceId: 'other-merchant-experience' })
+    expect(spoofed.ok).toBe(true)
+    if (spoofed.ok) expect((spoofed.data as { experienceId?: string }).experienceId).toBeUndefined()
   })
 
   it('hides inactive merchants behind shopper-safe unavailable error', async () => {

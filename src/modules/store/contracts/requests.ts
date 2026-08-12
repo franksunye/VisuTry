@@ -18,6 +18,8 @@ export type CreateSessionRequest = {
     source?: string
     medium?: string
     campaign?: string
+    surface?: string
+    acquisitionSurface?: string
     referrer?: string
     landingUrl?: string
     aiAgentSource?: string
@@ -42,6 +44,8 @@ export function parseCreateSessionRequest(body: unknown): ValidationResult<Creat
       source: typeof a.source === 'string' ? a.source : undefined,
       medium: typeof a.medium === 'string' ? a.medium : undefined,
       campaign: typeof a.campaign === 'string' ? a.campaign : undefined,
+      surface: typeof a.surface === 'string' ? a.surface : undefined,
+      acquisitionSurface: typeof a.acquisitionSurface === 'string' ? a.acquisitionSurface : undefined,
       referrer: typeof a.referrer === 'string' ? a.referrer : undefined,
       landingUrl: typeof a.landingUrl === 'string' ? a.landingUrl : undefined,
       aiAgentSource: typeof a.aiAgentSource === 'string' ? a.aiAgentSource : undefined,

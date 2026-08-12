@@ -91,6 +91,7 @@ function captureStoreAcquisition(): {
   source?: string
   medium?: string
   campaign?: string
+  surface?: string
   referrer?: string
   landingUrl?: string
   aiAgentSource?: string
@@ -104,9 +105,10 @@ function captureStoreAcquisition(): {
   else if (ua.includes('perplexity')) aiAgentSource = 'perplexity'
   else if (ua.includes('gemini') || ua.includes('google-extended')) aiAgentSource = 'gemini'
 
-  const source = params.get('utm_source') || undefined
-  const medium = params.get('utm_medium') || undefined
-  const campaign = params.get('utm_campaign') || undefined
+  const source = params.get('source') || params.get('utm_source') || undefined
+  const medium = params.get('medium') || params.get('utm_medium') || undefined
+  const campaign = params.get('campaign') || params.get('utm_campaign') || undefined
+  const surface = params.get('surface') || undefined
   const referrer = document.referrer || undefined
   const landingUrl = `${window.location.pathname}${window.location.search}` || undefined
 
@@ -114,6 +116,7 @@ function captureStoreAcquisition(): {
     ...(source ? { source } : {}),
     ...(medium ? { medium } : {}),
     ...(campaign ? { campaign } : {}),
+    ...(surface ? { surface } : {}),
     ...(referrer ? { referrer } : {}),
     ...(landingUrl ? { landingUrl } : {}),
     ...(aiAgentSource ? { aiAgentSource } : {}),

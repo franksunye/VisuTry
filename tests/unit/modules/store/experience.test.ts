@@ -338,13 +338,16 @@ describe('Experience foundation', () => {
       usage: { countCommerceSessions: jest.fn().mockResolvedValue(0), record: jest.fn() } as never,
       slug: 'ello-sunglasses',
       locale: 'en',
-      acquisition: { campaign: 'declared-campaign' },
+      acquisition: { source: 'visutry', medium: 'internal', surface: 'face-analysis', campaign: 'declared-campaign' },
     })
 
     expect(result.experienceId).toBe('experience-1')
     expect(sessionCreate).toHaveBeenCalledWith(expect.objectContaining({
       experienceId: 'experience-1',
+      source: 'visutry',
+      medium: 'internal',
       campaign: 'declared-campaign',
+      acquisitionSurface: 'face-analysis',
     }))
   })
 

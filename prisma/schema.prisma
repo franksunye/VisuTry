@@ -630,6 +630,8 @@ model MerchantSession {
   source        String?
   medium        String?
   campaign      String?
+  /// Stable first-touch internal distribution surface, when the session came from VisuTry-owned traffic.
+  acquisitionSurface String?
   referrer      String?
   landingUrl    String?
   aiAgentSource String?
@@ -651,6 +653,7 @@ model MerchantSession {
   @@index([expiresAt])
   @@index([capabilityTokenHash])
   @@index([merchantId, source])
+  @@index([merchantId, acquisitionSurface])
   @@index([merchantId, campaign])
   @@index([merchantId, experienceId])
 }

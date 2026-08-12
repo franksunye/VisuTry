@@ -7,6 +7,7 @@ import {
 } from '@/modules/store/domain/merchant-entitlement'
 import {
   inferAiReferralSource,
+  INTERNAL_DISTRIBUTION_SURFACES,
   sanitizeSessionAcquisition,
   sessionAcquisitionToMetadata,
 } from '@/modules/store/domain/session-acquisition'
@@ -107,6 +108,7 @@ describe('session acquisition sanitize', () => {
       utm_source: 'chatgpt',
       utm_medium: 'ai-assistant',
       utm_campaign: 'pilot-launch',
+      surface: 'discover',
       referrer: 'https://example.com/ref',
       landing_page: '/store/luna?utm_source=chatgpt',
       aiAgentSource: 'chatgpt',
@@ -115,6 +117,7 @@ describe('session acquisition sanitize', () => {
       source: 'chatgpt',
       medium: 'ai-assistant',
       campaign: 'pilot-launch',
+      acquisitionSurface: null,
       referrer: 'https://example.com/ref',
       landingUrl: '/store/luna?utm_source=chatgpt',
       aiAgentSource: 'chatgpt',
@@ -152,6 +155,7 @@ describe('session acquisition sanitize', () => {
   it('preserves an AI hint only when an AI-assistant medium corroborates it', () => {
     const acquisition = sanitizeSessionAcquisition({
       medium: 'ai-assistant',
+      acquisitionSurface: 'discover',
       aiAgentSource: 'claude',
     })
     expect(acquisition.aiAgentSource).toBe('claude')
@@ -162,10 +166,19 @@ describe('session acquisition sanitize', () => {
       source: null,
       medium: null,
       campaign: null,
+      acquisitionSurface: null,
       referrer: null,
       landingUrl: null,
       aiAgentSource: null,
     })
     expect(sessionAcquisitionToMetadata(sanitizeSessionAcquisition({}))).toBeNull()
+  })
+
+  it('normalizes only the whitelisted internal surface for the explicit internal contract', () => {
+    expect(INTERNAL_DISTRIBUTION_SURFACES).toContain('discover')
+    expect(sanitizeSessionAcquisition({ source: 'visutry', medium: 'internal', surface: 'Face-Analysis' }).acquisitionSurface).toBe('face-analysis')
+    expect(sanitizeSessionAcquisition({ source: 'visutry', medium: 'internal', surface: 'random' }).acquisitionSurface).toBeNull()
+    expect(sanitizeSessionAcquisition({ source: 'google', medium: 'organic', surface: 'discover' }).acquisitionSurface).toBeNull()
+    expect(sanitizeSessionAcquisition({ source: 'visutry', medium: 'internal', surface: 'discover' }).acquisitionSurface).toBe('discover')
   })
 })

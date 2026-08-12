@@ -1,14 +1,31 @@
 /**
- * Store session acquisition context — persists source/campaign through the
- * intent journey. Domain-only: no framework imports.
+ * Store session acquisition context — persists first-touch source/campaign/
+ * surface through the intent journey. Domain-only: no framework imports.
  */
 
 const MAX_FIELD = 500
+
+export const INTERNAL_DISTRIBUTION_SURFACES = [
+  'home',
+  'discover',
+  'face-analysis',
+  'face-shape',
+  'try-on',
+  'compare',
+  'style-explorer',
+  'seo',
+  'dashboard',
+  'other',
+] as const
+
+export type InternalDistributionSurface = (typeof INTERNAL_DISTRIBUTION_SURFACES)[number]
 
 export type SessionAcquisitionInput = {
   source?: string | null
   medium?: string | null
   campaign?: string | null
+  surface?: string | null
+  acquisitionSurface?: string | null
   referrer?: string | null
   landingUrl?: string | null
   aiAgentSource?: string | null
@@ -18,6 +35,7 @@ export type SessionAcquisition = {
   source: string | null
   medium: string | null
   campaign: string | null
+  acquisitionSurface: InternalDistributionSurface | null
   referrer: string | null
   landingUrl: string | null
   aiAgentSource: string | null
@@ -32,6 +50,14 @@ function clean(value: unknown, max = MAX_FIELD): string | null {
 
 function normalizeToken(value: string | null): string {
   return (value ?? '').trim().toLowerCase()
+}
+
+function normalizeInternalSurface(value: unknown): InternalDistributionSurface | null {
+  if (typeof value !== 'string') return null
+  const normalized = value.trim().toLowerCase()
+  return (INTERNAL_DISTRIBUTION_SURFACES as readonly string[]).includes(normalized)
+    ? normalized as InternalDistributionSurface
+    : null
 }
 
 function classifyAiSourceToken(value: string | null): string | null {
@@ -89,6 +115,7 @@ export function sanitizeSessionAcquisition(
     source: null,
     medium: null,
     campaign: null,
+    acquisitionSurface: null,
     referrer: null,
     landingUrl: null,
     aiAgentSource: null,
@@ -107,6 +134,7 @@ export function sanitizeSessionAcquisition(
     clean(record.utm_medium, 120) ??
     clean(record.acquisition_medium, 120)
   const campaign = clean(record.campaign) ?? clean(record.utm_campaign)
+  const requestedSurface = record.acquisitionSurface ?? record.surface
   const referrer = clean(record.referrer)
   const landingUrl = clean(record.landingUrl) ?? clean(record.landing_page)
   const aiAgentHint = clean(record.aiAgentSource, 120)
@@ -116,11 +144,14 @@ export function sanitizeSessionAcquisition(
     normalizeToken(medium).includes('ai-assistant') || normalizeToken(medium).includes('ai_assistant')
       ? classifyAiSourceToken(aiAgentHint)
       : null
+  const isInternalDistribution =
+    normalizeToken(source) === 'visutry' && normalizeToken(medium) === 'internal'
 
   return {
     source,
     medium,
     campaign,
+    acquisitionSurface: isInternalDistribution ? normalizeInternalSurface(requestedSurface) : null,
     referrer,
     landingUrl,
     aiAgentSource: explicitAiSource ?? corroboratedHint,
