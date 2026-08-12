@@ -189,7 +189,16 @@ describe('recommendMerchantFrames', () => {
       slug: 'luna-optical',
       merchantSessionId: 's1',
       capabilityToken: capability.token,
-      signals: { measuredShape: 'square', faceAspectRatio: 1.12 },
+      signals: {
+        status: 'measured',
+        measuredShape: 'square',
+        alternativeShapes: ['oval'],
+        measuredConfidence: 0.84,
+        qualityScore: 88,
+        faceAspectRatio: 1.12,
+        jawToCheekWidth: 0.83,
+        foreheadToCheekWidth: 0.88,
+      },
     })
 
     expect(result.frames.length).toBeGreaterThan(0)
@@ -206,6 +215,10 @@ describe('recommendMerchantFrames', () => {
         metadata: expect.objectContaining({
           topMatchScore: expect.any(Number),
           averageMatchScore: expect.any(Number),
+          geometryQualityBand: 'high',
+          signalCount: expect.any(Number),
+          primaryFaceShape: 'square',
+          usedAlternativeShape: expect.any(Boolean),
         }),
       }),
     )

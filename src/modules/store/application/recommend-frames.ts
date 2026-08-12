@@ -5,6 +5,9 @@ import {
   merchantInactive,
   merchantNotFound,
   rankMerchantFrames,
+  geometryQualityBand,
+  shopperSignalCount,
+  type GeometrySignalInput,
   type ShopperAnalysisSignals,
 } from '../domain'
 import type {
@@ -27,11 +30,7 @@ export type RecommendFramesInput = {
   slug: string
   merchantSessionId: string
   capabilityToken: string | null
-  signals: {
-    measuredShape?: string | null
-    faceAspectRatio?: number | null
-    styleHints?: string[] | null
-  }
+  signals: GeometrySignalInput
   locale?: string | null
   deviceType?: string | null
   limit?: number
@@ -165,7 +164,11 @@ export async function recommendMerchantFrames(
             )
           : null,
       faceShape: signals.faceShape ?? null,
+      primaryFaceShape: signals.faceShape ?? null,
       preferredWidthClass: signals.preferredWidthClass ?? null,
+      geometryQualityBand: geometryQualityBand(signals),
+      signalCount: shopperSignalCount(signals),
+      usedAlternativeShape: ranking.frames[0]?.usedAlternativeShape ?? false,
     },
   })
 

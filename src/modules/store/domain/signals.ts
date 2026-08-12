@@ -4,10 +4,26 @@
  */
 
 import type { ShopperAnalysisSignals } from './ranking'
+import { frameShapeHints } from './frame-fit-preferences'
+import {
+  classifyJawProfile,
+  classifyUpperFaceProfile,
+} from '@/lib/face-landmark-metrics'
 
 export type GeometrySignalInput = {
+  status?: 'measured' | 'unavailable' | null
   measuredShape?: string | null
+  alternativeShapes?: string[] | null
+  measuredConfidence?: number | null
+  qualityScore?: number | null
   faceAspectRatio?: number | null
+  jawToCheekWidth?: number | null
+  foreheadToCheekWidth?: number | null
+  ratios?: {
+    faceAspectRatio?: number | null
+    jawToCheekWidth?: number | null
+    foreheadToCheekWidth?: number | null
+  } | null
   /** Optional style direction strings (e.g. recommended frame shape types). */
   styleHints?: string[] | null
 }
@@ -21,17 +37,6 @@ const KNOWN_SHAPES = new Set([
   'diamond',
   'triangle',
 ])
-
-/** Prefer these frame shapes for a given face shape (mirrors ranking preferences). */
-const STYLE_HINTS_BY_FACE: Record<string, string[]> = {
-  round: ['rectangle', 'square', 'geometric', 'browline', 'classic'],
-  square: ['round', 'oval', 'aviator', 'cat-eye', 'classic'],
-  oval: ['rectangle', 'aviator', 'cat-eye', 'browline', 'minimal'],
-  heart: ['cat-eye', 'aviator', 'round', 'browline', 'fashion'],
-  oblong: ['aviator', 'round', 'cat-eye', 'browline', 'classic'],
-  diamond: ['oval', 'round', 'aviator', 'cat-eye', 'minimal'],
-  triangle: ['aviator', 'cat-eye', 'browline', 'geometric', 'bold'],
-}
 
 export function normalizeFaceShape(value: string | null | undefined): string | null {
   if (!value) return null
@@ -57,10 +62,32 @@ export function preferredWidthFromAspectRatio(
 export function mapGeometryToShopperSignals(
   input: GeometrySignalInput,
 ): ShopperAnalysisSignals {
-  const faceShape = normalizeFaceShape(input.measuredShape)
-  const preferredWidthClass = preferredWidthFromAspectRatio(input.faceAspectRatio)
+  const geometryAvailable = input.status !== 'unavailable'
+  const faceShape = geometryAvailable ? normalizeFaceShape(input.measuredShape) : null
+  const alternativeFaceShapes = geometryAvailable
+    ? Array.from(new Set((input.alternativeShapes ?? [])
+      .map(normalizeFaceShape)
+      .filter((shape): shape is string => Boolean(shape) && shape !== faceShape)))
+      .slice(0, 2)
+    : []
+  const faceAspectRatio = geometryAvailable
+    ? finiteClamped(input.faceAspectRatio ?? input.ratios?.faceAspectRatio, 0.6, 2.2)
+    : null
+  const jawToCheekWidth = geometryAvailable
+    ? finiteClamped(input.jawToCheekWidth ?? input.ratios?.jawToCheekWidth, 0.4, 1.3)
+    : null
+  const foreheadToCheekWidth = geometryAvailable
+    ? finiteClamped(input.foreheadToCheekWidth ?? input.ratios?.foreheadToCheekWidth, 0.4, 1.3)
+    : null
+  const qualityScore = geometryAvailable
+    ? finiteClamped(input.qualityScore, 0, 100)
+    : null
+  const faceShapeConfidence = faceShape
+    ? finiteClamped(input.measuredConfidence, 0, 1)
+    : null
+  const preferredWidthClass = preferredWidthFromAspectRatio(faceAspectRatio)
 
-  const fromShape = faceShape ? STYLE_HINTS_BY_FACE[faceShape] ?? [] : []
+  const fromShape = frameShapeHints(faceShape)
   const fromClient = (input.styleHints ?? [])
     .map((h) => h.trim().toLowerCase())
     .filter(Boolean)
@@ -69,7 +96,59 @@ export function mapGeometryToShopperSignals(
 
   return {
     faceShape,
+    faceShapeConfidence,
+    alternativeFaceShapes,
     preferredWidthClass,
+    faceAspectRatio,
+    jawProfile: jawProfileFromRatio(jawToCheekWidth),
+    upperFaceProfile: upperFaceProfileFromRatio(foreheadToCheekWidth),
     styleHints: styleHints.length > 0 ? styleHints : undefined,
+    geometryQualityScore: qualityScore,
   }
+}
+
+export function jawProfileFromRatio(
+  jawToCheekWidth: number | null | undefined,
+): ShopperAnalysisSignals['jawProfile'] {
+  return classifyJawProfile(jawToCheekWidth)
+}
+
+export function upperFaceProfileFromRatio(
+  foreheadToCheekWidth: number | null | undefined,
+): ShopperAnalysisSignals['upperFaceProfile'] {
+  return classifyUpperFaceProfile(foreheadToCheekWidth)
+}
+
+export type GeometryQualityBand = 'high' | 'medium' | 'low' | 'unavailable'
+
+export function geometryQualityBand(signals: ShopperAnalysisSignals): GeometryQualityBand {
+  if (signals.geometryQualityScore === null || signals.geometryQualityScore === undefined) {
+    return signals.faceShape || signals.preferredWidthClass ? 'medium' : 'unavailable'
+  }
+  if (signals.geometryQualityScore < 60) return 'low'
+  if (signals.geometryQualityScore < 80) return 'medium'
+  return 'high'
+}
+
+export function shopperSignalCount(signals: ShopperAnalysisSignals): number {
+  return [
+    signals.faceShape,
+    signals.faceShapeConfidence,
+    signals.alternativeFaceShapes?.length ? signals.alternativeFaceShapes : null,
+    signals.preferredWidthClass,
+    signals.faceAspectRatio,
+    signals.jawProfile,
+    signals.upperFaceProfile,
+    signals.styleHints?.length ? signals.styleHints : null,
+    signals.geometryQualityScore,
+  ].filter((value) => value !== null && value !== undefined).length
+}
+
+function finiteClamped(
+  value: number | null | undefined,
+  min: number,
+  max: number,
+): number | null {
+  if (typeof value !== 'number' || !Number.isFinite(value)) return null
+  return Math.min(max, Math.max(min, value))
 }

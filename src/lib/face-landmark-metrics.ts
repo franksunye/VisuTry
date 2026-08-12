@@ -58,6 +58,28 @@ export interface FaceGeometryMeasurementOptions {
   imageHeight?: number
 }
 
+export type FaceJawProfile = 'tapered' | 'balanced' | 'strong'
+export type FaceUpperProfile = 'narrower' | 'balanced' | 'broad'
+
+/** Shared semantic boundaries consumed by downstream products, including Store ranking. */
+export function classifyJawProfile(
+  jawToCheekWidth: number | null | undefined,
+): FaceJawProfile | null {
+  if (typeof jawToCheekWidth !== 'number' || !Number.isFinite(jawToCheekWidth)) return null
+  if (jawToCheekWidth <= 0.78) return 'tapered'
+  if (jawToCheekWidth >= 0.94) return 'strong'
+  return 'balanced'
+}
+
+export function classifyUpperFaceProfile(
+  foreheadToCheekWidth: number | null | undefined,
+): FaceUpperProfile | null {
+  if (typeof foreheadToCheekWidth !== 'number' || !Number.isFinite(foreheadToCheekWidth)) return null
+  if (foreheadToCheekWidth < 0.84) return 'narrower'
+  if (foreheadToCheekWidth > 0.92) return 'broad'
+  return 'balanced'
+}
+
 function getPoint(points: FaceLandmarkPoint[], key: PointIndex): FaceLandmarkPoint | null {
   return points[FACE_MESH_INDEX[key]] ?? null
 }
@@ -310,13 +332,13 @@ function buildGeometrySignals(shape: CanonicalFaceShape, ratios: FaceGeometryRat
         ? 'Compact face length relative to width'
         : 'Balanced face length-to-width ratio'
   const jawSignal =
-    ratios.jawToCheekWidth >= 0.94
+    classifyJawProfile(ratios.jawToCheekWidth) === 'strong'
       ? 'Jaw width is close to cheekbone width'
-      : ratios.jawToCheekWidth <= 0.78
+      : classifyJawProfile(ratios.jawToCheekWidth) === 'tapered'
         ? 'Jawline tapers below the cheekbones'
         : 'Jawline has moderate taper'
   const upperSignal =
-    ratios.foreheadToCheekWidth >= 0.9
+    classifyUpperFaceProfile(ratios.foreheadToCheekWidth) === 'broad'
       ? 'Forehead width is close to cheekbone width'
       : 'Cheekbones read wider than the upper face'
   const shapeSignal = `${shape[0].toUpperCase()}${shape.slice(1)} shape supported by measured proportions`

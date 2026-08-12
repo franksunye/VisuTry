@@ -171,12 +171,26 @@ export function parseProductRedirectRequest(
   return ok({ productUrl: record.productUrl })
 }
 
+export type RecommendGeometryAnalysis = {
+  status?: 'measured' | 'unavailable'
+  measuredShape?: string
+  alternativeShapes?: string[]
+  measuredConfidence?: number
+  qualityScore?: number
+  ratios?: {
+    faceAspectRatio?: number
+    jawToCheekWidth?: number
+    foreheadToCheekWidth?: number
+  }
+}
+
 export type RecommendFramesRequest = {
   merchantSlug: string
   merchantSessionId: string
   measuredShape?: string
   faceAspectRatio?: number
   styleHints?: string[]
+  geometryAnalysis?: RecommendGeometryAnalysis
   locale?: string
   deviceType?: string
   limit?: number
@@ -203,6 +217,8 @@ export function parseRecommendFramesRequest(
     issues.push({ path: 'faceAspectRatio', message: 'faceAspectRatio must be a number' })
   }
 
+  const geometryAnalysis = parseRecommendGeometryAnalysis(record.geometryAnalysis, issues)
+
   if (record.styleHints !== undefined && !Array.isArray(record.styleHints)) {
     issues.push({ path: 'styleHints', message: 'styleHints must be an array of strings' })
   }
@@ -226,12 +242,120 @@ export function parseRecommendFramesRequest(
     faceAspectRatio:
       typeof record.faceAspectRatio === 'number' ? record.faceAspectRatio : undefined,
     styleHints,
+    geometryAnalysis,
     locale: typeof record.locale === 'string' ? record.locale : undefined,
     deviceType: typeof record.deviceType === 'string' ? record.deviceType : undefined,
     limit,
     clientActionId:
       typeof record.clientActionId === 'string' ? record.clientActionId : undefined,
   })
+}
+
+function parseRecommendGeometryAnalysis(
+  value: unknown,
+  issues: { path: string; message: string }[],
+): RecommendFramesRequest['geometryAnalysis'] {
+  if (value === undefined || value === null) return undefined
+  if (typeof value !== 'object' || Array.isArray(value)) {
+    issues.push({ path: 'geometryAnalysis', message: 'geometryAnalysis must be an object' })
+    return undefined
+  }
+
+  const record = value as Record<string, unknown>
+  const status = record.status === undefined
+    ? undefined
+    : record.status === 'measured' || record.status === 'unavailable'
+      ? record.status
+      : undefined
+  if (record.status !== undefined && status === undefined) {
+    issues.push({ path: 'geometryAnalysis.status', message: 'status must be measured or unavailable' })
+  }
+
+  const alternativeShapes = parseGeometryStringArray(record.alternativeShapes, 'alternativeShapes', issues)
+  const ratiosValue = record.ratios
+  let ratios: RecommendGeometryAnalysis['ratios']
+  if (ratiosValue !== undefined && ratiosValue !== null) {
+    if (typeof ratiosValue !== 'object' || Array.isArray(ratiosValue)) {
+      issues.push({ path: 'geometryAnalysis.ratios', message: 'ratios must be an object' })
+    } else {
+      const ratioRecord = ratiosValue as Record<string, unknown>
+      ratios = {
+        faceAspectRatio: parseClampedGeometryNumber(
+          ratioRecord.faceAspectRatio,
+          0.6,
+          2.2,
+          'geometryAnalysis.ratios.faceAspectRatio',
+          issues,
+        ),
+        jawToCheekWidth: parseClampedGeometryNumber(
+          ratioRecord.jawToCheekWidth,
+          0.4,
+          1.3,
+          'geometryAnalysis.ratios.jawToCheekWidth',
+          issues,
+        ),
+        foreheadToCheekWidth: parseClampedGeometryNumber(
+          ratioRecord.foreheadToCheekWidth,
+          0.4,
+          1.3,
+          'geometryAnalysis.ratios.foreheadToCheekWidth',
+          issues,
+        ),
+      }
+    }
+  }
+
+  return {
+    status,
+    measuredShape: typeof record.measuredShape === 'string' ? record.measuredShape.trim() : undefined,
+    alternativeShapes,
+    measuredConfidence: parseClampedGeometryNumber(
+      record.measuredConfidence,
+      0,
+      1,
+      'geometryAnalysis.measuredConfidence',
+      issues,
+    ),
+    qualityScore: parseClampedGeometryNumber(
+      record.qualityScore,
+      0,
+      100,
+      'geometryAnalysis.qualityScore',
+      issues,
+    ),
+    ratios,
+  }
+}
+
+function parseGeometryStringArray(
+  value: unknown,
+  path: string,
+  issues: { path: string; message: string }[],
+): string[] | undefined {
+  if (value === undefined || value === null) return undefined
+  if (!Array.isArray(value)) {
+    issues.push({ path: `geometryAnalysis.${path}`, message: `${path} must be an array of strings` })
+    return undefined
+  }
+  return value
+    .filter((item): item is string => typeof item === 'string' && item.trim().length > 0)
+    .map((item) => item.trim())
+    .slice(0, 2)
+}
+
+function parseClampedGeometryNumber(
+  value: unknown,
+  min: number,
+  max: number,
+  path: string,
+  issues: { path: string; message: string }[],
+): number | undefined {
+  if (value === undefined || value === null) return undefined
+  if (typeof value !== 'number' || !Number.isFinite(value)) {
+    issues.push({ path, message: 'must be a finite number' })
+    return undefined
+  }
+  return Math.min(max, Math.max(min, value))
 }
 
 export type SelectFramesRequest = {

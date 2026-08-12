@@ -314,9 +314,33 @@ export function StoreShopperExperience({
 
       let measuredShape: string | undefined
       let faceAspectRatio: number | undefined
+      let geometryAnalysis: {
+        status?: 'measured' | 'unavailable'
+        measuredShape?: string
+        alternativeShapes?: string[]
+        measuredConfidence?: number
+        qualityScore?: number
+        ratios?: {
+          faceAspectRatio?: number
+          jawToCheekWidth?: number
+          foreheadToCheekWidth?: number
+        }
+      } | undefined
 
       try {
         const landmark = await analyzeFaceLandmarkFile(file)
+        geometryAnalysis = {
+          status: landmark.geometry.status,
+          measuredShape: landmark.geometry.measuredShape,
+          alternativeShapes: landmark.geometry.alternativeShapes,
+          measuredConfidence: landmark.geometry.measuredConfidence,
+          qualityScore: landmark.geometry.qualityScore,
+          ratios: {
+            faceAspectRatio: landmark.geometry.ratios?.faceAspectRatio,
+            jawToCheekWidth: landmark.geometry.ratios?.jawToCheekWidth,
+            foreheadToCheekWidth: landmark.geometry.ratios?.foreheadToCheekWidth,
+          },
+        }
         if (landmark.geometry.status === 'measured') {
           measuredShape = landmark.geometry.measuredShape
           faceAspectRatio = landmark.geometry.ratios?.faceAspectRatio
@@ -334,6 +358,7 @@ export function StoreShopperExperience({
             merchantSessionId: activeSession.merchantSessionId,
             measuredShape,
             faceAspectRatio,
+            geometryAnalysis,
             locale,
             deviceType: deviceTypeLabel(),
             clientActionId: `rec:${activeSession.merchantSessionId}:${Date.now()}`,

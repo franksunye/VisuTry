@@ -31,8 +31,15 @@ export async function POST(request: NextRequest) {
       merchantSessionId: parsed.data.merchantSessionId,
       capabilityToken: readStoreCapabilityToken(request),
       signals: {
-        measuredShape: parsed.data.measuredShape,
-        faceAspectRatio: parsed.data.faceAspectRatio,
+        status: parsed.data.geometryAnalysis?.status,
+        measuredShape: parsed.data.geometryAnalysis?.measuredShape ?? parsed.data.measuredShape,
+        alternativeShapes: parsed.data.geometryAnalysis?.alternativeShapes,
+        measuredConfidence: parsed.data.geometryAnalysis?.measuredConfidence,
+        qualityScore: parsed.data.geometryAnalysis?.qualityScore,
+        faceAspectRatio:
+          parsed.data.geometryAnalysis?.ratios?.faceAspectRatio ?? parsed.data.faceAspectRatio,
+        jawToCheekWidth: parsed.data.geometryAnalysis?.ratios?.jawToCheekWidth,
+        foreheadToCheekWidth: parsed.data.geometryAnalysis?.ratios?.foreheadToCheekWidth,
         styleHints: parsed.data.styleHints,
       },
       locale: parsed.data.locale ?? null,
