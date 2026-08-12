@@ -784,7 +784,7 @@ Implement the shared shopper and Admin visual/interaction improvements accepted 
 
 Do not simultaneously build `/business`.
 
-#### Phase B2 implementation state — Draft PR
+#### Phase B2 implementation state — COMPLETE
 
 Phase B2 adds one server-rendered `/discover` surface for VisuTry-owned distribution:
 
@@ -793,9 +793,18 @@ Phase B2 adds one server-rendered `/discover` surface for VisuTry-owned distribu
 - Face Analysis, Compare and Style Explorer receive intent-continuation handoffs only; no AI calls, ranking, personalization or new analytics pipeline are introduced;
 - localized SEO metadata, canonical discovery routing, crawlable links and responsive editorial layouts are covered by focused tests and browser verification.
 
-This records implementation scope only. B2 is not complete until the Draft PR is reviewed, merged and verified in production.
+Production read-back completed on 2026-08-12 after PR #57 merged as `0e374e170c968899bf92fe77f1ccae74fa0ee066`.
 
-### Phase C — Consumer Discovery & Attribution
+- Vercel production deployment `visutry-j35b85q3v-sunye.vercel.app` reached `READY` for the merge commit;
+- Chrome production smoke confirmed Discover renders six Campaign Experiences and six merchant Stores;
+- Discover → ello Reference Campaign loaded with `Reference catalog` and the restrained Reference disclosure;
+- Discover → Luna Optical loaded with `Live catalog` and the live merchant presentation;
+- the three contextual handoff contracts were verified against production Experience routes with their expected `source=visutry`, `medium=internal`, `surface`, and `campaign` parameters: Face Analysis, Compare and Style Explorer;
+- no AI generation was invoked during the smoke, and no application error was observed.
+
+B2 is complete. Phase C remains a future expansion of consumer discovery and measurement and is not started by this implementation.
+
+### Phase C — Consumer Discovery & Attribution (not started)
 
 Build `/discover` (or final selected route), contextual traffic entry points and source-surface attribution.
 
