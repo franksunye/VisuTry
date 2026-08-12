@@ -43,10 +43,13 @@ function ExperienceHeroVisual({
     ? experience.name
     : `Shop the ${merchantName} eyewear collection`
   const heroDescription = experience.description?.trim() || `Selected eyewear from ${merchantName}.`
+  const heroBackground = mode === 'EDITORIAL_FIRST'
+    ? 'bg-[linear-gradient(145deg,#f6eadf,#f7f1e8)]'
+    : 'bg-[linear-gradient(145deg,#edf3fb,#faf7f2)]'
 
   return (
     <div
-      className={`relative overflow-hidden rounded-[1.75rem] bg-[linear-gradient(145deg,#f6eadf,#f7f1e8)] ${mode === 'EDITORIAL_FIRST' ? 'aspect-[16/9]' : 'aspect-[16/10]'}`}
+      className={`relative overflow-hidden rounded-[1.75rem] ${heroBackground} ${mode === 'EDITORIAL_FIRST' ? 'aspect-[16/9]' : 'aspect-[16/10]'}`}
     >
       {heroImage ? (
         <Image

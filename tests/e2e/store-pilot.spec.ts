@@ -58,6 +58,8 @@ test.describe('@critical Store Pilot Flow', () => {
 
     expect(response).not.toBeNull();
     expect(response!.status()).toBeLessThan(400);
+    await page.getByRole('button', { name: 'Start interactive shopping', exact: true }).click();
+    await expect(page.getByRole('button', { name: /I understand.*continue/i })).toBeVisible();
     await page.getByRole('button', { name: /I understand.*continue/i }).click();
     const storeLink = page.getByRole('link', { name: 'Visit the full Store' });
     await expect(storeLink).toBeVisible();
