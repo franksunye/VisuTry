@@ -15,6 +15,9 @@
     "advisorShort": "Advisor",
     "explorerShort": "Explorer",
     "compare": "Frame Compare",
+    "forBusiness": "For Business",
+    "shopperJourney": "Shopper journey",
+    "businessJourney": "For brands & retailers",
     "faq": "FAQ",
     "pricing": "Pricing",
     "discover": "Discover",
@@ -166,6 +169,18 @@
       "recommendedWorkflow": "Recommended workflow",
       "workflowPath": "Detect → Advise → Try-On → Compare",
       "bestPlaceToStart": "Best place to start",
+      "journey": {
+        "understand": "Understand your fit",
+        "explore": "Explore eyewear",
+        "try": "Try a frame",
+        "compare": "Compare options"
+      },
+      "discover": {
+        "eyebrow": "Continue exploring",
+        "title": "Focused eyewear Experiences for the next decision",
+        "description": "Move from a broad question into a curated fit, style, activity, or occasion edit.",
+        "cta": "Open Discover"
+      },
       "tools": {
         "faceTitle": "Face Shape Detector",
         "faceDescription": "Start free with a private face-shape result. No login, no credits.",
@@ -207,8 +222,8 @@
       "business": {
         "eyebrow": "For optical stores and eyewear sellers",
         "title": "Turn human and AI-assistant traffic into confident eyewear decisions.",
-        "description": "VisuTry Store connects merchant catalogs with frame discovery, virtual try-on, comparison, purchase-intent signals, and measurable conversion in one hosted AI commerce experience.",
-        "cta": "Explore VisuTry Store"
+        "description": "VisuTry connects merchant catalogs with guided frame discovery, Store and Campaign Experiences, shopper intent signals, and merchant intelligence.",
+        "cta": "For eyewear brands & retailers"
       },
       "faq": {
         "q1Question": "Where should I start?",
@@ -712,6 +727,10 @@
   "footer": {
     "links": {
       "product": "Product",
+      "explore": "Explore",
+      "tryAndCompare": "Try & Compare",
+      "forBusiness": "For Business",
+      "business": "Business overview",
       "resources": "Resources",
       "legal": "Legal",
       "tryOutfit": "Try Outfit",
@@ -761,6 +780,12 @@
     "brandedBy": "Powered for {merchant}",
     "headline": "Find frames that suit you — then try them on.",
     "catalogHint": "{count} frames ready for personalized recommendations",
+    "continuation": {
+      "eyebrow": "More from this merchant",
+      "title": "Explore the full Store",
+      "body": "This Campaign is a focused edit from the same merchant catalog. Continue to the broader Store when you want to see more frames.",
+      "cta": "Visit the full Store"
+    },
     "experience": {
       "storeLabel": "Curated collection",
       "campaignLabel": "The edit",
