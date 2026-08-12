@@ -31,6 +31,7 @@ module.exports = {
   Download: createIcon('download'),
   Clock: createIcon('clock'),
   ArrowRight: createIcon('arrow-right'),
+  Compass: createIcon('compass'),
   ChevronLeft: createIcon('chevron-left'),
   ChevronRight: createIcon('chevron-right'),
   Grid2X2: createIcon('grid-2x2'),
