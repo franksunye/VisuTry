@@ -599,3 +599,14 @@ Use this internally for architecture:
 Strategic summary:
 
 > **Storefront remains an entry product. Campaign Engine expands merchant value. Both run on one shared Merchant Experience architecture.**
+## Public Discovery / Search Visibility Contract
+
+Store and Campaign URLs have a durable public discovery layer separate from the interactive commerce runtime. A crawler or agent can read the server-rendered Merchant, Experience, and selected catalog without authentication, a MerchantSession, sponsored usage, consumer credits, or an AI task. Try-On and entitlement state may make the interactive layer unavailable without making an allowed discovery page unavailable.
+
+The server-authoritative `ExperienceSearchVisibility` policy is:
+
+- `PUBLIC_INDEX`: approved live merchant Experiences and explicit VisuTry-owned Experiences that have a meaningful title, a sufficiently meaningful selected catalog, and a valid merchant or product destination.
+- `PUBLIC_NOINDEX`: reference Experiences by default, thin public content, and historical ENDED/ARCHIVED content that remains readable.
+- `PRIVATE`: draft, unavailable, inactive, or unresolved content.
+
+Reference provenance remains disclosed as reference content and never becomes a partnership claim through metadata or structured data. Sitemap inclusion and page robots metadata use the same policy; currently only the English route is indexable when the underlying content is shared English copy.
