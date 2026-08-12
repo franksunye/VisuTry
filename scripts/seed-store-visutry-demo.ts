@@ -321,6 +321,9 @@ async function main(): Promise<void> {
       }
 
       return { merchant, frames, experiences }
+    }, {
+      maxWait: 10_000,
+      timeout: 30_000,
     })
 
     console.log(JSON.stringify({
