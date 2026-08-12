@@ -7,7 +7,7 @@ import { Glasses, Menu, X, Sparkles } from 'lucide-react'
 import { LoginButton } from '@/components/auth/LoginButton'
 import { UserMenu } from '@/components/auth/UserMenu'
 import { LanguageSwitcher } from '@/components/LanguageSwitcher'
-import { useState, useMemo } from 'react'
+import { useCallback, useState, useMemo } from 'react'
 import { cn } from '@/utils/cn'
 import { useTestSession } from '@/hooks/useTestSession'
 import { useTranslations } from 'next-intl'
@@ -25,6 +25,7 @@ export function Header({ transparent = false }: HeaderProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const t = useTranslations('nav')
   const tCommon = useTranslations('common')
+  const translateNav = useCallback((key: string, fallback: string) => t.has(key) ? t(key) : fallback, [t])
 
   // While session is loading, render a neutral placeholder to avoid flashing
   // LoginButton → UserMenu for authenticated users on page refresh.
@@ -34,13 +35,12 @@ export function Header({ transparent = false }: HeaderProps) {
   const isHomePage = pathname === `/${locale}` || pathname === `/${locale}/`
 
   const navLinks = useMemo(() => [
-    { href: `/${locale}/face-shape-detector`, label: t('detectorShort') },
     { href: `/${locale}/face-analysis`, label: t('advisorShort') },
     { href: `/${locale}/try-on/glasses`, label: t('tryOnShort') },
-    { href: `/${locale}/style-explorer`, label: t('explorerShort') },
     { href: `/${locale}/try-on/glasses/compare`, label: t('compareShort') },
     { href: `/${locale}/discover`, label: t('discover') },
-  ], [locale, t])
+    { href: `/${locale}/business`, label: translateNav('forBusiness', 'For Business'), business: true },
+  ] as Array<{ href: string; label: string; business?: boolean }>, [locale, t, translateNav])
   
   return (
     <header className={cn(
@@ -72,7 +72,7 @@ export function Header({ transparent = false }: HeaderProps) {
                       'whitespace-nowrap text-sm font-medium transition-colors hover:text-blue-600',
                       pathname === link.href
                         ? 'text-blue-600 border-b-2 border-blue-600 pb-1'
-                        : 'text-gray-700'
+                        : link.business ? 'text-gray-900' : 'text-gray-700'
                     )}
                   >
                     {link.label}
@@ -142,7 +142,8 @@ export function Header({ transparent = false }: HeaderProps) {
         >
           <div className="border-t border-gray-200 pt-4 pb-4 mt-3">
             <div className="flex flex-col gap-y-3">
-              {navLinks.map((link) => {
+              <p className="px-4 text-[10px] font-bold uppercase tracking-[0.16em] text-gray-400">{translateNav('shopperJourney', 'Shopper journey')}</p>
+              {navLinks.filter((link) => !link.business).map((link) => {
                 return (
                   <Link
                     key={link.href}
@@ -160,6 +161,26 @@ export function Header({ transparent = false }: HeaderProps) {
                   </Link>
                 )
               })}
+
+              <div className="border-t border-gray-200 pt-3 mt-1">
+                <p className="px-4 text-[10px] font-bold uppercase tracking-[0.16em] text-gray-400">{translateNav('businessJourney', 'For brands & retailers')}</p>
+                {navLinks.filter((link) => link.business).map((link) => (
+                  <Link
+                    key={link.href}
+                    href={link.href}
+                    onClick={() => setMobileMenuOpen(false)}
+                    className={cn(
+                      'mt-2 px-4 py-2 rounded-lg text-sm font-semibold transition-colors flex items-center justify-between',
+                      pathname === link.href
+                        ? 'bg-blue-50 text-blue-600'
+                        : 'text-gray-900 hover:bg-gray-50'
+                    )}
+                    role="menuitem"
+                  >
+                    <span>{link.label}</span>
+                  </Link>
+                ))}
+              </div>
               
               {/* Mobile Language Switcher */}
               <div className="border-t border-gray-200 pt-3 mt-3">

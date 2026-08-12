@@ -12,18 +12,24 @@ jest.mock('next/navigation', () => ({
 }))
 
 jest.mock('next-intl', () => ({
-  useTranslations: (namespace: string) => (key: string) => {
+  useTranslations: (namespace: string) => {
     const labels: Record<string, string> = {
       'nav.detectorShort': 'Detector',
       'nav.advisorShort': 'Advisor',
       'nav.tryOnShort': 'Try On',
       'nav.explorerShort': 'Explorer',
       'nav.compareShort': 'Compare',
+      'nav.discover': 'Discover',
+      'nav.forBusiness': 'For Business',
+      'nav.shopperJourney': 'Shopper journey',
+      'nav.businessJourney': 'For brands & retailers',
       'nav.faceAnalysis': 'Glasses Advisor',
       'nav.toggleMenu': 'Toggle navigation menu',
       'common.checkFaceShape': 'Check face shape',
     }
-    return labels[`${namespace}.${key}`] ?? key
+    const translate = (key: string) => labels[`${namespace}.${key}`] ?? key
+    translate.has = (key: string) => Boolean(labels[`${namespace}.${key}`])
+    return translate
   },
 }))
 
@@ -46,5 +52,11 @@ describe('Header decision journey', () => {
       'href',
       '/en/try-on/glasses',
     )
+
+    expect(screen.getAllByRole('link', { name: 'For Business' })[0]).toHaveAttribute(
+      'href',
+      '/en/business',
+    )
+    expect(screen.queryAllByRole('link', { name: 'Detector' })).toHaveLength(0)
   })
 })
