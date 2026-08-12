@@ -109,6 +109,8 @@ describe('Merchant Experience admin analytics', () => {
     })
     expect(result?.legacy.metrics.sessions).toBe(3)
     expect(result?.legacy.metrics.inquiries).toBe(1)
+    expect(result?.legacy.name).toBe('Historical traffic')
+    expect(result?.legacy.status).toBe('HISTORICAL')
     expect(db.merchantSession.groupBy).toHaveBeenCalledWith(expect.objectContaining({ where: { merchantId: 'merchant-a' } }))
     expect(db.merchantFrame.count).toHaveBeenCalledWith({ where: { merchantId: 'merchant-a', status: 'ACTIVE' } })
   })

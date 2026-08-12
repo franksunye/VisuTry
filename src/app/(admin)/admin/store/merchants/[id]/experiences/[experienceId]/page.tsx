@@ -21,7 +21,7 @@ export default async function AdminExperienceDetailPage({ params }: { params: { 
     prisma.merchantFrame.findMany({
       where: { merchantId: params.id },
       orderBy: [{ name: 'asc' }, { createdAt: 'asc' }],
-      select: { id: true, name: true, sku: true, imageUrl: true, productUrl: true, shape: true, widthClass: true, status: true },
+      select: { id: true, name: true, brand: true, sku: true, imageUrl: true, productUrl: true, shape: true, widthClass: true, status: true },
     }),
   ])
   if (!merchant || !experience) notFound()

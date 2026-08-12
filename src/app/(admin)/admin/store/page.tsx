@@ -7,6 +7,7 @@ import {
   HeartHandshake,
   Package,
   ShieldCheck,
+  Sparkles,
   Store,
   Users,
 } from 'lucide-react'
@@ -80,39 +81,39 @@ export default async function AdminStoreMerchantsPage() {
       logoUrl: true,
       websiteUrl: true,
       status: true,
+      referenceData: true,
       updatedAt: true,
-      _count: { select: { sessions: true, frames: true, intents: true } },
+      _count: { select: { sessions: true, frames: true, intents: true, experiences: true } },
     },
   })
 
   const summary = merchants.reduce(
     (totals, merchant) => ({
       active: totals.active + (merchant.status === 'ACTIVE' ? 1 : 0),
+      experiences: totals.experiences + merchant._count.experiences,
       frames: totals.frames + merchant._count.frames,
       sessions: totals.sessions + merchant._count.sessions,
       intents: totals.intents + merchant._count.intents,
     }),
-    { active: 0, frames: 0, sessions: 0, intents: 0 },
+    { active: 0, experiences: 0, frames: 0, sessions: 0, intents: 0 },
   )
 
   const summaryCards = [
     { label: 'Active merchants', value: summary.active, icon: Store, color: 'bg-teal-50 text-teal-700' },
-    { label: 'Catalog frames', value: summary.frames, icon: Package, color: 'bg-blue-50 text-blue-700' },
+    { label: 'Active Experiences', value: summary.experiences, icon: Sparkles, color: 'bg-blue-50 text-blue-700' },
     { label: 'Shopper sessions', value: summary.sessions, icon: Users, color: 'bg-violet-50 text-violet-700' },
-    { label: 'Purchase signals', value: summary.intents, icon: HeartHandshake, color: 'bg-rose-50 text-rose-700' },
+    { label: 'Intent signals', value: summary.intents, icon: HeartHandshake, color: 'bg-rose-50 text-rose-700' },
   ]
 
   return (
     <div className="space-y-8 pb-12">
-      <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#173F4B] via-[#102F39] to-[#091C23] px-6 py-8 text-white shadow-xl sm:px-8">
-        <div className="absolute -right-20 -top-20 h-60 w-60 rounded-full bg-cyan-300/10 blur-3xl" />
-        <div className="relative max-w-3xl">
-          <p className="text-xs font-semibold uppercase tracking-[0.22em] text-cyan-200">VisuTry Commerce</p>
-          <h1 className="mt-3 text-3xl font-semibold tracking-tight sm:text-4xl">Store intelligence</h1>
-          <p className="mt-3 max-w-2xl text-sm leading-6 text-white/70 sm:text-base">
-            Manage merchant catalogs, understand shopper decisions, and turn virtual try-on activity into sales signals.
-          </p>
+      <section className="flex flex-col justify-between gap-5 border-b border-slate-200 pb-7 md:flex-row md:items-end">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-teal-700">Merchant portfolio</p>
+          <h1 className="mt-2 text-3xl font-semibold tracking-tight text-slate-950 sm:text-4xl">Commerce Experiences</h1>
+          <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-500">See which merchants, Experiences, and shopper intent signals need attention next.</p>
         </div>
+        <p className="text-sm text-slate-500">{merchants.length} configured merchants</p>
       </section>
 
       <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4" aria-label="Store portfolio summary">
@@ -133,7 +134,7 @@ export default async function AdminStoreMerchantsPage() {
         <div className="flex items-end justify-between gap-4">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-teal-700">Merchant portfolio</p>
-            <h2 className="mt-2 text-2xl font-semibold text-slate-950">Stores</h2>
+            <h2 className="mt-2 text-2xl font-semibold text-slate-950">Merchant portfolio</h2>
           </div>
           <span className="text-sm text-slate-500">{merchants.length} configured</span>
         </div>
@@ -154,22 +155,22 @@ export default async function AdminStoreMerchantsPage() {
                   <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-center gap-2">
                       <h3 className="text-lg font-semibold text-slate-950">{merchant.name}</h3>
-                      <span className="rounded-full bg-emerald-50 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide text-emerald-700">{merchant.status}</span>
+                      <span className={`rounded-full px-2.5 py-1 text-[10px] font-semibold ${merchant.referenceData ? 'bg-amber-50 text-amber-800' : 'bg-emerald-50 text-emerald-700'}`}>{merchant.referenceData ? 'Reference' : 'Live'}</span>
                     </div>
-                    <p className="mt-1 text-sm text-slate-500">/{merchant.slug}</p>
+                    <p className="mt-1 text-sm text-slate-500">{merchant.referenceData ? 'Simulation data — not live merchant traffic' : 'Live merchant workspace'}</p>
                   </div>
                 </div>
                 <dl className="mt-5 grid grid-cols-3 divide-x divide-slate-100 rounded-xl bg-slate-50 py-3 text-center">
-                  <div><dt className="text-[10px] uppercase tracking-wide text-slate-400">Frames</dt><dd className="mt-1 font-semibold text-slate-900">{merchant._count.frames}</dd></div>
+                  <div><dt className="text-[10px] uppercase tracking-wide text-slate-400">Catalog</dt><dd className="mt-1 font-semibold text-slate-900">{merchant._count.frames} frames</dd></div>
+                  <div><dt className="text-[10px] uppercase tracking-wide text-slate-400">Experiences</dt><dd className="mt-1 font-semibold text-slate-900">{merchant._count.experiences}</dd></div>
                   <div><dt className="text-[10px] uppercase tracking-wide text-slate-400">Sessions</dt><dd className="mt-1 font-semibold text-slate-900">{merchant._count.sessions}</dd></div>
-                  <div><dt className="text-[10px] uppercase tracking-wide text-slate-400">Intent</dt><dd className="mt-1 font-semibold text-slate-900">{merchant._count.intents}</dd></div>
                 </dl>
                 <div className="mt-5 flex items-center justify-between gap-3">
-                  <p className="text-xs text-slate-400">Updated {merchant.updatedAt.toLocaleDateString('en-US')}</p>
+                    <p className="text-xs text-slate-400">{merchant._count.intents > 0 ? `${merchant._count.intents} intent signals` : 'No intent signals yet'}</p>
                   <div className="flex flex-wrap items-center gap-4">
                     <Link href={`/admin/store/merchants/${merchant.id}/experiences`} className="text-sm font-semibold text-violet-700 transition hover:text-violet-900">Experiences</Link>
                     <Link href={`/admin/store/merchants/${merchant.id}`} className="inline-flex items-center gap-2 text-sm font-semibold text-teal-700 transition group-hover:gap-3">
-                      Open intelligence <ArrowRight className="h-4 w-4" aria-hidden="true" />
+                      Open overview <ArrowRight className="h-4 w-4" aria-hidden="true" />
                     </Link>
                   </div>
                 </div>

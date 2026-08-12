@@ -57,6 +57,7 @@ export type MerchantInsightsDto = {
   topFrames: Array<{
     frameId: string
     name: string
+    brand: string | null
     shape: string
     imageUrl: string | null
     recommendations: number
@@ -79,6 +80,7 @@ export type MerchantInsightsDto = {
       price: number | null
       currency: string | null
       shape: string
+      brand: string | null
       material: string | null
       color: string | null
       widthClass: string | null
@@ -226,6 +228,7 @@ export async function getMerchantInsights(input: {
         id: true,
         sku: true,
         name: true,
+        brand: true,
         imageUrl: true,
         productUrl: true,
         price: true,
@@ -325,6 +328,7 @@ export async function getMerchantInsights(input: {
       return {
         frameId,
         name: frame?.name ?? 'Unknown frame',
+        brand: frame?.brand ?? null,
         shape: frame?.shape ?? '',
         // Product catalog image is merchant-owned, not a shopper photo.
         imageUrl: frame?.imageUrl ?? null,
@@ -355,6 +359,7 @@ export async function getMerchantInsights(input: {
       frameId: frame.id,
       sku: frame.sku,
       name: frame.name,
+      brand: frame.brand,
       imageUrl: frame.imageUrl,
       productUrl: frame.productUrl,
       price: frame.price,
