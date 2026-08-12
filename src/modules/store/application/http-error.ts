@@ -61,6 +61,7 @@ function logStoreDomainError(error: StoreDomainError): void {
     case 'SESSION_EXPIRED':
     case 'SESSION_NOT_FOUND':
     case 'MERCHANT_NOT_FOUND':
+    case 'EXPERIENCE_NOT_FOUND':
     case 'FRAME_NOT_FOUND':
     case 'FRAME_INACTIVE':
     case 'VALIDATION_ERROR':
