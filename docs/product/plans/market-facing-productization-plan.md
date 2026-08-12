@@ -479,7 +479,7 @@ The first release is complete when:
 
 ---
 
-### Phase B1 implementation state — 2026-08-12
+### Phase B1 implementation state — COMPLETE — 2026-08-12
 
 - The existing `MerchantSession` acquisition context now supports nullable
   `acquisitionSurface`; historical sessions remain valid with `NULL` and no
@@ -493,6 +493,22 @@ The first release is complete when:
   context and never selects or changes the Experience.
 - `buildMerchantExperienceHref` is the shared URL handoff helper for future
   distribution surfaces. B1 does not add Discover or any new CTA.
+- PR #56 merged to `main` as `cad5a6e5f96dc28ee087ef72f5e384c4382b5bfd`.
+- Production deployment `dpl_6wUhia5LxzRUpcdto9qJQgcoera2` is READY and serves
+  `www.visutry.com`; migration `20260812150000_add_acquisition_surface` is
+  applied and `MerchantSession.acquisitionSurface` is readable in production.
+- Production read-back passed for AKILA Statement Frames
+  (`/en/c/akila/statement-frames`, session
+  `cmsppc84u000204l8bp6jhdul`), Luna Optical Store
+  (`/en/store/luna-optical`, session `cmsppd23c000104ji8mjke06i`), and the
+  direct-control AKILA Store (`/en/store/akila`, session
+  `cmsppdneq000604jiwpgzb17a`). Internal sessions persisted
+  `source=visutry`, `medium=internal`, `acquisitionSurface=discover`; the
+  direct session kept `acquisitionSurface=NULL`.
+- The read-only attribution aggregation returned one matching discover
+  session for both AKILA and Luna. Verification created only the initial
+  `merchant_page_viewed`/session records; no downstream shopper actions or
+  Consumer Credits were used. Verification date: 2026-08-12.
 
 # Workstream C — Business Web Presence
 
