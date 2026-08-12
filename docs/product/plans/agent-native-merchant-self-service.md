@@ -657,6 +657,9 @@ Do not begin by exposing raw Prisma models.
 
 ### Phase B — MCP Store/Campaign implementation
 
+Campaign Policy Foundation prerequisite completed; Phase B2 Campaign MCP and
+Skill work remains pending until this foundation is merged.
+
 Implement only the tools needed for:
 
 - onboarding status;

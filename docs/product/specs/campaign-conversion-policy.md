@@ -5,6 +5,28 @@
 **Related contract:** `docs/product/specs/merchant-experience-entitlement-sponsored-usage.md`  
 **Out of scope:** CRM, arbitrary form builder, Page Builder, merchant billing, pricing packages, revenue attribution, new AI models
 
+## Implementation state
+
+The bounded Campaign policy foundation is implemented on the `Experience` model
+with nullable `campaignObjective`, `campaignGate`, and `presentationMode`
+fields. Existing Campaign rows remain unbackfilled and resolve missing values
+as `INTENT`, `NONE`, and the existing Campaign presentation default
+`EDITORIAL_FIRST`. Store rows do not receive Campaign objective or gate
+semantics.
+
+`resolveCampaignConversionPolicy` is the authoritative pure conversion-policy
+resolver. Presentation continues to use `resolvePresentationMode`, with a
+persisted mode taking precedence over the existing contextual-surface rules.
+The three layers remain independent: Campaign conversion policy does not
+change Sponsored Usage, consumer entitlement, or merchant sponsored limits.
+
+Campaign application operations now provide a tenant-scoped reusable boundary
+for read, draft creation, bounded update, frame selection, preview, publish,
+and archive. Date fields remain informational for lifecycle resolution; they
+are validated only when both are present and `startAt < endAt` is required.
+The existing discovery contract is unchanged: DRAFT is private, ACTIVE uses
+the current public policy, and ENDED/ARCHIVED remain readable but noindex.
+
 ## 1. Purpose
 
 VisuTry Campaign is not simply a themed Store page and it is not always a lead-generation form.

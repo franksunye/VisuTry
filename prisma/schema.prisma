@@ -389,6 +389,24 @@ enum MerchantFrameStatus {
   INACTIVE
 }
 
+enum CampaignObjective {
+  TRAFFIC
+  INTENT
+  LEAD
+}
+
+enum CampaignGate {
+  NONE
+  OPT_IN_AFTER_VALUE
+  OPT_IN_BEFORE_AI
+}
+
+enum PresentationMode {
+  ACTION_FIRST
+  PRODUCT_FIRST
+  EDITORIAL_FIRST
+}
+
 enum MerchantFrameSource {
   SEED
   MANUAL
@@ -653,6 +671,10 @@ model Experience {
   offerTerms        String?          @db.Text
   startAt           DateTime?
   endAt             DateTime?
+  /// Nullable policy fields preserve historical Store/Campaign rows.
+  campaignObjective CampaignObjective?
+  campaignGate      CampaignGate?
+  presentationMode  PresentationMode?
   referenceData     Boolean          @default(false)
   defaultSource     String?
   defaultCampaign   String?
