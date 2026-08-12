@@ -37,14 +37,20 @@ function externalLinkProps(
 }
 
 function ExperienceHeroVisual({
+  experience,
   merchantName,
   heroImage,
   mode,
 }: {
+  experience: PublicExperienceDiscovery['experience']
   merchantName: string
   heroImage: string | null | undefined
   mode: PresentationMode
 }) {
+  const heroTitle = experience.type === 'CAMPAIGN'
+    ? experience.name
+    : `Shop the ${merchantName} eyewear collection`
+  const heroDescription = experience.description?.trim() || `Selected eyewear from ${merchantName}.`
   const heroBackground = mode === 'EDITORIAL_FIRST'
     ? 'bg-[linear-gradient(145deg,#f6eadf,#f7f1e8)]'
     : 'bg-[linear-gradient(145deg,#edf3fb,#faf7f2)]'
@@ -64,6 +70,14 @@ function ExperienceHeroVisual({
         />
       ) : null}
       <div className="absolute inset-0 bg-slate-950/10" aria-hidden="true" />
+      <div
+        className="absolute inset-0 bg-gradient-to-t from-slate-950/75 via-slate-950/18 to-transparent"
+        aria-hidden="true"
+      />
+      <div className="absolute inset-x-6 bottom-6 text-white sm:inset-x-8 sm:bottom-8">
+        <p className="font-serif text-2xl font-semibold sm:text-3xl">{heroTitle}</p>
+        <p className="mt-2 max-w-md text-sm leading-6 text-white/85">{heroDescription}</p>
+      </div>
     </div>
   )
 }
@@ -129,6 +143,7 @@ export function ExperienceDiscoveryContent({
             </div>
             <div>
               <ExperienceHeroVisual
+                experience={experience}
                 merchantName={merchant.name}
                 heroImage={heroImage}
                 mode={presentationMode}

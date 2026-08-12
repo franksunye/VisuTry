@@ -96,6 +96,7 @@ describe('ExperiencePresentationShell', () => {
     expect(shell).toHaveAttribute('data-presentation-mode', 'EDITORIAL_FIRST')
     expect(screen.queryByText('Reference catalog')).not.toBeInTheDocument()
     expect(screen.queryByText('The edit')).not.toBeInTheDocument()
+    expect(screen.getByText('Petite Fit')).toBeInTheDocument()
     expect(screen.getAllByText('An editorial fit-focused selection.')).not.toHaveLength(0)
     expect(screen.getByText('Harper')).toBeInTheDocument()
     expect(screen.getByText('Harper').compareDocumentPosition(screen.getByText('Privacy & photo retention')) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
