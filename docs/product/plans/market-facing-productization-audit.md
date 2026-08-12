@@ -46,7 +46,7 @@ The first implementation should be **A1 Shopper Experience visual hardening**, w
 
 ### Guiding-plan check
 
-The requested file `docs/product/plans/market-facing-productization-plan.md` is not present in the repository at audit time. The audit therefore used the available architecture baseline and delivery documents listed above, plus the task brief. This is recorded as a documentation gap; it is not a reason to invent a second product direction.
+The guiding plan is `docs/product/plans/market-facing-productization-plan.md`, restored from historical commit `cbf1902a9646505ff7438b946755e1a08d679a9d` during Phase A1 baseline repair. The audit conclusions below remain unchanged.
 
 The available documents consistently establish:
 

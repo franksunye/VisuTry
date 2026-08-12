@@ -45,6 +45,7 @@ type MerchantProfile = {
     imageUrl: string | null
     shape: string
     color: string | null
+    productBrand: string | null
   }>
 }
 
@@ -66,6 +67,8 @@ type RecommendedFrame = {
   color: string | null
   widthClass: string | null
   styleTags: string[]
+  collectionTags: string[]
+  productBrand: string | null
   score: number
   reason: string
 }
@@ -146,7 +149,7 @@ function MerchantMark({ merchant, accent }: { merchant: MerchantProfile; accent:
           {merchant.name}
         </p>
         <p className="text-[10px] font-semibold uppercase tracking-[0.24em] text-slate-400">
-          {merchant.referenceData ? 'Reference Pilot · Simulation' : 'Optical collection'}
+          {merchant.experience?.type === 'CAMPAIGN' ? merchant.experience.name : 'Optical collection'}
         </p>
       </div>
     </div>
@@ -198,7 +201,6 @@ export function StoreShopperExperience({
   const [photoReady, setPhotoReady] = useState(false)
   const [recommending, setRecommending] = useState(false)
   const [recommendations, setRecommendations] = useState<RecommendedFrame[]>([])
-  const [rankingVersion, setRankingVersion] = useState<string | null>(null)
   const [selectedIds, setSelectedIds] = useState<string[]>([])
   const [selectionSaving, setSelectionSaving] = useState(false)
   const [selectionSaved, setSelectionSaved] = useState(false)
@@ -324,7 +326,6 @@ export function StoreShopperExperience({
           return
         }
         setRecommendations(json.data.frames || [])
-        setRankingVersion(json.data.rankingVersion || null)
       } catch {
         setErrorMessage(t('errors.recommend'))
       } finally {
@@ -459,6 +460,17 @@ export function StoreShopperExperience({
   const currentStep = selectionSaved && merchant.experiencePolicy.tryOnEnabled ? 3 : photoReady ? 2 : 1
   const maxSelectableFrames = maxSelectableStoreFrames(merchant.experiencePolicy)
   const selectedFrames = recommendations.filter((frame) => selectedIds.includes(frame.id))
+  const isCampaign = merchant.experience?.type === 'CAMPAIGN'
+  const experienceDescription = merchant.experience?.description
+    ?.replace(/^Reference (?:Pilot|Store) \/ Simulation:?\s*/i, '')
+    .replace(/using the imported public catalog\.?/i, '')
+    .replace(/ and technical details/gi, '')
+    .replace(/No sport suitability or performance outcome is inferred\.?/i, '')
+    .replace(/\s*No fit guarantee[^.]*\.?/i, '')
+    .trim()
+  const heroDescription = experienceDescription
+    ?.replace(/[^.]*\b(?:operator enrichment|public product facts|public source facts|source facts|measurements support|fit guarantee)\b[^.]*\.?/gi, '')
+    .trim() || t('catalogHint', { count: merchant.activeFrameCount })
 
   return (
     <div className="relative min-h-screen overflow-hidden bg-[#f7f8fb] text-slate-950">
@@ -481,15 +493,15 @@ export function StoreShopperExperience({
         {!privacyAccepted ? (
           <main className="grid items-center gap-10 py-10 lg:min-h-[calc(100vh-150px)] lg:grid-cols-[0.82fr_1.18fr] lg:gap-14 lg:py-14">
             <section className="max-w-xl">
-              <div className="inline-flex items-center gap-2 rounded-full border border-blue-100 bg-white/80 px-3 py-1.5 text-xs font-semibold text-blue-700 shadow-sm">
+              <div className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-semibold shadow-sm ${isCampaign ? 'border-amber-200 bg-amber-50/90 text-amber-800' : 'border-blue-100 bg-white/80 text-blue-700'}`}>
                 <Sparkles className="h-3.5 w-3.5" aria-hidden="true" />
-                AI-assisted frame discovery
+                {isCampaign ? merchant.experience?.name || t('experience.campaignLabel') : t('experience.storeLabel')}
               </div>
               <h1 className="mt-6 font-serif text-4xl font-semibold leading-[1.08] tracking-[-0.035em] text-slate-950 sm:text-5xl lg:text-6xl">
                 {merchant.experience?.headline || t('headline')}
               </h1>
               <p className="mt-5 max-w-lg text-base leading-7 text-slate-600 sm:text-lg">
-                {t('catalogHint', { count: merchant.activeFrameCount })}
+                {heroDescription}
               </p>
 
               {errorMessage ? <p className="mt-4 text-sm text-red-600" role="alert">{errorMessage}</p> : null}
@@ -547,21 +559,23 @@ export function StoreShopperExperience({
               <div className="relative overflow-hidden rounded-[2.25rem] border border-white bg-white/90 p-5 shadow-[0_35px_100px_rgba(30,64,175,0.14)] sm:p-7">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-xs font-semibold uppercase tracking-[0.18em] text-blue-600">Your frame edit</p>
-                    <p className="mt-1 text-sm text-slate-500">A focused collection, personalized for you</p>
+                    <p className={`text-xs font-semibold uppercase tracking-[0.18em] ${isCampaign ? 'text-amber-700' : 'text-blue-600'}`}>{isCampaign ? t('experience.campaignLabel') : t('experience.storeLabel')}</p>
+                    <p className="mt-1 max-w-md text-sm text-slate-500">{merchant.experience?.name || t('experience.storeSubhead')}</p>
                   </div>
                   <span className="flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-700">
                     <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />Live catalog
                   </span>
                 </div>
 
-                <div className="mt-6 flex min-h-[280px] items-center justify-center overflow-hidden rounded-[1.75rem] bg-[linear-gradient(145deg,#edf3fb,#faf7f2)] px-6 py-10 sm:min-h-[360px]">
-                  <div className="text-center">
-                    <span className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-white text-blue-600 shadow-lg ring-1 ring-blue-100">
-                      <Glasses className="h-9 w-9" aria-hidden="true" />
-                    </span>
-                    <p className="mt-5 font-serif text-2xl font-semibold text-slate-900 sm:text-3xl">One photo. Your best frames.</p>
-                    <p className="mx-auto mt-2 max-w-sm text-sm leading-6 text-slate-500">Discover a shortlist, preview each look, and compare before you choose.</p>
+                <div className={`relative mt-6 aspect-[16/10] overflow-hidden rounded-[1.75rem] px-6 py-10 ${isCampaign ? 'bg-[linear-gradient(145deg,#f6eadf,#f7f1e8)]' : 'bg-[linear-gradient(145deg,#edf3fb,#faf7f2)]'}`}>
+                  {merchant.experience?.heroAssetUrl ? (
+                    /* eslint-disable-next-line @next/next/no-img-element */
+                    <img src={merchant.experience.heroAssetUrl} alt="" onError={(event) => event.currentTarget.remove()} className="absolute inset-0 h-full w-full object-cover" />
+                  ) : null}
+                  <div className="absolute inset-0 bg-gradient-to-t from-slate-950/50 via-slate-950/5 to-transparent" />
+                  <div className="absolute inset-x-6 bottom-6 text-white sm:inset-x-8 sm:bottom-8">
+                    <p className="font-serif text-2xl font-semibold sm:text-3xl">{isCampaign ? merchant.experience?.name : t('experience.storeHero')}</p>
+                    <p className="mt-2 max-w-md text-sm leading-6 text-white/80">{t('experience.heroBody')}</p>
                   </div>
                 </div>
 
@@ -572,6 +586,7 @@ export function StoreShopperExperience({
                         {frame.imageUrl ? <Image src={frame.imageUrl} alt={frame.name} fill sizes="(max-width: 640px) 50vw, 160px" className="object-contain p-2" /> : <Glasses className="absolute inset-0 m-auto h-8 w-8 text-slate-300" />}
                       </div>
                       <p className="mt-2 truncate text-xs font-semibold text-slate-800">{frame.name}</p>
+                      {frame.productBrand ? <p className="mt-0.5 truncate text-[10px] font-medium uppercase tracking-[0.12em] text-slate-400">{frame.productBrand}</p> : null}
                       <p className="mt-0.5 truncate text-[10px] capitalize text-slate-400">{[frame.shape, frame.color].filter(Boolean).join(' · ')}</p>
                     </article>
                   ))}
@@ -625,11 +640,11 @@ export function StoreShopperExperience({
                   <section className="rounded-[2rem] border border-slate-200/80 bg-white p-5 shadow-[0_22px_70px_rgba(15,23,42,0.07)] sm:p-7">
                     <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
                       <div>
-                        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-blue-600">Step 2 · AI edit</p>
+                        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-blue-600">Step 2 · {t('recommend.editLabel')}</p>
                         <h2 className="mt-2 font-serif text-2xl font-semibold text-slate-950 sm:text-3xl">{t('recommend.title')}</h2>
                         <p className="mt-2 text-sm text-slate-500">{merchant.experiencePolicy.tryOnEnabled ? t('recommend.subtitle', { max: maxSelectableFrames }) : t('recommend.subtitleNoTryOn')}</p>
                       </div>
-                      {rankingVersion ? <span className="rounded-full bg-slate-100 px-3 py-1.5 text-[10px] font-medium text-slate-400">{t('recommend.version', { version: rankingVersion })}</span> : null}
+                      <span className="rounded-full bg-slate-50 px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.12em] text-slate-400">{t('recommend.curatedLabel')}</span>
                     </div>
 
                     <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -642,19 +657,22 @@ export function StoreShopperExperience({
                               type="button"
                               onClick={() => toggleFrame(frame.id)}
                               disabled={!selected && selectedIds.length >= maxSelectableFrames}
+                              aria-pressed={selected}
+                              aria-label={selected ? `Remove ${frame.name}` : `Select ${frame.name}`}
                               className={`group h-full w-full overflow-hidden rounded-2xl border bg-white text-left transition hover:-translate-y-0.5 hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-60 ${selected ? 'border-transparent shadow-lg' : 'border-slate-200'}`}
                               style={selected ? { boxShadow: `0 0 0 2px ${accent}, 0 16px 35px rgba(15,23,42,0.1)` } : undefined}
                             >
                               <div className="relative aspect-[4/3] overflow-hidden bg-gradient-to-b from-white to-slate-50">
-                                {frame.imageUrl ? <Image src={frame.imageUrl} alt={frame.name} fill sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw" className="object-contain p-5 transition duration-300 group-hover:scale-[1.04]" /> : null}
+                                {frame.imageUrl ? <Image src={frame.imageUrl} alt={frame.name} fill sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw" className="object-contain p-5 transition duration-300 group-hover:scale-[1.04]" /> : <Glasses className="absolute inset-0 m-auto h-10 w-10 text-slate-300" aria-label={t('recommend.imageUnavailable')} />}
                                 <span className="absolute left-3 top-3 rounded-full bg-white/90 px-2.5 py-1 text-[10px] font-bold text-slate-600 shadow-sm">#{index + 1}</span>
                                 {selected ? <CheckCircle2 className="absolute right-3 top-3 h-6 w-6 rounded-full bg-white" style={{ color: accent }} /> : null}
                               </div>
                               <div className="p-4">
                                 <div className="flex items-start justify-between gap-3">
                                   <p className="font-semibold text-slate-900">{frame.name}</p>
-                                  {priceLabel ? <p className="shrink-0 text-sm font-semibold text-slate-900">{priceLabel}</p> : null}
+                                  <p className="shrink-0 text-right text-sm font-semibold text-slate-900">{priceLabel || t('recommend.priceUnavailable')}</p>
                                 </div>
+                                <p className="mt-1 text-xs font-medium uppercase tracking-[0.12em] text-slate-400">{frame.productBrand || merchant.name}</p>
                                 <p className="mt-1 text-xs capitalize text-slate-400">{[frame.shape, frame.color, frame.widthClass].filter(Boolean).join(' · ')}</p>
                                 <p className="mt-3 text-xs leading-5 text-slate-600">{frame.reason}</p>
                               </div>
@@ -671,7 +689,7 @@ export function StoreShopperExperience({
                     merchantSlug={merchantSlug}
                     locale={locale}
                     merchantSessionId={session.merchantSessionId}
-                    selectedFrames={selectedFrames.map((frame) => ({ id: frame.id, name: frame.name, imageUrl: frame.imageUrl, productUrl: frame.productUrl, price: frame.price, currency: frame.currency, shape: frame.shape }))}
+                    selectedFrames={selectedFrames.map((frame) => ({ id: frame.id, name: frame.name, imageUrl: frame.imageUrl, productUrl: frame.productUrl, price: frame.price, currency: frame.currency, shape: frame.shape, productBrand: frame.productBrand }))}
                     photoPreview={photoPreview}
                     accent={accent}
                     experiencePolicy={merchant.experiencePolicy}
@@ -694,11 +712,12 @@ export function StoreShopperExperience({
                       {selectedFrames.length > 0 ? selectedFrames.map((frame) => (
                         <div key={frame.id} className="flex items-center gap-3 rounded-2xl bg-slate-50 p-2.5">
                           <div className="relative h-14 w-16 shrink-0 overflow-hidden rounded-xl bg-white">{frame.imageUrl ? <Image src={frame.imageUrl} alt="" fill sizes="64px" className="object-contain p-1.5" /> : null}</div>
-                          <div className="min-w-0 flex-1"><p className="truncate text-sm font-semibold text-slate-800">{frame.name}</p><p className="mt-0.5 text-xs capitalize text-slate-400">{frame.shape}</p></div>
+                          <div className="min-w-0 flex-1"><p className="truncate text-sm font-semibold text-slate-800">{frame.name}</p><p className="mt-0.5 text-xs uppercase tracking-[0.1em] text-slate-400">{frame.productBrand || merchant.name}</p></div>
                           <CheckCircle2 className="h-4 w-4 shrink-0" style={{ color: accent }} />
                         </div>
                       )) : <div className="rounded-2xl border border-dashed border-slate-200 px-4 py-8 text-center text-xs leading-5 text-slate-400">Select the frames you want to see on your photo.</div>}
                     </div>
+                    {selectedIds.length >= maxSelectableFrames ? <p className="mt-4 rounded-xl bg-amber-50 px-3 py-2.5 text-xs leading-5 text-amber-900" role="status">{t('recommend.limitReached', { max: maxSelectableFrames })}</p> : null}
                     <button
                       type="button"
                       onClick={handleConfirmSelection}

@@ -135,6 +135,7 @@ describe('STORE-2 contracts and merchant resolution', () => {
       imageUrl: null,
       shape: 'round',
       color: null,
+      productBrand: null,
     })
     expect(profile).not.toHaveProperty('contactEmail')
   })

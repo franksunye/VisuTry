@@ -103,11 +103,13 @@ test.describe('@critical Store Pilot Flow', () => {
 
     const recommendationSection = page.locator('section').filter({ hasText: 'Recommended for you' });
     await expect(recommendationSection).toBeVisible();
+    await expect(recommendationSection).not.toContainText(/ranking|store-rank-v1|AI edit/i);
     await expect(page.getByText('Select up to 2 to try on')).toBeVisible();
     const frameButtons = recommendationSection.getByRole('button');
     await frameButtons.nth(0).click();
     await frameButtons.nth(1).click();
     await expect(frameButtons.nth(2)).toBeDisabled();
     await expect(page.getByText('Selected 2 of 2')).toBeVisible();
+    await expect(page.getByRole('status')).toContainText('maximum of 2');
   });
 });
