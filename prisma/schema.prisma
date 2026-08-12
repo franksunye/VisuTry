@@ -74,6 +74,7 @@ model User {
   faceAnalysisTasks  FaceAnalysisTask[]
   payments           Payment[]
   merchantSponsoredUsages MerchantSponsoredUsage[]
+  merchantMemberships MerchantMembership[]
 
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
@@ -359,6 +360,11 @@ enum UserRole {
   ADMIN
 }
 
+enum MerchantMembershipRole {
+  OWNER
+  ADMIN
+}
+
 enum TryOnOrigin {
   CONSUMER
   STORE_DEMO
@@ -497,6 +503,7 @@ model Merchant {
   tryOnTasks TryOnTask[]
   orphanBlobs StoreOrphanBlob[]
   abuseCounters StoreAbuseCounter[]
+  memberships MerchantMembership[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -504,6 +511,25 @@ model Merchant {
   @@index([status])
   @@index([updatedAt])
   @@index([planCode])
+}
+
+/// Explicit human ownership/access within a Merchant tenant.
+/// This is intentionally separate from the platform-level User.role.
+model MerchantMembership {
+  id         String                 @id @default(cuid())
+  userId     String
+  merchantId String
+  role       MerchantMembershipRole
+
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  merchant Merchant @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, merchantId])
+  @@index([userId])
+  @@index([merchantId])
 }
 
 /// Merchant-owned catalog listing (separate from global GlassesFrame).

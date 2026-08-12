@@ -631,6 +631,19 @@ If these three outcomes work end-to-end, Merchant Self-Service v0.1 is successfu
 
 ### Phase A — Auth and Commerce API boundary
 
+#### Phase A prerequisite — Merchant human identity foundation
+
+Implemented as the prerequisite for Phase A:
+
+- `User.role` remains the VisuTry platform-level role (`USER` / `ADMIN`).
+- `MerchantMembership.role` is the tenant-level human role (`OWNER` / `ADMIN`).
+- `MerchantMembership` explicitly binds a user to a merchant and supports one user across multiple merchants and multiple users in one merchant.
+- `requireMerchantMembership` is the server-side tenant authorization primitive and returns anti-enumeration `404` for missing or unauthorized membership. A global platform admin is not implicitly a merchant owner.
+- `createMerchantWithOwner` creates a merchant and its initial owner atomically; existing merchants receive no implicit memberships.
+- Future Agent Credential creation must use this merchant-scoped human authorization boundary.
+
+Remaining Phase A work is the agent credential, scope, lifecycle, audit, and shared commerce API boundary described below.
+
 Establish:
 
 - Merchant-scoped agent credential;
