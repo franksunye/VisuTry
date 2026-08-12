@@ -755,6 +755,17 @@ Create the merchant-facing onboarding surface containing:
 - trial state;
 - Control Center entry.
 
+The initial Merchant control surface is available at `/{locale}/merchant` and
+is intentionally small: Overview, Agent Access, and Experiences. It resolves
+the authenticated internal `User.id`, requires an OWNER or ADMIN
+`MerchantMembership`, and supports a simple multi-merchant switcher without
+creating a separate organization or billing model. Agent Access reuses the
+existing credential lifecycle APIs, displays the canonical `/api/mcp` endpoint,
+links the three public Skills, and reveals a raw secret only in transient UI
+state after create or rotate. Experiences expose status, frame count, public
+URL, and resolved Campaign policy; Store/Campaign building and analytics remain
+Agent workflows rather than duplicate UI builders or dashboards.
+
 ### Phase E — Admin simplification
 
 Only after MCP/self-service workflows are proven, remove or avoid building redundant Admin implementation surfaces.
