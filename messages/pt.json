@@ -15,6 +15,7 @@
     "advisorShort": "Consultor",
     "explorerShort": "Explorar",
     "pricing": "Preços",
+    "discover": "Descobrir",
     "toggleMenu": "Alternar menu de navegação",
     "compare": "Comparar armações",
     "faq": "Perguntas frequentes"
@@ -77,6 +78,7 @@
       "moreTryOn": "Mais provas",
       "faceShapeGuide": "Guia de formato de rosto",
       "styleExplorer": "Explorador de Estilos",
+      "discover": "Descobrir",
       "storeForBusinesses": "Loja para Empresas"
     },
     "copyright": "© {year} VisuTry. Todos os direitos reservados.",

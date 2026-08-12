@@ -15,6 +15,7 @@
     "advisorShort": "提案",
     "explorerShort": "探索",
     "pricing": "料金",
+    "discover": "探索",
     "toggleMenu": "ナビゲーションメニューを切り替え",
     "compare": "フレーム比較",
     "faq": "よくある質問"
@@ -77,6 +78,7 @@
       "moreTryOn": "その他の試着",
       "faceShapeGuide": "顔型ガイド",
       "styleExplorer": "スタイルエクスプローラー",
+      "discover": "探索",
       "storeForBusinesses": "ビジネス向けストア"
     },
     "copyright": "© {year} VisuTry. 全著作権所有。",

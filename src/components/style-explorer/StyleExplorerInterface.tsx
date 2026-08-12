@@ -45,6 +45,7 @@ import {
   createQueuedTask,
 } from '@/lib/try-on/batch-types'
 import { cn } from '@/utils/cn'
+import { ContextualExperienceHandoff } from '@/components/distribution/ContextualExperienceHandoff'
 import { downloadImage, generateResultFilename, shareOrCopy } from '@/utils/download'
 
 interface FramePreset extends BatchTaskPreset {}
@@ -717,6 +718,9 @@ export function StyleExplorerInterface({
                     </button>
                   )}
                 </div>
+              )}
+              {activeCount === 0 && completedCount > 0 && (
+                <ContextualExperienceHandoff locale={locale} placement="style-explorer" />
               )}
             </>
           )}

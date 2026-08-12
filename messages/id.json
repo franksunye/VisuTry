@@ -15,6 +15,7 @@
     "advisorShort": "Penasihat",
     "explorerShort": "Jelajahi",
     "pricing": "Harga",
+    "discover": "Temukan",
     "toggleMenu": "Buka/tutup menu navigasi",
     "compare": "Bandingkan Bingkai",
     "faq": "FAQ"
@@ -77,6 +78,7 @@
       "moreTryOn": "Coba Lainnya",
       "faceShapeGuide": "Panduan Bentuk Wajah",
       "styleExplorer": "Style Explorer",
+      "discover": "Temukan",
       "storeForBusinesses": "Store untuk Bisnis"
     },
     "copyright": "© {year} VisuTry. Hak cipta dilindungi.",
