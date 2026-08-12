@@ -35,12 +35,37 @@ const membership = {
   updatedAt: new Date('2026-08-12T00:00:00.000Z'),
 }
 
+const adminMembership = {
+  ...membership,
+  id: 'membership-a-admin',
+  role: 'ADMIN' as const,
+}
+
+type MembershipFixture = typeof membership | typeof adminMembership
+
 const merchantMembership = prisma.merchantMembership as unknown as {
   findUnique: jest.Mock
   findMany: jest.Mock
   create: jest.Mock
   count: jest.Mock
   delete: jest.Mock
+}
+
+function setupRemoval(input: {
+  actor: MembershipFixture
+  target: MembershipFixture
+  ownerCount: number
+}) {
+  const tx = {
+    merchantMembership: {
+      findUnique: jest.fn().mockResolvedValue(input.target),
+      count: jest.fn().mockResolvedValue(input.ownerCount),
+      delete: jest.fn().mockResolvedValue(input.target),
+    },
+  }
+  merchantMembership.findUnique.mockResolvedValue(input.actor)
+  ;(prisma.$transaction as jest.Mock).mockImplementation(async (callback) => callback(tx))
+  return tx
 }
 
 describe('Merchant human membership foundation', () => {
@@ -109,20 +134,56 @@ describe('Merchant human membership foundation', () => {
     })).resolves.toMatchObject({ role: 'ADMIN' })
   })
 
-  it('creates an explicit membership and keeps the composite key database-owned', async () => {
+  it('allows an OWNER to create an OWNER and keeps the composite key database-owned', async () => {
     merchantMembership.findUnique.mockResolvedValue(membership)
-    merchantMembership.create.mockResolvedValue(membership)
+    merchantMembership.create.mockResolvedValue({ ...membership, id: 'membership-b-a', userId: 'user-b' })
 
     await expect(createMerchantMembership({
       actorUserId: 'user-a',
-      userId: 'user-a',
+      userId: 'user-b',
       merchantId: 'merchant-a',
       role: 'OWNER',
-    })).resolves.toEqual(membership)
+    })).resolves.toMatchObject({ id: 'membership-b-a', userId: 'user-b', role: 'OWNER' })
 
     expect(merchantMembership.create).toHaveBeenCalledWith(expect.objectContaining({
-      data: { userId: 'user-a', merchantId: 'merchant-a', role: 'OWNER' },
+      data: { userId: 'user-b', merchantId: 'merchant-a', role: 'OWNER' },
     }))
+  })
+
+  it('allows an OWNER to create an ADMIN', async () => {
+    merchantMembership.findUnique.mockResolvedValue(membership)
+    merchantMembership.create.mockResolvedValue(adminMembership)
+
+    await expect(createMerchantMembership({
+      actorUserId: 'user-a',
+      userId: 'user-b',
+      merchantId: 'merchant-a',
+      role: 'ADMIN',
+    })).resolves.toEqual(adminMembership)
+  })
+
+  it('allows an ADMIN to create an ADMIN', async () => {
+    merchantMembership.findUnique.mockResolvedValue(adminMembership)
+    merchantMembership.create.mockResolvedValue({ ...adminMembership, userId: 'user-c' })
+
+    await expect(createMerchantMembership({
+      actorUserId: 'user-a',
+      userId: 'user-c',
+      merchantId: 'merchant-a',
+      role: 'ADMIN',
+    })).resolves.toMatchObject({ userId: 'user-c', role: 'ADMIN' })
+  })
+
+  it('denies an ADMIN creating an OWNER without revealing the requested role', async () => {
+    merchantMembership.findUnique.mockResolvedValue(adminMembership)
+
+    await expect(createMerchantMembership({
+      actorUserId: 'user-a',
+      userId: 'user-c',
+      merchantId: 'merchant-a',
+      role: 'OWNER',
+    })).rejects.toMatchObject({ httpStatus: 404 })
+    expect(merchantMembership.create).not.toHaveBeenCalled()
   })
 
   it('supports one user across multiple merchants and multiple users in one merchant', async () => {
@@ -154,16 +215,75 @@ describe('Merchant human membership foundation', () => {
     })
   })
 
-  it('prevents removing the last owner', async () => {
-    const tx = {
-      merchantMembership: {
-        findUnique: jest.fn().mockResolvedValue(membership),
-        count: jest.fn().mockResolvedValue(1),
-        delete: jest.fn(),
-      },
-    }
-    ;(prisma.$transaction as jest.Mock).mockImplementation(async (callback) => callback(tx))
-    merchantMembership.findUnique.mockResolvedValue(membership)
+  it('allows an OWNER to remove an ADMIN', async () => {
+    const tx = setupRemoval({
+      actor: membership,
+      target: { ...adminMembership, userId: 'user-b' },
+      ownerCount: 1,
+    })
+
+    await expect(removeMerchantMembership({
+      actorUserId: 'user-a',
+      userId: 'user-b',
+      merchantId: 'merchant-a',
+    })).resolves.toMatchObject({ userId: 'user-b', role: 'ADMIN' })
+    expect(tx.merchantMembership.delete).toHaveBeenCalled()
+  })
+
+  it('allows an ADMIN to remove an ADMIN, including self-removal', async () => {
+    const tx = setupRemoval({ actor: adminMembership, target: adminMembership, ownerCount: 1 })
+
+    await expect(removeMerchantMembership({
+      actorUserId: 'user-a',
+      userId: 'user-a',
+      merchantId: 'merchant-a',
+    })).resolves.toEqual(adminMembership)
+    expect(tx.merchantMembership.delete).toHaveBeenCalled()
+  })
+
+  it('denies an ADMIN removing an OWNER', async () => {
+    const tx = setupRemoval({
+      actor: adminMembership,
+      target: { ...membership, userId: 'user-b' },
+      ownerCount: 2,
+    })
+
+    await expect(removeMerchantMembership({
+      actorUserId: 'user-a',
+      userId: 'user-b',
+      merchantId: 'merchant-a',
+    })).rejects.toMatchObject({ httpStatus: 404 })
+    expect(tx.merchantMembership.delete).not.toHaveBeenCalled()
+  })
+
+  it('allows an OWNER to remove an OWNER when another OWNER remains', async () => {
+    const tx = setupRemoval({
+      actor: membership,
+      target: { ...membership, id: 'membership-b-a', userId: 'user-b' },
+      ownerCount: 2,
+    })
+
+    await expect(removeMerchantMembership({
+      actorUserId: 'user-a',
+      userId: 'user-b',
+      merchantId: 'merchant-a',
+    })).resolves.toMatchObject({ id: 'membership-b-a', userId: 'user-b', role: 'OWNER' })
+    expect(tx.merchantMembership.delete).toHaveBeenCalled()
+  })
+
+  it('allows OWNER self-removal only when another OWNER remains', async () => {
+    const tx = setupRemoval({ actor: membership, target: membership, ownerCount: 2 })
+
+    await expect(removeMerchantMembership({
+      actorUserId: 'user-a',
+      userId: 'user-a',
+      merchantId: 'merchant-a',
+    })).resolves.toEqual(membership)
+    expect(tx.merchantMembership.delete).toHaveBeenCalled()
+  })
+
+  it('denies OWNER self-removal when it is the last OWNER', async () => {
+    const tx = setupRemoval({ actor: membership, target: membership, ownerCount: 1 })
 
     await expect(removeMerchantMembership({
       actorUserId: 'user-a',
@@ -171,24 +291,6 @@ describe('Merchant human membership foundation', () => {
       merchantId: 'merchant-a',
     })).rejects.toThrow('at least one owner')
     expect(tx.merchantMembership.delete).not.toHaveBeenCalled()
-  })
-
-  it('removes an owner when another owner remains', async () => {
-    const tx = {
-      merchantMembership: {
-        findUnique: jest.fn().mockResolvedValue(membership),
-        count: jest.fn().mockResolvedValue(2),
-        delete: jest.fn().mockResolvedValue(membership),
-      },
-    }
-    ;(prisma.$transaction as jest.Mock).mockImplementation(async (callback) => callback(tx))
-    merchantMembership.findUnique.mockResolvedValue(membership)
-
-    await expect(removeMerchantMembership({
-      actorUserId: 'user-a',
-      userId: 'user-a',
-      merchantId: 'merchant-a',
-    })).resolves.toEqual(membership)
   })
 
   it('provisions a merchant and its owner in one transaction', async () => {

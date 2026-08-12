@@ -1,6 +1,8 @@
 import { prisma } from '@/lib/prisma'
 import { Prisma } from '@prisma/client'
 import {
+  canCreateMerchantMembership,
+  canRemoveMerchantMembership,
   isMerchantMembershipRole,
   type MerchantMembershipRecord,
   type MerchantMembershipRole,
@@ -46,7 +48,7 @@ export async function createMerchantMembership(input: {
   merchantId: string
   role: MerchantMembershipRole
 }): Promise<MerchantMembershipRecord> {
-  await requireMerchantMembership({
+  const actorMembership = await requireMerchantMembership({
     userId: input.actorUserId,
     merchantId: input.merchantId,
     roles: ['OWNER', 'ADMIN'],
@@ -54,6 +56,9 @@ export async function createMerchantMembership(input: {
 
   if (!isMerchantMembershipRole(input.role)) {
     throw new Error('Unsupported merchant membership role.')
+  }
+  if (!canCreateMerchantMembership(actorMembership.role, input.role)) {
+    throw new MerchantAccessError()
   }
 
   return prisma.merchantMembership.create({
@@ -130,7 +135,7 @@ export async function removeMerchantMembership(input: {
   userId: string
   merchantId: string
 }): Promise<MerchantMembershipRecord> {
-  await requireMerchantMembership({
+  const actorMembership = await requireMerchantMembership({
     userId: input.actorUserId,
     merchantId: input.merchantId,
     roles: ['OWNER', 'ADMIN'],
@@ -142,6 +147,9 @@ export async function removeMerchantMembership(input: {
       select: membershipSelect,
     })
     if (!membership || !isMerchantMembershipRole(membership.role)) {
+      throw new MerchantAccessError()
+    }
+    if (!canRemoveMerchantMembership(actorMembership.role, membership.role)) {
       throw new MerchantAccessError()
     }
 

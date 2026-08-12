@@ -17,3 +17,17 @@ export function isMerchantMembershipRole(value: string): value is MerchantMember
 export function canManageMerchant(role: MerchantMembershipRole): boolean {
   return role === 'OWNER' || role === 'ADMIN'
 }
+
+export function canCreateMerchantMembership(
+  actorRole: MerchantMembershipRole,
+  requestedRole: MerchantMembershipRole,
+): boolean {
+  return requestedRole === 'OWNER' ? actorRole === 'OWNER' : canManageMerchant(actorRole)
+}
+
+export function canRemoveMerchantMembership(
+  actorRole: MerchantMembershipRole,
+  targetRole: MerchantMembershipRole,
+): boolean {
+  return targetRole === 'OWNER' ? actorRole === 'OWNER' : canManageMerchant(actorRole)
+}
