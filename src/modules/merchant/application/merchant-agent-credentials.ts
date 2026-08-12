@@ -284,7 +284,7 @@ export async function authenticateMerchantAgentCredential(rawKey: string): Promi
 }
 
 export async function recordMerchantAgentOperation(input: {
-  actor: AgentMerchantActor
+  actor: { actorType: string; actorId: string; merchantId: string }
   action: string
   resourceType: string
   resourceId?: string
