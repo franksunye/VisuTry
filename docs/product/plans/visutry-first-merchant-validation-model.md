@@ -37,6 +37,8 @@ For example, VisuTry may use a deliberately conservative sponsored-usage allowan
 
 Reference Experiences must also preserve explicit provenance and must never be represented as customer, partner, or case-study relationships unless such a relationship actually exists.
 
+The production validation merchant is `VisuTry Demo` (`visutry-demo`): a VisuTry-owned internal validation tenant with `pilotType=INTERNAL`, `referenceData=false`, and explicit `referenceMetadata` ownership. It is not an external reference merchant, partner, or customer.
+
 ## 3. What VisuTry is validating
 
 VisuTry-owned traffic is used to answer practical questions before external merchant rollout:
