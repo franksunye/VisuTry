@@ -128,7 +128,7 @@ export async function POST(
             }, { status: 400 });
         }
 
-        logger.info('grsai', `[Admin Fetch Result] Starting GrsAi polling`, {
+        logger.debug('grsai', `[Admin Fetch Result] Starting GrsAi polling`, {
             taskId,
             externalTaskId: metadata.externalTaskId,
             serviceType: metadata.serviceType,
@@ -143,7 +143,7 @@ export async function POST(
         }
         const pollDuration = Date.now() - pollStartTime;
 
-        logger.info('grsai', `[Admin Fetch Result] GrsAi polling completed`, {
+        logger.debug('grsai', `[Admin Fetch Result] GrsAi polling completed`, {
             taskId,
             externalTaskId: metadata.externalTaskId,
             pollDuration: `${pollDuration}ms`,
