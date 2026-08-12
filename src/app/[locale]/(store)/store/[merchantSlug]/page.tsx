@@ -18,6 +18,14 @@ interface MerchantStorePageProps {
 // Newly imported merchants remain eligible through dynamic params; stable
 // discovery HTML is served through ISR/data-cache rather than force-dynamic.
 export const revalidate = 30 * 60
+export const dynamicParams = true
+
+// Enable on-demand ISR for merchant slugs that are not known at build time.
+// Keeping this list empty prevents a catalog snapshot from becoming a build
+// dependency while allowing newly published merchants to render and cache.
+export function generateStaticParams() {
+  return []
+}
 
 export async function generateMetadata({
   params,

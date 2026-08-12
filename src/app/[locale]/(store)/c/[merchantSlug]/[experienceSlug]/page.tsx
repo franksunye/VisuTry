@@ -17,6 +17,14 @@ interface CampaignExperiencePageProps {
 }
 
 export const revalidate = 5 * 60
+export const dynamicParams = true
+
+// Campaign slugs are published after deploy; empty build-time params keep the
+// route eligible for on-demand ISR without baking a campaign snapshot into
+// the build.
+export function generateStaticParams() {
+  return []
+}
 
 export async function generateMetadata({
   params,
