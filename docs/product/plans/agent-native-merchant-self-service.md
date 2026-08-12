@@ -677,7 +677,51 @@ Deliver the first Merchant Onboarding Skill and Campaign Creation Skill.
 
 ### Phase C — Agent analytics
 
-Expose canonical read-only merchant intelligence sufficient for the Commerce Analyst Skill.
+#### Phase C1 — Merchant Intelligence / Analytics Application Foundation
+
+Phase C1 establishes the deterministic, tenant-safe read boundary for future
+Admin and MCP analytics. The application services consume only
+server-authoritative `MerchantSession`, `MerchantEvent`, and `MerchantIntent`
+records; Google Analytics and client-local counters are not merchant reporting
+authority.
+
+The first read model supports a specific Store or Campaign and an optional
+UTC time range (default 30 days, maximum 365 days, `from` inclusive and `to`
+exclusive):
+
+- visits: valid, unique `MerchantSession` rows for the Experience;
+- engaged sessions: a session with frame/product interaction, Try-On start,
+  Favorite, or Compare;
+- Try-On starts/completions: server events emitted by the Try-On lifecycle;
+- frames tried / unique frames tried: completed Try-On events with attributed
+  merchant frame IDs;
+- Favorites: server-authoritative `MerchantIntent(FAVORITE)` records;
+- Compares: server-authoritative `merchant_compare_started` events;
+- merchant CTA clicks: unavailable until a dedicated merchant-destination CTA
+  event exists; product clicks are not used as a proxy;
+- high-intent sessions: deterministic behavior score, threshold 4, with no
+  identity contribution.
+
+`buildCampaignScorecard` selects primary metrics for `TRAFFIC`, `INTENT`, and
+`LEAD`. Lead gate/opt-in/identified-session metrics remain explicitly
+unavailable because no merchant-safe Lead Capture runtime exists yet. Campaign
+objective is resolved through `resolveCampaignConversionPolicy`; Store
+analytics returns a null Campaign objective. Reference-data provenance is
+preserved in every read model.
+
+The shared application services are `getExperienceAnalyticsSummary`,
+`getExperienceFunnel`, `getTopFramesByIntent`, and
+`getMerchantIntentSummary`. They accept `MerchantActorContext`, require
+`analytics:read` for agent credentials, re-check human MerchantMembership, and
+always scope the Experience and frame queries by the actor merchant. They
+return aggregates only: no raw session IDs, shopper email, photos, IPs, or
+identity profiles. The scoped Admin insights API path now consumes
+`getExperienceAnalyticsSummary` through a `SYSTEM` control-plane actor; the
+legacy unscoped Admin workspace remains available for its existing historical
+and catalog detail view.
+
+Phase C2 may expose these services through a small Analytics MCP surface and a
+Commerce Analyst Skill. It must not bypass this application boundary.
 
 Avoid building a generic query language initially.
 
@@ -801,4 +845,8 @@ Phase A establishes the security boundary required before MCP work:
 - `MerchantActorContext`, `authenticateMerchantAgentCredential`, and `requireAgentScope` provide the shared human/agent/system application boundary. The representative `/api/agent/v1/merchant` read endpoint derives `merchantId` only from the credential.
 - `MerchantOperationAudit` records credential lifecycle and future agent writes without raw keys or request payloads. `lastUsedAt` is throttled to a 15-minute update interval.
 
-Phase B still requires the MCP protocol server, onboarding and campaign Skills, production rate limiting, and the remaining catalog/Experience outcome services. No MCP, Skill, onboarding UI, billing, consumer, or Sponsored Usage changes are included in Phase A.
+Phase B MCP transport, onboarding/campaign Skills, production rate limiting,
+and Store/Campaign outcome services are implemented. Phase C1 now provides
+the deterministic analytics application boundary; Analytics MCP and the
+Commerce Analyst Skill remain Phase C2 scope. No revenue, CRM, warehouse,
+consumer, billing, or Sponsored Usage behavior is implied by this foundation.
