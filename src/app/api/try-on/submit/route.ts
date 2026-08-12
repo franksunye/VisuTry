@@ -51,7 +51,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    logger.info('upload', 'Submit route received try-on files', {
+    logger.debug('upload', 'Submit route received try-on files', {
       userId,
       clientSubmissionId,
       tryOnType,
@@ -85,7 +85,7 @@ export async function POST(request: NextRequest) {
       const itemSha256 = createHash('sha256').update(Buffer.from(itemBuffer)).digest('hex')
       const sameContent = userSha256 === itemSha256
 
-      logger.info('upload', 'Submit route duplicate guard checked', {
+      logger.debug('upload', 'Submit route duplicate guard checked', {
         userId,
         clientSubmissionId,
         tryOnType,

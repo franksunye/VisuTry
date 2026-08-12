@@ -122,7 +122,7 @@ export async function submitTryOnTask(
 ): Promise<TryOnSubmissionResult> {
   const clientSubmissionId = options?.clientSubmissionId
   const startTime = Date.now()
-  logger.info('tryon-service', `Starting try-on task for user ${user.id}`, { type, clientSubmissionId })
+  logger.debug('tryon-service', `Starting try-on task for user ${user.id}`, { type, clientSubmissionId })
 
   if (clientSubmissionId && options?.enforceIdempotency) {
     const existingTask = await prisma.tryOnTask.findUnique({
@@ -178,7 +178,7 @@ export async function submitTryOnTask(
     hashEnabled: Boolean(userInspection.sha256 && itemInspection.sha256),
   }
 
-  logger.info('tryon-service', 'Try-on input diagnostics collected', {
+  logger.debug('tryon-service', 'Try-on input diagnostics collected', {
     userId: user.id,
     clientSubmissionId,
     type,
@@ -245,7 +245,7 @@ export async function submitTryOnTask(
     identicalUploadUrls: userBlob.url === itemBlob.url,
   }
 
-  logger.info('tryon-service', 'Try-on upload diagnostics collected', {
+  logger.debug('tryon-service', 'Try-on upload diagnostics collected', {
     userId: user.id,
     clientSubmissionId,
     type,
