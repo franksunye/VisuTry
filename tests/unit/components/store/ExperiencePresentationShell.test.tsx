@@ -32,7 +32,7 @@ const copy: ExperiencePresentationCopy = {
   storeCta: 'Explore the collection',
   campaignCta: 'Explore the edit',
   actionCta: 'Start with my photo',
-  ctaSupport: 'Private session',
+  ctaSupport: 'Your photo stays within this shopping session',
   privacyTitle: 'Privacy & photo retention',
   privacyBody: 'Your photo is used for this session.',
   privacyPoint1: 'Stored temporarily.',
