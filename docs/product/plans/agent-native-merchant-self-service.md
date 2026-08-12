@@ -723,6 +723,25 @@ and catalog detail view.
 Phase C2 may expose these services through a small Analytics MCP surface and a
 Commerce Analyst Skill. It must not bypass this application boundary.
 
+### Phase C2 — Analytics MCP + Commerce Analyst Skill
+
+Phase C2 exposes five read-only, merchant-scoped analytics tools through the
+existing `/api/mcp` endpoint: `get_experience_summary`,
+`get_experience_funnel`, `get_top_frames`, `get_intent_summary`, and
+`compare_experiences`. Each adapter reuses the Phase C1 application services,
+requires `analytics:read`, and returns privacy-safe aggregate read models. The
+comparison service composes two to five C1 summaries over the same period and
+returns only deterministic metric-specific winners; it never returns a
+universal best Campaign verdict.
+
+The public Commerce Analyst Skill is available at `/skills/commerce-analyst`.
+It is read / advise only, requires objective-aware interpretation, distinguishes
+observed facts from inference and recommendations, warns about small samples and
+reference-data provenance, and makes unavailable lead, identity, revenue,
+orders, and ROAS metrics explicit. Analytics reads do not add MerchantOperationAudit
+writes and do not mutate Store, Campaign, Catalog, Consumer Credits, or
+Sponsored Usage state.
+
 Avoid building a generic query language initially.
 
 ### Phase D — First-login onboarding and Trial

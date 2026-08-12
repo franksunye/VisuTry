@@ -116,7 +116,8 @@ describe('Merchant Analytics application foundation', () => {
 
   it('returns aggregate intent only and marks identity/CTA unavailable', async () => {
     await expect(getMerchantIntentSummary({ actor: agent, experienceId: 'campaign-a' })).resolves.toMatchObject({
-      favorites: 1, compares: 1, merchantCtaClicks: null, identifiedSessions: null,
+      tryOnStarts: 2, tryOnCompletions: 2, framesTried: 2, uniqueFramesTried: 2,
+      favorites: 1, compares: 1, merchantCtaClicks: null, identifiedSessions: null, identifiedIntentAvailable: false,
     })
   })
 

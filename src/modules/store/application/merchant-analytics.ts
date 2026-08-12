@@ -110,11 +110,16 @@ export type MerchantIntentSummary = {
   experienceId: string
   period: MerchantAnalyticsSummary['period']
   referenceData: boolean
+  tryOnStarts: number
+  tryOnCompletions: number
+  framesTried: number
+  uniqueFramesTried: number
   favorites: number
   compares: number
   merchantCtaClicks: number | null
   highIntentSessions: number
   identifiedSessions: number | null
+  identifiedIntentAvailable: false
 }
 
 export class MerchantAnalyticsError extends Error {
@@ -382,10 +387,15 @@ export async function getMerchantIntentSummary(input: MerchantAnalyticsContext):
     experienceId: data.experience.id,
     period: periodDto(data.period),
     referenceData: data.referenceData,
+    tryOnStarts: data.metrics.tryOnStarts,
+    tryOnCompletions: data.metrics.tryOnCompletions,
+    framesTried: data.metrics.framesTried,
+    uniqueFramesTried: data.metrics.uniqueFramesTried,
     favorites: data.metrics.favorites,
     compares: data.metrics.compares,
     merchantCtaClicks: null,
     highIntentSessions: data.metrics.highIntentSessions,
     identifiedSessions: null,
+    identifiedIntentAvailable: false,
   }
 }

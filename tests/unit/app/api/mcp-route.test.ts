@@ -44,6 +44,34 @@ jest.mock('@/modules/store/application/campaign-service', () => ({
   },
 }))
 
+jest.mock('@/modules/store/application/merchant-analytics', () => ({
+  getExperienceAnalyticsSummary: jest.fn().mockResolvedValue({
+    experience: { id: 'campaign-a', type: 'CAMPAIGN', slug: 'spring-edit', name: 'Spring Edit', status: 'ACTIVE', objective: 'INTENT', gate: 'NONE' },
+    period: { from: '2026-08-01T00:00:00.000Z', to: '2026-08-31T00:00:00.000Z', timezone: 'UTC' },
+    referenceData: false,
+    metrics: { visits: 20, engagedSessions: 10, engagementRate: 0.5, tryOnStarts: 5, tryOnCompletions: 4, tryOnCompletionRate: 0.8, framesTried: 4, uniqueFramesTried: 3, favorites: 2, compares: 1, merchantCtaClicks: null, highIntentSessions: 3, highIntentRate: 0.15 },
+    scorecard: { objective: 'INTENT', primaryMetrics: ['tryOnCompletions'], leadMetricsAvailable: false, leadMetrics: { gateShown: null, optInCompleted: null, identifiedSessions: null, optInRate: null } },
+  }),
+  getExperienceFunnel: jest.fn().mockResolvedValue({ experienceId: 'campaign-a', period: { from: '2026-08-01T00:00:00.000Z', to: '2026-08-31T00:00:00.000Z', timezone: 'UTC' }, referenceData: false, stages: [{ stage: 'VISIT', sessions: 20, available: true }] }),
+  getTopFramesByIntent: jest.fn().mockResolvedValue({ experienceId: 'campaign-a', period: { from: '2026-08-01T00:00:00.000Z', to: '2026-08-31T00:00:00.000Z', timezone: 'UTC' }, referenceData: false, frames: [{ frameId: 'frame-a', sku: 'A', name: 'Frame A', imageUrl: null, tryOnCount: 2, favoriteCount: 1, compareCount: 1, ctaCount: null, highIntentInteractions: 2, intentScore: 7 }] }),
+  getMerchantIntentSummary: jest.fn().mockResolvedValue({ experienceId: 'campaign-a', period: { from: '2026-08-01T00:00:00.000Z', to: '2026-08-31T00:00:00.000Z', timezone: 'UTC' }, referenceData: false, tryOnStarts: 5, tryOnCompletions: 4, framesTried: 4, uniqueFramesTried: 3, favorites: 2, compares: 1, merchantCtaClicks: null, highIntentSessions: 3, identifiedSessions: null, identifiedIntentAvailable: false }),
+  MerchantAnalyticsError: class MerchantAnalyticsError extends Error {},
+}))
+
+jest.mock('@/modules/store/application/compare-merchant-experiences', () => ({
+  compareMerchantExperiences: jest.fn().mockResolvedValue({
+    period: { from: '2026-08-01T00:00:00.000Z', to: '2026-08-31T00:00:00.000Z', timezone: 'UTC' },
+    experiences: [
+      { id: 'campaign-a', type: 'CAMPAIGN', name: 'Spring Edit', objective: 'INTENT', referenceData: false, metrics: { engagementRate: 0.5 }, scorecard: { objective: 'INTENT' } },
+      { id: 'campaign-b', type: 'CAMPAIGN', name: 'Summer Edit', objective: 'INTENT', referenceData: false, metrics: { engagementRate: 0.4 }, scorecard: { objective: 'INTENT' } },
+    ],
+    comparison: { highestEngagement: 'campaign-a', highestTryOnCompletion: null, highestHighIntentRate: null, highestMerchantCtaRate: null },
+  }),
+  MerchantAnalyticsComparisonError: class MerchantAnalyticsComparisonError extends Error {
+    readonly code = 'INVALID_REQUEST'
+  },
+}))
+
 jest.mock('@/modules/merchant/application/merchant-agent-credentials', () => ({
   recordMerchantAgentOperation: jest.fn().mockResolvedValue(undefined),
 }))
@@ -54,7 +82,7 @@ import { recordMerchantAgentOperation } from '@/modules/merchant/application/mer
 import { POST } from '@/app/api/mcp/route'
 
 const authenticate = authenticateMerchantAgentCredential as jest.Mock
-const actor = { actorType: 'AGENT_CREDENTIAL' as const, actorId: 'credential-a', merchantId: 'merchant-a', scopes: ['merchant:read', 'catalog:read', 'experience:read', 'experience:write'] }
+const actor = { actorType: 'AGENT_CREDENTIAL' as const, actorId: 'credential-a', merchantId: 'merchant-a', scopes: ['merchant:read', 'catalog:read', 'experience:read', 'experience:write', 'analytics:read'] }
 
 function mcpRequest(message: unknown) {
   return new NextRequest('http://localhost/api/mcp', {
@@ -82,6 +110,7 @@ describe('MCP transport protocol', () => {
     expect(listBody.result.tools.map((tool) => tool.name)).toEqual([
       'get_onboarding_status', 'get_merchant', 'list_frames', 'import_frames', 'validate_catalog', 'create_store', 'set_store_frames', 'preview_store', 'publish_store',
       'list_campaigns', 'get_campaign', 'create_campaign', 'set_campaign_frames', 'update_campaign', 'preview_campaign', 'publish_campaign', 'archive_campaign',
+      'get_experience_summary', 'get_experience_funnel', 'get_top_frames', 'get_intent_summary', 'compare_experiences',
     ])
   })
 
@@ -104,5 +133,29 @@ describe('MCP transport protocol', () => {
     const publishBody = await publish.json() as { result: { content: Array<{ text: string }> } }
     expect(JSON.parse(publishBody.result.content[0].text)).toEqual({ id: 'campaign-a', status: 'ACTIVE' })
     expect(recordMerchantAgentOperation).toHaveBeenCalledWith(expect.objectContaining({ action: 'campaign.published', resourceType: 'Experience', resourceId: 'campaign-a' }))
+  })
+
+  it('routes Analytics summary and comparison through the authenticated actor', async () => {
+    const summary = await POST(mcpRequest({ jsonrpc: '2.0', id: 6, method: 'tools/call', params: { name: 'get_experience_summary', arguments: { experienceId: 'campaign-a' } } }))
+    expect(summary.status).toBe(200)
+    const summaryBody = await summary.json() as { result: { content: Array<{ text: string }> } }
+    expect(JSON.parse(summaryBody.result.content[0].text)).toMatchObject({
+      experience: { id: 'campaign-a', objective: 'INTENT', referenceData: false },
+      availability: { merchantCtaClicks: false, identifiedIntent: false, revenue: false },
+    })
+
+    const comparison = await POST(mcpRequest({ jsonrpc: '2.0', id: 7, method: 'tools/call', params: { name: 'compare_experiences', arguments: { experienceIds: ['campaign-a', 'campaign-b'] } } }))
+    expect(comparison.status).toBe(200)
+    const comparisonBody = await comparison.json() as { result: { content: Array<{ text: string }> } }
+    expect(JSON.parse(comparisonBody.result.content[0].text)).toMatchObject({ comparison: { highestEngagement: 'campaign-a' } })
+  })
+
+  it('denies Analytics tools when the credential lacks analytics:read', async () => {
+    authenticate.mockResolvedValue({ ...actor, scopes: ['merchant:read'] })
+    const response = await POST(mcpRequest({ jsonrpc: '2.0', id: 8, method: 'tools/call', params: { name: 'get_intent_summary', arguments: { experienceId: 'campaign-a' } } }))
+    expect(response.status).toBe(200)
+    const body = await response.json() as { result: { isError?: boolean; content: Array<{ text: string }> } }
+    expect(body.result.isError).toBe(true)
+    expect(JSON.parse(body.result.content[0].text)).toMatchObject({ code: 'AGENT_SCOPE_REQUIRED' })
   })
 })
