@@ -128,7 +128,7 @@ export async function createStoreSession(input: {
     },
   })
 
-  logger.info('store', 'Store session created', {
+  logger.debug('store', 'Store session created', {
     merchantId: merchant.id,
     merchantSlug: input.slug,
     experienceId: experience?.id ?? null,
