@@ -180,7 +180,7 @@ export async function pollTaskResult(grsaiTaskId: string): Promise<GrsAiResult> 
   const url = `${GRSAI_BASE_URL}/v1/draw/result`
   const startTime = Date.now()
 
-  logger.debug('grsai', `Polling GrsAi task result`, {
+  logger.info('grsai', `Polling GrsAi task result`, {
     grsaiTaskId,
     url,
     baseUrl: GRSAI_BASE_URL,
@@ -262,7 +262,7 @@ export async function pollTaskResult(grsaiTaskId: string): Promise<GrsAiResult> 
       status = 'failed'
     }
 
-    logger.debug('grsai', `GrsAi task status parsed`, {
+    logger.info('grsai', `GrsAi task status parsed`, {
       grsaiTaskId,
       rawStatus,
       normalizedStatus: status,
@@ -280,7 +280,7 @@ export async function pollTaskResult(grsaiTaskId: string): Promise<GrsAiResult> 
         if (firstResult.url) {
           // Clean up URL (remove backticks and surrounding spaces if any)
           imageUrl = firstResult.url.replace(/[`]/g, '').trim()
-          logger.debug('grsai', `Image URL extracted from results array`, {
+          logger.info('grsai', `Image URL extracted from results array`, {
             grsaiTaskId,
             imageUrl: imageUrl ? imageUrl.substring(0, 100) + '...' : undefined,
             hasContent: !!firstResult.content,
@@ -295,10 +295,10 @@ export async function pollTaskResult(grsaiTaskId: string): Promise<GrsAiResult> 
       if (!imageUrl) {
         if (data.data?.imageUrl) {
           imageUrl = data.data.imageUrl
-          logger.debug('grsai', `Image URL extracted from imageUrl field`, { grsaiTaskId })
+          logger.info('grsai', `Image URL extracted from imageUrl field`, { grsaiTaskId })
         } else if (data.data?.images && Array.isArray(data.data.images) && data.data.images.length > 0) {
           imageUrl = data.data.images[0]
-          logger.debug('grsai', `Image URL extracted from images array`, { grsaiTaskId })
+          logger.info('grsai', `Image URL extracted from images array`, { grsaiTaskId })
         }
 
         // If imageUrl is still not found, check result
@@ -307,7 +307,7 @@ export async function pollTaskResult(grsaiTaskId: string): Promise<GrsAiResult> 
           if (!imageUrl) {
             // If no image found yet, assume result is the image URL
             imageUrl = data.data.result
-            logger.debug('grsai', `Image URL extracted from result field`, { grsaiTaskId })
+            logger.info('grsai', `Image URL extracted from result field`, { grsaiTaskId })
           } else {
             // If image already found, result is likely the text description
             // Only set if metadata wasn't already set by 'results' structure
@@ -350,7 +350,7 @@ export async function pollTaskResult(grsaiTaskId: string): Promise<GrsAiResult> 
       })
     }
 
-    logger.debug('grsai', `GrsAi polling completed`, {
+    logger.info('grsai', `GrsAi polling completed`, {
       grsaiTaskId,
       status: result.status,
       progress: result.progress,
