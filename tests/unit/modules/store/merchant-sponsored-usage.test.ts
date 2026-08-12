@@ -1,35 +1,49 @@
 import {
   DISABLED_MERCHANT_SPONSORED_POLICY,
   VISUTRY_OWNED_SPONSORED_POLICY,
+  isMerchantSponsoredUsageEnabled,
   resolveMerchantSponsoredUsagePolicy,
   sponsoredUsageLimitFor,
   sponsoredUsageFailureAction,
 } from '@/modules/store/domain/merchant-sponsored-usage'
 
 describe('Merchant sponsored usage policy', () => {
-  it('enables the conservative VisuTry-owned reference policy', () => {
-    const policy = resolveMerchantSponsoredUsagePolicy({ pilotType: 'REFERENCE' })
+  const originalFlag = process.env.MERCHANT_SPONSORED_USAGE_ENABLED
 
-    expect(policy).toEqual(VISUTRY_OWNED_SPONSORED_POLICY)
-    expect(policy.sponsoredGenerationLimit).toBe(1)
-    expect(policy.rollingWindowHours).toBe(24)
-    expect(policy.sponsoredCompareLimit).toBe(0)
+  afterEach(() => {
+    if (originalFlag === undefined) delete process.env.MERCHANT_SPONSORED_USAGE_ENABLED
+    else process.env.MERCHANT_SPONSORED_USAGE_ENABLED = originalFlag
+  })
+
+  it('is disabled by default, including for reference pilots', () => {
+    delete process.env.MERCHANT_SPONSORED_USAGE_ENABLED
+
+    expect(isMerchantSponsoredUsageEnabled()).toBe(false)
+    expect(resolveMerchantSponsoredUsagePolicy({})).toEqual(DISABLED_MERCHANT_SPONSORED_POLICY)
+  })
+
+  it('requires the global flag and explicit VisuTry-owned policy key', () => {
+    process.env.MERCHANT_SPONSORED_USAGE_ENABLED = 'true'
+
+    expect(isMerchantSponsoredUsageEnabled()).toBe(true)
+    expect(resolveMerchantSponsoredUsagePolicy({})).toEqual(DISABLED_MERCHANT_SPONSORED_POLICY)
+    expect(resolveMerchantSponsoredUsagePolicy({
+      sponsoredUsagePolicyKey: 'VISUTRY_OWNED',
+    })).toEqual(VISUTRY_OWNED_SPONSORED_POLICY)
   })
 
   it('supports explicit policy keys without using merchant slugs or provenance', () => {
+    process.env.MERCHANT_SPONSORED_USAGE_ENABLED = 'true'
+
     expect(resolveMerchantSponsoredUsagePolicy({
       sponsoredUsagePolicyKey: 'VISUTRY_OWNED',
-      pilotType: 'LIVE',
     })).toEqual(VISUTRY_OWNED_SPONSORED_POLICY)
 
     expect(resolveMerchantSponsoredUsagePolicy({
       sponsoredUsagePolicyKey: 'UNKNOWN_POLICY',
-      pilotType: 'REFERENCE',
     })).toEqual(DISABLED_MERCHANT_SPONSORED_POLICY)
 
-    expect(resolveMerchantSponsoredUsagePolicy({
-      pilotType: 'LIVE',
-    })).toEqual(DISABLED_MERCHANT_SPONSORED_POLICY)
+    expect(resolveMerchantSponsoredUsagePolicy({})).toEqual(DISABLED_MERCHANT_SPONSORED_POLICY)
   })
 
   it('keeps Compare sponsorship at zero while generation has one allowance', () => {

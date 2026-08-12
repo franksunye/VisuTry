@@ -28,25 +28,27 @@ export const DISABLED_MERCHANT_SPONSORED_POLICY: MerchantSponsoredUsagePolicy = 
 
 export type MerchantSponsoredPolicyFields = {
   sponsoredUsagePolicyKey?: string | null
-  /** Existing provenance/pilot classification; not the entitlement itself. */
-  pilotType?: string | null
 }
 
-/** Resolve a server-owned policy; merchant slug and referenceData are not used. */
+/**
+ * Global rollout kill switch. Undefined, empty, or any value other than the
+ * literal "true" keeps sponsored usage disabled.
+ */
+export function isMerchantSponsoredUsageEnabled(): boolean {
+  return process.env.MERCHANT_SPONSORED_USAGE_ENABLED === 'true'
+}
+
+/** Resolve a server-owned policy from an explicit policy key only. */
 export function resolveMerchantSponsoredUsagePolicy(
   fields: MerchantSponsoredPolicyFields,
 ): MerchantSponsoredUsagePolicy {
+  if (!isMerchantSponsoredUsageEnabled()) return DISABLED_MERCHANT_SPONSORED_POLICY
+
   const explicitKey = fields.sponsoredUsagePolicyKey?.trim().toUpperCase()
   if (explicitKey === VISUTRY_OWNED_SPONSORED_POLICY_KEY) {
     return VISUTRY_OWNED_SPONSORED_POLICY
   }
   if (explicitKey) return DISABLED_MERCHANT_SPONSORED_POLICY
-
-  // Existing reference pilot rows are VisuTry-owned delivery surfaces. This
-  // is a policy default, not a referenceData/provenance entitlement switch.
-  if ((fields.pilotType ?? '').trim().toUpperCase() === 'REFERENCE') {
-    return VISUTRY_OWNED_SPONSORED_POLICY
-  }
 
   return DISABLED_MERCHANT_SPONSORED_POLICY
 }
