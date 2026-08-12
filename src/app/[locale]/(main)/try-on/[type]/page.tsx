@@ -60,6 +60,11 @@ export function generateStaticParams() {
   }))
 }
 
+// The route is a closed set. Invalid values such as /try-on/null should 404
+// instead of falling through to a runtime render and changing the page from
+// static to dynamic.
+export const dynamicParams = false
+
 export default async function TryOnTypePage({ params }: TryOnPageProps) {
   const { locale, type } = params
   setRequestLocale(locale)

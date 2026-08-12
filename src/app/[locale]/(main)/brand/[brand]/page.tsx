@@ -42,7 +42,9 @@ export async function generateStaticParams() {
   return [...staticBrands, ...databaseBrands.filter(item => !CURATED_BRAND_SLUGS.some(brand => brand === item.brand))]
 }
 
-export const dynamicParams = true
+// Only curated pages are valid while database-backed programmatic SEO is off.
+// Keeping this closed prevents arbitrary bot slugs from becoming ISR entries.
+export const dynamicParams = process.env.PROGRAMMATIC_SEO_ENABLED === 'true'
 export const revalidate = 3600
 
 export async function generateMetadata({ params }: BrandPageProps): Promise<Metadata> {

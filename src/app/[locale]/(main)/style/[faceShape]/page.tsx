@@ -48,10 +48,16 @@ function normalizeFaceShapeSlug(value: string): FaceShapeContentSlug | null {
 }
 
 export function generateStaticParams() {
-  return FACE_SHAPE_SLUGS.map((shape) => ({ faceShape: `${shape}-face` }))
+  const canonicalParams = FACE_SHAPE_SLUGS.map((shape) => `${shape}-face`)
+  const compatibilityParams = ['heart-shaped', 'long-face', 'pear-face']
+
+  return Array.from(new Set([...canonicalParams, ...compatibilityParams]))
+    .map((faceShape) => ({ faceShape }))
 }
 
-export const dynamicParams = true
+// This page is entirely content-driven and has a finite set of supported
+// shapes. Unknown slugs should be a 404, not an on-demand ISR render.
+export const dynamicParams = false
 export const revalidate = 3600
 
 export async function generateMetadata({ params }: FaceShapePageProps): Promise<Metadata> {
