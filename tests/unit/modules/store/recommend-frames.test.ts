@@ -45,6 +45,7 @@ describe('recommendMerchantFrames', () => {
       merchantId: 'm1',
       sku: 'R1',
       name: 'Round',
+      brand: 'Brand A',
       imageUrl: 'https://example.com/r.jpg',
       imageAssetId: null,
       productUrl: 'https://example.com/r',
@@ -67,6 +68,7 @@ describe('recommendMerchantFrames', () => {
       merchantId: 'm1',
       sku: 'X1',
       name: 'Rect',
+      brand: 'Brand B',
       imageUrl: 'https://example.com/x.jpg',
       imageAssetId: null,
       productUrl: 'https://example.com/x',
@@ -89,6 +91,7 @@ describe('recommendMerchantFrames', () => {
       merchantId: 'm2',
       sku: 'O1',
       name: 'Leak',
+      brand: 'Other Brand',
       imageUrl: null,
       imageAssetId: null,
       productUrl: null,
@@ -191,6 +194,9 @@ describe('recommendMerchantFrames', () => {
 
     expect(result.frames.length).toBeGreaterThan(0)
     expect(result.frames.every((f) => f.id !== 'f-other')).toBe(true)
+    expect(result.frames.map((frame) => frame.productBrand)).toEqual(
+      expect.arrayContaining(['Brand A', 'Brand B']),
+    )
     expect(result.frames[0]?.reason).toBeTruthy()
     expect(result.rankingVersion).toMatch(/^store-rank-/)
     expect(events.appendIdempotent).toHaveBeenCalled()

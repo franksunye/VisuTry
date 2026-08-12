@@ -4,7 +4,7 @@
   "name": "AKILA Store",
   "status": "ACTIVE",
   "headline": "Explore AKILA's current eyewear collection",
-  "description": "Reference Pilot / Simulation using a curated public catalog selected for shape, material, and color diversity.",
+  "description": "A curated AKILA collection with varied shapes, materials, and color stories.",
   "catalogSelection": "ALL_ACTIVE",
   "primaryCta": {
     "type": "PRODUCT_OR_COLLECTION",

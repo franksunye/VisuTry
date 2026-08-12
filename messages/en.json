@@ -764,7 +764,9 @@
       "campaignLabel": "The edit",
       "storeSubhead": "A focused collection, ready to explore",
       "storeHero": "One photo. Your best frames.",
-      "heroBody": "Shortlist a few looks, see them on your photo, and compare before you decide."
+      "heroBody": "Shortlist a few looks, see them on your photo, and compare before you decide.",
+      "referenceCatalog": "Reference catalog",
+      "liveCatalog": "Live catalog"
     },
     "privacy": {
       "title": "Privacy & photo retention",

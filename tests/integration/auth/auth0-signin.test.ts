@@ -3,7 +3,7 @@
  * Tests for Auth0 authentication flow
  */
 
-function isValidAuth0IssuerUrl(value: string): boolean {
+function isValidAuth0IssuerUrlForIntegration(value: string): boolean {
   try {
     const url = new URL(value)
     return url.protocol === 'https:' && Boolean(url.hostname) && !url.username && !url.password
@@ -27,7 +27,7 @@ describe('Auth0 Sign-In Flow', () => {
     it('should have valid Auth0 issuer URL', () => {
       const issuerUrl = process.env.AUTH0_ISSUER_BASE_URL
       if (issuerUrl) {
-        expect(isValidAuth0IssuerUrl(issuerUrl)).toBe(true)
+        expect(isValidAuth0IssuerUrlForIntegration(issuerUrl)).toBe(true)
       }
     })
   })
@@ -168,7 +168,7 @@ describe('Auth0 Sign-In Flow', () => {
     it('should validate Auth0 issuer URL format', () => {
       const issuerUrl = process.env.AUTH0_ISSUER_BASE_URL
       if (issuerUrl) {
-        expect(isValidAuth0IssuerUrl(issuerUrl)).toBe(true)
+        expect(isValidAuth0IssuerUrlForIntegration(issuerUrl)).toBe(true)
       }
     })
   })

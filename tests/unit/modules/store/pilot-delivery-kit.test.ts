@@ -46,6 +46,7 @@ describe('Pilot Delivery Kit catalog contract', () => {
     expect(row).toMatchObject({
       externalId: 'v-1',
       name: 'Frame, One',
+      brand: 'Example',
       price: 8000,
       currency: 'usd',
       styleTags: ['classic', 'petite-fit'],
@@ -116,6 +117,25 @@ describe('Pilot Delivery Kit catalog contract', () => {
       'default',
       'summer-sunglasses',
     ])
+  })
+
+  it('keeps reference experience descriptions shopper-facing', async () => {
+    const referencePackages = [
+      'pilot/ello-sunglasses',
+      'pilot/akila',
+      'pilot/article-one',
+      'pilot/framed-ewe',
+      'pilot/lowercase-nyc',
+    ]
+
+    for (const packageDir of referencePackages) {
+      const pkg = await readPilotPackage(packageDir)
+      for (const experience of pkg.experiences) {
+        expect(experience.description ?? '').not.toMatch(
+          /reference|simulation|operator|source facts?|fit guarantee|technical details/i,
+        )
+      }
+    }
   })
 
   it('validates catalog selection and stable Store slug', () => {

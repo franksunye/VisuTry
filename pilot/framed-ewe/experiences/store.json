@@ -4,7 +4,7 @@
   "name": "Framed EWE Store",
   "status": "ACTIVE",
   "headline": "Explore independent eyewear across Framed EWE’s curated catalog",
-  "description": "Reference Pilot / Simulation: a multi-brand retailer catalog assembled from Framed EWE public product pages. Product brands remain source metadata; all frames are owned by the Framed EWE merchant catalog.",
+  "description": "A multi-brand selection from Framed EWE’s curated catalog, bringing distinct independent eyewear labels into one place.",
   "catalogSelection": "ALL_ACTIVE",
   "primaryCta": {
     "type": "PRODUCT_OR_COLLECTION",

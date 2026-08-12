@@ -59,6 +59,7 @@ function frame(id: string): MerchantFrameRecord {
     merchantId: 'merchant-1',
     sku: id,
     name: id,
+    brand: null,
     variant: null,
     imageUrl: null,
     imageAssetId: null,

@@ -1,12 +1,17 @@
 import { productBrandForFrame } from '@/modules/store/application/product-labels'
 
 describe('productBrandForFrame', () => {
-  it('exposes the leading brand for a tagged multi-brand catalog', () => {
-    expect(productBrandForFrame({ name: 'RIGARDS RG1091TI', collectionTags: ['retailer', 'multi-brand'] })).toBe('RIGARDS')
-    expect(productBrandForFrame({ name: 'Akila Myca', collectionTags: ['multi-brand'] })).toBe('Akila')
+  it('uses the explicit product brand even when the product name is unrelated', () => {
+    const rigardsFrame = { name: 'RG1091TI', brand: 'RIGARDS' }
+    const akilaFrame = { name: 'Model 2641', brand: 'Akila' }
+    expect(productBrandForFrame(rigardsFrame)).toBe('RIGARDS')
+    expect(productBrandForFrame(akilaFrame)).toBe('Akila')
   })
 
-  it('does not invent a product brand for a single-brand catalog', () => {
-    expect(productBrandForFrame({ name: 'Bali', collectionTags: ['core-style'] })).toBeNull()
+  it('returns null for missing or whitespace-only brands', () => {
+    const missingBrandFrame = { name: 'Bali', brand: null }
+    const blankBrandFrame = { name: 'Bali', brand: '   ' }
+    expect(productBrandForFrame(missingBrandFrame)).toBeNull()
+    expect(productBrandForFrame(blankBrandFrame)).toBeNull()
   })
 })

@@ -50,7 +50,6 @@ export type RecommendedFrameDto = {
   color: string | null
   widthClass: string | null
   styleTags: string[]
-  collectionTags: string[]
   productBrand: string | null
   score: number
   reason: string
@@ -134,7 +133,6 @@ export async function recommendMerchantFrames(
         color: frame.color,
         widthClass: frame.widthClass,
         styleTags: frame.styleTags,
-        collectionTags: frame.collectionTags ?? [],
         productBrand: productBrandForFrame(frame),
         score: ranked.score,
         reason: ranked.reason,

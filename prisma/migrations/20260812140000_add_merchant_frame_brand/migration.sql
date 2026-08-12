@@ -1,0 +1,1 @@
+ALTER TABLE "MerchantFrame" ADD COLUMN IF NOT EXISTS "brand" TEXT;

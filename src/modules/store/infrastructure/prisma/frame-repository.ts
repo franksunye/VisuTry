@@ -16,6 +16,7 @@ function mapFrame(row: MerchantFrame): MerchantFrameRecord {
     merchantId: row.merchantId,
     sku: row.sku,
     name: row.name,
+    brand: row.brand,
     variant: row.variant,
     imageUrl: row.imageUrl,
     imageAssetId: row.imageAssetId,

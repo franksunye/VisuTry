@@ -67,7 +67,6 @@ type RecommendedFrame = {
   color: string | null
   widthClass: string | null
   styleTags: string[]
-  collectionTags: string[]
   productBrand: string | null
   score: number
   reason: string
@@ -461,16 +460,7 @@ export function StoreShopperExperience({
   const maxSelectableFrames = maxSelectableStoreFrames(merchant.experiencePolicy)
   const selectedFrames = recommendations.filter((frame) => selectedIds.includes(frame.id))
   const isCampaign = merchant.experience?.type === 'CAMPAIGN'
-  const experienceDescription = merchant.experience?.description
-    ?.replace(/^Reference (?:Pilot|Store) \/ Simulation:?\s*/i, '')
-    .replace(/using the imported public catalog\.?/i, '')
-    .replace(/ and technical details/gi, '')
-    .replace(/No sport suitability or performance outcome is inferred\.?/i, '')
-    .replace(/\s*No fit guarantee[^.]*\.?/i, '')
-    .trim()
-  const heroDescription = experienceDescription
-    ?.replace(/[^.]*\b(?:operator enrichment|public product facts|public source facts|source facts|measurements support|fit guarantee)\b[^.]*\.?/gi, '')
-    .trim() || t('catalogHint', { count: merchant.activeFrameCount })
+  const heroDescription = merchant.experience?.description?.trim() || t('catalogHint', { count: merchant.activeFrameCount })
 
   return (
     <div className="relative min-h-screen overflow-hidden bg-[#f7f8fb] text-slate-950">
@@ -563,7 +553,7 @@ export function StoreShopperExperience({
                     <p className="mt-1 max-w-md text-sm text-slate-500">{merchant.experience?.name || t('experience.storeSubhead')}</p>
                   </div>
                   <span className="flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-700">
-                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />Live catalog
+                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />{merchant.referenceData ? t('experience.referenceCatalog') : t('experience.liveCatalog')}
                   </span>
                 </div>
 

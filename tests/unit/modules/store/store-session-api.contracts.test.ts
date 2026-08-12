@@ -103,6 +103,7 @@ describe('STORE-2 contracts and merchant resolution', () => {
             merchantId: 'm1',
             sku: `SKU-${i}`,
             name: `Frame ${i}`,
+            brand: null,
             imageUrl: null,
             imageAssetId: null,
             productUrl: null,

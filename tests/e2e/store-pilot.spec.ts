@@ -98,12 +98,14 @@ test.describe('@critical Store Pilot Flow', () => {
     await page.route('https://storage.googleapis.com/**', (route) => route.abort());
 
     await page.goto('/en/store/ello-sunglasses', { waitUntil: 'domcontentloaded' });
+    await expect(page.getByText('Reference catalog')).toBeVisible();
     await page.getByRole('button', { name: /start|continue|privacy/i }).first().click();
     await page.locator('input[type="file"]').setInputFiles({ name: 'shopper.png', mimeType: 'image/png', buffer: Buffer.from(preview.split(',')[1], 'base64') });
 
-    const recommendationSection = page.locator('section').filter({ hasText: 'Recommended for you' });
+    const recommendationSection = page.locator('section').filter({ hasText: 'Select up to 2 to try on' });
     await expect(recommendationSection).toBeVisible();
     await expect(recommendationSection).not.toContainText(/ranking|store-rank-v1|AI edit/i);
+    await expect(recommendationSection).toContainText('ello sunglasses');
     await expect(page.getByText('Select up to 2 to try on')).toBeVisible();
     const frameButtons = recommendationSection.getByRole('button');
     await frameButtons.nth(0).click();
