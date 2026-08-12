@@ -299,6 +299,7 @@ experience_type
 source
 medium?
 campaign?
+acquisition_surface?
 referrer?
 landing_url?
 ai_agent_source?
@@ -306,6 +307,14 @@ reference_data
 locale
 device_type
 ```
+
+For VisuTry-owned distribution, `source=visutry`, `medium=internal`, and a
+whitelisted lowercase `acquisition_surface` (`home`, `discover`,
+`face-analysis`, `face-shape`, `try-on`, `compare`, `style-explorer`, `seo`,
+`dashboard`, or `other`) form the first-touch acquisition contract. This is
+traffic context only; Merchant and Experience identity remains resolved
+server-side from the public route. `acquisition_surface` is nullable so
+historical sessions remain valid, and it is independent from `reference_data`.
 
 All downstream events should retain the same context:
 

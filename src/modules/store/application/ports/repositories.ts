@@ -125,6 +125,7 @@ export type MerchantSessionRecord = {
   source: string | null
   medium: string | null
   campaign: string | null
+  acquisitionSurface?: string | null
   referrer: string | null
   landingUrl: string | null
   aiAgentSource: string | null
@@ -229,6 +230,7 @@ export interface MerchantSessionRepository {
     source?: string | null
     medium?: string | null
     campaign?: string | null
+    acquisitionSurface?: string | null
     referrer?: string | null
     landingUrl?: string | null
     aiAgentSource?: string | null

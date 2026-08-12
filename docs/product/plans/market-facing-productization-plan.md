@@ -479,6 +479,21 @@ The first release is complete when:
 
 ---
 
+### Phase B1 implementation state — 2026-08-12
+
+- The existing `MerchantSession` acquisition context now supports nullable
+  `acquisitionSurface`; historical sessions remain valid with `NULL` and no
+  backfill.
+- VisuTry-owned handoffs use `source=visutry`, `medium=internal`, and a stable
+  lowercase surface taxonomy. Unknown surfaces normalize to `NULL`, and
+  external/direct traffic cannot become internal surface traffic through query
+  input alone.
+- Store and Campaign routes continue to resolve `merchantId` and
+  `experienceId` server-side. Acquisition metadata is first-touch session
+  context and never selects or changes the Experience.
+- `buildMerchantExperienceHref` is the shared URL handoff helper for future
+  distribution surfaces. B1 does not add Discover or any new CTA.
+
 # Workstream C — Business Web Presence
 
 ## 14. Objective
