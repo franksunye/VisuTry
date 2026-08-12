@@ -32,6 +32,7 @@ import { UnlockCreditsBanner } from './UnlockCreditsBanner'
 import { FrameSearchSuggestions } from './FrameSearchSuggestions'
 import { cn } from '@/utils/cn'
 import { analytics } from '@/lib/analytics'
+import { ContextualExperienceHandoff } from '@/components/distribution/ContextualExperienceHandoff'
 import {
   DEFAULT_TOP_PICK_PRESET_IDS,
   getTopPickPresetById,
@@ -242,6 +243,10 @@ export function FaceAnalysisResult({
         faceShape={basic.faceShape}
         catalogStyles={searchStyles}
       />
+
+      {isUnlocked && (
+        <ContextualExperienceHandoff locale={locale} placement="face-analysis" />
+      )}
     </div>
   )
 }

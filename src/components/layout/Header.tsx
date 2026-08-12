@@ -39,6 +39,7 @@ export function Header({ transparent = false }: HeaderProps) {
     { href: `/${locale}/try-on/glasses`, label: t('tryOnShort') },
     { href: `/${locale}/style-explorer`, label: t('explorerShort') },
     { href: `/${locale}/try-on/glasses/compare`, label: t('compareShort') },
+    { href: `/${locale}/discover`, label: t('discover') },
   ], [locale, t])
   
   return (

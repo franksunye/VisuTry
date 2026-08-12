@@ -32,6 +32,7 @@ import {
 } from '@/lib/try-on/batch-types'
 import { analytics } from '@/lib/analytics'
 import { cn } from '@/utils/cn'
+import { ContextualExperienceHandoff } from '@/components/distribution/ContextualExperienceHandoff'
 
 interface FramePreset extends BatchTaskPreset {}
 
@@ -784,6 +785,12 @@ export function FrameCompareInterface({ initialRemainingCredits = 0 }: { initial
             </div>
           )}
         </section>
+
+        {batchResult && activeCount === 0 && (
+          <div className="lg:col-span-2">
+            <ContextualExperienceHandoff locale={locale} placement="compare" />
+          </div>
+        )}
       </div>
     </main>
   )

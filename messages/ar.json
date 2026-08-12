@@ -15,6 +15,7 @@
     "advisorShort": "مستشار",
     "explorerShort": "استكشاف",
     "pricing": "الأسعار",
+    "discover": "اكتشف",
     "toggleMenu": "تبديل قائمة التنقل",
     "compare": "مقارنة الإطارات",
     "faq": "الأسئلة الشائعة"
@@ -77,6 +78,7 @@
       "moreTryOn": "تجارب إضافية",
       "faceShapeGuide": "دليل شكل الوجه",
       "styleExplorer": "مستكشف الأنماط",
+      "discover": "اكتشف",
       "storeForBusinesses": "متجر للأعمال"
     },
     "copyright": "© {year} VisuTry. جميع الحقوق محفوظة.",

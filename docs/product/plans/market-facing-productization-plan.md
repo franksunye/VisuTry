@@ -784,6 +784,17 @@ Implement the shared shopper and Admin visual/interaction improvements accepted 
 
 Do not simultaneously build `/business`.
 
+#### Phase B2 implementation state — Draft PR
+
+Phase B2 adds one server-rendered `/discover` surface for VisuTry-owned distribution:
+
+- six curated, catalog-backed Campaign Experiences and all six active merchant stores are linked through the shared B1 Experience handoff contract;
+- Reference vs Live provenance is disclosed once at page level and preserved on the linked Experience routes;
+- Face Analysis, Compare and Style Explorer receive intent-continuation handoffs only; no AI calls, ranking, personalization or new analytics pipeline are introduced;
+- localized SEO metadata, canonical discovery routing, crawlable links and responsive editorial layouts are covered by focused tests and browser verification.
+
+This records implementation scope only. B2 is not complete until the Draft PR is reviewed, merged and verified in production.
+
 ### Phase C — Consumer Discovery & Attribution
 
 Build `/discover` (or final selected route), contextual traffic entry points and source-surface attribution.

@@ -15,6 +15,7 @@
     "advisorShort": "Советник",
     "explorerShort": "Стиль",
     "pricing": "Цены",
+    "discover": "Открыть",
     "toggleMenu": "Переключить навигационное меню",
     "compare": "Сравнение оправ",
     "faq": "FAQ"
@@ -77,6 +78,7 @@
       "moreTryOn": "Другие примерки",
       "faceShapeGuide": "Гид по форме лица",
       "styleExplorer": "Исследователь стилей",
+      "discover": "Открыть",
       "storeForBusinesses": "Магазин для бизнеса"
     },
     "copyright": "© {year} VisuTry. Все права защищены.",

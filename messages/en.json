@@ -17,6 +17,7 @@
     "compare": "Frame Compare",
     "faq": "FAQ",
     "pricing": "Pricing",
+    "discover": "Discover",
     "toggleMenu": "Toggle navigation menu"
   },
   "home": {
@@ -730,6 +731,7 @@
       "moreTryOn": "More Try-On",
       "faceShapeGuide": "Face Shape Guide",
       "styleExplorer": "Style Explorer",
+      "discover": "Discover",
       "storeForBusinesses": "Store for Businesses"
     },
     "copyright": "© {year} VisuTry. All rights reserved.",
