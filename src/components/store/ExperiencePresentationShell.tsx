@@ -6,7 +6,6 @@ import {
   Glasses,
   LockKeyhole,
   ShieldCheck,
-  Sparkles,
 } from 'lucide-react'
 import type { PresentationMode } from '@/modules/store/domain/presentation-mode'
 
@@ -79,27 +78,14 @@ type ExperiencePresentationShellProps = {
   onShoppingCta: () => void
 }
 
-function ProvenanceBadge({ merchant, copy }: { merchant: PresentationMerchant; copy: ExperiencePresentationCopy }) {
-  return (
-    <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-700">
-      <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-      {merchant.referenceData ? copy.referenceCatalog : copy.liveCatalog}
-    </span>
-  )
-}
-
 function ExperienceHeroVisual({
   merchant,
-  copy,
   mode,
 }: {
   merchant: PresentationMerchant
-  copy: ExperiencePresentationCopy
   mode: PresentationMode
 }) {
   const isCampaign = merchant.experience?.type === 'CAMPAIGN'
-  const heroTitle = isCampaign ? merchant.experience?.name : copy.storeHero
-  const heroDescription = merchant.experience?.description || copy.heroBody
 
   return (
     <div
@@ -113,19 +99,10 @@ function ExperienceHeroVisual({
         /* eslint-disable-next-line @next/next/no-img-element */
         <img
           src={merchant.experience.heroAssetUrl}
-          alt=""
+          alt={`${merchant.name} eyewear collection`}
           className="absolute inset-0 h-full w-full object-cover"
         />
       ) : null}
-      <div className="absolute inset-0 bg-slate-950/10" aria-hidden="true" />
-      <div
-        className="absolute inset-0 bg-gradient-to-t from-slate-950/75 via-slate-950/18 to-transparent"
-        aria-hidden="true"
-      />
-      <div className="absolute inset-x-6 bottom-6 text-white sm:inset-x-8 sm:bottom-8">
-        <p className="font-serif text-2xl font-semibold sm:text-3xl">{heroTitle}</p>
-        <p className="mt-2 max-w-md text-sm leading-6 text-white/85">{heroDescription}</p>
-      </div>
     </div>
   )
 }
@@ -311,71 +288,51 @@ export function ExperiencePresentationShell({
   const isCampaign = merchant.experience?.type === 'CAMPAIGN'
   const headline = merchant.experience?.headline || (isCampaign ? merchant.experience?.name : copy.storeHero) || copy.storeHero
   const description = merchant.experience?.description || copy.storeSubhead
-  const modeLabel = isCampaign ? copy.campaignLabel : copy.storeLabel
 
   if (mode === 'ACTION_FIRST') {
     return (
       <main
         data-presentation-mode={mode}
-        className="grid items-center gap-10 py-8 lg:min-h-[calc(100vh-150px)] lg:grid-cols-[0.82fr_1.18fr] lg:gap-14 lg:py-12"
+        className="grid items-start gap-8 py-8 lg:min-h-[calc(100vh-150px)] lg:grid-cols-[0.82fr_1.18fr] lg:gap-14 lg:py-12"
       >
         <section className="max-w-xl">
-          <div className="inline-flex items-center gap-2 rounded-full border border-amber-200 bg-amber-50/90 px-3 py-1.5 text-xs font-semibold text-amber-800">
-            <Sparkles className="h-3.5 w-3.5" aria-hidden="true" />
-            {modeLabel}
-          </div>
-          <h1 className="mt-6 font-serif text-4xl font-semibold leading-[1.08] tracking-[-0.035em] text-slate-950 sm:text-5xl lg:text-6xl">
+          <h1 className="font-serif text-4xl font-semibold leading-[1.08] tracking-[-0.035em] text-slate-950 sm:text-5xl lg:text-6xl">
             {headline}
           </h1>
           <p className="mt-5 max-w-lg text-base leading-7 text-slate-600 sm:text-lg">{description}</p>
-          <RuntimeCta
-            label={copy.actionCta}
-            accent={accent}
-            sessionStarting={sessionStarting}
-            copy={copy}
-            onStartRuntime={onStartRuntime}
-          />
-          <p className="mt-2 flex items-center gap-2 text-xs text-slate-400">
+          <div className="mt-6">
+            <RuntimeCta
+              label={copy.actionCta}
+              accent={accent}
+              sessionStarting={sessionStarting}
+              copy={copy}
+              onStartRuntime={onStartRuntime}
+            />
+          </div>
+          <p className="mt-3 flex items-center gap-2 text-xs text-slate-400">
             <LockKeyhole className="h-3.5 w-3.5" aria-hidden="true" />
             {copy.privacyHint}
           </p>
-          <div className="mt-7 grid grid-cols-3 gap-2 rounded-2xl border border-white bg-white/70 p-3 shadow-sm backdrop-blur">
-            {[copy.uploadTitle, copy.recommendTitle, copy.tryOnTitle].map((label, index) => (
-              <div key={`${label}-${index}`} className="rounded-xl px-2 py-3 text-center">
-                <span className="mx-auto flex h-7 w-7 items-center justify-center rounded-full bg-slate-950 text-[11px] font-bold text-white">{index + 1}</span>
-                <p className="mt-2 text-[11px] font-semibold leading-4 text-slate-600 sm:text-xs">{label}</p>
-              </div>
-            ))}
-          </div>
-          <div className="mt-6">
-            <PrivacyGate
-              accent={accent}
-              copy={copy}
-              publicPocStorage={publicPocStorage}
-              sessionStarting={sessionStarting}
-              errorMessage={errorMessage}
-              onStartRuntime={onStartRuntime}
-              showCta={false}
-            />
-          </div>
         </section>
         <section className="relative mx-auto w-full max-w-3xl">
-          <div className="relative overflow-hidden rounded-[2.25rem] border border-white bg-white/90 p-5 shadow-[0_35px_100px_rgba(30,64,175,0.14)] sm:p-7">
-            <div className="flex items-center justify-between gap-3">
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-blue-600">{modeLabel}</p>
-                <p className="mt-1 max-w-md text-sm text-slate-500">{merchant.experience?.name || copy.storeSubhead}</p>
-              </div>
-              <ProvenanceBadge merchant={merchant} copy={copy} />
-            </div>
-            <div className="mt-6">
-              <ExperienceHeroVisual merchant={merchant} copy={copy} mode={mode} />
-            </div>
+          <div className="relative overflow-hidden rounded-[2.25rem] border border-white bg-white/90 p-4 shadow-[0_35px_100px_rgba(30,64,175,0.12)] sm:p-6">
+            <ExperienceHeroVisual merchant={merchant} mode={mode} />
             <div className="mt-4">
               <FeaturedFrameGrid merchant={merchant} frames={featuredFrames} />
             </div>
           </div>
         </section>
+        <div className="lg:col-span-2">
+          <PrivacyGate
+            accent={accent}
+            copy={copy}
+            publicPocStorage={publicPocStorage}
+            sessionStarting={sessionStarting}
+            errorMessage={errorMessage}
+            onStartRuntime={onStartRuntime}
+            showCta={false}
+          />
+        </div>
       </main>
     )
   }
@@ -383,46 +340,26 @@ export function ExperiencePresentationShell({
   const isEditorial = mode === 'EDITORIAL_FIRST'
   return (
     <main data-presentation-mode={mode} className="py-8 sm:py-12">
-      <section className={`rounded-[2.25rem] border border-white bg-white/90 p-5 shadow-[0_35px_100px_rgba(30,64,175,0.12)] sm:p-8 ${isEditorial ? 'lg:p-10' : ''}`}>
-        <div className={`grid items-center gap-8 ${isEditorial ? 'lg:grid-cols-[0.88fr_1.12fr]' : 'lg:grid-cols-[0.78fr_1.22fr]'}`}>
-          <div>
-            <div className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-semibold shadow-sm ${isEditorial ? 'border-amber-200 bg-amber-50/90 text-amber-800' : 'border-blue-100 bg-white text-blue-700'}`}>
-              <Sparkles className="h-3.5 w-3.5" aria-hidden="true" />
-              {modeLabel}
-            </div>
-            <h1 className="mt-5 font-serif text-4xl font-semibold leading-[1.08] tracking-[-0.035em] text-slate-950 sm:text-5xl lg:text-6xl">{headline}</h1>
-            <p className="mt-5 max-w-xl text-base leading-7 text-slate-600 sm:text-lg">{description}</p>
-            <div className="mt-6">
-              <ShoppingCta copy={copy} mode={mode} onShoppingCta={onShoppingCta} />
-            </div>
-          </div>
-          <div>
-            <div className="mb-4 flex items-center justify-between gap-3">
-              <div>
-                <p className={`text-xs font-semibold uppercase tracking-[0.18em] ${isEditorial ? 'text-amber-700' : 'text-blue-600'}`}>{isEditorial ? copy.featuredEyebrow : copy.storeLabel}</p>
-                <p className="mt-1 text-sm text-slate-500">{merchant.experience?.name || copy.storeSubhead}</p>
-              </div>
-              <ProvenanceBadge merchant={merchant} copy={copy} />
-            </div>
-            <ExperienceHeroVisual merchant={merchant} copy={copy} mode={mode} />
+      <section className={`grid items-center gap-8 ${isEditorial ? 'lg:grid-cols-[0.88fr_1.12fr]' : 'lg:grid-cols-[0.78fr_1.22fr]'}`}>
+        <div>
+          <h1 className="font-serif text-4xl font-semibold leading-[1.08] tracking-[-0.035em] text-slate-950 sm:text-5xl lg:text-6xl">{headline}</h1>
+          <p className="mt-5 max-w-xl text-base leading-7 text-slate-600 sm:text-lg">{description}</p>
+          <div className="mt-6">
+            <ShoppingCta copy={copy} mode={mode} onShoppingCta={onShoppingCta} />
           </div>
         </div>
+        <ExperienceHeroVisual merchant={merchant} mode={mode} />
+      </section>
 
-        <section className="mt-8 border-t border-slate-200/80 pt-7" aria-labelledby="featured-frames-heading">
-          <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-blue-600">{copy.featuredEyebrow}</p>
-              <h2 id="featured-frames-heading" className="mt-1 font-serif text-2xl font-semibold text-slate-950 sm:text-3xl">{isEditorial ? copy.featuredTitle : copy.storeSubhead}</h2>
-              <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-500">{copy.featuredDescription}</p>
-            </div>
-            <span className="text-xs font-medium text-slate-400">{merchant.activeFrameCount} frames</span>
-          </div>
-          <FeaturedFrameGrid merchant={merchant} frames={featuredFrames} />
-          <div className="mt-6 flex flex-wrap items-center justify-between gap-4">
-            <ShoppingCta copy={copy} mode={mode} onShoppingCta={onShoppingCta} />
-            <p className="flex items-center gap-2 text-xs text-slate-400"><LockKeyhole className="h-3.5 w-3.5" aria-hidden="true" />{copy.privacyPoint2}</p>
-          </div>
-        </section>
+      <section className="mt-8 border-t border-slate-200/80 pt-7" aria-labelledby="featured-frames-heading">
+        <div className="mb-4">
+          <h2 id="featured-frames-heading" className="font-serif text-2xl font-semibold text-slate-950 sm:text-3xl">{copy.featuredTitle}</h2>
+        </div>
+        <FeaturedFrameGrid merchant={merchant} frames={featuredFrames} />
+        <div className="mt-6 flex flex-wrap items-center justify-between gap-4">
+          <ShoppingCta copy={copy} mode={mode} onShoppingCta={onShoppingCta} />
+          <p className="flex items-center gap-2 text-xs text-slate-400"><LockKeyhole className="h-3.5 w-3.5" aria-hidden="true" />{copy.privacyPoint2}</p>
+        </div>
       </section>
 
       <div className="mt-8">

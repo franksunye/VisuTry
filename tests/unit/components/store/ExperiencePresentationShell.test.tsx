@@ -90,11 +90,12 @@ function renderShell(mode: 'ACTION_FIRST' | 'PRODUCT_FIRST' | 'EDITORIAL_FIRST')
 }
 
 describe('ExperiencePresentationShell', () => {
-  it('renders the editorial hierarchy and provenance badge', () => {
+  it('renders the editorial hierarchy without system badges', () => {
     renderShell('EDITORIAL_FIRST')
     const shell = screen.getByRole('main')
     expect(shell).toHaveAttribute('data-presentation-mode', 'EDITORIAL_FIRST')
-    expect(screen.getByText('Reference catalog')).toBeInTheDocument()
+    expect(screen.queryByText('Reference catalog')).not.toBeInTheDocument()
+    expect(screen.queryByText('The edit')).not.toBeInTheDocument()
     expect(screen.getAllByText('An editorial fit-focused selection.')).not.toHaveLength(0)
     expect(screen.getByText('Harper')).toBeInTheDocument()
     expect(screen.getByText('Harper').compareDocumentPosition(screen.getByText('Privacy & photo retention')) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()

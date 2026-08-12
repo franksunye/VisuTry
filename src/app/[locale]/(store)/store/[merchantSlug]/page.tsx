@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation'
 import { setRequestLocale } from 'next-intl/server'
 import { ExperienceDiscoveryContent } from '@/components/store/ExperienceDiscoveryContent'
 import { InteractiveCommerceLauncher } from '@/components/store/InteractiveCommerceLauncher'
+import { StorePresentationDisclosure } from '@/components/store/StorePresentationDisclosure'
 import { resolveStoreAssetAccessPolicy } from '@/modules/store/infrastructure/config/store-asset-access-policy'
 import { getPublicExperienceDiscoveryForRoute } from '@/modules/store/application/get-public-experience-discovery-route'
 import { buildExperienceDiscoveryMetadata, discoveryCanonicalUrl } from '@/lib/store-discovery-seo'
@@ -63,5 +64,10 @@ export default async function MerchantStorePage({ params }: MerchantStorePagePro
         locale={locale}
         publicPocStorage={assetPolicy.publicPoc}
     />
+    <div className="bg-[#f7f8fb] px-5 pb-8 sm:px-8 lg:px-10">
+      <div className="mx-auto max-w-[1440px]">
+        <StorePresentationDisclosure referenceData={discovery.merchant.referenceData || discovery.experience.referenceData} />
+      </div>
+    </div>
   </div>
 }

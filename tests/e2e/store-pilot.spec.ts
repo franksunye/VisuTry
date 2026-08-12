@@ -19,7 +19,7 @@ test.describe('@critical Store Pilot Flow', () => {
     await expect(page).toHaveURL(/\/en\/store\/ello-sunglasses$/);
     await expect(page.locator('body')).not.toContainText(/page not found|application error|internal server error/i);
     await expect(page.locator('[data-presentation-mode="PRODUCT_FIRST"]')).toBeVisible();
-    await expect(page.getByText('Reference catalog')).toBeVisible();
+    await expect(page.getByText('Reference pilot · simulation')).toBeVisible();
   });
 
   test('campaign experience route reuses the Store shell', async ({ page }) => {
@@ -31,8 +31,11 @@ test.describe('@critical Store Pilot Flow', () => {
     await expect(page.locator('body')).not.toContainText(/application error|internal server error/i);
     await expect(page.locator('[data-presentation-mode="EDITORIAL_FIRST"]')).toBeVisible();
     await expect(page.locator('[data-presentation-cta="shopping-interest"]').first()).toBeVisible();
-    await expect(page.locator('header').getByText('Powered by')).toBeVisible();
-    await expect(page.locator('div.absolute.inset-x-6.bottom-6').getByText('Petite Fit Reference Experience', { exact: true })).toBeVisible();
+    await expect(page.locator('header')).not.toContainText('Powered by');
+    await expect(page.getByText('Powered by VisuTry')).toBeVisible();
+    await expect(page.getByText('Petite Fit Reference Experience', { exact: true })).toHaveCount(0);
+    await expect(page.locator('body')).not.toContainText(/Campaign experience|search engines and agents|Reference catalog · VisuTry Reference|Optional interactive experience/i);
+    await expect(page.locator('script[type="application/ld+json"]')).toHaveCount(1);
     await expect(page.locator('img[alt="ello sunglasses eyewear collection"]').first()).toBeVisible();
 
     const productHref = await page.getByRole('link', { name: 'View product' }).first().getAttribute('href');
@@ -57,8 +60,10 @@ test.describe('@critical Store Pilot Flow', () => {
 
     expect(response).not.toBeNull();
     expect(response!.status()).toBeLessThan(400);
+    await expect(page.locator('[data-presentation-mode="EDITORIAL_FIRST"]')).toBeVisible();
+    await page.getByRole('button', { name: 'Try on your photo', exact: true }).click();
     await expect(page.locator('[data-presentation-mode="ACTION_FIRST"]')).toBeVisible();
-    await expect(page.getByText('Reference catalog')).toBeVisible();
+    await expect(page.getByText('Reference pilot · simulation')).toBeVisible();
     await expect(page.getByRole('button', { name: /start with my photo/i })).toHaveCount(1);
   });
 
@@ -74,7 +79,7 @@ test.describe('@critical Store Pilot Flow', () => {
 
     expect(response).not.toBeNull();
     expect(response!.status()).toBeLessThan(400);
-    await page.getByRole('button', { name: 'Start interactive shopping', exact: true }).click();
+    await page.getByRole('button', { name: 'Try on your photo', exact: true }).click();
     await expect(page.getByRole('button', { name: /I understand.*continue/i })).toBeVisible();
     await page.getByRole('button', { name: /I understand.*continue/i }).click();
     const storeLink = page.getByRole('link', { name: 'Visit the full Store' });
@@ -157,12 +162,14 @@ test.describe('@critical Store Pilot Flow', () => {
     await page.route('https://cdn.jsdelivr.net/**', (route) => route.abort());
     await page.route('https://storage.googleapis.com/**', (route) => route.abort());
 
-    await page.goto('/en/store/ello-sunglasses', { waitUntil: 'domcontentloaded' });
-    await expect(page.getByText('Reference catalog')).toBeVisible();
-    await page.getByRole('button', { name: /start|continue|privacy/i }).first().click();
+    await page.goto('/en/store/ello-sunglasses', { waitUntil: 'networkidle' });
+    await expect(page.getByText('Reference pilot · simulation')).toBeVisible();
+    await page.getByRole('button', { name: 'Try on your photo', exact: true }).click();
+    await expect(page.getByRole('region', { name: 'Interactive shopping experience' })).toBeVisible();
+    await page.getByRole('button', { name: /I understand.*continue/i }).click();
     await page.locator('input[type="file"]').setInputFiles({ name: 'shopper.png', mimeType: 'image/png', buffer: Buffer.from(preview.split(',')[1], 'base64') });
 
-    const recommendationSection = page.locator('section').filter({ hasText: 'Select up to 2 to try on' });
+    const recommendationSection = page.getByRole('region', { name: 'Interactive shopping experience' }).locator('section').filter({ hasText: 'Select up to 2 to try on' });
     await expect(recommendationSection).toBeVisible();
     await expect(recommendationSection).not.toContainText(/ranking|store-rank-v1|AI edit/i);
     await expect(recommendationSection).toContainText('ello sunglasses');
