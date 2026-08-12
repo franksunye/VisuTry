@@ -20,7 +20,7 @@ describe('InteractiveCommerceLauncher', () => {
     )
 
     expect(screen.queryByTestId('lazy-runtime')).not.toBeInTheDocument()
-    expect(screen.getByRole('button', { name: /start interactive shopping/i })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /try on your photo/i })).toBeInTheDocument()
     expect(dynamic).toHaveBeenCalledWith(expect.any(Function), expect.objectContaining({ ssr: false }))
   })
 
@@ -34,7 +34,7 @@ describe('InteractiveCommerceLauncher', () => {
       />,
     )
 
-    fireEvent.click(screen.getByRole('button', { name: /start interactive shopping/i }))
+    fireEvent.click(screen.getByRole('button', { name: /try on your photo/i }))
     expect(screen.getByTestId('lazy-runtime')).toBeInTheDocument()
   })
 })

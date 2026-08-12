@@ -1,5 +1,5 @@
 import Image from 'next/image'
-import { ExternalLink, Glasses, Sparkles, Store } from 'lucide-react'
+import { ExternalLink, Glasses, Store } from 'lucide-react'
 import type { PublicExperienceDiscovery } from '@/modules/store/application/get-public-experience-discovery'
 import {
   buildExperienceDiscoveryJsonLd,
@@ -35,20 +35,14 @@ function externalLinkProps(
 }
 
 function ExperienceHeroVisual({
-  experience,
   merchantName,
   heroImage,
   mode,
 }: {
-  experience: PublicExperienceDiscovery['experience']
   merchantName: string
   heroImage: string | null | undefined
   mode: 'EDITORIAL_FIRST' | 'PRODUCT_FIRST'
 }) {
-  const heroTitle = experience.type === 'CAMPAIGN'
-    ? experience.name
-    : `Shop the ${merchantName} eyewear collection`
-  const heroDescription = experience.description?.trim() || `Selected eyewear from ${merchantName}.`
   const heroBackground = mode === 'EDITORIAL_FIRST'
     ? 'bg-[linear-gradient(145deg,#f6eadf,#f7f1e8)]'
     : 'bg-[linear-gradient(145deg,#edf3fb,#faf7f2)]'
@@ -68,14 +62,6 @@ function ExperienceHeroVisual({
         />
       ) : null}
       <div className="absolute inset-0 bg-slate-950/10" aria-hidden="true" />
-      <div
-        className="absolute inset-0 bg-gradient-to-t from-slate-950/75 via-slate-950/18 to-transparent"
-        aria-hidden="true"
-      />
-      <div className="absolute inset-x-6 bottom-6 text-white sm:inset-x-8 sm:bottom-8">
-        <p className="font-serif text-2xl font-semibold sm:text-3xl">{heroTitle}</p>
-        <p className="mt-2 max-w-md text-sm leading-6 text-white/85">{heroDescription}</p>
-      </div>
     </div>
   )
 }
@@ -112,7 +98,7 @@ export function ExperienceDiscoveryContent({
 
       <div className="pointer-events-none absolute inset-x-0 top-0 h-[540px] bg-[radial-gradient(circle_at_78%_18%,rgba(191,219,254,0.42),transparent_33%),radial-gradient(circle_at_16%_8%,rgba(254,243,199,0.42),transparent_30%)]" />
       <div className="relative mx-auto max-w-[1440px] px-5 pb-10 pt-5 sm:px-8 lg:px-10">
-        <header className="flex items-center justify-between gap-5 rounded-3xl border border-white/80 bg-white/75 px-5 py-4 shadow-[0_18px_60px_rgba(15,23,42,0.06)] backdrop-blur-xl sm:px-7">
+        <header className="flex items-center gap-3 rounded-3xl border border-white/80 bg-white/75 px-5 py-4 shadow-[0_18px_60px_rgba(15,23,42,0.06)] backdrop-blur-xl sm:px-7">
           <div className="flex items-center gap-3">
             <div className="relative flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-slate-200">
               {merchant.logoUrl ? (
@@ -123,56 +109,21 @@ export function ExperienceDiscoveryContent({
             </div>
             <div>
               <p className="font-serif text-xl font-semibold tracking-tight text-slate-950 sm:text-2xl">{merchant.name}</p>
-              <p className="text-[10px] font-semibold uppercase tracking-[0.24em] text-slate-400">
-                {isCampaign ? experience.name : 'Optical collection'}
-              </p>
             </div>
-          </div>
-          <div className="flex flex-wrap items-center justify-end gap-2 text-xs font-medium text-slate-400 sm:text-sm">
-            {merchant.referenceData || experience.referenceData ? (
-              <span className="rounded-full border border-amber-200 bg-amber-50 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.12em] text-amber-800">
-                Reference Pilot · Simulation
-              </span>
-            ) : null}
-            <span className="hidden sm:inline">Powered by</span>
-            <span className="font-semibold text-blue-600">VisuTry</span>
-            <Sparkles className="h-4 w-4 text-blue-500" aria-hidden="true" />
           </div>
         </header>
 
         <section className={`mt-8 rounded-[2.25rem] border border-white bg-white/90 p-5 shadow-[0_35px_100px_rgba(30,64,175,0.12)] sm:p-8 ${isCampaign ? 'lg:p-10' : ''}`}>
           <div className={`grid items-center gap-8 ${isCampaign ? 'lg:grid-cols-[0.88fr_1.12fr]' : 'lg:grid-cols-[0.78fr_1.22fr]'}`}>
             <div>
-              <div className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-semibold shadow-sm ${isCampaign ? 'border-amber-200 bg-amber-50/90 text-amber-800' : 'border-blue-100 bg-white text-blue-700'}`}>
-                <Sparkles className="h-3.5 w-3.5" aria-hidden="true" />
-                {isCampaign ? 'Campaign experience' : 'Store collection'}
-              </div>
               <h1 className="mt-5 font-serif text-4xl font-semibold leading-[1.08] tracking-[-0.035em] text-slate-950 sm:text-5xl lg:text-6xl">{title}</h1>
               {description ? <p className="mt-5 max-w-xl text-base leading-7 text-slate-600 sm:text-lg">{description}</p> : null}
-              <p className="mt-5 max-w-xl text-sm leading-6 text-slate-500">
-                {isCampaign
-                  ? `A focused eyewear edit from ${merchant.name}. Review the featured frames and follow the merchant links for product details.`
-                  : `Browse selected frames from ${merchant.name}, with product facts and a direct destination to the merchant.`}
-              </p>
-              <a href="#interactive-shopping" className="mt-6 inline-flex min-h-12 items-center justify-center gap-2 rounded-2xl bg-slate-950 px-5 py-3.5 text-sm font-semibold text-white shadow-lg transition hover:-translate-y-0.5 hover:bg-slate-800">
-                Explore selected frames <ExternalLink className="h-4 w-4" aria-hidden="true" />
+              <a href="#interactive-shopping" className="mt-6 inline-flex min-h-12 items-center justify-center rounded-2xl bg-slate-950 px-5 py-3.5 text-sm font-semibold text-white shadow-lg transition hover:-translate-y-0.5 hover:bg-slate-800">
+                Explore the collection
               </a>
             </div>
             <div>
-              <div className="mb-4 flex items-center justify-between gap-3">
-                <div>
-                  <p className={`text-xs font-semibold uppercase tracking-[0.18em] ${isCampaign ? 'text-amber-700' : 'text-blue-600'}`}>Featured collection</p>
-                  <p className="mt-1 text-sm text-slate-500">{experience.name}</p>
-                </div>
-                {merchant.referenceData || experience.referenceData ? (
-                  <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-700">
-                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-                    Reference catalog · VisuTry Reference
-                  </span>
-                ) : null}
-              </div>
               <ExperienceHeroVisual
-                experience={experience}
                 merchantName={merchant.name}
                 heroImage={heroImage}
                 mode={presentationMode}
@@ -181,13 +132,8 @@ export function ExperienceDiscoveryContent({
           </div>
 
           <section className="mt-8 border-t border-slate-200/80 pt-7" aria-labelledby="featured-frames">
-            <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-blue-600">Featured frames</p>
-                <h2 id="featured-frames" className="mt-1 font-serif text-2xl font-semibold text-slate-950 sm:text-3xl">{isCampaign ? 'Featured frames' : 'Explore the collection'}</h2>
-                <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-500">Product facts and merchant links remain available for shoppers, search engines, and agents.</p>
-              </div>
-              <span className="text-xs font-medium text-slate-400">{frames.length} frame{frames.length === 1 ? '' : 's'}</span>
+            <div className="mb-4">
+              <h2 id="featured-frames" className="font-serif text-2xl font-semibold text-slate-950 sm:text-3xl">{isCampaign ? 'Selected frames' : 'Explore the collection'}</h2>
             </div>
 
             <ul className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
@@ -242,36 +188,16 @@ export function ExperienceDiscoveryContent({
           </section>
         </section>
 
-        <section aria-labelledby="fit-context" className="mt-8 rounded-[2rem] border border-slate-200/80 bg-white/90 px-5 py-10 shadow-sm sm:px-8 sm:py-14">
-          <div className="grid gap-8 lg:grid-cols-2">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-blue-700">Fit context</p>
-            <h2 id="fit-context" className="mt-2 text-2xl font-semibold tracking-tight text-slate-950">Find frames that suit your face</h2>
-            <p className="mt-3 max-w-2xl text-sm leading-7 text-slate-600">
-              VisuTry’s interactive shopping experience can help you compare the selected frames on your own photo when that experience is available. Reading this collection does not create a session or use AI.
-            </p>
-          </div>
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-blue-700">About this collection</p>
-            <h2 className="mt-2 text-2xl font-semibold tracking-tight text-slate-950">{experience.name}</h2>
-            <p className="mt-3 text-sm leading-7 text-slate-600">
-              {description || `Selected eyewear from ${merchant.name}, presented with the catalog details available for this collection.`}
-            </p>
-          </div>
-          </div>
-        </section>
-
-        {merchant.websiteUrl ? (
-          <section aria-labelledby="merchant-destination" className="px-1 py-10 sm:px-2">
-          <h2 id="merchant-destination" className="sr-only">Merchant destination</h2>
-          <a
-            {...externalLinkProps(merchant.websiteUrl, experience.type, experience.slug, 'merchant')}
-            className="inline-flex items-center gap-2 rounded-xl bg-slate-950 px-4 py-3 text-sm font-semibold text-white transition hover:bg-slate-800"
-          >
-            Visit {merchant.name} <ExternalLink className="h-4 w-4" aria-hidden="true" />
-          </a>
-          </section>
-        ) : null}
+        <div className="mt-10 px-1 sm:px-2">
+          {merchant.websiteUrl ? (
+            <a
+              {...externalLinkProps(merchant.websiteUrl, experience.type, experience.slug, 'merchant')}
+              className="inline-flex items-center gap-2 text-sm font-semibold text-slate-700 transition hover:text-slate-950"
+            >
+              Visit {merchant.name} <ExternalLink className="h-4 w-4" aria-hidden="true" />
+            </a>
+          ) : null}
+        </div>
       </div>
     </main>
   )

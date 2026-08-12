@@ -11,7 +11,6 @@ import {
   Loader2,
   LockKeyhole,
   ShieldCheck,
-  Sparkles,
   Store,
 } from 'lucide-react'
 import { ImageUpload } from '@/components/upload/ImageUpload'
@@ -149,14 +148,7 @@ function MerchantMark({ merchant, accent }: { merchant: MerchantProfile; accent:
           <Store className="h-6 w-6" style={{ color: accent }} aria-hidden="true" />
         )}
       </div>
-      <div>
-        <p className="font-serif text-xl font-semibold tracking-tight text-slate-950 sm:text-2xl">
-          {merchant.name}
-        </p>
-        <p className="text-[10px] font-semibold uppercase tracking-[0.24em] text-slate-400">
-          {merchant.experience?.type === 'CAMPAIGN' ? merchant.experience.name : 'Optical collection'}
-        </p>
-      </div>
+      <p className="font-serif text-xl font-semibold tracking-tight text-slate-950 sm:text-2xl">{merchant.name}</p>
     </div>
   )
 }
@@ -505,7 +497,6 @@ export function StoreShopperExperience({
   const maxSelectableFrames = maxSelectableStoreFrames(merchant.experiencePolicy)
   const selectedFrames = recommendations.filter((frame) => selectedIds.includes(frame.id))
   const isCampaign = merchant.experience?.type === 'CAMPAIGN'
-  const heroDescription = merchant.experience?.description?.trim() || t('catalogHint', { count: merchant.activeFrameCount })
   const continuationText = (key: string, fallback: string) => t.has(key) ? t(key) : fallback
   const presentationAcquisition = captureStoreAcquisition()
   const presentationMode = resolvePresentationMode({
@@ -550,18 +541,8 @@ export function StoreShopperExperience({
     <div className="relative min-h-screen overflow-hidden bg-[#f7f8fb] text-slate-950">
       <div className="pointer-events-none absolute inset-x-0 top-0 h-[540px] bg-[radial-gradient(circle_at_78%_18%,rgba(191,219,254,0.42),transparent_33%),radial-gradient(circle_at_16%_8%,rgba(254,243,199,0.42),transparent_30%)]" />
       <div className="relative mx-auto max-w-[1440px] px-5 pb-10 pt-5 sm:px-8 lg:px-10">
-        <header className="flex items-center justify-between gap-5 rounded-3xl border border-white/80 bg-white/75 px-5 py-4 shadow-[0_18px_60px_rgba(15,23,42,0.06)] backdrop-blur-xl sm:px-7">
+        <header className="flex items-center rounded-3xl border border-white/80 bg-white/75 px-5 py-4 shadow-[0_18px_60px_rgba(15,23,42,0.06)] backdrop-blur-xl sm:px-7">
           <MerchantMark merchant={merchant} accent={accent} />
-          <div className="flex flex-wrap items-center justify-end gap-2 text-xs font-medium text-slate-400 sm:text-sm">
-            {merchant.referenceData ? (
-              <span className="rounded-full border border-amber-200 bg-amber-50 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.12em] text-amber-800">
-                Reference Pilot · Simulation
-              </span>
-            ) : null}
-            <span className="hidden sm:inline">Powered by</span>
-            <span className="font-semibold text-blue-600">VisuTry</span>
-            <Sparkles className="h-4 w-4 text-blue-500" aria-hidden="true" />
-          </div>
         </header>
 
         {!privacyAccepted ? (
@@ -719,11 +700,9 @@ export function StoreShopperExperience({
 
             {isCampaign ? (
               <section className="mt-8 rounded-[2rem] border border-slate-200/80 bg-white p-5 shadow-sm sm:p-7">
-                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-blue-600">{continuationText('continuation.eyebrow', 'More from this merchant')}</p>
                 <div className="mt-3 flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
                   <div>
-                    <h2 className="font-serif text-2xl font-semibold text-slate-950 sm:text-3xl">{continuationText('continuation.title', 'Explore the full Store')}</h2>
-                    <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-500">{continuationText('continuation.body', 'This Campaign is a focused edit from the same merchant catalog. Continue to the broader Store when you want to see more frames.')}</p>
+                    <h2 className="font-serif text-2xl font-semibold text-slate-950 sm:text-3xl">{continuationText('continuation.title', 'Explore the full collection')}</h2>
                   </div>
                   <Link
                     href={`/${locale}/store/${merchantSlug}${storeContinuationQuery}`}
@@ -736,10 +715,6 @@ export function StoreShopperExperience({
               </section>
             ) : null}
 
-            <footer className="mt-8 flex flex-wrap items-center justify-between gap-3 border-t border-slate-200 px-2 pt-6 text-xs text-slate-400">
-              <p className="flex items-center gap-2"><LockKeyhole className="h-3.5 w-3.5" />{t('sessionNote')}</p>
-              <p>Powered by <span className="font-semibold text-blue-600">VisuTry</span></p>
-            </footer>
           </main>
         )}
       </div>
