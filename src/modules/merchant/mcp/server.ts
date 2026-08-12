@@ -11,6 +11,17 @@ import { recordMerchantAgentOperation } from '../application/merchant-agent-cred
 import { AgentScopeError, InvalidAgentCredentialError } from '../domain/agent-credentials'
 import { requireAgentScope, type AgentMerchantActor } from '../domain/actor'
 import {
+  compareMerchantExperiences,
+  MerchantAnalyticsComparisonError,
+} from '@/modules/store/application/compare-merchant-experiences'
+import {
+  getExperienceAnalyticsSummary,
+  getExperienceFunnel,
+  getMerchantIntentSummary,
+  getTopFramesByIntent,
+  MerchantAnalyticsError,
+} from '@/modules/store/application/merchant-analytics'
+import {
   archiveCampaign,
   CampaignServiceError,
   createCampaignDraft,
@@ -44,6 +55,16 @@ const campaignGate = z.enum(['NONE', 'OPT_IN_AFTER_VALUE', 'OPT_IN_BEFORE_AI'])
 const presentationMode = z.enum(['ACTION_FIRST', 'PRODUCT_FIRST', 'EDITORIAL_FIRST'])
 const campaignId = z.string().min(1).max(120)
 const campaignDate = z.string().max(80).nullable().optional()
+const analyticsExperienceId = z.string().min(1).max(120)
+const analyticsDate = z.string().max(80).nullable().optional()
+const analyticsAvailability = {
+  merchantCtaClicks: false,
+  identifiedIntent: false,
+  leadMetrics: false,
+  revenue: false,
+  orders: false,
+  roas: false,
+} as const
 
 function result(data: unknown) {
   return { content: [{ type: 'text' as const, text: JSON.stringify(data) }] }
@@ -56,6 +77,11 @@ function errorResult(error: unknown) {
   if (error instanceof AgentRateLimitError) return { code: error.code, message: error.message, retryAfterSeconds: error.retryAfterSeconds }
   if (error instanceof MerchantOnboardingError) return { code: error.code, message: error.message }
   if (error instanceof CampaignServiceError) return { code: error.code, message: error.message }
+  if (error instanceof MerchantAnalyticsComparisonError) return { code: error.code, message: error.message }
+  if (error instanceof MerchantAnalyticsError) {
+    if (error.code === 'EXPERIENCE_NOT_FOUND') return { code: 'RESOURCE_NOT_FOUND', message: 'The requested merchant resource was not found.' }
+    return { code: 'INVALID_TIME_RANGE', message: error.message }
+  }
   return { code: 'INTERNAL_ERROR', message: 'The merchant operation could not be completed.' }
 }
 
@@ -271,6 +297,70 @@ export function createMerchantMcpServer(actor: AgentMerchantActor) {
       work: () => archiveCampaign({ merchantId: actor.merchantId, campaignId: id }),
     })
   }))
+
+  server.registerTool('get_experience_summary', {
+    title: 'Get Experience summary',
+    description: 'Return merchant-scoped aggregate performance for one Store or Campaign. It answers how the Experience is performing, but does not include revenue, orders, ROAS, inferred identity, or raw shopper activity.',
+    inputSchema: { experienceId: analyticsExperienceId, from: analyticsDate, to: analyticsDate },
+  }, async ({ experienceId, from, to }) => safe(async () => {
+    requireAgentScope(actor, 'analytics:read')
+    const summary = await getExperienceAnalyticsSummary({ actor, experienceId, from, to })
+    return {
+      experience: {
+        id: summary.experience.id,
+        type: summary.experience.type,
+        name: summary.experience.name,
+        objective: summary.experience.objective,
+        referenceData: summary.referenceData,
+      },
+      period: summary.period,
+      metrics: summary.metrics,
+      scorecard: summary.scorecard,
+      availability: analyticsAvailability,
+    }
+  }))
+
+  server.registerTool('get_experience_funnel', {
+    title: 'Get Experience funnel',
+    description: 'Return behavior-stage counts for one Store or Campaign to diagnose where shoppers drop off. Stages are not a strictly sequential cohort funnel unless the underlying C1 contract explicitly defines them that way; Merchant CTA is unavailable in v0.1.',
+    inputSchema: { experienceId: analyticsExperienceId, from: analyticsDate, to: analyticsDate },
+  }, async ({ experienceId, from, to }) => safe(async () => {
+    requireAgentScope(actor, 'analytics:read')
+    return getExperienceFunnel({ actor, experienceId, from, to })
+  }))
+
+  server.registerTool('get_top_frames', {
+    title: 'Get top frames',
+    description: 'Return the strongest shopper-intent frames for one Store or Campaign using the C1 aggregate ranking. Counts are observed Try-On, Favorite, Compare, and high-intent interactions; unavailable CTA values remain null.',
+    inputSchema: { experienceId: analyticsExperienceId, from: analyticsDate, to: analyticsDate, limit: z.number().int().min(1).max(20).optional() },
+  }, async ({ experienceId, from, to, limit }) => safe(async () => {
+    requireAgentScope(actor, 'analytics:read')
+    const topFrames = await getTopFramesByIntent({ actor, experienceId, from, to })
+    return { ...topFrames, frames: topFrames.frames.slice(0, limit ?? 10) }
+  }))
+
+  server.registerTool('get_intent_summary', {
+    title: 'Get intent summary',
+    description: 'Return aggregate anonymous shopper intent signals for one Store or Campaign, including Try-On, Favorite, Compare, and high-intent sessions. It does not identify shoppers or expose Auth0 identity; identified intent and lead metrics are unavailable in v0.1.',
+    inputSchema: { experienceId: analyticsExperienceId, from: analyticsDate, to: analyticsDate },
+  }, async ({ experienceId, from, to }) => safe(async () => {
+    requireAgentScope(actor, 'analytics:read')
+    const intent = await getMerchantIntentSummary({ actor, experienceId, from, to })
+    return {
+      ...intent,
+      availability: analyticsAvailability,
+    }
+  }))
+
+  server.registerTool('compare_experiences', {
+    title: 'Compare Experiences',
+    description: 'Compare 2 to 5 merchant-scoped Store or Campaign Experiences over the same period. Returns metric-specific deterministic winners only; it never produces a universal best Campaign verdict, revenue claim, or ROAS estimate.',
+    inputSchema: {
+      experienceIds: z.array(analyticsExperienceId).min(2).max(5).refine((ids) => new Set(ids).size === ids.length, 'experienceIds must be distinct'),
+      from: analyticsDate,
+      to: analyticsDate,
+    },
+  }, async ({ experienceIds, from, to }) => safe(() => compareMerchantExperiences({ actor, experienceIds, from, to })))
 
   return server
 }

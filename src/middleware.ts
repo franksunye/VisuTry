@@ -30,6 +30,8 @@ export async function middleware(req: NextRequest) {
   if (
     pathname.startsWith('/_next') ||
     pathname.startsWith('/api') ||
+    pathname === '/skills' ||
+    pathname.startsWith('/skills/') ||
     pathname.startsWith('/static') ||
     pathname.includes('.')
   ) {
