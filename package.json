@@ -55,6 +55,7 @@
     "test:e2e:critical": "playwright test --grep @critical",
     "test:e2e:install": "playwright install chromium",
     "test:smoke:production": "node scripts/production-smoke.mjs",
+    "test:sponsored:postgres": "bash scripts/test-sponsored-postgres-local.sh",
     "release": "node scripts/release.js",
     "release:patch": "node scripts/release.js patch",
     "release:minor": "node scripts/release.js minor",
@@ -108,6 +109,7 @@
   "devDependencies": {
     "@next/bundle-analyzer": "^14.0.0",
     "@playwright/test": "^1.62.0",
+    "@prisma/adapter-pg": "^7.1.0",
     "@testing-library/dom": "^10.4.1",
     "@testing-library/jest-dom": "^6.8.0",
     "@testing-library/react": "^16.3.0",
