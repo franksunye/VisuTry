@@ -1,547 +1,87 @@
 import Image from 'next/image'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import {
-  ArrowUpRight,
-  BarChart3,
-  CheckCircle2,
-  Heart,
-  ImageIcon,
-  MessageCircle,
-  MousePointerClick,
-  ScanFace,
-  ShoppingBag,
-  Sparkles,
-  Store,
-  TrendingUp,
-  Trophy,
-  Users,
-} from 'lucide-react'
-import {
-  createStoreRuntime,
-  getMerchantInsights,
-} from '@/modules/store/application'
+import { ArrowUpRight, ExternalLink, ImageIcon, MessageCircle, MousePointerClick, ScanFace, Store, Users } from 'lucide-react'
+import { createStoreRuntime, getExperienceAdminWorkspace, getMerchantInsights } from '@/modules/store/application'
 import type { MerchantInsightsDto } from '@/modules/store/application/get-merchant-insights'
 
 export const dynamic = 'force-dynamic'
 
-interface PageProps {
-  params: { id: string }
-}
-
+interface PageProps { params: { id: string } }
 type CatalogFrame = MerchantInsightsDto['catalog']['frames'][number]
 
-function formatPrice(price: number | null, currency: string | null) {
-  if (price === null || !currency) return 'Price pending'
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: currency.toUpperCase(),
-    maximumFractionDigits: 0,
-  }).format(price / 100)
+function rate(value: number, total: number) { return total <= 0 ? '—' : `${Math.round((value / total) * 100)}%` }
+function price(value: number | null, currency: string | null) {
+  if (value === null || !currency) return 'Price not listed'
+  return new Intl.NumberFormat('en-US', { style: 'currency', currency: currency.toUpperCase(), maximumFractionDigits: 0 }).format(value / 100)
+}
+function formatDate(value: string) { return new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric' }).format(new Date(value)) }
+
+function Provenance({ reference }: { reference: boolean }) {
+  return reference ? <span title="Simulation data — not live merchant traffic" className="rounded-full bg-amber-50 px-2.5 py-1.5 text-[11px] font-semibold text-amber-800 ring-1 ring-amber-200">Reference</span> : <span className="rounded-full bg-emerald-50 px-2.5 py-1.5 text-[11px] font-semibold text-emerald-700 ring-1 ring-emerald-200">Live</span>
 }
 
-function rate(value: number, total: number) {
-  if (total <= 0) return 0
-  return Math.min(100, Math.round((value / total) * 100))
+function EmptyState({ title, copy }: { title: string; copy: string }) {
+  return <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50/70 px-5 py-8 text-center"><p className="text-sm font-semibold text-slate-700">{title}</p><p className="mx-auto mt-1 max-w-md text-sm leading-6 text-slate-500">{copy}</p></div>
 }
 
-function trendCopy(delta: number | null) {
-  if (delta === null) return 'New vs last 7 days'
-  if (delta === 0) return 'No change vs last 7 days'
-  return `${delta > 0 ? '↑' : '↓'} ${Math.abs(delta)}% vs last 7 days`
+function CatalogImage({ frame }: { frame: CatalogFrame }) {
+  return <div className="relative h-14 w-16 shrink-0 overflow-hidden rounded-xl bg-slate-50 ring-1 ring-slate-200">{frame.imageUrl ? <Image src={frame.imageUrl} alt="" fill sizes="64px" className="object-contain p-1" /> : <ImageIcon className="m-auto h-4 w-4 text-slate-300" />}</div>
 }
 
-function journeyAvatar(session: MerchantInsightsDto['recentSessions'][number]) {
-  if (session.shopperName) {
-    const parts = session.shopperName.trim().split(/\s+/).filter(Boolean)
-    return parts.slice(0, 2).map((part) => part[0]).join('').toUpperCase() || 'SH'
-  }
-  return session.sessionId.slice(-2).toUpperCase()
+function Funnel({ metrics }: { metrics: MerchantInsightsDto['metrics'] }) {
+  if (metrics.sessions === 0) return <EmptyState title="No shopper activity yet" copy="Share an Experience or send traffic to its public route to start collecting intent." />
+  const stages = [
+    ['Sessions', metrics.sessions],
+    ['Recommendation', metrics.recommendations],
+    ['Try-On', metrics.tryOns],
+    ['Compare', metrics.compareStarts],
+    ['Favorite', metrics.favorites],
+    ['Product Click', metrics.productClicks],
+    ['Inquiry', metrics.inquiries],
+  ] as const
+  return <div className="grid gap-2 md:grid-cols-7">{stages.map(([label, value], index) => <div key={label} className="relative rounded-xl bg-slate-50 p-3"><p className="text-[11px] text-slate-500">{label}</p><p className="mt-2 text-2xl font-semibold tabular-nums text-slate-950">{value}</p><p className="mt-1 text-xs font-medium text-teal-700">{rate(value, metrics.sessions)} of sessions</p>{index < stages.length - 1 ? <span className="absolute -right-1.5 top-1/2 hidden -translate-y-1/2 text-slate-300 md:block">→</span> : null}</div>)}</div>
 }
 
-function TrendChart({ series }: { series: MerchantInsightsDto['trends']['series'] }) {
-  const width = 640
-  const height = 210
-  const chartBottom = 170
-  const max = Math.max(...series.map((point) => point.interest), 1)
-  const points = series.map((point, index) => {
-    const x = series.length <= 1 ? 0 : (index / (series.length - 1)) * width
-    const y = chartBottom - (point.interest / max) * 130
-    return { ...point, x, y }
-  })
-  const line = points.map((point) => `${point.x},${point.y}`).join(' ')
-  const area = points.length > 0
-    ? `M ${points[0].x} ${chartBottom} L ${points.map((point) => `${point.x} ${point.y}`).join(' L ')} L ${points[points.length - 1].x} ${chartBottom} Z`
-    : ''
-
-  return (
-    <div className="mt-6">
-      <svg viewBox={`0 0 ${width} ${height}`} role="img" aria-label="Seven-day shopper interest trend" className="h-56 w-full overflow-visible">
-        <defs>
-          <linearGradient id="interest-fill" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#2563eb" stopOpacity="0.24" />
-            <stop offset="100%" stopColor="#2563eb" stopOpacity="0.02" />
-          </linearGradient>
-        </defs>
-        {[40, 83, 126, 170].map((y) => <line key={y} x1="0" y1={y} x2={width} y2={y} stroke="#e2e8f0" strokeWidth="1" />)}
-        <path d={area} fill="url(#interest-fill)" />
-        <polyline points={line} fill="none" stroke="#2563eb" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" />
-        {points.map((point) => <circle key={point.date} cx={point.x} cy={point.y} r="5" fill="#2563eb" stroke="white" strokeWidth="3" />)}
-        {points.map((point) => <text key={`${point.date}-label`} x={point.x} y="202" textAnchor="middle" className="fill-slate-400 text-[12px]">{point.label}</text>)}
-      </svg>
-    </div>
-  )
-}
-
-function CatalogImage({ frame, sizes }: { frame: CatalogFrame; sizes: string }) {
-  return frame.imageUrl ? (
-    <Image
-      src={frame.imageUrl}
-      alt={frame.name}
-      fill
-      sizes={sizes}
-      className="object-contain p-3 transition duration-300 group-hover:scale-[1.03]"
-    />
-  ) : (
-    <div className="flex h-full items-center justify-center text-slate-300">
-      <ImageIcon className="h-8 w-8" aria-hidden="true" />
-    </div>
-  )
+function ExperienceComparison({ experiences, merchantId }: { experiences: NonNullable<Awaited<ReturnType<typeof getExperienceAdminWorkspace>>>['experiences']; merchantId: string }) {
+  if (experiences.length === 0) return <EmptyState title="No Experiences yet" copy="Create a Store or Campaign Experience to compare shopper activity here." />
+  return <div className="overflow-x-auto"><table className="w-full min-w-[760px] text-sm"><thead><tr className="border-b border-slate-200 text-left text-xs text-slate-500"><th className="pb-3 pr-4 font-semibold">Experience</th><th className="pb-3 pr-4 font-semibold">Sessions</th><th className="pb-3 pr-4 font-semibold">Try-On rate</th><th className="pb-3 pr-4 font-semibold">Favorite</th><th className="pb-3 pr-4 font-semibold">Product Click</th><th className="pb-3 pr-4 font-semibold">Inquiry</th><th className="pb-3 font-semibold"> </th></tr></thead><tbody>{experiences.map((experience) => <tr key={experience.id} className="border-b border-slate-100 last:border-0"><td className="py-4 pr-4"><div className="flex items-center gap-2"><span className={`rounded-full px-2 py-1 text-[10px] font-semibold ${experience.type === 'CAMPAIGN' ? 'bg-violet-50 text-violet-700' : 'bg-blue-50 text-blue-700'}`}>{experience.type === 'CAMPAIGN' ? 'Campaign' : 'Store'}</span>{experience.referenceData ? <span title="Simulation data — not live merchant traffic" className="rounded-full bg-amber-50 px-2 py-1 text-[10px] font-semibold text-amber-800">Reference</span> : null}</div><p className="mt-2 font-semibold text-slate-900">{experience.name}</p></td><td className="py-4 pr-4 tabular-nums font-semibold text-slate-900">{experience.metrics.sessions}</td><td className="py-4 pr-4 tabular-nums text-slate-700">{rate(experience.metrics.tryOns, experience.metrics.sessions)}</td><td className="py-4 pr-4 tabular-nums text-slate-700">{experience.metrics.favorites}</td><td className="py-4 pr-4 tabular-nums text-slate-700">{experience.metrics.productClicks}</td><td className="py-4 pr-4 tabular-nums text-slate-700">{experience.metrics.inquiries}</td><td className="py-4 text-right"><Link href={`/admin/store/merchants/${merchantId}/experiences/${experience.id}`} className="font-semibold text-teal-700 hover:text-teal-900">Inspect</Link></td></tr>)}</tbody></table></div>
 }
 
 export default async function AdminMerchantInsightsPage({ params }: PageProps) {
   const runtime = createStoreRuntime()
   let insights: MerchantInsightsDto
+  const workspace = await getExperienceAdminWorkspace({ merchantId: params.id })
+  if (!workspace) notFound()
   try {
-    insights = await getMerchantInsights({
-      merchants: runtime.merchants,
-      events: runtime.events,
-      merchantId: params.id,
-      recordInsightsViewed: true,
-    })
-  } catch {
-    notFound()
-  }
+    insights = await getMerchantInsights({ merchants: runtime.merchants, events: runtime.events, merchantId: params.id, recordInsightsViewed: true })
+  } catch { notFound() }
 
-  const { dataProvenance, merchant, metrics, trends, topFrames, recentSessions, recentInquiries, catalog } = insights
-  const accent = merchant.accentColor || '#173F4B'
+  const { merchant, dataProvenance, metrics, topFrames, recentSessions, recentInquiries, catalog } = insights
+  const reference = dataProvenance.referenceData || merchant.referenceData
   const intentTotal = metrics.favorites + metrics.productClicks + metrics.inquiries
-  const activeRate = rate(catalog.active, catalog.total)
-
-  const metricCards = [
-    {
-      label: 'Try-on sessions',
-      value: metrics.tryOnSessions,
-      detail: trendCopy(trends.deltas.tryOnSessions),
-      icon: Users,
-      color: 'bg-blue-50 text-blue-700',
-    },
-    {
-      label: 'Inquiries',
-      value: metrics.inquiries,
-      detail: trendCopy(trends.deltas.inquiries),
-      icon: MessageCircle,
-      color: 'bg-indigo-50 text-indigo-700',
-    },
-    {
-      label: 'Favorites',
-      value: metrics.favorites,
-      detail: trendCopy(trends.deltas.favorites),
-      icon: Heart,
-      color: 'bg-rose-50 text-rose-700',
-    },
-    {
-      label: 'Top frame',
-      value: topFrames[0]?.name ?? 'Building data',
-      detail: topFrames[0] ? `${topFrames[0].tryOns} try-ons · ${topFrames[0].favorites} favorites` : 'Appears after shopper activity',
-      icon: Trophy,
-      color: 'bg-amber-50 text-amber-700',
-    },
-  ]
-
-  const funnel = [
-    { label: 'Store sessions', value: metrics.sessions, icon: Users },
-    { label: 'Photos uploaded', value: metrics.photosUploaded, icon: ImageIcon },
-    { label: 'Recommendations', value: metrics.recommendations, icon: Sparkles },
-    { label: 'Try-ons', value: metrics.tryOns, icon: ScanFace },
-    { label: 'Purchase signals', value: intentTotal, icon: ShoppingBag },
-  ]
-  const funnelMax = Math.max(...funnel.map((item) => item.value), 1)
-  const shopperJourneys = recentSessions
-    .filter((session) => session.fitScore !== null || session.shortlist.length > 0 || session.inquired)
-    .slice(0, 5)
+  const activeExperiences = workspace.experiences.filter((experience) => experience.status === 'ACTIVE').length
 
   return (
     <div className="space-y-8 pb-12">
-      <section
-        className="relative overflow-hidden rounded-3xl px-6 py-7 text-white shadow-xl sm:px-8 sm:py-8"
-        style={{ background: `linear-gradient(125deg, ${accent} 0%, #0f2731 68%, #091920 100%)` }}
-      >
-        <div className="absolute -right-16 -top-24 h-64 w-64 rounded-full bg-white/10 blur-3xl" />
-        <div className="absolute -bottom-32 left-1/3 h-64 w-64 rounded-full bg-cyan-300/10 blur-3xl" />
-        <div className="relative flex flex-col justify-between gap-8 lg:flex-row lg:items-end">
-          <div>
-            <Link href="/admin/store" className="text-sm font-medium text-white/70 transition hover:text-white">
-              ← Store portfolio
-            </Link>
-            <div className="mt-5 flex items-center gap-4">
-              <div className="relative h-16 w-16 overflow-hidden rounded-2xl bg-white/95 shadow-lg ring-1 ring-white/30">
-                {merchant.logoUrl ? (
-                  <Image src={merchant.logoUrl} alt="" fill sizes="64px" className="object-cover" />
-                ) : (
-                  <div className="flex h-full items-center justify-center text-slate-700">
-                    <Store className="h-7 w-7" aria-hidden="true" />
-                  </div>
-                )}
-              </div>
-              <div>
-                <div className="flex flex-wrap items-center gap-2">
-                  <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">{merchant.name}</h1>
-                  <span className="rounded-full bg-emerald-400/20 px-2.5 py-1 text-xs font-semibold uppercase tracking-wide text-emerald-100 ring-1 ring-emerald-300/30">
-                    {merchant.status}
-                  </span>
-                </div>
-                <p className="mt-2 max-w-2xl text-sm leading-6 text-white/70">
-                  Merchant intelligence · catalog performance · anonymous shopper intent
-                </p>
-                {dataProvenance.referenceData ? (
-                  <p className="mt-3 inline-flex rounded-full bg-amber-300/20 px-3 py-1 text-[11px] font-semibold text-amber-100 ring-1 ring-amber-200/30">
-                    Reference Pilot · Simulation · not live merchant traffic
-                  </p>
-                ) : dataProvenance.includesSyntheticActivity ? (
-                  <p className="mt-3 inline-flex rounded-full bg-white/10 px-3 py-1 text-[11px] font-medium text-white/75 ring-1 ring-white/15">
-                    Sales demo workspace · includes synthetic sample activity
-                  </p>
-                ) : null}
-              </div>
-            </div>
-          </div>
-          <div className="flex flex-wrap gap-3">
-            <Link
-              href={`/admin/store/merchants/${merchant.id}/experiences`}
-              className="inline-flex items-center gap-2 rounded-xl bg-white/10 px-4 py-2.5 text-sm font-semibold text-white ring-1 ring-white/20 transition hover:bg-white/15"
-            >
-              Experiences
-            </Link>
-            <Link
-              href={`/en/store/${merchant.slug}`}
-              target="_blank"
-              className="inline-flex items-center gap-2 rounded-xl bg-white px-4 py-2.5 text-sm font-semibold text-slate-900 shadow-sm transition hover:bg-slate-100"
-            >
-              Open live Store
-              <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
-            </Link>
-            {merchant.websiteUrl && !merchant.websiteUrl.includes('example.com') ? (
-              <Link
-                href={merchant.websiteUrl}
-                target="_blank"
-                className="inline-flex items-center gap-2 rounded-xl bg-white/10 px-4 py-2.5 text-sm font-semibold text-white ring-1 ring-white/20 transition hover:bg-white/15"
-              >
-                Merchant website
-                <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
-              </Link>
-            ) : null}
-          </div>
-        </div>
-      </section>
+      <header className="flex flex-col justify-between gap-6 border-b border-slate-200 pb-7 lg:flex-row lg:items-end">
+        <div className="flex items-start gap-4"><div className="relative flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-slate-100 ring-1 ring-slate-200">{merchant.logoUrl ? <Image src={merchant.logoUrl} alt="" fill sizes="64px" className="object-cover" /> : <Store className="h-7 w-7 text-slate-400" />}</div><div><div className="flex flex-wrap items-center gap-3"><h1 className="text-3xl font-semibold tracking-tight text-slate-950 sm:text-4xl">{merchant.name}</h1><Provenance reference={reference} /></div><p className="mt-2 text-sm text-slate-500">Merchant overview · shopper activity · campaign performance</p><div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-xs text-slate-500"><span>{catalog.active} active frames</span><span>{activeExperiences} active Experiences</span><span>{merchant.status[0] + merchant.status.slice(1).toLowerCase()}</span></div></div></div>
+        <div className="flex flex-wrap gap-2"><Link href={`/admin/store/merchants/${merchant.id}/experiences`} className="inline-flex items-center gap-2 rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50">Experiences</Link><Link href={`/en/store/${merchant.slug}`} target="_blank" className="inline-flex items-center gap-2 rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white hover:bg-slate-700">Open public Store <ArrowUpRight className="h-4 w-4" /></Link>{merchant.websiteUrl && !merchant.websiteUrl.includes('example.com') ? <Link href={merchant.websiteUrl} target="_blank" className="inline-flex items-center gap-2 rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50">Website <ExternalLink className="h-4 w-4" /></Link> : null}</div>
+      </header>
 
-      <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4" aria-label="Store performance summary">
-        {metricCards.map((card) => {
-          const Icon = card.icon
-          return (
-            <article key={card.label} className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-              <div className="flex items-start justify-between gap-4">
-                <div>
-                  <p className="text-sm font-medium text-slate-500">{card.label}</p>
-                  <p className={`mt-2 font-semibold tracking-tight text-slate-950 ${typeof card.value === 'string' ? 'text-xl' : 'text-3xl'}`}>{card.value}</p>
-                </div>
-                <span className={`rounded-xl p-2.5 ${card.color}`}>
-                  <Icon className="h-5 w-5" aria-hidden="true" />
-                </span>
-              </div>
-              <p className="mt-4 text-xs font-medium text-slate-500">{card.detail}</p>
-            </article>
-          )
-        })}
-      </section>
+      {reference ? <p className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900"><strong>Reference data.</strong> Simulation activity for product demonstration.</p> : null}
 
-      <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm" aria-label="Store experience policy">
-        <div className="flex flex-wrap items-start justify-between gap-4">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-blue-700">Experience policy</p>
-            <h2 className="mt-2 text-xl font-semibold text-slate-950">Merchant default</h2>
-            <p className="mt-1 text-sm text-slate-500">Read-only policy applied by the shared Store flow.</p>
-          </div>
-          <span className="rounded-full bg-slate-100 px-3 py-1.5 text-xs font-semibold text-slate-600">v1 · no campaign override</span>
-        </div>
-        <dl className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          <div className="rounded-xl bg-slate-50 p-3"><dt className="text-xs text-slate-500">Try-On</dt><dd className="mt-1 font-semibold text-slate-900">{merchant.experiencePolicy.tryOnEnabled ? 'Enabled' : 'Disabled'}</dd></div>
-          <div className="rounded-xl bg-slate-50 p-3"><dt className="text-xs text-slate-500">Compare</dt><dd className="mt-1 font-semibold text-slate-900">{merchant.experiencePolicy.compareEnabled ? `Up to ${merchant.experiencePolicy.maxCompareFrames}` : 'Disabled'}</dd></div>
-          <div className="rounded-xl bg-slate-50 p-3"><dt className="text-xs text-slate-500">Inquiry</dt><dd className="mt-1 font-semibold text-slate-900">{merchant.experiencePolicy.inquiryEnabled ? 'Enabled' : 'Disabled'}</dd></div>
-          <div className="rounded-xl bg-slate-50 p-3"><dt className="text-xs text-slate-500">Scope</dt><dd className="mt-1 font-semibold text-slate-900">Merchant default</dd></div>
-        </dl>
-      </section>
+      <section aria-labelledby="snapshot-heading"><div><p className="text-xs font-semibold uppercase tracking-[0.16em] text-teal-700">Performance snapshot</p><h2 id="snapshot-heading" className="mt-1 text-2xl font-semibold text-slate-950">What is happening for this merchant?</h2></div><div className="mt-5 grid gap-4 sm:grid-cols-2 xl:grid-cols-4"><div className="rounded-2xl border border-slate-200 bg-white p-5"><p className="text-sm text-slate-500">Traffic</p><p className="mt-2 text-3xl font-semibold tabular-nums text-slate-950">{metrics.sessions}</p><p className="mt-1 text-xs text-slate-400">Shopper sessions</p></div><div className="rounded-2xl border border-slate-200 bg-white p-5"><p className="text-sm text-slate-500">Engagement</p><p className="mt-2 text-3xl font-semibold tabular-nums text-slate-950">{metrics.recommendations + metrics.tryOns + metrics.compareStarts}</p><p className="mt-1 text-xs text-slate-400">Recommendation · Try-On · Compare actions</p></div><div className="rounded-2xl border border-slate-200 bg-white p-5"><p className="text-sm text-slate-500">Intent</p><p className="mt-2 text-3xl font-semibold tabular-nums text-slate-950">{intentTotal}</p><p className="mt-1 text-xs text-slate-400">Favorite · Product Click · Inquiry</p></div><div className="rounded-2xl border border-slate-200 bg-white p-5"><p className="text-sm text-slate-500">Try-On sessions</p><p className="mt-2 text-3xl font-semibold tabular-nums text-slate-950">{metrics.tryOnSessions}</p><p className="mt-1 text-xs text-slate-400">{rate(metrics.tryOnSessions, metrics.sessions)} of sessions</p></div></div></section>
 
-      <section className="grid gap-6 xl:grid-cols-[1.35fr_0.65fr]">
-        <article className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-          <div className="flex items-end justify-between gap-4">
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-blue-700">Merchandising</p>
-              <h2 className="mt-2 text-xl font-semibold text-slate-950">Top frames</h2>
-              <p className="mt-1 text-sm text-slate-500">The products creating the strongest shopper response.</p>
-            </div>
-            <span className="text-xs font-medium text-slate-400">Live Store data</span>
-          </div>
-          {topFrames.length > 0 ? (
-            <div className="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-              {topFrames.slice(0, 4).map((frame, index) => (
-                <article key={frame.frameId} className="group min-w-0">
-                  <div className="relative aspect-[4/3] overflow-hidden rounded-2xl bg-slate-50 ring-1 ring-slate-100">
-                    {frame.imageUrl ? <Image src={frame.imageUrl} alt={frame.name} fill sizes="(max-width: 640px) 50vw, 180px" className="object-contain p-3 transition duration-300 group-hover:scale-[1.04]" /> : null}
-                    <span className="absolute left-2.5 top-2.5 flex h-6 w-6 items-center justify-center rounded-full bg-blue-600 text-[10px] font-bold text-white">{index + 1}</span>
-                  </div>
-                  <h3 className="mt-3 truncate text-sm font-semibold text-slate-900">{frame.name}</h3>
-                  <p className="mt-1 text-xs text-slate-500">{frame.tryOns} try-ons · {frame.favorites} saved</p>
-                  {index === 0 ? <span className="mt-2 inline-flex rounded-md bg-blue-50 px-2 py-1 text-[10px] font-semibold text-blue-700">Best seller signal</span> : null}
-                </article>
-              ))}
-            </div>
-          ) : <p className="mt-6 rounded-xl bg-slate-50 p-8 text-center text-sm text-slate-500">Top frames appear after shopper activity.</p>}
-        </article>
+      <section className="rounded-2xl border border-slate-200 bg-white p-5 sm:p-6" aria-labelledby="comparison-heading"><div className="flex flex-wrap items-start justify-between gap-4"><div><p className="text-xs font-semibold uppercase tracking-[0.16em] text-teal-700">Experience comparison</p><h2 id="comparison-heading" className="mt-1 text-xl font-semibold text-slate-950">Store and Campaign performance</h2><p className="mt-1 text-sm text-slate-500">Counts and session-based rates only. The table does not assign a winner or infer revenue.</p></div><Link href={`/admin/store/merchants/${merchant.id}/experiences`} className="text-sm font-semibold text-teal-700 hover:text-teal-900">View all Experiences <ArrowUpRight className="ml-1 inline h-4 w-4" /></Link></div><div className="mt-5"><ExperienceComparison experiences={workspace.experiences} merchantId={merchant.id} /></div></section>
 
-        <article className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-          <div className="flex items-end justify-between gap-4">
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-blue-700">Sales follow-up</p>
-              <h2 className="mt-2 text-xl font-semibold text-slate-950">Recent inquiries</h2>
-            </div>
-            <MessageCircle className="h-5 w-5 text-slate-300" aria-hidden="true" />
-          </div>
-          {recentInquiries.length > 0 ? (
-            <div className="mt-5 divide-y divide-slate-100">
-              {recentInquiries.slice(0, 4).map((inquiry, index) => (
-                <div key={inquiry.intentId} className="flex items-center gap-3 py-3 first:pt-0 last:pb-0">
-                  <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-xs font-bold ${['bg-blue-100 text-blue-700', 'bg-violet-100 text-violet-700', 'bg-rose-100 text-rose-700', 'bg-amber-100 text-amber-700'][index % 4]}`}>{inquiry.initials}</span>
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-semibold text-slate-900">{inquiry.name}</p>
-                    <p className="mt-0.5 truncate text-[11px] text-slate-400">{inquiry.email}</p>
-                    <p className="mt-0.5 truncate text-xs text-slate-500">Asked about {inquiry.frameName}</p>
-                  </div>
-                  <time className="shrink-0 text-[10px] text-slate-400" dateTime={inquiry.createdAt}>{new Date(inquiry.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</time>
-                </div>
-              ))}
-            </div>
-          ) : <p className="mt-5 rounded-xl bg-slate-50 p-8 text-center text-sm text-slate-500">Inquiries will appear here with shopper-provided contact details.</p>}
-        </article>
-      </section>
+      <section className="rounded-2xl border border-slate-200 bg-white p-5 sm:p-6" aria-labelledby="funnel-heading"><div className="flex flex-wrap items-start justify-between gap-4"><div><p className="text-xs font-semibold uppercase tracking-[0.16em] text-teal-700">Shopper funnel</p><h2 id="funnel-heading" className="mt-1 text-xl font-semibold text-slate-950">From visit to intent</h2><p className="mt-1 text-sm text-slate-500">Product Click is a merchant destination visit. Inquiry is a captured shopper request.</p></div><span className="text-xs text-slate-400">No checkout or purchase data</span></div><div className="mt-5"><Funnel metrics={metrics} /></div></section>
 
-      <section className="grid gap-6 xl:grid-cols-[1.2fr_0.8fr]">
-        <article className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-          <div className="flex flex-wrap items-start justify-between gap-4">
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-blue-700">Last 7 days</p>
-              <h2 className="mt-2 text-xl font-semibold text-slate-950">Shopper interest</h2>
-              <p className="mt-1 text-sm text-slate-500">Selections, favorites, product clicks, and inquiries.</p>
-            </div>
-            <span className="inline-flex items-center gap-2 rounded-full bg-blue-50 px-3 py-1.5 text-xs font-semibold text-blue-700"><TrendingUp className="h-3.5 w-3.5" />{trendCopy(trends.deltas.sessions)}</span>
-          </div>
-          <TrendChart series={trends.series} />
-        </article>
+      <section className="grid gap-6 xl:grid-cols-[1.15fr_0.85fr]"><article className="rounded-2xl border border-slate-200 bg-white p-5 sm:p-6"><div className="flex items-start justify-between gap-4"><div><p className="text-xs font-semibold uppercase tracking-[0.16em] text-teal-700">Interest</p><h2 className="mt-1 text-xl font-semibold text-slate-950">Most explored frames</h2><p className="mt-1 text-sm text-slate-500">Frame-level activity from recommendation, Try-On, and intent events.</p></div><ScanFace className="h-5 w-5 text-slate-300" aria-hidden="true" /></div>{topFrames.length === 0 ? <div className="mt-5"><EmptyState title="No frame interest yet" copy="Product-level signals will appear after shoppers select, try on, save, or visit a frame." /></div> : <div className="mt-5 grid gap-3 sm:grid-cols-2">{topFrames.slice(0, 6).map((frame) => <div key={frame.frameId} className="flex items-center gap-3 rounded-xl border border-slate-200 p-3"><div className="relative h-14 w-16 shrink-0 overflow-hidden rounded-xl bg-slate-50">{frame.imageUrl ? <Image src={frame.imageUrl} alt="" fill sizes="64px" className="object-contain p-1" /> : <ImageIcon className="m-auto h-4 w-4 text-slate-300" />}</div><div className="min-w-0 flex-1"><p className="truncate text-sm font-semibold text-slate-900">{frame.name}</p><p className="truncate text-xs text-slate-500">{frame.brand || 'Brand not provided'} · {frame.tryOns} Try-On · {frame.favorites} Favorite</p></div></div>)}</div>}</article><article className="rounded-2xl border border-slate-200 bg-white p-5 sm:p-6"><div className="flex items-start justify-between gap-4"><div><p className="text-xs font-semibold uppercase tracking-[0.16em] text-teal-700">Intent</p><h2 className="mt-1 text-xl font-semibold text-slate-950">Recent inquiries</h2><p className="mt-1 text-sm text-slate-500">Higher-intent shopper actions captured by this merchant.</p></div><MessageCircle className="h-5 w-5 text-slate-300" aria-hidden="true" /></div>{recentInquiries.length === 0 ? <div className="mt-5"><EmptyState title="No inquiries yet" copy="Higher-intent shopper actions will appear here when captured." /></div> : <div className="mt-5 divide-y divide-slate-100">{recentInquiries.slice(0, 5).map((inquiry) => <div key={inquiry.intentId} className="flex items-center gap-3 py-3 first:pt-0 last:pb-0"><span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-teal-50 text-xs font-bold text-teal-800">{inquiry.initials}</span><div className="min-w-0 flex-1"><p className="truncate text-sm font-semibold text-slate-900">{inquiry.name}</p><p className="truncate text-xs text-slate-500">{inquiry.frameName}</p></div><time className="shrink-0 text-xs text-slate-400" dateTime={inquiry.createdAt}>{formatDate(inquiry.createdAt)}</time></div>)}</div>}</article></section>
 
-        <article className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-          <div className="flex items-start justify-between gap-4">
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-blue-700">High-intent shoppers</p>
-              <h2 className="mt-2 text-xl font-semibold text-slate-950">Recent journeys</h2>
-              <p className="mt-1 text-sm text-slate-500">Shortlists and recommendation fit at a glance.</p>
-            </div>
-            <ShoppingBag className="h-5 w-5 text-slate-300" aria-hidden="true" />
-          </div>
-          {shopperJourneys.length > 0 ? (
-            <div className="mt-5 space-y-3">
-              {shopperJourneys.slice(0, 4).map((session, index) => (
-                <div key={session.sessionId} className="rounded-2xl border border-slate-100 bg-slate-50/80 p-3.5">
-                  <div className="flex items-center gap-3">
-                    <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-xs font-bold ${['bg-cyan-100 text-cyan-800', 'bg-fuchsia-100 text-fuchsia-800', 'bg-emerald-100 text-emerald-800', 'bg-orange-100 text-orange-800'][index % 4]}`}>{journeyAvatar(session)}</span>
-                    <div className="min-w-0 flex-1">
-                      <p className="truncate text-sm font-semibold text-slate-900">{session.shopperName || session.shortLabel}</p>
-                      <p className="mt-0.5 text-xs text-slate-500">{session.shortlist.length || session.recommendedCount}-frame shortlist · {session.triedCount} tried</p>
-                    </div>
-                    {session.fitScore !== null ? <span className="shrink-0 rounded-full bg-white px-2.5 py-1 text-xs font-bold text-blue-700 ring-1 ring-blue-100">{session.fitScore}% fit</span> : null}
-                  </div>
-                  {session.shortlist.length > 0 ? <div className="mt-3 flex gap-1.5">{session.shortlist.map((frame) => <div key={frame.frameId} className="relative h-8 w-11 overflow-hidden rounded-lg bg-white ring-1 ring-slate-200">{frame.imageUrl ? <Image src={frame.imageUrl} alt={frame.name} fill sizes="44px" className="object-contain p-1" /> : null}</div>)}</div> : null}
-                </div>
-              ))}
-            </div>
-          ) : <p className="mt-5 rounded-xl bg-slate-50 p-8 text-center text-sm text-slate-500">High-intent journeys appear after recommendations and shortlists.</p>}
-          <p className="mt-4 text-[10px] leading-4 text-slate-400">Fit score reflects recommendation alignment from face-shape, visual-width, and style signals. It is not a physical-fit or prescription measurement.</p>
-        </article>
-      </section>
+      <section className="grid gap-6 xl:grid-cols-[1.1fr_0.9fr]"><article className="rounded-2xl border border-slate-200 bg-white p-5 sm:p-6"><div className="flex items-start justify-between gap-4"><div><p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Catalog</p><h2 className="mt-1 text-xl font-semibold text-slate-950">Catalog interest</h2><p className="mt-1 text-sm text-slate-500">{catalog.active} active frames · {catalog.approved} reviewed</p></div><Link href={`/admin/store/merchants/${merchant.id}/experiences`} className="text-sm font-semibold text-teal-700 hover:text-teal-900">Manage edits</Link></div><div className="mt-5 grid gap-3 sm:grid-cols-2">{catalog.frames.slice(0, 6).map((frame) => <div key={frame.frameId} className="flex items-center gap-3 rounded-xl border border-slate-100 p-3"><CatalogImage frame={frame} /><div className="min-w-0 flex-1"><p className="truncate text-sm font-semibold text-slate-900">{frame.name}</p><p className="truncate text-xs text-slate-500">{frame.brand || 'Brand not provided'} · {price(frame.price, frame.currency)}</p></div><span className="text-xs tabular-nums text-slate-500">{frame.productClicks} clicks</span></div>)}</div></article><article className="rounded-2xl border border-slate-200 bg-white p-5 sm:p-6"><div className="flex items-start justify-between gap-4"><div><p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Shopper activity</p><h2 className="mt-1 text-xl font-semibold text-slate-950">Recent journeys</h2><p className="mt-1 text-sm text-slate-500">Anonymous behavior only; shopper images remain private.</p></div><MousePointerClick className="h-5 w-5 text-slate-300" aria-hidden="true" /></div>{recentSessions.length === 0 ? <div className="mt-5"><EmptyState title="No sessions yet" copy="Share an Experience or send traffic to its public route to start collecting intent." /></div> : <div className="mt-5 space-y-2">{recentSessions.slice(0, 5).map((session) => <div key={session.sessionId} className="flex items-center justify-between gap-3 rounded-xl bg-slate-50 p-3"><div className="min-w-0"><p className="truncate text-sm font-semibold text-slate-900">{session.shopperName || session.shortLabel}</p><p className="mt-1 text-xs text-slate-500">{session.recommendedCount} selected · {session.triedCount} tried</p></div><span className="shrink-0 text-xs text-slate-400">{formatDate(session.createdAt)}</span></div>)}</div>}</article></section>
 
-      <section className="grid gap-6 xl:grid-cols-[1.35fr_0.65fr]">
-        <article className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-          <div className="flex items-start justify-between gap-4">
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-teal-700">Conversion story</p>
-              <h2 className="mt-2 text-xl font-semibold text-slate-950">Shopper decision funnel</h2>
-              <p className="mt-1 text-sm text-slate-500">From Store visit to measurable purchase intent.</p>
-            </div>
-            <BarChart3 className="h-6 w-6 text-slate-300" aria-hidden="true" />
-          </div>
-          <div className="mt-7 space-y-5">
-            {funnel.map((item) => {
-              const Icon = item.icon
-              const width = item.value === 0 ? 0 : Math.max(4, Math.round((item.value / funnelMax) * 100))
-              return (
-                <div key={item.label}>
-                  <div className="mb-2 flex items-center justify-between gap-3 text-sm">
-                    <span className="flex items-center gap-2 font-medium text-slate-700">
-                      <Icon className="h-4 w-4 text-teal-700" aria-hidden="true" />
-                      {item.label}
-                    </span>
-                    <span className="font-semibold tabular-nums text-slate-950">{item.value}</span>
-                  </div>
-                  <div className="h-2.5 overflow-hidden rounded-full bg-slate-100">
-                    <div
-                      className="h-full rounded-full bg-gradient-to-r from-teal-700 to-cyan-500"
-                      style={{ width: `${width}%` }}
-                    />
-                  </div>
-                </div>
-              )
-            })}
-          </div>
-        </article>
-
-        <article className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-teal-700">Catalog health</p>
-          <h2 className="mt-2 text-xl font-semibold text-slate-950">Ready to sell</h2>
-          <div className="mt-6 flex items-end justify-between">
-            <div>
-              <p className="text-4xl font-semibold tracking-tight text-slate-950">{activeRate}%</p>
-              <p className="mt-1 text-sm text-slate-500">active inventory</p>
-            </div>
-            <span className="rounded-xl bg-emerald-50 p-3 text-emerald-700">
-              <CheckCircle2 className="h-6 w-6" aria-hidden="true" />
-            </span>
-          </div>
-          <div className="mt-5 h-2.5 overflow-hidden rounded-full bg-slate-100">
-            <div className="h-full rounded-full bg-emerald-500" style={{ width: `${activeRate}%` }} />
-          </div>
-          <dl className="mt-6 divide-y divide-slate-100 text-sm">
-            <div className="flex items-center justify-between py-3">
-              <dt className="text-slate-500">Catalog items</dt>
-              <dd className="font-semibold text-slate-900">{catalog.total}</dd>
-            </div>
-            <div className="flex items-center justify-between py-3">
-              <dt className="text-slate-500">AI-enriched</dt>
-              <dd className="font-semibold text-slate-900">{catalog.approved}</dd>
-            </div>
-            <div className="flex items-center justify-between py-3">
-              <dt className="text-slate-500">Average price</dt>
-              <dd className="font-semibold text-slate-900">{formatPrice(catalog.averagePrice, catalog.currency)}</dd>
-            </div>
-            <div className="flex items-center justify-between pt-3">
-              <dt className="text-slate-500">Try-on failures</dt>
-              <dd className={metrics.tryOnFailures > 0 ? 'font-semibold text-amber-700' : 'font-semibold text-emerald-700'}>
-                {metrics.tryOnFailures}
-              </dd>
-            </div>
-          </dl>
-        </article>
-      </section>
-
-      <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-        <div className="flex flex-wrap items-end justify-between gap-3">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-teal-700">Inventory</p>
-            <h2 className="mt-2 text-xl font-semibold text-slate-950">Frame catalog</h2>
-            <p className="mt-1 text-sm text-slate-500">Product data, merchandising status, and engagement in one view.</p>
-          </div>
-          <div className="flex gap-2 text-xs font-medium">
-            <span className="rounded-full bg-emerald-50 px-3 py-1.5 text-emerald-700">{catalog.active} active</span>
-            <span className="rounded-full bg-slate-100 px-3 py-1.5 text-slate-600">{catalog.total} total</span>
-          </div>
-        </div>
-        <div className="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-          {catalog.frames.map((frame) => (
-            <article key={frame.frameId} className="group overflow-hidden rounded-2xl border border-slate-200 bg-white transition hover:-translate-y-0.5 hover:shadow-lg">
-              <div className="relative aspect-[4/3] overflow-hidden bg-gradient-to-b from-white to-slate-50">
-                <CatalogImage frame={frame} sizes="(max-width: 640px) 100vw, (max-width: 1280px) 50vw, 25vw" />
-                <span className="absolute left-3 top-3 rounded-full bg-emerald-50/95 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide text-emerald-700 ring-1 ring-emerald-100">
-                  {frame.status}
-                </span>
-              </div>
-              <div className="p-4">
-                <div className="flex items-start justify-between gap-3">
-                  <div className="min-w-0">
-                    <h3 className="truncate font-semibold text-slate-950">{frame.name}</h3>
-                    <p className="mt-1 text-xs font-medium text-slate-400">{frame.sku || 'No SKU'}</p>
-                  </div>
-                  <p className="shrink-0 text-sm font-semibold text-slate-950">{formatPrice(frame.price, frame.currency)}</p>
-                </div>
-                <p className="mt-3 text-xs capitalize text-slate-500">
-                  {[frame.shape, frame.material, frame.color, frame.widthClass].filter(Boolean).join(' · ')}
-                </p>
-                <div className="mt-3 flex min-h-6 flex-wrap gap-1.5">
-                  {frame.styleTags.slice(0, 3).map((tag) => (
-                    <span key={tag} className="rounded-md bg-slate-100 px-2 py-1 text-[10px] font-medium capitalize text-slate-600">{tag}</span>
-                  ))}
-                </div>
-                <div className="mt-4 grid grid-cols-4 border-t border-slate-100 pt-3 text-center">
-                  <div><p className="text-sm font-semibold text-slate-900">{frame.recommendations}</p><p className="text-[10px] text-slate-400">Selected</p></div>
-                  <div><p className="text-sm font-semibold text-slate-900">{frame.tryOns}</p><p className="text-[10px] text-slate-400">Try-ons</p></div>
-                  <div><p className="text-sm font-semibold text-slate-900">{frame.favorites}</p><p className="text-[10px] text-slate-400">Saved</p></div>
-                  <div><p className="text-sm font-semibold text-slate-900">{frame.productClicks}</p><p className="text-[10px] text-slate-400">Clicks</p></div>
-                </div>
-              </div>
-            </article>
-          ))}
-        </div>
-      </section>
-
-      <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-        <div className="flex items-start justify-between gap-4">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-teal-700">Live activity</p>
-            <h2 className="mt-2 text-xl font-semibold text-slate-950">Recent shopper sessions</h2>
-            <p className="mt-1 text-sm text-slate-500">Anonymous behavior only; shopper images remain private.</p>
-          </div>
-          <MousePointerClick className="h-6 w-6 text-slate-300" aria-hidden="true" />
-        </div>
-        {recentSessions.length === 0 ? (
-          <p className="mt-6 rounded-xl bg-slate-50 px-4 py-8 text-center text-sm text-slate-500">No sessions yet.</p>
-        ) : (
-          <div className="mt-6 overflow-x-auto">
-            <table className="w-full min-w-[760px] text-sm">
-              <thead>
-                <tr className="border-b border-slate-200 text-left text-xs uppercase tracking-wide text-slate-400">
-                  <th className="pb-3 pr-4 font-semibold">Session</th>
-                  <th className="pb-3 pr-4 font-semibold">Created</th>
-                  <th className="pb-3 pr-4 text-center font-semibold">Selected</th>
-                  <th className="pb-3 pr-4 text-center font-semibold">Tried</th>
-                  <th className="pb-3 pr-4 text-center font-semibold">Compared</th>
-                  <th className="pb-3 pr-4 text-center font-semibold">Saved</th>
-                  <th className="pb-3 text-center font-semibold">Intent</th>
-                </tr>
-              </thead>
-              <tbody>
-                {recentSessions.map((session) => (
-                  <tr key={session.sessionId} className="border-b border-slate-100 last:border-0">
-                    <td className="py-4 pr-4 font-semibold text-slate-900">{session.shortLabel}</td>
-                    <td className="py-4 pr-4 text-slate-500">{new Date(session.createdAt).toLocaleString('en-US')}</td>
-                    <td className="py-4 pr-4 text-center font-medium text-slate-700">{session.recommendedCount}</td>
-                    <td className="py-4 pr-4 text-center font-medium text-slate-700">{session.triedCount}</td>
-                    <td className="py-4 pr-4 text-center">{session.compared ? <CheckCircle2 className="mx-auto h-4 w-4 text-emerald-600" /> : <span className="text-slate-300">—</span>}</td>
-                    <td className="py-4 pr-4 text-center">{session.favorited ? <Heart className="mx-auto h-4 w-4 fill-rose-500 text-rose-500" /> : <span className="text-slate-300">—</span>}</td>
-                    <td className="py-4 text-center">{session.productClicked || session.inquired ? <CheckCircle2 className="mx-auto h-4 w-4 text-teal-700" /> : <span className="text-slate-300">—</span>}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </section>
+      <section className="rounded-2xl border border-slate-200 bg-slate-50/80 p-5 sm:p-6"><div className="flex flex-wrap items-start justify-between gap-4"><div><p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Operational details</p><h2 className="mt-1 text-xl font-semibold text-slate-950">Experience policy and catalog health</h2></div><Users className="h-5 w-5 text-slate-300" aria-hidden="true" /></div><dl className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4"><div className="rounded-xl bg-white p-4"><dt className="text-xs text-slate-500">Try-On</dt><dd className="mt-1 font-semibold text-slate-900">{merchant.experiencePolicy.tryOnEnabled ? 'Enabled' : 'Disabled'}</dd></div><div className="rounded-xl bg-white p-4"><dt className="text-xs text-slate-500">Compare</dt><dd className="mt-1 font-semibold text-slate-900">{merchant.experiencePolicy.compareEnabled ? `Up to ${merchant.experiencePolicy.maxCompareFrames}` : 'Disabled'}</dd></div><div className="rounded-xl bg-white p-4"><dt className="text-xs text-slate-500">Inquiry</dt><dd className="mt-1 font-semibold text-slate-900">{merchant.experiencePolicy.inquiryEnabled ? 'Enabled' : 'Disabled'}</dd></div><div className="rounded-xl bg-white p-4"><dt className="text-xs text-slate-500">Try-On failures</dt><dd className="mt-1 font-semibold text-slate-900">{metrics.tryOnFailures}</dd></div></dl></section>
     </div>
   )
 }

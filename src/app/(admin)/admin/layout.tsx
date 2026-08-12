@@ -160,7 +160,7 @@ export default function AdminLayout({
               </span>
               <span>
                 <span className="block text-sm font-semibold tracking-tight text-slate-950">VisuTry Store</span>
-                <span className="block text-[11px] font-medium uppercase tracking-[0.16em] text-slate-400">Merchant intelligence</span>
+                <span className="block text-[11px] font-medium uppercase tracking-[0.16em] text-slate-400">Performance & intent</span>
               </span>
             </Link>
 
@@ -170,7 +170,7 @@ export default function AdminLayout({
                 className="inline-flex items-center gap-2 rounded-xl bg-slate-100 px-3.5 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-200"
               >
                 <LayoutDashboard className="h-4 w-4" aria-hidden="true" />
-                <span className="hidden sm:inline">Store portfolio</span>
+                <span className="hidden sm:inline">Merchant portfolio</span>
               </Link>
               <Link
                 href="/admin/dashboard"
