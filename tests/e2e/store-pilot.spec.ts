@@ -31,6 +31,9 @@ test.describe('@critical Store Pilot Flow', () => {
     await expect(page.locator('body')).not.toContainText(/application error|internal server error/i);
     await expect(page.locator('[data-presentation-mode="EDITORIAL_FIRST"]')).toBeVisible();
     await expect(page.locator('[data-presentation-cta="shopping-interest"]').first()).toBeVisible();
+    await expect(page.locator('header').getByText('Powered by')).toBeVisible();
+    await expect(page.locator('div.absolute.inset-x-6.bottom-6').getByText('Petite Fit Reference Experience', { exact: true })).toBeVisible();
+    await expect(page.locator('img[alt="ello sunglasses eyewear collection"]').first()).toBeVisible();
   });
 
   test('known contextual handoffs use action-first without changing the route contract', async ({ page }) => {
