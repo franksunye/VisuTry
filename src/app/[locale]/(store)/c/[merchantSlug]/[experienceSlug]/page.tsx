@@ -1,7 +1,12 @@
 import { Metadata } from 'next'
-import { getTranslations, setRequestLocale } from 'next-intl/server'
+import { notFound } from 'next/navigation'
+import { setRequestLocale } from 'next-intl/server'
+import { ExperienceDiscoveryContent } from '@/components/store/ExperienceDiscoveryContent'
 import { StoreShopperExperience } from '@/components/store/StoreShopperExperience'
 import { resolveStoreAssetAccessPolicy } from '@/modules/store/infrastructure/config/store-asset-access-policy'
+import { getPublicExperienceDiscoveryForRoute } from '@/modules/store/application/get-public-experience-discovery-route'
+import { buildExperienceDiscoveryMetadata, discoveryCanonicalUrl } from '@/lib/store-discovery-seo'
+import { getValidLocale } from '@/i18n'
 
 interface CampaignExperiencePageProps {
   params: {
@@ -17,23 +22,38 @@ export async function generateMetadata({
   params,
 }: CampaignExperiencePageProps): Promise<Metadata> {
   setRequestLocale(params.locale)
-  const t = await getTranslations({ locale: params.locale, namespace: 'storeShopper.meta' })
-  return {
-    title: `${params.experienceSlug} · ${t('title', { slug: params.merchantSlug })}`,
-    description: t('description'),
-    robots: { index: false, follow: false },
+  const locale = getValidLocale(params.locale)
+  const pathname = `/${locale}/c/${params.merchantSlug}/${params.experienceSlug}`
+  const discovery = await getPublicExperienceDiscoveryForRoute(params.merchantSlug, params.experienceSlug)
+  if (!discovery) {
+    return {
+      title: 'Campaign not found | VisuTry',
+      alternates: { canonical: discoveryCanonicalUrl(pathname) },
+      robots: { index: false, follow: false },
+    }
   }
+  return buildExperienceDiscoveryMetadata({ discovery, locale, pathname })
 }
 
 export default async function CampaignExperiencePage({ params }: CampaignExperiencePageProps) {
   setRequestLocale(params.locale)
+  const locale = getValidLocale(params.locale)
+  const discovery = await getPublicExperienceDiscoveryForRoute(params.merchantSlug, params.experienceSlug)
+  if (!discovery) notFound()
   const assetPolicy = resolveStoreAssetAccessPolicy()
-  return (
-    <StoreShopperExperience
-      merchantSlug={params.merchantSlug}
-      experienceSlug={params.experienceSlug}
-      locale={params.locale}
-      publicPocStorage={assetPolicy.publicPoc}
+  return <div>
+    <ExperienceDiscoveryContent
+      discovery={discovery}
+      locale={locale}
+      pathname={`/${locale}/c/${params.merchantSlug}/${params.experienceSlug}`}
     />
-  )
+    <section aria-label="Interactive shopping experience">
+      <StoreShopperExperience
+        merchantSlug={params.merchantSlug}
+        experienceSlug={params.experienceSlug}
+        locale={locale}
+        publicPocStorage={assetPolicy.publicPoc}
+      />
+    </section>
+  </div>
 }

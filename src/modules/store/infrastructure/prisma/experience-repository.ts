@@ -78,6 +78,26 @@ export function createPrismaExperienceRepository(): ExperienceRepository {
         throw error
       }
     },
+    async findPublicStoreByMerchant(merchantId) {
+      try {
+        const activeRow = await prisma.experience.findFirst({
+          where: { merchantId, type: 'STORE', status: 'ACTIVE' },
+          orderBy: [{ slug: 'asc' }, { createdAt: 'asc' }],
+          include: includeFrames,
+        })
+        if (activeRow) return mapExperience(activeRow)
+
+        const row = await prisma.experience.findFirst({
+          where: { merchantId, type: 'STORE' },
+          orderBy: [{ updatedAt: 'desc' }, { slug: 'asc' }],
+          include: includeFrames,
+        })
+        return row ? mapExperience(row) : null
+      } catch (error) {
+        if (isExperienceTableUnavailable(error)) return null
+        throw error
+      }
+    },
     async hasAnyByMerchant(merchantId) {
       try {
         return Boolean(await prisma.experience.findFirst({
@@ -93,6 +113,18 @@ export function createPrismaExperienceRepository(): ExperienceRepository {
       try {
         const row = await prisma.experience.findFirst({
           where: { merchantId, slug, type: 'CAMPAIGN', status: 'ACTIVE' },
+          include: includeFrames,
+        })
+        return row ? mapExperience(row) : null
+      } catch (error) {
+        if (isExperienceTableUnavailable(error)) return null
+        throw error
+      }
+    },
+    async findPublicCampaignByMerchantAndSlug(merchantId, slug) {
+      try {
+        const row = await prisma.experience.findFirst({
+          where: { merchantId, slug, type: 'CAMPAIGN' },
           include: includeFrames,
         })
         return row ? mapExperience(row) : null

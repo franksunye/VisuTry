@@ -195,9 +195,16 @@ export interface MerchantRepository {
 
 export interface ExperienceRepository {
   findDefaultStore(merchantId: string): Promise<ExperienceRecord | null>
+  /** Public discovery read: returns the Store even when its AI runtime is no longer active. */
+  findPublicStoreByMerchant?(merchantId: string): Promise<ExperienceRecord | null>
   hasAnyByMerchant(merchantId: string): Promise<boolean>
   findByMerchantAndId(merchantId: string, experienceId: string): Promise<ExperienceRecord | null>
   findActiveCampaignByMerchantAndSlug(
+    merchantId: string,
+    slug: string,
+  ): Promise<ExperienceRecord | null>
+  /** Public discovery read: historical Campaigns remain readable when policy allows it. */
+  findPublicCampaignByMerchantAndSlug?(
     merchantId: string,
     slug: string,
   ): Promise<ExperienceRecord | null>
