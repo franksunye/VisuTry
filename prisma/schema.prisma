@@ -75,6 +75,7 @@ model User {
   payments           Payment[]
   merchantSponsoredUsages MerchantSponsoredUsage[]
   merchantMemberships MerchantMembership[]
+  createdAgentCredentials MerchantAgentCredential[]
 
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
@@ -365,6 +366,11 @@ enum MerchantMembershipRole {
   ADMIN
 }
 
+enum MerchantAgentCredentialStatus {
+  ACTIVE
+  REVOKED
+}
+
 enum TryOnOrigin {
   CONSUMER
   STORE_DEMO
@@ -504,6 +510,8 @@ model Merchant {
   orphanBlobs StoreOrphanBlob[]
   abuseCounters StoreAbuseCounter[]
   memberships MerchantMembership[]
+  agentCredentials MerchantAgentCredential[]
+  operationAudits MerchantOperationAudit[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -530,6 +538,50 @@ model MerchantMembership {
   @@unique([userId, merchantId])
   @@index([userId])
   @@index([merchantId])
+}
+
+/// Merchant-scoped authentication client for API/MCP adapters.
+/// The plaintext secret is never persisted; secretHash stores its SHA-256 digest.
+model MerchantAgentCredential {
+  id              String                        @id @default(cuid())
+  merchantId      String
+  name            String
+  keyPrefix       String                        @unique
+  secretHash      String
+  scopes          String[]
+  status          MerchantAgentCredentialStatus @default(ACTIVE)
+  createdByUserId String?
+  rotatedFromId   String?
+  lastUsedAt      DateTime?
+  revokedAt       DateTime?
+
+  merchant      Merchant @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+  createdByUser User?    @relation(fields: [createdByUserId], references: [id], onDelete: SetNull)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([merchantId, status])
+  @@index([createdByUserId])
+  @@index([rotatedFromId])
+}
+
+/// Minimal tenant-scoped audit trail for credential lifecycle and agent writes.
+model MerchantOperationAudit {
+  id           String   @id @default(cuid())
+  merchantId   String
+  actorType    String
+  actorId      String
+  action       String
+  resourceType String
+  resourceId   String?
+  result       String
+  createdAt    DateTime @default(now())
+
+  merchant Merchant @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+
+  @@index([merchantId, createdAt])
+  @@index([actorType, actorId, createdAt])
 }
 
 /// Merchant-owned catalog listing (separate from global GlassesFrame).
