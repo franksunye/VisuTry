@@ -51,7 +51,7 @@ export default async function BusinessPage({ params }: BusinessPageProps) {
   const locale = params.locale
   const copy = getBusinessCopy(locale)
   const businessSchema = generateStructuredData('softwareApplication', {
-    name: copy.schemaName,
+    name: 'VisuTry for Brands & Retailers',
     url: `https://www.visutry.com/${locale}/business`,
     applicationCategory: 'ShoppingApplication',
     description: copy.metaDescription,
