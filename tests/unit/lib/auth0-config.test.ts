@@ -3,6 +3,15 @@
  * Tests for Auth0 environment variable validation and provider setup
  */
 
+function isValidAuth0IssuerUrl(value: string): boolean {
+  try {
+    const url = new URL(value)
+    return url.protocol === 'https:' && Boolean(url.hostname) && !url.username && !url.password
+  } catch {
+    return false
+  }
+}
+
 describe('Auth0 Configuration', () => {
   const originalEnv = process.env
 
@@ -27,11 +36,10 @@ describe('Auth0 Configuration', () => {
       expect(auth0Config).toBeDefined()
     })
 
-    it('should have Auth0 issuer URL in correct format', () => {
+    it('should support Auth0 default and custom issuer domains', () => {
       if (process.env.AUTH0_ISSUER_BASE_URL) {
         const issuerUrl = process.env.AUTH0_ISSUER_BASE_URL
-        expect(issuerUrl).toMatch(/^https:\/\//)
-        expect(issuerUrl).toContain('auth0.com')
+        expect(isValidAuth0IssuerUrl(issuerUrl)).toBe(true)
       }
     })
   })
@@ -155,7 +163,7 @@ describe('Auth0 Configuration', () => {
       }
 
       expect(token.sub).toMatch(/^auth0\|/)
-      expect(token.iss).toContain('auth0.com')
+      expect(isValidAuth0IssuerUrl(token.iss)).toBe(true)
     })
   })
 
@@ -175,22 +183,14 @@ describe('Auth0 Configuration', () => {
     })
 
     it('should validate Auth0 issuer URL format', () => {
-      const invalidUrls = [
-        'http://example.auth0.com', // Not HTTPS
-        'https://example.com', // Not auth0.com
-        'invalid-url',
-      ]
+      const invalidUrls = ['http://example.auth0.com', 'https://', 'invalid-url']
 
       invalidUrls.forEach((url) => {
-        const isValid = url.startsWith('https://') && url.includes('auth0.com')
-        expect(isValid).toBe(false)
+        expect(isValidAuth0IssuerUrl(url)).toBe(false)
       })
 
-      const validUrl = 'https://example.auth0.com'
-      const isValid =
-        validUrl.startsWith('https://') && validUrl.includes('auth0.com')
-      expect(isValid).toBe(true)
+      expect(isValidAuth0IssuerUrl('https://example.auth0.com')).toBe(true)
+      expect(isValidAuth0IssuerUrl('https://auth.visutry.com')).toBe(true)
     })
   })
 })
-

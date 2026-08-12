@@ -3,6 +3,15 @@
  * Tests for Auth0 authentication flow
  */
 
+function isValidAuth0IssuerUrl(value: string): boolean {
+  try {
+    const url = new URL(value)
+    return url.protocol === 'https:' && Boolean(url.hostname) && !url.username && !url.password
+  } catch {
+    return false
+  }
+}
+
 describe('Auth0 Sign-In Flow', () => {
   describe('Provider Configuration', () => {
     it('should have Auth0 provider available when configured', () => {
@@ -18,8 +27,7 @@ describe('Auth0 Sign-In Flow', () => {
     it('should have valid Auth0 issuer URL', () => {
       const issuerUrl = process.env.AUTH0_ISSUER_BASE_URL
       if (issuerUrl) {
-        expect(issuerUrl).toMatch(/^https:\/\//)
-        expect(issuerUrl).toContain('auth0')
+        expect(isValidAuth0IssuerUrl(issuerUrl)).toBe(true)
       }
     })
   })
@@ -160,8 +168,7 @@ describe('Auth0 Sign-In Flow', () => {
     it('should validate Auth0 issuer URL format', () => {
       const issuerUrl = process.env.AUTH0_ISSUER_BASE_URL
       if (issuerUrl) {
-        const isValid = issuerUrl.startsWith('https://') && issuerUrl.includes('auth0')
-        expect(isValid).toBe(true)
+        expect(isValidAuth0IssuerUrl(issuerUrl)).toBe(true)
       }
     })
   })
@@ -189,4 +196,3 @@ describe('Auth0 Sign-In Flow', () => {
     })
   })
 })
-
