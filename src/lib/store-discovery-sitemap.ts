@@ -1,5 +1,8 @@
 import type { MetadataRoute } from 'next'
+import { unstable_cache } from 'next/cache'
+import { prisma } from '@/lib/prisma'
 import { resolveExperienceSearchVisibility } from '@/modules/store/domain/experience-search-visibility'
+import { PUBLIC_DISCOVERY_CACHE } from '@/lib/store-discovery-cache'
 
 export type PublicSitemapExperience = {
   type: 'STORE' | 'CAMPAIGN'
@@ -73,4 +76,67 @@ export function buildPublicExperienceSitemapEntries(input: {
   })
 
   return entries
+}
+
+async function readPublicSitemapMerchants(): Promise<PublicSitemapMerchant[]> {
+  const merchants = await prisma.merchant.findMany({
+    where: { status: 'ACTIVE' },
+    select: {
+      slug: true,
+      name: true,
+      websiteUrl: true,
+      pilotType: true,
+      referenceData: true,
+      sponsoredUsagePolicyKey: true,
+      updatedAt: true,
+      experiences: {
+        where: { type: { in: ['STORE', 'CAMPAIGN'] } },
+        orderBy: [{ type: 'asc' }, { updatedAt: 'desc' }],
+        select: {
+          type: true,
+          slug: true,
+          name: true,
+          status: true,
+          headline: true,
+          referenceData: true,
+          updatedAt: true,
+          frames: {
+            where: {
+              active: true,
+              merchantFrame: { status: 'ACTIVE' },
+            },
+            select: {
+              merchantFrame: { select: { productUrl: true, updatedAt: true } },
+            },
+          },
+        },
+      },
+    },
+  })
+
+  return merchants.map((merchant) => ({
+    ...merchant,
+    experiences: merchant.experiences.map((experience) => ({
+      ...experience,
+      frames: experience.frames.map((frame) => frame.merchantFrame),
+    })),
+  }))
+}
+
+const getCachedPublicSitemapMerchants = unstable_cache(
+  readPublicSitemapMerchants,
+  ['public-discovery-sitemap-merchants'],
+  {
+    revalidate: PUBLIC_DISCOVERY_CACHE.sitemapRevalidateSeconds,
+    tags: [PUBLIC_DISCOVERY_CACHE.tags.sitemap],
+  },
+)
+
+export async function getCachedPublicExperienceSitemapEntries(
+  baseUrl: string,
+): Promise<MetadataRoute.Sitemap> {
+  return buildPublicExperienceSitemapEntries({
+    baseUrl,
+    merchants: await getCachedPublicSitemapMerchants(),
+  })
 }

@@ -40,6 +40,57 @@ function mapMerchant(row: Merchant): MerchantRecord {
 
 export function createPrismaMerchantRepository(): MerchantRepository {
   return {
+    async findPublicBySlug(slug) {
+      const row = await prisma.merchant.findUnique({
+        where: { slug },
+        select: {
+          id: true,
+          slug: true,
+          name: true,
+          logoUrl: true,
+          websiteUrl: true,
+          accentColor: true,
+          status: true,
+          pilotType: true,
+          sponsoredUsagePolicyKey: true,
+          referenceData: true,
+          updatedAt: true,
+        },
+      })
+      if (!row) return null
+      return {
+        id: row.id,
+        slug: row.slug,
+        name: row.name,
+        logoUrl: row.logoUrl,
+        websiteUrl: row.websiteUrl,
+        contactEmail: null,
+        accentColor: row.accentColor,
+        status: row.status as MerchantStatus,
+        pilotType: row.pilotType,
+        sponsoredUsagePolicyKey: row.sponsoredUsagePolicyKey,
+        referenceData: row.referenceData,
+        defaultSource: null,
+        defaultCampaign: null,
+        tryOnEnabled: true,
+        compareEnabled: true,
+        maxCompareFrames: 2,
+        inquiryEnabled: false,
+        planCode: null,
+        commercialStage: null,
+        pricingVersion: null,
+        entitlementVersion: null,
+        commerceSessionAllowance: null,
+        standardRenderAllowance: null,
+        premiumRenderAllowance: null,
+        campaignAllowance: null,
+        entitlementEffectiveFrom: null,
+        billingPeriodEnd: null,
+        commercialExceptionCode: null,
+        createdAt: row.updatedAt,
+        updatedAt: row.updatedAt,
+      }
+    },
     async findBySlug(slug) {
       const row = await prisma.merchant.findUnique({ where: { slug } })
       return row ? mapMerchant(row) : null

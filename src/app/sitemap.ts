@@ -8,7 +8,7 @@ import { FACE_SHAPE_COMPARISON_SLUGS } from '@/config/face-shape-comparisons'
 import { CURATED_BRAND_SLUGS, isCuratedBrandSlug } from '@/config/brand-try-on-content'
 import { COMBINATION_SEARCH_PAGES } from '@/config/search-combination-pages'
 import { getVisualSeoAssetsForPage } from '@/config/visual-seo-assets'
-import { buildPublicExperienceSitemapEntries } from '@/lib/store-discovery-sitemap'
+import { getCachedPublicExperienceSitemapEntries } from '@/lib/store-discovery-sitemap'
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = (process.env.NEXT_PUBLIC_SITE_URL || 'https://www.visutry.com').replace(/\/+$/, '')
@@ -263,52 +263,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   let publicExperiencePages: MetadataRoute.Sitemap = []
   try {
-    const merchants = await prisma.merchant.findMany({
-      where: { status: 'ACTIVE' },
-      select: {
-        slug: true,
-        name: true,
-        websiteUrl: true,
-        pilotType: true,
-        referenceData: true,
-        sponsoredUsagePolicyKey: true,
-        updatedAt: true,
-        experiences: {
-          where: { type: { in: ['STORE', 'CAMPAIGN'] } },
-          orderBy: [{ type: 'asc' }, { updatedAt: 'desc' }],
-          select: {
-            type: true,
-            slug: true,
-            name: true,
-            status: true,
-            headline: true,
-            description: true,
-            referenceData: true,
-            updatedAt: true,
-            frames: {
-              where: {
-                active: true,
-                merchantFrame: { status: 'ACTIVE' },
-              },
-              select: {
-                merchantFrame: { select: { productUrl: true, updatedAt: true } },
-              },
-            },
-          },
-        },
-      },
-    })
-
-    publicExperiencePages = buildPublicExperienceSitemapEntries({
-      baseUrl,
-      merchants: merchants.map((merchant) => ({
-        ...merchant,
-        experiences: merchant.experiences.map((experience) => ({
-          ...experience,
-          frames: experience.frames.map((frame) => frame.merchantFrame),
-        })),
-      })),
-    })
+    publicExperiencePages = await getCachedPublicExperienceSitemapEntries(baseUrl)
   } catch (error) {
     console.log('Unable to fetch public Store/Campaign pages, skipping discovery sitemap entries')
   }

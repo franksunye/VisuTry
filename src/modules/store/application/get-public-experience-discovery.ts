@@ -67,11 +67,10 @@ async function resolvePublicExperience(
     return experiences.findActiveCampaignByMerchantAndSlug(merchantId, experienceSlug)
   }
 
-  const activeStore = await experiences.findDefaultStore(merchantId)
+  const activeStore = experiences.findPublicStoreByMerchant
+    ? await experiences.findPublicStoreByMerchant(merchantId)
+    : await experiences.findDefaultStore(merchantId)
   if (activeStore) return activeStore
-  if (experiences.findPublicStoreByMerchant) {
-    return experiences.findPublicStoreByMerchant(merchantId)
-  }
   return null
 }
 
@@ -103,7 +102,9 @@ export async function getPublicExperienceDiscovery(input: {
   slug: string
   experienceSlug?: string | null
 }): Promise<PublicExperienceDiscovery | null> {
-  const merchant = await input.merchants.findBySlug(input.slug)
+  const merchant = input.merchants.findPublicBySlug
+    ? await input.merchants.findPublicBySlug(input.slug)
+    : await input.merchants.findBySlug(input.slug)
   if (!merchant || merchant.status !== 'ACTIVE') return null
 
   const experience = await resolvePublicExperience(
@@ -113,7 +114,9 @@ export async function getPublicExperienceDiscovery(input: {
   )
   if (!experience || experience.merchantId !== merchant.id) return null
 
-  const frames = input.frames.findActiveByMerchantAndExperience
+  const frames = input.frames.findPublicActiveByMerchantAndExperience
+    ? await input.frames.findPublicActiveByMerchantAndExperience(merchant.id, experience)
+    : input.frames.findActiveByMerchantAndExperience
     ? await input.frames.findActiveByMerchantAndExperience(merchant.id, experience)
     : await input.frames.findActiveByMerchant(merchant.id)
   const visibility = resolveExperienceSearchVisibility({ merchant, experience, frames })
