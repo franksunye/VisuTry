@@ -29,6 +29,9 @@ function mapExperience(row: ExperienceWithFrames): ExperienceRecord {
     offerTerms: row.offerTerms,
     startAt: row.startAt,
     endAt: row.endAt,
+    campaignObjective: row.campaignObjective,
+    campaignGate: row.campaignGate,
+    presentationMode: row.presentationMode,
     referenceData: row.referenceData,
     defaultSource: row.defaultSource,
     defaultCampaign: row.defaultCampaign,
@@ -58,6 +61,9 @@ const publicExperienceSelect = {
   description: true,
   heroAssetUrl: true,
   referenceData: true,
+  campaignObjective: true,
+  campaignGate: true,
+  presentationMode: true,
   updatedAt: true,
   frames: {
     where: { active: true },
@@ -77,6 +83,9 @@ type PublicExperienceRow = {
   description: string | null
   heroAssetUrl: string | null
   referenceData: boolean
+  campaignObjective: Experience['campaignObjective']
+  campaignGate: Experience['campaignGate']
+  presentationMode: Experience['presentationMode']
   updatedAt: Date
   frames: Array<{ merchantFrameId: string }>
 }
@@ -103,6 +112,9 @@ function mapPublicExperience(row: PublicExperienceRow): ExperienceRecord {
     offerTerms: null,
     startAt: null,
     endAt: null,
+    campaignObjective: row.campaignObjective,
+    campaignGate: row.campaignGate,
+    presentationMode: row.presentationMode,
     referenceData: row.referenceData,
     defaultSource: null,
     defaultCampaign: null,

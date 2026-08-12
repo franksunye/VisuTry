@@ -19,6 +19,7 @@ export type PresentationModeInput = {
   experienceType: ExperienceType
   acquisitionSurface?: string | null
   explicitPresentationMode?: PresentationMode | null
+  persistedPresentationMode?: PresentationMode | null
 }
 
 function isContextualPresentationSurface(value: string | null | undefined): value is ContextualPresentationSurface {
@@ -33,8 +34,10 @@ export function resolvePresentationMode({
   experienceType,
   acquisitionSurface,
   explicitPresentationMode,
+  persistedPresentationMode,
 }: PresentationModeInput): PresentationMode {
   if (explicitPresentationMode) return explicitPresentationMode
+  if (persistedPresentationMode) return persistedPresentationMode
   if (isContextualPresentationSurface(acquisitionSurface)) return 'ACTION_FIRST'
   return experienceType === 'CAMPAIGN' ? 'EDITORIAL_FIRST' : 'PRODUCT_FIRST'
 }

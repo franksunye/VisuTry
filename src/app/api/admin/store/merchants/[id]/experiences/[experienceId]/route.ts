@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { requireAdmin } from '@/lib/api-auth'
 import { prisma } from '@/lib/prisma'
-import { storeErrorResponse } from '@/modules/store/application'
+import { storeErrorResponse, updateCampaign } from '@/modules/store/application'
 import { revalidatePublicDiscoveryByRoute } from '@/lib/store-discovery-cache'
+import type { CampaignGate, CampaignObjective } from '@/modules/store/domain/campaign-policy'
+import type { PresentationMode } from '@/modules/store/domain/presentation-mode'
 
 export const dynamic = 'force-dynamic'
 
@@ -78,9 +80,32 @@ export async function PUT(
     const body = await request.json() as Record<string, unknown>
     const existing = await prisma.experience.findFirst({
       where: { id: params.experienceId, merchantId: params.id },
-      select: { id: true, slug: true, merchant: { select: { slug: true } } },
+      select: { id: true, slug: true, type: true, merchant: { select: { slug: true } } },
     })
     if (!existing) return NextResponse.json({ success: false, error: 'Experience not found' }, { status: 404 })
+
+    if (existing.type === 'CAMPAIGN' && !('status' in body)) {
+      const updated = await updateCampaign({
+        merchantId: params.id,
+        campaignId: params.experienceId,
+        ...(typeof body.name === 'string' ? { name: body.name } : {}),
+        ...(body.headline === null || typeof body.headline === 'string' ? { headline: body.headline as string | null } : {}),
+        ...(body.description === null || typeof body.description === 'string' ? { description: body.description as string | null } : {}),
+        ...(typeof body.campaignObjective === 'string' ? { objective: body.campaignObjective as CampaignObjective } : {}),
+        ...(typeof body.campaignGate === 'string' ? { gate: body.campaignGate as CampaignGate } : {}),
+        ...(typeof body.presentationMode === 'string' ? { presentationMode: body.presentationMode as PresentationMode } : {}),
+        ...(body.startAt === null || typeof body.startAt === 'string' ? { startAt: body.startAt as string | null } : {}),
+        ...(body.endAt === null || typeof body.endAt === 'string' ? { endAt: body.endAt as string | null } : {}),
+        ...(body.primaryCtaType === null || typeof body.primaryCtaType === 'string' ? { primaryCtaType: body.primaryCtaType as string | null } : {}),
+        ...(body.primaryCtaLabel === null || typeof body.primaryCtaLabel === 'string' ? { primaryCtaLabel: body.primaryCtaLabel as string | null } : {}),
+        ...(body.primaryCtaUrl === null || typeof body.primaryCtaUrl === 'string' ? { primaryCtaUrl: body.primaryCtaUrl as string | null } : {}),
+        ...(body.secondaryCtaType === null || typeof body.secondaryCtaType === 'string' ? { secondaryCtaType: body.secondaryCtaType as string | null } : {}),
+        ...(body.secondaryCtaLabel === null || typeof body.secondaryCtaLabel === 'string' ? { secondaryCtaLabel: body.secondaryCtaLabel as string | null } : {}),
+        ...(body.secondaryCtaUrl === null || typeof body.secondaryCtaUrl === 'string' ? { secondaryCtaUrl: body.secondaryCtaUrl as string | null } : {}),
+      })
+      if (existing.merchant?.slug) revalidatePublicDiscoveryByRoute({ merchantSlug: existing.merchant.slug, experienceSlug: existing.slug })
+      return NextResponse.json({ success: true, data: updated })
+    }
 
     const data: Record<string, unknown> = {}
     for (const field of ['name', 'headline', 'description', 'primaryCtaLabel', 'primaryCtaUrl', 'offerLabel', 'offerCode']) {

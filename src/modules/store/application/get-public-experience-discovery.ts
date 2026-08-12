@@ -47,6 +47,7 @@ export type PublicExperienceDiscovery = {
     headline: string | null
     description: string | null
     heroAssetUrl: string | null
+    presentationMode?: import('../domain/presentation-mode').PresentationMode | null
     referenceData: boolean
     updatedAt: Date
   }
@@ -149,6 +150,7 @@ export async function getPublicExperienceDiscovery(input: {
       headline: experience.headline,
       description: experience.description,
       heroAssetUrl: experience.heroAssetUrl,
+      presentationMode: experience.presentationMode ?? null,
       referenceData: experience.referenceData,
       updatedAt: experience.updatedAt,
     },

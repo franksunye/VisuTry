@@ -18,6 +18,8 @@ import type {
   StoreUsageKind,
 } from '../../domain/enums'
 import type { ExperienceStatus, ExperienceType } from '../../domain/experience'
+import type { CampaignGate, CampaignObjective } from '../../domain/campaign-policy'
+import type { PresentationMode } from '../../domain/presentation-mode'
 
 export type MerchantRecord = {
   id: string
@@ -104,6 +106,9 @@ export type ExperienceRecord = {
   offerTerms: string | null
   startAt: Date | null
   endAt: Date | null
+  campaignObjective?: CampaignObjective | null
+  campaignGate?: CampaignGate | null
+  presentationMode?: PresentationMode | null
   referenceData: boolean
   defaultSource: string | null
   defaultCampaign: string | null

@@ -8,6 +8,7 @@ import type { ExperienceRepository, ExperienceRecord } from './ports/repositorie
 import { resolveMerchantExperience } from './resolve-experience'
 import { resolveStoreExperiencePolicy, type StoreExperiencePolicy } from '../domain/experience-policy'
 import { productBrandForFrame } from './product-labels'
+import type { PresentationMode } from '../domain/presentation-mode'
 
 export type PublicMerchantFramePreview = {
   id: string
@@ -39,6 +40,7 @@ export type PublicMerchantProfile = {
     headline: string | null
     description: string | null
     heroAssetUrl: string | null
+    presentationMode: PresentationMode | null
     primaryCta: { type: string; label: string; url: string | null } | null
     secondaryCta: { type: string; label: string; url: string | null } | null
     offer: { label: string; code: string | null; terms: string | null } | null
@@ -107,6 +109,7 @@ export function toPublicMerchantProfile(
           headline: experience.headline,
           description: experience.description,
           heroAssetUrl: experience.heroAssetUrl,
+          presentationMode: experience.presentationMode ?? null,
           primaryCta: experience.primaryCtaType && experience.primaryCtaLabel
             ? { type: experience.primaryCtaType, label: experience.primaryCtaLabel, url: experience.primaryCtaUrl }
             : null,

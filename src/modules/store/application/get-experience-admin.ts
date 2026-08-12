@@ -1,4 +1,6 @@
 import { prisma } from '@/lib/prisma'
+import { resolveCampaignConversionPolicy } from '../domain/campaign-policy'
+import { resolvePresentationMode } from '../domain/presentation-mode'
 
 export const EXPERIENCE_ADMIN_FILTERS = ['ALL', 'STORE', 'CAMPAIGN'] as const
 export type ExperienceAdminFilter = (typeof EXPERIENCE_ADMIN_FILTERS)[number]
@@ -20,6 +22,9 @@ export type ExperienceAdminSummary = {
   slug: string | null
   name: string
   status: string
+  objective: string | null
+  gate: string | null
+  presentationMode: string | null
   startAt: string | null
   endAt: string | null
   catalogFrameCount: number
@@ -97,6 +102,9 @@ export async function getExperienceAdminWorkspace(input: {
         slug: true,
         name: true,
         status: true,
+        campaignObjective: true,
+        campaignGate: true,
+        presentationMode: true,
         startAt: true,
         endAt: true,
         referenceData: true,
@@ -146,20 +154,26 @@ export async function getExperienceAdminWorkspace(input: {
     if (row.type === 'INQUIRY') target.inquiries = row._count._all
   }
 
-  const summaries = experiences.map((experience) => ({
+  const summaries = experiences.map((experience) => {
+    const policy = resolveCampaignConversionPolicy(experience)
+    return {
     id: experience.id,
     merchantId: experience.merchantId,
     type: experience.type,
     slug: experience.slug,
     name: experience.name,
     status: experience.status,
+    objective: policy?.objective ?? null,
+    gate: policy?.gate ?? null,
+    presentationMode: resolvePresentationMode({ experienceType: experience.type, persistedPresentationMode: experience.presentationMode }),
     startAt: experience.startAt?.toISOString() ?? null,
     endAt: experience.endAt?.toISOString() ?? null,
     catalogFrameCount: experience.frames.length,
     referenceData: merchant.referenceData || experience.referenceData,
     metrics: metrics.get(experience.id) ?? { ...EMPTY_METRICS },
     publicPath: publicPath(merchant.slug, experience.type, experience.slug),
-  }))
+    }
+  })
 
   const legacy: ExperienceAdminSummary = {
     id: 'legacy-unassigned',
@@ -168,6 +182,9 @@ export async function getExperienceAdminWorkspace(input: {
     slug: null,
     name: 'Historical traffic',
     status: 'HISTORICAL',
+    objective: null,
+    gate: null,
+    presentationMode: null,
     startAt: null,
     endAt: null,
     catalogFrameCount: 0,

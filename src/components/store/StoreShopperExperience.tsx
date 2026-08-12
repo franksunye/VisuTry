@@ -19,6 +19,7 @@ import { ExperiencePresentationShell, type ExperiencePresentationCopy } from '@/
 import { analyzeFaceLandmarkFile } from '@/lib/face-landmark-client'
 import { maxSelectableStoreFrames, type StoreExperiencePolicy } from '@/modules/store/domain/experience-policy'
 import { resolvePresentationMode } from '@/modules/store/domain/presentation-mode'
+import type { PresentationMode } from '@/modules/store/domain/presentation-mode'
 
 type MerchantProfile = {
   id: string
@@ -37,6 +38,7 @@ type MerchantProfile = {
     headline: string | null
     description: string | null
     heroAssetUrl: string | null
+    presentationMode: PresentationMode | null
     referenceData: boolean
   } | null
   experiencePolicy: StoreExperiencePolicy
@@ -501,6 +503,7 @@ export function StoreShopperExperience({
   const presentationAcquisition = captureStoreAcquisition()
   const presentationMode = resolvePresentationMode({
     experienceType: merchant.experience?.type || 'STORE',
+    persistedPresentationMode: merchant.experience?.presentationMode,
     acquisitionSurface:
       presentationAcquisition.source === 'visutry' && presentationAcquisition.medium === 'internal'
         ? presentationAcquisition.surface

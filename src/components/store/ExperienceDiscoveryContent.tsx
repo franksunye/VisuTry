@@ -1,6 +1,8 @@
 import Image from 'next/image'
 import { ExternalLink, Glasses, Store } from 'lucide-react'
 import type { PublicExperienceDiscovery } from '@/modules/store/application/get-public-experience-discovery'
+import { resolvePresentationMode } from '@/modules/store/domain/presentation-mode'
+import type { PresentationMode } from '@/modules/store/domain/presentation-mode'
 import {
   buildExperienceDiscoveryJsonLd,
   serializeJsonLd,
@@ -41,7 +43,7 @@ function ExperienceHeroVisual({
 }: {
   merchantName: string
   heroImage: string | null | undefined
-  mode: 'EDITORIAL_FIRST' | 'PRODUCT_FIRST'
+  mode: PresentationMode
 }) {
   const heroBackground = mode === 'EDITORIAL_FIRST'
     ? 'bg-[linear-gradient(145deg,#f6eadf,#f7f1e8)]'
@@ -82,7 +84,10 @@ export function ExperienceDiscoveryContent({
   const description = experience.description?.trim()
   const heroImage = experience.heroAssetUrl || frames.find((frame) => frame.imageUrl)?.imageUrl
   const isCampaign = experience.type === 'CAMPAIGN'
-  const presentationMode = isCampaign ? 'EDITORIAL_FIRST' : 'PRODUCT_FIRST'
+  const presentationMode = resolvePresentationMode({
+    experienceType: experience.type,
+    persistedPresentationMode: experience.presentationMode,
+  })
   const jsonLd = buildExperienceDiscoveryJsonLd({ discovery, pathname })
 
   return (
