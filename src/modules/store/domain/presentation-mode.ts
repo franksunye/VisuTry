@@ -36,8 +36,8 @@ export function resolvePresentationMode({
   explicitPresentationMode,
   persistedPresentationMode,
 }: PresentationModeInput): PresentationMode {
-  if (persistedPresentationMode) return persistedPresentationMode
   if (explicitPresentationMode) return explicitPresentationMode
+  if (persistedPresentationMode) return persistedPresentationMode
   if (isContextualPresentationSurface(acquisitionSurface)) return 'ACTION_FIRST'
   return experienceType === 'CAMPAIGN' ? 'EDITORIAL_FIRST' : 'PRODUCT_FIRST'
 }

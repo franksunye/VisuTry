@@ -18,7 +18,36 @@ describe('resolvePresentationMode', () => {
     expect(resolvePresentationMode({ experienceType: 'CAMPAIGN', acquisitionSurface: 'other' })).toBe('EDITORIAL_FIRST')
   })
 
-  it('honors an explicit mode only when a caller has a trusted value', () => {
-    expect(resolvePresentationMode({ experienceType: 'STORE', explicitPresentationMode: 'ACTION_FIRST' })).toBe('ACTION_FIRST')
+  it('lets an explicit ACTION_FIRST override persisted and contextual modes', () => {
+    expect(resolvePresentationMode({
+      experienceType: 'CAMPAIGN',
+      explicitPresentationMode: 'ACTION_FIRST',
+      persistedPresentationMode: 'EDITORIAL_FIRST',
+      acquisitionSurface: 'face-analysis',
+    })).toBe('ACTION_FIRST')
+  })
+
+  it('lets an explicit PRODUCT_FIRST override persisted and contextual modes', () => {
+    expect(resolvePresentationMode({
+      experienceType: 'CAMPAIGN',
+      explicitPresentationMode: 'PRODUCT_FIRST',
+      persistedPresentationMode: 'EDITORIAL_FIRST',
+      acquisitionSurface: 'face-analysis',
+    })).toBe('PRODUCT_FIRST')
+  })
+
+  it('lets persisted presentation override contextual ACTION_FIRST', () => {
+    expect(resolvePresentationMode({
+      experienceType: 'CAMPAIGN',
+      persistedPresentationMode: 'EDITORIAL_FIRST',
+      acquisitionSurface: 'face-analysis',
+    })).toBe('EDITORIAL_FIRST')
+  })
+
+  it('uses contextual ACTION_FIRST only without explicit or persisted modes', () => {
+    expect(resolvePresentationMode({
+      experienceType: 'CAMPAIGN',
+      acquisitionSurface: 'face-analysis',
+    })).toBe('ACTION_FIRST')
   })
 })
