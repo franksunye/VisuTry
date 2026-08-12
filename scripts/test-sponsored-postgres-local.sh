@@ -36,7 +36,6 @@ echo "→ init temporary PostgreSQL cluster: $PG_ROOT"
 export DATABASE_URL
 export DATABASE_URL_UNPOOLED="$DATABASE_URL"
 export DIRECT_URL="$DATABASE_URL"
-export PRISMA_LOCAL_PG=true
 export MERCHANT_SPONSORED_USAGE_ENABLED=true
 export NODE_ENV=test
 

@@ -16,6 +16,56 @@ permissions:
   contents: read
 
 jobs:
+  sponsored-postgres-contract:
+    name: Sponsored PostgreSQL Contract
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: ci
+          POSTGRES_PASSWORD: ci
+          POSTGRES_DB: visutry_sponsored_ci
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U ci -d visutry_sponsored_ci"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+    env:
+      CI: true
+      NODE_ENV: test
+      NEXT_TELEMETRY_DISABLED: 1
+      SKIP_ENV_VALIDATION: 1
+      DATABASE_URL: postgresql://ci:ci@127.0.0.1:5432/visutry_sponsored_ci
+      DATABASE_URL_UNPOOLED: postgresql://ci:ci@127.0.0.1:5432/visutry_sponsored_ci
+      DIRECT_URL: postgresql://ci:ci@127.0.0.1:5432/visutry_sponsored_ci
+      MERCHANT_SPONSORED_USAGE_ENABLED: true
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate Prisma Client
+        run: npx prisma generate
+
+      - name: Bootstrap disposable PostgreSQL schema
+        run: npx prisma db push
+
+      - name: Run Sponsored PostgreSQL smoke
+        run: npx tsx scripts/sponsored-postgres-smoke.ts
+
   static-and-unit:
     name: Static + Critical Business Regression
     runs-on: ubuntu-latest

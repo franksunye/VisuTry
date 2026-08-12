@@ -1,11 +1,10 @@
 import assert from 'node:assert/strict'
-import { prisma } from '@/lib/prisma'
 import { createPrismaMerchantSponsoredUsageRepository } from '@/modules/store/infrastructure/prisma/merchant-sponsored-usage-repository'
-import { checkUserQuota } from '@/lib/quota'
+import { localPostgresPrisma } from './lib/local-postgres-prisma'
 
 async function main(): Promise<void> {
   const suffix = `${Date.now()}-${process.pid}`
-  const merchant = await prisma.merchant.create({
+  const merchant = await localPostgresPrisma.merchant.create({
     data: {
       slug: `local-sponsored-${suffix}`,
       name: 'Local Sponsored Validation',
@@ -15,7 +14,7 @@ async function main(): Promise<void> {
     },
     select: { id: true, slug: true },
   })
-  const user = await prisma.user.create({
+  const user = await localPostgresPrisma.user.create({
     data: {
       email: `local-sponsored-${suffix}@example.test`,
       freeTrialsUsed: 3,
@@ -23,7 +22,15 @@ async function main(): Promise<void> {
       creditsUsed: 0,
     },
   })
-  const repository = createPrismaMerchantSponsoredUsageRepository()
+  const concurrentUser = await localPostgresPrisma.user.create({
+    data: {
+      email: `local-sponsored-concurrent-${suffix}@example.test`,
+      freeTrialsUsed: 3,
+      creditsPurchased: 1,
+      creditsUsed: 0,
+    },
+  })
+  const repository = createPrismaMerchantSponsoredUsageRepository(localPostgresPrisma)
   const now = new Date()
 
   try {
@@ -49,7 +56,7 @@ async function main(): Promise<void> {
       now: new Date(now.getTime() + 1_000),
     })
     assert.equal(exhausted, null, 'same shopper should be exhausted in rolling window')
-    assert.equal(checkUserQuota(user).allowed, true, 'consumer credit should remain available')
+    assert.equal(user.creditsPurchased - user.creditsUsed, 1, 'consumer credit should remain available')
 
     const signedInFallback = await repository.reserve({
       merchantId: merchant.id,
@@ -117,7 +124,24 @@ async function main(): Promise<void> {
       'advisory lock should allow exactly one concurrent reservation',
     )
 
-    const rows = await prisma.merchantSponsoredUsage.findMany({
+    const sameUserConcurrent = await Promise.all(
+      Array.from({ length: 8 }, (_, index) => repository.reserve({
+        merchantId: merchant.id,
+        userId: concurrentUser.id,
+        shopperIdentityHash: `local-user-identity-${index}`,
+        usageType: 'SPONSORED_GENERATION',
+        limit: 1,
+        rollingWindowHours: 24,
+        idempotencyKey: `same-user-concurrent-${suffix}-${index}`,
+      })),
+    )
+    assert.equal(
+      sameUserConcurrent.filter(Boolean).length,
+      1,
+      'user-scoped sponsored usage should allow exactly one concurrent reservation across identities',
+    )
+
+    const rows = await localPostgresPrisma.merchantSponsoredUsage.findMany({
       where: { merchantId: merchant.id },
       select: { status: true, userId: true, usageType: true },
     })
@@ -135,10 +159,11 @@ async function main(): Promise<void> {
       consumerCreditsMutated: false,
     }, null, 2))
   } finally {
-    await prisma.merchantSponsoredUsage.deleteMany({ where: { merchantId: merchant.id } })
-    await prisma.user.delete({ where: { id: user.id } })
-    await prisma.merchant.delete({ where: { id: merchant.id } })
-    await prisma.$disconnect()
+    await localPostgresPrisma.merchantSponsoredUsage.deleteMany({ where: { merchantId: merchant.id } })
+    await localPostgresPrisma.user.delete({ where: { id: concurrentUser.id } })
+    await localPostgresPrisma.user.delete({ where: { id: user.id } })
+    await localPostgresPrisma.merchant.delete({ where: { id: merchant.id } })
+    await localPostgresPrisma.$disconnect()
   }
 }
 

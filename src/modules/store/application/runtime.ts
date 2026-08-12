@@ -10,6 +10,7 @@ import {
   createVercelBlobAssetStore,
   createStoreGenerationAdapter,
 } from '../infrastructure'
+import { prisma } from '@/lib/prisma'
 
 /** Composition root for Store API routes — wires Prisma/Blob adapters. */
 export function createStoreRuntime() {
@@ -21,7 +22,7 @@ export function createStoreRuntime() {
     events: createPrismaMerchantEventRepository(),
     intents: createPrismaMerchantIntentRepository(),
     usage: createPrismaStoreUsageRepository(),
-    sponsoredUsage: createPrismaMerchantSponsoredUsageRepository(),
+    sponsoredUsage: createPrismaMerchantSponsoredUsageRepository(prisma),
     assets: createVercelBlobAssetStore(),
     generation: createStoreGenerationAdapter(),
   }

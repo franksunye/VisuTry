@@ -1,5 +1,4 @@
-import { Prisma } from '@prisma/client'
-import { prisma } from '@/lib/prisma'
+import { Prisma, PrismaClient } from '@prisma/client'
 import type {
   MerchantSponsoredUsageRepository,
   SponsoredUsageReservation,
@@ -19,17 +18,22 @@ function mapReservation(row: {
  * Reserve one rolling-window allowance under a transaction-scoped advisory
  * lock. A fixed calendar bucket would not satisfy the rolling 24h contract.
  */
-export function createPrismaMerchantSponsoredUsageRepository(): MerchantSponsoredUsageRepository {
+export function createPrismaMerchantSponsoredUsageRepository(
+  client: PrismaClient,
+): MerchantSponsoredUsageRepository {
   return {
     async reserve(input) {
       if (input.limit <= 0) return null
       const now = input.now ?? new Date()
       const cutoff = new Date(now.getTime() - input.rollingWindowHours * 60 * 60 * 1000)
-      const lockKey = `${input.merchantId}:${input.shopperIdentityHash}:${input.usageType}`
+      // Signed-in usage is user-scoped even when the visitor identity changes.
+      // Anonymous usage remains identity-scoped because there is no stable userId.
+      const scopeKey = input.userId ?? input.shopperIdentityHash
+      const lockKey = `${input.merchantId}:${scopeKey}:${input.usageType}`
 
       for (let attempt = 1; attempt <= 3; attempt += 1) {
         try {
-          return await prisma.$transaction(
+          return await client.$transaction(
             async (tx) => {
               const existing = await tx.merchantSponsoredUsage.findUnique({
                 where: { idempotencyKey: input.idempotencyKey },
@@ -77,7 +81,7 @@ export function createPrismaMerchantSponsoredUsageRepository(): MerchantSponsore
         } catch (error) {
           const code = (error as { code?: string }).code
           if (code === 'P2002') {
-            const existing = await prisma.merchantSponsoredUsage.findUnique({
+            const existing = await client.merchantSponsoredUsage.findUnique({
               where: { idempotencyKey: input.idempotencyKey },
               select: { id: true, status: true },
             })
@@ -90,7 +94,7 @@ export function createPrismaMerchantSponsoredUsageRepository(): MerchantSponsore
     },
 
     async consume(reservationId) {
-      const result = await prisma.merchantSponsoredUsage.updateMany({
+      const result = await client.merchantSponsoredUsage.updateMany({
         where: { id: reservationId, status: 'RESERVED' },
         data: { status: 'CONSUMED', consumedAt: new Date() },
       })
@@ -98,7 +102,7 @@ export function createPrismaMerchantSponsoredUsageRepository(): MerchantSponsore
     },
 
     async release(reservationId) {
-      const result = await prisma.merchantSponsoredUsage.updateMany({
+      const result = await client.merchantSponsoredUsage.updateMany({
         where: { id: reservationId, status: 'RESERVED' },
         data: { status: 'RELEASED', releasedAt: new Date() },
       })

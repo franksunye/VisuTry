@@ -1,6 +1,5 @@
 import { PrismaClient } from '@prisma/client'
 import { PrismaNeon } from '@prisma/adapter-neon'
-import { PrismaPg } from '@prisma/adapter-pg'
 
 const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined
@@ -10,9 +9,7 @@ const globalForPrisma = globalThis as unknown as {
 // Prisma 6.x 新 API：直接传递 connectionString 对象
 // 这样可以获得更低的延迟和更好的 serverless 性能
 const connectionString = process.env.DATABASE_URL!
-const adapter = process.env.PRISMA_LOCAL_PG === 'true'
-  ? new PrismaPg({ connectionString })
-  : new PrismaNeon({ connectionString })
+const adapter = new PrismaNeon({ connectionString })
 
 // 🔍 性能监控：记录 Prisma 查询日志
 const logLevels = process.env.NODE_ENV === 'development'

@@ -31,7 +31,7 @@ describe('Merchant sponsored usage repository', () => {
   })
 
   it('reserves one generation in a rolling window under a serializable transaction lock', async () => {
-    const repository = createPrismaMerchantSponsoredUsageRepository()
+    const repository = createPrismaMerchantSponsoredUsageRepository(prisma)
     const now = new Date('2026-08-12T10:00:00.000Z')
 
     await expect(repository.reserve({
@@ -74,7 +74,7 @@ describe('Merchant sponsored usage repository', () => {
 
   it('blocks the second active generation for the same merchant and shopper', async () => {
     tx.merchantSponsoredUsage.count.mockResolvedValue(1)
-    const repository = createPrismaMerchantSponsoredUsageRepository()
+    const repository = createPrismaMerchantSponsoredUsageRepository(prisma)
 
     await expect(repository.reserve({
       merchantId: 'merchant-a',
@@ -88,7 +88,7 @@ describe('Merchant sponsored usage repository', () => {
   })
 
   it('keeps merchant and identity scopes independent while matching a logged-in shopper identity', async () => {
-    const repository = createPrismaMerchantSponsoredUsageRepository()
+    const repository = createPrismaMerchantSponsoredUsageRepository(prisma)
 
     await repository.reserve({
       merchantId: 'merchant-b',
@@ -113,7 +113,7 @@ describe('Merchant sponsored usage repository', () => {
 
   it('is idempotent and only transitions reservations from RESERVED', async () => {
     tx.merchantSponsoredUsage.findUnique.mockResolvedValue({ id: 'existing', status: 'CONSUMED' })
-    const repository = createPrismaMerchantSponsoredUsageRepository()
+    const repository = createPrismaMerchantSponsoredUsageRepository(prisma)
 
     await expect(repository.reserve({
       merchantId: 'merchant-a',
@@ -146,7 +146,7 @@ describe('Merchant sponsored usage repository', () => {
       id: 'raced-reservation',
       status: 'RESERVED',
     })
-    const repository = createPrismaMerchantSponsoredUsageRepository()
+    const repository = createPrismaMerchantSponsoredUsageRepository(prisma)
 
     await expect(repository.reserve({
       merchantId: 'merchant-a',
