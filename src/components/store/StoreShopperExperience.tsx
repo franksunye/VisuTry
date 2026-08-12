@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react'
 import Image from 'next/image'
+import Link from 'next/link'
 import { useTranslations } from 'next-intl'
 import {
   ArrowRight,
@@ -207,6 +208,7 @@ export function StoreShopperExperience({
   const [selectionSaving, setSelectionSaving] = useState(false)
   const [selectionSaved, setSelectionSaved] = useState(false)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
+  const [storeContinuationQuery, setStoreContinuationQuery] = useState('')
 
   const accent = merchant?.accentColor || '#1F4B5A'
 
@@ -243,6 +245,19 @@ export function StoreShopperExperience({
       cancelled = true
     }
   }, [merchantSlug, experienceSlug, t])
+
+  useEffect(() => {
+    if (!experienceSlug || typeof window === 'undefined') return
+
+    const current = new URLSearchParams(window.location.search)
+    const preserved = new URLSearchParams()
+    for (const key of ['source', 'medium', 'campaign', 'surface', 'utm_source', 'utm_medium', 'utm_campaign']) {
+      const value = current.get(key)
+      if (value) preserved.set(key, value)
+    }
+    const query = preserved.toString()
+    setStoreContinuationQuery(query ? `?${query}` : '')
+  }, [experienceSlug])
 
   const ensureSession = useCallback(async (): Promise<SessionState | null> => {
     if (session) return session
@@ -464,6 +479,7 @@ export function StoreShopperExperience({
   const selectedFrames = recommendations.filter((frame) => selectedIds.includes(frame.id))
   const isCampaign = merchant.experience?.type === 'CAMPAIGN'
   const heroDescription = merchant.experience?.description?.trim() || t('catalogHint', { count: merchant.activeFrameCount })
+  const continuationText = (key: string, fallback: string) => t.has(key) ? t(key) : fallback
 
   return (
     <div className="relative min-h-screen overflow-hidden bg-[#f7f8fb] text-slate-950">
@@ -725,6 +741,25 @@ export function StoreShopperExperience({
                 </aside>
               ) : null}
             </div>
+
+            {isCampaign ? (
+              <section className="mt-8 rounded-[2rem] border border-slate-200/80 bg-white p-5 shadow-sm sm:p-7">
+                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-blue-600">{continuationText('continuation.eyebrow', 'More from this merchant')}</p>
+                <div className="mt-3 flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
+                  <div>
+                    <h2 className="font-serif text-2xl font-semibold text-slate-950 sm:text-3xl">{continuationText('continuation.title', 'Explore the full Store')}</h2>
+                    <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-500">{continuationText('continuation.body', 'This Campaign is a focused edit from the same merchant catalog. Continue to the broader Store when you want to see more frames.')}</p>
+                  </div>
+                  <Link
+                    href={`/${locale}/store/${merchantSlug}${storeContinuationQuery}`}
+                    className="inline-flex shrink-0 items-center justify-center gap-2 rounded-2xl border border-slate-300 px-4 py-3 text-sm font-semibold text-slate-800 transition hover:border-blue-300 hover:text-blue-700"
+                  >
+                    {continuationText('continuation.cta', 'Visit the full Store')}
+                    <ArrowRight className="h-4 w-4" aria-hidden="true" />
+                  </Link>
+                </div>
+              </section>
+            ) : null}
 
             <footer className="mt-8 flex flex-wrap items-center justify-between gap-3 border-t border-slate-200 px-2 pt-6 text-xs text-slate-400">
               <p className="flex items-center gap-2"><LockKeyhole className="h-3.5 w-3.5" />{t('noCreditsNote')}</p>

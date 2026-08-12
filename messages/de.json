@@ -18,6 +18,9 @@
     "discover": "Entdecken",
     "toggleMenu": "Navigationsmenü umschalten",
     "compare": "Fassungsvergleich",
+    "forBusiness": "Für Unternehmen",
+    "shopperJourney": "Shopper-Journey",
+    "businessJourney": "Für Marken & Händler",
     "faq": "FAQ"
   },
   "home": {
@@ -59,6 +62,10 @@
   "footer": {
     "links": {
       "product": "Produkt",
+      "explore": "Entdecken",
+      "tryAndCompare": "Anprobieren & Vergleichen",
+      "forBusiness": "Für Unternehmen",
+      "business": "Business-Übersicht",
       "resources": "Ressourcen",
       "legal": "Rechtliches",
       "tryOutfit": "Kleidung Anprobieren",
@@ -195,6 +202,18 @@
       "recommendedWorkflow": "Empfohlener Ablauf",
       "workflowPath": "Erkennen → Beraten → Anprobieren → Vergleichen",
       "bestPlaceToStart": "Bester Einstieg",
+      "journey": {
+        "understand": "Passform verstehen",
+        "explore": "Brillen entdecken",
+        "try": "Fassung anprobieren",
+        "compare": "Optionen vergleichen"
+      },
+      "discover": {
+        "eyebrow": "Weiter entdecken",
+        "title": "Fokussierte Brillen-Erlebnisse für die nächste Entscheidung",
+        "description": "Von einer offenen Frage zu einer kuratierten Auswahl für Passform, Stil, Aktivität oder Anlass.",
+        "cta": "Discover öffnen"
+      },
       "tools": {
         "faceTitle": "Gesichtsform-Detektor",
         "faceDescription": "Kostenlos und ohne Anmeldung; das Foto bleibt im Browser.",
@@ -236,8 +255,8 @@
       "business": {
         "eyebrow": "Für Optiker und Brillenhändler",
         "title": "Verwandeln Sie menschlichen und KI-gestützten Traffic in sichere Brillenentscheidungen.",
-        "description": "VisuTry Store verbindet Händlerkataloge mit Fassungsentdeckung, virtueller Anprobe, Vergleich, Kaufsignalen und messbarer Conversion in einer gehosteten KI-Commerce-Erfahrung.",
-        "cta": "VisuTry Store entdecken"
+        "description": "VisuTry verbindet Händlerkataloge mit geführter Brillensuche, Store- und Campaign-Erlebnissen, Shopper-Signalen und Händler-Intelligence.",
+        "cta": "Für Marken & Händler"
       },
       "faq": {
         "q1Question": "How does VisuTry's AI try-on work? (DE)",
@@ -761,6 +780,12 @@
     "brandedBy": "Powered for {merchant}",
     "headline": "Find frames that suit you — then try them on.",
     "catalogHint": "{count} frames ready for personalized recommendations",
+    "continuation": {
+      "eyebrow": "Mehr von diesem Händler",
+      "title": "Den vollständigen Store entdecken",
+      "body": "Diese Kampagne ist eine fokussierte Auswahl aus demselben Händlerkatalog. Im vollständigen Store findest du weitere Fassungen.",
+      "cta": "Vollständigen Store besuchen"
+    },
     "privacy": {
       "title": "Privacy & photo retention",
       "body": "Your photo is used only to recommend and virtually try on this store’s frames. The merchant does not receive your raw face photo by default.",

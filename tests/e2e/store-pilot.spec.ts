@@ -29,6 +29,24 @@ test.describe('@critical Store Pilot Flow', () => {
     await expect(page.locator('body')).not.toContainText(/application error|internal server error/i);
   });
 
+  test('campaign offers the same merchant Store without replacing first-touch attribution', async ({ page }) => {
+    const response = await page.goto('/en/c/ello-sunglasses/petite-fit?source=visutry&medium=internal&surface=discover&campaign=discover-featured', { waitUntil: 'networkidle' });
+
+    expect(response).not.toBeNull();
+    expect(response!.status()).toBeLessThan(400);
+    await page.getByRole('button', { name: /I understand.*continue/i }).click();
+    const storeLink = page.getByRole('link', { name: 'Visit the full Store' });
+    await expect(storeLink).toBeVisible();
+    const href = await storeLink.getAttribute('href');
+    expect(href).not.toBeNull();
+    const storeUrl = new URL(href!, 'http://localhost');
+    expect(storeUrl.pathname).toBe('/en/store/ello-sunglasses');
+    expect(storeUrl.searchParams.get('source')).toBe('visutry');
+    expect(storeUrl.searchParams.get('medium')).toBe('internal');
+    expect(storeUrl.searchParams.get('surface')).toBe('discover');
+    expect(storeUrl.searchParams.get('campaign')).toBe('discover-featured');
+  });
+
   test('applies the merchant compare policy to the shortlist without generating AI output', async ({ page }) => {
     const preview = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=';
     const frames = [1, 2, 3].map((index) => ({

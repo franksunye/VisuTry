@@ -19,6 +19,8 @@ const LUNA_SLUG = 'luna-optical'
 
 type SeedFrame = {
   sku: string
+  /** The seed catalog represents Luna Optical's own sample collection. */
+  brand: string
   name: string
   imageUrl: string
   productUrl: string
@@ -34,6 +36,7 @@ type SeedFrame = {
 const FRAMES: SeedFrame[] = [
   {
     sku: 'LUNA-RECT-01',
+    brand: 'Luna Optical',
     name: 'Harbor Rectangle',
     imageUrl: '/assets/glasses-presets/rectangle-classic.jpg',
     productUrl: 'https://example.com/luna/harbor-rectangle',
@@ -47,6 +50,7 @@ const FRAMES: SeedFrame[] = [
   },
   {
     sku: 'LUNA-RECT-02',
+    brand: 'Luna Optical',
     name: 'Crystal Bay Soft Square',
     imageUrl: '/assets/glasses-presets/style-explorer/optical-clear-soft-square.jpg',
     productUrl: 'https://example.com/luna/crystal-bay-soft-square',
@@ -60,6 +64,7 @@ const FRAMES: SeedFrame[] = [
   },
   {
     sku: 'LUNA-ROUND-01',
+    brand: 'Luna Optical',
     name: 'Orbit Round',
     imageUrl: '/assets/glasses-presets/round-classic.jpg',
     productUrl: 'https://example.com/luna/orbit-round',
@@ -73,6 +78,7 @@ const FRAMES: SeedFrame[] = [
   },
   {
     sku: 'LUNA-ROUND-02',
+    brand: 'Luna Optical',
     name: 'Solstice Gold Oval',
     imageUrl: '/assets/glasses-presets/style-explorer/optical-thin-gold-oval.jpg',
     productUrl: 'https://example.com/luna/solstice-gold-oval',
@@ -86,6 +92,7 @@ const FRAMES: SeedFrame[] = [
   },
   {
     sku: 'LUNA-CAT-01',
+    brand: 'Luna Optical',
     name: 'Luna Cat-Eye',
     imageUrl: '/assets/glasses-presets/cat-eye-classic.jpg',
     productUrl: 'https://example.com/luna/cat-eye',
@@ -99,6 +106,7 @@ const FRAMES: SeedFrame[] = [
   },
   {
     sku: 'LUNA-CAT-02',
+    brand: 'Luna Optical',
     name: 'Merlot Statement Square',
     imageUrl: '/assets/glasses-presets/style-explorer/optical-statement-color.jpg',
     productUrl: 'https://example.com/luna/merlot-statement-square',
@@ -112,6 +120,7 @@ const FRAMES: SeedFrame[] = [
   },
   {
     sku: 'LUNA-AVI-01',
+    brand: 'Luna Optical',
     name: 'Northline Aviator',
     imageUrl: '/assets/glasses-presets/aviator-classic.jpg',
     productUrl: 'https://example.com/luna/northline-aviator',
@@ -125,6 +134,7 @@ const FRAMES: SeedFrame[] = [
   },
   {
     sku: 'LUNA-AVI-02',
+    brand: 'Luna Optical',
     name: 'Facet Geometric',
     imageUrl: '/assets/glasses-presets/geometric-classic.jpg',
     productUrl: 'https://example.com/luna/facet-geometric',
@@ -138,6 +148,7 @@ const FRAMES: SeedFrame[] = [
   },
   {
     sku: 'LUNA-BROW-01',
+    brand: 'Luna Optical',
     name: 'Ridge Browline',
     imageUrl: '/assets/glasses-presets/style-explorer/optical-slim-browline.jpg',
     productUrl: 'https://example.com/luna/ridge-browline',
@@ -151,6 +162,7 @@ const FRAMES: SeedFrame[] = [
   },
   {
     sku: 'LUNA-BROW-02',
+    brand: 'Luna Optical',
     name: 'Prism Rimless Geometric',
     imageUrl: '/assets/glasses-presets/style-explorer/optical-rimless-geometric.jpg',
     productUrl: 'https://example.com/luna/prism-rimless',
@@ -164,6 +176,7 @@ const FRAMES: SeedFrame[] = [
   },
   {
     sku: 'LUNA-GEO-01',
+    brand: 'Luna Optical',
     name: 'Cove Keyhole Tortoise',
     imageUrl: '/assets/glasses-presets/style-explorer/optical-warm-tortoise.jpg',
     productUrl: 'https://example.com/luna/cove-keyhole-tortoise',
@@ -177,6 +190,7 @@ const FRAMES: SeedFrame[] = [
   },
   {
     sku: 'LUNA-GEO-02',
+    brand: 'Luna Optical',
     name: 'Noir Slim Oval',
     imageUrl: '/assets/glasses-presets/style-explorer/optical-slim-black-oval.jpg',
     productUrl: 'https://example.com/luna/noir-slim-oval',
@@ -190,6 +204,7 @@ const FRAMES: SeedFrame[] = [
   },
   {
     sku: 'LUNA-OVAL-01',
+    brand: 'Luna Optical',
     name: 'Crystal Facet',
     imageUrl: '/assets/glasses-presets/style-explorer/optical-transparent-geometric.jpg',
     productUrl: 'https://example.com/luna/crystal-facet',
@@ -203,6 +218,7 @@ const FRAMES: SeedFrame[] = [
   },
   {
     sku: 'LUNA-SQ-01',
+    brand: 'Luna Optical',
     name: 'Clearline Rimless',
     imageUrl: '/assets/glasses-presets/rimless-light.jpg',
     productUrl: 'https://example.com/luna/clearline-rimless',
@@ -216,6 +232,7 @@ const FRAMES: SeedFrame[] = [
   },
   {
     sku: 'LUNA-SQ-02',
+    brand: 'Luna Optical',
     name: 'Block Square',
     imageUrl: '/assets/glasses-presets/square-classic.jpg',
     productUrl: 'https://example.com/luna/block-square',
@@ -229,6 +246,7 @@ const FRAMES: SeedFrame[] = [
   },
   {
     sku: 'LUNA-ROUND-03',
+    brand: 'Luna Optical',
     name: 'Metro Wayfarer',
     imageUrl: '/assets/glasses-presets/wayfarer-classic.jpg',
     productUrl: 'https://example.com/luna/metro-wayfarer',
@@ -310,6 +328,7 @@ async function main() {
         merchantId: merchant.id,
         sku: frame.sku,
         name: frame.name,
+        brand: frame.brand,
         imageUrl: frame.imageUrl,
         productUrl: frame.productUrl,
         price: frame.price,
@@ -326,6 +345,7 @@ async function main() {
       },
       update: {
         name: frame.name,
+        brand: frame.brand,
         imageUrl: frame.imageUrl,
         productUrl: frame.productUrl,
         price: frame.price,

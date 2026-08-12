@@ -18,6 +18,9 @@
     "discover": "探索",
     "toggleMenu": "ナビゲーションメニューを切り替え",
     "compare": "フレーム比較",
+    "forBusiness": "ビジネス向け",
+    "shopperJourney": "ショッピングの流れ",
+    "businessJourney": "ブランド・小売店向け",
     "faq": "よくある質問"
   },
   "home": {
@@ -59,6 +62,10 @@
   "footer": {
     "links": {
       "product": "製品",
+      "explore": "探す",
+      "tryAndCompare": "試して比較",
+      "forBusiness": "ビジネス向け",
+      "business": "ビジネス概要",
       "resources": "リソース",
       "legal": "法的情報",
       "tryOutfit": "服を試す",
@@ -195,6 +202,18 @@
       "recommendedWorkflow": "おすすめの流れ",
       "workflowPath": "診断 → アドバイス → 試着 → 比較",
       "bestPlaceToStart": "まずはここから",
+      "journey": {
+        "understand": "似合う形を知る",
+        "explore": "メガネを探す",
+        "try": "フレームを試す",
+        "compare": "候補を比較する"
+      },
+      "discover": {
+        "eyebrow": "さらに探す",
+        "title": "次の決定につながるアイウェア体験",
+        "description": "顔立ち、スタイル、アクティビティ、シーンに合わせた編集へ進みます。",
+        "cta": "Discover を開く"
+      },
       "tools": {
         "faceTitle": "顔型診断",
         "faceDescription": "無料・アカウント不要で、写真はブラウザ内で処理されます。",
@@ -236,8 +255,8 @@
       "business": {
         "eyebrow": "眼鏡店・アイウェア販売事業者向け",
         "title": "人とAIアシスタントからの流入を、納得できる眼鏡選びへつなげます。",
-        "description": "VisuTry Storeは、商品カタログ、フレーム発見、バーチャル試着、比較、購入意向シグナル、計測可能なコンバージョンを、ホスト型AIコマース体験として提供します。",
-        "cta": "VisuTry Storeを見る"
+        "description": "VisuTryは、販売店のカタログを、フレーム探索、Store・Campaign体験、ショッパー意向、販売店インテリジェンスにつなぎます。",
+        "cta": "ブランド・小売店向け"
       },
       "faq": {
         "q1Question": "VisuTryのAI試着はどう動作しますか？",
@@ -761,6 +780,12 @@
     "brandedBy": "Powered for {merchant}",
     "headline": "Find frames that suit you — then try them on.",
     "catalogHint": "{count} frames ready for personalized recommendations",
+    "continuation": {
+      "eyebrow": "この販売店の商品をもっと見る",
+      "title": "Store 全体を見る",
+      "body": "この Campaign は同じ販売店のカタログから選んだ編集です。より多くの商品を見るには Store 全体へ進んでください。",
+      "cta": "Store 全体を見る"
+    },
     "privacy": {
       "title": "Privacy & photo retention",
       "body": "Your photo is used only to recommend and virtually try on this store’s frames. The merchant does not receive your raw face photo by default.",

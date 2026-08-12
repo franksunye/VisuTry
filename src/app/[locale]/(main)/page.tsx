@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { Database, ScanFace, ArrowRight, Grid2X2, Glasses, LockKeyhole, Sparkles, Store } from 'lucide-react'
+import { Compass, Database, ScanFace, ArrowRight, Grid2X2, Glasses, LockKeyhole, Sparkles, Store } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import { FaceAnalysisPreviewVisual } from '@/components/face-analysis/FaceAnalysisPreviewVisual'
 import { ModelTryOnSlides } from '@/components/marketing/ModelTryOnSlides'
@@ -13,6 +13,7 @@ export default function Home({
 }) {
   const locale = params.locale
   const t = useTranslations('marketing.home')
+  const homeCopy = (key: string, fallback: string) => t.has(key) ? t(key) : fallback
 
   const faqItems = [
     { question: t('faq.q1Question'), answer: t('faq.q1Answer') },
@@ -23,10 +24,10 @@ export default function Home({
   ]
 
   const toolPath = [
-    { step: '01', href: `/${locale}/face-shape-detector`, icon: ScanFace, label: t('tools.faceTitle'), isStart: true },
-    { step: '02', href: `/${locale}/face-analysis`, icon: Sparkles, label: t('tools.advisorTitle') },
-    { step: '03', href: `/${locale}/try-on/glasses`, icon: Glasses, label: t('tools.glassesTitle') },
-    { step: '04', href: `/${locale}/try-on/glasses/compare`, icon: Grid2X2, label: t('tools.compareTitle') },
+    { step: '01', href: `/${locale}/face-shape-detector`, icon: ScanFace, label: homeCopy('journey.understand', 'Understand your fit'), isStart: true },
+    { step: '02', href: `/${locale}/face-analysis`, icon: Sparkles, label: homeCopy('journey.explore', 'Explore eyewear') },
+    { step: '03', href: `/${locale}/try-on/glasses`, icon: Glasses, label: homeCopy('journey.try', 'Try a frame') },
+    { step: '04', href: `/${locale}/try-on/glasses/compare`, icon: Grid2X2, label: homeCopy('journey.compare', 'Compare options') },
   ]
 
   const faqSchema = {
@@ -180,6 +181,27 @@ export default function Home({
         </div>
       </section>
 
+      {/* Owned discovery continuation */}
+      <section className="mx-auto mb-16 max-w-6xl">
+        <div className="grid gap-5 rounded-2xl border border-slate-200 bg-slate-950 p-6 text-white shadow-sm md:grid-cols-[auto_1fr_auto] md:items-center md:p-8">
+          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/10 text-sky-300">
+            <Compass className="h-6 w-6" aria-hidden="true" />
+          </div>
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-sky-300">{homeCopy('discover.eyebrow', 'Continue exploring')}</p>
+            <h2 className="mt-2 text-2xl font-bold">{homeCopy('discover.title', 'Focused eyewear Experiences for the next decision')}</h2>
+            <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-300">{homeCopy('discover.description', 'Move from a broad question into a curated fit, style, activity, or occasion edit.')}</p>
+          </div>
+          <Link
+            href={`/${locale}/discover`}
+            className="inline-flex items-center justify-center gap-2 rounded-xl bg-white px-5 py-3 text-sm font-bold text-slate-950 transition hover:bg-sky-50"
+          >
+            {homeCopy('discover.cta', 'Open Discover')}
+            <ArrowRight className="h-4 w-4" />
+          </Link>
+        </div>
+      </section>
+
       {/* Quiet B2B bridge */}
       <section className="max-w-6xl mx-auto mb-16">
         <div className="flex flex-col gap-5 rounded-lg border border-blue-100 bg-white p-5 shadow-sm md:flex-row md:items-center md:justify-between md:p-6">
@@ -196,7 +218,7 @@ export default function Home({
             </div>
           </div>
           <Link
-            href={`/${locale}/store`}
+            href={`/${locale}/business`}
             className="inline-flex flex-shrink-0 items-center justify-center rounded-lg border border-blue-200 bg-blue-50 px-5 py-3 text-sm font-bold text-blue-700 transition hover:border-blue-300 hover:bg-blue-100"
           >
             {t('business.cta')}

@@ -18,6 +18,9 @@
     "discover": "Découvrir",
     "toggleMenu": "Basculer le menu de navigation",
     "compare": "Comparer les montures",
+    "forBusiness": "Pour les entreprises",
+    "shopperJourney": "Parcours shopper",
+    "businessJourney": "Pour les marques et détaillants",
     "faq": "FAQ"
   },
   "home": {
@@ -59,6 +62,10 @@
   "footer": {
     "links": {
       "product": "Produit",
+      "explore": "Explorer",
+      "tryAndCompare": "Essayer et comparer",
+      "forBusiness": "Pour les entreprises",
+      "business": "Présentation business",
       "resources": "Ressources",
       "legal": "Légal",
       "tryOutfit": "Essayer des Vêtements",
@@ -195,6 +202,18 @@
       "recommendedWorkflow": "Parcours recommandé",
       "workflowPath": "Détecter → Conseiller → Essayer → Comparer",
       "bestPlaceToStart": "Meilleur point de départ",
+      "journey": {
+        "understand": "Comprendre sa forme",
+        "explore": "Explorer les lunettes",
+        "try": "Essayer une monture",
+        "compare": "Comparer les options"
+      },
+      "discover": {
+        "eyebrow": "Continuer l’exploration",
+        "title": "Des expériences ciblées pour la prochaine décision",
+        "description": "Passez d’une question générale à une sélection dédiée à la forme, au style, à l’activité ou à l’occasion.",
+        "cta": "Ouvrir Discover"
+      },
       "tools": {
         "faceTitle": "Détecteur de forme",
         "faceDescription": "Gratuit et sans compte ; la photo reste dans votre navigateur.",
@@ -236,8 +255,8 @@
       "business": {
         "eyebrow": "Pour les opticiens et vendeurs de lunettes",
         "title": "Transformez le trafic humain et issu des assistants IA en décisions lunettes plus sûres.",
-        "description": "VisuTry Store relie le catalogue du marchand à la découverte de montures, l’essayage virtuel, la comparaison, les signaux d’intention et une conversion mesurable dans une expérience de commerce IA hébergée.",
-        "cta": "Découvrir VisuTry Store"
+        "description": "VisuTry relie les catalogues marchands à la découverte guidée, aux expériences Store et Campaign, aux signaux shopper et à l’intelligence marchande.",
+        "cta": "Pour les marques et détaillants"
       },
       "faq": {
         "q1Question": "Comment fonctionne l'essayage IA de VisuTry ?",
@@ -761,6 +780,12 @@
     "brandedBy": "Powered for {merchant}",
     "headline": "Find frames that suit you — then try them on.",
     "catalogHint": "{count} frames ready for personalized recommendations",
+    "continuation": {
+      "eyebrow": "Plus de cette enseigne",
+      "title": "Explorer le Store complet",
+      "body": "Cette campagne est une sélection ciblée du même catalogue. Ouvrez le Store complet pour découvrir davantage de montures.",
+      "cta": "Visiter le Store complet"
+    },
     "privacy": {
       "title": "Privacy & photo retention",
       "body": "Your photo is used only to recommend and virtually try on this store’s frames. The merchant does not receive your raw face photo by default.",

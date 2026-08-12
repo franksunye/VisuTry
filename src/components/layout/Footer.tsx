@@ -10,11 +10,12 @@ export function Footer() {
   const locale = params.locale as string
   const currentYear = new Date().getFullYear()
   const t = useTranslations('footer')
+  const translateFooter = (key: string, fallback: string) => t.has(key) ? t(key) : fallback
 
   return (
     <footer className="bg-white/80 backdrop-blur-sm border-t border-gray-200 mt-auto">
       <div className="container mx-auto px-4 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-8 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-7 gap-8 mb-8">
           {/* Brand Section */}
           <div className="col-span-1 md:col-span-2">
             <div className="flex items-center mb-4">
@@ -53,9 +54,9 @@ export function Footer() {
             </div>
           </div>
 
-          {/* Product Links */}
+          {/* Explore Links */}
           <div>
-            <h3 className="font-semibold text-gray-900 mb-4">{t('links.product')}</h3>
+            <h3 className="font-semibold text-gray-900 mb-4">{translateFooter('links.explore', 'Explore')}</h3>
             <ul className="flex flex-col gap-y-2">
               <li>
                 <Link href={`/${locale}/face-shape-detector`} className="text-gray-600 hover:text-blue-600 text-sm transition-colors">
@@ -68,6 +69,23 @@ export function Footer() {
                 </Link>
               </li>
               <li>
+                <Link href={`/${locale}/style-explorer`} className="text-gray-600 hover:text-blue-600 text-sm transition-colors">
+                  {t('links.styleExplorer')}
+                </Link>
+              </li>
+              <li>
+                <Link href={`/${locale}/discover`} className="text-gray-600 hover:text-blue-600 text-sm transition-colors">
+                  {t('links.discover')}
+                </Link>
+              </li>
+            </ul>
+          </div>
+
+          {/* Try and Compare Links */}
+          <div>
+            <h3 className="font-semibold text-gray-900 mb-4">{translateFooter('links.tryAndCompare', 'Try & Compare')}</h3>
+            <ul className="flex flex-col gap-y-2">
+              <li>
                 <Link href={`/${locale}/try-on/glasses`} className="text-gray-600 hover:text-blue-600 text-sm transition-colors">
                   {t('links.tryGlasses')}
                 </Link>
@@ -78,18 +96,25 @@ export function Footer() {
                 </Link>
               </li>
               <li>
-                <Link href={`/${locale}/style-explorer`} className="text-gray-600 hover:text-blue-600 text-sm transition-colors">
-                  {t('links.styleExplorer')}
-                </Link>
-              </li>
-              <li>
-                <Link href={`/${locale}/discover`} className="text-gray-600 hover:text-blue-600 text-sm transition-colors">
-                  {t('links.discover')}
-                </Link>
-              </li>
-              <li>
                 <Link href={`/${locale}/pricing`} className="text-gray-600 hover:text-blue-600 text-sm transition-colors">
                   {t('links.pricing')}
+                </Link>
+              </li>
+            </ul>
+          </div>
+
+          {/* Business Links */}
+          <div>
+            <h3 className="font-semibold text-gray-900 mb-4">{translateFooter('links.forBusiness', 'For Business')}</h3>
+            <ul className="flex flex-col gap-y-2">
+              <li>
+                <Link href={`/${locale}/business`} className="text-gray-600 hover:text-blue-600 text-sm transition-colors">
+                  {translateFooter('links.business', 'Business overview')}
+                </Link>
+              </li>
+              <li>
+                <Link href={`/${locale}/store`} className="text-gray-600 hover:text-blue-600 text-sm transition-colors">
+                  {t('links.storeForBusinesses')}
                 </Link>
               </li>
             </ul>
@@ -112,11 +137,6 @@ export function Footer() {
               <li>
                 <Link href={`/${locale}/glasses-for-face-shape`} className="text-gray-600 hover:text-blue-600 text-sm transition-colors">
                   {t('links.faceShapeGuide')}
-                </Link>
-              </li>
-              <li>
-                <Link href={`/${locale}/store`} className="text-gray-600 hover:text-blue-600 text-sm transition-colors">
-                  {t('links.storeForBusinesses')}
                 </Link>
               </li>
               <li>
