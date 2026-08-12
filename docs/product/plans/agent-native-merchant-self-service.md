@@ -783,3 +783,15 @@ The merchant does not have to become proficient in another SaaS product before r
 The strategic principle is:
 
 > **Do not make the VisuTry Admin the implementation bottleneck. Expose safe, opinionated merchant capabilities to the AI agents merchants already use, while keeping VisuTry as the authoritative commerce control plane.**
+
+## Phase A implementation state
+
+Phase A establishes the security boundary required before MCP work:
+
+- `MerchantAgentCredential` is merchant-scoped, stores only a lookup prefix and SHA-256 secret hash of a 32-byte cryptographically random secret, supports `ACTIVE` / `REVOKED`, one-time create/rotate reveal, five active credentials per merchant, and immediate rotation/revocation.
+- Supported scopes are `merchant:read`, `merchant:write`, `catalog:read`, `catalog:write`, `experience:read`, `experience:write`, and `analytics:read`.
+- OWNER and ADMIN MerchantMembership users manage credentials; global `User.role=ADMIN` does not bypass membership.
+- `MerchantActorContext`, `authenticateMerchantAgentCredential`, and `requireAgentScope` provide the shared human/agent/system application boundary. The representative `/api/agent/v1/merchant` read endpoint derives `merchantId` only from the credential.
+- `MerchantOperationAudit` records credential lifecycle and future agent writes without raw keys or request payloads. `lastUsedAt` is throttled to a 15-minute update interval.
+
+Phase B still requires the MCP protocol server, onboarding and campaign Skills, production rate limiting, and the remaining catalog/Experience outcome services. No MCP, Skill, onboarding UI, billing, consumer, or Sponsored Usage changes are included in Phase A.
