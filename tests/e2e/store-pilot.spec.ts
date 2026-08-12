@@ -18,6 +18,8 @@ test.describe('@critical Store Pilot Flow', () => {
     expect(response!.status()).toBeLessThan(400);
     await expect(page).toHaveURL(/\/en\/store\/ello-sunglasses$/);
     await expect(page.locator('body')).not.toContainText(/page not found|application error|internal server error/i);
+    await expect(page.locator('[data-presentation-mode="PRODUCT_FIRST"]')).toBeVisible();
+    await expect(page.getByText('Reference catalog')).toBeVisible();
   });
 
   test('campaign experience route reuses the Store shell', async ({ page }) => {
@@ -27,6 +29,25 @@ test.describe('@critical Store Pilot Flow', () => {
     expect(response!.status()).toBeLessThan(400);
     await expect(page).toHaveURL(/\/en\/c\/ello-sunglasses\/petite-fit$/);
     await expect(page.locator('body')).not.toContainText(/application error|internal server error/i);
+    await expect(page.locator('[data-presentation-mode="EDITORIAL_FIRST"]')).toBeVisible();
+    await expect(page.locator('[data-presentation-cta="shopping-interest"]').first()).toBeVisible();
+  });
+
+  test('known contextual handoffs use action-first without changing the route contract', async ({ page }) => {
+    const response = await page.goto('/en/c/ello-sunglasses/petite-fit?source=visutry&medium=internal&surface=face-analysis&campaign=face-analysis-fit', { waitUntil: 'networkidle' });
+
+    expect(response).not.toBeNull();
+    expect(response!.status()).toBeLessThan(400);
+    await expect(page.locator('[data-presentation-mode="ACTION_FIRST"]')).toBeVisible();
+    await expect(page.getByText('Reference catalog')).toBeVisible();
+    await expect(page.getByRole('button', { name: /start with my photo/i })).toHaveCount(1);
+  });
+
+  test('presentation modes remain usable at mobile width', async ({ page }) => {
+    await page.setViewportSize({ width: 430, height: 932 });
+    await page.goto('/en/store/ello-sunglasses', { waitUntil: 'networkidle' });
+    await expect(page.locator('[data-presentation-mode="PRODUCT_FIRST"]')).toBeVisible();
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
   });
 
   test('campaign offers the same merchant Store without replacing first-touch attribution', async ({ page }) => {

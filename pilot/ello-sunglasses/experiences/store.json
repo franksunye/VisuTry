@@ -5,6 +5,7 @@
   "status": "ACTIVE",
   "headline": "Discover frames for smaller faces",
   "description": "A curated frame collection for exploring petite proportions.",
+  "heroAsset": "/experience-heroes/neutral-eyewear.jpg",
   "catalogSelection": "ALL_ACTIVE",
   "primaryCta": {
     "type": "PRODUCT_OR_COLLECTION",

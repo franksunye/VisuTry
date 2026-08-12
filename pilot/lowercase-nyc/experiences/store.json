@@ -5,6 +5,7 @@
   "status": "ACTIVE",
   "headline": "Explore independent eyewear shaped in Brooklyn",
   "description": "A curated collection of optical and sunglasses frames with a distinct New York point of view.",
+  "heroAsset": "/experience-heroes/urban-eyewear.jpg",
   "catalogSelection": "ALL_ACTIVE",
   "primaryCta": {
     "type": "PRODUCT_OR_COLLECTION",

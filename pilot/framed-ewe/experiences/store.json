@@ -5,6 +5,7 @@
   "status": "ACTIVE",
   "headline": "Explore independent eyewear across Framed EWE’s curated catalog",
   "description": "A multi-brand selection from Framed EWE’s curated catalog, bringing distinct independent eyewear labels into one place.",
+  "heroAsset": "/experience-heroes/urban-eyewear.jpg",
   "catalogSelection": "ALL_ACTIVE",
   "primaryCta": {
     "type": "PRODUCT_OR_COLLECTION",

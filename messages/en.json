@@ -793,7 +793,20 @@
       "storeHero": "One photo. Your best frames.",
       "heroBody": "Shortlist a few looks, see them on your photo, and compare before you decide.",
       "referenceCatalog": "Reference catalog",
-      "liveCatalog": "Live catalog"
+      "liveCatalog": "Live catalog",
+      "featuredEyebrow": "Featured from the collection",
+      "featuredTitle": "Start with a few strong directions",
+      "featuredDescription": "A compact starting point from this experience's catalog, ready to explore before you enter the private session.",
+      "storeCta": "Explore the collection",
+      "campaignCta": "Explore the edit",
+      "actionCta": "Start with my photo",
+      "ctaSupport": "Your photo stays within this shopping session",
+      "privacyPublicNoticeLabel": "Early-access storage notice",
+      "privacyHint": "Review privacy details before continuing.",
+      "poweredBy": "Powered by VisuTry",
+      "uploadTitle": "Upload your photo",
+      "recommendTitle": "Get recommendations",
+      "tryOnTitle": "Try on your shortlist"
     },
     "privacy": {
       "title": "Privacy & photo retention",
