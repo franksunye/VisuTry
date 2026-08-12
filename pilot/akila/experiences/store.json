@@ -5,6 +5,7 @@
   "status": "ACTIVE",
   "headline": "Explore AKILA's current eyewear collection",
   "description": "A curated AKILA collection with varied shapes, materials, and color stories.",
+  "heroAsset": "/experience-heroes/statement-eyewear.jpg",
   "catalogSelection": "ALL_ACTIVE",
   "primaryCta": {
     "type": "PRODUCT_OR_COLLECTION",

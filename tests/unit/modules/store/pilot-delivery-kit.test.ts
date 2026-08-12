@@ -1,3 +1,6 @@
+import { existsSync } from 'node:fs'
+import { resolve } from 'node:path'
+
 import {
   assertPilotCatalogSourceOwnership,
   buildPilotPreflightReport,
@@ -134,6 +137,24 @@ describe('Pilot Delivery Kit catalog contract', () => {
         expect(experience.description ?? '').not.toMatch(
           /reference|simulation|operator|source facts?|fit guarantee|technical details/i,
         )
+      }
+    }
+  })
+
+  it('keeps every reference Store/Campaign hero mapped to a checked-in asset', async () => {
+    const referencePackages = [
+      'pilot/ello-sunglasses',
+      'pilot/akila',
+      'pilot/article-one',
+      'pilot/framed-ewe',
+      'pilot/lowercase-nyc',
+    ]
+
+    for (const packageDir of referencePackages) {
+      const pkg = await readPilotPackage(packageDir)
+      for (const experience of pkg.experiences) {
+        expect(experience.heroAsset).toMatch(/^\/experience-heroes\/[a-z0-9-]+\.jpg$/)
+        expect(existsSync(resolve(process.cwd(), 'public', experience.heroAsset!.slice(1)))).toBe(true)
       }
     }
   })

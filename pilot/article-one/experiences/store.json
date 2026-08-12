@@ -5,6 +5,7 @@
   "status": "ACTIVE",
   "headline": "Explore Article One eyewear built for movement",
   "description": "A curated Article One collection with distinct shapes, materials, and everyday character.",
+  "heroAsset": "/experience-heroes/urban-eyewear.jpg",
   "catalogSelection": "ALL_ACTIVE",
   "primaryCta": {
     "type": "PRODUCT_OR_COLLECTION",
