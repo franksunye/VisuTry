@@ -34,6 +34,22 @@ test.describe('@critical Store Pilot Flow', () => {
     await expect(page.locator('header').getByText('Powered by')).toBeVisible();
     await expect(page.locator('div.absolute.inset-x-6.bottom-6').getByText('Petite Fit Reference Experience', { exact: true })).toBeVisible();
     await expect(page.locator('img[alt="ello sunglasses eyewear collection"]').first()).toBeVisible();
+
+    const productHref = await page.getByRole('link', { name: 'View product' }).first().getAttribute('href');
+    expect(productHref).not.toBeNull();
+    const productUrl = new URL(productHref!, 'http://localhost');
+    expect(productUrl.searchParams.get('source')).toBe('visutry');
+    expect(productUrl.searchParams.get('utm_source')).toBe('visutry.com');
+    expect(productUrl.searchParams.get('utm_medium')).toBe('referral');
+    expect(productUrl.searchParams.get('utm_campaign')).toBe('campaign-petite-fit');
+    expect(productUrl.searchParams.get('utm_content')).toBe('product');
+
+    const merchantHref = await page.getByRole('link', { name: /Visit ello sunglasses/i }).getAttribute('href');
+    expect(merchantHref).not.toBeNull();
+    const merchantUrl = new URL(merchantHref!, 'http://localhost');
+    expect(merchantUrl.searchParams.get('surface')).toBe('campaign');
+    expect(merchantUrl.searchParams.get('utm_campaign')).toBe('campaign-petite-fit');
+    expect(merchantUrl.searchParams.get('utm_content')).toBe('merchant');
   });
 
   test('known contextual handoffs use action-first without changing the route contract', async ({ page }) => {
@@ -58,6 +74,8 @@ test.describe('@critical Store Pilot Flow', () => {
 
     expect(response).not.toBeNull();
     expect(response!.status()).toBeLessThan(400);
+    await page.getByRole('button', { name: 'Start interactive shopping', exact: true }).click();
+    await expect(page.getByRole('button', { name: /I understand.*continue/i })).toBeVisible();
     await page.getByRole('button', { name: /I understand.*continue/i }).click();
     const storeLink = page.getByRole('link', { name: 'Visit the full Store' });
     await expect(storeLink).toBeVisible();

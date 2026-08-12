@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { useTranslations } from 'next-intl'
 import { Heart, Loader2, RefreshCw, Sparkles } from 'lucide-react'
 import { FRAME_DISPATCH_STAGGER_MS, sleep } from '@/lib/try-on/batch-types'
+import { buildStoreOutboundUrl } from '@/lib/store-outbound-links'
 import type { StoreExperiencePolicy } from '@/modules/store/domain/experience-policy'
 
 type FrameMeta = {
@@ -28,6 +29,8 @@ type TryOnTile = {
 
 type StoreTryOnComparePanelProps = {
   merchantSlug: string
+  experienceType: 'STORE' | 'CAMPAIGN'
+  experienceSlug?: string
   locale: string
   merchantSessionId: string
   selectedFrames: FrameMeta[]
@@ -57,6 +60,8 @@ function formatPrice(price: number | null, currency: string | null): string | nu
 
 export function StoreTryOnComparePanel({
   merchantSlug,
+  experienceType,
+  experienceSlug,
   locale,
   merchantSessionId,
   selectedFrames,
@@ -446,7 +451,11 @@ export function StoreTryOnComparePanel({
                               merchantFrameId: tile.merchantFrameId,
                               productUrl: tile.frame.productUrl,
                             })
-                            window.open(tile.frame.productUrl!, '_blank', 'noopener,noreferrer')
+                            window.open(
+                              buildStoreOutboundUrl(tile.frame.productUrl!, { experienceType, experienceSlug, linkType: 'product' }),
+                              '_blank',
+                              'noopener,noreferrer',
+                            )
                           } catch (error) {
                             onError(error instanceof Error ? error.message : t('errors.intent'))
                           }
@@ -634,7 +643,11 @@ export function StoreTryOnComparePanel({
                           onClick={async () => {
                             try {
                               await postIntent({ type: 'PRODUCT_CLICK', merchantFrameId: tile.merchantFrameId, productUrl: tile.frame.productUrl })
-                              window.open(tile.frame.productUrl!, '_blank', 'noopener,noreferrer')
+                              window.open(
+                                buildStoreOutboundUrl(tile.frame.productUrl!, { experienceType, experienceSlug, linkType: 'product' }),
+                                '_blank',
+                                'noopener,noreferrer',
+                              )
                             } catch (error) {
                               onError(error instanceof Error ? error.message : t('errors.intent'))
                             }

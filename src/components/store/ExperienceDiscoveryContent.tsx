@@ -5,6 +5,7 @@ import {
   buildExperienceDiscoveryJsonLd,
   serializeJsonLd,
 } from '@/lib/store-discovery-seo'
+import { buildStoreOutboundUrl, type StoreOutboundLinkType } from '@/lib/store-outbound-links'
 
 function formatPrice(price: number | null, currency: string | null): string | null {
   if (price === null || price === undefined) return null
@@ -20,9 +21,14 @@ function factLabel(value: string | null): string | null {
   return value?.trim() || null
 }
 
-function externalLinkProps(url: string) {
+function externalLinkProps(
+  url: string,
+  experienceType: 'STORE' | 'CAMPAIGN',
+  experienceSlug: string,
+  linkType: StoreOutboundLinkType,
+) {
   return {
-    href: url,
+    href: buildStoreOutboundUrl(url, { experienceType, experienceSlug, linkType }),
     target: '_blank' as const,
     rel: 'noopener noreferrer',
   }
@@ -43,10 +49,13 @@ function ExperienceHeroVisual({
     ? experience.name
     : `Shop the ${merchantName} eyewear collection`
   const heroDescription = experience.description?.trim() || `Selected eyewear from ${merchantName}.`
+  const heroBackground = mode === 'EDITORIAL_FIRST'
+    ? 'bg-[linear-gradient(145deg,#f6eadf,#f7f1e8)]'
+    : 'bg-[linear-gradient(145deg,#edf3fb,#faf7f2)]'
 
   return (
     <div
-      className={`relative overflow-hidden rounded-[1.75rem] bg-[linear-gradient(145deg,#f6eadf,#f7f1e8)] ${mode === 'EDITORIAL_FIRST' ? 'aspect-[16/9]' : 'aspect-[16/10]'}`}
+      className={`relative overflow-hidden rounded-[1.75rem] ${heroBackground} ${mode === 'EDITORIAL_FIRST' ? 'aspect-[16/9]' : 'aspect-[16/10]'}`}
     >
       {heroImage ? (
         <Image
@@ -218,7 +227,7 @@ export function ExperienceDiscoveryContent({
                         {price ? <p className="mt-4 text-sm font-semibold text-slate-950">{price}</p> : null}
                         {frame.productUrl ? (
                           <a
-                            {...externalLinkProps(frame.productUrl)}
+                            {...externalLinkProps(frame.productUrl, experience.type, experience.slug, 'product')}
                             className="mt-5 inline-flex items-center gap-2 text-sm font-semibold text-blue-700 hover:text-blue-900"
                           >
                             View product <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" />
@@ -256,7 +265,7 @@ export function ExperienceDiscoveryContent({
           <section aria-labelledby="merchant-destination" className="px-1 py-10 sm:px-2">
           <h2 id="merchant-destination" className="sr-only">Merchant destination</h2>
           <a
-            {...externalLinkProps(merchant.websiteUrl)}
+            {...externalLinkProps(merchant.websiteUrl, experience.type, experience.slug, 'merchant')}
             className="inline-flex items-center gap-2 rounded-xl bg-slate-950 px-4 py-3 text-sm font-semibold text-white transition hover:bg-slate-800"
           >
             Visit {merchant.name} <ExternalLink className="h-4 w-4" aria-hidden="true" />
