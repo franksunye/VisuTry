@@ -191,7 +191,7 @@ async function findStore(merchantId: string, storeId?: string) {
   return prisma.experience.findFirst({ where: { merchantId, type: 'STORE', ...(storeId ? { id: storeId } : {}) }, include: { frames: { where: { active: true }, orderBy: { sortOrder: 'asc' } } } })
 }
 
-async function getValidFrames(merchantId: string, frameIds?: string[]) {
+async function getActiveFrames(merchantId: string, frameIds?: string[]) {
   return prisma.merchantFrame.findMany({
     where: { merchantId, status: 'ACTIVE', ...(frameIds ? { id: { in: frameIds } } : {}) },
     orderBy: { id: 'asc' },
@@ -202,7 +202,8 @@ function storeReadiness(frames: FrameForValidation[], expectedCount = frames.len
   const checks = frames.map((frame) => ({ frameId: frame.id, ...validateCatalogFrame(frame) }))
   const blockingIssues = checks.filter((check) => !check.valid).map((check) => ({ frameId: check.frameId, issues: check.issues }))
   if (frames.length !== expectedCount) blockingIssues.push({ frameId: 'unknown', issues: ['FRAME_NOT_FOUND_OR_INACTIVE'] })
-  return { ready: expectedCount > 0 && frames.length === expectedCount && blockingIssues.length === 0, frameCount: expectedCount, blockingIssues, checks }
+  const readyFrameCount = checks.filter((check) => check.valid).length
+  return { ready: expectedCount > 0 && frames.length === expectedCount && blockingIssues.length === 0, frameCount: expectedCount, readyFrameCount, blockingIssues, checks }
 }
 
 export async function getOnboardingStatus(input: { actor: MerchantActorContext }) {
@@ -210,22 +211,24 @@ export async function getOnboardingStatus(input: { actor: MerchantActorContext }
   const merchant = await getMerchant(input)
   const [totalFrames, activeFrames, store] = await Promise.all([
     prisma.merchantFrame.count({ where: { merchantId: input.actor.merchantId } }),
-    getValidFrames(input.actor.merchantId),
+    getActiveFrames(input.actor.merchantId),
     findStore(input.actor.merchantId),
   ])
-  const selectedFrames = store ? await getValidFrames(input.actor.merchantId, store.frames.map((frame) => frame.merchantFrameId)) : []
-  const readiness = storeReadiness(selectedFrames, store?.frames.length ?? 0)
+  const readyFrames = activeFrames.filter((frame) => validateCatalogFrame(frame).valid)
+  const selectedFrames = store ? await getActiveFrames(input.actor.merchantId, store.frames.map((frame) => frame.merchantFrameId)) : []
+  const selectionReadiness = storeReadiness(selectedFrames, store?.frames.length ?? 0)
   return {
     merchant: { id: merchant.id, slug: merchant.slug, name: merchant.name, status: merchant.status },
-    catalog: { totalFrames, activeFrames: activeFrames.length, readyFrames: readiness.frameCount },
-    store: store ? { id: store.id, slug: store.slug, status: store.status, frameCount: store.frames.length, publicPath: `/en/store/${merchant.slug}` } : null,
-    readyToPublish: Boolean(store && readiness.ready && store.frames.length > 0),
+    catalog: { totalFrames, activeFrames: activeFrames.length, readyFrames: readyFrames.length },
+    store: store ? { id: store.id, slug: store.slug, status: store.status, frameCount: store.frames.length, readyFrameCount: selectionReadiness.readyFrameCount, publicPath: `/en/store/${merchant.slug}` } : null,
+    readyToPublish: Boolean(store && selectionReadiness.ready && store.frames.length > 0),
     blockers: [
       ...(totalFrames === 0 ? ['CATALOG_EMPTY'] : []),
-      ...(activeFrames.length === 0 ? ['NO_VALID_FRAMES'] : []),
+      ...(activeFrames.length === 0 ? ['NO_ACTIVE_FRAMES'] : []),
+      ...(readyFrames.length === 0 ? ['NO_VALID_FRAMES'] : []),
       ...(!store ? ['STORE_NOT_CREATED'] : []),
       ...(store && store.frames.length === 0 ? ['STORE_HAS_NO_FRAMES'] : []),
-      ...(store && store.frames.length > 0 && !readiness.ready ? ['STORE_HAS_INVALID_FRAMES'] : []),
+      ...(store && store.frames.length > 0 && !selectionReadiness.ready ? ['STORE_HAS_INVALID_FRAMES'] : []),
     ],
   }
 }
@@ -260,7 +263,7 @@ export async function setMerchantStoreFrames(input: { actor: MerchantActorContex
   const frameIds = [...new Set(input.frameIds)]
   const store = await findStore(input.actor.merchantId, input.storeId)
   if (!store) throw new MerchantAccessError()
-  const frames = await getValidFrames(input.actor.merchantId, frameIds)
+  const frames = await getActiveFrames(input.actor.merchantId, frameIds)
   if (frames.length !== frameIds.length) throw new MerchantAccessError()
   await prisma.$transaction(async (tx) => {
     await tx.experienceFrame.deleteMany({ where: { experienceId: store.id, merchantId: input.actor.merchantId } })
@@ -274,7 +277,7 @@ export async function previewMerchantStore(input: { actor: MerchantActorContext;
   requireAgentScope(input.actor, 'experience:read')
   const store = await findStore(input.actor.merchantId, input.storeId)
   if (!store) throw new MerchantAccessError()
-  const frames = await getValidFrames(input.actor.merchantId, store.frames.map((frame) => frame.merchantFrameId))
+  const frames = await getActiveFrames(input.actor.merchantId, store.frames.map((frame) => frame.merchantFrameId))
   const readiness = storeReadiness(frames, store.frames.length)
   const merchant = await getMerchant(input)
   return { store: { id: store.id, name: store.name, status: store.status, publicPath: `/en/store/${merchant.slug}` }, frameCount: store.frames.length, readiness, preview: { sideEffectFree: true, publicPath: `/en/store/${merchant.slug}` } }
@@ -285,7 +288,7 @@ export async function publishMerchantStore(input: { actor: MerchantActorContext;
   if (!input.approved) throw new MerchantOnboardingError('PUBLISH_APPROVAL_REQUIRED', 'Publishing requires explicit approval.', 400)
   const store = await findStore(input.actor.merchantId, input.storeId)
   if (!store) throw new MerchantAccessError()
-  const frames = await getValidFrames(input.actor.merchantId, store.frames.map((frame) => frame.merchantFrameId))
+  const frames = await getActiveFrames(input.actor.merchantId, store.frames.map((frame) => frame.merchantFrameId))
   const readiness = storeReadiness(frames, store.frames.length)
   if (!readiness.ready || store.frames.length === 0) throw new MerchantOnboardingError('STORE_NOT_READY', 'Store is not ready to publish.', 409)
   const published = store.status === 'ACTIVE' ? store : await prisma.experience.update({ where: { id: store.id }, data: { status: 'ACTIVE' }, include: { frames: { where: { active: true } } } })
