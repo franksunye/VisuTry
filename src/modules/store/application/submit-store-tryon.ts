@@ -18,6 +18,7 @@ import {
   experiencePolicyMetadata,
   experienceContainsFrame,
   resolveMerchantSponsoredUsagePolicy,
+  sponsoredUsageFailureAction,
   authRequiredForContinuation,
   consumerEntitlementRequired,
 } from '../domain'
@@ -807,7 +808,7 @@ export async function submitStoreFrameTryOn(
     if (
       sponsoredReservationId &&
       input.sponsoredUsage &&
-      !(error as { providerStarted?: boolean }).providerStarted
+      sponsoredUsageFailureAction(error) === 'RELEASE'
     ) {
       await input.sponsoredUsage.release(sponsoredReservationId).catch(() => undefined)
     }

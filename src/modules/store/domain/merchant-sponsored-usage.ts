@@ -67,3 +67,19 @@ export function sponsoredUsageLimitFor(
     ? policy.sponsoredCompareLimit
     : policy.sponsoredGenerationLimit
 }
+
+/**
+ * The provider boundary is deliberately conservative. Before the provider
+ * call starts, failures are known local/pre-provider failures and release the
+ * reservation. Once the call starts, an exception cannot prove that the
+ * request was not delivered, so the RESERVED row blocks another sponsored
+ * attempt for the rolling window until the reservation expires.
+ */
+export function sponsoredUsageFailureAction(
+  error: unknown,
+): 'RELEASE' | 'RETAIN' {
+  return error && typeof error === 'object' &&
+    (error as { providerStarted?: boolean }).providerStarted === true
+    ? 'RETAIN'
+    : 'RELEASE'
+}

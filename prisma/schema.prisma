@@ -54,29 +54,29 @@ model User {
   username      String?   @unique
 
   // VisuTry specific fields
-  freeTrialsUsed          Int       @default(0) // Free trial uses (for non-premium users)
-  premiumUsageCount       Int       @default(0) // Premium subscription usage count (resets on billing cycle)
-  creditsPurchased        Int       @default(0) // Total credits purchased (never decreases)
-  creditsUsed             Int       @default(0) // Total credits used (never decreases)
-  isPremium               Boolean   @default(false)
-  premiumExpiresAt        DateTime?
-  currentSubscriptionType String? // Current active subscription type (PREMIUM_MONTHLY or PREMIUM_YEARLY)
-  role                    UserRole  @default(USER)
+  freeTrialsUsed Int      @default(0)  // Free trial uses (for non-premium users)
+  premiumUsageCount Int   @default(0)  // Premium subscription usage count (resets on billing cycle)
+  creditsPurchased Int    @default(0)  // Total credits purchased (never decreases)
+  creditsUsed Int         @default(0)  // Total credits used (never decreases)
+  isPremium      Boolean  @default(false)
+  premiumExpiresAt DateTime?
+  currentSubscriptionType String?      // Current active subscription type (PREMIUM_MONTHLY or PREMIUM_YEARLY)
+  role             UserRole @default(USER)
 
   // Email notification tracking
-  lastRetention3DayEmailSent    DateTime? // Track 3-day reminder email
-  lastRetention24HEmailSent     DateTime? // Track 24-hour reminder email
-  lastRetentionDeletedEmailSent DateTime? // Track deletion notification email
+  lastRetention3DayEmailSent DateTime?  // Track 3-day reminder email
+  lastRetention24HEmailSent  DateTime?  // Track 24-hour reminder email
+  lastRetentionDeletedEmailSent DateTime?  // Track deletion notification email
 
-  accounts                Account[]
-  sessions                Session[]
-  tryOnTasks              TryOnTask[]
-  faceAnalysisTasks       FaceAnalysisTask[]
-  payments                Payment[]
+  accounts      Account[]
+  sessions      Session[]
+  tryOnTasks         TryOnTask[]
+  faceAnalysisTasks  FaceAnalysisTask[]
+  payments           Payment[]
   merchantSponsoredUsages MerchantSponsoredUsage[]
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 }
 
 model VerificationToken {
@@ -88,32 +88,32 @@ model VerificationToken {
 }
 
 model TryOnTask {
-  id     String    @id @default(cuid())
+  id          String   @id @default(cuid())
   /// Optional for anonymous Store sessions; required for CONSUMER origin (DB CHECK).
-  userId String?
-  type   TryOnType @default(GLASSES) // Try-on category
+  userId      String?
+  type        TryOnType @default(GLASSES)  // Try-on category
 
   // Input images
   userImageUrl    String
-  itemImageUrl    String // Generic field for any item
-  glassesImageUrl String? // Keep for backward compatibility
+  itemImageUrl    String                   // Generic field for any item
+  glassesImageUrl String?                  // Keep for backward compatibility
 
   // Output
-  resultImageUrl String?
+  resultImageUrl  String?
 
   // Task status
-  status         TaskStatus @default(PENDING)
-  errorMessage   String?
+  status      TaskStatus @default(PENDING)
+  errorMessage String?
   quotaSettledAt DateTime? // Successful task quota was settled exactly once
-  quotaSource    String? // subscription | credit | free_trial | store_demo | merchant_allowance
+  quotaSource    String?   // subscription | credit | free_trial | store_demo | merchant_allowance
 
   // Actor / tenant attribution (first-class; not metadata-only)
-  origin            TryOnOrigin @default(CONSUMER)
-  merchantId        String?
-  merchantSessionId String?
-  merchantFrameId   String?
+  origin             TryOnOrigin @default(CONSUMER)
+  merchantId         String?
+  merchantSessionId  String?
+  merchantFrameId    String?
   /// Store: store:{session}:{frame}:{clientSubmissionId}; unique when present
-  idempotencyKey    String?     @unique
+  idempotencyKey     String?     @unique
 
   // Metadata
   prompt             String?
@@ -132,29 +132,28 @@ model TryOnTask {
   resultPersistVersion    Int       @default(0)
 
   // Data retention
-  expiresAt           DateTime? // When this task data will be deleted
-  retentionStatus     RetentionStatus @default(ACTIVE)
-  deleteFailCount     Int             @default(0)
-  lastDeleteError     String?
-  lastDeleteAttemptAt DateTime?
+  expiresAt             DateTime?  // When this task data will be deleted
+  retentionStatus       RetentionStatus @default(ACTIVE)
+  deleteFailCount       Int             @default(0)
+  lastDeleteError       String?
+  lastDeleteAttemptAt   DateTime?
 
-  user            User?            @relation(fields: [userId], references: [id], onDelete: Cascade)
-  merchant        Merchant?        @relation(fields: [merchantId], references: [id], onDelete: Restrict)
+  user            User?           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  merchant        Merchant?       @relation(fields: [merchantId], references: [id], onDelete: Restrict)
   merchantSession MerchantSession? @relation(fields: [merchantSessionId], references: [id], onDelete: Restrict)
-  merchantFrame   MerchantFrame?   @relation(fields: [merchantFrameId], references: [id], onDelete: Restrict)
+  merchantFrame   MerchantFrame?  @relation(fields: [merchantFrameId], references: [id], onDelete: Restrict)
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
-  @@unique([userId, clientSubmissionId]) // Prevent duplicate client/batch submissions
   @@index([userId])
   @@index([status])
-  @@index([type]) // Index for type filtering
+  @@index([type])                                // Index for type filtering
   @@index([userId, type, createdAt(sort: Desc)]) // Optimized type queries
-  @@index([userId, createdAt(sort: Desc)]) // Optimize dashboard recent tasks query
-  @@index([userId, status]) // Optimize dashboard stats query
-  @@index([status, quotaSettledAt]) // Reconcile completed but unsettled tasks
-  @@index([expiresAt]) // Index for expiry cleanup cron
+  @@index([userId, createdAt(sort: Desc)])       // Optimize dashboard recent tasks query
+  @@index([userId, status])                      // Optimize dashboard stats query
+  @@index([status, quotaSettledAt])               // Reconcile completed but unsettled tasks
+  @@index([expiresAt])                           // Index for expiry cleanup cron
   @@index([retentionStatus, expiresAt])
   @@index([origin, status, dispatchLeaseUntil])
   @@index([retentionStatus, deleteFailCount, lastDeleteAttemptAt])
@@ -163,30 +162,31 @@ model TryOnTask {
   @@index([merchantSessionId])
   @@index([merchantSessionId, batchId])
   @@index([merchantFrameId])
+  @@unique([userId, clientSubmissionId])          // Prevent duplicate client/batch submissions
 }
 
 model FaceAnalysisTask {
-  id           String     @id @default(cuid())
-  userId       String
-  userImageUrl String
-  status       TaskStatus @default(PENDING)
-  errorMessage String?
+  id              String     @id @default(cuid())
+  userId          String
+  userImageUrl    String
+  status          TaskStatus @default(PENDING)
+  errorMessage    String?
 
-  detectedShape  String?
-  confidence     Float?
-  basicResult    Json?
-  fullResult     Json?
-  reportUnlocked Boolean @default(false)
+  detectedShape   String?
+  confidence      Float?
+  basicResult     Json?
+  fullResult      Json?
+  reportUnlocked  Boolean    @default(false)
 
-  externalTaskId String?
-  prompt         String?
-  metadata       Json?
-  expiresAt      DateTime?
+  externalTaskId  String?
+  prompt          String?
+  metadata        Json?
+  expiresAt       DateTime?
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user            User       @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
 
   @@index([userId])
   @@index([userId, createdAt(sort: Desc)])
@@ -206,37 +206,37 @@ model FaceShapeDetection {
 }
 
 model Payment {
-  id                   String  @id @default(cuid())
-  userId               String
-  stripeSessionId      String  @unique
-  stripePaymentId      String? @unique
-  stripeSubscriptionId String? // Stripe subscription ID for recurring payments
+  id                    String        @id @default(cuid())
+  userId                String
+  stripeSessionId       String        @unique
+  stripePaymentId       String?       @unique
+  stripeSubscriptionId  String?       // Stripe subscription ID for recurring payments
 
-  amount   Int // Amount in cents
-  currency String        @default("usd")
-  status   PaymentStatus @default(PENDING)
+  amount          Int           // Amount in cents
+  currency        String        @default("usd")
+  status          PaymentStatus @default(PENDING)
 
   // Product info
-  productType ProductType
-  description String?
+  productType     ProductType
+  description     String?
 
   // Acquisition context captured at Checkout creation (landing, source, clusters)
-  attribution Json?
+  attribution     Json?
 
   // Checkout lifecycle context. Pending rows are created before redirecting to
   // Stripe, then finalized by signed webhook events.
-  unlockTaskId   String?
-  statusReason   String?
-  completedAt    DateTime?
-  failedAt       DateTime?
-  refundId       String?   @unique
-  refundedAt     DateTime?
-  creditsRevoked Int       @default(0)
+  unlockTaskId    String?
+  statusReason    String?
+  completedAt     DateTime?
+  failedAt        DateTime?
+  refundId        String?       @unique
+  refundedAt      DateTime?
+  creditsRevoked  Int           @default(0)
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user            User          @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
 
   @@index([userId])
   @@index([status])
@@ -246,25 +246,25 @@ model Payment {
 }
 
 model GlassesFrame {
-  id          String  @id @default(cuid())
+  id          String   @id @default(cuid())
   name        String
   description String?
   imageUrl    String
   category    String?
   brand       String?
   model       String?
-  price       Int? // Price in cents
+  price       Int?     // Price in cents
   style       String?
   material    String?
   color       String?
-  isActive    Boolean @default(true)
+  isActive    Boolean  @default(true)
 
   // 关联
-  faceShapes FrameFaceShapeRecommendation[]
-  categories FrameCategoryAssociation[]
+  faceShapes  FrameFaceShapeRecommendation[]
+  categories  FrameCategoryAssociation[]
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
   @@index([brand])
   @@index([category])
@@ -307,49 +307,49 @@ enum TryOnType {
 }
 
 model FaceShape {
-  id              String  @id @default(cuid())
-  name            String  @unique // round, square, oval, etc.
-  displayName     String // "Round Face"
+  id              String   @id @default(cuid())
+  name            String   @unique // round, square, oval, etc.
+  displayName     String   // "Round Face"
   description     String?
-  characteristics String? // 脸型特征
+  characteristics String?  // 脸型特征
 
-  frames FrameFaceShapeRecommendation[]
+  frames          FrameFaceShapeRecommendation[]
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 }
 
 model GlassesCategory {
-  id          String  @id @default(cuid())
-  name        String  @unique // prescription, sunglasses, etc.
-  displayName String // "Prescription Glasses"
+  id          String   @id @default(cuid())
+  name        String   @unique // prescription, sunglasses, etc.
+  displayName String   // "Prescription Glasses"
   description String?
 
-  frames FrameCategoryAssociation[]
+  frames      FrameCategoryAssociation[]
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }
 
 model FrameFaceShapeRecommendation {
-  id          String  @id @default(cuid())
+  id          String   @id @default(cuid())
   frameId     String
   faceShapeId String
-  reason      String? // 推荐原因
+  reason      String?  // 推荐原因
 
-  frame     GlassesFrame @relation(fields: [frameId], references: [id], onDelete: Cascade)
-  faceShape FaceShape    @relation(fields: [faceShapeId], references: [id], onDelete: Cascade)
+  frame       GlassesFrame @relation(fields: [frameId], references: [id], onDelete: Cascade)
+  faceShape   FaceShape    @relation(fields: [faceShapeId], references: [id], onDelete: Cascade)
 
   @@unique([frameId, faceShapeId])
 }
 
 model FrameCategoryAssociation {
-  id         String @id @default(cuid())
+  id         String   @id @default(cuid())
   frameId    String
   categoryId String
 
-  frame    GlassesFrame    @relation(fields: [frameId], references: [id], onDelete: Cascade)
-  category GlassesCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  frame      GlassesFrame    @relation(fields: [frameId], references: [id], onDelete: Cascade)
+  category   GlassesCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
 
   @@unique([frameId, categoryId])
 }
@@ -447,20 +447,20 @@ enum ExperienceStatus {
 
 /// Store tenant boundary.
 model Merchant {
-  id              String         @id @default(cuid())
-  slug            String         @unique
-  name            String
-  logoUrl         String?
-  websiteUrl      String?
-  contactEmail    String?
-  accentColor     String?
-  status          MerchantStatus @default(ACTIVE)
+  id           String         @id @default(cuid())
+  slug         String         @unique
+  name         String
+  logoUrl      String?
+  websiteUrl   String?
+  contactEmail String?
+  accentColor  String?
+  status       MerchantStatus @default(ACTIVE)
   /// Delivery identity: LIVE, DEMO, or REFERENCE.
-  pilotType       String         @default("LIVE")
+  pilotType    String @default("LIVE")
   /// Durable marker used to keep pilot simulations out of live merchant KPIs.
-  referenceData   Boolean        @default(false)
+  referenceData Boolean @default(false)
   /// Optional default acquisition context for a hosted delivery surface.
-  defaultSource   String?
+  defaultSource String?
   defaultCampaign String?
 
   /// Merchant-level default experience policy; future campaign policy may override it.
@@ -470,33 +470,33 @@ model Merchant {
   inquiryEnabled   Boolean @default(false)
 
   /// Commercial offer identity — provider-independent (e.g. FOUNDING_PILOT, DEMO).
-  planCode                 String?
+  planCode                   String?
   /// Explicit key for the merchant-sponsored usage policy. Null means sponsorship is disabled.
-  sponsoredUsagePolicyKey  String?
+  sponsoredUsagePolicyKey    String?
   /// Commercial stage (e.g. MARKET_CAPTURE).
-  commercialStage          String?
-  pricingVersion           String?
-  entitlementVersion       String?
-  commerceSessionAllowance Int?
-  standardRenderAllowance  Int?
-  premiumRenderAllowance   Int?
-  campaignAllowance        Int?
-  entitlementEffectiveFrom DateTime?
-  billingPeriodEnd         DateTime?
+  commercialStage            String?
+  pricingVersion             String?
+  entitlementVersion         String?
+  commerceSessionAllowance   Int?
+  standardRenderAllowance    Int?
+  premiumRenderAllowance     Int?
+  campaignAllowance          Int?
+  entitlementEffectiveFrom   DateTime?
+  billingPeriodEnd           DateTime?
   /// Audited commercial exception (e.g. FOUNDING_LAUNCH_BONUS).
-  commercialExceptionCode  String?
+  commercialExceptionCode    String?
 
-  frames          MerchantFrame[]
-  experiences     Experience[]
-  sessions        MerchantSession[]
-  intents         MerchantIntent[]
-  events          MerchantEvent[]
-  assets          StoreAsset[]
-  usage           MerchantUsageLedger[]
+  frames   MerchantFrame[]
+  experiences Experience[]
+  sessions MerchantSession[]
+  intents  MerchantIntent[]
+  events   MerchantEvent[]
+  assets   StoreAsset[]
+  usage    MerchantUsageLedger[]
   sponsoredUsages MerchantSponsoredUsage[]
-  tryOnTasks      TryOnTask[]
-  orphanBlobs     StoreOrphanBlob[]
-  abuseCounters   StoreAbuseCounter[]
+  tryOnTasks TryOnTask[]
+  orphanBlobs StoreOrphanBlob[]
+  abuseCounters StoreAbuseCounter[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -537,11 +537,11 @@ model MerchantFrame {
   enrichmentStatus EnrichmentStatus    @default(APPROVED)
   status           MerchantFrameStatus @default(DRAFT)
 
-  merchant         Merchant          @relation(fields: [merchantId], references: [id], onDelete: Restrict)
+  merchant   Merchant         @relation(fields: [merchantId], references: [id], onDelete: Restrict)
   experienceFrames ExperienceFrame[]
-  intents          MerchantIntent[]
-  events           MerchantEvent[]
-  tryOnTasks       TryOnTask[]
+  intents    MerchantIntent[]
+  events     MerchantEvent[]
+  tryOnTasks TryOnTask[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -580,12 +580,12 @@ model Experience {
   defaultCampaign   String?
   referenceMetadata Json?
 
-  merchant        Merchant                 @relation(fields: [merchantId], references: [id], onDelete: Restrict)
-  frames          ExperienceFrame[]
-  sessions        MerchantSession[]
+  merchant Merchant         @relation(fields: [merchantId], references: [id], onDelete: Restrict)
+  frames   ExperienceFrame[]
+  sessions MerchantSession[]
+  intents  MerchantIntent[]
+  events   MerchantEvent[]
   sponsoredUsages MerchantSponsoredUsage[]
-  intents         MerchantIntent[]
-  events          MerchantEvent[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -627,29 +627,29 @@ model MerchantSession {
   locale              String?
   status              MerchantSessionStatus @default(ACTIVE)
   /// Copied from Merchant at session creation so reference traffic remains filterable.
-  referenceData       Boolean               @default(false)
+  referenceData       Boolean @default(false)
   lastActiveAt        DateTime              @default(now())
   expiresAt           DateTime
 
   /// Acquisition / campaign context captured at session create (Pilot traffic root).
-  source             String?
-  medium             String?
-  campaign           String?
+  source        String?
+  medium        String?
+  campaign      String?
   /// Stable first-touch internal distribution surface, when the session came from VisuTry-owned traffic.
   acquisitionSurface String?
-  referrer           String?
-  landingUrl         String?
-  aiAgentSource      String?
+  referrer      String?
+  landingUrl    String?
+  aiAgentSource String?
 
-  merchant        Merchant                 @relation(fields: [merchantId], references: [id], onDelete: Restrict)
-  experience      Experience?              @relation(fields: [experienceId, merchantId], references: [id, merchantId], onDelete: Restrict)
-  photoAsset      StoreAsset?              @relation("SessionPhotoAsset", fields: [photoAssetId], references: [id], onDelete: SetNull)
-  intents         MerchantIntent[]
-  events          MerchantEvent[]
-  assets          StoreAsset[]             @relation("SessionAssets")
-  usage           MerchantUsageLedger[]
+  merchant   Merchant         @relation(fields: [merchantId], references: [id], onDelete: Restrict)
+  experience Experience?      @relation(fields: [experienceId, merchantId], references: [id, merchantId], onDelete: Restrict)
+  photoAsset StoreAsset?      @relation("SessionPhotoAsset", fields: [photoAssetId], references: [id], onDelete: SetNull)
+  intents    MerchantIntent[]
+  events     MerchantEvent[]
+  assets     StoreAsset[]     @relation("SessionAssets")
+  usage      MerchantUsageLedger[]
+  tryOnTasks TryOnTask[]
   sponsoredUsages MerchantSponsoredUsage[]
-  tryOnTasks      TryOnTask[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -676,10 +676,10 @@ model MerchantIntent {
   name              String?
   note              String?            @db.Text
 
-  merchant   Merchant        @relation(fields: [merchantId], references: [id], onDelete: Restrict)
-  session    MerchantSession @relation(fields: [merchantSessionId], references: [id], onDelete: Restrict)
+  merchant Merchant         @relation(fields: [merchantId], references: [id], onDelete: Restrict)
+  session  MerchantSession  @relation(fields: [merchantSessionId], references: [id], onDelete: Restrict)
   experience Experience?     @relation(fields: [experienceId, merchantId], references: [id, merchantId], onDelete: Restrict)
-  frame      MerchantFrame?  @relation(fields: [merchantFrameId], references: [id], onDelete: Restrict)
+  frame    MerchantFrame?   @relation(fields: [merchantFrameId], references: [id], onDelete: Restrict)
 
   createdAt DateTime @default(now())
 
@@ -703,14 +703,14 @@ model MerchantEvent {
   locale            String?
   deviceType        String?
   /// Copied from Merchant at event creation for durable provenance filtering.
-  referenceData     Boolean          @default(false)
+  referenceData      Boolean @default(false)
   /// Sanitized non-sensitive metadata only.
   metadata          Json?
 
-  merchant   Merchant         @relation(fields: [merchantId], references: [id], onDelete: Restrict)
-  session    MerchantSession? @relation(fields: [merchantSessionId], references: [id], onDelete: Restrict)
-  experience Experience?      @relation(fields: [experienceId, merchantId], references: [id, merchantId], onDelete: Restrict)
-  frame      MerchantFrame?   @relation(fields: [merchantFrameId], references: [id], onDelete: Restrict)
+  merchant Merchant         @relation(fields: [merchantId], references: [id], onDelete: Restrict)
+  session  MerchantSession? @relation(fields: [merchantSessionId], references: [id], onDelete: Restrict)
+  experience Experience?    @relation(fields: [experienceId, merchantId], references: [id, merchantId], onDelete: Restrict)
+  frame    MerchantFrame?   @relation(fields: [merchantFrameId], references: [id], onDelete: Restrict)
 
   createdAt DateTime @default(now())
 
@@ -811,24 +811,24 @@ model MerchantSponsoredUsage {
 
 /// Blobs uploaded without a durable task/asset row — cleaned by cron.
 model StoreOrphanBlob {
-  id                  String    @id @default(cuid())
-  url                 String
-  pathname            String?
-  merchantId          String?
-  tryOnTaskId         String?
-  failCount           Int       @default(0)
-  lastError           String?
+  id                String    @id @default(cuid())
+  url               String
+  pathname          String?
+  merchantId        String?
+  tryOnTaskId       String?
+  failCount         Int       @default(0)
+  lastError         String?
   lastDeleteAttemptAt DateTime?
-  deletedAt           DateTime?
+  deletedAt         DateTime?
 
   merchant Merchant? @relation(fields: [merchantId], references: [id], onDelete: SetNull)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  @@unique([url])
   @@index([deletedAt, failCount, lastDeleteAttemptAt])
   @@index([merchantId])
+  @@unique([url])
 }
 
 /// Durable abuse / rate-limit counters (serverless-safe).

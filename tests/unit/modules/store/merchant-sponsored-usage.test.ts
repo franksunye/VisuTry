@@ -3,6 +3,7 @@ import {
   VISUTRY_OWNED_SPONSORED_POLICY,
   resolveMerchantSponsoredUsagePolicy,
   sponsoredUsageLimitFor,
+  sponsoredUsageFailureAction,
 } from '@/modules/store/domain/merchant-sponsored-usage'
 
 describe('Merchant sponsored usage policy', () => {
@@ -34,5 +35,16 @@ describe('Merchant sponsored usage policy', () => {
   it('keeps Compare sponsorship at zero while generation has one allowance', () => {
     expect(sponsoredUsageLimitFor(VISUTRY_OWNED_SPONSORED_POLICY, 'SPONSORED_GENERATION')).toBe(1)
     expect(sponsoredUsageLimitFor(VISUTRY_OWNED_SPONSORED_POLICY, 'SPONSORED_COMPARE')).toBe(0)
+  })
+
+  it('releases on a definite pre-provider failure', () => {
+    expect(sponsoredUsageFailureAction(new Error('blob upload failed'))).toBe('RELEASE')
+  })
+
+  it('retains the reservation when provider delivery is uncertain', () => {
+    const error = Object.assign(new Error('provider request timed out'), {
+      providerStarted: true,
+    })
+    expect(sponsoredUsageFailureAction(error)).toBe('RETAIN')
   })
 })

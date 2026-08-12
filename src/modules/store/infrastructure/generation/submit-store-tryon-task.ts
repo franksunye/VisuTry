@@ -254,6 +254,9 @@ export async function submitStoreTryOnTask(
     }
   }
 
+  // False means all work so far is local/pre-provider and a failure can
+  // release the sponsored reservation. True means the provider call has
+  // started; an exception is delivery-uncertain and must retain the row.
   let providerStarted = false
   try {
     if (isMockMode) {
@@ -350,6 +353,8 @@ export async function submitStoreTryOnTask(
     const userDataUri = `data:${userMime};base64,${userBuffer.toString('base64')}`
     const itemDataUri = `data:${itemMime};base64,${itemBuffer.toString('base64')}`
 
+    // Set immediately before the provider call. A thrown request may have
+    // reached the provider, so the caller must retain the reservation.
     providerStarted = true
     const externalTaskId = await submitAsyncTask(
       userDataUri,
