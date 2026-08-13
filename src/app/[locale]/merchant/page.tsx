@@ -4,6 +4,7 @@ import { notFound, redirect } from 'next/navigation'
 import { authOptions } from '@/lib/auth'
 import { getMerchantControlCenter, listMerchantAgentCredentials, listMerchantsForUser, requireMerchantMembership } from '@/modules/merchant'
 import { MerchantControlCenter } from '@/components/merchant/MerchantControlCenter'
+import { MerchantWorkspaceOnboarding } from '@/components/merchant/MerchantWorkspaceOnboarding'
 
 export const dynamic = 'force-dynamic'
 
@@ -19,7 +20,7 @@ export default async function MerchantWorkspacePage({ params, searchParams }: { 
   if (!session?.user?.id) redirect(`/${params.locale}/auth/signin?callbackUrl=/${params.locale}/merchant`)
 
   const merchants = await listMerchantsForUser(session.user.id)
-  if (merchants.length === 0) notFound()
+  if (merchants.length === 0) return <MerchantWorkspaceOnboarding locale={params.locale} />
   const selected = searchParams?.merchantId
     ? merchants.find((entry) => entry.merchant.id === searchParams.merchantId)
     : merchants[0]

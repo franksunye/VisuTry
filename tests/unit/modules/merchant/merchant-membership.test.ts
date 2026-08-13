@@ -3,6 +3,7 @@ jest.mock('@/lib/prisma', () => ({
     merchantMembership: {
       findUnique: jest.fn(),
       findMany: jest.fn(),
+      findFirst: jest.fn(),
       create: jest.fn(),
       count: jest.fn(),
       delete: jest.fn(),
@@ -19,6 +20,7 @@ import {
   MerchantAccessError,
   createMerchantMembership,
   createMerchantWithOwner,
+  MerchantProvisioningError,
   getMerchantForUser,
   listMembersForMerchant,
   listMerchantsForUser,
@@ -295,8 +297,9 @@ describe('Merchant human membership foundation', () => {
 
   it('provisions a merchant and its owner in one transaction', async () => {
     const tx = {
+      user: { update: jest.fn().mockResolvedValue({ id: 'user-a' }) },
       merchant: { create: jest.fn() },
-      merchantMembership: { create: jest.fn() },
+      merchantMembership: { findFirst: jest.fn().mockResolvedValue(null), create: jest.fn() },
     }
     tx.merchant.create.mockResolvedValue({ id: 'merchant-new', slug: 'new', name: 'New' })
     tx.merchantMembership.create.mockResolvedValue({ ...membership, merchantId: 'merchant-new' })
@@ -315,5 +318,52 @@ describe('Merchant human membership foundation', () => {
     expect(tx.merchantMembership.create).toHaveBeenCalledWith(expect.objectContaining({
       data: { userId: 'user-a', merchantId: 'merchant-new', role: 'OWNER' },
     }))
+    expect(tx.user.update).toHaveBeenCalledWith(expect.objectContaining({
+      where: { id: 'user-a' },
+      data: { updatedAt: expect.any(Date) },
+    }))
+    expect(tx.user.update.mock.calls[0][0].data).not.toHaveProperty('role')
+  })
+
+  it('returns the existing workspace on a repeated first-workspace submit', async () => {
+    const existing = {
+      id: 'membership-existing',
+      userId: 'user-a',
+      merchantId: 'merchant-existing',
+      role: 'OWNER' as const,
+      createdAt: new Date('2026-08-12T00:00:00.000Z'),
+      updatedAt: new Date('2026-08-12T00:00:00.000Z'),
+      merchant: { id: 'merchant-existing', slug: 'existing', name: 'Existing' },
+    }
+    const tx = {
+      user: { update: jest.fn().mockResolvedValue({ id: 'user-a' }) },
+      merchant: { create: jest.fn() },
+      merchantMembership: { findFirst: jest.fn().mockResolvedValue(existing), create: jest.fn() },
+    }
+    ;(prisma.$transaction as jest.Mock).mockImplementation(async (callback) => callback(tx))
+
+    await expect(createMerchantWithOwner({ userId: 'user-a', name: 'Another Name' })).resolves.toMatchObject({
+      merchant: existing.merchant,
+      membership: { id: existing.id, role: 'OWNER' },
+    })
+    expect(tx.merchant.create).not.toHaveBeenCalled()
+  })
+
+  it('validates merchant name and website before opening a transaction', async () => {
+    await expect(createMerchantWithOwner({ userId: 'user-a', name: ' ' })).rejects.toBeInstanceOf(MerchantProvisioningError)
+    await expect(createMerchantWithOwner({ userId: 'user-a', name: 'Valid Name', websiteUrl: 'javascript:alert(1)' })).rejects.toMatchObject({ code: 'INVALID_WEBSITE_URL' })
+    expect(prisma.$transaction).not.toHaveBeenCalled()
+  })
+
+  it('keeps Merchant and OWNER creation atomic when membership creation fails', async () => {
+    const tx = {
+      user: { update: jest.fn().mockResolvedValue({ id: 'user-a' }) },
+      merchant: { create: jest.fn().mockResolvedValue({ id: 'merchant-new', slug: 'new', name: 'New' }) },
+      merchantMembership: { findFirst: jest.fn().mockResolvedValue(null), create: jest.fn().mockRejectedValue(new Error('membership failed')) },
+    }
+    ;(prisma.$transaction as jest.Mock).mockImplementation(async (callback) => callback(tx))
+
+    await expect(createMerchantWithOwner({ userId: 'user-a', name: 'New' })).rejects.toThrow('membership failed')
+    expect(prisma.$transaction).toHaveBeenCalledTimes(1)
   })
 })

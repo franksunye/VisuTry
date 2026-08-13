@@ -11,6 +11,7 @@ jest.mock('@/modules/merchant', () => ({
   requireMerchantMembership: jest.fn(),
 }))
 jest.mock('@/components/merchant/MerchantControlCenter', () => ({ MerchantControlCenter: (props: { selectedMerchantId: string }) => <div data-selected-merchant={props.selectedMerchantId} /> }))
+jest.mock('@/components/merchant/MerchantWorkspaceOnboarding', () => ({ MerchantWorkspaceOnboarding: (props: { locale: string }) => <div data-onboarding-locale={props.locale}>Create your Merchant Workspace</div> }))
 
 import { getServerSession } from 'next-auth'
 import { listMerchantsForUser, listMerchantAgentCredentials, getMerchantControlCenter, requireMerchantMembership } from '@/modules/merchant'
@@ -48,9 +49,22 @@ describe('Merchant workspace authorization', () => {
     expect(membership).not.toHaveBeenCalled()
   })
 
-  it('denies a global ADMIN with no MerchantMembership', async () => {
+  it('shows first-time onboarding for a global ADMIN with no MerchantMembership', async () => {
     merchants.mockResolvedValue([])
-    await expect(MerchantWorkspacePage({ params: { locale: 'en' } })).rejects.toThrow('NOT_FOUND')
+    const result = await MerchantWorkspacePage({ params: { locale: 'en' } })
+    expect(result).toBeTruthy()
+    expect(control).not.toHaveBeenCalled()
+  })
+
+  it('preserves the existing workspace path for a multi-merchant user', async () => {
+    const result = await MerchantWorkspacePage({ params: { locale: 'en' }, searchParams: { merchantId: 'merchant-b' } })
+    expect(result).toBeTruthy()
+    expect(membership).toHaveBeenCalledWith({ userId: 'user-a', merchantId: 'merchant-b', roles: ['OWNER', 'ADMIN'] })
+  })
+
+  it('keeps unauthenticated users on the existing login redirect', async () => {
+    session.mockResolvedValue(null)
+    await expect(MerchantWorkspacePage({ params: { locale: 'en' } })).rejects.toThrow('REDIRECT:/en/auth/signin?callbackUrl=/en/merchant')
     expect(control).not.toHaveBeenCalled()
   })
 })
