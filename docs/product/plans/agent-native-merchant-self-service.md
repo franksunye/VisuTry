@@ -384,6 +384,14 @@ The onboarding page should not require the merchant to configure Store/Campaign 
 
 Later versions may provide direct “Open in ChatGPT / Claude” convenience actions when product integrations and platform capabilities make that reliable.
 
+For a first-time authenticated user with no `MerchantMembership`, the same
+surface presents a minimal `Create Merchant Workspace` form. Submission uses
+`createMerchantWithOwner` with the server-side session `User.id`, atomically
+creating the Merchant and its `OWNER` membership before redirecting to the
+Control Center. Existing members keep the current workspace and multi-merchant
+selection behavior; no Store, Campaign, credential, billing, or team records
+are created automatically.
+
 ---
 
 ## 9. Authentication and Agent Key model
