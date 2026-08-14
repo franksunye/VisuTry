@@ -2,9 +2,9 @@
 
 > **Superseded as primary strategy (2026-08-14).** Universal Remote MCP + OAuth is now the primary agent-access architecture. This document is retained as a channel-specific OpenAI/App distribution appendix; marketplace publication is optional discovery/setup, not a capability dependency. See [`universal-agent-access.md`](./universal-agent-access.md).
 
-**Status:** FEASIBILITY / DECISION RECORD  
-**Reviewed:** 2026-08-14  
-**Repository:** `main` at `9214005413ba54f8b0219ef238704b450bfc3a62`  
+**Status:** FEASIBILITY / DECISION RECORD<br>
+**Reviewed:** 2026-08-14<br>
+**Repository:** `main` at `9214005413ba54f8b0219ef238704b450bfc3a62`<br>
 **Code changes:** No production feature code, schema, or credential changes were made.
 
 ## 1. Executive decision

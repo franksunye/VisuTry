@@ -1,8 +1,8 @@
 # VisuTry Universal Agent Access
 
-**Status:** ARCHITECTURE / IMPLEMENTATION RECORD  
-**Reviewed:** 2026-08-14  
-**Base main SHA:** `9214005413ba54f8b0219ef238704b450bfc3a62`  
+**Status:** ARCHITECTURE / IMPLEMENTATION RECORD<br>
+**Reviewed:** 2026-08-14<br>
+**Base main SHA:** `9214005413ba54f8b0219ef238704b450bfc3a62`<br>
 **Primary endpoint:** `https://www.visutry.com/api/mcp`
 
 ## 1. Executive decision
@@ -219,9 +219,9 @@ The existing Agent Access UI is still the practical Agent Key management surface
 
 ## 18. Review-preparation decision
 
-Architecture viability = **YES**  
-Independent merchant direct connection = **NOT YET CONFIRMED**  
-One VisuTry MCP implementation serving Codex + Claude Code + Cursor = **NOT YET CONFIRMED**  
+Architecture viability = **YES**<br>
+Independent merchant direct connection = **NOT YET CONFIRMED**<br>
+One VisuTry MCP implementation serving Codex + Claude Code + Cursor = **NOT YET CONFIRMED**<br>
 Ready for external merchant pilot = **NO**
 
 ## Official protocol references
