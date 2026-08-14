@@ -1,4 +1,4 @@
-import { put } from '@vercel/blob'
+import { get, put } from '@vercel/blob'
 import { Prisma, TaskStatus, User } from '@prisma/client'
 import { calculateExpiresAt } from '@/config/retention'
 import { FACE_ANALYSIS_MODEL } from '@/config/face-analysis'
@@ -55,7 +55,9 @@ export function serializeFaceAnalysisTask(
   return {
     id: task.id,
     status: task.status.toLowerCase(),
-    userImageUrl: task.userImageUrl,
+    userImageUrl: task.reportUnlocked
+      ? `/api/face-analysis/${encodeURIComponent(task.id)}/photo`
+      : '',
     detectedShape: task.detectedShape,
     confidence: task.confidence,
     basicResult: task.basicResult as FaceAnalysisBasicResult | null,
@@ -80,20 +82,26 @@ export async function submitFaceAnalysis(
 ): Promise<FaceAnalysisSubmitResult> {
   const startTime = Date.now()
   const geometry = normalizeGeometryAnalysis(options?.geometry)
-  const createMetadata = toJsonSafe({
+  const baseMetadata = {
     serviceType: 'grsai-face-chat',
     model: FACE_ANALYSIS_MODEL,
     clientSubmissionId: options?.clientSubmissionId,
     originalFileName: userImageFile.name,
     geometry,
-  }) as Prisma.InputJsonValue
+  }
   const prompt = buildFaceAnalysisPrompt(geometry)
 
   const blob = await put(
     `face-analysis/${user.id}/${Date.now()}-${userImageFile.name}`,
     userImageFile,
-    { access: 'public' }
+    { access: 'private' }
   )
+
+  const createMetadata = toJsonSafe({
+    ...baseMetadata,
+    blobAccess: 'private',
+    blobPathname: blob.pathname,
+  }) as Prisma.InputJsonValue
 
   const task = await prisma.faceAnalysisTask.create({
     data: {
@@ -127,6 +135,8 @@ export async function submitFaceAnalysis(
       clientSubmissionId: options?.clientSubmissionId,
       completionTimeMs: Date.now() - startTime,
       geometry,
+      blobAccess: 'private',
+      blobPathname: blob.pathname,
     }) as Prisma.InputJsonValue
 
     await prisma.faceAnalysisTask.update({
@@ -197,6 +207,47 @@ export async function getFaceAnalysisTaskForUser(
   })
   if (!task) return null
   return serializeFaceAnalysisTask(task)
+}
+
+export async function readFaceAnalysisUserImageFile(input: {
+  taskId: string
+  userImageUrl: string
+  metadata: unknown
+}): Promise<File> {
+  const metadata = input.metadata && typeof input.metadata === 'object' && !Array.isArray(input.metadata)
+    ? input.metadata as Record<string, unknown>
+    : {}
+  const blobAccess = metadata.blobAccess
+  const blobPathname = typeof metadata.blobPathname === 'string' ? metadata.blobPathname : null
+
+  let contentType = 'image/jpeg'
+  let bytes: Buffer
+
+  if (blobAccess === 'private') {
+    if (!blobPathname) throw new Error('Private face analysis photo is missing its Blob pathname')
+    const result = await get(blobPathname, { access: 'private' })
+    if (!result?.stream) throw new Error('Failed to load private face analysis photo')
+    const reader = result.stream.getReader()
+    const chunks: Uint8Array[] = []
+    for (;;) {
+      const { done, value } = await reader.read()
+      if (done) break
+      if (value) chunks.push(value)
+    }
+    bytes = Buffer.concat(chunks.map((chunk) => Buffer.from(chunk)))
+    contentType = result.blob.contentType || contentType
+  } else {
+    const response = await fetch(input.userImageUrl, { cache: 'no-store' })
+    if (!response.ok) throw new Error(`Failed to load face analysis photo: ${response.status}`)
+    const blob = await response.blob()
+    contentType = blob.type || response.headers.get('content-type')?.split(';')[0].trim() || contentType
+    bytes = Buffer.from(await blob.arrayBuffer())
+  }
+
+  const extension = contentType.split('/')[1] || 'jpg'
+  return new File([new Uint8Array(bytes)], `face-analysis-${input.taskId}.${extension}`, {
+    type: contentType,
+  })
 }
 
 export async function unlockFaceAnalysisReport(taskId: string, userId: string): Promise<boolean> {

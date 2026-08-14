@@ -4,6 +4,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { GET } from '@/app/api/face-analysis/[id]/photo/route'
 import { requireAuth } from '@/lib/api-auth'
 import { prisma } from '@/lib/prisma'
+import { createPrivateBlobGetUrl } from '@/lib/blob/private-signed-url'
 
 jest.mock('@/lib/api-auth', () => ({ requireAuth: jest.fn() }))
 jest.mock('@/lib/prisma', () => ({
@@ -14,6 +15,13 @@ jest.mock('@/lib/prisma', () => ({
 jest.mock('@/lib/logger', () => ({
   getRequestContext: jest.fn().mockReturnValue({}),
   logger: { error: jest.fn() },
+}))
+jest.mock('@/lib/blob/private-signed-url', () => ({
+  createPrivateBlobGetUrl: jest.fn(),
+  privateBlobRedirect: (url: string) => new Response(null, {
+    status: 307,
+    headers: { Location: url, 'Cache-Control': 'private, no-store' },
+  }),
 }))
 
 describe('GET /api/face-analysis/[id]/photo', () => {
@@ -47,6 +55,32 @@ describe('GET /api/face-analysis/[id]/photo', () => {
         reportUnlocked: true,
       }),
     }))
+  })
+
+  it('redirects a new private photo without returning an image body', async () => {
+    ;(prisma.faceAnalysisTask.findFirst as jest.Mock).mockResolvedValue({
+      userImageUrl: 'https://store.private.blob.vercel-storage.com/face-analysis/user/photo.jpg',
+      metadata: { blobAccess: 'private', blobPathname: 'face-analysis/user/photo.jpg' },
+      expiresAt: new Date(Date.now() + 60_000),
+    })
+    ;(createPrivateBlobGetUrl as jest.Mock).mockResolvedValue({
+      url: 'https://store.private.blob.vercel-storage.com/face-analysis/user/photo.jpg?signature=1',
+      validUntil: Date.now() + 60_000,
+    })
+    global.fetch = jest.fn()
+
+    const response = await GET(
+      new NextRequest('http://localhost/api/face-analysis/analysis-private/photo'),
+      { params: { id: 'analysis-private' } },
+    )
+
+    expect(response.status).toBe(307)
+    expect(response.headers.get('location')).toContain('signature=1')
+    expect(new Uint8Array(await response.arrayBuffer())).toHaveLength(0)
+    expect(createPrivateBlobGetUrl).toHaveBeenCalledWith(expect.objectContaining({
+      pathname: 'face-analysis/user/photo.jpg',
+    }))
+    expect(global.fetch).not.toHaveBeenCalled()
   })
 
   it('does not reveal a photo for a task the current user cannot access', async () => {

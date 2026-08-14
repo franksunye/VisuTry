@@ -1,5 +1,7 @@
 /**
- * Stream a completed Store try-on result for the owning capability session.
+ * Resolve a completed Store try-on result for the owning capability session.
+ * Byte streaming remains available for explicit legacy/mock fallback paths;
+ * private production delivery uses the access result and a signed redirect.
  */
 
 import { get } from '@vercel/blob'
@@ -25,6 +27,14 @@ export type ResolveStoreTryOnResult = {
   taskId: string
   contentType: string
   body: Buffer
+}
+
+export type ResolveStoreTryOnResultAccess = {
+  taskId: string
+  resultImageUrl: string
+  resultPathname: string | null
+  accessMode: 'PRIVATE_SIGNED' | 'PUBLIC_TEMPORARY'
+  expiresAt: Date | null
 }
 
 async function readStoreResultBytes(input: {
@@ -73,7 +83,7 @@ function isVercelBlobUrl(value: string): boolean {
   }
 }
 
-export async function resolveStoreTryOnResult(input: {
+export async function resolveStoreTryOnResultAccess(input: {
   merchants: MerchantRepository
   sessions: MerchantSessionRepository
   experiences?: ExperienceRepository
@@ -81,7 +91,7 @@ export async function resolveStoreTryOnResult(input: {
   merchantSessionId: string
   capabilityToken: string | null
   taskId: string
-}): Promise<ResolveStoreTryOnResult> {
+}): Promise<ResolveStoreTryOnResultAccess> {
   const merchant = await input.merchants.findBySlug(input.slug)
   if (!merchant) throw merchantNotFound()
   if (merchant.status !== 'ACTIVE') throw merchantInactive()
@@ -134,14 +144,33 @@ export async function resolveStoreTryOnResult(input: {
     metadata.resultAssetAccessMode ??
     (metadata.privateBlob === false ? 'PUBLIC_TEMPORARY' : 'PRIVATE_SIGNED')
 
-  const bytes = await readStoreResultBytes({
+  return {
+    taskId: task.id,
     resultImageUrl: task.resultImageUrl,
     resultPathname,
-    accessMode: resultAccessMode,
+    accessMode: resultAccessMode === 'PUBLIC_TEMPORARY' ? 'PUBLIC_TEMPORARY' : 'PRIVATE_SIGNED',
+    expiresAt: task.expiresAt,
+  }
+}
+
+export async function resolveStoreTryOnResult(input: {
+  merchants: MerchantRepository
+  sessions: MerchantSessionRepository
+  experiences?: ExperienceRepository
+  slug: string
+  merchantSessionId: string
+  capabilityToken: string | null
+  taskId: string
+}): Promise<ResolveStoreTryOnResult> {
+  const access = await resolveStoreTryOnResultAccess(input)
+  const bytes = await readStoreResultBytes({
+    resultImageUrl: access.resultImageUrl,
+    resultPathname: access.resultPathname,
+    accessMode: access.accessMode,
   })
 
   return {
-    taskId: task.id,
+    taskId: access.taskId,
     contentType: bytes.contentType,
     body: bytes.body,
   }

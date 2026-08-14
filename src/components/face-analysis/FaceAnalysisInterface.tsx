@@ -608,13 +608,20 @@ function ReportSideRail({
           </button>
         </div>
         <div className="relative aspect-[4/5] overflow-hidden rounded-lg bg-gray-100">
-          <Image
-            src={task.userImageUrl}
-            alt="Your analyzed photo"
-            fill
-            className="object-cover"
-            sizes="260px"
-          />
+          {task.userImageUrl ? (
+            <Image
+              src={task.userImageUrl}
+              unoptimized
+              alt="Your analyzed photo"
+              fill
+              className="object-cover"
+              sizes="260px"
+            />
+          ) : (
+            <div className="flex h-full items-center justify-center px-4 text-center text-xs text-gray-500">
+              Photo available after the report is unlocked.
+            </div>
+          )}
         </div>
         <p className="mt-3 text-center text-xs leading-5 text-gray-500">
           Clear lighting and a front-facing photo help improve frame guidance.

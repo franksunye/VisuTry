@@ -3,6 +3,10 @@ import { TaskStatus } from '@prisma/client'
 import { requireAuth } from '@/lib/api-auth'
 import { prisma } from '@/lib/prisma'
 import { getRequestContext, logger } from '@/lib/logger'
+import {
+  createPrivateBlobGetUrl,
+  privateBlobRedirect,
+} from '@/lib/blob/private-signed-url'
 
 export const dynamic = 'force-dynamic'
 export const maxDuration = 30
@@ -26,11 +30,35 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
         status: TaskStatus.COMPLETED,
         reportUnlocked: true,
       },
-      select: { userImageUrl: true },
+      select: { userImageUrl: true, metadata: true, expiresAt: true },
     })
 
     if (!task?.userImageUrl) {
       return NextResponse.json({ success: false, error: 'Photo not found' }, { status: 404 })
+    }
+
+    if (task.expiresAt && task.expiresAt.getTime() <= Date.now()) {
+      return NextResponse.json({ success: false, error: 'Photo not found' }, { status: 404 })
+    }
+
+    const metadata = task.metadata && typeof task.metadata === 'object' && !Array.isArray(task.metadata)
+      ? task.metadata as Record<string, unknown>
+      : {}
+    const blobAccess = metadata.blobAccess
+    const blobPathname = typeof metadata.blobPathname === 'string' ? metadata.blobPathname : null
+
+    if (blobAccess === 'private') {
+      if (!blobPathname) {
+        return NextResponse.json(
+          { success: false, error: 'Photo is unavailable' },
+          { status: 502 },
+        )
+      }
+      const grant = await createPrivateBlobGetUrl({
+        pathname: blobPathname,
+        businessExpiresAt: task.expiresAt,
+      })
+      return privateBlobRedirect(grant.url)
     }
 
     const sourceUrl = new URL(task.userImageUrl)

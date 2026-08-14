@@ -1,5 +1,7 @@
 /**
- * Resolve a StoreAsset for the capability-authenticated shopper session and stream bytes.
+ * Resolve a StoreAsset for the capability-authenticated shopper session.
+ * Callers choose between signed delivery and server-side byte access only after
+ * this authorization seam has completed.
  */
 
 import { logger } from '@/lib/logger'
@@ -18,7 +20,15 @@ export type ResolveStoreSessionAssetResult = {
   expiresAt: Date
 }
 
-export async function resolveStoreSessionAsset(input: {
+export type ResolveStoreSessionAssetAccess = {
+  assetId: string
+  merchantId: string
+  storageKey: string
+  accessMode: 'PRIVATE_SIGNED' | 'PUBLIC_TEMPORARY'
+  expiresAt: Date
+}
+
+export async function resolveStoreSessionAssetAccess(input: {
   merchants: MerchantRepository
   sessions: MerchantSessionRepository
   assets: AssetStore
@@ -26,7 +36,7 @@ export async function resolveStoreSessionAsset(input: {
   merchantSessionId: string
   capabilityToken: string | null
   assetId: string
-}): Promise<ResolveStoreSessionAssetResult> {
+}): Promise<ResolveStoreSessionAssetAccess> {
   const merchant = await input.merchants.findBySlug(input.slug)
   if (!merchant) throw merchantNotFound()
   if (merchant.status !== 'ACTIVE') throw merchantInactive()
@@ -54,7 +64,27 @@ export async function resolveStoreSessionAsset(input: {
     throw new StoreDomainError('SESSION_UNAUTHORIZED', 'Asset is not part of this session.', 403)
   }
 
-  const bytes = await input.assets.getBytes(asset.id, merchant.id)
+  return {
+    assetId: asset.id,
+    merchantId: merchant.id,
+    storageKey: asset.storageKey,
+    accessMode: asset.accessMode === 'PUBLIC_TEMPORARY' ? 'PUBLIC_TEMPORARY' : 'PRIVATE_SIGNED',
+    expiresAt: asset.expiresAt,
+  }
+}
+
+export async function resolveStoreSessionAsset(input: {
+  merchants: MerchantRepository
+  sessions: MerchantSessionRepository
+  assets: AssetStore
+  slug: string
+  merchantSessionId: string
+  capabilityToken: string | null
+  assetId: string
+}): Promise<ResolveStoreSessionAssetResult> {
+  const access = await resolveStoreSessionAssetAccess(input)
+  const bytes = await input.assets.getBytes(access.assetId, access.merchantId)
+
   if (!bytes) {
     throw new StoreDomainError(
       'VALIDATION_ERROR',
@@ -64,9 +94,9 @@ export async function resolveStoreSessionAsset(input: {
   }
 
   return {
-    assetId: asset.id,
+    assetId: access.assetId,
     contentType: bytes.contentType,
     body: bytes.body,
-    expiresAt: asset.expiresAt,
+    expiresAt: access.expiresAt,
   }
 }

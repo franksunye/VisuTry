@@ -2,6 +2,18 @@ import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { mockGlassesFrames, isMockMode } from "@/lib/mocks"
 
+const PUBLIC_FRAMES_CACHE_CONTROL = 'public, max-age=0, s-maxage=300, stale-while-revalidate=60'
+
+function toPublicFrame(frame: { id: string; name: string; imageUrl: string; category: string | null; brand: string | null }) {
+  return {
+    id: frame.id,
+    name: frame.name,
+    imageUrl: frame.imageUrl,
+    category: frame.category,
+    brand: frame.brand,
+  }
+}
+
 export async function GET() {
   try {
     // Use mock data in test mode
@@ -9,7 +21,9 @@ export async function GET() {
       console.log('🧪 Mock Frames API: Returning mock glasses frames')
       return NextResponse.json({
         success: true,
-        data: mockGlassesFrames
+        data: mockGlassesFrames.map(toPublicFrame),
+      }, {
+        headers: { 'Cache-Control': PUBLIC_FRAMES_CACHE_CONTROL },
       })
     }
 
@@ -19,12 +33,21 @@ export async function GET() {
       },
       orderBy: {
         createdAt: "desc"
-      }
+      },
+      select: {
+        id: true,
+        name: true,
+        imageUrl: true,
+        category: true,
+        brand: true,
+      },
     })
 
     return NextResponse.json({
       success: true,
-      data: frames
+      data: frames.map(toPublicFrame),
+    }, {
+      headers: { 'Cache-Control': PUBLIC_FRAMES_CACHE_CONTROL },
     })
   } catch (error) {
     console.error("Failed to fetch glasses frames:", error)
@@ -33,9 +56,11 @@ export async function GET() {
     console.log('🔄 Database failed, falling back to mock data')
     return NextResponse.json({
       success: true,
-      data: mockGlassesFrames,
+      data: mockGlassesFrames.map(toPublicFrame),
       fallback: true,
       message: "Using mock data due to database connection issues"
+    }, {
+      headers: { 'Cache-Control': PUBLIC_FRAMES_CACHE_CONTROL },
     })
   }
 }

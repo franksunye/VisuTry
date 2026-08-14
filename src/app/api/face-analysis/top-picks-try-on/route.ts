@@ -9,6 +9,7 @@ import { getRemainingQuotaCount } from '@/lib/quota'
 import { logger, getRequestContext } from '@/lib/logger'
 import { submitTryOnTask } from '@/lib/tryon-service'
 import { getTryOnConfig } from '@/config/try-on-types'
+import { readFaceAnalysisUserImageFile } from '@/lib/face-analysis-service'
 import {
   DEFAULT_TOP_PICK_PRESET_IDS,
   getTopPickPresetById,
@@ -197,6 +198,7 @@ async function getOwnedCompletedAnalysis(userId: string, faceAnalysisTaskId: str
     select: {
       id: true,
       userImageUrl: true,
+      metadata: true,
       detectedShape: true,
     },
   })
@@ -208,16 +210,6 @@ async function createPresetFile(preset: GlassesPreset) {
   const extension = extname(preset.assetPath).toLowerCase()
   const type = extension === '.png' ? 'image/png' : extension === '.webp' ? 'image/webp' : 'image/jpeg'
   return new File([new Uint8Array(buffer)], `${preset.id}${extension || '.jpg'}`, { type })
-}
-
-async function createUserImageFile(userImageUrl: string) {
-  const response = await fetch(userImageUrl)
-  if (!response.ok) throw new Error(`Failed to load face analysis photo: ${response.status}`)
-
-  const blob = await response.blob()
-  const mimeType = blob.type || 'image/jpeg'
-  const extension = mimeType.split('/')[1] || 'jpg'
-  return new File([blob], `face-analysis-user-photo.${extension}`, { type: mimeType })
 }
 
 function buildPresetPrompt(preset: GlassesPreset) {
@@ -445,7 +437,11 @@ export async function POST(request: NextRequest) {
       batchSize: expectedPresetIds.length,
       framePresetIds: expectedPresetIds,
     }
-    const userImageFile = await createUserImageFile(faceAnalysisTask.userImageUrl)
+    const userImageFile = await readFaceAnalysisUserImageFile({
+      taskId: faceAnalysisTask.id,
+      userImageUrl: faceAnalysisTask.userImageUrl,
+      metadata: faceAnalysisTask.metadata,
+    })
 
     await runWithConcurrency(presets, 2, async (preset) => {
       const batchIndex = expectedPresetIds.indexOf(preset.id)

@@ -115,17 +115,26 @@ export function FaceAnalysisResult({
       <div className="grid gap-3 lg:grid-cols-[minmax(220px,0.9fr)_minmax(0,1.05fr)] xl:grid-cols-[250px_minmax(0,1fr)_270px]">
         <div className={cn(FACE_ANALYSIS_LAYOUT.card, 'overflow-hidden p-3 sm:p-4')}>
           <div className="relative mx-auto aspect-[4/5] w-full max-w-[220px] overflow-hidden rounded-lg bg-gray-100 sm:max-w-[280px] xl:max-w-none">
-            <Image
-              src={task.userImageUrl}
-              alt={t('yourPhoto')}
-              fill
-              className="object-cover"
-              sizes="320px"
-            />
-            <FaceLandmarkMeshOverlay
-              imageUrl={task.userImageUrl}
-              className="absolute inset-0 h-full w-full pointer-events-none"
-            />
+            {task.userImageUrl ? (
+              <>
+                <Image
+                  src={task.userImageUrl}
+                  unoptimized
+                  alt={t('yourPhoto')}
+                  fill
+                  className="object-cover"
+                  sizes="320px"
+                />
+                <FaceLandmarkMeshOverlay
+                  imageUrl={task.userImageUrl}
+                  className="absolute inset-0 h-full w-full pointer-events-none"
+                />
+              </>
+            ) : (
+              <div className="flex h-full items-center justify-center px-4 text-center text-xs text-gray-500">
+                Photo available after the report is unlocked.
+              </div>
+            )}
           </div>
           <p className="mt-2 text-center text-[11px] text-gray-500 sm:text-xs">
             {hasMeasuredGeometry ? 'Live landmark mesh overlay' : t('wireframeCaption')}
@@ -261,7 +270,7 @@ function MetricsSection({
   imageUrl: string
 }) {
   const isMeasured = geometry?.status === 'measured'
-  const landmarkDetection = useMetricLandmarkDetection(imageUrl, isMeasured)
+  const landmarkDetection = useMetricLandmarkDetection(imageUrl, isMeasured && Boolean(imageUrl))
 
   return (
     <section id="face-analysis-details" className={cn(FACE_ANALYSIS_LAYOUT.card, 'scroll-mt-28 p-4 sm:p-5')}>
