@@ -58,6 +58,9 @@ describe('GET /api/face-analysis/[id]/photo', () => {
   })
 
   it('redirects a new private photo without returning an image body', async () => {
+    const previousStoreId = process.env.FACE_ANALYSIS_BLOB_STORE_ID
+    process.env.FACE_ANALYSIS_BLOB_STORE_ID = 'store_test'
+
     ;(prisma.faceAnalysisTask.findFirst as jest.Mock).mockResolvedValue({
       userImageUrl: 'https://store.private.blob.vercel-storage.com/face-analysis/user/photo.jpg',
       metadata: { blobAccess: 'private', blobPathname: 'face-analysis/user/photo.jpg' },
@@ -79,8 +82,12 @@ describe('GET /api/face-analysis/[id]/photo', () => {
     expect(new Uint8Array(await response.arrayBuffer())).toHaveLength(0)
     expect(createPrivateBlobGetUrl).toHaveBeenCalledWith(expect.objectContaining({
       pathname: 'face-analysis/user/photo.jpg',
+      storeId: 'store_test',
     }))
     expect(global.fetch).not.toHaveBeenCalled()
+
+    if (previousStoreId === undefined) delete process.env.FACE_ANALYSIS_BLOB_STORE_ID
+    else process.env.FACE_ANALYSIS_BLOB_STORE_ID = previousStoreId
   })
 
   it('does not reveal a photo for a task the current user cannot access', async () => {

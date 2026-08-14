@@ -7,6 +7,7 @@ import {
   createPrivateBlobGetUrl,
   privateBlobRedirect,
 } from '@/lib/blob/private-signed-url'
+import { getFaceAnalysisBlobStoreId } from '@/lib/face-analysis-blob-access'
 
 export const dynamic = 'force-dynamic'
 export const maxDuration = 30
@@ -57,6 +58,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       const grant = await createPrivateBlobGetUrl({
         pathname: blobPathname,
         businessExpiresAt: task.expiresAt,
+        storeId: getFaceAnalysisBlobStoreId(),
       })
       return privateBlobRedirect(grant.url)
     }

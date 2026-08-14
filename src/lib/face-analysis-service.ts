@@ -8,6 +8,11 @@ import { buildFaceAnalysisPrompt } from '@/lib/prompts/face-analysis-prompt'
 import { analyzeFaceWithGrsAi } from '@/lib/grsai-face-analysis'
 import { normalizeGeometryAnalysis } from '@/lib/face-landmark-metrics'
 import {
+  getFaceAnalysisBlobOptions,
+  getFaceAnalysisBlobStoreId,
+  resolveFaceAnalysisBlobAccessMode,
+} from '@/lib/face-analysis-blob-access'
+import {
   buildBasicResult,
   buildFullResult,
   buildLockedTeaser,
@@ -90,16 +95,18 @@ export async function submitFaceAnalysis(
     geometry,
   }
   const prompt = buildFaceAnalysisPrompt(geometry)
+  const blobAccess = resolveFaceAnalysisBlobAccessMode()
+  const blobOptions = getFaceAnalysisBlobOptions()
 
   const blob = await put(
     `face-analysis/${user.id}/${Date.now()}-${userImageFile.name}`,
     userImageFile,
-    { access: 'private' }
+    blobOptions
   )
 
   const createMetadata = toJsonSafe({
     ...baseMetadata,
-    blobAccess: 'private',
+    blobAccess,
     blobPathname: blob.pathname,
   }) as Prisma.InputJsonValue
 
@@ -135,7 +142,7 @@ export async function submitFaceAnalysis(
       clientSubmissionId: options?.clientSubmissionId,
       completionTimeMs: Date.now() - startTime,
       geometry,
-      blobAccess: 'private',
+      blobAccess,
       blobPathname: blob.pathname,
     }) as Prisma.InputJsonValue
 
@@ -225,7 +232,10 @@ export async function readFaceAnalysisUserImageFile(input: {
 
   if (blobAccess === 'private') {
     if (!blobPathname) throw new Error('Private face analysis photo is missing its Blob pathname')
-    const result = await get(blobPathname, { access: 'private' })
+    const result = await get(blobPathname, {
+      access: 'private',
+      storeId: getFaceAnalysisBlobStoreId(),
+    })
     if (!result?.stream) throw new Error('Failed to load private face analysis photo')
     const reader = result.stream.getReader()
     const chunks: Uint8Array[] = []
