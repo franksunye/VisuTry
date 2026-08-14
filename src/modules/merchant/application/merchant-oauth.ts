@@ -216,6 +216,7 @@ function validateRedirectUri(value: unknown): string {
   if (parsed.protocol !== 'https:' && !(isLocalhost && parsed.protocol === 'http:')) {
     throw new MerchantOAuthError('invalid_request', 'redirect_uri must use HTTPS, except localhost development clients.', 400)
   }
+  if (isLocalhost) parsed.hostname = 'localhost'
   return parsed.toString()
 }
 
@@ -316,7 +317,6 @@ function isCimdClientId(clientId: string): boolean {
 export function assertRegisteredRedirectUri(client: OAuthClientMetadata, redirectUri: string): string {
   const normalized = validateRedirectUri(redirectUri)
   const isRegistered = client.redirectUris.some((registeredUri) => {
-    if (registeredUri === redirectUri || registeredUri === normalized) return true
     try {
       return validateRedirectUri(registeredUri) === normalized
     } catch {
@@ -371,7 +371,7 @@ export async function createMcpOAuthAuthorizationRequest(input: {
   return {
     requestId: row.requestId,
     clientId: row.clientId,
-    redirectUri: row.redirectUri,
+    redirectUri: validateRedirectUri(row.redirectUri),
     scopes: normalizeMerchantAgentScopes(row.scopes),
     resource: row.resource || resource,
     state: row.state,
@@ -507,7 +507,7 @@ export async function exchangeMcpOAuthCode(input: {
   const client = await getMcpOAuthClient(input.clientId)
   const redirectUri = assertRegisteredRedirectUri(client, input.redirectUri)
   const row = await prisma.merchantOAuthAuthorizationCode.findUnique({ where: { codeHash: hashToken(input.code) } })
-  if (!row || row.clientId !== client.clientId || row.redirectUri !== redirectUri || row.usedAt || row.expiresAt.getTime() <= Date.now()) {
+  if (!row || row.clientId !== client.clientId || validateRedirectUri(row.redirectUri) !== redirectUri || row.usedAt || row.expiresAt.getTime() <= Date.now()) {
     throw new MerchantOAuthError('invalid_grant', 'The authorization code is invalid or expired.', 400)
   }
   assertResource(input.resource, input.expectedResource)
