@@ -316,6 +316,7 @@ function isCimdClientId(clientId: string): boolean {
 export function assertRegisteredRedirectUri(client: OAuthClientMetadata, redirectUri: string): string {
   const normalized = validateRedirectUri(redirectUri)
   const isRegistered = client.redirectUris.some((registeredUri) => {
+    if (registeredUri === redirectUri || registeredUri === normalized) return true
     try {
       return validateRedirectUri(registeredUri) === normalized
     } catch {
