@@ -315,7 +315,14 @@ function isCimdClientId(clientId: string): boolean {
 
 export function assertRegisteredRedirectUri(client: OAuthClientMetadata, redirectUri: string): string {
   const normalized = validateRedirectUri(redirectUri)
-  if (!client.redirectUris.includes(normalized)) {
+  const isRegistered = client.redirectUris.some((registeredUri) => {
+    try {
+      return validateRedirectUri(registeredUri) === normalized
+    } catch {
+      return false
+    }
+  })
+  if (!isRegistered) {
     throw new MerchantOAuthError('invalid_request', 'redirect_uri is not registered for this client.', 400)
   }
   return normalized
