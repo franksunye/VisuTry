@@ -1,15 +1,15 @@
 # VisuTry Universal Agent Access
 
-**Status:** ARCHITECTURE / IMPLEMENTATION RECORD<br>
+**Status:** DEPLOYED / REAL DB GOLDEN PATH RECORD<br>
 **Reviewed:** 2026-08-14<br>
-**Base main SHA:** `9214005413ba54f8b0219ef238704b450bfc3a62`<br>
+**Main SHA:** `3b60c43de2a40ab0c74facbadeff52717af115ef`<br>
 **Primary endpoint:** `https://www.visutry.com/api/mcp`
 
 ## 1. Executive decision
 
 VisuTry is built once as a standards-based Remote MCP server. OAuth is the normal merchant connection path; `vt_live_*` Agent Keys remain a developer/CI fallback. Marketplace listings are optional setup and discovery adapters, never a prerequisite.
 
-The implementation is production-shaped and locally verified. Architecture viability is **YES**. External interoperability is **NOT YET CONFIRMED** because no real Codex, Claude Code, or Cursor Golden Path has been completed. External merchant pilot readiness still requires deployment, a real HTTPS/Auth0 session, and one isolated test Merchant exercised from each client.
+The implementation is production-deployed and real-DB verified with a dedicated test Merchant. Architecture viability is **YES**. The Codex CLI Golden Path is **CONFIRMED**; Claude Code, Cursor, and independent merchant direct connection remain **NOT YET CONFIRMED**.
 
 ## 2. Why marketplace-first was rejected
 
@@ -68,11 +68,11 @@ VisuTry now supports CIMD as the primary no-pre-registration path. The implement
 
 Streamable HTTP requests with an absent `Origin` are accepted for native/non-browser clients. When present, `Origin` must be an exact configured origin from `MCP_ALLOWED_ORIGINS`; malformed, untrusted, suffix-matching, path-bearing, or otherwise similar values return HTTP 403 before OAuth authentication. The production default is `https://www.visutry.com`; local development defaults to `http://localhost:3000` when no explicit list is configured. The server never derives this allowlist from `Host` or forwarded host headers.
 
-DCR registration uses `DCR_RATE_LIMIT_TRUSTED_PROXY_MODE` to make the deployment boundary explicit. `vercel` trusts only a single valid `x-vercel-forwarded-for` (falling back to the Vercel-managed `x-forwarded-for`); `cloudflare` trusts only a single valid `cf-connecting-ip`; `none` uses a fixed shared identity so caller-supplied forwarding headers cannot bypass the 20/IP/minute database bucket. Multiple or malformed addresses are treated as unknown and do not select an attacker-controlled bucket.
+DCR registration uses `DCR_RATE_LIMIT_TRUSTED_PROXY_MODE` to make the deployment boundary explicit. `vercel` trusts only a single valid `x-vercel-forwarded-for`; missing or malformed values use the fixed `unknown` bucket and never fall back to `x-forwarded-for`. `cloudflare` trusts only a single valid `cf-connecting-ip`; missing or malformed values use `unknown` and never fall back to `x-forwarded-for` or `x-real-ip`. `none` uses a fixed `untrusted` identity. Multiple or malformed addresses do not select an attacker-controlled bucket.
 
 ### DCR security review
 
-- Redirect URIs are exact-match validated against the registered array.
+- Redirect URIs are exact-match validated after one canonicalization pass; loopback hosts are normalized to `localhost` to account for Vercel edge normalization.
 - HTTPS is required for web clients; HTTP is accepted only for exact `localhost`, `127.0.0.1`, or `[::1]` native callbacks.
 - Credentials and fragments are rejected from redirect URIs.
 - `application_type`, `grant_types`, `response_types`, and `token_endpoint_auth_method` are constrained to public PKCE authorization-code clients.
@@ -140,7 +140,7 @@ The same endpoint and authorization server are intended for all clients. Client-
 
 ### Codex
 
-Use the current Codex Remote MCP add/login flow for `https://www.visutry.com/api/mcp`. The endpoint is HTTPS Streamable HTTP, publishes OAuth discovery, supports CIMD with DCR + PKCE fallback, and returns server instructions. This repository does not contain a logged-in Codex external-client session, so the browser authorization and live tool call are **supported, not externally tested in this change**.
+Use the current Codex Remote MCP add/login flow for `https://www.visutry.com/api/mcp`. The endpoint is HTTPS Streamable HTTP, publishes OAuth discovery, supports CIMD with DCR + PKCE fallback, and returns server instructions. Codex CLI `0.147.0` was configured and completed the real production OAuth flow with the dedicated test Merchant; `tools/list` and `get_merchant` both passed. This confirms Codex interoperability only, not Claude Code or Cursor interoperability.
 
 ### Claude Code
 
@@ -156,21 +156,18 @@ The endpoint supports CIMD first and DCR as a compatibility fallback with a publ
 
 ## Real Agent Interoperability Validation
 
-Status: **BLOCKED — NOT YET RUN**. Static security review is closed, but this repository does not contain an isolated deployment database, an identified `Universal Agent Access Test` Merchant, or a dedicated Auth0 test user/session. The configured local/Vercel database variables cannot be proven isolated from production, so no migration was applied and no real Merchant data was accessed.
+Status: **REAL DB GOLDEN PATH PARTIAL PASS**. Production was deployed from main SHA `3b60c43de2a40ab0c74facbadeff52717af115ef` with the formal OAuth migrations applied. The dedicated public test account used the existing isolated workspace `VisuTry Golden Path Test 20260813` (`cmsrbe9qc000b04jotskfikmz`), OWNER role, and no customer data.
 
-- Environment: no isolated deployment created.
-- MCP endpoint / OAuth issuer: not tested in a real deployment.
-- Migrations: not applied; the formal OAuth migrations remain available under `prisma/migrations/`.
-- Test Merchant, user, role, and campaign IDs: not created or selected.
-- Codex: not run against the endpoint; the local Codex CLI was repaired to `0.147.0`, but no authenticated external session is available.
-- Claude Code: not run; no Claude Code client is installed or connected.
-- Cursor: not run; no Cursor client is installed or connected.
-- Registration paths: not observed and intentionally not inferred.
-- Real DB OAuth, Merchant selection, `tools/list`, read, and controlled draft write: not run.
-- Real runtime security checks and audit-log verification: not run.
-- Real customer data, shopper PII, raw photos, payment data, and production Merchant writes: **not accessed**.
+- Environment: production `https://www.visutry.com`; `MCP_RESOURCE_URL=https://www.visutry.com/api/mcp`; `MCP_OAUTH_ISSUER_URL=https://www.visutry.com`; trusted proxy mode `vercel`.
+- MCP endpoint / OAuth issuer: production discovery and protected-resource metadata PASS.
+- Migrations: production build reported the schema up to date; OAuth tables and DCR counter were verified read-only.
+- DCR + PKCE: production registration, Auth0 login session, Merchant selection, consent, authorization code, and token exchange PASS.
+- Codex CLI: `codex-cli 0.147.0`; real OAuth login PASS; real `tools/list` and `get_merchant` calls PASS for the test Merchant.
+- Direct MCP harness: `initialize`, `tools/list`, `get_merchant`, and controlled `create_campaign` PASS. Created campaign `cmssn810u000f05i7p6sham3s` remains `DRAFT`.
+- Claude Code and Cursor: not run; interoperability remains **NOT YET CONFIRMED**.
+- Real customer data, shopper PII, raw photos, payment data, and production customer Merchant writes: **not accessed**.
 
-The interoperability decision remains **NOT YET CONFIRMED**. The next safe step requires an explicitly isolated deployment/database, formal migration application in that environment, a dedicated test Merchant and Auth0 test user, and authenticated sessions for each real client. No security boundary was weakened to manufacture a client result.
+The interoperability decision is confirmed only for the tested Codex path. One VisuTry implementation serving Codex + Claude Code + Cursor and independent merchant direct connection remain **NOT YET CONFIRMED**.
 
 ### Cursor
 
@@ -180,12 +177,12 @@ Official Cursor documentation lists remote Streamable HTTP with OAuth. Configure
 
 | Capability | Codex | Claude Code | Cursor |
 |---|---|---|---|
-| Remote HTTP MCP | SUPPORTED NOT TESTED | SUPPORTED NOT TESTED | SUPPORTED NOT TESTED |
-| OAuth | SUPPORTED NOT TESTED | SUPPORTED NOT TESTED | SUPPORTED NOT TESTED |
-| Custom server without marketplace | SUPPORTED NOT TESTED | SUPPORTED NOT TESTED | SUPPORTED NOT TESTED |
-| `tools/list` | LOCAL PASS; external not tested | LOCAL PASS; external not tested | LOCAL PASS; external not tested |
-| Read tools | LOCAL PASS; external not tested | LOCAL PASS; external not tested | LOCAL PASS; external not tested |
-| Write tools | LOCAL PASS; external not tested | LOCAL PASS; external not tested | LOCAL PASS; external not tested |
+| Remote HTTP MCP | REAL PASS | NOT YET RUN | NOT YET RUN |
+| OAuth | REAL PASS | NOT YET RUN | NOT YET RUN |
+| Custom server without marketplace | REAL PASS | NOT YET RUN | NOT YET RUN |
+| `tools/list` | REAL PASS | NOT YET RUN | NOT YET RUN |
+| Read tools | REAL PASS | NOT YET RUN | NOT YET RUN |
+| Write tools | REAL controlled draft PASS | NOT YET RUN | NOT YET RUN |
 | Explicit write confirmation | Server enforced | Server enforced | Server enforced |
 | Server instructions | LOCAL PASS; external not tested | LOCAL PASS; external not tested | LOCAL PASS; external not tested |
 
@@ -197,14 +194,14 @@ The existing Agent Access UI is still the practical Agent Key management surface
 
 ## 16. Remaining limitations
 
-- The new migration must be deployed before OAuth is enabled in production.
+- Production migration status is verified; local direct Prisma migration execution remains limited by the local Neon/IPv6 connection path.
 - `MCP_RESOURCE_URL` must be set per environment: local `http://localhost:3000/api/mcp`, preview/staging `https://<environment-host>/api/mcp`, production `https://www.visutry.com/api/mcp`. Tokens are rejected when their stored resource differs from the request environment's canonical resource.
-- Auth0 callback/NextAuth production configuration must be verified with the deployed public origin.
-- Live end-to-end Codex, Claude Code, and Cursor browser flows require client installations/accounts and an isolated test Merchant; Codex is now installed locally, but the endpoint, database, Auth0 test user, and authenticated client sessions remain unavailable.
+- Auth0 callback/NextAuth production configuration and public email login were verified through the production consent flow; Auth0 admin access was not required.
+- Claude Code and Cursor live flows still require their client installations/accounts and authenticated sessions.
 - `tests/unit/app/api/mcp-oauth-http.integration.test.ts` is intentionally an HTTP handler contract test with mocked OAuth boundaries, not a database-backed protocol integration test.
 - Automated cleanup of expired authorization requests/codes/tokens should be added to the existing maintenance job.
 - Add a Merchant Control Center list/revoke view for OAuth authorizations before external pilot.
-- Run the real database-backed OAuth integration suite and the Codex, Claude Code, and Cursor Golden Paths.
+- Run the real database-backed OAuth integration suite and the Claude Code and Cursor Golden Paths.
 
 ## 17. Exact production Golden Path
 
@@ -222,6 +219,9 @@ The existing Agent Access UI is still the practical Agent Key management surface
 Architecture viability = **YES**<br>
 Independent merchant direct connection = **NOT YET CONFIRMED**<br>
 One VisuTry MCP implementation serving Codex + Claude Code + Cursor = **NOT YET CONFIRMED**<br>
+Codex interoperability = **YES — REAL GOLDEN PATH CONFIRMED**<br>
+Cursor interoperability = **NOT YET CONFIRMED**<br>
+Claude Code interoperability = **NOT YET CONFIRMED**<br>
 Ready for external merchant pilot = **NO**
 
 ## Official protocol references
