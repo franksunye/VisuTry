@@ -108,7 +108,7 @@ export function resolveExperienceSearchVisibility(
   const hasMerchantDestination = hasHttpUrl(input.merchant.websiteUrl)
   const hasProductDestination = input.hasProductDestination
     ?? input.frames.some((frame) => hasHttpUrl(frame.productUrl))
-  const hasMeaningfulCollection = input.frames.length >= MINIMUM_INDEXABLE_CATALOG_ITEMS
+  const hasMeaningfulCollection = (input.frameCount ?? input.frames.length) >= MINIMUM_INDEXABLE_CATALOG_ITEMS
 
   if (
     !isIndexableMerchant(input)

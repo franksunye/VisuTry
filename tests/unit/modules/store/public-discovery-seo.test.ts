@@ -88,6 +88,17 @@ describe('ExperienceSearchVisibility', () => {
     expect(visibilityToRobots('PUBLIC_NOINDEX')).toEqual({ index: false, follow: true })
     expect(visibilityToRobots('PRIVATE')).toEqual({ index: false, follow: false })
   })
+
+  it('keeps aggregate visibility consistent with full frame input', () => {
+    const aggregateInput = {
+      ...visibilityInput(),
+      frames: [],
+      frameCount: 4,
+      hasProductDestination: true,
+    }
+    expect(resolveExperienceSearchVisibility(aggregateInput)).toBe('PUBLIC_INDEX')
+    expect(resolveExperienceSearchVisibility({ ...aggregateInput, frameCount: 3 })).toBe('PUBLIC_NOINDEX')
+  })
 })
 
 function discovery(): PublicExperienceDiscovery {
