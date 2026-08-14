@@ -7,12 +7,23 @@ export type HumanMerchantActor = {
   membershipId?: string
 }
 
-export type AgentMerchantActor = {
+export type AgentCredentialMerchantActor = {
   actorType: 'AGENT_CREDENTIAL'
   actorId: string
   merchantId: string
   scopes: MerchantAgentScope[]
 }
+
+export type OAuthMerchantActor = {
+  actorType: 'AGENT_OAUTH'
+  actorId: string
+  merchantId: string
+  userId: string
+  authorizationId: string
+  scopes: MerchantAgentScope[]
+}
+
+export type AgentMerchantActor = AgentCredentialMerchantActor | OAuthMerchantActor
 
 export type SystemMerchantActor = {
   actorType: 'SYSTEM'
@@ -23,11 +34,11 @@ export type SystemMerchantActor = {
 export type MerchantActorContext = HumanMerchantActor | AgentMerchantActor | SystemMerchantActor
 
 export function requireAgentScope(actor: MerchantActorContext, scope: MerchantAgentScope): void {
-  if (actor.actorType === 'AGENT_CREDENTIAL' && !actor.scopes.includes(scope)) {
+  if (isAgentMerchantActor(actor) && !actor.scopes.includes(scope)) {
     throw new AgentScopeError(scope)
   }
 }
 
 export function isAgentMerchantActor(actor: MerchantActorContext): actor is AgentMerchantActor {
-  return actor.actorType === 'AGENT_CREDENTIAL'
+  return actor.actorType === 'AGENT_CREDENTIAL' || actor.actorType === 'AGENT_OAUTH'
 }

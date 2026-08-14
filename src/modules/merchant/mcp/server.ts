@@ -1,4 +1,5 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
+import type { ToolAnnotations } from '@modelcontextprotocol/sdk/types.js'
 import { z } from 'zod/v4'
 import {
   merchantOnboarding,
@@ -66,6 +67,67 @@ const analyticsAvailability = {
   roas: false,
 } as const
 
+const MCP_SERVER_INSTRUCTIONS = [
+  'You are operating inside one authorized VisuTry Merchant workspace.',
+  'Never infer or request access to another merchant; the authenticated context is the tenant boundary.',
+  'Use aggregate merchant analytics only. Do not expose shopper photos, consumer PII, payment data, or raw sessions.',
+  'Read context and preview Store/Campaign readiness before mutations when necessary.',
+  'Publishing and archiving are high-impact actions. Require explicit approval in the tool call; prior conversation is not approval.',
+  'Respect tool scopes and treat authorization failures as VisuTry security boundaries.',
+].join(' ')
+
+const TOOL_SCOPES: Record<string, string[]> = {
+  get_onboarding_status: ['merchant:read'],
+  get_merchant: ['merchant:read'],
+  list_frames: ['catalog:read'],
+  import_frames: ['catalog:write'],
+  validate_catalog: ['catalog:read'],
+  create_store: ['experience:write'],
+  set_store_frames: ['experience:write'],
+  preview_store: ['experience:read'],
+  publish_store: ['experience:write'],
+  list_campaigns: ['experience:read'],
+  get_campaign: ['experience:read'],
+  create_campaign: ['experience:write'],
+  set_campaign_frames: ['experience:write'],
+  update_campaign: ['experience:write'],
+  preview_campaign: ['experience:read'],
+  publish_campaign: ['experience:write'],
+  archive_campaign: ['experience:write'],
+  get_experience_summary: ['analytics:read'],
+  get_experience_funnel: ['analytics:read'],
+  get_top_frames: ['analytics:read'],
+  get_intent_summary: ['analytics:read'],
+  compare_experiences: ['analytics:read'],
+}
+
+const HIGH_IMPACT_TOOLS = new Set(['publish_store', 'publish_campaign', 'archive_campaign'])
+const WRITE_TOOLS = new Set([
+  'import_frames', 'create_store', 'set_store_frames', 'publish_store', 'create_campaign',
+  'set_campaign_frames', 'update_campaign', 'publish_campaign', 'archive_campaign',
+])
+
+function enrichToolConfig(name: string, config: Record<string, unknown>) {
+  const readOnly = !WRITE_TOOLS.has(name)
+  const annotations: ToolAnnotations = {
+    ...(config.annotations as ToolAnnotations | undefined),
+    readOnlyHint: readOnly,
+    destructiveHint: HIGH_IMPACT_TOOLS.has(name),
+    idempotentHint: readOnly || name === 'import_frames' || name === 'create_campaign',
+    openWorldHint: false,
+  }
+  const scopes = TOOL_SCOPES[name] ?? []
+  return {
+    ...config,
+    annotations,
+    _meta: {
+      ...(config._meta as Record<string, unknown> | undefined),
+      securitySchemes: [{ type: 'oauth2', scopes }],
+      'visutry/securityScopes': scopes,
+    },
+  }
+}
+
 function result(data: unknown) {
   return { content: [{ type: 'text' as const, text: JSON.stringify(data) }] }
 }
@@ -110,7 +172,9 @@ async function auditedCampaignMutation<T>(input: {
 }
 
 export function createMerchantMcpServer(actor: AgentMerchantActor) {
-  const server = new McpServer({ name: 'visutry-merchant-self-service', version: '1.0.0' })
+  const server = new McpServer({ name: 'visutry-merchant-self-service', version: '1.0.0' }, { instructions: MCP_SERVER_INSTRUCTIONS })
+  const originalRegisterTool = server.registerTool.bind(server)
+  server.registerTool = ((name: string, config: Record<string, unknown>, callback: unknown) => originalRegisterTool(name, enrichToolConfig(name, config) as never, callback as never)) as typeof server.registerTool
 
   server.registerTool('get_onboarding_status', {
     title: 'Get onboarding status',

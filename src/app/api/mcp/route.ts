@@ -1,8 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { WebStandardStreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/webStandardStreamableHttp.js'
 import {
-  authenticateMerchantAgentCredential,
+  authenticateMerchantMcpBearer,
+  canonicalMcpResource,
   InvalidAgentCredentialError,
+  McpOriginError,
+  assertTrustedMcpOrigin,
 } from '@/modules/merchant'
 import { AgentRateLimitError, consumeMerchantAgentMcpRequest } from '@/modules/merchant'
 import { createMerchantMcpServer } from '@/modules/merchant/mcp/server'
@@ -18,8 +21,19 @@ function bearerToken(request: NextRequest): string {
   return token
 }
 
-function errorResponse(error: unknown) {
-  if (error instanceof InvalidAgentCredentialError) return NextResponse.json({ error: error.code }, { status: 401 })
+function errorResponse(error: unknown, request: NextRequest) {
+  if (error instanceof McpOriginError) {
+    return NextResponse.json({ error: error.code }, { status: error.httpStatus })
+  }
+  if (error instanceof InvalidAgentCredentialError) {
+    const resourceMetadata = `${request.nextUrl.origin}/.well-known/oauth-protected-resource`
+    return NextResponse.json({ error: error.code }, {
+      status: 401,
+      headers: {
+        'WWW-Authenticate': `Bearer error="invalid_token", resource_metadata="${resourceMetadata}"`,
+      },
+    })
+  }
   if (error instanceof AgentRateLimitError) {
     return NextResponse.json({ error: error.code }, { status: 429, headers: { 'Retry-After': String(error.retryAfterSeconds) } })
   }
@@ -28,7 +42,8 @@ function errorResponse(error: unknown) {
 
 export async function POST(request: NextRequest) {
   try {
-    const actor = await authenticateMerchantAgentCredential(bearerToken(request))
+    assertTrustedMcpOrigin(request.headers.get('origin'))
+    const actor = await authenticateMerchantMcpBearer(bearerToken(request), canonicalMcpResource(request.nextUrl.origin))
     await consumeMerchantAgentMcpRequest({ actor })
     const server = createMerchantMcpServer(actor)
     const transport = new WebStandardStreamableHTTPServerTransport({ sessionIdGenerator: undefined, enableJsonResponse: true })
@@ -37,7 +52,7 @@ export async function POST(request: NextRequest) {
     response.headers.set('Cache-Control', 'no-store')
     return response
   } catch (error) {
-    return errorResponse(error)
+    return errorResponse(error, request)
   }
 }
 
