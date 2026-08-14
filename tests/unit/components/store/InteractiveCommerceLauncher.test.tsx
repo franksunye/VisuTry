@@ -36,5 +36,25 @@ describe('InteractiveCommerceLauncher', () => {
 
     fireEvent.click(screen.getByRole('button', { name: /try on your photo/i }))
     expect(screen.getByTestId('lazy-runtime')).toBeInTheDocument()
+    expect(screen.getByRole('dialog', { name: /try-on workspace/i })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /close try-on workspace/i })).toBeInTheDocument()
+  })
+
+  it('keeps the page behind the workspace and closes on Escape', () => {
+    render(
+      <InteractiveCommerceLauncher
+        merchantSlug="luna-optical"
+        locale="en"
+        publicPocStorage={false}
+      />,
+    )
+
+    fireEvent.click(screen.getByRole('button', { name: /try on your photo/i }))
+    expect(document.body.style.overflow).toBe('hidden')
+
+    fireEvent.keyDown(screen.getByRole('dialog'), { key: 'Escape' })
+
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    expect(document.body.style.overflow).toBe('')
   })
 })
