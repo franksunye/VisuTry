@@ -6,6 +6,7 @@ import { InteractiveCommerceLauncher } from '@/components/store/InteractiveComme
 import { StorePresentationDisclosure } from '@/components/store/StorePresentationDisclosure'
 import { resolveStoreAssetAccessPolicy } from '@/modules/store/infrastructure/config/store-asset-access-policy'
 import { getPublicExperienceDiscoveryForRoute } from '@/modules/store/application/get-public-experience-discovery-route'
+import { isPublicCampaignRouteAdmitted } from '@/modules/store/application/public-route-admission'
 import { buildExperienceDiscoveryMetadata, discoveryCanonicalUrl } from '@/lib/store-discovery-seo'
 import { getValidLocale } from '@/i18n'
 
@@ -33,6 +34,17 @@ export async function generateMetadata({
   setRequestLocale(params.locale)
   const locale = getValidLocale(params.locale)
   const pathname = `/${locale}/c/${params.merchantSlug}/${params.experienceSlug}`
+  const admitted = await isPublicCampaignRouteAdmitted({
+    merchantSlug: params.merchantSlug,
+    experienceSlug: params.experienceSlug,
+  })
+  if (!admitted) {
+    return {
+      title: 'Campaign not found | VisuTry',
+      alternates: { canonical: discoveryCanonicalUrl(pathname) },
+      robots: { index: false, follow: false },
+    }
+  }
   const discovery = await getPublicExperienceDiscoveryForRoute(params.merchantSlug, params.experienceSlug, locale)
   if (!discovery) {
     return {
@@ -47,6 +59,11 @@ export async function generateMetadata({
 export default async function CampaignExperiencePage({ params }: CampaignExperiencePageProps) {
   setRequestLocale(params.locale)
   const locale = getValidLocale(params.locale)
+  const admitted = await isPublicCampaignRouteAdmitted({
+    merchantSlug: params.merchantSlug,
+    experienceSlug: params.experienceSlug,
+  })
+  if (!admitted) notFound()
   const discovery = await getPublicExperienceDiscoveryForRoute(params.merchantSlug, params.experienceSlug, locale)
   if (!discovery) notFound()
   const assetPolicy = resolveStoreAssetAccessPolicy()

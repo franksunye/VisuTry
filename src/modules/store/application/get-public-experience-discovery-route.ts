@@ -6,6 +6,10 @@ import {
   publicDiscoveryCacheKey,
   publicDiscoveryCacheTags,
 } from '@/lib/store-discovery-cache'
+import {
+  isPublicCampaignRouteAdmitted,
+  isPublicStoreRouteAdmitted,
+} from './public-route-admission'
 
 /**
  * Persistent, slug-scoped read model shared by generateMetadata and the page.
@@ -17,6 +21,11 @@ export async function getPublicExperienceDiscoveryForRoute(
   experienceSlug?: string | null,
   locale = 'en',
 ) {
+  const admitted = experienceSlug
+    ? await isPublicCampaignRouteAdmitted({ merchantSlug: slug, experienceSlug })
+    : await isPublicStoreRouteAdmitted({ merchantSlug: slug })
+  if (!admitted) return null
+
   const revalidate = experienceSlug
     ? PUBLIC_DISCOVERY_CACHE.campaignRevalidateSeconds
     : PUBLIC_DISCOVERY_CACHE.storeRevalidateSeconds

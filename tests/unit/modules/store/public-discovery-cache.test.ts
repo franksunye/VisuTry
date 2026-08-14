@@ -37,16 +37,17 @@ describe('public discovery cache contract', () => {
       target: { kind: 'merchant', merchantSlug: 'luna-optical' },
       mutation: async () => 'merchant-updated',
     })
-    expect(revalidateTag).toHaveBeenCalledTimes(2)
+    expect(revalidateTag).toHaveBeenCalledTimes(3)
     expect(revalidateTag).toHaveBeenCalledWith('public-discovery:merchant:luna-optical')
     expect(revalidateTag).toHaveBeenCalledWith('public-discovery:sitemap')
+    expect(revalidateTag).toHaveBeenCalledWith('public-discovery:route-admission')
 
     jest.clearAllMocks()
     await withPublicDiscoveryInvalidation({
       target: { kind: 'catalog', merchantSlug: 'luna-optical' },
       mutation: async () => 'catalog-updated',
     })
-    expect(revalidateTag).toHaveBeenCalledTimes(3)
+    expect(revalidateTag).toHaveBeenCalledTimes(4)
     expect(revalidateTag).toHaveBeenCalledWith('public-discovery:merchant-catalog:luna-optical')
 
     jest.clearAllMocks()
@@ -54,7 +55,7 @@ describe('public discovery cache contract', () => {
       target: { kind: 'experience', merchantSlug: 'luna-optical', experienceSlug: 'petite-fit' },
       mutation: async () => 'experience-updated',
     })
-    expect(revalidateTag).toHaveBeenCalledTimes(3)
+    expect(revalidateTag).toHaveBeenCalledTimes(4)
     expect(revalidateTag).toHaveBeenCalledWith('public-discovery:experience:luna-optical:petite-fit')
   })
 

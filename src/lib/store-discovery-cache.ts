@@ -8,6 +8,7 @@ export const PUBLIC_DISCOVERY_CACHE = {
     experience: (merchantSlug: string, experienceSlug: string | null) =>
       `public-discovery:experience:${merchantSlug}:${experienceSlug || 'store'}`,
     sitemap: 'public-discovery:sitemap',
+    routeAdmission: 'public-discovery:route-admission',
   },
 } as const
 

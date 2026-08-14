@@ -1,6 +1,7 @@
 import { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { slugify } from '@/lib/programmatic-seo'
+import { withPublicDiscoveryInvalidation } from '@/modules/store/application/public-discovery-invalidation'
 import type { MerchantMembershipRecord } from '../domain/membership'
 
 export type CreateMerchantWithOwnerInput = {
@@ -18,6 +19,8 @@ export type MerchantWithOwner = {
   }
   membership: MerchantMembershipRecord
 }
+
+type MerchantProvisioningAttemptResult = MerchantWithOwner & { created: boolean }
 
 export class MerchantProvisioningError extends Error {
   readonly code: 'INVALID_MERCHANT_NAME' | 'INVALID_WEBSITE_URL' | 'SLUG_UNAVAILABLE'
@@ -57,8 +60,8 @@ function normalizeInput(input: CreateMerchantWithOwnerInput) {
 async function createMerchantWithOwnerAttempt(
   input: CreateMerchantWithOwnerInput,
   normalized: ReturnType<typeof normalizeInput>,
-  attempt: number,
-): Promise<MerchantWithOwner> {
+  slug: string,
+): Promise<MerchantProvisioningAttemptResult> {
   return prisma.$transaction(async (tx) => {
     // Serialize first-workspace creation for this user without changing User.role.
     await tx.user.update({
@@ -91,10 +94,10 @@ async function createMerchantWithOwnerAttempt(
           createdAt: existingMembership.createdAt,
           updatedAt: existingMembership.updatedAt,
         },
+        created: false,
       }
     }
 
-    const slug = attempt === 0 ? normalized.baseSlug : `${normalized.baseSlug}-${attempt + 1}`
     const merchant = await tx.merchant.create({
       data: {
         slug,
@@ -119,7 +122,7 @@ async function createMerchantWithOwnerAttempt(
       },
     })
 
-    return { merchant, membership }
+    return { merchant, membership, created: true }
   }, { isolationLevel: Prisma.TransactionIsolationLevel.Serializable })
 }
 
@@ -131,7 +134,13 @@ export async function createMerchantWithOwner(
   let serializationRetries = 0
   while (slugAttempt < 5 && serializationRetries < 5) {
     try {
-      return await createMerchantWithOwnerAttempt(input, normalized, slugAttempt)
+      const slug = slugAttempt === 0 ? normalized.baseSlug : `${normalized.baseSlug}-${slugAttempt + 1}`
+      const result = await withPublicDiscoveryInvalidation({
+        target: { kind: 'merchant', merchantSlug: slug },
+        invalidate: (attempt) => attempt.created,
+        mutation: () => createMerchantWithOwnerAttempt(input, normalized, slug),
+      })
+      return { merchant: result.merchant, membership: result.membership }
     } catch (error) {
       if (error instanceof Prisma.PrismaClientKnownRequestError) {
         if (error.code === 'P2034' && serializationRetries < 4) {

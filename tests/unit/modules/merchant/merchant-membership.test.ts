@@ -15,6 +15,10 @@ jest.mock('@/lib/prisma', () => ({
   },
 }))
 
+jest.mock('@/modules/store/application/public-discovery-invalidation', () => ({
+  withPublicDiscoveryInvalidation: jest.fn(async ({ mutation }: { mutation: () => Promise<unknown> }) => mutation()),
+}))
+
 import { prisma } from '@/lib/prisma'
 import {
   MerchantAccessError,

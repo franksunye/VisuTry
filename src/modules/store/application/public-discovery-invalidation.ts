@@ -27,6 +27,7 @@ export async function withPublicDiscoveryInvalidation<T>(input: {
   const tags = new Set<string>([
     PUBLIC_DISCOVERY_CACHE.tags.merchant(input.target.merchantSlug),
     PUBLIC_DISCOVERY_CACHE.tags.sitemap,
+    PUBLIC_DISCOVERY_CACHE.tags.routeAdmission,
   ])
   if (input.target.kind === 'catalog') {
     tags.add(PUBLIC_DISCOVERY_CACHE.tags.catalog(input.target.merchantSlug))
