@@ -154,6 +154,24 @@ claude mcp add --transport http visutry https://www.visutry.com/api/mcp
 
 The endpoint supports CIMD first and DCR as a compatibility fallback with a public PKCE client, so no long-lived VisuTry Agent Key is needed.
 
+## Real Agent Interoperability Validation
+
+Status: **BLOCKED — NOT YET RUN**. Static security review is closed, but this repository does not contain an isolated deployment database, an identified `Universal Agent Access Test` Merchant, or a dedicated Auth0 test user/session. The configured local/Vercel database variables cannot be proven isolated from production, so no migration was applied and no real Merchant data was accessed.
+
+- Environment: no isolated deployment created.
+- MCP endpoint / OAuth issuer: not tested in a real deployment.
+- Migrations: not applied; the formal OAuth migrations remain available under `prisma/migrations/`.
+- Test Merchant, user, role, and campaign IDs: not created or selected.
+- Codex: not run against the endpoint; the local Codex CLI binary is unavailable in this environment.
+- Claude Code: not run; no Claude Code client is installed or connected.
+- Cursor: not run; no Cursor client is installed or connected.
+- Registration paths: not observed and intentionally not inferred.
+- Real DB OAuth, Merchant selection, `tools/list`, read, and controlled draft write: not run.
+- Real runtime security checks and audit-log verification: not run.
+- Real customer data, shopper PII, raw photos, payment data, and production Merchant writes: **not accessed**.
+
+The interoperability decision remains **NOT YET CONFIRMED**. The next safe step requires an explicitly isolated deployment/database, formal migration application in that environment, a dedicated test Merchant and Auth0 test user, and authenticated sessions for each real client. No security boundary was weakened to manufacture a client result.
+
 ### Cursor
 
 Official Cursor documentation lists remote Streamable HTTP with OAuth. Configure the same URL in Cursor's MCP settings; no Cursor-specific VisuTry backend exists. Live Cursor authentication/tool execution was not run in this repository change.
