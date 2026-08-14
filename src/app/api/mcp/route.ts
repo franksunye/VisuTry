@@ -4,6 +4,8 @@ import {
   authenticateMerchantMcpBearer,
   canonicalMcpResource,
   InvalidAgentCredentialError,
+  McpOriginError,
+  assertTrustedMcpOrigin,
 } from '@/modules/merchant'
 import { AgentRateLimitError, consumeMerchantAgentMcpRequest } from '@/modules/merchant'
 import { createMerchantMcpServer } from '@/modules/merchant/mcp/server'
@@ -20,6 +22,9 @@ function bearerToken(request: NextRequest): string {
 }
 
 function errorResponse(error: unknown, request: NextRequest) {
+  if (error instanceof McpOriginError) {
+    return NextResponse.json({ error: error.code }, { status: error.httpStatus })
+  }
   if (error instanceof InvalidAgentCredentialError) {
     const resourceMetadata = `${request.nextUrl.origin}/.well-known/oauth-protected-resource`
     return NextResponse.json({ error: error.code }, {
@@ -37,6 +42,7 @@ function errorResponse(error: unknown, request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
+    assertTrustedMcpOrigin(request.headers.get('origin'))
     const actor = await authenticateMerchantMcpBearer(bearerToken(request), canonicalMcpResource(request.nextUrl.origin))
     await consumeMerchantAgentMcpRequest({ actor })
     const server = createMerchantMcpServer(actor)

@@ -14,9 +14,15 @@ jest.mock('@/modules/merchant', () => ({
   MCP_OAUTH_SCOPE_VALUES: ['merchant:read', 'experience:read', 'experience:write', 'analytics:read'],
   MCP_OAUTH_TOKEN_PATH: '/api/mcp/oauth/token',
   canonicalMcpResource: jest.fn((origin: string) => `${origin}/api/mcp`),
+  assertTrustedMcpOrigin: jest.fn(),
+  McpOriginError: class McpOriginError extends Error {
+    readonly code = 'MCP_ORIGIN_FORBIDDEN'
+    readonly httpStatus = 403
+  },
   oauthIssuer: jest.fn((origin: string) => origin),
   registerMcpOAuthClient: jest.fn(),
   consumeMcpOAuthDcrRateLimit: jest.fn(),
+  dcrClientIdentityFromHeaders: jest.fn().mockReturnValue({ identity: 'untrusted', source: 'none' }),
   createMcpOAuthAuthorizationRequest: jest.fn(),
   getMcpOAuthClient: jest.fn(),
   getMcpOAuthAuthorizationRequest: jest.fn(),

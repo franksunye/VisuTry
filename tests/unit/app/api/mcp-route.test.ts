@@ -4,6 +4,11 @@ jest.mock('@/modules/merchant', () => ({
   authenticateMerchantAgentCredential: jest.fn(),
   authenticateMerchantMcpBearer: jest.fn(),
   canonicalMcpResource: jest.fn().mockReturnValue('http://localhost/api/mcp'),
+  assertTrustedMcpOrigin: jest.fn(),
+  McpOriginError: class McpOriginError extends Error {
+    readonly code = 'MCP_ORIGIN_FORBIDDEN'
+    readonly httpStatus = 403
+  },
   InvalidAgentCredentialError: class InvalidAgentCredentialError extends Error {
     readonly code = 'INVALID_AGENT_CREDENTIAL'
     readonly httpStatus = 401
@@ -79,17 +84,18 @@ jest.mock('@/modules/merchant/application/merchant-agent-credentials', () => ({
 }))
 
 import { NextRequest } from 'next/server'
-import { authenticateMerchantMcpBearer } from '@/modules/merchant'
+import { assertTrustedMcpOrigin, authenticateMerchantMcpBearer } from '@/modules/merchant'
 import { recordMerchantAgentOperation } from '@/modules/merchant/application/merchant-agent-credentials'
 import { POST } from '@/app/api/mcp/route'
 
 const authenticate = authenticateMerchantMcpBearer as jest.Mock
+const originGuard = assertTrustedMcpOrigin as jest.Mock
 const actor = { actorType: 'AGENT_CREDENTIAL' as const, actorId: 'credential-a', merchantId: 'merchant-a', scopes: ['merchant:read', 'catalog:read', 'experience:read', 'experience:write', 'analytics:read'] }
 
-function mcpRequest(message: unknown) {
+function mcpRequest(message: unknown, origin?: string) {
   return new NextRequest('http://localhost/api/mcp', {
     method: 'POST',
-    headers: { authorization: 'Bearer secret', 'content-type': 'application/json', accept: 'application/json, text/event-stream' },
+    headers: { authorization: 'Bearer secret', 'content-type': 'application/json', accept: 'application/json, text/event-stream', ...(origin ? { origin } : {}) },
     body: JSON.stringify(message),
   })
 }
@@ -172,5 +178,13 @@ describe('MCP transport protocol', () => {
     const response = await POST(mcpRequest({ jsonrpc: '2.0', id: 9, method: 'initialize', params: { protocolVersion: '2025-06-18', capabilities: {}, clientInfo: { name: 'oauth-client', version: '1' } } }))
     expect(response.status).toBe(401)
     expect(response.headers.get('WWW-Authenticate')).toContain('resource_metadata="http://localhost/.well-known/oauth-protected-resource"')
+  })
+
+  it('rejects an untrusted Origin before bearer authentication', async () => {
+    originGuard.mockImplementationOnce(() => { throw new (require('@/modules/merchant').McpOriginError)() })
+    const response = await POST(mcpRequest({ jsonrpc: '2.0', id: 10, method: 'initialize', params: {} }, 'https://evil.example'))
+    expect(response.status).toBe(403)
+    expect(await response.json()).toEqual({ error: 'MCP_ORIGIN_FORBIDDEN' })
+    expect(authenticate).not.toHaveBeenCalled()
   })
 })

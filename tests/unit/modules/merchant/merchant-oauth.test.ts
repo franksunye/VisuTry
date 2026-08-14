@@ -1,6 +1,11 @@
 /** @jest-environment node */
 
-jest.mock('node:dns/promises', () => ({ lookup: jest.fn().mockResolvedValue([{ address: '93.184.216.34', family: 4 }]) }))
+jest.mock('@/modules/merchant/application/merchant-cimd-network', () => ({
+  CIMD_FETCH_TIMEOUT_MS: 2_000,
+  CIMD_MAX_DOCUMENT_BYTES: 64 * 1024,
+  resolveAndPinCimdHost: jest.fn(),
+  fetchPinnedCimdDocument: jest.fn(),
+}))
 jest.mock('@/lib/prisma', () => ({
   prisma: {
     merchantOAuthClient: { findUnique: jest.fn(), create: jest.fn() },
@@ -30,12 +35,17 @@ import {
 import { requireAgentScope } from '@/modules/merchant/domain/actor'
 import type { MerchantAgentScope } from '@/modules/merchant/domain/agent-credentials'
 import { prisma } from '@/lib/prisma'
+import { fetchPinnedCimdDocument, resolveAndPinCimdHost } from '@/modules/merchant/application/merchant-cimd-network'
 
 const mockPrisma = prisma as any
+const mockResolvePinned = resolveAndPinCimdHost as jest.Mock
+const mockFetchPinned = fetchPinnedCimdDocument as jest.Mock
 
 describe('Merchant OAuth principal boundary', () => {
   beforeEach(() => {
     jest.clearAllMocks()
+    mockResolvePinned.mockReset()
+    mockFetchPinned.mockReset()
     mockPrisma.$transaction.mockResolvedValue([])
     mockPrisma.merchantOAuthAccessToken.update.mockResolvedValue({})
     mockPrisma.merchantOAuthAuthorization.update.mockResolvedValue({})
@@ -130,23 +140,25 @@ describe('Merchant OAuth principal boundary', () => {
 
   it('supports CIMD as the primary no-pre-registration client path with strict metadata validation', async () => {
     const clientId = 'https://client.example/.well-known/mcp-client.json'
-    const fetchMock = jest.fn().mockResolvedValue(new Response(JSON.stringify({
+    mockResolvePinned.mockResolvedValue({ clientId, hostname: 'client.example', address: '93.184.216.34', family: 4, port: 443, path: '/.well-known/mcp-client.json' })
+    mockFetchPinned.mockResolvedValue({
+      status: 200,
+      contentType: 'application/json',
+      contentLength: undefined,
+      cacheControl: 'max-age=60',
+      body: JSON.stringify({
       client_id: clientId,
       client_name: 'CIMD client',
       redirect_uris: ['http://127.0.0.1:4567/callback'],
       grant_types: ['authorization_code'],
       response_types: ['code'],
       token_endpoint_auth_method: 'none',
-    }), { status: 200, headers: { 'content-type': 'application/json', 'cache-control': 'max-age=60' } }))
-    const previousFetch = global.fetch
-    global.fetch = fetchMock as typeof fetch
-    try {
-      await expect(getMcpOAuthClient(clientId)).resolves.toMatchObject({ clientId, clientName: 'CIMD client', tokenEndpointAuthMethod: 'none' })
-      expect(fetchMock).toHaveBeenCalledWith(clientId, expect.objectContaining({ redirect: 'error' }))
-      await expect(getMcpOAuthClient('https://client.example/.well-known/mcp-client.json?evil=1')).rejects.toMatchObject({ code: 'invalid_client' })
-    } finally {
-      global.fetch = previousFetch
-    }
+      }),
+    })
+    await expect(getMcpOAuthClient(clientId)).resolves.toMatchObject({ clientId, clientName: 'CIMD client', tokenEndpointAuthMethod: 'none' })
+    expect(mockResolvePinned).toHaveBeenCalledWith(clientId)
+    expect(mockFetchPinned).toHaveBeenCalledWith(expect.objectContaining({ address: '93.184.216.34', hostname: 'client.example' }), expect.objectContaining({ timeoutMs: 2_000, maxBytes: 64 * 1024 }))
+    await expect(getMcpOAuthClient('https://client.example/.well-known/mcp-client.json?evil=1')).rejects.toMatchObject({ code: 'invalid_client' })
   })
 
   it('requires response_type=code and rate-limits public DCR by a distributed bucket', async () => {

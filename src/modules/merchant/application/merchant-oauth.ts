@@ -1,8 +1,12 @@
 import { createHash, randomBytes, timingSafeEqual } from 'node:crypto'
-import { lookup } from 'node:dns/promises'
-import { isIP } from 'node:net'
 import { prisma } from '@/lib/prisma'
 import { requireMerchantMembership } from './merchant-access'
+import {
+  CIMD_FETCH_TIMEOUT_MS,
+  CIMD_MAX_DOCUMENT_BYTES,
+  fetchPinnedCimdDocument,
+  resolveAndPinCimdHost,
+} from './merchant-cimd-network'
 import {
   InvalidAgentCredentialError,
   MERCHANT_AGENT_SCOPES,
@@ -29,8 +33,6 @@ export const MCP_OAUTH_AUTHORIZATION_CODE_TTL_SECONDS = 5 * 60
 export const MCP_OAUTH_REQUEST_TTL_SECONDS = 10 * 60
 export const MCP_OAUTH_DCR_REQUESTS_PER_MINUTE = 20
 const MCP_OAUTH_DCR_WINDOW_MS = 60_000
-const CIMD_FETCH_TIMEOUT_MS = 2_000
-const CIMD_MAX_DOCUMENT_BYTES = 64 * 1024
 const CIMD_DEFAULT_CACHE_SECONDS = 5 * 60
 const CIMD_MAX_CACHE_SECONDS = 60 * 60
 
@@ -82,58 +84,11 @@ function randomToken(prefix: string, bytes = 32): string {
   return `${prefix}${randomBytes(bytes).toString('base64url')}`
 }
 
-function isLocalhostHost(hostname: string): boolean {
-  const normalized = hostname.toLowerCase().replace(/^\[|\]$/gu, '')
-  return normalized === 'localhost' || normalized === '127.0.0.1' || normalized === '::1'
-}
-
-function isPrivateIpAddress(address: string): boolean {
-  const normalized = address.toLowerCase().replace(/^\[|\]$/gu, '')
-  const family = isIP(normalized)
-  if (family === 4) {
-    const octets = normalized.split('.').map(Number)
-    const [first, second] = octets
-    return first === 0
-      || first === 10
-      || first === 127
-      || (first === 169 && second === 254)
-      || (first === 172 && second >= 16 && second <= 31)
-      || (first === 192 && second === 168)
-      || (first === 198 && (second === 18 || second === 19))
-      || first >= 224
-  }
-  if (family === 6) {
-    if (normalized === '::' || normalized === '::1') return true
-    if (normalized.startsWith('::ffff:')) return isPrivateIpAddress(normalized.slice('::ffff:'.length))
-    return /^f[cf][0-9a-f]|^fe[89ab][0-9a-f]|^ff[0-9a-f]/u.test(normalized)
-  }
-  return false
-}
-
-async function assertSafeCimdHost(clientId: string): Promise<void> {
-  const parsed = new URL(clientId)
-  if (parsed.protocol !== 'https:' || !parsed.pathname || parsed.pathname === '/' || parsed.username || parsed.password || parsed.search || parsed.hash) {
-    throw new MerchantOAuthError('invalid_client', 'The CIMD client_id must be an HTTPS URL with a path and no query or fragment.', 400)
-  }
-  if (isLocalhostHost(parsed.hostname) || isPrivateIpAddress(parsed.hostname)) {
-    throw new MerchantOAuthError('invalid_client', 'The CIMD client_id host is not allowed.', 400)
-  }
-  let addresses: Array<{ address: string }>
-  try {
-    addresses = await lookup(parsed.hostname, { all: true, verbatim: true })
-  } catch {
-    throw new MerchantOAuthError('invalid_client', 'The CIMD client_id host could not be resolved.', 400)
-  }
-  if (addresses.length === 0 || addresses.some(({ address }) => isPrivateIpAddress(address))) {
-    throw new MerchantOAuthError('invalid_client', 'The CIMD client_id host resolves to a private or local address.', 400)
-  }
-}
-
 type CimdCacheEntry = { client: OAuthClientMetadata; expiresAt: number }
 const cimdCache = new Map<string, CimdCacheEntry>()
 
-function cacheSeconds(response: Response): number {
-  const cacheControl = response.headers.get('cache-control') || ''
+function cacheSeconds(cacheControlValue: string | undefined): number {
+  const cacheControl = cacheControlValue || ''
   const maxAge = cacheControl.match(/(?:^|,)\s*max-age=(\d+)/iu)?.[1]
   const seconds = maxAge ? Number(maxAge) : CIMD_DEFAULT_CACHE_SECONDS
   return Math.max(1, Math.min(Number.isFinite(seconds) ? seconds : CIMD_DEFAULT_CACHE_SECONDS, CIMD_MAX_CACHE_SECONDS))
@@ -142,26 +97,24 @@ function cacheSeconds(response: Response): number {
 async function loadCimdClientMetadata(clientId: string): Promise<OAuthClientMetadata> {
   const cached = cimdCache.get(clientId)
   if (cached && cached.expiresAt > Date.now()) return cached.client
-  await assertSafeCimdHost(clientId)
-  let response: Response
+  let response: Awaited<ReturnType<typeof fetchPinnedCimdDocument>>
   try {
-    response = await fetch(clientId, {
-      method: 'GET',
-      redirect: 'error',
-      headers: { Accept: 'application/json' },
-      signal: AbortSignal.timeout(CIMD_FETCH_TIMEOUT_MS),
+    const pinnedHost = await resolveAndPinCimdHost(clientId)
+    response = await fetchPinnedCimdDocument(pinnedHost, {
+      timeoutMs: CIMD_FETCH_TIMEOUT_MS,
+      maxBytes: CIMD_MAX_DOCUMENT_BYTES,
     })
   } catch {
     throw new MerchantOAuthError('invalid_client', 'The CIMD metadata document could not be fetched.', 400)
   }
-  if (!response.ok || !(response.headers.get('content-type') || '').toLowerCase().startsWith('application/json')) {
+  if (response.status < 200 || response.status >= 300 || !response.contentType.toLowerCase().startsWith('application/json')) {
     throw new MerchantOAuthError('invalid_client', 'The CIMD metadata document is unavailable or not JSON.', 400)
   }
-  const contentLength = Number(response.headers.get('content-length') || 0)
+  const contentLength = Number(response.contentLength || 0)
   if (contentLength > CIMD_MAX_DOCUMENT_BYTES) {
     throw new MerchantOAuthError('invalid_client', 'The CIMD metadata document is too large.', 400)
   }
-  const body = await response.text()
+  const body = response.body
   if (Buffer.byteLength(body, 'utf8') > CIMD_MAX_DOCUMENT_BYTES) {
     throw new MerchantOAuthError('invalid_client', 'The CIMD metadata document is too large.', 400)
   }
@@ -201,7 +154,7 @@ async function loadCimdClientMetadata(clientId: string): Promise<OAuthClientMeta
     redirectUris,
     tokenEndpointAuthMethod: 'none',
   }
-  cimdCache.set(clientId, { client, expiresAt: Date.now() + cacheSeconds(response) * 1000 })
+  cimdCache.set(clientId, { client, expiresAt: Date.now() + cacheSeconds(response.cacheControl) * 1000 })
   return client
 }
 

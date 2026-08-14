@@ -1,16 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { consumeMcpOAuthDcrRateLimit, MerchantOAuthError, registerMcpOAuthClient } from '@/modules/merchant'
+import { consumeMcpOAuthDcrRateLimit, dcrClientIdentityFromHeaders, MerchantOAuthError, registerMcpOAuthClient } from '@/modules/merchant'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 
 export async function POST(request: NextRequest) {
   try {
-    const forwardedFor = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim()
-    const identity = request.headers.get('cf-connecting-ip')?.trim()
-      || request.headers.get('x-real-ip')?.trim()
-      || forwardedFor
-      || 'unknown'
+    const { identity } = dcrClientIdentityFromHeaders(request.headers)
     await consumeMcpOAuthDcrRateLimit({ identity })
     const body = await request.json() as Record<string, unknown>
     const client = await registerMcpOAuthClient({

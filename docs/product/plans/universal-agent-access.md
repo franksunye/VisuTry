@@ -62,7 +62,13 @@ Auth0 is reused as the existing identity provider through the existing NextAuth/
 
 The current MCP Authorization specification describes pre-registration first, Client ID Metadata Documents (CIMD) second, and Dynamic Client Registration (DCR) as a backward-compatible fallback. VisuTry exposes both CIMD and DCR so clients can use the current primary path while older clients retain a bounded standards-based registration fallback.
 
-VisuTry now supports CIMD as the primary no-pre-registration path. The implementation fetches only HTTPS metadata URLs with a path, blocks local/private DNS targets, disables redirects, bounds response size and fetch time, validates exact `client_id` matching plus redirect/grant/response metadata, and caches bounded results. DCR remains available as the backward-compatible fallback and is protected by a distributed database-backed registration bucket. Authorization metadata advertises `client_id_metadata_document_supported: true` and `registration_endpoint` together.
+VisuTry now supports CIMD as the primary no-pre-registration path. The implementation accepts only HTTPS metadata URLs with a path, resolves all DNS answers before rejecting any local/private/reserved target, and pins the subsequent HTTPS connection to the validated public IP while preserving the original hostname for TLS SNI and certificate verification. Redirects are not followed; response size and fetch time are bounded; exact `client_id` matching plus redirect/grant/response metadata are validated; and bounded cache headers are honored. DCR remains available as the backward-compatible fallback and is protected by a distributed database-backed registration bucket. Authorization metadata advertises `client_id_metadata_document_supported: true` and `registration_endpoint` together.
+
+### MCP transport Origin and DCR proxy boundary
+
+Streamable HTTP requests with an absent `Origin` are accepted for native/non-browser clients. When present, `Origin` must be an exact configured origin from `MCP_ALLOWED_ORIGINS`; malformed, untrusted, suffix-matching, path-bearing, or otherwise similar values return HTTP 403 before OAuth authentication. The production default is `https://www.visutry.com`; local development defaults to `http://localhost:3000` when no explicit list is configured. The server never derives this allowlist from `Host` or forwarded host headers.
+
+DCR registration uses `DCR_RATE_LIMIT_TRUSTED_PROXY_MODE` to make the deployment boundary explicit. `vercel` trusts only a single valid `x-vercel-forwarded-for` (falling back to the Vercel-managed `x-forwarded-for`); `cloudflare` trusts only a single valid `cf-connecting-ip`; `none` uses a fixed shared identity so caller-supplied forwarding headers cannot bypass the 20/IP/minute database bucket. Multiple or malformed addresses are treated as unknown and do not select an attacker-controlled bucket.
 
 ### DCR security review
 
