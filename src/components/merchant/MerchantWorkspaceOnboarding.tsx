@@ -2,7 +2,7 @@
 
 import { FormEvent, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { ArrowRight, Globe2, Store } from 'lucide-react'
+import { ArrowRight, Check, ChevronDown, Store } from 'lucide-react'
 
 type Props = { locale: string }
 
@@ -21,7 +21,7 @@ export function MerchantWorkspaceOnboarding({ locale }: Props) {
       const response = await fetch('/api/merchant/workspaces', {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ name, websiteUrl: websiteUrl || undefined }),
+        body: JSON.stringify({ name: name.trim() || undefined, websiteUrl: websiteUrl || undefined }),
       })
       const body = await response.json() as { data?: { merchant?: { id?: string } }; error?: string }
       if (!response.ok || !body.data?.merchant?.id) {
@@ -41,25 +41,33 @@ export function MerchantWorkspaceOnboarding({ locale }: Props) {
         <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-950 text-white">
           <Store className="h-6 w-6" aria-hidden="true" />
         </div>
-        <p className="mt-6 text-xs font-bold uppercase tracking-[0.18em] text-blue-700">Merchant workspace</p>
-        <h1 className="mt-3 text-3xl font-semibold tracking-[-0.04em] text-slate-950 sm:text-4xl">Create your Merchant Workspace</h1>
-        <p className="mt-4 max-w-xl text-base leading-7 text-slate-600">Connect your eyewear business to VisuTry and let your AI agent set up Stores, Campaigns, and analyze shopper intent.</p>
+        <div className="mt-6 flex items-center gap-2 text-xs font-bold uppercase tracking-[0.18em] text-blue-700">
+          <span className="flex h-5 w-5 items-center justify-center rounded-full bg-blue-600 text-white"><Check className="h-3 w-3" aria-hidden="true" /></span>
+          Merchant setup · 1 of 1
+        </div>
+        <h1 className="mt-3 text-3xl font-semibold tracking-[-0.04em] text-slate-950 sm:text-4xl">Create your merchant workspace</h1>
+        <p className="mt-4 max-w-xl text-base leading-7 text-slate-600">Create a workspace in one click. You do not need a brand name or website to get started — both can be added later.</p>
 
         <form className="mt-8 space-y-5" onSubmit={submit}>
-          <div>
-            <label className="text-sm font-semibold text-slate-800" htmlFor="merchant-name">Merchant name <span className="text-red-600">*</span></label>
-            <input id="merchant-name" name="name" required minLength={2} maxLength={120} value={name} onChange={(event) => setName(event.target.value)} className="mt-2 w-full rounded-xl border border-slate-300 px-4 py-3 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200" placeholder="Your store or brand name" />
-          </div>
-          <div>
-            <label className="text-sm font-semibold text-slate-800" htmlFor="merchant-website">Website URL <span className="font-normal text-slate-400">(optional)</span></label>
-            <div className="relative mt-2">
-              <Globe2 className="pointer-events-none absolute left-3.5 top-3.5 h-4 w-4 text-slate-400" aria-hidden="true" />
-              <input id="merchant-website" name="websiteUrl" type="url" maxLength={2000} value={websiteUrl} onChange={(event) => setWebsiteUrl(event.target.value)} className="w-full rounded-xl border border-slate-300 py-3 pl-10 pr-4 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200" placeholder="https://your-store.example" />
+          <details className="group rounded-xl border border-slate-200 bg-slate-50/70 px-4 py-3">
+            <summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-sm font-semibold text-slate-700 [&::-webkit-details-marker]:hidden">
+              <span className="flex items-center gap-2"><Store className="h-4 w-4 text-slate-400" aria-hidden="true" />Add workspace details <span className="font-normal text-slate-400">(optional)</span></span>
+              <ChevronDown className="h-4 w-4 text-slate-400 transition group-open:rotate-180" aria-hidden="true" />
+            </summary>
+            <div className="mt-3 grid gap-4 sm:grid-cols-2">
+              <div>
+                <label className="text-xs font-semibold text-slate-700" htmlFor="merchant-name">Brand or store name</label>
+                <input id="merchant-name" name="name" minLength={2} maxLength={120} value={name} onChange={(event) => setName(event.target.value)} className="mt-2 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200" placeholder="e.g. North Star Eyewear" />
+              </div>
+              <div>
+                <label className="text-xs font-semibold text-slate-700" htmlFor="merchant-website">Website</label>
+                <input id="merchant-website" name="websiteUrl" type="url" maxLength={2000} value={websiteUrl} onChange={(event) => setWebsiteUrl(event.target.value)} className="mt-2 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200" placeholder="https://your-store.example" />
+              </div>
             </div>
-          </div>
+          </details>
           {error ? <p className="text-sm text-red-700" role="alert">{error}</p> : null}
-          <button type="submit" disabled={busy || !name.trim()} className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-slate-950 px-4 py-3 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-50">
-            {busy ? 'Creating workspace…' : 'Create Workspace'}
+          <button type="submit" aria-label="Create workspace" disabled={busy} className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-slate-950 px-4 py-3 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-50">
+            {busy ? 'Creating workspace…' : 'Create workspace'}
             {!busy ? <ArrowRight className="h-4 w-4" aria-hidden="true" /> : null}
           </button>
         </form>

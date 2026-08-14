@@ -12,7 +12,7 @@ import { middleware } from '@/middleware'
 
 describe('middleware public Skill paths', () => {
   it('does not locale-redirect stable public Skill URLs', async () => {
-    const response = await middleware(new NextRequest('http://localhost/skills/commerce-analyst'))
+    const response = await middleware(new NextRequest('http://localhost/skills/merchant'))
     expect(response.status).toBe(200)
     expect(response.headers.get('x-middleware-next')).toBe('1')
   })

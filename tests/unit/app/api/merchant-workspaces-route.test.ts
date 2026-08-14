@@ -51,6 +51,12 @@ describe('merchant workspace creation route', () => {
     expect(provision).not.toHaveBeenCalled()
   })
 
+  it('allows a first workspace without a brand name', async () => {
+    const response = await POST(request({}))
+    expect(response.status).toBe(201)
+    expect(provision).toHaveBeenCalledWith({ userId: 'session-user', name: undefined, websiteUrl: undefined })
+  })
+
   it('preserves unauthenticated behavior', async () => {
     auth.mockResolvedValue({ ok: false, response: new Response('unauthorized', { status: 401 }) })
     const response = await POST(request({ name: 'No Session' }))

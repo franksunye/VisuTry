@@ -20,7 +20,7 @@ export type MerchantControlExperience = {
 }
 
 export type MerchantControlCenter = {
-  merchant: { id: string; slug: string; name: string; status: string; referenceData: boolean }
+  merchant: { id: string; slug: string; name: string; websiteUrl: string | null; status: string; referenceData: boolean }
   store: MerchantControlExperience | null
   experiences: MerchantControlExperience[]
   activeCampaignCount: number
@@ -31,7 +31,7 @@ export type MerchantControlCenter = {
 export async function getMerchantControlCenter(input: { merchantId: string }): Promise<MerchantControlCenter | null> {
   const merchant = await prisma.merchant.findUnique({
     where: { id: input.merchantId },
-    select: { id: true, slug: true, name: true, status: true, referenceData: true },
+    select: { id: true, slug: true, name: true, websiteUrl: true, status: true, referenceData: true },
   })
   if (!merchant) return null
 

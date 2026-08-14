@@ -31,9 +31,7 @@ export default async function MerchantWorkspacePage({ params, searchParams }: { 
   const credentials = await listMerchantAgentCredentials({ userId: session.user.id, merchantId: selected.merchant.id })
   const origin = requestOrigin()
   const skills = [
-    { name: 'Merchant Onboarding', purpose: 'Set up your Store from your catalog.', url: `${origin}/skills/merchant-onboarding`, prompt: 'Set up my eyewear Store on VisuTry.' },
-    { name: 'Campaign Creation', purpose: 'Create and preview a Campaign draft.', url: `${origin}/skills/campaign-creation`, prompt: 'Create a Campaign for shoppers with small faces.' },
-    { name: 'Commerce Analyst', purpose: 'Understand shopper intent and performance.', url: `${origin}/skills/commerce-analyst`, prompt: 'How is my Summer Sunglasses Campaign performing?' },
+    { name: 'VisuTry Merchant', purpose: 'Set up your Store, create Campaigns, and understand performance in one conversation.', url: `${origin}/skills/merchant`, prompt: 'Help me set up my VisuTry Store.' },
   ]
   return <MerchantControlCenter locale={params.locale} merchants={merchants.map(({ merchant, membership }) => ({ id: merchant.id, slug: merchant.slug, name: merchant.name, role: membership.role }))} selectedMerchantId={selected.merchant.id} control={control} credentials={credentials} endpoint={`${origin}/api/mcp`} skills={skills} />
 }

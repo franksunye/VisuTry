@@ -128,11 +128,11 @@ The MCP analytics adapter exposes aggregate merchant-safe metrics only. It does 
 
 ## 12. MCP server instructions
 
-Initialization instructions tell clients to stay within the authorized Merchant, use aggregate analytics, preview before mutation, require explicit publication approval, and respect scope failures. Detailed workflow knowledge remains in the reusable Skills rather than being embedded into the initialization payload.
+Initialization instructions tell clients to stay within the authorized Merchant, use aggregate analytics, preview before mutation, require explicit publication approval, and respect scope failures. Detailed workflow knowledge remains in the public Merchant Skill rather than being embedded into the initialization payload.
 
 ## 13. Skill vs MCP responsibilities
 
-The Merchant Onboarding, Campaign Creation, and Commerce Analyst Skills remain reusable operating knowledge. They contain no credentials and are not required for MCP capability. MCP executes live operations; OAuth authorizes them; Skills teach workflows.
+The single public Merchant Skill (`/skills/merchant`) contains the reusable Store, Campaign, and Commerce Analyst operating knowledge. It contains no credentials and is not required for MCP capability. MCP executes live operations; OAuth authorizes them; the Skill teaches workflows.
 
 ## 14. Client compatibility
 

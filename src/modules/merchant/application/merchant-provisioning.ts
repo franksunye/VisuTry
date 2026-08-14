@@ -6,7 +6,7 @@ import type { MerchantMembershipRecord } from '../domain/membership'
 export type CreateMerchantWithOwnerInput = {
   userId: string
   slug?: string
-  name: string
+  name?: string
   websiteUrl?: string | null
 }
 
@@ -30,7 +30,8 @@ export class MerchantProvisioningError extends Error {
 }
 
 function normalizeInput(input: CreateMerchantWithOwnerInput) {
-  const name = input.name.trim()
+  const suppliedName = input.name === undefined ? null : input.name.trim()
+  const name = suppliedName === null ? 'My Merchant Workspace' : suppliedName
   if (name.length < 2 || name.length > 120) {
     throw new MerchantProvisioningError('INVALID_MERCHANT_NAME', 'Merchant name must be between 2 and 120 characters.')
   }

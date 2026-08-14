@@ -16,7 +16,7 @@ export async function POST(request: NextRequest) {
   }
 
   const payload = body as { name?: unknown; websiteUrl?: unknown }
-  if (typeof payload.name !== 'string' || (payload.websiteUrl !== undefined && payload.websiteUrl !== null && typeof payload.websiteUrl !== 'string')) {
+  if ((payload.name !== undefined && typeof payload.name !== 'string') || (payload.websiteUrl !== undefined && payload.websiteUrl !== null && typeof payload.websiteUrl !== 'string')) {
     return NextResponse.json({ success: false, error: 'INVALID_REQUEST' }, { status: 400 })
   }
 
