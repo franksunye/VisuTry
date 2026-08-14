@@ -145,7 +145,7 @@ describe('Merchant OAuth principal boundary', () => {
       clientName: 'Test',
       redirectUris: ['http://127.0.0.1:4567/callback'],
       tokenEndpointAuthMethod: 'none',
-    }, 'http://127.0.0.1:4567/callback')).toBe('http://127.0.0.1:4567/callback')
+    }, 'http://localhost:4567/callback')).toBe('http://localhost:4567/callback')
     expect(() => assertRegisteredRedirectUri({
       clientId: 'client-a',
       clientName: 'Test',
