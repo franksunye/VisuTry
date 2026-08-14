@@ -58,7 +58,6 @@ export function dcrClientIdentityFromHeaders(headers: Headers): { identity: stri
   const mode = dcrTrustedProxyMode()
   if (mode === 'vercel') {
     const vercelIp = parseSingleIp(headers.get('x-vercel-forwarded-for'))
-      || parseSingleIp(headers.get('x-forwarded-for'))
     return { identity: vercelIp || 'unknown', source: mode }
   }
   if (mode === 'cloudflare') return { identity: parseSingleIp(headers.get('cf-connecting-ip')) || 'unknown', source: mode }

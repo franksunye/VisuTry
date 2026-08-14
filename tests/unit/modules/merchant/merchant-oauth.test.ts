@@ -177,6 +177,20 @@ describe('Merchant OAuth principal boundary', () => {
     await expect(consumeMcpOAuthDcrRateLimit({ identity: '203.0.113.10', limit: 1 })).rejects.toMatchObject({ code: 'rate_limited', httpStatus: 429, retryAfterSeconds: expect.any(Number) })
   })
 
+  it('rate-limits repeated requests using the shared fallback identity with Retry-After', async () => {
+    mockPrisma.merchantOAuthDcrCounter.upsert
+      .mockResolvedValueOnce({ count: 1 })
+      .mockResolvedValueOnce({ count: 2 })
+    await expect(consumeMcpOAuthDcrRateLimit({ identity: 'unknown', limit: 1 })).resolves.toBeUndefined()
+    await expect(consumeMcpOAuthDcrRateLimit({ identity: 'unknown', limit: 1 })).rejects.toMatchObject({
+      code: 'rate_limited',
+      httpStatus: 429,
+      retryAfterSeconds: expect.any(Number),
+    })
+    const [first, second] = mockPrisma.merchantOAuthDcrCounter.upsert.mock.calls.slice(-2)
+    expect(first[0].where.bucketHash_windowStart.bucketHash).toBe(second[0].where.bucketHash_windowStart.bucketHash)
+  })
+
   it('uses one-time short-lived PKCE codes and never stores raw access or refresh tokens', async () => {
     const verifier = 'verifier-a'
     const challenge = createHash('sha256').update(verifier).digest('base64url')

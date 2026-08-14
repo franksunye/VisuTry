@@ -44,9 +44,16 @@ describe('MCP transport security policy', () => {
 
   it('accepts only one valid Vercel client address and ignores other forwarding headers', () => {
     process.env.DCR_RATE_LIMIT_TRUSTED_PROXY_MODE = 'vercel'
-    expect(dcrClientIdentityFromHeaders(new Headers({ 'x-vercel-forwarded-for': '203.0.113.10', 'x-real-ip': '198.51.100.3' }))).toEqual({ identity: '203.0.113.10', source: 'vercel' })
+    expect(dcrClientIdentityFromHeaders(new Headers({ 'x-vercel-forwarded-for': '203.0.113.10', 'x-forwarded-for': '1.2.3.4', 'x-real-ip': '198.51.100.3' }))).toEqual({ identity: '203.0.113.10', source: 'vercel' })
     expect(dcrClientIdentityFromHeaders(new Headers({ 'x-vercel-forwarded-for': '203.0.113.10, 198.51.100.3' }))).toEqual({ identity: 'unknown', source: 'vercel' })
-    expect(dcrClientIdentityFromHeaders(new Headers({ 'cf-connecting-ip': '203.0.113.11' }))).toEqual({ identity: 'unknown', source: 'vercel' })
+  })
+
+  it.each([
+    new Headers({ 'x-forwarded-for': '1.2.3.4' }),
+    new Headers({ 'x-vercel-forwarded-for': 'not-an-ip', 'x-forwarded-for': '1.2.3.4' }),
+  ])('uses the shared unknown bucket when Vercel canonical identity is absent or invalid', (headers) => {
+    process.env.DCR_RATE_LIMIT_TRUSTED_PROXY_MODE = 'vercel'
+    expect(dcrClientIdentityFromHeaders(headers)).toEqual({ identity: 'unknown', source: 'vercel' })
   })
 
   it('accepts only Cloudflare CF-Connecting-IP in explicit Cloudflare mode', () => {
