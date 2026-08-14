@@ -162,7 +162,7 @@ Status: **BLOCKED — NOT YET RUN**. Static security review is closed, but this 
 - MCP endpoint / OAuth issuer: not tested in a real deployment.
 - Migrations: not applied; the formal OAuth migrations remain available under `prisma/migrations/`.
 - Test Merchant, user, role, and campaign IDs: not created or selected.
-- Codex: not run against the endpoint; the local Codex CLI binary is unavailable in this environment.
+- Codex: not run against the endpoint; the local Codex CLI was repaired to `0.147.0`, but no authenticated external session is available.
 - Claude Code: not run; no Claude Code client is installed or connected.
 - Cursor: not run; no Cursor client is installed or connected.
 - Registration paths: not observed and intentionally not inferred.
@@ -200,7 +200,7 @@ The existing Agent Access UI is still the practical Agent Key management surface
 - The new migration must be deployed before OAuth is enabled in production.
 - `MCP_RESOURCE_URL` must be set per environment: local `http://localhost:3000/api/mcp`, preview/staging `https://<environment-host>/api/mcp`, production `https://www.visutry.com/api/mcp`. Tokens are rejected when their stored resource differs from the request environment's canonical resource.
 - Auth0 callback/NextAuth production configuration must be verified with the deployed public origin.
-- Live end-to-end Codex, Claude Code, and Cursor browser flows require client installations/accounts and an isolated test Merchant; they were not available in this repository-only validation.
+- Live end-to-end Codex, Claude Code, and Cursor browser flows require client installations/accounts and an isolated test Merchant; Codex is now installed locally, but the endpoint, database, Auth0 test user, and authenticated client sessions remain unavailable.
 - `tests/unit/app/api/mcp-oauth-http.integration.test.ts` is intentionally an HTTP handler contract test with mocked OAuth boundaries, not a database-backed protocol integration test.
 - Automated cleanup of expired authorization requests/codes/tokens should be added to the existing maintenance job.
 - Add a Merchant Control Center list/revoke view for OAuth authorizations before external pilot.
