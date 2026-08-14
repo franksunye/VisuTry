@@ -1,6 +1,6 @@
 # VisuTry Merchant Skill v2 — Capability Audit
 
-Status: Implemented on the Merchant Agent feature branch  
+Status: Implemented on the Merchant Agent feature branch
 Scope: Skill workflow guidance, reviewed catalog source intake, bootstrap alignment, and capability documentation. No OAuth, MCP transport, or analytics infrastructure changes.
 
 ## Operating model
