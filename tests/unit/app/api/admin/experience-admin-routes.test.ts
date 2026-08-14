@@ -3,6 +3,7 @@
 import { NextRequest } from 'next/server'
 import { requireAdmin } from '@/lib/api-auth'
 import { prisma } from '@/lib/prisma'
+import { withPublicDiscoveryInvalidation } from '@/modules/store/application/public-discovery-invalidation'
 import { PUT as updateExperience } from '@/app/api/admin/store/merchants/[id]/experiences/[experienceId]/route'
 import { PUT as updateFrames } from '@/app/api/admin/store/merchants/[id]/experiences/[experienceId]/frames/route'
 
@@ -15,6 +16,10 @@ jest.mock('@/lib/prisma', () => ({
   },
 }))
 
+jest.mock('@/modules/store/application/public-discovery-invalidation', () => ({
+  withPublicDiscoveryInvalidation: jest.fn(async ({ mutation }: { mutation: () => Promise<unknown> }) => mutation()),
+}))
+
 const db = prisma as unknown as {
   experience: { findFirst: jest.Mock; update: jest.Mock }
   merchantFrame: { findMany: jest.Mock }
@@ -22,6 +27,8 @@ const db = prisma as unknown as {
 }
 
 const admin = requireAdmin as jest.Mock
+const boundary = withPublicDiscoveryInvalidation as jest.Mock
+const storeExperience = { id: 'experience-1', slug: 'store', type: 'STORE', merchant: { slug: 'merchant-a' } }
 
 describe('Merchant Experience admin routes', () => {
   beforeEach(() => {
@@ -45,7 +52,7 @@ describe('Merchant Experience admin routes', () => {
   })
 
   it.each(['/products/foo', 'https://merchant.example/product'])('accepts safe CTA destination %s', async (primaryCtaUrl) => {
-    db.experience.findFirst.mockResolvedValue({ id: 'experience-1' })
+    db.experience.findFirst.mockResolvedValue(storeExperience)
     db.experience.update.mockResolvedValue({ id: 'experience-1', primaryCtaUrl })
 
     const response = await updateExperience(
@@ -58,10 +65,11 @@ describe('Merchant Experience admin routes', () => {
 
     expect(response.status).toBe(200)
     expect(db.experience.update).toHaveBeenCalledWith(expect.objectContaining({ data: { primaryCtaUrl } }))
+    expect(boundary).toHaveBeenCalledWith(expect.objectContaining({ target: { kind: 'experience', merchantSlug: 'merchant-a', experienceSlug: null } }))
   })
 
   it('writes only the allowed tenant-owned frame selection and preserves order', async () => {
-    db.experience.findFirst.mockResolvedValue({ id: 'experience-1' })
+    db.experience.findFirst.mockResolvedValue(storeExperience)
     db.merchantFrame.findMany.mockResolvedValue([{ id: 'frame-2' }, { id: 'frame-1' }])
     const tx = {
       experienceFrame: {
@@ -80,6 +88,7 @@ describe('Merchant Experience admin routes', () => {
     )
 
     expect(response.status).toBe(200)
+    expect(boundary).toHaveBeenCalledWith(expect.objectContaining({ target: { kind: 'experience', merchantSlug: 'merchant-a', experienceSlug: null } }))
     expect(db.merchantFrame.findMany).toHaveBeenCalledWith({
       where: { merchantId: 'merchant-a', id: { in: ['frame-2', 'frame-1'] }, status: 'ACTIVE' },
       select: { id: true },

@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { requireAdmin } from '@/lib/api-auth'
 import { prisma } from '@/lib/prisma'
-import { storeErrorResponse } from '@/modules/store/application'
-import { revalidatePublicDiscoveryByRoute } from '@/lib/store-discovery-cache'
+import { replacePublicExperienceFrames, storeErrorResponse } from '@/modules/store/application'
 
 export const dynamic = 'force-dynamic'
 
@@ -21,7 +20,7 @@ export async function PUT(
     const frameIds = [...new Set(body.frameIds)] as string[]
     const experience = await prisma.experience.findFirst({
       where: { id: params.experienceId, merchantId: params.id },
-      select: { id: true, slug: true, merchant: { select: { slug: true } } },
+      select: { id: true, slug: true, type: true, merchant: { select: { slug: true } } },
     })
     if (!experience) return NextResponse.json({ success: false, error: 'Experience not found' }, { status: 404 })
 
@@ -33,29 +32,7 @@ export async function PUT(
       return NextResponse.json({ success: false, error: 'Every selected frame must belong to this merchant and be active' }, { status: 400 })
     }
 
-    await prisma.$transaction(async (tx) => {
-      await tx.experienceFrame.deleteMany({
-        where: { experienceId: params.experienceId, merchantId: params.id },
-      })
-      if (frameIds.length > 0) {
-        await tx.experienceFrame.createMany({
-          data: frameIds.map((merchantFrameId, sortOrder) => ({
-            experienceId: params.experienceId,
-            merchantId: params.id,
-            merchantFrameId,
-            sortOrder,
-            active: true,
-          })),
-        })
-      }
-    })
-
-    if (experience.merchant?.slug) {
-      revalidatePublicDiscoveryByRoute({
-        merchantSlug: experience.merchant.slug,
-        experienceSlug: experience.slug,
-      })
-    }
+    await replacePublicExperienceFrames({ merchantId: params.id, experienceId: params.experienceId, frameIds })
 
     return NextResponse.json({ success: true, data: { frameIds } })
   } catch (error) {

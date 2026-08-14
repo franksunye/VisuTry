@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { requireAdmin } from '@/lib/api-auth'
 import { prisma } from '@/lib/prisma'
-import { storeErrorResponse, updateCampaign } from '@/modules/store/application'
-import { revalidatePublicDiscoveryByRoute } from '@/lib/store-discovery-cache'
+import { storeErrorResponse, updateCampaign, updatePublicExperience } from '@/modules/store/application'
 import type { CampaignGate, CampaignObjective } from '@/modules/store/domain/campaign-policy'
 import type { PresentationMode } from '@/modules/store/domain/presentation-mode'
 
@@ -103,7 +102,6 @@ export async function PUT(
         ...(body.secondaryCtaLabel === null || typeof body.secondaryCtaLabel === 'string' ? { secondaryCtaLabel: body.secondaryCtaLabel as string | null } : {}),
         ...(body.secondaryCtaUrl === null || typeof body.secondaryCtaUrl === 'string' ? { secondaryCtaUrl: body.secondaryCtaUrl as string | null } : {}),
       })
-      if (existing.merchant?.slug) revalidatePublicDiscoveryByRoute({ merchantSlug: existing.merchant.slug, experienceSlug: existing.slug })
       return NextResponse.json({ success: true, data: updated })
     }
 
@@ -139,16 +137,11 @@ export async function PUT(
       }
     }
 
-    const experience = await prisma.experience.update({
-      where: { id: params.experienceId },
+    const experience = await updatePublicExperience({
+      merchantId: params.id,
+      experienceId: params.experienceId,
       data,
     })
-    if (existing.merchant?.slug) {
-      revalidatePublicDiscoveryByRoute({
-        merchantSlug: existing.merchant.slug,
-        experienceSlug: existing.slug,
-      })
-    }
     return NextResponse.json({ success: true, data: experience })
   } catch (error) {
     return storeErrorResponse(error)

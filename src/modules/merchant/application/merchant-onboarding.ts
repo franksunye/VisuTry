@@ -4,6 +4,9 @@ import { getMerchantProfile } from './get-merchant-profile'
 import { MerchantAccessError } from './merchant-access'
 import { recordMerchantAgentOperation } from './merchant-agent-credentials'
 import { requireAgentScope, type MerchantActorContext } from '../domain/actor'
+import {
+  withPublicDiscoveryInvalidation,
+} from '@/modules/store/application/public-discovery-invalidation'
 
 export const MAX_CATALOG_IMPORT = 100
 export const MAX_STORE_FRAMES = 100
@@ -146,39 +149,44 @@ export async function importMerchantFrames(input: { actor: MerchantActorContext;
     skus.add(frame.sku)
   }
 
-  const result = await prisma.$transaction(async (tx) => {
-    const ids: string[] = []
-    let created = 0
-    let updated = 0
-    for (const frame of normalized) {
-      const existing = await tx.merchantFrame.findFirst({ where: { merchantId: input.actor.merchantId, sku: frame.sku } })
-      const data = {
-        name: frame.name,
-        brand: frame.brand,
-        variant: frame.variant,
-        imageUrl: frame.imageUrl,
-        productUrl: frame.productUrl,
-        price: frame.price,
-        currency: frame.currency,
-        shape: frame.shape,
-        material: frame.material,
-        color: frame.color,
-        widthClass: frame.widthClass,
-        styleTags: frame.styleTags,
-        collectionTags: frame.collectionTags,
-        source: 'MANUAL' as const,
-        status: 'ACTIVE' as const,
-        enrichmentStatus: 'APPROVED' as const,
+  const merchant = await prisma.merchant.findUnique({ where: { id: input.actor.merchantId }, select: { slug: true } })
+  if (!merchant) throw new MerchantAccessError()
+  const result = await withPublicDiscoveryInvalidation({
+    target: { kind: 'catalog', merchantSlug: merchant.slug },
+    mutation: () => prisma.$transaction(async (tx) => {
+      const ids: string[] = []
+      let created = 0
+      let updated = 0
+      for (const frame of normalized) {
+        const existing = await tx.merchantFrame.findFirst({ where: { merchantId: input.actor.merchantId, sku: frame.sku } })
+        const data = {
+          name: frame.name,
+          brand: frame.brand,
+          variant: frame.variant,
+          imageUrl: frame.imageUrl,
+          productUrl: frame.productUrl,
+          price: frame.price,
+          currency: frame.currency,
+          shape: frame.shape,
+          material: frame.material,
+          color: frame.color,
+          widthClass: frame.widthClass,
+          styleTags: frame.styleTags,
+          collectionTags: frame.collectionTags,
+          source: 'MANUAL' as const,
+          status: 'ACTIVE' as const,
+          enrichmentStatus: 'APPROVED' as const,
+        }
+        const row = existing
+          ? await tx.merchantFrame.update({ where: { id: existing.id }, data })
+          : await tx.merchantFrame.create({ data: { ...data, merchantId: input.actor.merchantId, sku: frame.sku } })
+        ids.push(row.id)
+        if (existing) updated += 1
+        else created += 1
       }
-      const row = existing
-        ? await tx.merchantFrame.update({ where: { id: existing.id }, data })
-        : await tx.merchantFrame.create({ data: { ...data, merchantId: input.actor.merchantId, sku: frame.sku } })
-      ids.push(row.id)
-      if (existing) updated += 1
-      else created += 1
-    }
-    return { ids, created, updated }
-  }, { isolationLevel: Prisma.TransactionIsolationLevel.Serializable })
+      return { ids, created, updated }
+    }, { isolationLevel: Prisma.TransactionIsolationLevel.Serializable }),
+  })
   await recordMerchantAgentOperation({ actor: input.actor, action: 'catalog.imported', resourceType: 'MerchantFrame', result: 'SUCCESS' })
   return { ...result, imported: result.created + result.updated }
 }
@@ -236,23 +244,27 @@ export async function getOnboardingStatus(input: { actor: MerchantActorContext }
 export async function createMerchantStore(input: { actor: MerchantActorContext; name?: string; headline?: string; description?: string }) {
   requireAgentScope(input.actor, 'experience:write')
   const merchant = await getMerchant(input)
-  const transactionResult = await prisma.$transaction(async (tx) => {
-    const existing = await tx.experience.findFirst({ where: { merchantId: input.actor.merchantId, type: 'STORE' }, include: { frames: { where: { active: true } } } })
-    if (existing) return { store: existing, created: false }
-    const created = await tx.experience.create({
-      data: {
-        merchantId: input.actor.merchantId,
-        type: 'STORE',
-        slug: 'store',
-        name: cleanText(input.name) ?? `${merchant.name} Store`,
-        headline: cleanText(input.headline),
-        description: cleanText(input.description),
-        status: 'DRAFT',
-      },
-      include: { frames: { where: { active: true } } },
-    })
-    return { store: created, created: true }
-  }, { isolationLevel: Prisma.TransactionIsolationLevel.Serializable })
+  const transactionResult = await withPublicDiscoveryInvalidation({
+    target: { kind: 'experience', merchantSlug: merchant.slug, experienceSlug: null },
+    invalidate: (result) => result.created,
+    mutation: () => prisma.$transaction(async (tx) => {
+      const existing = await tx.experience.findFirst({ where: { merchantId: input.actor.merchantId, type: 'STORE' }, include: { frames: { where: { active: true } } } })
+      if (existing) return { store: existing, created: false }
+      const created = await tx.experience.create({
+        data: {
+          merchantId: input.actor.merchantId,
+          type: 'STORE',
+          slug: 'store',
+          name: cleanText(input.name) ?? `${merchant.name} Store`,
+          headline: cleanText(input.headline),
+          description: cleanText(input.description),
+          status: 'DRAFT',
+        },
+        include: { frames: { where: { active: true } } },
+      })
+      return { store: created, created: true }
+    }, { isolationLevel: Prisma.TransactionIsolationLevel.Serializable }),
+  })
   await recordMerchantAgentOperation({ actor: input.actor, action: 'store.created', resourceType: 'Experience', resourceId: transactionResult.store.id })
   return { id: transactionResult.store.id, slug: transactionResult.store.slug, status: transactionResult.store.status, name: transactionResult.store.name, created: transactionResult.created, publicPath: `/en/store/${merchant.slug}` }
 }
@@ -263,12 +275,17 @@ export async function setMerchantStoreFrames(input: { actor: MerchantActorContex
   const frameIds = [...new Set(input.frameIds)]
   const store = await findStore(input.actor.merchantId, input.storeId)
   if (!store) throw new MerchantAccessError()
+  const merchant = await prisma.merchant.findUnique({ where: { id: input.actor.merchantId }, select: { slug: true } })
+  if (!merchant) throw new MerchantAccessError()
   const frames = await getActiveFrames(input.actor.merchantId, frameIds)
   if (frames.length !== frameIds.length) throw new MerchantAccessError()
-  await prisma.$transaction(async (tx) => {
-    await tx.experienceFrame.deleteMany({ where: { experienceId: store.id, merchantId: input.actor.merchantId } })
-    if (frameIds.length) await tx.experienceFrame.createMany({ data: frameIds.map((merchantFrameId, sortOrder) => ({ experienceId: store.id, merchantId: input.actor.merchantId, merchantFrameId, sortOrder, active: true })) })
-  }, { isolationLevel: Prisma.TransactionIsolationLevel.Serializable })
+  await withPublicDiscoveryInvalidation({
+    target: { kind: 'experience', merchantSlug: merchant.slug, experienceSlug: null },
+    mutation: () => prisma.$transaction(async (tx) => {
+      await tx.experienceFrame.deleteMany({ where: { experienceId: store.id, merchantId: input.actor.merchantId } })
+      if (frameIds.length) await tx.experienceFrame.createMany({ data: frameIds.map((merchantFrameId, sortOrder) => ({ experienceId: store.id, merchantId: input.actor.merchantId, merchantFrameId, sortOrder, active: true })) })
+    }, { isolationLevel: Prisma.TransactionIsolationLevel.Serializable }),
+  })
   await recordMerchantAgentOperation({ actor: input.actor, action: 'store.frames_updated', resourceType: 'Experience', resourceId: store.id })
   return { storeId: store.id, frameIds, frameCount: frameIds.length }
 }
@@ -288,12 +305,18 @@ export async function publishMerchantStore(input: { actor: MerchantActorContext;
   if (!input.approved) throw new MerchantOnboardingError('PUBLISH_APPROVAL_REQUIRED', 'Publishing requires explicit approval.', 400)
   const store = await findStore(input.actor.merchantId, input.storeId)
   if (!store) throw new MerchantAccessError()
+  const merchant = await prisma.merchant.findUnique({ where: { id: input.actor.merchantId }, select: { slug: true } })
+  if (!merchant) throw new MerchantAccessError()
   const frames = await getActiveFrames(input.actor.merchantId, store.frames.map((frame) => frame.merchantFrameId))
   const readiness = storeReadiness(frames, store.frames.length)
   if (!readiness.ready || store.frames.length === 0) throw new MerchantOnboardingError('STORE_NOT_READY', 'Store is not ready to publish.', 409)
-  const published = store.status === 'ACTIVE' ? store : await prisma.experience.update({ where: { id: store.id }, data: { status: 'ACTIVE' }, include: { frames: { where: { active: true } } } })
+  const published = store.status === 'ACTIVE'
+    ? store
+    : await withPublicDiscoveryInvalidation({
+      target: { kind: 'experience', merchantSlug: merchant.slug, experienceSlug: null },
+      mutation: () => prisma.experience.update({ where: { id: store.id }, data: { status: 'ACTIVE' }, include: { frames: { where: { active: true } } } }),
+    })
   await recordMerchantAgentOperation({ actor: input.actor, action: 'store.published', resourceType: 'Experience', resourceId: store.id })
-  const merchant = await getMerchant(input)
   return { id: published.id, status: published.status, publicPath: `/en/store/${merchant.slug}`, approvalRecorded: true }
 }
 

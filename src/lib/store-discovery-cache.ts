@@ -1,5 +1,3 @@
-import { revalidateTag } from 'next/cache'
-
 export const PUBLIC_DISCOVERY_CACHE = {
   storeRevalidateSeconds: 30 * 60,
   campaignRevalidateSeconds: 5 * 60,
@@ -35,17 +33,4 @@ export function publicDiscoveryCacheKey(input: {
     input.merchantSlug,
     input.experienceSlug || 'store',
   ]
-}
-
-/**
- * Admin/write paths can invalidate the slug-scoped public read model without
- * touching the interactive commerce runtime. TTL remains the safety net for
- * imports and other non-HTTP writers.
- */
-export function revalidatePublicDiscoveryByRoute(input: {
-  merchantSlug: string
-  experienceSlug?: string | null
-}) {
-  publicDiscoveryCacheTags(input.merchantSlug, input.experienceSlug).forEach((tag) => revalidateTag(tag))
-  revalidateTag(PUBLIC_DISCOVERY_CACHE.tags.sitemap)
 }

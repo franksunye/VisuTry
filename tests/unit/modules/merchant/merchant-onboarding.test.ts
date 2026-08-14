@@ -1,11 +1,16 @@
 jest.mock('@/lib/prisma', () => ({
   prisma: {
+    merchant: { findUnique: jest.fn() },
     merchantFrame: { count: jest.fn(), findMany: jest.fn() },
-    experience: { findFirst: jest.fn() },
+    experience: { findFirst: jest.fn(), update: jest.fn() },
     experienceFrame: { deleteMany: jest.fn(), createMany: jest.fn() },
     merchantOperationAudit: { create: jest.fn() },
     $transaction: jest.fn(),
   },
+}))
+
+jest.mock('@/modules/store/application/public-discovery-invalidation', () => ({
+  withPublicDiscoveryInvalidation: jest.fn(async ({ mutation }: { mutation: () => Promise<unknown> }) => mutation()),
 }))
 
 jest.mock('@/modules/merchant/application/get-merchant-profile', () => ({
@@ -13,6 +18,7 @@ jest.mock('@/modules/merchant/application/get-merchant-profile', () => ({
 }))
 
 import { prisma } from '@/lib/prisma'
+import { withPublicDiscoveryInvalidation } from '@/modules/store/application/public-discovery-invalidation'
 import type { AgentMerchantActor } from '@/modules/merchant/domain/actor'
 import { MerchantAccessError } from '@/modules/merchant/application/merchant-access'
 import { merchantOnboarding, validateCatalogFrame } from '@/modules/merchant/application/merchant-onboarding'
@@ -101,5 +107,60 @@ describe('merchant onboarding catalog validation', () => {
 
     expect(status.store).toEqual(expect.objectContaining({ frameCount: 4, readyFrameCount: 1 }))
     expect(status.blockers).toContain('STORE_HAS_INVALID_FRAMES')
+  })
+
+  it('invalidates catalog discovery only after a successful import transaction', async () => {
+    const writeActor: AgentMerchantActor = { ...actor, scopes: ['catalog:write'] }
+    ;(prisma.merchant.findUnique as jest.Mock).mockResolvedValue({ slug: 'merchant-a' })
+    ;(prisma.$transaction as jest.Mock).mockImplementation(async (callback) => callback({
+      merchantFrame: {
+        findFirst: jest.fn().mockResolvedValue(null),
+        create: jest.fn().mockResolvedValue({ id: 'frame-a' }),
+      },
+    }))
+
+    await merchantOnboarding.importMerchantFrames({ actor: writeActor, frames: [{ sku: 'SKU-A', name: 'Frame A', shape: 'round' }] })
+    expect(withPublicDiscoveryInvalidation).toHaveBeenCalledWith(expect.objectContaining({ target: { kind: 'catalog', merchantSlug: 'merchant-a' } }))
+
+    jest.clearAllMocks()
+    ;(prisma.merchant.findUnique as jest.Mock).mockResolvedValue({ slug: 'merchant-a' })
+    ;(prisma.$transaction as jest.Mock).mockRejectedValue(new Error('write failed'))
+    await expect(merchantOnboarding.importMerchantFrames({ actor: writeActor, frames: [{ sku: 'SKU-A', name: 'Frame A', shape: 'round' }] })).rejects.toThrow('write failed')
+    expect(withPublicDiscoveryInvalidation).toHaveBeenCalled()
+  })
+
+  it('invalidates Store discovery after frame replacement succeeds', async () => {
+    const writeActor: AgentMerchantActor = { ...actor, scopes: ['experience:write'] }
+    ;(prisma.experience.findFirst as jest.Mock).mockResolvedValue({ id: 'store-a', slug: 'store', status: 'DRAFT', frames: [] })
+    ;(prisma.merchant.findUnique as jest.Mock).mockResolvedValue({ slug: 'merchant-a' })
+    ;(prisma.merchantFrame.findMany as jest.Mock).mockResolvedValue([frame('frame-a')])
+    ;(prisma.$transaction as jest.Mock).mockImplementation(async (callback) => callback({
+      experienceFrame: { deleteMany: jest.fn(), createMany: jest.fn() },
+    }))
+
+    await merchantOnboarding.setMerchantStoreFrames({ actor: writeActor, storeId: 'store-a', frameIds: ['frame-a'] })
+    expect(withPublicDiscoveryInvalidation).toHaveBeenCalledWith(expect.objectContaining({ target: { kind: 'experience', merchantSlug: 'merchant-a', experienceSlug: null } }))
+  })
+
+  it('invalidates Store discovery after Store creation and publication writes', async () => {
+    const writeActor: AgentMerchantActor = { ...actor, scopes: ['experience:write'] }
+    ;(prisma.merchantFrame.findMany as jest.Mock).mockResolvedValue([frame('frame-a')])
+    ;(prisma.experience.findFirst as jest.Mock).mockResolvedValue({
+      id: 'store-a', slug: 'store', status: 'DRAFT', name: 'Store', frames: [{ merchantFrameId: 'frame-a' }],
+    })
+    ;(prisma.merchant.findUnique as jest.Mock).mockResolvedValue({ slug: 'merchant-a' })
+    ;(prisma.$transaction as jest.Mock)
+      .mockImplementationOnce(async (callback) => callback({ experience: {
+        findFirst: jest.fn().mockResolvedValue(null),
+        create: jest.fn().mockResolvedValue({ id: 'store-a', slug: 'store', status: 'DRAFT', name: 'Store', frames: [] }),
+      } }))
+      .mockResolvedValue(undefined)
+    ;(prisma.experience.update as jest.Mock).mockResolvedValue({ id: 'store-a', status: 'ACTIVE', frames: [] })
+
+    await merchantOnboarding.createMerchantStore({ actor: writeActor })
+    expect(withPublicDiscoveryInvalidation).toHaveBeenCalledWith(expect.objectContaining({ target: { kind: 'experience', merchantSlug: 'merchant-a', experienceSlug: null } }))
+
+    await merchantOnboarding.publishMerchantStore({ actor: writeActor, storeId: 'store-a', approved: true })
+    expect(withPublicDiscoveryInvalidation).toHaveBeenCalledWith(expect.objectContaining({ target: { kind: 'experience', merchantSlug: 'merchant-a', experienceSlug: null } }))
   })
 })

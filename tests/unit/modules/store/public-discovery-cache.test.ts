@@ -3,6 +3,10 @@ import {
   publicDiscoveryCacheKey,
   publicDiscoveryCacheTags,
 } from '@/lib/store-discovery-cache'
+import { withPublicDiscoveryInvalidation } from '@/modules/store/application/public-discovery-invalidation'
+import { revalidateTag } from 'next/cache'
+
+jest.mock('next/cache', () => ({ revalidateTag: jest.fn() }))
 
 describe('public discovery cache contract', () => {
   it('separates Store/Campaign and locale cache keys', () => {
@@ -26,5 +30,50 @@ describe('public discovery cache contract', () => {
     expect(PUBLIC_DISCOVERY_CACHE.storeRevalidateSeconds).toBe(1800)
     expect(PUBLIC_DISCOVERY_CACHE.campaignRevalidateSeconds).toBe(300)
     expect(PUBLIC_DISCOVERY_CACHE.sitemapRevalidateSeconds).toBe(1800)
+  })
+
+  it('maps semantic writes to the smallest correct invalidation fanout', async () => {
+    await withPublicDiscoveryInvalidation({
+      target: { kind: 'merchant', merchantSlug: 'luna-optical' },
+      mutation: async () => 'merchant-updated',
+    })
+    expect(revalidateTag).toHaveBeenCalledTimes(2)
+    expect(revalidateTag).toHaveBeenCalledWith('public-discovery:merchant:luna-optical')
+    expect(revalidateTag).toHaveBeenCalledWith('public-discovery:sitemap')
+
+    jest.clearAllMocks()
+    await withPublicDiscoveryInvalidation({
+      target: { kind: 'catalog', merchantSlug: 'luna-optical' },
+      mutation: async () => 'catalog-updated',
+    })
+    expect(revalidateTag).toHaveBeenCalledTimes(3)
+    expect(revalidateTag).toHaveBeenCalledWith('public-discovery:merchant-catalog:luna-optical')
+
+    jest.clearAllMocks()
+    await withPublicDiscoveryInvalidation({
+      target: { kind: 'experience', merchantSlug: 'luna-optical', experienceSlug: 'petite-fit' },
+      mutation: async () => 'experience-updated',
+    })
+    expect(revalidateTag).toHaveBeenCalledTimes(3)
+    expect(revalidateTag).toHaveBeenCalledWith('public-discovery:experience:luna-optical:petite-fit')
+  })
+
+  it('does not invalidate when the mutation rejects', async () => {
+    jest.clearAllMocks()
+    await expect(withPublicDiscoveryInvalidation({
+      target: { kind: 'experience', merchantSlug: 'luna-optical', experienceSlug: 'petite-fit' },
+      mutation: async () => { throw new Error('write failed') },
+    })).rejects.toThrow('write failed')
+    expect(revalidateTag).not.toHaveBeenCalled()
+  })
+
+  it('supports idempotent mutations without invalidating when no row changed', async () => {
+    jest.clearAllMocks()
+    await withPublicDiscoveryInvalidation({
+      target: { kind: 'experience', merchantSlug: 'luna-optical', experienceSlug: null },
+      mutation: async () => ({ created: false }),
+      invalidate: (result) => result.created,
+    })
+    expect(revalidateTag).not.toHaveBeenCalled()
   })
 })

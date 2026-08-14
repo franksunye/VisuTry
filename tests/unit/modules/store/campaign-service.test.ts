@@ -8,8 +8,13 @@ jest.mock('@/lib/prisma', () => ({
   },
 }))
 
+jest.mock('@/modules/store/application/public-discovery-invalidation', () => ({
+  withPublicDiscoveryInvalidation: jest.fn(async ({ mutation }: { mutation: () => Promise<unknown> }) => mutation()),
+}))
+
 import { prisma } from '@/lib/prisma'
-import { CampaignServiceError, createCampaignDraft, previewCampaign, publishCampaign, setCampaignFrames, updateCampaign } from '@/modules/store/application/campaign-service'
+import { withPublicDiscoveryInvalidation } from '@/modules/store/application/public-discovery-invalidation'
+import { archiveCampaign, CampaignServiceError, createCampaignDraft, previewCampaign, publishCampaign, setCampaignFrames, updateCampaign } from '@/modules/store/application/campaign-service'
 import { MerchantAccessError } from '@/modules/merchant/application/merchant-access'
 
 const baseRow = {
@@ -36,6 +41,7 @@ describe('Campaign application service', () => {
     expect(result.gate).toBe('NONE')
     expect(result.presentationMode).toBe('EDITORIAL_FIRST')
     expect(prisma.experience.create).toHaveBeenCalledWith(expect.objectContaining({ data: expect.objectContaining({ type: 'CAMPAIGN', status: 'DRAFT', campaignObjective: 'INTENT', campaignGate: 'NONE', presentationMode: 'EDITORIAL_FIRST' }) }))
+    expect(withPublicDiscoveryInvalidation).toHaveBeenCalledWith(expect.objectContaining({ target: { kind: 'experience', merchantSlug: 'merchant-a', experienceSlug: 'small-faces' } }))
   })
 
   it('rejects invalid policy and date ranges', async () => {
@@ -59,6 +65,26 @@ describe('Campaign application service', () => {
 
     expect(result.objective).toBe('LEAD')
     expect(prisma.experience.findFirst).toHaveBeenCalledWith(expect.objectContaining({ where: { id: 'campaign-a', merchantId: 'merchant-a', type: 'CAMPAIGN' } }))
+    expect(withPublicDiscoveryInvalidation).toHaveBeenCalledWith(expect.objectContaining({ target: { kind: 'experience', merchantSlug: 'merchant-a', experienceSlug: 'small-faces' } }))
+  })
+
+  it('invalidates after a successful frame transaction and not after a failed write', async () => {
+    ;(prisma.experience.findFirst as jest.Mock).mockResolvedValue(baseRow)
+    ;(prisma.merchant.findUnique as jest.Mock).mockResolvedValue({ slug: 'merchant-a', referenceData: false })
+    ;(prisma.merchantFrame.findMany as jest.Mock).mockResolvedValue([baseRow.frames[0].merchantFrame])
+    ;(prisma.$transaction as jest.Mock).mockImplementation(async (callback) => callback({
+      experienceFrame: { deleteMany: jest.fn(), createMany: jest.fn() },
+    }))
+
+    await setCampaignFrames({ merchantId: 'merchant-a', campaignId: 'campaign-a', frameIds: ['frame-a'] })
+    expect(withPublicDiscoveryInvalidation).toHaveBeenCalledWith(expect.objectContaining({ target: { kind: 'experience', merchantSlug: 'merchant-a', experienceSlug: 'small-faces' } }))
+
+    jest.clearAllMocks()
+    ;(prisma.experience.findFirst as jest.Mock).mockResolvedValue(baseRow)
+    ;(prisma.merchant.findUnique as jest.Mock).mockResolvedValue({ slug: 'merchant-a', referenceData: false })
+    ;(prisma.experience.update as jest.Mock).mockRejectedValue(new Error('write failed'))
+    await expect(updateCampaign({ merchantId: 'merchant-a', campaignId: 'campaign-a', objective: 'LEAD' })).rejects.toThrow('write failed')
+    expect(prisma.experience.update).toHaveBeenCalled()
   })
 
   it('denies cross-tenant campaign access and frame selection', async () => {
@@ -93,6 +119,21 @@ describe('Campaign application service', () => {
     ;(prisma.experience.findFirst as jest.Mock).mockResolvedValue({ ...baseRow, frames: [] })
     ;(prisma.merchant.findUnique as jest.Mock).mockResolvedValue({ slug: 'merchant-a', referenceData: false })
     await expect(publishCampaign({ merchantId: 'merchant-a', campaignId: 'campaign-a', approved: true })).rejects.toMatchObject({ code: 'CAMPAIGN_NOT_READY' })
+  })
+
+  it('invalidates publish and archive transitions after the database write', async () => {
+    ;(prisma.experience.findFirst as jest.Mock).mockResolvedValue(baseRow)
+    ;(prisma.merchant.findUnique as jest.Mock).mockResolvedValue({ slug: 'merchant-a', referenceData: false })
+    ;(prisma.experience.update as jest.Mock).mockResolvedValue({ ...baseRow, status: 'ACTIVE' })
+    await publishCampaign({ merchantId: 'merchant-a', campaignId: 'campaign-a', approved: true })
+    expect(withPublicDiscoveryInvalidation).toHaveBeenCalledWith(expect.objectContaining({ target: { kind: 'experience', merchantSlug: 'merchant-a', experienceSlug: 'small-faces' } }))
+
+    jest.clearAllMocks()
+    ;(prisma.experience.findFirst as jest.Mock).mockResolvedValue(baseRow)
+    ;(prisma.merchant.findUnique as jest.Mock).mockResolvedValue({ slug: 'merchant-a', referenceData: false })
+    ;(prisma.experience.update as jest.Mock).mockResolvedValue({ ...baseRow, status: 'ARCHIVED' })
+    await archiveCampaign({ merchantId: 'merchant-a', campaignId: 'campaign-a' })
+    expect(withPublicDiscoveryInvalidation).toHaveBeenCalledWith(expect.objectContaining({ target: { kind: 'experience', merchantSlug: 'merchant-a', experienceSlug: 'small-faces' } }))
   })
 
   it('keeps archived Campaigns from being republished', async () => {

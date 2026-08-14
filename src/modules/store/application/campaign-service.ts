@@ -4,6 +4,7 @@ import { validateCatalogFrame } from '@/modules/merchant/application/merchant-on
 import { resolveCampaignConversionPolicy, isCampaignGate, isCampaignObjective, isPresentationMode, type CampaignGate, type CampaignObjective } from '../domain/campaign-policy'
 import { resolvePresentationMode, type PresentationMode } from '../domain/presentation-mode'
 import { MerchantAccessError } from '@/modules/merchant/application/merchant-access'
+import { withPublicDiscoveryInvalidation } from './public-discovery-invalidation'
 
 const MAX_CAMPAIGN_FRAMES = 100
 
@@ -223,9 +224,12 @@ export async function createCampaignDraft(input: {
     if (compatible) return mapCampaign(await campaignRow(input.merchantId, existing.id).then((result) => result.row), merchant.slug, merchant.referenceData)
     throw new CampaignServiceError('CAMPAIGN_SLUG_CONFLICT', 'A Campaign already uses this slug.', 409)
   }
-  const created = await prisma.experience.create({
-    data: { merchantId: input.merchantId, type: 'CAMPAIGN', slug: requestedSlug, name, status: 'DRAFT', headline: input.headline?.trim() || null, description: input.description?.trim() || null, campaignObjective: objective, campaignGate: gate, presentationMode, startAt, endAt, primaryCtaType: input.primaryCtaType?.trim() || null, primaryCtaLabel: input.primaryCtaLabel?.trim() || null, primaryCtaUrl: input.primaryCtaUrl?.trim() || null, secondaryCtaType: input.secondaryCtaType?.trim() || null, secondaryCtaLabel: input.secondaryCtaLabel?.trim() || null, secondaryCtaUrl: input.secondaryCtaUrl?.trim() || null },
-    include: campaignFramesInclude,
+  const created = await withPublicDiscoveryInvalidation({
+    target: { kind: 'experience', merchantSlug: merchant.slug, experienceSlug: requestedSlug },
+    mutation: () => prisma.experience.create({
+      data: { merchantId: input.merchantId, type: 'CAMPAIGN', slug: requestedSlug, name, status: 'DRAFT', headline: input.headline?.trim() || null, description: input.description?.trim() || null, campaignObjective: objective, campaignGate: gate, presentationMode, startAt, endAt, primaryCtaType: input.primaryCtaType?.trim() || null, primaryCtaLabel: input.primaryCtaLabel?.trim() || null, primaryCtaUrl: input.primaryCtaUrl?.trim() || null, secondaryCtaType: input.secondaryCtaType?.trim() || null, secondaryCtaLabel: input.secondaryCtaLabel?.trim() || null, secondaryCtaUrl: input.secondaryCtaUrl?.trim() || null },
+      include: campaignFramesInclude,
+    }),
   })
   return mapCampaign(created, merchant.slug, merchant.referenceData)
 }
@@ -262,23 +266,29 @@ export async function updateCampaign(input: {
   for (const field of ['headline', 'description', 'primaryCtaType', 'primaryCtaLabel', 'primaryCtaUrl', 'secondaryCtaType', 'secondaryCtaLabel', 'secondaryCtaUrl'] as const) if (input[field] !== undefined) data[field] = typeof input[field] === 'string' ? input[field].trim() : input[field]
   if (startAt !== undefined) data.startAt = startAt
   if (endAt !== undefined) data.endAt = endAt
-  const updated = await prisma.experience.update({ where: { id: current.row.id }, data, include: campaignFramesInclude })
+  const updated = await withPublicDiscoveryInvalidation({
+    target: { kind: 'experience', merchantSlug: current.merchant.slug, experienceSlug: current.row.slug },
+    mutation: () => prisma.experience.update({ where: { id: current.row.id }, data, include: campaignFramesInclude }),
+  })
   return mapCampaign(updated, current.merchant.slug, current.merchant.referenceData)
 }
 
 export async function setCampaignFrames(input: { merchantId: string; campaignId: string; frameIds: string[] }) {
   if (input.frameIds.length > MAX_CAMPAIGN_FRAMES) throw new CampaignServiceError('INVALID_REQUEST', `frameIds cannot exceed ${MAX_CAMPAIGN_FRAMES}.`)
   const frameIds = [...new Set(input.frameIds)]
-  await campaignRow(input.merchantId, input.campaignId)
+  const current = await campaignRow(input.merchantId, input.campaignId)
   const frames = await prisma.merchantFrame.findMany({
     where: { merchantId: input.merchantId, id: { in: frameIds }, status: 'ACTIVE' },
     select: { id: true, sku: true, name: true, imageUrl: true, shape: true, widthClass: true, status: true },
   })
   if (frames.length !== frameIds.length || frames.some((frame) => !validateCatalogFrame(frame).valid)) throw new MerchantAccessError()
-  await prisma.$transaction(async (tx) => {
-    await tx.experienceFrame.deleteMany({ where: { experienceId: input.campaignId, merchantId: input.merchantId } })
-    if (frameIds.length) await tx.experienceFrame.createMany({ data: frameIds.map((merchantFrameId, sortOrder) => ({ experienceId: input.campaignId, merchantId: input.merchantId, merchantFrameId, sortOrder, active: true })) })
-  }, { isolationLevel: Prisma.TransactionIsolationLevel.Serializable })
+  await withPublicDiscoveryInvalidation({
+    target: { kind: 'experience', merchantSlug: current.merchant.slug, experienceSlug: current.row.slug },
+    mutation: () => prisma.$transaction(async (tx) => {
+      await tx.experienceFrame.deleteMany({ where: { experienceId: input.campaignId, merchantId: input.merchantId } })
+      if (frameIds.length) await tx.experienceFrame.createMany({ data: frameIds.map((merchantFrameId, sortOrder) => ({ experienceId: input.campaignId, merchantId: input.merchantId, merchantFrameId, sortOrder, active: true })) })
+    }, { isolationLevel: Prisma.TransactionIsolationLevel.Serializable }),
+  })
   return { frameIds }
 }
 
@@ -292,12 +302,18 @@ export async function publishCampaign(input: { merchantId: string; campaignId: s
   const model = mapCampaign(current.row, current.merchant.slug, current.merchant.referenceData)
   if (!model.readiness.ready) throw new CampaignServiceError('CAMPAIGN_NOT_READY', 'Campaign is not ready to publish.', 409)
   if (current.row.status === 'ACTIVE') return model
-  const updated = await prisma.experience.update({ where: { id: current.row.id }, data: { status: 'ACTIVE' }, include: campaignFramesInclude })
+  const updated = await withPublicDiscoveryInvalidation({
+    target: { kind: 'experience', merchantSlug: current.merchant.slug, experienceSlug: current.row.slug },
+    mutation: () => prisma.experience.update({ where: { id: current.row.id }, data: { status: 'ACTIVE' }, include: campaignFramesInclude }),
+  })
   return mapCampaign(updated, current.merchant.slug, current.merchant.referenceData)
 }
 
 export async function archiveCampaign(input: { merchantId: string; campaignId: string }) {
   const current = await campaignRow(input.merchantId, input.campaignId)
-  const updated = await prisma.experience.update({ where: { id: current.row.id }, data: { status: 'ARCHIVED' }, include: campaignFramesInclude })
+  const updated = await withPublicDiscoveryInvalidation({
+    target: { kind: 'experience', merchantSlug: current.merchant.slug, experienceSlug: current.row.slug },
+    mutation: () => prisma.experience.update({ where: { id: current.row.id }, data: { status: 'ARCHIVED' }, include: campaignFramesInclude }),
+  })
   return mapCampaign(updated, current.merchant.slug, current.merchant.referenceData)
 }
