@@ -624,6 +624,19 @@ model MerchantOAuthClient {
   @@index([createdAt])
 }
 
+/// Distributed, privacy-preserving abuse counters for the public DCR endpoint.
+model MerchantOAuthDcrCounter {
+  id          String   @id @default(cuid())
+  bucketHash  String
+  windowStart DateTime
+  count       Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([bucketHash, windowStart])
+  @@index([windowStart])
+}
+
 /// Short-lived browser transaction used to preserve an OAuth request through
 /// Auth0/NextAuth login and explicit Merchant selection.
 model MerchantOAuthAuthorizationRequest {

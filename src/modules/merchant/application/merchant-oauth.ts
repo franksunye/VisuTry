@@ -1,4 +1,6 @@
 import { createHash, randomBytes, timingSafeEqual } from 'node:crypto'
+import { lookup } from 'node:dns/promises'
+import { isIP } from 'node:net'
 import { prisma } from '@/lib/prisma'
 import { requireMerchantMembership } from './merchant-access'
 import {
@@ -25,16 +27,24 @@ export const MCP_OAUTH_ACCESS_TOKEN_TTL_SECONDS = 60 * 60
 export const MCP_OAUTH_REFRESH_TOKEN_TTL_SECONDS = 30 * 24 * 60 * 60
 export const MCP_OAUTH_AUTHORIZATION_CODE_TTL_SECONDS = 5 * 60
 export const MCP_OAUTH_REQUEST_TTL_SECONDS = 10 * 60
+export const MCP_OAUTH_DCR_REQUESTS_PER_MINUTE = 20
+const MCP_OAUTH_DCR_WINDOW_MS = 60_000
+const CIMD_FETCH_TIMEOUT_MS = 2_000
+const CIMD_MAX_DOCUMENT_BYTES = 64 * 1024
+const CIMD_DEFAULT_CACHE_SECONDS = 5 * 60
+const CIMD_MAX_CACHE_SECONDS = 60 * 60
 
 export class MerchantOAuthError extends Error {
   readonly code: string
   readonly httpStatus: number
+  readonly retryAfterSeconds?: number
 
-  constructor(code: string, message: string, httpStatus = 400) {
+  constructor(code: string, message: string, httpStatus = 400, retryAfterSeconds?: number) {
     super(message)
     this.name = 'MerchantOAuthError'
     this.code = code
     this.httpStatus = httpStatus
+    this.retryAfterSeconds = retryAfterSeconds
   }
 }
 
@@ -70,6 +80,147 @@ function constantTimeEqual(left: string, right: string): boolean {
 
 function randomToken(prefix: string, bytes = 32): string {
   return `${prefix}${randomBytes(bytes).toString('base64url')}`
+}
+
+function isLocalhostHost(hostname: string): boolean {
+  const normalized = hostname.toLowerCase().replace(/^\[|\]$/gu, '')
+  return normalized === 'localhost' || normalized === '127.0.0.1' || normalized === '::1'
+}
+
+function isPrivateIpAddress(address: string): boolean {
+  const normalized = address.toLowerCase().replace(/^\[|\]$/gu, '')
+  const family = isIP(normalized)
+  if (family === 4) {
+    const octets = normalized.split('.').map(Number)
+    const [first, second] = octets
+    return first === 0
+      || first === 10
+      || first === 127
+      || (first === 169 && second === 254)
+      || (first === 172 && second >= 16 && second <= 31)
+      || (first === 192 && second === 168)
+      || (first === 198 && (second === 18 || second === 19))
+      || first >= 224
+  }
+  if (family === 6) {
+    if (normalized === '::' || normalized === '::1') return true
+    if (normalized.startsWith('::ffff:')) return isPrivateIpAddress(normalized.slice('::ffff:'.length))
+    return /^f[cf][0-9a-f]|^fe[89ab][0-9a-f]|^ff[0-9a-f]/u.test(normalized)
+  }
+  return false
+}
+
+async function assertSafeCimdHost(clientId: string): Promise<void> {
+  const parsed = new URL(clientId)
+  if (parsed.protocol !== 'https:' || !parsed.pathname || parsed.pathname === '/' || parsed.username || parsed.password || parsed.search || parsed.hash) {
+    throw new MerchantOAuthError('invalid_client', 'The CIMD client_id must be an HTTPS URL with a path and no query or fragment.', 400)
+  }
+  if (isLocalhostHost(parsed.hostname) || isPrivateIpAddress(parsed.hostname)) {
+    throw new MerchantOAuthError('invalid_client', 'The CIMD client_id host is not allowed.', 400)
+  }
+  let addresses: Array<{ address: string }>
+  try {
+    addresses = await lookup(parsed.hostname, { all: true, verbatim: true })
+  } catch {
+    throw new MerchantOAuthError('invalid_client', 'The CIMD client_id host could not be resolved.', 400)
+  }
+  if (addresses.length === 0 || addresses.some(({ address }) => isPrivateIpAddress(address))) {
+    throw new MerchantOAuthError('invalid_client', 'The CIMD client_id host resolves to a private or local address.', 400)
+  }
+}
+
+type CimdCacheEntry = { client: OAuthClientMetadata; expiresAt: number }
+const cimdCache = new Map<string, CimdCacheEntry>()
+
+function cacheSeconds(response: Response): number {
+  const cacheControl = response.headers.get('cache-control') || ''
+  const maxAge = cacheControl.match(/(?:^|,)\s*max-age=(\d+)/iu)?.[1]
+  const seconds = maxAge ? Number(maxAge) : CIMD_DEFAULT_CACHE_SECONDS
+  return Math.max(1, Math.min(Number.isFinite(seconds) ? seconds : CIMD_DEFAULT_CACHE_SECONDS, CIMD_MAX_CACHE_SECONDS))
+}
+
+async function loadCimdClientMetadata(clientId: string): Promise<OAuthClientMetadata> {
+  const cached = cimdCache.get(clientId)
+  if (cached && cached.expiresAt > Date.now()) return cached.client
+  await assertSafeCimdHost(clientId)
+  let response: Response
+  try {
+    response = await fetch(clientId, {
+      method: 'GET',
+      redirect: 'error',
+      headers: { Accept: 'application/json' },
+      signal: AbortSignal.timeout(CIMD_FETCH_TIMEOUT_MS),
+    })
+  } catch {
+    throw new MerchantOAuthError('invalid_client', 'The CIMD metadata document could not be fetched.', 400)
+  }
+  if (!response.ok || !(response.headers.get('content-type') || '').toLowerCase().startsWith('application/json')) {
+    throw new MerchantOAuthError('invalid_client', 'The CIMD metadata document is unavailable or not JSON.', 400)
+  }
+  const contentLength = Number(response.headers.get('content-length') || 0)
+  if (contentLength > CIMD_MAX_DOCUMENT_BYTES) {
+    throw new MerchantOAuthError('invalid_client', 'The CIMD metadata document is too large.', 400)
+  }
+  const body = await response.text()
+  if (Buffer.byteLength(body, 'utf8') > CIMD_MAX_DOCUMENT_BYTES) {
+    throw new MerchantOAuthError('invalid_client', 'The CIMD metadata document is too large.', 400)
+  }
+  let metadata: Record<string, unknown>
+  try {
+    metadata = JSON.parse(body) as Record<string, unknown>
+  } catch {
+    throw new MerchantOAuthError('invalid_client', 'The CIMD metadata document is not valid JSON.', 400)
+  }
+  if (metadata.client_id !== clientId) {
+    throw new MerchantOAuthError('invalid_client', 'The CIMD metadata client_id must match the URL exactly.', 400)
+  }
+  if (typeof metadata.client_name !== 'string' || !metadata.client_name.trim()) {
+    throw new MerchantOAuthError('invalid_client', 'The CIMD metadata document requires client_name.', 400)
+  }
+  if (!Array.isArray(metadata.redirect_uris) || metadata.redirect_uris.length === 0) {
+    throw new MerchantOAuthError('invalid_client', 'The CIMD metadata document requires redirect_uris.', 400)
+  }
+  const redirectUris = [...new Set(metadata.redirect_uris.map(validateRedirectUri))]
+  if (metadata.application_type !== undefined && metadata.application_type !== 'native' && metadata.application_type !== 'web') {
+    throw new MerchantOAuthError('invalid_client', 'The CIMD application_type is invalid.', 400)
+  }
+  if (metadata.application_type === 'native' && redirectUris.some((uri) => !isLocalhostRedirectUri(uri))) {
+    throw new MerchantOAuthError('invalid_client', 'CIMD native clients must use localhost HTTP redirect URIs.', 400)
+  }
+  if (metadata.application_type === 'web' && redirectUris.some((uri) => new URL(uri).protocol !== 'https:')) {
+    throw new MerchantOAuthError('invalid_client', 'CIMD web clients must use HTTPS redirect URIs.', 400)
+  }
+  validateRegistrationArray(metadata.grant_types, ['authorization_code', 'refresh_token'], 'grant_types', 'authorization_code')
+  validateRegistrationArray(metadata.response_types, ['code'], 'response_types', 'code')
+  if (metadata.token_endpoint_auth_method !== undefined && metadata.token_endpoint_auth_method !== 'none') {
+    throw new MerchantOAuthError('invalid_client', 'Only public PKCE clients are supported.', 400)
+  }
+  const client = {
+    clientId,
+    clientName: metadata.client_name.trim().slice(0, 160),
+    redirectUris,
+    tokenEndpointAuthMethod: 'none',
+  }
+  cimdCache.set(clientId, { client, expiresAt: Date.now() + cacheSeconds(response) * 1000 })
+  return client
+}
+
+export async function consumeMcpOAuthDcrRateLimit(input: { identity: string; now?: Date; limit?: number }): Promise<void> {
+  const now = input.now ?? new Date()
+  const windowStart = new Date(Math.floor(now.getTime() / MCP_OAUTH_DCR_WINDOW_MS) * MCP_OAUTH_DCR_WINDOW_MS)
+  const secret = process.env.NEXTAUTH_SECRET || process.env.AUTH_SECRET || 'visutry-mcp-dcr-rate-limit'
+  const bucketHash = hashToken(`${secret}\u0000${input.identity.slice(0, 256)}`)
+  const row = await prisma.merchantOAuthDcrCounter.upsert({
+    where: { bucketHash_windowStart: { bucketHash, windowStart } },
+    create: { bucketHash, windowStart, count: 1 },
+    update: { count: { increment: 1 } },
+    select: { count: true },
+  })
+  const limit = input.limit ?? MCP_OAUTH_DCR_REQUESTS_PER_MINUTE
+  if (row.count > limit) {
+    const retryAfterSeconds = Math.max(1, Math.ceil((windowStart.getTime() + MCP_OAUTH_DCR_WINDOW_MS - now.getTime()) / 1000))
+    throw new MerchantOAuthError('rate_limited', 'OAuth client registration rate limit exceeded.', 429, retryAfterSeconds)
+  }
 }
 
 export function canonicalMcpResource(requestOrigin?: string): string {
@@ -183,6 +334,7 @@ function validateRegistrationArray(input: unknown, allowed: string[], field: str
 }
 
 export async function getMcpOAuthClient(clientId: string): Promise<OAuthClientMetadata> {
+  if (isCimdClientId(clientId)) return loadCimdClientMetadata(clientId)
   const client = await prisma.merchantOAuthClient.findUnique({ where: { clientId } })
   if (!client) throw new MerchantOAuthError('invalid_client', 'Unknown OAuth client.', 400)
   return {
@@ -190,6 +342,21 @@ export async function getMcpOAuthClient(clientId: string): Promise<OAuthClientMe
     clientName: client.clientName,
     redirectUris: client.redirectUris,
     tokenEndpointAuthMethod: client.tokenEndpointAuthMethod,
+  }
+}
+
+function isCimdClientId(clientId: string): boolean {
+  if (typeof clientId !== 'string' || clientId.length > 2048) return false
+  try {
+    const parsed = new URL(clientId)
+    return parsed.protocol === 'https:'
+      && parsed.pathname !== '/'
+      && !parsed.username
+      && !parsed.password
+      && !parsed.search
+      && !parsed.hash
+  } catch {
+    return false
   }
 }
 
@@ -204,6 +371,7 @@ export function assertRegisteredRedirectUri(client: OAuthClientMetadata, redirec
 export async function createMcpOAuthAuthorizationRequest(input: {
   clientId: string
   redirectUri: string
+  responseType: string
   scope?: string
   resource?: string | null
   state?: string | null
@@ -211,6 +379,9 @@ export async function createMcpOAuthAuthorizationRequest(input: {
   codeChallengeMethod: string
   expectedResource: string
 }): Promise<OAuthAuthorizationRequest> {
+  if (input.responseType !== 'code') {
+    throw new MerchantOAuthError('unsupported_response_type', 'Only response_type=code is supported.', 400)
+  }
   if (!input.codeChallenge || input.codeChallenge.length > 200) {
     throw new MerchantOAuthError('invalid_request', 'code_challenge is required.', 400)
   }
@@ -320,6 +491,22 @@ function verifyPkce(codeVerifier: string, codeChallenge: string): boolean {
 }
 
 type OAuthTokenClient = Pick<typeof prisma, 'merchantOAuthAccessToken' | 'merchantOAuthRefreshToken'>
+type OAuthFamilyTransactionClient = OAuthTokenClient & Pick<typeof prisma, 'merchantOAuthAuthorization'>
+
+async function revokeMcpOAuthAuthorizationFamily(tx: OAuthFamilyTransactionClient, authorizationId: string, revokedAt = new Date()): Promise<void> {
+  await tx.merchantOAuthAuthorization.update({
+    where: { id: authorizationId },
+    data: { status: 'REVOKED', revokedAt },
+  })
+  await tx.merchantOAuthAccessToken.updateMany({
+    where: { authorizationId, revokedAt: null },
+    data: { revokedAt },
+  })
+  await tx.merchantOAuthRefreshToken.updateMany({
+    where: { authorizationId, revokedAt: null },
+    data: { revokedAt },
+  })
+}
 
 async function issueMcpTokens(input: {
   authorizationId: string
@@ -391,17 +578,25 @@ export async function refreshMcpOAuthToken(input: { refreshToken: string; resour
     where: { tokenHash: hashToken(input.refreshToken) },
     include: { authorization: true },
   })
-  if (!row || row.revokedAt || row.expiresAt.getTime() <= Date.now() || row.authorization.status !== 'ACTIVE' || row.authorization.resource !== input.expectedResource) {
+  if (!row || row.expiresAt.getTime() <= Date.now() || row.authorization.status !== 'ACTIVE' || row.authorization.resource !== input.expectedResource) {
     throw new MerchantOAuthError('invalid_grant', 'The refresh token is invalid or expired.', 400)
+  }
+  if (row.revokedAt) {
+    await prisma.$transaction(async (tx) => revokeMcpOAuthAuthorizationFamily(tx, row.authorizationId))
+    throw new MerchantOAuthError('invalid_grant', 'Refresh token reuse detected; fresh authorization is required.', 400)
   }
   const result = await prisma.$transaction(async (tx) => {
     const claimed = await tx.merchantOAuthRefreshToken.updateMany({ where: { id: row.id, revokedAt: null }, data: { revokedAt: new Date(), lastUsedAt: new Date() } })
-    if (claimed.count !== 1) throw new MerchantOAuthError('invalid_grant', 'The refresh token was already rotated.', 400)
+    if (claimed.count !== 1) {
+      await revokeMcpOAuthAuthorizationFamily(tx, row.authorizationId)
+      return null
+    }
     const tokens = await issueMcpTokens({ authorizationId: row.authorizationId, tx })
     await tx.merchantOAuthRefreshToken.update({ where: { tokenHash: hashToken(tokens.refreshToken) }, data: { rotatedFromId: row.id } })
     await tx.merchantOAuthAuthorization.update({ where: { id: row.authorizationId }, data: { lastUsedAt: new Date() } })
     return tokens
   })
+  if (!result) throw new MerchantOAuthError('invalid_grant', 'Refresh token reuse detected; fresh authorization is required.', 400)
   return { ...result, scope: row.authorization.scopes.join(' '), resource: row.authorization.resource }
 }
 

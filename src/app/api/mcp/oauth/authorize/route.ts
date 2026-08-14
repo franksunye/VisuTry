@@ -64,6 +64,7 @@ export async function GET(request: NextRequest) {
       const authRequest = await createMcpOAuthAuthorizationRequest({
         clientId: request.nextUrl.searchParams.get('client_id') || '',
         redirectUri: request.nextUrl.searchParams.get('redirect_uri') || '',
+        responseType: request.nextUrl.searchParams.get('response_type') || '',
         scope: request.nextUrl.searchParams.get('scope') || undefined,
         resource: request.nextUrl.searchParams.get('resource'),
         state: request.nextUrl.searchParams.get('state'),

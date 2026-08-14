@@ -54,15 +54,15 @@ OAuth endpoints:
 - `POST /api/mcp/oauth/token` — authorization-code + PKCE exchange and refresh-token rotation.
 - `POST /api/mcp/oauth/revoke` — access/refresh token revocation.
 
-Tokens are opaque, short-lived, hashed at rest, resource-bound, scope-bound, revocable, and never logged. Refresh tokens are rotated on use. Authorization codes are single-use and expire after five minutes.
+Tokens are opaque, short-lived, hashed at rest, resource-bound, scope-bound, revocable, and never logged. Refresh tokens are rotated on use; reuse of a rotated refresh token revokes the entire authorization family and requires fresh consent. Authorization codes are single-use and expire after five minutes.
 
 Auth0 is reused as the existing identity provider through the existing NextAuth/Auth0 session. VisuTry owns the merchant-specific authorization transaction because Auth0 identity alone cannot choose exactly one internal Merchant workspace or map VisuTry scopes.
 
 ### Client registration decision
 
-The current MCP Authorization specification describes three approaches: pre-registration first, Client ID Metadata Documents (CIMD) second, and Dynamic Client Registration (DCR) as a backward-compatible fallback. VisuTry currently uses DCR because Codex/Claude Code/Cursor compatibility requires a standards-based registration endpoint today and the implementation already has a bounded public-client registry.
+The current MCP Authorization specification describes pre-registration first, Client ID Metadata Documents (CIMD) second, and Dynamic Client Registration (DCR) as a backward-compatible fallback. VisuTry exposes both CIMD and DCR so clients can use the current primary path while older clients retain a bounded standards-based registration fallback.
 
-VisuTry should support CIMD in a later P1 hardening pass. CIMD requires fetching and validating arbitrary HTTPS client metadata URLs, redirect URI binding, caching, trust policy, SSRF defenses, and localhost impersonation warnings. That is not a small risk-free change for this review-preparation task. The authorization metadata explicitly advertises `client_id_metadata_document_supported: false`; DCR remains the compatibility fallback.
+VisuTry now supports CIMD as the primary no-pre-registration path. The implementation fetches only HTTPS metadata URLs with a path, blocks local/private DNS targets, disables redirects, bounds response size and fetch time, validates exact `client_id` matching plus redirect/grant/response metadata, and caches bounded results. DCR remains available as the backward-compatible fallback and is protected by a distributed database-backed registration bucket. Authorization metadata advertises `client_id_metadata_document_supported: true` and `registration_endpoint` together.
 
 ### DCR security review
 
@@ -72,7 +72,7 @@ VisuTry should support CIMD in a later P1 hardening pass. CIMD requires fetching
 - `application_type`, `grant_types`, `response_types`, and `token_endpoint_auth_method` are constrained to public PKCE authorization-code clients.
 - The server generates the client ID; callers cannot choose or impersonate an existing client ID.
 - The consent screen shows the registered client name, generated client ID, and redirect host before Merchant approval. Client metadata remains untrusted display data and is HTML-escaped.
-- DCR has no distributed IP-based rate limiter yet. A deployment WAF/edge limit or a database-backed registration bucket is a remaining P1 abuse-control item; registration itself does not grant Merchant access.
+- DCR is rate-limited by a privacy-preserving, distributed database bucket keyed from the deployment's client address headers; registration itself does not grant Merchant access.
 
 ## 6. Merchant tenant selection
 
@@ -134,7 +134,7 @@ The same endpoint and authorization server are intended for all clients. Client-
 
 ### Codex
 
-Use the current Codex Remote MCP add/login flow for `https://www.visutry.com/api/mcp`. The endpoint is HTTPS Streamable HTTP, publishes OAuth discovery, supports DCR + PKCE, and returns server instructions. This repository does not contain a logged-in Codex external-client session, so the browser authorization and live tool call are **supported, not externally tested in this change**.
+Use the current Codex Remote MCP add/login flow for `https://www.visutry.com/api/mcp`. The endpoint is HTTPS Streamable HTTP, publishes OAuth discovery, supports CIMD with DCR + PKCE fallback, and returns server instructions. This repository does not contain a logged-in Codex external-client session, so the browser authorization and live tool call are **supported, not externally tested in this change**.
 
 ### Claude Code
 
@@ -146,7 +146,7 @@ claude mcp add --transport http visutry https://www.visutry.com/api/mcp
 /mcp
 ```
 
-The endpoint uses DCR and a public PKCE client, so no long-lived VisuTry Agent Key is needed.
+The endpoint supports CIMD first and DCR as a compatibility fallback with a public PKCE client, so no long-lived VisuTry Agent Key is needed.
 
 ### Cursor
 
@@ -177,17 +177,17 @@ The existing Agent Access UI is still the practical Agent Key management surface
 - `MCP_RESOURCE_URL` must be set per environment: local `http://localhost:3000/api/mcp`, preview/staging `https://<environment-host>/api/mcp`, production `https://www.visutry.com/api/mcp`. Tokens are rejected when their stored resource differs from the request environment's canonical resource.
 - Auth0 callback/NextAuth production configuration must be verified with the deployed public origin.
 - Live end-to-end Codex, Claude Code, and Cursor browser flows require client installations/accounts and an isolated test Merchant; they were not available in this repository-only validation.
+- `tests/unit/app/api/mcp-oauth-http.integration.test.ts` is intentionally an HTTP handler contract test with mocked OAuth boundaries, not a database-backed protocol integration test.
 - Automated cleanup of expired authorization requests/codes/tokens should be added to the existing maintenance job.
 - Add a Merchant Control Center list/revoke view for OAuth authorizations before external pilot.
-- Implement CIMD with SSRF-safe metadata fetching and trust policy before treating DCR as anything other than compatibility fallback.
-- Add distributed DCR registration abuse/rate limiting.
+- Run the real database-backed OAuth integration suite and the Codex, Claude Code, and Cursor Golden Paths.
 
 ## 17. Exact production Golden Path
 
 1. Deploy the migration and set the environment-specific `MCP_RESOURCE_URL`.
 2. Add `https://www.visutry.com/api/mcp` in a compatible client without a static Authorization header.
 3. Client receives `401` and discovers protected-resource/auth-server metadata.
-4. Client performs DCR, PKCE authorization, and opens the VisuTry login page.
+4. Client performs CIMD, or DCR when CIMD is unavailable, then starts PKCE authorization and opens the VisuTry login page.
 5. User logs in with Auth0, selects exactly one Merchant, and approves requested scopes.
 6. Client exchanges the single-use code and sends the opaque bearer token to `/api/mcp`.
 7. Client initializes, receives server instructions, calls `tools/list`, reads Merchant/analytics data, and creates an unpublished test Campaign.

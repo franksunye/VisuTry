@@ -1,11 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { MerchantOAuthError, registerMcpOAuthClient } from '@/modules/merchant'
+import { consumeMcpOAuthDcrRateLimit, MerchantOAuthError, registerMcpOAuthClient } from '@/modules/merchant'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 
 export async function POST(request: NextRequest) {
   try {
+    const forwardedFor = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim()
+    const identity = request.headers.get('cf-connecting-ip')?.trim()
+      || request.headers.get('x-real-ip')?.trim()
+      || forwardedFor
+      || 'unknown'
+    await consumeMcpOAuthDcrRateLimit({ identity })
     const body = await request.json() as Record<string, unknown>
     const client = await registerMcpOAuthClient({
       clientName: body.client_name,
@@ -24,7 +30,11 @@ export async function POST(request: NextRequest) {
       response_types: ['code'],
     }, { status: 201, headers: { 'Cache-Control': 'no-store' } })
   } catch (error) {
-    if (error instanceof MerchantOAuthError) return NextResponse.json({ error: error.code, error_description: error.message }, { status: error.httpStatus })
+    if (error instanceof MerchantOAuthError) {
+      const headers: HeadersInit = { 'Cache-Control': 'no-store' }
+      if (error.retryAfterSeconds) headers['Retry-After'] = String(error.retryAfterSeconds)
+      return NextResponse.json({ error: error.code, error_description: error.message }, { status: error.httpStatus, headers })
+    }
     return NextResponse.json({ error: 'invalid_client_metadata' }, { status: 400 })
   }
 }

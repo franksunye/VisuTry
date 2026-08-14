@@ -24,6 +24,6 @@ export async function GET(request: NextRequest) {
     code_challenge_methods_supported: ['S256'],
     scopes_supported: MCP_OAUTH_SCOPE_VALUES,
     token_endpoint_auth_methods_supported: ['none'],
-    client_id_metadata_document_supported: false,
+    client_id_metadata_document_supported: true,
   }, { headers: { 'Cache-Control': 'public, max-age=300' } })
 }

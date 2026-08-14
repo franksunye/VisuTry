@@ -1,8 +1,10 @@
 /** @jest-environment node */
 
+jest.mock('node:dns/promises', () => ({ lookup: jest.fn().mockResolvedValue([{ address: '93.184.216.34', family: 4 }]) }))
 jest.mock('@/lib/prisma', () => ({
   prisma: {
     merchantOAuthClient: { findUnique: jest.fn(), create: jest.fn() },
+    merchantOAuthDcrCounter: { upsert: jest.fn() },
     merchantOAuthAuthorizationCode: { findUnique: jest.fn(), updateMany: jest.fn() },
     merchantOAuthAccessToken: { findUnique: jest.fn(), create: jest.fn(), update: jest.fn(), updateMany: jest.fn() },
     merchantOAuthAuthorization: { update: jest.fn(), create: jest.fn() },
@@ -16,7 +18,10 @@ import {
   assertResource,
   authenticateMerchantOAuthAccessToken,
   canonicalMcpResource,
+  consumeMcpOAuthDcrRateLimit,
+  createMcpOAuthAuthorizationRequest,
   exchangeMcpOAuthCode,
+  getMcpOAuthClient,
   refreshMcpOAuthToken,
   registerMcpOAuthClient,
   revokeMcpOAuthToken,
@@ -40,6 +45,7 @@ describe('Merchant OAuth principal boundary', () => {
     mockPrisma.merchantOAuthRefreshToken.create.mockResolvedValue({ id: 'refresh-a' })
     mockPrisma.merchantOAuthRefreshToken.update.mockResolvedValue({})
     mockPrisma.merchantOAuthRefreshToken.updateMany.mockResolvedValue({ count: 1 })
+    mockPrisma.merchantOAuthDcrCounter.upsert.mockResolvedValue({ count: 1 })
     mockPrisma.merchantOAuthClient.create.mockImplementation(async ({ data }: { data: Record<string, unknown> }) => ({ ...data, id: 'client-row-a' }))
   })
 
@@ -122,6 +128,43 @@ describe('Merchant OAuth principal boundary', () => {
     await expect(registerMcpOAuthClient({ clientName: 'native', redirectUris: ['http://127.0.0.1:4567/callback'], applicationType: 'native', grantTypes: ['authorization_code'], responseTypes: ['code'] })).resolves.toMatchObject({ clientId: expect.stringMatching(/^mcp_/u) })
   })
 
+  it('supports CIMD as the primary no-pre-registration client path with strict metadata validation', async () => {
+    const clientId = 'https://client.example/.well-known/mcp-client.json'
+    const fetchMock = jest.fn().mockResolvedValue(new Response(JSON.stringify({
+      client_id: clientId,
+      client_name: 'CIMD client',
+      redirect_uris: ['http://127.0.0.1:4567/callback'],
+      grant_types: ['authorization_code'],
+      response_types: ['code'],
+      token_endpoint_auth_method: 'none',
+    }), { status: 200, headers: { 'content-type': 'application/json', 'cache-control': 'max-age=60' } }))
+    const previousFetch = global.fetch
+    global.fetch = fetchMock as typeof fetch
+    try {
+      await expect(getMcpOAuthClient(clientId)).resolves.toMatchObject({ clientId, clientName: 'CIMD client', tokenEndpointAuthMethod: 'none' })
+      expect(fetchMock).toHaveBeenCalledWith(clientId, expect.objectContaining({ redirect: 'error' }))
+      await expect(getMcpOAuthClient('https://client.example/.well-known/mcp-client.json?evil=1')).rejects.toMatchObject({ code: 'invalid_client' })
+    } finally {
+      global.fetch = previousFetch
+    }
+  })
+
+  it('requires response_type=code and rate-limits public DCR by a distributed bucket', async () => {
+    mockPrisma.merchantOAuthClient.findUnique.mockResolvedValue({ clientId: 'client-a', clientName: 'Test', redirectUris: ['http://127.0.0.1:4567/callback'], tokenEndpointAuthMethod: 'none' })
+    await expect(createMcpOAuthAuthorizationRequest({
+      clientId: 'client-a',
+      redirectUri: 'http://127.0.0.1:4567/callback',
+      responseType: 'foo',
+      codeChallenge: 'challenge',
+      codeChallengeMethod: 'S256',
+      expectedResource: 'http://localhost:3000/api/mcp',
+      resource: 'http://localhost:3000/api/mcp',
+    })).rejects.toMatchObject({ code: 'unsupported_response_type' })
+
+    mockPrisma.merchantOAuthDcrCounter.upsert.mockResolvedValue({ count: 2 })
+    await expect(consumeMcpOAuthDcrRateLimit({ identity: '203.0.113.10', limit: 1 })).rejects.toMatchObject({ code: 'rate_limited', httpStatus: 429, retryAfterSeconds: expect.any(Number) })
+  })
+
   it('uses one-time short-lived PKCE codes and never stores raw access or refresh tokens', async () => {
     const verifier = 'verifier-a'
     const challenge = createHash('sha256').update(verifier).digest('base64url')
@@ -170,6 +213,8 @@ describe('Merchant OAuth principal boundary', () => {
 
     row.revokedAt = new Date()
     await expect(refreshMcpOAuthToken({ refreshToken: 'mcp_rt_a', resource: row.authorization.resource, expectedResource: row.authorization.resource })).rejects.toMatchObject({ code: 'invalid_grant' })
+    expect(mockPrisma.merchantOAuthAuthorization.update).toHaveBeenCalledWith(expect.objectContaining({ where: { id: 'authorization-a' }, data: expect.objectContaining({ status: 'REVOKED' }) }))
+    expect(mockPrisma.merchantOAuthAccessToken.updateMany).toHaveBeenCalledWith(expect.objectContaining({ where: { authorizationId: 'authorization-a', revokedAt: null } }))
 
     await revokeMcpOAuthToken('mcp_rt_a')
     expect(mockPrisma.merchantOAuthRefreshToken.updateMany).toHaveBeenCalledWith(expect.objectContaining({ where: { tokenHash: expect.any(String), revokedAt: null } }))

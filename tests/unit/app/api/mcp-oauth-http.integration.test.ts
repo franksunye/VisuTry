@@ -16,6 +16,7 @@ jest.mock('@/modules/merchant', () => ({
   canonicalMcpResource: jest.fn((origin: string) => `${origin}/api/mcp`),
   oauthIssuer: jest.fn((origin: string) => origin),
   registerMcpOAuthClient: jest.fn(),
+  consumeMcpOAuthDcrRateLimit: jest.fn(),
   createMcpOAuthAuthorizationRequest: jest.fn(),
   getMcpOAuthClient: jest.fn(),
   getMcpOAuthAuthorizationRequest: jest.fn(),
@@ -51,6 +52,7 @@ import {
   exchangeMcpOAuthCode,
   getMcpOAuthAuthorizationRequest,
   registerMcpOAuthClient,
+  consumeMcpOAuthDcrRateLimit,
 } from '@/modules/merchant'
 import { POST as mcpPost } from '@/app/api/mcp/route'
 import { GET as protectedResourceGet } from '@/app/.well-known/oauth-protected-resource/route'
@@ -62,6 +64,7 @@ import { POST as tokenPost } from '@/app/api/mcp/oauth/token/route'
 const mockSession = getServerSession as jest.Mock
 const mockPrisma = prisma as any
 const mockRegister = registerMcpOAuthClient as jest.Mock
+const mockDcrRateLimit = consumeMcpOAuthDcrRateLimit as jest.Mock
 const mockCreateRequest = createMcpOAuthAuthorizationRequest as jest.Mock
 const mockGetClient = getMcpOAuthClient as jest.Mock
 const mockGetRequest = getMcpOAuthAuthorizationRequest as jest.Mock
@@ -74,12 +77,13 @@ function request(url: string, init?: ConstructorParameters<typeof NextRequest>[1
   return new NextRequest(url, init)
 }
 
-describe('HTTP MCP OAuth discovery and connection chain', () => {
+describe('HTTP MCP OAuth discovery and connection handler contract', () => {
   beforeEach(() => {
     jest.clearAllMocks()
     mockSession.mockResolvedValue(null)
     mockPrisma.merchantMembership.findMany.mockResolvedValue([{ merchantId: 'merchant-a', role: 'OWNER', merchant: { name: 'Test Merchant', slug: 'test-merchant', status: 'ACTIVE' } }])
     mockRegister.mockResolvedValue({ clientId: 'mcp_client_a', clientName: 'Claude Code', redirectUris: ['http://127.0.0.1:4567/callback'], tokenEndpointAuthMethod: 'none' })
+    mockDcrRateLimit.mockResolvedValue(undefined)
     mockCreateRequest.mockResolvedValue({ requestId: 'request-a' })
     mockGetClient.mockResolvedValue({ clientId: 'mcp_client_a', clientName: 'Claude Code', redirectUris: ['http://127.0.0.1:4567/callback'], tokenEndpointAuthMethod: 'none' })
     mockGetRequest.mockResolvedValue({ requestId: 'request-a', clientId: 'mcp_client_a', redirectUri: 'http://127.0.0.1:4567/callback', scopes: ['merchant:read'], resource: 'http://localhost:3000/api/mcp', state: 'state-a', codeChallenge: 'challenge-a', codeChallengeMethod: 'S256', userId: null, expiresAt: new Date(Date.now() + 60_000) })
@@ -97,15 +101,17 @@ describe('HTTP MCP OAuth discovery and connection chain', () => {
     expect(await protectedResource.json()).toMatchObject({ resource: 'http://localhost:3000/api/mcp', authorization_servers: ['http://localhost:3000'] })
 
     const authorizationServer = await authorizationServerGet(request('http://localhost:3000/.well-known/oauth-authorization-server'))
-    expect(await authorizationServer.json()).toMatchObject({ registration_endpoint: 'http://localhost:3000/api/mcp/oauth/register', client_id_metadata_document_supported: false })
+    expect(await authorizationServer.json()).toMatchObject({ registration_endpoint: 'http://localhost:3000/api/mcp/oauth/register', client_id_metadata_document_supported: true })
 
     const registration = await registerPost(request('http://localhost:3000/api/mcp/oauth/register', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ client_name: 'Claude Code', redirect_uris: ['http://127.0.0.1:4567/callback'], application_type: 'native', grant_types: ['authorization_code'], response_types: ['code'], token_endpoint_auth_method: 'none' }) }))
     expect(registration.status).toBe(201)
     expect(mockRegister).toHaveBeenCalledWith(expect.objectContaining({ applicationType: 'native', grantTypes: ['authorization_code'], responseTypes: ['code'] }))
+    expect(mockDcrRateLimit).toHaveBeenCalledWith(expect.objectContaining({ identity: expect.any(String) }))
 
     const authorizationStart = await authorizeGet(request('http://localhost:3000/api/mcp/oauth/authorize?client_id=mcp_client_a&redirect_uri=http%3A%2F%2F127.0.0.1%3A4567%2Fcallback&response_type=code&code_challenge=challenge-a&code_challenge_method=S256&resource=http%3A%2F%2Flocalhost%3A3000%2Fapi%2Fmcp&scope=merchant%3Aread&state=state-a'))
     expect(authorizationStart.status).toBe(307)
     expect(authorizationStart.headers.get('location')).toContain('/api/auth/signin/auth0')
+    expect(mockCreateRequest).toHaveBeenCalledWith(expect.objectContaining({ responseType: 'code' }))
 
     mockSession.mockResolvedValue({ user: { id: 'user-a' } })
     const consent = await authorizeGet(request('http://localhost:3000/api/mcp/oauth/authorize?request_id=request-a'))
