@@ -2,6 +2,8 @@
 
 jest.mock('@/modules/merchant', () => ({
   authenticateMerchantAgentCredential: jest.fn(),
+  authenticateMerchantMcpBearer: jest.fn(),
+  canonicalMcpResource: jest.fn().mockReturnValue('http://localhost/api/mcp'),
   InvalidAgentCredentialError: class InvalidAgentCredentialError extends Error {
     readonly code = 'INVALID_AGENT_CREDENTIAL'
     readonly httpStatus = 401
@@ -77,11 +79,11 @@ jest.mock('@/modules/merchant/application/merchant-agent-credentials', () => ({
 }))
 
 import { NextRequest } from 'next/server'
-import { authenticateMerchantAgentCredential } from '@/modules/merchant'
+import { authenticateMerchantMcpBearer } from '@/modules/merchant'
 import { recordMerchantAgentOperation } from '@/modules/merchant/application/merchant-agent-credentials'
 import { POST } from '@/app/api/mcp/route'
 
-const authenticate = authenticateMerchantAgentCredential as jest.Mock
+const authenticate = authenticateMerchantMcpBearer as jest.Mock
 const actor = { actorType: 'AGENT_CREDENTIAL' as const, actorId: 'credential-a', merchantId: 'merchant-a', scopes: ['merchant:read', 'catalog:read', 'experience:read', 'experience:write', 'analytics:read'] }
 
 function mcpRequest(message: unknown) {
@@ -101,17 +103,23 @@ describe('MCP transport protocol', () => {
   it('supports initialize and tools/list over Streamable HTTP', async () => {
     const initialize = await POST(mcpRequest({ jsonrpc: '2.0', id: 1, method: 'initialize', params: { protocolVersion: '2025-06-18', capabilities: {}, clientInfo: { name: 'test', version: '1' } } }))
     expect(initialize.status).toBe(200)
-    const initBody = await initialize.json() as { result: { protocolVersion: string } }
+    const initBody = await initialize.json() as { result: { protocolVersion: string; instructions?: string } }
     expect(initBody.result.protocolVersion).toBeTruthy()
+    expect(initBody.result.instructions).toContain('one authorized VisuTry Merchant workspace')
 
     const list = await POST(mcpRequest({ jsonrpc: '2.0', id: 2, method: 'tools/list', params: {} }))
     expect(list.status).toBe(200)
-    const listBody = await list.json() as { result: { tools: Array<{ name: string }> } }
+    const listBody = await list.json() as { result: { tools: Array<{ name: string; annotations?: { readOnlyHint?: boolean; destructiveHint?: boolean }; _meta?: { securitySchemes?: Array<{ type: string; scopes: string[] }> } }> } }
     expect(listBody.result.tools.map((tool) => tool.name)).toEqual([
       'get_onboarding_status', 'get_merchant', 'list_frames', 'import_frames', 'validate_catalog', 'create_store', 'set_store_frames', 'preview_store', 'publish_store',
       'list_campaigns', 'get_campaign', 'create_campaign', 'set_campaign_frames', 'update_campaign', 'preview_campaign', 'publish_campaign', 'archive_campaign',
       'get_experience_summary', 'get_experience_funnel', 'get_top_frames', 'get_intent_summary', 'compare_experiences',
     ])
+    const publish = listBody.result.tools.find((tool) => tool.name === 'publish_campaign')
+    expect(publish?.annotations).toMatchObject({ readOnlyHint: false, destructiveHint: true })
+    expect(publish?._meta?.securitySchemes).toEqual([{ type: 'oauth2', scopes: ['experience:write'] }])
+    const read = listBody.result.tools.find((tool) => tool.name === 'get_merchant')
+    expect(read?.annotations).toMatchObject({ readOnlyHint: true, destructiveHint: false })
   })
 
   it('routes a tool call through the authenticated tenant context', async () => {
@@ -157,5 +165,12 @@ describe('MCP transport protocol', () => {
     const body = await response.json() as { result: { isError?: boolean; content: Array<{ text: string }> } }
     expect(body.result.isError).toBe(true)
     expect(JSON.parse(body.result.content[0].text)).toMatchObject({ code: 'AGENT_SCOPE_REQUIRED' })
+  })
+
+  it('advertises protected-resource metadata when bearer authentication fails', async () => {
+    authenticate.mockRejectedValue(new (require('@/modules/merchant').InvalidAgentCredentialError)())
+    const response = await POST(mcpRequest({ jsonrpc: '2.0', id: 9, method: 'initialize', params: { protocolVersion: '2025-06-18', capabilities: {}, clientInfo: { name: 'oauth-client', version: '1' } } }))
+    expect(response.status).toBe(401)
+    expect(response.headers.get('WWW-Authenticate')).toContain('resource_metadata="http://localhost/.well-known/oauth-protected-resource"')
   })
 })

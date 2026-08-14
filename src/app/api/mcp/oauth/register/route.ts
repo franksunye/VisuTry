@@ -1,0 +1,30 @@
+import { NextRequest, NextResponse } from 'next/server'
+import { MerchantOAuthError, registerMcpOAuthClient } from '@/modules/merchant'
+
+export const runtime = 'nodejs'
+export const dynamic = 'force-dynamic'
+
+export async function POST(request: NextRequest) {
+  try {
+    const body = await request.json() as Record<string, unknown>
+    const client = await registerMcpOAuthClient({
+      clientName: body.client_name,
+      redirectUris: body.redirect_uris,
+      tokenEndpointAuthMethod: body.token_endpoint_auth_method,
+      grantTypes: body.grant_types,
+      responseTypes: body.response_types,
+      applicationType: body.application_type,
+    })
+    return NextResponse.json({
+      client_id: client.clientId,
+      client_name: client.clientName,
+      redirect_uris: client.redirectUris,
+      token_endpoint_auth_method: client.tokenEndpointAuthMethod,
+      grant_types: ['authorization_code', 'refresh_token'],
+      response_types: ['code'],
+    }, { status: 201, headers: { 'Cache-Control': 'no-store' } })
+  } catch (error) {
+    if (error instanceof MerchantOAuthError) return NextResponse.json({ error: error.code, error_description: error.message }, { status: error.httpStatus })
+    return NextResponse.json({ error: 'invalid_client_metadata' }, { status: 400 })
+  }
+}

@@ -2,9 +2,10 @@ import { NextResponse } from 'next/server'
 import { logger } from '@/lib/logger'
 import { AgentCredentialLimitError, AgentScopeError, InvalidAgentCredentialError } from '../domain/agent-credentials'
 import { MerchantAccessError } from './merchant-access'
+import { MerchantOAuthError } from './merchant-oauth'
 
 export function merchantAgentErrorResponse(error: unknown): NextResponse {
-  if (error instanceof MerchantAccessError || error instanceof InvalidAgentCredentialError || error instanceof AgentScopeError || error instanceof AgentCredentialLimitError) {
+  if (error instanceof MerchantAccessError || error instanceof InvalidAgentCredentialError || error instanceof AgentScopeError || error instanceof AgentCredentialLimitError || error instanceof MerchantOAuthError) {
     return NextResponse.json(
       { success: false, error: error.code },
       { status: error.httpStatus },

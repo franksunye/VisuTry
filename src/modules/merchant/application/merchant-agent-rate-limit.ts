@@ -27,17 +27,18 @@ export async function consumeMerchantAgentMcpRequest(input: {
 }): Promise<void> {
   const now = input.now ?? new Date()
   const windowStart = minuteWindowStart(now)
+  const rateLimitIdentity = input.actor.actorType === 'AGENT_OAUTH' ? input.actor.authorizationId : input.actor.actorId
   const row = await prisma.storeAbuseCounter.upsert({
     where: {
       merchantId_bucket_windowStart: {
         merchantId: input.actor.merchantId,
-        bucket: `agent_mcp:${input.actor.actorId}`,
+        bucket: `agent_mcp:${rateLimitIdentity}`,
         windowStart,
       },
     },
     create: {
       merchantId: input.actor.merchantId,
-      bucket: `agent_mcp:${input.actor.actorId}`,
+      bucket: `agent_mcp:${rateLimitIdentity}`,
       windowStart,
       count: 1,
       bytes: 0,
