@@ -34,6 +34,9 @@ export type ExperienceSearchVisibilityInput = {
   merchant: SearchVisibilityMerchant | null
   experience: SearchVisibilityExperience | null
   frames: SearchVisibilityFrame[]
+  /** Optional aggregate form used by bounded route admission. */
+  frameCount?: number
+  hasProductDestination?: boolean
 }
 
 export const MINIMUM_INDEXABLE_CATALOG_ITEMS = 4
@@ -59,7 +62,7 @@ function hasReadableDiscoveryContent(input: ExperienceSearchVisibilityInput): bo
     && input.merchant.name.trim()
     && input.experience
     && hasMeaningfulTitle(input.experience)
-    && input.frames.length > 0,
+    && (input.frameCount ?? input.frames.length) > 0,
   )
 }
 
@@ -103,7 +106,8 @@ export function resolveExperienceSearchVisibility(
   if (isReferenceExperience(input)) return 'PUBLIC_NOINDEX'
 
   const hasMerchantDestination = hasHttpUrl(input.merchant.websiteUrl)
-  const hasProductDestination = input.frames.some((frame) => hasHttpUrl(frame.productUrl))
+  const hasProductDestination = input.hasProductDestination
+    ?? input.frames.some((frame) => hasHttpUrl(frame.productUrl))
   const hasMeaningfulCollection = input.frames.length >= MINIMUM_INDEXABLE_CATALOG_ITEMS
 
   if (

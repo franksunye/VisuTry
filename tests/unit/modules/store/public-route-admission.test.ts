@@ -16,6 +16,7 @@ jest.mock('next/cache', () => ({
 jest.mock('@/lib/prisma', () => ({
   prisma: {
     merchant: { findMany: jest.fn() },
+    experienceFrame: { groupBy: jest.fn() },
   },
 }))
 
@@ -43,6 +44,7 @@ type AdmissionExperience = AdmissionMerchant['experiences'][number]
 
 function makeExperience(overrides: Partial<AdmissionExperience> = {}): AdmissionExperience {
   return {
+    id: 'campaign-a',
     type: 'CAMPAIGN',
     slug: 'campaign-a',
     name: 'Campaign A',
@@ -51,7 +53,8 @@ function makeExperience(overrides: Partial<AdmissionExperience> = {}): Admission
     description: null,
     referenceData: false,
     updatedAt: new Date('2026-08-14T00:00:00.000Z'),
-    frames: [],
+    frameCount: 0,
+    hasProductDestination: false,
     ...overrides,
   }
 }
@@ -77,6 +80,7 @@ describe('public route admission', () => {
   beforeEach(() => {
     jest.clearAllMocks()
     mockPersistentCache.clear()
+    ;(prisma.experienceFrame.groupBy as jest.Mock).mockResolvedValue([])
   })
 
   it('accepts only canonical lowercase ASCII slug syntax within existing limits', () => {
@@ -138,6 +142,25 @@ describe('public route admission', () => {
       experienceSlug: 'everyday-fit',
     })).resolves.toBe(true)
     await expect(isPublicStoreRouteAdmitted({ merchantSlug: 'merchant-a' })).resolves.toBe(false)
+  })
+
+  it('maps aggregate frame counts and product destinations without frame rows', async () => {
+    ;(prisma.merchant.findMany as jest.Mock).mockResolvedValue([
+      makeMerchant([makeExperience({ id: 'indexable-campaign', slug: 'indexable-campaign' })]),
+    ])
+    ;(prisma.experienceFrame.groupBy as jest.Mock)
+      .mockResolvedValueOnce([{ experienceId: 'indexable-campaign', _count: { _all: 4 } }])
+      .mockResolvedValueOnce([{ experienceId: 'indexable-campaign', _count: { _all: 1 } }])
+
+    await expect(isPublicCampaignRouteAdmitted({
+      merchantSlug: 'merchant-a',
+      experienceSlug: 'indexable-campaign',
+    })).resolves.toBe(true)
+    expect(prisma.experienceFrame.groupBy).toHaveBeenCalledTimes(2)
+    expect(prisma.experienceFrame.groupBy).toHaveBeenLastCalledWith(expect.objectContaining({
+      _count: { _all: true },
+      where: expect.objectContaining({ merchantFrame: expect.objectContaining({ OR: expect.any(Array) }) }),
+    }))
   })
 
   it('rejects invalid syntax before constructing a discovery cache entry', async () => {

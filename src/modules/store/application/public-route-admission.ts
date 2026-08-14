@@ -15,9 +15,8 @@ export type PublicRouteAdmission = {
 
 export type PublicRouteAdmissionIndex = Record<string, PublicRouteAdmission>
 
-type AdmissionFrame = { productUrl: string | null }
-
 type AdmissionExperience = {
+  id: string
   type: 'STORE' | 'CAMPAIGN'
   slug: string
   name: string
@@ -26,7 +25,8 @@ type AdmissionExperience = {
   description: string | null
   referenceData: boolean
   updatedAt: Date
-  frames: AdmissionFrame[]
+  frameCount: number
+  hasProductDestination: boolean
 }
 
 type AdmissionMerchant = {
@@ -62,7 +62,9 @@ function isRoutableExperience(merchant: AdmissionMerchant, experience: Admission
   return resolveExperienceSearchVisibility({
     merchant,
     experience,
-    frames: experience.frames,
+    frames: [],
+    frameCount: experience.frameCount,
+    hasProductDestination: experience.hasProductDestination,
   }) !== 'PRIVATE'
 }
 
@@ -97,47 +99,75 @@ export function buildPublicRouteAdmissionIndex(
 }
 
 async function readPublicRouteAdmissionIndex(): Promise<PublicRouteAdmissionIndex> {
-  const merchants = await prisma.merchant.findMany({
-    where: { status: 'ACTIVE' },
-    select: {
-      slug: true,
-      name: true,
-      status: true,
-      websiteUrl: true,
-      pilotType: true,
-      referenceData: true,
-      sponsoredUsagePolicyKey: true,
-      experiences: {
-        where: { type: { in: ['STORE', 'CAMPAIGN'] } },
-        orderBy: [{ status: 'asc' }, { slug: 'asc' }, { updatedAt: 'desc' }],
-        select: {
-          type: true,
-          slug: true,
-          name: true,
-          status: true,
-          headline: true,
-          description: true,
-          referenceData: true,
-          updatedAt: true,
-          frames: {
-            where: {
-              active: true,
-              merchantFrame: { status: 'ACTIVE' },
-            },
-            select: {
-              merchantFrame: { select: { productUrl: true } },
-            },
+  const [merchants, frameCounts, productDestinationCounts] = await Promise.all([
+    prisma.merchant.findMany({
+      where: { status: 'ACTIVE' },
+      select: {
+        slug: true,
+        name: true,
+        status: true,
+        websiteUrl: true,
+        pilotType: true,
+        referenceData: true,
+        sponsoredUsagePolicyKey: true,
+        experiences: {
+          where: { type: { in: ['STORE', 'CAMPAIGN'] } },
+          orderBy: [{ status: 'asc' }, { slug: 'asc' }, { updatedAt: 'desc' }],
+          select: {
+            id: true,
+            type: true,
+            slug: true,
+            name: true,
+            status: true,
+            headline: true,
+            description: true,
+            referenceData: true,
+            updatedAt: true,
           },
         },
       },
-    },
-  })
+    }),
+    prisma.experienceFrame.groupBy({
+      by: ['experienceId'],
+      where: {
+        active: true,
+        merchantFrame: { status: 'ACTIVE' },
+        experience: {
+          merchant: { status: 'ACTIVE' },
+          type: { in: ['STORE', 'CAMPAIGN'] },
+        },
+      },
+      _count: { _all: true },
+    }),
+    prisma.experienceFrame.groupBy({
+      by: ['experienceId'],
+      where: {
+        active: true,
+        merchantFrame: {
+          status: 'ACTIVE',
+          OR: [
+            { productUrl: { startsWith: 'http://' } },
+            { productUrl: { startsWith: 'https://' } },
+          ],
+        },
+        experience: {
+          merchant: { status: 'ACTIVE' },
+          type: { in: ['STORE', 'CAMPAIGN'] },
+        },
+      },
+      _count: { _all: true },
+    }),
+  ])
+
+  const frameCountByExperience = new Map(frameCounts.map((row) => [row.experienceId, row._count._all]))
+  const productDestinationByExperience = new Set(productDestinationCounts.map((row) => row.experienceId))
 
   return buildPublicRouteAdmissionIndex(merchants.map((merchant) => ({
     ...merchant,
     experiences: merchant.experiences.map((experience) => ({
       ...experience,
-      frames: experience.frames.map((frame) => frame.merchantFrame),
+      frameCount: frameCountByExperience.get(experience.id) ?? 0,
+      hasProductDestination: productDestinationByExperience.has(experience.id),
     })),
   })))
 }
