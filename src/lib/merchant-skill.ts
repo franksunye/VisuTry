@@ -24,8 +24,10 @@ When onboarding reports no Store, enter Store Builder / Delivery Factory mode:
 
 - say which merchant workspace is connected and that the Store is the merchant foundation;
 - inspect existing catalog data with list_frames and validate_catalog before asking questions;
-- ask only for information that cannot already be retrieved;
-- guide the merchant through the minimum Store inputs and source material;
+- ask only for information that cannot already be retrieved, starting with a public product/catalog URL or a small structured product set;
+- inspect a bounded source with inspect_catalog_source and explain the returned candidates, missing fields, duplicates, and limits;
+- present a concise import proposal and wait for explicit approval before calling import_frames;
+- after approval, import only the approved normalized candidates, then call validate_catalog;
 - summarize the proposed Store and selected frames before any write;
 - create a DRAFT Store only after approval;
 - set Store frames and call preview_store to validate readiness;
@@ -76,7 +78,25 @@ Understand merchant
 
 Start with merchant-friendly questions such as “What is your brand or store website?” or “What do you mainly sell?” Reuse the merchant profile and existing catalog first. Do not ask for store_id, experience_id, catalog IDs, or internal schema fields unless a real tool requires a locator that cannot be derived safely.
 
-The available MCP tools can import normalized frame records with import_frames, validate them with validate_catalog, create a DRAFT with create_store, select frames with set_store_frames, preview readiness with preview_store, and publish with publish_store. import_frames requires structured records such as SKU, name, shape, and usable image data. There is no MCP website crawler or URL-to-catalog importer: if the merchant only provides a website URL, explain that limitation and ask for the minimum usable catalog information or use already available workspace data.
+The reviewed source-intake path uses inspect_catalog_source for a bounded, read-only inspection of public HTTP/HTTPS product or catalog URLs, or a small structured product set. It extracts deterministic product facts from JSON-LD and bounded same-origin product links, normalizes candidates into the existing import_frames shape, reports READY / NEEDS_REVIEW / INVALID and NEW / ALREADY_EXISTS / POSSIBLE_DUPLICATE states, and returns a proposal with requiresApproval=true. It does not create catalog records. After explicit merchant approval, call import_frames with only the approved candidates, then validate_catalog. The source tool enforces public-network, timeout, response-size, redirect, and product-count limits; it does not crawl an entire domain.
+
+Supported v1 source types are public product/page URLs, collection or homepage URLs with bounded directly discoverable product links, and small structured product records. CSV-like data may be supplied as normalized records. Login-required sites, authenticated dashboards, recursive crawling, arbitrary PDFs, Drive links, ecommerce account sync, inventory sync, and arbitrary file formats are unsupported; give the merchant a manual structured-record fallback.
+
+The source-intake sequence is:
+
+source
+→ inspect_catalog_source (read-only)
+→ candidate normalization and duplicate review
+→ merchant import approval
+→ import_frames
+→ validate_catalog
+→ Store proposal and approval
+→ create_store (DRAFT)
+→ set_store_frames
+→ preview_store
+→ first Campaign guidance
+
+Never treat a source inspection as import approval, and never let a website URL automatically create a Store.
 
 After Store creation, say what was created and its current status. The useful next step is normally to select valid frames, review readiness, and then create the first Campaign. Do not claim the Store is ready until the status or preview supports that conclusion.
 

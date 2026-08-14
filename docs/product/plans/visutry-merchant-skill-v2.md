@@ -1,7 +1,7 @@
 # VisuTry Merchant Skill v2 — Capability Audit
 
 Status: Implemented on the Merchant Agent feature branch  
-Scope: Skill workflow guidance, bootstrap alignment, and capability documentation. No OAuth, MCP transport, or analytics infrastructure changes.
+Scope: Skill workflow guidance, reviewed catalog source intake, bootstrap alignment, and capability documentation. No OAuth, MCP transport, or analytics infrastructure changes.
 
 ## Operating model
 
@@ -64,12 +64,14 @@ The Skill distinguishes Observed facts, Interpretation, and Recommendation and d
 
 ### No Store → usable Store
 
-Result: **PARTIAL**.
+Result: **YES for the reviewed v1 source-intake path**.
 
-The existing MCP surface can complete this when a merchant already has usable catalog records or can provide normalized frame data with the required fields:
+The MCP surface now supports a read-only proposal before the existing catalog and Store tools:
 
 ```text
-list_frames / import_frames
+inspect_catalog_source
+→ merchant approval
+→ import_frames
 → validate_catalog
 → create_store (DRAFT)
 → set_store_frames
@@ -77,7 +79,46 @@ list_frames / import_frames
 → publish_store (approved=true only)
 ```
 
-The exact missing capability is source intake from a website URL or arbitrary catalog. There is no MCP website crawler, URL-to-catalog importer, file upload tool, or enrichment tool. `import_frames` requires structured frame records, including SKU, name, shape, and usable image data. The Skill therefore asks for the minimum usable catalog information or uses data already in the workspace; it does not invent a crawler.
+`inspect_catalog_source` is bounded and read-only. It accepts public HTTP/HTTPS product/page URLs, collection or homepage URLs with bounded same-origin product links, and small structured product records. It extracts deterministic JSON-LD product facts, normalizes candidates to the existing `import_frames` shape, checks the existing merchant catalog for duplicates, and returns a review proposal. It never writes catalog records. `import_frames` is called only after explicit approval.
+
+The path remains intentionally bounded: no authenticated sites, recursive domain crawling, arbitrary PDFs, Drive crawling, Shopify/WooCommerce sync, inventory sync, or arbitrary file formats. CSV-like data must be supplied as normalized structured records in v1. Missing SKU, image, or shape remains `NEEDS_REVIEW`; unsupported or malformed data is not guessed.
+
+### Catalog Source Intake
+
+Supported sources:
+
+- one public product URL, or a small list of explicit public product URLs;
+- a public collection/homepage URL with at most the bounded directly discoverable same-origin product links;
+- a small structured product set supplied by the merchant/Agent. This is the normalized fallback for CSV-like data.
+
+Unsupported sources:
+
+- login-required websites, merchant dashboards, checkout/account pages, and customer data;
+- recursive site crawling, arbitrary PDFs, Google Drive, Shopify/WooCommerce account sync, and inventory synchronization;
+- arbitrary files or background catalog synchronization.
+
+Security boundaries:
+
+- only HTTP/HTTPS source URLs without credentials are accepted;
+- localhost, private, reserved, link-local, metadata, and mixed public/private DNS answers are rejected;
+- each request pins a validated DNS address, keeps the original hostname for HTTPS verification, and revalidates every redirect target;
+- redirects are same-origin and bounded; timeout, response bytes, source URL count, and discovered product count are bounded;
+- no cookies, Agent Keys, OAuth tokens, merchant credentials, or internal headers are sent to source websites;
+- source pages are not logged as raw HTML and shopper/customer data is not a catalog source.
+
+Normalization and duplicate handling:
+
+```text
+source product
+→ normalized candidate
+→ READY | NEEDS_REVIEW | INVALID
+→ NEW | ALREADY_EXISTS | POSSIBLE_DUPLICATE
+→ merchant proposal
+```
+
+Existing merchant SKU or canonical product URL matches are not re-imported automatically. Source candidates retain `EXTERNAL` provenance and `externalId` when the existing schema supports it. Existing `import_frames` remains the only catalog write path.
+
+The No-Store Golden Path is now reviewable end to end: detect State A, inspect source, show candidates and issues, obtain import approval, import and validate catalog, obtain Store approval, create a DRAFT Store, select frames, preview readiness, and recommend the first Campaign. Store publication remains a separate explicit approval.
 
 ### Store → draft Campaign
 
@@ -114,12 +155,12 @@ Publishing remains a separate explicit decision through `publish_campaign` with 
 
 The Skill only documents tools implemented by `src/modules/merchant/mcp/server.ts`:
 
-- merchant/onboarding: `get_merchant`, `get_onboarding_status`, `list_frames`, `import_frames`, `validate_catalog`;
+- merchant/onboarding: `get_merchant`, `get_onboarding_status`, `list_frames`, `inspect_catalog_source`, `import_frames`, `validate_catalog`;
 - Store: `create_store`, `set_store_frames`, `preview_store`, `publish_store`;
 - Campaign: `list_campaigns`, `get_campaign`, `create_campaign`, `set_campaign_frames`, `update_campaign`, `preview_campaign`, `publish_campaign`, `archive_campaign`;
 - aggregate analytics: `get_experience_summary`, `get_experience_funnel`, `get_top_frames`, `get_intent_summary`, `compare_experiences`.
 
-No new MCP tool was added in v2. The current gaps are documented as limitations rather than hidden behind imaginary tool calls.
+The source-intake MCP tool is read-only and merchant-onboarding-specific. It returns a normalized proposal; it is not a generic browser or crawler tool. The current limits are documented rather than hidden behind imaginary capabilities.
 
 ## Safety invariants retained
 
@@ -134,4 +175,4 @@ No new MCP tool was added in v2. The current gaps are documented as limitations 
 
 ## Exact next implementation step
 
-To move **No Store → usable Store** from PARTIAL to YES, add a reviewed source-intake capability (for example, an approved catalog upload/normalization path or a bounded merchant-provided catalog import flow). This is intentionally outside Skill v2 because the current task is workflow guidance, not crawler or catalog infrastructure.
+Run the controlled No-Store Golden Path against a sanitized local fixture source and a test merchant, then perform one permitted public-URL smoke test. The source-intake implementation is deliberately not a general crawler or ecommerce synchronization platform.

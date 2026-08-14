@@ -36,6 +36,15 @@ jest.mock('@/modules/merchant/application/merchant-onboarding', () => ({
   MerchantOnboardingError: class MerchantOnboardingError extends Error {},
 }))
 
+jest.mock('@/modules/merchant/application/merchant-catalog-source-intake', () => ({
+  merchantCatalogSourceIntake: {
+    inspectCatalogSource: jest.fn().mockResolvedValue({ proposal: true, writePerformed: false, requiresApproval: true, candidates: [], importReady: [] }),
+  },
+  MerchantSourceIntakeError: class MerchantSourceIntakeError extends Error {},
+  MAX_SOURCE_PRODUCTS: 20,
+  MAX_SOURCE_URLS: 5,
+}))
+
 jest.mock('@/modules/store/application/campaign-service', () => ({
   listCampaigns: jest.fn().mockResolvedValue({ items: [], nextCursor: null }),
   getCampaign: jest.fn().mockResolvedValue({ id: 'campaign-a', status: 'DRAFT' }),
@@ -86,6 +95,7 @@ jest.mock('@/modules/merchant/application/merchant-agent-credentials', () => ({
 import { NextRequest } from 'next/server'
 import { assertTrustedMcpOrigin, authenticateMerchantMcpBearer } from '@/modules/merchant'
 import { recordMerchantAgentOperation } from '@/modules/merchant/application/merchant-agent-credentials'
+import { merchantCatalogSourceIntake } from '@/modules/merchant/application/merchant-catalog-source-intake'
 import { POST } from '@/app/api/mcp/route'
 
 const authenticate = authenticateMerchantMcpBearer as jest.Mock
@@ -117,7 +127,7 @@ describe('MCP transport protocol', () => {
     expect(list.status).toBe(200)
     const listBody = await list.json() as { result: { tools: Array<{ name: string; annotations?: { readOnlyHint?: boolean; destructiveHint?: boolean }; _meta?: { securitySchemes?: Array<{ type: string; scopes: string[] }> } }> } }
     expect(listBody.result.tools.map((tool) => tool.name)).toEqual([
-      'get_onboarding_status', 'get_merchant', 'list_frames', 'import_frames', 'validate_catalog', 'create_store', 'set_store_frames', 'preview_store', 'publish_store',
+      'get_onboarding_status', 'get_merchant', 'list_frames', 'import_frames', 'validate_catalog', 'inspect_catalog_source', 'create_store', 'set_store_frames', 'preview_store', 'publish_store',
       'list_campaigns', 'get_campaign', 'create_campaign', 'set_campaign_frames', 'update_campaign', 'preview_campaign', 'publish_campaign', 'archive_campaign',
       'get_experience_summary', 'get_experience_funnel', 'get_top_frames', 'get_intent_summary', 'compare_experiences',
     ])
@@ -133,6 +143,13 @@ describe('MCP transport protocol', () => {
     expect(response.status).toBe(200)
     const body = await response.json() as { result: { content: Array<{ text: string }> } }
     expect(JSON.parse(body.result.content[0].text)).toEqual({ id: 'merchant-a', slug: 'merchant-a' })
+  })
+
+  it('keeps catalog source inspection read-only and tenant-scoped', async () => {
+    const response = await POST(mcpRequest({ jsonrpc: '2.0', id: 10, method: 'tools/call', params: { name: 'inspect_catalog_source', arguments: { sourceUrls: ['https://catalog.example.test/collection'] } } }))
+    expect(response.status).toBe(200)
+    expect(JSON.parse((await response.json() as { result: { content: Array<{ text: string }> } }).result.content[0].text)).toMatchObject({ proposal: true, writePerformed: false, requiresApproval: true })
+    expect(merchantCatalogSourceIntake.inspectCatalogSource).toHaveBeenCalledWith(expect.objectContaining({ actor, sourceUrls: ['https://catalog.example.test/collection'] }))
   })
 
   it('routes Campaign create and publish through the authenticated actor', async () => {

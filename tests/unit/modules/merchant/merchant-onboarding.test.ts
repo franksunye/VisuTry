@@ -129,6 +129,35 @@ describe('merchant onboarding catalog validation', () => {
     expect(withPublicDiscoveryInvalidation).toHaveBeenCalled()
   })
 
+  it('preserves reviewed source provenance when approved candidates are imported', async () => {
+    const writeActor: AgentMerchantActor = { ...actor, scopes: ['catalog:write'] }
+    const create = jest.fn().mockResolvedValue({ id: 'frame-external' })
+    ;(prisma.merchant.findUnique as jest.Mock).mockResolvedValue({ slug: 'merchant-a' })
+    ;(prisma.$transaction as jest.Mock).mockImplementation(async (callback) => callback({
+      merchantFrame: { findFirst: jest.fn().mockResolvedValue(null), create },
+    }))
+
+    await merchantOnboarding.importMerchantFrames({
+      actor: writeActor,
+      frames: [{
+        sku: 'EXTERNAL-01',
+        name: 'Reviewed external frame',
+        shape: 'round',
+        imageUrl: 'https://cdn.example.test/frame.jpg',
+        productUrl: 'https://catalog.example.test/products/external-01',
+        source: 'EXTERNAL',
+        externalId: 'https://catalog.example.test/products/external-01',
+        sourceNotes: 'Reviewed public catalog source: catalog.example.test',
+      }],
+    })
+
+    expect(create).toHaveBeenCalledWith({ data: expect.objectContaining({
+      source: 'EXTERNAL',
+      externalId: 'https://catalog.example.test/products/external-01',
+      sourceNotes: 'Reviewed public catalog source: catalog.example.test',
+    }) })
+  })
+
   it('invalidates Store discovery after frame replacement succeeds', async () => {
     const writeActor: AgentMerchantActor = { ...actor, scopes: ['experience:write'] }
     ;(prisma.experience.findFirst as jest.Mock).mockResolvedValue({ id: 'store-a', slug: 'store', status: 'DRAFT', frames: [] })

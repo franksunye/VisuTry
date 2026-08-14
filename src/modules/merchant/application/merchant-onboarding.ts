@@ -1,5 +1,6 @@
 import { Prisma, type MerchantFrame } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
+import { logger } from '@/lib/logger'
 import { getMerchantProfile } from './get-merchant-profile'
 import { MerchantAccessError } from './merchant-access'
 import { recordMerchantAgentOperation } from './merchant-agent-credentials'
@@ -26,6 +27,9 @@ export type CatalogFrameInput = {
   widthClass?: string | null
   styleTags?: string[]
   collectionTags?: string[]
+  source?: 'MANUAL' | 'CSV' | 'EXTERNAL'
+  externalId?: string | null
+  sourceNotes?: string | null
 }
 
 export class MerchantOnboardingError extends Error {
@@ -89,6 +93,9 @@ function normalizeFrameInput(frame: CatalogFrameInput): CatalogFrameInput {
     widthClass: cleanText(frame.widthClass),
     styleTags: frame.styleTags ?? [],
     collectionTags: frame.collectionTags ?? [],
+    source: frame.source ?? 'MANUAL',
+    externalId: cleanText(frame.externalId),
+    sourceNotes: cleanText(frame.sourceNotes),
   }
 }
 
@@ -173,7 +180,9 @@ export async function importMerchantFrames(input: { actor: MerchantActorContext;
           widthClass: frame.widthClass,
           styleTags: frame.styleTags,
           collectionTags: frame.collectionTags,
-          source: 'MANUAL' as const,
+          source: frame.source ?? 'MANUAL',
+          externalId: frame.externalId,
+          sourceNotes: frame.sourceNotes,
           status: 'ACTIVE' as const,
           enrichmentStatus: 'APPROVED' as const,
         }
@@ -188,6 +197,15 @@ export async function importMerchantFrames(input: { actor: MerchantActorContext;
     }, { isolationLevel: Prisma.TransactionIsolationLevel.Serializable }),
   })
   await recordMerchantAgentOperation({ actor: input.actor, action: 'catalog.imported', resourceType: 'MerchantFrame', result: 'SUCCESS' })
+  logger.info('store', 'Merchant catalog import completed', {
+    merchantId: input.actor.merchantId,
+    actorId: input.actor.actorId,
+    candidateCount: normalized.length,
+    importApprovedCount: normalized.length,
+    created: result.created,
+    updated: result.updated,
+    result: 'SUCCESS',
+  })
   return { ...result, imported: result.created + result.updated }
 }
 

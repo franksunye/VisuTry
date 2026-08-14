@@ -6,6 +6,12 @@ import {
   MerchantOnboardingError,
   type CatalogFrameInput,
 } from '../application/merchant-onboarding'
+import {
+  merchantCatalogSourceIntake,
+  MerchantSourceIntakeError,
+  MAX_SOURCE_PRODUCTS,
+  MAX_SOURCE_URLS,
+} from '../application/merchant-catalog-source-intake'
 import { MerchantAccessError } from '../application/merchant-access'
 import { AgentRateLimitError } from '../application/merchant-agent-rate-limit'
 import { recordMerchantAgentOperation } from '../application/merchant-agent-credentials'
@@ -49,6 +55,9 @@ const frameInput = z.object({
   widthClass: z.string().max(80).nullable().optional(),
   styleTags: z.array(z.string().max(80)).max(20).optional(),
   collectionTags: z.array(z.string().max(80)).max(20).optional(),
+  source: z.enum(['MANUAL', 'CSV', 'EXTERNAL']).optional(),
+  externalId: z.string().max(2000).nullable().optional(),
+  sourceNotes: z.string().max(2000).nullable().optional(),
 })
 
 const campaignObjective = z.enum(['TRAFFIC', 'INTENT', 'LEAD'])
@@ -71,6 +80,7 @@ const MCP_SERVER_INSTRUCTIONS = [
   'You are operating inside one authorized VisuTry Merchant workspace.',
   'Never infer or request access to another merchant; the authenticated context is the tenant boundary.',
   'Use aggregate merchant analytics only. Do not expose shopper photos, consumer PII, payment data, or raw sessions.',
+  'Catalog source inspection is read-only and bounded. It returns a review proposal; use import_frames only after explicit merchant approval.',
   'Read context and preview Store/Campaign readiness before mutations when necessary.',
   'Publishing and archiving are high-impact actions. Require explicit approval in the tool call; prior conversation is not approval.',
   'Respect tool scopes and treat authorization failures as VisuTry security boundaries.',
@@ -82,6 +92,7 @@ const TOOL_SCOPES: Record<string, string[]> = {
   list_frames: ['catalog:read'],
   import_frames: ['catalog:write'],
   validate_catalog: ['catalog:read'],
+  inspect_catalog_source: ['catalog:read'],
   create_store: ['experience:write'],
   set_store_frames: ['experience:write'],
   preview_store: ['experience:read'],
@@ -138,6 +149,7 @@ function errorResult(error: unknown) {
   if (error instanceof AgentScopeError) return { code: error.code, message: error.message }
   if (error instanceof AgentRateLimitError) return { code: error.code, message: error.message, retryAfterSeconds: error.retryAfterSeconds }
   if (error instanceof MerchantOnboardingError) return { code: error.code, message: error.message }
+  if (error instanceof MerchantSourceIntakeError) return { code: error.code, message: error.message }
   if (error instanceof CampaignServiceError) return { code: error.code, message: error.message }
   if (error instanceof MerchantAnalyticsComparisonError) return { code: error.code, message: error.message }
   if (error instanceof MerchantAnalyticsError) {
@@ -205,6 +217,19 @@ export function createMerchantMcpServer(actor: AgentMerchantActor) {
     description: 'Validate the authenticated merchant catalog for deterministic Store onboarding readiness.',
     inputSchema: {},
   }, async () => safe(() => merchantOnboarding.validateMerchantCatalog({ actor })))
+
+  server.registerTool('inspect_catalog_source', {
+    title: 'Inspect catalog source',
+    description: 'Read-only, bounded inspection of public product/catalog URLs or a small structured product set. Returns normalized candidates and a review proposal; it never writes catalog records.',
+    inputSchema: {
+      sourceUrls: z.array(z.string().min(1).max(2000)).max(MAX_SOURCE_URLS).optional(),
+      manualProducts: z.array(frameInput).max(MAX_SOURCE_PRODUCTS).optional(),
+    },
+  }, async ({ sourceUrls, manualProducts }) => safe(() => merchantCatalogSourceIntake.inspectCatalogSource({
+    actor,
+    sourceUrls,
+    manualProducts: manualProducts as CatalogFrameInput[] | undefined,
+  })))
 
   server.registerTool('create_store', {
     title: 'Create Store',
