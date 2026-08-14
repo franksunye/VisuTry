@@ -21,6 +21,7 @@ jest.mock('@/lib/prisma', () => ({
 import { createHash } from 'node:crypto'
 import {
   assertResource,
+  assertRegisteredRedirectUri,
   authenticateMerchantOAuthAccessToken,
   canonicalMcpResource,
   consumeMcpOAuthDcrRateLimit,
@@ -136,6 +137,21 @@ describe('Merchant OAuth principal boundary', () => {
     await expect(registerMcpOAuthClient({ clientName: 'bad', redirectUris: ['https://client.example/callback#fragment'] })).rejects.toMatchObject({ code: 'invalid_request' })
     await expect(registerMcpOAuthClient({ clientName: 'bad', redirectUris: ['https://client.example/callback'], tokenEndpointAuthMethod: 'client_secret_post' })).rejects.toMatchObject({ code: 'invalid_client_metadata' })
     await expect(registerMcpOAuthClient({ clientName: 'native', redirectUris: ['http://127.0.0.1:4567/callback'], applicationType: 'native', grantTypes: ['authorization_code'], responseTypes: ['code'] })).resolves.toMatchObject({ clientId: expect.stringMatching(/^mcp_/u) })
+  })
+
+  it('canonicalizes stored redirect URIs before exact matching', () => {
+    expect(assertRegisteredRedirectUri({
+      clientId: 'client-a',
+      clientName: 'Test',
+      redirectUris: ['http://127.0.0.1:4567/callback'],
+      tokenEndpointAuthMethod: 'none',
+    }, 'http://127.0.0.1:4567/callback')).toBe('http://127.0.0.1:4567/callback')
+    expect(() => assertRegisteredRedirectUri({
+      clientId: 'client-a',
+      clientName: 'Test',
+      redirectUris: ['http://127.0.0.1:4567/other'],
+      tokenEndpointAuthMethod: 'none',
+    }, 'http://127.0.0.1:4567/callback')).toThrow('redirect_uri is not registered')
   })
 
   it('supports CIMD as the primary no-pre-registration client path with strict metadata validation', async () => {
