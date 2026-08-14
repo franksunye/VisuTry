@@ -28,13 +28,123 @@ function CopyButton({ value, label = 'Copy', onCopied }: { value: string; label?
 function buildAgentSetup(secret: string, skillUrl: string, endpoint: string) {
   return `You are my VisuTry Merchant Agent.
 
-Start by connecting to my VisuTry merchant workspace using the Skill, MCP endpoint, and Agent Key below. Follow the Skill as your operating instructions.
+Connect to my VisuTry merchant workspace using the Skill, MCP endpoint, and Agent Key below. Follow the VisuTry Merchant Skill as your operating instructions and use VisuTry MCP tools for all merchant actions.
 
-VisuTry Merchant Skill: ${skillUrl}
-VisuTry MCP endpoint: ${endpoint}
-Agent Key: ${secret}
+VisuTry Merchant Skill:
+${skillUrl}
 
-Use the Agent Key only for authenticated VisuTry requests. Never reveal, repeat, log, or persist the key. First verify the connection with read-only calls to get_merchant and get_onboarding_status. Do not create, update, publish, or revoke anything until I explicitly ask.
+VisuTry MCP endpoint:
+${endpoint}
+
+Agent Key:
+${secret}
+
+SECURITY
+
+Use the Agent Key only for authenticated VisuTry requests.
+
+Never reveal, repeat, quote, log, summarize, or persist the Agent Key.
+
+Never expose shopper photos, personal information, payment data, or data belonging to another merchant.
+
+STARTUP
+
+First verify the connection using read-only calls:
+
+- get_merchant
+- get_onboarding_status
+
+Then tell me, in plain language:
+
+1. which merchant workspace you are connected to;
+2. what is already configured;
+3. what is still missing;
+4. the single best next step.
+
+Do not stop after reporting the connection status.
+
+Act as my merchant onboarding and campaign assistant and guide me through the next appropriate action conversationally.
+
+WORKFLOW
+
+Use the workspace state to decide what to suggest next.
+
+If no Store exists:
+- explain briefly that a Store is the merchant foundation;
+- ask only for the minimum information needed to create one;
+- guide me through Store setup conversationally;
+- do not create anything until I confirm.
+
+If a Store exists but no Campaign exists:
+- tell me the Store is ready;
+- recommend creating the first Campaign;
+- ask what I want to promote or achieve;
+- help me turn that intent into a Campaign;
+- collect only the required Campaign information;
+- summarize the proposed Campaign before creating it;
+- wait for my confirmation before any write action.
+
+If one or more Campaigns already exist:
+- summarize the current Campaign state;
+- offer useful next actions such as:
+  - inspect a Campaign;
+  - review performance;
+  - compare Campaigns;
+  - identify interaction or conversion patterns;
+  - create another Campaign;
+  - improve an existing Campaign.
+
+If analytics data exists:
+- help me answer business questions using the available analytics tools;
+- explain results in business language rather than simply returning raw data;
+- highlight meaningful patterns, anomalies, and possible next actions;
+- distinguish observed data from recommendations.
+
+CONVERSATION STYLE
+
+Do not make me learn VisuTry's internal data model or tool names.
+
+Translate my business intent into the appropriate VisuTry actions.
+
+Ask one or a small number of questions at a time.
+
+Prefer business questions such as “What would you like this Campaign to achieve?” over internal fields such as “Provide campaign_type, experience_id, source_id, and configuration.”
+
+Whenever possible, infer safe defaults from the existing Store and workspace rather than asking me for information VisuTry already knows.
+
+Before a write action:
+- briefly summarize what will be created or changed;
+- ask for confirmation if the action materially changes merchant data.
+
+After a successful write:
+- tell me what was created or changed;
+- give me the most useful next step.
+
+SAFETY
+
+Start read-only.
+
+Do not create, update, publish, archive, revoke, or delete anything until I explicitly approve the relevant action.
+
+Creating a draft and publishing it are separate decisions.
+
+Never publish a Campaign unless I explicitly ask you to publish it.
+
+If my request could affect an existing live Campaign, explain the impact before acting.
+
+GOAL
+
+Your job is not merely to expose VisuTry tools.
+
+Your job is to help me operate my VisuTry merchant workspace through conversation:
+
+Connect
+→ understand workspace state
+→ guide setup
+→ create Store/Campaign when needed
+→ inspect results
+→ analyze performance
+→ recommend the next useful action.
 
 If you cannot access the VisuTry tools, explain exactly what connection step is missing instead of guessing or modifying files.`
 }
@@ -49,7 +159,7 @@ function Overview({ control, agentReady, onAgentAccess, onExperiences }: { contr
     { label: 'Campaigns', value: String(control.activeCampaignCount), detail: control.activeCampaignCount ? 'Active Campaigns' : 'Your agent can create one for you' },
     { label: 'Insights', value: control.shopperActivityAvailable ? 'Available' : 'No data yet', detail: control.shopperActivityAvailable ? 'Ask your agent what is performing' : 'Appears after shoppers interact' },
   ]
-  return <section id="overview" className="scroll-mt-24"><div className="rounded-[2rem] border border-slate-200 bg-[radial-gradient(circle_at_80%_0%,rgba(191,219,254,0.45),transparent_34%),linear-gradient(135deg,#ffffff,#f7fbff)] p-6 shadow-[0_25px_80px_-55px_rgba(15,23,42,0.55)] sm:p-9"><p className="text-xs font-bold uppercase tracking-[0.18em] text-blue-700">Merchant workspace</p><h1 className="mt-3 max-w-2xl text-3xl font-semibold tracking-[-0.04em] text-slate-950 sm:text-5xl">Let your agent do the work.</h1><p className="mt-4 max-w-2xl text-base leading-7 text-slate-600">Create a secure Agent Key, copy the startup prompt, and paste it as the first message in your agent conversation. Your agent will guide Store, Campaign, and insight work from there.</p><div className="mt-6 flex flex-col gap-3 sm:flex-row"><button type="button" className={`${buttonClass} bg-slate-950 text-white hover:bg-slate-800`} onClick={onAgentAccess}><KeyRound className="h-4 w-4" aria-hidden="true" />{agentReady ? 'Open setup' : 'Start setup'}</button><button type="button" className={`${buttonClass} border border-slate-300 bg-white text-slate-800 hover:border-blue-300`} onClick={onExperiences}>View status</button></div></div><div className="mt-5 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">{cards.map((card) => <article key={card.label} className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"><p className="text-sm font-medium text-slate-500">{card.label}</p><p className="mt-2 text-2xl font-semibold tracking-tight text-slate-950">{card.value}</p><p className="mt-2 text-xs leading-5 text-slate-500">{card.detail}</p></article>)}</div></section>
+  return <section id="overview" className="scroll-mt-24"><div className="rounded-[2rem] border border-slate-200 bg-[radial-gradient(circle_at_80%_0%,rgba(191,219,254,0.45),transparent_34%),linear-gradient(135deg,#ffffff,#f7fbff)] p-6 shadow-[0_25px_80px_-55px_rgba(15,23,42,0.55)] sm:p-9"><p className="text-xs font-bold uppercase tracking-[0.18em] text-blue-700">Merchant workspace</p><h1 className="mt-3 max-w-2xl text-3xl font-semibold tracking-[-0.04em] text-slate-950 sm:text-5xl">Let your agent do the work.</h1><p className="mt-4 max-w-2xl text-base leading-7 text-slate-600">Connect your Agent with one secure key, then let it understand your workspace, guide setup, and help you operate Store, Campaigns, and insights through conversation.</p><div className="mt-6 flex flex-col gap-3 sm:flex-row"><button type="button" className={`${buttonClass} bg-slate-950 text-white hover:bg-slate-800`} onClick={onAgentAccess}><KeyRound className="h-4 w-4" aria-hidden="true" />{agentReady ? 'Open agent connection' : 'Connect your Agent'}</button><button type="button" className={`${buttonClass} border border-slate-300 bg-white text-slate-800 hover:border-blue-300`} onClick={onExperiences}>View status</button></div></div><div className="mt-5 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">{cards.map((card) => <article key={card.label} className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"><p className="text-sm font-medium text-slate-500">{card.label}</p><p className="mt-2 text-2xl font-semibold tracking-tight text-slate-950">{card.value}</p><p className="mt-2 text-xs leading-5 text-slate-500">{card.detail}</p></article>)}</div></section>
 }
 
 function WorkspaceDetails({ merchantId, initialName, initialWebsiteUrl }: { merchantId: string; initialName: string; initialWebsiteUrl?: string | null }) {
@@ -100,7 +210,7 @@ function AgentAccess({ merchantId, endpoint, skills, initialCredentials, onCrede
   return (
     <section id="agent-access" className="scroll-mt-24 rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
       <div className="flex flex-col justify-between gap-5 border-b border-slate-200 pb-6 lg:flex-row lg:items-end">
-        <div><p className="text-xs font-bold uppercase tracking-[0.18em] text-blue-700">Agent setup</p><h2 className="mt-2 text-2xl font-semibold tracking-tight text-slate-950 sm:text-3xl">Create a startup prompt, then talk to your agent</h2><p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">VisuTry copies a startup prompt with the Skill, endpoint, and Agent Key. Paste it as the first message in ChatGPT, Claude, Cursor, or your preferred agent.</p></div>
+        <div><p className="text-xs font-bold uppercase tracking-[0.18em] text-blue-700">Agent connection</p><h2 className="mt-2 text-2xl font-semibold tracking-tight text-slate-950 sm:text-3xl">Connect your Agent, then grow your workspace</h2><p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">VisuTry copies a guided startup prompt with the Skill, endpoint, and Agent Key. Paste it as the first message in ChatGPT, Claude, Cursor, or your preferred agent, and it will guide the next best action.</p></div>
         <ShieldCheck className="h-7 w-7 text-emerald-600" aria-hidden="true" />
       </div>
       <ol className="mt-6 grid gap-4 lg:grid-cols-3">
@@ -108,10 +218,10 @@ function AgentAccess({ merchantId, endpoint, skills, initialCredentials, onCrede
           <div className="flex items-start gap-3"><span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-sm font-bold ${hasActiveKey ? 'bg-emerald-600 text-white' : 'bg-slate-950 text-white'}`}>{hasActiveKey ? <Check className="h-4 w-4" aria-hidden="true" /> : '1'}</span><div><p className="text-sm font-semibold text-slate-900">Create your secure key</p><p className="mt-1 text-sm leading-6 text-slate-600">One key connects your agent to this workspace.</p>{!hasActiveKey ? <button type="button" disabled={busy} className={`${buttonClass} mt-4 bg-slate-950 text-white hover:bg-slate-800 disabled:opacity-50`} onClick={() => void createKey()}><KeyRound className="h-4 w-4" aria-hidden="true" />Create key</button> : <p className="mt-3 text-sm font-semibold text-emerald-700">Key ready.</p>}</div></div>
         </li>
         <li className={`rounded-2xl border p-5 ${hasActiveKey ? 'border-blue-200 bg-blue-50/60' : 'border-slate-200 bg-slate-50/60'}`}>
-          <div className="flex items-start gap-3"><span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-sm font-bold ${hasActiveKey ? 'bg-slate-950 text-white' : 'bg-slate-200 text-slate-500'}`}>{hasActiveKey ? <Check className="h-4 w-4" aria-hidden="true" /> : '2'}</span><div className="min-w-0 flex-1"><p className="text-sm font-semibold text-slate-900">Copy startup prompt</p><p className="mt-1 text-sm leading-6 text-slate-600">It is copied automatically when you create or rotate a key.</p>{hasActiveKey ? <p className="mt-3 text-sm font-semibold text-emerald-700">Ready in your clipboard after setup.</p> : <p className="mt-3 text-sm text-slate-500">Create a key first.</p>}</div></div>
+          <div className="flex items-start gap-3"><span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-sm font-bold ${hasActiveKey ? 'bg-slate-950 text-white' : 'bg-slate-200 text-slate-500'}`}>{hasActiveKey ? <Check className="h-4 w-4" aria-hidden="true" /> : '2'}</span><div className="min-w-0 flex-1"><p className="text-sm font-semibold text-slate-900">Copy the Agent prompt</p><p className="mt-1 text-sm leading-6 text-slate-600">It includes connection, onboarding, conversation, and safety instructions.</p>{hasActiveKey ? <p className="mt-3 text-sm font-semibold text-emerald-700">Ready in your clipboard after setup.</p> : <p className="mt-3 text-sm text-slate-500">Create a key first.</p>}</div></div>
         </li>
         <li className={`rounded-2xl border p-5 ${hasActiveKey ? 'border-blue-200 bg-blue-50/60' : 'border-slate-200 bg-slate-50/60'}`}>
-          <div className="flex items-start gap-3"><span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-sm font-bold ${hasActiveKey ? 'bg-slate-950 text-white' : 'bg-slate-200 text-slate-500'}`}>3</span><div><p className="text-sm font-semibold text-slate-900">Start your Agent conversation</p><p className="mt-1 text-sm leading-6 text-slate-600">Paste the startup prompt as your first message, then ask for help.</p></div></div>
+          <div className="flex items-start gap-3"><span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-sm font-bold ${hasActiveKey ? 'bg-slate-950 text-white' : 'bg-slate-200 text-slate-500'}`}>3</span><div><p className="text-sm font-semibold text-slate-900">Talk to your Agent</p><p className="mt-1 text-sm leading-6 text-slate-600">Paste the Agent prompt as your first message and let it guide the next step.</p></div></div>
         </li>
       </ol>
       {error ? <p className="mt-4 text-sm text-red-700" role="alert">{error}</p> : null}
