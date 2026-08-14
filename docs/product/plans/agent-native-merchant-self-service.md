@@ -742,7 +742,7 @@ comparison service composes two to five C1 summaries over the same period and
 returns only deterministic metric-specific winners; it never returns a
 universal best Campaign verdict.
 
-The public Commerce Analyst Skill is available at `/skills/commerce-analyst`.
+The public Merchant Skill is available at `/skills/merchant` and covers Store setup, Campaign workflows, and Commerce Analyst read/advice in one agent conversation.
 It is read / advise only, requires objective-aware interpretation, distinguishes
 observed facts from inference and recommendations, warns about small samples and
 reference-data provenance, and makes unavailable lead, identity, revenue,

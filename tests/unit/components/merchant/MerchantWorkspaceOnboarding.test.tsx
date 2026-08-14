@@ -18,8 +18,8 @@ describe('MerchantWorkspaceOnboarding', () => {
 
   it('submits the workspace form and redirects to the created merchant', async () => {
     render(<MerchantWorkspaceOnboarding locale="en" />)
-    fireEvent.change(screen.getByLabelText(/merchant name/i), { target: { value: 'Golden Path Test' } })
-    fireEvent.change(screen.getByLabelText(/website url/i), { target: { value: 'https://example.test' } })
+    fireEvent.change(screen.getByLabelText(/brand or store name/i), { target: { value: 'Golden Path Test' } })
+    fireEvent.change(screen.getByLabelText(/^website$/i), { target: { value: 'https://example.test' } })
     fireEvent.click(screen.getByRole('button', { name: /create workspace/i }))
 
     await waitFor(() => expect(global.fetch).toHaveBeenCalledWith('/api/merchant/workspaces', expect.objectContaining({ method: 'POST' })))
@@ -34,7 +34,7 @@ describe('MerchantWorkspaceOnboarding', () => {
   it('shows a safe error and does not redirect when provisioning fails', async () => {
     ;(global.fetch as jest.Mock).mockResolvedValue({ ok: false, json: async () => ({ error: 'INVALID_WEBSITE_URL' }) })
     render(<MerchantWorkspaceOnboarding locale="en" />)
-    fireEvent.change(screen.getByLabelText(/merchant name/i), { target: { value: 'Golden Path Test' } })
+    fireEvent.change(screen.getByLabelText(/brand or store name/i), { target: { value: 'Golden Path Test' } })
     fireEvent.click(screen.getByRole('button', { name: /create workspace/i }))
 
     expect(await screen.findByRole('alert')).toHaveTextContent('INVALID_WEBSITE_URL')

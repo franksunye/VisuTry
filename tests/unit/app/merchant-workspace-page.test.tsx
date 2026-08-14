@@ -32,7 +32,7 @@ describe('Merchant workspace authorization', () => {
       { merchant: { id: 'merchant-b', slug: 'beta', name: 'Beta', status: 'ACTIVE' }, membership: { role: 'ADMIN' } },
     ])
     credentials.mockResolvedValue([])
-    control.mockResolvedValue({ merchant: { id: 'merchant-a', slug: 'alpha', name: 'Alpha', status: 'ACTIVE', referenceData: false }, store: null, experiences: [], activeCampaignCount: 0, shopperActivityAvailable: false, credentialUsage: { active: 0 } })
+    control.mockResolvedValue({ merchant: { id: 'merchant-a', slug: 'alpha', name: 'Alpha', websiteUrl: null, status: 'ACTIVE', referenceData: false }, store: null, experiences: [], activeCampaignCount: 0, shopperActivityAvailable: false, credentialUsage: { active: 0 } })
   })
 
   it('uses internal User.id and rechecks membership for the selected tenant', async () => {

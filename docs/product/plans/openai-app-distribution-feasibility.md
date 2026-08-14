@@ -81,11 +81,8 @@ An ordinary eyewear Merchant without VisuTry internal permissions and outside Vi
 - `MerchantActorContext` carries `actorType`, `actorId`, `merchantId`, and scopes. Domain services consistently receive the actor or merchant ID and reject cross-tenant resource access.
 - Agent operations are written to `MerchantOperationAudit`; MCP requests are rate-limited per merchant and credential.
 - The MCP server exposes 22 Store, Campaign, and aggregate Analytics tools.
-- The three existing Skills are present as public skill endpoints and currently describe Agent Credential usage and safe tool order:
-  - Merchant Onboarding: [`src/lib/merchant-onboarding-skill.ts`](/Users/yesun/Code/visutry/src/lib/merchant-onboarding-skill.ts)
-  - Campaign Creation: [`src/lib/campaign-creation-skill.ts`](/Users/yesun/Code/visutry/src/lib/campaign-creation-skill.ts)
-  - Commerce Analyst: [`src/lib/commerce-analyst-skill.ts`](/Users/yesun/Code/visutry/src/lib/commerce-analyst-skill.ts)
-- Merchant Control Center provides Merchant selection, Agent Key creation/rotation/revocation, endpoint copy, skill URLs, and explicit publish language in [`src/components/merchant/MerchantControlCenter.tsx`](/Users/yesun/Code/visutry/src/components/merchant/MerchantControlCenter.tsx).
+- The public Merchant Skill is available at `/skills/merchant` and combines Merchant Onboarding, Campaign Creation, and Commerce Analyst workflow guidance in one connection-neutral document: [`src/lib/merchant-skill.ts`](/Users/yesun/Code/visutry/src/lib/merchant-skill.ts).
+- Merchant Control Center provides Merchant selection, the simplified Agent setup, endpoint copy, the single Skill URL, and explicit publish language in [`src/components/merchant/MerchantControlCenter.tsx`](/Users/yesun/Code/visutry/src/components/merchant/MerchantControlCenter.tsx).
 - Public privacy and terms routes exist, and support/legal email addresses are present in the site.
 
 ### Required specifically for OpenAI public distribution
@@ -281,7 +278,7 @@ If submission timing is more important than proving operational value, a read-on
 
 ## 10. Skills/plugin relationship
 
-The existing three Skills are reusable as workflow content, but their credential-specific language should be made auth-neutral when the OAuth adapter is implemented (for example, “authenticated VisuTry Merchant connection” rather than only “Merchant Agent Credential”). Their safety rules—tenant derived from the credential, no client-supplied `merchantId`, explicit publish approval, aggregate-only analytics—should remain.
+The single public Merchant Skill is reusable as workflow content and uses connection-neutral language (for example, “authenticated VisuTry Merchant connection”). Its safety rules—tenant derived from the connection, no client-supplied `merchantId`, explicit publish approval, aggregate-only analytics—remain.
 
 The official plugin model supports a plugin containing both skills and an MCP server. The server supplies live data, auth, authorization, and actions; the skill teaches the model how to combine those tools. Installing or publishing a skill alone **does not** make VisuTry MCP tools available. A combined plugin can package the relationship, but the underlying app/MCP connection must still be enabled and authenticated, and workspace controls still apply.
 
@@ -350,7 +347,7 @@ OpenAI workspace/account A (test Merchant)
 ### P2
 
 - Output schemas and structured result ergonomics could be improved after the connection proof.
-- The existing Skills use Agent Credential wording and should become connection/auth neutral.
+- The Merchant Skill should remain connection/auth neutral across Agent Key and OAuth connections.
 - Custom embedded UI is not needed for this spike; add it only if a real preview/compare/edit experience demonstrates material value.
 
 ## 13. Decision record
