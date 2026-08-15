@@ -4,9 +4,9 @@ import {
   publicDiscoveryCacheTags,
 } from '@/lib/store-discovery-cache'
 import { withPublicDiscoveryInvalidation } from '@/modules/store/application/public-discovery-invalidation'
-import { revalidateTag } from 'next/cache'
+import { revalidatePath, revalidateTag } from 'next/cache'
 
-jest.mock('next/cache', () => ({ revalidateTag: jest.fn() }))
+jest.mock('next/cache', () => ({ revalidatePath: jest.fn(), revalidateTag: jest.fn() }))
 
 describe('public discovery cache contract', () => {
   it('separates Store/Campaign and locale cache keys', () => {
@@ -29,7 +29,7 @@ describe('public discovery cache contract', () => {
     ])
     expect(PUBLIC_DISCOVERY_CACHE.storeRevalidateSeconds).toBe(1800)
     expect(PUBLIC_DISCOVERY_CACHE.campaignRevalidateSeconds).toBe(300)
-    expect(PUBLIC_DISCOVERY_CACHE.sitemapRevalidateSeconds).toBe(1800)
+    expect(PUBLIC_DISCOVERY_CACHE.sitemapRevalidateSeconds).toBe(86400)
   })
 
   it('maps semantic writes to the smallest correct invalidation fanout', async () => {
@@ -41,6 +41,7 @@ describe('public discovery cache contract', () => {
     expect(revalidateTag).toHaveBeenCalledWith('public-discovery:merchant:luna-optical')
     expect(revalidateTag).toHaveBeenCalledWith('public-discovery:sitemap')
     expect(revalidateTag).toHaveBeenCalledWith('public-discovery:route-admission')
+    expect(revalidatePath).toHaveBeenCalledWith('/sitemap.xml')
 
     jest.clearAllMocks()
     await withPublicDiscoveryInvalidation({
@@ -49,6 +50,7 @@ describe('public discovery cache contract', () => {
     })
     expect(revalidateTag).toHaveBeenCalledTimes(4)
     expect(revalidateTag).toHaveBeenCalledWith('public-discovery:merchant-catalog:luna-optical')
+    expect(revalidatePath).toHaveBeenCalledWith('/sitemap.xml')
 
     jest.clearAllMocks()
     await withPublicDiscoveryInvalidation({
@@ -57,6 +59,7 @@ describe('public discovery cache contract', () => {
     })
     expect(revalidateTag).toHaveBeenCalledTimes(4)
     expect(revalidateTag).toHaveBeenCalledWith('public-discovery:experience:luna-optical:petite-fit')
+    expect(revalidatePath).toHaveBeenCalledWith('/sitemap.xml')
   })
 
   it('does not invalidate when the mutation rejects', async () => {
@@ -66,6 +69,7 @@ describe('public discovery cache contract', () => {
       mutation: async () => { throw new Error('write failed') },
     })).rejects.toThrow('write failed')
     expect(revalidateTag).not.toHaveBeenCalled()
+    expect(revalidatePath).not.toHaveBeenCalled()
   })
 
   it('supports idempotent mutations without invalidating when no row changed', async () => {
@@ -76,5 +80,6 @@ describe('public discovery cache contract', () => {
       invalidate: (result) => result.created,
     })
     expect(revalidateTag).not.toHaveBeenCalled()
+    expect(revalidatePath).not.toHaveBeenCalled()
   })
 })

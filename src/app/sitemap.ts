@@ -70,7 +70,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     locales.forEach(locale => {
       staticPages.push({
         url: `${baseUrl}/${locale}${path}`,
-        lastModified: new Date(),
         changeFrequency,
         priority,
         alternates: { languages: generateAlternates(path) },
@@ -81,7 +80,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   englishOnlyStaticPagePaths.forEach(({ path, priority, changeFrequency }) => {
     staticPages.push({
       url: `${baseUrl}/en${path}`,
-      lastModified: new Date(),
       changeFrequency,
       priority,
       alternates: { languages: { en: `${baseUrl}/en${path}` } },
@@ -91,7 +89,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     locales.forEach((locale) => {
       staticPages.push({
         url: `${baseUrl}/${locale}${path}`,
-        lastModified: new Date(),
         changeFrequency: 'weekly',
         priority: 0.8,
         alternates: { languages: generateAlternates(path) },
@@ -102,7 +99,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     locales.forEach((locale) => {
       staticPages.push({
         url: `${baseUrl}/${locale}${path}`,
-        lastModified: new Date(),
         changeFrequency: 'weekly',
         priority: 0.8,
         alternates: { languages: generateAlternates(path) },
@@ -114,7 +110,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     const images = visualSeoImages(path)
     staticPages.push({
       url: `${baseUrl}/en${path}`,
-      lastModified: new Date(),
       changeFrequency: 'weekly',
       priority: 0.75,
       alternates: { languages: { en: `${baseUrl}/en${path}` } },
@@ -125,7 +120,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     locales.forEach((locale) => {
       staticPages.push({
         url: `${baseUrl}/${locale}${path}`,
-        lastModified: new Date(),
         changeFrequency: 'weekly',
         priority: 0.8,
         alternates: { languages: generateAlternates(path) },
@@ -282,4 +276,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   ]
 }
 
-export const revalidate = 3600
+// Public discovery mutations call revalidatePath('/sitemap.xml'). The long
+// safety TTL prevents crawler traffic from rewriting the entire sitemap hourly.
+export const revalidate = 24 * 60 * 60

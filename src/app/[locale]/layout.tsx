@@ -78,6 +78,28 @@ export default async function LocaleLayout(props: Props) {
 
   const messages = await getMessages()
 
+  // Only these namespaces are read by client components rendered from the
+  // locale/main shell and its public interactive surfaces. Page-specific
+  // marketing copy stays server-side, avoiding a full language catalog in
+  // every static HTML/RSC payload.
+  const clientMessages = {
+    common: messages.common,
+    nav: messages.nav,
+    home: {
+      showcase: messages.home?.showcase,
+    },
+    pricing: messages.pricing,
+    faceAnalysis: messages.faceAnalysis,
+    footer: messages.footer,
+    storeShopper: messages.storeShopper,
+    marketing: {
+      home: messages.marketing?.home,
+      modelTryOnSlides: messages.marketing?.modelTryOnSlides,
+      styleExplorer: messages.marketing?.styleExplorer,
+      store: messages.marketing?.store,
+    },
+  }
+
   const gaId = process.env.NEXT_PUBLIC_GA_ID
   const gtmId = process.env.NEXT_PUBLIC_GTM_ID
 
@@ -98,7 +120,7 @@ export default async function LocaleLayout(props: Props) {
           {gtmId && <GoogleTagManager gtmId={gtmId} />}
           {gaId && <GoogleAnalytics gaId={gaId} locale={locale} />}
           <PaymentConversionTracker />
-          <NextIntlClientProvider messages={messages}>{children}</NextIntlClientProvider>
+          <NextIntlClientProvider messages={clientMessages}>{children}</NextIntlClientProvider>
         </SessionProvider>
       </body>
     </html>

@@ -22,6 +22,30 @@ Sitemap: https://www.visutry.com/sitemap.xml
 # Crawl delay (seconds)
 Crawl-delay: 1
 
+# Preserve ChatGPT Search, user-initiated ChatGPT visits, and Agent traffic.
+# GPTBot is the separate model-training crawler and is not required for
+# ChatGPT Search citations or referrals.
+User-agent: GPTBot
+Disallow: /
+
+User-agent: OAI-SearchBot
+Allow: /
+Disallow: /api/
+Disallow: /admin/
+Disallow: /_next/
+Disallow: /debug/
+Disallow: /test/
+Disallow: /private/
+
+User-agent: OAI-AdsBot
+Allow: /
+Disallow: /api/
+Disallow: /admin/
+Disallow: /_next/
+Disallow: /debug/
+Disallow: /test/
+Disallow: /private/
+
 # Search engine specific optimization
 User-agent: Googlebot
 Allow: /

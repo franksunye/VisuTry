@@ -1,4 +1,4 @@
-import { revalidateTag } from 'next/cache'
+import { revalidatePath, revalidateTag } from 'next/cache'
 import { PUBLIC_DISCOVERY_CACHE } from '@/lib/store-discovery-cache'
 
 export type PublicDiscoveryMutationTarget =
@@ -36,5 +36,8 @@ export async function withPublicDiscoveryInvalidation<T>(input: {
     tags.add(PUBLIC_DISCOVERY_CACHE.tags.experience(input.target.merchantSlug, input.target.experienceSlug))
   }
   tags.forEach((tag) => revalidateTag(tag))
+  // The sitemap is a route-level ISR artifact in addition to its tagged
+  // merchant read model. Revalidate it only after a successful public write.
+  revalidatePath('/sitemap.xml')
   return result
 }

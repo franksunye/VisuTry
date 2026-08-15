@@ -1,7 +1,10 @@
 export const PUBLIC_DISCOVERY_CACHE = {
   storeRevalidateSeconds: 30 * 60,
   campaignRevalidateSeconds: 5 * 60,
-  sitemapRevalidateSeconds: 30 * 60,
+  // Sitemap output is invalidated on successful public discovery mutations.
+  // Keep a long safety TTL so crawler reads do not rewrite the full sitemap
+  // every 30 minutes when no public catalog changed.
+  sitemapRevalidateSeconds: 24 * 60 * 60,
   tags: {
     merchant: (merchantSlug: string) => `public-discovery:merchant:${merchantSlug}`,
     catalog: (merchantSlug: string) => `public-discovery:merchant-catalog:${merchantSlug}`,
