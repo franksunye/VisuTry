@@ -94,7 +94,7 @@ The OpenNext esbuild metafile identifies the dominant inputs as:
 
 The default OpenNext server handler is one shared bundle (`14,781,442` bytes raw / `3,477,944` bytes gzip); middleware is `990,194` raw / `122,120` gzip. Prisma is therefore globally bundled into the default server function because the singleton is imported by DB-backed routes and server pages. Avoidable reduction requires route/function splitting or a supported Prisma/query-compiler replacement; no broad refactor was attempted. The controlled `compilerBuild = "small"` experiment validated on Prisma `7.1.0` but did not reduce the generated query-compiler payload on this `prisma-client-js` setup.
 
-Recommended action: use an authorized Workers Paid staging target or perform a separate measured bundle-reduction phase. Do not treat the Free-plan dry-run as deployable.
+The Free-plan target remains open. The next step is a measured bundle-reduction phase; the dry-run is not deployable on Workers Free.
 
 ### Route 404 analysis
 
@@ -139,6 +139,48 @@ Prisma is globally bundled into OpenNext's single default server function throug
 | `npm run build:ci` | PASS; existing build-time Prisma WASM warnings logged for DB-backed static API generation |
 
 No staging Worker was deployed because the Free-plan size limit remains exceeded.
+
+## Phase A.2 — Workers Free bundle investigation
+
+**Result: PARTIAL / BLOCKED.** This phase kept the hard Workers Free target of less than `3 MiB` gzip. It made no schema migration, Neon data change, production configuration change, DNS change, or Worker deployment.
+
+### Free-plan result
+
+| Measurement | Result |
+| --- | ---: |
+| Baseline / final supported configuration | `21,167.97 KiB` raw / `4,592.58 KiB` gzip |
+| Workers Free limit | `3,072 KiB` gzip |
+| Reduction | `0 KiB` versus the supported baseline |
+| Headroom | `-1,520.58 KiB` |
+
+The supported baseline remains Prisma `7.1.0`, `prisma-client-js`, `@prisma/adapter-neon@7.1.0`, and the `@prisma/client/edge` singleton import. The Worker is **not Workers Free compatible**.
+
+### Prisma experiments
+
+- Latest compatible Prisma `7.x` tested: `7.9.1`. `compilerBuild = "small"` generated successfully and the preview `/api/glasses/brands` query returned `200`, but the bundle increased to `21,683.25 KiB` raw / `4,717.43 KiB` gzip. The generated base64 query compiler remained approximately `2.47 MB`; this configuration was rejected.
+- The `prisma-client` generator with `runtime = "workerd"`, `moduleFormat = "esm"`, and `compilerBuild = "small"` generated a split client. An isolated Wrangler probe passed both `SELECT 1` and a Prisma `glassesFrame.findFirst()` read, but the full application failed TypeScript compatibility against the existing `@prisma/client` types and Next/Webpack failed to parse the generated raw WASM module. No generated client or build workaround was retained.
+- The remaining global Prisma path is structural: OpenNext emits one shared default server function, and DB-backed routes/pages plus the MCP/OAuth surface reach the shared `src/lib/prisma.ts` singleton. The emitted query compiler was `2,467,499` bytes raw; the MCP route was `489,996` bytes raw. A controlled MCP barrel-to-leaf import change increased the final gzip measurement by `10.10 KiB`, so it was reverted.
+
+### Supported isolation and direct-Neon probes
+
+OpenNext documents multi-worker deployment as an advanced supported option, but it is not compatible with the repository's current preview URL or standard `@opennextjs/cloudflare deploy` staging flow. It was therefore not presented as a drop-in fix for this task.
+
+A temporary direct `@neondatabase/serverless` probe implementing the equivalent active-brand query (`SELECT DISTINCT ... FROM "GlassesFrame"`) returned `200` with `50` rows. Its isolated Wrangler dry-run was `222.54 KiB` raw / `55.01 KiB` gzip, compared with `2691.63 KiB` raw / `913.86 KiB` gzip for the minimal workerd Prisma probe. This supports selective direct-Neon access as a future, route-by-route fallback only; the application was not rewritten around it.
+
+### Phase A.2 validation
+
+| Check | Result |
+| --- | --- |
+| `npm run build:cloudflare` | PASS; OpenNext worker emitted |
+| Wrangler Free dry-run | PASS measurement; deployment remains blocked at `4,592.58 KiB` gzip |
+| Prisma preview query | PASS — `/api/glasses/brands` returned `200` with the edge entry |
+| Equivalent direct-Neon query | PASS — `200`, 50 active-brand rows |
+| `npm run build:ci` | PASS |
+| `npm run typecheck` | PASS |
+| `npm run test:critical:ci` | PASS — 7 suites / 30 tests |
+| `npm run lint` | PASS with existing warnings |
+
+The four canonical dynamic routes remain the Phase A.1 passes: `/en/face-shapes/oval`, `/en/try-on/glasses`, `/en/style/oval-face`, and `/en/brand/oakley`. Invalid face-shape and style slugs return `404`; invalid try-on and brand slugs still expose the known OpenNext static-to-dynamic `headers` mismatch and return `500`.
 
 ## Staging deployment result
 
@@ -223,8 +265,12 @@ Production remains on Vercel. No production DNS/routing, user traffic, secrets, 
 ## References
 
 - [OpenNext Cloudflare getting started](https://opennext.js.org/cloudflare/get-started)
+- [OpenNext Cloudflare deployment limits](https://opennext.js.org/cloudflare)
+- [OpenNext Cloudflare multi-worker deployment](https://opennext.js.org/cloudflare/howtos/multi-worker)
 - [OpenNext Cloudflare CLI](https://opennext.js.org/cloudflare/cli)
 - [Cloudflare Next.js Workers guide](https://developers.cloudflare.com/workers/framework-guides/web-apps/nextjs/)
 - [Cloudflare Workers WebAssembly restrictions](https://developers.cloudflare.com/workers/runtime-apis/web-standards/)
 - [Prisma Cloudflare deployment guide](https://docs.prisma.io/docs/orm/prisma-client/deployment/edge/deploy-to-cloudflare)
+- [Prisma generators and `runtime = "workerd"`](https://www.prisma.io/docs/orm/prisma-schema/overview/generators)
+- [Prisma 7.3 compiler build modes](https://www.prisma.io/changelog/2026-01-21)
 - [Prisma 7 Workers WASM issue](https://github.com/prisma/prisma/issues/28657)
