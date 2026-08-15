@@ -258,6 +258,85 @@ The same built application was also checked with standard Next local serving whe
 - Create isolated staging-only variables and data, then test Auth, Stripe test webhooks, Blob reads/writes, uploads, AI generation, polling, cron behavior, locale SEO, images, and Store/Campaign boundaries.
 - Re-run the full route matrix against a deployed staging Worker and compare against Vercel preview.
 
+## Phase A.3 — Workers Free compatibility and direct-Neon public reads
+
+**Result: PARTIAL.** The public read slice now fits Workers Free, but the complete application does not yet have Cloudflare parity. No Workers Paid plan, production change, schema migration, DNS change, or staging deployment was used.
+
+### Final bundle measurement
+
+Measurements below are the OpenNext default server function's `handler.mjs` plus `index.mjs`; middleware and static assets are reported separately by Wrangler.
+
+| Measurement | Result |
+| --- | ---: |
+| Previous supported baseline | `4,592.58 KiB` gzip / `21,167.97 KiB` raw |
+| Final handler | `2,324.79 KiB` gzip / `11,493.75 KiB` raw |
+| Final index | `42.81 KiB` gzip / `631.09 KiB` raw |
+| Final combined | `2,367.60 KiB` gzip / `12,124.85 KiB` raw |
+| Reduction versus baseline | `2,224.98 KiB` gzip / `48.45%` |
+| Workers Free limit | `3,072 KiB` gzip |
+| Free headroom | `704.40 KiB` gzip |
+| Prisma query-compiler/WASM present | **NO** |
+
+The final raw `index.mjs` size is `646,241` bytes. The handler contains only the small Cloudflare fail-fast Prisma stub and configuration metadata strings; no query compiler, `.prisma` directory, Prisma package, or adapter runtime artifact was copied into the Worker bundle.
+
+Final handler metafile top contributors by raw bytes in output:
+
+1. Next server chunk `7899.js` — `939.57 KiB`
+2. Next `load-manifest.js` — `562.29 KiB`
+3. OpenNext server `index.mjs` — `533.07 KiB`
+4. `/api/mcp` route bundle — `516.99 KiB`
+5. Next app-page runtime — `346.52 KiB`
+6. Next server chunk `8538.js` — `302.31 KiB`
+7. `node-html-parser` — `218.15 KiB`
+8. Next server chunk `7261.js` — `171.82 KiB`
+9. Next server chunk `2237.js` — `150.00 KiB`
+10. Next server chunk `4132.js` — `147.90 KiB`
+
+### Prisma import roots and provider boundary
+
+The inventory in [`cloudflare-phase-a3-prisma-import-inventory.md`](./cloudflare-phase-a3-prisma-import-inventory.md) records `110` direct `src/lib/prisma.ts` consumers plus direct `@prisma/client` enum/type imports. The source consumers remain for Vercel and local application behavior; the Cloudflare build aliases the Prisma composition root and Prisma package entries to a small stub so unsupported paths fail explicitly instead of bundling Prisma.
+
+The migrated Cloudflare provider boundaries are:
+
+- Public glasses API and pages: direct `@neondatabase/serverless` SQL for brands, categories, face shapes, frames, relations, and frame IDs.
+- Public Store discovery/profile: direct Neon SQL for merchant, experience, route-admission, and public merchant-frame reads.
+- Vercel/default build: unchanged Prisma-backed providers and `src/lib/prisma.ts`.
+
+No Prisma schema, Neon connection, or database data was changed. The Cloudflare SQL is read-only for this phase and preserves active/status, tenant, relation-order, and public-field filtering for the migrated paths.
+
+### Auth, MCP, and remaining application paths
+
+- Auth/NextAuth remains Prisma-backed. Anonymous `/api/auth/session` returned `200` with `{}`, and middleware still protected `/admin/dashboard`; authenticated sign-in, refresh, and adapter-backed session reads were not migrated or signed off.
+- MCP/OAuth remains Prisma-backed. Its route bundle is still one of the largest inputs, and authenticated merchant/MCP operations are unsupported by the Cloudflare stub.
+- Admin, payment, consumer write, background, and non-public Store/session routes remain on the existing Prisma roots and will fail fast if invoked in this Cloudflare build. They are not claimed as Cloudflare-compatible.
+
+This is why the result is **PARTIAL** despite the Worker size passing the Free-plan limit: only the explicitly migrated public-read slice is supported.
+
+### Route parity and validation
+
+Cloudflare preview used the real Workers runtime and a read-only Neon connection. The following all returned `200`, including concurrent requests to the glasses endpoints:
+
+- `/api/glasses/brands`
+- `/api/glasses/categories`
+- `/api/glasses/face-shapes`
+- `/api/glasses/frames`
+- `/api/glasses/frames/{id}`
+- `/api/store/merchants/akila` (an active database merchant slug)
+- `/api/auth/session` (anonymous)
+- `/api/health`
+
+The opt-in provider parity test is at `tests/integration/data/glasses-provider-parity.test.ts`. It reaches the direct-Neon provider, but the local Prisma side is blocked by Prisma `7.1.0` reporting `The loaded wasm module was unexpectedly undefined or null once loaded` under this Node `v25.8.0` environment. The test is therefore not presented as passing; the Worker preview is the runtime evidence for the migrated provider.
+
+### Invalid slugs
+
+The public product route now rejects malformed frame slugs before database access and returns Next `notFound()` behavior; metadata is marked noindex. The existing OpenNext nested dynamic-route workaround remains for the curated brand page, and the broader invalid brand/category static-to-dynamic adapter behavior remains a follow-up.
+
+### Staging and Vercel regression
+
+Staging was **not deployed**. The Free-plan size gate is now satisfied, but authenticated, MCP, admin, write, and full Prisma parity are not; deploying this intentionally fail-fast build would create a misleading staging target.
+
+`npm run build:cloudflare` passed. `npm run typecheck` passed. `npm run build:ci` passed with the existing lint/browser-data warnings and without enabling the Cloudflare-only aliases, confirming that the Vercel Prisma path remains available.
+
 ## Production status
 
 Production remains on Vercel. No production DNS/routing, user traffic, secrets, Stripe webhooks, authentication configuration, Neon data, or Vercel Blob data was changed.

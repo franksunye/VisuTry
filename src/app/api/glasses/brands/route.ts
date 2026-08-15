@@ -1,18 +1,11 @@
 import { NextResponse } from 'next/server'
-import { prisma } from '@/lib/prisma'
+import { getActiveBrands } from '@/data/glasses'
+
+export const dynamic = 'force-dynamic'
 
 export async function GET() {
   try {
-    const brands = await prisma.glassesFrame.findMany({
-      where: { isActive: true },
-      distinct: ['brand'],
-      select: { brand: true },
-      orderBy: { brand: 'asc' },
-    })
-
-    const brandList = brands
-      .map(b => b.brand)
-      .filter((brand): brand is string => brand !== null && brand !== undefined)
+    const brandList = await getActiveBrands()
 
     return NextResponse.json({
       success: true,
@@ -26,4 +19,3 @@ export async function GET() {
     )
   }
 }
-

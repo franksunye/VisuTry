@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
-import { prisma } from '@/lib/prisma'
+import { getCategories, getCategoryByName, getFramesByCategory } from '@/data/glasses'
 import {
   generateCategoryTitle,
   generateCategoryDescription,
@@ -26,9 +26,7 @@ interface CategoryPageProps {
 export async function generateStaticParams() {
   const enabled = process.env.PROGRAMMATIC_SEO_ENABLED === 'true'
   if (!enabled) return []
-  const categories = await prisma.glassesCategory.findMany({
-    select: { name: true },
-  })
+  const categories = await getCategories()
 
   return categories.map(cat => ({
     category: generateCategorySlug(cat.name),
@@ -43,9 +41,7 @@ export async function generateMetadata({
   params,
 }: CategoryPageProps): Promise<Metadata> {
   const categoryName = unslugify(params.category)
-  const category = await prisma.glassesCategory.findFirst({
-    where: { name: { equals: categoryName, mode: 'insensitive' } },
-  })
+  const category = await getCategoryByName(categoryName)
 
   if (!category) {
     return {
@@ -82,20 +78,13 @@ export async function generateMetadata({
 export default async function CategoryPage({ params }: CategoryPageProps) {
   const categoryName = unslugify(params.category)
 
-  const category = await prisma.glassesCategory.findFirst({
-    where: { name: { equals: categoryName, mode: 'insensitive' } },
-  })
+  const category = await getCategoryByName(categoryName)
 
   if (!category) {
     notFound()
   }
 
-  const frames = await prisma.glassesFrame.findMany({
-    where: {
-      isActive: true,
-      category: { equals: categoryName, mode: 'insensitive' },
-    },
-  })
+  const frames = await getFramesByCategory(categoryName)
 
   return (
     <div className="container mx-auto px-4 py-8">

@@ -1,11 +1,11 @@
 import { NextResponse } from 'next/server'
-import { prisma } from '@/lib/prisma'
+import { getCategories } from '@/data/glasses'
+
+export const dynamic = 'force-dynamic'
 
 export async function GET() {
   try {
-    const categories = await prisma.glassesCategory.findMany({
-      orderBy: { name: 'asc' },
-    })
+    const categories = await getCategories()
 
     return NextResponse.json({
       success: true,
@@ -19,4 +19,3 @@ export async function GET() {
     )
   }
 }
-

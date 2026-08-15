@@ -1,11 +1,11 @@
 import { NextResponse } from 'next/server'
-import { prisma } from '@/lib/prisma'
+import { getFaceShapes } from '@/data/glasses'
+
+export const dynamic = 'force-dynamic'
 
 export async function GET() {
   try {
-    const shapes = await prisma.faceShape.findMany({
-      orderBy: { name: 'asc' },
-    })
+    const shapes = await getFaceShapes()
 
     return NextResponse.json({
       success: true,
@@ -19,4 +19,3 @@ export async function GET() {
     )
   }
 }
-

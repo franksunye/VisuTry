@@ -10,7 +10,7 @@ import {
   getCuratedBrandContent,
 } from '@/config/brand-try-on-content'
 import type { Locale } from '@/i18n'
-import { prisma } from '@/lib/prisma'
+import { getActiveBrands, getFramesByBrand } from '@/data/glasses'
 import { generateI18nSEO, generateStructuredData } from '@/lib/seo'
 import {
   generateBrandDescription,
@@ -30,14 +30,7 @@ export async function generateStaticParams() {
   const staticBrands = CURATED_BRAND_SLUGS.map(brand => ({ brand }))
   if (process.env.PROGRAMMATIC_SEO_ENABLED !== 'true') return staticBrands
 
-  const brands = await prisma.glassesFrame.findMany({
-    where: { isActive: true },
-    distinct: ['brand'],
-    select: { brand: true },
-  })
-  const databaseBrands = brands
-    .filter((item): item is { brand: string } => Boolean(item.brand))
-    .map(item => ({ brand: generateBrandSlug(item.brand) }))
+  const databaseBrands = (await getActiveBrands()).map((brand) => ({ brand: generateBrandSlug(brand) }))
 
   return [...staticBrands, ...databaseBrands.filter(item => !CURATED_BRAND_SLUGS.some(brand => brand === item.brand))]
 }
@@ -67,9 +60,7 @@ export async function generateMetadata({ params }: BrandPageProps): Promise<Meta
   }
 
   const brandName = unslugify(params.brand)
-  const frame = await prisma.glassesFrame.findFirst({
-    where: { brand: { equals: brandName, mode: 'insensitive' }, isActive: true },
-  })
+  const frame = (await getFramesByBrand(brandName))[0]
   if (!frame) return { title: 'Brand Not Found', robots: { index: false, follow: false } }
 
   return generateI18nSEO({
@@ -243,7 +234,7 @@ export default async function BrandPage({ params }: BrandPageProps) {
   if (process.env.PROGRAMMATIC_SEO_ENABLED !== 'true') notFound()
 
   const brandName = unslugify(params.brand)
-  const frames = await prisma.glassesFrame.findMany({ where: { isActive: true, brand: { equals: brandName, mode: 'insensitive' } } })
+  const frames = await getFramesByBrand(brandName)
   if (!frames.length) notFound()
 
   return (

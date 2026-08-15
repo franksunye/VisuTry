@@ -1,3 +1,5 @@
+const path = require('path')
+
 const withBundleAnalyzer = require('@next/bundle-analyzer')({
   enabled: process.env.ANALYZE === 'true',
 })
@@ -57,6 +59,17 @@ const nextConfig = {
 
   experimental: {
     optimizePackageImports: ['lucide-react', '@radix-ui/react-dialog', '@radix-ui/react-select'],
+    ...(process.env.CLOUDFLARE_BUILD === '1'
+      ? {
+          outputFileTracingExcludes: {
+            '**/*': [
+              'node_modules/.prisma/**',
+              'node_modules/@prisma/client/**',
+              'node_modules/@prisma/adapter-neon/**',
+            ],
+          },
+        }
+      : {}),
   },
 
   compiler: {
@@ -66,7 +79,9 @@ const nextConfig = {
     reactRemoveProperties: process.env.NODE_ENV === 'production',
   },
 
-  transpilePackages: [],
+  transpilePackages: process.env.CLOUDFLARE_BUILD === '1'
+    ? ['@prisma/client', '@prisma/adapter-neon']
+    : [],
 
   output: 'standalone',
   async rewrites() {
@@ -115,6 +130,22 @@ const nextConfig = {
       { source: '/:locale/find-perfect-glasses-online-guide', destination: '/:locale/blog/find-perfect-glasses-online-guide', permanent: true },
       { source: '/:locale/virtual-try-on-reduce-eyewear-returns', destination: '/:locale/blog/virtual-try-on-reduce-eyewear-returns', permanent: true },
     ]
+  },
+  webpack(config) {
+    if (process.env.CLOUDFLARE_BUILD === '1') {
+      config.resolve.alias = {
+        ...config.resolve.alias,
+        '@/data/glasses$': path.resolve(__dirname, 'src/data/glasses-cloudflare.ts'),
+        '@/data/glasses': path.resolve(__dirname, 'src/data/glasses-cloudflare.ts'),
+        [path.resolve(__dirname, 'src/data/glasses.ts')]: path.resolve(__dirname, 'src/data/glasses-cloudflare.ts'),
+        [path.resolve(__dirname, 'src/lib/prisma.ts')]: path.resolve(__dirname, 'src/data/prisma-cloudflare-stub.ts'),
+        '@prisma/client/edge': path.resolve(__dirname, 'src/data/prisma-cloudflare-stub.ts'),
+        '@prisma/client': path.resolve(__dirname, 'src/data/prisma-cloudflare-stub.ts'),
+        [path.resolve(__dirname, 'src/modules/store/application/public-read-runtime.ts')]: path.resolve(__dirname, 'src/modules/store/application/public-read-runtime-cloudflare.ts'),
+        [path.resolve(__dirname, 'src/modules/store/application/public-route-admission.ts')]: path.resolve(__dirname, 'src/modules/store/application/public-route-admission-cloudflare.ts'),
+      }
+    }
+    return config
   },
 }
 
