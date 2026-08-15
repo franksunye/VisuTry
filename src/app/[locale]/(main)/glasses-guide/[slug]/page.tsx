@@ -22,7 +22,7 @@ export function generateStaticParams() {
 }
 
 export const dynamicParams = false
-export const revalidate = 3600
+export const dynamic = 'force-static'
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const page = getLocalizedCombinationSearchPage(params.locale, params.slug)

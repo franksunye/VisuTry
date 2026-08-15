@@ -58,7 +58,7 @@ export function generateStaticParams() {
 // This page is entirely content-driven and has a finite set of supported
 // shapes. Unknown slugs should be a 404, not an on-demand ISR render.
 export const dynamicParams = false
-export const revalidate = 3600
+export const dynamic = 'force-static'
 
 export async function generateMetadata({ params }: FaceShapePageProps): Promise<Metadata> {
   const shape = normalizeFaceShapeSlug(params.faceShape)
