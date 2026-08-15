@@ -1,0 +1,3 @@
+# OpenNext uses this selector when loading Next.js environment files.
+# Keep secrets in an ignored .dev.vars file or in the local shell environment.
+NEXTJS_ENV=development

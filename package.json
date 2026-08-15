@@ -11,6 +11,10 @@
     "refund:payment": "tsx scripts/refund-payment.ts",
     "build": "prisma generate && bash scripts/migrate-deploy.sh && next build",
     "build:ci": "prisma generate && next build",
+    "build:cloudflare:next": "prisma generate && next build",
+    "build:cloudflare": "npm run build:cloudflare:next && opennextjs-cloudflare build --skipNextBuild",
+    "preview:cloudflare": "npm run build:cloudflare && opennextjs-cloudflare preview",
+    "deploy:cloudflare": "npm run build:cloudflare && opennextjs-cloudflare deploy --env staging",
     "start": "next start",
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
@@ -95,7 +99,7 @@
     "date-fns": "^4.1.0",
     "https-proxy-agent": "^7.0.6",
     "lucide-react": "^0.294.0",
-    "next": "^14.0.0",
+    "next": "^14.2.35",
     "next-auth": "^4.24.11",
     "next-intl": "^4.4.0",
     "postcss": "^8.4.32",
@@ -110,6 +114,7 @@
   },
   "devDependencies": {
     "@next/bundle-analyzer": "^14.0.0",
+    "@opennextjs/cloudflare": "1.15.1",
     "@playwright/test": "^1.62.0",
     "@prisma/adapter-pg": "^7.1.0",
     "@testing-library/dom": "^10.4.1",
@@ -136,7 +141,8 @@
     "playwright": "^1.62.0",
     "prisma": "^7.1.0",
     "tsx": "^4.20.5",
-    "typescript": "^5.3.3"
+    "typescript": "^5.3.3",
+    "wrangler": "^4.123.0"
   },
   "optionalDependencies": {
     "canvas": "^3.2.0"
