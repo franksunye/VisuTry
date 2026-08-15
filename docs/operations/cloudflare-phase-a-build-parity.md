@@ -269,13 +269,13 @@ Measurements below are the OpenNext default server function's `handler.mjs` plus
 | Measurement | Result |
 | --- | ---: |
 | Previous supported baseline | `4,592.58 KiB` gzip / `21,167.97 KiB` raw |
-| Final handler | `2,311.98 KiB` gzip / `11,524.49 KiB` raw |
+| Final handler | `2,320.31 KiB` gzip / `11,521.00 KiB` raw |
 | Final index | `42.84 KiB` gzip / `631.09 KiB` raw |
-| Final handler + index | `2,354.81 KiB` gzip / `12,155.58 KiB` raw |
-| Final Wrangler upload | `2,811.44 KiB` gzip / `16,259.65 KiB` raw |
-| Reduction versus baseline upload | `1,781.14 KiB` gzip / `38.78%` |
+| Final handler + index | `2,363.15 KiB` gzip / `12,152.09 KiB` raw |
+| Final Wrangler upload | `2,814.46 KiB` gzip / `16,279.37 KiB` raw |
+| Reduction versus baseline upload | `1,778.12 KiB` gzip / `38.72%` |
 | Workers Free limit | `3,072 KiB` gzip |
-| Free headroom at Wrangler upload gate | `260.56 KiB` gzip |
+| Free headroom at Wrangler upload gate | `257.54 KiB` gzip |
 | Prisma query-compiler/WASM present | **NO** |
 
 The final raw `index.mjs` size is `646,241` bytes. The final Wrangler dry run is the conservative Free-plan measurement because it includes the Worker upload and its static asset upload. The handler contains only the small Cloudflare lazy Prisma stub and configuration metadata strings; no query compiler, `.prisma` directory, Prisma package, or adapter runtime artifact was copied into the Worker bundle.
@@ -285,13 +285,13 @@ Final handler metafile top contributors by raw bytes in output:
 1. Next server chunk `7899.js` — `939.57 KiB`
 2. Next `load-manifest.js` — `562.29 KiB`
 3. OpenNext server `index.mjs` — `533.07 KiB`
-4. `/api/mcp` route bundle — `517.45 KiB`
+4. `/api/mcp` route bundle — `517.92 KiB`
 5. Next app-page runtime — `346.52 KiB`
 6. Next server chunk `8538.js` — `302.31 KiB`
 7. `node-html-parser` — `218.15 KiB`
 8. Next server chunk `7261.js` — `171.82 KiB`
-9. Next server chunk `2237.js` — `150.00 KiB`
-10. Next server chunk `4132.js` — `147.90 KiB`
+9. Next server chunk `1081.js` — `166.74 KiB`
+10. Next server chunk `4132.js` — `147.91 KiB`
 
 ### Prisma import roots and provider boundary
 
@@ -338,7 +338,7 @@ Staging **was deployed** after the Free-plan gate passed:
 
 - Worker: `visutry-cf-staging`
 - URL: `https://visutry-cf-staging.sunye.workers.dev`
-- Final version: `1d490479-018b-47c4-bee4-ea69b6339437`
+- Final version: `e268138e-b5fd-4fcb-b85c-cf745f284c2b`
 - Secret: Wrangler `DATABASE_URL` configured only on the staging Worker from the existing local runtime configuration; its value was never printed
 - Custom domain/DNS: none
 
