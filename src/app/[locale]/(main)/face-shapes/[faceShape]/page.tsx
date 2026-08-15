@@ -20,7 +20,9 @@ export function generateStaticParams() {
   return FACE_SHAPE_SLUGS.map((faceShape) => ({ faceShape }))
 }
 
-export const dynamicParams = false
+// OpenNext 1.15.1 does not dispatch these generated nested dynamic pages when
+// dynamicParams is false. Unknown slugs are still rejected by notFound().
+export const dynamicParams = true
 export const dynamic = 'force-static'
 
 export async function generateMetadata({ params }: FaceShapeGuidePageProps): Promise<Metadata> {

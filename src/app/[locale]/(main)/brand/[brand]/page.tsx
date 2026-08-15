@@ -42,9 +42,10 @@ export async function generateStaticParams() {
   return [...staticBrands, ...databaseBrands.filter(item => !CURATED_BRAND_SLUGS.some(brand => brand === item.brand))]
 }
 
-// Only curated pages are valid while database-backed programmatic SEO is off.
-// Keeping this closed prevents arbitrary bot slugs from becoming ISR entries.
-export const dynamicParams = process.env.PROGRAMMATIC_SEO_ENABLED === 'true'
+// OpenNext 1.15.1 does not dispatch generated nested dynamic pages when this
+// is false. BrandPage rejects non-curated/non-database slugs; invalid-slug
+// static-to-dynamic behavior remains an adapter follow-up.
+export const dynamicParams = true
 export const revalidate = 3600
 
 export async function generateMetadata({ params }: BrandPageProps): Promise<Metadata> {

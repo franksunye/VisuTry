@@ -77,6 +77,69 @@ Build warnings:
 
 **PASS: attempted with the real Workers runtime; PARTIAL route parity.** `opennextjs-cloudflare preview` started Wrangler on `http://localhost:8787` with the `ASSETS` binding. The first attempt was rejected because the configured compatibility date was one day ahead of the Cloudflare service date; it was corrected to `2026-08-15`, and the second attempt started successfully.
 
+## Phase A.1 Blocker Resolution
+
+### Worker size
+
+The initial Phase A dry-run measured `18,994.17 KiB` raw / `3,833.56 KiB` gzip. After the Prisma edge-entry fix, the final dry-run measured `21,167.97 KiB` raw / `4,603.50 KiB` gzip. The final bundle fits the documented Workers Paid `10 MiB` compressed limit, but not the account's Free `3 MiB` limit. No plan change was authorized.
+
+The OpenNext esbuild metafile identifies the dominant inputs as:
+
+- Prisma query compiler WASM base64: `2,467,499` bytes raw.
+- Next server chunk `7899.js`: `896,891` bytes.
+- OpenNext server `index.mjs`: `645,811` bytes.
+- Next `load-manifest.js`: `631,572` bytes.
+- `/api/mcp` route bundle: `489,996` bytes.
+- Prisma edge compiler/runtime support: `182,011` bytes, plus Prisma runtime client `167,535` bytes.
+
+The default OpenNext server handler is one shared bundle (`14,781,442` bytes raw / `3,477,944` bytes gzip); middleware is `990,194` raw / `122,120` gzip. Prisma is therefore globally bundled into the default server function because the singleton is imported by DB-backed routes and server pages. Avoidable reduction requires route/function splitting or a supported Prisma/query-compiler replacement; no broad refactor was attempted. The controlled `compilerBuild = "small"` experiment validated on Prisma `7.1.0` but did not reduce the generated query-compiler payload on this `prisma-client-js` setup.
+
+Recommended action: use an authorized Workers Paid staging target or perform a separate measured bundle-reduction phase. Do not treat the Free-plan dry-run as deployable.
+
+### Route 404 analysis
+
+Next and OpenNext both contained all four requested concrete paths in their prerender manifests, and the filesystem routes are the expected locale-parent plus nested dynamic segments. `/en/try-on/glasses` is the canonical route generated from `tryOnTypeToUrl(GLASSES)`; the smoke test was correct.
+
+| Route | Root cause | Fix | Result |
+| --- | --- | --- | --- |
+| `/en/face-shapes/oval` | OpenNext `1.15.1` did not dispatch a generated nested dynamic page with `dynamicParams = false`. | Set `dynamicParams = true`; page-level `getFaceShapeContent()` still calls `notFound()` for unknown slugs. | PASS — 200 |
+| `/en/try-on/glasses` | Same OpenNext nested dynamic-route dispatch behavior; canonical path confirmed. | Set `dynamicParams = true`; `urlToTryOnType()` still calls `notFound()` for invalid values. | PASS — 200 |
+| `/en/style/oval-face` | Same OpenNext nested dynamic-route dispatch behavior. | Set `dynamicParams = true`; `normalizeFaceShapeSlug()` still calls `notFound()` for unknown slugs. | PASS — 200 |
+| `/en/brand/oakley` | Same OpenNext nested dynamic-route dispatch behavior while the curated page was closed with `dynamicParams = false`. | Set `dynamicParams = true`; `BrandPage` still rejects non-curated/non-database slugs with `notFound()`. | PASS — 200 |
+
+This isolates the mismatch to the adapter/Next 14 route-dispatch path rather than missing `generateStaticParams`, locale omission, middleware, or an incorrect canonical URL. The workaround is local to the four affected pages; a future adapter/Next upgrade should retest whether the stricter closed-set flag can be restored.
+
+Invalid-slug control requests for `/en/face-shapes/not-a-shape` and `/en/style/not-a-shape` returned 404. Invalid try-on and brand slugs exposed a separate OpenNext static-to-dynamic `headers` error and returned 500; those paths remain a follow-up and are not claimed as resolved by the canonical-route workaround.
+
+### Prisma / Neon
+
+Current configuration is Prisma `7.1.0`, `prisma-client-js`, `@prisma/adapter-neon@7.1.0`, and a pooled `DATABASE_URL` for runtime queries. `prisma.config.ts` keeps CLI/migration commands on `DATABASE_URL_UNPOOLED` (direct Neon), without changing migration behavior.
+
+The exact OpenNext/Workers failure before the fix was `WebAssembly.Module(): Wasm code generation disallowed by embedder`, originating in Prisma's `getQueryCompilerWasmModule` path. The smallest controlled Wrangler probe used the same generated client and adapter, executed read-only `SELECT 1` plus `glassesFrame.findFirst({ select: { id: true } })`; it passed when importing `@prisma/client/edge`. A direct `@neondatabase/serverless` probe with read-only `SELECT 1` also passed. The OpenNext preview then returned `200` from `/api/glasses/brands` with the edge entry.
+
+Root-cause classification: Cloudflare-to-Neon connectivity is **PASS**; the failure was in the Prisma client entry/runtime and OpenNext Workers bundling path. The low-risk remediation is the `@prisma/client/edge` import in `src/lib/prisma.ts`. Prisma remains in the shared bundle, and Next's build-time prerender still logs the known WASM initialization warning for DB-backed API routes, so full Prisma parity is not signed off. No migration, schema, Neon, or production data change was made.
+
+Recommended remediation: keep the edge-entry change for staging validation, then separately evaluate a Prisma version/generator/runtime explicitly supported by Workers or replace only the affected DB boundary. Do not broadly refactor the data layer in Phase A.1.
+
+### Application import topology
+
+Prisma is globally bundled into OpenNext's single default server function through the shared `src/lib/prisma.ts` singleton. Stripe and Blob references are route-local inputs rather than the dominant bundle contributors identified by the metafile; no safe evidence justified removing them. The edge Prisma entry fixes the preview query path but adds runtime support and increases compressed size, which is why the final bundle is larger than the Phase A baseline.
+
+### Phase A.1 validation
+
+| Command / check | Result |
+| --- | --- |
+| `npm ci` | PASS |
+| `npm run build:cloudflare` | PASS; build completed and emitted `.open-next/worker.js` |
+| `npx wrangler deploy --dry-run --env staging --metafile ...` | PASS; `21,167.97 KiB` raw / `4,603.50 KiB` gzip |
+| OpenNext preview route matrix | PASS for all four routes and `/api/glasses/brands` |
+| `npm run lint` | PASS with existing warnings |
+| `npm run typecheck` | PASS |
+| `npm run test:critical:ci` | PASS; 7 suites / 30 tests |
+| `npm run build:ci` | PASS; existing build-time Prisma WASM warnings logged for DB-backed static API generation |
+
+No staging Worker was deployed because the Free-plan size limit remains exceeded.
+
 ## Staging deployment result
 
 **NOT DEPLOYED.** The safe deployment attempt uploaded static assets but Cloudflare rejected the Worker because the compressed Worker exceeded the account's `3 MiB` Free-plan limit. The largest bundle was the OpenNext default server handler. A follow-up API inspection confirmed that `visutry-cf-staging` was not created.
@@ -98,32 +161,32 @@ The same built application was also checked with standard Next local serving whe
 | `/en` | PASS — 200 | Public static page loaded |
 | `/en/face-shape-detector` | PASS — 200 | Public static page loaded |
 | `/en/blog` | PASS — 200 | Public static page loaded |
-| `/en/face-shapes/oval` | FAIL — 404 | Standard Next local server returned 200 |
+| `/en/face-shapes/oval` | PASS — 200 | Phase A.1 `dynamicParams` compatibility fix |
 | `/en/store` | PASS — 200 | Store public shell loaded |
 | `/en/style-explorer` | PASS — 200 | Consumer shell loaded |
 | `/en/face-analysis` | PASS — 200 | Consumer shell loaded |
-| `/en/try-on/glasses` | FAIL — 404 | Standard Next local server returned 200 |
+| `/en/try-on/glasses` | PASS — 200 | Canonical route confirmed; Phase A.1 `dynamicParams` compatibility fix |
 | `/en/try-on/glasses/compare` | PASS — 200 | Consumer shell loaded |
 | `/en/pricing` | PASS — 200 | Consumer shell loaded |
-| `/en/style/oval-face` | FAIL — 404 | Standard Next local server returned 200 |
+| `/en/style/oval-face` | PASS — 200 | Phase A.1 `dynamicParams` compatibility fix |
 | `/en/try/{slug}` | NOT TESTED | No safe known local/staging slug was available; invalid probe returned 404 |
-| `/en/brand/oakley` | FAIL — 404 | Curated brand; standard Next local server returned 200 |
+| `/en/brand/oakley` | PASS — 200 | Curated brand; Phase A.1 `dynamicParams` compatibility fix |
 | `/en/category/{category}` | NOT TESTED | Programmatic SEO was disabled and no safe category dataset was selected |
 | `/admin/dashboard` | PASS — 307 | Unauthenticated request redirected to sign-in; auth was not weakened |
 | `/api/health` | PASS — 200 | Representative route handler loaded |
-| `/api/glasses/brands` | BLOCKER — 500 | Prisma 7 query compiler hit Workers WASM restriction |
+| `/api/glasses/brands` | PASS — 200 | Phase A.1 edge Prisma entry; build-time DB prerender warnings remain |
 
 ## Compatibility matrix
 
 | Area | Classification | Finding and smallest future remediation |
 | --- | --- | --- |
 | Next.js App Router / React Server Components | PASS | Build completed with App Router, RSC, SSG, SSR, and dynamic route output. Keep the adapter/Next compatibility pin until a supported upgrade is planned. |
-| Route Handlers | PASS / BLOCKER | `/api/health` loaded, but Prisma-backed handlers cannot currently query in Workers. Resolve the Prisma 7 runtime issue before parity sign-off. |
+| Route Handlers | PASS / PARTIAL | `/api/health` and the Prisma-backed brands handler loaded in preview after the edge Prisma entry; broader DB-backed flows and build-time Prisma warnings remain open. |
 | Server Actions | NOT TESTED | No `use server` declarations were found under `src`; add a focused test if introduced later. |
 | Middleware | PASS / WARNING | `src/middleware.ts` bundled and protected `/admin/dashboard` with a 307 redirect. The dynamic route 404s need a separate OpenNext/Next compatibility investigation. |
 | next-intl / locale routing | PASS | Locale-prefixed public pages rendered in the Worker preview. Full nine-locale matrix remains Phase B work. |
 | Auth / session | PASS / NOT TESTED | Unauthenticated admin protection worked. Full OAuth, cookie refresh, and authenticated flows were not tested. Relevant files include `src/middleware.ts` and `src/app/api/auth/[...nextauth]/route.ts`. |
-| Neon / Prisma | BLOCKER | `src/lib/prisma.ts`, `src/app/api/glasses/brands/route.ts`, and other Prisma-backed handlers trigger Prisma 7 `getQueryCompilerWasmModule` and `WebAssembly.Module()` failure in Workers. Evaluate a Workers-compatible Prisma version/build or supported database access path; do not migrate Neon in Phase A. |
+| Neon / Prisma | PARTIAL | `src/lib/prisma.ts` now uses `@prisma/client/edge`, and the preview query path passes. Prisma 7's query compiler/WASM remains in the shared bundle and logs initialization warnings during Next build-time API prerendering. Evaluate a Workers-supported Prisma version/generator/runtime before full parity sign-off; do not migrate Neon in Phase A. |
 | Stripe | NOT TESTED | `src/lib/stripe.ts` and `src/app/api/payment/webhook/route.ts` bundled, but no test secret or webhook request was used. Validate only with Stripe test resources in Phase B. |
 | Vercel Blob | NOT TESTED | Blob imports are present in `src/lib/blob/` and `src/modules/store/infrastructure/assets/vercel-blob-asset-store.ts`. No Blob data or token was moved. |
 | next/image | PASS / NOT TESTED | Build completed with existing `next/image` usage. No Cloudflare Images binding was added; image optimization parity remains open. |
@@ -131,13 +194,12 @@ The same built application was also checked with standard Next local serving whe
 | AI generation / long requests | NOT TESTED | Try-on and face-analysis generation routes bundle, but request duration and polling behavior were not exercised. Vercel `maxDuration` settings have no Phase A equivalent. |
 | Store / Campaign | PARTIAL | `/en/store` loaded, but DB-backed store sessions and asset flows were not tested. No storage migration was attempted. |
 | Cron / background work | NOT TESTED | Cron route handlers bundle, but Vercel cron schedules and 300-second settings were not ported. |
-| Node/runtime APIs | PARTIAL | `nodejs_compat` allowed the build and public preview. Prisma 7's runtime WASM compilation is blocked by the Workers runtime; Node-specific dependency paths need Phase B audit. |
+| Node/runtime APIs | PARTIAL | `nodejs_compat` allowed the build and public preview. The edge Prisma entry passes the preview query path, but Prisma 7's WASM compiler remains in the bundle and build-time warnings need a Phase B audit. |
 
 ## Blockers
 
-1. Prisma 7 runtime query compiler uses dynamic WASM compilation that fails in the Workers runtime. This blocks DB-backed API, dynamic SEO, admin, and Store parity.
-2. The account's Free Worker size limit rejected the measured `3.83 MiB` gzip Worker. No plan upgrade was authorized or performed.
-3. Several statically generated dynamic/SEO routes returned 404 in OpenNext preview while returning 200 under standard Next local serving. This blocks claiming full route parity until the adapter/Next 14 path is investigated.
+1. Prisma 7's query compiler/WASM remains in the shared Worker bundle and logs initialization warnings during Next build-time DB-backed API prerendering. The minimal and preview query paths pass with `@prisma/client/edge`, but full DB parity is not signed off.
+2. The account's Free Worker size limit rejected the final measured `4.60 MiB` gzip Worker. No plan upgrade was authorized or performed.
 
 ## Warnings
 
@@ -150,7 +212,7 @@ The same built application was also checked with standard Next local serving whe
 
 - Choose and validate a Workers-compatible Prisma/Neon runtime path without copying production credentials or migrating Neon.
 - Resolve the Worker size limit using an authorized account plan or a measured bundle-reduction plan.
-- Investigate the OpenNext dynamic/SEO route 404s and decide whether the supported path requires a Next 15+ upgrade; any upgrade must be a separate regression-reviewed change.
+- Retest the four dynamic-route workarounds on the next supported OpenNext/Next upgrade; restore `dynamicParams = false` only if the adapter dispatches generated paths correctly.
 - Create isolated staging-only variables and data, then test Auth, Stripe test webhooks, Blob reads/writes, uploads, AI generation, polling, cron behavior, locale SEO, images, and Store/Campaign boundaries.
 - Re-run the full route matrix against a deployed staging Worker and compare against Vercel preview.
 

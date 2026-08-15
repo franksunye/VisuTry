@@ -55,9 +55,10 @@ export function generateStaticParams() {
     .map((faceShape) => ({ faceShape }))
 }
 
-// This page is entirely content-driven and has a finite set of supported
-// shapes. Unknown slugs should be a 404, not an on-demand ISR render.
-export const dynamicParams = false
+// OpenNext 1.15.1 does not dispatch these generated nested dynamic pages when
+// dynamicParams is false. normalizeFaceShapeSlug() still rejects unknown
+// slugs with notFound().
+export const dynamicParams = true
 export const dynamic = 'force-static'
 
 export async function generateMetadata({ params }: FaceShapePageProps): Promise<Metadata> {

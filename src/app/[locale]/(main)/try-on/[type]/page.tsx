@@ -61,10 +61,10 @@ export function generateStaticParams() {
   }))
 }
 
-// The route is a closed set. Invalid values such as /try-on/null should 404
-// instead of falling through to a runtime render and changing the page from
-// static to dynamic.
-export const dynamicParams = false
+// OpenNext 1.15.1 does not dispatch this generated nested dynamic page when
+// dynamicParams is false. urlToTryOnType() rejects invalid values in the page;
+// invalid-slug static-to-dynamic behavior remains an adapter follow-up.
+export const dynamicParams = true
 
 export default async function TryOnTypePage({ params }: TryOnPageProps) {
   const { locale, type } = params
