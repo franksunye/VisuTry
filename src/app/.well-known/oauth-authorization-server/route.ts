@@ -6,7 +6,7 @@ import {
   MCP_OAUTH_SCOPE_VALUES,
   MCP_OAUTH_TOKEN_PATH,
   oauthIssuer,
-} from '@/modules/merchant'
+} from '@/modules/merchant/application/merchant-oauth-metadata'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'

@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import Image from 'next/image'
 import Link from 'next/link'
-import { notFound } from 'next/navigation'
+import { notFound, redirect } from 'next/navigation'
 import { ArrowRight, CheckCircle2, Glasses, ScanFace } from 'lucide-react'
 import { GrowthFunnelLink } from '@/components/analytics/GrowthFunnelLink'
 import {
@@ -231,11 +231,11 @@ function CuratedBrandPage({ locale, slug }: { locale: string; slug: string }) {
 
 export default async function BrandPage({ params }: BrandPageProps) {
   if (getCuratedBrandContent(params.brand)) return <CuratedBrandPage locale={params.locale} slug={params.brand} />
-  if (process.env.PROGRAMMATIC_SEO_ENABLED !== 'true') notFound()
+  if (process.env.PROGRAMMATIC_SEO_ENABLED !== 'true') redirect(`/${params.locale}`)
 
   const brandName = unslugify(params.brand)
   const frames = await getFramesByBrand(brandName)
-  if (!frames.length) notFound()
+  if (!frames.length) redirect(`/${params.locale}`)
 
   return (
     <main className="container mx-auto px-4 py-8">

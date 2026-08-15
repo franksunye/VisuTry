@@ -14,13 +14,28 @@ import {
   type MerchantAgentScope,
 } from '../domain/agent-credentials'
 import type { AgentMerchantActor } from '../domain/actor'
+import {
+  MCP_OAUTH_AUTHORIZE_PATH,
+  MCP_OAUTH_ISSUER_PATH,
+  MCP_OAUTH_REGISTER_PATH,
+  MCP_OAUTH_REVOKE_PATH,
+  MCP_OAUTH_SCOPE_VALUES,
+  MCP_OAUTH_TOKEN_PATH,
+  canonicalMcpResource,
+  oauthIssuer,
+} from './merchant-oauth-metadata'
 
-export const MCP_OAUTH_ISSUER_PATH = '/api/mcp/oauth'
-export const MCP_OAUTH_AUTHORIZE_PATH = `${MCP_OAUTH_ISSUER_PATH}/authorize`
-export const MCP_OAUTH_TOKEN_PATH = `${MCP_OAUTH_ISSUER_PATH}/token`
-export const MCP_OAUTH_REGISTER_PATH = `${MCP_OAUTH_ISSUER_PATH}/register`
-export const MCP_OAUTH_REVOKE_PATH = `${MCP_OAUTH_ISSUER_PATH}/revoke`
-export const MCP_OAUTH_SCOPE_VALUES = [...MERCHANT_AGENT_SCOPES] as const
+export {
+  MCP_OAUTH_AUTHORIZE_PATH,
+  MCP_OAUTH_ISSUER_PATH,
+  MCP_OAUTH_REGISTER_PATH,
+  MCP_OAUTH_REVOKE_PATH,
+  MCP_OAUTH_SCOPE_VALUES,
+  MCP_OAUTH_TOKEN_PATH,
+  canonicalMcpResource,
+  oauthIssuer,
+} from './merchant-oauth-metadata'
+
 export const MCP_OAUTH_DEFAULT_SCOPES: MerchantAgentScope[] = [
   'merchant:read',
   'catalog:read',
@@ -174,20 +189,6 @@ export async function consumeMcpOAuthDcrRateLimit(input: { identity: string; now
     const retryAfterSeconds = Math.max(1, Math.ceil((windowStart.getTime() + MCP_OAUTH_DCR_WINDOW_MS - now.getTime()) / 1000))
     throw new MerchantOAuthError('rate_limited', 'OAuth client registration rate limit exceeded.', 429, retryAfterSeconds)
   }
-}
-
-export function canonicalMcpResource(requestOrigin?: string): string {
-  const configured = process.env.MCP_RESOURCE_URL || process.env.NEXT_PUBLIC_MCP_RESOURCE_URL
-  if (configured) return configured.replace(/\/$/u, '')
-  const origin = (requestOrigin || process.env.NEXTAUTH_URL || 'http://localhost:3000').replace(/\/$/u, '')
-  return `${origin}/api/mcp`
-}
-
-export function oauthIssuer(requestOrigin?: string): string {
-  const configured = process.env.MCP_OAUTH_ISSUER_URL
-  if (configured) return configured.replace(/\/$/u, '')
-  const origin = (requestOrigin || process.env.NEXTAUTH_URL || 'http://localhost:3000').replace(/\/$/u, '')
-  return origin
 }
 
 function normalizeScopes(scope: string | string[] | undefined): MerchantAgentScope[] {

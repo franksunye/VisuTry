@@ -7,17 +7,51 @@
  * not resolve this file.
  */
 
+const unavailableMessage = 'Prisma is not available in the Cloudflare runtime; use a direct Neon provider'
+const isBuildTime = process.env.NEXT_PHASE === 'phase-production-build'
+
+function unavailableOperation(method: string): unknown {
+  if (!isBuildTime) throw new Error(unavailableMessage)
+  if (method === 'count') return Promise.resolve(0)
+  if (method === 'findMany' || method === 'groupBy' || method === 'aggregate') return Promise.resolve([])
+  if (method === 'findFirst' || method === 'findUnique') return Promise.resolve(null)
+  return Promise.resolve({})
+}
+
+function createUnavailableMethod(method: string) {
+  return new Proxy(function unavailablePrismaMethod() {}, {
+    apply: () => unavailableOperation(method),
+    get: (_target, property) => createUnavailableMethod(`${method}.${String(property)}`),
+  })
+}
+
+function createUnavailableModel() {
+  return new Proxy({}, {
+    get(_target, property) {
+      return createUnavailableMethod(String(property))
+    },
+  })
+}
+
+function createUnavailableClient() {
+  return new Proxy({}, {
+    get(_target, property) {
+      // Avoid making the proxy thenable while allowing route modules to
+      // construct a client during Next/OpenNext build collection.
+      if (property === 'then') return undefined
+      if (String(property).startsWith('$')) return createUnavailableMethod(String(property))
+      return createUnavailableModel()
+    },
+  })
+}
+
 export class PrismaClient {
   constructor() {
-    throw new Error('Prisma is not available in the Cloudflare runtime; use a direct Neon provider')
+    return createUnavailableClient()
   }
 }
 
-export const prisma = new Proxy({}, {
-  get() {
-    throw new Error('Prisma is not available in the Cloudflare runtime; use a direct Neon provider')
-  },
-})
+export const prisma = createUnavailableClient()
 
 export const Prisma = {
   TransactionIsolationLevel: {

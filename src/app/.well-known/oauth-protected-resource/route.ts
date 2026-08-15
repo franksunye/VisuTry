@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { canonicalMcpResource, oauthIssuer, MCP_OAUTH_SCOPE_VALUES } from '@/modules/merchant'
+import { canonicalMcpResource, oauthIssuer, MCP_OAUTH_SCOPE_VALUES } from '@/modules/merchant/application/merchant-oauth-metadata'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
