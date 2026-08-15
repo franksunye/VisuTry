@@ -74,6 +74,7 @@ What becomes easier, harder, required, or deferred because of this decision?
 | ADR-006 | Store Uses a Modular, Multi-Tenant Foundation on the Existing Generation Core | Accepted | 2026-08-05 |
 | ADR-007 | Store May Evolve Without Disrupting Stable Consumer Workflows | Accepted | 2026-08-06 |
 | ADR-008 | Commerce Is the Domain; Storefront Is a Delivery Surface | Accepted | 2026-08-06 |
+| ADR-009 | Keep Vercel Production While Preparing a Verified Cloudflare Migration Path | Accepted | 2026-08-15 |
 
 ---
 
@@ -87,3 +88,4 @@ What becomes easier, harder, required, or deferred because of this decision?
 | 2026-08-05 | Added ADR-006: modular, multi-tenant Store foundation on the existing generation core. |
 | 2026-08-06 | Added ADR-007: Store / Consumer stability boundary and dependency direction. |
 | 2026-08-06 | Added ADR-008: commerce-domain architecture with Storefront as a delivery surface. |
+| 2026-08-15 | Added ADR-009: keep Vercel production while preparing and validating a Cloudflare migration path. |
