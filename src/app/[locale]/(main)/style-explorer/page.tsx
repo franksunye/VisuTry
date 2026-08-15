@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { getTranslations, setRequestLocale } from 'next-intl/server'
 import { StyleExplorerGate } from '@/components/style-explorer/StyleExplorerGate'
+import { RouteMessagesProvider } from '@/components/i18n/RouteMessagesProvider'
 
 interface StyleExplorerPageProps {
   params: { locale: string }
@@ -54,10 +55,12 @@ export default function StyleExplorerPage({ params, searchParams }: StyleExplore
   const signInHref = `/${params.locale}/auth/signin?callbackUrl=${encodeURIComponent(callbackUrl)}`
 
   return (
-    <StyleExplorerGate
-      locale={params.locale}
-      signInHref={signInHref}
-      faceAnalysisTaskId={faceAnalysisTaskId}
-    />
+    <RouteMessagesProvider namespaces={['marketing.styleExplorer']}>
+      <StyleExplorerGate
+        locale={params.locale}
+        signInHref={signInHref}
+        faceAnalysisTaskId={faceAnalysisTaskId}
+      />
+    </RouteMessagesProvider>
   )
 }

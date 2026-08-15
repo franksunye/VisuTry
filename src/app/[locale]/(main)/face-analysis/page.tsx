@@ -4,6 +4,7 @@ import { generateI18nSEO } from '@/lib/seo'
 import { Locale } from '@/i18n'
 import { FaceAnalysisLanding } from '@/components/face-analysis/FaceAnalysisLanding'
 import { FaceAnalysisGate } from '@/components/face-analysis/FaceAnalysisGate'
+import { RouteMessagesProvider } from '@/components/i18n/RouteMessagesProvider'
 
 type Props = {
   params: { locale: string }
@@ -31,9 +32,11 @@ export default async function FaceAnalysisPage({ params }: Props) {
   const t = await getTranslations('common')
 
   return (
-    <FaceAnalysisGate
-      landing={<FaceAnalysisLanding locale={params.locale} />}
-      loadingText={t('loading')}
-    />
+    <RouteMessagesProvider namespaces={['faceAnalysis']}>
+      <FaceAnalysisGate
+        landing={<FaceAnalysisLanding locale={params.locale} />}
+        loadingText={t('loading')}
+      />
+    </RouteMessagesProvider>
   )
 }

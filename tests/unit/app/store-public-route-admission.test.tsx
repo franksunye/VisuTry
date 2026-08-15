@@ -6,6 +6,10 @@ jest.mock('next-intl/server', () => ({
   setRequestLocale: jest.fn(),
 }))
 
+jest.mock('@/components/i18n/RouteMessagesProvider', () => ({
+  RouteMessagesProvider: ({ children }: { children: React.ReactNode }) => children,
+}))
+
 jest.mock('@/i18n', () => ({
   getValidLocale: jest.fn((locale: string) => locale),
 }))

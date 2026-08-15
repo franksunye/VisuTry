@@ -1,6 +1,9 @@
 export const PUBLIC_DISCOVERY_CACHE = {
-  storeRevalidateSeconds: 30 * 60,
-  campaignRevalidateSeconds: 5 * 60,
+  // Public discovery writes invalidate the affected tags on demand. Keep a
+  // long safety TTL so normal shopper traffic does not regenerate catalog
+  // data on a short clock when nothing changed.
+  storeRevalidateSeconds: 6 * 60 * 60,
+  campaignRevalidateSeconds: 60 * 60,
   // Sitemap output is invalidated on successful public discovery mutations.
   // Keep a long safety TTL so crawler reads do not rewrite the full sitemap
   // every 30 minutes when no public catalog changed.

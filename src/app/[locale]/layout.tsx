@@ -22,6 +22,7 @@ import { SessionProvider } from '@/components/providers/SessionProvider'
 import { generateI18nSEO } from '@/lib/seo'
 import { Metadata } from 'next'
 import { ReactNode } from 'react'
+import { pickMessages } from '@/components/i18n/RouteMessagesProvider'
 import '../globals.css'
 
 // Inter: default font for Latin-script locales (en, id, de, es, pt, fr, ru)
@@ -78,27 +79,10 @@ export default async function LocaleLayout(props: Props) {
 
   const messages = await getMessages()
 
-  // Only these namespaces are read by client components rendered from the
-  // locale/main shell and its public interactive surfaces. Page-specific
-  // marketing copy stays server-side, avoiding a full language catalog in
-  // every static HTML/RSC payload.
-  const clientMessages = {
-    common: messages.common,
-    nav: messages.nav,
-    home: {
-      showcase: messages.home?.showcase,
-    },
-    pricing: messages.pricing,
-    faceAnalysis: messages.faceAnalysis,
-    footer: messages.footer,
-    storeShopper: messages.storeShopper,
-    marketing: {
-      home: messages.marketing?.home,
-      modelTryOnSlides: messages.marketing?.modelTryOnSlides,
-      styleExplorer: messages.marketing?.styleExplorer,
-      store: messages.marketing?.store,
-    },
-  }
+  // Keep only the navigation shell in the root client provider. Route-specific
+  // client components add their own namespaces at the page boundary, so a blog
+  // or pricing visit does not receive face-analysis/store copy as well.
+  const clientMessages = pickMessages(messages as Record<string, unknown>, ['common', 'nav', 'footer'])
 
   const gaId = process.env.NEXT_PUBLIC_GA_ID
   const gtmId = process.env.NEXT_PUBLIC_GTM_ID

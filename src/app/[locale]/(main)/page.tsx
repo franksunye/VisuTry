@@ -3,6 +3,7 @@ import { Compass, Database, ScanFace, ArrowRight, Grid2X2, Glasses, LockKeyhole,
 import { useTranslations } from 'next-intl'
 import { FaceAnalysisPreviewVisual } from '@/components/face-analysis/FaceAnalysisPreviewVisual'
 import { ModelTryOnSlides } from '@/components/marketing/ModelTryOnSlides'
+import { RouteMessagesProvider } from '@/components/i18n/RouteMessagesProvider'
 
 export const dynamic = 'force-static'
 
@@ -143,7 +144,9 @@ export default function Home({
 
       {/* Step 3 and 4 product proof */}
       <section className="max-w-6xl mx-auto mb-16">
-        <ModelTryOnSlides locale={locale} mode="home" preloadFirstImage={false} />
+        <RouteMessagesProvider namespaces={['marketing.modelTryOnSlides']}>
+          <ModelTryOnSlides locale={locale} mode="home" preloadFirstImage={false} />
+        </RouteMessagesProvider>
       </section>
 
       <section className="max-w-6xl mx-auto mb-16">

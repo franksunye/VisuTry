@@ -36,8 +36,8 @@ export async function withPublicDiscoveryInvalidation<T>(input: {
     tags.add(PUBLIC_DISCOVERY_CACHE.tags.experience(input.target.merchantSlug, input.target.experienceSlug))
   }
   tags.forEach((tag) => revalidateTag(tag))
-  // The sitemap is a route-level ISR artifact in addition to its tagged
-  // merchant read model. Revalidate it only after a successful public write.
-  revalidatePath('/sitemap.xml')
+  // The dynamic sitemap is a route-level ISR artifact in addition to its
+  // tagged merchant read model. Revalidate it only after a successful write.
+  revalidatePath('/sitemaps/dynamic.xml')
   return result
 }

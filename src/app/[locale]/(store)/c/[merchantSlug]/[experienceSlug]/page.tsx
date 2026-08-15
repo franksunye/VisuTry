@@ -9,6 +9,7 @@ import { getPublicExperienceDiscoveryForRoute } from '@/modules/store/applicatio
 import { isPublicCampaignRouteAdmitted } from '@/modules/store/application/public-route-admission'
 import { buildExperienceDiscoveryMetadata, discoveryCanonicalUrl } from '@/lib/store-discovery-seo'
 import { getValidLocale } from '@/i18n'
+import { RouteMessagesProvider } from '@/components/i18n/RouteMessagesProvider'
 
 interface CampaignExperiencePageProps {
   params: {
@@ -18,7 +19,7 @@ interface CampaignExperiencePageProps {
   }
 }
 
-export const revalidate = 5 * 60
+export const revalidate = 60 * 60
 export const dynamicParams = true
 
 // Campaign slugs are published after deploy; empty build-time params keep the
@@ -73,12 +74,14 @@ export default async function CampaignExperiencePage({ params }: CampaignExperie
       locale={locale}
       pathname={`/${locale}/c/${params.merchantSlug}/${params.experienceSlug}`}
     />
-    <InteractiveCommerceLauncher
-        merchantSlug={params.merchantSlug}
-        experienceSlug={params.experienceSlug}
-        locale={locale}
-        publicPocStorage={assetPolicy.publicPoc}
-    />
+    <RouteMessagesProvider namespaces={['storeShopper']}>
+      <InteractiveCommerceLauncher
+          merchantSlug={params.merchantSlug}
+          experienceSlug={params.experienceSlug}
+          locale={locale}
+          publicPocStorage={assetPolicy.publicPoc}
+      />
+    </RouteMessagesProvider>
     <div className="bg-[#f7f8fb] px-5 pb-8 sm:px-8 lg:px-10">
       <div className="mx-auto max-w-[1440px]">
         <StorePresentationDisclosure referenceData={discovery.merchant.referenceData || discovery.experience.referenceData} />

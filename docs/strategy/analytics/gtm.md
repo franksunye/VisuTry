@@ -1,8 +1,8 @@
-# VisuTry GTM v3.2：10× Qualified Traffic Execution Plan
+# VisuTry GTM v3.3：10× Qualified Traffic Execution Plan
 
 **Status:** Active source of truth for GTM execution  
-**Version:** 3.2
-**Last updated:** 2026-08-10
+**Version:** 3.3
+**Last updated:** 2026-08-15
 **Owner:** Growth / Product / Engineering / Analytics  
 **Review cadence:** Weekly  
 **Execution horizon:** 60–90 days  
@@ -67,6 +67,45 @@ Operating interpretation:
 > AI exposure is growing, but qualified AI traffic is not. The immediate AI-discovery priority is message and landing-intent consistency, not more generic AI content volume.
 
 The current acquisition mix means the operating model is no longer “SEO only”. It is qualified traffic growth across several compounding discovery engines.
+
+### Latest GA growth checkpoint — 2026-08-15
+
+GA data for `visutry.com` is available through 2026-08-14. The most useful short-term comparison is the latest complete week versus the preceding complete week:
+
+| Metric | 2026-08-08–08-14 | 2026-08-01–08-07 | Change |
+| --- | ---: | ---: | ---: |
+| Sessions | 1,074 | 811 | **+32.43%** |
+| Engaged sessions | 767 | 591 | **+29.78%** |
+| Engagement rate | 71.42% | 72.87% | -1.45 pp |
+| Key events | 291 | 139 | **+109.35%** |
+
+Channel movement in the same comparison:
+
+| Channel | Latest week sessions | Week-over-week change | Share of latest sessions |
+| --- | ---: | ---: | ---: |
+| Organic Search | 657 | +22.12% | 61.17% |
+| Direct | 192 | +48.84% | 17.88% |
+| AI Assistant | 186 | **+118.82%** | 17.32% |
+
+AI Assistant quality remains material: 151 engaged sessions, 81.18% engagement rate, and 67 key events in the latest week. This confirms that ChatGPT / Agent-originated traffic should remain allowed and instrumented. It is not yet commercial proof by itself: the latest week produced no recorded AI-attributed revenue.
+
+The latest 28-day report (2026-07-18–08-14) contains 2,906 sessions, which is approximately a 3,100-session monthly run rate. The latest seven-day run rate is approximately 4,600 sessions/month, so the 30-day milestone of 3,000–5,000 sessions is now being reached. The 28-day comparison against the prior 28 days was +181.86%, but that window includes the late-July acquisition inflection and should not be treated as a stable long-term monthly growth rate.
+
+> **Measurement rule:** GA currently proves roughly 30% week-over-week growth, not yet 30% month-over-month growth. If 30% is sustained weekly, 10× arrives in roughly nine weeks; if it is sustained monthly, 10× arrives in roughly nine months. Weekly and monthly growth must not be mixed in capacity planning.
+
+### Capacity protection checkpoint — 2026-08-15
+
+The current Vercel Hobby bottleneck is server-side resource usage, not Edge Requests: the latest 30-day dashboard showed approximately **1.0–1.1M ISR Reads / 1M**, **9.96GB Fast Origin Transfer / 10GB**, and **670K Edge Requests / 1M**. The main risk is repeated cache regeneration and oversized RSC/message payloads as qualified traffic grows; ChatGPT / Agent traffic remains intentionally allowed.
+
+The first three protections are now implemented in code and should be treated as the current baseline:
+
+1. `/sitemap.xml` is a small static sitemap index; static core/blog URLs are separated from `/sitemaps/dynamic.xml`, which retains product and public Store/Campaign discovery entries.
+2. The locale root client provider sends only `common`, `nav`, and `footer`; page boundaries add only the namespaces used by that route (face analysis, pricing, Store/Campaign shopper, style explorer, try-on slides, and dashboard).
+3. Store ISR is now 6 hours and Campaign ISR 1 hour, with mutation-driven tag/path invalidation retained; the sitemap safety TTL remains 24 hours.
+
+Validation baseline: `npm run typecheck`, **136 unit suites / 874 tests**, and `npm run build:ci` all pass. The local production build produced a ~768KB core sitemap, ~155KB blog sitemap, and a 334-byte sitemap index instead of one ~920KB ISR artifact. This is an expected capacity improvement, not a change to the public URL inventory.
+
+The next optimization is optional route-level namespace refinement only where a page still combines multiple interactive surfaces. It should be measured against RSC payload size and ISR Read units before further complexity is added.
 
 ### Revenue
 
@@ -758,5 +797,6 @@ And every weekly review ends with:
 
 | Version | Date | Change |
 | --- | --- | --- |
+| 3.3 | 2026-08-15 | Added the latest GA checkpoint: +32.43% weekly sessions, +118.82% AI Assistant sessions, current 28-day and seven-day run rates, the 3,000–5,000 milestone status, and the weekly-versus-monthly growth measurement rule. |
 | 3.2 | 2026-08-10 | Froze the consumer and merchant AI-facing message contract; added the AI traffic-quality baseline and claim boundaries; closed the current Checkout optimization round with a server-side lifecycle observation protocol and evidence-based reopening conditions. |
 | 3.1 | 2026-08-03 | Split the 10× qualified-traffic plan into Engineering, Growth, and Product / Analytics execution backlogs. |

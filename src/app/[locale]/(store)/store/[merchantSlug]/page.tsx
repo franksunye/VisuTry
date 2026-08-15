@@ -9,6 +9,7 @@ import { getPublicExperienceDiscoveryForRoute } from '@/modules/store/applicatio
 import { isPublicStoreRouteAdmitted } from '@/modules/store/application/public-route-admission'
 import { buildExperienceDiscoveryMetadata, discoveryCanonicalUrl } from '@/lib/store-discovery-seo'
 import { getValidLocale } from '@/i18n'
+import { RouteMessagesProvider } from '@/components/i18n/RouteMessagesProvider'
 
 interface MerchantStorePageProps {
   params: {
@@ -19,7 +20,7 @@ interface MerchantStorePageProps {
 
 // Newly imported merchants remain eligible through dynamic params; stable
 // discovery HTML is served through ISR/data-cache rather than force-dynamic.
-export const revalidate = 30 * 60
+export const revalidate = 6 * 60 * 60
 export const dynamicParams = true
 
 // Enable on-demand ISR for merchant slugs that are not known at build time.
@@ -70,11 +71,13 @@ export default async function MerchantStorePage({ params }: MerchantStorePagePro
       locale={locale}
       pathname={`/${locale}/store/${params.merchantSlug}`}
     />
-    <InteractiveCommerceLauncher
-        merchantSlug={params.merchantSlug}
-        locale={locale}
-        publicPocStorage={assetPolicy.publicPoc}
-    />
+    <RouteMessagesProvider namespaces={['storeShopper']}>
+      <InteractiveCommerceLauncher
+          merchantSlug={params.merchantSlug}
+          locale={locale}
+          publicPocStorage={assetPolicy.publicPoc}
+      />
+    </RouteMessagesProvider>
     <div className="bg-[#f7f8fb] px-5 pb-8 sm:px-8 lg:px-10">
       <div className="mx-auto max-w-[1440px]">
         <StorePresentationDisclosure referenceData={discovery.merchant.referenceData || discovery.experience.referenceData} />

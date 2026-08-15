@@ -16,6 +16,7 @@ import { StoreMarketingVisual } from '@/components/store/StoreMarketingVisual'
 import { generateStructuredData } from '@/lib/seo'
 import { getTranslations, setRequestLocale } from 'next-intl/server'
 import { VISUTRY_POSITIONING } from '@/lib/product-positioning'
+import { RouteMessagesProvider } from '@/components/i18n/RouteMessagesProvider'
 
 interface StorePageProps {
   params: {
@@ -269,7 +270,9 @@ export default async function StoreLandingPage({ params }: StorePageProps) {
             </div>
           </div>
 
-          <StoreLeadForm locale={locale} />
+          <RouteMessagesProvider namespaces={['marketing.store']}>
+            <StoreLeadForm locale={locale} />
+          </RouteMessagesProvider>
         </div>
       </section>
     </main>

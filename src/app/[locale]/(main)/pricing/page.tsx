@@ -6,6 +6,7 @@ import { PRODUCT_METADATA, formatPrice, getPricingQuotas } from '@/config/pricin
 import { Locale } from '@/i18n'
 import { CheckCircle2, Glasses, Grid2X2, ScanFace, Sparkles } from 'lucide-react'
 import { getTranslations, setRequestLocale } from 'next-intl/server'
+import { RouteMessagesProvider } from '@/components/i18n/RouteMessagesProvider'
 
 type Props = {
   params: Promise<{ locale: string }>
@@ -131,7 +132,9 @@ export default async function PricingPage({ params }: { params: { locale: string
       </div>
 
       {/* Pricing Section (Cards + Comparison + Promo Input) */}
-      <PricingSection user={userForDisplay} quotas={quotas} />
+      <RouteMessagesProvider namespaces={['pricing']}>
+        <PricingSection user={userForDisplay} quotas={quotas} />
+      </RouteMessagesProvider>
 
       {/* FAQ */}
       <div className="mt-10 md:mt-12">

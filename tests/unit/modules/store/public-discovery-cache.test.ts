@@ -27,8 +27,8 @@ describe('public discovery cache contract', () => {
       'public-discovery:merchant-catalog:luna-optical',
       'public-discovery:experience:luna-optical:petite-fit',
     ])
-    expect(PUBLIC_DISCOVERY_CACHE.storeRevalidateSeconds).toBe(1800)
-    expect(PUBLIC_DISCOVERY_CACHE.campaignRevalidateSeconds).toBe(300)
+    expect(PUBLIC_DISCOVERY_CACHE.storeRevalidateSeconds).toBe(21600)
+    expect(PUBLIC_DISCOVERY_CACHE.campaignRevalidateSeconds).toBe(3600)
     expect(PUBLIC_DISCOVERY_CACHE.sitemapRevalidateSeconds).toBe(86400)
   })
 
@@ -41,7 +41,7 @@ describe('public discovery cache contract', () => {
     expect(revalidateTag).toHaveBeenCalledWith('public-discovery:merchant:luna-optical')
     expect(revalidateTag).toHaveBeenCalledWith('public-discovery:sitemap')
     expect(revalidateTag).toHaveBeenCalledWith('public-discovery:route-admission')
-    expect(revalidatePath).toHaveBeenCalledWith('/sitemap.xml')
+    expect(revalidatePath).toHaveBeenCalledWith('/sitemaps/dynamic.xml')
 
     jest.clearAllMocks()
     await withPublicDiscoveryInvalidation({
@@ -50,7 +50,7 @@ describe('public discovery cache contract', () => {
     })
     expect(revalidateTag).toHaveBeenCalledTimes(4)
     expect(revalidateTag).toHaveBeenCalledWith('public-discovery:merchant-catalog:luna-optical')
-    expect(revalidatePath).toHaveBeenCalledWith('/sitemap.xml')
+    expect(revalidatePath).toHaveBeenCalledWith('/sitemaps/dynamic.xml')
 
     jest.clearAllMocks()
     await withPublicDiscoveryInvalidation({
@@ -59,7 +59,7 @@ describe('public discovery cache contract', () => {
     })
     expect(revalidateTag).toHaveBeenCalledTimes(4)
     expect(revalidateTag).toHaveBeenCalledWith('public-discovery:experience:luna-optical:petite-fit')
-    expect(revalidatePath).toHaveBeenCalledWith('/sitemap.xml')
+    expect(revalidatePath).toHaveBeenCalledWith('/sitemaps/dynamic.xml')
   })
 
   it('does not invalidate when the mutation rejects', async () => {

@@ -6,6 +6,7 @@ import { TryOnType, getTryOnConfig, urlToTryOnType, getAllTryOnTypes, tryOnTypeT
 import Link from "next/link"
 import { ArrowRight, CheckCircle2, CreditCard, Image, Shield, Upload } from "lucide-react"
 import { ModelTryOnSlides } from "@/components/marketing/ModelTryOnSlides"
+import { RouteMessagesProvider } from "@/components/i18n/RouteMessagesProvider"
 import { GrowthFunnelLink } from "@/components/analytics/GrowthFunnelLink"
 import { getTranslations, setRequestLocale } from "next-intl/server"
 
@@ -246,7 +247,9 @@ async function PublicTryOnLanding({
         {isGlasses && <h1 className="sr-only">{t('srOnlyTitle')}</h1>}
         {isGlasses && (
           <div className="mb-8">
-            <ModelTryOnSlides locale={locale} mode="glasses" />
+            <RouteMessagesProvider namespaces={['marketing.modelTryOnSlides']}>
+              <ModelTryOnSlides locale={locale} mode="glasses" />
+            </RouteMessagesProvider>
           </div>
         )}
 
