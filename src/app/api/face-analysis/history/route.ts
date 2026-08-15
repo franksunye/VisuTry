@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { requireAuth } from '@/lib/api-auth'
-import { prisma } from '@/lib/prisma'
 import { getRequestContext, logger } from '@/lib/logger'
 import { serializeFaceAnalysisTask } from '@/lib/face-analysis-service'
+import { getFaceAnalysisHistory } from '@/data/protected-reads'
 
 export const dynamic = 'force-dynamic'
 
@@ -18,27 +18,9 @@ export async function GET(request: NextRequest) {
     const limit = Math.min(50, Math.max(1, parseInt(searchParams.get('limit') || '10', 10)))
     const skip = (page - 1) * limit
 
-    const [tasks, total] = await Promise.all([
-      prisma.faceAnalysisTask.findMany({
-        where: { userId: userId },
-        orderBy: { createdAt: 'desc' },
-        skip,
-        take: limit,
-        select: {
-          id: true,
-          status: true,
-          userImageUrl: true,
-          detectedShape: true,
-          confidence: true,
-          basicResult: true,
-          fullResult: true,
-          reportUnlocked: true,
-          errorMessage: true,
-          createdAt: true,
-        },
-      }),
-      prisma.faceAnalysisTask.count({ where: { userId: userId } }),
-    ])
+    const result = await getFaceAnalysisHistory({ userId, page, limit })
+    const tasks = result.tasks
+    const total = result.total
 
     const data = tasks.map((task) => serializeFaceAnalysisTask(task))
 

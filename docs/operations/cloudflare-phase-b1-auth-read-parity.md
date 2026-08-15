@@ -1,0 +1,137 @@
+# Cloudflare Phase B1 — Auth and Protected-Read Parity
+
+**Date:** 2026-08-16
+**Result:** **PARTIAL**
+**Branch:** `codex/cloudflare-phase-a-build-parity`
+
+## Outcome
+
+B1 adds a Prisma-free Cloudflare boundary for Auth and protected reads while keeping Neon/PostgreSQL and the existing Prisma path for Vercel. The isolated staging Worker is deployed and remains Workers Free-compatible. Anonymous authorization behavior is preserved.
+
+The remaining acceptance blocker is external Auth0 configuration: a real OAuth callback cannot be verified until an authorized administrator adds the staging callback URL. No Auth0 production resource or callback list was changed by this work.
+
+## Bundle
+
+| Metric | Value |
+| --- | ---: |
+| Baseline gzip | `2,814.46 KiB` |
+| Final deployed gzip | `2,751.15 KiB` |
+| Delta | `-63.31 KiB` / `-2.25%` |
+| Free compatible | **YES** — below `3,072 KiB` |
+| Headroom | `320.85 KiB` |
+| Preferred / ideal | `2,900 KiB` / `2,800 KiB` — both met |
+
+The shared OpenNext default server function remains the largest contributor. The B1 additions are small direct-Neon Auth/read modules; the existing MCP route remains in the shared function and was not expanded. Worker/server-function string checks found no Prisma query compiler/WASM/runtime markers. Prisma names that remain are lightweight shared stub/error symbols, not the Prisma runtime client.
+
+## Auth architecture and dependency boundary
+
+- `next-auth@4.24.11`, Auth0 provider, with Twitter represented as an Auth0 connection.
+- JWT sessions with a 30-day max age.
+- `src/middleware.ts` uses `getToken()` for `/admin`; it performs no database lookup.
+- Normal Vercel Auth remains in `src/lib/auth.ts` with `PrismaAdapter(prisma)`.
+- Cloudflare aliases Auth to `src/lib/auth-cloudflare.ts`, which uses a read-only direct-Neon adapter and JWT callbacks.
+- Cloudflare `requireAuth`/`requireAdmin` are in `src/lib/api-auth-cloudflare.ts`; fresh user/quota reads use direct Neon.
+- Auth writes for new/unlinked users remain explicitly unsupported in B1: `User.create`, Account linking, and profile updates are deferred.
+
+The full caller/model/query matrix is in [`cloudflare-phase-b1-auth-prisma-dependency-matrix.md`](./cloudflare-phase-b1-auth-prisma-dependency-matrix.md).
+
+## Direct Neon repositories
+
+New or Cloudflare-specific repositories:
+
+- `src/data/auth-cloudflare.ts`: existing Auth0 account/user reads and read-only adapter boundary.
+- `src/data/protected-reads-cloudflare.ts`: user-scoped try-on, face-analysis, and payment history reads.
+- `src/data/user-balance-cloudflare.ts`: user quota/subscription read boundary.
+- `src/modules/merchant/application/merchant-access-cloudflare.ts`: membership lookup by both `userId` and `merchantId`, with role checks.
+- `src/modules/merchant/application/merchant-memberships-cloudflare.ts`: tenant-scoped workspace/member reads.
+- `src/modules/merchant/application/get-merchant-profile-cloudflare.ts`: tenant-scoped merchant profile read.
+- `src/modules/merchant/application/merchant-control-center-cloudflare.ts`: merchant workspace aggregates.
+- `src/modules/merchant/application/merchant-agent-credentials-cloudflare.ts`: owner/admin credential reads; usage updates and mutations deferred.
+
+All queries use tagged Neon SQL with bound parameters. No generic ORM abstraction, D1 binding, migration, or destructive database operation was added.
+
+## Protected reads and isolation
+
+Consumer routes now delegate through Cloudflare direct-Neon read modules while preserving the existing Vercel Prisma implementations:
+
+- `GET /api/try-on/history`
+- `GET /api/face-analysis/history`
+- `GET /api/payment/history`
+- `GET /api/user/balance`
+
+The unit suite verifies user ownership/status filters and full user mapping. A read-only live Neon check verified the SQL shape against existing data without printing identifiers or personal data. Staging anonymous requests to all four routes return `401`.
+
+Merchant reads preserve the two-key membership boundary and role checks. `/en/merchant` is protected and redirects anonymously; `/api/merchant/[merchantId]/profile` and `/api/agent/v1/merchant` deny anonymous requests. Merchant A/B authenticated end-to-end testing remains pending the Auth0 callback configuration; the direct membership test proves the query requires both user and merchant identifiers.
+
+`/api/merchant/workspaces` is currently a POST-only provisioning/mutation route, so it is intentionally deferred rather than misreported as a workspace read endpoint. The authenticated workspace read is the `/en/merchant` page and its direct-Neon control-center path.
+
+## Admin boundary
+
+The existing boundary is retained: middleware and API checks require the JWT `role === 'ADMIN'`. Anonymous `/admin/dashboard` staging requests return `307` to `/api/auth/signin`. Non-admin and admin authenticated cases are not claimed until a real staging session exists; no Cloudflare-specific backdoor was introduced.
+
+## Staging configuration and smoke matrix
+
+Worker: `visutry-cf-staging`
+URL: `https://visutry-cf-staging.sunye.workers.dev`
+Version: `2d9a046c-b178-44c6-b197-44cb973982b0`
+Production domain touched: **NO**
+
+| Route | Result | Expected behavior |
+| --- | --- | --- |
+| `/en` | PASS — 200 | Public page |
+| `/en/store` | PASS — 200 | Public page |
+| `/en/blog` | PASS — 200 | Public page |
+| `/en/face-shape-detector` | PASS — 200 | Public page |
+| `/en/auth/signin` | PASS — 200 | Custom Auth0 sign-in UI |
+| `/api/health` | PASS — 200 | Public health endpoint |
+| `/api/glasses/brands` | PASS — 200 | Public Neon-backed read |
+| `/api/auth/session` | PASS — 200 | Anonymous session response |
+| `/api/auth/signin` | PASS — 302 | Redirects to `/auth/signin` |
+| `/api/auth/signin/auth0` | PASS — 302 | Existing custom sign-in page; buttons call `signIn('auth0')` |
+| `/admin/dashboard` | PASS — 307 | Redirects to `/api/auth/signin` |
+| `/en/merchant` | PASS — 307 | Redirects to `/en/auth/signin` |
+| `/api/merchant/nonexistent/profile` | PASS — 401 | Anonymous merchant denial |
+| `/api/agent/v1/merchant` | PASS — 401 | Anonymous merchant denial |
+| `/api/try-on/history` | PASS — 401 | Anonymous user-read denial |
+| `/api/face-analysis/history` | PASS — 401 | Anonymous user-read denial |
+| `/api/payment/history` | PASS — 401 | Anonymous user-read denial |
+| `/api/user/balance` | PASS — 401 | Anonymous user-read denial |
+
+Authenticated login, callback, session cookie refresh, logout, authenticated consumer reads, authenticated merchant reads, and authenticated admin role cases: **NOT VERIFIED** pending the manual Auth0 configuration below.
+
+## Required manual staging action
+
+Add this callback to the Auth0 application used by the staging Worker:
+
+`https://visutry-cf-staging.sunye.workers.dev/api/auth/callback/auth0`
+
+If required by the Auth0 tenant policy, also add the workers.dev origin to Allowed Logout URLs and Allowed Web Origins. This action is safe to perform alongside existing production entries but must be made by an authorized Auth0 administrator. Do not remove production callback URLs.
+
+## Unsupported / deferred
+
+- Auth writes for new/unlinked users and account linking.
+- Stripe checkout, portal, webhook, and payment writes.
+- Store/Campaign/merchant mutations.
+- Vercel Blob, uploads, asset writes, and cleanup.
+- AI generation and long-running task writes/polling parity.
+- MCP runtime execution and OAuth execution; only import-leak safety was checked.
+- Cron/background jobs.
+- Full authenticated staging ownership/tenant-isolation smoke, pending OAuth callback setup.
+
+## Validation
+
+- `npm ci`: PASS.
+- `npm run build:cloudflare`: PASS.
+- `npx wrangler deploy --dry-run --env staging`: PASS; `2,751.15 KiB` gzip.
+- `npm run preview:cloudflare`: PASS; local `/api/health`, `/api/auth/session`, and `/en` returned 200.
+- `npm run typecheck`: PASS.
+- `npm run lint`: PASS with pre-existing warnings.
+- `npm run test:critical:ci`: PASS, 7 suites / 30 tests.
+- `npx jest --runInBand tests/unit/data/cloudflare-protected-reads.test.ts`: PASS, 5 tests.
+- `npm run build:ci`: PASS.
+- Direct Neon read-only validation: PASS.
+- Prisma WASM/query-compiler string checks: PASS — absent from Cloudflare outputs.
+
+## B2 readiness
+
+**NOT READY for full authenticated parity.** B2 can begin after the Auth0 administrator adds the staging callback and the team verifies one real existing linked user end to end: OAuth login, callback, JWT/session resolution, refresh/navigation, logout, one consumer protected read, one merchant tenant read, and admin/non-admin role boundaries. New-user Auth writes, mutation parity, Stripe, Blob, AI, cron, and MCP remain separate later scopes.

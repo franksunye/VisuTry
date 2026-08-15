@@ -1,6 +1,6 @@
 # Cloudflare Phase A — Build Parity Report
 
-**Date:** 2026-08-16  
+**Date:** 2026-08-16
 **Status:** Partial / Free-compatible public-read staging deployed; full Prisma parity remains open
 **Starting main SHA:** `acd0e2015c42a38dad90bc4b2ec12a350b6f7361`  
 **Branch:** `codex/cloudflare-phase-a-build-parity`  
@@ -257,6 +257,59 @@ The same built application was also checked with standard Next local serving whe
 - Retest the four dynamic-route workarounds on the next supported OpenNext/Next upgrade; restore `dynamicParams = false` only if the adapter dispatches generated paths correctly.
 - Create isolated staging-only variables and data, then test Auth, Stripe test webhooks, Blob reads/writes, uploads, AI generation, polling, cron behavior, locale SEO, images, and Store/Campaign boundaries.
 - Re-run the full route matrix against a deployed staging Worker and compare against Vercel preview.
+
+## Phase B1 — Auth and protected-read parity
+
+**Date:** 2026-08-16
+**Result:** **PARTIAL** — the Prisma-free Auth/protected-read boundary is deployed and Free-compatible, but a real authenticated OAuth callback is pending one manual Auth0 allow-list change.
+
+B1 keeps Neon/PostgreSQL and the Vercel Prisma path. Cloudflare aliases Auth, API guards, consumer protected reads, and the merchant read boundary to narrow direct-Neon implementations. No D1, schema migration, production DNS/domain change, Vercel production change, Stripe change, Blob/upload migration, AI work, cron work, or MCP runtime migration was performed.
+
+The complete Auth/Prisma inventory is in [`cloudflare-phase-b1-auth-prisma-dependency-matrix.md`](./cloudflare-phase-b1-auth-prisma-dependency-matrix.md).
+
+### B1 bundle result
+
+| Measurement | Result |
+| --- | ---: |
+| Phase A deployed/public-read baseline | `2,814.46 KiB` gzip |
+| B1 final staging upload | `2,751.15 KiB` gzip |
+| Delta | `-63.31 KiB` / `-2.25%` |
+| Workers Free limit | `3,072 KiB` gzip |
+| Headroom | `320.85 KiB` |
+| Preferred target | `2,900 KiB` — `148.85 KiB` headroom |
+| Ideal target | `2,800 KiB` — `48.85 KiB` headroom |
+
+The final Cloudflare artifact contains no `query_compiler_bg`, `query-compiler`, `PrismaClientInitializationError`, `prisma://`, or `@prisma/client/.prisma` strings in the Worker/server-function outputs. Lightweight Prisma symbol names remain in shared non-Prisma code and are not the Prisma client/WASM runtime. The dominant contributor remains the shared OpenNext default server function; B1's incremental code is the Auth/direct-Neon and protected-read boundary, while the existing MCP route remains in the shared function and was not migrated.
+
+### B1 staging result
+
+- Worker: `visutry-cf-staging`
+- URL: `https://visutry-cf-staging.sunye.workers.dev`
+- Final version: `2d9a046c-b178-44c6-b197-44cb973982b0`
+- Deployment: PASS; staging secrets were configured on this Worker only, and the rebuilt artifact was deployed after validation.
+- Production domain/DNS: **NOT TOUCHED**.
+
+The anonymous staging matrix is green: `/api/auth/session` returns `200`; `/admin/dashboard` redirects `307` to `/api/auth/signin`; `/en/merchant` redirects `307` to `/en/auth/signin`; protected user/merchant APIs return `401`; public pages and `/api/health`/`/api/glasses/brands` return `200`.
+
+The real OAuth callback is intentionally not claimed. The exact manual action is to add `https://visutry-cf-staging.sunye.workers.dev/api/auth/callback/auth0` to the Auth0 application's Allowed Callback URLs. If required by that Auth0 tenant, also add the workers.dev origin to Allowed Logout URLs and Allowed Web Origins. An authorized Auth0 administrator must perform this; this branch did not change external Auth configuration.
+
+### B1 validation
+
+| Check | Result |
+| --- | --- |
+| `npm ci` | PASS; existing audit output reports 50 vulnerabilities, not changed in B1 |
+| `npm run build:cloudflare` | PASS |
+| `npx wrangler deploy --dry-run --env staging` | PASS; `2,751.15 KiB` gzip |
+| `npm run preview:cloudflare` | PASS; local Workers preview returned `200` for `/api/health`, `/api/auth/session`, and `/en` |
+| `npm run typecheck` | PASS |
+| `npm run lint` | PASS with existing warnings |
+| `npm run test:critical:ci` | PASS; 7 suites / 30 tests |
+| `tests/unit/data/cloudflare-protected-reads.test.ts` | PASS; 5 tests |
+| `npm run build:ci` | PASS; normal Vercel build remains green |
+| Direct Neon live query-shape validation | PASS; read-only, parameterized checks against existing Neon data; no identifiers printed |
+| Real authenticated login/callback/session/logout | NOT VERIFIED; awaiting the manual Auth0 allow-list action |
+
+The known Prisma 7.1.0 WASM parity suite limitation remains documented from Phase A; B1 did not upgrade or rework Prisma.
 
 ## Phase A.3 — Workers Free compatibility and direct-Neon public reads
 

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { requireAuth } from '@/lib/api-auth'
-import { prisma } from '@/lib/prisma'
+import { getPaymentHistory } from '@/data/protected-reads'
 
 export const dynamic = 'force-dynamic'
 
@@ -24,35 +24,9 @@ export async function GET(request: NextRequest) {
       Math.max(1, parseInt(searchParams.get('limit') || String(DEFAULT_LIMIT), 10))
     )
 
-    const [payments, total] = await Promise.all([
-      prisma.payment.findMany({
-        // Customer-facing history contains actual payments only. Pending and
-        // failed Checkout attempts remain visible to admins for funnel analysis.
-        where: {
-          userId,
-          status: { in: ['COMPLETED', 'REFUNDED'] },
-        },
-        orderBy: { createdAt: 'desc' },
-        skip: (page - 1) * limit,
-        take: limit,
-        select: {
-          id: true,
-          productType: true,
-          description: true,
-          createdAt: true,
-          stripePaymentId: true,
-          amount: true,
-          currency: true,
-          status: true,
-        },
-      }),
-      prisma.payment.count({
-        where: {
-          userId,
-          status: { in: ['COMPLETED', 'REFUNDED'] },
-        },
-      }),
-    ])
+    const result = await getPaymentHistory({ userId, page, limit })
+    const payments = result.payments
+    const total = result.total
 
     return NextResponse.json({
       success: true,

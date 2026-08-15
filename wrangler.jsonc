@@ -11,7 +11,10 @@
   },
   "env": {
     "staging": {
-      "name": "visutry-cf-staging"
+      "name": "visutry-cf-staging",
+      "vars": {
+        "NEXTAUTH_URL": "https://visutry-cf-staging.sunye.workers.dev"
+      }
     }
   }
 }

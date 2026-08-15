@@ -52,7 +52,6 @@ const nextConfig = {
   },
   env: {
     NEXTAUTH_URL: process.env.NEXTAUTH_URL,
-    NEXTAUTH_SECRET: process.env.NEXTAUTH_SECRET,
   },
   poweredByHeader: false,
   reactStrictMode: true,
@@ -139,10 +138,19 @@ const nextConfig = {
         '@/data/glasses': path.resolve(__dirname, 'src/data/glasses-cloudflare.ts'),
         [path.resolve(__dirname, 'src/data/glasses.ts')]: path.resolve(__dirname, 'src/data/glasses-cloudflare.ts'),
         [path.resolve(__dirname, 'src/lib/prisma.ts')]: path.resolve(__dirname, 'src/data/prisma-cloudflare-stub.ts'),
+        [path.resolve(__dirname, 'src/lib/auth.ts')]: path.resolve(__dirname, 'src/lib/auth-cloudflare.ts'),
+        [path.resolve(__dirname, 'src/lib/api-auth.ts')]: path.resolve(__dirname, 'src/lib/api-auth-cloudflare.ts'),
+        [path.resolve(__dirname, 'src/data/protected-reads.ts')]: path.resolve(__dirname, 'src/data/protected-reads-cloudflare.ts'),
+        [path.resolve(__dirname, 'src/data/user-balance.ts')]: path.resolve(__dirname, 'src/data/user-balance-cloudflare.ts'),
         '@prisma/client/edge': path.resolve(__dirname, 'src/data/prisma-cloudflare-stub.ts'),
         '@prisma/client': path.resolve(__dirname, 'src/data/prisma-cloudflare-stub.ts'),
         [path.resolve(__dirname, 'src/modules/store/application/public-read-runtime.ts')]: path.resolve(__dirname, 'src/modules/store/application/public-read-runtime-cloudflare.ts'),
         [path.resolve(__dirname, 'src/modules/store/application/public-route-admission.ts')]: path.resolve(__dirname, 'src/modules/store/application/public-route-admission-cloudflare.ts'),
+        [path.resolve(__dirname, 'src/modules/merchant/application/merchant-access.ts')]: path.resolve(__dirname, 'src/modules/merchant/application/merchant-access-cloudflare.ts'),
+        [path.resolve(__dirname, 'src/modules/merchant/application/merchant-memberships.ts')]: path.resolve(__dirname, 'src/modules/merchant/application/merchant-memberships-cloudflare.ts'),
+        [path.resolve(__dirname, 'src/modules/merchant/application/get-merchant-profile.ts')]: path.resolve(__dirname, 'src/modules/merchant/application/get-merchant-profile-cloudflare.ts'),
+        [path.resolve(__dirname, 'src/modules/merchant/application/merchant-agent-credentials.ts')]: path.resolve(__dirname, 'src/modules/merchant/application/merchant-agent-credentials-cloudflare.ts'),
+        [path.resolve(__dirname, 'src/modules/merchant/application/merchant-control-center.ts')]: path.resolve(__dirname, 'src/modules/merchant/application/merchant-control-center-cloudflare.ts'),
       }
     }
     return config

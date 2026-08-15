@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { requireAuth } from "@/lib/api-auth"
-import { prisma } from "@/lib/prisma"
+import { getUserBalance } from '@/data/user-balance'
 
 // 标记为动态路由，避免静态生成
 export const dynamic = 'force-dynamic'
@@ -16,18 +16,7 @@ export async function GET(request: NextRequest) {
     const userId = auth.userId
 
     // 直接从数据库获取最新数据（绕过所有缓存）
-    const user = await prisma.user.findUnique({
-      where: { id: userId },
-      select: {
-        creditsPurchased: true,
-        creditsUsed: true,
-        premiumUsageCount: true,
-        freeTrialsUsed: true,
-        isPremium: true,
-        premiumExpiresAt: true,
-        currentSubscriptionType: true,
-      }
-    })
+    const user = await getUserBalance(userId)
 
     if (!user) {
       return NextResponse.json({
@@ -64,4 +53,3 @@ export async function GET(request: NextRequest) {
     )
   }
 }
-
