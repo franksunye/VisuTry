@@ -302,3 +302,23 @@ Keep the two TEST Auth0 users, two TEST merchant tenants, and two synthetic owne
 ### B2 readiness
 
 **READY for scoped B2 planning; NOT READY for full Cloudflare write parity.** B1.2 closes real Auth0 new-user provisioning, user ownership reads, and merchant tenant isolation. Broader mutation parity, Stripe, Blob, AI/task writes, cron, and MCP execution remain separate B2 work. No merge or production deployment was performed.
+
+## Current-HEAD revalidation after B2 (2026-08-16)
+
+The B1.2 identities and TEST fixtures were not recreated. The current branch already contains the scoped B2 write parity commits, so this check only revalidated the existing staging boundary and rebuilt the current Worker artifacts.
+
+| Check | Current result |
+| --- | --- |
+| Anonymous `/api/auth/session` | `200` |
+| Anonymous `/admin/dashboard` | `307` to sign-in |
+| Anonymous `/en/merchant` | `307` to sign-in |
+| Anonymous protected consumer reads | `401` for try-on, face-analysis, payment history, and balance |
+| Anonymous merchant APIs | `401` |
+| `npm run typecheck` | PASS |
+| `npm run lint` | PASS with existing warnings |
+| `npm run test:critical:ci` | PASS — 7 suites / 30 tests |
+| `npm run build:ci` | PASS |
+| `npm run build:cloudflare` | PASS — 1,576 static pages |
+| `npx wrangler deploy --dry-run --env staging` | PASS — `2,816.33 KiB` gzip |
+
+The current dry-run is below the `3,072 KiB` Workers Free limit with `255.67 KiB` headroom. It is a post-B2 artifact measurement, not a replacement for the historical B1.2 `2,757.26 KiB` deployment snapshot. The current build still contains no Prisma query compiler/WASM runtime markers. No staging deploy, production DNS/domain, production database, Stripe, Blob, AI, or Auth0 configuration was changed during this revalidation.
