@@ -209,3 +209,86 @@ Current staging deployment:
 ### B2 readiness
 
 **NOT READY.** Before B2, obtain safe staging accounts for one non-admin/non-merchant user and a second merchant tenant, then verify the missing role and tenant boundaries. New-user creation, Account linking, and profile update writes must be implemented or explicitly accepted as unsupported before claiming full Auth parity. No broad write implementation was added in B1.1.
+
+## Phase B1.2 — Test Identity & Isolation Verification (2026-08-16)
+
+### Result
+
+**PARTIAL.** Two real Auth0 staging identities, non-admin authorization, initial non-merchant onboarding, two TEST merchant tenants, own-tenant workspace access, cross-tenant denial, session switching, and logout passed. Cross-user ownership A/B remains untested because the application has no low-cost supported fixture path; creating a try-on or face-analysis record would invoke upload/AI write flows. No direct ownership-row inserts were made.
+
+### Test identities
+
+- `TEST_USER_A`: masked project-owned alias `s***+cloudflare-b1-a@visutry.com`; application user exists, role `USER`, one merchant membership after provisioning.
+- `TEST_USER_B`: masked project-owned alias `s***+cloudflare-b1-b@visutry.com`; application user exists, role `USER`, one merchant membership after provisioning.
+- Auth0 signup: PASS for both through the normal staging Auth0 browser flow; no CAPTCHA, OTP, or inbox verification blocked the flow.
+- Application user creation: PASS for both after the first-login Auth0 callback.
+- Passwords, OAuth codes, cookies, and tokens are intentionally not recorded.
+
+### Auth writes
+
+The first new-user callback initially failed at the Cloudflare adapter boundary. The minimal direct-Neon implementation now covers only the Auth0/JWT first-login path:
+
+- `createUser`: parameterized `User` insert/upsert preserving the email uniqueness boundary and timestamps.
+- `updateUser`: parameterized profile-field update with `updatedAt` refresh.
+- `linkAccount`: parameterized provider/account insert, idempotent on retry, and rejects account stealing across users.
+- Database sessions, email verification tokens, and unrelated Auth writes remain deferred.
+- Focused test: `npx jest --runInBand tests/unit/data/cloudflare-protected-reads.test.ts` — PASS, 7 tests.
+
+### Non-admin and non-merchant boundaries
+
+- Both users returned an authenticated staging session with role `USER`.
+- Both users visiting `/admin/dashboard` were redirected to `/en?error=Forbidden`; no admin data rendered.
+- Before provisioning, both users rendered the non-merchant onboarding state `Create your merchant workspace`.
+- After logout, `/api/auth/session` returned `200` with no authenticated user for each session.
+- Existing ADMIN login/dashboard behavior remains covered by the prior B1.1 authenticated regression; no admin role or production user was changed in this phase.
+
+### Merchant tenants and tenant isolation
+
+The supported `/api/merchant/workspaces` application flow was used from the browser with deterministic TEST names; no manual merchant rows were inserted. The route first exposed its deferred Prisma write dependency on Cloudflare, so it was switched to a single-purpose direct-Neon provisioning implementation using a Serializable transaction, bound SQL parameters, uniqueness-preserving slug retries, and idempotent first-membership behavior. No Store, Campaign, or published entity was created.
+
+- `TEST_MERCHANT_A`: `Cloudflare B1 Test Merchant A`, slug `cloudflare-b1-test-merchant-a`, membership `OWNER` for TEST_USER_A.
+- `TEST_MERCHANT_B`: `Cloudflare B1 Test Merchant B`, slug `cloudflare-b1-test-merchant-b`, membership `OWNER` for TEST_USER_B.
+- User A → Merchant A workspace: PASS; page returned 200 and rendered the TEST workspace.
+- User B → Merchant B workspace: PASS; page returned 200 and rendered the TEST workspace.
+- User A → Merchant B workspace: PASS denial; page returned 404 and did not render Merchant B.
+- User B → Merchant A workspace: PASS denial; page returned 404 and did not render Merchant A.
+- The direct membership read continues to require both `userId` and `merchantId`.
+
+### Ownership A/B
+
+**NOT TESTED.** No safe, cheap, application-supported history fixture was available. The supported try-on and face-analysis creation paths require shopper image/upload and AI/task work; direct `TryOnTask` or `FaceAnalysisTask` inserts were intentionally not performed. Therefore A→A, A→B, B→B, and B→A ownership results are not claimed.
+
+### Bundle and staging
+
+| Check | Result |
+| --- | --- |
+| Baseline deployed gzip | `2,760.12 KiB` |
+| Final dry-run gzip | `2,757.26 KiB` |
+| Delta | `-2.86 KiB` |
+| Free-plan limit / headroom | `3,072 KiB` / `314.74 KiB` |
+| Free compatible | **YES** |
+| Prisma runtime/WASM/query-compiler markers | **Absent** |
+
+- Worker: `visutry-cf-staging`
+- URL: `https://visutry-cf-staging.sunye.workers.dev`
+- Version: `7f7e0d3c-ba21-4a1a-9b32-7304e0eb6f13`
+- Production DNS/domain touched: **NO**
+
+### Test data retention
+
+Keep the two TEST Auth0 users and two TEST merchant tenants temporarily as the dedicated staging regression fixture set. They are clearly named/marked TEST and contain no Store, Campaign, customer, Stripe, upload, or AI artifacts. Review and delete only these exact records later if the team no longer needs the B1 regression fixture.
+
+### Validation
+
+- `curl` staging `/api/health`, `/api/auth/providers`, `/api/auth/session`: PASS, 200 after deployment.
+- Anonymous `/admin/dashboard`: PASS, 307 to Auth0 sign-in; anonymous `/en/merchant`: PASS, 307; anonymous known-test merchant profile: PASS, 401.
+- Auth0 signup/callback/session for TEST_USER_A and TEST_USER_B: PASS.
+- `npm run build:cloudflare`: PASS; 1,576 static pages generated.
+- `npx wrangler deploy --dry-run --env staging`: PASS; 2,757.26 KiB gzip.
+- Staging deploy: PASS; version `7f7e0d3c-ba21-4a1a-9b32-7304e0eb6f13`.
+- `npm run typecheck`: PASS during the B1.2 implementation cycle.
+- Full required CI command matrix is recorded after the final clean validation run below.
+
+### B2 readiness
+
+**NOT READY for full authenticated parity.** B1.2 closes real Auth0 new-user provisioning and merchant tenant isolation. Ownership A/B fixture creation, broader mutation parity, Stripe, Blob, AI/task writes, cron, and MCP execution remain separate work. No merge or production deployment was performed.

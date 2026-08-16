@@ -44,7 +44,7 @@ describe('Cloudflare direct-Neon protected reads', () => {
     expect(sql.mock.calls[0][1]).toBe('user-a')
   })
 
-  it('resolves an existing Auth0 account without enabling adapter writes', async () => {
+  it('resolves an existing Auth0 account and supports the first-login write boundary', async () => {
     const sql = sqlMock([[{ id: 'user-a', name: 'User A', email: 'a@example.com', emailVerified: null, image: null }]])
     ;(getCloudflareSql as jest.Mock).mockReturnValue(sql)
     const adapter = createCloudflareAuthAdapter()
@@ -52,7 +52,45 @@ describe('Cloudflare direct-Neon protected reads', () => {
     const user = await adapter.getUserByAccount?.({ provider: 'auth0', providerAccountId: 'auth0|a' })
 
     expect(user?.id).toBe('user-a')
-    await expect(adapter.createUser?.({ name: 'New', email: 'new@example.com', emailVerified: null, image: null })).rejects.toThrow('existing linked users only')
+    expect(adapter.createUser).toBeDefined()
+  })
+
+  it('creates an Auth0 user with database defaults and returns the adapter shape', async () => {
+    const sql = sqlMock([[{ id: 'user-new', name: 'Cloudflare B1 Test User A', email: 'sun+cloudflare-b1-a@visutry.com', emailVerified: null, image: null }]])
+    ;(getCloudflareSql as jest.Mock).mockReturnValue(sql)
+    const adapter = createCloudflareAuthAdapter()
+
+    const user = await adapter.createUser?.({ name: 'Cloudflare B1 Test User A', email: 'sun+cloudflare-b1-a@visutry.com', emailVerified: null, image: null })
+
+    expect(user).toMatchObject({ id: 'user-new', name: 'Cloudflare B1 Test User A', email: 'sun+cloudflare-b1-a@visutry.com' })
+    expect(sql.mock.calls[0].slice(1)).toContain('sun+cloudflare-b1-a@visutry.com')
+  })
+
+  it('links an Auth0 account idempotently without stealing another user identity', async () => {
+    const sql = sqlMock([[], [{ id: 'account-a', userId: 'user-a', type: 'oauth', provider: 'auth0', providerAccountId: 'auth0|a' }]])
+    ;(getCloudflareSql as jest.Mock).mockReturnValue(sql)
+    const adapter = createCloudflareAuthAdapter()
+
+    const account = await adapter.linkAccount?.({
+      id: 'ignored-by-adapter',
+      userId: 'user-a',
+      type: 'oauth',
+      provider: 'auth0',
+      providerAccountId: 'auth0|a',
+    })
+
+    expect(account).toMatchObject({ id: 'account-a', userId: 'user-a', provider: 'auth0' })
+    expect(sql).toHaveBeenCalledTimes(2)
+
+    const conflictSql = sqlMock([[], [{ id: 'account-a', userId: 'user-other', type: 'oauth', provider: 'auth0', providerAccountId: 'auth0|a' }]])
+    ;(getCloudflareSql as jest.Mock).mockReturnValue(conflictSql)
+    await expect(adapter.linkAccount?.({
+      id: 'ignored-by-adapter',
+      userId: 'user-a',
+      type: 'oauth',
+      provider: 'auth0',
+      providerAccountId: 'auth0|a',
+    })).rejects.toThrow('already linked to another User')
   })
 
   it('uses both user and merchant ids for membership authorization', async () => {
