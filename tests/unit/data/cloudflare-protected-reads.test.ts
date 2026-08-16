@@ -66,6 +66,35 @@ describe('Cloudflare direct-Neon protected reads', () => {
     expect(sql.mock.calls[0].slice(1)).toContain('sun+cloudflare-b1-a@visutry.com')
   })
 
+  it('retries the same Auth0 signup idempotently without exposing role or quota fields', async () => {
+    const sql = sqlMock([
+      [{ id: 'user-new', name: 'First name', email: 'retry@example.com', emailVerified: null, image: null }],
+      [{ id: 'user-new', name: 'First name', email: 'retry@example.com', emailVerified: null, image: null }],
+    ])
+    ;(getCloudflareSql as jest.Mock).mockReturnValue(sql)
+    const adapter = createCloudflareAuthAdapter()
+
+    const first = await adapter.createUser?.({ name: 'First name', email: 'retry@example.com', emailVerified: null, image: null })
+    const second = await adapter.createUser?.({ name: 'Escalation attempt', email: 'retry@example.com', emailVerified: null, image: null })
+
+    expect(first?.id).toBe('user-new')
+    expect(second?.id).toBe('user-new')
+    expect(sql.mock.calls[1].slice(1)).not.toContain('ADMIN')
+    expect(sql.mock.calls[1].slice(1)).not.toContain('creditsPurchased')
+  })
+
+  it('updates only adapter-owned fields and returns the existing user', async () => {
+    const sql = sqlMock([[{ id: 'user-a', name: 'Updated', email: 'a@example.com', emailVerified: null, image: 'https://example.test/avatar.png' }]])
+    ;(getCloudflareSql as jest.Mock).mockReturnValue(sql)
+    const adapter = createCloudflareAuthAdapter()
+
+    const user = await adapter.updateUser?.({ id: 'user-a', name: 'Updated', image: 'https://example.test/avatar.png' })
+
+    expect(user).toMatchObject({ id: 'user-a', name: 'Updated', image: 'https://example.test/avatar.png' })
+    expect(sql.mock.calls[0].slice(1)).not.toContain('role')
+    expect(sql.mock.calls[0].slice(1)).not.toContain('isPremium')
+  })
+
   it('links an Auth0 account idempotently without stealing another user identity', async () => {
     const sql = sqlMock([[], [{ id: 'account-a', userId: 'user-a', type: 'oauth', provider: 'auth0', providerAccountId: 'auth0|a' }]])
     ;(getCloudflareSql as jest.Mock).mockReturnValue(sql)

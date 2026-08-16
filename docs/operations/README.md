@@ -8,6 +8,7 @@
 | Document | Status | Purpose |
 | --- | --- | --- |
 | `hosting-strategy-vercel-cloudflare.md` | **Canonical / Active** | Current hosting strategy, Cloudflare readiness plan, migration triggers, and parity criteria |
+| `cloudflare-phase-b2-write-parity.md` | **Active milestone** | Scoped Cloudflare Free-plan Auth, merchant, Store DRAFT, and Campaign DRAFT write parity evidence |
 | `vercel-cpu-static-page-pilot.md` | Historical + Active Reference | Detailed Vercel static-rendering, ISR, middleware, and CPU optimization work already completed |
 
 ## Hosting Source of Truth

@@ -153,6 +153,9 @@ const nextConfig = {
         [path.resolve(__dirname, 'src/modules/merchant/application/merchant-provisioning.ts')]: path.resolve(__dirname, 'src/modules/merchant/application/merchant-provisioning-cloudflare.ts'),
         [path.resolve(__dirname, 'src/modules/merchant/application/get-merchant-profile.ts')]: path.resolve(__dirname, 'src/modules/merchant/application/get-merchant-profile-cloudflare.ts'),
         [path.resolve(__dirname, 'src/modules/merchant/application/merchant-agent-credentials.ts')]: path.resolve(__dirname, 'src/modules/merchant/application/merchant-agent-credentials-cloudflare.ts'),
+        [path.resolve(__dirname, 'src/modules/merchant/application/merchant-agent-rate-limit.ts')]: path.resolve(__dirname, 'src/modules/merchant/application/merchant-agent-rate-limit-cloudflare.ts'),
+        [path.resolve(__dirname, 'src/modules/merchant/application/merchant-onboarding.ts')]: path.resolve(__dirname, 'src/modules/merchant/application/merchant-onboarding-cloudflare.ts'),
+        [path.resolve(__dirname, 'src/modules/store/application/campaign-service.ts')]: path.resolve(__dirname, 'src/modules/store/application/campaign-service-cloudflare.ts'),
         [path.resolve(__dirname, 'src/modules/merchant/application/merchant-control-center.ts')]: path.resolve(__dirname, 'src/modules/merchant/application/merchant-control-center-cloudflare.ts'),
       }
     }

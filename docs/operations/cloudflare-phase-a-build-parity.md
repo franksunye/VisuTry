@@ -403,6 +403,12 @@ Final staging QA returned `200` for all listed public/static routes, the four pu
 
 ## Production status
 
+## Phase B2 milestone — scoped write parity (2026-08-16)
+
+The approved B2 write slice is now implemented and verified on the isolated staging Worker. Auth0 adapter `createUser`/`updateUser`/`linkAccount`, merchant provisioning, MCP request limiting/audit dependencies, Store DRAFT create/frame selection, and Campaign DRAFT create/update/frame selection use narrow direct-Neon Cloudflare providers. The final staging dry run was `2780.26 KiB` gzip, below the Workers Free `3072 KiB` limit; no Prisma query engine/compiler, `@prisma/client` runtime, or WASM engine artifact was present in the final Cloudflare outputs. Real workers.dev MCP checks covered idempotent retries, same-tenant writes, cross-tenant rejection, and induced rollback transactions. The detailed evidence is in [`cloudflare-phase-b2-write-parity.md`](./cloudflare-phase-b2-write-parity.md).
+
+B2 does not claim publishing, archiving, Store update as a new MCP surface, Stripe, Blob/R2, AI/task, cron, admin, consumer-write, OAuth persistence redesign, schema migration, DNS, or production parity. Production remains on Vercel and was not touched.
+
 Production remains on Vercel. No production DNS/routing, user traffic, secrets, Stripe webhooks, authentication configuration, Neon data, or Vercel Blob data was changed.
 
 ## References
