@@ -322,3 +322,37 @@ The B1.2 identities and TEST fixtures were not recreated. The current branch alr
 | `npx wrangler deploy --dry-run --env staging` | PASS — `2,816.33 KiB` gzip |
 
 The current dry-run is below the `3,072 KiB` Workers Free limit with `255.67 KiB` headroom. It is a post-B2 artifact measurement, not a replacement for the historical B1.2 `2,757.26 KiB` deployment snapshot. The current build still contains no Prisma query compiler/WASM runtime markers. No staging deploy, production DNS/domain, production database, Stripe, Blob, AI, or Auth0 configuration was changed during this revalidation.
+
+## B1.2 fresh browser replay after current B2/B3 branch (2026-08-16)
+
+The committed B1.2 fixture set above remains the authoritative two-user/two-tenant isolation evidence. A fresh replay was also attempted against the current staging Worker to verify that the first-login path still works after the later Cloudflare changes.
+
+### Fresh artifact created during this replay
+
+- Fresh Auth0 identity: `TEST_USER_A_REPLAY`, masked project-owned alias `s***+cloudflare-b1-a-20260816@visutry.com`; role observed as `USER`. Password and OAuth material are not recorded.
+- Fresh merchant: `Cloudflare B1 Test Merchant A Replay`, created through the supported `/api/merchant/workspaces` browser flow; merchant ID `b8a61016-5811-41a2-b0a6-8252a1551563`.
+- No Store, Campaign, customer, Stripe, Blob, AI, or ownership fixture was created for this replay.
+- Retain this clearly marked TEST identity and merchant temporarily with the existing B1 regression fixture set; delete only these exact records later if the staging fixture set is retired.
+
+### Fresh replay results
+
+- Auth0 signup and first-login callback: **PASS**; the browser returned to staging `/en/merchant`.
+- Authenticated role: **PASS**; the home page identified the replay account and `/admin/dashboard` redirected to `/en?error=Forbidden`.
+- Initial non-merchant boundary: **PASS**; `/en/merchant` rendered `Create your merchant workspace` before provisioning.
+- Merchant provisioning: **PASS**; the supported browser form returned the replay merchant workspace and selected the TEST merchant.
+- Logout/session switching: **PARTIAL in this replay**. The sign-out action returned Cloudflare Error 1102 (`Worker exceeded resource limits`), and subsequent staging requests in the same browser also returned 1102. The previously committed B1.2 two-user replay still records logout and session switching as PASS; this fresh replay does not replace that evidence.
+- Cross-user/cross-tenant A/B: **NOT rerun** with the fresh replay identity because the Worker became resource-limited before a second fresh login could be started. The committed B1.2 A/B evidence remains unchanged.
+
+### Clean validation after the replay
+
+| Command | Result |
+| --- | --- |
+| `npm ci` | PASS; existing npm audit reported 50 dependency findings, including 2 critical; no dependency changes committed |
+| `npm run typecheck` | PASS after the build completed; a concurrent first attempt raced with `build:ci` while `.next/types` was being regenerated |
+| `npm run lint` | PASS with existing warnings |
+| `npm run test:critical:ci` | PASS — 7 suites / 30 tests |
+| `npm run build:ci` | PASS — 1,576 static pages |
+| `npm run build:cloudflare` | PASS — 1,576 static pages |
+| `npx wrangler deploy --dry-run --env staging` | PASS — `2,808.59 KiB` gzip |
+
+The current dry-run has `263.41 KiB` headroom under the `3,072 KiB` Workers Free hard limit. No Prisma query-engine, libquery, Prisma WASM, or wasm-bindgen runtime artifacts were present in the generated Worker bundle. No staging deployment, production DNS/domain, database mutation outside the explicitly created TEST identity/merchant, Stripe, Blob, AI, or Auth0 configuration change was made.
