@@ -1,7 +1,7 @@
 {
   "$schema": "./node_modules/wrangler/config-schema.json",
   "name": "visutry-cf-staging",
-  "main": ".open-next/worker.js",
+  "main": "cloudflare-router/app-host-worker.ts",
   "compatibility_date": "2026-08-15",
   "compatibility_flags": ["nodejs_compat"],
   "workers_dev": true,
@@ -13,7 +13,9 @@
     "staging": {
       "name": "visutry-cf-staging",
       "vars": {
-        "NEXTAUTH_URL": "https://visutry-cf-staging.sunye.workers.dev"
+        "ROUTER_ENV": "staging",
+        "NEXTAUTH_URL": "https://visutry-cf-staging.sunye.workers.dev",
+        "VERCEL_ORIGIN": "https://visutry-4tfn0m7ys-sunye.vercel.app"
       }
     }
   }

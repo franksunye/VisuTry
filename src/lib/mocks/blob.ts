@@ -32,8 +32,8 @@ export class MockBlob {
     let size = 0
     if (typeof body === 'string') {
       size = Buffer.byteLength(body, 'utf8')
-    } else if (body instanceof Buffer) {
-      size = body.length
+    } else if (Buffer.isBuffer(body)) {
+      size = (body as Buffer).length
     } else if (body instanceof File) {
       size = body.size
     } else {
