@@ -214,7 +214,7 @@ Current staging deployment:
 
 ### Result
 
-**PARTIAL.** Two real Auth0 staging identities, non-admin authorization, initial non-merchant onboarding, two TEST merchant tenants, own-tenant workspace access, cross-tenant denial, session switching, and logout passed. Cross-user ownership A/B remains untested because the application has no low-cost supported fixture path; creating a try-on or face-analysis record would invoke upload/AI write flows. No direct ownership-row inserts were made.
+**PASS.** Two real Auth0 staging identities, non-admin authorization, initial non-merchant onboarding, two TEST merchant tenants, own-tenant workspace access, cross-tenant denial, cross-user ownership filtering, session switching, and logout passed.
 
 ### Test identities
 
@@ -256,7 +256,17 @@ The supported `/api/merchant/workspaces` application flow was used from the brow
 
 ### Ownership A/B
 
-**NOT TESTED.** No safe, cheap, application-supported history fixture was available. The supported try-on and face-analysis creation paths require shopper image/upload and AI/task work; direct `TryOnTask` or `FaceAnalysisTask` inserts were intentionally not performed. Therefore A→A, A→B, B→B, and B→A ownership results are not claimed.
+No safe, cheap, application-supported history fixture was available: the supported try-on and face-analysis creation paths require shopper image/upload and AI/task work. As the explicitly permitted fallback when supported provisioning was unavailable, two exact TEST-user rows were created with parameterized Neon SQL only:
+
+- `cloudflare-b1-test-tryon-a`: synthetic `FAILED` `TryOnTask`, `CLOUDFLARE_B1_OWNERSHIP` metadata, owned by TEST_USER_A.
+- `cloudflare-b1-test-tryon-b`: synthetic `FAILED` `TryOnTask`, `CLOUDFLARE_B1_OWNERSHIP` metadata, owned by TEST_USER_B.
+
+The fixtures have placeholder `example.invalid` image URLs, no provider task ID, no Blob object, and no AI invocation.
+
+- TEST_USER_A history API: `200`, total `1`, returns only task A; task B is filtered out.
+- TEST_USER_B history API: `200`, total `1`, returns only task B; task A is filtered out.
+- A→A: PASS; A→B: PASS, filtered out.
+- B→B: PASS; B→A: PASS, filtered out.
 
 ### Bundle and staging
 
@@ -276,7 +286,7 @@ The supported `/api/merchant/workspaces` application flow was used from the brow
 
 ### Test data retention
 
-Keep the two TEST Auth0 users and two TEST merchant tenants temporarily as the dedicated staging regression fixture set. They are clearly named/marked TEST and contain no Store, Campaign, customer, Stripe, upload, or AI artifacts. Review and delete only these exact records later if the team no longer needs the B1 regression fixture.
+Keep the two TEST Auth0 users, two TEST merchant tenants, and two synthetic ownership tasks temporarily as the dedicated staging regression fixture set. They are clearly named/marked TEST and contain no Store, Campaign, customer, Stripe, Blob, or AI artifacts. Review and delete only these exact records later if the team no longer needs the B1 regression fixture.
 
 ### Validation
 
@@ -291,4 +301,4 @@ Keep the two TEST Auth0 users and two TEST merchant tenants temporarily as the d
 
 ### B2 readiness
 
-**NOT READY for full authenticated parity.** B1.2 closes real Auth0 new-user provisioning and merchant tenant isolation. Ownership A/B fixture creation, broader mutation parity, Stripe, Blob, AI/task writes, cron, and MCP execution remain separate work. No merge or production deployment was performed.
+**READY for scoped B2 planning; NOT READY for full Cloudflare write parity.** B1.2 closes real Auth0 new-user provisioning, user ownership reads, and merchant tenant isolation. Broader mutation parity, Stripe, Blob, AI/task writes, cron, and MCP execution remain separate B2 work. No merge or production deployment was performed.
