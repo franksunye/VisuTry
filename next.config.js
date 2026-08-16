@@ -50,9 +50,6 @@ const nextConfig = {
     imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
     minimumCacheTTL: 3600,
   },
-  env: {
-    NEXTAUTH_URL: process.env.NEXTAUTH_URL,
-  },
   poweredByHeader: false,
   reactStrictMode: true,
 
@@ -142,6 +139,7 @@ const nextConfig = {
         [path.resolve(__dirname, 'src/lib/api-auth.ts')]: path.resolve(__dirname, 'src/lib/api-auth-cloudflare.ts'),
         [path.resolve(__dirname, 'src/data/protected-reads.ts')]: path.resolve(__dirname, 'src/data/protected-reads-cloudflare.ts'),
         [path.resolve(__dirname, 'src/data/user-balance.ts')]: path.resolve(__dirname, 'src/data/user-balance-cloudflare.ts'),
+        [path.resolve(__dirname, 'src/data/admin-dashboard.ts')]: path.resolve(__dirname, 'src/data/admin-dashboard-cloudflare.ts'),
         '@prisma/client/edge': path.resolve(__dirname, 'src/data/prisma-cloudflare-stub.ts'),
         '@prisma/client': path.resolve(__dirname, 'src/data/prisma-cloudflare-stub.ts'),
         [path.resolve(__dirname, 'src/modules/store/application/public-read-runtime.ts')]: path.resolve(__dirname, 'src/modules/store/application/public-read-runtime-cloudflare.ts'),

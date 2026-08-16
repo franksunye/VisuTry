@@ -135,3 +135,77 @@ If required by the Auth0 tenant policy, also add the workers.dev origin to Allow
 ## B2 readiness
 
 **NOT READY for full authenticated parity.** B2 can begin after the Auth0 administrator adds the staging callback and the team verifies one real existing linked user end to end: OAuth login, callback, JWT/session resolution, refresh/navigation, logout, one consumer protected read, one merchant tenant read, and admin/non-admin role boundaries. New-user Auth writes, mutation parity, Stripe, Blob, AI, cron, and MCP remain separate later scopes.
+
+## Phase B1.1 — Authenticated staging verification (2026-08-16)
+
+This section records the current staging verification and supersedes the earlier “pending callback” status above. It covers the existing linked Auth0 user only; it does not expand the write scope or touch production.
+
+### Result
+
+**PARTIAL.** Existing-user login, callback, session persistence, logout, protected consumer reads, merchant workspace reads, and the authenticated ADMIN dashboard pass. Non-admin denial, a second user for ownership isolation, and a second merchant tenant were not tested because no safe staging accounts were available.
+
+### Auth0 and session
+
+- Callback allow-list: verified with `https://visutry-cf-staging.sunye.workers.dev/api/auth/callback/auth0`; the completed flow returned to staging rather than localhost.
+- Login: PASS for an existing linked Auth0 user through `auth.visutry.com`.
+- Callback: PASS; no localhost callback after removing the compile-time `NEXTAUTH_URL` injection from `next.config.js`.
+- Session: PASS; staging `/api/auth/session` returned `200` with an authenticated `ADMIN` role during an in-page runtime check.
+- Refresh/navigation: PASS; `/en/merchant` survived reload and remained authenticated in a second same-browser tab.
+- Logout: PASS; the account menu sign-out returned to `/en/auth/signin`.
+- Protected route after logout: PASS; `/en/merchant` redirected to `/en/auth/signin` and did not render the merchant workspace.
+
+Auth writes were **not invoked** by this existing linked-user flow: new-user creation, Account linking, and profile update remain deferred. No write failure was observed.
+
+### Protected reads
+
+Authenticated staging network capture returned `200` for:
+
+- `/api/try-on/history`
+- `/api/face-analysis/history`
+- `/api/payment/history`
+- `/api/user/balance`
+
+User ownership isolation was not live-tested A/B because only one safe user account was available. The existing direct-Neon/unit evidence remains in `tests/unit/data/cloudflare-protected-reads.test.ts` and requires both user and merchant identifiers where applicable.
+
+### Merchant and admin boundaries
+
+- Merchant login/workspace: PASS for the authenticated merchant account.
+- Store and campaign/experience reads: PASS in `/en/merchant`.
+- Non-merchant denial: NOT TESTED; no safe non-merchant account was available.
+- Cross-tenant isolation: NOT TESTED live; only one merchant tenant was available. The direct membership query still requires both `userId` and `merchantId`.
+- Anonymous admin boundary: PASS; the prior staging smoke remains `307` to `/api/auth/signin`.
+- Non-admin admin boundary: NOT TESTED; no safe non-admin account was available.
+- Authenticated ADMIN dashboard: PASS after moving the dashboard aggregate read behind a direct-Neon Cloudflare repository; no Prisma call remains on that page in the Worker bundle.
+
+### Bundle and staging deployment
+
+| Check | Result |
+| --- | --- |
+| Baseline deployed gzip | `2,751.15 KiB` |
+| Current deployed gzip | `2,760.12 KiB` |
+| Delta | `+8.97 KiB` |
+| Free-plan limit / headroom | `3,072 KiB` / `311.88 KiB` |
+| Free compatible | **YES** |
+| Prisma runtime/WASM/query compiler markers | **Absent** |
+| Static `NEXTAUTH_URL` localhost injection | **Removed**; remaining localhost strings are deferred MCP/mock fallback literals |
+
+Current staging deployment:
+
+- Worker: `visutry-cf-staging`
+- URL: `https://visutry-cf-staging.sunye.workers.dev`
+- Version: `60e96200-2520-4dd6-898a-a0e8e8d3e87e`
+- Production touched: **NO**
+
+### Current validation
+
+- `npm ci`: PASS.
+- `npm run typecheck`: PASS after the preview build completed.
+- `npm run build:cloudflare`: PASS; 1,576 static pages generated.
+- `npx wrangler deploy --dry-run --env staging`: PASS; current gzip `2,760.12 KiB`.
+- `npm run preview:cloudflare`: PASS for startup/build; local `/api/health` and `/en` returned `200`. Local anonymous `/api/auth/session` returned `500` because the preview process used the Cloudflare Prisma stub without staging Auth0/Neon runtime configuration; staging authenticated `/api/auth/session` returned `200`.
+- Authenticated staging browser checks: PASS for the existing linked user, consumer reads, merchant reads, ADMIN dashboard, logout, and post-logout protection.
+- Non-admin denial, cross-user ownership A/B, and cross-tenant A/B: NOT TESTED.
+
+### B2 readiness
+
+**NOT READY.** Before B2, obtain safe staging accounts for one non-admin/non-merchant user and a second merchant tenant, then verify the missing role and tenant boundaries. New-user creation, Account linking, and profile update writes must be implemented or explicitly accepted as unsupported before claiming full Auth parity. No broad write implementation was added in B1.1.
