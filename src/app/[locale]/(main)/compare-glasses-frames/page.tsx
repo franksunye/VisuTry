@@ -12,6 +12,8 @@ const routeId = 'compare-glasses-frames' as const
 
 type Props = { params: { locale: string } }
 
+export const dynamic = 'force-static'
+
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const copy = getSearchToToolRouteCopy(params.locale, routeId)
   return generateSearchToToolSEO({

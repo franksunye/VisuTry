@@ -9,6 +9,8 @@ import { generateSearchToToolSEO } from '@/lib/search-to-tool-seo'
 
 type Props = { params: { locale: string } }
 
+export const dynamic = 'force-static'
+
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const copy = getGlassesGuideHubCopy(params.locale)
   return generateSearchToToolSEO({

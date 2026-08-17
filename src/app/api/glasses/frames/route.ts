@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { PUBLIC_CATALOG_CACHE_CONTROL } from '@/lib/public-http-cache'
 
 export async function GET() {
   try {
@@ -23,6 +24,8 @@ export async function GET() {
     return NextResponse.json({
       success: true,
       data: frames,
+    }, {
+      headers: { 'Cache-Control': PUBLIC_CATALOG_CACHE_CONTROL },
     })
   } catch (error) {
     console.error('Error fetching frames:', error)
@@ -32,4 +35,3 @@ export async function GET() {
     )
   }
 }
-

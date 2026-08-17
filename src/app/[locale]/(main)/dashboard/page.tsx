@@ -5,6 +5,8 @@ type DashboardPageProps = {
   params: { locale: string }
 }
 
+export const dynamic = 'force-static'
+
 export default function DashboardPage({ params }: DashboardPageProps) {
   return (
     <RouteMessagesProvider namespaces={['faceAnalysis.dashboard']}>

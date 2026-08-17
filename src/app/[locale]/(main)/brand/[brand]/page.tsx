@@ -45,7 +45,8 @@ export async function generateStaticParams() {
 // Only curated pages are valid while database-backed programmatic SEO is off.
 // Keeping this closed prevents arbitrary bot slugs from becoming ISR entries.
 export const dynamicParams = process.env.PROGRAMMATIC_SEO_ENABLED === 'true'
-export const revalidate = 3600
+// Curated brand copy is deploy-time content. Periodic ISR is unnecessary.
+export const dynamic = 'force-static'
 
 export async function generateMetadata({ params }: BrandPageProps): Promise<Metadata> {
   const curated = getCuratedBrandContent(params.brand)

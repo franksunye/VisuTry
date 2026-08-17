@@ -8,6 +8,7 @@
 | Document | Status | Purpose |
 | --- | --- | --- |
 | `hosting-strategy-vercel-cloudflare.md` | **Canonical / Active** | Current hosting strategy, Cloudflare readiness plan, migration triggers, and parity criteria |
+| `vercel-quota-emergency-reduction.md` | **Active** | Hobby ISR Reads / Fast Origin Transfer emergency reductions (static SEO, middleware, public GET cache) |
 | `vercel-cpu-static-page-pilot.md` | Historical + Active Reference | Detailed Vercel static-rendering, ISR, middleware, and CPU optimization work already completed |
 
 ## Hosting Source of Truth

@@ -32,6 +32,7 @@ export async function middleware(req: NextRequest) {
     pathname.startsWith('/api') ||
     pathname === '/skills' ||
     pathname.startsWith('/skills/') ||
+    pathname.startsWith('/sitemaps/') ||
     pathname.startsWith('/static') ||
     pathname.includes('.')
   ) {
@@ -74,7 +75,7 @@ export const config = {
     '/admin/:path*',
     // Routes without a locale prefix — needs locale detection redirect.
     // Excludes: locale-prefixed paths (en/id/ar/ru/de/ja/es/pt/fr),
-    // api, _next, _vercel, admin, and paths containing a dot.
-    '/((?!(?:en|id|ar|ru|de|ja|es|pt|fr)(?:/|$)|api|_next|_vercel|admin|.*\\..*).*)',
+    // api, _next, _vercel, admin, skills, static, sitemaps, and dotted paths.
+    '/((?!(?:en|id|ar|ru|de|ja|es|pt|fr)(?:/|$)|api|_next|_vercel|admin|skills|static|sitemaps|.*\\..*).*)',
   ]
 }

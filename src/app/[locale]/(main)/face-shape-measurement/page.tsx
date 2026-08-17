@@ -8,6 +8,8 @@ interface FaceShapeMeasurementPageProps {
   params: { locale: string }
 }
 
+export const dynamic = 'force-static'
+
 const measurementSteps = [
   {
     name: 'Face length',

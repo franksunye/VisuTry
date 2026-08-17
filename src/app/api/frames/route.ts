@@ -1,8 +1,7 @@
 import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { mockGlassesFrames, isMockMode } from "@/lib/mocks"
-
-const PUBLIC_FRAMES_CACHE_CONTROL = 'public, max-age=0, s-maxage=300, stale-while-revalidate=60'
+import { PUBLIC_CATALOG_CACHE_CONTROL } from "@/lib/public-http-cache"
 
 function toPublicFrame(frame: { id: string; name: string; imageUrl: string; category: string | null; brand: string | null }) {
   return {
@@ -23,7 +22,7 @@ export async function GET() {
         success: true,
         data: mockGlassesFrames.map(toPublicFrame),
       }, {
-        headers: { 'Cache-Control': PUBLIC_FRAMES_CACHE_CONTROL },
+        headers: { 'Cache-Control': PUBLIC_CATALOG_CACHE_CONTROL },
       })
     }
 
@@ -47,7 +46,7 @@ export async function GET() {
       success: true,
       data: frames.map(toPublicFrame),
     }, {
-      headers: { 'Cache-Control': PUBLIC_FRAMES_CACHE_CONTROL },
+      headers: { 'Cache-Control': PUBLIC_CATALOG_CACHE_CONTROL },
     })
   } catch (error) {
     console.error("Failed to fetch glasses frames:", error)
@@ -60,7 +59,7 @@ export async function GET() {
       fallback: true,
       message: "Using mock data due to database connection issues"
     }, {
-      headers: { 'Cache-Control': PUBLIC_FRAMES_CACHE_CONTROL },
+      headers: { 'Cache-Control': PUBLIC_CATALOG_CACHE_CONTROL },
     })
   }
 }

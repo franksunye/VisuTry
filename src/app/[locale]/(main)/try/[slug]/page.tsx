@@ -35,7 +35,8 @@ export async function generateStaticParams() {
 }
 
 export const dynamicParams = process.env.PROGRAMMATIC_SEO_ENABLED === 'true'
-export const revalidate = 3600 // 1 hour
+// Frame SEO pages change on catalog deploy, not on an hourly clock.
+export const dynamic = 'force-static'
 
 // Generate metadata
 export async function generateMetadata({

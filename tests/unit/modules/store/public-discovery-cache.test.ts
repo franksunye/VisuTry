@@ -27,9 +27,9 @@ describe('public discovery cache contract', () => {
       'public-discovery:merchant-catalog:luna-optical',
       'public-discovery:experience:luna-optical:petite-fit',
     ])
-    expect(PUBLIC_DISCOVERY_CACHE.storeRevalidateSeconds).toBe(21600)
-    expect(PUBLIC_DISCOVERY_CACHE.campaignRevalidateSeconds).toBe(3600)
-    expect(PUBLIC_DISCOVERY_CACHE.sitemapRevalidateSeconds).toBe(86400)
+    expect(PUBLIC_DISCOVERY_CACHE.storeRevalidateSeconds).toBe(604800)
+    expect(PUBLIC_DISCOVERY_CACHE.campaignRevalidateSeconds).toBe(604800)
+    expect(PUBLIC_DISCOVERY_CACHE.sitemapRevalidateSeconds).toBe(604800)
   })
 
   it('maps semantic writes to the smallest correct invalidation fanout', async () => {

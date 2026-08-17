@@ -11,6 +11,8 @@ type Props = {
   params: { locale: string }
 }
 
+export const dynamic = 'force-static'
+
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const copy = getFaceShapeSeoCopy(params.locale)
   return generateI18nSEO({

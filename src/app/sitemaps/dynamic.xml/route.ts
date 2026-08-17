@@ -7,7 +7,7 @@ import { serializeSitemap, type SitemapEntry } from '@/lib/sitemap-xml'
 import { buildSitemapAlternates } from '@/lib/sitemap-static'
 import { locales } from '@/i18n'
 
-export const revalidate = 24 * 60 * 60
+export const revalidate = 7 * 24 * 60 * 60
 
 export async function GET() {
   const baseUrl = (process.env.NEXT_PUBLIC_SITE_URL || 'https://www.visutry.com').replace(/\/+$/, '')
