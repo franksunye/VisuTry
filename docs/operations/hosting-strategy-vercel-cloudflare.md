@@ -1,149 +1,267 @@
-# Hosting Strategy — Vercel Today, Cloudflare-Ready Tomorrow
+# Hosting Strategy — Hybrid Edge Architecture
 
 **Status:** Active  
-**Date:** 2026-08-15  
+**Date:** 2026-08-17  
 **Owner:** Product / Engineering
 
 ## Objective
 
-Keep VisuTry infrastructure cost near zero / low fixed cost before break-even without allowing hosting-plan limits to dictate product architecture or consume disproportionate engineering time.
+Keep VisuTry infrastructure cost near zero / low fixed cost before break-even while building an architecture that can absorb materially larger Consumer, Store, and Campaign traffic without forcing every request through heavyweight backend execution.
+
+The objective is no longer to answer "Vercel or Cloudflare?" as a provider-selection question. The validated direction is a hybrid execution model based on workload shape.
 
 ## Current Decision
 
-- **Vercel remains the production host for now.**
-- **Cloudflare becomes the prepared migration target**, not merely a theoretical fallback.
-- Do **not** perform an immediate production migration only to avoid a small monthly hosting bill.
-- Start compatibility work now so that a future migration is an operational switch, not a new research project.
+VisuTry adopts a **Hybrid Edge Architecture**.
 
-The operating principle is:
+Operating principle:
 
-> Optimize for optionality: Vercel today, Cloudflare-ready tomorrow.
+> **Cloudflare for traffic scale; backend services for compute complexity.**
+
+More specifically:
+
+- **Cloudflare is the preferred traffic-scale/edge layer** for proven high-frequency, low-compute, stateless or narrowly stateful workloads.
+- **Vercel remains the current backend execution environment** for Stripe, Blob, AI orchestration, cron/background, broad admin, full MCP OAuth/DCR/source intake, and other heavy or unverified paths.
+- **Neon remains the shared relational source of truth.**
+- Existing Vercel/Prisma paths may remain intact where appropriate; Cloudflare paths use lightweight direct-Neon repositories where proven.
+- Production rollout will be capability-based and incremental. There is no approved big-bang migration.
+
+This strategy is formalized by:
+
+- `docs/decisions/ADR-010-hybrid-edge-architecture-for-store-campaign-scale.md`
+
+ADR-009 remains the historical decision that initiated and justified Cloudflare optionality work.
 
 ## Why This Changed
 
-The Vercel optimization work has already removed substantial avoidable runtime work through static rendering, ISR reduction, middleware narrowing, and client-side auth gates. See:
+Earlier strategy was:
 
-- `docs/operations/vercel-cpu-static-page-pilot.md`
-- `docs/decisions/ADR-005-ssr-to-client-gate.md`
+> Optimize for optionality: Vercel today, Cloudflare-ready tomorrow.
 
-Those optimizations remain valid regardless of hosting provider. However, growing consumer traffic, SEO / visual assets, Store traffic, and Campaign workloads increase the probability that continued Vercel-specific quota optimization becomes a recurring engineering tax.
+That was appropriate before the Cloudflare path was tested.
 
-The infrastructure strategy therefore shifts from **"optimize Vercel indefinitely"** to **"keep Vercel efficient while maintaining a verified Cloudflare exit path."**
+Phase A through B3.1 has now produced real staging evidence:
 
-## Architecture Direction
+- OpenNext/Workers build and deployment are reproducible.
+- The Cloudflare Worker fits the Workers Free compressed bundle limit without Prisma runtime/WASM.
+- Public/localized routes and selected public reads work.
+- Real Auth0 login/session/logout works.
+- Protected direct-Neon reads work with ownership isolation.
+- Merchant workspace reads and provisioning work with tenant isolation.
+- Store DRAFT and Campaign DRAFT write paths work for the tested B2 scope.
+- Narrow stateless MCP bearer/tool execution works.
+- Several heavy integrations remain better suited to the current backend path.
 
-### Keep provider-independent where practical
+The architecture question has therefore changed from:
 
-| Capability | Current / Near-Term Direction |
+> "Can VisuTry migrate away from Vercel?"
+
+into:
+
+> "Which workload should execute at the edge, and which workload requires heavier backend execution?"
+
+That distinction is especially important for Store and Campaign.
+
+## Store / Campaign Scale Model
+
+Store/Campaign traffic is expected to create substantially more shopper requests than the current consumer application alone.
+
+Most of that traffic should not require expensive server execution.
+
+Typical high-frequency paths include:
+
+- Store/Campaign landing and navigation;
+- catalog/frame/configuration reads;
+- attribution and session handling;
+- lightweight merchant/public APIs;
+- selected interaction/event ingestion;
+- selected recommendation/read paths;
+- narrow agent/MCP requests.
+
+Heavy paths include:
+
+- AI generation and orchestration;
+- payment and Stripe fulfillment;
+- object-storage lifecycle operations;
+- long-running or retried background work;
+- broad admin workflows;
+- full OAuth/DCR/source-network operations.
+
+Target traffic shape:
+
+```text
+Shopper / Agent
+      |
+      v
+Cloudflare Edge / Capability Routing
+      |
+      +--> high-frequency / low-compute
+      |      - Consumer public traffic
+      |      - Store / Campaign landing
+      |      - catalog/config reads
+      |      - selected auth/read/write paths
+      |      - direct Neon
+      |
+      +--> compute/integration-heavy backend
+             - AI
+             - Stripe
+             - Blob/storage workflows
+             - cron/background
+             - full MCP OAuth/source intake
+```
+
+The architecture should ensure that Store/Campaign traffic growth does not cause heavyweight backend work to grow linearly with page views or shopper interactions.
+
+## Architecture Responsibilities
+
+| Capability | Direction |
 | --- | --- |
-| Next.js application | Continue on Vercel production; validate OpenNext / Cloudflare Workers compatibility |
-| Static assets / edge delivery | Keep CDN-friendly and cacheable; avoid unnecessary runtime execution |
-| Database | Neon remains external and provider-independent |
-| Payments | Stripe remains external and provider-independent |
-| Authentication | Current auth stack remains external; verify Cloudflare runtime parity |
-| Object storage | Vercel Blob is a migration coupling point; evaluate continued cross-cloud use vs Cloudflare R2 |
-| AI generation | Keep behind application/service interfaces; do not couple inference to hosting provider |
+| Public/static traffic | Cloudflare-preferred once route-level production rollout is approved |
+| Public lightweight reads | Cloudflare + direct Neon where proven |
+| Auth0/JWT session boundary | Cloudflare-capable for the tested path |
+| Protected user reads | Cloudflare + direct Neon where proven |
+| Merchant workspace/profile | Cloudflare + direct Neon where proven |
+| Merchant provisioning | Cloudflare-capable for the tested scope |
+| Store/Campaign DRAFT operations | Cloudflare-capable for the tested B2 scope |
+| Narrow MCP bearer/tools | Cloudflare-capable; bundle budget remains monitored |
+| Neon/PostgreSQL | Shared external relational source of truth |
+| Stripe/payment fulfillment | Current Vercel/backend path |
+| Blob/upload/cleanup | Current Vercel/backend path |
+| AI generation/orchestration | Current Vercel/backend path |
+| Cron/background work | Current Vercel/backend path |
+| Full MCP OAuth/DCR/source intake | Current Vercel/backend path |
+| Broad admin surface | Current Vercel/backend path until separately proven |
 
-### Avoid new provider coupling
+The canonical capability classification is maintained in:
 
-New product work should not introduce Vercel-only primitives unless they materially simplify the product and have an explicit migration path.
+- `docs/operations/cloudflare-production-route-boundary.md`
 
-This is a guardrail, not a ban: product velocity still outranks theoretical portability.
+## Routing Principles
 
-## Cloudflare Compatibility Audit
+Production rollout must follow these rules:
 
-Before any cutover, verify production-equivalent behavior for:
+1. **Explicit capability ownership.** Every route/capability has one authoritative runtime owner.
+2. **Unknown defaults to the existing backend.** No broad wildcard migration of unverified APIs.
+3. **One writer per capability.** Never dual-write between Cloudflare and Vercel.
+4. **No automatic cross-runtime retry for mutations.** A failed write must not silently execute on both runtimes.
+5. **Shared identity and database truth.** Auth0 remains the identity provider; Neon remains the relational source of truth.
+6. **Security boundaries are preserved.** Tenant, ownership, role, webhook, and rate-limit semantics must survive routing changes.
+7. **Rollback is route/capability based.** Reads should be able to return to the existing backend without database rollback; writes require drain/idempotency checks before ownership changes.
 
-1. Next.js App Router build through OpenNext / Workers.
-2. Static generation, ISR / revalidation, cache semantics, and dynamic routes.
-3. `next/image` or replacement image-delivery behavior.
-4. Auth flows, cookies, session refresh, redirects, and protected admin paths.
-5. Stripe checkout and webhook handling.
-6. Neon connectivity and Prisma / driver compatibility.
-7. Vercel Blob reads/writes and the R2 migration option.
-8. Middleware and locale routing across all supported locales.
-9. Cron / scheduled jobs and any background work.
-10. Upload/body-size limits and large image flows.
-11. Long-running AI generation / polling paths.
-12. Store / Campaign public routes, attribution, and merchant isolation.
+## Cloudflare Budget Discipline
 
-## Rollout Plan
+Cloudflare Free is currently strategically useful because it can absorb meaningful edge traffic with minimal fixed infrastructure cost.
 
-### Phase 0 — Continue Vercel optimization
+Current operational budgets include Worker bundle size, request count, CPU, and runtime limits. These must be measured as part of relevant changes.
 
-- Keep production stable on Vercel.
-- Continue measuring runtime, origin transfer, image optimization, ISR, and cache behavior.
-- Only pursue optimizations that improve architecture/performance or remove meaningful cost risk.
+However:
 
-### Phase 1 — Cloudflare build parity
+> The Free plan is a budget constraint, not the architecture itself.
 
-- Maintain a dedicated migration branch or reproducible deployment configuration.
-- Make the current Next.js app build and deploy successfully through Cloudflare/OpenNext.
-- Record incompatibilities rather than silently changing production behavior.
+Do not distort product or architecture solely to preserve a free-tier limit. Upgrade, split, or move a workload when the business economics justify it.
 
-### Phase 2 — Staging parity audit
+## Provider Independence
 
-Validate the compatibility checklist above using a Cloudflare staging domain.
+Keep provider-independent boundaries where practical:
 
-Minimum acceptance:
+- Neon remains external and shared.
+- Stripe remains external.
+- Auth0 remains external.
+- AI providers remain external behind service interfaces.
+- Storage remains on the current Blob path until an R2 or other migration is separately justified.
 
-- core consumer funnel works end-to-end;
-- Store public and merchant-admin boundaries remain correct;
-- auth and payments are safe;
-- SEO metadata, canonical URLs, locale routing, sitemap behavior, and rendered content remain equivalent;
-- no material regression in image quality or page performance.
+Do not migrate a component merely because Cloudflare offers an equivalent service.
 
-### Phase 3 — Shadow observation
+A migration should materially improve at least one of:
 
-Run Cloudflare staging for at least 1–2 weeks with production-like builds and smoke tests. Capture deployment, runtime, cache, and operational differences.
+- cost;
+- latency;
+- scalability;
+- reliability;
+- operational simplicity;
+- portability;
+- product capability.
 
-### Phase 4 — Production cutover when justified
+## Implementation Roadmap
 
-Cut over only after the migration triggers and acceptance criteria are both satisfied. Keep a documented rollback path to Vercel during the initial cutover window.
+Architecture discovery is considered complete unless new evidence invalidates a core assumption.
 
-## Migration Triggers
+The default work mode is now implementation and rollout.
 
-Cloudflare migration becomes an execution priority when one or more of the following are true:
+### Stage 1 — Staging capability routing
 
-- engineering work is repeatedly being done primarily to remain inside Vercel plan/resource limits;
-- Vercel commercial-plan policy or pricing becomes a practical blocker for the live business;
-- sustained consumer / merchant traffic makes the Vercel cost curve materially worse than the Cloudflare alternative;
-- image, origin-transfer, ISR, function, or related limits materially constrain growth;
-- Store / Campaign traffic makes low-cost edge/static delivery strategically important;
-- Cloudflare staging has already passed production-parity validation.
+Prove that a staging routing layer can send explicit Cloudflare-ready capabilities to the Worker and default unsupported capabilities to the existing Vercel/backend origin.
 
-Traffic volume alone is not an automatic trigger. A rough **10K–20K+ monthly-user / materially growing merchant-traffic** range should be treated as a review point, not a hard migration threshold.
+Validate auth/cookies, request bodies, redirects, security, write ownership, observability, and rollback behavior.
 
-## Success Criteria
+### Stage 2 — Public-read production slice
 
-A migration is successful only if:
+Move only individually proven public/static/read-heavy routes to Cloudflare ownership.
 
-- consumer and merchant workflows have functional parity;
-- SEO/indexability and locale behavior do not regress;
-- auth, payments, tenant isolation, and webhooks remain correct;
-- page and image performance are acceptable or better;
-- operational debugging and rollback are practical;
-- infrastructure cost remains small relative to revenue and grows more slowly than the business.
+Keep the existing backend as the fallback/origin for unsupported capabilities.
+
+### Stage 3 — Authenticated-read slice
+
+Move already-proven Auth0/JWT and direct-Neon protected reads after production routing/cookie behavior is validated.
+
+### Stage 4 — Proven write slice
+
+Move only explicitly verified Store/Campaign/Merchant write capabilities. Maintain one authoritative writer and idempotent rollback procedures.
+
+### Stage 5 — Retain heavy backend workloads
+
+Keep Stripe, Blob, AI, cron/background, full MCP OAuth/source intake, and broad admin workloads on the existing backend until each has a separate economic and technical justification to move.
+
+### Stage 6 — Scale Store / Campaign deliberately
+
+As Store/Campaign traffic grows, prioritize edge delivery, caching, lightweight reads, attribution/session/event paths, and bounded request execution so traffic growth does not translate directly into heavyweight backend cost.
+
+## Production Migration Gate
+
+There is no requirement to complete a full provider migration before production can use Cloudflare.
+
+Production adoption should occur by capability only after:
+
+- real staging evidence exists;
+- security and tenant isolation pass;
+- SEO/cache/cookie behavior is acceptable;
+- bundle and runtime budgets are acceptable;
+- observability exists;
+- rollback is documented and practical;
+- the workload has one authoritative execution owner.
+
+The production domain/DNS must not be changed as a big-bang migration solely to achieve architectural purity.
 
 ## Non-Goals
 
+- Reopening a broad Vercel-vs-Cloudflare provider comparison without new evidence.
 - Achieving `$0` infrastructure cost at any engineering cost.
-- Rewriting stable product architecture solely to avoid a small Vercel bill.
-- Migrating Neon, Stripe, Auth, or AI providers simply because the web host changes.
-- Introducing Cloudflare-specific coupling before the migration path is validated.
+- Moving every VisuTry capability to Cloudflare.
+- Migrating Neon to D1 without a separate business/technical justification.
+- Migrating Blob to R2 simply for provider consistency.
+- Running long or heavy AI/background workloads in a Free Worker merely because it is technically possible.
+- Maintaining two independent application truths or two writers for the same capability.
 
-## Review Cadence
+## Review Triggers
 
-Review this decision when:
+Revisit this architecture only when material evidence changes, for example:
 
-- a new Vercel resource ceiling becomes material;
-- Store / Campaign traffic changes the workload profile;
-- a Cloudflare staging milestone is completed;
-- hosting spend becomes meaningful relative to monthly revenue;
-- or at least once per quarter while VisuTry remains pre-break-even.
+- Store/Campaign traffic changes the workload profile materially;
+- Workers Free/paid economics become materially different from the current assumptions;
+- the current Vercel/backend path becomes a cost, policy, reliability, or capability blocker;
+- a major integration can no longer operate safely in the selected runtime;
+- Neon or another shared dependency becomes the actual scaling bottleneck;
+- operational complexity of the hybrid architecture exceeds its economic benefit.
+
+Routine implementation work should not reopen the architecture decision.
 
 ## Related Documents
 
-- `docs/operations/vercel-cpu-static-page-pilot.md`
-- `docs/decisions/ADR-005-ssr-to-client-gate.md`
 - `docs/decisions/ADR-009-vercel-cloudflare-hosting-optionality.md`
+- `docs/decisions/ADR-010-hybrid-edge-architecture-for-store-campaign-scale.md`
+- `docs/operations/cloudflare-phase-a-build-parity.md`
+- `docs/operations/cloudflare-phase-b1-auth-read-parity.md`
+- `docs/operations/cloudflare-phase-b2-write-parity.md`
+- `docs/operations/cloudflare-phase-b3-integration-audit.md`
+- `docs/operations/cloudflare-production-route-boundary.md`
+- `docs/operations/vercel-cpu-static-page-pilot.md`
