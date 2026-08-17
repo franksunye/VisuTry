@@ -114,4 +114,4 @@ Recorded validation: `npm ci`, typecheck, lint (existing warnings only), critica
 
 ## Git
 
-Branch: `codex/cloudflare-phase-a-build-parity`. The final commit is recorded by Git after the validation changes in this handoff; no merge to `main` is part of this milestone.
+Branch: `codex/cloudflare-phase-a-build-parity`. Commit: `4a49670` (`fix: finalize B3.2 staging routing validation`). No merge to `main` is part of this milestone.
