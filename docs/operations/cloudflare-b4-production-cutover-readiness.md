@@ -1,8 +1,11 @@
 # VisuTry Cloudflare B4.1 Production Cutover Readiness
 
-**Status:** PASS — readiness plan and proposed first public slice are recorded. Production traffic was not moved.  
-**Date:** 2026-08-17  
-**Owner:** Product / Engineering  
+**Status:** PASS — readiness plan, Static Asset audit, and corrected Free-plan quota model are recorded. Production traffic was not moved.
+
+**Date:** 2026-08-17
+
+**Owner:** Product / Engineering
+
 **Baseline:** `origin/main` `b3794161d0bb4d2c7e928d5cf5ba39887b2e86be` (PR #92 merge)
 
 This document is the B4.2 implementation plan. It does **not** cut over production, change DNS, bind `www.visutry.com`, or deploy a production Worker route.
@@ -19,8 +22,8 @@ Related:
 
 | Item | Value |
 | --- | --- |
-| B4.1 result | PASS |
-| B4.2 GO / NO-GO | **GO** after a workers.dev smoke of this public slice; DNS cutover is a later B4.2 action |
+| B4.1 result | PASS (quota-model correction applied) |
+| B4.2 GO / NO-GO | **GO** for staging wiring of this public slice after workers.dev smoke. Production DNS/Custom Domain remains a later window. Worker HTML volume is **WARNING**, not a classification NO-GO. |
 | Production DNS changed | NO |
 | Production Worker route bound | NO |
 | Authenticated traffic in first slice | NO |
@@ -28,7 +31,9 @@ Related:
 
 Last proven staging Worker: `a84743e9-90ab-404e-b372-5a6234d634af`, gzip **2777.11 KiB** / 3072 KiB.
 
-B4.1 wrangler staging dry-run on this branch (classifier not wired into the Worker): **2782.77 KiB** gzip. The delta versus 2777.11 KiB is OpenNext/Next generated-artifact noise, not a new production route graph. Still below 3072 KiB.
+B4.1 wrangler staging dry-run on this branch (classifier not wired into the Worker): **2780.44 KiB** gzip after the quota-model correction (earlier on this branch: 2782.77 KiB). Still below 3072 KiB.
+
+**Corrected optimization goal:** serve eligible content through Cloudflare Static Assets **without Worker invocation**; use the Worker only for capabilities that actually require routing or runtime execution. Do **not** treat Workers Caching or “Worker-as-origin CDN cache” as a way to avoid the 100,000 Worker requests/day quota.
 
 ## 2. Architecture baseline
 
@@ -39,6 +44,26 @@ Unchanged from ADR-010:
 Current production host is Vercel. `www.visutry.com` and `visutry.com` are Vercel project domains. Public DNS nameservers are `ns1.vercel-dns.com` / `ns2.vercel-dns.com`. `wrangler.jsonc` is staging `workers_dev` only: no `routes`, no zone, no `visutry.com`.
 
 B3.2 same-host staging routing already passed (PR #92). That proves cookie/header forwarding and Vercel fallback. It does **not** prove that every B3.2 `cf-ready` route should enter the first production slice.
+
+### 2.1 Production request path (B4.2 target)
+
+```text
+www.visutry.com request
+  → Cloudflare Static Assets  (run_worker_first = false)
+      → exact file in .open-next/assets
+          serve directly, no Worker, does not count toward 100k/day
+  → else Cloudflare Worker (app-host-worker.ts)
+      → classify
+         → CF OpenNext runtime     (HTML, APIs, redirects, sitemaps)
+         → https://visutry.vercel.app
+           UNKNOWN, writes, Vercel-required
+```
+
+Preserve: UNKNOWN → Vercel; writes → Vercel; no automatic CF→Vercel retry; no dual execution; no dual write. Do not redesign B3.2 capability semantics in `cloudflare-router/worker.ts`.
+
+Do **not** set `assets.run_worker_first` to `true`. That would invoke `app-host-worker.ts` for hashed JS/CSS/images and consume Worker quota. Do **not** enable Workers Caching as a quota strategy: cache hits are still billed as Worker requests, and enabling it can bill otherwise-free Static Assets.
+
+Keep `assets.not_found_handling = "none"` so missing assets fall through to the Worker (then Vercel for unknown), not a fake SPA `index.html` 200.
 
 ## 3. First production slice
 
@@ -105,7 +130,11 @@ Legend: **Slice** = first production slice YES/NO. **B3.2** = current staging cl
 | `GET /api/glasses/brands` | GET/HEAD | no | read | B3.2 CF | s-maxage 3600 | Neon (CF alias) | no | no | no | no | low | YES |
 | `GET /api/glasses/categories\|face-shapes` | GET/HEAD | no | read | B3.2 unknown→Vercel; same `@/data/glasses` layer | s-maxage 3600 | Neon on CF build | no | no | no | no | low | YES |
 | `GET /api/glasses/frames`, `/api/frames` | GET/HEAD | no | read | Vercel | s-maxage 3600 | Prisma on `/api/frames` | no | no | no | no | low | NO |
-| `/_next/static/*`, favicon, public files | GET/HEAD | no | read | B3.2 CF for static+favicon only | immutable | no | no | no | no | dotted skip | high | YES |
+| `/_next/static/*` | GET/HEAD | no | read | hashed files in `.open-next/assets` | hashed-immutable | no | no | no | no | dotted skip | high | YES, **Static Asset** |
+| favicon, `/images/*`, `/home/*`, `/experience-heroes/*`, other public files | GET/HEAD | no | read | files in `.open-next/assets` | deploy-public-asset (finite TTL) | no | no | no | no | dotted skip | high | YES, **Static Asset** |
+| `/robots.txt`, `/llms.txt` | GET/HEAD | no | read | files in `.open-next/assets` | control-files | no | no | no | no | no | medium | YES, **Static Asset** |
+| locale/SEO/blog/brand HTML | GET/HEAD | no | read | OpenNext `.cache`, **not** Static Assets | deploy-static-html | no | no | no | no | no if localized | high | YES, **Worker** |
+| static sitemaps | GET/HEAD | no | read | OpenNext `.cache` only | static-sitemap | no | no | no | no | no | high | YES, **Worker** |
 | `/_next/image` | GET | no | read | Vercel-required | optimizer | no | remote/Blob | no | no | no | high | NO |
 | `/api/auth/*` | GET/POST | session | mixed | B3.2 CF | no | JWT/Neon adapter | no | no | no | no | none | NO |
 | Protected history/balance/profile | GET | session | read | B3.2 CF | no | Neon | no | no | history read only | no | none | NO |
@@ -117,22 +146,53 @@ Ambiguous routes default to Vercel.
 
 ## 6. Cache strategy
 
-Cloudflare Free **100k Worker requests/day** makes zone cache in front of the Worker (Worker-as-origin) a B4.2 requirement. Cache hits must not invoke the Worker.
+The previous B4.1 goal (“cache public traffic in front of the Worker so cache hits avoid the 100k quota”) is **incorrect**.
 
-| Class | Browser | CF TTL | Cache key | Query | Cookie | Auth | Stale | Purge | 404 |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| A immutable static | 1y immutable | 1y | host+path, ignore query/cookie | ignore | do not vary | bypass if `Authorization` | n/a | new hash | 60s |
-| B deploy-time HTML | max-age=0 | 1d + SWR 7d | host+path, ignore query/cookie | ignore | do not vary (UserMenu is client) | bypass if `Authorization` | SWR 7d | purge-by-URL on deploy | 60s; never cache 5xx |
-| C catalog APIs | max-age=0, s-maxage=3600, SWR 1d | 3600s | host+path | ignore | do not vary | bypass if `Authorization` | 1d | URL purge after catalog edit if needed | n/a |
-| D Store landing (deferred) | keep Vercel ISR | n/a | n/a | n/a | n/a | n/a | 7d safety TTL | `revalidateTag` | admission 404 |
-| E Campaign landing (deferred) | keep Vercel ISR | n/a | n/a | n/a | n/a | n/a | 7d safety TTL | `revalidateTag` | admission 404 |
-| F unknown/404 | do not store 5xx | 404 60s only if CF served | path | forward to Vercel | forward, never store | forward, never store | none | n/a | Vercel `notFound()` |
-| `/` | private | **bypass** | n/a | ignore | n/a | n/a | none | n/a | n/a |
-| health | no-store | bypass | n/a | ignore | n/a | n/a | none | n/a | n/a |
+Current Cloudflare behavior:
 
-Do not cache responses that set `Set-Cookie`. Do not cache authenticated/private HTML. Do not let Cookie variants poison public cache: **ignore Cookie on first-slice GET cache keys**.
+- Requests that invoke a Worker count toward the Workers Free **100,000 requests/day** quota ([Workers limits](https://developers.cloudflare.com/workers/platform/limits/)).
+- [Workers Caching](https://developers.cloudflare.com/workers/cache/) can skip Worker **CPU** on a hit, but the request is still billed at the standard Worker request rate. Enabling it can also bill otherwise-free Static Assets.
+- [Static Assets](https://developers.cloudflare.com/workers/static-assets/) are free and unlimited **only** when served as Static Assets **without** invoking the Worker script. Default routing: exact asset match is served first; `run_worker_first` defaults to `false`.
+- Next.js `force-static` HTML is **not** a Static Asset. OpenNext stores it under `.open-next/cache/*.cache` and serves it through the Worker.
+
+Do not use one `immutable-static` policy for all public files. Filename content hashing is proven only for `/_next/static/*`.
+
+| Class | Examples | Browser | CF / edge | Purge | Worker invoked? | Counts toward 100k? |
+| --- | --- | --- | --- | --- | --- | --- |
+| A `hashed-immutable` | `/_next/static/*` | `public, max-age=31536000, immutable` | Static Assets automatic cache | new hash | **No** if `run_worker_first=false` and file exists | **No** |
+| B `deploy-public-asset` | favicon, `/images/*`, `/home/*`, `/experience-heroes/*`, `/blog-covers/*`, `/assets/*` | `public, max-age=3600, must-revalidate` | s-maxage=86400 | deploy + URL purge | **No** if asset exists | **No** |
+| C `control-files` | `/robots.txt`, `/llms.txt` | `public, max-age=0, must-revalidate` | s-maxage=3600 | deploy + URL purge | **No** if asset exists | **No** |
+| D `deploy-static-html` | `/:locale`, blog, brand, marketing HTML | `public, max-age=0, must-revalidate` | s-maxage=86400, SWR 7d | purge-by-URL on deploy | **Yes** (OpenNext) | **Yes** |
+| E `static-sitemap` | `/sitemap.xml`, `/sitemaps/core.xml`, `/sitemaps/blog.xml` | `public, max-age=0, must-revalidate` | s-maxage=3600 | purge-by-URL on deploy | **Yes** (OpenNext cache) | **Yes** |
+| root `/` | locale detect | private, no-store | bypass | n/a | **Yes** | **Yes** |
+| catalog APIs | `/api/glasses/brands\|categories\|face-shapes` | max-age=0, s-maxage=3600 | 3600s | URL purge after catalog edit | **Yes** | **Yes** |
+| health | `/api/health` | no-store | bypass | n/a | **Yes** | **Yes** |
+| Store/Campaign (deferred) | keep Vercel ISR | n/a | n/a | `revalidateTag` | Worker only to proxy | **Yes** (proxy) |
+| unknown | Vercel fallback | never store 5xx | bypass | n/a | Worker proxies | **Yes** (proxy) |
+
+Do not cache responses that set `Set-Cookie`. Do not cache authenticated/private HTML. Ignore Cookie on first-slice GET cache keys. Do not mark non-hashed public files immutable for one year.
 
 See `B4_CACHE_POLICIES` in `cloudflare-router/b4-production-public-slice.ts`.
+
+### 6.1 OpenNext Static Asset audit (proven 2026-08-17)
+
+Inspected `.open-next/assets` (291 files) and `.open-next/cache` after `opennextjs-cloudflare build`. Wrangler `assets.directory` is `.open-next/assets`. `run_worker_first` is explicitly `false`. Staging `GET /en` previously returned `x-visutry-router-backend` from `app-host-worker.ts`, which matches “no HTML file in assets → Worker invoked”.
+
+| Path family | OpenNext output type | Static Asset exists | Worker invoked | Counts against 100k/day | Safe for B4.2 |
+| --- | --- | --- | --- | --- | --- |
+| `/_next/static/*` | copied hashed JS/CSS/fonts in `.open-next/assets/_next/static/` (147 files) | YES | NO (`run_worker_first=false`) | NO | YES |
+| favicon | `.open-next/assets/favicon.ico`, `favicon.svg` | YES | NO | NO | YES |
+| `public/*` images (`/images`, `/home`, `/experience-heroes`, `/blog-covers`, `/assets`, `og-image.jpg`) | copied into `.open-next/assets` | YES | NO | NO | YES |
+| `/robots.txt` | `.open-next/assets/robots.txt` | YES | NO | NO | YES |
+| `/llms.txt` | `.open-next/assets/llms.txt` | YES | NO | NO | YES |
+| locale home HTML (`/en`, `/id`, …) | `.open-next/cache/.../en.cache` etc. | **NO** (0 locale HTML files in assets; only `google*.html`) | **YES** | **YES** | YES as Worker HTML, not as a free asset |
+| static SEO HTML | OpenNext incremental cache | **NO** | **YES** | **YES** | YES as Worker HTML |
+| blog HTML | OpenNext incremental cache | **NO** | **YES** | **YES** | YES as Worker HTML |
+| brand HTML | OpenNext incremental cache | **NO** | **YES** | **YES** | YES as Worker HTML |
+| static sitemap files | `.open-next/cache/.../sitemap.xml.cache`, `sitemaps/core.xml.cache`, `sitemaps/blog.xml.cache` | **NO** | **YES** | **YES** | YES as Worker sitemap |
+| unknown / writes | n/a | NO | YES (Worker proxies to Vercel) | YES | keep Vercel; do not retry |
+
+Do not assume HTML is a Static Asset because Next.js calls the route `force-static`. It is not in `.open-next/assets`.
 
 ## 7. SEO equivalence
 
@@ -171,7 +231,7 @@ Prerequisite for B4.2 DNS: prove one signed-in request through `www` → Worker 
 
 ## 9. DNS / custom-domain plan
 
-**Do not apply this in B4.1.**
+**Do not apply this in B4.1.** Production nameservers, www records, and Vercel domains stay unchanged.
 
 Observed now (read-only):
 
@@ -182,7 +242,14 @@ Observed now (read-only):
 | `visutry.com` A | Vercel anycast |
 | Vercel domains | `www.visutry.com`, `visutry.com`, `visutry.vercel.app`, git/alias hosts |
 
-Cloudflare is **not** the authoritative DNS today. A Worker Custom Domain requires a Cloudflare zone.
+Documented constraints for B4.2 (not executed here):
+
+- A Worker Custom Domain requires an **active Cloudflare zone**.
+- Current nameservers are still **Vercel**. B4.2 therefore needs a deliberate nameserver/DNS migration window **before** Custom Domain activation.
+- Existing `www` DNS records (Vercel A/anycast) **conflict** with adding a Worker Custom Domain and must be resolved in that window.
+- Fallback origin must remain `https://visutry.vercel.app` (or another origin that cannot loop back through `www.visutry.com`).
+
+Cloudflare is **not** the authoritative DNS today.
 
 **Chosen architecture (Option A, safest long-term):**
 
@@ -204,9 +271,10 @@ Send `X-Forwarded-Host: www.visutry.com` and `X-Forwarded-Proto: https`. Rewrite
 
 ```text
 browser
-  → www.visutry.com (Cloudflare Worker custom domain; B4.2 only)
-    → classifyB4ProductionPublicSlice
-      → CF OpenNext / ASSETS        (first slice GET/HEAD)
+  → www.visutry.com (Cloudflare; B4.2 only)
+    → Static Assets exact match? serve, no Worker
+    → else Worker classifyB4ProductionPublicSlice
+      → CF OpenNext runtime         (HTML, APIs, redirects, sitemaps)
       → https://visutry.vercel.app  (everything else)
 ```
 
@@ -216,16 +284,25 @@ Current staging origin `https://visutry-3v81kow8o-sunye.vercel.app` is Preview-o
 
 ## 11. Cloudflare Free budget
 
-| Constraint | Evidence | First-slice |
+Count **two numbers**. Do not use total site traffic, ISR 8KB units, or FOT as the Worker request estimate.
+
+| Meter | Rule | First-slice |
 | --- | --- | --- |
-| Worker gzip | 2782.77 KiB dry-run (2777.11 KiB last staging); classifier not in the bundle | SAFE |
+| **Static Asset requests** | Free and unlimited **if** the Worker is not invoked (`run_worker_first=false` and exact file in `.open-next/assets`) | `/_next/static/*`, favicon, public images, `robots.txt`, `llms.txt` |
+| **Worker invocations** | Hard target **< 100,000/day**. Operational warning **< 70,000/day**. Error 1027 after the hard limit. | HTML, sitemaps, `/`, locale-less 308s, health, catalog APIs, and **all Vercel fallback/proxy** traffic |
+| Worker gzip | 2780.44 KiB dry-run (2777.11 KiB last staging); classifier not in the bundle | SAFE |
 | 3072 KiB hard limit | PR #92 | SAFE |
-| 10 ms CPU / invocation | Static HTML/assets; cached catalog | SAFE if cache hits; catalog miss hits Neon |
-| 100,000 Worker requests/day | PR #91 Hobby: ~1.2M ISR **8KB units**/day and ~10.42 GB FOT — not 1:1 with requests | **WARNING** |
+| 10 ms CPU / invocation | HTML from OpenNext cache; catalog miss hits Neon | SAFE for cached HTML; catalog miss is the CPU risk |
 
-Without CDN cache, one HTML page + hashed assets can consume many Worker invocations per view and exhaust 100k quickly. With Worker-as-origin cache, invocations track misses and uncached `/` + health + fallback proxying.
+Workers Caching does **not** reduce the request meter. It only skips CPU on a hit and can bill Static Assets that would otherwise be free. Do not enable it for quota relief.
 
-Projected first-slice volume: **WARNING**, not BLOCKED, if B4.2 enables cache hits and monitors the 100k meter from minute 0. Do not recommend Paid. If the 24h Worker request rate trends above ~70k, halt expansion and keep more paths on Vercel.
+**Which first-slice routes invoke the Worker (proven):** locale homes, SEO/blog/brand HTML, static sitemaps, `/`, locale-less redirects, `GET /api/health`, catalog list APIs, and any non-asset fallback to Vercel.
+
+**Which first-slice routes do not (proven, given current wrangler):** `/_next/static/*`, favicon, public image prefixes present in assets, `robots.txt`, `llms.txt`.
+
+Estimated Worker requests/day cannot be a 1:1 of “all www hits”. A typical HTML view is **one Worker request** plus many free Static Asset subresources. Production HTML/API/fallback volume is **not logged as Worker invocations today**, so the quota result is **WARNING**, not SAFE. If 24h Worker invocations trend above **70,000**, halt expansion. If they would exceed **100,000**, do not cut over www.
+
+Do not recommend Paid solely from this correction. Keep more paths on Vercel rather than turning on `run_worker_first` or Workers Caching.
 
 ## 12. Observability
 
@@ -254,9 +331,9 @@ Expected rollback time: **5–15 minutes**.
 3. Confirm gzip < 3072 KiB and wrangler still has no production route until the DNS window.
 4. Create Cloudflare zone / copy DNS grey-cloud.
 5. Add production env: `VERCEL_ORIGIN=https://visutry.vercel.app`, `NEXTAUTH_URL=https://www.visutry.com`.
-6. Enable Worker-as-origin cache rules for classes A–C.
-7. Bind Custom Domain `www.visutry.com` (this is the traffic move).
-8. Watch 30 min / 2h / 6h / 24h metrics.
+6. Keep `run_worker_first: false`. Confirm hashed/public/control files skip the Worker (no `x-visutry-router-backend`). Do **not** enable Workers Caching as a 100k-quota offload.
+7. Bind Custom Domain `www.visutry.com` only after the nameserver/DNS window (this is the traffic move).
+8. Watch 30 min / 2h / 6h / 24h **Worker invocation** count separately from Static Asset traffic.
 9. If any rollback trigger fires, run section 13.
 
 ## 15. Validation checklist
@@ -281,11 +358,16 @@ B4.2 pre-DNS smoke (workers.dev):
 
 ## 16. B4.2 GO / NO-GO
 
-**GO** for implementing the public slice on staging and then a controlled www Custom Domain cutover, with these blockers that B4.2 must clear first:
+**GO** for implementing the public slice on staging (`workers.dev`) with asset-first routing. Invocation families are proven from OpenNext output. Production www Custom Domain remains a later, planned DNS window.
+
+B4.2 must clear before DNS:
 
 1. workers.dev smoke of the **expanded** public classifier (brand/blog/static HTML on CF runtime).
-2. Worker-as-origin CDN cache rules (Free 100k request budget).
-3. Fallback origin `visutry.vercel.app` with host/Location rewrite proven (no loop, no vercel.app canonical leak).
-4. Nameserver/Custom Domain runbook executed only in a planned window, with the section 13 rollback staged.
+2. Prove Static Assets skip the Worker for `/_next/static/*`, favicon, `robots.txt` (`run_worker_first` stays `false`; do not enable Workers Caching for quota).
+3. Measure Worker invocations (HTML + APIs + redirects + Vercel proxy) against the 70k warning / 100k hard limit. Do not use total site traffic.
+4. Fallback origin `visutry.vercel.app` with host/Location rewrite proven (no loop, no vercel.app canonical leak).
+5. Nameserver/Custom Domain runbook executed only in a planned window, with existing www record conflicts resolved and the section 13 rollback staged.
 
 Not blockers: Auth0 production changes, Store/Campaign on CF, `_next/image` on CF, Paid plan.
+
+Classification NO-GO would apply if first-slice Worker vs Static Asset invocation could not be proven. That is proven. Volume remains **WARNING**.

@@ -1,6 +1,10 @@
 /** @jest-environment node */
 
+import fs from 'fs'
+import path from 'path'
 import {
+  B4_CACHE_POLICIES,
+  B4_OPENNEXT_ASSET_AUDIT,
   B4_PRODUCTION_PUBLIC_SLICE_MANIFEST,
   classifyB4ProductionPublicSlice,
   productionFallbackOrigin,
@@ -158,5 +162,117 @@ describe('B4.2 first production public slice', () => {
     expect(productionPublicHost()).toBe('www.visutry.com')
     expect(productionFallbackOrigin()).toBe('https://visutry.vercel.app')
     expect(new URL(productionFallbackOrigin()).hostname).not.toBe(productionPublicHost())
+  })
+
+  it('splits hashed immutable assets from non-hashed public files and control files', () => {
+    expect(classifyB4ProductionPublicSlice(request('/_next/static/chunks/app.js'))).toMatchObject({
+      cacheClass: 'hashed-immutable',
+      invocation: 'static-asset',
+      countsAgainstWorkerQuota: false,
+    })
+    expect(classifyB4ProductionPublicSlice(request('/favicon.ico'))).toMatchObject({
+      cacheClass: 'deploy-public-asset',
+      invocation: 'static-asset',
+      countsAgainstWorkerQuota: false,
+    })
+    expect(classifyB4ProductionPublicSlice(request('/images/hero.webp'))).toMatchObject({
+      cacheClass: 'deploy-public-asset',
+      invocation: 'static-asset',
+    })
+    expect(classifyB4ProductionPublicSlice(request('/home/hero.webp'))).toMatchObject({
+      cacheClass: 'deploy-public-asset',
+    })
+    expect(classifyB4ProductionPublicSlice(request('/experience-heroes/demo.webp'))).toMatchObject({
+      cacheClass: 'deploy-public-asset',
+    })
+    expect(classifyB4ProductionPublicSlice(request('/robots.txt'))).toMatchObject({
+      cacheClass: 'control-files',
+      invocation: 'static-asset',
+      countsAgainstWorkerQuota: false,
+    })
+    expect(classifyB4ProductionPublicSlice(request('/llms.txt'))).toMatchObject({
+      cacheClass: 'control-files',
+      invocation: 'static-asset',
+    })
+    expect(B4_CACHE_POLICIES['hashed-immutable'].browserCacheControl).toContain('immutable')
+    expect(B4_CACHE_POLICIES['deploy-public-asset'].browserCacheControl).not.toContain('immutable')
+    expect(B4_CACHE_POLICIES['control-files'].browserCacheControl).not.toContain('immutable')
+    expect(B4_CACHE_POLICIES['control-files'].purge).toMatch(/purge/i)
+  })
+
+  it('treats Next force-static HTML and sitemaps as Worker invocations, not Static Assets', () => {
+    expect(classifyB4ProductionPublicSlice(request('/en'))).toMatchObject({
+      cacheClass: 'deploy-static-html',
+      invocation: 'worker',
+      countsAgainstWorkerQuota: true,
+    })
+    expect(classifyB4ProductionPublicSlice(request('/en/blog'))).toMatchObject({
+      cacheClass: 'deploy-static-html',
+      invocation: 'worker',
+      countsAgainstWorkerQuota: true,
+    })
+    expect(classifyB4ProductionPublicSlice(request('/en/brand/warby-parker'))).toMatchObject({
+      cacheClass: 'deploy-static-html',
+      invocation: 'worker',
+      countsAgainstWorkerQuota: true,
+    })
+    expect(classifyB4ProductionPublicSlice(request('/sitemap.xml'))).toMatchObject({
+      cacheClass: 'static-sitemap',
+      invocation: 'worker',
+      countsAgainstWorkerQuota: true,
+    })
+    expect(classifyB4ProductionPublicSlice(request('/sitemaps/core.xml'))).toMatchObject({
+      cacheClass: 'static-sitemap',
+      invocation: 'worker',
+    })
+    expect(classifyB4ProductionPublicSlice(request('/'))).toMatchObject({
+      cacheClass: 'root-locale-detect',
+      invocation: 'worker',
+      countsAgainstWorkerQuota: true,
+    })
+    expect(classifyB4ProductionPublicSlice(request('/api/health'))).toMatchObject({
+      invocation: 'worker',
+      countsAgainstWorkerQuota: true,
+    })
+    expect(B4_OPENNEXT_ASSET_AUDIT.localeHomeHtmlInAssets).toBe(false)
+    expect(B4_OPENNEXT_ASSET_AUDIT.seoHtmlInAssets).toBe(false)
+    expect(B4_OPENNEXT_ASSET_AUDIT.blogHtmlInAssets).toBe(false)
+    expect(B4_OPENNEXT_ASSET_AUDIT.brandHtmlInAssets).toBe(false)
+    expect(B4_OPENNEXT_ASSET_AUDIT.sitemapFilesInAssets).toBe(false)
+    expect(B4_OPENNEXT_ASSET_AUDIT.hashedStaticInAssets).toBe(true)
+    expect(B4_OPENNEXT_ASSET_AUDIT.wranglerRunWorkerFirst).toBe(false)
+  })
+
+  it('proves locale/SEO HTML is absent from OpenNext Static Assets when the build is present', () => {
+    const assetsRoot = path.join(__dirname, '../../.open-next/assets')
+    if (!fs.existsSync(assetsRoot)) return
+    expect(fs.existsSync(path.join(assetsRoot, 'en.html'))).toBe(false)
+    expect(fs.existsSync(path.join(assetsRoot, 'en/index.html'))).toBe(false)
+    expect(fs.existsSync(path.join(assetsRoot, 'en/blog/index.html'))).toBe(false)
+    expect(fs.existsSync(path.join(assetsRoot, 'en/brand/warby-parker.html'))).toBe(false)
+    expect(fs.existsSync(path.join(assetsRoot, 'sitemap.xml'))).toBe(false)
+    expect(fs.existsSync(path.join(assetsRoot, 'robots.txt'))).toBe(true)
+    expect(fs.existsSync(path.join(assetsRoot, 'llms.txt'))).toBe(true)
+    expect(fs.existsSync(path.join(assetsRoot, 'favicon.ico'))).toBe(true)
+    expect(fs.existsSync(path.join(assetsRoot, '_next/static'))).toBe(true)
+  })
+
+  it('keeps first-cutover manifest rows aligned with the corrected cache and invocation classes', () => {
+    const first = B4_PRODUCTION_PUBLIC_SLICE_MANIFEST.filter((row) => row.cutoverClass === 'first')
+    expect(first.some((row) => row.cachePolicy === 'hashed-immutable' && row.invocation === 'static-asset')).toBe(true)
+    expect(first.some((row) => row.cachePolicy === 'deploy-public-asset' && row.invocation === 'static-asset')).toBe(true)
+    expect(first.some((row) => row.cachePolicy === 'control-files' && row.invocation === 'static-asset')).toBe(true)
+    expect(first.some((row) => row.cachePolicy === 'static-sitemap' && row.invocation === 'worker')).toBe(true)
+    expect(first.some((row) => row.cachePolicy === 'deploy-static-html' && row.invocation === 'worker')).toBe(true)
+    expect(first.every((row) => row.cachePolicy !== ('immutable-static' as typeof row.cachePolicy))).toBe(true)
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const manifest = require('../../cloudflare-router/b4-production-public-slice.manifest.json') as {
+      runWorkerFirst: boolean
+      workersCachingQuotaOffload: boolean
+      quotaModel: string
+    }
+    expect(manifest.runWorkerFirst).toBe(false)
+    expect(manifest.workersCachingQuotaOffload).toBe(false)
+    expect(manifest.quotaModel).toBe('static-assets-without-worker-invocation')
   })
 })

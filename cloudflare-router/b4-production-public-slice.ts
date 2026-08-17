@@ -4,14 +4,24 @@
  * This module is not wired into app-host-worker.ts or wrangler.jsonc.
  * Staging continues to use the proven B3.2 classify() in worker.ts.
  * Do not attach this slice to www.visutry.com from this PR.
+ *
+ * Free-plan quota model (corrected):
+ * - Static Assets are free only when served without invoking the Worker.
+ * - Keep wrangler assets.run_worker_first = false (the default).
+ * - Workers Caching still counts as Worker requests and can bill otherwise-free assets.
+ * - Next.js force-static HTML is OpenNext Worker output, not a Static Asset file.
  */
 
 export type B4Backend = 'cloudflare' | 'vercel'
 export type B4RouteClass = 'cf-ready' | 'vercel-required' | 'unknown-fallback'
 export type B4CutoverClass = 'first' | 'later' | 'vercel'
+export type B4InvocationMode = 'static-asset' | 'worker' | 'vercel'
 export type B4CacheClass =
-  | 'immutable-static'
+  | 'hashed-immutable'
+  | 'deploy-public-asset'
+  | 'control-files'
   | 'deploy-static-html'
+  | 'static-sitemap'
   | 'locale-less-redirect'
   | 'root-locale-detect'
   | 'public-catalog-api'
@@ -23,6 +33,8 @@ export interface B4RouteDecision {
   routeClass: B4RouteClass
   cutoverClass: B4CutoverClass
   cacheClass: B4CacheClass
+  invocation: B4InvocationMode
+  countsAgainstWorkerQuota: boolean
   auth: 'none'
   methods: 'GET,HEAD'
 }
@@ -32,6 +44,7 @@ export interface B4ManifestRow {
   methods: string
   backend: B4Backend
   cachePolicy: B4CacheClass
+  invocation: B4InvocationMode
   auth: 'none' | 'session' | 'bearer'
   reason: string
   rollbackClass: 'public-cdn' | 'origin-fallback' | 'keep-vercel'
@@ -109,8 +122,9 @@ const localizedPrefixes = [
   '/try-on/',
 ] as const
 
-const publicAssetPrefixes = [
-  '/_next/static/',
+const hashedImmutablePrefixes = ['/_next/static/'] as const
+
+const deployPublicAssetPrefixes = [
   '/blog-covers/',
   '/assets/',
   '/images/',
@@ -118,7 +132,11 @@ const publicAssetPrefixes = [
   '/experience-heroes/',
 ] as const
 
-const publicAssetExact = ['/favicon.ico', '/robots.txt', '/llms.txt', '/sitemap.xml', '/sitemaps/core.xml', '/sitemaps/blog.xml'] as const
+const deployPublicAssetExact = ['/favicon.ico'] as const
+
+const controlFilesExact = ['/robots.txt', '/llms.txt'] as const
+
+const staticSitemapExact = ['/sitemap.xml', '/sitemaps/core.xml', '/sitemaps/blog.xml'] as const
 
 const vercelRequiredPrefixes = [
   '/api/admin/',
@@ -147,15 +165,37 @@ export const B4_CACHE_POLICIES: Record<B4CacheClass, {
   purge: string
   negativeCache: string
 }> = {
-  'immutable-static': {
+  'hashed-immutable': {
     browserCacheControl: 'public, max-age=31536000, immutable',
-    cloudflareTtl: '1 year (honor origin / hashed assets)',
+    cloudflareTtl: 'Static Assets automatic edge cache; hashed filename is the invalidation',
     cacheKey: 'scheme + host + path (ignore query, ignore Cookie)',
     queryString: 'ignore',
-    cookieBypass: 'do not vary; HTML/assets are anonymous',
+    cookieBypass: 'do not vary',
     authorizationBypass: 'do not cache if Authorization is present',
     stale: 'none; hashed filename is the invalidation',
-    purge: 'deploy new hashed assets',
+    purge: 'deploy new hashed assets; no year-long stale copies of old hashes',
+    negativeCache: '404 for 60s',
+  },
+  'deploy-public-asset': {
+    browserCacheControl: 'public, max-age=3600, must-revalidate',
+    cloudflareTtl: 's-maxage=86400; Static Assets automatic edge cache',
+    cacheKey: 'scheme + host + path (ignore query, ignore Cookie)',
+    queryString: 'ignore',
+    cookieBypass: 'do not vary',
+    authorizationBypass: 'do not cache if Authorization is present',
+    stale: 'none; filenames are not content-hashed',
+    purge: 'Cloudflare Static Assets deploy replaces files; purge URL on deploy',
+    negativeCache: '404 for 60s',
+  },
+  'control-files': {
+    browserCacheControl: 'public, max-age=0, must-revalidate',
+    cloudflareTtl: 's-maxage=3600; purge on deploy',
+    cacheKey: 'scheme + host + path',
+    queryString: 'ignore',
+    cookieBypass: 'do not vary',
+    authorizationBypass: 'not applicable',
+    stale: 'none',
+    purge: 'purge URL on deploy so robots/llms cannot stay stale for a year',
     negativeCache: '404 for 60s',
   },
   'deploy-static-html': {
@@ -168,6 +208,17 @@ export const B4_CACHE_POLICIES: Record<B4CacheClass, {
     stale: 'serve stale up to 7 days while revalidating',
     purge: 'Cloudflare purge by URL on deploy; no Store/Campaign tags in B4.2',
     negativeCache: '404/410 for 60s; never cache 5xx',
+  },
+  'static-sitemap': {
+    browserCacheControl: 'public, max-age=0, must-revalidate',
+    cloudflareTtl: 's-maxage=3600; purge on deploy',
+    cacheKey: 'scheme + host + path',
+    queryString: 'ignore',
+    cookieBypass: 'do not vary',
+    authorizationBypass: 'not applicable',
+    stale: 'none',
+    purge: 'purge URL on deploy; dynamic sitemap stays on Vercel',
+    negativeCache: '404 for 60s; never cache 5xx',
   },
   'locale-less-redirect': {
     browserCacheControl: 'public, max-age=86400',
@@ -227,23 +278,46 @@ export const B4_CACHE_POLICIES: Record<B4CacheClass, {
 }
 
 export const B4_PRODUCTION_PUBLIC_SLICE_MANIFEST: B4ManifestRow[] = [
-  { route: '/', methods: 'GET,HEAD', backend: 'cloudflare', cachePolicy: 'root-locale-detect', auth: 'none', reason: 'Accept-Language locale redirect; do not CDN-cache', rollbackClass: 'public-cdn', cutoverClass: 'first' },
-  { route: '/:locale', methods: 'GET,HEAD', backend: 'cloudflare', cachePolicy: 'deploy-static-html', auth: 'none', reason: 'force-static locale home; highest crawler volume', rollbackClass: 'public-cdn', cutoverClass: 'first' },
-  { route: '/:locale/{marketing,blog,brand,guide,face-shape,try-on landing}', methods: 'GET,HEAD', backend: 'cloudflare', cachePolicy: 'deploy-static-html', auth: 'none', reason: 'deploy-time static SEO/marketing HTML', rollbackClass: 'public-cdn', cutoverClass: 'first' },
-  { route: 'locale-less marketing/SEO URLs', methods: 'GET,HEAD', backend: 'cloudflare', cachePolicy: 'locale-less-redirect', auth: 'none', reason: 'next.config 308s already proven; keep off middleware', rollbackClass: 'public-cdn', cutoverClass: 'first' },
-  { route: '/_next/static/*', methods: 'GET,HEAD', backend: 'cloudflare', cachePolicy: 'immutable-static', auth: 'none', reason: 'hashed build assets from OpenNext ASSETS', rollbackClass: 'public-cdn', cutoverClass: 'first' },
-  { route: '/favicon.ico, /robots.txt, /llms.txt, public image prefixes', methods: 'GET,HEAD', backend: 'cloudflare', cachePolicy: 'immutable-static', auth: 'none', reason: 'anonymous public files', rollbackClass: 'public-cdn', cutoverClass: 'first' },
-  { route: '/sitemap.xml, /sitemaps/core.xml, /sitemaps/blog.xml', methods: 'GET,HEAD', backend: 'cloudflare', cachePolicy: 'deploy-static-html', auth: 'none', reason: 'force-static sitemap artifacts', rollbackClass: 'public-cdn', cutoverClass: 'first' },
-  { route: 'GET /api/health', methods: 'GET,HEAD', backend: 'cloudflare', cachePolicy: 'health', auth: 'none', reason: 'proven CF public read; not cacheable', rollbackClass: 'origin-fallback', cutoverClass: 'first' },
-  { route: 'GET /api/glasses/brands|categories|face-shapes', methods: 'GET,HEAD', backend: 'cloudflare', cachePolicy: 'public-catalog-api', auth: 'none', reason: 'anonymous catalog lists via glasses data layer', rollbackClass: 'origin-fallback', cutoverClass: 'first' },
-  { route: '/:locale/store/:merchantSlug', methods: 'GET,HEAD', backend: 'vercel', cachePolicy: 'none', auth: 'none', reason: 'on-demand ISR + Neon admission; CF cache cannot use revalidateTag', rollbackClass: 'keep-vercel', cutoverClass: 'later' },
-  { route: '/:locale/c/:merchantSlug/:experienceSlug', methods: 'GET,HEAD', backend: 'vercel', cachePolicy: 'none', auth: 'none', reason: 'Campaign ISR + publish invalidation stays on Vercel', rollbackClass: 'keep-vercel', cutoverClass: 'later' },
-  { route: '/:locale/category/*, /:locale/try/*', methods: 'GET,HEAD', backend: 'vercel', cachePolicy: 'none', auth: 'none', reason: 'PROGRAMMATIC_SEO off; Vercel dynamicParams=false 404s all slugs', rollbackClass: 'keep-vercel', cutoverClass: 'later' },
-  { route: '/:locale/discover, /:locale/style-explorer', methods: 'GET,HEAD', backend: 'vercel', cachePolicy: 'none', auth: 'none', reason: 'force-dynamic', rollbackClass: 'keep-vercel', cutoverClass: 'vercel' },
-  { route: '/api/auth/*, protected reads, merchant writes, MCP', methods: '*', backend: 'vercel', cachePolicy: 'none', auth: 'session', reason: 'first slice excludes authenticated traffic', rollbackClass: 'keep-vercel', cutoverClass: 'later' },
-  { route: '/_next/image, Stripe, Blob, AI, cron, admin', methods: '*', backend: 'vercel', cachePolicy: 'none', auth: 'session', reason: 'VERCEL_REQUIRED capability boundary', rollbackClass: 'keep-vercel', cutoverClass: 'vercel' },
-  { route: 'unknown path or unknown method', methods: '*', backend: 'vercel', cachePolicy: 'none', auth: 'none', reason: 'fail to Vercel; no CF retry', rollbackClass: 'keep-vercel', cutoverClass: 'vercel' },
+  { route: '/', methods: 'GET,HEAD', backend: 'cloudflare', cachePolicy: 'root-locale-detect', invocation: 'worker', auth: 'none', reason: 'Accept-Language locale redirect; do not CDN-cache; Worker required', rollbackClass: 'public-cdn', cutoverClass: 'first' },
+  { route: '/:locale', methods: 'GET,HEAD', backend: 'cloudflare', cachePolicy: 'deploy-static-html', invocation: 'worker', auth: 'none', reason: 'OpenNext incremental cache HTML, not a Static Asset file', rollbackClass: 'public-cdn', cutoverClass: 'first' },
+  { route: '/:locale/{marketing,blog,brand,guide,face-shape,try-on landing}', methods: 'GET,HEAD', backend: 'cloudflare', cachePolicy: 'deploy-static-html', invocation: 'worker', auth: 'none', reason: 'Next force-static HTML is served by OpenNext Worker, not .open-next/assets', rollbackClass: 'public-cdn', cutoverClass: 'first' },
+  { route: 'locale-less marketing/SEO URLs', methods: 'GET,HEAD', backend: 'cloudflare', cachePolicy: 'locale-less-redirect', invocation: 'worker', auth: 'none', reason: 'next.config 308s already proven; keep off middleware', rollbackClass: 'public-cdn', cutoverClass: 'first' },
+  { route: '/_next/static/*', methods: 'GET,HEAD', backend: 'cloudflare', cachePolicy: 'hashed-immutable', invocation: 'static-asset', auth: 'none', reason: 'hashed files exist in .open-next/assets; serve without Worker when run_worker_first is false', rollbackClass: 'public-cdn', cutoverClass: 'first' },
+  { route: '/favicon.ico, /images/*, /home/*, /experience-heroes/*, /blog-covers/*, /assets/*', methods: 'GET,HEAD', backend: 'cloudflare', cachePolicy: 'deploy-public-asset', invocation: 'static-asset', auth: 'none', reason: 'non-hashed public files in .open-next/assets; finite TTL, not immutable', rollbackClass: 'public-cdn', cutoverClass: 'first' },
+  { route: '/robots.txt, /llms.txt', methods: 'GET,HEAD', backend: 'cloudflare', cachePolicy: 'control-files', invocation: 'static-asset', auth: 'none', reason: 'control files exist in .open-next/assets; conservative cache + deploy purge', rollbackClass: 'public-cdn', cutoverClass: 'first' },
+  { route: '/sitemap.xml, /sitemaps/core.xml, /sitemaps/blog.xml', methods: 'GET,HEAD', backend: 'cloudflare', cachePolicy: 'static-sitemap', invocation: 'worker', auth: 'none', reason: 'OpenNext .cache artifacts only; not present in .open-next/assets', rollbackClass: 'public-cdn', cutoverClass: 'first' },
+  { route: 'GET /api/health', methods: 'GET,HEAD', backend: 'cloudflare', cachePolicy: 'health', invocation: 'worker', auth: 'none', reason: 'proven CF public read; not cacheable', rollbackClass: 'origin-fallback', cutoverClass: 'first' },
+  { route: 'GET /api/glasses/brands|categories|face-shapes', methods: 'GET,HEAD', backend: 'cloudflare', cachePolicy: 'public-catalog-api', invocation: 'worker', auth: 'none', reason: 'anonymous catalog lists via glasses data layer', rollbackClass: 'origin-fallback', cutoverClass: 'first' },
+  { route: '/:locale/store/:merchantSlug', methods: 'GET,HEAD', backend: 'vercel', cachePolicy: 'none', invocation: 'vercel', auth: 'none', reason: 'on-demand ISR + Neon admission; CF cache cannot use revalidateTag', rollbackClass: 'keep-vercel', cutoverClass: 'later' },
+  { route: '/:locale/c/:merchantSlug/:experienceSlug', methods: 'GET,HEAD', backend: 'vercel', cachePolicy: 'none', invocation: 'vercel', auth: 'none', reason: 'Campaign ISR + publish invalidation stays on Vercel', rollbackClass: 'keep-vercel', cutoverClass: 'later' },
+  { route: '/:locale/category/*, /:locale/try/*', methods: 'GET,HEAD', backend: 'vercel', cachePolicy: 'none', invocation: 'vercel', auth: 'none', reason: 'PROGRAMMATIC_SEO off; Vercel dynamicParams=false 404s all slugs', rollbackClass: 'keep-vercel', cutoverClass: 'later' },
+  { route: '/:locale/discover, /:locale/style-explorer', methods: 'GET,HEAD', backend: 'vercel', cachePolicy: 'none', invocation: 'vercel', auth: 'none', reason: 'force-dynamic', rollbackClass: 'keep-vercel', cutoverClass: 'vercel' },
+  { route: '/api/auth/*, protected reads, merchant writes, MCP', methods: '*', backend: 'vercel', cachePolicy: 'none', invocation: 'vercel', auth: 'session', reason: 'first slice excludes authenticated traffic', rollbackClass: 'keep-vercel', cutoverClass: 'later' },
+  { route: '/_next/image, Stripe, Blob, AI, cron, admin', methods: '*', backend: 'vercel', cachePolicy: 'none', invocation: 'vercel', auth: 'session', reason: 'VERCEL_REQUIRED capability boundary', rollbackClass: 'keep-vercel', cutoverClass: 'vercel' },
+  { route: 'unknown path or unknown method', methods: '*', backend: 'vercel', cachePolicy: 'none', invocation: 'vercel', auth: 'none', reason: 'fail to Vercel; no CF retry; Worker still invoked to proxy unless the path is a Static Asset', rollbackClass: 'keep-vercel', cutoverClass: 'vercel' },
 ]
+
+/**
+ * Proven 2026-08-17 from OpenNext 1.15.1 output on this branch.
+ * HTML is NOT a Cloudflare Static Asset just because Next.js marked the route force-static.
+ */
+export const B4_OPENNEXT_ASSET_AUDIT = {
+  provenAt: '2026-08-17',
+  openNextAssetsFileCount: 291,
+  htmlFilesInAssets: 1,
+  localeHomeHtmlInAssets: false,
+  seoHtmlInAssets: false,
+  blogHtmlInAssets: false,
+  brandHtmlInAssets: false,
+  sitemapFilesInAssets: false,
+  hashedStaticInAssets: true,
+  faviconInAssets: true,
+  robotsInAssets: true,
+  llmsInAssets: true,
+  publicImagesInAssets: true,
+  htmlServedFrom: '.open-next/cache/*.cache via OpenNext Worker',
+  wranglerRunWorkerFirst: false,
+} as const
 
 function cleanPath(pathname: string): string {
   if (pathname.length > 1 && pathname.endsWith('/')) return pathname.slice(0, -1)
@@ -289,11 +363,31 @@ function isDeferredPublicHtml(path: string): boolean {
   return false
 }
 
-function isPublicAsset(path: string): boolean {
-  if (publicAssetExact.includes(path as (typeof publicAssetExact)[number])) return true
-  if (publicAssetPrefixes.some((prefix) => path.startsWith(prefix))) return true
+function isHashedImmutable(path: string): boolean {
+  return hashedImmutablePrefixes.some((prefix) => path.startsWith(prefix))
+}
+
+function isControlFile(path: string): boolean {
+  return controlFilesExact.includes(path as (typeof controlFilesExact)[number])
+}
+
+function isStaticSitemap(path: string): boolean {
+  return staticSitemapExact.includes(path as (typeof staticSitemapExact)[number])
+}
+
+function isDeployPublicAsset(path: string): boolean {
+  if (deployPublicAssetExact.includes(path as (typeof deployPublicAssetExact)[number])) return true
+  if (deployPublicAssetPrefixes.some((prefix) => path.startsWith(prefix))) return true
   if (/^\/google[a-z0-9]+\.html$/i.test(path)) return true
   return false
+}
+
+export function invocationModeForCacheClass(cacheClass: B4CacheClass): B4InvocationMode {
+  if (cacheClass === 'hashed-immutable' || cacheClass === 'deploy-public-asset' || cacheClass === 'control-files') {
+    return 'static-asset'
+  }
+  if (cacheClass === 'none') return 'vercel'
+  return 'worker'
 }
 
 function isLocaleLessFirstSlice(path: string): boolean {
@@ -334,11 +428,14 @@ function decision(
   cutoverClass: B4CutoverClass,
   cacheClass: B4CacheClass,
 ): B4RouteDecision {
+  const invocation = backend === 'vercel' ? 'vercel' : invocationModeForCacheClass(cacheClass)
   return {
     backend,
     routeClass,
     cutoverClass,
     cacheClass,
+    invocation,
+    countsAgainstWorkerQuota: invocation !== 'static-asset',
     auth: 'none',
     methods: 'GET,HEAD',
   }
@@ -364,9 +461,20 @@ export function classifyB4ProductionPublicSlice(request: Request): B4RouteDecisi
     return decision('cloudflare', 'cf-ready', 'first', 'root-locale-detect')
   }
 
-  if (isPublicAsset(path)) {
-    const hashed = path.startsWith('/_next/static/')
-    return decision('cloudflare', 'cf-ready', 'first', hashed ? 'immutable-static' : (path.startsWith('/sitemap') || path.startsWith('/sitemaps/') ? 'deploy-static-html' : 'immutable-static'))
+  if (isHashedImmutable(path)) {
+    return decision('cloudflare', 'cf-ready', 'first', 'hashed-immutable')
+  }
+
+  if (isControlFile(path)) {
+    return decision('cloudflare', 'cf-ready', 'first', 'control-files')
+  }
+
+  if (isDeployPublicAsset(path)) {
+    return decision('cloudflare', 'cf-ready', 'first', 'deploy-public-asset')
+  }
+
+  if (isStaticSitemap(path)) {
+    return decision('cloudflare', 'cf-ready', 'first', 'static-sitemap')
   }
 
   if (isFirstSliceApi(path)) {
