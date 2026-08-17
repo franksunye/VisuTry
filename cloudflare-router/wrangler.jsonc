@@ -15,7 +15,7 @@
       "vars": {
         "ROUTER_ENV": "staging",
         "CF_ORIGIN": "https://visutry-cf-staging.sunye.workers.dev",
-        "VERCEL_ORIGIN": "https://visutry-4tfn0m7ys-sunye.vercel.app"
+        "VERCEL_ORIGIN": "https://visutry-3v81kow8o-sunye.vercel.app"
       }
     }
   }

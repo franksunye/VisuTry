@@ -153,6 +153,7 @@ const nextConfig = {
         '@/lib/prisma$': path.resolve(__dirname, 'src/data/prisma-cloudflare-stub.ts'),
         '@/data/admin-dashboard$': path.resolve(__dirname, 'src/data/admin-dashboard-cloudflare.ts'),
         '@prisma/client/edge': path.resolve(__dirname, 'src/data/prisma-cloudflare-stub.ts'),
+        '@prisma/client/index$': path.resolve(__dirname, 'src/data/prisma-cloudflare-stub.ts'),
         '@prisma/client': path.resolve(__dirname, 'src/data/prisma-cloudflare-stub.ts'),
         '@/modules/store/application/public-read-runtime$': path.resolve(__dirname, 'src/modules/store/application/public-read-runtime-cloudflare.ts'),
         '@/modules/store/application/public-route-admission$': path.resolve(__dirname, 'src/modules/store/application/public-route-admission-cloudflare.ts'),

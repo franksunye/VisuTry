@@ -1,12 +1,14 @@
 # VisuTry Cloudflare B3.2 Capability Routing
 
-**Status:** PARTIAL — same-host staging routing and anonymous capability gates pass. The mandatory same-browser authenticated replay (login, authenticated CF read, authenticated Vercel fallback, logout, and post-logout denial) is still outstanding because the current browser has no retained B1.2 session. No production DNS, domain, or deployment was changed.
+**Status:** PASS — same-host staging routing, anonymous capability gates, and the mandatory same-browser authenticated replay all pass. No production DNS, domain, or deployment was changed.
 
 ## Staging entry point
 
 `https://visutry-cf-staging.sunye.workers.dev`
 
 The staging-only `cloudflare-router/app-host-worker.ts` is the public entry point. It invokes the generated OpenNext Worker in-process for Cloudflare-ready paths and forwards Vercel-required or unknown paths to the configured staging Vercel preview origin. Both backends therefore share one browser origin and cookie boundary. `wrangler.jsonc` has no production route or DNS binding.
+
+Current staging Vercel origin: `https://visutry-3v81kow8o-sunye.vercel.app` (Preview deployment only). The staging Worker and Vercel Preview `NEXTAUTH_SECRET` values were synchronized as a staging configuration prerequisite; no secret value is recorded here.
 
 The request bridge preserves method, path, query string, body, cookies, Authorization, application headers, response status, response headers, and streaming response bodies. It rewrites only the upstream `Host` transport header, uses manual redirects, and performs no automatic retry. The exact classifier is in `cloudflare-router/worker.ts`.
 
@@ -25,7 +27,7 @@ Explicit Vercel-required prefixes include Stripe/payment except the exact proven
 
 ## Live staging evidence
 
-Deployment: `cd98d7c3-512a-4f06-a864-7dc2d03d11d0`
+Deployment: `45d4da7d-f34c-401b-a934-ecbc1ea998da`
 
 | Request | Status | Backend / class | Evidence |
 | --- | ---: | --- | --- |
@@ -49,11 +51,25 @@ Deployment: `cd98d7c3-512a-4f06-a864-7dc2d03d11d0`
 | `POST /api/upload` | 401 | Vercel / `vercel-required` | Upload prefix remains on Vercel |
 | `POST /api/unknown-write` | 404 | Vercel / `unknown-fallback` | Unknown write defaults to Vercel |
 
+Same-browser authenticated replay used a newly registered staging-only test account (email masked in this document) and one staging test workspace `b32-staging-routing-test-20260817` (`merchantId=3f1d3aff-4dfa-4ff7-a0f8-fc12788a125c`). The browser stayed on `https://visutry-cf-staging.sunye.workers.dev` throughout the replay:
+
+| Request | Status | Backend / class | Evidence |
+| --- | ---: | --- | --- |
+| `GET /api/auth/session` while signed in | 200 | Cloudflare / `cf-ready` | Session returned the test account identity |
+| `GET /api/glasses/brands` while signed in | 200 | Cloudflare / `cf-ready` | Public CF read remained available |
+| `GET /api/try-on/history` while signed in | 200 | Cloudflare / `cf-ready` | Authenticated CF protected read passed |
+| `GET /api/merchant/:id/profile` while signed in | 200 | Cloudflare / `cf-ready` | Authenticated merchant read passed |
+| `POST /api/face-analysis/submit` with empty `FormData` while signed in | 400 | Vercel / `vercel-required` | Auth/cookie forwarding passed; application rejected the intentionally empty body before any AI submission |
+| `GET /api/auth/session` after UI logout | 200 | Cloudflare / `cf-ready` | Returned `{}` |
+| `GET /api/try-on/history` after UI logout | 401 | Cloudflare / `cf-ready` | Protected CF read denied |
+| `GET /api/merchant/:id/profile` after UI logout | 401 | Cloudflare / `cf-ready` | Tenant-protected merchant read denied |
+| `POST /api/face-analysis/submit` with empty `FormData` after UI logout | 401 | Vercel / `vercel-required` | Protected Vercel-required path denied |
+
 The router unit suite additionally proves query/body/cookie/Authorization/header preservation, static method boundaries, and a failed Cloudflare request returning 502 without a Vercel retry. Client-forged `x-user-id`, `x-merchant-id`, and `x-role` headers are not used as identity; the selected backend remains responsible for auth, authorization, tenant, CSRF, and webhook checks.
 
 ## Authentication gate
 
-The anonymous gates pass, and the Auth0 sign-in transaction is classified on Cloudflare. The required same-browser replay is not yet proven. It must use one existing B1.2 test account in the staging browser and cover, without a second login:
+The anonymous gates pass, and the Auth0 sign-in transaction is classified on Cloudflare. The same-browser replay is proven with one staging-only account and without switching browser origin:
 
 1. login;
 2. authenticated Cloudflare read and merchant read;
@@ -61,7 +77,7 @@ The anonymous gates pass, and the Auth0 sign-in transaction is classified on Clo
 4. logout;
 5. post-logout denial on both relevant paths.
 
-Until that replay is captured, this milestone remains PARTIAL.
+The replay covered login, authenticated Cloudflare read, authenticated merchant read, authenticated Vercel fallback, UI logout, and post-logout denial on both backends. No AI, payment, upload, or other billable write was performed.
 
 ## Writes, safety, and rollback
 
@@ -71,7 +87,7 @@ Logs contain only path, backend, route class, status, latency, and sanitized err
 
 ## Performance and bundle
 
-Representative same-host staging samples from deployment `cd98d7c3-512a-4f06-a864-7dc2d03d11d0`:
+Representative same-host staging samples from the preceding staging replay deployment `c292c245-e279-45a6-891f-50181078af50` (the final deployment only rebuilt the CF-safe Prisma alias and retained the same route boundary):
 
 | Request | Status | Bytes | Client time |
 | --- | ---: | ---: | ---: |
@@ -85,17 +101,17 @@ Representative same-host staging samples from deployment `cd98d7c3-512a-4f06-a86
 | Measurement | Value |
 | --- | ---: |
 | B3.1 baseline | 2,814.92 KiB gzip |
-| Current routed Worker | 2,780.42 KiB gzip |
-| Delta vs baseline | -34.50 KiB |
+| Current routed Worker | 2,781.46 KiB gzip |
+| Delta vs baseline | -33.46 KiB |
 | Free-plan limit | 3,072 KiB |
-| Current headroom | 291.58 KiB |
+| Current headroom | 290.54 KiB |
 | Preferred stop threshold | 2,900 KiB |
 | Router budget | under 25 KiB incremental budget |
 
 ## Validation and production boundary
 
-Recorded validation: `npm ci`, typecheck, lint (existing warnings only), critical tests (7 suites / 30 tests), router tests (5 / 5), `build:ci`, `build:cloudflare`, and Wrangler staging dry-run. The final staging matrix is recorded above. No production cutover, production DNS change, production route, or production deployment is authorized by B3.2.
+Recorded validation: `npm ci`, typecheck, lint (existing warnings only), critical tests (7 suites / 30 tests), router tests (5 / 5), `build:ci`, `build:cloudflare:next`, OpenNext Cloudflare bundle build, and Wrangler staging dry-run. The final staging matrix is recorded above. No production cutover, production DNS change, production route, or production deployment is authorized by B3.2.
 
 ## Git
 
-Branch: `codex/cloudflare-phase-a-build-parity`. Commit: `3b2d25c` (`feat: complete B3.2 Cloudflare capability routing`). Push is the next handoff step; no merge to `main` is part of this milestone.
+Branch: `codex/cloudflare-phase-a-build-parity`. The final commit is recorded by Git after the validation changes in this handoff; no merge to `main` is part of this milestone.
