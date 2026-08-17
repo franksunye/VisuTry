@@ -11,6 +11,7 @@ import { perfLogger } from "@/lib/performance-logger"
 import { clearUserCache } from "@/lib/cache"
 import { QUOTA_CONFIG } from "@/config/pricing"
 import { getJwtSyncDecision } from "@/lib/auth-sync"
+import { normalizeAuth0Issuer } from "@/lib/auth0-issuer"
 
 // Lightweight debug sink to file for local dev (so we can read errors without terminal access)
 const __debugWrite = (label: string, data: any) => {
@@ -81,6 +82,11 @@ const isClientFetchError = (code: string, metadata: unknown) => {
   return client === true || client === 'true'
 }
 
+// Auth0's discovery URL is built by NextAuth as `${issuer}/.well-known/...`.
+// Normalize operator-provided values so a harmless trailing slash cannot turn
+// the discovery request into a double-slash 404.
+const auth0Issuer = normalizeAuth0Issuer(process.env.AUTH0_ISSUER_BASE_URL)
+
 // Validate critical environment variables at startup
 const validateEnvVars = () => {
   const required = ['NEXTAUTH_SECRET', 'AUTH0_ID', 'AUTH0_SECRET', 'AUTH0_ISSUER_BASE_URL']
@@ -122,7 +128,7 @@ export const authOptions: NextAuthOptions = {
     Auth0Provider({
       clientId: process.env.AUTH0_ID!,
       clientSecret: process.env.AUTH0_SECRET!,
-      issuer: process.env.AUTH0_ISSUER_BASE_URL!,
+      issuer: auth0Issuer!,
     }),
   ],
   callbacks: {

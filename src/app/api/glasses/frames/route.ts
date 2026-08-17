@@ -1,25 +1,12 @@
 import { NextResponse } from 'next/server'
-import { prisma } from '@/lib/prisma'
+import { getActiveFrames } from '@/data/glasses'
 import { PUBLIC_CATALOG_CACHE_CONTROL } from '@/lib/public-http-cache'
+
+export const dynamic = 'force-dynamic'
 
 export async function GET() {
   try {
-    const frames = await prisma.glassesFrame.findMany({
-      where: { isActive: true },
-      include: {
-        faceShapes: {
-          include: {
-            faceShape: true,
-          },
-        },
-        categories: {
-          include: {
-            category: true,
-          },
-        },
-      },
-      orderBy: { createdAt: 'desc' },
-    })
+    const frames = await getActiveFrames()
 
     return NextResponse.json({
       success: true,

@@ -1,8 +1,8 @@
 import { getServerSession } from 'next-auth'
 import { headers } from 'next/headers'
 import { notFound, redirect } from 'next/navigation'
-import { authOptions } from '@/lib/auth'
-import { getMerchantControlCenter, listMerchantAgentCredentials, listMerchantsForUser, requireMerchantMembership } from '@/modules/merchant'
+import { authOptions } from '@/lib/auth-runtime'
+import { getMerchantControlCenter, listMerchantAgentCredentials, listMerchantsForUser, requireMerchantMembership } from '@/modules/merchant/cloudflare'
 import { MerchantControlCenter } from '@/components/merchant/MerchantControlCenter'
 import { MerchantWorkspaceOnboarding } from '@/components/merchant/MerchantWorkspaceOnboarding'
 

@@ -1,5 +1,5 @@
 import { unstable_cache } from 'next/cache'
-import { createStoreRuntime } from './runtime'
+import { createPublicStoreReadRuntime } from './public-read-runtime'
 import { getPublicExperienceDiscovery } from './get-public-experience-discovery'
 import {
   PUBLIC_DISCOVERY_CACHE,
@@ -31,7 +31,7 @@ export async function getPublicExperienceDiscoveryForRoute(
     : PUBLIC_DISCOVERY_CACHE.storeRevalidateSeconds
   const cachedRead = unstable_cache(
     async () => {
-      const runtime = createStoreRuntime()
+      const runtime = createPublicStoreReadRuntime()
       return getPublicExperienceDiscovery({
         merchants: runtime.merchants,
         frames: runtime.frames,

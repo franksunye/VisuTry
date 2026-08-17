@@ -1,4 +1,8 @@
-import { PrismaClient } from '@prisma/client'
+// Vercel runs these API routes on the Node.js runtime. The standard client
+// entrypoint avoids the Edge/WASM loader path that can fail when the preview
+// function bundle is initialized. Cloudflare builds alias this module to the
+// no-Prisma stub in next.config.js, so this import remains CF-safe.
+import { PrismaClient } from '@prisma/client/index'
 import { PrismaNeon } from '@prisma/adapter-neon'
 
 const globalForPrisma = globalThis as unknown as {

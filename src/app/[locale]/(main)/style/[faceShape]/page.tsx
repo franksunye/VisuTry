@@ -55,9 +55,9 @@ export function generateStaticParams() {
     .map((faceShape) => ({ faceShape }))
 }
 
-// This page is entirely content-driven and has a finite set of supported
-// shapes. Unknown slugs should be a 404, not an on-demand ISR render.
-export const dynamicParams = false
+// Vercel keeps this closed so unknown slugs cannot become ISR entries.
+// Cloudflare OpenNext 1.15.1 needs true to dispatch nested generated pages.
+export const dynamicParams = process.env.CLOUDFLARE_BUILD === '1'
 export const dynamic = 'force-static'
 
 export async function generateMetadata({ params }: FaceShapePageProps): Promise<Metadata> {

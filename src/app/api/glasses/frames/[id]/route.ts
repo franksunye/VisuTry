@@ -1,27 +1,15 @@
 import { NextResponse } from 'next/server'
-import { prisma } from '@/lib/prisma'
+import { getFrameById } from '@/data/glasses'
 import { PUBLIC_CATALOG_CACHE_CONTROL } from '@/lib/public-http-cache'
+
+export const dynamic = 'force-dynamic'
 
 export async function GET(
   request: Request,
   { params }: { params: { id: string } }
 ) {
   try {
-    const frame = await prisma.glassesFrame.findUnique({
-      where: { id: params.id },
-      include: {
-        faceShapes: {
-          include: {
-            faceShape: true,
-          },
-        },
-        categories: {
-          include: {
-            category: true,
-          },
-        },
-      },
-    })
+    const frame = await getFrameById(params.id)
 
     if (!frame) {
       return NextResponse.json(

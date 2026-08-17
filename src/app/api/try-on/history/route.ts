@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server"
-import { requireAuth } from "@/lib/api-auth"
-import { prisma } from "@/lib/prisma"
+import { requireAuth } from "@/lib/api-auth-runtime"
 import { isMockMode } from "@/lib/mocks"
 import { MockDatabase } from "@/lib/mocks/database"
+import { getConsumerTryOnHistory } from '@/data/protected-reads-cloudflare'
 
 // Force dynamic rendering for this route
 export const dynamic = 'force-dynamic'
@@ -21,15 +21,6 @@ export async function GET(request: NextRequest) {
     const status = searchParams.get("status") // 可选的状态过滤
 
     const skip = (page - 1) * limit
-
-    // 构建查询条件
-    const where: any = {
-      userId: userId
-    }
-
-    if (status) {
-      where.status = status.toUpperCase()
-    }
 
     // 获取试戴历史记录
     let tasks, total
@@ -50,32 +41,9 @@ export async function GET(request: NextRequest) {
         .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
         .slice(skip, skip + limit)
     } else {
-      const [tasksResult, totalResult] = await Promise.all([
-        prisma.tryOnTask.findMany({
-          where,
-          orderBy: {
-            createdAt: "desc"
-          },
-          skip,
-          take: limit,
-          select: {
-            id: true,
-            type: true,
-            status: true,
-            userImageUrl: true,
-            itemImageUrl: true,
-            glassesImageUrl: true, // Keep for backward compatibility
-            resultImageUrl: true,
-            errorMessage: true,
-            createdAt: true,
-            updatedAt: true,
-            metadata: true
-          }
-        }),
-        prisma.tryOnTask.count({ where })
-      ])
-      tasks = tasksResult
-      total = totalResult
+      const result = await getConsumerTryOnHistory({ userId, page, limit, status: status ? status.toUpperCase() : null })
+      tasks = result.tasks
+      total = result.total
     }
 
     // 计算分页信息
