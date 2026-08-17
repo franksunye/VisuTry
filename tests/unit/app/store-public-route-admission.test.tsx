@@ -59,6 +59,11 @@ const discovery = {
 } as never
 
 describe('public Store/Campaign route admission boundary', () => {
+  it('keeps Store/Campaign HTML on long-lived on-demand ISR rather than hourly refresh', () => {
+    expect(storePage.revalidate).toBe(7 * 24 * 60 * 60)
+    expect(campaignPage.revalidate).toBe(7 * 24 * 60 * 60)
+  })
+
   beforeEach(() => {
     jest.clearAllMocks()
     ;(isPublicStoreRouteAdmitted as jest.Mock).mockResolvedValue(false)

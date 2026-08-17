@@ -9,6 +9,8 @@ interface HairstylesHubPageProps {
   params: { locale: string }
 }
 
+export const dynamic = 'force-static'
+
 const faqContent = [
   {
     question: 'How do I choose a hairstyle for my face shape?',

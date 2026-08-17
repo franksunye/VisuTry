@@ -19,7 +19,9 @@ interface CampaignExperiencePageProps {
   }
 }
 
-export const revalidate = 60 * 60
+// Campaign HTML is invalidated on successful public-discovery writes.
+// Keep a 7-day ISR safety net instead of hourly regeneration.
+export const revalidate = 7 * 24 * 60 * 60
 export const dynamicParams = true
 
 // Campaign slugs are published after deploy; empty build-time params keep the

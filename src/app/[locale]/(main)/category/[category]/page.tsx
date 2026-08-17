@@ -36,7 +36,9 @@ export async function generateStaticParams() {
 }
 
 export const dynamicParams = process.env.PROGRAMMATIC_SEO_ENABLED === 'true'
-export const revalidate = 3600 // 1 hour
+// Category pages are catalog snapshots. Rebuild or on-demand params are enough;
+// a 1-hour ISR clock was regenerating empty/high-cardinality routes.
+export const dynamic = 'force-static'
 
 // Generate metadata
 export async function generateMetadata({

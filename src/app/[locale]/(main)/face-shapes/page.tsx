@@ -10,6 +10,8 @@ interface FaceShapesPageProps {
   params: { locale: string }
 }
 
+export const dynamic = 'force-static'
+
 const faqContent = [
   {
     question: 'What are the seven common face shapes?',

@@ -1,15 +1,25 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { PUBLIC_CATALOG_CACHE_CONTROL } from '@/lib/public-http-cache'
 
 export async function GET() {
   try {
     const shapes = await prisma.faceShape.findMany({
       orderBy: { name: 'asc' },
+      select: {
+        id: true,
+        name: true,
+        displayName: true,
+        description: true,
+        characteristics: true,
+      },
     })
 
     return NextResponse.json({
       success: true,
       data: shapes,
+    }, {
+      headers: { 'Cache-Control': PUBLIC_CATALOG_CACHE_CONTROL },
     })
   } catch (error) {
     console.error('Error fetching face shapes:', error)
@@ -19,4 +29,3 @@ export async function GET() {
     )
   }
 }
-

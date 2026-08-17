@@ -18,9 +18,10 @@ interface MerchantStorePageProps {
   }
 }
 
-// Newly imported merchants remain eligible through dynamic params; stable
-// discovery HTML is served through ISR/data-cache rather than force-dynamic.
-export const revalidate = 6 * 60 * 60
+// Newly imported merchants remain eligible through dynamic params. Public
+// discovery HTML stays on-demand ISR, but time-based refresh is a 7-day
+// safety net only — successful writes already call revalidateTag/Path.
+export const revalidate = 7 * 24 * 60 * 60
 export const dynamicParams = true
 
 // Enable on-demand ISR for merchant slugs that are not known at build time.

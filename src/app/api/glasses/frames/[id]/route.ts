@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { PUBLIC_CATALOG_CACHE_CONTROL } from '@/lib/public-http-cache'
 
 export async function GET(
   request: Request,
@@ -8,15 +9,32 @@ export async function GET(
   try {
     const frame = await prisma.glassesFrame.findUnique({
       where: { id: params.id },
-      include: {
+      select: {
+        id: true,
+        name: true,
+        description: true,
+        imageUrl: true,
+        category: true,
+        brand: true,
+        model: true,
+        style: true,
+        material: true,
+        color: true,
+        price: true,
+        isActive: true,
         faceShapes: {
-          include: {
-            faceShape: true,
+          select: {
+            reason: true,
+            faceShape: {
+              select: { name: true, displayName: true },
+            },
           },
         },
         categories: {
-          include: {
-            category: true,
+          select: {
+            category: {
+              select: { name: true, displayName: true },
+            },
           },
         },
       },
@@ -32,6 +50,8 @@ export async function GET(
     return NextResponse.json({
       success: true,
       data: frame,
+    }, {
+      headers: { 'Cache-Control': PUBLIC_CATALOG_CACHE_CONTROL },
     })
   } catch (error) {
     console.error('Error fetching frame:', error)
@@ -41,4 +61,3 @@ export async function GET(
     )
   }
 }
-
