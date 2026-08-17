@@ -15,6 +15,12 @@ describe('quota-sensitive public page segment config', () => {
     expect((brandPage as { revalidate?: number }).revalidate).toBeUndefined()
     expect((categoryPage as { revalidate?: number }).revalidate).toBeUndefined()
     expect((tryPage as { revalidate?: number }).revalidate).toBeUndefined()
+    // Cloudflare OpenNext may open dynamicParams during CLOUDFLARE_BUILD.
+    // The Vercel/unit default must keep bot slugs from becoming ISR entries.
+    expect(process.env.CLOUDFLARE_BUILD).toBeUndefined()
+    expect(brandPage.dynamicParams).toBe(false)
+    expect(categoryPage.dynamicParams).toBe(false)
+    expect(tryPage.dynamicParams).toBe(false)
   })
 
   it('keeps finite face-shape style pages static', () => {

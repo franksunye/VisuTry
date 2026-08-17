@@ -2,7 +2,7 @@
 import "@/lib/proxy-setup"
 
 import NextAuth from "next-auth"
-import { authOptions } from "@/lib/auth"
+import { authOptions } from "@/lib/auth-runtime"
 import { logger } from "@/lib/logger"
 
 // CRITICAL: Force Node.js runtime (not Edge) for Prisma compatibility

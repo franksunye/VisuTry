@@ -1,0 +1,100 @@
+jest.mock('@/data/neon-cloudflare', () => ({
+  getCloudflareSql: jest.fn(),
+}))
+
+import { getCloudflareSql } from '@/data/neon-cloudflare'
+import { MerchantAccessError } from '@/modules/merchant/application/merchant-access-cloudflare'
+import { createMerchantStore, setMerchantStoreFrames } from '@/modules/merchant/application/merchant-onboarding-cloudflare'
+import { createCampaignDraft, publishCampaign, setCampaignFrames } from '@/modules/store/application/campaign-service-cloudflare'
+import type { MerchantAgentScope } from '@/modules/merchant/domain/agent-credentials'
+
+type SqlMock = jest.Mock & { transaction: jest.Mock; unsafe: jest.Mock }
+
+function sqlMock(results: unknown[][], transactions: unknown[][][] = []): SqlMock {
+  const sql = jest.fn(() => Promise.resolve(results.shift() ?? [])) as SqlMock
+  sql.unsafe = jest.fn((value: string) => value)
+  sql.transaction = jest.fn(() => Promise.resolve(transactions.shift() ?? []))
+  return sql
+}
+
+const actor = {
+  actorType: 'AGENT_CREDENTIAL' as const,
+  actorId: 'credential-a',
+  merchantId: 'merchant-a',
+  scopes: ['merchant:read', 'experience:read', 'experience:write'] as MerchantAgentScope[],
+}
+
+const activeFrame = { id: 'frame-a', sku: 'sku-a', name: 'Frame A', imageUrl: 'https://example.test/frame-a.png', shape: 'oval', widthClass: null, status: 'ACTIVE' }
+
+describe('Cloudflare direct-Neon merchant and experience writes', () => {
+  afterEach(() => jest.clearAllMocks())
+
+  it('creates one Store DRAFT idempotently inside a Serializable transaction', async () => {
+    const sql = sqlMock([
+      [{ id: 'merchant-a', slug: 'merchant-a', name: 'Merchant A', status: 'ACTIVE', websiteUrl: null, contactEmail: null }],
+      [],
+      [],
+      [{ id: 'store-a', merchantId: 'merchant-a', slug: 'store', name: 'Merchant A Store', status: 'DRAFT' }],
+      [],
+    ], [[[/* existing */], [{ id: 'store-a' }], [{ id: 'store-a', merchantId: 'merchant-a', slug: 'store', name: 'Merchant A Store', status: 'DRAFT' }]]])
+    ;(getCloudflareSql as jest.Mock).mockReturnValue(sql)
+
+    const result = await createMerchantStore({ actor })
+
+    expect(result).toMatchObject({ id: 'store-a', status: 'DRAFT', created: true })
+    expect(sql.transaction).toHaveBeenCalledWith(expect.any(Array), { isolationLevel: 'Serializable' })
+  })
+
+  it('rejects Store frame replacement when the Store belongs to another merchant', async () => {
+    const sql = sqlMock([[]])
+    ;(getCloudflareSql as jest.Mock).mockReturnValue(sql)
+
+    await expect(setMerchantStoreFrames({ actor, storeId: 'store-other', frameIds: ['frame-a'] })).rejects.toBeInstanceOf(MerchantAccessError)
+    expect(sql.transaction).not.toHaveBeenCalled()
+  })
+
+  it('replaces Store frames in one tenant-scoped Serializable transaction', async () => {
+    const sql = sqlMock([
+      [{ id: 'store-a', merchantId: 'merchant-a', slug: 'store', name: 'Store A', status: 'DRAFT' }],
+      [{ merchantFrameId: 'old-frame', sortOrder: 0, id: 'old-frame', sku: 'old', name: 'Old', imageUrl: 'https://example.test/old.png', shape: 'oval', widthClass: null, status: 'ACTIVE' }],
+      [activeFrame],
+      [],
+    ], [[], []])
+    ;(getCloudflareSql as jest.Mock).mockReturnValue(sql)
+
+    const result = await setMerchantStoreFrames({ actor, storeId: 'store-a', frameIds: ['frame-a'] })
+
+    expect(result).toEqual({ storeId: 'store-a', frameIds: ['frame-a'], frameCount: 1 })
+    expect(sql.transaction).toHaveBeenCalledWith(expect.any(Array), { isolationLevel: 'Serializable' })
+    expect(sql.mock.calls.map((call) => call[0]?.join?.('') ?? '').some((query) => query.includes('"experienceId"'))).toBe(true)
+  })
+
+  it('creates a Campaign DRAFT and keeps the merchant boundary in every read', async () => {
+    const campaignRow = { id: 'campaign-a', merchantId: 'merchant-a', slug: 'spring-edit', name: 'Spring Edit', status: 'DRAFT', headline: 'Try the edit', description: null, primaryCtaType: null, primaryCtaLabel: null, primaryCtaUrl: null, secondaryCtaType: null, secondaryCtaLabel: null, secondaryCtaUrl: null, startAt: null, endAt: null, campaignObjective: 'INTENT', campaignGate: 'NONE', presentationMode: 'EDITORIAL_FIRST', referenceData: false, merchantFrameId: null }
+    const sql = sqlMock([
+      [{ slug: 'merchant-a', referenceData: false }],
+      [{ id: 'campaign-a' }],
+      [{ slug: 'merchant-a', referenceData: false }],
+      [campaignRow],
+    ])
+    ;(getCloudflareSql as jest.Mock).mockReturnValue(sql)
+
+    const result = await createCampaignDraft({ merchantId: 'merchant-a', name: 'Spring Edit', headline: 'Try the edit' })
+
+    expect(result).toMatchObject({ id: 'campaign-a', merchantId: 'merchant-a', status: 'DRAFT', slug: 'spring-edit' })
+    expect(sql.mock.calls.some((call) => call[0].join('').includes('e."merchantId"'))).toBe(true)
+  })
+
+  it('uses a Serializable replacement for Campaign frames and never publishes in B2', async () => {
+    const campaignRow = { id: 'campaign-a', merchantId: 'merchant-a', slug: 'spring-edit', name: 'Spring Edit', status: 'DRAFT', headline: 'Try the edit', description: null, primaryCtaType: null, primaryCtaLabel: null, primaryCtaUrl: null, secondaryCtaType: null, secondaryCtaLabel: null, secondaryCtaUrl: null, startAt: null, endAt: null, campaignObjective: 'INTENT', campaignGate: 'NONE', presentationMode: 'EDITORIAL_FIRST', referenceData: false, merchantFrameId: null }
+    const sql = sqlMock([
+      [{ slug: 'merchant-a', referenceData: false }], [campaignRow], [activeFrame],
+    ], [[]])
+    ;(getCloudflareSql as jest.Mock).mockReturnValue(sql)
+
+    const result = await setCampaignFrames({ merchantId: 'merchant-a', campaignId: 'campaign-a', frameIds: ['frame-a'] })
+    expect(result).toEqual({ frameIds: ['frame-a'] })
+    expect(sql.transaction).toHaveBeenCalledWith(expect.any(Array), { isolationLevel: 'Serializable' })
+    await expect(publishCampaign({ merchantId: 'merchant-a', campaignId: 'campaign-a', approved: true })).rejects.toMatchObject({ code: 'CLOUDFLARE_PUBLISH_OUT_OF_SCOPE' })
+  })
+})

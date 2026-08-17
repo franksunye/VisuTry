@@ -61,10 +61,9 @@ export function generateStaticParams() {
   }))
 }
 
-// The route is a closed set. Invalid values such as /try-on/null should 404
-// instead of falling through to a runtime render and changing the page from
-// static to dynamic.
-export const dynamicParams = false
+// Vercel keeps this closed so unknown slugs cannot become ISR entries.
+// Cloudflare OpenNext 1.15.1 needs true to dispatch nested generated pages.
+export const dynamicParams = process.env.CLOUDFLARE_BUILD === '1'
 
 export default async function TryOnTypePage({ params }: TryOnPageProps) {
   const { locale, type } = params

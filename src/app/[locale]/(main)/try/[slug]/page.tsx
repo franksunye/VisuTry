@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
-import { prisma } from '@/lib/prisma'
+import { getFrameById, getFrameIds } from '@/data/glasses'
 import {
   generateFrameTitle,
   generateFrameDescription,
@@ -20,21 +20,25 @@ interface ProductPageProps {
   }
 }
 
+const FRAME_SLUG_PATTERN = /^[A-Za-z0-9]+(?:-[A-Za-z0-9]+)*$/u
+
+function isValidFrameSlug(value: string): boolean {
+  return value.length <= 180 && FRAME_SLUG_PATTERN.test(value)
+}
+
 // Generate static params for all frames
 export async function generateStaticParams() {
   const enabled = process.env.PROGRAMMATIC_SEO_ENABLED === 'true'
   if (!enabled) return []
-  const frames = await prisma.glassesFrame.findMany({
-    where: { isActive: true },
-    select: { id: true },
-  })
+  const frameIds = await getFrameIds()
 
-  return frames.map(frame => ({
-    slug: frame.id,
+  return frameIds.map((id) => ({
+    slug: id,
   }))
 }
 
-export const dynamicParams = process.env.PROGRAMMATIC_SEO_ENABLED === 'true'
+export const dynamicParams =
+  process.env.CLOUDFLARE_BUILD === '1' || process.env.PROGRAMMATIC_SEO_ENABLED === 'true'
 // Frame SEO pages change on catalog deploy, not on an hourly clock.
 export const dynamic = 'force-static'
 
@@ -44,9 +48,11 @@ export async function generateMetadata({
 }: ProductPageProps): Promise<Metadata> {
   const slug = params.slug
 
-  const frame = await prisma.glassesFrame.findUnique({
-    where: { id: slug },
-  })
+  if (!isValidFrameSlug(slug)) {
+    return { title: 'Product Not Found', robots: { index: false, follow: false } }
+  }
+
+  const frame = await getFrameById(slug)
 
   if (!frame) {
     return {
@@ -85,16 +91,9 @@ export async function generateMetadata({
 export default async function ProductPage({ params }: ProductPageProps) {
   const slug = params.slug
 
-  const frame = await prisma.glassesFrame.findUnique({
-    where: { id: slug },
-    include: {
-      faceShapes: {
-        include: {
-          faceShape: true,
-        },
-      },
-    },
-  })
+  if (!isValidFrameSlug(slug)) notFound()
+
+  const frame = await getFrameById(slug)
 
   if (!frame) {
     notFound()

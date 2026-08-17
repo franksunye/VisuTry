@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createStoreRuntime, getPublicMerchantProfile, storeErrorResponse } from '@/modules/store/application'
+import { getPublicMerchantProfile } from '@/modules/store/application/get-public-merchant'
+import { createPublicStoreReadRuntime } from '@/modules/store/application/public-read-runtime'
+import { storeErrorResponse } from '@/modules/store/application/http-error'
 import { PUBLIC_MERCHANT_CACHE_CONTROL } from '@/lib/public-http-cache'
 
 export const dynamic = 'force-dynamic'
@@ -9,7 +11,7 @@ export async function GET(
   { params }: { params: { slug: string } },
 ) {
   try {
-    const runtime = createStoreRuntime()
+    const runtime = createPublicStoreReadRuntime()
     const experienceSlug = request.nextUrl.searchParams.get('experienceSlug')
     const profile = await getPublicMerchantProfile({
       merchants: runtime.merchants,

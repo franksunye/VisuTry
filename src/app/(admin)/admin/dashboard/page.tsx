@@ -1,5 +1,5 @@
 import React from 'react';
-import { prisma } from '@/lib/prisma';
+import { getAdminDashboardStats } from '@/data/admin-dashboard';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -12,90 +12,8 @@ import { User } from 'lucide-react';
 // Force dynamic rendering to always show the latest data
 export const dynamic = 'force-dynamic';
 
-async function getStats() {
-  const now = new Date();
-  const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-
-  // Fetch key metrics in parallel for efficiency
-  const [
-    totalUsers,
-    todayUsers,
-    totalFaceShapeDetections,
-    todayFaceShapeDetections,
-    totalFaceAnalyses,
-    todayFaceAnalyses,
-    recentOrders,
-    recentUsers,
-    recentFaceAnalyses,
-  ] = await Promise.all([
-    prisma.user.count(),
-    prisma.user.count({ where: { createdAt: { gte: todayStart } } }),
-    prisma.faceShapeDetection.count(),
-    prisma.faceShapeDetection.count({ where: { createdAt: { gte: todayStart } } }),
-    prisma.faceAnalysisTask.count(),
-    prisma.faceAnalysisTask.count({ where: { createdAt: { gte: todayStart } } }),
-    prisma.payment.findMany({
-      take: 5,
-      orderBy: { createdAt: 'desc' },
-      select: {
-        id: true,
-        userId: true,
-        amount: true,
-        status: true,
-        user: {
-          select: {
-            name: true,
-            email: true,
-          },
-        },
-      },
-    }),
-    prisma.user.findMany({
-      take: 5,
-      orderBy: { createdAt: 'desc' },
-      select: {
-        id: true,
-        image: true,
-        name: true,
-        email: true,
-        createdAt: true,
-      },
-    }),
-    prisma.faceAnalysisTask.findMany({
-      take: 5,
-      orderBy: { createdAt: 'desc' },
-      select: {
-        id: true,
-        userId: true,
-        detectedShape: true,
-        confidence: true,
-        status: true,
-        createdAt: true,
-        user: {
-          select: {
-            name: true,
-            email: true,
-          },
-        },
-      },
-    }),
-  ]);
-
-  return {
-    totalUsers,
-    todayUsers,
-    totalFaceShapeDetections,
-    todayFaceShapeDetections,
-    totalFaceAnalyses,
-    todayFaceAnalyses,
-    recentOrders,
-    recentUsers,
-    recentFaceAnalyses,
-  };
-}
-
 export default async function DashboardPage() {
-  const stats = await getStats();
+  const stats = await getAdminDashboardStats();
 
   return (
     <div className="space-y-6">
