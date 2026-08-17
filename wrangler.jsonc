@@ -7,7 +7,14 @@
   "workers_dev": true,
   "assets": {
     "directory": ".open-next/assets",
-    "binding": "ASSETS"
+    "binding": "ASSETS",
+    // Asset-first: exact files in .open-next/assets are served without invoking
+    // app-host-worker.ts. true would bill hashed JS/CSS/images against the
+    // Workers Free 100,000 requests/day quota. Do not enable Workers Caching
+    // as a quota offload; cache hits still count as Worker requests and can
+    // bill otherwise-free Static Assets.
+    "run_worker_first": false,
+    "not_found_handling": "none"
   },
   "env": {
     "staging": {

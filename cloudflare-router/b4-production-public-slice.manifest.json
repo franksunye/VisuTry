@@ -1,0 +1,30 @@
+{
+  "name": "visutry-b4-2-first-production-public-slice",
+  "status": "proposed-not-activated",
+  "productionTraffic": false,
+  "authenticatedTrafficIncluded": false,
+  "methods": "GET,HEAD",
+  "fallbackOrigin": "https://visutry.vercel.app",
+  "publicHost": "www.visutry.com",
+  "retry": "none",
+  "dualWrite": false,
+  "runWorkerFirst": false,
+  "quotaModel": "static-assets-without-worker-invocation",
+  "workersCachingQuotaOffload": false,
+  "routes": [
+    { "route": "/", "methods": "GET,HEAD", "backend": "cloudflare", "cachePolicy": "root-locale-detect", "invocation": "worker", "auth": "none", "reason": "Accept-Language locale redirect; Worker required", "rollbackClass": "public-cdn", "cutoverClass": "first" },
+    { "route": "/:locale", "methods": "GET,HEAD", "backend": "cloudflare", "cachePolicy": "deploy-static-html", "invocation": "worker", "auth": "none", "reason": "OpenNext incremental cache HTML, not a Static Asset", "rollbackClass": "public-cdn", "cutoverClass": "first" },
+    { "route": "/:locale marketing/blog/brand/guide/face-shape/try-on landings", "methods": "GET,HEAD", "backend": "cloudflare", "cachePolicy": "deploy-static-html", "invocation": "worker", "auth": "none", "reason": "Next force-static HTML is Worker-served", "rollbackClass": "public-cdn", "cutoverClass": "first" },
+    { "route": "locale-less marketing/SEO URLs", "methods": "GET,HEAD", "backend": "cloudflare", "cachePolicy": "locale-less-redirect", "invocation": "worker", "auth": "none", "reason": "next.config 308s", "rollbackClass": "public-cdn", "cutoverClass": "first" },
+    { "route": "/_next/static/*", "methods": "GET,HEAD", "backend": "cloudflare", "cachePolicy": "hashed-immutable", "invocation": "static-asset", "auth": "none", "reason": "hashed files in .open-next/assets; no Worker when run_worker_first is false", "rollbackClass": "public-cdn", "cutoverClass": "first" },
+    { "route": "favicon and non-hashed public images", "methods": "GET,HEAD", "backend": "cloudflare", "cachePolicy": "deploy-public-asset", "invocation": "static-asset", "auth": "none", "reason": "public files in .open-next/assets; finite TTL, not immutable", "rollbackClass": "public-cdn", "cutoverClass": "first" },
+    { "route": "/robots.txt /llms.txt", "methods": "GET,HEAD", "backend": "cloudflare", "cachePolicy": "control-files", "invocation": "static-asset", "auth": "none", "reason": "control files in .open-next/assets; conservative cache", "rollbackClass": "public-cdn", "cutoverClass": "first" },
+    { "route": "/sitemap.xml /sitemaps/core.xml /sitemaps/blog.xml", "methods": "GET,HEAD", "backend": "cloudflare", "cachePolicy": "static-sitemap", "invocation": "worker", "auth": "none", "reason": "OpenNext .cache only; not in Static Assets", "rollbackClass": "public-cdn", "cutoverClass": "first" },
+    { "route": "GET /api/health", "methods": "GET,HEAD", "backend": "cloudflare", "cachePolicy": "health", "invocation": "worker", "auth": "none", "reason": "proven public health", "rollbackClass": "origin-fallback", "cutoverClass": "first" },
+    { "route": "GET /api/glasses/brands|categories|face-shapes", "methods": "GET,HEAD", "backend": "cloudflare", "cachePolicy": "public-catalog-api", "invocation": "worker", "auth": "none", "reason": "anonymous catalog lists", "rollbackClass": "origin-fallback", "cutoverClass": "first" },
+    { "route": "/:locale/store/:merchantSlug", "methods": "GET,HEAD", "backend": "vercel", "cachePolicy": "none", "invocation": "vercel", "auth": "none", "reason": "ISR + revalidateTag cannot purge CF cache", "rollbackClass": "keep-vercel", "cutoverClass": "later" },
+    { "route": "/:locale/c/:merchantSlug/:experienceSlug", "methods": "GET,HEAD", "backend": "vercel", "cachePolicy": "none", "invocation": "vercel", "auth": "none", "reason": "Campaign publish freshness stays on Vercel", "rollbackClass": "keep-vercel", "cutoverClass": "later" },
+    { "route": "/:locale/category/* and /:locale/try/*", "methods": "GET,HEAD", "backend": "vercel", "cachePolicy": "none", "invocation": "vercel", "auth": "none", "reason": "PROGRAMMATIC_SEO off; Vercel 404s all slugs", "rollbackClass": "keep-vercel", "cutoverClass": "later" },
+    { "route": "Auth, protected reads, merchant writes, MCP, _next/image, Stripe, Blob, AI, cron, admin", "methods": "*", "backend": "vercel", "cachePolicy": "none", "invocation": "vercel", "auth": "session", "reason": "outside first public slice", "rollbackClass": "keep-vercel", "cutoverClass": "vercel" }
+  ]
+}
