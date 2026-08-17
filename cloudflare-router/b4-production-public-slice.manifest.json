@@ -1,0 +1,25 @@
+{
+  "name": "visutry-b4-2-first-production-public-slice",
+  "status": "proposed-not-activated",
+  "productionTraffic": false,
+  "authenticatedTrafficIncluded": false,
+  "methods": "GET,HEAD",
+  "fallbackOrigin": "https://visutry.vercel.app",
+  "publicHost": "www.visutry.com",
+  "retry": "none",
+  "dualWrite": false,
+  "routes": [
+    { "route": "/", "methods": "GET,HEAD", "backend": "cloudflare", "cachePolicy": "root-locale-detect", "auth": "none", "reason": "Accept-Language locale redirect; do not CDN-cache", "rollbackClass": "public-cdn", "cutoverClass": "first" },
+    { "route": "/:locale", "methods": "GET,HEAD", "backend": "cloudflare", "cachePolicy": "deploy-static-html", "auth": "none", "reason": "force-static locale home", "rollbackClass": "public-cdn", "cutoverClass": "first" },
+    { "route": "/:locale marketing/blog/brand/guide/face-shape/try-on landings", "methods": "GET,HEAD", "backend": "cloudflare", "cachePolicy": "deploy-static-html", "auth": "none", "reason": "deploy-time static SEO HTML", "rollbackClass": "public-cdn", "cutoverClass": "first" },
+    { "route": "locale-less marketing/SEO URLs", "methods": "GET,HEAD", "backend": "cloudflare", "cachePolicy": "locale-less-redirect", "auth": "none", "reason": "next.config 308s", "rollbackClass": "public-cdn", "cutoverClass": "first" },
+    { "route": "/_next/static/* and public assets", "methods": "GET,HEAD", "backend": "cloudflare", "cachePolicy": "immutable-static", "auth": "none", "reason": "anonymous hashed/public files", "rollbackClass": "public-cdn", "cutoverClass": "first" },
+    { "route": "/sitemap.xml /sitemaps/core.xml /sitemaps/blog.xml", "methods": "GET,HEAD", "backend": "cloudflare", "cachePolicy": "deploy-static-html", "auth": "none", "reason": "force-static sitemaps", "rollbackClass": "public-cdn", "cutoverClass": "first" },
+    { "route": "GET /api/health", "methods": "GET,HEAD", "backend": "cloudflare", "cachePolicy": "health", "auth": "none", "reason": "proven public health", "rollbackClass": "origin-fallback", "cutoverClass": "first" },
+    { "route": "GET /api/glasses/brands|categories|face-shapes", "methods": "GET,HEAD", "backend": "cloudflare", "cachePolicy": "public-catalog-api", "auth": "none", "reason": "anonymous catalog lists", "rollbackClass": "origin-fallback", "cutoverClass": "first" },
+    { "route": "/:locale/store/:merchantSlug", "methods": "GET,HEAD", "backend": "vercel", "cachePolicy": "none", "auth": "none", "reason": "ISR + revalidateTag cannot purge CF cache", "rollbackClass": "keep-vercel", "cutoverClass": "later" },
+    { "route": "/:locale/c/:merchantSlug/:experienceSlug", "methods": "GET,HEAD", "backend": "vercel", "cachePolicy": "none", "auth": "none", "reason": "Campaign publish freshness stays on Vercel", "rollbackClass": "keep-vercel", "cutoverClass": "later" },
+    { "route": "/:locale/category/* and /:locale/try/*", "methods": "GET,HEAD", "backend": "vercel", "cachePolicy": "none", "auth": "none", "reason": "PROGRAMMATIC_SEO off; Vercel 404s all slugs", "rollbackClass": "keep-vercel", "cutoverClass": "later" },
+    { "route": "Auth, protected reads, merchant writes, MCP, _next/image, Stripe, Blob, AI, cron, admin", "methods": "*", "backend": "vercel", "cachePolicy": "none", "auth": "session", "reason": "outside first public slice", "rollbackClass": "keep-vercel", "cutoverClass": "vercel" }
+  ]
+}
