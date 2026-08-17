@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { getActiveBrands } from '@/data/glasses'
+import { getActiveBrands } from '@/data/glasses-cloudflare'
 
 export const dynamic = 'force-dynamic'
 

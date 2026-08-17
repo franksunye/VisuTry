@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { requireAuth } from '@/lib/api-auth'
-import { getPaymentHistory } from '@/data/protected-reads'
+import { requireAuth } from '@/lib/api-auth-runtime'
+import { getPaymentHistory } from '@/data/protected-reads-cloudflare'
 
 export const dynamic = 'force-dynamic'
 

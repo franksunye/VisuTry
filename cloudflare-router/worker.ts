@@ -15,6 +15,7 @@ export interface RouteDecision {
 
 const locales = ['en', 'id', 'ar', 'ru', 'de', 'ja', 'es', 'pt', 'fr'] as const
 const cloudflarePageSuffixes = ['/store', '/blog', '/face-shape-detector', '/auth/signin', '/auth/error'] as const
+const cloudflareStaticPrefixes = ['/_next/static/'] as const
 
 const vercelRequiredPrefixes = [
   '/api/admin/',
@@ -43,6 +44,12 @@ function isCloudflarePage(pathname: string, method: string): boolean {
     if (path === `/${locale}`) return true
     return cloudflarePageSuffixes.some((suffix) => path === `/${locale}${suffix}`)
   })
+}
+
+function isCloudflareStatic(pathname: string, method: string): boolean {
+  if (method !== 'GET' && method !== 'HEAD') return false
+  const path = cleanPath(pathname)
+  return cloudflareStaticPrefixes.some((prefix) => path.startsWith(prefix)) || path === '/favicon.ico'
 }
 
 function isCloudflareAuth(pathname: string, method: string): boolean {
@@ -95,6 +102,7 @@ export function classify(request: Request): RouteDecision {
 
   if (
     isCloudflarePage(pathname, method) ||
+    isCloudflareStatic(pathname, method) ||
     isCloudflareAuth(pathname, method) ||
     isCloudflareRead(pathname, method) ||
     isCloudflareWrite(pathname, method) ||

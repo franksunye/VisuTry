@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { requireAuth } from '@/lib/api-auth'
+import { requireAuth } from '@/lib/api-auth-runtime'
 import { getRequestContext, logger } from '@/lib/logger'
-import { serializeFaceAnalysisTask } from '@/lib/face-analysis-service'
-import { getFaceAnalysisHistory } from '@/data/protected-reads'
+import { serializeFaceAnalysisTask } from '@/lib/face-analysis-serialization-cloudflare'
+import { getFaceAnalysisHistory } from '@/data/protected-reads-cloudflare'
 
 export const dynamic = 'force-dynamic'
 

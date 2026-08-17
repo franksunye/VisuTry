@@ -6,9 +6,9 @@ import {
   InvalidAgentCredentialError,
   McpOriginError,
   assertTrustedMcpOrigin,
-} from '@/modules/merchant'
-import { AgentRateLimitError, consumeMerchantAgentMcpRequest } from '@/modules/merchant'
-import { createMerchantMcpServer } from '@/modules/merchant/mcp/server'
+} from '@/modules/merchant/application/merchant-mcp-cloudflare'
+import { AgentRateLimitError, consumeMerchantAgentMcpRequest } from '@/modules/merchant/cloudflare'
+import { createMerchantMcpServer } from '@/modules/merchant/mcp/server-cloudflare'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'

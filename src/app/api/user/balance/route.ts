@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
-import { requireAuth } from "@/lib/api-auth"
-import { getUserBalance } from '@/data/user-balance'
+import { requireAuth } from "@/lib/api-auth-runtime"
+import { getUserBalance } from '@/data/user-balance-cloudflare'
 
 // 标记为动态路由，避免静态生成
 export const dynamic = 'force-dynamic'

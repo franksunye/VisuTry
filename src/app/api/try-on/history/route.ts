@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server"
-import { requireAuth } from "@/lib/api-auth"
+import { requireAuth } from "@/lib/api-auth-runtime"
 import { isMockMode } from "@/lib/mocks"
 import { MockDatabase } from "@/lib/mocks/database"
-import { getConsumerTryOnHistory } from '@/data/protected-reads'
+import { getConsumerTryOnHistory } from '@/data/protected-reads-cloudflare'
 
 // Force dynamic rendering for this route
 export const dynamic = 'force-dynamic'
