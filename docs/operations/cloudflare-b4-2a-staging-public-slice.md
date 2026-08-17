@@ -12,6 +12,8 @@
 **Production Auth0 modified:** NO  
 **Merged:** NO
 
+**PR #94 merge-gate build (2026-08-18):** `CI=1 npm run build:ci` **PASS** locally (`BUILD_ID=TtIbh23wdHp9e3fjlJ4MA`, 1576 static pages). Same head SHA also has Vercel preview **READY** (`dpl_HSZ9kc1wDPq8tL9NkZ8ooT113zH7`, `next build` compiled + deployed). Earlier agent-shell “hang” was stdin `/dev/null` (Next exited in ~10s with no `BUILD_ID`); not a repository regression.
+
 This document is the B4.2A evidence pack and the B4.2B production cutover gate. It does **not** execute production cutover.
 
 Related:
@@ -371,3 +373,14 @@ B4.2B blockers (do not execute until cleared):
 Not blockers: Auth0 production setting changes, Store/Campaign on Cloudflare, `_next/image` on Cloudflare, Paid plan.
 
 Next production action (not executed here): implement the section 12 scoped-route production Worker env on a Cloudflare zone, then follow section 13.
+
+## 16. PR #94 merge-gate build evidence
+
+| Check | Result |
+| --- | --- |
+| `CI=1 npm run build:ci` | **PASS** — compiled, lint/types, generated 1576/1576 static pages, `BUILD_ID=TtIbh23wdHp9e3fjlJ4MA`, exit 0 |
+| Environment | Agent shell is non-TTY and wraps commands with `< /dev/null`. Next 14 exits immediately in that mode without a `BUILD_ID`. Reproduced **PASS** by keeping stdin open (`sleep \| npm run build:ci`). |
+| Root cause of prior hang/false exit | **B — environment-specific non-TTY/stdin EOF**, not a repo/build regression |
+| Vercel production-equivalent | **READY** for head `e45f679` — https://vercel.com/sunye/visutry/HSZ9kc1wDPq8tL9NkZ8ooT113zH7 — `npm run build` / `next build` compiled successfully, deployment completed |
+| GitHub Quality Gate `build:ci` | Not run (workflow documents Vercel as the authoritative Next build; GitHub never runs `next build`) |
+| GitHub `Static + Critical Business Regression` | FAIL on this PR **and on `main` after PR #93** — merchant Neon `fetch failed` in unit tests. Out of this PR’s file set. Not a B4.2A blocker. |
