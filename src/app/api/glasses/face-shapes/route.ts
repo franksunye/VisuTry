@@ -6,13 +6,6 @@ export async function GET() {
   try {
     const shapes = await prisma.faceShape.findMany({
       orderBy: { name: 'asc' },
-      select: {
-        id: true,
-        name: true,
-        displayName: true,
-        description: true,
-        characteristics: true,
-      },
     })
 
     return NextResponse.json({

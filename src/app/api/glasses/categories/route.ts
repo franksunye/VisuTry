@@ -6,12 +6,6 @@ export async function GET() {
   try {
     const categories = await prisma.glassesCategory.findMany({
       orderBy: { name: 'asc' },
-      select: {
-        id: true,
-        name: true,
-        displayName: true,
-        description: true,
-      },
     })
 
     return NextResponse.json({

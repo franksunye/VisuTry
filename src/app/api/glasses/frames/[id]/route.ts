@@ -9,32 +9,15 @@ export async function GET(
   try {
     const frame = await prisma.glassesFrame.findUnique({
       where: { id: params.id },
-      select: {
-        id: true,
-        name: true,
-        description: true,
-        imageUrl: true,
-        category: true,
-        brand: true,
-        model: true,
-        style: true,
-        material: true,
-        color: true,
-        price: true,
-        isActive: true,
+      include: {
         faceShapes: {
-          select: {
-            reason: true,
-            faceShape: {
-              select: { name: true, displayName: true },
-            },
+          include: {
+            faceShape: true,
           },
         },
         categories: {
-          select: {
-            category: {
-              select: { name: true, displayName: true },
-            },
+          include: {
+            category: true,
           },
         },
       },

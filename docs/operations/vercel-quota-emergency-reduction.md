@@ -72,14 +72,14 @@ Auth/security preserved: `/admin/:path*` still requires an admin JWT. `/` still 
 | `GET /api/glasses/brands` | No | No | Catalog edits | uncached origin | CDN 3600s + SWR 1d |
 | `GET /api/glasses/categories` | No | No | Catalog edits | uncached origin | CDN 3600s + SWR 1d |
 | `GET /api/glasses/face-shapes` | No | No | Catalog edits | uncached origin | CDN 3600s + SWR 1d |
-| `GET /api/glasses/frames` | No | No | Catalog edits | uncached, full Prisma include | slim public DTO + CDN 3600s |
-| `GET /api/glasses/frames/[id]` | No | No | Catalog edits | uncached, full include | selected public fields + CDN 3600s |
+| `GET /api/glasses/frames` | No | No | Catalog edits | uncached, full Prisma include | **same include contract** + CDN 3600s |
+| `GET /api/glasses/frames/[id]` | No | No | Catalog edits | uncached, full include | **same include contract** + CDN 3600s |
 | `GET /api/store/merchants/[slug]` | No | No | Merchant writes | CDN 300s | unchanged 300s (shopper launcher) |
 | Auth, payment, try-on, admin, share, health | Yes or sensitive | Often | Live | no-store / dynamic | unchanged |
 
 `GET /api/frames` is the try-on `FrameSelector` catalog. It is the highest-volume anonymous JSON GET in-repo.
 
-`GET /api/glasses/frames` had no in-repo client. The previous payload included join-table ids, timestamps, and nested Prisma objects. The public DTO keeps id/name/image/brand/model/style/material/color plus face-shape and category names.
+`GET /api/glasses/frames` has no in-repo fetch caller, but it is a public GET listed in programmatic-SEO docs. Pre-merge review restored the original Prisma `include` payload and kept only the CDN cache headers.
 
 Not cached: authenticated merchant/admin APIs, payment, try-on tasks, share records, health timestamps.
 
@@ -88,7 +88,7 @@ Not cached: authenticated merchant/admin APIs, payment, try-on tasks, share reco
 1. Convert curated SEO catalog pages (`brand`, `category`, `try`) from hourly ISR to `force-static`.
 2. Lengthen Store/Campaign HTML and the dynamic sitemap from 1h/6h/24h ISR to a 7-day safety TTL. Successful public-discovery writes still call `revalidateTag` / `revalidatePath`.
 3. Narrow the middleware matcher (exclude `skills`, `static`, `sitemaps`) and add CDN-level redirects from locale-less public URLs to `/en/...`.
-4. Add shared `Cache-Control` for anonymous catalog GETs and slim the unused glasses-frames list payload.
+4. Add shared `Cache-Control` for anonymous catalog GETs. The glasses-frames JSON include contract is unchanged.
 5. Mark remaining content-only marketing landings `force-static` so they cannot regress to dynamic.
 
 ## Expected impact
@@ -111,7 +111,6 @@ Fast Origin Transfer:
 - Store/Campaign HTML can stay stale for up to 7 days if a writer bypasses `withPublicDiscoveryInvalidation` (seed scripts and raw SQL). Admin, merchant, and MCP application services already invalidate.
 - Public catalog JSON can be up to 1 hour stale after an admin frame edit. Browser cache remains `max-age=0`.
 - Locale-less URLs other than `/` now always land on `/en`, matching existing `/blog/:slug` redirects. Accept-Language detection remains only on `/`.
-- `GET /api/glasses/frames` response shape is slimmer. No in-repo client existed; an unknown external client that depended on Prisma join ids would break.
 
 ## Rollback
 
