@@ -1,7 +1,9 @@
 # Hosting Strategy — Hybrid Edge Architecture
 
-**Status:** Active  
-**Date:** 2026-08-17  
+**Status:** Active
+
+**Date:** 2026-08-18
+
 **Owner:** Product / Engineering
 
 ## Objective
@@ -31,6 +33,88 @@ This strategy is formalized by:
 - `docs/decisions/ADR-010-hybrid-edge-architecture-for-store-campaign-scale.md`
 
 ADR-009 remains the historical decision that initiated and justified Cloudflare optionality work.
+
+ADR-010 remains valid at the architectural-principle level (Cloudflare for traffic scale; backend for compute complexity; Neon as relational source of truth). This document defines how that principle is executed as three traffic layers. It does not rewrite ADR-010.
+
+## Three-Layer Traffic Execution Model
+
+This is the canonical production traffic model. “Cloudflare traffic” does **not** mean every request invokes a Worker.
+
+Preferred order:
+
+> Static Asset → Worker only if necessary → Backend only if necessary
+
+```text
+Internet / Shopper / Bot
+        |
+        v
+Layer 1 — Cloudflare Static Assets
+        |
+        | asset miss / runtime route
+        v
+Layer 2 — Cloudflare Worker / Capability Router
+        |
+        | VERCEL_REQUIRED / UNKNOWN
+        v
+Layer 3 — Backend / Vercel
+        |
+        v
+Neon PostgreSQL where relational data is required
+```
+
+### Layer 1 — Cloudflare Static Assets
+
+Served from the Workers Static Assets directory (OpenNext `.open-next/assets`) when `run_worker_first` is `false` and the URL is an exact asset match.
+
+- Hashed `/_next/static/*` assets
+- Proven public static assets (favicon, `/images/*`, `/home/*`, `/experience-heroes/*`, other non-hashed public prefixes present in the asset output)
+- Control files such as `/robots.txt` and `/llms.txt` when they exist as Static Assets
+- Served **without** Worker invocation
+- Does **not** consume the Workers Free request quota
+- Does **not** hit Vercel
+
+Next.js `force-static` HTML is **not** Layer 1 merely because Next labeled the route static. HTML must exist as a Static Asset file to skip the Worker. OpenNext currently serves locale/SEO/blog/brand HTML from Worker incremental cache, which is Layer 2.
+
+### Layer 2 — Cloudflare Worker / Capability Router
+
+The Worker runs only for routes that miss Layer 1 and actually require routing or runtime execution.
+
+- Worker-served Next/OpenNext HTML
+- Locale and root routing
+- Redirects
+- Lightweight public APIs
+- Direct-Neon capabilities where proven
+- Capability classification (`cf-ready` vs `vercel-required` vs `unknown-fallback`)
+- These requests **count against** the Worker request quota
+
+Layer 2 must not be used as a quota offload via Workers Caching. Cache hits still count as Worker requests and can bill otherwise-free Layer 1 assets.
+
+### Layer 3 — Backend / Vercel
+
+Fallback and heavy/unverified execution. The Worker may proxy here after classification; the authoritative runtime remains Vercel/backend.
+
+- Vercel/backend fallback
+- `UNKNOWN` routes
+- Unsupported routes
+- Stripe
+- Blob
+- AI
+- Cron/background
+- Admin
+- Full MCP OAuth/DCR
+- Other heavy or unverified capabilities
+
+### Invariants
+
+These routing principles are unchanged:
+
+- One authoritative runtime per capability
+- Unknown → backend (Layer 3)
+- One writer
+- No automatic cross-runtime write retry
+- Neon remains the relational source of truth
+
+B4 production-slice evidence and cache/quota detail live in `docs/operations/cloudflare-b4-production-cutover-readiness.md`. This section is the strategy-level source of truth for the three layers.
 
 ## Why This Changed
 
@@ -87,37 +171,44 @@ Heavy paths include:
 - broad admin workflows;
 - full OAuth/DCR/source-network operations.
 
-Target traffic shape:
+Target traffic shape uses the same three layers. Most Store/Campaign page-view growth should stop at Layer 1 (hashed/public assets) or Layer 2 (landing HTML and lightweight reads), not Layer 3.
 
 ```text
-Shopper / Agent
+Shopper / Agent / Bot
       |
       v
-Cloudflare Edge / Capability Routing
+Layer 1 — Cloudflare Static Assets
+      |     hashed /_next/static, proven public files
+      |     no Worker, no Vercel, no Worker quota
       |
-      +--> high-frequency / low-compute
-      |      - Consumer public traffic
-      |      - Store / Campaign landing
-      |      - catalog/config reads
-      |      - selected auth/read/write paths
-      |      - direct Neon
+      | asset miss / runtime route
+      v
+Layer 2 — Cloudflare Worker / Capability Router
+      |     Store/Campaign landing HTML (when Worker-owned)
+      |     catalog/config reads, selected auth/read/write
+      |     attribution/session, lightweight public APIs
+      |     direct Neon where proven
+      |     counts toward Worker quota
       |
-      +--> compute/integration-heavy backend
-             - AI
-             - Stripe
-             - Blob/storage workflows
-             - cron/background
-             - full MCP OAuth/source intake
+      | VERCEL_REQUIRED / UNKNOWN
+      v
+Layer 3 — Backend / Vercel
+      |     AI, Stripe, Blob/storage workflows
+      |     cron/background, full MCP OAuth/source intake
+      |     admin and other heavy/unverified paths
+      |
+      v
+Neon PostgreSQL where relational data is required
 ```
 
-The architecture should ensure that Store/Campaign traffic growth does not cause heavyweight backend work to grow linearly with page views or shopper interactions.
+The architecture should ensure that Store/Campaign traffic growth does not cause heavyweight backend work to grow linearly with page views or shopper interactions. Asset subresources must not be forced through Layer 2 (`run_worker_first` must stay false for public assets).
 
 ## Architecture Responsibilities
 
 | Capability | Direction |
 | --- | --- |
-| Public/static traffic | Cloudflare-preferred once route-level production rollout is approved |
-| Public lightweight reads | Cloudflare + direct Neon where proven |
+| Public hashed/static files | Layer 1 Static Assets (no Worker) once production rollout is approved |
+| Public HTML and lightweight reads | Layer 2 Worker + direct Neon where proven; not Layer 1 unless a Static Asset file exists |
 | Auth0/JWT session boundary | Cloudflare-capable for the tested path |
 | Protected user reads | Cloudflare + direct Neon where proven |
 | Merchant workspace/profile | Cloudflare + direct Neon where proven |
@@ -140,19 +231,20 @@ The canonical capability classification is maintained in:
 
 Production rollout must follow these rules:
 
-1. **Explicit capability ownership.** Every route/capability has one authoritative runtime owner.
-2. **Unknown defaults to the existing backend.** No broad wildcard migration of unverified APIs.
-3. **One writer per capability.** Never dual-write between Cloudflare and Vercel.
-4. **No automatic cross-runtime retry for mutations.** A failed write must not silently execute on both runtimes.
-5. **Shared identity and database truth.** Auth0 remains the identity provider; Neon remains the relational source of truth.
-6. **Security boundaries are preserved.** Tenant, ownership, role, webhook, and rate-limit semantics must survive routing changes.
-7. **Rollback is route/capability based.** Reads should be able to return to the existing backend without database rollback; writes require drain/idempotency checks before ownership changes.
+1. **Prefer the cheapest sufficient layer.** Static Asset, then Worker only if necessary, then backend only if necessary.
+2. **Explicit capability ownership.** Every route/capability has one authoritative runtime owner.
+3. **Unknown defaults to the existing backend.** No broad wildcard migration of unverified APIs.
+4. **One writer per capability.** Never dual-write between Cloudflare and Vercel.
+5. **No automatic cross-runtime retry for mutations.** A failed write must not silently execute on both runtimes.
+6. **Shared identity and database truth.** Auth0 remains the identity provider; Neon remains the relational source of truth.
+7. **Security boundaries are preserved.** Tenant, ownership, role, webhook, and rate-limit semantics must survive routing changes.
+8. **Rollback is route/capability based.** Reads should be able to return to the existing backend without database rollback; writes require drain/idempotency checks before ownership changes.
 
 ## Cloudflare Budget Discipline
 
 Cloudflare Free is currently strategically useful because it can absorb meaningful edge traffic with minimal fixed infrastructure cost.
 
-Current operational budgets include Worker bundle size, request count, CPU, and runtime limits. These must be measured as part of relevant changes.
+Current operational budgets include Worker bundle size, Worker request count, CPU, and runtime limits. Measure **two request meters**: Layer 1 Static Asset requests (free when the Worker is not invoked) and Layer 2 Worker invocations (Free plan 100,000/day). Do not treat total site traffic or Layer 1 hits as Worker requests. These must be measured as part of relevant changes.
 
 However:
 
@@ -264,4 +356,5 @@ Routine implementation work should not reopen the architecture decision.
 - `docs/operations/cloudflare-phase-b2-write-parity.md`
 - `docs/operations/cloudflare-phase-b3-integration-audit.md`
 - `docs/operations/cloudflare-production-route-boundary.md`
+- `docs/operations/cloudflare-b4-production-cutover-readiness.md`
 - `docs/operations/vercel-cpu-static-page-pilot.md`

@@ -12,7 +12,8 @@ This document is the B4.2 implementation plan. It does **not** cut over producti
 
 Related:
 
-- [`ADR-010-hybrid-edge-architecture-for-store-campaign-scale.md`](../decisions/ADR-010-hybrid-edge-architecture-for-store-campaign-scale.md) (not rewritten)
+- [`ADR-010-hybrid-edge-architecture-for-store-campaign-scale.md`](../decisions/ADR-010-hybrid-edge-architecture-for-store-campaign-scale.md) (not rewritten; architectural principles)
+- [`hosting-strategy-vercel-cloudflare.md`](./hosting-strategy-vercel-cloudflare.md) — canonical **Three-Layer Traffic Execution Model**
 - [`cloudflare-b3-2-capability-routing.md`](./cloudflare-b3-2-capability-routing.md)
 - [`vercel-quota-emergency-reduction.md`](./vercel-quota-emergency-reduction.md) (PR #91)
 - Proposed classifier: `cloudflare-router/b4-production-public-slice.ts`
@@ -37,15 +38,19 @@ B4.1 wrangler staging dry-run on this branch (classifier not wired into the Work
 
 ## 2. Architecture baseline
 
-Unchanged from ADR-010:
+Unchanged from ADR-010 at the principle level:
 
 > Cloudflare = traffic-scale edge; Vercel/backend = compute/integration-heavy capabilities; Neon = relational source of truth.
+
+The canonical execution model is the **Three-Layer Traffic Execution Model** in [`hosting-strategy-vercel-cloudflare.md`](./hosting-strategy-vercel-cloudflare.md): Layer 1 Static Assets (no Worker, no quota) → Layer 2 Worker / capability router only if necessary → Layer 3 Vercel/backend only if necessary. “Cloudflare traffic” does not mean every request invokes a Worker.
 
 Current production host is Vercel. `www.visutry.com` and `visutry.com` are Vercel project domains. Public DNS nameservers are `ns1.vercel-dns.com` / `ns2.vercel-dns.com`. `wrangler.jsonc` is staging `workers_dev` only: no `routes`, no zone, no `visutry.com`.
 
 B3.2 same-host staging routing already passed (PR #92). That proves cookie/header forwarding and Vercel fallback. It does **not** prove that every B3.2 `cf-ready` route should enter the first production slice.
 
 ### 2.1 Production request path (B4.2 target)
+
+This is the B4.2 instantiation of the canonical three-layer model. It does not replace that section.
 
 ```text
 www.visutry.com request
