@@ -3,7 +3,7 @@
 **Date:** 2026-08-16
 **Status:** Partial / Free-compatible public-read staging deployed; full Prisma parity remains open
 **Starting main SHA:** `acd0e2015c42a38dad90bc4b2ec12a350b6f7361`
-**Branch:** `codex/cloudflare-phase-a-build-parity` 
+**Branch:** `codex/cloudflare-phase-a-build-parity`
 **Ending SHA:** See the final handoff report for the commit SHA containing this report.
 
 ## Scope and safety boundary
