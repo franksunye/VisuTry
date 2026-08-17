@@ -1,6 +1,6 @@
 # VisuTry Cloudflare B3.2 Capability Routing
 
-**Status:** PASS — B3.2 same-host staging capability routing was already proven. This document now also records reconciliation onto current `main` (including PR #91 quota reductions). No production DNS, domain, or deployment was changed.
+**Status:** PASS — B3.2 same-host staging capability routing was already proven, then reconciled onto current `main` (including PR #91 quota reductions). The PR #92 final staging gate also passed. No production DNS, domain, or deployment was changed.
 
 ## Staging entry point
 
@@ -144,6 +144,37 @@ Cloudflare OpenNext still uses `CLOUDFLARE_BUILD=1` webpack aliases, the Prisma 
 
 Recorded reconciliation validation: `npm ci`, typecheck, lint (existing warnings only), critical tests (7 suites / 30 tests), router tests (6 / 6), PR #91 quota regression tests, `build:ci` / prerender inspection, `CLOUDFLARE_BUILD=1` Next build, OpenNext Cloudflare bundle build, Wrangler staging dry-run, and `git diff --check`. Production DNS, production Cloudflare routes, and production traffic are unchanged. Rollback remains reverting this PR; production still serves on Vercel.
 
+## PR #92 final staging gate
+
+Redeployed the staging Worker from `cursor/cloudflare-b3-2-main-reconciliation` on 2026-08-17. Wrangler uploaded the existing OpenNext artifact; `wrangler.jsonc` still has `workers_dev: true` and no `routes`, zone, or `visutry.com` binding. The deploy trigger is workers.dev only.
+
+| Item | Value |
+| --- | --- |
+| Staging URL | `https://visutry-cf-staging.sunye.workers.dev` |
+| Version ID | `a84743e9-90ab-404e-b372-5a6234d634af` |
+| gzip Worker size | 2777.11 KiB |
+| Free-plan limit | 3072 KiB |
+| Under limit | yes |
+| Production route / DNS binding | none |
+
+Same-browser non-billable replay used a newly registered staging-only account (`s***+b32-reconcile-20260817@visutry.com`) and staging workspace `b32-reconcile-smoke-20260817` (`merchantId=b7233205-5856-449b-b710-69bbcabbd859`). The browser stayed on the workers.dev origin. No billable AI, payment, Blob upload, production Auth0, DNS, or production Cloudflare route change was performed.
+
+| Request | Status | Backend / class | Evidence |
+| --- | ---: | --- | --- |
+| login → `GET /api/auth/session` | 200 | Cloudflare / `cf-ready` | Session returned the staging test identity |
+| `GET /api/try-on/history` while signed in | 200 | Cloudflare / `cf-ready` | Authenticated CF protected read passed |
+| `GET /api/merchant/:id/profile` while signed in | 200 | Cloudflare / `cf-ready` | Authenticated merchant profile read passed |
+| `POST /api/face-analysis/submit` with empty `FormData` while signed in | 400 | Vercel / `vercel-required` | Cookie forwarding passed; empty body rejected before AI |
+| `GET /api/auth/session` after UI Sign Out | 200 | Cloudflare / `cf-ready` | Returned `{}` |
+| `GET /api/try-on/history` after UI logout | 401 | Cloudflare / `cf-ready` | Protected CF read denied |
+| `GET /api/merchant/:id/profile` after UI logout | 401 | Cloudflare / `cf-ready` | Tenant-protected merchant read denied |
+| `POST /api/face-analysis/submit` with empty `FormData` after UI logout | 401 | Vercel / `vercel-required` | Protected Vercel-required path denied |
+| `GET /en` | 200 | Cloudflare / `cf-ready` | Locale home served on CF |
+| `GET /en/brand/warby-parker` | 200 | Vercel / `unknown-fallback` | Brand page is not CF-allowlisted; Vercel preview served the static page |
+| `GET /api/glasses/brands` | 200 | Cloudflare / `cf-ready` | Public catalog read on CF |
+| `GET /api/unknown-capability` | 404 | Vercel / `unknown-fallback` | Unknown GET defaults to Vercel |
+| `POST /api/unknown-write` | 404 | Vercel / `unknown-fallback` | Unknown POST defaults to Vercel |
+
 ## Git
 
-Proven staging implementation: `codex/cloudflare-phase-a-build-parity` @ `4a49670`. Reconciliation PR branch: `cursor/cloudflare-b3-2-main-reconciliation`, based on `origin/main` @ `5147c3c`. No production merge or production traffic move is part of this milestone.
+Proven staging implementation: `codex/cloudflare-phase-a-build-parity` @ `4a49670`. Reconciliation PR branch: `cursor/cloudflare-b3-2-main-reconciliation`, based on `origin/main` @ `5147c3c`. Final staging gate Worker: `a84743e9-90ab-404e-b372-5a6234d634af`. No production merge or production traffic move is part of this milestone.
