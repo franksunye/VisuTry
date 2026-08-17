@@ -55,6 +55,10 @@ function isCloudflareAuth(pathname: string, method: string): boolean {
     '/api/auth/signin/auth0',
   ])
   if (method === 'GET' && readOnly.has(path)) return true
+  // NextAuth's browser signIn() starts the OAuth transaction with a
+  // CSRF-protected POST to this provider route. Keep it on the same host as
+  // the callback so state/PKCE cookies stay in the single staging session.
+  if (method === 'POST' && path === '/api/auth/signin/auth0') return true
   if ((method === 'GET' || method === 'POST') && path === '/api/auth/callback/auth0') return true
   if (method === 'POST' && (path === '/api/auth/refresh-token' || path === '/api/auth/signout')) return true
   return false

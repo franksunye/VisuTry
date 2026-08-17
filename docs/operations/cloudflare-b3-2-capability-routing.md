@@ -20,7 +20,7 @@ The allowlist is method-aware and intentionally narrow:
 
 - `GET`/`HEAD` `/`, each supported locale root, `/store`, `/blog`, `/face-shape-detector`, `/auth/signin`, `/auth/error`, and `/en/merchant`.
 - `GET`/`HEAD` `/api/health`, `/api/glasses/brands`, the four proven protected user reads, and `/api/merchant/:merchantId/profile`.
-- Auth0/JWT session and first-login paths: the tested NextAuth providers/CSRF/session/sign-in/callback/sign-out/refresh operations.
+- Auth0/JWT session and first-login paths: the tested NextAuth providers/CSRF/session/sign-in entry, CSRF-protected Auth0 sign-in POST, callback, sign-out, and refresh operations.
 - `POST /api/merchant/workspaces`.
 - `POST /api/mcp` for the narrow B2 bearer/DRAFT capability boundary.
 
@@ -53,9 +53,9 @@ Anonymous staging checks passed after the clean Cloudflare build:
 | `GET /api/user/balance` | 401 |
 | `GET /api/merchant/:merchantId/profile` | 401 for an unauthenticated request |
 
-The mandatory authenticated replay is **not complete**. During the final run, both the canonical staging hostname and the current Vercel preview returned the NextAuth `error=auth0` redirect for `/api/auth/signin/auth0`; the Auth0 callback never completed. No Auth0 settings were changed by B3.2. The existing B1.2 authenticated evidence is retained as historical staging evidence, but it cannot be claimed as a same-router cross-backend replay for this milestone.
+The mandatory authenticated replay is **not complete** because the browser currently has no retained B1.2 authenticated session. The earlier GET-only probe of `/api/auth/signin/auth0` was not the OAuth transaction: NextAuth uses the CSRF-protected POST. After the POST allowlist fix, a real staging browser click reached Auth0, and a direct POST probe returned `200` with an authorization URL on `auth.visutry.com`; the router classified it `cloudflare` / `cf-ready`. No Auth0 settings were changed by B3.2. The authenticated callback, cross-backend request, logout, and post-logout denial still require one same-browser replay with an existing B1.2 account.
 
-To close this gate, an authorized Auth0 administrator must restore/verify the staging Auth0 sign-in configuration for the existing callback, then replay: login, Cloudflare authenticated read, Cloudflare merchant read, Vercel fallback authenticated request, logout, and post-logout denial in one browser session. No second login should be accepted as a pass.
+To close this gate, continue the current Auth0 page with an existing B1.2 account, then replay: login, Cloudflare authenticated read, Cloudflare merchant read, Vercel fallback authenticated request, logout, and post-logout denial in one browser session. No second login should be accepted as a pass.
 
 ## SECURITY
 
@@ -89,10 +89,10 @@ The `x-visutry-router-backend`, `x-visutry-router-class`, and `x-visutry-router-
 | Measurement | Value |
 | --- | ---: |
 | B3.1 baseline | 2,814.92 KiB gzip |
-| Final same-host routed Worker | 2,765.92 KiB gzip |
-| Delta vs baseline | -49.00 KiB |
+| Final same-host routed Worker | 2,735.54 KiB gzip |
+| Delta vs baseline | -79.38 KiB |
 | Free-plan limit | 3,072 KiB |
-| Final headroom | 306.08 KiB |
+| Final headroom | 336.46 KiB |
 | Standalone router harness | 1.80 KiB gzip |
 | Stop threshold | 2,900 KiB preferred / 25 KiB router budget |
 
@@ -123,7 +123,7 @@ Required validation completed or recorded:
 - `npm run test:critical:ci`: PASS, 7 suites / 30 tests.
 - `npm run build:ci`: PASS after an equivalent `Buffer.isBuffer` type narrowing in the test mock.
 - `npm run build:cloudflare`: PASS, 1,576 static pages.
-- `wrangler deploy --dry-run --env staging`: PASS, final `2,765.92 KiB gzip`.
-- Staging-only deployment: PASS, Worker `visutry-cf-staging`, version `077c37f8-2005-45ee-ad5d-832f6c9cb6f0`.
+- `wrangler deploy --dry-run --env staging`: PASS, final `2,735.54 KiB gzip`.
+- Staging-only deployment: PASS, Worker `visutry-cf-staging`, version `76ef57c9-d606-41ed-9bd0-52b09f1b43c0`.
 
-The milestone remains **PARTIAL** until the Auth0 sign-in error is resolved and the mandatory same-browser authenticated Cloudflare/Vercel/logout replay is completed. No merge or production deployment is authorized by this document.
+The milestone remains **PARTIAL** until the mandatory same-browser authenticated Cloudflare/Vercel/logout replay is completed. No merge or production deployment is authorized by this document.

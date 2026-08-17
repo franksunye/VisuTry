@@ -19,7 +19,7 @@ type Row = Record<string, unknown>
 export type MerchantAgentCredentialMetadata = {
   id: string
   name: string
-  status: string
+  status: 'ACTIVE' | 'REVOKED'
   createdAt: Date
   lastUsedAt: Date | null
   revokedAt: Date | null
@@ -42,7 +42,7 @@ function mapCredential(row: Row): MerchantAgentCredentialMetadata {
   return {
     id: String(row.id),
     name: String(row.name),
-    status: String(row.status),
+    status: String(row.status) === 'ACTIVE' ? 'ACTIVE' : 'REVOKED',
     createdAt: dateValue(row.createdAt) ?? new Date(0),
     lastUsedAt: dateValue(row.lastUsedAt),
     revokedAt: dateValue(row.revokedAt),

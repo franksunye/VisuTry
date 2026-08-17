@@ -356,3 +356,23 @@ The committed B1.2 fixture set above remains the authoritative two-user/two-tena
 | `npx wrangler deploy --dry-run --env staging` | PASS — `2,808.59 KiB` gzip |
 
 The current dry-run has `263.41 KiB` headroom under the `3,072 KiB` Workers Free hard limit. No Prisma query-engine, libquery, Prisma WASM, or wasm-bindgen runtime artifacts were present in the generated Worker bundle. No staging deployment, production DNS/domain, database mutation outside the explicitly created TEST identity/merchant, Stripe, Blob, AI, or Auth0 configuration change was made.
+
+## Current-HEAD revalidation after Auth0/runtime repair (2026-08-17)
+
+The existing B1.2 TEST identities, merchants, and ownership fixtures were not recreated. The Cloudflare runtime alias repair was deployed to staging as Worker version `78e2caa6-0e74-4052-ae5c-891d3408ad4f`.
+
+| Check | Current result |
+| --- | --- |
+| Anonymous `/api/auth/session` and `/api/auth/csrf` | `200`, Cloudflare `cf-ready` |
+| Anonymous `/api/glasses/brands` | `200`, Cloudflare `cf-ready` |
+| Anonymous `/en/merchant` | `307` to `/en/auth/signin`, Cloudflare `cf-ready` |
+| Anonymous `/api/try-on/history` and `/api/user/balance` | `401`, Cloudflare `cf-ready` |
+| Auth0 signin transaction | `302` to `https://auth.visutry.com/authorize`, Cloudflare `cf-ready` |
+| Unknown API fallback | `404`, Vercel `unknown-fallback` |
+| `npm run typecheck` | PASS |
+| `npm run lint` | PASS with existing warnings |
+| `npm run test:critical:ci` | PASS — 7 suites / 30 tests |
+| `npm run build:ci` | PASS — 1,576 static pages |
+| Worker gzip bundle | `2,789.61 KiB`; `282.39 KiB` headroom |
+
+The connected in-app browser exposed no retained authenticated tab during this revalidation, so the existing documented two-user/two-tenant B1.2 fixture evidence remains authoritative; no credentials were re-entered and no new identity or tenant was created. No production DNS, production deployment, or main-branch merge was performed.

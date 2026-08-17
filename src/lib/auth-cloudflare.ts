@@ -2,12 +2,30 @@ import Auth0Provider from 'next-auth/providers/auth0'
 import type { NextAuthOptions } from 'next-auth'
 import { getCloudflareAuthUser, createCloudflareAuthAdapter } from '@/data/auth-cloudflare'
 import { getJwtSyncDecision } from './auth-sync'
+import { normalizeAuth0Issuer } from './auth0-issuer'
 import { QUOTA_CONFIG } from '@/config/pricing'
+
+const auth0Issuer = normalizeAuth0Issuer(process.env.AUTH0_ISSUER_BASE_URL)
+
+function logAuthError(code: string, metadata: unknown) {
+  const record = metadata && typeof metadata === 'object'
+    ? metadata as Record<string, unknown>
+    : undefined
+  const error = record?.error && typeof record.error === 'object'
+    ? record.error as Record<string, unknown>
+    : undefined
+
+  console.error('[Cloudflare Auth]', JSON.stringify({
+    code,
+    errorName: typeof error?.name === 'string' ? error.name : undefined,
+    errorMessage: typeof error?.message === 'string' ? error.message : undefined,
+  }))
+}
 
 const auth0Configured = Boolean(
   process.env.AUTH0_ID &&
   process.env.AUTH0_SECRET &&
-  process.env.AUTH0_ISSUER_BASE_URL,
+  auth0Issuer,
 )
 
 function syncUserFields(token: Record<string, unknown>, user: Awaited<ReturnType<typeof getCloudflareAuthUser>>) {
@@ -41,7 +59,7 @@ const providers = auth0Configured
   ? [Auth0Provider({
       clientId: process.env.AUTH0_ID!,
       clientSecret: process.env.AUTH0_SECRET!,
-      issuer: process.env.AUTH0_ISSUER_BASE_URL!,
+      issuer: auth0Issuer!,
     })]
   : []
 
@@ -118,4 +136,7 @@ export const authOptions: NextAuthOptions = {
   },
   pages: { signIn: '/auth/signin', error: '/auth/error' },
   session: { strategy: 'jwt', maxAge: 30 * 24 * 60 * 60 },
+  logger: {
+    error: logAuthError,
+  },
 }
