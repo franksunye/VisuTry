@@ -1,8 +1,15 @@
 import app from '../.open-next/worker.js'
-import { classify, upstreamRequest, type RouteDecision } from './worker'
+import {
+  classifyStagingPublicSlice,
+  fallbackRequest,
+  rewriteFallbackLocation,
+  routerLogFields,
+  withB4RouterHeaders,
+} from './b4-staging-router'
 
 interface Env {
   VERCEL_ORIGIN: string
+  PUBLIC_HOST?: string
 }
 
 interface RouterExecutionContext {
@@ -16,63 +23,41 @@ interface AppWorker {
 
 const appWorker = app as unknown as AppWorker
 
-function withRouterHeaders(response: Response, decision: RouteDecision, latencyMs: number): Response {
-  const headers = new Headers(response.headers)
-  headers.set('x-visutry-router-backend', decision.backend)
-  headers.set('x-visutry-router-class', decision.routeClass)
-  headers.set('x-visutry-router-latency-ms', String(latencyMs))
-  return new Response(response.body, {
-    status: response.status,
-    statusText: response.statusText,
-    headers,
-  })
-}
-
 export default {
   async fetch(request: Request, env: Env, ctx: RouterExecutionContext): Promise<Response> {
-    const decision = classify(request)
+    const decision = classifyStagingPublicSlice(request)
     const startedAt = Date.now()
+    const publicHost = env.PUBLIC_HOST || new URL(request.url).host
 
     if (decision.backend === 'cloudflare') {
       const response = await appWorker.fetch(request, env, ctx)
       const latencyMs = Date.now() - startedAt
-      console.log(JSON.stringify({
-        path: new URL(request.url).pathname,
-        backend: decision.backend,
-        routeClass: decision.routeClass,
-        status: response.status,
-        latencyMs,
-      }))
-      return withRouterHeaders(response, decision, latencyMs)
+      console.log(JSON.stringify(routerLogFields(request, decision, response.status, latencyMs)))
+      return withB4RouterHeaders(response, decision, latencyMs)
     }
 
     try {
-      const response = await fetch(upstreamRequest(request, env.VERCEL_ORIGIN))
+      const response = await fetch(fallbackRequest(request, env.VERCEL_ORIGIN))
       const latencyMs = Date.now() - startedAt
-      console.log(JSON.stringify({
-        path: new URL(request.url).pathname,
-        backend: decision.backend,
-        routeClass: decision.routeClass,
-        status: response.status,
+      console.log(JSON.stringify(routerLogFields(request, decision, response.status, latencyMs)))
+      return withB4RouterHeaders(
+        rewriteFallbackLocation(response, env.VERCEL_ORIGIN, publicHost),
+        decision,
         latencyMs,
-      }))
-      return withRouterHeaders(response, decision, latencyMs)
+      )
     } catch (error) {
       const latencyMs = Date.now() - startedAt
-      console.log(JSON.stringify({
-        path: new URL(request.url).pathname,
-        backend: decision.backend,
-        routeClass: decision.routeClass,
-        status: 502,
-        latencyMs,
-        error: error instanceof Error ? error.name : 'upstream-fetch-failed',
-      }))
+      const errorClass = error instanceof Error ? error.name : 'upstream-fetch-failed'
+      console.log(JSON.stringify(routerLogFields(request, decision, 502, latencyMs, errorClass)))
       return new Response('Upstream unavailable', {
         status: 502,
         headers: {
           'content-type': 'text/plain; charset=utf-8',
           'x-visutry-router-backend': decision.backend,
           'x-visutry-router-class': decision.routeClass,
+          'x-visutry-router-layer': 'layer3-vercel',
+          'x-visutry-router-invocation': decision.invocation,
+          'x-visutry-router-cache': decision.cacheClass,
           'x-visutry-router-latency-ms': String(latencyMs),
         },
       })

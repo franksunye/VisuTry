@@ -1,12 +1,12 @@
 # VisuTry Cloudflare B4.1 Production Cutover Readiness
 
-**Status:** PASS — readiness plan, Static Asset audit, and corrected Free-plan quota model are recorded. Production traffic was not moved.
+**Status:** PASS — readiness plan, Static Asset audit, and corrected Free-plan quota model are recorded. Production traffic was not moved. Staging activation of this slice is in [`cloudflare-b4-2a-staging-public-slice.md`](./cloudflare-b4-2a-staging-public-slice.md).
 
-**Date:** 2026-08-17
+**Date:** 2026-08-17 (B4.2A follow-up 2026-08-18)
 
 **Owner:** Product / Engineering
 
-**Baseline:** `origin/main` `b3794161d0bb4d2c7e928d5cf5ba39887b2e86be` (PR #92 merge)
+**Baseline:** `origin/main` `b3794161d0bb4d2c7e928d5cf5ba39887b2e86be` (PR #92 merge). PR #93 merged as `cf01a625c828376e57464fd4969de1d5217dd14a`.
 
 This document is the B4.2 implementation plan. It does **not** cut over production, change DNS, bind `www.visutry.com`, or deploy a production Worker route.
 
@@ -16,6 +16,7 @@ Related:
 - [`hosting-strategy-vercel-cloudflare.md`](./hosting-strategy-vercel-cloudflare.md) — canonical **Three-Layer Traffic Execution Model**
 - [`cloudflare-b3-2-capability-routing.md`](./cloudflare-b3-2-capability-routing.md)
 - [`vercel-quota-emergency-reduction.md`](./vercel-quota-emergency-reduction.md) (PR #91)
+- [`cloudflare-b4-2a-staging-public-slice.md`](./cloudflare-b4-2a-staging-public-slice.md) — B4.2A staging activation and B4.2B gate
 - Proposed classifier: `cloudflare-router/b4-production-public-slice.ts`
 - Review manifest: `cloudflare-router/b4-production-public-slice.manifest.json`
 
@@ -24,13 +25,13 @@ Related:
 | Item | Value |
 | --- | --- |
 | B4.1 result | PASS (quota-model correction applied) |
-| B4.2 GO / NO-GO | **GO** for staging wiring of this public slice after workers.dev smoke. Production DNS/Custom Domain remains a later window. Worker HTML volume is **WARNING**, not a classification NO-GO. |
+| B4.2 GO / NO-GO | **GO** for staging wiring (done in B4.2A). Production DNS/Custom Domain remains **NO-GO** until scoped Worker routes and live volume telemetry — see B4.2A. Worker HTML volume is **WARNING**, not a classification NO-GO. |
 | Production DNS changed | NO |
 | Production Worker route bound | NO |
 | Authenticated traffic in first slice | NO |
-| Live staging classifier changed | NO (`cloudflare-router/worker.ts` remains B3.2) |
+| Live staging classifier changed | YES on `app-host-worker.ts` (B4.2A). `cloudflare-router/worker.ts` remains B3.2. |
 
-Last proven staging Worker: `a84743e9-90ab-404e-b372-5a6234d634af`, gzip **2777.11 KiB** / 3072 KiB.
+Last proven staging Worker (B4.2A): `98807822-7bbe-4c52-a83d-0b6f3bbdf589`, gzip **2781.21 KiB** / 3072 KiB. Prior B3.2/B4.1: `a84743e9-90ab-404e-b372-5a6234d634af`, gzip **2777.11 KiB**.
 
 B4.1 wrangler staging dry-run on this branch (classifier not wired into the Worker): **2780.44 KiB** gzip after the quota-model correction (earlier on this branch: 2782.77 KiB). Still below 3072 KiB.
 
@@ -256,7 +257,9 @@ Documented constraints for B4.2 (not executed here):
 
 Cloudflare is **not** the authoritative DNS today.
 
-**Chosen architecture (Option A, safest long-term):**
+**B4.1 proposed architecture (Option A, Custom Domain).** B4.2A supersedes this for the first production cutover: use **scoped Worker routes** so Layer 3 does not consume the Free 100k/day Worker quota. See [`cloudflare-b4-2a-staging-public-slice.md`](./cloudflare-b4-2a-staging-public-slice.md) section 12. Option A below is retained as historical B4.1 text, not the B4.2B execute plan.
+
+**Chosen architecture (Option A, safest long-term) — historical B4.1:**
 
 1. Create a Cloudflare zone for `visutry.com` and copy records (DNS-only / grey cloud first).
 2. Change nameservers from Vercel to Cloudflare only during B4.2, after a written rollback.
@@ -349,21 +352,21 @@ B4.1 (this PR):
 - [x] Manifest for B4.2
 - [x] npm ci / typecheck / lint / critical / quota / router / build:ci / CF dry-run (recorded in the PR)
 
-B4.2 pre-DNS smoke (workers.dev):
+B4.2 pre-DNS smoke (workers.dev) — completed in B4.2A:
 
-- [ ] `GET /en` 200 CF
-- [ ] `GET /en/brand/warby-parker` 200 CF (not Vercel unknown-fallback)
-- [ ] unknown brand 404, no soft 200
-- [ ] `GET /en/store/:unknown` still Vercel 404
-- [ ] `GET /api/glasses/brands` 200 CF
-- [ ] unknown GET/POST → Vercel
-- [ ] POST `/en` → Vercel
-- [ ] `/_next/image` → Vercel
-- [ ] no retry on CF 502
+- [x] `GET /en` 200 CF
+- [x] `GET /en/brand/warby-parker` 200 CF (not Vercel unknown-fallback)
+- [x] unknown brand 404, no soft 200
+- [x] `GET /en/store/:unknown` still Vercel 404
+- [x] `GET /api/glasses/brands` 200 CF
+- [x] unknown GET/POST → Vercel
+- [x] POST `/en` → Vercel
+- [x] `/_next/image` → Vercel
+- [x] no retry on CF 502
 
 ## 16. B4.2 GO / NO-GO
 
-**GO** for implementing the public slice on staging (`workers.dev`) with asset-first routing. Invocation families are proven from OpenNext output. Production www Custom Domain remains a later, planned DNS window.
+**GO** for implementing the public slice on staging (`workers.dev`) with asset-first routing — **done in B4.2A**. Invocation families are proven from OpenNext output and live staging smoke. Production www Custom Domain remains **NO-GO**; B4.2B must use scoped Worker routes and live volume telemetry.
 
 B4.2 must clear before DNS:
 

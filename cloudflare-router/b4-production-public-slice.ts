@@ -1,8 +1,8 @@
 /**
  * B4.2 first production public slice — proposed classifier.
  *
- * This module is not wired into app-host-worker.ts or wrangler.jsonc.
- * Staging continues to use the proven B3.2 classify() in worker.ts.
+ * Staging app-host-worker.ts now uses classifyB4ProductionPublicSlice().
+ * Live B3.2 classify() in worker.ts remains for regression tests.
  * Do not attach this slice to www.visutry.com from this PR.
  *
  * Free-plan quota model (corrected):
