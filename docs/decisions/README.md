@@ -75,6 +75,7 @@ What becomes easier, harder, required, or deferred because of this decision?
 | ADR-007 | Store May Evolve Without Disrupting Stable Consumer Workflows | Accepted | 2026-08-06 |
 | ADR-008 | Commerce Is the Domain; Storefront Is a Delivery Surface | Accepted | 2026-08-06 |
 | ADR-009 | Keep Vercel Production While Preparing a Verified Cloudflare Migration Path | Accepted | 2026-08-15 |
+| ADR-010 | Adopt a Hybrid Edge Architecture for Store / Campaign Scale | Accepted | 2026-08-17 |
 
 ---
 
@@ -89,3 +90,4 @@ What becomes easier, harder, required, or deferred because of this decision?
 | 2026-08-06 | Added ADR-007: Store / Consumer stability boundary and dependency direction. |
 | 2026-08-06 | Added ADR-008: commerce-domain architecture with Storefront as a delivery surface. |
 | 2026-08-15 | Added ADR-009: keep Vercel production while preparing and validating a Cloudflare migration path. |
+| 2026-08-17 | Added ADR-010: adopt Hybrid Edge Architecture for Store/Campaign traffic scale and backend compute separation. |
