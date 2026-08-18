@@ -25,6 +25,10 @@ export function tryOnMediaPath(taskId: string, kind: TryOnMediaKind): string {
   return `/api/try-on/${encodeURIComponent(taskId)}/media/${kind}`
 }
 
+export function adminTryOnMediaPath(taskId: string, kind: TryOnMediaKind): string {
+  return `/api/admin/try-on/${encodeURIComponent(taskId)}/media/${kind}`
+}
+
 export function tryOnMediaUrls(task: {
   id: string
   userImageUrl?: string | null
@@ -37,6 +41,21 @@ export function tryOnMediaUrls(task: {
     itemImageUrl: (task.itemImageUrl || task.glassesImageUrl) ? tryOnMediaPath(task.id, 'item') : null,
     glassesImageUrl: task.glassesImageUrl ? tryOnMediaPath(task.id, 'item') : null,
     resultImageUrl: task.resultImageUrl ? tryOnMediaPath(task.id, 'result') : null,
+  }
+}
+
+export function adminTryOnMediaUrls(task: {
+  id: string
+  userImageUrl?: string | null
+  itemImageUrl?: string | null
+  glassesImageUrl?: string | null
+  resultImageUrl?: string | null
+}) {
+  return {
+    userImageUrl: task.userImageUrl ? adminTryOnMediaPath(task.id, 'user') : null,
+    itemImageUrl: (task.itemImageUrl || task.glassesImageUrl) ? adminTryOnMediaPath(task.id, 'item') : null,
+    glassesImageUrl: task.glassesImageUrl ? adminTryOnMediaPath(task.id, 'item') : null,
+    resultImageUrl: task.resultImageUrl ? adminTryOnMediaPath(task.id, 'result') : null,
   }
 }
 
