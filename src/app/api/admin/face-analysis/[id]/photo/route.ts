@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { TaskStatus } from '@prisma/client'
-import { requireAuth } from '@/lib/api-auth'
+import { requireAdmin } from '@/lib/api-auth'
 import { prisma } from '@/lib/prisma'
 import { getRequestContext, logger } from '@/lib/logger'
 import { serveFaceAnalysisSourcePhoto } from '@/lib/face-analysis-source-photo'
@@ -14,16 +13,11 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
   const ctx = getRequestContext(request)
 
   try {
-    const auth = await requireAuth()
+    const auth = await requireAdmin()
     if (!auth.ok) return auth.response
 
-    const task = await prisma.faceAnalysisTask.findFirst({
-      where: {
-        id: params.id,
-        userId: auth.userId,
-        status: TaskStatus.COMPLETED,
-        reportUnlocked: true,
-      },
+    const task = await prisma.faceAnalysisTask.findUnique({
+      where: { id: params.id },
       select: { userImageUrl: true, metadata: true, expiresAt: true },
     })
 
@@ -31,14 +25,10 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ success: false, error: 'Photo not found' }, { status: 404 })
     }
 
-    if (task.expiresAt && task.expiresAt.getTime() <= Date.now()) {
-      return NextResponse.json({ success: false, error: 'Photo not found' }, { status: 404 })
-    }
-
-    return await serveFaceAnalysisSourcePhoto(task, { respectBusinessExpiry: true })
+    return await serveFaceAnalysisSourcePhoto(task, { respectBusinessExpiry: false })
   } catch (error) {
     const err = error instanceof Error ? error : new Error(String(error))
-    logger.error('face-analysis', 'Failed to restore source photo', err, ctx)
+    logger.error('face-analysis', 'Failed to restore admin source photo', err, ctx)
     return NextResponse.json(
       { success: false, error: 'Face Analysis photo is unavailable' },
       { status: 502 },

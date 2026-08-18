@@ -18,6 +18,16 @@ jest.mock('@/lib/logger', () => ({
 }))
 jest.mock('@/lib/blob/private-signed-url', () => ({
   createPrivateBlobGetUrl: jest.fn(),
+  pathnameFromPrivateBlobUrl: (value: string) => {
+    try {
+      const url = new URL(value)
+      if (!url.hostname.endsWith('.private.blob.vercel-storage.com')) return null
+      const pathname = decodeURIComponent(url.pathname.replace(/^\//, ''))
+      return pathname && !pathname.includes('*') ? pathname : null
+    } catch {
+      return null
+    }
+  },
   privateBlobRedirect: (url: string) => new Response(null, {
     status: 307,
     headers: { Location: url, 'Cache-Control': 'private, no-store' },

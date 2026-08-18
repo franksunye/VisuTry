@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { requireAdmin } from '@/lib/api-auth';
 import { del } from '@vercel/blob';
 import { prisma } from '@/lib/prisma';
+import { adminFaceAnalysisPhotoPath } from '@/lib/face-analysis-source-photo';
 
 export const dynamic = 'force-dynamic';
 
@@ -31,7 +32,13 @@ export async function GET(
       return NextResponse.json({ success: false, error: 'Task not found' }, { status: 404 });
     }
 
-    return NextResponse.json({ success: true, data: task });
+    return NextResponse.json({
+      success: true,
+      data: {
+        ...task,
+        userImageUrl: adminFaceAnalysisPhotoPath(task.id),
+      },
+    });
   } catch (error) {
     console.error('[Admin Face Analysis Detail] Error:', error);
     return NextResponse.json(

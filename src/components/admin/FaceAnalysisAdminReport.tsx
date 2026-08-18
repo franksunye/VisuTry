@@ -92,7 +92,14 @@ export default function FaceAnalysisAdminReport(props: FaceAnalysisAdminReportPr
       <div className="grid gap-4 md:grid-cols-[200px_minmax(0,1fr)]">
         <div>
           <div className="relative aspect-[4/5] w-full max-w-[200px] overflow-hidden rounded-lg border bg-gray-100">
-            <Image src={userImageUrl} alt="User" fill className="object-cover" sizes="200px" />
+            <Image
+              src={userImageUrl}
+              alt="User"
+              fill
+              unoptimized
+              className="object-cover"
+              sizes="200px"
+            />
             <FaceLandmarkMeshOverlay
               imageUrl={userImageUrl}
               className="absolute inset-0 h-full w-full pointer-events-none"
