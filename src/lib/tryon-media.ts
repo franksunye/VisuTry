@@ -125,24 +125,11 @@ export async function serveLegacyTryOnMedia(sourceUrl: string): Promise<Response
     throw new Error('Unsupported Try-On media URL')
   }
 
-  const sourceResponse = await fetch(url, {
-    cache: 'no-store',
-    signal: AbortSignal.timeout(15_000),
-  })
-  if (!sourceResponse.ok) {
-    throw new Error(`Try-On media fetch failed: ${sourceResponse.status}`)
-  }
-
-  const contentType = sourceResponse.headers.get('content-type')?.split(';')[0].trim().toLowerCase()
-  if (!contentType || !ALLOWED_IMAGE_TYPES.has(contentType)) {
-    throw new Error('Try-On media has an unsupported content type')
-  }
-
-  const declaredLength = Number(sourceResponse.headers.get('content-length') || 0)
-  if (declaredLength > MAX_MEDIA_BYTES) {
-    throw new Error('Try-On media exceeds the size limit')
-  }
-
-  const bytes = await sourceResponse.arrayBuffer()
-  return mediaResponse(bytes, contentType)
+  // Step 2A keeps legacy HTTP(S) objects public. Redirecting after the auth check
+  // avoids proxying every image byte through a Vercel Function while preserving the
+  // application-owned DTO boundary. Step 2B can replace this target with a short-lived
+  // signed private Blob URL without changing browser-facing media paths.
+  const response = NextResponse.redirect(url, 307)
+  response.headers.set('Cache-Control', 'private, no-store')
+  return response
 }
