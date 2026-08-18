@@ -5,6 +5,21 @@ export type TryOnMediaKind = 'user' | 'item' | 'result'
 const MAX_MEDIA_BYTES = 15 * 1024 * 1024
 const MAX_BASE64_CHARS = Math.ceil(MAX_MEDIA_BYTES / 3) * 4 + 4
 const ALLOWED_IMAGE_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp'])
+const CLIENT_METADATA_KEYS = [
+  'serviceType',
+  'isAsync',
+  'source',
+  'framePresetId',
+  'framePresetName',
+  'framePresetStyle',
+  'batchId',
+  'batchSize',
+  'batchIndex',
+  'styleIntent',
+  'occasion',
+  'category',
+  'lookKey',
+] as const
 
 export function tryOnMediaPath(taskId: string, kind: TryOnMediaKind): string {
   return `/api/try-on/${encodeURIComponent(taskId)}/media/${kind}`
@@ -23,6 +38,25 @@ export function tryOnMediaUrls(task: {
     glassesImageUrl: task.glassesImageUrl ? tryOnMediaPath(task.id, 'item') : null,
     resultImageUrl: task.resultImageUrl ? tryOnMediaPath(task.id, 'result') : null,
   }
+}
+
+export function tryOnClientMetadata(metadata: unknown): Record<string, unknown> | null {
+  if (!metadata || typeof metadata !== 'object' || Array.isArray(metadata)) return null
+
+  const source = metadata as Record<string, unknown>
+  const safe: Record<string, unknown> = {}
+  for (const key of CLIENT_METADATA_KEYS) {
+    const value = source[key]
+    if (
+      typeof value === 'string' ||
+      typeof value === 'number' ||
+      typeof value === 'boolean'
+    ) {
+      safe[key] = value
+    }
+  }
+
+  return Object.keys(safe).length ? safe : null
 }
 
 function mediaResponse(bytes: ArrayBuffer, contentType: string): Response {
