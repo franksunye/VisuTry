@@ -70,6 +70,39 @@ export async function loadPrivateTryOnMedia(sourceUrl: string): Promise<LoadedTr
   }
 }
 
+async function fetchLegacyHttpMedia(sourceUrl: string): Promise<LoadedTryOnMedia> {
+  const url = parseLegacyTryOnHttpUrl(sourceUrl)
+  const response = await fetch(url, {
+    cache: 'no-store',
+    signal: AbortSignal.timeout(15_000),
+  })
+  if (!response.ok) throw new Error(`Try-On media fetch failed: ${response.status}`)
+
+  const declaredLength = Number(response.headers.get('content-length') || 0)
+  if (declaredLength > TRY_ON_MEDIA_MAX_BYTES) {
+    throw new Error('Try-On media exceeds the size limit')
+  }
+
+  const bytes = await response.arrayBuffer()
+  if (bytes.byteLength === 0 || bytes.byteLength > TRY_ON_MEDIA_MAX_BYTES) {
+    throw new Error('Try-On media is empty or exceeds the size limit')
+  }
+
+  return {
+    bytes,
+    contentType: normalizeContentType(response.headers.get('content-type')),
+  }
+}
+
+export async function loadTryOnMediaFile(sourceUrl: string, filename: string): Promise<File> {
+  const dataUrl = decodeLegacyTryOnDataUrl(sourceUrl)
+  if (dataUrl) return new File([dataUrl.bytes], filename, { type: dataUrl.contentType })
+
+  const privateMedia = await loadPrivateTryOnMedia(sourceUrl)
+  const media = privateMedia ?? await fetchLegacyHttpMedia(sourceUrl)
+  return new File([media.bytes], filename, { type: media.contentType })
+}
+
 function mediaToDataUri(media: LoadedTryOnMedia): string {
   return `data:${media.contentType};base64,${Buffer.from(media.bytes).toString('base64')}`
 }
