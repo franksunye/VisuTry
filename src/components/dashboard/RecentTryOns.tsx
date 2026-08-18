@@ -5,7 +5,7 @@ import Link from "next/link"
 import Image from "next/image"
 import { useParams } from "next/navigation"
 import { formatDistanceToNow } from "date-fns"
-import { getThumbnailUrl, getResponsiveSizes, IMAGE_QUALITY } from "@/lib/image-utils"
+import { IMAGE_QUALITY } from "@/lib/image-utils"
 import { useState, useEffect, useCallback } from "react"
 import { localizedPath } from "@/lib/localized-path"
 
@@ -29,13 +29,11 @@ export function RecentTryOns({ tryOns: initialTryOns }: RecentTryOnsProps) {
   const [isPolling, setIsPolling] = useState(false)
   const [syncingTasks, setSyncingTasks] = useState<Set<string>>(new Set())
 
-  // Find pending GrsAi tasks that need polling
   const pendingGrsAiTasks = tryOns.filter(task =>
     task.status.toLowerCase() === 'processing' &&
     task.metadata?.serviceType === 'grsai'
   )
 
-  // Manual sync function for individual tasks
   const syncTask = useCallback(async (taskId: string) => {
     setSyncingTasks(prev => new Set(prev).add(taskId))
 
@@ -48,8 +46,6 @@ export function RecentTryOns({ tryOns: initialTryOns }: RecentTryOnsProps) {
 
       if (response.ok) {
         const result = await response.json()
-
-        // Update the task in our local state
         setTryOns(prev => prev.map(task =>
           task.id === taskId
             ? {
@@ -71,13 +67,11 @@ export function RecentTryOns({ tryOns: initialTryOns }: RecentTryOnsProps) {
     }
   }, [])
 
-  // Auto-polling for pending tasks
   useEffect(() => {
     if (pendingGrsAiTasks.length === 0) return
 
     setIsPolling(true)
     const interval = setInterval(async () => {
-      // Poll all pending tasks
       const pollPromises = pendingGrsAiTasks.map(async (task) => {
         try {
           const response = await fetch('/api/try-on/poll', {
@@ -98,9 +92,8 @@ export function RecentTryOns({ tryOns: initialTryOns }: RecentTryOnsProps) {
 
       const results = await Promise.all(pollPromises)
 
-      // Update tasks with new results
       setTryOns(prev => {
-        let updated = [...prev]
+        const updated = [...prev]
         results.forEach(result => {
           if (result) {
             const index = updated.findIndex(t => t.id === result.taskId)
@@ -115,7 +108,7 @@ export function RecentTryOns({ tryOns: initialTryOns }: RecentTryOnsProps) {
         })
         return updated
       })
-    }, 5000) // Poll every 5 seconds
+    }, 5000)
 
     return () => {
       clearInterval(interval)
@@ -123,7 +116,6 @@ export function RecentTryOns({ tryOns: initialTryOns }: RecentTryOnsProps) {
     }
   }, [pendingGrsAiTasks.length])
 
-  // Stop polling when all tasks are complete
   useEffect(() => {
     const stillPending = tryOns.filter(task =>
       task.status.toLowerCase() === 'processing' &&
@@ -134,6 +126,7 @@ export function RecentTryOns({ tryOns: initialTryOns }: RecentTryOnsProps) {
       setIsPolling(false)
     }
   }, [tryOns, isPolling])
+
   const getStatusIcon = (status: string) => {
     switch (status.toLowerCase()) {
       case "completed":
@@ -149,27 +142,19 @@ export function RecentTryOns({ tryOns: initialTryOns }: RecentTryOnsProps) {
 
   const getStatusText = (status: string) => {
     switch (status.toLowerCase()) {
-      case "completed":
-        return 'Completed'
-      case "processing":
-        return 'Processing'
-      case "failed":
-        return 'Failed'
-      default:
-        return 'Unknown'
+      case "completed": return 'Completed'
+      case "processing": return 'Processing'
+      case "failed": return 'Failed'
+      default: return 'Unknown'
     }
   }
 
   const getStatusColor = (status: string) => {
     switch (status.toLowerCase()) {
-      case "completed":
-        return "text-green-600 bg-green-50"
-      case "processing":
-        return "text-blue-600 bg-blue-50"
-      case "failed":
-        return "text-red-600 bg-red-50"
-      default:
-        return "text-gray-600 bg-gray-50"
+      case "completed": return "text-green-600 bg-green-50"
+      case "processing": return "text-blue-600 bg-blue-50"
+      case "failed": return "text-red-600 bg-red-50"
+      default: return "text-gray-600 bg-gray-50"
     }
   }
 
@@ -179,7 +164,6 @@ export function RecentTryOns({ tryOns: initialTryOns }: RecentTryOnsProps) {
         <div className="p-6 border-b border-gray-200">
           <h2 className="text-lg font-semibold text-gray-900">Recent Try-Ons</h2>
         </div>
-
         <div className="p-8 text-center">
           <History className="w-12 h-12 text-gray-400 mx-auto mb-4" />
           <h3 className="text-lg font-medium text-gray-900 mb-2">No try-on records yet</h3>
@@ -209,38 +193,38 @@ export function RecentTryOns({ tryOns: initialTryOns }: RecentTryOnsProps) {
           </Link>
         </div>
       </div>
-      
+
       <div className="p-6">
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
           {tryOns.map((tryOn, index) => (
             <div key={tryOn.id} className="border border-gray-200 rounded-lg overflow-hidden hover:shadow-md transition-shadow">
-              {/* Image Preview - 优化缩略图加载 */}
               <div className="aspect-square bg-gray-100 relative">
                 {tryOn.resultImageUrl ? (
                   <Image
                     src={tryOn.resultImageUrl}
                     alt="Try-on result"
                     fill
+                    unoptimized
                     sizes="(max-width: 640px) 90vw, (max-width: 768px) 45vw, (max-width: 1024px) 30vw, 320px"
                     className="object-cover"
                     loading={index < 3 ? "eager" : "lazy"}
                     priority={index < 3}
                     quality={IMAGE_QUALITY.HIGH}
                   />
-                ) : (
+                ) : tryOn.userImageUrl ? (
                   <Image
                     src={tryOn.userImageUrl}
                     alt="User photo"
                     fill
+                    unoptimized
                     sizes="(max-width: 640px) 90vw, (max-width: 768px) 45vw, (max-width: 1024px) 30vw, 320px"
                     className="object-cover opacity-50"
                     loading={index < 3 ? "eager" : "lazy"}
                     priority={index < 3}
                     quality={IMAGE_QUALITY.HIGH}
                   />
-                )}
+                ) : null}
 
-                {/* Status Badge */}
                 <div className="absolute top-2 right-2 z-10">
                   <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(tryOn.status)}`}>
                     {getStatusIcon(tryOn.status)}
@@ -249,7 +233,6 @@ export function RecentTryOns({ tryOns: initialTryOns }: RecentTryOnsProps) {
                 </div>
               </div>
 
-              {/* Info Area */}
               <div className="p-4">
                 {tryOn.metadata?.source === 'face-analysis-top-picks' && (
                   <div className="mb-3">
@@ -265,13 +248,10 @@ export function RecentTryOns({ tryOns: initialTryOns }: RecentTryOnsProps) {
                 )}
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-gray-500">
-                    {formatDistanceToNow(new Date(tryOn.createdAt), {
-                      addSuffix: true
-                    })}
+                    {formatDistanceToNow(new Date(tryOn.createdAt), { addSuffix: true })}
                   </span>
 
                   <div className="flex items-center gap-2">
-                    {/* Manual sync button for pending GrsAi tasks */}
                     {tryOn.status.toLowerCase() === "processing" &&
                      tryOn.metadata?.serviceType === 'grsai' && (
                       <button
@@ -285,7 +265,6 @@ export function RecentTryOns({ tryOns: initialTryOns }: RecentTryOnsProps) {
                       </button>
                     )}
 
-                    {/* View details link for completed tasks */}
                     {tryOn.status.toLowerCase() === "completed" && tryOn.resultImageUrl && (
                       <Link
                         href={`/share/${tryOn.id}`}
