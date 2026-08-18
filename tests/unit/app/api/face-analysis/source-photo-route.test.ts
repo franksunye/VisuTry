@@ -1,11 +1,12 @@
 /** @jest-environment node */
 
+import { get } from '@vercel/blob'
 import { NextRequest, NextResponse } from 'next/server'
 import { GET } from '@/app/api/face-analysis/[id]/photo/route'
 import { requireAuth } from '@/lib/api-auth'
 import { prisma } from '@/lib/prisma'
-import { createPrivateBlobGetUrl } from '@/lib/blob/private-signed-url'
 
+jest.mock('@vercel/blob', () => ({ get: jest.fn() }))
 jest.mock('@/lib/api-auth', () => ({ requireAuth: jest.fn() }))
 jest.mock('@/lib/prisma', () => ({
   prisma: {
@@ -17,7 +18,6 @@ jest.mock('@/lib/logger', () => ({
   logger: { error: jest.fn() },
 }))
 jest.mock('@/lib/blob/private-signed-url', () => ({
-  createPrivateBlobGetUrl: jest.fn(),
   pathnameFromPrivateBlobUrl: (value: string) => {
     try {
       const url = new URL(value)
@@ -28,10 +28,6 @@ jest.mock('@/lib/blob/private-signed-url', () => ({
       return null
     }
   },
-  privateBlobRedirect: (url: string) => new Response(null, {
-    status: 307,
-    headers: { Location: url, 'Cache-Control': 'private, no-store' },
-  }),
 }))
 
 describe('GET /api/face-analysis/[id]/photo', () => {
@@ -67,7 +63,7 @@ describe('GET /api/face-analysis/[id]/photo', () => {
     }))
   })
 
-  it('redirects a new private photo without returning an image body', async () => {
+  it('proxies a private photo as same-origin image bytes for landmark detection', async () => {
     const previousStoreId = process.env.FACE_ANALYSIS_BLOB_STORE_ID
     process.env.FACE_ANALYSIS_BLOB_STORE_ID = 'store_test'
 
@@ -76,9 +72,9 @@ describe('GET /api/face-analysis/[id]/photo', () => {
       metadata: { blobAccess: 'private', blobPathname: 'face-analysis/user/photo.jpg' },
       expiresAt: new Date(Date.now() + 60_000),
     })
-    ;(createPrivateBlobGetUrl as jest.Mock).mockResolvedValue({
-      url: 'https://store.private.blob.vercel-storage.com/face-analysis/user/photo.jpg?signature=1',
-      validUntil: Date.now() + 60_000,
+    ;(get as jest.Mock).mockResolvedValue({
+      stream: new Blob([new Uint8Array([4, 5, 6])]).stream(),
+      blob: { contentType: 'image/jpeg' },
     })
     global.fetch = jest.fn()
 
@@ -87,13 +83,14 @@ describe('GET /api/face-analysis/[id]/photo', () => {
       { params: { id: 'analysis-private' } },
     )
 
-    expect(response.status).toBe(307)
-    expect(response.headers.get('location')).toContain('signature=1')
-    expect(new Uint8Array(await response.arrayBuffer())).toHaveLength(0)
-    expect(createPrivateBlobGetUrl).toHaveBeenCalledWith(expect.objectContaining({
-      pathname: 'face-analysis/user/photo.jpg',
+    expect(response.status).toBe(200)
+    expect(response.headers.get('location')).toBeNull()
+    expect(response.headers.get('content-type')).toBe('image/jpeg')
+    expect(new Uint8Array(await response.arrayBuffer())).toEqual(new Uint8Array([4, 5, 6]))
+    expect(get).toHaveBeenCalledWith('face-analysis/user/photo.jpg', {
+      access: 'private',
       storeId: 'store_test',
-    }))
+    })
     expect(global.fetch).not.toHaveBeenCalled()
 
     if (previousStoreId === undefined) delete process.env.FACE_ANALYSIS_BLOB_STORE_ID
