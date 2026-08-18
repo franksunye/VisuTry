@@ -5,8 +5,8 @@
   "compatibility_date": "2026-08-15",
   "compatibility_flags": ["nodejs_compat"],
   "workers_dev": true,
-  // Keep Workers Logs aligned with the dashboard. A deploy without this
-  // block would reset Logs off. Traces stay disabled.
+  // Keep Workers Logs and traces aligned with the dashboard. A deploy
+  // without this block would reset dashboard observability.
   "observability": {
     "enabled": false,
     "head_sampling_rate": 1,
@@ -17,7 +17,7 @@
       "invocation_logs": true
     },
     "traces": {
-      "enabled": false,
+      "enabled": true,
       "persist": true,
       "head_sampling_rate": 1
     }
