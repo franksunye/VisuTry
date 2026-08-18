@@ -20,6 +20,7 @@
     "apexRepresentation": "CNAME visutry.com → 1c82e566126a58cc.vercel-dns-017.com (not frozen Vercel anycast A)"
   },
   "wwwNsCutoverProxy": "DNS_ONLY",
+  "wwwCurrentProxy": "PROXIED",
   "wwwFutureProxy": "PROXIED",
   "caaPolicy": {
     "copyAuthoritativeFaithfully": true,
@@ -45,10 +46,10 @@
       "name": "www",
       "type": "CNAME",
       "content": "cname.vercel-dns-017.com",
-      "proxied": false,
+      "proxied": true,
       "futureProxy": "PROXIED",
       "nsCutoverProxy": "DNS_ONLY",
-      "reason": "Phase B checkpoint B1 is nameserver-only. www stays DNS_ONLY so cutover does not depend on Cloudflare proxy or Universal SSL. Orange-cloud is B3, only after zone ACTIVE and Universal SSL ACTIVE. Frozen target unchanged."
+      "reason": "B3 orange-cloud. www is PROXIED so Browser → Cloudflare edge TLS → Vercel origin. CNAME target stays cname.vercel-dns-017.com. nsCutoverProxy remains DNS_ONLY as the B1 historical constraint. Apex, mail, auth, and pay stay DNS_ONLY. Worker Routes are still 0."
     },
     {
       "name": "*",

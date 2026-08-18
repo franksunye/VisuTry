@@ -1,0 +1,79 @@
+{
+  "kind": "b4-2c-phase-b3-preflight",
+  "capturedAt": "2026-08-18T07:25:00Z",
+  "originMain": "aef2706346f5ea07de05f442486c4f6463006c62",
+  "pr99MergePresent": true,
+  "branch": "cursor/cloudflare-b4-2c-phase-b3-www-proxy",
+  "b1": "CLOSED/PASS",
+  "b2": "CLOSED/PASS",
+  "zoneId": "5e3dc058ed16f3aee917f1cef2e9f413",
+  "zoneName": "visutry.com",
+  "zoneStatus": "active",
+  "zonePaused": false,
+  "zoneType": "full",
+  "activatedOn": "2026-08-18T04:50:11.019408Z",
+  "assignedNameservers": [
+    "romina.ns.cloudflare.com",
+    "stanley.ns.cloudflare.com"
+  ],
+  "credential": {
+    "tokenValuesStored": false,
+    "note": "Temporary user token used for DNS/SSL reads. Value unset after use and not stored."
+  },
+  "sslMode": "strict",
+  "sslModeLabel": "Full (strict)",
+  "universalSslEnabled": true,
+  "certificateAuthority": "google",
+  "certificatePack": {
+    "type": "universal",
+    "status": "active",
+    "hosts": ["visutry.com", "*.visutry.com"],
+    "expiresOn": "2026-11-16T04:50:11.000000Z",
+    "issuer": "GoogleTrustServices"
+  },
+  "www": {
+    "id": "611c0c7ede4b475165cf14c36d451d50",
+    "type": "CNAME",
+    "name": "www.visutry.com",
+    "content": "cname.vercel-dns-017.com",
+    "proxied": false
+  },
+  "apex": {
+    "id": "8a00d7a80ff0579e0f68d09671c2ef68",
+    "type": "CNAME",
+    "name": "visutry.com",
+    "content": "1c82e566126a58cc.vercel-dns-017.com",
+    "proxied": false
+  },
+  "workerRouteCount": 0,
+  "customDomainCount": 0,
+  "productionWorker": "ABSENT",
+  "originTlsBeforeProxy": {
+    "connect": "Vercel origin / public www before orange-cloud",
+    "sni": "www.visutry.com",
+    "issuer": "Let's Encrypt YR2",
+    "subject": "CN=*.visutry.com",
+    "san": ["*.visutry.com", "visutry.com"],
+    "hostnameMatch": true,
+    "expired": false,
+    "wwwCfRay": null,
+    "wwwServer": "Vercel"
+  },
+  "applicationBaseline": {
+    "apex": { "status": 307, "location": "https://www.visutry.com/", "server": "Vercel", "cfRay": null },
+    "www": { "status": 307, "location": "/en", "server": "Vercel", "cfRay": null },
+    "en": { "status": 200, "server": "Vercel" },
+    "store": { "status": 200 },
+    "storeDetail": { "status": 200 },
+    "campaign": { "status": 200 },
+    "tryOn": { "status": 307 },
+    "faceAnalysis": { "status": 200 },
+    "pricing": { "status": 200 },
+    "authSignin": { "status": 200 },
+    "apiHealth": { "status": 200 },
+    "apiGlassesBrands": { "status": 200 }
+  },
+  "mailAndPayUnchanged": true,
+  "preflight": "PASS",
+  "mutationAllowed": true
+}

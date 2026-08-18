@@ -1,0 +1,158 @@
+{
+  "kind": "b4-2c-phase-b3-observation",
+  "mutationTimestamp": "2026-08-18T07:26:33Z",
+  "verdict": "PARTIAL — HEALTHY / OBSERVING",
+  "rollbackRequired": false,
+  "auth0FullE2E": "NOT_COMPLETED",
+  "auth0FullE2ENote": "Browser reached Merchant Sign In on www, then Auth0 Universal Login at auth.visutry.com/u/login/identifier. Full login → callback → session → logout was not completed (no production credentials used).",
+  "methodNote": "www checks that need to prove Cloudflare edge use curl -4 --http1.1 --resolve www.visutry.com:443:104.21.42.69. Local resolver / Alt-Svc can still reach Vercel without cf-ray. DNS API proxied=true is the orange-cloud source of truth.",
+  "checkpoints": [
+    {
+      "label": "immediate",
+      "capturedAt": "2026-08-18T07:26:40Z",
+      "wwwProxied": true,
+      "apexProxied": false,
+      "sslMode": "strict",
+      "authoritativeWwwA": ["104.21.42.69", "172.67.158.125"],
+      "edgeTlsIssuer": "Google Trust Services WE1",
+      "errors52x": false,
+      "notes": "PATCH 200. Post-GET www proxied true, content unchanged."
+    },
+    {
+      "label": "5m",
+      "capturedAt": "2026-08-18T07:30:11Z",
+      "errors52x": false,
+      "apex": { "status": 307, "location": "https://www.visutry.com/", "server": "Vercel", "cfRay": null },
+      "forcedEdgeCfRayPresent": true,
+      "notes": "No rollback. Mixed local Vercel vs forced-edge cloudflare headers expected during resolver cache."
+    },
+    {
+      "label": "~9m-api-reread",
+      "capturedAt": "2026-08-18T07:35:53Z",
+      "wwwProxied": true,
+      "wwwContent": "cname.vercel-dns-017.com",
+      "apexProxied": false,
+      "sslMode": "strict",
+      "workerRoutes": 0,
+      "customDomains": 0,
+      "productionWorker": "ABSENT"
+    },
+    {
+      "label": "~11m-http1.1-forced-edge",
+      "capturedAt": "2026-08-18T07:37:33Z",
+      "via": "104.21.42.69 HTTP/1.1",
+      "errors52x": false,
+      "checks": [
+        { "url": "https://www.visutry.com/", "status": 307, "location": "/en", "origin": "Vercel x-vercel-id present" },
+        { "url": "https://www.visutry.com/en", "status": 200, "server": "cloudflare", "cfRay": "a2cf4116a895a351-LAX", "cfCacheStatus": "DYNAMIC", "canonical": "https://www.visutry.com/en", "hostLeak": false },
+        { "url": "https://www.visutry.com/en/store", "status": 200 },
+        { "url": "https://www.visutry.com/en/store/ello-sunglasses", "status": 200, "server": "cloudflare", "cfCacheStatus": "DYNAMIC" },
+        { "url": "https://www.visutry.com/en/c/ello-sunglasses/petite-fit", "status": 200, "server": "cloudflare", "cfCacheStatus": "DYNAMIC" },
+        { "url": "https://www.visutry.com/en/try-on", "status": 307 },
+        { "url": "https://www.visutry.com/en/face-analysis", "status": 200, "server": "cloudflare" },
+        { "url": "https://www.visutry.com/en/pricing", "status": 200 },
+        { "url": "https://www.visutry.com/en/auth/signin", "status": 200 },
+        { "url": "https://www.visutry.com/api/health", "status": 200, "server": "cloudflare", "cfCacheStatus": "DYNAMIC", "contentType": "application/json" },
+        { "url": "https://www.visutry.com/api/glasses/brands", "status": 200, "server": "cloudflare", "cfCacheStatus": "DYNAMIC" },
+        { "url": "https://www.visutry.com/robots.txt", "status": 200 },
+        { "url": "https://www.visutry.com/favicon.ico", "status": 200, "contentType": "image/vnd.microsoft.icon" },
+        { "url": "https://www.visutry.com/llms.txt", "status": 200, "server": "cloudflare" },
+        { "url": "https://www.visutry.com/sitemap.xml", "status": 200 },
+        { "url": "/_next/image?url=%2Fassets%2Fface-analysis%2Fmodel-face-square-report.jpg&w=640&q=75", "status": 200, "contentType": "image/jpeg" },
+        { "url": "/_next/static/css/38f6ae8a1f23328e.css", "status": 200, "contentType": "text/css; charset=utf-8" },
+        { "url": "/_next/static/chunks/fd9d1056-f4bcbbdc974939b9.js", "status": 200, "contentType": "application/javascript; charset=utf-8", "cfRay": "a2cf424438e408f0-LAX", "cfCacheStatus": "HIT" }
+      ],
+      "apex": { "status": 307, "location": "https://www.visutry.com/", "server": "Vercel", "cfRay": null },
+      "seo": {
+        "canonical": "https://www.visutry.com/en",
+        "hreflangHosts": "www.visutry.com",
+        "leaks": null
+      },
+      "cache": {
+        "htmlAndApi": "DYNAMIC when cf-cache-status present",
+        "staticJs": "HIT",
+        "unsafePrivateCachingDetected": false,
+        "cacheRulesCreated": false
+      }
+    },
+    {
+      "label": "15m",
+      "dueAt": "2026-08-18T07:41:35Z",
+      "capturedAt": "2026-08-18T07:42:47Z",
+      "status": "healthy",
+      "errors52x": false,
+      "wwwA": ["104.21.42.69", "172.67.158.125"],
+      "apex": { "status": 307, "location": "https://www.visutry.com/", "server": "Vercel" },
+      "forcedEdge": {
+        "/": 307,
+        "/en": 200,
+        "/en/store": 200,
+        "/en/c/ello-sunglasses/petite-fit": 200,
+        "/en/face-analysis": 200,
+        "/en/pricing": 200,
+        "/en/auth/signin": 200,
+        "/api/health": 200
+      },
+      "cfRayOnSubset": true,
+      "notes": "No rollback. Mixed server:cloudflare vs Vercel without cf-ray remains on some local curls."
+    },
+    {
+      "label": "30m",
+      "dueAt": "2026-08-18T07:56:35Z",
+      "capturedAt": "2026-08-18T07:57:36Z",
+      "status": "healthy",
+      "errors52x": false,
+      "wwwA": ["104.21.42.69", "172.67.158.125"],
+      "apex": { "status": 307, "location": "https://www.visutry.com/", "server": "Vercel" },
+      "forcedEdgeCfRayCount": "6/8 first pass; campaign timed out then retry 200 cloudflare",
+      "campaignRetry": { "status": 200, "server": "cloudflare", "cfRay": "a2cf5f81b945f7e3-LAX" },
+      "via172En": { "status": 200, "server": "cloudflare", "cfRay": true }
+    },
+    {
+      "label": "60m",
+      "dueAt": "2026-08-18T08:26:35Z",
+      "capturedAt": "2026-08-18T08:26:51Z",
+      "status": "healthy",
+      "errors52x": false,
+      "wwwA": ["104.21.42.69", "172.67.158.125"],
+      "wwwCnameAtCfNs": null,
+      "apex": { "status": 307, "location": "https://www.visutry.com/", "server": "Vercel", "cfRay": false },
+      "edgeTls": { "connect": "104.21.42.69", "issuer": "Google Trust Services WE1", "subject": "CN=visutry.com" },
+      "forcedEdge": {
+        "/": { "status": 307, "location": "/en", "server": "cloudflare", "cfRay": true, "cfCacheStatus": "DYNAMIC" },
+        "/en": { "status": 200, "server": "cloudflare", "cfRay": true },
+        "/en/store": { "first": "SSL_ERROR_SYSCALL", "retry": { "status": 200, "server": "cloudflare", "cfRay": "a2cf8ac14916b152-LAX" } },
+        "/en/store/ello-sunglasses": 200,
+        "/en/c/ello-sunglasses/petite-fit": 200,
+        "/en/try-on": 307,
+        "/en/face-analysis": 200,
+        "/en/pricing": 200,
+        "/en/auth/signin": 200,
+        "/api/health": 200,
+        "/_next/image": { "status": 200, "contentType": "image/jpeg", "cfRay": true }
+      },
+      "cfRayCountFirstPass": "9/10",
+      "workersRereadAt60m": "wrangler oauth HTTP 401; last successful workers read remains 2026-08-18T07:37:20Z (routes 0, custom domains 0, visutry-cf-production ABSENT)"
+    }
+  ],
+  "mail": {
+    "mx": ["5 mxbiz1.qq.com", "10 mxbiz2.qq.com"],
+    "spf": "v=spf1 include:spf.mail.qq.com ~all",
+    "dmarc": "v=DMARC1; p=none;",
+    "resendDkimPresent": true,
+    "sesSendMx": "10 feedback-smtp.us-east-1.amazonses.com",
+    "sesSendSpf": "v=spf1 include:amazonses.com ~all",
+    "changed": false
+  },
+  "stripe": {
+    "payCname": "hosted-checkout.stripecdn.com",
+    "payProxied": false,
+    "realPaymentMade": false
+  },
+  "auth0Browser": {
+    "wwwSignin": "https://www.visutry.com/en/auth/signin 200",
+    "universalLoginReached": true,
+    "loginUrlHost": "auth.visutry.com",
+    "fullLoginCallbackSessionLogout": false
+  }
+}
