@@ -166,7 +166,7 @@ describe('Auth0 Integration', () => {
   })
 
   describe('NextAuth client error logging', () => {
-    it('keeps client fetch failures observable without classifying them as server errors', () => {
+    it('drops client fetch failures from Axiom/Vercel warn and error streams', () => {
       const originalEnv = process.env
       process.env = {
         ...originalEnv,
@@ -180,6 +180,7 @@ describe('Auth0 Integration', () => {
       delete require.cache[require.resolve('@/lib/auth')]
       const { authOptions } = require('@/lib/auth')
       const { logger } = require('@/lib/logger')
+      const debugSpy = jest.spyOn(logger, 'debug').mockImplementation(() => undefined)
       const warnSpy = jest.spyOn(logger, 'warn').mockImplementation(() => undefined)
       const errorSpy = jest.spyOn(logger, 'error').mockImplementation(() => undefined)
       const consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation(() => undefined)
@@ -192,9 +193,9 @@ describe('Auth0 Integration', () => {
         error: '[object Object]',
       })
 
-      expect(warnSpy).toHaveBeenCalledWith(
+      expect(debugSpy).toHaveBeenCalledWith(
         'auth',
-        'NextAuth client fetch warning',
+        'NextAuth client fetch ignored',
         expect.objectContaining({
           code: 'CLIENT_FETCH_ERROR',
           metadata: expect.objectContaining({
@@ -203,14 +204,12 @@ describe('Auth0 Integration', () => {
           }),
         }),
       )
+      expect(warnSpy).not.toHaveBeenCalled()
       expect(errorSpy).not.toHaveBeenCalled()
-      expect(consoleWarnSpy).toHaveBeenCalledWith(
-        'NextAuth Client Warning:',
-        'CLIENT_FETCH_ERROR',
-        expect.objectContaining({ url: '/api/auth/session' }),
-      )
+      expect(consoleWarnSpy).not.toHaveBeenCalled()
       expect(consoleErrorSpy).not.toHaveBeenCalled()
 
+      debugSpy.mockRestore()
       warnSpy.mockRestore()
       errorSpy.mockRestore()
       consoleWarnSpy.mockRestore()

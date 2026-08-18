@@ -372,16 +372,16 @@ export const authOptions: NextAuthOptions = {
     error(code, metadata) {
       const serializedMetadata = serializeNextAuthMetadata(metadata)
 
-      // Client fetch failures are commonly caused by a page being abandoned
-      // while a crawler or browser is rendering it. Keep them observable, but
-      // do not classify them as server/auth failures in production telemetry.
+      // Client fetch failures are aborted /api/auth/session calls from crawlers,
+      // mobile bounces, and tab switches. They are not auth outages. Production
+      // debug is dropped before Axiom/Vercel ingest, so this stays out of the
+      // warn stream.
       if (isClientFetchError(code, metadata)) {
-        console.warn('NextAuth Client Warning:', code, serializedMetadata)
-        logger.warn('auth', 'NextAuth client fetch warning', {
+        logger.debug('auth', 'NextAuth client fetch ignored', {
           code,
           metadata: serializedMetadata,
         })
-        __debugWrite('logger.warn', { code, metadata: serializedMetadata })
+        __debugWrite('logger.debug', { code, metadata: serializedMetadata })
         return
       }
 
