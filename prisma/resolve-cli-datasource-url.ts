@@ -6,6 +6,13 @@ export type PrismaCliDatasource = {
   mode: 'direct' | 'pooled-fallback' | 'generate-placeholder'
 }
 
+type PrismaCliEnv = {
+  DATABASE_URL_UNPOOLED?: string
+  DIRECT_DATABASE_URL?: string
+  DIRECT_URL?: string
+  DATABASE_URL?: string
+}
+
 export function isPrismaMigrateOrDbCommand(argv: string[] = process.argv): boolean {
   return argv.includes('migrate') || argv.includes('db')
 }
@@ -21,7 +28,7 @@ export function isPrismaMigrateOrDbCommand(argv: string[] = process.argv): boole
  * still throw when those commands are visible on argv.
  */
 export function resolvePrismaCliDatasourceUrl(
-  env: NodeJS.ProcessEnv = process.env,
+  env: PrismaCliEnv = process.env,
   argv: string[] = process.argv,
 ): PrismaCliDatasource {
   const direct =
