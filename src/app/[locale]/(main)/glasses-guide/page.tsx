@@ -67,6 +67,7 @@ export default function GlassesGuideHub({ params }: Props) {
                   <Link
                     key={page.slug}
                     href={`/${locale}/glasses-guide/${page.slug}`}
+                    prefetch={false}
                     className="group rounded-lg border border-gray-200 bg-white p-5 transition hover:border-blue-200 hover:shadow-sm"
                   >
                     <h3 className="mb-2 font-semibold text-gray-950 group-hover:text-blue-700">{page.title}</h3>

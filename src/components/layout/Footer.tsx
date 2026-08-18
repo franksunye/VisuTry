@@ -59,22 +59,22 @@ export function Footer() {
             <h3 className="font-semibold text-gray-900 mb-4">{translateFooter('links.explore', 'Explore')}</h3>
             <ul className="flex flex-col gap-y-2">
               <li>
-                <Link href={`/${locale}/face-shape-detector`} className="text-gray-600 hover:text-blue-600 text-sm transition-colors">
+                <Link href={`/${locale}/face-shape-detector`} prefetch={false} className="text-gray-600 hover:text-blue-600 text-sm transition-colors">
                   {t('links.faceShapeDetector')}
                 </Link>
               </li>
               <li>
-                <Link href={`/${locale}/face-analysis`} className="text-gray-600 hover:text-blue-600 text-sm transition-colors">
+                <Link href={`/${locale}/face-analysis`} prefetch={false} className="text-gray-600 hover:text-blue-600 text-sm transition-colors">
                   {t('links.faceAnalysis')}
                 </Link>
               </li>
               <li>
-                <Link href={`/${locale}/style-explorer`} className="text-gray-600 hover:text-blue-600 text-sm transition-colors">
+                <Link href={`/${locale}/style-explorer`} prefetch={false} className="text-gray-600 hover:text-blue-600 text-sm transition-colors">
                   {t('links.styleExplorer')}
                 </Link>
               </li>
               <li>
-                <Link href={`/${locale}/discover`} className="text-gray-600 hover:text-blue-600 text-sm transition-colors">
+                <Link href={`/${locale}/discover`} prefetch={false} className="text-gray-600 hover:text-blue-600 text-sm transition-colors">
                   {t('links.discover')}
                 </Link>
               </li>
@@ -86,17 +86,17 @@ export function Footer() {
             <h3 className="font-semibold text-gray-900 mb-4">{translateFooter('links.tryAndCompare', 'Try & Compare')}</h3>
             <ul className="flex flex-col gap-y-2">
               <li>
-                <Link href={`/${locale}/try-on/glasses`} className="text-gray-600 hover:text-blue-600 text-sm transition-colors">
+                <Link href={`/${locale}/try-on/glasses`} prefetch={false} className="text-gray-600 hover:text-blue-600 text-sm transition-colors">
                   {t('links.tryGlasses')}
                 </Link>
               </li>
               <li>
-                <Link href={`/${locale}/try-on/glasses/compare`} className="text-gray-600 hover:text-blue-600 text-sm transition-colors">
+                <Link href={`/${locale}/try-on/glasses/compare`} prefetch={false} className="text-gray-600 hover:text-blue-600 text-sm transition-colors">
                   {t('links.frameCompare')}
                 </Link>
               </li>
               <li>
-                <Link href={`/${locale}/pricing`} className="text-gray-600 hover:text-blue-600 text-sm transition-colors">
+                <Link href={`/${locale}/pricing`} prefetch={false} className="text-gray-600 hover:text-blue-600 text-sm transition-colors">
                   {t('links.pricing')}
                 </Link>
               </li>
@@ -108,12 +108,12 @@ export function Footer() {
             <h3 className="font-semibold text-gray-900 mb-4">{translateFooter('links.forBusiness', 'For Business')}</h3>
             <ul className="flex flex-col gap-y-2">
               <li>
-                <Link href={`/${locale}/business`} className="text-gray-600 hover:text-blue-600 text-sm transition-colors">
+                <Link href={`/${locale}/business`} prefetch={false} className="text-gray-600 hover:text-blue-600 text-sm transition-colors">
                   {translateFooter('links.business', 'Business overview')}
                 </Link>
               </li>
               <li>
-                <Link href={`/${locale}/store`} className="text-gray-600 hover:text-blue-600 text-sm transition-colors">
+                <Link href={`/${locale}/store`} prefetch={false} className="text-gray-600 hover:text-blue-600 text-sm transition-colors">
                   {t('links.storeForBusinesses')}
                 </Link>
               </li>
@@ -125,17 +125,17 @@ export function Footer() {
             <h3 className="font-semibold text-gray-900 mb-4">{t('links.resources')}</h3>
             <ul className="flex flex-col gap-y-2">
               <li>
-                <Link href={`/${locale}/blog`} className="text-gray-600 hover:text-blue-600 text-sm transition-colors">
+                <Link href={`/${locale}/blog`} prefetch={false} className="text-gray-600 hover:text-blue-600 text-sm transition-colors">
                   {t('links.blog')}
                 </Link>
               </li>
               <li>
-                <Link href={`/${locale}/faq`} className="text-gray-600 hover:text-blue-600 text-sm transition-colors">
+                <Link href={`/${locale}/faq`} prefetch={false} className="text-gray-600 hover:text-blue-600 text-sm transition-colors">
                   {t('links.faq')}
                 </Link>
               </li>
               <li>
-                <Link href={`/${locale}/glasses-for-face-shape`} className="text-gray-600 hover:text-blue-600 text-sm transition-colors">
+                <Link href={`/${locale}/glasses-for-face-shape`} prefetch={false} className="text-gray-600 hover:text-blue-600 text-sm transition-colors">
                   {t('links.faceShapeGuide')}
                 </Link>
               </li>
@@ -157,17 +157,17 @@ export function Footer() {
             <h3 className="font-semibold text-gray-900 mb-4">{t('links.legal')}</h3>
             <ul className="flex flex-col gap-y-2">
               <li>
-                <Link href={`/${locale}/privacy`} className="text-gray-600 hover:text-blue-600 text-sm transition-colors">
+                <Link href={`/${locale}/privacy`} prefetch={false} className="text-gray-600 hover:text-blue-600 text-sm transition-colors">
                   {t('links.privacy')}
                 </Link>
               </li>
               <li>
-                <Link href={`/${locale}/terms`} className="text-gray-600 hover:text-blue-600 text-sm transition-colors">
+                <Link href={`/${locale}/terms`} prefetch={false} className="text-gray-600 hover:text-blue-600 text-sm transition-colors">
                   {t('links.terms')}
                 </Link>
               </li>
               <li>
-                <Link href={`/${locale}/refund`} className="text-gray-600 hover:text-blue-600 text-sm transition-colors">
+                <Link href={`/${locale}/refund`} prefetch={false} className="text-gray-600 hover:text-blue-600 text-sm transition-colors">
                   {t('links.refund')}
                 </Link>
               </li>

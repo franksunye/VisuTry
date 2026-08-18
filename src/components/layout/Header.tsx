@@ -54,6 +54,7 @@ export function Header({ transparent = false }: HeaderProps) {
           {/* Logo */}
           <Link
             href={`/${locale}`}
+            prefetch={false}
             className="flex shrink-0 items-center gap-x-2 transition-opacity hover:opacity-80"
             aria-label="VisuTry Home"
           >
@@ -68,6 +69,7 @@ export function Header({ transparent = false }: HeaderProps) {
                 <div key={link.href} className="relative flex items-center">
                   <Link
                     href={link.href}
+                    prefetch={false}
                     className={cn(
                       'whitespace-nowrap text-sm font-medium transition-colors hover:text-blue-600',
                       pathname === link.href
@@ -95,6 +97,7 @@ export function Header({ transparent = false }: HeaderProps) {
             ) : isAuthenticated ? (
               <Link
                 href={`/${locale}/face-analysis`}
+                prefetch={false}
                 className="hidden items-center whitespace-nowrap rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700 sm:flex"
               >
                 <Sparkles className="w-4 h-4 me-2" />
@@ -103,6 +106,7 @@ export function Header({ transparent = false }: HeaderProps) {
             ) : !isHomePage ? (
               <Link
                 href={`/${locale}/face-shape-detector`}
+                prefetch={false}
                 className="hidden sm:flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium text-sm"
               >
                 {tCommon('checkFaceShape')}
@@ -148,6 +152,7 @@ export function Header({ transparent = false }: HeaderProps) {
                   <Link
                     key={link.href}
                     href={link.href}
+                    prefetch={false}
                     onClick={() => setMobileMenuOpen(false)}
                     className={cn(
                       'px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center justify-between',
@@ -168,6 +173,7 @@ export function Header({ transparent = false }: HeaderProps) {
                   <Link
                     key={link.href}
                     href={link.href}
+                    prefetch={false}
                     onClick={() => setMobileMenuOpen(false)}
                     className={cn(
                       'mt-2 px-4 py-2 rounded-lg text-sm font-semibold transition-colors flex items-center justify-between',
@@ -192,6 +198,7 @@ export function Header({ transparent = false }: HeaderProps) {
                 {sessionLoading ? null : isAuthenticated ? (
                   <Link
                     href={`/${locale}/face-analysis`}
+                    prefetch={false}
                     onClick={() => setMobileMenuOpen(false)}
                     className="flex items-center justify-center w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium text-sm"
                   >
@@ -201,6 +208,7 @@ export function Header({ transparent = false }: HeaderProps) {
                 ) : !isHomePage ? (
                   <Link
                     href={`/${locale}/face-shape-detector`}
+                    prefetch={false}
                     onClick={() => setMobileMenuOpen(false)}
                     className="flex items-center justify-center w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium text-sm"
                   >

@@ -128,6 +128,7 @@ export default function CombinationSearchPage({ params }: Props) {
         {page.relatedOwnerPath && (
           <Link
             href={`/${locale}${page.relatedOwnerPath}`}
+            prefetch={false}
             className="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-blue-700 hover:text-blue-900"
           >
             {shell.openBroaderGuide} <ArrowRight className="h-4 w-4" />
@@ -141,7 +142,7 @@ export default function CombinationSearchPage({ params }: Props) {
             <p className="mb-2 text-sm font-semibold uppercase tracking-wide text-blue-600">{shell.exploreRelated}</p>
             <h2 className="text-2xl font-bold text-gray-950">{shell.moreFocusedGuides}</h2>
           </div>
-          <Link href={`/${locale}/glasses-guide`} className="text-sm font-semibold text-blue-700 hover:text-blue-900">
+          <Link href={`/${locale}/glasses-guide`} prefetch={false} className="text-sm font-semibold text-blue-700 hover:text-blue-900">
             {shell.viewAllGuides}
           </Link>
         </div>
@@ -150,6 +151,7 @@ export default function CombinationSearchPage({ params }: Props) {
             <Link
               key={related.slug}
               href={`/${locale}/glasses-guide/${related.slug}`}
+              prefetch={false}
               className="rounded-lg border border-gray-200 bg-white p-5 transition hover:border-blue-200 hover:shadow-sm"
             >
               <h3 className="mb-2 font-semibold text-gray-950">{related.title}</h3>

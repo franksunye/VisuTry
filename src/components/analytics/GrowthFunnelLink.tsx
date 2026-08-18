@@ -12,6 +12,7 @@ interface GrowthFunnelLinkProps {
   queryCluster: string
   contentCluster?: string
   productPath?: string
+  prefetch?: boolean
   className?: string
   children: ReactNode
 }
@@ -25,12 +26,14 @@ export function GrowthFunnelLink({
   queryCluster,
   contentCluster,
   productPath,
+  prefetch,
   className,
   children,
 }: GrowthFunnelLinkProps) {
   return (
     <Link
       href={href}
+      prefetch={prefetch}
       className={className}
       onClick={() => {
         setGrowthContext({
