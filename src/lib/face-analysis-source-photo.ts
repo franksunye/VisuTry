@@ -122,7 +122,13 @@ async function readPhotoStream(stream: ReadableStream<Uint8Array>): Promise<Uint
 }
 
 function imageResponse(photo: Uint8Array, contentType: string): Response {
-  return new NextResponse(photo, {
+  // NextResponse's BodyInit typing rejects Uint8Array<ArrayBufferLike> under the
+  // current TypeScript/lib.dom combination. Copy into a concrete ArrayBuffer so
+  // the response body is both type-safe and byte-identical.
+  const body = new ArrayBuffer(photo.byteLength)
+  new Uint8Array(body).set(photo)
+
+  return new NextResponse(body, {
     status: 200,
     headers: {
       'Cache-Control': 'private, no-store',
