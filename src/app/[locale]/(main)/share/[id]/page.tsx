@@ -6,12 +6,18 @@ import type { Metadata } from "next"
 import { TryOnResultImage } from "@/components/OptimizedImage"
 import { getTryOnConfig, type TryOnType } from "@/config/try-on-types"
 import { localizedPath } from "@/lib/localized-path"
+import { publicTryOnShareResultPath } from "@/lib/tryon-media"
 
 interface SharePageProps {
   params: {
     locale: string
     id: string
   }
+}
+
+function absoluteShareResultUrl(taskId: string): string {
+  const baseUrl = process.env.NEXTAUTH_URL || 'https://www.visutry.com'
+  return new URL(publicTryOnShareResultPath(taskId), baseUrl).toString()
 }
 
 // Generate dynamic metadata
@@ -41,6 +47,7 @@ export async function generateMetadata({ params }: SharePageProps): Promise<Meta
   const userName = task.user?.name || "User"
   const taskType = (task as any).type as TryOnType || 'GLASSES'
   const config = getTryOnConfig(taskType)
+  const shareResultUrl = absoluteShareResultUrl(task.id)
 
   return {
     title: `${userName}'s AI ${config.name} Try-On Result - VisuTry`,
@@ -50,7 +57,7 @@ export async function generateMetadata({ params }: SharePageProps): Promise<Meta
       description: `Check out ${userName}'s AI ${config.name.toLowerCase()} try-on result with VisuTry`,
       images: [
         {
-          url: task.resultImageUrl,
+          url: shareResultUrl,
           width: 800,
           height: 600,
           alt: "AI Glasses Try-On Result"
@@ -62,7 +69,7 @@ export async function generateMetadata({ params }: SharePageProps): Promise<Meta
       card: "summary_large_image",
       title: `${userName}'s AI ${config.name} Try-On Result`,
       description: `Check out ${userName}'s AI ${config.name.toLowerCase()} try-on result with VisuTry`,
-      images: [task.resultImageUrl]
+      images: [shareResultUrl]
     },
     robots: {
       index: false,
@@ -92,6 +99,7 @@ export default async function SharePage({ params }: SharePageProps) {
   const taskType = (task as any).type as TryOnType || 'GLASSES'
   const config = getTryOnConfig(taskType)
   const createdDate = new Date(task.createdAt).toLocaleDateString("en-US")
+  const shareResultPath = publicTryOnShareResultPath(task.id)
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
@@ -121,7 +129,7 @@ export default async function SharePage({ params }: SharePageProps) {
           <div className="bg-white rounded-2xl shadow-lg overflow-hidden mb-8">
             <div className="relative w-full aspect-square bg-gray-50">
               <TryOnResultImage
-                src={task.resultImageUrl}
+                src={shareResultPath}
                 alt="AI Glasses Try-On Result"
                 priority={true}
                 useFill={true}
@@ -132,7 +140,7 @@ export default async function SharePage({ params }: SharePageProps) {
             <div className="p-6">
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <a
-                  href={task.resultImageUrl}
+                  href={shareResultPath}
                   download={`visutry-result-${task.id}.jpg`}
                   className="flex items-center justify-center px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
                 >
