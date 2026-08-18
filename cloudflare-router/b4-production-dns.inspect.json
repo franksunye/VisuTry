@@ -1,0 +1,13 @@
+{
+  "domain": "www.visutry.com",
+  "resolved": false,
+  "inspectedAt": null,
+  "command": "vercel domains inspect www.visutry.com",
+  "recordType": null,
+  "target": null,
+  "examplesThatMustNotBeAssumed": [
+    "cname.vercel-dns.com",
+    "cname.vercel-dns-0.com"
+  ],
+  "note": "Phase A must run `vercel domains inspect www.visutry.com` and freeze the project's actual record here. Official Vercel examples currently show cname.vercel-dns-0.com; some projects receive a unique CNAME. Do not hardcode an example hostname as the production origin."
+}

@@ -12,7 +12,9 @@ import path from 'node:path'
 import {
   assertSafeB4ProductionRoutes,
   generateB4ProductionWorkerRoutes,
+  proposedCloudflareRouteApiPayload,
   proposedWranglerProductionRoutes,
+  readProductionWwwDnsInspect,
   routesForPriority,
   type B4RoutePriority,
 } from './b4-production-routes'
@@ -21,19 +23,30 @@ const priorityArg = process.argv.includes('--priority')
   ? process.argv[process.argv.indexOf('--priority') + 1]
   : 'P2'
 const priority = (['P0', 'P1', 'P2'].includes(priorityArg || '') ? priorityArg : 'P2') as B4RoutePriority
+const includeParityGatedHashedStatic = process.argv.includes('--include-gated')
 
 const all = generateB4ProductionWorkerRoutes()
-const selected = routesForPriority(priority, all)
+const selected = routesForPriority(priority, all, { includeParityGatedHashedStatic })
 const errors = assertSafeB4ProductionRoutes(all)
+
+const inspect = readProductionWwwDnsInspect()
+const activationP0 = routesForPriority('P0', all)
+const gated = all.filter((row) => row.activationGate !== 'none')
 
 const summary = {
   activated: false,
   customDomain: false,
   catchAllWww: false,
   wranglerProductionRoutesWired: false,
+  requestLimitFailOpenRequired: true,
+  wwwDnsTargetFrozen: inspect.resolved,
+  hashedStaticParityGateRequired: gated.length > 0,
   priority,
+  includeParityGatedHashedStatic: process.argv.includes('--include-gated'),
   totalAllPriorities: all.length,
   selected: selected.length,
+  activationP0: activationP0.length,
+  parityGated: gated.length,
   byLayer: {
     'layer1-static-asset': selected.filter((row) => row.layer === 'layer1-static-asset').length,
     'layer2-worker': selected.filter((row) => row.layer === 'layer2-worker').length,
@@ -45,7 +58,8 @@ const summary = {
   },
   safetyErrors: errors,
   wranglerSnippetPreview: proposedWranglerProductionRoutes(priority).slice(0, 3),
-  note: 'Do not paste routes into wrangler.jsonc until B4.2C. deploy:cloudflare uses --env staging only.',
+  apiPayloadPreview: proposedCloudflareRouteApiPayload(priority).slice(0, 1),
+  note: 'Do not paste routes into wrangler.jsonc until B4.2C. deploy:cloudflare uses --env staging only. Phase C P0 excludes /_next/static* until npm run b4:asset-parity passes. request_limit_fail_open is an API/dashboard field, not current Wrangler JSON.',
 }
 
 const payload = { summary, routes: selected }
@@ -69,6 +83,10 @@ if (process.argv.includes('--write-json')) {
             'layer2-worker': all.filter((row) => row.layer === 'layer2-worker').length,
           },
           byPriority: summary.byPriority,
+          activationP0: activationP0.length,
+          parityGated: gated.length,
+          requestLimitFailOpenRequired: true,
+          wwwDnsTargetFrozen: inspect.resolved,
           safetyErrors: errors,
         },
         routes: all,

@@ -29,18 +29,33 @@ import {
   B4_LOCALES,
   B4_LOCALIZED_EXACT_PAGES,
   B4_STATIC_SITEMAP_EXACT,
-  classifyB4ProductionPublicSlice,
 } from './b4-production-public-slice'
+import fs from 'node:fs'
+import path from 'node:path'
 
 export const B4_PRODUCTION_PUBLIC_HOST = 'www.visutry.com'
 export const B4_PRODUCTION_ZONE = 'visutry.com'
 export const B4_PRODUCTION_WORKER_NAME = 'visutry-cf-production'
 export const B4_PRODUCTION_FALLBACK_ORIGIN = 'https://visutry.vercel.app'
-export const B4_PRODUCTION_WWW_DNS_TARGET = 'cname.vercel-dns.com'
+export const B4_REQUIRED_REQUEST_LIMIT_FAIL_OPEN = true
+export const B4_VERCEL_DNS_EXAMPLE_HOSTS = ['cname.vercel-dns.com', 'cname.vercel-dns-0.com'] as const
+export const B4_PRODUCTION_DNS_INSPECT_PATH = 'cloudflare-router/b4-production-dns.inspect.json'
 
 export type B4RoutePriority = 'P0' | 'P1' | 'P2'
 export type B4RouteLayer = 'layer1-static-asset' | 'layer2-worker'
 export type B4RouteFeasibility = 'A' | 'B' | 'C' | 'D'
+export type B4ActivationGate = 'none' | 'same-commit-asset-parity'
+
+export interface B4ProductionDnsInspect {
+  domain: string
+  resolved: boolean
+  inspectedAt: string | null
+  command: string
+  recordType: 'CNAME' | 'A' | 'AAAA' | null
+  target: string | null
+  examplesThatMustNotBeAssumed: string[]
+  note?: string
+}
 
 export interface B4ProductionWorkerRoute {
   pattern: string
@@ -52,6 +67,8 @@ export interface B4ProductionWorkerRoute {
   rollbackClass: 'delete-route'
   priority: B4RoutePriority
   feasibility: B4RouteFeasibility
+  activationGate: B4ActivationGate
+  requestLimitFailOpen: true
 }
 
 const SAFE_HTML_WILDCARDS: Array<{ stem: string; priority: B4RoutePriority; reason: string; excludedConflicts: string[] }> = [
@@ -119,10 +136,18 @@ export function generateB4ProductionWorkerRoutes(): B4ProductionWorkerRoute[] {
   const routes: B4ProductionWorkerRoute[] = []
   const seen = new Set<string>()
 
-  const push = (route: B4ProductionWorkerRoute) => {
+  const push = (
+    route: Omit<B4ProductionWorkerRoute, 'activationGate' | 'requestLimitFailOpen'> & {
+      activationGate?: B4ActivationGate
+    },
+  ) => {
     if (seen.has(route.pattern)) return
     seen.add(route.pattern)
-    routes.push(route)
+    routes.push({
+      ...route,
+      activationGate: route.activationGate || 'none',
+      requestLimitFailOpen: true,
+    })
   }
 
   for (const prefix of B4_HASHED_IMMUTABLE_PREFIXES) {
@@ -131,11 +156,12 @@ export function generateB4ProductionWorkerRoutes(): B4ProductionWorkerRoute[] {
       layer: 'layer1-static-asset',
       expectedExecution: 'static-asset',
       workerQuota: 'asset-miss-only',
-      reason: 'hashed OpenNext Static Assets; run_worker_first=false skips Worker on exact file hits',
-      excludedConflicts: ['/_next/image stays unrouted'],
+      reason: 'hashed OpenNext Static Assets; production route is parity-gated because Vercel and CLOUDFLARE_BUILD=1 emit independent webpack graphs',
+      excludedConflicts: ['/_next/image stays unrouted', 'do not publish until same-commit Vercel files ⊆ CF assets'],
       rollbackClass: 'delete-route',
       priority: 'P0',
       feasibility: 'B',
+      activationGate: 'same-commit-asset-parity',
     })
   }
 
@@ -371,16 +397,64 @@ export function wwwWorkerRouteMatch(
   return matchingB4ProductionRoutes(url, routes)[0] || null
 }
 
-export function routesForPriority(priority: B4RoutePriority, routes = generateB4ProductionWorkerRoutes()): B4ProductionWorkerRoute[] {
+export function routesForPriority(
+  priority: B4RoutePriority,
+  routes = generateB4ProductionWorkerRoutes(),
+  options?: { includeParityGatedHashedStatic?: boolean },
+): B4ProductionWorkerRoute[] {
   const allowed: B4RoutePriority[] = priority === 'P0' ? ['P0'] : priority === 'P1' ? ['P0', 'P1'] : ['P0', 'P1', 'P2']
-  return routes.filter((route) => allowed.includes(route.priority))
+  return routes.filter((route) => {
+    if (!allowed.includes(route.priority)) return false
+    if (route.activationGate === 'same-commit-asset-parity' && !options?.includeParityGatedHashedStatic) return false
+    return true
+  })
 }
 
-export function proposedWranglerProductionRoutes(priority: B4RoutePriority = 'P2') {
-  return routesForPriority(priority).map((route) => ({
+export function proposedWranglerProductionRoutes(
+  priority: B4RoutePriority = 'P2',
+  options?: { includeParityGatedHashedStatic?: boolean },
+) {
+  return routesForPriority(priority, generateB4ProductionWorkerRoutes(), options).map((route) => ({
     pattern: route.pattern,
     zone_name: B4_PRODUCTION_ZONE,
   }))
+}
+
+export function proposedCloudflareRouteApiPayload(
+  priority: B4RoutePriority = 'P2',
+  options?: { includeParityGatedHashedStatic?: boolean },
+) {
+  return routesForPriority(priority, generateB4ProductionWorkerRoutes(), options).map((route) => ({
+    pattern: route.pattern,
+    script: B4_PRODUCTION_WORKER_NAME,
+    request_limit_fail_open: B4_REQUIRED_REQUEST_LIMIT_FAIL_OPEN,
+  }))
+}
+
+export function readProductionWwwDnsInspect(inspectJson?: string): B4ProductionDnsInspect {
+  const raw = inspectJson ?? fs.readFileSync(path.join(__dirname, 'b4-production-dns.inspect.json'), 'utf8')
+  return JSON.parse(raw) as B4ProductionDnsInspect
+}
+
+export function requireFrozenWwwDnsTarget(inspect = readProductionWwwDnsInspect()): { recordType: 'CNAME' | 'A' | 'AAAA'; target: string } {
+  if (!inspect.resolved || !inspect.recordType || !inspect.target) {
+    throw new Error(
+      `www DNS target is not frozen. Run \`${inspect.command}\` in Phase A and write the actual record to ${B4_PRODUCTION_DNS_INSPECT_PATH}.`,
+    )
+  }
+  const assumed = B4_VERCEL_DNS_EXAMPLE_HOSTS.some((example) => example === inspect.target)
+  if (assumed && inspect.inspectedAt == null) {
+    throw new Error(`www DNS target ${inspect.target} looks like a docs example; freeze the inspect output first`)
+  }
+  return { recordType: inspect.recordType, target: inspect.target }
+}
+
+export function assertFailOpenActivation(
+  payload = proposedCloudflareRouteApiPayload('P2', { includeParityGatedHashedStatic: true }),
+): string[] {
+  return payload
+    .filter((row) => row.request_limit_fail_open !== true)
+    .map((row) => `${row.pattern} missing request_limit_fail_open=true`)
 }
 
 export const B4_FORBIDDEN_WRANGLER_SHAPES = [
@@ -469,6 +543,30 @@ export function assertSafeB4ProductionRoutes(routes = generateB4ProductionWorker
     }
     if (route.pattern.includes('/try/*') || route.pattern.endsWith('/try*')) {
       errors.push(`try-dynamic capture ${route.pattern}`)
+    }
+    if (route.requestLimitFailOpen !== true) {
+      errors.push(`${route.pattern} is not request-limit fail-open`)
+    }
+    if (route.pattern.includes('/_next/static') && route.activationGate !== 'same-commit-asset-parity') {
+      errors.push(`${route.pattern} must stay behind same-commit-asset-parity`)
+    }
+  }
+
+  errors.push(...assertFailOpenActivation())
+
+  const inspect = readProductionWwwDnsInspect()
+  if (inspect.resolved && !inspect.inspectedAt) {
+    errors.push('resolved www DNS inspect is missing inspectedAt')
+  }
+  if (!inspect.resolved && inspect.target) {
+    errors.push('unresolved www DNS inspect must not hardcode a target')
+  }
+  if (!inspect.resolved) {
+    try {
+      requireFrozenWwwDnsTarget(inspect)
+      errors.push('unresolved www DNS inspect must not yield a frozen target')
+    } catch {
+      // expected
     }
   }
 

@@ -1,8 +1,8 @@
 # VisuTry Cloudflare B4.2B — Scoped Production Worker Routes
 
-**Status:** PASS — production route manifest, matcher, DNS inventory, and cutover runbook are prepared. Nothing in this document was applied to production.
+**Status:** PASS with cutover gates — scoped routing architecture is unchanged. PR #95 review follow-up freezes three production gates before merge: hashed `/_next/static*` parity, inspect-frozen www DNS target, and request-limit fail-open.
 
-**Date:** 2026-08-18
+**Date:** 2026-08-18 (review follow-up)
 
 **Owner:** Product / Engineering
 
@@ -24,6 +24,8 @@ Related:
 - Semantic source of truth: `cloudflare-router/b4-production-public-slice.ts`
 - Route generator: `cloudflare-router/b4-production-routes.ts`
 - Review manifest: `cloudflare-router/b4-production-routes.json`
+- DNS inspect freeze (unresolved until Phase A): `cloudflare-router/b4-production-dns.inspect.json`
+- Hashed-asset parity gate: `cloudflare-router/b4-static-asset-parity.ts`
 
 Canonical execution order is unchanged:
 
@@ -60,6 +62,12 @@ npx tsx cloudflare-router/print-b4-production-routes.ts --write-json
 ```
 
 Do not paste the printed `wranglerSnippetPreview` into `wrangler.jsonc` until B4.2C Phase C.
+
+B4.2C hard gates (not optional):
+
+1. Same-commit hashed-asset parity before publishing `www.visutry.com/_next/static*`. Default Phase C P0 **excludes** that pattern. Run `npm run b4:asset-parity` against the Vercel `next build` and the Cloudflare OpenNext assets for the **same git SHA**. `generateBuildId` alone is not sufficient: `CLOUDFLARE_BUILD=1` webpack aliases can change chunk hashes.
+2. Freeze `www` origin DNS from `vercel domains inspect www.visutry.com` into `cloudflare-router/b4-production-dns.inspect.json`. Do **not** assume `cname.vercel-dns.com` or `cname.vercel-dns-0.com`.
+3. Every published Worker Route must have **request-limit fail-open** (`request_limit_fail_open: true` on the Cloudflare Routes API / dashboard toggle). Wrangler JSON currently only serializes `pattern` + `zone_name`; fail-open must be verified after attach. Volume is UNKNOWN, so fail-closed 1027 is not acceptable on public SEO/API paths.
 
 ## 2. Current production domain state (read-only)
 
@@ -130,9 +138,11 @@ Zone limit: **1,000 routes per zone** ([Workers limits](https://developers.cloud
 
 | Priority | Contents | When |
 | --- | --- | --- |
-| **P0** | hashed `/_next/static*`, public asset prefixes, favicon/robots/llms, exact public APIs | first Worker-route enablement (Phase C) |
+| **P0** | public asset prefixes, favicon/robots/llms, exact public APIs. **`/_next/static*` is generated but not activated** until `npm run b4:asset-parity` is `pass` | first Worker-route enablement (Phase C) |
 | **P1** | `/`, locale homes, exact marketing pages, Store hub, try-on*, static sitemaps | after P0 24h is under warning |
 | **P2** | blog*, brand*, glasses-guide*, face-shapes*, sunglasses-for*, hairstyles-for*, style/* | after P1 is under warning |
+
+Exact routes without a trailing `*` do **not** match query strings. `/en?utm_source=...`, `/en/store?utm_...`, and `/api/health?x=1` stay on Vercel. That is safe. Wildcard families such as `/en/blog*` do match `?utm_*`. Account for this split when reading Vercel usage after P1.
 
 Do not assume everything must move on day one. Locale expansion is generated from `B4_LOCALES` in the classifier. Do not hand-edit locale copies.
 
@@ -170,7 +180,7 @@ Critical distinctions the matcher must keep:
 | `/api/glasses/brands` | `/api/glasses/frames` |
 | `/en/style/round-face` | `/en/style-explorer` |
 | `/en/blog` | (unknown blog slug still matches `blog*` and 404s on CF HTML — not a Layer 3 open) |
-| `/_next/static/...` | `/_next/image` |
+| `/_next/static/...` **after parity gate** | `/_next/image`; `/_next/static` **before** the gate (stays Vercel) |
 
 Cloudflare cannot express “Store hub but not Store detail” with a prefix. The generator therefore **never** emits `/store*`. If a future operator adds `www.visutry.com/*/store*` or `www.visutry.com/en/store*`, Store detail would enter the Worker. That is a **hard fail**.
 
@@ -188,12 +198,13 @@ Chosen model: **A — explicit Worker Routes for static asset prefixes, `run_wor
 
 | Asset family | Enters Worker Route? | Static Assets intercept before Worker JS? | Worker quota | Hits Vercel? | Physical source |
 | --- | --- | --- | --- | --- | --- |
-| `/_next/static/*` exact file | yes (P0 route) | yes | no (asset hit) | no | OpenNext `.open-next/assets` on this Worker |
+| `/_next/static/*` exact file | **no until parity gate**; then yes | yes, after gate | no on hit | **yes until gate** | Vercel until gate; then OpenNext assets |
 | `/images/*`, `/home/*`, `/experience-heroes/*`, `/blog-covers/*`, `/assets/*` exact file | yes (P0) | yes | no | no | same |
 | `/favicon.ico`, `/robots.txt`, `/llms.txt` | yes (P0 exact) | yes | no | no | same |
 | asset **miss** on a routed prefix | yes | no | **yes** (Worker JS) | only if classifier falls back | Worker then optional `visutry.vercel.app` |
 | `/_next/image*` | **no route** | n/a | **no** | yes | Vercel |
 | unrouted HTML/API | **no route** | n/a | **no** | yes | Vercel |
+| exact HTML/API with `?query` | **no** (pattern has no trailing `*`) | n/a | **no** | yes | Vercel |
 
 Do not set `run_worker_first: true`. Do not enable Workers Caching as a 100k-quota strategy (cache hits still count as Worker requests and can bill otherwise-free Static Assets).
 
@@ -202,14 +213,14 @@ Do not set `run_worker_first: true`. Do not enable Workers Caching as a 100k-quo
 ```
 browser
   → Cloudflare authoritative DNS (after Phase B)
-  → www orange-cloud CNAME to Vercel (cname.vercel-dns.com)
+  → www orange-cloud record whose **target is frozen from `vercel domains inspect www.visutry.com`**
       → matching Worker Route: this Worker (Layer 1 asset or Layer 2)
       → no matching route: Vercel origin directly (Layer 3, 0 Worker requests)
 ```
 
 | Item | Value |
 | --- | --- |
-| Record | `www` CNAME `cname.vercel-dns.com` (or current Vercel target if CNAME is refused) |
+| Record | **Unknown until Phase A inspect.** Official examples include `cname.vercel-dns-0.com`; older docs used `cname.vercel-dns.com`; some projects get a unique CNAME. Freeze `cloudflare-router/b4-production-dns.inspect.json`. |
 | Proxy | **Proxied** (orange cloud) so Worker Routes can intercept |
 | SSL/TLS | Full (strict) |
 | Vercel domain | keep `www.visutry.com` as a Vercel production domain (origin ownership) |
@@ -316,7 +327,7 @@ Create the Cloudflare zone **without** changing registrar nameservers until Phas
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | `@` NS | NS | `ns1/ns2.vercel-dns.com` | Cloudflare assigned NS **only in Phase B** | n/a | SOA | High | `dig NS visutry.com` |
 | `@` | A | Vercel `64.29.17.1`, `216.198.79.65` | placeholder `192.0.2.0` for Redirect Rule **or** keep Vercel until rule is live | Proxied when redirecting | export | Apex must 301/308 to www | `curl -I https://visutry.com` |
-| `www` | A | Vercel `64.29.17.65`, `216.198.79.65` | CNAME `cname.vercel-dns.com` | **Proxied** | export | Medium (routes off until Phase C) | `curl -I https://www.visutry.com` still Vercel after NS |
+| `www` | A | Vercel `64.29.17.65`, `216.198.79.65` | **Freeze from `vercel domains inspect www.visutry.com`** (do not assume `cname.vercel-dns.com` / `cname.vercel-dns-0.com`) | **Proxied** | export | Medium (routes off until Phase C) | `curl -I https://www.visutry.com` still Vercel after NS |
 | `@` | MX | `5 mxbiz1.qq.com`, `10 mxbiz2.qq.com` | identical | **DNS only** | export | Mail outage if proxied | MX lookup + send test |
 | `@` | TXT SPF | `v=spf1 include:spf.mail.qq.com ~all` | identical | DNS only | 60s observed | SPF fail | `dig TXT visutry.com` |
 | `_dmarc` | TXT | `v=DMARC1; p=none;` | identical | DNS only | export | Low | `dig TXT _dmarc.visutry.com` |
@@ -337,12 +348,13 @@ Nameserver migration and Worker-route activation are **separate checkpoints**. A
 ### Phase A — DNS preparation (no traffic change)
 
 1. Export the complete Vercel DNS zone. Diff against §11. Record MX/TXT/DKIM/SPF/DMARC/CAA/`auth`/verification TXT.
-2. Create Cloudflare zone `visutry.com`. Import records **grey-cloud**. Do **not** change registrar nameservers.
-3. Keep www pointing at Vercel (grey-cloud CNAME/A is fine in this phase; traffic still uses Vercel NS).
-4. Confirm `auth.visutry.com`, MX, SPF, DKIM present and DNS-only.
-5. Record Vercel ISR / FOT / function / middleware baselines.
-6. Confirm staging Worker gzip < 3072 KiB and Layer 1/2/3 smoke still green.
-7. Prepare rollback evidence: Vercel NS names, current A/CNAME values, zone export file.
+2. Run `vercel domains inspect www.visutry.com` and **freeze** `recordType` + `target` + `inspectedAt` in `cloudflare-router/b4-production-dns.inspect.json`. `requireFrozenWwwDnsTarget()` must succeed before Phase B www records are written.
+3. Create Cloudflare zone `visutry.com`. Import records **grey-cloud**. Do **not** change registrar nameservers.
+4. Keep www pointing at the **inspected** Vercel target (grey-cloud CNAME/A is fine in this phase; traffic still uses Vercel NS).
+5. Confirm `auth.visutry.com`, MX, SPF, DKIM present and DNS-only.
+6. Record Vercel ISR / FOT / function / middleware baselines.
+7. Confirm staging Worker gzip < 3072 KiB and Layer 1/2/3 smoke still green.
+8. Prepare rollback evidence: Vercel NS names, current A/CNAME values, zone export file, inspect output.
 
 Traffic remains on Vercel. This phase is the only B4.2C step that may proceed immediately after this PR is reviewed.
 
@@ -350,7 +362,7 @@ Traffic remains on Vercel. This phase is the only B4.2C step that may proceed im
 
 1. Change authoritative NS to Cloudflare **only after** grey-cloud records match the export.
 2. Wait for NS propagation (`dig NS visutry.com`).
-3. Orange-cloud `www` to Vercel origin. **Do not** add Worker Routes yet. **Do not** add a Custom Domain.
+3. Orange-cloud `www` to the **frozen inspect target**. **Do not** add Worker Routes yet. **Do not** add a Custom Domain.
 4. Verify before any route: `https://www.visutry.com` HTML, `/api/auth/session`, Store detail, Campaign, Try-On, payment entry, AI entry, mail (MX/SPF).
 5. Apex: enable Redirect Rule to `https://www.visutry.com` (or confirm Vercel still redirects until the rule is ready).
 6. SSL/TLS Full (strict). Confirm certificate on www.
@@ -359,13 +371,20 @@ Success gate: www still reaches Vercel; Worker request count for the production 
 
 ### Phase C — P0 route enablement
 
-Enable **only** `routesForPriority('P0')` from `b4-production-routes.ts` (Static Assets + exact public APIs). Dashboard or a **reviewed** wrangler production env. Do not enable P1/P2.
+Enable **only** `routesForPriority('P0')` (default: **excludes** `/_next/static*`). Dashboard or a **reviewed** wrangler production env. Do not enable P1/P2.
+
+**Hard activation gates — all required, all must be proven before any www Worker Route is live:**
+
+1. `npm run b4:asset-parity` is `pass` **only if** this Phase C includes `/_next/static*`. If it is `fail` or `skipped`, leave hashed files on Vercel (the default). `generateBuildId` is not a substitute.
+2. `cloudflare-router/b4-production-dns.inspect.json` has `resolved: true` with the inspect timestamp.
+3. Every attached route has **request-limit fail-open**. Verify with the Cloudflare Routes API (`request_limit_fail_open: true`) or the dashboard toggle on each route. Wrangler `pattern`/`zone_name` deploy does **not** by itself prove this. Fail-closed would serve Error 1027 on public paths after 100k/day.
 
 Immediate smoke:
 
-- `/_next/static/...` — no `x-visutry-router-backend` (asset-first)
-- `/robots.txt`, `/favicon.ico`
+- `/_next/static/...` — still Vercel (no router header) unless the parity gate passed and the gated route was explicitly included
+- `/robots.txt`, `/favicon.ico`, `/images/...`
 - `GET /api/health`, `GET /api/glasses/brands`
+- `/api/health?x=1` — still Vercel (exact route, query not matched)
 - `/api/glasses/frames` — still Vercel (no router header)
 - `/api/auth/session` — still Vercel
 - `/en/store/ello-sunglasses` — still Vercel
@@ -406,7 +425,11 @@ Wrangler (only if a production env exists later): remove `routes` from that env 
 
 **Secondary:** restore Vercel nameservers (`ns1.vercel-dns.com`, `ns2.vercel-dns.com`) only if Cloudflare authoritative DNS itself is wrong. TTL-bound; 30–60 minutes. NS rollback is **not** normally required for a Worker-route incident.
 
-Fail-open vs fail-closed: prefer fail-open on these routes so Error 1027 bypasses the Worker to Vercel origin rather than serving 1027 on marketing HTML.
+**Fail-open is a B4.2C hard gate, not a preference.** After attach, every www route must have `request_limit_fail_open: true`. Fail-open bypasses the Worker to the Vercel origin at the Free 100k/day cap. Fail-closed returns Error 1027. Public SEO/API routes must not fail-closed while Worker volume is UNKNOWN.
+
+Dashboard: Workers & Pages → production Worker → Settings → Domains & Routes → each route → request-limit fail mode = Fail open.
+
+API (do not run in B4.2B): create/update route with `"request_limit_fail_open": true`. `proposedCloudflareRouteApiPayload()` already emits this field. Wrangler config cannot currently express it.
 
 ## 14. Observability
 
@@ -449,6 +472,9 @@ Product:
 | `deploy:cloudflare` | `--env staging` only |
 | GitHub Actions | no Wrangler/OpenNext deploy job |
 | Manifest | `activated: false` in JSON |
+| Hashed `/_next/static*` | `activationGate: same-commit-asset-parity`; excluded from default `routesForPriority('P0')` |
+| www DNS target | inspect file `resolved: false` until Phase A |
+| Fail-open | `requestLimitFailOpen: true` on every generated route; API payload includes `request_limit_fail_open` |
 
 If routes were copied into `wrangler.jsonc` now, the next `npm run deploy:cloudflare` would still target **staging** (no www zone). The remaining risk is a human adding `env.production` and deploying it. Keep routes in the reviewed TS/JSON until Phase C.
 
@@ -480,6 +506,7 @@ npm run lint
 npm run test:critical:ci
 npx jest tests/unit/cloudflare-b4-production-routes.test.ts tests/unit/cloudflare-b4-production-public-slice.test.ts tests/unit/cloudflare-b4-staging-router.test.ts tests/unit/cloudflare-router-worker.test.ts --runInBand
 npx tsx cloudflare-router/print-b4-production-routes.ts
+npm run b4:asset-parity
 npm run build:cloudflare
 npx wrangler deploy --dry-run --env staging
 git diff --check
@@ -494,17 +521,20 @@ git diff --check
 | Register production Worker Routes in this PR | **NO-GO** |
 | Bind www Custom Domain | **NO-GO** |
 | Enable full P2 on day one of cutover | **NO-GO** (quota UNKNOWN) |
-| B4.2C Phase A (copy DNS, no NS change) | **GO** after this PR is reviewed |
-| B4.2C Phase B (NS) then Phase C (P0 only) | **GO** only as separate operational checkpoints |
+| B4.2C Phase A (copy DNS, no NS change) | **GO** after inspect freeze + this PR is reviewed |
+| B4.2C Phase B (NS) then Phase C (P0 only) | **GO** only as separate operational checkpoints, with fail-open verified and `/_next/static*` still Vercel unless parity is `pass` |
+| Publish `/_next/static*` without parity | **NO-GO** |
+| Hardcode `cname.vercel-dns.com` / `cname.vercel-dns-0.com` | **NO-GO** |
+| Attach www routes fail-closed | **NO-GO** |
 
-Blockers for live P1/P2: production Worker volume still UNKNOWN; Cloudflare zone does not exist yet; NS still Vercel.
+Blockers for live P1/P2: production Worker volume still UNKNOWN; Cloudflare zone does not exist yet; NS still Vercel; hashed-static parity not yet proven.
 
 Not blockers: Auth0 setting changes, Store/Campaign on Cloudflare, `_next/image` on Cloudflare, Paid plan.
 
 ## 18. Next step (do not execute here)
 
 1. Review and merge this PR (human merge; this task does not merge).
-2. **Phase A:** export Vercel DNS, create Cloudflare zone, copy records grey-cloud, verify MX/TXT/DKIM/SPF/DMARC/`auth`. Traffic unchanged.
-3. **Phase B (later window):** move NS; confirm www still Vercel; verify app/auth/mail.
-4. **Phase C:** enable **P0** Worker Routes only; smoke; observe 24h.
+2. **Phase A:** `vercel domains inspect www.visutry.com`, freeze `b4-production-dns.inspect.json`, export Vercel DNS, create Cloudflare zone, copy records grey-cloud, verify MX/TXT/DKIM/SPF/DMARC/`auth`. Traffic unchanged.
+3. **Phase B (later window):** move NS; confirm www still Vercel via the frozen inspect target; verify app/auth/mail.
+4. **Phase C:** enable **ungated P0** Worker Routes only; set request-limit fail-open on every route; leave `/_next/static*` on Vercel unless `npm run b4:asset-parity` is `pass` for that commit; smoke; observe 24h.
 5. Expand P1/P2 only if Worker pace stays under 70k/day.

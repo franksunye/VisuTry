@@ -17,6 +17,10 @@
       "P1": 203,
       "P2": 70
     },
+    "activationP0": 12,
+    "parityGated": 1,
+    "requestLimitFailOpenRequired": true,
+    "wwwDnsTargetFrozen": false,
     "safetyErrors": []
   },
   "routes": [
@@ -25,13 +29,16 @@
       "layer": "layer1-static-asset",
       "expectedExecution": "static-asset",
       "workerQuota": "asset-miss-only",
-      "reason": "hashed OpenNext Static Assets; run_worker_first=false skips Worker on exact file hits",
+      "reason": "hashed OpenNext Static Assets; production route is parity-gated because Vercel and CLOUDFLARE_BUILD=1 emit independent webpack graphs",
       "excludedConflicts": [
-        "/_next/image stays unrouted"
+        "/_next/image stays unrouted",
+        "do not publish until same-commit Vercel files ⊆ CF assets"
       ],
       "rollbackClass": "delete-route",
       "priority": "P0",
-      "feasibility": "B"
+      "feasibility": "B",
+      "activationGate": "same-commit-asset-parity",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/blog-covers*",
@@ -42,7 +49,9 @@
       "excludedConflicts": [],
       "rollbackClass": "delete-route",
       "priority": "P0",
-      "feasibility": "B"
+      "feasibility": "B",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/assets*",
@@ -53,7 +62,9 @@
       "excludedConflicts": [],
       "rollbackClass": "delete-route",
       "priority": "P0",
-      "feasibility": "B"
+      "feasibility": "B",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/images*",
@@ -64,7 +75,9 @@
       "excludedConflicts": [],
       "rollbackClass": "delete-route",
       "priority": "P0",
-      "feasibility": "B"
+      "feasibility": "B",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/home*",
@@ -75,7 +88,9 @@
       "excludedConflicts": [],
       "rollbackClass": "delete-route",
       "priority": "P0",
-      "feasibility": "B"
+      "feasibility": "B",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/experience-heroes*",
@@ -86,7 +101,9 @@
       "excludedConflicts": [],
       "rollbackClass": "delete-route",
       "priority": "P0",
-      "feasibility": "B"
+      "feasibility": "B",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/favicon.ico",
@@ -97,7 +114,9 @@
       "excludedConflicts": [],
       "rollbackClass": "delete-route",
       "priority": "P0",
-      "feasibility": "A"
+      "feasibility": "A",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/robots.txt",
@@ -108,7 +127,9 @@
       "excludedConflicts": [],
       "rollbackClass": "delete-route",
       "priority": "P0",
-      "feasibility": "A"
+      "feasibility": "A",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/llms.txt",
@@ -119,7 +140,9 @@
       "excludedConflicts": [],
       "rollbackClass": "delete-route",
       "priority": "P0",
-      "feasibility": "A"
+      "feasibility": "A",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/api/health",
@@ -134,7 +157,9 @@
       ],
       "rollbackClass": "delete-route",
       "priority": "P0",
-      "feasibility": "A"
+      "feasibility": "A",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/api/glasses/brands",
@@ -149,7 +174,9 @@
       ],
       "rollbackClass": "delete-route",
       "priority": "P0",
-      "feasibility": "A"
+      "feasibility": "A",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/api/glasses/categories",
@@ -164,7 +191,9 @@
       ],
       "rollbackClass": "delete-route",
       "priority": "P0",
-      "feasibility": "A"
+      "feasibility": "A",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/api/glasses/face-shapes",
@@ -179,7 +208,9 @@
       ],
       "rollbackClass": "delete-route",
       "priority": "P0",
-      "feasibility": "A"
+      "feasibility": "A",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com",
@@ -192,7 +223,9 @@
       ],
       "rollbackClass": "delete-route",
       "priority": "P1",
-      "feasibility": "A"
+      "feasibility": "A",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/sitemap.xml",
@@ -205,7 +238,9 @@
       ],
       "rollbackClass": "delete-route",
       "priority": "P1",
-      "feasibility": "A"
+      "feasibility": "A",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/sitemaps/core.xml",
@@ -218,7 +253,9 @@
       ],
       "rollbackClass": "delete-route",
       "priority": "P1",
-      "feasibility": "A"
+      "feasibility": "A",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/sitemaps/blog.xml",
@@ -231,7 +268,9 @@
       ],
       "rollbackClass": "delete-route",
       "priority": "P1",
-      "feasibility": "A"
+      "feasibility": "A",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/en",
@@ -246,7 +285,9 @@
       ],
       "rollbackClass": "delete-route",
       "priority": "P1",
-      "feasibility": "A"
+      "feasibility": "A",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/en/store",
@@ -259,7 +300,9 @@
       ],
       "rollbackClass": "delete-route",
       "priority": "P1",
-      "feasibility": "A"
+      "feasibility": "A",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/en/face-shape-detector",
@@ -270,7 +313,9 @@
       "excludedConflicts": [],
       "rollbackClass": "delete-route",
       "priority": "P1",
-      "feasibility": "A"
+      "feasibility": "A",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/en/face-analysis",
@@ -281,7 +326,9 @@
       "excludedConflicts": [],
       "rollbackClass": "delete-route",
       "priority": "P1",
-      "feasibility": "A"
+      "feasibility": "A",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/en/glasses-for-face-shape",
@@ -292,7 +339,9 @@
       "excludedConflicts": [],
       "rollbackClass": "delete-route",
       "priority": "P1",
-      "feasibility": "A"
+      "feasibility": "A",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/en/what-is-my-face-shape",
@@ -303,7 +352,9 @@
       "excludedConflicts": [],
       "rollbackClass": "delete-route",
       "priority": "P1",
-      "feasibility": "A"
+      "feasibility": "A",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/en/what-glasses-suit-my-face",
@@ -314,7 +365,9 @@
       "excludedConflicts": [],
       "rollbackClass": "delete-route",
       "priority": "P1",
-      "feasibility": "A"
+      "feasibility": "A",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/en/find-glasses-for-my-face",
@@ -325,7 +378,9 @@
       "excludedConflicts": [],
       "rollbackClass": "delete-route",
       "priority": "P1",
-      "feasibility": "A"
+      "feasibility": "A",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/en/virtual-glasses-try-on",
@@ -336,7 +391,9 @@
       "excludedConflicts": [],
       "rollbackClass": "delete-route",
       "priority": "P1",
-      "feasibility": "A"
+      "feasibility": "A",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/en/try-glasses-on-photo",
@@ -347,7 +404,9 @@
       "excludedConflicts": [],
       "rollbackClass": "delete-route",
       "priority": "P1",
-      "feasibility": "A"
+      "feasibility": "A",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/en/compare-glasses-frames",
@@ -358,7 +417,9 @@
       "excludedConflicts": [],
       "rollbackClass": "delete-route",
       "priority": "P1",
-      "feasibility": "A"
+      "feasibility": "A",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/en/ai-glasses-advisor",
@@ -369,7 +430,9 @@
       "excludedConflicts": [],
       "rollbackClass": "delete-route",
       "priority": "P1",
-      "feasibility": "A"
+      "feasibility": "A",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/en/pricing",
@@ -380,7 +443,9 @@
       "excludedConflicts": [],
       "rollbackClass": "delete-route",
       "priority": "P1",
-      "feasibility": "A"
+      "feasibility": "A",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/en/business",
@@ -391,7 +456,9 @@
       "excludedConflicts": [],
       "rollbackClass": "delete-route",
       "priority": "P1",
-      "feasibility": "A"
+      "feasibility": "A",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/en/privacy",
@@ -402,7 +469,9 @@
       "excludedConflicts": [],
       "rollbackClass": "delete-route",
       "priority": "P1",
-      "feasibility": "A"
+      "feasibility": "A",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/en/terms",
@@ -413,7 +482,9 @@
       "excludedConflicts": [],
       "rollbackClass": "delete-route",
       "priority": "P1",
-      "feasibility": "A"
+      "feasibility": "A",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/en/refund",
@@ -424,7 +495,9 @@
       "excludedConflicts": [],
       "rollbackClass": "delete-route",
       "priority": "P1",
-      "feasibility": "A"
+      "feasibility": "A",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/en/faq",
@@ -435,7 +508,9 @@
       "excludedConflicts": [],
       "rollbackClass": "delete-route",
       "priority": "P1",
-      "feasibility": "A"
+      "feasibility": "A",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/en/face-shape-measurement",
@@ -446,7 +521,9 @@
       "excludedConflicts": [],
       "rollbackClass": "delete-route",
       "priority": "P1",
-      "feasibility": "A"
+      "feasibility": "A",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/en/blog*",
@@ -457,7 +534,9 @@
       "excludedConflicts": [],
       "rollbackClass": "delete-route",
       "priority": "P2",
-      "feasibility": "B"
+      "feasibility": "B",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/en/brand*",
@@ -468,7 +547,9 @@
       "excludedConflicts": [],
       "rollbackClass": "delete-route",
       "priority": "P2",
-      "feasibility": "B"
+      "feasibility": "B",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/en/glasses-guide*",
@@ -481,7 +562,9 @@
       ],
       "rollbackClass": "delete-route",
       "priority": "P2",
-      "feasibility": "B"
+      "feasibility": "B",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/en/face-shapes*",
@@ -494,7 +577,9 @@
       ],
       "rollbackClass": "delete-route",
       "priority": "P2",
-      "feasibility": "B"
+      "feasibility": "B",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/en/sunglasses-for*",
@@ -505,7 +590,9 @@
       "excludedConflicts": [],
       "rollbackClass": "delete-route",
       "priority": "P2",
-      "feasibility": "B"
+      "feasibility": "B",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/en/hairstyles-for*",
@@ -516,7 +603,9 @@
       "excludedConflicts": [],
       "rollbackClass": "delete-route",
       "priority": "P2",
-      "feasibility": "B"
+      "feasibility": "B",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/en/try-on*",
@@ -530,7 +619,9 @@
       ],
       "rollbackClass": "delete-route",
       "priority": "P1",
-      "feasibility": "B"
+      "feasibility": "B",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/en/style/*",
@@ -543,7 +634,9 @@
       ],
       "rollbackClass": "delete-route",
       "priority": "P2",
-      "feasibility": "B"
+      "feasibility": "B",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/id",
@@ -558,7 +651,9 @@
       ],
       "rollbackClass": "delete-route",
       "priority": "P1",
-      "feasibility": "A"
+      "feasibility": "A",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/id/store",
@@ -571,7 +666,9 @@
       ],
       "rollbackClass": "delete-route",
       "priority": "P1",
-      "feasibility": "A"
+      "feasibility": "A",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/id/face-shape-detector",
@@ -582,7 +679,9 @@
       "excludedConflicts": [],
       "rollbackClass": "delete-route",
       "priority": "P1",
-      "feasibility": "A"
+      "feasibility": "A",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/id/face-analysis",
@@ -593,7 +692,9 @@
       "excludedConflicts": [],
       "rollbackClass": "delete-route",
       "priority": "P1",
-      "feasibility": "A"
+      "feasibility": "A",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/id/glasses-for-face-shape",
@@ -604,7 +705,9 @@
       "excludedConflicts": [],
       "rollbackClass": "delete-route",
       "priority": "P1",
-      "feasibility": "A"
+      "feasibility": "A",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/id/what-is-my-face-shape",
@@ -615,7 +718,9 @@
       "excludedConflicts": [],
       "rollbackClass": "delete-route",
       "priority": "P1",
-      "feasibility": "A"
+      "feasibility": "A",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/id/what-glasses-suit-my-face",
@@ -626,7 +731,9 @@
       "excludedConflicts": [],
       "rollbackClass": "delete-route",
       "priority": "P1",
-      "feasibility": "A"
+      "feasibility": "A",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/id/find-glasses-for-my-face",
@@ -637,7 +744,9 @@
       "excludedConflicts": [],
       "rollbackClass": "delete-route",
       "priority": "P1",
-      "feasibility": "A"
+      "feasibility": "A",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/id/virtual-glasses-try-on",
@@ -648,7 +757,9 @@
       "excludedConflicts": [],
       "rollbackClass": "delete-route",
       "priority": "P1",
-      "feasibility": "A"
+      "feasibility": "A",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/id/try-glasses-on-photo",
@@ -659,7 +770,9 @@
       "excludedConflicts": [],
       "rollbackClass": "delete-route",
       "priority": "P1",
-      "feasibility": "A"
+      "feasibility": "A",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/id/compare-glasses-frames",
@@ -670,7 +783,9 @@
       "excludedConflicts": [],
       "rollbackClass": "delete-route",
       "priority": "P1",
-      "feasibility": "A"
+      "feasibility": "A",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/id/ai-glasses-advisor",
@@ -681,7 +796,9 @@
       "excludedConflicts": [],
       "rollbackClass": "delete-route",
       "priority": "P1",
-      "feasibility": "A"
+      "feasibility": "A",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/id/pricing",
@@ -692,7 +809,9 @@
       "excludedConflicts": [],
       "rollbackClass": "delete-route",
       "priority": "P1",
-      "feasibility": "A"
+      "feasibility": "A",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/id/business",
@@ -703,7 +822,9 @@
       "excludedConflicts": [],
       "rollbackClass": "delete-route",
       "priority": "P1",
-      "feasibility": "A"
+      "feasibility": "A",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/id/privacy",
@@ -714,7 +835,9 @@
       "excludedConflicts": [],
       "rollbackClass": "delete-route",
       "priority": "P1",
-      "feasibility": "A"
+      "feasibility": "A",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/id/terms",
@@ -725,7 +848,9 @@
       "excludedConflicts": [],
       "rollbackClass": "delete-route",
       "priority": "P1",
-      "feasibility": "A"
+      "feasibility": "A",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/id/refund",
@@ -736,7 +861,9 @@
       "excludedConflicts": [],
       "rollbackClass": "delete-route",
       "priority": "P1",
-      "feasibility": "A"
+      "feasibility": "A",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/id/faq",
@@ -747,7 +874,9 @@
       "excludedConflicts": [],
       "rollbackClass": "delete-route",
       "priority": "P1",
-      "feasibility": "A"
+      "feasibility": "A",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/id/face-shape-measurement",
@@ -758,7 +887,9 @@
       "excludedConflicts": [],
       "rollbackClass": "delete-route",
       "priority": "P1",
-      "feasibility": "A"
+      "feasibility": "A",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/id/blog*",
@@ -769,7 +900,9 @@
       "excludedConflicts": [],
       "rollbackClass": "delete-route",
       "priority": "P2",
-      "feasibility": "B"
+      "feasibility": "B",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/id/brand*",
@@ -780,7 +913,9 @@
       "excludedConflicts": [],
       "rollbackClass": "delete-route",
       "priority": "P2",
-      "feasibility": "B"
+      "feasibility": "B",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/id/glasses-guide*",
@@ -793,7 +928,9 @@
       ],
       "rollbackClass": "delete-route",
       "priority": "P2",
-      "feasibility": "B"
+      "feasibility": "B",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/id/face-shapes*",
@@ -806,7 +943,9 @@
       ],
       "rollbackClass": "delete-route",
       "priority": "P2",
-      "feasibility": "B"
+      "feasibility": "B",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/id/sunglasses-for*",
@@ -817,7 +956,9 @@
       "excludedConflicts": [],
       "rollbackClass": "delete-route",
       "priority": "P2",
-      "feasibility": "B"
+      "feasibility": "B",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/id/hairstyles-for*",
@@ -828,7 +969,9 @@
       "excludedConflicts": [],
       "rollbackClass": "delete-route",
       "priority": "P2",
-      "feasibility": "B"
+      "feasibility": "B",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/id/try-on*",
@@ -842,7 +985,9 @@
       ],
       "rollbackClass": "delete-route",
       "priority": "P1",
-      "feasibility": "B"
+      "feasibility": "B",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/id/style/*",
@@ -855,7 +1000,9 @@
       ],
       "rollbackClass": "delete-route",
       "priority": "P2",
-      "feasibility": "B"
+      "feasibility": "B",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/ar",
@@ -870,7 +1017,9 @@
       ],
       "rollbackClass": "delete-route",
       "priority": "P1",
-      "feasibility": "A"
+      "feasibility": "A",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/ar/store",
@@ -883,7 +1032,9 @@
       ],
       "rollbackClass": "delete-route",
       "priority": "P1",
-      "feasibility": "A"
+      "feasibility": "A",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/ar/face-shape-detector",
@@ -894,7 +1045,9 @@
       "excludedConflicts": [],
       "rollbackClass": "delete-route",
       "priority": "P1",
-      "feasibility": "A"
+      "feasibility": "A",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/ar/face-analysis",
@@ -905,7 +1058,9 @@
       "excludedConflicts": [],
       "rollbackClass": "delete-route",
       "priority": "P1",
-      "feasibility": "A"
+      "feasibility": "A",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/ar/glasses-for-face-shape",
@@ -916,7 +1071,9 @@
       "excludedConflicts": [],
       "rollbackClass": "delete-route",
       "priority": "P1",
-      "feasibility": "A"
+      "feasibility": "A",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/ar/what-is-my-face-shape",
@@ -927,7 +1084,9 @@
       "excludedConflicts": [],
       "rollbackClass": "delete-route",
       "priority": "P1",
-      "feasibility": "A"
+      "feasibility": "A",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/ar/what-glasses-suit-my-face",
@@ -938,7 +1097,9 @@
       "excludedConflicts": [],
       "rollbackClass": "delete-route",
       "priority": "P1",
-      "feasibility": "A"
+      "feasibility": "A",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/ar/find-glasses-for-my-face",
@@ -949,7 +1110,9 @@
       "excludedConflicts": [],
       "rollbackClass": "delete-route",
       "priority": "P1",
-      "feasibility": "A"
+      "feasibility": "A",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/ar/virtual-glasses-try-on",
@@ -960,7 +1123,9 @@
       "excludedConflicts": [],
       "rollbackClass": "delete-route",
       "priority": "P1",
-      "feasibility": "A"
+      "feasibility": "A",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/ar/try-glasses-on-photo",
@@ -971,7 +1136,9 @@
       "excludedConflicts": [],
       "rollbackClass": "delete-route",
       "priority": "P1",
-      "feasibility": "A"
+      "feasibility": "A",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/ar/compare-glasses-frames",
@@ -982,7 +1149,9 @@
       "excludedConflicts": [],
       "rollbackClass": "delete-route",
       "priority": "P1",
-      "feasibility": "A"
+      "feasibility": "A",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/ar/ai-glasses-advisor",
@@ -993,7 +1162,9 @@
       "excludedConflicts": [],
       "rollbackClass": "delete-route",
       "priority": "P1",
-      "feasibility": "A"
+      "feasibility": "A",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/ar/pricing",
@@ -1004,7 +1175,9 @@
       "excludedConflicts": [],
       "rollbackClass": "delete-route",
       "priority": "P1",
-      "feasibility": "A"
+      "feasibility": "A",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/ar/business",
@@ -1015,7 +1188,9 @@
       "excludedConflicts": [],
       "rollbackClass": "delete-route",
       "priority": "P1",
-      "feasibility": "A"
+      "feasibility": "A",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/ar/privacy",
@@ -1026,7 +1201,9 @@
       "excludedConflicts": [],
       "rollbackClass": "delete-route",
       "priority": "P1",
-      "feasibility": "A"
+      "feasibility": "A",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/ar/terms",
@@ -1037,7 +1214,9 @@
       "excludedConflicts": [],
       "rollbackClass": "delete-route",
       "priority": "P1",
-      "feasibility": "A"
+      "feasibility": "A",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/ar/refund",
@@ -1048,7 +1227,9 @@
       "excludedConflicts": [],
       "rollbackClass": "delete-route",
       "priority": "P1",
-      "feasibility": "A"
+      "feasibility": "A",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/ar/faq",
@@ -1059,7 +1240,9 @@
       "excludedConflicts": [],
       "rollbackClass": "delete-route",
       "priority": "P1",
-      "feasibility": "A"
+      "feasibility": "A",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/ar/face-shape-measurement",
@@ -1070,7 +1253,9 @@
       "excludedConflicts": [],
       "rollbackClass": "delete-route",
       "priority": "P1",
-      "feasibility": "A"
+      "feasibility": "A",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/ar/blog*",
@@ -1081,7 +1266,9 @@
       "excludedConflicts": [],
       "rollbackClass": "delete-route",
       "priority": "P2",
-      "feasibility": "B"
+      "feasibility": "B",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/ar/brand*",
@@ -1092,7 +1279,9 @@
       "excludedConflicts": [],
       "rollbackClass": "delete-route",
       "priority": "P2",
-      "feasibility": "B"
+      "feasibility": "B",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/ar/glasses-guide*",
@@ -1105,7 +1294,9 @@
       ],
       "rollbackClass": "delete-route",
       "priority": "P2",
-      "feasibility": "B"
+      "feasibility": "B",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/ar/face-shapes*",
@@ -1118,7 +1309,9 @@
       ],
       "rollbackClass": "delete-route",
       "priority": "P2",
-      "feasibility": "B"
+      "feasibility": "B",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/ar/sunglasses-for*",
@@ -1129,7 +1322,9 @@
       "excludedConflicts": [],
       "rollbackClass": "delete-route",
       "priority": "P2",
-      "feasibility": "B"
+      "feasibility": "B",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/ar/hairstyles-for*",
@@ -1140,7 +1335,9 @@
       "excludedConflicts": [],
       "rollbackClass": "delete-route",
       "priority": "P2",
-      "feasibility": "B"
+      "feasibility": "B",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/ar/try-on*",
@@ -1154,7 +1351,9 @@
       ],
       "rollbackClass": "delete-route",
       "priority": "P1",
-      "feasibility": "B"
+      "feasibility": "B",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/ar/style/*",
@@ -1167,7 +1366,9 @@
       ],
       "rollbackClass": "delete-route",
       "priority": "P2",
-      "feasibility": "B"
+      "feasibility": "B",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/ru",
@@ -1182,7 +1383,9 @@
       ],
       "rollbackClass": "delete-route",
       "priority": "P1",
-      "feasibility": "A"
+      "feasibility": "A",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/ru/store",
@@ -1195,7 +1398,9 @@
       ],
       "rollbackClass": "delete-route",
       "priority": "P1",
-      "feasibility": "A"
+      "feasibility": "A",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/ru/face-shape-detector",
@@ -1206,7 +1411,9 @@
       "excludedConflicts": [],
       "rollbackClass": "delete-route",
       "priority": "P1",
-      "feasibility": "A"
+      "feasibility": "A",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/ru/face-analysis",
@@ -1217,7 +1424,9 @@
       "excludedConflicts": [],
       "rollbackClass": "delete-route",
       "priority": "P1",
-      "feasibility": "A"
+      "feasibility": "A",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/ru/glasses-for-face-shape",
@@ -1228,7 +1437,9 @@
       "excludedConflicts": [],
       "rollbackClass": "delete-route",
       "priority": "P1",
-      "feasibility": "A"
+      "feasibility": "A",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/ru/what-is-my-face-shape",
@@ -1239,7 +1450,9 @@
       "excludedConflicts": [],
       "rollbackClass": "delete-route",
       "priority": "P1",
-      "feasibility": "A"
+      "feasibility": "A",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/ru/what-glasses-suit-my-face",
@@ -1250,7 +1463,9 @@
       "excludedConflicts": [],
       "rollbackClass": "delete-route",
       "priority": "P1",
-      "feasibility": "A"
+      "feasibility": "A",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/ru/find-glasses-for-my-face",
@@ -1261,7 +1476,9 @@
       "excludedConflicts": [],
       "rollbackClass": "delete-route",
       "priority": "P1",
-      "feasibility": "A"
+      "feasibility": "A",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/ru/virtual-glasses-try-on",
@@ -1272,7 +1489,9 @@
       "excludedConflicts": [],
       "rollbackClass": "delete-route",
       "priority": "P1",
-      "feasibility": "A"
+      "feasibility": "A",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/ru/try-glasses-on-photo",
@@ -1283,7 +1502,9 @@
       "excludedConflicts": [],
       "rollbackClass": "delete-route",
       "priority": "P1",
-      "feasibility": "A"
+      "feasibility": "A",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/ru/compare-glasses-frames",
@@ -1294,7 +1515,9 @@
       "excludedConflicts": [],
       "rollbackClass": "delete-route",
       "priority": "P1",
-      "feasibility": "A"
+      "feasibility": "A",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/ru/ai-glasses-advisor",
@@ -1305,7 +1528,9 @@
       "excludedConflicts": [],
       "rollbackClass": "delete-route",
       "priority": "P1",
-      "feasibility": "A"
+      "feasibility": "A",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/ru/pricing",
@@ -1316,7 +1541,9 @@
       "excludedConflicts": [],
       "rollbackClass": "delete-route",
       "priority": "P1",
-      "feasibility": "A"
+      "feasibility": "A",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/ru/business",
@@ -1327,7 +1554,9 @@
       "excludedConflicts": [],
       "rollbackClass": "delete-route",
       "priority": "P1",
-      "feasibility": "A"
+      "feasibility": "A",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/ru/privacy",
@@ -1338,7 +1567,9 @@
       "excludedConflicts": [],
       "rollbackClass": "delete-route",
       "priority": "P1",
-      "feasibility": "A"
+      "feasibility": "A",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/ru/terms",
@@ -1349,7 +1580,9 @@
       "excludedConflicts": [],
       "rollbackClass": "delete-route",
       "priority": "P1",
-      "feasibility": "A"
+      "feasibility": "A",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/ru/refund",
@@ -1360,7 +1593,9 @@
       "excludedConflicts": [],
       "rollbackClass": "delete-route",
       "priority": "P1",
-      "feasibility": "A"
+      "feasibility": "A",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/ru/faq",
@@ -1371,7 +1606,9 @@
       "excludedConflicts": [],
       "rollbackClass": "delete-route",
       "priority": "P1",
-      "feasibility": "A"
+      "feasibility": "A",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/ru/face-shape-measurement",
@@ -1382,7 +1619,9 @@
       "excludedConflicts": [],
       "rollbackClass": "delete-route",
       "priority": "P1",
-      "feasibility": "A"
+      "feasibility": "A",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/ru/blog*",
@@ -1393,7 +1632,9 @@
       "excludedConflicts": [],
       "rollbackClass": "delete-route",
       "priority": "P2",
-      "feasibility": "B"
+      "feasibility": "B",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/ru/brand*",
@@ -1404,7 +1645,9 @@
       "excludedConflicts": [],
       "rollbackClass": "delete-route",
       "priority": "P2",
-      "feasibility": "B"
+      "feasibility": "B",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/ru/glasses-guide*",
@@ -1417,7 +1660,9 @@
       ],
       "rollbackClass": "delete-route",
       "priority": "P2",
-      "feasibility": "B"
+      "feasibility": "B",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/ru/face-shapes*",
@@ -1430,7 +1675,9 @@
       ],
       "rollbackClass": "delete-route",
       "priority": "P2",
-      "feasibility": "B"
+      "feasibility": "B",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/ru/sunglasses-for*",
@@ -1441,7 +1688,9 @@
       "excludedConflicts": [],
       "rollbackClass": "delete-route",
       "priority": "P2",
-      "feasibility": "B"
+      "feasibility": "B",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/ru/hairstyles-for*",
@@ -1452,7 +1701,9 @@
       "excludedConflicts": [],
       "rollbackClass": "delete-route",
       "priority": "P2",
-      "feasibility": "B"
+      "feasibility": "B",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/ru/try-on*",
@@ -1466,7 +1717,9 @@
       ],
       "rollbackClass": "delete-route",
       "priority": "P1",
-      "feasibility": "B"
+      "feasibility": "B",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/ru/style/*",
@@ -1479,7 +1732,9 @@
       ],
       "rollbackClass": "delete-route",
       "priority": "P2",
-      "feasibility": "B"
+      "feasibility": "B",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/de",
@@ -1494,7 +1749,9 @@
       ],
       "rollbackClass": "delete-route",
       "priority": "P1",
-      "feasibility": "A"
+      "feasibility": "A",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/de/store",
@@ -1507,7 +1764,9 @@
       ],
       "rollbackClass": "delete-route",
       "priority": "P1",
-      "feasibility": "A"
+      "feasibility": "A",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/de/face-shape-detector",
@@ -1518,7 +1777,9 @@
       "excludedConflicts": [],
       "rollbackClass": "delete-route",
       "priority": "P1",
-      "feasibility": "A"
+      "feasibility": "A",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/de/face-analysis",
@@ -1529,7 +1790,9 @@
       "excludedConflicts": [],
       "rollbackClass": "delete-route",
       "priority": "P1",
-      "feasibility": "A"
+      "feasibility": "A",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/de/glasses-for-face-shape",
@@ -1540,7 +1803,9 @@
       "excludedConflicts": [],
       "rollbackClass": "delete-route",
       "priority": "P1",
-      "feasibility": "A"
+      "feasibility": "A",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/de/what-is-my-face-shape",
@@ -1551,7 +1816,9 @@
       "excludedConflicts": [],
       "rollbackClass": "delete-route",
       "priority": "P1",
-      "feasibility": "A"
+      "feasibility": "A",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/de/what-glasses-suit-my-face",
@@ -1562,7 +1829,9 @@
       "excludedConflicts": [],
       "rollbackClass": "delete-route",
       "priority": "P1",
-      "feasibility": "A"
+      "feasibility": "A",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/de/find-glasses-for-my-face",
@@ -1573,7 +1842,9 @@
       "excludedConflicts": [],
       "rollbackClass": "delete-route",
       "priority": "P1",
-      "feasibility": "A"
+      "feasibility": "A",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/de/virtual-glasses-try-on",
@@ -1584,7 +1855,9 @@
       "excludedConflicts": [],
       "rollbackClass": "delete-route",
       "priority": "P1",
-      "feasibility": "A"
+      "feasibility": "A",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/de/try-glasses-on-photo",
@@ -1595,7 +1868,9 @@
       "excludedConflicts": [],
       "rollbackClass": "delete-route",
       "priority": "P1",
-      "feasibility": "A"
+      "feasibility": "A",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/de/compare-glasses-frames",
@@ -1606,7 +1881,9 @@
       "excludedConflicts": [],
       "rollbackClass": "delete-route",
       "priority": "P1",
-      "feasibility": "A"
+      "feasibility": "A",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/de/ai-glasses-advisor",
@@ -1617,7 +1894,9 @@
       "excludedConflicts": [],
       "rollbackClass": "delete-route",
       "priority": "P1",
-      "feasibility": "A"
+      "feasibility": "A",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/de/pricing",
@@ -1628,7 +1907,9 @@
       "excludedConflicts": [],
       "rollbackClass": "delete-route",
       "priority": "P1",
-      "feasibility": "A"
+      "feasibility": "A",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/de/business",
@@ -1639,7 +1920,9 @@
       "excludedConflicts": [],
       "rollbackClass": "delete-route",
       "priority": "P1",
-      "feasibility": "A"
+      "feasibility": "A",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/de/privacy",
@@ -1650,7 +1933,9 @@
       "excludedConflicts": [],
       "rollbackClass": "delete-route",
       "priority": "P1",
-      "feasibility": "A"
+      "feasibility": "A",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/de/terms",
@@ -1661,7 +1946,9 @@
       "excludedConflicts": [],
       "rollbackClass": "delete-route",
       "priority": "P1",
-      "feasibility": "A"
+      "feasibility": "A",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/de/refund",
@@ -1672,7 +1959,9 @@
       "excludedConflicts": [],
       "rollbackClass": "delete-route",
       "priority": "P1",
-      "feasibility": "A"
+      "feasibility": "A",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/de/faq",
@@ -1683,7 +1972,9 @@
       "excludedConflicts": [],
       "rollbackClass": "delete-route",
       "priority": "P1",
-      "feasibility": "A"
+      "feasibility": "A",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/de/face-shape-measurement",
@@ -1694,7 +1985,9 @@
       "excludedConflicts": [],
       "rollbackClass": "delete-route",
       "priority": "P1",
-      "feasibility": "A"
+      "feasibility": "A",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/de/blog*",
@@ -1705,7 +1998,9 @@
       "excludedConflicts": [],
       "rollbackClass": "delete-route",
       "priority": "P2",
-      "feasibility": "B"
+      "feasibility": "B",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/de/brand*",
@@ -1716,7 +2011,9 @@
       "excludedConflicts": [],
       "rollbackClass": "delete-route",
       "priority": "P2",
-      "feasibility": "B"
+      "feasibility": "B",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/de/glasses-guide*",
@@ -1729,7 +2026,9 @@
       ],
       "rollbackClass": "delete-route",
       "priority": "P2",
-      "feasibility": "B"
+      "feasibility": "B",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/de/face-shapes*",
@@ -1742,7 +2041,9 @@
       ],
       "rollbackClass": "delete-route",
       "priority": "P2",
-      "feasibility": "B"
+      "feasibility": "B",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/de/sunglasses-for*",
@@ -1753,7 +2054,9 @@
       "excludedConflicts": [],
       "rollbackClass": "delete-route",
       "priority": "P2",
-      "feasibility": "B"
+      "feasibility": "B",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/de/hairstyles-for*",
@@ -1764,7 +2067,9 @@
       "excludedConflicts": [],
       "rollbackClass": "delete-route",
       "priority": "P2",
-      "feasibility": "B"
+      "feasibility": "B",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/de/try-on*",
@@ -1778,7 +2083,9 @@
       ],
       "rollbackClass": "delete-route",
       "priority": "P1",
-      "feasibility": "B"
+      "feasibility": "B",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/de/style/*",
@@ -1791,7 +2098,9 @@
       ],
       "rollbackClass": "delete-route",
       "priority": "P2",
-      "feasibility": "B"
+      "feasibility": "B",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/ja",
@@ -1806,7 +2115,9 @@
       ],
       "rollbackClass": "delete-route",
       "priority": "P1",
-      "feasibility": "A"
+      "feasibility": "A",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/ja/store",
@@ -1819,7 +2130,9 @@
       ],
       "rollbackClass": "delete-route",
       "priority": "P1",
-      "feasibility": "A"
+      "feasibility": "A",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/ja/face-shape-detector",
@@ -1830,7 +2143,9 @@
       "excludedConflicts": [],
       "rollbackClass": "delete-route",
       "priority": "P1",
-      "feasibility": "A"
+      "feasibility": "A",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/ja/face-analysis",
@@ -1841,7 +2156,9 @@
       "excludedConflicts": [],
       "rollbackClass": "delete-route",
       "priority": "P1",
-      "feasibility": "A"
+      "feasibility": "A",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/ja/glasses-for-face-shape",
@@ -1852,7 +2169,9 @@
       "excludedConflicts": [],
       "rollbackClass": "delete-route",
       "priority": "P1",
-      "feasibility": "A"
+      "feasibility": "A",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/ja/what-is-my-face-shape",
@@ -1863,7 +2182,9 @@
       "excludedConflicts": [],
       "rollbackClass": "delete-route",
       "priority": "P1",
-      "feasibility": "A"
+      "feasibility": "A",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/ja/what-glasses-suit-my-face",
@@ -1874,7 +2195,9 @@
       "excludedConflicts": [],
       "rollbackClass": "delete-route",
       "priority": "P1",
-      "feasibility": "A"
+      "feasibility": "A",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/ja/find-glasses-for-my-face",
@@ -1885,7 +2208,9 @@
       "excludedConflicts": [],
       "rollbackClass": "delete-route",
       "priority": "P1",
-      "feasibility": "A"
+      "feasibility": "A",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/ja/virtual-glasses-try-on",
@@ -1896,7 +2221,9 @@
       "excludedConflicts": [],
       "rollbackClass": "delete-route",
       "priority": "P1",
-      "feasibility": "A"
+      "feasibility": "A",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/ja/try-glasses-on-photo",
@@ -1907,7 +2234,9 @@
       "excludedConflicts": [],
       "rollbackClass": "delete-route",
       "priority": "P1",
-      "feasibility": "A"
+      "feasibility": "A",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/ja/compare-glasses-frames",
@@ -1918,7 +2247,9 @@
       "excludedConflicts": [],
       "rollbackClass": "delete-route",
       "priority": "P1",
-      "feasibility": "A"
+      "feasibility": "A",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/ja/ai-glasses-advisor",
@@ -1929,7 +2260,9 @@
       "excludedConflicts": [],
       "rollbackClass": "delete-route",
       "priority": "P1",
-      "feasibility": "A"
+      "feasibility": "A",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/ja/pricing",
@@ -1940,7 +2273,9 @@
       "excludedConflicts": [],
       "rollbackClass": "delete-route",
       "priority": "P1",
-      "feasibility": "A"
+      "feasibility": "A",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/ja/business",
@@ -1951,7 +2286,9 @@
       "excludedConflicts": [],
       "rollbackClass": "delete-route",
       "priority": "P1",
-      "feasibility": "A"
+      "feasibility": "A",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/ja/privacy",
@@ -1962,7 +2299,9 @@
       "excludedConflicts": [],
       "rollbackClass": "delete-route",
       "priority": "P1",
-      "feasibility": "A"
+      "feasibility": "A",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/ja/terms",
@@ -1973,7 +2312,9 @@
       "excludedConflicts": [],
       "rollbackClass": "delete-route",
       "priority": "P1",
-      "feasibility": "A"
+      "feasibility": "A",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/ja/refund",
@@ -1984,7 +2325,9 @@
       "excludedConflicts": [],
       "rollbackClass": "delete-route",
       "priority": "P1",
-      "feasibility": "A"
+      "feasibility": "A",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/ja/faq",
@@ -1995,7 +2338,9 @@
       "excludedConflicts": [],
       "rollbackClass": "delete-route",
       "priority": "P1",
-      "feasibility": "A"
+      "feasibility": "A",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/ja/face-shape-measurement",
@@ -2006,7 +2351,9 @@
       "excludedConflicts": [],
       "rollbackClass": "delete-route",
       "priority": "P1",
-      "feasibility": "A"
+      "feasibility": "A",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/ja/blog*",
@@ -2017,7 +2364,9 @@
       "excludedConflicts": [],
       "rollbackClass": "delete-route",
       "priority": "P2",
-      "feasibility": "B"
+      "feasibility": "B",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/ja/brand*",
@@ -2028,7 +2377,9 @@
       "excludedConflicts": [],
       "rollbackClass": "delete-route",
       "priority": "P2",
-      "feasibility": "B"
+      "feasibility": "B",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/ja/glasses-guide*",
@@ -2041,7 +2392,9 @@
       ],
       "rollbackClass": "delete-route",
       "priority": "P2",
-      "feasibility": "B"
+      "feasibility": "B",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/ja/face-shapes*",
@@ -2054,7 +2407,9 @@
       ],
       "rollbackClass": "delete-route",
       "priority": "P2",
-      "feasibility": "B"
+      "feasibility": "B",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/ja/sunglasses-for*",
@@ -2065,7 +2420,9 @@
       "excludedConflicts": [],
       "rollbackClass": "delete-route",
       "priority": "P2",
-      "feasibility": "B"
+      "feasibility": "B",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/ja/hairstyles-for*",
@@ -2076,7 +2433,9 @@
       "excludedConflicts": [],
       "rollbackClass": "delete-route",
       "priority": "P2",
-      "feasibility": "B"
+      "feasibility": "B",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/ja/try-on*",
@@ -2090,7 +2449,9 @@
       ],
       "rollbackClass": "delete-route",
       "priority": "P1",
-      "feasibility": "B"
+      "feasibility": "B",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/ja/style/*",
@@ -2103,7 +2464,9 @@
       ],
       "rollbackClass": "delete-route",
       "priority": "P2",
-      "feasibility": "B"
+      "feasibility": "B",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/es",
@@ -2118,7 +2481,9 @@
       ],
       "rollbackClass": "delete-route",
       "priority": "P1",
-      "feasibility": "A"
+      "feasibility": "A",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/es/store",
@@ -2131,7 +2496,9 @@
       ],
       "rollbackClass": "delete-route",
       "priority": "P1",
-      "feasibility": "A"
+      "feasibility": "A",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/es/face-shape-detector",
@@ -2142,7 +2509,9 @@
       "excludedConflicts": [],
       "rollbackClass": "delete-route",
       "priority": "P1",
-      "feasibility": "A"
+      "feasibility": "A",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/es/face-analysis",
@@ -2153,7 +2522,9 @@
       "excludedConflicts": [],
       "rollbackClass": "delete-route",
       "priority": "P1",
-      "feasibility": "A"
+      "feasibility": "A",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/es/glasses-for-face-shape",
@@ -2164,7 +2535,9 @@
       "excludedConflicts": [],
       "rollbackClass": "delete-route",
       "priority": "P1",
-      "feasibility": "A"
+      "feasibility": "A",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/es/what-is-my-face-shape",
@@ -2175,7 +2548,9 @@
       "excludedConflicts": [],
       "rollbackClass": "delete-route",
       "priority": "P1",
-      "feasibility": "A"
+      "feasibility": "A",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/es/what-glasses-suit-my-face",
@@ -2186,7 +2561,9 @@
       "excludedConflicts": [],
       "rollbackClass": "delete-route",
       "priority": "P1",
-      "feasibility": "A"
+      "feasibility": "A",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/es/find-glasses-for-my-face",
@@ -2197,7 +2574,9 @@
       "excludedConflicts": [],
       "rollbackClass": "delete-route",
       "priority": "P1",
-      "feasibility": "A"
+      "feasibility": "A",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/es/virtual-glasses-try-on",
@@ -2208,7 +2587,9 @@
       "excludedConflicts": [],
       "rollbackClass": "delete-route",
       "priority": "P1",
-      "feasibility": "A"
+      "feasibility": "A",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/es/try-glasses-on-photo",
@@ -2219,7 +2600,9 @@
       "excludedConflicts": [],
       "rollbackClass": "delete-route",
       "priority": "P1",
-      "feasibility": "A"
+      "feasibility": "A",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/es/compare-glasses-frames",
@@ -2230,7 +2613,9 @@
       "excludedConflicts": [],
       "rollbackClass": "delete-route",
       "priority": "P1",
-      "feasibility": "A"
+      "feasibility": "A",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/es/ai-glasses-advisor",
@@ -2241,7 +2626,9 @@
       "excludedConflicts": [],
       "rollbackClass": "delete-route",
       "priority": "P1",
-      "feasibility": "A"
+      "feasibility": "A",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/es/pricing",
@@ -2252,7 +2639,9 @@
       "excludedConflicts": [],
       "rollbackClass": "delete-route",
       "priority": "P1",
-      "feasibility": "A"
+      "feasibility": "A",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/es/business",
@@ -2263,7 +2652,9 @@
       "excludedConflicts": [],
       "rollbackClass": "delete-route",
       "priority": "P1",
-      "feasibility": "A"
+      "feasibility": "A",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/es/privacy",
@@ -2274,7 +2665,9 @@
       "excludedConflicts": [],
       "rollbackClass": "delete-route",
       "priority": "P1",
-      "feasibility": "A"
+      "feasibility": "A",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/es/terms",
@@ -2285,7 +2678,9 @@
       "excludedConflicts": [],
       "rollbackClass": "delete-route",
       "priority": "P1",
-      "feasibility": "A"
+      "feasibility": "A",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/es/refund",
@@ -2296,7 +2691,9 @@
       "excludedConflicts": [],
       "rollbackClass": "delete-route",
       "priority": "P1",
-      "feasibility": "A"
+      "feasibility": "A",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/es/faq",
@@ -2307,7 +2704,9 @@
       "excludedConflicts": [],
       "rollbackClass": "delete-route",
       "priority": "P1",
-      "feasibility": "A"
+      "feasibility": "A",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/es/face-shape-measurement",
@@ -2318,7 +2717,9 @@
       "excludedConflicts": [],
       "rollbackClass": "delete-route",
       "priority": "P1",
-      "feasibility": "A"
+      "feasibility": "A",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/es/blog*",
@@ -2329,7 +2730,9 @@
       "excludedConflicts": [],
       "rollbackClass": "delete-route",
       "priority": "P2",
-      "feasibility": "B"
+      "feasibility": "B",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/es/brand*",
@@ -2340,7 +2743,9 @@
       "excludedConflicts": [],
       "rollbackClass": "delete-route",
       "priority": "P2",
-      "feasibility": "B"
+      "feasibility": "B",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/es/glasses-guide*",
@@ -2353,7 +2758,9 @@
       ],
       "rollbackClass": "delete-route",
       "priority": "P2",
-      "feasibility": "B"
+      "feasibility": "B",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/es/face-shapes*",
@@ -2366,7 +2773,9 @@
       ],
       "rollbackClass": "delete-route",
       "priority": "P2",
-      "feasibility": "B"
+      "feasibility": "B",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/es/sunglasses-for*",
@@ -2377,7 +2786,9 @@
       "excludedConflicts": [],
       "rollbackClass": "delete-route",
       "priority": "P2",
-      "feasibility": "B"
+      "feasibility": "B",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/es/hairstyles-for*",
@@ -2388,7 +2799,9 @@
       "excludedConflicts": [],
       "rollbackClass": "delete-route",
       "priority": "P2",
-      "feasibility": "B"
+      "feasibility": "B",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/es/try-on*",
@@ -2402,7 +2815,9 @@
       ],
       "rollbackClass": "delete-route",
       "priority": "P1",
-      "feasibility": "B"
+      "feasibility": "B",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/es/style/*",
@@ -2415,7 +2830,9 @@
       ],
       "rollbackClass": "delete-route",
       "priority": "P2",
-      "feasibility": "B"
+      "feasibility": "B",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/pt",
@@ -2430,7 +2847,9 @@
       ],
       "rollbackClass": "delete-route",
       "priority": "P1",
-      "feasibility": "A"
+      "feasibility": "A",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/pt/store",
@@ -2443,7 +2862,9 @@
       ],
       "rollbackClass": "delete-route",
       "priority": "P1",
-      "feasibility": "A"
+      "feasibility": "A",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/pt/face-shape-detector",
@@ -2454,7 +2875,9 @@
       "excludedConflicts": [],
       "rollbackClass": "delete-route",
       "priority": "P1",
-      "feasibility": "A"
+      "feasibility": "A",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/pt/face-analysis",
@@ -2465,7 +2888,9 @@
       "excludedConflicts": [],
       "rollbackClass": "delete-route",
       "priority": "P1",
-      "feasibility": "A"
+      "feasibility": "A",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/pt/glasses-for-face-shape",
@@ -2476,7 +2901,9 @@
       "excludedConflicts": [],
       "rollbackClass": "delete-route",
       "priority": "P1",
-      "feasibility": "A"
+      "feasibility": "A",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/pt/what-is-my-face-shape",
@@ -2487,7 +2914,9 @@
       "excludedConflicts": [],
       "rollbackClass": "delete-route",
       "priority": "P1",
-      "feasibility": "A"
+      "feasibility": "A",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/pt/what-glasses-suit-my-face",
@@ -2498,7 +2927,9 @@
       "excludedConflicts": [],
       "rollbackClass": "delete-route",
       "priority": "P1",
-      "feasibility": "A"
+      "feasibility": "A",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/pt/find-glasses-for-my-face",
@@ -2509,7 +2940,9 @@
       "excludedConflicts": [],
       "rollbackClass": "delete-route",
       "priority": "P1",
-      "feasibility": "A"
+      "feasibility": "A",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/pt/virtual-glasses-try-on",
@@ -2520,7 +2953,9 @@
       "excludedConflicts": [],
       "rollbackClass": "delete-route",
       "priority": "P1",
-      "feasibility": "A"
+      "feasibility": "A",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/pt/try-glasses-on-photo",
@@ -2531,7 +2966,9 @@
       "excludedConflicts": [],
       "rollbackClass": "delete-route",
       "priority": "P1",
-      "feasibility": "A"
+      "feasibility": "A",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/pt/compare-glasses-frames",
@@ -2542,7 +2979,9 @@
       "excludedConflicts": [],
       "rollbackClass": "delete-route",
       "priority": "P1",
-      "feasibility": "A"
+      "feasibility": "A",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/pt/ai-glasses-advisor",
@@ -2553,7 +2992,9 @@
       "excludedConflicts": [],
       "rollbackClass": "delete-route",
       "priority": "P1",
-      "feasibility": "A"
+      "feasibility": "A",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/pt/pricing",
@@ -2564,7 +3005,9 @@
       "excludedConflicts": [],
       "rollbackClass": "delete-route",
       "priority": "P1",
-      "feasibility": "A"
+      "feasibility": "A",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/pt/business",
@@ -2575,7 +3018,9 @@
       "excludedConflicts": [],
       "rollbackClass": "delete-route",
       "priority": "P1",
-      "feasibility": "A"
+      "feasibility": "A",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/pt/privacy",
@@ -2586,7 +3031,9 @@
       "excludedConflicts": [],
       "rollbackClass": "delete-route",
       "priority": "P1",
-      "feasibility": "A"
+      "feasibility": "A",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/pt/terms",
@@ -2597,7 +3044,9 @@
       "excludedConflicts": [],
       "rollbackClass": "delete-route",
       "priority": "P1",
-      "feasibility": "A"
+      "feasibility": "A",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/pt/refund",
@@ -2608,7 +3057,9 @@
       "excludedConflicts": [],
       "rollbackClass": "delete-route",
       "priority": "P1",
-      "feasibility": "A"
+      "feasibility": "A",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/pt/faq",
@@ -2619,7 +3070,9 @@
       "excludedConflicts": [],
       "rollbackClass": "delete-route",
       "priority": "P1",
-      "feasibility": "A"
+      "feasibility": "A",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/pt/face-shape-measurement",
@@ -2630,7 +3083,9 @@
       "excludedConflicts": [],
       "rollbackClass": "delete-route",
       "priority": "P1",
-      "feasibility": "A"
+      "feasibility": "A",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/pt/blog*",
@@ -2641,7 +3096,9 @@
       "excludedConflicts": [],
       "rollbackClass": "delete-route",
       "priority": "P2",
-      "feasibility": "B"
+      "feasibility": "B",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/pt/brand*",
@@ -2652,7 +3109,9 @@
       "excludedConflicts": [],
       "rollbackClass": "delete-route",
       "priority": "P2",
-      "feasibility": "B"
+      "feasibility": "B",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/pt/glasses-guide*",
@@ -2665,7 +3124,9 @@
       ],
       "rollbackClass": "delete-route",
       "priority": "P2",
-      "feasibility": "B"
+      "feasibility": "B",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/pt/face-shapes*",
@@ -2678,7 +3139,9 @@
       ],
       "rollbackClass": "delete-route",
       "priority": "P2",
-      "feasibility": "B"
+      "feasibility": "B",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/pt/sunglasses-for*",
@@ -2689,7 +3152,9 @@
       "excludedConflicts": [],
       "rollbackClass": "delete-route",
       "priority": "P2",
-      "feasibility": "B"
+      "feasibility": "B",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/pt/hairstyles-for*",
@@ -2700,7 +3165,9 @@
       "excludedConflicts": [],
       "rollbackClass": "delete-route",
       "priority": "P2",
-      "feasibility": "B"
+      "feasibility": "B",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/pt/try-on*",
@@ -2714,7 +3181,9 @@
       ],
       "rollbackClass": "delete-route",
       "priority": "P1",
-      "feasibility": "B"
+      "feasibility": "B",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/pt/style/*",
@@ -2727,7 +3196,9 @@
       ],
       "rollbackClass": "delete-route",
       "priority": "P2",
-      "feasibility": "B"
+      "feasibility": "B",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/fr",
@@ -2742,7 +3213,9 @@
       ],
       "rollbackClass": "delete-route",
       "priority": "P1",
-      "feasibility": "A"
+      "feasibility": "A",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/fr/store",
@@ -2755,7 +3228,9 @@
       ],
       "rollbackClass": "delete-route",
       "priority": "P1",
-      "feasibility": "A"
+      "feasibility": "A",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/fr/face-shape-detector",
@@ -2766,7 +3241,9 @@
       "excludedConflicts": [],
       "rollbackClass": "delete-route",
       "priority": "P1",
-      "feasibility": "A"
+      "feasibility": "A",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/fr/face-analysis",
@@ -2777,7 +3254,9 @@
       "excludedConflicts": [],
       "rollbackClass": "delete-route",
       "priority": "P1",
-      "feasibility": "A"
+      "feasibility": "A",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/fr/glasses-for-face-shape",
@@ -2788,7 +3267,9 @@
       "excludedConflicts": [],
       "rollbackClass": "delete-route",
       "priority": "P1",
-      "feasibility": "A"
+      "feasibility": "A",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/fr/what-is-my-face-shape",
@@ -2799,7 +3280,9 @@
       "excludedConflicts": [],
       "rollbackClass": "delete-route",
       "priority": "P1",
-      "feasibility": "A"
+      "feasibility": "A",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/fr/what-glasses-suit-my-face",
@@ -2810,7 +3293,9 @@
       "excludedConflicts": [],
       "rollbackClass": "delete-route",
       "priority": "P1",
-      "feasibility": "A"
+      "feasibility": "A",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/fr/find-glasses-for-my-face",
@@ -2821,7 +3306,9 @@
       "excludedConflicts": [],
       "rollbackClass": "delete-route",
       "priority": "P1",
-      "feasibility": "A"
+      "feasibility": "A",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/fr/virtual-glasses-try-on",
@@ -2832,7 +3319,9 @@
       "excludedConflicts": [],
       "rollbackClass": "delete-route",
       "priority": "P1",
-      "feasibility": "A"
+      "feasibility": "A",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/fr/try-glasses-on-photo",
@@ -2843,7 +3332,9 @@
       "excludedConflicts": [],
       "rollbackClass": "delete-route",
       "priority": "P1",
-      "feasibility": "A"
+      "feasibility": "A",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/fr/compare-glasses-frames",
@@ -2854,7 +3345,9 @@
       "excludedConflicts": [],
       "rollbackClass": "delete-route",
       "priority": "P1",
-      "feasibility": "A"
+      "feasibility": "A",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/fr/ai-glasses-advisor",
@@ -2865,7 +3358,9 @@
       "excludedConflicts": [],
       "rollbackClass": "delete-route",
       "priority": "P1",
-      "feasibility": "A"
+      "feasibility": "A",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/fr/pricing",
@@ -2876,7 +3371,9 @@
       "excludedConflicts": [],
       "rollbackClass": "delete-route",
       "priority": "P1",
-      "feasibility": "A"
+      "feasibility": "A",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/fr/business",
@@ -2887,7 +3384,9 @@
       "excludedConflicts": [],
       "rollbackClass": "delete-route",
       "priority": "P1",
-      "feasibility": "A"
+      "feasibility": "A",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/fr/privacy",
@@ -2898,7 +3397,9 @@
       "excludedConflicts": [],
       "rollbackClass": "delete-route",
       "priority": "P1",
-      "feasibility": "A"
+      "feasibility": "A",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/fr/terms",
@@ -2909,7 +3410,9 @@
       "excludedConflicts": [],
       "rollbackClass": "delete-route",
       "priority": "P1",
-      "feasibility": "A"
+      "feasibility": "A",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/fr/refund",
@@ -2920,7 +3423,9 @@
       "excludedConflicts": [],
       "rollbackClass": "delete-route",
       "priority": "P1",
-      "feasibility": "A"
+      "feasibility": "A",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/fr/faq",
@@ -2931,7 +3436,9 @@
       "excludedConflicts": [],
       "rollbackClass": "delete-route",
       "priority": "P1",
-      "feasibility": "A"
+      "feasibility": "A",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/fr/face-shape-measurement",
@@ -2942,7 +3449,9 @@
       "excludedConflicts": [],
       "rollbackClass": "delete-route",
       "priority": "P1",
-      "feasibility": "A"
+      "feasibility": "A",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/fr/blog*",
@@ -2953,7 +3462,9 @@
       "excludedConflicts": [],
       "rollbackClass": "delete-route",
       "priority": "P2",
-      "feasibility": "B"
+      "feasibility": "B",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/fr/brand*",
@@ -2964,7 +3475,9 @@
       "excludedConflicts": [],
       "rollbackClass": "delete-route",
       "priority": "P2",
-      "feasibility": "B"
+      "feasibility": "B",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/fr/glasses-guide*",
@@ -2977,7 +3490,9 @@
       ],
       "rollbackClass": "delete-route",
       "priority": "P2",
-      "feasibility": "B"
+      "feasibility": "B",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/fr/face-shapes*",
@@ -2990,7 +3505,9 @@
       ],
       "rollbackClass": "delete-route",
       "priority": "P2",
-      "feasibility": "B"
+      "feasibility": "B",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/fr/sunglasses-for*",
@@ -3001,7 +3518,9 @@
       "excludedConflicts": [],
       "rollbackClass": "delete-route",
       "priority": "P2",
-      "feasibility": "B"
+      "feasibility": "B",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/fr/hairstyles-for*",
@@ -3012,7 +3531,9 @@
       "excludedConflicts": [],
       "rollbackClass": "delete-route",
       "priority": "P2",
-      "feasibility": "B"
+      "feasibility": "B",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/fr/try-on*",
@@ -3026,7 +3547,9 @@
       ],
       "rollbackClass": "delete-route",
       "priority": "P1",
-      "feasibility": "B"
+      "feasibility": "B",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/fr/style/*",
@@ -3039,7 +3562,9 @@
       ],
       "rollbackClass": "delete-route",
       "priority": "P2",
-      "feasibility": "B"
+      "feasibility": "B",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/store",
@@ -3052,7 +3577,9 @@
       ],
       "rollbackClass": "delete-route",
       "priority": "P1",
-      "feasibility": "A"
+      "feasibility": "A",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/face-shape-detector",
@@ -3063,7 +3590,9 @@
       "excludedConflicts": [],
       "rollbackClass": "delete-route",
       "priority": "P1",
-      "feasibility": "A"
+      "feasibility": "A",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/face-analysis",
@@ -3074,7 +3603,9 @@
       "excludedConflicts": [],
       "rollbackClass": "delete-route",
       "priority": "P1",
-      "feasibility": "A"
+      "feasibility": "A",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/glasses-for-face-shape",
@@ -3085,7 +3616,9 @@
       "excludedConflicts": [],
       "rollbackClass": "delete-route",
       "priority": "P1",
-      "feasibility": "A"
+      "feasibility": "A",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/what-is-my-face-shape",
@@ -3096,7 +3629,9 @@
       "excludedConflicts": [],
       "rollbackClass": "delete-route",
       "priority": "P1",
-      "feasibility": "A"
+      "feasibility": "A",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/what-glasses-suit-my-face",
@@ -3107,7 +3642,9 @@
       "excludedConflicts": [],
       "rollbackClass": "delete-route",
       "priority": "P1",
-      "feasibility": "A"
+      "feasibility": "A",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/find-glasses-for-my-face",
@@ -3118,7 +3655,9 @@
       "excludedConflicts": [],
       "rollbackClass": "delete-route",
       "priority": "P1",
-      "feasibility": "A"
+      "feasibility": "A",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/virtual-glasses-try-on",
@@ -3129,7 +3668,9 @@
       "excludedConflicts": [],
       "rollbackClass": "delete-route",
       "priority": "P1",
-      "feasibility": "A"
+      "feasibility": "A",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/try-glasses-on-photo",
@@ -3140,7 +3681,9 @@
       "excludedConflicts": [],
       "rollbackClass": "delete-route",
       "priority": "P1",
-      "feasibility": "A"
+      "feasibility": "A",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/compare-glasses-frames",
@@ -3151,7 +3694,9 @@
       "excludedConflicts": [],
       "rollbackClass": "delete-route",
       "priority": "P1",
-      "feasibility": "A"
+      "feasibility": "A",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/ai-glasses-advisor",
@@ -3162,7 +3707,9 @@
       "excludedConflicts": [],
       "rollbackClass": "delete-route",
       "priority": "P1",
-      "feasibility": "A"
+      "feasibility": "A",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/pricing",
@@ -3173,7 +3720,9 @@
       "excludedConflicts": [],
       "rollbackClass": "delete-route",
       "priority": "P1",
-      "feasibility": "A"
+      "feasibility": "A",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/business",
@@ -3184,7 +3733,9 @@
       "excludedConflicts": [],
       "rollbackClass": "delete-route",
       "priority": "P1",
-      "feasibility": "A"
+      "feasibility": "A",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/privacy",
@@ -3195,7 +3746,9 @@
       "excludedConflicts": [],
       "rollbackClass": "delete-route",
       "priority": "P1",
-      "feasibility": "A"
+      "feasibility": "A",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/terms",
@@ -3206,7 +3759,9 @@
       "excludedConflicts": [],
       "rollbackClass": "delete-route",
       "priority": "P1",
-      "feasibility": "A"
+      "feasibility": "A",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/refund",
@@ -3217,7 +3772,9 @@
       "excludedConflicts": [],
       "rollbackClass": "delete-route",
       "priority": "P1",
-      "feasibility": "A"
+      "feasibility": "A",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/faq",
@@ -3228,7 +3785,9 @@
       "excludedConflicts": [],
       "rollbackClass": "delete-route",
       "priority": "P1",
-      "feasibility": "A"
+      "feasibility": "A",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/face-shape-measurement",
@@ -3239,7 +3798,9 @@
       "excludedConflicts": [],
       "rollbackClass": "delete-route",
       "priority": "P1",
-      "feasibility": "A"
+      "feasibility": "A",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/blog*",
@@ -3250,7 +3811,9 @@
       "excludedConflicts": [],
       "rollbackClass": "delete-route",
       "priority": "P2",
-      "feasibility": "B"
+      "feasibility": "B",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/brand*",
@@ -3261,7 +3824,9 @@
       "excludedConflicts": [],
       "rollbackClass": "delete-route",
       "priority": "P2",
-      "feasibility": "B"
+      "feasibility": "B",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/glasses-guide*",
@@ -3274,7 +3839,9 @@
       ],
       "rollbackClass": "delete-route",
       "priority": "P2",
-      "feasibility": "B"
+      "feasibility": "B",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/face-shapes*",
@@ -3287,7 +3854,9 @@
       ],
       "rollbackClass": "delete-route",
       "priority": "P2",
-      "feasibility": "B"
+      "feasibility": "B",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/sunglasses-for*",
@@ -3298,7 +3867,9 @@
       "excludedConflicts": [],
       "rollbackClass": "delete-route",
       "priority": "P2",
-      "feasibility": "B"
+      "feasibility": "B",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/hairstyles-for*",
@@ -3309,7 +3880,9 @@
       "excludedConflicts": [],
       "rollbackClass": "delete-route",
       "priority": "P2",
-      "feasibility": "B"
+      "feasibility": "B",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/try-on*",
@@ -3323,7 +3896,9 @@
       ],
       "rollbackClass": "delete-route",
       "priority": "P1",
-      "feasibility": "B"
+      "feasibility": "B",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     },
     {
       "pattern": "www.visutry.com/style/*",
@@ -3336,7 +3911,9 @@
       ],
       "rollbackClass": "delete-route",
       "priority": "P2",
-      "feasibility": "B"
+      "feasibility": "B",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
     }
   ]
 }
