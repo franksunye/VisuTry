@@ -9,17 +9,25 @@ import {
 } from '@/lib/acquisition-attribution'
 import type { Locale } from '@/i18n'
 
-// Only require Stripe key in production mode
-if (!process.env.STRIPE_SECRET_KEY && !isMockMode && !process.env.SKIP_ENV_VALIDATION) {
+// Only require Stripe key in production mode. Cloudflare Workers Builds has no
+// Vercel secrets; skip the import-time check and do not construct Stripe.
+if (
+  !process.env.STRIPE_SECRET_KEY &&
+  !isMockMode &&
+  !process.env.SKIP_ENV_VALIDATION &&
+  process.env.CLOUDFLARE_BUILD !== '1'
+) {
   throw new Error("STRIPE_SECRET_KEY environment variable is required")
 }
 
 export const stripe = isMockMode
   ? (mockStripe as any)
-  : new Stripe(process.env.STRIPE_SECRET_KEY!, {
-    apiVersion: "2023-10-16",
-    typescript: true,
-  })
+  : process.env.STRIPE_SECRET_KEY
+    ? new Stripe(process.env.STRIPE_SECRET_KEY, {
+        apiVersion: "2023-10-16",
+        typescript: true,
+      })
+    : (mockStripe as any)
 
 // Product configuration - now using centralized config
 export const PRODUCTS = {

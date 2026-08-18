@@ -39,8 +39,14 @@ if (typeof window === 'undefined') {
   }
 }
 
-// Only require API key in production mode
-if (!process.env.GEMINI_API_KEY && !isMockMode && !process.env.SKIP_ENV_VALIDATION) {
+// Only require API key in production mode. Cloudflare Workers Builds has no
+// Vercel secrets; CLOUDFLARE_BUILD still collects every route module.
+if (
+  !process.env.GEMINI_API_KEY &&
+  !isMockMode &&
+  !process.env.SKIP_ENV_VALIDATION &&
+  process.env.CLOUDFLARE_BUILD !== '1'
+) {
   throw new Error("GEMINI_API_KEY environment variable is required")
 }
 
