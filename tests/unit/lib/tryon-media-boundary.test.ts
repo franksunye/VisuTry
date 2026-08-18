@@ -1,6 +1,7 @@
 import { toCompareTaskResponse } from '@/lib/compare-tryon'
 import {
-  serveLegacyTryOnMedia,
+  decodeLegacyTryOnDataUrl,
+  parseLegacyTryOnHttpUrl,
   tryOnClientMetadata,
   tryOnMediaPath,
   tryOnMediaUrls,
@@ -66,26 +67,23 @@ describe('Try-On protected media boundary', () => {
     expect(JSON.stringify(metadata)).not.toContain('data:image')
   })
 
-  it('redirects legacy HTTP media after auth instead of proxying image bytes', async () => {
-    const response = await serveLegacyTryOnMedia('https://public.blob.vercel-storage.com/result.png')
-
-    expect(response.status).toBe(307)
-    expect(response.headers.get('location')).toBe('https://public.blob.vercel-storage.com/result.png')
-    expect(response.headers.get('cache-control')).toBe('private, no-store')
+  it('accepts legacy HTTP(S) media targets for post-auth redirects', () => {
+    expect(parseLegacyTryOnHttpUrl('https://public.blob.vercel-storage.com/result.png').href)
+      .toBe('https://public.blob.vercel-storage.com/result.png')
+    expect(() => parseLegacyTryOnHttpUrl('ftp://example.com/result.png')).toThrow(
+      'Unsupported Try-On media URL',
+    )
   })
 
-  it('preserves legacy Gemini data-url results behind the media route', async () => {
-    const response = await serveLegacyTryOnMedia('data:image/png;base64,AQIDBA==')
+  it('decodes legacy Gemini data-url results without exposing the data URL', () => {
+    const decoded = decodeLegacyTryOnDataUrl('data:image/png;base64,AQIDBA==')
 
-    expect(response.status).toBe(200)
-    expect(response.headers.get('content-type')).toBe('image/png')
-    expect(response.headers.get('cache-control')).toBe('private, no-store')
-    expect(Array.from(new Uint8Array(await response.arrayBuffer()))).toEqual([1, 2, 3, 4])
+    expect(decoded?.contentType).toBe('image/png')
+    expect(Array.from(new Uint8Array(decoded?.bytes ?? new ArrayBuffer(0)))).toEqual([1, 2, 3, 4])
   })
 
-  it('rejects non-image legacy data urls', async () => {
-    await expect(
-      serveLegacyTryOnMedia('data:text/plain;base64,AQIDBA=='),
-    ).rejects.toThrow('Unsupported Try-On data URL')
+  it('rejects non-image legacy data urls', () => {
+    expect(() => decodeLegacyTryOnDataUrl('data:text/plain;base64,AQIDBA=='))
+      .toThrow('Unsupported Try-On data URL')
   })
 })
