@@ -59,7 +59,7 @@ const summary = {
   safetyErrors: errors,
   wranglerSnippetPreview: proposedWranglerProductionRoutes(priority).slice(0, 3),
   apiPayloadPreview: proposedCloudflareRouteApiPayload(priority).slice(0, 1),
-  note: 'Do not paste routes into wrangler.jsonc until B4.2C. deploy:cloudflare uses --env staging only. Phase C P0 excludes /_next/static* until npm run b4:asset-parity passes. request_limit_fail_open is an API/dashboard field, not current Wrangler JSON.',
+  note: 'Do not paste routes into wrangler.jsonc until B4.2C. deploy:cloudflare uses --env staging only. Phase C P0 excludes /_next/static/* until snapshot parity passes. request_limit_fail_open must be read back remotely.',
 }
 
 const payload = { summary, routes: selected }

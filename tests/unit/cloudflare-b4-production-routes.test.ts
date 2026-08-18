@@ -13,6 +13,7 @@ import {
   B4_REQUIRED_REQUEST_LIMIT_FAIL_OPEN,
   B4_VERCEL_DNS_EXAMPLE_HOSTS,
   assertFailOpenActivation,
+  assertRemoteFailOpenActivation,
   assertSafeB4ProductionRoutes,
   cloudflareRouteMatches,
   generateB4ProductionWorkerRoutes,
@@ -24,8 +25,10 @@ import {
   wwwWorkerRouteMatch,
 } from '../../cloudflare-router/b4-production-routes'
 import {
+  B4_VERCEL_NEXT_SNAPSHOT_DIR,
   compareHashedStaticManifests,
   hashedStaticParityGate,
+  snapshotVercelNextBuild,
 } from '../../cloudflare-router/b4-static-asset-parity'
 
 function getRequest(pathname: string) {
@@ -113,7 +116,34 @@ describe('B4.2B scoped production Worker Routes', () => {
         '',
         routesForPriority('P0', routes, { includeParityGatedHashedStatic: true }),
       )?.pattern,
-    ).toBe('www.visutry.com/_next/static*')
+    ).toBe('www.visutry.com/_next/static/*')
+  })
+
+  it('scopes static asset routes to directory /* and does not emit greedy path*', () => {
+    expect(routes.some((row) => row.pattern === 'www.visutry.com/images*')).toBe(false)
+    expect(routes.some((row) => row.pattern === 'www.visutry.com/home*')).toBe(false)
+    expect(routes.some((row) => row.pattern === 'www.visutry.com/assets*')).toBe(false)
+    expect(routes.some((row) => row.pattern === 'www.visutry.com/_next/static*')).toBe(false)
+    expect(routes.some((row) => row.pattern === 'www.visutry.com/images/*')).toBe(true)
+    expect(routes.some((row) => row.pattern === 'www.visutry.com/home/*')).toBe(true)
+    expect(routes.some((row) => row.pattern === 'www.visutry.com/assets/*')).toBe(true)
+    expect(wwwWorkerRouteMatch('/images/seo/core/common-face-shapes-guide.webp', '', routes)?.pattern).toBe('www.visutry.com/images/*')
+    expect(wwwWorkerRouteMatch('/imagery', '', routes)).toBeNull()
+    expect(wwwWorkerRouteMatch('/homepage', '', routes)).toBeNull()
+    expect(wwwWorkerRouteMatch('/imagesfoo', '', routes)).toBeNull()
+    expect(cloudflareRouteMatches('www.visutry.com/images*', 'https://www.visutry.com/imagesfoo')).toBe(true)
+    expect(cloudflareRouteMatches('www.visutry.com/home*', 'https://www.visutry.com/homepage')).toBe(true)
+    expect(cloudflareRouteMatches('www.visutry.com/images/*', 'https://www.visutry.com/imagesfoo')).toBe(false)
+    expect(cloudflareRouteMatches('www.visutry.com/images/*', 'https://www.visutry.com/imagery')).toBe(false)
+    expect(cloudflareRouteMatches('www.visutry.com/home/*', 'https://www.visutry.com/homepage')).toBe(false)
+    expect(
+      assertSafeB4ProductionRoutes([
+        {
+          ...routes.find((row) => row.pattern === 'www.visutry.com/images/*')!,
+          pattern: 'www.visutry.com/images*',
+        },
+      ]).some((row) => row.includes('greedy static wildcard')),
+    ).toBe(true)
   })
 
   it('distinguishes store hub vs detail, brands vs frames, try-on vs try', () => {
@@ -186,6 +216,7 @@ describe('B4.2B scoped production Worker Routes', () => {
     fs.mkdirSync(path.join(vercelStatic, 'chunks'), { recursive: true })
     fs.mkdirSync(path.join(cfStatic, 'chunks'), { recursive: true })
     fs.writeFileSync(path.join(root, 'vercel', 'BUILD_ID'), 'vercel-id\n')
+    fs.writeFileSync(path.join(root, 'vercel', '.b4-vercel-snapshot.json'), '{}\n')
     fs.writeFileSync(path.join(vercelStatic, 'chunks', 'app.js'), 'vercel')
     fs.writeFileSync(path.join(cfStatic, 'chunks', 'other.js'), 'cf')
     const compared = compareHashedStaticManifests(vercelStatic, cfStatic)
@@ -206,5 +237,53 @@ describe('B4.2B scoped production Worker Routes', () => {
       cloudflareAssetsDir: path.join(root, 'cf'),
     })
     expect(passed.status).toBe('pass')
+  })
+
+  it('does not treat a live .next tree as the Vercel artifact after Cloudflare overwrite', () => {
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), 'b4-parity-live-'))
+    const liveNext = path.join(root, '.next')
+    const snapshotDir = path.join(root, B4_VERCEL_NEXT_SNAPSHOT_DIR)
+    const cfAssets = path.join(root, '.open-next', 'assets')
+    fs.mkdirSync(path.join(liveNext, 'static', 'chunks'), { recursive: true })
+    fs.writeFileSync(path.join(liveNext, 'BUILD_ID'), 'vercel-id\n')
+    fs.writeFileSync(path.join(liveNext, 'static', 'chunks', 'app.js'), 'vercel')
+    snapshotVercelNextBuild({ sourceNextDir: liveNext, snapshotDir })
+    fs.writeFileSync(path.join(liveNext, 'BUILD_ID'), 'cloudflare-id\n')
+    fs.writeFileSync(path.join(liveNext, 'static', 'chunks', 'app.js'), 'overwritten-by-cf')
+    fs.unlinkSync(path.join(liveNext, 'static', 'chunks', 'app.js'))
+    fs.writeFileSync(path.join(liveNext, 'static', 'chunks', 'cf-only.js'), 'cf')
+    fs.mkdirSync(path.join(cfAssets, '_next', 'static', 'chunks'), { recursive: true })
+    fs.writeFileSync(path.join(cfAssets, '_next', 'static', 'chunks', 'cf-only.js'), 'cf')
+    const liveCompared = hashedStaticParityGate({
+      vercelNextDir: liveNext,
+      cloudflareAssetsDir: cfAssets,
+    })
+    expect(liveCompared.status).toBe('skipped')
+    expect(liveCompared.reason).toMatch(/snapshot missing|Live \.next/)
+    const defaultWithoutSnapshot = hashedStaticParityGate({
+      vercelNextDir: path.join(root, 'missing-snapshot'),
+      cloudflareAssetsDir: cfAssets,
+    })
+    expect(defaultWithoutSnapshot.status).toBe('skipped')
+    expect(defaultWithoutSnapshot.reason).toMatch(/snapshot missing/)
+    const snapFailed = hashedStaticParityGate({
+      vercelNextDir: snapshotDir,
+      cloudflareAssetsDir: cfAssets,
+    })
+    expect(snapFailed.status).toBe('fail')
+    expect(snapFailed.missingOnCloudflare).toEqual(['chunks/app.js'])
+  })
+
+  it('does not treat local fail-open intent as Phase C remote PASS', () => {
+    expect(assertFailOpenActivation()).toEqual([])
+    expect(assertRemoteFailOpenActivation({ attached: [] })[0]).toMatch(/no remote Cloudflare routes/)
+    expect(assertRemoteFailOpenActivation({
+      attached: [{ pattern: 'www.visutry.com/api/health', script: 'visutry-cf-production', request_limit_fail_open: false }],
+      expectedPatterns: ['www.visutry.com/api/health'],
+    }).some((row) => row.includes('request_limit_fail_open=false'))).toBe(true)
+    expect(assertRemoteFailOpenActivation({
+      attached: [{ pattern: 'www.visutry.com/api/health', script: 'visutry-cf-production', request_limit_fail_open: true }],
+      expectedPatterns: ['www.visutry.com/api/health'],
+    })).toEqual([])
   })
 })

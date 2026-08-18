@@ -14,6 +14,7 @@
 /out/
 /.open-next/
 /.wrangler/
+/.artifacts/
 
 # production
 /build

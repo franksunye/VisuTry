@@ -121,7 +121,8 @@ function hostPattern(pathPattern: string): string {
 }
 
 function prefixToWildcard(prefix: string): string {
-  return prefix.endsWith('/') ? `${prefix.slice(0, -1)}*` : `${prefix}*`
+  const directory = prefix.endsWith('/') ? prefix : `${prefix}/`
+  return `${directory}*`
 }
 
 function coveredByHtmlWildcard(path: string): boolean {
@@ -156,7 +157,7 @@ export function generateB4ProductionWorkerRoutes(): B4ProductionWorkerRoute[] {
       layer: 'layer1-static-asset',
       expectedExecution: 'static-asset',
       workerQuota: 'asset-miss-only',
-      reason: 'hashed OpenNext Static Assets; production route is parity-gated because Vercel and CLOUDFLARE_BUILD=1 emit independent webpack graphs',
+      reason: 'hashed OpenNext Static Assets; production route is parity-gated because Vercel and CLOUDFLARE_BUILD=1 emit independent webpack graphs. Pattern is `/_next/static/*`, not `/_next/static*`.',
       excludedConflicts: ['/_next/image stays unrouted', 'do not publish until same-commit Vercel files ⊆ CF assets'],
       rollbackClass: 'delete-route',
       priority: 'P0',
@@ -457,6 +458,46 @@ export function assertFailOpenActivation(
     .map((row) => `${row.pattern} missing request_limit_fail_open=true`)
 }
 
+export interface B4AttachedCloudflareRoute {
+  pattern: string
+  script?: string | null
+  request_limit_fail_open?: boolean
+}
+
+export function assertRemoteFailOpenActivation(options: {
+  attached: B4AttachedCloudflareRoute[]
+  expectedPatterns?: string[]
+  workerName?: string
+}): string[] {
+  const errors: string[] = []
+  const expected = options.expectedPatterns ?? routesForPriority('P0').map((route) => route.pattern)
+  const workerName = options.workerName ?? B4_PRODUCTION_WORKER_NAME
+  if (options.attached.length === 0) {
+    return ['no remote Cloudflare routes were read; local intent is not Phase C PASS']
+  }
+  const byPattern = new Map(options.attached.map((row) => [row.pattern, row]))
+  for (const pattern of expected) {
+    const remote = byPattern.get(pattern)
+    if (!remote) {
+      errors.push(`expected route not attached remotely: ${pattern}`)
+      continue
+    }
+    if (remote.request_limit_fail_open !== true) {
+      errors.push(`${pattern} remote request_limit_fail_open=${String(remote.request_limit_fail_open)}`)
+    }
+    if (remote.script && remote.script !== workerName) {
+      errors.push(`${pattern} attached to ${remote.script}, expected ${workerName}`)
+    }
+  }
+  for (const remote of options.attached) {
+    if (!remote.pattern.includes(B4_PRODUCTION_PUBLIC_HOST)) continue
+    if (remote.request_limit_fail_open !== true) {
+      errors.push(`${remote.pattern} is attached without fail-open`)
+    }
+  }
+  return errors
+}
+
 export const B4_FORBIDDEN_WRANGLER_SHAPES = [
   'www.visutry.com/*',
   '*visutry.com/*',
@@ -549,6 +590,13 @@ export function assertSafeB4ProductionRoutes(routes = generateB4ProductionWorker
     }
     if (route.pattern.includes('/_next/static') && route.activationGate !== 'same-commit-asset-parity') {
       errors.push(`${route.pattern} must stay behind same-commit-asset-parity`)
+    }
+    if (
+      route.layer === 'layer1-static-asset'
+      && route.pattern.endsWith('*')
+      && !route.pattern.endsWith('/*')
+    ) {
+      errors.push(`greedy static wildcard ${route.pattern}; use a directory /* pattern`)
     }
   }
 

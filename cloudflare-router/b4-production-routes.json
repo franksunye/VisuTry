@@ -25,11 +25,11 @@
   },
   "routes": [
     {
-      "pattern": "www.visutry.com/_next/static*",
+      "pattern": "www.visutry.com/_next/static/*",
       "layer": "layer1-static-asset",
       "expectedExecution": "static-asset",
       "workerQuota": "asset-miss-only",
-      "reason": "hashed OpenNext Static Assets; production route is parity-gated because Vercel and CLOUDFLARE_BUILD=1 emit independent webpack graphs",
+      "reason": "hashed OpenNext Static Assets; production route is parity-gated because Vercel and CLOUDFLARE_BUILD=1 emit independent webpack graphs. Pattern is `/_next/static/*`, not `/_next/static*`.",
       "excludedConflicts": [
         "/_next/image stays unrouted",
         "do not publish until same-commit Vercel files ⊆ CF assets"
@@ -41,7 +41,7 @@
       "requestLimitFailOpen": true
     },
     {
-      "pattern": "www.visutry.com/blog-covers*",
+      "pattern": "www.visutry.com/blog-covers/*",
       "layer": "layer1-static-asset",
       "expectedExecution": "static-asset",
       "workerQuota": "asset-miss-only",
@@ -54,7 +54,7 @@
       "requestLimitFailOpen": true
     },
     {
-      "pattern": "www.visutry.com/assets*",
+      "pattern": "www.visutry.com/assets/*",
       "layer": "layer1-static-asset",
       "expectedExecution": "static-asset",
       "workerQuota": "asset-miss-only",
@@ -67,7 +67,7 @@
       "requestLimitFailOpen": true
     },
     {
-      "pattern": "www.visutry.com/images*",
+      "pattern": "www.visutry.com/images/*",
       "layer": "layer1-static-asset",
       "expectedExecution": "static-asset",
       "workerQuota": "asset-miss-only",
@@ -80,7 +80,7 @@
       "requestLimitFailOpen": true
     },
     {
-      "pattern": "www.visutry.com/home*",
+      "pattern": "www.visutry.com/home/*",
       "layer": "layer1-static-asset",
       "expectedExecution": "static-asset",
       "workerQuota": "asset-miss-only",
@@ -93,7 +93,7 @@
       "requestLimitFailOpen": true
     },
     {
-      "pattern": "www.visutry.com/experience-heroes*",
+      "pattern": "www.visutry.com/experience-heroes/*",
       "layer": "layer1-static-asset",
       "expectedExecution": "static-asset",
       "workerQuota": "asset-miss-only",

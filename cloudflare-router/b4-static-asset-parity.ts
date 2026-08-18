@@ -1,27 +1,33 @@
 /**
- * Same-commit hashed-asset parity gate for `/_next/static*`.
+ * Same-commit hashed-asset parity gate for `/_next/static/*`.
  *
  * Vercel (`next build`) and Cloudflare (`CLOUDFLARE_BUILD=1 next build` +
- * OpenNext) are independent webpack graphs. CLOUDFLARE_BUILD aliases can
- * change chunk hashes even at the same git SHA. `generateBuildId` alone does
- * not prove Vercel HTML's `/_next/static` files exist in `.open-next/assets`.
+ * OpenNext) are independent webpack graphs. A Cloudflare build overwrites
+ * `.next`, so comparing live `.next/static` to `.open-next/assets` can false
+ * PASS. Snapshot the Vercel `.next` tree *before* the Cloudflare build.
  *
- * Do not enable the production Worker Route `www.visutry.com/_next/static*`
- * until this gate returns `pass` for the same commit that is live on Vercel.
+ * Required sequence:
+ *   1. `CI=1 npm run build:ci`
+ *   2. `npm run b4:snapshot-vercel-next`  → `.artifacts/b4/vercel-next`
+ *   3. `npm run build:cloudflare`
+ *   4. `npm run b4:asset-parity`
  *
- * Usage:
- *   npx tsx cloudflare-router/b4-static-asset-parity.ts
- *   npx tsx cloudflare-router/b4-static-asset-parity.ts --vercel .next --cloudflare .open-next/assets
+ * Do not enable `www.visutry.com/_next/static/*` until this gate returns `pass`.
  *
- * Exit: 0 pass, 1 fail, 2 skipped (build outputs missing)
+ * Exit: 0 pass, 1 fail, 2 skipped (snapshot or OpenNext assets missing)
  */
 
 import fs from 'node:fs'
 import path from 'node:path'
 
+export const B4_VERCEL_NEXT_SNAPSHOT_DIR = path.join('.artifacts', 'b4', 'vercel-next')
+export const B4_VERCEL_NEXT_SNAPSHOT_MARKER = '.b4-vercel-snapshot.json'
+export const B4_CLOUDFLARE_ASSETS_DIR = path.join('.open-next', 'assets')
+
 export interface HashedStaticParityResult {
   status: 'pass' | 'fail' | 'skipped'
   reason: string
+  vercelArtifact: string
   vercelBuildId: string | null
   cloudflareBuildId: string | null
   vercelCount: number
@@ -63,36 +69,80 @@ export function compareHashedStaticManifests(
   }
 }
 
+export function snapshotVercelNextBuild(options?: {
+  sourceNextDir?: string
+  snapshotDir?: string
+}): { snapshotDir: string; buildId: string | null } {
+  const sourceNextDir = options?.sourceNextDir || path.join(process.cwd(), '.next')
+  const snapshotDir = options?.snapshotDir || path.join(process.cwd(), B4_VERCEL_NEXT_SNAPSHOT_DIR)
+  const staticDir = path.join(sourceNextDir, 'static')
+  if (!fs.existsSync(staticDir)) {
+    throw new Error(`cannot snapshot Vercel Next build: missing ${staticDir}`)
+  }
+  fs.mkdirSync(path.dirname(snapshotDir), { recursive: true })
+  fs.rmSync(snapshotDir, { recursive: true, force: true })
+  fs.cpSync(sourceNextDir, snapshotDir, { recursive: true })
+  const buildId = readBuildId(snapshotDir)
+  fs.writeFileSync(
+    path.join(snapshotDir, B4_VERCEL_NEXT_SNAPSHOT_MARKER),
+    `${JSON.stringify({
+      kind: 'vercel-next-snapshot',
+      copiedAt: new Date().toISOString(),
+      source: sourceNextDir,
+      buildId,
+      note: 'Taken before CLOUDFLARE_BUILD=1. Do not refresh this after the Cloudflare build.',
+    }, null, 2)}\n`,
+  )
+  return { snapshotDir, buildId }
+}
+
 export function hashedStaticParityGate(options?: {
   vercelNextDir?: string
   cloudflareAssetsDir?: string
 }): HashedStaticParityResult {
-  const vercelNextDir = options?.vercelNextDir || path.join(process.cwd(), '.next')
-  const cloudflareAssetsDir = options?.cloudflareAssetsDir || path.join(process.cwd(), '.open-next', 'assets')
+  const vercelNextDir = options?.vercelNextDir || path.join(process.cwd(), B4_VERCEL_NEXT_SNAPSHOT_DIR)
+  const cloudflareAssetsDir = options?.cloudflareAssetsDir || path.join(process.cwd(), B4_CLOUDFLARE_ASSETS_DIR)
   const vercelStaticRoot = path.join(vercelNextDir, 'static')
   const cloudflareStaticRoot = path.join(cloudflareAssetsDir, '_next', 'static')
+  const empty = {
+    vercelCount: 0,
+    cloudflareCount: 0,
+    missingOnCloudflare: [] as string[],
+    extraOnCloudflare: [] as string[],
+  }
 
-  if (!fs.existsSync(vercelStaticRoot) || !fs.existsSync(cloudflareStaticRoot)) {
+  const snapshotMarker = path.join(vercelNextDir, B4_VERCEL_NEXT_SNAPSHOT_MARKER)
+  if (!fs.existsSync(vercelStaticRoot) || !fs.existsSync(snapshotMarker)) {
     return {
       status: 'skipped',
-      reason: 'both a Vercel-style `.next/static` tree and `.open-next/assets/_next/static` are required',
+      reason: `Vercel Next snapshot missing at ${vercelNextDir} (need ${B4_VERCEL_NEXT_SNAPSHOT_MARKER}). Run \`npm run b4:snapshot-vercel-next\` after \`npm run build:ci\` and before \`npm run build:cloudflare\`. Live .next is not a valid Vercel artifact after a Cloudflare build.`,
+      vercelArtifact: vercelNextDir,
+      vercelBuildId: null,
+      cloudflareBuildId: readBuildId(path.join(process.cwd(), '.next')),
+      ...empty,
+    }
+  }
+
+  if (!fs.existsSync(cloudflareStaticRoot)) {
+    return {
+      status: 'skipped',
+      reason: `Cloudflare Static Assets missing at ${cloudflareStaticRoot}`,
+      vercelArtifact: vercelNextDir,
       vercelBuildId: readBuildId(vercelNextDir),
-      cloudflareBuildId: readBuildId(path.join(cloudflareAssetsDir, '_next')) || readBuildId(vercelNextDir),
-      vercelCount: 0,
-      cloudflareCount: 0,
-      missingOnCloudflare: [],
-      extraOnCloudflare: [],
+      cloudflareBuildId: null,
+      ...empty,
     }
   }
 
   const vercelBuildId = readBuildId(vercelNextDir)
-  const cloudflareBuildId = readBuildId(path.join(cloudflareAssetsDir, '..', '..', '.next')) || readBuildId(path.join(cloudflareAssetsDir, '_next'))
+  const cloudflareBuildId = readBuildId(path.join(process.cwd(), '.next'))
   const compared = compareHashedStaticManifests(vercelStaticRoot, cloudflareStaticRoot)
 
   if (compared.vercelCount === 0) {
     return {
       status: 'fail',
-      reason: 'Vercel `.next/static` is empty',
+      reason: 'Vercel snapshot `.next/static` is empty',
+      vercelArtifact: vercelNextDir,
       vercelBuildId,
       cloudflareBuildId,
       ...compared,
@@ -103,6 +153,7 @@ export function hashedStaticParityGate(options?: {
     return {
       status: 'fail',
       reason: `${compared.missingOnCloudflare.length} Vercel hashed files are missing from Cloudflare Static Assets`,
+      vercelArtifact: vercelNextDir,
       vercelBuildId,
       cloudflareBuildId,
       ...compared,
@@ -111,7 +162,8 @@ export function hashedStaticParityGate(options?: {
 
   return {
     status: 'pass',
-    reason: 'every Vercel `.next/static` file exists in `.open-next/assets/_next/static`',
+    reason: 'every file in the Vercel Next snapshot exists in `.open-next/assets/_next/static`',
+    vercelArtifact: vercelNextDir,
     vercelBuildId,
     cloudflareBuildId,
     ...compared,
@@ -124,6 +176,11 @@ function isMain() {
 }
 
 if (isMain()) {
+  if (process.argv.includes('--snapshot')) {
+    const snapshot = snapshotVercelNextBuild()
+    process.stdout.write(`${JSON.stringify({ action: 'snapshot', ...snapshot }, null, 2)}\n`)
+    process.exit(0)
+  }
   const vercelFlag = process.argv.includes('--vercel')
     ? process.argv[process.argv.indexOf('--vercel') + 1]
     : undefined
