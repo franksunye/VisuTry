@@ -11,11 +11,14 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   try {
+    // 检查用户认证
     const auth = await requireAuth()
     if (!auth.ok) return auth.response
     const userId = auth.userId
 
     const taskId = params.id
+
+    // 获取试戴任务
     const task = await prisma.tryOnTask.findUnique({
       where: { id: taskId },
       include: {
@@ -36,6 +39,7 @@ export async function GET(
       )
     }
 
+    // 检查权限：只有任务创建者可以查看
     if (task.userId !== userId) {
       return NextResponse.json(
         { success: false, error: "无权访问此任务" },
@@ -49,7 +53,7 @@ export async function GET(
       success: true,
       data: {
         id: task.id,
-        type: (task as any).type || 'GLASSES',
+        type: (task as any).type || 'GLASSES', // Include type field, default to GLASSES for old records
         status: task.status.toLowerCase(),
         userImageUrl: media.userImageUrl,
         itemImageUrl: media.itemImageUrl,
@@ -76,11 +80,14 @@ export async function DELETE(
   { params }: { params: { id: string } }
 ) {
   try {
+    // 检查用户认证
     const auth = await requireAuth()
     if (!auth.ok) return auth.response
     const userId = auth.userId
 
     const taskId = params.id
+
+    // 获取试戴任务
     const task = await prisma.tryOnTask.findUnique({
       where: { id: taskId }
     })
@@ -92,6 +99,7 @@ export async function DELETE(
       )
     }
 
+    // 检查权限：只有任务创建者可以删除
     if (task.userId !== userId) {
       return NextResponse.json(
         { success: false, error: "无权删除此任务" },
@@ -99,6 +107,7 @@ export async function DELETE(
       )
     }
 
+    // 删除任务
     await prisma.tryOnTask.delete({
       where: { id: taskId }
     })
