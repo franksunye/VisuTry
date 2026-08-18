@@ -21,7 +21,7 @@ import {
   STALE_CONSUMER_DISPATCH_ERROR,
 } from '@/lib/generation/reconcile-stale-consumer-dispatch'
 import { getTryOnSourceBlobOptions } from '@/lib/tryon-blob-access'
-import { loadTryOnMediaFile } from '@/lib/tryon-media-response'
+import { tryOnProviderMediaInput } from '@/lib/tryon-media-loader'
 
 export type { TryOnPollResult, TryOnSubmissionResult }
 
@@ -737,20 +737,16 @@ export async function getTryOnResult(taskId: string): Promise<TryOnPollResult> {
         })
 
         try {
-          // Retry reconstructs provider inputs behind the storage boundary. This
-          // works for both new private source blobs and legacy public/data URLs.
-          const [retryUserFile, retryItemFile] = await Promise.all([
-            loadTryOnMediaFile(task.userImageUrl, `retry-user-${taskId}`),
-            loadTryOnMediaFile(task.itemImageUrl, `retry-item-${taskId}`),
-          ])
-          const [retryUserDataUri, retryItemDataUri] = await Promise.all([
-            fileToDataUri(retryUserFile),
-            fileToDataUri(retryItemFile),
+          // Preserve legacy public provider inputs exactly, while private Blob
+          // sources are resolved server-side into short-lived in-memory data URIs.
+          const [retryUserInput, retryItemInput] = await Promise.all([
+            tryOnProviderMediaInput(task.userImageUrl),
+            tryOnProviderMediaInput(task.itemImageUrl),
           ])
 
           const retriedExternalTaskId = await submitAsyncTask(
-            retryUserDataUri,
-            retryItemDataUri,
+            retryUserInput,
+            retryItemInput,
             retryPrompt,
             retryPromptVersion,
             {
