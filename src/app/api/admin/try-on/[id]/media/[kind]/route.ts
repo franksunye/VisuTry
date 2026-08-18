@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { requireAdmin } from '@/lib/api-auth'
 import { prisma } from '@/lib/prisma'
-import { serveLegacyTryOnMedia, type TryOnMediaKind } from '@/lib/tryon-media'
+import { type TryOnMediaKind } from '@/lib/tryon-media'
+import { serveLegacyTryOnMedia } from '@/lib/tryon-media-response'
 
 export const dynamic = 'force-dynamic'
 export const maxDuration = 30
