@@ -2,6 +2,15 @@ import { fireEvent, render, screen } from '@testing-library/react'
 import { analytics, setGrowthContext } from '@/lib/analytics'
 import { ProductContinuationCtas } from '@/components/growth/ProductContinuationCtas'
 
+jest.mock('next/link', () => ({
+  __esModule: true,
+  default: ({ href, prefetch, children, ...props }: any) => (
+    <a href={href} data-prefetch={String(prefetch)} {...props}>
+      {children}
+    </a>
+  ),
+}))
+
 jest.mock('lucide-react', () => ({
   ArrowRight: () => <span data-testid="arrow" />,
   Glasses: () => <span data-testid="glasses" />,
@@ -18,7 +27,7 @@ jest.mock('@/lib/analytics', () => ({
 }))
 
 describe('ProductContinuationCtas', () => {
-  it('exposes detector, try-on, and compare continuation paths', () => {
+  it('exposes detector, try-on, and compare continuation paths without auto-prefetch', () => {
     render(
       <ProductContinuationCtas
         locale="en"
@@ -40,6 +49,10 @@ describe('ProductContinuationCtas', () => {
       'href',
       '/en/try-on/glasses/compare?source_page=glasses-for-face-shape',
     )
+
+    screen.getAllByRole('link').forEach((link) => {
+      expect(link).toHaveAttribute('data-prefetch', 'false')
+    })
   })
 
   it('records internal source page, growth context, and funnel click for compare', () => {
