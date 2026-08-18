@@ -3,7 +3,7 @@
   "zone": "visutry.com",
   "authoritativePublicly": false,
   "appliedToCloudflareZone": false,
-  "reasonNotApplied": "Cloudflare zone visutry.com does not exist. POST /zones still HTTP 403: Requires permission com.cloudflare.api.account.zone.create. CLOUDFLARE_API_TOKEN unset. Wrangler OAuth is zone:read only. Registrar NS were not changed.",
+  "reasonNotApplied": "Cloudflare zone visutry.com does not exist. POST /zones still HTTP 403 after a temporary account-scoped API token: Requires permission com.cloudflare.api.account.zone.create. Token was not persisted. Registrar NS were not changed.",
   "wwwNsCutoverProxy": "DNS_ONLY",
   "wwwFutureProxy": "PROXIED",
   "caaPolicy": {

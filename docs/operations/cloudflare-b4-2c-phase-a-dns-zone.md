@@ -34,7 +34,7 @@ Related:
 | Live DNS inventory | **PASS** (`vercel dns ls` + dig + RDAP) |
 | www NS-cutover proxy | **DNS_ONLY** (`futureProxy: PROXIED` after Universal SSL) |
 | Cloudflare zone exists | **NO** |
-| Zone created this phase | **NO** — reconfirmed `GET /zones?name=visutry.com` result_count=0. `POST /zones` HTTP 403: `Requires permission "com.cloudflare.api.account.zone.create" to create zones for the selected account`. `GET /user/tokens/permission_groups` HTTP 403 code 9109. `CLOUDFLARE_API_TOKEN` unset. Wrangler OAuth is `zone:read` only. Broader credentials were not used. Dashboard token UI requires SSO/password (stopped). |
+| Zone created this phase | **NO** — temporary API token retry: account `8f2fca159ffbd0e5d9446dfa6280f40d` confirmed; `GET /zones?name=visutry.com` result_count=0; `POST /zones` HTTP 403: `Requires permission "com.cloudflare.api.account.zone.create" to create zones for the selected account`. Token was not persisted, printed, or written to the repo. Permissions were not broadened. |
 | Records copied into Cloudflare | **NO** |
 | Cloudflare publicly authoritative | **NO** |
 | B4.2C Phase B | **NO-GO** |
@@ -120,7 +120,7 @@ Mail provider configuration was not changed. Risk if MX/SPF/DKIM are dropped or 
 | Worker Custom Domains | none |
 | Production routes | 0 |
 
-Wrangler OAuth on this machine can read zones and Workers. It cannot create zones. Dashboard/API token with `Zone:Edit` / `com.cloudflare.api.account.zone.create` is required.
+Wrangler OAuth on this machine can read zones and Workers. A temporary account-scoped API token authenticated to the correct account and could list zones, but `POST /zones` still returned HTTP 403 missing `com.cloudflare.api.account.zone.create`. **Zone:DNS:Edit is not enough.** The next token needs account-scoped **Zone:Zone:Edit** (include all zones from this account, because `visutry.com` does not exist yet) plus **Zone:DNS:Edit**. Do not paste the token into chat or the repo.
 
 **Allowed next operator action (not done here):** create `visutry.com` as a full zone with jump-start **off**, leave Namecheap NS on Vercel, copy `b4-production-dns.desired.json`. If any integration would mutate registrar NS automatically: **STOP**.
 
@@ -357,6 +357,6 @@ Nameserver migration, Cloudflare proxy/TLS, and Worker activation **must remain 
 
 ## 16. Next step
 
-Create the inactive Cloudflare `visutry.com` zone with a **temporary** API token that includes account-scoped `Zone:Edit` / `DNS:Edit` (zone create is not possible with Wrangler OAuth `zone:read`). Copy desired records with www **DNS_ONLY**. Run `b4:dns:diff`. Do **not** change Namecheap NS.
+Create a new temporary API token with account-scoped **Zone:Zone:Edit** + **Zone:DNS:Edit** (include all zones from account `8f2fca159ffbd0e5d9446dfa6280f40d`). Put it in the shell only as `CLOUDFLARE_API_TOKEN`. Then create the inactive full zone, copy www **DNS_ONLY** records, and run `b4:dns:diff`. Do **not** change Namecheap NS. Revoke the previous token; it lacked `zone.create`.
 
 **Do not execute Phase B from this PR.**

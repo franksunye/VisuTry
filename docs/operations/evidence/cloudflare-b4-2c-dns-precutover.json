@@ -47,6 +47,23 @@
       "reconfirmedError": "Requires permission \"com.cloudflare.api.account.zone.create\" to create zones for the selected account",
       "getZonesResultCount": 0
     },
+    "temporaryTokenRetry": {
+      "at": "2026-08-18T03:24:00.000Z",
+      "tokenPersisted": false,
+      "tokenPrinted": false,
+      "accountIdConfirmed": "8f2fca159ffbd0e5d9446dfa6280f40d",
+      "getZonesNameResultCount": 0,
+      "accountTokensVerify": { "httpStatus": 200, "status": "active" },
+      "userTokensVerify": { "httpStatus": 401, "error": "Invalid API Token" },
+      "createZone": {
+        "method": "POST /zones",
+        "type": "full",
+        "jumpStart": false,
+        "httpStatus": 403,
+        "error": "Requires permission \"com.cloudflare.api.account.zone.create\" to create zones for the selected account"
+      },
+      "permissionsBroadened": false
+    },
     "tokenCreateAttempt": {
       "method": "GET /user/tokens/permission_groups",
       "httpStatus": 403,
