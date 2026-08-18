@@ -1,7 +1,7 @@
 # VisuTry Cloudflare B4.2C Phase B — Checkpoint B2 (Universal SSL readiness)
 
-**Status:** BLOCKED — SSL/TLS mode unread (`GET .../settings/ssl` HTTP 403 / 9109)  
-**Date:** 2026-08-18  
+**Status:** BLOCKED — SSL/TLS mode unread (`GET .../settings/ssl` HTTP 403 / 9109)
+**Date:** 2026-08-18
 **Owner:** Product / Engineering  
 **Branch:** `cursor/cloudflare-b4-2c-phase-b2-universal-ssl`  
 **Starting SHA:** `b56e6487b0759fe7f3533cbdf4c56da0a6aec649` (PR #98 merge on `origin/main`)
