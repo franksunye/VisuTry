@@ -6,6 +6,7 @@ jest.mock('@vercel/blob', () => ({
   get: (...args: unknown[]) => mockGet(...args),
 }))
 
+import { tryOnProviderMediaInput } from '@/lib/tryon-media-loader'
 import { loadTryOnMediaFile, serveLegacyTryOnMedia } from '@/lib/tryon-media-response'
 
 describe('Try-On private source media delivery', () => {
@@ -51,6 +52,27 @@ describe('Try-On private source media delivery', () => {
     expect(Array.from(new Uint8Array(await file.arrayBuffer()))).toEqual([1, 2, 3, 4])
 
     fetchSpy.mockRestore()
+  })
+
+  it('converts a private Blob source into an ephemeral provider data URI', async () => {
+    mockGet.mockResolvedValue(privateBlobResult([1, 2, 3], 'image/png'))
+
+    const input = await tryOnProviderMediaInput(
+      'https://abc.private.blob.vercel-storage.com/tryon/user/user-1/source.png',
+    )
+
+    expect(input).toBe('data:image/png;base64,AQID')
+    expect(mockGet).toHaveBeenCalledWith('tryon/user/user-1/source.png', {
+      access: 'private',
+      storeId: 'store_tryon',
+    })
+  })
+
+  it('preserves legacy public provider URLs without proxying them', async () => {
+    const input = await tryOnProviderMediaInput('https://public.example.com/tryon/user/source.jpg')
+
+    expect(input).toBe('https://public.example.com/tryon/user/source.jpg')
+    expect(mockGet).not.toHaveBeenCalled()
   })
 
   it('serves private source bytes same-origin after application authorization', async () => {
