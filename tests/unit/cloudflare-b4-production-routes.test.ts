@@ -11,7 +11,6 @@ import {
   B4_POSITIVE_PATHS,
   B4_PRODUCTION_PUBLIC_HOST,
   B4_REQUIRED_REQUEST_LIMIT_FAIL_OPEN,
-  B4_VERCEL_DNS_EXAMPLE_HOSTS,
   assertFailOpenActivation,
   assertRemoteFailOpenActivation,
   assertSafeB4ProductionRoutes,
@@ -179,7 +178,7 @@ describe('B4.2B scoped production Worker Routes', () => {
     expect(parsed.customDomain).toBe(false)
     expect(parsed.wranglerProductionRoutesWired).toBe(false)
     expect(parsed.summary.requestLimitFailOpenRequired).toBe(true)
-    expect(parsed.summary.wwwDnsTargetFrozen).toBe(false)
+    expect(parsed.summary.wwwDnsTargetFrozen).toBe(true)
     expect(parsed.routes).toEqual(routes)
   })
 
@@ -198,13 +197,20 @@ describe('B4.2B scoped production Worker Routes', () => {
     expect(wwwWorkerRouteMatch('/en/blog', '?utm_source=x', routes)?.pattern).toBe('www.visutry.com/en/blog*')
   })
 
-  it('refuses to freeze a docs-example Vercel CNAME as the production www origin', () => {
+  it('freezes the inspected Vercel www ALIAS, not a docs-example CNAME', () => {
     const inspect = readProductionWwwDnsInspect()
-    expect(inspect.resolved).toBe(false)
-    expect(inspect.target).toBeNull()
+    expect(inspect.resolved).toBe(true)
+    expect(inspect.recordType).toBe('CNAME')
+    expect(inspect.target).toBe('cname.vercel-dns-017.com')
+    expect(inspect.inspectedAt).toBeTruthy()
     expect(inspect.command).toBe('vercel domains inspect www.visutry.com')
-    expect(() => requireFrozenWwwDnsTarget(inspect)).toThrow(/not frozen/)
-    expect(B4_VERCEL_DNS_EXAMPLE_HOSTS).toEqual(['cname.vercel-dns.com', 'cname.vercel-dns-0.com'])
+    expect(inspect.examplesThatMustNotBeAssumed).toEqual(['cname.vercel-dns.com', 'cname.vercel-dns-0.com'])
+    expect(inspect.target).not.toBe('cname.vercel-dns.com')
+    expect(inspect.target).not.toBe('cname.vercel-dns-0.com')
+    expect(requireFrozenWwwDnsTarget(inspect)).toEqual({
+      recordType: 'CNAME',
+      target: 'cname.vercel-dns-017.com',
+    })
     const source = fs.readFileSync(path.join(__dirname, '../../cloudflare-router/b4-production-routes.ts'), 'utf8')
     expect(source).not.toMatch(/B4_PRODUCTION_WWW_DNS_TARGET\s*=\s*'cname\.vercel-dns/)
   })

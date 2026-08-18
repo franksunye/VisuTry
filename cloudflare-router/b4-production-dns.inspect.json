@@ -1,13 +1,21 @@
 {
   "domain": "www.visutry.com",
-  "resolved": false,
-  "inspectedAt": null,
+  "resolved": true,
+  "inspectedAt": "2026-08-18T02:31:10.000Z",
   "command": "vercel domains inspect www.visutry.com",
-  "recordType": null,
-  "target": null,
+  "recordType": "CNAME",
+  "target": "cname.vercel-dns-017.com",
+  "apexAlias": "1c82e566126a58cc.vercel-dns-017.com",
+  "source": "vercel dns ls visutry.com (Vercel-managed ALIAS) plus vercel domains inspect www.visutry.com / visutry.com",
   "examplesThatMustNotBeAssumed": [
     "cname.vercel-dns.com",
     "cname.vercel-dns-0.com"
   ],
-  "note": "Phase A must run `vercel domains inspect www.visutry.com` and freeze the project's actual record here. Official Vercel examples currently show cname.vercel-dns-0.com; some projects receive a unique CNAME. Do not hardcode an example hostname as the production origin."
+  "publicARecordsObserved": [
+    "64.29.17.1",
+    "64.29.17.65",
+    "216.198.79.1",
+    "216.198.79.65"
+  ],
+  "note": "Vercel nameservers flatten the project ALIAS to rotating anycast A records. Do not freeze those A addresses as the Cloudflare origin. Wildcard *.visutry.com ALIAS is cname.vercel-dns-017.com (use for www). Apex ALIAS is the unique 1c82e566126a58cc.vercel-dns-017.com. Official docs examples cname.vercel-dns.com / cname.vercel-dns-0.com were NOT returned for this project."
 }
