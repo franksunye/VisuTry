@@ -2,19 +2,31 @@
 
 jest.mock('next-auth', () => ({ getServerSession: jest.fn() }))
 jest.mock('next/headers', () => ({ headers: jest.fn(() => new Headers({ host: 'www.visutry.com', 'x-forwarded-proto': 'https' })) }))
-jest.mock('next/navigation', () => ({ notFound: jest.fn(() => { throw new Error('NOT_FOUND') }), redirect: jest.fn((url: string) => { throw new Error(`REDIRECT:${url}`) }) }))
-jest.mock('@/lib/auth', () => ({ authOptions: {} }))
-jest.mock('@/modules/merchant', () => ({
+jest.mock('next/navigation', () => ({
+  notFound: jest.fn(() => { throw new Error('NOT_FOUND') }),
+  redirect: jest.fn((url: string) => { throw new Error(`REDIRECT:${url}`) }),
+}))
+jest.mock('@/lib/auth-runtime', () => ({ authOptions: {} }))
+jest.mock('@/modules/merchant/cloudflare', () => ({
   listMerchantsForUser: jest.fn(),
   listMerchantAgentCredentials: jest.fn(),
   getMerchantControlCenter: jest.fn(),
   requireMerchantMembership: jest.fn(),
 }))
-jest.mock('@/components/merchant/MerchantControlCenter', () => ({ MerchantControlCenter: (props: { selectedMerchantId: string }) => <div data-selected-merchant={props.selectedMerchantId} /> }))
-jest.mock('@/components/merchant/MerchantWorkspaceOnboarding', () => ({ MerchantWorkspaceOnboarding: (props: { locale: string }) => <div data-onboarding-locale={props.locale}>Create your Merchant Workspace</div> }))
+jest.mock('@/components/merchant/MerchantControlCenter', () => ({
+  MerchantControlCenter: (props: { selectedMerchantId: string }) => <div data-selected-merchant={props.selectedMerchantId} />,
+}))
+jest.mock('@/components/merchant/MerchantWorkspaceOnboarding', () => ({
+  MerchantWorkspaceOnboarding: (props: { locale: string }) => <div data-onboarding-locale={props.locale}>Create your Merchant Workspace</div>,
+}))
 
 import { getServerSession } from 'next-auth'
-import { listMerchantsForUser, listMerchantAgentCredentials, getMerchantControlCenter, requireMerchantMembership } from '@/modules/merchant'
+import {
+  listMerchantsForUser,
+  listMerchantAgentCredentials,
+  getMerchantControlCenter,
+  requireMerchantMembership,
+} from '@/modules/merchant/cloudflare'
 import MerchantWorkspacePage from '@/app/[locale]/merchant/page'
 
 const session = getServerSession as jest.Mock
@@ -32,7 +44,14 @@ describe('Merchant workspace authorization', () => {
       { merchant: { id: 'merchant-b', slug: 'beta', name: 'Beta', status: 'ACTIVE' }, membership: { role: 'ADMIN' } },
     ])
     credentials.mockResolvedValue([])
-    control.mockResolvedValue({ merchant: { id: 'merchant-a', slug: 'alpha', name: 'Alpha', websiteUrl: null, status: 'ACTIVE', referenceData: false }, store: null, experiences: [], activeCampaignCount: 0, shopperActivityAvailable: false, credentialUsage: { active: 0 } })
+    control.mockResolvedValue({
+      merchant: { id: 'merchant-a', slug: 'alpha', name: 'Alpha', websiteUrl: null, status: 'ACTIVE', referenceData: false },
+      store: null,
+      experiences: [],
+      activeCampaignCount: 0,
+      shopperActivityAvailable: false,
+      credentialUsage: { active: 0 },
+    })
   })
 
   it('uses internal User.id and rechecks membership for the selected tenant', async () => {
@@ -44,7 +63,9 @@ describe('Merchant workspace authorization', () => {
   })
 
   it('denies a URL-selected merchant without membership instead of trusting the locator', async () => {
-    merchants.mockResolvedValue([{ merchant: { id: 'merchant-a', slug: 'alpha', name: 'Alpha', status: 'ACTIVE' }, membership: { role: 'OWNER' } }])
+    merchants.mockResolvedValue([
+      { merchant: { id: 'merchant-a', slug: 'alpha', name: 'Alpha', status: 'ACTIVE' }, membership: { role: 'OWNER' } },
+    ])
     await expect(MerchantWorkspacePage({ params: { locale: 'en' }, searchParams: { merchantId: 'merchant-b' } })).rejects.toThrow('NOT_FOUND')
     expect(membership).not.toHaveBeenCalled()
   })

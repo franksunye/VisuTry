@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma"
 import { RecentTryOns } from "./RecentTryOns"
 import { perfLogger } from "@/lib/performance-logger"
+import { tryOnClientMetadata, tryOnMediaPath } from '@/lib/tryon-media'
 
 interface RecentTryOnsAsyncProps {
   userId: string
@@ -32,17 +33,22 @@ export async function RecentTryOnsAsync({ userId }: RecentTryOnsAsyncProps) {
       { userId }
     )
 
+    const protectedTryOns = recentTryOns.map((task) => ({
+      ...task,
+      userImageUrl: task.userImageUrl ? tryOnMediaPath(task.id, 'user') : '',
+      resultImageUrl: task.resultImageUrl ? tryOnMediaPath(task.id, 'result') : null,
+      metadata: tryOnClientMetadata(task.metadata),
+    }))
+
     perfLogger.end('dashboard-async:recent-tryons', {
-      count: recentTryOns.length,
+      count: protectedTryOns.length,
     })
 
-    return <RecentTryOns tryOns={recentTryOns} />
+    return <RecentTryOns tryOns={protectedTryOns} />
   } catch (error) {
     perfLogger.end('dashboard-async:recent-tryons', { error: true })
     console.error('Error loading recent try-ons:', error)
-    
-    // 返回空列表
+
     return <RecentTryOns tryOns={[]} />
   }
 }
-

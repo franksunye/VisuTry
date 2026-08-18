@@ -221,6 +221,7 @@ export function RecentTryOns({ tryOns: initialTryOns }: RecentTryOnsProps) {
                     src={tryOn.resultImageUrl}
                     alt="Try-on result"
                     fill
+                    unoptimized
                     sizes="(max-width: 640px) 90vw, (max-width: 768px) 45vw, (max-width: 1024px) 30vw, 320px"
                     className="object-cover"
                     loading={index < 3 ? "eager" : "lazy"}
@@ -232,6 +233,7 @@ export function RecentTryOns({ tryOns: initialTryOns }: RecentTryOnsProps) {
                     src={tryOn.userImageUrl}
                     alt="User photo"
                     fill
+                    unoptimized
                     sizes="(max-width: 640px) 90vw, (max-width: 768px) 45vw, (max-width: 1024px) 30vw, 320px"
                     className="object-cover opacity-50"
                     loading={index < 3 ? "eager" : "lazy"}

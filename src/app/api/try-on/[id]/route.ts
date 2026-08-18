@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { requireAuth } from "@/lib/api-auth"
 import { prisma } from "@/lib/prisma"
+import { tryOnMediaUrls } from '@/lib/tryon-media'
 
 // Force dynamic rendering for this route
 export const dynamic = 'force-dynamic'
@@ -46,16 +47,18 @@ export async function GET(
       )
     }
 
+    const media = tryOnMediaUrls(task)
+
     return NextResponse.json({
       success: true,
       data: {
         id: task.id,
         type: (task as any).type || 'GLASSES', // Include type field, default to GLASSES for old records
         status: task.status.toLowerCase(),
-        userImageUrl: task.userImageUrl,
-        itemImageUrl: (task as any).itemImageUrl || task.glassesImageUrl, // Support both field names
-        glassesImageUrl: task.glassesImageUrl, // Keep for backward compatibility
-        resultImageUrl: task.resultImageUrl,
+        userImageUrl: media.userImageUrl,
+        itemImageUrl: media.itemImageUrl,
+        glassesImageUrl: media.glassesImageUrl,
+        resultImageUrl: media.resultImageUrl,
         errorMessage: task.errorMessage,
         createdAt: task.createdAt,
         updatedAt: task.updatedAt

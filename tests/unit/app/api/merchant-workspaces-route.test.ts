@@ -1,7 +1,7 @@
 /** @jest-environment node */
 
-jest.mock('@/lib/api-auth', () => ({ requireAuth: jest.fn() }))
-jest.mock('@/modules/merchant', () => ({
+jest.mock('@/lib/api-auth-runtime', () => ({ requireAuth: jest.fn() }))
+jest.mock('@/modules/merchant/cloudflare', () => ({
   createMerchantWithOwner: jest.fn(),
   MerchantProvisioningError: class MerchantProvisioningError extends Error {
     code: string
@@ -13,8 +13,8 @@ jest.mock('@/modules/merchant', () => ({
 }))
 
 import { NextRequest } from 'next/server'
-import { requireAuth } from '@/lib/api-auth'
-import { createMerchantWithOwner } from '@/modules/merchant'
+import { requireAuth } from '@/lib/api-auth-runtime'
+import { createMerchantWithOwner } from '@/modules/merchant/cloudflare'
 import { POST } from '@/app/api/merchant/workspaces/route'
 
 const auth = requireAuth as jest.Mock
@@ -42,7 +42,10 @@ describe('merchant workspace creation route', () => {
     const response = await POST(request({ name: 'Golden Path Test', websiteUrl: 'https://example.test', userId: 'attacker' }))
     expect(response.status).toBe(201)
     expect(provision).toHaveBeenCalledWith({ userId: 'session-user', name: 'Golden Path Test', websiteUrl: 'https://example.test' })
-    expect(await response.json()).toMatchObject({ success: true, data: { membership: { role: 'OWNER', userId: 'session-user' } } })
+    expect(await response.json()).toMatchObject({
+      success: true,
+      data: { membership: { role: 'OWNER', userId: 'session-user' } },
+    })
   })
 
   it('rejects malformed input before provisioning', async () => {

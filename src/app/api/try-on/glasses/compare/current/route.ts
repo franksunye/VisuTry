@@ -5,6 +5,7 @@ import { prisma } from '@/lib/prisma'
 import { getRequestContext, logger } from '@/lib/logger'
 import { getRemainingQuotaCount } from '@/lib/quota'
 import { toCompareTaskResponse } from '@/lib/compare-tryon'
+import { tryOnMediaPath } from '@/lib/tryon-media'
 
 export const dynamic = 'force-dynamic'
 
@@ -93,7 +94,7 @@ export async function GET(request: NextRequest) {
         submissionStaggerMs,
         recovered: true,
         startedAt: startedAt.toISOString(),
-        userImageUrl: batchTasks[0].userImageUrl,
+        userImageUrl: batchTasks[0].userImageUrl ? tryOnMediaPath(batchTasks[0].id, 'user') : null,
         tasks: batchTasks.map(toCompareTaskResponse),
       },
     })

@@ -38,6 +38,10 @@ interface OptimizedImageProps extends Omit<ImageProps, 'onLoad'> {
   wrapperClassName?: string
 }
 
+function isProtectedMediaSrc(src: ImageProps['src']): boolean {
+  return typeof src === 'string' && src.startsWith('/api/try-on/') && src.includes('/media/')
+}
+
 export default function OptimizedImage({
   aboveFold = false,
   showPlaceholder = true,
@@ -56,6 +60,7 @@ export default function OptimizedImage({
 
   // Default sizes for responsive images
   const defaultSizes = props.sizes || '(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw'
+  const unoptimized = props.unoptimized ?? isProtectedMediaSrc(props.src)
 
   const handleLoad = () => {
     setIsLoading(false)
@@ -89,6 +94,7 @@ export default function OptimizedImage({
         priority={priority}
         sizes={defaultSizes}
         quality={85}
+        unoptimized={unoptimized}
         onLoad={handleLoad}
         onError={handleError}
         placeholder={blurDataURL ? 'blur' : 'empty'}
@@ -184,6 +190,7 @@ export function TryOnResultImage({
 }) {
   const [isLoading, setIsLoading] = useState(true)
   const [hasError, setHasError] = useState(false)
+  const unoptimized = isProtectedMediaSrc(src)
 
   const handleLoad = () => {
     setIsLoading(false)
@@ -222,6 +229,7 @@ export function TryOnResultImage({
           priority={priority}
           sizes="(max-width: 640px) 100vw, (max-width: 1024px) 80vw, 800px"
           quality={85}
+          unoptimized={unoptimized}
           onLoad={handleLoad}
           onError={handleError}
         />
@@ -255,6 +263,7 @@ export function TryOnResultImage({
         priority={priority}
         sizes="(max-width: 640px) 100vw, (max-width: 1024px) 80vw, 800px"
         quality={85}
+        unoptimized={unoptimized}
         onLoad={handleLoad}
         onError={handleError}
       />
@@ -288,6 +297,7 @@ export function TryOnThumbnail({
 
   // First 3 images get priority loading
   const shouldPrioritize = priority || index < 3
+  const unoptimized = isProtectedMediaSrc(src)
 
   // Different sizes for different contexts
   // 'small': Dashboard cards in sidebar (~300px) - more conservative
@@ -329,6 +339,7 @@ export function TryOnThumbnail({
         priority={shouldPrioritize}
         sizes={sizes}
         quality={IMAGE_QUALITY.HIGH}
+        unoptimized={unoptimized}
         onLoad={handleLoad}
         onError={handleError}
       />

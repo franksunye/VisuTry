@@ -5,7 +5,7 @@ import { GET as getAdminPhoto } from '@/app/api/admin/face-analysis/[id]/photo/r
 import { GET as getAdminTask } from '@/app/api/admin/face-analysis/[id]/route'
 import { requireAdmin } from '@/lib/api-auth'
 import { prisma } from '@/lib/prisma'
-import { createPrivateBlobGetUrl } from '@/lib/blob/private-signed-url'
+import { serveFaceAnalysisSourcePhoto } from '@/lib/face-analysis-source-photo'
 
 jest.mock('@/lib/api-auth', () => ({ requireAdmin: jest.fn() }))
 jest.mock('@/lib/prisma', () => ({
@@ -18,22 +18,9 @@ jest.mock('@/lib/logger', () => ({
   logger: { error: jest.fn() },
 }))
 jest.mock('@vercel/blob', () => ({ del: jest.fn() }))
-jest.mock('@/lib/blob/private-signed-url', () => ({
-  createPrivateBlobGetUrl: jest.fn(),
-  pathnameFromPrivateBlobUrl: (value: string) => {
-    try {
-      const url = new URL(value)
-      if (!url.hostname.endsWith('.private.blob.vercel-storage.com')) return null
-      const pathname = decodeURIComponent(url.pathname.replace(/^\//, ''))
-      return pathname && !pathname.includes('*') ? pathname : null
-    } catch {
-      return null
-    }
-  },
-  privateBlobRedirect: (url: string) => new Response(null, {
-    status: 307,
-    headers: { Location: url, 'Cache-Control': 'private, no-store' },
-  }),
+jest.mock('@/lib/face-analysis-source-photo', () => ({
+  adminFaceAnalysisPhotoPath: (taskId: string) => `/api/admin/face-analysis/${encodeURIComponent(taskId)}/photo`,
+  serveFaceAnalysisSourcePhoto: jest.fn(),
 }))
 
 describe('GET /api/admin/face-analysis/[id]/photo', () => {
@@ -42,39 +29,34 @@ describe('GET /api/admin/face-analysis/[id]/photo', () => {
     ;(requireAdmin as jest.Mock).mockResolvedValue({ ok: true, userId: 'admin-1' })
   })
 
-  it('redirects a private photo without requiring unlock or owner match', async () => {
-    const previousStoreId = process.env.FACE_ANALYSIS_BLOB_STORE_ID
-    process.env.FACE_ANALYSIS_BLOB_STORE_ID = 'store_test'
-
-    ;(prisma.faceAnalysisTask.findUnique as jest.Mock).mockResolvedValue({
+  it('serves a private photo through the same-origin proxy without requiring unlock or owner match', async () => {
+    const task = {
       userImageUrl: 'https://mij4q7mtisfurire.private.blob.vercel-storage.com/face-analysis/user/photo.jpg',
       metadata: { blobAccess: 'private', blobPathname: 'face-analysis/user/photo.jpg' },
       expiresAt: new Date(Date.now() - 60_000),
-    })
-    ;(createPrivateBlobGetUrl as jest.Mock).mockResolvedValue({
-      url: 'https://mij4q7mtisfurire.private.blob.vercel-storage.com/face-analysis/user/photo.jpg?signature=1',
-      validUntil: Date.now() + 60_000,
-    })
+    }
+    ;(prisma.faceAnalysisTask.findUnique as jest.Mock).mockResolvedValue(task)
+    ;(serveFaceAnalysisSourcePhoto as jest.Mock).mockResolvedValue(new Response(new Uint8Array([1, 2, 3]), {
+      status: 200,
+      headers: {
+        'Content-Type': 'image/jpeg',
+        'Cache-Control': 'private, no-store',
+      },
+    }))
 
     const response = await getAdminPhoto(
       new NextRequest('http://localhost/api/admin/face-analysis/analysis-private/photo'),
       { params: { id: 'analysis-private' } },
     )
 
-    expect(response.status).toBe(307)
-    expect(response.headers.get('location')).toContain('signature=1')
-    expect(createPrivateBlobGetUrl).toHaveBeenCalledWith(expect.objectContaining({
-      pathname: 'face-analysis/user/photo.jpg',
-      businessExpiresAt: null,
-      storeId: 'store_test',
-    }))
+    expect(response.status).toBe(200)
+    expect(response.headers.get('content-type')).toBe('image/jpeg')
+    expect(response.headers.get('location')).toBeNull()
+    expect(serveFaceAnalysisSourcePhoto).toHaveBeenCalledWith(task, { respectBusinessExpiry: false })
     expect(prisma.faceAnalysisTask.findUnique).toHaveBeenCalledWith({
       where: { id: 'analysis-private' },
       select: { userImageUrl: true, metadata: true, expiresAt: true },
     })
-
-    if (previousStoreId === undefined) delete process.env.FACE_ANALYSIS_BLOB_STORE_ID
-    else process.env.FACE_ANALYSIS_BLOB_STORE_ID = previousStoreId
   })
 
   it('returns 404 when the task has no photo', async () => {
@@ -86,6 +68,7 @@ describe('GET /api/admin/face-analysis/[id]/photo', () => {
     )
 
     expect(response.status).toBe(404)
+    expect(serveFaceAnalysisSourcePhoto).not.toHaveBeenCalled()
   })
 
   it('returns the authentication response without querying task data', async () => {
@@ -101,6 +84,7 @@ describe('GET /api/admin/face-analysis/[id]/photo', () => {
 
     expect(response.status).toBe(403)
     expect(prisma.faceAnalysisTask.findUnique).not.toHaveBeenCalled()
+    expect(serveFaceAnalysisSourcePhoto).not.toHaveBeenCalled()
   })
 })
 
