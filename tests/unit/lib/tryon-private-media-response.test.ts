@@ -1,3 +1,5 @@
+/** @jest-environment node */
+
 const mockGet = jest.fn()
 
 jest.mock('@vercel/blob', () => ({
