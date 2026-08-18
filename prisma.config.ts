@@ -1,5 +1,6 @@
 import dotenv from "dotenv";
 import { defineConfig } from "prisma/config";
+import { resolvePrismaCliDatasourceUrl } from "./prisma/resolve-cli-datasource-url";
 
 // Load .env first, then .env.local with override (matches Next.js semantics).
 dotenv.config();
@@ -33,28 +34,25 @@ dotenv.config({ path: ".env.local", override: true });
  * Local dev: set DATABASE_URL_UNPOOLED in .env to your Neon DIRECT (non-pooler)
  * connection string (the host without the `-pooler` suffix).
  */
-const DIRECT_URL =
-  process.env.DATABASE_URL_UNPOOLED ??
-  process.env.DIRECT_DATABASE_URL ??
-  process.env.DIRECT_URL;
+const datasource = resolvePrismaCliDatasourceUrl();
 
-if (!DIRECT_URL) {
-  if (process.env.DATABASE_URL) {
-    // Local dev convenience: warn but fall back so `prisma migrate dev` works
-    // without forcing developers to configure a second connection string.
-    // eslint-disable-next-line no-console
-    console.warn(
-      "⚠️ [prisma.config.ts] DATABASE_URL_UNPOOLED is not set — falling back " +
-        "to DATABASE_URL for CLI commands. This is fine for local dev but " +
-        "WILL cause P1002 advisory lock timeouts on Vercel/Neon. " +
-        "Set DATABASE_URL_UNPOOLED to a direct (non-pooler) connection."
-    );
-  } else {
-    throw new Error(
-      "[prisma.config.ts] No database URL found. Set DATABASE_URL_UNPOOLED " +
-        "(provided by the Vercel Neon integration) or DATABASE_URL."
-    );
-  }
+if (datasource.mode === "pooled-fallback") {
+  // Local dev convenience: warn but fall back so `prisma migrate dev` works
+  // without forcing developers to configure a second connection string.
+  // eslint-disable-next-line no-console
+  console.warn(
+    "⚠️ [prisma.config.ts] DATABASE_URL_UNPOOLED is not set — falling back " +
+      "to DATABASE_URL for CLI commands. This is fine for local dev but " +
+      "WILL cause P1002 advisory lock timeouts on Vercel/Neon. " +
+      "Set DATABASE_URL_UNPOOLED to a direct (non-pooler) connection."
+  );
+} else if (datasource.mode === "generate-placeholder") {
+  // eslint-disable-next-line no-console
+  console.warn(
+    "⚠️ [prisma.config.ts] No DATABASE_URL during prisma generate; using a " +
+      "placeholder so Prisma Client can be emitted. Cloudflare Workers Builds " +
+      "does not receive Vercel Neon env vars at npm ci."
+  );
 }
 
 export default defineConfig({
@@ -65,7 +63,7 @@ export default defineConfig({
   },
   datasource: {
     // Direct (unpooled) connection for migrations. Falls back to DATABASE_URL
-    // for local dev — see the warning above.
-    url: DIRECT_URL ?? process.env.DATABASE_URL!,
+    // for local dev, or a generate-only placeholder when no URL is present.
+    url: datasource.url,
   },
 });
