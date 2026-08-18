@@ -5,11 +5,28 @@
   "compatibility_date": "2026-08-15",
   "compatibility_flags": ["nodejs_compat"],
   "workers_dev": true,
-  // B4.2B production Worker Routes are defined in
-  // cloudflare-router/b4-production-routes.ts and are NOT listed here.
-  // Copying them into wrangler would publish them on the next deploy.
-  // `npm run deploy:cloudflare` uses `--env staging` only. Do not add
-  // env.production routes or custom_domain until the B4.2C cutover.
+  // Keep Workers Logs aligned with the dashboard. A deploy without this
+  // block would reset Logs off. Traces stay disabled.
+  "observability": {
+    "enabled": false,
+    "head_sampling_rate": 1,
+    "logs": {
+      "enabled": true,
+      "head_sampling_rate": 1,
+      "persist": true,
+      "invocation_logs": true
+    },
+    "traces": {
+      "enabled": false,
+      "persist": true,
+      "head_sampling_rate": 1
+    }
+  },
+  // Production Worker name lives under env.production. Do NOT list www
+  // Worker Routes or custom_domain here. B4.2D attaches exactly 12 ungated
+  // P0 routes through the Cloudflare Routes API after deploy. Copying the
+  // 286-route review manifest into wrangler would publish P1/P2 by accident.
+  // `npm run deploy:cloudflare` remains staging-only.
   "assets": {
     "directory": ".open-next/assets",
     "binding": "ASSETS",
@@ -29,6 +46,16 @@
         "NEXTAUTH_URL": "https://visutry-cf-staging.sunye.workers.dev",
         "VERCEL_ORIGIN": "https://visutry.vercel.app",
         "PUBLIC_HOST": "visutry-cf-staging.sunye.workers.dev"
+      }
+    },
+    "production": {
+      "name": "visutry-cf-production",
+      "workers_dev": true,
+      "vars": {
+        "ROUTER_ENV": "production",
+        "NEXTAUTH_URL": "https://www.visutry.com",
+        "VERCEL_ORIGIN": "https://visutry.vercel.app",
+        "PUBLIC_HOST": "www.visutry.com"
       }
     }
   }

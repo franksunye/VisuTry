@@ -56,7 +56,8 @@ describe('B4.2A staging public slice router', () => {
     expect(text).toMatch(/"not_found_handling"\s*:\s*"none"/)
     expect(text).toMatch(/"directory"\s*:\s*"\.open-next\/assets"/)
     expect(text).not.toMatch(/"custom_domain"\s*:\s*true/)
-    expect(text).not.toMatch(/www\.visutry\.com/)
+    expect(text).not.toMatch(/www\.visutry\.com\/\*/)
+    expect(text).toMatch(/"PUBLIC_HOST": "www.visutry.com"/)
     expect(text).toMatch(/"VERCEL_ORIGIN": "https:\/\/visutry\.vercel\.app"/)
     expect(text).toMatch(/"workers_dev": true/)
   })
@@ -229,5 +230,18 @@ describe('B4.2A staging public slice router', () => {
     expect(workerSource).not.toMatch(/retry|fallbackRequest\(.*\).*fallbackRequest/i)
     expect(workerSource.match(/await fetch\(fallbackRequest/g)).toHaveLength(1)
     expect(workerSource.match(/appWorker\.fetch/g)).toHaveLength(1)
+  })
+
+  it('redacts secrets from Worker exception logs and resolves OpenNext default export', () => {
+    const { sanitizeWorkerException, resolveOpenNextAppWorker } = require('../../cloudflare-router/b4-staging-router') as typeof import('../../cloudflare-router/b4-staging-router')
+    const leaked = sanitizeWorkerException(new Error('connect postgresql://user:secret@host/db Bearer abc.def cookie=session=1'))
+    expect(leaked.errorClass).toBe('Error')
+    expect(leaked.errorDetail).toContain('[redacted-db]')
+    expect(leaked.errorDetail).not.toMatch(/secret|abc\.def|session=1/i)
+
+    const fetchFn = async () => new Response('ok')
+    expect(resolveOpenNextAppWorker({ fetch: fetchFn }).fetch).toBe(fetchFn)
+    expect(resolveOpenNextAppWorker({ default: { fetch: fetchFn } }).fetch).toBe(fetchFn)
+    expect(() => resolveOpenNextAppWorker({})).toThrow(/missing fetch/)
   })
 })

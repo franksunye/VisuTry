@@ -1,0 +1,269 @@
+{
+  "kind": "b4-2d-p0-postcutover",
+  "capturedAt": "2026-08-18T09:37:29Z",
+  "resolve": "www.visutry.com:443:104.21.42.69",
+  "tokenValuesStored": false,
+  "workerApis": [
+    {
+      "path": "/api/health",
+      "status": 200,
+      "routerBackend": "cloudflare",
+      "routerLayer": "layer2-worker",
+      "routerInvocation": "worker",
+      "semantic": {
+        "status": "ok",
+        "service": "VisuTry",
+        "version": "0.1.0"
+      }
+    },
+    {
+      "path": "/api/glasses/brands",
+      "status": 200,
+      "routerBackend": "cloudflare",
+      "routerLayer": "layer2-worker",
+      "routerInvocation": "worker",
+      "success": true,
+      "dataCount": 50,
+      "sha256_16": "e37e442d8fda77eb",
+      "parityVsVercelBaseline": "match"
+    },
+    {
+      "path": "/api/glasses/categories",
+      "status": 200,
+      "routerBackend": "cloudflare",
+      "routerLayer": "layer2-worker",
+      "routerInvocation": "worker",
+      "success": true,
+      "dataCount": 10,
+      "sha256_16": "e72c429426e5e07c",
+      "parityVsVercelBaseline": "match"
+    },
+    {
+      "path": "/api/glasses/face-shapes",
+      "status": 200,
+      "routerBackend": "cloudflare",
+      "routerLayer": "layer2-worker",
+      "routerInvocation": "worker",
+      "success": true,
+      "dataCount": 7,
+      "sha256_16": "50359e21e203f21b",
+      "parityVsVercelBaseline": "match"
+    }
+  ],
+  "staticP0": [
+    {
+      "path": "/robots.txt",
+      "status": 200,
+      "routerBackend": null,
+      "cfCacheStatus": "HIT",
+      "bytes": 1084,
+      "workerInvocation": "bypassed"
+    },
+    {
+      "path": "/llms.txt",
+      "status": 200,
+      "routerBackend": null,
+      "cfCacheStatus": "HIT",
+      "bytes": 4042,
+      "workerInvocation": "bypassed"
+    },
+    {
+      "path": "/favicon.ico",
+      "status": 200,
+      "routerBackend": null,
+      "cfCacheStatus": "HIT",
+      "bytes": 1,
+      "workerInvocation": "bypassed",
+      "note": "public/favicon.ico is a 1-byte stub; Vercel baseline was also 200 image/vnd.microsoft.icon"
+    },
+    {
+      "path": "/blog-covers/ai-virtual-tryon-tools-2026.jpg",
+      "status": 200,
+      "routerBackend": null,
+      "cfCacheStatus": "HIT",
+      "bytes": 264581,
+      "workerInvocation": "bypassed"
+    },
+    {
+      "path": "/experience-heroes/neutral-eyewear.jpg",
+      "status": 200,
+      "routerBackend": null,
+      "cfCacheStatus": "HIT",
+      "bytes": 215175,
+      "workerInvocation": "bypassed"
+    },
+    {
+      "path": "/images/store/store-hero-shopper.png",
+      "status": 200,
+      "routerBackend": null,
+      "cfCacheStatus": "HIT",
+      "bytes": 1384125,
+      "workerInvocation": "bypassed"
+    },
+    {
+      "path": "/assets/marketing/compare-slide-man.png",
+      "status": 200,
+      "routerBackend": null,
+      "cfCacheStatus": "HIT",
+      "bytes": 106479,
+      "workerInvocation": "bypassed"
+    },
+    {
+      "path": "/home/Alex-try-on-glasses-screen.jpg",
+      "status": 200,
+      "routerBackend": null,
+      "cfCacheStatus": "HIT",
+      "bytes": 149152,
+      "workerInvocation": "bypassed"
+    }
+  ],
+  "vercelBypass": [
+    {
+      "path": "/",
+      "status": 307,
+      "location": "/en",
+      "routerBackend": null
+    },
+    {
+      "path": "/en",
+      "status": 200,
+      "routerBackend": null
+    },
+    {
+      "path": "/en/store",
+      "status": 200,
+      "routerBackend": null
+    },
+    {
+      "path": "/en/store/ello-sunglasses",
+      "status": 200,
+      "routerBackend": null
+    },
+    {
+      "path": "/en/c/ello-sunglasses/petite-fit",
+      "status": 200,
+      "routerBackend": null
+    },
+    {
+      "path": "/en/try-on",
+      "status": 307,
+      "routerBackend": null
+    },
+    {
+      "path": "/en/face-analysis",
+      "status": 200,
+      "routerBackend": null
+    },
+    {
+      "path": "/en/pricing",
+      "status": 200,
+      "routerBackend": null
+    },
+    {
+      "path": "/en/auth/signin",
+      "status": 200,
+      "routerBackend": null
+    },
+    {
+      "path": "/api/glasses/frames",
+      "status": 200,
+      "routerBackend": null
+    },
+    {
+      "path": "/unknown-crawler-path-b42d",
+      "status": 307,
+      "location": "/en/unknown-crawler-path-b42d",
+      "routerBackend": null
+    },
+    {
+      "path": "/_next/image",
+      "status": 400,
+      "routerBackend": null
+    }
+  ],
+  "overmatch": [
+    {
+      "path": "/api/health/foo",
+      "status": 404,
+      "routerBackend": null,
+      "note": "exact API pattern does not match suffix"
+    },
+    {
+      "path": "/api/glasses/brands/foo",
+      "status": 404,
+      "routerBackend": null
+    },
+    {
+      "path": "/api/glasses/frames",
+      "status": 200,
+      "routerBackend": null
+    },
+    {
+      "path": "/api/auth/session",
+      "status": 200,
+      "routerBackend": null
+    },
+    {
+      "path": "/images",
+      "status": 307,
+      "location": "/en/images",
+      "routerBackend": null,
+      "note": "/images/* does not match /images"
+    },
+    {
+      "path": "/imagesfoo",
+      "status": 307,
+      "location": "/en/imagesfoo",
+      "routerBackend": null,
+      "note": "/images/* does not match /imagesfoo"
+    },
+    {
+      "path": "/assets",
+      "status": 307,
+      "location": "/en/assets",
+      "routerBackend": null
+    },
+    {
+      "path": "/assetsfoo",
+      "status": 307,
+      "location": "/en/assetsfoo",
+      "routerBackend": null
+    }
+  ],
+  "methods": [
+    {
+      "method": "HEAD",
+      "path": "/api/health",
+      "status": 200,
+      "routerBackend": "cloudflare"
+    },
+    {
+      "method": "POST",
+      "path": "/api/health",
+      "status": 405,
+      "routerBackend": "vercel"
+    },
+    {
+      "method": "PUT",
+      "path": "/api/health",
+      "status": 405,
+      "routerBackend": "vercel"
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/health",
+      "status": 405,
+      "routerBackend": "vercel"
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/health",
+      "status": 405,
+      "routerBackend": "vercel"
+    }
+  ],
+  "nextStaticRoute": "NOT_ATTACHED",
+  "customDomain": "NONE",
+  "wwwProxied": true,
+  "sslMode": "strict"
+}

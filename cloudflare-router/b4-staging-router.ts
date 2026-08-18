@@ -121,6 +121,31 @@ export function withB4RouterHeaders(
   })
 }
 
+export function sanitizeWorkerException(error: unknown): { errorClass: string; errorDetail: string } {
+  const errorClass = error instanceof Error ? error.name : 'worker-fetch-failed'
+  const raw = error instanceof Error ? `${error.name}: ${error.message}` : String(error)
+  const errorDetail = raw
+    .replace(/postgres(?:ql)?:\/\/\S+/gi, '[redacted-db]')
+    .replace(/mysql:\/\/\S+/gi, '[redacted-db]')
+    .replace(/Bearer\s+\S+/gi, 'Bearer [redacted]')
+    .replace(/(?:^|[;\s])(?:cookie|authorization)=[^\s;]+/gi, ' [redacted-header]')
+    .slice(0, 300)
+  return { errorClass, errorDetail }
+}
+
+export function resolveOpenNextAppWorker(mod: unknown): { fetch: AppWorkerFetch } {
+  const candidate = mod as { fetch?: unknown; default?: { fetch?: unknown } }
+  if (typeof candidate.fetch === 'function') {
+    return candidate as { fetch: AppWorkerFetch }
+  }
+  if (candidate.default && typeof candidate.default.fetch === 'function') {
+    return candidate.default as { fetch: AppWorkerFetch }
+  }
+  throw new Error('OpenNext worker export is missing fetch')
+}
+
+type AppWorkerFetch = (request: Request, env: unknown, ctx: unknown) => Promise<Response>
+
 export function routerLogFields(
   request: Request,
   decision: B4RouteDecision,
