@@ -16,7 +16,8 @@ Related:
 - [`hosting-strategy-vercel-cloudflare.md`](./hosting-strategy-vercel-cloudflare.md) — canonical **Three-Layer Traffic Execution Model**
 - [`cloudflare-b3-2-capability-routing.md`](./cloudflare-b3-2-capability-routing.md)
 - [`vercel-quota-emergency-reduction.md`](./vercel-quota-emergency-reduction.md) (PR #91)
-- [`cloudflare-b4-2a-staging-public-slice.md`](./cloudflare-b4-2a-staging-public-slice.md) — B4.2A staging activation and B4.2B gate
+- [`cloudflare-b4-2a-staging-public-slice.md`](./cloudflare-b4-2a-staging-public-slice.md) — B4.2A staging activation
+- [`cloudflare-b4-2b-scoped-production-routes.md`](./cloudflare-b4-2b-scoped-production-routes.md) — B4.2B scoped production Worker Routes (not activated)
 - Proposed classifier: `cloudflare-router/b4-production-public-slice.ts`
 - Review manifest: `cloudflare-router/b4-production-public-slice.manifest.json`
 

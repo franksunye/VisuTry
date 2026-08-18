@@ -5,6 +5,11 @@
   "compatibility_date": "2026-08-15",
   "compatibility_flags": ["nodejs_compat"],
   "workers_dev": true,
+  // B4.2B production Worker Routes are defined in
+  // cloudflare-router/b4-production-routes.ts and are NOT listed here.
+  // Copying them into wrangler would publish them on the next deploy.
+  // `npm run deploy:cloudflare` uses `--env staging` only. Do not add
+  // env.production routes or custom_domain until the B4.2C cutover.
   "assets": {
     "directory": ".open-next/assets",
     "binding": "ASSETS",
