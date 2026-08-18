@@ -1,12 +1,12 @@
 {
   "kind": "b4-2c-phase-b2-zone-ssl",
-  "capturedAt": "2026-08-18T07:00:32Z",
+  "capturedAt": "2026-08-18T07:02:45Z",
   "originMain": "b56e6487b0759fe7f3533cbdf4c56da0a6aec649",
   "pr98MergePresent": true,
   "branch": "cursor/cloudflare-b4-2c-phase-b2-universal-ssl",
   "pr": 99,
-  "verdict": "BLOCKED",
-  "blockedReason": "SSL mode is full (Full), not strict (Full strict). Operator approved PATCH full→strict; PATCH /zones/:id/settings/ssl returned HTTP 403 code 9109. Mode was not changed. www/apex remain DNS_ONLY.",
+  "verdict": "PASS",
+  "blockedReason": null,
   "b3": "NO-GO",
   "zoneId": "5e3dc058ed16f3aee917f1cef2e9f413",
   "zoneName": "visutry.com",
@@ -30,25 +30,25 @@
       "Zone / SSL and Certificates / Read",
       "Zone / DNS / Read"
     ],
-    "note": "Retry 3 could read GET /zones/:id/settings/ssl. Value is full, not strict. No PATCH was sent."
+    "note": "Retry 4: operator added Zone Settings Edit. PATCH full→strict succeeded. Token unset after use."
   },
   "api": {
     "sslMode": {
       "endpoint": "GET /zones/5e3dc058ed16f3aee917f1cef2e9f413/settings/ssl",
       "http": 200,
-      "value": "full",
+      "value": "strict",
       "certificate_status": "active",
       "validation_errors": [],
       "editable": true,
-      "modified_on": null
+      "modified_on": "2026-08-18T07:02:54.108890Z"
     },
     "sslModePatch": {
       "endpoint": "PATCH /zones/5e3dc058ed16f3aee917f1cef2e9f413/settings/ssl",
       "requestedValue": "strict",
       "operatorApproved": true,
-      "http": 403,
-      "code": 9109,
-      "message": "Unauthorized to access requested resource"
+      "http": 200,
+      "previousValue": "full",
+      "resultValue": "strict"
     },
     "universalSsl": {
       "endpoint": "GET /zones/5e3dc058ed16f3aee917f1cef2e9f413/ssl/universal/settings",
@@ -96,9 +96,9 @@
       "auth": "wrangler-oauth"
     }
   },
-  "sslMode": "full",
-  "sslModeLabel": "Full",
-  "sslModeFullStrict": false,
+  "sslMode": "strict",
+  "sslModeLabel": "Full (strict)",
+  "sslModeFullStrict": true,
   "universalSslEnabled": true,
   "certificatePacks": [
     {
@@ -124,7 +124,7 @@
           "status": "active",
           "issuer": "GoogleTrustServices",
           "expires_on": "2026-11-16T04:50:11.000000Z",
-          "uploaded_on": "2026-08-18T06:50:26.184206Z",
+          "uploaded_on": "2026-08-18T07:03:02.248396Z",
           "signature": "ECDSAWithSHA256",
           "bundle_method": "ubiquitous"
         }
@@ -136,7 +136,7 @@
     "www.visutry.com": "wildcard:*.visutry.com"
   },
   "issuer": "GoogleTrustServices",
-  "validFrom": "2026-08-18T06:50:26.184206Z",
+  "validFrom": "2026-08-18T07:03:02.248396Z",
   "validTo": "2026-11-16T04:50:11.000000Z",
   "certificateAuthority": "google",
   "wwwProxied": false,
@@ -284,9 +284,9 @@
   "mutations": {
     "wwwProxiedEnabled": false,
     "apexProxiedEnabled": false,
-    "sslModeChanged": false,
+    "sslModeChanged": true,
     "sslModePatchAttempted": true,
-    "sslModePatchHttp": 403,
+    "sslModePatchHttp": 200,
     "universalSslChanged": false,
     "certificatePacksChanged": false,
     "originCertificatesIssued": false,
@@ -296,8 +296,9 @@
     "nameserversChanged": false,
     "b3Executed": false
   },
-  "requiredTokenToUnblock": [
-    "Zone / Zone Settings / Write"
-  ],
-  "remainingGate": "Operator approved full → strict; PATCH 403/9109. Need Zone Settings Write or dashboard change. Not executed."
+  "requiredTokenToUnblock": [],
+  "remainingGate": null,
+  "b2": "PASS",
+  "b3Eligible": true,
+  "b3Executed": false
 }

@@ -1,13 +1,13 @@
 # VisuTry Cloudflare B4.2C Phase B — Checkpoint B2 (Universal SSL readiness)
 
-**Status:** BLOCKED — SSL/TLS mode is `full` (Full), not Full (strict); PATCH 403/9109
+**Status:** PASS — Universal SSL ACTIVE; SSL mode Full (strict); www DNS_ONLY
 **Date:** 2026-08-18
 **Owner:** Product / Engineering  
 **Branch:** `cursor/cloudflare-b4-2c-phase-b2-universal-ssl`  
 **Starting SHA:** `b56e6487b0759fe7f3533cbdf4c56da0a6aec649` (PR #98 merge on `origin/main`)
 
-**www Cloudflare proxy:** NO (still DNS_ONLY; B3 not executed)  
-**SSL/TLS mode mutated:** NO  
+**www Cloudflare proxy:** NO (still DNS_ONLY; B3 not executed)
+**SSL/TLS mode mutated:** YES (operator-approved `full` → `strict` only)
 **Universal SSL mutated:** NO  
 **Certificate packs mutated:** NO  
 **Origin certificates issued:** NO  
@@ -33,11 +33,11 @@ Related:
 
 | Item | Value |
 | --- | --- |
-| RESULT | **BLOCKED** |
+| RESULT | **PASS** |
 | PR #98 merge on main | YES (`b56e648`) |
 | Zone status | **active** |
 | `activated_on` | `2026-08-18T04:50:11.019408Z` |
-| SSL mode | **full** (Cloudflare **Full**, not **Full (strict)**) — **not changed** |
+| SSL mode | **strict** (Full (strict)) — operator-approved PATCH `2026-08-18T07:02:54Z` |
 | Universal SSL enabled | **true** |
 | Certificate pack type | **universal** |
 | Certificate pack status | **active** |
@@ -51,9 +51,9 @@ Related:
 | Application | Vercel path healthy |
 | B3 | **NO-GO** / not executed |
 
-B2 cannot be **PASS**. The edge certificate is ACTIVE and Universal SSL is enabled, but SSL mode is **Full** (`value: full`), not **Full (strict)** (`value: strict`). Mode was **not** mutated.
+B2 **PASS**. Cloudflare edge TLS is ready. Public `https://www.visutry.com` still terminates at Vercel because www remains DNS_ONLY.
 
-B2 is **BLOCKED**, not **WAITING**: the pack is `active`; the remaining gate is SSL mode.
+B3 is only eligible for **separate approval**. Do not enable www proxy. Do not attach Worker Routes.
 
 ## 2. Baseline
 
@@ -102,52 +102,34 @@ Captured against system resolver, `1.1.1.1`, `8.8.8.8`, and `@romina.ns.cloudfla
 
 ## 5. SSL API access
 
-Retry 3 used a new temporary user API token in the shell only (Zone Read + SSL and Certificates Read + DNS Read + Zone Settings Read). Token values are not stored and were unset after the reads.
+Retry 4 used the same temporary token after the operator added Zone Settings **Edit/Write**. Token values are not stored and were unset after use.
 
-| Endpoint | Retry 1 | Retry 2 | Retry 3 |
-| --- | --- | --- | --- |
-| `GET /zones/:id/settings/ssl` | 403 / 9109 | 403 / 9109 | **200** `value: full` |
-| `GET /zones/:id/ssl/universal/settings` | 403 / 9109 | 200 enabled | **200** enabled, CA google |
-| `GET /zones/:id/ssl/certificate_packs?status=all` | 403 / 9109 | 200 active | **200** universal `active` |
-| www / apex DNS `proxied` | unread | `false` | **`false`** |
-| Worker Routes | 0 | 0 | **0** |
+| Endpoint | Retry 3 | Retry 4 |
+| --- | --- | --- |
+| `GET /zones/:id/settings/ssl` | 200 `full` | **200 `strict`** |
+| `PATCH /zones/:id/settings/ssl` `{"value":"strict"}` | 403 / 9109 | **200 `strict`** |
+| Universal SSL / cert packs | enabled / active | enabled / active |
+| www / apex `proxied` | `false` | **`false`** |
+| Worker Routes | 0 | **0** |
 
-Do **not** change SSL mode to force a PASS.
+The only mutation in B2 was SSL mode `full` → `strict`. www was not orange-clouded.
 
 ## 6. SSL/TLS mode
 
-Expected future architecture: **Full (strict)** (`value: strict`).
+Expected: **Full (strict)** (`value: strict`).
 
-Actual value: **`full`** (dashboard label **Full**). Captured `2026-08-18T06:50:21Z`.
+Actual value after operator-approved PATCH: **`strict`**.
 
-| Field | Value |
-| --- | --- |
-| `id` | `ssl` |
-| `value` | `full` |
-| `certificate_status` | `active` |
-| `validation_errors` | `[]` |
-| `editable` | `true` |
-| `modified_on` | `null` |
-
-`full` encrypts origin connections but does **not** validate the origin certificate. `strict` is required for B2 PASS.
-
-Operator approved `full` → `strict` on 2026-08-18 (chat). PATCH was attempted:
-
-```http
-PATCH /zones/5e3dc058ed16f3aee917f1cef2e9f413/settings/ssl
-{"value":"strict"}
-```
-
-Result: HTTP **403** / code **9109** (`Unauthorized to access requested resource`). Current token can **read** zone settings but cannot **write** them. Mode remains **`full`**. www/apex were not proxied. Worker Routes were not attached.
-
-To complete the approved change, either:
-
-1. Provide a temporary token that includes **Zone Settings Write** (keep other grants read-only), or
-2. In the Cloudflare dashboard: SSL/TLS → Overview → Encryption mode → **Full (strict)** → Save, then say it is done so it can be re-read.
+| Field | Pre-PATCH | Post-PATCH (`2026-08-18T07:02:54.108890Z`) |
+| --- | --- | --- |
+| `value` | `full` | **`strict`** |
+| `certificate_status` | `active` | `active` |
+| `validation_errors` | `[]` | `[]` |
+| Re-GET confirm | `full` | **`strict`** |
 
 ## 7. Universal SSL / certificate packs
 
-Captured `2026-08-18T06:50:21Z` from `GET /zones/:id/ssl/certificate_packs?status=all` (unchanged ACTIVE pack).
+Captured `2026-08-18T07:02:45Z` from `GET /zones/:id/ssl/certificate_packs?status=all`.
 
 | Field | API value |
 | --- | --- |
@@ -163,7 +145,7 @@ Captured `2026-08-18T06:50:21Z` from `GET /zones/:id/ssl/certificate_packs?statu
 | Issuer | `GoogleTrustServices` |
 | Certificate authority | `google` |
 | Signature | `ECDSAWithSHA256` |
-| Uploaded on | `2026-08-18T06:50:26.184206Z` |
+| Uploaded on | `2026-08-18T07:03:02.248396Z` |
 | Expires on | `2026-11-16T04:50:11.000000Z` |
 | Validity days | 90 |
 | Validation method | `txt` |
@@ -245,7 +227,7 @@ Nothing was deployed.
 | # | Requirement | Result |
 | --- | --- | --- |
 | 1 | Cloudflare zone ACTIVE | **PASS** |
-| 2 | SSL mode = Full (strict) | **BLOCKED** (actual `full` / Full; not mutated) |
+| 2 | SSL mode = Full (strict) | **PASS** (`value: strict`, confirmed GET after PATCH) |
 | 3 | Universal SSL enabled | **PASS** (`enabled: true`) |
 | 4 | Active edge certificate exists | **PASS** (universal pack `active`) |
 | 5 | Certificate covers `visutry.com` | **PASS** |
@@ -257,15 +239,13 @@ Nothing was deployed.
 | 11 | Custom Domain = NONE | **PASS** |
 | 12 | Production application healthy | **PASS** |
 
-**B2 = BLOCKED** (SSL mode is Full, not Full (strict); approved PATCH returned 403/9109)
+**B2 = PASS**
 
-Changing `full` → `strict` is **approved** but not applied. Do not enable www proxy.
+B3 is only eligible for separate approval. Do **not** enable www proxy. Do **not** attach Worker Routes.
 
 ## 14. B3
 
-**NO-GO.**
-
-Even a future B2 PASS does not execute B3. B3 remains a separate approval:
+**NO-GO** (not executed). B2 PASS does not run B3.
 
 ```text
 Cloudflare authoritative DNS → www PROXIED → Cloudflare edge → Vercel origin
@@ -277,8 +257,7 @@ Worker Routes must still be 0 after B3. This task did **not**:
 - enable orange-cloud on apex
 - attach Worker Routes
 - bind www as a Worker Custom Domain
-- change SSL mode / Always Use HTTPS / Redirect Rules
-- change Auth0 / Stripe / mail / registrar NS
+- change Always Use HTTPS / Redirect Rules / Auth0 / Stripe / mail / registrar NS
 
 ## 15. Runtime code
 
