@@ -67,6 +67,22 @@ export interface TryOnResult {
   error?: string
 }
 
+function describeImageSourceForLog(value: string): string {
+  if (value.startsWith('data:')) {
+    const separator = value.indexOf(',')
+    const header = separator >= 0 ? value.slice(0, Math.min(separator, 80)) : 'data:'
+    return `${header},[redacted ${value.length} chars]`
+  }
+
+  try {
+    const parsed = new URL(value)
+    if (parsed.search) return `${parsed.origin}${parsed.pathname}?[redacted]`
+    return value.length > 160 ? `${value.slice(0, 160)}...` : value
+  } catch {
+    return value.length > 160 ? `${value.slice(0, 160)}...` : value
+  }
+}
+
 export async function generateTryOnImage({
   userImageUrl,
   itemImageUrl,
@@ -93,8 +109,13 @@ export async function generateTryOnImage({
 
   try {
     const totalStartTime = Date.now()
+    const userImageSource = describeImageSourceForLog(userImageUrl)
+    const itemImageSource = describeImageSourceForLog(actualItemImageUrl)
     console.log("🎨 Starting Gemini 2.0 Flash Image Generation virtual try-on...")
-    logger.info('api', 'Starting Gemini virtual try-on', { userImageUrl, itemImageUrl: actualItemImageUrl })
+    logger.info('api', 'Starting Gemini virtual try-on', {
+      userImageSource,
+      itemImageSource,
+    })
 
     // Use Gemini 2.5 Flash Image
     // This model supports image generation and is accessible with the current API key
@@ -110,16 +131,17 @@ export async function generateTryOnImage({
     // Fetch images in parallel for better performance
     // Add timeout to prevent hanging
     const downloadStartTime = Date.now()
-    console.log(`📥 Downloading images from Blob Storage...`)
-    logger.debug('api', 'Downloading images from Blob Storage', { userImageUrl, itemImageUrl: actualItemImageUrl })
-    console.log(`   User image: ${userImageUrl}`)
-    console.log(`   Item image: ${actualItemImageUrl}`)
+    console.log(`📥 Downloading generation input images...`)
+    logger.debug('api', 'Downloading generation input images', { userImageSource, itemImageSource })
+    console.log(`   User image: ${userImageSource}`)
+    console.log(`   Item image: ${itemImageSource}`)
 
     const fetchWithRetry = async (url: string, maxRetries: number = 3, timeoutMs: number = 30000) => {
+      const sourceDescription = describeImageSourceForLog(url)
       for (let attempt = 1; attempt <= maxRetries; attempt++) {
         try {
-          console.log(`   Attempt ${attempt}/${maxRetries} for ${url.substring(0, 80)}...`)
-          logger.debug('api', `Fetch attempt ${attempt}/${maxRetries}`, { url: url.substring(0, 80) })
+          console.log(`   Attempt ${attempt}/${maxRetries} for ${sourceDescription}...`)
+          logger.debug('api', `Fetch attempt ${attempt}/${maxRetries}`, { source: sourceDescription })
 
           const controller = new AbortController()
           const timeout = setTimeout(() => controller.abort(), timeoutMs)
@@ -152,7 +174,7 @@ export async function generateTryOnImage({
         } catch (error) {
           const err = error instanceof Error ? error : new Error(String(error))
           console.error(`   ❌ Error on attempt ${attempt}:`, error instanceof Error ? error.message : error)
-          logger.error('api', `Fetch error on attempt ${attempt}`, err)
+          logger.error('api', `Fetch error on attempt ${attempt}`, err, { source: sourceDescription })
 
           if (attempt < maxRetries) {
             const delay = attempt * 1000
@@ -164,7 +186,7 @@ export async function generateTryOnImage({
         }
       }
 
-      throw new Error(`Failed to fetch after ${maxRetries} attempts: ${url}`)
+      throw new Error(`Failed to fetch generation input after ${maxRetries} attempts: ${sourceDescription}`)
     }
 
     const [userImageResponse, itemImageResponse] = await Promise.all([

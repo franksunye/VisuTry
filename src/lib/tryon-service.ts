@@ -20,6 +20,8 @@ import {
   reconcileStaleConsumerDispatch,
   STALE_CONSUMER_DISPATCH_ERROR,
 } from '@/lib/generation/reconcile-stale-consumer-dispatch'
+import { getTryOnSourceBlobOptions } from '@/lib/tryon-blob-access'
+import { tryOnProviderMediaInput } from '@/lib/tryon-media-loader'
 
 export type { TryOnPollResult, TryOnSubmissionResult }
 
@@ -112,6 +114,12 @@ async function inspectFile(file: File): Promise<FileInspection> {
   }
 }
 
+async function fileToDataUri(file: File): Promise<string> {
+  const buffer = Buffer.from(await file.arrayBuffer())
+  const mimeType = file.type || 'image/jpeg'
+  return `data:${mimeType};base64,${buffer.toString('base64')}`
+}
+
 export async function submitTryOnTask(
   user: User,
   userImageFile: File,
@@ -195,19 +203,22 @@ export async function submitTryOnTask(
     })
   }
 
-  // 1. Upload images to Vercel Blob for persistence
-  // Note: We upload regardless of service to ensure we have a record of input
+  // 1. Upload images to Vercel Blob for persistence. Step 2B keeps result
+  // images public for Share, but new user/item source media follows the
+  // configured protected source-media access policy.
+  const sourceBlobOptions = getTryOnSourceBlobOptions()
   let userBlob, itemBlob
   try {
     [userBlob, itemBlob] = await Promise.all([
-      put(`tryon/user/${user.id}/${Date.now()}-${userImageFile.name}`, userImageFile, { access: 'public' }),
-      put(`tryon/item/${user.id}/${Date.now()}-${itemImageFile.name}`, itemImageFile, { access: 'public' })
+      put(`tryon/user/${user.id}/${Date.now()}-${userImageFile.name}`, userImageFile, sourceBlobOptions),
+      put(`tryon/item/${user.id}/${Date.now()}-${itemImageFile.name}`, itemImageFile, sourceBlobOptions)
     ])
   } catch (error) {
     logger.error('tryon-service', 'Failed to upload images to blob storage', error as Error, {
       userId: user.id,
       clientSubmissionId,
       type,
+      sourceAccess: sourceBlobOptions.access,
     })
     throw new Error("Failed to upload images")
   }
@@ -243,13 +254,15 @@ export async function submitTryOnTask(
     userImageUrl: userBlob.url,
     itemImageUrl: itemBlob.url,
     identicalUploadUrls: userBlob.url === itemBlob.url,
+    sourceBlobAccess: sourceBlobOptions.access,
   }
 
   logger.debug('tryon-service', 'Try-on upload diagnostics collected', {
     userId: user.id,
     clientSubmissionId,
     type,
-    ...uploadDiagnostics,
+    identicalUploadUrls: uploadDiagnostics.identicalUploadUrls,
+    sourceBlobAccess: sourceBlobOptions.access,
   })
 
   if (uploadDiagnostics.identicalUploadUrls) {
@@ -257,7 +270,13 @@ export async function submitTryOnTask(
       'tryon-service',
       'Try-on upload produced identical URLs',
       new Error('Identical upload URLs detected'),
-      { userId: user.id, clientSubmissionId, type, ...uploadDiagnostics }
+      {
+        userId: user.id,
+        clientSubmissionId,
+        type,
+        identicalUploadUrls: true,
+        sourceBlobAccess: sourceBlobOptions.access,
+      }
     )
   }
 
@@ -317,10 +336,15 @@ export async function submitTryOnTask(
   if (serviceType === 'gemini') {
     // --- Gemini (Synchronous) ---
     try {
-      // Trigger Gemini generation
+      // Generation consumes the request-local files rather than persisted Blob URLs.
+      // This keeps Gemini independent of source-media storage visibility.
+      const [userDataUri, itemDataUri] = await Promise.all([
+        fileToDataUri(userImageFile),
+        fileToDataUri(itemImageFile),
+      ])
       const result = await generateTryOnImage({
-        userImageUrl: userBlob.url,
-        itemImageUrl: itemBlob.url,
+        userImageUrl: userDataUri,
+        itemImageUrl: itemDataUri,
         prompt: effectivePrompt,
         promptVersion,
       })
@@ -335,14 +359,14 @@ export async function submitTryOnTask(
           const blob = await response.blob()
           const file = new File([blob], `result-${task.id}.png`, { type: blob.type })
           
-          // Upload to Vercel Blob
+          // Result remains public until Step 2C introduces explicit Share capability.
           const resultOwnerKey = task.userId ?? task.id
           const uploadedBlob = await put(`tryon/result/${resultOwnerKey}/${task.id}.png`, file, { access: 'public' })
           finalResultUrl = uploadedBlob.url
           logger.info('tryon-service', 'Gemini result uploaded to blob', {
             taskId: task.id,
             clientSubmissionId,
-            url: finalResultUrl
+            access: 'public',
           })
         } catch (uploadError) {
           logger.error('tryon-service', 'Failed to upload Gemini result to blob', uploadError as Error, {
@@ -398,16 +422,12 @@ export async function submitTryOnTask(
   } else {
     // --- GrsAi (Asynchronous) ---
     try {
-      // Convert to Data URIs for GrsAi
-      // We read from the File objects provided
-      const userBuffer = Buffer.from(await userImageFile.arrayBuffer())
-      const itemBuffer = Buffer.from(await itemImageFile.arrayBuffer())
-      
-      const userMime = userImageFile.type || 'image/jpeg'
-      const itemMime = itemImageFile.type || 'image/jpeg'
-      
-      const userDataUri = `data:${userMime};base64,${userBuffer.toString('base64')}`
-      const itemDataUri = `data:${itemMime};base64,${itemBuffer.toString('base64')}`
+      // Initial provider dispatch consumes request-local files and never needs
+      // public source Blob URLs.
+      const [userDataUri, itemDataUri] = await Promise.all([
+        fileToDataUri(userImageFile),
+        fileToDataUri(itemImageFile),
+      ])
 
       const externalTaskId = await submitAsyncTask(
         userDataUri,
@@ -570,7 +590,8 @@ export async function getTryOnResult(taskId: string): Promise<TryOnPollResult> {
         })
       }
 
-      // Consumer path: public blob persist with provider-URL fallback.
+      // Consumer path: public result persist with provider-URL fallback. Result
+      // privacy is intentionally deferred to Step 2C so existing Share remains valid.
       const resultOwnerKey = task.userId ?? taskId
       const resultPathname = `tryon/result/${resultOwnerKey}/${taskId}.png`
 
@@ -652,7 +673,7 @@ export async function getTryOnResult(taskId: string): Promise<TryOnPollResult> {
         progress: 100,
         isNewCompletion,
       }
-        } else if (pollResult.status === 'succeeded' && !pollResult.imageUrl) {
+    } else if (pollResult.status === 'succeeded' && !pollResult.imageUrl) {
       const errorMessage = 'GrsAi task succeeded without a result image URL'
 
       logger.error('tryon-service', errorMessage, undefined, {
@@ -716,9 +737,16 @@ export async function getTryOnResult(taskId: string): Promise<TryOnPollResult> {
         })
 
         try {
+          // Preserve legacy public provider inputs exactly, while private Blob
+          // sources are resolved server-side into short-lived in-memory data URIs.
+          const [retryUserInput, retryItemInput] = await Promise.all([
+            tryOnProviderMediaInput(task.userImageUrl),
+            tryOnProviderMediaInput(task.itemImageUrl),
+          ])
+
           const retriedExternalTaskId = await submitAsyncTask(
-            task.userImageUrl,
-            task.itemImageUrl,
+            retryUserInput,
+            retryItemInput,
             retryPrompt,
             retryPromptVersion,
             {
