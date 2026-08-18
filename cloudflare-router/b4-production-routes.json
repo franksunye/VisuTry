@@ -1,0 +1,3342 @@
+{
+  "activated": false,
+  "customDomain": false,
+  "wranglerProductionRoutesWired": false,
+  "host": "www.visutry.com",
+  "zone": "visutry.com",
+  "generatedFrom": "cloudflare-router/b4-production-routes.ts",
+  "note": "Do not paste into wrangler.jsonc. Do not deploy. Review only.",
+  "summary": {
+    "total": 286,
+    "byLayer": {
+      "layer1-static-asset": 9,
+      "layer2-worker": 277
+    },
+    "byPriority": {
+      "P0": 13,
+      "P1": 203,
+      "P2": 70
+    },
+    "safetyErrors": []
+  },
+  "routes": [
+    {
+      "pattern": "www.visutry.com/_next/static*",
+      "layer": "layer1-static-asset",
+      "expectedExecution": "static-asset",
+      "workerQuota": "asset-miss-only",
+      "reason": "hashed OpenNext Static Assets; run_worker_first=false skips Worker on exact file hits",
+      "excludedConflicts": [
+        "/_next/image stays unrouted"
+      ],
+      "rollbackClass": "delete-route",
+      "priority": "P0",
+      "feasibility": "B"
+    },
+    {
+      "pattern": "www.visutry.com/blog-covers*",
+      "layer": "layer1-static-asset",
+      "expectedExecution": "static-asset",
+      "workerQuota": "asset-miss-only",
+      "reason": "non-hashed public files in .open-next/assets",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P0",
+      "feasibility": "B"
+    },
+    {
+      "pattern": "www.visutry.com/assets*",
+      "layer": "layer1-static-asset",
+      "expectedExecution": "static-asset",
+      "workerQuota": "asset-miss-only",
+      "reason": "non-hashed public files in .open-next/assets",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P0",
+      "feasibility": "B"
+    },
+    {
+      "pattern": "www.visutry.com/images*",
+      "layer": "layer1-static-asset",
+      "expectedExecution": "static-asset",
+      "workerQuota": "asset-miss-only",
+      "reason": "non-hashed public files in .open-next/assets",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P0",
+      "feasibility": "B"
+    },
+    {
+      "pattern": "www.visutry.com/home*",
+      "layer": "layer1-static-asset",
+      "expectedExecution": "static-asset",
+      "workerQuota": "asset-miss-only",
+      "reason": "non-hashed public files in .open-next/assets",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P0",
+      "feasibility": "B"
+    },
+    {
+      "pattern": "www.visutry.com/experience-heroes*",
+      "layer": "layer1-static-asset",
+      "expectedExecution": "static-asset",
+      "workerQuota": "asset-miss-only",
+      "reason": "non-hashed public files in .open-next/assets",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P0",
+      "feasibility": "B"
+    },
+    {
+      "pattern": "www.visutry.com/favicon.ico",
+      "layer": "layer1-static-asset",
+      "expectedExecution": "static-asset",
+      "workerQuota": "asset-miss-only",
+      "reason": "exact control/public asset in .open-next/assets",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P0",
+      "feasibility": "A"
+    },
+    {
+      "pattern": "www.visutry.com/robots.txt",
+      "layer": "layer1-static-asset",
+      "expectedExecution": "static-asset",
+      "workerQuota": "asset-miss-only",
+      "reason": "exact control/public asset in .open-next/assets",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P0",
+      "feasibility": "A"
+    },
+    {
+      "pattern": "www.visutry.com/llms.txt",
+      "layer": "layer1-static-asset",
+      "expectedExecution": "static-asset",
+      "workerQuota": "asset-miss-only",
+      "reason": "exact control/public asset in .open-next/assets",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P0",
+      "feasibility": "A"
+    },
+    {
+      "pattern": "www.visutry.com/api/health",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "approved GET/HEAD public API; exact so /api/glasses/frames cannot match",
+      "excludedConflicts": [
+        "/api/glasses/frames",
+        "/api/auth/*",
+        "/api/glasses/*"
+      ],
+      "rollbackClass": "delete-route",
+      "priority": "P0",
+      "feasibility": "A"
+    },
+    {
+      "pattern": "www.visutry.com/api/glasses/brands",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "approved GET/HEAD public API; exact so /api/glasses/frames cannot match",
+      "excludedConflicts": [
+        "/api/glasses/frames",
+        "/api/auth/*",
+        "/api/glasses/*"
+      ],
+      "rollbackClass": "delete-route",
+      "priority": "P0",
+      "feasibility": "A"
+    },
+    {
+      "pattern": "www.visutry.com/api/glasses/categories",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "approved GET/HEAD public API; exact so /api/glasses/frames cannot match",
+      "excludedConflicts": [
+        "/api/glasses/frames",
+        "/api/auth/*",
+        "/api/glasses/*"
+      ],
+      "rollbackClass": "delete-route",
+      "priority": "P0",
+      "feasibility": "A"
+    },
+    {
+      "pattern": "www.visutry.com/api/glasses/face-shapes",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "approved GET/HEAD public API; exact so /api/glasses/frames cannot match",
+      "excludedConflicts": [
+        "/api/glasses/frames",
+        "/api/auth/*",
+        "/api/glasses/*"
+      ],
+      "rollbackClass": "delete-route",
+      "priority": "P0",
+      "feasibility": "A"
+    },
+    {
+      "pattern": "www.visutry.com",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "root locale detection; implied path / only (Cloudflare: example.com matches / and nothing else)",
+      "excludedConflicts": [
+        "www.visutry.com/* catch-all is forbidden"
+      ],
+      "rollbackClass": "delete-route",
+      "priority": "P1",
+      "feasibility": "A"
+    },
+    {
+      "pattern": "www.visutry.com/sitemap.xml",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "static sitemaps are OpenNext Worker cache, not Static Assets",
+      "excludedConflicts": [
+        "/sitemaps/dynamic.xml"
+      ],
+      "rollbackClass": "delete-route",
+      "priority": "P1",
+      "feasibility": "A"
+    },
+    {
+      "pattern": "www.visutry.com/sitemaps/core.xml",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "static sitemaps are OpenNext Worker cache, not Static Assets",
+      "excludedConflicts": [
+        "/sitemaps/dynamic.xml"
+      ],
+      "rollbackClass": "delete-route",
+      "priority": "P1",
+      "feasibility": "A"
+    },
+    {
+      "pattern": "www.visutry.com/sitemaps/blog.xml",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "static sitemaps are OpenNext Worker cache, not Static Assets",
+      "excludedConflicts": [
+        "/sitemaps/dynamic.xml"
+      ],
+      "rollbackClass": "delete-route",
+      "priority": "P1",
+      "feasibility": "A"
+    },
+    {
+      "pattern": "www.visutry.com/en",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "locale home; never use /:locale* which would capture Layer 3",
+      "excludedConflicts": [
+        "/en/store/:slug",
+        "/en/discover",
+        "/en/c/*"
+      ],
+      "rollbackClass": "delete-route",
+      "priority": "P1",
+      "feasibility": "A"
+    },
+    {
+      "pattern": "www.visutry.com/en/store",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "Store hub only. Cloudflare path* is greedy; store* would capture /store/:slug",
+      "excludedConflicts": [
+        "/en/store/:merchantSlug"
+      ],
+      "rollbackClass": "delete-route",
+      "priority": "P1",
+      "feasibility": "A"
+    },
+    {
+      "pattern": "www.visutry.com/en/face-shape-detector",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "approved first-slice marketing/SEO HTML",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P1",
+      "feasibility": "A"
+    },
+    {
+      "pattern": "www.visutry.com/en/face-analysis",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "approved first-slice marketing/SEO HTML",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P1",
+      "feasibility": "A"
+    },
+    {
+      "pattern": "www.visutry.com/en/glasses-for-face-shape",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "approved first-slice marketing/SEO HTML",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P1",
+      "feasibility": "A"
+    },
+    {
+      "pattern": "www.visutry.com/en/what-is-my-face-shape",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "approved first-slice marketing/SEO HTML",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P1",
+      "feasibility": "A"
+    },
+    {
+      "pattern": "www.visutry.com/en/what-glasses-suit-my-face",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "approved first-slice marketing/SEO HTML",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P1",
+      "feasibility": "A"
+    },
+    {
+      "pattern": "www.visutry.com/en/find-glasses-for-my-face",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "approved first-slice marketing/SEO HTML",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P1",
+      "feasibility": "A"
+    },
+    {
+      "pattern": "www.visutry.com/en/virtual-glasses-try-on",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "approved first-slice marketing/SEO HTML",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P1",
+      "feasibility": "A"
+    },
+    {
+      "pattern": "www.visutry.com/en/try-glasses-on-photo",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "approved first-slice marketing/SEO HTML",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P1",
+      "feasibility": "A"
+    },
+    {
+      "pattern": "www.visutry.com/en/compare-glasses-frames",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "approved first-slice marketing/SEO HTML",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P1",
+      "feasibility": "A"
+    },
+    {
+      "pattern": "www.visutry.com/en/ai-glasses-advisor",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "approved first-slice marketing/SEO HTML",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P1",
+      "feasibility": "A"
+    },
+    {
+      "pattern": "www.visutry.com/en/pricing",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "approved first-slice marketing/SEO HTML",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P1",
+      "feasibility": "A"
+    },
+    {
+      "pattern": "www.visutry.com/en/business",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "approved first-slice marketing/SEO HTML",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P1",
+      "feasibility": "A"
+    },
+    {
+      "pattern": "www.visutry.com/en/privacy",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "approved first-slice marketing/SEO HTML",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P1",
+      "feasibility": "A"
+    },
+    {
+      "pattern": "www.visutry.com/en/terms",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "approved first-slice marketing/SEO HTML",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P1",
+      "feasibility": "A"
+    },
+    {
+      "pattern": "www.visutry.com/en/refund",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "approved first-slice marketing/SEO HTML",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P1",
+      "feasibility": "A"
+    },
+    {
+      "pattern": "www.visutry.com/en/faq",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "approved first-slice marketing/SEO HTML",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P1",
+      "feasibility": "A"
+    },
+    {
+      "pattern": "www.visutry.com/en/face-shape-measurement",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "approved first-slice marketing/SEO HTML",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P1",
+      "feasibility": "A"
+    },
+    {
+      "pattern": "www.visutry.com/en/blog*",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "blog index, posts, and tags are first-slice HTML / locale-less 308s",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P2",
+      "feasibility": "B"
+    },
+    {
+      "pattern": "www.visutry.com/en/brand*",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "curated brand pages; unknown brand 404s on CF HTML, not Store/Campaign",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P2",
+      "feasibility": "B"
+    },
+    {
+      "pattern": "www.visutry.com/en/glasses-guide*",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "glasses-guide hub and slugs",
+      "excludedConflicts": [
+        "/glasses-for-face-shape is a different stem"
+      ],
+      "rollbackClass": "delete-route",
+      "priority": "P2",
+      "feasibility": "B"
+    },
+    {
+      "pattern": "www.visutry.com/en/face-shapes*",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "face-shapes hub, shape pages, and compare pages",
+      "excludedConflicts": [
+        "/face-shape-detector and /face-analysis are exact routes"
+      ],
+      "rollbackClass": "delete-route",
+      "priority": "P2",
+      "feasibility": "B"
+    },
+    {
+      "pattern": "www.visutry.com/en/sunglasses-for*",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "covers /sunglasses-for-face-shape and /sunglasses-for/:faceShape",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P2",
+      "feasibility": "B"
+    },
+    {
+      "pattern": "www.visutry.com/en/hairstyles-for*",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "covers /hairstyles-for-face-shape and /hairstyles-for/:faceShape",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P2",
+      "feasibility": "B"
+    },
+    {
+      "pattern": "www.visutry.com/en/try-on*",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "try-on landings; does not match /try/:slug because the stem is try-on",
+      "excludedConflicts": [
+        "/:locale/try/*",
+        "/try/*"
+      ],
+      "rollbackClass": "delete-route",
+      "priority": "P1",
+      "feasibility": "B"
+    },
+    {
+      "pattern": "www.visutry.com/en/style/*",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "style/:faceShape only. style* would capture /style-explorer",
+      "excludedConflicts": [
+        "/en/style-explorer"
+      ],
+      "rollbackClass": "delete-route",
+      "priority": "P2",
+      "feasibility": "B"
+    },
+    {
+      "pattern": "www.visutry.com/id",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "locale home; never use /:locale* which would capture Layer 3",
+      "excludedConflicts": [
+        "/id/store/:slug",
+        "/id/discover",
+        "/id/c/*"
+      ],
+      "rollbackClass": "delete-route",
+      "priority": "P1",
+      "feasibility": "A"
+    },
+    {
+      "pattern": "www.visutry.com/id/store",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "Store hub only. Cloudflare path* is greedy; store* would capture /store/:slug",
+      "excludedConflicts": [
+        "/id/store/:merchantSlug"
+      ],
+      "rollbackClass": "delete-route",
+      "priority": "P1",
+      "feasibility": "A"
+    },
+    {
+      "pattern": "www.visutry.com/id/face-shape-detector",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "approved first-slice marketing/SEO HTML",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P1",
+      "feasibility": "A"
+    },
+    {
+      "pattern": "www.visutry.com/id/face-analysis",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "approved first-slice marketing/SEO HTML",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P1",
+      "feasibility": "A"
+    },
+    {
+      "pattern": "www.visutry.com/id/glasses-for-face-shape",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "approved first-slice marketing/SEO HTML",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P1",
+      "feasibility": "A"
+    },
+    {
+      "pattern": "www.visutry.com/id/what-is-my-face-shape",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "approved first-slice marketing/SEO HTML",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P1",
+      "feasibility": "A"
+    },
+    {
+      "pattern": "www.visutry.com/id/what-glasses-suit-my-face",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "approved first-slice marketing/SEO HTML",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P1",
+      "feasibility": "A"
+    },
+    {
+      "pattern": "www.visutry.com/id/find-glasses-for-my-face",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "approved first-slice marketing/SEO HTML",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P1",
+      "feasibility": "A"
+    },
+    {
+      "pattern": "www.visutry.com/id/virtual-glasses-try-on",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "approved first-slice marketing/SEO HTML",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P1",
+      "feasibility": "A"
+    },
+    {
+      "pattern": "www.visutry.com/id/try-glasses-on-photo",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "approved first-slice marketing/SEO HTML",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P1",
+      "feasibility": "A"
+    },
+    {
+      "pattern": "www.visutry.com/id/compare-glasses-frames",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "approved first-slice marketing/SEO HTML",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P1",
+      "feasibility": "A"
+    },
+    {
+      "pattern": "www.visutry.com/id/ai-glasses-advisor",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "approved first-slice marketing/SEO HTML",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P1",
+      "feasibility": "A"
+    },
+    {
+      "pattern": "www.visutry.com/id/pricing",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "approved first-slice marketing/SEO HTML",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P1",
+      "feasibility": "A"
+    },
+    {
+      "pattern": "www.visutry.com/id/business",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "approved first-slice marketing/SEO HTML",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P1",
+      "feasibility": "A"
+    },
+    {
+      "pattern": "www.visutry.com/id/privacy",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "approved first-slice marketing/SEO HTML",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P1",
+      "feasibility": "A"
+    },
+    {
+      "pattern": "www.visutry.com/id/terms",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "approved first-slice marketing/SEO HTML",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P1",
+      "feasibility": "A"
+    },
+    {
+      "pattern": "www.visutry.com/id/refund",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "approved first-slice marketing/SEO HTML",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P1",
+      "feasibility": "A"
+    },
+    {
+      "pattern": "www.visutry.com/id/faq",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "approved first-slice marketing/SEO HTML",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P1",
+      "feasibility": "A"
+    },
+    {
+      "pattern": "www.visutry.com/id/face-shape-measurement",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "approved first-slice marketing/SEO HTML",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P1",
+      "feasibility": "A"
+    },
+    {
+      "pattern": "www.visutry.com/id/blog*",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "blog index, posts, and tags are first-slice HTML / locale-less 308s",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P2",
+      "feasibility": "B"
+    },
+    {
+      "pattern": "www.visutry.com/id/brand*",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "curated brand pages; unknown brand 404s on CF HTML, not Store/Campaign",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P2",
+      "feasibility": "B"
+    },
+    {
+      "pattern": "www.visutry.com/id/glasses-guide*",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "glasses-guide hub and slugs",
+      "excludedConflicts": [
+        "/glasses-for-face-shape is a different stem"
+      ],
+      "rollbackClass": "delete-route",
+      "priority": "P2",
+      "feasibility": "B"
+    },
+    {
+      "pattern": "www.visutry.com/id/face-shapes*",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "face-shapes hub, shape pages, and compare pages",
+      "excludedConflicts": [
+        "/face-shape-detector and /face-analysis are exact routes"
+      ],
+      "rollbackClass": "delete-route",
+      "priority": "P2",
+      "feasibility": "B"
+    },
+    {
+      "pattern": "www.visutry.com/id/sunglasses-for*",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "covers /sunglasses-for-face-shape and /sunglasses-for/:faceShape",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P2",
+      "feasibility": "B"
+    },
+    {
+      "pattern": "www.visutry.com/id/hairstyles-for*",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "covers /hairstyles-for-face-shape and /hairstyles-for/:faceShape",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P2",
+      "feasibility": "B"
+    },
+    {
+      "pattern": "www.visutry.com/id/try-on*",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "try-on landings; does not match /try/:slug because the stem is try-on",
+      "excludedConflicts": [
+        "/:locale/try/*",
+        "/try/*"
+      ],
+      "rollbackClass": "delete-route",
+      "priority": "P1",
+      "feasibility": "B"
+    },
+    {
+      "pattern": "www.visutry.com/id/style/*",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "style/:faceShape only. style* would capture /style-explorer",
+      "excludedConflicts": [
+        "/id/style-explorer"
+      ],
+      "rollbackClass": "delete-route",
+      "priority": "P2",
+      "feasibility": "B"
+    },
+    {
+      "pattern": "www.visutry.com/ar",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "locale home; never use /:locale* which would capture Layer 3",
+      "excludedConflicts": [
+        "/ar/store/:slug",
+        "/ar/discover",
+        "/ar/c/*"
+      ],
+      "rollbackClass": "delete-route",
+      "priority": "P1",
+      "feasibility": "A"
+    },
+    {
+      "pattern": "www.visutry.com/ar/store",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "Store hub only. Cloudflare path* is greedy; store* would capture /store/:slug",
+      "excludedConflicts": [
+        "/ar/store/:merchantSlug"
+      ],
+      "rollbackClass": "delete-route",
+      "priority": "P1",
+      "feasibility": "A"
+    },
+    {
+      "pattern": "www.visutry.com/ar/face-shape-detector",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "approved first-slice marketing/SEO HTML",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P1",
+      "feasibility": "A"
+    },
+    {
+      "pattern": "www.visutry.com/ar/face-analysis",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "approved first-slice marketing/SEO HTML",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P1",
+      "feasibility": "A"
+    },
+    {
+      "pattern": "www.visutry.com/ar/glasses-for-face-shape",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "approved first-slice marketing/SEO HTML",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P1",
+      "feasibility": "A"
+    },
+    {
+      "pattern": "www.visutry.com/ar/what-is-my-face-shape",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "approved first-slice marketing/SEO HTML",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P1",
+      "feasibility": "A"
+    },
+    {
+      "pattern": "www.visutry.com/ar/what-glasses-suit-my-face",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "approved first-slice marketing/SEO HTML",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P1",
+      "feasibility": "A"
+    },
+    {
+      "pattern": "www.visutry.com/ar/find-glasses-for-my-face",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "approved first-slice marketing/SEO HTML",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P1",
+      "feasibility": "A"
+    },
+    {
+      "pattern": "www.visutry.com/ar/virtual-glasses-try-on",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "approved first-slice marketing/SEO HTML",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P1",
+      "feasibility": "A"
+    },
+    {
+      "pattern": "www.visutry.com/ar/try-glasses-on-photo",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "approved first-slice marketing/SEO HTML",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P1",
+      "feasibility": "A"
+    },
+    {
+      "pattern": "www.visutry.com/ar/compare-glasses-frames",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "approved first-slice marketing/SEO HTML",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P1",
+      "feasibility": "A"
+    },
+    {
+      "pattern": "www.visutry.com/ar/ai-glasses-advisor",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "approved first-slice marketing/SEO HTML",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P1",
+      "feasibility": "A"
+    },
+    {
+      "pattern": "www.visutry.com/ar/pricing",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "approved first-slice marketing/SEO HTML",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P1",
+      "feasibility": "A"
+    },
+    {
+      "pattern": "www.visutry.com/ar/business",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "approved first-slice marketing/SEO HTML",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P1",
+      "feasibility": "A"
+    },
+    {
+      "pattern": "www.visutry.com/ar/privacy",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "approved first-slice marketing/SEO HTML",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P1",
+      "feasibility": "A"
+    },
+    {
+      "pattern": "www.visutry.com/ar/terms",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "approved first-slice marketing/SEO HTML",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P1",
+      "feasibility": "A"
+    },
+    {
+      "pattern": "www.visutry.com/ar/refund",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "approved first-slice marketing/SEO HTML",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P1",
+      "feasibility": "A"
+    },
+    {
+      "pattern": "www.visutry.com/ar/faq",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "approved first-slice marketing/SEO HTML",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P1",
+      "feasibility": "A"
+    },
+    {
+      "pattern": "www.visutry.com/ar/face-shape-measurement",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "approved first-slice marketing/SEO HTML",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P1",
+      "feasibility": "A"
+    },
+    {
+      "pattern": "www.visutry.com/ar/blog*",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "blog index, posts, and tags are first-slice HTML / locale-less 308s",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P2",
+      "feasibility": "B"
+    },
+    {
+      "pattern": "www.visutry.com/ar/brand*",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "curated brand pages; unknown brand 404s on CF HTML, not Store/Campaign",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P2",
+      "feasibility": "B"
+    },
+    {
+      "pattern": "www.visutry.com/ar/glasses-guide*",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "glasses-guide hub and slugs",
+      "excludedConflicts": [
+        "/glasses-for-face-shape is a different stem"
+      ],
+      "rollbackClass": "delete-route",
+      "priority": "P2",
+      "feasibility": "B"
+    },
+    {
+      "pattern": "www.visutry.com/ar/face-shapes*",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "face-shapes hub, shape pages, and compare pages",
+      "excludedConflicts": [
+        "/face-shape-detector and /face-analysis are exact routes"
+      ],
+      "rollbackClass": "delete-route",
+      "priority": "P2",
+      "feasibility": "B"
+    },
+    {
+      "pattern": "www.visutry.com/ar/sunglasses-for*",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "covers /sunglasses-for-face-shape and /sunglasses-for/:faceShape",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P2",
+      "feasibility": "B"
+    },
+    {
+      "pattern": "www.visutry.com/ar/hairstyles-for*",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "covers /hairstyles-for-face-shape and /hairstyles-for/:faceShape",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P2",
+      "feasibility": "B"
+    },
+    {
+      "pattern": "www.visutry.com/ar/try-on*",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "try-on landings; does not match /try/:slug because the stem is try-on",
+      "excludedConflicts": [
+        "/:locale/try/*",
+        "/try/*"
+      ],
+      "rollbackClass": "delete-route",
+      "priority": "P1",
+      "feasibility": "B"
+    },
+    {
+      "pattern": "www.visutry.com/ar/style/*",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "style/:faceShape only. style* would capture /style-explorer",
+      "excludedConflicts": [
+        "/ar/style-explorer"
+      ],
+      "rollbackClass": "delete-route",
+      "priority": "P2",
+      "feasibility": "B"
+    },
+    {
+      "pattern": "www.visutry.com/ru",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "locale home; never use /:locale* which would capture Layer 3",
+      "excludedConflicts": [
+        "/ru/store/:slug",
+        "/ru/discover",
+        "/ru/c/*"
+      ],
+      "rollbackClass": "delete-route",
+      "priority": "P1",
+      "feasibility": "A"
+    },
+    {
+      "pattern": "www.visutry.com/ru/store",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "Store hub only. Cloudflare path* is greedy; store* would capture /store/:slug",
+      "excludedConflicts": [
+        "/ru/store/:merchantSlug"
+      ],
+      "rollbackClass": "delete-route",
+      "priority": "P1",
+      "feasibility": "A"
+    },
+    {
+      "pattern": "www.visutry.com/ru/face-shape-detector",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "approved first-slice marketing/SEO HTML",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P1",
+      "feasibility": "A"
+    },
+    {
+      "pattern": "www.visutry.com/ru/face-analysis",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "approved first-slice marketing/SEO HTML",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P1",
+      "feasibility": "A"
+    },
+    {
+      "pattern": "www.visutry.com/ru/glasses-for-face-shape",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "approved first-slice marketing/SEO HTML",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P1",
+      "feasibility": "A"
+    },
+    {
+      "pattern": "www.visutry.com/ru/what-is-my-face-shape",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "approved first-slice marketing/SEO HTML",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P1",
+      "feasibility": "A"
+    },
+    {
+      "pattern": "www.visutry.com/ru/what-glasses-suit-my-face",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "approved first-slice marketing/SEO HTML",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P1",
+      "feasibility": "A"
+    },
+    {
+      "pattern": "www.visutry.com/ru/find-glasses-for-my-face",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "approved first-slice marketing/SEO HTML",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P1",
+      "feasibility": "A"
+    },
+    {
+      "pattern": "www.visutry.com/ru/virtual-glasses-try-on",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "approved first-slice marketing/SEO HTML",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P1",
+      "feasibility": "A"
+    },
+    {
+      "pattern": "www.visutry.com/ru/try-glasses-on-photo",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "approved first-slice marketing/SEO HTML",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P1",
+      "feasibility": "A"
+    },
+    {
+      "pattern": "www.visutry.com/ru/compare-glasses-frames",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "approved first-slice marketing/SEO HTML",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P1",
+      "feasibility": "A"
+    },
+    {
+      "pattern": "www.visutry.com/ru/ai-glasses-advisor",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "approved first-slice marketing/SEO HTML",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P1",
+      "feasibility": "A"
+    },
+    {
+      "pattern": "www.visutry.com/ru/pricing",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "approved first-slice marketing/SEO HTML",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P1",
+      "feasibility": "A"
+    },
+    {
+      "pattern": "www.visutry.com/ru/business",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "approved first-slice marketing/SEO HTML",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P1",
+      "feasibility": "A"
+    },
+    {
+      "pattern": "www.visutry.com/ru/privacy",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "approved first-slice marketing/SEO HTML",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P1",
+      "feasibility": "A"
+    },
+    {
+      "pattern": "www.visutry.com/ru/terms",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "approved first-slice marketing/SEO HTML",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P1",
+      "feasibility": "A"
+    },
+    {
+      "pattern": "www.visutry.com/ru/refund",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "approved first-slice marketing/SEO HTML",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P1",
+      "feasibility": "A"
+    },
+    {
+      "pattern": "www.visutry.com/ru/faq",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "approved first-slice marketing/SEO HTML",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P1",
+      "feasibility": "A"
+    },
+    {
+      "pattern": "www.visutry.com/ru/face-shape-measurement",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "approved first-slice marketing/SEO HTML",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P1",
+      "feasibility": "A"
+    },
+    {
+      "pattern": "www.visutry.com/ru/blog*",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "blog index, posts, and tags are first-slice HTML / locale-less 308s",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P2",
+      "feasibility": "B"
+    },
+    {
+      "pattern": "www.visutry.com/ru/brand*",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "curated brand pages; unknown brand 404s on CF HTML, not Store/Campaign",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P2",
+      "feasibility": "B"
+    },
+    {
+      "pattern": "www.visutry.com/ru/glasses-guide*",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "glasses-guide hub and slugs",
+      "excludedConflicts": [
+        "/glasses-for-face-shape is a different stem"
+      ],
+      "rollbackClass": "delete-route",
+      "priority": "P2",
+      "feasibility": "B"
+    },
+    {
+      "pattern": "www.visutry.com/ru/face-shapes*",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "face-shapes hub, shape pages, and compare pages",
+      "excludedConflicts": [
+        "/face-shape-detector and /face-analysis are exact routes"
+      ],
+      "rollbackClass": "delete-route",
+      "priority": "P2",
+      "feasibility": "B"
+    },
+    {
+      "pattern": "www.visutry.com/ru/sunglasses-for*",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "covers /sunglasses-for-face-shape and /sunglasses-for/:faceShape",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P2",
+      "feasibility": "B"
+    },
+    {
+      "pattern": "www.visutry.com/ru/hairstyles-for*",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "covers /hairstyles-for-face-shape and /hairstyles-for/:faceShape",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P2",
+      "feasibility": "B"
+    },
+    {
+      "pattern": "www.visutry.com/ru/try-on*",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "try-on landings; does not match /try/:slug because the stem is try-on",
+      "excludedConflicts": [
+        "/:locale/try/*",
+        "/try/*"
+      ],
+      "rollbackClass": "delete-route",
+      "priority": "P1",
+      "feasibility": "B"
+    },
+    {
+      "pattern": "www.visutry.com/ru/style/*",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "style/:faceShape only. style* would capture /style-explorer",
+      "excludedConflicts": [
+        "/ru/style-explorer"
+      ],
+      "rollbackClass": "delete-route",
+      "priority": "P2",
+      "feasibility": "B"
+    },
+    {
+      "pattern": "www.visutry.com/de",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "locale home; never use /:locale* which would capture Layer 3",
+      "excludedConflicts": [
+        "/de/store/:slug",
+        "/de/discover",
+        "/de/c/*"
+      ],
+      "rollbackClass": "delete-route",
+      "priority": "P1",
+      "feasibility": "A"
+    },
+    {
+      "pattern": "www.visutry.com/de/store",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "Store hub only. Cloudflare path* is greedy; store* would capture /store/:slug",
+      "excludedConflicts": [
+        "/de/store/:merchantSlug"
+      ],
+      "rollbackClass": "delete-route",
+      "priority": "P1",
+      "feasibility": "A"
+    },
+    {
+      "pattern": "www.visutry.com/de/face-shape-detector",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "approved first-slice marketing/SEO HTML",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P1",
+      "feasibility": "A"
+    },
+    {
+      "pattern": "www.visutry.com/de/face-analysis",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "approved first-slice marketing/SEO HTML",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P1",
+      "feasibility": "A"
+    },
+    {
+      "pattern": "www.visutry.com/de/glasses-for-face-shape",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "approved first-slice marketing/SEO HTML",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P1",
+      "feasibility": "A"
+    },
+    {
+      "pattern": "www.visutry.com/de/what-is-my-face-shape",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "approved first-slice marketing/SEO HTML",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P1",
+      "feasibility": "A"
+    },
+    {
+      "pattern": "www.visutry.com/de/what-glasses-suit-my-face",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "approved first-slice marketing/SEO HTML",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P1",
+      "feasibility": "A"
+    },
+    {
+      "pattern": "www.visutry.com/de/find-glasses-for-my-face",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "approved first-slice marketing/SEO HTML",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P1",
+      "feasibility": "A"
+    },
+    {
+      "pattern": "www.visutry.com/de/virtual-glasses-try-on",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "approved first-slice marketing/SEO HTML",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P1",
+      "feasibility": "A"
+    },
+    {
+      "pattern": "www.visutry.com/de/try-glasses-on-photo",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "approved first-slice marketing/SEO HTML",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P1",
+      "feasibility": "A"
+    },
+    {
+      "pattern": "www.visutry.com/de/compare-glasses-frames",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "approved first-slice marketing/SEO HTML",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P1",
+      "feasibility": "A"
+    },
+    {
+      "pattern": "www.visutry.com/de/ai-glasses-advisor",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "approved first-slice marketing/SEO HTML",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P1",
+      "feasibility": "A"
+    },
+    {
+      "pattern": "www.visutry.com/de/pricing",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "approved first-slice marketing/SEO HTML",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P1",
+      "feasibility": "A"
+    },
+    {
+      "pattern": "www.visutry.com/de/business",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "approved first-slice marketing/SEO HTML",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P1",
+      "feasibility": "A"
+    },
+    {
+      "pattern": "www.visutry.com/de/privacy",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "approved first-slice marketing/SEO HTML",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P1",
+      "feasibility": "A"
+    },
+    {
+      "pattern": "www.visutry.com/de/terms",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "approved first-slice marketing/SEO HTML",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P1",
+      "feasibility": "A"
+    },
+    {
+      "pattern": "www.visutry.com/de/refund",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "approved first-slice marketing/SEO HTML",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P1",
+      "feasibility": "A"
+    },
+    {
+      "pattern": "www.visutry.com/de/faq",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "approved first-slice marketing/SEO HTML",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P1",
+      "feasibility": "A"
+    },
+    {
+      "pattern": "www.visutry.com/de/face-shape-measurement",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "approved first-slice marketing/SEO HTML",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P1",
+      "feasibility": "A"
+    },
+    {
+      "pattern": "www.visutry.com/de/blog*",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "blog index, posts, and tags are first-slice HTML / locale-less 308s",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P2",
+      "feasibility": "B"
+    },
+    {
+      "pattern": "www.visutry.com/de/brand*",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "curated brand pages; unknown brand 404s on CF HTML, not Store/Campaign",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P2",
+      "feasibility": "B"
+    },
+    {
+      "pattern": "www.visutry.com/de/glasses-guide*",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "glasses-guide hub and slugs",
+      "excludedConflicts": [
+        "/glasses-for-face-shape is a different stem"
+      ],
+      "rollbackClass": "delete-route",
+      "priority": "P2",
+      "feasibility": "B"
+    },
+    {
+      "pattern": "www.visutry.com/de/face-shapes*",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "face-shapes hub, shape pages, and compare pages",
+      "excludedConflicts": [
+        "/face-shape-detector and /face-analysis are exact routes"
+      ],
+      "rollbackClass": "delete-route",
+      "priority": "P2",
+      "feasibility": "B"
+    },
+    {
+      "pattern": "www.visutry.com/de/sunglasses-for*",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "covers /sunglasses-for-face-shape and /sunglasses-for/:faceShape",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P2",
+      "feasibility": "B"
+    },
+    {
+      "pattern": "www.visutry.com/de/hairstyles-for*",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "covers /hairstyles-for-face-shape and /hairstyles-for/:faceShape",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P2",
+      "feasibility": "B"
+    },
+    {
+      "pattern": "www.visutry.com/de/try-on*",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "try-on landings; does not match /try/:slug because the stem is try-on",
+      "excludedConflicts": [
+        "/:locale/try/*",
+        "/try/*"
+      ],
+      "rollbackClass": "delete-route",
+      "priority": "P1",
+      "feasibility": "B"
+    },
+    {
+      "pattern": "www.visutry.com/de/style/*",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "style/:faceShape only. style* would capture /style-explorer",
+      "excludedConflicts": [
+        "/de/style-explorer"
+      ],
+      "rollbackClass": "delete-route",
+      "priority": "P2",
+      "feasibility": "B"
+    },
+    {
+      "pattern": "www.visutry.com/ja",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "locale home; never use /:locale* which would capture Layer 3",
+      "excludedConflicts": [
+        "/ja/store/:slug",
+        "/ja/discover",
+        "/ja/c/*"
+      ],
+      "rollbackClass": "delete-route",
+      "priority": "P1",
+      "feasibility": "A"
+    },
+    {
+      "pattern": "www.visutry.com/ja/store",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "Store hub only. Cloudflare path* is greedy; store* would capture /store/:slug",
+      "excludedConflicts": [
+        "/ja/store/:merchantSlug"
+      ],
+      "rollbackClass": "delete-route",
+      "priority": "P1",
+      "feasibility": "A"
+    },
+    {
+      "pattern": "www.visutry.com/ja/face-shape-detector",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "approved first-slice marketing/SEO HTML",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P1",
+      "feasibility": "A"
+    },
+    {
+      "pattern": "www.visutry.com/ja/face-analysis",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "approved first-slice marketing/SEO HTML",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P1",
+      "feasibility": "A"
+    },
+    {
+      "pattern": "www.visutry.com/ja/glasses-for-face-shape",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "approved first-slice marketing/SEO HTML",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P1",
+      "feasibility": "A"
+    },
+    {
+      "pattern": "www.visutry.com/ja/what-is-my-face-shape",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "approved first-slice marketing/SEO HTML",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P1",
+      "feasibility": "A"
+    },
+    {
+      "pattern": "www.visutry.com/ja/what-glasses-suit-my-face",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "approved first-slice marketing/SEO HTML",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P1",
+      "feasibility": "A"
+    },
+    {
+      "pattern": "www.visutry.com/ja/find-glasses-for-my-face",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "approved first-slice marketing/SEO HTML",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P1",
+      "feasibility": "A"
+    },
+    {
+      "pattern": "www.visutry.com/ja/virtual-glasses-try-on",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "approved first-slice marketing/SEO HTML",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P1",
+      "feasibility": "A"
+    },
+    {
+      "pattern": "www.visutry.com/ja/try-glasses-on-photo",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "approved first-slice marketing/SEO HTML",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P1",
+      "feasibility": "A"
+    },
+    {
+      "pattern": "www.visutry.com/ja/compare-glasses-frames",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "approved first-slice marketing/SEO HTML",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P1",
+      "feasibility": "A"
+    },
+    {
+      "pattern": "www.visutry.com/ja/ai-glasses-advisor",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "approved first-slice marketing/SEO HTML",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P1",
+      "feasibility": "A"
+    },
+    {
+      "pattern": "www.visutry.com/ja/pricing",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "approved first-slice marketing/SEO HTML",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P1",
+      "feasibility": "A"
+    },
+    {
+      "pattern": "www.visutry.com/ja/business",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "approved first-slice marketing/SEO HTML",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P1",
+      "feasibility": "A"
+    },
+    {
+      "pattern": "www.visutry.com/ja/privacy",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "approved first-slice marketing/SEO HTML",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P1",
+      "feasibility": "A"
+    },
+    {
+      "pattern": "www.visutry.com/ja/terms",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "approved first-slice marketing/SEO HTML",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P1",
+      "feasibility": "A"
+    },
+    {
+      "pattern": "www.visutry.com/ja/refund",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "approved first-slice marketing/SEO HTML",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P1",
+      "feasibility": "A"
+    },
+    {
+      "pattern": "www.visutry.com/ja/faq",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "approved first-slice marketing/SEO HTML",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P1",
+      "feasibility": "A"
+    },
+    {
+      "pattern": "www.visutry.com/ja/face-shape-measurement",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "approved first-slice marketing/SEO HTML",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P1",
+      "feasibility": "A"
+    },
+    {
+      "pattern": "www.visutry.com/ja/blog*",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "blog index, posts, and tags are first-slice HTML / locale-less 308s",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P2",
+      "feasibility": "B"
+    },
+    {
+      "pattern": "www.visutry.com/ja/brand*",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "curated brand pages; unknown brand 404s on CF HTML, not Store/Campaign",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P2",
+      "feasibility": "B"
+    },
+    {
+      "pattern": "www.visutry.com/ja/glasses-guide*",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "glasses-guide hub and slugs",
+      "excludedConflicts": [
+        "/glasses-for-face-shape is a different stem"
+      ],
+      "rollbackClass": "delete-route",
+      "priority": "P2",
+      "feasibility": "B"
+    },
+    {
+      "pattern": "www.visutry.com/ja/face-shapes*",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "face-shapes hub, shape pages, and compare pages",
+      "excludedConflicts": [
+        "/face-shape-detector and /face-analysis are exact routes"
+      ],
+      "rollbackClass": "delete-route",
+      "priority": "P2",
+      "feasibility": "B"
+    },
+    {
+      "pattern": "www.visutry.com/ja/sunglasses-for*",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "covers /sunglasses-for-face-shape and /sunglasses-for/:faceShape",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P2",
+      "feasibility": "B"
+    },
+    {
+      "pattern": "www.visutry.com/ja/hairstyles-for*",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "covers /hairstyles-for-face-shape and /hairstyles-for/:faceShape",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P2",
+      "feasibility": "B"
+    },
+    {
+      "pattern": "www.visutry.com/ja/try-on*",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "try-on landings; does not match /try/:slug because the stem is try-on",
+      "excludedConflicts": [
+        "/:locale/try/*",
+        "/try/*"
+      ],
+      "rollbackClass": "delete-route",
+      "priority": "P1",
+      "feasibility": "B"
+    },
+    {
+      "pattern": "www.visutry.com/ja/style/*",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "style/:faceShape only. style* would capture /style-explorer",
+      "excludedConflicts": [
+        "/ja/style-explorer"
+      ],
+      "rollbackClass": "delete-route",
+      "priority": "P2",
+      "feasibility": "B"
+    },
+    {
+      "pattern": "www.visutry.com/es",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "locale home; never use /:locale* which would capture Layer 3",
+      "excludedConflicts": [
+        "/es/store/:slug",
+        "/es/discover",
+        "/es/c/*"
+      ],
+      "rollbackClass": "delete-route",
+      "priority": "P1",
+      "feasibility": "A"
+    },
+    {
+      "pattern": "www.visutry.com/es/store",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "Store hub only. Cloudflare path* is greedy; store* would capture /store/:slug",
+      "excludedConflicts": [
+        "/es/store/:merchantSlug"
+      ],
+      "rollbackClass": "delete-route",
+      "priority": "P1",
+      "feasibility": "A"
+    },
+    {
+      "pattern": "www.visutry.com/es/face-shape-detector",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "approved first-slice marketing/SEO HTML",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P1",
+      "feasibility": "A"
+    },
+    {
+      "pattern": "www.visutry.com/es/face-analysis",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "approved first-slice marketing/SEO HTML",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P1",
+      "feasibility": "A"
+    },
+    {
+      "pattern": "www.visutry.com/es/glasses-for-face-shape",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "approved first-slice marketing/SEO HTML",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P1",
+      "feasibility": "A"
+    },
+    {
+      "pattern": "www.visutry.com/es/what-is-my-face-shape",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "approved first-slice marketing/SEO HTML",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P1",
+      "feasibility": "A"
+    },
+    {
+      "pattern": "www.visutry.com/es/what-glasses-suit-my-face",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "approved first-slice marketing/SEO HTML",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P1",
+      "feasibility": "A"
+    },
+    {
+      "pattern": "www.visutry.com/es/find-glasses-for-my-face",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "approved first-slice marketing/SEO HTML",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P1",
+      "feasibility": "A"
+    },
+    {
+      "pattern": "www.visutry.com/es/virtual-glasses-try-on",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "approved first-slice marketing/SEO HTML",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P1",
+      "feasibility": "A"
+    },
+    {
+      "pattern": "www.visutry.com/es/try-glasses-on-photo",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "approved first-slice marketing/SEO HTML",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P1",
+      "feasibility": "A"
+    },
+    {
+      "pattern": "www.visutry.com/es/compare-glasses-frames",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "approved first-slice marketing/SEO HTML",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P1",
+      "feasibility": "A"
+    },
+    {
+      "pattern": "www.visutry.com/es/ai-glasses-advisor",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "approved first-slice marketing/SEO HTML",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P1",
+      "feasibility": "A"
+    },
+    {
+      "pattern": "www.visutry.com/es/pricing",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "approved first-slice marketing/SEO HTML",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P1",
+      "feasibility": "A"
+    },
+    {
+      "pattern": "www.visutry.com/es/business",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "approved first-slice marketing/SEO HTML",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P1",
+      "feasibility": "A"
+    },
+    {
+      "pattern": "www.visutry.com/es/privacy",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "approved first-slice marketing/SEO HTML",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P1",
+      "feasibility": "A"
+    },
+    {
+      "pattern": "www.visutry.com/es/terms",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "approved first-slice marketing/SEO HTML",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P1",
+      "feasibility": "A"
+    },
+    {
+      "pattern": "www.visutry.com/es/refund",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "approved first-slice marketing/SEO HTML",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P1",
+      "feasibility": "A"
+    },
+    {
+      "pattern": "www.visutry.com/es/faq",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "approved first-slice marketing/SEO HTML",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P1",
+      "feasibility": "A"
+    },
+    {
+      "pattern": "www.visutry.com/es/face-shape-measurement",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "approved first-slice marketing/SEO HTML",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P1",
+      "feasibility": "A"
+    },
+    {
+      "pattern": "www.visutry.com/es/blog*",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "blog index, posts, and tags are first-slice HTML / locale-less 308s",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P2",
+      "feasibility": "B"
+    },
+    {
+      "pattern": "www.visutry.com/es/brand*",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "curated brand pages; unknown brand 404s on CF HTML, not Store/Campaign",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P2",
+      "feasibility": "B"
+    },
+    {
+      "pattern": "www.visutry.com/es/glasses-guide*",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "glasses-guide hub and slugs",
+      "excludedConflicts": [
+        "/glasses-for-face-shape is a different stem"
+      ],
+      "rollbackClass": "delete-route",
+      "priority": "P2",
+      "feasibility": "B"
+    },
+    {
+      "pattern": "www.visutry.com/es/face-shapes*",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "face-shapes hub, shape pages, and compare pages",
+      "excludedConflicts": [
+        "/face-shape-detector and /face-analysis are exact routes"
+      ],
+      "rollbackClass": "delete-route",
+      "priority": "P2",
+      "feasibility": "B"
+    },
+    {
+      "pattern": "www.visutry.com/es/sunglasses-for*",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "covers /sunglasses-for-face-shape and /sunglasses-for/:faceShape",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P2",
+      "feasibility": "B"
+    },
+    {
+      "pattern": "www.visutry.com/es/hairstyles-for*",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "covers /hairstyles-for-face-shape and /hairstyles-for/:faceShape",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P2",
+      "feasibility": "B"
+    },
+    {
+      "pattern": "www.visutry.com/es/try-on*",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "try-on landings; does not match /try/:slug because the stem is try-on",
+      "excludedConflicts": [
+        "/:locale/try/*",
+        "/try/*"
+      ],
+      "rollbackClass": "delete-route",
+      "priority": "P1",
+      "feasibility": "B"
+    },
+    {
+      "pattern": "www.visutry.com/es/style/*",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "style/:faceShape only. style* would capture /style-explorer",
+      "excludedConflicts": [
+        "/es/style-explorer"
+      ],
+      "rollbackClass": "delete-route",
+      "priority": "P2",
+      "feasibility": "B"
+    },
+    {
+      "pattern": "www.visutry.com/pt",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "locale home; never use /:locale* which would capture Layer 3",
+      "excludedConflicts": [
+        "/pt/store/:slug",
+        "/pt/discover",
+        "/pt/c/*"
+      ],
+      "rollbackClass": "delete-route",
+      "priority": "P1",
+      "feasibility": "A"
+    },
+    {
+      "pattern": "www.visutry.com/pt/store",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "Store hub only. Cloudflare path* is greedy; store* would capture /store/:slug",
+      "excludedConflicts": [
+        "/pt/store/:merchantSlug"
+      ],
+      "rollbackClass": "delete-route",
+      "priority": "P1",
+      "feasibility": "A"
+    },
+    {
+      "pattern": "www.visutry.com/pt/face-shape-detector",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "approved first-slice marketing/SEO HTML",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P1",
+      "feasibility": "A"
+    },
+    {
+      "pattern": "www.visutry.com/pt/face-analysis",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "approved first-slice marketing/SEO HTML",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P1",
+      "feasibility": "A"
+    },
+    {
+      "pattern": "www.visutry.com/pt/glasses-for-face-shape",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "approved first-slice marketing/SEO HTML",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P1",
+      "feasibility": "A"
+    },
+    {
+      "pattern": "www.visutry.com/pt/what-is-my-face-shape",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "approved first-slice marketing/SEO HTML",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P1",
+      "feasibility": "A"
+    },
+    {
+      "pattern": "www.visutry.com/pt/what-glasses-suit-my-face",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "approved first-slice marketing/SEO HTML",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P1",
+      "feasibility": "A"
+    },
+    {
+      "pattern": "www.visutry.com/pt/find-glasses-for-my-face",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "approved first-slice marketing/SEO HTML",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P1",
+      "feasibility": "A"
+    },
+    {
+      "pattern": "www.visutry.com/pt/virtual-glasses-try-on",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "approved first-slice marketing/SEO HTML",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P1",
+      "feasibility": "A"
+    },
+    {
+      "pattern": "www.visutry.com/pt/try-glasses-on-photo",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "approved first-slice marketing/SEO HTML",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P1",
+      "feasibility": "A"
+    },
+    {
+      "pattern": "www.visutry.com/pt/compare-glasses-frames",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "approved first-slice marketing/SEO HTML",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P1",
+      "feasibility": "A"
+    },
+    {
+      "pattern": "www.visutry.com/pt/ai-glasses-advisor",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "approved first-slice marketing/SEO HTML",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P1",
+      "feasibility": "A"
+    },
+    {
+      "pattern": "www.visutry.com/pt/pricing",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "approved first-slice marketing/SEO HTML",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P1",
+      "feasibility": "A"
+    },
+    {
+      "pattern": "www.visutry.com/pt/business",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "approved first-slice marketing/SEO HTML",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P1",
+      "feasibility": "A"
+    },
+    {
+      "pattern": "www.visutry.com/pt/privacy",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "approved first-slice marketing/SEO HTML",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P1",
+      "feasibility": "A"
+    },
+    {
+      "pattern": "www.visutry.com/pt/terms",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "approved first-slice marketing/SEO HTML",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P1",
+      "feasibility": "A"
+    },
+    {
+      "pattern": "www.visutry.com/pt/refund",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "approved first-slice marketing/SEO HTML",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P1",
+      "feasibility": "A"
+    },
+    {
+      "pattern": "www.visutry.com/pt/faq",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "approved first-slice marketing/SEO HTML",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P1",
+      "feasibility": "A"
+    },
+    {
+      "pattern": "www.visutry.com/pt/face-shape-measurement",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "approved first-slice marketing/SEO HTML",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P1",
+      "feasibility": "A"
+    },
+    {
+      "pattern": "www.visutry.com/pt/blog*",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "blog index, posts, and tags are first-slice HTML / locale-less 308s",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P2",
+      "feasibility": "B"
+    },
+    {
+      "pattern": "www.visutry.com/pt/brand*",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "curated brand pages; unknown brand 404s on CF HTML, not Store/Campaign",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P2",
+      "feasibility": "B"
+    },
+    {
+      "pattern": "www.visutry.com/pt/glasses-guide*",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "glasses-guide hub and slugs",
+      "excludedConflicts": [
+        "/glasses-for-face-shape is a different stem"
+      ],
+      "rollbackClass": "delete-route",
+      "priority": "P2",
+      "feasibility": "B"
+    },
+    {
+      "pattern": "www.visutry.com/pt/face-shapes*",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "face-shapes hub, shape pages, and compare pages",
+      "excludedConflicts": [
+        "/face-shape-detector and /face-analysis are exact routes"
+      ],
+      "rollbackClass": "delete-route",
+      "priority": "P2",
+      "feasibility": "B"
+    },
+    {
+      "pattern": "www.visutry.com/pt/sunglasses-for*",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "covers /sunglasses-for-face-shape and /sunglasses-for/:faceShape",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P2",
+      "feasibility": "B"
+    },
+    {
+      "pattern": "www.visutry.com/pt/hairstyles-for*",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "covers /hairstyles-for-face-shape and /hairstyles-for/:faceShape",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P2",
+      "feasibility": "B"
+    },
+    {
+      "pattern": "www.visutry.com/pt/try-on*",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "try-on landings; does not match /try/:slug because the stem is try-on",
+      "excludedConflicts": [
+        "/:locale/try/*",
+        "/try/*"
+      ],
+      "rollbackClass": "delete-route",
+      "priority": "P1",
+      "feasibility": "B"
+    },
+    {
+      "pattern": "www.visutry.com/pt/style/*",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "style/:faceShape only. style* would capture /style-explorer",
+      "excludedConflicts": [
+        "/pt/style-explorer"
+      ],
+      "rollbackClass": "delete-route",
+      "priority": "P2",
+      "feasibility": "B"
+    },
+    {
+      "pattern": "www.visutry.com/fr",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "locale home; never use /:locale* which would capture Layer 3",
+      "excludedConflicts": [
+        "/fr/store/:slug",
+        "/fr/discover",
+        "/fr/c/*"
+      ],
+      "rollbackClass": "delete-route",
+      "priority": "P1",
+      "feasibility": "A"
+    },
+    {
+      "pattern": "www.visutry.com/fr/store",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "Store hub only. Cloudflare path* is greedy; store* would capture /store/:slug",
+      "excludedConflicts": [
+        "/fr/store/:merchantSlug"
+      ],
+      "rollbackClass": "delete-route",
+      "priority": "P1",
+      "feasibility": "A"
+    },
+    {
+      "pattern": "www.visutry.com/fr/face-shape-detector",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "approved first-slice marketing/SEO HTML",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P1",
+      "feasibility": "A"
+    },
+    {
+      "pattern": "www.visutry.com/fr/face-analysis",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "approved first-slice marketing/SEO HTML",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P1",
+      "feasibility": "A"
+    },
+    {
+      "pattern": "www.visutry.com/fr/glasses-for-face-shape",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "approved first-slice marketing/SEO HTML",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P1",
+      "feasibility": "A"
+    },
+    {
+      "pattern": "www.visutry.com/fr/what-is-my-face-shape",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "approved first-slice marketing/SEO HTML",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P1",
+      "feasibility": "A"
+    },
+    {
+      "pattern": "www.visutry.com/fr/what-glasses-suit-my-face",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "approved first-slice marketing/SEO HTML",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P1",
+      "feasibility": "A"
+    },
+    {
+      "pattern": "www.visutry.com/fr/find-glasses-for-my-face",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "approved first-slice marketing/SEO HTML",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P1",
+      "feasibility": "A"
+    },
+    {
+      "pattern": "www.visutry.com/fr/virtual-glasses-try-on",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "approved first-slice marketing/SEO HTML",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P1",
+      "feasibility": "A"
+    },
+    {
+      "pattern": "www.visutry.com/fr/try-glasses-on-photo",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "approved first-slice marketing/SEO HTML",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P1",
+      "feasibility": "A"
+    },
+    {
+      "pattern": "www.visutry.com/fr/compare-glasses-frames",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "approved first-slice marketing/SEO HTML",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P1",
+      "feasibility": "A"
+    },
+    {
+      "pattern": "www.visutry.com/fr/ai-glasses-advisor",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "approved first-slice marketing/SEO HTML",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P1",
+      "feasibility": "A"
+    },
+    {
+      "pattern": "www.visutry.com/fr/pricing",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "approved first-slice marketing/SEO HTML",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P1",
+      "feasibility": "A"
+    },
+    {
+      "pattern": "www.visutry.com/fr/business",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "approved first-slice marketing/SEO HTML",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P1",
+      "feasibility": "A"
+    },
+    {
+      "pattern": "www.visutry.com/fr/privacy",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "approved first-slice marketing/SEO HTML",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P1",
+      "feasibility": "A"
+    },
+    {
+      "pattern": "www.visutry.com/fr/terms",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "approved first-slice marketing/SEO HTML",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P1",
+      "feasibility": "A"
+    },
+    {
+      "pattern": "www.visutry.com/fr/refund",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "approved first-slice marketing/SEO HTML",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P1",
+      "feasibility": "A"
+    },
+    {
+      "pattern": "www.visutry.com/fr/faq",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "approved first-slice marketing/SEO HTML",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P1",
+      "feasibility": "A"
+    },
+    {
+      "pattern": "www.visutry.com/fr/face-shape-measurement",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "approved first-slice marketing/SEO HTML",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P1",
+      "feasibility": "A"
+    },
+    {
+      "pattern": "www.visutry.com/fr/blog*",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "blog index, posts, and tags are first-slice HTML / locale-less 308s",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P2",
+      "feasibility": "B"
+    },
+    {
+      "pattern": "www.visutry.com/fr/brand*",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "curated brand pages; unknown brand 404s on CF HTML, not Store/Campaign",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P2",
+      "feasibility": "B"
+    },
+    {
+      "pattern": "www.visutry.com/fr/glasses-guide*",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "glasses-guide hub and slugs",
+      "excludedConflicts": [
+        "/glasses-for-face-shape is a different stem"
+      ],
+      "rollbackClass": "delete-route",
+      "priority": "P2",
+      "feasibility": "B"
+    },
+    {
+      "pattern": "www.visutry.com/fr/face-shapes*",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "face-shapes hub, shape pages, and compare pages",
+      "excludedConflicts": [
+        "/face-shape-detector and /face-analysis are exact routes"
+      ],
+      "rollbackClass": "delete-route",
+      "priority": "P2",
+      "feasibility": "B"
+    },
+    {
+      "pattern": "www.visutry.com/fr/sunglasses-for*",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "covers /sunglasses-for-face-shape and /sunglasses-for/:faceShape",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P2",
+      "feasibility": "B"
+    },
+    {
+      "pattern": "www.visutry.com/fr/hairstyles-for*",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "covers /hairstyles-for-face-shape and /hairstyles-for/:faceShape",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P2",
+      "feasibility": "B"
+    },
+    {
+      "pattern": "www.visutry.com/fr/try-on*",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "try-on landings; does not match /try/:slug because the stem is try-on",
+      "excludedConflicts": [
+        "/:locale/try/*",
+        "/try/*"
+      ],
+      "rollbackClass": "delete-route",
+      "priority": "P1",
+      "feasibility": "B"
+    },
+    {
+      "pattern": "www.visutry.com/fr/style/*",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "style/:faceShape only. style* would capture /style-explorer",
+      "excludedConflicts": [
+        "/fr/style-explorer"
+      ],
+      "rollbackClass": "delete-route",
+      "priority": "P2",
+      "feasibility": "B"
+    },
+    {
+      "pattern": "www.visutry.com/store",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "locale-less store hub 308; not /store/:slug",
+      "excludedConflicts": [
+        "/store/:merchantSlug"
+      ],
+      "rollbackClass": "delete-route",
+      "priority": "P1",
+      "feasibility": "A"
+    },
+    {
+      "pattern": "www.visutry.com/face-shape-detector",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "locale-less first-slice 308",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P1",
+      "feasibility": "A"
+    },
+    {
+      "pattern": "www.visutry.com/face-analysis",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "locale-less first-slice 308",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P1",
+      "feasibility": "A"
+    },
+    {
+      "pattern": "www.visutry.com/glasses-for-face-shape",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "locale-less first-slice 308",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P1",
+      "feasibility": "A"
+    },
+    {
+      "pattern": "www.visutry.com/what-is-my-face-shape",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "locale-less first-slice 308",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P1",
+      "feasibility": "A"
+    },
+    {
+      "pattern": "www.visutry.com/what-glasses-suit-my-face",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "locale-less first-slice 308",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P1",
+      "feasibility": "A"
+    },
+    {
+      "pattern": "www.visutry.com/find-glasses-for-my-face",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "locale-less first-slice 308",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P1",
+      "feasibility": "A"
+    },
+    {
+      "pattern": "www.visutry.com/virtual-glasses-try-on",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "locale-less first-slice 308",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P1",
+      "feasibility": "A"
+    },
+    {
+      "pattern": "www.visutry.com/try-glasses-on-photo",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "locale-less first-slice 308",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P1",
+      "feasibility": "A"
+    },
+    {
+      "pattern": "www.visutry.com/compare-glasses-frames",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "locale-less first-slice 308",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P1",
+      "feasibility": "A"
+    },
+    {
+      "pattern": "www.visutry.com/ai-glasses-advisor",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "locale-less first-slice 308",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P1",
+      "feasibility": "A"
+    },
+    {
+      "pattern": "www.visutry.com/pricing",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "locale-less first-slice 308",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P1",
+      "feasibility": "A"
+    },
+    {
+      "pattern": "www.visutry.com/business",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "locale-less first-slice 308",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P1",
+      "feasibility": "A"
+    },
+    {
+      "pattern": "www.visutry.com/privacy",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "locale-less first-slice 308",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P1",
+      "feasibility": "A"
+    },
+    {
+      "pattern": "www.visutry.com/terms",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "locale-less first-slice 308",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P1",
+      "feasibility": "A"
+    },
+    {
+      "pattern": "www.visutry.com/refund",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "locale-less first-slice 308",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P1",
+      "feasibility": "A"
+    },
+    {
+      "pattern": "www.visutry.com/faq",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "locale-less first-slice 308",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P1",
+      "feasibility": "A"
+    },
+    {
+      "pattern": "www.visutry.com/face-shape-measurement",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "locale-less first-slice 308",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P1",
+      "feasibility": "A"
+    },
+    {
+      "pattern": "www.visutry.com/blog*",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "locale-less blog index, posts, and tags are first-slice HTML / locale-less 308s",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P2",
+      "feasibility": "B"
+    },
+    {
+      "pattern": "www.visutry.com/brand*",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "locale-less curated brand pages; unknown brand 404s on CF HTML, not Store/Campaign",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P2",
+      "feasibility": "B"
+    },
+    {
+      "pattern": "www.visutry.com/glasses-guide*",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "locale-less glasses-guide hub and slugs",
+      "excludedConflicts": [
+        "/glasses-for-face-shape is a different stem"
+      ],
+      "rollbackClass": "delete-route",
+      "priority": "P2",
+      "feasibility": "B"
+    },
+    {
+      "pattern": "www.visutry.com/face-shapes*",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "locale-less face-shapes hub, shape pages, and compare pages",
+      "excludedConflicts": [
+        "/face-shape-detector and /face-analysis are exact routes"
+      ],
+      "rollbackClass": "delete-route",
+      "priority": "P2",
+      "feasibility": "B"
+    },
+    {
+      "pattern": "www.visutry.com/sunglasses-for*",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "locale-less covers /sunglasses-for-face-shape and /sunglasses-for/:faceShape",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P2",
+      "feasibility": "B"
+    },
+    {
+      "pattern": "www.visutry.com/hairstyles-for*",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "locale-less covers /hairstyles-for-face-shape and /hairstyles-for/:faceShape",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P2",
+      "feasibility": "B"
+    },
+    {
+      "pattern": "www.visutry.com/try-on*",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "locale-less try-on landings; does not match /try/:slug because the stem is try-on",
+      "excludedConflicts": [
+        "/:locale/try/*",
+        "/try/*"
+      ],
+      "rollbackClass": "delete-route",
+      "priority": "P1",
+      "feasibility": "B"
+    },
+    {
+      "pattern": "www.visutry.com/style/*",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "locale-less /style/:faceShape 308s; not /style-explorer",
+      "excludedConflicts": [
+        "/style-explorer"
+      ],
+      "rollbackClass": "delete-route",
+      "priority": "P2",
+      "feasibility": "B"
+    }
+  ]
+}

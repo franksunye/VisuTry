@@ -51,9 +51,10 @@ export interface B4ManifestRow {
   cutoverClass: B4CutoverClass
 }
 
-const locales = ['en', 'id', 'ar', 'ru', 'de', 'ja', 'es', 'pt', 'fr'] as const
+export const B4_LOCALES = ['en', 'id', 'ar', 'ru', 'de', 'ja', 'es', 'pt', 'fr'] as const
+const locales = B4_LOCALES
 
-const localeLessMarketingExact = [
+export const B4_LOCALE_LESS_MARKETING_EXACT = [
   '/face-analysis',
   '/face-shape-detector',
   '/glasses-for-face-shape',
@@ -81,8 +82,9 @@ const localeLessMarketingExact = [
   '/face-shapes',
   '/hairstyles-for-face-shape',
 ] as const
+const localeLessMarketingExact = B4_LOCALE_LESS_MARKETING_EXACT
 
-const localizedExactPages = [
+export const B4_LOCALIZED_EXACT_PAGES = [
   '/store',
   '/blog',
   '/face-shape-detector',
@@ -110,8 +112,9 @@ const localizedExactPages = [
   '/face-shapes',
   '/hairstyles-for-face-shape',
 ] as const
+const localizedExactPages = B4_LOCALIZED_EXACT_PAGES
 
-const localizedPrefixes = [
+export const B4_LOCALIZED_PREFIXES = [
   '/blog/',
   '/brand/',
   '/glasses-guide/',
@@ -121,22 +124,35 @@ const localizedPrefixes = [
   '/hairstyles-for/',
   '/try-on/',
 ] as const
+const localizedPrefixes = B4_LOCALIZED_PREFIXES
 
-const hashedImmutablePrefixes = ['/_next/static/'] as const
+export const B4_HASHED_IMMUTABLE_PREFIXES = ['/_next/static/'] as const
+const hashedImmutablePrefixes = B4_HASHED_IMMUTABLE_PREFIXES
 
-const deployPublicAssetPrefixes = [
+export const B4_DEPLOY_PUBLIC_ASSET_PREFIXES = [
   '/blog-covers/',
   '/assets/',
   '/images/',
   '/home/',
   '/experience-heroes/',
 ] as const
+const deployPublicAssetPrefixes = B4_DEPLOY_PUBLIC_ASSET_PREFIXES
 
-const deployPublicAssetExact = ['/favicon.ico'] as const
+export const B4_DEPLOY_PUBLIC_ASSET_EXACT = ['/favicon.ico'] as const
+const deployPublicAssetExact = B4_DEPLOY_PUBLIC_ASSET_EXACT
 
-const controlFilesExact = ['/robots.txt', '/llms.txt'] as const
+export const B4_CONTROL_FILES_EXACT = ['/robots.txt', '/llms.txt'] as const
+const controlFilesExact = B4_CONTROL_FILES_EXACT
 
-const staticSitemapExact = ['/sitemap.xml', '/sitemaps/core.xml', '/sitemaps/blog.xml'] as const
+export const B4_STATIC_SITEMAP_EXACT = ['/sitemap.xml', '/sitemaps/core.xml', '/sitemaps/blog.xml'] as const
+const staticSitemapExact = B4_STATIC_SITEMAP_EXACT
+
+export const B4_FIRST_SLICE_APIS = [
+  '/api/health',
+  '/api/glasses/brands',
+  '/api/glasses/categories',
+  '/api/glasses/face-shapes',
+] as const
 
 const vercelRequiredPrefixes = [
   '/api/admin/',
@@ -416,10 +432,7 @@ function isLocalizedFirstSlicePage(path: string): boolean {
 }
 
 function isFirstSliceApi(path: string): boolean {
-  return path === '/api/health'
-    || path === '/api/glasses/brands'
-    || path === '/api/glasses/categories'
-    || path === '/api/glasses/face-shapes'
+  return (B4_FIRST_SLICE_APIS as readonly string[]).includes(path)
 }
 
 function decision(

@@ -15,6 +15,7 @@
     "build:cloudflare": "npm run build:cloudflare:next && opennextjs-cloudflare build --skipNextBuild",
     "preview:cloudflare": "npm run build:cloudflare && opennextjs-cloudflare preview",
     "deploy:cloudflare": "npm run build:cloudflare && opennextjs-cloudflare deploy --env staging",
+    "b4:routes:print": "tsx cloudflare-router/print-b4-production-routes.ts",
     "start": "next start",
     "lint": "next lint",
     "typecheck": "tsc --noEmit",

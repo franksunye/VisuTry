@@ -372,7 +372,7 @@ B4.2B blockers (do not execute until cleared):
 
 Not blockers: Auth0 production setting changes, Store/Campaign on Cloudflare, `_next/image` on Cloudflare, Paid plan.
 
-Next production action (not executed here): implement the section 12 scoped-route production Worker env on a Cloudflare zone, then follow section 13.
+Next production action (not executed here): B4.2B prepared the scoped-route manifest and cutover runbook in [`cloudflare-b4-2b-scoped-production-routes.md`](./cloudflare-b4-2b-scoped-production-routes.md). Do not change production DNS from this document.
 
 ## 16. PR #94 merge-gate build evidence
 
