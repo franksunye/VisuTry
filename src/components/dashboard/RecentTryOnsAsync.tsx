@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/prisma"
 import { RecentTryOns } from "./RecentTryOns"
 import { perfLogger } from "@/lib/performance-logger"
-import { tryOnMediaPath } from '@/lib/tryon-media'
+import { tryOnClientMetadata, tryOnMediaPath } from '@/lib/tryon-media'
 
 interface RecentTryOnsAsyncProps {
   userId: string
@@ -37,6 +37,7 @@ export async function RecentTryOnsAsync({ userId }: RecentTryOnsAsyncProps) {
       ...task,
       userImageUrl: task.userImageUrl ? tryOnMediaPath(task.id, 'user') : '',
       resultImageUrl: task.resultImageUrl ? tryOnMediaPath(task.id, 'result') : null,
+      metadata: tryOnClientMetadata(task.metadata),
     }))
 
     perfLogger.end('dashboard-async:recent-tryons', {
