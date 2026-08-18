@@ -36,6 +36,7 @@ export async function POST(request: NextRequest) {
     const prompt = formData.get("prompt") as string || undefined
     const clientSubmissionId = formData.get("clientSubmissionId") as string || undefined
 
+    // Validate inputs
     if (!userImageFile || !itemImageFile) {
       return NextResponse.json(
         { success: false, error: "Both user image and item image are required" },
