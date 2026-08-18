@@ -18,7 +18,7 @@
 | `cloudflare-b4-2c-phase-a-dns-zone.md` | **Closed / PASS** | B4.2C Phase A: inactive Cloudflare zone created, DNS mirror PASS, www DNS_ONLY (historical; NS cutover is B1) |
 | `cloudflare-b4-2c-phase-b1-ns-cutover.md` | **Closed / PASS** | B4.2C Phase B checkpoint B1: Namecheap NS → Cloudflare; www remains DNS_ONLY; Worker Routes 0 |
 | `cloudflare-b4-2c-phase-b2-universal-ssl.md` | **Closed / PASS** | B4.2C Phase B checkpoint B2: Universal SSL ACTIVE; SSL mode Full (strict); www remains DNS_ONLY; B3 not executed |
-| `cloudflare-b4-2c-phase-b3-www-proxy.md` | **Partial / observing** | B4.2C Phase B checkpoint B3: www DNS_ONLY → PROXIED; apex still DNS_ONLY; Worker Routes 0; Auth0 E2E and 60m window not closed |
+| `cloudflare-b4-2c-phase-b3-www-proxy.md` | **Closed / PASS** | B4.2C Phase B checkpoint B3: www DNS_ONLY → PROXIED; apex still DNS_ONLY; Worker Routes 0; Auth0 E2E operator-confirmed |
 | `cloudflare-phase-b2-write-parity.md` | **Active milestone** | Scoped Cloudflare Free-plan Auth, merchant, Store DRAFT, and Campaign DRAFT write parity evidence |
 | `vercel-cpu-static-page-pilot.md` | Historical + Active Reference | Detailed Vercel static-rendering, ISR, middleware, and CPU optimization work already completed |
 

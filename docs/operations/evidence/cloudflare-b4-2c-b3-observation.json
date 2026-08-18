@@ -1,10 +1,12 @@
 {
   "kind": "b4-2c-phase-b3-observation",
   "mutationTimestamp": "2026-08-18T07:26:33Z",
-  "verdict": "PARTIAL — HEALTHY / OBSERVING",
+  "verdict": "PASS",
   "rollbackRequired": false,
-  "auth0FullE2E": "NOT_COMPLETED",
-  "auth0FullE2ENote": "Browser reached Merchant Sign In on www, then Auth0 Universal Login at auth.visutry.com/u/login/identifier. Full login → callback → session → logout was not completed (no production credentials used).",
+  "auth0FullE2E": "PASS",
+  "auth0FullE2ENote": "Agent reached Auth0 Universal Login without production credentials. Operator later completed login → callback → session → logout in production and reported the flow correct. No cookies, session tokens, or Auth0 secrets stored.",
+  "auth0FullE2EConfirmedAt": "2026-08-18T08:32:13Z",
+  "auth0FullE2EConfirmedBy": "operator",
   "methodNote": "www checks that need to prove Cloudflare edge use curl -4 --http1.1 --resolve www.visutry.com:443:104.21.42.69. Local resolver / Alt-Svc can still reach Vercel without cf-ray. DNS API proxied=true is the orange-cloud source of truth.",
   "checkpoints": [
     {
@@ -153,6 +155,10 @@
     "wwwSignin": "https://www.visutry.com/en/auth/signin 200",
     "universalLoginReached": true,
     "loginUrlHost": "auth.visutry.com",
-    "fullLoginCallbackSessionLogout": false
+    "agentCompletedFullFlow": false,
+    "operatorCompletedFullFlow": true,
+    "fullLoginCallbackSessionLogout": true,
+    "authDnsChanged": false,
+    "secretsStored": false
   }
 }

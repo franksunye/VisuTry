@@ -1,6 +1,6 @@
 # VisuTry Cloudflare B4.2C Phase B — Checkpoint B3 (www DNS_ONLY → PROXIED)
 
-**Status:** PARTIAL — HEALTHY / OBSERVING  
+**Status:** PASS — www PROXIED; Worker Routes 0
 **Date:** 2026-08-18  
 **Owner:** Product / Engineering  
 **Branch:** `cursor/cloudflare-b4-2c-phase-b3-www-proxy`  
@@ -36,7 +36,7 @@ Related:
 
 | Item | Value |
 | --- | --- |
-| RESULT | **PARTIAL — HEALTHY / OBSERVING** |
+| RESULT | **PASS** |
 | PR #99 merge on main | YES (`aef2706`) |
 | Zone status | **active** |
 | SSL mode | **strict** (unchanged) |
@@ -47,11 +47,11 @@ Related:
 | 525 / 526 | **none** |
 | Worker Routes | **0** |
 | Rollback | **not required** |
-| Auth0 full E2E | **not completed** (Universal Login reached; no production credentials used) |
+| Auth0 full E2E | **PASS** (operator completed login → callback → session → logout in production) |
 | Observation window | **complete** (immediate / 5m / 15m / 30m / 60m); no rollback |
 | P0 / Worker cutover | **NO-GO** |
 
-B3 cannot be **PASS** until Auth0 login → callback → session → logout is proven. The ~60 minute observation window completed with no 525/526 and no rollback.
+B3 is complete. www is Cloudflare PROXIED. Worker Routes remain 0. Do not attach Worker Routes without separate approval.
 
 ## 2. Baseline
 
@@ -154,9 +154,15 @@ Local resolver / HTTP/2 Alt-Svc can still show `server: Vercel` without `cf-ray`
 
 ## 8. Auth0
 
-`/en/auth/signin` still loads. Browser navigation reached Auth0 Universal Login at `auth.visutry.com` (identifier page: email, Continue, Google, X).
+`/en/auth/signin` still loads. Agent browser navigation reached Auth0 Universal Login at `auth.visutry.com` (identifier page: email, Continue, Google, X) without using production credentials.
 
-Full login → callback → session → logout was **not** completed. Auth0 DNS was not changed. This is the remaining PASS-gate gap besides the 60 minute window.
+The operator then completed the full production flow:
+
+```text
+login → callback → authenticated session → logout
+```
+
+Result: **PASS**. Auth0 DNS was not changed. No cookies, session tokens, or Auth0 secrets were stored.
 
 If a later Auth0 failure is confirmed to be caused by www proxy, rollback is `www.proxied true → false` only. Do not change Auth0 settings.
 
@@ -223,15 +229,15 @@ Do **not** weaken SSL from `strict`. Do not change CNAME content, Worker routes,
 | 2 | apex proxied = false | **PASS** |
 | 3 | SSL mode remains strict | **PASS** |
 | 4 | Cloudflare edge certificate valid | **PASS** |
-| 5 | no 525/526 | **PASS** so far |
+| 5 | no 525/526 | **PASS** |
 | 6–12 | homepage /en Store Campaign Try-On Face Analysis pricing | **PASS** (Try-On still 307) |
-| 13 | Auth0 full login/session/logout | **NOT YET** |
+| 13 | Auth0 full login/session/logout | **PASS** (operator, production) |
 | 14–16 | static assets / `_next/image` / public APIs | **PASS** |
-| 17 | no private cache issue | **PASS** so far |
+| 17 | no private cache issue | **PASS** |
 | 18–20 | Worker Routes 0 / Custom Domain none / production Worker absent | **PASS** |
 | 21 | no rollback during observation window | **PASS** |
 
-**B3 = PARTIAL — HEALTHY / OBSERVING**
+**B3 = PASS**
 
 Worker Route cutover remains **NO-GO** without separate approval.
 
