@@ -1,0 +1,133 @@
+{
+  "kind": "b4-2c-phase-b1-propagation-observation",
+  "capturedAt": "2026-08-18T04:51:29Z",
+  "registrarUi": {
+    "source": "Namecheap domain dashboard screenshot provided by operator",
+    "type": "Custom DNS",
+    "nameservers": [
+      "romina.ns.cloudflare.com",
+      "stanley.ns.cloudflare.com"
+    ],
+    "thirdNs": false,
+    "staleVercelNs": false
+  },
+  "rdap": {
+    "secureDNS": {
+      "delegationSigned": false
+    },
+    "nameservers": [
+      "ROMINA.NS.CLOUDFLARE.COM",
+      "STANLEY.NS.CLOUDFLARE.COM"
+    ]
+  },
+  "publicNs": {
+    "system": "ns1.vercel-dns.com.\nns2.vercel-dns.com.",
+    "cloudflare_1111": "romina.ns.cloudflare.com.\nstanley.ns.cloudflare.com.",
+    "google_8888": "romina.ns.cloudflare.com.\nstanley.ns.cloudflare.com."
+  },
+  "soa": {
+    "system": "ns1.vercel-dns.com. hostmaster.nsone.net. 1760595390 43200 7200 1209600 600",
+    "1111": "romina.ns.cloudflare.com. dns.cloudflare.com. 2412514338 10000 2400 604800 1800",
+    "8888": "romina.ns.cloudflare.com. dns.cloudflare.com. 2412514338 10000 2400 604800 1800"
+  },
+  "cloudflareZone": {
+    "httpStatus": 200,
+    "success": true,
+    "id": "5e3dc058ed16f3aee917f1cef2e9f413",
+    "status": "active",
+    "activated_on": "2026-08-18T04:50:11.019408Z",
+    "name_servers": [
+      "romina.ns.cloudflare.com",
+      "stanley.ns.cloudflare.com"
+    ],
+    "original_name_servers": [
+      "ns1.vercel-dns.com",
+      "ns2.vercel-dns.com"
+    ],
+    "paused": false,
+    "type": "full"
+  },
+  "workerRoutes": {
+    "httpStatus": 403,
+    "success": false,
+    "count": null,
+    "errors": [
+      {
+        "code": 10000,
+        "message": "Authentication error"
+      }
+    ]
+  },
+  "workerDomains": {
+    "httpStatus": 403,
+    "success": false,
+    "count": null,
+    "errors": [
+      {
+        "code": 10000,
+        "message": "Authentication error"
+      }
+    ]
+  },
+  "sslCertificatePacks": {
+    "httpStatus": 403,
+    "success": false,
+    "errors": [
+      {
+        "code": 9109,
+        "message": "Unauthorized to access requested resource"
+      }
+    ],
+    "count": null
+  },
+  "cloudflareAuthoritative": {
+    "romina.ns.cloudflare.com": {
+      "NS": "romina.ns.cloudflare.com.\nstanley.ns.cloudflare.com.",
+      "SOA": "romina.ns.cloudflare.com. dns.cloudflare.com. 2412514338 10000 2400 604800 1800",
+      "www CNAME": "cname.vercel-dns-017.com.",
+      "www A": "cname.vercel-dns-017.com.",
+      "apex CNAME": "",
+      "apex A": "216.198.79.65\n64.29.17.65",
+      "MX": "10 mxbiz2.qq.com.\n5 mxbiz1.qq.com.",
+      "TXT": "\"v=spf1 include:spf.mail.qq.com ~all\"",
+      "DMARC": "\"v=DMARC1; p=none;\"",
+      "resend": "\"p=MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDH/vlC0I2gLaGRjDWHjKsZA7vLRnw2t9+4z9c+lfHOM55ic2gv7xLzJRxtt3ZM8tA5izlazgpMG8I4BKRKjdQ0Vl1jdacXXBoYa0qSSSffnVAYFilDufxo/2Wmo6rXzZp/YmtB9bxuCy1dY+LmAdqV+C+ZuCwNVQuAZ2xYiVyOgwIDAQAB\"",
+      "auth": "dev-ho4e6glpvc4ux5uw-cd-cobhapsbopdfpybl.edge.tenants.us.auth0.com.",
+      "pay": "hosted-checkout.stripecdn.com.",
+      "send MX": "10 feedback-smtp.us-east-1.amazonses.com.",
+      "send TXT": "\"v=spf1 include:amazonses.com ~all\"",
+      "pay acme": "\"U-Lm8kfKSESig0eXwlwzlLVTSp5cIAQDsRQ1NzyC_9Y\"",
+      "wildcard sample mail A": "cname.vercel-dns-017.com."
+    },
+    "stanley.ns.cloudflare.com": {
+      "NS": "romina.ns.cloudflare.com.\nstanley.ns.cloudflare.com.",
+      "SOA": "romina.ns.cloudflare.com. dns.cloudflare.com. 2412514406 10000 2400 604800 1800",
+      "www CNAME": "cname.vercel-dns-017.com.",
+      "www A": "cname.vercel-dns-017.com.",
+      "apex CNAME": "",
+      "apex A": "216.198.79.65\n64.29.17.65",
+      "MX": "10 mxbiz2.qq.com.\n5 mxbiz1.qq.com.",
+      "TXT": "\"v=spf1 include:spf.mail.qq.com ~all\"",
+      "DMARC": "\"v=DMARC1; p=none;\"",
+      "resend": "\"p=MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDH/vlC0I2gLaGRjDWHjKsZA7vLRnw2t9+4z9c+lfHOM55ic2gv7xLzJRxtt3ZM8tA5izlazgpMG8I4BKRKjdQ0Vl1jdacXXBoYa0qSSSffnVAYFilDufxo/2Wmo6rXzZp/YmtB9bxuCy1dY+LmAdqV+C+ZuCwNVQuAZ2xYiVyOgwIDAQAB\"",
+      "auth": "dev-ho4e6glpvc4ux5uw-cd-cobhapsbopdfpybl.edge.tenants.us.auth0.com.",
+      "pay": "hosted-checkout.stripecdn.com.",
+      "send MX": "10 feedback-smtp.us-east-1.amazonses.com.",
+      "send TXT": "\"v=spf1 include:amazonses.com ~all\"",
+      "pay acme": "\"U-Lm8kfKSESig0eXwlwzlLVTSp5cIAQDsRQ1NzyC_9Y\"",
+      "wildcard sample mail A": "cname.vercel-dns-017.com."
+    }
+  },
+  "publicRecords": {
+    "www A system": "64.29.17.1\n216.198.79.1",
+    "www CNAME system": "",
+    "apex A system": "64.29.17.1\n216.198.79.1",
+    "MX system": "5 mxbiz1.qq.com.\n10 mxbiz2.qq.com.",
+    "TXT system": "\"v=spf1 include:spf.mail.qq.com ~all\"",
+    "DMARC system": "\"v=DMARC1; p=none;\"",
+    "auth system": "dev-ho4e6glpvc4ux5uw-cd-cobhapsbopdfpybl.edge.tenants.us.auth0.com.",
+    "pay system": "hosted-checkout.stripecdn.com.",
+    "www A 1.1.1.1": "216.198.79.1\n64.29.17.65",
+    "www A 8.8.8.8": "cname.vercel-dns-017.com.\n216.198.79.65\n64.29.17.65"
+  }
+}
