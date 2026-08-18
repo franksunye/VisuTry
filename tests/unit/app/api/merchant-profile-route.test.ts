@@ -1,7 +1,7 @@
 /** @jest-environment node */
 
-jest.mock('@/lib/api-auth', () => ({ requireAuth: jest.fn() }))
-jest.mock('@/modules/merchant', () => ({
+jest.mock('@/lib/api-auth-runtime', () => ({ requireAuth: jest.fn() }))
+jest.mock('@/modules/merchant/cloudflare', () => ({
   requireMerchantMembership: jest.fn(),
   getMerchantProfile: jest.fn(),
   updateMerchantProfile: jest.fn(),
@@ -13,11 +13,13 @@ jest.mock('@/modules/merchant', () => ({
     }
   },
 }))
-jest.mock('@/modules/merchant/application/merchant-agent-http', () => ({ merchantAgentErrorResponse: jest.fn(() => new Response('error', { status: 500 })) }))
+jest.mock('@/modules/merchant/application/merchant-agent-http-cloudflare', () => ({
+  merchantAgentErrorResponse: jest.fn(() => new Response('error', { status: 500 })),
+}))
 
 import { NextRequest } from 'next/server'
-import { requireAuth } from '@/lib/api-auth'
-import { updateMerchantProfile } from '@/modules/merchant'
+import { requireAuth } from '@/lib/api-auth-runtime'
+import { updateMerchantProfile } from '@/modules/merchant/cloudflare'
 import { PATCH } from '@/app/api/merchant/[merchantId]/profile/route'
 
 const auth = requireAuth as jest.Mock
@@ -41,7 +43,12 @@ describe('merchant profile update route', () => {
   it('updates only through the authenticated merchant profile application path', async () => {
     const response = await PATCH(request({ name: 'Updated Brand', websiteUrl: null }), { params: { merchantId: 'merchant-a' } })
     expect(response.status).toBe(200)
-    expect(update).toHaveBeenCalledWith({ userId: 'session-user', merchantId: 'merchant-a', name: 'Updated Brand', websiteUrl: null })
+    expect(update).toHaveBeenCalledWith({
+      userId: 'session-user',
+      merchantId: 'merchant-a',
+      name: 'Updated Brand',
+      websiteUrl: null,
+    })
   })
 
   it('rejects malformed profile input before the application path', async () => {
