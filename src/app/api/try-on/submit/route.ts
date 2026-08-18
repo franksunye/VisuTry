@@ -3,6 +3,7 @@ import { requireAuthWithUser } from "@/lib/api-auth"
 import { getRequestContext, logger } from "@/lib/logger"
 import { checkUserQuota, settleTryOnTaskQuota } from "@/lib/quota"
 import { submitTryOnTask } from "@/lib/tryon-service"
+import { tryOnMediaPath } from '@/lib/tryon-media'
 import { TryOnType, isValidTryOnType } from "@/config/try-on-types"
 import { createHash } from "node:crypto"
 
@@ -35,7 +36,6 @@ export async function POST(request: NextRequest) {
     const prompt = formData.get("prompt") as string || undefined
     const clientSubmissionId = formData.get("clientSubmissionId") as string || undefined
 
-    // Validate inputs
     if (!userImageFile || !itemImageFile) {
       return NextResponse.json(
         { success: false, error: "Both user image and item image are required" },
@@ -129,9 +129,16 @@ export async function POST(request: NextRequest) {
       await settleTryOnTaskQuota(result.taskId, userId, ctx)
     }
 
+    const clientResult = {
+      ...result,
+      resultImageUrl: result.resultImageUrl
+        ? tryOnMediaPath(result.taskId, 'result')
+        : result.resultImageUrl,
+    }
+
     return NextResponse.json({
       success: true,
-      data: result
+      data: clientResult
     })
 
   } catch (error) {
