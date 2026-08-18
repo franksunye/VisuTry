@@ -4,19 +4,17 @@ import { prisma } from "@/lib/prisma"
 import { getRequestContext, logger } from "@/lib/logger"
 import { settleTryOnTaskQuota } from "@/lib/quota"
 import { getTryOnResult } from "@/lib/tryon-service"
+import { tryOnMediaPath } from '@/lib/tryon-media'
 
 export const dynamic = 'force-dynamic'
 
 export async function POST(request: NextRequest) {
   const ctx = getRequestContext(request)
   try {
-    // 1. Authentication
     const auth = await requireAuth()
     if (!auth.ok) return auth.response
 
     const userId = auth.userId
-
-    // 2. Parse Request
     const body = await request.json()
     const { taskId } = body
 
@@ -27,7 +25,6 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // 3. Verify Ownership
     const task = await prisma.tryOnTask.findUnique({
       where: { id: taskId },
       select: { userId: true }
@@ -47,18 +44,22 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // 4. Get/Poll Result
     const result = await getTryOnResult(taskId)
 
-    // Settle every completed response idempotently so a transient failure is
-    // recoverable on the next poll.
     if (result.status === 'COMPLETED') {
       await settleTryOnTaskQuota(taskId, userId, ctx)
     }
 
+    const clientResult = {
+      ...result,
+      resultImageUrl: result.resultImageUrl
+        ? tryOnMediaPath(taskId, 'result')
+        : result.resultImageUrl,
+    }
+
     return NextResponse.json({
       success: true,
-      data: result
+      data: clientResult
     })
 
   } catch (error) {
