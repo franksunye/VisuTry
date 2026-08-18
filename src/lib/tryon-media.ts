@@ -27,6 +27,10 @@ export function adminTryOnMediaPath(taskId: string, kind: TryOnMediaKind): strin
   return `/api/admin/try-on/${encodeURIComponent(taskId)}/media/${kind}`
 }
 
+export function publicTryOnShareResultPath(taskId: string): string {
+  return `/api/share/try-on/${encodeURIComponent(taskId)}/result`
+}
+
 export function tryOnMediaUrls(task: {
   id: string
   userImageUrl?: string | null
