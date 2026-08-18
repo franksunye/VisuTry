@@ -1,0 +1,108 @@
+{
+  "kind": "b4-2c-phase-b3-postproxy",
+  "capturedAt": "2026-08-18T07:35:53Z",
+  "originMain": "aef2706346f5ea07de05f442486c4f6463006c62",
+  "branch": "cursor/cloudflare-b4-2c-phase-b3-www-proxy",
+  "zoneId": "5e3dc058ed16f3aee917f1cef2e9f413",
+  "mutation": {
+    "executed": true,
+    "method": "PATCH /zones/5e3dc058ed16f3aee917f1cef2e9f413/dns_records/611c0c7ede4b475165cf14c36d451d50",
+    "http": 200,
+    "timestamp": "2026-08-18T07:26:33Z",
+    "apiModifiedOn": "2026-08-18T07:26:35.177881Z",
+    "recordId": "611c0c7ede4b475165cf14c36d451d50",
+    "pre": { "type": "CNAME", "name": "www", "content": "cname.vercel-dns-017.com", "proxied": false },
+    "post": { "type": "CNAME", "name": "www.visutry.com", "content": "cname.vercel-dns-017.com", "proxied": true, "ttl": 1 },
+    "dnsContentChanged": false,
+    "apexChanged": false,
+    "sslModeChanged": false,
+    "workerRoutesAttached": false
+  },
+  "apiRereadAt": "2026-08-18T07:35:53Z",
+  "sslMode": "strict",
+  "sslModeModifiedOn": "2026-08-18T07:02:54.108890Z",
+  "universalSslEnabled": true,
+  "certificatePack": {
+    "type": "universal",
+    "status": "active",
+    "hosts": ["visutry.com", "*.visutry.com"],
+    "expiresOn": "2026-11-16T04:50:11.000000Z"
+  },
+  "www": {
+    "id": "611c0c7ede4b475165cf14c36d451d50",
+    "type": "CNAME",
+    "name": "www.visutry.com",
+    "content": "cname.vercel-dns-017.com",
+    "proxied": true,
+    "modifiedOn": "2026-08-18T07:26:35.177881Z"
+  },
+  "apex": {
+    "id": "8a00d7a80ff0579e0f68d09671c2ef68",
+    "type": "CNAME",
+    "name": "visutry.com",
+    "content": "1c82e566126a58cc.vercel-dns-017.com",
+    "proxied": false,
+    "modifiedOn": "2026-08-18T03:36:14.001827Z"
+  },
+  "pay": {
+    "type": "CNAME",
+    "content": "hosted-checkout.stripecdn.com",
+    "proxied": false
+  },
+  "auth": {
+    "type": "CNAME",
+    "content": "dev-ho4e6glpvc4ux5uw-cd-cobhapsbopdfpybl.edge.tenants.us.auth0.com",
+    "proxied": false
+  },
+  "publicDns": {
+    "authoritativeWwwA": ["104.21.42.69", "172.67.158.125"],
+    "authoritativeWwwCname": null,
+    "oneOneOneOneWwwA": ["172.67.158.125", "104.21.42.69"],
+    "eightEightEightEightWwwA": ["172.67.158.125", "104.21.42.69"],
+    "apexA": ["64.29.17.65", "216.198.79.65"],
+    "note": "Proxied www flattens to Cloudflare anycast A. CNAME is no longer returned at CF NS. Source of truth for orange-cloud remains DNS API proxied=true."
+  },
+  "edgeTls": {
+    "connect": "104.21.42.69:443",
+    "sni": "www.visutry.com",
+    "issuer": "Google Trust Services WE1",
+    "subject": "CN=visutry.com",
+    "san": ["visutry.com", "*.visutry.com"],
+    "notBefore": "Aug 18 03:51:35 2026 GMT",
+    "notAfter": "Nov 16 04:50:11 2026 GMT",
+    "coversWww": true
+  },
+  "originTls": {
+    "connect": "64.29.17.1:443 (cname.vercel-dns-017.com A)",
+    "sni": "www.visutry.com",
+    "issuer": "Let's Encrypt YR2",
+    "subject": "CN=*.visutry.com",
+    "san": ["*.visutry.com", "visutry.com"],
+    "notBefore": "Jun 22 20:49:12 2026 GMT",
+    "notAfter": "Sep 20 20:49:11 2026 GMT",
+    "note": "A second Vercel anycast address (216.198.79.1) presented Google Trust Services WE1 for the same SNI. Both cover *.visutry.com and remain valid for Full (strict)."
+  },
+  "workers": {
+    "auth": "wrangler-oauth",
+    "capturedAt": "2026-08-18T07:37:20Z",
+    "workerRouteCount": 0,
+    "customDomainCount": 0,
+    "productionWorker": "ABSENT",
+    "visutryScriptsPresent": ["visutry-cf-staging", "visutry-cf-staging-router"]
+  },
+  "dnsUserTokenWorkers": {
+    "workerRoutesHttp": 403,
+    "workerRoutesCode": 10000,
+    "note": "DNS/SSL user token cannot read Workers. Wrangler OAuth is source of truth."
+  },
+  "errors52x": {
+    "525": false,
+    "526": false,
+    "520": false,
+    "521": false,
+    "522": false,
+    "523": false,
+    "524": false
+  },
+  "tokenValuesStored": false
+}

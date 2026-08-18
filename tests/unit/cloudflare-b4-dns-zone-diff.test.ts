@@ -11,15 +11,15 @@ import {
 describe('B4.2C Phase A DNS zone diff', () => {
   const desired = loadDesiredDnsRecords()
 
-  it('prepares www as DNS_ONLY for NS cutover with futureProxy PROXIED', () => {
+  it('keeps www PROXIED after B3 with historical nsCutoverProxy DNS_ONLY', () => {
     const www = desired.find((row) => row.name === 'www' && row.type === 'CNAME')
     expect(www?.content).toBe('cname.vercel-dns-017.com')
-    expect(www?.proxied).toBe(false)
+    expect(www?.proxied).toBe(true)
     expect(www?.futureProxy).toBe('PROXIED')
     expect(www?.nsCutoverProxy).toBe('DNS_ONLY')
     expect(desired.some((row) => row.name === '@' && row.type === 'MX' && row.priority === 5 && row.content === 'mxbiz1.qq.com' && row.proxied === false)).toBe(true)
     expect(desired.some((row) => row.name === 'auth' && row.proxied === false)).toBe(true)
-    expect(desired.filter((row) => row.name === 'www').every((row) => row.proxied === false)).toBe(true)
+    expect(desired.filter((row) => row.name === 'www').every((row) => row.proxied === true)).toBe(true)
     expect(desired.filter((row) => row.type === 'CAA').every((row) => row.proxied === false)).toBe(true)
     expect(desired.filter((row) => row.type === 'CAA').map((row) => row.content).sort()).toEqual([
       '0 issue "letsencrypt.org"',
@@ -53,14 +53,14 @@ describe('B4.2C Phase A DNS zone diff', () => {
         : row
     ))
     expect(compareDesiredToCloudflare({ desired, remote: proxiedMx }).findings.some((row) => row.kind === 'proxy')).toBe(true)
-    const proxiedWww = remote.map((row) => (
+    const dnsOnlyWww = remote.map((row) => (
       row.type === 'CNAME' && row.name === 'www.visutry.com'
-        ? { ...row, proxied: true }
+        ? { ...row, proxied: false }
         : row
     ))
-    const wwwProxyFail = compareDesiredToCloudflare({ desired, remote: proxiedWww })
+    const wwwProxyFail = compareDesiredToCloudflare({ desired, remote: dnsOnlyWww })
     expect(wwwProxyFail.status).toBe('fail')
-    expect(wwwProxyFail.findings.some((row) => row.kind === 'proxy' && row.record.includes('www') && row.actual === 'PROXIED')).toBe(true)
+    expect(wwwProxyFail.findings.some((row) => row.kind === 'proxy' && row.record.includes('www') && row.actual === 'DNS_ONLY')).toBe(true)
   })
 
   it('normalizes trailing dots and TXT quotes', () => {
