@@ -1,12 +1,12 @@
 {
   "kind": "b4-2c-phase-b2-zone-ssl",
-  "capturedAt": "2026-08-18T06:41:12Z",
+  "capturedAt": "2026-08-18T06:50:21Z",
   "originMain": "b56e6487b0759fe7f3533cbdf4c56da0a6aec649",
   "pr98MergePresent": true,
   "branch": "cursor/cloudflare-b4-2c-phase-b2-universal-ssl",
   "pr": 99,
   "verdict": "BLOCKED",
-  "blockedReason": "GET /zones/:id/settings/ssl still HTTP 403 code 9109. SSL mode is not confirmed Full (strict). Mode was not mutated. Universal SSL is enabled and an ACTIVE universal pack covers visutry.com and *.visutry.com.",
+  "blockedReason": "SSL mode is full (Full), not strict (Full strict). Mode was not mutated. Universal SSL is enabled and an ACTIVE universal pack covers visutry.com and *.visutry.com.",
   "b3": "NO-GO",
   "zoneId": "5e3dc058ed16f3aee917f1cef2e9f413",
   "zoneName": "visutry.com",
@@ -21,22 +21,26 @@
   ],
   "credential": {
     "shellApiTokenPresent": true,
-    "authUsed": "temporary-user-token-ssl-dns-read",
+    "authUsed": "temporary-user-token-zone-settings-ssl-dns-read",
     "tokenValuesStored": false,
     "tokenUnsetAfterUse": true,
     "permissionsRequested": [
       "Zone / Zone / Read",
+      "Zone / Zone Settings / Read",
       "Zone / SSL and Certificates / Read",
       "Zone / DNS / Read"
     ],
-    "note": "SSL and Certificates Read authorized Universal SSL settings and certificate packs. GET /zones/:id/settings/ssl is a Zone Setting and still 403 without Zone Settings Read. Permissions were not widened."
+    "note": "Retry 3 could read GET /zones/:id/settings/ssl. Value is full, not strict. No PATCH was sent."
   },
   "api": {
     "sslMode": {
       "endpoint": "GET /zones/5e3dc058ed16f3aee917f1cef2e9f413/settings/ssl",
-      "http": 403,
-      "code": 9109,
-      "message": "Unauthorized to access requested resource"
+      "http": 200,
+      "value": "full",
+      "certificate_status": "active",
+      "validation_errors": [],
+      "editable": true,
+      "modified_on": null
     },
     "universalSsl": {
       "endpoint": "GET /zones/5e3dc058ed16f3aee917f1cef2e9f413/ssl/universal/settings",
@@ -84,7 +88,9 @@
       "auth": "wrangler-oauth"
     }
   },
-  "sslMode": null,
+  "sslMode": "full",
+  "sslModeLabel": "Full",
+  "sslModeFullStrict": false,
   "universalSslEnabled": true,
   "certificatePacks": [
     {
@@ -110,7 +116,7 @@
           "status": "active",
           "issuer": "GoogleTrustServices",
           "expires_on": "2026-11-16T04:50:11.000000Z",
-          "uploaded_on": "2026-08-18T06:41:18.542127Z",
+          "uploaded_on": "2026-08-18T06:50:26.184206Z",
           "signature": "ECDSAWithSHA256",
           "bundle_method": "ubiquitous"
         }
@@ -122,7 +128,7 @@
     "www.visutry.com": "wildcard:*.visutry.com"
   },
   "issuer": "GoogleTrustServices",
-  "validFrom": "2026-08-18T06:41:18.542127Z",
+  "validFrom": "2026-08-18T06:50:26.184206Z",
   "validTo": "2026-11-16T04:50:11.000000Z",
   "certificateAuthority": "google",
   "wwwProxied": false,
@@ -280,7 +286,6 @@
     "nameserversChanged": false,
     "b3Executed": false
   },
-  "requiredTokenToUnblock": [
-    "Zone / Zone Settings / Read"
-  ]
+  "requiredTokenToUnblock": [],
+  "remainingGate": "SSL mode full → strict requires separate approval; not executed in B2"
 }

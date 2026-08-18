@@ -1,6 +1,6 @@
 # VisuTry Cloudflare B4.2C Phase B — Checkpoint B2 (Universal SSL readiness)
 
-**Status:** BLOCKED — SSL/TLS mode unread (`GET .../settings/ssl` HTTP 403 / 9109)
+**Status:** BLOCKED — SSL/TLS mode is `full` (Full), not Full (strict)
 **Date:** 2026-08-18
 **Owner:** Product / Engineering  
 **Branch:** `cursor/cloudflare-b4-2c-phase-b2-universal-ssl`  
@@ -37,7 +37,7 @@ Related:
 | PR #98 merge on main | YES (`b56e648`) |
 | Zone status | **active** |
 | `activated_on` | `2026-08-18T04:50:11.019408Z` |
-| SSL mode | **UNKNOWN** (`GET /zones/:id/settings/ssl` HTTP **403** / code **9109**) — **not changed** |
+| SSL mode | **full** (Cloudflare **Full**, not **Full (strict)**) — **not changed** |
 | Universal SSL enabled | **true** |
 | Certificate pack type | **universal** |
 | Certificate pack status | **active** |
@@ -51,9 +51,9 @@ Related:
 | Application | Vercel path healthy |
 | B3 | **NO-GO** / not executed |
 
-B2 cannot be **PASS**. The edge certificate is ACTIVE, but B2 requires SSL mode to already be **Full (strict)**. That zone setting was not readable, and mode was **not** mutated.
+B2 cannot be **PASS**. The edge certificate is ACTIVE and Universal SSL is enabled, but SSL mode is **Full** (`value: full`), not **Full (strict)** (`value: strict`). Mode was **not** mutated.
 
-B2 is **BLOCKED**, not **WAITING**: the pack is `active`, not `pending_*`.
+B2 is **BLOCKED**, not **WAITING**: the pack is `active`; the remaining gate is SSL mode.
 
 ## 2. Baseline
 
@@ -102,31 +102,38 @@ Captured against system resolver, `1.1.1.1`, `8.8.8.8`, and `@romina.ns.cloudfla
 
 ## 5. SSL API access
 
-Retry 2 used a temporary user API token in the shell only (Zone / Zone / Read, Zone / SSL and Certificates / Read, Zone / DNS / Read). Token values are not stored and were unset after the reads.
+Retry 3 used a new temporary user API token in the shell only (Zone Read + SSL and Certificates Read + DNS Read + Zone Settings Read). Token values are not stored and were unset after the reads.
 
-Wrangler OAuth remains insufficient for SSL/DNS. **SSL and Certificates Read** is sufficient for Universal SSL settings and certificate packs. **`GET /zones/:id/settings/ssl` is a zone setting** and still returned 403 with this token; it needs **Zone Settings Read**, which was not granted. Permissions were not widened silently.
-
-| Endpoint | Retry 1 (Wrangler OAuth) | Retry 2 (user token) |
-| --- | --- | --- |
-| `GET /zones/:id/settings/ssl` | 403 / 9109 | **403 / 9109** |
-| `GET /zones/:id/ssl/universal/settings` | 403 / 9109 | **200** `enabled: true`, `certificate_authority: google` |
-| `GET /zones/:id/ssl/certificate_packs?status=all` | 403 / 9109 | **200** one `universal` pack, `status: active` |
-| `GET /zones/:id/dns_records` (www CNAME / apex) | 403 / 10000 | **200** both `proxied: false` |
-| `GET /zones/:id/workers/routes` | 200 count 0 | 200 count 0 (Wrangler OAuth) |
+| Endpoint | Retry 1 | Retry 2 | Retry 3 |
+| --- | --- | --- | --- |
+| `GET /zones/:id/settings/ssl` | 403 / 9109 | 403 / 9109 | **200** `value: full` |
+| `GET /zones/:id/ssl/universal/settings` | 403 / 9109 | 200 enabled | **200** enabled, CA google |
+| `GET /zones/:id/ssl/certificate_packs?status=all` | 403 / 9109 | 200 active | **200** universal `active` |
+| www / apex DNS `proxied` | unread | `false` | **`false`** |
+| Worker Routes | 0 | 0 | **0** |
 
 Do **not** change SSL mode to force a PASS.
 
 ## 6. SSL/TLS mode
 
-Expected future architecture: **Full (strict)** (`value: strict` on the zone setting).
+Expected future architecture: **Full (strict)** (`value: strict`).
 
-Actual value: **UNKNOWN** (HTTP 403 / code 9109 on `GET /zones/5e3dc058ed16f3aee917f1cef2e9f413/settings/ssl`).
+Actual value: **`full`** (dashboard label **Full**). Captured `2026-08-18T06:50:21Z`.
 
-Per B2 gate: if the value is not confirmed Full (strict), B2 is **BLOCKED**. Mode was **not** changed.
+| Field | Value |
+| --- | --- |
+| `id` | `ssl` |
+| `value` | `full` |
+| `certificate_status` | `active` |
+| `validation_errors` | `[]` |
+| `editable` | `true` |
+| `modified_on` | `null` |
+
+`full` encrypts origin connections but does **not** validate the origin certificate. `strict` is required for B2 PASS. Mode was **not** PATCHed.
 
 ## 7. Universal SSL / certificate packs
 
-Captured `2026-08-18T06:41:12Z` from `GET /zones/:id/ssl/certificate_packs?status=all`.
+Captured `2026-08-18T06:50:21Z` from `GET /zones/:id/ssl/certificate_packs?status=all` (unchanged ACTIVE pack).
 
 | Field | API value |
 | --- | --- |
@@ -142,7 +149,7 @@ Captured `2026-08-18T06:41:12Z` from `GET /zones/:id/ssl/certificate_packs?statu
 | Issuer | `GoogleTrustServices` |
 | Certificate authority | `google` |
 | Signature | `ECDSAWithSHA256` |
-| Uploaded on | `2026-08-18T06:41:18.542127Z` |
+| Uploaded on | `2026-08-18T06:50:26.184206Z` |
 | Expires on | `2026-11-16T04:50:11.000000Z` |
 | Validity days | 90 |
 | Validation method | `txt` |
@@ -224,7 +231,7 @@ Nothing was deployed.
 | # | Requirement | Result |
 | --- | --- | --- |
 | 1 | Cloudflare zone ACTIVE | **PASS** |
-| 2 | SSL mode = Full (strict) | **UNKNOWN → BLOCKED** (`settings/ssl` 403/9109; not mutated) |
+| 2 | SSL mode = Full (strict) | **BLOCKED** (actual `full` / Full; not mutated) |
 | 3 | Universal SSL enabled | **PASS** (`enabled: true`) |
 | 4 | Active edge certificate exists | **PASS** (universal pack `active`) |
 | 5 | Certificate covers `visutry.com` | **PASS** |
@@ -236,9 +243,9 @@ Nothing was deployed.
 | 11 | Custom Domain = NONE | **PASS** |
 | 12 | Production application healthy | **PASS** |
 
-**B2 = BLOCKED** (SSL mode not confirmed Full (strict))
+**B2 = BLOCKED** (SSL mode is Full, not Full (strict))
 
-Unblock without mutation: add **Zone Settings Read** to a temporary token and re-read only `GET /zones/:id/settings/ssl`. If the value is already `strict`, B2 can become PASS. If it is not `strict`, B2 stays BLOCKED — do **not** PATCH SSL mode in this checkpoint. Do not enable www proxy.
+Changing `full` → `strict` is a **separate approval**. It is not part of B2 inspect-only work and was **not** executed. Do not enable www proxy.
 
 ## 14. B3
 
