@@ -5,6 +5,7 @@ import { prisma } from '@/lib/prisma'
 import { getRequestContext, logger } from '@/lib/logger'
 import { getRemainingQuotaCount } from '@/lib/quota'
 import { toCompareTaskResponse } from '@/lib/compare-tryon'
+import { tryOnMediaPath } from '@/lib/tryon-media'
 
 export const dynamic = 'force-dynamic'
 const RECOVERY_WINDOW_MS = 30 * 60 * 1000
@@ -63,7 +64,7 @@ export async function GET(request: NextRequest) {
         remainingCreditsBefore: getRemainingQuotaCount(user),
         recovered: true,
         startedAt: tasks[0].createdAt.toISOString(),
-        userImageUrl: tasks[0].userImageUrl,
+        userImageUrl: tasks[0].userImageUrl ? tryOnMediaPath(tasks[0].id, 'user') : null,
         styleIntent: metadataValue(firstMetadata, 'styleIntent'),
         occasion: metadataValue(firstMetadata, 'occasion'),
         category: metadataValue(firstMetadata, 'category'),
