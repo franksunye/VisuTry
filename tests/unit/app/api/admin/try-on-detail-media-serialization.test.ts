@@ -1,6 +1,15 @@
 const mockRequireAdmin = jest.fn()
 const mockFindFirst = jest.fn()
 
+jest.mock('next/server', () => ({
+  NextResponse: {
+    json: (body: unknown, init?: { status?: number }) => ({
+      status: init?.status ?? 200,
+      json: async () => body,
+    }),
+  },
+}))
+
 jest.mock('@/lib/api-auth', () => ({
   requireAdmin: (...args: unknown[]) => mockRequireAdmin(...args),
 }))
@@ -44,7 +53,7 @@ describe('Admin Try-On detail media serialization', () => {
       user: null,
     })
 
-    const response = await GET(new Request('http://localhost/api/admin/try-on/task-1') as any, {
+    const response = await GET({} as any, {
       params: { id: 'task-1' },
     })
     const payload = await response.json()
