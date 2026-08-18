@@ -3,7 +3,10 @@ export type TryOnBlobAccessMode = 'public' | 'private'
 export function resolveTryOnBlobAccessMode(
   configured = process.env.TRY_ON_BLOB_ACCESS_MODE ?? process.env.FACE_ANALYSIS_BLOB_ACCESS_MODE,
 ): TryOnBlobAccessMode {
-  return configured?.trim().toLowerCase() === 'private' ? 'private' : 'public'
+  const normalized = configured?.trim().toLowerCase()
+  if (!normalized || normalized === 'public') return 'public'
+  if (normalized === 'private') return 'private'
+  throw new Error('TRY_ON_BLOB_ACCESS_MODE must be "public" or "private"')
 }
 
 export function getTryOnBlobStoreId(
