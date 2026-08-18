@@ -1,5 +1,5 @@
 import { toCompareTaskResponse } from '@/lib/compare-tryon'
-import { tryOnMediaPath, tryOnMediaUrls } from '@/lib/tryon-media'
+import { serveLegacyTryOnMedia, tryOnMediaPath, tryOnMediaUrls } from '@/lib/tryon-media'
 
 describe('Try-On protected media boundary', () => {
   it('serializes owner media as application-owned routes', () => {
@@ -39,5 +39,20 @@ describe('Try-On protected media boundary', () => {
 
     expect(response.resultImageUrl).toBe(tryOnMediaPath('task-1', 'result'))
     expect(JSON.stringify(response)).not.toContain('blob.vercel-storage.com')
+  })
+
+  it('preserves legacy Gemini data-url results behind the media route', async () => {
+    const response = await serveLegacyTryOnMedia('data:image/png;base64,AQIDBA==')
+
+    expect(response.status).toBe(200)
+    expect(response.headers.get('content-type')).toBe('image/png')
+    expect(response.headers.get('cache-control')).toBe('private, no-store')
+    expect(Array.from(new Uint8Array(await response.arrayBuffer()))).toEqual([1, 2, 3, 4])
+  })
+
+  it('rejects non-image legacy data urls', async () => {
+    await expect(
+      serveLegacyTryOnMedia('data:text/plain;base64,AQIDBA=='),
+    ).rejects.toThrow('Unsupported Try-On data URL')
   })
 })
