@@ -20,7 +20,10 @@ import {
   reconcileStaleConsumerDispatch,
   STALE_CONSUMER_DISPATCH_ERROR,
 } from '@/lib/generation/reconcile-stale-consumer-dispatch'
-import { getTryOnSourceBlobOptions } from '@/lib/tryon-blob-access'
+import {
+  getTryOnResultBlobOptions,
+  getTryOnSourceBlobOptions,
+} from '@/lib/tryon-blob-access'
 import { tryOnProviderMediaInput } from '@/lib/tryon-media-loader'
 
 export type { TryOnPollResult, TryOnSubmissionResult }
@@ -203,9 +206,8 @@ export async function submitTryOnTask(
     })
   }
 
-  // 1. Upload images to Vercel Blob for persistence. Step 2B keeps result
-  // images public for Share, but new user/item source media follows the
-  // configured protected source-media access policy.
+  // 1. Upload images to Vercel Blob for persistence. New user/item source media
+  // follows the configured protected source-media access policy.
   const sourceBlobOptions = getTryOnSourceBlobOptions()
   let userBlob, itemBlob
   try {
@@ -351,29 +353,35 @@ export async function submitTryOnTask(
 
       if (result.success && result.imageUrl) {
         let finalResultUrl = result.imageUrl
+        const resultBlobOptions = getTryOnResultBlobOptions()
 
-        // Upload Gemini result (Data URL) to Vercel Blob for persistence/performance
+        // Persist the result behind the same storage boundary as source media.
+        // If this upload fails, the in-memory data URL remains app-owned and does
+        // not weaken the public Share/storage boundary.
         try {
-          // Convert Data URL to Blob
           const response = await fetch(result.imageUrl)
           const blob = await response.blob()
           const file = new File([blob], `result-${task.id}.png`, { type: blob.type })
-          
-          // Result remains public until Step 2C introduces explicit Share capability.
           const resultOwnerKey = task.userId ?? task.id
-          const uploadedBlob = await put(`tryon/result/${resultOwnerKey}/${task.id}.png`, file, { access: 'public' })
+          const uploadedBlob = await put(
+            `tryon/result/${resultOwnerKey}/${task.id}.png`,
+            file,
+            resultBlobOptions,
+          )
           finalResultUrl = uploadedBlob.url
           logger.info('tryon-service', 'Gemini result uploaded to blob', {
             taskId: task.id,
             clientSubmissionId,
-            access: 'public',
+            access: resultBlobOptions.access,
           })
         } catch (uploadError) {
           logger.error('tryon-service', 'Failed to upload Gemini result to blob', uploadError as Error, {
             taskId: task.id,
             clientSubmissionId,
+            access: resultBlobOptions.access,
           })
-          // Fallback to Data URL if upload fails
+          // Fallback to the generated Data URL, which is still served only through
+          // app-owned owner/share endpoints.
         }
 
         // Update task as COMPLETED
@@ -386,6 +394,7 @@ export async function submitTryOnTask(
               ...(result.metadata || {}), // Save Gemini text/metadata
               ...(task.metadata as any),
               originalResultUrl: result.imageUrl, // Keep original URL in metadata
+              resultBlobAccess: finalResultUrl.startsWith('data:') ? 'inline' : resultBlobOptions.access,
               generationTime: Date.now() - startTime
             }
           }
@@ -590,10 +599,11 @@ export async function getTryOnResult(taskId: string): Promise<TryOnPollResult> {
         })
       }
 
-      // Consumer path: public result persist with provider-URL fallback. Result
-      // privacy is intentionally deferred to Step 2C so existing Share remains valid.
+      // Consumer path: persist the generated result behind the configured Try-On
+      // Blob boundary. Public sharing is handled by the result-only Share route.
       const resultOwnerKey = task.userId ?? taskId
       const resultPathname = `tryon/result/${resultOwnerKey}/${taskId}.png`
+      const resultBlobOptions = getTryOnResultBlobOptions()
 
       let persistedUrl: string | null = null
       try {
@@ -603,17 +613,44 @@ export async function getTryOnResult(taskId: string): Promise<TryOnPollResult> {
         }
         const blob = await response.blob()
         const file = new File([blob], `result-${taskId}.png`, { type: blob.type || 'image/png' })
-        const uploadedBlob = await put(resultPathname, file, { access: 'public' })
+        const uploadedBlob = await put(resultPathname, file, resultBlobOptions)
         persistedUrl = uploadedBlob.url
         logger.info('tryon-service', 'GrsAi result uploaded to blob', {
           taskId,
-          access: 'public',
+          access: resultBlobOptions.access,
         })
       } catch (uploadError) {
+        const persistError = uploadError instanceof Error ? uploadError.message : String(uploadError)
         logger.error('tryon-service', 'Failed to persist GrsAi result to blob', uploadError as Error, {
           taskId,
+          access: resultBlobOptions.access,
         })
-        // Consumer: keep legacy fallback to provider URL
+
+        if (resultBlobOptions.access === 'private') {
+          // Never degrade a private-policy task to a provider/public URL. Keep the
+          // external task resumable so a later poll can retry private persistence.
+          await prisma.tryOnTask.update({
+            where: { id: taskId },
+            data: {
+              status: TaskStatus.PROCESSING,
+              errorMessage: null,
+              metadata: {
+                ...externalPollMetadata,
+                resultPathname,
+                privateBlob: true,
+                privatePersistPending: true,
+                privatePersistError: persistError,
+              },
+            },
+          })
+          return {
+            status: TaskStatus.PROCESSING,
+            progress: pollResult.progress ?? 90,
+            isNewCompletion: false,
+          }
+        }
+
+        // Legacy public mode retains the historical provider-URL fallback.
         persistedUrl = pollResult.imageUrl
       }
 
@@ -637,7 +674,7 @@ export async function getTryOnResult(taskId: string): Promise<TryOnPollResult> {
             ...(pollResult.metadata || {}),
             ...externalPollMetadata,
             resultPathname,
-            privateBlob: false,
+            privateBlob: resultBlobOptions.access === 'private',
             privatePersistPending: false,
             privatePersistError: null,
             completionTime: Date.now(),
