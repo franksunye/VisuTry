@@ -1,0 +1,83 @@
+{
+  "kind": "b4-2d-p0-preflight",
+  "capturedAt": "2026-08-18T08:52:16Z",
+  "originMain": "1061e90d64327fb0a5301b193a25e2e36bfd867e",
+  "pr100Merged": true,
+  "b3": "CLOSED/PASS",
+  "zoneId": "5e3dc058ed16f3aee917f1cef2e9f413",
+  "wwwProxiedSource": "B3 merge + authoritative A 104.21.42.69 / 172.67.158.125",
+  "sslMode": "strict",
+  "productionWorker": "ABSENT",
+  "workerRouteCount": 0,
+  "customDomainCount": 0,
+  "tokenValuesStored": false,
+  "apis": [
+    {
+      "path": "/api/health",
+      "status": 200,
+      "contentType": "application/json",
+      "server": "cloudflare",
+      "cfRay": true,
+      "routerBackend": null,
+      "sha256_16": "b5c3e44a54d366de",
+      "semantic": {
+        "status": "ok",
+        "service": "VisuTry",
+        "version": "0.1.0"
+      }
+    },
+    {
+      "path": "/api/glasses/brands",
+      "status": 200,
+      "contentType": "application/json",
+      "server": "cloudflare",
+      "cfRay": true,
+      "routerBackend": null,
+      "sha256_16": "e37e442d8fda77eb",
+      "success": true,
+      "dataType": "list",
+      "dataCount": 50
+    },
+    {
+      "path": "/api/glasses/categories",
+      "status": 200,
+      "contentType": "application/json",
+      "server": "cloudflare",
+      "cfRay": true,
+      "routerBackend": null,
+      "sha256_16": "e72c429426e5e07c",
+      "success": true,
+      "dataType": "list",
+      "dataCount": 10,
+      "itemKeys": [
+        "createdAt",
+        "description",
+        "displayName",
+        "id",
+        "name",
+        "updatedAt"
+      ]
+    },
+    {
+      "path": "/api/glasses/face-shapes",
+      "status": 200,
+      "contentType": "application/json",
+      "server": "cloudflare",
+      "cfRay": true,
+      "routerBackend": null,
+      "sha256_16": "50359e21e203f21b",
+      "success": true,
+      "dataType": "list",
+      "dataCount": 7,
+      "itemKeys": [
+        "characteristics",
+        "createdAt",
+        "description",
+        "displayName",
+        "id",
+        "name",
+        "updatedAt"
+      ]
+    }
+  ]
+}

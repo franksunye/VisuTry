@@ -1,0 +1,83 @@
+{
+  "kind": "b4-2d-p0-observation",
+  "cutoverAt": "2026-08-18T09:36:00Z",
+  "tokenValuesStored": false,
+  "quotas": {
+    "plan": "Workers Free",
+    "hardLimitPerDay": 100000,
+    "warningProjectedPerDay": 70000,
+    "rollbackProjectedPerDay": 90000,
+    "warningReached": false,
+    "rollbackThresholdReached": false,
+    "workerRequestsSoFar": "not exported; oauth observability 403. Immediate window is API smoke plus operator probes only.",
+    "projectedPerDay": "UNKNOWN \u2014 too early; do not expand to P1"
+  },
+  "checkpoints": [
+    {
+      "name": "immediate",
+      "capturedAt": "2026-08-18T09:37:29Z",
+      "result": "PASS",
+      "workerApis": "200 cloudflare",
+      "staticAssets": "200 no router header HIT",
+      "homepageStoreCampaignAuth": "Vercel bypass (no router header)",
+      "errors": 0
+    },
+    {
+      "name": "5m",
+      "capturedAt": "2026-08-18T09:45:01Z",
+      "result": "PASS",
+      "probes": [
+        {
+          "path": "/api/health",
+          "status": 200,
+          "routerBackend": "cloudflare"
+        },
+        {
+          "path": "/api/glasses/brands",
+          "status": 200,
+          "routerBackend": "cloudflare"
+        },
+        {
+          "path": "/api/glasses/categories",
+          "status": 200,
+          "routerBackend": "cloudflare"
+        },
+        {
+          "path": "/api/glasses/face-shapes",
+          "status": 200,
+          "routerBackend": "cloudflare"
+        },
+        {
+          "path": "/robots.txt",
+          "status": 200,
+          "routerBackend": null
+        },
+        {
+          "path": "/en",
+          "status": 200,
+          "routerBackend": null
+        },
+        {
+          "path": "/en/store",
+          "status": 200,
+          "routerBackend": null
+        },
+        {
+          "path": "/en/c/ello-sunglasses/petite-fit",
+          "status": 200,
+          "routerBackend": null
+        },
+        {
+          "path": "/en/face-analysis",
+          "status": 200,
+          "routerBackend": null
+        },
+        {
+          "path": "/en/auth/signin",
+          "status": 200,
+          "routerBackend": null
+        }
+      ]
+    }
+  ]
+}
