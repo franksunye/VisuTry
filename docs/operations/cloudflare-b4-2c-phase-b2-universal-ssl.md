@@ -1,6 +1,6 @@
 # VisuTry Cloudflare B4.2C Phase B — Checkpoint B2 (Universal SSL readiness)
 
-**Status:** BLOCKED — SSL/TLS mode is `full` (Full), not Full (strict)
+**Status:** BLOCKED — SSL/TLS mode is `full` (Full), not Full (strict); PATCH 403/9109
 **Date:** 2026-08-18
 **Owner:** Product / Engineering  
 **Branch:** `cursor/cloudflare-b4-2c-phase-b2-universal-ssl`  
@@ -129,7 +129,21 @@ Actual value: **`full`** (dashboard label **Full**). Captured `2026-08-18T06:50:
 | `editable` | `true` |
 | `modified_on` | `null` |
 
-`full` encrypts origin connections but does **not** validate the origin certificate. `strict` is required for B2 PASS. Mode was **not** PATCHed.
+`full` encrypts origin connections but does **not** validate the origin certificate. `strict` is required for B2 PASS.
+
+Operator approved `full` → `strict` on 2026-08-18 (chat). PATCH was attempted:
+
+```http
+PATCH /zones/5e3dc058ed16f3aee917f1cef2e9f413/settings/ssl
+{"value":"strict"}
+```
+
+Result: HTTP **403** / code **9109** (`Unauthorized to access requested resource`). Current token can **read** zone settings but cannot **write** them. Mode remains **`full`**. www/apex were not proxied. Worker Routes were not attached.
+
+To complete the approved change, either:
+
+1. Provide a temporary token that includes **Zone Settings Write** (keep other grants read-only), or
+2. In the Cloudflare dashboard: SSL/TLS → Overview → Encryption mode → **Full (strict)** → Save, then say it is done so it can be re-read.
 
 ## 7. Universal SSL / certificate packs
 
@@ -243,9 +257,9 @@ Nothing was deployed.
 | 11 | Custom Domain = NONE | **PASS** |
 | 12 | Production application healthy | **PASS** |
 
-**B2 = BLOCKED** (SSL mode is Full, not Full (strict))
+**B2 = BLOCKED** (SSL mode is Full, not Full (strict); approved PATCH returned 403/9109)
 
-Changing `full` → `strict` is a **separate approval**. It is not part of B2 inspect-only work and was **not** executed. Do not enable www proxy.
+Changing `full` → `strict` is **approved** but not applied. Do not enable www proxy.
 
 ## 14. B3
 

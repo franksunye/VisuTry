@@ -1,12 +1,12 @@
 {
   "kind": "b4-2c-phase-b2-zone-ssl",
-  "capturedAt": "2026-08-18T06:50:21Z",
+  "capturedAt": "2026-08-18T07:00:32Z",
   "originMain": "b56e6487b0759fe7f3533cbdf4c56da0a6aec649",
   "pr98MergePresent": true,
   "branch": "cursor/cloudflare-b4-2c-phase-b2-universal-ssl",
   "pr": 99,
   "verdict": "BLOCKED",
-  "blockedReason": "SSL mode is full (Full), not strict (Full strict). Mode was not mutated. Universal SSL is enabled and an ACTIVE universal pack covers visutry.com and *.visutry.com.",
+  "blockedReason": "SSL mode is full (Full), not strict (Full strict). Operator approved PATCH full→strict; PATCH /zones/:id/settings/ssl returned HTTP 403 code 9109. Mode was not changed. www/apex remain DNS_ONLY.",
   "b3": "NO-GO",
   "zoneId": "5e3dc058ed16f3aee917f1cef2e9f413",
   "zoneName": "visutry.com",
@@ -41,6 +41,14 @@
       "validation_errors": [],
       "editable": true,
       "modified_on": null
+    },
+    "sslModePatch": {
+      "endpoint": "PATCH /zones/5e3dc058ed16f3aee917f1cef2e9f413/settings/ssl",
+      "requestedValue": "strict",
+      "operatorApproved": true,
+      "http": 403,
+      "code": 9109,
+      "message": "Unauthorized to access requested resource"
     },
     "universalSsl": {
       "endpoint": "GET /zones/5e3dc058ed16f3aee917f1cef2e9f413/ssl/universal/settings",
@@ -277,6 +285,8 @@
     "wwwProxiedEnabled": false,
     "apexProxiedEnabled": false,
     "sslModeChanged": false,
+    "sslModePatchAttempted": true,
+    "sslModePatchHttp": 403,
     "universalSslChanged": false,
     "certificatePacksChanged": false,
     "originCertificatesIssued": false,
@@ -286,6 +296,8 @@
     "nameserversChanged": false,
     "b3Executed": false
   },
-  "requiredTokenToUnblock": [],
-  "remainingGate": "SSL mode full → strict requires separate approval; not executed in B2"
+  "requiredTokenToUnblock": [
+    "Zone / Zone Settings / Write"
+  ],
+  "remainingGate": "Operator approved full → strict; PATCH 403/9109. Need Zone Settings Write or dashboard change. Not executed."
 }
