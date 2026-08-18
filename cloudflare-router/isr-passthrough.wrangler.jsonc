@@ -1,0 +1,47 @@
+{
+  "$schema": "../node_modules/wrangler/config-schema.json",
+  "name": "visutry-isr-passthrough",
+  "main": "isr-passthrough-worker.ts",
+  "compatibility_date": "2026-08-18",
+  "workers_dev": true,
+  // Dedicated Vercel pass-through Worker for ISR telemetry.
+  // Do NOT list www Worker Routes or custom_domain here. Attach Stage 1/2
+  // routes through the Cloudflare Routes API after deploy. Never bind
+  // visutry-cf-production / OpenNext. Never fetch www.visutry.com.
+  "env": {
+    "staging": {
+      "name": "visutry-isr-passthrough-staging",
+      "vars": {
+        "VERCEL_ORIGIN": "https://visutry.vercel.app",
+        "PUBLIC_HOST": "visutry-isr-passthrough-staging.sunye.workers.dev",
+        "ISR_PASSTHROUGH_STAGE": "1",
+        "ISR_TELEMETRY_ENABLED": "false",
+        "ISR_HTML_TELEMETRY_SAMPLE_RATE": "1",
+        "ISR_TELEMETRY_SAMPLE_RATE": "0.05"
+      },
+      "analytics_engine_datasets": [
+        {
+          "binding": "ISR_TELEMETRY",
+          "dataset": "visutry_isr_telemetry_staging"
+        }
+      ]
+    },
+    "production": {
+      "name": "visutry-isr-passthrough",
+      "vars": {
+        "VERCEL_ORIGIN": "https://visutry.vercel.app",
+        "PUBLIC_HOST": "www.visutry.com",
+        "ISR_PASSTHROUGH_STAGE": "1",
+        "ISR_TELEMETRY_ENABLED": "false",
+        "ISR_HTML_TELEMETRY_SAMPLE_RATE": "1",
+        "ISR_TELEMETRY_SAMPLE_RATE": "0.05"
+      },
+      "analytics_engine_datasets": [
+        {
+          "binding": "ISR_TELEMETRY",
+          "dataset": "visutry_isr_telemetry_production"
+        }
+      ]
+    }
+  }
+}
