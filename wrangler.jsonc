@@ -27,6 +27,10 @@
   // P0 routes through the Cloudflare Routes API after deploy. Copying the
   // 286-route review manifest into wrangler would publish P1/P2 by accident.
   // `npm run deploy:cloudflare` remains staging-only.
+  // Workers Builds: connect Git to visutry-cf-staging or visutry-cf-production
+  // separately. Dashboard Worker name must match wrangler env name. Never add
+  // www routes here. Production deploy command must use --env production
+  // --keep-vars so existing P0 Routes and secrets are not rewritten.
   "assets": {
     "directory": ".open-next/assets",
     "binding": "ASSETS",
