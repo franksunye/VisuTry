@@ -143,6 +143,8 @@ Only the four API routes (plus static **misses**) count. Asset hits with `run_wo
 
 ## 9. Overnight state
 
+Immediate and 5-minute checkpoints **PASS**. Remaining 15/30/60-minute probes run after cutover `2026-08-18T09:36:00Z`. Keep P0 active overnight if those stay healthy.
+
 Keep P0 active overnight if checkpoints stay healthy.
 
 | Item | Overnight |
