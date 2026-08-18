@@ -5,6 +5,23 @@
   "compatibility_date": "2026-08-15",
   "compatibility_flags": ["nodejs_compat"],
   "workers_dev": true,
+  // Keep Workers Logs aligned with the dashboard. A deploy without this
+  // block would reset Logs off. Traces stay disabled.
+  "observability": {
+    "enabled": false,
+    "head_sampling_rate": 1,
+    "logs": {
+      "enabled": true,
+      "head_sampling_rate": 1,
+      "persist": true,
+      "invocation_logs": true
+    },
+    "traces": {
+      "enabled": false,
+      "persist": true,
+      "head_sampling_rate": 1
+    }
+  },
   // Production Worker name lives under env.production. Do NOT list www
   // Worker Routes or custom_domain here. B4.2D attaches exactly 12 ungated
   // P0 routes through the Cloudflare Routes API after deploy. Copying the
