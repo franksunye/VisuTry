@@ -100,7 +100,7 @@ export default async function BlogPage({ params }: Props) {
                   key={post.slug}
                   className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow"
                 >
-                  <Link href={articleHref} className="block">
+                  <Link href={articleHref} prefetch={false} className="block">
                     <div className="relative h-48 w-full overflow-hidden">
                       <Image
                         src={post.coverImage}
@@ -149,6 +149,7 @@ export default async function BlogPage({ params }: Props) {
                     {/* Read more link */}
                     <Link
                       href={articleHref}
+                      prefetch={false}
                       className="inline-flex items-center text-blue-600 hover:text-blue-800 font-medium"
                     >
                       Read Full Article
