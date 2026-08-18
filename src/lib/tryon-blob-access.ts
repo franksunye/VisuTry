@@ -30,3 +30,14 @@ export function getTryOnSourceBlobOptions():
   }
   return { access: 'public' }
 }
+
+/**
+ * Consumer result media follows the same storage boundary as source media.
+ * Public sharing is provided separately by an application-owned result-only
+ * capability, so storage visibility never needs to be widened for Share.
+ */
+export function getTryOnResultBlobOptions():
+  | { access: 'public' }
+  | { access: 'private'; storeId: string } {
+  return getTryOnSourceBlobOptions()
+}
