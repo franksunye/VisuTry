@@ -19,7 +19,7 @@
 | `cloudflare-b4-2c-phase-b1-ns-cutover.md` | **Closed / PASS** | B4.2C Phase B checkpoint B1: Namecheap NS → Cloudflare; www remains DNS_ONLY; Worker Routes 0 |
 | `cloudflare-b4-2c-phase-b2-universal-ssl.md` | **Closed / PASS** | B4.2C Phase B checkpoint B2: Universal SSL ACTIVE; SSL mode Full (strict); www remains DNS_ONLY; B3 not executed |
 | `cloudflare-b4-2c-phase-b3-www-proxy.md` | **Closed / PASS** | B4.2C Phase B checkpoint B3: www DNS_ONLY → PROXIED; apex still DNS_ONLY; Worker Routes 0; Auth0 E2E operator-confirmed |
-| `cloudflare-b4-2d-p0-production-cutover.md` | **Closed / PASS** | B4.2D: 12 ungated P0 production Worker Routes; `/_next/static/*` not activated; P1 not executed |
+| `cloudflare-b4-2d-p0-production-cutover.md` | **Closed / PASS** | B4.2D P0 milestone (PR #101/#102): 12 ungated production Worker Routes live; 30m observation PASS; `/_next/static/*` not activated; P1 not executed |
 | `cloudflare-phase-b2-write-parity.md` | **Active milestone** | Scoped Cloudflare Free-plan Auth, merchant, Store DRAFT, and Campaign DRAFT write parity evidence |
 | `vercel-cpu-static-page-pilot.md` | Historical + Active Reference | Detailed Vercel static-rendering, ISR, middleware, and CPU optimization work already completed |
 

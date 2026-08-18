@@ -3,7 +3,7 @@
 **Status:** PASS — 12 ungated P0 routes active; `/_next/static/*` not attached  
 **Date:** 2026-08-18  
 **Owner:** Product / Engineering  
-**Branch:** `cursor/cloudflare-b4-2d-p0-production-cutover`  
+**Branch:** merged to `main` via PR #101 / #102  
 **Starting SHA:** `1061e90d64327fb0a5301b193a25e2e36bfd867e` (PR #100 merge on `origin/main`)
 
 **www Cloudflare proxy:** YES (`proxied: true`)  
@@ -16,7 +16,7 @@
 **Parity-gated `/_next/static/*`:** NOT ACTIVATED  
 **P1 / P2:** 0  
 **Auth0 / Stripe / mail / registrar NS / DNSSEC changed:** NO  
-**Merged:** NO
+**Merged:** YES (PR #101 P0 cutover, PR #102 Workers Builds Git commands)
 
 This is the first production Worker Route cutover. Intended path after B4.2D:
 
@@ -143,9 +143,9 @@ Only the four API routes (plus static **misses**) count. Asset hits with `run_wo
 
 ## 9. Overnight state
 
-Immediate and 5-minute checkpoints **PASS**. Remaining 15/30/60-minute probes run after cutover `2026-08-18T09:36:00Z`. Keep P0 active overnight if those stay healthy.
+Immediate, 5-minute, 15-minute, and 30-minute checkpoints **PASS**. Cutover `2026-08-18T09:36:00Z`. Keep P0 active overnight. 60-minute probe is still due `10:36Z` and is not a merge blocker.
 
-Keep P0 active overnight if checkpoints stay healthy.
+This is a P0 production milestone: 12 ungated routes stay live; do **not** activate P1.
 
 | Item | Overnight |
 | --- | --- |

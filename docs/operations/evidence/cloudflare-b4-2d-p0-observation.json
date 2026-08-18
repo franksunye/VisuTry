@@ -135,6 +135,63 @@
           "routerBackend": null
         }
       ]
+    },
+    {
+      "name": "30m",
+      "capturedAt": "2026-08-18T10:06:00Z",
+      "result": "PASS",
+      "probes": [
+        {
+          "path": "/api/health",
+          "status": 200,
+          "routerBackend": "cloudflare"
+        },
+        {
+          "path": "/api/glasses/brands",
+          "status": 200,
+          "routerBackend": "cloudflare"
+        },
+        {
+          "path": "/api/glasses/categories",
+          "status": 200,
+          "routerBackend": "cloudflare"
+        },
+        {
+          "path": "/api/glasses/face-shapes",
+          "status": 200,
+          "routerBackend": "cloudflare"
+        },
+        {
+          "path": "/robots.txt",
+          "status": 200,
+          "routerBackend": null
+        },
+        {
+          "path": "/en",
+          "status": 200,
+          "routerBackend": null
+        },
+        {
+          "path": "/en/store",
+          "status": 200,
+          "routerBackend": null
+        },
+        {
+          "path": "/en/c/ello-sunglasses/petite-fit",
+          "status": 200,
+          "routerBackend": null
+        },
+        {
+          "path": "/en/face-analysis",
+          "status": 200,
+          "routerBackend": null
+        },
+        {
+          "path": "/en/auth/signin",
+          "status": 200,
+          "routerBackend": null
+        }
+      ]
     }
   ]
 }
