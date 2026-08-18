@@ -216,7 +216,10 @@ describe('B4.2B scoped production Worker Routes', () => {
     fs.mkdirSync(path.join(vercelStatic, 'chunks'), { recursive: true })
     fs.mkdirSync(path.join(cfStatic, 'chunks'), { recursive: true })
     fs.writeFileSync(path.join(root, 'vercel', 'BUILD_ID'), 'vercel-id\n')
-    fs.writeFileSync(path.join(root, 'vercel', '.b4-vercel-snapshot.json'), '{}\n')
+    fs.writeFileSync(
+      path.join(root, 'vercel', '.b4-vercel-snapshot.json'),
+      `${JSON.stringify({ kind: 'vercel-next-snapshot', gitSha: 'same-commit' })}\n`,
+    )
     fs.writeFileSync(path.join(vercelStatic, 'chunks', 'app.js'), 'vercel')
     fs.writeFileSync(path.join(cfStatic, 'chunks', 'other.js'), 'cf')
     const compared = compareHashedStaticManifests(vercelStatic, cfStatic)
@@ -224,19 +227,37 @@ describe('B4.2B scoped production Worker Routes', () => {
     const skipped = hashedStaticParityGate({
       vercelNextDir: path.join(root, 'missing-next'),
       cloudflareAssetsDir: path.join(root, 'cf'),
+      gitSha: 'same-commit',
     })
     expect(skipped.status).toBe('skipped')
     const failed = hashedStaticParityGate({
       vercelNextDir: path.join(root, 'vercel'),
       cloudflareAssetsDir: path.join(root, 'cf'),
+      gitSha: 'same-commit',
     })
     expect(failed.status).toBe('fail')
     fs.writeFileSync(path.join(cfStatic, 'chunks', 'app.js'), 'cf')
     const passed = hashedStaticParityGate({
       vercelNextDir: path.join(root, 'vercel'),
       cloudflareAssetsDir: path.join(root, 'cf'),
+      gitSha: 'same-commit',
     })
     expect(passed.status).toBe('pass')
+    const shaMismatch = hashedStaticParityGate({
+      vercelNextDir: path.join(root, 'vercel'),
+      cloudflareAssetsDir: path.join(root, 'cf'),
+      gitSha: 'other-commit',
+    })
+    expect(shaMismatch.status).toBe('fail')
+    expect(shaMismatch.reason).toMatch(/snapshot gitSha same-commit != current other-commit/)
+    fs.writeFileSync(path.join(root, 'vercel', '.b4-vercel-snapshot.json'), '{}\n')
+    const missingSha = hashedStaticParityGate({
+      vercelNextDir: path.join(root, 'vercel'),
+      cloudflareAssetsDir: path.join(root, 'cf'),
+      gitSha: 'same-commit',
+    })
+    expect(missingSha.status).toBe('fail')
+    expect(missingSha.reason).toMatch(/missing gitSha/)
   })
 
   it('does not treat a live .next tree as the Vercel artifact after Cloudflare overwrite', () => {
@@ -247,7 +268,7 @@ describe('B4.2B scoped production Worker Routes', () => {
     fs.mkdirSync(path.join(liveNext, 'static', 'chunks'), { recursive: true })
     fs.writeFileSync(path.join(liveNext, 'BUILD_ID'), 'vercel-id\n')
     fs.writeFileSync(path.join(liveNext, 'static', 'chunks', 'app.js'), 'vercel')
-    snapshotVercelNextBuild({ sourceNextDir: liveNext, snapshotDir })
+    snapshotVercelNextBuild({ sourceNextDir: liveNext, snapshotDir, gitSha: 'same-commit' })
     fs.writeFileSync(path.join(liveNext, 'BUILD_ID'), 'cloudflare-id\n')
     fs.writeFileSync(path.join(liveNext, 'static', 'chunks', 'app.js'), 'overwritten-by-cf')
     fs.unlinkSync(path.join(liveNext, 'static', 'chunks', 'app.js'))
@@ -257,18 +278,21 @@ describe('B4.2B scoped production Worker Routes', () => {
     const liveCompared = hashedStaticParityGate({
       vercelNextDir: liveNext,
       cloudflareAssetsDir: cfAssets,
+      gitSha: 'same-commit',
     })
     expect(liveCompared.status).toBe('skipped')
     expect(liveCompared.reason).toMatch(/snapshot missing|Live \.next/)
     const defaultWithoutSnapshot = hashedStaticParityGate({
       vercelNextDir: path.join(root, 'missing-snapshot'),
       cloudflareAssetsDir: cfAssets,
+      gitSha: 'same-commit',
     })
     expect(defaultWithoutSnapshot.status).toBe('skipped')
     expect(defaultWithoutSnapshot.reason).toMatch(/snapshot missing/)
     const snapFailed = hashedStaticParityGate({
       vercelNextDir: snapshotDir,
       cloudflareAssetsDir: cfAssets,
+      gitSha: 'same-commit',
     })
     expect(snapFailed.status).toBe('fail')
     expect(snapFailed.missingOnCloudflare).toEqual(['chunks/app.js'])
@@ -285,5 +309,20 @@ describe('B4.2B scoped production Worker Routes', () => {
       attached: [{ pattern: 'www.visutry.com/api/health', script: 'visutry-cf-production', request_limit_fail_open: true }],
       expectedPatterns: ['www.visutry.com/api/health'],
     })).toEqual([])
+    expect(assertRemoteFailOpenActivation({
+      attached: [
+        { pattern: 'www.visutry.com/api/health', script: 'visutry-cf-production', request_limit_fail_open: true },
+        { pattern: 'www.visutry.com/*', script: 'visutry-cf-production', request_limit_fail_open: true },
+      ],
+      expectedPatterns: ['www.visutry.com/api/health'],
+    }).some((row) => row.includes('unexpected www route attached remotely: www.visutry.com/*'))).toBe(true)
+    expect(assertRemoteFailOpenActivation({
+      attached: [{ pattern: 'www.visutry.com/api/health', request_limit_fail_open: true }],
+      expectedPatterns: ['www.visutry.com/api/health'],
+    }).some((row) => row.includes('attached to null, expected visutry-cf-production'))).toBe(true)
+    expect(assertRemoteFailOpenActivation({
+      attached: [{ pattern: 'www.visutry.com/api/health', script: null, request_limit_fail_open: true }],
+      expectedPatterns: ['www.visutry.com/api/health'],
+    }).some((row) => row.includes('attached to null, expected visutry-cf-production'))).toBe(true)
   })
 })

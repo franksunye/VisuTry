@@ -2,8 +2,10 @@
  * B4.2C remote fail-open verification.
  *
  * Local `requestLimitFailOpen: true` is intent only. Phase C PASS requires
- * reading back attached Cloudflare Routes and asserting
- * `request_limit_fail_open === true` on every www route.
+ * reading back attached Cloudflare Routes and asserting an exact
+ * ungated-P0 www set: every expected route exists, no extra
+ * `www.visutry.com` routes, `script === visutry-cf-production`, and
+ * `request_limit_fail_open === true`.
  *
  * Do not call this against production from B4.2B.
  *

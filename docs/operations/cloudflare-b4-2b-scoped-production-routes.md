@@ -1,6 +1,6 @@
 # VisuTry Cloudflare B4.2B — Scoped Production Worker Routes
 
-**Status:** PASS with cutover gates — scoped routing architecture is unchanged. PR #95 final patch: directory `/*` static wildcards, independent Vercel snapshot parity, and remote fail-open read-back.
+**Status:** PASS with cutover gates — scoped routing architecture is unchanged. PR #95 hardening: directory `/*` static wildcards, snapshot `gitSha` same-commit parity, and exact remote P0 fail-open read-back.
 
 **Date:** 2026-08-18 (review follow-up)
 
@@ -65,7 +65,7 @@ Do not paste the printed `wranglerSnippetPreview` into `wrangler.jsonc` until B4
 
 B4.2C hard gates (not optional):
 
-1. Same-commit hashed-asset parity before publishing `www.visutry.com/_next/static/*`. Default Phase C P0 **excludes** that pattern. Sequence: `build:ci` → `npm run b4:snapshot-vercel-next` (copies `.next` to `.artifacts/b4/vercel-next`) → `build:cloudflare` → `npm run b4:asset-parity`. Comparing live `.next` after the Cloudflare build is a false PASS and is not the default. `generateBuildId` alone is not sufficient: `CLOUDFLARE_BUILD=1` webpack aliases can change chunk hashes.
+1. Same-commit hashed-asset parity before publishing `www.visutry.com/_next/static/*`. Default Phase C P0 **excludes** that pattern. Sequence: `build:ci` → `npm run b4:snapshot-vercel-next` (copies `.next` to `.artifacts/b4/vercel-next` and records `gitSha`) → `build:cloudflare` → `npm run b4:asset-parity`. Comparing live `.next` after the Cloudflare build is a false PASS and is not the default. Snapshot `gitSha` must equal `git rev-parse HEAD` or the gate fails. `generateBuildId` alone is not sufficient: `CLOUDFLARE_BUILD=1` webpack aliases can change chunk hashes.
 2. Freeze `www` origin DNS from `vercel domains inspect www.visutry.com` into `cloudflare-router/b4-production-dns.inspect.json`. Do **not** assume `cname.vercel-dns.com` or `cname.vercel-dns-0.com`.
 3. Every published Worker Route must have **request-limit fail-open** (`request_limit_fail_open: true` on the Cloudflare Routes API / dashboard toggle). Wrangler JSON currently only serializes `pattern` + `zone_name`; fail-open must be verified after attach. Volume is UNKNOWN, so fail-closed 1027 is not acceptable on public SEO/API paths.
 
@@ -376,7 +376,7 @@ Required order. Do not skip the read-back.
 1. Create/deploy the production Worker with **zero** `www.visutry.com` routes. Verify the Worker version / gzip. Staging remains `--env staging`.
 2. Attach **ungated P0** only (`routesForPriority('P0')`, default excludes `/_next/static/*`).
 3. Read back every attached zone route (Cloudflare API `GET /zones/:zone_id/workers/routes` or dashboard export).
-4. Run `npx tsx cloudflare-router/b4-fail-open-remote.ts --from-json attached-routes.json`. Every www route must have `request_limit_fail_open: true`. Empty remote list is **FAIL**, not skip-as-pass. Local `requestLimitFailOpen` is intent only.
+4. Run `npx tsx cloudflare-router/b4-fail-open-remote.ts --from-json attached-routes.json`. The remote www set must **exactly** equal ungated P0: every expected route present, **no extra** `www.visutry.com` routes (including `www.visutry.com/*` and P1/P2), `script === visutry-cf-production`, and `request_limit_fail_open: true`. Missing `script` is **FAIL**. Empty remote list is **FAIL**, not skip-as-pass. Local `requestLimitFailOpen` is intent only.
 5. Only then declare Phase C PASS.
 
 `/_next/static/*` stays off unless:
@@ -489,8 +489,8 @@ Product:
 | `deploy:cloudflare` | `--env staging` only |
 | GitHub Actions | no Wrangler/OpenNext deploy job |
 | Manifest | `activated: false` in JSON |
-| Hashed `/_next/static/*` | `activationGate: same-commit-asset-parity`; excluded from default `routesForPriority('P0')`; compare `.artifacts/b4/vercel-next` not live `.next` |
-| Fail-open | local intent `requestLimitFailOpen: true`; Phase C PASS = `b4:fail-open:assert --from-json` remote read-back |
+| Hashed `/_next/static/*` | `activationGate: same-commit-asset-parity`; excluded from default `routesForPriority('P0')`; compare `.artifacts/b4/vercel-next` not live `.next`; snapshot `gitSha` must equal current HEAD |
+| Fail-open | local intent `requestLimitFailOpen: true`; Phase C PASS = `b4:fail-open:assert --from-json` exact ungated-P0 www set, script, and remote fail-open |
 | www DNS target | inspect file `resolved: false` until Phase A |
 | Fail-open | `requestLimitFailOpen: true` on every generated route; API payload includes `request_limit_fail_open` |
 

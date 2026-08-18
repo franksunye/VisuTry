@@ -471,11 +471,20 @@ export function assertRemoteFailOpenActivation(options: {
 }): string[] {
   const errors: string[] = []
   const expected = options.expectedPatterns ?? routesForPriority('P0').map((route) => route.pattern)
+  const expectedSet = new Set(expected)
   const workerName = options.workerName ?? B4_PRODUCTION_WORKER_NAME
   if (options.attached.length === 0) {
     return ['no remote Cloudflare routes were read; local intent is not Phase C PASS']
   }
-  const byPattern = new Map(options.attached.map((row) => [row.pattern, row]))
+
+  const wwwAttached = options.attached.filter((row) => row.pattern.includes(B4_PRODUCTION_PUBLIC_HOST))
+  for (const remote of wwwAttached) {
+    if (!expectedSet.has(remote.pattern)) {
+      errors.push(`unexpected www route attached remotely: ${remote.pattern}`)
+    }
+  }
+
+  const byPattern = new Map(wwwAttached.map((row) => [row.pattern, row]))
   for (const pattern of expected) {
     const remote = byPattern.get(pattern)
     if (!remote) {
@@ -485,14 +494,8 @@ export function assertRemoteFailOpenActivation(options: {
     if (remote.request_limit_fail_open !== true) {
       errors.push(`${pattern} remote request_limit_fail_open=${String(remote.request_limit_fail_open)}`)
     }
-    if (remote.script && remote.script !== workerName) {
-      errors.push(`${pattern} attached to ${remote.script}, expected ${workerName}`)
-    }
-  }
-  for (const remote of options.attached) {
-    if (!remote.pattern.includes(B4_PRODUCTION_PUBLIC_HOST)) continue
-    if (remote.request_limit_fail_open !== true) {
-      errors.push(`${remote.pattern} is attached without fail-open`)
+    if (remote.script !== workerName) {
+      errors.push(`${pattern} attached to ${String(remote.script ?? 'null')}, expected ${workerName}`)
     }
   }
   return errors
