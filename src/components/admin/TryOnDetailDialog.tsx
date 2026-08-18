@@ -357,6 +357,7 @@ export default function TryOnDetailDialog({
                       src={task.userImageUrl}
                       alt="User"
                       fill
+                      unoptimized
                       className="object-cover"
                     />
                   </div>
@@ -370,6 +371,7 @@ export default function TryOnDetailDialog({
                       src={task.itemImageUrl || task.glassesImageUrl || ''}
                       alt={task.type ? getTryOnConfig(task.type).name : 'Item'}
                       fill
+                      unoptimized
                       className="object-cover"
                     />
                   </div>
@@ -382,6 +384,7 @@ export default function TryOnDetailDialog({
                         src={task.resultImageUrl}
                         alt="Result"
                         fill
+                        unoptimized
                         className="object-cover"
                       />
                     </div>
