@@ -1,0 +1,225 @@
+{
+  "kind": "b4-2c-phase-a-precutover-dns-snapshot",
+  "capturedAt": "2026-08-18T02:35:00.000Z",
+  "domain": "visutry.com",
+  "authoritativeProvider": "Vercel DNS",
+  "registrar": "Namecheap, Inc.",
+  "registrarIanaId": "1068",
+  "dnssec": {
+    "delegationSigned": false,
+    "dsAtParent": false,
+    "dnskey": false,
+    "phaseBBlockedByDnssec": false
+  },
+  "authoritativeNameservers": [
+    "ns1.vercel-dns.com",
+    "ns2.vercel-dns.com"
+  ],
+  "parentDelegationTtlSeconds": 172800,
+  "nsRecordTtlSeconds": 86400,
+  "vercelWwwInspect": {
+    "command": "vercel domains inspect www.visutry.com",
+    "inspectedAt": "2026-08-18T02:31:10.000Z",
+    "recordType": "CNAME",
+    "target": "cname.vercel-dns-017.com",
+    "apexAlias": "1c82e566126a58cc.vercel-dns-017.com",
+    "intendedNameservers": ["ns1.vercel-dns.com", "ns2.vercel-dns.com"],
+    "currentNameservers": ["ns1.vercel-dns.com", "ns2.vercel-dns.com"]
+  },
+  "cloudflare": {
+    "accountId": "8f2fca159ffbd0e5d9446dfa6280f40d",
+    "zoneExists": true,
+    "zoneId": "5e3dc058ed16f3aee917f1cef2e9f413",
+    "zoneStatus": "pending",
+    "zoneType": "full",
+    "createdOn": "2026-08-18T03:35:19.309527Z",
+    "activatedOn": null,
+    "authoritativePublicly": false,
+    "assignedNameservers": [
+      "romina.ns.cloudflare.com",
+      "stanley.ns.cloudflare.com"
+    ],
+    "originalNameservers": [
+      "ns1.vercel-dns.com",
+      "ns2.vercel-dns.com"
+    ],
+    "recordCount": 19,
+    "remoteDnsDiff": "pass",
+    "wwwPreparedProxy": "DNS_ONLY",
+    "wwwFutureProxy": "PROXIED",
+    "apexRepresentation": "CNAME visutry.com → 1c82e566126a58cc.vercel-dns-017.com",
+    "universalSsl": "unread (certificate-pack GET 403); not issuable until zone is Active and publicly authoritative",
+    "proxyActivationAllowedNow": false,
+    "productionWorker": null,
+    "productionRoutes": 0,
+    "wwwCustomDomain": false,
+    "createAttempt": {
+      "method": "POST /zones",
+      "jumpStart": false,
+      "httpStatus": 403,
+      "error": "Requires permission \"com.cloudflare.api.account.zone.create\" to create zones for the selected account",
+      "reconfirmedAt": "2026-08-18T02:55:00.000Z",
+      "reconfirmedHttpStatus": 403,
+      "reconfirmedError": "Requires permission \"com.cloudflare.api.account.zone.create\" to create zones for the selected account",
+      "getZonesResultCount": 0
+    },
+    "temporaryTokenRetry": {
+      "at": "2026-08-18T03:24:00.000Z",
+      "tokenPersisted": false,
+      "tokenPrinted": false,
+      "accountIdConfirmed": "8f2fca159ffbd0e5d9446dfa6280f40d",
+      "getZonesNameResultCount": 0,
+      "accountTokensVerify": { "httpStatus": 200, "status": "active" },
+      "userTokensVerify": { "httpStatus": 401, "error": "Invalid API Token" },
+      "createZone": {
+        "method": "POST /zones",
+        "type": "full",
+        "jumpStart": false,
+        "httpStatus": 403,
+        "error": "Requires permission \"com.cloudflare.api.account.zone.create\" to create zones for the selected account"
+      },
+      "permissionsBroadened": false
+    },
+    "tokenCreateAttempt": {
+      "method": "GET /user/tokens/permission_groups",
+      "httpStatus": 403,
+      "errorCode": 9109,
+      "error": "Unauthorized to access requested resource"
+    },
+    "createSucceeded": {
+      "at": "2026-08-18T03:35:19.309527Z",
+      "method": "POST /zones",
+      "type": "full",
+      "jumpStart": false,
+      "httpStatus": 200,
+      "prior403Resolved": true,
+      "tokenPersisted": false
+    }
+  },
+  "liveRecords": [
+    {
+      "name": "visutry.com",
+      "type": "NS",
+      "ttl": 86400,
+      "values": ["ns1.vercel-dns.com.", "ns2.vercel-dns.com."]
+    },
+    {
+      "name": "visutry.com",
+      "type": "SOA",
+      "ttl": 3600,
+      "values": ["ns1.vercel-dns.com. hostmaster.nsone.net. 1760595390 43200 7200 1209600 600"]
+    },
+    {
+      "name": "visutry.com",
+      "type": "A",
+      "ttl": 1800,
+      "values": ["64.29.17.1", "64.29.17.65", "216.198.79.1", "216.198.79.65"],
+      "note": "Vercel anycast; specific pair rotates. Flattened from apex ALIAS 1c82e566126a58cc.vercel-dns-017.com"
+    },
+    {
+      "name": "www.visutry.com",
+      "type": "A",
+      "ttl": 1800,
+      "values": ["64.29.17.65", "216.198.79.65", "216.198.79.1"],
+      "note": "Flattened from wildcard ALIAS cname.vercel-dns-017.com"
+    },
+    {
+      "name": "visutry.com",
+      "type": "AAAA",
+      "ttl": null,
+      "values": []
+    },
+    {
+      "name": "visutry.com",
+      "type": "MX",
+      "ttl": 60,
+      "values": ["5 mxbiz1.qq.com.", "10 mxbiz2.qq.com."]
+    },
+    {
+      "name": "visutry.com",
+      "type": "TXT",
+      "ttl": 60,
+      "values": ["v=spf1 include:spf.mail.qq.com ~all"]
+    },
+    {
+      "name": "visutry.com",
+      "type": "CAA",
+      "ttl": 60,
+      "values": ["0 issue \"letsencrypt.org\"", "0 issue \"pki.goog\"", "0 issue \"sectigo.com\""]
+    },
+    {
+      "name": "_dmarc.visutry.com",
+      "type": "TXT",
+      "ttl": 60,
+      "values": ["v=DMARC1; p=none;"]
+    },
+    {
+      "name": "resend._domainkey.visutry.com",
+      "type": "TXT",
+      "ttl": 60,
+      "values": ["p=MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDH/vlC0I2gLaGRjDWHjKsZA7vLRnw2t9+4z9c+lfHOM55ic2gv7xLzJRxtt3ZM8tA5izlazgpMG8I4BKRKjdQ0Vl1jdacXXBoYa0qSSSffnVAYFilDufxo/2Wmo6rXzZp/YmtB9bxuCy1dY+LmAdqV+C+ZuCwNVQuAZ2xYiVyOgwIDAQAB"]
+    },
+    {
+      "name": "auth.visutry.com",
+      "type": "CNAME",
+      "ttl": 60,
+      "values": ["dev-ho4e6glpvc4ux5uw-cd-cobhapsbopdfpybl.edge.tenants.us.auth0.com."]
+    },
+    {
+      "name": "pay.visutry.com",
+      "type": "CNAME",
+      "ttl": 60,
+      "values": ["hosted-checkout.stripecdn.com."]
+    },
+    {
+      "name": "_acme-challenge.pay.visutry.com",
+      "type": "TXT",
+      "ttl": 60,
+      "values": ["U-Lm8kfKSESig0eXwlwzlLVTSp5cIAQDsRQ1NzyC_9Y"]
+    },
+    {
+      "name": "send.visutry.com",
+      "type": "MX",
+      "ttl": 60,
+      "values": ["10 feedback-smtp.us-east-1.amazonses.com."]
+    },
+    {
+      "name": "send.visutry.com",
+      "type": "TXT",
+      "ttl": 60,
+      "values": ["v=spf1 include:amazonses.com ~all"]
+    },
+    {
+      "name": "thangka.visutry.com",
+      "type": "CNAME",
+      "ttl": 60,
+      "values": ["thangkavault.pages.dev."]
+    },
+    {
+      "name": "cf-test.visutry.com",
+      "type": "CNAME",
+      "ttl": 60,
+      "values": ["stockwise-pages-test.pages.dev."]
+    },
+    {
+      "name": "answer.visutry.com",
+      "type": "CNAME",
+      "ttl": 60,
+      "values": ["franksunye.github.io."]
+    }
+  ],
+  "http": {
+    "httpsApex": "307 Location: https://www.visutry.com/ server: Vercel",
+    "httpsWww": "307 Location: /en server: Vercel",
+    "httpApex": "308 Location: https://visutry.com/ server: Vercel",
+    "httpWww": "308 Location: https://www.visutry.com/ server: Vercel"
+  },
+  "workers": {
+    "staging": "visutry-cf-staging",
+    "stagingWorkersDev": true,
+    "production": null,
+    "productionRoutes": 0,
+    "wwwCustomDomain": false
+  },
+  "secretsCommitted": false
+}

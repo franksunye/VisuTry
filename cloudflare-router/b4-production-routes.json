@@ -20,7 +20,7 @@
     "activationP0": 12,
     "parityGated": 1,
     "requestLimitFailOpenRequired": true,
-    "wwwDnsTargetFrozen": false,
+    "wwwDnsTargetFrozen": true,
     "safetyErrors": []
   },
   "routes": [

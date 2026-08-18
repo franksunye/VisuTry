@@ -24,7 +24,7 @@ Related:
 - Semantic source of truth: `cloudflare-router/b4-production-public-slice.ts`
 - Route generator: `cloudflare-router/b4-production-routes.ts`
 - Review manifest: `cloudflare-router/b4-production-routes.json`
-- DNS inspect freeze (unresolved until Phase A): `cloudflare-router/b4-production-dns.inspect.json`
+- DNS inspect freeze: `cloudflare-router/b4-production-dns.inspect.json` (frozen in B4.2C Phase A to `cname.vercel-dns-017.com`)
 - Hashed-asset parity gate: `cloudflare-router/b4-static-asset-parity.ts`
 
 Canonical execution order is unchanged:

@@ -54,6 +54,9 @@ export interface B4ProductionDnsInspect {
   recordType: 'CNAME' | 'A' | 'AAAA' | null
   target: string | null
   examplesThatMustNotBeAssumed: string[]
+  source?: string
+  apexAlias?: string | null
+  publicARecordsObserved?: string[]
   note?: string
 }
 

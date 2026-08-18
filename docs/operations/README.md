@@ -14,7 +14,8 @@
 | `cloudflare-b3-2-capability-routing.md` | **Active milestone** | B3.2 same-host staging capability router, reconciled onto current main, explicit Vercel fallback |
 | `cloudflare-b4-production-cutover-readiness.md` | **Active milestone** | B4.1 production cutover readiness: first public slice, Static Asset vs Worker audit, corrected Free-plan quota model (no DNS / no production traffic) |
 | `cloudflare-b4-2a-staging-public-slice.md` | **Active milestone** | B4.2A staging public-slice activation, three-layer proof, DNS inventory, scoped-route B4.2B gate (no production DNS / no merge) |
-| `cloudflare-b4-2b-scoped-production-routes.md` | **Active milestone** | B4.2B scoped production Worker Routes preparation: route manifest, negative safety, DNS import inventory, P0–P2 ramp, cutover runbook (no production DNS / no Worker Routes live / no merge) |
+| `cloudflare-b4-2b-scoped-production-routes.md` | **Active milestone** | B4.2B scoped production Worker Routes: 286-pattern allowlist, P0–P2 ramp, cutover gates (merged in PR #95; routes not activated) |
+| `cloudflare-b4-2c-phase-a-dns-zone.md` | **Active milestone** | B4.2C Phase A: inactive Cloudflare zone pending, DNS mirror PASS, www DNS_ONLY (no NS change / no traffic cutover) |
 | `cloudflare-phase-b2-write-parity.md` | **Active milestone** | Scoped Cloudflare Free-plan Auth, merchant, Store DRAFT, and Campaign DRAFT write parity evidence |
 | `vercel-cpu-static-page-pilot.md` | Historical + Active Reference | Detailed Vercel static-rendering, ISR, middleware, and CPU optimization work already completed |
 

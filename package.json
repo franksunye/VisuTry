@@ -19,6 +19,7 @@
     "b4:snapshot-vercel-next": "tsx cloudflare-router/b4-static-asset-parity.ts --snapshot",
     "b4:asset-parity": "tsx cloudflare-router/b4-static-asset-parity.ts",
     "b4:fail-open:assert": "tsx cloudflare-router/b4-fail-open-remote.ts",
+    "b4:dns:diff": "tsx cloudflare-router/b4-dns-zone-diff.ts",
     "start": "next start",
     "lint": "next lint",
     "typecheck": "tsc --noEmit",

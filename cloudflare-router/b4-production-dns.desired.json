@@ -1,0 +1,199 @@
+{
+  "kind": "b4-2c-phase-a-desired-cloudflare-records",
+  "zone": "visutry.com",
+  "authoritativePublicly": false,
+  "appliedToCloudflareZone": true,
+  "cloudflareZone": {
+    "id": "5e3dc058ed16f3aee917f1cef2e9f413",
+    "status": "pending",
+    "type": "full",
+    "activatedOn": null,
+    "createdOn": "2026-08-18T03:35:19.309527Z",
+    "assignedNameservers": [
+      "romina.ns.cloudflare.com",
+      "stanley.ns.cloudflare.com"
+    ],
+    "originalNameservers": [
+      "ns1.vercel-dns.com",
+      "ns2.vercel-dns.com"
+    ],
+    "apexRepresentation": "CNAME visutry.com → 1c82e566126a58cc.vercel-dns-017.com (not frozen Vercel anycast A)"
+  },
+  "wwwNsCutoverProxy": "DNS_ONLY",
+  "wwwFutureProxy": "PROXIED",
+  "caaPolicy": {
+    "copyAuthoritativeFaithfully": true,
+    "currentIssueTargets": ["letsencrypt.org", "pki.goog", "sectigo.com"],
+    "doNotInventCloudflareCaToPassDiff": true,
+    "note": "Cloudflare may add CAA authorizations for Universal SSL after the zone becomes Active. Record any Cloudflare-managed CAA difference before Phase B; do not hide it to make b4:dns:diff pass."
+  },
+  "wwwOrigin": {
+    "recordType": "CNAME",
+    "target": "cname.vercel-dns-017.com",
+    "source": "cloudflare-router/b4-production-dns.inspect.json"
+  },
+  "records": [
+    {
+      "name": "@",
+      "type": "CNAME",
+      "content": "1c82e566126a58cc.vercel-dns-017.com",
+      "proxied": false,
+      "futureProxy": "DNS_ONLY",
+      "reason": "Apex stays on Vercel so the existing 307 to https://www.visutry.com is preserved. Do not attach the application Worker to the apex."
+    },
+    {
+      "name": "www",
+      "type": "CNAME",
+      "content": "cname.vercel-dns-017.com",
+      "proxied": false,
+      "futureProxy": "PROXIED",
+      "nsCutoverProxy": "DNS_ONLY",
+      "reason": "Phase B checkpoint B1 is nameserver-only. www stays DNS_ONLY so cutover does not depend on Cloudflare proxy or Universal SSL. Orange-cloud is B3, only after zone ACTIVE and Universal SSL ACTIVE. Frozen target unchanged."
+    },
+    {
+      "name": "*",
+      "type": "CNAME",
+      "content": "cname.vercel-dns-017.com",
+      "proxied": false,
+      "futureProxy": "DNS_ONLY",
+      "reason": "Faithful copy of Vercel wildcard ALIAS so unused names still resolve to Vercel. Must stay DNS-only so unmatched hosts never enter the Worker."
+    },
+    {
+      "name": "@",
+      "type": "MX",
+      "priority": 5,
+      "content": "mxbiz1.qq.com",
+      "proxied": false,
+      "futureProxy": "DNS_ONLY",
+      "reason": "QQ Exmail. MX cannot be proxied."
+    },
+    {
+      "name": "@",
+      "type": "MX",
+      "priority": 10,
+      "content": "mxbiz2.qq.com",
+      "proxied": false,
+      "futureProxy": "DNS_ONLY",
+      "reason": "QQ Exmail secondary."
+    },
+    {
+      "name": "@",
+      "type": "TXT",
+      "content": "v=spf1 include:spf.mail.qq.com ~all",
+      "proxied": false,
+      "futureProxy": "DNS_ONLY",
+      "reason": "QQ Exmail SPF."
+    },
+    {
+      "name": "_dmarc",
+      "type": "TXT",
+      "content": "v=DMARC1; p=none;",
+      "proxied": false,
+      "futureProxy": "DNS_ONLY",
+      "reason": "DMARC p=none."
+    },
+    {
+      "name": "resend._domainkey",
+      "type": "TXT",
+      "content": "p=MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDH/vlC0I2gLaGRjDWHjKsZA7vLRnw2t9+4z9c+lfHOM55ic2gv7xLzJRxtt3ZM8tA5izlazgpMG8I4BKRKjdQ0Vl1jdacXXBoYa0qSSSffnVAYFilDufxo/2Wmo6rXzZp/YmtB9bxuCy1dY+LmAdqV+C+ZuCwNVQuAZ2xYiVyOgwIDAQAB",
+      "proxied": false,
+      "futureProxy": "DNS_ONLY",
+      "reason": "Resend DKIM."
+    },
+    {
+      "name": "@",
+      "type": "CAA",
+      "content": "0 issue \"letsencrypt.org\"",
+      "proxied": false,
+      "futureProxy": "DNS_ONLY",
+      "reason": "Vercel-managed CAA."
+    },
+    {
+      "name": "@",
+      "type": "CAA",
+      "content": "0 issue \"pki.goog\"",
+      "proxied": false,
+      "futureProxy": "DNS_ONLY",
+      "reason": "Vercel-managed CAA."
+    },
+    {
+      "name": "@",
+      "type": "CAA",
+      "content": "0 issue \"sectigo.com\"",
+      "proxied": false,
+      "futureProxy": "DNS_ONLY",
+      "reason": "Vercel-managed CAA."
+    },
+    {
+      "name": "auth",
+      "type": "CNAME",
+      "content": "dev-ho4e6glpvc4ux5uw-cd-cobhapsbopdfpybl.edge.tenants.us.auth0.com",
+      "proxied": false,
+      "futureProxy": "DNS_ONLY",
+      "reason": "Auth0 custom domain. Proxying this hostname would break login."
+    },
+    {
+      "name": "pay",
+      "type": "CNAME",
+      "content": "hosted-checkout.stripecdn.com",
+      "proxied": false,
+      "futureProxy": "DNS_ONLY",
+      "reason": "Stripe hosted checkout. Do not proxy."
+    },
+    {
+      "name": "_acme-challenge.pay",
+      "type": "TXT",
+      "content": "U-Lm8kfKSESig0eXwlwzlLVTSp5cIAQDsRQ1NzyC_9Y",
+      "proxied": false,
+      "futureProxy": "DNS_ONLY",
+      "reason": "Stripe checkout ACME challenge."
+    },
+    {
+      "name": "send",
+      "type": "MX",
+      "priority": 10,
+      "content": "feedback-smtp.us-east-1.amazonses.com",
+      "proxied": false,
+      "futureProxy": "DNS_ONLY",
+      "reason": "Amazon SES feedback MX for send.visutry.com."
+    },
+    {
+      "name": "send",
+      "type": "TXT",
+      "content": "v=spf1 include:amazonses.com ~all",
+      "proxied": false,
+      "futureProxy": "DNS_ONLY",
+      "reason": "Amazon SES SPF for send.visutry.com."
+    },
+    {
+      "name": "thangka",
+      "type": "CNAME",
+      "content": "thangkavault.pages.dev",
+      "proxied": false,
+      "futureProxy": "DNS_ONLY",
+      "reason": "Existing Pages hostname. Copy as DNS-only."
+    },
+    {
+      "name": "cf-test",
+      "type": "CNAME",
+      "content": "stockwise-pages-test.pages.dev",
+      "proxied": false,
+      "futureProxy": "DNS_ONLY",
+      "reason": "Existing Pages test hostname. Copy as DNS-only."
+    },
+    {
+      "name": "answer",
+      "type": "CNAME",
+      "content": "franksunye.github.io",
+      "proxied": false,
+      "futureProxy": "DNS_ONLY",
+      "reason": "Existing GitHub Pages hostname. Copy as DNS-only."
+    }
+  ],
+  "notPresentInVercelZone": [
+    "Google site-verification TXT",
+    "Bing site-verification TXT",
+    "QQ/Tencent Exmail DKIM selector (s1/s2/tencent/default._domainkey)",
+    "standalone _domainkey TXT"
+  ]
+}
