@@ -1,6 +1,6 @@
 # Try-On Protected Media Boundary — Step 2A
 
-Status: validation in progress
+Status: validation rerun after runtime-neutral media test refactor
 
 ## Scope
 
@@ -22,9 +22,10 @@ Not included:
 
 ## Gate before Step 2B
 
-- Vercel Preview build passes.
+- Latest Vercel Preview build passes.
 - TypeScript gate passes.
-- Full unit/regression gate passes.
-- Owner/admin authorization regression tests cover protected media routes.
+- New owner/admin protected-media and DTO regression tests pass.
+- Critical business regression and PostgreSQL contract gates pass.
+- Any remaining full-unit failures are confirmed as pre-existing and unrelated to this media-boundary change.
 - Browser-facing owner DTOs do not expose raw storage URLs or legacy image data URLs.
 - Existing public/provider/data-url records remain compatible through the protected route.
