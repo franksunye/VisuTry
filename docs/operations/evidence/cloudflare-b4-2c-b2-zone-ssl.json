@@ -1,11 +1,12 @@
 {
   "kind": "b4-2c-phase-b2-zone-ssl",
-  "capturedAt": "2026-08-18T06:12:56Z",
+  "capturedAt": "2026-08-18T06:41:12Z",
   "originMain": "b56e6487b0759fe7f3533cbdf4c56da0a6aec649",
   "pr98MergePresent": true,
   "branch": "cursor/cloudflare-b4-2c-phase-b2-universal-ssl",
+  "pr": 99,
   "verdict": "BLOCKED",
-  "blockedReason": "Wrangler OAuth cannot read SSL mode, Universal SSL settings, or certificate packs (HTTP 403 code 9109). Certificate ACTIVE was not observed. SSL mode was not mutated.",
+  "blockedReason": "GET /zones/:id/settings/ssl still HTTP 403 code 9109. SSL mode is not confirmed Full (strict). Mode was not mutated. Universal SSL is enabled and an ACTIVE universal pack covers visutry.com and *.visutry.com.",
   "b3": "NO-GO",
   "zoneId": "5e3dc058ed16f3aee917f1cef2e9f413",
   "zoneName": "visutry.com",
@@ -19,18 +20,18 @@
     "stanley.ns.cloudflare.com"
   ],
   "credential": {
-    "shellApiTokenPresent": false,
-    "authUsed": "wrangler-oauth",
+    "shellApiTokenPresent": true,
+    "authUsed": "temporary-user-token-ssl-dns-read",
     "tokenValuesStored": false,
-    "wranglerScopesNoted": [
-      "zone:read",
-      "ssl_certs:write",
-      "workers:write"
+    "tokenUnsetAfterUse": true,
+    "permissionsRequested": [
+      "Zone / Zone / Read",
+      "Zone / SSL and Certificates / Read",
+      "Zone / DNS / Read"
     ],
-    "note": "ssl_certs write is Origin CA / Wrangler certs, not Zone SSL and Certificates Read."
+    "note": "SSL and Certificates Read authorized Universal SSL settings and certificate packs. GET /zones/:id/settings/ssl is a Zone Setting and still 403 without Zone Settings Read. Permissions were not widened."
   },
   "api": {
-    "zone": { "endpoint": "GET /zones/5e3dc058ed16f3aee917f1cef2e9f413", "http": 200 },
     "sslMode": {
       "endpoint": "GET /zones/5e3dc058ed16f3aee917f1cef2e9f413/settings/ssl",
       "http": 403,
@@ -39,37 +40,38 @@
     },
     "universalSsl": {
       "endpoint": "GET /zones/5e3dc058ed16f3aee917f1cef2e9f413/ssl/universal/settings",
-      "http": 403,
-      "code": 9109,
-      "message": "Unauthorized to access requested resource"
-    },
-    "certificatePacks": {
-      "endpoint": "GET /zones/5e3dc058ed16f3aee917f1cef2e9f413/ssl/certificate_packs",
-      "http": 403,
-      "code": 9109,
-      "message": "Unauthorized to access requested resource"
+      "http": 200,
+      "enabled": true,
+      "certificate_authority": "google"
     },
     "certificatePacksAll": {
       "endpoint": "GET /zones/5e3dc058ed16f3aee917f1cef2e9f413/ssl/certificate_packs?status=all",
-      "http": 403,
-      "code": 9109,
-      "message": "Unauthorized to access requested resource"
+      "http": 200,
+      "packCount": 1
     },
-    "dnsRecords": {
-      "endpoint": "GET /zones/5e3dc058ed16f3aee917f1cef2e9f413/dns_records",
-      "http": 403,
-      "code": 10000,
-      "message": "Authentication error"
+    "dnsWww": {
+      "endpoint": "GET /zones/5e3dc058ed16f3aee917f1cef2e9f413/dns_records?name=www.visutry.com&type=CNAME",
+      "http": 200,
+      "proxied": false,
+      "content": "cname.vercel-dns-017.com"
+    },
+    "dnsApex": {
+      "endpoint": "GET /zones/5e3dc058ed16f3aee917f1cef2e9f413/dns_records?name=visutry.com",
+      "http": 200,
+      "apexCnameContent": "1c82e566126a58cc.vercel-dns-017.com",
+      "proxied": false
     },
     "workerRoutes": {
       "endpoint": "GET /zones/5e3dc058ed16f3aee917f1cef2e9f413/workers/routes",
       "http": 200,
-      "count": 0
+      "count": 0,
+      "auth": "wrangler-oauth"
     },
     "customDomains": {
       "endpoint": "GET /accounts/8f2fca159ffbd0e5d9446dfa6280f40d/workers/domains",
       "http": 200,
-      "count": 0
+      "count": 0,
+      "auth": "wrangler-oauth"
     },
     "workersScripts": {
       "endpoint": "GET /accounts/8f2fca159ffbd0e5d9446dfa6280f40d/workers/scripts",
@@ -78,30 +80,61 @@
       "visutryScriptsPresent": [
         "visutry-cf-staging",
         "visutry-cf-staging-router"
-      ]
+      ],
+      "auth": "wrangler-oauth"
     }
   },
   "sslMode": null,
-  "universalSslEnabled": null,
-  "certificatePacks": [],
+  "universalSslEnabled": true,
+  "certificatePacks": [
+    {
+      "id": "c5ca5211-fb30-48b6-a518-d2700c1aefc2",
+      "type": "universal",
+      "status": "active",
+      "hosts": [
+        "visutry.com",
+        "*.visutry.com"
+      ],
+      "certificate_authority": "google",
+      "primary_certificate": "bce46cee-1953-4ec6-849b-b381cf5dd2e9",
+      "validation_errors": null,
+      "validation_method": "txt",
+      "validity_days": 90,
+      "certificates": [
+        {
+          "id": "bce46cee-1953-4ec6-849b-b381cf5dd2e9",
+          "hosts": [
+            "visutry.com",
+            "*.visutry.com"
+          ],
+          "status": "active",
+          "issuer": "GoogleTrustServices",
+          "expires_on": "2026-11-16T04:50:11.000000Z",
+          "uploaded_on": "2026-08-18T06:41:18.542127Z",
+          "signature": "ECDSAWithSHA256",
+          "bundle_method": "ubiquitous"
+        }
+      ]
+    }
+  ],
   "hostCoverage": {
-    "visutry.com": "UNKNOWN",
-    "www.visutry.com": "UNKNOWN"
+    "visutry.com": true,
+    "www.visutry.com": "wildcard:*.visutry.com"
   },
-  "issuer": null,
-  "validFrom": null,
-  "validTo": null,
-  "certificateAuthority": null,
+  "issuer": "GoogleTrustServices",
+  "validFrom": "2026-08-18T06:41:18.542127Z",
+  "validTo": "2026-11-16T04:50:11.000000Z",
+  "certificateAuthority": "google",
   "wwwProxied": false,
-  "wwwProxiedSource": "authoritative CNAME still returned for www.visutry.com; B1 API dump proxied=false; live DNS API 403 so proxied boolean was not re-read",
+  "wwwProxiedSource": "DNS API CNAME www.visutry.com proxied=false target=cname.vercel-dns-017.com",
   "apexProxied": false,
-  "apexProxiedSource": "authoritative A answers are Vercel anycast, not Cloudflare proxy IPs; B1 API dump proxied=false",
+  "apexProxiedSource": "DNS API CNAME visutry.com proxied=false target=1c82e566126a58cc.vercel-dns-017.com",
   "workerRouteCount": 0,
   "customDomainCount": 0,
   "productionWorker": "ABSENT",
   "caa": {
     "modified": false,
-    "preparedZoneRecordsFromB1Dump": [
+    "preparedZoneRecordsFromApi": [
       "0 issue \"letsencrypt.org\"",
       "0 issue \"pki.goog\"",
       "0 issue \"sectigo.com\""
@@ -119,9 +152,10 @@
       "0 issuewild \"pki.goog; cansignhttpexchanges=yes\"",
       "0 issuewild \"ssl.com\""
     ],
-    "cloudflareAutoInsertedNote": "Cloudflare documents extra CAA answers when Universal SSL is on and the zone already has CAA records. Those extra records do not appear in the DNS API dump. This is not treated as certificate pack ACTIVE.",
-    "compatibleWithCloudflareCas": true,
-    "issuanceErrorFromApi": "UNKNOWN"
+    "cloudflareAutoInsertedNote": "Cloudflare documents extra CAA answers when Universal SSL is on and the zone already has CAA records. Those extra records do not appear in the DNS API dump.",
+    "compatibleWithCurrentIssuer": true,
+    "currentIssuer": "GoogleTrustServices",
+    "issuanceErrorFromApi": null
   },
   "publicDns": {
     "systemResolverNs": [
@@ -247,8 +281,6 @@
     "b3Executed": false
   },
   "requiredTokenToUnblock": [
-    "Zone / Zone / Read",
-    "Zone / SSL and Certificates / Read",
-    "Zone / DNS / Read"
+    "Zone / Zone Settings / Read"
   ]
 }

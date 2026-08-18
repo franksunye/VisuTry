@@ -1,6 +1,6 @@
 # VisuTry Cloudflare B4.2C Phase B — Checkpoint B2 (Universal SSL readiness)
 
-**Status:** BLOCKED — SSL API permissions insufficient  
+**Status:** BLOCKED — SSL/TLS mode unread (`GET .../settings/ssl` HTTP 403 / 9109)  
 **Date:** 2026-08-18  
 **Owner:** Product / Engineering  
 **Branch:** `cursor/cloudflare-b4-2c-phase-b2-universal-ssl`  
@@ -37,19 +37,23 @@ Related:
 | PR #98 merge on main | YES (`b56e648`) |
 | Zone status | **active** |
 | `activated_on` | `2026-08-18T04:50:11.019408Z` |
-| SSL mode | **UNKNOWN** (API HTTP 403 / code 9109) |
-| Universal SSL enabled | **UNKNOWN** (API HTTP 403 / code 9109) |
-| Certificate pack status | **UNKNOWN** (API HTTP 403 / code 9109) |
-| Covers `visutry.com` / `www.visutry.com` | **UNKNOWN** |
-| www proxy | **DNS_ONLY** (authoritative CNAME still returned; no `cf-ray` on www) |
+| SSL mode | **UNKNOWN** (`GET /zones/:id/settings/ssl` HTTP **403** / code **9109**) — **not changed** |
+| Universal SSL enabled | **true** |
+| Certificate pack type | **universal** |
+| Certificate pack status | **active** |
+| Hosts | `visutry.com`, `*.visutry.com` (wildcard covers `www.visutry.com`) |
+| Issuer | Google Trust Services (`certificate_authority: google`) |
+| Valid to | `2026-11-16T04:50:11Z` |
+| Validation errors | none (`null`) |
+| www / apex proxy | **DNS_ONLY** (`proxied: false` via DNS API) |
 | Worker Routes | **0** |
 | `visutry-cf-production` | **ABSENT** |
 | Application | Vercel path healthy |
 | B3 | **NO-GO** / not executed |
 
-B2 cannot be **PASS**. Certificate pack `ACTIVE` was not read from the Cloudflare SSL API. Public `https://www.visutry.com` TLS is Vercel Let’s Encrypt and is **not** proof of Cloudflare Universal SSL.
+B2 cannot be **PASS**. The edge certificate is ACTIVE, but B2 requires SSL mode to already be **Full (strict)**. That zone setting was not readable, and mode was **not** mutated.
 
-B2 is **BLOCKED**, not **WAITING**: issuance status itself was never visible. Waiting would require a seen pack in `pending_*` / `initializing`.
+B2 is **BLOCKED**, not **WAITING**: the pack is `active`, not `pending_*`.
 
 ## 2. Baseline
 
@@ -73,15 +77,16 @@ B2 is **BLOCKED**, not **WAITING**: issuance status itself was never visible. Wa
 | Local system resolver NS | still `ns1.vercel-dns.com` / `ns2.vercel-dns.com` (residual TTL; not used as source of truth) |
 | www | authoritative `CNAME cname.vercel-dns-017.com` — **not** Cloudflare anycast A |
 | apex | flattened A to Vercel (`216.198.79.x` / `64.29.17.x`) |
-| Live DNS API `proxied` field | **not re-read** — Wrangler OAuth `GET /zones/:id/dns_records` HTTP **403** code **10000** |
-| Last B1 API dump | www `proxied: false` (`docs/operations/evidence/cloudflare-b4-2c-b1-dns-postcutover-dump.json`) |
+| Live DNS API `proxied` field | **re-read 2026-08-18T06:41:12Z** |
+| www | `CNAME cname.vercel-dns-017.com`, **`proxied: false`** |
+| apex | `CNAME 1c82e566126a58cc.vercel-dns-017.com`, **`proxied: false`** |
 | Production Worker Routes | **0** |
 | Worker Custom Domains | **none** |
 | `visutry-cf-production` | **absent** (Wrangler deployments list code **10007**) |
 
 www was **not** unexpectedly proxied. Checkpoint continued.
 
-Do not infer proxy status from public A records alone. Source of truth for orange-cloud is the Cloudflare DNS `proxied` boolean. That field could not be re-read in B2; the authoritative CNAME answer plus absent `cf-ray` on www are consistent with DNS_ONLY.
+Do not infer proxy status from public A records alone. Source of truth for orange-cloud is the Cloudflare DNS `proxied` boolean, now confirmed `false` for www and apex.
 
 ## 4. Public DNS
 
@@ -97,58 +102,57 @@ Captured against system resolver, `1.1.1.1`, `8.8.8.8`, and `@romina.ns.cloudfla
 
 ## 5. SSL API access
 
-No temporary **SSL and Certificates Read** token was present in the shell. Inspection used Wrangler OAuth (`cfoa…`, scopes include `zone:read` and `ssl_certs:write`). Token values are not stored.
+Retry 2 used a temporary user API token in the shell only (Zone / Zone / Read, Zone / SSL and Certificates / Read, Zone / DNS / Read). Token values are not stored and were unset after the reads.
 
-Wrangler `ssl_certs` is **not** equivalent to zone **SSL and Certificates Read**. It did not authorize certificate-pack or SSL-mode reads.
+Wrangler OAuth remains insufficient for SSL/DNS. **SSL and Certificates Read** is sufficient for Universal SSL settings and certificate packs. **`GET /zones/:id/settings/ssl` is a zone setting** and still returned 403 with this token; it needs **Zone Settings Read**, which was not granted. Permissions were not widened silently.
 
-| Endpoint | HTTP | Cloudflare code | Meaning |
-| --- | --- | --- | --- |
-| `GET /zones/5e3dc058ed16f3aee917f1cef2e9f413` | 200 | — | zone readable |
-| `GET /zones/:id/settings/ssl` | **403** | **9109** | SSL mode unread |
-| `GET /zones/:id/ssl/universal/settings` | **403** | **9109** | Universal SSL unread |
-| `GET /zones/:id/ssl/certificate_packs` | **403** | **9109** | packs unread |
-| `GET /zones/:id/ssl/certificate_packs?status=all` | **403** | **9109** | packs unread |
-| `GET /zones/:id/dns_records` | **403** | **10000** | DNS unread |
-| `GET /zones/:id/workers/routes` | 200 | — | routes = `[]` |
-| `GET /accounts/:id/workers/domains` | 200 | — | custom domains = `[]` |
-| `GET /accounts/:id/workers/scripts` | 200 | — | no `visutry-cf-production` |
+| Endpoint | Retry 1 (Wrangler OAuth) | Retry 2 (user token) |
+| --- | --- | --- |
+| `GET /zones/:id/settings/ssl` | 403 / 9109 | **403 / 9109** |
+| `GET /zones/:id/ssl/universal/settings` | 403 / 9109 | **200** `enabled: true`, `certificate_authority: google` |
+| `GET /zones/:id/ssl/certificate_packs?status=all` | 403 / 9109 | **200** one `universal` pack, `status: active` |
+| `GET /zones/:id/dns_records` (www CNAME / apex) | 403 / 10000 | **200** both `proxied: false` |
+| `GET /zones/:id/workers/routes` | 200 count 0 | 200 count 0 (Wrangler OAuth) |
 
-Required minimum token to finish B2 (read only; do not widen):
-
-- Zone / Zone / Read
-- Zone / SSL and Certificates / Read
-- Zone / DNS / Read (to reconfirm `proxied: false`)
-
-Do **not** guess certificate state. Do **not** change SSL mode to force a PASS.
+Do **not** change SSL mode to force a PASS.
 
 ## 6. SSL/TLS mode
 
-Expected future architecture: **Full (strict)**.
+Expected future architecture: **Full (strict)** (`value: strict` on the zone setting).
 
-Actual value: **UNKNOWN**.
+Actual value: **UNKNOWN** (HTTP 403 / code 9109 on `GET /zones/5e3dc058ed16f3aee917f1cef2e9f413/settings/ssl`).
 
 Per B2 gate: if the value is not confirmed Full (strict), B2 is **BLOCKED**. Mode was **not** changed.
 
 ## 7. Universal SSL / certificate packs
 
+Captured `2026-08-18T06:41:12Z` from `GET /zones/:id/ssl/certificate_packs?status=all`.
+
 | Field | API value |
 | --- | --- |
-| Universal SSL enabled | UNKNOWN |
-| Pack type | UNKNOWN |
-| Pack status | UNKNOWN |
-| Hosts / SANs | UNKNOWN |
-| Issuer | UNKNOWN |
-| Validity | UNKNOWN |
-| Certificate authority | UNKNOWN |
-| Validation errors | UNKNOWN |
+| Universal SSL enabled | **true** |
+| Preferred CA on Universal SSL setting | `google` |
+| Pack ID | `c5ca5211-fb30-48b6-a518-d2700c1aefc2` |
+| Pack type | **universal** |
+| Pack status | **active** |
+| Hosts / SANs | `visutry.com`, `*.visutry.com` |
+| Covers `www.visutry.com` | YES via wildcard `*.visutry.com` (not a separate SAN) |
+| Primary certificate | `bce46cee-1953-4ec6-849b-b381cf5dd2e9` |
+| Certificate status | **active** |
+| Issuer | `GoogleTrustServices` |
+| Certificate authority | `google` |
+| Signature | `ECDSAWithSHA256` |
+| Uploaded on | `2026-08-18T06:41:18.542127Z` |
+| Expires on | `2026-11-16T04:50:11.000000Z` |
+| Validity days | 90 |
+| Validation method | `txt` |
+| Validation errors | `null` |
 
-Zone **active** is not treated as certificate **ACTIVE**.
-
-Indirect CAA observation (not used for PASS): Cloudflare nameservers now answer extra CAA records that are **not** in the B1 API dump. Cloudflare documents this auto-insertion when Universal SSL is on and the zone already has CAA records. That is compatible with Universal SSL being enabled, but it is **not** a certificate-pack status.
+Public `https://www.visutry.com` TLS remains Vercel Let’s Encrypt and is still **not** the Cloudflare edge certificate (www is DNS_ONLY).
 
 ## 8. CAA review
 
-Prepared zone CAA (B1 API dump, unchanged in this task):
+Prepared zone CAA (re-read 2026-08-18T06:41:12Z, unchanged):
 
 - `0 issue "letsencrypt.org"`
 - `0 issue "pki.goog"`
@@ -158,7 +162,7 @@ Authoritative `dig CAA visutry.com @romina.ns.cloudflare.com` also returns Cloud
 
 CAA was **not** modified.
 
-Compatibility: the prepared set already authorizes Let’s Encrypt, Google Trust Services, and Sectigo — the CAs Cloudflare currently uses for Universal SSL. No CAA issuance-failure object was readable from the API. CAA is **not** treated as a B2 fail; it also cannot upgrade B2 to PASS.
+Compatibility: current edge issuer is **Google Trust Services**. Prepared CAA includes `pki.goog`. Pack `validation_errors` is `null`. CAA was **not** modified. CAA is compatible and is **not** the B2 blocker.
 
 Vercel CNAME-target CAA (`cname.vercel-dns-017.com`) is a separate set (`globalsign.com`, `letsencrypt.org`, `pki.goog`, `sectigo.com`) and was not changed.
 
@@ -185,7 +189,7 @@ Connecting to `cname.vercel-dns-017.com:443` with SNI `www.visutry.com` presente
 
 Normal production HTTPS for `www.visutry.com` / `visutry.com` also presents valid Vercel certificates. No Origin CA certificates were created. Host handling was not changed.
 
-This only shows the **current Vercel origin** can satisfy Full (strict) hostname matching. It does not show that Cloudflare edge certs are ACTIVE.
+This shows the **current Vercel origin** can satisfy Full (strict) hostname matching. Cloudflare edge certs are ACTIVE in the API, but www still does not use them because it remains DNS_ONLY.
 
 ## 11. Application health
 
@@ -220,21 +224,21 @@ Nothing was deployed.
 | # | Requirement | Result |
 | --- | --- | --- |
 | 1 | Cloudflare zone ACTIVE | **PASS** |
-| 2 | SSL mode = Full (strict) | **UNKNOWN → BLOCKED** |
-| 3 | Universal SSL enabled | **UNKNOWN → BLOCKED** |
-| 4 | Active edge certificate exists | **UNKNOWN → BLOCKED** |
-| 5 | Certificate covers `visutry.com` | **UNKNOWN → BLOCKED** |
-| 6 | Certificate covers `www.visutry.com` | **UNKNOWN → BLOCKED** |
-| 7 | Certificate currently valid | **UNKNOWN → BLOCKED** |
-| 8 | No issuance / CAA error | **UNKNOWN** (CAA compatible; issuance errors unread) |
-| 9 | www remains DNS_ONLY | **PASS** (authoritative CNAME; no www `cf-ray`) |
+| 2 | SSL mode = Full (strict) | **UNKNOWN → BLOCKED** (`settings/ssl` 403/9109; not mutated) |
+| 3 | Universal SSL enabled | **PASS** (`enabled: true`) |
+| 4 | Active edge certificate exists | **PASS** (universal pack `active`) |
+| 5 | Certificate covers `visutry.com` | **PASS** |
+| 6 | Certificate covers `www.visutry.com` | **PASS** via `*.visutry.com` |
+| 7 | Certificate currently valid | **PASS** (expires `2026-11-16T04:50:11Z`) |
+| 8 | No issuance / CAA error | **PASS** (`validation_errors: null`; CAA includes `pki.goog`) |
+| 9 | www remains DNS_ONLY | **PASS** (`proxied: false`) |
 | 10 | Worker Routes = 0 | **PASS** |
 | 11 | Custom Domain = NONE | **PASS** |
 | 12 | Production application healthy | **PASS** |
 
-**B2 = BLOCKED**
+**B2 = BLOCKED** (SSL mode not confirmed Full (strict))
 
-Unblock: provide a temporary shell token with Zone Read + SSL and Certificates Read (+ DNS Read). Re-run the three SSL GET endpoints only. Do not enable www proxy to “see” a cert.
+Unblock without mutation: add **Zone Settings Read** to a temporary token and re-read only `GET /zones/:id/settings/ssl`. If the value is already `strict`, B2 can become PASS. If it is not `strict`, B2 stays BLOCKED — do **not** PATCH SSL mode in this checkpoint. Do not enable www proxy.
 
 ## 14. B3
 
