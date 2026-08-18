@@ -69,6 +69,10 @@ const ACTION_CONFIG: Record<
 /**
  * Shared Detector → Advisor → Try-On → Compare continuation CTAs for
  * Search→Tool landings and post-result surfaces.
+ *
+ * These acquisition surfaces intentionally do not auto-prefetch. Users keep
+ * instant client navigation on click without fanning route reads out across
+ * every visible CTA before they express intent.
  */
 export function ProductContinuationCtas({
   locale,
@@ -122,6 +126,7 @@ export function ProductContinuationCtas({
             queryCluster={queryCluster}
             contentCluster={contentCluster}
             productPath={config.productPath}
+            prefetch={false}
             className={index === 0 ? primaryClass : linkClass}
           >
             <Icon className="h-4 w-4" />
