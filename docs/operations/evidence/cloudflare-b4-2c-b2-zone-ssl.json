@@ -1,0 +1,304 @@
+{
+  "kind": "b4-2c-phase-b2-zone-ssl",
+  "capturedAt": "2026-08-18T07:02:45Z",
+  "originMain": "b56e6487b0759fe7f3533cbdf4c56da0a6aec649",
+  "pr98MergePresent": true,
+  "branch": "cursor/cloudflare-b4-2c-phase-b2-universal-ssl",
+  "pr": 99,
+  "verdict": "PASS",
+  "blockedReason": null,
+  "b3": "NO-GO",
+  "zoneId": "5e3dc058ed16f3aee917f1cef2e9f413",
+  "zoneName": "visutry.com",
+  "zoneStatus": "active",
+  "zonePaused": false,
+  "zoneType": "full",
+  "activatedOn": "2026-08-18T04:50:11.019408Z",
+  "modifiedOn": "2026-08-18T05:02:14.603706Z",
+  "assignedNameservers": [
+    "romina.ns.cloudflare.com",
+    "stanley.ns.cloudflare.com"
+  ],
+  "credential": {
+    "shellApiTokenPresent": true,
+    "authUsed": "temporary-user-token-zone-settings-ssl-dns-read",
+    "tokenValuesStored": false,
+    "tokenUnsetAfterUse": true,
+    "permissionsRequested": [
+      "Zone / Zone / Read",
+      "Zone / Zone Settings / Read",
+      "Zone / SSL and Certificates / Read",
+      "Zone / DNS / Read"
+    ],
+    "note": "Retry 4: operator added Zone Settings Edit. PATCH full→strict succeeded. Token unset after use."
+  },
+  "api": {
+    "sslMode": {
+      "endpoint": "GET /zones/5e3dc058ed16f3aee917f1cef2e9f413/settings/ssl",
+      "http": 200,
+      "value": "strict",
+      "certificate_status": "active",
+      "validation_errors": [],
+      "editable": true,
+      "modified_on": "2026-08-18T07:02:54.108890Z"
+    },
+    "sslModePatch": {
+      "endpoint": "PATCH /zones/5e3dc058ed16f3aee917f1cef2e9f413/settings/ssl",
+      "requestedValue": "strict",
+      "operatorApproved": true,
+      "http": 200,
+      "previousValue": "full",
+      "resultValue": "strict"
+    },
+    "universalSsl": {
+      "endpoint": "GET /zones/5e3dc058ed16f3aee917f1cef2e9f413/ssl/universal/settings",
+      "http": 200,
+      "enabled": true,
+      "certificate_authority": "google"
+    },
+    "certificatePacksAll": {
+      "endpoint": "GET /zones/5e3dc058ed16f3aee917f1cef2e9f413/ssl/certificate_packs?status=all",
+      "http": 200,
+      "packCount": 1
+    },
+    "dnsWww": {
+      "endpoint": "GET /zones/5e3dc058ed16f3aee917f1cef2e9f413/dns_records?name=www.visutry.com&type=CNAME",
+      "http": 200,
+      "proxied": false,
+      "content": "cname.vercel-dns-017.com"
+    },
+    "dnsApex": {
+      "endpoint": "GET /zones/5e3dc058ed16f3aee917f1cef2e9f413/dns_records?name=visutry.com",
+      "http": 200,
+      "apexCnameContent": "1c82e566126a58cc.vercel-dns-017.com",
+      "proxied": false
+    },
+    "workerRoutes": {
+      "endpoint": "GET /zones/5e3dc058ed16f3aee917f1cef2e9f413/workers/routes",
+      "http": 200,
+      "count": 0,
+      "auth": "wrangler-oauth"
+    },
+    "customDomains": {
+      "endpoint": "GET /accounts/8f2fca159ffbd0e5d9446dfa6280f40d/workers/domains",
+      "http": 200,
+      "count": 0,
+      "auth": "wrangler-oauth"
+    },
+    "workersScripts": {
+      "endpoint": "GET /accounts/8f2fca159ffbd0e5d9446dfa6280f40d/workers/scripts",
+      "http": 200,
+      "visutryCfProduction": "ABSENT",
+      "visutryScriptsPresent": [
+        "visutry-cf-staging",
+        "visutry-cf-staging-router"
+      ],
+      "auth": "wrangler-oauth"
+    }
+  },
+  "sslMode": "strict",
+  "sslModeLabel": "Full (strict)",
+  "sslModeFullStrict": true,
+  "universalSslEnabled": true,
+  "certificatePacks": [
+    {
+      "id": "c5ca5211-fb30-48b6-a518-d2700c1aefc2",
+      "type": "universal",
+      "status": "active",
+      "hosts": [
+        "visutry.com",
+        "*.visutry.com"
+      ],
+      "certificate_authority": "google",
+      "primary_certificate": "bce46cee-1953-4ec6-849b-b381cf5dd2e9",
+      "validation_errors": null,
+      "validation_method": "txt",
+      "validity_days": 90,
+      "certificates": [
+        {
+          "id": "bce46cee-1953-4ec6-849b-b381cf5dd2e9",
+          "hosts": [
+            "visutry.com",
+            "*.visutry.com"
+          ],
+          "status": "active",
+          "issuer": "GoogleTrustServices",
+          "expires_on": "2026-11-16T04:50:11.000000Z",
+          "uploaded_on": "2026-08-18T07:03:02.248396Z",
+          "signature": "ECDSAWithSHA256",
+          "bundle_method": "ubiquitous"
+        }
+      ]
+    }
+  ],
+  "hostCoverage": {
+    "visutry.com": true,
+    "www.visutry.com": "wildcard:*.visutry.com"
+  },
+  "issuer": "GoogleTrustServices",
+  "validFrom": "2026-08-18T07:03:02.248396Z",
+  "validTo": "2026-11-16T04:50:11.000000Z",
+  "certificateAuthority": "google",
+  "wwwProxied": false,
+  "wwwProxiedSource": "DNS API CNAME www.visutry.com proxied=false target=cname.vercel-dns-017.com",
+  "apexProxied": false,
+  "apexProxiedSource": "DNS API CNAME visutry.com proxied=false target=1c82e566126a58cc.vercel-dns-017.com",
+  "workerRouteCount": 0,
+  "customDomainCount": 0,
+  "productionWorker": "ABSENT",
+  "caa": {
+    "modified": false,
+    "preparedZoneRecordsFromApi": [
+      "0 issue \"letsencrypt.org\"",
+      "0 issue \"pki.goog\"",
+      "0 issue \"sectigo.com\""
+    ],
+    "authoritativeLookupAtRomina": [
+      "0 issue \"comodoca.com\"",
+      "0 issue \"digicert.com; cansignhttpexchanges=yes\"",
+      "0 issue \"letsencrypt.org\"",
+      "0 issue \"pki.goog; cansignhttpexchanges=yes\"",
+      "0 issue \"sectigo.com\"",
+      "0 issue \"ssl.com\"",
+      "0 issuewild \"comodoca.com\"",
+      "0 issuewild \"digicert.com; cansignhttpexchanges=yes\"",
+      "0 issuewild \"letsencrypt.org\"",
+      "0 issuewild \"pki.goog; cansignhttpexchanges=yes\"",
+      "0 issuewild \"ssl.com\""
+    ],
+    "cloudflareAutoInsertedNote": "Cloudflare documents extra CAA answers when Universal SSL is on and the zone already has CAA records. Those extra records do not appear in the DNS API dump.",
+    "compatibleWithCurrentIssuer": true,
+    "currentIssuer": "GoogleTrustServices",
+    "issuanceErrorFromApi": null
+  },
+  "publicDns": {
+    "systemResolverNs": [
+      "ns1.vercel-dns.com",
+      "ns2.vercel-dns.com"
+    ],
+    "oneOneOneOneNs": [
+      "romina.ns.cloudflare.com",
+      "stanley.ns.cloudflare.com"
+    ],
+    "eightEightEightEightNs": [
+      "romina.ns.cloudflare.com",
+      "stanley.ns.cloudflare.com"
+    ],
+    "wwwCnameAuthoritative": "cname.vercel-dns-017.com",
+    "wwwANote": "resolver-flattened Vercel IPs; not used as proxy source of truth"
+  },
+  "publicTls": {
+    "distinction": "Public https://www.visutry.com still terminates at Vercel because www is DNS_ONLY. This is not Cloudflare Universal SSL evidence.",
+    "wwwTerminatesAt": "Vercel",
+    "wwwServerHeader": "Vercel",
+    "wwwCfRay": null,
+    "wwwCfCacheStatus": null,
+    "cloudflareEdgeActiveForWww": false,
+    "wwwCertificate": {
+      "issuer": "C=US, O=Let's Encrypt, CN=YR2",
+      "subject": "CN=*.visutry.com",
+      "san": ["*.visutry.com", "visutry.com"],
+      "notBefore": "Jun 22 20:49:12 2026 GMT",
+      "notAfter": "Sep 20 20:49:11 2026 GMT"
+    },
+    "apexCertificate": {
+      "issuer": "C=US, O=Let's Encrypt, CN=YR2",
+      "subject": "CN=visutry.com",
+      "san": ["visutry.com"],
+      "notBefore": "Jun 23 09:22:24 2026 GMT",
+      "notAfter": "Sep 21 09:22:23 2026 GMT"
+    },
+    "originSniCheck": {
+      "connect": "cname.vercel-dns-017.com:443",
+      "sni": "www.visutry.com",
+      "ok": true,
+      "issuer": "Let's Encrypt YR2",
+      "san": ["*.visutry.com", "visutry.com"]
+    },
+    "authVisutryComNote": "auth.visutry.com may show server: cloudflare and cf-ray because Auth0 uses Cloudflare. That is not VisuTry www proxy."
+  },
+  "application": [
+    {
+      "url": "https://visutry.com",
+      "status": 307,
+      "location": "https://www.visutry.com/",
+      "server": "Vercel",
+      "cfRay": null
+    },
+    {
+      "url": "https://www.visutry.com",
+      "status": 307,
+      "location": "/en",
+      "server": "Vercel",
+      "cfRay": null
+    },
+    {
+      "url": "https://www.visutry.com/en",
+      "status": 200,
+      "server": "Vercel",
+      "cfRay": null
+    },
+    {
+      "url": "https://www.visutry.com/en/store",
+      "status": 200,
+      "server": "Vercel",
+      "cfRay": null
+    },
+    {
+      "url": "https://www.visutry.com/en/store/ello-sunglasses",
+      "status": 200,
+      "server": "Vercel",
+      "cfRay": null
+    },
+    {
+      "url": "https://www.visutry.com/en/c/ello-sunglasses/petite-fit",
+      "status": 200,
+      "server": "Vercel",
+      "cfRay": null
+    },
+    {
+      "url": "https://www.visutry.com/en/try-on",
+      "status": 307,
+      "server": "Vercel",
+      "cfRay": null
+    },
+    {
+      "url": "https://www.visutry.com/en/face-analysis",
+      "status": 200,
+      "server": "Vercel",
+      "cfRay": null
+    },
+    {
+      "url": "https://www.visutry.com/en/pricing",
+      "status": 200,
+      "server": "Vercel",
+      "cfRay": null
+    },
+    {
+      "url": "https://www.visutry.com/en/auth/signin",
+      "status": 200,
+      "server": "Vercel",
+      "cfRay": null
+    }
+  ],
+  "mutations": {
+    "wwwProxiedEnabled": false,
+    "apexProxiedEnabled": false,
+    "sslModeChanged": true,
+    "sslModePatchAttempted": true,
+    "sslModePatchHttp": 200,
+    "universalSslChanged": false,
+    "certificatePacksChanged": false,
+    "originCertificatesIssued": false,
+    "workerRoutesAttached": false,
+    "customDomainBound": false,
+    "dnsRecordsChanged": false,
+    "nameserversChanged": false,
+    "b3Executed": false
+  },
+  "requiredTokenToUnblock": [],
+  "remainingGate": null,
+  "b2": "PASS",
+  "b3Eligible": true,
+  "b3Executed": false
+}
