@@ -2,23 +2,43 @@ import { NextRequest, NextResponse } from 'next/server';
 import { requireAdmin } from '@/lib/api-auth';
 import { prisma } from '@/lib/prisma';
 import { del } from '@vercel/blob';
+import { adminTryOnMediaUrls } from '@/lib/tryon-media';
 
-// Force dynamic rendering for this route
 export const dynamic = 'force-dynamic'
 
-// 获取 Try-On 任务详情（包含图片）
+function serializeAdminMetadata(
+  metadata: unknown,
+  media: ReturnType<typeof adminTryOnMediaUrls>,
+) {
+  if (!metadata || typeof metadata !== 'object' || Array.isArray(metadata)) return metadata
+
+  const source = metadata as Record<string, unknown>
+  const serialized: Record<string, unknown> = { ...source }
+
+  // Never send the original provider/data URL to the browser.
+  delete serialized.originalResultUrl
+
+  if (source.uploadDiagnostics && typeof source.uploadDiagnostics === 'object' && !Array.isArray(source.uploadDiagnostics)) {
+    const uploadDiagnostics = source.uploadDiagnostics as Record<string, unknown>
+    serialized.uploadDiagnostics = {
+      ...uploadDiagnostics,
+      userImageUrl: media.userImageUrl,
+      itemImageUrl: media.itemImageUrl,
+    }
+  }
+
+  return serialized
+}
+
 export async function GET(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
   try {
-    // 验证管理员权限
     const auth = await requireAdmin();
     if (!auth.ok) return auth.response;
 
     const taskId = params.id;
-
-    // 获取任务详情 — consumer admin surface only
     const task = await prisma.tryOnTask.findFirst({
       where: { id: taskId, origin: 'CONSUMER' },
       include: {
@@ -40,9 +60,18 @@ export async function GET(
       );
     }
 
+    const media = adminTryOnMediaUrls(task)
+
     return NextResponse.json({
       success: true,
-      data: task,
+      data: {
+        ...task,
+        userImageUrl: media.userImageUrl,
+        itemImageUrl: media.itemImageUrl,
+        glassesImageUrl: media.glassesImageUrl,
+        resultImageUrl: media.resultImageUrl,
+        metadata: serializeAdminMetadata(task.metadata, media),
+      },
     });
   } catch (error) {
     console.error('[Admin Try-On Detail] Error:', error);
@@ -53,19 +82,15 @@ export async function GET(
   }
 }
 
-// 删除 Try-On 任务及其相关文件
 export async function DELETE(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
   try {
-    // 验证管理员权限
     const auth = await requireAdmin();
     if (!auth.ok) return auth.response;
 
     const taskId = params.id;
-
-    // 获取任务详情
     const task = await prisma.tryOnTask.findFirst({
       where: { id: taskId, origin: 'CONSUMER' },
     });
@@ -79,26 +104,22 @@ export async function DELETE(
 
     console.log(`[Admin Try-On Delete] Deleting task ${taskId}...`);
 
-    // 收集需要删除的文件 URL
     const urlsToDelete: string[] = [];
     if (task.userImageUrl) urlsToDelete.push(task.userImageUrl);
     if ((task as any).itemImageUrl) urlsToDelete.push((task as any).itemImageUrl);
     if (task.glassesImageUrl) urlsToDelete.push(task.glassesImageUrl);
-    if (task.resultImageUrl) urlsToDelete.push(task.resultImageUrl);
+    if (task.resultImageUrl && !task.resultImageUrl.startsWith('data:')) urlsToDelete.push(task.resultImageUrl);
 
-    // 删除数据库记录
     await prisma.tryOnTask.delete({
       where: { id: taskId },
     });
 
-    // 删除 Blob 文件
     if (urlsToDelete.length > 0) {
       try {
         await del(urlsToDelete);
         console.log(`[Admin Try-On Delete] Deleted ${urlsToDelete.length} files from Blob Storage`);
       } catch (blobError) {
         console.error('[Admin Try-On Delete] Failed to delete blob files:', blobError);
-        // 继续执行，因为数据库记录已删除
       }
     }
 
@@ -119,4 +140,3 @@ export async function DELETE(
     );
   }
 }
-
