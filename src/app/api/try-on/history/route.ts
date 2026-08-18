@@ -3,9 +3,8 @@ import { requireAuth } from "@/lib/api-auth-runtime"
 import { isMockMode } from "@/lib/mocks"
 import { MockDatabase } from "@/lib/mocks/database"
 import { getConsumerTryOnHistory } from '@/data/protected-reads-cloudflare'
-import { tryOnMediaUrls } from '@/lib/tryon-media'
+import { tryOnClientMetadata, tryOnMediaUrls } from '@/lib/tryon-media'
 
-// Force dynamic rendering for this route
 export const dynamic = 'force-dynamic'
 
 export async function GET(request: NextRequest) {
@@ -60,6 +59,7 @@ export async function GET(request: NextRequest) {
             itemImageUrl: media.itemImageUrl,
             glassesImageUrl: media.glassesImageUrl,
             resultImageUrl: media.resultImageUrl,
+            metadata: tryOnClientMetadata(task.metadata),
           }
         }),
         pagination: {
