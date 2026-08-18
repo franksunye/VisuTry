@@ -16,7 +16,8 @@
 | `cloudflare-b4-2a-staging-public-slice.md` | **Active milestone** | B4.2A staging public-slice activation, three-layer proof, DNS inventory, scoped-route B4.2B gate (no production DNS / no merge) |
 | `cloudflare-b4-2b-scoped-production-routes.md` | **Active milestone** | B4.2B scoped production Worker Routes: 286-pattern allowlist, P0–P2 ramp, cutover gates (merged in PR #95; routes not activated) |
 | `cloudflare-b4-2c-phase-a-dns-zone.md` | **Closed / PASS** | B4.2C Phase A: inactive Cloudflare zone created, DNS mirror PASS, www DNS_ONLY (historical; NS cutover is B1) |
-| `cloudflare-b4-2c-phase-b1-ns-cutover.md` | **Active milestone** | B4.2C Phase B checkpoint B1: Namecheap NS → Cloudflare; www remains DNS_ONLY; Worker Routes 0 (no B2/B3) |
+| `cloudflare-b4-2c-phase-b1-ns-cutover.md` | **Closed / PASS** | B4.2C Phase B checkpoint B1: Namecheap NS → Cloudflare; www remains DNS_ONLY; Worker Routes 0 |
+| `cloudflare-b4-2c-phase-b2-universal-ssl.md` | **Blocked** | B4.2C Phase B checkpoint B2: Universal SSL readiness inspect-only; SSL API 403/9109; www still DNS_ONLY; B3 not executed |
 | `cloudflare-phase-b2-write-parity.md` | **Active milestone** | Scoped Cloudflare Free-plan Auth, merchant, Store DRAFT, and Campaign DRAFT write parity evidence |
 | `vercel-cpu-static-page-pilot.md` | Historical + Active Reference | Detailed Vercel static-rendering, ISR, middleware, and CPU optimization work already completed |
 

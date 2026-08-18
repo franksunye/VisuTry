@@ -1,0 +1,254 @@
+{
+  "kind": "b4-2c-phase-b2-zone-ssl",
+  "capturedAt": "2026-08-18T06:12:56Z",
+  "originMain": "b56e6487b0759fe7f3533cbdf4c56da0a6aec649",
+  "pr98MergePresent": true,
+  "branch": "cursor/cloudflare-b4-2c-phase-b2-universal-ssl",
+  "verdict": "BLOCKED",
+  "blockedReason": "Wrangler OAuth cannot read SSL mode, Universal SSL settings, or certificate packs (HTTP 403 code 9109). Certificate ACTIVE was not observed. SSL mode was not mutated.",
+  "b3": "NO-GO",
+  "zoneId": "5e3dc058ed16f3aee917f1cef2e9f413",
+  "zoneName": "visutry.com",
+  "zoneStatus": "active",
+  "zonePaused": false,
+  "zoneType": "full",
+  "activatedOn": "2026-08-18T04:50:11.019408Z",
+  "modifiedOn": "2026-08-18T05:02:14.603706Z",
+  "assignedNameservers": [
+    "romina.ns.cloudflare.com",
+    "stanley.ns.cloudflare.com"
+  ],
+  "credential": {
+    "shellApiTokenPresent": false,
+    "authUsed": "wrangler-oauth",
+    "tokenValuesStored": false,
+    "wranglerScopesNoted": [
+      "zone:read",
+      "ssl_certs:write",
+      "workers:write"
+    ],
+    "note": "ssl_certs write is Origin CA / Wrangler certs, not Zone SSL and Certificates Read."
+  },
+  "api": {
+    "zone": { "endpoint": "GET /zones/5e3dc058ed16f3aee917f1cef2e9f413", "http": 200 },
+    "sslMode": {
+      "endpoint": "GET /zones/5e3dc058ed16f3aee917f1cef2e9f413/settings/ssl",
+      "http": 403,
+      "code": 9109,
+      "message": "Unauthorized to access requested resource"
+    },
+    "universalSsl": {
+      "endpoint": "GET /zones/5e3dc058ed16f3aee917f1cef2e9f413/ssl/universal/settings",
+      "http": 403,
+      "code": 9109,
+      "message": "Unauthorized to access requested resource"
+    },
+    "certificatePacks": {
+      "endpoint": "GET /zones/5e3dc058ed16f3aee917f1cef2e9f413/ssl/certificate_packs",
+      "http": 403,
+      "code": 9109,
+      "message": "Unauthorized to access requested resource"
+    },
+    "certificatePacksAll": {
+      "endpoint": "GET /zones/5e3dc058ed16f3aee917f1cef2e9f413/ssl/certificate_packs?status=all",
+      "http": 403,
+      "code": 9109,
+      "message": "Unauthorized to access requested resource"
+    },
+    "dnsRecords": {
+      "endpoint": "GET /zones/5e3dc058ed16f3aee917f1cef2e9f413/dns_records",
+      "http": 403,
+      "code": 10000,
+      "message": "Authentication error"
+    },
+    "workerRoutes": {
+      "endpoint": "GET /zones/5e3dc058ed16f3aee917f1cef2e9f413/workers/routes",
+      "http": 200,
+      "count": 0
+    },
+    "customDomains": {
+      "endpoint": "GET /accounts/8f2fca159ffbd0e5d9446dfa6280f40d/workers/domains",
+      "http": 200,
+      "count": 0
+    },
+    "workersScripts": {
+      "endpoint": "GET /accounts/8f2fca159ffbd0e5d9446dfa6280f40d/workers/scripts",
+      "http": 200,
+      "visutryCfProduction": "ABSENT",
+      "visutryScriptsPresent": [
+        "visutry-cf-staging",
+        "visutry-cf-staging-router"
+      ]
+    }
+  },
+  "sslMode": null,
+  "universalSslEnabled": null,
+  "certificatePacks": [],
+  "hostCoverage": {
+    "visutry.com": "UNKNOWN",
+    "www.visutry.com": "UNKNOWN"
+  },
+  "issuer": null,
+  "validFrom": null,
+  "validTo": null,
+  "certificateAuthority": null,
+  "wwwProxied": false,
+  "wwwProxiedSource": "authoritative CNAME still returned for www.visutry.com; B1 API dump proxied=false; live DNS API 403 so proxied boolean was not re-read",
+  "apexProxied": false,
+  "apexProxiedSource": "authoritative A answers are Vercel anycast, not Cloudflare proxy IPs; B1 API dump proxied=false",
+  "workerRouteCount": 0,
+  "customDomainCount": 0,
+  "productionWorker": "ABSENT",
+  "caa": {
+    "modified": false,
+    "preparedZoneRecordsFromB1Dump": [
+      "0 issue \"letsencrypt.org\"",
+      "0 issue \"pki.goog\"",
+      "0 issue \"sectigo.com\""
+    ],
+    "authoritativeLookupAtRomina": [
+      "0 issue \"comodoca.com\"",
+      "0 issue \"digicert.com; cansignhttpexchanges=yes\"",
+      "0 issue \"letsencrypt.org\"",
+      "0 issue \"pki.goog; cansignhttpexchanges=yes\"",
+      "0 issue \"sectigo.com\"",
+      "0 issue \"ssl.com\"",
+      "0 issuewild \"comodoca.com\"",
+      "0 issuewild \"digicert.com; cansignhttpexchanges=yes\"",
+      "0 issuewild \"letsencrypt.org\"",
+      "0 issuewild \"pki.goog; cansignhttpexchanges=yes\"",
+      "0 issuewild \"ssl.com\""
+    ],
+    "cloudflareAutoInsertedNote": "Cloudflare documents extra CAA answers when Universal SSL is on and the zone already has CAA records. Those extra records do not appear in the DNS API dump. This is not treated as certificate pack ACTIVE.",
+    "compatibleWithCloudflareCas": true,
+    "issuanceErrorFromApi": "UNKNOWN"
+  },
+  "publicDns": {
+    "systemResolverNs": [
+      "ns1.vercel-dns.com",
+      "ns2.vercel-dns.com"
+    ],
+    "oneOneOneOneNs": [
+      "romina.ns.cloudflare.com",
+      "stanley.ns.cloudflare.com"
+    ],
+    "eightEightEightEightNs": [
+      "romina.ns.cloudflare.com",
+      "stanley.ns.cloudflare.com"
+    ],
+    "wwwCnameAuthoritative": "cname.vercel-dns-017.com",
+    "wwwANote": "resolver-flattened Vercel IPs; not used as proxy source of truth"
+  },
+  "publicTls": {
+    "distinction": "Public https://www.visutry.com still terminates at Vercel because www is DNS_ONLY. This is not Cloudflare Universal SSL evidence.",
+    "wwwTerminatesAt": "Vercel",
+    "wwwServerHeader": "Vercel",
+    "wwwCfRay": null,
+    "wwwCfCacheStatus": null,
+    "cloudflareEdgeActiveForWww": false,
+    "wwwCertificate": {
+      "issuer": "C=US, O=Let's Encrypt, CN=YR2",
+      "subject": "CN=*.visutry.com",
+      "san": ["*.visutry.com", "visutry.com"],
+      "notBefore": "Jun 22 20:49:12 2026 GMT",
+      "notAfter": "Sep 20 20:49:11 2026 GMT"
+    },
+    "apexCertificate": {
+      "issuer": "C=US, O=Let's Encrypt, CN=YR2",
+      "subject": "CN=visutry.com",
+      "san": ["visutry.com"],
+      "notBefore": "Jun 23 09:22:24 2026 GMT",
+      "notAfter": "Sep 21 09:22:23 2026 GMT"
+    },
+    "originSniCheck": {
+      "connect": "cname.vercel-dns-017.com:443",
+      "sni": "www.visutry.com",
+      "ok": true,
+      "issuer": "Let's Encrypt YR2",
+      "san": ["*.visutry.com", "visutry.com"]
+    },
+    "authVisutryComNote": "auth.visutry.com may show server: cloudflare and cf-ray because Auth0 uses Cloudflare. That is not VisuTry www proxy."
+  },
+  "application": [
+    {
+      "url": "https://visutry.com",
+      "status": 307,
+      "location": "https://www.visutry.com/",
+      "server": "Vercel",
+      "cfRay": null
+    },
+    {
+      "url": "https://www.visutry.com",
+      "status": 307,
+      "location": "/en",
+      "server": "Vercel",
+      "cfRay": null
+    },
+    {
+      "url": "https://www.visutry.com/en",
+      "status": 200,
+      "server": "Vercel",
+      "cfRay": null
+    },
+    {
+      "url": "https://www.visutry.com/en/store",
+      "status": 200,
+      "server": "Vercel",
+      "cfRay": null
+    },
+    {
+      "url": "https://www.visutry.com/en/store/ello-sunglasses",
+      "status": 200,
+      "server": "Vercel",
+      "cfRay": null
+    },
+    {
+      "url": "https://www.visutry.com/en/c/ello-sunglasses/petite-fit",
+      "status": 200,
+      "server": "Vercel",
+      "cfRay": null
+    },
+    {
+      "url": "https://www.visutry.com/en/try-on",
+      "status": 307,
+      "server": "Vercel",
+      "cfRay": null
+    },
+    {
+      "url": "https://www.visutry.com/en/face-analysis",
+      "status": 200,
+      "server": "Vercel",
+      "cfRay": null
+    },
+    {
+      "url": "https://www.visutry.com/en/pricing",
+      "status": 200,
+      "server": "Vercel",
+      "cfRay": null
+    },
+    {
+      "url": "https://www.visutry.com/en/auth/signin",
+      "status": 200,
+      "server": "Vercel",
+      "cfRay": null
+    }
+  ],
+  "mutations": {
+    "wwwProxiedEnabled": false,
+    "apexProxiedEnabled": false,
+    "sslModeChanged": false,
+    "universalSslChanged": false,
+    "certificatePacksChanged": false,
+    "originCertificatesIssued": false,
+    "workerRoutesAttached": false,
+    "customDomainBound": false,
+    "dnsRecordsChanged": false,
+    "nameserversChanged": false,
+    "b3Executed": false
+  },
+  "requiredTokenToUnblock": [
+    "Zone / Zone / Read",
+    "Zone / SSL and Certificates / Read",
+    "Zone / DNS / Read"
+  ]
+}
