@@ -66,6 +66,14 @@ describe('Try-On protected media boundary', () => {
     expect(JSON.stringify(metadata)).not.toContain('data:image')
   })
 
+  it('redirects legacy HTTP media after auth instead of proxying image bytes', async () => {
+    const response = await serveLegacyTryOnMedia('https://public.blob.vercel-storage.com/result.png')
+
+    expect(response.status).toBe(307)
+    expect(response.headers.get('location')).toBe('https://public.blob.vercel-storage.com/result.png')
+    expect(response.headers.get('cache-control')).toBe('private, no-store')
+  })
+
   it('preserves legacy Gemini data-url results behind the media route', async () => {
     const response = await serveLegacyTryOnMedia('data:image/png;base64,AQIDBA==')
 
