@@ -1,6 +1,6 @@
 # VisuTry Cloudflare B4.2C Phase A — Production DNS / Cloudflare Zone Preparation
 
-**Status:** PARTIAL — www origin frozen, inventory complete, inactive zone **not** created  
+**Status:** PARTIAL — www origin frozen; NS-cutover www is DNS_ONLY; inactive Cloudflare zone **not** created (`zone.create` 403)
 **Date:** 2026-08-18  
 **Owner:** Product / Engineering  
 **Branch:** `cursor/cloudflare-b4-2c-phase-a-dns-zone`  
@@ -32,11 +32,12 @@ Related:
 | PR #95 merge on main | YES (`ea7d4bf`) |
 | `requireFrozenWwwDnsTarget()` | **PASS** (`CNAME cname.vercel-dns-017.com`) |
 | Live DNS inventory | **PASS** (`vercel dns ls` + dig + RDAP) |
+| www NS-cutover proxy | **DNS_ONLY** (`futureProxy: PROXIED` after Universal SSL) |
 | Cloudflare zone exists | **NO** |
-| Zone created this phase | **NO** — `POST /zones` 403 missing `zone.create` |
+| Zone created this phase | **NO** — reconfirmed `GET /zones?name=visutry.com` result_count=0. `POST /zones` HTTP 403: `Requires permission "com.cloudflare.api.account.zone.create" to create zones for the selected account`. `GET /user/tokens/permission_groups` HTTP 403 code 9109. `CLOUDFLARE_API_TOKEN` unset. Wrangler OAuth is `zone:read` only. Broader credentials were not used. Dashboard token UI requires SSO/password (stopped). |
 | Records copied into Cloudflare | **NO** |
 | Cloudflare publicly authoritative | **NO** |
-| B4.2C Phase B | **NO-GO** until the inactive zone exists, records are copied, and `npm run b4:dns:diff -- --from-json` is `pass` |
+| B4.2C Phase B | **NO-GO** |
 
 Creating `visutry.com` in Cloudflare does **not** change Namecheap nameservers. The blocker is API permission, not a safety stop. Do not change NS at the registrar to work around it.
 
@@ -74,7 +75,7 @@ Source of truth: `vercel dns ls visutry.com` (2026-08-18), confirmed with `dig @
 | hostname | type | value | TTL | Cloudflare proxy (prepared) |
 | --- | --- | --- | --- | --- |
 | `@` | ALIAS → CNAME | `1c82e566126a58cc.vercel-dns-017.com` | 1800 flattened | DNS_ONLY |
-| `www` / `*` | ALIAS → CNAME | `cname.vercel-dns-017.com` | 1800 flattened | www **PROXIED** (inactive); `*` DNS_ONLY |
+| `www` / `*` | ALIAS → CNAME | `cname.vercel-dns-017.com` | 1800 flattened | www **DNS_ONLY** at NS cutover; `futureProxy: PROXIED` after Universal SSL ACTIVE; `*` DNS_ONLY |
 | `@` | MX | `5 mxbiz1.qq.com` / `10 mxbiz2.qq.com` | 60 | DNS_ONLY |
 | `@` | TXT | QQ SPF | 60 | DNS_ONLY |
 | `@` | CAA | letsencrypt / pki.goog / sectigo | 60 | DNS_ONLY |
@@ -128,27 +129,34 @@ Wrangler OAuth on this machine can read zones and Workers. It cannot create zone
 Prepared (not live):
 
 ```text
-www.visutry.com  CNAME  cname.vercel-dns-017.com  PROXIED
+www.visutry.com  CNAME  cname.vercel-dns-017.com  DNS_ONLY
 ```
 
 | Field | Value |
 | --- | --- |
 | Record type | CNAME |
-| Target | `cname.vercel-dns-017.com` (frozen) |
+| Target | `cname.vercel-dns-017.com` (frozen; unchanged) |
 | TTL | Cloudflare Auto (`1`); live flattened TTL is 1800 — reported, not a fail |
-| Future proxy | PROXIED (required for later scoped Worker Routes) |
+| NS-cutover proxy (B1) | **DNS_ONLY** |
+| Future proxy (B3) | **PROXIED**, only after zone ACTIVE **and** Universal SSL ACTIVE |
 | Current inactive-zone proxy | not applied (no zone) |
 | Affects traffic now | **NO** |
 | Vercel ownership | `www.visutry.com` remains a Vercel project domain |
-| SSL | Full (strict) after the zone is Active. Universal SSL typically issues only once Cloudflare is authoritative. Do not lower SSL to Flexible. |
+| SSL | Full (strict) after the zone is Active. Universal SSL typically issues only once Cloudflare is authoritative. Do not lower SSL to Flexible. Do not orange-cloud www until that certificate is ACTIVE. |
 
-Phase B checkpoint 1, **before any Worker Route**:
+B1 expected path (nameserver only, www grey-cloud):
 
 ```text
-Internet → Cloudflare NS → orange-cloud www → Vercel origin → VisuTry
+Browser → Cloudflare authoritative DNS → Vercel directly
 ```
 
-Application must behave as today. Worker Routes are a later phase.
+B3 expected path (after TLS PASS, www orange-cloud, still zero Worker Routes):
+
+```text
+Browser → Cloudflare edge → Vercel origin
+```
+
+Do **not** combine NS migration, proxy activation, and TLS issuance in one checkpoint.
 
 ## 7. Apex plan
 
@@ -164,7 +172,7 @@ See §3. Rules applied:
 
 - MX / SPF / DKIM / DMARC / verification / Auth0 / Stripe / SES / legacy CNAMEs = DNS_ONLY
 - `*` wildcard = DNS_ONLY (must not feed the Worker)
-- `www` = PROXIED in the prepared state only
+- `www` = **DNS_ONLY** for NS cutover; `futureProxy: PROXIED` is B3 after Universal SSL
 - Live Vercel records were not proxied and were not edited
 
 ## 9. DNS diff validator
@@ -178,7 +186,9 @@ npm run b4:dns:diff -- --from-json attached-dns.json
 
 Detects missing / unexpected / value / MX priority / TXT / CAA / unexpected proxy. TTL inequality is reported by operators, not treated as a fail. Compares desired state vs Cloudflare dump, not live flattened A vs CNAME.
 
-This run: `npm run b4:dns:diff` → **skipped** (no dump).
+Phase A/B1 **fails** if remote `www` is proxied. It **passes** only when `www` is DNS_ONLY.
+
+This run: `npm run b4:dns:diff` → **skipped** (no dump). Zone create is blocked on API token permission (see §5).
 
 ## 10. SSL / TLS
 
@@ -186,8 +196,15 @@ This run: `npm run b4:dns:diff` → **skipped** (no dump).
 | --- | --- |
 | Planned mode | Full (strict) |
 | Vercel origin HTTPS | YES (`server: Vercel`, HTTP→HTTPS 308) |
-| Universal SSL / edge cert | not issuable until the zone is Active |
-| Blocker | pending zone; do not change public SSL now |
+| Universal SSL / edge cert | not issuable until the zone is Active and publicly authoritative |
+| Proxy activation allowed now | **NO** |
+| Hard gate | zone ACTIVE **and** Universal SSL ACTIVE before `www DNS_ONLY → PROXIED` |
+
+Do not infer certificate readiness. Read the actual Cloudflare certificate state in B2. If pending: **STOP**.
+
+Do not change public SSL now.
+
+Cloudflare may add extra CAA authorizations for Universal SSL after activation. Copy the current Vercel CAA set faithfully. Do not invent extra CAA values to make the diff pass. Document any Cloudflare-managed CAA difference before Phase B; do not hide it.
 
 ## 11. Worker + route revalidation (main)
 
@@ -227,7 +244,7 @@ Runtime Worker/router code was **not** changed in this phase.
 | MX/TXT/auth | 60 | already low | keep |
 | Parent NS | 172800 | cannot be lowered from in-zone records; registrar/TLD TTL | n/a |
 
-Do **not** edit live Vercel TTLs in Phase A.
+Do **not** edit live Vercel TTLs in this phase.
 
 ## 13. Rollback
 
@@ -244,38 +261,85 @@ Propagation follows the **48h parent NS TTL** (often faster, never guaranteed in
 
 ## 14. Phase B sequence — DO NOT EXECUTE
 
-T-24h / preparation
+T-24h / preparation (still Phase A leftovers if the zone is missing)
 
 1. Create Cloudflare zone `visutry.com` (full, jump-start off) **without** touching Namecheap NS.
-2. Copy `b4-production-dns.desired.json` (mail/auth/pay DNS-only; www proxied to frozen CNAME).
-3. `npm run b4:dns:diff -- --from-json <cloudflare-dns-dump.json>` must PASS.
-4. Verify MX/SPF/DKIM/DMARC/`auth` grey-cloud.
+2. Copy `b4-production-dns.desired.json` with **www DNS_ONLY**.
+3. `npm run b4:dns:diff -- --from-json <cloudflare-dns-dump.json>` must PASS, including `www` proxy = DNS_ONLY.
+4. Verify MX/SPF/DKIM/DMARC/`auth`/`pay` grey-cloud.
 5. Confirm DNSSEC still unsigned.
-6. Confirm Vercel still serves www/apex.
+6. Confirm public NS still Vercel until B1.
 7. Snapshot live DNS again.
 
-CUTOVER CHECKPOINT 1 (nameserver only)
+### CHECKPOINT B1 — authoritative DNS only
 
-1. At Namecheap, switch NS to the Cloudflare-assigned pair.
-2. **NO Worker Routes. NO Custom Domain. NO production Worker attach.**
-3. Wait until public `dig NS visutry.com` shows Cloudflare.
+Namecheap:
 
-Then verify, still with zero www routes:
+```text
+ns1.vercel-dns.com / ns2.vercel-dns.com
+→ Cloudflare assigned NS
+```
 
-- `https://www.visutry.com` HTML (`cf-ray` expected once proxied; app must work)
-- apex → www
-- `auth.visutry.com` login/logout
-- Store hub + Store detail
+At this point:
+
+- `www` = DNS_ONLY
+- Worker Routes = 0
+- Custom Domain = none
+
+Expected request path:
+
+```text
+Browser → Cloudflare authoritative DNS → Vercel directly
+```
+
+Verify:
+
+- www
+- apex redirect
+- Auth0 login/logout
+- Store
 - Campaign
 - Try-On
-- payments / Stripe `pay`
+- payments
 - AI entry
-- MX/SPF/Resend
-- verification TXT if any are added later
+- MX / SPF / DKIM / DMARC
+- Auth0 CNAME
+- Stripe / `pay` CNAME
 
-Only after that checkpoint is healthy may a later phase consider a **zero-route** production Worker and then ungated P0 attach with remote fail-open.
+No Cloudflare application proxy or TLS certificate dependency yet.
 
-Nameserver migration and Worker activation **must remain separate**.
+### CHECKPOINT B2 — Cloudflare TLS readiness
+
+Wait until:
+
+- zone status = **ACTIVE**
+- Universal SSL covering `visutry.com` and `www.visutry.com` is **ACTIVE**
+
+Do not infer certificate readiness. Read the actual Cloudflare certificate state. If pending: **STOP**.
+
+### CHECKPOINT B3 — enable www proxy
+
+Only after B2 PASS:
+
+```text
+www: DNS_ONLY → PROXIED
+```
+
+Still: Worker Routes = 0.
+
+Expected:
+
+```text
+Browser → Cloudflare edge → Vercel origin
+```
+
+Verify TLS, HTTP status, redirects, canonical host, Auth0, Store, Campaign, Try-On, payments, static assets, and no origin loop. Observe before proceeding.
+
+### CHECKPOINT B4 — Worker work is later
+
+Do **not** attach P0 Worker Routes here. Worker activation remains a separate later phase.
+
+Nameserver migration, Cloudflare proxy/TLS, and Worker activation **must remain separate**.
 
 ## 15. Production safety (this phase)
 
@@ -284,6 +348,7 @@ Nameserver migration and Worker activation **must remain separate**.
 | Authoritative NS changed | NO |
 | Live Vercel DNS changed | NO |
 | Traffic moved | NO |
+| www Cloudflare proxy active publicly | NO |
 | Worker Routes activated | NO |
 | www Custom Domain | NO |
 | Auth0 production changed | NO |
@@ -292,6 +357,6 @@ Nameserver migration and Worker activation **must remain separate**.
 
 ## 16. Next step
 
-Create the inactive Cloudflare `visutry.com` zone with an API token that has zone create, copy the desired records, run `b4:dns:diff`, and only then schedule the Namecheap NS change as **B4.2C Phase B checkpoint 1**.
+Create the inactive Cloudflare `visutry.com` zone with a **temporary** API token that includes account-scoped `Zone:Edit` / `DNS:Edit` (zone create is not possible with Wrangler OAuth `zone:read`). Copy desired records with www **DNS_ONLY**. Run `b4:dns:diff`. Do **not** change Namecheap NS.
 
-**Do not execute the nameserver change from this PR.**
+**Do not execute Phase B from this PR.**

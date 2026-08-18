@@ -1,6 +1,6 @@
 /** @jest-environment node */
 
-import { requireFrozenWwwDnsTarget } from '../../cloudflare-router/b4-production-routes'
+import { generateB4ProductionWorkerRoutes, requireFrozenWwwDnsTarget, routesForPriority } from '../../cloudflare-router/b4-production-routes'
 import {
   compareDesiredToCloudflare,
   loadDesiredDnsRecords,
@@ -11,11 +11,23 @@ import {
 describe('B4.2C Phase A DNS zone diff', () => {
   const desired = loadDesiredDnsRecords()
 
-  it('loads the prepared desired Cloudflare records including frozen www CNAME', () => {
-    expect(desired.some((row) => row.name === 'www' && row.type === 'CNAME' && row.content === 'cname.vercel-dns-017.com' && row.proxied === true)).toBe(true)
+  it('prepares www as DNS_ONLY for NS cutover with futureProxy PROXIED', () => {
+    const www = desired.find((row) => row.name === 'www' && row.type === 'CNAME')
+    expect(www?.content).toBe('cname.vercel-dns-017.com')
+    expect(www?.proxied).toBe(false)
+    expect(www?.futureProxy).toBe('PROXIED')
+    expect(www?.nsCutoverProxy).toBe('DNS_ONLY')
     expect(desired.some((row) => row.name === '@' && row.type === 'MX' && row.priority === 5 && row.content === 'mxbiz1.qq.com' && row.proxied === false)).toBe(true)
     expect(desired.some((row) => row.name === 'auth' && row.proxied === false)).toBe(true)
-    expect(desired.every((row) => row.name !== 'www' || row.proxied === true || row.type !== 'CNAME')).toBe(true)
+    expect(desired.filter((row) => row.name === 'www').every((row) => row.proxied === false)).toBe(true)
+    expect(desired.filter((row) => row.type === 'CAA').every((row) => row.proxied === false)).toBe(true)
+    expect(desired.filter((row) => row.type === 'CAA').map((row) => row.content).sort()).toEqual([
+      '0 issue "letsencrypt.org"',
+      '0 issue "pki.goog"',
+      '0 issue "sectigo.com"',
+    ].sort())
+    expect(generateB4ProductionWorkerRoutes().length).toBe(286)
+    expect(routesForPriority('P0').length).toBe(12)
   })
 
   it('skips when the Cloudflare dump is empty', () => {
@@ -41,6 +53,14 @@ describe('B4.2C Phase A DNS zone diff', () => {
         : row
     ))
     expect(compareDesiredToCloudflare({ desired, remote: proxiedMx }).findings.some((row) => row.kind === 'proxy')).toBe(true)
+    const proxiedWww = remote.map((row) => (
+      row.type === 'CNAME' && row.name === 'www.visutry.com'
+        ? { ...row, proxied: true }
+        : row
+    ))
+    const wwwProxyFail = compareDesiredToCloudflare({ desired, remote: proxiedWww })
+    expect(wwwProxyFail.status).toBe('fail')
+    expect(wwwProxyFail.findings.some((row) => row.kind === 'proxy' && row.record.includes('www') && row.actual === 'PROXIED')).toBe(true)
   })
 
   it('normalizes trailing dots and TXT quotes', () => {

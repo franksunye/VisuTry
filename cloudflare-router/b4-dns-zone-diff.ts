@@ -21,6 +21,7 @@ export interface B4DesiredDnsRecord {
   priority?: number
   proxied: boolean
   futureProxy?: string
+  nsCutoverProxy?: string
   reason?: string
 }
 

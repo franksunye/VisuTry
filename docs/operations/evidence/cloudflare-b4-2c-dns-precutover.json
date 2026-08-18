@@ -33,11 +33,25 @@
     "zoneStatus": null,
     "authoritativePublicly": false,
     "assignedNameservers": null,
+    "wwwPreparedProxy": "DNS_ONLY",
+    "wwwFutureProxy": "PROXIED",
+    "universalSsl": "not issuable until zone is Active and publicly authoritative",
+    "proxyActivationAllowedNow": false,
     "createAttempt": {
       "method": "POST /zones",
       "jumpStart": false,
       "httpStatus": 403,
-      "error": "Requires permission com.cloudflare.api.account.zone.create"
+      "error": "Requires permission \"com.cloudflare.api.account.zone.create\" to create zones for the selected account",
+      "reconfirmedAt": "2026-08-18T02:55:00.000Z",
+      "reconfirmedHttpStatus": 403,
+      "reconfirmedError": "Requires permission \"com.cloudflare.api.account.zone.create\" to create zones for the selected account",
+      "getZonesResultCount": 0
+    },
+    "tokenCreateAttempt": {
+      "method": "GET /user/tokens/permission_groups",
+      "httpStatus": 403,
+      "errorCode": 9109,
+      "error": "Unauthorized to access requested resource"
     }
   },
   "liveRecords": [

@@ -3,7 +3,15 @@
   "zone": "visutry.com",
   "authoritativePublicly": false,
   "appliedToCloudflareZone": false,
-  "reasonNotApplied": "Cloudflare zone visutry.com does not exist. Wrangler OAuth lacks com.cloudflare.api.account.zone.create (POST /zones → 403). Creating the zone at the registrar was not attempted.",
+  "reasonNotApplied": "Cloudflare zone visutry.com does not exist. POST /zones still HTTP 403: Requires permission com.cloudflare.api.account.zone.create. CLOUDFLARE_API_TOKEN unset. Wrangler OAuth is zone:read only. Registrar NS were not changed.",
+  "wwwNsCutoverProxy": "DNS_ONLY",
+  "wwwFutureProxy": "PROXIED",
+  "caaPolicy": {
+    "copyAuthoritativeFaithfully": true,
+    "currentIssueTargets": ["letsencrypt.org", "pki.goog", "sectigo.com"],
+    "doNotInventCloudflareCaToPassDiff": true,
+    "note": "Cloudflare may add CAA authorizations for Universal SSL after the zone becomes Active. Record any Cloudflare-managed CAA difference before Phase B; do not hide it to make b4:dns:diff pass."
+  },
   "wwwOrigin": {
     "recordType": "CNAME",
     "target": "cname.vercel-dns-017.com",
@@ -22,9 +30,10 @@
       "name": "www",
       "type": "CNAME",
       "content": "cname.vercel-dns-017.com",
-      "proxied": true,
+      "proxied": false,
       "futureProxy": "PROXIED",
-      "reason": "Scoped Worker Routes later require orange-cloud www. Inactive-zone proxy does not affect public DNS while NS remain Vercel. Phase B first checkpoint is Cloudflare → Vercel with zero Worker Routes."
+      "nsCutoverProxy": "DNS_ONLY",
+      "reason": "Phase B checkpoint B1 is nameserver-only. www stays DNS_ONLY so cutover does not depend on Cloudflare proxy or Universal SSL. Orange-cloud is B3, only after zone ACTIVE and Universal SSL ACTIVE. Frozen target unchanged."
     },
     {
       "name": "*",
