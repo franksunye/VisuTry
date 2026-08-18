@@ -1,10 +1,8 @@
-import { NextResponse } from 'next/server'
-
 export type TryOnMediaKind = 'user' | 'item' | 'result'
 
-const MAX_MEDIA_BYTES = 15 * 1024 * 1024
-const MAX_BASE64_CHARS = Math.ceil(MAX_MEDIA_BYTES / 3) * 4 + 4
-const ALLOWED_IMAGE_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp'])
+export const TRY_ON_MEDIA_MAX_BYTES = 15 * 1024 * 1024
+export const TRY_ON_MEDIA_MAX_BASE64_CHARS = Math.ceil(TRY_ON_MEDIA_MAX_BYTES / 3) * 4 + 4
+export const TRY_ON_MEDIA_ALLOWED_IMAGE_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp'])
 const CLIENT_METADATA_KEYS = [
   'serviceType',
   'isAsync',
@@ -78,23 +76,9 @@ export function tryOnClientMetadata(metadata: unknown): Record<string, unknown> 
   return Object.keys(safe).length ? safe : null
 }
 
-function mediaResponse(bytes: ArrayBuffer, contentType: string): Response {
-  if (bytes.byteLength === 0 || bytes.byteLength > MAX_MEDIA_BYTES) {
-    throw new Error('Try-On media is empty or exceeds the size limit')
-  }
-
-  return new NextResponse(bytes, {
-    status: 200,
-    headers: {
-      'Cache-Control': 'private, no-store',
-      'Content-Type': contentType,
-      'Content-Length': String(bytes.byteLength),
-      'X-Content-Type-Options': 'nosniff',
-    },
-  })
-}
-
-function decodeLegacyDataUrl(sourceUrl: string): { bytes: ArrayBuffer; contentType: string } | null {
+export function decodeLegacyTryOnDataUrl(
+  sourceUrl: string,
+): { bytes: ArrayBuffer; contentType: string } | null {
   if (!sourceUrl.startsWith('data:')) return null
 
   const match = /^data:(image\/(?:jpeg|png|webp));base64,([a-z0-9+/=\s]+)$/i.exec(sourceUrl)
@@ -102,12 +86,16 @@ function decodeLegacyDataUrl(sourceUrl: string): { bytes: ArrayBuffer; contentTy
 
   const contentType = match[1].toLowerCase()
   const encoded = match[2].replace(/\s/g, '')
-  if (!ALLOWED_IMAGE_TYPES.has(contentType) || encoded.length === 0 || encoded.length > MAX_BASE64_CHARS) {
+  if (
+    !TRY_ON_MEDIA_ALLOWED_IMAGE_TYPES.has(contentType) ||
+    encoded.length === 0 ||
+    encoded.length > TRY_ON_MEDIA_MAX_BASE64_CHARS
+  ) {
     throw new Error('Try-On media is invalid or exceeds the size limit')
   }
 
   const buffer = Buffer.from(encoded, 'base64')
-  if (buffer.byteLength === 0 || buffer.byteLength > MAX_MEDIA_BYTES) {
+  if (buffer.byteLength === 0 || buffer.byteLength > TRY_ON_MEDIA_MAX_BYTES) {
     throw new Error('Try-On media is empty or exceeds the size limit')
   }
 
@@ -116,20 +104,10 @@ function decodeLegacyDataUrl(sourceUrl: string): { bytes: ArrayBuffer; contentTy
   return { bytes: bytes.buffer, contentType }
 }
 
-export async function serveLegacyTryOnMedia(sourceUrl: string): Promise<Response> {
-  const dataUrl = decodeLegacyDataUrl(sourceUrl)
-  if (dataUrl) return mediaResponse(dataUrl.bytes, dataUrl.contentType)
-
+export function parseLegacyTryOnHttpUrl(sourceUrl: string): URL {
   const url = new URL(sourceUrl)
   if (url.protocol !== 'https:' && url.protocol !== 'http:') {
     throw new Error('Unsupported Try-On media URL')
   }
-
-  // Step 2A keeps legacy HTTP(S) objects public. Redirecting after the auth check
-  // avoids proxying every image byte through a Vercel Function while preserving the
-  // application-owned DTO boundary. Step 2B can replace this target with a short-lived
-  // signed private Blob URL without changing browser-facing media paths.
-  const response = NextResponse.redirect(url, 307)
-  response.headers.set('Cache-Control', 'private, no-store')
-  return response
+  return url
 }
