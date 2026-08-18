@@ -119,10 +119,9 @@ export function FaceLandmarkMeshOverlay({
     ctx.clearRect(0, 0, rect.width, rect.height)
 
     const detection = detectionRef.current
-    if (!detection) {
-      drawFallback(ctx, rect.width, rect.height)
-      return
-    }
+    // Never draw a generic face ellipse for a completed report. A guessed guide
+    // can look like measured geometry and undermines trust when detection fails.
+    if (!detection) return
 
     const mapper = createCoverMapper(
       image.naturalWidth,
@@ -159,7 +158,7 @@ export function FaceLandmarkMeshOverlay({
       )}
       {status === 'fallback' && (
         <div className="absolute bottom-2 right-2 rounded-full bg-white/85 px-2 py-1 text-[10px] font-semibold text-gray-600 shadow-sm">
-          Guide overlay
+          Landmark visualization unavailable
         </div>
       )}
     </div>
@@ -242,26 +241,5 @@ function drawHighlightPoints(
     ctx.strokeStyle = 'rgba(255,255,255,0.95)'
     ctx.stroke()
   }
-  ctx.restore()
-}
-
-function drawFallback(ctx: CanvasRenderingContext2D, width: number, height: number) {
-  ctx.save()
-  ctx.strokeStyle = 'rgba(37, 99, 235, 0.5)'
-  ctx.lineWidth = 1.25
-  ctx.setLineDash([4, 4])
-  ctx.beginPath()
-  ctx.ellipse(width / 2, height * 0.48, width * 0.28, height * 0.34, 0, 0, Math.PI * 2)
-  ctx.stroke()
-  ctx.setLineDash([])
-  ctx.strokeStyle = 'rgba(255,255,255,0.72)'
-  ctx.beginPath()
-  ctx.moveTo(width / 2, height * 0.17)
-  ctx.lineTo(width / 2, height * 0.82)
-  ctx.moveTo(width * 0.32, height * 0.42)
-  ctx.lineTo(width * 0.68, height * 0.42)
-  ctx.moveTo(width * 0.37, height * 0.62)
-  ctx.lineTo(width * 0.63, height * 0.62)
-  ctx.stroke()
   ctx.restore()
 }
