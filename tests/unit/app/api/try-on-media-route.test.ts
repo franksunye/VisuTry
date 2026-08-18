@@ -2,6 +2,15 @@ const mockRequireAuth = jest.fn()
 const mockFindUnique = jest.fn()
 const mockServeLegacyTryOnMedia = jest.fn()
 
+jest.mock('next/server', () => ({
+  NextResponse: {
+    json: (body: unknown, init?: { status?: number }) => ({
+      status: init?.status ?? 200,
+      json: async () => body,
+    }),
+  },
+}))
+
 jest.mock('@/lib/api-auth', () => ({
   requireAuth: (...args: unknown[]) => mockRequireAuth(...args),
 }))
@@ -14,7 +23,7 @@ jest.mock('@/lib/prisma', () => ({
   },
 }))
 
-jest.mock('@/lib/tryon-media', () => ({
+jest.mock('@/lib/tryon-media-response', () => ({
   serveLegacyTryOnMedia: (...args: unknown[]) => mockServeLegacyTryOnMedia(...args),
 }))
 
@@ -24,17 +33,13 @@ describe('GET /api/try-on/[id]/media/[kind]', () => {
   beforeEach(() => {
     jest.clearAllMocks()
     mockRequireAuth.mockResolvedValue({ ok: true, userId: 'user-1' })
-    mockServeLegacyTryOnMedia.mockResolvedValue(new Response('image', {
-      status: 200,
-      headers: { 'content-type': 'image/png' },
-    }))
+    mockServeLegacyTryOnMedia.mockResolvedValue({ status: 200 })
   })
 
   it('requires authentication before reading the task', async () => {
-    const response = new Response('unauthorized', { status: 401 })
-    mockRequireAuth.mockResolvedValue({ ok: false, response })
+    mockRequireAuth.mockResolvedValue({ ok: false, response: { status: 401 } })
 
-    const result = await GET(new Request('http://localhost/api/try-on/task-1/media/user') as any, {
+    const result = await GET({} as any, {
       params: { id: 'task-1', kind: 'user' },
     })
 
@@ -51,7 +56,7 @@ describe('GET /api/try-on/[id]/media/[kind]', () => {
       resultImageUrl: null,
     })
 
-    const result = await GET(new Request('http://localhost/api/try-on/task-1/media/user') as any, {
+    const result = await GET({} as any, {
       params: { id: 'task-1', kind: 'user' },
     })
 
@@ -68,7 +73,7 @@ describe('GET /api/try-on/[id]/media/[kind]', () => {
       resultImageUrl: 'https://public.blob.vercel-storage.com/result.png',
     })
 
-    const result = await GET(new Request('http://localhost/api/try-on/task-1/media/result') as any, {
+    const result = await GET({} as any, {
       params: { id: 'task-1', kind: 'result' },
     })
 
@@ -77,7 +82,7 @@ describe('GET /api/try-on/[id]/media/[kind]', () => {
   })
 
   it('returns 404 for unsupported media kinds', async () => {
-    const result = await GET(new Request('http://localhost/api/try-on/task-1/media/other') as any, {
+    const result = await GET({} as any, {
       params: { id: 'task-1', kind: 'other' },
     })
 
