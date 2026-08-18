@@ -1,5 +1,10 @@
 import { toCompareTaskResponse } from '@/lib/compare-tryon'
-import { serveLegacyTryOnMedia, tryOnMediaPath, tryOnMediaUrls } from '@/lib/tryon-media'
+import {
+  serveLegacyTryOnMedia,
+  tryOnClientMetadata,
+  tryOnMediaPath,
+  tryOnMediaUrls,
+} from '@/lib/tryon-media'
 
 describe('Try-On protected media boundary', () => {
   it('serializes owner media as application-owned routes', () => {
@@ -39,6 +44,26 @@ describe('Try-On protected media boundary', () => {
 
     expect(response.resultImageUrl).toBe(tryOnMediaPath('task-1', 'result'))
     expect(JSON.stringify(response)).not.toContain('blob.vercel-storage.com')
+  })
+
+  it('allowlists client metadata and removes internal media URLs/data URLs', () => {
+    const metadata = tryOnClientMetadata({
+      serviceType: 'grsai',
+      source: 'face-analysis-top-picks',
+      framePresetName: 'Classic Frame',
+      uploadDiagnostics: {
+        userImageUrl: 'https://public.blob.vercel-storage.com/raw-user.jpg',
+      },
+      originalResultUrl: 'data:image/png;base64,SECRET',
+    })
+
+    expect(metadata).toEqual({
+      serviceType: 'grsai',
+      source: 'face-analysis-top-picks',
+      framePresetName: 'Classic Frame',
+    })
+    expect(JSON.stringify(metadata)).not.toContain('blob.vercel-storage.com')
+    expect(JSON.stringify(metadata)).not.toContain('data:image')
   })
 
   it('preserves legacy Gemini data-url results behind the media route', async () => {
