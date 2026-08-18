@@ -2,8 +2,23 @@
   "kind": "b4-2c-phase-a-desired-cloudflare-records",
   "zone": "visutry.com",
   "authoritativePublicly": false,
-  "appliedToCloudflareZone": false,
-  "reasonNotApplied": "Cloudflare zone visutry.com does not exist. POST /zones still HTTP 403 after a temporary account-scoped API token: Requires permission com.cloudflare.api.account.zone.create. Token was not persisted. Registrar NS were not changed.",
+  "appliedToCloudflareZone": true,
+  "cloudflareZone": {
+    "id": "5e3dc058ed16f3aee917f1cef2e9f413",
+    "status": "pending",
+    "type": "full",
+    "activatedOn": null,
+    "createdOn": "2026-08-18T03:35:19.309527Z",
+    "assignedNameservers": [
+      "romina.ns.cloudflare.com",
+      "stanley.ns.cloudflare.com"
+    ],
+    "originalNameservers": [
+      "ns1.vercel-dns.com",
+      "ns2.vercel-dns.com"
+    ],
+    "apexRepresentation": "CNAME visutry.com → 1c82e566126a58cc.vercel-dns-017.com (not frozen Vercel anycast A)"
+  },
   "wwwNsCutoverProxy": "DNS_ONLY",
   "wwwFutureProxy": "PROXIED",
   "caaPolicy": {

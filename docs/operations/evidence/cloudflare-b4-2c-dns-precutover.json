@@ -28,15 +28,31 @@
   },
   "cloudflare": {
     "accountId": "8f2fca159ffbd0e5d9446dfa6280f40d",
-    "zoneExists": false,
-    "zoneId": null,
-    "zoneStatus": null,
+    "zoneExists": true,
+    "zoneId": "5e3dc058ed16f3aee917f1cef2e9f413",
+    "zoneStatus": "pending",
+    "zoneType": "full",
+    "createdOn": "2026-08-18T03:35:19.309527Z",
+    "activatedOn": null,
     "authoritativePublicly": false,
-    "assignedNameservers": null,
+    "assignedNameservers": [
+      "romina.ns.cloudflare.com",
+      "stanley.ns.cloudflare.com"
+    ],
+    "originalNameservers": [
+      "ns1.vercel-dns.com",
+      "ns2.vercel-dns.com"
+    ],
+    "recordCount": 19,
+    "remoteDnsDiff": "pass",
     "wwwPreparedProxy": "DNS_ONLY",
     "wwwFutureProxy": "PROXIED",
-    "universalSsl": "not issuable until zone is Active and publicly authoritative",
+    "apexRepresentation": "CNAME visutry.com → 1c82e566126a58cc.vercel-dns-017.com",
+    "universalSsl": "unread (certificate-pack GET 403); not issuable until zone is Active and publicly authoritative",
     "proxyActivationAllowedNow": false,
+    "productionWorker": null,
+    "productionRoutes": 0,
+    "wwwCustomDomain": false,
     "createAttempt": {
       "method": "POST /zones",
       "jumpStart": false,
@@ -69,6 +85,15 @@
       "httpStatus": 403,
       "errorCode": 9109,
       "error": "Unauthorized to access requested resource"
+    },
+    "createSucceeded": {
+      "at": "2026-08-18T03:35:19.309527Z",
+      "method": "POST /zones",
+      "type": "full",
+      "jumpStart": false,
+      "httpStatus": 200,
+      "prior403Resolved": true,
+      "tokenPersisted": false
     }
   },
   "liveRecords": [

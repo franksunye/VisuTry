@@ -1,6 +1,6 @@
 # VisuTry Cloudflare B4.2C Phase A — Production DNS / Cloudflare Zone Preparation
 
-**Status:** PARTIAL — www origin frozen; NS-cutover www is DNS_ONLY; inactive Cloudflare zone **not** created (`zone.create` 403)
+**Status:** PASS — inactive Cloudflare zone pending; DNS mirror PASS; www DNS_ONLY; public NS still Vercel
 **Date:** 2026-08-18  
 **Owner:** Product / Engineering  
 **Branch:** `cursor/cloudflare-b4-2c-phase-a-dns-zone`  
@@ -28,18 +28,20 @@ Related:
 
 | Item | Value |
 | --- | --- |
-| RESULT | **PARTIAL** |
+| RESULT | **PASS** (Phase A DNS mirror). Phase B **NO-GO** / not executed |
 | PR #95 merge on main | YES (`ea7d4bf`) |
 | `requireFrozenWwwDnsTarget()` | **PASS** (`CNAME cname.vercel-dns-017.com`) |
 | Live DNS inventory | **PASS** (`vercel dns ls` + dig + RDAP) |
 | www NS-cutover proxy | **DNS_ONLY** (`futureProxy: PROXIED` after Universal SSL) |
-| Cloudflare zone exists | **NO** |
-| Zone created this phase | **NO** — temporary API token retry: account `8f2fca159ffbd0e5d9446dfa6280f40d` confirmed; `GET /zones?name=visutry.com` result_count=0; `POST /zones` HTTP 403: `Requires permission "com.cloudflare.api.account.zone.create" to create zones for the selected account`. Token was not persisted, printed, or written to the repo. Permissions were not broadened. |
-| Records copied into Cloudflare | **NO** |
-| Cloudflare publicly authoritative | **NO** |
+| Cloudflare zone exists | **YES** `5e3dc058ed16f3aee917f1cef2e9f413` |
+| Zone created this phase | **YES** — `POST /zones` type=full jump_start=false HTTP 200. status=`pending`, `activated_on=null`. Prior `zone.create` 403 resolved with a user token scoped to Zone:Zone:Edit + Zone:DNS:Edit. Token was not persisted. |
+| Assigned Cloudflare NS | `romina.ns.cloudflare.com`, `stanley.ns.cloudflare.com` |
+| Records copied into Cloudflare | **YES** (19/19, all DNS_ONLY) |
+| Remote DNS diff | **PASS** (`desiredCount=19`, `remoteCount=19`, no findings) |
+| Cloudflare publicly authoritative | **NO** — public NS still Vercel |
 | B4.2C Phase B | **NO-GO** |
 
-Creating `visutry.com` in Cloudflare does **not** change Namecheap nameservers. The blocker is API permission, not a safety stop. Do not change NS at the registrar to work around it.
+Creating `visutry.com` in Cloudflare did **not** change Namecheap nameservers. Do not change NS at the registrar from this PR.
 
 ## 2. Current authoritative DNS
 
@@ -111,18 +113,25 @@ Mail provider configuration was not changed. Risk if MX/SPF/DKIM are dropped or 
 
 | Field | Value |
 | --- | --- |
-| Existed before | NO (`GET /zones?name=visutry.com` → empty) |
-| Created | NO |
-| Authoritative publicly | NO — parent still delegates to Vercel |
-| Assigned CF NS | unknown until zone exists |
-| Production Worker | **absent** (`visutry-cf-production` 404) |
+| Existed before | NO (`GET /zones?name=visutry.com` was empty; earlier `POST /zones` 403 is resolved) |
+| Created | **YES** 2026-08-18T03:35:19Z |
+| Zone ID | `5e3dc058ed16f3aee917f1cef2e9f413` |
+| Type | full |
+| Status | **pending** |
+| `activated_on` | **null** |
+| Authoritative publicly | **NO** — parent still delegates to Vercel |
+| Assigned CF NS | `romina.ns.cloudflare.com`, `stanley.ns.cloudflare.com` |
+| Original NS (still public) | `ns1.vercel-dns.com`, `ns2.vercel-dns.com` |
+| Application records | 19 copied; remote dump in [`evidence/cloudflare-b4-2c-dns-remote-dump.json`](./evidence/cloudflare-b4-2c-dns-remote-dump.json) |
+| Apex in Cloudflare API | `CNAME visutry.com → 1c82e566126a58cc.vercel-dns-017.com` DNS_ONLY (not Vercel anycast A) |
+| www in Cloudflare API | `CNAME www → cname.vercel-dns-017.com` **DNS_ONLY** |
+| Auto-imported records | none (`jump_start: false`; DNS list was empty before copy) |
+| Production Worker | **absent** (`visutry-cf-production` code 10007) |
 | Staging Worker | `visutry-cf-staging` (`workers.dev` enabled) |
-| Worker Custom Domains | none |
-| Production routes | 0 |
+| Worker Custom Domains | **none** (0) |
+| Production routes | **0** |
 
-Wrangler OAuth on this machine can read zones and Workers. A temporary account-scoped API token authenticated to the correct account and could list zones, but `POST /zones` still returned HTTP 403 missing `com.cloudflare.api.account.zone.create`. **Zone:DNS:Edit is not enough.** The next token needs account-scoped **Zone:Zone:Edit** (include all zones from this account, because `visutry.com` does not exist yet) plus **Zone:DNS:Edit**. Do not paste the token into chat or the repo.
-
-**Allowed next operator action (not done here):** create `visutry.com` as a full zone with jump-start **off**, leave Namecheap NS on Vercel, copy `b4-production-dns.desired.json`. If any integration would mutate registrar NS automatically: **STOP**.
+Namecheap NS were not changed. No registrar integration was used.
 
 ## 6. www future origin
 
@@ -139,7 +148,7 @@ www.visutry.com  CNAME  cname.vercel-dns-017.com  DNS_ONLY
 | TTL | Cloudflare Auto (`1`); live flattened TTL is 1800 — reported, not a fail |
 | NS-cutover proxy (B1) | **DNS_ONLY** |
 | Future proxy (B3) | **PROXIED**, only after zone ACTIVE **and** Universal SSL ACTIVE |
-| Current inactive-zone proxy | not applied (no zone) |
+| Current inactive-zone proxy | **DNS_ONLY** (`www.proxied === false` in remote dump) |
 | Affects traffic now | **NO** |
 | Vercel ownership | `www.visutry.com` remains a Vercel project domain |
 | SSL | Full (strict) after the zone is Active. Universal SSL typically issues only once Cloudflare is authoritative. Do not lower SSL to Flexible. Do not orange-cloud www until that certificate is ACTIVE. |
@@ -162,7 +171,7 @@ Do **not** combine NS migration, proxy activation, and TLS issuance in one check
 
 Current: `https://visutry.com` → Vercel `307` → `https://www.visutry.com/`.
 
-Prepared: apex CNAME flattening to `1c82e566126a58cc.vercel-dns-017.com`, **DNS_ONLY**. That keeps the Vercel redirect after NS cutover without a Cloudflare Redirect Rule and without running the application Worker on apex.
+Prepared: apex CNAME flattening to `1c82e566126a58cc.vercel-dns-017.com`, **DNS_ONLY**. Cloudflare API stores this as `CNAME visutry.com` (not frozen Vercel anycast A). That keeps the Vercel redirect after NS cutover without a Cloudflare Redirect Rule and without running the application Worker on apex.
 
 Do **not** activate a Cloudflare Redirect Rule in this phase. Evaluate Redirect Rule vs Vercel 307 only after nameserver health is proven.
 
@@ -188,7 +197,7 @@ Detects missing / unexpected / value / MX priority / TXT / CAA / unexpected prox
 
 Phase A/B1 **fails** if remote `www` is proxied. It **passes** only when `www` is DNS_ONLY.
 
-This run: `npm run b4:dns:diff` → **skipped** (no dump). Zone create is blocked on API token permission (see §5).
+This run: `npm run b4:dns:diff -- --from-json docs/operations/evidence/cloudflare-b4-2c-dns-remote-dump.json` → **pass** (`desiredCount=19`, `remoteCount=19`, no findings). Remote `www.proxied === false`.
 
 ## 10. SSL / TLS
 
@@ -196,7 +205,7 @@ This run: `npm run b4:dns:diff` → **skipped** (no dump). Zone create is blocke
 | --- | --- |
 | Planned mode | Full (strict) |
 | Vercel origin HTTPS | YES (`server: Vercel`, HTTP→HTTPS 308) |
-| Universal SSL / edge cert | not issuable until the zone is Active and publicly authoritative |
+| Universal SSL / edge cert | unread with Zone/DNS token and Wrangler OAuth (`GET certificate_packs` 403). Zone is **pending** and not publicly authoritative, so Universal SSL is **not issuable now**. Do not infer readiness. |
 | Proxy activation allowed now | **NO** |
 | Hard gate | zone ACTIVE **and** Universal SSL ACTIVE before `www DNS_ONLY → PROXIED` |
 
@@ -231,7 +240,7 @@ Runtime Worker/router code was **not** changed in this phase.
 | | Value |
 | --- | --- |
 | Current NS | `ns1.vercel-dns.com`, `ns2.vercel-dns.com` |
-| Future NS | Cloudflare-assigned pair (unknown until zone exists) |
+| Future NS | `romina.ns.cloudflare.com`, `stanley.ns.cloudflare.com` |
 | Where | Namecheap → Domain List → visutry.com → Nameservers (custom) |
 | DNSSEC | Off. Phase B is **not** blocked by DS/DNSSEC. Do not enable/disable DNSSEC now. |
 | Parent TTL | 48h at `.com`. Plan the cutover with that lag. |
@@ -261,15 +270,15 @@ Propagation follows the **48h parent NS TTL** (often faster, never guaranteed in
 
 ## 14. Phase B sequence — DO NOT EXECUTE
 
-T-24h / preparation (still Phase A leftovers if the zone is missing)
+T-24h / preparation (Phase A DNS mirror is done)
 
-1. Create Cloudflare zone `visutry.com` (full, jump-start off) **without** touching Namecheap NS.
-2. Copy `b4-production-dns.desired.json` with **www DNS_ONLY**.
-3. `npm run b4:dns:diff -- --from-json <cloudflare-dns-dump.json>` must PASS, including `www` proxy = DNS_ONLY.
-4. Verify MX/SPF/DKIM/DMARC/`auth`/`pay` grey-cloud.
-5. Confirm DNSSEC still unsigned.
-6. Confirm public NS still Vercel until B1.
-7. Snapshot live DNS again.
+1. Inactive Cloudflare zone `visutry.com` exists (pending). Do **not** recreate it.
+2. Desired records are copied with **www DNS_ONLY**. Remote diff **PASS**.
+3. Confirm DNSSEC still unsigned.
+4. Confirm public NS still Vercel until B1.
+5. Snapshot live DNS again immediately before B1.
+
+Do **not** start B1 from this PR.
 
 ### CHECKPOINT B1 — authoritative DNS only
 
@@ -357,6 +366,15 @@ Nameserver migration, Cloudflare proxy/TLS, and Worker activation **must remain 
 
 ## 16. Next step
 
-Create a new temporary API token with account-scoped **Zone:Zone:Edit** + **Zone:DNS:Edit** (include all zones from account `8f2fca159ffbd0e5d9446dfa6280f40d`). Put it in the shell only as `CLOUDFLARE_API_TOKEN`. Then create the inactive full zone, copy www **DNS_ONLY** records, and run `b4:dns:diff`. Do **not** change Namecheap NS. Revoke the previous token; it lacked `zone.create`.
+Phase A DNS mirror is **closed**. Phase B remains separately approved:
+
+1. Namecheap NS change is **not** approved from this PR.
+2. B1 must keep www **DNS_ONLY**.
+3. Do not orange-cloud www until zone ACTIVE **and** Universal SSL ACTIVE (B2).
+4. Worker Routes stay 0 through B3.
+
+Revoke the temporary user API token used to create the zone. It was pasted into chat.
+
+**Do not execute Phase B from this PR.**
 
 **Do not execute Phase B from this PR.**
