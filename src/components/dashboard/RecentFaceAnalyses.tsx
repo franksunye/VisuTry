@@ -6,7 +6,6 @@ import { CheckCircle, Clock, Lock, ScanFace, Unlock, XCircle } from 'lucide-reac
 import { useTranslations } from 'next-intl'
 import { formatDistanceToNow } from 'date-fns'
 import { FaceAnalysisTaskResponse } from '@/types/face-analysis'
-import { getThumbnailUrl, getResponsiveSizes, IMAGE_QUALITY } from '@/lib/image-utils'
 
 interface RecentFaceAnalysesProps {
   locale: string
@@ -71,14 +70,20 @@ export function RecentFaceAnalyses({ locale, analyses }: RecentFaceAnalysesProps
               className="group border border-gray-200 rounded-lg overflow-hidden hover:border-blue-300 hover:shadow-md transition-all"
             >
               <div className="relative aspect-[4/5] bg-gray-100">
-                <Image
-                  src={getThumbnailUrl(analysis.userImageUrl)}
-                  alt={shapeLabel}
-                  fill
-                  className="object-cover"
-                  sizes={getResponsiveSizes(300)}
-                  quality={IMAGE_QUALITY.THUMBNAIL}
-                />
+                {analysis.userImageUrl ? (
+                  <Image
+                    src={analysis.userImageUrl}
+                    alt={shapeLabel}
+                    fill
+                    unoptimized
+                    className="object-cover"
+                    sizes="300px"
+                  />
+                ) : (
+                  <div className="flex h-full items-center justify-center">
+                    <ScanFace className="h-10 w-10 text-gray-300" />
+                  </div>
+                )}
                 <div className="absolute top-2 right-2">
                   {analysis.reportUnlocked ? (
                     <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium text-green-700 bg-green-100 rounded-full">
