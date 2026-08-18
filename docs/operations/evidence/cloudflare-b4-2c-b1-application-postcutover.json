@@ -1,0 +1,130 @@
+{
+  "kind": "b4-2c-phase-b1-application-postcutover",
+  "capturedAt": "2026-08-18T04:53:10Z",
+  "checks": [
+    {
+      "url": "https://visutry.com",
+      "status_line": "HTTP/2 307",
+      "server": "Vercel",
+      "location": "https://www.visutry.com/",
+      "cf-ray": null,
+      "cf-cache-status": null,
+      "status_chain": [
+        "HTTP/2 307",
+        "HTTP/2 307",
+        "HTTP/2 200"
+      ]
+    },
+    {
+      "url": "https://www.visutry.com",
+      "status_line": "HTTP/2 307",
+      "server": "Vercel",
+      "location": "/en",
+      "cf-ray": null,
+      "cf-cache-status": null,
+      "status_chain": [
+        "HTTP/2 307",
+        "HTTP/2 200"
+      ]
+    },
+    {
+      "url": "https://www.visutry.com/en",
+      "status_line": "HTTP/2 200",
+      "server": "Vercel",
+      "location": null,
+      "cf-ray": null,
+      "cf-cache-status": null,
+      "status_chain": [
+        "HTTP/2 200"
+      ]
+    },
+    {
+      "url": "https://www.visutry.com/en/store",
+      "status_line": "HTTP/2 200",
+      "server": "Vercel",
+      "location": null,
+      "cf-ray": null,
+      "cf-cache-status": null,
+      "status_chain": [
+        "HTTP/2 200"
+      ]
+    },
+    {
+      "url": "https://www.visutry.com/en/store/ello-sunglasses",
+      "status_line": "HTTP/2 200",
+      "server": "Vercel",
+      "location": null,
+      "cf-ray": null,
+      "cf-cache-status": null,
+      "status_chain": [
+        "HTTP/2 200"
+      ]
+    },
+    {
+      "url": "https://www.visutry.com/en/c/ello-sunglasses/petite-fit",
+      "status_line": "HTTP/2 200",
+      "server": "Vercel",
+      "location": null,
+      "cf-ray": null,
+      "cf-cache-status": null,
+      "status_chain": [
+        "HTTP/2 200"
+      ]
+    },
+    {
+      "url": "https://www.visutry.com/en/try-on",
+      "status_line": "HTTP/2 307",
+      "server": "Vercel",
+      "location": null,
+      "cf-ray": null,
+      "cf-cache-status": null,
+      "status_chain": [
+        "HTTP/2 307"
+      ]
+    },
+    {
+      "url": "https://www.visutry.com/en/face-analysis",
+      "status_line": "HTTP/2 200",
+      "server": "Vercel",
+      "location": null,
+      "cf-ray": null,
+      "cf-cache-status": null,
+      "status_chain": [
+        "HTTP/2 200"
+      ]
+    },
+    {
+      "url": "https://www.visutry.com/en/pricing",
+      "status_line": "HTTP/2 200",
+      "server": "Vercel",
+      "location": null,
+      "cf-ray": null,
+      "cf-cache-status": null,
+      "status_chain": [
+        "HTTP/2 200"
+      ]
+    },
+    {
+      "url": "https://www.visutry.com/api/auth/signin",
+      "status_line": "HTTP/2 400",
+      "server": "Vercel",
+      "location": null,
+      "cf-ray": null,
+      "cf-cache-status": null,
+      "status_chain": [
+        "HTTP/2 400"
+      ]
+    },
+    {
+      "url": "https://www.visutry.com/en/auth/signin",
+      "status_line": "HTTP/2 200",
+      "server": "Vercel",
+      "location": null,
+      "cf-ray": null,
+      "cf-cache-status": null,
+      "status_chain": [
+        "HTTP/2 200"
+      ]
+    }
+  ]
+}

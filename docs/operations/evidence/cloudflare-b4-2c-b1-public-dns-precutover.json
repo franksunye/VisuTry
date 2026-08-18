@@ -1,0 +1,76 @@
+{
+  "kind": "b4-2c-phase-b1-public-dns-precutover",
+  "capturedAt": "2026-08-18T04:43:51Z",
+  "systemResolver": {
+    "visutry.com NS": "ns1.vercel-dns.com.\nns2.vercel-dns.com.",
+    "visutry.com SOA": "ns1.vercel-dns.com. hostmaster.nsone.net. 1760595390 43200 7200 1209600 600",
+    "visutry.com A": "64.29.17.65\n216.198.79.1",
+    "www.visutry.com A": "216.198.79.65\n64.29.17.1",
+    "visutry.com MX": "10 mxbiz2.qq.com.\n5 mxbiz1.qq.com.",
+    "visutry.com TXT": "\"v=spf1 include:spf.mail.qq.com ~all\"",
+    "_dmarc.visutry.com TXT": "\"v=DMARC1; p=none;\"",
+    "auth.visutry.com CNAME": "dev-ho4e6glpvc4ux5uw-cd-cobhapsbopdfpybl.edge.tenants.us.auth0.com.",
+    "pay.visutry.com CNAME": "hosted-checkout.stripecdn.com.",
+    "resend._domainkey.visutry.com TXT": "\"p=MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDH/vlC0I2gLaGRjDWHjKsZA7vLRnw2t9+4z9c+lfHOM55ic2gv7xLzJRxtt3ZM8tA5izlazgpMG8I4BKRKjdQ0Vl1jdacXXBoYa0qSSSffnVAYFilDufxo/2Wmo6rXzZp/YmtB9bxuCy1dY+LmAdqV+C+ZuCwNVQuAZ2xYiVyOgwIDAQAB\"",
+    "send.visutry.com MX": "10 feedback-smtp.us-east-1.amazonses.com.",
+    "send.visutry.com TXT": "\"v=spf1 include:amazonses.com ~all\"",
+    "_acme-challenge.pay.visutry.com TXT": "\"U-Lm8kfKSESig0eXwlwzlLVTSp5cIAQDsRQ1NzyC_9Y\"",
+    "visutry.com DS": "",
+    "visutry.com DNSKEY": ""
+  },
+  "vercelAuthoritative": {
+    "ns1.vercel-dns.com": {
+      "NS": "ns1.vercel-dns.com.\nns2.vercel-dns.com.",
+      "www A": "64.29.17.1\n216.198.79.65",
+      "apex A": "64.29.17.65\n216.198.79.65",
+      "MX": "10 mxbiz2.qq.com.\n5 mxbiz1.qq.com.",
+      "TXT": "\"v=spf1 include:spf.mail.qq.com ~all\"",
+      "DMARC": "\"v=DMARC1; p=none;\"",
+      "auth": "dev-ho4e6glpvc4ux5uw-cd-cobhapsbopdfpybl.edge.tenants.us.auth0.com.",
+      "pay": "hosted-checkout.stripecdn.com.",
+      "resend": "\"p=MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDH/vlC0I2gLaGRjDWHjKsZA7vLRnw2t9+4z9c+lfHOM55ic2gv7xLzJRxtt3ZM8tA5izlazgpMG8I4BKRKjdQ0Vl1jdacXXBoYa0qSSSffnVAYFilDufxo/2Wmo6rXzZp/YmtB9bxuCy1dY+LmAdqV+C+ZuCwNVQuAZ2xYiVyOgwIDAQAB\"",
+      "send MX": "10 feedback-smtp.us-east-1.amazonses.com.",
+      "pay acme": "\"U-Lm8kfKSESig0eXwlwzlLVTSp5cIAQDsRQ1NzyC_9Y\""
+    },
+    "ns2.vercel-dns.com": {
+      "NS": "ns1.vercel-dns.com.\nns2.vercel-dns.com.",
+      "www A": "64.29.17.1\n64.29.17.65",
+      "apex A": "64.29.17.1\n216.198.79.1",
+      "MX": "10 mxbiz2.qq.com.\n5 mxbiz1.qq.com.",
+      "TXT": "\"v=spf1 include:spf.mail.qq.com ~all\"",
+      "DMARC": "\"v=DMARC1; p=none;\"",
+      "auth": "dev-ho4e6glpvc4ux5uw-cd-cobhapsbopdfpybl.edge.tenants.us.auth0.com.",
+      "pay": "hosted-checkout.stripecdn.com.",
+      "resend": "\"p=MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDH/vlC0I2gLaGRjDWHjKsZA7vLRnw2t9+4z9c+lfHOM55ic2gv7xLzJRxtt3ZM8tA5izlazgpMG8I4BKRKjdQ0Vl1jdacXXBoYa0qSSSffnVAYFilDufxo/2Wmo6rXzZp/YmtB9bxuCy1dY+LmAdqV+C+ZuCwNVQuAZ2xYiVyOgwIDAQAB\"",
+      "send MX": "10 feedback-smtp.us-east-1.amazonses.com.",
+      "pay acme": "\"U-Lm8kfKSESig0eXwlwzlLVTSp5cIAQDsRQ1NzyC_9Y\""
+    }
+  },
+  "rdap": {
+    "ldhName": "VISUTRY.COM",
+    "secureDNS": {
+      "delegationSigned": false
+    },
+    "nameservers": [
+      "NS1.VERCEL-DNS.COM",
+      "NS2.VERCEL-DNS.COM"
+    ],
+    "registrar": [
+      "vcard",
+      [
+        [
+          "version",
+          {},
+          "text",
+          "4.0"
+        ],
+        [
+          "fn",
+          {},
+          "text",
+          "NameCheap, Inc."
+        ]
+      ]
+    ]
+  }
+}

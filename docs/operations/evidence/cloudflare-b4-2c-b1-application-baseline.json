@@ -1,0 +1,149 @@
+{
+  "kind": "b4-2c-phase-b1-application-baseline",
+  "capturedAt": "2026-08-18T04:47:59Z",
+  "checks": [
+    {
+      "url": "https://visutry.com",
+      "status_line": "HTTP/2 307",
+      "server": "Vercel",
+      "location": "https://www.visutry.com/",
+      "cf-ray": null,
+      "cf-cache-status": null,
+      "final": "200 117905 https://www.visutry.com/en",
+      "html_has_html": true,
+      "title": "<title>Free Face Shape Detector &amp; Virtual Glasses Try-On | VisuTry</title>"
+    },
+    {
+      "url": "https://www.visutry.com",
+      "status_line": "HTTP/2 307",
+      "server": "Vercel",
+      "location": "/en",
+      "cf-ray": null,
+      "cf-cache-status": null,
+      "final": "200 117905 https://www.visutry.com/en",
+      "html_has_html": true,
+      "title": "<title>Free Face Shape Detector &amp; Virtual Glasses Try-On | VisuTry</title>"
+    },
+    {
+      "url": "https://www.visutry.com/en",
+      "status_line": "HTTP/2 200",
+      "server": "Vercel",
+      "location": null,
+      "cf-ray": null,
+      "cf-cache-status": null,
+      "final": "200 117905 https://www.visutry.com/en",
+      "html_has_html": true,
+      "title": "<title>Free Face Shape Detector &amp; Virtual Glasses Try-On | VisuTry</title>"
+    },
+    {
+      "url": "https://www.visutry.com/en/store",
+      "status_line": "HTTP/2 200",
+      "server": "Vercel",
+      "location": null,
+      "cf-ray": null,
+      "cf-cache-status": null,
+      "final": "200 83943 https://www.visutry.com/en/store",
+      "html_has_html": true,
+      "title": "<title>VisuTry Store \u2014 AI Commerce for Eyewear Merchants</title>"
+    },
+    {
+      "url": "https://www.visutry.com/en/store/ello-sunglasses",
+      "status_line": "HTTP/2 200",
+      "server": "Vercel",
+      "location": null,
+      "cf-ray": null,
+      "cf-cache-status": null,
+      "final": "200 156143 https://www.visutry.com/en/store/ello-sunglasses",
+      "html_has_html": true,
+      "title": "<title>ello sunglasses Eyewear Collection | VisuTry</title>"
+    },
+    {
+      "url": "https://www.visutry.com/en/c/ello-sunglasses/petite-fit",
+      "status_line": "HTTP/2 200",
+      "server": "Vercel",
+      "location": null,
+      "cf-ray": null,
+      "cf-cache-status": null,
+      "final": "200 138585 https://www.visutry.com/en/c/ello-sunglasses/petite-fit",
+      "html_has_html": true,
+      "title": "<title>Find frames for smaller faces | ello sunglasses</title>"
+    },
+    {
+      "url": "https://www.visutry.com/en/try-on",
+      "status_line": "HTTP/2 307",
+      "server": "Vercel",
+      "location": null,
+      "cf-ray": null,
+      "cf-cache-status": null,
+      "final": "307 25573 https://www.visutry.com/en/try-on",
+      "html_has_html": true,
+      "title": "<title>Free Face Shape Detector &amp; Virtual Glasses Try-On | VisuTry</title>"
+    },
+    {
+      "url": "https://www.visutry.com/en/face-analysis",
+      "status_line": "HTTP/2 200",
+      "server": "Vercel",
+      "location": null,
+      "cf-ray": null,
+      "cf-cache-status": null,
+      "final": "200 99382 https://www.visutry.com/en/face-analysis",
+      "html_has_html": true,
+      "title": "<title>AI Glasses Advisor: Personalized Frame Recommendations | VisuTry</title>"
+    },
+    {
+      "url": "https://www.visutry.com/en/pricing",
+      "status_line": "HTTP/2 200",
+      "server": "Vercel",
+      "location": null,
+      "cf-ray": null,
+      "cf-cache-status": null,
+      "final": "200 96862 https://www.visutry.com/en/pricing",
+      "html_has_html": true,
+      "title": "<title>Eyewear Decision Credits for Advisor, Try-On &amp; Compare | VisuTry</title>"
+    },
+    {
+      "url": "https://www.visutry.com/en/login",
+      "status_line": "HTTP/2 404",
+      "server": "Vercel",
+      "location": null,
+      "cf-ray": null,
+      "cf-cache-status": null,
+      "final": "404 5943 https://www.visutry.com/en/login",
+      "html_has_html": true,
+      "title": "<title>404: This page could not be found.</title>"
+    },
+    {
+      "url": "https://www.visutry.com/api/auth/signin",
+      "status_line": "HTTP/2 400",
+      "server": "Vercel",
+      "location": null,
+      "cf-ray": null,
+      "cf-cache-status": null,
+      "final": "200 54664 https://www.visutry.com/en/auth/signin?callbackUrl=https%3A%2F%2Fwww.visutry.com",
+      "html_has_html": true,
+      "title": "<title>Merchant Sign In | VisuTry</title>"
+    },
+    {
+      "url": "https://pay.visutry.com",
+      "status_line": null,
+      "server": null,
+      "location": null,
+      "cf-ray": null,
+      "cf-cache-status": null,
+      "final": "000 0 https://pay.visutry.com/",
+      "html_has_html": true,
+      "title": "<title>Merchant Sign In | VisuTry</title>"
+    },
+    {
+      "url": "https://auth.visutry.com",
+      "status_line": "HTTP/2 302",
+      "server": "cloudflare",
+      "location": "https://visutry.com/",
+      "cf-ray": "a2ce48805dcfb6c9-LAX",
+      "cf-cache-status": "DYNAMIC",
+      "final": "200 117905 https://www.visutry.com/en",
+      "html_has_html": true,
+      "title": "<title>Free Face Shape Detector &amp; Virtual Glasses Try-On | VisuTry</title>"
+    }
+  ]
+}
