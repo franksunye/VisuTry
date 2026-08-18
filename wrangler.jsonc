@@ -49,8 +49,17 @@
         "ROUTER_ENV": "staging",
         "NEXTAUTH_URL": "https://visutry-cf-staging.sunye.workers.dev",
         "VERCEL_ORIGIN": "https://visutry.vercel.app",
-        "PUBLIC_HOST": "visutry-cf-staging.sunye.workers.dev"
-      }
+        "PUBLIC_HOST": "visutry-cf-staging.sunye.workers.dev",
+        "ISR_TELEMETRY_ENABLED": "false",
+        "ISR_HTML_TELEMETRY_SAMPLE_RATE": "1",
+        "ISR_TELEMETRY_SAMPLE_RATE": "0.05"
+      },
+      "analytics_engine_datasets": [
+        {
+          "binding": "ISR_TELEMETRY",
+          "dataset": "visutry_isr_telemetry_staging"
+        }
+      ]
     },
     "production": {
       "name": "visutry-cf-production",
@@ -59,8 +68,17 @@
         "ROUTER_ENV": "production",
         "NEXTAUTH_URL": "https://www.visutry.com",
         "VERCEL_ORIGIN": "https://visutry.vercel.app",
-        "PUBLIC_HOST": "www.visutry.com"
-      }
+        "PUBLIC_HOST": "www.visutry.com",
+        "ISR_TELEMETRY_ENABLED": "false",
+        "ISR_HTML_TELEMETRY_SAMPLE_RATE": "1",
+        "ISR_TELEMETRY_SAMPLE_RATE": "0.05"
+      },
+      "analytics_engine_datasets": [
+        {
+          "binding": "ISR_TELEMETRY",
+          "dataset": "visutry_isr_telemetry_production"
+        }
+      ]
     }
   }
 }

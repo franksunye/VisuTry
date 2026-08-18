@@ -1,8 +1,14 @@
+import { writeIsrTelemetrySafely, type AnalyticsEngineBinding } from './telemetry'
+
 export interface Env {
   CF_APP: { fetch(request: Request): Promise<Response> }
   CF_ORIGIN: string
   VERCEL_ORIGIN: string
   ROUTER_ENV: string
+  ISR_TELEMETRY?: AnalyticsEngineBinding
+  ISR_TELEMETRY_ENABLED?: string
+  ISR_TELEMETRY_SAMPLE_RATE?: string
+  ISR_HTML_TELEMETRY_SAMPLE_RATE?: string
 }
 
 type Backend = 'cloudflare' | 'vercel'
@@ -184,6 +190,14 @@ export default {
         : await fetch(upstreamRequest(request, origin))
       const latencyMs = Date.now() - startedAt
       logRoute(request, decision, upstream.status, latencyMs)
+      writeIsrTelemetrySafely({
+        env,
+        request,
+        response: upstream,
+        backend: decision.backend,
+        routeClass: decision.routeClass,
+        latencyMs,
+      })
 
       const headers = new Headers(upstream.headers)
       headers.set('x-visutry-router-backend', decision.backend)

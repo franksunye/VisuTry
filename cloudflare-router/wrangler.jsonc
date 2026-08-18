@@ -15,8 +15,17 @@
       "vars": {
         "ROUTER_ENV": "staging",
         "CF_ORIGIN": "https://visutry-cf-staging.sunye.workers.dev",
-        "VERCEL_ORIGIN": "https://visutry-3v81kow8o-sunye.vercel.app"
-      }
+        "VERCEL_ORIGIN": "https://visutry-3v81kow8o-sunye.vercel.app",
+        "ISR_TELEMETRY_ENABLED": "false",
+        "ISR_HTML_TELEMETRY_SAMPLE_RATE": "1",
+        "ISR_TELEMETRY_SAMPLE_RATE": "0.05"
+      },
+      "analytics_engine_datasets": [
+        {
+          "binding": "ISR_TELEMETRY",
+          "dataset": "visutry_isr_telemetry_staging"
+        }
+      ]
     }
   }
 }

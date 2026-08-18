@@ -8,10 +8,15 @@ import {
   sanitizeWorkerException,
   withB4RouterHeaders,
 } from './b4-staging-router'
+import { writeIsrTelemetrySafely, type AnalyticsEngineBinding } from './telemetry'
 
 interface Env {
   VERCEL_ORIGIN: string
   PUBLIC_HOST?: string
+  ISR_TELEMETRY?: AnalyticsEngineBinding
+  ISR_TELEMETRY_ENABLED?: string
+  ISR_TELEMETRY_SAMPLE_RATE?: string
+  ISR_HTML_TELEMETRY_SAMPLE_RATE?: string
 }
 
 interface RouterExecutionContext {
@@ -69,6 +74,14 @@ export default {
       const response = await fetch(fallbackRequest(request, env.VERCEL_ORIGIN))
       const latencyMs = Date.now() - startedAt
       console.log(JSON.stringify(routerLogFields(request, decision, response.status, latencyMs)))
+      writeIsrTelemetrySafely({
+        env,
+        request,
+        response,
+        backend: decision.backend,
+        routeClass: decision.routeClass,
+        latencyMs,
+      })
       return withB4RouterHeaders(
         rewriteFallbackLocation(response, env.VERCEL_ORIGIN, publicHost),
         decision,
