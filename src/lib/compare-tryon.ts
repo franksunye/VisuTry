@@ -1,5 +1,6 @@
 import { TaskStatus } from '@prisma/client'
 import { getTopPickPresetById } from '@/config/glasses-presets'
+import { tryOnMediaPath } from '@/lib/tryon-media'
 
 export function normalizeCompareTaskStatus(status: TaskStatus | string) {
   const normalized = String(status).toLowerCase()
@@ -21,7 +22,7 @@ export function toCompareTaskResponse(task: {
   return {
     taskId: task.id,
     status: normalizeCompareTaskStatus(task.status),
-    resultImageUrl: task.resultImageUrl ?? null,
+    resultImageUrl: task.resultImageUrl ? tryOnMediaPath(task.id, 'result') : null,
     errorMessage: task.errorMessage ?? null,
     preset: {
       id: preset?.id ?? presetId,
