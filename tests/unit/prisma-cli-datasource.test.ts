@@ -39,6 +39,13 @@ describe('resolvePrismaCliDatasourceUrl', () => {
     })
   })
 
+  it('uses a placeholder when Prisma loads the config without generate on argv', () => {
+    expect(resolvePrismaCliDatasourceUrl({}, ['node', 'jiti'])).toEqual({
+      url: PRISMA_GENERATE_PLACEHOLDER_URL,
+      mode: 'generate-placeholder',
+    })
+  })
+
   it('still requires a database URL for migrate and db commands', () => {
     expect(() =>
       resolvePrismaCliDatasourceUrl({}, ['node', 'prisma', 'migrate', 'deploy']),

@@ -6,17 +6,19 @@ export type PrismaCliDatasource = {
   mode: 'direct' | 'pooled-fallback' | 'generate-placeholder'
 }
 
-export function isPrismaGenerateCommand(argv: string[] = process.argv): boolean {
-  return argv.includes('generate') && !argv.includes('migrate') && !argv.includes('db')
+export function isPrismaMigrateOrDbCommand(argv: string[] = process.argv): boolean {
+  return argv.includes('migrate') || argv.includes('db')
 }
 
 /**
- * Prisma 7 loads this URL for every CLI command, including `prisma generate`.
- * Generate only emits the client from schema.prisma and must not require a
- * live Neon URL — Cloudflare Workers Builds runs `npm ci` / postinstall
- * without Vercel Neon env vars.
+ * Prisma 7 loads prisma.config.ts through c12/jiti. That evaluation may not
+ * see `generate` on process.argv, so Cloudflare Workers Builds cannot depend
+ * on command sniffing. `prisma generate` only emits the client from schema
+ * and does not connect.
  *
- * Migrate / db commands still require DATABASE_URL_UNPOOLED or DATABASE_URL.
+ * Vercel still supplies DATABASE_URL_UNPOOLED / DATABASE_URL, so production
+ * generate + migrate keep using the real Neon URLs. migrate/db without a URL
+ * still throw when those commands are visible on argv.
  */
 export function resolvePrismaCliDatasourceUrl(
   env: NodeJS.ProcessEnv = process.env,
@@ -33,12 +35,12 @@ export function resolvePrismaCliDatasourceUrl(
     return { url: env.DATABASE_URL, mode: 'pooled-fallback' }
   }
 
-  if (isPrismaGenerateCommand(argv)) {
-    return { url: PRISMA_GENERATE_PLACEHOLDER_URL, mode: 'generate-placeholder' }
+  if (isPrismaMigrateOrDbCommand(argv)) {
+    throw new Error(
+      '[prisma.config.ts] No database URL found. Set DATABASE_URL_UNPOOLED ' +
+        '(provided by the Vercel Neon integration) or DATABASE_URL.',
+    )
   }
 
-  throw new Error(
-    '[prisma.config.ts] No database URL found. Set DATABASE_URL_UNPOOLED ' +
-      '(provided by the Vercel Neon integration) or DATABASE_URL.',
-  )
+  return { url: PRISMA_GENERATE_PLACEHOLDER_URL, mode: 'generate-placeholder' }
 }
