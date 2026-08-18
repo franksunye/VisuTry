@@ -1,5 +1,6 @@
 import {
   getTryOnBlobStoreId,
+  getTryOnResultBlobOptions,
   getTryOnSourceBlobOptions,
   resolveTryOnBlobAccessMode,
 } from '@/lib/tryon-blob-access'
@@ -11,7 +12,7 @@ const ENV_KEYS = [
   'FACE_ANALYSIS_BLOB_STORE_ID',
 ] as const
 
-describe('Try-On source Blob access policy', () => {
+describe('Try-On Blob access policy', () => {
   const originalEnv: Partial<Record<(typeof ENV_KEYS)[number], string | undefined>> = {}
 
   beforeAll(() => {
@@ -30,19 +31,22 @@ describe('Try-On source Blob access policy', () => {
     }
   })
 
-  it('defaults to public when neither Try-On nor Face Analysis config is present', () => {
+  it('defaults source and result media to public when no private policy is configured', () => {
     expect(resolveTryOnBlobAccessMode()).toBe('public')
     expect(getTryOnSourceBlobOptions()).toEqual({ access: 'public' })
+    expect(getTryOnResultBlobOptions()).toEqual({ access: 'public' })
   })
 
-  it('uses explicit Try-On private store configuration', () => {
+  it('uses explicit Try-On private store configuration for source and result media', () => {
     process.env.TRY_ON_BLOB_ACCESS_MODE = 'private'
     process.env.TRY_ON_BLOB_STORE_ID = 'store_tryon'
 
-    expect(getTryOnSourceBlobOptions()).toEqual({
+    const expected = {
       access: 'private',
       storeId: 'store_tryon',
-    })
+    }
+    expect(getTryOnSourceBlobOptions()).toEqual(expected)
+    expect(getTryOnResultBlobOptions()).toEqual(expected)
     expect(getTryOnBlobStoreId()).toBe('store_tryon')
   })
 
@@ -50,10 +54,12 @@ describe('Try-On source Blob access policy', () => {
     process.env.FACE_ANALYSIS_BLOB_ACCESS_MODE = 'private'
     process.env.FACE_ANALYSIS_BLOB_STORE_ID = 'store_face_analysis'
 
-    expect(getTryOnSourceBlobOptions()).toEqual({
+    const expected = {
       access: 'private',
       storeId: 'store_face_analysis',
-    })
+    }
+    expect(getTryOnSourceBlobOptions()).toEqual(expected)
+    expect(getTryOnResultBlobOptions()).toEqual(expected)
   })
 
   it('lets explicit Try-On configuration override the Face Analysis fallback', () => {
@@ -63,6 +69,7 @@ describe('Try-On source Blob access policy', () => {
     process.env.FACE_ANALYSIS_BLOB_STORE_ID = 'store_face_analysis'
 
     expect(getTryOnSourceBlobOptions()).toEqual({ access: 'public' })
+    expect(getTryOnResultBlobOptions()).toEqual({ access: 'public' })
   })
 
   it('fails closed for an unknown access mode', () => {
@@ -75,6 +82,9 @@ describe('Try-On source Blob access policy', () => {
     process.env.TRY_ON_BLOB_ACCESS_MODE = 'private'
 
     expect(() => getTryOnSourceBlobOptions()).toThrow(
+      'TRY_ON_BLOB_STORE_ID is required when Try-On Blob access is private',
+    )
+    expect(() => getTryOnResultBlobOptions()).toThrow(
       'TRY_ON_BLOB_STORE_ID is required when Try-On Blob access is private',
     )
   })
