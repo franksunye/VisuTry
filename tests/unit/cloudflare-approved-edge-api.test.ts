@@ -47,7 +47,6 @@ function request(pathName: string, method = 'GET') {
 
 describe('approved edge API OpenNext bypass', () => {
   const incrementalSet = jest.fn()
-  const originalDatabaseUrl = process.env.DATABASE_URL
 
   beforeEach(() => {
     jest.clearAllMocks()
@@ -55,8 +54,6 @@ describe('approved edge API OpenNext bypass', () => {
   })
 
   afterEach(() => {
-    if (originalDatabaseUrl === undefined) delete process.env.DATABASE_URL
-    else process.env.DATABASE_URL = originalDatabaseUrl
     delete (globalThis as { __VISUTRY_INCREMENTAL_CACHE_SET__?: unknown }).__VISUTRY_INCREMENTAL_CACHE_SET__
   })
 
@@ -116,9 +113,9 @@ describe('approved edge API OpenNext bypass', () => {
       },
     ])
 
-    const brands = await handleApprovedEdgeApi(request('/api/glasses/brands'), { DATABASE_URL: 'postgres://example' })
-    const categories = await handleApprovedEdgeApi(request('/api/glasses/categories'), { DATABASE_URL: 'postgres://example' })
-    const shapes = await handleApprovedEdgeApi(request('/api/glasses/face-shapes'), { DATABASE_URL: 'postgres://example' })
+    const brands = await handleApprovedEdgeApi(request('/api/glasses/brands'))
+    const categories = await handleApprovedEdgeApi(request('/api/glasses/categories'))
+    const shapes = await handleApprovedEdgeApi(request('/api/glasses/face-shapes'))
 
     expect(brands.status).toBe(200)
     expect(brands.headers.get('Cache-Control')).toBe(PUBLIC_CATALOG_CACHE_CONTROL)
@@ -158,7 +155,7 @@ describe('approved edge API OpenNext bypass', () => {
   it('preserves catalog 500 contract when direct-Neon read fails', async () => {
     mocked.getFaceShapes.mockRejectedValue(new Error('neon down'))
     const spy = jest.spyOn(console, 'error').mockImplementation(() => {})
-    const response = await handleApprovedEdgeApi(request('/api/glasses/face-shapes'), { DATABASE_URL: 'postgres://example' })
+    const response = await handleApprovedEdgeApi(request('/api/glasses/face-shapes'))
     spy.mockRestore()
     expect(response.status).toBe(500)
     expect(await response.json()).toEqual({ success: false, error: 'Failed to fetch face shapes' })
@@ -169,6 +166,8 @@ describe('approved edge API OpenNext bypass', () => {
     const handler = fs.readFileSync(path.join(__dirname, '../../cloudflare-router/approved-edge-api.ts'), 'utf8')
     const imports = handler.split('\n').filter((line) => line.startsWith('import '))
     expect(imports.join('\n')).not.toMatch(/@opennextjs|\.open-next|incremental-cache/)
+    expect(handler).not.toMatch(/applyWorkerEnv/)
+    expect(handler).not.toMatch(/process\.env\.DATABASE_URL\s*=/)
 
     const worker = fs.readFileSync(path.join(__dirname, '../../cloudflare-router/app-host-worker.ts'), 'utf8')
     const dispatchAt = worker.indexOf('handleApprovedEdgeApi')

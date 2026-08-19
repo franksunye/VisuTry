@@ -14,7 +14,6 @@ import {
 interface Env {
   VERCEL_ORIGIN: string
   PUBLIC_HOST?: string
-  DATABASE_URL?: string
   NODE_ENV?: string
   ROUTER_ENV?: string
 }

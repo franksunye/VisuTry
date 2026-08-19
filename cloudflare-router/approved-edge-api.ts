@@ -11,7 +11,6 @@ import { PUBLIC_CATALOG_CACHE_CONTROL } from '../src/lib/public-http-cache'
 import { B4_FIRST_SLICE_APIS } from './b4-production-public-slice'
 
 export type ApprovedEdgeApiEnv = {
-  DATABASE_URL?: string
   NODE_ENV?: string
   ROUTER_ENV?: string
 }
@@ -35,10 +34,6 @@ export function isApprovedEdgeApi(request: Request): boolean {
 
 function resolveNodeEnv(env: ApprovedEdgeApiEnv): string {
   return env.NODE_ENV || process.env.NODE_ENV || (env.ROUTER_ENV === 'production' ? 'production' : 'development')
-}
-
-function applyWorkerEnv(env: ApprovedEdgeApiEnv) {
-  if (env.DATABASE_URL) process.env.DATABASE_URL = env.DATABASE_URL
 }
 
 function jsonResponse(request: Request, body: unknown, init: { status?: number; cacheControl?: string } = {}): Response {
@@ -68,7 +63,6 @@ async function catalog<T>(
 }
 
 export async function handleApprovedEdgeApi(request: Request, env: ApprovedEdgeApiEnv = {}): Promise<Response> {
-  applyWorkerEnv(env)
   const path = cleanPath(new URL(request.url).pathname)
 
   if (path === '/api/health') {
