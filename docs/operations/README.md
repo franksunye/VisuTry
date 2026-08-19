@@ -117,3 +117,7 @@ Operations documents use these lifecycle classes:
 - **Superseded** — explicitly replaced; never use for current production changes.
 
 Deletion is reserved for duplicates or documents with no remaining audit/reference value. The 2026-08-19 governance pass found no Cloudflare migration evidence document that justified destructive deletion; obsolete plans are therefore archived-by-status rather than removed.
+
+## Vercel docs-only build skip verification
+
+2026-08-19: `scripts/vercel-ignore-build.sh` is configured through `vercel.json` as the Vercel Ignored Build Step. A commit containing only `docs/**` changes must be canceled before `vercel build` runs; any commit containing a non-doc path must continue to the normal build pipeline.
