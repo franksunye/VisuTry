@@ -254,7 +254,33 @@ A single developer laptop is not a valid global performance baseline.
 
 ## 9. Sampling and Test Shape
 
-Initial guidance:
+The repository first-pass harness is `npm run perf:hybrid-sample` (`scripts/hybrid-performance-sample.mjs`).
+
+Default first-pass shape (safe against Direct Vercel challenge protection):
+
+- warm-up: 2 requests
+- measured samples: 8 per endpoint per route
+- concurrency: 1
+- 3 independent runs
+- Hybrid and Direct Vercel alternated
+- short delay + jitter between requests
+- 4 routes: `/`, `/en`, `/en/glasses-guide`, and one repository-verified Glasses Guide detail slug
+
+### OpenNext incremental cache (Layer 2 static HTML)
+
+Glasses Guide and other force-static Layer 2 HTML must use a **real** OpenNext incremental cache on Cloudflare. An empty `defineCloudflareConfig()` defaults to `"dummy"` and re-renders on every Worker request (`x-nextjs-cache: MISS`) even when `.open-next/cache` artifacts exist.
+
+For prerender-only SSG on `@opennextjs/cloudflare@1.15.1`, the supported fix is **Workers Static Assets incremental cache**: wire `staticAssetsIncrementalCache` in `open-next.config.ts` and copy `.open-next/cache` → `.open-next/assets/cdn-cgi/_next_cache` at build time (`scripts/populate-opennext-static-assets-cache.mjs`). Do not rely on `enableCacheInterception` when the benchmark observable is `x-nextjs-cache`.
+
+Evidence: `docs/operations/evidence/hybrid-performance/layer2-opennext-diagnostic/2026-08-19-root-cause.md` (+41.2% Glasses Guide penalty); fix evidence under `docs/operations/evidence/hybrid-performance/opennext-cache-fix/`.
+
+Use `npm run perf:hybrid-sample:full` only when a larger sample is explicitly required. Do not use 30 sequential measured requests as the default.
+
+If Direct Vercel returns 403, a challenge page, or a non-semantic body, that sample is invalid. Repeated challenges stop the run and classify the comparison as `INCONCLUSIVE` with `DIRECT VERCEL BASELINE BLOCKED`. Never treat `200 vs 403` as a Hybrid win.
+
+Across the 3 runs, do not average away sign changes. Same-direction material deltas can be a consistent signal; mixed signs are `MIXED / INCONCLUSIVE`.
+
+Larger architecture studies may still use:
 
 - at least 100 successful samples per route/region/path class for exploratory runs;
 - 300–500 samples for higher-confidence architecture comparisons when practical;
@@ -450,6 +476,7 @@ Performance is therefore not a one-off optimization phase. It is a standing prod
 - `docs/operations/cloudflare-b4-2d-p0-production-cutover.md`
 - `docs/operations/cloudflare-production-route-boundary.md`
 - `docs/operations/cloudflare-b4-production-cutover-readiness.md`
+- `scripts/hybrid-performance-sample.mjs` (first-pass Hybrid vs Direct Vercel GET sampler)
 - `docs/decisions/ADR-010-hybrid-edge-architecture-for-store-campaign-scale.md`
 - `docs/decisions/ADR-009-vercel-cloudflare-hosting-optionality.md`
 - `docs/engineering/quality-assurance-strategy.md`

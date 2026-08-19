@@ -12,7 +12,7 @@
     "build": "prisma generate && bash scripts/migrate-deploy.sh && next build",
     "build:ci": "prisma generate && next build",
     "build:cloudflare:next": "prisma generate && CLOUDFLARE_BUILD=1 next build",
-    "build:cloudflare": "npm run build:cloudflare:next && opennextjs-cloudflare build --skipNextBuild",
+    "build:cloudflare": "npm run build:cloudflare:next && opennextjs-cloudflare build --skipNextBuild && node scripts/populate-opennext-static-assets-cache.mjs",
     "preview:cloudflare": "npm run build:cloudflare && opennextjs-cloudflare preview",
     "deploy:cloudflare": "npm run build:cloudflare && opennextjs-cloudflare deploy --env staging",
     "deploy:cloudflare:production": "opennextjs-cloudflare deploy --env production",
@@ -87,7 +87,10 @@
     "analyze:server": "BUNDLE_ANALYZE=server next build",
     "analyze:browser": "BUNDLE_ANALYZE=browser next build",
     "perf:test": "node scripts/test-performance.js",
-    "perf:test:open": "node scripts/test-performance.js --open"
+    "perf:test:open": "node scripts/test-performance.js --open",
+    "perf:hybrid-sample": "node scripts/hybrid-performance-sample.mjs",
+    "perf:hybrid-sample:validate": "node scripts/hybrid-performance-sample.mjs --validate-only",
+    "perf:hybrid-sample:full": "node scripts/hybrid-performance-sample.mjs --full"
   },
   "dependencies": {
     "@axiomhq/js": "^1.3.1",
