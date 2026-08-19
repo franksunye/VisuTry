@@ -253,6 +253,8 @@ describe('B4.2A staging public slice router', () => {
     expect(workerSource).not.toMatch(/retry|fallbackRequest\(.*\).*fallbackRequest/i)
     expect(workerSource.match(/await fetch\(fallbackRequest/g)).toHaveLength(1)
     expect(workerSource.match(/appWorker\.fetch/g)).toHaveLength(1)
+    expect(workerSource.indexOf('handleApprovedEdgeApi')).toBeGreaterThan(-1)
+    expect(workerSource.indexOf('handleApprovedEdgeApi')).toBeLessThan(workerSource.indexOf('appWorker.fetch'))
   })
 
   it('redacts secrets from Worker exception logs and resolves OpenNext default export', () => {

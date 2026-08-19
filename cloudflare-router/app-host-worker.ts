@@ -1,4 +1,5 @@
 import app from '../.open-next/worker.js'
+import { handleApprovedEdgeApi, isApprovedEdgeApi } from './approved-edge-api'
 import {
   classifyStagingPublicSlice,
   fallbackRequest,
@@ -13,6 +14,9 @@ import {
 interface Env {
   VERCEL_ORIGIN: string
   PUBLIC_HOST?: string
+  DATABASE_URL?: string
+  NODE_ENV?: string
+  ROUTER_ENV?: string
 }
 
 interface RouterExecutionContext {
@@ -36,7 +40,9 @@ export default {
 
     if (decision.backend === 'cloudflare') {
       try {
-        const response = await appWorker.fetch(request, env, ctx)
+        const response = isApprovedEdgeApi(request)
+          ? await handleApprovedEdgeApi(request, env)
+          : await appWorker.fetch(request, env, ctx)
         const latencyMs = Date.now() - startedAt
         console.log(JSON.stringify(routerLogFields(request, decision, response.status, latencyMs)))
         return withB4RouterHeaders(response, decision, latencyMs)
