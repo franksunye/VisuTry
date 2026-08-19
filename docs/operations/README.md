@@ -3,6 +3,14 @@
 **Status:** Active operations documentation index  
 **Owner:** Product / Engineering
 
+## Next frontend ownership (authoritative, 2026-08-19 cutover)
+
+**Next frontend owner: Vercel** — Vercel is the sole producer of Next HTML, RSC/Flight, the Next client artifact graph, and `/_next/static`. **Cloudflare owns** non-Next public static assets, approved edge APIs (`/api/health`, `/api/glasses/brands|categories|face-shapes`), public/direct-Neon lightweight reads, and proxy/CDN/WAF. The `www.visutry.com/_next/static/*` Worker Route is FORBIDDEN and hard-blocked in code.
+
+> Cloudflare must not serve production Next HTML until the entire Next frontend, including `/_next/static`, is migrated as one self-consistent build/runtime.
+
+See `hosting-strategy-vercel-cloudflare.md` and `cloudflare-next-static-route-incident-2026-08-19.md` for the authoritative rationale and enforcement points.
+
 ## Current Documents
 
 | Document | Status | Purpose |

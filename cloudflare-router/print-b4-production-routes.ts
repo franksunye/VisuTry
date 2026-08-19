@@ -59,7 +59,7 @@ const summary = {
   safetyErrors: errors,
   wranglerSnippetPreview: proposedWranglerProductionRoutes(priority).slice(0, 3),
   apiPayloadPreview: proposedCloudflareRouteApiPayload(priority).slice(0, 1),
-  note: 'Do not paste routes into wrangler.jsonc until B4.2C. deploy:cloudflare uses --env staging only. Phase C P0 excludes /_next/static/* until same-commit snapshot parity passes. Remote fail-open must match the exact ungated P0 www set.',
+  note: 'Vercel is the sole Next frontend owner. This set contains ONLY approved non-Next capabilities (non-Next static assets + read-only edge APIs). Next HTML, RSC, and /_next/static are FORBIDDEN as Worker routes. deploy:cloudflare uses --env staging only. Remote fail-open must match the exact ungated P0 www set.',
 }
 
 const payload = { summary, routes: selected }

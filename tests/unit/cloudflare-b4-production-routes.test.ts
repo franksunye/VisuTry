@@ -56,14 +56,16 @@ describe('B4.2B scoped production Worker Routes', () => {
     expect(pkg).toMatch(/opennextjs-cloudflare deploy --env production/)
   })
 
-  it('generates a finite scoped set with no catch-all and no greedy store/style/try wildcards', () => {
-    expect(routes.length).toBeGreaterThan(20)
-    expect(routes.length).toBeLessThan(1000)
+  it('generates a finite NON-Next scoped set with no catch-all and no Next client-graph route', () => {
+    expect(routes.length).toBeGreaterThan(8)
+    expect(routes.length).toBeLessThan(50)
     expect(routes.some((row) => row.pattern === `${B4_PRODUCTION_PUBLIC_HOST}/*`)).toBe(false)
     expect(assertSafeB4ProductionRoutes(routes)).toEqual([])
     for (const forbidden of B4_FORBIDDEN_WRANGLER_SHAPES) {
       expect(routes.some((row) => row.pattern.includes(forbidden) && forbidden !== 'custom_domain')).toBe(false)
     }
+    // Vercel owns the Next frontend: no /_next/* and no Next HTML routes exist.
+    expect(routes.some((row) => row.pattern.includes('/_next/'))).toBe(false)
     expect(proposedWranglerProductionRoutes('P0').every((row) => row.zone_name === 'visutry.com')).toBe(true)
     expect(proposedWranglerProductionRoutes('P0').some((row) => row.pattern.includes('/_next/static'))).toBe(false)
     expect(proposedCloudflareRouteApiPayload('P0').every((row) => row.request_limit_fail_open === true)).toBe(true)
@@ -71,19 +73,22 @@ describe('B4.2B scoped production Worker Routes', () => {
     expect(B4_REQUIRED_REQUEST_LIMIT_FAIL_OPEN).toBe(true)
   })
 
-  it('matches approved Layer 1 / Layer 2 families including all locales', () => {
+  it('matches approved NON-Next capabilities and never matches Next HTML for any locale', () => {
     for (const pathname of B4_POSITIVE_PATHS) {
       expect(wwwWorkerRouteMatch(pathname, '', routes)?.pattern).toBeTruthy()
     }
     for (const locale of B4_LOCALES) {
-      expect(wwwWorkerRouteMatch(`/${locale}`, '', routes)?.pattern).toBe(`${B4_PRODUCTION_PUBLIC_HOST}/${locale}`)
-      expect(wwwWorkerRouteMatch(`/${locale}/store`, '', routes)?.pattern).toBe(`${B4_PRODUCTION_PUBLIC_HOST}/${locale}/store`)
-      expect(wwwWorkerRouteMatch(`/${locale}/blog`, '', routes)?.pattern).toContain('/blog')
-      expect(wwwWorkerRouteMatch(`/${locale}/try-on/glasses`, '', routes)?.pattern).toContain('/try-on')
+      // Next HTML (locale home, marketing pages) is Vercel-owned → no Worker route.
+      expect(wwwWorkerRouteMatch(`/${locale}`, '', routes)).toBeNull()
+      expect(wwwWorkerRouteMatch(`/${locale}/store`, '', routes)).toBeNull()
+      expect(wwwWorkerRouteMatch(`/${locale}/blog`, '', routes)).toBeNull()
+      expect(wwwWorkerRouteMatch(`/${locale}/try-on/glasses`, '', routes)).toBeNull()
     }
     expect(wwwWorkerRouteMatch('/api/health', '', routes)?.layer).toBe('layer2-worker')
     expect(wwwWorkerRouteMatch('/api/glasses/brands', '', routes)?.layer).toBe('layer2-worker')
-    expect(wwwWorkerRouteMatch('/_next/static/chunks/app.js', '', routes)?.layer).toBe('layer1-static-asset')
+    expect(wwwWorkerRouteMatch('/images/x.webp', '', routes)?.layer).toBe('layer1-static-asset')
+    // The Next client artifact graph must never match a Worker route.
+    expect(wwwWorkerRouteMatch('/_next/static/chunks/app.js', '', routes)).toBeNull()
   })
 
   it('does not match Layer 3 / auth / image / Store detail / Campaign / writes', () => {
@@ -102,22 +107,43 @@ describe('B4.2B scoped production Worker Routes', () => {
     expect(wwwWorkerRouteMatch('/auth/signin', '', routes)).toBeNull()
   })
 
-  it('keeps P0 activation off hashed /_next/static until the same-commit parity gate passes', () => {
+  it('hard-blocks /_next/static from every priority and gate (Vercel owns the client graph)', () => {
     const p0 = routesForPriority('P0', routes)
     expect(p0.every((row) => row.layer === 'layer1-static-asset' || row.pattern.includes('/api/'))).toBe(true)
     expect(p0.every((row) => row.activationGate === 'none')).toBe(true)
     expect(wwwWorkerRouteMatch('/en', '', p0)).toBeNull()
     expect(wwwWorkerRouteMatch('/en/store', '', p0)).toBeNull()
     expect(wwwWorkerRouteMatch('/api/health', '', p0)?.priority).toBe('P0')
+    // /_next/static is never generated at any priority or gate.
     expect(wwwWorkerRouteMatch('/_next/static/chunks/app.js', '', p0)).toBeNull()
-    expect(wwwWorkerRouteMatch('/_next/static/chunks/app.js', '', routes)?.activationGate).toBe('same-commit-asset-parity')
+    expect(wwwWorkerRouteMatch('/_next/static/chunks/app.js', '', routes)).toBeNull()
     expect(
       wwwWorkerRouteMatch(
         '/_next/static/chunks/app.js',
         '',
         routesForPriority('P0', routes, { includeParityGatedHashedStatic: true }),
-      )?.pattern,
-    ).toBe('www.visutry.com/_next/static/*')
+      ),
+    ).toBeNull()
+    expect(routes.some((row) => row.activationGate === 'same-commit-asset-parity')).toBe(false)
+  })
+
+  it('refuses to generate a forbidden /_next/static production route', () => {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const mod = require('../../cloudflare-router/b4-production-routes') as typeof import('../../cloudflare-router/b4-production-routes')
+    expect(mod.isForbiddenNextClientGraphRoute('www.visutry.com/_next/static/*')).toBe(true)
+    expect(mod.isForbiddenNextClientGraphRoute('www.visutry.com/images/*')).toBe(false)
+    expect(mod.B4_FORBIDDEN_PRODUCTION_ROUTE_PATTERNS).toContain('www.visutry.com/_next/static/*')
+    // assertSafe flags a hand-injected forbidden route.
+    const poisoned = [
+      ...routes,
+      {
+        ...routes[0],
+        pattern: 'www.visutry.com/_next/static/*',
+      },
+    ]
+    expect(
+      assertSafeB4ProductionRoutes(poisoned).some((row) => row.includes('FORBIDDEN Next client-graph route')),
+    ).toBe(true)
   })
 
   it('scopes static asset routes to directory /* and does not emit greedy path*', () => {
@@ -147,21 +173,23 @@ describe('B4.2B scoped production Worker Routes', () => {
     ).toBe(true)
   })
 
-  it('distinguishes store hub vs detail, brands vs frames, try-on vs try', () => {
-    expect(wwwWorkerRouteMatch('/en/store', '', routes)?.pattern).toBe('www.visutry.com/en/store')
+  it('distinguishes brands vs frames and keeps Next HTML off the Worker', () => {
+    expect(wwwWorkerRouteMatch('/en/store', '', routes)).toBeNull()
     expect(wwwWorkerRouteMatch('/en/store/ello-sunglasses', '', routes)).toBeNull()
     expect(wwwWorkerRouteMatch('/api/glasses/brands', '', routes)?.pattern).toBe('www.visutry.com/api/glasses/brands')
     expect(wwwWorkerRouteMatch('/api/glasses/frames', '', routes)).toBeNull()
-    expect(wwwWorkerRouteMatch('/en/try-on/glasses', '', routes)?.pattern).toBe('www.visutry.com/en/try-on*')
+    expect(wwwWorkerRouteMatch('/en/try-on/glasses', '', routes)).toBeNull()
     expect(wwwWorkerRouteMatch('/en/try/round-glasses', '', routes)).toBeNull()
   })
 
   it('keeps route matches aligned with the B4 classifier for representative GET paths', () => {
-    for (const pathname of ['/en', '/en/store', '/en/brand/warby-parker', '/api/health', '/robots.txt']) {
+    // Approved NON-Next capabilities: classifier says cloudflare AND a Worker route matches.
+    for (const pathname of ['/api/health', '/robots.txt', '/images/x.webp', '/favicon.ico']) {
       expect(classifyB4ProductionPublicSlice(getRequest(pathname)).backend).toBe('cloudflare')
       expect(wwwWorkerRouteMatch(pathname, '', routes)).toBeTruthy()
     }
-    for (const pathname of ['/en/store/ello-sunglasses', '/en/c/foo/bar', '/api/glasses/frames', '/api/auth/session', '/_next/image']) {
+    // Next frontend + deferred/auth/image: classifier says vercel AND no Worker route.
+    for (const pathname of ['/', '/en', '/en/store', '/en/brand/warby-parker', '/en/store/ello-sunglasses', '/en/c/foo/bar', '/api/glasses/frames', '/api/auth/session', '/_next/image', '/_next/static/chunks/app.js']) {
       expect(classifyB4ProductionPublicSlice(getRequest(pathname)).backend).toBe('vercel')
       expect(wwwWorkerRouteMatch(pathname, '', routes)).toBeNull()
     }
@@ -192,11 +220,13 @@ describe('B4.2B scoped production Worker Routes', () => {
     expect(cloudflareRouteMatches('www.visutry.com/en/style/*', 'https://www.visutry.com/en/style/round-face')).toBe(true)
   })
 
-  it('does not match query strings on exact routes, so UTM traffic stays on Vercel until a * pattern is used', () => {
+  it('does not match query strings on exact routes, so query traffic stays on Vercel', () => {
     expect(wwwWorkerRouteMatch('/en', '?utm_source=newsletter', routes)).toBeNull()
     expect(wwwWorkerRouteMatch('/en/store', '?utm_campaign=spring', routes)).toBeNull()
     expect(wwwWorkerRouteMatch('/api/health', '?x=1', routes)).toBeNull()
-    expect(wwwWorkerRouteMatch('/en/blog', '?utm_source=x', routes)?.pattern).toBe('www.visutry.com/en/blog*')
+    expect(wwwWorkerRouteMatch('/api/glasses/brands', '?x=1', routes)).toBeNull()
+    // Wildcard directory asset routes still match with a query string.
+    expect(wwwWorkerRouteMatch('/images/x.webp', '?v=2', routes)?.pattern).toBe('www.visutry.com/images/*')
   })
 
   it('freezes the inspected Vercel www ALIAS, not a docs-example CNAME', () => {

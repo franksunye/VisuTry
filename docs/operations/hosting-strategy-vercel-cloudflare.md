@@ -12,6 +12,33 @@ Keep VisuTry infrastructure cost near zero / low fixed cost before break-even wh
 
 The objective is no longer to answer "Vercel or Cloudflare?" as a provider-selection question. The validated direction is a hybrid execution model based on workload shape.
 
+## Next frontend ownership (authoritative, 2026-08-19 cutover)
+
+**Next frontend owner: Vercel.** Vercel is the SOLE producer of:
+
+- Next HTML
+- RSC / Flight responses
+- the Next client artifact graph
+- `/_next/static/*`
+
+**Cloudflare owns:**
+
+- non-Next public static assets (`/images/*`, `/home/*`, `/experience-heroes/*`, `/blog-covers/*`, `/assets/*`, `/favicon.ico`, `/robots.txt`, `/llms.txt`)
+- approved lightweight edge APIs (`/api/health`, `/api/glasses/brands|categories|face-shapes`)
+- public / direct-Neon lightweight reads
+- proxy / CDN / WAF / traffic shaping
+
+The `/_next/static` shared namespace must have exactly one producer. Serving a second (`CLOUDFLARE_BUILD=1` + OpenNext) client graph from it caused the 2026-08-19 production `ChunkLoadError`. The `www.visutry.com/_next/static/*` Worker Route is **FORBIDDEN** and hard-blocked in code (`cloudflare-router/b4-production-routes.ts`, `cloudflare-router/b4-production-public-slice.ts`).
+
+> Cloudflare must not serve production Next HTML until the entire Next frontend, including `/_next/static`, is migrated as one self-consistent build/runtime.
+
+Enforcement:
+
+- Classifier `classifyB4ProductionPublicSlice` marks all Next HTML / RSC / `/_next/static` as `vercel-required`; the Worker (`app-host-worker.ts`) additionally hard-guards `/_next/*` and RSC to Vercel via `forceVercelForNextFrontend`.
+- The production route generator emits only the 12 approved non-Next routes; `assertSafeB4ProductionRoutes` fails on any `/_next/*` route.
+- `scripts/production-smoke.mjs` fails the release on any Cloudflare-owned Next HTML/static/RSC, or any referenced `/_next/static` asset that 404s.
+- `cloudflare-router/b4-static-asset-parity.ts` is now a forensic/regression guard only — a PASS does NOT authorize enabling Cloudflare `/_next/static`.
+
 ## Current Decision
 
 VisuTry adopts a **Hybrid Edge Architecture**.

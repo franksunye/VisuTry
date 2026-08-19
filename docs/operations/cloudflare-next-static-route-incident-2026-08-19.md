@@ -77,6 +77,16 @@ Do not reactivate it based only on same-commit source parity, successful Cloudfl
 
 It may only be reconsidered if production HTML ownership is migrated so that the HTML and every deployment-specific Next.js static chunk are served from the same build graph, with explicit production transition testing.
 
+### Code-level enforcement (2026-08-19 cutover)
+
+The guardrail is no longer operational-only. **Next frontend owner = Vercel** (Next HTML, RSC/Flight, the Next client artifact graph, and `/_next/static`). Cloudflare owns only non-Next public static assets, approved edge APIs (`/api/health`, `/api/glasses/brands|categories|face-shapes`), public/direct-Neon lightweight reads, and proxy/CDN/WAF.
+
+- `cloudflare-router/b4-production-public-slice.ts` — `classifyB4ProductionPublicSlice` classifies all Next HTML, RSC (`?_rsc=` / RSC headers), and `/_next/static` as `vercel-required`. `B4_NEXT_FRONTEND_OWNER = 'vercel'`.
+- `cloudflare-router/app-host-worker.ts` — `forceVercelForNextFrontend` hard-guards `/_next/*` and RSC to the Vercel proxy even if a decision is ever miscomputed.
+- `cloudflare-router/b4-production-routes.ts` — the generator emits only the 12 approved non-Next routes and **throws** if a `/_next/*` route is ever pushed; `assertSafeB4ProductionRoutes` fails on any forbidden Next client-graph route. `B4_FORBIDDEN_PRODUCTION_ROUTE_PATTERNS` lists `www.visutry.com/_next/static/*`.
+- `scripts/production-smoke.mjs` — fails the release if any Next HTML/static/RSC is Cloudflare-owned or any referenced `/_next/static` asset 404s.
+- `cloudflare-router/b4-static-asset-parity.ts` — redefined as a forensic/regression guard. A PASS does **not** authorize enabling Cloudflare `/_next/static`.
+
 ### Do not substitute
 
 Do not fix this class of incident by:

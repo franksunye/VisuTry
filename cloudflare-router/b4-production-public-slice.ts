@@ -14,6 +14,19 @@
 
 export type B4Backend = 'cloudflare' | 'vercel'
 export type B4RouteClass = 'cf-ready' | 'vercel-required' | 'unknown-fallback'
+
+/**
+ * VisuTry production Next frontend owner.
+ *
+ * Vercel is the SOLE producer of Next HTML, RSC/Flight, the Next client artifact
+ * graph, and `/_next/static/*`. The `/_next/static` shared namespace must have
+ * exactly one producer; a second (CLOUDFLARE_BUILD=1 + OpenNext) graph caused the
+ * 2026-08-19 production ChunkLoadError incident. Cloudflare must NOT serve any
+ * production Next HTML/RSC/client asset while this constant is `vercel`. Only a
+ * future migration of the ENTIRE Next frontend (including /_next/static) as one
+ * self-consistent build/runtime may change this.
+ */
+export const B4_NEXT_FRONTEND_OWNER = 'vercel' as const
 export type B4CutoverClass = 'first' | 'later' | 'vercel'
 export type B4InvocationMode = 'static-asset' | 'worker' | 'vercel'
 export type B4CacheClass =
@@ -294,14 +307,14 @@ export const B4_CACHE_POLICIES: Record<B4CacheClass, {
 }
 
 export const B4_PRODUCTION_PUBLIC_SLICE_MANIFEST: B4ManifestRow[] = [
-  { route: '/', methods: 'GET,HEAD', backend: 'cloudflare', cachePolicy: 'root-locale-detect', invocation: 'worker', auth: 'none', reason: 'Accept-Language locale redirect; do not CDN-cache; Worker required', rollbackClass: 'public-cdn', cutoverClass: 'first' },
-  { route: '/:locale', methods: 'GET,HEAD', backend: 'cloudflare', cachePolicy: 'deploy-static-html', invocation: 'worker', auth: 'none', reason: 'OpenNext incremental cache HTML, not a Static Asset file', rollbackClass: 'public-cdn', cutoverClass: 'first' },
-  { route: '/:locale/{marketing,blog,brand,guide,face-shape,try-on landing}', methods: 'GET,HEAD', backend: 'cloudflare', cachePolicy: 'deploy-static-html', invocation: 'worker', auth: 'none', reason: 'Next force-static HTML is served by OpenNext Worker, not .open-next/assets', rollbackClass: 'public-cdn', cutoverClass: 'first' },
-  { route: 'locale-less marketing/SEO URLs', methods: 'GET,HEAD', backend: 'cloudflare', cachePolicy: 'locale-less-redirect', invocation: 'worker', auth: 'none', reason: 'next.config 308s already proven; keep off middleware', rollbackClass: 'public-cdn', cutoverClass: 'first' },
-  { route: '/_next/static/*', methods: 'GET,HEAD', backend: 'cloudflare', cachePolicy: 'hashed-immutable', invocation: 'static-asset', auth: 'none', reason: 'hashed files exist in .open-next/assets on this Worker; production www route stays unpublished until same-commit Vercel `.next/static` ⊆ CF assets', rollbackClass: 'public-cdn', cutoverClass: 'first' },
-  { route: '/favicon.ico, /images/*, /home/*, /experience-heroes/*, /blog-covers/*, /assets/*', methods: 'GET,HEAD', backend: 'cloudflare', cachePolicy: 'deploy-public-asset', invocation: 'static-asset', auth: 'none', reason: 'non-hashed public files in .open-next/assets; finite TTL, not immutable', rollbackClass: 'public-cdn', cutoverClass: 'first' },
-  { route: '/robots.txt, /llms.txt', methods: 'GET,HEAD', backend: 'cloudflare', cachePolicy: 'control-files', invocation: 'static-asset', auth: 'none', reason: 'control files exist in .open-next/assets; conservative cache + deploy purge', rollbackClass: 'public-cdn', cutoverClass: 'first' },
-  { route: '/sitemap.xml, /sitemaps/core.xml, /sitemaps/blog.xml', methods: 'GET,HEAD', backend: 'cloudflare', cachePolicy: 'static-sitemap', invocation: 'worker', auth: 'none', reason: 'OpenNext .cache artifacts only; not present in .open-next/assets', rollbackClass: 'public-cdn', cutoverClass: 'first' },
+  { route: '/', methods: 'GET,HEAD', backend: 'vercel', cachePolicy: 'none', invocation: 'vercel', auth: 'none', reason: 'Next frontend owner = Vercel; root locale redirect is Next runtime HTML', rollbackClass: 'keep-vercel', cutoverClass: 'vercel' },
+  { route: '/:locale', methods: 'GET,HEAD', backend: 'vercel', cachePolicy: 'none', invocation: 'vercel', auth: 'none', reason: 'Next HTML/RSC/client graph is owned by Vercel (single /_next/static producer)', rollbackClass: 'keep-vercel', cutoverClass: 'vercel' },
+  { route: '/:locale/{marketing,blog,brand,guide,face-shape,try-on landing}', methods: 'GET,HEAD', backend: 'vercel', cachePolicy: 'none', invocation: 'vercel', auth: 'none', reason: 'Next HTML references the Vercel client graph; CF must not emit a peer graph', rollbackClass: 'keep-vercel', cutoverClass: 'vercel' },
+  { route: 'locale-less marketing/SEO URLs', methods: 'GET,HEAD', backend: 'vercel', cachePolicy: 'none', invocation: 'vercel', auth: 'none', reason: 'Next config 308 redirects are Next runtime; owned by Vercel', rollbackClass: 'keep-vercel', cutoverClass: 'vercel' },
+  { route: '/_next/static/*', methods: 'GET,HEAD', backend: 'vercel', cachePolicy: 'none', invocation: 'vercel', auth: 'none', reason: 'FORBIDDEN on Cloudflare: the Next client artifact graph has one producer (Vercel). Serving CF-built /_next/static breaks Vercel-owned HTML (ChunkLoadError 2026-08-19)', rollbackClass: 'keep-vercel', cutoverClass: 'vercel' },
+  { route: '/favicon.ico, /images/*, /home/*, /experience-heroes/*, /blog-covers/*, /assets/*', methods: 'GET,HEAD', backend: 'cloudflare', cachePolicy: 'deploy-public-asset', invocation: 'static-asset', auth: 'none', reason: 'non-Next public files in .open-next/assets; finite TTL, not immutable', rollbackClass: 'public-cdn', cutoverClass: 'first' },
+  { route: '/robots.txt, /llms.txt', methods: 'GET,HEAD', backend: 'cloudflare', cachePolicy: 'control-files', invocation: 'static-asset', auth: 'none', reason: 'non-Next control files exist in .open-next/assets; conservative cache + deploy purge', rollbackClass: 'public-cdn', cutoverClass: 'first' },
+  { route: '/sitemap.xml, /sitemaps/core.xml, /sitemaps/blog.xml', methods: 'GET,HEAD', backend: 'vercel', cachePolicy: 'none', invocation: 'vercel', auth: 'none', reason: 'Next sitemap routes are Next runtime output; owned by Vercel', rollbackClass: 'keep-vercel', cutoverClass: 'vercel' },
   { route: 'GET /api/health', methods: 'GET,HEAD', backend: 'cloudflare', cachePolicy: 'health', invocation: 'worker', auth: 'none', reason: 'proven CF public read; not cacheable', rollbackClass: 'origin-fallback', cutoverClass: 'first' },
   { route: 'GET /api/glasses/brands|categories|face-shapes', methods: 'GET,HEAD', backend: 'cloudflare', cachePolicy: 'public-catalog-api', invocation: 'worker', auth: 'none', reason: 'anonymous catalog lists via glasses data layer', rollbackClass: 'origin-fallback', cutoverClass: 'first' },
   { route: '/:locale/store/:merchantSlug', methods: 'GET,HEAD', backend: 'vercel', cachePolicy: 'none', invocation: 'vercel', auth: 'none', reason: 'on-demand ISR + Neon admission; CF cache cannot use revalidateTag', rollbackClass: 'keep-vercel', cutoverClass: 'later' },
@@ -435,6 +448,50 @@ function isFirstSliceApi(path: string): boolean {
   return (B4_FIRST_SLICE_APIS as readonly string[]).includes(path)
 }
 
+/**
+ * RSC / Flight navigation (Next router prefetch, client-side navigation, and
+ * `?_rsc=` payloads) is part of the Next client graph. The RSC response is emitted
+ * by the same build that produced the HTML and client chunks, so it MUST be served
+ * by the Next frontend owner (Vercel). Serving RSC from a different build would
+ * reference chunk ids that do not exist in the peer graph.
+ */
+export function isRscRequest(request: Request): boolean {
+  let url: URL
+  try {
+    url = new URL(request.url)
+  } catch {
+    return false
+  }
+  if (url.searchParams.has('_rsc')) return true
+  const headers = request.headers
+  if (!headers || typeof headers.get !== 'function') return false
+  const rsc = headers.get('rsc') ?? headers.get('RSC')
+  if (rsc != null && rsc !== '') return true
+  if (headers.get('next-router-prefetch') != null) return true
+  if (headers.get('next-router-state-tree') != null) return true
+  const accept = headers.get('accept')
+  if (accept && accept.toLowerCase().includes('text/x-component')) return true
+  return false
+}
+
+/**
+ * True for any request that is part of the Next frontend (HTML, RSC, or the Next
+ * client artifact graph). These are owned by Vercel and must never be served by a
+ * production Cloudflare Worker while B4_NEXT_FRONTEND_OWNER is `vercel`.
+ */
+export function isNextClientAssetPath(path: string): boolean {
+  return isHashedImmutable(path)
+}
+
+export function isNextHtmlRoute(path: string): boolean {
+  if (path === '/') return true
+  if (isStaticSitemap(path)) return true
+  if (isLocalizedFirstSlicePage(path)) return true
+  if (isLocaleLessFirstSlice(path)) return true
+  if (isDeferredPublicHtml(path)) return true
+  return false
+}
+
 function decision(
   backend: B4Backend,
   routeClass: B4RouteClass,
@@ -458,26 +515,33 @@ export function classifyB4ProductionPublicSlice(request: Request): B4RouteDecisi
   const path = cleanPath(new URL(request.url).pathname)
   const method = request.method
 
+  // --- Vercel owns the entire Next frontend (B4_NEXT_FRONTEND_OWNER = 'vercel') ---
+  // RSC / Flight navigation is part of the Next client graph → always Vercel,
+  // regardless of the path family (even paths that used to be CF-owned HTML).
+  if (isRscRequest(request)) {
+    return decision('vercel', 'vercel-required', 'vercel', 'none')
+  }
+
+  // /_next/static/* is the Next client artifact graph. It is FORBIDDEN on a
+  // production Cloudflare Worker while Vercel owns the frontend: the shared
+  // /_next/static namespace must have a single producer.
+  if (isNextClientAssetPath(path)) {
+    return decision('vercel', 'vercel-required', 'vercel', 'none')
+  }
+
+  // Capability boundary (Stripe/AI/Blob/cron/admin/auth/uploads/image opt, etc.).
   if (isVercelRequired(path)) {
     return decision('vercel', 'vercel-required', path.startsWith('/api/auth') || path.startsWith('/api/merchant') || path === '/api/mcp' ? 'later' : 'vercel', 'none')
   }
 
+  // Non-GET/HEAD is never a public Cloudflare capability.
   if (!isGetHead(method)) {
     return decision('vercel', 'unknown-fallback', 'vercel', 'none')
   }
 
-  if (isDeferredPublicHtml(path)) {
-    return decision('vercel', 'unknown-fallback', path.startsWith('/en/store/') || path.includes('/c/') || path.includes('/category/') || path.includes('/try/') ? 'later' : 'vercel', 'none')
-  }
-
-  if (path === '/') {
-    return decision('cloudflare', 'cf-ready', 'first', 'root-locale-detect')
-  }
-
-  if (isHashedImmutable(path)) {
-    return decision('cloudflare', 'cf-ready', 'first', 'hashed-immutable')
-  }
-
+  // --- Approved Cloudflare NON-Next capabilities ---
+  // Non-Next public static files (favicon, /images, /home, /experience-heroes,
+  // /blog-covers, /assets) and control files (robots/llms) served as Static Assets.
   if (isControlFile(path)) {
     return decision('cloudflare', 'cf-ready', 'first', 'control-files')
   }
@@ -486,22 +550,19 @@ export function classifyB4ProductionPublicSlice(request: Request): B4RouteDecisi
     return decision('cloudflare', 'cf-ready', 'first', 'deploy-public-asset')
   }
 
-  if (isStaticSitemap(path)) {
-    return decision('cloudflare', 'cf-ready', 'first', 'static-sitemap')
-  }
-
+  // Approved lightweight public edge APIs (health + read-only glasses catalog).
   if (isFirstSliceApi(path)) {
     return decision('cloudflare', 'cf-ready', 'first', path === '/api/health' ? 'health' : 'public-catalog-api')
   }
 
-  if (isLocalizedFirstSlicePage(path)) {
-    return decision('cloudflare', 'cf-ready', 'first', 'deploy-static-html')
+  // --- Everything else is Next HTML / runtime → Vercel owns it ---
+  // Root locale redirect, localized pages, locale-less marketing redirects, Next
+  // sitemaps, and deferred dynamic HTML are all served by the Next frontend owner.
+  if (isNextHtmlRoute(path)) {
+    return decision('vercel', 'vercel-required', 'vercel', 'none')
   }
 
-  if (isLocaleLessFirstSlice(path)) {
-    return decision('cloudflare', 'cf-ready', 'first', 'locale-less-redirect')
-  }
-
+  // Fail-safe: any unknown path goes to Vercel.
   return decision('vercel', 'unknown-fallback', 'vercel', 'none')
 }
 

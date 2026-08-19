@@ -1,5 +1,14 @@
 /**
- * Same-commit hashed-asset parity gate for `/_next/static/*`.
+ * FORENSIC / REGRESSION GUARD for `/_next/static/*` graph parity.
+ *
+ * ROLE (post 2026-08-19 cutover): This is NOT a production activation gate.
+ * Vercel is the sole Next frontend owner (see B4_NEXT_FRONTEND_OWNER). Production
+ * must NOT enable Cloudflare `/_next/static` while Vercel owns the Next frontend,
+ * EVEN IF this parity check happens to PASS on one build. A green result here does
+ * not authorize mounting `www.visutry.com/_next/static/*` on the Worker — that
+ * pattern is hard-blocked in b4-production-routes.ts. This tool exists only to:
+ *   - forensically diff the two webpack graphs when investigating an incident, and
+ *   - regression-detect drift between the Vercel and CLOUDFLARE_BUILD graphs.
  *
  * Vercel (`next build`) and Cloudflare (`CLOUDFLARE_BUILD=1 next build` +
  * OpenNext) are independent webpack graphs. A Cloudflare build overwrites
@@ -8,13 +17,15 @@
  * The snapshot marker records `gitSha` (`git rev-parse HEAD`); parity fails
  * if that SHA does not equal the current HEAD.
  *
- * Required sequence:
+ * Only a future migration of the ENTIRE Next frontend (HTML + RSC + client graph +
+ * `/_next/static`) to Cloudflare as one self-consistent build/runtime may revisit
+ * whether Cloudflare serves `/_next/static`.
+ *
+ * Forensic sequence:
  *   1. `CI=1 npm run build:ci`
  *   2. `npm run b4:snapshot-vercel-next`  → `.artifacts/b4/vercel-next`
  *   3. `npm run build:cloudflare`
  *   4. `npm run b4:asset-parity`
- *
- * Do not enable `www.visutry.com/_next/static/*` until this gate returns `pass`.
  *
  * Exit: 0 pass, 1 fail, 2 skipped (snapshot or OpenNext assets missing)
  */
