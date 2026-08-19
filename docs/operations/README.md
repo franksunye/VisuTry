@@ -1,62 +1,119 @@
 # VisuTry Operations
 
 **Status:** Active operations documentation index  
-**Owner:** Product / Engineering
+**Owner:** Product / Engineering  
+**Last updated:** 2026-08-19
 
-## Next frontend ownership (authoritative, 2026-08-19 cutover)
+## Current production authority
 
-**Next frontend owner: Vercel** — Vercel is the sole producer of Next HTML, RSC/Flight, the Next client artifact graph, and `/_next/static`. **Cloudflare owns** non-Next public static assets, approved edge APIs (`/api/health`, `/api/glasses/brands|categories|face-shapes`), public/direct-Neon lightweight reads, and proxy/CDN/WAF. The `www.visutry.com/_next/static/*` Worker Route is FORBIDDEN and hard-blocked in code.
+**Next frontend owner: Vercel.** Vercel is the sole producer of Next HTML, RSC/Flight, the Next client artifact graph, and `/_next/static`.
 
-> Cloudflare must not serve production Next HTML until the entire Next frontend, including `/_next/static`, is migrated as one self-consistent build/runtime.
+**Cloudflare owns:** DNS/proxy/CDN/WAF, approved non-Next public static assets, and the 4 approved lightweight edge APIs. Current production Worker Routes are exactly 12 non-Next routes.
 
-See `hosting-strategy-vercel-cloudflare.md` and `cloudflare-next-static-route-incident-2026-08-19.md` for the authoritative rationale and enforcement points.
+The architectural decision is recorded in `docs/decisions/ADR-011-vercel-sole-next-frontend-owner.md`.
 
-## Current Documents
+> Cloudflare must not serve production Next HTML/RSC/client assets until the entire Next frontend, including `/_next/static`, is migrated as one self-consistent build/runtime and ADR-011 is superseded.
+
+## Active source-of-truth documents
 
 | Document | Status | Purpose |
 | --- | --- | --- |
-| `hosting-strategy-vercel-cloudflare.md` | **Canonical / Active** | Hybrid hosting strategy and canonical three-layer traffic model (Static Assets → Worker → Vercel/backend) |
-| `hybrid-performance-benchmark.md` | **Active / Long-term baseline** | Continuous L1/L2/L3 performance discipline: Direct Vercel baseline, Cloudflare fallback penalty, Worker/static gains, RUM, regression gates, and benchmark cadence |
-| `production-route-migration-performance-protocol.md` | **Active / Canonical migration protocol** | Production route-family cutover observation: 12h/24h/72h/7d checkpoints, Vercel offload, Cloudflare health, route-family attribution, migration gates, and P0-F1 baseline |
-| `vercel-quota-emergency-reduction.md` | **Active** | Hobby ISR Reads / Fast Origin Transfer emergency reductions (static SEO, middleware, public GET cache) |
-| `cloudflare-phase-b3-integration-audit.md` | **Active milestone** | Compatibility, dependency, cost, bundle, architecture, and production-gate audit for remaining Cloudflare integrations |
-| `cloudflare-production-route-boundary.md` | **Active milestone** | B3.1 bundle-drift diagnosis and definitive Cloudflare/Vercel production route boundary |
-| `cloudflare-b3-2-capability-routing.md` | **Active milestone** | B3.2 same-host staging capability router, reconciled onto current main, explicit Vercel fallback |
-| `cloudflare-b4-production-cutover-readiness.md` | **Active milestone** | B4.1 production cutover readiness: first public slice, Static Asset vs Worker audit, corrected Free-plan quota model (no DNS / no production traffic) |
-| `cloudflare-b4-2a-staging-public-slice.md` | **Active milestone** | B4.2A staging public-slice activation, three-layer proof, DNS inventory, scoped-route B4.2B gate (no production DNS / no merge) |
-| `cloudflare-b4-2b-scoped-production-routes.md` | **Active milestone** | B4.2B scoped production Worker Routes: 286-pattern allowlist, P0–P2 ramp, cutover gates (merged in PR #95; routes not activated) |
-| `cloudflare-b4-2c-phase-a-dns-zone.md` | **Closed / PASS** | B4.2C Phase A: inactive Cloudflare zone created, DNS mirror PASS, www DNS_ONLY (historical; NS cutover is B1) |
-| `cloudflare-b4-2c-phase-b1-ns-cutover.md` | **Closed / PASS** | B4.2C Phase B checkpoint B1: Namecheap NS → Cloudflare; www remains DNS_ONLY; Worker Routes 0 |
-| `cloudflare-b4-2c-phase-b2-universal-ssl.md` | **Closed / PASS** | B4.2C Phase B checkpoint B2: Universal SSL ACTIVE; SSL mode Full (strict); www remains DNS_ONLY; B3 not executed |
-| `cloudflare-b4-2c-phase-b3-www-proxy.md` | **Closed / PASS** | B4.2C Phase B checkpoint B3: www DNS_ONLY → PROXIED; apex still DNS_ONLY; Worker Routes 0; Auth0 E2E operator-confirmed |
-| `cloudflare-b4-2d-p0-production-cutover.md` | **Closed / PASS** | B4.2D P0 milestone (PR #101/#102): 12 ungated production Worker Routes live; 30m observation PASS; `/_next/static/*` not activated; P1 not executed |
-| `cloudflare-next-static-route-incident-2026-08-19.md` | **Resolved P0 / Permanent guardrail** | Production incident record: `/_next/static/*` Worker Route caused Vercel/OpenNext build-graph mismatch and ChunkLoadError; route is forbidden while Vercel owns HTML |
-| `cloudflare-phase-b2-write-parity.md` | **Active milestone** | Scoped Cloudflare Free-plan Auth, merchant, Store DRAFT, and Campaign DRAFT write parity evidence |
-| `vercel-cpu-static-page-pilot.md` | Historical + Active Reference | Detailed Vercel static-rendering, ISR, middleware, and CPU optimization work already completed |
+| `hosting-strategy-vercel-cloudflare.md` | **Canonical / Active** | Current hybrid architecture, runtime ownership, and Cloudflare/Vercel responsibility boundary. |
+| `hybrid-performance-benchmark.md` | **Active / Long-term baseline** | Synthetic/RUM performance discipline for Cloudflare proxy/static/Worker and Vercel paths. |
+| `production-route-migration-performance-protocol.md` | **Active / Scoped** | Performance protocol for future **non-Next capability** migrations. It does not authorize Next HTML or `/_next/static` migration while ADR-011 is active. |
+| `vercel-quota-emergency-reduction.md` | **Active playbook** | Emergency Vercel quota/resource reduction actions. |
+| `cloudflare-next-static-route-incident-2026-08-19.md` | **Resolved P0 / Permanent guardrail** | Incident evidence behind the single Next frontend owner rule. |
 
-## Hosting Source of Truth
+## Current production Worker Route set
 
-For current hosting direction, use:
+Only these 12 routes are approved:
 
-- `docs/operations/hosting-strategy-vercel-cloudflare.md` (canonical three-layer execution model)
-- `docs/decisions/ADR-010-hybrid-edge-architecture-for-store-campaign-scale.md` (architectural principles; not rewritten by B4)
-- `docs/decisions/ADR-009-vercel-cloudflare-hosting-optionality.md`
+### Non-Next static/control
 
-The Vercel CPU static-page document remains an implementation/history reference. It should not be interpreted as a decision to optimize indefinitely around Vercel-specific resource limits.
+- `www.visutry.com/blog-covers/*`
+- `www.visutry.com/assets/*`
+- `www.visutry.com/images/*`
+- `www.visutry.com/home/*`
+- `www.visutry.com/experience-heroes/*`
+- `www.visutry.com/favicon.ico`
+- `www.visutry.com/robots.txt`
+- `www.visutry.com/llms.txt`
 
-### Hybrid asset ownership guardrail
+### Lightweight edge APIs
 
-While production HTML is Vercel-owned, **do not attach** `www.visutry.com/_next/static/*` to the Cloudflare Worker. HTML and deployment-specific Next.js chunks must come from the same build graph. See `cloudflare-next-static-route-incident-2026-08-19.md`.
+- `www.visutry.com/api/health`
+- `www.visutry.com/api/glasses/brands`
+- `www.visutry.com/api/glasses/categories`
+- `www.visutry.com/api/glasses/face-shapes`
 
-## Performance Source of Truth
+The code/generated manifest is authoritative for exact production route intent:
 
-Performance is a standing product and architecture discipline, not a one-time optimization task.
+- `cloudflare-router/b4-production-routes.ts`
+- `cloudflare-router/b4-production-routes.json`
+
+Any remote route outside this set is configuration drift and must be reconciled.
+
+## Hard guardrails
+
+1. `www.visutry.com/_next/static/*` is **FORBIDDEN** as a Cloudflare Worker Route while ADR-011 is active.
+2. Production Next HTML must not be emitted by OpenNext/Cloudflare.
+3. RSC/Flight belongs to the same Next frontend owner as HTML and client chunks: Vercel.
+4. Unknown/unapproved capabilities fall back to Vercel.
+5. `cloudflare-router/b4-static-asset-parity.ts` is forensic/regression tooling only; parity does not authorize production Next ownership changes.
+6. Any future full Next frontend migration requires a new/superseding ADR and an atomic ownership change covering HTML + RSC + `/_next/static`.
+
+## Historical / archived migration documents
+
+The earlier Cloudflare migration produced many phase documents. They remain valuable evidence but are **not current routing instructions**.
+
+Use `docs/operations/ARCHIVE.md` as the archive index and status authority.
+
+Important examples now classified as historical/superseded include:
+
+- `cloudflare-phase-a-build-parity.md`
+- `cloudflare-phase-a3-prisma-import-inventory.md`
+- `cloudflare-phase-b1-auth-prisma-dependency-matrix.md`
+- `cloudflare-phase-b1-auth-read-parity.md`
+- `cloudflare-phase-b2-write-parity.md`
+- `cloudflare-phase-b3-integration-audit.md`
+- `cloudflare-production-route-boundary.md`
+- `cloudflare-b3-2-capability-routing.md`
+- `cloudflare-b4-production-cutover-readiness.md`
+- `cloudflare-b4-2a-staging-public-slice.md`
+- `cloudflare-b4-2b-scoped-production-routes.md` — **superseded; do not execute the old 286-route plan**
+- `cloudflare-b4-2c-*`
+- `cloudflare-b4-2d-p0-production-cutover.md`
+
+Historical documents lose to ADR-011, the canonical hosting strategy, and the current generated route manifest if they conflict.
+
+## Hosting source of truth
+
+Read in this order for current infrastructure decisions:
+
+1. `docs/decisions/ADR-011-vercel-sole-next-frontend-owner.md`
+2. `docs/operations/hosting-strategy-vercel-cloudflare.md`
+3. `cloudflare-router/b4-production-routes.ts` / generated JSON for exact route intent
+4. `docs/decisions/ADR-010-hybrid-edge-architecture-for-store-campaign-scale.md` for the broader hybrid-edge principle
+5. `docs/decisions/ADR-009-vercel-cloudflare-hosting-optionality.md` as historical architectural context
+
+## Performance source of truth
 
 Use:
 
-- `docs/operations/hybrid-performance-benchmark.md` for the long-term benchmark model, L1/L2/L3 measurement rules, fallback/Worker/static derived metrics, geographic coverage, RUM, performance regression gates, review cadence, and benchmark-harness direction.
-- `docs/operations/production-route-migration-performance-protocol.md` for real production route-family experiments, including pre/post windows, 12h/24h/72h/7d observation, Vercel offload, Cloudflare health, route-family attribution, and migration expansion gates.
-- `docs/operations/hosting-strategy-vercel-cloudflare.md` for the execution architecture whose performance is being measured.
-- individual Cloudflare cutover/evidence documents for milestone-specific route ownership and production state.
+- `hybrid-performance-benchmark.md` for the long-term benchmark model.
+- `production-route-migration-performance-protocol.md` for non-Next route/capability experiments.
+- `hosting-strategy-vercel-cloudflare.md` for the architecture being measured.
 
-Performance decisions should combine synthetic execution-path evidence, real production infrastructure metrics, and RUM. Do not infer architecture quality from aggregate site speed, average latency, a single Lighthouse run, or a single provider dashboard metric alone.
+Do not infer architecture quality from a single Lighthouse run, provider dashboard metric, or stale migration milestone.
+
+## Documentation lifecycle
+
+Operations documents use these lifecycle classes:
+
+- **Canonical / Active** — current authority.
+- **Active playbook/protocol** — current bounded operational procedure.
+- **Resolved incident / guardrail** — retained as evidence and permanent safety rationale.
+- **Archived historical evidence** — retained for audit/context; not execution authority.
+- **Superseded** — explicitly replaced; never use for current production changes.
+
+Deletion is reserved for duplicates or documents with no remaining audit/reference value. The 2026-08-19 governance pass found no Cloudflare migration evidence document that justified destructive deletion; obsolete plans are therefore archived-by-status rather than removed.

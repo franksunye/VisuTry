@@ -2,6 +2,7 @@
 
 **Status:** Active decision log entry point  
 **Created:** 2026-07-08  
+**Last updated:** 2026-08-19  
 **Owner:** Product / Engineering  
 **Review cadence:** Monthly, or whenever major product / strategy decisions are made.
 
@@ -74,8 +75,19 @@ What becomes easier, harder, required, or deferred because of this decision?
 | ADR-006 | Store Uses a Modular, Multi-Tenant Foundation on the Existing Generation Core | Accepted | 2026-08-05 |
 | ADR-007 | Store May Evolve Without Disrupting Stable Consumer Workflows | Accepted | 2026-08-06 |
 | ADR-008 | Commerce Is the Domain; Storefront Is a Delivery Surface | Accepted | 2026-08-06 |
-| ADR-009 | Keep Vercel Production While Preparing a Verified Cloudflare Migration Path | Accepted | 2026-08-15 |
+| ADR-009 | Keep Vercel Production While Preparing a Verified Cloudflare Migration Path | Accepted / Historical context | 2026-08-15 |
 | ADR-010 | Adopt a Hybrid Edge Architecture for Store / Campaign Scale | Accepted | 2026-08-17 |
+| ADR-011 | Vercel Is the Sole Next Frontend Owner | **Accepted / Current frontend authority** | 2026-08-19 |
+
+### Hosting decision precedence
+
+For current hosting/frontend ownership decisions, read:
+
+1. **ADR-011** — current authority for Next HTML/RSC/client asset ownership.
+2. ADR-010 — broader hybrid edge principle: Cloudflare for traffic scale, backend services for compute complexity.
+3. ADR-009 — historical optionality/migration context.
+
+ADR-011 does not abandon the hybrid-cloud strategy. It prevents two independent Next.js builds from jointly producing one browser frontend.
 
 ---
 
@@ -91,3 +103,4 @@ What becomes easier, harder, required, or deferred because of this decision?
 | 2026-08-06 | Added ADR-008: commerce-domain architecture with Storefront as a delivery surface. |
 | 2026-08-15 | Added ADR-009: keep Vercel production while preparing and validating a Cloudflare migration path. |
 | 2026-08-17 | Added ADR-010: adopt Hybrid Edge Architecture for Store/Campaign traffic scale and backend compute separation. |
+| 2026-08-19 | Added ADR-011: Vercel becomes the sole production Next frontend owner after the dual-build ChunkLoadError incident. |
