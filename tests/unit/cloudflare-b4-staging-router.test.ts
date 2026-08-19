@@ -214,6 +214,17 @@ describe('B4.2A staging public slice router', () => {
     expect(sanitizeRouteTemplate('/_next/static/chunks/app.js')).toBe('/_next/static/*')
   })
 
+  it('fails hashed Static Asset misses over to Vercel instead of OpenNext 404', () => {
+    const { shouldFallbackHashedStaticMissToVercel } = require('../../cloudflare-router/b4-staging-router') as typeof import('../../cloudflare-router/b4-staging-router')
+    const hashed = classifyStagingPublicSlice(request('/_next/static/chunks/app.js'))
+    expect(hashed.invocation).toBe('static-asset')
+    expect(shouldFallbackHashedStaticMissToVercel(request('/_next/static/chunks/app.js'), hashed)).toBe(true)
+    expect(shouldFallbackHashedStaticMissToVercel(request('/en/glasses-guide'), classifyStagingPublicSlice(request('/en/glasses-guide')))).toBe(false)
+    const workerSource = fs.readFileSync(path.join(__dirname, '../../cloudflare-router/app-host-worker.ts'), 'utf8')
+    expect(workerSource).toMatch(/shouldFallbackHashedStaticMissToVercel/)
+    expect(workerSource.match(/await fetch\(fallbackRequest/g)).toHaveLength(1)
+  })
+
   it('annotates router headers and treats CF/Vercel failures as fail-closed (no retry)', () => {
     const decision = classifyStagingPublicSlice(request('/en'))
     const headed = withB4RouterHeaders(new Response('ok', { status: 200 }), decision, 9)

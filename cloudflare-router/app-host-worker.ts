@@ -6,6 +6,7 @@ import {
   rewriteFallbackLocation,
   routerLogFields,
   sanitizeWorkerException,
+  shouldFallbackHashedStaticMissToVercel,
   withB4RouterHeaders,
 } from './b4-staging-router'
 
@@ -31,7 +32,7 @@ export default {
     const startedAt = Date.now()
     const publicHost = env.PUBLIC_HOST || new URL(request.url).host
 
-    if (decision.backend === 'cloudflare') {
+    if (decision.backend === 'cloudflare' && !shouldFallbackHashedStaticMissToVercel(request, decision)) {
       try {
         const response = await appWorker.fetch(request, env, ctx)
         const latencyMs = Date.now() - startedAt

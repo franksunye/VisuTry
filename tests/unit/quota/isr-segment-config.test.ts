@@ -27,4 +27,14 @@ describe('quota-sensitive public page segment config', () => {
     expect(stylePage.dynamic).toBe('force-static')
     expect(stylePage.dynamicParams).toBe(false)
   })
+
+  it('keeps glasses-guide slugs closed on Vercel and OpenNext-dispatchable during CLOUDFLARE_BUILD', () => {
+    const glassesGuidePage = require('@/app/[locale]/(main)/glasses-guide/[slug]/page') as {
+      dynamic: string
+      dynamicParams: boolean
+    }
+    expect(glassesGuidePage.dynamic).toBe('force-static')
+    expect(process.env.CLOUDFLARE_BUILD).toBeUndefined()
+    expect(glassesGuidePage.dynamicParams).toBe(false)
+  })
 })

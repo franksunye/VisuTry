@@ -1,0 +1,1350 @@
+{
+  "capturedAt": "2026-08-19T02:44:26Z",
+  "fails": [],
+  "rows": [
+    {
+      "url": "https://www.visutry.com/en/glasses-guide",
+      "status": 200,
+      "backend": "cloudflare",
+      "vercel_id": null,
+      "cc": "s-maxage=31536000, stale-while-revalidate=2592000",
+      "cf_cache": null,
+      "ct": "text/html; charset=utf-8",
+      "title": "Glasses Guides by Face Shape, Frame Style &amp; Fit Question | VisuTry",
+      "canonical": "https://www.visutry.com/en/glasses-guide",
+      "robots": "index, follow",
+      "ldjson": true,
+      "lang": "en",
+      "dir": "ltr",
+      "hreflang": [
+        [
+          "en",
+          "https://www.visutry.com/en/glasses-guide"
+        ],
+        [
+          "id",
+          "https://www.visutry.com/id/glasses-guide"
+        ],
+        [
+          "ar",
+          "https://www.visutry.com/ar/glasses-guide"
+        ],
+        [
+          "ru",
+          "https://www.visutry.com/ru/glasses-guide"
+        ],
+        [
+          "de",
+          "https://www.visutry.com/de/glasses-guide"
+        ],
+        [
+          "ja",
+          "https://www.visutry.com/ja/glasses-guide"
+        ],
+        [
+          "es",
+          "https://www.visutry.com/es/glasses-guide"
+        ],
+        [
+          "pt",
+          "https://www.visutry.com/pt/glasses-guide"
+        ],
+        [
+          "fr",
+          "https://www.visutry.com/fr/glasses-guide"
+        ],
+        [
+          "x-default",
+          "https://www.visutry.com/en/glasses-guide"
+        ]
+      ],
+      "x_default": true,
+      "canon_ok": true,
+      "has_workers_dev": false,
+      "has_vercel_app": false,
+      "bytes": 109410
+    },
+    {
+      "url": "https://www.visutry.com/en/glasses-guide/best-rectangle-glasses-for-round-face",
+      "status": 200,
+      "backend": "cloudflare",
+      "vercel_id": null,
+      "cc": "s-maxage=31536000, stale-while-revalidate=2592000",
+      "cf_cache": null,
+      "ct": "text/html; charset=utf-8",
+      "title": "Best Rectangle Glasses for a Round Face | VisuTry",
+      "canonical": "https://www.visutry.com/en/glasses-guide/best-rectangle-glasses-for-round-face",
+      "robots": "index, follow",
+      "ldjson": true,
+      "lang": "en",
+      "dir": "ltr",
+      "hreflang": [
+        [
+          "en",
+          "https://www.visutry.com/en/glasses-guide/best-rectangle-glasses-for-round-face"
+        ],
+        [
+          "id",
+          "https://www.visutry.com/id/glasses-guide/best-rectangle-glasses-for-round-face"
+        ],
+        [
+          "ar",
+          "https://www.visutry.com/ar/glasses-guide/best-rectangle-glasses-for-round-face"
+        ],
+        [
+          "ru",
+          "https://www.visutry.com/ru/glasses-guide/best-rectangle-glasses-for-round-face"
+        ],
+        [
+          "de",
+          "https://www.visutry.com/de/glasses-guide/best-rectangle-glasses-for-round-face"
+        ],
+        [
+          "ja",
+          "https://www.visutry.com/ja/glasses-guide/best-rectangle-glasses-for-round-face"
+        ],
+        [
+          "es",
+          "https://www.visutry.com/es/glasses-guide/best-rectangle-glasses-for-round-face"
+        ],
+        [
+          "pt",
+          "https://www.visutry.com/pt/glasses-guide/best-rectangle-glasses-for-round-face"
+        ],
+        [
+          "fr",
+          "https://www.visutry.com/fr/glasses-guide/best-rectangle-glasses-for-round-face"
+        ],
+        [
+          "x-default",
+          "https://www.visutry.com/en/glasses-guide/best-rectangle-glasses-for-round-face"
+        ]
+      ],
+      "x_default": true,
+      "canon_ok": true,
+      "has_workers_dev": false,
+      "has_vercel_app": false,
+      "bytes": 82258
+    },
+    {
+      "url": "https://www.visutry.com/id/glasses-guide",
+      "status": 200,
+      "backend": "cloudflare",
+      "vercel_id": null,
+      "cc": "s-maxage=31536000, stale-while-revalidate=2592000",
+      "cf_cache": null,
+      "ct": "text/html; charset=utf-8",
+      "title": "Panduan Kacamata berdasarkan Bentuk Wajah, Gaya &amp; Fit | VisuTry",
+      "canonical": "https://www.visutry.com/id/glasses-guide",
+      "robots": "index, follow",
+      "ldjson": true,
+      "lang": "id",
+      "dir": "ltr",
+      "hreflang": [
+        [
+          "en",
+          "https://www.visutry.com/en/glasses-guide"
+        ],
+        [
+          "id",
+          "https://www.visutry.com/id/glasses-guide"
+        ],
+        [
+          "ar",
+          "https://www.visutry.com/ar/glasses-guide"
+        ],
+        [
+          "ru",
+          "https://www.visutry.com/ru/glasses-guide"
+        ],
+        [
+          "de",
+          "https://www.visutry.com/de/glasses-guide"
+        ],
+        [
+          "ja",
+          "https://www.visutry.com/ja/glasses-guide"
+        ],
+        [
+          "es",
+          "https://www.visutry.com/es/glasses-guide"
+        ],
+        [
+          "pt",
+          "https://www.visutry.com/pt/glasses-guide"
+        ],
+        [
+          "fr",
+          "https://www.visutry.com/fr/glasses-guide"
+        ],
+        [
+          "x-default",
+          "https://www.visutry.com/en/glasses-guide"
+        ]
+      ],
+      "x_default": true,
+      "canon_ok": true,
+      "has_workers_dev": false,
+      "has_vercel_app": false,
+      "bytes": 108400
+    },
+    {
+      "url": "https://www.visutry.com/id/glasses-guide/best-rectangle-glasses-for-round-face",
+      "status": 200,
+      "backend": "cloudflare",
+      "vercel_id": null,
+      "cc": "s-maxage=31536000, stale-while-revalidate=2592000",
+      "cf_cache": null,
+      "ct": "text/html; charset=utf-8",
+      "title": "frame persegi panjang untuk wajah bulat | VisuTry",
+      "canonical": "https://www.visutry.com/id/glasses-guide/best-rectangle-glasses-for-round-face",
+      "robots": "index, follow",
+      "ldjson": true,
+      "lang": "id",
+      "dir": "ltr",
+      "hreflang": [
+        [
+          "en",
+          "https://www.visutry.com/en/glasses-guide/best-rectangle-glasses-for-round-face"
+        ],
+        [
+          "id",
+          "https://www.visutry.com/id/glasses-guide/best-rectangle-glasses-for-round-face"
+        ],
+        [
+          "ar",
+          "https://www.visutry.com/ar/glasses-guide/best-rectangle-glasses-for-round-face"
+        ],
+        [
+          "ru",
+          "https://www.visutry.com/ru/glasses-guide/best-rectangle-glasses-for-round-face"
+        ],
+        [
+          "de",
+          "https://www.visutry.com/de/glasses-guide/best-rectangle-glasses-for-round-face"
+        ],
+        [
+          "ja",
+          "https://www.visutry.com/ja/glasses-guide/best-rectangle-glasses-for-round-face"
+        ],
+        [
+          "es",
+          "https://www.visutry.com/es/glasses-guide/best-rectangle-glasses-for-round-face"
+        ],
+        [
+          "pt",
+          "https://www.visutry.com/pt/glasses-guide/best-rectangle-glasses-for-round-face"
+        ],
+        [
+          "fr",
+          "https://www.visutry.com/fr/glasses-guide/best-rectangle-glasses-for-round-face"
+        ],
+        [
+          "x-default",
+          "https://www.visutry.com/en/glasses-guide/best-rectangle-glasses-for-round-face"
+        ]
+      ],
+      "x_default": true,
+      "canon_ok": true,
+      "has_workers_dev": false,
+      "has_vercel_app": false,
+      "bytes": 82074
+    },
+    {
+      "url": "https://www.visutry.com/ar/glasses-guide",
+      "status": 200,
+      "backend": "cloudflare",
+      "vercel_id": null,
+      "cc": "s-maxage=31536000, stale-while-revalidate=2592000",
+      "cf_cache": null,
+      "ct": "text/html; charset=utf-8",
+      "title": "أدلة النظارات حسب شكل الوجه والأسلوب والملاءمة | VisuTry",
+      "canonical": "https://www.visutry.com/ar/glasses-guide",
+      "robots": "index, follow",
+      "ldjson": true,
+      "lang": "ar",
+      "dir": "rtl",
+      "hreflang": [
+        [
+          "en",
+          "https://www.visutry.com/en/glasses-guide"
+        ],
+        [
+          "id",
+          "https://www.visutry.com/id/glasses-guide"
+        ],
+        [
+          "ar",
+          "https://www.visutry.com/ar/glasses-guide"
+        ],
+        [
+          "ru",
+          "https://www.visutry.com/ru/glasses-guide"
+        ],
+        [
+          "de",
+          "https://www.visutry.com/de/glasses-guide"
+        ],
+        [
+          "ja",
+          "https://www.visutry.com/ja/glasses-guide"
+        ],
+        [
+          "es",
+          "https://www.visutry.com/es/glasses-guide"
+        ],
+        [
+          "pt",
+          "https://www.visutry.com/pt/glasses-guide"
+        ],
+        [
+          "fr",
+          "https://www.visutry.com/fr/glasses-guide"
+        ],
+        [
+          "x-default",
+          "https://www.visutry.com/en/glasses-guide"
+        ]
+      ],
+      "x_default": true,
+      "canon_ok": true,
+      "has_workers_dev": false,
+      "has_vercel_app": false,
+      "bytes": 115554
+    },
+    {
+      "url": "https://www.visutry.com/ar/glasses-guide/best-rectangle-glasses-for-round-face",
+      "status": 200,
+      "backend": "cloudflare",
+      "vercel_id": null,
+      "cc": "s-maxage=31536000, stale-while-revalidate=2592000",
+      "cf_cache": null,
+      "ct": "text/html; charset=utf-8",
+      "title": "إطارات مستطيلة لـ وجه دائري | VisuTry",
+      "canonical": "https://www.visutry.com/ar/glasses-guide/best-rectangle-glasses-for-round-face",
+      "robots": "index, follow",
+      "ldjson": true,
+      "lang": "ar",
+      "dir": "rtl",
+      "hreflang": [
+        [
+          "en",
+          "https://www.visutry.com/en/glasses-guide/best-rectangle-glasses-for-round-face"
+        ],
+        [
+          "id",
+          "https://www.visutry.com/id/glasses-guide/best-rectangle-glasses-for-round-face"
+        ],
+        [
+          "ar",
+          "https://www.visutry.com/ar/glasses-guide/best-rectangle-glasses-for-round-face"
+        ],
+        [
+          "ru",
+          "https://www.visutry.com/ru/glasses-guide/best-rectangle-glasses-for-round-face"
+        ],
+        [
+          "de",
+          "https://www.visutry.com/de/glasses-guide/best-rectangle-glasses-for-round-face"
+        ],
+        [
+          "ja",
+          "https://www.visutry.com/ja/glasses-guide/best-rectangle-glasses-for-round-face"
+        ],
+        [
+          "es",
+          "https://www.visutry.com/es/glasses-guide/best-rectangle-glasses-for-round-face"
+        ],
+        [
+          "pt",
+          "https://www.visutry.com/pt/glasses-guide/best-rectangle-glasses-for-round-face"
+        ],
+        [
+          "fr",
+          "https://www.visutry.com/fr/glasses-guide/best-rectangle-glasses-for-round-face"
+        ],
+        [
+          "x-default",
+          "https://www.visutry.com/en/glasses-guide/best-rectangle-glasses-for-round-face"
+        ]
+      ],
+      "x_default": true,
+      "canon_ok": true,
+      "has_workers_dev": false,
+      "has_vercel_app": false,
+      "bytes": 87368
+    },
+    {
+      "url": "https://www.visutry.com/ru/glasses-guide",
+      "status": 200,
+      "backend": "cloudflare",
+      "vercel_id": null,
+      "cc": "s-maxage=31536000, stale-while-revalidate=2592000",
+      "cf_cache": null,
+      "ct": "text/html; charset=utf-8",
+      "title": "Гайды по очкам: форма лица, стиль и посадка | VisuTry",
+      "canonical": "https://www.visutry.com/ru/glasses-guide",
+      "robots": "index, follow",
+      "ldjson": true,
+      "lang": "ru",
+      "dir": "ltr",
+      "hreflang": [
+        [
+          "en",
+          "https://www.visutry.com/en/glasses-guide"
+        ],
+        [
+          "id",
+          "https://www.visutry.com/id/glasses-guide"
+        ],
+        [
+          "ar",
+          "https://www.visutry.com/ar/glasses-guide"
+        ],
+        [
+          "ru",
+          "https://www.visutry.com/ru/glasses-guide"
+        ],
+        [
+          "de",
+          "https://www.visutry.com/de/glasses-guide"
+        ],
+        [
+          "ja",
+          "https://www.visutry.com/ja/glasses-guide"
+        ],
+        [
+          "es",
+          "https://www.visutry.com/es/glasses-guide"
+        ],
+        [
+          "pt",
+          "https://www.visutry.com/pt/glasses-guide"
+        ],
+        [
+          "fr",
+          "https://www.visutry.com/fr/glasses-guide"
+        ],
+        [
+          "x-default",
+          "https://www.visutry.com/en/glasses-guide"
+        ]
+      ],
+      "x_default": true,
+      "canon_ok": true,
+      "has_workers_dev": false,
+      "has_vercel_app": false,
+      "bytes": 120599
+    },
+    {
+      "url": "https://www.visutry.com/ru/glasses-guide/best-rectangle-glasses-for-round-face",
+      "status": 200,
+      "backend": "cloudflare",
+      "vercel_id": null,
+      "cc": "s-maxage=31536000, stale-while-revalidate=2592000",
+      "cf_cache": null,
+      "ct": "text/html; charset=utf-8",
+      "title": "прямоугольные оправы для формы лица: круглое лицо | VisuTry",
+      "canonical": "https://www.visutry.com/ru/glasses-guide/best-rectangle-glasses-for-round-face",
+      "robots": "index, follow",
+      "ldjson": true,
+      "lang": "ru",
+      "dir": "ltr",
+      "hreflang": [
+        [
+          "en",
+          "https://www.visutry.com/en/glasses-guide/best-rectangle-glasses-for-round-face"
+        ],
+        [
+          "id",
+          "https://www.visutry.com/id/glasses-guide/best-rectangle-glasses-for-round-face"
+        ],
+        [
+          "ar",
+          "https://www.visutry.com/ar/glasses-guide/best-rectangle-glasses-for-round-face"
+        ],
+        [
+          "ru",
+          "https://www.visutry.com/ru/glasses-guide/best-rectangle-glasses-for-round-face"
+        ],
+        [
+          "de",
+          "https://www.visutry.com/de/glasses-guide/best-rectangle-glasses-for-round-face"
+        ],
+        [
+          "ja",
+          "https://www.visutry.com/ja/glasses-guide/best-rectangle-glasses-for-round-face"
+        ],
+        [
+          "es",
+          "https://www.visutry.com/es/glasses-guide/best-rectangle-glasses-for-round-face"
+        ],
+        [
+          "pt",
+          "https://www.visutry.com/pt/glasses-guide/best-rectangle-glasses-for-round-face"
+        ],
+        [
+          "fr",
+          "https://www.visutry.com/fr/glasses-guide/best-rectangle-glasses-for-round-face"
+        ],
+        [
+          "x-default",
+          "https://www.visutry.com/en/glasses-guide/best-rectangle-glasses-for-round-face"
+        ]
+      ],
+      "x_default": true,
+      "canon_ok": true,
+      "has_workers_dev": false,
+      "has_vercel_app": false,
+      "bytes": 92688
+    },
+    {
+      "url": "https://www.visutry.com/de/glasses-guide",
+      "status": 200,
+      "backend": "cloudflare",
+      "vercel_id": null,
+      "cc": "s-maxage=31536000, stale-while-revalidate=2592000",
+      "cf_cache": null,
+      "ct": "text/html; charset=utf-8",
+      "title": "Brillen-Guides nach Gesichtsform, Stil &amp; Passform | VisuTry",
+      "canonical": "https://www.visutry.com/de/glasses-guide",
+      "robots": "index, follow",
+      "ldjson": true,
+      "lang": "de",
+      "dir": "ltr",
+      "hreflang": [
+        [
+          "en",
+          "https://www.visutry.com/en/glasses-guide"
+        ],
+        [
+          "id",
+          "https://www.visutry.com/id/glasses-guide"
+        ],
+        [
+          "ar",
+          "https://www.visutry.com/ar/glasses-guide"
+        ],
+        [
+          "ru",
+          "https://www.visutry.com/ru/glasses-guide"
+        ],
+        [
+          "de",
+          "https://www.visutry.com/de/glasses-guide"
+        ],
+        [
+          "ja",
+          "https://www.visutry.com/ja/glasses-guide"
+        ],
+        [
+          "es",
+          "https://www.visutry.com/es/glasses-guide"
+        ],
+        [
+          "pt",
+          "https://www.visutry.com/pt/glasses-guide"
+        ],
+        [
+          "fr",
+          "https://www.visutry.com/fr/glasses-guide"
+        ],
+        [
+          "x-default",
+          "https://www.visutry.com/en/glasses-guide"
+        ]
+      ],
+      "x_default": true,
+      "canon_ok": true,
+      "has_workers_dev": false,
+      "has_vercel_app": false,
+      "bytes": 110532
+    },
+    {
+      "url": "https://www.visutry.com/de/glasses-guide/best-rectangle-glasses-for-round-face",
+      "status": 200,
+      "backend": "cloudflare",
+      "vercel_id": null,
+      "cc": "s-maxage=31536000, stale-while-revalidate=2592000",
+      "cf_cache": null,
+      "ct": "text/html; charset=utf-8",
+      "title": "Rechteckbrillen für ein rundes Gesicht | VisuTry",
+      "canonical": "https://www.visutry.com/de/glasses-guide/best-rectangle-glasses-for-round-face",
+      "robots": "index, follow",
+      "ldjson": true,
+      "lang": "de",
+      "dir": "ltr",
+      "hreflang": [
+        [
+          "en",
+          "https://www.visutry.com/en/glasses-guide/best-rectangle-glasses-for-round-face"
+        ],
+        [
+          "id",
+          "https://www.visutry.com/id/glasses-guide/best-rectangle-glasses-for-round-face"
+        ],
+        [
+          "ar",
+          "https://www.visutry.com/ar/glasses-guide/best-rectangle-glasses-for-round-face"
+        ],
+        [
+          "ru",
+          "https://www.visutry.com/ru/glasses-guide/best-rectangle-glasses-for-round-face"
+        ],
+        [
+          "de",
+          "https://www.visutry.com/de/glasses-guide/best-rectangle-glasses-for-round-face"
+        ],
+        [
+          "ja",
+          "https://www.visutry.com/ja/glasses-guide/best-rectangle-glasses-for-round-face"
+        ],
+        [
+          "es",
+          "https://www.visutry.com/es/glasses-guide/best-rectangle-glasses-for-round-face"
+        ],
+        [
+          "pt",
+          "https://www.visutry.com/pt/glasses-guide/best-rectangle-glasses-for-round-face"
+        ],
+        [
+          "fr",
+          "https://www.visutry.com/fr/glasses-guide/best-rectangle-glasses-for-round-face"
+        ],
+        [
+          "x-default",
+          "https://www.visutry.com/en/glasses-guide/best-rectangle-glasses-for-round-face"
+        ]
+      ],
+      "x_default": true,
+      "canon_ok": true,
+      "has_workers_dev": false,
+      "has_vercel_app": false,
+      "bytes": 83175
+    },
+    {
+      "url": "https://www.visutry.com/ja/glasses-guide",
+      "status": 200,
+      "backend": "cloudflare",
+      "vercel_id": null,
+      "cc": "s-maxage=31536000, stale-while-revalidate=2592000",
+      "cf_cache": null,
+      "ct": "text/html; charset=utf-8",
+      "title": "顔型・フレーム・フィット別メガネガイド | VisuTry",
+      "canonical": "https://www.visutry.com/ja/glasses-guide",
+      "robots": "index, follow",
+      "ldjson": true,
+      "lang": "ja",
+      "dir": "ltr",
+      "hreflang": [
+        [
+          "en",
+          "https://www.visutry.com/en/glasses-guide"
+        ],
+        [
+          "id",
+          "https://www.visutry.com/id/glasses-guide"
+        ],
+        [
+          "ar",
+          "https://www.visutry.com/ar/glasses-guide"
+        ],
+        [
+          "ru",
+          "https://www.visutry.com/ru/glasses-guide"
+        ],
+        [
+          "de",
+          "https://www.visutry.com/de/glasses-guide"
+        ],
+        [
+          "ja",
+          "https://www.visutry.com/ja/glasses-guide"
+        ],
+        [
+          "es",
+          "https://www.visutry.com/es/glasses-guide"
+        ],
+        [
+          "pt",
+          "https://www.visutry.com/pt/glasses-guide"
+        ],
+        [
+          "fr",
+          "https://www.visutry.com/fr/glasses-guide"
+        ],
+        [
+          "x-default",
+          "https://www.visutry.com/en/glasses-guide"
+        ]
+      ],
+      "x_default": true,
+      "canon_ok": true,
+      "has_workers_dev": false,
+      "has_vercel_app": false,
+      "bytes": 111156
+    },
+    {
+      "url": "https://www.visutry.com/ja/glasses-guide/best-rectangle-glasses-for-round-face",
+      "status": 200,
+      "backend": "cloudflare",
+      "vercel_id": null,
+      "cc": "s-maxage=31536000, stale-while-revalidate=2592000",
+      "cf_cache": null,
+      "ct": "text/html; charset=utf-8",
+      "title": "丸顔に合う長方形フレーム | VisuTry",
+      "canonical": "https://www.visutry.com/ja/glasses-guide/best-rectangle-glasses-for-round-face",
+      "robots": "index, follow",
+      "ldjson": true,
+      "lang": "ja",
+      "dir": "ltr",
+      "hreflang": [
+        [
+          "en",
+          "https://www.visutry.com/en/glasses-guide/best-rectangle-glasses-for-round-face"
+        ],
+        [
+          "id",
+          "https://www.visutry.com/id/glasses-guide/best-rectangle-glasses-for-round-face"
+        ],
+        [
+          "ar",
+          "https://www.visutry.com/ar/glasses-guide/best-rectangle-glasses-for-round-face"
+        ],
+        [
+          "ru",
+          "https://www.visutry.com/ru/glasses-guide/best-rectangle-glasses-for-round-face"
+        ],
+        [
+          "de",
+          "https://www.visutry.com/de/glasses-guide/best-rectangle-glasses-for-round-face"
+        ],
+        [
+          "ja",
+          "https://www.visutry.com/ja/glasses-guide/best-rectangle-glasses-for-round-face"
+        ],
+        [
+          "es",
+          "https://www.visutry.com/es/glasses-guide/best-rectangle-glasses-for-round-face"
+        ],
+        [
+          "pt",
+          "https://www.visutry.com/pt/glasses-guide/best-rectangle-glasses-for-round-face"
+        ],
+        [
+          "fr",
+          "https://www.visutry.com/fr/glasses-guide/best-rectangle-glasses-for-round-face"
+        ],
+        [
+          "x-default",
+          "https://www.visutry.com/en/glasses-guide/best-rectangle-glasses-for-round-face"
+        ]
+      ],
+      "x_default": true,
+      "canon_ok": true,
+      "has_workers_dev": false,
+      "has_vercel_app": false,
+      "bytes": 83960
+    },
+    {
+      "url": "https://www.visutry.com/es/glasses-guide",
+      "status": 200,
+      "backend": "cloudflare",
+      "vercel_id": null,
+      "cc": "s-maxage=31536000, stale-while-revalidate=2592000",
+      "cf_cache": null,
+      "ct": "text/html; charset=utf-8",
+      "title": "Guías de gafas por forma facial, estilo y ajuste | VisuTry",
+      "canonical": "https://www.visutry.com/es/glasses-guide",
+      "robots": "index, follow",
+      "ldjson": true,
+      "lang": "es",
+      "dir": "ltr",
+      "hreflang": [
+        [
+          "en",
+          "https://www.visutry.com/en/glasses-guide"
+        ],
+        [
+          "id",
+          "https://www.visutry.com/id/glasses-guide"
+        ],
+        [
+          "ar",
+          "https://www.visutry.com/ar/glasses-guide"
+        ],
+        [
+          "ru",
+          "https://www.visutry.com/ru/glasses-guide"
+        ],
+        [
+          "de",
+          "https://www.visutry.com/de/glasses-guide"
+        ],
+        [
+          "ja",
+          "https://www.visutry.com/ja/glasses-guide"
+        ],
+        [
+          "es",
+          "https://www.visutry.com/es/glasses-guide"
+        ],
+        [
+          "pt",
+          "https://www.visutry.com/pt/glasses-guide"
+        ],
+        [
+          "fr",
+          "https://www.visutry.com/fr/glasses-guide"
+        ],
+        [
+          "x-default",
+          "https://www.visutry.com/en/glasses-guide"
+        ]
+      ],
+      "x_default": true,
+      "canon_ok": true,
+      "has_workers_dev": false,
+      "has_vercel_app": false,
+      "bytes": 109527
+    },
+    {
+      "url": "https://www.visutry.com/es/glasses-guide/best-rectangle-glasses-for-round-face",
+      "status": 200,
+      "backend": "cloudflare",
+      "vercel_id": null,
+      "cc": "s-maxage=31536000, stale-while-revalidate=2592000",
+      "cf_cache": null,
+      "ct": "text/html; charset=utf-8",
+      "title": "monturas rectangulares para un rostro redondo | VisuTry",
+      "canonical": "https://www.visutry.com/es/glasses-guide/best-rectangle-glasses-for-round-face",
+      "robots": "index, follow",
+      "ldjson": true,
+      "lang": "es",
+      "dir": "ltr",
+      "hreflang": [
+        [
+          "en",
+          "https://www.visutry.com/en/glasses-guide/best-rectangle-glasses-for-round-face"
+        ],
+        [
+          "id",
+          "https://www.visutry.com/id/glasses-guide/best-rectangle-glasses-for-round-face"
+        ],
+        [
+          "ar",
+          "https://www.visutry.com/ar/glasses-guide/best-rectangle-glasses-for-round-face"
+        ],
+        [
+          "ru",
+          "https://www.visutry.com/ru/glasses-guide/best-rectangle-glasses-for-round-face"
+        ],
+        [
+          "de",
+          "https://www.visutry.com/de/glasses-guide/best-rectangle-glasses-for-round-face"
+        ],
+        [
+          "ja",
+          "https://www.visutry.com/ja/glasses-guide/best-rectangle-glasses-for-round-face"
+        ],
+        [
+          "es",
+          "https://www.visutry.com/es/glasses-guide/best-rectangle-glasses-for-round-face"
+        ],
+        [
+          "pt",
+          "https://www.visutry.com/pt/glasses-guide/best-rectangle-glasses-for-round-face"
+        ],
+        [
+          "fr",
+          "https://www.visutry.com/fr/glasses-guide/best-rectangle-glasses-for-round-face"
+        ],
+        [
+          "x-default",
+          "https://www.visutry.com/en/glasses-guide/best-rectangle-glasses-for-round-face"
+        ]
+      ],
+      "x_default": true,
+      "canon_ok": true,
+      "has_workers_dev": false,
+      "has_vercel_app": false,
+      "bytes": 82760
+    },
+    {
+      "url": "https://www.visutry.com/pt/glasses-guide",
+      "status": 200,
+      "backend": "cloudflare",
+      "vercel_id": null,
+      "cc": "s-maxage=31536000, stale-while-revalidate=2592000",
+      "cf_cache": null,
+      "ct": "text/html; charset=utf-8",
+      "title": "Guias de óculos por formato do rosto, estilo e ajuste | VisuTry",
+      "canonical": "https://www.visutry.com/pt/glasses-guide",
+      "robots": "index, follow",
+      "ldjson": true,
+      "lang": "pt",
+      "dir": "ltr",
+      "hreflang": [
+        [
+          "en",
+          "https://www.visutry.com/en/glasses-guide"
+        ],
+        [
+          "id",
+          "https://www.visutry.com/id/glasses-guide"
+        ],
+        [
+          "ar",
+          "https://www.visutry.com/ar/glasses-guide"
+        ],
+        [
+          "ru",
+          "https://www.visutry.com/ru/glasses-guide"
+        ],
+        [
+          "de",
+          "https://www.visutry.com/de/glasses-guide"
+        ],
+        [
+          "ja",
+          "https://www.visutry.com/ja/glasses-guide"
+        ],
+        [
+          "es",
+          "https://www.visutry.com/es/glasses-guide"
+        ],
+        [
+          "pt",
+          "https://www.visutry.com/pt/glasses-guide"
+        ],
+        [
+          "fr",
+          "https://www.visutry.com/fr/glasses-guide"
+        ],
+        [
+          "x-default",
+          "https://www.visutry.com/en/glasses-guide"
+        ]
+      ],
+      "x_default": true,
+      "canon_ok": true,
+      "has_workers_dev": false,
+      "has_vercel_app": false,
+      "bytes": 108839
+    },
+    {
+      "url": "https://www.visutry.com/pt/glasses-guide/best-rectangle-glasses-for-round-face",
+      "status": 200,
+      "backend": "cloudflare",
+      "vercel_id": null,
+      "cc": "s-maxage=31536000, stale-while-revalidate=2592000",
+      "cf_cache": null,
+      "ct": "text/html; charset=utf-8",
+      "title": "armações retangulares para rosto redondo | VisuTry",
+      "canonical": "https://www.visutry.com/pt/glasses-guide/best-rectangle-glasses-for-round-face",
+      "robots": "index, follow",
+      "ldjson": true,
+      "lang": "pt",
+      "dir": "ltr",
+      "hreflang": [
+        [
+          "en",
+          "https://www.visutry.com/en/glasses-guide/best-rectangle-glasses-for-round-face"
+        ],
+        [
+          "id",
+          "https://www.visutry.com/id/glasses-guide/best-rectangle-glasses-for-round-face"
+        ],
+        [
+          "ar",
+          "https://www.visutry.com/ar/glasses-guide/best-rectangle-glasses-for-round-face"
+        ],
+        [
+          "ru",
+          "https://www.visutry.com/ru/glasses-guide/best-rectangle-glasses-for-round-face"
+        ],
+        [
+          "de",
+          "https://www.visutry.com/de/glasses-guide/best-rectangle-glasses-for-round-face"
+        ],
+        [
+          "ja",
+          "https://www.visutry.com/ja/glasses-guide/best-rectangle-glasses-for-round-face"
+        ],
+        [
+          "es",
+          "https://www.visutry.com/es/glasses-guide/best-rectangle-glasses-for-round-face"
+        ],
+        [
+          "pt",
+          "https://www.visutry.com/pt/glasses-guide/best-rectangle-glasses-for-round-face"
+        ],
+        [
+          "fr",
+          "https://www.visutry.com/fr/glasses-guide/best-rectangle-glasses-for-round-face"
+        ],
+        [
+          "x-default",
+          "https://www.visutry.com/en/glasses-guide/best-rectangle-glasses-for-round-face"
+        ]
+      ],
+      "x_default": true,
+      "canon_ok": true,
+      "has_workers_dev": false,
+      "has_vercel_app": false,
+      "bytes": 82341
+    },
+    {
+      "url": "https://www.visutry.com/fr/glasses-guide",
+      "status": 200,
+      "backend": "cloudflare",
+      "vercel_id": null,
+      "cc": "s-maxage=31536000, stale-while-revalidate=2592000",
+      "cf_cache": null,
+      "ct": "text/html; charset=utf-8",
+      "title": "Guides lunettes par forme de visage, style et ajustement | VisuTry",
+      "canonical": "https://www.visutry.com/fr/glasses-guide",
+      "robots": "index, follow",
+      "ldjson": true,
+      "lang": "fr",
+      "dir": "ltr",
+      "hreflang": [
+        [
+          "en",
+          "https://www.visutry.com/en/glasses-guide"
+        ],
+        [
+          "id",
+          "https://www.visutry.com/id/glasses-guide"
+        ],
+        [
+          "ar",
+          "https://www.visutry.com/ar/glasses-guide"
+        ],
+        [
+          "ru",
+          "https://www.visutry.com/ru/glasses-guide"
+        ],
+        [
+          "de",
+          "https://www.visutry.com/de/glasses-guide"
+        ],
+        [
+          "ja",
+          "https://www.visutry.com/ja/glasses-guide"
+        ],
+        [
+          "es",
+          "https://www.visutry.com/es/glasses-guide"
+        ],
+        [
+          "pt",
+          "https://www.visutry.com/pt/glasses-guide"
+        ],
+        [
+          "fr",
+          "https://www.visutry.com/fr/glasses-guide"
+        ],
+        [
+          "x-default",
+          "https://www.visutry.com/en/glasses-guide"
+        ]
+      ],
+      "x_default": true,
+      "canon_ok": true,
+      "has_workers_dev": false,
+      "has_vercel_app": false,
+      "bytes": 110198
+    },
+    {
+      "url": "https://www.visutry.com/fr/glasses-guide/best-rectangle-glasses-for-round-face",
+      "status": 200,
+      "backend": "cloudflare",
+      "vercel_id": null,
+      "cc": "s-maxage=31536000, stale-while-revalidate=2592000",
+      "cf_cache": null,
+      "ct": "text/html; charset=utf-8",
+      "title": "montures rectangulaires pour un visage rond | VisuTry",
+      "canonical": "https://www.visutry.com/fr/glasses-guide/best-rectangle-glasses-for-round-face",
+      "robots": "index, follow",
+      "ldjson": true,
+      "lang": "fr",
+      "dir": "ltr",
+      "hreflang": [
+        [
+          "en",
+          "https://www.visutry.com/en/glasses-guide/best-rectangle-glasses-for-round-face"
+        ],
+        [
+          "id",
+          "https://www.visutry.com/id/glasses-guide/best-rectangle-glasses-for-round-face"
+        ],
+        [
+          "ar",
+          "https://www.visutry.com/ar/glasses-guide/best-rectangle-glasses-for-round-face"
+        ],
+        [
+          "ru",
+          "https://www.visutry.com/ru/glasses-guide/best-rectangle-glasses-for-round-face"
+        ],
+        [
+          "de",
+          "https://www.visutry.com/de/glasses-guide/best-rectangle-glasses-for-round-face"
+        ],
+        [
+          "ja",
+          "https://www.visutry.com/ja/glasses-guide/best-rectangle-glasses-for-round-face"
+        ],
+        [
+          "es",
+          "https://www.visutry.com/es/glasses-guide/best-rectangle-glasses-for-round-face"
+        ],
+        [
+          "pt",
+          "https://www.visutry.com/pt/glasses-guide/best-rectangle-glasses-for-round-face"
+        ],
+        [
+          "fr",
+          "https://www.visutry.com/fr/glasses-guide/best-rectangle-glasses-for-round-face"
+        ],
+        [
+          "x-default",
+          "https://www.visutry.com/en/glasses-guide/best-rectangle-glasses-for-round-face"
+        ]
+      ],
+      "x_default": true,
+      "canon_ok": true,
+      "has_workers_dev": false,
+      "has_vercel_app": false,
+      "bytes": 83482
+    },
+    {
+      "url": "https://www.visutry.com/api/health",
+      "status": 200,
+      "backend": "cloudflare",
+      "vercel_id": null,
+      "cc": null,
+      "cf_cache": null,
+      "ct": "application/json",
+      "title": "",
+      "canonical": null,
+      "robots": null,
+      "ldjson": false,
+      "lang": null,
+      "dir": null,
+      "hreflang": [],
+      "x_default": false,
+      "canon_ok": false,
+      "has_workers_dev": false,
+      "has_vercel_app": false,
+      "bytes": 119
+    },
+    {
+      "url": "https://www.visutry.com/en/store/does-not-matter",
+      "status": 404,
+      "backend": null,
+      "vercel_id": "sfo1::iad1::npkk4-1787107590366-70a12ec8fa71",
+      "cc": "public, max-age=0, must-revalidate",
+      "cf_cache": "DYNAMIC",
+      "ct": "text/html; charset=utf-8",
+      "title": "Free Face Shape Detector &amp; Virtual Glasses Try-On | VisuTry",
+      "canonical": "https://www.visutry.com/en",
+      "robots": "noindex",
+      "ldjson": false,
+      "lang": null,
+      "dir": null,
+      "hreflang": [
+        [
+          "en",
+          "https://www.visutry.com/en"
+        ],
+        [
+          "id",
+          "https://www.visutry.com/id"
+        ],
+        [
+          "ar",
+          "https://www.visutry.com/ar"
+        ],
+        [
+          "ru",
+          "https://www.visutry.com/ru"
+        ],
+        [
+          "de",
+          "https://www.visutry.com/de"
+        ],
+        [
+          "ja",
+          "https://www.visutry.com/ja"
+        ],
+        [
+          "es",
+          "https://www.visutry.com/es"
+        ],
+        [
+          "pt",
+          "https://www.visutry.com/pt"
+        ],
+        [
+          "fr",
+          "https://www.visutry.com/fr"
+        ],
+        [
+          "x-default",
+          "https://www.visutry.com/en"
+        ]
+      ],
+      "x_default": true,
+      "canon_ok": true,
+      "has_workers_dev": false,
+      "has_vercel_app": false,
+      "bytes": 24092
+    },
+    {
+      "url": "https://www.visutry.com/en/c/foo/bar",
+      "status": 404,
+      "backend": null,
+      "vercel_id": "sfo1::iad1::vcs5t-1787107592699-f13bbfe39ed7",
+      "cc": "public, max-age=0, must-revalidate",
+      "cf_cache": "DYNAMIC",
+      "ct": "text/html; charset=utf-8",
+      "title": "Free Face Shape Detector &amp; Virtual Glasses Try-On | VisuTry",
+      "canonical": "https://www.visutry.com/en",
+      "robots": "noindex",
+      "ldjson": false,
+      "lang": null,
+      "dir": null,
+      "hreflang": [
+        [
+          "en",
+          "https://www.visutry.com/en"
+        ],
+        [
+          "id",
+          "https://www.visutry.com/id"
+        ],
+        [
+          "ar",
+          "https://www.visutry.com/ar"
+        ],
+        [
+          "ru",
+          "https://www.visutry.com/ru"
+        ],
+        [
+          "de",
+          "https://www.visutry.com/de"
+        ],
+        [
+          "ja",
+          "https://www.visutry.com/ja"
+        ],
+        [
+          "es",
+          "https://www.visutry.com/es"
+        ],
+        [
+          "pt",
+          "https://www.visutry.com/pt"
+        ],
+        [
+          "fr",
+          "https://www.visutry.com/fr"
+        ],
+        [
+          "x-default",
+          "https://www.visutry.com/en"
+        ]
+      ],
+      "x_default": true,
+      "canon_ok": true,
+      "has_workers_dev": false,
+      "has_vercel_app": false,
+      "bytes": 24540
+    },
+    {
+      "url": "https://www.visutry.com/en/discover",
+      "status": 200,
+      "backend": null,
+      "vercel_id": "sfo1::iad1::w4frj-1787107596954-f75af819e70e",
+      "cc": "private, no-cache, no-store, max-age=0, must-revalidate",
+      "cf_cache": "DYNAMIC",
+      "ct": "text/html; charset=utf-8",
+      "title": "Discover Eyewear for Your Fit, Style &amp; Occasion | VisuTry",
+      "canonical": "https://www.visutry.com/en/discover",
+      "robots": "index, follow",
+      "ldjson": true,
+      "lang": "en",
+      "dir": "ltr",
+      "hreflang": [
+        [
+          "en",
+          "https://www.visutry.com/en/discover"
+        ],
+        [
+          "id",
+          "https://www.visutry.com/id/discover"
+        ],
+        [
+          "ar",
+          "https://www.visutry.com/ar/discover"
+        ],
+        [
+          "ru",
+          "https://www.visutry.com/ru/discover"
+        ],
+        [
+          "de",
+          "https://www.visutry.com/de/discover"
+        ],
+        [
+          "ja",
+          "https://www.visutry.com/ja/discover"
+        ],
+        [
+          "es",
+          "https://www.visutry.com/es/discover"
+        ],
+        [
+          "pt",
+          "https://www.visutry.com/pt/discover"
+        ],
+        [
+          "fr",
+          "https://www.visutry.com/fr/discover"
+        ],
+        [
+          "x-default",
+          "https://www.visutry.com/en/discover"
+        ]
+      ],
+      "x_default": true,
+      "canon_ok": true,
+      "has_workers_dev": false,
+      "has_vercel_app": false,
+      "bytes": 118545
+    },
+    {
+      "url": "https://www.visutry.com/unknown-crawler-path-p0f1",
+      "status": 307,
+      "backend": null,
+      "vercel_id": "sfo1::965tl-1787107603189-aed387d634f3",
+      "cc": "public, max-age=0, must-revalidate",
+      "cf_cache": "DYNAMIC",
+      "ct": "text/plain",
+      "title": "",
+      "canonical": null,
+      "robots": null,
+      "ldjson": false,
+      "lang": null,
+      "dir": null,
+      "hreflang": [],
+      "x_default": false,
+      "canon_ok": false,
+      "has_workers_dev": false,
+      "has_vercel_app": false,
+      "bytes": 15
+    }
+  ]
+}

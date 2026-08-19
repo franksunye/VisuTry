@@ -1,0 +1,281 @@
+{
+  "kind": "p0-f1-phase2-after",
+  "capturedAt": "2026-08-19T02:44:26Z",
+  "workerVersion": "3936af2b-c7bf-4f2c-8606-3c6a57d97711",
+  "routeCount": 31,
+  "glassesGuideCount": 18,
+  "createdPhase2": [
+    {
+      "id": "95a646b29001472dabfe100af0401e5b",
+      "pattern": "www.visutry.com/ar/glasses-guide",
+      "script": "visutry-cf-production",
+      "request_limit_fail_open": true
+    },
+    {
+      "id": "fabf8d1a83b0424a8d6c2cdf01155614",
+      "pattern": "www.visutry.com/ar/glasses-guide/*",
+      "script": "visutry-cf-production",
+      "request_limit_fail_open": true
+    },
+    {
+      "id": "2dd8f168335d43ac9cfd42b90eccbd3f",
+      "pattern": "www.visutry.com/ru/glasses-guide",
+      "script": "visutry-cf-production",
+      "request_limit_fail_open": true
+    },
+    {
+      "id": "22c0c299ddfd493fa83606a3b96b56c6",
+      "pattern": "www.visutry.com/ru/glasses-guide/*",
+      "script": "visutry-cf-production",
+      "request_limit_fail_open": true
+    },
+    {
+      "id": "4cffb3dea8374756aa57a66e22bae067",
+      "pattern": "www.visutry.com/de/glasses-guide",
+      "script": "visutry-cf-production",
+      "request_limit_fail_open": true
+    },
+    {
+      "id": "3bdcc55533b1416fb9bb6a24b7b4d8b4",
+      "pattern": "www.visutry.com/de/glasses-guide/*",
+      "script": "visutry-cf-production",
+      "request_limit_fail_open": true
+    },
+    {
+      "id": "d8f07b25279c4045be83c99612a73f84",
+      "pattern": "www.visutry.com/ja/glasses-guide",
+      "script": "visutry-cf-production",
+      "request_limit_fail_open": true
+    },
+    {
+      "id": "96d2288e32414e10ab3c868702995ee1",
+      "pattern": "www.visutry.com/ja/glasses-guide/*",
+      "script": "visutry-cf-production",
+      "request_limit_fail_open": true
+    },
+    {
+      "id": "f2711ec42be04caeb921144df721f9e8",
+      "pattern": "www.visutry.com/es/glasses-guide",
+      "script": "visutry-cf-production",
+      "request_limit_fail_open": true
+    },
+    {
+      "id": "376166ca0f134c28a82764231e69d58f",
+      "pattern": "www.visutry.com/es/glasses-guide/*",
+      "script": "visutry-cf-production",
+      "request_limit_fail_open": true
+    },
+    {
+      "id": "03dd967df9204d16bb959c52a2306658",
+      "pattern": "www.visutry.com/pt/glasses-guide",
+      "script": "visutry-cf-production",
+      "request_limit_fail_open": true
+    },
+    {
+      "id": "75fdf6a6609e47b0a45192965cac362b",
+      "pattern": "www.visutry.com/pt/glasses-guide/*",
+      "script": "visutry-cf-production",
+      "request_limit_fail_open": true
+    },
+    {
+      "id": "e422aad064f94685bcea0a59e1af4877",
+      "pattern": "www.visutry.com/fr/glasses-guide",
+      "script": "visutry-cf-production",
+      "request_limit_fail_open": true
+    },
+    {
+      "id": "0e3c1509fa5a4b4abb8a832b6f654f56",
+      "pattern": "www.visutry.com/fr/glasses-guide/*",
+      "script": "visutry-cf-production",
+      "request_limit_fail_open": true
+    }
+  ],
+  "routes": [
+    {
+      "id": "cde8be98885b4c66afae21bdf3267005",
+      "pattern": "www.visutry.com/robots.txt",
+      "script": "visutry-cf-production",
+      "request_limit_fail_open": true
+    },
+    {
+      "id": "cb7b5907c2684188851c490968c24f7a",
+      "pattern": "www.visutry.com/experience-heroes/*",
+      "script": "visutry-cf-production",
+      "request_limit_fail_open": true
+    },
+    {
+      "id": "81e7a103102e49b78fd7a5b03d10d687",
+      "pattern": "www.visutry.com/images/*",
+      "script": "visutry-cf-production",
+      "request_limit_fail_open": true
+    },
+    {
+      "id": "095292f1960b4f7e86cc66a327bea6bd",
+      "pattern": "www.visutry.com/api/glasses/face-shapes",
+      "script": "visutry-cf-production",
+      "request_limit_fail_open": true
+    },
+    {
+      "id": "8d751beebd2647c997683d6430ff2c3b",
+      "pattern": "www.visutry.com/favicon.ico",
+      "script": "visutry-cf-production",
+      "request_limit_fail_open": true
+    },
+    {
+      "id": "9f88d93171a64d6dab3c6dd2641fcb74",
+      "pattern": "www.visutry.com/llms.txt",
+      "script": "visutry-cf-production",
+      "request_limit_fail_open": true
+    },
+    {
+      "id": "82fa3232423a4082a09a5967ac3f4357",
+      "pattern": "www.visutry.com/assets/*",
+      "script": "visutry-cf-production",
+      "request_limit_fail_open": true
+    },
+    {
+      "id": "6d5e5212402f4267bce2f4a13836f7da",
+      "pattern": "www.visutry.com/home/*",
+      "script": "visutry-cf-production",
+      "request_limit_fail_open": true
+    },
+    {
+      "id": "6a340daf3d82408fb401d8dbacc57bc4",
+      "pattern": "www.visutry.com/api/glasses/categories",
+      "script": "visutry-cf-production",
+      "request_limit_fail_open": true
+    },
+    {
+      "id": "c9a2f20ff385495bb495e43b4dca5549",
+      "pattern": "www.visutry.com/blog-covers/*",
+      "script": "visutry-cf-production",
+      "request_limit_fail_open": true
+    },
+    {
+      "id": "3becca52e24d431aace8a1e10a9cdd69",
+      "pattern": "www.visutry.com/api/health",
+      "script": "visutry-cf-production",
+      "request_limit_fail_open": true
+    },
+    {
+      "id": "bd50f1aa45dd4ec0b84914b7656d8580",
+      "pattern": "www.visutry.com/api/glasses/brands",
+      "script": "visutry-cf-production",
+      "request_limit_fail_open": true
+    },
+    {
+      "id": "95a646b29001472dabfe100af0401e5b",
+      "pattern": "www.visutry.com/ar/glasses-guide",
+      "script": "visutry-cf-production",
+      "request_limit_fail_open": true
+    },
+    {
+      "id": "1d13d7b3f1e94674a213b4cc5b94939c",
+      "pattern": "www.visutry.com/en/glasses-guide/*",
+      "script": "visutry-cf-production",
+      "request_limit_fail_open": true
+    },
+    {
+      "id": "3bdcc55533b1416fb9bb6a24b7b4d8b4",
+      "pattern": "www.visutry.com/de/glasses-guide/*",
+      "script": "visutry-cf-production",
+      "request_limit_fail_open": true
+    },
+    {
+      "id": "75fdf6a6609e47b0a45192965cac362b",
+      "pattern": "www.visutry.com/pt/glasses-guide/*",
+      "script": "visutry-cf-production",
+      "request_limit_fail_open": true
+    },
+    {
+      "id": "41ff12723da144f283a4fbda560fce51",
+      "pattern": "www.visutry.com/_next/static/*",
+      "script": "visutry-cf-production",
+      "request_limit_fail_open": true
+    },
+    {
+      "id": "0d7f142dcd7344bdaff80ee0be176342",
+      "pattern": "www.visutry.com/id/glasses-guide/*",
+      "script": "visutry-cf-production",
+      "request_limit_fail_open": true
+    },
+    {
+      "id": "1ad1e4de9011410c8e12b43b6d55db9e",
+      "pattern": "www.visutry.com/en/glasses-guide",
+      "script": "visutry-cf-production",
+      "request_limit_fail_open": true
+    },
+    {
+      "id": "f2711ec42be04caeb921144df721f9e8",
+      "pattern": "www.visutry.com/es/glasses-guide",
+      "script": "visutry-cf-production",
+      "request_limit_fail_open": true
+    },
+    {
+      "id": "96d2288e32414e10ab3c868702995ee1",
+      "pattern": "www.visutry.com/ja/glasses-guide/*",
+      "script": "visutry-cf-production",
+      "request_limit_fail_open": true
+    },
+    {
+      "id": "fabf8d1a83b0424a8d6c2cdf01155614",
+      "pattern": "www.visutry.com/ar/glasses-guide/*",
+      "script": "visutry-cf-production",
+      "request_limit_fail_open": true
+    },
+    {
+      "id": "03dd967df9204d16bb959c52a2306658",
+      "pattern": "www.visutry.com/pt/glasses-guide",
+      "script": "visutry-cf-production",
+      "request_limit_fail_open": true
+    },
+    {
+      "id": "6ff8fb518d8c42afb377746b8720e529",
+      "pattern": "www.visutry.com/id/glasses-guide",
+      "script": "visutry-cf-production",
+      "request_limit_fail_open": true
+    },
+    {
+      "id": "22c0c299ddfd493fa83606a3b96b56c6",
+      "pattern": "www.visutry.com/ru/glasses-guide/*",
+      "script": "visutry-cf-production",
+      "request_limit_fail_open": true
+    },
+    {
+      "id": "376166ca0f134c28a82764231e69d58f",
+      "pattern": "www.visutry.com/es/glasses-guide/*",
+      "script": "visutry-cf-production",
+      "request_limit_fail_open": true
+    },
+    {
+      "id": "d8f07b25279c4045be83c99612a73f84",
+      "pattern": "www.visutry.com/ja/glasses-guide",
+      "script": "visutry-cf-production",
+      "request_limit_fail_open": true
+    },
+    {
+      "id": "4cffb3dea8374756aa57a66e22bae067",
+      "pattern": "www.visutry.com/de/glasses-guide",
+      "script": "visutry-cf-production",
+      "request_limit_fail_open": true
+    },
+    {
+      "id": "2dd8f168335d43ac9cfd42b90eccbd3f",
+      "pattern": "www.visutry.com/ru/glasses-guide",
+      "script": "visutry-cf-production",
+      "request_limit_fail_open": true
+    },
+    {
+      "id": "e422aad064f94685bcea0a59e1af4877",
+      "pattern": "www.visutry.com/fr/glasses-guide",
+      "script": "visutry-cf-production",
+      "request_limit_fail_open": true
+    },
+    {
+      "id": "0e3c1509fa5a4b4abb8a832b6f654f56",
+      "pattern": "www.visutry.com/fr/glasses-guide/*",
+      "script": "visutry-cf-production",
+      "request_limit_fail_open": true
+    }
+  ]
+}

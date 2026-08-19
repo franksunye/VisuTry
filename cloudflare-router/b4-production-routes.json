@@ -7,14 +7,14 @@
   "generatedFrom": "cloudflare-router/b4-production-routes.ts",
   "note": "Do not paste into wrangler.jsonc. Do not deploy. Review only.",
   "summary": {
-    "total": 286,
+    "total": 296,
     "byLayer": {
       "layer1-static-asset": 9,
-      "layer2-worker": 277
+      "layer2-worker": 287
     },
     "byPriority": {
       "P0": 13,
-      "P1": 203,
+      "P1": 213,
       "P2": 70
     },
     "activationP0": 12,
@@ -29,15 +29,14 @@
       "layer": "layer1-static-asset",
       "expectedExecution": "static-asset",
       "workerQuota": "asset-miss-only",
-      "reason": "hashed OpenNext Static Assets; production route is parity-gated because Vercel and CLOUDFLARE_BUILD=1 emit independent webpack graphs. Pattern is `/_next/static/*`, not `/_next/static*`.",
+      "reason": "hashed OpenNext Static Assets. Asset hits skip the Worker. Asset misses must proxy to Vercel so mixed HTML (CF glasses-guide + Vercel remainder) does not 404 foreign chunks. Pattern is `/_next/static/*`, not `/_next/static*`.",
       "excludedConflicts": [
-        "/_next/image stays unrouted",
-        "do not publish until same-commit Vercel files ⊆ CF assets"
+        "/_next/image stays unrouted"
       ],
       "rollbackClass": "delete-route",
       "priority": "P0",
       "feasibility": "B",
-      "activationGate": "same-commit-asset-parity",
+      "activationGate": "asset-hit-or-vercel-miss",
       "requestLimitFailOpen": true
     },
     {
@@ -435,6 +434,19 @@
       "requestLimitFailOpen": true
     },
     {
+      "pattern": "www.visutry.com/en/glasses-guide",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "approved first-slice marketing/SEO HTML",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P1",
+      "feasibility": "A",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
+    },
+    {
       "pattern": "www.visutry.com/en/pricing",
       "layer": "layer2-worker",
       "expectedExecution": "worker",
@@ -552,21 +564,6 @@
       "requestLimitFailOpen": true
     },
     {
-      "pattern": "www.visutry.com/en/glasses-guide*",
-      "layer": "layer2-worker",
-      "expectedExecution": "worker",
-      "workerQuota": true,
-      "reason": "glasses-guide hub and slugs",
-      "excludedConflicts": [
-        "/glasses-for-face-shape is a different stem"
-      ],
-      "rollbackClass": "delete-route",
-      "priority": "P2",
-      "feasibility": "B",
-      "activationGate": "none",
-      "requestLimitFailOpen": true
-    },
-    {
       "pattern": "www.visutry.com/en/face-shapes*",
       "layer": "layer2-worker",
       "expectedExecution": "worker",
@@ -619,6 +616,21 @@
       ],
       "rollbackClass": "delete-route",
       "priority": "P1",
+      "feasibility": "B",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
+    },
+    {
+      "pattern": "www.visutry.com/en/glasses-guide/*",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "glasses-guide detail slugs. Exact hub is a separate P1 route. Do not use glasses-guide* (greedy: glasses-guidebook).",
+      "excludedConflicts": [
+        "/glasses-for-face-shape is a different stem"
+      ],
+      "rollbackClass": "delete-route",
+      "priority": "P2",
       "feasibility": "B",
       "activationGate": "none",
       "requestLimitFailOpen": true
@@ -801,6 +813,19 @@
       "requestLimitFailOpen": true
     },
     {
+      "pattern": "www.visutry.com/id/glasses-guide",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "approved first-slice marketing/SEO HTML",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P1",
+      "feasibility": "A",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
+    },
+    {
       "pattern": "www.visutry.com/id/pricing",
       "layer": "layer2-worker",
       "expectedExecution": "worker",
@@ -918,21 +943,6 @@
       "requestLimitFailOpen": true
     },
     {
-      "pattern": "www.visutry.com/id/glasses-guide*",
-      "layer": "layer2-worker",
-      "expectedExecution": "worker",
-      "workerQuota": true,
-      "reason": "glasses-guide hub and slugs",
-      "excludedConflicts": [
-        "/glasses-for-face-shape is a different stem"
-      ],
-      "rollbackClass": "delete-route",
-      "priority": "P2",
-      "feasibility": "B",
-      "activationGate": "none",
-      "requestLimitFailOpen": true
-    },
-    {
       "pattern": "www.visutry.com/id/face-shapes*",
       "layer": "layer2-worker",
       "expectedExecution": "worker",
@@ -985,6 +995,21 @@
       ],
       "rollbackClass": "delete-route",
       "priority": "P1",
+      "feasibility": "B",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
+    },
+    {
+      "pattern": "www.visutry.com/id/glasses-guide/*",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "glasses-guide detail slugs. Exact hub is a separate P1 route. Do not use glasses-guide* (greedy: glasses-guidebook).",
+      "excludedConflicts": [
+        "/glasses-for-face-shape is a different stem"
+      ],
+      "rollbackClass": "delete-route",
+      "priority": "P2",
       "feasibility": "B",
       "activationGate": "none",
       "requestLimitFailOpen": true
@@ -1167,6 +1192,19 @@
       "requestLimitFailOpen": true
     },
     {
+      "pattern": "www.visutry.com/ar/glasses-guide",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "approved first-slice marketing/SEO HTML",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P1",
+      "feasibility": "A",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
+    },
+    {
       "pattern": "www.visutry.com/ar/pricing",
       "layer": "layer2-worker",
       "expectedExecution": "worker",
@@ -1284,21 +1322,6 @@
       "requestLimitFailOpen": true
     },
     {
-      "pattern": "www.visutry.com/ar/glasses-guide*",
-      "layer": "layer2-worker",
-      "expectedExecution": "worker",
-      "workerQuota": true,
-      "reason": "glasses-guide hub and slugs",
-      "excludedConflicts": [
-        "/glasses-for-face-shape is a different stem"
-      ],
-      "rollbackClass": "delete-route",
-      "priority": "P2",
-      "feasibility": "B",
-      "activationGate": "none",
-      "requestLimitFailOpen": true
-    },
-    {
       "pattern": "www.visutry.com/ar/face-shapes*",
       "layer": "layer2-worker",
       "expectedExecution": "worker",
@@ -1351,6 +1374,21 @@
       ],
       "rollbackClass": "delete-route",
       "priority": "P1",
+      "feasibility": "B",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
+    },
+    {
+      "pattern": "www.visutry.com/ar/glasses-guide/*",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "glasses-guide detail slugs. Exact hub is a separate P1 route. Do not use glasses-guide* (greedy: glasses-guidebook).",
+      "excludedConflicts": [
+        "/glasses-for-face-shape is a different stem"
+      ],
+      "rollbackClass": "delete-route",
+      "priority": "P2",
       "feasibility": "B",
       "activationGate": "none",
       "requestLimitFailOpen": true
@@ -1533,6 +1571,19 @@
       "requestLimitFailOpen": true
     },
     {
+      "pattern": "www.visutry.com/ru/glasses-guide",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "approved first-slice marketing/SEO HTML",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P1",
+      "feasibility": "A",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
+    },
+    {
       "pattern": "www.visutry.com/ru/pricing",
       "layer": "layer2-worker",
       "expectedExecution": "worker",
@@ -1650,21 +1701,6 @@
       "requestLimitFailOpen": true
     },
     {
-      "pattern": "www.visutry.com/ru/glasses-guide*",
-      "layer": "layer2-worker",
-      "expectedExecution": "worker",
-      "workerQuota": true,
-      "reason": "glasses-guide hub and slugs",
-      "excludedConflicts": [
-        "/glasses-for-face-shape is a different stem"
-      ],
-      "rollbackClass": "delete-route",
-      "priority": "P2",
-      "feasibility": "B",
-      "activationGate": "none",
-      "requestLimitFailOpen": true
-    },
-    {
       "pattern": "www.visutry.com/ru/face-shapes*",
       "layer": "layer2-worker",
       "expectedExecution": "worker",
@@ -1717,6 +1753,21 @@
       ],
       "rollbackClass": "delete-route",
       "priority": "P1",
+      "feasibility": "B",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
+    },
+    {
+      "pattern": "www.visutry.com/ru/glasses-guide/*",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "glasses-guide detail slugs. Exact hub is a separate P1 route. Do not use glasses-guide* (greedy: glasses-guidebook).",
+      "excludedConflicts": [
+        "/glasses-for-face-shape is a different stem"
+      ],
+      "rollbackClass": "delete-route",
+      "priority": "P2",
       "feasibility": "B",
       "activationGate": "none",
       "requestLimitFailOpen": true
@@ -1899,6 +1950,19 @@
       "requestLimitFailOpen": true
     },
     {
+      "pattern": "www.visutry.com/de/glasses-guide",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "approved first-slice marketing/SEO HTML",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P1",
+      "feasibility": "A",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
+    },
+    {
       "pattern": "www.visutry.com/de/pricing",
       "layer": "layer2-worker",
       "expectedExecution": "worker",
@@ -2016,21 +2080,6 @@
       "requestLimitFailOpen": true
     },
     {
-      "pattern": "www.visutry.com/de/glasses-guide*",
-      "layer": "layer2-worker",
-      "expectedExecution": "worker",
-      "workerQuota": true,
-      "reason": "glasses-guide hub and slugs",
-      "excludedConflicts": [
-        "/glasses-for-face-shape is a different stem"
-      ],
-      "rollbackClass": "delete-route",
-      "priority": "P2",
-      "feasibility": "B",
-      "activationGate": "none",
-      "requestLimitFailOpen": true
-    },
-    {
       "pattern": "www.visutry.com/de/face-shapes*",
       "layer": "layer2-worker",
       "expectedExecution": "worker",
@@ -2083,6 +2132,21 @@
       ],
       "rollbackClass": "delete-route",
       "priority": "P1",
+      "feasibility": "B",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
+    },
+    {
+      "pattern": "www.visutry.com/de/glasses-guide/*",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "glasses-guide detail slugs. Exact hub is a separate P1 route. Do not use glasses-guide* (greedy: glasses-guidebook).",
+      "excludedConflicts": [
+        "/glasses-for-face-shape is a different stem"
+      ],
+      "rollbackClass": "delete-route",
+      "priority": "P2",
       "feasibility": "B",
       "activationGate": "none",
       "requestLimitFailOpen": true
@@ -2265,6 +2329,19 @@
       "requestLimitFailOpen": true
     },
     {
+      "pattern": "www.visutry.com/ja/glasses-guide",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "approved first-slice marketing/SEO HTML",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P1",
+      "feasibility": "A",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
+    },
+    {
       "pattern": "www.visutry.com/ja/pricing",
       "layer": "layer2-worker",
       "expectedExecution": "worker",
@@ -2382,21 +2459,6 @@
       "requestLimitFailOpen": true
     },
     {
-      "pattern": "www.visutry.com/ja/glasses-guide*",
-      "layer": "layer2-worker",
-      "expectedExecution": "worker",
-      "workerQuota": true,
-      "reason": "glasses-guide hub and slugs",
-      "excludedConflicts": [
-        "/glasses-for-face-shape is a different stem"
-      ],
-      "rollbackClass": "delete-route",
-      "priority": "P2",
-      "feasibility": "B",
-      "activationGate": "none",
-      "requestLimitFailOpen": true
-    },
-    {
       "pattern": "www.visutry.com/ja/face-shapes*",
       "layer": "layer2-worker",
       "expectedExecution": "worker",
@@ -2449,6 +2511,21 @@
       ],
       "rollbackClass": "delete-route",
       "priority": "P1",
+      "feasibility": "B",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
+    },
+    {
+      "pattern": "www.visutry.com/ja/glasses-guide/*",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "glasses-guide detail slugs. Exact hub is a separate P1 route. Do not use glasses-guide* (greedy: glasses-guidebook).",
+      "excludedConflicts": [
+        "/glasses-for-face-shape is a different stem"
+      ],
+      "rollbackClass": "delete-route",
+      "priority": "P2",
       "feasibility": "B",
       "activationGate": "none",
       "requestLimitFailOpen": true
@@ -2631,6 +2708,19 @@
       "requestLimitFailOpen": true
     },
     {
+      "pattern": "www.visutry.com/es/glasses-guide",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "approved first-slice marketing/SEO HTML",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P1",
+      "feasibility": "A",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
+    },
+    {
       "pattern": "www.visutry.com/es/pricing",
       "layer": "layer2-worker",
       "expectedExecution": "worker",
@@ -2748,21 +2838,6 @@
       "requestLimitFailOpen": true
     },
     {
-      "pattern": "www.visutry.com/es/glasses-guide*",
-      "layer": "layer2-worker",
-      "expectedExecution": "worker",
-      "workerQuota": true,
-      "reason": "glasses-guide hub and slugs",
-      "excludedConflicts": [
-        "/glasses-for-face-shape is a different stem"
-      ],
-      "rollbackClass": "delete-route",
-      "priority": "P2",
-      "feasibility": "B",
-      "activationGate": "none",
-      "requestLimitFailOpen": true
-    },
-    {
       "pattern": "www.visutry.com/es/face-shapes*",
       "layer": "layer2-worker",
       "expectedExecution": "worker",
@@ -2815,6 +2890,21 @@
       ],
       "rollbackClass": "delete-route",
       "priority": "P1",
+      "feasibility": "B",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
+    },
+    {
+      "pattern": "www.visutry.com/es/glasses-guide/*",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "glasses-guide detail slugs. Exact hub is a separate P1 route. Do not use glasses-guide* (greedy: glasses-guidebook).",
+      "excludedConflicts": [
+        "/glasses-for-face-shape is a different stem"
+      ],
+      "rollbackClass": "delete-route",
+      "priority": "P2",
       "feasibility": "B",
       "activationGate": "none",
       "requestLimitFailOpen": true
@@ -2997,6 +3087,19 @@
       "requestLimitFailOpen": true
     },
     {
+      "pattern": "www.visutry.com/pt/glasses-guide",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "approved first-slice marketing/SEO HTML",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P1",
+      "feasibility": "A",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
+    },
+    {
       "pattern": "www.visutry.com/pt/pricing",
       "layer": "layer2-worker",
       "expectedExecution": "worker",
@@ -3114,21 +3217,6 @@
       "requestLimitFailOpen": true
     },
     {
-      "pattern": "www.visutry.com/pt/glasses-guide*",
-      "layer": "layer2-worker",
-      "expectedExecution": "worker",
-      "workerQuota": true,
-      "reason": "glasses-guide hub and slugs",
-      "excludedConflicts": [
-        "/glasses-for-face-shape is a different stem"
-      ],
-      "rollbackClass": "delete-route",
-      "priority": "P2",
-      "feasibility": "B",
-      "activationGate": "none",
-      "requestLimitFailOpen": true
-    },
-    {
       "pattern": "www.visutry.com/pt/face-shapes*",
       "layer": "layer2-worker",
       "expectedExecution": "worker",
@@ -3181,6 +3269,21 @@
       ],
       "rollbackClass": "delete-route",
       "priority": "P1",
+      "feasibility": "B",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
+    },
+    {
+      "pattern": "www.visutry.com/pt/glasses-guide/*",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "glasses-guide detail slugs. Exact hub is a separate P1 route. Do not use glasses-guide* (greedy: glasses-guidebook).",
+      "excludedConflicts": [
+        "/glasses-for-face-shape is a different stem"
+      ],
+      "rollbackClass": "delete-route",
+      "priority": "P2",
       "feasibility": "B",
       "activationGate": "none",
       "requestLimitFailOpen": true
@@ -3363,6 +3466,19 @@
       "requestLimitFailOpen": true
     },
     {
+      "pattern": "www.visutry.com/fr/glasses-guide",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "approved first-slice marketing/SEO HTML",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P1",
+      "feasibility": "A",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
+    },
+    {
       "pattern": "www.visutry.com/fr/pricing",
       "layer": "layer2-worker",
       "expectedExecution": "worker",
@@ -3480,21 +3596,6 @@
       "requestLimitFailOpen": true
     },
     {
-      "pattern": "www.visutry.com/fr/glasses-guide*",
-      "layer": "layer2-worker",
-      "expectedExecution": "worker",
-      "workerQuota": true,
-      "reason": "glasses-guide hub and slugs",
-      "excludedConflicts": [
-        "/glasses-for-face-shape is a different stem"
-      ],
-      "rollbackClass": "delete-route",
-      "priority": "P2",
-      "feasibility": "B",
-      "activationGate": "none",
-      "requestLimitFailOpen": true
-    },
-    {
       "pattern": "www.visutry.com/fr/face-shapes*",
       "layer": "layer2-worker",
       "expectedExecution": "worker",
@@ -3547,6 +3648,21 @@
       ],
       "rollbackClass": "delete-route",
       "priority": "P1",
+      "feasibility": "B",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
+    },
+    {
+      "pattern": "www.visutry.com/fr/glasses-guide/*",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "glasses-guide detail slugs. Exact hub is a separate P1 route. Do not use glasses-guide* (greedy: glasses-guidebook).",
+      "excludedConflicts": [
+        "/glasses-for-face-shape is a different stem"
+      ],
+      "rollbackClass": "delete-route",
+      "priority": "P2",
       "feasibility": "B",
       "activationGate": "none",
       "requestLimitFailOpen": true
@@ -3712,6 +3828,19 @@
       "requestLimitFailOpen": true
     },
     {
+      "pattern": "www.visutry.com/glasses-guide",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "locale-less first-slice 308",
+      "excludedConflicts": [],
+      "rollbackClass": "delete-route",
+      "priority": "P1",
+      "feasibility": "A",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
+    },
+    {
       "pattern": "www.visutry.com/pricing",
       "layer": "layer2-worker",
       "expectedExecution": "worker",
@@ -3829,21 +3958,6 @@
       "requestLimitFailOpen": true
     },
     {
-      "pattern": "www.visutry.com/glasses-guide*",
-      "layer": "layer2-worker",
-      "expectedExecution": "worker",
-      "workerQuota": true,
-      "reason": "locale-less glasses-guide hub and slugs",
-      "excludedConflicts": [
-        "/glasses-for-face-shape is a different stem"
-      ],
-      "rollbackClass": "delete-route",
-      "priority": "P2",
-      "feasibility": "B",
-      "activationGate": "none",
-      "requestLimitFailOpen": true
-    },
-    {
       "pattern": "www.visutry.com/face-shapes*",
       "layer": "layer2-worker",
       "expectedExecution": "worker",
@@ -3896,6 +4010,21 @@
       ],
       "rollbackClass": "delete-route",
       "priority": "P1",
+      "feasibility": "B",
+      "activationGate": "none",
+      "requestLimitFailOpen": true
+    },
+    {
+      "pattern": "www.visutry.com/glasses-guide/*",
+      "layer": "layer2-worker",
+      "expectedExecution": "worker",
+      "workerQuota": true,
+      "reason": "locale-less glasses-guide detail 308s. Exact hub is a separate P1 route. Do not use glasses-guide*.",
+      "excludedConflicts": [
+        "/glasses-for-face-shape is a different stem"
+      ],
+      "rollbackClass": "delete-route",
+      "priority": "P2",
       "feasibility": "B",
       "activationGate": "none",
       "requestLimitFailOpen": true

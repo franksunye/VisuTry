@@ -20,6 +20,18 @@ export function classifyStagingPublicSlice(request: Request): B4RouteDecision {
   return classifyB4ProductionPublicSlice(request)
 }
 
+/**
+ * Static Assets are tried first (`run_worker_first: false`). If this Worker
+ * still runs for `/_next/static/*`, the file is missing from the OpenNext
+ * asset bundle. Proxy that miss to Vercel so Vercel-rendered HTML can keep
+ * loading its own hashed chunks while Cloudflare HTML uses CF assets.
+ */
+export function shouldFallbackHashedStaticMissToVercel(request: Request, decision: B4RouteDecision): boolean {
+  if (decision.invocation !== 'static-asset') return false
+  const path = new URL(request.url).pathname
+  return path === '/_next/static' || path.startsWith('/_next/static/')
+}
+
 export function b4Layer(decision: B4RouteDecision): B4Layer {
   if (decision.invocation === 'static-asset') return 'layer1-static-asset'
   if (decision.backend === 'vercel') return 'layer3-vercel'

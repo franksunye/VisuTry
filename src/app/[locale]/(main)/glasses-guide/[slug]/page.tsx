@@ -21,7 +21,9 @@ export function generateStaticParams() {
   return COMBINATION_SEARCH_PAGES.map((page) => ({ slug: page.slug }))
 }
 
-export const dynamicParams = false
+// Vercel keeps this closed so unknown slugs cannot become ISR entries.
+// Cloudflare OpenNext 1.15.1 needs true to dispatch nested generated pages.
+export const dynamicParams = process.env.CLOUDFLARE_BUILD === '1'
 export const dynamic = 'force-static'
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {

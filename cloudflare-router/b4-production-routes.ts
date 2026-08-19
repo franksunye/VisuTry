@@ -44,7 +44,7 @@ export const B4_PRODUCTION_DNS_INSPECT_PATH = 'cloudflare-router/b4-production-d
 export type B4RoutePriority = 'P0' | 'P1' | 'P2'
 export type B4RouteLayer = 'layer1-static-asset' | 'layer2-worker'
 export type B4RouteFeasibility = 'A' | 'B' | 'C' | 'D'
-export type B4ActivationGate = 'none' | 'same-commit-asset-parity'
+export type B4ActivationGate = 'none' | 'same-commit-asset-parity' | 'asset-hit-or-vercel-miss'
 
 export interface B4ProductionDnsInspect {
   domain: string
@@ -86,12 +86,6 @@ const SAFE_HTML_WILDCARDS: Array<{ stem: string; priority: B4RoutePriority; reas
     priority: 'P2',
     reason: 'curated brand pages; unknown brand 404s on CF HTML, not Store/Campaign',
     excludedConflicts: [],
-  },
-  {
-    stem: '/glasses-guide',
-    priority: 'P2',
-    reason: 'glasses-guide hub and slugs',
-    excludedConflicts: ['/glasses-for-face-shape is a different stem'],
   },
   {
     stem: '/face-shapes',
@@ -160,12 +154,12 @@ export function generateB4ProductionWorkerRoutes(): B4ProductionWorkerRoute[] {
       layer: 'layer1-static-asset',
       expectedExecution: 'static-asset',
       workerQuota: 'asset-miss-only',
-      reason: 'hashed OpenNext Static Assets; production route is parity-gated because Vercel and CLOUDFLARE_BUILD=1 emit independent webpack graphs. Pattern is `/_next/static/*`, not `/_next/static*`.',
-      excludedConflicts: ['/_next/image stays unrouted', 'do not publish until same-commit Vercel files ⊆ CF assets'],
+      reason: 'hashed OpenNext Static Assets. Asset hits skip the Worker. Asset misses must proxy to Vercel so mixed HTML (CF glasses-guide + Vercel remainder) does not 404 foreign chunks. Pattern is `/_next/static/*`, not `/_next/static*`.',
+      excludedConflicts: ['/_next/image stays unrouted'],
       rollbackClass: 'delete-route',
       priority: 'P0',
       feasibility: 'B',
-      activationGate: 'same-commit-asset-parity',
+      activationGate: 'asset-hit-or-vercel-miss',
     })
   }
 
@@ -283,6 +277,18 @@ export function generateB4ProductionWorkerRoutes(): B4ProductionWorkerRoute[] {
     }
 
     push({
+      pattern: hostPattern(`/${locale}/glasses-guide/*`),
+      layer: 'layer2-worker',
+      expectedExecution: 'worker',
+      workerQuota: true,
+      reason: 'glasses-guide detail slugs. Exact hub is a separate P1 route. Do not use glasses-guide* (greedy: glasses-guidebook).',
+      excludedConflicts: ['/glasses-for-face-shape is a different stem'],
+      rollbackClass: 'delete-route',
+      priority: 'P2',
+      feasibility: 'B',
+    })
+
+    push({
       pattern: hostPattern(`/${locale}/style/*`),
       layer: 'layer2-worker',
       expectedExecution: 'worker',
@@ -324,6 +330,18 @@ export function generateB4ProductionWorkerRoutes(): B4ProductionWorkerRoute[] {
       feasibility: 'B',
     })
   }
+
+  push({
+    pattern: hostPattern('/glasses-guide/*'),
+    layer: 'layer2-worker',
+    expectedExecution: 'worker',
+    workerQuota: true,
+    reason: 'locale-less glasses-guide detail 308s. Exact hub is a separate P1 route. Do not use glasses-guide*.',
+    excludedConflicts: ['/glasses-for-face-shape is a different stem'],
+    rollbackClass: 'delete-route',
+    priority: 'P2',
+    feasibility: 'B',
+  })
 
   push({
     pattern: hostPattern('/style/*'),
@@ -409,7 +427,7 @@ export function routesForPriority(
   const allowed: B4RoutePriority[] = priority === 'P0' ? ['P0'] : priority === 'P1' ? ['P0', 'P1'] : ['P0', 'P1', 'P2']
   return routes.filter((route) => {
     if (!allowed.includes(route.priority)) return false
-    if (route.activationGate === 'same-commit-asset-parity' && !options?.includeParityGatedHashedStatic) return false
+    if (route.activationGate !== 'none' && !options?.includeParityGatedHashedStatic) return false
     return true
   })
 }
@@ -434,6 +452,49 @@ export function proposedCloudflareRouteApiPayload(
     request_limit_fail_open: B4_REQUIRED_REQUEST_LIMIT_FAIL_OPEN,
   }))
 }
+
+export function glassesGuideMigrationPatterns(): string[] {
+  return B4_LOCALES.flatMap((locale) => [
+    `${B4_PRODUCTION_PUBLIC_HOST}/${locale}/glasses-guide`,
+    `${B4_PRODUCTION_PUBLIC_HOST}/${locale}/glasses-guide/*`,
+  ])
+}
+
+export function proposedGlassesGuideMigrationPayload() {
+  const allow = new Set(glassesGuideMigrationPatterns())
+  return generateB4ProductionWorkerRoutes()
+    .filter((route) => allow.has(route.pattern))
+    .map((route) => ({
+      pattern: route.pattern,
+      script: B4_PRODUCTION_WORKER_NAME,
+      request_limit_fail_open: B4_REQUIRED_REQUEST_LIMIT_FAIL_OPEN,
+    }))
+}
+
+export function proposedHashedStaticMissFallbackPayload() {
+  return [
+    {
+      pattern: `${B4_PRODUCTION_PUBLIC_HOST}/_next/static/*`,
+      script: B4_PRODUCTION_WORKER_NAME,
+      request_limit_fail_open: B4_REQUIRED_REQUEST_LIMIT_FAIL_OPEN,
+    },
+  ]
+}
+
+export const P0_F1_EXISTING_UNGATED_P0 = [
+  `${B4_PRODUCTION_PUBLIC_HOST}/blog-covers/*`,
+  `${B4_PRODUCTION_PUBLIC_HOST}/assets/*`,
+  `${B4_PRODUCTION_PUBLIC_HOST}/images/*`,
+  `${B4_PRODUCTION_PUBLIC_HOST}/home/*`,
+  `${B4_PRODUCTION_PUBLIC_HOST}/experience-heroes/*`,
+  `${B4_PRODUCTION_PUBLIC_HOST}/favicon.ico`,
+  `${B4_PRODUCTION_PUBLIC_HOST}/robots.txt`,
+  `${B4_PRODUCTION_PUBLIC_HOST}/llms.txt`,
+  `${B4_PRODUCTION_PUBLIC_HOST}/api/health`,
+  `${B4_PRODUCTION_PUBLIC_HOST}/api/glasses/brands`,
+  `${B4_PRODUCTION_PUBLIC_HOST}/api/glasses/categories`,
+  `${B4_PRODUCTION_PUBLIC_HOST}/api/glasses/face-shapes`,
+] as const
 
 export function readProductionWwwDnsInspect(inspectJson?: string): B4ProductionDnsInspect {
   const raw = inspectJson ?? fs.readFileSync(path.join(__dirname, 'b4-production-dns.inspect.json'), 'utf8')
@@ -594,8 +655,15 @@ export function assertSafeB4ProductionRoutes(routes = generateB4ProductionWorker
     if (route.requestLimitFailOpen !== true) {
       errors.push(`${route.pattern} is not request-limit fail-open`)
     }
-    if (route.pattern.includes('/_next/static') && route.activationGate !== 'same-commit-asset-parity') {
-      errors.push(`${route.pattern} must stay behind same-commit-asset-parity`)
+    if (route.pattern.includes('glasses-guide*') && !route.pattern.includes('glasses-guide/*')) {
+      errors.push(`greedy glasses-guide wildcard ${route.pattern}`)
+    }
+    if (
+      route.pattern.includes('/_next/static')
+      && route.activationGate !== 'same-commit-asset-parity'
+      && route.activationGate !== 'asset-hit-or-vercel-miss'
+    ) {
+      errors.push(`${route.pattern} must stay behind an activation gate`)
     }
     if (
       route.layer === 'layer1-static-asset'

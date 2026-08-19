@@ -87,8 +87,15 @@ const nextConfig = {
   },
   // Keep Vercel Auth env inlining on the Node/Next build. Cloudflare builds
   // must not bake NEXTAUTH_* into the Worker; staging supplies them via wrangler.
+  // CLOUDFLARE_BUILD must be inlined during the CF Next compile so OpenNext can
+  // dispatch nested generated pages (`dynamicParams`). Wrangler also sets the
+  // same var at runtime for already-built Worker bundles.
   ...(process.env.CLOUDFLARE_BUILD === '1'
-    ? {}
+    ? {
+        env: {
+          CLOUDFLARE_BUILD: '1',
+        },
+      }
     : {
         env: {
           NEXTAUTH_URL: process.env.NEXTAUTH_URL,

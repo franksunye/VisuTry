@@ -110,7 +110,7 @@ describe('B4.2B scoped production Worker Routes', () => {
     expect(wwwWorkerRouteMatch('/en/store', '', p0)).toBeNull()
     expect(wwwWorkerRouteMatch('/api/health', '', p0)?.priority).toBe('P0')
     expect(wwwWorkerRouteMatch('/_next/static/chunks/app.js', '', p0)).toBeNull()
-    expect(wwwWorkerRouteMatch('/_next/static/chunks/app.js', '', routes)?.activationGate).toBe('same-commit-asset-parity')
+    expect(wwwWorkerRouteMatch('/_next/static/chunks/app.js', '', routes)?.activationGate).toBe('asset-hit-or-vercel-miss')
     expect(
       wwwWorkerRouteMatch(
         '/_next/static/chunks/app.js',

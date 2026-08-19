@@ -23,9 +23,11 @@
     }
   },
   // Production Worker name lives under env.production. Do NOT list www
-  // Worker Routes or custom_domain here. B4.2D attaches exactly 12 ungated
-  // P0 routes through the Cloudflare Routes API after deploy. Copying the
-  // 286-route review manifest into wrangler would publish P1/P2 by accident.
+  // Worker Routes or custom_domain here. B4.2D attached 12 ungated P0 routes
+  // through the Cloudflare Routes API after deploy. P0-F1 attaches 18
+  // glasses-guide locale routes the same way, plus `/_next/static/*` with
+  // asset-hit / Vercel-miss fallback. Copying the review manifest into
+  // wrangler would publish unrelated P1/P2 routes by accident.
   // `npm run deploy:cloudflare` remains staging-only.
   // Workers Builds: connect Git to visutry-cf-staging or visutry-cf-production
   // separately. Dashboard Worker name must match wrangler env name. Never add
@@ -49,7 +51,8 @@
         "ROUTER_ENV": "staging",
         "NEXTAUTH_URL": "https://visutry-cf-staging.sunye.workers.dev",
         "VERCEL_ORIGIN": "https://visutry.vercel.app",
-        "PUBLIC_HOST": "visutry-cf-staging.sunye.workers.dev"
+        "PUBLIC_HOST": "visutry-cf-staging.sunye.workers.dev",
+        "CLOUDFLARE_BUILD": "1"
       }
     },
     "production": {
@@ -59,7 +62,8 @@
         "ROUTER_ENV": "production",
         "NEXTAUTH_URL": "https://www.visutry.com",
         "VERCEL_ORIGIN": "https://visutry.vercel.app",
-        "PUBLIC_HOST": "www.visutry.com"
+        "PUBLIC_HOST": "www.visutry.com",
+        "CLOUDFLARE_BUILD": "1"
       }
     }
   }
