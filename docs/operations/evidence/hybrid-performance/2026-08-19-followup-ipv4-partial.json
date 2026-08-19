@@ -1,0 +1,54 @@
+{
+  "kind": "visutry-hybrid-performance-followup-partial",
+  "note": "Parsed from sampler stderr after visutry.vercel.app and the git alias began returning 403 challenge. No cookies, Authorization, or challenge tokens stored.",
+  "client": "single macOS IPv4 curl, concurrency 1, GET, paced",
+  "runs": [
+    {
+      "id": "ipv4-visutry.vercel.app",
+      "vercelOrigin": "https://visutry.vercel.app",
+      "routes": {
+        "/": {
+          "hybrid": { "n200": 30, "ttfbP50": 1765, "ttfbP95": 3610.5 },
+          "vercel": { "n200": 30, "ttfbP50": 1953, "ttfbP95": 2885.4 },
+          "deltaMs": -188,
+          "deltaPct": -9.6,
+          "winner": "hybrid"
+        },
+        "/en": {
+          "hybrid": { "n200": 30, "ttfbP50": 1222, "ttfbP95": 1993.4 },
+          "vercel": { "n200": 26, "n403": 4, "ttfbP50": 1308, "ttfbP95": 2378.8 },
+          "deltaMs": -86,
+          "deltaPct": -6.6,
+          "winner": "hybrid"
+        },
+        "/en/face-analysis": {
+          "hybrid": { "n200": 30, "ttfbP50": 1317, "ttfbP95": 3863.9 },
+          "vercel": { "n200": 0, "n403": 30 },
+          "winner": "incomparable",
+          "reason": "vercel-403-challenge"
+        }
+      }
+    },
+    {
+      "id": "ipv4-git-alias",
+      "vercelOrigin": "https://visutry-git-main-sunye.vercel.app",
+      "aborted": "vercel-403-streak on /en/face-analysis warmup",
+      "routes": {
+        "/": {
+          "hybrid": { "n200": 30, "ttfbP50": 1838, "ttfbP95": 3424.1 },
+          "vercel": { "n200": 30, "ttfbP50": 1742.5, "ttfbP95": 3139.4 },
+          "deltaMs": 95.5,
+          "deltaPct": 5.5,
+          "winner": "vercel"
+        },
+        "/en": {
+          "hybrid": { "n200": 30, "ttfbP50": 1718, "ttfbP95": 2950.5 },
+          "vercel": { "n200": 26, "n403": 4, "ttfbP50": 1649.5, "ttfbP95": 4016.0 },
+          "deltaMs": 68.5,
+          "deltaPct": 4.2,
+          "winner": "neutral"
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,413 @@
+{
+  "kind": "visutry-hybrid-performance-aggregate",
+  "startedAt": "2026-08-19T03:27:53.334Z",
+  "endedAt": "2026-08-19T03:41:50.292Z",
+  "validation": {
+    "kind": "visutry-hybrid-performance-validation",
+    "startedAt": "2026-08-19T03:27:53.334Z",
+    "baseline": {
+      "hybridOrigin": "https://www.visutry.com",
+      "vercelOrigin": "https://visutry.vercel.app",
+      "cleanBaseline": true,
+      "stopReason": null,
+      "vercelChecks": [
+        {
+          "path": "/",
+          "ok": true,
+          "server": "vercel",
+          "hasCfRay": false,
+          "hasCfCache": false,
+          "redirectedToWww": false,
+          "finalHost": "visutry.vercel.app",
+          "httpStatus": 200,
+          "redirectCount": 1,
+          "firstLocation": "/en",
+          "finalUrl": "https://visutry.vercel.app/en",
+          "xMatchedPath": "/en"
+        },
+        {
+          "path": "/en",
+          "ok": true,
+          "server": "vercel",
+          "hasCfRay": false,
+          "hasCfCache": false,
+          "redirectedToWww": false,
+          "finalHost": "visutry.vercel.app",
+          "httpStatus": 200,
+          "redirectCount": 0,
+          "firstLocation": null,
+          "finalUrl": "https://visutry.vercel.app/en",
+          "xMatchedPath": "/en"
+        },
+        {
+          "path": "/en/face-analysis",
+          "ok": true,
+          "server": "vercel",
+          "hasCfRay": false,
+          "hasCfCache": false,
+          "redirectedToWww": false,
+          "finalHost": "visutry.vercel.app",
+          "httpStatus": 200,
+          "redirectCount": 0,
+          "firstLocation": null,
+          "finalUrl": "https://visutry.vercel.app/en/face-analysis",
+          "xMatchedPath": "/en/face-analysis"
+        },
+        {
+          "path": "/en/glasses-guide",
+          "ok": true,
+          "server": "vercel",
+          "hasCfRay": false,
+          "hasCfCache": false,
+          "redirectedToWww": false,
+          "finalHost": "visutry.vercel.app",
+          "httpStatus": 200,
+          "redirectCount": 0,
+          "firstLocation": null,
+          "finalUrl": "https://visutry.vercel.app/en/glasses-guide",
+          "xMatchedPath": "/en/glasses-guide"
+        }
+      ],
+      "sameVersionAlias": {
+        "origin": "https://visutry-git-main-sunye.vercel.app",
+        "ok": true,
+        "httpStatus": 200,
+        "server": "Vercel",
+        "hasCfRay": false,
+        "finalHost": "visutry-git-main-sunye.vercel.app",
+        "note": "Existing git production alias. Not used as the sample origin; production fallback remains visutry.vercel.app."
+      }
+    },
+    "glassesGuideDetail": {
+      "path": "/en/glasses-guide/best-rectangle-glasses-for-round-face",
+      "owner": "cloudflare",
+      "comparable": false,
+      "hybridStatus": 404,
+      "vercelStatus": 200,
+      "reason": "Vercel 200 / Hybrid 404; not semantically equivalent"
+    },
+    "slugProbes": [
+      {
+        "path": "/en/glasses-guide/rectangle-glasses",
+        "hybridStatus": 404,
+        "vercelStatus": 404,
+        "hybridBackend": "cloudflare",
+        "vercelServer": "Vercel"
+      },
+      {
+        "path": "/en/glasses-guide/best-rectangle-glasses-for-round-face",
+        "hybridStatus": 404,
+        "vercelStatus": 200,
+        "hybridBackend": "cloudflare",
+        "vercelServer": "Vercel"
+      }
+    ]
+  },
+  "summaryText": "VISUTRY HYBRID PERFORMANCE RESULT\n\nFallback routes:\nHybrid vs Direct Vercel\nMedian TTFB difference: +17.5 ms (+1.2%)\nResult: EFFECTIVELY NEUTRAL\n\nCloudflare-owned Glasses Guide:\nHybrid vs Direct Vercel\nMedian TTFB improvement: n/a ms (n/a)\nResult: INCONCLUSIVE\n\nSampled routes:\nHybrid wins: 1 / 2\nVercel wins: 1 / 2\nNeutral: 0 / 2\n\nOVERALL:\nCF + Vercel is EFFECTIVELY NEUTRAL for this small sample.\n\nCaveats:\n- Exploratory first-round sample from one client network. Not an SLO.\n- p50 is the primary intuitive metric; p95 is for tail regression only.\n- Fallback penalty and Cloudflare-owned gain are reported separately and must not be averaged.\n- Direct Vercel origin: https://visutry.vercel.app. Same-version git alias observed: https://visutry-git-main-sunye.vercel.app.\n- /en/glasses-guide/best-rectangle-glasses-for-round-face is Cloudflare-owned on www but Hybrid returned 404 while Vercel returned 200. It is sampled for evidence and excluded from win/gain statistics.\n",
+  "overall": "CF + Vercel is EFFECTIVELY NEUTRAL",
+  "fallbackVerdict": {
+    "label": "EFFECTIVELY NEUTRAL",
+    "magnitude": "neutral"
+  },
+  "cloudflareVerdict": {
+    "label": "INCONCLUSIVE",
+    "magnitude": "n/a"
+  },
+  "fallbackMedian": {
+    "hybrid": 1496.3,
+    "vercel": 1478.8,
+    "deltaMs": 17.5,
+    "deltaPct": 1.2
+  },
+  "cloudflareMedian": {
+    "hybrid": null,
+    "vercel": null,
+    "deltaMs": null,
+    "deltaPct": null
+  },
+  "fallbackPenalty": [
+    {
+      "route": "/",
+      "hybridMinusVercelTtfbMs": -185,
+      "hybridMinusVercelTtfbPct": -10.6,
+      "hybridMinusVercelTotalMs": -258,
+      "hybridMinusVercelTotalPct": -9.9
+    },
+    {
+      "route": "/en",
+      "hybridMinusVercelTtfbMs": 220,
+      "hybridMinusVercelTtfbPct": 18.1,
+      "hybridMinusVercelTotalMs": 96,
+      "hybridMinusVercelTotalPct": 4.4
+    }
+  ],
+  "cloudflareGain": [],
+  "rows": [
+    {
+      "path": "/",
+      "owner": "vercel-fallback",
+      "comparable": true,
+      "comparableReason": "both endpoints returned success after redirects",
+      "observedHybrid": {
+        "expectedOwner": "vercel-fallback",
+        "observed": "cloudflare-proxy-vercel",
+        "backend": null,
+        "layer": null,
+        "invocation": null
+      },
+      "observedVercel": {
+        "expectedOwner": "direct-vercel",
+        "observed": "direct-vercel",
+        "backend": null,
+        "layer": null,
+        "invocation": null
+      },
+      "hybrid": {
+        "n": 30,
+        "ok": 30,
+        "errorRate": 0,
+        "ttfbP50": 1556,
+        "ttfbP95": 2501.5,
+        "totalP50": 2361,
+        "totalP95": 3567.4,
+        "statuses": {
+          "200": 30
+        }
+      },
+      "vercel": {
+        "n": 30,
+        "ok": 30,
+        "errorRate": 0,
+        "ttfbP50": 1741,
+        "ttfbP95": 3108.2,
+        "totalP50": 2619,
+        "totalP95": 4242.5,
+        "statuses": {
+          "200": 30
+        }
+      },
+      "pair": {
+        "ttfbDeltaMs": -185,
+        "ttfbDeltaPct": -10.6,
+        "totalDeltaMs": -258,
+        "totalDeltaPct": -9.9,
+        "winner": "hybrid"
+      },
+      "winner": "hybrid"
+    },
+    {
+      "path": "/en",
+      "owner": "vercel-fallback",
+      "comparable": true,
+      "comparableReason": "both endpoints returned success after redirects",
+      "observedHybrid": {
+        "expectedOwner": "vercel-fallback",
+        "observed": "cloudflare-proxy-vercel",
+        "backend": null,
+        "layer": null,
+        "invocation": null
+      },
+      "observedVercel": {
+        "expectedOwner": "direct-vercel",
+        "observed": "direct-vercel",
+        "backend": null,
+        "layer": null,
+        "invocation": null
+      },
+      "hybrid": {
+        "n": 30,
+        "ok": 30,
+        "errorRate": 0,
+        "ttfbP50": 1436.5,
+        "ttfbP95": 2856.2,
+        "totalP50": 2292,
+        "totalP95": 3970.8,
+        "statuses": {
+          "200": 30
+        }
+      },
+      "vercel": {
+        "n": 30,
+        "ok": 26,
+        "errorRate": 0.13333333333333333,
+        "ttfbP50": 1216.5,
+        "ttfbP95": 2026.3,
+        "totalP50": 2196,
+        "totalP95": 3038.8,
+        "statuses": {
+          "200": 26,
+          "403": 4
+        }
+      },
+      "pair": {
+        "ttfbDeltaMs": 220,
+        "ttfbDeltaPct": 18.1,
+        "totalDeltaMs": 96,
+        "totalDeltaPct": 4.4,
+        "winner": "vercel"
+      },
+      "winner": "vercel"
+    },
+    {
+      "path": "/en/face-analysis",
+      "owner": "vercel-fallback",
+      "comparable": false,
+      "comparableReason": "not comparable",
+      "observedHybrid": {
+        "expectedOwner": "vercel-fallback",
+        "observed": "cloudflare-proxy-vercel",
+        "backend": null,
+        "layer": null,
+        "invocation": null
+      },
+      "observedVercel": {
+        "expectedOwner": "direct-vercel",
+        "observed": "direct-vercel",
+        "backend": null,
+        "layer": null,
+        "invocation": null
+      },
+      "hybrid": {
+        "n": 30,
+        "ok": 30,
+        "errorRate": 0,
+        "ttfbP50": 1278,
+        "ttfbP95": 2292.9,
+        "totalP50": 2071,
+        "totalP95": 3195.8,
+        "statuses": {
+          "200": 30
+        }
+      },
+      "vercel": {
+        "n": 30,
+        "ok": 0,
+        "errorRate": 1,
+        "ttfbP50": null,
+        "ttfbP95": null,
+        "totalP50": null,
+        "totalP95": null,
+        "statuses": {
+          "403": 30
+        }
+      },
+      "pair": {
+        "ttfbDeltaMs": null,
+        "ttfbDeltaPct": null,
+        "totalDeltaMs": null,
+        "totalDeltaPct": null,
+        "winner": "incomparable"
+      },
+      "winner": "incomparable"
+    },
+    {
+      "path": "/en/glasses-guide",
+      "owner": "cloudflare",
+      "comparable": false,
+      "comparableReason": "not comparable",
+      "observedHybrid": {
+        "expectedOwner": "cloudflare",
+        "observed": "cloudflare-worker",
+        "backend": "cloudflare",
+        "layer": "layer2-worker",
+        "invocation": "worker"
+      },
+      "observedVercel": {
+        "expectedOwner": "direct-vercel",
+        "observed": "direct-vercel",
+        "backend": null,
+        "layer": null,
+        "invocation": null
+      },
+      "hybrid": {
+        "n": 30,
+        "ok": 30,
+        "errorRate": 0,
+        "ttfbP50": 1538.5,
+        "ttfbP95": 3567.3,
+        "totalP50": 2448,
+        "totalP95": 4791.2,
+        "statuses": {
+          "200": 30
+        }
+      },
+      "vercel": {
+        "n": 30,
+        "ok": 0,
+        "errorRate": 1,
+        "ttfbP50": null,
+        "ttfbP95": null,
+        "totalP50": null,
+        "totalP95": null,
+        "statuses": {
+          "403": 30
+        }
+      },
+      "pair": {
+        "ttfbDeltaMs": null,
+        "ttfbDeltaPct": null,
+        "totalDeltaMs": null,
+        "totalDeltaPct": null,
+        "winner": "incomparable"
+      },
+      "winner": "incomparable"
+    },
+    {
+      "path": "/en/glasses-guide/best-rectangle-glasses-for-round-face",
+      "owner": "cloudflare",
+      "comparable": false,
+      "comparableReason": "Vercel 200 / Hybrid 404; not semantically equivalent",
+      "observedHybrid": {
+        "expectedOwner": "cloudflare",
+        "observed": "cloudflare-worker",
+        "backend": "cloudflare",
+        "layer": "layer2-worker",
+        "invocation": "worker"
+      },
+      "observedVercel": {
+        "expectedOwner": "direct-vercel",
+        "observed": "direct-vercel",
+        "backend": null,
+        "layer": null,
+        "invocation": null
+      },
+      "hybrid": {
+        "n": 30,
+        "ok": 0,
+        "errorRate": 1,
+        "ttfbP50": null,
+        "ttfbP95": null,
+        "totalP50": null,
+        "totalP95": null,
+        "statuses": {
+          "404": 30
+        }
+      },
+      "vercel": {
+        "n": 30,
+        "ok": 0,
+        "errorRate": 1,
+        "ttfbP50": null,
+        "ttfbP95": null,
+        "totalP50": null,
+        "totalP95": null,
+        "statuses": {
+          "403": 30
+        }
+      },
+      "pair": {
+        "ttfbDeltaMs": null,
+        "ttfbDeltaPct": null,
+        "totalDeltaMs": null,
+        "totalDeltaPct": null,
+        "winner": "incomparable"
+      },
+      "winner": "incomparable"
+    }
+  ],
+  "evidence": {
+    "rawPath": "docs/operations/evidence/hybrid-performance/2026-08-19T03-41-50-292Z-raw-samples.json",
+    "aggPath": "docs/operations/evidence/hybrid-performance/2026-08-19T03-41-50-292Z-aggregate.json",
+    "mdPath": "docs/operations/evidence/hybrid-performance/2026-08-19T03-41-50-292Z-summary.md"
+  }
+}

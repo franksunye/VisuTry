@@ -428,6 +428,21 @@ The harness should eventually support:
 
 The benchmark harness must be read-only by default.
 
+### 16.1 First-round GET sampler (2026-08-19)
+
+A minimal, concurrency-1 sampler now lives in-repo:
+
+```bash
+npm run perf:hybrid-sample:validate
+npm run perf:hybrid-sample
+```
+
+It alternates Hybrid (`https://www.visutry.com`) and Direct Vercel (`https://visutry.vercel.app` or `--vercel-origin`) GET requests, records DNS/TCP/TLS/TTFB/total plus safe routing headers, and writes evidence under `docs/operations/evidence/hybrid-performance/`.
+
+This is diagnostic only. It does not replace RUM, p99, or the P0-F1 production-cutover protocol. First-round result from one client network: **INCONCLUSIVE** — fallback routes mixed; Cloudflare-owned Glasses Guide gain not comparable at n=30 because `*.vercel.app` returned 403 challenge and OpenNext detail slugs 404ed. See `docs/operations/evidence/hybrid-performance/2026-08-19-canonical-summary.md`.
+
+If Direct Vercel starts returning 403 with `x-vercel-mitigated: challenge`, stop. Do not change Worker Routes, DNS, or Vercel config to manufacture a baseline.
+
 ## 17. What Success Looks Like
 
 The hybrid architecture is successful when:
@@ -446,6 +461,7 @@ Performance is therefore not a one-off optimization phase. It is a standing prod
 
 ## Related Documents
 
+- `docs/operations/evidence/hybrid-performance/2026-08-19-canonical-summary.md`
 - `docs/operations/hosting-strategy-vercel-cloudflare.md`
 - `docs/operations/cloudflare-b4-2d-p0-production-cutover.md`
 - `docs/operations/cloudflare-production-route-boundary.md`
