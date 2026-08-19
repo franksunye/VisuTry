@@ -1,5 +1,6 @@
 {
   "framework": "nextjs",
+  "ignoreCommand": "bash scripts/vercel-ignore-build.sh",
   "functions": {
     "src/app/api/try-on/route.ts": {
       "maxDuration": 60
