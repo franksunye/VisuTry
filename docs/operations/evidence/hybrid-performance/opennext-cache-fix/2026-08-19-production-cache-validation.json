@@ -1,0 +1,28 @@
+{
+  "generatedAt": "2026-08-19T10:20:54.508Z",
+  "origin": "https://www.visutry.com",
+  "workerVersion": "b3ecf2b2",
+  "hub": {
+    "path": "/en/glasses-guide",
+    "attempts": [
+      { "status": 200, "x-nextjs-cache": "HIT", "x-visutry-router-backend": "cloudflare", "x-visutry-router-layer": "layer2-worker", "cf-ray": "a2d86dac1d642f50-LAX" },
+      { "status": 200, "x-nextjs-cache": "HIT", "x-visutry-router-backend": "cloudflare", "x-visutry-router-layer": "layer2-worker", "cf-ray": "a2d86db97e26b103-LAX" },
+      { "status": 200, "x-nextjs-cache": "HIT", "x-visutry-router-backend": "cloudflare", "x-visutry-router-layer": "layer2-worker", "cf-ray": "a2d86dc82afbdcee-LAX" }
+    ]
+  },
+  "detail": {
+    "path": "/en/glasses-guide/best-rectangle-glasses-for-round-face",
+    "attempts": [
+      { "status": 200, "x-nextjs-cache": "HIT", "x-visutry-router-backend": "cloudflare", "x-visutry-router-layer": "layer2-worker", "cf-ray": "a2d86dce7ff552cc-LAX" },
+      { "status": 200, "x-nextjs-cache": "HIT", "x-visutry-router-backend": "cloudflare", "x-visutry-router-layer": "layer2-worker", "cf-ray": "a2d86dd93921a733-LAX" },
+      { "status": 200, "x-nextjs-cache": "HIT", "x-visutry-router-backend": "cloudflare", "x-visutry-router-layer": "layer2-worker", "cf-ray": "a2d86de5bfa9adfc-LAX" }
+    ]
+  },
+  "control": {
+    "path": "/api/health",
+    "status": 200,
+    "x-visutry-router-backend": "cloudflare",
+    "x-visutry-router-layer": "layer2-worker"
+  },
+  "result": "PASS — no longer MISS/MISS/MISS"
+}

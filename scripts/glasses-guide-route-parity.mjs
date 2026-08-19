@@ -3,7 +3,7 @@
  * Bounded Hybrid vs Direct Vercel parity for Glasses Guide after cache fix.
  */
 import { spawnSync } from 'node:child_process'
-import { mkdtempSync, readFileSync, rmSync } from 'node:fs'
+import { mkdtempSync, readFileSync, rmSync, existsSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 
@@ -42,9 +42,19 @@ function request(origin, path, init = {}) {
         args.push('-H', `${key}: ${value}`)
       }
     }
-    const result = spawnSync('curl', args, { encoding: 'utf8' })
+    const result = spawnSync('/usr/bin/curl', args, { encoding: 'utf8' })
+    if (result.status !== 0) {
+      return {
+        status: null,
+        canonical: null,
+        rtl: false,
+        title: null,
+        headers: {},
+        error: (result.stderr || 'curl failed').trim().slice(0, 300),
+      }
+    }
     const headerRaw = readFileSync(headerFile, 'utf8')
-    const body = readFileSync(bodyFile).toString('utf8')
+    const body = init.method === 'HEAD' || !existsSync(bodyFile) ? '' : readFileSync(bodyFile).toString('utf8')
     const blocks = headerRaw.split(/\r?\n\r?\n/).filter(Boolean)
     const last = blocks.at(-1) || ''
     const headers = {}

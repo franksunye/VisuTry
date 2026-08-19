@@ -1,0 +1,20 @@
+{
+  "generatedAt": "2026-08-19T10:32:12.718Z",
+  "methodology": {
+    "warmup": 2,
+    "measured": 8,
+    "concurrency": 1,
+    "endpoint": "https://www.visutry.com only (Hybrid)",
+    "note": "Direct Vercel baseline unreachable (timeout) from validation environment; full alternating harness not completed"
+  },
+  "hybridTtfbP50Seconds": {
+    "/": 1.076,
+    "/en": 0.711,
+    "/en/glasses-guide": 1.492,
+    "/en/glasses-guide/best-rectangle-glasses-for-round-face": 0.728
+  },
+  "cacheHeadersObserved": {
+    "/en/glasses-guide": "HIT",
+    "/en/glasses-guide/best-rectangle-glasses-for-round-face": "HIT"
+  }
+}

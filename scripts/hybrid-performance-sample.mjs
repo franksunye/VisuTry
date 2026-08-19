@@ -11,7 +11,7 @@
  */
 
 import { spawnSync } from 'node:child_process'
-import { mkdtempSync, readFileSync, rmSync, writeFileSync, mkdirSync } from 'node:fs'
+import { mkdtempSync, readFileSync, rmSync, writeFileSync, mkdirSync, existsSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 
@@ -169,7 +169,7 @@ function requestOnce(url, timeoutSec) {
   const bodyFile = join(dir, 'body.bin')
   try {
     const result = spawnSync(
-      'curl',
+      '/usr/bin/curl',
       [
         '-sS', '-4', '--http2', '--location', '--max-redirs', '5',
         '--max-time', String(timeoutSec),
@@ -181,7 +181,7 @@ function requestOnce(url, timeoutSec) {
       { encoding: 'utf8' },
     )
     const headerRaw = readFileSync(headerFile, 'utf8')
-    const body = readFileSync(bodyFile)
+    const body = existsSync(bodyFile) ? readFileSync(bodyFile) : Buffer.alloc(0)
     const blocks = parseHeaderBlocks(headerRaw)
     const finalBlock = blocks.at(-1) || { status: null, headers: {} }
     const writeout = parseWriteout(result.stdout || '')

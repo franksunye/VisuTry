@@ -1,26 +1,42 @@
-# OpenNext cache fix — performance summary
+# OpenNext cache fix — production validation summary
 
 **Date:** 2026-08-19  
-**Branch:** `fix/opennext-static-assets-incremental-cache`
+**Main merge:** `a5dee4919617a4f3cffb8547266fccd46434e337` (PR #115)  
+**Production Worker version:** `b3ecf2b2`
 
-## Before (prior valid sample)
+## Root cause (confirmed)
 
-Source: `docs/operations/evidence/hybrid-performance/2026-08-19T05-40-57-463Z-summary.md`
+OpenNext `defineCloudflareConfig()` with no `incrementalCache` defaulted to **dummy**, causing permanent `x-nextjs-cache: MISS` and full HTML re-render on every Cloudflare Worker invocation for force-static Glasses Guide pages.
+
+## Fix (deployed)
+
+- `staticAssetsIncrementalCache` from `@opennextjs/cloudflare` wired in `open-next.config.ts`
+- Reuses existing `ASSETS` binding — **no new Cloudflare resource**
+- `build:cloudflare` populates `.open-next/cache` → `.open-next/assets/cdn-cgi/_next_cache`
+- Cache interception remains off (real `x-nextjs-cache` semantics preserved)
+- Deployed via GitHub `main` → Workers Builds automatic pipeline
+
+## Before (valid baseline `2026-08-19T05-40-57-463Z`)
 
 | Class | Median TTFB delta (Hybrid − Vercel) | Cache | Result |
 | --- | ---: | --- | --- |
 | Fallback (`/`, `/en`) | +0.6% | n/a | EFFECTIVELY NEUTRAL |
-| Cloudflare-owned Glasses Guide | **+41.2%** | Hybrid `x-nextjs-cache: MISS`; Vercel `x-vercel-cache: HIT` | **HYBRID SLOWER** |
+| Cloudflare-owned Glasses Guide | **+41.2%** | Hybrid `MISS`; Vercel `HIT` | **HYBRID SLOWER** |
 
-## After (this fix)
+## After (production post-merge)
 
-| Environment | Status |
+| Check | Result |
 | --- | --- |
-| Local Wrangler preview | Cache symmetry restored: valid routes `x-nextjs-cache: HIT` on every request |
-| Production www | **INCONCLUSIVE** — deploy window saw competing Worker overwrite (`450d20d4` @ 09:34Z); post-rollback www Glasses Guide served from **Vercel** (`server: Vercel`), not Layer 2 Cloudflare |
+| Production ownership (hub/detail) | **CLOUDFLARE** (`x-visutry-router-backend: cloudflare`, `layer2-worker`) |
+| Production cache (hub/detail ×3) | **HIT / HIT / HIT** (was permanent MISS) |
+| Worker CPU time (24h dashboard) | **−85.4%** after deploy |
+| Hybrid vs Direct Vercel TTFB delta | **INCONCLUSIVE** — `visutry.vercel.app` timed out from validation environment; rerun `npm run perf:hybrid-sample` from a network with Direct Vercel access |
 
-Hybrid vs Direct Vercel post-fix median: **not measured** (production route ownership regressed during validation; rerun `npm run perf:hybrid-sample` only after P0-F1 routes and cache-fix Worker version are confirmed live).
+## 41.2% gap
 
-## Expected outcome once re-promoted
+**PARTIALLY validated:** cache symmetry restored (Hybrid HIT matches Vercel ISR/CDN class). Full TTFB delta re-measurement blocked on Direct Vercel reachability; expect gap collapse toward fallback (+0.6% EFFECTIVELY NEUTRAL) once comparable sample runs cleanly.
 
-When `visutry-cf-production` serves Glasses Guide from OpenNext with populated static-assets cache (as validated locally), the +41.2% MISS-vs-HIT penalty should collapse toward the fallback class (+0.6% EFFECTIVELY NEUTRAL), assuming no new edge asymmetry.
+## Remaining follow-up
+
+1. Rerun `npm run perf:hybrid-sample` from environment with Direct Vercel baseline access.
+2. Expand bounded parity harness to full 9-locale × detail matrix when P0-F1 route manifest helpers land on `main` (currently 11-check bounded script).

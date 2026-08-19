@@ -1,0 +1,20 @@
+{
+  "generatedAt": "2026-08-19T10:31:05.745Z",
+  "harness": "scripts/glasses-guide-route-parity.mjs",
+  "totalChecks": 11,
+  "hybridOnlyPass": 11,
+  "fullHybridVsVercelPass": 0,
+  "directVercelReachable": false,
+  "directVercelError": "curl: (28) Connection timed out after 30005 milliseconds",
+  "hybridSummary": {
+    "allRoutes200": true,
+    "xNextjsCache": "HIT on all valid hub/detail routes",
+    "xVisutryRouterBackend": "cloudflare",
+    "xVisutryRouterLayer": "layer2-worker",
+    "invalidSlug404": true,
+    "head200Hit": true,
+    "rsc200Hit": true,
+    "arRtl": true
+  },
+  "result": "HYBRID PASS — Direct Vercel comparison INCONCLUSIVE (origin timeout from validation environment)"
+}
