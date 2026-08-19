@@ -274,7 +274,7 @@ For prerender-only SSG on `@opennextjs/cloudflare@1.15.1`, the supported fix is 
 
 Evidence: `docs/operations/evidence/hybrid-performance/layer2-opennext-diagnostic/2026-08-19-root-cause.md` (+41.2% Glasses Guide penalty); fix evidence under `docs/operations/evidence/hybrid-performance/opennext-cache-fix/`.
 
-**Production validation (2026-08-19, main `a5dee49`, Worker `b3ecf2b2`):** merged via PR #115; deployed automatically from GitHub `main` (no manual `wrangler deploy`). Production Glasses Guide hub/detail returned `x-nextjs-cache: HIT` on sequential probes (was permanent `MISS`). No new Cloudflare binding. Full Hybrid vs Direct Vercel post-fix delta remains **INCONCLUSIVE** when Direct Vercel baseline is unreachable; rerun `npm run perf:hybrid-sample` from a clean network path.
+**Production validation (2026-08-19, main `a5dee49`, Worker `b3ecf2b2`):** merged via PR #115; deployed automatically from GitHub `main`. Production Glasses Guide hub/detail returned `x-nextjs-cache: HIT` on sequential probes (was permanent `MISS`). Post-fix re-measurement (`2026-08-19T10-59-10-330Z`): Glasses Guide median **+1.2%** TTFB vs Direct Vercel — **EFFECTIVELY NEUTRAL** (was **+41.2% HYBRID SLOWER** pre-fix). **CLOSED.**
 
 Use `npm run perf:hybrid-sample:full` only when a larger sample is explicitly required. Do not use 30 sequential measured requests as the default.
 

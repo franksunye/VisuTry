@@ -1,8 +1,9 @@
-# OpenNext cache fix — production validation summary
+# OpenNext cache fix — closed validation summary
 
 **Date:** 2026-08-19  
 **Main merge:** `a5dee4919617a4f3cffb8547266fccd46434e337` (PR #115)  
-**Production Worker version:** `b3ecf2b2`
+**Production Worker version:** `b3ecf2b2`  
+**Status:** **CLOSED — PASS**
 
 ## Root cause (confirmed)
 
@@ -23,20 +24,45 @@ OpenNext `defineCloudflareConfig()` with no `incrementalCache` defaulted to **du
 | Fallback (`/`, `/en`) | +0.6% | n/a | EFFECTIVELY NEUTRAL |
 | Cloudflare-owned Glasses Guide | **+41.2%** | Hybrid `MISS`; Vercel `HIT` | **HYBRID SLOWER** |
 
-## After (production post-merge)
+## After (post-fix re-measurement `2026-08-19T10-59-10-330Z`)
+
+Same harness: warm-up 2, measured 8, runs 3, concurrency 1, Hybrid / Direct Vercel alternating.
+
+| Class | Median TTFB delta (Hybrid − Vercel) | Run consistency | Result |
+| --- | ---: | --- | --- |
+| Fallback (`/`, `/en`) | **+0.5%** | outlier in one run; median neutral | EFFECTIVELY NEUTRAL |
+| Cloudflare-owned Glasses Guide | **+1.2%** | consistent | EFFECTIVELY NEUTRAL |
+
+**OVERALL:** EFFECTIVELY NEUTRAL (small local sample)
+
+| Run | Class | Hybrid TTFB p50 | Vercel TTFB p50 | Delta % | Result |
+| --- | --- | ---: | ---: | ---: | --- |
+| 1 | fallback | 1303 | 1297 | +0.5% | EFFECTIVELY NEUTRAL |
+| 1 | glasses-guide | 1087.5 | 1088.5 | −0.1% | EFFECTIVELY NEUTRAL |
+| 2 | fallback | 1306 | 1207 | +8.2% | HYBRID SLOWER |
+| 2 | glasses-guide | 1122 | 1098.5 | +2.1% | EFFECTIVELY NEUTRAL |
+| 3 | fallback | 1281.5 | 1292 | −0.8% | EFFECTIVELY NEUTRAL |
+| 3 | glasses-guide | 1095.5 | 1082.5 | +1.2% | EFFECTIVELY NEUTRAL |
+
+Evidence:
+
+- `docs/operations/evidence/hybrid-performance/2026-08-19T10-59-10-330Z-raw-samples.json`
+- `docs/operations/evidence/hybrid-performance/2026-08-19T10-59-10-330Z-aggregate.json`
+- `docs/operations/evidence/hybrid-performance/2026-08-19T10-59-10-330Z-summary.md`
+
+## Production corroboration
 
 | Check | Result |
 | --- | --- |
-| Production ownership (hub/detail) | **CLOUDFLARE** (`x-visutry-router-backend: cloudflare`, `layer2-worker`) |
+| Production ownership (hub/detail) | **CLOUDFLARE** (`layer2-worker`) |
 | Production cache (hub/detail ×3) | **HIT / HIT / HIT** (was permanent MISS) |
 | Worker CPU time (24h dashboard) | **−85.4%** after deploy |
-| Hybrid vs Direct Vercel TTFB delta | **INCONCLUSIVE** — `visutry.vercel.app` timed out from validation environment; rerun `npm run perf:hybrid-sample` from a network with Direct Vercel access |
 
 ## 41.2% gap
 
-**PARTIALLY validated:** cache symmetry restored (Hybrid HIT matches Vercel ISR/CDN class). Full TTFB delta re-measurement blocked on Direct Vercel reachability; expect gap collapse toward fallback (+0.6% EFFECTIVELY NEUTRAL) once comparable sample runs cleanly.
+**ELIMINATED.** Pre-fix +41.2% reflected dummy-cache MISS vs Vercel HIT asymmetry. Post-fix Glasses Guide median **+1.2%** — within ±5% EFFECTIVELY NEUTRAL band.
 
-## Remaining follow-up
+## Follow-up (non-blocking)
 
-1. Rerun `npm run perf:hybrid-sample` from environment with Direct Vercel baseline access.
-2. Expand bounded parity harness to full 9-locale × detail matrix when P0-F1 route manifest helpers land on `main` (currently 11-check bounded script).
+- Monitor occasional Hybrid hub TTFB tail spikes (p95 ~1.7–1.8s in run 1–2); no second optimization pass unless sustained >10% material delta reappears.
+- Do **not** start P0-F2 based on this workstream.
