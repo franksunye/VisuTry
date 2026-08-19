@@ -32,7 +32,11 @@ jobs:
         if: github.event_name == 'push'
         run: sleep 45
 
-      - name: Run zero-AI production smoke
+      # Vercel is the sole Next frontend owner. This gate fails the release if any
+      # production Next HTML, /_next/static asset, or RSC/Flight response is served
+      # by the Cloudflare Worker, or if any referenced /_next/static asset 404s
+      # (the 2026-08-19 ChunkLoadError class of incident).
+      - name: Run zero-AI production smoke + Next asset-integrity gate
         env:
           SMOKE_BASE_URL: https://www.visutry.com
           SMOKE_ATTEMPTS: '8'

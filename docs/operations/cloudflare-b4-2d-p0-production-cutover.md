@@ -1,6 +1,16 @@
 # VisuTry Cloudflare B4.2D — P0 production Worker Route cutover
 
-**Status:** PASS — 12 ungated P0 routes active; `/_next/static/*` not attached  
+> **2026-08-19 update — Next frontend ownership locked to Vercel.** The production
+> Worker route intent is now permanently the 12 approved **non-Next** capabilities
+> only (non-Next static assets + `/api/health` + `/api/glasses/brands|categories|face-shapes`).
+> Next HTML, RSC/Flight, and `/_next/static/*` are owned by Vercel and are **FORBIDDEN**
+> as Worker routes (hard-blocked in `cloudflare-router/b4-production-routes.ts`). The
+> earlier P1/P2 Next HTML route candidates and the parity-gated `/_next/static/*`
+> candidate have been removed — they are no longer "activatable later". Cloudflare must
+> not serve production Next HTML until the entire Next frontend, including
+> `/_next/static`, is migrated as one self-consistent build/runtime.
+
+**Status:** PASS — 12 ungated P0 (non-Next) routes active; `/_next/static/*` FORBIDDEN (never attached)  
 **Date:** 2026-08-18  
 **Owner:** Product / Engineering  
 **Branch:** merged to `main` via PR #101 / #102  
