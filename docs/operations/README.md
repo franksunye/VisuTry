@@ -22,6 +22,7 @@
 | `cloudflare-b4-2c-phase-b2-universal-ssl.md` | **Closed / PASS** | B4.2C Phase B checkpoint B2: Universal SSL ACTIVE; SSL mode Full (strict); www remains DNS_ONLY; B3 not executed |
 | `cloudflare-b4-2c-phase-b3-www-proxy.md` | **Closed / PASS** | B4.2C Phase B checkpoint B3: www DNS_ONLY → PROXIED; apex still DNS_ONLY; Worker Routes 0; Auth0 E2E operator-confirmed |
 | `cloudflare-b4-2d-p0-production-cutover.md` | **Closed / PASS** | B4.2D P0 milestone (PR #101/#102): 12 ungated production Worker Routes live; 30m observation PASS; `/_next/static/*` not activated; P1 not executed |
+| `cloudflare-next-static-route-incident-2026-08-19.md` | **Resolved P0 / Permanent guardrail** | Production incident record: `/_next/static/*` Worker Route caused Vercel/OpenNext build-graph mismatch and ChunkLoadError; route is forbidden while Vercel owns HTML |
 | `cloudflare-phase-b2-write-parity.md` | **Active milestone** | Scoped Cloudflare Free-plan Auth, merchant, Store DRAFT, and Campaign DRAFT write parity evidence |
 | `vercel-cpu-static-page-pilot.md` | Historical + Active Reference | Detailed Vercel static-rendering, ISR, middleware, and CPU optimization work already completed |
 
@@ -34,6 +35,10 @@ For current hosting direction, use:
 - `docs/decisions/ADR-009-vercel-cloudflare-hosting-optionality.md`
 
 The Vercel CPU static-page document remains an implementation/history reference. It should not be interpreted as a decision to optimize indefinitely around Vercel-specific resource limits.
+
+### Hybrid asset ownership guardrail
+
+While production HTML is Vercel-owned, **do not attach** `www.visutry.com/_next/static/*` to the Cloudflare Worker. HTML and deployment-specific Next.js chunks must come from the same build graph. See `cloudflare-next-static-route-incident-2026-08-19.md`.
 
 ## Performance Source of Truth
 
