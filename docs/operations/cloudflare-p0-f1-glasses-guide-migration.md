@@ -5,7 +5,7 @@
 **Owner:** Product / Engineering  
 **Branch:** `codex/cf-migrate-glasses-guide`  
 **Starting SHA:** `ac8b2f4f6d79f8888ac73792da3f62893193014f` (`origin/main`)  
-**Worker version:** `3936af2b-c7bf-4f2c-8606-3c6a57d97711`  
+**Worker version:** `6a2bc557-7bf0-474a-95f3-50ef96229de1` (P0-F1 detail-dispatch rebuild; `dynamicParams` inlined `true`)  
 **Production migration timestamp UTC:** `2026-08-19T02:44:26Z` (Phase 2 routes live)
 
 This is a formal backend migration of the Glasses Guide SEO family from Vercel fallback / ISR pass-through onto `visutry-cf-production` / OpenNext. It is not a telemetry experiment.
@@ -100,6 +100,14 @@ Fixes applied:
 - Production deploy of the proven OpenNext artifact used `OPEN_NEXT_DEPLOY=true npx wrangler deploy --env production --keep-vars` so Wrangler does **not** recurse into `opennextjs-cloudflare deploy` and rebuild Next without env.
 
 www routes were not left on Cloudflare until workers.dev details returned 200.
+
+### 2026-08-19T03:14Z production Worker overwrite
+
+A later production Worker deploy (`c8ec20ea-…`, `2026-08-19T03:14:32Z`) replaced the P0-F1 bundle with **origin/main**, which still has `export const dynamicParams = false` on glasses-guide `[slug]`. Hubs stayed 200; real detail slugs 404'd on www and workers.dev while Vercel stayed 200. Worker Routes were not changed.
+
+Fix: rebuild this branch with `CLOUDFLARE_BUILD=1` so Next inlines `dynamicParams = true` (`let h= !0` in the server bundle — no runtime env dependency), then `OPEN_NEXT_DEPLOY=true wrangler deploy --env production --keep-vars`. Worker Routes were not changed.
+
+A second overwrite (`ee309e28-…`, `2026-08-19T05:14Z`) replaced the inlined bundle again during the first hybrid sample. Redeployed the same artifact as `6a2bc557-7bf0-474a-95f3-50ef96229de1`. A future deploy from main without this source change will regress again until PR #110 merges.
 
 Final workers.dev proof (Worker `3936af2b-…`):
 

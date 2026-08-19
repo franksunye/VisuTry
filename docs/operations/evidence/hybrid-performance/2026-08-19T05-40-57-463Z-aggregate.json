@@ -1,0 +1,195 @@
+{
+  "kind": "visutry-hybrid-performance-aggregate",
+  "startedAt": "2026-08-19T05:27:02.197Z",
+  "endedAt": "2026-08-19T05:40:57.463Z",
+  "detailPath": "/en/glasses-guide/best-rectangle-glasses-for-round-face",
+  "runSummaries": [
+    {
+      "run": 1,
+      "fallback": {
+        "hybrid": {
+          "n": 16,
+          "ok": 16,
+          "errorRate": 0,
+          "challengeCount": 0,
+          "ttfbP50": 1910,
+          "ttfbP95": 3287.5,
+          "totalP50": 2711.5
+        },
+        "vercel": {
+          "n": 16,
+          "ok": 16,
+          "errorRate": 0,
+          "challengeCount": 0,
+          "ttfbP50": 1672,
+          "ttfbP95": 4274.8,
+          "totalP50": 2536.5
+        },
+        "ttfbDeltaPct": 14.2,
+        "blocked": false,
+        "verdict": {
+          "label": "HYBRID SLOWER",
+          "magnitude": "material",
+          "sign": 1
+        }
+      },
+      "cloudflare": {
+        "hybrid": {
+          "n": 16,
+          "ok": 16,
+          "errorRate": 0,
+          "challengeCount": 0,
+          "ttfbP50": 1703.5,
+          "ttfbP95": 2848.8,
+          "totalP50": 2287
+        },
+        "vercel": {
+          "n": 16,
+          "ok": 16,
+          "errorRate": 0,
+          "challengeCount": 0,
+          "ttfbP50": 1206.5,
+          "ttfbP95": 2068.5,
+          "totalP50": 1947.5
+        },
+        "ttfbDeltaPct": 41.2,
+        "blocked": false,
+        "verdict": {
+          "label": "HYBRID SLOWER",
+          "magnitude": "material",
+          "sign": 1
+        }
+      },
+      "blocked": false
+    },
+    {
+      "run": 2,
+      "fallback": {
+        "hybrid": {
+          "n": 16,
+          "ok": 16,
+          "errorRate": 0,
+          "challengeCount": 0,
+          "ttfbP50": 1890,
+          "ttfbP95": 4177.8,
+          "totalP50": 2992
+        },
+        "vercel": {
+          "n": 16,
+          "ok": 16,
+          "errorRate": 0,
+          "challengeCount": 0,
+          "ttfbP50": 1878.5,
+          "ttfbP95": 3739.3,
+          "totalP50": 3251
+        },
+        "ttfbDeltaPct": 0.6,
+        "blocked": false,
+        "verdict": {
+          "label": "EFFECTIVELY NEUTRAL",
+          "magnitude": "neutral",
+          "sign": 0
+        }
+      },
+      "cloudflare": {
+        "hybrid": {
+          "n": 16,
+          "ok": 16,
+          "errorRate": 0,
+          "challengeCount": 0,
+          "ttfbP50": 1849,
+          "ttfbP95": 3560,
+          "totalP50": 2593
+        },
+        "vercel": {
+          "n": 16,
+          "ok": 16,
+          "errorRate": 0,
+          "challengeCount": 0,
+          "ttfbP50": 1295.5,
+          "ttfbP95": 2366,
+          "totalP50": 1979.5
+        },
+        "ttfbDeltaPct": 42.7,
+        "blocked": false,
+        "verdict": {
+          "label": "HYBRID SLOWER",
+          "magnitude": "material",
+          "sign": 1
+        }
+      },
+      "blocked": false
+    },
+    {
+      "run": 3,
+      "fallback": {
+        "hybrid": {
+          "n": 16,
+          "ok": 16,
+          "errorRate": 0,
+          "challengeCount": 0,
+          "ttfbP50": 1421,
+          "ttfbP95": 2809,
+          "totalP50": 2068.5
+        },
+        "vercel": {
+          "n": 16,
+          "ok": 16,
+          "errorRate": 0,
+          "challengeCount": 0,
+          "ttfbP50": 1479,
+          "ttfbP95": 2617.5,
+          "totalP50": 2312.5
+        },
+        "ttfbDeltaPct": -3.9,
+        "blocked": false,
+        "verdict": {
+          "label": "EFFECTIVELY NEUTRAL",
+          "magnitude": "neutral",
+          "sign": 0
+        }
+      },
+      "cloudflare": {
+        "hybrid": {
+          "n": 16,
+          "ok": 16,
+          "errorRate": 0,
+          "challengeCount": 0,
+          "ttfbP50": 1281,
+          "ttfbP95": 3061.8,
+          "totalP50": 1930
+        },
+        "vercel": {
+          "n": 16,
+          "ok": 16,
+          "errorRate": 0,
+          "challengeCount": 0,
+          "ttfbP50": 1210.5,
+          "ttfbP95": 2164.8,
+          "totalP50": 1905.5
+        },
+        "ttfbDeltaPct": 5.8,
+        "blocked": false,
+        "verdict": {
+          "label": "HYBRID SLOWER",
+          "magnitude": "small",
+          "sign": 1
+        }
+      },
+      "blocked": false
+    }
+  ],
+  "fallbackAcross": {
+    "consistency": "outlier in one run; median neutral",
+    "result": "EFFECTIVELY NEUTRAL",
+    "medianPct": 0.6
+  },
+  "cloudflareAcross": {
+    "consistency": "same direction",
+    "result": "HYBRID SLOWER",
+    "medianPct": 41.2
+  },
+  "overall": "HYBRID SLOWER",
+  "challengeYes": false,
+  "header": "VISUTRY HYBRID PERFORMANCE RESULT\n\nFallback routes:\nRun consistency: outlier in one run; median neutral\nMedian directional result: +0.6% TTFB (Hybrid − Direct Vercel)\nResult: EFFECTIVELY NEUTRAL\n\nCloudflare-owned Glasses Guide:\nRun consistency: same direction\nMedian directional result: +41.2% TTFB (Hybrid − Direct Vercel)\nResult: HYBRID SLOWER\n\nDirect Vercel challenge contamination:\nNO\n\nOVERALL:\nHYBRID SLOWER\nfor this small local sample.\n"
+}
