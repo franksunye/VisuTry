@@ -1,0 +1,5 @@
+Vercel ignored-build negative-control probe.
+
+Purpose: this non-docs repository change must trigger a normal Vercel production build.
+Created: 2026-08-19
+Safe to delete after verification.
