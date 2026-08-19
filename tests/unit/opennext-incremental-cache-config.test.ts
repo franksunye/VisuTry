@@ -56,15 +56,16 @@ describe('OpenNext static-assets incremental cache production config', () => {
     },
   )
 
-  it('keeps the original 12 P0 routes unchanged and classifies Glasses Guide as cf-ready', () => {
+  it('keeps the 12 non-Next P0 routes and classifies Glasses Guide as Vercel-owned', () => {
     const all = generateB4ProductionWorkerRoutes()
     const existingP0 = routesForPriority('P0', all)
 
     expect(existingP0).toHaveLength(12)
-    expect(classify('/en/glasses-guide')).toMatchObject({ backend: 'cloudflare', routeClass: 'cf-ready' })
+    // Glasses Guide HTML is part of the Next frontend → Vercel owns it.
+    expect(classify('/en/glasses-guide')).toMatchObject({ backend: 'vercel', routeClass: 'vercel-required' })
     expect(classify('/de/glasses-guide/best-rectangle-glasses-for-round-face')).toMatchObject({
-      backend: 'cloudflare',
-      routeClass: 'cf-ready',
+      backend: 'vercel',
+      routeClass: 'vercel-required',
     })
     expect(wwwWorkerRouteMatch('/api/health', '', existingP0)?.pattern).toBe(
       `${B4_PRODUCTION_PUBLIC_HOST}/api/health`,

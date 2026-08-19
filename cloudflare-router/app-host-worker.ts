@@ -2,6 +2,7 @@ import app from '../.open-next/worker.js'
 import {
   classifyStagingPublicSlice,
   fallbackRequest,
+  forceVercelForNextFrontend,
   resolveOpenNextAppWorker,
   rewriteFallbackLocation,
   routerLogFields,
@@ -27,7 +28,9 @@ const appWorker = resolveOpenNextAppWorker(app) as unknown as AppWorker
 
 export default {
   async fetch(request: Request, env: Env, ctx: RouterExecutionContext): Promise<Response> {
-    const decision = classifyStagingPublicSlice(request)
+    // Vercel is the sole Next frontend owner. The hard guard ensures the Worker
+    // never serves Next HTML client assets (`/_next/*`) or RSC/Flight.
+    const decision = forceVercelForNextFrontend(request, classifyStagingPublicSlice(request))
     const startedAt = Date.now()
     const publicHost = env.PUBLIC_HOST || new URL(request.url).host
 

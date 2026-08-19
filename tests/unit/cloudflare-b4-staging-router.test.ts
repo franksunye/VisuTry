@@ -62,9 +62,8 @@ describe('B4.2A staging public slice router', () => {
     expect(text).toMatch(/"workers_dev": true/)
   })
 
-  it('classifies Layer 1 families as static-asset (Worker should not see them when assets hit)', () => {
+  it('classifies NON-Next Layer 1 families as static-asset (Worker should not see them when assets hit)', () => {
     for (const pathName of [
-      '/_next/static/chunks/app.js',
       '/favicon.ico',
       '/images/hero.webp',
       '/home/hero.webp',
@@ -83,18 +82,17 @@ describe('B4.2A staging public slice router', () => {
     }
   })
 
-  it('classifies approved Layer 2 HTML, redirects, and APIs as Worker', () => {
+  it('sends the Next client artifact graph (/_next/static) to Vercel, never Cloudflare', () => {
+    for (const pathName of ['/_next/static/chunks/app.js', '/_next/static/css/app.css']) {
+      const decision = classifyStagingPublicSlice(request(pathName))
+      expect(decision.backend).toBe('vercel')
+      expect(decision.routeClass).toBe('vercel-required')
+      expect(b4Layer(decision)).toBe('layer3-vercel')
+    }
+  })
+
+  it('classifies ONLY approved non-Next APIs as Cloudflare Worker (no Next HTML)', () => {
     const layer2: Array<[string, string, string]> = [
-      ['GET', '/', 'root-locale-detect'],
-      ['GET', '/en', 'deploy-static-html'],
-      ['GET', '/en/brand/warby-parker', 'deploy-static-html'],
-      ['GET', '/en/blog', 'deploy-static-html'],
-      ['GET', '/en/store', 'deploy-static-html'],
-      ['GET', '/en/face-shapes/oval', 'deploy-static-html'],
-      ['GET', '/en/glasses-guide/round-face-cat-eye', 'deploy-static-html'],
-      ['GET', '/en/try-on/glasses', 'deploy-static-html'],
-      ['GET', '/blog', 'locale-less-redirect'],
-      ['GET', '/sitemap.xml', 'static-sitemap'],
       ['GET', '/api/health', 'health'],
       ['HEAD', '/api/glasses/brands', 'public-catalog-api'],
       ['GET', '/api/glasses/categories', 'public-catalog-api'],
@@ -110,6 +108,28 @@ describe('B4.2A staging public slice router', () => {
         countsAgainstWorkerQuota: true,
       })
       expect(b4Layer(decision)).toBe('layer2-worker')
+    }
+  })
+
+  it('routes ALL Next HTML / redirects / sitemaps to Vercel (single Next frontend owner)', () => {
+    const nextHtml: string[] = [
+      '/',
+      '/en',
+      '/en/brand/warby-parker',
+      '/en/blog',
+      '/en/store',
+      '/en/face-shapes/oval',
+      '/en/glasses-guide/round-face-cat-eye',
+      '/en/try-on/glasses',
+      '/en/face-analysis',
+      '/blog',
+      '/sitemap.xml',
+    ]
+    for (const pathName of nextHtml) {
+      const decision = classifyStagingPublicSlice(request(pathName))
+      expect(decision.backend).toBe('vercel')
+      expect(decision.routeClass).toBe('vercel-required')
+      expect(b4Layer(decision)).toBe('layer3-vercel')
     }
   })
 
@@ -146,7 +166,8 @@ describe('B4.2A staging public slice router', () => {
       backend: 'cloudflare',
       routeClass: 'cf-ready',
     })
-    expect(classifyStagingPublicSlice(request('/en/brand/warby-parker')).backend).toBe('cloudflare')
+    // Post-cutover: the B4 classifier routes marketing HTML to Vercel too.
+    expect(classifyStagingPublicSlice(request('/en/brand/warby-parker')).backend).toBe('vercel')
     expect(classifyStagingPublicSlice(request('/api/auth/session')).backend).toBe('vercel')
   })
 
@@ -210,12 +231,14 @@ describe('B4.2A staging public slice router', () => {
     const serialized = JSON.stringify(log)
     expect(serialized).not.toMatch(/Bearer secret|session=1|cookie|authorization/i)
     expect(log.route).toBe('/:locale/brand/:brand')
-    expect(log.layer).toBe('layer2-worker')
+    // Marketing HTML is now Vercel-owned → Layer 3.
+    expect(log.layer).toBe('layer3-vercel')
     expect(sanitizeRouteTemplate('/_next/static/chunks/app.js')).toBe('/_next/static/*')
   })
 
   it('annotates router headers and treats CF/Vercel failures as fail-closed (no retry)', () => {
-    const decision = classifyStagingPublicSlice(request('/en'))
+    // Approved non-Next API stays a Cloudflare Worker route.
+    const decision = classifyStagingPublicSlice(request('/api/health'))
     const headed = withB4RouterHeaders(new Response('ok', { status: 200 }), decision, 9)
     expect(headed.headers.get('x-visutry-router-layer')).toBe('layer2-worker')
     expect(headed.headers.get('x-visutry-router-backend')).toBe('cloudflare')

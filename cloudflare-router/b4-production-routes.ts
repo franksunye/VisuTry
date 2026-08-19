@@ -1,8 +1,13 @@
 /**
- * B4.2B proposed production Worker Routes for www.visutry.com.
+ * Production Worker Routes for www.visutry.com.
  *
- * NOT activated. Do not copy these patterns into wrangler.jsonc until the
- * B4.2C cutover. `npm run deploy:cloudflare` uses `--env staging` only.
+ * Vercel is the sole Next frontend owner (B4_NEXT_FRONTEND_OWNER === 'vercel').
+ * This generator emits ONLY approved NON-Next capabilities: non-Next public static
+ * assets, control files, and read-only edge APIs. It never emits Next HTML routes
+ * and never emits `/_next/static/*` — those are FORBIDDEN (see
+ * B4_FORBIDDEN_PRODUCTION_ROUTE_PATTERNS). A future full migration of the entire
+ * Next frontend (including /_next/static) to Cloudflare is the only thing that may
+ * change this. `npm run deploy:cloudflare` uses `--env staging` only.
  *
  * Cloudflare route syntax (not regex):
  * - `*` matches zero or more of any character
@@ -18,6 +23,7 @@
 
 export {
   B4_LOCALES,
+  B4_NEXT_FRONTEND_OWNER,
 } from './b4-production-public-slice'
 
 import {
@@ -25,10 +31,8 @@ import {
   B4_DEPLOY_PUBLIC_ASSET_EXACT,
   B4_DEPLOY_PUBLIC_ASSET_PREFIXES,
   B4_FIRST_SLICE_APIS,
-  B4_HASHED_IMMUTABLE_PREFIXES,
   B4_LOCALES,
-  B4_LOCALIZED_EXACT_PAGES,
-  B4_STATIC_SITEMAP_EXACT,
+  B4_NEXT_FRONTEND_OWNER,
 } from './b4-production-public-slice'
 import fs from 'node:fs'
 import path from 'node:path'
@@ -74,50 +78,24 @@ export interface B4ProductionWorkerRoute {
   requestLimitFailOpen: true
 }
 
-const SAFE_HTML_WILDCARDS: Array<{ stem: string; priority: B4RoutePriority; reason: string; excludedConflicts: string[] }> = [
-  {
-    stem: '/blog',
-    priority: 'P2',
-    reason: 'blog index, posts, and tags are first-slice HTML / locale-less 308s',
-    excludedConflicts: [],
-  },
-  {
-    stem: '/brand',
-    priority: 'P2',
-    reason: 'curated brand pages; unknown brand 404s on CF HTML, not Store/Campaign',
-    excludedConflicts: [],
-  },
-  {
-    stem: '/glasses-guide',
-    priority: 'P2',
-    reason: 'glasses-guide hub and slugs',
-    excludedConflicts: ['/glasses-for-face-shape is a different stem'],
-  },
-  {
-    stem: '/face-shapes',
-    priority: 'P2',
-    reason: 'face-shapes hub, shape pages, and compare pages',
-    excludedConflicts: ['/face-shape-detector and /face-analysis are exact routes'],
-  },
-  {
-    stem: '/sunglasses-for',
-    priority: 'P2',
-    reason: 'covers /sunglasses-for-face-shape and /sunglasses-for/:faceShape',
-    excludedConflicts: [],
-  },
-  {
-    stem: '/hairstyles-for',
-    priority: 'P2',
-    reason: 'covers /hairstyles-for-face-shape and /hairstyles-for/:faceShape',
-    excludedConflicts: [],
-  },
-  {
-    stem: '/try-on',
-    priority: 'P1',
-    reason: 'try-on landings; does not match /try/:slug because the stem is try-on',
-    excludedConflicts: ['/:locale/try/*', '/try/*'],
-  },
-]
+/**
+ * Patterns that MUST NEVER appear in a production Worker route payload while
+ * Vercel owns the Next frontend (B4_NEXT_FRONTEND_OWNER === 'vercel').
+ *
+ * `/_next/static/*` is the hard block: serving a CLOUDFLARE_BUILD=1 client graph
+ * from this shared namespace breaks Vercel-owned HTML (ChunkLoadError 2026-08-19).
+ * Next HTML host/locale patterns are forbidden for the same reason — CF HTML would
+ * reference a peer client graph. This is NOT a soft same-commit-parity gate; it is
+ * FORBIDDEN unless the entire Next frontend migrates to Cloudflare as one build.
+ */
+export const B4_FORBIDDEN_PRODUCTION_ROUTE_PATTERNS = [
+  `${B4_PRODUCTION_PUBLIC_HOST}/_next/static/*`,
+  `${B4_PRODUCTION_PUBLIC_HOST}/_next/static*`,
+  `${B4_PRODUCTION_PUBLIC_HOST}/_next/*`,
+] as const
+
+/** Path fragments that identify a forbidden Next client-graph route pattern. */
+export const B4_FORBIDDEN_ROUTE_FRAGMENTS = ['/_next/static', '/_next/'] as const
 
 function hostPattern(pathPattern: string): string {
   return `${B4_PRODUCTION_PUBLIC_HOST}${pathPattern}`
@@ -128,14 +106,25 @@ function prefixToWildcard(prefix: string): string {
   return `${directory}*`
 }
 
-function coveredByHtmlWildcard(path: string): boolean {
-  return SAFE_HTML_WILDCARDS.some(({ stem }) => path === stem || path.startsWith(`${stem}/`) || path.startsWith(stem))
+/**
+ * True if a Worker route pattern would put the Next client artifact graph
+ * (`/_next/static/*`) on Cloudflare. Such patterns are forbidden in production.
+ */
+export function isForbiddenNextClientGraphRoute(pattern: string): boolean {
+  return B4_FORBIDDEN_ROUTE_FRAGMENTS.some((fragment) => pattern.includes(fragment))
 }
 
-function exactMarketingPages(): string[] {
-  return B4_LOCALIZED_EXACT_PAGES.filter((path) => path !== '/store' && !coveredByHtmlWildcard(path))
-}
-
+/**
+ * Production Worker Routes for www.visutry.com.
+ *
+ * Vercel is the sole Next frontend owner, so this generator emits ONLY approved
+ * NON-Next capabilities: non-Next public static assets (favicon, /images, /home,
+ * /experience-heroes, /blog-covers, /assets), control files (robots/llms), and the
+ * approved read-only edge APIs (health + glasses catalog). It intentionally emits
+ * NO Next HTML routes, NO locale homes, NO marketing/SEO HTML, NO Next sitemaps,
+ * and NO `/_next/static/*`. `assertSafeB4ProductionRoutes` fails if any forbidden
+ * Next client-graph or Next HTML route ever reappears.
+ */
 export function generateB4ProductionWorkerRoutes(): B4ProductionWorkerRoute[] {
   const routes: B4ProductionWorkerRoute[] = []
   const seen = new Set<string>()
@@ -146,26 +135,18 @@ export function generateB4ProductionWorkerRoutes(): B4ProductionWorkerRoute[] {
     },
   ) => {
     if (seen.has(route.pattern)) return
+    // Hard guard: never emit a Next client-graph route into the production payload.
+    if (isForbiddenNextClientGraphRoute(route.pattern)) {
+      throw new Error(
+        `Refusing to generate forbidden production Worker route ${route.pattern}: ` +
+          `Next /_next/static is owned by Vercel (B4_NEXT_FRONTEND_OWNER=${B4_NEXT_FRONTEND_OWNER}).`,
+      )
+    }
     seen.add(route.pattern)
     routes.push({
       ...route,
       activationGate: route.activationGate || 'none',
       requestLimitFailOpen: true,
-    })
-  }
-
-  for (const prefix of B4_HASHED_IMMUTABLE_PREFIXES) {
-    push({
-      pattern: hostPattern(prefixToWildcard(prefix)),
-      layer: 'layer1-static-asset',
-      expectedExecution: 'static-asset',
-      workerQuota: 'asset-miss-only',
-      reason: 'hashed OpenNext Static Assets; production route is parity-gated because Vercel and CLOUDFLARE_BUILD=1 emit independent webpack graphs. Pattern is `/_next/static/*`, not `/_next/static*`.',
-      excludedConflicts: ['/_next/image stays unrouted', 'do not publish until same-commit Vercel files ⊆ CF assets'],
-      rollbackClass: 'delete-route',
-      priority: 'P0',
-      feasibility: 'B',
-      activationGate: 'same-commit-asset-parity',
     })
   }
 
@@ -175,7 +156,7 @@ export function generateB4ProductionWorkerRoutes(): B4ProductionWorkerRoute[] {
       layer: 'layer1-static-asset',
       expectedExecution: 'static-asset',
       workerQuota: 'asset-miss-only',
-      reason: 'non-hashed public files in .open-next/assets',
+      reason: 'non-Next public files in .open-next/assets (not part of the Next client graph)',
       excludedConflicts: [],
       rollbackClass: 'delete-route',
       priority: 'P0',
@@ -189,7 +170,7 @@ export function generateB4ProductionWorkerRoutes(): B4ProductionWorkerRoute[] {
       layer: 'layer1-static-asset',
       expectedExecution: 'static-asset',
       workerQuota: 'asset-miss-only',
-      reason: 'exact control/public asset in .open-next/assets',
+      reason: 'exact non-Next control/public asset in .open-next/assets',
       excludedConflicts: [],
       rollbackClass: 'delete-route',
       priority: 'P0',
@@ -203,139 +184,13 @@ export function generateB4ProductionWorkerRoutes(): B4ProductionWorkerRoute[] {
       layer: 'layer2-worker',
       expectedExecution: 'worker',
       workerQuota: true,
-      reason: 'approved GET/HEAD public API; exact so /api/glasses/frames cannot match',
+      reason: 'approved GET/HEAD non-Next public API; exact so /api/glasses/frames cannot match',
       excludedConflicts: ['/api/glasses/frames', '/api/auth/*', '/api/glasses/*'],
       rollbackClass: 'delete-route',
       priority: 'P0',
       feasibility: 'A',
     })
   }
-
-  push({
-    pattern: B4_PRODUCTION_PUBLIC_HOST,
-    layer: 'layer2-worker',
-    expectedExecution: 'worker',
-    workerQuota: true,
-    reason: 'root locale detection; implied path / only (Cloudflare: example.com matches / and nothing else)',
-    excludedConflicts: ['www.visutry.com/* catch-all is forbidden'],
-    rollbackClass: 'delete-route',
-    priority: 'P1',
-    feasibility: 'A',
-  })
-
-  for (const path of B4_STATIC_SITEMAP_EXACT) {
-    push({
-      pattern: hostPattern(path),
-      layer: 'layer2-worker',
-      expectedExecution: 'worker',
-      workerQuota: true,
-      reason: 'static sitemaps are OpenNext Worker cache, not Static Assets',
-      excludedConflicts: ['/sitemaps/dynamic.xml'],
-      rollbackClass: 'delete-route',
-      priority: 'P1',
-      feasibility: 'A',
-    })
-  }
-
-  const htmlExact = ['/store', ...exactMarketingPages()]
-
-  for (const locale of B4_LOCALES) {
-    push({
-      pattern: hostPattern(`/${locale}`),
-      layer: 'layer2-worker',
-      expectedExecution: 'worker',
-      workerQuota: true,
-      reason: 'locale home; never use /:locale* which would capture Layer 3',
-      excludedConflicts: [`/${locale}/store/:slug`, `/${locale}/discover`, `/${locale}/c/*`],
-      rollbackClass: 'delete-route',
-      priority: 'P1',
-      feasibility: 'A',
-    })
-
-    for (const path of htmlExact) {
-      push({
-        pattern: hostPattern(`/${locale}${path}`),
-        layer: 'layer2-worker',
-        expectedExecution: 'worker',
-        workerQuota: true,
-        reason: path === '/store'
-          ? 'Store hub only. Cloudflare path* is greedy; store* would capture /store/:slug'
-          : 'approved first-slice marketing/SEO HTML',
-        excludedConflicts: path === '/store' ? [`/${locale}/store/:merchantSlug`] : [],
-        rollbackClass: 'delete-route',
-        priority: 'P1',
-        feasibility: 'A',
-      })
-    }
-
-    for (const wildcard of SAFE_HTML_WILDCARDS) {
-      push({
-        pattern: hostPattern(`/${locale}${wildcard.stem}*`),
-        layer: 'layer2-worker',
-        expectedExecution: 'worker',
-        workerQuota: true,
-        reason: wildcard.reason,
-        excludedConflicts: wildcard.excludedConflicts,
-        rollbackClass: 'delete-route',
-        priority: wildcard.priority,
-        feasibility: 'B',
-      })
-    }
-
-    push({
-      pattern: hostPattern(`/${locale}/style/*`),
-      layer: 'layer2-worker',
-      expectedExecution: 'worker',
-      workerQuota: true,
-      reason: 'style/:faceShape only. style* would capture /style-explorer',
-      excludedConflicts: [`/${locale}/style-explorer`],
-      rollbackClass: 'delete-route',
-      priority: 'P2',
-      feasibility: 'B',
-    })
-  }
-
-  for (const path of htmlExact) {
-    push({
-      pattern: hostPattern(path),
-      layer: 'layer2-worker',
-      expectedExecution: 'worker',
-      workerQuota: true,
-      reason: path === '/store'
-        ? 'locale-less store hub 308; not /store/:slug'
-        : 'locale-less first-slice 308',
-      excludedConflicts: path === '/store' ? ['/store/:merchantSlug'] : [],
-      rollbackClass: 'delete-route',
-      priority: 'P1',
-      feasibility: 'A',
-    })
-  }
-
-  for (const wildcard of SAFE_HTML_WILDCARDS) {
-    push({
-      pattern: hostPattern(`${wildcard.stem}*`),
-      layer: 'layer2-worker',
-      expectedExecution: 'worker',
-      workerQuota: true,
-      reason: `locale-less ${wildcard.reason}`,
-      excludedConflicts: wildcard.excludedConflicts,
-      rollbackClass: 'delete-route',
-      priority: wildcard.priority,
-      feasibility: 'B',
-    })
-  }
-
-  push({
-    pattern: hostPattern('/style/*'),
-    layer: 'layer2-worker',
-    expectedExecution: 'worker',
-    workerQuota: true,
-    reason: 'locale-less /style/:faceShape 308s; not /style-explorer',
-    excludedConflicts: ['/style-explorer'],
-    rollbackClass: 'delete-route',
-    priority: 'P2',
-    feasibility: 'B',
-  })
 
   return routes
 }
@@ -512,6 +367,29 @@ export const B4_FORBIDDEN_WRANGLER_SHAPES = [
 ] as const
 
 export const B4_NEGATIVE_PATHS = [
+  // Next frontend (HTML / RSC / client graph) is owned by Vercel and must never
+  // match a production Worker route.
+  '/',
+  '/en',
+  '/id',
+  '/en/store',
+  '/store',
+  '/en/pricing',
+  '/en/brand/warby-parker',
+  '/en/blog',
+  '/blog',
+  '/en/blog/how-to-choose-glasses-for-your-face',
+  '/en/glasses-guide',
+  '/en/glasses-guide/best-rectangle-glasses-for-round-face',
+  '/en/face-shapes/oval',
+  '/en/style/round-face',
+  '/en/try-on/glasses',
+  '/en/face-analysis',
+  '/en/face-shape-detector',
+  '/_next/static/chunks/app.js',
+  '/_next/static/css/app.css',
+  '/sitemap.xml',
+  '/sitemaps/core.xml',
   '/api/auth/session',
   '/api/auth/callback/auth0',
   '/auth/signin',
@@ -549,29 +427,19 @@ export const B4_NEGATIVE_PATHS = [
 ] as const
 
 export const B4_POSITIVE_PATHS = [
-  '/',
-  '/en',
-  '/id',
-  '/en/store',
-  '/en/pricing',
-  '/en/brand/warby-parker',
-  '/en/blog',
-  '/en/blog/how-to-choose-glasses-for-your-face',
-  '/en/glasses-guide',
-  '/en/face-shapes/oval',
-  '/en/style/round-face',
-  '/en/try-on/glasses',
-  '/en/face-shape-detector',
+  // Only approved NON-Next capabilities may match a production Worker route.
   '/api/health',
   '/api/glasses/brands',
+  '/api/glasses/categories',
+  '/api/glasses/face-shapes',
   '/robots.txt',
   '/llms.txt',
-  '/_next/static/chunks/app.js',
+  '/favicon.ico',
   '/images/seo/core/common-face-shapes-guide.webp',
-  '/sitemap.xml',
-  '/sitemaps/core.xml',
-  '/blog',
-  '/store',
+  '/home/hero.webp',
+  '/experience-heroes/demo.webp',
+  '/blog-covers/cover.jpg',
+  '/assets/logo.png',
 ] as const
 
 export function assertSafeB4ProductionRoutes(routes = generateB4ProductionWorkerRoutes()): string[] {
@@ -594,8 +462,15 @@ export function assertSafeB4ProductionRoutes(routes = generateB4ProductionWorker
     if (route.requestLimitFailOpen !== true) {
       errors.push(`${route.pattern} is not request-limit fail-open`)
     }
-    if (route.pattern.includes('/_next/static') && route.activationGate !== 'same-commit-asset-parity') {
-      errors.push(`${route.pattern} must stay behind same-commit-asset-parity`)
+    // HARD BLOCK: the Next client artifact graph (/_next/*) is owned by Vercel and
+    // must never appear as a production Worker route (not even parity-gated).
+    if (isForbiddenNextClientGraphRoute(route.pattern)) {
+      errors.push(`${route.pattern} is a FORBIDDEN Next client-graph route (Vercel owns /_next/static)`)
+    }
+    for (const forbidden of B4_FORBIDDEN_PRODUCTION_ROUTE_PATTERNS) {
+      if (route.pattern === forbidden) {
+        errors.push(`${route.pattern} is an explicitly forbidden production route`)
+      }
     }
     if (
       route.layer === 'layer1-static-asset'

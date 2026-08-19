@@ -8,6 +8,7 @@
 
 import {
   classifyB4ProductionPublicSlice,
+  isRscRequest,
   type B4InvocationMode,
   type B4RouteDecision,
 } from './b4-production-public-slice'
@@ -18,6 +19,31 @@ const locales = ['en', 'id', 'ar', 'ru', 'de', 'ja', 'es', 'pt', 'fr'] as const
 
 export function classifyStagingPublicSlice(request: Request): B4RouteDecision {
   return classifyB4ProductionPublicSlice(request)
+}
+
+/**
+ * Defense-in-depth guard. Vercel is the sole Next frontend owner, so the Worker
+ * must never serve the Next client artifact graph (`/_next/*`) or RSC/Flight
+ * navigation. If a decision ever routes these to Cloudflare, coerce it to a Vercel
+ * proxy decision so the shared `/_next/static` namespace keeps a single producer.
+ */
+export function forceVercelForNextFrontend(request: Request, decision: B4RouteDecision): B4RouteDecision {
+  if (decision.backend === 'vercel') return decision
+  let isNextAsset = false
+  try {
+    isNextAsset = new URL(request.url).pathname.startsWith('/_next/')
+  } catch {
+    isNextAsset = false
+  }
+  if (!isNextAsset && !isRscRequest(request)) return decision
+  return {
+    ...decision,
+    backend: 'vercel',
+    routeClass: 'vercel-required',
+    invocation: 'vercel',
+    cacheClass: 'none',
+    countsAgainstWorkerQuota: true,
+  }
 }
 
 export function b4Layer(decision: B4RouteDecision): B4Layer {
