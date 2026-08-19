@@ -16,6 +16,7 @@ export interface RouteDecision {
 const locales = ['en', 'id', 'ar', 'ru', 'de', 'ja', 'es', 'pt', 'fr'] as const
 const cloudflarePageSuffixes = ['/store', '/blog', '/face-shape-detector', '/auth/signin', '/auth/error'] as const
 const cloudflareStaticPrefixes = ['/_next/static/'] as const
+const blockedCrawlerTokens = ['meta-externalagent'] as const
 
 const vercelRequiredPrefixes = [
   '/api/admin/',
@@ -33,6 +34,32 @@ const vercelRequiredPrefixes = [
 function cleanPath(pathname: string): string {
   if (pathname.length > 1 && pathname.endsWith('/')) return pathname.slice(0, -1)
   return pathname
+}
+
+function isBlockedCrawler(request: Request): boolean {
+  const userAgent = request.headers.get('user-agent')?.toLowerCase() ?? ''
+  return blockedCrawlerTokens.some((token) => userAgent.includes(token))
+}
+
+function blockedCrawlerResponse(request: Request): Response {
+  const url = new URL(request.url)
+  console.log(
+    JSON.stringify({
+      path: url.pathname,
+      event: 'crawler-blocked',
+      crawler: 'meta-externalagent',
+      status: 403,
+    }),
+  )
+
+  return new Response('Forbidden', {
+    status: 403,
+    headers: {
+      'content-type': 'text/plain; charset=utf-8',
+      'cache-control': 'no-store',
+      'x-robots-tag': 'noindex, nofollow, noarchive',
+    },
+  })
 }
 
 function isCloudflarePage(pathname: string, method: string): boolean {
@@ -172,6 +199,12 @@ function cloudflareRequest(request: Request, origin: string): Request {
 
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
+    // Security policy must run before classification or any origin fetch. This ensures blocked
+    // crawlers cannot consume Cloudflare application or Vercel origin resources.
+    if (isBlockedCrawler(request)) {
+      return blockedCrawlerResponse(request)
+    }
+
     const decision = classify(request)
     const origin = decision.backend === 'cloudflare' ? env.CF_ORIGIN : env.VERCEL_ORIGIN
     const startedAt = Date.now()
