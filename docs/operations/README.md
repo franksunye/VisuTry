@@ -8,6 +8,7 @@
 | Document | Status | Purpose |
 | --- | --- | --- |
 | `hosting-strategy-vercel-cloudflare.md` | **Canonical / Active** | Hybrid hosting strategy and canonical three-layer traffic model (Static Assets → Worker → Vercel/backend) |
+| `hybrid-performance-benchmark.md` | **Active / Long-term baseline** | Continuous L1/L2/L3 performance discipline: Direct Vercel baseline, Cloudflare fallback penalty, Worker/static gains, RUM, regression gates, and benchmark cadence |
 | `vercel-quota-emergency-reduction.md` | **Active** | Hobby ISR Reads / Fast Origin Transfer emergency reductions (static SEO, middleware, public GET cache) |
 | `cloudflare-phase-b3-integration-audit.md` | **Active milestone** | Compatibility, dependency, cost, bundle, architecture, and production-gate audit for remaining Cloudflare integrations |
 | `cloudflare-production-route-boundary.md` | **Active milestone** | B3.1 bundle-drift diagnosis and definitive Cloudflare/Vercel production route boundary |
@@ -32,3 +33,15 @@ For current hosting direction, use:
 - `docs/decisions/ADR-009-vercel-cloudflare-hosting-optionality.md`
 
 The Vercel CPU static-page document remains an implementation/history reference. It should not be interpreted as a decision to optimize indefinitely around Vercel-specific resource limits.
+
+## Performance Source of Truth
+
+Performance is a standing product and architecture discipline, not a one-time optimization task.
+
+Use:
+
+- `docs/operations/hybrid-performance-benchmark.md` for the long-term benchmark model, L1/L2/L3 measurement rules, fallback/Worker/static derived metrics, geographic coverage, RUM, performance regression gates, review cadence, and benchmark-harness direction.
+- `docs/operations/hosting-strategy-vercel-cloudflare.md` for the execution architecture whose performance is being measured.
+- individual Cloudflare cutover/evidence documents for milestone-specific route ownership and production state.
+
+Performance decisions should be based on measured execution-path data and real-user evidence. Do not infer architecture quality from aggregate site speed, average latency, or a single Lighthouse run alone.
