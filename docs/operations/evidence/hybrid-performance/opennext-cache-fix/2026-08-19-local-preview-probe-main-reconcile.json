@@ -1,0 +1,25 @@
+{
+  "branch": "fix/opennext-cache-main",
+  "base": "origin/main",
+  "generatedAt": "2026-08-19T09:59:39.925Z",
+  "build": {
+    "command": "npm run build:cloudflare",
+    "cacheFiles": 1524,
+    "cachePath": ".open-next/assets/cdn-cgi/_next_cache"
+  },
+  "localProbe": {
+    "origin": "http://127.0.0.1:8787",
+    "hub": ["HIT", "HIT", "HIT"],
+    "detail": ["HIT", "HIT", "HIT"],
+    "deHub": ["HIT", "HIT", "HIT"],
+    "arHub": ["HIT", "HIT", "HIT"],
+    "invalidSlug": [404, 404, 404],
+    "head": "HIT",
+    "rsc": "HIT"
+  },
+  "unitTests": {
+    "opennext-incremental-cache-config": "6/6 PASS",
+    "cloudflare-b4-production-routes": "PASS",
+    "cloudflare-b4-staging-router": "PASS"
+  }
+}

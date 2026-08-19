@@ -1,0 +1,26 @@
+{
+  "origin": "http://127.0.0.1:8787",
+  "attempts": 3,
+  "generatedAt": "2026-08-19T07:43:29.738Z",
+  "summary": "Local Wrangler preview after static-assets incremental cache + populate. All valid Glasses Guide routes return x-nextjs-cache HIT; invalid slug returns 404 MISS; RSC returns text/x-component.",
+  "routes": {
+    "/en/glasses-guide": {
+      "status": 200,
+      "x-nextjs-cache": ["HIT", "HIT", "HIT"],
+      "x-visutry-router-backend": "cloudflare",
+      "x-visutry-router-layer": "layer2-worker"
+    },
+    "/en/glasses-guide/best-rectangle-glasses-for-round-face": {
+      "status": 200,
+      "x-nextjs-cache": ["HIT", "HIT", "HIT"]
+    },
+    "/de/glasses-guide": { "status": 200, "x-nextjs-cache": ["HIT", "HIT", "HIT"] },
+    "/ar/glasses-guide": { "status": 200, "x-nextjs-cache": ["HIT", "HIT", "HIT"] },
+    "/en/glasses-guide/definitely-invalid-slug": {
+      "status": 404,
+      "x-nextjs-cache": ["MISS", "MISS", "MISS"]
+    }
+  },
+  "head": { "status": 200, "x-nextjs-cache": "HIT" },
+  "rsc": { "status": 200, "x-nextjs-cache": "HIT", "content-type": "text/x-component" }
+}
