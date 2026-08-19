@@ -1,0 +1,192 @@
+{
+  "kind": "p0-e2c-stage1-canary-before",
+  "capturedAt": "2026-08-18T15:31:48Z",
+  "gitHead": "75778cadce0322f434a2f035aa9209fc0a76aacd",
+  "zone": {
+    "id": "5e3dc058ed16f3aee917f1cef2e9f413",
+    "name": "visutry.com",
+    "status": "active"
+  },
+  "wwwDnsApi": "FORBIDDEN_oauth_zone_dns_records_403",
+  "wwwDnsDig": {
+    "a": [
+      "104.21.42.69",
+      "172.67.158.125"
+    ],
+    "cname": []
+  },
+  "wwwProxyEvidence": {
+    "server": "cloudflare",
+    "cfRay": "a2d1f7b17f9122b3-LAX",
+    "statusLine": "HTTP/2 200 ",
+    "note": "server=cloudflare plus CF anycast A records indicate www is PROXIED; DNS records API returned 403 with wrangler oauth"
+  },
+  "customDomains": [],
+  "workerRouteCount": 12,
+  "workerRoutes": [
+    {
+      "id": "cde8be98885b4c66afae21bdf3267005",
+      "pattern": "www.visutry.com/robots.txt",
+      "script": "visutry-cf-production",
+      "request_limit_fail_open": true
+    },
+    {
+      "id": "cb7b5907c2684188851c490968c24f7a",
+      "pattern": "www.visutry.com/experience-heroes/*",
+      "script": "visutry-cf-production",
+      "request_limit_fail_open": true
+    },
+    {
+      "id": "81e7a103102e49b78fd7a5b03d10d687",
+      "pattern": "www.visutry.com/images/*",
+      "script": "visutry-cf-production",
+      "request_limit_fail_open": true
+    },
+    {
+      "id": "095292f1960b4f7e86cc66a327bea6bd",
+      "pattern": "www.visutry.com/api/glasses/face-shapes",
+      "script": "visutry-cf-production",
+      "request_limit_fail_open": true
+    },
+    {
+      "id": "8d751beebd2647c997683d6430ff2c3b",
+      "pattern": "www.visutry.com/favicon.ico",
+      "script": "visutry-cf-production",
+      "request_limit_fail_open": true
+    },
+    {
+      "id": "9f88d93171a64d6dab3c6dd2641fcb74",
+      "pattern": "www.visutry.com/llms.txt",
+      "script": "visutry-cf-production",
+      "request_limit_fail_open": true
+    },
+    {
+      "id": "82fa3232423a4082a09a5967ac3f4357",
+      "pattern": "www.visutry.com/assets/*",
+      "script": "visutry-cf-production",
+      "request_limit_fail_open": true
+    },
+    {
+      "id": "6d5e5212402f4267bce2f4a13836f7da",
+      "pattern": "www.visutry.com/home/*",
+      "script": "visutry-cf-production",
+      "request_limit_fail_open": true
+    },
+    {
+      "id": "6a340daf3d82408fb401d8dbacc57bc4",
+      "pattern": "www.visutry.com/api/glasses/categories",
+      "script": "visutry-cf-production",
+      "request_limit_fail_open": true
+    },
+    {
+      "id": "c9a2f20ff385495bb495e43b4dca5549",
+      "pattern": "www.visutry.com/blog-covers/*",
+      "script": "visutry-cf-production",
+      "request_limit_fail_open": true
+    },
+    {
+      "id": "3becca52e24d431aace8a1e10a9cdd69",
+      "pattern": "www.visutry.com/api/health",
+      "script": "visutry-cf-production",
+      "request_limit_fail_open": true
+    },
+    {
+      "id": "bd50f1aa45dd4ec0b84914b7656d8580",
+      "pattern": "www.visutry.com/api/glasses/brands",
+      "script": "visutry-cf-production",
+      "request_limit_fail_open": true
+    }
+  ],
+  "visutryCfProductionRouteCount": 12,
+  "visutryCfProductionRoutes": [
+    {
+      "id": "095292f1960b4f7e86cc66a327bea6bd",
+      "pattern": "www.visutry.com/api/glasses/face-shapes",
+      "zone_name": "",
+      "fail_open": true,
+      "script": "visutry-cf-production"
+    },
+    {
+      "id": "6a340daf3d82408fb401d8dbacc57bc4",
+      "pattern": "www.visutry.com/api/glasses/categories",
+      "zone_name": "",
+      "fail_open": true,
+      "script": "visutry-cf-production"
+    },
+    {
+      "id": "bd50f1aa45dd4ec0b84914b7656d8580",
+      "pattern": "www.visutry.com/api/glasses/brands",
+      "zone_name": "",
+      "fail_open": true,
+      "script": "visutry-cf-production"
+    },
+    {
+      "id": "3becca52e24d431aace8a1e10a9cdd69",
+      "pattern": "www.visutry.com/api/health",
+      "zone_name": "",
+      "fail_open": true,
+      "script": "visutry-cf-production"
+    },
+    {
+      "id": "9f88d93171a64d6dab3c6dd2641fcb74",
+      "pattern": "www.visutry.com/llms.txt",
+      "zone_name": "",
+      "fail_open": true,
+      "script": "visutry-cf-production"
+    },
+    {
+      "id": "cde8be98885b4c66afae21bdf3267005",
+      "pattern": "www.visutry.com/robots.txt",
+      "zone_name": "",
+      "fail_open": true,
+      "script": "visutry-cf-production"
+    },
+    {
+      "id": "8d751beebd2647c997683d6430ff2c3b",
+      "pattern": "www.visutry.com/favicon.ico",
+      "zone_name": "",
+      "fail_open": true,
+      "script": "visutry-cf-production"
+    },
+    {
+      "id": "cb7b5907c2684188851c490968c24f7a",
+      "pattern": "www.visutry.com/experience-heroes/*",
+      "zone_name": "",
+      "fail_open": true,
+      "script": "visutry-cf-production"
+    },
+    {
+      "id": "6d5e5212402f4267bce2f4a13836f7da",
+      "pattern": "www.visutry.com/home/*",
+      "zone_name": "",
+      "fail_open": true,
+      "script": "visutry-cf-production"
+    },
+    {
+      "id": "81e7a103102e49b78fd7a5b03d10d687",
+      "pattern": "www.visutry.com/images/*",
+      "zone_name": "",
+      "fail_open": true,
+      "script": "visutry-cf-production"
+    },
+    {
+      "id": "82fa3232423a4082a09a5967ac3f4357",
+      "pattern": "www.visutry.com/assets/*",
+      "zone_name": "",
+      "fail_open": true,
+      "script": "visutry-cf-production"
+    },
+    {
+      "id": "c9a2f20ff385495bb495e43b4dca5549",
+      "pattern": "www.visutry.com/blog-covers/*",
+      "zone_name": "",
+      "fail_open": true,
+      "script": "visutry-cf-production"
+    }
+  ],
+  "canaryPatterns": [
+    "www.visutry.com/en/glasses-guide",
+    "www.visutry.com/en/glasses-guide/*"
+  ],
+  "conflicts": []
+}

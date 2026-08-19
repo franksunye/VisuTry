@@ -1,0 +1,95 @@
+{
+  "kind": "p0-e2c-stage1-ae-probes",
+  "capturedAt": "2026-08-18T15:54:00Z",
+  "dataset": "visutry_isr_telemetry_production",
+  "gitHead": "75778cadce0322f434a2f035aa9209fc0a76aacd",
+  "telemetryEnabledAt": "2026-08-18T15:51:04Z",
+  "workerVersionId": "8797d977-329d-460a-9237-c69a26ebffed",
+  "rowCount": 7,
+  "piiScan": {
+    "secret-canary-token-xyz": "absent",
+    "secret-cookie": "absent",
+    "secret-auth-token": "absent",
+    "Bearer": "absent",
+    "next-auth.session-token": "absent",
+    "homepage-cta": "absent",
+    "_rsc=": "absent",
+    "sourcePage=": "absent",
+    "Authorization": "absent",
+    "Cookie": "absent",
+    "ipv4InBlobs": "absent"
+  },
+  "notes": [
+    "RSC probe used ?_rsc=secret-canary-token-xyz&sourcePage=homepage-cta; AE stored pathname only and double5/6/7=1/1/1.",
+    "Hub probe sent Cookie and Authorization; neither appeared in AE blobs.",
+    "Bot labels are UA heuristics (blob14=UA_HEURISTIC), not Cloudflare Bot Management verification."
+  ],
+  "rows": [
+    {
+      "timestamp": "2026-08-18 15:52:11",
+      "method": "GET",
+      "path": "/en/glasses-guide/best-rectangle-glasses-for-round-face",
+      "kind": "HTML_DOCUMENT",
+      "bot": "LIKELY_BROWSER",
+      "cache": "HIT",
+      "status": 200
+    },
+    {
+      "timestamp": "2026-08-18 15:52:15",
+      "method": "HEAD",
+      "path": "/en/glasses-guide/best-rectangle-glasses-for-round-face",
+      "kind": "HTML_DOCUMENT",
+      "bot": "LIKELY_BROWSER",
+      "cache": "HIT",
+      "status": 200
+    },
+    {
+      "timestamp": "2026-08-18 15:52:17",
+      "method": "GET",
+      "path": "/en/glasses-guide/best-rectangle-glasses-for-round-face",
+      "kind": "RSC",
+      "bot": "LIKELY_BROWSER",
+      "cache": "HIT",
+      "status": 200,
+      "hasQuery": 1,
+      "hasRscQuery": 1,
+      "hasSourcePage": 1
+    },
+    {
+      "timestamp": "2026-08-18 15:52:19",
+      "method": "GET",
+      "path": "/en/glasses-guide/best-rectangle-glasses-for-round-face",
+      "kind": "NEXT_PREFETCH",
+      "bot": "LIKELY_BROWSER",
+      "cache": "HIT",
+      "status": 200
+    },
+    {
+      "timestamp": "2026-08-18 15:52:24",
+      "method": "GET",
+      "path": "/en/glasses-guide/best-rectangle-glasses-for-round-face",
+      "kind": "HTML_DOCUMENT",
+      "bot": "GOOGLEBOT",
+      "cache": "HIT",
+      "status": 200
+    },
+    {
+      "timestamp": "2026-08-18 15:52:28",
+      "method": "GET",
+      "path": "/en/glasses-guide/best-rectangle-glasses-for-round-face",
+      "kind": "HTML_DOCUMENT",
+      "bot": "BINGBOT",
+      "cache": "HIT",
+      "status": 200
+    },
+    {
+      "timestamp": "2026-08-18 15:53:14",
+      "method": "GET",
+      "path": "/en/glasses-guide",
+      "kind": "HTML_DOCUMENT",
+      "bot": "LIKELY_BROWSER",
+      "cache": "HIT",
+      "status": 200
+    }
+  ]
+}

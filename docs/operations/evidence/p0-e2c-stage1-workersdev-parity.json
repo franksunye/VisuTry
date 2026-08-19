@@ -1,0 +1,335 @@
+{
+  "worker": "https://visutry-isr-passthrough.sunye.workers.dev",
+  "vercel": "https://visutry.vercel.app",
+  "cases": [
+    {
+      "case": "GET hub",
+      "path": "/en/glasses-guide",
+      "method": "GET",
+      "vercel": {
+        "status": 200,
+        "error": null,
+        "content-type": "text/html; charset=utf-8",
+        "cache-control": "public, max-age=0, must-revalidate",
+        "vary": "RSC, Next-Router-State-Tree, Next-Router-Prefetch",
+        "location": null,
+        "x-matched-path": "/en/glasses-guide",
+        "x-vercel-cache": "PRERENDER",
+        "server": "Vercel",
+        "cf-ray": null,
+        "x-visutry-router-backend": null,
+        "age": "0",
+        "canonical": "https://www.visutry.com/en/glasses-guide",
+        "body_len": 109203,
+        "body_sha256": "5e3da81c528f1ef20b3f5662ea34965e942ef9cc4e891e73ce44c8ea5097a51a"
+      },
+      "worker": {
+        "status": 200,
+        "error": null,
+        "content-type": "text/html; charset=utf-8",
+        "cache-control": "public, max-age=0, must-revalidate",
+        "vary": "RSC, Next-Router-State-Tree, Next-Router-Prefetch, accept-encoding",
+        "location": null,
+        "x-matched-path": "/en/glasses-guide",
+        "x-vercel-cache": "HIT",
+        "server": "cloudflare",
+        "cf-ray": "a2d20794b9b9148e-SJC",
+        "x-visutry-router-backend": null,
+        "age": "6",
+        "canonical": "https://www.visutry.com/en/glasses-guide",
+        "body_len": 109203,
+        "body_sha256": "5e3da81c528f1ef20b3f5662ea34965e942ef9cc4e891e73ce44c8ea5097a51a"
+      },
+      "semantic_header_diffs": [
+        {
+          "vary": {
+            "vercel": "RSC, Next-Router-State-Tree, Next-Router-Prefetch",
+            "worker": "RSC, Next-Router-State-Tree, Next-Router-Prefetch, accept-encoding"
+          }
+        }
+      ],
+      "body_hash_mismatch": false
+    },
+    {
+      "case": "GET detail",
+      "path": "/en/glasses-guide/best-rectangle-glasses-for-round-face",
+      "method": "GET",
+      "vercel": {
+        "status": 200,
+        "error": null,
+        "content-type": "text/html; charset=utf-8",
+        "cache-control": "public, max-age=0, must-revalidate",
+        "vary": "RSC, Next-Router-State-Tree, Next-Router-Prefetch",
+        "location": null,
+        "x-matched-path": "/en/glasses-guide/best-rectangle-glasses-for-round-face",
+        "x-vercel-cache": "HIT",
+        "server": "Vercel",
+        "cf-ray": null,
+        "x-visutry-router-backend": null,
+        "age": "1743",
+        "canonical": "https://www.visutry.com/en/glasses-guide/best-rectangle-glasses-for-round-face",
+        "body_len": 82325,
+        "body_sha256": "f87469beba3713eda049e65427c92e15f2edcf06de04d86d3d5b6c31c02575bc"
+      },
+      "worker": {
+        "status": 200,
+        "error": null,
+        "content-type": "text/html; charset=utf-8",
+        "cache-control": "public, max-age=0, must-revalidate",
+        "vary": "RSC, Next-Router-State-Tree, Next-Router-Prefetch, accept-encoding",
+        "location": null,
+        "x-matched-path": "/en/glasses-guide/best-rectangle-glasses-for-round-face",
+        "x-vercel-cache": "HIT",
+        "server": "cloudflare",
+        "cf-ray": "a2d207ffaa51c1fe-LAX",
+        "x-visutry-router-backend": null,
+        "age": "1754",
+        "canonical": "https://www.visutry.com/en/glasses-guide/best-rectangle-glasses-for-round-face",
+        "body_len": 82325,
+        "body_sha256": "f87469beba3713eda049e65427c92e15f2edcf06de04d86d3d5b6c31c02575bc"
+      },
+      "semantic_header_diffs": [
+        {
+          "vary": {
+            "vercel": "RSC, Next-Router-State-Tree, Next-Router-Prefetch",
+            "worker": "RSC, Next-Router-State-Tree, Next-Router-Prefetch, accept-encoding"
+          }
+        }
+      ],
+      "body_hash_mismatch": false
+    },
+    {
+      "case": "HEAD detail",
+      "path": "/en/glasses-guide/best-rectangle-glasses-for-round-face",
+      "method": "HEAD",
+      "vercel": {
+        "status": 200,
+        "error": null,
+        "content-type": "text/html; charset=utf-8",
+        "cache-control": "public, max-age=0, must-revalidate",
+        "vary": "RSC, Next-Router-State-Tree, Next-Router-Prefetch",
+        "location": null,
+        "x-matched-path": "/en/glasses-guide/best-rectangle-glasses-for-round-face",
+        "x-vercel-cache": "HIT",
+        "server": "Vercel",
+        "cf-ray": null,
+        "x-visutry-router-backend": null,
+        "age": "1759",
+        "canonical": null,
+        "body_len": 0,
+        "body_sha256": null
+      },
+      "worker": {
+        "status": 200,
+        "error": null,
+        "content-type": "text/html; charset=utf-8",
+        "cache-control": "public, max-age=0, must-revalidate",
+        "vary": "RSC, Next-Router-State-Tree, Next-Router-Prefetch",
+        "location": null,
+        "x-matched-path": "/en/glasses-guide/best-rectangle-glasses-for-round-face",
+        "x-vercel-cache": "HIT",
+        "server": "cloudflare",
+        "cf-ray": "a2d2083d98f4c0cc-LAX",
+        "x-visutry-router-backend": null,
+        "age": "1764",
+        "canonical": null,
+        "body_len": 0,
+        "body_sha256": null
+      },
+      "semantic_header_diffs": [],
+      "body_hash_mismatch": false
+    },
+    {
+      "case": "RSC detail",
+      "path": "/en/glasses-guide/best-rectangle-glasses-for-round-face?_rsc=1abc",
+      "method": "GET",
+      "vercel": {
+        "status": 200,
+        "error": null,
+        "content-type": "text/x-component",
+        "cache-control": "public, max-age=0, must-revalidate",
+        "vary": "RSC, Next-Router-State-Tree, Next-Router-Prefetch",
+        "location": null,
+        "x-matched-path": "/en/glasses-guide/best-rectangle-glasses-for-round-face.rsc",
+        "x-vercel-cache": "HIT",
+        "server": "Vercel",
+        "cf-ray": null,
+        "x-visutry-router-backend": null,
+        "age": "1703",
+        "canonical": null,
+        "body_len": 38519,
+        "body_sha256": "9a648e1bed407ebddf5f60a1dc62f548256dfd7207ed7e98a22acab52a9a23f4"
+      },
+      "worker": {
+        "status": 200,
+        "error": null,
+        "content-type": "text/x-component",
+        "cache-control": "public, max-age=0, must-revalidate",
+        "vary": "RSC, Next-Router-State-Tree, Next-Router-Prefetch, accept-encoding",
+        "location": null,
+        "x-matched-path": "/en/glasses-guide/best-rectangle-glasses-for-round-face.rsc",
+        "x-vercel-cache": "HIT",
+        "server": "cloudflare",
+        "cf-ray": "a2d2087449785121-LAX",
+        "x-visutry-router-backend": null,
+        "age": "1707",
+        "canonical": null,
+        "body_len": 38519,
+        "body_sha256": "9a648e1bed407ebddf5f60a1dc62f548256dfd7207ed7e98a22acab52a9a23f4"
+      },
+      "semantic_header_diffs": [
+        {
+          "vary": {
+            "vercel": "RSC, Next-Router-State-Tree, Next-Router-Prefetch",
+            "worker": "RSC, Next-Router-State-Tree, Next-Router-Prefetch, accept-encoding"
+          }
+        }
+      ],
+      "body_hash_mismatch": false
+    },
+    {
+      "case": "prefetch detail",
+      "path": "/en/glasses-guide/best-rectangle-glasses-for-round-face",
+      "method": "GET",
+      "vercel": {
+        "status": 200,
+        "error": null,
+        "content-type": "text/html; charset=utf-8",
+        "cache-control": "public, max-age=0, must-revalidate",
+        "vary": "RSC, Next-Router-State-Tree, Next-Router-Prefetch",
+        "location": null,
+        "x-matched-path": "/en/glasses-guide/best-rectangle-glasses-for-round-face",
+        "x-vercel-cache": "HIT",
+        "server": "Vercel",
+        "cf-ray": null,
+        "x-visutry-router-backend": null,
+        "age": "1779",
+        "canonical": "https://www.visutry.com/en/glasses-guide/best-rectangle-glasses-for-round-face",
+        "body_len": 82325,
+        "body_sha256": "f87469beba3713eda049e65427c92e15f2edcf06de04d86d3d5b6c31c02575bc"
+      },
+      "worker": {
+        "status": 200,
+        "error": null,
+        "content-type": "text/html; charset=utf-8",
+        "cache-control": "public, max-age=0, must-revalidate",
+        "vary": "RSC, Next-Router-State-Tree, Next-Router-Prefetch, accept-encoding",
+        "location": null,
+        "x-matched-path": "/en/glasses-guide/best-rectangle-glasses-for-round-face",
+        "x-vercel-cache": "HIT",
+        "server": "cloudflare",
+        "cf-ray": "a2d208bdabfd996a-LAX",
+        "x-visutry-router-backend": null,
+        "age": "1784",
+        "canonical": "https://www.visutry.com/en/glasses-guide/best-rectangle-glasses-for-round-face",
+        "body_len": 82325,
+        "body_sha256": "f87469beba3713eda049e65427c92e15f2edcf06de04d86d3d5b6c31c02575bc"
+      },
+      "semantic_header_diffs": [
+        {
+          "vary": {
+            "vercel": "RSC, Next-Router-State-Tree, Next-Router-Prefetch",
+            "worker": "RSC, Next-Router-State-Tree, Next-Router-Prefetch, accept-encoding"
+          }
+        }
+      ],
+      "body_hash_mismatch": false
+    },
+    {
+      "case": "404",
+      "path": "/en/glasses-guide/this-slug-does-not-exist-xyz",
+      "method": "GET",
+      "vercel": {
+        "status": 404,
+        "error": null,
+        "content-type": "text/html; charset=utf-8",
+        "cache-control": "public, max-age=0, must-revalidate",
+        "vary": null,
+        "location": null,
+        "x-matched-path": "/404",
+        "x-vercel-cache": "HIT",
+        "server": "Vercel",
+        "cf-ray": null,
+        "x-visutry-router-backend": null,
+        "age": "1738",
+        "canonical": null,
+        "body_len": 5943,
+        "body_sha256": "0948f385b4e784b18e02a047441806e3acb925c8a7d08ab1be06823e516cf24b"
+      },
+      "worker": {
+        "status": 404,
+        "error": null,
+        "content-type": "text/html; charset=utf-8",
+        "cache-control": "public, max-age=0, must-revalidate",
+        "vary": "accept-encoding",
+        "location": null,
+        "x-matched-path": "/404",
+        "x-vercel-cache": "HIT",
+        "server": "cloudflare",
+        "cf-ray": "a2d208fc1fc9cb93-LAX",
+        "x-visutry-router-backend": null,
+        "age": "1742",
+        "canonical": null,
+        "body_len": 5943,
+        "body_sha256": "0948f385b4e784b18e02a047441806e3acb925c8a7d08ab1be06823e516cf24b"
+      },
+      "semantic_header_diffs": [
+        {
+          "vary": {
+            "vercel": null,
+            "worker": "accept-encoding"
+          }
+        }
+      ],
+      "body_hash_mismatch": false
+    },
+    {
+      "case": "slash redirect",
+      "path": "/en/glasses-guide/",
+      "method": "GET",
+      "vercel": {
+        "status": 200,
+        "error": null,
+        "content-type": "text/html; charset=utf-8",
+        "cache-control": "public, max-age=0, must-revalidate",
+        "vary": "RSC, Next-Router-State-Tree, Next-Router-Prefetch",
+        "location": null,
+        "x-matched-path": "/en/glasses-guide",
+        "x-vercel-cache": "HIT",
+        "server": "Vercel",
+        "cf-ray": null,
+        "x-visutry-router-backend": null,
+        "age": "69",
+        "canonical": "https://www.visutry.com/en/glasses-guide",
+        "body_len": 109203,
+        "body_sha256": "5e3da81c528f1ef20b3f5662ea34965e942ef9cc4e891e73ce44c8ea5097a51a"
+      },
+      "worker": {
+        "status": 200,
+        "error": null,
+        "content-type": "text/html; charset=utf-8",
+        "cache-control": "public, max-age=0, must-revalidate",
+        "vary": "RSC, Next-Router-State-Tree, Next-Router-Prefetch, accept-encoding",
+        "location": null,
+        "x-matched-path": "/en/glasses-guide",
+        "x-vercel-cache": "HIT",
+        "server": "cloudflare",
+        "cf-ray": "a2d20974ff1572e0-LAX",
+        "x-visutry-router-backend": null,
+        "age": "83",
+        "canonical": "https://www.visutry.com/en/glasses-guide",
+        "body_len": 109203,
+        "body_sha256": "5e3da81c528f1ef20b3f5662ea34965e942ef9cc4e891e73ce44c8ea5097a51a"
+      },
+      "semantic_header_diffs": [
+        {
+          "vary": {
+            "vercel": "RSC, Next-Router-State-Tree, Next-Router-Prefetch",
+            "worker": "RSC, Next-Router-State-Tree, Next-Router-Prefetch, accept-encoding"
+          }
+        }
+      ],
+      "body_hash_mismatch": false
+    }
+  ]
+}

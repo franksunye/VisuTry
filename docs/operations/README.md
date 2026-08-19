@@ -8,6 +8,7 @@
 | Document | Status | Purpose |
 | --- | --- | --- |
 | `hosting-strategy-vercel-cloudflare.md` | **Canonical / Active** | Hybrid hosting strategy and canonical three-layer traffic model (Static Assets → Worker → Vercel/backend) |
+| `vercel-isr-edge-telemetry.md` | **Canary / observability** | Vercel ISR pass-through Worker + Analytics Engine; English glasses-guide canary only; telemetry off by default in repo vars |
 | `vercel-quota-emergency-reduction.md` | **Active** | Hobby ISR Reads / Fast Origin Transfer emergency reductions (static SEO, middleware, public GET cache) |
 | `cloudflare-phase-b3-integration-audit.md` | **Active milestone** | Compatibility, dependency, cost, bundle, architecture, and production-gate audit for remaining Cloudflare integrations |
 | `cloudflare-production-route-boundary.md` | **Active milestone** | B3.1 bundle-drift diagnosis and definitive Cloudflare/Vercel production route boundary |

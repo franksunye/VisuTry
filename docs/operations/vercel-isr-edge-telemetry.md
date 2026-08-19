@@ -1,11 +1,13 @@
-# Vercel ISR edge telemetry (P0-E2A / P0-E2B)
+# Vercel ISR edge telemetry (P0-E2A / P0-E2B / P0-E2C)
 
-**Status:** code ready, **not deployed**
+**Status:** `DEPLOYMENT STATUS: CANARY ACTIVE` (English glasses-guide only)
 **Date:** 2026-08-18
 **Branches:** `codex/isr-edge-telemetry` (helpers) → `codex/isr-production-pass-through-telemetry` (production visibility)
 **Purpose:** observe which Vercel GET/HEAD requests correspond to prerender cold reads, without Vercel Pro logs.
 
 This is observability only. It does not change application backend, Cache-Control, Cloudflare Cache Rules, cookies, redirects, sitemaps, or Next rendering.
+
+Repo wrangler vars still default `ISR_TELEMETRY_ENABLED=false`. The live canary Worker was flipped on with `--keep-vars --var ISR_TELEMETRY_ENABLED:true`. A later production deploy **without** `--keep-vars` / that var would turn telemetry off again; pass-through routes would remain.
 
 ## Production architecture
 
@@ -25,6 +27,14 @@ Internet
 Do not add diagnostic `x-visutry-router-*` headers on this Worker. They are not required for telemetry and must not become a client-visible cache/SEO difference.
 
 Upstream `fetch` uses `cache: 'no-store'` so the Worker hop does not introduce a Cloudflare HTML cache in front of Vercel ISR. Do not set `cf.cacheTtl`, `cacheEverything`, or `caches.default`.
+
+## MEASUREMENT CAVEAT
+
+The pass-through Worker issues a subrequest to `https://visutry.vercel.app{path}{search}`. That hop can change **which Vercel POP** answers and therefore **x-vercel-cache / Age / PRERENDER rate / colo** versus unmatched `www` traffic that still goes Cloudflare → Vercel origin directly.
+
+Treat **pathname, locale, routeFamily, requestKind, bot heuristic, method, status** as high-value attribution. Do **not** treat PRERENDER rate or colo mix on this canary as 1:1 with uninstrumented locales (`/id/glasses-guide`, `/ar/...`, etc.).
+
+www HTML byte length can also differ from `visutry.vercel.app` because Cloudflare injects `/cdn-cgi/challenge-platform` on PROXIED www. workers.dev body hash matching Vercel is the semantic-body check.
 
 ## Stable Vercel origin
 
@@ -48,7 +58,7 @@ If this alias is ever removed from the Vercel project: **STOP** and mark `STABLE
 
 ## Production router coverage
 
-**PRODUCTION_ROUTER_COVERAGE: PARTIAL** until Stage 1 Worker Routes are attached (this PR does not attach them).
+**PRODUCTION_ROUTER_COVERAGE: PARTIAL** — P0-E2C attached **English glasses-guide only** (2 routes). The other 8 locales and Stage 2 families remain unmatched → Vercel origin.
 
 **PRODUCTION CONFIG VERIFICATION REQUIRED** for whether the 12 P0 Worker Routes are still exactly those listed in `docs/operations/cloudflare-b4-2d-p0-production-cutover.md`.
 
@@ -206,6 +216,28 @@ Only if Stage 1 does not explain the 5k–10k RU/hour spike.
 1. Set `ISR_PASSTHROUGH_STAGE=2`.
 2. Attach the Stage 2 patterns to **the same** `visutry-isr-passthrough` Worker (not `visutry-cf-production`).
 3. Repeat header comparison on one style / blog / face-shapes URL.
+
+## P0-E2C Stage 1 English canary (live)
+
+Do not attach other locales or Stage 2 from this window. Do not full-site crawl; wait for a natural ISR spike (≥6h, prefer the next 9k–10k RU hour, else 24h).
+
+| Item | Value |
+| --- | --- |
+| Worker | `visutry-isr-passthrough` |
+| Dataset | `visutry_isr_telemetry_production` (Dashboard-created; binding `ISR_TELEMETRY`) |
+| Origin | `https://visutry.vercel.app` |
+| Git HEAD | `75778cadce0322f434a2f035aa9209fc0a76aacd` |
+| Routes attached | `2026-08-18T15:47:21Z` (telemetry still off) |
+| Telemetry enabled | `2026-08-18T15:51:04Z` UTC |
+| Worker version (telemetry on) | `8797d977-329d-460a-9237-c69a26ebffed` |
+| Route count | before **12** (`visutry-cf-production`) / after **14** (those 12 untouched + 2 canary) |
+| Canary patterns | `www.visutry.com/en/glasses-guide` (`fbadeef503ec4c92850ac100408633cc`), `www.visutry.com/en/glasses-guide/*` (`c527b3e252384b76a1e835697bb23daf`) |
+| `request_limit_fail_open` | `true` |
+| First AE rows | `2026-08-18 15:52:11`–`15:53:14` UTC (HTML, HEAD, RSC, prefetch, Googlebot, Bingbot, hub) |
+
+Emergency rollback (do **not** run while healthy): `DELETE` only those two route IDs. Leave the 12 OpenNext routes. Target &lt; 5 minutes.
+
+Evidence: `docs/operations/evidence/p0-e2c-stage1-canary-before.json`, `...-after.json`, `...-workersdev-parity.json`, `...-ae-probes.json`.
 
 ## Rollback (minutes)
 
