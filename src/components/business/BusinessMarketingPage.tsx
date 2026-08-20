@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { redirect } from 'next/navigation'
 import { ArrowRight, Check, ExternalLink, Sparkles } from 'lucide-react'
 import { businessHref, businessPages, type BusinessPageKey } from '@/config/business-site'
 
@@ -22,6 +23,10 @@ function CtaLink({ locale, href, label, primary = false }: { locale: string; hre
 
 export function BusinessMarketingPage({ locale, pageKey }: BusinessMarketingPageProps) {
   const page = businessPages[pageKey]
+
+  if (locale !== 'en') {
+    redirect(`/en${page.slug}`)
+  }
 
   return (
     <main className="bg-[#f8fafc] text-slate-950">
@@ -71,7 +76,7 @@ export function BusinessMarketingPage({ locale, pageKey }: BusinessMarketingPage
 
       {page.sections.map((section, index) => (
         <section key={`${pageKey}-${index}`} className={index % 2 === 0 ? 'bg-white' : 'bg-[#f8fafc]'}>
-          <div className={`mx-auto max-w-7xl px-4 py-14 sm:px-6 sm:py-18 lg:px-8 lg:py-20 ${section.visual ? 'grid gap-10 lg:grid-cols-[0.92fr_1.08fr] lg:items-center' : ''}`}>
+          <div className={`mx-auto max-w-7xl px-4 py-14 sm:px-6 sm:py-20 lg:px-8 lg:py-20 ${section.visual ? 'grid gap-10 lg:grid-cols-[0.92fr_1.08fr] lg:items-center' : ''}`}>
             <div className={section.visual ? '' : 'mx-auto max-w-4xl'}>
               {section.eyebrow ? <p className="text-xs font-semibold uppercase tracking-[0.16em] text-blue-700">{section.eyebrow}</p> : null}
               <h2 className="mt-3 text-3xl font-semibold tracking-[-0.025em] text-slate-950 sm:text-4xl">{section.title}</h2>
