@@ -9,5 +9,9 @@ export async function generateMetadata({ params }: { params: { locale: string } 
 
 export default function Page({ params }: { params: { locale: string } }) {
   setRequestLocale(params.locale)
-  return <BusinessMarketingPage locale={params.locale} pageKey="pricing" />
+  return (
+    <div className="[&>main>section:last-child]:hidden">
+      <BusinessMarketingPage locale={params.locale} pageKey="pricing" />
+    </div>
+  )
 }
