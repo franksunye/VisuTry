@@ -48,7 +48,7 @@ export const businessNav = [
   { label: 'Platform', href: '/business/platform' },
   { label: 'Store', href: '/business/store' },
   { label: 'Campaigns', href: '/business/campaigns' },
-  { label: 'Intelligence', href: '/business/commerce-intelligence' },
+  { label: 'Commerce Intelligence', href: '/business/commerce-intelligence' },
   { label: 'Pricing', href: '/business/pricing' },
   { label: 'Examples', href: '/business/examples' },
 ] as const
@@ -58,18 +58,14 @@ const pilotHref = '/business/pilot'
 export const businessPages: Record<BusinessPageKey, BusinessPageDefinition> = {
   overview: {
     slug: '/business',
-    metaTitle: 'AI Commerce for Eyewear Brands & Retailers | VisuTry',
-    metaDescription: 'Turn your eyewear catalog into a personalized AI shopping experience with recommendation, virtual try-on, comparison, and measurable shopper intent.',
+    metaTitle: 'AI Commerce for Eyewear Brands & Agencies | VisuTry',
+    metaDescription: 'Turn eyewear catalogs and campaign traffic into guided AI shopping experiences for brand, commerce, and agency teams with recommendation, virtual try-on, comparison, and measurable shopper intent.',
     eyebrow: 'AI Commerce for Eyewear',
     title: 'Turn your eyewear catalog into a personalized AI shopping experience.',
     description: 'Help shoppers narrow the catalog, get recommendations, try frames on, compare finalists, and continue to your product or inquiry flow — while you see which products and journeys create stronger intent.',
     primaryCta: { label: 'Start a Pilot', href: pilotHref },
-    secondaryCta: { label: 'See a Store Example', href: '/store/luna-optical' },
+    secondaryCta: { label: 'Explore Store', href: '/business/store' },
     microcopy: 'Hosted first. Keep your current ecommerce site and product pages.',
-    heroImage: {
-      src: '/images/store/store-hero-shopper.png',
-      alt: 'Shopper moving from eyewear discovery into a guided recommendation and try-on experience',
-    },
     sections: [
       {
         eyebrow: 'From browsing to confident choice',
@@ -96,11 +92,6 @@ export const businessPages: Record<BusinessPageKey, BusinessPageDefinition> = {
         eyebrow: 'Commerce Intelligence',
         title: 'See what shoppers actually do before the product click.',
         body: 'Page views alone do not explain whether shoppers found a relevant frame. VisuTry captures decision-stage signals such as recommendation completion, Try-On, Compare, favorite, inquiry, product click, top frames, and source or Experience context where available.',
-        visual: {
-          src: '/images/store/store-owner-dashboard.png',
-          alt: 'Merchant intelligence dashboard showing shopper engagement and intent signals',
-          caption: 'Observed engagement and intent signals — not unsupported revenue claims.',
-        },
       },
       {
         eyebrow: 'Hosted first',
@@ -148,10 +139,6 @@ export const businessPages: Record<BusinessPageKey, BusinessPageDefinition> = {
         eyebrow: 'Shared decision runtime',
         title: 'Recommendation, Try-On, and Compare work as one journey.',
         body: 'Recommendation helps narrow the set of frames. Try-On helps visualize selected products. Compare helps shoppers review finalists. Product links or inquiry actions then return the shopper to the merchant’s existing selling flow.',
-        visual: {
-          src: '/images/store/store-shopper-experience.png',
-          alt: 'Guided shopper experience showing recommendation, try-on, and comparison',
-        },
       },
       {
         eyebrow: 'Experience model',
@@ -160,7 +147,7 @@ export const businessPages: Record<BusinessPageKey, BusinessPageDefinition> = {
         cards: [
           { title: 'Store', description: 'Persistent, broader catalog experience.', href: '/business/store', label: 'Explore Store' },
           { title: 'Campaigns', description: 'Focused experiences for a specific audience, collection, source, or intent.', href: '/business/campaigns', label: 'Explore Campaigns' },
-          { title: 'Intelligence', description: 'Experience-level engagement and purchase-intent signals.', href: '/business/commerce-intelligence', label: 'Explore Intelligence' },
+          { title: 'Commerce Intelligence', description: 'Experience-level engagement and purchase-intent signals.', href: '/business/commerce-intelligence', label: 'Explore Commerce Intelligence' },
         ],
       },
       {
@@ -178,11 +165,7 @@ export const businessPages: Record<BusinessPageKey, BusinessPageDefinition> = {
     title: 'Turn your eyewear catalog into an AI-guided storefront.',
     description: 'Give shoppers a merchant-branded path from discovery and recommendation to Try-On, Compare, and your existing product or inquiry destination.',
     primaryCta: { label: 'Start a Pilot', href: pilotHref },
-    secondaryCta: { label: 'View a Store Example', href: '/store/luna-optical' },
-    heroImage: {
-      src: '/images/store/store-shopper-experience.png',
-      alt: 'Merchant-branded eyewear shopping experience with personalized frame guidance',
-    },
+    secondaryCta: { label: 'See Product Examples', href: '/business/examples' },
     sections: [
       {
         eyebrow: 'What the Store does',
@@ -207,19 +190,16 @@ export const businessPages: Record<BusinessPageKey, BusinessPageDefinition> = {
         body: 'VisuTry treats Try-On as one step in the decision journey. Recommendation narrows the catalog before Try-On, Compare helps evaluate finalists, and intent signals help the merchant understand which frames generated interest.',
       },
       {
-        eyebrow: 'Live product proof',
-        title: 'See the Store workflow in a real hosted experience.',
-        body: 'Luna Optical demonstrates the persistent Store format and the shopper journey it supports.',
-        cards: [
-          { title: 'Luna Optical', description: 'Live hosted Store experience.', href: '/store/luna-optical', label: 'Open Store' },
-        ],
+        eyebrow: 'Store product preview',
+        title: 'See how the hosted Store experience is designed to work.',
+        body: 'This product preview shows the persistent Store format and shopper decision journey without presenting an unverified merchant deployment as live proof.',
       },
     ],
   },
   campaigns: {
     slug: '/business/campaigns',
-    metaTitle: 'AI Shopping Campaigns for Eyewear | VisuTry',
-    metaDescription: 'Create focused AI shopping experiences for eyewear collections, audiences, traffic sources, style stories, and shopping intent.',
+    metaTitle: 'AI Shopping Campaigns for Eyewear Brands & Agencies | VisuTry',
+    metaDescription: 'Create focused AI shopping experiences for eyewear campaigns, collections, audiences, traffic sources, creator stories, and media briefs while preserving merchant product truth.',
     eyebrow: 'Campaign Experiences',
     title: 'Turn campaign traffic into a focused shopping journey.',
     description: 'Reuse the same merchant catalog to create focused experiences for collections, audiences, sources, style stories, promotions, and shopping intent.',
@@ -267,10 +247,6 @@ export const businessPages: Record<BusinessPageKey, BusinessPageDefinition> = {
     description: 'Understand which products and shopper journeys create stronger observable intent across recommendation, Try-On, Compare, favorite, inquiry, and product click behavior.',
     primaryCta: { label: 'Start a Pilot', href: pilotHref },
     secondaryCta: { label: 'Explore the Platform', href: '/business/platform' },
-    heroImage: {
-      src: '/images/store/store-owner-dashboard.png',
-      alt: 'Merchant dashboard showing shopper and Experience-level intent signals',
-    },
     sections: [
       {
         eyebrow: 'What you can observe',
@@ -287,7 +263,7 @@ export const businessPages: Record<BusinessPageKey, BusinessPageDefinition> = {
       {
         eyebrow: 'Evidence boundary',
         title: 'Intent is useful evidence. It is not a revenue guarantee.',
-        body: 'The current Intelligence layer focuses on observable engagement and purchase-intent behavior. Revenue attribution requires commerce or order-data integration, and incremental revenue claims require credible experiment design.',
+        body: 'The current Commerce Intelligence layer focuses on observable engagement and purchase-intent behavior. Revenue attribution requires commerce or order-data integration, and incremental revenue claims require credible experiment design.',
         note: 'No guaranteed conversion uplift, revenue lift, or incremental GMV claims.',
       },
       {
@@ -331,20 +307,17 @@ export const businessPages: Record<BusinessPageKey, BusinessPageDefinition> = {
   examples: {
     slug: '/business/examples',
     metaTitle: 'VisuTry Store & Campaign Examples for Eyewear',
-    metaDescription: 'Explore live and reference VisuTry Store and Campaign Experiences across eyewear merchant archetypes.',
+    metaDescription: 'Explore VisuTry Store product previews and clearly labeled Campaign Reference Experiences across eyewear merchant archetypes.',
     eyebrow: 'Product Proof',
     title: 'See the same commerce workflow across different eyewear problems.',
-    description: 'Use live and clearly labeled Reference Experiences to evaluate the shopper journey, not to infer customer relationships or performance claims.',
+    description: 'Use product previews and clearly labeled Reference Experiences to evaluate the shopper journey, not to infer customer relationships or performance claims.',
     primaryCta: { label: 'Start a Pilot', href: pilotHref },
     secondaryCta: { label: 'Explore Store', href: '/business/store' },
     sections: [
       {
-        eyebrow: 'Live Merchant Experience',
-        title: 'Luna Optical',
-        body: 'A live hosted Store showing the persistent Store format and shopper decision workflow.',
-        cards: [
-          { title: 'Luna Optical Store', description: 'Live hosted Store Experience.', href: '/store/luna-optical', label: 'Open Live Store' },
-        ],
+        eyebrow: 'Store product preview',
+        title: 'A persistent Store experience.',
+        body: 'Use the Store product preview to evaluate the always-on shopper journey without implying a customer or partner deployment.',
       },
       {
         eyebrow: 'Reference Portfolio',
