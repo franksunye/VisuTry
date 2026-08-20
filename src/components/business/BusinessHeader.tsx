@@ -13,6 +13,8 @@ export function BusinessHeader() {
   const locale = params.locale as string
   const [open, setOpen] = useState(false)
 
+  const navLabel = (href: string, label: string) => href === '/business/commerce-intelligence' ? 'Commerce Intelligence' : label
+
   return (
     <header className="sticky top-0 z-50 border-b border-slate-200/80 bg-white/90 backdrop-blur-xl">
       <nav className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8" aria-label="Business navigation">
@@ -27,7 +29,7 @@ export function BusinessHeader() {
             </span>
           </Link>
 
-          <div className="hidden items-center gap-6 xl:flex">
+          <div className="hidden items-center gap-5 xl:flex">
             {businessNav.map((item) => {
               const href = businessHref(locale, item.href)
               const active = pathname === href
@@ -41,7 +43,7 @@ export function BusinessHeader() {
                     active ? 'text-blue-700' : 'text-slate-600 hover:text-slate-950'
                   )}
                 >
-                  {item.label}
+                  {navLabel(item.href, item.label)}
                 </Link>
               )
             })}
@@ -87,7 +89,7 @@ export function BusinessHeader() {
                     active ? 'bg-blue-50 text-blue-700' : 'text-slate-700 hover:bg-slate-50'
                   )}
                 >
-                  {item.label}
+                  {navLabel(item.href, item.label)}
                 </Link>
               )
             })}
