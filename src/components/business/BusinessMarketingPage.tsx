@@ -24,12 +24,16 @@ const visualSlots: Partial<Record<BusinessPageKey, VisualSlot>> = {
   intelligence: { id: 'B2B-VIS-06', name: 'Commerce Intelligence', status: 'NEEDS INSIGHTS CAPTURE' },
 }
 
-function CtaLink({ locale, href, label, primary = false }: { locale: string; href: string; label: string; primary?: boolean }) {
+function CtaLink({ locale, href, label, primary = false, inverse = false }: { locale: string; href: string; label: string; primary?: boolean; inverse?: boolean }) {
   const target = businessHref(locale, href)
   const external = target.startsWith('mailto:') || target.startsWith('http')
   const className = primary
-    ? 'inline-flex items-center justify-center gap-2 rounded-xl bg-slate-950 px-5 py-3.5 text-sm font-semibold text-white shadow-sm transition hover:-translate-y-0.5 hover:bg-slate-800'
-    : 'inline-flex items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-5 py-3.5 text-sm font-semibold text-slate-800 transition hover:border-slate-400 hover:bg-slate-50'
+    ? inverse
+      ? 'inline-flex items-center justify-center gap-2 rounded-xl bg-white px-5 py-3.5 text-sm font-semibold text-slate-950 shadow-sm transition hover:-translate-y-0.5 hover:bg-slate-100'
+      : 'inline-flex items-center justify-center gap-2 rounded-xl bg-slate-950 px-5 py-3.5 text-sm font-semibold text-white shadow-sm transition hover:-translate-y-0.5 hover:bg-slate-800'
+    : inverse
+      ? 'inline-flex items-center justify-center gap-2 rounded-xl border border-white/20 bg-white/5 px-5 py-3.5 text-sm font-semibold text-white transition hover:bg-white/10'
+      : 'inline-flex items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-5 py-3.5 text-sm font-semibold text-slate-800 transition hover:border-slate-400 hover:bg-slate-50'
 
   if (external) return <a href={target} className={className}>{label}<ArrowRight className="h-4 w-4" aria-hidden="true" /></a>
   return <Link href={target} prefetch={false} className={className}>{label}<ArrowRight className="h-4 w-4" aria-hidden="true" /></Link>
@@ -44,6 +48,18 @@ function hardenedCta(pageKey: BusinessPageKey, cta: { label: string; href: strin
 
 function hardenedSections(pageKey: BusinessPageKey, sections: BusinessSection[]): BusinessSection[] {
   const mapped = sections.map((section, index) => {
+    if (pageKey === 'store' && section.eyebrow === 'What the Store does') {
+      return {
+        ...section,
+        title: 'Three jobs matter: guide, evaluate, continue.',
+        cards: [
+          { title: 'Guide discovery', description: 'Merchant branding, reviewed frame data, and a relevant shortlist help shoppers move beyond an undifferentiated catalog grid.' },
+          { title: 'Help shoppers evaluate', description: 'Recommendation, Virtual Try-On, and Frame Compare support the decision before a shopper leaves the experience.' },
+          { title: 'Return intent to commerce', description: 'Product click, favorite, inquiry, and other enabled signals connect the decision journey back to the merchant flow.' },
+        ],
+      }
+    }
+
     if (pageKey === 'store' && section.eyebrow === 'Live product proof') {
       return {
         eyebrow: 'Store product preview',
@@ -97,6 +113,18 @@ function hardenedSections(pageKey: BusinessPageKey, sections: BusinessSection[])
       }
     }
 
+    if (pageKey === 'intelligence' && section.eyebrow === 'What you can observe') {
+      return {
+        ...section,
+        cards: [
+          { title: 'Recommendation', description: 'See whether shoppers complete the narrowing step and move into a more relevant set of frames.' },
+          { title: 'Try-On & Compare', description: 'Observe which frames move deeper into visual evaluation and finalist comparison.' },
+          { title: 'Product interest', description: 'Capture enabled favorite, inquiry, and other consideration signals around individual products.' },
+          { title: 'Handoff & source context', description: 'See when shoppers continue to merchant destinations and review source or Campaign context where available.' },
+        ],
+      }
+    }
+
     if (pageKey === 'intelligence' && section.eyebrow === 'Evidence boundary') {
       return { ...section, body: 'The current Commerce Intelligence layer focuses on observable engagement and purchase-intent behavior. Revenue attribution requires commerce or order-data integration, and incremental revenue claims require credible experiment design.' }
     }
@@ -116,6 +144,34 @@ function hardenedSections(pageKey: BusinessPageKey, sections: BusinessSection[])
       mapped[2],
       mapped[3],
       mapped[4],
+    ]
+  }
+
+  if (pageKey === 'platform') {
+    return [
+      mapped[0],
+      mapped[1],
+      mapped[2],
+      mapped[3],
+      {
+        eyebrow: 'Merchant workspace',
+        title: 'The operating surface behind the Experiences.',
+        body: 'The final proof will use the current Merchant Workspace to show how setup status, Store, Campaigns, and merchant operations connect to the shopper-facing experience.',
+      },
+      mapped[4],
+    ]
+  }
+
+  if (pageKey === 'campaigns') {
+    return [
+      mapped[1],
+      {
+        eyebrow: 'Product journey',
+        title: 'The campaign itself becomes a focused commerce experience.',
+        body: 'The final visual will pair the current Campaign UI with the shopper path from focused frame discovery into recommendation, Try-On, Compare, and merchant handoff.',
+      },
+      mapped[2],
+      mapped[3],
     ]
   }
 
@@ -195,9 +251,10 @@ function Hero({ locale, pageKey }: { locale: string; pageKey: BusinessPageKey })
           </p>
           <h1 className={`mt-6 text-4xl font-semibold tracking-[-0.05em] sm:text-5xl lg:text-[4.35rem] lg:leading-[1.01] ${dark ? 'text-white' : 'text-slate-950'}`}>{page.title}</h1>
           <p className={`mt-6 max-w-2xl text-base leading-8 sm:text-lg ${dark ? 'text-slate-300' : 'text-slate-600'}`}>{page.description}</p>
+          {pageKey === 'campaigns' ? <p className="mt-5 text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">Search · Social · Email · QR → Campaign Experience</p> : null}
           <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-            <CtaLink locale={locale} {...primaryCta} primary />
-            {secondaryCta ? <CtaLink locale={locale} {...secondaryCta} /> : null}
+            <CtaLink locale={locale} {...primaryCta} primary inverse={dark} />
+            {secondaryCta ? <CtaLink locale={locale} {...secondaryCta} inverse={dark} /> : null}
           </div>
           {page.microcopy ? <p className={`mt-5 text-xs leading-5 ${dark ? 'text-slate-400' : 'text-slate-500'}`}>{page.microcopy}</p> : null}
         </div>
@@ -259,9 +316,8 @@ function supplementalSlot(pageKey: BusinessPageKey, sectionIndex: number): Visua
   if (pageKey === 'overview' && sectionIndex === 3) return { id: 'B2B-VIS-06', name: 'Commerce Intelligence', status: 'NEEDS INSIGHTS CAPTURE' }
   if (pageKey === 'platform' && sectionIndex === 2) return { id: 'B2B-VIS-03', name: 'Real Store Experience', status: 'NEEDS STORE CAPTURE' }
   if (pageKey === 'platform' && sectionIndex === 4) return { id: 'B2B-VIS-05', name: 'Merchant Workspace', status: 'NEEDS MERCHANT CAPTURE' }
-  if (pageKey === 'campaigns' && sectionIndex === 2) return { id: 'B2B-VIS-04', name: 'Campaign Experience', status: 'NEEDS CAMPAIGN CAPTURE' }
+  if (pageKey === 'campaigns' && sectionIndex === 1) return { id: 'B2B-VIS-04', name: 'Campaign Experience', status: 'NEEDS CAMPAIGN CAPTURE' }
   if (pageKey === 'examples' && sectionIndex === 0) return { id: 'B2B-VIS-03', name: 'Real Store Experience', status: 'NEEDS STORE CAPTURE', ratio: '4:3' }
-  if (pageKey === 'examples' && sectionIndex === 1) return { id: 'B2B-VIS-07', name: 'Reference Experience Set', status: 'NEEDS REFERENCE CAPTURES', ratio: '4:3' }
   if (pageKey === 'integrations' && sectionIndex === 1) return { id: 'B2B-VIS-05', name: 'Merchant Workspace', status: 'NEEDS MERCHANT CAPTURE' }
   if (pageKey === 'pilot' && sectionIndex === 2) return { id: 'B2B-VIS-05', name: 'Merchant Workspace', status: 'NEEDS MERCHANT CAPTURE' }
   return null
