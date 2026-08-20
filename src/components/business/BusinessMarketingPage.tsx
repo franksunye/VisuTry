@@ -100,6 +100,13 @@ function hardenedSections(pageKey: BusinessPageKey, sections: BusinessSection[])
       }
     }
 
+    if (pageKey === 'intelligence' && section.eyebrow === 'Evidence boundary') {
+      return {
+        ...section,
+        body: 'The current Commerce Intelligence layer focuses on observable engagement and purchase-intent behavior. Revenue attribution requires commerce or order-data integration, and incremental revenue claims require credible experiment design.',
+      }
+    }
+
     return section
   })
 
