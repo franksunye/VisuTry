@@ -39,7 +39,6 @@ export function buildCoreSitemapEntries(baseUrl: string): SitemapEntry[] {
     { path: '/blog', priority: 0.8, changeFrequency: 'weekly' },
     { path: '/pricing', priority: 0.7, changeFrequency: 'weekly' },
     { path: '/store', priority: 0.6, changeFrequency: 'weekly' },
-    { path: '/business', priority: 0.8, changeFrequency: 'weekly' },
     { path: '/discover', priority: 0.8, changeFrequency: 'daily' },
     { path: '/privacy', priority: 0.5, changeFrequency: 'monthly' },
     { path: '/terms', priority: 0.5, changeFrequency: 'monthly' },
@@ -49,6 +48,15 @@ export function buildCoreSitemapEntries(baseUrl: string): SitemapEntry[] {
     { path: '/face-shape-measurement', priority: 0.85, changeFrequency: 'monthly' },
     { path: '/face-shapes', priority: 0.9, changeFrequency: 'weekly' },
     { path: '/hairstyles-for-face-shape', priority: 0.85, changeFrequency: 'weekly' },
+    { path: '/business', priority: 0.85, changeFrequency: 'weekly' },
+    { path: '/business/platform', priority: 0.8, changeFrequency: 'weekly' },
+    { path: '/business/store', priority: 0.85, changeFrequency: 'weekly' },
+    { path: '/business/campaigns', priority: 0.85, changeFrequency: 'weekly' },
+    { path: '/business/commerce-intelligence', priority: 0.8, changeFrequency: 'weekly' },
+    { path: '/business/pricing', priority: 0.8, changeFrequency: 'weekly' },
+    { path: '/business/examples', priority: 0.75, changeFrequency: 'weekly' },
+    { path: '/business/integrations', priority: 0.65, changeFrequency: 'monthly' },
+    { path: '/business/pilot', priority: 0.8, changeFrequency: 'weekly' },
   ]
   const localizedSunglassesPaths = FACE_SHAPE_SLUGS.map((slug) => `/sunglasses-for/${slug}-face`)
   const localizedOrdinaryGlassesPaths = FACE_SHAPE_SLUGS.map((slug) => `/style/${slug}-face`)
