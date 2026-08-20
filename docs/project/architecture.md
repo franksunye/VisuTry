@@ -1,7 +1,7 @@
 # VisuTry Project Architecture & Features
 
 **Status:** Active source of truth for current technical reality  
-**Last reviewed:** 2026-08-05
+**Last reviewed:** 2026-08-20
 **Owner:** Engineering  
 **Review cadence:** Monthly, or before major product architecture work  
 **Scope:** Current VisuTry technical stack, rendering strategy, session data flow, implemented capabilities, core data model, APIs, pages, components, and workflows.  
@@ -45,9 +45,11 @@ The current product direction is documented in `docs/product/product-plan.md`:
 
 ### Deployment
 
-- **Platform**: Vercel (serverless functions)
+- **Application / Next Delivery**: Vercel (serverless functions + Next frontend delivery)
 - **Database**: Neon PostgreSQL (scales to zero, cold start 500ms–few seconds)
-- **CDN**: Vercel Edge Network
+- **Edge / Asset Delivery**: Cloudflare for explicitly assigned non-Next workloads
+- **MediaPipe Asset Delivery**: `assets.visutry.com` → dedicated Cloudflare Worker → R2 bucket `visutry-mediapipe-assets`
+- **MediaPipe Runtime Assets**: pinned `@mediapipe/tasks-vision` 0.10.35 WASM + `face_landmarker` float16 v1 model; production clients load them from the Cloudflare asset host, while Vercel `/mediapipe/*` rewrites remain as rollback paths
 - **Analytics**: Vercel Analytics, GA/GTM where configured
 
 ---
