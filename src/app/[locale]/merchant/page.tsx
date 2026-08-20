@@ -1,3 +1,4 @@
+import type { Metadata } from 'next'
 import { getServerSession } from 'next-auth'
 import { headers } from 'next/headers'
 import { notFound, redirect } from 'next/navigation'
@@ -7,6 +8,12 @@ import { MerchantControlCenter } from '@/components/merchant/MerchantControlCent
 import { MerchantWorkspaceOnboarding } from '@/components/merchant/MerchantWorkspaceOnboarding'
 
 export const dynamic = 'force-dynamic'
+
+export const metadata: Metadata = {
+  title: 'VisuTry Merchant Workspace',
+  description: 'Manage your VisuTry Store, Campaign Experiences, catalog, credentials, and merchant performance signals.',
+  robots: { index: false, follow: false },
+}
 
 function requestOrigin() {
   const requestHeaders = headers()
