@@ -16,7 +16,7 @@ export function BusinessFooter() {
         ['Overview', '/business/platform'],
         ['Store', '/business/store'],
         ['Campaigns', '/business/campaigns'],
-        ['Intelligence', '/business/commerce-intelligence'],
+        ['Commerce Intelligence', '/business/commerce-intelligence'],
       ],
     },
     {
