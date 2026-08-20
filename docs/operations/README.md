@@ -2,13 +2,15 @@
 
 **Status:** Active operations documentation index  
 **Owner:** Product / Engineering  
-**Last updated:** 2026-08-19
+**Last updated:** 2026-08-20
 
 ## Current production authority
 
 **Next frontend owner: Vercel.** Vercel is the sole producer of Next HTML, RSC/Flight, the Next client artifact graph, and `/_next/static`.
 
 **Cloudflare owns:** DNS/proxy/CDN/WAF, approved non-Next public static assets, and the 4 approved lightweight edge APIs. Current production Worker Routes are exactly 12 non-Next routes.
+
+MediaPipe runtime/model binaries are served separately through the isolated `assets.visutry.com` Worker + R2 path. This hostname is separate from the 12 approved `www.visutry.com` production Worker Routes.
 
 The architectural decision is recorded in `docs/decisions/ADR-011-vercel-sole-next-frontend-owner.md`.
 
