@@ -2,48 +2,96 @@ import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { ArrowRight, Check, ExternalLink, Sparkles } from 'lucide-react'
 import { businessHref, businessPages, type BusinessPageKey, type BusinessSection } from '@/config/business-site'
+import { BusinessVisualPlaceholder } from './BusinessVisualPlaceholder'
 
 interface BusinessMarketingPageProps {
   locale: string
   pageKey: BusinessPageKey
 }
 
-function CtaLink({ locale, href, label, primary = false }: { locale: string; href: string; label: string; primary?: boolean }) {
+type VisualSlot = {
+  id: string
+  name: string
+  ratio?: '16:10' | '4:3' | '4:5'
+  status: 'DIRECT' | 'NEEDS STORE CAPTURE' | 'NEEDS CAMPAIGN CAPTURE' | 'NEEDS MERCHANT CAPTURE' | 'NEEDS INSIGHTS CAPTURE' | 'NEEDS REFERENCE CAPTURES'
+}
+
+const visualSlots: Partial<Record<BusinessPageKey, VisualSlot>> = {
+  overview: { id: 'B2B-VIS-01', name: 'Business Hero Master Visual', status: 'DIRECT' },
+  platform: { id: 'B2B-VIS-02', name: 'Platform / Catalog-to-Experience', status: 'DIRECT' },
+  store: { id: 'B2B-VIS-03', name: 'Real Store Experience', status: 'NEEDS STORE CAPTURE' },
+  campaigns: { id: 'B2B-VIS-04', name: 'Campaign Experience', status: 'NEEDS CAMPAIGN CAPTURE' },
+  intelligence: { id: 'B2B-VIS-06', name: 'Commerce Intelligence', status: 'NEEDS INSIGHTS CAPTURE' },
+}
+
+function CtaLink({ locale, href, label, primary = false, inverse = false }: { locale: string; href: string; label: string; primary?: boolean; inverse?: boolean }) {
   const target = businessHref(locale, href)
   const external = target.startsWith('mailto:') || target.startsWith('http')
   const className = primary
-    ? 'inline-flex items-center justify-center gap-2 rounded-xl bg-slate-950 px-5 py-3.5 text-sm font-semibold text-white shadow-sm transition hover:-translate-y-0.5 hover:bg-slate-800'
-    : 'inline-flex items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-5 py-3.5 text-sm font-semibold text-slate-800 transition hover:border-slate-400 hover:bg-slate-50'
+    ? inverse
+      ? 'inline-flex items-center justify-center gap-2 rounded-xl bg-white px-5 py-3.5 text-sm font-semibold text-slate-950 shadow-sm transition hover:-translate-y-0.5 hover:bg-slate-100'
+      : 'inline-flex items-center justify-center gap-2 rounded-xl bg-slate-950 px-5 py-3.5 text-sm font-semibold text-white shadow-sm transition hover:-translate-y-0.5 hover:bg-slate-800'
+    : inverse
+      ? 'inline-flex items-center justify-center gap-2 rounded-xl border border-white/20 bg-white/5 px-5 py-3.5 text-sm font-semibold text-white transition hover:bg-white/10'
+      : 'inline-flex items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-5 py-3.5 text-sm font-semibold text-slate-800 transition hover:border-slate-400 hover:bg-slate-50'
 
-  if (external) {
-    return <a href={target} className={className}>{label}<ArrowRight className="h-4 w-4" aria-hidden="true" /></a>
-  }
+  if (external) return <a href={target} className={className}>{label}<ArrowRight className="h-4 w-4" aria-hidden="true" /></a>
   return <Link href={target} prefetch={false} className={className}>{label}<ArrowRight className="h-4 w-4" aria-hidden="true" /></Link>
 }
 
 function hardenedCta(pageKey: BusinessPageKey, cta: { label: string; href: string } | undefined) {
   if (!cta) return undefined
-  if (pageKey === 'overview' && cta.href === '/store/luna-optical') {
-    return { label: 'Explore Store', href: '/business/store' }
-  }
-  if (pageKey === 'store' && cta.href === '/store/luna-optical') {
-    return { label: 'See Product Examples', href: '/business/examples' }
-  }
+  if (pageKey === 'overview' && cta.href === '/store/luna-optical') return { label: 'Explore Store', href: '/business/store' }
+  if (pageKey === 'store' && cta.href === '/store/luna-optical') return { label: 'See Product Examples', href: '/business/examples' }
   return cta
 }
 
 function hardenedSections(pageKey: BusinessPageKey, sections: BusinessSection[]): BusinessSection[] {
   const mapped = sections.map((section, index) => {
+    if (pageKey === 'overview' && index === 0) {
+      return {
+        ...section,
+        cards: [
+          { title: 'Discover / Recommend', description: 'Turn a broad merchant catalog into a more relevant shortlist for the shopper.' },
+          { title: 'Try-On', description: 'Let shoppers visualize selected frames using their own photo.' },
+          { title: 'Compare', description: 'Help shoppers evaluate finalists side by side before they leave the experience.' },
+          { title: 'Continue', description: 'Return high-intent shoppers to the merchant product or inquiry destination.' },
+        ],
+      }
+    }
+
+    if (pageKey === 'store' && section.eyebrow === 'What the Store does') {
+      return {
+        ...section,
+        title: 'Three jobs matter: guide, evaluate, continue.',
+        cards: [
+          { title: 'Guide discovery', description: 'Merchant branding, reviewed frame data, and a relevant shortlist help shoppers move beyond an undifferentiated catalog grid.' },
+          { title: 'Help shoppers evaluate', description: 'Recommendation, Virtual Try-On, and Frame Compare support the decision before a shopper leaves the experience.' },
+          { title: 'Return intent to commerce', description: 'Product click, favorite, inquiry, and other enabled signals connect the decision journey back to the merchant flow.' },
+        ],
+      }
+    }
+
     if (pageKey === 'store' && section.eyebrow === 'Live product proof') {
       return {
         eyebrow: 'Store product preview',
         title: 'See how the hosted Store experience is designed to work.',
-        body: 'This product preview shows the persistent Store format and shopper decision journey. Live merchant Stores are published only when the merchant experience is ready.',
-        visual: {
-          src: '/images/store/store-shopper-experience.png',
-          alt: 'Product preview of the VisuTry hosted Store shopper experience',
-          caption: 'Product preview — not presented as a live customer deployment.',
-        },
+        body: 'The final visual will use the current Store surface as product truth. Live merchant Stores are only presented as live when the merchant experience is actually published.',
+      }
+    }
+
+    if (pageKey === 'campaigns' && section.eyebrow === 'One catalog, many contexts') {
+      return {
+        ...section,
+        eyebrow: 'For brand & agency teams',
+        title: 'Translate a campaign idea into a focused commerce experience.',
+        body: 'Use the same reviewed product truth while adapting the shopper journey to a collection, audience, source, creator story, or media brief. Brand teams keep product and identity control; agency teams get a clearer experience layer between media traffic and merchant commerce.',
+        cards: [
+          { title: 'Brief-to-experience', description: 'Turn a campaign proposition or collection story into a focused shopper journey without inventing a separate product stack.' },
+          { title: 'Channel continuity', description: 'Carry paid, social, creator, email, or QR traffic into an experience that reflects why the shopper arrived.' },
+          { title: 'Brand control', description: 'Reuse reviewed merchant product truth and brand context rather than building disconnected campaign microsites.' },
+          { title: 'Observable intent', description: 'Review recommendation, Try-On, Compare, product-interest, and source context where available.' },
+        ],
       }
     }
 
@@ -51,26 +99,21 @@ function hardenedSections(pageKey: BusinessPageKey, sections: BusinessSection[])
       return {
         eyebrow: 'Store product preview',
         title: 'A persistent Store experience.',
-        body: 'Use the Store product preview to evaluate the always-on shopper journey. The reference portfolio below demonstrates additional campaign and merchandising patterns without implying customer relationships.',
-        visual: {
-          src: '/images/store/store-shopper-experience.png',
-          alt: 'Product preview of a persistent VisuTry Store experience',
-          caption: 'Product preview. Reference Experiences below are simulations based on public catalog information.',
-        },
+        body: 'Use the current Store product surface to evaluate the always-on shopper journey. Reference Experiences below demonstrate additional campaign and merchandising patterns without implying customer relationships.',
       }
     }
 
     if (pageKey === 'pricing' && index === 0) {
       return {
         ...section,
-        eyebrow: 'Founding Pilot offer',
-        body: 'Start with one focused 30-day Pilot using your real eyewear catalog. The offer is designed to validate the shopper workflow and merchant operating fit before a larger commitment.',
-        cards: section.cards?.map((card) => {
-          if (card.title === 'Up to 1,500 AI-assisted shoppers') {
-            return { ...card, description: 'Up to 1,500 shoppers who enter the guided AI decision journey; ordinary page views are not counted as AI-assisted shoppers.' }
-          }
-          return card
-        }),
+        eyebrow: 'What is included',
+        title: 'One focused paid engagement, with enough scope to learn.',
+        body: 'Start with your real eyewear catalog, one hosted Experience, defined usage capacity, and assisted setup and review.',
+        cards: [
+          { title: 'Catalog & Experience', description: '8–50 reviewed frames and one hosted Store or Campaign Experience.' },
+          { title: 'Capacity', description: 'Up to 1,500 shoppers entering the guided AI decision journey and up to 3,500 Standard Try-On generations.' },
+          { title: 'Assisted launch & review', description: 'Catalog review, Experience setup, launch support, and weekly review during the 30-day Pilot.' },
+        ],
       }
     }
 
@@ -79,16 +122,13 @@ function hardenedSections(pageKey: BusinessPageKey, sections: BusinessSection[])
         ...section,
         eyebrow: 'After the Pilot',
         title: 'Review the results, then decide how to continue.',
-        body: 'There is no automatic long-term commitment. At the end of the Pilot, we review usage, shopper behavior, campaign needs, integrations, and support requirements with you before discussing a continuation plan.',
+        body: 'There is no automatic long-term commitment. At the end of the Pilot, we review usage, shopper behavior, campaign needs, integrations, and support requirements before discussing a continuation plan.',
         note: 'No surprise Pilot overage charge. No conversion or revenue guarantee. Any continuation plan is agreed separately.',
       }
     }
 
     if (pageKey === 'platform' && section.eyebrow === 'Catalog foundation') {
-      return {
-        ...section,
-        body: 'Start with your own reviewed frame data. VisuTry does not replace your catalog or commerce system; it uses the product information needed to power guided Store and Campaign experiences.',
-      }
+      return { ...section, body: 'Start with your own reviewed frame data. VisuTry does not replace your catalog or commerce system; it uses the product information needed to power guided Store and Campaign experiences.' }
     }
 
     if (pageKey === 'platform' && section.eyebrow === 'Experience model') {
@@ -100,29 +140,104 @@ function hardenedSections(pageKey: BusinessPageKey, sections: BusinessSection[])
       }
     }
 
-    if (pageKey === 'intelligence' && section.eyebrow === 'Evidence boundary') {
+    if (pageKey === 'intelligence' && section.eyebrow === 'What you can observe') {
       return {
         ...section,
-        body: 'The current Commerce Intelligence layer focuses on observable engagement and purchase-intent behavior. Revenue attribution requires commerce or order-data integration, and incremental revenue claims require credible experiment design.',
+        cards: [
+          { title: 'Recommendation', description: 'See whether shoppers complete the narrowing step and move into a more relevant set of frames.' },
+          { title: 'Try-On & Compare', description: 'Observe which frames move deeper into visual evaluation and finalist comparison.' },
+          { title: 'Product interest', description: 'Capture enabled favorite, inquiry, and other consideration signals around individual products.' },
+          { title: 'Handoff & source context', description: 'See when shoppers continue to merchant destinations and review source or Campaign context where available.' },
+        ],
       }
+    }
+
+    if (pageKey === 'intelligence' && section.eyebrow === 'Evidence boundary') {
+      return { ...section, body: 'The current Commerce Intelligence layer focuses on observable engagement and purchase-intent behavior. Revenue attribution requires commerce or order-data integration, and incremental revenue claims require credible experiment design.' }
     }
 
     return section
   })
 
+  if (pageKey === 'overview') {
+    return [
+      mapped[0],
+      mapped[1],
+      {
+        eyebrow: 'Merchant operating model',
+        title: 'One workspace to operate Store, Campaigns, and the signals around them.',
+        body: 'The merchant side should feel like one operating surface rather than a collection of disconnected tools. The final visual will use the current Merchant Workspace as the source of truth.',
+      },
+      mapped[2],
+      mapped[3],
+      mapped[4],
+    ]
+  }
+
+  if (pageKey === 'platform') {
+    return [
+      mapped[0],
+      mapped[1],
+      mapped[2],
+      mapped[3],
+      {
+        eyebrow: 'Merchant workspace',
+        title: 'The operating surface behind the Experiences.',
+        body: 'The final proof will use the current Merchant Workspace to show how setup status, Store, Campaigns, and merchant operations connect to the shopper-facing experience.',
+      },
+      mapped[4],
+    ]
+  }
+
+  if (pageKey === 'campaigns') {
+    return [
+      mapped[1],
+      {
+        eyebrow: 'Product journey',
+        title: 'The campaign itself becomes a focused commerce experience.',
+        body: 'The final visual will pair the current Campaign UI with the shopper path from focused frame discovery into recommendation, Try-On, Compare, and merchant handoff.',
+      },
+      mapped[2],
+      mapped[3],
+    ]
+  }
+
+  if (pageKey === 'integrations') {
+    return [
+      {
+        ...mapped[0],
+        steps: ['Catalog Review', 'Configure', 'Hosted Launch', 'Product Handoff', 'Intent Review'],
+      },
+      {
+        eyebrow: 'Merchant workspace proof',
+        title: 'A visible operating layer for setup and launch.',
+        body: 'Use the current Merchant Workspace to show how merchant identity, Store, Campaigns, and setup status are managed without pretending the Pilot is fully automated.',
+      },
+      mapped[1],
+      mapped[2],
+    ]
+  }
+
   if (pageKey === 'pilot') {
     return [
-      ...mapped,
+      mapped[0],
       {
         eyebrow: 'How the Pilot starts',
-        title: 'A clear manual handoff before setup begins.',
-        cards: [
-          { title: '1. Request', description: 'Email VisuTry with your business, catalog, traffic source, and the decision problem you want to test.' },
-          { title: '2. Scope review', description: 'We confirm the frame set, Store or Campaign format, launch assumptions, and whether the Pilot is a good fit.' },
-          { title: '3. Confirmation', description: 'Once scope is agreed, we confirm the Pilot terms and payment instructions before configuration starts.' },
-          { title: '4. Launch & review', description: 'VisuTry configures the hosted Experience, launches the agreed route, and reviews observed shopper behavior with you during the 30-day Pilot.' },
-        ],
-        note: 'After the Pilot, there is no automatic long-term commitment. Continuation is discussed separately based on actual usage and business needs.',
+        title: 'Request → scope review → confirmation → launch & review.',
+        steps: ['Request', 'Scope Review', 'Confirmation', 'Launch & Review'],
+        body: 'We confirm the frame set, Store or Campaign format, launch assumptions, Pilot terms, and payment instructions before configuration begins.',
+      },
+      {
+        eyebrow: 'Merchant workspace',
+        title: 'A deliberate operating handoff, not an invisible black box.',
+        body: 'The current Merchant Workspace provides the product-truth reference for setup status, Store, Campaigns, and the operating model behind the Pilot.',
+      },
+      mapped[1],
+      mapped[2],
+      {
+        eyebrow: 'After 30 days',
+        title: 'Review what happened, then decide whether to continue.',
+        body: 'There is no automatic long-term commitment. Continuation is discussed separately based on actual usage, observed shopper behavior, campaign needs, integrations, and support requirements.',
       },
     ]
   }
@@ -130,195 +245,186 @@ function hardenedSections(pageKey: BusinessPageKey, sections: BusinessSection[])
   return mapped
 }
 
-function HeroVisual({ pageKey }: { pageKey: BusinessPageKey }) {
-  if (pageKey === 'platform') {
-    return (
-      <div className="hidden lg:block" aria-hidden="true">
-        <div className="mx-auto max-w-lg rounded-[2rem] border border-slate-200 bg-white/95 p-7 shadow-[0_24px_70px_-36px_rgba(15,23,42,0.35)]">
-          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">Platform architecture</p>
-          <div className="mt-6 space-y-3">
-            <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm font-semibold">Merchant Catalog</div>
-            <div className="grid grid-cols-2 gap-3">
-              <div className="rounded-2xl bg-slate-950 p-4 text-sm font-semibold text-white">Store</div>
-              <div className="rounded-2xl bg-blue-600 p-4 text-sm font-semibold text-white">Campaigns</div>
-            </div>
-            <div className="rounded-2xl border border-blue-100 bg-blue-50 p-4 text-sm font-semibold text-blue-900">Recommendation · Try-On · Compare</div>
-            <div className="flex items-center justify-between rounded-2xl border border-slate-200 bg-white p-4 text-sm font-semibold">
-              <span>Product / Inquiry Handoff</span><span className="text-slate-400">→</span>
-            </div>
-            <div className="rounded-2xl bg-slate-100 p-4 text-sm font-semibold text-slate-800">Commerce Intelligence</div>
-          </div>
-        </div>
+function PricingHeroVisual() {
+  return (
+    <div className="mx-auto w-full max-w-md border-y border-slate-300 py-7 sm:border sm:bg-white sm:p-8 sm:shadow-[0_28px_80px_-52px_rgba(15,23,42,0.35)]">
+      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-blue-700">Founding Merchant Pilot</p>
+      <div className="mt-5 flex items-end gap-2"><span className="text-6xl font-semibold tracking-[-0.06em]">$149</span><span className="pb-2 text-sm text-slate-500">/ 30 days</span></div>
+      <div className="mt-7 border-t border-slate-200 pt-5 text-sm text-slate-700">
+        {['8–50 reviewed frames', '1 hosted Store or Campaign', 'Recommendation · Try-On · Compare', 'Assisted setup + weekly review'].map((item) => (
+          <div key={item} className="flex items-center gap-3 py-2"><Check className="h-4 w-4 text-blue-700" /><span>{item}</span></div>
+        ))}
       </div>
-    )
-  }
+      <p className="mt-5 text-xs leading-5 text-slate-500">A focused paid engagement before any larger commitment.</p>
+    </div>
+  )
+}
 
-  if (pageKey === 'campaigns') {
-    return (
-      <div className="hidden lg:block" aria-hidden="true">
-        <div className="mx-auto max-w-lg rounded-[2rem] border border-slate-200 bg-white/95 p-7 shadow-[0_24px_70px_-36px_rgba(15,23,42,0.35)]">
-          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">Campaign journey</p>
-          <div className="mt-6 grid grid-cols-2 gap-3 text-sm font-semibold">
-            <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">Search / Social</div>
-            <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">Email / QR</div>
-          </div>
-          <div className="mx-auto my-3 h-7 w-px bg-slate-300" />
-          <div className="rounded-2xl bg-blue-600 p-5 text-sm font-semibold text-white">Focused Campaign Experience</div>
-          <div className="mx-auto my-3 h-7 w-px bg-slate-300" />
-          <div className="grid grid-cols-3 gap-2 text-center text-xs font-semibold text-slate-700">
-            <div className="rounded-xl border border-slate-200 bg-white p-3">Recommend</div>
-            <div className="rounded-xl border border-slate-200 bg-white p-3">Try-On</div>
-            <div className="rounded-xl border border-slate-200 bg-white p-3">Compare</div>
-          </div>
-          <div className="mt-3 rounded-2xl bg-slate-950 p-4 text-sm font-semibold text-white">Product intent → Merchant commerce</div>
-        </div>
-      </div>
-    )
-  }
-
-  if (pageKey === 'pricing') {
-    return (
-      <div className="hidden lg:block" aria-hidden="true">
-        <div className="mx-auto max-w-md rounded-[2rem] border border-slate-200 bg-white/95 p-7 shadow-[0_24px_70px_-36px_rgba(15,23,42,0.35)]">
-          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-blue-700">Founding Merchant Pilot</p>
-          <div className="mt-5 flex items-end gap-2"><span className="text-5xl font-semibold tracking-[-0.04em]">$149</span><span className="pb-1 text-sm text-slate-500">/ 30 days</span></div>
-          <div className="mt-6 space-y-3 text-sm text-slate-700">
-            {['8–50 reviewed frames', '1 hosted Store or Campaign', 'Recommendation · Try-On · Compare', 'Assisted setup + weekly review'].map((item) => (
-              <div key={item} className="flex items-center gap-3"><span className="flex h-5 w-5 items-center justify-center rounded-full bg-blue-50 text-blue-700"><Check className="h-3 w-3" /></span><span>{item}</span></div>
-            ))}
-          </div>
-          <p className="mt-6 border-t border-slate-200 pt-5 text-xs leading-5 text-slate-500">A focused paid test before any larger commitment.</p>
-        </div>
-      </div>
-    )
-  }
+function Hero({ locale, pageKey }: { locale: string; pageKey: BusinessPageKey }) {
+  const page = businessPages[pageKey]
+  const primaryCta = hardenedCta(pageKey, page.primaryCta)!
+  const secondaryCta = hardenedCta(pageKey, page.secondaryCta)
+  const slot = visualSlots[pageKey]
+  const textOnly = pageKey === 'examples' || pageKey === 'integrations' || pageKey === 'pilot'
+  const dark = pageKey === 'intelligence'
+  const storeDominant = pageKey === 'store'
+  const audienceLine = pageKey === 'overview'
+    ? 'Built for eyewear brands, commerce teams, and agency partners.'
+    : pageKey === 'campaigns'
+      ? 'For brand, media, commerce, and agency teams.'
+      : null
 
   return (
-    <div className="hidden lg:block" aria-hidden="true">
-      <div className="mx-auto max-w-lg rounded-[2rem] border border-slate-200 bg-white/90 p-7 shadow-[0_24px_70px_-36px_rgba(15,23,42,0.35)]">
-        <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">VisuTry Business</p>
-        <div className="mt-6 space-y-3">
-          <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm font-semibold">Merchant Catalog</div>
-          <div className="grid grid-cols-2 gap-3">
-            <div className="rounded-2xl bg-slate-950 p-4 text-sm font-semibold text-white">Store</div>
-            <div className="rounded-2xl bg-blue-600 p-4 text-sm font-semibold text-white">Campaigns</div>
+    <section className={`relative overflow-hidden border-b ${dark ? 'border-slate-800 bg-slate-950 text-white' : 'border-slate-200 bg-[radial-gradient(circle_at_82%_8%,rgba(191,219,254,0.24),transparent_28%),linear-gradient(135deg,#ffffff_0%,#fbfdff_58%,#f6f8fb_100%)]'}`}>
+      <div className={`mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 ${textOnly ? 'py-16 sm:py-20 lg:py-24' : storeDominant ? 'py-16 sm:py-20 lg:py-24' : 'grid gap-10 py-16 sm:py-20 lg:grid-cols-[0.86fr_1.14fr] lg:items-center lg:gap-16 lg:py-24'}`}>
+        <div className={`${textOnly ? 'max-w-4xl' : storeDominant ? 'max-w-3xl' : 'max-w-2xl'}`}>
+          <p className={`inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.18em] ${dark ? 'text-sky-300' : 'text-blue-700'}`}>
+            <Sparkles className="h-3.5 w-3.5" aria-hidden="true" />{page.eyebrow}
+          </p>
+          <h1 className={`mt-6 text-4xl font-semibold tracking-[-0.05em] sm:text-5xl lg:text-[4.35rem] lg:leading-[1.01] ${dark ? 'text-white' : 'text-slate-950'}`}>{page.title}</h1>
+          <p className={`mt-6 max-w-2xl text-base leading-8 sm:text-lg ${dark ? 'text-slate-300' : 'text-slate-600'}`}>{page.description}</p>
+          {audienceLine ? <p className={`mt-5 text-xs font-semibold uppercase tracking-[0.14em] ${dark ? 'text-slate-400' : 'text-slate-400'}`}>{audienceLine}</p> : null}
+          {pageKey === 'campaigns' ? <p className="mt-3 text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">Search · Social · Email · QR → Campaign Experience</p> : null}
+          <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+            <CtaLink locale={locale} {...primaryCta} primary inverse={dark} />
+            {secondaryCta ? <CtaLink locale={locale} {...secondaryCta} inverse={dark} /> : null}
           </div>
-          <div className="rounded-2xl border border-blue-100 bg-blue-50 p-4 text-sm font-semibold text-blue-900">Recommendation · Try-On · Compare</div>
-          <div className="rounded-2xl border border-slate-200 bg-white p-4 text-sm font-semibold">Commerce Intelligence</div>
+          {page.microcopy ? <p className={`mt-5 text-xs leading-5 ${dark ? 'text-slate-400' : 'text-slate-500'}`}>{page.microcopy}</p> : null}
         </div>
+
+        {!textOnly ? (
+          <div className={storeDominant ? 'mt-12 lg:mt-14 lg:ml-auto lg:w-[82%]' : 'relative'}>
+            {pageKey === 'pricing' ? <PricingHeroVisual /> : slot ? <BusinessVisualPlaceholder {...slot} /> : null}
+          </div>
+        ) : null}
+      </div>
+    </section>
+  )
+}
+
+function StepBand({ steps, dark = false }: { steps: string[]; dark?: boolean }) {
+  return (
+    <div className={`mt-9 overflow-hidden border-y ${dark ? 'border-white/15' : 'border-slate-300'}`}>
+      <div className={`grid divide-y md:grid-cols-2 md:divide-x md:divide-y-0 lg:grid-cols-none lg:auto-cols-fr lg:grid-flow-col ${dark ? 'divide-white/15' : 'divide-slate-200'}`}>
+        {steps.map((step, index) => (
+          <div key={step} className="min-w-0 py-5 pr-5 md:px-5 lg:px-6">
+            <span className={`text-[11px] font-semibold uppercase tracking-[0.16em] ${dark ? 'text-sky-300' : 'text-blue-700'}`}>0{index + 1}</span>
+            <p className={`mt-3 text-sm font-semibold leading-5 ${dark ? 'text-white' : 'text-slate-900'}`}>{step}</p>
+          </div>
+        ))}
       </div>
     </div>
   )
 }
 
+function EditorialCards({ section, locale, dark = false }: { section: BusinessSection; locale: string; dark?: boolean }) {
+  const cards = section.cards ?? []
+  if (!cards.length) return null
+  return (
+    <div className={`mt-9 grid gap-x-8 gap-y-8 ${cards.length <= 2 ? 'md:grid-cols-2' : 'md:grid-cols-2 lg:grid-cols-3'}`}>
+      {cards.map((card, index) => {
+        const href = card.href ? businessHref(locale, card.href) : null
+        return (
+          <article key={card.title} className={`border-t pt-5 ${dark ? 'border-white/20' : 'border-slate-300'}`}>
+            <div className="flex items-start justify-between gap-4">
+              <h3 className={`text-xl font-semibold tracking-[-0.02em] ${dark ? 'text-white' : 'text-slate-950'}`}>{card.title}</h3>
+              <span className={`text-xs font-semibold ${dark ? 'text-slate-600' : 'text-slate-300'}`}>0{index + 1}</span>
+            </div>
+            <p className={`mt-3 text-sm leading-6 ${dark ? 'text-slate-300' : 'text-slate-600'}`}>{card.description}</p>
+            {href && card.label ? (
+              <Link href={href} prefetch={false} className={`mt-5 inline-flex items-center gap-2 text-sm font-semibold ${dark ? 'text-sky-300 hover:text-sky-200' : 'text-blue-700 hover:text-blue-900'}`}>
+                {card.label}<ExternalLink className="h-3.5 w-3.5" aria-hidden="true" />
+              </Link>
+            ) : null}
+          </article>
+        )
+      })}
+    </div>
+  )
+}
+
+function supplementalSlot(pageKey: BusinessPageKey, sectionIndex: number): VisualSlot | null {
+  if (pageKey === 'overview' && sectionIndex === 1) return { id: 'B2B-VIS-03', name: 'Real Store Experience', status: 'NEEDS STORE CAPTURE' }
+  if (pageKey === 'overview' && sectionIndex === 2) return { id: 'B2B-VIS-05', name: 'Merchant Workspace', status: 'NEEDS MERCHANT CAPTURE' }
+  if (pageKey === 'overview' && sectionIndex === 3) return { id: 'B2B-VIS-06', name: 'Commerce Intelligence', status: 'NEEDS INSIGHTS CAPTURE' }
+  if (pageKey === 'platform' && sectionIndex === 2) return { id: 'B2B-VIS-03', name: 'Real Store Experience', status: 'NEEDS STORE CAPTURE' }
+  if (pageKey === 'platform' && sectionIndex === 4) return { id: 'B2B-VIS-05', name: 'Merchant Workspace', status: 'NEEDS MERCHANT CAPTURE' }
+  if (pageKey === 'store' && sectionIndex === 2) return { id: 'B2B-VIS-03', name: 'Recommendation / Try-On / Compare Detail', status: 'NEEDS STORE CAPTURE', ratio: '4:3' }
+  if (pageKey === 'campaigns' && sectionIndex === 1) return { id: 'B2B-VIS-04', name: 'Campaign Experience', status: 'NEEDS CAMPAIGN CAPTURE' }
+  if (pageKey === 'examples' && sectionIndex === 0) return { id: 'B2B-VIS-03', name: 'Real Store Experience', status: 'NEEDS STORE CAPTURE', ratio: '4:3' }
+  if (pageKey === 'integrations' && sectionIndex === 1) return { id: 'B2B-VIS-05', name: 'Merchant Workspace', status: 'NEEDS MERCHANT CAPTURE' }
+  if (pageKey === 'pilot' && sectionIndex === 2) return { id: 'B2B-VIS-05', name: 'Merchant Workspace', status: 'NEEDS MERCHANT CAPTURE' }
+  return null
+}
+
+function isContrastSection(pageKey: BusinessPageKey, index: number) {
+  if (pageKey === 'overview' && index === 3) return true
+  if (pageKey === 'intelligence' && index === 0) return true
+  return false
+}
+
+function SectionBlock({ pageKey, section, index, locale }: { pageKey: BusinessPageKey; section: BusinessSection; index: number; locale: string }) {
+  const slot = supplementalSlot(pageKey, index)
+  const contrast = isContrastSection(pageKey, index)
+  const split = Boolean(slot)
+
+  return (
+    <section className={contrast ? 'bg-slate-950 text-white' : index % 2 === 0 ? 'bg-white' : 'bg-[#f8fafc]'}>
+      <div className={`mx-auto max-w-7xl px-4 py-14 sm:px-6 sm:py-20 lg:px-8 ${split ? 'grid gap-10 lg:grid-cols-[0.82fr_1.18fr] lg:items-center lg:gap-14' : ''}`}>
+        <div className={split ? '' : 'mx-auto max-w-5xl'}>
+          {section.eyebrow ? <p className={`text-xs font-semibold uppercase tracking-[0.18em] ${contrast ? 'text-sky-300' : 'text-blue-700'}`}>{section.eyebrow}</p> : null}
+          <h2 className={`mt-3 max-w-4xl text-3xl font-semibold tracking-[-0.04em] sm:text-4xl lg:text-[2.7rem] lg:leading-[1.08] ${contrast ? 'text-white' : 'text-slate-950'}`}>{section.title}</h2>
+          {section.body ? <p className={`mt-5 max-w-3xl text-base leading-7 ${contrast ? 'text-slate-300' : 'text-slate-600'}`}>{section.body}</p> : null}
+          {section.steps ? <StepBand steps={section.steps} dark={contrast} /> : null}
+          {section.cards ? <EditorialCards section={section} locale={locale} dark={contrast} /> : null}
+          {section.note ? <p className={`mt-6 max-w-3xl border-l-2 pl-4 text-xs leading-5 ${contrast ? 'border-sky-400 text-slate-400' : 'border-slate-300 text-slate-500'}`}>{section.note}</p> : null}
+        </div>
+        {slot ? <BusinessVisualPlaceholder {...slot} /> : null}
+      </div>
+    </section>
+  )
+}
+
+function PilotCta({ locale }: { locale: string }) {
+  return (
+    <section className="border-t border-slate-800 bg-slate-950 text-white">
+      <div className="mx-auto flex max-w-7xl flex-col gap-7 px-4 py-14 sm:px-6 lg:flex-row lg:items-center lg:justify-between lg:px-8">
+        <div className="max-w-2xl">
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-sky-300">Founding Merchant Pilot</p>
+          <h2 className="mt-3 text-3xl font-semibold tracking-[-0.035em]">Start with a focused 30-day test.</h2>
+          <p className="mt-3 text-sm leading-6 text-slate-300">Use your real frames, one hosted Experience, and observed shopper intent before making a larger commitment.</p>
+        </div>
+        <div className="flex flex-col gap-3 sm:flex-row">
+          <Link href={businessHref(locale, '/business/pilot')} prefetch={false} className="inline-flex items-center justify-center gap-2 rounded-xl bg-white px-5 py-3.5 text-sm font-semibold text-slate-950 transition hover:bg-slate-100">Start a Pilot<ArrowRight className="h-4 w-4" aria-hidden="true" /></Link>
+          <Link href={businessHref(locale, '/business/pricing')} prefetch={false} className="inline-flex items-center justify-center rounded-xl border border-white/20 px-5 py-3.5 text-sm font-semibold text-white transition hover:bg-white/10">View Pricing</Link>
+        </div>
+      </div>
+    </section>
+  )
+}
+
 export function BusinessMarketingPage({ locale, pageKey }: BusinessMarketingPageProps) {
   const page = businessPages[pageKey]
-  const primaryCta = hardenedCta(pageKey, page.primaryCta)!
-  const secondaryCta = hardenedCta(pageKey, page.secondaryCta)
   const sections = hardenedSections(pageKey, page.sections)
+  const showPilotCta = pageKey !== 'pricing' && pageKey !== 'pilot'
 
-  if (locale !== 'en') {
-    redirect(`/en${page.slug}`)
-  }
+  if (locale !== 'en') redirect(`/en${page.slug}`)
 
   return (
     <main className="bg-[#f8fafc] text-slate-950">
-      <section className="relative overflow-hidden border-b border-slate-200 bg-[radial-gradient(circle_at_78%_12%,rgba(191,219,254,0.42),transparent_31%),linear-gradient(135deg,#ffffff_0%,#f8fbff_55%,#f5f7fb_100%)]">
-        <div className={`mx-auto grid max-w-7xl gap-12 px-4 py-16 sm:px-6 sm:py-20 lg:px-8 lg:py-24 ${page.heroImage ? 'lg:grid-cols-[0.9fr_1.1fr] lg:items-center' : 'lg:grid-cols-[1.05fr_0.95fr] lg:items-center'}`}>
-          <div className="max-w-3xl">
-            <p className="inline-flex items-center gap-2 rounded-full border border-blue-100 bg-white/85 px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.16em] text-blue-700 shadow-sm">
-              <Sparkles className="h-3.5 w-3.5" aria-hidden="true" />
-              {page.eyebrow}
-            </p>
-            <h1 className="mt-6 text-4xl font-semibold tracking-[-0.045em] text-slate-950 sm:text-5xl lg:text-[4rem] lg:leading-[1.04]">
-              {page.title}
-            </h1>
-            <p className="mt-6 max-w-2xl text-base leading-8 text-slate-600 sm:text-lg">{page.description}</p>
-            <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-              <CtaLink locale={locale} {...primaryCta} primary />
-              {secondaryCta ? <CtaLink locale={locale} {...secondaryCta} /> : null}
-            </div>
-            {page.microcopy ? <p className="mt-5 text-xs leading-5 text-slate-500">{page.microcopy}</p> : null}
-          </div>
+      <Hero locale={locale} pageKey={pageKey} />
 
-          {page.heroImage ? (
-            <div className="relative">
-              <div className="absolute -inset-4 -z-10 rounded-[2.5rem] bg-blue-100/40 blur-3xl" />
-              <div className="overflow-hidden rounded-[2rem] border border-white/80 bg-white shadow-[0_28px_90px_-38px_rgba(15,23,42,0.38)]">
-                <img src={page.heroImage.src} alt={page.heroImage.alt} className="aspect-[4/3] h-full w-full object-cover" loading="eager" fetchPriority="high" />
-              </div>
-            </div>
-          ) : <HeroVisual pageKey={pageKey} />}
-        </div>
-      </section>
-
-      {sections.map((section, index) => (
-        <section key={`${pageKey}-${index}`} className={index % 2 === 0 ? 'bg-white' : 'bg-[#f8fafc]'}>
-          <div className={`mx-auto max-w-7xl px-4 py-14 sm:px-6 sm:py-20 lg:px-8 lg:py-20 ${section.visual ? 'grid gap-10 lg:grid-cols-[0.92fr_1.08fr] lg:items-center' : ''}`}>
-            <div className={section.visual ? '' : 'mx-auto max-w-4xl'}>
-              {section.eyebrow ? <p className="text-xs font-semibold uppercase tracking-[0.16em] text-blue-700">{section.eyebrow}</p> : null}
-              <h2 className="mt-3 text-3xl font-semibold tracking-[-0.025em] text-slate-950 sm:text-4xl">{section.title}</h2>
-              {section.body ? <p className="mt-4 max-w-3xl text-base leading-7 text-slate-600">{section.body}</p> : null}
-
-              {section.steps ? (
-                <div className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                  {section.steps.map((step, stepIndex) => (
-                    <div key={step} className="flex min-h-24 items-start gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-[0_16px_40px_-34px_rgba(15,23,42,0.5)]">
-                      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-slate-950 text-[11px] font-bold text-white">{stepIndex + 1}</span>
-                      <span className="pt-0.5 text-sm font-semibold leading-5 text-slate-800">{step}</span>
-                    </div>
-                  ))}
-                </div>
-              ) : null}
-
-              {section.cards ? (
-                <div className={`mt-8 grid gap-4 ${section.cards.length === 1 ? 'max-w-2xl' : 'sm:grid-cols-2 lg:grid-cols-3'}`}>
-                  {section.cards.map((card) => {
-                    const href = card.href ? businessHref(locale, card.href) : null
-                    return (
-                      <article key={card.title} className="group rounded-2xl border border-slate-200 bg-white p-5 shadow-[0_18px_50px_-40px_rgba(15,23,42,0.5)] transition hover:border-slate-300 hover:shadow-[0_22px_54px_-38px_rgba(15,23,42,0.6)]">
-                        <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-50 text-blue-700"><Check className="h-4 w-4" aria-hidden="true" /></div>
-                        <h3 className="mt-4 text-lg font-semibold tracking-[-0.015em] text-slate-950">{card.title}</h3>
-                        <p className="mt-2 text-sm leading-6 text-slate-600">{card.description}</p>
-                        {href && card.label ? (
-                          <Link href={href} prefetch={false} className="mt-5 inline-flex items-center gap-2 text-sm font-semibold text-blue-700 transition group-hover:text-blue-900">
-                            {card.label}<ExternalLink className="h-3.5 w-3.5" aria-hidden="true" />
-                          </Link>
-                        ) : null}
-                      </article>
-                    )
-                  })}
-                </div>
-              ) : null}
-
-              {section.note ? <p className="mt-6 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-xs leading-5 text-slate-500">{section.note}</p> : null}
-            </div>
-
-            {section.visual ? (
-              <figure className="overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-[0_28px_80px_-44px_rgba(15,23,42,0.45)]">
-                <img src={section.visual.src} alt={section.visual.alt} className="h-auto w-full" loading="lazy" />
-                {section.visual.caption ? <figcaption className="border-t border-slate-100 px-5 py-4 text-xs leading-5 text-slate-500">{section.visual.caption}</figcaption> : null}
-              </figure>
-            ) : null}
+      {pageKey === 'examples' ? (
+        <section className="bg-white">
+          <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 sm:py-14 lg:px-8">
+            <BusinessVisualPlaceholder id="B2B-VIS-07" name="Reference Experience Set" ratio="4:3" status="NEEDS REFERENCE CAPTURES" className="mx-auto max-w-5xl" />
           </div>
         </section>
-      ))}
+      ) : null}
 
-      <section className="border-t border-slate-200 bg-slate-950 text-white">
-        <div className="mx-auto flex max-w-7xl flex-col gap-6 px-4 py-14 sm:px-6 lg:flex-row lg:items-center lg:justify-between lg:px-8">
-          <div className="max-w-2xl">
-            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-sky-300">Founding Merchant Pilot</p>
-            <h2 className="mt-3 text-3xl font-semibold tracking-[-0.025em]">Start with a focused 30-day test.</h2>
-            <p className="mt-3 text-sm leading-6 text-slate-300">Use your real frames, one hosted Experience, and observed shopper intent before making a larger commitment.</p>
-          </div>
-          <div className="flex flex-col gap-3 sm:flex-row">
-            <Link href={businessHref(locale, '/business/pilot')} prefetch={false} className="inline-flex items-center justify-center gap-2 rounded-xl bg-white px-5 py-3.5 text-sm font-semibold text-slate-950 transition hover:bg-slate-100">
-              Start a Pilot<ArrowRight className="h-4 w-4" aria-hidden="true" />
-            </Link>
-            <Link href={businessHref(locale, '/business/pricing')} prefetch={false} className="inline-flex items-center justify-center rounded-xl border border-white/20 px-5 py-3.5 text-sm font-semibold text-white transition hover:bg-white/10">View Pricing</Link>
-          </div>
-        </div>
-      </section>
+      {sections.map((section, index) => <SectionBlock key={`${pageKey}-${index}`} pageKey={pageKey} section={section} index={index} locale={locale} />)}
+
+      {showPilotCta ? <PilotCta locale={locale} /> : null}
     </main>
   )
 }
