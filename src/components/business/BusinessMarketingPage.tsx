@@ -76,7 +76,7 @@ function hardenedSections(pageKey: BusinessPageKey, sections: BusinessSection[])
       return {
         eyebrow: 'Store product preview',
         title: 'See how the hosted Store experience is designed to work.',
-        body: 'The final visual will use the current Store surface as product truth. Live merchant Stores are only presented as live when the merchant experience is actually published.',
+        body: 'This preview shows how a hosted Store brings reviewed product data, guided discovery, Try-On, Compare, and merchant handoff into one branded shopping journey. Live merchant Stores are only presented as live when they are actually published.',
       }
     }
 
@@ -166,7 +166,7 @@ function hardenedSections(pageKey: BusinessPageKey, sections: BusinessSection[])
       {
         eyebrow: 'Merchant operating model',
         title: 'One workspace to operate Store, Campaigns, and the signals around them.',
-        body: 'The merchant side should feel like one operating surface rather than a collection of disconnected tools. The final visual will use the current Merchant Workspace as the source of truth.',
+        body: 'Operate Store, Campaigns, setup status, and available shopper-intent signals from one merchant workspace instead of stitching together disconnected operating tools.',
       },
       mapped[2],
       mapped[3],
@@ -183,7 +183,7 @@ function hardenedSections(pageKey: BusinessPageKey, sections: BusinessSection[])
       {
         eyebrow: 'Merchant workspace',
         title: 'The operating surface behind the Experiences.',
-        body: 'The final proof will use the current Merchant Workspace to show how setup status, Store, Campaigns, and merchant operations connect to the shopper-facing experience.',
+        body: 'Manage setup status, Store, Campaigns, and merchant operations from one workspace that connects the operating layer to shopper-facing Experiences.',
       },
       mapped[4],
     ]
@@ -195,7 +195,7 @@ function hardenedSections(pageKey: BusinessPageKey, sections: BusinessSection[])
       {
         eyebrow: 'Product journey',
         title: 'The campaign itself becomes a focused commerce experience.',
-        body: 'The final visual will pair the current Campaign UI with the shopper path from focused frame discovery into recommendation, Try-On, Compare, and merchant handoff.',
+        body: 'Carry focused frame discovery into recommendation, Try-On, Compare, and merchant handoff so the shopper journey stays aligned with the campaign context.',
       },
       mapped[2],
       mapped[3],
@@ -211,7 +211,7 @@ function hardenedSections(pageKey: BusinessPageKey, sections: BusinessSection[])
       {
         eyebrow: 'Merchant workspace proof',
         title: 'A visible operating layer for setup and launch.',
-        body: 'Use the current Merchant Workspace to show how merchant identity, Store, Campaigns, and setup status are managed without pretending the Pilot is fully automated.',
+        body: 'The current Pilot is deliberately assisted: merchant identity, Store, Campaigns, and setup status are managed in one workspace while launch steps remain reviewed.',
       },
       mapped[1],
       mapped[2],
@@ -230,7 +230,7 @@ function hardenedSections(pageKey: BusinessPageKey, sections: BusinessSection[])
       {
         eyebrow: 'Merchant workspace',
         title: 'A deliberate operating handoff, not an invisible black box.',
-        body: 'The current Merchant Workspace provides the product-truth reference for setup status, Store, Campaigns, and the operating model behind the Pilot.',
+        body: 'Merchant Workspace keeps setup status, Store, Campaigns, and the operating handoff visible throughout the Pilot.',
       },
       mapped[1],
       mapped[2],
