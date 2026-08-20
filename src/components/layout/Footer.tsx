@@ -15,7 +15,7 @@ export function Footer() {
   return (
     <footer className="bg-white/80 backdrop-blur-sm border-t border-gray-200 mt-auto">
       <div className="container mx-auto px-4 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-7 gap-8 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-6 gap-8 mb-8">
           {/* Brand Section */}
           <div className="col-span-1 md:col-span-2">
             <div className="flex items-center mb-4">
@@ -54,84 +54,50 @@ export function Footer() {
             </div>
           </div>
 
-          {/* Explore Links */}
+          {/* Products */}
           <div>
-            <h3 className="font-semibold text-gray-900 mb-4">{translateFooter('links.explore', 'Explore')}</h3>
+            <h3 className="font-semibold text-gray-900 mb-4">{translateFooter('links.products', 'Products')}</h3>
             <ul className="flex flex-col gap-y-2">
               <li>
                 <Link href={`/${locale}/face-shape-detector`} prefetch={false} className="text-gray-600 hover:text-blue-600 text-sm transition-colors">
-                  {t('links.faceShapeDetector')}
+                  {translateFooter('links.faceShapeDetectorShort', 'Face Shape Detector')}
                 </Link>
               </li>
               <li>
                 <Link href={`/${locale}/face-analysis`} prefetch={false} className="text-gray-600 hover:text-blue-600 text-sm transition-colors">
-                  {t('links.faceAnalysis')}
+                  {translateFooter('links.faceAnalysisShort', 'Face Analysis')}
                 </Link>
               </li>
-              <li>
-                <Link href={`/${locale}/style-explorer`} prefetch={false} className="text-gray-600 hover:text-blue-600 text-sm transition-colors">
-                  {t('links.styleExplorer')}
-                </Link>
-              </li>
-              <li>
-                <Link href={`/${locale}/discover`} prefetch={false} className="text-gray-600 hover:text-blue-600 text-sm transition-colors">
-                  {t('links.discover')}
-                </Link>
-              </li>
-            </ul>
-          </div>
-
-          {/* Try and Compare Links */}
-          <div>
-            <h3 className="font-semibold text-gray-900 mb-4">{translateFooter('links.tryAndCompare', 'Try & Compare')}</h3>
-            <ul className="flex flex-col gap-y-2">
               <li>
                 <Link href={`/${locale}/try-on/glasses`} prefetch={false} className="text-gray-600 hover:text-blue-600 text-sm transition-colors">
-                  {t('links.tryGlasses')}
+                  {translateFooter('links.virtualTryOnShort', 'Virtual Try-On')}
                 </Link>
               </li>
               <li>
                 <Link href={`/${locale}/try-on/glasses/compare`} prefetch={false} className="text-gray-600 hover:text-blue-600 text-sm transition-colors">
-                  {t('links.frameCompare')}
+                  {translateFooter('links.frameCompareShort', 'Frame Compare')}
                 </Link>
               </li>
               <li>
-                <Link href={`/${locale}/pricing`} prefetch={false} className="text-gray-600 hover:text-blue-600 text-sm transition-colors">
-                  {t('links.pricing')}
+                <Link href={`/${locale}/style-explorer`} prefetch={false} className="text-gray-600 hover:text-blue-600 text-sm transition-colors">
+                  {translateFooter('links.styleExplorerShort', 'Style Explorer')}
                 </Link>
               </li>
             </ul>
           </div>
 
-          {/* Business Links */}
+          {/* Explore */}
           <div>
-            <h3 className="font-semibold text-gray-900 mb-4">{translateFooter('links.forBusiness', 'For Business')}</h3>
+            <h3 className="font-semibold text-gray-900 mb-4">{translateFooter('links.explore', 'Explore')}</h3>
             <ul className="flex flex-col gap-y-2">
               <li>
-                <Link href={`/${locale}/business`} prefetch={false} className="text-gray-600 hover:text-blue-600 text-sm transition-colors">
-                  {translateFooter('links.business', 'Business overview')}
+                <Link href={`/${locale}/discover`} prefetch={false} className="text-gray-600 hover:text-blue-600 text-sm transition-colors">
+                  {translateFooter('links.discoverBrands', 'Discover Brands')}
                 </Link>
               </li>
-              <li>
-                <Link href={`/${locale}/store`} prefetch={false} className="text-gray-600 hover:text-blue-600 text-sm transition-colors">
-                  {t('links.storeForBusinesses')}
-                </Link>
-              </li>
-            </ul>
-          </div>
-
-          {/* Resources Links */}
-          <div>
-            <h3 className="font-semibold text-gray-900 mb-4">{t('links.resources')}</h3>
-            <ul className="flex flex-col gap-y-2">
               <li>
                 <Link href={`/${locale}/blog`} prefetch={false} className="text-gray-600 hover:text-blue-600 text-sm transition-colors">
                   {t('links.blog')}
-                </Link>
-              </li>
-              <li>
-                <Link href={`/${locale}/faq`} prefetch={false} className="text-gray-600 hover:text-blue-600 text-sm transition-colors">
-                  {t('links.faq')}
                 </Link>
               </li>
               <li>
@@ -140,35 +106,47 @@ export function Footer() {
                 </Link>
               </li>
               <li>
-                <a
-                  href="https://ziso.cc"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-gray-600 hover:text-blue-600 text-sm transition-colors"
-                >
-                  {t('links.zisoAi')}
-                </a>
+                <Link href={`/${locale}/faq`} prefetch={false} className="text-gray-600 hover:text-blue-600 text-sm transition-colors">
+                  {t('links.faq')}
+                </Link>
               </li>
             </ul>
           </div>
 
-          {/* Legal Links */}
+          {/* Business */}
+          <div>
+            <h3 className="font-semibold text-gray-900 mb-4">{translateFooter('links.businessSection', 'Business')}</h3>
+            <ul className="flex flex-col gap-y-2">
+              <li>
+                <Link href={`/${locale}/business`} prefetch={false} className="text-gray-600 hover:text-blue-600 text-sm transition-colors">
+                  {translateFooter('links.forEyewearBusinesses', 'For Eyewear Businesses')}
+                </Link>
+              </li>
+              <li>
+                <Link href={`/${locale}/store`} prefetch={false} className="text-gray-600 hover:text-blue-600 text-sm transition-colors">
+                  {translateFooter('links.visutryStore', 'VisuTry Store')}
+                </Link>
+              </li>
+            </ul>
+          </div>
+
+          {/* Legal */}
           <div>
             <h3 className="font-semibold text-gray-900 mb-4">{t('links.legal')}</h3>
             <ul className="flex flex-col gap-y-2">
               <li>
                 <Link href={`/${locale}/privacy`} prefetch={false} className="text-gray-600 hover:text-blue-600 text-sm transition-colors">
-                  {t('links.privacy')}
+                  {translateFooter('links.privacyShort', 'Privacy')}
                 </Link>
               </li>
               <li>
                 <Link href={`/${locale}/terms`} prefetch={false} className="text-gray-600 hover:text-blue-600 text-sm transition-colors">
-                  {t('links.terms')}
+                  {translateFooter('links.termsShort', 'Terms')}
                 </Link>
               </li>
               <li>
                 <Link href={`/${locale}/refund`} prefetch={false} className="text-gray-600 hover:text-blue-600 text-sm transition-colors">
-                  {t('links.refund')}
+                  {translateFooter('links.refundsShort', 'Refunds')}
                 </Link>
               </li>
             </ul>
