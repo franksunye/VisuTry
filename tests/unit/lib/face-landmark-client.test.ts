@@ -21,6 +21,7 @@ jest.mock('@mediapipe/tasks-vision', () => ({
 import {
   analyzeFaceLandmarkFile,
   detectFaceLandmarksFromImage,
+  resolveMediaPipeAssetUrls,
 } from '@/lib/face-landmark-client'
 import type { FaceLandmarkPoint } from '@/types/face-analysis'
 
@@ -63,6 +64,33 @@ describe('face-landmark-client detector fallback', () => {
     })
     URL.createObjectURL = originalCreateObjectURL
     URL.revokeObjectURL = originalRevokeObjectURL
+  })
+
+  it('keeps legacy asset URLs when no override is configured', () => {
+    expect(resolveMediaPipeAssetUrls({})).toEqual({
+      wasm: '/mediapipe/wasm',
+      model: '/mediapipe/models/face_landmarker.task',
+    })
+  })
+
+  it('accepts independent asset origins without changing the URL roles', () => {
+    expect(resolveMediaPipeAssetUrls({
+      wasmBaseUrl: 'https://assets.example.test/mediapipe/0.10.35/wasm',
+      modelUrl: 'https://assets.example.test/mediapipe/0.10.35/models/face_landmarker.task',
+    })).toEqual({
+      wasm: 'https://assets.example.test/mediapipe/0.10.35/wasm',
+      model: 'https://assets.example.test/mediapipe/0.10.35/models/face_landmarker.task',
+    })
+  })
+
+  it('treats blank values as unset and normalizes trailing slashes', () => {
+    expect(resolveMediaPipeAssetUrls({
+      wasmBaseUrl: ' https://assets.example.test/wasm/// ',
+      modelUrl: '   ',
+    })).toEqual({
+      wasm: 'https://assets.example.test/wasm',
+      model: '/mediapipe/models/face_landmarker.task',
+    })
   })
 
   it('retries on CPU when GPU returns zero faces', async () => {

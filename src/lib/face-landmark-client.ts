@@ -3,12 +3,34 @@ import { FaceShapeFailureReason } from '@/config/face-analysis'
 import { FaceGeometryAnalysis, FaceLandmarkPoint } from '@/types/face-analysis'
 
 const MEDIAPIPE_VERSION = '0.10.35'
-const PRIMARY_WASM_ASSET_URL = '/mediapipe/wasm'
 const FALLBACK_WASM_ASSET_URL = `https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@${MEDIAPIPE_VERSION}/wasm`
-const PRIMARY_MODEL_ASSET_URL = '/mediapipe/models/face_landmarker.task'
 const FALLBACK_MODEL_ASSET_URL =
   'https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task'
 const MAX_IMAGE_DETECTION_CACHE_ENTRIES = 8
+
+export type MediaPipeAssetUrlConfig = {
+  wasmBaseUrl?: string
+  modelUrl?: string
+}
+
+export function resolveMediaPipeAssetUrls(
+  config: MediaPipeAssetUrlConfig = {
+    wasmBaseUrl: process.env.NEXT_PUBLIC_MEDIAPIPE_WASM_BASE_URL,
+    modelUrl: process.env.NEXT_PUBLIC_MEDIAPIPE_MODEL_URL,
+  },
+) {
+  const wasmBaseUrl = config.wasmBaseUrl?.trim().replace(/\/+$/, '')
+  const modelUrl = config.modelUrl?.trim().replace(/\/+$/, '')
+
+  return {
+    wasm: wasmBaseUrl || '/mediapipe/wasm',
+    model: modelUrl || '/mediapipe/models/face_landmarker.task',
+  }
+}
+
+const PRIMARY_ASSET_URLS = resolveMediaPipeAssetUrls()
+const PRIMARY_WASM_ASSET_URL = PRIMARY_ASSET_URLS.wasm
+const PRIMARY_MODEL_ASSET_URL = PRIMARY_ASSET_URLS.model
 
 type FaceLandmarkerDelegate = 'GPU' | 'CPU'
 type FaceLandmarkerAssetSource = 'primary' | 'fallback'
