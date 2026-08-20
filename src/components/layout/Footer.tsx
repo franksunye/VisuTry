@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { useParams } from 'next/navigation'
 import { Glasses, Mail, Twitter, Github } from 'lucide-react'
 import { useTranslations } from 'next-intl'
+import { LanguageSwitcher } from '@/components/LanguageSwitcher'
 
 export function Footer() {
   const params = useParams()
@@ -51,6 +52,9 @@ export function Footer() {
               >
                 <Mail className="w-5 h-5" />
               </a>
+            </div>
+            <div className="mt-5 -ms-3 w-fit">
+              <LanguageSwitcher />
             </div>
           </div>
 
