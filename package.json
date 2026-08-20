@@ -7,6 +7,8 @@
     "dev:local": "bash scripts/dev-local.sh",
     "dev:skip-prisma": "next dev",
     "dev:test": "next dev --port 3001",
+    "mediapipe:assets:download": "node scripts/prepare-mediapipe-assets.mjs",
+    "mediapipe:assets:serve": "node scripts/serve-mediapipe-assets.mjs",
     "mail": "tsx scripts/mail.ts",
     "refund:payment": "tsx scripts/refund-payment.ts",
     "build": "prisma generate && bash scripts/migrate-deploy.sh && next build",

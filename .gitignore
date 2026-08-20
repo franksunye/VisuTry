@@ -126,6 +126,7 @@ coverage/
 
 # 调试文件和临时脚本
 tmp/
+.local/mediapipe-assets/
 scripts/debug-*.js
 scripts/test-*.js
 scripts/diagnose-*.js
