@@ -12,6 +12,10 @@ const metadataOverrides: Partial<Record<BusinessPageKey, { title: string; descri
     title: 'AI Shopping Campaigns for Eyewear Brands & Agencies | VisuTry',
     description: 'Create focused AI shopping experiences for eyewear campaigns, collections, audiences, traffic sources, creator stories, and media briefs while preserving merchant product truth.',
   },
+  examples: {
+    title: 'VisuTry Store & Campaign Examples for Eyewear',
+    description: 'Explore VisuTry Store product previews and clearly labeled Campaign Reference Experiences across eyewear merchant archetypes.',
+  },
 }
 
 export function businessPageMetadata(locale: string, pageKey: BusinessPageKey): Metadata {
