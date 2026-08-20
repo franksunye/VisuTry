@@ -53,7 +53,7 @@ export function Footer() {
                 <Mail className="w-5 h-5" />
               </a>
             </div>
-            <div className="mt-5 -ms-3 w-fit">
+            <div className="mt-5 max-w-fit">
               <LanguageSwitcher />
             </div>
           </div>
@@ -127,7 +127,7 @@ export function Footer() {
                 </Link>
               </li>
               <li>
-                <Link href={`/${locale}/store`} prefetch={false} className="text-gray-600 hover:text-blue-600 text-sm transition-colors">
+                <Link href={`/${locale}/business/store`} prefetch={false} className="text-gray-600 hover:text-blue-600 text-sm transition-colors">
                   {translateFooter('links.visutryStore', 'VisuTry Store')}
                 </Link>
               </li>
