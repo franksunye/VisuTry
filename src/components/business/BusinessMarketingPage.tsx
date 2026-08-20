@@ -48,6 +48,18 @@ function hardenedCta(pageKey: BusinessPageKey, cta: { label: string; href: strin
 
 function hardenedSections(pageKey: BusinessPageKey, sections: BusinessSection[]): BusinessSection[] {
   const mapped = sections.map((section, index) => {
+    if (pageKey === 'overview' && index === 0) {
+      return {
+        ...section,
+        cards: [
+          { title: 'Discover / Recommend', description: 'Turn a broad merchant catalog into a more relevant shortlist for the shopper.' },
+          { title: 'Try-On', description: 'Let shoppers visualize selected frames using their own photo.' },
+          { title: 'Compare', description: 'Help shoppers evaluate finalists side by side before they leave the experience.' },
+          { title: 'Continue', description: 'Return high-intent shoppers to the merchant product or inquiry destination.' },
+        ],
+      }
+    }
+
     if (pageKey === 'store' && section.eyebrow === 'What the Store does') {
       return {
         ...section,
@@ -316,6 +328,7 @@ function supplementalSlot(pageKey: BusinessPageKey, sectionIndex: number): Visua
   if (pageKey === 'overview' && sectionIndex === 3) return { id: 'B2B-VIS-06', name: 'Commerce Intelligence', status: 'NEEDS INSIGHTS CAPTURE' }
   if (pageKey === 'platform' && sectionIndex === 2) return { id: 'B2B-VIS-03', name: 'Real Store Experience', status: 'NEEDS STORE CAPTURE' }
   if (pageKey === 'platform' && sectionIndex === 4) return { id: 'B2B-VIS-05', name: 'Merchant Workspace', status: 'NEEDS MERCHANT CAPTURE' }
+  if (pageKey === 'store' && sectionIndex === 2) return { id: 'B2B-VIS-03', name: 'Recommendation / Try-On / Compare Detail', status: 'NEEDS STORE CAPTURE', ratio: '4:3' }
   if (pageKey === 'campaigns' && sectionIndex === 1) return { id: 'B2B-VIS-04', name: 'Campaign Experience', status: 'NEEDS CAMPAIGN CAPTURE' }
   if (pageKey === 'examples' && sectionIndex === 0) return { id: 'B2B-VIS-03', name: 'Real Store Experience', status: 'NEEDS STORE CAPTURE', ratio: '4:3' }
   if (pageKey === 'integrations' && sectionIndex === 1) return { id: 'B2B-VIS-05', name: 'Merchant Workspace', status: 'NEEDS MERCHANT CAPTURE' }
@@ -351,9 +364,28 @@ function SectionBlock({ pageKey, section, index, locale }: { pageKey: BusinessPa
   )
 }
 
+function PilotCta({ locale }: { locale: string }) {
+  return (
+    <section className="border-t border-slate-800 bg-slate-950 text-white">
+      <div className="mx-auto flex max-w-7xl flex-col gap-7 px-4 py-14 sm:px-6 lg:flex-row lg:items-center lg:justify-between lg:px-8">
+        <div className="max-w-2xl">
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-sky-300">Founding Merchant Pilot</p>
+          <h2 className="mt-3 text-3xl font-semibold tracking-[-0.035em]">Start with a focused 30-day test.</h2>
+          <p className="mt-3 text-sm leading-6 text-slate-300">Use your real frames, one hosted Experience, and observed shopper intent before making a larger commitment.</p>
+        </div>
+        <div className="flex flex-col gap-3 sm:flex-row">
+          <Link href={businessHref(locale, '/business/pilot')} prefetch={false} className="inline-flex items-center justify-center gap-2 rounded-xl bg-white px-5 py-3.5 text-sm font-semibold text-slate-950 transition hover:bg-slate-100">Start a Pilot<ArrowRight className="h-4 w-4" aria-hidden="true" /></Link>
+          <Link href={businessHref(locale, '/business/pricing')} prefetch={false} className="inline-flex items-center justify-center rounded-xl border border-white/20 px-5 py-3.5 text-sm font-semibold text-white transition hover:bg-white/10">View Pricing</Link>
+        </div>
+      </div>
+    </section>
+  )
+}
+
 export function BusinessMarketingPage({ locale, pageKey }: BusinessMarketingPageProps) {
   const page = businessPages[pageKey]
   const sections = hardenedSections(pageKey, page.sections)
+  const showPilotCta = pageKey !== 'pricing' && pageKey !== 'pilot'
 
   if (locale !== 'en') redirect(`/en${page.slug}`)
 
@@ -371,19 +403,7 @@ export function BusinessMarketingPage({ locale, pageKey }: BusinessMarketingPage
 
       {sections.map((section, index) => <SectionBlock key={`${pageKey}-${index}`} pageKey={pageKey} section={section} index={index} locale={locale} />)}
 
-      <section className="border-t border-slate-800 bg-slate-950 text-white">
-        <div className="mx-auto flex max-w-7xl flex-col gap-7 px-4 py-14 sm:px-6 lg:flex-row lg:items-center lg:justify-between lg:px-8">
-          <div className="max-w-2xl">
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-sky-300">Founding Merchant Pilot</p>
-            <h2 className="mt-3 text-3xl font-semibold tracking-[-0.035em]">Start with a focused 30-day test.</h2>
-            <p className="mt-3 text-sm leading-6 text-slate-300">Use your real frames, one hosted Experience, and observed shopper intent before making a larger commitment.</p>
-          </div>
-          <div className="flex flex-col gap-3 sm:flex-row">
-            <Link href={businessHref(locale, '/business/pilot')} prefetch={false} className="inline-flex items-center justify-center gap-2 rounded-xl bg-white px-5 py-3.5 text-sm font-semibold text-slate-950 transition hover:bg-slate-100">Start a Pilot<ArrowRight className="h-4 w-4" aria-hidden="true" /></Link>
-            <Link href={businessHref(locale, '/business/pricing')} prefetch={false} className="inline-flex items-center justify-center rounded-xl border border-white/20 px-5 py-3.5 text-sm font-semibold text-white transition hover:bg-white/10">View Pricing</Link>
-          </div>
-        </div>
-      </section>
+      {showPilotCta ? <PilotCta locale={locale} /> : null}
     </main>
   )
 }
