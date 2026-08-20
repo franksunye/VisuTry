@@ -80,6 +80,21 @@ function hardenedSections(pageKey: BusinessPageKey, sections: BusinessSection[])
       }
     }
 
+    if (pageKey === 'campaigns' && section.eyebrow === 'One catalog, many contexts') {
+      return {
+        ...section,
+        eyebrow: 'For brand & agency teams',
+        title: 'Translate a campaign idea into a focused commerce experience.',
+        body: 'Use the same reviewed product truth while adapting the shopper journey to a collection, audience, source, creator story, or media brief. Brand teams keep product and identity control; agency teams get a clearer experience layer between media traffic and merchant commerce.',
+        cards: [
+          { title: 'Brief-to-experience', description: 'Turn a campaign proposition or collection story into a focused shopper journey without inventing a separate product stack.' },
+          { title: 'Channel continuity', description: 'Carry paid, social, creator, email, or QR traffic into an experience that reflects why the shopper arrived.' },
+          { title: 'Brand control', description: 'Reuse reviewed merchant product truth and brand context rather than building disconnected campaign microsites.' },
+          { title: 'Observable intent', description: 'Review recommendation, Try-On, Compare, product-interest, and source context where available.' },
+        ],
+      }
+    }
+
     if (pageKey === 'examples' && index === 0) {
       return {
         eyebrow: 'Store product preview',
@@ -253,6 +268,11 @@ function Hero({ locale, pageKey }: { locale: string; pageKey: BusinessPageKey })
   const textOnly = pageKey === 'examples' || pageKey === 'integrations' || pageKey === 'pilot'
   const dark = pageKey === 'intelligence'
   const storeDominant = pageKey === 'store'
+  const audienceLine = pageKey === 'overview'
+    ? 'Built for eyewear brands, commerce teams, and agency partners.'
+    : pageKey === 'campaigns'
+      ? 'For brand, media, commerce, and agency teams.'
+      : null
 
   return (
     <section className={`relative overflow-hidden border-b ${dark ? 'border-slate-800 bg-slate-950 text-white' : 'border-slate-200 bg-[radial-gradient(circle_at_82%_8%,rgba(191,219,254,0.24),transparent_28%),linear-gradient(135deg,#ffffff_0%,#fbfdff_58%,#f6f8fb_100%)]'}`}>
@@ -263,7 +283,8 @@ function Hero({ locale, pageKey }: { locale: string; pageKey: BusinessPageKey })
           </p>
           <h1 className={`mt-6 text-4xl font-semibold tracking-[-0.05em] sm:text-5xl lg:text-[4.35rem] lg:leading-[1.01] ${dark ? 'text-white' : 'text-slate-950'}`}>{page.title}</h1>
           <p className={`mt-6 max-w-2xl text-base leading-8 sm:text-lg ${dark ? 'text-slate-300' : 'text-slate-600'}`}>{page.description}</p>
-          {pageKey === 'campaigns' ? <p className="mt-5 text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">Search · Social · Email · QR → Campaign Experience</p> : null}
+          {audienceLine ? <p className={`mt-5 text-xs font-semibold uppercase tracking-[0.14em] ${dark ? 'text-slate-400' : 'text-slate-400'}`}>{audienceLine}</p> : null}
+          {pageKey === 'campaigns' ? <p className="mt-3 text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">Search · Social · Email · QR → Campaign Experience</p> : null}
           <div className="mt-8 flex flex-col gap-3 sm:flex-row">
             <CtaLink locale={locale} {...primaryCta} primary inverse={dark} />
             {secondaryCta ? <CtaLink locale={locale} {...secondaryCta} inverse={dark} /> : null}
