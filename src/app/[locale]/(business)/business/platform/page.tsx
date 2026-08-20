@@ -1,11 +1,10 @@
 import type { Metadata } from 'next'
 import { setRequestLocale } from 'next-intl/server'
 import { BusinessMarketingPage } from '@/components/business/BusinessMarketingPage'
-import { businessPages } from '@/config/business-site'
+import { businessPageMetadata } from '@/lib/business-metadata'
 
 export async function generateMetadata({ params }: { params: { locale: string } }): Promise<Metadata> {
-  const page = businessPages.platform
-  return { title: page.metaTitle, description: page.metaDescription, alternates: { canonical: `https://www.visutry.com/${params.locale}${page.slug}` } }
+  return businessPageMetadata(params.locale, 'platform')
 }
 
 export default function Page({ params }: { params: { locale: string } }) {
