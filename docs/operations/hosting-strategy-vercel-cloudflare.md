@@ -2,7 +2,8 @@
 
 **Status:** Active
 
-**Date:** 2026-08-18
+**Date:** 2026-08-18  
+**Last updated:** 2026-08-20
 
 **Owner:** Product / Engineering
 
@@ -235,6 +236,7 @@ The architecture should ensure that Store/Campaign traffic growth does not cause
 | Capability | Direction |
 | --- | --- |
 | Public hashed/static files | Layer 1 Static Assets (no Worker) once production rollout is approved |
+| MediaPipe runtime/model assets | `assets.visutry.com` → dedicated Cloudflare Worker → R2; production browsers load these binaries directly, with legacy Vercel `/mediapipe/*` rewrites retained for rollback |
 | Public HTML and lightweight reads | Layer 2 Worker + direct Neon where proven; not Layer 1 unless a Static Asset file exists |
 | Auth0/JWT session boundary | Cloudflare-capable for the tested path |
 | Protected user reads | Cloudflare + direct Neon where proven |
@@ -249,6 +251,8 @@ The architecture should ensure that Store/Campaign traffic growth does not cause
 | Cron/background work | Current Vercel/backend path |
 | Full MCP OAuth/DCR/source intake | Current Vercel/backend path |
 | Broad admin surface | Current Vercel/backend path until separately proven |
+
+R2 native custom-domain attachment is currently unavailable due to Cloudflare R2 control-plane errors (`10001` / `10071`), so the dedicated asset Worker is the current production delivery path.
 
 The canonical capability classification is maintained in:
 
