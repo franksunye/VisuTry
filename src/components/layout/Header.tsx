@@ -6,7 +6,6 @@ import { usePathname, useParams } from 'next/navigation'
 import { Glasses, Menu, X, Sparkles } from 'lucide-react'
 import { LoginButton } from '@/components/auth/LoginButton'
 import { UserMenu } from '@/components/auth/UserMenu'
-import { LanguageSwitcher } from '@/components/LanguageSwitcher'
 import { useCallback, useState, useMemo } from 'react'
 import { cn } from '@/utils/cn'
 import { useTestSession } from '@/hooks/useTestSession'
@@ -86,11 +85,6 @@ export function Header({ transparent = false }: HeaderProps) {
           
           {/* CTA + Auth Section */}
           <div className="flex shrink-0 items-center gap-x-3">
-            {/* Language Switcher - Desktop */}
-            <div className="hidden lg:block">
-              <LanguageSwitcher />
-            </div>
-
             {/* CTA Button - Desktop only */}
             {sessionLoading ? (
               <div className="hidden sm:flex items-center px-4 py-2 w-24" aria-hidden="true" />
@@ -163,11 +157,6 @@ export function Header({ transparent = false }: HeaderProps) {
                   <span>{link.label}</span>
                 </Link>
               ))}
-              
-              {/* Mobile Language Switcher */}
-              <div className="border-t border-gray-200 pt-3 mt-3">
-                <LanguageSwitcher />
-              </div>
 
               {/* Mobile CTA */}
               <div className="pt-3">
