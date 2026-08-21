@@ -197,11 +197,16 @@ async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session, 
       return
     }
 
+    logger.info('payment', 'payment_fulfilled', {
+      productType: paymentData.productType,
+      status: 'COMPLETED',
+      fulfillment: paymentData.unlockTaskId ? 'credits_and_unlock' : 'payment',
+    })
+
     // 清除用户缓存，确保所有页面立即显示最新数据
     clearUserCache(paymentData.userId)
 
     console.log(`Payment completed for user ${paymentData.userId}`)
-    logger.info('payment', 'Payment completed', { userId: paymentData.userId, amount: paymentData.amount, productType: paymentData.productType }, context)
   } catch (error) {
     // A repeated Stripe event is already fulfilled; acknowledge it without
     // incrementing credits or unlocking the report again.
@@ -219,7 +224,10 @@ async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session, 
 
     const err = error instanceof Error ? error : new Error(String(error))
     console.error("处理支付完成事件失败:", error)
-    logger.error('payment', '处理支付完成事件失败', err, undefined, context)
+    logger.error('payment', 'payment_fulfillment_failed', undefined, {
+      stage: 'checkout_session_completed',
+      retryable: true,
+    })
     // Returning a non-2xx response lets Stripe retry transient fulfillment failures.
     throw err
   }

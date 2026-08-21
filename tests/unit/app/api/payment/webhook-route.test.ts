@@ -5,6 +5,7 @@ import { POST } from '@/app/api/payment/webhook/route'
 import { prisma } from '@/lib/prisma'
 import { clearUserCache } from '@/lib/cache'
 import { handleSuccessfulPayment, verifyWebhookSignature } from '@/lib/stripe'
+import { logger } from '@/lib/logger'
 
 jest.mock('next/headers', () => ({
   headers: jest.fn(() => ({ get: () => 'test-signature' })),
@@ -42,6 +43,7 @@ const mockVerifyWebhookSignature = verifyWebhookSignature as jest.Mock
 const mockHandleSuccessfulPayment = handleSuccessfulPayment as jest.Mock
 const mockTransaction = prisma.$transaction as jest.Mock
 const mockClearUserCache = clearUserCache as jest.Mock
+const mockLogger = logger as unknown as { info: jest.Mock; error: jest.Mock }
 
 const tx = {
   payment: {
@@ -147,6 +149,11 @@ describe('/api/payment/webhook checkout fulfillment', () => {
       data: { reportUnlocked: true },
     })
     expect(mockClearUserCache).toHaveBeenCalledWith('user-1')
+    expect(mockLogger.info).toHaveBeenCalledWith('payment', 'payment_fulfilled', {
+      productType: 'CREDITS_PACK',
+      status: 'COMPLETED',
+      fulfillment: 'credits_and_unlock',
+    })
   })
 
   it('acknowledges a duplicate fulfillment without granting credits twice', async () => {
@@ -193,5 +200,9 @@ describe('/api/payment/webhook checkout fulfillment', () => {
     const response = await POST(webhookRequest())
 
     expect(response.status).toBe(400)
+    expect(mockLogger.error).toHaveBeenCalledWith('payment', 'payment_fulfillment_failed', undefined, {
+      stage: 'checkout_session_completed',
+      retryable: true,
+    })
   })
 })

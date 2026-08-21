@@ -4,6 +4,7 @@ import { NextRequest } from 'next/server'
 import { POST } from '@/app/api/payment/create-session/route'
 import { requireAuth } from '@/lib/api-auth'
 import { createCheckoutSession } from '@/lib/stripe'
+import { logger } from '@/lib/logger'
 
 jest.mock('@/lib/api-auth', () => ({ requireAuth: jest.fn() }))
 jest.mock('@/lib/stripe', () => ({ createCheckoutSession: jest.fn() }))
@@ -41,6 +42,7 @@ const mockRequireAuth = requireAuth as jest.Mock
 const mockCreateCheckoutSession = createCheckoutSession as jest.Mock
 const mockFindFaceAnalysisTask = prisma.faceAnalysisTask.findFirst as jest.Mock
 const mockCreatePayment = prisma.payment.create as jest.Mock
+const mockLogger = logger as unknown as { info: jest.Mock; error: jest.Mock }
 
 function checkoutRequest(body: Record<string, unknown>) {
   return new NextRequest('https://www.visutry.com/api/payment/create-session', {
@@ -87,6 +89,14 @@ describe('/api/payment/create-session', () => {
         status: 'PENDING',
         amount: 299,
       }),
+    })
+    expect(mockLogger.info).toHaveBeenCalledWith('payment', 'checkout_requested', {
+      route: 'create_session',
+    })
+    expect(mockLogger.info).toHaveBeenCalledWith('payment', 'checkout_created', {
+      productType: 'CREDITS_PACK',
+      checkoutContext: 'pricing',
+      status: 'PENDING',
     })
   })
 
@@ -164,5 +174,22 @@ describe('/api/payment/create-session', () => {
     expect(mockCreateCheckoutSession).toHaveBeenCalledWith(expect.objectContaining({
       checkoutLocale: 'en',
     }))
+  })
+
+  it('logs unexpected Checkout failures without changing the 500 response', async () => {
+    mockCreateCheckoutSession.mockRejectedValue(new Error('Stripe unavailable'))
+
+    const response = await POST(checkoutRequest({
+      productType: 'CREDITS_PACK',
+      successUrl: 'https://www.visutry.com/en/dashboard?session_id={CHECKOUT_SESSION_ID}',
+      cancelUrl: 'https://www.visutry.com/en/pricing',
+      locale: 'en',
+    }))
+
+    expect(response.status).toBe(500)
+    expect(mockLogger.error).toHaveBeenCalledWith('payment', 'checkout_failed', undefined, {
+      route: 'create_session',
+      stage: 'unexpected_failure',
+    })
   })
 })
