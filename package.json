@@ -67,6 +67,7 @@
     "test:cleanup": "node tests/scripts/cleanup.js",
     "test:e2e:playwright": "playwright test",
     "test:e2e:list": "playwright test --list",
+    "test:e2e:revenue-critical": "NODE_ENV=test ENABLE_MOCKS=true TEST_MODE=true playwright test tests/e2e/consumer-face-analysis-paywall.spec.ts --project=face-analysis-paywall-desktop --project=face-analysis-paywall-mobile --grep @revenue-critical",
     "test:e2e:smoke": "playwright test --grep @smoke",
     "test:e2e:critical": "playwright test --grep @critical",
     "test:e2e:install": "playwright install chromium",
