@@ -1,0 +1,17 @@
+{
+  "name": "VisuTry (demo/mock mode)",
+  "install": "npm ci",
+  "terminals": [
+    {
+      "name": "dev",
+      "command": "ENABLE_MOCKS=true NEXTAUTH_URL=http://localhost:3000 NEXTAUTH_SECRET=demo-mock-secret-not-for-production DATABASE_URL=postgresql://demo:demo@localhost:5432/visutry_demo DATABASE_URL_UNPOOLED=postgresql://demo:demo@localhost:5432/visutry_demo npm run dev",
+      "description": "Next.js dev server on http://localhost:3000 in mock/demo mode (ENABLE_MOCKS=true). External services (Postgres, Auth0, Gemini, Stripe, Vercel Blob) are mocked, so no real credentials are needed. To use real services instead, create a .env.local from .env.example and run 'npm run dev' without ENABLE_MOCKS."
+    }
+  ],
+  "ports": [
+    {
+      "name": "web",
+      "port": 3000
+    }
+  ]
+}
