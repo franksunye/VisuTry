@@ -185,6 +185,7 @@ export async function mockCreateCheckoutSession(params: {
   userId: string
   successUrl: string
   cancelUrl: string
+  unlockTaskId?: string
   attribution?: string
 }): Promise<MockPaymentSession> {
   return mockStripe.checkout.sessions.create({
@@ -198,6 +199,7 @@ export async function mockCreateCheckoutSession(params: {
     metadata: {
       userId: params.userId,
       productType: params.productType,
+      ...(params.unlockTaskId ? { unlockTaskId: params.unlockTaskId } : {}),
       ...(params.attribution ? { attribution: params.attribution } : {}),
     }
   })

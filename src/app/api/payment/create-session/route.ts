@@ -132,6 +132,7 @@ export async function POST(request: NextRequest) {
         userId: userId,
         successUrl: successUrl || 'http://localhost:3000/success',
         cancelUrl: cancelUrl || 'http://localhost:3000/cancel',
+        ...(normalizedUnlockTaskId ? { unlockTaskId: normalizedUnlockTaskId } : {}),
         ...(serializedAttribution ? { attribution: serializedAttribution } : {}),
       })
     } else {
