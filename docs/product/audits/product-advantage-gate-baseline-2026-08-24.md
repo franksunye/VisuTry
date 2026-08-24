@@ -3,6 +3,7 @@
 **Audit date:** 2026-08-24
 **Branch:** `codex/product-advantage-gate-baseline-2026-08-24`
 **Starting SHA:** `204573bf19959c80481ebfbb889045f25bb251f1`
+**Evidence-closure pass started at:** `d809564a8562ede9341028998435fd43300f034a`
 
 ## Executive Verdict
 
@@ -13,14 +14,19 @@ Gate C: PARTIAL
 Overall Outreach Gate: GATED
 
 The Consumer public surfaces and much of the Merchant / MCP foundation are
-implemented and visually credible in the inspected paths. The gates do not pass
-because Gate A distribution outcomes are not proven, Gate B still lacks an
-authenticated merchant-readable insight review, and current-SHA Codex/Cursor
-Golden Paths have not completed. Real-merchant acceptance is intentionally not
-used in these verdicts; it is the first post-outreach Merchant Validation gate.
-No agent traffic or merchant conversion outcome is proven by the current data.
-Gate A therefore reports technical readiness separately from real distribution
-evidence; implementation and synthetic tests do not count as production proof.
+implemented and visually credible in the inspected paths. This evidence-closure
+pass deployed SHA `84ed761393fa88c8228847fa556d2e42668679c8` to the production
+Vercel environment, completed a fresh Codex OAuth/MCP/Golden Path run, and
+browser-proved populated Merchant Workspace Commerce Intelligence on desktop
+and mobile. Gate A distribution outcomes are still not proven, the Merchant
+Workspace empty state has not been browser-proven against a supported empty
+fixture, and Cursor's real-client run stopped at its localhost callback before
+MCP authentication. Real-merchant acceptance is intentionally not used in these
+verdicts; it is the first post-outreach
+Merchant Validation gate. No agent traffic or merchant conversion outcome is
+proven by the current data. Gate A therefore reports technical readiness
+separately from real distribution evidence; implementation and synthetic tests
+do not count as production proof.
 
 ## Gate A
 
@@ -180,16 +186,20 @@ counted as production proof.
   hydration, Campaign shell, contextual handoff, mobile presentation, source
   continuity, and compare-policy behavior. The compare test uses an isolated
   controlled fixture and does not call an AI provider.
-- **Implemented but not yet proven — merchant-readable analytics:**
+- **Implemented and objectively proven — populated merchant-readable analytics:**
   `src/modules/store/application/get-merchant-insights.ts`, Admin Experience
   surfaces, `get_experience_funnel`, `get_top_frames`, and
   `get_intent_summary` provide measurable recommendation, try-on, compare,
   product-click, and intent-oriented signals. This pass adds a direct-Neon
   aggregate contract and merchant-readable `Commerce Intelligence` section to
   `src/components/merchant/MerchantControlCenter.tsx`, with explicit
-  Reference/Simulation provenance and an empty state. The component and
-  aggregate contract are unit-proven; the authenticated browser proof against
-  a controlled fixture is still outstanding.
+  Reference/Simulation provenance and an empty state. The authenticated
+  production browser proof against the controlled `VisuTry Demo` fixture shows
+  Visitors, Engaged Shoppers, Recommendation, Try-On, Compare, Product Click,
+  High-Intent Shoppers, acquisition source, and Store/Campaign context on the
+  real `/en/merchant` route at desktop and mobile widths. The empty state is
+  unit-proven but not yet browser-proven because the authenticated account has
+  no supported empty workspace fixture.
 
 ### Partial
 
@@ -207,12 +217,15 @@ counted as production proof.
 
 ### Missing
 
-- A current authenticated browser review of the new merchant-readable Commerce
-  Intelligence section against a controlled fixture. The live browser run at
-  the pre-change deployment showed `/en/merchant` with only the overview
-  `Insights: No data yet`; this branch has not been deployed and no safe local
-  authenticated fixture is configured in this environment. Implementation
-  existence is not visual proof.
+- An authenticated browser review of the merchant-readable Commerce
+  Intelligence empty state against a supported empty controlled fixture. The
+  populated state is now proven on `/en/merchant`; the available authenticated
+  account only contains the populated `VisuTry Demo` workspace. The supported
+  workspace-provisioning route returns the first existing membership rather
+  than creating a second tenant, and there is no production date-range or
+  test-fixture switch. The component's explicit empty copy is unit-proven but
+  this pass does not use direct DB mutation or weakened auth to manufacture a
+  browser state.
 - A safe isolated provider-backed Store shopper run covering recommendation,
   try-on, compare, and measurable product/inquiry intent end to end. Current
   controlled Playwright coverage proves the shell and compare policy, not
@@ -220,15 +233,14 @@ counted as production proof.
 
 ### P0
 
-- **B-P0-1 — Merchant-readable insight proof:** browser-prove the branch's
-  `/en/merchant#insights` output using a controlled, clearly labelled fixture
-  (not a real merchant). The proof must show populated Visitors, Engaged
-  Shoppers, Recommendation, Try-On, Compare, Product Click, High-Intent
-  Shoppers, acquisition source, Store/Campaign context, and Reference /
-  Simulation provenance where supported; it must also show the intentional
-  empty state. Do not use `/admin/store` as a substitute when normal merchant
-  users are forbidden there, and do not invent Inquiry/Lead, revenue, orders,
-  or ROAS metrics that the current contract does not measure.
+- **B-P0-1 — Merchant-readable insight proof (partially closed):** the
+  populated half is proven at the authenticated `/en/merchant#insights` route
+  using the clearly marked internal-validation `VisuTry Demo` fixture. The
+  remaining acceptance item is an authenticated browser capture of the
+  intentional empty state using a supported empty controlled fixture. Do not
+  use `/admin/store` as a substitute when normal merchant users are forbidden
+  there, and do not invent Inquiry/Lead, revenue, orders, or ROAS metrics that
+  the current contract does not measure.
 - **No remaining canonical Store runtime P0 after this pass.** The old
   `/en/store/luna-optical` failure was a stale/deprecated Reference assumption,
   not a reason to add obsolete fixture data. The active canonical
@@ -270,10 +282,20 @@ counted as production proof.
   Campaign References returned successfully with canonical metadata and no
   horizontal overflow at 1280px; `/en/store/luna-optical` returned the
   unavailable state with `noindex, nofollow` because its old fixture is absent.
-- `tests/unit/modules/store/merchant-attribution.test.ts`, Store handoff/SEO
-  tests, and Merchant Workspace/MCP route tests passed in the targeted unit
-  run: 10 suites, 39 tests. Merchant-readable analytics remain implemented but
-  not authenticated-browser-proven.
+- Authenticated production `/en/merchant` populated proof used the controlled
+  `VisuTry Demo` workspace (`visutry-demo`) with six internal-validation
+  catalog frames, active `VisuTry Demo Store`, and active `Everyday Fit`
+  Campaign. Desktop showed Visitors 14, Engaged Shoppers 10, Recommendation
+  10, Try-On 4, Compare 0, Product Click 0, High-Intent Shoppers 0, source
+  `visutry` 14, and both Store/Campaign context cards. Mobile at 390×844
+  preserved the same Commerce Intelligence section, stacked cards, context,
+  and acquisition source without horizontal overflow. The empty-state browser
+  capture remains unavailable for the exact fixture reason above.
+- `tests/unit/components/merchant/MerchantControlCenter.test.tsx` now covers
+  both populated and empty merchant-readable states. The existing Store /
+  Campaign Playwright suite remained green in the prior controlled run; the
+  current production browser proof is the authenticated evidence for the
+  populated state.
 
 ## Gate C
 
@@ -306,32 +328,39 @@ counted as production proof.
   create/rotate/revoke APIs and Merchant Workspace controls exist. OAuth
   authorization, token, revoke, and authorization-list APIs exist in
   `src/app/api/merchant/[merchantId]/oauth-authorizations`.
-- **Implemented but not yet proven on this SHA — historical Codex evidence:**
-  `docs/product/plans/universal-agent-access.md` records a production Codex
-  Golden Path on an older deployment SHA. The repository and production MCP
-  discovery have changed since that evidence, so it is retained as historical
-  evidence, not a current PASS.
+- **Implemented and objectively proven — current-SHA Codex client path:** a
+  clean `codex mcp logout visutry` followed by fresh OAuth authorization to
+  `VisuTry Demo (visutry-demo · OWNER)` completed against production, then the
+  current Codex client reached MCP initialization, `tools/list`, tenant-scoped
+  catalog inspection/validation, Store configuration, preview, explicit
+  approval publish, and Commerce Intelligence reads without DB/API shortcuts.
 
 ### Current-SHA OAuth investigation
 
-- **Root cause:** the production `/api/mcp` route uses the Cloudflare adapter
-  `src/modules/merchant/application/merchant-mcp-cloudflare.ts`. After the
-  Cloudflare routing change it accepted only `vt_live_*` Agent Keys. OAuth
-  authorization and token exchange issued DB-backed opaque `mcp_at_*` access
-  tokens, but the adapter sent every non-Agent-Key token to the Agent Key
-  validator. The bearer was rejected before Streamable HTTP initialization and
-  before `tools/list`, producing `invalid_token`.
+- **First root cause, fixed in `d809564`:** the production `/api/mcp` route
+  used the Cloudflare adapter
+  `src/modules/merchant/application/merchant-mcp-cloudflare.ts`. OAuth issued
+  DB-backed opaque `mcp_at_*` access tokens, but the adapter sent non-Agent-Key
+  tokens to the Agent Key validator. The bearer was rejected before Streamable
+  HTTP initialization and `tools/list`, producing `invalid_token`.
 - **Separate stale-credential issue:** the earlier `invalid_grant` occurred at
   refresh-token exchange and is a stale/revoked Codex refresh artifact. It is not
   the same failure as the post-reauthorization `invalid_token` bearer mismatch.
-- **Fix in this branch:** the Cloudflare adapter hashes and tenant-joins OAuth
-  access tokens, validates expiry/revocation/status/resource, normalizes scopes,
-  updates last-use timestamps transactionally, and returns the same merchant
-  actor contract as Agent Keys. Regression tests cover valid, expired, revoked,
-  wrong-resource, and Agent Key paths. No token or credential is logged.
-- **Proof boundary:** the fix is proven by current-SHA unit and MCP route tests,
-  but the public deployment has not been updated in this pass. Therefore a real
-  post-fix Codex handshake and `tools/list` transcript remain required.
+- **Second root cause, fixed in `84ed761`:** after OAuth bearer validation was
+  repaired, direct Neon returned PostgreSQL `text[]` scopes as a string such as
+  `{"merchant:read,catalog:read,experience:write,analytics:read"}`. The
+  Cloudflare adapter treated that value as an empty array, so reads worked but
+  write tools returned `AGENT_SCOPE_REQUIRED`. `parseScopeValues()` now handles
+  PostgreSQL arrays, JSON arrays, JavaScript arrays, and whitespace-delimited
+  scope strings before normalization. The regression test covers the
+  PostgreSQL text-array shape.
+- **Current proof:** the adapter hashes and tenant-joins OAuth access tokens,
+  validates expiry/revocation/status/resource, normalizes scopes, updates
+  last-use timestamps transactionally, and returns the same merchant actor
+  contract as Agent Keys. Production was redeployed at `84ed761`; stale Codex
+  state was logged out and not reused; fresh OAuth, MCP initialization,
+  `tools/list`, and the complete current-SHA Golden Path all passed. No token or
+  credential is logged or recorded.
 
 ### Partial
 
@@ -350,27 +379,27 @@ counted as production proof.
 
 ### Missing
 
-- Current-SHA Codex Golden Path evidence using an isolated merchant is still
-  missing: authorization, workspace inspection, catalog validation/intake,
-  draft Experience, preview, explicit approval, publish, analytics, and result
-  summary. The last live run selected `My Merchant Workspace
-  (my-merchant-workspace-3 · OWNER)` after OAuth reauthorization, then failed
-  before `tools/list` with `invalid_token` against the pre-fix deployment. No
-  catalog, Experience, publish, or analytics write was performed.
-- Cursor Golden Path evidence. The exact remaining validation is to configure
-  Cursor with the production MCP endpoint and OAuth/PKCE discovery, complete the
-  same isolated-merchant read/write flow, and capture the tool transcript and
-  resulting merchant/Experience IDs. No Cursor client/session is installed or
-  authenticated in this environment.
+- Current-SHA Codex Golden Path evidence is closed in this pass. Fresh OAuth,
+  MCP initialization, `tools/list`, tenant-scoped catalog inspection and
+  validation, Store configuration, preview, explicit approval publish, and
+  Commerce Intelligence reads passed against the deployed current SHA.
+- Cursor Golden Path evidence remains open. The real Cursor desktop client was
+  available and loaded the prepared `https://www.visutry.com/api/mcp` endpoint.
+  Its dynamic registration attempt failed at the server's redirect-URI
+  validator; using a temporary public OAuth client registered with Cursor's
+  documented callbacks (`https://www.cursor.com/agents/mcp/oauth/callback` and
+  `http://localhost:8787/callback`) reached the real VisuTry consent page and
+  returned a code for `VisuTry Demo`. Cursor's local `localhost:8787` listener
+  then returned `404 Not found` and remained at `Waiting for callback…`, so the
+  client never established MCP authentication. No `tools/list` or merchant
+  operation is claimed for Cursor.
 
 ### P0
 
-- **C-P0-1 — Current Codex proof:** deploy the current adapter or run its
-  production-equivalent endpoint, then re-run the full Golden Path against an
-  isolated merchant. Acceptance: fresh OAuth, MCP handshake, `tools/list`, and
-  every step in the Gate C sequence succeeds through MCP; no manual DB/API
-  intervention occurs; all writes are tenant-scoped/idempotent; and publish is
-  impossible without `approved=true`.
+- **C-P0-1 — Current Codex proof: CLOSED in this pass.** Production deployment
+  at the current SHA and clean OAuth state now satisfy fresh authorization,
+  MCP handshake, `tools/list`, tenant-scoped operations, preview, explicit
+  approval, publish, and analytics acceptance.
 - **C-P0-2 — Cursor proof:** execute the same flow from Cursor with the
   published endpoint and OAuth discovery. Acceptance: tool discovery,
   authorization, draft creation, preview, explicit-approval publish, and
@@ -398,16 +427,21 @@ counted as production proof.
   including MCP route, OAuth HTTP contract, catalog intake, Store
   attribution/SEO, and Merchant Workspace tests. The current focused
   presentation/attribution/insight re-run passed 8 suites, 40 tests.
-- Live MCP/OAuth discovery passed with HTTP 200 metadata; authenticated
-  `tools/list` and write execution were not run in this environment. The
-  first current Codex CLI attempt was blocked before tool enumeration by an
-  expired OAuth refresh token (`invalid_grant`). Standard reauthorization
-  completed against the visible no-data `My Merchant Workspace`, but a second
-  run failed the MCP handshake with `invalid_token`; the current Codex Golden
-  Path therefore remains unproven.
-- The existing `docs/product/plans/universal-agent-access.md` is useful
-  historical evidence but explicitly says Cursor/Claude are not confirmed and
-  identifies OAuth UI/cleanup and DB protocol tests as remaining work.
+- Live MCP/OAuth discovery passed with HTTP 200 metadata. After
+  `codex mcp logout visutry` and fresh authorization, the current production
+  Codex client reached `tools/list` and ran the full Golden Path. The final run
+  stayed within `VisuTry Demo`, used six existing internal-validation frames
+  without changing selection, returned a zero-blocker preview, published only
+  with `approved: true`, and read Commerce Intelligence. Codex verdict:
+  **PASS**.
+- `npx jest --runInBand
+  tests/unit/modules/merchant/merchant-mcp-cloudflare.test.ts` passed 8 tests,
+  including the PostgreSQL text-array scope regression. `npm run typecheck`
+  and `npm run build:ci` passed after the fix. The Store/Campaign Playwright
+  suite passed 12/12 with an explicitly started local test server. Cursor's
+  real OAuth consent boundary was reached, but its localhost callback listener
+  returned 404 before MCP authentication and remains the exact external/client
+  blocker.
 
 ## Cross-Gate Dependencies
 
@@ -440,15 +474,21 @@ acceptance must not be used to fail Gate B before outreach.
 
 ## Cursor Golden Path Connection Instructions
 
-Repository-side MCP compatibility is already in place. The remaining external
+Repository-side MCP compatibility is already in place. Cursor's documented
+desktop callback is `http://localhost:8787/callback`; its Web/Agents callback is
+`https://www.cursor.com/agents/mcp/oauth/callback`. The remaining external/client
 validation action is exactly:
 
 1. In Cursor, open Settings → Tools & Integrations → add a custom remote MCP
-   server named `visutry`.
+  server named `visutry` (or use the prepared `~/.cursor/mcp.json` entry).
 2. Set the Streamable HTTP URL to
-   `https://www.visutry.com/api/mcp`; do not paste a static Authorization
-   header. Allow Cursor to use the advertised OAuth/PKCE discovery.
-3. Authenticate and select only the dedicated isolated test Merchant/workspace;
+  `https://www.visutry.com/api/mcp`; do not paste a static Authorization
+  header. Allow Cursor to use the advertised OAuth/PKCE discovery.
+3. If Cursor's dynamic registration sends an unsupported redirect URI, use a
+  fixed public OAuth client whose registered redirect URIs are exactly the two
+  official Cursor callbacks above; do not widen the server to arbitrary custom
+  schemes. Authenticate and select only the dedicated isolated test
+  Merchant/workspace;
    do not use a real customer merchant.
 4. Run `tools/list`, then the same sequence:
    `get_merchant` → `get_onboarding_status` → `list_frames` →
@@ -464,9 +504,10 @@ validation action is exactly:
    Experience after evidence capture if the isolated workspace policy requires
    cleanup.
 
-The single remaining external action is completing that authenticated Cursor
-session against a proven isolated workspace. Until then Gate C is `PARTIAL`,
-not `PASS`.
+The single remaining external action is fixing or upgrading the Cursor desktop
+localhost callback listener so the returned code is consumed (the observed
+listener returned HTTP 404), then completing that authenticated Cursor session
+against the isolated workspace. Until then Gate C is `PARTIAL`, not `PASS`.
 
 ## Explicit Non-Goals
 
@@ -483,12 +524,10 @@ not `PASS`.
    browser suite green; do not restore the deprecated Luna fixture.
 2. Browser-prove the full Detector → Advisor → Try-On → Compare continuity with
    the state-preserving handoff and regression assertions now in place.
-3. Deploy/reconnect the current OAuth adapter and produce a current-SHA Codex
-   MCP Golden Path, then complete the explicitly recorded Cursor validation with
-   an isolated merchant.
-4. Browser-prove authenticated merchant-readable Commerce Intelligence against
-   a controlled fixture, then re-run the controlled provider-backed Store
-   shopper fixture.
+3. Complete the authenticated Merchant Workspace empty-state proof against a
+   supported controlled fixture; do not manufacture it with DB/auth shortcuts.
+4. Run the explicitly recorded Cursor validation with an isolated merchant;
+   keep Gate C partial until the real client transcript exists.
 5. Only after A, B, and C evidence is complete may the product plan authorize
    controlled outreach; then begin the separate First Real Merchant validation.
 

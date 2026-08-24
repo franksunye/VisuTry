@@ -42,6 +42,22 @@ describe('MerchantControlCenter', () => {
     expect(screen.getByText('Reference / Simulation')).toBeInTheDocument()
   })
 
+  it('renders the merchant-readable empty Commerce Intelligence state', () => {
+    render(<MerchantControlCenter {...baseProps} control={{ ...baseProps.control, commerceIntelligence: {
+      period: { from: '2026-08-01T00:00:00.000Z', to: '2026-08-24T00:00:00.000Z', timezone: 'UTC' },
+      hasActivity: false,
+      totals: { visitors: 0, engagedShoppers: 0, recommendationActivity: 0, tryOnCompletions: 0, compareActivity: 0, productClicks: 0, highIntentShoppers: 0 },
+      rates: { engagement: null, recommendation: null, tryOn: null, compare: null },
+      acquisitionSources: [],
+      experiences: [],
+    } }} />)
+    expect(screen.getByRole('heading', { name: 'Understand shopper intent' })).toBeInTheDocument()
+    expect(screen.getByText('No shopper activity yet')).toBeInTheDocument()
+    expect(screen.getByText('Share a published Store or Campaign to start collecting decision signals.')).toBeInTheDocument()
+    expect(screen.queryByText('Visitors')).not.toBeInTheDocument()
+    expect(screen.getByText(/No shopper photos, identity, revenue, or purchase claims/)).toBeInTheDocument()
+  })
+
   it('shows a newly created secret once and removes it on close', async () => {
     ;(global.fetch as jest.Mock).mockImplementation(async (url: string, options?: RequestInit) => {
       if (options?.method === 'POST') return { ok: true, json: async () => ({ data: { secret: 'vt_live_one_time_secret' } }) }
