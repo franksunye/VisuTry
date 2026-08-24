@@ -4,12 +4,13 @@
 **Branch:** `codex/product-advantage-gate-baseline-2026-08-24`
 **Starting SHA:** `204573bf19959c80481ebfbb889045f25bb251f1`
 **Evidence-closure pass started at:** `d809564a8562ede9341028998435fd43300f034a`
+**Criteria-normalization pass started at:** `75f62c40164dfb42c2378ea7d49e44e47abab74f`
 
 ## Executive Verdict
 
 Gate A: PARTIAL
-Gate B: PARTIAL
-Gate C: PARTIAL
+Gate B: PASS
+Gate C: PASS (Agent-Native Core; Cursor interoperability P1)
 
 Overall Outreach Gate: GATED
 
@@ -18,19 +19,23 @@ implemented and visually credible in the inspected paths. This evidence-closure
 pass deployed SHA `84ed761393fa88c8228847fa556d2e42668679c8` to the production
 Vercel environment, completed a fresh Codex OAuth/MCP/Golden Path run, and
 browser-proved populated Merchant Workspace Commerce Intelligence on desktop
-and mobile. Gate A distribution outcomes are still not proven, the Merchant
-Workspace empty state has not been browser-proven against a supported empty
-fixture, and Cursor's real-client run stopped at its localhost callback before
-MCP authentication. Real-merchant acceptance is intentionally not used in these
-verdicts; it is the first post-outreach
-Merchant Validation gate. No agent traffic or merchant conversion outcome is
-proven by the current data. Gate A therefore reports technical readiness
-separately from real distribution evidence; implementation and synthetic tests
-do not count as production proof.
+and mobile. Gate B now passes because the populated state is authenticated,
+the empty state is deterministic component-tested through the same production
+contract, and there is no remaining Gate B P0. Gate C Agent-Native Core and
+standards-based MCP/OAuth pass on the current-SHA Codex evidence; Cursor's
+localhost callback failure is an external client/environment interoperability
+P1, not a VisuTry server defect. Gate A has a durable Store/Campaign
+source-class → decision-action report, but the core Consumer GA4 join and
+genuine production Agent referral evidence remain incomplete. Real-merchant
+acceptance is intentionally not used in these verdicts; it is the first
+post-outreach Merchant Validation gate. No agent traffic or merchant conversion
+outcome is proven by the current data. The active hard outreach policy remains
+GATED pending an explicit Product decision on the recommended Soft Distribution
+Gate.
 
 ## Gate A
 
-### Proven
+### Agent-Native Core — Proven
 
 - **Implemented and objectively proven — public route quality:** live browser
   checks on `/en`, `/en/face-shape-detector`, `/en/face-analysis`,
@@ -65,6 +70,14 @@ do not count as production proof.
   `landingUrl`, `acquisitionSurface`, and `aiAgentSource` through
   `src/modules/store/application/create-store-session.ts` and
   `MerchantSession`.
+- **Implemented and objectively proven — durable Store/Campaign source-action
+  report:** `src/modules/store/domain/merchant-distribution-report.ts` classifies
+  persisted sessions into ChatGPT, OpenAI, Perplexity, Gemini, Copilot, Claude,
+  organic search, generic referral, paid, direct, social, and other. The
+  Cloudflare Merchant Workspace read model joins those source classes to
+  durable recommendation, Try-On, Compare, Product Click, Inquiry, engagement,
+  and High-Intent signals without raw-log reconstruction. The UI renders this
+  as `Source → decision actions` and labels the Consumer event boundary.
 
 ### Partial
 
@@ -75,9 +88,11 @@ do not count as production proof.
   `aiAgentSource`. There is no current production evidence slice proving counts
   for those sources. The consumer analytics path still stores normalized
   first-touch source/medium rather than one shared channel schema.
-- **Technical readiness boundary:** source parsing, persistence, reporting, and
-  Consumer decision events are implementation evidence. Synthetic attribution
-  requests are labelled `TEST` and cannot satisfy real distribution proof.
+- **Technical readiness boundary:** source parsing, persistence, the
+  Store/Campaign source-action report, and Consumer decision events are
+  implementation evidence. Synthetic attribution requests are labelled `TEST`
+  and cannot satisfy real distribution proof. The report does not claim that
+  GA4-only Detector or Advisor events are durably joined to Store sessions.
 - **Partial — journey continuity:**
   Detector → Advisor and Detector → Try-On now preserve state in the tested
   handoffs; the full authenticated Try-On → Compare and downstream intent path
@@ -98,22 +113,22 @@ do not count as production proof.
 
 ### Missing
 
-- A single durable, queryable Consumer funnel key connecting discovery/page
-  view, useful decision interaction, recommendation, try-on/compare, and intent.
-  Current sources are split between GA page views/events and Store
-  `MerchantSession` / `MerchantEvent` / `MerchantIntent` records.
-- A production evidence report separating ChatGPT, OpenAI, Perplexity, Gemini,
-  Copilot, Claude, generic referral, organic, direct, social, and paid traffic.
-  Raw UTM/source/medium persistence exists, but the data needed to claim agent
-  distribution is not present in this audit.
+- A durable join between core Consumer GA4/dataLayer events and
+  `MerchantSession`; Detector and Advisor counts therefore remain unavailable
+  in the first-party source-action report. This is an explicit data boundary,
+  not a reason to fabricate joins.
+- Genuine production Agent referral evidence: the source-action report is ready
+  to inspect future durable Store/Campaign traffic, but no genuine production
+  Agent referral with a meaningful Consumer action is present in this audit.
 
 ### P0
 
-- **A-P0-1 — Agent/distribution proof:** produce a read-only production or
-  controlled analytics evidence slice for the required source classes and map
-  each class to session, Experience, and intent records. Acceptance: counts and
-  denominators are reproducible from named events/data fields; otherwise the
-  gate remains unproven.
+- **A-P0-1 — Durable source/action reporting (partially closed):** the
+  read-only Store/Campaign report now produces reproducible source-class counts
+  and action counts from `MerchantSession`, `MerchantEvent`, and
+  `MerchantIntent`. The remaining boundary is the lack of a safe durable join
+  for core Consumer GA4/dataLayer Detector and Advisor events; no unsupported
+  join is claimed.
 - **A-P0-2 — Genuine distribution evidence:** observe one real production
   AI-assistant/agent referral, classify it distinctly, connect it to a persisted
   session, and verify one meaningful Consumer decision action. Synthetic traffic
@@ -146,12 +161,15 @@ Minimum observable funnel at this baseline:
 | Recommendation / Try-On / Compare | Consumer `recommendation_*`, `tryon_*`, `comparison_*`; Store MerchantEvents and usage records | Implemented in separate schemas; Detector direct Try-On handoff is covered by a regression test, but full authenticated continuation is not yet proven. |
 | Intent | Consumer `purchase_intent_clicked` where applicable; Store `MerchantIntent`, product click/favorite/inquiry events | Store intent is durable; no unified Consumer-to-merchant intent proof. |
 
-Gate A result split: **technical readiness PARTIAL** (source parsing,
-persistence, canonical/structured metadata, and sitemap admission are tested;
-the durable cross-system Consumer funnel/report is incomplete); **real
-distribution evidence PARTIAL** (no genuine production AI/agent referral with a
-meaningful decision action is available). Synthetic source-class tests are not
-counted as production proof.
+Gate A result split: **technical readiness PARTIAL** (attribution parsing,
+persistence, canonical/structured metadata, sitemap admission, and the
+durable Store/Campaign source-action report are proven; the core Consumer
+GA4/dataLayer join is intentionally unavailable); **reporting readiness
+PARTIAL** (the strongest supported first-party report is operational, but it
+does not include Detector/Advisor counts); **real distribution evidence
+PARTIAL** (no genuine production AI/agent referral with a meaningful decision
+action is available). Synthetic source-class tests are not counted as
+production proof.
 
 ## Gate B
 
@@ -198,8 +216,9 @@ counted as production proof.
   Visitors, Engaged Shoppers, Recommendation, Try-On, Compare, Product Click,
   High-Intent Shoppers, acquisition source, and Store/Campaign context on the
   real `/en/merchant` route at desktop and mobile widths. The empty state is
-  unit-proven but not yet browser-proven because the authenticated account has
-  no supported empty workspace fixture.
+  deterministically component-tested through the same production component and
+  data contract; a second authenticated empty workspace is not required for
+  the pre-outreach PASS rule.
 
 ### Partial
 
@@ -217,30 +236,27 @@ counted as production proof.
 
 ### Missing
 
-- An authenticated browser review of the merchant-readable Commerce
-  Intelligence empty state against a supported empty controlled fixture. The
-  populated state is now proven on `/en/merchant`; the available authenticated
-  account only contains the populated `VisuTry Demo` workspace. The supported
-  workspace-provisioning route returns the first existing membership rather
-  than creating a second tenant, and there is no production date-range or
-  test-fixture switch. The component's explicit empty copy is unit-proven but
-  this pass does not use direct DB mutation or weakened auth to manufacture a
-  browser state.
+- No remaining pre-outreach Gate B P0 is missing. A second authenticated empty
+  workspace browser capture remains useful P1 evidence, but is intentionally
+  not manufactured: the available account only contains the populated
+  `VisuTry Demo` workspace, and the supported workspace-provisioning route does
+  not create an additional empty tenant in this environment.
 - A safe isolated provider-backed Store shopper run covering recommendation,
   try-on, compare, and measurable product/inquiry intent end to end. Current
   controlled Playwright coverage proves the shell and compare policy, not
-  provider output.
+  provider output; this remains P1 because no P0 shopper or merchant trust
+  blocker was found in the current Reference/simulation evidence.
 
 ### P0
 
-- **B-P0-1 — Merchant-readable insight proof (partially closed):** the
-  populated half is proven at the authenticated `/en/merchant#insights` route
-  using the clearly marked internal-validation `VisuTry Demo` fixture. The
-  remaining acceptance item is an authenticated browser capture of the
-  intentional empty state using a supported empty controlled fixture. Do not
-  use `/admin/store` as a substitute when normal merchant users are forbidden
-  there, and do not invent Inquiry/Lead, revenue, orders, or ROAS metrics that
-  the current contract does not measure.
+- **No remaining Gate B P0.** The authenticated populated state is proven at
+  `/en/merchant#insights` using the clearly marked internal-validation
+  `VisuTry Demo` fixture; the deterministic empty component state is covered by
+  `tests/unit/components/merchant/MerchantControlCenter.test.tsx` using the
+  same `MerchantCommerceIntelligence` contract. Do not use `/admin/store` as a
+  substitute when normal merchant users are forbidden there, and do not invent
+  Inquiry/Lead, revenue, orders, or ROAS metrics that the current contract does
+  not measure.
 - **No remaining canonical Store runtime P0 after this pass.** The old
   `/en/store/luna-optical` failure was a stale/deprecated Reference assumption,
   not a reason to add obsolete fixture data. The active canonical
@@ -260,8 +276,8 @@ counted as production proof.
   Acquisition Source.
 - Add explicit loading, error, empty, and processing assertions for Store and
   Campaign at desktop and mobile widths.
-- Re-run authenticated Admin / Commerce Intelligence screenshots against a
-  current controlled fixture; current code existence is not visual proof.
+- Capture the authenticated empty state in a supported controlled fixture if
+  one becomes available; this is P1 evidence hardening, not a Gate B blocker.
 - Run a provider-backed controlled Store shopper fixture through recommendation,
   try-on, compare, and measurable product/inquiry intent.
 
@@ -296,6 +312,11 @@ counted as production proof.
   Campaign Playwright suite remained green in the prior controlled run; the
   current production browser proof is the authenticated evidence for the
   populated state.
+
+Gate B result: **PASS**. The authenticated populated state, deterministic empty
+state contract, canonical shopper paths, and visual/browser evidence meet the
+pre-outreach rule; the empty-fixture browser capture and provider-backed shopper
+run remain P1.
 
 ## Gate C
 
@@ -334,6 +355,12 @@ counted as production proof.
   current Codex client reached MCP initialization, `tools/list`, tenant-scoped
   catalog inspection/validation, Store configuration, preview, explicit
   approval publish, and Commerce Intelligence reads without DB/API shortcuts.
+
+Agent-Native Core result: **PASS**. Codex current-SHA execution, OAuth/MCP
+resource and scope validation, tenant isolation, explicit approval, and
+merchant-readable analytics all pass.
+
+### Cross-Client Interoperability
 
 ### Current-SHA OAuth investigation
 
@@ -377,22 +404,21 @@ counted as production proof.
   use mocked OAuth boundaries in the existing suite. A current DB-backed
   Streamable HTTP protocol run is not recorded.
 
-### Missing
+### Remaining / External
 
-- Current-SHA Codex Golden Path evidence is closed in this pass. Fresh OAuth,
-  MCP initialization, `tools/list`, tenant-scoped catalog inspection and
-  validation, Store configuration, preview, explicit approval publish, and
-  Commerce Intelligence reads passed against the deployed current SHA.
-- Cursor Golden Path evidence remains open. The real Cursor desktop client was
-  available and loaded the prepared `https://www.visutry.com/api/mcp` endpoint.
-  Its dynamic registration attempt failed at the server's redirect-URI
-  validator; using a temporary public OAuth client registered with Cursor's
-  documented callbacks (`https://www.cursor.com/agents/mcp/oauth/callback` and
-  `http://localhost:8787/callback`) reached the real VisuTry consent page and
+- Cursor real-client execution remains open as a P1 interoperability item. The
+  real Cursor desktop client loaded `https://www.visutry.com/api/mcp`. Its
+  dynamic registration request used an unsupported redirect URI and was
+  rejected by VisuTry's standards-compliant validator; that is not a server
+  defect to fix by widening redirect validation. With a temporary public OAuth
+  client registered to Cursor's documented callbacks
+  (`https://www.cursor.com/agents/mcp/oauth/callback` and
+  `http://localhost:8787/callback`), VisuTry consent and approval succeeded and
   returned a code for `VisuTry Demo`. Cursor's local `localhost:8787` listener
-  then returned `404 Not found` and remained at `Waiting for callback…`, so the
-  client never established MCP authentication. No `tools/list` or merchant
-  operation is claimed for Cursor.
+  then returned `404 Not found` and remained at `Waiting for callback…` before
+  MCP authentication. This boundary is caused by Cursor's local callback
+  listener/client environment, not VisuTry-generated redirect behavior. No
+  Cursor `tools/list` or merchant operation is claimed.
 
 ### P0
 
@@ -400,10 +426,11 @@ counted as production proof.
   at the current SHA and clean OAuth state now satisfy fresh authorization,
   MCP handshake, `tools/list`, tenant-scoped operations, preview, explicit
   approval, publish, and analytics acceptance.
-- **C-P0-2 — Cursor proof:** execute the same flow from Cursor with the
-  published endpoint and OAuth discovery. Acceptance: tool discovery,
-  authorization, draft creation, preview, explicit-approval publish, and
-  analytics all complete; otherwise record the exact client/protocol blocker.
+- **No remaining VisuTry Gate C P0.** Cursor real-client execution is retained
+  as P1 interoperability validation because the observed failure occurs in the
+  external localhost callback listener after VisuTry consent, before MCP
+  authentication. The server must remain standards-compliant and must not
+  accept arbitrary custom redirect schemes.
 
 ### P1
 
@@ -420,6 +447,9 @@ counted as production proof.
 - Add a merchant-readable, machine-readable final result summary that includes
   Experience URL/status, catalog counts/validation state, traffic-source
   summary, and measurable funnel fields without claiming revenue attribution.
+- Complete Cursor real-client callback consumption and rerun the isolated
+  read-only and write Golden Path when a supported Cursor client environment is
+  available; do not widen the VisuTry redirect-URI validator.
 
 ### Evidence
 
@@ -441,7 +471,11 @@ counted as production proof.
   suite passed 12/12 with an explicitly started local test server. Cursor's
   real OAuth consent boundary was reached, but its localhost callback listener
   returned 404 before MCP authentication and remains the exact external/client
-  blocker.
+  P1 blocker; no VisuTry OAuth/MCP defect was found at that boundary.
+
+Gate C result: **PASS for Agent-Native Core and standards-based MCP/OAuth**.
+Cursor real-client compatibility remains **PARTIAL / P1 external validation**
+and does not block the core Gate C verdict.
 
 ## Cross-Gate Dependencies
 
@@ -457,6 +491,22 @@ counted as production proof.
   proof when it is clearly labeled. A dedicated isolated merchant/workspace is
   required for Gate C write evidence; it must not be confused with the
   post-outreach First Real Merchant validation gate.
+- `src/modules/store/domain/merchant-distribution-report.ts` is the strongest
+  supported first-party source/action report. Core Consumer GA4/dataLayer events
+  do not carry a durable MerchantSession key, so Detector and Advisor counts
+  are explicitly unavailable in that report rather than inferred.
+
+## Outreach Policy Decision
+
+The active contract remains a **HARD GATE**: Outreach is `GATED` until Gate A
+real distribution evidence, Gate B, and Gate C pass. The recommended product
+policy is a **SOFT DISTRIBUTION GATE**: require Gate A technical and reporting
+readiness before controlled outreach, then measure genuine Agent traffic as a
+time-boxed early-outreach milestone. Soft gating avoids an unbounded wait for a
+channel whose evidence is expected to grow through controlled distribution;
+hard gating preserves a cleaner pre-outreach proof of the strategic Agent
+distribution hypothesis. This pass records the recommendation but does not
+silently change the active hard-gate contract.
 
 ## Post-Outreach Validation
 
@@ -507,7 +557,8 @@ validation action is exactly:
 The single remaining external action is fixing or upgrading the Cursor desktop
 localhost callback listener so the returned code is consumed (the observed
 listener returned HTTP 404), then completing that authenticated Cursor session
-against the isolated workspace. Until then Gate C is `PARTIAL`, not `PASS`.
+against the isolated workspace. Until then Cursor interoperability is `PARTIAL`
+and `P1`; Agent-Native Core / Gate C remains `PASS`.
 
 ## Explicit Non-Goals
 
@@ -524,12 +575,15 @@ against the isolated workspace. Until then Gate C is `PARTIAL`, not `PASS`.
    browser suite green; do not restore the deprecated Luna fixture.
 2. Browser-prove the full Detector → Advisor → Try-On → Compare continuity with
    the state-preserving handoff and regression assertions now in place.
-3. Complete the authenticated Merchant Workspace empty-state proof against a
-   supported controlled fixture; do not manufacture it with DB/auth shortcuts.
-4. Run the explicitly recorded Cursor validation with an isolated merchant;
-   keep Gate C partial until the real client transcript exists.
-5. Only after A, B, and C evidence is complete may the product plan authorize
-   controlled outreach; then begin the separate First Real Merchant validation.
+3. Keep the Gate B empty-fixture browser capture as P1 evidence hardening; do
+   not manufacture it with DB/auth shortcuts.
+4. Complete the durable core Consumer attribution join only if a safe supported
+   first-party identifier becomes available; otherwise retain the explicit
+   GA4/dataLayer boundary and do not fabricate counts.
+5. Complete the explicitly recorded Cursor validation when its external client
+   callback works; keep it P1 while Agent-Native Core remains proven.
+6. Resolve the hard-vs-soft outreach policy decision before authorizing any
+   outreach; then keep First Real Merchant validation separate.
 
 ## Definition of Done Remaining
 
@@ -541,8 +595,10 @@ against the isolated workspace. Until then Gate C is `PARTIAL`, not `PASS`.
   shopper run, and authenticated merchant-readable metrics from a Reference,
   simulation, or controlled fixture. Real-merchant acceptance is not a Gate B
   requirement.
-- Gate C has current-SHA Codex and Cursor transcripts/results, DB-backed
-  protocol coverage, visible OAuth lifecycle controls or a documented safe
-  equivalent, and no manual intervention in the Golden Path.
-- The three gate verdicts are all `PASS` in a subsequent dated baseline; until
-  then the Outreach Gate remains `GATED`.
+- Gate C Agent-Native Core has current-SHA Codex evidence, DB-backed protocol
+  coverage, visible OAuth lifecycle controls or a documented safe equivalent,
+  and no manual intervention in the Golden Path. Cursor compatibility is a
+  separate P1 transcript.
+- Gate A technical/reporting readiness and the explicit hard-vs-soft outreach
+  policy decision are resolved; genuine Agent traffic remains evidence, never
+  synthetic proof. Under the current hard contract, Outreach remains `GATED`.

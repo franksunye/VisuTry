@@ -106,20 +106,20 @@ Current focus:
 | Priority | Workstream | Why it matters | Status |
 | --- | --- | --- | --- |
 | P0 | Consumer production stability | 2B work must not regress Face Analysis, Credits, Try-On, Compare, payment, or protected-media behavior. | Shipped / guarded by CI |
-| P0 | Product Advantage Gate A/B/C baseline and P0 closure | Structured outreach is gated until the Consumer, Merchant, and Agent gates pass with current evidence. | In progress — see dated baseline |
+| P0 | Product Advantage Gate A/B/C baseline and P0 closure | Structured outreach is gated until the active Product decision is resolved and the required Consumer, Merchant, and Agent evidence passes. | In progress — B PASS; Agent-Native Core PASS; A evidence boundary and outreach policy decision remain |
 | P1 | Assisted Pilot operating loop | Intake, catalog review, one Store or Campaign, launch, weekly review, and continuation decision must work without normal shopper actions requiring developer intervention after the gate passes. | Blocked by gate |
 | P1 | Business Website v1.2 | The multi-page `/business` narrative, examples, pricing, integrations, and Pilot offer are live. | Shipped / Measuring |
 | P1 | Store / Campaign / Commerce Intelligence product | Shared Experience runtime, attribution, Sponsored Usage, Reference/Live provenance, Admin insights, and focused Campaign Try-On are live. | Shipped / Measuring |
-| P1 | Agent-native merchant operations | Merchant Workspace, Agent Keys, Remote MCP, OAuth, Store/Campaign tools, and aggregate analytics are implemented; current Codex and Cursor proof remains required. | Implemented core / gate evidence incomplete |
+| P1 | Agent-native merchant operations | Merchant Workspace, Agent Keys, Remote MCP, OAuth, Store/Campaign tools, and aggregate analytics are implemented; current Codex proves the core and Cursor remains external interoperability validation. | Agent-Native Core PASS / Cursor P1 |
 
 ### Next
 
 | Priority | Workstream | Why it matters | Status |
 | --- | --- | --- | --- |
-| P0 | Product Advantage Gate acceptance | Close dated baseline P0s and re-run the required Consumer, Merchant, Codex, and Cursor evidence. | In progress |
+| P0 | Product Advantage Gate acceptance | Close the dated A evidence/reporting boundary, keep Gate B and Agent-Native Core evidence current, and record the explicit outreach policy decision. | In progress |
 | P1 | OAuth authorization lifecycle UI and cleanup | External agent-native Pilots need connected-authorization visibility, revoke controls, and expired-artifact cleanup. | Backend partially shipped / UI + cleanup ready |
 | P1 | Post-Outreach First Real Merchant validation | After Outreach Ready, one merchant completes catalog intake, Experience launch, declared-source traffic, shopper journey, intent review, and continuation/pricing review. | Not started / intentionally post-outreach |
-| P1 | Second-client MCP compatibility | Cursor is part of the active gate; its Golden Path must be run and recorded before outreach. | Not run |
+| P1 | Second-client MCP compatibility | Complete the external Cursor callback/client validation when the client environment supports it; do not widen the standards-compliant server contract for a client-local failure. | Repository ready / external validation pending |
 | P1 | Controlled Founding Merchant outreach | Durable Pilot intake is available; outreach may start only after Gate A/B/C are all PASS. | Gated |
 | P2 | Merchant-safe Lead Capture / dedicated CTA event | Objective-aware Lead Campaign reporting remains unavailable until a legitimate opt-in runtime and CTA event exist. | Backlog pending merchant demand |
 
@@ -155,8 +155,8 @@ Current focus:
 | Business acquisition surface is credible | `/business`, product pages, examples, pricing, integrations, and Pilot CTA render correctly and make only supported claims. | Shipped / Measuring |
 | Pilot interest is durably recorded | A qualified prospect can submit interest and the team can track source, status, objection, demo, and Pilot outcome without relying only on an email client. | Production write verified / admin review pending |
 | Assisted Pilot can be operated | The supported intake and operating path is defined for a future merchant; its real-catalog acceptance run starts only after Outreach Ready. | Ready / post-outreach validation pending |
-| External agent access is bounded | Connected OAuth authorizations can be listed/revoked, expired artifacts are cleaned, and current Codex plus Cursor complete the Golden Path. | Partially implemented |
-| Product Advantage Gate passes | Consumer, Merchant, and Agent gates each have current reproducible evidence; structured outreach is explicitly unlocked only then. | In progress — A technical readiness is close but real distribution proof is incomplete; B controlled merchant-readable browser proof is incomplete; C current Codex/Cursor client proof is incomplete. See `docs/product/audits/product-advantage-gate-baseline-2026-08-24.md`. |
+| External agent access is bounded | Connected OAuth authorizations can be listed/revoked, expired artifacts are cleaned, and current Codex proves the core Golden Path; Cursor interoperability is separately tracked. | Agent-Native Core proven / lifecycle UI and Cursor validation pending |
+| Product Advantage Gate passes | Gate B and Agent-Native Core have current reproducible evidence; Gate A separates technical/reporting readiness from genuine distribution evidence, and the hard-vs-soft outreach policy is explicit. | In progress — Gate A reporting readiness is partial and genuine distribution evidence is not proven. See `docs/product/audits/product-advantage-gate-baseline-2026-08-24.md`. |
 | Post-Outreach Merchant Validation is defined | The next-stage evidence sequence is explicit and cannot be counted toward pre-outreach Gate A/B/C. | Defined / not started |
 
 ---
@@ -279,7 +279,7 @@ Current focus:
 
 **Goal:** Prepare the shipped Store / Campaign product for pre-outreach gate proof, then validate it with a real merchant catalog and real traffic only in the first post-outreach Merchant Validation stage. Shopify app, generalized Campaign Builder, CRM, and revenue attribution remain deferred.
 
-**Current status:** Product foundation, Reference Factory, market-facing surfaces, assisted operations, and agent-native core are implemented. The three-gate pass is not yet evidenced: Gate A separates technical readiness from genuine distribution proof; Gate B still needs controlled merchant-readable browser proof; Gate C still needs current-SHA Codex and real Cursor client runs. Real merchant validation is intentionally post-outreach and has not started.
+**Current status:** Product foundation, Reference Factory, market-facing surfaces, assisted operations, and agent-native core are implemented. Gate B now passes its pre-outreach evidence rule; Gate C Agent-Native Core and standards-based MCP/OAuth pass with Cursor client interoperability tracked separately. Gate A has a durable Store/Campaign source-to-action report, but the core Consumer GA4 join and genuine production Agent referral evidence remain incomplete. Real merchant validation is intentionally post-outreach and has not started.
 
 **Current product model:**
 
@@ -362,14 +362,14 @@ The strongest evidence is not that merchants like VTO. It is that they want to r
 - merchant Membership and Workspace boundaries;
 - Agent Keys plus standards-based Remote MCP OAuth;
 - Store/Campaign create, configure, preview, explicit-approval publish, and aggregate Commerce Intelligence tools;
-- historical production Codex OAuth/MCP Golden Path evidence; current-SHA Codex and Cursor Golden Paths remain to be proven.
+- current-SHA Codex OAuth/MCP Golden Path proof; Cursor repository readiness and standards compatibility are proven, while real-client callback execution remains external P1 validation.
 
 **Remaining Pilot hardening:**
 
 - Merchant Workspace connected OAuth authorization list/revoke UI;
 - cleanup of expired OAuth authorization requests, codes, and tokens;
 - real database-backed protocol regression coverage;
-- Current-SHA Codex and Cursor Golden Paths are required by the active Product Advantage Gate; Claude Code remains conditional.
+- Current-SHA Codex is the Agent-Native Core acceptance path. Cursor remains a bounded second-client interoperability validation; Claude Code remains conditional.
 
 **Deferred until demand:**
 

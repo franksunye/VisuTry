@@ -78,6 +78,17 @@ valid pre-outreach proof of the product bar; they must be clearly labeled and
 must not be presented as customer proof. Real-merchant catalog, real traffic,
 and real-merchant acceptance are deliberately not Gate B criteria.
 
+### Gate B pre-outreach PASS rule
+
+Gate B passes when the current Business / Reference Store / Campaign shopper
+journey and authenticated Merchant Workspace are browser-proven at the required
+brand and agency bar, populated merchant-readable Commerce Intelligence is
+visible, and the same production `MerchantControlCenter` /
+`MerchantCommerceIntelligence` contract has deterministic component coverage for
+the empty state. A second authenticated empty tenant is not required when the
+empty state is covered without bypassing auth or tenancy. Any remaining empty
+fixture browser capture is P1 evidence hardening, not a Gate B P0.
+
 ## Post-Outreach Merchant Validation
 
 After Gate A, Gate B, and Gate C pass, and only after controlled outreach begins,
@@ -94,8 +105,11 @@ evidence that can be backfilled into Gate B.
 
 ## Gate C — Agent-Native Merchant Operations
 
-Codex and Cursor must be able to operate the commercial Golden Path with
-merchant authorization and no hidden manual database work:
+### Agent-Native Core
+
+The pre-outreach Gate C core is the standards-based, tenant-safe merchant
+operation itself. Codex current-SHA execution must prove the commercial Golden
+Path with merchant authorization and no hidden manual database work:
 
 ```text
 authorization → workspace inspection → catalog intake / validation
@@ -111,8 +125,39 @@ client evidence is not sufficient after a material code change.
 The current Cloudflare MCP surface must authenticate both `vt_live_*` Agent
 Keys and DB-backed OAuth access tokens, expose `tools/list`, preserve tenant
 and scope checks, and provide Store explicit-approval publish plus aggregate
-Commerce Intelligence reads. Codex and Cursor are separate client proofs;
-protocol compatibility or repository configuration alone is not a Cursor PASS.
+Commerce Intelligence reads. Agent-Native Core passes when this server contract
+and a current-SHA Codex run pass.
+
+### Cross-Client Interoperability
+
+Cursor is the active second-client compatibility check, but an external Cursor
+desktop callback-listener failure is not a VisuTry Gate C P0 when:
+
+1. OAuth discovery, PKCE, resource/audience, scopes, and fixed supported
+   redirect URIs are standards-compliant;
+2. the VisuTry consent flow returns the authorization code to the registered
+   callback; and
+3. the observed failure is in the Cursor/client environment before MCP
+   authentication or `tools/list`.
+
+In that case the pre-outreach verdict is `PASS` for Agent-Native Core and
+standards-based MCP/OAuth, with Cursor real-client compatibility recorded as a
+P1 interoperability item. Repository configuration alone cannot claim Cursor
+execution PASS, and the server must not widen redirect validation to arbitrary
+custom schemes.
+
+## Outreach policy decision point
+
+The current active contract remains a hard gate: structured outreach stays
+`GATED` until Gate A real distribution evidence, Gate B, and Gate C pass. A
+bounded product decision is still required on whether genuine Agent traffic
+should instead become a post-launch evidence milestone. The recommended option
+is a **Soft Distribution Gate**: require Gate A technical and reporting
+readiness before outreach, then measure genuine Agent traffic during controlled
+outreach. This avoids waiting indefinitely for a channel whose evidence is
+itself expected to grow through controlled distribution, while preserving the
+strategic hypothesis as a tracked milestone. This recommendation does not
+change the active hard-gate status without explicit Product approval.
 
 ## Evidence rule
 

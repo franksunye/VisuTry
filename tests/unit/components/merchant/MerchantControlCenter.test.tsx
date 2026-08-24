@@ -34,11 +34,19 @@ describe('MerchantControlCenter', () => {
       totals: { visitors: 12, engagedShoppers: 8, recommendationActivity: 7, tryOnCompletions: 5, compareActivity: 3, productClicks: 2, highIntentShoppers: 2 },
       rates: { engagement: 66.7, recommendation: 58.3, tryOn: 41.7, compare: 25 },
       acquisitionSources: [{ source: 'AI · ChatGPT', visitors: 4 }, { source: 'organic / search', visitors: 8 }],
+      distributionReport: {
+        scope: 'MERCHANT_STORE_CAMPAIGN_SESSIONS',
+        consumerEventBoundary: 'Detector and Advisor events currently live in GA4/dataLayer without a durable MerchantSession join; this report does not claim those Consumer actions.',
+        sources: [{ sourceClass: 'chatgpt', visitors: 4, engagedShoppers: 3, recommendationActivity: 2, tryOnCompletions: 1, compareActivity: 1, productClicks: 1, inquiries: 0, highIntentShoppers: 1 }],
+      },
       experiences: [{ id: 'experience-a', type: 'STORE', name: 'Reference Store', status: 'ACTIVE', referenceData: true, visitors: 12, engagedShoppers: 8, recommendationActivity: 7, tryOnCompletions: 5, compareActivity: 3, productClicks: 2, highIntentShoppers: 2 }],
     } }} />)
     expect(screen.getByRole('heading', { name: 'Understand shopper intent' })).toBeInTheDocument()
     expect(screen.getAllByText('Visitors').length).toBeGreaterThanOrEqual(2)
     expect(screen.getByText('AI · ChatGPT')).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Source → decision actions' })).toBeInTheDocument()
+    expect(screen.getByText('Downstream intent')).toBeInTheDocument()
+    expect(screen.getByText(/Detector and Advisor events currently live in GA4\/dataLayer/)).toBeInTheDocument()
     expect(screen.getByText('Reference / Simulation')).toBeInTheDocument()
   })
 

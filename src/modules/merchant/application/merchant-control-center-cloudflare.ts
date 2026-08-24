@@ -2,6 +2,7 @@ import { getCloudflareSql } from '@/data/neon-cloudflare'
 import { resolveCampaignConversionPolicy } from '@/modules/store/domain/campaign-policy'
 import { resolvePresentationMode, type PresentationMode } from '@/modules/store/domain/presentation-mode'
 import { isHighIntentSession, type MerchantAnalyticsSessionSignals } from '@/modules/store/domain/merchant-analytics'
+import { buildMerchantDistributionReport, type MerchantDistributionReport } from '@/modules/store/domain/merchant-distribution-report'
 import type { MerchantCommerceIntelligence } from './merchant-control-center'
 
 export type MerchantControlExperience = {
@@ -25,6 +26,7 @@ export type MerchantControlCenter = {
   shopperActivityAvailable: boolean
   credentialUsage: { active: number }
   commerceIntelligence: MerchantCommerceIntelligence
+  distributionReport?: MerchantDistributionReport
 }
 
 const INSIGHT_WINDOW_DAYS = 30
@@ -36,7 +38,7 @@ function rate(value: number, total: number): number | null {
 
 function buildCommerceIntelligence(input: {
   experiences: Array<{ id: string; type: 'STORE' | 'CAMPAIGN'; name: string; status: string; referenceData: boolean }>
-  sessions: Array<{ id: string; experienceId: string | null; source: string | null; medium: string | null; aiAgentSource: string | null }>
+  sessions: Array<{ id: string; experienceId: string | null; source: string | null; medium: string | null; referrer: string | null; aiAgentSource: string | null }>
   events: Array<{ merchantSessionId: string | null; experienceId: string | null; merchantFrameId: string | null; type: string; count: number }>
   intents: Array<{ merchantSessionId: string; experienceId: string | null; type: string; count: number }>
   from: Date
@@ -121,6 +123,7 @@ function buildCommerceIntelligence(input: {
     totals: { visitors: overall.visitors, engagedShoppers: overall.engaged.size, recommendationActivity: overall.recommendation, tryOnCompletions: overall.tryOn, compareActivity: overall.compare, productClicks: overall.productClicks, highIntentShoppers: overall.highIntent.size },
     rates: { engagement: rate(overall.engaged.size, overall.visitors), recommendation: rate(overall.recommendation, overall.visitors), tryOn: rate(overall.tryOn, overall.visitors), compare: rate(overall.compare, overall.visitors) },
     acquisitionSources: [...sources.entries()].map(([source, visitors]) => ({ source, visitors })).sort((a, b) => b.visitors - a.visitors).slice(0, 8),
+    distributionReport: buildMerchantDistributionReport({ sessions: input.sessions, events: input.events, intents: input.intents }),
     experiences: input.experiences.map(toExperience),
   }
 }
@@ -147,7 +150,7 @@ export async function getMerchantControlCenter(input: { merchantId: string }): P
       GROUP BY e."id"
       ORDER BY e."updatedAt" DESC
     `,
-    sql`SELECT "id", "experienceId", "source", "medium", "aiAgentSource" FROM "MerchantSession" WHERE "merchantId" = ${input.merchantId} AND "createdAt" >= ${new Date(Date.now() - INSIGHT_WINDOW_DAYS * 24 * 60 * 60 * 1000)} ORDER BY "createdAt" DESC`,
+    sql`SELECT "id", "experienceId", "source", "medium", "referrer", "aiAgentSource" FROM "MerchantSession" WHERE "merchantId" = ${input.merchantId} AND "createdAt" >= ${new Date(Date.now() - INSIGHT_WINDOW_DAYS * 24 * 60 * 60 * 1000)} ORDER BY "createdAt" DESC`,
     sql`SELECT "merchantSessionId", "experienceId", "merchantFrameId", "type", count(*)::int AS "count" FROM "MerchantEvent" WHERE "merchantId" = ${input.merchantId} AND "createdAt" >= ${new Date(Date.now() - INSIGHT_WINDOW_DAYS * 24 * 60 * 60 * 1000)} GROUP BY "merchantSessionId", "experienceId", "merchantFrameId", "type"`,
     sql`SELECT "merchantSessionId", "experienceId", "type", count(*)::int AS "count" FROM "MerchantIntent" WHERE "merchantId" = ${input.merchantId} AND "createdAt" >= ${new Date(Date.now() - INSIGHT_WINDOW_DAYS * 24 * 60 * 60 * 1000)} GROUP BY "merchantSessionId", "experienceId", "type"`,
     sql`SELECT count(*)::int AS "count" FROM "MerchantAgentCredential" WHERE "merchantId" = ${input.merchantId} AND "status" = 'ACTIVE'`,
@@ -183,7 +186,7 @@ export async function getMerchantControlCenter(input: { merchantId: string }): P
   const from = new Date(to.getTime() - INSIGHT_WINDOW_DAYS * 24 * 60 * 60 * 1000)
   const commerceIntelligence = buildCommerceIntelligence({
     experiences: mapped.map(({ id, type, name, status, referenceData }) => ({ id, type, name, status, referenceData })),
-    sessions: sessions.map((session) => ({ id: String(session.id), experienceId: session.experienceId == null ? null : String(session.experienceId), source: session.source == null ? null : String(session.source), medium: session.medium == null ? null : String(session.medium), aiAgentSource: session.aiAgentSource == null ? null : String(session.aiAgentSource) })),
+    sessions: sessions.map((session) => ({ id: String(session.id), experienceId: session.experienceId == null ? null : String(session.experienceId), source: session.source == null ? null : String(session.source), medium: session.medium == null ? null : String(session.medium), referrer: session.referrer == null ? null : String(session.referrer), aiAgentSource: session.aiAgentSource == null ? null : String(session.aiAgentSource) })),
     events: events.map((event) => ({ merchantSessionId: event.merchantSessionId == null ? null : String(event.merchantSessionId), experienceId: event.experienceId == null ? null : String(event.experienceId), merchantFrameId: event.merchantFrameId == null ? null : String(event.merchantFrameId), type: String(event.type), count: Number(event.count ?? 0) })),
     intents: intents.map((intent) => ({ merchantSessionId: String(intent.merchantSessionId), experienceId: intent.experienceId == null ? null : String(intent.experienceId), type: String(intent.type), count: Number(intent.count ?? 0) })),
     from,

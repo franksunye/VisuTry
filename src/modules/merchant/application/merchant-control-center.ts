@@ -1,6 +1,7 @@
 import { prisma } from '@/lib/prisma'
 import { resolveCampaignConversionPolicy } from '@/modules/store/domain/campaign-policy'
 import { resolvePresentationMode, type PresentationMode } from '@/modules/store/domain/presentation-mode'
+import type { MerchantDistributionReport } from '@/modules/store/domain/merchant-distribution-report'
 
 export type MerchantControlExperience = {
   id: string
@@ -33,6 +34,7 @@ export type MerchantCommerceIntelligence = {
   }
   rates: { engagement: number | null; recommendation: number | null; tryOn: number | null; compare: number | null }
   acquisitionSources: Array<{ source: string; visitors: number }>
+  distributionReport?: MerchantDistributionReport
   experiences: Array<{
     id: string
     type: 'STORE' | 'CAMPAIGN'
