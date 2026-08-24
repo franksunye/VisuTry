@@ -27,6 +27,11 @@ jest.mock('@/config/pricing', () => ({
       currency: 'usd',
       paymentDescription: 'Monthly subscription',
     },
+    PREMIUM_YEARLY: {
+      price: 8999,
+      currency: 'usd',
+      paymentDescription: 'Annual subscription',
+    },
     CREDITS_PACK: {
       price: 299,
       currency: 'usd',
@@ -137,18 +142,33 @@ describe('/api/payment/create-session', () => {
     expect(mockCreatePayment).not.toHaveBeenCalled()
   })
 
-  it('does not attach a report unlock to a subscription Checkout', async () => {
+  it.each([
+    ['PREMIUM_MONTHLY', 899],
+    ['PREMIUM_YEARLY', 8999],
+  ])('preserves a report unlock on %s Checkout', async (productType, amount) => {
     const response = await POST(checkoutRequest({
-      productType: 'PREMIUM_MONTHLY',
-      successUrl: 'https://www.visutry.com/en/face-analysis?session_id={CHECKOUT_SESSION_ID}',
-      cancelUrl: 'https://www.visutry.com/en/face-analysis?unlock=cancel',
+      productType,
+      successUrl: 'https://www.visutry.com/en/face-analysis?unlock=success&taskId=analysis-1&session_id={CHECKOUT_SESSION_ID}',
+      cancelUrl: 'https://www.visutry.com/en/pricing?source=face-analysis-unlock&taskId=analysis-1&payment=cancelled',
       unlockTaskId: 'analysis-1',
       locale: 'en',
     }))
 
-    expect(response.status).toBe(400)
-    expect(mockFindFaceAnalysisTask).not.toHaveBeenCalled()
-    expect(mockCreateCheckoutSession).not.toHaveBeenCalled()
+    expect(response.status).toBe(200)
+    expect(mockFindFaceAnalysisTask).toHaveBeenCalledWith(expect.objectContaining({
+      where: expect.objectContaining({ id: 'analysis-1', userId: 'user-1', status: 'COMPLETED' }),
+    }))
+    expect(mockCreateCheckoutSession).toHaveBeenCalledWith(expect.objectContaining({
+      productType,
+      unlockTaskId: 'analysis-1',
+    }))
+    expect(mockCreatePayment).toHaveBeenCalledWith({
+      data: expect.objectContaining({
+        productType,
+        amount,
+        unlockTaskId: 'analysis-1',
+      }),
+    })
   })
 
   it('rejects external return URLs', async () => {

@@ -72,6 +72,22 @@ describe('Stripe Library Unit Tests', () => {
       })
     })
 
+    test('should preserve report unlock metadata on subscription checkout', async () => {
+      const session = await createCheckoutSession({
+        productType: 'PREMIUM_MONTHLY',
+        userId: 'test-user-report',
+        successUrl: 'http://localhost:3000/en/face-analysis?unlock=success&taskId=analysis-1',
+        cancelUrl: 'http://localhost:3000/en/pricing?source=face-analysis-unlock&taskId=analysis-1',
+        unlockTaskId: 'analysis-1',
+      })
+
+      expect(session.metadata).toMatchObject({
+        userId: 'test-user-report',
+        productType: 'PREMIUM_MONTHLY',
+        unlockTaskId: 'analysis-1',
+      })
+    })
+
     test('should create checkout session for yearly subscription', async () => {
       const session = await createCheckoutSession({
         productType: 'PREMIUM_YEARLY',

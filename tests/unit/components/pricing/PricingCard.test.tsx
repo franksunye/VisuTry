@@ -236,6 +236,30 @@ describe('PricingCard', () => {
       })
     })
 
+    it.each([
+      ['PREMIUM_MONTHLY', 'Start Premium'],
+      ['PREMIUM_YEARLY', 'Start Premium'],
+    ])('preserves the report context for %s purchases', async (productId, buttonText) => {
+      window.history.replaceState(
+        {},
+        '',
+        '/en/pricing?source=face-analysis-unlock&taskId=analysis-1',
+      )
+      const plan = { ...mockPlan, id: productId, buttonText }
+
+      render(<PricingCard plan={plan} currentUser={mockUser} />)
+      await user.click(screen.getByRole('button', { name: buttonText }))
+
+      const requestInit = mockFetch.mock.calls[0]?.[1] as RequestInit
+      const body = JSON.parse(String(requestInit.body))
+      expect(body).toMatchObject({
+        productType: productId,
+        unlockTaskId: 'analysis-1',
+        successUrl: `${window.location.origin}/en/face-analysis?unlock=success&taskId=analysis-1&session_id={CHECKOUT_SESSION_ID}`,
+        cancelUrl: expect.stringContaining('source=face-analysis-unlock&taskId=analysis-1'),
+      })
+    })
+
     it('should redirect to Stripe checkout on successful payment session creation', async () => {
       render(<PricingCard plan={mockPlan} currentUser={mockUser} />)
 
