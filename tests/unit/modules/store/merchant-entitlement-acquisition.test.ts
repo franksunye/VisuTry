@@ -144,6 +144,17 @@ describe('session acquisition sanitize', () => {
     expect(acquisition.aiAgentSource).toBe('chatgpt')
   })
 
+  it('keeps OpenAI, ChatGPT, and Copilot as separate attributable sources', () => {
+    expect(inferAiReferralSource({ source: 'openai', referrer: null })).toBe('openai')
+    expect(inferAiReferralSource({ source: 'chatgpt', referrer: null })).toBe('chatgpt')
+    expect(
+      inferAiReferralSource({
+        source: null,
+        referrer: 'https://copilot.microsoft.com/chats/example',
+      }),
+    ).toBe('copilot')
+  })
+
   it('does not promote an uncorroborated UA-style AI hint to shopper attribution', () => {
     const acquisition = sanitizeSessionAcquisition({
       aiAgentSource: 'chatgpt',

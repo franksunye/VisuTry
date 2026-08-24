@@ -1,6 +1,6 @@
 # VisuTry Universal Agent Access
 
-**Status:** DEPLOYED / REAL DB GOLDEN PATH RECORD<br>
+**Status:** DEPLOYED / HISTORICAL CODEX PROOF / CURRENT GATE REVALIDATION REQUIRED<br>
 **Reviewed:** 2026-08-24<br>
 **Main SHA:** `3b60c43de2a40ab0c74facbadeff52717af115ef`<br>
 **Primary endpoint:** `https://www.visutry.com/api/mcp`
@@ -9,13 +9,14 @@
 
 VisuTry is built once as a standards-based Remote MCP server. OAuth is the normal merchant connection path; `vt_live_*` Agent Keys remain a developer/CI fallback. Marketplace listings are optional setup and discovery adapters, never a prerequisite.
 
-The implementation is production-deployed and real-DB verified with a dedicated test Merchant. Architecture viability is **YES**. The Codex CLI Golden Path is **CONFIRMED**; Claude Code, Cursor, and independent merchant direct connection remain **NOT YET CONFIRMED**.
+The implementation is production-deployed and real-DB verified with a dedicated test Merchant. Architecture viability is **YES**. The Codex CLI Golden Path is **CONFIRMED on the recorded SHA**; current-SHA Codex, Cursor, and independent merchant direct connection remain **NOT YET CONFIRMED** under the active Product Advantage Gate.
 
 The 2026-08-24 reconciliation confirmed that these interoperability and
 external-Pilot limitations remain current. The list/revoke backend endpoints
 exist, but Merchant Control Center still exposes Agent Key lifecycle rather
 than connected OAuth authorizations; expired OAuth artifact cleanup and the
-additional real-client/database Golden Paths also remain outstanding.
+additional real-client/database Golden Paths also remain outstanding. The
+dated Product Advantage Gate baseline is the current evidence verdict.
 
 ## 2. Why marketplace-first was rejected
 

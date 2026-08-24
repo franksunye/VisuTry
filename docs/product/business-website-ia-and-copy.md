@@ -27,9 +27,10 @@ Integrations, and Pilot pages. The current visual implementation follows
 in PR #121 and Business/Campaign browser coverage was closed in PR #125.
 
 The Founding Merchant Pilot remains an assisted $149 / 30-day offer. Its
-current primary handoff is email, not a persisted CRM or self-service checkout.
-That operational limitation must remain explicit until a durable Pilot intake
-and outcome tracker is implemented.
+production primary handoff is the durable Pilot intake and Admin follow-up /
+outcome tracker; email remains an error fallback, not the system of record.
+Self-service checkout and outbound merchant outreach remain outside the active
+pre-outreach Product Advantage Gate until that gate passes.
 - `docs/product/specs/campaign-conversion-policy.md`
 
 Where this document conflicts with a later approved commercial, product, or claims document, the later approved source of truth wins and this document must be updated.

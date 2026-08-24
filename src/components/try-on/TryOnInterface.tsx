@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react"
 import { useSession } from "next-auth/react"
-import { useParams } from "next/navigation"
+import { useParams, useSearchParams } from "next/navigation"
 import { ImageUpload } from "@/components/upload/ImageUpload"
 import { ResultDisplay } from "@/components/try-on/ResultDisplay"
 import { LoadingState } from "@/components/try-on/LoadingState"
@@ -17,6 +17,7 @@ import { cn } from "@/utils/cn"
 import { localizedPath } from "@/lib/localized-path"
 import { useQuota } from "@/hooks/useQuota"
 import { useTryOnTaskPolling } from "@/hooks/useTryOnTaskPolling"
+import { consumeFaceAnalysisPhotoHandoff } from "@/lib/face-analysis-photo-handoff"
 
 interface ErrorState {
   message: string
@@ -31,6 +32,7 @@ interface TryOnInterfaceProps {
 export function TryOnInterface({ type = 'GLASSES' }: TryOnInterfaceProps) {
   const config = getTryOnConfig(type)
   const params = useParams()
+  const searchParams = useSearchParams()
   const locale = (params.locale as string) || 'en'
   const { data: session, status: sessionStatus, update } = useSession()
   const quota = useQuota()
@@ -61,6 +63,8 @@ export function TryOnInterface({ type = 'GLASSES' }: TryOnInterfaceProps) {
   const [error, setError] = useState<ErrorState | null>(null)
   const submitInFlightRef = useRef(false)
   const tryOnStartedAtRef = useRef<number | null>(null)
+  const handledPhotoHandoffRef = useRef<string | null>(null)
+  const handoffPreviewUrlRef = useRef<string | null>(null)
 
   const fileMeta = (file: File) => ({
     name: file.name,
@@ -184,6 +188,57 @@ export function TryOnInterface({ type = 'GLASSES' }: TryOnInterfaceProps) {
     void checkPendingTasks()
     return () => controller.abort()
   }, [sessionStatus, type])
+
+  useEffect(() => {
+    if (sessionStatus !== 'authenticated') return
+
+    const source = searchParams.get('source')
+    const handoffId = searchParams.get('photoHandoff')
+    if (source !== 'free-face-shape-detector' || !handoffId) return
+    if (handledPhotoHandoffRef.current === handoffId) return
+    handledPhotoHandoffRef.current = handoffId
+
+    let cancelled = false
+    consumeFaceAnalysisPhotoHandoff(handoffId)
+      .then((file) => {
+        if (cancelled || !file) return
+
+        const preview = URL.createObjectURL(file)
+        handoffPreviewUrlRef.current = preview
+        setUserImage({ file, preview })
+        setCurrentStep('select')
+        setError(null)
+        analytics.trackCustomEvent('try_on_photo_handoff_restored', {
+          source: 'free_face_shape_detector',
+          destination: 'virtual_try_on',
+          ...(searchParams.get('faceShape')
+            ? { face_shape: searchParams.get('faceShape') }
+            : {}),
+        })
+      })
+      .catch(() => {
+        // Private browsing and browser storage policies may make the handoff unavailable.
+        // The standard upload control remains the safe fallback.
+      })
+      .finally(() => {
+        if (cancelled) return
+        const nextUrl = new URL(window.location.href)
+        if (nextUrl.searchParams.get('photoHandoff') === handoffId) {
+          nextUrl.searchParams.delete('photoHandoff')
+          window.history.replaceState(null, '', nextUrl.toString())
+        }
+      })
+
+    return () => {
+      cancelled = true
+    }
+  }, [searchParams, sessionStatus])
+
+  useEffect(() => {
+    return () => {
+      if (handoffPreviewUrlRef.current) URL.revokeObjectURL(handoffPreviewUrlRef.current)
+    }
+  }, [])
 
   const handleUserImageSelect = (file: File, preview: string) => {
     setUserImage({ file, preview })

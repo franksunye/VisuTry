@@ -15,6 +15,7 @@ interface TryOnPageProps {
     locale: string
     type: string
   }
+  searchParams?: Record<string, string | string[] | undefined>
 }
 
 // Generate metadata dynamically based on try-on type
@@ -65,7 +66,7 @@ export function generateStaticParams() {
 // Cloudflare OpenNext 1.15.1 needs true to dispatch nested generated pages.
 export const dynamicParams = process.env.CLOUDFLARE_BUILD === '1'
 
-export default async function TryOnTypePage({ params }: TryOnPageProps) {
+export default async function TryOnTypePage({ params, searchParams }: TryOnPageProps) {
   const { locale, type } = params
   setRequestLocale(locale)
   
@@ -94,7 +95,14 @@ export default async function TryOnTypePage({ params }: TryOnPageProps) {
     <TryOnGate
       tryOnType={tryOnType}
       structuredData={structuredData}
-      landing={<PublicTryOnLanding locale={locale} type={type} tryOnType={tryOnType} />}
+      landing={
+        <PublicTryOnLanding
+          locale={locale}
+          type={type}
+          tryOnType={tryOnType}
+          searchParams={searchParams}
+        />
+      }
     />
   )
 }
@@ -103,15 +111,23 @@ async function PublicTryOnLanding({
   locale,
   type,
   tryOnType,
+  searchParams,
 }: {
   locale: string
   type: string
   tryOnType: TryOnType
+  searchParams?: Record<string, string | string[] | undefined>
 }) {
   const t = await getTranslations({ locale, namespace: 'marketing.tryOnLanding' })
   const config = getTryOnConfig(tryOnType)
   const isGlasses = tryOnType === "GLASSES"
-  const startHref = `/${locale}/auth/signin?callbackUrl=${encodeURIComponent(`/${locale}/try-on/${type}`)}`
+  const callbackQuery = new URLSearchParams()
+  for (const key of ['source', 'faceShape', 'photoHandoff']) {
+    const value = searchParams?.[key]
+    if (typeof value === 'string' && value) callbackQuery.set(key, value)
+  }
+  const callbackPath = `/${locale}/try-on/${type}${callbackQuery.size ? `?${callbackQuery.toString()}` : ''}`
+  const startHref = `/${locale}/auth/signin?callbackUrl=${encodeURIComponent(callbackPath)}`
 
   const faqItems = isGlasses
     ? [

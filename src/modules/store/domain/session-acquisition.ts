@@ -29,6 +29,14 @@ export type ContextualDistributionSurface = (typeof CONTEXTUAL_DISTRIBUTION_SURF
 
 export type InternalDistributionSurface = (typeof INTERNAL_DISTRIBUTION_SURFACES)[number]
 
+export type AiReferralSource =
+  | 'chatgpt'
+  | 'openai'
+  | 'perplexity'
+  | 'gemini'
+  | 'copilot'
+  | 'claude'
+
 export type SessionAcquisitionInput = {
   source?: string | null
   medium?: string | null
@@ -47,7 +55,7 @@ export type SessionAcquisition = {
   acquisitionSurface: InternalDistributionSurface | null
   referrer: string | null
   landingUrl: string | null
-  aiAgentSource: string | null
+  aiAgentSource: AiReferralSource | null
 }
 
 function clean(value: unknown, max = MAX_FIELD): string | null {
@@ -69,24 +77,33 @@ function normalizeInternalSurface(value: unknown): InternalDistributionSurface |
     : null
 }
 
-function classifyAiSourceToken(value: string | null): string | null {
+function classifyAiSourceToken(value: string | null): AiReferralSource | null {
   const token = normalizeToken(value)
   if (!token) return null
-  if (token.includes('chatgpt') || token === 'openai') return 'chatgpt'
+  if (token.includes('chatgpt') || token.includes('chat.openai')) return 'chatgpt'
+  if (token === 'openai' || token.includes('openai.com')) return 'openai'
   if (token.includes('claude') || token.includes('anthropic')) return 'claude'
   if (token.includes('perplexity')) return 'perplexity'
   if (token.includes('gemini')) return 'gemini'
+  if (token.includes('copilot')) return 'copilot'
   return null
 }
 
-function classifyAiReferrer(referrer: string | null): string | null {
+function classifyAiReferrer(referrer: string | null): AiReferralSource | null {
   if (!referrer) return null
   try {
     const hostname = new URL(referrer).hostname.toLowerCase()
-    if (hostname === 'chatgpt.com' || hostname.endsWith('.chatgpt.com')) return 'chatgpt'
+    if (
+      hostname === 'chatgpt.com' ||
+      hostname.endsWith('.chatgpt.com') ||
+      hostname === 'chat.openai.com' ||
+      hostname.endsWith('.chat.openai.com')
+    ) return 'chatgpt'
+    if (hostname === 'openai.com' || hostname.endsWith('.openai.com')) return 'openai'
     if (hostname === 'claude.ai' || hostname.endsWith('.claude.ai')) return 'claude'
     if (hostname === 'perplexity.ai' || hostname.endsWith('.perplexity.ai')) return 'perplexity'
     if (hostname === 'gemini.google.com' || hostname.endsWith('.gemini.google.com')) return 'gemini'
+    if (hostname === 'copilot.com' || hostname.endsWith('.copilot.com') || hostname === 'copilot.microsoft.com') return 'copilot'
   } catch {
     return null
   }
@@ -104,7 +121,7 @@ export function inferAiReferralSource(input: {
   source: string | null
   referrer: string | null
   aiAgentHint?: string | null
-}): string | null {
+}): AiReferralSource | null {
   const sourceMatch = classifyAiSourceToken(input.source)
   if (sourceMatch) return sourceMatch
 
