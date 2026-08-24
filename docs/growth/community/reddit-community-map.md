@@ -5,7 +5,7 @@ Review rule: verify visible rules before posting; never treat a prior classifica
 
 | Subreddit | Relevance | Activity | Typical questions | Promotion/link rules observed | Tone | Classification | Interaction mode |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| `r/glassesadvice` | High: eyewear choice, style, fit, frame hardware | Active | Which frame suits me, frame width, fit, color/shape | Avoid optometry/medical advice; keep product promotion out of warm-up; verify current rules | Advice-seeking, image-led | CAUTION | Specific fit/style reasoning; no link by default |
+| `r/glassesadvice` | High: eyewear choice, style, fit, frame hardware | Active | Which frame suits me, frame width, fit, color/shape | Current visible rules: no optometry, ads/spam/off-topic responses, AI posts, online-glasses recommendations, or frame identification requests | Advice-seeking, image-led | CAUTION | Specific fashion/fit/hardware reasoning only; no product, AI, or link by default |
 
 ## Discovery queue
 
