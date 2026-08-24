@@ -21,6 +21,7 @@ jest.mock('@/lib/mocks/stripe', () => ({ mockCreateCheckoutSession: jest.fn() })
 
 jest.mock('@/lib/logger', () => ({
   getRequestContext: () => ({ requestId: 'unlock-critical-test' }),
+  getRequestLanguageContext: () => ({}),
   logger: {
     info: jest.fn(),
     error: jest.fn(),

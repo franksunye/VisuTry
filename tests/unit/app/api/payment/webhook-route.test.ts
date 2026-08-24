@@ -29,6 +29,7 @@ jest.mock('@/lib/stripe', () => ({
 }))
 jest.mock('@/lib/logger', () => ({
   getRequestContext: jest.fn().mockReturnValue({}),
+  getRequestLanguageContext: jest.fn().mockReturnValue({}),
   logger: { error: jest.fn(), info: jest.fn(), warn: jest.fn() },
 }))
 jest.mock('@/config/pricing', () => ({
@@ -156,7 +157,52 @@ describe('/api/payment/webhook checkout fulfillment', () => {
       productType: 'CREDITS_PACK',
       status: 'COMPLETED',
       fulfillment: 'credits_and_unlock',
+    }, {})
+  })
+
+  it('preserves Payment attribution fields that are absent from compact Stripe metadata', async () => {
+    mockHandleSuccessfulPayment.mockResolvedValue({
+      userId: 'user-1',
+      productType: 'CREDITS_PACK',
+      amount: 299,
+      currency: 'usd',
+      sessionId: 'cs_test_checkout',
+      paymentIntentId: 'pi_test_checkout',
+      unlockTaskId: 'analysis-1',
+      attribution: {
+        checkout_locale: 'de',
+        geo_country: 'DE',
+      },
     })
+    tx.payment.findUnique.mockResolvedValue({
+      status: 'PENDING',
+      attribution: {
+        landing_page: '/fr/pricing',
+        landing_locale: 'fr',
+        pricing_locale: 'fr',
+        browser_language: 'fr-FR',
+      },
+    })
+    mockVerifyWebhookSignature.mockReturnValue({
+      type: 'checkout.session.completed',
+      data: { object: checkoutSession('paid') },
+    })
+
+    const response = await POST(webhookRequest())
+
+    expect(response.status).toBe(200)
+    expect(tx.payment.updateMany).toHaveBeenCalledWith(expect.objectContaining({
+      data: expect.objectContaining({
+        attribution: {
+          landing_page: '/fr/pricing',
+          landing_locale: 'fr',
+          pricing_locale: 'fr',
+          browser_language: 'fr-FR',
+          checkout_locale: 'de',
+          geo_country: 'DE',
+        },
+      }),
+    }))
   })
 
   it.each([
@@ -236,6 +282,6 @@ describe('/api/payment/webhook checkout fulfillment', () => {
     expect(mockLogger.error).toHaveBeenCalledWith('payment', 'payment_fulfillment_failed', undefined, {
       stage: 'checkout_session_completed',
       retryable: true,
-    })
+    }, {})
   })
 })

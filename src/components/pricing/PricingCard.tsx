@@ -4,7 +4,7 @@ import { useState } from "react"
 import { useParams } from "next/navigation"
 import { Check, Loader2 } from "lucide-react"
 import { cn } from "@/utils/cn"
-import { analytics, getAcquisitionContext, type ProductType } from "@/lib/analytics"
+import { analytics, getCheckoutAttribution, type ProductType } from "@/lib/analytics"
 import { localizedPath } from "@/lib/localized-path"
 import { useQuota } from "@/hooks/useQuota"
 
@@ -98,7 +98,7 @@ export function PricingCard({ plan, currentUser }: PricingCardProps) {
           successUrl,
           cancelUrl,
           ...(reportUnlockTaskId ? { unlockTaskId: reportUnlockTaskId } : {}),
-          attribution: getAcquisitionContext(),
+          attribution: getCheckoutAttribution(locale),
           locale,
         }),
       })

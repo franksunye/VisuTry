@@ -44,8 +44,10 @@ export function GoogleAnalytics({ gaId, locale }: GoogleAnalyticsProps) {
             });
             // Set language user properties for audience segmentation
             gtag('set', 'user_properties', {
-              landing_locale: document.documentElement.lang || 'en',
-              browser_language: navigator.language || 'en',
+              landing_locale: document.documentElement.lang || undefined,
+              browser_language: navigator.language || undefined,
+              site_locale: document.documentElement.lang || undefined,
+              browser_languages: (navigator.languages || []).join(',') || undefined,
             });
           `,
         }}

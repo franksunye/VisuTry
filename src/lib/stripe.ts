@@ -207,6 +207,7 @@ export async function createCheckoutSession({
       metadata: {
         userId,
         productType,
+        ...(serializedAttribution ? { attribution: serializedAttribution } : {}),
       },
     }
   }
@@ -259,6 +260,14 @@ export async function handleSuccessfulPayment(session: Stripe.Checkout.Session) 
     throw new Error("Missing required metadata in checkout session")
   }
 
+  const billingAddress = session.customer_details?.address
+  const metadataAttribution = parseAttributionFromStripeMetadata(session.metadata)
+  const attribution = sanitizeAcquisitionAttribution({
+    ...metadataAttribution,
+    ...(billingAddress?.country ? { geo_country: billingAddress.country } : {}),
+    ...(billingAddress?.state ? { geo_region: billingAddress.state } : {}),
+  })
+
   return {
     userId,
     productType,
@@ -270,7 +279,7 @@ export async function handleSuccessfulPayment(session: Stripe.Checkout.Session) 
         ? session.payment_intent
         : session.payment_intent?.id || null,
     unlockTaskId: session.metadata?.unlockTaskId,
-    attribution: parseAttributionFromStripeMetadata(session.metadata),
+    attribution,
   }
 }
 

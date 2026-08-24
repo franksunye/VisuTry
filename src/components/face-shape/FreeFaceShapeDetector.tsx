@@ -58,9 +58,11 @@ function recordDetection(
   status: 'COMPLETED' | 'FAILED',
   failureReason?: FaceShapeFailureReason,
   diagnostics?: DetectionDiagnostics,
+  siteLocale?: string,
 ) {
   const payload = {
     status,
+    ...(siteLocale ? { siteLocale } : {}),
     ...(failureReason ? { failureReason } : {}),
     ...(diagnostics ? { diagnostics } : {}),
   }
@@ -160,7 +162,7 @@ export function FreeFaceShapeDetector({ locale }: FreeFaceShapeDetectorProps) {
           analysis.geometry.qualityScore,
           Math.round(performance.now() - startedAt),
         )
-        recordDetection('COMPLETED')
+        recordDetection('COMPLETED', undefined, undefined, locale)
       } else {
         const failureReason = analysis.geometry.failureReason ?? 'unknown'
         const message = getFaceShapeDetectorFailureCopy(locale, failureReason).message
@@ -179,13 +181,13 @@ export function FreeFaceShapeDetector({ locale }: FreeFaceShapeDetectorProps) {
               }
             : {}),
           ...(analysis.decodeDiagnostics ?? {}),
-        })
+        }, locale)
       }
     } catch {
       const message = getFaceShapeDetectorFailureCopy(locale, 'unknown').message
       setError(message)
       analytics.trackFaceShapeDetectorFailed(message)
-      recordDetection('FAILED', 'unknown')
+      recordDetection('FAILED', 'unknown', undefined, locale)
     } finally {
       setIsAnalyzing(false)
     }

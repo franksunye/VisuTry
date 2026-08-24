@@ -1,0 +1,33 @@
+# Reddit Community Map
+
+Last reviewed: 2026-08-24
+Review rule: verify visible rules before posting; never treat a prior classification as permanent.
+
+| Subreddit | Relevance | Activity | Typical questions | Promotion/link rules observed | Tone | Classification | Interaction mode |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| `r/glassesadvice` | High: eyewear choice, style, fit, frame hardware | Active | Which frame suits me, frame width, fit, color/shape | Current visible rules: no optometry, ads/spam/off-topic responses, AI posts, online-glasses recommendations, or frame identification requests | Advice-seeking, image-led | CAUTION | Specific fashion/fit/hardware reasoning only; no product, AI, or link by default |
+
+Typical interaction style: short to conversational, image-led, direct but generally supportive; moderate tolerance for fit detail, low tolerance for promotion or generic essays. Prefer `LIGHT` or `CONVERSATIONAL`; use `DETAILED` only when the user asks how fit works or several factors need separating.
+
+## Discovery queue
+
+Search and validate candidate communities before adding them to the allowlist. Useful themes include eyewear, fashion advice, online shopping, face shape, style, and product comparison. A candidate remains `UNKNOWN` until its current rules and recent discussion are reviewed in-browser.
+
+Suggested fields for each new entry:
+
+- Topic relevance
+- Activity level
+- Typical question types
+- Self-promotion and external-link rules
+- Posting restrictions
+- Account-age/karma restrictions if visible
+- Observed tone
+- Last reviewed date
+- Recommended interaction mode
+- Classification: `ALLOW`, `CAUTION`, `AVOID`, or `UNKNOWN`
+
+## Seed query pool
+
+`what glasses suit my face`, `glasses for round face`, `glasses for oval face`, `glasses for square face`, `glasses for heart shaped face`, `which glasses look better`, `help me choose glasses`, `glasses frame size`, `glasses too wide`, `glasses too narrow`, `how should glasses fit`, `buying glasses online`, `virtual try on glasses`, `virtual try-on accuracy`, `face shape glasses`, `eyewear recommendation`, `frame comparison`, `online glasses fit`, `Zenni frame choice`, `Warby Parker frame choice`, `best glasses for my face`, `how to choose glasses frames`.
+
+Search broader decision intent, not only the phrase `virtual try-on`.

@@ -5,6 +5,7 @@ import { Globe } from 'lucide-react'
 import { locales, localeNames, type Locale } from '@/i18n'
 import { useState, useRef, useEffect } from 'react'
 import { cn } from '@/utils/cn'
+import { trackLocaleChanged } from '@/lib/analytics'
 
 export function LanguageSwitcher() {
   const params = useParams()
@@ -29,6 +30,13 @@ export function LanguageSwitcher() {
   }, [isOpen])
 
   const handleLanguageChange = (newLocale: Locale) => {
+    if (newLocale === currentLocale) {
+      setIsOpen(false)
+      return
+    }
+
+    trackLocaleChanged(currentLocale, newLocale)
+
     // Replace the locale in the current pathname
     const segments = pathname.split('/')
     segments[1] = newLocale
@@ -94,4 +102,3 @@ export function LanguageSwitcher() {
     </div>
   )
 }
-

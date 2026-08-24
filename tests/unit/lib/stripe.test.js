@@ -191,6 +191,42 @@ describe('Stripe Library Unit Tests', () => {
       })
     })
 
+    test('should attach Stripe billing geo without inferring language', async () => {
+      const mockSession = {
+        id: 'cs_test_geo',
+        client_reference_id: 'user-geo',
+        metadata: {
+          productType: 'CREDITS_PACK',
+          attribution: JSON.stringify({
+            browser_language: 'ar-AE',
+            landing_locale: 'en',
+            pricing_locale: 'en',
+            checkout_locale: 'en',
+            site_locale: 'en',
+          }),
+        },
+        customer_details: {
+          address: { country: 'AE', state: 'Dubai' },
+        },
+        amount_total: 299,
+        currency: 'usd',
+        payment_intent: 'pi_test_geo',
+      }
+
+      const result = await handleSuccessfulPayment(mockSession)
+
+      expect(result.attribution).toEqual(expect.objectContaining({
+        browser_language: 'ar-AE',
+        landing_locale: 'en',
+        pricing_locale: 'en',
+        checkout_locale: 'en',
+        site_locale: 'en',
+        geo_country: 'AE',
+        geo_region: 'Dubai',
+      }))
+      expect(result.attribution).not.toHaveProperty('language')
+    })
+
     test('should throw error if userId is missing', async () => {
       const mockSession = {
         id: 'cs_test_123',

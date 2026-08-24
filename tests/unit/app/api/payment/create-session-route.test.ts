@@ -12,6 +12,7 @@ jest.mock('@/lib/mocks', () => ({ isMockMode: false }))
 jest.mock('@/lib/mocks/stripe', () => ({ mockCreateCheckoutSession: jest.fn() }))
 jest.mock('@/lib/logger', () => ({
   getRequestContext: jest.fn().mockReturnValue({}),
+  getRequestLanguageContext: jest.fn().mockReturnValue({}),
   logger: { error: jest.fn(), info: jest.fn(), warn: jest.fn() },
 }))
 jest.mock('@/lib/prisma', () => ({
@@ -79,6 +80,14 @@ describe('/api/payment/create-session', () => {
       successUrl: 'https://www.visutry.com/fr/dashboard?session_id={CHECKOUT_SESSION_ID}',
       cancelUrl: 'https://www.visutry.com/fr/pricing?payment=cancelled',
       locale: 'fr',
+      attribution: {
+        landing_locale: 'en',
+        pricing_locale: 'fr',
+        site_locale: 'fr',
+        browser_language: 'de-DE',
+        browser_languages: ['de-DE', 'en-US'],
+        locale_changed: true,
+      },
     }))
 
     expect(response.status).toBe(200)
@@ -87,22 +96,48 @@ describe('/api/payment/create-session', () => {
       userId: 'user-1',
       customerEmail: 'buyer@example.com',
       checkoutLocale: 'fr',
+      attribution: expect.objectContaining({
+        landing_locale: 'en',
+        pricing_locale: 'fr',
+        checkout_locale: 'fr',
+        browser_language: 'de-DE',
+      }),
     }))
     expect(mockCreatePayment).toHaveBeenCalledWith({
       data: expect.objectContaining({
         stripeSessionId: 'cs_test_checkout',
         status: 'PENDING',
         amount: 299,
+        attribution: expect.objectContaining({
+          landing_locale: 'en',
+          pricing_locale: 'fr',
+          checkout_locale: 'fr',
+          browser_language: 'de-DE',
+        }),
       }),
     })
-    expect(mockLogger.info).toHaveBeenCalledWith('payment', 'checkout_requested', {
-      route: 'create_session',
-    })
-    expect(mockLogger.info).toHaveBeenCalledWith('payment', 'checkout_created', {
-      productType: 'CREDITS_PACK',
-      checkoutContext: 'pricing',
-      status: 'PENDING',
-    })
+    expect(mockLogger.info).toHaveBeenCalledWith(
+      'payment',
+      'checkout_requested',
+      expect.objectContaining({
+        route: 'create_session',
+        site_locale: 'fr',
+        checkout_locale: 'fr',
+      }),
+      {},
+    )
+    expect(mockLogger.info).toHaveBeenCalledWith(
+      'payment',
+      'checkout_created',
+      expect.objectContaining({
+        productType: 'CREDITS_PACK',
+        checkoutContext: 'pricing',
+        status: 'PENDING',
+        site_locale: 'fr',
+        checkout_locale: 'fr',
+      }),
+      {},
+    )
   })
 
   it('records report context before returning the Checkout URL', async () => {
@@ -210,6 +245,6 @@ describe('/api/payment/create-session', () => {
     expect(mockLogger.error).toHaveBeenCalledWith('payment', 'checkout_failed', undefined, {
       route: 'create_session',
       stage: 'unexpected_failure',
-    })
+    }, {})
   })
 })

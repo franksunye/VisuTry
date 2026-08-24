@@ -3,6 +3,7 @@
 import { useEffect } from 'react'
 import { useSession } from 'next-auth/react'
 import { analytics, type ProductType } from '@/lib/analytics'
+import type { AcquisitionAttribution } from '@/lib/acquisition-attribution'
 
 const TRACKED_PAYMENT_PREFIX = 'visutry_purchase_tracked:'
 const TRACKED_CANCELLATION_PREFIX = 'visutry_checkout_cancelled_tracked:'
@@ -26,7 +27,7 @@ type CompletedPaymentResponse = {
     productType: ProductType
     value: number
     currency: string
-    attribution?: Record<string, string>
+    attribution?: AcquisitionAttribution
     purchaseContext: 'pricing' | 'face_analysis_report'
     faceAnalysisTaskId?: string
   }

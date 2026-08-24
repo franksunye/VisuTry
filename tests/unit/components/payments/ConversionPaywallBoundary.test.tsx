@@ -31,10 +31,12 @@ jest.mock('@/lib/analytics', () => ({
     trackPaywallCheckoutStarted: (...args: unknown[]) => trackPaywallCheckoutStarted(...args),
     trackPaywallCheckoutReturnVerified: (...args: unknown[]) => trackPaywallCheckoutReturnVerified(...args),
   },
-  getAcquisitionContext: () => ({
+  getCheckoutAttribution: () => ({
     landing_page: '/en/try-on/glasses',
     page_path: '/en/try-on/glasses',
     landing_locale: 'en',
+    site_locale: 'en',
+    checkout_locale: 'en',
   }),
 }))
 

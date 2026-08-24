@@ -34,11 +34,15 @@ import { sanitizeAcquisitionAttribution } from '@/lib/acquisition-attribution'
 import { AnalyticsEvent } from '@/lib/analytics-events'
 import type { JourneyDestination, StoreLeadType } from '@/lib/analytics-events'
 import { setCampaignAnalyticsContext, trackCampaignEvent } from '@/lib/analytics-v2'
+import { isValidLocale } from '@/i18n'
 
 const LANDING_PAGE_KEY = 'visutry_landing_page'
 const ACQUISITION_SOURCE_KEY = 'visutry_acquisition_source'
 const ACQUISITION_MEDIUM_KEY = 'visutry_acquisition_medium'
 const GROWTH_CONTEXT_KEY = 'visutry_growth_context'
+const LANDING_LOCALE_KEY = 'visutry_landing_locale'
+const PRICING_LOCALE_KEY = 'visutry_pricing_locale'
+const LOCALE_CHANGED_KEY = 'visutry_locale_changed'
 
 export type AcquisitionContext = {
   landing_page: string
@@ -50,6 +54,12 @@ export type AcquisitionContext = {
   content_cluster?: string
   product_path?: string
   landing_locale?: string
+  pricing_locale?: string
+  checkout_locale?: string
+  site_locale?: string
+  browser_language?: string
+  browser_languages?: string[]
+  locale_changed?: boolean
 }
 
 type GrowthContext = {
@@ -59,14 +69,96 @@ type GrowthContext = {
   product_path?: string
 }
 
-function getLandingLocale(): string {
-  if (typeof document === 'undefined') return 'en'
-  return document.documentElement.lang || 'en'
+function getSiteLocale(): string | undefined {
+  if (typeof window === 'undefined') return undefined
+
+  try {
+    const firstSegment = window.location.pathname.split('/').filter(Boolean)[0]
+    if (firstSegment && isValidLocale(firstSegment)) return firstSegment
+  } catch {
+    // Analytics must never block UX.
+  }
+
+  if (typeof document !== 'undefined') {
+    const htmlLocale = document.documentElement.lang?.trim()
+    return htmlLocale && isValidLocale(htmlLocale) ? htmlLocale : undefined
+  }
+
+  return undefined
 }
 
-function getBrowserLanguage(): string {
-  if (typeof navigator === 'undefined') return 'en'
-  return navigator.language || 'en'
+function getLandingLocale(): string | undefined {
+  const currentLocale = getSiteLocale()
+  if (typeof window === 'undefined') return currentLocale
+
+  try {
+    const storedLocale = window.sessionStorage.getItem(LANDING_LOCALE_KEY)
+    if (storedLocale && isValidLocale(storedLocale)) return storedLocale
+    if (currentLocale) window.sessionStorage.setItem(LANDING_LOCALE_KEY, currentLocale)
+  } catch {
+    // Analytics must never block UX.
+  }
+
+  return currentLocale
+}
+
+function getBrowserLanguage(): string | undefined {
+  if (typeof navigator === 'undefined') return undefined
+  const language = navigator.language?.trim()
+  return language || undefined
+}
+
+function getBrowserLanguages(): string[] | undefined {
+  if (typeof navigator === 'undefined') return undefined
+
+  try {
+    const languages = Array.isArray(navigator.languages) ? navigator.languages : []
+    const ordered = [getBrowserLanguage(), ...languages]
+      .filter((value): value is string => typeof value === 'string' && value.trim().length > 0)
+      .map((value) => value.trim().slice(0, 32))
+    const unique = [...new Set(ordered)].slice(0, 8)
+    return unique.length > 0 ? unique : undefined
+  } catch {
+    return undefined
+  }
+}
+
+function isPricingPath(pathname: string): boolean {
+  const segments = pathname.split('/').filter(Boolean)
+  return segments[segments.length - 1] === 'pricing'
+}
+
+function getPricingLocale(siteLocale: string | undefined, pagePath: string): string | undefined {
+  if (typeof window === 'undefined') return undefined
+
+  try {
+    const storedLocale = window.sessionStorage.getItem(PRICING_LOCALE_KEY)
+    if (storedLocale && isValidLocale(storedLocale)) return storedLocale
+    if (!isPricingPath(pagePath)) return undefined
+    if (siteLocale) window.sessionStorage.setItem(PRICING_LOCALE_KEY, siteLocale)
+  } catch {
+    // Analytics must never block UX.
+  }
+
+  return siteLocale
+}
+
+function hasLocaleChanged(): boolean | undefined {
+  if (typeof window === 'undefined') return undefined
+  try {
+    return window.sessionStorage.getItem(LOCALE_CHANGED_KEY) === 'true' ? true : undefined
+  } catch {
+    return undefined
+  }
+}
+
+function markLocaleChanged() {
+  if (typeof window === 'undefined') return
+  try {
+    window.sessionStorage.setItem(LOCALE_CHANGED_KEY, 'true')
+  } catch {
+    // Analytics must never block UX.
+  }
 }
 
 function inferReferrerAttribution(): { source?: string; medium?: string } {
@@ -154,7 +246,12 @@ function getSessionAttribution(): AcquisitionContext {
   }
 
   const pagePath = window.location.pathname
+  const siteLocale = getSiteLocale()
   const landingLocale = getLandingLocale()
+  const pricingLocale = getPricingLocale(siteLocale, pagePath)
+  const browserLanguage = getBrowserLanguage()
+  const browserLanguages = getBrowserLanguages()
+  const localeChanged = hasLocaleChanged()
 
   try {
     const searchParams = new URLSearchParams(window.location.search)
@@ -189,7 +286,12 @@ function getSessionAttribution(): AcquisitionContext {
     return {
       landing_page: storedLandingPage || pagePath,
       page_path: pagePath,
-      landing_locale: landingLocale,
+      ...(landingLocale ? { landing_locale: landingLocale } : {}),
+      ...(siteLocale ? { site_locale: siteLocale } : {}),
+      ...(pricingLocale ? { pricing_locale: pricingLocale } : {}),
+      ...(browserLanguage ? { browser_language: browserLanguage } : {}),
+      ...(browserLanguages ? { browser_languages: browserLanguages } : {}),
+      ...(localeChanged ? { locale_changed: true } : {}),
       ...(acquisitionSource ? { acquisition_source: acquisitionSource } : {}),
       ...(acquisitionMedium ? { acquisition_medium: acquisitionMedium } : {}),
       ...growthContext,
@@ -198,7 +300,12 @@ function getSessionAttribution(): AcquisitionContext {
     return {
       landing_page: pagePath,
       page_path: pagePath,
-      landing_locale: landingLocale,
+      ...(landingLocale ? { landing_locale: landingLocale } : {}),
+      ...(siteLocale ? { site_locale: siteLocale } : {}),
+      ...(pricingLocale ? { pricing_locale: pricingLocale } : {}),
+      ...(browserLanguage ? { browser_language: browserLanguage } : {}),
+      ...(browserLanguages ? { browser_languages: browserLanguages } : {}),
+      ...(localeChanged ? { locale_changed: true } : {}),
     }
   }
 }
@@ -207,14 +314,41 @@ export function getAcquisitionContext(): AcquisitionContext {
   return getSessionAttribution()
 }
 
+/**
+ * Build the compact attribution sent with a Checkout request. Checkout locale
+ * is sourced from the URL-selected site locale, never inferred from browser
+ * language.
+ */
+export function getCheckoutAttribution(checkoutLocale?: string): AcquisitionAttribution | undefined {
+  const context = getSessionAttribution()
+  const safeCheckoutLocale = checkoutLocale && isValidLocale(checkoutLocale)
+    ? checkoutLocale
+    : context.site_locale
+
+  return sanitizeAcquisitionAttribution({
+    ...context,
+    ...(safeCheckoutLocale ? { checkout_locale: safeCheckoutLocale } : {}),
+  })
+}
+
+export function trackLocaleChanged(fromLocale: string, toLocale: string) {
+  if (fromLocale === toLocale) return
+  markLocaleChanged()
+  sendEvent('locale_changed', {
+    from_locale: fromLocale,
+    to_locale: toLocale,
+    site_locale: toLocale,
+    path: typeof window !== 'undefined' ? window.location.pathname : undefined,
+    locale_changed: true,
+  })
+}
+
 function sendEvent(eventName: string, parameters: Record<string, any> = {}) {
   if (typeof window === 'undefined') return
 
   // Route through Campaign Event Layer — single emission to GA4 + dataLayer.
   trackCampaignEvent(eventName, {
     ...getSessionAttribution(),
-    landing_locale: getLandingLocale(),
-    browser_language: getBrowserLanguage(),
     ...parameters,
   })
 }
@@ -252,10 +386,12 @@ export function setLanguageUserProperties() {
 
   const landingLocale = getLandingLocale()
   const browserLanguage = getBrowserLanguage()
+  const siteLocale = getSiteLocale()
 
   window.gtag('set', 'user_properties', {
-    landing_locale: landingLocale,
-    browser_language: browserLanguage,
+    ...(landingLocale ? { landing_locale: landingLocale } : {}),
+    ...(browserLanguage ? { browser_language: browserLanguage } : {}),
+    ...(siteLocale ? { site_locale: siteLocale } : {}),
   })
 
   if (process.env.NODE_ENV === 'development') {

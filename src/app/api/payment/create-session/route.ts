@@ -3,7 +3,7 @@ import { requireAuth } from "@/lib/api-auth"
 import { createCheckoutSession, ProductType } from "@/lib/stripe"
 import { isMockMode } from "@/lib/mocks"
 import { mockCreateCheckoutSession } from "@/lib/mocks/stripe"
-import { logger } from "@/lib/logger"
+import { getRequestLanguageContext, logger } from "@/lib/logger"
 import {
   sanitizeAcquisitionAttribution,
   serializeAttributionForStripe,
@@ -26,10 +26,23 @@ function isSafeCheckoutReturnUrl(value: unknown, requestOrigin: string): value i
   }
 }
 
-export async function POST(request: NextRequest) {
-  try {
-    logger.info('payment', 'checkout_requested', { route: 'create_session' })
+function getLanguageContextForLog(attribution: ReturnType<typeof sanitizeAcquisitionAttribution>) {
+  if (!attribution) return {}
 
+  return {
+    ...(attribution.browser_language ? { browser_language: attribution.browser_language } : {}),
+    ...(attribution.browser_languages ? { browser_languages: attribution.browser_languages } : {}),
+    ...(attribution.landing_locale ? { landing_locale: attribution.landing_locale } : {}),
+    ...(attribution.pricing_locale ? { pricing_locale: attribution.pricing_locale } : {}),
+    ...(attribution.checkout_locale ? { checkout_locale: attribution.checkout_locale } : {}),
+    ...(attribution.site_locale ? { site_locale: attribution.site_locale } : {}),
+    ...(attribution.locale_changed ? { locale_changed: true } : {}),
+  }
+}
+
+export async function POST(request: NextRequest) {
+  const requestContext = getRequestLanguageContext(request)
+  try {
     // 检查用户认证
     const auth = await requireAuth()
     if (!auth.ok) return auth.response
@@ -37,8 +50,6 @@ export async function POST(request: NextRequest) {
 
     const body = await request.json()
     const { productType, priceId, successUrl, cancelUrl, unlockTaskId, attribution, locale } = body
-    const sanitizedAttribution = sanitizeAcquisitionAttribution(attribution)
-
     // 支持两种参数格式：productType 或 priceId
     let finalProductType: ProductType
 
@@ -85,6 +96,20 @@ export async function POST(request: NextRequest) {
     }
 
     const checkoutLocale = typeof locale === 'string' && isValidLocale(locale) ? locale : 'en'
+    const clientAttribution = sanitizeAcquisitionAttribution(attribution)
+    // Geo fields are authoritative only when added from Stripe Checkout in
+    // the signed webhook. Never persist client-supplied geo as billing geo.
+    const { geo_country: _clientGeoCountry, geo_region: _clientGeoRegion, ...safeClientAttribution } = clientAttribution || {}
+    const sanitizedAttribution = sanitizeAcquisitionAttribution({
+      ...safeClientAttribution,
+      site_locale: safeClientAttribution.site_locale || checkoutLocale,
+      checkout_locale: checkoutLocale,
+    })
+
+    logger.info('payment', 'checkout_requested', {
+      route: 'create_session',
+      ...getLanguageContextForLog(sanitizedAttribution),
+    }, requestContext)
     const normalizedUnlockTaskId = typeof unlockTaskId === 'string' && unlockTaskId.trim()
       ? unlockTaskId.trim()
       : undefined
@@ -131,7 +156,7 @@ export async function POST(request: NextRequest) {
 
     if (isMockMode) {
       console.log('🧪 Mock Payment: Creating mock checkout session')
-      logger.info('payment', 'Creating mock checkout session', { productType: finalProductType })
+      logger.info('payment', 'Creating mock checkout session', { productType: finalProductType }, requestContext)
       const serializedAttribution = serializeAttributionForStripe(sanitizedAttribution)
       checkoutSession = await mockCreateCheckoutSession({
         productType: finalProductType,
@@ -177,7 +202,8 @@ export async function POST(request: NextRequest) {
       productType: finalProductType,
       checkoutContext: normalizedUnlockTaskId ? 'face_analysis_report' : 'pricing',
       status: 'PENDING',
-    })
+      ...getLanguageContextForLog(sanitizedAttribution),
+    }, requestContext)
     return NextResponse.json({
       success: true,
       data: {
@@ -191,7 +217,7 @@ export async function POST(request: NextRequest) {
     logger.error('payment', 'checkout_failed', undefined, {
       route: 'create_session',
       stage: 'unexpected_failure',
-    })
+    }, requestContext)
     return NextResponse.json(
       { success: false, error: "创建支付会话失败" },
       { status: 500 }

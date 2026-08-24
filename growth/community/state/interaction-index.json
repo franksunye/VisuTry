@@ -1,0 +1,21 @@
+{
+  "schema_version": 2,
+  "last_updated": "2026-08-24T16:33:26+08:00",
+  "interactions": [
+    {
+      "platform": "reddit",
+      "url": "https://www.reddit.com/r/glassesadvice/comments/1vwm84z/comment/p5k793i/",
+      "thread_url": "https://www.reddit.com/r/glassesadvice/comments/1vwm84z/are_these_too_big_and_do_they_make_my_face_look/",
+      "date_first_engaged": "2026-08-24",
+      "date_last_engaged": "2026-08-24",
+      "interaction_type": "reply",
+      "interaction_depth": "DETAILED",
+      "tone": "SUPPORTIVE",
+      "visutry_mentioned": false,
+      "visutry_link_used": false,
+      "reply_received": false,
+      "current_status": "POSTED_AWAITING_REPLY",
+      "follow_up_needed": true
+    }
+  ]
+}
