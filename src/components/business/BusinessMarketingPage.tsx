@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation'
 import { ArrowRight, Check, ExternalLink, Sparkles } from 'lucide-react'
 import { businessHref, businessPages, type BusinessPageKey, type BusinessSection } from '@/config/business-site'
 import { BusinessVisualPlaceholder } from './BusinessVisualPlaceholder'
+import { BusinessPilotLeadForm } from './BusinessPilotLeadForm'
 
 interface BusinessMarketingPageProps {
   locale: string
@@ -413,6 +414,8 @@ export function BusinessMarketingPage({ locale, pageKey }: BusinessMarketingPage
   return (
     <main className="bg-[#f8fafc] text-slate-950">
       <Hero locale={locale} pageKey={pageKey} />
+
+      {pageKey === 'pilot' ? <BusinessPilotLeadForm locale={locale} /> : null}
 
       {pageKey === 'examples' ? (
         <section className="bg-white">

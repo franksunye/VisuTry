@@ -31,4 +31,16 @@ test.describe('@critical Business market-facing narrative', () => {
       await expect(page.locator('a[href="/admin/store"]')).toHaveCount(0);
     });
   }
+
+  test('Pilot route captures a durable merchant request instead of forcing email', async ({ page }) => {
+    const response = await page.goto('/en/business/pilot', { waitUntil: 'domcontentloaded' });
+
+    expect(response).not.toBeNull();
+    expect(response!.status()).toBeLessThan(400);
+    await expect(page.getByRole('link', { name: 'Request Pilot Review' })).toHaveAttribute('href', '#pilot-request');
+    await expect(page.getByRole('heading', { name: 'Tell us what you want to test.' })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Request Pilot review' })).toBeVisible();
+    await expect(page.getByLabel('Work email')).toHaveAttribute('type', 'email');
+    await expect(page.locator('a[href^="mailto:"]').filter({ hasText: 'Request Pilot Review' })).toHaveCount(0);
+  });
 });

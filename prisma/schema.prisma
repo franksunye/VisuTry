@@ -637,6 +637,65 @@ model MerchantOAuthDcrCounter {
   @@index([windowStart])
 }
 
+enum BusinessPilotLeadStatus {
+  NEW
+  CONTACTED
+  QUALIFIED
+  DEMO_SCHEDULED
+  PILOT_REQUESTED
+  PILOT_ACTIVE
+  CLOSED_WON
+  CLOSED_LOST
+}
+
+/// A merchant prospect captured before a Merchant tenant exists. PII is only
+/// exposed through admin-authenticated APIs.
+model BusinessPilotLead {
+  id                String                  @id @default(cuid())
+  requestId         String                  @unique
+  status            BusinessPilotLeadStatus @default(NEW)
+  contactName       String
+  email             String
+  businessName      String
+  businessType      String
+  websiteUrl        String?
+  frameCountRange   String
+  trafficSource     String?
+  goal              String
+  message           String?                 @db.Text
+  locale            String
+  acquisitionSource String?
+  acquisitionMedium String?
+  campaignName      String?
+  landingPath       String?
+  referrerHost      String?
+  consentToContact  Boolean
+  objection         String?                 @db.Text
+  nextAction        String?                 @db.Text
+  pilotOutcome      String?                 @db.Text
+  demoAt            DateTime?
+  statusUpdatedAt   DateTime                @default(now())
+  createdAt         DateTime                @default(now())
+  updatedAt         DateTime                @updatedAt
+
+  @@index([status, createdAt(sort: Desc)])
+  @@index([email])
+  @@index([businessName])
+  @@index([acquisitionSource, createdAt(sort: Desc)])
+}
+
+/// Privacy-preserving, distributed rate limits for the public Pilot form.
+model BusinessPilotLeadRateLimit {
+  identityHash String
+  windowStart  DateTime
+  count        Int      @default(0)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@id([identityHash, windowStart])
+  @@index([windowStart])
+}
+
 /// Short-lived browser transaction used to preserve an OAuth request through
 /// Auth0/NextAuth login and explicit Merchant selection.
 model MerchantOAuthAuthorizationRequest {
