@@ -8,6 +8,12 @@ import Link from 'next/link';
 import TryOnHistoryTable from '@/components/admin/TryOnHistoryTable';
 import FaceAnalysisHistoryTable from '@/components/admin/FaceAnalysisHistoryTable';
 import { User } from 'lucide-react';
+import {
+  PRODUCT_METADATA,
+  calculateRemainingQuota,
+  getProductQuota,
+  type ProductType,
+} from '@/config/pricing';
 
 interface UserDetailPageProps {
   params: {
@@ -27,6 +33,8 @@ async function getUserDetails(userId: string) {
       emailVerified: true,
       createdAt: true,
       isPremium: true,
+      premiumExpiresAt: true,
+      currentSubscriptionType: true,
       freeTrialsUsed: true,
       creditsPurchased: true,
       creditsUsed: true,
@@ -105,6 +113,23 @@ export default async function UserDetailPage({ params }: UserDetailPageProps) {
   }
 
   const { user, stats } = data;
+  const isPremiumActive = user.isPremium && (
+    !user.premiumExpiresAt || user.premiumExpiresAt > new Date()
+  );
+  const quota = calculateRemainingQuota(
+    isPremiumActive,
+    user.currentSubscriptionType,
+    user.freeTrialsUsed,
+    user.premiumUsageCount,
+    user.creditsPurchased,
+    user.creditsUsed,
+  );
+  const hasKnownSubscription = Boolean(
+    user.currentSubscriptionType && user.currentSubscriptionType in PRODUCT_METADATA,
+  );
+  const subscriptionQuota = hasKnownSubscription
+    ? getProductQuota(user.currentSubscriptionType as ProductType)
+    : 0;
 
   return (
     <div className="space-y-6">
@@ -227,21 +252,41 @@ export default async function UserDetailPage({ params }: UserDetailPageProps) {
             </div>
             <div>
               <p className="text-sm font-medium text-muted-foreground">Premium Status</p>
-              <Badge variant={user.isPremium ? 'default' : 'secondary'}>
-                {user.isPremium ? 'Active' : 'Inactive'}
+              <Badge variant={isPremiumActive ? 'default' : 'secondary'}>
+                {isPremiumActive ? 'Active' : 'Inactive'}
               </Badge>
+            </div>
+            <div>
+              <p className="text-sm font-medium text-muted-foreground">Subscription Plan</p>
+              <p className="text-sm">{user.currentSubscriptionType || 'N/A'}</p>
             </div>
             <div>
               <p className="text-sm font-medium text-muted-foreground">Free Trials Used</p>
               <p className="text-sm">{user.freeTrialsUsed}</p>
             </div>
             <div>
-              <p className="text-sm font-medium text-muted-foreground">Credits</p>
-              <p className="text-sm">{(user.creditsPurchased || 0) - (user.creditsUsed || 0)}/{user.creditsPurchased || 0}</p>
+              <p className="text-sm font-medium text-muted-foreground">Subscription Quota</p>
+              <p className="text-sm">
+                {isPremiumActive && hasKnownSubscription
+                  ? `${quota.subscriptionRemaining}/${subscriptionQuota} remaining`
+                  : 'N/A'}
+              </p>
+            </div>
+            <div>
+              <p className="text-sm font-medium text-muted-foreground">Purchased Credits</p>
+              <p className="text-sm">{quota.creditsRemaining}/{user.creditsPurchased || 0} remaining</p>
+            </div>
+            <div>
+              <p className="text-sm font-medium text-muted-foreground">Total Available</p>
+              <p className="text-sm font-semibold">{quota.totalRemaining}</p>
             </div>
             <div>
               <p className="text-sm font-medium text-muted-foreground">Premium Usage</p>
-              <p className="text-sm">{user.premiumUsageCount}</p>
+              <p className="text-sm">
+                {hasKnownSubscription
+                  ? `${user.premiumUsageCount}/${subscriptionQuota} used`
+                  : user.premiumUsageCount}
+              </p>
             </div>
           </div>
         </CardContent>
