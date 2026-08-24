@@ -2,7 +2,7 @@
 
 **Status:** Active product documentation guide  
 **Created:** 2026-07-08  
-**Last updated:** 2026-08-06  
+**Last updated:** 2026-08-24
 **Owner:** Product  
 **Review cadence:** Weekly for active plan, monthly for document structure.
 
@@ -22,13 +22,16 @@ The main goal is to make it clear what should be built next, why it matters, how
 | --- | --- | --- |
 | `docs/product/product-plan.md` | Current product operating plan: Now / Next / Later, current sprint, initiatives, backlog, and decisions needed. | Active source of truth for product execution. |
 | `docs/product/specs/` | Detailed specs for individual product capabilities. | Created as needed. |
-| `docs/product/sales/visutry-store-sales-pitch.md` | Store sales pitch, outreach copy, qualification, demo talk track, pilot offer, objection handling, claims boundary, and validation targets. | **Active sales-validation source of truth.** |
-| `docs/product/specs/visutry-store-sales-demo.md` | Working Store Sales Demo: 10-minute merchant story, shopper flow, merchant insights, data/events, and D0 acceptance criteria. | **D0 implemented; controlled merchant validation active.** |
-| `docs/product/specs/visutry-store-engineering-foundation.md` | Mandatory Store architecture and engineering constraints: modular boundary, tenancy, actor/usage policy, shared generation, events, assets, idempotency, and tests. | **Implemented for D0; mandatory for all later Store work.** |
-| `docs/product/specs/visutry-store-mvp.md` | Store M1 product scope for the first 3-5 merchant pilots. | **D0 implemented; M1 approved but gated.** |
-| `docs/product/plans/visutry-store-implementation-plan.md` | Store execution sequence, engineering epics, gates, validation sprint, and definition of done. | **D0 shipped; positioning realignment and merchant validation active; M1 gated.** |
-| `docs/product/specs/visutry-store-landing-page.md` | Merchant validation landing page and lead-capture surface. | Shipped / repositioning required. |
-| `docs/ops/store-d0-production-verification-2026-08-05.md` | Immutable evidence record for the D0 production deployment, seed, API flow, generation, usage, retention, and remaining gate work. | **Production verification passed; Gate A1 remains closed.** |
+| `docs/product/plans/market-facing-productization-plan.md` | Reference Factory → Discover/distribution → Business Website → merchant outreach sequence. | **Productization through Business v1.2 shipped; outreach next.** |
+| `docs/product/plans/pilot-delivery-factory-plan.md` | Five-brand Reference portfolio and repeatable assisted delivery model. | **Factory core complete; retained as delivery contract.** |
+| `docs/product/business-website-ia-and-copy.md` | Business Website product truth, IA, claims, Pilot and CTA baseline. | **Implemented baseline; v1.2 visual brief is current.** |
+| `docs/product/business-website-v1.2-layout-and-visual-system.md` | Current `/business` layout and production visual asset contract. | **v1.2 shipped.** |
+| `docs/product/plans/agent-native-merchant-self-service.md` | Merchant Workspace, Agent Keys, MCP Store/Campaign operations and Commerce Intelligence plan. | **Core through Phase D implemented.** |
+| `docs/product/plans/universal-agent-access.md` | Remote MCP OAuth architecture, production evidence, compatibility and external-Pilot limitations. | **Codex Golden Path passed; external hardening remains.** |
+| `docs/product/sales/visutry-sales-readiness-audit-2026-08-12.md` | Controlled founder-led outreach, evidence pack, tracker fields and first-batch operating plan. | **Active merchant-validation operating guide.** |
+| `docs/product/specs/visutry-store-engineering-foundation.md` | Mandatory Store/Commerce architecture, tenancy, usage, privacy, idempotency and test constraints. | **Implemented baseline; still mandatory.** |
+| `docs/product/specs/visutry-store-mvp.md` | Acceptance contract for a real merchant Pilot. | **Technical core implemented; real merchant acceptance pending.** |
+| `docs/ops/store-d0-production-verification-2026-08-05.md` | Immutable historical D0 production evidence. | **Historical evidence, not current execution state.** |
 
 ---
 
@@ -44,26 +47,26 @@ The main goal is to make it clear what should be built next, why it matters, how
 
 ---
 
-## 4. Current Store Execution Rule
+## 4. Current 2B Execution Rule
 
-As of 2026-08-06, VisuTry Store D0 is implemented and production-verified for controlled, team-operated merchant demonstrations. Merchant validation and positioning realignment are active; M1 and independent external shopper traffic remain gated.
+As of 2026-08-24, VisuTry has moved beyond the D0-only phase. The shared Merchant → Catalog → Store/Campaign → shopper decision journey → Commerce Intelligence product is implemented, the five-brand Reference Factory is complete, Discover and Business Website v1.2 are live, and the agent-native core is production-deployed. The active gate is real merchant evidence, not another architecture layer.
 
 Current sequence:
 
 ```text
-Store LP [shipped; reposition now]
+Store / Campaign architecture + D0 [complete]
   ↓
-D0-0 Engineering Foundation [complete]
+Five-brand Reference Factory [complete]
   ↓
-D0 Working Sales Demo [complete; narrative realignment active]
+Discover / attribution / market-facing hardening [complete]
   ↓
-Sales pitch + merchant demos / own-frame sample requests [current]
+Business Website v1.2 + Founding Merchant Pilot offer [shipped]
   ↓
-M1 First-Pilot MVP [Gate B]
+Assisted Pilot intake + controlled outreach [current]
   ↓
-3-5 active merchant pilots
+First real merchant catalog + declared traffic source + intent review [next gate]
   ↓
-Only then evaluate Shopify / broader integrations
+Only then promote repeated pain into integrations or broader platform work
 ```
 
 Store product hierarchy:
@@ -77,20 +80,20 @@ Agent-Ready Commerce = future distribution foundation
 
 Engineering should start with:
 
-1. `docs/product/specs/visutry-store-engineering-foundation.md`
-2. `docs/decisions/ADR-006-store-modular-multitenant-foundation.md`
-3. `docs/product/specs/visutry-store-sales-demo.md`
-4. `docs/product/plans/visutry-store-implementation-plan.md`
-5. `docs/product/specs/visutry-store-mvp.md`
+1. `docs/product/product-plan.md`
+2. `docs/product/specs/visutry-store-engineering-foundation.md`
+3. `docs/product/specs/merchant-experience-architecture.md`
+4. `docs/product/specs/campaign-conversion-policy.md`
+5. the scoped implementation plan for the selected current task.
 
 Growth / Sales should start with:
 
-1. `docs/product/sales/visutry-store-sales-pitch.md`
-2. `docs/product/specs/visutry-store-landing-page.md`
-3. `docs/product/specs/visutry-store-sales-demo.md`
-4. `docs/product/plans/visutry-store-implementation-plan.md`
+1. `docs/product/business-website-ia-and-copy.md`
+2. `docs/product/sales/visutry-sales-readiness-audit-2026-08-12.md`
+3. `docs/product/sales/visutry-store-sales-pitch.md`
+4. `docs/product/specs/visutry-store-mvp.md`
 
-D0 engineering and its controlled production smoke are complete. Team-operated merchant demos may proceed under `docs/ops/store-d0-operator-note.md`; Gate A1 remains closed, so the URL must not be distributed for independent non-team shopper use. M1 hardening starts only after the explicit Gate B conditions in the implementation plan or a direct Product decision to operationalize a live pilot.
+Do not add another Reference Brand, generalized Campaign Builder, CRM, Shopify integration, or revenue attribution before the first real merchant learning loop. An assisted Pilot may proceed with the current Store/Campaign runtime; agent-native access is optional unless it is explicitly part of that Pilot promise. If agent-native access is included, close the bounded OAuth authorization UI, cleanup and selected-client Golden Path requirements in `universal-agent-access.md` first.
 
 ---
 
@@ -126,6 +129,6 @@ The broad product focus remains defined in:
 
 - `docs/product/product-plan.md`
 
-For Store specifically, the approved Store specs, implementation plan, and sales pitch playbook above are the current execution authority. They supersede older Store sequencing or sales wording that treated Store as only a merchant storefront / generic VTO workflow.
+For 2B specifically, this README and `product-plan.md` define the current reading path. Approved architecture/spec documents define durable behavior; dated D0 and Factory plans remain useful evidence but do not override the current execution board.
 
 Do not infer current product priority or merchant positioning only from older dated roadmap documents.

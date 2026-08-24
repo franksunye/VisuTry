@@ -1,9 +1,9 @@
 # VisuTry Store Implementation Plan
 
-**Status:** D0 implemented and production-verified; positioning / demo realignment active; merchant validation active; M1 gated  
+**Status:** Historical D0→M1 execution contract; technical core implemented, real merchant acceptance pending
 **Owner:** Product / Engineering / Growth  
 **Created:** 2026-08-05  
-**Last updated:** 2026-08-06  
+**Last updated:** 2026-08-24
 **Related demo spec:** `docs/product/specs/visutry-store-sales-demo.md`  
 **Related MVP spec:** `docs/product/specs/visutry-store-mvp.md`  
 **Required engineering foundation:** `docs/product/specs/visutry-store-engineering-foundation.md`  
@@ -16,6 +16,13 @@
 ## 1. Purpose
 
 This plan defines the execution sequence for VisuTry Store from the current working Sales Demo to the first paid merchant pilots.
+
+Reconciliation note: the implementation has advanced beyond the D0-era
+sequence in this file. Experience/Campaign architecture, Reference Factory,
+Business Website, Merchant Workspace, Sponsored Usage, attribution, public
+discovery, and agent-native operations are implemented. Use
+`docs/product/product-plan.md` for current priority; retain this plan for its
+Pilot acceptance and durable engineering requirements.
 
 The execution direction is now explicit:
 

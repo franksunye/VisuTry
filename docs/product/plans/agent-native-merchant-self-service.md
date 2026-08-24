@@ -1,7 +1,8 @@
 # VisuTry Agent-Native Merchant Self-Service — Product & Architecture Plan
 
-Status: Active planning baseline  
-Date: 2026-08-12  
+Status: Core implementation through Phase D complete; external-Pilot hardening remains
+Created: 2026-08-12
+Last reconciled: 2026-08-24
 Scope: Merchant onboarding, Store/Campaign implementation, operations and analytics through external AI agents
 
 ## 1. Why this plan exists
@@ -650,7 +651,7 @@ Implemented as the prerequisite for Phase A:
 - `createMerchantWithOwner` creates a merchant and its initial owner atomically; existing merchants receive no implicit memberships.
 - Future Agent Credential creation must use this merchant-scoped human authorization boundary.
 
-Remaining Phase A work is the agent credential, scope, lifecycle, audit, and shared commerce API boundary described below.
+The remaining Phase A work described below was subsequently implemented: merchant-scoped Agent Credentials, scopes, lifecycle, audit identity, and the shared actor/application boundary are now production code.
 
 Establish:
 
@@ -668,9 +669,9 @@ Do not begin by exposing raw Prisma models.
 Campaign Policy Foundation prerequisite completed; Phase B2 Campaign MCP and
 Skill work was gated until this foundation merged.
 
-Phase B2 Campaign MCP tools and the Campaign Creation Skill are now implemented
-on the shared tenant-scoped Campaign application boundary; Analytics remains
-out of scope.
+Phase B2 Campaign MCP tools and the Campaign Creation Skill are implemented on
+the shared tenant-scoped Campaign application boundary. Analytics was out of
+scope for Phase B itself and was subsequently implemented in Phase C1/C2.
 
 Implement only the tools needed for:
 
@@ -728,8 +729,9 @@ identity profiles. The scoped Admin insights API path now consumes
 legacy unscoped Admin workspace remains available for its existing historical
 and catalog detail view.
 
-Phase C2 may expose these services through a small Analytics MCP surface and a
-Commerce Analyst Skill. It must not bypass this application boundary.
+Phase C2 subsequently exposed these services through the bounded Analytics MCP
+surface and Commerce Analyst Skill described below without bypassing this
+application boundary.
 
 ### Phase C2 — Analytics MCP + Commerce Analyst Skill
 
@@ -752,9 +754,9 @@ Sponsored Usage state.
 
 Avoid building a generic query language initially.
 
-### Phase D — First-login onboarding and Trial
+### Phase D — First-login onboarding and Trial — IMPLEMENTED CORE
 
-Create the merchant-facing onboarding surface containing:
+The merchant-facing onboarding surface now contains:
 
 - Agent Key;
 - MCP endpoint;
@@ -884,7 +886,15 @@ Phase A establishes the security boundary required before MCP work:
 - `MerchantOperationAudit` records credential lifecycle and future agent writes without raw keys or request payloads. `lastUsedAt` is throttled to a 15-minute update interval.
 
 Phase B MCP transport, onboarding/campaign Skills, production rate limiting,
-and Store/Campaign outcome services are implemented. Phase C1 now provides
-the deterministic analytics application boundary; Analytics MCP and the
-Commerce Analyst Skill remain Phase C2 scope. No revenue, CRM, warehouse,
-consumer, billing, or Sponsored Usage behavior is implied by this foundation.
+and Store/Campaign outcome services are implemented. Phase C1/C2 provide the
+deterministic analytics application boundary, Analytics MCP tools, Experience
+comparison, and Commerce Analyst guidance. Phase D provides the Merchant
+Workspace / Control Center and onboarding handoff. Universal OAuth access was
+subsequently implemented under `universal-agent-access.md`.
+
+Merchant Self-Service v0.1 is not yet commercially complete because no real
+external merchant has completed the full definition-of-done flow. Before an
+agent-native external Pilot, add connected OAuth authorization list/revoke UI,
+expired OAuth artifact cleanup, database-backed protocol regression coverage,
+and the Golden Path for the selected external client. No revenue, CRM,
+warehouse, consumer billing, or order attribution behavior is implied.

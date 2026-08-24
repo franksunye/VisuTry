@@ -1,8 +1,13 @@
 # VisuTry Business Website v1.2 — Layout & Visual System
 
-Status: **Canonical implementation brief for v1.2**
+Status: **Implemented and production-verified v1.2 baseline**
+Last reconciled: **2026-08-24**
 
 Purpose: evolve the current Business Website from a clean SaaS-style first release into a more brand- and agency-ready B2B experience, while preserving the proven IA, copy baseline, responsive system, and commercial logic.
+
+Implementation evidence: all seven visual asset IDs are mapped to production
+assets, PR #121 shipped the v1.2 integration, and PR #125 closed the current
+Business browser contract after rebasing onto the latest production fixes.
 
 This document defines the **page layout first** and the **visual asset slots second**. Product screenshots and marketing imagery are intentionally treated as replaceable assets with stable IDs so implementation can proceed before final asset production.
 

@@ -1,8 +1,9 @@
 # VisuTry Business Website IA & Copy
 
-**Status:** Draft v1 — Canonical Business Website Baseline  
+**Status:** Implemented v1 content/IA baseline — v1.2 visual implementation is current
 **Owner:** Product / Growth / Sales  
 **Created:** 2026-08-20  
+**Last reconciled:** 2026-08-24
 **Purpose:** Define the information architecture, navigation, page roles, merchant-facing copy, CTA system, claims boundary, pricing language, and evidence rules for the VisuTry Business website.
 
 ## Related source-of-truth documents
@@ -16,6 +17,19 @@ This document consolidates and must remain consistent with:
 - `docs/product/sales/visutry-sales-readiness-audit-2026-08-12.md`
 - `docs/product/specs/visutry-store-landing-page.md`
 - `docs/product/specs/pilot-delivery-kit-spec.md`
+
+## Implementation state
+
+The complete English-first Business route group is live at `/en/business` with
+Platform, Store, Campaigns, Commerce Intelligence, Pricing, Examples,
+Integrations, and Pilot pages. The current visual implementation follows
+`business-website-v1.2-layout-and-visual-system.md`; production assets shipped
+in PR #121 and Business/Campaign browser coverage was closed in PR #125.
+
+The Founding Merchant Pilot remains an assisted $149 / 30-day offer. Its
+current primary handoff is email, not a persisted CRM or self-service checkout.
+That operational limitation must remain explicit until a durable Pilot intake
+and outcome tracker is implemented.
 - `docs/product/specs/campaign-conversion-policy.md`
 
 Where this document conflicts with a later approved commercial, product, or claims document, the later approved source of truth wins and this document must be updated.
