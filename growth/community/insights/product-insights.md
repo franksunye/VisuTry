@@ -1,0 +1,21 @@
+# Product Insights
+
+Record evidence, not assumptions. A single comment is a `SINGLE SIGNAL` until repeated.
+
+## Entry format
+
+- Insight:
+- Evidence:
+- Source URLs:
+- Area: Face Analysis / Advisor / Try-On / Compare / Consumer UX / FAQ / Content
+- Confidence: SINGLE SIGNAL / REPEATED SIGNAL / STRONG PATTERN
+- Follow-up measurement:
+
+## 2026-08-24 public discovery sample
+
+- Insight: Users distinguish visual attractiveness from physical/visual fit, but current advice often mixes them together.
+- Evidence: Multiple public Reddit threads ask whether frames are too wide or too big after users already like the shape/color; several replies focus on pupil position, bridge, and brow alignment.
+- Source URLs: https://www.reddit.com/r/glassesadvice/comments/1s3ndha/do_these_frames_suit_me/ ; https://www.reddit.com/r/glassesadvice/comments/1v7mzib/frame_too_big/ ; https://www.reddit.com/r/glassesadvice/comments/1ue0ih5/do_these_glasses_suit_me/
+- Area: Try-On / Compare / Consumer UX
+- Confidence: REPEATED SIGNAL
+- Follow-up measurement: count how often future conversations ask for a separate fit check after a style recommendation; test a two-step visual comparison flow

@@ -1,0 +1,39 @@
+{
+  "schema_version": 1,
+  "last_updated": "2026-08-24T16:00:19+08:00",
+  "rollout_week": "2026-W35",
+  "branch": "growth/community-ops",
+  "timezone": "Asia/Shanghai",
+  "last_run": {
+    "started_at": "2026-08-24T15:52:27+08:00",
+    "finished_at": "2026-08-24T16:00:19+08:00",
+    "status": "NO_HIGH_QUALITY_ACTION_FOUND",
+    "public_research": true,
+    "reddit_searches": 2,
+    "youtube_searches": 2,
+    "reddit_interactions": 0,
+    "youtube_interactions": 0,
+    "follow_ups": 0,
+    "questions_discovered": 3,
+    "insights_captured": 4,
+    "blockers": ["PLATFORM_BLOCKED: REDDIT_HUMAN_VERIFICATION", "AUTH_REQUIRED: YOUTUBE"]
+  },
+  "platforms": {
+    "reddit": {
+      "auth_status": "PLATFORM_BLOCKED",
+      "warmup_contributions": 0,
+      "mentions_30d": 0,
+      "links_30d": 0
+    },
+    "youtube": {
+      "auth_status": "AUTH_REQUIRED",
+      "mentions_30d": 0,
+      "links_30d": 0
+    }
+  },
+  "scheduler": {
+    "task_name": "VisuTry Daily Community Growth",
+    "schedule_local": "10:00 daily",
+    "status": "ACTIVE"
+  }
+}
