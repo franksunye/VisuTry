@@ -14,12 +14,38 @@ export type AcquisitionAttribution = {
   content_cluster?: string
   product_path?: string
   landing_locale?: string
+  pricing_locale?: string
+  checkout_locale?: string
+  site_locale?: string
+  browser_language?: string
+  browser_languages?: string[]
+  locale_changed?: boolean
+  /** Billing geo supplied by Stripe Checkout, never by client analytics. */
+  geo_country?: string
+  geo_region?: string
 }
 
 const MAX_FIELD_LENGTH = 200
 const MAX_SERIALIZED_LENGTH = 500
 
-const ATTRIBUTION_KEYS: Array<keyof AcquisitionAttribution> = [
+type StringAttributionKey =
+  | 'landing_page'
+  | 'page_path'
+  | 'acquisition_source'
+  | 'acquisition_medium'
+  | 'source_page'
+  | 'query_cluster'
+  | 'content_cluster'
+  | 'product_path'
+  | 'landing_locale'
+  | 'pricing_locale'
+  | 'checkout_locale'
+  | 'site_locale'
+  | 'browser_language'
+  | 'geo_country'
+  | 'geo_region'
+
+const ATTRIBUTION_KEYS: StringAttributionKey[] = [
   'landing_page',
   'page_path',
   'acquisition_source',
@@ -29,6 +55,12 @@ const ATTRIBUTION_KEYS: Array<keyof AcquisitionAttribution> = [
   'content_cluster',
   'product_path',
   'landing_locale',
+  'pricing_locale',
+  'checkout_locale',
+  'site_locale',
+  'browser_language',
+  'geo_country',
+  'geo_region',
 ]
 
 function truncate(value: string, max = MAX_FIELD_LENGTH): string {
@@ -58,6 +90,22 @@ export function sanitizeAcquisitionAttribution(
     if (value) {
       sanitized[key] = value
     }
+  }
+
+  const browserLanguages = record.browser_languages
+  if (Array.isArray(browserLanguages)) {
+    const cleanedLanguages = browserLanguages
+      .filter((value): value is string => typeof value === 'string')
+      .map((value) => value.trim().slice(0, 32))
+      .filter(Boolean)
+      .slice(0, 8)
+    if (cleanedLanguages.length > 0) {
+      sanitized.browser_languages = cleanedLanguages
+    }
+  }
+
+  if (typeof record.locale_changed === 'boolean') {
+    sanitized.locale_changed = record.locale_changed
   }
 
   // Backward compatibility for payloads created before the attribution split.
@@ -124,6 +172,24 @@ export function serializeAttributionForStripe(
     ...(sanitized.landing_locale
       ? { landing_locale: truncate(sanitized.landing_locale, 16) }
       : {}),
+    ...(sanitized.pricing_locale
+      ? { pricing_locale: truncate(sanitized.pricing_locale, 16) }
+      : {}),
+    ...(sanitized.checkout_locale
+      ? { checkout_locale: truncate(sanitized.checkout_locale, 16) }
+      : {}),
+    ...(sanitized.site_locale ? { site_locale: truncate(sanitized.site_locale, 16) } : {}),
+    ...(sanitized.browser_language
+      ? { browser_language: truncate(sanitized.browser_language, 32) }
+      : {}),
+    ...(sanitized.browser_languages
+      ? { browser_languages: sanitized.browser_languages.slice(0, 4) }
+      : {}),
+    ...(typeof sanitized.locale_changed === 'boolean'
+      ? { locale_changed: sanitized.locale_changed }
+      : {}),
+    ...(sanitized.geo_country ? { geo_country: truncate(sanitized.geo_country, 8) } : {}),
+    ...(sanitized.geo_region ? { geo_region: truncate(sanitized.geo_region, 80) } : {}),
   }
 
   const compactDirect = serializeIfFits(compact)
@@ -134,11 +200,12 @@ export function serializeAttributionForStripe(
   const dropOrder: Array<keyof AcquisitionAttribution> = [
     'page_path',
     'content_cluster',
-    'landing_locale',
     'product_path',
     'acquisition_medium',
     'query_cluster',
     'source_page',
+    'site_locale',
+    'geo_region',
   ]
 
   for (const key of dropOrder) {

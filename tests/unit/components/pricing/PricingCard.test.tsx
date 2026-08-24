@@ -27,10 +27,13 @@ jest.mock('@/lib/analytics', () => ({
     trackClickPurchase: jest.fn(),
     trackBeginCheckout: jest.fn(),
   },
-  getAcquisitionContext: () => ({
+  getCheckoutAttribution: () => ({
     landing_page: '/en/pricing',
     page_path: '/en/pricing',
     landing_locale: 'en',
+    site_locale: 'en',
+    pricing_locale: 'en',
+    checkout_locale: 'en',
   }),
   getUserType: () => 'free',
 }))

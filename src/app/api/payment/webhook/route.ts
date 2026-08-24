@@ -12,13 +12,43 @@ import {
 } from "@/lib/stripe"
 import Stripe from "stripe"
 import { QUOTA_CONFIG, PRODUCT_METADATA, getProductQuota } from "@/config/pricing"
-import { logger, getRequestContext } from "@/lib/logger"
+import { logger, getRequestContext, getRequestLanguageContext } from "@/lib/logger"
+import { sanitizeAcquisitionAttribution } from "@/lib/acquisition-attribution"
 
 // Force dynamic rendering for this route
 export const dynamic = 'force-dynamic'
 
+function getLanguageContextForLog(attribution: ReturnType<typeof sanitizeAcquisitionAttribution>) {
+  if (!attribution) return {}
+
+  return {
+    ...(attribution.browser_language ? { browser_language: attribution.browser_language } : {}),
+    ...(attribution.browser_languages ? { browser_languages: attribution.browser_languages } : {}),
+    ...(attribution.landing_locale ? { landing_locale: attribution.landing_locale } : {}),
+    ...(attribution.pricing_locale ? { pricing_locale: attribution.pricing_locale } : {}),
+    ...(attribution.checkout_locale ? { checkout_locale: attribution.checkout_locale } : {}),
+    ...(attribution.site_locale ? { site_locale: attribution.site_locale } : {}),
+    ...(attribution.locale_changed ? { locale_changed: true } : {}),
+    ...(attribution.geo_country ? { geo_country: attribution.geo_country } : {}),
+    ...(attribution.geo_region ? { geo_region: attribution.geo_region } : {}),
+  }
+}
+
+function mergePaymentAttribution(existing: unknown, incoming: unknown) {
+  const existingAttribution = sanitizeAcquisitionAttribution(existing)
+  const incomingAttribution = sanitizeAcquisitionAttribution(incoming)
+
+  if (!existingAttribution && !incomingAttribution) return undefined
+
+  return sanitizeAcquisitionAttribution({
+    ...existingAttribution,
+    ...incomingAttribution,
+  })
+}
+
 export async function POST(request: NextRequest) {
   const ctx = getRequestContext(request)
+  const languageContext = getRequestLanguageContext(request)
   try {
     const body = await request.text()
     const headersList = headers()
@@ -42,11 +72,11 @@ export async function POST(request: NextRequest) {
     // 处理不同类型的事件
     switch (event.type) {
       case "checkout.session.completed":
-        await handleCheckoutSessionCompleted(event.data.object as Stripe.Checkout.Session, ctx)
+        await handleCheckoutSessionCompleted(event.data.object as Stripe.Checkout.Session, ctx, languageContext)
         break
 
       case "checkout.session.async_payment_succeeded":
-        await handleCheckoutSessionCompleted(event.data.object as Stripe.Checkout.Session, ctx)
+        await handleCheckoutSessionCompleted(event.data.object as Stripe.Checkout.Session, ctx, languageContext)
         break
 
       case "checkout.session.async_payment_failed":
@@ -96,14 +126,18 @@ export async function POST(request: NextRequest) {
 }
 
 // 处理Checkout会话完成
-async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session, context?: any) {
+async function handleCheckoutSessionCompleted(
+  session: Stripe.Checkout.Session,
+  context?: any,
+  languageContext?: any,
+) {
   if (session.payment_status !== 'paid' && session.payment_status !== 'no_payment_required') {
     logger.info('payment', 'Checkout completed with payment still pending', {
       sessionId: session.id,
       paymentStatus: session.payment_status,
       userId: session.client_reference_id,
       productType: session.metadata?.productType,
-    }, context)
+    }, languageContext || context)
     return
   }
 
@@ -113,6 +147,20 @@ async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session, 
     // Payment creation, credit fulfillment, and report unlocking are atomic.
     // The unique stripeSessionId makes retries and concurrent webhook deliveries safe.
     const fulfilled = await prisma.$transaction(async (tx) => {
+      const existingPayment = await tx.payment.findUnique({
+        where: { stripeSessionId: paymentData.sessionId },
+        select: { status: true, attribution: true },
+      })
+
+      if (existingPayment?.status === 'COMPLETED') return false
+
+      // Keep the full attribution captured at Checkout creation time. Stripe
+      // metadata is intentionally compact and may omit lower-priority fields.
+      const paymentAttribution = mergePaymentAttribution(
+        existingPayment?.attribution,
+        paymentData.attribution,
+      )
+
       const claimed = await tx.payment.updateMany({
         where: {
           stripeSessionId: paymentData.sessionId,
@@ -129,7 +177,7 @@ async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session, 
           completedAt: new Date(),
           failedAt: null,
           description: getProductDescription(paymentData.productType, paymentData.unlockTaskId),
-          ...(paymentData.attribution ? { attribution: paymentData.attribution } : {}),
+          ...(paymentAttribution ? { attribution: paymentAttribution } : {}),
           ...(paymentData.unlockTaskId ? { unlockTaskId: paymentData.unlockTaskId } : {}),
         },
       })
@@ -158,8 +206,8 @@ async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session, 
             productType: paymentData.productType,
             description: getProductDescription(paymentData.productType, paymentData.unlockTaskId),
             unlockTaskId: paymentData.unlockTaskId,
-            ...(paymentData.attribution
-              ? { attribution: paymentData.attribution }
+            ...(paymentAttribution
+              ? { attribution: paymentAttribution }
               : {}),
           },
         })
@@ -201,7 +249,8 @@ async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session, 
       productType: paymentData.productType,
       status: 'COMPLETED',
       fulfillment: paymentData.unlockTaskId ? 'credits_and_unlock' : 'payment',
-    })
+      ...getLanguageContextForLog(paymentData.attribution),
+    }, languageContext || context)
 
     // 清除用户缓存，确保所有页面立即显示最新数据
     clearUserCache(paymentData.userId)
@@ -227,7 +276,7 @@ async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session, 
     logger.error('payment', 'payment_fulfillment_failed', undefined, {
       stage: 'checkout_session_completed',
       retryable: true,
-    })
+    }, languageContext || context)
     // Returning a non-2xx response lets Stripe retry transient fulfillment failures.
     throw err
   }

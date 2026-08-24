@@ -2,7 +2,8 @@ import { NextResponse } from 'next/server'
 import { TaskStatus } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { FACE_SHAPE_FAILURE_REASONS } from '@/config/face-analysis'
-import { getRequestContext, logger } from '@/lib/logger'
+import { getRequestContext, getRequestLanguageContext, logger } from '@/lib/logger'
+import { isValidLocale } from '@/i18n'
 
 const ALLOWED_STATUSES = new Set<TaskStatus>([
   TaskStatus.COMPLETED,
@@ -74,13 +75,18 @@ function sanitizeDiagnostics(value: unknown): DetectionDiagnostics | undefined {
 
 export async function POST(request: Request) {
   const ctx = getRequestContext(request)
+  const languageContext = getRequestLanguageContext(request)
   try {
     const body = await request.json() as {
       status?: unknown
       failureReason?: unknown
       diagnostics?: unknown
+      siteLocale?: unknown
     }
     const status = body.status
+    const siteLocale = typeof body.siteLocale === 'string' && isValidLocale(body.siteLocale)
+      ? body.siteLocale
+      : undefined
 
     if (typeof status !== 'string' || !ALLOWED_STATUSES.has(status as TaskStatus)) {
       return NextResponse.json({ success: false }, { status: 400 })
@@ -106,12 +112,15 @@ export async function POST(request: Request) {
     })
 
     if (status === TaskStatus.COMPLETED) {
-      logger.info('face-shape', 'Free face shape detection completed', {}, ctx)
+      logger.info('face-shape', 'Free face shape detection completed', {
+        ...(siteLocale ? { site_locale: siteLocale } : {}),
+      }, languageContext)
     } else {
       logger.warn('face-shape', 'Free face shape detection failed', {
         failureReason,
+        ...(siteLocale ? { site_locale: siteLocale } : {}),
         ...(diagnostics ? { diagnostics } : {}),
-      }, ctx)
+      }, languageContext)
     }
 
     return NextResponse.json({ success: true }, { status: 201 })

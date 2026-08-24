@@ -3,7 +3,13 @@ import {
   serializeAttributionForStripe,
   parseAttributionFromStripeMetadata,
 } from '@/lib/acquisition-attribution'
-import { analytics, getAcquisitionContext, setGrowthContext } from '@/lib/analytics'
+import {
+  analytics,
+  getAcquisitionContext,
+  getCheckoutAttribution,
+  setGrowthContext,
+  trackLocaleChanged,
+} from '@/lib/analytics'
 
 describe('acquisition attribution helpers', () => {
   it('sanitizes and serializes attribution for Stripe metadata', () => {
@@ -15,6 +21,13 @@ describe('acquisition attribution helpers', () => {
       query_cluster: 'face-shape-detector',
       content_cluster: 'search-tool',
       product_path: 'virtual_try_on',
+      landing_locale: 'en',
+      pricing_locale: 'de',
+      checkout_locale: 'de',
+      site_locale: 'de',
+      browser_language: 'de-DE',
+      browser_languages: ['de-DE', 'de', 'en-US'],
+      locale_changed: true,
       ignored: 'nope',
     })
 
@@ -26,6 +39,13 @@ describe('acquisition attribution helpers', () => {
       query_cluster: 'face-shape-detector',
       content_cluster: 'search-tool',
       product_path: 'virtual_try_on',
+      landing_locale: 'en',
+      pricing_locale: 'de',
+      checkout_locale: 'de',
+      site_locale: 'de',
+      browser_language: 'de-DE',
+      browser_languages: ['de-DE', 'de', 'en-US'],
+      locale_changed: true,
     })
 
     const serialized = serializeAttributionForStripe(attribution)
@@ -141,5 +161,73 @@ describe('analytics session attribution', () => {
         product_path: 'credits_pack',
       }),
     )
+  })
+
+  it('keeps browser language separate from URL site locale and freezes landing locale', () => {
+    Object.defineProperty(navigator, 'language', { configurable: true, value: 'ar-AE' })
+    Object.defineProperty(navigator, 'languages', { configurable: true, value: ['ar-AE', 'en-US', 'en'] })
+    window.history.pushState({}, '', '/en/face-shape-detector')
+
+    analytics.trackCustomEvent('language_context_smoke')
+
+    expect(window.gtag).toHaveBeenLastCalledWith(
+      'event',
+      'language_context_smoke',
+      expect.objectContaining({
+        browser_language: 'ar-AE',
+        browser_languages: ['ar-AE', 'en-US', 'en'],
+        landing_locale: 'en',
+        site_locale: 'en',
+      }),
+    )
+
+    window.history.pushState({}, '', '/ar/face-shape-detector')
+    analytics.trackCustomEvent('language_context_after_navigation')
+
+    expect(window.gtag).toHaveBeenLastCalledWith(
+      'event',
+      'language_context_after_navigation',
+      expect.objectContaining({ landing_locale: 'en', site_locale: 'ar' }),
+    )
+  })
+
+  it('captures the first Pricing locale and the Checkout locale independently', () => {
+    Object.defineProperty(navigator, 'language', { configurable: true, value: 'de-DE' })
+    Object.defineProperty(navigator, 'languages', { configurable: true, value: ['de-DE', 'en-US'] })
+    window.history.pushState({}, '', '/de/pricing')
+
+    expect(getAcquisitionContext()).toEqual(expect.objectContaining({
+      pricing_locale: 'de',
+      site_locale: 'de',
+      browser_language: 'de-DE',
+    }))
+
+    window.history.pushState({}, '', '/en/face-analysis')
+    expect(getCheckoutAttribution('en')).toEqual(expect.objectContaining({
+      landing_locale: 'de',
+      pricing_locale: 'de',
+      site_locale: 'en',
+      checkout_locale: 'en',
+      browser_language: 'de-DE',
+    }))
+  })
+
+  it('emits locale_changed and remains safe when browser language APIs are unavailable', () => {
+    Object.defineProperty(navigator, 'language', { configurable: true, value: undefined })
+    Object.defineProperty(navigator, 'languages', { configurable: true, value: undefined })
+    window.history.pushState({}, '', '/en/face-shape-detector')
+
+    expect(() => trackLocaleChanged('en', 'ar')).not.toThrow()
+    expect(window.gtag).toHaveBeenLastCalledWith(
+      'event',
+      'locale_changed',
+      expect.objectContaining({
+        from_locale: 'en',
+        to_locale: 'ar',
+        site_locale: 'ar',
+        locale_changed: true,
+      }),
+    )
+    expect(getAcquisitionContext()).toEqual(expect.objectContaining({ locale_changed: true }))
   })
 })

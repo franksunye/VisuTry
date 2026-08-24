@@ -205,6 +205,7 @@ describe('FreeFaceShapeDetector', () => {
     expect(JSON.parse(String(usageRequest.body))).toEqual({
       status: 'FAILED',
       failureReason: 'no_face',
+      siteLocale: 'en',
       diagnostics: {
         sourceFileType: 'image/jpeg',
         sourceFileSize: 8,
@@ -297,6 +298,7 @@ describe('FreeFaceShapeDetector', () => {
     expect(payload).toEqual({
       status: 'FAILED',
       failureReason: 'image_decode_failed',
+      siteLocale: 'en',
       diagnostics: {
         sourceFileType: 'image/jpeg',
         sourceFileSize: 8,

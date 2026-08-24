@@ -12,7 +12,7 @@ import {
 import { Check, Loader2, X } from 'lucide-react'
 import { useParams } from 'next/navigation'
 import { useSession } from 'next-auth/react'
-import { analytics, getAcquisitionContext } from '@/lib/analytics'
+import { analytics, getCheckoutAttribution } from '@/lib/analytics'
 import { localizedPath } from '@/lib/localized-path'
 import { PRICE_CONFIG, QUOTA_CONFIG } from '@/config/pricing'
 import { TOP_PICK_GLASSES_PRESETS } from '@/config/glasses-presets'
@@ -781,7 +781,7 @@ export function ConversionPaywallBoundary({ children, source }: ConversionPaywal
           ...(context === 'face_analysis_unlock' && activeUnlockTaskId
             ? { unlockTaskId: activeUnlockTaskId }
             : {}),
-          attribution: getAcquisitionContext(),
+          attribution: getCheckoutAttribution(locale),
           locale,
         }),
       })

@@ -24,6 +24,7 @@ jest.mock('@/lib/prisma', () => ({
 
 jest.mock('@/lib/logger', () => ({
   getRequestContext: () => ({ requestId: 'critical-test' }),
+  getRequestLanguageContext: () => ({}),
   logger: {
     warn: jest.fn(),
     info: jest.fn(),

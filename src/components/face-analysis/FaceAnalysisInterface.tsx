@@ -14,7 +14,7 @@ import {
   FACE_ANALYSIS_LAYOUT,
 } from '@/config/face-analysis'
 import { FaceAnalysisTaskResponse } from '@/types/face-analysis'
-import { analytics, getAcquisitionContext, getUserType, type ProductType } from '@/lib/analytics'
+import { analytics, getCheckoutAttribution, getUserType, type ProductType } from '@/lib/analytics'
 import { analyzeFaceGeometryFromFile } from '@/lib/face-landmark-client'
 import { consumeFaceAnalysisPhotoHandoff } from '@/lib/face-analysis-photo-handoff'
 import { PRICE_CONFIG, QUOTA_CONFIG } from '@/config/pricing'
@@ -109,6 +109,7 @@ export function FaceAnalysisInterface() {
       formData.append('userImage', userImage.file)
       formData.append('clientSubmissionId', crypto.randomUUID())
       formData.append('geometryAnalysis', JSON.stringify(geometry))
+      formData.append('siteLocale', locale)
 
       const response = await fetch('/api/face-analysis/submit', {
         method: 'POST',
@@ -177,7 +178,7 @@ export function FaceAnalysisInterface() {
           successUrl,
           cancelUrl,
           unlockTaskId: task.id,
-          attribution: getAcquisitionContext(),
+          attribution: getCheckoutAttribution(locale),
           locale,
         }),
       })

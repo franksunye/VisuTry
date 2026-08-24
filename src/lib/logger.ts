@@ -20,6 +20,7 @@ export interface LogEntry {
   sessionId?: string
   userAgent?: string
   ip?: string
+  accept_language?: string
   url?: string
   method?: string
   error?: {
@@ -64,6 +65,7 @@ class Logger {
       sessionId?: string
       userAgent?: string
       ip?: string
+      accept_language?: string
       url?: string
       method?: string
       error?: Error
@@ -151,6 +153,7 @@ class Logger {
         sessionId: entry.sessionId,
         userAgent: entry.userAgent,
         ip: entry.ip,
+        accept_language: entry.accept_language,
         url: entry.url,
         method: entry.method,
         error: entry.error,
@@ -320,12 +323,22 @@ export function getRequestContext(request: Request) {
   const realIp = request.headers.get('x-real-ip') || undefined
   const ip = forwarded ? forwarded.split(',')[0].trim() : realIp || undefined
   const userAgent = request.headers.get('user-agent') || undefined
+  const acceptLanguageHeader = request.headers.get('accept-language') || undefined
+  const accept_language = acceptLanguageHeader?.slice(0, 256) || undefined
   return {
     method: request.method,
     url: request.url,
     ip,
     userAgent,
+    accept_language,
   }
+}
+
+export function getRequestLanguageContext(request: Request) {
+  const acceptLanguageHeader = request.headers.get('accept-language') || undefined
+  const accept_language = acceptLanguageHeader?.slice(0, 256) || undefined
+
+  return { accept_language }
 }
 
 export default logger

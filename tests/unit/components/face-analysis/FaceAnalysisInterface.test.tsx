@@ -64,6 +64,11 @@ jest.mock('@/lib/analytics', () => ({
     trackBeginCheckout: jest.fn(),
     trackViewPricing: jest.fn(),
   },
+  getCheckoutAttribution: () => ({
+    landing_locale: 'en',
+    site_locale: 'en',
+    checkout_locale: 'en',
+  }),
   getUserType: (...args: [boolean, number, boolean]) => mockGetUserType(...args),
 }))
 

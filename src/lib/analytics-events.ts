@@ -124,7 +124,14 @@ export type AnalyticsCommonContext = {
   acquisition_source?: string
   acquisition_medium?: string
   landing_locale?: string
+  site_locale?: string
+  pricing_locale?: string
+  checkout_locale?: string
   browser_language?: string
+  browser_languages?: string[]
+  locale_changed?: boolean
+  geo_country?: string
+  geo_region?: string
   source_page?: string
   query_cluster?: string
   content_cluster?: string
