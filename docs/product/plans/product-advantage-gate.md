@@ -7,6 +7,51 @@ Structured merchant outreach is gated until all three gates pass with current,
 reproducible evidence. Older documents that say “outreach next” describe a
 previous sequence and do not override this gate.
 
+## Product Decision — Agent Natural Distribution Is a Hard Gate
+
+VisuTry will **not** begin structured merchant outreach before it proves that its
+own Consumer product can attract genuine AI-assistant / agent referral traffic
+and convert at least part of that traffic into meaningful eyewear decision
+behavior.
+
+This is a deliberate product and go-to-market decision, not an analytics
+preference.
+
+The hypothesis being tested is:
+
+```text
+Excellent Consumer Experience
++ SEO / AEO / GEO
++ useful public eyewear knowledge and decision surfaces
++ external distribution / promotion
+        ↓
+AI assistants discover, understand, cite, recommend, or link to VisuTry
+        ↓
+genuine Agent / AI-assistant referral traffic
+        ↓
+meaningful eyewear decision behavior
+        ↓
+proven natural distribution leverage
+        ↓
+structured Merchant Outreach
+```
+
+The company must prove this hypothesis on itself before using Agent distribution
+as part of the merchant value proposition.
+
+Technical readiness alone is not enough. Attribution code, structured data,
+indexability, sitemap coverage, and synthetic tests can prove that VisuTry is
+**capable of measuring** Agent traffic; they cannot prove that the natural
+Agent-distribution channel exists.
+
+Therefore:
+
+> **No structured merchant outreach begins while Agent Natural Distribution remains unproven.**
+
+Passive inbound Pilot requests may continue to be received and recorded. This
+exception does not authorize outbound target lists, cold outreach, agency
+prospecting, or founder-led structured merchant acquisition.
+
 ## Gate A — Consumer Distribution & Proof
 
 VisuTry Consumer must be both a high-quality eyewear decision journey and a
@@ -32,18 +77,62 @@ direct, organic, social, paid, generic-referral, and known AI-agent sources.
 Gate A reports two separate outcomes:
 
 - **Technical readiness:** attribution parsing, source persistence, session
-  reporting, consumer journey events, canonical metadata, and intended sitemap
+  reporting, Consumer journey events, canonical metadata, and intended sitemap
   behavior are implemented and covered by reproducible tests.
-- **Real distribution evidence:** at least one genuine production AI-assistant
-  or agent referral is classified distinctly (not generic referral), persists
-  into a VisuTry session, and performs one meaningful decision action such as a
-  Detector result, Advisor interaction, Try-On, or Compare. The evidence must
-  be inspectable from a report or dashboard without reconstructing raw logs.
+- **Real distribution evidence:** genuine production AI-assistant / agent
+  referrals occur repeatedly, are classified distinctly, persist into VisuTry
+  sessions, and produce meaningful Consumer decision actions. Evidence must be
+  inspectable from a durable report/dashboard/query without reconstructing raw
+  logs.
 
 Synthetic requests may validate the technical contract, but are labelled TEST
-and never count as real distribution proof. If no genuine production event is
-available, technical readiness may pass while real distribution evidence stays
-`PARTIAL`.
+and never count as real distribution proof. Technical readiness may pass while
+real distribution evidence remains `PARTIAL`; in that case **Gate A remains
+PARTIAL and Outreach remains GATED**.
+
+### Agent Natural Distribution Proof Levels
+
+The active evidence model is:
+
+| Level | Required proof | Meaning |
+| --- | --- | --- |
+| **L1 — Discovery** | At least one genuine production referral from a known AI assistant / agent source is observed and classified separately from generic referral. | VisuTry can be discovered and referred by the channel. |
+| **L2 — Repeatability** | Genuine Agent referrals recur across the observation window rather than appearing as a single isolated visit. | The channel is not merely a one-off anomaly. |
+| **L3 — Quality** | A meaningful subset of genuine referred sessions performs a useful eyewear decision action such as Detector completion, Advisor interaction, Try-On, or Compare. | Agent traffic has product value rather than being empty referral volume. |
+
+**Outreach requires L3.** L1 or L2 alone is useful evidence but does not unlock
+structured merchant outreach.
+
+### Initial Quantitative Outreach Bar
+
+Until Product explicitly changes this threshold based on observed production
+data, Gate A real distribution evidence requires, within a rolling **14-day
+observation window**:
+
+- at least **10 genuine AI-assistant / agent referral sessions**;
+- the observed set must include **ChatGPT / OpenAI** traffic;
+- at least **3 referred sessions** must perform one or more meaningful Consumer
+  decision actions;
+- source → session → decision action must be reproducibly inspectable;
+- synthetic, internal QA, replayed, or explicitly tagged test traffic is
+  excluded.
+
+The threshold is intentionally modest: it is designed to prove a repeatable
+channel and useful behavior, not scale. Product may raise or revise the bar
+later, but may not silently replace it with “technical readiness.”
+
+### What Counts as a Meaningful Decision Action
+
+For the initial Gate A proof, qualifying actions include supported production
+evidence for one or more of:
+
+- Face Shape Detector completion;
+- Face Analysis / Glasses Advisor meaningful interaction or completion;
+- Virtual Try-On meaningful use / completion;
+- Frame Compare meaningful use / completion.
+
+Simple page views, crawler hits, consent callbacks, bot traffic, synthetic source
+tests, or sessions with no useful decision interaction do not satisfy L3.
 
 ### Gate A public discovery policy
 
@@ -62,6 +151,43 @@ The technical acceptance is that implementation matches this policy. A missing
 dynamic sitemap entry blocks Gate A only when the surface is intentionally
 admitted as organic `PUBLIC_INDEX`; private or paid-only surfaces must not be
 added merely to make the gate green.
+
+### Gate A Operating Mode — Agent Distribution Growth Loop
+
+Until L3 is proven, the primary Growth / Product loop is:
+
+```text
+Measure current discovery and referrals
+→ identify high-intent eyewear questions / surfaces
+→ improve Consumer UX and answer quality
+→ improve SEO / AEO / GEO / structured discoverability
+→ publish useful visual/editorial assets
+→ distribute and promote through appropriate external channels
+→ observe real Search / Agent discovery and referral behavior
+→ inspect referred-session decision behavior
+→ repeat
+```
+
+This is an active optimization loop, not passive waiting for ChatGPT traffic.
+
+Appropriate pre-outreach work includes:
+
+- Consumer experience improvement where it increases usefulness, continuity, or
+  conversion of discovery traffic;
+- SEO / AEO / GEO technical and content improvements grounded in real user
+  questions and product capability;
+- Visual SEO assets that answer eyewear questions and route to useful product
+  experiences;
+- external promotion and community participation such as Reddit / YouTube where
+  work is useful, non-spammy, attributable, and aligned with the current growth
+  plan;
+- durable reporting that separates genuine AI-assistant referrals from Search,
+  social, paid, generic referral, direct, and test traffic;
+- continuous analysis of which public pages, questions, entities, and product
+  paths are actually being discovered.
+
+The loop must optimize for **qualified decision traffic**, not impressions,
+content volume, backlinks, or referral counts in isolation.
 
 ## Gate B — Merchant Experience Excellence
 
@@ -113,6 +239,20 @@ Keys and DB-backed OAuth access tokens, expose `tools/list`, preserve tenant
 and scope checks, and provide Store explicit-approval publish plus aggregate
 Commerce Intelligence reads. Codex and Cursor are separate client proofs;
 protocol compatibility or repository configuration alone is not a Cursor PASS.
+
+## Outreach Readiness Decision
+
+The Outreach Gate is `READY` only when all of the following are true:
+
+1. **Gate A PASS**, including L3 Agent Natural Distribution evidence at the
+   current quantitative bar;
+2. **Gate B PASS** at the professional brand / ecommerce / agency experience
+   bar with current reproducible evidence;
+3. **Gate C PASS** for the active Agent-Native acceptance contract;
+4. Product explicitly records the transition from `GATED` to `READY`.
+
+There is no soft-distribution exception. A technically ready but unproven Agent
+channel does not unlock outreach.
 
 ## Evidence rule
 
