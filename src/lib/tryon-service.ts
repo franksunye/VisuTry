@@ -6,7 +6,7 @@ import { logger } from "@/lib/logger"
 import { Prisma, TaskStatus, TryOnType, User } from "@prisma/client"
 import { TRY_ON_CONFIGS } from "@/config/try-on-types"
 import { calculateExpiresAt } from "@/config/retention"
-import { createHash } from "node:crypto"
+import { createHash, randomUUID } from "node:crypto"
 import {
   DEFAULT_TRY_ON_PROMPT_VERSION,
   resolveTryOnPrompt,
@@ -32,6 +32,7 @@ export type { TryOnPollResult, TryOnSubmissionResult }
 const ENABLE_SERVICE_TIERING = process.env.ENABLE_SERVICE_TIERING !== 'false' // Default to true, unless explicitly set to false
 const GEMINI_PREMIUM_ONLY = process.env.GEMINI_PREMIUM_ONLY !== 'false'
 const MAX_GRSAI_TIMEOUT_RETRIES = 1
+const RESULT_PERSIST_LEASE_MS = 2 * 60 * 1000
 
 interface FileInspection {
   name: string
@@ -610,6 +611,53 @@ export async function getTryOnResult(taskId: string): Promise<TryOnPollResult> {
         })
       }
 
+      // Consumer persistence is single-writer. A short DB lease prevents cron,
+      // dashboard polling, and manual sync from downloading/writing the same
+      // provider result concurrently. Version is a fencing token for stale writers.
+      const persistLeaseOwner = randomUUID()
+      const persistLeaseStartedAt = new Date()
+      const persistLeaseUntil = new Date(persistLeaseStartedAt.getTime() + RESULT_PERSIST_LEASE_MS)
+      const expectedPersistVersion = latestBeforePersist?.resultPersistVersion ?? 0
+      const persistClaim = await prisma.tryOnTask.updateMany({
+        where: {
+          id: taskId,
+          status: { not: TaskStatus.COMPLETED },
+          resultPersistVersion: expectedPersistVersion,
+          OR: [
+            { resultPersistLeaseOwner: null },
+            { resultPersistLeaseUntil: null },
+            { resultPersistLeaseUntil: { lt: persistLeaseStartedAt } },
+          ],
+        },
+        data: {
+          resultPersistLeaseOwner: persistLeaseOwner,
+          resultPersistLeaseUntil: persistLeaseUntil,
+          resultPersistVersion: { increment: 1 },
+        },
+      })
+
+      if (persistClaim.count === 0) {
+        const current = await prisma.tryOnTask.findUnique({
+          where: { id: taskId },
+          select: { status: true, resultImageUrl: true },
+        })
+        if (current?.status === TaskStatus.COMPLETED) {
+          return {
+            status: TaskStatus.COMPLETED,
+            resultImageUrl: current.resultImageUrl || undefined,
+            progress: 100,
+            isNewCompletion: false,
+          }
+        }
+        return {
+          status: TaskStatus.PROCESSING,
+          progress: pollResult.progress ?? 90,
+          isNewCompletion: false,
+        }
+      }
+
+      const persistVersion = expectedPersistVersion + 1
+
       // Consumer path: persist the generated result behind the configured Try-On
       // Blob boundary. Public sharing is handled by the result-only Share route.
       const resultOwnerKey = task.userId ?? taskId
@@ -640,16 +688,20 @@ export async function getTryOnResult(taskId: string): Promise<TryOnPollResult> {
         if (resultBlobOptions.access === 'private') {
           if (isBlobAlreadyExistsError(uploadError)) {
             try {
-              const existing = await head(resultPathname)
+              const existing = await head(resultPathname, { storeId: resultBlobOptions.storeId })
               const reconciled = await prisma.tryOnTask.updateMany({
                 where: {
                   id: taskId,
                   status: { not: TaskStatus.COMPLETED },
+                  resultPersistLeaseOwner: persistLeaseOwner,
+                  resultPersistVersion: persistVersion,
                 },
                 data: {
                   status: TaskStatus.COMPLETED,
                   resultImageUrl: existing.url,
                   errorMessage: null,
+                  resultPersistLeaseOwner: null,
+                  resultPersistLeaseUntil: null,
                   metadata: {
                     ...(pollResult.metadata || {}),
                     ...externalPollMetadata,
@@ -693,10 +745,13 @@ export async function getTryOnResult(taskId: string): Promise<TryOnPollResult> {
 
           // Never degrade a private-policy task to a provider/public URL. Keep the
           // external task resumable so a later poll can retry private persistence.
+          // Keep the lease until expiry to avoid hot-looping on a genuine Blob outage.
           const pendingUpdate = await prisma.tryOnTask.updateMany({
             where: {
               id: taskId,
               status: { not: TaskStatus.COMPLETED },
+              resultPersistLeaseOwner: persistLeaseOwner,
+              resultPersistVersion: persistVersion,
             },
             data: {
               status: TaskStatus.PROCESSING,
@@ -748,11 +803,15 @@ export async function getTryOnResult(taskId: string): Promise<TryOnPollResult> {
         where: {
           id: taskId,
           status: { not: TaskStatus.COMPLETED },
+          resultPersistLeaseOwner: persistLeaseOwner,
+          resultPersistVersion: persistVersion,
         },
         data: {
           status: TaskStatus.COMPLETED,
           resultImageUrl: persistedUrl,
           errorMessage: null,
+          resultPersistLeaseOwner: null,
+          resultPersistLeaseUntil: null,
           metadata: {
             ...(pollResult.metadata || {}),
             ...externalPollMetadata,
@@ -823,8 +882,11 @@ export async function getTryOnResult(taskId: string): Promise<TryOnPollResult> {
           error: pollResult.error,
         })
 
-        await prisma.tryOnTask.update({
-          where: { id: taskId },
+        await prisma.tryOnTask.updateMany({
+          where: {
+            id: taskId,
+            status: { not: TaskStatus.COMPLETED },
+          },
           data: {
             status: TaskStatus.PROCESSING,
             errorMessage: null,
@@ -879,8 +941,11 @@ export async function getTryOnResult(taskId: string): Promise<TryOnPollResult> {
             },
           )
 
-          await prisma.tryOnTask.update({
-            where: { id: taskId },
+          await prisma.tryOnTask.updateMany({
+            where: {
+              id: taskId,
+              status: { not: TaskStatus.COMPLETED },
+            },
             data: {
               status: TaskStatus.PROCESSING,
               errorMessage: null,
@@ -910,9 +975,12 @@ export async function getTryOnResult(taskId: string): Promise<TryOnPollResult> {
         }
       }
 
-      // Update DB to FAILED
-      await prisma.tryOnTask.update({
-        where: { id: taskId },
+      // Update DB to FAILED without allowing a stale poll to regress COMPLETED.
+      await prisma.tryOnTask.updateMany({
+        where: {
+          id: taskId,
+          status: { not: TaskStatus.COMPLETED },
+        },
         data: {
           status: TaskStatus.FAILED,
           errorMessage: pollResult.error,
