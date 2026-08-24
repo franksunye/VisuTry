@@ -234,7 +234,7 @@ describe('ADR-007 Consumer stability boundary', () => {
 
     const storeResult = await getTryOnResult('task-store')
     expect(storeResult.status).toBe(TaskStatus.PROCESSING)
-    expect(prisma.tryOnTask.updateMany).toHaveBeenCalledTimes(1) // only Consumer completed
+    expect(prisma.tryOnTask.updateMany).toHaveBeenCalledTimes(2) // Consumer claim + completion; Store handler is absent
   })
 
   it('Store completion handler never mutates Consumer counters (settlement stays separate)', async () => {
