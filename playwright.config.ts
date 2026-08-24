@@ -2,6 +2,31 @@ import { defineConfig, devices } from '@playwright/test';
 
 const externalBaseUrl = process.env.PLAYWRIGHT_BASE_URL;
 const localBaseUrl = 'http://127.0.0.1:3001';
+const isLocalRevenueBaseUrl = (() => {
+  if (!externalBaseUrl) return true
+  try {
+    const baseUrl = new URL(externalBaseUrl)
+    return baseUrl.protocol === 'http:'
+      && ['127.0.0.1', 'localhost'].includes(baseUrl.hostname)
+      && ['3001', '3002'].includes(baseUrl.port)
+  } catch {
+    return false
+  }
+})()
+const revenueCriticalProjects = isLocalRevenueBaseUrl
+  ? [
+      {
+        name: 'face-analysis-paywall-desktop',
+        testMatch: /consumer-face-analysis-paywall\.spec\.ts/,
+        use: { ...devices['Desktop Chrome'], viewport: { width: 1440, height: 900 } },
+      },
+      {
+        name: 'face-analysis-paywall-mobile',
+        testMatch: /consumer-face-analysis-paywall\.spec\.ts/,
+        use: { ...devices['Desktop Chrome'], viewport: { width: 390, height: 844 }, isMobile: true },
+      },
+    ]
+  : [];
 
 export default defineConfig({
   testDir: './tests/e2e',
@@ -29,7 +54,9 @@ export default defineConfig({
   projects: [
     {
       name: 'chromium',
+      testIgnore: /consumer-face-analysis-paywall\.spec\.ts/,
       use: { ...devices['Desktop Chrome'] },
     },
+    ...revenueCriticalProjects,
   ],
 });

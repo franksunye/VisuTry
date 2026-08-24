@@ -127,3 +127,39 @@ jobs:
       # A full `next build` needs real database-backed admin prerender data in
       # this application. Vercel's preview/production deployment remains the
       # authoritative build gate; PR CI deliberately never connects to prod DB.
+
+  revenue-critical-browser:
+    name: Revenue Critical Browser Gate
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    env:
+      CI: true
+      NODE_ENV: test
+      ENABLE_MOCKS: true
+      TEST_MODE: true
+      NEXT_TELEMETRY_DISABLED: 1
+      SKIP_ENV_VALIDATION: 1
+      NEXTAUTH_SECRET: ci-only-nextauth-secret
+      NEXTAUTH_URL: http://127.0.0.1:3001
+      DATABASE_URL: postgresql://ci:ci@127.0.0.1:5432/visutry_revenue_e2e
+      DATABASE_URL_UNPOOLED: postgresql://ci:ci@127.0.0.1:5432/visutry_revenue_e2e
+      STRIPE_SECRET_KEY: sk_test_ci_placeholder
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Revenue Critical Browser Gate
+        run: npm run test:e2e:revenue-critical

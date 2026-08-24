@@ -53,10 +53,11 @@ describe('Header decision journey', () => {
       '/en/try-on/glasses',
     )
 
-    expect(screen.getAllByRole('link', { name: 'For Business' })[0]).toHaveAttribute(
+    expect(screen.getByRole('link', { name: 'Detector' })).toHaveAttribute(
       'href',
-      '/en/business',
+      '/en/face-shape-detector',
     )
-    expect(screen.queryAllByRole('link', { name: 'Detector' })).toHaveLength(0)
+    expect(screen.queryAllByRole('link', { name: 'For Business' })).toHaveLength(0)
+    expect(screen.queryAllByRole('menuitem', { name: 'For Business' })).toHaveLength(0)
   })
 })

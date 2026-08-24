@@ -36,6 +36,19 @@ Run with:
 npm run test:e2e:critical
 ```
 
+### Revenue critical browser gate
+
+The isolated Face Analysis paywall journey is a mandatory PR gate. It runs the
+desktop 1440×900 and mobile 390×844 projects with fixture authentication,
+completed locked-task data, and a local payment response. It must never be run
+against an external base URL.
+
+Run with:
+
+```bash
+npm run test:e2e:revenue-critical
+```
+
 ## Production Smoke
 
 `scripts/production-smoke.mjs` performs lightweight HTTP checks against critical public routes. It never calls generation endpoints.
