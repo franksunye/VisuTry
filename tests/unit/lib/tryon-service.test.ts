@@ -1,7 +1,7 @@
 import { submitTryOnTask, getTryOnResult } from '@/lib/tryon-service'
 import { prisma } from '@/lib/prisma'
 import { submitAsyncTask, pollTaskResult } from '@/lib/grsai'
-import { put } from '@vercel/blob'
+import { head, put } from '@vercel/blob'
 // Remove import { TaskStatus } from '@prisma/client' to avoid issues
 // Define mock enum
 const TaskStatus = {
@@ -36,6 +36,7 @@ jest.mock('@/lib/prisma', () => ({
 }))
 
 jest.mock('@vercel/blob', () => ({
+  head: jest.fn(),
   put: jest.fn(),
 }))
 
@@ -87,7 +88,10 @@ describe('TryOnService', () => {
 
   beforeEach(() => {
     jest.clearAllMocks()
+    delete process.env.TRY_ON_BLOB_ACCESS_MODE
+    delete process.env.TRY_ON_BLOB_STORE_ID
     ;(prisma.tryOnTask.findUnique as jest.Mock).mockReset()
+    ;(prisma.tryOnTask.updateMany as jest.Mock).mockResolvedValue({ count: 1 })
     ;(put as jest.Mock).mockImplementation((path: string) => ({
       url: `http://blob/${path}`,
     }))
@@ -149,7 +153,7 @@ describe('TryOnService', () => {
         id: 'task-1',
         status: TaskStatus.PENDING,
       })
-      ;(prisma.tryOnTask.update as jest.Mock).mockResolvedValue({})
+      ;(prisma.tryOnTask.updateMany as jest.Mock).mockResolvedValue({ count: 1 })
 
       const result = await submitTryOnTask(
         mockUser as any,
@@ -365,10 +369,12 @@ describe('TryOnService', () => {
       )
       
       expect(prisma.tryOnTask.updateMany).toHaveBeenCalledWith({
-        where: {
-            id: 'task-1',
-            status: { not: TaskStatus.COMPLETED }
-        },
+        where: expect.objectContaining({
+          id: 'task-1',
+          status: { not: TaskStatus.COMPLETED },
+          resultPersistLeaseOwner: expect.any(String),
+          resultPersistVersion: 1,
+        }),
         data: expect.objectContaining({
           status: TaskStatus.COMPLETED,
           resultImageUrl: 'http://blob/tryon/result/user-1/task-1.png',
@@ -398,6 +404,146 @@ describe('TryOnService', () => {
       expect(result.isNewCompletion).toBeFalsy() 
     })
 
+    it('returns a completed result without polling GrsAi or writing Blob', async () => {
+      ;(prisma.tryOnTask.findUnique as jest.Mock).mockResolvedValue({
+        id: 'completed-task',
+        status: TaskStatus.COMPLETED,
+        resultImageUrl: 'https://blob/result.png',
+      })
+
+      const result = await getTryOnResult('completed-task')
+
+      expect(result).toMatchObject({
+        status: TaskStatus.COMPLETED,
+        resultImageUrl: 'https://blob/result.png',
+      })
+      expect(pollTaskResult).not.toHaveBeenCalled()
+      expect(put).not.toHaveBeenCalled()
+    })
+
+    it('does not write a second Blob after a repeated poll observes completion', async () => {
+      ;(prisma.tryOnTask.findUnique as jest.Mock)
+        .mockResolvedValueOnce({
+          id: 'repeat-task',
+          userId: 'user-1',
+          status: TaskStatus.PROCESSING,
+          metadata: { serviceType: 'grsai', externalTaskId: 'repeat-external' },
+        })
+        .mockResolvedValueOnce({
+          status: TaskStatus.PROCESSING,
+          resultImageUrl: null,
+          metadata: {},
+          resultPersistVersion: 0,
+          resultPersistLeaseUntil: null,
+        })
+        .mockResolvedValueOnce({
+          id: 'repeat-task',
+          status: TaskStatus.COMPLETED,
+          resultImageUrl: 'https://blob/repeat.png',
+        })
+      ;(pollTaskResult as jest.Mock).mockResolvedValue({
+        status: 'succeeded',
+        imageUrl: 'https://provider/repeat.png',
+      })
+      ;(prisma.tryOnTask.updateMany as jest.Mock).mockResolvedValue({ count: 1 })
+
+      await getTryOnResult('repeat-task')
+      const result = await getTryOnResult('repeat-task')
+
+      expect(result).toMatchObject({
+        status: TaskStatus.COMPLETED,
+        resultImageUrl: 'https://blob/repeat.png',
+      })
+      expect(pollTaskResult).toHaveBeenCalledTimes(1)
+      expect(put).toHaveBeenCalledTimes(1)
+    })
+
+    it('lets a stale completion loser observe COMPLETED without moving it back to PROCESSING', async () => {
+      ;(prisma.tryOnTask.findUnique as jest.Mock)
+        .mockResolvedValueOnce({
+          id: 'race-task',
+          userId: 'user-1',
+          status: TaskStatus.PROCESSING,
+          metadata: { serviceType: 'grsai', externalTaskId: 'race-external' },
+        })
+        .mockResolvedValueOnce({
+          status: TaskStatus.PROCESSING,
+          resultImageUrl: null,
+          metadata: {},
+          resultPersistVersion: 0,
+          resultPersistLeaseUntil: null,
+        })
+        .mockResolvedValueOnce({
+          status: TaskStatus.COMPLETED,
+          resultImageUrl: 'https://blob/race.png',
+        })
+      ;(pollTaskResult as jest.Mock).mockResolvedValue({
+        status: 'succeeded',
+        imageUrl: 'https://provider/race.png',
+      })
+      ;(prisma.tryOnTask.updateMany as jest.Mock)
+        .mockResolvedValueOnce({ count: 1 })
+        .mockResolvedValueOnce({ count: 0 })
+
+      const result = await getTryOnResult('race-task')
+
+      expect(result).toMatchObject({
+        status: TaskStatus.COMPLETED,
+        resultImageUrl: 'https://blob/race.png',
+        isNewCompletion: false,
+      })
+      expect(prisma.tryOnTask.updateMany).toHaveBeenLastCalledWith(expect.objectContaining({
+        where: expect.objectContaining({
+          status: { not: TaskStatus.COMPLETED },
+          resultPersistLeaseOwner: expect.any(String),
+        }),
+      }))
+      expect(put).toHaveBeenCalledTimes(1)
+    })
+
+    it('reconciles a deterministic Blob already-exists conflict without retrying or duplicating', async () => {
+      process.env.TRY_ON_BLOB_ACCESS_MODE = 'private'
+      process.env.TRY_ON_BLOB_STORE_ID = 'store_tryon'
+      ;(prisma.tryOnTask.findUnique as jest.Mock)
+        .mockResolvedValueOnce({
+          id: 'duplicate-task',
+          userId: 'user-1',
+          status: TaskStatus.PROCESSING,
+          metadata: { serviceType: 'grsai', externalTaskId: 'duplicate-external' },
+        })
+        .mockResolvedValueOnce({
+          status: TaskStatus.PROCESSING,
+          resultImageUrl: null,
+          metadata: {},
+          resultPersistVersion: 0,
+          resultPersistLeaseUntil: null,
+        })
+      ;(pollTaskResult as jest.Mock).mockResolvedValue({
+        status: 'succeeded',
+        imageUrl: 'https://provider/duplicate.png',
+      })
+      const conflict = new Error('This blob already exists, use allowOverwrite: true')
+      conflict.name = 'BlobPreconditionFailedError'
+      ;(put as jest.Mock).mockRejectedValue(conflict)
+      ;(head as jest.Mock).mockResolvedValue({
+        url: 'https://blob/existing-deterministic-result.png',
+      })
+      ;(prisma.tryOnTask.updateMany as jest.Mock).mockResolvedValue({ count: 1 })
+
+      const result = await getTryOnResult('duplicate-task')
+
+      expect(result).toMatchObject({
+        status: TaskStatus.COMPLETED,
+        resultImageUrl: 'https://blob/existing-deterministic-result.png',
+      })
+      expect(put).toHaveBeenCalledTimes(1)
+      expect(head).toHaveBeenCalledWith(
+        'tryon/result/user-1/duplicate-task.png',
+        { storeId: 'store_tryon' },
+      )
+      expect(result.error).toBeUndefined()
+    })
+
     it('should keep task processing when GrsAi polling fails with a transient network error', async () => {
       const mockTask = {
         id: 'task-transient',
@@ -419,8 +565,8 @@ describe('TryOnService', () => {
 
       const result = await getTryOnResult('task-transient')
 
-      expect(prisma.tryOnTask.update).toHaveBeenCalledWith({
-        where: { id: 'task-transient' },
+      expect(prisma.tryOnTask.updateMany).toHaveBeenCalledWith({
+        where: { id: 'task-transient', status: { not: TaskStatus.COMPLETED } },
         data: expect.objectContaining({
           status: TaskStatus.PROCESSING,
           errorMessage: null,
@@ -456,7 +602,7 @@ describe('TryOnService', () => {
           rawStatus: 'succeeded',
         },
       })
-      ;(prisma.tryOnTask.update as jest.Mock).mockResolvedValue({})
+      ;(prisma.tryOnTask.updateMany as jest.Mock).mockResolvedValue({ count: 1 })
 
       const result = await getTryOnResult('task-2')
 
@@ -504,7 +650,7 @@ describe('TryOnService', () => {
         },
       })
       ;(submitAsyncTask as jest.Mock).mockResolvedValue('grsai-task-id-2')
-      ;(prisma.tryOnTask.update as jest.Mock).mockResolvedValue({})
+      ;(prisma.tryOnTask.updateMany as jest.Mock).mockResolvedValue({ count: 1 })
 
       const result = await getTryOnResult('task-3')
 
@@ -519,8 +665,8 @@ describe('TryOnService', () => {
           origin: 'CONSUMER',
         },
       )
-      expect(prisma.tryOnTask.update).toHaveBeenCalledWith({
-        where: { id: 'task-3' },
+      expect(prisma.tryOnTask.updateMany).toHaveBeenCalledWith({
+        where: { id: 'task-3', status: { not: TaskStatus.COMPLETED } },
         data: expect.objectContaining({
           status: TaskStatus.PROCESSING,
           errorMessage: null,
@@ -565,10 +711,12 @@ describe('TryOnService', () => {
 
       expect(pollTaskResult).toHaveBeenCalledWith('grsai-task-id-recover')
       expect(prisma.tryOnTask.updateMany).toHaveBeenCalledWith({
-        where: {
+        where: expect.objectContaining({
           id: 'task-recover',
-          status: { not: TaskStatus.COMPLETED }
-        },
+          status: { not: TaskStatus.COMPLETED },
+          resultPersistLeaseOwner: expect.any(String),
+          resultPersistVersion: 1,
+        }),
         data: expect.objectContaining({
           status: TaskStatus.COMPLETED,
           resultImageUrl: 'http://blob/tryon/result/user-1/task-recover.png',
