@@ -5,8 +5,11 @@ This is the repository-side contract for the Codex task named `VisuTry Daily Com
 ## Scheduler
 
 - Task name: `VisuTry Daily Community Growth`
+- Task ID: persist the actual Codex automation ID in community state; do not invent one
 - Schedule: every day at 10:00
 - Timezone: operator/project local timezone, currently `Asia/Shanghai`
+- Status and verification: persist the actual status, verification timestamp, and `CODEX_SCHEDULER` source in community state
+- Unavailable metadata: use `NOT_EXPOSED` for `next_run_at` and scheduler run IDs when the platform does not expose them
 - Execution entry point: `automation/community-growth/task-prompt.md`
 - Working directory: `/Users/yesun/Code/visutry`
 - Branch: `growth/community-ops`
@@ -17,6 +20,10 @@ This is the repository-side contract for the Codex task named `VisuTry Daily Com
 ## Manual run
 
 Check out `growth/community-ops` and run the prompt in `task-prompt.md` as a Codex task in the repository. It must use the same browser, state, log, commit, and push rules as the scheduler.
+
+## Trigger identity
+
+Record the trigger on every execution as one of `MANUAL`, `SCHEDULED`, `RETRY`, or `UNKNOWN`. Never label a manual run as scheduled. Do not manually trigger the next normal daily run after a hardening pass; wait for the active scheduler.
 
 ## Pause
 

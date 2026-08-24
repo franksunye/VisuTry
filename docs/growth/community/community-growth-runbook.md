@@ -5,6 +5,7 @@ Owner: Growth / Community Ops
 Operational branch: `growth/community-ops`
 Timezone: project/operator local timezone, currently `Asia/Shanghai`
 Daily schedule: every day at 10:00 local time
+Scheduler evidence: the Codex automation is verified separately from this repository documentation. Persist the real task ID and status in `growth/community/state/community-state.json`; use `NOT_EXPOSED` for unavailable next-run or run-ID fields.
 
 ## Purpose
 
@@ -47,10 +48,12 @@ Week 1 is intentionally below these ceilings while account history, rules, authe
 5. Search broad eyewear decision intent using the query pools in the platform maps.
 6. Read full context, community rules, and existing discussion before acting.
 7. Publish only standalone-useful, non-duplicative responses. Default to no VisuTry mention and no link.
-8. Extract real user questions, growth opportunities, product/merchant signals, and measurement gaps.
-9. Update the daily log, insight files, community state, and interaction index.
-10. Inspect the diff for secrets and unrelated changes, commit with `growth: community ops YYYY-MM-DD`, and push the operational branch.
-11. On the final operating run of the ISO week, update the weekly review and create or update one PR targeting `main`.
+8. Decide whether a response is actually needed, then choose `LIGHT`, `CONVERSATIONAL`, `DETAILED`, or `FOLLOW_UP` depth and match the community/user tone. Compare against recent account comments to avoid repeated cadence.
+9. Record the execution trigger as `MANUAL`, `SCHEDULED`, `RETRY`, or `UNKNOWN`; record a scheduler run ID only when the platform exposes one.
+10. Extract real user questions, growth opportunities, product/merchant signals, and measurement gaps.
+11. Update the daily log, insight files, community state, and interaction index.
+12. Inspect the diff for secrets and unrelated changes, commit with `growth: community ops YYYY-MM-DD`, and push the operational branch.
+13. On the final operating run of the ISO week, update the weekly review and create or update one PR targeting `main`.
 
 ## Safe output states
 
@@ -64,6 +67,12 @@ Week 1 is intentionally below these ceilings while account history, rules, authe
 Pause or resume the Codex automation named `VisuTry Daily Community Growth` from the automation controls. Do not delete the repository system to pause it.
 
 For a manual run, check out `growth/community-ops`, open a Codex task in `/Users/yesun/Code/visutry`, and use the prompt in `automation/community-growth/task-prompt.md`. The manual run must use the same log/state/commit workflow and the same safety policy. Do not run a separate shell-only implementation that pretends to have performed browser actions.
+
+Every run must explicitly record `trigger`: `MANUAL`, `SCHEDULED`, `RETRY`, or `UNKNOWN`. For scheduled runs, record `scheduler_run_id` when exposed, otherwise `NOT_EXPOSED`. Do not manually run the next normal daily cycle to fabricate scheduled evidence; allow the active Codex automation to produce the next scheduled log and commit.
+
+## Interaction style review
+
+Review whether recent replies vary appropriately in depth and tone, fit local norms and the user's wording, avoid repeated structures, and stop when another answer would add noise. Use `LIGHT` or `FOLLOW_UP` when a mini-essay is unnecessary; reserve `DETAILED` for questions that genuinely need multi-factor reasoning.
 
 ## Authentication and privacy
 

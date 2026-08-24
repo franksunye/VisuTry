@@ -5,6 +5,8 @@ Review rule: prioritize active comment sections and actual shopper questions; Yo
 
 ## Topic map
 
+Typical interaction style: varies by channel; begin with concise, conversational replies in active comment sections, then match whether the creator's audience is casual, humorous, or technical. Avoid link drops and long tutorial replies unless a user asks a concrete multi-factor question.
+
 | Topic | Intent | What to look for | Interaction mode |
 | --- | --- | --- | --- |
 | How to choose glasses | High | Questions about shape, proportions, and confidence | Reply with a practical decision framework |
