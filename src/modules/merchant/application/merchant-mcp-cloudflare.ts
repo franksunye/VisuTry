@@ -18,6 +18,28 @@ function validDate(value: unknown): Date | null {
   return Number.isNaN(date.getTime()) ? null : date
 }
 
+function parseScopeValues(value: unknown): string[] {
+  if (Array.isArray(value)) return value.map(String)
+  if (typeof value !== 'string') return []
+
+  const trimmed = value.trim()
+  if (!trimmed) return []
+  if (trimmed.startsWith('[')) {
+    try {
+      const parsed = JSON.parse(trimmed) as unknown
+      return Array.isArray(parsed) ? parsed.map(String) : []
+    } catch {
+      return []
+    }
+  }
+  if (trimmed.startsWith('{') && trimmed.endsWith('}')) {
+    const body = trimmed.slice(1, -1)
+    if (!body) return []
+    return body.split(',').map((item) => item.replace(/^"|"$/gu, '').replace(/\\(["\\])/gu, '$1')).filter(Boolean)
+  }
+  return trimmed.split(/\s+/u).filter(Boolean)
+}
+
 /**
  * OAuth tokens are stored as hashes. Keep this adapter on the direct-Neon
  * runtime so the MCP route does not fall back to the Prisma stub used by the
@@ -58,7 +80,7 @@ export async function authenticateMerchantOAuthAccessToken(rawToken: string, exp
     userId: String(row.userId),
     authorizationId: String(row.authorizationId),
     merchantId: String(row.merchantId),
-    scopes: normalizeMerchantAgentScopes(Array.isArray(row.scopes) ? row.scopes.map(String) : []),
+    scopes: normalizeMerchantAgentScopes(parseScopeValues(row.scopes)),
   }
 }
 

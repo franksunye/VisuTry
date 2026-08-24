@@ -58,6 +58,15 @@ describe('Cloudflare MCP bearer authentication', () => {
     expect(sql.mock.calls[0][0].join('')).toContain('MerchantOAuthAccessToken')
   })
 
+  it('preserves write scopes returned as a PostgreSQL text array', async () => {
+    const sql = sqlMock([validRow({ scopes: '{merchant:read,catalog:read,experience:write,analytics:read}' })])
+    ;(getCloudflareSql as jest.Mock).mockReturnValue(sql)
+
+    await expect(authenticateMerchantOAuthAccessToken('mcp_at_test', resource)).resolves.toEqual(expect.objectContaining({
+      scopes: ['merchant:read', 'catalog:read', 'experience:write', 'analytics:read'],
+    }))
+  })
+
   it.each([
     ['unknown token', []],
     ['expired token', [validRow({ accessExpiresAt: new Date(Date.now() - 1) })]],
