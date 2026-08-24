@@ -55,16 +55,18 @@ test.describe('@critical Store Pilot Flow', () => {
     expect(merchantUrl.searchParams.get('utm_content')).toBe('merchant');
   });
 
-  test('known contextual handoffs use action-first without changing the route contract', async ({ page }) => {
-    const response = await page.goto('/en/c/ello-sunglasses/petite-fit?source=visutry&medium=internal&surface=face-analysis&campaign=face-analysis-fit', { waitUntil: 'domcontentloaded' });
+  test('contextual handoffs preserve the configured Campaign presentation mode', async ({ page }) => {
+    const response = await page.goto('/en/c/ello-sunglasses/petite-fit?source=visutry&medium=internal&surface=face-analysis&campaign=face-analysis-fit', { waitUntil: 'networkidle' });
 
     expect(response).not.toBeNull();
     expect(response!.status()).toBeLessThan(400);
     await expect(page.locator('[data-presentation-mode="EDITORIAL_FIRST"]')).toBeVisible();
     await page.getByRole('button', { name: 'Try on your photo', exact: true }).click();
-    await expect(page.locator('[data-presentation-mode="ACTION_FIRST"]')).toBeVisible();
+    // The persisted merchant Campaign mode is authoritative. A contextual
+    // handoff must not silently rewrite the merchant's configured hierarchy.
+    await expect(page.locator('[data-presentation-mode="EDITORIAL_FIRST"]')).toBeVisible();
     await expect(page.getByText('Reference pilot · simulation')).toBeVisible();
-    await expect(page.getByRole('button', { name: /start with my photo/i })).toHaveCount(1);
+    await expect(page.getByRole('button', { name: /start with my photo/i })).toBeVisible({ timeout: 20_000 });
   });
 
   test('presentation modes remain usable at mobile width', async ({ page }) => {

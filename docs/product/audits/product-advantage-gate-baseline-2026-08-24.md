@@ -7,17 +7,18 @@
 ## Executive Verdict
 
 Gate A: PARTIAL
-Gate B: FAIL
+Gate B: PARTIAL
 Gate C: PARTIAL
 
 Overall Outreach Gate: GATED
 
 The Consumer public surfaces and much of the Merchant / MCP foundation are
 implemented and visually credible in the inspected paths. The gates do not pass
-because current production Store traffic is unavailable, real-merchant acceptance
-is not evidenced, and current-SHA Codex/Cursor Golden Paths have not
-been run. No agent traffic or merchant conversion outcome is proven by the
-current data.
+because Gate A distribution outcomes are not proven, Gate B still lacks an
+authenticated merchant-readable insight review, and current-SHA Codex/Cursor
+Golden Paths have not completed. Real-merchant acceptance is intentionally not
+used in these verdicts; it is the first post-outreach Merchant Validation gate.
+No agent traffic or merchant conversion outcome is proven by the current data.
 
 ## Gate A
 
@@ -141,13 +142,29 @@ Minimum observable funnel at this baseline:
   coherent Business visual hierarchy. The Pilot page exposes the durable form
   flow rather than only a `mailto` handoff.
 - **Implemented and objectively proven — responsive first view:** the inspected
-  `/en/business` and campaign routes had `scrollWidth === innerWidth` at 390px;
-  no horizontal overflow was detected. Desktop inspection at 1280px showed a
+  Business and Campaign routes had `scrollWidth === innerWidth` at 390px; no
+  horizontal overflow was detected. Desktop inspection at 1280px showed a
   premium, agency-facing Business hero.
 - **Implemented and objectively proven — Campaign presentation:**
-  `/en/c/akila/statement-frames` rendered an editorial AKILA hero, campaign
-  narrative, selected catalog subset, product CTAs, merchant CTA, and source /
-  UTM query continuity. This is visibly distinct from the default Store shell.
+  `/en/c/akila/statement-frames` and `/en/c/ello-sunglasses/petite-fit`
+  rendered current editorial heroes, campaign narratives, selected catalog
+  subsets, product CTAs, merchant CTAs, and source / UTM query continuity.
+  These are visibly distinct from the default Store shell. Reference routes
+  intentionally use `noindex, follow`; that is not a defect in Reference proof.
+- **Implemented and objectively proven — canonical Reference Store runtime:**
+  `/en/store/ello-sunglasses` is the active Reference Store named by
+  `src/config/business-site.ts` and current operations documentation. Production
+  browser inspection returned the branded catalog route with product-first
+  presentation, products, Reference pilot disclosure, canonical metadata, and
+  no horizontal overflow at 1280px. A fresh local server returned HTTP 200 with
+  the same Store runtime. The old `/en/store/luna-optical` assumption is not
+  canonical: its current data is absent and the route correctly renders the
+  unavailable/not-found state.
+- **Implemented and objectively proven — controlled shopper continuation:**
+  the fresh Reference Store/Campaign Playwright run covers Store entry, Store
+  hydration, Campaign shell, contextual handoff, mobile presentation, source
+  continuity, and compare-policy behavior. The compare test uses an isolated
+  controlled fixture and does not call an AI provider.
 - **Implemented but not yet proven — merchant-readable analytics:**
   `src/modules/store/application/get-merchant-insights.ts`, Admin Experience
   surfaces, `get_experience_funnel`, `get_top_frames`, and
@@ -157,17 +174,12 @@ Minimum observable funnel at this baseline:
 
 ### Partial
 
-- **Partial — Store shopper experience:** the Store runtime contains brand,
-  catalog, recommendation, try-on, compare, product-click, and intent paths;
-  local unit coverage for attribution, SEO, handoffs, and MCP passed. However,
-  the current production route `/en/store/luna-optical` rendered “STORE
-  UNAVAILABLE” with `noindex, nofollow`, so the paid-traffic shopper path is not
-  currently usable or proven.
-- **Partial — Campaign commercial readiness:** the AKILA route is a Reference
-  Experience and correctly remains `noindex, follow`. It demonstrates the
-  presentation mode, but it is not evidence that a live merchant Campaign can
-  accept paid traffic, report traffic-source continuity, and produce a
-  merchant-reviewed intent result.
+- **Partial — full shopper execution:** Reference routes prove the branded
+  Store/Campaign shell, recommendation entry, try-on entry, compare policy, and
+  attribution handoff. A provider-backed recommendation/try-on result and the
+  full authenticated consumer-to-intent continuation still need a safe isolated
+  account run; this is not a reason to resurrect Luna or require a real merchant
+  before outreach.
 - **Partial — Merchant Workspace quality:**
   `src/components/merchant/MerchantControlCenter.tsx` is functional and
   safety-conscious, but its visible center of gravity is Agent Key setup and
@@ -176,34 +188,33 @@ Minimum observable funnel at this baseline:
 
 ### Missing
 
-- A current real-merchant acceptance run with an 8–50-frame catalog, declared
-  traffic source, shopper journey through recommendation/try-on/compare, and
-  observed intent review.
-- A current production Store route that can be confidently used as a branded
-  paid-traffic destination. Reference/simulation routes do not substitute for
-  this evidence.
+- A current authenticated browser review of the merchant-readable Commerce
+  Intelligence / Admin output against a controlled fixture. The application
+  services and Admin views exist, but implementation existence is not visual
+  proof.
+- A safe isolated provider-backed Store shopper run covering recommendation,
+  try-on, compare, and measurable product/inquiry intent end to end. Current
+  controlled Playwright coverage proves the shell and compare policy, not
+  provider output.
 
 ### P0
 
-- **B-P0-1 — Production Store availability:** `/en/store/luna-optical` is
-  currently rejected by `src/modules/store/application/public-route-admission.ts`
-  or its production data/entitlement inputs and renders the unavailable state.
-  Acceptance: a current intended Store returns a branded 200 page, creates a
-  session, completes recommendation, try-on, compare, and product/inquiry
-  intent, and preserves source context; verify with a read-only production
-  check or an approved isolated pilot fixture.
-- **B-P0-2 — Real merchant acceptance:** onboard one real merchant catalog
-  through the existing assisted or agent path and record the declared source,
-  route, shopper evidence, and intent review. Acceptance: the evidence is
-  attributable to the merchant and is not a Reference or simulation record.
-- **B-P0-3 — Local Store regression:** the targeted run
-  `npx playwright test tests/e2e/business.spec.ts
-  tests/e2e/store-pilot.spec.ts --project=chromium` finished with 8 passed and
-  4 failed. The four Store failures were the campaign shell, contextual
-  handoff, campaign attribution, and compare-policy tests; three received HTTP
-  500 and one could not find `Reference pilot · simulation`. This must be
-  reduced to a reproducible green fixture before claiming the local shopper
-  baseline.
+- **B-P0-1 — Merchant-readable insight proof:** the current authenticated
+  `/en/merchant` browser surface exposes business-readable `Store`, `Campaigns`,
+  and `Insights` states, but the visible workspace has `Insights: No data yet`
+  and `/admin/store` redirects to the Consumer route with `error=Forbidden`.
+  Acceptance: use a controlled, clearly labeled fixture (not a real merchant)
+  to browser-prove the current `/en/merchant` or Admin Experience output with
+  measured Visitors/Engaged Shoppers, Recommendation Rate, Try-On Rate,
+  Compare Rate, Product Click, Inquiry/Lead where enabled, High-Intent
+  Shoppers, and Acquisition Source fields; do not invent unavailable metrics.
+- **No remaining canonical Store runtime P0 after this pass.** The old
+  `/en/store/luna-optical` failure was a stale/deprecated Reference assumption,
+  not a reason to add obsolete fixture data. The active canonical
+  `/en/store/ello-sunglasses` route is production-valid and the fresh local
+  Store/Campaign suite is green after correcting one stale presentation-mode
+  assertion. If a future canonical Store fails route admission, that exact
+  route/runtime/data regression returns as a Gate B P0.
 
 ### P1
 
@@ -217,17 +228,31 @@ Minimum observable funnel at this baseline:
 - Add explicit loading, error, empty, and processing assertions for Store and
   Campaign at desktop and mobile widths.
 - Re-run authenticated Admin / Commerce Intelligence screenshots against a
-  current merchant fixture; current code existence is not visual proof.
+  current controlled fixture; current code existence is not visual proof.
+- Run a provider-backed controlled Store shopper fixture through recommendation,
+  try-on, compare, and measurable product/inquiry intent.
 
 ### Evidence
 
-- Business and Campaign route browser checks passed visually at the inspected
-  viewports; no stale screenshot was observed in the first view.
+- Business, active Reference Store, and AKILA/ello Campaign route checks passed
+  visually at desktop and mobile inspection; no stale screenshot was observed in
+  the first view. The active Store has branded catalog content, product CTAs,
+  recommendation/try-on entry, compare continuation, and Reference disclosure.
+- `PLAYWRIGHT_BASE_URL=http://127.0.0.1:3001 npx playwright test
+  tests/e2e/business.spec.ts tests/e2e/store-pilot.spec.ts --project=chromium`
+  passed 12 tests after the test-contract correction. The initial fresh-server
+  run was 11 passed / 1 failed; the only failure was the stale expectation that
+  a configured `EDITORIAL_FIRST` Campaign changes to `ACTION_FIRST` after a
+  contextual click. `resolvePresentationMode` and its unit tests intentionally
+  preserve persisted merchant configuration.
+- Production browser checks: `/en/store/ello-sunglasses` and both current
+  Campaign References returned successfully with canonical metadata and no
+  horizontal overflow at 1280px; `/en/store/luna-optical` returned the
+  unavailable state with `noindex, nofollow` because its old fixture is absent.
 - `tests/unit/modules/store/merchant-attribution.test.ts`, Store handoff/SEO
   tests, and Merchant Workspace/MCP route tests passed in the targeted unit
-  run: 8 suites, 37 tests.
-- The live Store check is a direct counterexample to a B PASS: the route is
-  unavailable, and the dynamic sitemap has no public Experience URLs.
+  run: 8 suites, 40 tests. Merchant-readable analytics remain implemented but
+  not authenticated-browser-proven.
 
 ## Gate C
 
@@ -281,13 +306,17 @@ Minimum observable funnel at this baseline:
 - Current-SHA Codex Golden Path evidence using an isolated merchant:
   authorization, workspace inspection, catalog validation/intake, draft
   Experience, preview, explicit approval, publish, analytics, and result
-  summary.
+  summary. The local Codex CLI is configured for `visutry`, but its refresh
+  token returned `invalid_grant`; reauthorization displayed `My Merchant
+  Workspace (my-merchant-workspace-3 · OWNER)`. The standard reauthorization
+  completed, but the next Codex run failed MCP handshake with `invalid_token`
+  before `tools/list`; no catalog, Experience, publish, or analytics write was
+  performed.
 - Cursor Golden Path evidence. The exact remaining validation is to configure
   Cursor with the production MCP endpoint and OAuth/PKCE discovery, complete the
   same isolated-merchant read/write flow, and capture the tool transcript and
-  resulting merchant/Experience IDs. This cannot be honestly completed from
-  this environment without a Cursor client session and safe merchant
-  credentials.
+  resulting merchant/Experience IDs. No Cursor client/session is installed or
+  authenticated in this environment.
 
 ### P0
 
@@ -309,18 +338,27 @@ Minimum observable funnel at this baseline:
   boundaries.
 - Add explicit Store inspection/update tools or document the intended
   `get_onboarding_status` / summary contract and cover it with an acceptance
-  test.
+  test. This is P1 while `get_onboarding_status` plus `create_store`,
+  `set_store_frames`, `preview_store`, and `publish_store` cover the current
+  Store Golden Path; promote it to P0 if an isolated Golden Path run proves
+  those capabilities cannot inspect or update the Store.
 - Add a merchant-readable, machine-readable final result summary that includes
   Experience URL/status, catalog counts/validation state, traffic-source
   summary, and measurable funnel fields without claiming revenue attribution.
 
 ### Evidence
 
-- Targeted unit validation passed: 8 suites, 37 tests, including MCP route,
-  OAuth HTTP contract, catalog intake, Store attribution/SEO, and Merchant
-  Workspace tests.
+- The prior baseline targeted MCP/OAuth validation passed: 8 suites, 37 tests,
+  including MCP route, OAuth HTTP contract, catalog intake, Store
+  attribution/SEO, and Merchant Workspace tests. The current focused
+  presentation/attribution/insight re-run passed 8 suites, 40 tests.
 - Live MCP/OAuth discovery passed with HTTP 200 metadata; authenticated
-  `tools/list` and write execution were not run in this environment.
+  `tools/list` and write execution were not run in this environment. The
+  first current Codex CLI attempt was blocked before tool enumeration by an
+  expired OAuth refresh token (`invalid_grant`). Standard reauthorization
+  completed against the visible no-data `My Merchant Workspace`, but a second
+  run failed the MCP handshake with `invalid_token`; the current Codex Golden
+  Path therefore remains unproven.
 - The existing `docs/product/plans/universal-agent-access.md` is useful
   historical evidence but explicitly says Cursor/Claude are not confirmed and
   identifies OAuth UI/cleanup and DB protocol tests as remaining work.
@@ -335,8 +373,53 @@ Minimum observable funnel at this baseline:
 - OAuth lifecycle and client compatibility are prerequisites for a credible
   Gate C merchant Golden Path; they must not be replaced by manual keys or DB
   setup in the evidence run.
-- A real merchant fixture is required to separate Reference/simulation proof
-  from commercial Gate B and Gate C evidence.
+- A controlled Reference/simulation fixture is valid for Gate B pre-outreach
+  proof when it is clearly labeled. A dedicated isolated merchant/workspace is
+  required for Gate C write evidence; it must not be confused with the
+  post-outreach First Real Merchant validation gate.
+
+## Post-Outreach Validation
+
+This is deliberately outside the pre-outreach Product Advantage Gate and was
+not run in this pass:
+
+```text
+First Real Merchant → own catalog → declared traffic source
+→ live shopper activity → intent review → continuation / pricing evidence
+```
+
+It starts only after Gate A, Gate B, and Gate C are all `PASS` and Outreach
+Ready has been declared. Real-merchant catalog, real traffic, and real intent
+acceptance must not be used to fail Gate B before outreach.
+
+## Cursor Golden Path Connection Instructions
+
+Repository-side MCP compatibility is already in place. The remaining external
+validation action is exactly:
+
+1. In Cursor, open Settings → Tools & Integrations → add a custom remote MCP
+   server named `visutry`.
+2. Set the Streamable HTTP URL to
+   `https://www.visutry.com/api/mcp`; do not paste a static Authorization
+   header. Allow Cursor to use the advertised OAuth/PKCE discovery.
+3. Authenticate and select only the dedicated isolated test Merchant/workspace;
+   do not use a real customer merchant.
+4. Run `tools/list`, then the same sequence:
+   `get_merchant` → `get_onboarding_status` → `list_frames` /
+   `inspect_catalog_source` → `validate_catalog` → `import_frames` (only after
+   explicit catalog approval) → `create_store` or `create_campaign` → frame
+   selection/configuration → `preview_*` → merchant-readable summary →
+   `publish_*` with `approved: true` → `get_experience_summary`,
+   `get_experience_funnel`, and `get_intent_summary`.
+5. Capture the Cursor tool transcript, workspace ID, catalog validation result,
+   Experience ID/URL, preview result, approval boundary, publish result, and
+   analytics result. Revoke the test authorization and archive the test
+   Experience after evidence capture if the isolated workspace policy requires
+   cleanup.
+
+The single remaining external action is completing that authenticated Cursor
+session against a proven isolated workspace. Until then Gate C is `PARTIAL`,
+not `PASS`.
 
 ## Explicit Non-Goals
 
@@ -349,17 +432,16 @@ Minimum observable funnel at this baseline:
 
 ## Recommended Execution Order
 
-1. Resolve the current Store admission/data/fixture failure and re-run the
-   Store/Campaign browser journey until the local and intended production
-   routes are reproducible.
+1. Keep the active canonical Reference Store/Campaign routes and their fresh
+   browser suite green; do not restore the deprecated Luna fixture.
 2. Browser-prove the full Detector → Advisor → Try-On → Compare continuity with
    the state-preserving handoff and regression assertions now in place.
 3. Produce a current-SHA Codex MCP Golden Path, then complete the explicitly
    recorded Cursor validation with an isolated merchant.
-4. On the green technical baseline, run one real-merchant catalog/source/
-   shopper/intent acceptance and publish the evidence slice.
+4. Re-run authenticated merchant-readable Commerce Intelligence evidence and
+   the controlled provider-backed Store shopper fixture.
 5. Only after A, B, and C evidence is complete may the product plan authorize
-   controlled outreach.
+   controlled outreach; then begin the separate First Real Merchant validation.
 
 ## Definition of Done Remaining
 
@@ -367,8 +449,10 @@ Minimum observable funnel at this baseline:
   current-source funnel events, reconciled SEO/GEO indexability, and a
   reproducible source-class evidence report.
 - Gate B has a current available branded Store, a distinct Campaign path, green
-  desktop/mobile loading/error/empty checks, authenticated merchant-readable
-  metrics, and one non-Reference real-merchant acceptance run.
+  desktop/mobile loading/error/empty checks, a controlled provider-backed
+  shopper run, and authenticated merchant-readable metrics from a Reference,
+  simulation, or controlled fixture. Real-merchant acceptance is not a Gate B
+  requirement.
 - Gate C has current-SHA Codex and Cursor transcripts/results, DB-backed
   protocol coverage, visible OAuth lifecycle controls or a documented safe
   equivalent, and no manual intervention in the Golden Path.

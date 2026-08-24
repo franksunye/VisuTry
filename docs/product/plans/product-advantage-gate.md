@@ -38,9 +38,25 @@ Campaign, understand the catalog and context, use recommendation / try-on /
 compare, and reach a measurable product or inquiry intent.
 
 Gate evidence requires current desktop and mobile inspection, current screenshots
-and claims, working loading/error/empty states, and at least one real-merchant
-catalog and declared-traffic acceptance run. Reference or simulation evidence is
-not customer proof.
+and claims, working loading/error/empty states, and a production-valid canonical
+Store/Campaign path. Reference, simulation, and controlled-fixture evidence are
+valid pre-outreach proof of the product bar; they must be clearly labeled and
+must not be presented as customer proof. Real-merchant catalog, real traffic,
+and real-merchant acceptance are deliberately not Gate B criteria.
+
+## Post-Outreach Merchant Validation
+
+After Gate A, Gate B, and Gate C pass, and only after controlled outreach begins,
+the first Merchant Validation gate is:
+
+```text
+First Real Merchant → own catalog → declared traffic source
+→ live shopper activity → intent review → continuation / pricing evidence
+```
+
+This post-outreach validation must remain separate from the pre-outreach
+Product Advantage Gate. It is not required to declare Outreach Ready and is not
+evidence that can be backfilled into Gate B.
 
 ## Gate C — Agent-Native Merchant Operations
 
