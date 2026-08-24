@@ -56,7 +56,7 @@ test.describe('@critical Store Pilot Flow', () => {
   });
 
   test('known contextual handoffs use action-first without changing the route contract', async ({ page }) => {
-    const response = await page.goto('/en/c/ello-sunglasses/petite-fit?source=visutry&medium=internal&surface=face-analysis&campaign=face-analysis-fit', { waitUntil: 'networkidle' });
+    const response = await page.goto('/en/c/ello-sunglasses/petite-fit?source=visutry&medium=internal&surface=face-analysis&campaign=face-analysis-fit', { waitUntil: 'domcontentloaded' });
 
     expect(response).not.toBeNull();
     expect(response!.status()).toBeLessThan(400);
