@@ -3,7 +3,7 @@ import { requireAuth } from "@/lib/api-auth"
 import { createCheckoutSession, ProductType } from "@/lib/stripe"
 import { isMockMode } from "@/lib/mocks"
 import { mockCreateCheckoutSession } from "@/lib/mocks/stripe"
-import { logger, getRequestContext } from "@/lib/logger"
+import { logger } from "@/lib/logger"
 import {
   sanitizeAcquisitionAttribution,
   serializeAttributionForStripe,
@@ -27,8 +27,9 @@ function isSafeCheckoutReturnUrl(value: unknown, requestOrigin: string): value i
 }
 
 export async function POST(request: NextRequest) {
-  const ctx = getRequestContext(request)
   try {
+    logger.info('payment', 'checkout_requested', { route: 'create_session' })
+
     // 检查用户认证
     const auth = await requireAuth()
     if (!auth.ok) return auth.response
@@ -125,7 +126,7 @@ export async function POST(request: NextRequest) {
 
     if (isMockMode) {
       console.log('🧪 Mock Payment: Creating mock checkout session')
-      logger.info('payment', 'Creating mock checkout session', { productType: finalProductType, userId: userId }, ctx)
+      logger.info('payment', 'Creating mock checkout session', { productType: finalProductType })
       const serializedAttribution = serializeAttributionForStripe(sanitizedAttribution)
       checkoutSession = await mockCreateCheckoutSession({
         productType: finalProductType,
@@ -167,12 +168,11 @@ export async function POST(request: NextRequest) {
       },
     })
 
-    logger.info('payment', 'Checkout session created and recorded', {
-      sessionId: checkoutSession.id,
+    logger.info('payment', 'checkout_created', {
       productType: finalProductType,
       checkoutContext: normalizedUnlockTaskId ? 'face_analysis_report' : 'pricing',
-      unlockTaskId: normalizedUnlockTaskId,
-    }, ctx)
+      status: 'PENDING',
+    })
     return NextResponse.json({
       success: true,
       data: {
@@ -182,9 +182,11 @@ export async function POST(request: NextRequest) {
     })
 
   } catch (error) {
-    const err = error instanceof Error ? error : new Error(String(error))
     console.error("创建支付会话失败:", error)
-    logger.error('payment', 'Failed to create checkout session', err, undefined, ctx)
+    logger.error('payment', 'checkout_failed', undefined, {
+      route: 'create_session',
+      stage: 'unexpected_failure',
+    })
     return NextResponse.json(
       { success: false, error: "创建支付会话失败" },
       { status: 500 }
