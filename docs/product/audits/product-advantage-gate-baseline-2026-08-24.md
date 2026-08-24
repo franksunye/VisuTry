@@ -29,9 +29,10 @@ source-class → decision-action report, but the core Consumer GA4 join and
 genuine production Agent referral evidence remain incomplete. Real-merchant
 acceptance is intentionally not used in these verdicts; it is the first
 post-outreach Merchant Validation gate. No agent traffic or merchant conversion
-outcome is proven by the current data. The active hard outreach policy remains
-GATED pending an explicit Product decision on the recommended Soft Distribution
-Gate.
+outcome is proven by the current data. Product has selected the active Hard
+Distribution Gate: Outreach remains GATED until Gate A L3, Gate B, and Gate C
+pass. The rolling 14-day threshold and weekly growth loop bound the waiting
+risk without accepting technical readiness or synthetic traffic as proof.
 
 ## Gate A
 
@@ -498,15 +499,13 @@ and does not block the core Gate C verdict.
 
 ## Outreach Policy Decision
 
-The active contract remains a **HARD GATE**: Outreach is `GATED` until Gate A
-real distribution evidence, Gate B, and Gate C pass. The recommended product
-policy is a **SOFT DISTRIBUTION GATE**: require Gate A technical and reporting
-readiness before controlled outreach, then measure genuine Agent traffic as a
-time-boxed early-outreach milestone. Soft gating avoids an unbounded wait for a
-channel whose evidence is expected to grow through controlled distribution;
-hard gating preserves a cleaner pre-outreach proof of the strategic Agent
-distribution hypothesis. This pass records the recommendation but does not
-silently change the active hard-gate contract.
+The selected policy is a **HARD DISTRIBUTION GATE**: Outreach is `GATED` until
+Gate A L3 real distribution evidence, Gate B, and Gate C pass. The tradeoff is
+waiting for a channel that may grow slowly; the rolling 14-day threshold,
+weekly growth loop, and explicit evidence log bound that risk operationally.
+Technical readiness and synthetic traffic do not unlock outreach. A future
+Soft Distribution Gate would require an explicit Product source-of-truth
+change.
 
 ## Post-Outreach Validation
 
@@ -582,8 +581,9 @@ and `P1`; Agent-Native Core / Gate C remains `PASS`.
    GA4/dataLayer boundary and do not fabricate counts.
 5. Complete the explicitly recorded Cursor validation when its external client
    callback works; keep it P1 while Agent-Native Core remains proven.
-6. Resolve the hard-vs-soft outreach policy decision before authorizing any
-   outreach; then keep First Real Merchant validation separate.
+6. Operate the active Hard Distribution Gate: observe the rolling 14-day L3
+   threshold through the durable report and growth-loop evidence log before
+   authorizing any outreach; then keep First Real Merchant validation separate.
 
 ## Definition of Done Remaining
 

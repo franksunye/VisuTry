@@ -272,18 +272,20 @@ P1 interoperability item. Repository configuration alone cannot claim Cursor
 execution PASS, and the server must not widen redirect validation to arbitrary
 custom schemes.
 
-## Outreach policy decision point
+## Outreach policy decision
 
-The current active contract remains a hard gate: structured outreach stays
-`GATED` until Gate A real distribution evidence, Gate B, and Gate C pass. A
-bounded product decision is still required on whether genuine Agent traffic
-should instead become a post-launch evidence milestone. The recommended option
-is a **Soft Distribution Gate**: require Gate A technical and reporting
-readiness before outreach, then measure genuine Agent traffic during controlled
-outreach. This avoids waiting indefinitely for a channel whose evidence is
-itself expected to grow through controlled distribution, while preserving the
-strategic hypothesis as a tracked milestone. This recommendation does not
-change the active hard-gate status without explicit Product approval.
+Product has selected a **Hard Distribution Gate** for the current pre-outreach
+sequence. Structured outreach stays `GATED` until Gate A real distribution
+evidence (L3), Gate B, and Gate C pass. This preserves a clean test of the
+strategic hypothesis that VisuTry can create qualified Agent distribution for
+itself before using that capability in merchant outreach.
+
+The tradeoff is a risk of waiting for a channel that may grow slowly. The
+rolling 14-day evidence window, weekly growth loop, and explicit evidence log
+bound that risk operationally without replacing the L3 threshold with
+technical readiness or synthetic traffic. A future Product decision may adopt
+a Soft Distribution Gate, but that would be a deliberate source-of-truth
+change, not an implicit exception.
 
 ## Outreach Readiness Decision
 

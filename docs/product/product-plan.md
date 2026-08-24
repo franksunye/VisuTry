@@ -106,7 +106,7 @@ Current focus:
 | Priority | Workstream | Why it matters | Status |
 | --- | --- | --- | --- |
 | P0 | Consumer production stability | 2B work must not regress Face Analysis, Credits, Try-On, Compare, payment, or protected-media behavior. | Shipped / guarded by CI |
-| P0 | Product Advantage Gate A/B/C baseline and P0 closure | Structured outreach is gated until the active Product decision is resolved and the required Consumer, Merchant, and Agent evidence passes. | In progress — B PASS; Agent-Native Core PASS; A evidence boundary and outreach policy decision remain |
+| P0 | Product Advantage Gate A/B/C baseline and P0 closure | Structured outreach is gated until the required Consumer, Merchant, and Agent evidence passes under the active Hard Distribution Gate. | In progress — B PASS; Agent-Native Core PASS; A reporting and genuine-distribution evidence remain |
 | P1 | Assisted Pilot operating loop | Intake, catalog review, one Store or Campaign, launch, weekly review, and continuation decision must work without normal shopper actions requiring developer intervention after the gate passes. | Blocked by gate |
 | P1 | Business Website v1.2 | The multi-page `/business` narrative, examples, pricing, integrations, and Pilot offer are live. | Shipped / Measuring |
 | P1 | Store / Campaign / Commerce Intelligence product | Shared Experience runtime, attribution, Sponsored Usage, Reference/Live provenance, Admin insights, and focused Campaign Try-On are live. | Shipped / Measuring |
@@ -116,7 +116,7 @@ Current focus:
 
 | Priority | Workstream | Why it matters | Status |
 | --- | --- | --- | --- |
-| P0 | Product Advantage Gate acceptance | Close the dated A evidence/reporting boundary, keep Gate B and Agent-Native Core evidence current, and record the explicit outreach policy decision. | In progress |
+| P0 | Product Advantage Gate acceptance | Close the dated A evidence/reporting boundary and keep Gate B and Agent-Native Core evidence current under the active Hard Distribution Gate. | In progress |
 | P1 | OAuth authorization lifecycle UI and cleanup | External agent-native Pilots need connected-authorization visibility, revoke controls, and expired-artifact cleanup. | Backend partially shipped / UI + cleanup ready |
 | P1 | Post-Outreach First Real Merchant validation | After Outreach Ready, one merchant completes catalog intake, Experience launch, declared-source traffic, shopper journey, intent review, and continuation/pricing review. | Not started / intentionally post-outreach |
 | P1 | Second-client MCP compatibility | Complete the external Cursor callback/client validation when the client environment supports it; do not widen the standards-compliant server contract for a client-local failure. | Repository ready / external validation pending |
