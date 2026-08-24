@@ -19,6 +19,36 @@ export type MerchantControlExperience = {
   updatedAt: string
 }
 
+export type MerchantCommerceIntelligence = {
+  period: { from: string; to: string; timezone: 'UTC' }
+  hasActivity: boolean
+  totals: {
+    visitors: number
+    engagedShoppers: number
+    recommendationActivity: number
+    tryOnCompletions: number
+    compareActivity: number
+    productClicks: number
+    highIntentShoppers: number
+  }
+  rates: { engagement: number | null; recommendation: number | null; tryOn: number | null; compare: number | null }
+  acquisitionSources: Array<{ source: string; visitors: number }>
+  experiences: Array<{
+    id: string
+    type: 'STORE' | 'CAMPAIGN'
+    name: string
+    status: string
+    referenceData: boolean
+    visitors: number
+    engagedShoppers: number
+    recommendationActivity: number
+    tryOnCompletions: number
+    compareActivity: number
+    productClicks: number
+    highIntentShoppers: number
+  }>
+}
+
 export type MerchantControlCenter = {
   merchant: { id: string; slug: string; name: string; websiteUrl: string | null; status: string; referenceData: boolean }
   store: MerchantControlExperience | null
@@ -26,6 +56,7 @@ export type MerchantControlCenter = {
   activeCampaignCount: number
   shopperActivityAvailable: boolean
   credentialUsage: { active: number }
+  commerceIntelligence?: MerchantCommerceIntelligence
 }
 
 export async function getMerchantControlCenter(input: { merchantId: string }): Promise<MerchantControlCenter | null> {

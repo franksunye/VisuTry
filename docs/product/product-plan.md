@@ -156,7 +156,7 @@ Current focus:
 | Pilot interest is durably recorded | A qualified prospect can submit interest and the team can track source, status, objection, demo, and Pilot outcome without relying only on an email client. | Production write verified / admin review pending |
 | Assisted Pilot can be operated | The supported intake and operating path is defined for a future merchant; its real-catalog acceptance run starts only after Outreach Ready. | Ready / post-outreach validation pending |
 | External agent access is bounded | Connected OAuth authorizations can be listed/revoked, expired artifacts are cleaned, and current Codex plus Cursor complete the Golden Path. | Partially implemented |
-| Product Advantage Gate passes | Consumer, Merchant, and Agent gates each have current reproducible evidence; structured outreach is explicitly unlocked only then. | Not started / see `docs/product/audits/product-advantage-gate-baseline-2026-08-24.md` |
+| Product Advantage Gate passes | Consumer, Merchant, and Agent gates each have current reproducible evidence; structured outreach is explicitly unlocked only then. | In progress — A technical readiness is close but real distribution proof is incomplete; B controlled merchant-readable browser proof is incomplete; C current Codex/Cursor client proof is incomplete. See `docs/product/audits/product-advantage-gate-baseline-2026-08-24.md`. |
 | Post-Outreach Merchant Validation is defined | The next-stage evidence sequence is explicit and cannot be counted toward pre-outreach Gate A/B/C. | Defined / not started |
 
 ---
@@ -279,7 +279,7 @@ Current focus:
 
 **Goal:** Prepare the shipped Store / Campaign product for pre-outreach gate proof, then validate it with a real merchant catalog and real traffic only in the first post-outreach Merchant Validation stage. Shopify app, generalized Campaign Builder, CRM, and revenue attribution remain deferred.
 
-**Current status:** Product foundation, Reference Factory, market-facing surfaces, assisted operations, and agent-native core implemented; the three-gate pass is not yet evidenced. Real merchant validation is intentionally post-outreach and has not started.
+**Current status:** Product foundation, Reference Factory, market-facing surfaces, assisted operations, and agent-native core are implemented. The three-gate pass is not yet evidenced: Gate A separates technical readiness from genuine distribution proof; Gate B still needs controlled merchant-readable browser proof; Gate C still needs current-SHA Codex and real Cursor client runs. Real merchant validation is intentionally post-outreach and has not started.
 
 **Current product model:**
 

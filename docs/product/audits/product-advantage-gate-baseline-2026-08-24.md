@@ -2,7 +2,7 @@
 
 **Audit date:** 2026-08-24
 **Branch:** `codex/product-advantage-gate-baseline-2026-08-24`
-**Starting SHA:** `3699f57a0d0cd8ba38f4d84de9412e987568658d`
+**Starting SHA:** `204573bf19959c80481ebfbb889045f25bb251f1`
 
 ## Executive Verdict
 
@@ -19,6 +19,8 @@ authenticated merchant-readable insight review, and current-SHA Codex/Cursor
 Golden Paths have not completed. Real-merchant acceptance is intentionally not
 used in these verdicts; it is the first post-outreach Merchant Validation gate.
 No agent traffic or merchant conversion outcome is proven by the current data.
+Gate A therefore reports technical readiness separately from real distribution
+evidence; implementation and synthetic tests do not count as production proof.
 
 ## Gate A
 
@@ -67,6 +69,9 @@ No agent traffic or merchant conversion outcome is proven by the current data.
   `aiAgentSource`. There is no current production evidence slice proving counts
   for those sources. The consumer analytics path still stores normalized
   first-touch source/medium rather than one shared channel schema.
+- **Technical readiness boundary:** source parsing, persistence, reporting, and
+  Consumer decision events are implementation evidence. Synthetic attribution
+  requests are labelled `TEST` and cannot satisfy real distribution proof.
 - **Partial — journey continuity:**
   Detector → Advisor and Detector → Try-On now preserve state in the tested
   handoffs; the full authenticated Try-On → Compare and downstream intent path
@@ -74,10 +79,10 @@ No agent traffic or merchant conversion outcome is proven by the current data.
 - **Partial — indexable merchant distribution:**
   `src/modules/store/domain/experience-search-visibility.ts` and
   `src/lib/store-discovery-sitemap.ts` correctly gate public Store/Campaign
-  indexing. The live `/sitemaps/dynamic.xml` is currently an empty URL set, so
-  no public Merchant Experience distribution is proven. This is a consequence
-  of the missing active/indexable Experience evidence, not a reason to create
-  generic SEO pages.
+  indexing. The live `/sitemaps/dynamic.xml` is currently an empty URL set. The
+  canonical Reference Store/Campaign surfaces are intentionally `noindex,
+  follow`, so this is not a technical blocker under the active policy. A future
+  active live Experience admitted as `PUBLIC_INDEX` must appear there.
 - **Partial — SEO/GEO architecture reconciliation:**
   `src/lib/sitemap-static.ts` emits localized entries for the `staticPagePaths`
   consumer cluster, while
@@ -103,11 +108,11 @@ No agent traffic or merchant conversion outcome is proven by the current data.
   each class to session, Experience, and intent records. Acceptance: counts and
   denominators are reproducible from named events/data fields; otherwise the
   gate remains unproven.
-- **A-P0-2 — Public Experience distribution:** resolve the admitted live Store /
-  Campaign data or entitlement state so the dynamic sitemap contains only a
-  current, intentional public Experience. Acceptance: a published live
-  Experience passes route admission, metadata, sitemap, browser journey, and
-  measurable intent checks without changing the Consumer stability boundary.
+- **A-P0-2 — Genuine distribution evidence:** observe one real production
+  AI-assistant/agent referral, classify it distinctly, connect it to a persisted
+  session, and verify one meaningful Consumer decision action. Synthetic traffic
+  cannot satisfy this item. The dynamic sitemap is not a P0 by itself because
+  the current canonical Reference surfaces are deliberately noindex.
 
 ### P1
 
@@ -117,6 +122,9 @@ No agent traffic or merchant conversion outcome is proven by the current data.
   referrer fields for auditability.
 - Reconcile `src/lib/sitemap-static.ts` and route metadata with the English-first
   SEO/GEO policy, with a test for every route family rather than adding pages.
+- Keep the public discovery policy explicit: Consumer/answer surfaces may be
+  indexable; Reference surfaces are noindex/follow; only admitted active live
+  Experiences enter `dynamic.xml`; paid-only and private Experiences do not.
 - Add an end-to-end funnel assertion covering Detector → Advisor → Try-On →
   Compare with preserved state and measured continuation events.
 
@@ -131,6 +139,13 @@ Minimum observable funnel at this baseline:
 | Useful Decision Interaction | Detector upload/complete/fail; Advisor analysis events; Store `merchant_page_viewed` and recommendation events | Implemented; cross-system join and current production counts are not proven. |
 | Recommendation / Try-On / Compare | Consumer `recommendation_*`, `tryon_*`, `comparison_*`; Store MerchantEvents and usage records | Implemented in separate schemas; Detector direct Try-On handoff is covered by a regression test, but full authenticated continuation is not yet proven. |
 | Intent | Consumer `purchase_intent_clicked` where applicable; Store `MerchantIntent`, product click/favorite/inquiry events | Store intent is durable; no unified Consumer-to-merchant intent proof. |
+
+Gate A result split: **technical readiness PARTIAL** (source parsing,
+persistence, canonical/structured metadata, and sitemap admission are tested;
+the durable cross-system Consumer funnel/report is incomplete); **real
+distribution evidence PARTIAL** (no genuine production AI/agent referral with a
+meaningful decision action is available). Synthetic source-class tests are not
+counted as production proof.
 
 ## Gate B
 
@@ -169,8 +184,12 @@ Minimum observable funnel at this baseline:
   `src/modules/store/application/get-merchant-insights.ts`, Admin Experience
   surfaces, `get_experience_funnel`, `get_top_frames`, and
   `get_intent_summary` provide measurable recommendation, try-on, compare,
-  product-click, and intent-oriented signals. A current authenticated browser
-  review of the Admin / Workspace output was not available in this run.
+  product-click, and intent-oriented signals. This pass adds a direct-Neon
+  aggregate contract and merchant-readable `Commerce Intelligence` section to
+  `src/components/merchant/MerchantControlCenter.tsx`, with explicit
+  Reference/Simulation provenance and an empty state. The component and
+  aggregate contract are unit-proven; the authenticated browser proof against
+  a controlled fixture is still outstanding.
 
 ### Partial
 
@@ -188,10 +207,12 @@ Minimum observable funnel at this baseline:
 
 ### Missing
 
-- A current authenticated browser review of the merchant-readable Commerce
-  Intelligence / Admin output against a controlled fixture. The application
-  services and Admin views exist, but implementation existence is not visual
-  proof.
+- A current authenticated browser review of the new merchant-readable Commerce
+  Intelligence section against a controlled fixture. The live browser run at
+  the pre-change deployment showed `/en/merchant` with only the overview
+  `Insights: No data yet`; this branch has not been deployed and no safe local
+  authenticated fixture is configured in this environment. Implementation
+  existence is not visual proof.
 - A safe isolated provider-backed Store shopper run covering recommendation,
   try-on, compare, and measurable product/inquiry intent end to end. Current
   controlled Playwright coverage proves the shell and compare policy, not
@@ -199,15 +220,15 @@ Minimum observable funnel at this baseline:
 
 ### P0
 
-- **B-P0-1 — Merchant-readable insight proof:** the current authenticated
-  `/en/merchant` browser surface exposes business-readable `Store`, `Campaigns`,
-  and `Insights` states, but the visible workspace has `Insights: No data yet`
-  and `/admin/store` redirects to the Consumer route with `error=Forbidden`.
-  Acceptance: use a controlled, clearly labeled fixture (not a real merchant)
-  to browser-prove the current `/en/merchant` or Admin Experience output with
-  measured Visitors/Engaged Shoppers, Recommendation Rate, Try-On Rate,
-  Compare Rate, Product Click, Inquiry/Lead where enabled, High-Intent
-  Shoppers, and Acquisition Source fields; do not invent unavailable metrics.
+- **B-P0-1 — Merchant-readable insight proof:** browser-prove the branch's
+  `/en/merchant#insights` output using a controlled, clearly labelled fixture
+  (not a real merchant). The proof must show populated Visitors, Engaged
+  Shoppers, Recommendation, Try-On, Compare, Product Click, High-Intent
+  Shoppers, acquisition source, Store/Campaign context, and Reference /
+  Simulation provenance where supported; it must also show the intentional
+  empty state. Do not use `/admin/store` as a substitute when normal merchant
+  users are forbidden there, and do not invent Inquiry/Lead, revenue, orders,
+  or ROAS metrics that the current contract does not measure.
 - **No remaining canonical Store runtime P0 after this pass.** The old
   `/en/store/luna-optical` failure was a stale/deprecated Reference assumption,
   not a reason to add obsolete fixture data. The active canonical
@@ -251,7 +272,7 @@ Minimum observable funnel at this baseline:
   unavailable state with `noindex, nofollow` because its old fixture is absent.
 - `tests/unit/modules/store/merchant-attribution.test.ts`, Store handoff/SEO
   tests, and Merchant Workspace/MCP route tests passed in the targeted unit
-  run: 8 suites, 40 tests. Merchant-readable analytics remain implemented but
+  run: 10 suites, 39 tests. Merchant-readable analytics remain implemented but
   not authenticated-browser-proven.
 
 ## Gate C
@@ -266,16 +287,21 @@ Minimum observable funnel at this baseline:
   the scopes include merchant, catalog, experience, and analytics read/write
   scopes as applicable.
 - **Implemented and objectively proven — bounded tool surface:**
-  `src/modules/merchant/mcp/server.ts` registers catalog inspection/intake,
-  validation, Store/Campaign creation/configuration/preview/publish, and
-  aggregate analytics tools. `publish_store` and `publish_campaign` require an
-  explicit `approved` boolean; tool annotations and server instructions expose
-  read-only, destructive, idempotent, tenant, and approval boundaries.
-- **Implemented and objectively proven — catalog safety contract:**
-  `inspect_catalog_source` is bounded and read-only; `import_frames` is a
-  separate write after approval; source intake limits public HTTP/HTTPS scope,
-  redirects, size, timeout, and candidate count. Tenant checks flow through the
-  merchant actor and repository boundaries.
+  `src/modules/merchant/mcp/server-cloudflare.ts` registers catalog
+  inspection/intake, validation, Store/Campaign creation/configuration/preview,
+  explicit-approval Store publish, and aggregate analytics tools. The Cloudflare
+  route now handles both Agent Key and OAuth actors. `publish_store` requires
+  `approved: true`; Campaign publish remains intentionally out of scope in this
+  adapter. Tool annotations and actor checks expose read-only, idempotent,
+  tenant, scope, and approval boundaries.
+- **Implemented and objectively proven — catalog safety contract:** the
+  regular server has bounded `inspect_catalog_source` source inspection, while
+  the active Cloudflare surface exposes tenant-scoped `list_frames`,
+  `import_frames`, and `validate_catalog`; `import_frames` is a separate write
+  after approval. Source intake limits public HTTP/HTTPS scope, redirects, size,
+  timeout, and candidate count. Tenant checks flow through the merchant actor
+  and repository boundaries. The source-inspection capability mismatch remains
+  explicit rather than being hidden in the Golden Path claim.
 - **Implemented and objectively proven — credential primitives:** Agent Key
   create/rotate/revoke APIs and Merchant Workspace controls exist. OAuth
   authorization, token, revoke, and authorization-list APIs exist in
@@ -285,6 +311,27 @@ Minimum observable funnel at this baseline:
   Golden Path on an older deployment SHA. The repository and production MCP
   discovery have changed since that evidence, so it is retained as historical
   evidence, not a current PASS.
+
+### Current-SHA OAuth investigation
+
+- **Root cause:** the production `/api/mcp` route uses the Cloudflare adapter
+  `src/modules/merchant/application/merchant-mcp-cloudflare.ts`. After the
+  Cloudflare routing change it accepted only `vt_live_*` Agent Keys. OAuth
+  authorization and token exchange issued DB-backed opaque `mcp_at_*` access
+  tokens, but the adapter sent every non-Agent-Key token to the Agent Key
+  validator. The bearer was rejected before Streamable HTTP initialization and
+  before `tools/list`, producing `invalid_token`.
+- **Separate stale-credential issue:** the earlier `invalid_grant` occurred at
+  refresh-token exchange and is a stale/revoked Codex refresh artifact. It is not
+  the same failure as the post-reauthorization `invalid_token` bearer mismatch.
+- **Fix in this branch:** the Cloudflare adapter hashes and tenant-joins OAuth
+  access tokens, validates expiry/revocation/status/resource, normalizes scopes,
+  updates last-use timestamps transactionally, and returns the same merchant
+  actor contract as Agent Keys. Regression tests cover valid, expired, revoked,
+  wrong-resource, and Agent Key paths. No token or credential is logged.
+- **Proof boundary:** the fix is proven by current-SHA unit and MCP route tests,
+  but the public deployment has not been updated in this pass. Therefore a real
+  post-fix Codex handshake and `tools/list` transcript remain required.
 
 ### Partial
 
@@ -303,15 +350,13 @@ Minimum observable funnel at this baseline:
 
 ### Missing
 
-- Current-SHA Codex Golden Path evidence using an isolated merchant:
-  authorization, workspace inspection, catalog validation/intake, draft
-  Experience, preview, explicit approval, publish, analytics, and result
-  summary. The local Codex CLI is configured for `visutry`, but its refresh
-  token returned `invalid_grant`; reauthorization displayed `My Merchant
-  Workspace (my-merchant-workspace-3 · OWNER)`. The standard reauthorization
-  completed, but the next Codex run failed MCP handshake with `invalid_token`
-  before `tools/list`; no catalog, Experience, publish, or analytics write was
-  performed.
+- Current-SHA Codex Golden Path evidence using an isolated merchant is still
+  missing: authorization, workspace inspection, catalog validation/intake,
+  draft Experience, preview, explicit approval, publish, analytics, and result
+  summary. The last live run selected `My Merchant Workspace
+  (my-merchant-workspace-3 · OWNER)` after OAuth reauthorization, then failed
+  before `tools/list` with `invalid_token` against the pre-fix deployment. No
+  catalog, Experience, publish, or analytics write was performed.
 - Cursor Golden Path evidence. The exact remaining validation is to configure
   Cursor with the production MCP endpoint and OAuth/PKCE discovery, complete the
   same isolated-merchant read/write flow, and capture the tool transcript and
@@ -320,10 +365,11 @@ Minimum observable funnel at this baseline:
 
 ### P0
 
-- **C-P0-1 — Current Codex proof:** re-run the full Golden Path against the
-  current deployed SHA or a production-equivalent isolated fixture. Acceptance:
-  every step in the Gate C sequence succeeds through MCP, no manual DB/API
-  intervention occurs, all writes are tenant-scoped/idempotent, and publish is
+- **C-P0-1 — Current Codex proof:** deploy the current adapter or run its
+  production-equivalent endpoint, then re-run the full Golden Path against an
+  isolated merchant. Acceptance: fresh OAuth, MCP handshake, `tools/list`, and
+  every step in the Gate C sequence succeeds through MCP; no manual DB/API
+  intervention occurs; all writes are tenant-scoped/idempotent; and publish is
   impossible without `approved=true`.
 - **C-P0-2 — Cursor proof:** execute the same flow from Cursor with the
   published endpoint and OAuth discovery. Acceptance: tool discovery,
@@ -405,12 +451,13 @@ validation action is exactly:
 3. Authenticate and select only the dedicated isolated test Merchant/workspace;
    do not use a real customer merchant.
 4. Run `tools/list`, then the same sequence:
-   `get_merchant` → `get_onboarding_status` → `list_frames` /
-   `inspect_catalog_source` → `validate_catalog` → `import_frames` (only after
-   explicit catalog approval) → `create_store` or `create_campaign` → frame
-   selection/configuration → `preview_*` → merchant-readable summary →
-   `publish_*` with `approved: true` → `get_experience_summary`,
-   `get_experience_funnel`, and `get_intent_summary`.
+   `get_merchant` → `get_onboarding_status` → `list_frames` →
+   `validate_catalog` → `import_frames` (only after explicit catalog approval)
+   → `create_store` or `create_campaign` → frame selection/configuration →
+   `preview_*` → merchant-readable summary → `publish_store` with
+   `approved: true` when the Store is ready → `get_experience_summary`,
+   `get_experience_funnel`, and `get_intent_summary`. Campaign publish is not
+   available in the current Cloudflare adapter and must not be implied.
 5. Capture the Cursor tool transcript, workspace ID, catalog validation result,
    Experience ID/URL, preview result, approval boundary, publish result, and
    analytics result. Revoke the test authorization and archive the test
@@ -436,10 +483,12 @@ not `PASS`.
    browser suite green; do not restore the deprecated Luna fixture.
 2. Browser-prove the full Detector → Advisor → Try-On → Compare continuity with
    the state-preserving handoff and regression assertions now in place.
-3. Produce a current-SHA Codex MCP Golden Path, then complete the explicitly
-   recorded Cursor validation with an isolated merchant.
-4. Re-run authenticated merchant-readable Commerce Intelligence evidence and
-   the controlled provider-backed Store shopper fixture.
+3. Deploy/reconnect the current OAuth adapter and produce a current-SHA Codex
+   MCP Golden Path, then complete the explicitly recorded Cursor validation with
+   an isolated merchant.
+4. Browser-prove authenticated merchant-readable Commerce Intelligence against
+   a controlled fixture, then re-run the controlled provider-backed Store
+   shopper fixture.
 5. Only after A, B, and C evidence is complete may the product plan authorize
    controlled outreach; then begin the separate First Real Merchant validation.
 

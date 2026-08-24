@@ -29,6 +29,40 @@ Required proof includes canonical and indexability checks, structured data,
 sitemap behavior, answer-oriented entity clarity, and separately attributable
 direct, organic, social, paid, generic-referral, and known AI-agent sources.
 
+Gate A reports two separate outcomes:
+
+- **Technical readiness:** attribution parsing, source persistence, session
+  reporting, consumer journey events, canonical metadata, and intended sitemap
+  behavior are implemented and covered by reproducible tests.
+- **Real distribution evidence:** at least one genuine production AI-assistant
+  or agent referral is classified distinctly (not generic referral), persists
+  into a VisuTry session, and performs one meaningful decision action such as a
+  Detector result, Advisor interaction, Try-On, or Compare. The evidence must
+  be inspectable from a report or dashboard without reconstructing raw logs.
+
+Synthetic requests may validate the technical contract, but are labelled TEST
+and never count as real distribution proof. If no genuine production event is
+available, technical readiness may pass while real distribution evidence stays
+`PARTIAL`.
+
+### Gate A public discovery policy
+
+Indexability is determined by the shared Store/Campaign visibility policy, not
+by page count:
+
+| Surface | Pre-outreach policy |
+| --- | --- |
+| Consumer product/tool and reviewed answer pages | Index when canonical, useful, and included by the reviewed Consumer SEO/GEO sitemap policy. |
+| Reference Store/Campaign | Publicly readable for proof, but `noindex, follow`; excluded from the dynamic Experience sitemap. Reference proof is not customer or organic-traffic proof. |
+| Active live Merchant Store/Campaign | Index only when active, meaningful, merchant/product-destination-backed, and admitted as `PUBLIC_INDEX`; otherwise `noindex, follow`. |
+| Paid/context Campaign landing page | Not automatically indexable. Keep `noindex, follow` unless it is deliberately admitted to the same organic discovery policy. |
+| Draft, private, inactive, or unpublished Experience | Not publicly discoverable and excluded from sitemap (`noindex, nofollow` or private response). |
+
+The technical acceptance is that implementation matches this policy. A missing
+dynamic sitemap entry blocks Gate A only when the surface is intentionally
+admitted as organic `PUBLIC_INDEX`; private or paid-only surfaces must not be
+added merely to make the gate green.
+
 ## Gate B — Merchant Experience Excellence
 
 Business, Store, Campaign, Commerce Intelligence, Merchant Workspace, and
@@ -73,6 +107,12 @@ Consequential actions must preserve tenant isolation, scopes, explicit approval,
 preview-before-publish, idempotency, safe credential handling, and auditability.
 The Golden Path must be proven against the current implementation; historical
 client evidence is not sufficient after a material code change.
+
+The current Cloudflare MCP surface must authenticate both `vt_live_*` Agent
+Keys and DB-backed OAuth access tokens, expose `tools/list`, preserve tenant
+and scope checks, and provide Store explicit-approval publish plus aggregate
+Commerce Intelligence reads. Codex and Cursor are separate client proofs;
+protocol compatibility or repository configuration alone is not a Cursor PASS.
 
 ## Evidence rule
 

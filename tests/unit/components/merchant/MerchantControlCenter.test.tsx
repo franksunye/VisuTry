@@ -27,6 +27,21 @@ describe('MerchantControlCenter', () => {
     expect(document.querySelector('table')).not.toBeInTheDocument()
   })
 
+  it('renders merchant-readable Commerce Intelligence when controlled activity exists', () => {
+    render(<MerchantControlCenter {...baseProps} control={{ ...baseProps.control, commerceIntelligence: {
+      period: { from: '2026-08-01T00:00:00.000Z', to: '2026-08-24T00:00:00.000Z', timezone: 'UTC' },
+      hasActivity: true,
+      totals: { visitors: 12, engagedShoppers: 8, recommendationActivity: 7, tryOnCompletions: 5, compareActivity: 3, productClicks: 2, highIntentShoppers: 2 },
+      rates: { engagement: 66.7, recommendation: 58.3, tryOn: 41.7, compare: 25 },
+      acquisitionSources: [{ source: 'AI · ChatGPT', visitors: 4 }, { source: 'organic / search', visitors: 8 }],
+      experiences: [{ id: 'experience-a', type: 'STORE', name: 'Reference Store', status: 'ACTIVE', referenceData: true, visitors: 12, engagedShoppers: 8, recommendationActivity: 7, tryOnCompletions: 5, compareActivity: 3, productClicks: 2, highIntentShoppers: 2 }],
+    } }} />)
+    expect(screen.getByRole('heading', { name: 'Understand shopper intent' })).toBeInTheDocument()
+    expect(screen.getAllByText('Visitors').length).toBeGreaterThanOrEqual(2)
+    expect(screen.getByText('AI · ChatGPT')).toBeInTheDocument()
+    expect(screen.getByText('Reference / Simulation')).toBeInTheDocument()
+  })
+
   it('shows a newly created secret once and removes it on close', async () => {
     ;(global.fetch as jest.Mock).mockImplementation(async (url: string, options?: RequestInit) => {
       if (options?.method === 'POST') return { ok: true, json: async () => ({ data: { secret: 'vt_live_one_time_secret' } }) }
