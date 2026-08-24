@@ -2,7 +2,7 @@
 
 **Status:** Active documentation entry point  
 **Created:** 2026-07-08  
-**Last updated:** 2026-08-19  
+**Last updated:** 2026-08-24
 **Owner:** Product / Engineering  
 **Review cadence:** Monthly, or whenever the product direction materially changes.
 
@@ -99,16 +99,17 @@ Do **not** start current hosting work from old B3/B4 phase documents.
 3. `docs/product/specs/credits-pack-conversion.md`
 4. `docs/product/product-plan.md`
 
-### Store work
+### 2B / Merchant Commerce work
 
 1. `docs/product/product-plan.md`
-2. `docs/product/specs/visutry-store-engineering-foundation.md`
-3. `docs/decisions/ADR-006-store-modular-multitenant-foundation.md`
-4. `docs/product/specs/visutry-store-sales-demo.md`
-5. `docs/product/plans/visutry-store-implementation-plan.md`
-6. `docs/ops/store-d0-operator-note.md`
-7. `docs/ops/store-d0-production-verification-2026-08-05.md`
-8. `docs/product/specs/visutry-store-mvp.md` only when the relevant gate or an explicit Product decision authorizes it.
+2. `docs/product/README.md`
+3. `docs/product/specs/visutry-store-engineering-foundation.md`
+4. `docs/product/specs/merchant-experience-architecture.md`
+5. `docs/product/specs/campaign-conversion-policy.md`
+6. `docs/product/plans/market-facing-productization-plan.md`
+7. `docs/product/plans/agent-native-merchant-self-service.md` and `docs/product/plans/universal-agent-access.md` for agent-native work.
+8. `docs/product/sales/visutry-sales-readiness-audit-2026-08-12.md` for the current merchant-validation loop.
+9. Dated D0/Factory plans only when historical acceptance evidence or a durable contract is needed.
 
 ---
 

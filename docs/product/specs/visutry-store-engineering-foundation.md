@@ -1,9 +1,9 @@
 # VisuTry Store Engineering Foundation Spec
 
-**Status:** Implemented for D0; mandatory ongoing engineering baseline
+**Status:** Implemented; mandatory ongoing Store/Commerce engineering baseline
 **Owner:** Engineering / Product
 **Created:** 2026-08-05
-**Last updated:** 2026-08-05
+**Last updated:** 2026-08-24
 **Applies to:** D0 Sales Demo and all later Store work
 **Related ADR:** `docs/decisions/ADR-006-store-modular-multitenant-foundation.md`
 **Related execution plan:** `docs/product/plans/visutry-store-implementation-plan.md`
@@ -29,7 +29,7 @@ If this document conflicts with older Store architecture wording, this document 
 
 As of 2026-08-05, the D0-0 baseline is implemented: Store has a bounded module, tenant-scoped repositories, server-issued shopper capability, server-owned usage policy, shared generation adapters, durable events and intent, asset-access seam, runtime validation, database constraints, migrations, and isolation/regression tests.
 
-The production D0 currently uses the explicitly documented `public-poc` Blob mode. Public URLs are storage locations, not authorization: protected capability and result APIs still enforce the MerchantSession token, and merchant insights do not expose shopper asset URLs. This is a temporary D0 operating exception under the asset rules below, so the external-traffic gate remains closed until private or otherwise controlled asset delivery and the remaining gate evidence are complete.
+The historical production D0 used the explicitly documented `public-poc` Blob mode. That temporary exception has been superseded: new shopper source media and Try-On results use the protected/private media boundary with session-authorized delivery, while merchant insights continue not to expose shopper asset URLs. External Pilot readiness is now gated by real merchant acceptance and the scoped operating requirements in `product-plan.md`, not by the retired D0 public-asset exception.
 
 ---
 

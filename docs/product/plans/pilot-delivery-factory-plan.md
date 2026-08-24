@@ -1,9 +1,9 @@
 # VisuTry Pilot Delivery Factory Plan
 
-**Status:** Active execution — Merchant Experience architecture upgrade  
+**Status:** Reference Factory core complete — retained delivery contract
 **Owner:** Product / Engineering / Growth  
 **Created:** 2026-08-11  
-**Updated:** 2026-08-11  
+**Updated:** 2026-08-24
 **Related:** `docs/product/plans/visutry-store-implementation-plan.md`  
 **Related spec:** `docs/product/specs/pilot-delivery-kit-spec.md`  
 **Architecture baseline:** `docs/product/specs/merchant-experience-architecture.md`
@@ -395,7 +395,7 @@ P1 has already established the first generic Merchant / catalog delivery path an
 
 The next work should not simply clone the same Store four more times.
 
-### Stage B — Architecture upgrade before broad reference production
+### Stage B — Architecture upgrade before broad reference production — COMPLETE
 
 Timebox: minimal architecture slice, not a generalized Campaign Builder.
 
@@ -414,31 +414,31 @@ Pass condition:
 
 > ello can support its current Store plus a second differentiated Campaign without duplicate catalog rows or merchant-specific product code.
 
-### Stage C — B2 Lowercase
+### Stage C — B2 Lowercase — COMPLETE
 
 Purpose: force brand fidelity, larger catalog normalization, and at least one meaningful catalog subset Campaign.
 
 Pass condition: no bespoke Lowercase Store / Campaign components beyond supported theme / Experience configuration.
 
-### Stage D — B3 AKILA
+### Stage D — B3 AKILA — COMPLETE
 
 Purpose: prove style / collection / campaign-led discovery.
 
 Pass condition: campaign / collection context changes entry, catalog subset, CTA, and reporting without forking recommendation or Try-On.
 
-### Stage E — B4 Article One
+### Stage E — B4 Article One — COMPLETE
 
 Purpose: prove the sales narrative “beyond VTO.”
 
 Pass condition: recommendation, comparison, intent continuity, and Campaign performance are clearly demonstrable against a merchant that already has VTO.
 
-### Stage F — B5 Framed EWE
+### Stage F — B5 Framed EWE — COMPLETE
 
 Purpose: test multi-brand merchant catalog behavior across multiple Experience subsets.
 
 Pass condition: stable merchant product identity and underlying brand distinctions survive Store, Campaign, recommendation, Try-On, Compare, product click and retailer inquiry.
 
-### Stage G — Factory retrospective
+### Stage G — Factory retrospective — BASELINE COMPLETE / CONTINUE WITH REAL PILOT DATA
 
 After the 5-brand / 10–15-Experience reference portfolio reaches sufficient coverage:
 
@@ -454,6 +454,8 @@ After the 5-brand / 10–15-Experience reference portfolio reaches sufficient co
 - decide when a self-service Campaign Builder becomes justified.
 
 The next product investment must be driven by repeated pain across real reference delivery, not hypothetical platform completeness.
+
+As of 2026-08-24, the Factory core has delivered five Reference merchant archetypes, five Stores, ten Campaign routes, shared preflight/seed/verification tooling, and production QA without merchant-specific shopper runtime forks. The market-facing productization plan therefore treats the Reference Factory as closed. Continue to measure setup time and manual pain during real Merchant Pilots; do not add Reference Brand 6 merely to extend the portfolio.
 
 ---
 

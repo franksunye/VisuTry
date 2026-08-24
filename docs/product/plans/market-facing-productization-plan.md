@@ -1,8 +1,9 @@
 # VisuTry Market-Facing Productization Plan
 
-Status: Active planning baseline  
-Date: 2026-08-12  
-Phase transition: Reference Factory complete → Market-facing productization
+Status: Productization through Business Website v1.2 complete; merchant validation next
+Created: 2026-08-12
+Last reconciled: 2026-08-24
+Phase transition: Market-facing productization complete → first real Merchant Pilot validation
 
 ## 1. Why this phase exists
 
@@ -782,7 +783,8 @@ Output a page-by-page redesign / distribution plan with:
 
 Implement the shared shopper and Admin visual/interaction improvements accepted from the audit.
 
-Do not simultaneously build `/business`.
+The original sequencing rule was not to build `/business` simultaneously with
+this hardening slice. That rule was satisfied before the later Business phase.
 
 #### Phase B2 implementation state — COMPLETE
 
@@ -802,84 +804,78 @@ Production read-back completed on 2026-08-12 after PR #57 merged as `0e374e170c9
 - the three contextual handoff contracts were verified against production Experience routes with their expected `source=visutry`, `medium=internal`, `surface`, and `campaign` parameters: Face Analysis, Compare and Style Explorer;
 - no AI generation was invoked during the smoke, and no application error was observed.
 
-B2 is complete. Phase C remains a future expansion of consumer discovery and measurement and is not started by this implementation.
+B2 closed the implementation slice that later satisfied the Phase C discovery
+and attribution outcome described below.
 
-### Phase C — Consumer Discovery & Attribution (not started)
+### Phase C — Consumer Discovery & Attribution — COMPLETE
 
-Build `/discover` (or final selected route), contextual traffic entry points and source-surface attribution.
+The Phase B1/B2 implementation records above collectively completed the originally planned Phase C outcome: `/discover`, contextual traffic entry points, and source-surface attribution are in production. The earlier B1/B2 labels describe delivery slices; they do not leave a second `/discover` implementation outstanding.
 
-Start collecting real VisuTry-origin Experience sessions.
+Real VisuTry-origin Experience sessions can now be collected. Continued measurement is an operating activity, not a new discovery build phase.
 
-### Phase D — B2B Website
+### Phase D — B2B Website — COMPLETE THROUGH v1.2
 
-Build `/business` using the polished shopper Experience, polished Admin and real Reference Experience routes as proof.
+The multi-page `/business` site, Business navigation, product/platform pages, examples, pricing, integrations, Pilot offer, page-specific metadata, and v1.2 production visual assets are shipped. Business v1.2 browser coverage and the focused Campaign Try-On workspace were closed by PR #125 on 2026-08-24.
 
-### Phase E — Merchant Outreach
+### Phase E — Merchant Outreach — NEXT
 
-Only after the above surfaces are credible enough for external scrutiny, begin structured merchant outreach.
+The prerequisite surfaces are now credible enough for a controlled founder-led batch. Outreach still requires explicit authorization and a durable tracker; there is no repository evidence yet of completed outreach, a real merchant acceptance run, or a paid Pilot.
 
 ---
 
 ## 23. Program gates
 
-### Gate A — Brand-facing quality
+### Gate A — Brand-facing quality — PASSED FOR CONTROLLED OUTREACH
 
 A premium eyewear marketing lead can open a Campaign and its Admin detail without encountering obvious engineering-demo visual debt.
 
-### Gate B — Traffic loop
+### Gate B — Traffic loop — PASSED
 
 VisuTry can send its own traffic into Merchant Experiences and measure source → Experience → intent.
 
-### Gate C — B2B narrative
+### Gate C — B2B narrative — PASSED FOR v1.2
 
 A new merchant prospect can understand VisuTry, see credible live examples and know how to start from `/business` without a founder verbally filling major gaps.
 
-### Gate D — Real merchant readiness
+### Gate D — Real merchant readiness — TECHNICAL SEGMENTATION COMPLETE; REAL ACCEPTANCE PENDING
 
-Before real merchant production traffic is mixed with the reference estate, Reference vs Live segmentation is resolved.
-
----
-
-# Immediate next task
-
-## 24. Experience Design & Distribution Audit
-
-The next implementation task is **not** to start redesigning arbitrary pages.
-
-The next task is to produce one evidence-based audit covering the current production product and turning this plan into an implementation backlog.
-
-The audit must answer:
-
-1. Which shopper surfaces currently fail the premium eyewear / marketing quality bar?
-2. Which Admin surfaces still feel like internal tooling?
-3. Where do mobile layouts create material friction?
-4. Which states are missing or visually unfinished?
-5. Which current 2C surfaces are natural entry points into Merchant Campaigns?
-6. What should `/discover` contain and what should it not contain?
-7. Which attribution fields already exist, and which are missing for VisuTry-origin traffic?
-8. What can be improved using content/config/data only?
-9. What truly requires shared product code?
-10. What must be completed before `/business` is worth launching?
-
-The audit should end with a sequenced implementation backlog, not a broad design essay.
+Reference vs Live provenance is now persisted on Merchant, Experience, Session, and Event read models. The remaining Gate D evidence is one real merchant completing acceptance with its own catalog and traffic source.
 
 ---
 
-# Non-goals for this phase
+# Immediate next task — reconciled 2026-08-24
 
-Do not start:
+## 24. First Real Merchant Validation Loop
+
+The Experience Design & Distribution Audit described in the original version of this section was completed on 2026-08-12 and is retained in `market-facing-productization-audit.md` and `pre-phase-c-production-ux-ia-audit.md`. Its accepted productization work is now in production.
+
+The next work is not another broad redesign. It is to turn the shipped product into merchant evidence:
+
+1. reconcile active execution documents around the current Pilot gate;
+2. create a durable minimal lead/outreach tracker;
+3. prepare and review 20 qualified targets with Reference deep links and source/campaign tags;
+4. send a controlled first batch only after explicit outreach authorization;
+5. seek one real 8–50-frame catalog and one declared traffic source;
+6. launch one assisted Store or Campaign and review observed shopper intent;
+7. promote only repeated Pilot pain into product work.
+
+---
+
+# Non-goals for the current validation phase
+
+The original productization phase intentionally excluded self-service and agent APIs. Those capabilities were later approved and implemented under their own plans; this section no longer describes them as unstarted work. During the current merchant-validation phase, do not start or expand:
 
 - Reference Brand 6;
 - more Reference Campaign production for its own sake;
 - full Campaign Builder;
 - generic crawler;
-- merchant self-service onboarding;
+- a second merchant self-service architecture or duplicate Admin builder;
 - Shopify / BigCommerce app integration;
 - CRM;
 - marketing automation;
 - revenue attribution;
 - enterprise permissions;
-- AI-agent public API;
+- a second agent-specific API or duplicate recommendation/runtime stack;
 - new recommendation engine;
 - new Try-On engine;
 - merchant-specific runtime forks;

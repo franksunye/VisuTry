@@ -1,6 +1,6 @@
 # Phase D Pre-Audit — Store / Campaign Presentation Modes
 
-**Status:** Audit complete · no implementation started  
+**Status:** Audit complete · accepted bounded modes subsequently implemented
 **Audited:** 2026-08-12  
 **Production:** `https://www.visutry.com`  
 **Branch:** `codex/store-campaign-presentation-audit`
@@ -8,6 +8,11 @@
 ## Executive Verdict
 
 **INTRODUCE LIMITED PRESENTATION MODES**
+
+Implementation follow-up: `ACTION_FIRST`, `PRODUCT_FIRST`, and
+`EDITORIAL_FIRST` were subsequently added to the shared Experience policy and
+production presentation shell. This file remains the decision evidence, not
+the current implementation tracker.
 
 The production evidence supports three fixed presentation modes:
 

@@ -1,6 +1,6 @@
 # Delivery Factory Hardening Pass 1
 
-Status: implementation complete; Draft PR review pending
+Status: implementation complete; merged in the Reference Factory baseline
 Scope: shared assisted-operations tooling only
 
 ## Objective
@@ -53,7 +53,7 @@ Conservative estimate: 12–18 operator hands-on minutes saved for a new Brand 4
 
 ## Remaining reusable gaps
 
-- Reference/Live session-event segmentation remains a separate Phase 2.1 product task; tooling only reports `referenceData=true`.
+- Reference/Live session-event segmentation was subsequently implemented on Merchant, Experience, Session, and Event read models; the tooling continues to report `referenceData=true` explicitly.
 - Decimal dimensions remain a single-brand Lowercase gap and are intentionally not changed here.
 
 ## Scope guard
