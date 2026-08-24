@@ -42,7 +42,8 @@ This plan is derived from:
 | `docs/product/plans/visutry-store-implementation-plan.md` | Defines current Store gates, completed D0 slices, merchant validation, and M1 sequencing. |
 | `docs/ops/store-d0-production-verification-2026-08-05.md` | Records the production D0 evidence baseline and remaining Gate A1 work. |
 | `docs/product/plans/pilot-delivery-factory-plan.md` | Defines the completed five-brand Reference delivery contract and repeatability targets. |
-| `docs/product/plans/market-facing-productization-plan.md` | Records completed Discover/distribution and Business Website productization, with merchant outreach next. |
+| `docs/product/plans/market-facing-productization-plan.md` | Records completed Discover/distribution and Business Website productization. |
+| `docs/product/plans/product-advantage-gate.md` | Defines the active pre-outreach gate across Consumer distribution/proof, Merchant experience quality, and Agent-native merchant operations. |
 | `docs/product/business-website-ia-and-copy.md` | Defines current Business Website product truth, claims, Pilot and CTA baseline. |
 | `docs/product/plans/agent-native-merchant-self-service.md` | Defines implemented Merchant Workspace, MCP Store/Campaign and Commerce Intelligence capabilities. |
 | `docs/product/plans/universal-agent-access.md` | Records production OAuth/MCP evidence and the remaining external-Pilot hardening boundary. |
@@ -70,15 +71,31 @@ The hosted merchant Storefront is the first delivery surface. The larger product
 
 ## 4. Current Product Focus
 
-The next product work should focus on turning VisuTry from a set of useful tools into a coherent eyewear decision and conversion system.
+VisuTry has completed the core 2B product architecture, Reference Factory, Business Website, Pilot intake, Store / Campaign runtime, Commerce Intelligence, Merchant Workspace, and the first production Agent-native access path.
 
-Current focus:
+The next phase is **not yet structured merchant outreach**.
 
-1. Preserve the stable Consumer decision and Credits flows while 2B work resumes.
-2. Move 2B from reference-product and architecture validation into the first real Merchant Pilot learning loop.
-3. Use the shipped Store, Campaign, Discover, Business Website, Merchant Workspace, Commerce Intelligence, Sponsored Usage, and MCP/OAuth capabilities as one product rather than starting another platform layer.
-4. Close only the minimum operational gaps required for an assisted external Pilot: lead persistence/tracking, authorization lifecycle visibility, expiry cleanup, and end-to-end acceptance evidence.
-5. Validate willingness to route a real merchant catalog and real traffic through VisuTry before building Shopify, CRM, revenue attribution, a generalized Campaign Builder, or additional Reference Brands.
+Before outbound becomes the primary company motion, VisuTry must raise three strategic capabilities to a clearly defensible market bar:
+
+1. **Consumer Distribution & Proof** — the 2C product must deliver a coherent, high-quality eyewear decision experience and prove SEO / AEO / GEO / AI-agent discovery as a measurable acquisition layer.
+2. **Merchant Experience Excellence** — Business, Store, Campaign, shopper Experience, and Merchant/Admin surfaces must meet a brand- and agency-grade quality bar suitable for real paid traffic and brand reputation.
+3. **Agent-Native Merchant Operations** — Codex and Cursor must be able to complete the defined merchant Golden Path from workspace/catalog inspection through preview, explicit approval, publish, and analytics without developer intervention.
+
+These are not independent feature tracks. Together they determine VisuTry's sales difficulty, differentiation, conversion potential, onboarding effort, and ability to scale merchant operations.
+
+Operating principle:
+
+> **Do not use outbound sales to compensate for product, distribution, or onboarding weakness. Build Distribution × Experience × Automation to the required bar first, then begin structured outreach from a stronger position.**
+
+The goal is not feature completeness. The goal is to establish three measurable advantages:
+
+> **VisuTry can attract high-intent eyewear shoppers.**  
+> **VisuTry can deliver a brand-grade commerce experience.**  
+> **VisuTry can be operated by an AI agent with near-zero merchant onboarding effort.**
+
+Controlled Founding Merchant Outreach remains gated until all three Product Advantage gates pass. The detailed acceptance contract is `docs/product/plans/product-advantage-gate.md`.
+
+Work that does not map directly to one of these three gates or production stability is not current priority.
 
 ---
 
@@ -95,6 +112,7 @@ Current focus:
 | Partially implemented | Important foundation exists, but conversion UX, analytics, or acceptance criteria remain incomplete. |
 | Implemented core | Core feature exists; remaining work is polish, exposure, measurement, or enhancement. |
 | Ready for validation | Clear enough to pitch, demo, or test with target users, but not yet ready for full engineering build. |
+| Gated | Intentionally blocked until named acceptance criteria are satisfied. |
 | Deferred | Intentionally not current priority. |
 
 ---
@@ -105,58 +123,70 @@ Current focus:
 
 | Priority | Workstream | Why it matters | Status |
 | --- | --- | --- | --- |
-| P0 | Consumer production stability | 2B work must not regress Face Analysis, Credits, Try-On, Compare, payment, or protected-media behavior. | Shipped / guarded by CI |
-| P0 | 2B execution-document reconciliation | Engineering has moved beyond the D0-era operating plan; humans and agents need one accurate current sequence. | Shipped / weekly review |
-| P1 | Founding Merchant Pilot acquisition | The primary unknown is now merchant demand and willingness to route a real catalog and traffic through VisuTry. | Intake production-verified / outreach next |
-| P1 | Assisted Pilot operating loop | Intake, catalog review, one Store or Campaign, launch, weekly review, and continuation decision must work without normal shopper actions requiring developer intervention. | Ready with small gaps |
-| P1 | Business Website v1.2 | The multi-page `/business` narrative, examples, pricing, integrations, and Pilot offer are live. | Shipped / Measuring |
-| P1 | Store / Campaign / Commerce Intelligence product | Shared Experience runtime, attribution, Sponsored Usage, Reference/Live provenance, Admin insights, and focused Campaign Try-On are live. | Shipped / Measuring |
-| P1 | Agent-native merchant operations | Merchant Workspace, Agent Keys, Remote MCP, OAuth, Store/Campaign tools, and aggregate analytics are implemented; Codex production Golden Path passed. | Implemented core / external hardening |
+| P0 | Consumer production stability | Product-advantage work must not regress Face Analysis, Credits, Try-On, Compare, payment, or protected-media behavior. | Shipped / guarded by CI |
+| P0 | Consumer Distribution & Proof | 2C quality plus SEO/AEO/GEO and AI-agent discovery is both a consumer growth engine and future merchant distribution proof. | In Progress / gate evidence required |
+| P0 | Merchant Experience Excellence | Brands and agencies already expect professional mini-sites and campaign destinations; VisuTry must meet or exceed that market bar. | In Progress / visual + workflow audit required |
+| P0 | Agent-Native Merchant Golden Path | Near-zero onboarding effort is a core operating advantage; Codex and Cursor must independently operate the merchant workflow. | Implemented core / hardening + acceptance required |
+| P0 | Product Advantage Gate reconciliation | Product Plan and active execution documents must describe the same pre-outreach gate and evidence requirements. | In Progress / this PR |
+| P1 | Business Website v1.2 measurement | The acquisition surface is live and should continue collecting passive demand evidence while outreach is gated. | Shipped / Measuring |
+| P1 | Pilot intake and outcome tracking | Durable Pilot intake remains available for inbound interest and later controlled outreach. | Production deployed / write verified |
 
 ### Next
 
 | Priority | Workstream | Why it matters | Status |
 | --- | --- | --- | --- |
-| P1 | Controlled Founding Merchant outreach | Durable Pilot intake is available; the next learning step is a reviewed, tagged first outreach batch. | Ready |
-| P1 | OAuth authorization lifecycle UI and cleanup | External agent-native Pilots need connected-authorization visibility, revoke controls, and expired-artifact cleanup. | Backend partially shipped / UI + cleanup ready |
-| P1 | Real Merchant acceptance | One merchant must complete catalog intake, Experience launch, real-source traffic, shopper journey, and intent review. | Not started / no evidence recorded |
-| P1 | Second-client MCP compatibility | Codex is production-verified; Claude Code or Cursor should be verified only if the first Pilot needs that client. | Conditional |
-| P2 | Merchant-safe Lead Capture / dedicated CTA event | Objective-aware Lead Campaign reporting remains unavailable until a legitimate opt-in runtime and CTA event exist. | Backlog pending merchant demand |
+| P1 | Product Advantage Gate review | A + B + C must each have evidence, not only implementation claims. | Next gate |
+| P1 | Controlled Founding Merchant outreach | Structured outbound starts only after Consumer Distribution & Proof, Merchant Experience Excellence, and Agent-Native Operations pass the agreed bar. | Gated on A + B + C |
+| P1 | First real Merchant acceptance | After outreach opens, one merchant must complete catalog intake, Experience launch, real-source traffic, shopper journey, and intent review. | Gated behind outreach readiness |
+| P1 | OAuth authorization lifecycle UI and cleanup | Needed where it blocks the Agent-Native Golden Path or safe merchant self-service. | Active only as Gate C work |
+| P1 | Cursor Golden Path | Codex is production-verified; Cursor must independently complete the defined commercial workflow before Gate C passes. | Required for Gate C |
+| P2 | Merchant-safe Lead Capture / dedicated CTA event | Objective-aware Lead Campaign reporting remains unavailable until a legitimate opt-in runtime and CTA event exist. | Backlog pending evidence |
 
 ### Later
 
 | Workstream | Reason to defer |
 | --- | --- |
-| Generalized Campaign Builder | First prove that merchants need multiple campaign variants; do not build a marketing automation suite prematurely. |
+| Generalized Campaign Builder | The current priority is quality of the existing Campaign path, not breadth of marketing-automation features. |
 | Shopify public app | Requires merchant workflow proof, onboarding, privacy, billing, and support readiness. |
 | WooCommerce plugin | Support complexity is higher due to WordPress/theme variance. |
-| Public API | Should follow repeated technical buyer demand, not lead the go-to-market. |
-| CRM / marketing automation | Use a minimal Pilot tracker until repeated volume justifies a system integration. |
+| Public API | Agent-native Merchant operations should prove the operating model before a broad public API. |
+| CRM / marketing automation | Use the existing Pilot tracker until repeated merchant volume justifies integration. |
 | Order ingestion / revenue attribution | Current reporting is intentionally limited to observable shopper intent; do not imply ROAS or sales lift without reliable commerce data. |
 | EHR/PMS integration | Valuable long term but too heavy before merchant/practice validation. |
 | Medical-grade PD claims | Requires validation, compliance boundaries, and disclaimers. |
-| Large-scale programmatic SEO | Archived as first-priority strategy; future pages must be intent-specific and workflow-connected. |
+| Additional Reference Brands | Existing Reference portfolio is sufficient for quality work; do not use new simulated brands to avoid real acceptance evidence. |
+| Large-scale generic programmatic SEO | Consumer distribution work must be intent-specific, useful, product-connected, and measurable rather than page-count driven. |
 
 ---
 
 ## 7. Current Sprint
 
-**Sprint name:** 2B First Real Merchant Pilot Readiness
-**Started:** 2026-08-24
-**Exit condition:** Documentation is current, the assisted Pilot intake/operating path is measurable, and the first controlled merchant validation batch can begin without another platform expansion.
-**Goal:** Convert the shipped 2B product into merchant evidence: qualified responses, a real catalog, an Experience launch, real-source shopper activity, and an observed-intent review.
+**Sprint name:** Product Advantage Gate — Distribution × Experience × Agent Native  
+**Started:** 2026-08-24  
+**Exit condition:** Gate A, Gate B, and Gate C each have objective acceptance evidence, and no unresolved P0/P1 defect makes the primary Consumer, Merchant, or Agent Golden Path materially below the defined bar.  
+**Goal:** Raise VisuTry's Consumer distribution/proof layer, Merchant experience layer, and Agent-native operating layer to the agreed pre-outreach standard. Structured merchant outreach remains gated until all three capabilities pass.
 
 ### Sprint outcomes
 
 | Outcome | Acceptance criteria | Status |
 | --- | --- | --- |
-| 2B execution documents agree | Product Plan, documentation index, Factory, Market-Facing, Agent-Native, Universal Agent Access, and Business Website status describe the same current phase. | Shipped |
-| Production foundation remains green | TypeScript, unit/regression, sponsored PostgreSQL, and revenue-critical browser gates remain green while 2B resumes. | Shipped / continuous |
-| Business acquisition surface is credible | `/business`, product pages, examples, pricing, integrations, and Pilot CTA render correctly and make only supported claims. | Shipped / Measuring |
-| Pilot interest is durably recorded | A qualified prospect can submit interest and the team can track source, status, objection, demo, and Pilot outcome without relying only on an email client. | Production write verified / admin review pending |
-| Assisted Pilot can be operated | A merchant can provide 8–50 reviewed frames, launch one hosted Experience, and receive an intent review under the published Pilot terms. | Ready with real-merchant acceptance pending |
-| External agent access is bounded | Connected OAuth authorizations can be listed/revoked, expired artifacts are cleaned, and the selected Pilot client completes a Golden Path. | Partially implemented |
-| First real merchant evidence exists | At least one merchant provides a real catalog and traffic source, or commits to the paid/deposit-backed Pilot. | Not started / no evidence recorded |
+| Production foundation remains green | Consumer revenue and 2B critical browser/regression gates remain green while Product Advantage work proceeds. | Shipped / continuous |
+| Gate A — Consumer journey quality | Detector / Face Analysis → Advisor → Try-On → Compare behaves as a coherent, premium decision journey on desktop and mobile with no material P0/P1 UX break. | Audit / remediation required |
+| Gate A — Distribution proof | Organic search and known AI-assistant/agent referrals can be separately observed and connected to meaningful product engagement; SEO/AEO/GEO surfaces are useful and product-connected. | Measurement + proof required |
+| Gate B — Brand-grade shopper experience | Business → Example → Store/Campaign → recommendation → Try-On → Compare → CTA is professionally credible for a brand or agency sending real traffic. | Visual + workflow audit required |
+| Gate B — Merchant/Admin quality | Catalog / Store / Campaign / Commerce Intelligence hierarchy and primary operational/reporting surfaces meet a commercial-product bar rather than an internal-tool bar. | Audit / remediation required |
+| Gate C — Codex Golden Path | Codex can perform the defined merchant workflow within tenancy, approval, auditability, and idempotency boundaries. | Core passed / commercial-path revalidation required |
+| Gate C — Cursor Golden Path | Cursor independently performs workspace/catalog inspection → Experience setup → preview → explicit approval → publish → analytics without developer or DB intervention. | Not yet evidenced |
+| Outreach readiness decision | Product reviews A + B + C evidence and explicitly changes Controlled Founding Merchant Outreach from Gated to Ready. | Gated |
+
+### Product Advantage guardrails
+
+- Do not start structured outreach before the readiness decision.
+- Passive inbound Pilot requests may continue to be accepted and measured.
+- Do not create new Reference Brands to substitute for quality work on existing real surfaces.
+- Do not build Shopify, CRM, generalized Campaign Builder, revenue attribution, or unrelated platform breadth during this sprint unless an active gate cannot pass without a bounded prerequisite.
+- Fix real Consumer / Merchant / Agent Golden Path blockers before adding optional capability.
+- Evidence must come from production or production-equivalent paths, not screenshots or implementation claims alone.
 
 ---
 
@@ -164,41 +194,60 @@ Current focus:
 
 | Priority | Initiative | Owner | Status | Next action | Evidence / Source | Target |
 | --- | --- | --- | --- | --- | --- | --- |
-| P0 | Consumer stability boundary | Engineering | Shipped / guarded | Keep Consumer critical tests and revenue browser gate green during every 2B change. | ADR-007, GitHub Quality Gate | Continuous |
-| P0 | 2B documentation reconciliation | Product / Engineering | Shipped / weekly review | Keep the current Pilot gate synchronized after material 2B changes. | This plan and `docs/product/README.md` | Continuous |
-| P1 | Business Website v1.2 | Product / Growth | Shipped / Measuring | Measure qualified Pilot form starts and submissions by acquisition source. | Business IA, v1.2 brief, PR #121/#125 | Current |
-| P1 | Founding Merchant outreach | Product / Growth | Ready | Build and review 20 qualified targets; send a controlled first batch only after outreach is explicitly authorized. | Sales readiness audit | Next |
-| P1 | Pilot lead and outcome tracker | Product / Growth / Engineering | Production deployed / write verified | Review request `625a1055-ffb0-4ed4-b14a-a7ca6e686c91` through `/admin/business/leads`, close it as a test, then use the board for controlled outreach responses. | Pilot Lead API, admin board, Sales readiness audit §J/§M | Current |
-| P1 | First real Merchant acceptance | Product / Engineering / Growth | Not started | Onboard one real 8–50-frame catalog, launch one Experience, route a real source, and review observed intent. | Store MVP acceptance criteria | Next gate |
-| P1 | OAuth Pilot hardening | Engineering | Partially implemented | Add authorization list/revoke UI, expired-artifact cleanup, and the selected second-client/DB Golden Path if required by the Pilot. | Universal Agent Access §§15–18 | Next / conditional |
-| P2 | Merchant-safe Lead Campaign runtime | Product / Engineering | Backlog | Define only after a real merchant requires opt-in conversion rather than anonymous intent measurement. | Campaign Conversion Policy | Evidence-gated |
+| P0 | Consumer stability boundary | Engineering | Shipped / guarded | Keep Consumer critical tests and revenue browser gates green during all Product Advantage work. | ADR-007, GitHub Quality Gate | Continuous |
+| P0 | Gate A: Consumer Experience audit | Product / Design / Engineering | Ready | Review Face Analysis/Detector, Advisor, Try-On, Compare and connecting CTAs on mobile + desktop; classify P0/P1 gaps and remediate to the target bar. | Product Advantage Gate §A | Current |
+| P0 | Gate A: SEO/AEO/GEO + Agent traffic proof | Product / Growth / Engineering | Ready | Audit high-intent eyewear decision surfaces, structured answerability, internal product continuation, AI referral classification, and measurable discovery→engagement paths. | Product Advantage Gate §A; SEO/GEO strategy | Current |
+| P0 | Gate B: Store/Campaign shopper excellence | Product / Design / Engineering | Ready | Run a brand/agency-grade visual + workflow audit across Business, Store, Campaign, recommendation, Try-On, Compare, CTA, mobile and desktop; remediate P0/P1 issues. | Product Advantage Gate §B | Current |
+| P0 | Gate B: Merchant/Admin excellence | Product / Design / Engineering | Ready | Audit Catalog, Store, Campaign, Commerce Intelligence and reporting hierarchy; remove internal-tool quality from primary merchant tasks. | Product Advantage Gate §B | Current |
+| P0 | Gate C: Agent-native merchant Golden Path | Engineering / Product | Implemented core | Revalidate Codex against the commercial Golden Path; close auth lifecycle/cleanup blockers; verify Cursor independently without DB/developer shortcuts. | Product Advantage Gate §C; Universal Agent Access | Current |
+| P0 | Product Advantage evidence review | Product | Gated | Review evidence for A + B + C; explicitly record pass/fail and remaining blockers. | `docs/product/plans/product-advantage-gate.md` | Sprint exit |
+| P1 | Business Website measurement | Product / Growth | Shipped / Measuring | Continue passive measurement of source, qualified Pilot form starts, submissions, and example engagement while outbound is gated. | Business IA, Pilot Lead API | Current |
+| P1 | Pilot lead and outcome tracker | Product / Growth / Engineering | Production deployed / write verified | Keep inbound Pilot intake operational; do not treat tracker availability as authorization to begin structured outreach. | Pilot Lead API, admin board | Continuous |
+| P1 | Founding Merchant outreach | Product / Growth | Gated | Do not send the structured first batch until Product explicitly records A + B + C as passed. | Product Advantage Gate | After sprint exit |
+| P1 | First real Merchant acceptance | Product / Engineering / Growth | Gated | After outreach opens, onboard one real 8–50-frame catalog, launch one Experience, route a declared real source, and review observed intent. | Store MVP acceptance criteria | Post-gate |
+| P2 | Merchant-safe Lead Campaign runtime | Product / Engineering | Backlog | Define only after evidence requires opt-in conversion beyond current observable intent measurement. | Campaign Conversion Policy | Evidence-gated |
 
 ---
 
 ## 9. Product Initiatives
 
-### Initiative 1: Free Detector → Advisor → Try-On Conversion
+### Initiative 1: Consumer Decision Journey + Distribution Proof
 
-**Goal:** Turn the free detector into a useful first result that naturally continues into glasses advice, try-on, and comparison.
+**Goal:** Make the Consumer product a coherent, high-quality eyewear decision experience and a measurable acquisition/proof layer for the wider VisuTry commerce system.
 
-**Why now:** The public product path already depends on Detector → Advisor → Try-On → Compare. This must be clear before paid and merchant workflows can scale.
+**Product path:**
+
+```text
+Search / Content / Social / AI Assistants
+→ Face Understanding
+→ Glasses Advisor
+→ Virtual Try-On
+→ Frame Compare
+→ Measurable Shopper Intent
+→ Merchant Store / Campaign / Product
+```
 
 **Current tasks:**
 
-- Confirm Detector result page has clear continuation CTAs.
-- Route face-shape result into Glasses Advisor where appropriate.
-- Make Try-On and Compare paths visible after the first useful result.
-- Track continuation events.
+- Audit the end-to-end Consumer journey rather than optimizing isolated tools.
+- Ensure Face Analysis/Detector results have relevant continuation into Advisor, Try-On, and Compare.
+- Audit desktop/mobile visual quality, latency states, error states, navigation continuity, and primary CTAs.
+- Keep Credits and paid conversion behavior stable while improving decision flow.
+- Audit high-intent eyewear SEO/AEO/GEO surfaces for usefulness, answerability, entity clarity, internal product continuation, and crawl/index health.
+- Classify known AI-assistant / agent referrals separately from generic referral traffic where technically observable.
+- Measure discovery → meaningful product interaction rather than pageviews alone.
 
 **Success criteria:**
 
-- A user can get a free result without unnecessary friction.
-- At least one next-step CTA is visible and relevant.
-- Continuation rate can be measured.
+- The primary Consumer decision journey has no unresolved P0/P1 quality defect.
+- A user can move naturally from useful answer to recommendation, Try-On, and Compare.
+- Organic and known AI-assistant/agent traffic can be observed separately where referrer/source data permits.
+- Discovery traffic can be connected to meaningful decision-product engagement.
+- VisuTry can credibly demonstrate that it can acquire qualified eyewear intent without buying every visit.
 
 ### Initiative 2: Credits Pack Conversion Loop
 
-**Goal:** Make Credits Pack the clearest casual paid product for high-intent try-on and comparison users.
+**Goal:** Keep Credits Pack as the clearest casual paid product for high-intent try-on and comparison users while the Product Advantage Gate is executed.
 
 **Current implementation:**
 
@@ -209,21 +258,20 @@ Current focus:
 
 **Current tasks:**
 
-- Do not modify Checkout during the baseline observation window without an incident signal.
-- Accumulate at least 14 days and 30–50 unique Checkout Sessions.
-- Compare terminal completion for `face_analysis_report` and `pricing` separately.
-- Reconcile GA Purchase, Payment rows, and Stripe Session status.
-- Reopen generic Try-On / Compare merchandising only if evidence identifies it as the dominant constraint.
+- Do not modify Checkout without an incident signal or evidence-backed conversion need.
+- Continue terminal-completion observation for `face_analysis_report` and `pricing` separately.
+- Reconcile GA Purchase, Payment rows, and Stripe Session status as needed.
+- Treat revenue-flow stability as a guardrail for Gate A work.
 
 **Success criteria:**
 
 - Users understand what is free and what consumes credits.
-- Credits Pack is visible at the right high-intent moments.
-- Credits conversion and paid usage can be measured.
+- Credits Pack remains visible at appropriate high-intent moments.
+- Credits conversion and paid usage remain measurable and regression-free.
 
 ### Initiative 3: Frame Compare Polish / Analytics / Exposure
 
-**Goal:** Make the implemented Frame Compare core experience visible, measurable, and conversion-ready.
+**Goal:** Make the implemented Frame Compare core experience visible, measurable, conversion-ready, and integrated into the broader Consumer decision journey.
 
 **Current implementation:**
 
@@ -237,139 +285,134 @@ Current focus:
 
 **Current tasks:**
 
-- Ensure Frame Compare is exposed from homepage and relevant product CTAs.
-- Add or map dedicated compare analytics events.
-- Add stronger post-completion Credits Pack CTA.
-- Decide whether comparison-board sharing is required now or later.
-- Decide whether uploaded/custom frames belong in this flow before Studio / Store.
+- Ensure Compare is exposed from relevant Consumer journeys and CTAs.
+- Verify compare analytics events support Gate A journey measurement.
+- Audit visual quality and all processing/error/completed states on mobile + desktop.
+- Improve post-completion next action only where it strengthens the decision journey or paid conversion.
 
 **Success criteria:**
 
-- Users can understand Compare as a separate decision-support feature.
-- Compare is not hidden inside a deep carousel or history flow.
-- Compare actions are measurable.
-- Compare contributes to Credits Pack conversion.
+- Users understand Compare as a decision-support feature.
+- Compare is not hidden or visually below the target Consumer bar.
+- Compare actions and continuation are measurable.
+- Compare contributes to the coherent Consumer journey and Credits conversion.
 
-### Initiative 4: Store Landing Page Market Validation
+### Initiative 4: Business Acquisition Surface — Passive Proof Until Outreach Gate
 
-**Goal:** Measure demand through the shipped multi-page Business Website and route qualified prospects into the Founding Merchant Pilot.
+**Goal:** Keep the shipped Business Website credible, measurable, and aligned with the actual product while structured outreach remains gated.
 
-**Current status:** Business Website v1.2 shipped / Measuring. The previous `/store` landing page is no longer the complete B2B narrative.
-
-**Validation asset:** `docs/product/specs/visutry-store-landing-page.md`
+**Current status:** Business Website v1.2 shipped / Measuring. The production Pilot request form and lead/outcome tracker are available.
 
 **Current tasks:**
 
-- Measure `/en/business` and `/en/business/pilot` qualified CTA behavior.
-- Keep the current $149 / 30-day assisted Pilot terms and claims boundary consistent across Business, Sales, and operating documents.
-- Measure the production Pilot request form and lead/outcome tracker; keep email only as an error fallback.
-- Pair the Business Website with controlled merchant / agency outreach and tagged Reference Experience links.
-- Continue to distinguish Reference Pilot / Simulation proof from live customer evidence.
+- Measure `/en/business`, examples, product pages, `/en/business/pilot`, and qualified CTA behavior by source.
+- Keep $149 / 30-day Pilot terms and claims boundaries consistent across Business, Sales, and operating documents.
+- Keep inbound Pilot intake operational.
+- Replace obsolete or materially inaccurate marketing screenshots/assets with representations grounded in the current Store/Campaign/Admin product.
+- Use the Business Website as part of Gate B review, not as evidence that Gate B is already complete.
+- Do not begin structured founder-led outbound until the Product Advantage readiness decision passes.
 
 **Success criteria:**
 
-- Store page can explain the hosted recommendation / try-on / compare workflow clearly.
-- The merchant understands that Storefront is a deployment surface, not the entire product category.
-- Qualified visitors can request a sample link, pilot, or demo.
-- Form submissions identify business type, website, frame count, and intent.
-- Store validation has measurable CTA and lead events.
+- Business pages accurately explain the current hosted recommendation / Try-On / Compare / Campaign / Commerce Intelligence proposition.
+- The website visually matches the professional quality of the product it sells.
+- Qualified inbound visitors can request a Pilot and are durably tracked.
+- No public claim implies live-customer proof where only Reference/Simulation proof exists.
 
-### Initiative 5: VisuTry Store — AI Commerce / Campaign Validation
+### Initiative 5: Merchant Experience Excellence — Store / Campaign / Commerce Intelligence
 
-**Goal:** Validate the shipped Store / Campaign product with a real merchant catalog and real traffic before a Shopify app, generalized Campaign Builder, CRM, or revenue attribution.
-
-**Current status:** Product foundation, Reference Factory, market-facing surfaces, assisted operations, and agent-native core implemented; real merchant validation not yet evidenced.
+**Goal:** Raise the shipped 2B product from technically usable to brand- and agency-grade before asking merchants to route paid or reputation-sensitive traffic through it.
 
 **Current product model:**
 
 ```text
 Traffic / Audience
-→ Merchant Catalog
-→ AI Recommendation
+→ Store or Campaign Experience
+→ Shopper Understanding
+→ Personalized Recommendation
 → Try-On
 → Compare
 → Product / Inquiry Intent
-→ Merchant Conversion Insight
+→ Merchant Commerce Insight
 ```
 
-**Strategic product model:**
+**Required quality bar:**
 
-```text
-Merchant
-→ Campaign / Audience / Intent
-→ Catalog subset
-→ AI decision experience
-→ Conversion metrics
-```
-
-Store and Campaign are now first-class sibling `Experience` types. The bounded Campaign application service and MCP tools are implemented; a generalized visual Campaign Builder remains deferred until merchant evidence justifies it.
-
-**Validation package:**
-
-- merchant name / logo;
-- 8-20 frame catalog;
-- hosted advisor / compare link;
-- anonymous shopper upload and try-on;
-- frame comparison;
-- favorites / product click / inquiry;
-- source and campaign/referral context where available;
-- simple conversion-oriented usage report;
-- 30-day pilot offer.
+- Store/Campaign shopper surfaces feel like commercial brand destinations rather than internal demos.
+- Campaign context materially affects narrative, audience/product presentation, and measurement; it must not feel like a renamed Store.
+- Recommendation → Try-On → Compare → CTA feels like one conversion experience.
+- Mobile and desktop are both production-quality.
+- Loading, empty, processing, error, and completed states are intentionally designed.
+- Brand identity, typography, spacing, imagery, catalog presentation, and interaction quality are credible for premium eyewear.
+- Merchant/Admin hierarchy across Catalog, Store, Campaign, and Commerce Intelligence is immediately understandable.
+- Merchant reporting prioritizes useful business signals rather than only technical usage counters.
 
 **Current tasks:**
 
-- Use the five-brand Reference portfolio and current Business Website in controlled merchant conversations.
-- Record structured demo feedback and objections.
-- Ask where merchant traffic comes from today: Search, Meta, TikTok, email, social, QR, direct, referral, AI assistants, or other channels.
-- Ask which business metric would justify payment: product click, inquiry, add-to-cart, conversion, appointment, or attributed revenue.
-- Offer the paid/deposit-backed Founding Merchant Pilot, not an unbounded free custom build.
-- Onboard one real 8–50-frame catalog through the existing assisted/agent capability boundary.
-- Route one declared traffic source and review Experience-level shopper intent with the merchant.
-- Treat lead persistence, authorization lifecycle UI, and OAuth cleanup as bounded Pilot hardening rather than a new platform phase.
+- Run a structured visual + workflow audit using existing Reference Experiences and the actual current product.
+- Review from the perspective of a premium eyewear brand, ecommerce director, performance marketing team, and agency account lead.
+- Record P0/P1 issues separately from optional enhancements.
+- Remediate P0/P1 visual, interaction, mobile, continuity, and reporting problems before Gate B passes.
+- Ensure Business Website screenshots and examples reflect the real current interfaces.
+- Preserve Reference vs Live provenance and supported-claims boundaries.
 
 **Success criteria:**
 
-- 3 merchants agree to evaluate the hosted workflow; or
-- 1 agency agrees to test with 2-3 relevant merchant clients; or
-- 1 merchant agrees to a paid or deposit-backed pilot; or
-- Product explicitly authorizes a live-data pilot to validate conversion behavior.
+- A brand/agency reviewer can confidently send meaningful paid traffic to the destination.
+- No material P0/P1 visual or primary-workflow defect remains in the approved demo paths.
+- Business → Example → Store/Campaign → shopper journey → Merchant Insight does not materially drop in perceived quality.
+- Merchant/Admin primary tasks no longer feel like developer/internal tooling.
 
-The strongest evidence is not that merchants like VTO. It is that they want to route real traffic through VisuTry and measure downstream purchase intent.
+### Initiative 6: Agent-Native Merchant Operations
 
-### Initiative 6: Agent-Ready Commerce Baseline
+**Goal:** Prove that VisuTry can be operated by general-purpose capable agents with near-zero merchant onboarding effort while preserving merchant authorization and safety boundaries.
 
-**Goal:** Operate and validate the implemented agent-ready merchant capabilities while keeping interoperability work proportional to current Pilot demand.
+**Commercial Golden Path:**
+
+```text
+Merchant authorization
+→ workspace inspection
+→ catalog intake / validation
+→ Store or Campaign setup
+→ configuration
+→ preview
+→ explicit merchant approval
+→ publish
+→ Commerce Intelligence
+→ explanation / supported next action
+```
 
 **Implemented baseline:**
 
-- stable public merchant/store URLs where appropriate;
-- canonical product destination URLs;
-- explicit frame names, SKU, price/currency and descriptive attributes where available;
-- machine-readable structured metadata where appropriate and privacy-safe;
-- source/referrer/UTM persistence into merchant sessions and intents;
-- classify known AI-assistant / agent referrals separately from generic referral traffic;
-- merchant Membership and Workspace boundaries;
+- Merchant Membership and Workspace boundaries;
 - Agent Keys plus standards-based Remote MCP OAuth;
 - Store/Campaign create, configure, preview, explicit-approval publish, and aggregate Commerce Intelligence tools;
+- stable public merchant/store URLs where appropriate;
+- canonical product destination URLs and structured catalog attributes where available;
+- source/referrer/UTM persistence into merchant sessions and intents;
 - production Codex OAuth/MCP Golden Path.
 
-**Remaining Pilot hardening:**
+**Current tasks:**
 
-- Merchant Workspace connected OAuth authorization list/revoke UI;
-- cleanup of expired OAuth authorization requests, codes, and tokens;
-- real database-backed protocol regression coverage;
-- Claude Code or Cursor Golden Path only when required by the selected Pilot client.
+- Revalidate Codex against the full business-level Golden Path rather than isolated tool availability.
+- Expose connected OAuth authorization visibility/revoke controls where required for safe self-service.
+- Clean expired OAuth artifacts where they can affect reliable operation.
+- Maintain DB-backed protocol regression coverage for the selected path.
+- Verify Cursor independently completes the Golden Path using documented VisuTry capabilities.
+- Do not allow direct database edits, hidden developer knowledge, or manual backend intervention to count as success.
+- Preserve tenant isolation, explicit approval for consequential writes/publish, auditability, idempotency, and preview-before-publish behavior.
 
-**Deferred until demand:**
+**Success criteria:**
 
-- autonomous checkout;
-- broad public agent API;
-- MCP/tool integration solely for novelty;
-- agent-specific duplicate recommendation stack.
+- Codex and Cursor can each receive a business-level instruction and independently complete the agreed merchant workflow.
+- No developer intervention or direct DB manipulation is required in the normal Golden Path.
+- The agent can summarize what it will publish and wait for explicit approval before consequential publication.
+- After traffic arrives, the agent can retrieve Commerce Intelligence and explain supported observations.
+- Gate C evidence is repeatable and documented.
 
 **Principle:**
 
-> Agent traffic must use the same Store intelligence and conversion core as human traffic.
+> Agent Native is not complete because APIs or MCP tools exist. It is complete when an authorized agent can reliably operate the commercial workflow.
 
 ---
 
@@ -383,5 +426,6 @@ The strongest evidence is not that merchants like VTO. It is that they want to r
 | 2026-08-05 | Promoted Store D0 to production-verified controlled validation; moved the next action to merchant demos and kept Gate A1 / M1 gated. |
 | 2026-08-06 | Reframed Store execution around AI Commerce / Campaign Engine value, kept Storefront as the first delivery surface, added campaign/source attribution and Agent-Ready Commerce as future-facing product baselines without moving generalized campaign builder or public agent API into current scope. |
 | 2026-08-24 | Reconciled the execution plan with the shipped Experience Factory, Discover, Business Website v1.2, Sponsored Usage, Merchant Workspace, MCP/OAuth, and Commerce Intelligence capabilities; moved the active gate to first real Merchant Pilot evidence. |
-| 2026-08-24 | Implemented durable, attributable Founding Merchant Pilot intake with privacy-preserving rate limits, idempotent submission, and an admin follow-up/outcome board; deployment and production verification remain. |
-| 2026-08-24 | Deployed the Pilot intake migration and application through PR #128; production Business browser checks passed and request `625a1055-ffb0-4ed4-b14a-a7ca6e686c91` verified durable public submission and idempotent replay. |
+| 2026-08-24 | Implemented durable, attributable Founding Merchant Pilot intake with privacy-preserving rate limits, idempotent submission, and an admin follow-up/outcome board. |
+| 2026-08-24 | Deployed the Pilot intake migration and application through PR #128; production Business browser checks passed and durable public submission/idempotent replay were verified. |
+| 2026-08-24 | Superseded immediate structured outreach as the active next step. Added the Product Advantage Gate: Consumer Distribution & Proof + Merchant Experience Excellence + Agent-Native Merchant Operations. Structured outreach is gated until A + B + C pass with objective evidence. |
