@@ -369,7 +369,7 @@ export const businessPages: Record<BusinessPageKey, BusinessPageDefinition> = {
     eyebrow: 'Founding Merchant Pilot',
     title: 'Test VisuTry with your real eyewear catalog.',
     description: 'Start with a focused frame set, one hosted Store or Campaign Experience, and a 30-day review cycle before making a larger commitment.',
-    primaryCta: { label: 'Email VisuTry', href: 'mailto:support@visutry.com?subject=Founding%20Merchant%20Pilot' },
+    primaryCta: { label: 'Request Pilot Review', href: '#pilot-request' },
     secondaryCta: { label: 'View Pricing', href: '/business/pricing' },
     microcopy: 'We review fit, catalog scope, and launch timing before confirming the Pilot.',
     sections: [
@@ -398,6 +398,6 @@ export const businessPages: Record<BusinessPageKey, BusinessPageDefinition> = {
 }
 
 export function businessHref(locale: string, href: string): string {
-  if (href.startsWith('mailto:') || href.startsWith('http')) return href
+  if (href.startsWith('#') || href.startsWith('mailto:') || href.startsWith('http')) return href
   return `/${locale}${href}`
 }

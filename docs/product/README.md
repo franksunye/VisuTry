@@ -62,7 +62,9 @@ Discover / attribution / market-facing hardening [complete]
   ↓
 Business Website v1.2 + Founding Merchant Pilot offer [shipped]
   ↓
-Assisted Pilot intake + controlled outreach [current]
+Durable assisted Pilot intake [implemented / deployment pending]
+  ↓
+Controlled Founding Merchant outreach [current after deployment]
   ↓
 First real merchant catalog + declared traffic source + intent review [next gate]
   ↓

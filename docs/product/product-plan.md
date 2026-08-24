@@ -107,7 +107,7 @@ Current focus:
 | --- | --- | --- | --- |
 | P0 | Consumer production stability | 2B work must not regress Face Analysis, Credits, Try-On, Compare, payment, or protected-media behavior. | Shipped / guarded by CI |
 | P0 | 2B execution-document reconciliation | Engineering has moved beyond the D0-era operating plan; humans and agents need one accurate current sequence. | Shipped / weekly review |
-| P1 | Founding Merchant Pilot acquisition | The primary unknown is now merchant demand and willingness to route a real catalog and traffic through VisuTry. | Ready to start |
+| P1 | Founding Merchant Pilot acquisition | The primary unknown is now merchant demand and willingness to route a real catalog and traffic through VisuTry. | Intake shipped / outreach next |
 | P1 | Assisted Pilot operating loop | Intake, catalog review, one Store or Campaign, launch, weekly review, and continuation decision must work without normal shopper actions requiring developer intervention. | Ready with small gaps |
 | P1 | Business Website v1.2 | The multi-page `/business` narrative, examples, pricing, integrations, and Pilot offer are live. | Shipped / Measuring |
 | P1 | Store / Campaign / Commerce Intelligence product | Shared Experience runtime, attribution, Sponsored Usage, Reference/Live provenance, Admin insights, and focused Campaign Try-On are live. | Shipped / Measuring |
@@ -117,7 +117,7 @@ Current focus:
 
 | Priority | Workstream | Why it matters | Status |
 | --- | --- | --- | --- |
-| P1 | Pilot lead persistence and outreach tracker | The current Business Pilot CTA opens email; qualified interest and follow-up need a durable, attributable operating record. | Ready for implementation |
+| P1 | Controlled Founding Merchant outreach | Durable Pilot intake is available; the next learning step is a reviewed, tagged first outreach batch. | Ready after deployment |
 | P1 | OAuth authorization lifecycle UI and cleanup | External agent-native Pilots need connected-authorization visibility, revoke controls, and expired-artifact cleanup. | Backend partially shipped / UI + cleanup ready |
 | P1 | Real Merchant acceptance | One merchant must complete catalog intake, Experience launch, real-source traffic, shopper journey, and intent review. | Not started / no evidence recorded |
 | P1 | Second-client MCP compatibility | Codex is production-verified; Claude Code or Cursor should be verified only if the first Pilot needs that client. | Conditional |
@@ -153,7 +153,7 @@ Current focus:
 | 2B execution documents agree | Product Plan, documentation index, Factory, Market-Facing, Agent-Native, Universal Agent Access, and Business Website status describe the same current phase. | Shipped |
 | Production foundation remains green | TypeScript, unit/regression, sponsored PostgreSQL, and revenue-critical browser gates remain green while 2B resumes. | Shipped / continuous |
 | Business acquisition surface is credible | `/business`, product pages, examples, pricing, integrations, and Pilot CTA render correctly and make only supported claims. | Shipped / Measuring |
-| Pilot interest is durably recorded | A qualified prospect can submit interest and the team can track source, status, objection, demo, and Pilot outcome without relying only on an email client. | Ready |
+| Pilot interest is durably recorded | A qualified prospect can submit interest and the team can track source, status, objection, demo, and Pilot outcome without relying only on an email client. | Implemented / deployment pending |
 | Assisted Pilot can be operated | A merchant can provide 8–50 reviewed frames, launch one hosted Experience, and receive an intent review under the published Pilot terms. | Ready with real-merchant acceptance pending |
 | External agent access is bounded | Connected OAuth authorizations can be listed/revoked, expired artifacts are cleaned, and the selected Pilot client completes a Golden Path. | Partially implemented |
 | First real merchant evidence exists | At least one merchant provides a real catalog and traffic source, or commits to the paid/deposit-backed Pilot. | Not started / no evidence recorded |
@@ -166,9 +166,9 @@ Current focus:
 | --- | --- | --- | --- | --- | --- | --- |
 | P0 | Consumer stability boundary | Engineering | Shipped / guarded | Keep Consumer critical tests and revenue browser gate green during every 2B change. | ADR-007, GitHub Quality Gate | Continuous |
 | P0 | 2B documentation reconciliation | Product / Engineering | Shipped / weekly review | Keep the current Pilot gate synchronized after material 2B changes. | This plan and `docs/product/README.md` | Continuous |
-| P1 | Business Website v1.2 | Product / Growth | Shipped / Measuring | Measure qualified Pilot CTA behavior and replace email-only intake when the minimal persistence contract is approved. | Business IA, v1.2 brief, PR #121/#125 | Current |
+| P1 | Business Website v1.2 | Product / Growth | Shipped / Measuring | Measure qualified Pilot form starts and submissions by acquisition source. | Business IA, v1.2 brief, PR #121/#125 | Current |
 | P1 | Founding Merchant outreach | Product / Growth | Ready | Build and review 20 qualified targets; send a controlled first batch only after outreach is explicitly authorized. | Sales readiness audit | Next |
-| P1 | Pilot lead and outcome tracker | Product / Growth / Engineering | Ready | Persist source, campaign, segment, response, demo, objection, Pilot request, and outcome. | Sales readiness audit §J/§M | Next |
+| P1 | Pilot lead and outcome tracker | Product / Growth / Engineering | Implemented / deployment pending | Deploy the migration and verify one production test request through `/admin/business/leads`. | Pilot Lead API, admin board, Sales readiness audit §J/§M | Current |
 | P1 | First real Merchant acceptance | Product / Engineering / Growth | Not started | Onboard one real 8–50-frame catalog, launch one Experience, route a real source, and review observed intent. | Store MVP acceptance criteria | Next gate |
 | P1 | OAuth Pilot hardening | Engineering | Partially implemented | Add authorization list/revoke UI, expired-artifact cleanup, and the selected second-client/DB Golden Path if required by the Pilot. | Universal Agent Access §§15–18 | Next / conditional |
 | P2 | Merchant-safe Lead Campaign runtime | Product / Engineering | Backlog | Define only after a real merchant requires opt-in conversion rather than anonymous intent measurement. | Campaign Conversion Policy | Evidence-gated |
@@ -262,7 +262,7 @@ Current focus:
 
 - Measure `/en/business` and `/en/business/pilot` qualified CTA behavior.
 - Keep the current $149 / 30-day assisted Pilot terms and claims boundary consistent across Business, Sales, and operating documents.
-- Replace the email-only Pilot handoff with a minimal durable lead/outcome record when its data contract is approved.
+- Deploy and measure the durable Pilot request form and lead/outcome tracker; keep email only as an error fallback.
 - Pair the Business Website with controlled merchant / agency outreach and tagged Reference Experience links.
 - Continue to distinguish Reference Pilot / Simulation proof from live customer evidence.
 
@@ -383,3 +383,4 @@ The strongest evidence is not that merchants like VTO. It is that they want to r
 | 2026-08-05 | Promoted Store D0 to production-verified controlled validation; moved the next action to merchant demos and kept Gate A1 / M1 gated. |
 | 2026-08-06 | Reframed Store execution around AI Commerce / Campaign Engine value, kept Storefront as the first delivery surface, added campaign/source attribution and Agent-Ready Commerce as future-facing product baselines without moving generalized campaign builder or public agent API into current scope. |
 | 2026-08-24 | Reconciled the execution plan with the shipped Experience Factory, Discover, Business Website v1.2, Sponsored Usage, Merchant Workspace, MCP/OAuth, and Commerce Intelligence capabilities; moved the active gate to first real Merchant Pilot evidence. |
+| 2026-08-24 | Implemented durable, attributable Founding Merchant Pilot intake with privacy-preserving rate limits, idempotent submission, and an admin follow-up/outcome board; deployment and production verification remain. |
