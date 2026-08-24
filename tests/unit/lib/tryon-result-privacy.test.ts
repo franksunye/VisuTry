@@ -147,15 +147,35 @@ describe('Try-On result privacy persistence', () => {
 
     const result = await getTryOnResult('task-private-result')
 
+    expect(mockPut).toHaveBeenCalledTimes(1)
     expect(mockPut).toHaveBeenCalledWith(
       'tryon/result/user-1/task-private-result.png',
       expect.any(File),
       { access: 'private', storeId: 'store_tryon' },
     )
     expect(mockUpdateMany).toHaveBeenCalledWith(expect.objectContaining({
+      where: expect.objectContaining({
+        id: 'task-private-result',
+        resultPersistVersion: 0,
+      }),
+      data: expect.objectContaining({
+        resultPersistLeaseOwner: expect.any(String),
+        resultPersistLeaseUntil: expect.any(Date),
+        resultPersistVersion: { increment: 1 },
+      }),
+    }))
+    expect(mockUpdateMany).toHaveBeenCalledWith(expect.objectContaining({
+      where: expect.objectContaining({
+        id: 'task-private-result',
+        status: { not: 'COMPLETED' },
+        resultPersistLeaseOwner: expect.any(String),
+        resultPersistVersion: 1,
+      }),
       data: expect.objectContaining({
         status: 'COMPLETED',
         resultImageUrl: expect.stringContaining('.private.blob.vercel-storage.com/'),
+        resultPersistLeaseOwner: null,
+        resultPersistLeaseUntil: null,
         metadata: expect.objectContaining({
           privateBlob: true,
           privatePersistPending: false,
@@ -167,6 +187,27 @@ describe('Try-On result privacy persistence', () => {
       status: 'COMPLETED',
       isNewCompletion: true,
     })
+  })
+
+  it('does not download or write the result when another request owns the persistence claim', async () => {
+    process.env.TRY_ON_BLOB_ACCESS_MODE = 'private'
+    process.env.TRY_ON_BLOB_STORE_ID = 'store_tryon'
+    prepareSucceededPoll()
+    mockUpdateMany.mockResolvedValueOnce({ count: 0 })
+    mockFindUnique.mockResolvedValueOnce({
+      status: 'PROCESSING',
+      resultImageUrl: null,
+    })
+
+    const result = await getTryOnResult('task-private-result')
+
+    expect(result).toEqual({
+      status: 'PROCESSING',
+      progress: 100,
+      isNewCompletion: false,
+    })
+    expect(global.fetch).not.toHaveBeenCalled()
+    expect(mockPut).not.toHaveBeenCalled()
   })
 
   it('never falls back to a provider URL when private result persistence fails', async () => {
@@ -183,8 +224,13 @@ describe('Try-On result privacy persistence', () => {
       isNewCompletion: false,
     })
     expect(mockUpdate).not.toHaveBeenCalled()
-    expect(mockUpdateMany).toHaveBeenCalledWith({
-      where: { id: 'task-private-result', status: { not: 'COMPLETED' } },
+    expect(mockUpdateMany).toHaveBeenCalledWith(expect.objectContaining({
+      where: expect.objectContaining({
+        id: 'task-private-result',
+        status: { not: 'COMPLETED' },
+        resultPersistLeaseOwner: expect.any(String),
+        resultPersistVersion: 1,
+      }),
       data: expect.objectContaining({
         status: 'PROCESSING',
         errorMessage: null,
@@ -194,9 +240,8 @@ describe('Try-On result privacy persistence', () => {
           privatePersistError: 'private blob unavailable',
         }),
       }),
-    })
+    }))
     const serializedCalls = JSON.stringify(mockUpdateMany.mock.calls)
-    expect(serializedCalls).not.toContain('resultImageUrl')
     expect(serializedCalls).not.toContain('https://provider.example.com/result.png\"')
   })
 
@@ -213,11 +258,20 @@ describe('Try-On result privacy persistence', () => {
 
     const result = await getTryOnResult('task-private-result')
 
-    expect(mockHead).toHaveBeenCalledWith('tryon/result/user-1/task-private-result.png')
+    expect(mockHead).toHaveBeenCalledWith(
+      'tryon/result/user-1/task-private-result.png',
+      { storeId: 'store_tryon' },
+    )
     expect(mockUpdateMany).toHaveBeenCalledWith(expect.objectContaining({
+      where: expect.objectContaining({
+        resultPersistLeaseOwner: expect.any(String),
+        resultPersistVersion: 1,
+      }),
       data: expect.objectContaining({
         status: 'COMPLETED',
         resultImageUrl: expect.stringContaining('.private.blob.vercel-storage.com/'),
+        resultPersistLeaseOwner: null,
+        resultPersistLeaseUntil: null,
         metadata: expect.objectContaining({ resultReconciledFromExistingBlob: true }),
       }),
     }))
@@ -232,7 +286,9 @@ describe('Try-On result privacy persistence', () => {
     process.env.TRY_ON_BLOB_STORE_ID = 'store_tryon'
     prepareSucceededPoll()
     mockPut.mockRejectedValue(new Error('private blob unavailable'))
-    mockUpdateMany.mockResolvedValue({ count: 0 })
+    mockUpdateMany
+      .mockResolvedValueOnce({ count: 1 })
+      .mockResolvedValueOnce({ count: 0 })
     mockFindUnique.mockResolvedValueOnce({
       status: 'COMPLETED',
       resultImageUrl: 'https://abc.private.blob.vercel-storage.com/result.png',
@@ -254,9 +310,15 @@ describe('Try-On result privacy persistence', () => {
     const result = await getTryOnResult('task-private-result')
 
     expect(mockUpdateMany).toHaveBeenCalledWith(expect.objectContaining({
+      where: expect.objectContaining({
+        resultPersistLeaseOwner: expect.any(String),
+        resultPersistVersion: 1,
+      }),
       data: expect.objectContaining({
         status: 'COMPLETED',
         resultImageUrl: 'https://provider.example.com/result.png',
+        resultPersistLeaseOwner: null,
+        resultPersistLeaseUntil: null,
         metadata: expect.objectContaining({
           privateBlob: false,
           privatePersistPending: false,
