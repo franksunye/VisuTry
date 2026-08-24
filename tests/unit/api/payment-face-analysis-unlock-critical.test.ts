@@ -92,15 +92,27 @@ describe('Face Analysis report unlock checkout invariants', () => {
     expect(mockCreatePayment).not.toHaveBeenCalled()
   })
 
-  it('only permits one-time credit products to unlock a Face Analysis report', async () => {
-    const response = await POST(makeRequest({ ...baseBody, productType: 'PREMIUM_MONTHLY' }))
-    const body = await response.json()
+  it.each(['PREMIUM_MONTHLY', 'PREMIUM_YEARLY'])(
+    'allows %s to preserve a Face Analysis report unlock context',
+    async (productType) => {
+      const response = await POST(makeRequest({ ...baseBody, productType }))
 
-    expect(response.status).toBe(400)
-    expect(body.success).toBe(false)
-    expect(mockFindUnlockTask).not.toHaveBeenCalled()
-    expect(mockCreateCheckoutSession).not.toHaveBeenCalled()
-  })
+      expect(response.status).toBe(200)
+      expect(mockFindUnlockTask).toHaveBeenCalledWith(expect.objectContaining({
+        where: expect.objectContaining({ id: 'task-1', userId: 'user-1', status: 'COMPLETED' }),
+      }))
+      expect(mockCreateCheckoutSession).toHaveBeenCalledWith(expect.objectContaining({
+        productType,
+        unlockTaskId: 'task-1',
+      }))
+      expect(mockCreatePayment).toHaveBeenCalledWith({
+        data: expect.objectContaining({
+          productType,
+          unlockTaskId: 'task-1',
+        }),
+      })
+    },
+  )
 
   it('refuses checkout for a missing or non-owned completed report', async () => {
     mockFindUnlockTask.mockResolvedValue(null)

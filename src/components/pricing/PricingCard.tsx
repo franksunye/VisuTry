@@ -47,12 +47,11 @@ export function PricingCard({ plan, currentUser }: PricingCardProps) {
   const creditsPack = isCreditsPack(plan.id)
   const signedOutButtonText = creditsPack ? "Sign in to buy credits" : "Sign in to subscribe"
 
-  // Keep a report-unlock purchase bound to the report even when the user has
-  // landed on the full Pricing page instead of the compact contextual paywall.
-  // This is a defense-in-depth guard for mobile navigation, refreshes, and
-  // browsers that restore the pricing URL directly.
+  // Keep a report-unlock purchase bound to the report for every product. This
+  // is a defense-in-depth guard for mobile navigation, refreshes, and browsers
+  // that restore the pricing URL directly.
   const reportUnlockTaskId = (() => {
-    if (!creditsPack || typeof window === 'undefined') return null
+    if (typeof window === 'undefined') return null
     const url = new URL(window.location.href)
     if (url.searchParams.get('source') !== 'face-analysis-unlock') return null
     return url.searchParams.get('taskId')?.trim() || null

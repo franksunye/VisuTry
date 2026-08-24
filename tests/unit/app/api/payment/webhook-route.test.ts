@@ -55,16 +55,19 @@ const tx = {
   faceAnalysisTask: { updateMany: jest.fn() },
 }
 
-function checkoutSession(paymentStatus: 'paid' | 'unpaid' = 'paid') {
+function checkoutSession(
+  paymentStatus: 'paid' | 'unpaid' = 'paid',
+  productType = 'CREDITS_PACK',
+) {
   return {
     id: 'cs_test_checkout',
     payment_status: paymentStatus,
     client_reference_id: 'user-1',
-    payment_intent: 'pi_test_checkout',
-    subscription: null,
+    payment_intent: productType.startsWith('PREMIUM_') ? null : 'pi_test_checkout',
+    subscription: productType.startsWith('PREMIUM_') ? 'sub_test_checkout' : null,
     metadata: {
       userId: 'user-1',
-      productType: 'CREDITS_PACK',
+      productType,
       unlockTaskId: 'analysis-1',
     },
   }
@@ -154,6 +157,36 @@ describe('/api/payment/webhook checkout fulfillment', () => {
       status: 'COMPLETED',
       fulfillment: 'credits_and_unlock',
     })
+  })
+
+  it.each([
+    ['PREMIUM_MONTHLY', 899],
+    ['PREMIUM_YEARLY', 8999],
+  ])('unlocks the triggering report for a paid %s Checkout without adding credits', async (productType, amount) => {
+    mockHandleSuccessfulPayment.mockResolvedValue({
+      userId: 'user-1',
+      productType,
+      amount,
+      currency: 'usd',
+      sessionId: 'cs_test_checkout',
+      paymentIntentId: null,
+      unlockTaskId: 'analysis-1',
+      attribution: undefined,
+    })
+    mockVerifyWebhookSignature.mockReturnValue({
+      type: 'checkout.session.completed',
+      data: { object: checkoutSession('paid', productType) },
+    })
+
+    const response = await POST(webhookRequest())
+
+    expect(response.status).toBe(200)
+    expect(tx.user.update).not.toHaveBeenCalled()
+    expect(tx.faceAnalysisTask.updateMany).toHaveBeenCalledWith({
+      where: { id: 'analysis-1', userId: 'user-1' },
+      data: { reportUnlocked: true },
+    })
+    expect(mockClearUserCache).toHaveBeenCalledWith('user-1')
   })
 
   it('acknowledges a duplicate fulfillment without granting credits twice', async () => {

@@ -89,9 +89,14 @@ export async function POST(request: NextRequest) {
       ? unlockTaskId.trim()
       : undefined
 
-    if (normalizedUnlockTaskId && !finalProductType.startsWith('CREDITS_PACK')) {
+    const canUnlockFaceAnalysisReport =
+      finalProductType.startsWith('CREDITS_PACK') ||
+      finalProductType.startsWith('PREMIUM_MONTHLY') ||
+      finalProductType.startsWith('PREMIUM_YEARLY')
+
+    if (normalizedUnlockTaskId && !canUnlockFaceAnalysisReport) {
       return NextResponse.json(
-        { success: false, error: "分析报告只能通过一次性 Credits Pack 解锁" },
+        { success: false, error: "该产品不支持解锁分析报告" },
         { status: 400 },
       )
     }
