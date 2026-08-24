@@ -2,6 +2,7 @@ const mockFindUnique = jest.fn()
 const mockUpdate = jest.fn()
 const mockUpdateMany = jest.fn()
 const mockPut = jest.fn()
+const mockHead = jest.fn()
 const mockPollTaskResult = jest.fn()
 
 jest.mock('@prisma/client', () => ({
@@ -28,6 +29,7 @@ jest.mock('@/lib/prisma', () => ({
 }))
 
 jest.mock('@vercel/blob', () => ({
+  head: (...args: unknown[]) => mockHead(...args),
   put: (...args: unknown[]) => mockPut(...args),
 }))
 
@@ -82,6 +84,7 @@ describe('Try-On result privacy persistence', () => {
 
   beforeEach(() => {
     jest.clearAllMocks()
+    mockHead.mockReset()
     for (const key of PRIVATE_ENV_KEYS) delete process.env[key]
     global.fetch = jest.fn().mockResolvedValue({
       ok: true,
@@ -179,9 +182,9 @@ describe('Try-On result privacy persistence', () => {
       progress: 100,
       isNewCompletion: false,
     })
-    expect(mockUpdateMany).not.toHaveBeenCalled()
-    expect(mockUpdate).toHaveBeenCalledWith({
-      where: { id: 'task-private-result' },
+    expect(mockUpdate).not.toHaveBeenCalled()
+    expect(mockUpdateMany).toHaveBeenCalledWith({
+      where: { id: 'task-private-result', status: { not: 'COMPLETED' } },
       data: expect.objectContaining({
         status: 'PROCESSING',
         errorMessage: null,
@@ -192,9 +195,56 @@ describe('Try-On result privacy persistence', () => {
         }),
       }),
     })
-    const serializedCalls = JSON.stringify(mockUpdate.mock.calls)
+    const serializedCalls = JSON.stringify(mockUpdateMany.mock.calls)
     expect(serializedCalls).not.toContain('resultImageUrl')
     expect(serializedCalls).not.toContain('https://provider.example.com/result.png\"')
+  })
+
+  it('reconciles a private deterministic Blob already-exists conflict via head', async () => {
+    process.env.TRY_ON_BLOB_ACCESS_MODE = 'private'
+    process.env.TRY_ON_BLOB_STORE_ID = 'store_tryon'
+    prepareSucceededPoll()
+    const conflict = new Error('This blob already exists')
+    conflict.name = 'BlobPreconditionFailedError'
+    mockPut.mockRejectedValue(conflict)
+    mockHead.mockResolvedValue({
+      url: 'https://abc.private.blob.vercel-storage.com/tryon/result/user-1/task-private-result.png',
+    })
+
+    const result = await getTryOnResult('task-private-result')
+
+    expect(mockHead).toHaveBeenCalledWith('tryon/result/user-1/task-private-result.png')
+    expect(mockUpdateMany).toHaveBeenCalledWith(expect.objectContaining({
+      data: expect.objectContaining({
+        status: 'COMPLETED',
+        resultImageUrl: expect.stringContaining('.private.blob.vercel-storage.com/'),
+        metadata: expect.objectContaining({ resultReconciledFromExistingBlob: true }),
+      }),
+    }))
+    expect(result).toMatchObject({
+      status: 'COMPLETED',
+      resultImageUrl: expect.stringContaining('.private.blob.vercel-storage.com/'),
+    })
+  })
+
+  it('does not regress a completed task when a stale private persist failure arrives', async () => {
+    process.env.TRY_ON_BLOB_ACCESS_MODE = 'private'
+    process.env.TRY_ON_BLOB_STORE_ID = 'store_tryon'
+    prepareSucceededPoll()
+    mockPut.mockRejectedValue(new Error('private blob unavailable'))
+    mockUpdateMany.mockResolvedValue({ count: 0 })
+    mockFindUnique.mockResolvedValueOnce({
+      status: 'COMPLETED',
+      resultImageUrl: 'https://abc.private.blob.vercel-storage.com/result.png',
+    })
+
+    const result = await getTryOnResult('task-private-result')
+
+    expect(result).toMatchObject({
+      status: 'COMPLETED',
+      resultImageUrl: 'https://abc.private.blob.vercel-storage.com/result.png',
+    })
+    expect(mockUpdate).not.toHaveBeenCalled()
   })
 
   it('retains the legacy provider-URL fallback only in public mode', async () => {

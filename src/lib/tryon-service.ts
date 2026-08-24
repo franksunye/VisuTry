@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma"
-import { put } from "@vercel/blob"
+import { head, put } from "@vercel/blob"
 import { generateTryOnImage } from "@/lib/gemini"
 import { submitAsyncTask, pollTaskResult } from "@/lib/grsai"
 import { logger } from "@/lib/logger"
@@ -96,6 +96,17 @@ function shouldTreatPollFailureAsTransient(error?: string): boolean {
     normalizedError.includes('econnreset') ||
     normalizedError.includes('etimedout') ||
     normalizedError.includes('timed out')
+  )
+}
+
+function isBlobAlreadyExistsError(error: unknown): boolean {
+  const name = error instanceof Error ? error.name : ''
+  const message = error instanceof Error ? error.message.toLowerCase() : String(error).toLowerCase()
+  return (
+    name === 'BlobPreconditionFailedError' ||
+    message.includes('already exists') ||
+    message.includes('already-exists') ||
+    message.includes('cannot overwrite')
   )
 }
 
@@ -627,10 +638,66 @@ export async function getTryOnResult(taskId: string): Promise<TryOnPollResult> {
         })
 
         if (resultBlobOptions.access === 'private') {
+          if (isBlobAlreadyExistsError(uploadError)) {
+            try {
+              const existing = await head(resultPathname)
+              const reconciled = await prisma.tryOnTask.updateMany({
+                where: {
+                  id: taskId,
+                  status: { not: TaskStatus.COMPLETED },
+                },
+                data: {
+                  status: TaskStatus.COMPLETED,
+                  resultImageUrl: existing.url,
+                  errorMessage: null,
+                  metadata: {
+                    ...(pollResult.metadata || {}),
+                    ...externalPollMetadata,
+                    resultPathname,
+                    privateBlob: true,
+                    privatePersistPending: false,
+                    privatePersistError: null,
+                    completionTime: Date.now(),
+                    resultReconciledFromExistingBlob: true,
+                  },
+                },
+              })
+              if (reconciled.count > 0) {
+                return {
+                  status: TaskStatus.COMPLETED,
+                  resultImageUrl: existing.url,
+                  progress: 100,
+                  isNewCompletion: true,
+                }
+              }
+
+              const completed = await prisma.tryOnTask.findUnique({
+                where: { id: taskId },
+                select: { status: true, resultImageUrl: true },
+              })
+              if (completed?.status === TaskStatus.COMPLETED) {
+                return {
+                  status: TaskStatus.COMPLETED,
+                  resultImageUrl: completed.resultImageUrl || existing.url,
+                  progress: 100,
+                  isNewCompletion: false,
+                }
+              }
+            } catch (headError) {
+              logger.error('tryon-service', 'Failed to reconcile existing private GrsAi result blob', headError as Error, {
+                taskId,
+                pathname: resultPathname,
+              })
+            }
+          }
+
           // Never degrade a private-policy task to a provider/public URL. Keep the
           // external task resumable so a later poll can retry private persistence.
-          await prisma.tryOnTask.update({
-            where: { id: taskId },
+          const pendingUpdate = await prisma.tryOnTask.updateMany({
+            where: {
+              id: taskId,
+              status: { not: TaskStatus.COMPLETED },
+            },
             data: {
               status: TaskStatus.PROCESSING,
               errorMessage: null,
@@ -643,6 +710,22 @@ export async function getTryOnResult(taskId: string): Promise<TryOnPollResult> {
               },
             },
           })
+
+          if (pendingUpdate.count === 0) {
+            const completed = await prisma.tryOnTask.findUnique({
+              where: { id: taskId },
+              select: { status: true, resultImageUrl: true },
+            })
+            if (completed?.status === TaskStatus.COMPLETED) {
+              return {
+                status: TaskStatus.COMPLETED,
+                resultImageUrl: completed.resultImageUrl || undefined,
+                progress: 100,
+                isNewCompletion: false,
+              }
+            }
+          }
+
           return {
             status: TaskStatus.PROCESSING,
             progress: pollResult.progress ?? 90,
