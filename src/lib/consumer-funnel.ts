@@ -86,8 +86,10 @@ function safeString(value: unknown, max = 200): string | undefined {
   return trimmed ? trimmed.slice(0, max) : undefined
 }
 
-function isConsumerSurface(surface: unknown, entryPoint: unknown): boolean {
-  return surface !== 'merchant_store' && entryPoint !== 'b2b'
+function isTrackableShopperSurface(_surface: unknown, entryPoint: unknown): boolean {
+  // Store/Campaign shoppers are the primary Gate A surface. Exclude only the
+  // VisuTry B2B marketing funnel, which uses the same analytics transport.
+  return entryPoint !== 'b2b'
 }
 
 export function recordConsumerFunnelEvent(input: {
@@ -98,7 +100,7 @@ export function recordConsumerFunnelEvent(input: {
 }) {
   if (typeof window === 'undefined') return
   if (!(CONSUMER_FUNNEL_EVENT_NAMES as readonly string[]).includes(input.eventName)) return
-  if (!isConsumerSurface(input.surface, input.entryPoint)) return
+  if (!isTrackableShopperSurface(input.surface, input.entryPoint)) return
 
   const context = getConsumerFunnelContext()
   if (!context || typeof window.fetch !== 'function') return

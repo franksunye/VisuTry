@@ -27,7 +27,7 @@ describe('consumer funnel telemetry', () => {
     })
   })
 
-  it('sends only allowlisted Consumer action fields and excludes merchant surfaces', () => {
+  it('sends allowlisted shopper action fields for Store/Campaign and excludes B2B marketing', () => {
     recordConsumerFunnelEvent({
       eventName: 'tryon_completed',
       surface: 'web',
@@ -61,7 +61,15 @@ describe('consumer funnel telemetry', () => {
       surface: 'merchant_store',
       payload: {},
     })
-    expect(window.fetch).toHaveBeenCalledTimes(1)
+    expect(window.fetch).toHaveBeenCalledTimes(2)
+
+    recordConsumerFunnelEvent({
+      eventName: 'tryon_completed',
+      surface: 'web',
+      entryPoint: 'b2b',
+      payload: {},
+    })
+    expect(window.fetch).toHaveBeenCalledTimes(2)
   })
 
   it('ignores events outside the supported Consumer action contract', () => {

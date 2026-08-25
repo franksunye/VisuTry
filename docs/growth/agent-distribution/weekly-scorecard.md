@@ -15,7 +15,7 @@ counted in this scorecard.
 | Gemini | UNAVAILABLE | Not proven in the current window. |
 | Copilot | UNAVAILABLE | Not proven in the current window. |
 | Claude | UNAVAILABLE | Not proven in the current window. |
-| Sessions with a meaningful Consumer action | UNAVAILABLE | The new first-party stream is not deployed/queried for this window. |
+| Sessions with a meaningful Store/Campaign or standalone Consumer action | UNAVAILABLE | The new first-party stream is not deployed/queried for this window. |
 | Excluded test/internal sessions | UNAVAILABLE | Server-side test-session classification is implemented; no current report was run. |
 | L1 Discovery | NOT PROVEN | Requires genuine production Agent referral evidence. |
 | L2 Repeatability | NOT PROVEN | Requires the rolling-window report. |

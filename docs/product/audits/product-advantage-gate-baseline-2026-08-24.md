@@ -83,8 +83,8 @@ risk without accepting technical readiness or synthetic traffic as proof.
 
 - **Implemented in this pass — privacy-safe Consumer action telemetry:**
   `src/lib/consumer-funnel.ts` creates an anonymous browser-session identifier
-  and sends only allowlisted Detector, Advisor, Recommendation, Try-On, and
-  Compare events to `/api/analytics/consumer-funnel`. The route strips
+  and sends only allowlisted Store/Campaign shopper and standalone Consumer
+  decision events to `/api/analytics/consumer-funnel`. The route strips
   unknown fields, derives the test boundary from the `test-session` cookie,
   and writes structured events to the existing Vercel/Axiom log stream. The
   server derives source_class and known agent_source from the allowlisted

@@ -82,13 +82,15 @@ export async function POST(request: NextRequest) {
   const eventName = safeString(body.event_name, 80)
   const eventId = safeString(body.event_id, 128)
   const funnelId = safeString(body.consumer_funnel_id, 128)
+  const entryPoint = safeString(body.entry_point, 80)
   if (
     !eventName ||
     !(CONSUMER_FUNNEL_EVENT_NAMES as readonly string[]).includes(eventName) ||
     !eventId ||
     !ID_PATTERN.test(eventId) ||
     !funnelId ||
-    !ID_PATTERN.test(funnelId)
+    !ID_PATTERN.test(funnelId) ||
+    entryPoint === 'b2b'
   ) {
     return NextResponse.json({ error: 'invalid_event' }, { status: 400 })
   }

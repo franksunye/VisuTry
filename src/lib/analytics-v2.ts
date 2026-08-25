@@ -190,7 +190,7 @@ export function trackCampaignEvent(
 
   const campaignContext = getCampaignAnalyticsContext()
   const consumerFunnelContext =
-    campaignContext.surface === 'merchant_store' || campaignContext.entry_point === 'b2b'
+    campaignContext.entry_point === 'b2b'
       ? null
       : getConsumerFunnelContext()
 
