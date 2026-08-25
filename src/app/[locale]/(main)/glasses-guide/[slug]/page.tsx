@@ -3,6 +3,10 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { ArrowRight, Glasses, ScanFace, SlidersHorizontal } from 'lucide-react'
 import { SearchToToolLanding } from '@/components/growth/SearchToToolLanding'
+import {
+  CombinationVisualSeoHero,
+  CombinationVisualSeoSections,
+} from '@/components/seo/CombinationVisualSeoSections'
 import { COMBINATION_SEARCH_PAGES } from '@/config/search-combination-pages'
 import {
   getCombinationGuideShellCopy,
@@ -74,6 +78,7 @@ export default function CombinationSearchPage({ params }: Props) {
       title={page.title}
       intro={page.intro}
       schemas={schemas}
+      visual={<CombinationVisualSeoHero locale={locale} page={page} />}
       steps={[
         {
           title: shell.stepShortlist,
@@ -120,6 +125,8 @@ export default function CombinationSearchPage({ params }: Props) {
           <p className="text-sm leading-6 text-gray-700">{page.watchFor}</p>
         </article>
       </section>
+
+      <CombinationVisualSeoSections locale={locale} page={page} />
 
       <section className="mt-12 rounded-lg border border-blue-100 bg-blue-50 p-6">
         <p className="mb-2 text-sm font-semibold text-blue-700">{shell.decisionTip}</p>
