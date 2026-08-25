@@ -74,23 +74,32 @@ the merchant shopper experience.
 
 ## Current Execution State — 2026-08-25
 
-- **Bottleneck:** no current rolling 14-day first-party report that joins an
-  attributable Consumer source to a meaningful decision action.
-- **Measure:** production route, robots, canonical metadata, core sitemap, and
-  the intentional empty dynamic Experience sitemap were checked; the available
-  Search Console export ends on 2026-07-24, and no authenticated GA4/Search
-  Console console was available in this environment.
+- **Bottleneck:** no genuine Agent referral is observed in the eligible
+  Store/Campaign production stream, and the Consumer first-party stream cannot
+  currently be queried because the available Axiom credential is ingest-only.
+- **Measure:** the current PR head is deployed to a Vercel preview equivalent
+  (`dpl_CfwWn9vQPYHrXJYZ6t9KAnKdwRzY`). Production `visutry.com` Store/Campaign
+  routes pass desktop/mobile read-only checks. The rolling 14-day Neon
+  MerchantSession aggregate found 0 eligible Agent sessions; 77 Reference, 14
+  Internal, and 16 Live/Luna-without-Experience sessions were excluded. The
+  public `/en/discover`, Consumer answer pages, robots policy, and empty dynamic
+  sitemap were also checked.
 - **Improve:** this branch adds an anonymous browser-session ID and allowlisted
   Consumer decision events to /api/analytics/consumer-funnel, persisted via
   the existing Vercel/Axiom log stream. The server, not the browser, classifies
-  test-session traffic.
-- **Distribute:** no Reddit, YouTube, or other external publishing was done in
-  this pass.
-- **Result:** the telemetry implementation is test-covered but not deployed or
-  observed in a production window; L1/L2/L3 remain unproven.
-- **Next iteration:** deploy, query the rolling 14-day report, re-check the
-  detector and highest-intent pages, then choose one bounded UX/SEO experiment
-  from observed evidence.
+  test-session traffic. A read-only `report:agent-distribution` command now
+  reports the Consumer stream and separately reuses the durable Store/Campaign
+  source-action report without inventing a cross-system join.
+- **Distribute:** public search diagnostics found VisuTry Consumer answer
+  surfaces and an external SDK mention, but no checked Reddit/YouTube result.
+  No Reddit, YouTube, or other external publishing was done in this pass.
+- **Result:** A1/A2/A3 production-equivalent route verification did not
+  regress. Technical attribution/reporting code is covered, but A4 L1/L2/L3
+  remain unproven; the current production Store/Campaign evidence contains no
+  eligible Agent referral.
+- **Next iteration:** provision a query-capable Axiom credential, run the
+  explicit rolling 14-day report, and choose one bounded discovery/distribution
+  experiment only after the report identifies a dominant constraint.
 
 ## 3. Hard Success Condition
 
@@ -286,6 +295,17 @@ Every meaningful iteration should record:
 - next action.
 
 The evidence should not require reconstructing ad-hoc logs each time.
+
+### 2026-08-25 A4 deployment and evidence closure
+
+| Field | Record |
+| --- | --- |
+| Hypothesis | Current public Consumer answer surfaces and the Reference shopper Experience can be reached cleanly, while durable source/action reporting makes genuine Agent distribution observable. |
+| Action | Deployed PR head `3e6cdeb857516421d5ea221e439a1935ec13563b` to Vercel preview `dpl_CfwWn9vQPYHrXJYZ6t9KAnKdwRzY`; verified production `visutry.com` and preview Store/Campaign routes; added `report:agent-distribution`. |
+| Affected surface/channel | `/en/store/ello-sunglasses`, `/en/c/ello-sunglasses/petite-fit`, `/en/discover`, Consumer answer surfaces, Axiom/Vercel consumer stream, MerchantSession Store/Campaign stream. |
+| Observation window | 2026-08-11T02:47Z → 2026-08-25T02:47Z UTC. |
+| Result | 0 eligible Store/Campaign Agent sessions observed. Consumer Axiom query was denied because the available token lacks `query:read`; Vercel runtime retention cannot cover 14 days. Reference/Internal/test traffic was not counted. |
+| Next decision | Keep Gate A PARTIAL. Provision read-only Axiom query access, rerun the report, then select one evidence-backed external distribution action. |
 
 ## 9. Exit
 

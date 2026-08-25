@@ -190,6 +190,14 @@ and never count as real distribution proof. Technical readiness may pass while
 real distribution evidence remains `PARTIAL`; in that case **Gate A remains
 PARTIAL and Outreach remains GATED**.
 
+The minimum read-only reporting contract is the `report:agent-distribution`
+command. For an explicit UTC date range it reads the first-party Consumer
+event stream and the durable MerchantSession / MerchantEvent / MerchantIntent
+Store-Campaign stream, reports the supported source and action metrics, excludes
+Reference/Internal/test traffic, and states when the two streams cannot be
+joined. A query-capable Axiom credential is required for the Consumer stream;
+an ingest-only credential or short Vercel log retention is not evidence.
+
 ### Agent Natural Distribution Proof Levels
 
 | Level | Required proof | Meaning |

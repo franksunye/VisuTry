@@ -34,6 +34,10 @@ outcome is proven by the current data. Product has selected the active Hard
 Distribution Gate: Outreach remains GATED until Gate A L3, Gate B, and Gate C
 pass. The rolling 14-day threshold and weekly growth loop bound the waiting
 risk without accepting technical readiness or synthetic traffic as proof.
+The current observability pass deployed PR head
+`3e6cdeb857516421d5ea221e439a1935ec13563b` to Vercel preview
+`dpl_CfwWn9vQPYHrXJYZ6t9KAnKdwRzY` and rechecked the production
+Reference Store/Campaign routes without an A1–A3 regression.
 
 ## Gate A
 
@@ -93,15 +97,25 @@ risk without accepting technical readiness or synthetic traffic as proof.
   implementation and regression-test evidence, not production distribution
   evidence.
 
+- **Implemented in this pass — repeatable read-only report:**
+  `scripts/agent-distribution-report.ts` / `npm run report:agent-distribution`
+  accepts an explicit UTC window, reads the first-party Consumer stream and the
+  durable Store/Campaign MerchantSession report separately, excludes
+  Reference/Internal/test traffic, and states the unsupported cross-system
+  join. The current local Axiom credential is ingest-only, so the Consumer
+  query cannot yet run; this is an environment access blocker, not evidence of
+  zero Consumer traffic.
+
 ### Partial
 
 - **Implemented but not yet proven — known AI referral attribution:**
   `src/modules/store/domain/session-acquisition.ts` now separately classifies
   ChatGPT, OpenAI, Perplexity, Gemini, Copilot, and Claude from explicit source
   or trusted referrer host; `getMerchantAttributionBreakdown` exposes
-  `aiAgentSource`. There is no current production evidence slice proving counts
-  for those sources. The consumer analytics path still stores normalized
-  first-touch source/medium rather than one shared channel schema.
+  `aiAgentSource`. The current 14-day eligible Store/Campaign production slice
+  has zero sessions with a known Agent source. The Consumer analytics path
+  still stores normalized first-touch source/medium rather than one shared
+  channel schema, and its Axiom read query is not currently authorized.
 - **Technical readiness boundary:** source parsing, persistence, the
   Store/Campaign source-action report, and Consumer decision events are
   implementation evidence. Synthetic attribution requests are labelled `TEST`
@@ -131,24 +145,23 @@ risk without accepting technical readiness or synthetic traffic as proof.
   `MerchantSession`; Detector and Advisor counts therefore remain unavailable
   in the first-party source-action report. This is an explicit data boundary,
   not a reason to fabricate joins.
-- A deployed, merchant/product-readable rolling 14-day Consumer source →
-  action report. The new first-party event stream is the smallest safe source
-  available, but it has not yet accumulated a production observation window in
-  this branch.
-- Genuine production Agent referral evidence: the source-action report is ready
-  to inspect future durable Store/Campaign traffic, but no genuine production
-  Agent referral with a meaningful Consumer action is present in this audit.
+- A query-authorized rolling 14-day Consumer source → action report. The
+  report command is implemented, but the available Axiom token has ingest
+  permission without `query:read`, and Vercel runtime retention cannot cover
+  the requested window.
+- Genuine production Agent referral evidence: the eligible Store/Campaign
+  production slice contains zero known Agent sessions in this window; the
+  Consumer stream remains unobserved until query access is repaired.
 
 ### P0
 
 - **A-P0-1 — Durable source/action reporting (partially closed):** the
   read-only Store/Campaign report produces reproducible source-class counts and
   action counts from `MerchantSession`, `MerchantEvent`, and
-  `MerchantIntent`. This pass adds a separate privacy-safe first-party
-  Consumer event stream for future source → action inspection without
-  pretending it is already a report. The remaining boundary is deployment plus
-  a rolling production observation window; no unsupported
-  GA4/dataLayer-to-`MerchantSession` join is claimed.
+  `MerchantIntent`. `report:agent-distribution` now adds the Consumer query
+  path without pretending that its anonymous funnel ID joins to
+  `MerchantSession`. The remaining blocker is a query-authorized Axiom
+  credential plus a rolling production observation window.
 - **A-P0-2 — Genuine distribution evidence:** observe one real production
   AI-assistant/agent referral, classify it distinctly, connect it to a persisted
   session, and verify one meaningful Consumer decision action. Synthetic traffic
@@ -176,20 +189,20 @@ Minimum observable funnel at this baseline:
 | Stage | Current source | Status / gap |
 | --- | --- | --- |
 | Discovery | Core sitemap, canonical/structured metadata, Search Console / GA page views | Technical surface proven; no current agent/referral outcome data. |
-| Visit | GA automatic `page_view`; Store `MerchantSession` created by `/api/store/sessions`; new anonymous Consumer funnel ID | Durable Consumer first-party event stream is implemented but not deployed/queried for this observation window. |
-| Useful Decision Interaction | Detector upload/complete/fail; Advisor analysis events; Store `merchant_page_viewed` and recommendation events; new allowlisted Consumer route | Implemented; cross-system join and current production counts are not proven. |
+| Visit | GA automatic `page_view`; Store `MerchantSession` created by `/api/store/sessions`; anonymous Consumer funnel ID | Store/Campaign production session aggregate is queryable; Consumer first-party query is blocked by Axiom permission. |
+| Useful Decision Interaction | Detector upload/complete/fail; Advisor analysis events; Store `merchant_page_viewed` and recommendation events; allowlisted Consumer route | Store/Campaign actions are durable; Consumer action counts are not queryable in this window and no cross-system join is claimed. |
 | Recommendation / Try-On / Compare | Consumer `recommendation_*`, `tryon_*`, `comparison_*`; Store MerchantEvents and usage records; new first-party action events | Implemented in separate schemas; no unsupported GA4 join is claimed and full current production continuation is not proven. |
 | Intent | Consumer `purchase_intent_clicked` where applicable; Store `MerchantIntent`, product click/favorite/inquiry events | Store intent is durable; no unified Consumer-to-merchant intent proof. |
 
 Gate A result split: **technical readiness PARTIAL** (attribution parsing,
 persistence, canonical/structured metadata, sitemap admission, the durable
-Store/Campaign source-action report, and the new privacy-safe Consumer event
-contract are covered; deployment and production observation remain);
-**reporting readiness PARTIAL** (the Store/Campaign report is operational and
-the Consumer event stream is ready for querying, but a rolling source →
-Consumer-action report is not yet proven); **real distribution evidence
-PARTIAL** (no genuine production AI/agent referral with a meaningful decision
-action is available). Synthetic source-class tests are not counted as
+Store/Campaign source-action report, and the privacy-safe Consumer event
+contract are covered; the Consumer query credential is not); **reporting
+readiness PARTIAL** (the Store/Campaign report and repeatable command are
+implemented, but the Consumer stream cannot be queried and the two streams
+must not be falsely joined); **real distribution evidence PARTIAL** (zero
+eligible Store/Campaign Agent sessions were observed and no Consumer Agent
+count is available). Synthetic source-class tests are not counted as
 production proof.
 
 ## Gate B
