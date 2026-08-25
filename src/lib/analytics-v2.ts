@@ -12,6 +12,7 @@ import {
   type AnalyticsEventName,
   type AnalyticsSurface,
 } from './analytics-events'
+import { getConsumerFunnelContext, recordConsumerFunnelEvent } from './consumer-funnel'
 
 const CAMPAIGN_CONTEXT_KEY = 'visutry_campaign_context'
 
@@ -188,11 +189,16 @@ export function trackCampaignEvent(
   if (typeof window === 'undefined') return
 
   const campaignContext = getCampaignAnalyticsContext()
+  const consumerFunnelContext =
+    campaignContext.surface === 'merchant_store' || campaignContext.entry_point === 'b2b'
+      ? null
+      : getConsumerFunnelContext()
 
   const payload: Record<string, unknown> = {
     ...campaignContext,
     ...properties,
     analytics_schema_version: ANALYTICS_SCHEMA_VERSION,
+    ...(consumerFunnelContext ?? {}),
   }
 
   if (window.gtag) {
@@ -205,6 +211,13 @@ export function trackCampaignEvent(
       ...payload,
     })
   }
+
+  recordConsumerFunnelEvent({
+    eventName,
+    payload,
+    surface: campaignContext.surface,
+    entryPoint: campaignContext.entry_point,
+  })
 
   if (process.env.NODE_ENV === 'development') {
     console.log('📊 Campaign Event:', eventName, payload)

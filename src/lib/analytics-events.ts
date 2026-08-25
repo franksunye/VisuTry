@@ -123,6 +123,7 @@ export type AnalyticsCommonContext = {
   page_path?: string
   acquisition_source?: string
   acquisition_medium?: string
+  referrer_host?: string
   landing_locale?: string
   browser_language?: string
   source_page?: string
@@ -135,6 +136,10 @@ export type AnalyticsCommonContext = {
   campaign_name?: string
   merchant_id?: string
   store_id?: string
+  /** Anonymous first-party Consumer browser-session join for decision telemetry. */
+  consumer_funnel_id?: string
+  /** Server-classified telemetry boundary; never treat this as proof by itself. */
+  traffic_class?: 'test' | 'production_candidate'
   surface?: AnalyticsSurface
   entry_point?: AnalyticsEntryPoint
   actor_type?: AnalyticsActorType

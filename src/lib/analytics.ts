@@ -38,6 +38,7 @@ import { setCampaignAnalyticsContext, trackCampaignEvent } from '@/lib/analytics
 const LANDING_PAGE_KEY = 'visutry_landing_page'
 const ACQUISITION_SOURCE_KEY = 'visutry_acquisition_source'
 const ACQUISITION_MEDIUM_KEY = 'visutry_acquisition_medium'
+const ACQUISITION_REFERRER_HOST_KEY = 'visutry_referrer_host'
 const GROWTH_CONTEXT_KEY = 'visutry_growth_context'
 
 export type AcquisitionContext = {
@@ -45,6 +46,7 @@ export type AcquisitionContext = {
   page_path: string
   acquisition_source?: string
   acquisition_medium?: string
+  referrer_host?: string
   source_page?: string
   query_cluster?: string
   content_cluster?: string
@@ -69,7 +71,7 @@ function getBrowserLanguage(): string {
   return navigator.language || 'en'
 }
 
-function inferReferrerAttribution(): { source?: string; medium?: string } {
+function inferReferrerAttribution(): { source?: string; medium?: string; referrer_host?: string } {
   if (typeof document === 'undefined' || typeof window === 'undefined') return {}
 
   try {
@@ -94,6 +96,7 @@ function inferReferrerAttribution(): { source?: string; medium?: string } {
     return {
       source: host,
       medium: isOrganic ? 'organic' : 'referral',
+      referrer_host: host,
     }
   } catch {
     return {}
@@ -161,6 +164,7 @@ function getSessionAttribution(): AcquisitionContext {
     const storedLandingPage = window.sessionStorage.getItem(LANDING_PAGE_KEY)
     const storedAcquisitionSource = window.sessionStorage.getItem(ACQUISITION_SOURCE_KEY)
     const storedAcquisitionMedium = window.sessionStorage.getItem(ACQUISITION_MEDIUM_KEY)
+    const storedReferrerHost = window.sessionStorage.getItem(ACQUISITION_REFERRER_HOST_KEY)
 
     if (!storedLandingPage) {
       window.sessionStorage.setItem(LANDING_PAGE_KEY, pagePath)
@@ -168,6 +172,7 @@ function getSessionAttribution(): AcquisitionContext {
 
     let acquisitionSource = storedAcquisitionSource || undefined
     let acquisitionMedium = storedAcquisitionMedium || undefined
+    let referrerHost = storedReferrerHost || undefined
 
     if (!storedAcquisitionSource) {
       const utmSource = searchParams.get('utm_source') || undefined
@@ -175,12 +180,16 @@ function getSessionAttribution(): AcquisitionContext {
       const inferred = inferReferrerAttribution()
       acquisitionSource = utmSource || inferred.source
       acquisitionMedium = utmMedium || inferred.medium
+      referrerHost = inferred.referrer_host
 
       if (acquisitionSource) {
         window.sessionStorage.setItem(ACQUISITION_SOURCE_KEY, acquisitionSource)
       }
       if (acquisitionMedium) {
         window.sessionStorage.setItem(ACQUISITION_MEDIUM_KEY, acquisitionMedium)
+      }
+      if (referrerHost) {
+        window.sessionStorage.setItem(ACQUISITION_REFERRER_HOST_KEY, referrerHost)
       }
     }
 
@@ -192,6 +201,7 @@ function getSessionAttribution(): AcquisitionContext {
       landing_locale: landingLocale,
       ...(acquisitionSource ? { acquisition_source: acquisitionSource } : {}),
       ...(acquisitionMedium ? { acquisition_medium: acquisitionMedium } : {}),
+      ...(referrerHost ? { referrer_host: referrerHost } : {}),
       ...growthContext,
     }
   } catch {

@@ -1,10 +1,11 @@
 # Product Advantage Gate Baseline
 
-**Audit date:** 2026-08-24
+**Audit date:** 2026-08-25
 **Branch:** `codex/product-advantage-gate-baseline-2026-08-24`
 **Starting SHA:** `204573bf19959c80481ebfbb889045f25bb251f1`
 **Evidence-closure pass started at:** `d809564a8562ede9341028998435fd43300f034a`
 **Criteria-normalization pass started at:** `75f62c40164dfb42c2378ea7d49e44e47abab74f`
+**Current observability pass started at:** `e2733f951c0c9e917df26547cf0280eb93634e51`
 
 ## Executive Verdict
 
@@ -80,6 +81,18 @@ risk without accepting technical readiness or synthetic traffic as proof.
   and High-Intent signals without raw-log reconstruction. The UI renders this
   as `Source → decision actions` and labels the Consumer event boundary.
 
+- **Implemented in this pass — privacy-safe Consumer action telemetry:**
+  `src/lib/consumer-funnel.ts` creates an anonymous browser-session identifier
+  and sends only allowlisted Detector, Advisor, Recommendation, Try-On, and
+  Compare events to `/api/analytics/consumer-funnel`. The route strips
+  unknown fields, derives the test boundary from the `test-session` cookie,
+  and writes structured events to the existing Vercel/Axiom log stream. The
+  server derives source_class and known agent_source from the allowlisted
+  source/medium/referrer fields; the browser cannot self-label production
+  evidence. No photo, face geometry, user ID, or free-form text is sent. This is
+  implementation and regression-test evidence, not production distribution
+  evidence.
+
 ### Partial
 
 - **Implemented but not yet proven — known AI referral attribution:**
@@ -118,6 +131,10 @@ risk without accepting technical readiness or synthetic traffic as proof.
   `MerchantSession`; Detector and Advisor counts therefore remain unavailable
   in the first-party source-action report. This is an explicit data boundary,
   not a reason to fabricate joins.
+- A deployed, merchant/product-readable rolling 14-day Consumer source →
+  action report. The new first-party event stream is the smallest safe source
+  available, but it has not yet accumulated a production observation window in
+  this branch.
 - Genuine production Agent referral evidence: the source-action report is ready
   to inspect future durable Store/Campaign traffic, but no genuine production
   Agent referral with a meaningful Consumer action is present in this audit.
@@ -125,11 +142,13 @@ risk without accepting technical readiness or synthetic traffic as proof.
 ### P0
 
 - **A-P0-1 — Durable source/action reporting (partially closed):** the
-  read-only Store/Campaign report now produces reproducible source-class counts
-  and action counts from `MerchantSession`, `MerchantEvent`, and
-  `MerchantIntent`. The remaining boundary is the lack of a safe durable join
-  for core Consumer GA4/dataLayer Detector and Advisor events; no unsupported
-  join is claimed.
+  read-only Store/Campaign report produces reproducible source-class counts and
+  action counts from `MerchantSession`, `MerchantEvent`, and
+  `MerchantIntent`. This pass adds a separate privacy-safe first-party
+  Consumer event stream for future source → action inspection without
+  pretending it is already a report. The remaining boundary is deployment plus
+  a rolling production observation window; no unsupported
+  GA4/dataLayer-to-`MerchantSession` join is claimed.
 - **A-P0-2 — Genuine distribution evidence:** observe one real production
   AI-assistant/agent referral, classify it distinctly, connect it to a persisted
   session, and verify one meaningful Consumer decision action. Synthetic traffic
@@ -157,17 +176,18 @@ Minimum observable funnel at this baseline:
 | Stage | Current source | Status / gap |
 | --- | --- | --- |
 | Discovery | Core sitemap, canonical/structured metadata, Search Console / GA page views | Technical surface proven; no current agent/referral outcome data. |
-| Visit | GA automatic `page_view`; Store `MerchantSession` created by `/api/store/sessions` | Visit exists, but Consumer has no durable funnel record shared with later actions. |
-| Useful Decision Interaction | Detector upload/complete/fail; Advisor analysis events; Store `merchant_page_viewed` and recommendation events | Implemented; cross-system join and current production counts are not proven. |
-| Recommendation / Try-On / Compare | Consumer `recommendation_*`, `tryon_*`, `comparison_*`; Store MerchantEvents and usage records | Implemented in separate schemas; Detector direct Try-On handoff is covered by a regression test, but full authenticated continuation is not yet proven. |
+| Visit | GA automatic `page_view`; Store `MerchantSession` created by `/api/store/sessions`; new anonymous Consumer funnel ID | Durable Consumer first-party event stream is implemented but not deployed/queried for this observation window. |
+| Useful Decision Interaction | Detector upload/complete/fail; Advisor analysis events; Store `merchant_page_viewed` and recommendation events; new allowlisted Consumer route | Implemented; cross-system join and current production counts are not proven. |
+| Recommendation / Try-On / Compare | Consumer `recommendation_*`, `tryon_*`, `comparison_*`; Store MerchantEvents and usage records; new first-party action events | Implemented in separate schemas; no unsupported GA4 join is claimed and full current production continuation is not proven. |
 | Intent | Consumer `purchase_intent_clicked` where applicable; Store `MerchantIntent`, product click/favorite/inquiry events | Store intent is durable; no unified Consumer-to-merchant intent proof. |
 
 Gate A result split: **technical readiness PARTIAL** (attribution parsing,
-persistence, canonical/structured metadata, sitemap admission, and the
-durable Store/Campaign source-action report are proven; the core Consumer
-GA4/dataLayer join is intentionally unavailable); **reporting readiness
-PARTIAL** (the strongest supported first-party report is operational, but it
-does not include Detector/Advisor counts); **real distribution evidence
+persistence, canonical/structured metadata, sitemap admission, the durable
+Store/Campaign source-action report, and the new privacy-safe Consumer event
+contract are covered; deployment and production observation remain);
+**reporting readiness PARTIAL** (the Store/Campaign report is operational and
+the Consumer event stream is ready for querying, but a rolling source →
+Consumer-action report is not yet proven); **real distribution evidence
 PARTIAL** (no genuine production AI/agent referral with a meaningful decision
 action is available). Synthetic source-class tests are not counted as
 production proof.

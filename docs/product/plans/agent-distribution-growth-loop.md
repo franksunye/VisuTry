@@ -72,6 +72,26 @@ Standalone Consumer tools can create discovery and reusable technology, but the
 Growth Loop must not optimize them as an isolated end product at the expense of
 the merchant shopper experience.
 
+## Current Execution State — 2026-08-25
+
+- **Bottleneck:** no current rolling 14-day first-party report that joins an
+  attributable Consumer source to a meaningful decision action.
+- **Measure:** production route, robots, canonical metadata, core sitemap, and
+  the intentional empty dynamic Experience sitemap were checked; the available
+  Search Console export ends on 2026-07-24, and no authenticated GA4/Search
+  Console console was available in this environment.
+- **Improve:** this branch adds an anonymous browser-session ID and allowlisted
+  Consumer decision events to /api/analytics/consumer-funnel, persisted via
+  the existing Vercel/Axiom log stream. The server, not the browser, classifies
+  test-session traffic.
+- **Distribute:** no Reddit, YouTube, or other external publishing was done in
+  this pass.
+- **Result:** the telemetry implementation is test-covered but not deployed or
+  observed in a production window; L1/L2/L3 remain unproven.
+- **Next iteration:** deploy, query the rolling 14-day report, re-check the
+  detector and highest-intent pages, then choose one bounded UX/SEO experiment
+  from observed evidence.
+
 ## 3. Hard Success Condition
 
 The active Product Advantage Gate requires Agent Natural Distribution L3 before
