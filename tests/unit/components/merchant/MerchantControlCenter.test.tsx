@@ -42,6 +42,9 @@ describe('MerchantControlCenter', () => {
       experiences: [{ id: 'experience-a', type: 'STORE', name: 'Reference Store', status: 'ACTIVE', referenceData: true, visitors: 12, engagedShoppers: 8, recommendationActivity: 7, tryOnCompletions: 5, compareActivity: 3, productClicks: 2, highIntentShoppers: 2 }],
     } }} />)
     expect(screen.getByRole('heading', { name: 'Understand shopper intent' })).toBeInTheDocument()
+    expect(screen.getByText('Data window (UTC)')).toBeInTheDocument()
+    expect(screen.getAllByText(/Aug 1, 2026/)).toHaveLength(2)
+    expect(screen.getByRole('button', { name: 'Continue with Agent' })).toBeInTheDocument()
     expect(screen.getAllByText('Visitors').length).toBeGreaterThanOrEqual(2)
     expect(screen.getByText('AI · ChatGPT')).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: 'Source → decision actions' })).toBeInTheDocument()
@@ -60,10 +63,12 @@ describe('MerchantControlCenter', () => {
       experiences: [],
     } }} />)
     expect(screen.getByRole('heading', { name: 'Understand shopper intent' })).toBeInTheDocument()
+    expect(screen.getByText(/Data window \(UTC\)/)).toBeInTheDocument()
     expect(screen.getByText('No shopper activity yet')).toBeInTheDocument()
-    expect(screen.getByText('Share a published Store or Campaign to start collecting decision signals.')).toBeInTheDocument()
+    expect(screen.getByText(/Share a published Store or Campaign to start collecting decision signals/)).toBeInTheDocument()
     expect(screen.queryByText('Visitors')).not.toBeInTheDocument()
     expect(screen.getByText(/No shopper photos, identity, revenue, or purchase claims/)).toBeInTheDocument()
+    expect(screen.getByText(/Human approval remains required/)).toBeInTheDocument()
   })
 
   it('shows a newly created secret once and removes it on close', async () => {
