@@ -31,6 +31,7 @@ test.describe('@critical Store Pilot Flow', () => {
     await expect(page.locator('body')).not.toContainText(/application error|internal server error/i);
     await expect(page.locator('[data-presentation-mode="EDITORIAL_FIRST"]')).toBeVisible();
     await expect(page.locator('[data-presentation-cta="shopping-interest"]').first()).toBeVisible();
+    await expect(page.getByRole('link', { name: 'Explore the collection' })).toHaveAttribute('href', '#featured-frames');
     await expect(page.locator('header')).not.toContainText('Powered by');
     await expect(page.getByText('Powered by VisuTry')).toBeVisible();
     await expect(page.getByText('Petite Fit Reference Experience', { exact: true })).toBeVisible();
@@ -74,6 +75,16 @@ test.describe('@critical Store Pilot Flow', () => {
     await page.goto('/en/store/ello-sunglasses', { waitUntil: 'networkidle' });
     await expect(page.locator('[data-presentation-mode="PRODUCT_FIRST"]')).toBeVisible();
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+  });
+
+  test('Store and Campaign landing actions remain usable at mobile width', async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    for (const route of ['/en/store/ello-sunglasses', '/en/c/ello-sunglasses/petite-fit']) {
+      await page.goto(route, { waitUntil: 'networkidle' });
+      await expect(page.locator('h1')).toBeVisible();
+      await expect(page.getByRole('link', { name: 'Explore the collection' })).toHaveAttribute('href', '#featured-frames');
+      expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+    }
   });
 
   test('campaign offers the same merchant Store without replacing first-touch attribution', async ({ page }) => {
@@ -159,6 +170,48 @@ test.describe('@critical Store Pilot Flow', () => {
     await page.route('**/api/store/sessions/select-frames', async (route) => {
       await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ success: true, data: { selectedFrameIds: ['frame-1', 'frame-2'] } }) });
     });
+    await page.route('**/api/store/sessions/try-on', async (route) => {
+      const request = route.request().postDataJSON() as { merchantFrameId: string };
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          success: true,
+          data: {
+            taskId: `task-${request.merchantFrameId}`,
+            status: 'processing',
+            frame: frames.find((frame) => frame.id === request.merchantFrameId),
+          },
+        }),
+      });
+    });
+    await page.route('**/api/store/sessions/try-on/poll', async (route) => {
+      const request = route.request().postDataJSON() as { taskId: string };
+      const frameId = request.taskId.replace(/^task-/, '');
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          success: true,
+          data: {
+            status: 'completed',
+            resultImageUrl: preview,
+            frame: frames.find((frame) => frame.id === frameId),
+          },
+        }),
+      });
+    });
+    let compareCalls = 0;
+    let productIntentCalls = 0;
+    await page.route('**/api/store/sessions/compare', async (route) => {
+      compareCalls += 1;
+      await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ success: true, data: { comparedFrameIds: ['frame-1', 'frame-2'] } }) });
+    });
+    await page.route('**/api/store/sessions/intent', async (route) => {
+      const request = route.request().postDataJSON() as { type: string };
+      if (request.type === 'PRODUCT_CLICK') productIntentCalls += 1;
+      await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ success: true, data: { intentId: 'intent-1' } }) });
+    });
     // Keep this policy smoke deterministic and free of MediaPipe/provider work.
     await page.route('**/mediapipe/**', (route) => route.abort());
     await page.route('https://cdn.jsdelivr.net/**', (route) => route.abort());
@@ -182,5 +235,15 @@ test.describe('@critical Store Pilot Flow', () => {
     await expect(frameButtons.nth(2)).toBeDisabled();
     await expect(page.getByText('Selected 2 of 2')).toBeVisible();
     await expect(page.getByRole('status')).toContainText('maximum of 2');
+
+    await page.getByRole('button', { name: 'Save selection (2)' }).click();
+    await expect(page.getByText('Selection saved')).toBeVisible();
+    await page.getByRole('button', { name: 'Try on 2 frames' }).click();
+    await expect(page.getByRole('button', { name: 'Compare 2 results' })).toBeVisible();
+    await page.getByRole('button', { name: 'Compare 2 results' }).click();
+    await expect(page.getByRole('heading', { name: 'Side-by-side compare' })).toBeVisible();
+    await expect.poll(() => compareCalls).toBe(1);
+    await page.getByRole('button', { name: 'View product' }).first().click();
+    await expect.poll(() => productIntentCalls).toBe(1);
   });
 });
