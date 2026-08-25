@@ -1,3 +1,5 @@
+import type { VisualSeoAsset } from '@/config/visual-seo-assets'
+import { COMBINATION_SEARCH_PAGES } from '@/config/search-combination-pages'
 import vseo055 from '../../assets/visual-seo/B07/source/VSEO-055__best-rectangle-glasses-for-round-face-01-hero.png'
 import vseo056 from '../../assets/visual-seo/B07/source/VSEO-056__best-rectangle-glasses-for-round-face-02-why-it-works.png'
 import vseo057 from '../../assets/visual-seo/B07/source/VSEO-057__best-rectangle-glasses-for-round-face-03-watch-for.png'
@@ -29,31 +31,66 @@ import vseo082 from '../../assets/visual-seo/B09/source/VSEO-082__best-aviator-g
 import vseo083 from '../../assets/visual-seo/B09/source/VSEO-083__best-browline-glasses-for-oval-face-01-hero.png'
 import vseo084 from '../../assets/visual-seo/B09/source/VSEO-084__best-browline-glasses-for-oval-face-02-why-it-works.png'
 
-export type CombinationVisualSeoStage = 'hero' | 'why' | 'fit' | 'compare'
+type CombinationVisualSeoRole = 'hero' | 'why' | 'fit' | 'compare'
+type ExtendedVisualSeoBatch = 'B07' | 'B08' | 'B09'
 
-type CombinationVisualSeoAsset = {
-  id: `VSEO-${string}`
-  batch: 'B07' | 'B08' | 'B09'
-  pageSlug: string
-  stage: CombinationVisualSeoStage
-  sourcePath: string
-  publicPath: string
-  width: number
-  height: number
+export type CombinationVisualSeoAsset = Omit<VisualSeoAsset, 'batch'> & {
+  batch: ExtendedVisualSeoBatch
+  role: CombinationVisualSeoRole
 }
 
-const asset = (
+function copyFor(pageSlug: string, role: CombinationVisualSeoRole) {
+  const page = COMBINATION_SEARCH_PAGES.find((item) => item.slug === pageSlug)
+  if (!page) throw new Error(`Missing combination search page for visual SEO asset: ${pageSlug}`)
+
+  switch (role) {
+    case 'hero':
+      return { heading: page.title, body: page.primaryAnswer }
+    case 'why':
+      return {
+        heading: `Why ${page.title.replace(/^Best /, '').replace(/\?$/, '')} can work`,
+        body: page.whyItWorks,
+      }
+    case 'fit':
+      return { heading: 'What proportions to watch for', body: page.watchFor }
+    case 'compare':
+      return { heading: 'Compare the visual effect before choosing', body: page.decisionTip }
+  }
+}
+
+function asset(
   id: CombinationVisualSeoAsset['id'],
-  batch: CombinationVisualSeoAsset['batch'],
+  batch: ExtendedVisualSeoBatch,
   pageSlug: string,
-  stage: CombinationVisualSeoStage,
+  role: CombinationVisualSeoRole,
   sourcePath: string,
   publicPath: string,
   width: number,
   height: number,
-): CombinationVisualSeoAsset => ({ id, batch, pageSlug, stage, sourcePath, publicPath, width, height })
+): CombinationVisualSeoAsset {
+  const copy = copyFor(pageSlug, role)
+  const pagePath = `/glasses-guide/${pageSlug}`
 
-export const COMBINATION_VISUAL_SEO_ASSETS = [
+  return {
+    id,
+    batch,
+    role,
+    sourcePath,
+    publicPath,
+    pagePath,
+    width,
+    height,
+    displayWidth: role === 'compare' ? 'compare' : role === 'hero' ? 'primary' : 'secondary',
+    bodyPosition: 'before',
+    stage: role === 'fit' ? 'fit' : role === 'compare' ? 'compare' : 'hero',
+    priority: role === 'hero',
+    heading: copy.heading,
+    alt: `${copy.heading} eyewear guide`,
+    body: copy.body,
+  }
+}
+
+export const B07_VISUAL_SEO_ASSETS = [
   asset('VSEO-055', 'B07', 'best-rectangle-glasses-for-round-face', 'hero', 'assets/visual-seo/B07/source/VSEO-055__best-rectangle-glasses-for-round-face-01-hero.png', vseo055.src, vseo055.width, vseo055.height),
   asset('VSEO-056', 'B07', 'best-rectangle-glasses-for-round-face', 'why', 'assets/visual-seo/B07/source/VSEO-056__best-rectangle-glasses-for-round-face-02-why-it-works.png', vseo056.src, vseo056.width, vseo056.height),
   asset('VSEO-057', 'B07', 'best-rectangle-glasses-for-round-face', 'fit', 'assets/visual-seo/B07/source/VSEO-057__best-rectangle-glasses-for-round-face-03-watch-for.png', vseo057.src, vseo057.width, vseo057.height),
@@ -64,6 +101,9 @@ export const COMBINATION_VISUAL_SEO_ASSETS = [
   asset('VSEO-062', 'B07', 'best-square-glasses-for-round-face', 'compare', 'assets/visual-seo/B07/source/VSEO-062__best-square-glasses-for-round-face-04-compare.png', vseo062.src, vseo062.width, vseo062.height),
   asset('VSEO-063', 'B07', 'best-browline-glasses-for-round-face', 'hero', 'assets/visual-seo/B07/source/VSEO-063__best-browline-glasses-for-round-face-01-hero.png', vseo063.src, vseo063.width, vseo063.height),
   asset('VSEO-064', 'B07', 'best-browline-glasses-for-round-face', 'why', 'assets/visual-seo/B07/source/VSEO-064__best-browline-glasses-for-round-face-02-why-it-works.png', vseo064.src, vseo064.width, vseo064.height),
+] as const
+
+export const B08_VISUAL_SEO_ASSETS = [
   asset('VSEO-065', 'B08', 'best-browline-glasses-for-round-face', 'fit', 'assets/visual-seo/B08/source/VSEO-065__best-browline-glasses-for-round-face-03-watch-for.png', vseo065.src, vseo065.width, vseo065.height),
   asset('VSEO-066', 'B08', 'best-browline-glasses-for-round-face', 'compare', 'assets/visual-seo/B08/source/VSEO-066__best-browline-glasses-for-round-face-04-compare.png', vseo066.src, vseo066.width, vseo066.height),
   asset('VSEO-067', 'B08', 'best-cat-eye-glasses-for-round-face', 'hero', 'assets/visual-seo/B08/source/VSEO-067__best-cat-eye-glasses-for-round-face-01-hero.png', vseo067.src, vseo067.width, vseo067.height),
@@ -74,6 +114,9 @@ export const COMBINATION_VISUAL_SEO_ASSETS = [
   asset('VSEO-072', 'B08', 'best-geometric-glasses-for-round-face', 'why', 'assets/visual-seo/B08/source/VSEO-072__best-geometric-glasses-for-round-face-02-why-it-works.png', vseo072.src, vseo072.width, vseo072.height),
   asset('VSEO-073', 'B08', 'best-geometric-glasses-for-round-face', 'fit', 'assets/visual-seo/B08/source/VSEO-073__best-geometric-glasses-for-round-face-03-watch-for.png', vseo073.src, vseo073.width, vseo073.height),
   asset('VSEO-074', 'B08', 'best-geometric-glasses-for-round-face', 'compare', 'assets/visual-seo/B08/source/VSEO-074__best-geometric-glasses-for-round-face-04-compare.png', vseo074.src, vseo074.width, vseo074.height),
+] as const
+
+export const B09_VISUAL_SEO_ASSETS = [
   asset('VSEO-075', 'B09', 'best-cat-eye-glasses-for-oval-face', 'hero', 'assets/visual-seo/B09/source/VSEO-075__best-cat-eye-glasses-for-oval-face-01-hero.png', vseo075.src, vseo075.width, vseo075.height),
   asset('VSEO-076', 'B09', 'best-cat-eye-glasses-for-oval-face', 'why', 'assets/visual-seo/B09/source/VSEO-076__best-cat-eye-glasses-for-oval-face-02-why-it-works.png', vseo076.src, vseo076.width, vseo076.height),
   asset('VSEO-077', 'B09', 'best-cat-eye-glasses-for-oval-face', 'fit', 'assets/visual-seo/B09/source/VSEO-077__best-cat-eye-glasses-for-oval-face-03-watch-for.png', vseo077.src, vseo077.width, vseo077.height),
@@ -86,6 +129,12 @@ export const COMBINATION_VISUAL_SEO_ASSETS = [
   asset('VSEO-084', 'B09', 'best-browline-glasses-for-oval-face', 'why', 'assets/visual-seo/B09/source/VSEO-084__best-browline-glasses-for-oval-face-02-why-it-works.png', vseo084.src, vseo084.width, vseo084.height),
 ] as const
 
-export function getCombinationVisualSeoAssets(pageSlug: string) {
-  return COMBINATION_VISUAL_SEO_ASSETS.filter((item) => item.pageSlug === pageSlug)
+export const COMBINATION_VISUAL_SEO_ASSETS = [
+  ...B07_VISUAL_SEO_ASSETS,
+  ...B08_VISUAL_SEO_ASSETS,
+  ...B09_VISUAL_SEO_ASSETS,
+] as const
+
+export function getCombinationVisualSeoAssets(pagePath: string) {
+  return COMBINATION_VISUAL_SEO_ASSETS.filter((item) => item.pagePath === pagePath)
 }

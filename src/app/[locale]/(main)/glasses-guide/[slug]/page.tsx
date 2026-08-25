@@ -50,7 +50,7 @@ export default function CombinationSearchPage({ params }: Props) {
   const locale = params.locale
   const shell = getCombinationGuideShellCopy(locale)
   const pathname = `/glasses-guide/${page.slug}`
-  const hasVisualSeoAssets = locale === 'en' && getCombinationVisualSeoAssets(page.slug).length > 0
+  const hasVisualSeoAssets = locale === 'en' && getCombinationVisualSeoAssets(pathname).length > 0
   const localizedPages = getLocalizedCombinationSearchPages(locale)
   const relatedPages = localizedPages
     .filter((item) => item.slug !== page.slug && item.type === page.type)
