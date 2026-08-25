@@ -1,7 +1,7 @@
-# VisuTry Visual SEO Production v1.4
+# VisuTry Visual SEO Production v1.5
 
 **Status:** Active execution specification  
-**Last updated:** 2026-08-25
+**Last updated:** 2026-08-25  
 **Owner:** Growth / Product / Engineering  
 **Parent strategy:** `docs/strategy/analytics/gtm.md` → Engine 2 — Visual Discovery  
 **Scope:** Google Images, Search→Tool page visuals, image SEO, Pinterest-ready source assets, and Codex-assisted production/integration.
@@ -35,17 +35,30 @@ Primary distribution surfaces:
 
 **182 master production images**
 
-### Current accepted progress
+### Current state
 
-**54 / 182 accepted images**
+- **54 / 182 ACCEPTED** — B01 through B06 are fully integrated and QA-complete.
+- **30 SOURCE_READY** — B07 through B09 (`VSEO-055`–`VSEO-084`) have accepted source PNG masters but still require WebP, registry, page rendering, image sitemap, tests, responsive QA, and build verification.
+- **98 PLANNED** — B10 through B19 (`VSEO-085`–`VSEO-182`) have not yet completed source production.
+- Source production currently reaches **VSEO-084**.
+- The next source-production asset is **VSEO-085**.
+- The next integration range is **VSEO-055–084**.
 
-This program was restarted from zero for Desktop Codex execution. Batches B01 through B06 are now accepted production units, completing the first 54 canonical masters across the core commercial, Face Style owner, and Face Shape explainer families.
+### Canonical lifecycle terminology
 
-- No previously generated conversational image is considered accepted production output.
-- Previous ChatGPT-generated images may be used only as visual references if useful.
+Use these states consistently:
+
+- `PLANNED` — manifest entry exists; no accepted source master yet.
+- `SOURCE_READY` — source PNG has been generated and accepted, but web integration is incomplete.
+- `INTEGRATED` — WebP, registry, page rendering, and sitemap integration are complete.
+- `ACCEPTED` — integration plus required QA, tests, responsive validation, and build verification all pass.
+
+Source generation alone does **not** advance the accepted counter.
+
+- No previously generated conversational image is considered accepted production output unless it has entered the formal source/integration workflow.
 - Contact sheets, batch overviews, accidental grids, wrong-topic generations, cancelled generations, and earlier experimental outputs do **not** count.
 - Accepted production currently spans Batch B01 (`VSEO-001`–`VSEO-008`) through Batch B06 (`VSEO-043`–`VSEO-054`).
-- Progress advances only after Codex has completed QA, optimization, page integration, build verification, and manifest update.
+- Progress advances to `ACCEPTED` only after QA, optimization, page integration, sitemap verification, and build verification.
 
 ### Planned composition
 
@@ -340,7 +353,26 @@ The 182 masters are organized into 19 operational batches. A batch is a planning
 
 **Never generate a visual representation of a batch.** A batch is text metadata, not an image subject.
 
-### Rule 3 — Reject without advancing
+### Rule 3 — Batch boundaries are not page boundaries
+
+Batch boundaries exist only for production sequencing and consistency review. They do **not** define semantic page ownership.
+
+For Face × Frame assets, page integration is always determined by the canonical manifest `pagePath` plus stage order:
+
+```text
+01-hero → 02-why-it-works → 03-watch-for → 04-compare
+```
+
+A complete four-stage page may span adjacent batches. This is intentional and must not trigger renumbering.
+
+Canonical examples:
+
+- Browline × Round: B07 provides `VSEO-063–064`, B08 provides `VSEO-065–066`; page order is `063 → 064 → 065 → 066`.
+- Browline × Oval: B09 provides `VSEO-083–084`, B10 provides `VSEO-085–086`; page order is `083 → 084 → 085 → 086`.
+
+Never render or integrate by batch grouping when the page owner crosses a batch boundary.
+
+### Rule 4 — Reject without advancing
 
 Reject an output if it:
 
@@ -355,7 +387,7 @@ Reject an output if it:
 
 Rejected assets do not advance the production counter.
 
-### Rule 4 — Keep image text short
+### Rule 5 — Keep image text short
 
 Prefer HTML page text around the image over long model-rendered paragraphs.
 
@@ -365,11 +397,11 @@ Inside-image copy should normally be limited to:
 - 2–4 labels;
 - one short comparison cue.
 
-### Rule 5 — Never fabricate product UI
+### Rule 6 — Never fabricate product UI
 
 If an image requires an exact VisuTry screen, use a real screenshot or create the composition in code/design tooling. Image generation should not invent authoritative-looking product screens.
 
-### Rule 6 — Manifest is the requirement source; the generation brief is compiled
+### Rule 7 — Manifest is the requirement source; the generation brief is compiled
 
 `visual-seo-prompt-manifest.md` is the authoritative registry for ID, filename, page owner, canonical model, template, and asset-specific intent. Before generation, compile that row into a simplified visual brief that preserves the manifest facts but removes wording likely to induce webpage-like overproduction.
 
@@ -414,19 +446,19 @@ For each batch:
 | B04 | VSEO-025–033 | 9 | Face Style owner pages A | A / B / C; round / oval / square owner-page visual system |
 | B05 | VSEO-034–042 | 9 | Face Style owner pages B | A / B / C; heart / diamond / oblong owner-page visual system |
 | B06 | VSEO-043–054 | 12 | Face Shape explainers | D; educational face-shape definitions and identification; restrained proportion guides; low text density |
-| B07 | VSEO-055–064 | 10 | Face × Frame pairings A | A; round + oval pairings; consistent hero composition |
-| B08 | VSEO-065–074 | 10 | Face × Frame pairings B | A; square + heart pairings; consistent hero composition |
-| B09 | VSEO-075–084 | 10 | Face × Frame pairings C | A; diamond + oblong pairings; consistent hero composition |
-| B10 | VSEO-085–094 | 10 | Face × Frame pairings D | A / B; round + oval second pairing set; recommendation + comparison consistency |
-| B11 | VSEO-095–106 | 12 | Face × Frame pairings E | A / B; square + heart second pairing set; recommendation + comparison consistency |
-| B12 | VSEO-107–118 | 12 | Face × Frame pairings F | A / B; diamond + oblong second pairing set; recommendation + comparison consistency |
-| B13 | VSEO-119–128 | 10 | Gender / styling A | A / B; women-oriented styling intents; female canonical models |
-| B14 | VSEO-129–138 | 10 | Gender / styling B | A / B; men-oriented styling intents; male canonical models |
-| B15 | VSEO-139–150 | 12 | Gender / styling C | A / B / F; broader styling / situational intents; restrained visual cues |
-| B16 | VSEO-151–158 | 8 | Decision questions A | C / F; fit, width, eyebrow alignment, proportions; measurement clarity |
-| B17 | VSEO-159–166 | 8 | Decision questions B | B / F; suitability and frame-shape choice questions; direct visual answers |
-| B18 | VSEO-167–174 | 8 | Decision questions C | B / E / F; compare, try-on, buying-confidence questions; decision support |
-| B19 | VSEO-175–182 | 8 | Hub / navigation assets | E / A / D; minimal overview / map / workflow assets; no page-like dashboards |
+| B07 | VSEO-055–064 | 10 | Face × Frame — Round A | Rectangle × Round complete; Square × Round complete; Browline × Round hero + why-it-works |
+| B08 | VSEO-065–074 | 10 | Face × Frame — Round B | Browline × Round completion; Cat-Eye × Round complete; Geometric × Round complete |
+| B09 | VSEO-075–084 | 10 | Face × Frame — Oval A | Cat-Eye × Oval complete; Aviator × Oval complete; Browline × Oval hero + why-it-works |
+| B10 | VSEO-085–094 | 10 | Face × Frame — Oval/Square bridge | Browline × Oval completion; Oversized × Oval complete; Round × Square complete |
+| B11 | VSEO-095–106 | 12 | Face × Frame — Square/Heart | Aviator × Square; Rimless × Square; Rounded × Heart — all complete four-stage sets |
+| B12 | VSEO-107–118 | 12 | Face × Frame — Heart/Diamond/Oblong | Cat-Eye × Heart; Browline × Diamond; Oversized × Oblong — all complete four-stage sets |
+| B13 | VSEO-119–128 | 10 | Gender / styling A | Round women complete; Round men complete; Oval women overview + everyday |
+| B14 | VSEO-129–138 | 10 | Gender / styling B | Oval women completion; Oval men complete; Square women complete |
+| B15 | VSEO-139–150 | 12 | Gender / styling C | Square men complete; Heart women complete; Diamond women complete |
+| B16 | VSEO-151–158 | 8 | Decision questions A | Round-glasses-on-round suitability; Aviator-on-oval suitability |
+| B17 | VSEO-159–166 | 8 | Decision questions B | Cat-Eye-on-round suitability; eyebrow alignment |
+| B18 | VSEO-167–174 | 8 | Decision questions C | Frame width; overall glasses fit |
+| B19 | VSEO-175–182 | 8 | Hub / navigation assets | Face-shape hub + glasses-guide hub + canonical decision workflow |
 | **Total** | **VSEO-001–182** | **182** |  |  |
 
 ### Batch brief format
@@ -463,15 +495,19 @@ Do not advance to the next batch if the current batch reveals a systemic style o
 
 ## 10. Desktop Codex production workflow
 
-### Step A — Determine current batch and next asset
+### Step A — Determine current production and integration actions
 
-Read the batch plan above and the manifest. Find the current batch, then find the lowest `VSEO-###` in that batch not marked accepted.
+Image source production and web integration are now tracked separately.
 
-Current starting point:
+Current state:
 
 ```text
-Batch B07 → VSEO-055
+Next source-production batch: B10
+Next source-production asset: VSEO-085
+Next integration range: VSEO-055–084 (B07–B09)
 ```
+
+Do not restart B07 source generation merely because B07–B09 are not yet integrated.
 
 ### Step B — Generate one image
 
@@ -646,6 +682,8 @@ Template mapping:
 - `03-watch-for` → C;
 - `04-compare` → B.
 
+**Page ownership rule:** group these assets by canonical manifest page owner and semantic stage, never by batch. A page can intentionally span two adjacent batches.
+
 ### 12.4 Gender / styling intent pages
 
 For each approved gender/styling slug:
@@ -790,21 +828,22 @@ An image is **Accepted** only when all required checks pass.
 ```text
 1. Read visual-seo-production.md.
 2. Read visual-seo-prompt-manifest.md for canonical per-asset requirements.
-3. Resolve the current batch from the 19-batch plan.
-4. Start at the lowest incomplete VSEO ID in that batch.
+3. Resolve the next source-production batch separately from the next integration range.
+4. For source production, start at the lowest PLANNED VSEO ID.
 5. Compile the manifest row into a simplified standalone-visual generation brief.
 6. Generate exactly one independent image for that ID.
 7. Save source to .local-assets/visual-seo/inbox/ using the canonical handoff filename.
 8. Inspect visual/factual correctness, standalone composition, thumbnail readability, identity consistency, and dimensions.
 9. Reject and regenerate without advancing if any required check fails.
-10. Convert/export optimized WebP to public/images/seo/... .
-11. Integrate into the mapped owner page/config.
-12. Add alt/caption and preserve Search→Tool CTA.
-13. Update image sitemap/infrastructure if required.
-14. Run tests/build.
-15. Mark the item accepted only after successful QA/build.
-16. Update the progress ledger.
-17. After the final item in a batch, perform batch-level consistency QA before advancing.
+10. Mark the source SOURCE_READY after source acceptance.
+11. During integration, convert/export optimized WebP to public/images/seo/... .
+12. Integrate into the mapped owner page/config by pagePath + stage, not batch.
+13. Add alt/caption and preserve Search→Tool CTA.
+14. Update image sitemap/infrastructure if required.
+15. Run tests/build.
+16. Mark the item ACCEPTED only after successful integration QA/build.
+17. Update the progress ledger.
+18. After the final item in a batch, perform batch-level consistency QA before advancing.
 ```
 
 If Codex detects a discrepancy between this document and the current route registry, preserve the current canonical route and update this document rather than silently creating duplicate pages.
@@ -815,29 +854,42 @@ If Codex detects a discrepancy between this document and the current route regis
 
 | Batch | Range | Status | Notes |
 | --- | --- | --- | --- |
-| B01 | VSEO-001–008 | ✅ Accepted | Eight canonical master assets integrated into three English Search→Tool pages; WebP, source archive, image sitemap, and QA manifest complete |
-| B02 | VSEO-009–016 | ✅ Accepted | Eight visual explanation assets integrated into four English Search→Tool pages; editorial layout, WebP, source archive, image sitemap, and QA manifest complete |
-| B03 | VSEO-017–024 | ✅ Accepted | Eight comparison / advisor assets integrated into three English Search→Tool pages; one-primary hierarchy, compact supporting layout, source archive, WebP, image sitemap, and build verification complete |
-| B04 | VSEO-025–033 | ✅ Accepted | Nine Face Style owner assets integrated into round, oval, and square English owner pages; staged editorial layout, WebP, source archive, image sitemap, and build verification complete |
-| B05 | VSEO-034–042 | ✅ Accepted | Nine Face Style owner assets integrated into heart, diamond, and oblong English owner pages; shared Face Owner module, staged editorial layout, WebP source/public pipeline, image sitemap, responsive browser checks, targeted tests, `build:ci` verification, and successful Vercel deployment complete. |
-| B06 | VSEO-043–054 | ✅ Accepted | Twelve Face Shape explainer assets integrated into the six English face-shape pages; characteristics and identification stages, WebP source/public pipeline, image sitemap, responsive browser checks, targeted tests, `build:ci` verification, and post-integration preload correction complete. |
-| B07 | VSEO-055–064 | ⏳ Planned | Face × Frame A |
-| B08 | VSEO-065–074 | ⏳ Planned | Face × Frame B |
-| B09 | VSEO-075–084 | ⏳ Planned | Face × Frame C |
-| B10 | VSEO-085–094 | ⏳ Planned | Face × Frame D |
-| B11 | VSEO-095–106 | ⏳ Planned | Face × Frame E |
-| B12 | VSEO-107–118 | ⏳ Planned | Face × Frame F |
-| B13 | VSEO-119–128 | ⏳ Planned | Gender / styling A |
-| B14 | VSEO-129–138 | ⏳ Planned | Gender / styling B |
-| B15 | VSEO-139–150 | ⏳ Planned | Gender / styling C |
-| B16 | VSEO-151–158 | ⏳ Planned | Decision questions A |
-| B17 | VSEO-159–166 | ⏳ Planned | Decision questions B |
-| B18 | VSEO-167–174 | ⏳ Planned | Decision questions C |
-| B19 | VSEO-175–182 | ⏳ Planned | Hub / navigation assets |
+| B01 | VSEO-001–008 | ✅ ACCEPTED | Eight canonical master assets integrated into three English Search→Tool pages; WebP, source archive, image sitemap, and QA manifest complete |
+| B02 | VSEO-009–016 | ✅ ACCEPTED | Eight visual explanation assets integrated into four English Search→Tool pages; editorial layout, WebP, source archive, image sitemap, and QA manifest complete |
+| B03 | VSEO-017–024 | ✅ ACCEPTED | Eight comparison / advisor assets integrated into three English Search→Tool pages; one-primary hierarchy, compact supporting layout, source archive, WebP, image sitemap, and build verification complete |
+| B04 | VSEO-025–033 | ✅ ACCEPTED | Nine Face Style owner assets integrated into round, oval, and square English owner pages; staged editorial layout, WebP, source archive, image sitemap, and build verification complete |
+| B05 | VSEO-034–042 | ✅ ACCEPTED | Nine Face Style owner assets integrated into heart, diamond, and oblong English owner pages; shared Face Owner module, staged editorial layout, WebP source/public pipeline, image sitemap, responsive browser checks, targeted tests, `build:ci` verification, and successful Vercel deployment complete |
+| B06 | VSEO-043–054 | ✅ ACCEPTED | Twelve Face Shape explainer assets integrated into the six English face-shape pages; characteristics and identification stages, WebP source/public pipeline, image sitemap, responsive browser checks, targeted tests, `build:ci` verification, and post-integration preload correction complete |
+| B07 | VSEO-055–064 | 🟡 SOURCE_READY | Round: Rectangle complete, Square complete, Browline start; source PNGs ready, integration pending |
+| B08 | VSEO-065–074 | 🟡 SOURCE_READY | Round: Browline completion, Cat-Eye complete, Geometric complete; source PNGs ready, integration pending |
+| B09 | VSEO-075–084 | 🟡 SOURCE_READY | Oval: Cat-Eye complete, Aviator complete, Browline start; source PNGs ready, integration pending |
+| B10 | VSEO-085–094 | ⏳ PLANNED | Browline × Oval completion; Oversized × Oval; Round × Square |
+| B11 | VSEO-095–106 | ⏳ PLANNED | Aviator × Square; Rimless × Square; Rounded × Heart |
+| B12 | VSEO-107–118 | ⏳ PLANNED | Cat-Eye × Heart; Browline × Diamond; Oversized × Oblong |
+| B13 | VSEO-119–128 | ⏳ PLANNED | Round women; Round men; Oval women start |
+| B14 | VSEO-129–138 | ⏳ PLANNED | Oval women completion; Oval men; Square women |
+| B15 | VSEO-139–150 | ⏳ PLANNED | Square men; Heart women; Diamond women |
+| B16 | VSEO-151–158 | ⏳ PLANNED | Round-glasses-on-round suitability; Aviator-on-oval suitability |
+| B17 | VSEO-159–166 | ⏳ PLANNED | Cat-Eye-on-round suitability; eyebrow alignment |
+| B18 | VSEO-167–174 | ⏳ PLANNED | Frame width; overall glasses fit |
+| B19 | VSEO-175–182 | ⏳ PLANNED | Face-shape hub + glasses-guide hub + canonical decision workflow |
 
-### Current next action
+### Current next actions
 
-> Batches B01 through B06 are accepted. The next production unit is B07 (`VSEO-055`–`VSEO-064`), starting at `VSEO-055`; preserve the established source archive, WebP, adjacent-copy, internal-link, page-level one-primary hierarchy, compact mobile supporting layout, and image-sitemap checks. Track Neon migration connectivity separately as an infrastructure issue; it is not a Visual SEO batch acceptance blocker. Do not generate any batch overview image.
+> **Source production:** continue with B10 (`VSEO-085`–`VSEO-094`), starting at `VSEO-085__best-browline-glasses-for-oval-face-03-watch-for.png`.
+>
+> **Integration:** B07–B09 (`VSEO-055`–`VSEO-084`) are source-ready but not accepted. Integrate by canonical `pagePath` and stage sequence, not by batch. Browline × Round spans B07/B08; Browline × Oval spans B09/B10 and must not be falsely treated as a complete four-stage page until VSEO-085/086 exist.
+
+Summary baseline:
+
+```text
+182 total
+54 ACCEPTED
+30 SOURCE_READY
+98 PLANNED
+```
+
+Track Neon migration connectivity separately as an infrastructure issue; it is not a Visual SEO batch acceptance blocker. Do not generate any batch overview image.
 
 ---
 
