@@ -7,6 +7,8 @@ jest.mock('@/lib/prisma', () => ({
     experience: { findMany: jest.fn() },
     merchantSession: { count: jest.fn() },
     merchantAgentCredential: { count: jest.fn() },
+    merchantFrame: { findMany: jest.fn() },
+    merchantOperationAudit: { findMany: jest.fn() },
   },
 }))
 
@@ -15,6 +17,8 @@ const db = prisma as unknown as {
   experience: { findMany: jest.Mock }
   merchantSession: { count: jest.Mock }
   merchantAgentCredential: { count: jest.Mock }
+  merchantFrame: { findMany: jest.Mock }
+  merchantOperationAudit: { findMany: jest.Mock }
 }
 
 describe('merchant control center read model', () => {
@@ -22,11 +26,13 @@ describe('merchant control center read model', () => {
     jest.clearAllMocks()
     db.merchant.findUnique.mockResolvedValue({ id: 'merchant-a', slug: 'alpha', name: 'Alpha', status: 'ACTIVE', referenceData: false })
     db.experience.findMany.mockResolvedValue([
-      { id: 'store-a', type: 'STORE', name: 'Alpha Store', slug: 'alpha', status: 'ACTIVE', campaignObjective: null, campaignGate: null, presentationMode: null, referenceData: false, updatedAt: new Date('2026-08-01'), frames: [{ merchantFrameId: 'frame-a' }] },
-      { id: 'campaign-a', type: 'CAMPAIGN', name: 'Historical Campaign', slug: 'historical', status: 'ACTIVE', campaignObjective: null, campaignGate: null, presentationMode: null, referenceData: false, updatedAt: new Date('2026-08-02'), frames: [] },
+      { id: 'store-a', type: 'STORE', name: 'Alpha Store', slug: 'alpha', status: 'ACTIVE', headline: null, description: null, primaryCtaLabel: null, startAt: null, endAt: null, campaignObjective: null, campaignGate: null, presentationMode: null, referenceData: false, updatedAt: new Date('2026-08-01'), frames: [{ merchantFrameId: 'frame-a', merchantFrame: { id: 'frame-a', sku: 'A-1', name: 'Frame A', brand: 'Alpha', imageUrl: 'https://example.com/a.jpg', shape: 'ROUND', widthClass: null, source: 'MANUAL', status: 'ACTIVE', enrichmentStatus: 'APPROVED' } }] },
+      { id: 'campaign-a', type: 'CAMPAIGN', name: 'Historical Campaign', slug: 'historical', status: 'ACTIVE', headline: null, description: null, primaryCtaLabel: null, startAt: null, endAt: null, campaignObjective: null, campaignGate: null, presentationMode: null, referenceData: false, updatedAt: new Date('2026-08-02'), frames: [] },
     ])
     db.merchantSession.count.mockResolvedValue(2)
     db.merchantAgentCredential.count.mockResolvedValue(1)
+    db.merchantFrame.findMany.mockResolvedValue([{ id: 'frame-a', sku: 'A-1', name: 'Frame A', brand: 'Alpha', imageUrl: 'https://example.com/a.jpg', shape: 'ROUND', widthClass: null, source: 'MANUAL', status: 'ACTIVE', enrichmentStatus: 'APPROVED' }])
+    db.merchantOperationAudit.findMany.mockResolvedValue([])
   })
 
   it('returns bounded tenant-scoped status with resolved defaults', async () => {

@@ -190,3 +190,65 @@ Exact reason: the current authenticated workspace clears the professional visual
 1. Deploy this branch and re-run the same authenticated Chrome desktop/mobile checks so the exact UTC window and Agent handoff are live-proven.
 2. Close B2/B3 P1 visibility gaps using existing experience status/audit contracts: lifecycle/provenance, selected-catalog summary, validation state, and Agent-mediated recovery guidance.
 3. Extend the existing Commerce Intelligence contract with one bounded comparison/trend or Agent-readable interpretation, only after confirming the underlying durable data supports it.
+
+## Closure pass — 2026-08-25
+
+This closure pass stayed inside the existing Agent-first Merchant Workspace. It did not add manual Shopify-style catalog or Campaign CRUD, touch Gate A/A4, start outreach, or run real-merchant validation.
+
+### B2 — Store / Catalog Control
+
+**Implementation status: PASS. Browser evidence status: deployment pending.**
+
+The production read model now exposes the actual tenant-scoped catalog and selected catalog rows through the existing `MerchantFrame` / `ExperienceFrame` contracts. `/en/merchant` renders:
+
+- catalog totals: total, active, valid, invalid, and source counts;
+- selected product names rather than only a frame count;
+- deterministic readiness: `Catalog ready`, `Needs attention`, or `Select products to continue`;
+- validation issues/warnings derived from the existing `validateCatalogFrame` contract;
+- actual Store lifecycle status and public/private distinction;
+- last recorded Store operation with merchant-readable action and actor class;
+- an Agent handoff for updates, without pretending the page performs the mutation.
+
+The selected frame query remains merchant-scoped and uses the same validation function as onboarding/preview. No manual catalog editor or hidden database path was added.
+
+### B3 — Campaign Operations
+
+**Implementation status: PASS. Browser evidence status: deployment pending.**
+
+Campaign cards now expose the existing Campaign contract: lifecycle status, public/private distinction, selected catalog names, deterministic readiness, headline, description, CTA label, optional start/end dates, objective, gate, presentation mode, and last recorded operation. Campaign context is visibly distinct from Store context through its Campaign identity and editorial context block. The `Ask Agent to update` action is an explicit conversation handoff; it does not claim to publish or mutate from the browser.
+
+No Campaign Builder, unsupported archive control, revenue metric, audience claim, or fabricated approval record was introduced.
+
+### B4 — Commerce Intelligence
+
+**Implementation status: PASS for the supported contract. Browser evidence status: deployment pending.**
+
+The existing MerchantSession/Event/Intent data is now presented with bounded, deterministic interpretation:
+
+- exact current UTC window and previous equivalent UTC window;
+- metric-level deltas, with `No prior activity` rather than a fabricated percentage when the denominator is zero;
+- a reliability threshold requiring at least two visitors in both periods;
+- Experience ranking only when there are at least two Experiences and sufficient visitor volume per Experience;
+- source leaders for visitors, downstream intent, and high-intent shoppers, with no leader claimed on ties/zero data;
+- a `What to review next` explanation and Agent handoff;
+- existing Store/Campaign context and source → decision-action cards remain unchanged in scope.
+
+The interpretation is pure deterministic code, not an unsupported AI or revenue claim. The empty state continues to use the same production component/data contract and is covered by the existing component regression test; an authenticated empty browser fixture remains P1 and non-blocking.
+
+### Post-change browser boundary
+
+Real Chrome checks were rerun against the currently deployed authenticated `https://www.visutry.com/en/merchant` at 1365×768 and 390×844. Both retained the existing clean baseline: Store/Campaign/Insights sections were reachable and there was no horizontal overflow (`scrollWidth <= innerWidth`). The deployed DOM still contains the pre-pass `last 30 days` copy and does not contain the new comparison/readiness fields. The branch build was also opened in Chrome locally, but normal auth correctly redirected `/en/merchant` to `/en/auth/signin`; no local auth bypass was used. Therefore the new B2/B3/B4 fields are code/type/unit/build verified, not yet post-deployment browser-proven.
+
+### Closure evidence
+
+- `src/modules/merchant/application/merchant-control-center-cloudflare.ts` reads merchant-scoped catalog, selected ExperienceFrame rows, Experience narrative/lifecycle fields, and merchant-readable operation provenance from existing production tables.
+- `src/modules/merchant/domain/merchant-control-insights.ts` contains the bounded comparison, ranking, source-highlight, and interpretation rules.
+- `src/components/merchant/MerchantControlCenter.tsx` renders the new evidence and Agent handoffs without direct mutation controls.
+- Focused unit coverage includes component states, Prisma read-model mapping, distribution report compatibility, and low-data/zero-denominator insight rules.
+- `npx playwright test tests/e2e/store-pilot.spec.ts --project=chromium`: 8/8 passed, including Store/Campaign desktop/mobile presentation and attribution checks.
+- `npx playwright test tests/e2e/business.spec.ts --project=chromium`: 5/5 passed, including Business/Pilot market-facing checks.
+- `npm run typecheck` and `npm run build:ci` pass; build output contains only pre-existing lint warnings.
+
+### Updated decision
+
+No new P0 was found. B2, B3, and B4 are ready for the normal deployment/reverification step, but the overall Merchant Admin Experience remains **PARTIAL until the current SHA is deployed and the authenticated Chrome proof is repeated against that deployment**. This is an evidence boundary, not a new product blocker.

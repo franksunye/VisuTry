@@ -2,8 +2,10 @@ import { getCloudflareSql } from '@/data/neon-cloudflare'
 import { resolveCampaignConversionPolicy } from '@/modules/store/domain/campaign-policy'
 import { resolvePresentationMode, type PresentationMode } from '@/modules/store/domain/presentation-mode'
 import { isHighIntentSession, type MerchantAnalyticsSessionSignals } from '@/modules/store/domain/merchant-analytics'
-import { buildMerchantDistributionReport, type MerchantDistributionReport } from '@/modules/store/domain/merchant-distribution-report'
-import type { MerchantCommerceIntelligence } from './merchant-control-center'
+import { buildMerchantDistributionReport, MERCHANT_DISTRIBUTION_SOURCE_LABELS, type MerchantDistributionReport } from '@/modules/store/domain/merchant-distribution-report'
+import { validateCatalogFrame } from './merchant-onboarding-cloudflare'
+import { buildMerchantCommerceComparison, buildMerchantCommerceInterpretation, buildMerchantExperiencePerformance, buildMerchantSourceHighlights, type MerchantCommerceMetricValues } from '../domain/merchant-control-insights'
+import type { MerchantCatalogFrameSummary, MerchantCatalogSummary, MerchantCommerceIntelligence } from './merchant-control-center'
 
 export type MerchantControlExperience = {
   id: string
@@ -14,6 +16,14 @@ export type MerchantControlExperience = {
   frameCount: number
   referenceData: boolean
   publicPath: string
+  headline: string | null
+  description: string | null
+  primaryCtaLabel: string | null
+  startAt: string | null
+  endAt: string | null
+  selectedFrames: MerchantCatalogFrameSummary[]
+  readiness: { status: 'VALID' | 'NEEDS_ATTENTION' | 'INCOMPLETE'; validCount: number; invalidCount: number; issues: string[] }
+  lastOperation: { label: string; actor: string; at: string } | null
   policy: { objective: 'TRAFFIC' | 'INTENT' | 'LEAD' | null; gate: 'NONE' | 'OPT_IN_AFTER_VALUE' | 'OPT_IN_BEFORE_AI' | null; presentation: PresentationMode }
   updatedAt: string
 }
@@ -26,11 +36,91 @@ export type MerchantControlCenter = {
   shopperActivityAvailable: boolean
   credentialUsage: { active: number }
   commerceIntelligence: MerchantCommerceIntelligence
+  catalog: MerchantCatalogSummary
   distributionReport?: MerchantDistributionReport
 }
 
 const INSIGHT_WINDOW_DAYS = 30
 const ENGAGEMENT_EVENTS = new Set(['merchant_recommendation_completed', 'merchant_frame_selected', 'merchant_tryon_started', 'merchant_tryon_completed', 'merchant_compare_started', 'merchant_product_clicked', 'merchant_inquiry_submitted'])
+
+type CatalogRow = {
+  id: unknown
+  sku: unknown
+  name: unknown
+  brand: unknown
+  imageUrl: unknown
+  shape: unknown
+  widthClass: unknown
+  source: unknown
+  status: unknown
+  enrichmentStatus: unknown
+}
+
+type SelectedFrameRow = CatalogRow & { experienceId: unknown }
+
+function catalogFrame(row: CatalogRow): MerchantCatalogFrameSummary {
+  const frame = {
+    id: String(row.id),
+    sku: row.sku == null ? null : String(row.sku),
+    name: String(row.name ?? ''),
+    brand: row.brand == null ? null : String(row.brand),
+    imageUrl: row.imageUrl == null ? null : String(row.imageUrl),
+    shape: String(row.shape ?? ''),
+    widthClass: row.widthClass == null ? null : String(row.widthClass),
+    status: String(row.status ?? 'UNKNOWN'),
+  }
+  return {
+    id: frame.id,
+    sku: frame.sku,
+    name: frame.name,
+    brand: frame.brand,
+    imageUrl: frame.imageUrl,
+    source: String(row.source ?? 'UNKNOWN'),
+    status: frame.status,
+    enrichmentStatus: String(row.enrichmentStatus ?? 'UNKNOWN'),
+    validation: validateCatalogFrame(frame),
+  }
+}
+
+function catalogSummary(rows: CatalogRow[]): MerchantCatalogSummary {
+  const sourceCounts = new Map<string, number>()
+  let active = 0
+  let valid = 0
+  for (const row of rows) {
+    const frame = catalogFrame(row)
+    if (frame.status === 'ACTIVE') active += 1
+    if (frame.validation.valid) valid += 1
+    sourceCounts.set(frame.source, (sourceCounts.get(frame.source) ?? 0) + 1)
+  }
+  return {
+    total: rows.length,
+    active,
+    valid,
+    invalid: rows.length - valid,
+    sourceCounts: [...sourceCounts.entries()].sort(([left], [right]) => left.localeCompare(right)).map(([source, count]) => ({ source, count })),
+  }
+}
+
+function experienceReadiness(frames: MerchantCatalogFrameSummary[]): MerchantControlExperience['readiness'] {
+  if (frames.length === 0) return { status: 'INCOMPLETE', validCount: 0, invalidCount: 0, issues: ['NO_SELECTED_FRAMES'] }
+  const issues = [...new Set(frames.flatMap((frame) => [...frame.validation.issues, ...frame.validation.warnings]))]
+  const validCount = frames.filter((frame) => frame.validation.valid).length
+  return { status: validCount === frames.length ? 'VALID' : 'NEEDS_ATTENTION', validCount, invalidCount: frames.length - validCount, issues }
+}
+
+function operationLabel(action: string): string | null {
+  if (action === 'store.created' || action === 'campaign.created') return 'Created'
+  if (action === 'store.frames_updated' || action === 'campaign.frames_updated') return 'Catalog updated'
+  if (action === 'store.published' || action === 'campaign.published') return 'Published'
+  if (action === 'campaign.updated') return 'Updated'
+  return null
+}
+
+function operationActor(actorType: unknown): string {
+  if (actorType === 'HUMAN') return 'Human'
+  if (actorType === 'AGENT') return 'Agent'
+  return 'System'
+}
 
 function rate(value: number, total: number): number | null {
   return total > 0 ? Math.round((value / total) * 1000) / 10 : null
@@ -43,7 +133,7 @@ function buildCommerceIntelligence(input: {
   intents: Array<{ merchantSessionId: string; experienceId: string | null; type: string; count: number }>
   from: Date
   to: Date
-}): MerchantCommerceIntelligence {
+}): Omit<MerchantCommerceIntelligence, 'comparison' | 'experiencePerformance' | 'sourceHighlights' | 'interpretation'> {
   const sessionIds = new Set(input.sessions.map((session) => session.id))
   const experienceById = new Map(input.experiences.map((experience) => [experience.id, experience]))
   type SessionSignals = MerchantAnalyticsSessionSignals & { triedFrameIds: Set<string> }
@@ -139,10 +229,19 @@ export async function getMerchantControlCenter(input: { merchantId: string }): P
   const merchant = merchantRows[0]
   if (!merchant) return null
 
-  const [experiences, sessions, events, intents, credentialCount] = await Promise.all([
+  const to = new Date()
+  const currentFrom = new Date(to.getTime() - INSIGHT_WINDOW_DAYS * 24 * 60 * 60 * 1000)
+  const previousFrom = new Date(currentFrom.getTime() - INSIGHT_WINDOW_DAYS * 24 * 60 * 60 * 1000)
+  const loadWindow = (from: Date, until: Date) => Promise.all([
+    sql`SELECT "id", "experienceId", "source", "medium", "referrer", "aiAgentSource" FROM "MerchantSession" WHERE "merchantId" = ${input.merchantId} AND "createdAt" >= ${from} AND "createdAt" < ${until} ORDER BY "createdAt" DESC`,
+    sql`SELECT "merchantSessionId", "experienceId", "merchantFrameId", "type", count(*)::int AS "count" FROM "MerchantEvent" WHERE "merchantId" = ${input.merchantId} AND "createdAt" >= ${from} AND "createdAt" < ${until} GROUP BY "merchantSessionId", "experienceId", "merchantFrameId", "type"`,
+    sql`SELECT "merchantSessionId", "experienceId", "type", count(*)::int AS "count" FROM "MerchantIntent" WHERE "merchantId" = ${input.merchantId} AND "createdAt" >= ${from} AND "createdAt" < ${until} GROUP BY "merchantSessionId", "experienceId", "type"`,
+  ])
+  const [experiences, catalogRows, selectedFrameRows, auditRows, currentWindow, previousWindow, credentialCount] = await Promise.all([
     sql`
       SELECT e."id", e."type", e."name", e."slug", e."status", e."campaignObjective",
-        e."campaignGate", e."presentationMode", e."referenceData", e."updatedAt",
+        e."campaignGate", e."presentationMode", e."referenceData", e."headline", e."description",
+        e."primaryCtaLabel", e."startAt", e."endAt", e."updatedAt",
         count(ef."merchantFrameId") FILTER (WHERE ef."active" = true)::int AS "frameCount"
       FROM "Experience" e
       LEFT JOIN "ExperienceFrame" ef ON ef."experienceId" = e."id"
@@ -150,11 +249,29 @@ export async function getMerchantControlCenter(input: { merchantId: string }): P
       GROUP BY e."id"
       ORDER BY e."updatedAt" DESC
     `,
-    sql`SELECT "id", "experienceId", "source", "medium", "referrer", "aiAgentSource" FROM "MerchantSession" WHERE "merchantId" = ${input.merchantId} AND "createdAt" >= ${new Date(Date.now() - INSIGHT_WINDOW_DAYS * 24 * 60 * 60 * 1000)} ORDER BY "createdAt" DESC`,
-    sql`SELECT "merchantSessionId", "experienceId", "merchantFrameId", "type", count(*)::int AS "count" FROM "MerchantEvent" WHERE "merchantId" = ${input.merchantId} AND "createdAt" >= ${new Date(Date.now() - INSIGHT_WINDOW_DAYS * 24 * 60 * 60 * 1000)} GROUP BY "merchantSessionId", "experienceId", "merchantFrameId", "type"`,
-    sql`SELECT "merchantSessionId", "experienceId", "type", count(*)::int AS "count" FROM "MerchantIntent" WHERE "merchantId" = ${input.merchantId} AND "createdAt" >= ${new Date(Date.now() - INSIGHT_WINDOW_DAYS * 24 * 60 * 60 * 1000)} GROUP BY "merchantSessionId", "experienceId", "type"`,
+    sql`SELECT "id", "sku", "name", "brand", "imageUrl", "shape", "widthClass", "source", "status", "enrichmentStatus" FROM "MerchantFrame" WHERE "merchantId" = ${input.merchantId} ORDER BY "name" ASC`,
+    sql`SELECT ef."experienceId", mf."id", mf."sku", mf."name", mf."brand", mf."imageUrl", mf."shape", mf."widthClass", mf."source", mf."status", mf."enrichmentStatus" FROM "ExperienceFrame" ef JOIN "MerchantFrame" mf ON mf."id" = ef."merchantFrameId" AND mf."merchantId" = ef."merchantId" WHERE ef."merchantId" = ${input.merchantId} AND ef."active" = true ORDER BY ef."experienceId", ef."sortOrder" ASC NULLS LAST, ef."createdAt" ASC`,
+    sql`SELECT "resourceId", "action", "actorType", "createdAt" FROM "MerchantOperationAudit" WHERE "merchantId" = ${input.merchantId} AND "resourceType" = 'Experience' ORDER BY "createdAt" DESC`,
+    loadWindow(currentFrom, to),
+    loadWindow(previousFrom, currentFrom),
     sql`SELECT count(*)::int AS "count" FROM "MerchantAgentCredential" WHERE "merchantId" = ${input.merchantId} AND "status" = 'ACTIVE'`,
   ])
+
+  const selectedByExperience = new Map<string, MerchantCatalogFrameSummary[]>()
+  for (const row of selectedFrameRows as SelectedFrameRow[]) {
+    const experienceId = String(row.experienceId)
+    const frames = selectedByExperience.get(experienceId) ?? []
+    frames.push(catalogFrame(row))
+    selectedByExperience.set(experienceId, frames)
+  }
+  const latestOperationByResource = new Map<string, { label: string; actor: string; at: string }>()
+  for (const row of auditRows as Array<{ resourceId: unknown; action: unknown; actorType: unknown; createdAt: unknown }>) {
+    const resourceId = row.resourceId == null ? null : String(row.resourceId)
+    const label = operationLabel(String(row.action ?? ''))
+    if (!resourceId || !label || latestOperationByResource.has(resourceId)) continue
+    const date = row.createdAt instanceof Date ? row.createdAt : new Date(String(row.createdAt))
+    latestOperationByResource.set(resourceId, { label, actor: operationActor(row.actorType), at: date.toISOString() })
+  }
 
   const mapped = experiences.map((experience): MerchantControlExperience => {
     const policy = resolveCampaignConversionPolicy({
@@ -164,6 +281,7 @@ export async function getMerchantControlCenter(input: { merchantId: string }): P
     } as never)
     const type = String(experience.type) as 'STORE' | 'CAMPAIGN'
     const slug = String(experience.slug)
+    const selectedFrames = selectedByExperience.get(String(experience.id)) ?? []
     return {
       id: String(experience.id),
       type,
@@ -173,6 +291,14 @@ export async function getMerchantControlCenter(input: { merchantId: string }): P
       frameCount: Number(experience.frameCount ?? 0),
       referenceData: Boolean(merchant.referenceData) || Boolean(experience.referenceData),
       publicPath: type === 'STORE' ? `/en/store/${String(merchant.slug)}` : `/en/c/${String(merchant.slug)}/${slug}`,
+      headline: experience.headline == null ? null : String(experience.headline),
+      description: experience.description == null ? null : String(experience.description),
+      primaryCtaLabel: experience.primaryCtaLabel == null ? null : String(experience.primaryCtaLabel),
+      startAt: experience.startAt == null ? null : (experience.startAt instanceof Date ? experience.startAt : new Date(String(experience.startAt))).toISOString(),
+      endAt: experience.endAt == null ? null : (experience.endAt instanceof Date ? experience.endAt : new Date(String(experience.endAt))).toISOString(),
+      selectedFrames,
+      readiness: experienceReadiness(selectedFrames),
+      lastOperation: latestOperationByResource.get(String(experience.id)) ?? null,
       policy: {
         objective: policy?.objective ?? null,
         gate: policy?.gate ?? null,
@@ -182,16 +308,30 @@ export async function getMerchantControlCenter(input: { merchantId: string }): P
     }
   })
 
-  const to = new Date()
-  const from = new Date(to.getTime() - INSIGHT_WINDOW_DAYS * 24 * 60 * 60 * 1000)
-  const commerceIntelligence = buildCommerceIntelligence({
+  const currentInsights = buildCommerceIntelligence({
     experiences: mapped.map(({ id, type, name, status, referenceData }) => ({ id, type, name, status, referenceData })),
-    sessions: sessions.map((session) => ({ id: String(session.id), experienceId: session.experienceId == null ? null : String(session.experienceId), source: session.source == null ? null : String(session.source), medium: session.medium == null ? null : String(session.medium), referrer: session.referrer == null ? null : String(session.referrer), aiAgentSource: session.aiAgentSource == null ? null : String(session.aiAgentSource) })),
-    events: events.map((event) => ({ merchantSessionId: event.merchantSessionId == null ? null : String(event.merchantSessionId), experienceId: event.experienceId == null ? null : String(event.experienceId), merchantFrameId: event.merchantFrameId == null ? null : String(event.merchantFrameId), type: String(event.type), count: Number(event.count ?? 0) })),
-    intents: intents.map((intent) => ({ merchantSessionId: String(intent.merchantSessionId), experienceId: intent.experienceId == null ? null : String(intent.experienceId), type: String(intent.type), count: Number(intent.count ?? 0) })),
-    from,
+    sessions: currentWindow[0].map((session) => ({ id: String(session.id), experienceId: session.experienceId == null ? null : String(session.experienceId), source: session.source == null ? null : String(session.source), medium: session.medium == null ? null : String(session.medium), referrer: session.referrer == null ? null : String(session.referrer), aiAgentSource: session.aiAgentSource == null ? null : String(session.aiAgentSource) })),
+    events: currentWindow[1].map((event) => ({ merchantSessionId: event.merchantSessionId == null ? null : String(event.merchantSessionId), experienceId: event.experienceId == null ? null : String(event.experienceId), merchantFrameId: event.merchantFrameId == null ? null : String(event.merchantFrameId), type: String(event.type), count: Number(event.count ?? 0) })),
+    intents: currentWindow[2].map((intent) => ({ merchantSessionId: String(intent.merchantSessionId), experienceId: intent.experienceId == null ? null : String(intent.experienceId), type: String(intent.type), count: Number(intent.count ?? 0) })),
+    from: currentFrom,
     to,
   })
+  const previousInsights = buildCommerceIntelligence({
+    experiences: mapped.map(({ id, type, name, status, referenceData }) => ({ id, type, name, status, referenceData })),
+    sessions: previousWindow[0].map((session) => ({ id: String(session.id), experienceId: session.experienceId == null ? null : String(session.experienceId), source: session.source == null ? null : String(session.source), medium: session.medium == null ? null : String(session.medium), referrer: session.referrer == null ? null : String(session.referrer), aiAgentSource: session.aiAgentSource == null ? null : String(session.aiAgentSource) })),
+    events: previousWindow[1].map((event) => ({ merchantSessionId: event.merchantSessionId == null ? null : String(event.merchantSessionId), experienceId: event.experienceId == null ? null : String(event.experienceId), merchantFrameId: event.merchantFrameId == null ? null : String(event.merchantFrameId), type: String(event.type), count: Number(event.count ?? 0) })),
+    intents: previousWindow[2].map((intent) => ({ merchantSessionId: String(intent.merchantSessionId), experienceId: intent.experienceId == null ? null : String(intent.experienceId), type: String(intent.type), count: Number(intent.count ?? 0) })),
+    from: previousFrom,
+    to: currentFrom,
+  })
+  const currentMetricValues = currentInsights.totals satisfies MerchantCommerceMetricValues
+  const previousMetricValues = previousInsights.totals satisfies MerchantCommerceMetricValues
+  const comparison = buildMerchantCommerceComparison({ current: currentMetricValues, previous: previousMetricValues, previousPeriod: { from: previousFrom.toISOString(), to: currentFrom.toISOString(), timezone: 'UTC' } })
+  const experiencePerformance = buildMerchantExperiencePerformance(currentInsights.experiences.map((experience) => ({ id: experience.id, name: experience.name, type: experience.type, visitors: experience.visitors, engagedShoppers: experience.engagedShoppers, tryOnCompletions: experience.tryOnCompletions, productClicks: experience.productClicks, highIntentShoppers: experience.highIntentShoppers })))
+  const sourceHighlights = buildMerchantSourceHighlights((currentInsights.distributionReport?.sources ?? []).map((source) => ({ source: MERCHANT_DISTRIBUTION_SOURCE_LABELS[source.sourceClass], visitors: source.visitors, productClicks: source.productClicks, inquiries: source.inquiries, highIntentShoppers: source.highIntentShoppers })))
+  const experienceNames = new Map(mapped.map((experience) => [experience.id, experience.name]))
+  const interpretation = buildMerchantCommerceInterpretation({ current: currentMetricValues, comparison, experiences: experiencePerformance, sources: sourceHighlights, experienceNames })
+  const commerceIntelligence: MerchantCommerceIntelligence = { ...currentInsights, comparison, experiencePerformance, sourceHighlights, interpretation }
 
   return {
     merchant: {
@@ -204,6 +344,7 @@ export async function getMerchantControlCenter(input: { merchantId: string }): P
     },
     store: mapped.find((experience) => experience.type === 'STORE') ?? null,
     experiences: mapped,
+    catalog: catalogSummary(catalogRows as CatalogRow[]),
     activeCampaignCount: mapped.filter((experience) => experience.type === 'CAMPAIGN' && experience.status === 'ACTIVE').length,
     shopperActivityAvailable: commerceIntelligence.hasActivity,
     credentialUsage: { active: Number(credentialCount[0]?.count ?? 0) },
