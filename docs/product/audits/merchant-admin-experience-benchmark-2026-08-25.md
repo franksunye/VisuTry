@@ -175,6 +175,8 @@ This is intentional Agent-first simplicity: the merchant retains authority while
 
 ## Final assessment
 
+### Historical pre-deployment assessment — superseded by Production Acceptance below
+
 ### Final merchant admin experience: PARTIAL
 
 Exact reason: the current authenticated workspace clears the professional visual and basic operational-confidence bar, with no P0 blocker found. It is already a credible Agent-first overview, Store/Campaign status surface, merchant-readable intelligence view, and governed connection flow. It is not yet at the full benchmark bar because lifecycle/recovery visibility in B2/B3 and comparison/trend/drill-down/actionability in B4 remain P1 gaps. These are bounded improvements; they do not justify adding a heavy manual backend or blocking the current Agent operating model.

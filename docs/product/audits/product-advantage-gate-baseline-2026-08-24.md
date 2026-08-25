@@ -530,6 +530,24 @@ and does not block the core Gate C verdict.
   do not carry a durable MerchantSession key, so Detector and Advisor counts
   are explicitly unavailable in that report rather than inferred.
 
+## Final Closure Status — 2026-08-25
+
+The earlier Recommended Execution Order and Definition of Done sections preserve
+the historical baseline captured during the audit. They are superseded for the
+current decision by this closure status:
+
+- Gate A: **PARTIAL** — A1, A2, and A3 PASS; A4 genuine Agent Distribution is
+  **NOT PROVEN**.
+- Gate B: **PASS** — shopper-facing Store/Campaign, merchant-facing
+  Agent-first Admin/Workspace, and Commerce Intelligence are production-proven
+  under the Reference/controlled-evidence pre-outreach contract.
+- Gate C: **PASS** — current Codex Agent-Native Core and standards-based
+  MCP/OAuth are proven; Cursor interoperability remains non-blocking P1.
+- Outreach: **GATED** only by genuine Agent referral distribution producing
+  meaningful shopper behavior.
+- Real Merchant validation remains the separate first post-outreach gate and
+  was not performed.
+
 ## Outreach Policy Decision
 
 The selected policy is a **HARD DISTRIBUTION GATE**: Outreach is `GATED` until

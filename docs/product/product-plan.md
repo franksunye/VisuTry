@@ -56,9 +56,13 @@ VisuTry should become:
 
 > **AI commerce infrastructure for eyewear: an intelligence and conversion layer that helps consumers choose frames and helps merchants turn both human and AI-agent traffic into measurable purchase intent and revenue.**
 
-The current public consumer path is:
+The standalone Consumer acquisition / decision path remains:
 
 > Face Shape Detector → Glasses Advisor → Virtual Try-On → Frame Compare
+
+The primary B2B shopper path for the active Product Advantage Gate is:
+
+> Discovery / Agent Referral → Store or Campaign Landing → Product Exploration → Recommendation / Try-On / Compare → Product / Inquiry Intent
 
 The future merchant path is:
 

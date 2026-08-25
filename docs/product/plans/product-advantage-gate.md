@@ -7,6 +7,22 @@ Structured merchant outreach is gated until all three gates pass with current,
 reproducible evidence. Older documents that say “outreach next” describe a
 previous sequence and do not override this gate.
 
+## Current Gate Status — 2026-08-25
+
+- **Gate A — Shopper Experience & Agent Distribution:** A1 PASS, A2 PASS, A3
+  PASS, A4 **NOT PROVEN**; overall **PARTIAL**.
+- **Gate B — Merchant Experience Excellence:** **PASS**, including the
+  shopper-facing Store/Campaign product, the Agent-first Merchant Workspace,
+  and merchant-readable Commerce Intelligence.
+- **Gate C — Agent-Native Merchant Operations:** **PASS** for Agent-Native Core
+  and standards-based MCP/OAuth; Cursor interoperability remains non-blocking
+  P1 external validation.
+- **Outreach:** **GATED**. Exact blocker: genuine Agent referral distribution
+  producing meaningful shopper behavior.
+
+Real Merchant catalog, real traffic, and real acceptance evidence remain the
+separate first post-outreach Merchant Validation gate.
+
 ## Product Decision — Agent Natural Distribution Is a Hard Gate
 
 VisuTry will **not** begin structured merchant outreach before it proves that its
@@ -303,19 +319,22 @@ impressions, content volume, backlinks, or referral counts in isolation.
 
 ## Gate B — Merchant Experience Excellence
 
-Gate B evaluates the **merchant / brand / agency-facing side** of the B2B
-product: Business Website, Merchant Workspace, Commerce Intelligence, operating
-controls, and relevant Admin surfaces.
+Gate B includes the production readiness of the complete merchant product:
+
+- the shopper-facing Store / Campaign Experience that a merchant would send
+  traffic into;
+- the merchant / brand / agency-facing Business Website, Merchant Workspace,
+  Commerce Intelligence, operating controls, and relevant Admin surfaces.
 
 These surfaces must meet a professional brand / ecommerce / agency standard,
 explain the product accurately, and let an authorized merchant understand and
 operate Store / Campaign capabilities without developer intervention in normal
 supported flows.
 
-Gate B does **not** own the shopper-facing Store / Campaign experience quality;
-that belongs to Gate A. Gate B may use shopper-facing Experiences as evidence
-when necessary, but its primary acceptance target is the merchant / buyer /
-operator experience.
+Gate A owns the detailed shopper-experience verdict for the Store/Campaign
+journey. Gate B uses the same current Store/Campaign product as evidence that
+the merchant offering is professional and production-ready; this boundary
+avoids treating either gate as satisfied by implementation existence alone.
 
 Reference, simulation, and controlled-fixture evidence are valid pre-outreach
 proof of the product bar when clearly labeled. Real-merchant catalog, real
