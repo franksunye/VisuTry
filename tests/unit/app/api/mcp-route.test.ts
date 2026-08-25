@@ -33,6 +33,7 @@ jest.mock('@/modules/merchant/application/merchant-onboarding-cloudflare', () =>
     createMerchantStore: jest.fn(),
     setMerchantStoreFrames: jest.fn(),
     previewMerchantStore: jest.fn(),
+    publishMerchantStore: jest.fn(),
   },
   MerchantOnboardingError: class MerchantOnboardingError extends Error {
     readonly code = 'MERCHANT_ONBOARDING_ERROR'
@@ -54,6 +55,14 @@ jest.mock('@/modules/store/application/campaign-service-cloudflare', () => ({
     readonly code = 'CAMPAIGN_NOT_READY'
     readonly httpStatus = 409
   },
+}))
+
+jest.mock('@/modules/store/application/merchant-analytics-cloudflare', () => ({
+  getExperienceAnalyticsSummary: jest.fn().mockResolvedValue({ experience: { id: 'store-a', type: 'STORE', name: 'Store A', objective: null }, period: { from: '2026-08-01T00:00:00.000Z', to: '2026-08-24T00:00:00.000Z', timezone: 'UTC' }, referenceData: true, metrics: { visits: 1 }, scorecard: {} }),
+  getExperienceFunnel: jest.fn().mockResolvedValue({ experienceId: 'store-a', stages: [] }),
+  getTopFramesByIntent: jest.fn().mockResolvedValue({ experienceId: 'store-a', frames: [] }),
+  getMerchantIntentSummary: jest.fn().mockResolvedValue({ experienceId: 'store-a', tryOnStarts: 0 }),
+  MerchantAnalyticsError: class MerchantAnalyticsError extends Error { readonly code = 'EXPERIENCE_NOT_FOUND' },
 }))
 
 import { NextRequest } from 'next/server'
@@ -125,12 +134,17 @@ describe('MCP transport protocol', () => {
       'create_store',
       'set_store_frames',
       'preview_store',
+      'publish_store',
       'list_campaigns',
       'get_campaign',
       'create_campaign',
       'set_campaign_frames',
       'update_campaign',
       'preview_campaign',
+      'get_experience_summary',
+      'get_experience_funnel',
+      'get_top_frames',
+      'get_intent_summary',
     ])
 
     const create = listBody.result.tools.find((tool) => tool.name === 'create_campaign')
@@ -142,7 +156,7 @@ describe('MCP transport protocol', () => {
     const names = new Set(listBody.result.tools.map((tool) => tool.name))
     expect(names.has('inspect_catalog_source')).toBe(false)
     expect(names.has('publish_campaign')).toBe(false)
-    expect(names.has('get_intent_summary')).toBe(false)
+    expect(names.has('get_intent_summary')).toBe(true)
   })
 
   it('routes a tool call through the authenticated tenant context', async () => {

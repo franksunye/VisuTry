@@ -17,6 +17,7 @@ describe('MerchantSession attribution reporting contract', () => {
         medium: 'internal',
         acquisitionSurface: 'discover',
         experienceId: 'experience-akila',
+        aiAgentSource: null,
         _count: { _all: 2 },
       },
     ])
@@ -27,11 +28,12 @@ describe('MerchantSession attribution reporting contract', () => {
         medium: 'internal',
         acquisitionSurface: 'discover',
         experienceId: 'experience-akila',
+        aiAgentSource: null,
         sessions: 2,
       },
     ])
     expect(db.merchantSession.groupBy).toHaveBeenCalledWith({
-      by: ['source', 'medium', 'acquisitionSurface', 'experienceId'],
+      by: ['source', 'medium', 'acquisitionSurface', 'experienceId', 'aiAgentSource'],
       where: { merchantId: 'merchant-akila' },
       _count: { _all: true },
     })

@@ -1,4 +1,5 @@
 import { getCloudflareSql } from '@/data/neon-cloudflare'
+import { withPublicDiscoveryInvalidation } from '@/modules/store/application/public-discovery-invalidation'
 import { getMerchantProfile } from './get-merchant-profile-cloudflare'
 import { MerchantAccessError } from './merchant-access-cloudflare'
 import { recordMerchantAgentOperation } from './merchant-agent-credentials-cloudflare'
@@ -255,8 +256,32 @@ export async function previewMerchantStore(input: { actor: MerchantActorContext;
   return { store: { id: String(store.store.id), name: String(store.store.name), status: String(store.store.status), publicPath: `/en/store/${merchant.slug}` }, frameCount: store.frames.length, readiness, preview: { sideEffectFree: true, publicPath: `/en/store/${merchant.slug}` } }
 }
 
-export async function publishMerchantStore(_input: { actor: MerchantActorContext; storeId: string; approved: boolean }): Promise<never> {
-  throw new MerchantOnboardingError('CLOUDFLARE_PUBLISH_OUT_OF_SCOPE', 'Store publishing is outside the Cloudflare B2 write boundary.', 409)
+export async function publishMerchantStore(input: { actor: MerchantActorContext; storeId: string; approved: boolean }) {
+  requireAgentScope(input.actor, 'experience:write')
+  if (!input.approved) throw new MerchantOnboardingError('PUBLISH_APPROVAL_REQUIRED', 'Publishing requires explicit approval.', 400)
+  const store = await findStore(input.actor.merchantId, input.storeId)
+  if (!store) throw new MerchantAccessError()
+  const merchant = await getMerchant({ actor: input.actor })
+  const frames = await activeFrames(input.actor.merchantId, store.frames.map((frame) => String(frame.merchantFrameId)))
+  const readiness = storeReadiness(frames as unknown as FrameForValidation[], store.frames.length)
+  if (!readiness.ready || store.frames.length === 0) throw new MerchantOnboardingError('STORE_NOT_READY', 'Store is not ready to publish.', 409)
+  const sql = getCloudflareSql()
+  const published = await withPublicDiscoveryInvalidation({
+    target: { kind: 'experience', merchantSlug: merchant.slug, experienceSlug: null },
+    mutation: async () => {
+      if (String(store.store.status) === 'ACTIVE') return store.store
+      const rows = await sql`
+        UPDATE "Experience"
+        SET "status" = 'ACTIVE', "updatedAt" = NOW()
+        WHERE "id" = ${input.storeId} AND "merchantId" = ${input.actor.merchantId} AND "type" = 'STORE' AND "status" = 'DRAFT'
+        RETURNING "id", "status"
+      `
+      if (!rows[0]) throw new MerchantOnboardingError('STORE_PUBLISH_FAILED', 'The Store could not be published.', 409)
+      return rows[0]
+    },
+  })
+  await recordMerchantAgentOperation({ actor: input.actor, action: 'store.published', resourceType: 'Experience', resourceId: String(store.store.id) })
+  return { id: String((published as Row).id), status: String((published as Row).status), publicPath: `/en/store/${merchant.slug}`, approvalRecorded: true }
 }
 
 export const merchantOnboarding = { getMerchant, getOnboardingStatus, listMerchantFrames, validateMerchantCatalog, importMerchantFrames, createMerchantStore, setMerchantStoreFrames, previewMerchantStore, publishMerchantStore }

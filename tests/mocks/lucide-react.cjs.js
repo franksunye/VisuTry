@@ -51,6 +51,7 @@ module.exports = {
   LockKeyhole: createIcon('lock-keyhole'),
   KeyRound: createIcon('key-round'),
   Store: createIcon('store'),
+  BarChart3: createIcon('bar-chart-3'),
   Globe2: createIcon('globe-2'),
   Trash2: createIcon('trash-2'),
   Circle: createIcon('circle'),

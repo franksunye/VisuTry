@@ -22,7 +22,8 @@ The main goal is to make it clear what should be built next, why it matters, how
 | --- | --- | --- |
 | `docs/product/product-plan.md` | Current product operating plan: Now / Next / Later, current sprint, initiatives, backlog, and decisions needed. | Active source of truth for product execution. |
 | `docs/product/specs/` | Detailed specs for individual product capabilities. | Created as needed. |
-| `docs/product/plans/market-facing-productization-plan.md` | Reference Factory → Discover/distribution → Business Website → merchant outreach sequence. | **Productization through Business v1.2 shipped; outreach next.** |
+| `docs/product/plans/market-facing-productization-plan.md` | Historical Reference Factory → Discover/distribution → Business Website sequence. | **Historical; pre-outreach work now follows the Product Advantage Gate.** |
+| `docs/product/plans/product-advantage-gate.md` | Active Consumer Distribution, Merchant Experience, and Agent-Native pre-outreach gate. | **Active source of truth; outreach gated until A/B/C PASS.** |
 | `docs/product/plans/pilot-delivery-factory-plan.md` | Five-brand Reference portfolio and repeatable assisted delivery model. | **Factory core complete; retained as delivery contract.** |
 | `docs/product/business-website-ia-and-copy.md` | Business Website product truth, IA, claims, Pilot and CTA baseline. | **Implemented baseline; v1.2 visual brief is current.** |
 | `docs/product/business-website-v1.2-layout-and-visual-system.md` | Current `/business` layout and production visual asset contract. | **v1.2 shipped.** |
@@ -44,6 +45,7 @@ The main goal is to make it clear what should be built next, why it matters, how
 5. Product plan should stay short enough to review weekly.
 6. When an approved implementation plan exists for a scoped initiative, engineering should follow its gates and work breakdown rather than infer sequencing from older roadmap documents.
 7. Store merchant-facing wording, outreach, pilot packaging, and sales claims should follow `docs/product/sales/visutry-store-sales-pitch.md` so Sales does not outrun implemented product boundaries.
+8. Do not begin structured merchant outreach while `docs/product/plans/product-advantage-gate.md` is not fully evidenced as PASS for Gates A, B, and C.
 
 ---
 
@@ -64,9 +66,11 @@ Business Website v1.2 + Founding Merchant Pilot offer [shipped]
   ↓
 Durable assisted Pilot intake [production write verified]
   ↓
-Controlled Founding Merchant outreach [current]
+Product Advantage Gate A/B/C [current]
   ↓
-First real merchant catalog + declared traffic source + intent review [next gate]
+Controlled Founding Merchant outreach [only after all three gates pass]
+  ↓
+First real merchant catalog + declared traffic source + intent review [gate evidence]
   ↓
 Only then promote repeated pain into integrations or broader platform work
 ```

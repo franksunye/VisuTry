@@ -51,11 +51,11 @@ export function FreeFaceShapeResult({
   const matchLabel = getGeometryMatchLabel(geometry.measuredConfidence)
   const closestAlternative = geometry.alternativeShapes?.[0]
 
-  async function continueToFaceAnalysis() {
+  async function continueTo(destination: 'face_analysis' | 'virtual_try_on', path: string) {
     if (isContinuing) return
 
     setIsContinuing(true)
-    analytics.trackFaceShapeDetectorCta(continuationFaceShape, 'face_analysis')
+    analytics.trackFaceShapeDetectorCta(continuationFaceShape, destination)
 
     const query = new URLSearchParams({
       source: 'free-face-shape-detector',
@@ -75,8 +75,11 @@ export function FreeFaceShapeResult({
       analytics.trackFaceShapeDetectorPhotoHandoff(continuationFaceShape, 'fallback')
     }
 
-    router.push(`/${locale}/face-analysis?${query.toString()}`)
+    router.push(`/${locale}/${path}?${query.toString()}`)
   }
+
+  const continueToFaceAnalysis = () => continueTo('face_analysis', 'face-analysis')
+  const continueToTryOn = () => continueTo('virtual_try_on', 'try-on/glasses')
 
   return (
     <div className="flex flex-col gap-y-5" aria-live="polite">
@@ -183,6 +186,16 @@ export function FreeFaceShapeResult({
                   <ArrowRight className="ms-2 h-4 w-4" />
                 </>
               )}
+            </button>
+            <button
+              type="button"
+              onClick={continueToTryOn}
+              disabled={isContinuing}
+              aria-busy={isContinuing}
+              className="inline-flex w-full items-center justify-center rounded-lg border border-violet-200 bg-white px-5 py-3 text-sm font-semibold text-violet-800 transition-colors hover:border-violet-300 hover:bg-violet-50 disabled:cursor-wait disabled:opacity-75"
+            >
+              Try on your photo
+              <ArrowRight className="ms-2 h-4 w-4" />
             </button>
             <div className="flex items-start gap-2 text-xs leading-5 text-gray-600">
               <ShieldCheck className="mt-0.5 h-3.5 w-3.5 shrink-0 text-green-600" />

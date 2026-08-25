@@ -157,6 +157,25 @@ describe('FreeFaceShapeDetector', () => {
     expect(trackHandoff).toHaveBeenCalledWith('oval', 'fallback')
   })
 
+  it('continues directly to Try-On with the same private photo handoff', async () => {
+    const trackCta = jest.spyOn(analytics, 'trackFaceShapeDetectorCta')
+
+    render(<FreeFaceShapeDetector locale="en" />)
+
+    const file = new File(['portrait'], 'portrait.jpg', { type: 'image/jpeg' })
+    fireEvent.change(getPhotoLibraryInput(), { target: { files: [file] } })
+    await screen.findByRole('heading', { name: 'Oval' })
+    fireEvent.click(screen.getByRole('button', { name: /try on your photo/i }))
+
+    await waitFor(() => {
+      expect(mockRouterPush).toHaveBeenCalledWith(
+        '/en/try-on/glasses?source=free-face-shape-detector&faceShape=oval&photoHandoff=handoff-1',
+      )
+    })
+    expect(mockSavePhotoHandoff).toHaveBeenCalledWith(file)
+    expect(trackCta).toHaveBeenCalledWith('oval', 'virtual_try_on')
+  })
+
   it('tracks invalid input without starting analysis', async () => {
     const trackFailed = jest.spyOn(analytics, 'trackFaceShapeDetectorFailed')
 

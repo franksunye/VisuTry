@@ -5,6 +5,7 @@ export type MerchantAttributionBucket = {
   medium: string | null
   acquisitionSurface: string | null
   experienceId: string | null
+  aiAgentSource: string | null
   sessions: number
 }
 
@@ -14,7 +15,7 @@ export async function getMerchantAttributionBreakdown(input: {
   experienceId?: string | null
 }): Promise<MerchantAttributionBucket[]> {
   const rows = await prisma.merchantSession.groupBy({
-    by: ['source', 'medium', 'acquisitionSurface', 'experienceId'],
+    by: ['source', 'medium', 'acquisitionSurface', 'experienceId', 'aiAgentSource'],
     where: {
       merchantId: input.merchantId,
       ...(input.experienceId ? { experienceId: input.experienceId } : {}),
@@ -27,6 +28,7 @@ export async function getMerchantAttributionBreakdown(input: {
     medium: row.medium,
     acquisitionSurface: row.acquisitionSurface,
     experienceId: row.experienceId,
+    aiAgentSource: row.aiAgentSource,
     sessions: row._count._all,
   }))
 }
