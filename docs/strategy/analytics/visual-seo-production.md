@@ -1,7 +1,7 @@
 # VisuTry Visual SEO Production v1.4
 
 **Status:** Active execution specification  
-**Last updated:** 2026-08-10
+**Last updated:** 2026-08-25
 **Owner:** Growth / Product / Engineering  
 **Parent strategy:** `docs/strategy/analytics/gtm.md` → Engine 2 — Visual Discovery  
 **Scope:** Google Images, Search→Tool page visuals, image SEO, Pinterest-ready source assets, and Codex-assisted production/integration.
@@ -37,14 +37,14 @@ Primary distribution surfaces:
 
 ### Current accepted progress
 
-**24 / 182 accepted images**
+**54 / 182 accepted images**
 
-This program was restarted from zero for Desktop Codex execution. Batches B01, B02, and B03 are now accepted production units, completing the first 24 core commercial / product-intent masters.
+This program was restarted from zero for Desktop Codex execution. Batches B01 through B06 are now accepted production units, completing the first 54 canonical masters across the core commercial, Face Style owner, and Face Shape explainer families.
 
 - No previously generated conversational image is considered accepted production output.
 - Previous ChatGPT-generated images may be used only as visual references if useful.
 - Contact sheets, batch overviews, accidental grids, wrong-topic generations, cancelled generations, and earlier experimental outputs do **not** count.
-- The first canonical production units are Batch B01 (`VSEO-001`–`VSEO-008`), Batch B02 (`VSEO-009`–`VSEO-016`), and Batch B03 (`VSEO-017`–`VSEO-024`).
+- Accepted production currently spans Batch B01 (`VSEO-001`–`VSEO-008`) through Batch B06 (`VSEO-043`–`VSEO-054`).
 - Progress advances only after Codex has completed QA, optimization, page integration, build verification, and manifest update.
 
 ### Planned composition
@@ -413,7 +413,7 @@ For each batch:
 | B03 | VSEO-017–024 | 8 | Core commercial foundations C | B / D / E; Try-On comparison, Compare, Advisor; lock same-person comparison behavior |
 | B04 | VSEO-025–033 | 9 | Face Style owner pages A | A / B / C; round / oval / square owner-page visual system |
 | B05 | VSEO-034–042 | 9 | Face Style owner pages B | A / B / C; heart / diamond / oblong owner-page visual system |
-| B06 | VSEO-043–054 | 12 | Face Shape explainers | D / F; educational face-shape definitions, identification, and comparisons; low text density |
+| B06 | VSEO-043–054 | 12 | Face Shape explainers | D; educational face-shape definitions and identification; restrained proportion guides; low text density |
 | B07 | VSEO-055–064 | 10 | Face × Frame pairings A | A; round + oval pairings; consistent hero composition |
 | B08 | VSEO-065–074 | 10 | Face × Frame pairings B | A; square + heart pairings; consistent hero composition |
 | B09 | VSEO-075–084 | 10 | Face × Frame pairings C | A; diamond + oblong pairings; consistent hero composition |
@@ -470,7 +470,7 @@ Read the batch plan above and the manifest. Find the current batch, then find th
 Current starting point:
 
 ```text
-Batch B04 → VSEO-025
+Batch B07 → VSEO-055
 ```
 
 ### Step B — Generate one image
@@ -550,9 +550,9 @@ When the last image in a batch passes image-level QA, perform the batch-level co
 
 ---
 
-## 11. Accepted canonical queue — VSEO-001 to VSEO-024
+## 11. Canonical published mapping — VSEO-001 to VSEO-024
 
-The first 24 core commercial / product-intent assets are accepted and are listed here as the current canonical published mapping. For `VSEO-025` onward, use `visual-seo-prompt-manifest.md` as the authoritative per-asset generation registry rather than duplicating the pending queue in this workflow document.
+The first 24 core commercial / product-intent assets are listed here as the canonical published mapping. Accepted status for later batches is tracked in the progress ledger below; for `VSEO-025` onward, use `visual-seo-prompt-manifest.md` as the authoritative per-asset generation registry rather than duplicating the queue in this workflow document.
 
 These mappings supersede earlier conversational or draft mappings.
 
@@ -697,7 +697,6 @@ glasses-by-face-shape-overview.webp
 face-shape-to-frame-map.webp
 recommended-glasses-by-face-shape.webp
 face-shape-glasses-decision-flow.webp
-
 glasses-guide-overview.webp
 face-frame-guide-map.webp
 eyewear-decision-questions-guide.webp
@@ -821,7 +820,7 @@ If Codex detects a discrepancy between this document and the current route regis
 | B03 | VSEO-017–024 | ✅ Accepted | Eight comparison / advisor assets integrated into three English Search→Tool pages; one-primary hierarchy, compact supporting layout, source archive, WebP, image sitemap, and build verification complete |
 | B04 | VSEO-025–033 | ✅ Accepted | Nine Face Style owner assets integrated into round, oval, and square English owner pages; staged editorial layout, WebP, source archive, image sitemap, and build verification complete |
 | B05 | VSEO-034–042 | ✅ Accepted | Nine Face Style owner assets integrated into heart, diamond, and oblong English owner pages; shared Face Owner module, staged editorial layout, WebP source/public pipeline, image sitemap, responsive browser checks, targeted tests, `build:ci` verification, and successful Vercel deployment complete. |
-| B06 | VSEO-043–054 | ⚠️ Integrated | Twelve Face Shape explainer assets integrated into the six English face-shape pages; characteristics and identification stages, WebP source/public pipeline, image sitemap, responsive browser checks, targeted tests, and `build:ci` verification complete. |
+| B06 | VSEO-043–054 | ✅ Accepted | Twelve Face Shape explainer assets integrated into the six English face-shape pages; characteristics and identification stages, WebP source/public pipeline, image sitemap, responsive browser checks, targeted tests, `build:ci` verification, and post-integration preload correction complete. |
 | B07 | VSEO-055–064 | ⏳ Planned | Face × Frame A |
 | B08 | VSEO-065–074 | ⏳ Planned | Face × Frame B |
 | B09 | VSEO-075–084 | ⏳ Planned | Face × Frame C |
@@ -838,7 +837,7 @@ If Codex detects a discrepancy between this document and the current route regis
 
 ### Current next action
 
-> Batches B01 through B05 are complete, and B06 is integrated. The next production unit is B07; preserve the established source archive, WebP, adjacent-copy, internal-link, page-level one-primary hierarchy, compact mobile supporting layout, and image-sitemap checks. Track Neon migration connectivity separately as an infrastructure issue; it is not a Visual SEO batch acceptance blocker. Do not generate any batch overview image.
+> Batches B01 through B06 are accepted. The next production unit is B07 (`VSEO-055`–`VSEO-064`), starting at `VSEO-055`; preserve the established source archive, WebP, adjacent-copy, internal-link, page-level one-primary hierarchy, compact mobile supporting layout, and image-sitemap checks. Track Neon migration connectivity separately as an infrastructure issue; it is not a Visual SEO batch acceptance blocker. Do not generate any batch overview image.
 
 ---
 
