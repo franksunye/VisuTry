@@ -55,6 +55,15 @@ Week 1 is intentionally below these ceilings while account history, rules, authe
 12. Inspect the diff for secrets and unrelated changes, commit with `growth: community ops YYYY-MM-DD`, and push the operational branch.
 13. On the final operating run of the ISO week, update the weekly review and create or update one PR targeting `main`.
 
+## Git evidence in daily logs
+
+Daily logs must distinguish the temporary state at log-write time from the final repository evidence:
+
+- `git_status_at_log_write`: the status observed when the daily log was written. Use an explicit value such as `PENDING_COMMIT` when the evidence files have not yet been committed; do not write an unqualified `pending`.
+- `git_final_evidence`: after verification, record the operational branch, commit SHA, and push result, for example `branch=growth/community-ops; commit=<sha>; push=SUCCESS`.
+
+The final field is the authoritative evidence that the run reached the remote branch. Do not leave wording that could imply the branch is still uncommitted or unpushed after the commit and push have succeeded.
+
 ## Safe output states
 
 - `COMPLETED`: useful work and evidence were recorded.
