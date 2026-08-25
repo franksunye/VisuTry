@@ -179,6 +179,64 @@ This is intentional Agent-first simplicity: the merchant retains authority while
 
 Exact reason: the current authenticated workspace clears the professional visual and basic operational-confidence bar, with no P0 blocker found. It is already a credible Agent-first overview, Store/Campaign status surface, merchant-readable intelligence view, and governed connection flow. It is not yet at the full benchmark bar because lifecycle/recovery visibility in B2/B3 and comparison/trend/drill-down/actionability in B4 remain P1 gaps. These are bounded improvements; they do not justify adding a heavy manual backend or blocking the current Agent operating model.
 
+## Production Acceptance — 2026-08-25
+
+This section supersedes the deployment-pending evidence boundary above for the current acceptance decision. It records authenticated Chrome evidence against the production alias after deploying commit `83a770b7c79d77edc95d0a02775debee53d7d6d5`.
+
+### Deployment and authenticated workspace
+
+- Preview build: `dpl_FqjCWh7vL63SwXMe2STp8sJTMJ49`, `https://visutry-k6eligi4o-sunye.vercel.app`, READY.
+- Production deployment: `dpl_81EpsvfbBNvAG6vgvigLkrfUBta3`, `https://visutry-8dzbdl19x-sunye.vercel.app`, READY; aliases include `https://www.visutry.com`, `https://visutry.com`, and `https://visutry.vercel.app`.
+- Authenticated route: `https://www.visutry.com/en/merchant`.
+- Workspace: `VisuTry Demo`.
+- Evidence type: authenticated real Chrome session, read-only navigation and inspection; no fixture mutation, database shortcut, or auth bypass.
+
+### B1 — Merchant Overview
+
+**PASS.** Desktop at 1365×768 and mobile at 390×844 render the workspace identity, Agent state, Store, Campaign, Insights, primary actions, and sticky section navigation without horizontal overflow. The mobile hero stacks its actions cleanly. The prior mobile Status anchor collision was reproduced, fixed with responsive `scroll-mt-44 sm:scroll-mt-24`, and re-tested: all four section targets landed at `targetTop=176` with a `headerBottom=175`.
+
+### B2 — Store / Catalog Control
+
+**PASS.** Production showed `VisuTry Demo Store`, `Active`, `6 selected frames`, `Catalog 6 products · 6 active · 6 valid`, `Catalog ready`, `Live`, public-page access, selected product names, `PRODUCT_FIRST` presentation, and last recorded action. The Agent-first boundary is explicit: the page exposes the current tenant-scoped state and hands mutations to the Agent; no manual editor or unsupported direct mutation was introduced. No P0 remains. Non-blocking P1 work is richer lifecycle/recovery provenance when the existing audit contract can expose it.
+
+### B3 — Campaign Operations
+
+**PASS.** Production showed `Everyday Fit`, `Campaign`, `Active`, `4 selected products`, `Catalog ready`, `Live`, public-page access, selected frames, campaign headline/description, `INTENT` objective, `NONE` gate, and `EDITORIAL_FIRST` presentation. Campaign is materially differentiated from Store by narrative and editorial context, and its public shopper route remains available. No P0 remains. Non-blocking P1 work is more visible lifecycle/recovery history without adding a Campaign Builder.
+
+### B4 — Commerce Intelligence
+
+**PASS for the defined pre-outreach acceptance contract.** Authenticated production Chrome showed the populated merchant-readable metrics: Visitors `14`, Engaged Shoppers `10` / `71.4%`, Recommendation `10` / `71.4%`, Try-On `4` / `28.6%`, Compare `0`, Product Click `0`, and High-Intent `0`. It showed the exact UTC window, Store/Campaign context for `VisuTry Demo Store` and `Everyday Fit`, first-touch acquisition source `visutry 14`, and the `Source → decision actions` report. The comparison state was intentionally low-data-safe: `Not enough activity for a reliable comparison`, ranked context `1. VisuTry Demo Store` / `2. Everyday Fit`, and `No reliable leader yet` for unsupported/tied downstream leaders. `What to review next` and `Ask Agent to compare these Experiences` were visible. The same production component/data contract's empty state remains deterministically covered by `MerchantControlCenter.test.tsx`; no artificial authenticated empty fixture was created. No raw engineering telemetry, shopper identity, photo, revenue, or purchase claim was exposed.
+
+### B5 — Agent Control / Governance
+
+**PASS.** Production showed `Not connected`, secure key setup, explicit Agent scope domains, and the visible boundary: `Human approval remains required before publish, archive, revoke, or delete actions.` No secret was exposed in the inspected DOM, and no consequential action was executed during acceptance. The control model remains Agent-first with merchant approval, not an internal-tool console.
+
+### Viewport evidence
+
+- Desktop: `innerWidth=1365`, `innerHeight=768`, `scrollWidth=1350`, `scrollHeight=3762`; no horizontal overflow. Visual hierarchy and presentation were professional, with no clipping or internal raw-data styling.
+- Mobile: `innerWidth=390`, `innerHeight=844`, `scrollWidth=375`, `scrollHeight=7418`; no horizontal overflow. Header, merchant selector, navigation, hero, cards, intelligence, and status sections remained usable. The long scan depth is a bounded P2 ergonomics item, not an acceptance blocker, because the sticky section navigation works without collision.
+
+### Acceptance defects found and fixed
+
+- Mobile sticky navigation: clicking `Status` previously positioned `Store and Campaign status` at `top=145` beneath the 175px sticky header. Fixed in `83a770b7c79d77edc95d0a02775debee53d7d6d5` by adding the mobile section offset; production re-test now reports `targetTop=176` for Overview, Insights, Setup, and Status.
+
+### Final merchant admin experience
+
+- P0 remaining: none.
+- P1 remaining: non-blocking lifecycle/recovery/audit visibility for B2/B3 and richer analytics controls only where supported by durable data; no material P1 acceptance defect remains.
+- P2: long mobile scan depth; export/shareable intelligence and richer historical visualization remain future enhancements.
+- **FINAL MERCHANT ADMIN EXPERIENCE: PASS**
+- **Merchant Experience Excellence is PASS under the Agent-first industry benchmark.**
+
+### Validation note
+
+- `npm run typecheck`: PASS.
+- Focused Merchant Admin Jest suites: 4 suites / 13 tests PASS.
+- `npm run build:ci`: PASS; only pre-existing lint and stale browser-data warnings.
+- `npx playwright test tests/e2e/business.spec.ts --project=chromium`: 5/5 PASS.
+- `npx playwright test tests/e2e/store-pilot.spec.ts --project=chromium --workers=1`: 7/8 PASS in the local environment. The one failure is the pre-existing real-session-dependent Campaign handoff test: `/api/store/sessions` did not complete, leaving `Starting session…`; the mock-driven Store/Campaign compare test passed. The production acceptance above is independent authenticated Chrome evidence and did not mutate a shopper session.
+- `git diff --check`: PASS.
+
 ### Agent-first assessment
 
 - Agent responsibilities: analyze workspace/catalog state; configure and create Store/Campaign objects; modify catalog/experience configuration; validate; preview; execute separately approved actions; read analytics; summarize results and next supported actions.
