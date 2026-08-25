@@ -3,6 +3,11 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { ArrowRight, Glasses, ScanFace, SlidersHorizontal } from 'lucide-react'
 import { SearchToToolLanding } from '@/components/growth/SearchToToolLanding'
+import {
+  CombinationVisualSeoHero,
+  CombinationVisualSeoSections,
+} from '@/components/seo/CombinationVisualSeoSections'
+import { getCombinationVisualSeoAssets } from '@/config/combination-visual-seo-assets'
 import { COMBINATION_SEARCH_PAGES } from '@/config/search-combination-pages'
 import {
   getCombinationGuideShellCopy,
@@ -45,6 +50,7 @@ export default function CombinationSearchPage({ params }: Props) {
   const locale = params.locale
   const shell = getCombinationGuideShellCopy(locale)
   const pathname = `/glasses-guide/${page.slug}`
+  const hasVisualSeoAssets = locale === 'en' && getCombinationVisualSeoAssets(page.slug).length > 0
   const localizedPages = getLocalizedCombinationSearchPages(locale)
   const relatedPages = localizedPages
     .filter((item) => item.slug !== page.slug && item.type === page.type)
@@ -74,6 +80,7 @@ export default function CombinationSearchPage({ params }: Props) {
       title={page.title}
       intro={page.intro}
       schemas={schemas}
+      visual={hasVisualSeoAssets ? <CombinationVisualSeoHero locale={locale} page={page} /> : undefined}
       steps={[
         {
           title: shell.stepShortlist,
@@ -120,6 +127,8 @@ export default function CombinationSearchPage({ params }: Props) {
           <p className="text-sm leading-6 text-gray-700">{page.watchFor}</p>
         </article>
       </section>
+
+      {hasVisualSeoAssets ? <CombinationVisualSeoSections locale={locale} page={page} /> : null}
 
       <section className="mt-12 rounded-lg border border-blue-100 bg-blue-50 p-6">
         <p className="mb-2 text-sm font-semibold text-blue-700">{shell.decisionTip}</p>
