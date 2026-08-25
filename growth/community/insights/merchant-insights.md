@@ -19,3 +19,13 @@
 - Confidence: REPEATED SIGNAL
 - Possible merchant implication: expose consistent frame width, bridge, lens height, and fit notes so shoppers can compare candidates with less uncertainty
 - Follow-up measurement: track future mentions of missing measurements, returns, sliding, or inability to compare online
+
+## 2026-08-25 public discovery sample
+
+- Insight: Merchant fit guidance should explain nose-pad contact and temple-arm stability in shopper language, not only list numeric frame measurements.
+- Evidence: A fresh Reddit thread asked why nose pads should sit on the bony part of the nose; another fit thread included a temple-length and behind-ear fit check; a recent YouTube fit video framed the problem as glasses being too tight or falling off after online selection.
+- Source URLs: https://www.reddit.com/r/glassesadvice/comments/1vxfry5/the_right_place_for_nose_pads/ ; https://www.reddit.com/r/glassesadvice/comments/1vx4ogq/do_these_glasses_suit_me_in_terms_of_size_and_fit/ ; https://www.youtube.com/watch?v=SfXAfznpk4M
+- Area: Store / Merchant Sales
+- Confidence: REPEATED SIGNAL
+- Possible merchant implication: add bridge/nose-pad and temple-fit explanations near size selectors and frame-detail pages
+- Follow-up measurement: track future questions about nose marks, slipping, lash/brow smudges, tightness, and behind-ear discomfort

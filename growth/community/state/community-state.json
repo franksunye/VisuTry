@@ -1,21 +1,21 @@
 {
   "schema_version": 2,
-  "last_updated": "2026-08-24T16:33:26+08:00",
+  "last_updated": "2026-08-25T10:08:03+08:00",
   "rollout_week": "2026-W35",
   "branch": "growth/community-ops",
   "timezone": "Asia/Shanghai",
   "last_run": {
-    "started_at": "2026-08-24T15:52:27+08:00",
-    "finished_at": "2026-08-24T16:08:09+08:00",
-    "status": "COMPLETED",
-    "trigger": "MANUAL",
+    "started_at": "2026-08-25T10:02:28+08:00",
+    "finished_at": "2026-08-25T10:08:03+08:00",
+    "status": "NO_HIGH_QUALITY_ACTION_FOUND",
+    "trigger": "SCHEDULED",
     "scheduler_run_id": "NOT_EXPOSED",
     "public_research": true,
-    "reddit_searches": 2,
-    "youtube_searches": 2,
-    "reddit_interactions": 1,
+    "reddit_searches": 1,
+    "youtube_searches": 1,
+    "reddit_interactions": 0,
     "youtube_interactions": 0,
-    "follow_ups": 0,
+    "follow_ups": 2,
     "questions_discovered": 4,
     "insights_captured": 5,
     "blockers": []
@@ -40,7 +40,7 @@
     "timezone": "Asia/Shanghai",
     "status": "ACTIVE",
     "next_run_at": "NOT_EXPOSED",
-    "verified_at": "2026-08-24T16:33:26+08:00",
+    "verified_at": "2026-08-25T10:08:03+08:00",
     "verification_source": "CODEX_SCHEDULER"
   }
 }

@@ -23,3 +23,14 @@ Candidates only. Do not create production pages automatically.
 - Evidence count: 4 public Reddit threads in the first discovery sample
 - Product path: Try-On -> Compare; fit explanation alongside face-shape guidance
 - Confidence: REPEATED SIGNAL
+
+## 2026-08-25 public discovery sample
+
+- Opportunity: Expand frame-fit FAQ coverage for `where should nose pads sit`, `glasses too tight`, `glasses falling off`, and `temple length behind ears`.
+- Repeated user question: shoppers want to know whether frames fit correctly beyond face shape, including bridge/nose-pad position, temple length, and stability.
+- Source URLs: https://www.reddit.com/r/glassesadvice/comments/1vxfry5/the_right_place_for_nose_pads/ ; https://www.reddit.com/r/glassesadvice/comments/1vx4ogq/do_these_glasses_suit_me_in_terms_of_size_and_fit/ ; https://www.youtube.com/watch?v=SfXAfznpk4M
+- Suggested page action: FAQ expansion plus existing fit-page improvement
+- Search language: `where should nose pads sit on glasses`, `glasses too tight`, `glasses falling off`, `temple length glasses fit`, `do my glasses fit correctly`
+- Evidence count: 2 Reddit threads plus 1 recent YouTube fit video reviewed on 2026-08-25
+- Product path: Advisor -> Try-On -> Compare; fit checklist alongside visual frame comparison
+- Confidence: REPEATED SIGNAL

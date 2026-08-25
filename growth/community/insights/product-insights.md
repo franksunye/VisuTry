@@ -19,3 +19,12 @@ Record evidence, not assumptions. A single comment is a `SINGLE SIGNAL` until re
 - Area: Try-On / Compare / Consumer UX
 - Confidence: REPEATED SIGNAL
 - Follow-up measurement: count how often future conversations ask for a separate fit check after a style recommendation; test a two-step visual comparison flow
+
+## 2026-08-25 public discovery sample
+
+- Insight: Fit confidence includes comfort/stability checks that are not visible from face-shape matching alone.
+- Evidence: A Reddit user asked why nose pads should rest lower on the bony part of the nose; another user asked whether existing frames were sized correctly before buying new ones, and a commenter checked temple length and behind-ear fit; a YouTube fit video described online buyers worrying about frames being too tight or falling off.
+- Source URLs: https://www.reddit.com/r/glassesadvice/comments/1vxfry5/the_right_place_for_nose_pads/ ; https://www.reddit.com/r/glassesadvice/comments/1vx4ogq/do_these_glasses_suit_me_in_terms_of_size_and_fit/ ; https://www.youtube.com/watch?v=SfXAfznpk4M
+- Area: Advisor / Try-On / Compare / Consumer UX / FAQ
+- Confidence: REPEATED SIGNAL
+- Follow-up measurement: classify future fit questions by visible fit, comfort fit, and purchase-confidence decisions

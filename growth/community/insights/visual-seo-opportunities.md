@@ -21,3 +21,13 @@
 - Confidence: REPEATED SIGNAL
 
 Examples include frames too wide versus correct width, brow-line alignment, bridge width, frame proportions, and two-frame comparisons.
+
+## 2026-08-25 public discovery sample
+
+- Visual title: `Where Should Glasses Nose Pads Sit?`
+- Target query: `where should nose pads sit on glasses`, `glasses slipping down nose`, `glasses too tight behind ears`
+- Visual answer concept: annotated front and side views showing nose-pad contact on the firmer part of the nose, lens-to-lash clearance, temple-arm curve behind the ear, and warning signs such as red marks, sliding, or eyelash/brow smudges.
+- Source question and URL: `Why is the bony part the right place for the pads?` — https://www.reddit.com/r/glassesadvice/comments/1vxfry5/the_right_place_for_nose_pads/
+- Landing-page candidate: `/en/compare-glasses-frames` or a frame-fit FAQ route
+- Evidence count: 2 Reddit fit threads plus 1 recent YouTube fit video reviewed on 2026-08-25
+- Confidence: REPEATED SIGNAL
