@@ -5,7 +5,7 @@
 **Status:** Current production evidence update; no synthetic traffic is counted.
 
 The current PR head was deployed to a Vercel preview equivalent at
-`https://visutry-o001mlqiu-sunye.vercel.app` (`dpl_CfwWn9vQPYHrXJYZ6t9KAnKdwRzY`).
+`https://visutry-fmy4lj99b-sunye.vercel.app` (`dpl_J4ej4zvstddDJB45V6aoZW2VvBto`).
 The production domain was also checked read-only. Reference Store/Campaign
 pages remain intentionally `noindex, follow`.
 

@@ -78,7 +78,7 @@ the merchant shopper experience.
   Store/Campaign production stream, and the Consumer first-party stream cannot
   currently be queried because the available Axiom credential is ingest-only.
 - **Measure:** the current PR head is deployed to a Vercel preview equivalent
-  (`dpl_CfwWn9vQPYHrXJYZ6t9KAnKdwRzY`). Production `visutry.com` Store/Campaign
+  (`dpl_J4ej4zvstddDJB45V6aoZW2VvBto`). Production `visutry.com` Store/Campaign
   routes pass desktop/mobile read-only checks. The rolling 14-day Neon
   MerchantSession aggregate found 0 eligible Agent sessions; 77 Reference, 14
   Internal, and 16 Live/Luna-without-Experience sessions were excluded. The
@@ -301,7 +301,7 @@ The evidence should not require reconstructing ad-hoc logs each time.
 | Field | Record |
 | --- | --- |
 | Hypothesis | Current public Consumer answer surfaces and the Reference shopper Experience can be reached cleanly, while durable source/action reporting makes genuine Agent distribution observable. |
-| Action | Deployed PR head `3e6cdeb857516421d5ea221e439a1935ec13563b` to Vercel preview `dpl_CfwWn9vQPYHrXJYZ6t9KAnKdwRzY`; verified production `visutry.com` and preview Store/Campaign routes; added `report:agent-distribution`. |
+| Action | Deployed PR head `62a9c7c` to Vercel preview `dpl_J4ej4zvstddDJB45V6aoZW2VvBto`; verified production `visutry.com` and preview Store/Campaign routes; added `report:agent-distribution`. |
 | Affected surface/channel | `/en/store/ello-sunglasses`, `/en/c/ello-sunglasses/petite-fit`, `/en/discover`, Consumer answer surfaces, Axiom/Vercel consumer stream, MerchantSession Store/Campaign stream. |
 | Observation window | 2026-08-11T02:47Z → 2026-08-25T02:47Z UTC. |
 | Result | 0 eligible Store/Campaign Agent sessions observed. Consumer Axiom query was denied because the available token lacks `query:read`; Vercel runtime retention cannot cover 14 days. Reference/Internal/test traffic was not counted. |
