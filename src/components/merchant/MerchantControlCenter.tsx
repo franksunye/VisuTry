@@ -178,7 +178,7 @@ function Overview({
     },
   ];
   return (
-    <section id="overview" className="scroll-mt-24">
+    <section id="overview" className="scroll-mt-44 sm:scroll-mt-24">
       <div className="rounded-[2rem] border border-slate-200 bg-[radial-gradient(circle_at_80%_0%,rgba(191,219,254,0.45),transparent_34%),linear-gradient(135deg,#ffffff,#f7fbff)] p-6 shadow-[0_25px_80px_-55px_rgba(15,23,42,0.55)] sm:p-9">
         <p className="text-xs font-bold uppercase tracking-[0.18em] text-blue-700">
           Merchant workspace
@@ -543,7 +543,7 @@ function CommerceIntelligence({
   return (
     <section
       id="insights"
-      className="scroll-mt-24 rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm sm:p-8"
+      className="scroll-mt-44 rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm sm:scroll-mt-24 sm:p-8"
       aria-labelledby="commerce-intelligence-heading"
     >
       <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-start">
@@ -976,7 +976,7 @@ function AgentAccess({
   return (
     <section
       id="agent-access"
-      className="scroll-mt-24 rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm sm:p-8"
+      className="scroll-mt-44 rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm sm:scroll-mt-24 sm:p-8"
     >
       <div className="flex flex-col justify-between gap-5 border-b border-slate-200 pb-6 lg:flex-row lg:items-end">
         <div>
@@ -1218,7 +1218,7 @@ function Experiences({
   return (
     <section
       id="experiences"
-      className="scroll-mt-24 rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm sm:p-8"
+      className="scroll-mt-44 rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm sm:scroll-mt-24 sm:p-8"
     >
       <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-end">
         <div>
