@@ -35,8 +35,8 @@ Distribution Gate: Outreach remains GATED until Gate A L3, Gate B, and Gate C
 pass. The rolling 14-day threshold and weekly growth loop bound the waiting
 risk without accepting technical readiness or synthetic traffic as proof.
 The current observability pass deployed PR head
-`62a9c7c` to Vercel preview
-`dpl_J4ej4zvstddDJB45V6aoZW2VvBto` and rechecked the production
+`ef6d881` to Vercel preview
+`dpl_DFhwoDZRHp2YPKNAyj3S8V1QrEHB` and rechecked the production
 Reference Store/Campaign routes without an A1–A3 regression.
 
 ## Gate A
