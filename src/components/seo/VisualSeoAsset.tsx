@@ -2,8 +2,12 @@ import Image from 'next/image'
 import Link from 'next/link'
 import type { VisualSeoAsset as VisualSeoAssetData } from '@/config/visual-seo-assets'
 
+export type VisualSeoRenderableAsset = Omit<VisualSeoAssetData, 'batch'> & {
+  batch: string
+}
+
 type VisualSeoAssetProps = {
-  asset: VisualSeoAssetData
+  asset: VisualSeoRenderableAsset
   variant?: 'default' | 'compact' | 'editorial' | 'owner-editorial' | 'supporting-wide'
   headingDisplay?: 'visible' | 'sr-only'
 }
