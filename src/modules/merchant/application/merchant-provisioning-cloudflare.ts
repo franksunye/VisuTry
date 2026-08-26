@@ -1,5 +1,10 @@
 import { getCloudflareSql } from '@/data/neon-cloudflare'
 import { slugify } from '@/lib/programmatic-seo'
+import {
+  PUBLIC_SELF_SERVICE_MERCHANT_CLASSIFICATION,
+  PUBLIC_SELF_SERVICE_MERCHANT_CLASSIFICATION_REASON,
+  PUBLIC_SELF_SERVICE_MERCHANT_CLASSIFICATION_SOURCE,
+} from '../domain/merchant-classification'
 import type { MerchantMembershipRecord } from '../domain/membership'
 
 export type CreateMerchantWithOwnerInput = {
@@ -77,8 +82,8 @@ async function createMerchantWithOwnerAttempt(
     `,
     sql`UPDATE "User" SET "updatedAt" = NOW() WHERE "id" = ${input.userId}`,
     sql`
-      INSERT INTO "Merchant" ("id", "slug", "name", "websiteUrl", "createdAt", "updatedAt")
-      SELECT ${merchantId}, ${slug}, ${normalized.name}, ${normalized.websiteUrl}, NOW(), NOW()
+      INSERT INTO "Merchant" ("id", "slug", "name", "websiteUrl", "classification", "classificationSource", "classificationReason", "createdAt", "updatedAt")
+      SELECT ${merchantId}, ${slug}, ${normalized.name}, ${normalized.websiteUrl}, ${PUBLIC_SELF_SERVICE_MERCHANT_CLASSIFICATION}, ${PUBLIC_SELF_SERVICE_MERCHANT_CLASSIFICATION_SOURCE}, ${PUBLIC_SELF_SERVICE_MERCHANT_CLASSIFICATION_REASON}, NOW(), NOW()
       WHERE NOT EXISTS (
         SELECT 1 FROM "MerchantMembership" WHERE "userId" = ${input.userId}
       )

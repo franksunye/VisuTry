@@ -12,6 +12,14 @@ import {
   Users,
 } from 'lucide-react'
 import { prisma } from '@/lib/prisma'
+import {
+  filterMerchantPortfolioRows,
+  isMerchantPortfolioFilter,
+  MERCHANT_CLASSIFICATION_LABELS,
+  MERCHANT_PORTFOLIO_FILTER_LABELS,
+  summarizeMerchantPortfolio,
+  type MerchantPortfolioFilter,
+} from '@/modules/merchant/domain/merchant-classification'
 
 export const dynamic = 'force-dynamic'
 
@@ -70,10 +78,40 @@ async function RetentionHealthCard() {
   )
 }
 
-export default async function AdminStoreMerchantsPage() {
+type AdminStoreMerchantsPageProps = {
+  searchParams?: { view?: string }
+}
+
+const classificationBadgeClasses: Record<string, string> = {
+  REAL: 'bg-emerald-50 text-emerald-700 ring-emerald-200',
+  POSSIBLE_EXTERNAL: 'bg-sky-50 text-sky-700 ring-sky-200',
+  INTERNAL: 'bg-slate-100 text-slate-700 ring-slate-200',
+  TEST: 'bg-orange-50 text-orange-700 ring-orange-200',
+  AUTOMATION: 'bg-fuchsia-50 text-fuchsia-700 ring-fuchsia-200',
+  REFERENCE: 'bg-amber-50 text-amber-800 ring-amber-200',
+  SUSPICIOUS: 'bg-red-50 text-red-700 ring-red-200',
+  UNKNOWN: 'bg-slate-50 text-slate-500 ring-slate-200',
+}
+
+function merchantClassificationCopy(classification: string): string {
+  switch (classification) {
+    case 'REAL': return 'Included in commercial KPIs'
+    case 'POSSIBLE_EXTERNAL': return 'Activation evidence required before commercial KPIs'
+    case 'REFERENCE': return 'Simulation data — not live merchant traffic'
+    case 'INTERNAL': return 'VisuTry-owned workspace — excluded from commercial KPIs'
+    case 'TEST': return 'Test fixture — excluded from commercial KPIs'
+    case 'AUTOMATION': return 'Automation fixture — excluded from commercial KPIs'
+    case 'SUSPICIOUS': return 'Needs provenance review — excluded from commercial KPIs'
+    default: return 'Unclassified — excluded from commercial KPIs'
+  }
+}
+
+export default async function AdminStoreMerchantsPage({ searchParams }: AdminStoreMerchantsPageProps) {
+  const filter: MerchantPortfolioFilter = isMerchantPortfolioFilter(searchParams?.view)
+    ? searchParams.view
+    : 'COMMERCIAL'
   const merchants = await prisma.merchant.findMany({
     orderBy: { updatedAt: 'desc' },
-    take: 50,
     select: {
       id: true,
       slug: true,
@@ -81,22 +119,15 @@ export default async function AdminStoreMerchantsPage() {
       logoUrl: true,
       websiteUrl: true,
       status: true,
-      referenceData: true,
+      classification: true,
       updatedAt: true,
       _count: { select: { sessions: true, frames: true, intents: true, experiences: true } },
     },
   })
 
-  const summary = merchants.reduce(
-    (totals, merchant) => ({
-      active: totals.active + (merchant.status === 'ACTIVE' ? 1 : 0),
-      experiences: totals.experiences + merchant._count.experiences,
-      frames: totals.frames + merchant._count.frames,
-      sessions: totals.sessions + merchant._count.sessions,
-      intents: totals.intents + merchant._count.intents,
-    }),
-    { active: 0, experiences: 0, frames: 0, sessions: 0, intents: 0 },
-  )
+  const visibleMerchants = filterMerchantPortfolioRows(merchants, filter)
+  const summary = summarizeMerchantPortfolio(merchants, filter)
+  const countForFilter = (candidate: MerchantPortfolioFilter) => filterMerchantPortfolioRows(merchants, candidate).length
 
   const summaryCards = [
     { label: 'Active merchants', value: summary.active, icon: Store, color: 'bg-teal-50 text-teal-700' },
@@ -113,8 +144,26 @@ export default async function AdminStoreMerchantsPage() {
           <h1 className="mt-2 text-3xl font-semibold tracking-tight text-slate-950 sm:text-4xl">Commerce Experiences</h1>
           <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-500">See which merchants, Experiences, and shopper intent signals need attention next.</p>
         </div>
-        <p className="text-sm text-slate-500">{merchants.length} configured merchants</p>
+        <p className="text-sm text-slate-500">{visibleMerchants.length} of {merchants.length} configured merchants</p>
       </section>
+
+      <nav className="flex flex-wrap gap-2" aria-label="Merchant portfolio views">
+        {(Object.keys(MERCHANT_PORTFOLIO_FILTER_LABELS) as MerchantPortfolioFilter[]).map((candidate) => {
+          const active = candidate === filter
+          const href = candidate === 'COMMERCIAL' ? '/admin/store' : `/admin/store?view=${candidate}`
+          return (
+            <Link
+              key={candidate}
+              href={href}
+              aria-current={active ? 'page' : undefined}
+              className={`inline-flex items-center gap-2 rounded-full px-3 py-2 text-sm font-semibold ring-1 transition ${active ? 'bg-slate-900 text-white ring-slate-900' : 'bg-white text-slate-600 ring-slate-200 hover:bg-slate-50'}`}
+            >
+              {MERCHANT_PORTFOLIO_FILTER_LABELS[candidate]}
+              <span className={`rounded-full px-1.5 py-0.5 text-[10px] ${active ? 'bg-white/15 text-white' : 'bg-slate-100 text-slate-500'}`}>{countForFilter(candidate)}</span>
+            </Link>
+          )
+        })}
+      </nav>
 
       <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4" aria-label="Store portfolio summary">
         {summaryCards.map((card) => {
@@ -136,17 +185,17 @@ export default async function AdminStoreMerchantsPage() {
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-teal-700">Merchant portfolio</p>
             <h2 className="mt-2 text-2xl font-semibold text-slate-950">Merchant portfolio</h2>
           </div>
-          <span className="text-sm text-slate-500">{merchants.length} configured</span>
+          <span className="text-sm text-slate-500">{visibleMerchants.length} shown · {MERCHANT_PORTFOLIO_FILTER_LABELS[filter]} view</span>
         </div>
 
-        {merchants.length === 0 ? (
+        {visibleMerchants.length === 0 ? (
           <div className="mt-5 rounded-2xl border border-dashed border-slate-300 bg-white px-6 py-12 text-center">
             <Database className="mx-auto h-8 w-8 text-slate-300" aria-hidden="true" />
-            <p className="mt-3 text-sm text-slate-500">No merchants yet. Run <code>npm run db:seed:visutry-demo</code> to seed the internal VisuTry Demo workspace.</p>
+            <p className="mt-3 text-sm text-slate-500">No merchants match this view. Commercial KPIs include only merchants classified as <code>REAL</code>; possible external and non-commercial rows remain available in the other views.</p>
           </div>
         ) : (
           <div className="mt-5 grid gap-5 lg:grid-cols-2">
-            {merchants.map((merchant) => (
+            {visibleMerchants.map((merchant) => (
               <article key={merchant.id} className="group rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-lg">
                 <div className="flex items-start gap-4">
                   <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-2xl bg-slate-100">
@@ -155,9 +204,9 @@ export default async function AdminStoreMerchantsPage() {
                   <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-center gap-2">
                       <h3 className="text-lg font-semibold text-slate-950">{merchant.name}</h3>
-                      <span className={`rounded-full px-2.5 py-1 text-[10px] font-semibold ${merchant.referenceData ? 'bg-amber-50 text-amber-800' : 'bg-emerald-50 text-emerald-700'}`}>{merchant.referenceData ? 'Reference' : 'Live'}</span>
+                      <span className={`rounded-full px-2.5 py-1 text-[10px] font-semibold ring-1 ${classificationBadgeClasses[merchant.classification] ?? classificationBadgeClasses.UNKNOWN}`}>{MERCHANT_CLASSIFICATION_LABELS[merchant.classification] ?? 'Unknown'}</span>
                     </div>
-                    <p className="mt-1 text-sm text-slate-500">{merchant.referenceData ? 'Simulation data — not live merchant traffic' : 'Live merchant workspace'}</p>
+                    <p className="mt-1 text-sm text-slate-500">{merchantClassificationCopy(merchant.classification)}</p>
                   </div>
                 </div>
                 <dl className="mt-5 grid grid-cols-3 divide-x divide-slate-100 rounded-xl bg-slate-50 py-3 text-center">

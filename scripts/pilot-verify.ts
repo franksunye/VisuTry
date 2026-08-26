@@ -2,6 +2,7 @@ import 'dotenv/config'
 import { resolve } from 'node:path'
 import { prisma } from '../src/lib/prisma'
 import { readPilotPackage, type PilotExperienceConfig } from '../src/modules/store/application/pilot-delivery-kit'
+import { classificationForPilotConfig } from '../src/modules/merchant/domain/merchant-classification'
 
 function packageArgument(): string {
   return process.argv.slice(2).find((argument) => !argument.startsWith('--')) ?? 'pilot/ello-sunglasses'
@@ -23,6 +24,7 @@ async function main() {
         name: true,
         status: true,
         referenceData: true,
+        classification: true,
         defaultSource: true,
         defaultCampaign: true,
         frames: {
@@ -61,6 +63,7 @@ async function main() {
     if (merchant.name !== pilot.config.displayName) errors.push(`Merchant name mismatch: expected ${pilot.config.displayName}, got ${merchant.name}`)
     if (merchant.status !== 'ACTIVE') errors.push(`Merchant status is ${merchant.status}, expected ACTIVE`)
     if (merchant.referenceData !== pilot.config.referenceData) errors.push('Merchant referenceData mismatch')
+    if (merchant.classification !== classificationForPilotConfig(pilot.config)) errors.push(`Merchant classification mismatch: expected ${classificationForPilotConfig(pilot.config)}, got ${merchant.classification}`)
     if (merchant.defaultSource !== pilot.config.measurement.defaultSource) errors.push('Merchant defaultSource mismatch')
     if (merchant.defaultCampaign !== pilot.config.measurement.defaultCampaign) errors.push('Merchant defaultCampaign mismatch')
 
@@ -106,7 +109,7 @@ async function main() {
     const report = {
       command: 'pilot:verify',
       packageDir,
-      merchant: { id: merchant.id, slug: merchant.slug, referenceData: merchant.referenceData },
+      merchant: { id: merchant.id, slug: merchant.slug, referenceData: merchant.referenceData, classification: merchant.classification },
       catalog: { expectedActive: activeCatalog.length, actualActiveCsv: activeCsvFrames.length },
       experiences: experienceResults,
       warnings,

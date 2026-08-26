@@ -17,6 +17,7 @@ import {
   experiencePolicyForPilotConfig,
   readPilotPackage,
 } from '../src/modules/store/application/pilot-delivery-kit'
+import { classificationForPilotConfig, type MerchantClassification } from '../src/modules/merchant/domain/merchant-classification'
 
 function assertSeedEnvironment() {
   const isProd = process.env.NODE_ENV === 'production' || process.env.VERCEL_ENV === 'production'
@@ -42,7 +43,7 @@ async function main() {
 
   const existingMerchant = await prisma.merchant.findUnique({
     where: { slug: config.merchantSlug },
-    select: { id: true },
+    select: { id: true, classification: true },
   })
   if (existingMerchant) {
     const existingFrames = await prisma.merchantFrame.findMany({
@@ -55,6 +56,19 @@ async function main() {
     assertPilotCatalogSourceOwnership(existingFrames, catalog.map((row) => row.sku))
   }
 
+  const preserveVerifiedCommercial = existingMerchant?.classification === 'REAL' && !config.referenceData
+  const classification: MerchantClassification = preserveVerifiedCommercial
+    ? 'REAL'
+    : classificationForPilotConfig(config)
+  const classificationMetadata = preserveVerifiedCommercial
+    ? {}
+    : {
+        classificationSource: 'PILOT_DELIVERY_KIT_SEED',
+        classificationReason: config.referenceData
+          ? 'Seeded from an explicit REFERENCE pilot package; traffic is simulation/reference data.'
+          : 'Seeded from a pilot package without independently verified commercial activation evidence.',
+      }
+
   const merchant = await prisma.merchant.upsert({
     where: { slug: config.merchantSlug },
     create: {
@@ -66,6 +80,8 @@ async function main() {
       status: 'ACTIVE',
       pilotType: config.pilotType,
       referenceData: config.referenceData,
+      classification,
+      ...classificationMetadata,
       defaultSource: config.measurement.defaultSource,
       defaultCampaign: config.measurement.defaultCampaign,
       ...experiencePolicy,
@@ -87,6 +103,8 @@ async function main() {
       status: 'ACTIVE',
       pilotType: config.pilotType,
       referenceData: config.referenceData,
+      classification,
+      ...classificationMetadata,
       defaultSource: config.measurement.defaultSource,
       defaultCampaign: config.measurement.defaultCampaign,
       ...experiencePolicy,

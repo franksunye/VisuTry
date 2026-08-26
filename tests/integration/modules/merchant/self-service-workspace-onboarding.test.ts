@@ -12,6 +12,9 @@ jest.mock('@/lib/prisma', () => ({
     $transaction: jest.fn(),
   },
 }))
+jest.mock('@/modules/store/application/public-discovery-invalidation', () => ({
+  withPublicDiscoveryInvalidation: jest.fn(async ({ mutation }: { mutation: () => Promise<unknown> }) => mutation()),
+}))
 
 import { prisma } from '@/lib/prisma'
 import { createMerchantWithOwner, requireMerchantMembership } from '@/modules/merchant'
@@ -45,6 +48,12 @@ describe('Merchant self-service Golden Path integration', () => {
     expect(result.membership).toMatchObject({ userId: 'fresh-user', merchantId: 'merchant-golden-path', role: 'OWNER' })
     expect(access).toMatchObject({ userId: 'fresh-user', merchantId: 'merchant-golden-path', role: 'OWNER' })
     expect(tx.merchant.create).toHaveBeenCalledTimes(1)
+    expect(tx.merchant.create).toHaveBeenCalledWith(expect.objectContaining({
+      data: expect.objectContaining({
+        classification: 'POSSIBLE_EXTERNAL',
+        classificationSource: 'SELF_SERVICE_SIGNUP',
+      }),
+    }))
     expect(tx.merchantMembership.create).toHaveBeenCalledTimes(1)
   })
 })

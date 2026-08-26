@@ -2,6 +2,11 @@ import { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { slugify } from '@/lib/programmatic-seo'
 import { withPublicDiscoveryInvalidation } from '@/modules/store/application/public-discovery-invalidation'
+import {
+  PUBLIC_SELF_SERVICE_MERCHANT_CLASSIFICATION,
+  PUBLIC_SELF_SERVICE_MERCHANT_CLASSIFICATION_REASON,
+  PUBLIC_SELF_SERVICE_MERCHANT_CLASSIFICATION_SOURCE,
+} from '../domain/merchant-classification'
 import type { MerchantMembershipRecord } from '../domain/membership'
 
 export type CreateMerchantWithOwnerInput = {
@@ -103,6 +108,9 @@ async function createMerchantWithOwnerAttempt(
         slug,
         name: normalized.name,
         websiteUrl: normalized.websiteUrl,
+        classification: PUBLIC_SELF_SERVICE_MERCHANT_CLASSIFICATION,
+        classificationSource: PUBLIC_SELF_SERVICE_MERCHANT_CLASSIFICATION_SOURCE,
+        classificationReason: PUBLIC_SELF_SERVICE_MERCHANT_CLASSIFICATION_REASON,
       },
       select: { id: true, slug: true, name: true },
     })
