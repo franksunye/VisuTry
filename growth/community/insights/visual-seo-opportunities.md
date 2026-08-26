@@ -31,3 +31,13 @@ Examples include frames too wide versus correct width, brow-line alignment, brid
 - Landing-page candidate: `/en/compare-glasses-frames` or a frame-fit FAQ route
 - Evidence count: 2 Reddit fit threads plus 1 recent YouTube fit video reviewed on 2026-08-25
 - Confidence: REPEATED SIGNAL
+
+## 2026-08-26 public discovery sample
+
+- Visual title: `From Current Pair to Smaller Frames: A Style + Fit Comparison`
+- Target query: `smaller frames than current glasses`, `what size glasses should I wear`, `round glasses stylish masculine`
+- Visual answer concept: side-by-side comparison of current and smaller frames with frame width, eye position, bridge, brow line, and shape/visual-weight notes; keep style preference separate from physical fit and note that a photo cannot establish comfort or prescription fit.
+- Source question and URL: `I want something smaller ... Any recommendations?` — https://www.reddit.com/r/glassesadvice/comments/1vssx05/m28what_kind_of_glasses_should_i_get/
+- Landing-page candidate: `/en/compare-glasses-frames` or the existing glasses-fit/face-shape route owner
+- Evidence count: 1 Reddit decision thread plus recurring fit/sizing video topics
+- Confidence: SINGLE SIGNAL

@@ -34,3 +34,14 @@ Candidates only. Do not create production pages automatically.
 - Evidence count: 2 Reddit threads plus 1 recent YouTube fit video reviewed on 2026-08-25
 - Product path: Advisor -> Try-On -> Compare; fit checklist alongside visual frame comparison
 - Confidence: REPEATED SIGNAL
+
+## 2026-08-26 public discovery sample
+
+- Opportunity: Extend fit/comparison coverage to `smaller frames than my current glasses`, `what size glasses should I wear`, and `how do I know if frames fit`.
+- Repeated user question: shoppers compare a current oversized pair with a smaller reference pair and want style recommendations without losing fit context.
+- Source URLs: https://www.reddit.com/r/glassesadvice/comments/1vssx05/m28what_kind_of_glasses_should_i_get/ ; https://www.youtube.com/watch?v=PbzKfU9jKzM ; https://www.youtube.com/watch?v=4MVN2FPWjls
+- Suggested page action: existing page improvement plus FAQ expansion
+- Search language: `smaller frames than my current glasses`, `what size glasses should I wear`, `how do I know if frames fit`, `round glasses stylish masculine`
+- Evidence count: 1 Reddit decision thread plus 2 relevant YouTube fit videos reviewed on 2026-08-26
+- Product path: Advisor -> Compare -> Try-On
+- Confidence: SINGLE SIGNAL

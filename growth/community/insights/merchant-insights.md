@@ -29,3 +29,13 @@
 - Confidence: REPEATED SIGNAL
 - Possible merchant implication: add bridge/nose-pad and temple-fit explanations near size selectors and frame-detail pages
 - Follow-up measurement: track future questions about nose marks, slipping, lash/brow smudges, tightness, and behind-ear discomfort
+
+## 2026-08-26 public discovery sample
+
+- Insight: Size-selection content spans both frame-measurement education and style-led face-shape discovery, but this sample did not expose a new purchase objection that could be answered in a comment.
+- Evidence: Reddit search surfaced a user comparing 54 mm frames with 46 mm sunglasses and asking for smaller, stylish options; YouTube searches surfaced frame-sizing, fit, face-shape, and virtual-try-on tutorials without a current shopper question.
+- Source URLs: https://www.reddit.com/r/glassesadvice/comments/1vssx05/m28what_kind_of_glasses_should_i_get/ ; https://www.youtube.com/results?search_query=glasses+sizing ; https://www.youtube.com/results?search_query=virtual+try+on+glasses
+- Area: Store / Merchant Sales
+- Confidence: SINGLE SIGNAL
+- Possible merchant implication: make current-frame comparison easier with size/shape guidance that separates numeric fit from style preference
+- Follow-up measurement: track future mentions of frame width comparisons, size ranges, and uncertainty about online try-on results
