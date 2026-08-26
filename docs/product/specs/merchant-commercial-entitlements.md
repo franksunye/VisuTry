@@ -234,6 +234,19 @@ However:
 - entitlement must remain provider-neutral at the product-contract level;
 - sustained provider-cost deterioration triggers commercial review.
 
+## 9.1 Merchant billing boundary
+
+The current `FOUNDING_PILOT` commercial flow is assisted and manually
+provisioned. Consumer Credits Pack / subscription checkout remains a separate
+Consumer product and must not be presented as merchant billing.
+
+Merchant self-service subscription checkout, invoices, billing-portal and
+payment-method management, automatic renewal provisioning, and a merchant
+self-service sponsored-quota editor are deferred until paid-merchant demand
+and operating evidence justify a distinct merchant billing system. Admin may
+show merchant plan, capacity, and usage visibility where those surfaces are
+implemented; visibility alone does not imply self-service billing.
+
 ---
 
 ## 10. Sales Presentation Rule

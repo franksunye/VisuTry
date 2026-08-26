@@ -23,6 +23,7 @@ import {
   consumerEntitlementRequired,
 } from '../domain'
 import { checkUserQuota } from '@/lib/quota'
+import { calculateExpiresAt } from '@/config/retention'
 import type { AssetStore } from './ports/asset-store'
 import type { StoreGenerationPort } from './ports/generation'
 import type {
@@ -584,6 +585,7 @@ export async function submitStoreFrameTryOn(
   )
   let sponsoredReservationId: string | null = null
   let taskUserId: string | null = null
+  let consumerRetentionExpiresAt: Date | undefined
   let entitlementSource: SubmitStoreTryOnResult['entitlementSource'] = 'LEGACY_STORE'
 
   if (existingBeforeClaim) {
@@ -633,6 +635,7 @@ export async function submitStoreFrameTryOn(
         }
         usagePolicy = { kind: 'consumer_quota' }
         taskUserId = input.userId
+        consumerRetentionExpiresAt = calculateExpiresAt(user)
         entitlementSource = 'CONSUMER_ENTITLEMENT'
       }
     }
@@ -661,6 +664,7 @@ export async function submitStoreFrameTryOn(
       batchId: input.batchId,
       maxCompareFrames: experiencePolicy.maxCompareFrames,
       userId: taskUserId,
+      expiresAt: usagePolicy.kind === 'consumer_quota' ? consumerRetentionExpiresAt : undefined,
       usagePolicyKind: usagePolicy.kind,
       sponsoredReservationId,
     })
@@ -777,6 +781,7 @@ export async function submitStoreFrameTryOn(
       prompt,
       storeOrigin: entitlement.tryOnOrigin,
       userId: taskUserId,
+      expiresAt: usagePolicy.kind === 'consumer_quota' ? consumerRetentionExpiresAt : undefined,
       onProviderAccepted: sponsoredReservationId && input.sponsoredUsage
         ? async () => {
             await input.sponsoredUsage!.consume(sponsoredReservationId!)

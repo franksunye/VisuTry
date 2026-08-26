@@ -45,6 +45,8 @@ type StoreTryOnComparePanelProps = {
   accent: string
   onError: (message: string) => void
   experiencePolicy: StoreExperiencePolicy
+  initialBatchId?: string | null
+  onContinuationBatchId?: (batchId: string) => void
 }
 
 function deviceTypeLabel(): string {
@@ -76,10 +78,12 @@ export function StoreTryOnComparePanel({
   accent,
   onError,
   experiencePolicy,
+  initialBatchId,
+  onContinuationBatchId,
 }: StoreTryOnComparePanelProps) {
   const t = useTranslations('storeShopper')
   const [tiles, setTiles] = useState<TryOnTile[]>([])
-  const [batchId, setBatchId] = useState<string | null>(null)
+  const [batchId, setBatchId] = useState<string | null>(initialBatchId ?? null)
   const [dispatching, setDispatching] = useState(false)
   const [compareStarted, setCompareStarted] = useState(false)
   const [favoritedIds, setFavoritedIds] = useState<string[]>([])
@@ -91,6 +95,10 @@ export function StoreTryOnComparePanel({
   const [inquirySent, setInquirySent] = useState(false)
   const [continuationState, setContinuationState] = useState<'AUTH_REQUIRED' | 'CONSUMER_CREDITS_REQUIRED' | null>(null)
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null)
+
+  useEffect(() => {
+    if (initialBatchId && !batchId) setBatchId(initialBatchId)
+  }, [batchId, initialBatchId])
 
   const merchantContinuation: MerchantContinuationContext | null = createMerchantContinuation({
     locale,
@@ -144,10 +152,11 @@ export function StoreTryOnComparePanel({
     setDispatching(true)
     onError('')
     setContinuationState(null)
-    const nextBatchId =
+    const nextBatchId = batchId || (
       typeof crypto !== 'undefined' && 'randomUUID' in crypto
         ? crypto.randomUUID()
         : `batch-${Date.now()}`
+    )
     setBatchId(nextBatchId)
     setCompareStarted(false)
 
@@ -181,7 +190,13 @@ export function StoreTryOnComparePanel({
         if (!res.ok || !json.success) {
           if (json.code === 'AUTH_REQUIRED' || json.code === 'CONSUMER_CREDITS_REQUIRED') {
             setContinuationState(json.code)
-            setTiles((current) => current.filter((tile) => tile.merchantFrameId !== frame.id))
+            onContinuationBatchId?.(nextBatchId)
+            // The server rejected this submission before creating a task. Remove
+            // this frame and every later placeholder that was never submitted;
+            // only task-backed tiles may remain visible or enter polling.
+            setTiles((current) =>
+              current.filter((tile) => tile.taskId || tile.status !== 'queued'),
+            )
             break
           }
           setTiles((current) =>
@@ -238,6 +253,8 @@ export function StoreTryOnComparePanel({
     merchantSessionId,
     locale,
     onError,
+    batchId,
+    onContinuationBatchId,
     experiencePolicy.tryOnEnabled,
     t,
   ])
@@ -348,7 +365,10 @@ export function StoreTryOnComparePanel({
       if (!res.ok || !json.success) {
         if (json.code === 'AUTH_REQUIRED' || json.code === 'CONSUMER_CREDITS_REQUIRED') {
           setContinuationState(json.code)
-          setTiles((current) => current.filter((item) => item.merchantFrameId !== tile.merchantFrameId))
+          onContinuationBatchId?.(batchId)
+          setTiles((current) =>
+            current.filter((item) => item.taskId || item.status !== 'queued'),
+          )
           return
         }
         setTiles((current) =>

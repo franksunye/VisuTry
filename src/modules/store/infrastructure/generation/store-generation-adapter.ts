@@ -79,7 +79,7 @@ export function createStoreGenerationAdapter(): StoreGenerationPort {
           merchantFrameId: input.actor.merchantFrameId,
           origin: input.storeOrigin,
           idempotencyKey: input.idempotencyKey,
-          expiresAt: computeStoreAssetExpiresAt(),
+          expiresAt: input.expiresAt ?? computeStoreAssetExpiresAt(),
           userId: input.userId ?? null,
         },
         userImage,

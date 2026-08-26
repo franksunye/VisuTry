@@ -24,6 +24,7 @@ export type MerchantContinuationInput = {
 }
 
 export const MERCHANT_CONTINUATION_PARAM = 'merchantContinuation'
+export const MERCHANT_RUNTIME_CONTINUATION_PREFIX = 'vt_store_continuation'
 
 const MAX_CONTINUATION_LENGTH = 1200
 const MAX_SLUG_LENGTH = 120
@@ -172,6 +173,23 @@ export function appendMerchantContinuation(
 
 export function merchantPricingPath(context: MerchantContinuationContext): string {
   return appendMerchantContinuation(`/${context.locale}/pricing`, context)
+}
+
+/**
+ * Scope same-tab shopper resume state to the originating experience. The
+ * value is not an authorization token; server-side session capability and
+ * entitlement checks remain authoritative after a resume.
+ */
+export function merchantRuntimeContinuationStorageKey(
+  context: MerchantContinuationContext,
+): string {
+  return [
+    MERCHANT_RUNTIME_CONTINUATION_PREFIX,
+    context.locale,
+    context.experienceType,
+    context.merchantSlug,
+    context.experienceSlug || 'store',
+  ].join(':')
 }
 
 function localizedPathname(pathname: string, locale: Locale): string | null {

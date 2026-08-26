@@ -1,6 +1,7 @@
 import { prisma } from '@/lib/prisma'
 import { createMerchantSessionCapability } from '@/modules/store/domain'
 import { submitStoreFrameTryOn } from '@/modules/store/application/submit-store-tryon'
+import { RETENTION_CONFIG } from '@/config/retention'
 import type {
   MerchantEventRepository,
   MerchantFrameRepository,
@@ -155,9 +156,11 @@ function createInput(overrides: {
 
 describe('merchant-sponsored signed-in fallback', () => {
   const previousFlag = process.env.MERCHANT_SPONSORED_USAGE_ENABLED
+  let createdTaskInput: Record<string, any> | null = null
 
   beforeEach(() => {
     jest.clearAllMocks()
+    createdTaskInput = null
     process.env.MERCHANT_SPONSORED_USAGE_ENABLED = 'true'
     mockedPrisma.tryOnTask.findMany.mockResolvedValue([])
     mockedPrisma.tryOnTask.findUnique.mockResolvedValue(null)
@@ -167,7 +170,10 @@ describe('merchant-sponsored signed-in fallback', () => {
         tryOnTask: {
           findUnique: jest.fn().mockResolvedValue(null),
           findMany: jest.fn().mockResolvedValue([]),
-          create: jest.fn().mockResolvedValue({ id: 'task-1' }),
+          create: jest.fn().mockImplementation(async ({ data }: { data: Record<string, any> }) => {
+            createdTaskInput = data
+            return { id: 'task-1' }
+          }),
         },
         merchantUsageLedger: {
           count: jest.fn().mockResolvedValue(0),
@@ -215,8 +221,17 @@ describe('merchant-sponsored signed-in fallback', () => {
     expect(generation.submit).toHaveBeenCalledWith(expect.objectContaining({
       usagePolicy: { kind: 'consumer_quota' },
       userId: 'user-1',
+      expiresAt: expect.any(Date),
       onProviderAccepted: undefined,
     }))
+    expect(createdTaskInput).toEqual(expect.objectContaining({
+      userId: 'user-1',
+      expiresAt: expect.any(Date),
+      metadata: expect.objectContaining({ usagePolicyKind: 'consumer_quota' }),
+    }))
+    expect(createdTaskInput?.expiresAt?.getTime()).toBeGreaterThan(
+      Date.now() + (RETENTION_CONFIG.CREDITS_USER - 10) * 24 * 60 * 60 * 1000,
+    )
   })
 
   it('authorizes the first eligible Try-On as merchant-sponsored and consumes its reservation after provider acceptance', async () => {
