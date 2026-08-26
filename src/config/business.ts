@@ -152,7 +152,7 @@ const baseCopy: Omit<BusinessPageCopy, 'metaTitle' | 'metaDescription'> = {
     title: 'See the product in real and reference contexts.',
     description: 'Use the current shopper runtime as the proof point. Live merchant surfaces and Reference demonstrations are labeled separately.',
     liveLabel: 'Live Merchant Experience',
-    liveDescription: 'Explore Luna Optical’s live hosted Store and the shopper journey it supports.',
+    liveDescription: 'Explore how a published hosted Store supports the shopper journey.',
     liveCta: 'Open Live Store',
     referenceLabel: 'Reference Experiences',
     referenceDescription: 'Review focused Campaign demonstrations built from publicly available catalog information.',

@@ -34,7 +34,6 @@ export const DISCOVER_FEATURED_EXPERIENCES = [
 ] as const
 
 export const DISCOVER_MERCHANT_SLUGS = [
-  'luna-optical',
   'ello-sunglasses',
   'lowercase-nyc',
   'akila',

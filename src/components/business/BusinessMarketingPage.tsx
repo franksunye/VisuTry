@@ -40,13 +40,6 @@ function CtaLink({ locale, href, label, primary = false, inverse = false }: { lo
   return <Link href={target} prefetch={false} className={className}>{label}<ArrowRight className="h-4 w-4" aria-hidden="true" /></Link>
 }
 
-function hardenedCta(pageKey: BusinessPageKey, cta: { label: string; href: string } | undefined) {
-  if (!cta) return undefined
-  if (pageKey === 'overview' && cta.href === '/store/luna-optical') return { label: 'Explore Store', href: '/business/store' }
-  if (pageKey === 'store' && cta.href === '/store/luna-optical') return { label: 'See Product Examples', href: '/business/examples' }
-  return cta
-}
-
 function hardenedSections(pageKey: BusinessPageKey, sections: BusinessSection[]): BusinessSection[] {
   const mapped = sections.map((section, index) => {
     if (pageKey === 'overview' && index === 0) {
@@ -263,8 +256,8 @@ function PricingHeroVisual() {
 
 function Hero({ locale, pageKey }: { locale: string; pageKey: BusinessPageKey }) {
   const page = businessPages[pageKey]
-  const primaryCta = hardenedCta(pageKey, page.primaryCta)!
-  const secondaryCta = hardenedCta(pageKey, page.secondaryCta)
+  const primaryCta = page.primaryCta
+  const secondaryCta = page.secondaryCta
   const slot = visualSlots[pageKey]
   const textOnly = pageKey === 'examples' || pageKey === 'integrations' || pageKey === 'pilot'
   const dark = pageKey === 'intelligence'

@@ -4,7 +4,7 @@ import { DISCOVER_FEATURED_EXPERIENCES, DISCOVER_MERCHANT_SLUGS } from '@/config
 const makeMerchant = (slug: string, referenceData = true) => ({
   id: `merchant-${slug}`,
   slug,
-  name: slug === 'luna-optical' ? 'Luna Optical' : slug,
+  name: slug,
   logoUrl: null,
   websiteUrl: null,
   contactEmail: null,
@@ -93,7 +93,7 @@ const makeFrame = (merchantId: string, slug: string) => ({
 describe('Discover content contract', () => {
   it('resolves only active, catalog-backed curated Experiences and all active merchants', async () => {
     const merchants = new Map(
-      DISCOVER_MERCHANT_SLUGS.map((slug) => [slug, makeMerchant(slug, slug !== 'luna-optical')]),
+      DISCOVER_MERCHANT_SLUGS.map((slug) => [slug, makeMerchant(slug)]),
     )
     const experiences = new Map(
       DISCOVER_FEATURED_EXPERIENCES.map(({ merchantSlug, experienceSlug }) => [
@@ -102,7 +102,7 @@ describe('Discover content contract', () => {
       ]),
     )
     const stores = new Map(
-      DISCOVER_MERCHANT_SLUGS.filter((slug) => slug !== 'luna-optical').map((slug) => [
+      DISCOVER_MERCHANT_SLUGS.map((slug) => [
         slug,
         makeExperience(merchants.get(slug)!.id, 'default', 'STORE'),
       ]),
@@ -125,8 +125,8 @@ describe('Discover content contract', () => {
     expect(content.featured).toHaveLength(6)
     expect(content.featured.every((item) => item.href.includes('surface=discover'))).toBe(true)
     expect(content.featured.every((item) => item.href.includes('campaign=discover-featured'))).toBe(true)
-    expect(content.merchants).toHaveLength(6)
-    expect(content.merchants.find((item) => item.slug === 'luna-optical')?.referenceData).toBe(false)
+    expect(content.merchants).toHaveLength(5)
+    expect(content.merchants.every((item) => item.referenceData)).toBe(true)
   })
 
   it('filters an inactive or empty curated Experience without hiding other merchants', async () => {
@@ -143,6 +143,6 @@ describe('Discover content contract', () => {
     const content = await getDiscoverContent('en', runtime)
 
     expect(content.featured).toHaveLength(0)
-    expect(content.merchants).toHaveLength(6)
+    expect(content.merchants).toHaveLength(5)
   })
 })

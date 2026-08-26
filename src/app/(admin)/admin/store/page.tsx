@@ -142,7 +142,7 @@ export default async function AdminStoreMerchantsPage() {
         {merchants.length === 0 ? (
           <div className="mt-5 rounded-2xl border border-dashed border-slate-300 bg-white px-6 py-12 text-center">
             <Database className="mx-auto h-8 w-8 text-slate-300" aria-hidden="true" />
-            <p className="mt-3 text-sm text-slate-500">No merchants yet. Run <code>npm run db:seed:store</code> to seed Luna Optical.</p>
+            <p className="mt-3 text-sm text-slate-500">No merchants yet. Run <code>npm run db:seed:visutry-demo</code> to seed the internal VisuTry Demo workspace.</p>
           </div>
         ) : (
           <div className="mt-5 grid gap-5 lg:grid-cols-2">
