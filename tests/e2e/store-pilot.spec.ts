@@ -272,6 +272,113 @@ test.describe('@critical Store Pilot Flow', () => {
     await expect.poll(() => productIntentCalls).toBe(1);
   });
 
+  test('turns Store/Campaign AUTH_REQUIRED into an explicit bounded shopper continuation', async ({ page }) => {
+    const preview = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=';
+    const frames = [1, 2].map((index) => ({
+      id: `continuation-frame-${index}`,
+      name: `Continuation frame ${index}`,
+      imageUrl: null,
+      productUrl: null,
+      price: null,
+      currency: null,
+      shape: 'round',
+      material: null,
+      color: null,
+      widthClass: 'petite',
+      styleTags: ['petite-fit'],
+      score: 90 - index,
+      reason: 'Petite-fit proportions',
+    }));
+
+    await page.route('**/api/store/merchants/ello-sunglasses*', async (route) => {
+      const isCampaign = route.request().url().includes('experienceSlug=petite-fit');
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          success: true,
+          data: {
+            id: 'merchant-ello',
+            slug: 'ello-sunglasses',
+            name: 'ello sunglasses',
+            logoUrl: null,
+            websiteUrl: null,
+            accentColor: '#1D4ED8',
+            pilotType: 'REFERENCE',
+            referenceData: true,
+            activeFrameCount: frames.length,
+            featuredFrames: frames,
+            status: 'ACTIVE',
+            experience: {
+              id: isCampaign ? 'experience-campaign' : 'experience-store',
+              type: isCampaign ? 'CAMPAIGN' : 'STORE',
+              slug: isCampaign ? 'petite-fit' : 'store',
+              name: isCampaign ? 'Petite Fit' : 'Store',
+              headline: null,
+              description: null,
+              heroAssetUrl: null,
+              presentationMode: null,
+              referenceData: true,
+            },
+            experiencePolicy: {
+              tryOnEnabled: true,
+              compareEnabled: false,
+              maxCompareFrames: 1,
+              inquiryEnabled: false,
+            },
+          },
+        }),
+      });
+    });
+    await page.route('**/api/store/sessions', async (route) => {
+      await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ success: true, data: { merchantId: 'merchant-ello', merchantSessionId: `continuation-session-${Date.now()}`, expiresAt: new Date(Date.now() + 60_000).toISOString() } }) });
+    });
+    await page.route('**/api/store/sessions/photo', async (route) => {
+      await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ success: true, data: { previewUrl: preview } }) });
+    });
+    await page.route('**/api/store/sessions/recommend', async (route) => {
+      await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ success: true, data: { rankingVersion: 'mock', frames } }) });
+    });
+    await page.route('**/api/store/sessions/select-frames', async (route) => {
+      await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ success: true, data: { selectedFrameIds: ['continuation-frame-1'] } }) });
+    });
+    await page.route('**/api/store/sessions/try-on', async (route) => {
+      await route.fulfill({
+        status: 401,
+        contentType: 'application/json',
+        body: JSON.stringify({ success: false, code: 'AUTH_REQUIRED', error: 'Sign in to continue with more AI generations.' }),
+      });
+    });
+    await page.route('**/mediapipe/**', (route) => route.abort());
+    await page.route('https://cdn.jsdelivr.net/**', (route) => route.abort());
+    await page.route('https://storage.googleapis.com/**', (route) => route.abort());
+
+    for (const experiencePath of ['/en/store/ello-sunglasses', '/en/c/ello-sunglasses/petite-fit']) {
+      await page.goto(experiencePath, { waitUntil: 'networkidle' });
+      await page.getByRole('button', { name: 'Try on your photo', exact: true }).click();
+      await page.getByRole('button', { name: /I understand.*continue/i }).click();
+      await page.locator('input[type="file"]').setInputFiles({ name: 'continuation-shopper.png', mimeType: 'image/png', buffer: Buffer.from(preview.split(',')[1], 'base64') });
+
+      const recommendationSection = page.locator('section').filter({ hasText: 'Select up to 1 to try on' }).first();
+      await expect(recommendationSection).toBeVisible();
+      await recommendationSection.locator('ul button').first().click();
+      await page.locator('[data-selection-cta="desktop"]').click();
+      await expect(page.getByText('Frames ready')).toBeVisible();
+      await page.getByRole('button', { name: 'Try on 1 frame' }).click();
+
+      const continuation = page.getByTestId('merchant-entitlement-continuation');
+      await expect(continuation).toBeVisible();
+      await expect(continuation).not.toContainText('Retry');
+      const signInHref = await page.getByTestId('merchant-sign-in-continuation').getAttribute('href');
+      expect(signInHref).not.toBeNull();
+      const signInUrl = new URL(signInHref!, 'http://localhost');
+      expect(signInUrl.pathname).toBe('/en/auth/signin');
+      const callbackUrl = new URL(signInUrl.searchParams.get('callbackUrl')!, 'http://localhost');
+      expect(callbackUrl.pathname).toBe(experiencePath);
+      expect(callbackUrl.searchParams.get('merchantContinuation')).not.toBeNull();
+    }
+  });
+
   test('keeps workspace progression visible on mobile width', async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 });
     const preview = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=';

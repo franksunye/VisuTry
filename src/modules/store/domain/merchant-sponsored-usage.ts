@@ -31,11 +31,17 @@ export type MerchantSponsoredPolicyFields = {
 }
 
 /**
- * Global rollout kill switch. Undefined, empty, or any value other than the
- * literal "true" keeps sponsored usage disabled.
+ * Global rollout control. An explicit "false" is an emergency/off switch.
+ * Explicit merchant policy keys remain authoritative in production when the
+ * variable is not configured, so a missing deployment variable cannot make a
+ * configured sponsored entitlement silently fall back to legacy allowance.
+ * Non-production environments stay opt-in unless explicitly enabled.
  */
 export function isMerchantSponsoredUsageEnabled(): boolean {
-  return process.env.MERCHANT_SPONSORED_USAGE_ENABLED === 'true'
+  const configured = process.env.MERCHANT_SPONSORED_USAGE_ENABLED?.trim().toLowerCase()
+  if (configured === 'false') return false
+  if (configured === 'true') return true
+  return process.env.NODE_ENV === 'production'
 }
 
 /** Resolve a server-owned policy from an explicit policy key only. */

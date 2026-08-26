@@ -6,6 +6,12 @@ import { useSession } from 'next-auth/react'
 import { CheckCircle, Glasses, ArrowRight, Sparkles, Crown, Loader2 } from 'lucide-react'
 import Link from 'next/link'
 import { localizedPath } from '@/lib/localized-path'
+import {
+  appendMerchantContinuation,
+  getMerchantContinuationFromSearchParams,
+  merchantPricingPath,
+  type MerchantContinuationContext,
+} from '@/modules/store/domain/merchant-continuation'
 
 // Payment processing status
 type PaymentStatus = 'checking' | 'updating' | 'success' | 'redirecting' | 'error'
@@ -15,6 +21,10 @@ function SuccessContent() {
   const router = useRouter()
   const params = useParams()
   const locale = params.locale as string | undefined
+  const merchantContinuation: MerchantContinuationContext | null = getMerchantContinuationFromSearchParams(searchParams)
+  const merchantReturnHref = merchantContinuation
+    ? appendMerchantContinuation(merchantContinuation.canonicalReturnPath, merchantContinuation)
+    : null
   const { data: session, status, update } = useSession()
   const [sessionId, setSessionId] = useState<string | null>(null)
   const [paymentStatus, setPaymentStatus] = useState<PaymentStatus>('checking')
@@ -136,10 +146,10 @@ function SuccessContent() {
         const timer = setTimeout(() => setCountdown(countdown - 1), 1000)
         return () => clearTimeout(timer)
       } else {
-        router.push(`${localizedPath(locale, '/dashboard')}?payment=success`)
+        router.push(merchantReturnHref || `${localizedPath(locale, '/dashboard')}?payment=success`)
       }
     }
-  }, [countdown, locale, router, paymentStatus])
+  }, [countdown, locale, merchantReturnHref, router, paymentStatus])
 
   if (status === 'loading') {
     return (
@@ -197,10 +207,10 @@ function SuccessContent() {
                 {statusMessage}
               </p>
               <Link
-                href={localizedPath(locale, '/dashboard')}
+                href={merchantContinuation ? merchantPricingPath(merchantContinuation) : localizedPath(locale, '/dashboard')}
                 className="inline-flex items-center justify-center px-6 py-3 text-white transition-colors bg-blue-600 rounded-lg hover:bg-blue-700"
               >
-                Go to Dashboard
+                {merchantContinuation ? 'Return to pricing' : 'Go to Dashboard'}
               </Link>
             </div>
           </div>
@@ -263,8 +273,8 @@ function SuccessContent() {
                 <div className="flex items-start p-3 gap-x-3 rounded-lg bg-blue-50">
                   <CheckCircle className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
                   <div>
-                    <p className="font-medium text-blue-900">Unlimited AI Try-Ons</p>
-                    <p className="text-sm text-blue-700">No more limits on virtual try-ons</p>
+                    <p className="font-medium text-blue-900">AI Try-On credits</p>
+                    <p className="text-sm text-blue-700">Use your available Consumer credits for virtual try-ons</p>
                   </div>
                 </div>
                 <div className="flex items-start p-3 gap-x-3 rounded-lg bg-purple-50">
@@ -313,7 +323,7 @@ function SuccessContent() {
                   <div className="ms-auto">
                     <div className="flex items-center px-3 py-1 gap-x-1 text-sm font-medium text-yellow-800 bg-yellow-100 rounded-full">
                       <Crown className="w-4 h-4" />
-                      <span>Premium</span>
+                      <span>VisuTry account</span>
                     </div>
                   </div>
                 </div>
@@ -323,11 +333,11 @@ function SuccessContent() {
             {/* Action Buttons */}
             <div className="flex flex-col gap-y-3">
               <Link
-                href={localizedPath(locale, '/try-on')}
+                href={merchantReturnHref || localizedPath(locale, '/try-on')}
                 className="flex items-center justify-center w-full px-6 py-4 text-white transition-all duration-200 rounded-lg shadow-lg bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 hover:shadow-xl"
               >
                 <Glasses className="w-5 h-5 me-2" />
-                Start AI Try-On Now
+                {merchantReturnHref ? 'Continue to Store' : 'Start AI Try-On Now'}
                 <ArrowRight className="w-5 h-5 ms-2" />
               </Link>
 
@@ -344,7 +354,7 @@ function SuccessContent() {
               <div className="inline-flex items-center justify-center gap-x-2 text-sm text-gray-500">
                 <Loader2 className="w-4 h-4 text-blue-600 animate-spin" />
                 <p>
-                  Redirecting to dashboard in {countdown} seconds...
+                  {merchantReturnHref ? `Returning to your Store in ${countdown} seconds...` : `Redirecting to dashboard in ${countdown} seconds...`}
                 </p>
               </div>
             </div>

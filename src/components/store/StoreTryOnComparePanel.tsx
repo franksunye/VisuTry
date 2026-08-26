@@ -2,9 +2,16 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useTranslations } from 'next-intl'
+import Link from 'next/link'
 import { Heart, Loader2, RefreshCw, Sparkles } from 'lucide-react'
 import { FRAME_DISPATCH_STAGGER_MS, sleep } from '@/lib/try-on/batch-types'
 import { buildStoreOutboundUrl } from '@/lib/store-outbound-links'
+import {
+  appendMerchantContinuation,
+  createMerchantContinuation,
+  merchantPricingPath,
+  type MerchantContinuationContext,
+} from '@/modules/store/domain/merchant-continuation'
 import type { StoreExperiencePolicy } from '@/modules/store/domain/experience-policy'
 
 type FrameMeta = {
@@ -82,7 +89,20 @@ export function StoreTryOnComparePanel({
   const [inquiryNote, setInquiryNote] = useState('')
   const [inquirySending, setInquirySending] = useState(false)
   const [inquirySent, setInquirySent] = useState(false)
+  const [continuationState, setContinuationState] = useState<'AUTH_REQUIRED' | 'CONSUMER_CREDITS_REQUIRED' | null>(null)
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null)
+
+  const merchantContinuation: MerchantContinuationContext | null = createMerchantContinuation({
+    locale,
+    merchantSlug,
+    experienceType,
+    experienceSlug,
+  })
+
+  const signInHref = merchantContinuation
+    ? `/${locale}/auth/signin?callbackUrl=${encodeURIComponent(appendMerchantContinuation(merchantContinuation.canonicalReturnPath, merchantContinuation))}`
+    : `/${locale}/auth/signin`
+  const pricingHref = merchantContinuation ? merchantPricingPath(merchantContinuation) : `/${locale}/pricing`
 
   const postIntent = useCallback(
     async (input: {
@@ -123,6 +143,7 @@ export function StoreTryOnComparePanel({
     if (!experiencePolicy.tryOnEnabled || selectedFrames.length === 0 || dispatching) return
     setDispatching(true)
     onError('')
+    setContinuationState(null)
     const nextBatchId =
       typeof crypto !== 'undefined' && 'randomUUID' in crypto
         ? crypto.randomUUID()
@@ -158,6 +179,11 @@ export function StoreTryOnComparePanel({
         })
         const json = await res.json()
         if (!res.ok || !json.success) {
+          if (json.code === 'AUTH_REQUIRED' || json.code === 'CONSUMER_CREDITS_REQUIRED') {
+            setContinuationState(json.code)
+            setTiles((current) => current.filter((tile) => tile.merchantFrameId !== frame.id))
+            break
+          }
           setTiles((current) =>
             current.map((tile) =>
               tile.merchantFrameId === frame.id
@@ -320,6 +346,11 @@ export function StoreTryOnComparePanel({
       })
       const json = await res.json()
       if (!res.ok || !json.success) {
+        if (json.code === 'AUTH_REQUIRED' || json.code === 'CONSUMER_CREDITS_REQUIRED') {
+          setContinuationState(json.code)
+          setTiles((current) => current.filter((item) => item.merchantFrameId !== tile.merchantFrameId))
+          return
+        }
         setTiles((current) =>
           current.map((item) =>
             item.merchantFrameId === tile.merchantFrameId
@@ -385,6 +416,38 @@ export function StoreTryOnComparePanel({
           </button>
         ) : null}
       </div>
+
+      {continuationState ? (
+        <div
+          className="mb-6 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-950"
+          role="alert"
+          data-testid="merchant-entitlement-continuation"
+        >
+          <p className="font-semibold">
+            {continuationState === 'AUTH_REQUIRED'
+              ? 'Your sponsored Try-On is used. Sign in to continue with Consumer credits.'
+              : 'Your Consumer credits are unavailable. Buy credits to continue this experience.'}
+          </p>
+          <div className="mt-3 flex flex-wrap gap-2">
+            {continuationState === 'AUTH_REQUIRED' ? (
+              <Link
+                href={signInHref}
+                className="inline-flex items-center rounded-xl bg-slate-950 px-3 py-2 font-semibold text-white hover:bg-slate-800"
+                data-testid="merchant-sign-in-continuation"
+              >
+                Sign in to continue
+              </Link>
+            ) : null}
+            <Link
+              href={pricingHref}
+              className="inline-flex items-center rounded-xl border border-amber-300 bg-white px-3 py-2 font-semibold text-amber-950 hover:bg-amber-100"
+              data-testid="merchant-credits-continuation"
+            >
+              Get Consumer credits
+            </Link>
+          </div>
+        </div>
+      ) : null}
 
       {tiles.length > 0 && (
         <>

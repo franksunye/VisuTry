@@ -749,7 +749,7 @@ export function StoreShopperExperience({
                     <StoreTryOnComparePanel
                       merchantSlug={merchantSlug}
                       experienceType={merchant.experience?.type || 'STORE'}
-                      experienceSlug={merchant.experience?.slug}
+                      experienceSlug={merchant.experience?.type === 'CAMPAIGN' ? merchant.experience.slug : undefined}
                       locale={locale}
                       merchantSessionId={session.merchantSessionId}
                       selectedFrames={selectedFrames.map((frame) => ({ id: frame.id, name: frame.name, imageUrl: frame.imageUrl, productUrl: frame.productUrl, price: frame.price, currency: frame.currency, shape: frame.shape, productBrand: frame.productBrand }))}

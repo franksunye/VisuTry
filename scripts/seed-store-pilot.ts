@@ -77,6 +77,7 @@ async function main() {
       standardRenderAllowance: 1000,
       premiumRenderAllowance: 0,
       campaignAllowance: 1,
+      sponsoredUsagePolicyKey: config.sponsoredUsagePolicyKey ?? null,
     },
     update: {
       name: config.displayName,
@@ -89,6 +90,9 @@ async function main() {
       defaultSource: config.measurement.defaultSource,
       defaultCampaign: config.measurement.defaultCampaign,
       ...experiencePolicy,
+      ...(config.sponsoredUsagePolicyKey !== undefined
+        ? { sponsoredUsagePolicyKey: config.sponsoredUsagePolicyKey }
+        : {}),
     },
   })
 

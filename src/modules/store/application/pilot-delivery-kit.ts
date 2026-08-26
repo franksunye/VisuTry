@@ -1,12 +1,15 @@
 import { readdir, readFile } from 'node:fs/promises'
 import { join } from 'node:path'
 import { assertMaxCompareFrames, type MaxCompareFrames } from '../domain/experience-policy'
+import { VISUTRY_OWNED_SPONSORED_POLICY_KEY } from '../domain/merchant-sponsored-usage'
 
 export type PilotMerchantConfig = {
   merchantSlug: string
   displayName: string
   pilotType: 'REFERENCE' | 'DEMO' | 'LIVE'
   referenceData: boolean
+  /** Optional explicit server-owned usage policy for this delivery kit. */
+  sponsoredUsagePolicyKey?: string | null
   catalogMode: 'CURATED' | 'FULL'
   defaultLocale: string
   theme: {
@@ -196,6 +199,12 @@ export function buildPilotPreflightReport(input: {
   if (config.referenceData && !config.measurement.referenceTraffic) {
     errors.push('referenceData=true requires measurement.referenceTraffic=true')
   }
+  if (
+    config.sponsoredUsagePolicyKey != null &&
+    config.sponsoredUsagePolicyKey.trim().toUpperCase() !== VISUTRY_OWNED_SPONSORED_POLICY_KEY
+  ) {
+    errors.push(`Unsupported sponsoredUsagePolicyKey: ${config.sponsoredUsagePolicyKey}`)
+  }
   if (!config.measurement.defaultSource.trim() || !config.measurement.defaultCampaign.trim()) {
     errors.push('Reference/source defaults must include non-empty defaultSource and defaultCampaign')
   }
@@ -337,6 +346,12 @@ export function validatePilotConfig(config: PilotMerchantConfig): void {
   }
   if (config.referenceData && !config.measurement.referenceTraffic) {
     throw new Error('referenceData requires measurement.referenceTraffic=true')
+  }
+  if (
+    config.sponsoredUsagePolicyKey != null &&
+    config.sponsoredUsagePolicyKey.trim().toUpperCase() !== VISUTRY_OWNED_SPONSORED_POLICY_KEY
+  ) {
+    throw new Error(`Unsupported sponsoredUsagePolicyKey: ${config.sponsoredUsagePolicyKey}`)
   }
   if (!ACCENT_TOKENS[config.theme.accentToken]) {
     throw new Error(`Unsupported accentToken: ${config.theme.accentToken}`)

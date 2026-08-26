@@ -31,7 +31,12 @@ const mockedPrisma = prisma as unknown as {
   user: { findUnique: jest.Mock }
 }
 
-function createInput(overrides: { userId?: string | null } = {}) {
+function createInput(overrides: {
+  userId?: string | null
+  sponsoredUsagePolicyKey?: string | null
+  merchantSessionId?: string
+  clientSubmissionId?: string
+} = {}) {
   const capability = createMerchantSessionCapability()
   const merchant: MerchantRepository = {
     findBySlug: jest.fn().mockResolvedValue({
@@ -39,7 +44,7 @@ function createInput(overrides: { userId?: string | null } = {}) {
       slug: 'visutry-demo',
       name: 'VisuTry Demo',
       status: 'ACTIVE',
-      sponsoredUsagePolicyKey: 'VISUTRY_OWNED',
+      sponsoredUsagePolicyKey: overrides.sponsoredUsagePolicyKey ?? 'VISUTRY_OWNED',
       tryOnEnabled: true,
       compareEnabled: true,
       maxCompareFrames: 2,
@@ -135,13 +140,13 @@ function createInput(overrides: { userId?: string | null } = {}) {
       },
       generation,
       slug: 'visutry-demo',
-      merchantSessionId: 'session-1',
+      merchantSessionId: overrides.merchantSessionId ?? 'session-1',
       capabilityToken: capability.token,
       merchantFrameId: 'frame-1',
       batchId: 'batch-1',
-      clientSubmissionId: 'submission-1',
+      clientSubmissionId: overrides.clientSubmissionId ?? 'submission-1',
+      userId: overrides.userId ?? null,
       sponsoredUsage,
-      ...overrides,
     },
     generation,
     sponsoredUsage,
@@ -212,6 +217,39 @@ describe('merchant-sponsored signed-in fallback', () => {
       userId: 'user-1',
       onProviderAccepted: undefined,
     }))
+  })
+
+  it('authorizes the first eligible Try-On as merchant-sponsored and consumes its reservation after provider acceptance', async () => {
+    const { input, generation, sponsoredUsage } = createInput()
+    sponsoredUsage.reserve.mockResolvedValue({ id: 'reservation-1', status: 'RESERVED' })
+    generation.submit.mockImplementation(async ({ onProviderAccepted }: { onProviderAccepted?: () => Promise<void> }) => {
+      await onProviderAccepted?.()
+      return { taskId: 'task-1', status: 'submitted', reusedExisting: false }
+    })
+
+    await expect(submitStoreFrameTryOn(input)).resolves.toMatchObject({
+      taskId: 'task-1',
+      entitlementSource: 'MERCHANT_SPONSORED',
+    })
+
+    expect(generation.submit).toHaveBeenCalledWith(expect.objectContaining({
+      usagePolicy: { kind: 'merchant_sponsored', merchantId: 'merchant-1' },
+      userId: null,
+    }))
+    expect(sponsoredUsage.consume).toHaveBeenCalledWith('reservation-1')
+  })
+
+  it('returns anonymous continuation state after the sponsored allowance is exhausted, regardless of a new task key', async () => {
+    const { input, generation, sponsoredUsage } = createInput({
+      clientSubmissionId: 'submission-2',
+    })
+    sponsoredUsage.reserve.mockResolvedValue(null)
+
+    await expect(submitStoreFrameTryOn(input)).rejects.toMatchObject({
+      code: 'AUTH_REQUIRED',
+      httpStatus: 401,
+    })
+    expect(generation.submit).not.toHaveBeenCalled()
   })
 
   it('does not dispatch when the signed-in user has no consumer entitlement', async () => {

@@ -2,6 +2,7 @@ import React from 'react'
 import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { PricingCard } from '@/components/pricing/PricingCard'
+import { createMerchantContinuation, getMerchantContinuationFromUrl, merchantPricingPath } from '@/modules/store/domain/merchant-continuation'
 
 // Mock lucide-react icons
 jest.mock('lucide-react', () => ({
@@ -237,6 +238,38 @@ describe('PricingCard', () => {
         successUrl: `${window.location.origin}/en/face-analysis?unlock=success&taskId=analysis-1&session_id={CHECKOUT_SESSION_ID}`,
         cancelUrl: `${window.location.origin}/en/pricing?source=face-analysis-unlock&taskId=analysis-1&payment=cancelled&checkout_product=CREDITS_PACK&checkout_value=9.99`,
       })
+    })
+
+    it('preserves Merchant Store continuation for success and cancel Checkout URLs', async () => {
+      const continuation = createMerchantContinuation({
+        locale: 'en',
+        merchantSlug: 'ello-sunglasses',
+        experienceType: 'STORE',
+      })!
+      window.history.replaceState(
+        {},
+        '',
+        merchantPricingPath(continuation),
+      )
+      const creditsPlan = { ...mockPlan, id: 'CREDITS_PACK', buttonText: 'Buy Credits Pack' }
+
+      render(<PricingCard plan={creditsPlan} currentUser={mockUser} />)
+      await user.click(screen.getByRole('button', { name: 'Buy Credits Pack' }))
+
+      const requestInit = mockFetch.mock.calls[0]?.[1] as RequestInit
+      const body = JSON.parse(String(requestInit.body))
+      const successUrl = new URL(body.successUrl)
+      const cancelUrl = new URL(body.cancelUrl)
+
+      expect(successUrl.pathname).toBe('/en/success')
+      expect(successUrl.searchParams.get('merchantContinuation')).not.toBeNull()
+      expect(cancelUrl.pathname).toBe('/en/pricing')
+      expect(cancelUrl.searchParams.get('merchantContinuation')).not.toBeNull()
+      expect(cancelUrl.searchParams.get('payment')).toBe('cancelled')
+      expect(cancelUrl.searchParams.get('checkout_product')).toBe('CREDITS_PACK')
+      expect(cancelUrl.searchParams.get('checkout_value')).toBe('9.99')
+      expect(getMerchantContinuationFromUrl(`${successUrl.pathname}${successUrl.search}`)).toEqual(continuation)
+      expect(successUrl.searchParams.get('session_id')).toBe('{CHECKOUT_SESSION_ID}')
     })
 
     it.each([

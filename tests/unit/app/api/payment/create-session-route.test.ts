@@ -5,6 +5,7 @@ import { POST } from '@/app/api/payment/create-session/route'
 import { requireAuth } from '@/lib/api-auth'
 import { createCheckoutSession } from '@/lib/stripe'
 import { logger } from '@/lib/logger'
+import { appendMerchantContinuation, createMerchantContinuation, merchantPricingPath } from '@/modules/store/domain/merchant-continuation'
 
 jest.mock('@/lib/api-auth', () => ({ requireAuth: jest.fn() }))
 jest.mock('@/lib/stripe', () => ({ createCheckoutSession: jest.fn() }))
@@ -211,6 +212,45 @@ describe('/api/payment/create-session', () => {
       productType: 'CREDITS_PACK',
       successUrl: 'https://attacker.example/success',
       cancelUrl: 'https://www.visutry.com/en/pricing',
+      locale: 'en',
+    }))
+
+    expect(response.status).toBe(400)
+    expect(mockCreateCheckoutSession).not.toHaveBeenCalled()
+  })
+
+  it('accepts a paired Merchant continuation while keeping the context bounded', async () => {
+    const continuation = createMerchantContinuation({
+      locale: 'en',
+      merchantSlug: 'ello-sunglasses',
+      experienceType: 'CAMPAIGN',
+      experienceSlug: 'petite-fit',
+    })!
+    const successUrl = `https://www.visutry.com${appendMerchantContinuation(continuation.canonicalReturnPath, continuation)}`
+    const cancelUrl = `https://www.visutry.com${merchantPricingPath(continuation)}&payment=cancelled`
+
+    const response = await POST(checkoutRequest({
+      productType: 'CREDITS_PACK',
+      successUrl,
+      cancelUrl,
+      locale: 'en',
+    }))
+
+    expect(response.status).toBe(200)
+    expect(mockCreateCheckoutSession).toHaveBeenCalled()
+  })
+
+  it('rejects a Merchant continuation paired with an unrelated private return path', async () => {
+    const continuation = createMerchantContinuation({
+      locale: 'en',
+      merchantSlug: 'ello-sunglasses',
+      experienceType: 'STORE',
+    })!
+
+    const response = await POST(checkoutRequest({
+      productType: 'CREDITS_PACK',
+      successUrl: `https://www.visutry.com${appendMerchantContinuation(continuation.canonicalReturnPath, continuation)}`,
+      cancelUrl: `https://www.visutry.com/en/admin?merchantContinuation=${encodeURIComponent(JSON.stringify(continuation))}`,
       locale: 'en',
     }))
 

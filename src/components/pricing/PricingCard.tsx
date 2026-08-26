@@ -7,6 +7,12 @@ import { cn } from "@/utils/cn"
 import { analytics, getCheckoutAttribution, type ProductType } from "@/lib/analytics"
 import { localizedPath } from "@/lib/localized-path"
 import { useQuota } from "@/hooks/useQuota"
+import {
+  appendMerchantContinuation,
+  getMerchantContinuationFromUrl,
+  merchantPricingPath,
+  type MerchantContinuationContext,
+} from '@/modules/store/domain/merchant-continuation'
 
 interface PricingPlan {
   id: string
@@ -47,6 +53,11 @@ export function PricingCard({ plan, currentUser }: PricingCardProps) {
   const creditsPack = isCreditsPack(plan.id)
   const signedOutButtonText = creditsPack ? "Sign in to buy credits" : "Sign in to subscribe"
 
+  const merchantContinuation: MerchantContinuationContext | null = (() => {
+    if (typeof window === 'undefined') return null
+    return getMerchantContinuationFromUrl(`${window.location.pathname}${window.location.search}`)
+  })()
+
   // Keep a report-unlock purchase bound to the report for every product. This
   // is a defense-in-depth guard for mobile navigation, refreshes, and browsers
   // that restore the pricing URL directly.
@@ -60,7 +71,9 @@ export function PricingCard({ plan, currentUser }: PricingCardProps) {
   const handlePurchase = async () => {
     // If the user is not signed in, return them to pricing after authentication.
     if (!currentUser) {
-      const returnHref = reportUnlockTaskId
+      const returnHref = merchantContinuation
+        ? merchantPricingPath(merchantContinuation)
+        : reportUnlockTaskId
         ? `${pricingHref}?source=face-analysis-unlock&taskId=${encodeURIComponent(reportUnlockTaskId)}`
         : pricingHref
       window.location.href = `${signInHref}?callbackUrl=${encodeURIComponent(returnHref)}`
@@ -81,10 +94,20 @@ export function PricingCard({ plan, currentUser }: PricingCardProps) {
       )
 
       const purchaseContext = reportUnlockTaskId ? 'face_analysis_report' : 'pricing'
-      const successUrl = reportUnlockTaskId
+      const successUrl = merchantContinuation
+        ? `${window.location.origin}${appendMerchantContinuation(`${localizedPath(locale, '/success')}?session_id={CHECKOUT_SESSION_ID}`, merchantContinuation)}`
+        : reportUnlockTaskId
         ? `${window.location.origin}${localizedPath(locale, '/face-analysis')}?unlock=success&taskId=${encodeURIComponent(reportUnlockTaskId)}&session_id={CHECKOUT_SESSION_ID}`
         : `${window.location.origin}${dashboardHref}?payment=success&session_id={CHECKOUT_SESSION_ID}`
-      const cancelUrl = reportUnlockTaskId
+      const cancelUrl = merchantContinuation
+        ? (() => {
+            const url = new URL(`${window.location.origin}${merchantPricingPath(merchantContinuation)}`)
+            url.searchParams.set('payment', 'cancelled')
+            url.searchParams.set('checkout_product', plan.id)
+            url.searchParams.set('checkout_value', String(planPrice))
+            return url.toString()
+          })()
+        : reportUnlockTaskId
         ? `${window.location.origin}${pricingHref}?source=face-analysis-unlock&taskId=${encodeURIComponent(reportUnlockTaskId)}&payment=cancelled&checkout_product=${encodeURIComponent(plan.id)}&checkout_value=${planPrice}`
         : `${window.location.origin}${pricingHref}?payment=cancelled&checkout_product=${encodeURIComponent(plan.id)}&checkout_value=${planPrice}`
 

@@ -11,6 +11,10 @@ import {
 import { isValidLocale } from "@/i18n"
 import { prisma } from "@/lib/prisma"
 import { PRODUCT_METADATA, getProductQuota } from "@/config/pricing"
+import {
+  getMerchantContinuationFromUrl,
+  isSafeMerchantCheckoutReturnUrl,
+} from '@/modules/store/domain/merchant-continuation'
 
 // Force dynamic rendering for this route
 export const dynamic = 'force-dynamic'
@@ -23,6 +27,18 @@ function isSafeCheckoutReturnUrl(value: unknown, requestOrigin: string): value i
     return (url.protocol === 'https:' || url.protocol === 'http:') && url.origin === requestOrigin
   } catch {
     return false
+  }
+}
+
+function merchantContinuationFromAbsoluteUrl(value: unknown, requestOrigin: string) {
+  if (typeof value !== 'string') return null
+
+  try {
+    const url = new URL(value)
+    if (url.origin !== requestOrigin) return null
+    return getMerchantContinuationFromUrl(`${url.pathname}${url.search}`)
+  } catch {
+    return null
   }
 }
 
@@ -93,6 +109,30 @@ export async function POST(request: NextRequest) {
         { success: false, error: "成功和取消URL必须使用当前站点域名" },
         { status: 400 }
       )
+    }
+
+    // A Merchant continuation is a paired, bounded return contract. Do not
+    // allow a valid context to be mixed with an arbitrary internal/private
+    // destination, and keep the success/cancel experience aligned.
+    const merchantSuccessContext = merchantContinuationFromAbsoluteUrl(successUrl, request.nextUrl.origin)
+    const merchantCancelContext = merchantContinuationFromAbsoluteUrl(cancelUrl, request.nextUrl.origin)
+    const successHasMerchantParam = typeof successUrl === 'string' && new URL(successUrl).searchParams.has('merchantContinuation')
+    const cancelHasMerchantParam = typeof cancelUrl === 'string' && new URL(cancelUrl).searchParams.has('merchantContinuation')
+    if (successHasMerchantParam || cancelHasMerchantParam) {
+      if (
+        !successHasMerchantParam ||
+        !cancelHasMerchantParam ||
+        !merchantSuccessContext ||
+        !merchantCancelContext ||
+        merchantSuccessContext.canonicalReturnPath !== merchantCancelContext.canonicalReturnPath ||
+        !isSafeMerchantCheckoutReturnUrl(successUrl, request.nextUrl.origin) ||
+        !isSafeMerchantCheckoutReturnUrl(cancelUrl, request.nextUrl.origin)
+      ) {
+        return NextResponse.json(
+          { success: false, error: "Merchant continuation URL is invalid" },
+          { status: 400 },
+        )
+      }
     }
 
     const checkoutLocale = typeof locale === 'string' && isValidLocale(locale) ? locale : 'en'

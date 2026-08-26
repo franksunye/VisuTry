@@ -3,6 +3,7 @@
   "displayName": "ello sunglasses",
   "pilotType": "REFERENCE",
   "referenceData": true,
+  "sponsoredUsagePolicyKey": "VISUTRY_OWNED",
   "catalogMode": "CURATED",
   "defaultLocale": "en",
   "theme": {

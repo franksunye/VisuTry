@@ -9,10 +9,14 @@ import {
 
 describe('Merchant sponsored usage policy', () => {
   const originalFlag = process.env.MERCHANT_SPONSORED_USAGE_ENABLED
+  const originalNodeEnv = process.env.NODE_ENV
+  const mutableEnv = process.env as Record<string, string | undefined>
 
   afterEach(() => {
     if (originalFlag === undefined) delete process.env.MERCHANT_SPONSORED_USAGE_ENABLED
     else process.env.MERCHANT_SPONSORED_USAGE_ENABLED = originalFlag
+    if (originalNodeEnv === undefined) delete mutableEnv.NODE_ENV
+    else mutableEnv.NODE_ENV = originalNodeEnv
   })
 
   it('is disabled by default, including for reference pilots', () => {
@@ -30,6 +34,22 @@ describe('Merchant sponsored usage policy', () => {
     expect(resolveMerchantSponsoredUsagePolicy({
       sponsoredUsagePolicyKey: 'VISUTRY_OWNED',
     })).toEqual(VISUTRY_OWNED_SPONSORED_POLICY)
+  })
+
+  it('defaults production to explicit merchant policy while preserving the false kill switch', () => {
+    mutableEnv.NODE_ENV = 'production'
+    delete process.env.MERCHANT_SPONSORED_USAGE_ENABLED
+
+    expect(isMerchantSponsoredUsageEnabled()).toBe(true)
+    expect(resolveMerchantSponsoredUsagePolicy({
+      sponsoredUsagePolicyKey: 'VISUTRY_OWNED',
+    })).toEqual(VISUTRY_OWNED_SPONSORED_POLICY)
+
+    process.env.MERCHANT_SPONSORED_USAGE_ENABLED = 'false'
+    expect(isMerchantSponsoredUsageEnabled()).toBe(false)
+    expect(resolveMerchantSponsoredUsagePolicy({
+      sponsoredUsagePolicyKey: 'VISUTRY_OWNED',
+    })).toEqual(DISABLED_MERCHANT_SPONSORED_POLICY)
   })
 
   it('supports explicit policy keys without using merchant slugs or provenance', () => {

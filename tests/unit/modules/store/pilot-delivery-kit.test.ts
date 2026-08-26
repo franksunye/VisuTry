@@ -115,11 +115,19 @@ describe('Pilot Delivery Kit catalog contract', () => {
   it('loads ello as one Store and two Campaign experiences without merchant branches', async () => {
     const pkg = await readPilotPackage('pilot/ello-sunglasses')
     expect(pkg.catalog).toHaveLength(12)
+    expect(pkg.config.sponsoredUsagePolicyKey).toBe('VISUTRY_OWNED')
     expect(pkg.experiences.map((item) => item.experienceSlug)).toEqual([
       'petite-fit',
       'default',
       'summer-sunglasses',
     ])
+  })
+
+  it('rejects unknown sponsored policy keys instead of importing ambiguous entitlement', () => {
+    expect(() => validatePilotConfig({
+      ...config,
+      sponsoredUsagePolicyKey: 'UNSAFE_FALLBACK',
+    })).toThrow('Unsupported sponsoredUsagePolicyKey')
   })
 
   it('keeps reference experience descriptions shopper-facing', async () => {

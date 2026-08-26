@@ -67,6 +67,7 @@ export async function syncPendingStoreTryOnTasks(): Promise<SyncPendingStoreStat
       merchantId: true,
       merchantSessionId: true,
       createdAt: true,
+      metadata: true,
     },
     orderBy: {
       createdAt: 'asc',
@@ -100,9 +101,11 @@ export async function syncPendingStoreTryOnTasks(): Promise<SyncPendingStoreStat
       if (result.status === TaskStatus.COMPLETED) {
         if (task.merchantId && task.merchantSessionId) {
           const usagePolicy =
-            task.origin === 'STORE_PILOT'
-              ? { kind: 'merchant_allowance' as const, merchantId: task.merchantId }
-              : { kind: 'store_demo_allowance' as const, merchantId: task.merchantId }
+            (task.metadata as Record<string, unknown> | null)?.usagePolicyKind === 'merchant_sponsored'
+              ? { kind: 'merchant_sponsored' as const, merchantId: task.merchantId }
+              : task.origin === 'STORE_PILOT'
+                ? { kind: 'merchant_allowance' as const, merchantId: task.merchantId }
+                : { kind: 'store_demo_allowance' as const, merchantId: task.merchantId }
           const settlement = await settleStoreTryOnUsage({
             taskId: task.id,
             merchantId: task.merchantId,

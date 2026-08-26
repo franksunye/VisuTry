@@ -87,6 +87,91 @@ describe('Merchant sponsored usage repository', () => {
     expect(tx.merchantSponsoredUsage.create).not.toHaveBeenCalled()
   })
 
+  it('keys the rolling window by shopper identity, not session, frame, or task key', async () => {
+    tx.merchantSponsoredUsage.count
+      .mockResolvedValueOnce(0)
+      .mockResolvedValueOnce(1)
+      .mockResolvedValueOnce(0)
+    const repository = createPrismaMerchantSponsoredUsageRepository(prisma)
+    const firstAt = new Date('2026-08-12T10:00:00.000Z')
+
+    await expect(repository.reserve({
+      merchantId: 'merchant-a',
+      merchantSessionId: 'session-a',
+      shopperIdentityHash: 'shopper-a',
+      usageType: 'SPONSORED_GENERATION',
+      limit: 1,
+      rollingWindowHours: 24,
+      idempotencyKey: 'task-frame-a',
+      now: firstAt,
+    })).resolves.toEqual({ id: 'reservation-1', status: 'RESERVED' })
+
+    await expect(repository.reserve({
+      merchantId: 'merchant-a',
+      merchantSessionId: 'session-b',
+      shopperIdentityHash: 'shopper-a',
+      usageType: 'SPONSORED_GENERATION',
+      limit: 1,
+      rollingWindowHours: 24,
+      idempotencyKey: 'task-frame-b',
+      now: new Date(firstAt.getTime() + 60 * 60 * 1000),
+    })).resolves.toBeNull()
+
+    await expect(repository.reserve({
+      merchantId: 'merchant-a',
+      merchantSessionId: 'session-c',
+      shopperIdentityHash: 'shopper-a',
+      usageType: 'SPONSORED_GENERATION',
+      limit: 1,
+      rollingWindowHours: 24,
+      idempotencyKey: 'task-frame-c',
+      now: new Date(firstAt.getTime() + 25 * 60 * 60 * 1000),
+    })).resolves.toEqual({ id: 'reservation-1', status: 'RESERVED' })
+
+    expect(tx.merchantSponsoredUsage.count).toHaveBeenNthCalledWith(2, expect.objectContaining({
+      where: expect.objectContaining({
+        createdAt: { gte: new Date('2026-08-11T11:00:00.000Z') },
+        OR: [{ shopperIdentityHash: 'shopper-a' }],
+      }),
+    }))
+    expect(tx.merchantSponsoredUsage.count).toHaveBeenNthCalledWith(3, expect.objectContaining({
+      where: expect.objectContaining({
+        createdAt: { gte: new Date('2026-08-12T11:00:00.000Z') },
+        OR: [{ shopperIdentityHash: 'shopper-a' }],
+      }),
+    }))
+  })
+
+  it('keeps different anonymous shoppers isolated', async () => {
+    const repository = createPrismaMerchantSponsoredUsageRepository(prisma)
+
+    await repository.reserve({
+      merchantId: 'merchant-a',
+      merchantSessionId: 'session-a',
+      shopperIdentityHash: 'shopper-a',
+      usageType: 'SPONSORED_GENERATION',
+      limit: 1,
+      rollingWindowHours: 24,
+      idempotencyKey: 'shopper-a-task',
+    })
+    await repository.reserve({
+      merchantId: 'merchant-a',
+      merchantSessionId: 'session-b',
+      shopperIdentityHash: 'shopper-b',
+      usageType: 'SPONSORED_GENERATION',
+      limit: 1,
+      rollingWindowHours: 24,
+      idempotencyKey: 'shopper-b-task',
+    })
+
+    expect(tx.merchantSponsoredUsage.create).toHaveBeenCalledTimes(2)
+    expect(tx.merchantSponsoredUsage.count).toHaveBeenNthCalledWith(2, expect.objectContaining({
+      where: expect.objectContaining({
+        OR: [{ shopperIdentityHash: 'shopper-b' }],
+      }),
+    }))
+  })
+
   it('keeps merchant and identity scopes independent while matching a logged-in shopper identity', async () => {
     const repository = createPrismaMerchantSponsoredUsageRepository(prisma)
 
