@@ -14,7 +14,7 @@ jest.mock('@/modules/merchant/cloudflare', () => ({
   requireMerchantMembership: jest.fn(),
 }))
 jest.mock('@/components/merchant/MerchantControlCenter', () => ({
-  MerchantControlCenter: (props: { selectedMerchantId: string }) => <div data-selected-merchant={props.selectedMerchantId} />,
+  MerchantControlCenter: (props: { selectedMerchantId: string; onboardingState?: string }) => <div data-selected-merchant={props.selectedMerchantId} data-onboarding-state={props.onboardingState} />,
 }))
 jest.mock('@/components/merchant/MerchantWorkspaceOnboarding', () => ({
   MerchantWorkspaceOnboarding: (props: { locale: string }) => <div data-onboarding-locale={props.locale}>Create your Merchant Workspace</div>,
@@ -55,11 +55,12 @@ describe('Merchant workspace authorization', () => {
   })
 
   it('uses internal User.id and rechecks membership for the selected tenant', async () => {
-    const result = await MerchantWorkspacePage({ params: { locale: 'en' }, searchParams: { merchantId: 'merchant-b' } })
+    const result = await MerchantWorkspacePage({ params: { locale: 'en' }, searchParams: { merchantId: 'merchant-b', onboarding: 'created' } })
     expect(result).toBeTruthy()
     expect(merchants).toHaveBeenCalledWith('user-a')
     expect(membership).toHaveBeenCalledWith({ userId: 'user-a', merchantId: 'merchant-b', roles: ['OWNER', 'ADMIN'] })
     expect(credentials).toHaveBeenCalledWith({ userId: 'user-a', merchantId: 'merchant-b' })
+    expect((result as { props: { onboardingState?: string } }).props.onboardingState).toBe('created')
   })
 
   it('denies a URL-selected merchant without membership instead of trusting the locator', async () => {

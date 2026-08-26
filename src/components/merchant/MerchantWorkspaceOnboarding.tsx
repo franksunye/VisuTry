@@ -1,8 +1,11 @@
 'use client'
 
-import { FormEvent, useState } from 'react'
+import { FormEvent, useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { ArrowRight, Check, ChevronDown, Store } from 'lucide-react'
+import { analytics, getAcquisitionContext } from '@/lib/analytics'
+import { AnalyticsEvent } from '@/lib/analytics-events'
+import { getCampaignAnalyticsContext } from '@/lib/analytics-v2'
 
 type Props = { locale: string }
 
@@ -12,26 +15,67 @@ export function MerchantWorkspaceOnboarding({ locale }: Props) {
   const [websiteUrl, setWebsiteUrl] = useState('')
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const onboardingStarted = useRef(false)
+  const submitInFlight = useRef(false)
+
+  useEffect(() => {
+    if (onboardingStarted.current) return
+    onboardingStarted.current = true
+    analytics.trackCustomEvent(AnalyticsEvent.MerchantOnboardingStarted, {
+      entry_point: 'b2b',
+      actor_type: 'merchant_prospect',
+      journey_type: 'visutry_b2b_acquisition',
+      source_journey: 'business_merchant_entry',
+      landing_surface: 'merchant_onboarding',
+    })
+  }, [])
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
+    if (submitInFlight.current) return
+    submitInFlight.current = true
     setBusy(true)
     setError(null)
     try {
+      const acquisition = getAcquisitionContext()
+      const campaign = getCampaignAnalyticsContext()
+      const source = [acquisition.acquisition_source, acquisition.acquisition_medium]
+        .filter(Boolean)
+        .join('/') || undefined
       const response = await fetch('/api/merchant/workspaces', {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ name: name.trim() || undefined, websiteUrl: websiteUrl || undefined }),
+        body: JSON.stringify({
+          name: name.trim() || undefined,
+          websiteUrl: websiteUrl || undefined,
+          source,
+          campaign: campaign.campaign_name,
+        }),
       })
-      const body = await response.json() as { data?: { merchant?: { id?: string } }; error?: string }
+      const body = await response.json() as { data?: { created?: boolean; merchant?: { id?: string } }; error?: string }
       if (!response.ok || !body.data?.merchant?.id) {
         throw new Error(body.error || 'Unable to create your Merchant Workspace.')
       }
-      router.push(`/${locale}/merchant?merchantId=${encodeURIComponent(body.data.merchant.id)}`)
+      const created = body.data.created !== false
+      const onboardingState = created ? 'created' : 'existing'
+      if (created) {
+        analytics.trackCustomEvent(AnalyticsEvent.MerchantWorkspaceCreated, {
+          merchant_id: body.data.merchant.id,
+          created: true,
+          entry_point: 'b2b',
+          actor_type: 'merchant_prospect',
+          journey_type: 'visutry_b2b_acquisition',
+          source_journey: 'business_merchant_entry',
+          landing_surface: 'merchant_onboarding',
+        })
+      }
+      router.push(`/${locale}/merchant?merchantId=${encodeURIComponent(body.data.merchant.id)}&onboarding=${onboardingState}`)
       router.refresh()
     } catch (requestError) {
       setError(requestError instanceof Error ? requestError.message : 'Unable to create your Merchant Workspace.')
       setBusy(false)
+    } finally {
+      submitInFlight.current = false
     }
   }
 

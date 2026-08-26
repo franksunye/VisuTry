@@ -12,10 +12,20 @@ test.describe('@critical Business market-facing narrative', () => {
     await expect(page.getByRole('heading', { name: /One workspace to operate Store, Campaigns, and the signals around them/i })).toBeVisible();
     await expect(page.getByRole('heading', { name: /See what shoppers actually do before the product click/i })).toBeVisible();
     await expect(page.getByRole('link', { name: 'Start a Pilot' }).first()).toHaveAttribute('href', '/en/business/pilot');
+    await expect(page.getByRole('link', { name: 'Create Merchant Workspace' }).first()).toHaveAttribute('href', '/en/merchant');
     await expect(page.getByRole('link', { name: 'Explore Store' }).first()).toHaveAttribute('href', '/en/business/store');
     await expect(page.locator('a[href="/admin/store"]')).toHaveCount(0);
     await expect(page.getByAltText(/VisuTry Commerce Intelligence visual with shopper engagement and intent signals/i)).toBeVisible();
     await expect(page.locator('body')).not.toContainText(/trusted by|our customers|our partners|ROAS|sales lift/i);
+  });
+
+  test('public Merchant CTA preserves the anonymous authentication continuation', async ({ page }) => {
+    await page.goto('/en/business', { waitUntil: 'domcontentloaded' });
+    await page.getByRole('link', { name: 'Create Merchant Workspace' }).first().click();
+    await expect(page).toHaveURL(/\/en\/auth\/signin/);
+    expect(new URL(page.url()).searchParams.get('callbackUrl')).toBe('/en/merchant');
+    await expect(page.getByRole('button', { name: /create merchant account/i })).toBeVisible();
+    await expect(page.getByRole('button', { name: /already have an account/i })).toBeVisible();
   });
 
   for (const locale of ['de', 'ja', 'fr']) {

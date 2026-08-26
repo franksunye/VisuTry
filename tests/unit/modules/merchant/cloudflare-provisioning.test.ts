@@ -30,6 +30,7 @@ describe('Cloudflare direct-Neon merchant provisioning', () => {
     const result = await createMerchantWithOwner({ userId: 'user-a', name: 'Ignored Retry Name' })
 
     expect(result.merchant).toEqual({ id: 'merchant-a', slug: 'existing-merchant', name: 'Test Merchant' })
+    expect(result.created).toBe(false)
     expect(sql.transaction).toHaveBeenCalledWith(expect.any(Array), { isolationLevel: 'Serializable' })
   })
 
@@ -43,6 +44,7 @@ describe('Cloudflare direct-Neon merchant provisioning', () => {
     const result = await createMerchantWithOwner({ userId: 'user-a', name: 'Brand Name' })
 
     expect(result.merchant.slug).toBe('brand-name-2')
+    expect(result.created).toBe(true)
     expect(sql.transaction).toHaveBeenCalledTimes(2)
   })
 

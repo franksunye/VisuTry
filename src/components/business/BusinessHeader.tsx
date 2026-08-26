@@ -6,12 +6,24 @@ import { ArrowRight, Glasses, Menu, X } from 'lucide-react'
 import { useState } from 'react'
 import { businessHref, businessNav } from '@/config/business-site'
 import { cn } from '@/utils/cn'
+import { analytics } from '@/lib/analytics'
+import { AnalyticsEvent } from '@/lib/analytics-events'
 
 export function BusinessHeader() {
   const params = useParams()
   const pathname = usePathname()
   const locale = params.locale as string
   const [open, setOpen] = useState(false)
+
+  const trackMerchantEntry = () => {
+    analytics.trackCustomEvent(AnalyticsEvent.B2bSalesIntentClicked, {
+      entry_point: 'b2b',
+      actor_type: 'merchant_prospect',
+      journey_type: 'visutry_b2b_acquisition',
+      source_journey: 'business_merchant_entry',
+      landing_surface: 'business_navigation',
+    })
+  }
 
   const navLabel = (href: string, label: string) => href === '/business/commerce-intelligence' ? 'Commerce Intelligence' : label
 
@@ -50,8 +62,8 @@ export function BusinessHeader() {
           </div>
 
           <div className="flex shrink-0 items-center gap-2.5">
-            <Link href={`/${locale}/merchant`} prefetch={false} className="hidden text-sm font-semibold text-slate-600 transition hover:text-slate-950 lg:inline-flex">
-              Merchant Sign In
+            <Link href={`/${locale}/merchant`} prefetch={false} data-merchant-entry="header" onClick={trackMerchantEntry} className="hidden text-sm font-semibold text-slate-600 transition hover:text-slate-950 lg:inline-flex">
+              Create Merchant Workspace
             </Link>
             <Link
               href={businessHref(locale, '/business/pilot')}
@@ -94,8 +106,8 @@ export function BusinessHeader() {
               )
             })}
             <div className="my-2 border-t border-slate-200" />
-            <Link href={`/${locale}/merchant`} prefetch={false} onClick={() => setOpen(false)} className="rounded-xl px-3 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50">
-              Merchant Sign In
+            <Link href={`/${locale}/merchant`} prefetch={false} data-merchant-entry="header" onClick={() => { trackMerchantEntry(); setOpen(false) }} className="rounded-xl px-3 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50">
+              Create Merchant Workspace
             </Link>
             <Link href={businessHref(locale, '/business/pilot')} prefetch={false} onClick={() => setOpen(false)} className="mt-1 inline-flex items-center justify-center gap-2 rounded-xl bg-slate-950 px-4 py-3 text-sm font-semibold text-white">
               Start a Pilot

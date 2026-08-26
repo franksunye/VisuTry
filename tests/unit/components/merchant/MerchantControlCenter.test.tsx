@@ -1,5 +1,10 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { MerchantControlCenter } from '@/components/merchant/MerchantControlCenter'
+import { analytics } from '@/lib/analytics'
+
+jest.mock('@/lib/analytics', () => ({
+  analytics: { trackCustomEvent: jest.fn() },
+}))
 
 const baseProps = {
   locale: 'en', selectedMerchantId: 'merchant-a', merchants: [{ id: 'merchant-a', slug: 'alpha', name: 'Alpha', role: 'OWNER' }],
@@ -25,6 +30,13 @@ describe('MerchantControlCenter', () => {
     expect(screen.getByText('About the VisuTry Merchant Skill')).toBeInTheDocument()
     expect(screen.getByText('No data yet')).toBeInTheDocument()
     expect(document.querySelector('table')).not.toBeInTheDocument()
+  })
+
+  it('shows the post-creation next step and records workspace entry', () => {
+    render(<MerchantControlCenter {...baseProps} onboardingState="created" />)
+    expect(screen.getByRole('status')).toHaveTextContent('Merchant workspace created successfully')
+    expect(screen.getByRole('link', { name: /next: add your eyewear catalog/i })).toHaveAttribute('href', '#experiences')
+    expect(analytics.trackCustomEvent).toHaveBeenCalledWith('merchant_workspace_entered', expect.objectContaining({ merchant_id: 'merchant-a', entry_point: 'b2b' }))
   })
 
   it('renders merchant-readable Commerce Intelligence when controlled activity exists', () => {

@@ -313,9 +313,12 @@ describe('Merchant human membership foundation', () => {
       userId: 'user-a',
       slug: 'new',
       name: 'New',
+      source: 'linkedin/paid',
+      campaign: 'g1-launch',
     })).resolves.toMatchObject({
       merchant: { id: 'merchant-new' },
       membership: { merchantId: 'merchant-new', role: 'OWNER' },
+      created: true,
     })
 
     expect(prisma.$transaction).toHaveBeenCalledTimes(1)
@@ -327,6 +330,11 @@ describe('Merchant human membership foundation', () => {
       data: { updatedAt: expect.any(Date) },
     }))
     expect(tx.user.update.mock.calls[0][0].data).not.toHaveProperty('role')
+    expect(tx.merchant.create.mock.calls[0][0].data).toEqual(expect.objectContaining({
+      defaultSource: 'linkedin/paid',
+      defaultCampaign: 'g1-launch',
+      classification: 'POSSIBLE_EXTERNAL',
+    }))
   })
 
   it('returns the existing workspace on a repeated first-workspace submit', async () => {
@@ -349,6 +357,7 @@ describe('Merchant human membership foundation', () => {
     await expect(createMerchantWithOwner({ userId: 'user-a', name: 'Another Name' })).resolves.toMatchObject({
       merchant: existing.merchant,
       membership: { id: existing.id, role: 'OWNER' },
+      created: false,
     })
     expect(tx.merchant.create).not.toHaveBeenCalled()
   })
