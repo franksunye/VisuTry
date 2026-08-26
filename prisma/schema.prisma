@@ -469,6 +469,18 @@ enum MerchantUsageKind {
   SESSION
 }
 
+/// Canonical Admin/business-analysis classification. This is not an auth boundary.
+enum MerchantClassification {
+  REAL
+  POSSIBLE_EXTERNAL
+  INTERNAL
+  TEST
+  AUTOMATION
+  REFERENCE
+  SUSPICIOUS
+  UNKNOWN
+}
+
 enum ExperienceType {
   STORE
   CAMPAIGN
@@ -495,6 +507,10 @@ model Merchant {
   pilotType    String @default("LIVE")
   /// Durable marker used to keep pilot simulations out of live merchant KPIs.
   referenceData Boolean @default(false)
+  /// Canonical classification for Admin/business analysis; never used for tenant authorization.
+  classification       MerchantClassification @default(UNKNOWN)
+  classificationSource  String? @db.VarChar(80)
+  classificationReason  String? @db.Text
   /// Optional default acquisition context for a hosted delivery surface.
   defaultSource String?
   defaultCampaign String?
@@ -542,6 +558,7 @@ model Merchant {
   updatedAt DateTime @updatedAt
 
   @@index([status])
+  @@index([classification])
   @@index([updatedAt])
   @@index([planCode])
 }
