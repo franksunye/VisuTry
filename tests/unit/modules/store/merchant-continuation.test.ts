@@ -5,6 +5,7 @@ import {
   getSafeShopperAuthCallbackUrl,
   isSafeMerchantCheckoutReturnUrl,
   merchantPricingPath,
+  merchantRuntimeContinuationStorageKey,
   parseMerchantContinuation,
 } from '@/modules/store/domain/merchant-continuation'
 
@@ -25,6 +26,18 @@ describe('Merchant continuation contract', () => {
     expect(getMerchantContinuationFromUrl(appendMerchantContinuation(store.canonicalReturnPath, store))).toEqual(store)
     expect(getMerchantContinuationFromUrl(appendMerchantContinuation(campaign.canonicalReturnPath, campaign))).toEqual(campaign)
     expect(getMerchantContinuationFromUrl(merchantPricingPath(campaign))).toEqual(campaign)
+  })
+
+  it('scopes runtime resume state by merchant experience', () => {
+    expect(merchantRuntimeContinuationStorageKey(store)).toBe(
+      'vt_store_continuation:en:STORE:ello-sunglasses:store',
+    )
+    expect(merchantRuntimeContinuationStorageKey(campaign)).toBe(
+      'vt_store_continuation:en:CAMPAIGN:ello-sunglasses:petite-fit',
+    )
+    expect(merchantRuntimeContinuationStorageKey(store)).not.toBe(
+      merchantRuntimeContinuationStorageKey(campaign),
+    )
   })
 
   it('rejects malformed, overlong, and inconsistent contexts', () => {

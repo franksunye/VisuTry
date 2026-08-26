@@ -12,7 +12,7 @@ test.describe('@critical Store Pilot Flow', () => {
   });
 
   test('configured merchant route remains reachable after hydration', async ({ page }) => {
-    const response = await page.goto('/en/store/ello-sunglasses', { waitUntil: 'networkidle' });
+    const response = await page.goto('/en/store/ello-sunglasses', { waitUntil: 'domcontentloaded' });
 
     expect(response).not.toBeNull();
     expect(response!.status()).toBeLessThan(400);
@@ -57,7 +57,7 @@ test.describe('@critical Store Pilot Flow', () => {
   });
 
   test('contextual handoffs preserve the configured Campaign presentation mode', async ({ page }) => {
-    const response = await page.goto('/en/c/ello-sunglasses/petite-fit?source=visutry&medium=internal&surface=face-analysis&campaign=face-analysis-fit', { waitUntil: 'networkidle' });
+    const response = await page.goto('/en/c/ello-sunglasses/petite-fit?source=visutry&medium=internal&surface=face-analysis&campaign=face-analysis-fit', { waitUntil: 'load' });
 
     expect(response).not.toBeNull();
     expect(response!.status()).toBeLessThan(400);
@@ -72,7 +72,7 @@ test.describe('@critical Store Pilot Flow', () => {
 
   test('the second Store workspace collection CTA scrolls back to the collection', async ({ page }) => {
     await page.setViewportSize({ width: 1536, height: 864 });
-    await page.goto('/en/store/ello-sunglasses', { waitUntil: 'networkidle' });
+    await page.goto('/en/store/ello-sunglasses', { waitUntil: 'load' });
     await page.getByRole('button', { name: 'Try on your photo', exact: true }).click();
     await expect(page.getByRole('dialog', { name: /try-on workspace/i })).toBeVisible();
     await expect(page.getByRole('button', { name: /I understand.*continue/i })).toBeVisible({ timeout: 20_000 });
@@ -92,7 +92,7 @@ test.describe('@critical Store Pilot Flow', () => {
 
   test('presentation modes remain usable at mobile width', async ({ page }) => {
     await page.setViewportSize({ width: 430, height: 932 });
-    await page.goto('/en/store/ello-sunglasses', { waitUntil: 'networkidle' });
+    await page.goto('/en/store/ello-sunglasses', { waitUntil: 'domcontentloaded' });
     await expect(page.locator('[data-presentation-mode="PRODUCT_FIRST"]')).toBeVisible();
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
   });
@@ -100,7 +100,7 @@ test.describe('@critical Store Pilot Flow', () => {
   test('Store and Campaign landing actions remain usable at mobile width', async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 });
     for (const route of ['/en/store/ello-sunglasses', '/en/c/ello-sunglasses/petite-fit']) {
-      await page.goto(route, { waitUntil: 'networkidle' });
+      await page.goto(route, { waitUntil: 'domcontentloaded' });
       await expect(page.locator('h1')).toBeVisible();
       await expect(page.getByRole('link', { name: 'Explore the collection' })).toHaveAttribute('href', '#featured-frames');
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
@@ -108,11 +108,14 @@ test.describe('@critical Store Pilot Flow', () => {
   });
 
   test('campaign offers the same merchant Store without replacing first-touch attribution', async ({ page }) => {
-    const response = await page.goto('/en/c/ello-sunglasses/petite-fit?source=visutry&medium=internal&surface=discover&campaign=discover-featured', { waitUntil: 'networkidle' });
+    const response = await page.goto('/en/c/ello-sunglasses/petite-fit?source=visutry&medium=internal&surface=discover&campaign=discover-featured', { waitUntil: 'load' });
 
     expect(response).not.toBeNull();
     expect(response!.status()).toBeLessThan(400);
-    await page.getByRole('button', { name: 'Try on your photo', exact: true }).click();
+    const tryOnButton = page.getByRole('button', { name: 'Try on your photo', exact: true });
+    await expect(tryOnButton).toBeVisible();
+    await tryOnButton.click();
+    await expect(page.getByRole('dialog', { name: /try-on workspace/i })).toBeVisible({ timeout: 20_000 });
     await expect(page.getByRole('button', { name: /I understand.*continue/i })).toBeVisible();
     await page.getByRole('button', { name: /I understand.*continue/i }).click();
     const storeLink = page.getByRole('link', { name: 'Visit the full Store' });
@@ -238,7 +241,7 @@ test.describe('@critical Store Pilot Flow', () => {
     await page.route('https://cdn.jsdelivr.net/**', (route) => route.abort());
     await page.route('https://storage.googleapis.com/**', (route) => route.abort());
 
-    await page.goto('/en/store/ello-sunglasses', { waitUntil: 'networkidle' });
+    await page.goto('/en/store/ello-sunglasses', { waitUntil: 'load' });
     await expect(page.getByText('Reference pilot · simulation')).toBeVisible();
     await page.getByRole('button', { name: 'Try on your photo', exact: true }).click();
     await expect(page.getByRole('region', { name: 'Interactive shopping experience' })).toBeVisible();
@@ -270,6 +273,99 @@ test.describe('@critical Store Pilot Flow', () => {
     await expect.poll(() => compareCalls).toBe(1);
     await page.getByRole('button', { name: 'View product' }).first().click();
     await expect.poll(() => productIntentCalls).toBe(1);
+  });
+
+  test('keeps a real provider failure retryable without opening entitlement continuation', async ({ page }) => {
+    const preview = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=';
+    const frame = {
+      id: 'retry-frame-1',
+      name: 'Retry frame',
+      imageUrl: null,
+      productUrl: 'https://example.com/retry-frame',
+      price: null,
+      currency: null,
+      shape: 'round',
+      material: null,
+      color: null,
+      widthClass: 'petite',
+      styleTags: ['petite-fit'],
+      score: 90,
+      reason: 'Petite-fit proportions',
+    };
+
+    await page.route('**/api/store/merchants/ello-sunglasses*', async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          success: true,
+          data: {
+            id: 'merchant-retry',
+            slug: 'ello-sunglasses',
+            name: 'ello sunglasses',
+            logoUrl: null,
+            websiteUrl: null,
+            accentColor: '#1D4ED8',
+            pilotType: 'REFERENCE',
+            referenceData: true,
+            activeFrameCount: 1,
+            featuredFrames: [frame],
+            status: 'ACTIVE',
+            experience: null,
+            experiencePolicy: { tryOnEnabled: true, compareEnabled: true, maxCompareFrames: 2, inquiryEnabled: false },
+          },
+        }),
+      });
+    });
+    await page.route('**/api/store/sessions', async (route) => {
+      await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ success: true, data: { merchantId: 'merchant-retry', merchantSessionId: 'session-retry', expiresAt: new Date(Date.now() + 60_000).toISOString() } }) });
+    });
+    await page.route('**/api/store/sessions/photo', async (route) => {
+      await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ success: true, data: { previewUrl: preview } }) });
+    });
+    await page.route('**/api/store/sessions/recommend', async (route) => {
+      await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ success: true, data: { rankingVersion: 'mock', frames: [frame] } }) });
+    });
+    await page.route('**/api/store/sessions/select-frames', async (route) => {
+      await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ success: true, data: { selectedFrameIds: [frame.id] } }) });
+    });
+    let submitCalls = 0;
+    await page.route('**/api/store/sessions/try-on', async (route) => {
+      submitCalls += 1;
+      if (submitCalls === 1) {
+        await route.fulfill({ status: 500, contentType: 'application/json', body: JSON.stringify({ success: false, code: 'PROVIDER_FAILED', error: 'Provider unavailable' }) });
+        return;
+      }
+      await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ success: true, data: { taskId: 'retry-task-1', status: 'processing', frame } }) });
+    });
+    let pollCalls = 0;
+    await page.route('**/api/store/sessions/try-on/poll', async (route) => {
+      pollCalls += 1;
+      await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ success: true, data: { status: 'completed', resultImageUrl: preview, frame } }) });
+    });
+    await page.route('**/mediapipe/**', (route) => route.abort());
+    await page.route('https://cdn.jsdelivr.net/**', (route) => route.abort());
+    await page.route('https://storage.googleapis.com/**', (route) => route.abort());
+
+    await page.goto('/en/store/ello-sunglasses', { waitUntil: 'load' });
+    await page.getByRole('button', { name: 'Try on your photo', exact: true }).click();
+    await expect(page.getByRole('dialog', { name: /try-on workspace/i })).toBeVisible();
+    await page.getByRole('button', { name: /I understand.*continue/i }).click();
+    await page.locator('input[type="file"]').setInputFiles({ name: 'retry-shopper.png', mimeType: 'image/png', buffer: Buffer.from(preview.split(',')[1], 'base64') });
+    const recommendationSection = page.locator('section').filter({ hasText: 'Select up to 2 to try on' }).first();
+    await expect(recommendationSection).toBeVisible();
+    await recommendationSection.locator('ul button').first().click();
+    await page.locator('[data-selection-cta="desktop"]').click();
+    await expect(page.getByText('Frames ready')).toBeVisible();
+    await page.getByRole('button', { name: 'Try on 1 frame' }).click();
+    await expect(page.getByRole('button', { name: 'Retry', exact: true })).toBeVisible();
+    await expect(page.getByRole('alert').filter({ hasText: /Your sponsored Try-On is used|Your Consumer credits are unavailable/ })).toHaveCount(0);
+    expect(pollCalls).toBe(0);
+
+    await page.getByRole('button', { name: 'Retry', exact: true }).click();
+    await expect.poll(() => pollCalls).toBeGreaterThan(0);
+    await expect(page.getByRole('button', { name: 'Retry', exact: true })).toHaveCount(0);
+    await expect(page.getByRole('button', { name: 'View product', exact: true })).toBeVisible();
   });
 
   test('turns Store/Campaign AUTH_REQUIRED into an explicit bounded shopper continuation', async ({ page }) => {
@@ -322,8 +418,8 @@ test.describe('@critical Store Pilot Flow', () => {
             },
             experiencePolicy: {
               tryOnEnabled: true,
-              compareEnabled: false,
-              maxCompareFrames: 1,
+              compareEnabled: true,
+              maxCompareFrames: 2,
               inquiryEnabled: false,
             },
           },
@@ -349,27 +445,35 @@ test.describe('@critical Store Pilot Flow', () => {
         body: JSON.stringify({ success: false, code: 'AUTH_REQUIRED', error: 'Sign in to continue with more AI generations.' }),
       });
     });
+    let pollCalls = 0;
+    await page.route('**/api/store/sessions/try-on/poll', async (route) => {
+      pollCalls += 1;
+      await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ success: true, data: { status: 'processing' } }) });
+    });
     await page.route('**/mediapipe/**', (route) => route.abort());
     await page.route('https://cdn.jsdelivr.net/**', (route) => route.abort());
     await page.route('https://storage.googleapis.com/**', (route) => route.abort());
 
     for (const experiencePath of ['/en/store/ello-sunglasses', '/en/c/ello-sunglasses/petite-fit']) {
-      await page.goto(experiencePath, { waitUntil: 'networkidle' });
+      await page.goto(experiencePath, { waitUntil: 'load' });
       await page.getByRole('button', { name: 'Try on your photo', exact: true }).click();
       await page.getByRole('button', { name: /I understand.*continue/i }).click();
       await page.locator('input[type="file"]').setInputFiles({ name: 'continuation-shopper.png', mimeType: 'image/png', buffer: Buffer.from(preview.split(',')[1], 'base64') });
 
-      const recommendationSection = page.locator('section').filter({ hasText: 'Select up to 1 to try on' }).first();
+      const recommendationSection = page.locator('section').filter({ hasText: 'Select up to 2 to try on' }).first();
       await expect(recommendationSection).toBeVisible();
-      await recommendationSection.locator('ul button').first().click();
+      await recommendationSection.locator('ul button').nth(0).click();
+      await recommendationSection.locator('ul button').nth(1).click();
       await page.locator('[data-selection-cta="desktop"]').click();
       await expect(page.getByText('Frames ready')).toBeVisible();
-      await page.getByRole('button', { name: 'Try on 1 frame' }).click();
+      await page.getByRole('button', { name: 'Try on 2 frames' }).click();
 
-      const continuation = page.getByTestId('merchant-entitlement-continuation');
+      const continuation = page.getByRole('alert').filter({ hasText: /Your sponsored Try-On is used|Your Consumer credits are unavailable/ });
       await expect(continuation).toBeVisible();
+      await expect(page.getByText('Queued', { exact: true })).toHaveCount(0);
+      expect(pollCalls).toBe(0);
       await expect(continuation).not.toContainText('Retry');
-      const signInHref = await page.getByTestId('merchant-sign-in-continuation').getAttribute('href');
+      const signInHref = await page.getByRole('link', { name: 'Sign in to continue', exact: true }).getAttribute('href');
       expect(signInHref).not.toBeNull();
       const signInUrl = new URL(signInHref!, 'http://localhost');
       expect(signInUrl.pathname).toBe('/en/auth/signin');
@@ -380,7 +484,10 @@ test.describe('@critical Store Pilot Flow', () => {
   });
 
   test('keeps workspace progression visible on mobile width', async ({ page }) => {
-    await page.setViewportSize({ width: 390, height: 844 });
+    const viewports = [
+      { width: 390, height: 844 },
+      { width: 375, height: 812 },
+    ];
     const preview = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=';
     const frames = [1, 2].map((index) => ({
       id: `mobile-frame-${index}`,
@@ -436,21 +543,103 @@ test.describe('@critical Store Pilot Flow', () => {
     await page.route('https://cdn.jsdelivr.net/**', (route) => route.abort());
     await page.route('https://storage.googleapis.com/**', (route) => route.abort());
 
-    await page.goto('/en/store/ello-sunglasses', { waitUntil: 'networkidle' });
-    await page.getByRole('button', { name: 'Try on your photo', exact: true }).click();
-    await page.getByRole('button', { name: /I understand.*continue/i }).click();
-    await page.locator('input[type="file"]').setInputFiles({ name: 'mobile-shopper.png', mimeType: 'image/png', buffer: Buffer.from(preview.split(',')[1], 'base64') });
+    for (const viewport of viewports) {
+      await page.setViewportSize(viewport);
+      await page.goto('/en/store/ello-sunglasses', { waitUntil: 'load' });
+      const launcherButton = page.getByRole('button', { name: 'Try on your photo', exact: true });
+      await expect(launcherButton).toBeVisible();
+      await launcherButton.click();
+      await expect(page.getByRole('dialog', { name: /try-on workspace/i })).toBeVisible();
+      await expect(page.getByRole('button', { name: /I understand.*continue/i })).toBeVisible();
+      await page.getByRole('button', { name: /I understand.*continue/i }).click();
+      await page.locator('input[type="file"]').setInputFiles({ name: 'mobile-shopper.png', mimeType: 'image/png', buffer: Buffer.from(preview.split(',')[1], 'base64') });
 
-    const recommendationSection = page.locator('section').filter({ hasText: 'Select up to 2 to try on' }).first();
-    await expect(recommendationSection).toBeVisible();
-    const frameButtons = recommendationSection.locator('ul button');
-    await frameButtons.nth(0).click();
-    await frameButtons.nth(1).click();
-    const mobileCta = page.locator('[data-selection-cta="mobile"]');
-    await expect(mobileCta).toBeVisible();
-    await expect(mobileCta).toHaveText(/Try on selected frames/);
-    await mobileCta.click();
-    await expect(mobileCta).toHaveText(/Continue to Try-On/);
+      const recommendationSection = page.locator('section').filter({ hasText: 'Select up to 2 to try on' }).first();
+      await expect(recommendationSection).toBeVisible();
+      const frameButtons = recommendationSection.locator('ul button');
+      await frameButtons.nth(0).click();
+      await frameButtons.nth(1).click();
+      const mobileCta = page.locator('[data-selection-cta="mobile"]');
+      await expect(mobileCta).toBeVisible();
+      await expect(mobileCta).toHaveText(/Try on selected frames/);
+      await mobileCta.click();
+      await expect(mobileCta).toHaveText(/Continue to Try-On/);
+      expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+    }
+  });
+
+  test('reopens a mobile Store workspace after a signed-in or payment continuation return', async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    const preview = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=';
+    const frame = {
+      id: 'resume-frame-1',
+      name: 'Resume frame',
+      imageUrl: null,
+      productUrl: null,
+      price: null,
+      currency: null,
+      shape: 'round',
+      material: null,
+      color: null,
+      widthClass: 'medium',
+      styleTags: [],
+      score: 92,
+      reason: 'Balanced proportions',
+      productBrand: 'ello',
+    };
+    const context = {
+      locale: 'en',
+      merchantSlug: 'ello-sunglasses',
+      experienceType: 'STORE',
+      canonicalReturnPath: '/en/store/ello-sunglasses',
+    };
+    const continuation = encodeURIComponent(JSON.stringify(context));
+    const storageKey = 'vt_store_continuation:en:STORE:ello-sunglasses:store';
+    const resumeState = {
+      merchantId: 'merchant-resume',
+      merchantSessionId: 'session-resume',
+      expiresAt: new Date(Date.now() + 60_000).toISOString(),
+      photoPreview: '/assets/glasses-presets/browline-classic.jpg',
+      recommendations: [frame],
+      selectedIds: [frame.id],
+      selectionSaved: true,
+      batchId: 'resume-batch-1',
+    };
+
+    await page.addInitScript(({ key, value }) => {
+      try {
+        window.sessionStorage.setItem(key, JSON.stringify(value));
+      } catch {
+        // about:blank may not expose storage; the same script runs again on the app origin.
+      }
+    }, { key: storageKey, value: resumeState });
+    await page.route('**/api/store/merchants/ello-sunglasses', async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          success: true,
+          data: {
+            id: 'merchant-resume',
+            slug: 'ello-sunglasses',
+            name: 'ello sunglasses',
+            logoUrl: null,
+            websiteUrl: null,
+            accentColor: '#1D4ED8',
+            pilotType: 'REFERENCE',
+            referenceData: true,
+            activeFrameCount: 1,
+            featuredFrames: [frame],
+            experiencePolicy: { tryOnEnabled: true, compareEnabled: true, maxCompareFrames: 2, inquiryEnabled: false },
+          },
+        }),
+      });
+    });
+
+    await page.goto(`/en/store/ello-sunglasses?merchantContinuation=${continuation}`, { waitUntil: 'domcontentloaded' });
+    await expect(page.getByRole('dialog', { name: /try-on workspace/i })).toBeVisible();
+    await expect(page.locator('[data-selection-cta="mobile"]')).toHaveText(/Continue to Try-On/);
+    await expect(page.getByRole('button', { name: /Try on 1 frame/ })).toBeVisible();
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
   });
 });

@@ -15,6 +15,8 @@ type StoreGenerationSubmitBase = {
   prompt?: string
   storeOrigin: 'STORE_DEMO' | 'STORE_PILOT'
   userId?: string | null
+  /** Consumer-entitlement history follows the Consumer retention policy. */
+  expiresAt?: Date
   onProviderAccepted?: () => Promise<void>
 }
 

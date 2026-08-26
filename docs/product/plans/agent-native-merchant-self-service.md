@@ -101,7 +101,8 @@ VisuTry Admin remains available as the control surface for:
 - high-level analytics;
 - usage / entitlement;
 - API key and agent access management;
-- billing;
+- billing visibility where implemented; merchant self-service checkout,
+  invoices, and payment-method management remain deferred;
 - emergency pause / revoke;
 - manual intervention when needed.
 

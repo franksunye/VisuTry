@@ -8,6 +8,7 @@ import {
   serializeJsonLd,
 } from '@/lib/store-discovery-seo'
 import { buildStoreOutboundUrl, type StoreOutboundLinkType } from '@/lib/store-outbound-links'
+import { MerchantShopperAccountControlSlot } from '@/components/store/MerchantShopperAccountControlSlot'
 
 function formatPrice(price: number | null, currency: string | null): string | null {
   if (price === null || price === undefined) return null
@@ -117,7 +118,7 @@ export function ExperienceDiscoveryContent({
 
       <div className="pointer-events-none absolute inset-x-0 top-0 h-[540px] bg-[radial-gradient(circle_at_78%_18%,rgba(191,219,254,0.42),transparent_33%),radial-gradient(circle_at_16%_8%,rgba(254,243,199,0.42),transparent_30%)]" />
       <div className="relative mx-auto max-w-[1440px] px-5 pb-10 pt-5 sm:px-8 lg:px-10">
-        <header className="flex items-center gap-3 rounded-3xl border border-white/80 bg-white/75 px-5 py-4 shadow-[0_18px_60px_rgba(15,23,42,0.06)] backdrop-blur-xl sm:px-7">
+        <header className="flex items-center justify-between gap-3 rounded-3xl border border-white/80 bg-white/75 px-5 py-4 shadow-[0_18px_60px_rgba(15,23,42,0.06)] backdrop-blur-xl sm:px-7">
           <div className="flex items-center gap-3">
             <div className="relative flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-slate-200">
               {merchant.logoUrl ? (
@@ -130,6 +131,12 @@ export function ExperienceDiscoveryContent({
               <p className="font-serif text-xl font-semibold tracking-tight text-slate-950 sm:text-2xl">{merchant.name}</p>
             </div>
           </div>
+          <MerchantShopperAccountControlSlot
+            merchantSlug={merchant.slug}
+            experienceType={experience.type}
+            experienceSlug={isCampaign ? experience.slug : undefined}
+            locale={locale}
+          />
         </header>
 
         <section className={`mt-8 rounded-[2.25rem] border border-white bg-white/90 p-5 shadow-[0_35px_100px_rgba(30,64,175,0.12)] sm:p-8 ${isCampaign ? 'lg:p-10' : ''}`}>

@@ -24,6 +24,12 @@ import { maxSelectableStoreFrames, type StoreExperiencePolicy } from '@/modules/
 import { resolvePresentationMode } from '@/modules/store/domain/presentation-mode'
 import type { PresentationMode } from '@/modules/store/domain/presentation-mode'
 import { resolveStoreSelectionCtaState, resolveStoreWorkspaceStep } from '@/components/store/store-workspace-ux'
+import { MerchantShopperAccountControl } from '@/components/store/MerchantShopperAccountControl'
+import {
+  createMerchantContinuation,
+  getMerchantContinuationFromUrl,
+  merchantRuntimeContinuationStorageKey,
+} from '@/modules/store/domain/merchant-continuation'
 
 type MerchantProfile = {
   id: string
@@ -78,6 +84,21 @@ type RecommendedFrame = {
   productBrand: string | null
   score: number
   reason: string
+}
+
+type RuntimeContinuationState = {
+  merchantId: string
+  merchantSessionId: string
+  expiresAt: string
+  photoPreview: string
+  recommendations: RecommendedFrame[]
+  selectedIds: string[]
+  selectionSaved: boolean
+  batchId: string | null
+}
+
+function isPersistablePreviewUrl(value: string): boolean {
+  return !value.startsWith('data:') && (value.startsWith('/') || value.startsWith('https://'))
 }
 
 type StoreShopperExperienceProps = {
@@ -210,11 +231,60 @@ export function StoreShopperExperience({
   const [faceGeometry, setFaceGeometry] = useState<FaceGeometryAnalysis | null>(null)
   const [faceDetection, setFaceDetection] = useState<FaceLandmarkDetectionResult | null>(null)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
+  const [resumeBatchId, setResumeBatchId] = useState<string | null>(null)
   const featuredFramesRef = useRef<HTMLElement>(null)
   const tryOnSectionRef = useRef<HTMLDivElement>(null)
   const [storeContinuationQuery, setStoreContinuationQuery] = useState('')
 
   const accent = merchant?.accentColor || '#1F4B5A'
+  const merchantContinuation = createMerchantContinuation({
+    locale,
+    merchantSlug,
+    experienceType: experienceSlug ? 'CAMPAIGN' : 'STORE',
+    experienceSlug,
+  })
+  const runtimeContinuationKey = merchantContinuation
+    ? merchantRuntimeContinuationStorageKey(merchantContinuation)
+    : null
+  const merchantContinuationPath = merchantContinuation?.canonicalReturnPath
+
+  const clearRuntimeContinuation = useCallback(() => {
+    if (typeof window === 'undefined' || !runtimeContinuationKey) return
+    try {
+      sessionStorage.removeItem(runtimeContinuationKey)
+    } catch {
+      // Ignore unavailable storage.
+    }
+  }, [runtimeContinuationKey])
+
+  const persistRuntimeContinuation = useCallback((batchId = resumeBatchId) => {
+    if (
+      typeof window === 'undefined' ||
+      !runtimeContinuationKey ||
+      !session ||
+      !photoPreview ||
+      !isPersistablePreviewUrl(photoPreview) ||
+      recommendations.length === 0 ||
+      selectedIds.length === 0 ||
+      !selectionSaved
+    ) return
+
+    const value: RuntimeContinuationState = {
+      merchantId: session.merchantId,
+      merchantSessionId: session.merchantSessionId,
+      expiresAt: session.expiresAt,
+      photoPreview,
+      recommendations,
+      selectedIds,
+      selectionSaved: true,
+      batchId,
+    }
+    try {
+      sessionStorage.setItem(runtimeContinuationKey, JSON.stringify(value))
+    } catch {
+      // Ignore unavailable or quota-limited storage.
+    }
+  }, [photoPreview, recommendations, resumeBatchId, runtimeContinuationKey, selectedIds, selectionSaved, session])
 
   useEffect(() => {
     let cancelled = false
@@ -249,6 +319,55 @@ export function StoreShopperExperience({
       cancelled = true
     }
   }, [merchantSlug, experienceSlug, t])
+
+  useEffect(() => {
+    if (!merchant || typeof window === 'undefined' || !runtimeContinuationKey || !merchantContinuationPath) return
+    const params = new URLSearchParams(window.location.search)
+    if (!params.has('merchantContinuation')) return
+    const current = getMerchantContinuationFromUrl(`${window.location.pathname}${window.location.search}`)
+    if (current?.canonicalReturnPath !== merchantContinuationPath) return
+
+    try {
+      const raw = sessionStorage.getItem(runtimeContinuationKey)
+      if (!raw) return
+      const value = JSON.parse(raw) as Partial<RuntimeContinuationState>
+      if (
+        typeof value.merchantId !== 'string' ||
+        typeof value.merchantSessionId !== 'string' ||
+        typeof value.expiresAt !== 'string' ||
+        new Date(value.expiresAt).getTime() <= Date.now() ||
+        typeof value.photoPreview !== 'string' ||
+        !isPersistablePreviewUrl(value.photoPreview) ||
+        !Array.isArray(value.recommendations) ||
+        !Array.isArray(value.selectedIds) ||
+        value.selectionSaved !== true
+      ) {
+        sessionStorage.removeItem(runtimeContinuationKey)
+        return
+      }
+
+      const validRecommendations = value.recommendations.filter((frame): frame is RecommendedFrame =>
+        Boolean(frame && typeof frame === 'object' && typeof frame.id === 'string'),
+      )
+      const validSelectedIds = value.selectedIds.filter((id): id is string => typeof id === 'string')
+      if (validRecommendations.length === 0 || validSelectedIds.length === 0) return
+
+      setSession({
+        merchantId: value.merchantId,
+        merchantSessionId: value.merchantSessionId,
+        expiresAt: value.expiresAt,
+      })
+      setPrivacyAccepted(true)
+      setPhotoPreview(value.photoPreview)
+      setPhotoReady(true)
+      setRecommendations(validRecommendations)
+      setSelectedIds(validSelectedIds)
+      setSelectionSaved(true)
+      setResumeBatchId(typeof value.batchId === 'string' ? value.batchId : null)
+    } catch {
+      // Ignore malformed same-tab state and let the shopper restart cleanly.
+    }
+  }, [merchant, merchantContinuationPath, runtimeContinuationKey])
 
   useEffect(() => {
     if (!experienceSlug || typeof window === 'undefined') return
@@ -395,6 +514,8 @@ export function StoreShopperExperience({
   }, [])
 
   const handleImageSelect = async (file: File, preview: string) => {
+    clearRuntimeContinuation()
+    setResumeBatchId(null)
     setPhotoPreview(preview)
     setPhotoReady(false)
     setRecommendations([])
@@ -439,6 +560,8 @@ export function StoreShopperExperience({
   }
 
   const handleImageRemove = () => {
+    clearRuntimeContinuation()
+    setResumeBatchId(null)
     setPhotoPreview(undefined)
     setPhotoReady(false)
     setRecommendations([])
@@ -449,6 +572,8 @@ export function StoreShopperExperience({
   }
 
   const toggleFrame = (frameId: string) => {
+    clearRuntimeContinuation()
+    setResumeBatchId(null)
     setSelectionSaved(false)
     setSelectedIds((current) => {
       if (current.includes(frameId)) {
@@ -503,6 +628,15 @@ export function StoreShopperExperience({
     const frame = window.requestAnimationFrame(() => scrollToTryOn())
     return () => window.cancelAnimationFrame(frame)
   }, [selectionSaved, scrollToTryOn])
+
+  useEffect(() => {
+    persistRuntimeContinuation()
+  }, [persistRuntimeContinuation])
+
+  const handleContinuationBatchId = useCallback((batchId: string) => {
+    setResumeBatchId(batchId)
+    persistRuntimeContinuation(batchId)
+  }, [persistRuntimeContinuation])
 
   if (loadState === 'loading') {
     return (
@@ -604,8 +738,14 @@ export function StoreShopperExperience({
     <div className="relative min-h-screen overflow-hidden bg-[#f7f8fb] text-slate-950">
       <div className="pointer-events-none absolute inset-x-0 top-0 h-[540px] bg-[radial-gradient(circle_at_78%_18%,rgba(191,219,254,0.42),transparent_33%),radial-gradient(circle_at_16%_8%,rgba(254,243,199,0.42),transparent_30%)]" />
       <div className="relative mx-auto max-w-[1440px] px-5 pb-10 pt-5 sm:px-8 lg:px-10">
-        <header className="flex items-center rounded-3xl border border-white/80 bg-white/75 px-5 py-4 shadow-[0_18px_60px_rgba(15,23,42,0.06)] backdrop-blur-xl sm:px-7">
+        <header className="flex items-center justify-between gap-3 rounded-3xl border border-white/80 bg-white/75 px-5 py-4 shadow-[0_18px_60px_rgba(15,23,42,0.06)] backdrop-blur-xl sm:px-7">
           <MerchantMark merchant={merchant} accent={accent} />
+          <MerchantShopperAccountControl
+            merchantSlug={merchantSlug}
+            experienceType={merchant.experience?.type || 'STORE'}
+            experienceSlug={merchant.experience?.type === 'CAMPAIGN' ? merchant.experience.slug : undefined}
+            locale={locale}
+          />
         </header>
 
         {!privacyAccepted ? (
@@ -757,6 +897,8 @@ export function StoreShopperExperience({
                       accent={accent}
                       experiencePolicy={merchant.experiencePolicy}
                       onError={(message) => setErrorMessage(message || null)}
+                      initialBatchId={resumeBatchId}
+                      onContinuationBatchId={handleContinuationBatchId}
                     />
                   ) : null}
                 </div>

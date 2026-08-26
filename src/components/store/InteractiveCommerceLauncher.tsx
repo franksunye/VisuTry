@@ -3,6 +3,11 @@
 import dynamic from 'next/dynamic'
 import { useEffect, useRef, useState } from 'react'
 import { ArrowRight, Loader2, X } from 'lucide-react'
+import {
+  createMerchantContinuation,
+  getMerchantContinuationFromUrl,
+  MERCHANT_CONTINUATION_PARAM,
+} from '@/modules/store/domain/merchant-continuation'
 
 const LazyStoreShopperExperience = dynamic(
   () => import('@/components/store/StoreShopperExperience').then((module) => module.StoreShopperExperience),
@@ -37,6 +42,21 @@ export function InteractiveCommerceLauncher({
 }: InteractiveCommerceLauncherProps) {
   const [started, setStarted] = useState(false)
   const closeButtonRef = useRef<HTMLButtonElement>(null)
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    const params = new URLSearchParams(window.location.search)
+    if (!params.has(MERCHANT_CONTINUATION_PARAM)) return
+
+    const expected = createMerchantContinuation({
+      locale,
+      merchantSlug,
+      experienceType: experienceSlug ? 'CAMPAIGN' : 'STORE',
+      experienceSlug,
+    })
+    const current = getMerchantContinuationFromUrl(`${window.location.pathname}${window.location.search}`)
+    if (expected && current?.canonicalReturnPath === expected.canonicalReturnPath) setStarted(true)
+  }, [experienceSlug, locale, merchantSlug])
 
   useEffect(() => {
     if (!started) return

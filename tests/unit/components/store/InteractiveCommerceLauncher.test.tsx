@@ -1,6 +1,7 @@
 import { fireEvent, render, screen } from '@testing-library/react'
 import dynamic from 'next/dynamic'
 import { InteractiveCommerceLauncher } from '@/components/store/InteractiveCommerceLauncher'
+import { appendMerchantContinuation, createMerchantContinuation } from '@/modules/store/domain/merchant-continuation'
 
 jest.mock('next/dynamic', () => ({
   __esModule: true,
@@ -10,6 +11,10 @@ jest.mock('next/dynamic', () => ({
 }))
 
 describe('InteractiveCommerceLauncher', () => {
+  afterEach(() => {
+    window.history.replaceState({}, '', '/')
+  })
+
   it('does not render the interactive runtime before an explicit click', () => {
     render(
       <InteractiveCommerceLauncher
@@ -56,5 +61,25 @@ describe('InteractiveCommerceLauncher', () => {
 
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
     expect(document.body.style.overflow).toBe('')
+  })
+
+  it('reopens the workspace for a validated merchant continuation return', () => {
+    const context = createMerchantContinuation({
+      locale: 'en',
+      merchantSlug: 'luna-optical',
+      experienceType: 'STORE',
+    })!
+    window.history.replaceState({}, '', appendMerchantContinuation(context.canonicalReturnPath, context))
+
+    render(
+      <InteractiveCommerceLauncher
+        merchantSlug="luna-optical"
+        locale="en"
+        publicPocStorage={false}
+      />,
+    )
+
+    expect(screen.getByTestId('lazy-runtime')).toBeInTheDocument()
+    expect(screen.getByRole('dialog', { name: /try-on workspace/i })).toBeInTheDocument()
   })
 })
