@@ -1,6 +1,6 @@
 # VisuTry Legacy Strategy Document Audit
 
-**Status:** Active operating audit  
+**Status:** Archived historical audit
 **Created:** 2026-07-08  
 **Owner:** Product / Strategy  
 **Review cadence:** Monthly during cleanup  
@@ -32,7 +32,7 @@ Working rule:
 | `docs/strategy/analytics/gtm.md` | Qualified-traffic GTM operating strategy | Active source of truth for GTM execution | Keep as the only current GTM execution strategy. |
 | `docs/strategy/reseller-technical-roadmap.md` | Reseller/co-branding technical roadmap | Supporting technical roadmap | Keep as supporting reference. Not current priority unless pulled forward by demand. |
 | `docs/strategy/2026-05-25-paid-customer-seo-geo-relaunch-plan.md` | Paid customer and SEO relaunch evidence | Historical commercial evidence | Keep or archive after evidence is fully reflected in strategy and benchmarks. |
-| `docs/strategy/content/3-month-content-strategy.md` | Q4 2025 content plan | Historical / archive candidate | Archive or mark historical. Time window expired. |
+| `docs/strategy/archive/content/3-month-content-strategy.md` | Q4 2025 content plan | Archived historical reference | Archived with the related 2025 content/programmatic SEO execution bundle on 2026-08-26. |
 | `docs/strategy/archive/seo/programmatic-seo-execution-plan.md` | Old large-scale programmatic SEO plan | Archived historical reference | Keep archived. Do not use as current execution priority. |
 
 ---
@@ -96,7 +96,7 @@ The old programmatic SEO plan has been moved to archive. This matches the curren
 | P0 | Separate benchmark research from commercial strategy. | Product / Strategy | Done via `commercial-benchmarks.md`. |
 | P0 | Create decision records for governance changes. | Product / Engineering | Done via `docs/decisions/`. |
 | P1 | Add clear status headers to active dated strategy docs. | Product / Strategy | Planned. |
-| P1 | Archive or mark `docs/strategy/content/3-month-content-strategy.md` as historical. | Growth / Product | Planned. |
+| P1 | Archive the expired Q4 2025 content/programmatic SEO execution bundle. | Growth / Product | Done 2026-08-26. |
 | P1 | Add source-of-truth references to `gtm.md` if missing. | Growth / Analytics | Planned. |
 | P2 | Review architecture docs against current code. | Engineering | Later. |
 
@@ -120,3 +120,4 @@ When deciding what to do next:
 | Date | Change |
 | --- | --- |
 | 2026-07-08 | Created v0.1 legacy strategy document audit. |
+| 2026-08-26 | Marked this audit historical and recorded completion of the old content bundle archive. Current cleanup work moved to `docs/document-inventory.md`. |

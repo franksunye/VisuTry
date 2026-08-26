@@ -1,8 +1,8 @@
 # VisuTry Campaign Intelligence Event Taxonomy v2.0 RC
 
-Status: Release Candidate / Pending GA4 Validation  
-Owner: Product + Engineering  
-Last updated: 2026-08-11
+**Status:** Active source of truth; event contract frozen pending GA4 validation
+**Owner:** Product / Engineering / Growth
+**Last updated:** 2026-08-26
 
 ## 1. Purpose
 

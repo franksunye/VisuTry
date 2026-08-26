@@ -524,4 +524,4 @@ Acceptance:
 
 - [Face Analysis to Glasses Try-On Growth Plan](../strategy/seo/2026-06-11-face-analysis-to-tryon-growth-plan.md)
 - [Keyword Mapping](../strategy/seo/keywords-mapping.md)
-- [Programmatic SEO Execution Plan](../strategy/seo/programmatic-seo-execution-plan.md)
+- [Archived Programmatic SEO Execution Plan](../strategy/archive/seo/programmatic-seo-execution-plan.md)

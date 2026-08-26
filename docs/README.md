@@ -2,7 +2,7 @@
 
 **Status:** Active documentation entry point  
 **Created:** 2026-07-08  
-**Last updated:** 2026-08-24
+**Last updated:** 2026-08-26
 **Owner:** Product / Engineering  
 **Review cadence:** Monthly, or whenever the product direction materially changes.
 
@@ -137,6 +137,10 @@ Recommended lifecycle values:
 
 Historical operational evidence should normally be retained and classified rather than deleted. Delete only duplicate, empty, or fully incorporated documents that have no remaining audit value.
 
+The inventory is deliberately limited to authoritative entry points and explicit cleanup exceptions. It is not a catalog of every document. Directory lifecycle, creation/close-out rules, and the current cleanup queue live in `docs/document-inventory.md`; the scaling decision is recorded in `docs/decisions/ADR-012-scalable-documentation-governance.md`.
+
+Before adding a new plan, summary, completion report, or audit, prefer updating the existing plan/spec when it can preserve the same facts. If a separate document is necessary, declare its owner, active lifetime, and eventual merge/archive/evidence destination.
+
 ---
 
 ## 6. Maintenance Notes
@@ -147,3 +151,4 @@ Historical operational evidence should normally be retained and classified rathe
 - Keep current architecture/operations entry points small and authoritative.
 - Archive-by-status old migration milestones as soon as their experiment/cutover phase closes.
 - If a new infrastructure decision changes an ownership boundary, create/supersede an ADR before treating phase notes as production authority.
+- Run `npm run docs:audit` during the monthly review and at milestone close. Use `npm run docs:audit:strict` before merging governance or large documentation changes.

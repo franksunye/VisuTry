@@ -79,7 +79,7 @@ Existing B2B-adjacent plans already exist, but they are not yet implemented as a
 
 - `docs/strategy/reseller-technical-roadmap.md`: co-branding, reseller roles, credit transfer, privacy guardrails.
 - `docs/strategy/analytics/gtm.md`: content idea for embedding VisuTry into ecommerce sites.
-- `docs/strategy/content/3-month-content-strategy.md`: long-term API partnerships with eyewear brands.
+- `docs/strategy/archive/content/3-month-content-strategy.md`: historical notes on long-term API partnerships with eyewear brands; not current execution guidance.
 - `.agent/workflows/process-partner-inquiry.md`: partner inquiry operating workflow.
 
 ---

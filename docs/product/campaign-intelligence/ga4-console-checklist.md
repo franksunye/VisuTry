@@ -1,6 +1,10 @@
 # GA4 Console Checklist (Partially implemented)
 
-Status: **Partially implemented** — Chrome access is available; remaining items are blocked until GA4 observes the new canonical event parameters/events
+**Status:** Active runbook / Partially implemented
+**Owner:** Growth / Analytics
+**Last updated:** 2026-08-26
+
+Remaining items are blocked until GA4 observes the new canonical event parameters/events.
 Property: `G-6J4ZXNNL4F`  
 Spec source: `ga4-dashboard-spec.md`  
 Last updated: 2026-08-11

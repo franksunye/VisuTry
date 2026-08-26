@@ -1065,7 +1065,7 @@ Face Analysis 已成为报告解锁和后续试戴转化的关键节点。当前
 - Face Analysis 2.0 在独立版本与 feature flag 下验证 landmark 几何、VLM 视觉审阅和明确的冲突融合规则；达到稳定性、质量、商业与回退门槛后，才分批替换。
 - 免费 Face Shape Detector 继续遵守本地处理、无上传、无 Gemini 的产品承诺。
 
-执行批次、验收标准和替换门槛见：[Face Analysis 稳定性与 2.0 渐进式演进计划](../../product/plans/face-analysis-stability-and-v2-rollout.md)。
+执行批次、验收标准和替换门槛见：[Face Analysis 稳定性与 2.0 渐进式演进计划](../product/plans/face-analysis-stability-and-v2-rollout.md)。
 
 ---
 
