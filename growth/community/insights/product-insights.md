@@ -19,3 +19,12 @@ Record evidence, not assumptions. A single comment is a `SINGLE SIGNAL` until re
 - Area: Try-On / Compare / Consumer UX
 - Confidence: REPEATED SIGNAL
 - Follow-up measurement: count how often future conversations ask for a separate fit check after a style recommendation; test a two-step visual comparison flow
+
+## 2026-08-26 public discovery sample
+
+- Insight: Face-shape video audiences may engage with broad style education without exposing a current, answerable shopper question; community replies should remain question-led rather than turning high-view content into a promotion surface.
+- Evidence: A 1-year-old face-shape video had visible reactions and timestamp comments, but no fresh eyewear question; the account's existing `@SunYe` comment mentioned an AI face-analysis tool and VisuTry, and no follow-up was warranted.
+- Source URLs: https://www.youtube.com/watch?v=w5Fd8c0EUAA ; https://www.youtube.com/results?search_query=virtual+try+on+glasses
+- Area: Face Analysis / Advisor / Try-On / Consumer UX / Content
+- Confidence: SINGLE SIGNAL
+- Follow-up measurement: separate genuine user questions from passive engagement and track whether future tool-related questions ask about accuracy, limitations, or fit confidence

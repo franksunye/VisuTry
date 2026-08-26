@@ -19,3 +19,13 @@
 - Confidence: REPEATED SIGNAL
 - Possible merchant implication: expose consistent frame width, bridge, lens height, and fit notes so shoppers can compare candidates with less uncertainty
 - Follow-up measurement: track future mentions of missing measurements, returns, sliding, or inability to compare online
+
+## 2026-08-26 public discovery sample
+
+- Insight: Size-selection content spans both frame-measurement education and style-led face-shape discovery, but this sample did not expose a new purchase objection that could be answered in a comment.
+- Evidence: Reddit search surfaced a user comparing 54 mm frames with 46 mm sunglasses and asking for smaller, stylish options; YouTube searches surfaced frame-sizing, fit, face-shape, and virtual-try-on tutorials without a current shopper question.
+- Source URLs: https://www.reddit.com/r/glassesadvice/comments/1vssx05/m28what_kind_of_glasses_should_i_get/ ; https://www.youtube.com/results?search_query=glasses+sizing ; https://www.youtube.com/results?search_query=virtual+try+on+glasses
+- Area: Store / Merchant Sales
+- Confidence: SINGLE SIGNAL
+- Possible merchant implication: make current-frame comparison easier with size/shape guidance that separates numeric fit from style preference
+- Follow-up measurement: track future mentions of frame width comparisons, size ranges, and uncertainty about online try-on results

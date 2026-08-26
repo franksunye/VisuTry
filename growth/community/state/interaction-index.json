@@ -1,21 +1,37 @@
 {
   "schema_version": 2,
-  "last_updated": "2026-08-24T16:33:26+08:00",
+  "last_updated": "2026-08-26T10:18:00+08:00",
   "interactions": [
     {
       "platform": "reddit",
       "url": "https://www.reddit.com/r/glassesadvice/comments/1vwm84z/comment/p5k793i/",
       "thread_url": "https://www.reddit.com/r/glassesadvice/comments/1vwm84z/are_these_too_big_and_do_they_make_my_face_look/",
       "date_first_engaged": "2026-08-24",
-      "date_last_engaged": "2026-08-24",
+      "date_last_engaged": "2026-08-26",
       "interaction_type": "reply",
       "interaction_depth": "DETAILED",
       "tone": "SUPPORTIVE",
       "visutry_mentioned": false,
       "visutry_link_used": false,
       "reply_received": false,
-      "current_status": "POSTED_AWAITING_REPLY",
-      "follow_up_needed": true
+      "current_status": "POST_VISIBLE_POST_DELETED_NO_REPLY",
+      "follow_up_needed": false
+    },
+    {
+      "platform": "youtube",
+      "url": "https://www.youtube.com/watch?v=w5Fd8c0EUAA",
+      "thread_url": "https://www.youtube.com/watch?v=w5Fd8c0EUAA",
+      "date_first_engaged": "2026-07-26",
+      "date_last_engaged": "2026-07-26",
+      "interaction_type": "comment",
+      "interaction_depth": "DETAILED",
+      "tone": "PROMOTIONAL",
+      "visutry_mentioned": true,
+      "visutry_link_used": false,
+      "reply_received": false,
+      "current_status": "POSTED_NO_FOLLOW_UP",
+      "follow_up_needed": false,
+      "evidence_note": "Platform displayed the comment as 1 month ago on 2026-08-26; exact publication timestamp was not exposed."
     }
   ]
 }
