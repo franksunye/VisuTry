@@ -47,7 +47,7 @@ const detection: FaceLandmarkDetectionResult = {
 }
 
 describe('StoreFitProfile', () => {
-  it('renders a shopper-readable profile, three signals, explanation, and sparse overlay', () => {
+  it('renders a shopper-readable profile, three signals, explanation, and shared lightweight overlay', () => {
     render(<StoreFitProfile photoPreview="data:image/png;base64,preview" geometry={geometry} detection={detection} analyzing={false} copy={copy} />)
 
     expect(screen.getByRole('heading', { name: 'Your fit profile' })).toBeInTheDocument()
@@ -57,7 +57,8 @@ describe('StoreFitProfile', () => {
     expect(screen.getByText('Balanced jawline')).toBeInTheDocument()
     expect(screen.getByText('Why these frames')).toBeInTheDocument()
     expect(screen.getByTestId('store-fit-map-overlay')).toBeInTheDocument()
-    expect(screen.getAllByTestId('store-fit-map-point')).toHaveLength(20)
+    expect(screen.getByTestId('store-fit-map-overlay')).toHaveAttribute('data-face-landmark-overlay-variant', 'lightweight')
+    expect(screen.getByTestId('store-fit-map')).toHaveAttribute('data-fit-map-point-count', '10')
   })
 
   it('degrades safely when fit analysis or landmarks are unavailable', () => {

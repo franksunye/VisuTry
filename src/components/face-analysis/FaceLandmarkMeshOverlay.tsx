@@ -6,23 +6,31 @@ import {
   FaceLandmarkDetectionResult,
 } from '@/lib/face-landmark-client'
 import { FaceLandmarkPoint } from '@/types/face-analysis'
+import {
+  createCoverMapper,
+  FACE_ANALYSIS_HIGHLIGHT_POINT_INDICES,
+  selectFaceLandmarkOverlayConnections,
+  type FaceLandmarkOverlayVariant,
+} from '@/lib/face-landmark-visualization'
 
 interface FaceLandmarkMeshOverlayProps {
   imageUrl: string
   detection?: FaceLandmarkDetectionResult | null
   className?: string
   onStatusChange?: (status: 'measured' | 'fallback') => void
+  variant?: FaceLandmarkOverlayVariant
+  testId?: string
+  showStatus?: boolean
 }
-
-const HIGHLIGHT_POINTS = [
-  10, 152, 234, 454, 33, 263, 61, 291, 1, 199,
-]
 
 export function FaceLandmarkMeshOverlay({
   imageUrl,
   detection: precomputedDetection,
   className,
   onStatusChange,
+  variant = 'full',
+  testId,
+  showStatus = true,
 }: FaceLandmarkMeshOverlayProps) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null)
   const containerRef = useRef<HTMLDivElement | null>(null)
@@ -67,7 +75,7 @@ export function FaceLandmarkMeshOverlay({
     return () => {
       cancelled = true
     }
-  }, [imageUrl, onStatusChange, precomputedDetection])
+  }, [imageUrl, onStatusChange, precomputedDetection, variant])
 
   useEffect(() => {
     const container = containerRef.current
@@ -131,17 +139,18 @@ export function FaceLandmarkMeshOverlay({
     )
 
     const isCompact = rect.width < 260
+    const overlayConnections = selectFaceLandmarkOverlayConnections(detection.connections, variant)
 
-    drawConnections(ctx, detection.landmarks, detection.connections.tesselation, mapper, {
+    drawConnections(ctx, detection.landmarks, overlayConnections.tesselation, mapper, {
       color: isCompact ? 'rgba(56, 189, 248, 0.28)' : 'rgba(56, 189, 248, 0.34)',
       width: isCompact ? 0.55 : 0.65,
       step: isCompact ? 2 : 1,
     })
-    drawConnections(ctx, detection.landmarks, detection.connections.contours, mapper, {
+    drawConnections(ctx, detection.landmarks, overlayConnections.contours, mapper, {
       color: 'rgba(37, 99, 235, 0.9)',
       width: isCompact ? 1.05 : 1.2,
     })
-    drawConnections(ctx, detection.landmarks, detection.connections.irises, mapper, {
+    drawConnections(ctx, detection.landmarks, overlayConnections.irises, mapper, {
       color: 'rgba(124, 58, 237, 0.72)',
       width: isCompact ? 0.9 : 1,
     })
@@ -149,14 +158,21 @@ export function FaceLandmarkMeshOverlay({
   }
 
   return (
-    <div ref={containerRef} className={className} aria-hidden>
+    <div
+      ref={containerRef}
+      className={className}
+      aria-hidden
+      data-testid={testId}
+      data-face-landmark-overlay-variant={variant}
+      data-face-landmark-highlight-count={FACE_ANALYSIS_HIGHLIGHT_POINT_INDICES.length}
+    >
       <canvas ref={canvasRef} className="h-full w-full" />
-      {status === 'loading' && (
+      {showStatus && status === 'loading' && (
         <div className="absolute bottom-2 right-2 rounded-full bg-white/85 px-2 py-1 text-[10px] font-semibold text-blue-700 shadow-sm">
           Detecting landmarks
         </div>
       )}
-      {status === 'fallback' && (
+      {showStatus && status === 'fallback' && (
         <div className="absolute bottom-2 right-2 rounded-full bg-white/85 px-2 py-1 text-[10px] font-semibold text-gray-600 shadow-sm">
           Landmark visualization unavailable
         </div>
@@ -172,24 +188,6 @@ function isCrossOriginUrl(url: string) {
   } catch {
     return false
   }
-}
-
-function createCoverMapper(
-  naturalWidth: number,
-  naturalHeight: number,
-  containerWidth: number,
-  containerHeight: number
-) {
-  const scale = Math.max(containerWidth / naturalWidth, containerHeight / naturalHeight)
-  const renderedWidth = naturalWidth * scale
-  const renderedHeight = naturalHeight * scale
-  const offsetX = (containerWidth - renderedWidth) / 2
-  const offsetY = (containerHeight - renderedHeight) / 2
-
-  return (point: FaceLandmarkPoint) => ({
-    x: offsetX + point.x * renderedWidth,
-    y: offsetY + point.y * renderedHeight,
-  })
 }
 
 function drawConnections(
@@ -229,7 +227,7 @@ function drawHighlightPoints(
 ) {
   ctx.save()
   const radius = isCompact ? 2.15 : 2.5
-  for (const index of HIGHLIGHT_POINTS) {
+  for (const index of FACE_ANALYSIS_HIGHLIGHT_POINT_INDICES) {
     const point = landmarks[index]
     if (!point) continue
     const { x, y } = mapPoint(point)
