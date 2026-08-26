@@ -9,7 +9,9 @@ import {
   withPublicDiscoveryInvalidation,
 } from '@/modules/store/application/public-discovery-invalidation'
 
-export const MAX_CATALOG_IMPORT = 100
+// Batch safety guard, not a product-count/UI ceiling. Human Web paginates the
+// catalog and the import review can contain up to 1,000 rows per approval.
+export const MAX_CATALOG_IMPORT = 1000
 export const MAX_STORE_FRAMES = 100
 
 export type CatalogFrameInput = {

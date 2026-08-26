@@ -58,6 +58,11 @@ export const AnalyticsEvent = {
   MerchantOnboardingStarted: 'merchant_onboarding_started',
   MerchantWorkspaceCreated: 'merchant_workspace_created',
   MerchantWorkspaceEntered: 'merchant_workspace_entered',
+  MerchantCatalogWorkspaceEntered: 'merchant_catalog_workspace_entered',
+  MerchantCatalogSourceInspected: 'merchant_catalog_source_inspected',
+  MerchantCatalogImportApproved: 'merchant_catalog_import_approved',
+  MerchantCatalogImportCompleted: 'merchant_catalog_import_completed',
+  MerchantCatalogCorrectionSaved: 'merchant_catalog_correction_saved',
 } as const
 
 export type AnalyticsEventName =
