@@ -1,6 +1,7 @@
 'use client'
 
 import Image from 'next/image'
+import type { RefObject } from 'react'
 import {
   ArrowRight,
   Glasses,
@@ -76,6 +77,7 @@ type ExperiencePresentationShellProps = {
   errorMessage: string | null
   onStartRuntime: () => void
   onShoppingCta: () => void
+  featuredFramesRef: RefObject<HTMLElement>
 }
 
 function ExperienceHeroVisual({
@@ -295,6 +297,7 @@ export function ExperiencePresentationShell({
   errorMessage,
   onStartRuntime,
   onShoppingCta,
+  featuredFramesRef,
 }: ExperiencePresentationShellProps) {
   const isCampaign = merchant.experience?.type === 'CAMPAIGN'
   const headline = merchant.experience?.headline || (isCampaign ? merchant.experience?.name : copy.storeHero) || copy.storeHero
@@ -362,7 +365,11 @@ export function ExperiencePresentationShell({
         <ExperienceHeroVisual merchant={merchant} mode={mode} />
       </section>
 
-      <section className="mt-8 border-t border-slate-200/80 pt-7" aria-labelledby="featured-frames-heading">
+      <section
+        ref={featuredFramesRef}
+        className="mt-8 scroll-mt-6 border-t border-slate-200/80 pt-7"
+        aria-labelledby="featured-frames-heading"
+      >
         <div className="mb-4">
           <h2 id="featured-frames-heading" className="font-serif text-2xl font-semibold text-slate-950 sm:text-3xl">{copy.featuredTitle}</h2>
         </div>

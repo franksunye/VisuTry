@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useTranslations } from 'next-intl'
@@ -204,6 +204,7 @@ export function StoreShopperExperience({
   const [selectionSaving, setSelectionSaving] = useState(false)
   const [selectionSaved, setSelectionSaved] = useState(false)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
+  const featuredFramesRef = useRef<HTMLElement>(null)
   const [storeContinuationQuery, setStoreContinuationQuery] = useState('')
 
   const accent = merchant?.accentColor || '#1F4B5A'
@@ -377,6 +378,10 @@ export function StoreShopperExperience({
     const created = await ensureSession()
     if (created) setPrivacyAccepted(true)
   }
+
+  const scrollToFeaturedFrames = useCallback(() => {
+    featuredFramesRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }, [])
 
   const handleImageSelect = async (file: File, preview: string) => {
     setPhotoPreview(preview)
@@ -559,7 +564,8 @@ export function StoreShopperExperience({
             sessionStarting={sessionStarting}
             errorMessage={errorMessage}
             onStartRuntime={handleAcceptPrivacy}
-            onShoppingCta={() => document.getElementById('privacy-details')?.scrollIntoView({ behavior: 'smooth', block: 'center' })}
+            onShoppingCta={scrollToFeaturedFrames}
+            featuredFramesRef={featuredFramesRef}
           />
         ) : (
           <main className="py-7 sm:py-10">

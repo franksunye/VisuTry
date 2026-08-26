@@ -70,6 +70,26 @@ test.describe('@critical Store Pilot Flow', () => {
     await expect(page.getByRole('button', { name: /start with my photo/i })).toBeVisible({ timeout: 20_000 });
   });
 
+  test('the second Store workspace collection CTA scrolls back to the collection', async ({ page }) => {
+    await page.setViewportSize({ width: 1536, height: 864 });
+    await page.goto('/en/store/ello-sunglasses', { waitUntil: 'networkidle' });
+    await page.getByRole('button', { name: 'Try on your photo', exact: true }).click();
+    await expect(page.getByRole('dialog', { name: /try-on workspace/i })).toBeVisible();
+    await expect(page.getByRole('button', { name: /I understand.*continue/i })).toBeVisible({ timeout: 20_000 });
+
+    const collectionCtas = page.getByRole('button', { name: 'Explore the collection', exact: true });
+    await expect(collectionCtas).toHaveCount(2);
+    const workspaceScroller = page.locator('[role="dialog"] > div').last();
+    await workspaceScroller.evaluate((element) => {
+      element.scrollTop = element.scrollHeight - element.clientHeight;
+    });
+    const beforeScrollTop = await workspaceScroller.evaluate((element) => element.scrollTop);
+
+    await collectionCtas.last().click();
+    await expect.poll(() => workspaceScroller.evaluate((element) => element.scrollTop)).toBeLessThan(beforeScrollTop);
+    await expect(page.locator('#featured-frames-heading')).toBeVisible();
+  });
+
   test('presentation modes remain usable at mobile width', async ({ page }) => {
     await page.setViewportSize({ width: 430, height: 932 });
     await page.goto('/en/store/ello-sunglasses', { waitUntil: 'networkidle' });
