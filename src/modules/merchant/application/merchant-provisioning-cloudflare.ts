@@ -12,6 +12,8 @@ export type CreateMerchantWithOwnerInput = {
   slug?: string
   name?: string
   websiteUrl?: string | null
+  source?: string | null
+  campaign?: string | null
 }
 
 export type MerchantWithOwner = {
@@ -21,6 +23,7 @@ export type MerchantWithOwner = {
     name: string
   }
   membership: MerchantMembershipRecord
+  created: boolean
 }
 
 export class MerchantProvisioningError extends Error {
@@ -59,7 +62,10 @@ function normalizeInput(input: CreateMerchantWithOwnerInput) {
     throw new MerchantProvisioningError('INVALID_MERCHANT_NAME', 'Merchant name must contain letters or numbers.')
   }
 
-  return { name, websiteUrl, baseSlug }
+  const source = input.source?.trim().slice(0, 200) || null
+  const campaign = input.campaign?.trim().slice(0, 200) || null
+
+  return { name, websiteUrl, baseSlug, source, campaign }
 }
 
 async function createMerchantWithOwnerAttempt(
@@ -82,8 +88,8 @@ async function createMerchantWithOwnerAttempt(
     `,
     sql`UPDATE "User" SET "updatedAt" = NOW() WHERE "id" = ${input.userId}`,
     sql`
-      INSERT INTO "Merchant" ("id", "slug", "name", "websiteUrl", "classification", "classificationSource", "classificationReason", "createdAt", "updatedAt")
-      SELECT ${merchantId}, ${slug}, ${normalized.name}, ${normalized.websiteUrl}, ${PUBLIC_SELF_SERVICE_MERCHANT_CLASSIFICATION}, ${PUBLIC_SELF_SERVICE_MERCHANT_CLASSIFICATION_SOURCE}, ${PUBLIC_SELF_SERVICE_MERCHANT_CLASSIFICATION_REASON}, NOW(), NOW()
+      INSERT INTO "Merchant" ("id", "slug", "name", "websiteUrl", "defaultSource", "defaultCampaign", "classification", "classificationSource", "classificationReason", "createdAt", "updatedAt")
+      SELECT ${merchantId}, ${slug}, ${normalized.name}, ${normalized.websiteUrl}, ${normalized.source}, ${normalized.campaign}, ${PUBLIC_SELF_SERVICE_MERCHANT_CLASSIFICATION}, ${PUBLIC_SELF_SERVICE_MERCHANT_CLASSIFICATION_SOURCE}, ${PUBLIC_SELF_SERVICE_MERCHANT_CLASSIFICATION_REASON}, NOW(), NOW()
       WHERE NOT EXISTS (
         SELECT 1 FROM "MerchantMembership" WHERE "userId" = ${input.userId}
       )
@@ -112,12 +118,14 @@ async function createMerchantWithOwnerAttempt(
 
   const existing = results[0]?.[0] as Record<string, unknown> | undefined
   const selected = results[4]?.[0] as Record<string, unknown> | undefined
-  if (existing && selected) return mapMerchantWithOwner(selected)
+  // The first membership is the idempotency record for this user's self-service
+  // workspace. Returning it keeps retries and callback replays side-effect free.
+  if (existing && selected) return mapMerchantWithOwner(selected, false)
   if (!selected) return null
-  return mapMerchantWithOwner(selected)
+  return mapMerchantWithOwner(selected, true)
 }
 
-function mapMerchantWithOwner(row: Record<string, unknown>): MerchantWithOwner {
+function mapMerchantWithOwner(row: Record<string, unknown>, created: boolean): MerchantWithOwner {
   return {
     merchant: {
       id: String(row.merchantId),
@@ -132,6 +140,7 @@ function mapMerchantWithOwner(row: Record<string, unknown>): MerchantWithOwner {
       createdAt: new Date(String(row.membershipCreatedAt ?? row.createdAt)),
       updatedAt: new Date(String(row.membershipUpdatedAt ?? row.updatedAt)),
     },
+    created,
   }
 }
 

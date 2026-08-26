@@ -16,6 +16,8 @@ module.exports = {
   Image: createIcon('image'),
   Loader2: createIcon('loader2'),
   User: createIcon('user'),
+  UserPlus: createIcon('user-plus'),
+  LogIn: createIcon('log-in'),
   Glasses: createIcon('glasses'),
   Shirt: createIcon('shirt'),
   Footprints: createIcon('footprints'),

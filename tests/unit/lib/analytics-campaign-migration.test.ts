@@ -309,6 +309,24 @@ describe('campaign intelligence analytics migration', () => {
     expect(payload.campaign_id).toBeUndefined()
   })
 
+  it('keeps Merchant onboarding events out of the Consumer funnel', () => {
+    window.history.pushState({}, '', '/en/merchant')
+    window.fetch = jest.fn().mockResolvedValue({ ok: true } as Response)
+
+    analytics.trackCustomEvent(AnalyticsEvent.MerchantOnboardingStarted, {
+      entry_point: 'b2b',
+      actor_type: 'merchant_prospect',
+      journey_type: 'visutry_b2b_acquisition',
+    })
+
+    expect(window.gtag).toHaveBeenCalledWith(
+      'event',
+      AnalyticsEvent.MerchantOnboardingStarted,
+      expect.objectContaining({ entry_point: 'b2b', actor_type: 'merchant_prospect' }),
+    )
+    expect(window.fetch).not.toHaveBeenCalled()
+  })
+
   it('migrates style explorer core funnel to recommendation/try-on events', () => {
     analytics.trackStyleExplorerViewed()
     analytics.trackStyleExplorerFramesRecommended({

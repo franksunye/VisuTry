@@ -90,6 +90,12 @@ function resolveEntryPoint(context: CampaignRuntimeContext): AnalyticsEntryPoint
       if (/(^|\/)store(\/|$)/.test(path) && !context.merchant_id && !context.store_id) {
         return 'b2b'
       }
+      // Merchant onboarding and workspace entry are a separate B2B journey,
+      // even before a merchant_id exists. Keep these events out of the
+      // anonymous Consumer funnel.
+      if (/(^|\/)merchant(\/|$)/.test(path) && !context.merchant_id && !context.store_id) {
+        return 'b2b'
+      }
       if (path.includes('/blog') || path.includes('/articles')) return 'blog'
     } catch {
       // fall through
@@ -189,8 +195,11 @@ export function trackCampaignEvent(
   if (typeof window === 'undefined') return
 
   const campaignContext = getCampaignAnalyticsContext()
+  const eventEntryPoint = typeof properties.entry_point === 'string'
+    ? properties.entry_point
+    : campaignContext.entry_point
   const consumerFunnelContext =
-    campaignContext.entry_point === 'b2b'
+    eventEntryPoint === 'b2b'
       ? null
       : getConsumerFunnelContext()
 
@@ -216,7 +225,7 @@ export function trackCampaignEvent(
     eventName,
     payload,
     surface: campaignContext.surface,
-    entryPoint: campaignContext.entry_point,
+    entryPoint: eventEntryPoint,
   })
 
   if (process.env.NODE_ENV === 'development') {

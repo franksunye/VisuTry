@@ -22,7 +22,7 @@ function requestOrigin() {
   return `${protocol}://${host}`
 }
 
-export default async function MerchantWorkspacePage({ params, searchParams }: { params: { locale: string }; searchParams?: { merchantId?: string } }) {
+export default async function MerchantWorkspacePage({ params, searchParams }: { params: { locale: string }; searchParams?: { merchantId?: string; onboarding?: string } }) {
   const session = await getServerSession(authOptions)
   if (!session?.user?.id) redirect(`/${params.locale}/auth/signin?callbackUrl=/${params.locale}/merchant`)
 
@@ -40,5 +40,8 @@ export default async function MerchantWorkspacePage({ params, searchParams }: { 
   const skills = [
     { name: 'VisuTry Merchant', purpose: 'Set up your Store, create Campaigns, and understand performance in one conversation.', url: `${origin}/skills/merchant`, prompt: 'Help me set up my VisuTry Store.' },
   ]
-  return <MerchantControlCenter locale={params.locale} merchants={merchants.map(({ merchant, membership }) => ({ id: merchant.id, slug: merchant.slug, name: merchant.name, role: membership.role }))} selectedMerchantId={selected.merchant.id} control={control} credentials={credentials} endpoint={`${origin}/api/mcp`} skills={skills} />
+  const onboardingState = searchParams?.onboarding === 'created' || searchParams?.onboarding === 'existing'
+    ? searchParams.onboarding
+    : undefined
+  return <MerchantControlCenter locale={params.locale} merchants={merchants.map(({ merchant, membership }) => ({ id: merchant.id, slug: merchant.slug, name: merchant.name, role: membership.role }))} selectedMerchantId={selected.merchant.id} control={control} credentials={credentials} endpoint={`${origin}/api/mcp`} skills={skills} onboardingState={onboardingState} />
 }

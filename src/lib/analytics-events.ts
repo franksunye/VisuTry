@@ -53,6 +53,11 @@ export const AnalyticsEvent = {
   B2bSalesIntentClicked: 'b2b_sales_intent_clicked',
   B2bLeadFormStarted: 'b2b_lead_form_started',
   B2bLeadCreated: 'b2b_lead_created',
+
+  // Human merchant onboarding (B2B activation)
+  MerchantOnboardingStarted: 'merchant_onboarding_started',
+  MerchantWorkspaceCreated: 'merchant_workspace_created',
+  MerchantWorkspaceEntered: 'merchant_workspace_entered',
 } as const
 
 export type AnalyticsEventName =

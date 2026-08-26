@@ -4,10 +4,21 @@ import Link from 'next/link'
 import { useParams } from 'next/navigation'
 import { Glasses } from 'lucide-react'
 import { businessHref } from '@/config/business-site'
+import { analytics } from '@/lib/analytics'
+import { AnalyticsEvent } from '@/lib/analytics-events'
 
 export function BusinessFooter() {
   const params = useParams()
   const locale = params.locale as string
+  const trackMerchantEntry = () => {
+    analytics.trackCustomEvent(AnalyticsEvent.B2bSalesIntentClicked, {
+      entry_point: 'b2b',
+      actor_type: 'merchant_prospect',
+      journey_type: 'visutry_b2b_acquisition',
+      source_journey: 'business_merchant_entry',
+      landing_surface: 'business_footer',
+    })
+  }
 
   const columns = [
     {
@@ -32,7 +43,7 @@ export function BusinessFooter() {
       links: [
         ['Pricing', '/business/pricing'],
         ['Start a Pilot', '/business/pilot'],
-        ['Merchant Sign In', '/merchant'],
+        ['Create Merchant Workspace', '/merchant'],
       ],
     },
     {
@@ -71,7 +82,7 @@ export function BusinessFooter() {
               <ul className="mt-4 space-y-2.5">
                 {column.links.map(([label, href]) => (
                   <li key={href}>
-                    <Link href={businessHref(locale, href)} prefetch={false} className="text-sm text-slate-500 transition hover:text-slate-950">
+                    <Link href={businessHref(locale, href)} prefetch={false} onClick={label === 'Create Merchant Workspace' ? trackMerchantEntry : undefined} className="text-sm text-slate-500 transition hover:text-slate-950">
                       {label}
                     </Link>
                   </li>

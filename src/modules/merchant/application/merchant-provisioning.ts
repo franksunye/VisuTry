@@ -14,6 +14,8 @@ export type CreateMerchantWithOwnerInput = {
   slug?: string
   name?: string
   websiteUrl?: string | null
+  source?: string | null
+  campaign?: string | null
 }
 
 export type MerchantWithOwner = {
@@ -23,6 +25,7 @@ export type MerchantWithOwner = {
     name: string
   }
   membership: MerchantMembershipRecord
+  created: boolean
 }
 
 type MerchantProvisioningAttemptResult = MerchantWithOwner & { created: boolean }
@@ -59,7 +62,10 @@ function normalizeInput(input: CreateMerchantWithOwnerInput) {
     throw new MerchantProvisioningError('INVALID_MERCHANT_NAME', 'Merchant name must contain letters or numbers.')
   }
 
-  return { name, websiteUrl, baseSlug }
+  const source = input.source?.trim().slice(0, 200) || null
+  const campaign = input.campaign?.trim().slice(0, 200) || null
+
+  return { name, websiteUrl, baseSlug, source, campaign }
 }
 
 async function createMerchantWithOwnerAttempt(
@@ -89,6 +95,9 @@ async function createMerchantWithOwnerAttempt(
       },
     })
     if (existingMembership) {
+      // Self-service onboarding provisions the user's first workspace only.
+      // The locked membership is the idempotency record for refreshes, retries,
+      // callback replays, and concurrent submits.
       return {
         merchant: existingMembership.merchant,
         membership: {
@@ -108,6 +117,8 @@ async function createMerchantWithOwnerAttempt(
         slug,
         name: normalized.name,
         websiteUrl: normalized.websiteUrl,
+        defaultSource: normalized.source,
+        defaultCampaign: normalized.campaign,
         classification: PUBLIC_SELF_SERVICE_MERCHANT_CLASSIFICATION,
         classificationSource: PUBLIC_SELF_SERVICE_MERCHANT_CLASSIFICATION_SOURCE,
         classificationReason: PUBLIC_SELF_SERVICE_MERCHANT_CLASSIFICATION_REASON,
@@ -148,7 +159,7 @@ export async function createMerchantWithOwner(
         invalidate: (attempt) => attempt.created,
         mutation: () => createMerchantWithOwnerAttempt(input, normalized, slug),
       })
-      return { merchant: result.merchant, membership: result.membership }
+      return { merchant: result.merchant, membership: result.membership, created: result.created }
     } catch (error) {
       if (error instanceof Prisma.PrismaClientKnownRequestError) {
         if (error.code === 'P2034' && serializationRetries < 4) {
@@ -157,6 +168,7 @@ export async function createMerchantWithOwner(
         }
         if (error.code === 'P2002' && slugAttempt < 4) {
           slugAttempt += 1
+          serializationRetries = 0
           continue
         }
         if (error.code === 'P2002') {

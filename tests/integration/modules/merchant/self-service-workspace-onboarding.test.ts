@@ -46,6 +46,7 @@ describe('Merchant self-service Golden Path integration', () => {
     const access = await requireMerchantMembership({ userId: 'fresh-user', merchantId: result.merchant.id, roles: ['OWNER'] })
 
     expect(result.membership).toMatchObject({ userId: 'fresh-user', merchantId: 'merchant-golden-path', role: 'OWNER' })
+    expect(result.created).toBe(true)
     expect(access).toMatchObject({ userId: 'fresh-user', merchantId: 'merchant-golden-path', role: 'OWNER' })
     expect(tx.merchant.create).toHaveBeenCalledTimes(1)
     expect(tx.merchant.create).toHaveBeenCalledWith(expect.objectContaining({

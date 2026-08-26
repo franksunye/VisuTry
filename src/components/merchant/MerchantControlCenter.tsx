@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
+  ArrowRight,
   BarChart3,
   Check,
   ChevronDown,
@@ -22,6 +23,8 @@ import type {
   MerchantControlCenter as MerchantControlCenterModel,
   MerchantControlExperience,
 } from "@/modules/merchant/application/merchant-control-center";
+import { analytics } from "@/lib/analytics";
+import { AnalyticsEvent } from "@/lib/analytics-events";
 import {
   MERCHANT_DISTRIBUTION_SOURCE_LABELS,
   type MerchantDistributionReport,
@@ -36,6 +39,7 @@ type Props = {
   credentials: MerchantAgentCredentialMetadata[];
   endpoint: string;
   skills: SkillCard[];
+  onboardingState?: "created" | "existing";
 };
 
 const buttonClass =
@@ -1357,6 +1361,7 @@ export function MerchantControlCenter({
   credentials,
   endpoint,
   skills,
+  onboardingState,
 }: Props) {
   const router = useRouter();
   const selectedMerchant = useMemo(
@@ -1367,6 +1372,16 @@ export function MerchantControlCenter({
     control.credentialUsage.active > 0 ||
       credentials.some((credential) => credential.status === "ACTIVE"),
   );
+  useEffect(() => {
+    analytics.trackCustomEvent(AnalyticsEvent.MerchantWorkspaceEntered, {
+      merchant_id: selectedMerchantId,
+      entry_point: "b2b",
+      actor_type: "merchant_prospect",
+      journey_type: "visutry_b2b_acquisition",
+      source_journey: "business_merchant_entry",
+      landing_surface: "merchant_workspace",
+    });
+  }, [selectedMerchantId]);
   const switchMerchant = (merchantId: string) =>
     router.push(
       `/${locale}/merchant?merchantId=${encodeURIComponent(merchantId)}`,
@@ -1454,6 +1469,31 @@ export function MerchantControlCenter({
         </div>
       </header>
       <div className="mx-auto max-w-7xl space-y-6 px-4 py-6 sm:px-6 sm:py-10">
+        {onboardingState ? (
+          <section
+            data-onboarding-state={onboardingState}
+            role="status"
+            className="rounded-2xl border border-emerald-200 bg-emerald-50 px-5 py-5 text-emerald-950 sm:px-6"
+          >
+            <p className="text-xs font-bold uppercase tracking-[0.18em] text-emerald-700">
+              {onboardingState === "created" ? "Merchant workspace created successfully" : "Merchant workspace ready"}
+            </p>
+            <h2 className="mt-2 text-xl font-semibold tracking-tight">
+              Your workspace is ready.
+            </h2>
+            <p className="mt-2 max-w-2xl text-sm leading-6 text-emerald-900/80">
+              {onboardingState === "created"
+                ? "You are the owner of this workspace. Your next step is to add your eyewear catalog."
+                : "You are back in your existing workspace. Your next step is to add your eyewear catalog."}
+            </p>
+            <a
+              href="#experiences"
+              className="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-emerald-800 underline decoration-emerald-300 underline-offset-4 hover:text-emerald-950"
+            >
+              Next: add your eyewear catalog <ArrowRight className="h-4 w-4" aria-hidden="true" />
+            </a>
+          </section>
+        ) : null}
         <Overview
           control={control}
           agentReady={agentReady}
