@@ -1,184 +1,129 @@
 # VisuTry Document Inventory
 
-**Status:** Active operating plan  
-**Created:** 2026-07-08  
-**Last updated:** 2026-08-10
-**Owner:** Product / Engineering  
-**Review cadence:** Weekly during cleanup, monthly after stabilization  
-**Scope:** Document status, ownership, current role, and cleanup actions.
+**Status:** Active documentation governance registry
+**Created:** 2026-07-08
+**Last updated:** 2026-08-26
+**Owner:** Product / Engineering
+**Review cadence:** Monthly, and at every major milestone close
+**Scope:** Authoritative documents, directory lifecycle, exceptions, and cleanup debt. This is intentionally not a file-by-file catalog.
 
----
+## 1. Operating Rule
 
-## 1. Purpose
+Start from `docs/README.md`. Current work must be routed through a source of truth, an accepted ADR, or an active plan/spec linked from those entry points.
 
-This document tracks the health and lifecycle status of VisuTry's documentation system.
+An unlisted document does not become authoritative merely because it is newer or more detailed. Directory placement and its declared status determine its default role.
 
-It should answer:
+## 2. Authority Registry
 
-1. Which documents are active sources of truth?
-2. Which documents are operating plans?
-3. Which documents are supporting references?
-4. Which documents are historical or superseded?
-5. Which documents need cleanup, archive, or spec extraction?
+| Scope | Authority | Owner | Review trigger |
+| --- | --- | --- | --- |
+| Documentation navigation | `docs/README.md` | Product / Engineering | Product direction or directory structure changes |
+| Documentation governance | `docs/document-inventory.md`, ADR-001, ADR-012 | Product / Engineering | Monthly or governance rule changes |
+| Cross-repository product positioning | `docs/product/product-system.md` | Product / Engineering | Product boundary or positioning changes |
+| Product execution priority | `docs/product/product-plan.md` | Product | Milestone, gate, or priority changes |
+| Commercial direction | `docs/strategy/commercial-strategy.md` | Product / Strategy | Commercial thesis changes |
+| GTM execution | `docs/strategy/analytics/gtm.md` | Growth / Product / Analytics | Experiment or measurement model changes |
+| Campaign Intelligence event contract and analytics operations | `docs/product/campaign-intelligence/README.md`, `event-taxonomy.md`, `implementation-progress.md` | Product / Engineering / Growth | Event contract, product boundary, or GA4 measurement model changes |
+| Technical reality | `docs/project/architecture.md` | Engineering | Architecture or runtime boundary changes |
+| Hosting/runtime ownership | ADR-011, `docs/operations/hosting-strategy-vercel-cloudflare.md` | Product / Engineering | Provider or route ownership changes |
+| Operations navigation | `docs/operations/README.md` | Product / Engineering | Runbook or production boundary changes |
+| Decision precedence | `docs/decisions/README.md` and accepted ADRs | Product / Engineering | A durable decision is accepted or superseded |
 
----
+Detailed feature behavior belongs in `docs/product/specs/`. A spec may be authoritative for its bounded feature without being added to this table when it is correctly linked from the product entry point or product plan.
 
-## 2. Status Definitions
+## 3. Directory Lifecycle
+
+| Location | Default role | Close-out rule |
+| --- | --- | --- |
+| `docs/product/specs/` | Durable product contract | Update in place; supersede explicitly when behavior changes |
+| `docs/product/plans/` | Time-bounded execution or validation plan | On completion, update status and merge durable facts into the relevant spec/authority; archive residual history |
+| `docs/product/audits/` | Point-in-time evidence | Retain when evidence is reusable; do not treat as current priority |
+| `docs/product/sales/` | Current sales enablement or validation evidence | Review when offer, pricing, or product boundary changes |
+| `docs/strategy/` | Current strategy plus dated supporting research | Dated execution plans expire when their window closes; route durable conclusions into an authority |
+| `docs/operations/` | Current runbooks plus migration/incident records | Keep active runbooks small; classify completed migration records through `ARCHIVE.md` |
+| `docs/ops/` | Dated release/observation records | Retain as evidence; create a new record for a new observation window |
+| `docs/guides/` | Durable how-to guidance | Review against code/config after relevant implementation changes |
+| `docs/decisions/` | Durable decisions | Never silently rewrite history; supersede with a newer ADR |
+| Any `archive/` directory | Historical context only | Never use as current execution authority |
+| Any `evidence/` directory | Raw or summarized verification evidence | Exempt from manual inventory; link from the governing plan, incident, or audit |
+
+## 4. Required Metadata
+
+Every active plan, spec, guide, runbook, or source of truth must include near the top:
+
+- `Status`
+- `Owner`
+- `Last updated` or `Last reviewed` for sources of truth
+- a clear relationship to the governing authority when that relationship is not obvious from its directory
+
+Recommended lifecycle values:
 
 | Status | Meaning |
 | --- | --- |
-| Active source of truth | Primary decision document for its scope. |
-| Active operating plan | Current execution or governance plan for a bounded area. |
-| Living supporting reference | Evidence, benchmark, or research reference that informs decisions. |
-| Draft | Under discussion; should not yet drive execution alone. |
-| Partially implemented | Some implementation exists, but planned UX, analytics, acceptance criteria, or edge cases remain incomplete. |
-| Implemented core version | Core functionality exists; remaining work is polish, measurement, or enhancement tracking. |
-| Ready for validation | Clear enough to pitch, demo, or test with target users, but not yet ready for full engineering build. |
-| Superseded | Replaced by newer guidance. |
-| Archived historical reference | Kept for context only; not current guidance. |
+| Active source of truth | Primary authority for a scope |
+| Active plan / playbook | Current, bounded work or procedure |
+| Living supporting reference | Evidence or research that informs an authority |
+| Draft | Under discussion; must not drive execution alone |
+| Measuring / validation | Shipped or prepared, with the next decision waiting on evidence |
+| Resolved incident / permanent guardrail | Closed event retained because it defines a safety rule |
+| Superseded | Replaced by named newer guidance |
+| Archived historical reference | Context only; never current instruction |
 
----
+## 5. Creation Budget
 
-## 3. Core Document Inventory
+Before creating a document, answer:
 
-| Path | Type | Status | Owner | Last reviewed | Action |
-| --- | --- | --- | --- | --- | --- |
-| `docs/README.md` | Documentation map | Active source of truth | Product / Engineering | 2026-08-05 | Includes the active Store reading path and operations evidence. |
-| `docs/document-inventory.md` | Documentation governance | Active operating plan | Product / Engineering | 2026-08-05 | Review monthly after stabilization. |
-| `docs/AGENT.md` | Agent instructions | Active source of truth | Engineering | 2026-07-22 | Rewritten as structured agent guide; keep current with architectural rules. |
-| `docs/decisions/README.md` | Decision log guide | Active source of truth | Product / Engineering | 2026-07-22 | Keep current. |
-| `docs/strategy/commercial-strategy.md` | Commercial strategy | Active source of truth | Product / Strategy | 2026-07-08 | Keep concise; do not add benchmark detail. |
-| `docs/strategy/commercial-benchmarks.md` | Benchmark / market reference | Living supporting reference | Product / Strategy | 2026-07-08 | Add external references here first. |
-| `docs/product/README.md` | Product documentation guide | Active source of truth | Product | 2026-08-05 | Store D0 is complete; merchant validation is current; M1 remains gated. |
-| `docs/product/product-plan.md` | Product execution plan | Active source of truth | Product | 2026-08-05 | Run controlled Store merchant validation before M1 hardening or platform integrations. |
-| `docs/project/architecture.md` | Technical architecture | Active source of truth for current technical reality | Engineering | 2026-07-22 | Rewritten with rendering strategy, session data flow, Neon driver, corrected schema. |
-| `docs/guides/development-guide.md` | Development guide | Active operating guide | Engineering | 2026-07-08 | Refreshed against `.env.example` and `package.json`. |
-| `docs/project/vercel-cpu-governance-spec.md` | CPU governance spec | Active operating plan | Engineering | 2026-07-24 | Tracks AP-1 through AP-5 authentication/polling stability work, delivery order, acceptance criteria, and rollback gates. |
-| `docs/operations/vercel-cpu-static-page-pilot.md` | Static page pilot | Active operating plan | Engineering | 2026-07-22 | Updated: Phase 4 (ADR-005) added, excluded pages status corrected. |
-| `docs/project/engineering-optimization-plan.md` | Engineering optimization plan | Active operating plan | Engineering | 2026-07-22 | Three-axis audit (dependencies, architecture, performance). 31 items: 5 P0, 14 P1, 12 P2. Implementation ordered in 7 batches. |
-| `docs/project/seo-backlog.md` | SEO / growth backlog | Active task ledger | Growth / Product | 2026-07-27 | Contains tasks only; priority and activation are governed by the GTM source of truth. |
+1. Can this update an existing authority, plan, spec, or change log instead?
+2. What decision or workflow will consume it?
+3. Who owns it?
+4. What event ends its active life?
+5. When it ends, will it be merged, retained as evidence, archived, or deleted?
 
----
+Avoid separate “summary”, “complete”, “ready”, and “final” documents when the same facts can update the originating plan or spec. A separate record is appropriate when it preserves reproducible verification, an incident timeline, externally sourced research, or a decision rationale.
 
-## 4. Strategy and Growth Documents
+## 6. Automated Audit
 
-| Path | Type | Status | Owner | Last reviewed | Action |
-| --- | --- | --- | --- | --- | --- |
-| `docs/strategy/legacy-document-audit.md` | Legacy document audit | Active operating audit | Product / Strategy | 2026-07-08 | Use to guide cleanup of dated strategy docs. |
-| `docs/strategy/2026-05-25-b2b-commerce-commercialization-roadmap.md` | B2B roadmap | Active supporting roadmap | Product / Strategy | 2026-07-08 | Status header added; use as B2B reference only. |
-| `docs/strategy/2026-06-28-free-face-shape-growth-commercialization-plan.md` | Free detector / growth research | Living supporting reference | Product / Growth | 2026-07-27 | Preserve product and market evidence; current execution priority lives in the GTM source of truth. |
-| `docs/strategy/seo/2026-06-30-product-architecture-seo-geo-sync.md` | SEO/GEO product architecture | Active source of truth for SEO/GEO page architecture | Product / Growth | 2026-07-08 | Keep active. |
-| `docs/strategy/seo/2026-06-12-growth-kpi-operating-plan.md` | Growth KPI plan | Superseded historical reference | Growth | 2026-07-27 | Preserve historical baselines; current metrics and cadence live in the GTM source of truth. |
-| `docs/strategy/growth/2026-06-18-external-growth-sprint.md` | External growth sprint | Superseded time-boxed plan | Growth | 2026-07-27 | Sprint window ended; unfinished tasks are stopped unless migrated into a current GTM experiment. |
-| `docs/strategy/analytics/gtm.md` | Qualified-traffic GTM operating strategy | Active source of truth for GTM execution | Growth / Product / Analytics | 2026-08-10 | v3.2 freezes AI-facing positioning and defines qualified-traffic and Checkout measurement rules. |
-| `docs/strategy/growth/2026-07-02-60-referring-domains-gtm-plan.md` | Referring-domain campaign | Superseded historical execution reference | Growth | 2026-07-27 | Fixed 60-domain target and channel quotas are stopped; reuse evidence only through the active GTM queue. |
-| `docs/strategy/reseller-technical-roadmap.md` | Reseller technical roadmap | Supporting technical roadmap | Product / Engineering | 2026-07-08 | Keep as supporting reference; not current priority unless pulled forward. |
-| `docs/strategy/2026-05-25-paid-customer-seo-geo-relaunch-plan.md` | Paid customer / SEO relaunch plan | Historical commercial evidence | Product / Growth | 2026-07-08 | Keep or archive after evidence is reflected in strategy/product plan. |
-| `docs/strategy/content/3-month-content-strategy.md` | Q4 2025 content plan | Historical / archive candidate | Growth | 2026-07-08 | Historical notice added; consider moving to archive later. |
-| `docs/strategy/archive/seo/programmatic-seo-execution-plan.md` | Old programmatic SEO plan | Archived historical reference | Growth | 2026-07-08 | Keep archived. |
+Run:
 
----
+```bash
+npm run docs:audit
+```
 
-## 5. Product Specs Inventory
+The audit reports repository size, missing `Status`/`Owner`, oversized Markdown files, authority metadata, and broken local Markdown links. Use JSON for follow-up tooling:
 
-| Path | Type | Status | Owner | Last reviewed | Action |
-| --- | --- | --- | --- | --- | --- |
-| `docs/product/specs/frame-compare.md` | Product spec | Implemented core version | Product | 2026-07-08 | Core route exists; track analytics, homepage/product exposure, sharing, and custom-frame enhancements. |
-| `docs/product/specs/credits-pack-conversion.md` | Product spec | Implemented core / Measuring | Product | 2026-08-10 | Face Analysis report unlock and Checkout lifecycle measurement shipped; keep stable during observation. |
-| `docs/ops/consumer-checkout-observation-2026-08-10.md` | Consumer Checkout runbook / release record | Active observation runbook | Product / Growth / Engineering | 2026-08-10 | Use for the next 14-day / 30–50 Session review; do not restart from raw event-count comparisons. |
-| `docs/product/specs/visutry-store-landing-page.md` | Product spec / market validation asset | Shipped / Measuring | Product / Growth | 2026-08-05 | Continue measuring qualified CTA and lead evidence alongside outreach. |
-| `docs/product/specs/visutry-store-engineering-foundation.md` | Mandatory engineering spec | Implemented for D0 / Ongoing baseline | Engineering / Product | 2026-08-05 | Enforce on every later Store change; Gate A1 remains closed. |
-| `docs/product/specs/visutry-store-sales-demo.md` | Product / engineering spec | Implemented / Controlled validation | Product / Engineering / Growth | 2026-08-05 | Run team-operated demos and collect own-frame sample and pilot evidence. |
-| `docs/product/specs/visutry-store-mvp.md` | Product spec | D0 implemented / M1 gated | Product / Engineering | 2026-08-05 | Start M1 only after Gate B or an explicit Product decision. |
-| `docs/product/plans/visutry-store-implementation-plan.md` | Active execution plan | D0 shipped / Merchant validation active | Product / Engineering / Growth | 2026-08-05 | Use as Store sequencing and gate authority. |
-| `docs/ops/store-d0-operator-note.md` | Operating note | Active controlled-demo runbook | Engineering / Product | 2026-08-05 | Follow for every D0 demo while Gate A1 is closed. |
-| `docs/ops/store-d0-production-verification-2026-08-05.md` | Verification record | Passed controlled D0 baseline | Engineering | 2026-08-05 | Preserve as release evidence; add a new dated record for later verification rounds. |
+```bash
+npm run docs:audit -- --json
+```
 
----
+`npm run docs:audit:strict` fails only when an authority is missing/under-specified or a local Markdown link is broken. Missing metadata elsewhere remains cleanup debt until the existing backlog is reduced; it is visible but not yet a global CI gate.
 
-## 6. Decision Records Inventory
+## 7. Current Cleanup Queue
 
-| Path | Type | Status | Owner | Last reviewed | Action |
-| --- | --- | --- | --- | --- | --- |
-| `docs/decisions/ADR-001-documentation-governance.md` | Decision record | Accepted | Product / Engineering | 2026-07-08 | Keep. |
-| `docs/decisions/ADR-002-commercial-strategy-benchmark-split.md` | Decision record | Accepted | Product / Strategy | 2026-07-08 | Keep. |
-| `docs/decisions/ADR-003-product-plan-execution-source-of-truth.md` | Decision record | Accepted | Product | 2026-07-08 | Keep. |
-| `docs/decisions/ADR-004-frame-compare-core-implemented.md` | Decision record | Accepted | Product / Engineering | 2026-07-08 | Keep. |
-| `docs/decisions/ADR-005-ssr-to-client-gate.md` | Decision record | Accepted | Engineering | 2026-07-22 | Records decision to remove SSR getServerSession from all public pages and adopt client-side gate pattern. |
-| `docs/decisions/ADR-006-store-modular-multitenant-foundation.md` | Decision record | Accepted / Implemented at D0 | Product / Engineering | 2026-08-05 | Keep as the Store architecture authority; Public Blob POC does not open Gate A1. |
-
----
-
-## 7. New Source Files (ADR-005 era, 2026-07-22)
-
-The following source files were created or significantly modified during the rendering strategy migration (commits `011381e` through `48fbce9`):
-
-| File | Purpose |
-| --- | --- |
-| `src/components/style-explorer/StyleExplorerGate.tsx` | Client gate for style-explorer page |
-| `src/components/compare/ComparePageClient.tsx` | Client gate for compare page |
-| `src/components/try-on/TryOnGate.tsx` | Client gate for try-on/[type] page |
-| `src/components/face-analysis/FaceAnalysisGate.tsx` | Client gate for face-analysis page |
-| `src/components/dashboard/DashboardPageClient.tsx` | Client gate for dashboard page |
-| `src/components/dashboard/HistoryPageClient.tsx` | Client gate for dashboard/history page |
-| `src/components/payments/PaymentsPageClient.tsx` | Client gate for payments page |
-| `src/components/debug-images/DebugImagesPageClient.tsx` | Client gate for debug-images page |
-| `src/app/api/payment/history/route.ts` | Payment history API endpoint (for PaymentsPageClient) |
-
----
-
-## 8. Cleanup Backlog
-
-| Priority | Task | Status |
+| Priority | Action | State |
 | --- | --- | --- |
-| P0 | Add documentation map and product plan. | Done |
-| P0 | Add decisions directory and first ADRs. | Done |
-| P0 | Add first product specs. | Done |
-| P0 | Add legacy strategy document audit. | Done |
-| P0 | Create ADR-005 for SSR to client-gate migration. | Done (2026-07-22) |
-| P0 | Update architecture.md with rendering strategy and session data flow. | Done (2026-07-22) |
-| P0 | Rewrite AGENT.md as structured agent guide. | Done (2026-07-22) |
-| P0 | Update cpu-governance-spec.md and static-page-pilot.md verified facts. | Done (2026-07-22) |
-| P1 | Add status headers to active dated strategy documents. | Partially done |
-| P1 | Mark or archive expired content strategy documents. | Done: marked historical; archive move later if needed. |
-| P1 | Add source-of-truth references to GTM handbook. | Done |
-| P1 | Review architecture and development guide against current code. | Done (architecture.md refreshed 2026-07-22) |
-| P1 | Align first specs with actual implementation state. | Done |
-| P1 | Strengthen product plan into execution board. | Done |
-| P1 | Advance Store MVP spec to ready for validation. | Done |
-| P1 | Add Store landing page validation spec and product-plan alignment. | Done |
-| P1 | Align Store plan, specs, ADR, operator note, and inventory with the production-verified D0 state. | Done (2026-08-05) |
-| P2 | Consider moving all historical strategy documents into archive after status review. | Later |
-| P2 | Fix 3 pre-existing unit test failures (locale URL routing). | Not started |
-| P2 | Add E2E tests for authenticated user flows (login → try-on → history). | Not started |
-| P2 | Refactor perfLogger to use AsyncLocalStorage for request-scoped state. | Not started |
+| P0 | Replace the stale full manual catalog with this authority registry and directory lifecycle | Done 2026-08-26 |
+| P0 | Add repeatable documentation health audit | Done 2026-08-26 |
+| P0 | Move the expired Q4 2025 / 500-page content execution bundle under strategy archive | Done 2026-08-26 |
+| P1 | Add missing metadata to active product plans/specs and active operations/guides | Open; reduce by area, not by mass editing |
+| P1 | Consolidate Campaign Intelligence phase/completion reports into a durable spec, progress ledger, and evidence set | Done 2026-08-26; historical records retained in `docs/product/campaign-intelligence/archive/` |
+| P1 | Review old GA tracking implementation/summary documents; merge durable facts and archive the rest | Done 2026-08-26; current measurement authority is Campaign Intelligence |
+| P2 | Review large Markdown files over 30 KB for extraction or consolidation | Open |
+| P2 | Convert operations archive-by-status into physical archive folders only when links and forensic workflows remain clear | Deferred |
 
----
+## 8. Review Checklist
 
-## 9. Review Questions
+At milestone close or monthly review:
 
-During each documentation review, answer:
+1. Run `npm run docs:audit`.
+2. Confirm every authority still describes current reality.
+3. Close or archive plans whose decision window ended.
+4. Merge durable conclusions from audits and completion reports into specs or authorities.
+5. Remove duplicate/empty documents only after confirming they contain no unique evidence.
+6. Update this file only for authorities, lifecycle rules, and explicit cleanup exceptions—not for every new document.
 
-1. Does each active document still have a clear owner and status?
-2. Does any active document contain content that belongs in another layer?
-3. Did a new decision happen that should become an ADR?
-4. Did a product plan item become ready for a spec?
-5. Did a dated operating plan expire and need archive or completion status?
-6. Did any spec status drift from implementation reality?
-
----
-
-## 10. Change Log
+## Change Log
 
 | Date | Change |
 | --- | --- |
-| 2026-07-08 | Created v0.1 document inventory and cleanup backlog. |
-| 2026-07-08 | Updated inventory after adding decisions, product specs, and legacy document audit. |
-| 2026-07-08 | Updated P1 governance status after adding B2B roadmap header, GTM source-of-truth header, and historical notice to Q4 content plan. |
-| 2026-07-08 | Marked technical documentation review complete after refreshing architecture and development guide. |
-| 2026-07-08 | Updated first product spec statuses after code review: Frame Compare implemented core; Credits Pack conversion partially implemented. |
-| 2026-07-08 | Updated inventory after adding ADR-003, ADR-004, execution board, and Store MVP validation-ready status. |
-| 2026-07-08 | Added Store landing page validation spec and aligned product plan / Store MVP sequence around landing-page-first validation. |
-| 2026-07-22 | Major update: Added ADR-005, updated architecture.md (rendering strategy, session data flow, Neon driver, corrected schema), rewrote AGENT.md, updated cpu-governance-spec.md and static-page-pilot.md verified facts, added new source files inventory section. |
-| 2026-07-24 | Updated the CPU governance inventory entry for the AP-1 through AP-5 authentication/polling stability backlog. |
-| 2026-08-05 | Aligned Store documentation with completed D0 engineering and controlled production verification; recorded merchant validation as current, Gate A1 as closed, and M1 as gated. |
+| 2026-07-08 | Created the original file-by-file inventory and cleanup backlog. |
+| 2026-08-26 | Replaced the non-scaling catalog with an authority registry, directory lifecycle, creation budget, automated audit, and focused cleanup queue per ADR-012. |

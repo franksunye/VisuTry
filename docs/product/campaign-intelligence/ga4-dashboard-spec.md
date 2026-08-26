@@ -1,8 +1,8 @@
 # GA4 Campaign Dashboard Specification
 
-Status: Spec for post–Phase 2 configuration  
-Owner: Product + Growth  
-Last updated: 2026-08-10
+**Status:** Active supporting spec for GA4 configuration
+**Owner:** Product / Growth
+**Last updated:** 2026-08-26
 
 Related:
 

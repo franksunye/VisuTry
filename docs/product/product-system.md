@@ -2,6 +2,7 @@
 
 **Status:** Active source of truth for cross-repository product positioning  
 **Created:** 2026-07-08  
+**Last reviewed:** 2026-08-26
 **Owner:** Product / Engineering  
 **Review cadence:** Monthly, or when Web, SDK, or Mobile ownership changes  
 **Scope:** Relationship between `VisuTry`, `visutry-tryon-sdk`, and `visutry-mobile`.

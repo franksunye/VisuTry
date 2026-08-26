@@ -1,5 +1,9 @@
 # VisuTry Strategy Archive
 
+**Status:** Active archive index
+**Owner:** Product / Strategy
+**Last updated:** 2026-08-26
+
 This folder is reserved for strategy documents that are historical, superseded, or no longer first-priority execution guidance.
 
 The current top-level commercial source of truth is:
@@ -19,14 +23,15 @@ Move a document here when one or more of the following is true:
 3. Its primary recommendation conflicts with the current commercial strategy.
 4. It is useful as historical context but should not guide current execution.
 
-## First candidates for archive
+## Archived bundles
 
 The following documents should be archived or marked as superseded during the first cleanup pass:
 
-| Current document | Reason | Recommended archive path |
+| Archived document/bundle | Reason | Archive path |
 | --- | --- | --- |
-| `docs/strategy/seo/programmatic-seo-execution-plan.md` | Earlier page-count-first SEO plan; the current strategy prioritizes commercial workflow and high-intent product continuation over generating 1000+ pages. | `docs/strategy/archive/seo/programmatic-seo-execution-plan.md` |
-| `docs/strategy/content/3-month-content-strategy.md` | Q4 2025 time-boxed content plan; useful historical reference but no longer current execution guidance. | `docs/strategy/archive/content/3-month-content-strategy.md` |
+| Earlier page-count-first SEO documentation bundle | Current strategy prioritizes commercial workflow and high-intent product continuation over raw page count. The old plan, README, quickstart, implementation/monitoring guides, and delivery summary belong to one historical phase. | `docs/strategy/archive/seo/` |
+| Q4 2025 content and 500-page programmatic SEO execution bundle | Time window expired; implementation guides, checklists, summaries, and page templates describe the same historical delivery phase. | `docs/strategy/archive/content/` |
+| Old GA tracking implementation and upgrade bundle | Superseded by the Campaign Intelligence event contract and GA4 configuration path. | `docs/strategy/archive/analytics/` |
 
 ## Rule of thumb
 

@@ -225,12 +225,11 @@ Edit `messages/en.json`:
 
 ## 📚 Further Reading
 
-- [Implementation Summary](./universal-try-on-implementation-summary.md)
-- [Database Migration Guide](./database-migration-guide.md)
+- [Implementation Summary](../archive/project/universal-try-on-implementation-summary.md)
+- [Database Migration Guide](../archive/project/database-migration-guide.md)
 - [Deployment Checklist](./deployment-ready-checklist.md)
-- [Full Checklist](./universal-try-on-checklist.md)
+- [Full Checklist](../archive/project/universal-try-on-checklist.md)
 
 ## 🎉 Success!
 
 You're now ready to use the universal try-on system. Add new types easily, customize behavior, and scale effortlessly!
-

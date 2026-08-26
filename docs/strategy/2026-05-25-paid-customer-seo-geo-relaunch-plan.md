@@ -128,7 +128,7 @@ The existing SEO materials were mostly created around 2025-10. They include:
 
 - SEO backlog under `docs/project/seo-backlog.md`
 - GTM/SEO handbook under `docs/strategy/analytics/gtm.md`
-- Programmatic SEO plan under `docs/strategy/seo/programmatic-seo-execution-plan.md`
+- Historical Programmatic SEO plan under `docs/strategy/archive/seo/programmatic-seo-execution-plan.md`
 - Existing blog and programmatic routes in the app
 
 The site already has the skeleton for SEO, but the 2026 restart should be smaller and more targeted:

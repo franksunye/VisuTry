@@ -392,5 +392,4 @@ const v2 = PromptLoader.load('try-on', 'v2-detailed')
 3. 🔄 添加性能监控
 4. 🔄 考虑数据库存储（如果需要动态更新）
 
-查看完整方案: [PROMPT_MANAGEMENT_STRATEGY.md](./PROMPT_MANAGEMENT_STRATEGY.md)
-
+查看完整方案: [prompt-management-strategy.md](./prompt-management-strategy.md)

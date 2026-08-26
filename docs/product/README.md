@@ -33,6 +33,7 @@ The main goal is to make it clear what should be built next, why it matters, how
 | `docs/product/specs/visutry-store-engineering-foundation.md` | Mandatory Store/Commerce architecture, tenancy, usage, privacy, idempotency and test constraints. | **Implemented baseline; still mandatory.** |
 | `docs/product/specs/visutry-store-mvp.md` | Acceptance contract for a real merchant Pilot. | **Technical core implemented; real merchant acceptance pending.** |
 | `docs/ops/store-d0-production-verification-2026-08-05.md` | Immutable historical D0 production evidence. | **Historical evidence, not current execution state.** |
+| `docs/product/campaign-intelligence/README.md` | Event contract, implementation ledger, GA4 dashboard spec, and console runbook. | **Phases 1–3 shipped; GA4 observation/configuration pending.** |
 
 ---
 

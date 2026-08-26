@@ -3,6 +3,7 @@
 **Status:** Active source of truth  
 **Created:** 2026-07-08  
 **Last updated:** 2026-08-06  
+**Owner:** Product / Strategy
 **Scope:** Commercial direction, product packaging, target customer layers, and the relationship between VisuTry's consumer, prosumer, and B2B strategies.
 
 ---
