@@ -4,6 +4,7 @@ import { notFound } from 'next/navigation'
 import { ArrowUpRight, ExternalLink, ImageIcon, MessageCircle, MousePointerClick, ScanFace, Store, Users } from 'lucide-react'
 import { createStoreRuntime, getExperienceAdminWorkspace, getMerchantInsights } from '@/modules/store/application'
 import type { MerchantInsightsDto } from '@/modules/store/application/get-merchant-insights'
+import { MERCHANT_CLASSIFICATION_LABELS, normalizeMerchantClassification, type MerchantClassification } from '@/modules/merchant/domain/merchant-classification'
 
 export const dynamic = 'force-dynamic'
 
@@ -17,8 +18,19 @@ function price(value: number | null, currency: string | null) {
 }
 function formatDate(value: string) { return new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric' }).format(new Date(value)) }
 
-function Provenance({ reference }: { reference: boolean }) {
-  return reference ? <span title="Simulation data — not live merchant traffic" className="rounded-full bg-amber-50 px-2.5 py-1.5 text-[11px] font-semibold text-amber-800 ring-1 ring-amber-200">Reference</span> : <span className="rounded-full bg-emerald-50 px-2.5 py-1.5 text-[11px] font-semibold text-emerald-700 ring-1 ring-emerald-200">Live</span>
+function Provenance({ classification }: { classification: string }) {
+  const normalized = normalizeMerchantClassification(classification)
+  const classes: Record<MerchantClassification, string> = {
+    REAL: 'bg-emerald-50 text-emerald-700 ring-emerald-200',
+    POSSIBLE_EXTERNAL: 'bg-sky-50 text-sky-700 ring-sky-200',
+    INTERNAL: 'bg-slate-100 text-slate-700 ring-slate-200',
+    TEST: 'bg-orange-50 text-orange-700 ring-orange-200',
+    AUTOMATION: 'bg-fuchsia-50 text-fuchsia-700 ring-fuchsia-200',
+    REFERENCE: 'bg-amber-50 text-amber-800 ring-amber-200',
+    SUSPICIOUS: 'bg-red-50 text-red-700 ring-red-200',
+    UNKNOWN: 'bg-slate-50 text-slate-500 ring-slate-200',
+  }
+  return <span title={normalized === 'REFERENCE' ? 'Simulation data — not live merchant traffic' : undefined} className={`rounded-full px-2.5 py-1.5 text-[11px] font-semibold ring-1 ${classes[normalized]}`}>{MERCHANT_CLASSIFICATION_LABELS[normalized]}</span>
 }
 
 function EmptyState({ title, copy }: { title: string; copy: string }) {
@@ -65,7 +77,7 @@ export default async function AdminMerchantInsightsPage({ params }: PageProps) {
   return (
     <div className="space-y-8 pb-12">
       <header className="flex flex-col justify-between gap-6 border-b border-slate-200 pb-7 lg:flex-row lg:items-end">
-        <div className="flex items-start gap-4"><div className="relative flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-slate-100 ring-1 ring-slate-200">{merchant.logoUrl ? <Image src={merchant.logoUrl} alt="" fill sizes="64px" className="object-cover" /> : <Store className="h-7 w-7 text-slate-400" />}</div><div><div className="flex flex-wrap items-center gap-3"><h1 className="text-3xl font-semibold tracking-tight text-slate-950 sm:text-4xl">{merchant.name}</h1><Provenance reference={reference} /></div><p className="mt-2 text-sm text-slate-500">Merchant overview · shopper activity · campaign performance</p><div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-xs text-slate-500"><span>{catalog.active} active frames</span><span>{activeExperiences} active Experiences</span><span>{merchant.status[0] + merchant.status.slice(1).toLowerCase()}</span></div></div></div>
+        <div className="flex items-start gap-4"><div className="relative flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-slate-100 ring-1 ring-slate-200">{merchant.logoUrl ? <Image src={merchant.logoUrl} alt="" fill sizes="64px" className="object-cover" /> : <Store className="h-7 w-7 text-slate-400" />}</div><div><div className="flex flex-wrap items-center gap-3"><h1 className="text-3xl font-semibold tracking-tight text-slate-950 sm:text-4xl">{merchant.name}</h1><Provenance classification={merchant.classification} /></div><p className="mt-2 text-sm text-slate-500">Merchant overview · shopper activity · campaign performance</p><div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-xs text-slate-500"><span>{catalog.active} active frames</span><span>{activeExperiences} active Experiences</span><span>{merchant.status[0] + merchant.status.slice(1).toLowerCase()}</span></div></div></div>
         <div className="flex flex-wrap gap-2"><Link href={`/admin/store/merchants/${merchant.id}/experiences`} className="inline-flex items-center gap-2 rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50">Experiences</Link><Link href={`/en/store/${merchant.slug}`} target="_blank" className="inline-flex items-center gap-2 rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white hover:bg-slate-700">Open public Store <ArrowUpRight className="h-4 w-4" /></Link>{merchant.websiteUrl && !merchant.websiteUrl.includes('example.com') ? <Link href={merchant.websiteUrl} target="_blank" className="inline-flex items-center gap-2 rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50">Website <ExternalLink className="h-4 w-4" /></Link> : null}</div>
       </header>
 

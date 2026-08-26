@@ -30,6 +30,8 @@ export type MerchantRecord = {
   contactEmail: string | null
   accentColor: string | null
   status: MerchantStatus
+  /** Admin/business-analysis metadata; never used for tenant authorization. */
+  classification?: string | null
   pilotType?: string | null
   sponsoredUsagePolicyKey?: string | null
   referenceData?: boolean

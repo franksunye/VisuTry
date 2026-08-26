@@ -43,6 +43,7 @@ function mapMerchant(row: Row): MerchantRecord {
     contactEmail: nullableString(row.contactEmail),
     accentColor: nullableString(row.accentColor),
     status: stringValue(row.status) as MerchantStatus,
+    classification: nullableString(row.classification),
     pilotType: nullableString(row.pilotType),
     sponsoredUsagePolicyKey: nullableString(row.sponsoredUsagePolicyKey),
     referenceData: Boolean(row.referenceData),
@@ -138,7 +139,7 @@ function mapExperience(row: Row, frameIds: string[]): ExperienceRecord {
 
 const merchantColumns = `
   "id", "slug", "name", "logoUrl", "websiteUrl", "contactEmail", "accentColor",
-  "status", "pilotType", "sponsoredUsagePolicyKey", "referenceData", "defaultSource",
+  "status", "classification", "pilotType", "sponsoredUsagePolicyKey", "referenceData", "defaultSource",
   "defaultCampaign", "tryOnEnabled", "compareEnabled", "maxCompareFrames", "inquiryEnabled",
   "planCode", "commercialStage", "pricingVersion", "entitlementVersion", "commerceSessionAllowance",
   "standardRenderAllowance", "premiumRenderAllowance", "campaignAllowance", "entitlementEffectiveFrom",

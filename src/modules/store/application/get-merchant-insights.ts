@@ -22,6 +22,7 @@ export type MerchantInsightsDto = {
     websiteUrl: string | null
     accentColor: string | null
     status: string
+    classification: string
     pilotType: string | null
     referenceData: boolean
     experiencePolicy: StoreExperiencePolicy
@@ -512,6 +513,7 @@ export async function getMerchantInsights(input: {
       websiteUrl: merchant.websiteUrl,
       accentColor: merchant.accentColor,
       status: merchant.status,
+      classification: merchant.classification ?? 'UNKNOWN',
       pilotType: merchant.pilotType ?? null,
       referenceData: merchant.referenceData === true || experienceReferenceData,
       experiencePolicy: resolveStoreExperiencePolicy(merchant),
