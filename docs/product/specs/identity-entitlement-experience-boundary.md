@@ -1,6 +1,6 @@
 # VisuTry Identity, Entitlement & Experience Boundary
 
-**Status:** Approved product / architecture baseline  
+**Status:** CLOSED / SHIPPED
 **Owner:** Product / Engineering  
 **Created:** 2026-08-26  
 **Scope:** Shopper identity, Consumer account continuity inside Merchant Experiences, Merchant membership, entitlement ownership, and payment/navigation boundaries.
