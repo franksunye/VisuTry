@@ -16,10 +16,14 @@ import {
 import { ImageUpload } from '@/components/upload/ImageUpload'
 import { StoreTryOnComparePanel } from '@/components/store/StoreTryOnComparePanel'
 import { ExperiencePresentationShell, type ExperiencePresentationCopy } from '@/components/store/ExperiencePresentationShell'
+import { StoreFitProfile, type StoreFitProfileCopy } from '@/components/store/StoreFitProfile'
 import { analyzeFaceLandmarkFile } from '@/lib/face-landmark-client'
+import type { FaceLandmarkDetectionResult } from '@/lib/face-landmark-client'
+import type { FaceGeometryAnalysis } from '@/types/face-analysis'
 import { maxSelectableStoreFrames, type StoreExperiencePolicy } from '@/modules/store/domain/experience-policy'
 import { resolvePresentationMode } from '@/modules/store/domain/presentation-mode'
 import type { PresentationMode } from '@/modules/store/domain/presentation-mode'
+import { resolveStoreSelectionCtaState, resolveStoreWorkspaceStep } from '@/components/store/store-workspace-ux'
 
 type MerchantProfile = {
   id: string
@@ -203,8 +207,11 @@ export function StoreShopperExperience({
   const [selectedIds, setSelectedIds] = useState<string[]>([])
   const [selectionSaving, setSelectionSaving] = useState(false)
   const [selectionSaved, setSelectionSaved] = useState(false)
+  const [faceGeometry, setFaceGeometry] = useState<FaceGeometryAnalysis | null>(null)
+  const [faceDetection, setFaceDetection] = useState<FaceLandmarkDetectionResult | null>(null)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const featuredFramesRef = useRef<HTMLElement>(null)
+  const tryOnSectionRef = useRef<HTMLDivElement>(null)
   const [storeContinuationQuery, setStoreContinuationQuery] = useState('')
 
   const accent = merchant?.accentColor || '#1F4B5A'
@@ -324,6 +331,8 @@ export function StoreShopperExperience({
 
       try {
         const landmark = await analyzeFaceLandmarkFile(file)
+        setFaceGeometry(landmark.geometry)
+        setFaceDetection(landmark.detection)
         geometryAnalysis = {
           status: landmark.geometry.status,
           measuredShape: landmark.geometry.measuredShape,
@@ -342,6 +351,8 @@ export function StoreShopperExperience({
         }
       } catch {
         // Fall back to catalog-only ranking when on-device analysis fails.
+        setFaceGeometry(null)
+        setFaceDetection(null)
       }
 
       try {
@@ -389,6 +400,8 @@ export function StoreShopperExperience({
     setRecommendations([])
     setSelectedIds([])
     setSelectionSaved(false)
+    setFaceGeometry(null)
+    setFaceDetection(null)
     setErrorMessage(null)
 
     const activeSession = await ensureSession()
@@ -431,6 +444,8 @@ export function StoreShopperExperience({
     setRecommendations([])
     setSelectedIds([])
     setSelectionSaved(false)
+    setFaceGeometry(null)
+    setFaceDetection(null)
   }
 
   const toggleFrame = (frameId: string) => {
@@ -479,6 +494,16 @@ export function StoreShopperExperience({
     }
   }
 
+  const scrollToTryOn = useCallback(() => {
+    tryOnSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }, [])
+
+  useEffect(() => {
+    if (!selectionSaved || typeof window === 'undefined') return
+    const frame = window.requestAnimationFrame(() => scrollToTryOn())
+    return () => window.cancelAnimationFrame(frame)
+  }, [selectionSaved, scrollToTryOn])
+
   if (loadState === 'loading') {
     return (
       <div className="flex min-h-[50vh] items-center justify-center">
@@ -500,11 +525,41 @@ export function StoreShopperExperience({
     )
   }
 
-  const currentStep = selectionSaved && merchant.experiencePolicy.tryOnEnabled ? 3 : photoReady ? 2 : 1
+  const currentStep = resolveStoreWorkspaceStep({
+    photoReady,
+    selectionContinued: selectionSaved,
+    tryOnEnabled: merchant.experiencePolicy.tryOnEnabled,
+  })
   const maxSelectableFrames = maxSelectableStoreFrames(merchant.experiencePolicy)
   const selectedFrames = recommendations.filter((frame) => selectedIds.includes(frame.id))
   const isCampaign = merchant.experience?.type === 'CAMPAIGN'
   const continuationText = (key: string, fallback: string) => t.has(key) ? t(key) : fallback
+  const fitProfileCopy: StoreFitProfileCopy = {
+    eyebrow: continuationText('fitProfile.eyebrow', 'Lightweight fit guidance'),
+    title: continuationText('fitProfile.title', 'Your fit profile'),
+    detected: continuationText('fitProfile.detected', '✓ Fit profile detected'),
+    analyzing: continuationText('fitProfile.analyzing', 'Building your fit profile…'),
+    unavailableTitle: continuationText('fitProfile.unavailableTitle', 'Fit profile not available yet'),
+    unavailableBody: continuationText('fitProfile.unavailableBody', 'We could not read a fit profile from this photo, so recommendations use the available frame details.'),
+    profileLabel: continuationText('fitProfile.profileLabel', 'Face / fit summary'),
+    whyTitle: continuationText('fitProfile.whyTitle', 'Why these frames'),
+    mapAlt: continuationText('fitProfile.mapAlt', 'Your photo with a subtle fit map'),
+    mapFallback: continuationText('fitProfile.mapFallback', 'Fit map unavailable'),
+  }
+  const stepChooseFrames = continuationText('steps.chooseFrames', 'Choose frames')
+  const stepStartTryOn = continuationText('steps.startTryOn', 'Start Try-On')
+  const selectionCtaState = resolveStoreSelectionCtaState({
+    selectionContinued: selectionSaved,
+    tryOnEnabled: merchant.experiencePolicy.tryOnEnabled,
+  })
+  const selectionCtaLabel = selectionCtaState === 'continue-to-try-on'
+    ? continuationText('recommend.continue', 'Continue to Try-On')
+    : selectionCtaState === 'try-on-selected'
+      ? continuationText('recommend.tryOnSelected', 'Try on selected frames')
+      : t('recommend.confirm', { count: selectedIds.length })
+  const selectionBusyLabel = selectionCtaState === 'save-selection'
+    ? t('recommend.saving')
+    : continuationText('recommend.preparing', 'Preparing your try-on…')
   const presentationAcquisition = captureStoreAcquisition()
   const presentationMode = resolvePresentationMode({
     experienceType: merchant.experience?.type || 'STORE',
@@ -572,8 +627,8 @@ export function StoreShopperExperience({
             <section className="mx-auto mb-7 flex max-w-4xl items-center gap-3 rounded-2xl border border-white bg-white/80 p-3 shadow-sm backdrop-blur sm:gap-6 sm:px-5">
               <JourneyStep number={1} label={t('upload.title')} active={currentStep === 1} complete={currentStep > 1} accent={accent} />
               <div className="h-px flex-1 bg-slate-200" />
-              <JourneyStep number={2} label={t('recommend.title')} active={currentStep === 2} complete={currentStep > 2} accent={accent} />
-              {merchant.experiencePolicy.tryOnEnabled ? <><div className="h-px flex-1 bg-slate-200" /><JourneyStep number={3} label={t('tryOn.title')} active={currentStep === 3} complete={false} accent={accent} /></> : null}
+              <JourneyStep number={2} label={stepChooseFrames} active={currentStep === 2} complete={currentStep > 2} accent={accent} />
+              {merchant.experiencePolicy.tryOnEnabled ? <><div className="h-px flex-1 bg-slate-200" /><JourneyStep number={3} label={stepStartTryOn} active={currentStep === 3} complete={false} accent={accent} /></> : null}
             </section>
 
             <div className={`grid gap-6 ${recommendations.length > 0 ? 'xl:grid-cols-[minmax(0,1fr)_340px]' : ''}`}>
@@ -601,6 +656,16 @@ export function StoreShopperExperience({
                   {errorMessage ? <p className="mt-4 rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700" role="alert">{errorMessage}</p> : null}
                 </section>
 
+                {photoReady && (recommending || recommendations.length > 0) ? (
+                  <StoreFitProfile
+                    photoPreview={photoPreview || ''}
+                    geometry={faceGeometry}
+                    detection={faceDetection}
+                    analyzing={recommending}
+                    copy={fitProfileCopy}
+                  />
+                ) : null}
+
                 {photoReady && recommending ? (
                   <div className="flex min-h-36 items-center justify-center gap-3 rounded-[2rem] border border-slate-200 bg-white p-7 text-slate-600 shadow-sm">
                     <Loader2 className="h-5 w-5 animate-spin text-blue-600" />
@@ -612,7 +677,7 @@ export function StoreShopperExperience({
                   <section className="rounded-[2rem] border border-slate-200/80 bg-white p-5 shadow-[0_22px_70px_rgba(15,23,42,0.07)] sm:p-7">
                     <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
                       <div>
-                        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-blue-600">Step 2 · {t('recommend.editLabel')}</p>
+                        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-blue-600">Step 2 · {stepChooseFrames}</p>
                         <h2 className="mt-2 font-serif text-2xl font-semibold text-slate-950 sm:text-3xl">{t('recommend.title')}</h2>
                         <p className="mt-2 text-sm text-slate-500">{merchant.experiencePolicy.tryOnEnabled ? t('recommend.subtitle', { max: maxSelectableFrames }) : t('recommend.subtitleNoTryOn')}</p>
                       </div>
@@ -646,7 +711,8 @@ export function StoreShopperExperience({
                                 </div>
                                 <p className="mt-1 text-xs font-medium uppercase tracking-[0.12em] text-slate-400">{frame.productBrand || merchant.name}</p>
                                 <p className="mt-1 text-xs capitalize text-slate-400">{[frame.shape, frame.color, frame.widthClass].filter(Boolean).join(' · ')}</p>
-                                <p className="mt-3 text-xs leading-5 text-slate-600">{frame.reason}</p>
+                                <p className="mt-3 text-[10px] font-semibold uppercase tracking-[0.12em] text-slate-400">{continuationText('recommend.reasonLabel', 'Why it fits')}</p>
+                                <p className="mt-1 text-xs leading-5 text-slate-600">{frame.reason || continuationText('recommend.reasonFallback', 'Selected from this collection.')}</p>
                               </div>
                             </button>
                           </li>
@@ -656,24 +722,48 @@ export function StoreShopperExperience({
                   </section>
                 ) : null}
 
-                {selectionSaved && session && merchant.experiencePolicy.tryOnEnabled ? (
-                  <StoreTryOnComparePanel
-                    merchantSlug={merchantSlug}
-                    experienceType={merchant.experience?.type || 'STORE'}
-                    experienceSlug={merchant.experience?.slug}
-                    locale={locale}
-                    merchantSessionId={session.merchantSessionId}
-                    selectedFrames={selectedFrames.map((frame) => ({ id: frame.id, name: frame.name, imageUrl: frame.imageUrl, productUrl: frame.productUrl, price: frame.price, currency: frame.currency, shape: frame.shape, productBrand: frame.productBrand }))}
-                    photoPreview={photoPreview}
-                    accent={accent}
-                    experiencePolicy={merchant.experiencePolicy}
-                    onError={(message) => setErrorMessage(message || null)}
-                  />
+                {recommendations.length > 0 && merchant.experiencePolicy.tryOnEnabled ? (
+                  <div className="rounded-[2rem] border border-slate-200 bg-white p-5 shadow-sm xl:hidden">
+                    <div className="flex items-center justify-between gap-3">
+                      <div>
+                        <p className="text-xs font-semibold uppercase tracking-[0.16em] text-blue-600">{selectionSaved ? continuationText('recommend.readyEyebrow', 'Ready when you are') : 'Step 2'}</p>
+                        <p className="mt-1 text-sm text-slate-500">{t('recommend.selectHint', { max: maxSelectableFrames, count: selectedIds.length })}</p>
+                      </div>
+                      <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-blue-50 text-sm font-bold text-blue-700">{selectedIds.length}</span>
+                    </div>
+                    <button
+                      type="button"
+                      data-selection-cta="mobile"
+                      onClick={selectionSaved ? scrollToTryOn : handleConfirmSelection}
+                      disabled={selectedIds.length === 0 || selectionSaving}
+                      className="mt-4 flex w-full items-center justify-center gap-2 rounded-2xl px-4 py-3.5 text-sm font-semibold text-white shadow-lg transition hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-50"
+                      style={{ backgroundColor: accent }}
+                    >
+                      {selectionSaving ? <><Loader2 className="h-4 w-4 animate-spin" />{selectionBusyLabel}</> : <>{selectionCtaLabel}<ArrowRight className="h-4 w-4" /></>}
+                    </button>
+                  </div>
                 ) : null}
+
+                <div ref={tryOnSectionRef}>
+                  {selectionSaved && session && merchant.experiencePolicy.tryOnEnabled ? (
+                    <StoreTryOnComparePanel
+                      merchantSlug={merchantSlug}
+                      experienceType={merchant.experience?.type || 'STORE'}
+                      experienceSlug={merchant.experience?.slug}
+                      locale={locale}
+                      merchantSessionId={session.merchantSessionId}
+                      selectedFrames={selectedFrames.map((frame) => ({ id: frame.id, name: frame.name, imageUrl: frame.imageUrl, productUrl: frame.productUrl, price: frame.price, currency: frame.currency, shape: frame.shape, productBrand: frame.productBrand }))}
+                      photoPreview={photoPreview}
+                      accent={accent}
+                      experiencePolicy={merchant.experiencePolicy}
+                      onError={(message) => setErrorMessage(message || null)}
+                    />
+                  ) : null}
+                </div>
               </div>
 
               {recommendations.length > 0 ? (
-                <aside className="xl:sticky xl:top-6 xl:self-start">
+                <aside className="hidden xl:sticky xl:top-6 xl:block xl:self-start">
                   <div className="rounded-[2rem] border border-slate-200 bg-white p-5 shadow-[0_22px_70px_rgba(15,23,42,0.08)]">
                     <div className="flex items-center justify-between gap-3">
                       <div>
@@ -694,14 +784,15 @@ export function StoreShopperExperience({
                     {selectedIds.length >= maxSelectableFrames ? <p className="mt-4 rounded-xl bg-amber-50 px-3 py-2.5 text-xs leading-5 text-amber-900" role="status">{t('recommend.limitReached', { max: maxSelectableFrames })}</p> : null}
                     <button
                       type="button"
-                      onClick={handleConfirmSelection}
+                      data-selection-cta="desktop"
+                      onClick={selectionSaved ? scrollToTryOn : handleConfirmSelection}
                       disabled={selectedIds.length === 0 || selectionSaving}
                       className="mt-5 flex w-full items-center justify-center gap-2 rounded-2xl px-4 py-3.5 text-sm font-semibold text-white shadow-lg transition hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-50"
                       style={{ backgroundColor: accent }}
                     >
-                      {selectionSaving ? <><Loader2 className="h-4 w-4 animate-spin" />{t('recommend.saving')}</> : <>{t('recommend.confirm', { count: selectedIds.length })}<ArrowRight className="h-4 w-4" /></>}
+                      {selectionSaving ? <><Loader2 className="h-4 w-4 animate-spin" />{selectionBusyLabel}</> : <>{selectionCtaLabel}<ArrowRight className="h-4 w-4" /></>}
                     </button>
-                    {selectionSaved ? <div className="mt-4 flex gap-2 rounded-2xl bg-emerald-50 p-3 text-sm text-emerald-800"><CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0" /><div><p className="font-semibold">{t('recommend.savedTitle')}</p>{merchant.experiencePolicy.tryOnEnabled ? <p className="mt-0.5 text-xs leading-5">{t('recommend.savedBody')}</p> : null}</div></div> : null}
+                    {selectionSaved ? <div className="mt-4 flex gap-2 rounded-2xl bg-emerald-50 p-3 text-sm text-emerald-800"><CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0" /><div><p className="font-semibold">{continuationText('recommend.readyTitle', 'Frames ready')}</p>{merchant.experiencePolicy.tryOnEnabled ? <p className="mt-0.5 text-xs leading-5">{continuationText('recommend.readyBody', 'Continue below to start your virtual try-on.')}</p> : null}</div></div> : null}
                   </div>
                 </aside>
               ) : null}

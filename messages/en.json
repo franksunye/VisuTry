@@ -828,6 +828,22 @@
       "readyBody": "Building your personalized shortlist…",
       "nextComingSoon": "Continue to recommendations (next)"
     },
+    "steps": {
+      "chooseFrames": "Choose frames",
+      "startTryOn": "Start Try-On"
+    },
+    "fitProfile": {
+      "eyebrow": "Lightweight fit guidance",
+      "title": "Your fit profile",
+      "detected": "✓ Fit profile detected",
+      "analyzing": "Building your fit profile…",
+      "unavailableTitle": "Fit profile not available yet",
+      "unavailableBody": "We could not read a fit profile from this photo, so recommendations use the available frame details.",
+      "profileLabel": "Face / fit summary",
+      "whyTitle": "Why these frames",
+      "mapAlt": "Your photo with a subtle fit map",
+      "mapFallback": "Fit map unavailable"
+    },
     "sessionNote": "Your photo stays within this shopping session.",
     "errors": {
       "generic": "Something went wrong. Please try again.",
@@ -852,6 +868,14 @@
       "limitReached": "You’ve selected the maximum of {max}. Remove one frame to choose another, or continue below.",
       "selectHint": "Selected {count} of {max}",
       "confirm": "Save selection ({count})",
+      "tryOnSelected": "Try on selected frames",
+      "continue": "Continue to Try-On",
+      "readyEyebrow": "Ready when you are",
+      "readyTitle": "Frames ready",
+      "readyBody": "Continue below to start your virtual try-on.",
+      "preparing": "Preparing your try-on…",
+      "reasonLabel": "Why it fits",
+      "reasonFallback": "Selected from this collection.",
       "saving": "Saving…",
       "savedTitle": "Selection saved",
       "savedBody": "Start virtual try-on for your selected frames below.",
