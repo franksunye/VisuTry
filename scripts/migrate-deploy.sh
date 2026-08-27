@@ -4,6 +4,11 @@ set -euo pipefail
 # ============================================================
 # prisma migrate deploy — Neon/Vercel-safe (P1002 defense in depth)
 # ============================================================
+# SAFETY BOUNDARY
+#   This script is always on the Vercel `npm run build` path, but it is a
+#   no-op outside an explicitly authorized production build. Preview, CI, and
+#   local builds therefore remain safe while production releases fail closed.
+# ============================================================
 # PROBLEM
 #   Neon's pooled connection (PgBouncer transaction mode) leaks Prisma's
 #   session-level advisory lock (pg_advisory_lock(72707369)). The leaked
@@ -46,6 +51,19 @@ if [[ -f .env ]]; then
     fi
   done < .env
 fi
+
+if [[ "${VERCEL_ENV:-}" != "production" ]]; then
+  echo "✓ Non-production environment (${VERCEL_ENV:-local}) — skipping production migrations"
+  exit 0
+fi
+
+if [[ "${VISUTRY_PRODUCTION_MIGRATION_AUTHORIZED:-}" != "1" ]]; then
+  echo "❌ Production migration requires VISUTRY_PRODUCTION_MIGRATION_AUTHORIZED=1"
+  echo "   Use the explicitly authorized production release path; refusing to migrate."
+  exit 1
+fi
+
+echo "✓ Explicit production migration authorization confirmed"
 
 DIRECT_URL="${DATABASE_URL_UNPOOLED:-${DIRECT_DATABASE_URL:-${DIRECT_URL:-}}}"
 

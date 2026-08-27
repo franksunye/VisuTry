@@ -375,9 +375,9 @@ npm run test:coverage
 1. Connect the GitHub repository to Vercel.
 2. Configure production environment variables in the Vercel dashboard.
 3. Use the project build command from `package.json`.
-4. Verify that Prisma generation and migration deployment are part of the build/deploy flow where expected.
+4. Keep Prisma generation in normal builds. Run production migrations only through the explicitly authorized production release path.
 
-Current build command in `package.json`:
+Vercel's normal build command in `package.json`:
 
 ```bash
 prisma generate && bash scripts/migrate-deploy.sh && next build
@@ -389,11 +389,16 @@ Ensure all variables from `.env.example` that are required in production are set
 
 ### Database Migrations
 
-Run production migrations through the configured deployment flow. If running manually:
+Run production migrations only with the production guard and explicit authorization:
 
 ```bash
-npx prisma migrate deploy
+VERCEL_ENV=production \
+VISUTRY_PRODUCTION_MIGRATION_AUTHORIZED=1 \
+npm run build:production
 ```
+
+`build:production` is an alias for the same guarded `npm run build` path;
+Vercel Git deployments use the default `npm run build` command.
 
 ---
 

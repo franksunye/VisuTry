@@ -542,6 +542,11 @@ function candidateToImportFrame(candidate: CatalogImportCandidate): CatalogFrame
     source: candidate.source,
     externalId: candidate.externalId,
     sourceNotes: candidate.productUrl ? `Reviewed public catalog source: ${new URL(candidate.productUrl).hostname}` : null,
+    enrichmentStatus: candidate.recommendationReady
+      ? 'APPROVED'
+      : candidate.shape
+        ? 'REVIEW_REQUIRED'
+        : 'PENDING',
   }
 }
 

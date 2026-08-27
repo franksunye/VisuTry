@@ -8,6 +8,11 @@ import { requireAgentScope, type MerchantActorContext } from '../domain/actor'
 import {
   withPublicDiscoveryInvalidation,
 } from '@/modules/store/application/public-discovery-invalidation'
+import {
+  resolveMerchantFrameEnrichmentStatus,
+  validateMerchantFrameReadiness,
+  type MerchantFrameEnrichmentStatus,
+} from '../domain/merchant-frame-readiness'
 
 // Batch safety guard, not a product-count/UI ceiling. Human Web paginates the
 // catalog and the import review can contain up to 1,000 rows per approval.
@@ -32,6 +37,7 @@ export type CatalogFrameInput = {
   source?: 'MANUAL' | 'CSV' | 'EXTERNAL'
   externalId?: string | null
   sourceNotes?: string | null
+  enrichmentStatus?: MerchantFrameEnrichmentStatus
 }
 
 export class MerchantOnboardingError extends Error {
@@ -45,54 +51,20 @@ export class MerchantOnboardingError extends Error {
   }
 }
 
-type FrameForValidation = Pick<MerchantFrame, 'id' | 'sku' | 'name' | 'imageUrl' | 'shape' | 'widthClass' | 'status'> & Partial<Pick<MerchantFrame, 'productUrl' | 'externalId' | 'source'>>
+type FrameForValidation = Pick<MerchantFrame, 'id' | 'sku' | 'name' | 'imageUrl' | 'shape' | 'widthClass' | 'status'> & Partial<Pick<MerchantFrame, 'productUrl' | 'externalId' | 'source' | 'enrichmentStatus'>>
 
 function cleanText(value: string | null | undefined): string | null {
   const normalized = value?.trim()
   return normalized || null
 }
 
-function validUrl(value: string | null): boolean {
-  if (!value) return false
-  try {
-    const url = new URL(value)
-    return url.protocol === 'https:' || url.protocol === 'http:'
-  } catch {
-    return value.startsWith('/')
-  }
-}
-
 export function validateCatalogFrame(frame: FrameForValidation) {
-  const importIssues = validateMerchantCatalogImportFrame(frame).issues
-  const recommendationIssues: string[] = []
-  if (!frame.shape?.trim()) recommendationIssues.push('MISSING_SHAPE')
-  const warnings = frame.status !== 'ACTIVE' ? ['FRAME_NOT_ACTIVE'] : []
-  const importReady = importIssues.length === 0
-  const recommendationReady = importReady && recommendationIssues.length === 0 && frame.status === 'ACTIVE'
-  return {
-    valid: recommendationReady,
-    importReady,
-    recommendationReady,
-    issues: [...importIssues, ...recommendationIssues],
-    importIssues,
-    recommendationIssues,
-    warnings,
-  }
+  return validateMerchantFrameReadiness(frame)
 }
 
 export function validateMerchantCatalogImportFrame(frame: Pick<FrameForValidation, 'sku' | 'name' | 'imageUrl' | 'productUrl' | 'externalId' | 'source'>) {
-  const issues: string[] = []
-  const sku = frame.sku?.trim() || null
-  const name = frame.name?.trim()
-  const productUrl = frame.productUrl?.trim() || null
-  const externalId = frame.externalId?.trim() || null
-  const source = frame.source ?? 'MANUAL'
-  if (!sku && !externalId && !productUrl) issues.push('MISSING_STABLE_IDENTITY')
-  if (!name) issues.push('MISSING_NAME')
-  if (!frame.imageUrl || !validUrl(frame.imageUrl)) issues.push('MISSING_IMAGE_URL')
-  if (productUrl && !validUrl(productUrl)) issues.push('INVALID_PRODUCT_URL')
-  if (source === 'EXTERNAL' && !productUrl) issues.push('MISSING_PRODUCT_URL')
-  return { valid: issues.length === 0, issues }
+  const readiness = validateMerchantFrameReadiness(frame)
+  return { valid: readiness.importReady, issues: readiness.importIssues }
 }
 
 function normalizeFrameInput(frame: CatalogFrameInput): Required<Pick<CatalogFrameInput, 'sku' | 'name' | 'shape'>> & CatalogFrameInput {
@@ -102,6 +74,7 @@ function normalizeFrameInput(frame: CatalogFrameInput): Required<Pick<CatalogFra
   const source = frame.source ?? 'MANUAL'
   const productUrl = cleanText(frame.productUrl)
   const externalId = cleanText(frame.externalId) ?? (source === 'EXTERNAL' ? productUrl : null)
+  const enrichmentStatus = resolveMerchantFrameEnrichmentStatus({ shape, enrichmentStatus: frame.enrichmentStatus })
   const validation = validateMerchantCatalogImportFrame({ sku, name, imageUrl: cleanText(frame.imageUrl), productUrl, externalId, source })
   if (!validation.valid) throw new MerchantOnboardingError('INVALID_CATALOG', `Catalog item is not importable: ${validation.issues.join(', ')}.`)
   if (frame.price != null && (!Number.isInteger(frame.price) || frame.price < 0)) {
@@ -125,6 +98,7 @@ function normalizeFrameInput(frame: CatalogFrameInput): Required<Pick<CatalogFra
     source,
     externalId,
     sourceNotes: cleanText(frame.sourceNotes),
+    enrichmentStatus,
   }
 }
 
@@ -138,6 +112,7 @@ function publicFrame(frame: MerchantFrame) {
     variant: frame.variant,
     imageUrl: frame.imageUrl,
     productUrl: frame.productUrl,
+    externalId: frame.externalId,
     price: frame.price,
     currency: frame.currency,
     shape: frame.shape,
@@ -146,7 +121,9 @@ function publicFrame(frame: MerchantFrame) {
     widthClass: frame.widthClass,
     styleTags: frame.styleTags,
     collectionTags: frame.collectionTags,
+    source: frame.source,
     status: frame.status,
+    enrichmentStatus: frame.enrichmentStatus,
     validation,
   }
 }
@@ -223,7 +200,7 @@ export async function importMerchantFrames(input: { actor: MerchantActorContext;
           externalId: frame.externalId,
           sourceNotes: frame.sourceNotes,
           status: 'ACTIVE' as const,
-          enrichmentStatus: 'APPROVED' as const,
+          enrichmentStatus: frame.enrichmentStatus,
         }
         const row = existing
           ? await tx.merchantFrame.update({ where: { id: existing.id }, data })

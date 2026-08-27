@@ -42,7 +42,7 @@ export type CampaignReadModel = {
 }
 
 type Row = Record<string, unknown>
-type CampaignFrame = { merchantFrameId: string; merchantFrame: { id: string; sku: string | null; name: string; imageUrl: string | null; shape: string; widthClass: string | null; status: string } | null }
+type CampaignFrame = { merchantFrameId: string; merchantFrame: { id: string; sku: string | null; externalId: string | null; productUrl: string | null; name: string; imageUrl: string | null; shape: string; widthClass: string | null; source: string | null; enrichmentStatus: string | null; status: string } | null }
 type CampaignRow = Row & { frames: CampaignFrame[] }
 
 function dateValue(value: unknown): Date | null {
@@ -104,12 +104,12 @@ async function fetchCampaign(merchantId: string, campaignId: string): Promise<{ 
   const sql = getCloudflareSql()
   const [merchantRows, rows] = await Promise.all([
     sql`SELECT "id", "slug", "referenceData" FROM "Merchant" WHERE "id" = ${merchantId} LIMIT 1`,
-    sql`SELECT e."id", e."merchantId", e."type", e."slug", e."name", e."status", e."headline", e."description", e."primaryCtaType", e."primaryCtaLabel", e."primaryCtaUrl", e."secondaryCtaType", e."secondaryCtaLabel", e."secondaryCtaUrl", e."startAt", e."endAt", e."campaignObjective", e."campaignGate", e."presentationMode", e."referenceData", ef."merchantFrameId", mf."sku", mf."imageUrl" AS "frameImageUrl", mf."shape" AS "frameShape", mf."widthClass" AS "frameWidthClass", mf."status" AS "frameStatus", mf."id" AS "frameId", mf."name" AS "frameName", ef."sortOrder", ef."createdAt" AS "frameCreatedAt" FROM "Experience" e LEFT JOIN "ExperienceFrame" ef ON ef."experienceId" = e."id" AND ef."merchantId" = e."merchantId" AND ef."active" = true LEFT JOIN "MerchantFrame" mf ON mf."id" = ef."merchantFrameId" AND mf."merchantId" = ef."merchantId" WHERE e."id" = ${campaignId} AND e."merchantId" = ${merchantId} AND e."type" = 'CAMPAIGN' ORDER BY ef."sortOrder" ASC NULLS LAST, ef."createdAt" ASC`,
+    sql`SELECT e."id", e."merchantId", e."type", e."slug", e."name", e."status", e."headline", e."description", e."primaryCtaType", e."primaryCtaLabel", e."primaryCtaUrl", e."secondaryCtaType", e."secondaryCtaLabel", e."secondaryCtaUrl", e."startAt", e."endAt", e."campaignObjective", e."campaignGate", e."presentationMode", e."referenceData", ef."merchantFrameId", mf."sku", mf."externalId" AS "frameExternalId", mf."productUrl" AS "frameProductUrl", mf."imageUrl" AS "frameImageUrl", mf."shape" AS "frameShape", mf."widthClass" AS "frameWidthClass", mf."source" AS "frameSource", mf."enrichmentStatus" AS "frameEnrichmentStatus", mf."status" AS "frameStatus", mf."id" AS "frameId", mf."name" AS "frameName", ef."sortOrder", ef."createdAt" AS "frameCreatedAt" FROM "Experience" e LEFT JOIN "ExperienceFrame" ef ON ef."experienceId" = e."id" AND ef."merchantId" = e."merchantId" AND ef."active" = true LEFT JOIN "MerchantFrame" mf ON mf."id" = ef."merchantFrameId" AND mf."merchantId" = ef."merchantId" WHERE e."id" = ${campaignId} AND e."merchantId" = ${merchantId} AND e."type" = 'CAMPAIGN' ORDER BY ef."sortOrder" ASC NULLS LAST, ef."createdAt" ASC`,
   ])
   const merchant = merchantRows[0]
   if (!merchant || !rows[0]) throw new MerchantAccessError()
   const first = rows[0]
-  const row: CampaignRow = { ...first, frames: rows.filter((item) => item.merchantFrameId != null).map((item) => ({ merchantFrameId: String(item.merchantFrameId), merchantFrame: item.frameId == null ? null : { id: String(item.frameId), sku: item.sku == null ? null : String(item.sku), name: String(item.frameName), imageUrl: item.frameImageUrl == null ? null : String(item.frameImageUrl), shape: String(item.frameShape), widthClass: item.frameWidthClass == null ? null : String(item.frameWidthClass), status: String(item.frameStatus) } })) }
+  const row: CampaignRow = { ...first, frames: rows.filter((item) => item.merchantFrameId != null).map((item) => ({ merchantFrameId: String(item.merchantFrameId), merchantFrame: item.frameId == null ? null : { id: String(item.frameId), sku: item.sku == null ? null : String(item.sku), externalId: item.frameExternalId == null ? null : String(item.frameExternalId), productUrl: item.frameProductUrl == null ? null : String(item.frameProductUrl), name: String(item.frameName), imageUrl: item.frameImageUrl == null ? null : String(item.frameImageUrl), shape: String(item.frameShape), widthClass: item.frameWidthClass == null ? null : String(item.frameWidthClass), source: item.frameSource == null ? null : String(item.frameSource), enrichmentStatus: item.frameEnrichmentStatus == null ? null : String(item.frameEnrichmentStatus), status: String(item.frameStatus) } })) }
   return { row, merchant }
 }
 
@@ -212,7 +212,7 @@ export async function setCampaignFrames(input: { merchantId: string; campaignId:
   const frameIds = [...new Set(input.frameIds)]
   const current = await fetchCampaign(input.merchantId, input.campaignId)
   const sql = getCloudflareSql()
-  const frames = await sql`SELECT "id", "sku", "name", "imageUrl", "shape", "widthClass", "status" FROM "MerchantFrame" WHERE "merchantId" = ${input.merchantId} AND "id" = ANY(${frameIds}) AND "status" = 'ACTIVE'`
+  const frames = await sql`SELECT "id", "sku", "externalId", "productUrl", "name", "imageUrl", "shape", "widthClass", "source", "enrichmentStatus", "status" FROM "MerchantFrame" WHERE "merchantId" = ${input.merchantId} AND "id" = ANY(${frameIds}) AND "status" = 'ACTIVE'`
   if (frames.length !== frameIds.length || frames.some((frame) => !validateCatalogFrame(frame as never).valid)) throw new MerchantAccessError()
   const statements = [sql`DELETE FROM "ExperienceFrame" WHERE "experienceId" = ${input.campaignId} AND "merchantId" = ${input.merchantId}`, ...frameIds.map((frameId, sortOrder) => sql`INSERT INTO "ExperienceFrame" ("experienceId", "merchantId", "merchantFrameId", "sortOrder", "active", "createdAt", "updatedAt") VALUES (${input.campaignId}, ${input.merchantId}, ${frameId}, ${sortOrder}, true, NOW(), NOW()) ON CONFLICT ("experienceId", "merchantFrameId") DO UPDATE SET "sortOrder" = EXCLUDED."sortOrder", "active" = true, "updatedAt" = NOW()`)]
   await withPublicDiscoveryInvalidation({

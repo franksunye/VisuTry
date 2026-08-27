@@ -90,14 +90,17 @@ Required outcome:
 
 - Preview Deployment = READY
 
-Production build command remains:
+Vercel's normal `npm run build` path is:
 
 `prisma generate && bash scripts/migrate-deploy.sh && next build`
 
 Important:
 
 - GitHub Actions does NOT execute database migrations.
-- `build:ci` exists for local/controlled verification without migration side effects.
+- `scripts/migrate-deploy.sh` skips successfully for Preview/CI/local builds.
+- Production migration requires `VERCEL_ENV=production` and
+  `VISUTRY_PRODUCTION_MIGRATION_AUTHORIZED=1`; `build:production` is an alias
+  for the same guarded build path.
 - A Vercel preview failure blocks merge even when L1/L2 pass.
 
 Blocking: YES.

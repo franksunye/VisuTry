@@ -2,7 +2,8 @@ import { prisma } from '@/lib/prisma'
 import { resolveCampaignConversionPolicy } from '@/modules/store/domain/campaign-policy'
 import { campaignReadinessForControlCenter, evaluateCampaignReadiness } from '@/modules/store/domain/campaign-readiness'
 import { resolvePresentationMode, type PresentationMode } from '@/modules/store/domain/presentation-mode'
-import { validateCatalogFrame } from './merchant-onboarding-cloudflare'
+import { validateMerchantFrameReadiness } from '../domain/merchant-frame-readiness'
+import type { MerchantFrameReadiness } from '../domain/merchant-frame-readiness'
 import { getMerchantCommerceIntelligence, type MerchantCommerceIntelligence } from './merchant-commerce-intelligence'
 
 export type { MerchantCommerceIntelligence }
@@ -16,7 +17,7 @@ export type MerchantCatalogFrameSummary = {
   source: string
   status: string
   enrichmentStatus: string
-  validation: { valid: boolean; issues: string[]; warnings: string[] }
+  validation: MerchantFrameReadiness
 }
 
 export type MerchantCatalogSummary = {
@@ -63,10 +64,10 @@ export type MerchantControlCenter = {
   commerceIntelligence?: MerchantCommerceIntelligence
 }
 
-type LocalFrame = { id: string; sku: string | null; name: string; brand: string | null; imageUrl: string | null; shape: string; widthClass: string | null; source: string; status: string; enrichmentStatus: string }
+type LocalFrame = { id: string; sku: string | null; externalId?: string | null; productUrl?: string | null; name: string; brand: string | null; imageUrl: string | null; shape: string; widthClass: string | null; source: string; status: string; enrichmentStatus: string }
 
 function mapLocalFrame(frame: LocalFrame): MerchantCatalogFrameSummary {
-  return { ...frame, validation: validateCatalogFrame(frame) }
+  return { ...frame, validation: validateMerchantFrameReadiness(frame) }
 }
 
 function mapLocalOperation(action: string, actorType: string, createdAt: Date) {
@@ -99,12 +100,12 @@ export async function getMerchantControlCenter(input: { merchantId: string }): P
         headline: true, description: true, primaryCtaLabel: true, primaryCtaUrl: true, secondaryCtaUrl: true, startAt: true, endAt: true,
         campaignObjective: true, campaignGate: true, presentationMode: true,
         referenceData: true, updatedAt: true,
-        frames: { where: { active: true }, orderBy: { sortOrder: 'asc' }, select: { merchantFrameId: true, merchantFrame: { select: { id: true, sku: true, name: true, brand: true, imageUrl: true, shape: true, widthClass: true, source: true, status: true, enrichmentStatus: true } } } },
+        frames: { where: { active: true }, orderBy: { sortOrder: 'asc' }, select: { merchantFrameId: true, merchantFrame: { select: { id: true, sku: true, externalId: true, productUrl: true, name: true, brand: true, imageUrl: true, shape: true, widthClass: true, source: true, status: true, enrichmentStatus: true } } } },
       },
     }),
     prisma.merchantSession.count({ where: { merchantId: merchant.id } }),
     prisma.merchantAgentCredential.count({ where: { merchantId: merchant.id, status: 'ACTIVE' } }),
-    prisma.merchantFrame.findMany({ where: { merchantId: merchant.id }, orderBy: { name: 'asc' }, select: { id: true, sku: true, name: true, brand: true, imageUrl: true, shape: true, widthClass: true, source: true, status: true, enrichmentStatus: true } }),
+    prisma.merchantFrame.findMany({ where: { merchantId: merchant.id }, orderBy: { name: 'asc' }, select: { id: true, sku: true, externalId: true, productUrl: true, name: true, brand: true, imageUrl: true, shape: true, widthClass: true, source: true, status: true, enrichmentStatus: true } }),
     getMerchantCommerceIntelligence({ merchantId: merchant.id }),
   ])
 

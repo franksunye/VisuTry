@@ -19,6 +19,7 @@ jest.mock('@/modules/store/application/public-discovery-invalidation', () => ({
   withPublicDiscoveryInvalidation: jest.fn(async ({ mutation }: { mutation: () => Promise<unknown> }) => mutation()),
 }))
 
+import { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import {
   MerchantAccessError,
@@ -55,6 +56,10 @@ const merchantMembership = prisma.merchantMembership as unknown as {
   create: jest.Mock
   count: jest.Mock
   delete: jest.Mock
+}
+
+function prismaError(code: 'P2002' | 'P2034', meta?: Record<string, unknown>) {
+  return new Prisma.PrismaClientKnownRequestError(code, { code, clientVersion: 'test', meta })
 }
 
 function setupRemoval(input: {
@@ -378,5 +383,62 @@ describe('Merchant human membership foundation', () => {
 
     await expect(createMerchantWithOwner({ userId: 'user-a', name: 'New' })).rejects.toThrow('membership failed')
     expect(prisma.$transaction).toHaveBeenCalledTimes(1)
+  })
+
+  it('retries only a Merchant.slug unique violation with a deterministic suffix', async () => {
+    const tx = {
+      user: { update: jest.fn().mockResolvedValue({ id: 'user-a' }) },
+      merchant: { create: jest.fn()
+        .mockRejectedValueOnce(prismaError('P2002', { target: ['slug'] }))
+        .mockResolvedValue({ id: 'merchant-new', slug: 'new-2', name: 'New' }) },
+      merchantMembership: { findFirst: jest.fn().mockResolvedValue(null), create: jest.fn().mockResolvedValue({ ...membership, merchantId: 'merchant-new' }) },
+    }
+    ;(prisma.$transaction as jest.Mock).mockImplementation(async (callback) => callback(tx))
+
+    await expect(createMerchantWithOwner({ userId: 'user-a', name: 'New' })).resolves.toMatchObject({ merchant: { slug: 'new-2' } })
+    expect(tx.merchant.create).toHaveBeenCalledTimes(2)
+    expect(tx.merchant.create.mock.calls[1][0].data.slug).toBe('new-2')
+  })
+
+  it('propagates a non-slug P2002 instead of returning SLUG_UNAVAILABLE', async () => {
+    const error = prismaError('P2002', { target: ['userId', 'merchantId'] })
+    const tx = {
+      user: { update: jest.fn().mockResolvedValue({ id: 'user-a' }) },
+      merchant: { create: jest.fn().mockRejectedValue(error) },
+      merchantMembership: { findFirst: jest.fn().mockResolvedValue(null), create: jest.fn() },
+    }
+    ;(prisma.$transaction as jest.Mock).mockImplementation(async (callback) => callback(tx))
+
+    await expect(createMerchantWithOwner({ userId: 'user-a', name: 'New' })).rejects.toBe(error)
+    expect(prisma.$transaction).toHaveBeenCalledTimes(1)
+  })
+
+  it('retries bounded serialization failures without consuming slug attempts', async () => {
+    const error = prismaError('P2034')
+    const tx = {
+      user: { update: jest.fn().mockResolvedValue({ id: 'user-a' }) },
+      merchant: { create: jest.fn().mockResolvedValue({ id: 'merchant-new', slug: 'new', name: 'New' }) },
+      merchantMembership: { findFirst: jest.fn().mockResolvedValue(null), create: jest.fn().mockResolvedValue({ ...membership, merchantId: 'merchant-new' }) },
+    }
+    ;(prisma.$transaction as jest.Mock)
+      .mockRejectedValueOnce(error)
+      .mockImplementationOnce(async (callback) => callback(tx))
+
+    await expect(createMerchantWithOwner({ userId: 'user-a', name: 'New' })).resolves.toMatchObject({ merchant: { slug: 'new' } })
+    expect(prisma.$transaction).toHaveBeenCalledTimes(2)
+    expect(tx.merchant.create.mock.calls[0][0].data.slug).toBe('new')
+  })
+
+  it('returns SLUG_UNAVAILABLE only after bounded Merchant.slug retries are exhausted', async () => {
+    const error = prismaError('P2002', { target: ['slug'] })
+    const tx = {
+      user: { update: jest.fn().mockResolvedValue({ id: 'user-a' }) },
+      merchant: { create: jest.fn().mockRejectedValue(error) },
+      merchantMembership: { findFirst: jest.fn().mockResolvedValue(null), create: jest.fn() },
+    }
+    ;(prisma.$transaction as jest.Mock).mockImplementation(async (callback) => callback(tx))
+
+    await expect(createMerchantWithOwner({ userId: 'user-a', name: 'New' })).rejects.toMatchObject({ code: 'SLUG_UNAVAILABLE' })
+    expect(prisma.$transaction).toHaveBeenCalledTimes(5)
   })
 })

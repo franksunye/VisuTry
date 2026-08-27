@@ -4,6 +4,7 @@ jest.mock('@/data/neon-cloudflare', () => ({
 
 import { getCloudflareSql } from '@/data/neon-cloudflare'
 import { createMerchantWithOwner } from '@/modules/merchant/application/merchant-provisioning-cloudflare'
+import { requireMerchantMembership } from '@/modules/merchant/application/merchant-access-cloudflare'
 
 type SqlMock = jest.Mock & { transaction: jest.Mock }
 
@@ -13,8 +14,8 @@ function sqlMock(transactions: unknown[][][]): SqlMock {
   return sql
 }
 
-function selectedMerchant(merchantId: string, slug: string) {
-  return { membershipId: `membership-${merchantId}`, userId: 'user-a', merchantId, role: 'OWNER', membershipCreatedAt: new Date(), membershipUpdatedAt: new Date(), slug, name: 'Test Merchant' }
+function selectedMerchant(merchantId: string, slug: string, role: 'OWNER' | 'ADMIN' = 'OWNER') {
+  return { membershipId: `membership-${merchantId}`, userId: 'user-a', merchantId, role, membershipCreatedAt: new Date(), membershipUpdatedAt: new Date(), slug, name: 'Test Merchant' }
 }
 
 describe('Cloudflare direct-Neon merchant provisioning', () => {
@@ -32,6 +33,26 @@ describe('Cloudflare direct-Neon merchant provisioning', () => {
     expect(result.merchant).toEqual({ id: 'merchant-a', slug: 'existing-merchant', name: 'Test Merchant' })
     expect(result.created).toBe(false)
     expect(sql.transaction).toHaveBeenCalledWith(expect.any(Array), { isolationLevel: 'Serializable' })
+  })
+
+  it('preserves the persisted ADMIN role for an existing membership', async () => {
+    const sql = sqlMock([[
+      [{ id: 'membership-a', userId: 'user-a', merchantId: 'merchant-a', role: 'ADMIN' }],
+      [], [], [], [selectedMerchant('merchant-a', 'existing-merchant', 'ADMIN')],
+    ]])
+    ;(getCloudflareSql as jest.Mock).mockReturnValue(sql)
+
+    const result = await createMerchantWithOwner({ userId: 'user-a', name: 'Ignored Retry Name' })
+
+    expect(result.membership.role).toBe('ADMIN')
+  })
+
+  it('returns the actual persisted role at the Cloudflare authorization boundary', async () => {
+    const sql = jest.fn(() => Promise.resolve([{ id: 'membership-a', userId: 'user-a', merchantId: 'merchant-a', role: 'ADMIN', createdAt: new Date(), updatedAt: new Date() }])) as SqlMock
+    sql.transaction = jest.fn()
+    ;(getCloudflareSql as jest.Mock).mockReturnValue(sql)
+
+    await expect(requireMerchantMembership({ userId: 'user-a', merchantId: 'merchant-a', roles: ['ADMIN'] })).resolves.toMatchObject({ role: 'ADMIN' })
   })
 
   it('retries a slug collision with a deterministic suffix', async () => {
