@@ -277,3 +277,25 @@ Reference pre-Tiered combined baseline for the three families: approximately **2
 6. Single most important question: **Can the exact same complete 12h window produce all three Cloudflare status distributions plus a trustworthy pilot-origin or route-attributed Vercel RU comparison?**
 
 **Production changes made during inspection:** NONE
+
+### ChatGPT Afternoon Review
+
+**Verdict:** **HOLD** — Smart Tiered Cache alone has not demonstrated an economic win. The visible pilot ISR subtotal is **~3.72K RU / 12h**, roughly **48% above** the ~2.52K pre-Tiered reference, so current evidence does not support expanding the cache experiment. At the same time, the windows are not perfectly like-for-like and Cloudflare route evidence is incomplete, so this is not yet a failure verdict.
+
+**What the evidence means**
+1. **Traffic is rising faster than resource headroom.** GA users are **+22.6%**, while project ISR remains around **14K RU / 12h**. The three visible pilot families alone account for **~3.72K RU / 12h**, with `glasses-guide` dominating at **2.9K RU**. This is the primary resource-pressure signal.
+2. **Smart Tiered Cache has not reduced origin work enough to prove value.** Cloudflare shows some HTML cache reuse (`/glasses-guide/` 26.1% edge hit rate in the available fixed window), but there is no corresponding ISR reduction. Edge HIT is therefore not a sufficient success metric.
+3. **FOT is directionally lower in the later rolling snapshot (83 MB total vs 132.18 MB earlier), but the windows are shifted and route attribution is unavailable.** Treat this as observation only, not an optimization result. Axiom error volume also moved from 81 to 54 events, but the face-analysis failure cluster remains unchanged at 6 submit + 6 analysis failures, so it still needs monitoring.
+
+**Decision**
+- **HOLD.** Do not expand the pilot or make another production change until the current post-change cache window is measured cleanly. Keep Smart Tiered Cache enabled for now; it is not proven beneficial, but changing it again would contaminate the next comparison.
+
+**Next Codex inspection focus**
+1. Use a fixed complete post-change 12h window and capture **all three** pilot families in Cloudflare with HIT / MISS / EXPIRED / DYNAMIC counts. Do not substitute zone-wide cache ratio.
+2. Capture the matching Vercel route-level ISR Read Units for `glasses-guide`, `style`, and `sunglasses-for`, plus project total. The success gate remains whether the pilot subtotal materially falls below the **~2.52K RU / 12h** reference.
+3. Pay special attention to `/style/*` DYNAMIC traffic. If HTML is cached but `_rsc` / Flight requests remain DYNAMIC, record that separately from MISS/EXPIRED because TTL changes cannot fix RSC prefetch amplification. Continue tracking `/api/face-analysis/submit` error rate and the recurring 6+6 failure cluster.
+
+**Implementation guidance**
+- No further production change during this measurement window. If the next clean window confirms that MISS/EXPIRED fall but `/style/*` DYNAMIC remains high, the next prepared change should be the narrow SEO-link `prefetch={false}` containment patch, tested separately from cache TTL changes. If ISR remains high even after both mechanisms are isolated, move to a broader ISR/FOT source audit rather than expanding Cloudflare rules blindly.
+
+**Production changes made by review:** NONE
