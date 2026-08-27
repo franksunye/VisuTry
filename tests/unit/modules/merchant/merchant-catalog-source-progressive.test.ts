@@ -3,6 +3,8 @@
 import {
   buildCatalogInspectionProposal,
   extractCatalogProductsFromShopifyJson,
+  enrichCatalogProduct,
+  inferShapeFromProductMetadata,
   parseCatalogCsv,
   type CatalogSourceDocument,
 } from '@/modules/merchant/application/merchant-catalog-source-shared'
@@ -124,5 +126,29 @@ describe('human catalog progressive source intake', () => {
   it('maps Shopify variants into canonical product facts without AI guessing', () => {
     const products = extractCatalogProductsFromShopifyJson({ products: [{ id: 1, title: 'Frame', handle: 'frame', image: { src: 'https://cdn.example.test/frame.jpg' }, options: [{ name: 'Shape', values: ['oval'] }], variants: [{ id: 2, sku: 'F-1', price: '99.50' }] }] }, 'https://shop.example.test/')
     expect(products[0]).toMatchObject({ sku: 'F-1', shape: 'oval', price: 9950, source: 'EXTERNAL' })
+  })
+
+  it('preserves a missing Shopify SKU and uses option/tag enrichment instead', () => {
+    const products = extractCatalogProductsFromShopifyJson({ products: [{ id: 1, title: 'Everyday eyewear', handle: 'everyday-eyewear', image: { src: 'https://cdn.example.test/frame.jpg' }, tags: ['eyewear', 'round'], variants: [{ id: 2, price: '99.50' }] }] }, 'https://shop.example.test/')
+    expect(products[0]).toMatchObject({ sku: null, externalId: '1:2', shape: 'round', shapeSource: 'SHOPIFY_OPTION_OR_TAG' })
+  })
+
+  it('imports a stable product without merchant SKU or shape while keeping it out of recommendations', async () => {
+    const result = await buildCatalogInspectionProposal({
+      sourceUrls: ['https://shop.example.test/products/eyewear'],
+      existing: [],
+      fetchSource: async (url) => document(url, '<script type="application/ld+json">{"@type":"Product","name":"Everyday Eyewear","image":"https://cdn.example.test/frame.jpg","url":"https://shop.example.test/products/eyewear"}</script>'),
+      maxProducts: 20,
+    })
+
+    expect(result.sourceSummary).toMatchObject({ foundCount: 1, importReady: 1, readyToImport: 1, recommendationReady: 0, needsReview: 0, invalid: 0, reasonDistribution: { MISSING_SHAPE: 1 } })
+    expect(result.candidates[0]).toMatchObject({ sku: null, shape: null, readiness: 'IMPORT_READY', importReady: true, recommendationReady: false, recommendationIssues: ['MISSING_SHAPE'] })
+    expect(result.importReady[0]).toMatchObject({ sku: null, shape: null, productUrl: 'https://shop.example.test/products/eyewear' })
+  })
+
+  it('uses deterministic metadata before the optional AI/vision hook and records confidence', () => {
+    expect(inferShapeFromProductMetadata({ name: 'Round Acetate Frame', variant: null, brand: null, styleTags: [], collectionTags: [] })).toMatchObject({ shape: 'round', confidence: 0.92 })
+    expect(enrichCatalogProduct({ name: 'Round Acetate Frame', imageUrl: 'https://cdn.example.test/frame.jpg', sourceUrl: 'https://shop.example.test/products/round' })).toMatchObject({ shape: 'round', shapeSource: 'PRODUCT_METADATA', shapeConfidence: 0.92 })
+    expect(enrichCatalogProduct({ name: 'Unclassified Eyewear', imageUrl: 'https://cdn.example.test/frame.jpg', sourceUrl: 'https://shop.example.test/products/unknown', visionShape: 'oval', visionShapeConfidence: 0.88 })).toMatchObject({ shape: 'oval', shapeSource: 'AI_VISION', shapeConfidence: 0.88 })
   })
 })

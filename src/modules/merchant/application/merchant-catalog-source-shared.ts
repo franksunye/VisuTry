@@ -10,6 +10,14 @@ export const MAX_CSV_BYTES = 2 * 1024 * 1024
 
 export type CatalogCandidateStatus = 'READY' | 'NEEDS_REVIEW' | 'INVALID'
 export type CatalogCandidateDedupeStatus = 'NEW' | 'ALREADY_EXISTS' | 'POSSIBLE_DUPLICATE'
+export type CatalogReadiness = 'IMPORT_READY' | 'RECOMMENDATION_READY' | 'NEEDS_REVIEW' | 'INVALID'
+export type CatalogIdentityType = 'MERCHANT_SKU' | 'EXTERNAL_ID' | 'PRODUCT_URL'
+export type ShapeEnrichmentSource = 'STRUCTURED_FIELD' | 'SHOPIFY_OPTION_OR_TAG' | 'PRODUCT_METADATA' | 'AI_VISION' | 'NONE'
+
+export type CatalogIdentity = {
+  type: CatalogIdentityType
+  value: string
+}
 
 export type CatalogImportCandidate = {
   sku: string | null
@@ -28,6 +36,13 @@ export type CatalogImportCandidate = {
   collectionTags: string[]
   source: 'MANUAL' | 'CSV' | 'EXTERNAL'
   externalId: string | null
+  identity: CatalogIdentity | null
+  shapeSource: ShapeEnrichmentSource
+  shapeConfidence: number | null
+  importReady: boolean
+  recommendationReady: boolean
+  recommendationIssues: string[]
+  readiness: CatalogReadiness
   status: CatalogCandidateStatus
   dedupeStatus: CatalogCandidateDedupeStatus
   issues: string[]
@@ -51,6 +66,10 @@ export type ExtractedProduct = {
   collectionTags?: string[]
   source?: 'MANUAL' | 'CSV' | 'EXTERNAL'
   externalId?: string | null
+  shapeSource?: ShapeEnrichmentSource
+  shapeConfidence?: number | null
+  visionShape?: string | null
+  visionShapeConfidence?: number | null
   sourceUrl: string
   sourceLabel?: string
   sourceIssues?: string[]
@@ -66,6 +85,8 @@ export type CatalogSourceExistingFrame = {
   id?: string
   sku: string | null
   productUrl: string | null
+  externalId?: string | null
+  source?: string | null
 }
 
 export class MerchantSourceIntakeError extends Error {
@@ -84,6 +105,82 @@ function clean(value: unknown): string | null {
   if (typeof value !== 'string') return null
   const normalized = value.trim()
   return normalized || null
+}
+
+const FRAME_SHAPE_PATTERNS: Array<{ shape: string; terms: string[] }> = [
+  { shape: 'cat-eye', terms: ['cat-eye', 'cat eye', 'cateye'] },
+  { shape: 'browline', terms: ['browline', 'clubmaster'] },
+  { shape: 'wayfarer', terms: ['wayfarer'] },
+  { shape: 'aviator', terms: ['aviator', 'pilot'] },
+  { shape: 'geometric', terms: ['geometric', 'hexagonal', 'octagonal', 'polygon'] },
+  { shape: 'rectangle', terms: ['rectangle', 'rectangular'] },
+  { shape: 'square', terms: ['square'] },
+  { shape: 'oval', terms: ['oval', 'elliptical'] },
+  { shape: 'round', terms: ['round', 'circular'] },
+  { shape: 'rimless', terms: ['rimless'] },
+  { shape: 'butterfly', terms: ['butterfly'] },
+]
+
+function normalizeShape(value: string | null): string | null {
+  const normalized = value?.trim().toLowerCase().replace(/[\s_]+/gu, '-') ?? ''
+  if (!normalized) return null
+  const known = FRAME_SHAPE_PATTERNS.find((entry) => entry.shape === normalized || entry.terms.includes(normalized.replace(/-/gu, ' ')))
+  return known?.shape ?? normalized
+}
+
+function shapeMatches(values: string[]): Array<{ shape: string; count: number }> {
+  const haystack = values.map((value) => value.trim().toLowerCase()).filter(Boolean)
+  return FRAME_SHAPE_PATTERNS.flatMap((entry) => {
+    const count = entry.terms.reduce((total, term) => total + (haystack.some((value) => {
+      const pattern = new RegExp(`(?:^|[^a-z])${term.replace(/[.*+?^${}()|[\]\\]/gu, '\\$&')}(?:$|[^a-z])`, 'iu')
+      return pattern.test(value)
+    }) ? 1 : 0), 0)
+    return count > 0 ? [{ shape: entry.shape, count }] : []
+  })
+}
+
+export function inferShapeFromProductMetadata(product: Pick<ExtractedProduct, 'name' | 'variant' | 'brand' | 'styleTags' | 'collectionTags'>): { shape: string; source: 'PRODUCT_METADATA'; confidence: number } | null {
+  const matches = shapeMatches([
+    product.name ?? '',
+    product.variant ?? '',
+    product.brand ?? '',
+    ...(product.styleTags ?? []),
+    ...(product.collectionTags ?? []),
+  ])
+  if (matches.length === 0) return null
+  const best = matches[0]
+  return {
+    shape: best.shape,
+    source: 'PRODUCT_METADATA',
+    confidence: matches.length === 1 ? 0.92 : 0.58,
+  }
+}
+
+export function enrichCatalogProduct(product: ExtractedProduct): ExtractedProduct {
+  const structuredShape = normalizeShape(clean(product.shape))
+  if (structuredShape) {
+    return {
+      ...product,
+      shape: structuredShape,
+      shapeSource: product.shapeSource ?? 'STRUCTURED_FIELD',
+      shapeConfidence: product.shapeConfidence ?? 0.99,
+    }
+  }
+
+  const metadataShape = inferShapeFromProductMetadata(product)
+  if (metadataShape) return { ...product, shape: metadataShape.shape, shapeSource: metadataShape.source, shapeConfidence: metadataShape.confidence }
+
+  const visionShape = normalizeShape(clean(product.visionShape))
+  if (visionShape) {
+    return {
+      ...product,
+      shape: visionShape,
+      shapeSource: 'AI_VISION',
+      shapeConfidence: product.visionShapeConfidence ?? 0.75,
+    }
+  }
+
+  return { ...product, shape: null, shapeSource: 'NONE', shapeConfidence: null }
 }
 
 function asString(value: unknown): string | null {
@@ -160,6 +257,7 @@ function productFromJsonLd(product: Record<string, unknown>, sourceUrl: string):
   const offers = Array.isArray(product.offers) ? product.offers[0] : product.offers
   const offer = offers && typeof offers === 'object' ? offers as Record<string, unknown> : {}
   const productUrl = canonicalUrl(asString(product.url)) ?? canonicalUrl(sourceUrl)
+  const shape = additionalPropertyValue(product, ['shape', 'frame shape']) ?? asString(product.shape)
   return {
     sku: asString(product.sku) ?? asString(product.mpn) ?? asString(product.productID),
     name: asString(product.name),
@@ -168,7 +266,8 @@ function productFromJsonLd(product: Record<string, unknown>, sourceUrl: string):
     productUrl,
     price: priceInMinorUnits(offer.price ?? product.price),
     currency: (asString(offer.priceCurrency ?? product.priceCurrency) ?? '').toLowerCase() || null,
-    shape: additionalPropertyValue(product, ['shape', 'frame shape']) ?? asString(product.shape),
+    shape,
+    ...(shape ? { shapeSource: 'STRUCTURED_FIELD' as const, shapeConfidence: 0.99 } : {}),
     material: additionalPropertyValue(product, ['material']),
     color: additionalPropertyValue(product, ['color']) ?? asString(product.color),
     widthClass: additionalPropertyValue(product, ['width', 'width class']),
@@ -304,9 +403,14 @@ export function extractCatalogProductsFromShopifyJson(value: unknown, sourceUrl:
       const variantObject = variant && typeof variant === 'object' ? variant as Record<string, unknown> : {}
       const variantTitle = asString(variantObject.title)
       const name = variantTitle && variantTitle.toLowerCase() !== 'default title' ? `${title} — ${variantTitle}` : title
-      const sku = asString(variantObject.sku) ?? `${asString(item.id) ?? handle}${variantObject.id ? `-${String(variantObject.id)}` : ''}`
+      // A Shopify variant id is an external identity, not a merchant SKU. Keep
+      // the real SKU nullable and use externalId/productUrl for dedupe/import.
+      const sku = asString(variantObject.sku)
       const image = shopifyImage(variantObject.featured_image) ?? shopifyImage(item.image) ?? shopifyImage(Array.isArray(item.images) ? item.images[0] : null)
       const price = priceInMinorUnits(variantObject.price ?? item.price)
+      const optionShape = shopifyOptionValue(item.options, ['shape', 'frame shape'])
+      const tagShape = optionShape ? null : shapeMatches(asStringArray(item.tags)).at(0)?.shape ?? null
+      const shape = optionShape ?? tagShape
       products.push({
         sku,
         name,
@@ -315,7 +419,8 @@ export function extractCatalogProductsFromShopifyJson(value: unknown, sourceUrl:
         productUrl,
         price,
         currency: asString(item.currency) ?? null,
-        shape: shopifyOptionValue(item.options, ['shape', 'frame shape']),
+        shape,
+        ...(shape ? { shapeSource: 'SHOPIFY_OPTION_OR_TAG' as const, shapeConfidence: optionShape ? 0.98 : 0.94 } : {}),
         material: shopifyOptionValue(item.options, ['material']),
         color: shopifyOptionValue(item.options, ['color', 'colour']),
         styleTags: asStringArray(item.tags),
@@ -330,40 +435,66 @@ export function extractCatalogProductsFromShopifyJson(value: unknown, sourceUrl:
 }
 
 function normalizeCandidate(product: ExtractedProduct): CatalogImportCandidate {
-  const sku = clean(product.sku)
-  const name = clean(product.name)
-  const imageUrl = clean(product.imageUrl)
-  const productUrl = canonicalUrl(clean(product.productUrl))
-  const shape = clean(product.shape)
-  const issues: string[] = [...(product.sourceIssues ?? [])]
-  if (!sku) issues.push('MISSING_SKU')
+  const enriched = enrichCatalogProduct(product)
+  const sku = clean(enriched.sku)
+  const name = clean(enriched.name)
+  const imageUrl = clean(enriched.imageUrl)
+  const rawProductUrl = clean(enriched.productUrl)
+  const productUrl = canonicalUrl(rawProductUrl)
+  const shape = clean(enriched.shape)
+  const source = enriched.source ?? 'EXTERNAL'
+  const suppliedExternalId = canonicalUrl(clean(enriched.externalId)) ?? clean(enriched.externalId)
+  const externalId = suppliedExternalId ?? productUrl
+  const issues: string[] = [...(enriched.sourceIssues ?? [])]
   if (!name) issues.push('MISSING_NAME')
-  if (!imageUrl || !isHttpUrl(imageUrl)) issues.push('MISSING_IMAGE_URL')
-  if (!shape) issues.push('MISSING_SHAPE')
-  if (imageUrl && !isHttpUrl(imageUrl)) issues.push('INVALID_IMAGE_URL')
-  if ((product.source ?? 'EXTERNAL') === 'EXTERNAL' && productUrl === null) issues.push('MISSING_PRODUCT_URL')
-  const status: CatalogCandidateStatus = issues.includes('INVALID_IMAGE_URL') ? 'INVALID' : issues.length > 0 ? 'NEEDS_REVIEW' : 'READY'
+  if (!imageUrl) issues.push('MISSING_IMAGE_URL')
+  else if (!isHttpUrl(imageUrl)) issues.push('INVALID_IMAGE_URL')
+  if (rawProductUrl && productUrl === null) issues.push('INVALID_PRODUCT_URL')
+  if (source === 'EXTERNAL' && !rawProductUrl) issues.push('MISSING_PRODUCT_URL')
+  if (!sku && !externalId && !productUrl) issues.push('MISSING_STABLE_IDENTITY')
+  const recommendationIssues: string[] = []
+  if (!shape) recommendationIssues.push('MISSING_SHAPE')
+  else if ((enriched.shapeConfidence ?? 0) < 0.8) recommendationIssues.push('LOW_CONFIDENCE_SHAPE')
+  const importReady = issues.length === 0
+  const recommendationReady = importReady && recommendationIssues.length === 0
+  const fatal = issues.some((issue) => issue === 'INVALID_IMAGE_URL' || issue === 'INVALID_PRODUCT_URL')
+  const status: CatalogCandidateStatus = fatal ? 'INVALID' : importReady ? 'READY' : 'NEEDS_REVIEW'
+  const identity = sku
+    ? { type: 'MERCHANT_SKU' as const, value: sku }
+    : suppliedExternalId
+      ? { type: 'EXTERNAL_ID' as const, value: suppliedExternalId }
+      : productUrl
+        ? { type: 'PRODUCT_URL' as const, value: productUrl }
+        : null
+  const readiness: CatalogReadiness = fatal ? 'INVALID' : !importReady ? 'NEEDS_REVIEW' : recommendationReady ? 'RECOMMENDATION_READY' : 'IMPORT_READY'
   return {
     sku,
     name,
-    brand: clean(product.brand),
-    variant: clean(product.variant),
+    brand: clean(enriched.brand),
+    variant: clean(enriched.variant),
     imageUrl,
     productUrl,
-    price: product.price == null ? null : Number.isInteger(product.price) && product.price >= 0 ? product.price : null,
-    currency: clean(product.currency)?.toLowerCase() ?? null,
+    price: enriched.price == null ? null : Number.isInteger(enriched.price) && enriched.price >= 0 ? enriched.price : null,
+    currency: clean(enriched.currency)?.toLowerCase() ?? null,
     shape,
-    material: clean(product.material),
-    color: clean(product.color),
-    widthClass: clean(product.widthClass),
-    styleTags: asStringArray(product.styleTags),
-    collectionTags: asStringArray(product.collectionTags),
-    source: product.source ?? 'EXTERNAL',
-    externalId: canonicalUrl(clean(product.externalId)) ?? product.externalId ?? productUrl,
+    material: clean(enriched.material),
+    color: clean(enriched.color),
+    widthClass: clean(enriched.widthClass),
+    styleTags: asStringArray(enriched.styleTags),
+    collectionTags: asStringArray(enriched.collectionTags),
+    source,
+    externalId,
+    identity,
+    shapeSource: enriched.shapeSource ?? 'NONE',
+    shapeConfidence: enriched.shapeConfidence ?? null,
+    importReady,
+    recommendationReady,
+    recommendationIssues,
+    readiness,
     status,
     dedupeStatus: 'NEW',
     issues,
-    ...(product.sourceLabel ? { sourceLabel: product.sourceLabel } : {}),
+    ...(enriched.sourceLabel ? { sourceLabel: enriched.sourceLabel } : {}),
   }
 }
 
@@ -392,7 +523,7 @@ function sourceError(error: unknown, fallback: MerchantSourceIntakeError) {
 }
 
 function candidateToImportFrame(candidate: CatalogImportCandidate): CatalogFrameInput | null {
-  if (candidate.status !== 'READY' || candidate.dedupeStatus !== 'NEW' || !candidate.sku || !candidate.name || !candidate.shape) return null
+  if (!candidate.importReady || candidate.dedupeStatus !== 'NEW' || !candidate.name || !candidate.identity) return null
   return {
     sku: candidate.sku,
     name: candidate.name,
@@ -422,6 +553,7 @@ export async function buildCatalogInspectionProposal(input: {
   inspectSource?: (url: string, maxProducts: number) => Promise<ProgressiveSourceInspection>
   maxProducts?: number
   initialSourceIssues?: SourceIssue[]
+  enrichShapeWithVision?: (product: ExtractedProduct) => Promise<{ shape: string; confidence: number } | null>
 }) {
   const maxProducts = input.maxProducts ?? MAX_SOURCE_PRODUCTS
   const sourceUrls = [...new Set((input.sourceUrls ?? []).map((url) => url.trim()).filter(Boolean))]
@@ -493,18 +625,49 @@ export async function buildCatalogInspectionProposal(input: {
 
   const existingSkus = new Set(input.existing.map((frame) => clean(frame.sku)).filter((value): value is string => Boolean(value)))
   const existingUrls = new Set(input.existing.map((frame) => canonicalUrl(frame.productUrl)).filter((value): value is string => Boolean(value)))
+  const existingExternalIds = new Set(input.existing.map((frame) => {
+    const externalId = canonicalUrl(clean(frame.externalId ?? null)) ?? clean(frame.externalId ?? null)
+    return externalId ? `${frame.source ?? 'EXTERNAL'}:${externalId}` : null
+  }).filter((value): value is string => Boolean(value)))
   const seenSkus = new Set<string>()
   const seenUrls = new Set<string>()
-  const candidates = extracted.slice(0, maxProducts).map(normalizeCandidate).map((candidate) => {
-    const duplicateInProposal = Boolean(candidate.sku && seenSkus.has(candidate.sku)) || Boolean(candidate.productUrl && seenUrls.has(candidate.productUrl))
-    const alreadyExists = Boolean(candidate.sku && existingSkus.has(candidate.sku)) || Boolean(candidate.productUrl && existingUrls.has(candidate.productUrl))
+  const seenExternalIds = new Set<string>()
+  const enrichedExtracted = await Promise.all(extracted.slice(0, maxProducts).map(async (product) => {
+    const deterministic = enrichCatalogProduct(product)
+    if (deterministic.shape || !input.enrichShapeWithVision || !deterministic.imageUrl) return deterministic
+    try {
+      const vision = await input.enrichShapeWithVision(deterministic)
+      return vision ? { ...deterministic, visionShape: vision.shape, visionShapeConfidence: vision.confidence } : deterministic
+    } catch {
+      return { ...deterministic, sourceIssues: [...(deterministic.sourceIssues ?? []), 'VISION_ENRICHMENT_FAILED'] }
+    }
+  }))
+  const candidates = enrichedExtracted.map(normalizeCandidate).map((candidate) => {
+    const externalIdentityKey = candidate.externalId ? `${candidate.source}:${candidate.externalId}` : null
+    const duplicateInProposal = Boolean(candidate.sku && seenSkus.has(candidate.sku))
+      || Boolean(candidate.productUrl && seenUrls.has(candidate.productUrl))
+      || Boolean(externalIdentityKey && seenExternalIds.has(externalIdentityKey))
+    const alreadyExists = Boolean(candidate.sku && existingSkus.has(candidate.sku))
+      || Boolean(candidate.productUrl && existingUrls.has(candidate.productUrl))
+      || Boolean(externalIdentityKey && existingExternalIds.has(externalIdentityKey))
     if (candidate.sku) seenSkus.add(candidate.sku)
     if (candidate.productUrl) seenUrls.add(candidate.productUrl)
+    if (externalIdentityKey) seenExternalIds.add(externalIdentityKey)
     if (alreadyExists) return { ...candidate, dedupeStatus: 'ALREADY_EXISTS' as const, status: candidate.status === 'INVALID' ? 'INVALID' as const : 'NEEDS_REVIEW' as const, issues: [...candidate.issues, 'ALREADY_EXISTS'] }
     if (duplicateInProposal) return { ...candidate, dedupeStatus: 'POSSIBLE_DUPLICATE' as const, status: candidate.status === 'INVALID' ? 'INVALID' as const : 'NEEDS_REVIEW' as const, issues: [...candidate.issues, 'POSSIBLE_DUPLICATE'] }
     return candidate
   })
-  const importable = candidates.map(candidateToImportFrame).filter((candidate): candidate is CatalogFrameInput => Boolean(candidate))
+  const finalizedCandidates = candidates.map((candidate) => {
+    const readiness: CatalogReadiness = candidate.status === 'INVALID'
+      ? 'INVALID'
+      : candidate.dedupeStatus !== 'NEW' || !candidate.importReady
+        ? 'NEEDS_REVIEW'
+        : candidate.recommendationReady
+          ? 'RECOMMENDATION_READY'
+          : 'IMPORT_READY'
+    return { ...candidate, readiness }
+  })
+  const importable = finalizedCandidates.map(candidateToImportFrame).filter((candidate): candidate is CatalogFrameInput => Boolean(candidate))
   const sourceHostnames = [...new Set(sourceUrls.map((sourceUrl) => {
     try { return new URL(sourceUrl).hostname } catch { return null }
   }).filter((value): value is string => Boolean(value)))]
@@ -517,13 +680,19 @@ export async function buildCatalogInspectionProposal(input: {
       sourceHostnames,
       platforms: [...detectedPlatforms],
       fetchedPageCount: fetchedUrls.length,
-      foundCount: candidates.length,
+      foundCount: finalizedCandidates.length,
       readyToImport: importable.length,
-      needsReview: candidates.filter((candidate) => candidate.status === 'NEEDS_REVIEW').length,
-      invalid: candidates.filter((candidate) => candidate.status === 'INVALID').length,
+      importReady: importable.length,
+      recommendationReady: finalizedCandidates.filter((candidate) => candidate.recommendationReady && candidate.dedupeStatus === 'NEW').length,
+      needsReview: finalizedCandidates.filter((candidate) => candidate.readiness === 'NEEDS_REVIEW').length,
+      invalid: finalizedCandidates.filter((candidate) => candidate.readiness === 'INVALID').length,
+      reasonDistribution: finalizedCandidates.filter((candidate) => candidate.readiness === 'NEEDS_REVIEW' || !candidate.recommendationReady).reduce<Record<string, number>>((distribution, candidate) => {
+        for (const reason of [...candidate.issues, ...candidate.recommendationIssues]) distribution[reason] = (distribution[reason] ?? 0) + 1
+        return distribution
+      }, {}),
       sourceIssues,
     },
-    candidates,
+    candidates: finalizedCandidates,
     importReady: importable,
     limits: { maxSourceUrls: MAX_SOURCE_URLS, maxDiscoveredProducts: maxProducts },
   }
@@ -592,7 +761,7 @@ export function parseCatalogCsv(text: string) {
   if (!headerRow || headerRow.length === 0) throw new MerchantSourceIntakeError('CSV_HEADER_REQUIRED', 'The CSV must include a header row.')
   const headers = headerRow.map(normalizedCsvHeader)
   const mapped = headers.map((header) => CSV_HEADERS[header])
-  if (!mapped.includes('sku') || !mapped.includes('name')) throw new MerchantSourceIntakeError('CSV_HEADER_REQUIRED', 'The CSV must include at least sku and name columns.')
+  if (!mapped.includes('name')) throw new MerchantSourceIntakeError('CSV_HEADER_REQUIRED', 'The CSV must include a name column. Add sku, productUrl, or externalId when available so each row has a stable identity.')
   if (dataRows.length > MAX_CSV_ROWS) throw new MerchantSourceIntakeError('CSV_TOO_MANY_ROWS', `CSV files can contain up to ${MAX_CSV_ROWS} product rows per approval.`)
   const issues: Array<{ row: number; code: string; message: string }> = parsed.issues.map((issue) => ({ row: issue.row, code: 'CSV_MALFORMED', message: issue.message }))
   const products: Array<CatalogFrameInput & { sourceIssues?: string[] }> = []

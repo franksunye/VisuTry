@@ -36,7 +36,7 @@ export async function inspectHumanMerchantCatalogSource(input: {
   }
   const existing = await prisma.merchantFrame.findMany({
     where: { merchantId: input.actor.merchantId },
-    select: { id: true, sku: true, productUrl: true },
+    select: { id: true, sku: true, productUrl: true, externalId: true, source: true },
   })
   const fetchSource = async (target: string) => fetchMerchantSourceDocument(target, {
     timeoutMs: MERCHANT_SOURCE_FETCH_TIMEOUT_MS,

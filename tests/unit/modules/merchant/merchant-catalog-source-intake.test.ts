@@ -89,11 +89,11 @@ describe('reviewed merchant catalog source intake', () => {
     })
 
     expect(result.candidates).toEqual(expect.arrayContaining([
-      expect.objectContaining({ name: 'Needs Catalog Review', status: 'NEEDS_REVIEW', issues: expect.arrayContaining(['MISSING_SKU', 'MISSING_SHAPE']) }),
+      expect.objectContaining({ name: 'Needs Catalog Review', readiness: 'IMPORT_READY', importReady: true, recommendationReady: false, recommendationIssues: ['MISSING_SHAPE'] }),
       expect.objectContaining({ sku: 'VT-EXISTING', dedupeStatus: 'ALREADY_EXISTS', status: 'NEEDS_REVIEW' }),
       expect.objectContaining({ sku: 'VT-NEW', dedupeStatus: 'POSSIBLE_DUPLICATE', status: 'NEEDS_REVIEW' }),
     ]))
-    expect(result.importReady).toHaveLength(1)
+    expect(result.importReady).toHaveLength(2)
   })
 
   it('supports a small manual product set through the same proposal pipeline', async () => {

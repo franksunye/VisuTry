@@ -134,11 +134,11 @@ export async function inspectHumanMerchantCatalogSource(input: {
     initialSourceIssues = parsed.issues.map((issue) => ({ sourceUrl: 'csv://merchant-upload', code: issue.code, message: `Row ${issue.row}: ${issue.message}` }))
   }
   const sql = getCloudflareSql()
-  const existing = await sql`SELECT "id", "sku", "productUrl" FROM "MerchantFrame" WHERE "merchantId" = ${input.actor.merchantId}`
+  const existing = await sql`SELECT "id", "sku", "productUrl", "externalId", "source" FROM "MerchantFrame" WHERE "merchantId" = ${input.actor.merchantId}`
   const result = await buildCatalogInspectionProposal({
     sourceUrls: input.sourceUrls,
     manualProducts,
-    existing: existing.map((row) => ({ id: String(row.id), sku: row.sku == null ? null : String(row.sku), productUrl: row.productUrl == null ? null : String(row.productUrl) })),
+    existing: existing.map((row) => ({ id: String(row.id), sku: row.sku == null ? null : String(row.sku), productUrl: row.productUrl == null ? null : String(row.productUrl), externalId: row.externalId == null ? null : String(row.externalId), source: row.source == null ? null : String(row.source) })),
     fetchSource: fetchMerchantSourceDocumentCloudflare,
     inspectSource: (sourceUrl, remaining) => inspectCatalogUrlProgressively({
       sourceUrl,

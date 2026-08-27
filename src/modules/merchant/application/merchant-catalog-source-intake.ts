@@ -19,7 +19,7 @@ export async function inspectCatalogSource(input: {
   requireAgentScope(input.actor, 'catalog:read')
   const existing = await prisma.merchantFrame.findMany({
     where: { merchantId: input.actor.merchantId },
-    select: { id: true, sku: true, productUrl: true },
+    select: { id: true, sku: true, productUrl: true, externalId: true, source: true },
   })
   const fetchSource = async (target: string): Promise<CatalogSourceDocument> => fetchMerchantSourceDocument(target, {
     timeoutMs: MERCHANT_SOURCE_FETCH_TIMEOUT_MS,

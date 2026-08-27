@@ -15,7 +15,7 @@ export const MAX_CATALOG_IMPORT = 1000
 export const MAX_STORE_FRAMES = 100
 
 export type CatalogFrameInput = {
-  sku: string
+  sku?: string | null
   name: string
   brand?: string | null
   variant?: string | null
@@ -23,7 +23,7 @@ export type CatalogFrameInput = {
   productUrl?: string | null
   price?: number | null
   currency?: string | null
-  shape: string
+  shape?: string | null
   material?: string | null
   color?: string | null
   widthClass?: string | null
@@ -45,7 +45,7 @@ export class MerchantOnboardingError extends Error {
   }
 }
 
-type FrameForValidation = Pick<MerchantFrame, 'id' | 'sku' | 'name' | 'imageUrl' | 'shape' | 'widthClass' | 'status'>
+type FrameForValidation = Pick<MerchantFrame, 'id' | 'sku' | 'name' | 'imageUrl' | 'shape' | 'widthClass' | 'status'> & Partial<Pick<MerchantFrame, 'productUrl' | 'externalId' | 'source'>>
 
 function cleanText(value: string | null | undefined): string | null {
   const normalized = value?.trim()
@@ -63,20 +63,47 @@ function validUrl(value: string | null): boolean {
 }
 
 export function validateCatalogFrame(frame: FrameForValidation) {
-  const issues: string[] = []
-  if (!frame.sku?.trim()) issues.push('MISSING_SKU')
-  if (!frame.name?.trim()) issues.push('MISSING_NAME')
-  if (!frame.imageUrl || !validUrl(frame.imageUrl)) issues.push('MISSING_IMAGE_URL')
-  if (!frame.shape?.trim()) issues.push('MISSING_SHAPE')
+  const importIssues = validateMerchantCatalogImportFrame(frame).issues
+  const recommendationIssues: string[] = []
+  if (!frame.shape?.trim()) recommendationIssues.push('MISSING_SHAPE')
   const warnings = frame.status !== 'ACTIVE' ? ['FRAME_NOT_ACTIVE'] : []
-  return { valid: issues.length === 0 && frame.status === 'ACTIVE', issues, warnings }
+  const importReady = importIssues.length === 0
+  const recommendationReady = importReady && recommendationIssues.length === 0 && frame.status === 'ACTIVE'
+  return {
+    valid: recommendationReady,
+    importReady,
+    recommendationReady,
+    issues: [...importIssues, ...recommendationIssues],
+    importIssues,
+    recommendationIssues,
+    warnings,
+  }
 }
 
-function normalizeFrameInput(frame: CatalogFrameInput): CatalogFrameInput {
-  const sku = frame.sku.trim()
+export function validateMerchantCatalogImportFrame(frame: Pick<FrameForValidation, 'sku' | 'name' | 'imageUrl' | 'productUrl' | 'externalId' | 'source'>) {
+  const issues: string[] = []
+  const sku = frame.sku?.trim() || null
+  const name = frame.name?.trim()
+  const productUrl = frame.productUrl?.trim() || null
+  const externalId = frame.externalId?.trim() || null
+  const source = frame.source ?? 'MANUAL'
+  if (!sku && !externalId && !productUrl) issues.push('MISSING_STABLE_IDENTITY')
+  if (!name) issues.push('MISSING_NAME')
+  if (!frame.imageUrl || !validUrl(frame.imageUrl)) issues.push('MISSING_IMAGE_URL')
+  if (productUrl && !validUrl(productUrl)) issues.push('INVALID_PRODUCT_URL')
+  if (source === 'EXTERNAL' && !productUrl) issues.push('MISSING_PRODUCT_URL')
+  return { valid: issues.length === 0, issues }
+}
+
+function normalizeFrameInput(frame: CatalogFrameInput): Required<Pick<CatalogFrameInput, 'sku' | 'name' | 'shape'>> & CatalogFrameInput {
+  const sku = frame.sku?.trim() || null
   const name = frame.name.trim()
-  const shape = frame.shape.trim()
-  if (!sku || !name || !shape) throw new MerchantOnboardingError('INVALID_CATALOG', 'sku, name, and shape are required.')
+  const shape = frame.shape?.trim() || null
+  const source = frame.source ?? 'MANUAL'
+  const productUrl = cleanText(frame.productUrl)
+  const externalId = cleanText(frame.externalId) ?? (source === 'EXTERNAL' ? productUrl : null)
+  const validation = validateMerchantCatalogImportFrame({ sku, name, imageUrl: cleanText(frame.imageUrl), productUrl, externalId, source })
+  if (!validation.valid) throw new MerchantOnboardingError('INVALID_CATALOG', `Catalog item is not importable: ${validation.issues.join(', ')}.`)
   if (frame.price != null && (!Number.isInteger(frame.price) || frame.price < 0)) {
     throw new MerchantOnboardingError('INVALID_CATALOG', 'price must be a non-negative integer in minor currency units.')
   }
@@ -88,15 +115,15 @@ function normalizeFrameInput(frame: CatalogFrameInput): CatalogFrameInput {
     brand: cleanText(frame.brand),
     variant: cleanText(frame.variant),
     imageUrl: cleanText(frame.imageUrl),
-    productUrl: cleanText(frame.productUrl),
+    productUrl,
     currency: cleanText(frame.currency)?.toLowerCase() ?? null,
     material: cleanText(frame.material),
     color: cleanText(frame.color),
     widthClass: cleanText(frame.widthClass),
     styleTags: frame.styleTags ?? [],
     collectionTags: frame.collectionTags ?? [],
-    source: frame.source ?? 'MANUAL',
-    externalId: cleanText(frame.externalId),
+    source,
+    externalId,
     sourceNotes: cleanText(frame.sourceNotes),
   }
 }
@@ -152,10 +179,15 @@ export async function importMerchantFrames(input: { actor: MerchantActorContext;
     throw new MerchantOnboardingError('INVALID_CATALOG', `frames must contain between 1 and ${MAX_CATALOG_IMPORT} items.`)
   }
   const normalized = input.frames.map(normalizeFrameInput)
-  const skus = new Set<string>()
+  const identities = new Set<string>()
   for (const frame of normalized) {
-    if (skus.has(frame.sku)) throw new MerchantOnboardingError('INVALID_CATALOG', 'sku values must be unique within an import.')
-    skus.add(frame.sku)
+    const identity = frame.sku
+      ? `sku:${frame.sku}`
+      : frame.externalId
+        ? `external:${frame.source}:${frame.externalId}`
+        : `url:${frame.productUrl}`
+    if (identities.has(identity)) throw new MerchantOnboardingError('INVALID_CATALOG', 'Catalog identity values must be unique within an import.')
+    identities.add(identity)
   }
 
   const merchant = await prisma.merchant.findUnique({ where: { id: input.actor.merchantId }, select: { slug: true } })
@@ -167,7 +199,12 @@ export async function importMerchantFrames(input: { actor: MerchantActorContext;
       let created = 0
       let updated = 0
       for (const frame of normalized) {
-        const existing = await tx.merchantFrame.findFirst({ where: { merchantId: input.actor.merchantId, sku: frame.sku } })
+        const identityFilters = [
+          ...(frame.sku ? [{ sku: frame.sku }] : []),
+          ...(frame.externalId ? [{ source: frame.source, externalId: frame.externalId }] : []),
+          ...(frame.productUrl ? [{ productUrl: frame.productUrl }] : []),
+        ]
+        const existing = await tx.merchantFrame.findFirst({ where: { merchantId: input.actor.merchantId, OR: identityFilters } })
         const data = {
           name: frame.name,
           brand: frame.brand,
@@ -176,7 +213,7 @@ export async function importMerchantFrames(input: { actor: MerchantActorContext;
           productUrl: frame.productUrl,
           price: frame.price,
           currency: frame.currency,
-          shape: frame.shape,
+          shape: frame.shape ?? '',
           material: frame.material,
           color: frame.color,
           widthClass: frame.widthClass,

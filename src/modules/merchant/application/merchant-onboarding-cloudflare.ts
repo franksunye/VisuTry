@@ -11,7 +11,7 @@ export const MAX_CATALOG_IMPORT = 1000
 export const MAX_STORE_FRAMES = 100
 
 export type CatalogFrameInput = {
-  sku: string
+  sku?: string | null
   name: string
   brand?: string | null
   variant?: string | null
@@ -19,7 +19,7 @@ export type CatalogFrameInput = {
   productUrl?: string | null
   price?: number | null
   currency?: string | null
-  shape: string
+  shape?: string | null
   material?: string | null
   color?: string | null
   widthClass?: string | null
@@ -42,7 +42,7 @@ export class MerchantOnboardingError extends Error {
 }
 
 type Row = Record<string, unknown>
-type FrameForValidation = { id: string; sku: string | null; name: string; imageUrl: string | null; shape: string; widthClass: string | null; status: string }
+type FrameForValidation = { id: string; sku: string | null; name: string; imageUrl: string | null; shape: string; widthClass: string | null; status: string; productUrl?: string | null; externalId?: string | null; source?: string | null }
 
 function newRecordId(prefix = 'cf'): string {
   return globalThis.crypto?.randomUUID?.() ?? `${prefix}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`
@@ -64,20 +64,39 @@ function validUrl(value: string | null): boolean {
 }
 
 export function validateCatalogFrame(frame: FrameForValidation) {
-  const issues: string[] = []
-  if (!frame.sku?.trim()) issues.push('MISSING_SKU')
-  if (!frame.name?.trim()) issues.push('MISSING_NAME')
-  if (!frame.imageUrl || !validUrl(frame.imageUrl)) issues.push('MISSING_IMAGE_URL')
-  if (!frame.shape?.trim()) issues.push('MISSING_SHAPE')
+  const importIssues = validateMerchantCatalogImportFrame(frame).issues
+  const recommendationIssues: string[] = []
+  if (!frame.shape?.trim()) recommendationIssues.push('MISSING_SHAPE')
   const warnings = frame.status !== 'ACTIVE' ? ['FRAME_NOT_ACTIVE'] : []
-  return { valid: issues.length === 0 && frame.status === 'ACTIVE', issues, warnings }
+  const importReady = importIssues.length === 0
+  const recommendationReady = importReady && recommendationIssues.length === 0 && frame.status === 'ACTIVE'
+  return { valid: recommendationReady, importReady, recommendationReady, issues: [...importIssues, ...recommendationIssues], importIssues, recommendationIssues, warnings }
 }
 
-function normalizeFrameInput(frame: CatalogFrameInput): CatalogFrameInput {
-  const sku = frame.sku.trim()
+export function validateMerchantCatalogImportFrame(frame: Pick<FrameForValidation, 'sku' | 'name' | 'imageUrl' | 'productUrl' | 'externalId' | 'source'>) {
+  const issues: string[] = []
+  const sku = frame.sku?.trim() || null
+  const name = frame.name?.trim()
+  const productUrl = frame.productUrl?.trim() || null
+  const externalId = frame.externalId?.trim() || null
+  const source = frame.source ?? 'MANUAL'
+  if (!sku && !externalId && !productUrl) issues.push('MISSING_STABLE_IDENTITY')
+  if (!name) issues.push('MISSING_NAME')
+  if (!frame.imageUrl || !validUrl(frame.imageUrl)) issues.push('MISSING_IMAGE_URL')
+  if (productUrl && !validUrl(productUrl)) issues.push('INVALID_PRODUCT_URL')
+  if (source === 'EXTERNAL' && !productUrl) issues.push('MISSING_PRODUCT_URL')
+  return { valid: issues.length === 0, issues }
+}
+
+function normalizeFrameInput(frame: CatalogFrameInput): Required<Pick<CatalogFrameInput, 'sku' | 'name' | 'shape'>> & CatalogFrameInput {
+  const sku = frame.sku?.trim() || null
   const name = frame.name.trim()
-  const shape = frame.shape.trim()
-  if (!sku || !name || !shape) throw new MerchantOnboardingError('INVALID_CATALOG', 'sku, name, and shape are required.')
+  const shape = frame.shape?.trim() || null
+  const source = frame.source ?? 'MANUAL'
+  const productUrl = cleanText(frame.productUrl)
+  const externalId = cleanText(frame.externalId) ?? (source === 'EXTERNAL' ? productUrl : null)
+  const validation = validateMerchantCatalogImportFrame({ sku, name, imageUrl: cleanText(frame.imageUrl), productUrl, externalId, source })
+  if (!validation.valid) throw new MerchantOnboardingError('INVALID_CATALOG', `Catalog item is not importable: ${validation.issues.join(', ')}.`)
   if (frame.price != null && (!Number.isInteger(frame.price) || frame.price < 0)) throw new MerchantOnboardingError('INVALID_CATALOG', 'price must be a non-negative integer in minor currency units.')
   return {
     ...frame,
@@ -94,8 +113,8 @@ function normalizeFrameInput(frame: CatalogFrameInput): CatalogFrameInput {
     widthClass: cleanText(frame.widthClass),
     styleTags: frame.styleTags ?? [],
     collectionTags: frame.collectionTags ?? [],
-    source: frame.source ?? 'MANUAL',
-    externalId: cleanText(frame.externalId),
+    source,
+    externalId,
     sourceNotes: cleanText(frame.sourceNotes),
   }
 }
@@ -171,17 +190,44 @@ export async function importMerchantFrames(input: { actor: MerchantActorContext;
   requireAgentScope(input.actor, 'catalog:write')
   if (input.frames.length === 0 || input.frames.length > MAX_CATALOG_IMPORT) throw new MerchantOnboardingError('INVALID_CATALOG', `frames must contain between 1 and ${MAX_CATALOG_IMPORT} items.`)
   const normalized = input.frames.map(normalizeFrameInput)
-  const skus = new Set<string>()
+  const identities = new Set<string>()
   for (const frame of normalized) {
-    if (skus.has(frame.sku)) throw new MerchantOnboardingError('INVALID_CATALOG', 'sku values must be unique within an import.')
-    skus.add(frame.sku)
+    const identity = frame.sku
+      ? `sku:${frame.sku}`
+      : frame.externalId
+        ? `external:${frame.source}:${frame.externalId}`
+        : `url:${frame.productUrl}`
+    if (identities.has(identity)) throw new MerchantOnboardingError('INVALID_CATALOG', 'Catalog identity values must be unique within an import.')
+    identities.add(identity)
   }
   const sql = getCloudflareSql()
   const statements = normalized.map((frame) => sql`
-    INSERT INTO "MerchantFrame" ("id", "merchantId", "sku", "name", "brand", "variant", "imageUrl", "productUrl", "price", "currency", "shape", "material", "color", "widthClass", "styleTags", "collectionTags", "source", "externalId", "sourceNotes", "status", "enrichmentStatus", "createdAt", "updatedAt")
-    VALUES (${newRecordId()}, ${input.actor.merchantId}, ${frame.sku}, ${frame.name}, ${frame.brand}, ${frame.variant}, ${frame.imageUrl}, ${frame.productUrl}, ${frame.price}, ${frame.currency}, ${frame.shape}, ${frame.material}, ${frame.color}, ${frame.widthClass}, ${frame.styleTags}, ${frame.collectionTags}, ${frame.source}, ${frame.externalId}, ${frame.sourceNotes}, 'ACTIVE', 'APPROVED', NOW(), NOW())
-    ON CONFLICT ("merchantId", "sku") DO UPDATE SET "name" = EXCLUDED."name", "brand" = EXCLUDED."brand", "variant" = EXCLUDED."variant", "imageUrl" = EXCLUDED."imageUrl", "productUrl" = EXCLUDED."productUrl", "price" = EXCLUDED."price", "currency" = EXCLUDED."currency", "shape" = EXCLUDED."shape", "material" = EXCLUDED."material", "color" = EXCLUDED."color", "widthClass" = EXCLUDED."widthClass", "styleTags" = EXCLUDED."styleTags", "collectionTags" = EXCLUDED."collectionTags", "source" = EXCLUDED."source", "externalId" = EXCLUDED."externalId", "sourceNotes" = EXCLUDED."sourceNotes", "status" = 'ACTIVE', "enrichmentStatus" = 'APPROVED', "updatedAt" = NOW()
-    RETURNING "id", (xmax = 0) AS "created"
+    WITH existing AS (
+      SELECT "id" FROM "MerchantFrame"
+      WHERE "merchantId" = ${input.actor.merchantId}
+        AND (
+          ("sku" IS NOT NULL AND "sku" = ${frame.sku})
+          OR ("externalId" IS NOT NULL AND "source" = ${frame.source} AND "externalId" = ${frame.externalId})
+          OR ("productUrl" IS NOT NULL AND "productUrl" = ${frame.productUrl})
+        )
+      ORDER BY "updatedAt" DESC
+      LIMIT 1
+    ), updated AS (
+      UPDATE "MerchantFrame" SET
+        "sku" = COALESCE("sku", ${frame.sku}), "name" = ${frame.name}, "brand" = ${frame.brand}, "variant" = ${frame.variant}, "imageUrl" = ${frame.imageUrl},
+        "productUrl" = ${frame.productUrl}, "price" = ${frame.price}, "currency" = ${frame.currency}, "shape" = ${frame.shape ?? ''},
+        "material" = ${frame.material}, "color" = ${frame.color}, "widthClass" = ${frame.widthClass}, "styleTags" = ${frame.styleTags},
+        "collectionTags" = ${frame.collectionTags}, "source" = ${frame.source}, "externalId" = ${frame.externalId},
+        "sourceNotes" = ${frame.sourceNotes}, "status" = 'ACTIVE', "enrichmentStatus" = 'APPROVED', "updatedAt" = NOW()
+      WHERE "id" = (SELECT "id" FROM existing)
+      RETURNING "id", false AS "created"
+    ), inserted AS (
+      INSERT INTO "MerchantFrame" ("id", "merchantId", "sku", "name", "brand", "variant", "imageUrl", "productUrl", "price", "currency", "shape", "material", "color", "widthClass", "styleTags", "collectionTags", "source", "externalId", "sourceNotes", "status", "enrichmentStatus", "createdAt", "updatedAt")
+      SELECT ${newRecordId()}, ${input.actor.merchantId}, ${frame.sku}, ${frame.name}, ${frame.brand}, ${frame.variant}, ${frame.imageUrl}, ${frame.productUrl}, ${frame.price}, ${frame.currency}, ${frame.shape ?? ''}, ${frame.material}, ${frame.color}, ${frame.widthClass}, ${frame.styleTags}, ${frame.collectionTags}, ${frame.source}, ${frame.externalId}, ${frame.sourceNotes}, 'ACTIVE', 'APPROVED', NOW(), NOW()
+      WHERE NOT EXISTS (SELECT 1 FROM existing)
+      RETURNING "id", true AS "created"
+    )
+    SELECT * FROM updated UNION ALL SELECT * FROM inserted
   `)
   const results = await sql.transaction(statements, { isolationLevel: 'Serializable' })
   const ids = results.flatMap((result) => result.map((row) => String(row.id)))
