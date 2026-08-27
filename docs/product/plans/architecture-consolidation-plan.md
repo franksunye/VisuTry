@@ -582,16 +582,19 @@ src/app/api/cron/sync-pending-consumer-tasks/route.ts
 src/app/api/try-on/**
 ```
 
-Known Consumer/main → Store imports at audit time:
+Known Consumer/main → Store imports at original audit time, and remediation status:
 
-| Path | Classification (proposed) |
-| --- | --- |
-| `discover/page.tsx` + Store discover runtime | **Candidate approved exception** — Discover is a Store discovery surface hosted under `(main)` |
-| `ContextualExperienceHandoff.tsx` / `distribution-handoffs.ts` | **Candidate approved exception** — explicit Consumer→Store handoff bridge |
-| `payment/create-session`, `PricingCard`, `auth/signin`, `success` via `merchant-continuation` | **Debt** — extract to shared commerce-handoff contracts |
-| `analytics/consumer-funnel` via `session-acquisition` | **Debt** — move AI referral inference to shared attribution helper |
+| Path | Classification | Status |
+| --- | --- | --- |
+| `discover/page.tsx` + Store discover runtime | **Candidate approved exception** — Discover is a Store discovery surface hosted under `(main)` | Still Store import; tracked exception |
+| `ContextualExperienceHandoff.tsx` | **Candidate approved exception** — explicit Consumer→Store handoff bridge | Still Store import; tracked exception |
+| `payment/create-session`, `PricingCard`, `auth/signin`, `success` via `merchant-continuation` | **Debt** | **Fixed 2026-08-27** → `@/lib/commerce-handoff/merchant-continuation` |
+| `analytics/consumer-funnel` via `session-acquisition` | **Debt** | **Fixed 2026-08-27** → `@/lib/commerce-handoff/ai-referral` |
+| `config/distribution-handoffs.ts` surface type | **Debt** | **Fixed 2026-08-27** → `@/lib/commerce-handoff/distribution-surfaces` |
 
-Until Product + Engineering either (a) publish an ADR listing approved exceptions, or (b) extract the debt imports and expand the ADR-007 guard, this plan’s route-wide import-zero DoD must **not** be cited as Complete.
+ADR-007 import regression now also scans payment, consumer-funnel, signin, success, pricing, distribution-handoffs, and `src/lib/commerce-handoff/**`.
+
+Until Product + Engineering either (a) publish an ADR listing Discover/ContextualExperienceHandoff as approved exceptions, or (b) relocate them under Store route trees, those two paths remain the only intentional Consumer-tree → Store imports.
 
 Authority for the audit write-up: `docs/audits/2026-08-27-architecture-platform-saas-audit.md` finding F2.
 
@@ -662,3 +665,4 @@ Those decisions must not be pulled into the current consolidation without eviden
 | 2026-08-06 | Created explicit 3–5 day pre-Pilot architecture consolidation execution plan to operationalize ADR-007 and ADR-008 without broad rewrite. |
 | 2026-08-06 | **DoD met.** P0 landed: MerchantSession acquisition fields + create API/client capture; Merchant commercial entitlement (`planCode` / allowances / `FOUNDING_PILOT` v8 resolver) wired into session + try-on enforcement; Store pending-sync moved under `modules/store`; ADR-007 regression expanded. Deferred (evidence-gated): full multi-provider router productization, `src/modules/commerce/**` extraction, Campaign/Conversion first-class aggregates, billing product model beyond entitlement config. |
 | 2026-08-27 | **Partial reopen.** Architecture audit found Consumer/main → Store imports contradicting the route-wide import-zero Boundary DoD while generation isolation remains green. Status split; §8.1 records debt vs candidate exceptions. |
+| 2026-08-27 | Money/auth/funnel debt extracted to `src/lib/commerce-handoff/**`; ADR-007 guards expanded. Discover + ContextualExperienceHandoff remain tracked exceptions. Live `campaign-service-cloudflare` create/update/setFrames now use `withPublicDiscoveryInvalidation`. |

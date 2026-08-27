@@ -281,32 +281,23 @@ publish_campaign
 
 ---
 
-## 6. Recommended Architecture Program (Next, Not Rewrite)
+## 6. Recommended Architecture Program (aligned to review priority)
 
-Order by risk reduction for platform/SaaS/agent goals:
+Order by engineering risk (reviewer ranking, 2026-08-27):
 
-### Phase A — Freeze drift + reconcile authority (focused PRs)
+### P0 — Fix now (guardrail + live fork)
 
-1. **Reconcile consolidation DoD** (done in this PR as documentation debt acknowledgment): generation isolation remains Complete; route-wide Consumer→Store import-zero is reopened until exceptions are ADR-approved or extracted.
-2. **Behavioral dual-implementation contract tests** for live `*-cloudflare` vs Prisma alternate pairs used by merchant/MCP paths: at minimum discovery invalidation, tenant scoping, idempotency/audit recording, and readiness/publish gates. Tool-registry name parity is necessary but **not sufficient**.
-3. Document the live MCP availability matrix (serving runtime = Vercel Node; implementation family = `*-cloudflare`) in `universal-agent-access.md`.
-4. Extend ADR-007 import guards to payment/signin/success/pricing/funnel, or record permanent exceptions via ADR.
+1. **Consumer → Store boundary regression** — extract money/auth/funnel handoff contracts out of Store; expand ADR-007 import guards beyond try-on/cron. *(Started in this PR via `src/lib/commerce-handoff/**`.)*
+2. **Production MCP implementation fork** — treat live `*-cloudflare` (raw-SQL) vs Prisma alternate as one application layer with thin persistence adapters; do not confuse with Workers vs Node serving (`/api/mcp` is Vercel Node).
+3. **Behavioral parity / contract tests** — tenant isolation, readiness, cache invalidation, audit, idempotency, lifecycle, error semantics. Tool-count parity is only one layer. *(Campaign discovery-invalidation parity started in this PR.)*
 
-### Phase B — Shared commerce contracts (evidence already exists)
+### P1 — Unify commerce application contracts
 
-1. Extract `merchant-continuation` + acquisition inference out of Store domain into shared contracts.
-2. Collapse Control Center / MCP / Admin onto one analytics application API.
-3. Prefer adapter-thin `*-cloudflare` files (persistence only); ban new business-logic forks without ADR exception.
+Admin / Merchant UI / MCP must become clients of the **same** business application APIs (onboarding, campaign, analytics). Collapse Control Center re-aggregation onto shared services.
 
-### Phase C — Commerce module extraction (only when triggered)
+### P2 — Incremental `modules/commerce/**` extraction
 
-Valid triggers (already nearly true for analytics + campaign):
-
-- same business contract needed by Storefront + MCP + Admin;
-- Store naming causing incorrect Consumer dependencies;
-- duplicate implementation already exists (F4).
-
-Then introduce incremental `src/modules/commerce/{merchant,catalog,campaign,journey,measurement}` **by moving contracts**, not by renaming the whole Store tree.
+Only after real Pilot / second delivery-surface evidence. Do not rename Store for cleanliness.
 
 ### Explicit non-goals (reaffirm)
 
@@ -368,3 +359,4 @@ ADR-007 import test roots: tryon-service, quota, compare-tryon-server,
 | --- | --- |
 | 2026-08-27 | Initial platform / 2B SaaS / Agent-Native architecture audit from docs + dependency evidence. |
 | 2026-08-27 | Review reconciliation: reframed F3 as live vs alternate implementation parity (not Workers vs Node serving); elevated F2 to consolidation DoD contradiction; required behavioral contract tests in Phase A. |
+| 2026-08-27 | P0 engineering start: `commerce-handoff` extraction, expanded ADR-007 roots, live campaign discovery-invalidation parity + contract tests; priority program rewritten to reviewer P0/P1/P2. |
