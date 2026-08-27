@@ -101,6 +101,26 @@ describe('human catalog progressive source intake', () => {
     expect(result.issues).toEqual([])
   })
 
+  it('renders discovered product pages when the rendered landing page has no structured products', async () => {
+    const renderedUrls: string[] = []
+    const result = await inspectCatalogUrlProgressively({
+      sourceUrl: 'https://catalog.example.test',
+      maxProducts: 20,
+      fetchSource: async () => {
+        throw Object.assign(new Error('The source returned HTTP 403.'), { code: 'SOURCE_UNREACHABLE' })
+      },
+      renderedFetch: async (url) => {
+        renderedUrls.push(url)
+        if (url === 'https://catalog.example.test') return document(url, '<html><body><a href="/products/rendered-round">Round frame</a></body></html>')
+        return document(url, '<script type="application/ld+json">{"@type":"Product","name":"Rendered Round Frame","sku":"R-1","image":"https://cdn.example.test/round.jpg","shape":"round","offers":{"price":"99","priceCurrency":"USD"}}</script>')
+      },
+    })
+
+    expect(result.platform).toBe('BROWSER_RENDER')
+    expect(result.candidates[0]).toMatchObject({ sku: 'R-1', name: 'Rendered Round Frame' })
+    expect(renderedUrls).toEqual(['https://catalog.example.test', 'https://catalog.example.test/products/rendered-round'])
+  })
+
   it('maps Shopify variants into canonical product facts without AI guessing', () => {
     const products = extractCatalogProductsFromShopifyJson({ products: [{ id: 1, title: 'Frame', handle: 'frame', image: { src: 'https://cdn.example.test/frame.jpg' }, options: [{ name: 'Shape', values: ['oval'] }], variants: [{ id: 2, sku: 'F-1', price: '99.50' }] }] }, 'https://shop.example.test/')
     expect(products[0]).toMatchObject({ sku: 'F-1', shape: 'oval', price: 9950, source: 'EXTERNAL' })

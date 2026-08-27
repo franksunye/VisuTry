@@ -74,7 +74,23 @@ async function inspectWithBrowserRender(input: {
     const rendered = await input.renderedFetch(input.sourceUrl)
     if (!rendered || !isHtml(rendered)) return null
     fetchedUrls.push(rendered.url)
-    return extractCatalogProductsFromHtml(rendered.body, rendered.url).slice(0, input.maxProducts)
+    const directCandidates = extractCatalogProductsFromHtml(rendered.body, rendered.url)
+    if (directCandidates.length > 0) return directCandidates.slice(0, input.maxProducts)
+
+    const renderedProductUrls = extractCatalogProductLinksFromHtml(rendered.body, rendered.url, input.maxProducts)
+    const candidates: ExtractedProduct[] = []
+    for (const productUrl of renderedProductUrls.slice(0, Math.min(input.maxProducts, MAX_GENERIC_PRODUCT_PAGES))) {
+      try {
+        const productPage = await input.renderedFetch(productUrl)
+        if (!productPage || !isHtml(productPage)) continue
+        fetchedUrls.push(productPage.url)
+        candidates.push(...extractCatalogProductsFromHtml(productPage.body, productPage.url))
+        if (candidates.length >= input.maxProducts) break
+      } catch {
+        issues.push(issue(productUrl, 'PRODUCT_PAGE_RENDER_FAILED', 'Some rendered product pages could not be inspected.'))
+      }
+    }
+    return candidates.slice(0, input.maxProducts)
   } catch {
     issues.push(issue(input.sourceUrl, 'BROWSER_RENDER_FAILED', 'The rendered page could not be inspected.'))
     return null
