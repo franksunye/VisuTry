@@ -385,6 +385,18 @@ Date range: UTC, `from` inclusive / `to` exclusive, default 30 days, max 365 day
 
 Control Center still shows recommendation-activity and product-click **overlay** cards. Those overlays are not C1 engagement or high-intent numerators.
 
+### Campaign lifecycle contracts
+
+Preview, readiness, publish, and archive share `evaluateCampaignReadiness` / `assertCampaignPublishable` in `src/modules/store/domain/campaign-readiness.ts`.
+
+- Live MCP (`POST /api/mcp` → Prisma `mcp/server.ts` + `tool-registry.ts`) exposes `preview_campaign` / `publish_campaign` / `archive_campaign` through the same application commands. The Cloudflare raw-SQL adapter implements the same persistence commands but does **not** register those MCP tools (`MCP_CLOUDFLARE_ADAPTER_UNAVAILABLE`)
+- `publish_campaign` still requires `approved: true` and fails with `PUBLISH_APPROVAL_REQUIRED` / `CAMPAIGN_NOT_READY`
+- Admin Campaign `ACTIVE` / `ARCHIVED` status writes go through `publishCampaign` / `archiveCampaign` (`requireAdmin` is the operator approval)
+- Merchant Control Center Campaign pills use the same blocking codes (not frame-only validation)
+- Successful publish/archive still go through `withPublicDiscoveryInvalidation`
+
+Store publish remains the separate onboarding command (`publishMerchantStore`). Admin `DRAFT` / `ENDED` are not MCP transitions and still use `updatePublicExperience`.
+
 ### Unified in this slice
 
 - MCP Experience summary / funnel / top frames / intent
@@ -392,19 +404,20 @@ Control Center still shows recommendation-activity and product-click **overlay**
 - Admin merchant Experience comparison table (`listMerchantExperienceAnalytics`)
 - Admin Experience insights API when `experienceId` is set
 - `compareMerchantExperiences` (already composed from C1 summaries)
+- Campaign preview / readiness / publish / archive
 
 ### Still duplicated (acceptable; P2 not triggered)
 
 - `getMerchantInsights` CRM (recent sessions, inquiries, catalog interest, all-time operator funnel)
 - `get-experience-admin` all-time directory counts on the Experiences list page
-- Campaign preview / publish / archive command unification
-- Remaining Prisma vs Cloudflare persistence adapters (business policy is already shared for this slice)
+- Remaining Prisma vs Cloudflare persistence adapters (business policy is already shared for analytics and Campaign lifecycle)
 - `merchant-distribution-report` source-class engagement overlay (includes recommendation by design)
 - `merchant-commerce-intelligence.ts` still hosts both the pure overview builder and the Prisma loader (non-blocking; split if the module keeps growing)
+- Store-only Control Center readiness remains frame validation (`evaluateStoreReadiness` not extracted)
 
 P2 / `src/modules/commerce/**` extraction remains evidence-based: trigger only when a third genuine domain (not another delivery surface) needs these contracts, or when remaining CRM / lifecycle duplication causes metric disagreement that this kernel cannot own.
 
-P1 analytics did not reopen Consumer routes. ADR-007 Consumer→Store close-out (Discover-only exception) is the P0 work on this branch.
+P1 analytics and Campaign lifecycle do not reopen Consumer routes. ADR-007 Consumer→Store close-out (Discover-only exception) is on `main` via #143.
 
 ---
 

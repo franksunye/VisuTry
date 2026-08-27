@@ -11,6 +11,7 @@ jest.mock('@/lib/api-auth', () => ({ requireAdmin: jest.fn() }))
 jest.mock('@/lib/prisma', () => ({
   prisma: {
     experience: { findFirst: jest.fn(), update: jest.fn() },
+    merchant: { findUnique: jest.fn() },
     merchantFrame: { findMany: jest.fn() },
     $transaction: jest.fn(),
   },
@@ -22,6 +23,7 @@ jest.mock('@/modules/store/application/public-discovery-invalidation', () => ({
 
 const db = prisma as unknown as {
   experience: { findFirst: jest.Mock; update: jest.Mock }
+  merchant: { findUnique: jest.Mock }
   merchantFrame: { findMany: jest.Mock }
   $transaction: jest.Mock
 }
@@ -116,5 +118,47 @@ describe('Merchant Experience admin routes', () => {
 
     expect(response.status).toBe(400)
     expect(db.$transaction).not.toHaveBeenCalled()
+  })
+
+  it('refuses Admin Campaign activation when canonical readiness does not pass', async () => {
+    const campaign = {
+      id: 'campaign-a',
+      slug: 'spring',
+      type: 'CAMPAIGN',
+      merchant: { slug: 'merchant-a' },
+      merchantId: 'merchant-a',
+      name: 'Spring',
+      status: 'DRAFT',
+      headline: null,
+      description: null,
+      primaryCtaType: null,
+      primaryCtaLabel: null,
+      primaryCtaUrl: null,
+      secondaryCtaType: null,
+      secondaryCtaLabel: null,
+      secondaryCtaUrl: null,
+      startAt: null,
+      endAt: null,
+      campaignObjective: 'INTENT',
+      campaignGate: 'NONE',
+      presentationMode: 'EDITORIAL_FIRST',
+      referenceData: false,
+      frames: [],
+    }
+    db.experience.findFirst.mockResolvedValue(campaign)
+    db.merchant.findUnique.mockResolvedValue({ slug: 'merchant-a', referenceData: false })
+    db.experience.update.mockResolvedValue(campaign)
+
+    const response = await updateExperience(
+      new NextRequest('http://localhost/api/admin/store/merchants/merchant-a/experiences/campaign-a', {
+        method: 'PUT',
+        body: JSON.stringify({ status: 'ACTIVE', name: 'Spring' }),
+      }),
+      { params: { id: 'merchant-a', experienceId: 'campaign-a' } },
+    )
+
+    expect(response.status).toBe(409)
+    await expect(response.json()).resolves.toMatchObject({ success: false, code: 'CAMPAIGN_NOT_READY' })
+    expect(db.experience.update).toHaveBeenCalled()
   })
 })

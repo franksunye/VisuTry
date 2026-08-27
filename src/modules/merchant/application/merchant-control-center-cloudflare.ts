@@ -1,5 +1,6 @@
 import { getCloudflareSql } from '@/data/neon-cloudflare'
 import { resolveCampaignConversionPolicy } from '@/modules/store/domain/campaign-policy'
+import { campaignReadinessForControlCenter, evaluateCampaignReadiness } from '@/modules/store/domain/campaign-readiness'
 import { resolvePresentationMode, type PresentationMode } from '@/modules/store/domain/presentation-mode'
 import type { MerchantDistributionReport } from '@/modules/store/domain/merchant-distribution-report'
 import { resolveAnalyticsPeriod } from '@/modules/store/application/merchant-analytics-compute'
@@ -109,6 +110,7 @@ function operationLabel(action: string): string | null {
   if (action === 'store.created' || action === 'campaign.created') return 'Created'
   if (action === 'store.frames_updated' || action === 'campaign.frames_updated') return 'Catalog updated'
   if (action === 'store.published' || action === 'campaign.published') return 'Published'
+  if (action === 'campaign.archived') return 'Archived'
   if (action === 'campaign.updated') return 'Updated'
   return null
 }
@@ -184,7 +186,7 @@ export async function getMerchantControlCenter(input: { merchantId: string }): P
     sql`
       SELECT e."id", e."type", e."name", e."slug", e."status", e."campaignObjective",
         e."campaignGate", e."presentationMode", e."referenceData", e."headline", e."description",
-        e."primaryCtaLabel", e."startAt", e."endAt", e."updatedAt",
+        e."primaryCtaLabel", e."primaryCtaUrl", e."secondaryCtaUrl", e."startAt", e."endAt", e."updatedAt",
         count(ef."merchantFrameId") FILTER (WHERE ef."active" = true)::int AS "frameCount"
       FROM "Experience" e
       LEFT JOIN "ExperienceFrame" ef ON ef."experienceId" = e."id"
@@ -225,6 +227,23 @@ export async function getMerchantControlCenter(input: { merchantId: string }): P
     const type = String(experience.type) as 'STORE' | 'CAMPAIGN'
     const slug = String(experience.slug)
     const selectedFrames = selectedByExperience.get(String(experience.id)) ?? []
+    const startAt = experience.startAt == null ? null : (experience.startAt instanceof Date ? experience.startAt : new Date(String(experience.startAt)))
+    const endAt = experience.endAt == null ? null : (experience.endAt instanceof Date ? experience.endAt : new Date(String(experience.endAt)))
+    const readiness = type === 'CAMPAIGN'
+      ? campaignReadinessForControlCenter(
+        evaluateCampaignReadiness({
+          name: String(experience.name),
+          headline: experience.headline == null ? null : String(experience.headline),
+          status: String(experience.status),
+          startAt,
+          endAt,
+          primaryCtaUrl: experience.primaryCtaUrl == null ? null : String(experience.primaryCtaUrl),
+          secondaryCtaUrl: experience.secondaryCtaUrl == null ? null : String(experience.secondaryCtaUrl),
+          frames: selectedFrames.map((frame) => ({ status: frame.status, valid: frame.validation.valid })),
+        }),
+        selectedFrames,
+      )
+      : experienceReadiness(selectedFrames)
     return {
       id: String(experience.id),
       type,
@@ -237,10 +256,10 @@ export async function getMerchantControlCenter(input: { merchantId: string }): P
       headline: experience.headline == null ? null : String(experience.headline),
       description: experience.description == null ? null : String(experience.description),
       primaryCtaLabel: experience.primaryCtaLabel == null ? null : String(experience.primaryCtaLabel),
-      startAt: experience.startAt == null ? null : (experience.startAt instanceof Date ? experience.startAt : new Date(String(experience.startAt))).toISOString(),
-      endAt: experience.endAt == null ? null : (experience.endAt instanceof Date ? experience.endAt : new Date(String(experience.endAt))).toISOString(),
+      startAt: startAt?.toISOString() ?? null,
+      endAt: endAt?.toISOString() ?? null,
       selectedFrames,
-      readiness: experienceReadiness(selectedFrames),
+      readiness,
       lastOperation: latestOperationByResource.get(String(experience.id)) ?? null,
       policy: {
         objective: policy?.objective ?? null,

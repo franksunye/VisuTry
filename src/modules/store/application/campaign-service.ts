@@ -2,22 +2,19 @@ import { Prisma, type Experience, type MerchantFrame } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { validateCatalogFrame } from '@/modules/merchant/application/merchant-onboarding'
 import { resolveCampaignConversionPolicy, isCampaignGate, isCampaignObjective, isPresentationMode, type CampaignGate, type CampaignObjective } from '../domain/campaign-policy'
+import {
+  assertCampaignPublishable,
+  CampaignServiceError,
+  evaluateCampaignReadiness,
+  isSafeCampaignCtaUrl,
+} from '../domain/campaign-readiness'
 import { resolvePresentationMode, type PresentationMode } from '../domain/presentation-mode'
 import { MerchantAccessError } from '@/modules/merchant/application/merchant-access'
 import { withPublicDiscoveryInvalidation } from './public-discovery-invalidation'
 
-const MAX_CAMPAIGN_FRAMES = 100
+export { CampaignServiceError }
 
-export class CampaignServiceError extends Error {
-  readonly code: string
-  readonly httpStatus: number
-  constructor(code: string, message: string, httpStatus = 400) {
-    super(message)
-    this.name = 'CampaignServiceError'
-    this.code = code
-    this.httpStatus = httpStatus
-  }
-}
+const MAX_CAMPAIGN_FRAMES = 100
 
 export type CampaignReadModel = {
   id: string
@@ -69,12 +66,7 @@ function slugify(value: string): string {
   return slug || 'campaign'
 }
 
-function safeCtaUrl(value: string | null | undefined): boolean {
-  if (!value) return true
-  if (/\s|[\u0000-\u001f\u007f]/u.test(value)) return false
-  if (value.startsWith('/') && !value.startsWith('//')) return true
-  try { return new URL(value).protocol === 'https:' } catch { return false }
-}
+const safeCtaUrl = isSafeCampaignCtaUrl
 
 function parseDate(value: string | Date | null | undefined, field: string): Date | null | undefined {
   if (value === undefined) return undefined
@@ -101,17 +93,19 @@ function mapCampaign(row: CampaignRow, merchantSlug: string, merchantReferenceDa
   const frameChecks = row.frames.map((frame) => frame.merchantFrame
     ? validateCatalogFrame(frame.merchantFrame)
     : { valid: false, issues: ['FRAME_NOT_FOUND'], warnings: [] })
-  const blockingIssues = [
-    ...(row.name.trim() ? [] : ['NAME_REQUIRED']),
-    ...(row.headline?.trim() ? [] : ['HEADLINE_REQUIRED']),
-    ...(row.frames.length > 0 ? [] : ['FRAMES_REQUIRED']),
-    ...(row.frames.every((frame) => frame.merchantFrame?.status === 'ACTIVE') ? [] : ['INACTIVE_FRAMES']),
-    ...(frameChecks.every((check) => check.valid) ? [] : ['INVALID_FRAMES']),
-    ...(row.status === 'DRAFT' || row.status === 'ACTIVE' ? [] : ['STATUS_NOT_PUBLISHABLE']),
-    ...(row.startAt && row.endAt && row.startAt >= row.endAt ? ['INVALID_DATE_RANGE'] : []),
-    ...(safeCtaUrl(row.primaryCtaUrl) ? [] : ['INVALID_PRIMARY_CTA']),
-    ...(safeCtaUrl(row.secondaryCtaUrl) ? [] : ['INVALID_SECONDARY_CTA']),
-  ]
+  const { ready, blockingIssues, warnings } = evaluateCampaignReadiness({
+    name: row.name,
+    headline: row.headline,
+    status: row.status,
+    startAt: row.startAt,
+    endAt: row.endAt,
+    primaryCtaUrl: row.primaryCtaUrl,
+    secondaryCtaUrl: row.secondaryCtaUrl,
+    frames: row.frames.map((frame, index) => ({
+      status: frame.merchantFrame?.status ?? null,
+      valid: frameChecks[index].valid,
+    })),
+  })
   return {
     id: row.id,
     merchantId: row.merchantId,
@@ -135,7 +129,7 @@ function mapCampaign(row: CampaignRow, merchantSlug: string, merchantReferenceDa
     frameCount: row.frames.length,
     referenceData: merchantReferenceData || row.referenceData,
     publicPath: `/en/c/${merchantSlug}/${row.slug}`,
-    readiness: { ready: blockingIssues.length === 0, blockingIssues, warnings: [] },
+    readiness: { ready, blockingIssues, warnings },
   }
 }
 
@@ -300,7 +294,7 @@ export async function publishCampaign(input: { merchantId: string; campaignId: s
   if (!input.approved) throw new CampaignServiceError('PUBLISH_APPROVAL_REQUIRED', 'Publishing requires explicit approval.')
   const current = await campaignRow(input.merchantId, input.campaignId)
   const model = mapCampaign(current.row, current.merchant.slug, current.merchant.referenceData)
-  if (!model.readiness.ready) throw new CampaignServiceError('CAMPAIGN_NOT_READY', 'Campaign is not ready to publish.', 409)
+  assertCampaignPublishable(model.readiness, true)
   if (current.row.status === 'ACTIVE') return model
   const updated = await withPublicDiscoveryInvalidation({
     target: { kind: 'experience', merchantSlug: current.merchant.slug, experienceSlug: current.row.slug },

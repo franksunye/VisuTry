@@ -2,21 +2,18 @@ import { getCloudflareSql } from '@/data/neon-cloudflare'
 import { validateCatalogFrame } from '@/modules/merchant/application/merchant-onboarding-cloudflare'
 import { MerchantAccessError } from '@/modules/merchant/application/merchant-access-cloudflare'
 import { resolveCampaignConversionPolicy, isCampaignGate, isCampaignObjective, isPresentationMode, type CampaignGate, type CampaignObjective } from '../domain/campaign-policy'
+import {
+  assertCampaignPublishable,
+  CampaignServiceError,
+  evaluateCampaignReadiness,
+  isSafeCampaignCtaUrl,
+} from '../domain/campaign-readiness'
 import { resolvePresentationMode, type PresentationMode } from '../domain/presentation-mode'
 import { withPublicDiscoveryInvalidation } from './public-discovery-invalidation'
 
-const MAX_CAMPAIGN_FRAMES = 100
+export { CampaignServiceError }
 
-export class CampaignServiceError extends Error {
-  readonly code: string
-  readonly httpStatus: number
-  constructor(code: string, message: string, httpStatus = 400) {
-    super(message)
-    this.name = 'CampaignServiceError'
-    this.code = code
-    this.httpStatus = httpStatus
-  }
-}
+const MAX_CAMPAIGN_FRAMES = 100
 
 export type CampaignReadModel = {
   id: string
@@ -57,12 +54,7 @@ function slugify(value: string): string {
   return slug || 'campaign'
 }
 
-function safeCtaUrl(value: string | null | undefined): boolean {
-  if (!value) return true
-  if (/\s|[\u0000-\u001f\u007f]/u.test(value)) return false
-  if (value.startsWith('/') && !value.startsWith('//')) return true
-  try { return new URL(value).protocol === 'https:' } catch { return false }
-}
+const safeCtaUrl = isSafeCampaignCtaUrl
 
 function parseDate(value: string | Date | null | undefined, field: string): Date | null | undefined {
   if (value === undefined) return undefined
@@ -86,23 +78,25 @@ function mapCampaign(row: CampaignRow, merchantSlug: string, merchantReferenceDa
   const presentationMode = resolvePresentationMode({ experienceType: 'CAMPAIGN', persistedPresentationMode: row.presentationMode == null ? null : String(row.presentationMode) as PresentationMode })
   const frames = row.frames
   const frameChecks = frames.map((frame) => frame.merchantFrame ? validateCatalogFrame(frame.merchantFrame) : { valid: false, issues: ['FRAME_NOT_FOUND'], warnings: [] })
-  const blockingIssues = [
-    ...(String(row.name).trim() ? [] : ['NAME_REQUIRED']),
-    ...(String(row.headline ?? '').trim() ? [] : ['HEADLINE_REQUIRED']),
-    ...(frames.length > 0 ? [] : ['FRAMES_REQUIRED']),
-    ...(frames.every((frame) => frame.merchantFrame?.status === 'ACTIVE') ? [] : ['INACTIVE_FRAMES']),
-    ...(frameChecks.every((check) => check.valid) ? [] : ['INVALID_FRAMES']),
-    ...(row.status === 'DRAFT' || row.status === 'ACTIVE' ? [] : ['STATUS_NOT_PUBLISHABLE']),
-    ...((dateValue(row.startAt) && dateValue(row.endAt) && dateValue(row.startAt)! >= dateValue(row.endAt)!) ? ['INVALID_DATE_RANGE'] : []),
-    ...(safeCtaUrl(row.primaryCtaUrl == null ? null : String(row.primaryCtaUrl)) ? [] : ['INVALID_PRIMARY_CTA']),
-    ...(safeCtaUrl(row.secondaryCtaUrl == null ? null : String(row.secondaryCtaUrl)) ? [] : ['INVALID_SECONDARY_CTA']),
-  ]
+  const { ready, blockingIssues, warnings } = evaluateCampaignReadiness({
+    name: String(row.name),
+    headline: row.headline == null ? null : String(row.headline),
+    status: String(row.status),
+    startAt: dateValue(row.startAt),
+    endAt: dateValue(row.endAt),
+    primaryCtaUrl: row.primaryCtaUrl == null ? null : String(row.primaryCtaUrl),
+    secondaryCtaUrl: row.secondaryCtaUrl == null ? null : String(row.secondaryCtaUrl),
+    frames: frames.map((frame, index) => ({
+      status: frame.merchantFrame?.status ?? null,
+      valid: frameChecks[index].valid,
+    })),
+  })
   return {
     id: String(row.id), merchantId: String(row.merchantId), slug: String(row.slug), name: String(row.name), status: String(row.status), objective: policy.objective, gate: policy.gate, presentationMode,
     headline: row.headline == null ? null : String(row.headline), description: row.description == null ? null : String(row.description),
     primaryCtaType: row.primaryCtaType == null ? null : String(row.primaryCtaType), primaryCtaLabel: row.primaryCtaLabel == null ? null : String(row.primaryCtaLabel), primaryCtaUrl: row.primaryCtaUrl == null ? null : String(row.primaryCtaUrl),
     secondaryCtaType: row.secondaryCtaType == null ? null : String(row.secondaryCtaType), secondaryCtaLabel: row.secondaryCtaLabel == null ? null : String(row.secondaryCtaLabel), secondaryCtaUrl: row.secondaryCtaUrl == null ? null : String(row.secondaryCtaUrl),
-    startAt: dateValue(row.startAt), endAt: dateValue(row.endAt), frameIds: frames.map((frame) => frame.merchantFrameId), frameCount: frames.length, referenceData: merchantReferenceData || Boolean(row.referenceData), publicPath: `/en/c/${merchantSlug}/${String(row.slug)}`, readiness: { ready: blockingIssues.length === 0, blockingIssues, warnings: [] },
+    startAt: dateValue(row.startAt), endAt: dateValue(row.endAt), frameIds: frames.map((frame) => frame.merchantFrameId), frameCount: frames.length, referenceData: merchantReferenceData || Boolean(row.referenceData), publicPath: `/en/c/${merchantSlug}/${String(row.slug)}`, readiness: { ready, blockingIssues, warnings },
   }
 }
 
@@ -230,6 +224,42 @@ export async function setCampaignFrames(input: { merchantId: string; campaignId:
 
 export async function previewCampaign(input: { merchantId: string; campaignId: string }) { return getCampaign(input) }
 
-function publishUnsupported(): never { throw new CampaignServiceError('CLOUDFLARE_PUBLISH_OUT_OF_SCOPE', 'Campaign publishing and archiving are outside the Cloudflare B2 write boundary.', 409) }
-export async function publishCampaign(_input: { merchantId: string; campaignId: string; approved: boolean }): Promise<never> { return publishUnsupported() }
-export async function archiveCampaign(_input: { merchantId: string; campaignId: string }): Promise<never> { return publishUnsupported() }
+export async function publishCampaign(input: { merchantId: string; campaignId: string; approved: boolean }) {
+  if (!input.approved) throw new CampaignServiceError('PUBLISH_APPROVAL_REQUIRED', 'Publishing requires explicit approval.')
+  const current = await fetchCampaign(input.merchantId, input.campaignId)
+  const model = mapCampaign(current.row, String(current.merchant.slug), Boolean(current.merchant.referenceData))
+  assertCampaignPublishable(model.readiness, true)
+  if (String(current.row.status) === 'ACTIVE') return model
+  await withPublicDiscoveryInvalidation({
+    target: { kind: 'experience', merchantSlug: String(current.merchant.slug), experienceSlug: String(current.row.slug) },
+    mutation: async () => {
+      const sql = getCloudflareSql()
+      const rows = await sql`
+        UPDATE "Experience"
+        SET "status" = 'ACTIVE', "updatedAt" = NOW()
+        WHERE "id" = ${input.campaignId} AND "merchantId" = ${input.merchantId} AND "type" = 'CAMPAIGN'
+        RETURNING "id"
+      `
+      if (!rows[0]) throw new MerchantAccessError()
+    },
+  })
+  return getCampaign({ merchantId: input.merchantId, campaignId: input.campaignId })
+}
+
+export async function archiveCampaign(input: { merchantId: string; campaignId: string }) {
+  const current = await fetchCampaign(input.merchantId, input.campaignId)
+  await withPublicDiscoveryInvalidation({
+    target: { kind: 'experience', merchantSlug: String(current.merchant.slug), experienceSlug: String(current.row.slug) },
+    mutation: async () => {
+      const sql = getCloudflareSql()
+      const rows = await sql`
+        UPDATE "Experience"
+        SET "status" = 'ARCHIVED', "updatedAt" = NOW()
+        WHERE "id" = ${input.campaignId} AND "merchantId" = ${input.merchantId} AND "type" = 'CAMPAIGN'
+        RETURNING "id"
+      `
+      if (!rows[0]) throw new MerchantAccessError()
+    },
+  })
+  return getCampaign({ merchantId: input.merchantId, campaignId: input.campaignId })
+}

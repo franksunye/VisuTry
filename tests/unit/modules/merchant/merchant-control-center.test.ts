@@ -64,6 +64,10 @@ describe('merchant control center read model', () => {
     })
     expect(result?.store?.policy).toEqual({ objective: null, gate: null, presentation: 'PRODUCT_FIRST' })
     expect(result?.experiences.find((experience) => experience.type === 'CAMPAIGN')?.policy).toEqual({ objective: 'INTENT', gate: 'NONE', presentation: 'EDITORIAL_FIRST' })
+    expect(result?.experiences.find((experience) => experience.type === 'CAMPAIGN')?.readiness).toMatchObject({
+      status: 'INCOMPLETE',
+      issues: expect.arrayContaining(['HEADLINE_REQUIRED', 'FRAMES_REQUIRED']),
+    })
     expect(db.experience.findMany).toHaveBeenCalledWith(expect.objectContaining({ where: { merchantId: 'merchant-a' } }))
     expect(JSON.stringify(result)).not.toContain('merchant-b')
   })
