@@ -177,6 +177,7 @@ export function MerchantCatalogSelfService({ merchantId, initialTotal }: { merch
     setBusy(true);
     setError(null);
     setProposal(null);
+    analytics.trackCustomEvent(AnalyticsEvent.MerchantCatalogImportStarted, { merchant_id: merchantId, source_type: sourceType });
     try {
       let response: Response;
       if (sourceType === "csv") {
