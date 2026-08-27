@@ -13,11 +13,14 @@ import {
   validateMerchantFrameReadiness,
   type MerchantFrameEnrichmentStatus,
 } from '../domain/merchant-frame-readiness'
+import { validateMerchantFrameStoreReadiness } from '../domain/merchant-frame-store-readiness'
+import type { MerchantStoreWorkspace, MerchantStoreWorkspaceFrame } from './merchant-store-workspace'
 
-// Batch safety guard, not a product-count/UI ceiling. Human Web paginates the
-// catalog and the import review can contain up to 1,000 rows per approval.
+// Request-size safety guard, not a product-count/UI ceiling. Human Web can
+// select the full catalog; the bounded API payload is aligned with catalog
+// import capacity.
 export const MAX_CATALOG_IMPORT = 1000
-export const MAX_STORE_FRAMES = 100
+export const MAX_STORE_FRAMES = MAX_CATALOG_IMPORT
 
 export type CatalogFrameInput = {
   sku?: string | null
@@ -56,6 +59,14 @@ type FrameForValidation = Pick<MerchantFrame, 'id' | 'sku' | 'name' | 'imageUrl'
 function cleanText(value: string | null | undefined): string | null {
   const normalized = value?.trim()
   return normalized || null
+}
+
+function defaultStoreName(merchantName: string): string {
+  const suffix = ' Store'
+  const prefix = merchantName.trim()
+  return prefix.length + suffix.length <= 120
+    ? `${prefix}${suffix}`
+    : `${prefix.slice(0, 120 - suffix.length).trimEnd()}${suffix}`
 }
 
 export function validateCatalogFrame(frame: FrameForValidation) {
@@ -241,11 +252,63 @@ async function getActiveFrames(merchantId: string, frameIds?: string[]) {
 }
 
 function storeReadiness(frames: FrameForValidation[], expectedCount = frames.length) {
-  const checks = frames.map((frame) => ({ frameId: frame.id, ...validateCatalogFrame(frame) }))
-  const blockingIssues = checks.filter((check) => !check.valid).map((check) => ({ frameId: check.frameId, issues: check.issues }))
+  const checks = frames.map((frame) => {
+    const recommendation = validateCatalogFrame(frame)
+    const display = validateMerchantFrameStoreReadiness(frame)
+    return {
+      frameId: frame.id,
+      storeEligible: display.storeEligible,
+      recommendationReady: recommendation.recommendationReady,
+      issues: display.issues,
+      recommendationIssues: recommendation.recommendationIssues,
+    }
+  })
+  const blockingIssues = checks.filter((check) => !check.storeEligible).map((check) => ({ frameId: check.frameId, issues: check.issues }))
   if (frames.length !== expectedCount) blockingIssues.push({ frameId: 'unknown', issues: ['FRAME_NOT_FOUND_OR_INACTIVE'] })
-  const readyFrameCount = checks.filter((check) => check.valid).length
+  const readyFrameCount = checks.filter((check) => check.storeEligible).length
   return { ready: expectedCount > 0 && frames.length === expectedCount && blockingIssues.length === 0, frameCount: expectedCount, readyFrameCount, blockingIssues, checks }
+}
+
+function storeWorkspaceFrame(frame: MerchantFrame): MerchantStoreWorkspaceFrame {
+  return {
+    id: frame.id,
+    sku: frame.sku,
+    externalId: frame.externalId,
+    productUrl: frame.productUrl,
+    name: frame.name,
+    brand: frame.brand,
+    imageUrl: frame.imageUrl,
+    price: frame.price,
+    currency: frame.currency,
+    shape: frame.shape,
+    source: frame.source,
+    status: frame.status,
+    enrichmentStatus: frame.enrichmentStatus,
+    validation: validateMerchantFrameReadiness(frame),
+    storeReadiness: validateMerchantFrameStoreReadiness(frame),
+  }
+}
+
+export async function getMerchantStoreWorkspace(input: { actor: MerchantActorContext }): Promise<MerchantStoreWorkspace> {
+  requireAgentScope(input.actor, 'experience:read')
+  const merchant = await getMerchant(input)
+  const [store, catalog] = await Promise.all([
+    findStore(input.actor.merchantId),
+    prisma.merchantFrame.findMany({ where: { merchantId: input.actor.merchantId }, orderBy: { name: 'asc' } }),
+  ])
+  return {
+    store: store ? {
+      id: store.id,
+      slug: store.slug,
+      name: store.name,
+      status: store.status,
+      headline: store.headline,
+      description: store.description,
+      publicPath: `/en/store/${merchant.slug}`,
+      selectedFrameIds: store.frames.map((frame) => frame.merchantFrameId),
+    } : null,
+    catalog: catalog.map(storeWorkspaceFrame),
+  }
 }
 
 export async function getOnboardingStatus(input: { actor: MerchantActorContext }) {
@@ -257,6 +320,7 @@ export async function getOnboardingStatus(input: { actor: MerchantActorContext }
     findStore(input.actor.merchantId),
   ])
   const readyFrames = activeFrames.filter((frame) => validateCatalogFrame(frame).valid)
+  const storeEligibleFrames = activeFrames.filter((frame) => validateMerchantFrameStoreReadiness(frame).storeEligible)
   const selectedFrames = store ? await getActiveFrames(input.actor.merchantId, store.frames.map((frame) => frame.merchantFrameId)) : []
   const selectionReadiness = storeReadiness(selectedFrames, store?.frames.length ?? 0)
   return {
@@ -267,7 +331,7 @@ export async function getOnboardingStatus(input: { actor: MerchantActorContext }
     blockers: [
       ...(totalFrames === 0 ? ['CATALOG_EMPTY'] : []),
       ...(activeFrames.length === 0 ? ['NO_ACTIVE_FRAMES'] : []),
-      ...(readyFrames.length === 0 ? ['NO_VALID_FRAMES'] : []),
+      ...(storeEligibleFrames.length === 0 ? ['NO_VALID_FRAMES'] : []),
       ...(!store ? ['STORE_NOT_CREATED'] : []),
       ...(store && store.frames.length === 0 ? ['STORE_HAS_NO_FRAMES'] : []),
       ...(store && store.frames.length > 0 && !selectionReadiness.ready ? ['STORE_HAS_INVALID_FRAMES'] : []),
@@ -278,6 +342,12 @@ export async function getOnboardingStatus(input: { actor: MerchantActorContext }
 export async function createMerchantStore(input: { actor: MerchantActorContext; name?: string; headline?: string; description?: string }) {
   requireAgentScope(input.actor, 'experience:write')
   const merchant = await getMerchant(input)
+  const name = cleanText(input.name) ?? defaultStoreName(merchant.name)
+  const headline = cleanText(input.headline)
+  const description = cleanText(input.description)
+  if (name.length > 120) throw new MerchantOnboardingError('INVALID_STORE_DETAILS', 'Store name cannot exceed 120 characters.')
+  if (headline && headline.length > 240) throw new MerchantOnboardingError('INVALID_STORE_DETAILS', 'Store headline cannot exceed 240 characters.')
+  if (description && description.length > 5000) throw new MerchantOnboardingError('INVALID_STORE_DETAILS', 'Store description cannot exceed 5,000 characters.')
   const transactionResult = await withPublicDiscoveryInvalidation({
     target: { kind: 'experience', merchantSlug: merchant.slug, experienceSlug: null },
     invalidate: (result) => result.created,
@@ -289,9 +359,9 @@ export async function createMerchantStore(input: { actor: MerchantActorContext; 
           merchantId: input.actor.merchantId,
           type: 'STORE',
           slug: 'store',
-          name: cleanText(input.name) ?? `${merchant.name} Store`,
-          headline: cleanText(input.headline),
-          description: cleanText(input.description),
+          name,
+          headline,
+          description,
           status: 'DRAFT',
         },
         include: { frames: { where: { active: true } } },
@@ -301,6 +371,29 @@ export async function createMerchantStore(input: { actor: MerchantActorContext; 
   })
   await recordMerchantAgentOperation({ actor: input.actor, action: 'store.created', resourceType: 'Experience', resourceId: transactionResult.store.id })
   return { id: transactionResult.store.id, slug: transactionResult.store.slug, status: transactionResult.store.status, name: transactionResult.store.name, created: transactionResult.created, publicPath: `/en/store/${merchant.slug}` }
+}
+
+export async function updateMerchantStore(input: { actor: MerchantActorContext; storeId: string; name?: string; headline?: string | null; description?: string | null }) {
+  requireAgentScope(input.actor, 'experience:write')
+  const store = await prisma.experience.findFirst({
+    where: { id: input.storeId, merchantId: input.actor.merchantId, type: 'STORE' },
+    select: { id: true, slug: true, name: true, status: true, headline: true, description: true },
+  })
+  if (!store) throw new MerchantAccessError()
+  const name = input.name === undefined ? store.name : cleanText(input.name)
+  if (!name || name.length > 120) throw new MerchantOnboardingError('INVALID_STORE_DETAILS', 'Store name must be between 1 and 120 characters.')
+  const headline = input.headline === undefined ? store.headline : cleanText(input.headline)
+  const description = input.description === undefined ? store.description : cleanText(input.description)
+  if (headline && headline.length > 240) throw new MerchantOnboardingError('INVALID_STORE_DETAILS', 'Store headline cannot exceed 240 characters.')
+  if (description && description.length > 5000) throw new MerchantOnboardingError('INVALID_STORE_DETAILS', 'Store description cannot exceed 5,000 characters.')
+  const merchant = await prisma.merchant.findUnique({ where: { id: input.actor.merchantId }, select: { slug: true } })
+  if (!merchant) throw new MerchantAccessError()
+  const updated = await withPublicDiscoveryInvalidation({
+    target: { kind: 'experience', merchantSlug: merchant.slug, experienceSlug: null },
+    mutation: () => prisma.experience.update({ where: { id: store.id }, data: { name, headline, description }, select: { id: true, slug: true, name: true, status: true, headline: true, description: true } }),
+  })
+  await recordMerchantAgentOperation({ actor: input.actor, action: 'store.updated', resourceType: 'Experience', resourceId: store.id })
+  return { id: updated.id, slug: updated.slug, name: updated.name, status: updated.status, headline: updated.headline, description: updated.description, publicPath: `/en/store/${merchant.slug}` }
 }
 
 export async function setMerchantStoreFrames(input: { actor: MerchantActorContext; storeId: string; frameIds: string[] }) {
@@ -354,4 +447,4 @@ export async function publishMerchantStore(input: { actor: MerchantActorContext;
   return { id: published.id, status: published.status, publicPath: `/en/store/${merchant.slug}`, approvalRecorded: true }
 }
 
-export const merchantOnboarding = { getMerchant, getOnboardingStatus, listMerchantFrames, validateMerchantCatalog, importMerchantFrames, createMerchantStore, setMerchantStoreFrames, previewMerchantStore, publishMerchantStore }
+export const merchantOnboarding = { getMerchant, getOnboardingStatus, listMerchantFrames, validateMerchantCatalog, importMerchantFrames, getMerchantStoreWorkspace, createMerchantStore, updateMerchantStore, setMerchantStoreFrames, previewMerchantStore, publishMerchantStore }

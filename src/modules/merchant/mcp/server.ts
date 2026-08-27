@@ -4,6 +4,7 @@ import { z } from 'zod/v4'
 import {
   merchantOnboarding,
   MerchantOnboardingError,
+  MAX_CATALOG_IMPORT,
   type CatalogFrameInput,
 } from '../application/merchant-onboarding'
 import {
@@ -219,13 +220,13 @@ export function createMerchantMcpServer(actor: AgentMerchantActor) {
   server.registerTool('create_store', {
     title: 'Create Store',
     description: 'Create the authenticated merchant Store as a DRAFT. Repeated calls return the existing Store.',
-    inputSchema: { name: z.string().max(240).optional(), headline: z.string().max(500).optional(), description: z.string().max(5000).optional() },
+    inputSchema: { name: z.string().max(120).optional(), headline: z.string().max(240).optional(), description: z.string().max(5000).optional() },
   }, async ({ name, headline, description }) => safe(() => merchantOnboarding.createMerchantStore({ actor, name, headline, description })))
 
   server.registerTool('set_store_frames', {
     title: 'Set Store frames',
     description: 'Replace the authenticated merchant Store frame selection using active catalog frame IDs. Cross-merchant IDs are rejected as not found.',
-    inputSchema: { storeId: z.string().min(1), frameIds: z.array(z.string().min(1)).max(100) },
+    inputSchema: { storeId: z.string().min(1), frameIds: z.array(z.string().min(1)).max(MAX_CATALOG_IMPORT) },
   }, async ({ storeId, frameIds }) => safe(() => merchantOnboarding.setMerchantStoreFrames({ actor, storeId, frameIds })))
 
   server.registerTool('preview_store', {

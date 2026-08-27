@@ -68,9 +68,11 @@ export async function getPublicMerchantProfile(input: {
     experiences: input.experiences,
     slug: input.experienceSlug ?? null,
   })
-  const activeFrames = experience && input.frames.findActiveByMerchantAndExperience
-    ? await input.frames.findActiveByMerchantAndExperience(merchant.id, experience)
-    : await input.frames.findActiveByMerchant(merchant.id)
+  const activeFrames = experience && input.frames.findPublicActiveByMerchantAndExperience
+    ? await input.frames.findPublicActiveByMerchantAndExperience(merchant.id, experience)
+    : experience && input.frames.findActiveByMerchantAndExperience
+      ? await input.frames.findActiveByMerchantAndExperience(merchant.id, experience)
+      : await input.frames.findActiveByMerchant(merchant.id)
 
   return toPublicMerchantProfile(merchant, activeFrames, experience)
 }

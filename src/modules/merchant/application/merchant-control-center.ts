@@ -3,6 +3,7 @@ import { resolveCampaignConversionPolicy } from '@/modules/store/domain/campaign
 import { campaignReadinessForControlCenter, evaluateCampaignReadiness } from '@/modules/store/domain/campaign-readiness'
 import { resolvePresentationMode, type PresentationMode } from '@/modules/store/domain/presentation-mode'
 import { validateMerchantFrameReadiness } from '../domain/merchant-frame-readiness'
+import { validateMerchantFrameStoreReadiness } from '../domain/merchant-frame-store-readiness'
 import type { MerchantFrameReadiness } from '../domain/merchant-frame-readiness'
 import { getMerchantCommerceIntelligence, type MerchantCommerceIntelligence } from './merchant-commerce-intelligence'
 
@@ -11,6 +12,8 @@ export type { MerchantCommerceIntelligence }
 export type MerchantCatalogFrameSummary = {
   id: string
   sku: string | null
+  externalId?: string | null
+  productUrl?: string | null
   name: string
   brand: string | null
   imageUrl: string | null
@@ -84,6 +87,14 @@ function localReadiness(frames: MerchantCatalogFrameSummary[]): MerchantControlE
   return { status: validCount === frames.length ? 'VALID' : 'NEEDS_ATTENTION', validCount, invalidCount: frames.length - validCount, issues }
 }
 
+function localStoreReadiness(frames: MerchantCatalogFrameSummary[]): MerchantControlExperience['readiness'] {
+  if (frames.length === 0) return { status: 'INCOMPLETE', validCount: 0, invalidCount: 0, issues: ['NO_SELECTED_FRAMES'] }
+  const checks = frames.map((frame) => validateMerchantFrameStoreReadiness(frame))
+  const validCount = checks.filter((check) => check.storeEligible).length
+  const issues = [...new Set(checks.flatMap((check) => check.issues))]
+  return { status: validCount === frames.length ? 'VALID' : 'NEEDS_ATTENTION', validCount, invalidCount: frames.length - validCount, issues }
+}
+
 export async function getMerchantControlCenter(input: { merchantId: string }): Promise<MerchantControlCenter | null> {
   const merchant = await prisma.merchant.findUnique({
     where: { id: input.merchantId },
@@ -138,7 +149,7 @@ export async function getMerchantControlCenter(input: { merchantId: string }): P
         }),
         selectedFrames,
       )
-      : localReadiness(selectedFrames)
+      : localStoreReadiness(selectedFrames)
     return {
       id: experience.id,
       type: experience.type,

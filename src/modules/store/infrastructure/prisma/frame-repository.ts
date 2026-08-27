@@ -9,6 +9,7 @@ import type {
   MerchantFrameSource,
   MerchantFrameStatus,
 } from '../../domain/enums'
+import { isMerchantFrameStoreEligible } from '@/modules/merchant/domain/merchant-frame-store-readiness'
 
 function mapFrame(row: MerchantFrame): MerchantFrameRecord {
   return {
@@ -57,6 +58,8 @@ export function createPrismaMerchantFrameRepository(): MerchantFrameRepository {
         select: {
           id: true,
           merchantId: true,
+          sku: true,
+          externalId: true,
           name: true,
           brand: true,
           imageUrl: true,
@@ -68,10 +71,14 @@ export function createPrismaMerchantFrameRepository(): MerchantFrameRepository {
           color: true,
           widthClass: true,
           updatedAt: true,
+          source: true,
+          status: true,
+          enrichmentStatus: true,
         },
       })
       const order = new Map(experience.frameIds.map((id, index) => [id, index]))
-      return rows.sort((a, b) => (order.get(a.id) ?? 0) - (order.get(b.id) ?? 0)).map((row) => ({
+      const publicRows = experience.type === 'STORE' ? rows.filter((row) => isMerchantFrameStoreEligible(row)) : rows
+      return publicRows.sort((a, b) => (order.get(a.id) ?? 0) - (order.get(b.id) ?? 0)).map((row) => ({
         id: row.id,
         merchantId: row.merchantId,
         sku: null,

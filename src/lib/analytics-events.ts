@@ -64,6 +64,8 @@ export const AnalyticsEvent = {
   MerchantCatalogImportApproved: 'merchant_catalog_import_approved',
   MerchantCatalogImportCompleted: 'merchant_catalog_import_completed',
   MerchantCatalogCorrectionSaved: 'merchant_catalog_correction_saved',
+  MerchantStoreCreated: 'merchant_store_created',
+  MerchantStorePublished: 'merchant_store_published',
 } as const
 
 export type AnalyticsEventName =
