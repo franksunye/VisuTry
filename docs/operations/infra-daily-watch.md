@@ -173,3 +173,47 @@ Reference pre-Tiered combined baseline for the three families: approximately **2
 - Prefer measured production evidence over code-only hypotheses.
 - Change one infrastructure variable at a time when running experiments.
 - Do not expand a successful-looking experiment until both safety and economic gates pass.
+
+## 2026-08-27
+
+### Codex Morning Inspection — 11:00
+
+**Window:** GA4 complete prior day **2026-08-26 (+08:00)**; Vercel latest surfaced rolling 12h **2026-08-26 22:20–2026-08-27 10:20 (+08:00)**; Cloudflare previous 24h ending this morning. No prior dated watch entry or ChatGPT Afternoon Review was present.
+
+**Traffic**
+- GA Users: **325** (**+22.6%** vs GA4 comparison period).
+- GA Sessions: **354**.
+- GA Views: **913**.
+- Organic / AI referral note: **154 Organic Search sessions** and **44 AI Assistant sessions**; the prior-day session/view deltas were not surfaced, so no unsupported percentage is inferred.
+
+**Vercel**
+- ISR Read Units: **14,233 RU** for the project. Dashboard **Count** and **Bytes** breakdowns were not exposed; this is not treated as either of those metrics.
+- Important ISR route families: pilot families are `/{locale}/glasses-guide/*`, `/{locale}/style/*`, and `/{locale}/sunglasses-for/*`; route-level ISR attribution was unavailable.
+- Fast Origin Transfer: **132.18 MB** total (**7.26 MB incoming**, **124.92 MB outgoing**); route attribution was unavailable.
+- Other material usage: production runtime status breakdown showed **605× 200**, **93× 405**, **7× 404**, **6× 401**, and **no 5xx** in the queried 12h window. Latest production deployment is **READY**, main SHA `941a69a`; no failed deployment was surfaced.
+
+**Cloudflare**
+- Relevant cache experiment: D1 HTML cache shield pilot unchanged; Smart Tiered Cache is **Active** with **Smart Tiered Cache** selected.
+- Cache hit / miss evidence: zone-wide previous-24h HTTP Traffic showed **35.53k total**, **12.61k cached**, **22.92k uncached** (**35.5% cached**); this is not a pilot-route or edge-only ratio.
+- Tiered Cache: enabled; no configuration change made during inspection.
+- Origin-bound evidence: Cloudflare did not expose a pilot-route origin counterfactual or origin-request reduction metric in the readable view.
+
+**Axiom**
+- 4xx/5xx anomalies: Axiom’s current query view did not expose HTTP status fields; the Vercel 12h cross-check showed **no 5xx**, plus **7× 404**, **6× 401**, and **93× 405**.
+- New production errors: Axiom `Last 1 day` query returned **81** error/warn events (**80,784** scanned): **6** `Submit API error` + **6** `Analysis failed` (face analysis), **32** face-shape warnings, **14** slow/aborted auth-session warnings, **6** Chat API network warnings, **3** Store try-on warnings, and **1** transient provider warning. No `ChunkLoadError`, hydration, or RSC events. “New vs prior day” cannot be proven without a prior watch entry, but the face-analysis cluster is the material current regression signal; Store-category warnings are outside normal Consumer scope and not material here.
+
+**Change vs prior comparable window**
+- Traffic: users materially higher at **+22.6%** on GA4’s surfaced comparison; sessions/views lack a surfaced prior-day delta.
+- ISR: **Inconclusive** — **14.233k project RU / rolling 12h** cannot be compared directly with the **2.52k pilot-family RU / 12h** baseline without route attribution.
+- FOT: **132.18 MB / rolling 12h**; no comparable pre-change route-level value was exposed.
+- Cache efficiency: **35.5% zone-wide cached requests**, not comparable with the prior **1.53% edge-only pilot sample**.
+
+**Current interpretation**
+1. Traffic **did materially increase** on the available GA4 users comparison, while session/view change remains unquantified.
+2. Vercel resource efficiency and Cloudflare origin reduction are **not proven** at the pilot-route level.
+3. The Smart Tiered Cache experiment **remains inconclusive**; keep it under observation until a route-attributed post-change 12h window is available. Axiom shows a current face-analysis error cluster and recurring auth/provider warnings, but no frontend chunk/hydration/RSC regression or surfaced 5xx spike.
+
+**Question for afternoon review**
+- Can we obtain pilot-route Cloudflare HIT/MISS plus Vercel **ISR Read Units** (not Count or Bytes) for a complete post-Tiered 12h window, and does the combined pilot RU fall below **2.52k / 12h**?
+
+**Production changes made during inspection:** NONE
