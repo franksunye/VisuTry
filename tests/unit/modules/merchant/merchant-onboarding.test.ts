@@ -35,13 +35,13 @@ describe('merchant onboarding catalog validation', () => {
   it('accepts a complete active frame', () => {
     expect(validateCatalogFrame({
       id: 'frame-a', sku: 'SKU-A', name: 'A', imageUrl: 'https://cdn.example/a.jpg', shape: 'round', widthClass: 'M', status: 'ACTIVE',
-    })).toEqual({ valid: true, issues: [], warnings: [] })
+    })).toEqual({ valid: true, importReady: true, recommendationReady: true, issues: [], importIssues: [], recommendationIssues: [], warnings: [] })
   })
 
   it('returns deterministic blockers without inventing data', () => {
     expect(validateCatalogFrame({
       id: 'frame-a', sku: null, name: 'A', imageUrl: null, shape: '', widthClass: null, status: 'DRAFT',
-    })).toEqual({ valid: false, issues: ['MISSING_SKU', 'MISSING_IMAGE_URL', 'MISSING_SHAPE'], warnings: ['FRAME_NOT_ACTIVE'] })
+    })).toEqual({ valid: false, importReady: false, recommendationReady: false, issues: ['MISSING_STABLE_IDENTITY', 'MISSING_IMAGE_URL', 'MISSING_SHAPE'], importIssues: ['MISSING_STABLE_IDENTITY', 'MISSING_IMAGE_URL'], recommendationIssues: ['MISSING_SHAPE'], warnings: ['FRAME_NOT_ACTIVE'] })
   })
 
   it('rejects a Store belonging to another tenant before touching frames', async () => {
@@ -119,13 +119,13 @@ describe('merchant onboarding catalog validation', () => {
       },
     }))
 
-    await merchantOnboarding.importMerchantFrames({ actor: writeActor, frames: [{ sku: 'SKU-A', name: 'Frame A', shape: 'round' }] })
+    await merchantOnboarding.importMerchantFrames({ actor: writeActor, frames: [{ sku: 'SKU-A', name: 'Frame A', shape: 'round', imageUrl: 'https://cdn.example.test/frame-a.jpg' }] })
     expect(withPublicDiscoveryInvalidation).toHaveBeenCalledWith(expect.objectContaining({ target: { kind: 'catalog', merchantSlug: 'merchant-a' } }))
 
     jest.clearAllMocks()
     ;(prisma.merchant.findUnique as jest.Mock).mockResolvedValue({ slug: 'merchant-a' })
     ;(prisma.$transaction as jest.Mock).mockRejectedValue(new Error('write failed'))
-    await expect(merchantOnboarding.importMerchantFrames({ actor: writeActor, frames: [{ sku: 'SKU-A', name: 'Frame A', shape: 'round' }] })).rejects.toThrow('write failed')
+    await expect(merchantOnboarding.importMerchantFrames({ actor: writeActor, frames: [{ sku: 'SKU-A', name: 'Frame A', shape: 'round', imageUrl: 'https://cdn.example.test/frame-a.jpg' }] })).rejects.toThrow('write failed')
     expect(withPublicDiscoveryInvalidation).toHaveBeenCalled()
   })
 
@@ -156,6 +156,29 @@ describe('merchant onboarding catalog validation', () => {
       externalId: 'https://catalog.example.test/products/external-01',
       sourceNotes: 'Reviewed public catalog source: catalog.example.test',
     }) })
+  })
+
+  it('imports a URL-identified frame without a merchant SKU or shape', async () => {
+    const writeActor: AgentMerchantActor = { ...actor, scopes: ['catalog:write'] }
+    const create = jest.fn().mockResolvedValue({ id: 'frame-url-only' })
+    ;(prisma.merchant.findUnique as jest.Mock).mockResolvedValue({ slug: 'merchant-a' })
+    ;(prisma.$transaction as jest.Mock).mockImplementation(async (callback) => callback({
+      merchantFrame: { findFirst: jest.fn().mockResolvedValue(null), create },
+    }))
+
+    await merchantOnboarding.importMerchantFrames({
+      actor: writeActor,
+      frames: [{
+        sku: null,
+        name: 'URL Identified Frame',
+        shape: null,
+        imageUrl: 'https://cdn.example.test/url-only.jpg',
+        productUrl: 'https://catalog.example.test/products/url-only',
+        source: 'EXTERNAL',
+      }],
+    })
+
+    expect(create).toHaveBeenCalledWith({ data: expect.objectContaining({ sku: null, shape: '', externalId: 'https://catalog.example.test/products/url-only' }) })
   })
 
   it('invalidates Store discovery after frame replacement succeeds', async () => {

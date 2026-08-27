@@ -5,7 +5,7 @@ import { MerchantOnboardingError, type CatalogFrameInput } from '@/modules/merch
 import { MerchantSourceIntakeError } from '@/modules/merchant/application/merchant-catalog-source-shared'
 
 export const catalogFrameInputSchema = z.object({
-  sku: z.string().trim().min(1).max(120),
+  sku: z.string().trim().max(120).nullable().optional(),
   name: z.string().trim().min(1).max(240),
   brand: z.string().max(120).nullable().optional(),
   variant: z.string().max(120).nullable().optional(),
@@ -13,7 +13,7 @@ export const catalogFrameInputSchema = z.object({
   productUrl: z.string().max(2000).nullable().optional(),
   price: z.number().int().nonnegative().nullable().optional(),
   currency: z.string().max(8).nullable().optional(),
-  shape: z.string().trim().min(1).max(80),
+  shape: z.string().trim().max(80).nullable().optional(),
   material: z.string().max(120).nullable().optional(),
   color: z.string().max(120).nullable().optional(),
   widthClass: z.string().max(80).nullable().optional(),
