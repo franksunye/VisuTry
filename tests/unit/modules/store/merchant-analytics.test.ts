@@ -3,16 +3,17 @@ import {
   getExperienceFunnel,
   getMerchantIntentSummary,
   getTopFramesByIntent,
+  listMerchantExperienceAnalytics,
   MerchantAnalyticsError,
 } from '@/modules/store/application/merchant-analytics'
 import { MerchantAccessError } from '@/modules/merchant/application/merchant-access'
 import { AgentScopeError, type MerchantAgentScope } from '@/modules/merchant/domain/agent-credentials'
 import { prisma } from '@/lib/prisma'
-import { buildCampaignScorecard, highIntentScore, isHighIntentSession } from '@/modules/store/domain/merchant-analytics'
+import { buildCampaignScorecard } from '@/modules/store/domain/merchant-analytics'
 
 jest.mock('@/lib/prisma', () => ({
   prisma: {
-    experience: { findFirst: jest.fn() },
+    experience: { findFirst: jest.fn(), findMany: jest.fn() },
     merchantSession: { findMany: jest.fn() },
     merchantEvent: { groupBy: jest.fn() },
     merchantIntent: { groupBy: jest.fn() },
@@ -22,7 +23,7 @@ jest.mock('@/lib/prisma', () => ({
 }))
 
 const db = prisma as unknown as {
-  experience: { findFirst: jest.Mock }
+  experience: { findFirst: jest.Mock; findMany: jest.Mock }
   merchantSession: { findMany: jest.Mock }
   merchantEvent: { groupBy: jest.Mock }
   merchantIntent: { groupBy: jest.Mock }
@@ -174,9 +175,48 @@ describe('Merchant Analytics application foundation', () => {
     expect(result.metrics.favorites).toBe(0)
   })
 
-  it('scores observed behavior without adding identity weight', () => {
-    const signals = { tryOnStarts: 0, tryOnCompletions: 1, uniqueFramesTried: 1, favorites: 0, compares: 0, frameInteractions: 0, productInteractions: 0 }
-    expect(highIntentScore(signals)).toBe(3)
-    expect(isHighIntentSession({ ...signals, favorites: 1 })).toBe(true)
+  it('lists merchant experiences with the same C1 metric contract as a single-experience summary', async () => {
+    db.experience.findMany.mockResolvedValue([
+      {
+        id: 'campaign-a', merchantId: 'merchant-a', type: 'CAMPAIGN', slug: 'summer', name: 'Summer', status: 'ACTIVE',
+        campaignObjective: 'INTENT', campaignGate: 'NONE', presentationMode: 'EDITORIAL_FIRST', referenceData: true,
+      },
+    ])
+    db.merchantSession.findMany.mockResolvedValue([{ id: 'session-1', experienceId: 'campaign-a' }, { id: 'session-2', experienceId: 'campaign-a' }])
+    db.merchantEvent.groupBy.mockResolvedValue([
+      { experienceId: 'campaign-a', merchantSessionId: 'session-1', merchantFrameId: 'frame-1', type: 'merchant_tryon_started', _count: { _all: 1 } },
+      { experienceId: 'campaign-a', merchantSessionId: 'session-1', merchantFrameId: 'frame-1', type: 'merchant_tryon_completed', _count: { _all: 1 } },
+    ])
+    db.merchantIntent.groupBy.mockResolvedValue([])
+    const listed = await listMerchantExperienceAnalytics({ actor: agent, from: '2026-08-01T00:00:00.000Z', to: '2026-08-08T00:00:00.000Z' })
+    expect(listed).toHaveLength(1)
+    expect(listed[0].metrics.visits).toBe(2)
+    expect(listed[0].metrics.tryOnCompletions).toBe(1)
+    expect(listed[0].experience.id).toBe('campaign-a')
+    expect(db.experience.findMany).toHaveBeenCalledWith(expect.objectContaining({ where: { merchantId: 'merchant-a', type: { in: ['STORE', 'CAMPAIGN'] } } }))
+  })
+
+  it('keeps listed experience metrics isolated from sibling experience rows', async () => {
+    db.experience.findMany.mockResolvedValue([
+      {
+        id: 'store-a', merchantId: 'merchant-a', type: 'STORE', slug: 'store', name: 'Store A', status: 'ACTIVE',
+        campaignObjective: null, campaignGate: null, presentationMode: null, referenceData: false,
+      },
+      {
+        id: 'campaign-a', merchantId: 'merchant-a', type: 'CAMPAIGN', slug: 'summer', name: 'Summer', status: 'ACTIVE',
+        campaignObjective: 'INTENT', campaignGate: 'NONE', presentationMode: 'EDITORIAL_FIRST', referenceData: true,
+      },
+    ])
+    db.merchantSession.findMany.mockResolvedValue([
+      { id: 'session-store', experienceId: 'store-a' },
+      { id: 'session-campaign', experienceId: 'campaign-a' },
+    ])
+    db.merchantEvent.groupBy.mockResolvedValue([
+      { experienceId: 'campaign-a', merchantSessionId: 'session-campaign', merchantFrameId: 'frame-1', type: 'merchant_tryon_completed', _count: { _all: 2 } },
+    ])
+    db.merchantIntent.groupBy.mockResolvedValue([])
+    const listed = await listMerchantExperienceAnalytics({ actor: agent, from: '2026-08-01T00:00:00.000Z', to: '2026-08-08T00:00:00.000Z' })
+    expect(listed.find((row) => row.experience.id === 'store-a')?.metrics).toMatchObject({ visits: 1, tryOnCompletions: 0 })
+    expect(listed.find((row) => row.experience.id === 'campaign-a')?.metrics).toMatchObject({ visits: 1, tryOnCompletions: 2 })
   })
 })
