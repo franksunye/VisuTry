@@ -1,6 +1,6 @@
 /** @jest-environment node */
 
-jest.mock('@/modules/merchant/application/merchant-mcp-cloudflare', () => ({
+jest.mock('@/modules/merchant/application/merchant-mcp', () => ({
   authenticateMerchantMcpBearer: jest.fn(),
   canonicalMcpResource: jest.fn((origin: string) => `${origin}/api/mcp`),
   assertTrustedMcpOrigin: jest.fn(),
@@ -14,7 +14,7 @@ jest.mock('@/modules/merchant/application/merchant-mcp-cloudflare', () => ({
   },
 }))
 
-jest.mock('@/modules/merchant/cloudflare', () => ({
+jest.mock('@/modules/merchant/application/merchant-agent-rate-limit', () => ({
   consumeMerchantAgentMcpRequest: jest.fn().mockResolvedValue(undefined),
   AgentRateLimitError: class AgentRateLimitError extends Error {
     readonly code = 'AGENT_RATE_LIMITED'
@@ -23,7 +23,7 @@ jest.mock('@/modules/merchant/cloudflare', () => ({
   },
 }))
 
-jest.mock('@/modules/merchant/application/merchant-onboarding-cloudflare', () => ({
+jest.mock('@/modules/merchant/application/merchant-onboarding', () => ({
   merchantOnboarding: {
     getOnboardingStatus: jest.fn().mockResolvedValue({ merchant: { id: 'merchant-a' }, blockers: [] }),
     getMerchant: jest.fn().mockResolvedValue({ id: 'merchant-a', slug: 'merchant-a' }),
@@ -40,29 +40,49 @@ jest.mock('@/modules/merchant/application/merchant-onboarding-cloudflare', () =>
   },
 }))
 
-jest.mock('@/modules/merchant/application/merchant-agent-credentials-cloudflare', () => ({
+jest.mock('@/modules/merchant/application/merchant-catalog-source-intake', () => ({
+  merchantCatalogSourceIntake: {
+    inspectCatalogSource: jest.fn().mockResolvedValue({ proposal: [] }),
+  },
+  MerchantSourceIntakeError: class MerchantSourceIntakeError extends Error {
+    readonly code = 'SOURCE_INTAKE_ERROR'
+  },
+  MAX_SOURCE_PRODUCTS: 20,
+  MAX_SOURCE_URLS: 5,
+}))
+
+jest.mock('@/modules/merchant/application/merchant-agent-credentials', () => ({
   recordMerchantAgentOperation: jest.fn().mockResolvedValue(undefined),
 }))
 
-jest.mock('@/modules/store/application/campaign-service-cloudflare', () => ({
+jest.mock('@/modules/store/application/campaign-service', () => ({
   listCampaigns: jest.fn().mockResolvedValue({ items: [], nextCursor: null }),
   getCampaign: jest.fn().mockResolvedValue({ id: 'campaign-a', status: 'DRAFT' }),
   createCampaignDraft: jest.fn().mockResolvedValue({ id: 'campaign-a', status: 'DRAFT', publicPath: '/en/c/merchant-a/spring-edit' }),
   setCampaignFrames: jest.fn().mockResolvedValue({ frameIds: ['frame-a'] }),
   updateCampaign: jest.fn().mockResolvedValue({ id: 'campaign-a', status: 'DRAFT' }),
   previewCampaign: jest.fn().mockResolvedValue({ id: 'campaign-a', readiness: { ready: true } }),
+  publishCampaign: jest.fn().mockResolvedValue({ id: 'campaign-a', status: 'ACTIVE' }),
+  archiveCampaign: jest.fn().mockResolvedValue({ id: 'campaign-a', status: 'ARCHIVED' }),
   CampaignServiceError: class CampaignServiceError extends Error {
     readonly code = 'CAMPAIGN_NOT_READY'
     readonly httpStatus = 409
   },
 }))
 
-jest.mock('@/modules/store/application/merchant-analytics-cloudflare', () => ({
+jest.mock('@/modules/store/application/merchant-analytics', () => ({
   getExperienceAnalyticsSummary: jest.fn().mockResolvedValue({ experience: { id: 'store-a', type: 'STORE', name: 'Store A', objective: null }, period: { from: '2026-08-01T00:00:00.000Z', to: '2026-08-24T00:00:00.000Z', timezone: 'UTC' }, referenceData: true, metrics: { visits: 1 }, scorecard: {} }),
   getExperienceFunnel: jest.fn().mockResolvedValue({ experienceId: 'store-a', stages: [] }),
   getTopFramesByIntent: jest.fn().mockResolvedValue({ experienceId: 'store-a', frames: [] }),
   getMerchantIntentSummary: jest.fn().mockResolvedValue({ experienceId: 'store-a', tryOnStarts: 0 }),
   MerchantAnalyticsError: class MerchantAnalyticsError extends Error { readonly code = 'EXPERIENCE_NOT_FOUND' },
+}))
+
+jest.mock('@/modules/store/application/compare-merchant-experiences', () => ({
+  compareMerchantExperiences: jest.fn().mockResolvedValue({ experiences: [] }),
+  MerchantAnalyticsComparisonError: class MerchantAnalyticsComparisonError extends Error {
+    readonly code = 'COMPARISON_ERROR'
+  },
 }))
 
 import { NextRequest } from 'next/server'
@@ -71,8 +91,10 @@ import {
   authenticateMerchantMcpBearer,
   InvalidAgentCredentialError,
   McpOriginError,
-} from '@/modules/merchant/application/merchant-mcp-cloudflare'
-import { recordMerchantAgentOperation } from '@/modules/merchant/application/merchant-agent-credentials-cloudflare'
+} from '@/modules/merchant/application/merchant-mcp'
+import { recordMerchantAgentOperation } from '@/modules/merchant/application/merchant-agent-credentials'
+import { publishCampaign } from '@/modules/store/application/campaign-service'
+import { MCP_TOOL_NAMES } from '@/modules/merchant/mcp/tool-registry'
 import { POST } from '@/app/api/mcp/route'
 
 const authenticate = authenticateMerchantMcpBearer as jest.Mock
@@ -81,7 +103,7 @@ const actor = {
   actorType: 'AGENT_CREDENTIAL' as const,
   actorId: 'credential-a',
   merchantId: 'merchant-a',
-  scopes: ['merchant:read', 'catalog:read', 'catalog:write', 'experience:read', 'experience:write'],
+  scopes: ['merchant:read', 'catalog:read', 'catalog:write', 'experience:read', 'experience:write', 'analytics:read'],
 }
 
 function mcpRequest(message: unknown, origin?: string) {
@@ -103,7 +125,7 @@ describe('MCP transport protocol', () => {
     authenticate.mockResolvedValue(actor)
   })
 
-  it('supports initialize and exposes only the proven Cloudflare B2 tool surface', async () => {
+  it('supports initialize and exposes the full live canonical tool surface', async () => {
     const initialize = await POST(mcpRequest({
       jsonrpc: '2.0',
       id: 1,
@@ -125,38 +147,15 @@ describe('MCP transport protocol', () => {
         }>
       }
     }
-    expect(listBody.result.tools.map((tool) => tool.name)).toEqual([
-      'get_onboarding_status',
-      'get_merchant',
-      'list_frames',
-      'import_frames',
-      'validate_catalog',
-      'create_store',
-      'set_store_frames',
-      'preview_store',
-      'publish_store',
-      'list_campaigns',
-      'get_campaign',
-      'create_campaign',
-      'set_campaign_frames',
-      'update_campaign',
-      'preview_campaign',
-      'get_experience_summary',
-      'get_experience_funnel',
-      'get_top_frames',
-      'get_intent_summary',
-    ])
+    expect(listBody.result.tools.map((tool) => tool.name)).toEqual([...MCP_TOOL_NAMES])
 
     const create = listBody.result.tools.find((tool) => tool.name === 'create_campaign')
     expect(create?.annotations).toMatchObject({ readOnlyHint: false, destructiveHint: false })
     expect(create?._meta?.securitySchemes).toEqual([{ type: 'oauth2', scopes: ['experience:write'] }])
+    const publish = listBody.result.tools.find((tool) => tool.name === 'publish_campaign')
+    expect(publish?.annotations).toMatchObject({ readOnlyHint: false, destructiveHint: true })
     const read = listBody.result.tools.find((tool) => tool.name === 'get_merchant')
     expect(read?.annotations).toMatchObject({ readOnlyHint: true, destructiveHint: false })
-
-    const names = new Set(listBody.result.tools.map((tool) => tool.name))
-    expect(names.has('inspect_catalog_source')).toBe(false)
-    expect(names.has('publish_campaign')).toBe(false)
-    expect(names.has('get_intent_summary')).toBe(true)
   })
 
   it('routes a tool call through the authenticated tenant context', async () => {
@@ -181,6 +180,21 @@ describe('MCP transport protocol', () => {
       resourceType: 'Experience',
       resourceId: 'campaign-a',
     }))
+  })
+
+  it('routes publish_campaign with explicit approved=true through the canonical campaign service', async () => {
+    const response = await POST(mcpRequest({
+      jsonrpc: '2.0',
+      id: 8,
+      method: 'tools/call',
+      params: { name: 'publish_campaign', arguments: { campaignId: 'campaign-a', approved: true } },
+    }))
+    expect(response.status).toBe(200)
+    expect(publishCampaign).toHaveBeenCalledWith({
+      merchantId: 'merchant-a',
+      campaignId: 'campaign-a',
+      approved: true,
+    })
   })
 
   it('returns an MCP scope error for a supported write when experience:write is absent', async () => {

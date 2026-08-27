@@ -9,7 +9,7 @@ jest.mock('@/components/auth/ShopperAuthActions', () => ({
 }))
 jest.mock('@/lib/seo', () => ({ generateI18nSEO: jest.fn() }))
 jest.mock('@/lib/localized-path', () => ({ localizedPath: (locale: string, path: string) => `/${locale}${path}` }))
-jest.mock('@/modules/store/domain/merchant-continuation', () => ({
+jest.mock('@/lib/commerce-handoff/merchant-continuation', () => ({
   getSafeShopperAuthCallbackUrl: (value: string | undefined, locale: string) => value?.startsWith(`/${locale}/store`) ? value : null,
 }))
 

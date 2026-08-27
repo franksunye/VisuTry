@@ -5,7 +5,7 @@
 **Owner:** Engineering  
 **Review cadence:** Monthly, or before major product architecture work  
 **Scope:** Current VisuTry technical stack, rendering strategy, session data flow, implemented capabilities, core data model, APIs, pages, components, and workflows.  
-**Current guidance:** This document describes the current system. Product priority lives in `docs/product/product-plan.md`; commercial direction lives in `docs/strategy/commercial-strategy.md`; detailed feature behavior should live in `docs/product/specs/`.
+**Current guidance:** This document describes the current system. Product priority lives in `docs/product/product-plan.md`; commercial direction lives in `docs/strategy/commercial-strategy.md`; detailed feature behavior should live in `docs/product/specs/`. Platform / 2B SaaS / Agent-Native readiness assessment: `docs/audits/2026-08-27-architecture-platform-saas-audit.md`.
 
 ---
 
@@ -322,6 +322,28 @@ src/components/
 
 ---
 
+## Domain Modules (Current Code Map)
+
+In addition to Consumer App Router surfaces, the codebase now contains three application modules:
+
+| Module | Role |
+| --- | --- |
+| `src/modules/store` | Phase-1 commerce foundation: MerchantSession, Experience/Campaign, catalog frames, Store try-on adapters, intent/analytics, public discovery. Still the largest commerce owner in code. |
+| `src/modules/merchant` | Tenant operator boundary: memberships, Agent Keys, MCP/OAuth, onboarding, Control Center. |
+| `src/modules/business` | Narrow Business Website pilot-lead capture. |
+
+Agent-Native entry points:
+
+- Remote MCP: `POST /api/mcp` — **serving runtime is Vercel Node** (`runtime = 'nodejs'`; B4 class `vercel-required`). Live implementation is the **canonical Prisma MCP server** (`modules/merchant/mcp/server.ts`) plus Prisma application services. Tool inventory is single-sourced from `modules/merchant/mcp/tool-registry.ts` (includes `publish_campaign` with `approved=true`). `CLOUDFLARE_BUILD=1` webpack aliases remap the MCP entrypoints to the raw-SQL `*-cloudflare` adapter for true Cloudflare bundles only.
+- Agent HTTP: `/api/agent/v1/**`
+- Merchant Skill: `/skills/merchant`
+
+**Discover** (`/[locale]/discover`) is classified as a **Commerce discovery surface**: it may remain under the `(main)` URL tree for SEO, but it is an intentional Store/Commerce client (ADR-007 allowlist), not part of the protected Consumer decision workflow.
+
+Hosting direction for Store/Campaign traffic scale is ADR-010 (Cloudflare for high-frequency edge; backend for AI/payment/Blob/cron). Consumer stability while Store evolves is ADR-007. Commerce-over-Storefront direction is ADR-008.
+
+For readiness gaps and P0 remediation status, see `docs/audits/2026-08-27-architecture-platform-saas-audit.md`.
+
 ## Merchant Intelligence application contracts (P1)
 
 Admin, Merchant Control Center, and MCP are delivery clients of the same C1 Experience analytics contract. They must not independently re-aggregate visit, engagement, try-on, favorite, compare, or high-intent metrics.
@@ -378,10 +400,11 @@ Control Center still shows recommendation-activity and product-click **overlay**
 - Campaign preview / publish / archive command unification
 - Remaining Prisma vs Cloudflare persistence adapters (business policy is already shared for this slice)
 - `merchant-distribution-report` source-class engagement overlay (includes recommendation by design)
+- `merchant-commerce-intelligence.ts` still hosts both the pure overview builder and the Prisma loader (non-blocking; split if the module keeps growing)
 
 P2 / `src/modules/commerce/**` extraction remains evidence-based: trigger only when a third genuine domain (not another delivery surface) needs these contracts, or when remaining CRM / lifecycle duplication causes metric disagreement that this kernel cannot own.
 
-Consumer routes and ADR-007 are unchanged.
+P1 analytics did not reopen Consumer routes. ADR-007 Consumer→Store close-out (Discover-only exception) is the P0 work on this branch.
 
 ---
 
@@ -394,6 +417,9 @@ This document should be reviewed against the codebase before major work in the f
 3. Credits Pack conversion and failed-generation handling.
 4. Free local Face Shape Detector architecture.
 5. Shopify / widget / public API work.
+6. Live vs alternate merchant/MCP service parity (behavioral invariants, not filename/`runtime` labels alone).
+7. Shared commerce contract extraction when a second non-Storefront surface requires it.
+8. Reconciliation of Consumer→Store imports against ADR-007 / consolidation DoD.
 
 Detailed specs should be created or updated under `docs/product/specs/` before engineering starts on those capabilities.
 
@@ -401,5 +427,7 @@ For Store work, the mandatory engineering authority is:
 
 - `docs/product/specs/visutry-store-engineering-foundation.md`
 - `docs/decisions/ADR-006-store-modular-multitenant-foundation.md`
+- `docs/decisions/ADR-007-store-consumer-stability-boundary.md`
+- `docs/decisions/ADR-008-commerce-domain-over-storefront.md`
 
 Store remains a module in the current application, uses `Merchant` as the tenant boundary, and reuses the existing generation core through explicit actor, usage-policy, attribution, event, and asset contracts.

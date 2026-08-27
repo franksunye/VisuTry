@@ -11,7 +11,7 @@ import { localizedPath } from '@/lib/localized-path'
 import {
   createMerchantContinuation,
   merchantPricingPath,
-} from '@/modules/store/domain/merchant-continuation'
+} from '@/lib/commerce-handoff/merchant-continuation'
 
 type MerchantShopperAccountControlProps = {
   merchantSlug: string

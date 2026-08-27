@@ -11,7 +11,7 @@ import {
   getMerchantContinuationFromSearchParams,
   merchantPricingPath,
   type MerchantContinuationContext,
-} from '@/modules/store/domain/merchant-continuation'
+} from '@/lib/commerce-handoff/merchant-continuation'
 
 // Payment processing status
 type PaymentStatus = 'checking' | 'updating' | 'success' | 'redirecting' | 'error'

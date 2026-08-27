@@ -2,7 +2,7 @@
 
 **Status:** Active documentation entry point  
 **Created:** 2026-07-08  
-**Last updated:** 2026-08-26
+**Last updated:** 2026-08-27
 **Owner:** Product / Engineering  
 **Review cadence:** Monthly, or whenever the product direction materially changes.
 
@@ -31,7 +31,7 @@ Use it to answer:
 | Product plan | What should be built next, in what order, and with what success criteria. | `docs/product/product-plan.md` |
 | Product specs | How a specific product capability should work. | `docs/product/specs/` |
 | Growth / SEO / GTM | How VisuTry acquires traffic, demand, and product actions. | `docs/strategy/seo/`, `docs/strategy/growth/`, `docs/strategy/analytics/gtm.md`, `docs/project/seo-backlog.md` |
-| Technical architecture | How the current system is built. | `docs/project/architecture.md`, `docs/decisions/` |
+| Technical architecture | How the current system is built. | `docs/project/architecture.md`, `docs/decisions/`, latest readiness audit `docs/audits/2026-08-27-architecture-platform-saas-audit.md` |
 | Technical operations | How production infrastructure is operated and verified. | `docs/operations/README.md`, `docs/operations/hosting-strategy-vercel-cloudflare.md`, `docs/ops/` |
 | Archive | Historical/superseded material retained for evidence, not current execution. | `docs/strategy/archive/`, `docs/operations/ARCHIVE.md` |
 

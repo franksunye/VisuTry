@@ -14,7 +14,7 @@ import { PRODUCT_METADATA, getProductQuota } from "@/config/pricing"
 import {
   getMerchantContinuationFromUrl,
   isSafeMerchantCheckoutReturnUrl,
-} from '@/modules/store/domain/merchant-continuation'
+} from '@/lib/commerce-handoff/merchant-continuation'
 
 // Force dynamic rendering for this route
 export const dynamic = 'force-dynamic'

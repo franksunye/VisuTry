@@ -29,7 +29,7 @@ import {
   createMerchantContinuation,
   getMerchantContinuationFromUrl,
   merchantRuntimeContinuationStorageKey,
-} from '@/modules/store/domain/merchant-continuation'
+} from '@/lib/commerce-handoff/merchant-continuation'
 
 type MerchantProfile = {
   id: string
