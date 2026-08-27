@@ -46,10 +46,17 @@ describe('MerchantFrame recommendation readiness contract', () => {
     })
   })
 
-  it('preserves the explicit NOT_REQUIRED exemption', () => {
+  it('does not let NOT_REQUIRED waive a missing recommendation attribute', () => {
     const result = validateMerchantFrameReadiness({ ...baseFrame, shape: null, enrichmentStatus: 'NOT_REQUIRED' })
 
-    expect(result).toMatchObject({ importReady: true, recommendationReady: true, enrichmentStatus: 'NOT_REQUIRED', issues: [] })
+    expect(result).toMatchObject({
+      importReady: true,
+      recommendationReady: false,
+      enrichmentStatus: 'NOT_REQUIRED',
+      issues: ['MISSING_SHAPE'],
+      recommendationIssues: ['MISSING_SHAPE'],
+    })
+    expect(isMerchantFrameRecommendationReady({ ...baseFrame, shape: null, enrichmentStatus: 'NOT_REQUIRED' })).toBe(false)
   })
 
   it('does not let invalid identity or image data become recommendation-ready', () => {

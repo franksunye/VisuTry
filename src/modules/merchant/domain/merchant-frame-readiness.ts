@@ -74,7 +74,9 @@ export function validateMerchantFrameReadiness(frame: MerchantFrameReadinessInpu
 
   const enrichmentStatus = resolveMerchantFrameEnrichmentStatus({ shape: frame.shape, enrichmentStatus: frame.enrichmentStatus })
   const recommendationIssues: string[] = []
-  if (!clean(frame.shape) && enrichmentStatus !== 'NOT_REQUIRED') recommendationIssues.push('MISSING_SHAPE')
+  // NOT_REQUIRED only exempts the frame from the enrichment workflow. It does
+  // not waive required recommendation attributes such as shape.
+  if (!clean(frame.shape)) recommendationIssues.push('MISSING_SHAPE')
   if (enrichmentStatus === 'PENDING') recommendationIssues.push('ENRICHMENT_PENDING')
   if (enrichmentStatus === 'REVIEW_REQUIRED') recommendationIssues.push('ENRICHMENT_REVIEW_REQUIRED')
 
