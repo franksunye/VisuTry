@@ -19,6 +19,15 @@ export type MerchantStoreWorkspaceFrame = {
   storeReadiness: MerchantFrameStoreReadiness
 }
 
+export type MerchantStorePreviewFrame = {
+  id: string
+  name: string
+  imageUrl: string | null
+  shape: string
+  color: string | null
+  productBrand: string | null
+}
+
 export type MerchantStoreWorkspace = {
   store: {
     id: string

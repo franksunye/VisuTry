@@ -14,7 +14,7 @@ import {
   type MerchantFrameEnrichmentStatus,
 } from '../domain/merchant-frame-readiness'
 import { validateMerchantFrameStoreReadiness } from '../domain/merchant-frame-store-readiness'
-import type { MerchantStoreWorkspace, MerchantStoreWorkspaceFrame } from './merchant-store-workspace'
+import type { MerchantStorePreviewFrame, MerchantStoreWorkspace, MerchantStoreWorkspaceFrame } from './merchant-store-workspace'
 
 // Request-size safety guard, not a product-count/UI ceiling. Human Web can
 // select the full catalog; the bounded API payload is aligned with catalog
@@ -421,10 +421,33 @@ export async function previewMerchantStore(input: { actor: MerchantActorContext;
   requireAgentScope(input.actor, 'experience:read')
   const store = await findStore(input.actor.merchantId, input.storeId)
   if (!store) throw new MerchantAccessError()
-  const frames = await getActiveFrames(input.actor.merchantId, store.frames.map((frame) => frame.merchantFrameId))
+  const activeFrames = await getActiveFrames(input.actor.merchantId, store.frames.map((frame) => frame.merchantFrameId))
+  const activeFramesById = new Map(activeFrames.map((frame) => [frame.id, frame]))
+  const frames = store.frames.map((frame) => activeFramesById.get(frame.merchantFrameId)).filter((frame): frame is (typeof activeFrames)[number] => Boolean(frame))
   const readiness = storeReadiness(frames, store.frames.length)
   const merchant = await getMerchant(input)
-  return { store: { id: store.id, name: store.name, status: store.status, publicPath: `/en/store/${merchant.slug}` }, frameCount: store.frames.length, readiness, preview: { sideEffectFree: true, publicPath: `/en/store/${merchant.slug}` } }
+  const previewFrames: MerchantStorePreviewFrame[] = frames.map((frame) => ({
+    id: frame.id,
+    name: frame.name,
+    imageUrl: frame.imageUrl,
+    shape: frame.shape,
+    color: frame.color,
+    productBrand: frame.brand || merchant.name,
+  }))
+  return {
+    store: {
+      id: store.id,
+      name: store.name,
+      status: store.status,
+      headline: store.headline,
+      description: store.description,
+      publicPath: `/en/store/${merchant.slug}`,
+    },
+    frameCount: store.frames.length,
+    frames: previewFrames,
+    readiness,
+    preview: { sideEffectFree: true, publicPath: `/en/store/${merchant.slug}` },
+  }
 }
 
 export async function publishMerchantStore(input: { actor: MerchantActorContext; storeId: string; approved: boolean }) {

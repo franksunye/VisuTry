@@ -10,7 +10,7 @@ import {
   type MerchantFrameEnrichmentStatus,
 } from '../domain/merchant-frame-readiness'
 import { validateMerchantFrameStoreReadiness } from '../domain/merchant-frame-store-readiness'
-import type { MerchantStoreWorkspace, MerchantStoreWorkspaceFrame } from './merchant-store-workspace'
+import type { MerchantStorePreviewFrame, MerchantStoreWorkspace, MerchantStoreWorkspaceFrame } from './merchant-store-workspace'
 
 // Request-size safety guard, not a product-count/UI ceiling. Human Web can
 // select the full catalog; the bounded API payload is aligned with catalog
@@ -157,7 +157,7 @@ async function findStore(merchantId: string, storeId?: string) {
     : await sql`SELECT "id", "merchantId", "slug", "name", "status", "headline", "description" FROM "Experience" WHERE "merchantId" = ${merchantId} AND "type" = 'STORE' ORDER BY "createdAt" ASC LIMIT 1`
   const store = rows[0]
   if (!store) return null
-  const frameRows = await sql`SELECT ef."merchantFrameId", ef."sortOrder", mf."id", mf."sku", mf."name", mf."imageUrl", mf."productUrl", mf."shape", mf."widthClass", mf."source", mf."externalId", mf."enrichmentStatus", mf."status" FROM "ExperienceFrame" ef JOIN "MerchantFrame" mf ON mf."id" = ef."merchantFrameId" AND mf."merchantId" = ef."merchantId" WHERE ef."experienceId" = ${String(store.id)} AND ef."merchantId" = ${merchantId} AND ef."active" = true ORDER BY ef."sortOrder" ASC NULLS LAST, ef."createdAt" ASC`
+  const frameRows = await sql`SELECT ef."merchantFrameId", ef."sortOrder", mf."id", mf."sku", mf."name", mf."brand", mf."imageUrl", mf."productUrl", mf."shape", mf."widthClass", mf."color", mf."source", mf."externalId", mf."enrichmentStatus", mf."status" FROM "ExperienceFrame" ef JOIN "MerchantFrame" mf ON mf."id" = ef."merchantFrameId" AND mf."merchantId" = ef."merchantId" WHERE ef."experienceId" = ${String(store.id)} AND ef."merchantId" = ${merchantId} AND ef."active" = true ORDER BY ef."sortOrder" ASC NULLS LAST, ef."createdAt" ASC`
   return { store, frames: frameRows }
 }
 
@@ -378,7 +378,28 @@ export async function previewMerchantStore(input: { actor: MerchantActorContext;
   if (!store) throw new MerchantAccessError()
   const merchant = await getMerchant({ actor: input.actor })
   const readiness = storeReadiness(store.frames as unknown as FrameForValidation[], store.frames.length)
-  return { store: { id: String(store.store.id), name: String(store.store.name), status: String(store.store.status), publicPath: `/en/store/${merchant.slug}` }, frameCount: store.frames.length, readiness, preview: { sideEffectFree: true, publicPath: `/en/store/${merchant.slug}` } }
+  const previewFrames: MerchantStorePreviewFrame[] = store.frames.map((frame) => ({
+    id: String(frame.id),
+    name: String(frame.name),
+    imageUrl: frame.imageUrl == null ? null : String(frame.imageUrl),
+    shape: String(frame.shape ?? ''),
+    color: frame.color == null ? null : String(frame.color),
+    productBrand: frame.brand == null ? String(merchant.name) : String(frame.brand),
+  }))
+  return {
+    store: {
+      id: String(store.store.id),
+      name: String(store.store.name),
+      status: String(store.store.status),
+      headline: store.store.headline == null ? null : String(store.store.headline),
+      description: store.store.description == null ? null : String(store.store.description),
+      publicPath: `/en/store/${merchant.slug}`,
+    },
+    frameCount: store.frames.length,
+    frames: previewFrames,
+    readiness,
+    preview: { sideEffectFree: true, publicPath: `/en/store/${merchant.slug}` },
+  }
 }
 
 export async function publishMerchantStore(input: { actor: MerchantActorContext; storeId: string; approved: boolean }) {

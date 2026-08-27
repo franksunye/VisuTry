@@ -2,10 +2,12 @@
 /* Merchant images are arbitrary customer-provided URLs; next/image cannot safely optimize unknown hosts. */
 /* eslint-disable @next/next/no-img-element */
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { AlertTriangle, ArrowRight, Check, Copy, ExternalLink, Eye, Loader2, Save, Store } from "lucide-react";
 import { analytics } from "@/lib/analytics";
 import { AnalyticsEvent } from "@/lib/analytics-events";
+import { ExperiencePresentationShell, type ExperiencePresentationCopy, type PresentationMerchant } from "@/components/store/ExperiencePresentationShell";
+import type { MerchantStorePreviewFrame } from "@/modules/merchant/application/merchant-store-workspace";
 
 type Readiness = {
   storeEligible: boolean;
@@ -44,8 +46,9 @@ type StoreWorkspace = {
 };
 
 type Preview = {
-  store: { name: string; status: string; publicPath: string };
+  store: { id: string; name: string; status: string; headline: string | null; description: string | null; publicPath: string };
   frameCount: number;
+  frames: MerchantStorePreviewFrame[];
   readiness: {
     ready: boolean;
     readyFrameCount: number;
@@ -57,6 +60,91 @@ type Preview = {
 const EMPTY_CATALOG: CatalogFrame[] = [];
 
 const buttonClass = "inline-flex items-center justify-center gap-2 rounded-xl px-3.5 py-2.5 text-sm font-semibold transition focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2";
+
+const PREVIEW_COPY: ExperiencePresentationCopy = {
+  storeLabel: "Store preview",
+  campaignLabel: "Store preview",
+  storeSubhead: "A private preview of the Store your shoppers will see.",
+  storeHero: "Explore this Store",
+  heroBody: "Selected eyewear from this Store.",
+  referenceCatalog: "Catalog",
+  liveCatalog: "Store",
+  featuredEyebrow: "Selected products",
+  featuredTitle: "Explore the collection",
+  featuredDescription: "Products selected for this Store.",
+  storeCta: "Explore the collection",
+  campaignCta: "Explore the collection",
+  actionCta: "Start shopping",
+  ctaSupport: "Private draft preview — no shopper session is started.",
+  privacyTitle: "Private Store preview",
+  privacyBody: "This preview is only visible to you until you publish.",
+  privacyPoint1: "No shopper photo is requested.",
+  privacyPoint2: "Publishing is still required.",
+  privacyPoint3: "Selected products are shown below.",
+  privacyPublicNoticeLabel: "Draft visibility",
+  privacyPublicNotice: "Anonymous shoppers cannot access this draft.",
+  privacyAccept: "Continue",
+  privacyStarting: "Starting…",
+  privacyHint: "Private draft preview",
+  poweredBy: "Powered by VisuTry",
+  uploadTitle: "Shopper photo",
+  recommendTitle: "Recommendations",
+  tryOnTitle: "Try on",
+};
+
+function normalizedOptionalText(value: string) {
+  return value.trim() || null;
+}
+
+function sameIds(left: string[], right: string[]) {
+  return left.length === right.length && left.every((id, index) => id === right[index]);
+}
+
+function MerchantStoreDraftPreview({ preview }: { preview: Preview }) {
+  const featuredFramesRef = useRef<HTMLElement>(null);
+  const merchant: PresentationMerchant = {
+    name: preview.store.name,
+    logoUrl: null,
+    referenceData: false,
+    activeFrameCount: preview.frames.length,
+    experience: {
+      type: "STORE",
+      name: preview.store.name,
+      headline: preview.store.headline,
+      description: preview.store.description,
+      heroAssetUrl: null,
+    },
+  };
+
+  return (
+    <div data-testid="store-draft-preview" className="mt-5 overflow-hidden rounded-2xl border border-slate-200 bg-[#f7f8fb]">
+      <div className="flex flex-col gap-2 border-b border-slate-200 bg-white px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <p className="text-xs font-bold uppercase tracking-[0.16em] text-blue-700">Private draft preview</p>
+          <p className="mt-1 text-sm font-semibold text-slate-900">{preview.store.name}</p>
+        </div>
+        <span className="w-fit rounded-full bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-800">DRAFT · not public</span>
+      </div>
+      <div className="px-4 sm:px-6">
+        <ExperiencePresentationShell
+          mode="PRODUCT_FIRST"
+          merchant={merchant}
+          accent="#1d4ed8"
+          featuredFrames={preview.frames}
+          copy={PREVIEW_COPY}
+          publicPocStorage={false}
+          sessionStarting={false}
+          errorMessage={null}
+          onStartRuntime={() => undefined}
+          onShoppingCta={() => featuredFramesRef.current?.scrollIntoView({ behavior: "smooth" })}
+          featuredFramesRef={featuredFramesRef}
+          showRuntimeCta={false}
+          featuredFrameLimit={null}
+        />
+      </div>
+    </div>
+  );
+}
 
 function friendlyIssue(code: string) {
   const labels: Record<string, string> = {
@@ -133,11 +221,13 @@ export function MerchantStoreSelfService({ merchantId, initialCatalogCount, cata
   const recommendationReadyCount = catalog.filter((frame) => frame.validation.recommendationReady).length;
   const selectedCount = selectedFrameIds.length;
   const publicUrl = workspace?.store ? `${window.location.origin}${workspace.store.publicPath}` : "";
-
-  const selectedCatalog = useMemo(
-    () => catalog.filter((frame) => selectedFrameIds.includes(frame.id)),
-    [catalog, selectedFrameIds],
-  );
+  const detailsDirty = workspace?.store
+    ? name.trim() !== workspace.store.name
+      || normalizedOptionalText(headline) !== workspace.store.headline
+      || normalizedOptionalText(description) !== workspace.store.description
+    : false;
+  const productsDirty = workspace?.store ? !sameIds(selectedFrameIds, workspace.store.selectedFrameIds) : false;
+  const hasUnsavedChanges = detailsDirty || productsDirty;
 
   function clearPreview() {
     setPreview(null);
@@ -191,6 +281,10 @@ export function MerchantStoreSelfService({ merchantId, initialCatalogCount, cata
 
   async function previewStore() {
     if (!workspace?.store || busy) return;
+    if (hasUnsavedChanges) {
+      setNotice("Save your changes before previewing.");
+      return;
+    }
     setBusy(true); setError(null); setNotice(null);
     try {
       const next = await readResponse<Preview>(await fetch(`${apiBase}/preview`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ storeId: workspace.store.id }) }));
@@ -202,7 +296,7 @@ export function MerchantStoreSelfService({ merchantId, initialCatalogCount, cata
   }
 
   async function publishStore() {
-    if (!workspace?.store || !preview?.readiness.ready || !publishApproved || busy) return;
+    if (!workspace?.store || hasUnsavedChanges || !preview?.readiness.ready || !publishApproved || busy) return;
     setBusy(true); setError(null); setNotice(null);
     const wasLive = workspace.store.status === "ACTIVE";
     try {
@@ -302,8 +396,10 @@ export function MerchantStoreSelfService({ merchantId, initialCatalogCount, cata
           </div>
 
           <div className="mt-6 rounded-2xl border border-slate-200 bg-slate-50/70 p-5">
-            <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center"><div><h3 className="font-semibold text-slate-900">3. Preview & publish</h3><p className="mt-1 text-sm text-slate-600">Preview is private. Publishing is the explicit step that makes this Store public.</p></div><button type="button" onClick={previewStore} disabled={busy || selectedCount === 0} className={`${buttonClass} bg-slate-950 text-white hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-50`}><Eye className="h-4 w-4" aria-hidden="true" /> Preview Store</button></div>
-            {preview ? <div className="mt-5 rounded-2xl border border-white bg-white p-4"><p className={`font-semibold ${preview.readiness.ready ? "text-emerald-700" : "text-amber-700"}`}>{preview.readiness.ready ? "Ready to publish" : "A few products need attention"}</p><p className="mt-1 text-sm text-slate-600">{preview.readiness.ready ? `${preview.frameCount} product${preview.frameCount === 1 ? "" : "s"} will appear in your Store.` : preview.readiness.blockingIssues.map((issue) => `${issue.frameId === "unknown" ? "Some products" : "A product"}: ${issue.issues.map(friendlyIssue).join(", ")}`).join(" · ")}</p><div className="mt-4 grid gap-3 sm:grid-cols-3">{selectedCatalog.map((frame) => <div key={frame.id} className="overflow-hidden rounded-xl border border-slate-100 bg-slate-50"><div className="h-28 bg-slate-100">{safeImageUrl(frame.imageUrl) ? <img src={safeImageUrl(frame.imageUrl) ?? undefined} alt="" className="h-full w-full object-cover" /> : null}</div><p className="truncate px-3 py-2 text-xs font-semibold text-slate-800">{frame.name}</p></div>)}</div>{preview.readiness.ready ? <><label className="mt-5 flex items-start gap-2 text-sm text-slate-700"><input type="checkbox" checked={publishApproved} onChange={(event) => setPublishApproved(event.target.checked)} className="mt-0.5 h-4 w-4 accent-blue-600" /> <span>I confirm this Store is ready to publish publicly.</span></label><button type="button" onClick={publishStore} disabled={busy || !publishApproved} className={`${buttonClass} mt-4 bg-emerald-700 text-white hover:bg-emerald-800 disabled:cursor-not-allowed disabled:opacity-50`}>{busy ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" /> : <ExternalLink className="h-4 w-4" aria-hidden="true" />} {workspace.store.status === "ACTIVE" ? "Keep Store live" : "Publish Store"}</button></> : null}</div> : null}
+            <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center"><div><h3 className="font-semibold text-slate-900">3. Preview & publish</h3><p className="mt-1 text-sm text-slate-600">Preview is private. Publishing is the explicit step that makes this Store public.</p></div><button type="button" onClick={previewStore} disabled={busy || selectedCount === 0 || hasUnsavedChanges} className={`${buttonClass} bg-slate-950 text-white hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-50`}><Eye className="h-4 w-4" aria-hidden="true" /> Preview Store</button></div>
+            {hasUnsavedChanges ? <p role="status" className="mt-4 rounded-xl border border-amber-200 bg-amber-50 px-3.5 py-2.5 text-sm font-medium text-amber-800">Save your changes before previewing.</p> : null}
+            {preview ? <MerchantStoreDraftPreview preview={preview} /> : null}
+            {preview ? <div className="rounded-2xl border border-white bg-white p-4"><p className={`font-semibold ${preview.readiness.ready ? "text-emerald-700" : "text-amber-700"}`}>{preview.readiness.ready ? "Ready to publish" : "A few products need attention"}</p><p className="mt-1 text-sm text-slate-600">{preview.readiness.ready ? `${preview.frameCount} product${preview.frameCount === 1 ? "" : "s"} will appear in your Store.` : preview.readiness.blockingIssues.map((issue) => `${issue.frameId === "unknown" ? "Some products" : "A product"}: ${issue.issues.map(friendlyIssue).join(", ")}`).join(" · ")}</p>{preview.readiness.ready ? <><label className="mt-5 flex items-start gap-2 text-sm text-slate-700"><input aria-label="I confirm this Store is ready to publish publicly" type="checkbox" checked={publishApproved} onChange={(event) => setPublishApproved(event.target.checked)} className="mt-0.5 h-4 w-4 accent-blue-600" /> <span>I confirm this Store is ready to publish publicly.</span></label><button type="button" onClick={publishStore} disabled={busy || hasUnsavedChanges || !publishApproved} className={`${buttonClass} mt-4 bg-emerald-700 text-white hover:bg-emerald-800 disabled:cursor-not-allowed disabled:opacity-50`}>{busy ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" /> : <ExternalLink className="h-4 w-4" aria-hidden="true" />} {workspace.store.status === "ACTIVE" ? "Keep Store live" : "Publish Store"}</button></> : null}</div> : null}
           </div>
 
           {workspace.store.status === "ACTIVE" ? <div className="mt-5 flex flex-col gap-3 rounded-2xl border border-emerald-200 bg-emerald-50 p-4 sm:flex-row sm:items-center sm:justify-between"><div><p className="font-semibold text-emerald-900">Your Store is live</p><p className="mt-1 break-all text-sm text-emerald-800">{publicUrl}</p></div><div className="flex flex-wrap gap-2"><button type="button" onClick={() => void copyStoreLink()} className={`${buttonClass} border border-emerald-300 bg-white text-emerald-800 hover:bg-emerald-100`}><Copy className="h-4 w-4" aria-hidden="true" /> Copy Store link</button><a href={workspace.store.publicPath} target="_blank" rel="noreferrer" className={`${buttonClass} bg-emerald-700 text-white hover:bg-emerald-800`}><ExternalLink className="h-4 w-4" aria-hidden="true" /> View Store</a></div></div> : null}

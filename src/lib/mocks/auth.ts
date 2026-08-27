@@ -42,9 +42,44 @@ const MockCredentialsProvider = CredentialsProvider({
   async authorize(credentials) {
     if (!credentials?.email) return null
 
-    // Find or create mock user
     const userType = credentials.type || "free"
     const mockUser = userType === "admin" ? mockUsers[2] : userType === "premium" ? mockUsers[1] : mockUsers[0]
+
+    // Credentials auth does not call the NextAuth adapter's createUser hook.
+    // Persist the fixed mock identity through the test-only auth path so APIs
+    // with real User foreign keys can exercise the same ownership boundaries.
+    await prisma.user.upsert({
+      where: { id: mockUser.id },
+      create: {
+        id: mockUser.id,
+        email: mockUser.email,
+        name: mockUser.name,
+        image: mockUser.image,
+        username: mockUser.username,
+        role: mockUser.role,
+        freeTrialsUsed: mockUser.freeTrialsUsed,
+        premiumUsageCount: mockUser.premiumUsageCount,
+        creditsPurchased: mockUser.creditsPurchased,
+        creditsUsed: mockUser.creditsUsed,
+        isPremium: mockUser.isPremium,
+        premiumExpiresAt: mockUser.premiumExpiresAt,
+        currentSubscriptionType: mockUser.currentSubscriptionType,
+      },
+      update: {
+        email: mockUser.email,
+        name: mockUser.name,
+        image: mockUser.image,
+        username: mockUser.username,
+        role: mockUser.role,
+        freeTrialsUsed: mockUser.freeTrialsUsed,
+        premiumUsageCount: mockUser.premiumUsageCount,
+        creditsPurchased: mockUser.creditsPurchased,
+        creditsUsed: mockUser.creditsUsed,
+        isPremium: mockUser.isPremium,
+        premiumExpiresAt: mockUser.premiumExpiresAt,
+        currentSubscriptionType: mockUser.currentSubscriptionType,
+      },
+    })
 
     return {
       id: mockUser.id,
