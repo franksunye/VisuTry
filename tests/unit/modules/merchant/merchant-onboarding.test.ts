@@ -85,13 +85,27 @@ describe('merchant onboarding catalog validation', () => {
 
   it('reports NO_VALID_FRAMES when active catalog frames fail validation', async () => {
     ;(prisma.merchantFrame.count as jest.Mock).mockResolvedValue(2)
-    ;(prisma.merchantFrame.findMany as jest.Mock).mockResolvedValue([frame('invalid-a', { imageUrl: null }), frame('invalid-b', { shape: '' })])
+    ;(prisma.merchantFrame.findMany as jest.Mock).mockResolvedValue([frame('invalid-a', { imageUrl: null }), frame('invalid-b', { imageUrl: null, shape: '' })])
     ;(prisma.experience.findFirst as jest.Mock).mockResolvedValue(null)
 
     const status = await merchantOnboarding.getOnboardingStatus({ actor })
 
     expect(status.catalog.readyFrames).toBe(0)
     expect(status.blockers).toEqual(expect.arrayContaining(['NO_VALID_FRAMES']))
+  })
+
+  it('keeps an importable shape-pending frame publishable for Store', async () => {
+    const pending = { ...frame('pending', { sku: null, shape: '' }), source: 'EXTERNAL' as const, externalId: 'external:pending', productUrl: 'https://catalog.example.test/products/pending' }
+    ;(prisma.merchantFrame.count as jest.Mock).mockResolvedValue(1)
+    ;(prisma.merchantFrame.findMany as jest.Mock).mockResolvedValue([pending])
+    ;(prisma.experience.findFirst as jest.Mock).mockResolvedValue({ id: 'store-a', slug: 'store', status: 'DRAFT', name: 'Store', frames: [{ merchantFrameId: 'pending' }] })
+
+    const status = await merchantOnboarding.getOnboardingStatus({ actor })
+
+    expect(status.catalog.readyFrames).toBe(0)
+    expect(status.store?.readyFrameCount).toBe(1)
+    expect(status.readyToPublish).toBe(true)
+    expect(status.blockers).not.toContain('NO_VALID_FRAMES')
   })
 
   it('reports invalid, inactive, or missing Store selections', async () => {

@@ -9,11 +9,14 @@ import {
   validateMerchantFrameReadiness,
   type MerchantFrameEnrichmentStatus,
 } from '../domain/merchant-frame-readiness'
+import { validateMerchantFrameStoreReadiness } from '../domain/merchant-frame-store-readiness'
+import type { MerchantStorePreviewFrame, MerchantStoreWorkspace, MerchantStoreWorkspaceFrame } from './merchant-store-workspace'
 
-// Batch safety guard, not a product-count/UI ceiling. Human Web paginates the
-// catalog and the import review can contain up to 1,000 rows per approval.
+// Request-size safety guard, not a product-count/UI ceiling. Human Web can
+// select the full catalog; the bounded API payload is aligned with catalog
+// import capacity.
 export const MAX_CATALOG_IMPORT = 1000
-export const MAX_STORE_FRAMES = 100
+export const MAX_STORE_FRAMES = MAX_CATALOG_IMPORT
 
 export type CatalogFrameInput = {
   sku?: string | null
@@ -57,6 +60,14 @@ function newRecordId(prefix = 'cf'): string {
 function cleanText(value: string | null | undefined): string | null {
   const normalized = value?.trim()
   return normalized || null
+}
+
+function defaultStoreName(merchantName: string): string {
+  const suffix = ' Store'
+  const prefix = merchantName.trim()
+  return prefix.length + suffix.length <= 120
+    ? `${prefix}${suffix}`
+    : `${prefix.slice(0, 120 - suffix.length).trimEnd()}${suffix}`
 }
 
 export function validateCatalogFrame(frame: FrameForValidation) {
@@ -109,10 +120,20 @@ function mapFrame(row: Row) {
 }
 
 function storeReadiness(frames: FrameForValidation[], expectedCount = frames.length) {
-  const checks = frames.map((frame) => ({ frameId: frame.id, ...validateCatalogFrame(frame) }))
-  const blockingIssues = checks.filter((check) => !check.valid).map((check) => ({ frameId: check.frameId, issues: check.issues }))
+  const checks = frames.map((frame) => {
+    const recommendation = validateCatalogFrame(frame)
+    const display = validateMerchantFrameStoreReadiness(frame)
+    return {
+      frameId: frame.id,
+      storeEligible: display.storeEligible,
+      recommendationReady: recommendation.recommendationReady,
+      issues: display.issues,
+      recommendationIssues: recommendation.recommendationIssues,
+    }
+  })
+  const blockingIssues = checks.filter((check) => !check.storeEligible).map((check) => ({ frameId: check.frameId, issues: check.issues }))
   if (frames.length !== expectedCount) blockingIssues.push({ frameId: 'unknown', issues: ['FRAME_NOT_FOUND_OR_INACTIVE'] })
-  return { ready: expectedCount > 0 && frames.length === expectedCount && blockingIssues.length === 0, frameCount: expectedCount, readyFrameCount: checks.filter((check) => check.valid).length, blockingIssues, checks }
+  return { ready: expectedCount > 0 && frames.length === expectedCount && blockingIssues.length === 0, frameCount: expectedCount, readyFrameCount: checks.filter((check) => check.storeEligible).length, blockingIssues, checks }
 }
 
 async function merchantRow(merchantId: string) {
@@ -136,8 +157,52 @@ async function findStore(merchantId: string, storeId?: string) {
     : await sql`SELECT "id", "merchantId", "slug", "name", "status", "headline", "description" FROM "Experience" WHERE "merchantId" = ${merchantId} AND "type" = 'STORE' ORDER BY "createdAt" ASC LIMIT 1`
   const store = rows[0]
   if (!store) return null
-  const frameRows = await sql`SELECT ef."merchantFrameId", ef."sortOrder", mf."id", mf."sku", mf."name", mf."imageUrl", mf."productUrl", mf."shape", mf."widthClass", mf."source", mf."externalId", mf."enrichmentStatus", mf."status" FROM "ExperienceFrame" ef JOIN "MerchantFrame" mf ON mf."id" = ef."merchantFrameId" AND mf."merchantId" = ef."merchantId" WHERE ef."experienceId" = ${String(store.id)} AND ef."merchantId" = ${merchantId} AND ef."active" = true ORDER BY ef."sortOrder" ASC NULLS LAST, ef."createdAt" ASC`
+  const frameRows = await sql`SELECT ef."merchantFrameId", ef."sortOrder", mf."id", mf."sku", mf."name", mf."brand", mf."imageUrl", mf."productUrl", mf."shape", mf."widthClass", mf."color", mf."source", mf."externalId", mf."enrichmentStatus", mf."status" FROM "ExperienceFrame" ef JOIN "MerchantFrame" mf ON mf."id" = ef."merchantFrameId" AND mf."merchantId" = ef."merchantId" WHERE ef."experienceId" = ${String(store.id)} AND ef."merchantId" = ${merchantId} AND ef."active" = true ORDER BY ef."sortOrder" ASC NULLS LAST, ef."createdAt" ASC`
   return { store, frames: frameRows }
+}
+
+function storeWorkspaceFrame(frame: Row): MerchantStoreWorkspaceFrame {
+  const mapped = mapFrame(frame)
+  return {
+    id: mapped.id,
+    sku: mapped.sku,
+    externalId: mapped.externalId,
+    productUrl: mapped.productUrl,
+    name: mapped.name,
+    brand: mapped.brand,
+    imageUrl: mapped.imageUrl,
+    price: mapped.price,
+    currency: mapped.currency,
+    shape: mapped.shape,
+    source: mapped.source ?? 'UNKNOWN',
+    status: mapped.status,
+    enrichmentStatus: mapped.enrichmentStatus ?? 'UNKNOWN',
+    validation: validateMerchantFrameReadiness(mapped),
+    storeReadiness: validateMerchantFrameStoreReadiness(mapped),
+  }
+}
+
+export async function getMerchantStoreWorkspace(input: { actor: MerchantActorContext }): Promise<MerchantStoreWorkspace> {
+  requireAgentScope(input.actor, 'experience:read')
+  const merchant = await getMerchant({ actor: input.actor })
+  const sql = getCloudflareSql()
+  const [store, catalog] = await Promise.all([
+    findStore(input.actor.merchantId),
+    sql`SELECT "id", "sku", "externalId", "productUrl", "name", "brand", "imageUrl", "price", "currency", "shape", "source", "status", "enrichmentStatus" FROM "MerchantFrame" WHERE "merchantId" = ${input.actor.merchantId} ORDER BY "name" ASC`,
+  ])
+  return {
+    store: store ? {
+      id: String(store.store.id),
+      slug: String(store.store.slug),
+      name: String(store.store.name),
+      status: String(store.store.status),
+      headline: store.store.headline == null ? null : String(store.store.headline),
+      description: store.store.description == null ? null : String(store.store.description),
+      publicPath: `/en/store/${merchant.slug}`,
+      selectedFrameIds: store.frames.map((frame) => String(frame.merchantFrameId)),
+    } : null,
+    catalog: catalog.map((row) => storeWorkspaceFrame(row)),
+  }
 }
 
 async function audit(actor: MerchantActorContext, action: string, resourceId?: string) {
@@ -227,6 +292,7 @@ export async function getOnboardingStatus(input: { actor: MerchantActorContext }
     findStore(input.actor.merchantId),
   ])
   const readyFrames = active.filter((frame) => validateCatalogFrame(frame as unknown as FrameForValidation).valid)
+  const storeEligibleFrames = active.filter((frame) => validateMerchantFrameStoreReadiness(frame as unknown as FrameForValidation).storeEligible)
   const selected = store ? store.frames : []
   const readiness = storeReadiness(selected as unknown as FrameForValidation[], selected.length)
   return {
@@ -237,7 +303,7 @@ export async function getOnboardingStatus(input: { actor: MerchantActorContext }
     blockers: [
       ...(allFrames === 0 ? ['CATALOG_EMPTY'] : []),
       ...(active.length === 0 ? ['NO_ACTIVE_FRAMES'] : []),
-      ...(readyFrames.length === 0 ? ['NO_VALID_FRAMES'] : []),
+      ...(storeEligibleFrames.length === 0 ? ['NO_VALID_FRAMES'] : []),
       ...(!store ? ['STORE_NOT_CREATED'] : []),
       ...(store && selected.length === 0 ? ['STORE_HAS_NO_FRAMES'] : []),
     ],
@@ -247,12 +313,17 @@ export async function getOnboardingStatus(input: { actor: MerchantActorContext }
 export async function createMerchantStore(input: { actor: MerchantActorContext; name?: string; headline?: string; description?: string }) {
   requireAgentScope(input.actor, 'experience:write')
   const merchant = await getMerchant({ actor: input.actor })
-  const name = cleanText(input.name) ?? `${merchant.name} Store`
+  const name = cleanText(input.name) ?? defaultStoreName(merchant.name)
+  const headline = cleanText(input.headline)
+  const description = cleanText(input.description)
+  if (name.length > 120) throw new MerchantOnboardingError('INVALID_STORE_DETAILS', 'Store name cannot exceed 120 characters.')
+  if (headline && headline.length > 240) throw new MerchantOnboardingError('INVALID_STORE_DETAILS', 'Store headline cannot exceed 240 characters.')
+  if (description && description.length > 5000) throw new MerchantOnboardingError('INVALID_STORE_DETAILS', 'Store description cannot exceed 5,000 characters.')
   const sql = getCloudflareSql()
   const id = newRecordId()
   const results = await sql.transaction([
     sql`SELECT "id", "merchantId", "slug", "name", "status" FROM "Experience" WHERE "merchantId" = ${input.actor.merchantId} AND "type" = 'STORE' ORDER BY "createdAt" ASC LIMIT 1`,
-    sql`INSERT INTO "Experience" ("id", "merchantId", "type", "slug", "name", "headline", "description", "status", "createdAt", "updatedAt") SELECT ${id}, ${input.actor.merchantId}, 'STORE', 'store', ${name}, ${cleanText(input.headline)}, ${cleanText(input.description)}, 'DRAFT', NOW(), NOW() WHERE NOT EXISTS (SELECT 1 FROM "Experience" WHERE "merchantId" = ${input.actor.merchantId} AND "type" = 'STORE') ON CONFLICT ("merchantId", "slug") DO NOTHING RETURNING "id", "merchantId", "slug", "name", "status"`,
+    sql`INSERT INTO "Experience" ("id", "merchantId", "type", "slug", "name", "headline", "description", "status", "createdAt", "updatedAt") SELECT ${id}, ${input.actor.merchantId}, 'STORE', 'store', ${name}, ${headline}, ${description}, 'DRAFT', NOW(), NOW() WHERE NOT EXISTS (SELECT 1 FROM "Experience" WHERE "merchantId" = ${input.actor.merchantId} AND "type" = 'STORE') ON CONFLICT ("merchantId", "slug") DO NOTHING RETURNING "id", "merchantId", "slug", "name", "status"`,
     sql`SELECT "id", "merchantId", "slug", "name", "status" FROM "Experience" WHERE "merchantId" = ${input.actor.merchantId} AND "type" = 'STORE' ORDER BY "createdAt" ASC LIMIT 1`,
   ], { isolationLevel: 'Serializable' })
   const store = results[2]?.[0] ?? results[0]?.[0]
@@ -260,6 +331,30 @@ export async function createMerchantStore(input: { actor: MerchantActorContext; 
   const created = Boolean(results[1]?.[0])
   await audit(input.actor, 'store.created', String(store.id))
   return { id: String(store.id), slug: String(store.slug), status: String(store.status), name: String(store.name), created, publicPath: `/en/store/${merchant.slug}` }
+}
+
+export async function updateMerchantStore(input: { actor: MerchantActorContext; storeId: string; name?: string; headline?: string | null; description?: string | null }) {
+  requireAgentScope(input.actor, 'experience:write')
+  const store = await findStore(input.actor.merchantId, input.storeId)
+  if (!store) throw new MerchantAccessError()
+  const name = input.name === undefined ? String(store.store.name) : cleanText(input.name)
+  if (!name || name.length > 120) throw new MerchantOnboardingError('INVALID_STORE_DETAILS', 'Store name must be between 1 and 120 characters.')
+  const headline = input.headline === undefined ? (store.store.headline == null ? null : String(store.store.headline)) : cleanText(input.headline)
+  const description = input.description === undefined ? (store.store.description == null ? null : String(store.store.description)) : cleanText(input.description)
+  if (headline && headline.length > 240) throw new MerchantOnboardingError('INVALID_STORE_DETAILS', 'Store headline cannot exceed 240 characters.')
+  if (description && description.length > 5000) throw new MerchantOnboardingError('INVALID_STORE_DETAILS', 'Store description cannot exceed 5,000 characters.')
+  const merchant = await getMerchant({ actor: input.actor })
+  const sql = getCloudflareSql()
+  const updated = await withPublicDiscoveryInvalidation({
+    target: { kind: 'experience', merchantSlug: merchant.slug, experienceSlug: null },
+    mutation: async () => {
+      const rows = await sql`UPDATE "Experience" SET "name" = ${name}, "headline" = ${headline}, "description" = ${description}, "updatedAt" = NOW() WHERE "id" = ${input.storeId} AND "merchantId" = ${input.actor.merchantId} AND "type" = 'STORE' RETURNING "id", "slug", "name", "status", "headline", "description"`
+      if (!rows[0]) throw new MerchantAccessError()
+      return rows[0]
+    },
+  })
+  await audit(input.actor, 'store.updated', input.storeId)
+  return { id: String(updated.id), slug: String(updated.slug), name: String(updated.name), status: String(updated.status), headline: updated.headline == null ? null : String(updated.headline), description: updated.description == null ? null : String(updated.description), publicPath: `/en/store/${merchant.slug}` }
 }
 
 export async function setMerchantStoreFrames(input: { actor: MerchantActorContext; storeId: string; frameIds: string[] }) {
@@ -283,7 +378,28 @@ export async function previewMerchantStore(input: { actor: MerchantActorContext;
   if (!store) throw new MerchantAccessError()
   const merchant = await getMerchant({ actor: input.actor })
   const readiness = storeReadiness(store.frames as unknown as FrameForValidation[], store.frames.length)
-  return { store: { id: String(store.store.id), name: String(store.store.name), status: String(store.store.status), publicPath: `/en/store/${merchant.slug}` }, frameCount: store.frames.length, readiness, preview: { sideEffectFree: true, publicPath: `/en/store/${merchant.slug}` } }
+  const previewFrames: MerchantStorePreviewFrame[] = store.frames.map((frame) => ({
+    id: String(frame.id),
+    name: String(frame.name),
+    imageUrl: frame.imageUrl == null ? null : String(frame.imageUrl),
+    shape: String(frame.shape ?? ''),
+    color: frame.color == null ? null : String(frame.color),
+    productBrand: frame.brand == null ? String(merchant.name) : String(frame.brand),
+  }))
+  return {
+    store: {
+      id: String(store.store.id),
+      name: String(store.store.name),
+      status: String(store.store.status),
+      headline: store.store.headline == null ? null : String(store.store.headline),
+      description: store.store.description == null ? null : String(store.store.description),
+      publicPath: `/en/store/${merchant.slug}`,
+    },
+    frameCount: store.frames.length,
+    frames: previewFrames,
+    readiness,
+    preview: { sideEffectFree: true, publicPath: `/en/store/${merchant.slug}` },
+  }
 }
 
 export async function publishMerchantStore(input: { actor: MerchantActorContext; storeId: string; approved: boolean }) {
@@ -314,4 +430,4 @@ export async function publishMerchantStore(input: { actor: MerchantActorContext;
   return { id: String((published as Row).id), status: String((published as Row).status), publicPath: `/en/store/${merchant.slug}`, approvalRecorded: true }
 }
 
-export const merchantOnboarding = { getMerchant, getOnboardingStatus, listMerchantFrames, validateMerchantCatalog, importMerchantFrames, createMerchantStore, setMerchantStoreFrames, previewMerchantStore, publishMerchantStore }
+export const merchantOnboarding = { getMerchant, getOnboardingStatus, listMerchantFrames, validateMerchantCatalog, importMerchantFrames, getMerchantStoreWorkspace, createMerchantStore, updateMerchantStore, setMerchantStoreFrames, previewMerchantStore, publishMerchantStore }

@@ -135,7 +135,7 @@ function emptyInput(item: CatalogItem): ManualRow {
   };
 }
 
-export function MerchantCatalogSelfService({ merchantId, initialTotal }: { merchantId: string; initialTotal: number }) {
+export function MerchantCatalogSelfService({ merchantId, initialTotal, onCatalogChanged }: { merchantId: string; initialTotal: number; onCatalogChanged?: () => void }) {
   const [sourceType, setSourceType] = useState<SourceType>("url");
   const [url, setUrl] = useState("");
   const [file, setFile] = useState<File | null>(null);
@@ -247,6 +247,7 @@ export function MerchantCatalogSelfService({ merchantId, initialTotal }: { merch
       setProposal(null);
       setFile(null);
       await loadCatalog(false);
+      onCatalogChanged?.();
     } catch (requestError) {
       setError(requestError instanceof Error ? requestError.message : "Unable to import catalog.");
     } finally {
@@ -273,6 +274,7 @@ export function MerchantCatalogSelfService({ merchantId, initialTotal }: { merch
       setEditingId(null);
       setEditingRow(null);
       await loadCatalog(false);
+      onCatalogChanged?.();
     } catch (requestError) {
       setError(requestError instanceof Error ? requestError.message : "Unable to save correction.");
     } finally {

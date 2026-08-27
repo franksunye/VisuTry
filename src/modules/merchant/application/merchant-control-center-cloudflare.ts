@@ -5,6 +5,7 @@ import { resolvePresentationMode, type PresentationMode } from '@/modules/store/
 import type { MerchantDistributionReport } from '@/modules/store/domain/merchant-distribution-report'
 import { resolveAnalyticsPeriod } from '@/modules/store/application/merchant-analytics-compute'
 import { validateMerchantFrameReadiness } from '../domain/merchant-frame-readiness'
+import { validateMerchantFrameStoreReadiness } from '../domain/merchant-frame-store-readiness'
 import type { MerchantFrameReadiness } from '../domain/merchant-frame-readiness'
 import { buildMerchantCommerceIntelligence, type MerchantCommerceActivity } from './merchant-commerce-intelligence'
 import type { MerchantCatalogFrameSummary, MerchantCatalogSummary, MerchantCommerceIntelligence } from './merchant-control-center'
@@ -77,6 +78,8 @@ function catalogFrame(row: CatalogRow): MerchantCatalogFrameSummary {
   return {
     id: frame.id,
     sku: frame.sku,
+    externalId: frame.externalId,
+    productUrl: frame.productUrl,
     name: frame.name,
     brand: frame.brand,
     imageUrl: frame.imageUrl,
@@ -110,6 +113,14 @@ function experienceReadiness(frames: MerchantCatalogFrameSummary[]): MerchantCon
   if (frames.length === 0) return { status: 'INCOMPLETE', validCount: 0, invalidCount: 0, issues: ['NO_SELECTED_FRAMES'] }
   const issues = [...new Set(frames.flatMap((frame) => [...frame.validation.issues, ...frame.validation.warnings]))]
   const validCount = frames.filter((frame) => frame.validation.valid).length
+  return { status: validCount === frames.length ? 'VALID' : 'NEEDS_ATTENTION', validCount, invalidCount: frames.length - validCount, issues }
+}
+
+function storeReadiness(frames: MerchantCatalogFrameSummary[]): MerchantControlExperience['readiness'] {
+  if (frames.length === 0) return { status: 'INCOMPLETE', validCount: 0, invalidCount: 0, issues: ['NO_SELECTED_FRAMES'] }
+  const checks = frames.map((frame) => validateMerchantFrameStoreReadiness(frame))
+  const validCount = checks.filter((check) => check.storeEligible).length
+  const issues = [...new Set(checks.flatMap((check) => check.issues))]
   return { status: validCount === frames.length ? 'VALID' : 'NEEDS_ATTENTION', validCount, invalidCount: frames.length - validCount, issues }
 }
 
@@ -250,7 +261,7 @@ export async function getMerchantControlCenter(input: { merchantId: string }): P
         }),
         selectedFrames,
       )
-      : experienceReadiness(selectedFrames)
+      : storeReadiness(selectedFrames)
     return {
       id: String(experience.id),
       type,

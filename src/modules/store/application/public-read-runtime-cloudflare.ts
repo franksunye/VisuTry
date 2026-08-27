@@ -14,6 +14,7 @@ import type {
   MerchantFrameStatus,
   MerchantStatus,
 } from '../domain/enums'
+import { isMerchantFrameStoreEligible } from '@/modules/merchant/domain/merchant-frame-store-readiness'
 
 type Row = Record<string, unknown>
 
@@ -189,12 +190,12 @@ async function merchantBySlug(slug: string): Promise<MerchantRecord | null> {
   return rows[0] ? mapMerchant(rows[0]) : null
 }
 
-async function findFrames(merchantId: string, frameIds?: string[], publicFields = false): Promise<MerchantFrameRecord[]> {
+async function findFrames(merchantId: string, frameIds?: string[], publicFields = false, storeDisplay = false): Promise<MerchantFrameRecord[]> {
   if (frameIds && frameIds.length === 0) return []
   const sql = getCloudflareSql()
   const rows = frameIds
-    ? await sql`
-        SELECT ${sql.unsafe(publicFields ? '"id", "merchantId", "name", "brand", "imageUrl", "productUrl", "price", "currency", "shape", "material", "color", "widthClass", "updatedAt"' : frameColumns)}
+      ? await sql`
+        SELECT ${sql.unsafe(frameColumns)}
         FROM "MerchantFrame"
         WHERE "merchantId" = ${merchantId} AND "status" = 'ACTIVE' AND "id" = ANY(${frameIds})
         ORDER BY "updatedAt" DESC
@@ -206,7 +207,7 @@ async function findFrames(merchantId: string, frameIds?: string[], publicFields 
         ORDER BY "updatedAt" DESC
       `
   if (publicFields) {
-    return rows.map((row) => mapFrame({
+    return rows.filter((row) => !storeDisplay || isMerchantFrameStoreEligible(mapFrame(row))).map((row) => mapFrame({
       ...row,
       sku: null,
       variant: null,
@@ -291,7 +292,7 @@ export function createPublicStoreReadRuntime() {
 
   const frames: MerchantFrameRepository = {
     async findPublicActiveByMerchantAndExperience(merchantId, experience) {
-      return orderFrames(experience.frameIds, await findFrames(merchantId, experience.frameIds, true))
+      return orderFrames(experience.frameIds, await findFrames(merchantId, experience.frameIds, true, experience.type === 'STORE'))
     },
     async findActiveByMerchantAndExperience(merchantId, experience) {
       return orderFrames(experience.frameIds, await findFrames(merchantId, experience.frameIds))

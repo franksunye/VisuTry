@@ -64,6 +64,29 @@ describe('recommendMerchantFrames', () => {
       updatedAt: new Date(),
     },
     {
+      id: 'f-pending',
+      merchantId: 'm1',
+      sku: null,
+      name: 'Pending shape frame',
+      brand: 'Brand Pending',
+      imageUrl: 'https://example.com/p.jpg',
+      imageAssetId: null,
+      productUrl: 'https://example.com/p',
+      price: 9000,
+      currency: 'usd',
+      shape: '',
+      material: null,
+      color: null,
+      widthClass: null,
+      styleTags: [],
+      source: 'EXTERNAL',
+      externalId: 'pending-1',
+      enrichmentStatus: 'PENDING',
+      status: 'ACTIVE',
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    },
+    {
       id: 'f-rect',
       merchantId: 'm1',
       sku: 'X1',
@@ -203,6 +226,7 @@ describe('recommendMerchantFrames', () => {
 
     expect(result.frames.length).toBeGreaterThan(0)
     expect(result.frames.every((f) => f.id !== 'f-other')).toBe(true)
+    expect(result.frames.every((f) => f.id !== 'f-pending')).toBe(true)
     expect(result.frames.map((frame) => frame.productBrand)).toEqual(
       expect.arrayContaining(['Brand A', 'Brand B']),
     )
@@ -225,7 +249,7 @@ describe('recommendMerchantFrames', () => {
 
     // Deterministic for same signals
     const again = rankMerchantFrames(
-      frames.filter((f) => f.merchantId === 'm1').map((f) => ({
+      frames.filter((f) => f.merchantId === 'm1' && f.shape).map((f) => ({
         id: f.id,
         merchantId: f.merchantId,
         name: f.name,

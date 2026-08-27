@@ -78,6 +78,8 @@ type ExperiencePresentationShellProps = {
   onStartRuntime: () => void
   onShoppingCta: () => void
   featuredFramesRef: RefObject<HTMLElement>
+  showRuntimeCta?: boolean
+  featuredFrameLimit?: number | null
 }
 
 function ExperienceHeroVisual({
@@ -123,13 +125,15 @@ function ExperienceHeroVisual({
 function FeaturedFrameGrid({
   merchant,
   frames,
+  limit,
 }: {
   merchant: PresentationMerchant
   frames: PresentationFrame[]
+  limit: number | null
 }) {
   return (
     <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-      {frames.slice(0, 4).map((frame, index) => (
+      {frames.slice(0, limit ?? frames.length).map((frame, index) => (
         <article
           key={frame.id}
           className={`group rounded-2xl border bg-white p-2.5 ${
@@ -298,6 +302,8 @@ export function ExperiencePresentationShell({
   onStartRuntime,
   onShoppingCta,
   featuredFramesRef,
+  showRuntimeCta = true,
+  featuredFrameLimit = 4,
 }: ExperiencePresentationShellProps) {
   const isCampaign = merchant.experience?.type === 'CAMPAIGN'
   const headline = merchant.experience?.headline || (isCampaign ? merchant.experience?.name : copy.storeHero) || copy.storeHero
@@ -332,7 +338,7 @@ export function ExperiencePresentationShell({
           <div className="relative overflow-hidden rounded-[2.25rem] border border-white bg-white/90 p-4 shadow-[0_35px_100px_rgba(30,64,175,0.12)] sm:p-6">
             <ExperienceHeroVisual merchant={merchant} mode={mode} />
             <div className="mt-4">
-              <FeaturedFrameGrid merchant={merchant} frames={featuredFrames} />
+              <FeaturedFrameGrid merchant={merchant} frames={featuredFrames} limit={featuredFrameLimit} />
             </div>
           </div>
         </section>
@@ -373,7 +379,7 @@ export function ExperiencePresentationShell({
         <div className="mb-4">
           <h2 id="featured-frames-heading" className="font-serif text-2xl font-semibold text-slate-950 sm:text-3xl">{copy.featuredTitle}</h2>
         </div>
-        <FeaturedFrameGrid merchant={merchant} frames={featuredFrames} />
+        <FeaturedFrameGrid merchant={merchant} frames={featuredFrames} limit={featuredFrameLimit} />
         <div className="mt-6 flex flex-wrap items-center justify-between gap-4">
           <ShoppingCta copy={copy} mode={mode} onShoppingCta={onShoppingCta} />
           <p className="flex items-center gap-2 text-xs text-slate-400"><LockKeyhole className="h-3.5 w-3.5" aria-hidden="true" />{copy.privacyPoint2}</p>
@@ -388,6 +394,7 @@ export function ExperiencePresentationShell({
           sessionStarting={sessionStarting}
           errorMessage={errorMessage}
           onStartRuntime={onStartRuntime}
+          showCta={showRuntimeCta}
         />
       </div>
     </main>

@@ -2,6 +2,7 @@ import {
   isMerchantFrameRecommendationReady,
   validateMerchantFrameReadiness,
 } from '@/modules/merchant/domain/merchant-frame-readiness'
+import { isMerchantFrameStoreEligible, validateMerchantFrameStoreReadiness } from '@/modules/merchant/domain/merchant-frame-store-readiness'
 
 const baseFrame = {
   id: 'frame-a',
@@ -27,6 +28,13 @@ describe('MerchantFrame recommendation readiness contract', () => {
       recommendationIssues: ['MISSING_SHAPE', 'ENRICHMENT_PENDING'],
     })
     expect(isMerchantFrameRecommendationReady({ ...baseFrame, shape: null })).toBe(false)
+  })
+
+  it('allows an active importable frame into Store while shape enrichment is pending', () => {
+    const frame = { ...baseFrame, shape: null, enrichmentStatus: 'PENDING' }
+    expect(validateMerchantFrameStoreReadiness(frame)).toEqual({ storeEligible: true, issues: [] })
+    expect(isMerchantFrameStoreEligible(frame)).toBe(true)
+    expect(validateMerchantFrameReadiness(frame).recommendationReady).toBe(false)
   })
 
   it('accepts a high-confidence enriched frame for recommendation', () => {

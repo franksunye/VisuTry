@@ -20,6 +20,7 @@ import type {
 } from './ports/repositories'
 import { requireOperableStoreSession } from './require-store-session'
 import { productBrandForFrame } from './product-labels'
+import { isMerchantFrameRecommendationReady } from '@/modules/merchant/domain/merchant-frame-readiness'
 
 export type RecommendFramesInput = {
   merchants: MerchantRepository
@@ -101,21 +102,23 @@ export async function recommendMerchantFrames(
     ? await input.frames.findActiveByMerchantAndExperience(merchant.id, experience)
     : await input.frames.findActiveByMerchant(merchant.id)
 
-  if (activeFrames.length === 0) {
+  const recommendationFrames = activeFrames.filter(isMerchantFrameRecommendationReady)
+
+  if (recommendationFrames.length === 0) {
     throw new StoreDomainError(
       'FRAME_INACTIVE',
-      'No frames are available in this store yet.',
+      'No recommendation-ready frames are available in this store yet.',
       409,
     )
   }
 
   const ranking = rankMerchantFrames(
-    activeFrames.map(toRankable),
+    recommendationFrames.map(toRankable),
     signals,
     { merchantId: merchant.id, limit: input.limit ?? 6 },
   )
 
-  const byId = new Map(activeFrames.map((frame) => [frame.id, frame]))
+  const byId = new Map(recommendationFrames.map((frame) => [frame.id, frame]))
   const frames: RecommendedFrameDto[] = ranking.frames.flatMap((ranked) => {
     const frame = byId.get(ranked.frameId)
     if (!frame) return []

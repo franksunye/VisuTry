@@ -30,6 +30,7 @@ import {
   type MerchantDistributionReport,
 } from "@/modules/store/domain/merchant-distribution-report";
 import { MerchantCatalogSelfService } from "@/components/merchant/MerchantCatalogSelfService";
+import { MerchantStoreSelfService } from "@/components/merchant/MerchantStoreSelfService";
 
 type SkillCard = { name: string; purpose: string; url: string; prompt: string };
 type Props = {
@@ -146,11 +147,13 @@ function Overview({
   agentReady,
   onAgentAccess,
   onCatalog,
+  onStore,
 }: {
   control: MerchantControlCenterModel;
   agentReady: boolean;
   onAgentAccess: () => void;
   onCatalog: () => void;
+  onStore: () => void;
 }) {
   const cards = [
     {
@@ -205,12 +208,19 @@ function Overview({
             <KeyRound className="h-4 w-4" aria-hidden="true" />
             {agentReady ? "Open agent connection" : "Connect your Agent"}
           </button>
+          {control.catalog.total > 0 ? <button
+            type="button"
+            className={`${buttonClass} border border-blue-200 bg-white text-blue-800 hover:border-blue-400`}
+            onClick={onStore}
+          >
+            {control.store ? "Open Store setup" : "Create your Store"}
+          </button> : null}
           <button
             type="button"
             className={`${buttonClass} border border-slate-300 bg-white text-slate-800 hover:border-blue-300`}
             onClick={onCatalog}
           >
-            Add eyewear catalog
+            {control.catalog.total > 0 ? "Manage catalog" : "Add eyewear catalog"}
           </button>
         </div>
       </div>
@@ -1373,6 +1383,7 @@ export function MerchantControlCenter({
     control.credentialUsage.active > 0 ||
       credentials.some((credential) => credential.status === "ACTIVE"),
   );
+  const [catalogAvailable, setCatalogAvailable] = useState(control.catalog.total > 0);
   useEffect(() => {
     analytics.trackCustomEvent(AnalyticsEvent.MerchantWorkspaceEntered, {
       merchant_id: selectedMerchantId,
@@ -1514,6 +1525,11 @@ export function MerchantControlCenter({
               .getElementById("catalog")
               ?.scrollIntoView({ behavior: "smooth" })
           }
+          onStore={() =>
+            document
+              .getElementById("store")
+              ?.scrollIntoView({ behavior: "smooth" })
+          }
         />
         <WorkspaceDetails
           merchantId={control.merchant.id}
@@ -1531,6 +1547,12 @@ export function MerchantControlCenter({
         <MerchantCatalogSelfService
           merchantId={control.merchant.id}
           initialTotal={control.catalog.total}
+          onCatalogChanged={() => setCatalogAvailable(true)}
+        />
+        <MerchantStoreSelfService
+          merchantId={control.merchant.id}
+          initialCatalogCount={control.catalog.total}
+          catalogAvailable={catalogAvailable}
         />
         <Experiences
           experiences={control.experiences}
