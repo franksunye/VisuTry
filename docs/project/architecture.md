@@ -334,13 +334,15 @@ In addition to Consumer App Router surfaces, the codebase now contains three app
 
 Agent-Native entry points:
 
-- Remote MCP: `POST /api/mcp` — **serving runtime is Vercel Node** (`runtime = 'nodejs'`; B4 class `vercel-required`). The route currently wires the **`*-cloudflare` / raw-SQL implementation family** (`server-cloudflare.ts`). The Prisma MCP server (`modules/merchant/mcp/server.ts`) has no production importer.
+- Remote MCP: `POST /api/mcp` — **serving runtime is Vercel Node** (`runtime = 'nodejs'`; B4 class `vercel-required`). Live implementation is the **canonical Prisma MCP server** (`modules/merchant/mcp/server.ts`) plus Prisma application services. Tool inventory is single-sourced from `modules/merchant/mcp/tool-registry.ts` (includes `publish_campaign` with `approved=true`). `CLOUDFLARE_BUILD=1` webpack aliases remap the MCP entrypoints to the raw-SQL `*-cloudflare` adapter for true Cloudflare bundles only.
 - Agent HTTP: `/api/agent/v1/**`
 - Merchant Skill: `/skills/merchant`
 
+**Discover** (`/[locale]/discover`) is classified as a **Commerce discovery surface**: it may remain under the `(main)` URL tree for SEO, but it is an intentional Store/Commerce client (ADR-007 allowlist), not part of the protected Consumer decision workflow.
+
 Hosting direction for Store/Campaign traffic scale is ADR-010 (Cloudflare for high-frequency edge; backend for AI/payment/Blob/cron). Consumer stability while Store evolves is ADR-007. Commerce-over-Storefront direction is ADR-008.
 
-For readiness gaps (live vs alternate `*-cloudflare`/Prisma implementation drift, Consumer handoff imports of Store domain vs consolidation DoD, intelligence surface duplication), see `docs/audits/2026-08-27-architecture-platform-saas-audit.md`.
+For readiness gaps and P0 remediation status, see `docs/audits/2026-08-27-architecture-platform-saas-audit.md`.
 
 ## Architecture Review Notes
 

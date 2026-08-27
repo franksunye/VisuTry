@@ -7,6 +7,7 @@ jest.mock('@/modules/store/application/public-discovery-invalidation', () => ({
 }))
 
 import { getCloudflareSql } from '@/data/neon-cloudflare'
+import { withPublicDiscoveryInvalidation } from '@/modules/store/application/public-discovery-invalidation'
 import { MerchantAccessError } from '@/modules/merchant/application/merchant-access-cloudflare'
 import { createMerchantStore, publishMerchantStore, setMerchantStoreFrames } from '@/modules/merchant/application/merchant-onboarding-cloudflare'
 import { createCampaignDraft, publishCampaign, setCampaignFrames } from '@/modules/store/application/campaign-service-cloudflare'
@@ -87,6 +88,9 @@ describe('Cloudflare direct-Neon merchant and experience writes', () => {
 
     expect(result).toMatchObject({ id: 'campaign-a', merchantId: 'merchant-a', status: 'DRAFT', slug: 'spring-edit' })
     expect(sql.mock.calls.some((call) => call[0].join('').includes('e."merchantId"'))).toBe(true)
+    expect(withPublicDiscoveryInvalidation).toHaveBeenCalledWith(expect.objectContaining({
+      target: { kind: 'experience', merchantSlug: 'merchant-a', experienceSlug: 'spring-edit' },
+    }))
   })
 
   it('uses a Serializable replacement for Campaign frames while keeping Campaign publish outside B2', async () => {
@@ -99,6 +103,9 @@ describe('Cloudflare direct-Neon merchant and experience writes', () => {
     const result = await setCampaignFrames({ merchantId: 'merchant-a', campaignId: 'campaign-a', frameIds: ['frame-a'] })
     expect(result).toEqual({ frameIds: ['frame-a'] })
     expect(sql.transaction).toHaveBeenCalledWith(expect.any(Array), { isolationLevel: 'Serializable' })
+    expect(withPublicDiscoveryInvalidation).toHaveBeenCalledWith(expect.objectContaining({
+      target: { kind: 'experience', merchantSlug: 'merchant-a', experienceSlug: 'spring-edit' },
+    }))
     await expect(publishCampaign({ merchantId: 'merchant-a', campaignId: 'campaign-a', approved: true })).rejects.toMatchObject({ code: 'CLOUDFLARE_PUBLISH_OUT_OF_SCOPE' })
   })
 

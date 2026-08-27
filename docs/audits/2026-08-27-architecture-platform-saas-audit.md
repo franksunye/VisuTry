@@ -285,11 +285,12 @@ publish_campaign
 
 Order by engineering risk (reviewer ranking, 2026-08-27):
 
-### P0 — Fix now (guardrail + live fork)
+### P0 — Fix now (guardrail + live fork) — **in progress / largely closed in this PR**
 
-1. **Consumer → Store boundary regression** — extract money/auth/funnel handoff contracts out of Store; expand ADR-007 import guards beyond try-on/cron. *(Started in this PR via `src/lib/commerce-handoff/**`.)*
-2. **Production MCP implementation fork** — treat live `*-cloudflare` (raw-SQL) vs Prisma alternate as one application layer with thin persistence adapters; do not confuse with Workers vs Node serving (`/api/mcp` is Vercel Node).
-3. **Behavioral parity / contract tests** — tenant isolation, readiness, cache invalidation, audit, idempotency, lifecycle, error semantics. Tool-count parity is only one layer. *(Campaign discovery-invalidation parity started in this PR.)*
+1. **Consumer → Store boundary regression** — `src/lib/commerce-handoff/**` + broad ADR-007 boundary scan with Discover-only allowlist.
+2. **Production MCP implementation fork** — live `/api/mcp` converged to canonical Prisma MCP server; `CLOUDFLARE_BUILD` aliases retain raw-SQL adapter for CF bundles only. No hard reason required raw-SQL on Vercel Node.
+3. **Behavioral parity / contract tests** — Campaign canonical contracts in `campaign-service.test.ts`; adapter invalidation + tenant checks in `cloudflare-write-parity.test.ts`; MCP tool-registry single-source + live publish path covered by `mcp-route.test.ts`.
+4. **Single-source MCP tool availability** — `modules/merchant/mcp/tool-registry.ts`; live path includes `publish_campaign` / `archive_campaign` / `inspect_catalog_source` / `compare_experiences`.
 
 ### P1 — Unify commerce application contracts
 

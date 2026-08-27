@@ -586,15 +586,13 @@ Known Consumer/main → Store imports at original audit time, and remediation st
 
 | Path | Classification | Status |
 | --- | --- | --- |
-| `discover/page.tsx` + Store discover runtime | **Candidate approved exception** — Discover is a Store discovery surface hosted under `(main)` | Still Store import; tracked exception |
-| `ContextualExperienceHandoff.tsx` | **Candidate approved exception** — explicit Consumer→Store handoff bridge | Still Store import; tracked exception |
+| Discover (`discover/page.tsx`) | **Approved Commerce discovery surface** under `(main)` (ADR-007 allowlist) | Formalized in ADR-007 |
+| `ContextualExperienceHandoff.tsx` | Was Store import debt | **Fixed** → `@/lib/commerce-handoff/merchant-experience-href` |
 | `payment/create-session`, `PricingCard`, `auth/signin`, `success` via `merchant-continuation` | **Debt** | **Fixed 2026-08-27** → `@/lib/commerce-handoff/merchant-continuation` |
 | `analytics/consumer-funnel` via `session-acquisition` | **Debt** | **Fixed 2026-08-27** → `@/lib/commerce-handoff/ai-referral` |
 | `config/distribution-handoffs.ts` surface type | **Debt** | **Fixed 2026-08-27** → `@/lib/commerce-handoff/distribution-surfaces` |
 
-ADR-007 import regression now also scans payment, consumer-funnel, signin, success, pricing, distribution-handoffs, and `src/lib/commerce-handoff/**`.
-
-Until Product + Engineering either (a) publish an ADR listing Discover/ContextualExperienceHandoff as approved exceptions, or (b) relocate them under Store route trees, those two paths remain the only intentional Consumer-tree → Store imports.
+ADR-007 import regression now scans the full Consumer boundary with a tiny allowlist (Discover only). Live `/api/mcp` uses the canonical Prisma MCP server; `CLOUDFLARE_BUILD` aliases remap to the raw-SQL adapter.
 
 Authority for the audit write-up: `docs/audits/2026-08-27-architecture-platform-saas-audit.md` finding F2.
 
