@@ -151,7 +151,7 @@ function collectConsumerBoundaryFiles(cwd: string): string[] {
     if (st.isDirectory()) walkTsFiles(absolute, files)
     else files.push(absolute)
   }
-  return files.filter((file) => !isNonConsumerPath(relative(cwd, file).replaceAll('\\', '/')))
+  return files.filter((file) => !isNonConsumerPath(relative(cwd, file).split('\\').join('/')))
 }
 
 describe('ADR-007 Consumer stability boundary', () => {
@@ -402,7 +402,7 @@ describe('ADR-007 Consumer stability boundary', () => {
 
     const violations: string[] = []
     for (const file of files) {
-      const rel = relative(cwd, file).replaceAll('\\', '/')
+      const rel = relative(cwd, file).split('\\').join('/')
       if (CONSUMER_STORE_IMPORT_ALLOWLIST.has(rel)) continue
       const source = readFileSync(file, 'utf8')
       if (source.includes('@/modules/store') || source.includes('modules/store/')) {
