@@ -5,6 +5,7 @@ import { recordMerchantAgentOperation } from './merchant-agent-credentials'
 import { fetchMerchantSourceDocument, MERCHANT_SOURCE_MAX_REDIRECTS, MERCHANT_SOURCE_MAX_RESPONSE_BYTES, MERCHANT_SOURCE_FETCH_TIMEOUT_MS } from './merchant-source-network'
 import type { CatalogFrameInput } from './merchant-onboarding'
 import { inspectCatalogUrlProgressively } from './merchant-catalog-url-progressive'
+import { createMerchantBrowserRenderedFetch } from './merchant-catalog-browser-render'
 import {
   buildCatalogInspectionProposal,
   MAX_CSV_BYTES,
@@ -42,12 +43,13 @@ export async function inspectHumanMerchantCatalogSource(input: {
     maxBytes: MERCHANT_SOURCE_MAX_RESPONSE_BYTES,
     maxRedirects: MERCHANT_SOURCE_MAX_REDIRECTS,
   })
+  const renderedFetch = createMerchantBrowserRenderedFetch()
   const result = await buildCatalogInspectionProposal({
     sourceUrls: input.sourceUrls,
     manualProducts,
     existing,
     fetchSource,
-    inspectSource: (sourceUrl, remaining) => inspectCatalogUrlProgressively({ sourceUrl, maxProducts: remaining, fetchSource }),
+    inspectSource: (sourceUrl, remaining) => inspectCatalogUrlProgressively({ sourceUrl, maxProducts: remaining, fetchSource, renderedFetch }),
     maxProducts,
     initialSourceIssues,
   })
