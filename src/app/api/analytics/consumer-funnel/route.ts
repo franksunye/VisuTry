@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { logger } from '@/lib/logger'
 import { CONSUMER_FUNNEL_EVENT_NAMES } from '@/lib/consumer-funnel'
-import { inferAiReferralSource } from '@/modules/store/domain/session-acquisition'
+import { inferAiReferralSource } from '@/lib/commerce-handoff/ai-referral'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'

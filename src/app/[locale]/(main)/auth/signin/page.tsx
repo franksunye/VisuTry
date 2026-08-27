@@ -5,7 +5,7 @@ import { Metadata } from 'next'
 import { generateI18nSEO } from '@/lib/seo'
 import { Locale } from '@/i18n'
 import { localizedPath } from '@/lib/localized-path'
-import { getSafeShopperAuthCallbackUrl } from '@/modules/store/domain/merchant-continuation'
+import { getSafeShopperAuthCallbackUrl } from '@/lib/commerce-handoff/merchant-continuation'
 
 type Props = {
   params: Promise<{ locale: string }>

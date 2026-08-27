@@ -11,7 +11,7 @@ import {
   createMerchantContinuation,
   merchantPricingPath,
   type MerchantContinuationContext,
-} from '@/modules/store/domain/merchant-continuation'
+} from '@/lib/commerce-handoff/merchant-continuation'
 import type { StoreExperiencePolicy } from '@/modules/store/domain/experience-policy'
 
 type FrameMeta = {

@@ -5,7 +5,7 @@ import { POST } from '@/app/api/payment/create-session/route'
 import { requireAuth } from '@/lib/api-auth'
 import { createCheckoutSession } from '@/lib/stripe'
 import { logger } from '@/lib/logger'
-import { appendMerchantContinuation, createMerchantContinuation, merchantPricingPath } from '@/modules/store/domain/merchant-continuation'
+import { appendMerchantContinuation, createMerchantContinuation, merchantPricingPath } from '@/lib/commerce-handoff/merchant-continuation'
 
 jest.mock('@/lib/api-auth', () => ({ requireAuth: jest.fn() }))
 jest.mock('@/lib/stripe', () => ({ createCheckoutSession: jest.fn() }))

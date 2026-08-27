@@ -7,7 +7,7 @@ import {
   merchantPricingPath,
   merchantRuntimeContinuationStorageKey,
   parseMerchantContinuation,
-} from '@/modules/store/domain/merchant-continuation'
+} from '@/lib/commerce-handoff/merchant-continuation'
 
 describe('Merchant continuation contract', () => {
   const store = createMerchantContinuation({

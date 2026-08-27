@@ -12,7 +12,7 @@ import {
   getMerchantContinuationFromUrl,
   merchantPricingPath,
   type MerchantContinuationContext,
-} from '@/modules/store/domain/merchant-continuation'
+} from '@/lib/commerce-handoff/merchant-continuation'
 
 interface PricingPlan {
   id: string

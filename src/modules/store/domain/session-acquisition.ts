@@ -1,41 +1,35 @@
 /**
  * Store session acquisition context — persists first-touch source/campaign/
  * surface through the intent journey. Domain-only: no framework imports.
+ *
+ * AI referral + distribution surface vocab live in `@/lib/commerce-handoff`
+ * so Consumer analytics can share them without importing Store.
  */
 
+import {
+  classifyAiSourceToken,
+  inferAiReferralSource,
+  isAiAssistantMedium,
+  type AiReferralSource,
+} from '@/lib/commerce-handoff/ai-referral'
+import {
+  INTERNAL_DISTRIBUTION_SURFACES,
+  CONTEXTUAL_DISTRIBUTION_SURFACES,
+  normalizeInternalSurface,
+  type ContextualDistributionSurface,
+  type InternalDistributionSurface,
+} from '@/lib/commerce-handoff/distribution-surfaces'
+
+export {
+  INTERNAL_DISTRIBUTION_SURFACES,
+  CONTEXTUAL_DISTRIBUTION_SURFACES,
+  inferAiReferralSource,
+  type AiReferralSource,
+  type ContextualDistributionSurface,
+  type InternalDistributionSurface,
+}
+
 const MAX_FIELD = 500
-
-export const INTERNAL_DISTRIBUTION_SURFACES = [
-  'home',
-  'discover',
-  'face-analysis',
-  'face-shape',
-  'try-on',
-  'compare',
-  'style-explorer',
-  'seo',
-  'dashboard',
-  'other',
-] as const
-
-/** High-intent internal surfaces that can change the shopper's first action. */
-export const CONTEXTUAL_DISTRIBUTION_SURFACES = [
-  'face-analysis',
-  'compare',
-  'style-explorer',
-] as const
-
-export type ContextualDistributionSurface = (typeof CONTEXTUAL_DISTRIBUTION_SURFACES)[number]
-
-export type InternalDistributionSurface = (typeof INTERNAL_DISTRIBUTION_SURFACES)[number]
-
-export type AiReferralSource =
-  | 'chatgpt'
-  | 'openai'
-  | 'perplexity'
-  | 'gemini'
-  | 'copilot'
-  | 'claude'
 
 export type SessionAcquisitionInput = {
   source?: string | null
@@ -67,70 +61,6 @@ function clean(value: unknown, max = MAX_FIELD): string | null {
 
 function normalizeToken(value: string | null): string {
   return (value ?? '').trim().toLowerCase()
-}
-
-function normalizeInternalSurface(value: unknown): InternalDistributionSurface | null {
-  if (typeof value !== 'string') return null
-  const normalized = value.trim().toLowerCase()
-  return (INTERNAL_DISTRIBUTION_SURFACES as readonly string[]).includes(normalized)
-    ? normalized as InternalDistributionSurface
-    : null
-}
-
-function classifyAiSourceToken(value: string | null): AiReferralSource | null {
-  const token = normalizeToken(value)
-  if (!token) return null
-  if (token.includes('chatgpt') || token.includes('chat.openai')) return 'chatgpt'
-  if (token === 'openai' || token.includes('openai.com')) return 'openai'
-  if (token.includes('claude') || token.includes('anthropic')) return 'claude'
-  if (token.includes('perplexity')) return 'perplexity'
-  if (token.includes('gemini')) return 'gemini'
-  if (token.includes('copilot')) return 'copilot'
-  return null
-}
-
-function classifyAiReferrer(referrer: string | null): AiReferralSource | null {
-  if (!referrer) return null
-  try {
-    const hostname = new URL(referrer).hostname.toLowerCase()
-    if (
-      hostname === 'chatgpt.com' ||
-      hostname.endsWith('.chatgpt.com') ||
-      hostname === 'chat.openai.com' ||
-      hostname.endsWith('.chat.openai.com')
-    ) return 'chatgpt'
-    if (hostname === 'openai.com' || hostname.endsWith('.openai.com')) return 'openai'
-    if (hostname === 'claude.ai' || hostname.endsWith('.claude.ai')) return 'claude'
-    if (hostname === 'perplexity.ai' || hostname.endsWith('.perplexity.ai')) return 'perplexity'
-    if (hostname === 'gemini.google.com' || hostname.endsWith('.gemini.google.com')) return 'gemini'
-    if (hostname === 'copilot.com' || hostname.endsWith('.copilot.com') || hostname === 'copilot.microsoft.com') return 'copilot'
-  } catch {
-    return null
-  }
-  return null
-}
-
-/**
- * AI referral classification is intentionally evidence-first:
- * explicit campaign/source > trusted referrer hostname > no classification.
- *
- * Client UA hints are not trusted on their own because crawler identities such
- * as GPTBot / Google-Extended are not shopper referrals.
- */
-export function inferAiReferralSource(input: {
-  source: string | null
-  referrer: string | null
-  aiAgentHint?: string | null
-}): AiReferralSource | null {
-  const sourceMatch = classifyAiSourceToken(input.source)
-  if (sourceMatch) return sourceMatch
-
-  const referrerMatch = classifyAiReferrer(input.referrer)
-  if (referrerMatch) return referrerMatch
-
-  // Preserve a client hint only when it is corroborated by an AI-assistant medium.
-  // This supports explicit campaign tagging without promoting crawler-only UAs.
-  return null
 }
 
 /** Normalize client/server acquisition payload for MerchantSession persistence. */
@@ -167,7 +97,7 @@ export function sanitizeSessionAcquisition(
 
   const explicitAiSource = inferAiReferralSource({ source, referrer, aiAgentHint })
   const corroboratedHint =
-    normalizeToken(medium).includes('ai-assistant') || normalizeToken(medium).includes('ai_assistant')
+    isAiAssistantMedium(medium)
       ? classifyAiSourceToken(aiAgentHint)
       : null
   const isInternalDistribution =

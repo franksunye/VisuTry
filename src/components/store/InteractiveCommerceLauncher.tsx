@@ -7,7 +7,7 @@ import {
   createMerchantContinuation,
   getMerchantContinuationFromUrl,
   MERCHANT_CONTINUATION_PARAM,
-} from '@/modules/store/domain/merchant-continuation'
+} from '@/lib/commerce-handoff/merchant-continuation'
 
 const LazyStoreShopperExperience = dynamic(
   () => import('@/components/store/StoreShopperExperience').then((module) => module.StoreShopperExperience),

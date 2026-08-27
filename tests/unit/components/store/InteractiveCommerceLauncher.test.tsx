@@ -1,7 +1,7 @@
 import { fireEvent, render, screen } from '@testing-library/react'
 import dynamic from 'next/dynamic'
 import { InteractiveCommerceLauncher } from '@/components/store/InteractiveCommerceLauncher'
-import { appendMerchantContinuation, createMerchantContinuation } from '@/modules/store/domain/merchant-continuation'
+import { appendMerchantContinuation, createMerchantContinuation } from '@/lib/commerce-handoff/merchant-continuation'
 
 jest.mock('next/dynamic', () => ({
   __esModule: true,

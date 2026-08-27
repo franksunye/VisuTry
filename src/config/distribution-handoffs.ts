@@ -1,4 +1,4 @@
-import type { InternalDistributionSurface } from '@/modules/store/domain/session-acquisition'
+import type { InternalDistributionSurface } from '@/lib/commerce-handoff/distribution-surfaces'
 
 export type ContextualHandoffPlacement = 'face-analysis' | 'compare' | 'style-explorer'
 

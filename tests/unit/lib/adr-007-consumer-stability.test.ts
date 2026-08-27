@@ -341,6 +341,14 @@ describe('ADR-007 Consumer stability boundary', () => {
       join(process.cwd(), 'src/app/api/cron/cleanup-expired-tasks/route.ts'),
       join(process.cwd(), 'src/app/api/cron/sync-pending-consumer-tasks/route.ts'),
       join(process.cwd(), 'src/app/api/try-on'),
+      // Money / auth / funnel surfaces — previously ungated and regressed.
+      join(process.cwd(), 'src/app/api/payment'),
+      join(process.cwd(), 'src/app/api/analytics/consumer-funnel'),
+      join(process.cwd(), 'src/app/[locale]/(main)/auth/signin'),
+      join(process.cwd(), 'src/app/[locale]/(main)/success'),
+      join(process.cwd(), 'src/components/pricing'),
+      join(process.cwd(), 'src/config/distribution-handoffs.ts'),
+      join(process.cwd(), 'src/lib/commerce-handoff'),
     ]
 
     const files: string[] = []
@@ -359,6 +367,22 @@ describe('ADR-007 Consumer stability boundary', () => {
     }
 
     expect(violations).toEqual([])
+  })
+
+  it('approved Store discovery/handoff exceptions remain explicit and outside money/auth guards', () => {
+    // Discover and ContextualExperienceHandoff are candidate Store surfaces /
+    // bridges hosted under Consumer route trees. They may import Store until an
+    // ADR lists them as permanent exceptions or they move under (store).
+    const discover = readFileSync(
+      join(process.cwd(), 'src/app/[locale]/(main)/discover/page.tsx'),
+      'utf8',
+    )
+    const handoff = readFileSync(
+      join(process.cwd(), 'src/components/distribution/ContextualExperienceHandoff.tsx'),
+      'utf8',
+    )
+    expect(discover).toContain('modules/store')
+    expect(handoff).toContain('modules/store')
   })
 
   it('Frame Compare entrypoint still routes through Consumer submitTryOnTask (no Store dependency)', () => {

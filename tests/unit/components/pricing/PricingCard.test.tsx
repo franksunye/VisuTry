@@ -2,7 +2,7 @@ import React from 'react'
 import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { PricingCard } from '@/components/pricing/PricingCard'
-import { createMerchantContinuation, getMerchantContinuationFromUrl, merchantPricingPath } from '@/modules/store/domain/merchant-continuation'
+import { createMerchantContinuation, getMerchantContinuationFromUrl, merchantPricingPath } from '@/lib/commerce-handoff/merchant-continuation'
 
 // Mock lucide-react icons
 jest.mock('lucide-react', () => ({
