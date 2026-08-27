@@ -2,7 +2,7 @@
 
 **Status:** Active documentation governance registry
 **Created:** 2026-07-08
-**Last updated:** 2026-08-26
+**Last updated:** 2026-08-27
 **Owner:** Product / Engineering
 **Review cadence:** Monthly, and at every major milestone close
 **Scope:** Authoritative documents, directory lifecycle, exceptions, and cleanup debt. This is intentionally not a file-by-file catalog.
@@ -38,6 +38,7 @@ Detailed feature behavior belongs in `docs/product/specs/`. A spec may be author
 | `docs/product/specs/` | Durable product contract | Update in place; supersede explicitly when behavior changes |
 | `docs/product/plans/` | Time-bounded execution or validation plan | On completion, update status and merge durable facts into the relevant spec/authority; archive residual history |
 | `docs/product/audits/` | Point-in-time evidence | Retain when evidence is reusable; do not treat as current priority |
+| `docs/audits/` | Cross-cutting engineering/product audits | Retain as evidence; merge durable conclusions into ADRs or `docs/project/architecture.md` |
 | `docs/product/sales/` | Current sales enablement or validation evidence | Review when offer, pricing, or product boundary changes |
 | `docs/strategy/` | Current strategy plus dated supporting research | Dated execution plans expire when their window closes; route durable conclusions into an authority |
 | `docs/operations/` | Current runbooks plus migration/incident records | Keep active runbooks small; classify completed migration records through `ARCHIVE.md` |
@@ -127,3 +128,4 @@ At milestone close or monthly review:
 | --- | --- |
 | 2026-07-08 | Created the original file-by-file inventory and cleanup backlog. |
 | 2026-08-26 | Replaced the non-scaling catalog with an authority registry, directory lifecycle, creation budget, automated audit, and focused cleanup queue per ADR-012. |
+| 2026-08-27 | Registered `docs/audits/` lifecycle and linked platform/SaaS architecture audit conclusions into architecture authority navigation. |

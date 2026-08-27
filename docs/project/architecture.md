@@ -1,11 +1,11 @@
 # VisuTry Project Architecture & Features
 
 **Status:** Active source of truth for current technical reality  
-**Last reviewed:** 2026-08-20
+**Last reviewed:** 2026-08-27
 **Owner:** Engineering  
 **Review cadence:** Monthly, or before major product architecture work  
 **Scope:** Current VisuTry technical stack, rendering strategy, session data flow, implemented capabilities, core data model, APIs, pages, components, and workflows.  
-**Current guidance:** This document describes the current system. Product priority lives in `docs/product/product-plan.md`; commercial direction lives in `docs/strategy/commercial-strategy.md`; detailed feature behavior should live in `docs/product/specs/`.
+**Current guidance:** This document describes the current system. Product priority lives in `docs/product/product-plan.md`; commercial direction lives in `docs/strategy/commercial-strategy.md`; detailed feature behavior should live in `docs/product/specs/`. Platform / 2B SaaS / Agent-Native readiness assessment: `docs/audits/2026-08-27-architecture-platform-saas-audit.md`.
 
 ---
 
@@ -322,6 +322,26 @@ src/components/
 
 ---
 
+## Domain Modules (Current Code Map)
+
+In addition to Consumer App Router surfaces, the codebase now contains three application modules:
+
+| Module | Role |
+| --- | --- |
+| `src/modules/store` | Phase-1 commerce foundation: MerchantSession, Experience/Campaign, catalog frames, Store try-on adapters, intent/analytics, public discovery. Still the largest commerce owner in code. |
+| `src/modules/merchant` | Tenant operator boundary: memberships, Agent Keys, MCP/OAuth, onboarding, Control Center. |
+| `src/modules/business` | Narrow Business Website pilot-lead capture. |
+
+Agent-Native entry points:
+
+- Remote MCP: `POST /api/mcp` (production path currently wires the Cloudflare MCP server)
+- Agent HTTP: `/api/agent/v1/**`
+- Merchant Skill: `/skills/merchant`
+
+Hosting direction for Store/Campaign traffic scale is ADR-010 (Cloudflare for high-frequency edge; backend for AI/payment/Blob/cron). Consumer stability while Store evolves is ADR-007. Commerce-over-Storefront direction is ADR-008.
+
+For readiness gaps (dual CF/Node forks, Consumer handoff imports of Store domain, intelligence surface duplication), see `docs/audits/2026-08-27-architecture-platform-saas-audit.md`.
+
 ## Architecture Review Notes
 
 This document should be reviewed against the codebase before major work in the following areas:
@@ -331,6 +351,8 @@ This document should be reviewed against the codebase before major work in the f
 3. Credits Pack conversion and failed-generation handling.
 4. Free local Face Shape Detector architecture.
 5. Shopify / widget / public API work.
+6. MCP / Agent Key / OAuth parity across Node and Cloudflare runtimes.
+7. Shared commerce contract extraction when a second non-Storefront surface requires it.
 
 Detailed specs should be created or updated under `docs/product/specs/` before engineering starts on those capabilities.
 
@@ -338,5 +360,7 @@ For Store work, the mandatory engineering authority is:
 
 - `docs/product/specs/visutry-store-engineering-foundation.md`
 - `docs/decisions/ADR-006-store-modular-multitenant-foundation.md`
+- `docs/decisions/ADR-007-store-consumer-stability-boundary.md`
+- `docs/decisions/ADR-008-commerce-domain-over-storefront.md`
 
 Store remains a module in the current application, uses `Merchant` as the tenant boundary, and reuses the existing generation core through explicit actor, usage-policy, attribution, event, and asset contracts.
