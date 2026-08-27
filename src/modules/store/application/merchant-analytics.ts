@@ -2,7 +2,7 @@ import { prisma } from '@/lib/prisma'
 import { requireMerchantMembership } from '@/modules/merchant/application/merchant-access'
 import { requireAgentScope, type MerchantActorContext } from '@/modules/merchant/domain/actor'
 import { resolveCampaignConversionPolicy } from '../domain/campaign-policy'
-import { buildCampaignScorecard } from '../domain/merchant-analytics'
+import { buildCampaignScorecard, type MerchantAnalyticsMetrics } from '../domain/merchant-analytics'
 import {
   analyticsPeriodDto,
   computeExperienceAnalytics,
@@ -58,6 +58,12 @@ export type MerchantIntentSummary = MerchantIntentTotals & {
   experienceId: string
   period: MerchantAnalyticsPeriodDto
   referenceData: boolean
+}
+
+export type MerchantAnalyticsSnapshot = {
+  period: MerchantAnalyticsPeriodDto
+  metrics: MerchantAnalyticsMetrics
+  experiences: MerchantAnalyticsSummary[]
 }
 
 type ExperienceAnalyticsRow = {
@@ -209,9 +215,9 @@ export async function getMerchantIntentSummary(input: MerchantAnalyticsContext):
   }
 }
 
-export async function listMerchantExperienceAnalytics(input: {
+export async function getMerchantAnalyticsSnapshot(input: {
   actor: MerchantActorContext
-} & AnalyticsRangeInput): Promise<MerchantAnalyticsSummary[]> {
+} & AnalyticsRangeInput): Promise<MerchantAnalyticsSnapshot> {
   await authorizeActor(input.actor)
   const period = resolveAnalyticsPeriod(input)
   const experiences = await prisma.experience.findMany({
@@ -248,10 +254,30 @@ export async function listMerchantExperienceAnalytics(input: {
     }),
   ])
 
-  return (experiences as ExperienceAnalyticsRow[]).map((experience) => {
-    const sessionIds = (sessionRows as Array<{ id: string; experienceId: string | null }>)
-      .filter((row) => row.experienceId === experience.id)
-      .map((row) => row.id)
+  const allSessions = sessionRows as Array<{ id: string; experienceId: string | null }>
+  const allEvents = (eventGroups as Array<{ experienceId: string | null; merchantSessionId: string | null; merchantFrameId: string | null; type: string; _count: { _all: number } }>)
+    .map((row) => ({
+      merchantSessionId: row.merchantSessionId,
+      merchantFrameId: row.merchantFrameId,
+      type: row.type,
+      count: row._count._all,
+    }))
+  const allIntents = (intentGroups as Array<{ experienceId: string | null; merchantSessionId: string; merchantFrameId: string | null; type: string; _count: { _all: number } }>)
+    .map((row) => ({
+      merchantSessionId: row.merchantSessionId,
+      merchantFrameId: row.merchantFrameId,
+      type: row.type,
+      count: row._count._all,
+    }))
+  const merchantComputed = computeExperienceAnalytics({
+    sessionIds: allSessions.map((row) => row.id),
+    events: allEvents,
+    intents: allIntents,
+    includeTopFrames: false,
+  })
+
+  const experienceSummaries = (experiences as ExperienceAnalyticsRow[]).map((experience) => {
+    const sessionIds = allSessions.filter((row) => row.experienceId === experience.id).map((row) => row.id)
     const events = (eventGroups as Array<{ experienceId: string | null; merchantSessionId: string | null; merchantFrameId: string | null; type: string; _count: { _all: number } }>)
       .filter((row) => row.experienceId === experience.id)
       .map((row) => ({
@@ -278,4 +304,16 @@ export async function listMerchantExperienceAnalytics(input: {
       scorecard: buildCampaignScorecard(objective, computed.metrics),
     }
   })
+
+  return {
+    period: analyticsPeriodDto(period),
+    metrics: merchantComputed.metrics,
+    experiences: experienceSummaries,
+  }
+}
+
+export async function listMerchantExperienceAnalytics(input: {
+  actor: MerchantActorContext
+} & AnalyticsRangeInput): Promise<MerchantAnalyticsSummary[]> {
+  return (await getMerchantAnalyticsSnapshot(input)).experiences
 }

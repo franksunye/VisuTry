@@ -2,17 +2,17 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { ArrowUpRight, ExternalLink, ImageIcon, MessageCircle, MousePointerClick, ScanFace, Store, Users } from 'lucide-react'
-import { createStoreRuntime, getExperienceAdminWorkspace, getMerchantInsights, listMerchantExperienceAnalytics } from '@/modules/store/application'
+import { createStoreRuntime, getExperienceAdminWorkspace, getMerchantAnalyticsSnapshot, getMerchantInsights } from '@/modules/store/application'
 import type { MerchantInsightsDto } from '@/modules/store/application/get-merchant-insights'
 import type { MerchantAnalyticsSummary } from '@/modules/store/application/merchant-analytics'
 import { MERCHANT_CLASSIFICATION_LABELS, normalizeMerchantClassification, type MerchantClassification } from '@/modules/merchant/domain/merchant-classification'
+import { adminActivitySignals, adminPerformanceCards, formatC1Percent, formatC1PeriodCaption } from './merchant-insights-view'
 
 export const dynamic = 'force-dynamic'
 
 interface PageProps { params: { id: string } }
 type CatalogFrame = MerchantInsightsDto['catalog']['frames'][number]
 
-function rate(value: number, total: number) { return total <= 0 ? '—' : `${Math.round((value / total) * 100)}%` }
 function price(value: number | null, currency: string | null) {
   if (value === null || !currency) return 'Price not listed'
   return new Intl.NumberFormat('en-US', { style: 'currency', currency: currency.toUpperCase(), maximumFractionDigits: 0 }).format(value / 100)
@@ -42,25 +42,17 @@ function CatalogImage({ frame }: { frame: CatalogFrame }) {
   return <div className="relative h-14 w-16 shrink-0 overflow-hidden rounded-xl bg-slate-50 ring-1 ring-slate-200">{frame.imageUrl ? <Image src={frame.imageUrl} alt="" fill sizes="64px" className="object-contain p-1" /> : <ImageIcon className="m-auto h-4 w-4 text-slate-300" />}</div>
 }
 
-function Funnel({ metrics }: { metrics: MerchantInsightsDto['metrics'] }) {
-  if (metrics.sessions === 0) return <EmptyState title="No shopper activity yet" copy="Share an Experience or send traffic to its public route to start collecting intent." />
-  const stages = [
-    ['Sessions', metrics.sessions],
-    ['Recommendation', metrics.recommendations],
-    ['Try-On', metrics.tryOns],
-    ['Compare', metrics.compareStarts],
-    ['Favorite', metrics.favorites],
-    ['Product Click', metrics.productClicks],
-    ['Inquiry', metrics.inquiries],
-  ] as const
-  return <div className="grid gap-2 md:grid-cols-7">{stages.map(([label, value], index) => <div key={label} className="relative rounded-xl bg-slate-50 p-3"><p className="text-[11px] text-slate-500">{label}</p><p className="mt-2 text-2xl font-semibold tabular-nums text-slate-950">{value}</p><p className="mt-1 text-xs font-medium text-teal-700">{rate(value, metrics.sessions)} of sessions</p>{index < stages.length - 1 ? <span className="absolute -right-1.5 top-1/2 hidden -translate-y-1/2 text-slate-300 md:block">→</span> : null}</div>)}</div>
+function ActivitySignals({ metrics }: { metrics: MerchantInsightsDto['metrics'] }) {
+  const signals = adminActivitySignals(metrics)
+  if (metrics.sessions === 0 && signals.every((signal) => signal.value === 0)) {
+    return <EmptyState title="No shopper activity yet" copy="Share an Experience or send traffic to its public route to start collecting intent." />
+  }
+  return <div className="grid gap-2 md:grid-cols-7">{signals.map((signal, index) => <div key={signal.label} className="relative rounded-xl bg-slate-50 p-3"><p className="text-[11px] text-slate-500">{signal.label}</p><p className="mt-2 text-2xl font-semibold tabular-nums text-slate-950">{signal.value}</p>{index < signals.length - 1 ? <span className="absolute -right-1.5 top-1/2 hidden -translate-y-1/2 text-slate-300 md:block">→</span> : null}</div>)}</div>
 }
-
-function percent(value: number | null) { return value == null ? '—' : `${Math.round(value * 100)}%` }
 
 function ExperienceComparison({ experiences, merchantId }: { experiences: MerchantAnalyticsSummary[]; merchantId: string }) {
   if (experiences.length === 0) return <EmptyState title="No Experiences yet" copy="Create a Store or Campaign Experience to compare shopper activity here." />
-  return <div className="overflow-x-auto"><table className="w-full min-w-[760px] text-sm"><thead><tr className="border-b border-slate-200 text-left text-xs text-slate-500"><th className="pb-3 pr-4 font-semibold">Experience</th><th className="pb-3 pr-4 font-semibold">Visits</th><th className="pb-3 pr-4 font-semibold">Engagement</th><th className="pb-3 pr-4 font-semibold">Try-On completion</th><th className="pb-3 pr-4 font-semibold">High intent</th><th className="pb-3 pr-4 font-semibold">Favorites</th><th className="pb-3 font-semibold"> </th></tr></thead><tbody>{experiences.map((summary) => <tr key={summary.experience.id} className="border-b border-slate-100 last:border-0"><td className="py-4 pr-4"><div className="flex items-center gap-2"><span className={`rounded-full px-2 py-1 text-[10px] font-semibold ${summary.experience.type === 'CAMPAIGN' ? 'bg-violet-50 text-violet-700' : 'bg-blue-50 text-blue-700'}`}>{summary.experience.type === 'CAMPAIGN' ? 'Campaign' : 'Store'}</span>{summary.referenceData ? <span title="Simulation data — not live merchant traffic" className="rounded-full bg-amber-50 px-2 py-1 text-[10px] font-semibold text-amber-800">Reference</span> : null}</div><p className="mt-2 font-semibold text-slate-900">{summary.experience.name}</p></td><td className="py-4 pr-4 tabular-nums font-semibold text-slate-900">{summary.metrics.visits}</td><td className="py-4 pr-4 tabular-nums text-slate-700">{percent(summary.metrics.engagementRate)}</td><td className="py-4 pr-4 tabular-nums text-slate-700">{percent(summary.metrics.tryOnCompletionRate)}</td><td className="py-4 pr-4 tabular-nums text-slate-700">{percent(summary.metrics.highIntentRate)}</td><td className="py-4 pr-4 tabular-nums text-slate-700">{summary.metrics.favorites}</td><td className="py-4 text-right"><Link href={`/admin/store/merchants/${merchantId}/experiences/${summary.experience.id}`} className="font-semibold text-teal-700 hover:text-teal-900">Inspect</Link></td></tr>)}</tbody></table></div>
+  return <div className="overflow-x-auto"><table className="w-full min-w-[760px] text-sm"><thead><tr className="border-b border-slate-200 text-left text-xs text-slate-500"><th className="pb-3 pr-4 font-semibold">Experience</th><th className="pb-3 pr-4 font-semibold">Visits</th><th className="pb-3 pr-4 font-semibold">Engagement</th><th className="pb-3 pr-4 font-semibold">Try-On completion</th><th className="pb-3 pr-4 font-semibold">High intent</th><th className="pb-3 pr-4 font-semibold">Favorites</th><th className="pb-3 font-semibold"> </th></tr></thead><tbody>{experiences.map((summary) => <tr key={summary.experience.id} className="border-b border-slate-100 last:border-0"><td className="py-4 pr-4"><div className="flex items-center gap-2"><span className={`rounded-full px-2 py-1 text-[10px] font-semibold ${summary.experience.type === 'CAMPAIGN' ? 'bg-violet-50 text-violet-700' : 'bg-blue-50 text-blue-700'}`}>{summary.experience.type === 'CAMPAIGN' ? 'Campaign' : 'Store'}</span>{summary.referenceData ? <span title="Simulation data — not live merchant traffic" className="rounded-full bg-amber-50 px-2 py-1 text-[10px] font-semibold text-amber-800">Reference</span> : null}</div><p className="mt-2 font-semibold text-slate-900">{summary.experience.name}</p></td><td className="py-4 pr-4 tabular-nums font-semibold text-slate-900">{summary.metrics.visits}</td><td className="py-4 pr-4 tabular-nums text-slate-700">{formatC1Percent(summary.metrics.engagementRate)}</td><td className="py-4 pr-4 tabular-nums text-slate-700">{formatC1Percent(summary.metrics.tryOnCompletionRate)}</td><td className="py-4 pr-4 tabular-nums text-slate-700">{formatC1Percent(summary.metrics.highIntentRate)}</td><td className="py-4 pr-4 tabular-nums text-slate-700">{summary.metrics.favorites}</td><td className="py-4 text-right"><Link href={`/admin/store/merchants/${merchantId}/experiences/${summary.experience.id}`} className="font-semibold text-teal-700 hover:text-teal-900">Inspect</Link></td></tr>)}</tbody></table></div>
 }
 
 export default async function AdminMerchantInsightsPage({ params }: PageProps) {
@@ -71,14 +63,14 @@ export default async function AdminMerchantInsightsPage({ params }: PageProps) {
   try {
     insights = await getMerchantInsights({ merchants: runtime.merchants, events: runtime.events, merchantId: params.id, recordInsightsViewed: true })
   } catch { notFound() }
-  const experienceAnalytics = await listMerchantExperienceAnalytics({
+  const analytics = await getMerchantAnalyticsSnapshot({
     actor: { actorType: 'SYSTEM', actorId: `admin:${params.id}`, merchantId: params.id },
   })
 
   const { merchant, dataProvenance, metrics, topFrames, recentSessions, recentInquiries, catalog } = insights
   const reference = dataProvenance.referenceData || merchant.referenceData
-  const intentTotal = metrics.favorites + metrics.productClicks + metrics.inquiries
   const activeExperiences = workspace.experiences.filter((experience) => experience.status === 'ACTIVE').length
+  const performanceCards = adminPerformanceCards(analytics.metrics)
 
   return (
     <div className="space-y-8 pb-12">
@@ -89,11 +81,26 @@ export default async function AdminMerchantInsightsPage({ params }: PageProps) {
 
       {reference ? <p className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900"><strong>Reference data.</strong> Simulation activity for product demonstration.</p> : null}
 
-      <section aria-labelledby="snapshot-heading"><div><p className="text-xs font-semibold uppercase tracking-[0.16em] text-teal-700">Performance snapshot</p><h2 id="snapshot-heading" className="mt-1 text-2xl font-semibold text-slate-950">What is happening for this merchant?</h2></div><div className="mt-5 grid gap-4 sm:grid-cols-2 xl:grid-cols-4"><div className="rounded-2xl border border-slate-200 bg-white p-5"><p className="text-sm text-slate-500">Traffic</p><p className="mt-2 text-3xl font-semibold tabular-nums text-slate-950">{metrics.sessions}</p><p className="mt-1 text-xs text-slate-400">Shopper sessions</p></div><div className="rounded-2xl border border-slate-200 bg-white p-5"><p className="text-sm text-slate-500">Engagement</p><p className="mt-2 text-3xl font-semibold tabular-nums text-slate-950">{metrics.recommendations + metrics.tryOns + metrics.compareStarts}</p><p className="mt-1 text-xs text-slate-400">Recommendation · Try-On · Compare actions</p></div><div className="rounded-2xl border border-slate-200 bg-white p-5"><p className="text-sm text-slate-500">Intent</p><p className="mt-2 text-3xl font-semibold tabular-nums text-slate-950">{intentTotal}</p><p className="mt-1 text-xs text-slate-400">Favorite · Product Click · Inquiry</p></div><div className="rounded-2xl border border-slate-200 bg-white p-5"><p className="text-sm text-slate-500">Try-On sessions</p><p className="mt-2 text-3xl font-semibold tabular-nums text-slate-950">{metrics.tryOnSessions}</p><p className="mt-1 text-xs text-slate-400">{rate(metrics.tryOnSessions, metrics.sessions)} of sessions</p></div></div></section>
+      <section aria-labelledby="snapshot-heading">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-teal-700">Performance snapshot</p>
+          <h2 id="snapshot-heading" className="mt-1 text-2xl font-semibold text-slate-950">What is happening for this merchant?</h2>
+          <p className="mt-1 text-sm text-slate-500">{formatC1PeriodCaption(analytics.period)}. Same C1 contract as MCP and Merchant Control Center. Merchant CTA is unavailable.</p>
+        </div>
+        <div className="mt-5 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          {performanceCards.map((card) => (
+            <div key={card.key} className="rounded-2xl border border-slate-200 bg-white p-5">
+              <p className="text-sm text-slate-500">{card.label}</p>
+              <p className="mt-2 text-3xl font-semibold tabular-nums text-slate-950">{card.value}</p>
+              <p className="mt-1 text-xs text-slate-400">{card.hint}</p>
+            </div>
+          ))}
+        </div>
+      </section>
 
-      <section className="rounded-2xl border border-slate-200 bg-white p-5 sm:p-6" aria-labelledby="comparison-heading"><div className="flex flex-wrap items-start justify-between gap-4"><div><p className="text-xs font-semibold uppercase tracking-[0.16em] text-teal-700">Experience comparison</p><h2 id="comparison-heading" className="mt-1 text-xl font-semibold text-slate-950">Store and Campaign performance</h2><p className="mt-1 text-sm text-slate-500">Same 30-day C1 analytics contract used by MCP and Merchant Control Center. Merchant CTA is unavailable. The table does not assign a winner or infer revenue.</p></div><Link href={`/admin/store/merchants/${merchant.id}/experiences`} className="text-sm font-semibold text-teal-700 hover:text-teal-900">View all Experiences <ArrowUpRight className="ml-1 inline h-4 w-4" /></Link></div><div className="mt-5"><ExperienceComparison experiences={experienceAnalytics} merchantId={merchant.id} /></div></section>
+      <section className="rounded-2xl border border-slate-200 bg-white p-5 sm:p-6" aria-labelledby="comparison-heading"><div className="flex flex-wrap items-start justify-between gap-4"><div><p className="text-xs font-semibold uppercase tracking-[0.16em] text-teal-700">Experience comparison</p><h2 id="comparison-heading" className="mt-1 text-xl font-semibold text-slate-950">Store and Campaign performance</h2><p className="mt-1 text-sm text-slate-500">Same 30-day C1 analytics contract used by MCP and Merchant Control Center. Merchant CTA is unavailable. The table does not assign a winner or infer revenue.</p></div><Link href={`/admin/store/merchants/${merchant.id}/experiences`} className="text-sm font-semibold text-teal-700 hover:text-teal-900">View all Experiences <ArrowUpRight className="ml-1 inline h-4 w-4" /></Link></div><div className="mt-5"><ExperienceComparison experiences={analytics.experiences} merchantId={merchant.id} /></div></section>
 
-      <section className="rounded-2xl border border-slate-200 bg-white p-5 sm:p-6" aria-labelledby="funnel-heading"><div className="flex flex-wrap items-start justify-between gap-4"><div><p className="text-xs font-semibold uppercase tracking-[0.16em] text-teal-700">Shopper funnel</p><h2 id="funnel-heading" className="mt-1 text-xl font-semibold text-slate-950">From visit to intent</h2><p className="mt-1 text-sm text-slate-500">Product Click is a merchant destination visit. Inquiry is a captured shopper request.</p></div><span className="text-xs text-slate-400">No checkout or purchase data</span></div><div className="mt-5"><Funnel metrics={metrics} /></div></section>
+      <section className="rounded-2xl border border-slate-200 bg-white p-5 sm:p-6" aria-labelledby="activity-heading"><div className="flex flex-wrap items-start justify-between gap-4"><div><p className="text-xs font-semibold uppercase tracking-[0.16em] text-teal-700">Shopper actions</p><h2 id="activity-heading" className="mt-1 text-xl font-semibold text-slate-950">Operational activity signals</h2><p className="mt-1 text-sm text-slate-500">All-time interaction volume from operational insights. These are event counts, not session rates or C1 engagement.</p></div><span className="text-xs text-slate-400">No checkout or purchase data</span></div><div className="mt-5"><ActivitySignals metrics={metrics} /></div></section>
 
       <section className="grid gap-6 xl:grid-cols-[1.15fr_0.85fr]"><article className="rounded-2xl border border-slate-200 bg-white p-5 sm:p-6"><div className="flex items-start justify-between gap-4"><div><p className="text-xs font-semibold uppercase tracking-[0.16em] text-teal-700">Interest</p><h2 className="mt-1 text-xl font-semibold text-slate-950">Most explored frames</h2><p className="mt-1 text-sm text-slate-500">Frame-level activity from recommendation, Try-On, and intent events.</p></div><ScanFace className="h-5 w-5 text-slate-300" aria-hidden="true" /></div>{topFrames.length === 0 ? <div className="mt-5"><EmptyState title="No frame interest yet" copy="Product-level signals will appear after shoppers select, try on, save, or visit a frame." /></div> : <div className="mt-5 grid gap-3 sm:grid-cols-2">{topFrames.slice(0, 6).map((frame) => <div key={frame.frameId} className="flex items-center gap-3 rounded-xl border border-slate-200 p-3"><div className="relative h-14 w-16 shrink-0 overflow-hidden rounded-xl bg-slate-50">{frame.imageUrl ? <Image src={frame.imageUrl} alt="" fill sizes="64px" className="object-contain p-1" /> : <ImageIcon className="m-auto h-4 w-4 text-slate-300" />}</div><div className="min-w-0 flex-1"><p className="truncate text-sm font-semibold text-slate-900">{frame.name}</p><p className="truncate text-xs text-slate-500">{frame.brand || 'Brand not provided'} · {frame.tryOns} Try-On · {frame.favorites} Favorite</p></div></div>)}</div>}</article><article className="rounded-2xl border border-slate-200 bg-white p-5 sm:p-6"><div className="flex items-start justify-between gap-4"><div><p className="text-xs font-semibold uppercase tracking-[0.16em] text-teal-700">Intent</p><h2 className="mt-1 text-xl font-semibold text-slate-950">Recent inquiries</h2><p className="mt-1 text-sm text-slate-500">Higher-intent shopper actions captured by this merchant.</p></div><MessageCircle className="h-5 w-5 text-slate-300" aria-hidden="true" /></div>{recentInquiries.length === 0 ? <div className="mt-5"><EmptyState title="No inquiries yet" copy="Higher-intent shopper actions will appear here when captured." /></div> : <div className="mt-5 divide-y divide-slate-100">{recentInquiries.slice(0, 5).map((inquiry) => <div key={inquiry.intentId} className="flex items-center gap-3 py-3 first:pt-0 last:pb-0"><span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-teal-50 text-xs font-bold text-teal-800">{inquiry.initials}</span><div className="min-w-0 flex-1"><p className="truncate text-sm font-semibold text-slate-900">{inquiry.name}</p><p className="truncate text-xs text-slate-500">{inquiry.frameName}</p></div><time className="shrink-0 text-xs text-slate-400" dateTime={inquiry.createdAt}>{formatDate(inquiry.createdAt)}</time></div>)}</div>}</article></section>
 

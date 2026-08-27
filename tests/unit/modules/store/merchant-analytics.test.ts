@@ -1,6 +1,7 @@
 import {
   getExperienceAnalyticsSummary,
   getExperienceFunnel,
+  getMerchantAnalyticsSnapshot,
   getMerchantIntentSummary,
   getTopFramesByIntent,
   listMerchantExperienceAnalytics,
@@ -218,5 +219,68 @@ describe('Merchant Analytics application foundation', () => {
     const listed = await listMerchantExperienceAnalytics({ actor: agent, from: '2026-08-01T00:00:00.000Z', to: '2026-08-08T00:00:00.000Z' })
     expect(listed.find((row) => row.experience.id === 'store-a')?.metrics).toMatchObject({ visits: 1, tryOnCompletions: 0 })
     expect(listed.find((row) => row.experience.id === 'campaign-a')?.metrics).toMatchObject({ visits: 1, tryOnCompletions: 2 })
+  })
+
+  it('returns merchant-wide C1 metrics from the same snapshot as Experience comparison', async () => {
+    db.experience.findMany.mockResolvedValue([
+      {
+        id: 'store-a', merchantId: 'merchant-a', type: 'STORE', slug: 'store', name: 'Store A', status: 'ACTIVE',
+        campaignObjective: null, campaignGate: null, presentationMode: null, referenceData: false,
+      },
+      {
+        id: 'campaign-a', merchantId: 'merchant-a', type: 'CAMPAIGN', slug: 'summer', name: 'Summer', status: 'ACTIVE',
+        campaignObjective: 'INTENT', campaignGate: 'NONE', presentationMode: 'EDITORIAL_FIRST', referenceData: true,
+      },
+    ])
+    db.merchantSession.findMany.mockResolvedValue([
+      { id: 'session-store', experienceId: 'store-a' },
+      { id: 'session-campaign', experienceId: 'campaign-a' },
+    ])
+    db.merchantEvent.groupBy.mockResolvedValue([
+      { experienceId: 'store-a', merchantSessionId: 'session-store', merchantFrameId: 'frame-1', type: 'merchant_tryon_started', _count: { _all: 1 } },
+      { experienceId: 'store-a', merchantSessionId: 'session-store', merchantFrameId: 'frame-1', type: 'merchant_tryon_completed', _count: { _all: 1 } },
+      { experienceId: 'campaign-a', merchantSessionId: 'session-campaign', merchantFrameId: 'frame-1', type: 'merchant_recommendation_completed', _count: { _all: 1 } },
+    ])
+    db.merchantIntent.groupBy.mockResolvedValue([])
+    const snapshot = await getMerchantAnalyticsSnapshot({ actor: agent, from: '2026-08-01T00:00:00.000Z', to: '2026-08-08T00:00:00.000Z' })
+    expect(snapshot.period.timezone).toBe('UTC')
+    expect(snapshot.metrics.visits).toBe(2)
+    expect(snapshot.metrics.engagedSessions).toBe(1)
+    expect(snapshot.metrics.engagementRate).toBe(0.5)
+    expect(snapshot.experiences).toHaveLength(2)
+    expect(snapshot.experiences.find((row) => row.experience.id === 'campaign-a')?.metrics.engagedSessions).toBe(0)
+  })
+
+  it('does not treat recommendation-only merchant traffic as C1 engagement', async () => {
+    db.experience.findMany.mockResolvedValue([
+      {
+        id: 'store-a', merchantId: 'merchant-a', type: 'STORE', slug: 'store', name: 'Store A', status: 'ACTIVE',
+        campaignObjective: null, campaignGate: null, presentationMode: null, referenceData: false,
+      },
+    ])
+    db.merchantSession.findMany.mockResolvedValue([{ id: 'session-rec', experienceId: 'store-a' }])
+    db.merchantEvent.groupBy.mockResolvedValue([
+      { experienceId: 'store-a', merchantSessionId: 'session-rec', merchantFrameId: 'frame-1', type: 'merchant_recommendation_completed', _count: { _all: 4 } },
+    ])
+    db.merchantIntent.groupBy.mockResolvedValue([])
+    const snapshot = await getMerchantAnalyticsSnapshot({ actor: agent })
+    expect(snapshot.metrics).toMatchObject({ visits: 1, engagedSessions: 0, engagementRate: 0, highIntentSessions: 0 })
+  })
+
+  it('keeps merchant-wide rates null when there is no activity', async () => {
+    db.experience.findMany.mockResolvedValue([])
+    db.merchantSession.findMany.mockResolvedValue([])
+    db.merchantEvent.groupBy.mockResolvedValue([])
+    db.merchantIntent.groupBy.mockResolvedValue([])
+    const snapshot = await getMerchantAnalyticsSnapshot({ actor: agent })
+    expect(snapshot.metrics).toMatchObject({
+      visits: 0,
+      engagedSessions: 0,
+      engagementRate: null,
+      tryOnCompletionRate: null,
+      highIntentRate: null,
+      favorites: 0,
+    })
+    expect(snapshot.experiences).toEqual([])
   })
 })
