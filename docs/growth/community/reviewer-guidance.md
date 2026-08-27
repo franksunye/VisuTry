@@ -32,6 +32,15 @@ Routine review results that require no operational change do not need a reposito
 
 ## Guidance log
 
+### 2026-08-27 — Evidence model and legacy-promotion classification
+
+- Keep the current conservative, research-first interaction strategy. A zero-public-action day is valid when follow-ups are checked and current threads are already answered, stale, or otherwise do not benefit from another reply.
+- Stop creating chained self-evidence commits merely to record the SHA of the commit that contains the daily log. The repository branch HEAD is already authoritative remote evidence. Prefer one primary ops commit per run. If a post-push evidence field is retained, it may reference the primary ops commit without requiring another state-only or timestamp-only commit; do not create a new commit solely because recording the previous commit SHA changed a file.
+- Treat `git_final_evidence` as operational evidence, not as a requirement for the log to contain the eventual branch HEAD. Reviewers may verify the actual remote branch HEAD independently.
+- The historical YouTube VisuTry comment currently indexed as `tone: PROMOTIONAL` must also be treated internally as a legacy promotion-risk example because affiliation was not transparently disclosed. Add an explicit non-sensitive classification such as `legacy_promotion_risk: true` and `affiliation_disclosed: false` (or equivalent schema-compatible fields) on a normal future state update. Do not delete or edit the historical public comment solely for this bookkeeping change.
+- Never use that legacy YouTube comment as a wording, cadence, or disclosure template. Future VisuTry mentions must remain transparent about affiliation and independently useful even without the product mention.
+- Do not increase Reddit or YouTube activity volume in response to this guidance.
+
 ### 2026-08-26 — GitHub-mediated closed loop
 
 - Codex and reviewer must communicate operational changes through GitHub, not through manual copy/paste by the user.
