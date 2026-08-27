@@ -64,6 +64,23 @@ async function jsonProducts(document: CatalogSourceDocument, sourceUrl: string, 
   }
 }
 
+async function inspectWithBrowserRender(input: {
+  sourceUrl: string
+  maxProducts: number
+  renderedFetch?: (url: string) => Promise<CatalogSourceDocument | null>
+}, fetchedUrls: string[], issues: SourceIssue[]): Promise<ExtractedProduct[] | null> {
+  if (!input.renderedFetch) return null
+  try {
+    const rendered = await input.renderedFetch(input.sourceUrl)
+    if (!rendered || !isHtml(rendered)) return null
+    fetchedUrls.push(rendered.url)
+    return extractCatalogProductsFromHtml(rendered.body, rendered.url).slice(0, input.maxProducts)
+  } catch {
+    issues.push(issue(input.sourceUrl, 'BROWSER_RENDER_FAILED', 'The rendered page could not be inspected.'))
+    return null
+  }
+}
+
 export async function inspectCatalogUrlProgressively(input: {
   sourceUrl: string
   maxProducts: number
@@ -83,7 +100,12 @@ export async function inspectCatalogUrlProgressively(input: {
   } catch (error) {
     const code = error && typeof error === 'object' && 'code' in error ? String((error as { code: unknown }).code) : 'SOURCE_UNREACHABLE'
     const message = error && typeof error === 'object' && 'message' in error ? String((error as { message: unknown }).message) : 'The source could not be inspected.'
-    return { candidates: [], fetchedUrls, issues: [issue(input.sourceUrl, code, message)] }
+    const renderedCandidates = await inspectWithBrowserRender(input, fetchedUrls, issues)
+    if (renderedCandidates !== null) {
+      if (renderedCandidates.length > 0) return { candidates: renderedCandidates, fetchedUrls, issues, platform: 'BROWSER_RENDER' }
+      return { candidates: [], fetchedUrls, issues: [issue(input.sourceUrl, 'NO_PRODUCTS_FOUND', 'We could not reliably find product data. Try Upload CSV or Add manually.')], platform: 'BROWSER_RENDER' }
+    }
+    return { candidates: [], fetchedUrls, issues: [issue(input.sourceUrl, code, message), ...issues] }
   }
 
   const detectedPlatform = isHtml(landing) ? platformFor(landing.body) : undefined
@@ -169,18 +191,8 @@ export async function inspectCatalogUrlProgressively(input: {
     if (candidates.length > 0) return { candidates: candidates.slice(0, input.maxProducts), fetchedUrls, issues, platform: detectedPlatform ? 'SHOPIFY' : 'GENERIC_HTML' }
   }
 
-  if (input.renderedFetch) {
-    try {
-      const rendered = await input.renderedFetch(input.sourceUrl)
-      if (rendered && isHtml(rendered)) {
-        fetchedUrls.push(rendered.url)
-        const renderedCandidates = extractCatalogProductsFromHtml(rendered.body, rendered.url)
-        if (renderedCandidates.length > 0) return { candidates: renderedCandidates.slice(0, input.maxProducts), fetchedUrls, issues, platform: 'BROWSER_RENDER' }
-      }
-    } catch {
-      issues.push(issue(input.sourceUrl, 'BROWSER_RENDER_FAILED', 'The rendered page could not be inspected.'))
-    }
-  }
+  const renderedCandidates = await inspectWithBrowserRender(input, fetchedUrls, issues)
+  if (renderedCandidates && renderedCandidates.length > 0) return { candidates: renderedCandidates, fetchedUrls, issues, platform: 'BROWSER_RENDER' }
   issues.push(issue(input.sourceUrl, 'NO_PRODUCTS_FOUND', 'We could not reliably find product data. Try Upload CSV or Add manually.'))
   return { candidates: [], fetchedUrls, issues, platform: detectedPlatform }
 }
