@@ -12,6 +12,21 @@ jest.mock('@/lib/prisma', () => ({
   },
 }))
 
+jest.mock('@/modules/merchant/application/merchant-commerce-intelligence', () => ({
+  getMerchantCommerceIntelligence: jest.fn(async () => ({
+    period: { from: '2026-07-28T00:00:00.000Z', to: '2026-08-27T00:00:00.000Z', timezone: 'UTC' },
+    hasActivity: true,
+    totals: { visitors: 2, engagedShoppers: 1, recommendationActivity: 0, tryOnCompletions: 1, compareActivity: 0, productClicks: 0, highIntentShoppers: 1 },
+    rates: { engagement: 50, recommendation: null, tryOn: 50, compare: null },
+    comparison: { previousPeriod: { from: '2026-06-28T00:00:00.000Z', to: '2026-07-28T00:00:00.000Z', timezone: 'UTC' }, previous: { visitors: 0, engagedShoppers: 0, recommendationActivity: 0, tryOnCompletions: 0, compareActivity: 0, productClicks: 0, highIntentShoppers: 0 }, deltas: { visitors: null, engagedShoppers: null, recommendationActivity: null, tryOnCompletions: null, compareActivity: null, productClicks: null, highIntentShoppers: null }, reliable: false },
+    experiencePerformance: { reliable: false, ranked: [], topExperienceId: null, topMetric: null, needsAttentionExperienceId: null },
+    sourceHighlights: { topVisitors: null, topDownstreamIntent: null, topHighIntent: null, reliable: false },
+    interpretation: { summary: 'Review the observed shopper signals below.', evidence: [], nextAction: 'Ask Agent to compare these Experiences' },
+    acquisitionSources: [],
+    experiences: [],
+  })),
+}))
+
 const db = prisma as unknown as {
   merchant: { findUnique: jest.Mock }
   experience: { findMany: jest.Mock }
@@ -38,6 +53,15 @@ describe('merchant control center read model', () => {
   it('returns bounded tenant-scoped status with resolved defaults', async () => {
     const result = await getMerchantControlCenter({ merchantId: 'merchant-a' })
     expect(result).toMatchObject({ merchant: { id: 'merchant-a' }, activeCampaignCount: 1, shopperActivityAvailable: true, credentialUsage: { active: 1 } })
+    expect(result?.commerceIntelligence?.totals).toEqual({
+      visitors: 2,
+      engagedShoppers: 1,
+      recommendationActivity: 0,
+      tryOnCompletions: 1,
+      compareActivity: 0,
+      productClicks: 0,
+      highIntentShoppers: 1,
+    })
     expect(result?.store?.policy).toEqual({ objective: null, gate: null, presentation: 'PRODUCT_FIRST' })
     expect(result?.experiences.find((experience) => experience.type === 'CAMPAIGN')?.policy).toEqual({ objective: 'INTENT', gate: 'NONE', presentation: 'EDITORIAL_FIRST' })
     expect(db.experience.findMany).toHaveBeenCalledWith(expect.objectContaining({ where: { merchantId: 'merchant-a' } }))

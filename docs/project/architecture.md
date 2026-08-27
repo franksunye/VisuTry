@@ -344,6 +344,70 @@ Hosting direction for Store/Campaign traffic scale is ADR-010 (Cloudflare for hi
 
 For readiness gaps and P0 remediation status, see `docs/audits/2026-08-27-architecture-platform-saas-audit.md`.
 
+## Merchant Intelligence application contracts (P1)
+
+Admin, Merchant Control Center, and MCP are delivery clients of the same C1 Experience analytics contract. They must not independently re-aggregate visit, engagement, try-on, favorite, compare, or high-intent metrics.
+
+```text
+Delivery surfaces
+  ├─ Merchant Control Center
+  ├─ Admin merchant comparison
+  └─ MCP get_experience_* / compare_experiences
+        ↓
+Shared application contracts
+  ├─ computeExperienceAnalytics / getExperienceAnalyticsSummary / listMerchantExperienceAnalytics
+  └─ buildMerchantCommerceIntelligence / getMerchantCommerceIntelligence
+        ↓
+Prisma or Cloudflare persistence loaders (no local metric formulas)
+```
+
+Canonical owners:
+
+- Experience analytics kernel: `src/modules/store/application/merchant-analytics-compute.ts`
+- Tenant-scoped Prisma query API: `src/modules/store/application/merchant-analytics.ts`
+- Cloudflare SQL loader (same kernel): `src/modules/store/application/merchant-analytics-cloudflare.ts`
+- Merchant overview (C1 totals + Control Center overlay cards): `src/modules/merchant/application/merchant-commerce-intelligence.ts`
+
+### C1 metric semantics
+
+| Metric | Numerator | Denominator | Notes |
+| --- | --- | --- | --- |
+| visits | Distinct `MerchantSession` ids in range | — | Tenant + experience scoped |
+| engagedSessions | Sessions with frame select, try-on start, favorite, compare, or product/inquiry intent | visits | Recommendation-only is **not** engagement |
+| tryOnStarts / tryOnCompletions | Matching event counts | tryOnStarts for completion rate | Counts, not unique sessions |
+| framesTried | Try-on completion events with a frame id | — | `uniqueFramesTried` is a set of completed frame ids |
+| favorites | `FAVORITE` intent count | — | |
+| compares | `merchant_compare_started` event count | — | |
+| highIntentSessions | Sessions with observed-behavior score ≥ 4 | visits | Identity is not scored |
+| merchantCtaClicks / identifiedSessions | unavailable | — | `null` / `available: false` |
+
+Date range: UTC, `from` inclusive / `to` exclusive, default 30 days, max 365 days. Empty periods return zeros and `null` rates. Reference-data flags pass through; they do not change formulas. Missing tenant-owned top-frame catalog rows fail closed (`MerchantAccessError`).
+
+Control Center still shows recommendation-activity and product-click **overlay** cards. Those overlays are not C1 engagement or high-intent numerators.
+
+### Unified in this slice
+
+- MCP Experience summary / funnel / top frames / intent
+- Merchant Control Center `commerceIntelligence`
+- Admin merchant Experience comparison table (`listMerchantExperienceAnalytics`)
+- Admin Experience insights API when `experienceId` is set
+- `compareMerchantExperiences` (already composed from C1 summaries)
+
+### Still duplicated (acceptable; P2 not triggered)
+
+- `getMerchantInsights` CRM (recent sessions, inquiries, catalog interest, all-time operator funnel)
+- `get-experience-admin` all-time directory counts on the Experiences list page
+- Campaign preview / publish / archive command unification
+- Remaining Prisma vs Cloudflare persistence adapters (business policy is already shared for this slice)
+- `merchant-distribution-report` source-class engagement overlay (includes recommendation by design)
+- `merchant-commerce-intelligence.ts` still hosts both the pure overview builder and the Prisma loader (non-blocking; split if the module keeps growing)
+
+P2 / `src/modules/commerce/**` extraction remains evidence-based: trigger only when a third genuine domain (not another delivery surface) needs these contracts, or when remaining CRM / lifecycle duplication causes metric disagreement that this kernel cannot own.
+
+P1 analytics did not reopen Consumer routes. ADR-007 Consumer→Store close-out (Discover-only exception) is the P0 work on this branch.
+
+---
+
 ## Architecture Review Notes
 
 This document should be reviewed against the codebase before major work in the following areas:

@@ -1,9 +1,10 @@
 import { prisma } from '@/lib/prisma'
 import { resolveCampaignConversionPolicy } from '@/modules/store/domain/campaign-policy'
 import { resolvePresentationMode, type PresentationMode } from '@/modules/store/domain/presentation-mode'
-import type { MerchantDistributionReport } from '@/modules/store/domain/merchant-distribution-report'
 import { validateCatalogFrame } from './merchant-onboarding-cloudflare'
-import type { MerchantCommerceComparison, MerchantCommerceInterpretation, MerchantExperiencePerformance, MerchantSourceHighlights } from '../domain/merchant-control-insights'
+import { getMerchantCommerceIntelligence, type MerchantCommerceIntelligence } from './merchant-commerce-intelligence'
+
+export type { MerchantCommerceIntelligence }
 
 export type MerchantCatalogFrameSummary = {
   id: string
@@ -50,41 +51,6 @@ export type MerchantControlExperience = {
   updatedAt: string
 }
 
-export type MerchantCommerceIntelligence = {
-  period: { from: string; to: string; timezone: 'UTC' }
-  hasActivity: boolean
-  totals: {
-    visitors: number
-    engagedShoppers: number
-    recommendationActivity: number
-    tryOnCompletions: number
-    compareActivity: number
-    productClicks: number
-    highIntentShoppers: number
-  }
-  rates: { engagement: number | null; recommendation: number | null; tryOn: number | null; compare: number | null }
-  comparison: MerchantCommerceComparison
-  experiencePerformance: MerchantExperiencePerformance
-  sourceHighlights: MerchantSourceHighlights
-  interpretation: MerchantCommerceInterpretation
-  acquisitionSources: Array<{ source: string; visitors: number }>
-  distributionReport?: MerchantDistributionReport
-  experiences: Array<{
-    id: string
-    type: 'STORE' | 'CAMPAIGN'
-    name: string
-    status: string
-    referenceData: boolean
-    visitors: number
-    engagedShoppers: number
-    recommendationActivity: number
-    tryOnCompletions: number
-    compareActivity: number
-    productClicks: number
-    highIntentShoppers: number
-  }>
-}
-
 export type MerchantControlCenter = {
   merchant: { id: string; slug: string; name: string; websiteUrl: string | null; status: string; referenceData: boolean }
   store: MerchantControlExperience | null
@@ -123,7 +89,7 @@ export async function getMerchantControlCenter(input: { merchantId: string }): P
   })
   if (!merchant) return null
 
-  const [experiences, shopperSessions, activeCredentials, catalogFrames] = await Promise.all([
+  const [experiences, shopperSessions, activeCredentials, catalogFrames, commerceIntelligence] = await Promise.all([
     prisma.experience.findMany({
       where: { merchantId: merchant.id },
       orderBy: { updatedAt: 'desc' },
@@ -138,6 +104,7 @@ export async function getMerchantControlCenter(input: { merchantId: string }): P
     prisma.merchantSession.count({ where: { merchantId: merchant.id } }),
     prisma.merchantAgentCredential.count({ where: { merchantId: merchant.id, status: 'ACTIVE' } }),
     prisma.merchantFrame.findMany({ where: { merchantId: merchant.id }, orderBy: { name: 'asc' }, select: { id: true, sku: true, name: true, brand: true, imageUrl: true, shape: true, widthClass: true, source: true, status: true, enrichmentStatus: true } }),
+    getMerchantCommerceIntelligence({ merchantId: merchant.id }),
   ])
 
   const operationRows = await prisma.merchantOperationAudit.findMany({ where: { merchantId: merchant.id, resourceType: 'Experience' }, orderBy: { createdAt: 'desc' }, select: { resourceId: true, action: true, actorType: true, createdAt: true } })
@@ -193,7 +160,8 @@ export async function getMerchantControlCenter(input: { merchantId: string }): P
     },
     experiences: mapped,
     activeCampaignCount: mapped.filter((experience) => experience.type === 'CAMPAIGN' && experience.status === 'ACTIVE').length,
-    shopperActivityAvailable: shopperSessions > 0,
+    shopperActivityAvailable: commerceIntelligence.hasActivity || shopperSessions > 0,
     credentialUsage: { active: activeCredentials },
+    commerceIntelligence,
   }
 }
