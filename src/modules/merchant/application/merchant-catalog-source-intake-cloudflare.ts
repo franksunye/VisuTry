@@ -95,7 +95,15 @@ async function fetchMerchantSourceDocumentCloudflare(rawUrl: string): Promise<Ca
       if (!response.ok) throw new MerchantSourceIntakeError('SOURCE_UNREACHABLE', 'The source could not be inspected.')
       const contentType = response.headers.get('content-type') ?? ''
       const normalizedContentType = contentType.split(';')[0].trim().toLowerCase()
-      if (normalizedContentType && !['text/html', 'application/xhtml+xml'].includes(normalizedContentType)) throw new MerchantSourceIntakeError('UNSUPPORTED_SOURCE', 'The source is not an HTML product page.')
+      if (normalizedContentType && ![
+        'text/html',
+        'application/xhtml+xml',
+        'application/json',
+        'application/xml',
+        'text/xml',
+      ].includes(normalizedContentType) && !normalizedContentType.endsWith('+json')) {
+        throw new MerchantSourceIntakeError('UNSUPPORTED_SOURCE', 'The source is not a supported ecommerce document.')
+      }
       return { url: current.toString(), body: await readResponseBody(response), contentType }
     } catch (error) {
       if (error instanceof MerchantSourceIntakeError) throw error
