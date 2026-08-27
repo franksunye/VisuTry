@@ -41,6 +41,8 @@ describe('public discovery cache contract', () => {
     expect(revalidateTag).toHaveBeenCalledWith('public-discovery:merchant:luna-optical')
     expect(revalidateTag).toHaveBeenCalledWith('public-discovery:sitemap')
     expect(revalidateTag).toHaveBeenCalledWith('public-discovery:route-admission')
+    expect(revalidatePath).toHaveBeenCalledWith('/en/store/luna-optical')
+    expect(revalidatePath).toHaveBeenCalledWith('/[locale]/c/[merchantSlug]/[experienceSlug]', 'page')
     expect(revalidatePath).toHaveBeenCalledWith('/sitemaps/dynamic.xml')
 
     jest.clearAllMocks()
@@ -50,6 +52,8 @@ describe('public discovery cache contract', () => {
     })
     expect(revalidateTag).toHaveBeenCalledTimes(4)
     expect(revalidateTag).toHaveBeenCalledWith('public-discovery:merchant-catalog:luna-optical')
+    expect(revalidatePath).toHaveBeenCalledWith('/en/store/luna-optical')
+    expect(revalidatePath).toHaveBeenCalledWith('/[locale]/c/[merchantSlug]/[experienceSlug]', 'page')
     expect(revalidatePath).toHaveBeenCalledWith('/sitemaps/dynamic.xml')
 
     jest.clearAllMocks()
@@ -59,6 +63,7 @@ describe('public discovery cache contract', () => {
     })
     expect(revalidateTag).toHaveBeenCalledTimes(4)
     expect(revalidateTag).toHaveBeenCalledWith('public-discovery:experience:luna-optical:petite-fit')
+    expect(revalidatePath).toHaveBeenCalledWith('/en/c/luna-optical/petite-fit')
     expect(revalidatePath).toHaveBeenCalledWith('/sitemaps/dynamic.xml')
   })
 
