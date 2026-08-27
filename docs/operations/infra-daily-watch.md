@@ -146,6 +146,8 @@ Append one new dated section. Keep entries concise.
 - None unless explicitly approved.
 
 **Production changes made by review:** NONE
+
+
 ```
 
 ## Current experiment context
@@ -239,3 +241,39 @@ Reference pre-Tiered combined baseline for the three families: approximately **2
 - No production change. The filters were temporary and canceled without saving.
 
 **Production changes made by review:** NONE
+
+## 2026-08-27
+
+### Codex Morning Inspection — 11:00
+
+**Window:** GA4 complete prior day **2026-08-26 (+08:00)**; Cloudflare fixed **2026-08-26 23:08–2026-08-27 11:08 (+08:00)**; Vercel rolling 12h refreshed around **2026-08-26 23:18–2026-08-27 11:18 (+08:00)**; Axiom `Last 1 day`. This additional same-day entry is appended to preserve the earlier review.
+
+**Traffic**
+- GA Users / Sessions / Views: **325 / 354 / 913**.
+- Organic / AI referral note: **154 Organic Search sessions** and **44 AI Assistant sessions (12.43%)**; GA4 surfaced users at **+22.6%** versus its comparison, while session/view deltas were not exposed.
+
+**Vercel**
+- ISR Read Units: **14K project RU**; Write Units **215**. Count/Bytes were not used or exposed in this view.
+- Important ISR route families: `/{locale}/glasses-guide/[slug]` **2.9K RU**, `/{locale}/sunglasses-for/[faceShape]` **511 RU**, `/{locale}/style/[faceShape]` **308 RU**; visible pilot subtotal **~3.72K RU / 12h**, above the **~2.52K** pre-Tiered reference.
+- Fast Origin Transfer: **66 MB outgoing + 17 MB incoming**; route-level FOT is not used for attribution.
+- Other material usage: `/api/face-analysis/submit` showed **17 invocations / 35.3% error rate**; other high-volume function rows shown were **0%**.
+
+**Cloudflare**
+- Relevant cache experiment: D1 HTML Cache Shield unchanged; Smart Tiered Cache remains enabled from **2026-08-26 14:55 +08:00**.
+- Cache hit / miss evidence: for `/glasses-guide/` in the fixed 12h window, **318 requests**, **38 explicit HITs**, **26.10% edge cache-hit rate**, **0 5xx**. The Cloudflare tab became unavailable while re-running the style/sunglasses filters, so no new 12h breakdown is asserted for those two families; the prior 24h distributions remain non-comparable evidence.
+- Tiered Cache: **Smart Tiered Cache active**; no change made.
+- Origin-bound evidence: no pilot origin-request counterfactual or Tiered Cache shield counter was exposed.
+
+**Axiom**
+- Current `Last 1 day` error/warn query returned **54 events: 12 error, 42 warn**; **6 Submit API error**, **6 Analysis failed**, **23 Free face shape detection failed**, **11 slow/aborted auth-session**, and **6 Chat API network error** rows were present. No `ChunkLoadError`, hydration, or RSC matches.
+- The recurring face-analysis cluster remains the material production regression signal; no new frontend runtime regression was observed.
+
+**Six morning answers**
+1. Traffic materially changed: **Yes for users (+22.6%)**; sessions/views direction is not established.
+2. Vercel resource efficiency materially changed: **Pilot ISR RU is ~3.72K / 12h versus ~2.52K baseline (worse in this window)**; project-level total is **14K RU**.
+3. Cloudflare materially changed origin behavior: **Not proven**; edge HIT evidence is partial and not an origin counterfactual.
+4. Active experiment: **INCONCLUSIVE / HOLD**; current pilot RU does not show success, but the three-family Cloudflare window is incomplete and causality is not established.
+5. Axiom regression: **Yes, recurring face-analysis failures and auth/provider warnings; no ChunkLoadError/hydration/RSC or surfaced 5xx spike.**
+6. Single most important question: **Can the exact same complete 12h window produce all three Cloudflare status distributions plus a trustworthy pilot-origin or route-attributed Vercel RU comparison?**
+
+**Production changes made during inspection:** NONE
