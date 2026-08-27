@@ -165,6 +165,17 @@ A Store PR that cannot answer these clearly is not merge-ready.
 3. Move genuinely shared retention utilities to a neutral shared/core module rather than making Consumer depend on the Store module.
 4. Maintain a fixed Consumer regression suite covering the protected workflow.
 5. Run that Consumer regression suite for every Store PR that changes shared database schema, generation, polling, storage, retention, quota, or cron code.
+6. Enforce a **broad Consumer-boundary import scan** with a tiny authoritative allowlist (see `tests/unit/lib/adr-007-consumer-stability.test.ts`). Hand-maintained root lists are insufficient.
+
+### Authoritative Consumer→Store allowlist
+
+| Path | Classification |
+| --- | --- |
+| `src/app/[locale]/(main)/discover/page.tsx` | **Commerce discovery surface.** URL/SEO may remain under `(main)`, but the page is a Store/Commerce application client, not part of the protected Consumer decision workflow. |
+
+Any other Consumer-tree import of `src/modules/store/**` is a regression unless a superseding ADR expands this table.
+
+Shared handoff contracts that Consumer money/auth/funnel paths may use live under `src/lib/commerce-handoff/**` and must not re-export Store orchestration.
 
 ### Regression gate
 

@@ -3,8 +3,8 @@
  * Required evidence for Store PRs that touch shared generation/poll/retention/quota/cron.
  */
 
-import { readFileSync, readdirSync, statSync } from 'node:fs'
-import { join } from 'node:path'
+import { readFileSync, readdirSync, statSync, existsSync } from 'node:fs'
+import { join, relative } from 'node:path'
 import { submitTryOnTask, getTryOnResult } from '@/lib/tryon-service'
 import { prisma } from '@/lib/prisma'
 import { pollTaskResult, submitAsyncTask } from '@/lib/grsai'
@@ -78,17 +78,74 @@ const TaskStatus = {
 }
 
 function walkTsFiles(dir: string, acc: string[] = []): string[] {
+  if (!existsSync(dir)) return acc
   for (const name of readdirSync(dir)) {
     const full = join(dir, name)
     const st = statSync(full)
     if (st.isDirectory()) {
-      if (name === 'node_modules' || name === '.next' || name === 'store') continue
+      if (name === 'node_modules' || name === '.next' || name === 'store' || name === 'merchant' || name === 'admin') continue
       walkTsFiles(full, acc)
     } else if (/\.(ts|tsx)$/.test(name)) {
       acc.push(full)
     }
   }
   return acc
+}
+
+/**
+ * Authoritative Consumer→Store allowlist (ADR-007).
+ * Discover is a Commerce discovery surface that may live under `(main)` for
+ * URL/SEO reasons while calling Store application services.
+ */
+const CONSUMER_STORE_IMPORT_ALLOWLIST = new Set([
+  'src/app/[locale]/(main)/discover/page.tsx',
+])
+
+const CONSUMER_BOUNDARY_ROOTS = [
+  'src/app/[locale]/(main)',
+  'src/app/api/try-on',
+  'src/app/api/payment',
+  'src/app/api/user',
+  'src/app/api/analytics/consumer-funnel',
+  'src/app/api/cron/cleanup-expired-tasks',
+  'src/app/api/cron/sync-pending-consumer-tasks',
+  'src/components/pricing',
+  'src/components/distribution',
+  'src/components/try-on',
+  'src/components/dashboard',
+  'src/components/payments',
+  'src/components/auth',
+  'src/components/home',
+  'src/components/face-analysis',
+  'src/components/face-shape',
+  'src/components/compare',
+  'src/components/style-explorer',
+  'src/lib',
+  'src/config',
+  'src/hooks',
+]
+
+const LIB_PATH_PREFIX_EXCLUSIONS = [
+  'src/lib/store-discovery-',
+  'src/lib/merchant-skill',
+  'src/lib/agent-distribution',
+  'src/lib/cron/sync-pending-store-tasks',
+]
+
+function isExcludedLibPath(rel: string): boolean {
+  return LIB_PATH_PREFIX_EXCLUSIONS.some((prefix) => rel.startsWith(prefix))
+}
+
+function collectConsumerBoundaryFiles(cwd: string): string[] {
+  const files: string[] = []
+  for (const root of CONSUMER_BOUNDARY_ROOTS) {
+    const absolute = join(cwd, root)
+    if (!existsSync(absolute)) continue
+    const st = statSync(absolute)
+    if (st.isDirectory()) walkTsFiles(absolute, files)
+    else files.push(absolute)
+  }
+  return files.filter((file) => !isExcludedLibPath(relative(cwd, file).replaceAll('\\', '/')))
 }
 
 describe('ADR-007 Consumer stability boundary', () => {
@@ -332,57 +389,33 @@ describe('ADR-007 Consumer stability boundary', () => {
     ])
   })
 
-  it('Consumer-facing lib and Consumer cron sources must not import modules/store', () => {
-    const roots = [
-      join(process.cwd(), 'src/lib/tryon-service.ts'),
-      join(process.cwd(), 'src/lib/quota.ts'),
-      join(process.cwd(), 'src/lib/compare-tryon-server.ts'),
-      join(process.cwd(), 'src/lib/cron/sync-pending-consumer-tasks.ts'),
-      join(process.cwd(), 'src/app/api/cron/cleanup-expired-tasks/route.ts'),
-      join(process.cwd(), 'src/app/api/cron/sync-pending-consumer-tasks/route.ts'),
-      join(process.cwd(), 'src/app/api/try-on'),
-      // Money / auth / funnel surfaces — previously ungated and regressed.
-      join(process.cwd(), 'src/app/api/payment'),
-      join(process.cwd(), 'src/app/api/analytics/consumer-funnel'),
-      join(process.cwd(), 'src/app/[locale]/(main)/auth/signin'),
-      join(process.cwd(), 'src/app/[locale]/(main)/success'),
-      join(process.cwd(), 'src/components/pricing'),
-      join(process.cwd(), 'src/config/distribution-handoffs.ts'),
-      join(process.cwd(), 'src/lib/commerce-handoff'),
-    ]
-
-    const files: string[] = []
-    for (const root of roots) {
-      const st = statSync(root)
-      if (st.isDirectory()) walkTsFiles(root, files)
-      else files.push(root)
-    }
+  it('Consumer boundary must not import modules/store except the authoritative allowlist', () => {
+    const cwd = process.cwd()
+    const files = collectConsumerBoundaryFiles(cwd)
+    expect(files.length).toBeGreaterThan(50)
 
     const violations: string[] = []
     for (const file of files) {
+      const rel = relative(cwd, file).replaceAll('\\', '/')
+      if (CONSUMER_STORE_IMPORT_ALLOWLIST.has(rel)) continue
       const source = readFileSync(file, 'utf8')
-      if (source.includes("@/modules/store") || source.includes("modules/store/")) {
-        violations.push(file.replace(process.cwd() + '/', ''))
+      if (source.includes('@/modules/store') || source.includes('modules/store/')) {
+        violations.push(rel)
       }
     }
 
     expect(violations).toEqual([])
   })
 
-  it('approved Store discovery/handoff exceptions remain explicit and outside money/auth guards', () => {
-    // Discover and ContextualExperienceHandoff are candidate Store surfaces /
-    // bridges hosted under Consumer route trees. They may import Store until an
-    // ADR lists them as permanent exceptions or they move under (store).
+  it('Discover is the only allowlisted Commerce discovery surface under (main)', () => {
     const discover = readFileSync(
       join(process.cwd(), 'src/app/[locale]/(main)/discover/page.tsx'),
       'utf8',
     )
-    const handoff = readFileSync(
-      join(process.cwd(), 'src/components/distribution/ContextualExperienceHandoff.tsx'),
-      'utf8',
-    )
     expect(discover).toContain('modules/store')
-    expect(handoff).toContain('modules/store')
+    expect([...CONSUMER_STORE_IMPORT_ALLOWLIST]).toEqual([
+      'src/app/[locale]/(main)/discover/page.tsx',
+    ])
   })
 
   it('Frame Compare entrypoint still routes through Consumer submitTryOnTask (no Store dependency)', () => {

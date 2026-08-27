@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import { ArrowRight, Compass } from 'lucide-react'
 import { CONTEXTUAL_HANDOFFS, type ContextualHandoffPlacement } from '@/config/distribution-handoffs'
-import { buildMerchantExperienceHref } from '@/modules/store/application/build-merchant-experience-href'
+import { buildMerchantExperienceHref } from '@/lib/commerce-handoff/merchant-experience-href'
 
 export function ContextualExperienceHandoff({
   locale,
