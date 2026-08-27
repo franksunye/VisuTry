@@ -22,6 +22,7 @@ export const catalogFrameInputSchema = z.object({
   source: z.enum(['MANUAL', 'CSV', 'EXTERNAL']).optional(),
   externalId: z.string().max(2000).nullable().optional(),
   sourceNotes: z.string().max(2000).nullable().optional(),
+  enrichmentStatus: z.enum(['NOT_REQUIRED', 'PENDING', 'REVIEW_REQUIRED', 'APPROVED']).optional(),
 }).strict()
 
 export function isRecord(value: unknown): value is Record<string, unknown> {

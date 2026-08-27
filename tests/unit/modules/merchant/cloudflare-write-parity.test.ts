@@ -9,7 +9,7 @@ jest.mock('@/modules/store/application/public-discovery-invalidation', () => ({
 import { getCloudflareSql } from '@/data/neon-cloudflare'
 import { withPublicDiscoveryInvalidation } from '@/modules/store/application/public-discovery-invalidation'
 import { MerchantAccessError } from '@/modules/merchant/application/merchant-access-cloudflare'
-import { createMerchantStore, publishMerchantStore, setMerchantStoreFrames } from '@/modules/merchant/application/merchant-onboarding-cloudflare'
+import { createMerchantStore, importMerchantFrames, publishMerchantStore, setMerchantStoreFrames } from '@/modules/merchant/application/merchant-onboarding-cloudflare'
 import { createCampaignDraft, publishCampaign, archiveCampaign, setCampaignFrames } from '@/modules/store/application/campaign-service-cloudflare'
 import type { MerchantAgentScope } from '@/modules/merchant/domain/agent-credentials'
 
@@ -150,5 +150,31 @@ describe('Cloudflare direct-Neon merchant and experience writes', () => {
     const result = await publishMerchantStore({ actor, storeId: 'store-a', approved: true })
     expect(result).toEqual({ id: 'store-a', status: 'ACTIVE', publicPath: '/en/store/merchant-a', approvalRecorded: true })
     expect(sql.mock.calls.some((call) => call[0].join('').includes('UPDATE "Experience"'))).toBe(true)
+  })
+
+  it('persists PENDING enrichment for an importable frame without shape', async () => {
+    const calls: Array<{ values: unknown[] }> = []
+    const sql = jest.fn((strings: TemplateStringsArray, ...values: unknown[]) => {
+      calls.push({ values })
+      return Promise.resolve([])
+    }) as SqlMock
+    sql.transaction = jest.fn(() => Promise.resolve([[{ id: 'frame-url', created: true }]]))
+    sql.unsafe = jest.fn((value: string) => value)
+    ;(getCloudflareSql as jest.Mock).mockReturnValue(sql)
+
+    const result = await importMerchantFrames({
+      actor: { ...actor, scopes: ['catalog:write'] },
+      frames: [{
+        sku: null,
+        name: 'URL Identified Frame',
+        imageUrl: 'https://cdn.example.test/url-only.jpg',
+        productUrl: 'https://catalog.example.test/products/url-only',
+        source: 'EXTERNAL',
+        shape: null,
+      }],
+    })
+
+    expect(result).toMatchObject({ imported: 1, created: 1 })
+    expect(calls.some(({ values }) => values.includes('PENDING'))).toBe(true)
   })
 })

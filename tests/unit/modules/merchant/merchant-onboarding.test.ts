@@ -35,13 +35,13 @@ describe('merchant onboarding catalog validation', () => {
   it('accepts a complete active frame', () => {
     expect(validateCatalogFrame({
       id: 'frame-a', sku: 'SKU-A', name: 'A', imageUrl: 'https://cdn.example/a.jpg', shape: 'round', widthClass: 'M', status: 'ACTIVE',
-    })).toEqual({ valid: true, importReady: true, recommendationReady: true, issues: [], importIssues: [], recommendationIssues: [], warnings: [] })
+    })).toEqual({ valid: true, importReady: true, recommendationReady: true, enrichmentStatus: 'APPROVED', issues: [], importIssues: [], recommendationIssues: [], warnings: [] })
   })
 
   it('returns deterministic blockers without inventing data', () => {
     expect(validateCatalogFrame({
       id: 'frame-a', sku: null, name: 'A', imageUrl: null, shape: '', widthClass: null, status: 'DRAFT',
-    })).toEqual({ valid: false, importReady: false, recommendationReady: false, issues: ['MISSING_STABLE_IDENTITY', 'MISSING_IMAGE_URL', 'MISSING_SHAPE'], importIssues: ['MISSING_STABLE_IDENTITY', 'MISSING_IMAGE_URL'], recommendationIssues: ['MISSING_SHAPE'], warnings: ['FRAME_NOT_ACTIVE'] })
+    })).toEqual({ valid: false, importReady: false, recommendationReady: false, enrichmentStatus: 'PENDING', issues: ['MISSING_STABLE_IDENTITY', 'MISSING_IMAGE_URL', 'MISSING_SHAPE', 'ENRICHMENT_PENDING'], importIssues: ['MISSING_STABLE_IDENTITY', 'MISSING_IMAGE_URL'], recommendationIssues: ['MISSING_SHAPE', 'ENRICHMENT_PENDING'], warnings: ['FRAME_NOT_ACTIVE'] })
   })
 
   it('rejects a Store belonging to another tenant before touching frames', async () => {
@@ -178,7 +178,7 @@ describe('merchant onboarding catalog validation', () => {
       }],
     })
 
-    expect(create).toHaveBeenCalledWith({ data: expect.objectContaining({ sku: null, shape: '', externalId: 'https://catalog.example.test/products/url-only' }) })
+    expect(create).toHaveBeenCalledWith({ data: expect.objectContaining({ sku: null, shape: '', externalId: 'https://catalog.example.test/products/url-only', enrichmentStatus: 'PENDING' }) })
   })
 
   it('invalidates Store discovery after frame replacement succeeds', async () => {

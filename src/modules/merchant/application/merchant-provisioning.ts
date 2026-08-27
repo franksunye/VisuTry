@@ -30,6 +30,14 @@ export type MerchantWithOwner = {
 
 type MerchantProvisioningAttemptResult = MerchantWithOwner & { created: boolean }
 
+function isMerchantSlugUniqueViolation(error: unknown): boolean {
+  if (!(error instanceof Prisma.PrismaClientKnownRequestError) || error.code !== 'P2002') return false
+  const meta = error.meta as { target?: unknown; constraint?: unknown } | undefined
+  const target = Array.isArray(meta?.target) ? meta.target.map(String) : [String(meta?.target ?? '')]
+  const constraint = String(meta?.constraint ?? '')
+  return target.includes('slug') || /merchant[_\s-]*slug|slug[_\s-]*key/iu.test(constraint)
+}
+
 export class MerchantProvisioningError extends Error {
   readonly code: 'INVALID_MERCHANT_NAME' | 'INVALID_WEBSITE_URL' | 'SLUG_UNAVAILABLE'
 
@@ -166,12 +174,12 @@ export async function createMerchantWithOwner(
           serializationRetries += 1
           continue
         }
-        if (error.code === 'P2002' && slugAttempt < 4) {
+        if (isMerchantSlugUniqueViolation(error) && slugAttempt < 4) {
           slugAttempt += 1
           serializationRetries = 0
           continue
         }
-        if (error.code === 'P2002') {
+        if (isMerchantSlugUniqueViolation(error)) {
           throw new MerchantProvisioningError('SLUG_UNAVAILABLE', 'That merchant name is currently unavailable.')
         }
       }

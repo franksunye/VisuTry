@@ -1,4 +1,5 @@
 export * from './domain/membership'
+export * from './domain/merchant-frame-readiness'
 export * from './domain/agent-credentials'
 export * from './domain/actor'
 export * from './application/merchant-access-cloudflare'

@@ -5,7 +5,7 @@ import {
   PUBLIC_SELF_SERVICE_MERCHANT_CLASSIFICATION_REASON,
   PUBLIC_SELF_SERVICE_MERCHANT_CLASSIFICATION_SOURCE,
 } from '../domain/merchant-classification'
-import type { MerchantMembershipRecord } from '../domain/membership'
+import { isMerchantMembershipRole, type MerchantMembershipRecord } from '../domain/membership'
 
 export type CreateMerchantWithOwnerInput = {
   userId: string
@@ -126,6 +126,8 @@ async function createMerchantWithOwnerAttempt(
 }
 
 function mapMerchantWithOwner(row: Record<string, unknown>, created: boolean): MerchantWithOwner {
+  const role = String(row.role)
+  if (!isMerchantMembershipRole(role)) throw new Error('Invalid persisted merchant membership role.')
   return {
     merchant: {
       id: String(row.merchantId),
@@ -136,7 +138,7 @@ function mapMerchantWithOwner(row: Record<string, unknown>, created: boolean): M
       id: String(row.membershipId ?? row.id),
       userId: String(row.userId),
       merchantId: String(row.merchantId),
-      role: 'OWNER',
+      role,
       createdAt: new Date(String(row.membershipCreatedAt ?? row.createdAt)),
       updatedAt: new Date(String(row.membershipUpdatedAt ?? row.updatedAt)),
     },

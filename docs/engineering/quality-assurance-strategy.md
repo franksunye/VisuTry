@@ -90,14 +90,15 @@ Required outcome:
 
 - Preview Deployment = READY
 
-Production build command remains:
+Normal Preview/CI build command is migration-free:
 
-`prisma generate && bash scripts/migrate-deploy.sh && next build`
+`prisma generate && next build`
 
 Important:
 
 - GitHub Actions does NOT execute database migrations.
 - `build:ci` exists for local/controlled verification without migration side effects.
+- `build:production` is the only package build path that invokes the migration guard; it requires `VERCEL_ENV=production` and `VISUTRY_PRODUCTION_MIGRATION_AUTHORIZED=1`.
 - A Vercel preview failure blocks merge even when L1/L2 pass.
 
 Blocking: YES.

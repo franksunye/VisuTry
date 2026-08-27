@@ -4,7 +4,8 @@ import { campaignReadinessForControlCenter, evaluateCampaignReadiness } from '@/
 import { resolvePresentationMode, type PresentationMode } from '@/modules/store/domain/presentation-mode'
 import type { MerchantDistributionReport } from '@/modules/store/domain/merchant-distribution-report'
 import { resolveAnalyticsPeriod } from '@/modules/store/application/merchant-analytics-compute'
-import { validateCatalogFrame } from './merchant-onboarding-cloudflare'
+import { validateMerchantFrameReadiness } from '../domain/merchant-frame-readiness'
+import type { MerchantFrameReadiness } from '../domain/merchant-frame-readiness'
 import { buildMerchantCommerceIntelligence, type MerchantCommerceActivity } from './merchant-commerce-intelligence'
 import type { MerchantCatalogFrameSummary, MerchantCatalogSummary, MerchantCommerceIntelligence } from './merchant-control-center'
 
@@ -44,6 +45,8 @@ export type MerchantControlCenter = {
 type CatalogRow = {
   id: unknown
   sku: unknown
+  externalId: unknown
+  productUrl: unknown
   name: unknown
   brand: unknown
   imageUrl: unknown
@@ -60,11 +63,15 @@ function catalogFrame(row: CatalogRow): MerchantCatalogFrameSummary {
   const frame = {
     id: String(row.id),
     sku: row.sku == null ? null : String(row.sku),
+    externalId: row.externalId == null ? null : String(row.externalId),
+    productUrl: row.productUrl == null ? null : String(row.productUrl),
     name: String(row.name ?? ''),
     brand: row.brand == null ? null : String(row.brand),
     imageUrl: row.imageUrl == null ? null : String(row.imageUrl),
     shape: String(row.shape ?? ''),
     widthClass: row.widthClass == null ? null : String(row.widthClass),
+    source: String(row.source ?? 'UNKNOWN'),
+    enrichmentStatus: String(row.enrichmentStatus ?? 'UNKNOWN'),
     status: String(row.status ?? 'UNKNOWN'),
   }
   return {
@@ -76,7 +83,7 @@ function catalogFrame(row: CatalogRow): MerchantCatalogFrameSummary {
     source: String(row.source ?? 'UNKNOWN'),
     status: frame.status,
     enrichmentStatus: String(row.enrichmentStatus ?? 'UNKNOWN'),
-    validation: validateCatalogFrame(frame),
+    validation: validateMerchantFrameReadiness(frame),
   }
 }
 
@@ -194,8 +201,8 @@ export async function getMerchantControlCenter(input: { merchantId: string }): P
       GROUP BY e."id"
       ORDER BY e."updatedAt" DESC
     `,
-    sql`SELECT "id", "sku", "name", "brand", "imageUrl", "shape", "widthClass", "source", "status", "enrichmentStatus" FROM "MerchantFrame" WHERE "merchantId" = ${input.merchantId} ORDER BY "name" ASC`,
-    sql`SELECT ef."experienceId", mf."id", mf."sku", mf."name", mf."brand", mf."imageUrl", mf."shape", mf."widthClass", mf."source", mf."status", mf."enrichmentStatus" FROM "ExperienceFrame" ef JOIN "MerchantFrame" mf ON mf."id" = ef."merchantFrameId" AND mf."merchantId" = ef."merchantId" WHERE ef."merchantId" = ${input.merchantId} AND ef."active" = true ORDER BY ef."experienceId", ef."sortOrder" ASC NULLS LAST, ef."createdAt" ASC`,
+    sql`SELECT "id", "sku", "externalId", "productUrl", "name", "brand", "imageUrl", "shape", "widthClass", "source", "status", "enrichmentStatus" FROM "MerchantFrame" WHERE "merchantId" = ${input.merchantId} ORDER BY "name" ASC`,
+    sql`SELECT ef."experienceId", mf."id", mf."sku", mf."externalId", mf."productUrl", mf."name", mf."brand", mf."imageUrl", mf."shape", mf."widthClass", mf."source", mf."status", mf."enrichmentStatus" FROM "ExperienceFrame" ef JOIN "MerchantFrame" mf ON mf."id" = ef."merchantFrameId" AND mf."merchantId" = ef."merchantId" WHERE ef."merchantId" = ${input.merchantId} AND ef."active" = true ORDER BY ef."experienceId", ef."sortOrder" ASC NULLS LAST, ef."createdAt" ASC`,
     sql`SELECT "resourceId", "action", "actorType", "createdAt" FROM "MerchantOperationAudit" WHERE "merchantId" = ${input.merchantId} AND "resourceType" = 'Experience' ORDER BY "createdAt" DESC`,
     loadWindow(currentPeriod.from, currentPeriod.to),
     loadWindow(previousPeriod.from, previousPeriod.to),

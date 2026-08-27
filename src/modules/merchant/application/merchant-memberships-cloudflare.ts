@@ -1,5 +1,5 @@
 import { getCloudflareSql } from '@/data/neon-cloudflare'
-import type { MerchantMembershipRecord, MerchantMembershipRole } from '../domain/membership'
+import { isMerchantMembershipRole, type MerchantMembershipRecord, type MerchantMembershipRole } from '../domain/membership'
 import { MerchantAccessError, requireMerchantMembership } from './merchant-access-cloudflare'
 
 export type MerchantSummary = { id: string; slug: string; name: string; status: string }
@@ -10,6 +10,8 @@ function dateValue(value: unknown): Date {
 }
 
 function mapRow(row: Record<string, unknown>): MerchantForUser {
+  const role = String(row.role)
+  if (!isMerchantMembershipRole(role)) throw new MerchantAccessError()
   return {
     merchant: {
       id: String(row.merchantId),
@@ -21,7 +23,7 @@ function mapRow(row: Record<string, unknown>): MerchantForUser {
       id: String(row.membershipId),
       userId: String(row.userId),
       merchantId: String(row.merchantId),
-      role: String(row.role) as MerchantMembershipRole,
+      role,
       createdAt: dateValue(row.membershipCreatedAt),
       updatedAt: dateValue(row.membershipUpdatedAt),
     },
