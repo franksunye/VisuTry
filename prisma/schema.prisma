@@ -467,6 +467,7 @@ enum MerchantUsageKind {
   RENDER_SUCCESS
   RENDER_FAILURE
   SESSION
+  AI_COMMERCE_SESSION
 }
 
 /// Canonical Admin/business-analysis classification. This is not an auth boundary.
@@ -537,6 +538,8 @@ model Merchant {
   billingPeriodEnd           DateTime?
   /// Audited commercial exception (e.g. FOUNDING_LAUNCH_BONUS).
   commercialExceptionCode    String?
+  /// Provider-independent commercial lifecycle state. Stripe/G4-B may update this later.
+  commercialStatus           String?
 
   frames   MerchantFrame[]
   experiences Experience[]
@@ -944,6 +947,9 @@ model MerchantSession {
   referrer      String?
   landingUrl    String?
   aiAgentSource String?
+  /// Set atomically with the AI_COMMERCE_SESSION ledger row when this session crosses the AI boundary.
+  billableAICommerceSession   Boolean  @default(false)
+  billableAICommerceSessionAt DateTime?
 
   merchant   Merchant         @relation(fields: [merchantId], references: [id], onDelete: Restrict)
   experience Experience?      @relation(fields: [experienceId, merchantId], references: [id, merchantId], onDelete: Restrict)
@@ -1063,6 +1069,8 @@ model MerchantUsageLedger {
   merchantSessionId String?
   tryOnTaskId       String?
   kind              MerchantUsageKind
+  /// Optional idempotency key. AI Commerce Session rows use the MerchantSession id.
+  dedupeKey         String?           @unique
 
   merchant Merchant         @relation(fields: [merchantId], references: [id], onDelete: Restrict)
   session  MerchantSession? @relation(fields: [merchantSessionId], references: [id], onDelete: Restrict)

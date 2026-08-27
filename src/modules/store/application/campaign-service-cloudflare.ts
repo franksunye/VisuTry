@@ -10,6 +10,7 @@ import {
 } from '../domain/campaign-readiness'
 import { resolvePresentationMode, type PresentationMode } from '../domain/presentation-mode'
 import { withPublicDiscoveryInvalidation } from './public-discovery-invalidation'
+import { canUseCommercialFeature, resolveMerchantCommercialState } from '../domain/merchant-commercial-state'
 
 export { CampaignServiceError }
 
@@ -103,7 +104,7 @@ function mapCampaign(row: CampaignRow, merchantSlug: string, merchantReferenceDa
 async function fetchCampaign(merchantId: string, campaignId: string): Promise<{ row: CampaignRow; merchant: Row }> {
   const sql = getCloudflareSql()
   const [merchantRows, rows] = await Promise.all([
-    sql`SELECT "id", "slug", "referenceData" FROM "Merchant" WHERE "id" = ${merchantId} LIMIT 1`,
+    sql`SELECT "id", "slug", "referenceData", "planCode", "commercialStatus", "commercialStage", "pricingVersion", "entitlementVersion", "commerceSessionAllowance", "standardRenderAllowance", "campaignAllowance", "entitlementEffectiveFrom", "billingPeriodEnd", "commercialExceptionCode", "createdAt" FROM "Merchant" WHERE "id" = ${merchantId} LIMIT 1`,
     sql`SELECT e."id", e."merchantId", e."type", e."slug", e."name", e."status", e."headline", e."description", e."primaryCtaType", e."primaryCtaLabel", e."primaryCtaUrl", e."secondaryCtaType", e."secondaryCtaLabel", e."secondaryCtaUrl", e."startAt", e."endAt", e."campaignObjective", e."campaignGate", e."presentationMode", e."referenceData", ef."merchantFrameId", mf."sku", mf."externalId" AS "frameExternalId", mf."productUrl" AS "frameProductUrl", mf."imageUrl" AS "frameImageUrl", mf."shape" AS "frameShape", mf."widthClass" AS "frameWidthClass", mf."source" AS "frameSource", mf."enrichmentStatus" AS "frameEnrichmentStatus", mf."status" AS "frameStatus", mf."id" AS "frameId", mf."name" AS "frameName", ef."sortOrder", ef."createdAt" AS "frameCreatedAt" FROM "Experience" e LEFT JOIN "ExperienceFrame" ef ON ef."experienceId" = e."id" AND ef."merchantId" = e."merchantId" AND ef."active" = true LEFT JOIN "MerchantFrame" mf ON mf."id" = ef."merchantFrameId" AND mf."merchantId" = ef."merchantId" WHERE e."id" = ${campaignId} AND e."merchantId" = ${merchantId} AND e."type" = 'CAMPAIGN' ORDER BY ef."sortOrder" ASC NULLS LAST, ef."createdAt" ASC`,
   ])
   const merchant = merchantRows[0]
@@ -230,10 +231,30 @@ export async function publishCampaign(input: { merchantId: string; campaignId: s
   const model = mapCampaign(current.row, String(current.merchant.slug), Boolean(current.merchant.referenceData))
   assertCampaignPublishable(model.readiness, true)
   if (String(current.row.status) === 'ACTIVE') return model
+  const sql = getCloudflareSql()
+  if (current.merchant.planCode || current.merchant.commercialStatus) {
+    const activeRows = await sql`SELECT count(*)::int AS "count" FROM "Experience" WHERE "merchantId" = ${input.merchantId} AND "type" = 'CAMPAIGN' AND "status" = 'ACTIVE'`
+    const merchantFields = {
+      planCode: current.merchant.planCode == null ? null : String(current.merchant.planCode),
+      commercialStatus: current.merchant.commercialStatus == null ? null : String(current.merchant.commercialStatus),
+      commercialStage: current.merchant.commercialStage == null ? null : String(current.merchant.commercialStage),
+      pricingVersion: current.merchant.pricingVersion == null ? null : String(current.merchant.pricingVersion),
+      entitlementVersion: current.merchant.entitlementVersion == null ? null : String(current.merchant.entitlementVersion),
+      commerceSessionAllowance: current.merchant.commerceSessionAllowance == null ? null : Number(current.merchant.commerceSessionAllowance),
+      standardRenderAllowance: current.merchant.standardRenderAllowance == null ? null : Number(current.merchant.standardRenderAllowance),
+      campaignAllowance: current.merchant.campaignAllowance == null ? null : Number(current.merchant.campaignAllowance),
+      entitlementEffectiveFrom: dateValue(current.merchant.entitlementEffectiveFrom),
+      billingPeriodEnd: dateValue(current.merchant.billingPeriodEnd),
+      commercialExceptionCode: current.merchant.commercialExceptionCode == null ? null : String(current.merchant.commercialExceptionCode),
+      createdAt: dateValue(current.merchant.createdAt),
+    }
+    const state = resolveMerchantCommercialState(merchantFields, { activeCampaigns: Number(activeRows[0]?.count ?? 0) })
+    const decision = canUseCommercialFeature(state, 'CAMPAIGN')
+    if (!decision.allowed) throw new CampaignServiceError(decision.code ?? 'CAMPAIGN_LIMIT_REACHED', decision.message, 409)
+  }
   await withPublicDiscoveryInvalidation({
     target: { kind: 'experience', merchantSlug: String(current.merchant.slug), experienceSlug: String(current.row.slug) },
     mutation: async () => {
-      const sql = getCloudflareSql()
       const rows = await sql`
         UPDATE "Experience"
         SET "status" = 'ACTIVE', "updatedAt" = NOW()

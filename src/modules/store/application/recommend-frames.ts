@@ -21,6 +21,13 @@ import type {
 import { requireOperableStoreSession } from './require-store-session'
 import { productBrandForFrame } from './product-labels'
 import { isMerchantFrameRecommendationReady } from '@/modules/merchant/domain/merchant-frame-readiness'
+import {
+  canUseCommercialFeature,
+  resolveMerchantCommercialPeriod,
+  resolveMerchantCommercialState,
+} from '../domain/merchant-commercial-state'
+import { getMerchantPlanDefinition } from '../domain/merchant-commercial-plans'
+import type { StoreUsageRepository } from './ports/repositories'
 
 export type RecommendFramesInput = {
   merchants: MerchantRepository
@@ -28,6 +35,7 @@ export type RecommendFramesInput = {
   sessions: MerchantSessionRepository
   experiences?: ExperienceRepository
   events: MerchantEventRepository
+  usage?: StoreUsageRepository
   slug: string
   merchantSessionId: string
   capabilityToken: string | null
@@ -74,6 +82,30 @@ export async function recommendMerchantFrames(
     merchantSessionId: input.merchantSessionId,
     capabilityToken: input.capabilityToken,
   })
+
+  if (input.usage?.countAICommerceSessions && input.usage.consumeAICommerceSession) {
+    const plan = getMerchantPlanDefinition(merchant.planCode)
+    const period = resolveMerchantCommercialPeriod(merchant)
+    const used = await input.usage.countAICommerceSessions({
+      merchantId: merchant.id,
+      periodStart: period.start,
+      periodEnd: period.end,
+    })
+    const state = resolveMerchantCommercialState(merchant, { aiCommerceSessions: used })
+    const decision = canUseCommercialFeature(state, 'RECOMMENDATION')
+    if (!decision.allowed) {
+      throw new StoreDomainError(decision.code ?? 'FEATURE_NOT_INCLUDED', decision.message, 409)
+    }
+    if (plan.aiCommerceSessions !== null) {
+      await input.usage.consumeAICommerceSession({
+        merchantId: merchant.id,
+        merchantSessionId: session.id,
+        periodStart: period.start,
+        periodEnd: period.end,
+        limit: plan.aiCommerceSessions,
+      })
+    }
+  }
 
   const experience = session.experienceId && input.experiences
     ? await input.experiences.findByMerchantAndId(merchant.id, session.experienceId)

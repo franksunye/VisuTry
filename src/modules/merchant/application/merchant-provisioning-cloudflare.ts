@@ -88,8 +88,8 @@ async function createMerchantWithOwnerAttempt(
     `,
     sql`UPDATE "User" SET "updatedAt" = NOW() WHERE "id" = ${input.userId}`,
     sql`
-      INSERT INTO "Merchant" ("id", "slug", "name", "websiteUrl", "defaultSource", "defaultCampaign", "classification", "classificationSource", "classificationReason", "createdAt", "updatedAt")
-      SELECT ${merchantId}, ${slug}, ${normalized.name}, ${normalized.websiteUrl}, ${normalized.source}, ${normalized.campaign}, ${PUBLIC_SELF_SERVICE_MERCHANT_CLASSIFICATION}, ${PUBLIC_SELF_SERVICE_MERCHANT_CLASSIFICATION_SOURCE}, ${PUBLIC_SELF_SERVICE_MERCHANT_CLASSIFICATION_REASON}, NOW(), NOW()
+      INSERT INTO "Merchant" ("id", "slug", "name", "websiteUrl", "defaultSource", "defaultCampaign", "classification", "classificationSource", "classificationReason", "planCode", "pricingVersion", "entitlementVersion", "commercialStatus", "createdAt", "updatedAt")
+      SELECT ${merchantId}, ${slug}, ${normalized.name}, ${normalized.websiteUrl}, ${normalized.source}, ${normalized.campaign}, ${PUBLIC_SELF_SERVICE_MERCHANT_CLASSIFICATION}, ${PUBLIC_SELF_SERVICE_MERCHANT_CLASSIFICATION_SOURCE}, ${PUBLIC_SELF_SERVICE_MERCHANT_CLASSIFICATION_REASON}, 'FREE', 'v1', 'v1', 'FREE', NOW(), NOW()
       WHERE NOT EXISTS (
         SELECT 1 FROM "MerchantMembership" WHERE "userId" = ${input.userId}
       )

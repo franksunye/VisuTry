@@ -34,6 +34,7 @@ function mapMerchant(row: Merchant): MerchantRecord {
     entitlementEffectiveFrom: row.entitlementEffectiveFrom,
     billingPeriodEnd: row.billingPeriodEnd,
     commercialExceptionCode: row.commercialExceptionCode,
+    commercialStatus: row.commercialStatus,
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
   }
@@ -90,6 +91,7 @@ export function createPrismaMerchantRepository(): MerchantRepository {
         entitlementEffectiveFrom: null,
         billingPeriodEnd: null,
         commercialExceptionCode: null,
+        commercialStatus: null,
         createdAt: row.updatedAt,
         updatedAt: row.updatedAt,
       }

@@ -11,6 +11,7 @@ import {
 import { resolvePresentationMode, type PresentationMode } from '../domain/presentation-mode'
 import { MerchantAccessError } from '@/modules/merchant/application/merchant-access'
 import { withPublicDiscoveryInvalidation } from './public-discovery-invalidation'
+import { canActivateMerchantCampaign, MerchantCommercialError } from '@/modules/merchant/application/merchant-commercial-entitlements'
 
 export { CampaignServiceError }
 
@@ -139,7 +140,7 @@ async function campaignRow(merchantId: string, campaignId: string) {
     include: campaignFramesInclude,
   })
   if (!row) throw new MerchantAccessError()
-  const merchant = await prisma.merchant.findUnique({ where: { id: merchantId }, select: { slug: true, referenceData: true } })
+  const merchant = await prisma.merchant.findUnique({ where: { id: merchantId }, select: { slug: true, referenceData: true, planCode: true, commercialStatus: true } })
   if (!merchant) throw new MerchantAccessError()
   return { row, merchant }
 }
@@ -296,6 +297,13 @@ export async function publishCampaign(input: { merchantId: string; campaignId: s
   const model = mapCampaign(current.row, current.merchant.slug, current.merchant.referenceData)
   assertCampaignPublishable(model.readiness, true)
   if (current.row.status === 'ACTIVE') return model
+  if (current.merchant.planCode || current.merchant.commercialStatus) {
+    const campaignEntitlement = await canActivateMerchantCampaign({
+      merchantId: input.merchantId,
+      currentStatus: current.row.status,
+    })
+    if (!campaignEntitlement.allowed) throw new MerchantCommercialError(campaignEntitlement.decision)
+  }
   const updated = await withPublicDiscoveryInvalidation({
     target: { kind: 'experience', merchantSlug: current.merchant.slug, experienceSlug: current.row.slug },
     mutation: () => prisma.experience.update({ where: { id: current.row.id }, data: { status: 'ACTIVE' }, include: campaignFramesInclude }),

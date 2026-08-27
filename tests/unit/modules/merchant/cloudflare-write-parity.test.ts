@@ -157,6 +157,26 @@ describe('Cloudflare direct-Neon merchant and experience writes', () => {
     expect(result.readiness.blockingIssues).toEqual([])
   })
 
+  it('returns the same structured Campaign limit decision for a full Launch plan', async () => {
+    const campaignRow = {
+      id: 'campaign-a', merchantId: 'merchant-a', slug: 'spring-edit', name: 'Spring Edit', status: 'DRAFT',
+      headline: 'Try the edit', description: null, primaryCtaType: null, primaryCtaLabel: null, primaryCtaUrl: null,
+      secondaryCtaType: null, secondaryCtaLabel: null, secondaryCtaUrl: null, startAt: null, endAt: null,
+      campaignObjective: 'INTENT', campaignGate: 'NONE', presentationMode: 'EDITORIAL_FIRST', referenceData: false,
+      merchantFrameId: 'frame-a', frameId: 'frame-a', sku: null, frameExternalId: 'shopify:product-1', frameProductUrl: 'https://shop.example.test/products/frame-a', frameName: 'Frame A', frameImageUrl: 'https://example.test/frame-a.png',
+      frameShape: 'oval', frameWidthClass: null, frameSource: 'EXTERNAL', frameEnrichmentStatus: 'APPROVED', frameStatus: 'ACTIVE',
+    }
+    const sql = sqlMock([
+      [{ id: 'merchant-a', slug: 'merchant-a', referenceData: false, planCode: 'LAUNCH', commercialStatus: 'PAID_ACTIVE' }],
+      [campaignRow],
+      [{ count: 1 }],
+    ])
+    ;(getCloudflareSql as jest.Mock).mockReturnValue(sql)
+
+    await expect(publishCampaign({ merchantId: 'merchant-a', campaignId: 'campaign-a', approved: true })).rejects.toMatchObject({ code: 'CAMPAIGN_LIMIT_REACHED', httpStatus: 409 })
+    expect(sql.mock.calls.some((call) => String(call[0]?.join?.('') ?? '').includes('UPDATE "Experience"'))).toBe(false)
+  })
+
   it('requires approval and publishes a ready Store through the direct-Neon boundary', async () => {
     const sql = sqlMock([
       [{ id: 'store-a', merchantId: 'merchant-a', slug: 'store', name: 'Store A', status: 'DRAFT' }],

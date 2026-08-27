@@ -10,6 +10,7 @@ import {
   type MerchantFrameEnrichmentStatus,
 } from '../domain/merchant-frame-readiness'
 import { validateMerchantFrameStoreReadiness } from '../domain/merchant-frame-store-readiness'
+import { getMerchantPlanDefinition, resolveMerchantPlanCode } from '@/modules/store/domain/merchant-commercial-plans'
 import type { MerchantStorePreviewFrame, MerchantStoreWorkspace, MerchantStoreWorkspaceFrame } from './merchant-store-workspace'
 
 // Request-size safety guard, not a product-count/UI ceiling. Human Web can
@@ -248,6 +249,29 @@ export async function importMerchantFrames(input: { actor: MerchantActorContext;
     identities.add(identity)
   }
   const sql = getCloudflareSql()
+  const [merchantRows, countRows, existingRows] = await Promise.all([
+    sql`SELECT "planCode", "commercialStatus" FROM "Merchant" WHERE "id" = ${input.actor.merchantId} LIMIT 1`,
+    sql`SELECT count(*)::int AS "count" FROM "MerchantFrame" WHERE "merchantId" = ${input.actor.merchantId}`,
+    Promise.all(normalized.map((frame) => sql`
+      SELECT "id" FROM "MerchantFrame"
+      WHERE "merchantId" = ${input.actor.merchantId}
+        AND (
+          ("sku" IS NOT NULL AND "sku" = ${frame.sku})
+          OR ("externalId" IS NOT NULL AND "source" = ${frame.source} AND "externalId" = ${frame.externalId})
+          OR ("productUrl" IS NOT NULL AND "productUrl" = ${frame.productUrl})
+        )
+      ORDER BY "updatedAt" DESC
+      LIMIT 1
+    `)),
+  ])
+  const merchantRow = merchantRows[0]
+  const canonicalPlan = Boolean(merchantRow?.planCode || merchantRow?.commercialStatus)
+  const catalogLimit = canonicalPlan ? getMerchantPlanDefinition(resolveMerchantPlanCode(merchantRow?.planCode == null ? null : String(merchantRow.planCode))).catalogItems : null
+  const existingIdSet = new Set(existingRows.flatMap((rows) => rows.map((row) => String(row.id))))
+  const additions = normalized.filter((_, index) => !existingIdSet.has(String(existingRows[index]?.[0]?.id ?? ''))).length
+  if (catalogLimit !== null && Number(countRows[0]?.count ?? 0) + additions > catalogLimit) {
+    throw new MerchantOnboardingError('CATALOG_LIMIT_REACHED', `Your current plan includes up to ${catalogLimit} catalog items.`, 409)
+  }
   const statements = normalized.map((frame) => sql`
     WITH existing AS (
       SELECT "id" FROM "MerchantFrame"

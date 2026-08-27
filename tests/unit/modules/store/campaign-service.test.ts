@@ -1,8 +1,9 @@
 jest.mock('@/lib/prisma', () => ({
   prisma: {
     merchant: { findUnique: jest.fn() },
-    experience: { findFirst: jest.fn(), findMany: jest.fn(), create: jest.fn(), update: jest.fn() },
-    merchantFrame: { findMany: jest.fn() },
+    experience: { findFirst: jest.fn(), findMany: jest.fn(), create: jest.fn(), update: jest.fn(), count: jest.fn() },
+    merchantFrame: { findMany: jest.fn(), count: jest.fn() },
+    merchantUsageLedger: { count: jest.fn() },
     experienceFrame: { deleteMany: jest.fn(), createMany: jest.fn() },
     $transaction: jest.fn(),
   },
@@ -129,6 +130,16 @@ describe('Campaign application service', () => {
     ;(prisma.experience.findFirst as jest.Mock).mockResolvedValue({ ...baseRow, frames: [] })
     ;(prisma.merchant.findUnique as jest.Mock).mockResolvedValue({ slug: 'merchant-a', referenceData: false })
     await expect(publishCampaign({ merchantId: 'merchant-a', campaignId: 'campaign-a', approved: true })).rejects.toMatchObject({ code: 'CAMPAIGN_NOT_READY' })
+  })
+
+  it('returns a structured limit decision instead of activating a second Launch Campaign', async () => {
+    ;(prisma.experience.findFirst as jest.Mock).mockResolvedValue(baseRow)
+    ;(prisma.merchant.findUnique as jest.Mock).mockResolvedValue({ slug: 'merchant-a', referenceData: false, planCode: 'LAUNCH', commercialStatus: 'PAID_ACTIVE', createdAt: new Date('2026-08-01T00:00:00.000Z') })
+    ;(prisma.experience.count as jest.Mock).mockResolvedValue(1)
+    ;(prisma.merchantUsageLedger.count as jest.Mock).mockResolvedValue(0)
+
+    await expect(publishCampaign({ merchantId: 'merchant-a', campaignId: 'campaign-a', approved: true })).rejects.toMatchObject({ code: 'CAMPAIGN_LIMIT_REACHED', httpStatus: 409 })
+    expect(prisma.experience.update).not.toHaveBeenCalled()
   })
 
   it('invalidates publish and archive transitions after the database write', async () => {

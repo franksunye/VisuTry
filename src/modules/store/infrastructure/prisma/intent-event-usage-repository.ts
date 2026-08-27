@@ -70,6 +70,7 @@ async function usageCreatedAtForMerchant(
       entitlementEffectiveFrom: true,
       billingPeriodEnd: true,
       commercialExceptionCode: true,
+      commercialStatus: true,
       createdAt: true,
     },
   })
@@ -218,6 +219,61 @@ export function createPrismaStoreUsageRepository(): StoreUsageRepository {
           ...(createdAt ? { createdAt } : {}),
         },
       })
+    },
+    async countAICommerceSessions(input) {
+      return prisma.merchantUsageLedger.count({
+        where: {
+          merchantId: input.merchantId,
+          kind: 'AI_COMMERCE_SESSION',
+          ...(input.periodStart || input.periodEnd ? {
+            createdAt: {
+              ...(input.periodStart ? { gte: input.periodStart } : {}),
+              ...(input.periodEnd ? { lt: input.periodEnd } : {}),
+            },
+          } : {}),
+        },
+      })
+    },
+    async consumeAICommerceSession(input) {
+      const periodFilter = input.periodStart || input.periodEnd
+        ? { createdAt: { ...(input.periodStart ? { gte: input.periodStart } : {}), ...(input.periodEnd ? { lt: input.periodEnd } : {}) } }
+        : {}
+      return prisma.$transaction(async (tx) => {
+        const session = await tx.merchantSession.findFirst({
+          where: { id: input.merchantSessionId, merchantId: input.merchantId },
+          select: { id: true, billableAICommerceSession: true },
+        })
+        if (!session) throw new Error('Merchant session not found')
+        const existing = await tx.merchantUsageLedger.findFirst({
+          where: { merchantId: input.merchantId, merchantSessionId: input.merchantSessionId, kind: 'AI_COMMERCE_SESSION' },
+          select: { id: true },
+        })
+        if (existing) {
+          if (!session.billableAICommerceSession) {
+            await tx.merchantSession.update({ where: { id: session.id }, data: { billableAICommerceSession: true, billableAICommerceSessionAt: new Date() }, select: { id: true } })
+          }
+          const used = await tx.merchantUsageLedger.count({ where: { merchantId: input.merchantId, kind: 'AI_COMMERCE_SESSION', ...periodFilter } })
+          return { consumed: false, alreadyConsumed: true, used, limit: input.limit }
+        }
+        const used = await tx.merchantUsageLedger.count({ where: { merchantId: input.merchantId, kind: 'AI_COMMERCE_SESSION', ...periodFilter } })
+        if (used >= input.limit) return { consumed: false, alreadyConsumed: false, used, limit: input.limit }
+        try {
+          await tx.merchantUsageLedger.create({
+            data: {
+              merchantId: input.merchantId,
+              merchantSessionId: input.merchantSessionId,
+              kind: 'AI_COMMERCE_SESSION',
+              dedupeKey: `ai-commerce-session:${input.merchantSessionId}`,
+            },
+          })
+          await tx.merchantSession.update({ where: { id: session.id }, data: { billableAICommerceSession: true, billableAICommerceSessionAt: new Date() }, select: { id: true } })
+          return { consumed: true, alreadyConsumed: false, used: used + 1, limit: input.limit }
+        } catch (error) {
+          if ((error as { code?: string }).code !== 'P2002') throw error
+          const raced = await tx.merchantUsageLedger.count({ where: { merchantId: input.merchantId, kind: 'AI_COMMERCE_SESSION', ...periodFilter } })
+          return { consumed: false, alreadyConsumed: true, used: raced, limit: input.limit }
+        }
+      }, { isolationLevel: 'Serializable' })
     },
     async countSuccessfulRenders(merchantId) {
       const createdAt = await usageCreatedAtForMerchant(merchantId)

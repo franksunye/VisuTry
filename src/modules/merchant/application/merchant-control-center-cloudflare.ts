@@ -8,6 +8,7 @@ import { validateMerchantFrameReadiness } from '../domain/merchant-frame-readine
 import { validateMerchantFrameStoreReadiness } from '../domain/merchant-frame-store-readiness'
 import type { MerchantFrameReadiness } from '../domain/merchant-frame-readiness'
 import { buildMerchantCommerceIntelligence, type MerchantCommerceActivity } from './merchant-commerce-intelligence'
+import { commercialStateForPresentation, resolveMerchantCommercialPeriod, resolveMerchantCommercialState } from '@/modules/store/domain/merchant-commercial-state'
 import type { MerchantCatalogFrameSummary, MerchantCatalogSummary, MerchantCommerceIntelligence } from './merchant-control-center'
 
 export type MerchantControlExperience = {
@@ -41,6 +42,7 @@ export type MerchantControlCenter = {
   commerceIntelligence: MerchantCommerceIntelligence
   catalog: MerchantCatalogSummary
   distributionReport?: MerchantDistributionReport
+  commercial: ReturnType<typeof commercialStateForPresentation>
 }
 
 type CatalogRow = {
@@ -184,13 +186,28 @@ function toActivity(
 export async function getMerchantControlCenter(input: { merchantId: string }): Promise<MerchantControlCenter | null> {
   const sql = getCloudflareSql()
   const merchantRows = await sql`
-    SELECT "id", "slug", "name", "websiteUrl", "status", "referenceData"
+    SELECT "id", "slug", "name", "websiteUrl", "status", "referenceData", "planCode", "commercialStatus", "commercialStage", "pricingVersion", "entitlementVersion", "commerceSessionAllowance", "standardRenderAllowance", "campaignAllowance", "entitlementEffectiveFrom", "billingPeriodEnd", "commercialExceptionCode", "createdAt"
     FROM "Merchant"
     WHERE "id" = ${input.merchantId}
     LIMIT 1
   `
   const merchant = merchantRows[0]
   if (!merchant) return null
+  const merchantFields = {
+    planCode: merchant.planCode == null ? null : String(merchant.planCode),
+    commercialStatus: merchant.commercialStatus == null ? null : String(merchant.commercialStatus),
+    commercialStage: merchant.commercialStage == null ? null : String(merchant.commercialStage),
+    pricingVersion: merchant.pricingVersion == null ? null : String(merchant.pricingVersion),
+    entitlementVersion: merchant.entitlementVersion == null ? null : String(merchant.entitlementVersion),
+    commerceSessionAllowance: merchant.commerceSessionAllowance == null ? null : Number(merchant.commerceSessionAllowance),
+    standardRenderAllowance: merchant.standardRenderAllowance == null ? null : Number(merchant.standardRenderAllowance),
+    campaignAllowance: merchant.campaignAllowance == null ? null : Number(merchant.campaignAllowance),
+    entitlementEffectiveFrom: merchant.entitlementEffectiveFrom == null ? null : new Date(String(merchant.entitlementEffectiveFrom)),
+    billingPeriodEnd: merchant.billingPeriodEnd == null ? null : new Date(String(merchant.billingPeriodEnd)),
+    commercialExceptionCode: merchant.commercialExceptionCode == null ? null : String(merchant.commercialExceptionCode),
+    createdAt: merchant.createdAt == null ? null : new Date(String(merchant.createdAt)),
+  }
+  const commercialPeriod = resolveMerchantCommercialPeriod(merchantFields)
 
   const currentPeriod = resolveAnalyticsPeriod({})
   const windowMs = currentPeriod.to.getTime() - currentPeriod.from.getTime()
@@ -200,7 +217,7 @@ export async function getMerchantControlCenter(input: { merchantId: string }): P
     sql`SELECT "merchantSessionId", "experienceId", "merchantFrameId", "type", count(*)::int AS "count" FROM "MerchantEvent" WHERE "merchantId" = ${input.merchantId} AND "createdAt" >= ${from} AND "createdAt" < ${until} GROUP BY "merchantSessionId", "experienceId", "merchantFrameId", "type"`,
     sql`SELECT "merchantSessionId", "experienceId", "type", count(*)::int AS "count" FROM "MerchantIntent" WHERE "merchantId" = ${input.merchantId} AND "createdAt" >= ${from} AND "createdAt" < ${until} GROUP BY "merchantSessionId", "experienceId", "type"`,
   ])
-  const [experiences, catalogRows, selectedFrameRows, auditRows, currentWindow, previousWindow, credentialCount] = await Promise.all([
+  const [experiences, catalogRows, selectedFrameRows, auditRows, currentWindow, previousWindow, credentialCount, aiUsageRows, renderUsageRows] = await Promise.all([
     sql`
       SELECT e."id", e."type", e."name", e."slug", e."status", e."campaignObjective",
         e."campaignGate", e."presentationMode", e."referenceData", e."headline", e."description",
@@ -218,6 +235,8 @@ export async function getMerchantControlCenter(input: { merchantId: string }): P
     loadWindow(currentPeriod.from, currentPeriod.to),
     loadWindow(previousPeriod.from, previousPeriod.to),
     sql`SELECT count(*)::int AS "count" FROM "MerchantAgentCredential" WHERE "merchantId" = ${input.merchantId} AND "status" = 'ACTIVE'`,
+    sql`SELECT "createdAt" FROM "MerchantUsageLedger" WHERE "merchantId" = ${input.merchantId} AND "kind" = 'AI_COMMERCE_SESSION' ORDER BY "createdAt" ASC`,
+    sql`SELECT "createdAt" FROM "MerchantUsageLedger" WHERE "merchantId" = ${input.merchantId} AND "kind" = 'RENDER_SUCCESS' ORDER BY "createdAt" ASC`,
   ])
 
   const selectedByExperience = new Map<string, MerchantCatalogFrameSummary[]>()
@@ -305,6 +324,18 @@ export async function getMerchantControlCenter(input: { merchantId: string }): P
     previousPeriod,
   })
   const commerceIntelligence: MerchantCommerceIntelligence = currentInsights
+  const inCommercialPeriod = (row: { createdAt: unknown }) => {
+    const createdAt = row.createdAt instanceof Date ? row.createdAt.getTime() : new Date(String(row.createdAt)).getTime()
+    return (!commercialPeriod.start || createdAt >= commercialPeriod.start.getTime()) && (!commercialPeriod.end || createdAt < commercialPeriod.end.getTime())
+  }
+  const aiCommerceSessions = (aiUsageRows as Array<{ createdAt: unknown }>).filter(inCommercialPeriod).length
+  const standardTryOnGenerations = (renderUsageRows as Array<{ createdAt: unknown }>).filter(inCommercialPeriod).length
+  const commercialState = resolveMerchantCommercialState(merchantFields, {
+    aiCommerceSessions,
+    standardTryOnGenerations,
+    activeCampaigns: mapped.filter((experience) => experience.type === 'CAMPAIGN' && experience.status === 'ACTIVE').length,
+    catalogItems: (catalogRows as CatalogRow[]).length,
+  })
 
   return {
     merchant: {
@@ -322,5 +353,6 @@ export async function getMerchantControlCenter(input: { merchantId: string }): P
     shopperActivityAvailable: commerceIntelligence.hasActivity,
     credentialUsage: { active: Number(credentialCount[0]?.count ?? 0) },
     commerceIntelligence,
+    commercial: commercialStateForPresentation(commercialState),
   }
 }

@@ -130,6 +130,10 @@ async function createMerchantWithOwnerAttempt(
         classification: PUBLIC_SELF_SERVICE_MERCHANT_CLASSIFICATION,
         classificationSource: PUBLIC_SELF_SERVICE_MERCHANT_CLASSIFICATION_SOURCE,
         classificationReason: PUBLIC_SELF_SERVICE_MERCHANT_CLASSIFICATION_REASON,
+        planCode: 'FREE',
+        pricingVersion: 'v1',
+        entitlementVersion: 'v1',
+        commercialStatus: 'FREE',
       },
       select: { id: true, slug: true, name: true },
     })

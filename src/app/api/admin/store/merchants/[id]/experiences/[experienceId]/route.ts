@@ -3,6 +3,7 @@ import { requireAdmin } from '@/lib/api-auth'
 import { prisma } from '@/lib/prisma'
 import { storeErrorResponse, archiveCampaign, publishCampaign, updateCampaign, updatePublicExperience } from '@/modules/store/application'
 import { CampaignServiceError } from '@/modules/store/domain/campaign-readiness'
+import { MerchantCommercialError } from '@/modules/merchant/application/merchant-commercial-entitlements'
 import type { CampaignGate, CampaignObjective } from '@/modules/store/domain/campaign-policy'
 import type { PresentationMode } from '@/modules/store/domain/presentation-mode'
 
@@ -172,6 +173,9 @@ export async function PUT(
   } catch (error) {
     if (error instanceof CampaignServiceError) {
       return NextResponse.json({ success: false, error: error.message, code: error.code }, { status: error.httpStatus })
+    }
+    if (error instanceof MerchantCommercialError) {
+      return NextResponse.json({ success: false, error: error.code, message: error.message, decision: error.decision }, { status: error.httpStatus })
     }
     return storeErrorResponse(error)
   }
