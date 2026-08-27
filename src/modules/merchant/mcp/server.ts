@@ -39,6 +39,14 @@ import {
   setCampaignFrames,
   updateCampaign,
 } from '@/modules/store/application/campaign-service'
+import {
+  MCP_HIGH_IMPACT_TOOLS,
+  MCP_LIVE_RUNTIME,
+  MCP_TOOL_SCOPES,
+  MCP_WRITE_TOOLS,
+  mcpToolsForRuntime,
+  type McpToolName,
+} from './tool-registry'
 
 const frameInput = z.object({
   sku: z.string().min(1).max(120),
@@ -86,48 +94,25 @@ const MCP_SERVER_INSTRUCTIONS = [
   'Respect tool scopes and treat authorization failures as VisuTry security boundaries.',
 ].join(' ')
 
-const TOOL_SCOPES: Record<string, string[]> = {
-  get_onboarding_status: ['merchant:read'],
-  get_merchant: ['merchant:read'],
-  list_frames: ['catalog:read'],
-  import_frames: ['catalog:write'],
-  validate_catalog: ['catalog:read'],
-  inspect_catalog_source: ['catalog:read'],
-  create_store: ['experience:write'],
-  set_store_frames: ['experience:write'],
-  preview_store: ['experience:read'],
-  publish_store: ['experience:write'],
-  list_campaigns: ['experience:read'],
-  get_campaign: ['experience:read'],
-  create_campaign: ['experience:write'],
-  set_campaign_frames: ['experience:write'],
-  update_campaign: ['experience:write'],
-  preview_campaign: ['experience:read'],
-  publish_campaign: ['experience:write'],
-  archive_campaign: ['experience:write'],
-  get_experience_summary: ['analytics:read'],
-  get_experience_funnel: ['analytics:read'],
-  get_top_frames: ['analytics:read'],
-  get_intent_summary: ['analytics:read'],
-  compare_experiences: ['analytics:read'],
-}
-
-const HIGH_IMPACT_TOOLS = new Set(['publish_store', 'publish_campaign', 'archive_campaign'])
-const WRITE_TOOLS = new Set([
-  'import_frames', 'create_store', 'set_store_frames', 'publish_store', 'create_campaign',
-  'set_campaign_frames', 'update_campaign', 'publish_campaign', 'archive_campaign',
-])
+const TOOL_SCOPES = MCP_TOOL_SCOPES
+const HIGH_IMPACT_TOOLS = MCP_HIGH_IMPACT_TOOLS
+const WRITE_TOOLS = MCP_WRITE_TOOLS
+const LIVE_TOOLS = new Set(mcpToolsForRuntime(MCP_LIVE_RUNTIME))
 
 function enrichToolConfig(name: string, config: Record<string, unknown>) {
-  const readOnly = !WRITE_TOOLS.has(name)
+  if (!LIVE_TOOLS.has(name as McpToolName)) {
+    throw new Error(`MCP tool "${name}" is not registered for the live canonical runtime`)
+  }
+  const toolName = name as McpToolName
+  const readOnly = !WRITE_TOOLS.has(toolName)
   const annotations: ToolAnnotations = {
     ...(config.annotations as ToolAnnotations | undefined),
     readOnlyHint: readOnly,
-    destructiveHint: HIGH_IMPACT_TOOLS.has(name),
-    idempotentHint: readOnly || name === 'import_frames' || name === 'create_campaign',
+    destructiveHint: HIGH_IMPACT_TOOLS.has(toolName),
+    idempotentHint: readOnly || toolName === 'import_frames' || toolName === 'create_campaign',
     openWorldHint: false,
   }
-  const scopes = TOOL_SCOPES[name] ?? []
+  const scopes = [...(TOOL_SCOPES[toolName] ?? [])]
   return {
     ...config,
     annotations,

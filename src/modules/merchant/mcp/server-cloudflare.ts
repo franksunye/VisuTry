@@ -27,6 +27,14 @@ import {
   getTopFramesByIntent,
   MerchantAnalyticsError,
 } from '@/modules/store/application/merchant-analytics-cloudflare'
+import {
+  MCP_CLOUDFLARE_ADAPTER_UNAVAILABLE,
+  MCP_HIGH_IMPACT_TOOLS,
+  MCP_TOOL_SCOPES,
+  MCP_WRITE_TOOLS,
+  mcpToolsForRuntime,
+  type McpToolName,
+} from './tool-registry'
 
 const frameInput = z.object({
   sku: z.string().min(1).max(120), name: z.string().min(1).max(240), brand: z.string().max(120).nullable().optional(),
@@ -44,20 +52,32 @@ const campaignId = z.string().min(1).max(120)
 const analyticsExperienceId = z.string().min(1).max(120)
 const analyticsDate = z.string().max(80).nullable().optional()
 const analyticsAvailability = { merchantCtaClicks: false, identifiedIntent: false, leadMetrics: false, revenue: false, orders: false, roas: false } as const
-const writeTools = new Set(['import_frames', 'create_store', 'set_store_frames', 'publish_store', 'create_campaign', 'set_campaign_frames', 'update_campaign'])
-
-const scopes: Record<string, string[]> = {
-  get_onboarding_status: ['merchant:read'], get_merchant: ['merchant:read'], list_frames: ['catalog:read'], import_frames: ['catalog:write'],
-  validate_catalog: ['catalog:read'], create_store: ['experience:write'], set_store_frames: ['experience:write'], preview_store: ['experience:read'], publish_store: ['experience:write'],
-  list_campaigns: ['experience:read'], get_campaign: ['experience:read'], create_campaign: ['experience:write'], set_campaign_frames: ['experience:write'],
-  update_campaign: ['experience:write'], preview_campaign: ['experience:read'],
-  get_experience_summary: ['analytics:read'], get_experience_funnel: ['analytics:read'], get_top_frames: ['analytics:read'], get_intent_summary: ['analytics:read'],
-}
+const ADAPTER_TOOLS = new Set(mcpToolsForRuntime('cloudflare-raw-sql'))
+const WRITE_TOOLS = MCP_WRITE_TOOLS
+const scopes = MCP_TOOL_SCOPES
 
 function withMetadata(name: string, config: Record<string, unknown>) {
-  const readOnly = !writeTools.has(name)
-  const annotations: ToolAnnotations = { ...(config.annotations as ToolAnnotations | undefined), readOnlyHint: readOnly, destructiveHint: false, idempotentHint: readOnly || name === 'import_frames' || name === 'create_campaign', openWorldHint: false }
-  return { ...config, annotations, _meta: { ...(config._meta as Record<string, unknown> | undefined), securitySchemes: [{ type: 'oauth2', scopes: scopes[name] ?? [] }], 'visutry/securityScopes': scopes[name] ?? [] } }
+  if (!ADAPTER_TOOLS.has(name as McpToolName)) {
+    throw new Error(`MCP tool "${name}" is unavailable on the Cloudflare raw-SQL adapter (${MCP_CLOUDFLARE_ADAPTER_UNAVAILABLE.join(', ')})`)
+  }
+  const toolName = name as McpToolName
+  const readOnly = !WRITE_TOOLS.has(toolName)
+  const annotations: ToolAnnotations = {
+    ...(config.annotations as ToolAnnotations | undefined),
+    readOnlyHint: readOnly,
+    destructiveHint: MCP_HIGH_IMPACT_TOOLS.has(toolName),
+    idempotentHint: readOnly || toolName === 'import_frames' || toolName === 'create_campaign',
+    openWorldHint: false,
+  }
+  return {
+    ...config,
+    annotations,
+    _meta: {
+      ...(config._meta as Record<string, unknown> | undefined),
+      securitySchemes: [{ type: 'oauth2', scopes: [...(scopes[toolName] ?? [])] }],
+      'visutry/securityScopes': [...(scopes[toolName] ?? [])],
+    },
+  }
 }
 
 function result(data: unknown) { return { content: [{ type: 'text' as const, text: JSON.stringify(data) }] } }
