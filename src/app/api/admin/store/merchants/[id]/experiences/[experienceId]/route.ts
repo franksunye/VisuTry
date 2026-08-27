@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { requireAdmin } from '@/lib/api-auth'
 import { prisma } from '@/lib/prisma'
-import { storeErrorResponse, updateCampaign, updatePublicExperience } from '@/modules/store/application'
+import { storeErrorResponse, archiveCampaign, publishCampaign, updateCampaign, updatePublicExperience } from '@/modules/store/application'
+import { CampaignServiceError } from '@/modules/store/domain/campaign-readiness'
 import type { CampaignGate, CampaignObjective } from '@/modules/store/domain/campaign-policy'
 import type { PresentationMode } from '@/modules/store/domain/presentation-mode'
 
@@ -83,8 +84,12 @@ export async function PUT(
     })
     if (!existing) return NextResponse.json({ success: false, error: 'Experience not found' }, { status: 404 })
 
-    if (existing.type === 'CAMPAIGN' && !('status' in body)) {
-      const updated = await updateCampaign({
+    if (existing.type === 'CAMPAIGN') {
+      const status = 'status' in body ? body.status : undefined
+      if (status !== undefined && (typeof status !== 'string' || !EXPERIENCE_STATUSES.includes(status as ExperienceStatus))) {
+        return NextResponse.json({ success: false, error: 'Invalid experience status' }, { status: 400 })
+      }
+      const campaignUpdate = {
         merchantId: params.id,
         campaignId: params.experienceId,
         ...(typeof body.name === 'string' ? { name: body.name } : {}),
@@ -101,7 +106,28 @@ export async function PUT(
         ...(body.secondaryCtaType === null || typeof body.secondaryCtaType === 'string' ? { secondaryCtaType: body.secondaryCtaType as string | null } : {}),
         ...(body.secondaryCtaLabel === null || typeof body.secondaryCtaLabel === 'string' ? { secondaryCtaLabel: body.secondaryCtaLabel as string | null } : {}),
         ...(body.secondaryCtaUrl === null || typeof body.secondaryCtaUrl === 'string' ? { secondaryCtaUrl: body.secondaryCtaUrl as string | null } : {}),
-      })
+      }
+      const hasCampaignFields = Object.keys(campaignUpdate).length > 2
+      const updated = hasCampaignFields ? await updateCampaign(campaignUpdate) : null
+      if (status === 'ACTIVE') {
+        const published = await publishCampaign({ merchantId: params.id, campaignId: params.experienceId, approved: true })
+        return NextResponse.json({ success: true, data: published })
+      }
+      if (status === 'ARCHIVED') {
+        const archived = await archiveCampaign({ merchantId: params.id, campaignId: params.experienceId })
+        return NextResponse.json({ success: true, data: archived })
+      }
+      if (status === 'DRAFT' || status === 'ENDED') {
+        const experience = await updatePublicExperience({
+          merchantId: params.id,
+          experienceId: params.experienceId,
+          data: { status },
+        })
+        return NextResponse.json({ success: true, data: experience })
+      }
+      if (!updated) {
+        return NextResponse.json({ success: false, error: 'No Campaign fields to update' }, { status: 400 })
+      }
       return NextResponse.json({ success: true, data: updated })
     }
 
@@ -144,6 +170,9 @@ export async function PUT(
     })
     return NextResponse.json({ success: true, data: experience })
   } catch (error) {
+    if (error instanceof CampaignServiceError) {
+      return NextResponse.json({ success: false, error: error.message, code: error.code }, { status: error.httpStatus })
+    }
     return storeErrorResponse(error)
   }
 }

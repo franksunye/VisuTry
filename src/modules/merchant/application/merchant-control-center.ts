@@ -1,5 +1,6 @@
 import { prisma } from '@/lib/prisma'
 import { resolveCampaignConversionPolicy } from '@/modules/store/domain/campaign-policy'
+import { campaignReadinessForControlCenter, evaluateCampaignReadiness } from '@/modules/store/domain/campaign-readiness'
 import { resolvePresentationMode, type PresentationMode } from '@/modules/store/domain/presentation-mode'
 import { validateCatalogFrame } from './merchant-onboarding-cloudflare'
 import { getMerchantCommerceIntelligence, type MerchantCommerceIntelligence } from './merchant-commerce-intelligence'
@@ -69,7 +70,7 @@ function mapLocalFrame(frame: LocalFrame): MerchantCatalogFrameSummary {
 }
 
 function mapLocalOperation(action: string, actorType: string, createdAt: Date) {
-  const labels: Record<string, string> = { 'store.created': 'Created', 'campaign.created': 'Created', 'store.frames_updated': 'Catalog updated', 'campaign.frames_updated': 'Catalog updated', 'store.published': 'Published', 'campaign.published': 'Published', 'campaign.updated': 'Updated' }
+  const labels: Record<string, string> = { 'store.created': 'Created', 'campaign.created': 'Created', 'store.frames_updated': 'Catalog updated', 'campaign.frames_updated': 'Catalog updated', 'store.published': 'Published', 'campaign.published': 'Published', 'campaign.archived': 'Archived', 'campaign.updated': 'Updated' }
   const label = labels[action]
   if (!label) return null
   return { label, actor: actorType === 'HUMAN' ? 'Human' : actorType === 'AGENT' ? 'Agent' : 'System', at: createdAt.toISOString() }
@@ -95,7 +96,7 @@ export async function getMerchantControlCenter(input: { merchantId: string }): P
       orderBy: { updatedAt: 'desc' },
       select: {
         id: true, type: true, name: true, slug: true, status: true,
-        headline: true, description: true, primaryCtaLabel: true, startAt: true, endAt: true,
+        headline: true, description: true, primaryCtaLabel: true, primaryCtaUrl: true, secondaryCtaUrl: true, startAt: true, endAt: true,
         campaignObjective: true, campaignGate: true, presentationMode: true,
         referenceData: true, updatedAt: true,
         frames: { where: { active: true }, orderBy: { sortOrder: 'asc' }, select: { merchantFrameId: true, merchantFrame: { select: { id: true, sku: true, name: true, brand: true, imageUrl: true, shape: true, widthClass: true, source: true, status: true, enrichmentStatus: true } } } },
@@ -122,6 +123,21 @@ export async function getMerchantControlCenter(input: { merchantId: string }): P
   const mapped = experiences.map((experience): MerchantControlExperience => {
     const campaignPolicy = resolveCampaignConversionPolicy(experience)
     const selectedFrames = experience.frames.map((frame) => mapFrame(frame.merchantFrame as unknown as LocalFrame))
+    const readiness = experience.type === 'CAMPAIGN'
+      ? campaignReadinessForControlCenter(
+        evaluateCampaignReadiness({
+          name: experience.name,
+          headline: experience.headline,
+          status: experience.status,
+          startAt: experience.startAt,
+          endAt: experience.endAt,
+          primaryCtaUrl: experience.primaryCtaUrl,
+          secondaryCtaUrl: experience.secondaryCtaUrl,
+          frames: selectedFrames.map((frame) => ({ status: frame.status, valid: frame.validation.valid })),
+        }),
+        selectedFrames,
+      )
+      : localReadiness(selectedFrames)
     return {
       id: experience.id,
       type: experience.type,
@@ -137,7 +153,7 @@ export async function getMerchantControlCenter(input: { merchantId: string }): P
       startAt: experience.startAt?.toISOString() ?? null,
       endAt: experience.endAt?.toISOString() ?? null,
       selectedFrames,
-      readiness: localReadiness(selectedFrames),
+      readiness,
       lastOperation: latestOperations.get(experience.id) ?? null,
       policy: {
         objective: campaignPolicy?.objective ?? null,

@@ -154,6 +154,7 @@ describe('MCP transport protocol', () => {
     expect(create?._meta?.securitySchemes).toEqual([{ type: 'oauth2', scopes: ['experience:write'] }])
     const publish = listBody.result.tools.find((tool) => tool.name === 'publish_campaign')
     expect(publish?.annotations).toMatchObject({ readOnlyHint: false, destructiveHint: true })
+    expect(publish?._meta?.securitySchemes).toEqual([{ type: 'oauth2', scopes: ['experience:write'] }])
     const read = listBody.result.tools.find((tool) => tool.name === 'get_merchant')
     expect(read?.annotations).toMatchObject({ readOnlyHint: true, destructiveHint: false })
   })

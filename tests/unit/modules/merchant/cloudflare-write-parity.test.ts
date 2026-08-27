@@ -10,7 +10,7 @@ import { getCloudflareSql } from '@/data/neon-cloudflare'
 import { withPublicDiscoveryInvalidation } from '@/modules/store/application/public-discovery-invalidation'
 import { MerchantAccessError } from '@/modules/merchant/application/merchant-access-cloudflare'
 import { createMerchantStore, publishMerchantStore, setMerchantStoreFrames } from '@/modules/merchant/application/merchant-onboarding-cloudflare'
-import { createCampaignDraft, publishCampaign, setCampaignFrames } from '@/modules/store/application/campaign-service-cloudflare'
+import { createCampaignDraft, publishCampaign, archiveCampaign, setCampaignFrames } from '@/modules/store/application/campaign-service-cloudflare'
 import type { MerchantAgentScope } from '@/modules/merchant/domain/agent-credentials'
 
 type SqlMock = jest.Mock & { transaction: jest.Mock; unsafe: jest.Mock }
@@ -93,8 +93,15 @@ describe('Cloudflare direct-Neon merchant and experience writes', () => {
     }))
   })
 
-  it('uses a Serializable replacement for Campaign frames while keeping Campaign publish outside B2', async () => {
-    const campaignRow = { id: 'campaign-a', merchantId: 'merchant-a', slug: 'spring-edit', name: 'Spring Edit', status: 'DRAFT', headline: 'Try the edit', description: null, primaryCtaType: null, primaryCtaLabel: null, primaryCtaUrl: null, secondaryCtaType: null, secondaryCtaLabel: null, secondaryCtaUrl: null, startAt: null, endAt: null, campaignObjective: 'INTENT', campaignGate: 'NONE', presentationMode: 'EDITORIAL_FIRST', referenceData: false, merchantFrameId: null }
+  it('uses a Serializable replacement for Campaign frames and publishes only when approved and ready', async () => {
+    const campaignRow = {
+      id: 'campaign-a', merchantId: 'merchant-a', slug: 'spring-edit', name: 'Spring Edit', status: 'DRAFT',
+      headline: 'Try the edit', description: null, primaryCtaType: null, primaryCtaLabel: null, primaryCtaUrl: null,
+      secondaryCtaType: null, secondaryCtaLabel: null, secondaryCtaUrl: null, startAt: null, endAt: null,
+      campaignObjective: 'INTENT', campaignGate: 'NONE', presentationMode: 'EDITORIAL_FIRST', referenceData: false,
+      merchantFrameId: 'frame-a', frameId: 'frame-a', sku: 'sku-a', frameName: 'Frame A', frameImageUrl: 'https://example.test/frame-a.png',
+      frameShape: 'oval', frameWidthClass: null, frameStatus: 'ACTIVE',
+    }
     const sql = sqlMock([
       [{ slug: 'merchant-a', referenceData: false }], [campaignRow], [activeFrame],
     ], [[]])
@@ -106,7 +113,27 @@ describe('Cloudflare direct-Neon merchant and experience writes', () => {
     expect(withPublicDiscoveryInvalidation).toHaveBeenCalledWith(expect.objectContaining({
       target: { kind: 'experience', merchantSlug: 'merchant-a', experienceSlug: 'spring-edit' },
     }))
-    await expect(publishCampaign({ merchantId: 'merchant-a', campaignId: 'campaign-a', approved: true })).rejects.toMatchObject({ code: 'CLOUDFLARE_PUBLISH_OUT_OF_SCOPE' })
+
+    await expect(publishCampaign({ merchantId: 'merchant-a', campaignId: 'campaign-a', approved: false })).rejects.toMatchObject({ code: 'PUBLISH_APPROVAL_REQUIRED' })
+
+    const publishSql = sqlMock([
+      [{ id: 'merchant-a', slug: 'merchant-a', referenceData: false }], [campaignRow],
+      [{ id: 'campaign-a' }],
+      [{ id: 'merchant-a', slug: 'merchant-a', referenceData: false }], [{ ...campaignRow, status: 'ACTIVE' }],
+    ])
+    ;(getCloudflareSql as jest.Mock).mockReturnValue(publishSql)
+    const published = await publishCampaign({ merchantId: 'merchant-a', campaignId: 'campaign-a', approved: true })
+    expect(published.status).toBe('ACTIVE')
+    expect(publishSql.mock.calls.some((call) => String(call[0]?.join?.('') ?? '').includes('UPDATE "Experience"'))).toBe(true)
+
+    const archiveSql = sqlMock([
+      [{ id: 'merchant-a', slug: 'merchant-a', referenceData: false }], [{ ...campaignRow, status: 'ACTIVE' }],
+      [{ id: 'campaign-a' }],
+      [{ id: 'merchant-a', slug: 'merchant-a', referenceData: false }], [{ ...campaignRow, status: 'ARCHIVED' }],
+    ])
+    ;(getCloudflareSql as jest.Mock).mockReturnValue(archiveSql)
+    const archived = await archiveCampaign({ merchantId: 'merchant-a', campaignId: 'campaign-a' })
+    expect(archived.status).toBe('ARCHIVED')
   })
 
   it('requires approval and publishes a ready Store through the direct-Neon boundary', async () => {
