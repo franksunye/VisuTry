@@ -365,9 +365,13 @@ export async function setMerchantStoreFrames(input: { actor: MerchantActorContex
   if (!store) throw new MerchantAccessError()
   const frames = await activeFrames(input.actor.merchantId, frameIds)
   if (frames.length !== frameIds.length) throw new MerchantAccessError()
+  const merchant = await getMerchant({ actor: input.actor })
   const sql = getCloudflareSql()
   const statements = [sql`DELETE FROM "ExperienceFrame" WHERE "experienceId" = ${input.storeId} AND "merchantId" = ${input.actor.merchantId}`, ...frameIds.map((frameId, sortOrder) => sql`INSERT INTO "ExperienceFrame" ("experienceId", "merchantId", "merchantFrameId", "sortOrder", "active", "createdAt", "updatedAt") VALUES (${input.storeId}, ${input.actor.merchantId}, ${frameId}, ${sortOrder}, true, NOW(), NOW()) ON CONFLICT ("experienceId", "merchantFrameId") DO UPDATE SET "sortOrder" = EXCLUDED."sortOrder", "active" = true, "updatedAt" = NOW()`)]
-  await sql.transaction(statements, { isolationLevel: 'Serializable' })
+  await withPublicDiscoveryInvalidation({
+    target: { kind: 'experience', merchantSlug: merchant.slug, experienceSlug: null },
+    mutation: () => sql.transaction(statements, { isolationLevel: 'Serializable' }),
+  })
   await audit(input.actor, 'store.frames_updated', input.storeId)
   return { storeId: input.storeId, frameIds, frameCount: frameIds.length }
 }
