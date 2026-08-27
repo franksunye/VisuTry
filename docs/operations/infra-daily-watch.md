@@ -217,3 +217,25 @@ Reference pre-Tiered combined baseline for the three families: approximately **2
 - Can we obtain pilot-route Cloudflare HIT/MISS plus Vercel **ISR Read Units** (not Count or Bytes) for a complete post-Tiered 12h window, and does the combined pilot RU fall below **2.52k / 12h**?
 
 **Production changes made during inspection:** NONE
+
+### ChatGPT Afternoon Review
+
+**Verdict:** **INVESTIGATE** — Cloudflare pilot-path edge cache data is now obtainable from the existing custom Dashboard Chart, but Smart Tiered Cache's origin-shielding effect remains unproven.
+
+**What the evidence means**
+1. In the Cloudflare `HTTP Requests` chart, using `Path contains` plus `Cache status` grouping over the UI's **Last 24 hours**, `/glasses-guide/` returned **597** requests (**Hit 78**, **Revalidated 45**, **Miss 315**, **Expired 122**, **Dynamic 37**); `/style/` returned **405** (**Hit 43**, **Miss 89**, **Dynamic 257**, **None 8**, **Expired 8**); `/sunglasses-for/` returned **114** (**Hit 6**, **Revalidated 1**, **Miss 86**, **Expired 13**, **Dynamic 8**).
+2. The combined displayed pilot total is **1,116**; direct `Hit` is **127 (11.4%)**, and `Hit + Revalidated` is **173 (15.5%)**. These are edge cache-status categories, not origin-request or Tiered Cache shield counters.
+3. This corrects the earlier feasibility assumption: the custom Dashboard Chart can provide route-family detail even though the standard HTTP Traffic page and paid Cache Analytics/Log Explorer do not. Vercel remains **14,233 project ISR RU / rolling 12h**, without pilot-route attribution or a like-for-like trend.
+
+**Decision**
+- **HOLD** the Smart Tiered Cache experiment; do not call it a success or failure from edge HIT alone.
+
+**Next Codex inspection focus**
+1. Repeat these three Cloudflare path filters for a fixed complete 12h window.
+2. Compare the same window with pilot-attributed Vercel ISR Read Units if Vercel exposes them.
+3. Track whether MISS/Expired volumes fall and whether face-analysis errors persist.
+
+**Implementation guidance**
+- No production change. The filters were temporary and canceled without saving.
+
+**Production changes made by review:** NONE
