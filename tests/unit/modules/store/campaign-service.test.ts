@@ -23,7 +23,7 @@ const baseRow = {
   secondaryCtaType: null, secondaryCtaLabel: null, secondaryCtaUrl: null, offerLabel: null, offerCode: null, offerTerms: null,
   startAt: null, endAt: null, campaignObjective: 'INTENT' as const, campaignGate: 'NONE' as const, presentationMode: 'EDITORIAL_FIRST' as const,
   referenceData: false, defaultSource: null, defaultCampaign: null, referenceMetadata: null, createdAt: new Date(), updatedAt: new Date(),
-  frames: [{ merchantFrameId: 'frame-a', merchantFrame: { id: 'frame-a', sku: 'SKU-A', name: 'Frame A', imageUrl: 'https://cdn.example.test/frame-a.jpg', shape: 'round', widthClass: 'small', status: 'ACTIVE' as const } }],
+  frames: [{ merchantFrameId: 'frame-a', merchantFrame: { id: 'frame-a', sku: null, externalId: 'shopify:product-1', productUrl: 'https://shop.example.test/products/frame-a', name: 'Frame A', imageUrl: 'https://cdn.example.test/frame-a.jpg', shape: 'round', widthClass: 'small', source: 'EXTERNAL' as const, enrichmentStatus: 'APPROVED' as const, status: 'ACTIVE' as const } }],
 }
 
 describe('Campaign application service', () => {
@@ -112,6 +112,16 @@ describe('Campaign application service', () => {
     expect(result.readiness.ready).toBe(true)
     expect(prisma.experience.update).not.toHaveBeenCalled()
     expect(prisma.$transaction).not.toHaveBeenCalled()
+  })
+
+  it('accepts a stable external identity without a merchant SKU for Campaign readiness', async () => {
+    ;(prisma.experience.findFirst as jest.Mock).mockResolvedValue(baseRow)
+    ;(prisma.merchant.findUnique as jest.Mock).mockResolvedValue({ slug: 'merchant-a', referenceData: false })
+
+    const result = await previewCampaign({ merchantId: 'merchant-a', campaignId: 'campaign-a' })
+
+    expect(result.readiness.ready).toBe(true)
+    expect(result.readiness.blockingIssues).toEqual([])
   })
 
   it('requires approval and readiness before publishing', async () => {

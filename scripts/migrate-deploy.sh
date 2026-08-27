@@ -5,11 +5,9 @@ set -euo pipefail
 # prisma migrate deploy — Neon/Vercel-safe (P1002 defense in depth)
 # ============================================================
 # SAFETY BOUNDARY
-#   This script is an explicitly authorized production release step. It must
-#   never be reached by Preview, CI, or an ordinary local build. The package
-#   `build` script intentionally does not call this script; use
-#   `build:production` with both guards below when a release includes schema
-#   migrations.
+#   This script is always on the Vercel `npm run build` path, but it is a
+#   no-op outside an explicitly authorized production build. Preview, CI, and
+#   local builds therefore remain safe while production releases fail closed.
 # ============================================================
 # PROBLEM
 #   Neon's pooled connection (PgBouncer transaction mode) leaks Prisma's

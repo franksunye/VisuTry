@@ -10,7 +10,7 @@ import { getCloudflareSql } from '@/data/neon-cloudflare'
 import { withPublicDiscoveryInvalidation } from '@/modules/store/application/public-discovery-invalidation'
 import { MerchantAccessError } from '@/modules/merchant/application/merchant-access-cloudflare'
 import { createMerchantStore, importMerchantFrames, publishMerchantStore, setMerchantStoreFrames } from '@/modules/merchant/application/merchant-onboarding-cloudflare'
-import { createCampaignDraft, publishCampaign, archiveCampaign, setCampaignFrames } from '@/modules/store/application/campaign-service-cloudflare'
+import { createCampaignDraft, previewCampaign, publishCampaign, archiveCampaign, setCampaignFrames } from '@/modules/store/application/campaign-service-cloudflare'
 import type { MerchantAgentScope } from '@/modules/merchant/domain/agent-credentials'
 
 type SqlMock = jest.Mock & { transaction: jest.Mock; unsafe: jest.Mock }
@@ -29,7 +29,7 @@ const actor = {
   scopes: ['merchant:read', 'experience:read', 'experience:write'] as MerchantAgentScope[],
 }
 
-const activeFrame = { id: 'frame-a', sku: 'sku-a', name: 'Frame A', imageUrl: 'https://example.test/frame-a.png', shape: 'oval', widthClass: null, status: 'ACTIVE' }
+const activeFrame = { id: 'frame-a', sku: null, externalId: 'shopify:product-1', productUrl: 'https://shop.example.test/products/frame-a', name: 'Frame A', imageUrl: 'https://example.test/frame-a.png', shape: 'oval', widthClass: null, source: 'EXTERNAL', enrichmentStatus: 'APPROVED', status: 'ACTIVE' }
 
 describe('Cloudflare direct-Neon merchant and experience writes', () => {
   afterEach(() => jest.clearAllMocks())
@@ -99,8 +99,8 @@ describe('Cloudflare direct-Neon merchant and experience writes', () => {
       headline: 'Try the edit', description: null, primaryCtaType: null, primaryCtaLabel: null, primaryCtaUrl: null,
       secondaryCtaType: null, secondaryCtaLabel: null, secondaryCtaUrl: null, startAt: null, endAt: null,
       campaignObjective: 'INTENT', campaignGate: 'NONE', presentationMode: 'EDITORIAL_FIRST', referenceData: false,
-      merchantFrameId: 'frame-a', frameId: 'frame-a', sku: 'sku-a', frameName: 'Frame A', frameImageUrl: 'https://example.test/frame-a.png',
-      frameShape: 'oval', frameWidthClass: null, frameStatus: 'ACTIVE',
+      merchantFrameId: 'frame-a', frameId: 'frame-a', sku: null, frameExternalId: 'shopify:product-1', frameProductUrl: 'https://shop.example.test/products/frame-a', frameName: 'Frame A', frameImageUrl: 'https://example.test/frame-a.png',
+      frameShape: 'oval', frameWidthClass: null, frameSource: 'EXTERNAL', frameEnrichmentStatus: 'APPROVED', frameStatus: 'ACTIVE',
     }
     const sql = sqlMock([
       [{ slug: 'merchant-a', referenceData: false }], [campaignRow], [activeFrame],
@@ -134,6 +134,24 @@ describe('Cloudflare direct-Neon merchant and experience writes', () => {
     ;(getCloudflareSql as jest.Mock).mockReturnValue(archiveSql)
     const archived = await archiveCampaign({ merchantId: 'merchant-a', campaignId: 'campaign-a' })
     expect(archived.status).toBe('ARCHIVED')
+  })
+
+  it('accepts the same stable external identity without a merchant SKU for Campaign readiness', async () => {
+    const campaignRow = {
+      id: 'campaign-a', merchantId: 'merchant-a', slug: 'spring-edit', name: 'Spring Edit', status: 'DRAFT',
+      headline: 'Try the edit', description: null, primaryCtaType: null, primaryCtaLabel: null, primaryCtaUrl: null,
+      secondaryCtaType: null, secondaryCtaLabel: null, secondaryCtaUrl: null, startAt: null, endAt: null,
+      campaignObjective: 'INTENT', campaignGate: 'NONE', presentationMode: 'EDITORIAL_FIRST', referenceData: false,
+      merchantFrameId: 'frame-a', frameId: 'frame-a', sku: null, frameExternalId: 'shopify:product-1', frameProductUrl: 'https://shop.example.test/products/frame-a', frameName: 'Frame A', frameImageUrl: 'https://example.test/frame-a.png',
+      frameShape: 'oval', frameWidthClass: null, frameSource: 'EXTERNAL', frameEnrichmentStatus: 'APPROVED', frameStatus: 'ACTIVE',
+    }
+    const sql = sqlMock([[{ id: 'merchant-a', slug: 'merchant-a', referenceData: false }], [campaignRow]])
+    ;(getCloudflareSql as jest.Mock).mockReturnValue(sql)
+
+    const result = await previewCampaign({ merchantId: 'merchant-a', campaignId: 'campaign-a' })
+
+    expect(result.readiness.ready).toBe(true)
+    expect(result.readiness.blockingIssues).toEqual([])
   })
 
   it('requires approval and publishes a ready Store through the direct-Neon boundary', async () => {

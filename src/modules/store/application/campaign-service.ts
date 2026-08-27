@@ -44,7 +44,7 @@ export type CampaignReadModel = {
 
 type CampaignFrame = {
   merchantFrameId: string
-  merchantFrame: Pick<MerchantFrame, 'id' | 'sku' | 'name' | 'imageUrl' | 'shape' | 'widthClass' | 'status'> | null
+  merchantFrame: Pick<MerchantFrame, 'id' | 'sku' | 'externalId' | 'productUrl' | 'name' | 'imageUrl' | 'shape' | 'widthClass' | 'source' | 'enrichmentStatus' | 'status'> | null
 }
 
 type CampaignRow = Experience & { frames: CampaignFrame[] }
@@ -55,7 +55,7 @@ const campaignFramesInclude = {
     orderBy: [{ sortOrder: 'asc' as const }, { createdAt: 'asc' as const }],
     include: {
       merchantFrame: {
-        select: { id: true, sku: true, name: true, imageUrl: true, shape: true, widthClass: true, status: true },
+        select: { id: true, sku: true, externalId: true, productUrl: true, name: true, imageUrl: true, shape: true, widthClass: true, source: true, enrichmentStatus: true, status: true },
       },
     },
   },
@@ -273,7 +273,7 @@ export async function setCampaignFrames(input: { merchantId: string; campaignId:
   const current = await campaignRow(input.merchantId, input.campaignId)
   const frames = await prisma.merchantFrame.findMany({
     where: { merchantId: input.merchantId, id: { in: frameIds }, status: 'ACTIVE' },
-    select: { id: true, sku: true, name: true, imageUrl: true, shape: true, widthClass: true, status: true },
+    select: { id: true, sku: true, externalId: true, productUrl: true, name: true, imageUrl: true, shape: true, widthClass: true, source: true, enrichmentStatus: true, status: true },
   })
   if (frames.length !== frameIds.length || frames.some((frame) => !validateCatalogFrame(frame).valid)) throw new MerchantAccessError()
   await withPublicDiscoveryInvalidation({

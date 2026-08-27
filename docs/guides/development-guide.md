@@ -377,10 +377,10 @@ npm run test:coverage
 3. Use the project build command from `package.json`.
 4. Keep Prisma generation in normal builds. Run production migrations only through the explicitly authorized production release path.
 
-Normal build command in `package.json`:
+Vercel's normal build command in `package.json`:
 
 ```bash
-prisma generate && next build
+prisma generate && bash scripts/migrate-deploy.sh && next build
 ```
 
 ### Production Environment Variables
@@ -396,6 +396,9 @@ VERCEL_ENV=production \
 VISUTRY_PRODUCTION_MIGRATION_AUTHORIZED=1 \
 npm run build:production
 ```
+
+`build:production` is an alias for the same guarded `npm run build` path;
+Vercel Git deployments use the default `npm run build` command.
 
 ---
 
