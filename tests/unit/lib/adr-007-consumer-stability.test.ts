@@ -93,47 +93,53 @@ function walkTsFiles(dir: string, acc: string[] = []): string[] {
 }
 
 /**
- * Authoritative Consumer→Store allowlist (ADR-007).
+ * Authoritative Consumer→Store import allowlist (ADR-007).
  * Discover is a Commerce discovery surface that may live under `(main)` for
  * URL/SEO reasons while calling Store application services.
  */
 const CONSUMER_STORE_IMPORT_ALLOWLIST = new Set([
   'src/app/[locale]/(main)/discover/page.tsx',
+  'src/components/discover/DiscoverPage.tsx',
 ])
 
+/** Broad roots — fail closed for newly added Consumer paths. */
 const CONSUMER_BOUNDARY_ROOTS = [
   'src/app/[locale]/(main)',
-  'src/app/api/try-on',
-  'src/app/api/payment',
-  'src/app/api/user',
-  'src/app/api/analytics/consumer-funnel',
-  'src/app/api/cron/cleanup-expired-tasks',
-  'src/app/api/cron/sync-pending-consumer-tasks',
-  'src/components/pricing',
-  'src/components/distribution',
-  'src/components/try-on',
-  'src/components/dashboard',
-  'src/components/payments',
-  'src/components/auth',
-  'src/components/home',
-  'src/components/face-analysis',
-  'src/components/face-shape',
-  'src/components/compare',
-  'src/components/style-explorer',
+  'src/app/api',
+  'src/components',
   'src/lib',
   'src/config',
   'src/hooks',
 ]
 
-const LIB_PATH_PREFIX_EXCLUSIONS = [
+/**
+ * Non-Consumer / Store-adapter exclusions. Keep this list tiny and explicit.
+ * Everything else under the broad roots is treated as Consumer-boundary.
+ */
+const NON_CONSUMER_PATH_PREFIXES = [
+  'src/app/api/store/',
+  'src/app/api/merchant/',
+  'src/app/api/agent/',
+  'src/app/api/admin/',
+  'src/app/api/mcp/',
+  'src/app/api/business/',
+  'src/app/api/cron/cleanup-store-assets/',
+  'src/app/api/cron/sync-pending-store-tasks/',
+  // Combined cron isolates Store failure; it intentionally references Store.
+  'src/app/api/cron/sync-pending-tasks/',
+  'src/components/store/',
+  'src/components/merchant/',
+  'src/components/admin/',
   'src/lib/store-discovery-',
   'src/lib/merchant-skill',
   'src/lib/agent-distribution',
   'src/lib/cron/sync-pending-store-tasks',
 ]
 
-function isExcludedLibPath(rel: string): boolean {
-  return LIB_PATH_PREFIX_EXCLUSIONS.some((prefix) => rel.startsWith(prefix))
+function isNonConsumerPath(rel: string): boolean {
+  return NON_CONSUMER_PATH_PREFIXES.some((prefix) =>
+    prefix.endsWith('/') ? rel.startsWith(prefix) || rel === prefix.slice(0, -1) : rel === prefix || rel.startsWith(prefix),
+  )
 }
 
 function collectConsumerBoundaryFiles(cwd: string): string[] {
@@ -145,7 +151,7 @@ function collectConsumerBoundaryFiles(cwd: string): string[] {
     if (st.isDirectory()) walkTsFiles(absolute, files)
     else files.push(absolute)
   }
-  return files.filter((file) => !isExcludedLibPath(relative(cwd, file).replaceAll('\\', '/')))
+  return files.filter((file) => !isNonConsumerPath(relative(cwd, file).replaceAll('\\', '/')))
 }
 
 describe('ADR-007 Consumer stability boundary', () => {
@@ -407,15 +413,16 @@ describe('ADR-007 Consumer stability boundary', () => {
     expect(violations).toEqual([])
   })
 
-  it('Discover is the only allowlisted Commerce discovery surface under (main)', () => {
+  it('Discover is the only allowlisted Commerce discovery surface under Consumer roots', () => {
     const discover = readFileSync(
       join(process.cwd(), 'src/app/[locale]/(main)/discover/page.tsx'),
       'utf8',
     )
     expect(discover).toContain('modules/store')
-    expect([...CONSUMER_STORE_IMPORT_ALLOWLIST]).toEqual([
+    expect([...CONSUMER_STORE_IMPORT_ALLOWLIST].sort()).toEqual([
       'src/app/[locale]/(main)/discover/page.tsx',
-    ])
+      'src/components/discover/DiscoverPage.tsx',
+    ].sort())
   })
 
   it('Frame Compare entrypoint still routes through Consumer submitTryOnTask (no Store dependency)', () => {

@@ -1,10 +1,9 @@
 # VisuTry Architecture Consolidation Plan — Pre-Pilot
 
-**Status:** Complete for generation-isolation DoD; **partially reopened** for route-wide Consumer→Store import-zero (see §8.1 / 2026-08-27 audit reconciliation)  
+**Status:** Complete — generation isolation (2026-08-06) **and** route-wide Consumer→Store import authority (2026-08-27 P0). Authoritative rule: Consumer→Store imports = **zero except ADR-approved Commerce surfaces (currently Discover only)**.  
 **Owner:** Product / Engineering  
 **Created:** 2026-08-06  
-**Completed:** 2026-08-06 (generation / cron / settlement isolation)  
-**Reopened slice:** 2026-08-27 — Consumer/main handoff imports of `src/modules/store/**` contradict the written Boundary DoD; must be exceptioned by ADR or extracted  
+**Completed:** 2026-08-06 (generation / cron / settlement isolation); 2026-08-27 (route-wide import reconciliation + Discover exception)  
 **Target duration:** 3–5 engineering days (historical)  
 **Primary ADRs:**
 - `docs/decisions/ADR-007-store-consumer-stability-boundary.md`
@@ -529,7 +528,7 @@ This consolidation is complete only when all of the following are true.
 ### Boundary DoD
 
 - [x] Consumer **generation / quota / cron** paths → `src/modules/store/**` dependency count is zero (protected roots covered by `tests/unit/lib/adr-007-consumer-stability.test.ts`).
-- [ ] ~~Consumer → `src/modules/store/**` dependency count is zero across all Consumer modules/routes.~~ **Reopened 2026-08-27** — see §8.1. Not currently true for payment/signin/success/pricing/funnel/discover/distribution handoffs.
+- [x] Consumer → `src/modules/store/**` dependency count is zero across Consumer-boundary roots **except ADR-approved Commerce surfaces (currently Discover only)**. Fail-closed scan: broad roots + tiny non-Consumer exclusion list + Discover allowlist (see §8.1 / ADR-007).
 - [x] Store failures cannot abort protected Consumer background workflows.
 - [x] Consumer and Store settlement policies are separate.
 - [x] Consumer and Store asset/privacy policy ownership is separate.
@@ -564,37 +563,33 @@ This consolidation is complete only when all of the following are true.
 - [x] no unresolved P0 architecture ambiguity remains for the first Merchant Pilot **generation path**.
 - [x] deferred architecture items are explicitly listed and gated by real Pilot evidence.
 - [x] engineering returns to Merchant Pilot work after this consolidation.
-- [ ] **2026-08-27:** route-wide Consumer→Store import authority is reconciled (ADR exception list **or** handoff extraction + expanded ADR-007 import guards).
+- [x] **2026-08-27:** route-wide Consumer→Store import authority reconciled — handoff extraction + fail-closed ADR-007 guards + Discover-only ADR allowlist.
 
 ---
 
 ## 8.1. 2026-08-27 Reconciliation — Consumer→Store Imports
 
-The 2026-08-06 consolidation closed generation isolation. A 2026-08-27 architecture audit found that the written “Consumer → store dependency count is zero” claim is **no longer accurate** for non-generation Consumer/main surfaces, while CI remains green because the ADR-007 import regression only scans:
+The 2026-08-06 consolidation closed generation isolation. A 2026-08-27 architecture audit found that the written “Consumer → store dependency count is zero” claim had drifted for non-generation Consumer/main surfaces, while CI stayed green because the ADR-007 import regression only scanned generation/cron/try-on roots.
 
-```text
-src/lib/tryon-service.ts
-src/lib/quota.ts
-src/lib/compare-tryon-server.ts
-src/lib/cron/sync-pending-consumer-tasks.ts
-src/app/api/cron/cleanup-expired-tasks/route.ts
-src/app/api/cron/sync-pending-consumer-tasks/route.ts
-src/app/api/try-on/**
-```
+**Authoritative rule after P0 close:**
 
-Known Consumer/main → Store imports at original audit time, and remediation status:
+> Consumer → `src/modules/store/**` imports are **zero**, except ADR-approved Commerce surfaces (**currently Discover only**).
+
+Remediation of the audit-time import set:
 
 | Path | Classification | Status |
 | --- | --- | --- |
-| Discover (`discover/page.tsx`) | **Approved Commerce discovery surface** under `(main)` (ADR-007 allowlist) | Formalized in ADR-007 |
+| Discover (`discover/page.tsx` + `DiscoverPage.tsx`) | **Approved Commerce discovery surface** under `(main)` | Formalized in ADR-007 allowlist |
 | `ContextualExperienceHandoff.tsx` | Was Store import debt | **Fixed** → `@/lib/commerce-handoff/merchant-experience-href` |
-| `payment/create-session`, `PricingCard`, `auth/signin`, `success` via `merchant-continuation` | **Debt** | **Fixed 2026-08-27** → `@/lib/commerce-handoff/merchant-continuation` |
-| `analytics/consumer-funnel` via `session-acquisition` | **Debt** | **Fixed 2026-08-27** → `@/lib/commerce-handoff/ai-referral` |
-| `config/distribution-handoffs.ts` surface type | **Debt** | **Fixed 2026-08-27** → `@/lib/commerce-handoff/distribution-surfaces` |
+| `payment/create-session`, `PricingCard`, `auth/signin`, `success` via `merchant-continuation` | **Debt** | **Fixed** → `@/lib/commerce-handoff/merchant-continuation` |
+| `analytics/consumer-funnel` via `session-acquisition` | **Debt** | **Fixed** → `@/lib/commerce-handoff/ai-referral` |
+| `config/distribution-handoffs.ts` surface type | **Debt** | **Fixed** → `@/lib/commerce-handoff/distribution-surfaces` |
 
-ADR-007 import regression now scans the full Consumer boundary with a tiny allowlist (Discover only). Live `/api/mcp` uses the canonical Prisma MCP server; `CLOUDFLARE_BUILD` aliases remap to the raw-SQL adapter.
+ADR-007 import regression now **fail-closed**: scans broad roots (`(main)`, `api`, `components`, `lib`, `config`, `hooks`), maintains a tiny non-Consumer exclusion list, and allowlists only Discover. Newly added Consumer paths are scanned by default.
 
-Authority for the audit write-up: `docs/audits/2026-08-27-architecture-platform-saas-audit.md` finding F2.
+Live `/api/mcp` uses the canonical Prisma MCP server (`mcp/server.ts`); `CLOUDFLARE_BUILD` aliases remap to the raw-SQL adapter for CF bundles only. Full 23-tool registry is live; `publish_campaign` still requires `approved=true`.
+
+Authority for the audit write-up: `docs/audits/2026-08-27-architecture-platform-saas-audit.md` finding F2 (pre-remediation vs post-P0).
 
 ---
 
@@ -663,4 +658,5 @@ Those decisions must not be pulled into the current consolidation without eviden
 | 2026-08-06 | Created explicit 3–5 day pre-Pilot architecture consolidation execution plan to operationalize ADR-007 and ADR-008 without broad rewrite. |
 | 2026-08-06 | **DoD met.** P0 landed: MerchantSession acquisition fields + create API/client capture; Merchant commercial entitlement (`planCode` / allowances / `FOUNDING_PILOT` v8 resolver) wired into session + try-on enforcement; Store pending-sync moved under `modules/store`; ADR-007 regression expanded. Deferred (evidence-gated): full multi-provider router productization, `src/modules/commerce/**` extraction, Campaign/Conversion first-class aggregates, billing product model beyond entitlement config. |
 | 2026-08-27 | **Partial reopen.** Architecture audit found Consumer/main → Store imports contradicting the route-wide import-zero Boundary DoD while generation isolation remains green. Status split; §8.1 records debt vs candidate exceptions. |
-| 2026-08-27 | Money/auth/funnel debt extracted to `src/lib/commerce-handoff/**`; ADR-007 guards expanded. Discover + ContextualExperienceHandoff remain tracked exceptions. Live `campaign-service-cloudflare` create/update/setFrames now use `withPublicDiscoveryInvalidation`. |
+| 2026-08-27 | Money/auth/funnel debt extracted to `src/lib/commerce-handoff/**`. Live campaign CF adapter create/update/setFrames use `withPublicDiscoveryInvalidation`. Live MCP converged to canonical Prisma. |
+| 2026-08-27 | **P0 route-wide close.** Status Complete again. Authoritative rule: Consumer→Store = 0 except ADR-approved Commerce surfaces (Discover only). Fail-closed ADR-007 scan; Boundary/Execution DoD checked; changelog reconciled with §8.1. |

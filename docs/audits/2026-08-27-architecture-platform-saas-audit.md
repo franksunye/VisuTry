@@ -1,13 +1,14 @@
 # Architecture Audit — Platform / 2B SaaS / Agent-Native Readiness
 
-**Status:** Active audit (evidence-backed; review corrections applied)  
+**Status:** Active audit baseline (P0 remediations landed on this PR head; P1 deferred)  
 **Date:** 2026-08-27  
-**Last updated:** 2026-08-27 (PR review reconciliation)  
+**Last updated:** 2026-08-27 (post-P0 current-state rewrite)  
 **Owner:** Engineering / Product  
 **Scope:** Document + code review of VisuTry modular monolith against platformization, multi-tenant 2B SaaS, and Agent-Native distribution goals.  
 **Evidence:** Dependency/LOC/MCP parity scan reproduced in §8; full run log retained as agent artifact `architecture-audit-evidence.log`.  
 **Related authority:** ADR-006, ADR-007, ADR-008, ADR-010, ADR-011; `docs/project/architecture.md`; `docs/product/specs/visutry-commerce-architecture.md`; `docs/product/plans/architecture-consolidation-plan.md`; `docs/product/plans/universal-agent-access.md`  
-**Review note:** Corrected after PR review: (1) `*-cloudflare.ts` naming ≠ Cloudflare Workers serving runtime for `/api/mcp`; (2) Consumer→Store imports contradict the still-Complete consolidation DoD and must be reconciled as authority debt; (3) dual-implementation parity must be behavioral/invariant, not tool-name only.
+**How to read findings:** F2/F3 retain **pre-remediation evidence** for historical authority, then state **post-P0 current state**. Scorecard and §8 evidence snapshot reflect current state.  
+**Review note:** Corrected after PR review: (1) `*-cloudflare.ts` naming ≠ Cloudflare Workers serving runtime for `/api/mcp`; (2) Consumer→Store authority reconciled via `commerce-handoff` + Discover-only ADR allowlist + fail-closed boundary scan; (3) dual-implementation parity must be behavioral/invariant, not tool-name only; live MCP now uses canonical Prisma.
 
 ---
 
@@ -20,15 +21,15 @@
 | Dimension | Grade | One-line assessment |
 | --- | --- | --- |
 | Strategic / domain intent (docs + ADRs) | **A−** | Commerce-over-Storefront, Intent-first, Agent-ready principles are clear and mostly coherent. |
-| Consumer ↔ Store stability (ADR-007) | **B+** | Generation/quota/cron isolation is real and tested; handoff imports are unresolved authority debt vs a still-Complete consolidation DoD (see F2). |
+| Consumer ↔ Store stability (ADR-007) | **A−** | Generation isolation remains green; money/auth/funnel handoffs extracted; fail-closed broad-root scan with Discover-only allowlist (see F2 current state). |
 | Module cohesion (store / merchant / business) | **B−** | Merchant operator boundary exists, but Store still owns the Merchant entity and most commerce. |
 | Multi-tenant isolation | **B+** | Strong patterns on agent/session paths; safety depends on caller discipline for some services. |
-| Agent-Native (MCP / OAuth / Skill) | **B** | Correct architecture shape; live path uses the `*-cloudflare` (raw-SQL) implementation family with a reduced tool set vs the unused Prisma alternate. |
-| Dual-implementation maintainability | **C+** | ADR-010 hybrid edge remains sound; ~25 `*-cloudflare.ts` forks are **implementation** forks (Prisma vs raw SQL / edge-compatible), not necessarily Workers serving runtime. Behavioral drift is the real tax. |
+| Agent-Native (MCP / OAuth / Skill) | **A−** | Live `/api/mcp` = Vercel Node + canonical Prisma `server.ts` + full 23-tool registry; CF raw-SQL family confined to `CLOUDFLARE_BUILD` aliases (see F3). |
+| Dual-implementation maintainability | **B−** | Live fork closed for MCP; ~25 `*-cloudflare.ts` adapters remain for CF bundles. Acceptable P0 split; deeper consolidation is P1 unless CF becomes a live MCP serving path. |
 | Shared capability core | **B** | One generation core works; `tryon-service` remains a large blast-radius orchestrator. |
-| Documentation currency | **B−** | ADRs/plans excellent; consolidation DoD and `architecture.md` needed reconciliation with live imports/MCP wiring. |
+| Documentation currency | **B+** | Audit + consolidation plan + ADR-007 reconciled to post-P0 current state in this PR. |
 
-**Bottom line:** Do **not** rewrite into microservices or a greenfield `commerce/` tree. Do **freeze dual-implementation drift with behavioral contract tests**, reconcile the Consumer→Store authority contradiction, extract a few **shared commerce contracts** out of Store, and treat **Agent + Admin as clients of one application layer**—evidence-triggered, not purity-triggered.
+**Bottom line:** Do **not** rewrite into microservices or a greenfield `commerce/` tree. P0 Consumer→Store authority + live MCP convergence are closed on this head. Remaining platform work is **P1 commerce-application unification** and evidence-triggered `modules/commerce/**` extraction—not new product layers.
 
 ---
 
@@ -122,9 +123,11 @@ That prevents premature backend forks while Agent Native grows on the platform.
 1. Move Merchant aggregate + repository ports toward `modules/merchant` or a thin `modules/commerce/merchant` when a second non-Storefront writer appears.
 2. Until then, treat Store `merchant-*` domain files as **commerce contracts** and forbid Consumer imports except via an explicit shared package (see F2).
 
-### F2. Consumer handoff surfaces import Store domain — P0 authority debt (not a “soft leak”)
+### F2. Consumer handoff surfaces import Store domain — P0 (closed)
 
-**Evidence — Consumer/main importing Store (2026-08-27):**
+#### Pre-remediation finding (audit-time evidence)
+
+Consumer/main imported Store domain on seven paths:
 
 | Path | Import |
 | --- | --- |
@@ -136,45 +139,29 @@ That prevents premature backend forks while Agent Native grows on the platform.
 | `src/app/[locale]/(main)/discover/page.tsx` | Store application runtime + discover content |
 | `src/components/distribution/ContextualExperienceHandoff.tsx` | `build-merchant-experience-href` |
 
-**Authority contradiction:** `docs/product/plans/architecture-consolidation-plan.md` remains **Status: Complete** and its Boundary DoD asserts:
+**Authority contradiction at audit time:** consolidation Boundary DoD claimed Consumer→Store dependency count is zero, while ADR-007 regression only scanned generation/cron/try-on roots. Generation isolation was genuinely green; the broader claim had drifted.
 
-> Consumer → `src/modules/store/**` dependency count is zero.
+#### Post-P0 current state
 
-Its merge gate also treats any Consumer → Store dependency as a blocker unless a superseding ADR approves it. This audit finds **seven** Consumer/main → Store imports. Under the still-active written rule, that is either:
+| Path | Status |
+| --- | --- |
+| payment / pricing / signin / success / consumer-funnel / distribution handoffs | **Fixed** — use `src/lib/commerce-handoff/**` (no Store orchestration) |
+| `ContextualExperienceHandoff.tsx` | **Fixed** — `@/lib/commerce-handoff/merchant-experience-href` |
+| Discover route + `DiscoverPage.tsx` | **Approved exception** — sole Commerce discovery surface under `(main)` (ADR-007 allowlist) |
 
-1. a **regression from a closed DoD**, or
-2. evidence the consolidation authority must be **explicitly superseded / exceptioned**.
+**Authoritative rule now:** Consumer→Store imports are **zero except ADR-approved Commerce surfaces (currently Discover only)**.
 
-Calling this only a “soft leak” understates the governance failure.
+**Guardrail (fail-closed):** `tests/unit/lib/adr-007-consumer-stability.test.ts` scans broad roots (`src/app/[locale]/(main)`, `src/app/api`, `src/components`, `src/lib`, `src/config`, `src/hooks`), maintains a tiny non-Consumer exclusion list, and allowlists only Discover. Hand-maintained *inclusion* lists of Consumer directories are insufficient and must not return.
 
-**Why CI stays green:** `tests/unit/lib/adr-007-consumer-stability.test.ts` only scans protected generation/cron/try-on roots:
+Consolidation plan §8.1 and Boundary DoD are reconciled to this rule.
 
-```text
-src/lib/tryon-service.ts
-src/lib/quota.ts
-src/lib/compare-tryon-server.ts
-src/lib/cron/sync-pending-consumer-tasks.ts
-src/app/api/cron/cleanup-expired-tasks/route.ts
-src/app/api/cron/sync-pending-consumer-tasks/route.ts
-src/app/api/try-on/**
-```
+### F3. Dual implementation drift (`*-cloudflare` vs Prisma) — P0 for live MCP (closed); adapter tax remains P1
 
-It does **not** scan payment, signin, success, pricing, consumer-funnel, discover, or distribution handoff surfaces. Generation isolation remains genuinely green; the broader “zero Consumer→Store imports” claim is what drifted.
-
-**Recommendation:**
-
-1. Update/supersede the consolidation plan DoD immediately (see plan change in this PR): split **generation isolation (still Complete)** from **route-wide import zero (reopened / exceptioned)**.
-2. Record approved exceptions (Discover as Store surface; distribution handoff) vs debt (payment/signin/success/pricing/funnel importing Store domain).
-3. Extract `merchant-continuation` + AI referral inference into a **neutral shared package** with no Store orchestration.
-4. Extend ADR-007 automated import guards to those money/auth/funnel paths (or document permanent exceptions by ADR).
-
-### F3. Dual implementation drift (`*-cloudflare` vs Prisma alternate) — P0 for Agent-Native credibility
+#### Pre-remediation finding (audit-time evidence)
 
 **Important correction — naming ≠ serving runtime:**
 
-`src/app/api/mcp/route.ts` declares `export const runtime = 'nodejs'`. B4 production classification marks `/api/mcp` as `vercel-required` (`cloudflare-router/b4-production-public-slice.ts`). The live route still **imports** `server-cloudflare.ts` and the `merchant-*-cloudflare` / `campaign-service-cloudflare` family.
-
-So the production fact is:
+`src/app/api/mcp/route.ts` already declared `export const runtime = 'nodejs'`. B4 production classification marked `/api/mcp` as `vercel-required`. At audit time the live route still **imported** `server-cloudflare.ts` and the raw-SQL family:
 
 ```text
 Serving runtime:     Vercel Node (not Workers) for POST /api/mcp
@@ -183,32 +170,28 @@ Alternate (unused):  server.ts + Prisma campaign/onboarding services
                      — zero production importers found for mcp/server.ts
 ```
 
-Do **not** frame the primary contract as “Node runtime vs Cloudflare Workers runtime parity.” Frame it as **live vs alternate implementation parity** (raw-SQL / `*-cloudflare` adapters vs Prisma services), regardless of which host executes the route.
+Tool-registry gap at audit time (live 19 vs Prisma 23): `archive_campaign`, `compare_experiences`, `inspect_catalog_source`, `publish_campaign`.
 
-**Evidence:**
+Behavioral drift example: Prisma `campaign-service.ts` wrapped mutations in `withPublicDiscoveryInvalidation`; live `campaign-service-cloudflare.ts` did not. Tool-name parity alone would not catch that.
 
-- **25** `*-cloudflare.ts` files across merchant/store/auth/data.
-- Live MCP wires `createMerchantMcpServer` from `server-cloudflare.ts` only.
-- Tool-registry gap vs unused Prisma MCP (`server.ts`):
+#### Post-P0 current state
 
 ```text
-archive_campaign
-compare_experiences
-inspect_catalog_source
-publish_campaign
+Serving runtime:     Vercel Node for POST /api/mcp
+Live implementation: canonical Prisma mcp/server.ts + merchant-mcp.ts
+                     + full MCP_TOOL_NAMES (23 tools), including publish/archive/
+                     inspect_catalog_source/compare_experiences
+CF-only alternate:   CLOUDFLARE_BUILD aliases remap mcp/server → server-cloudflare
+                     (raw-SQL adapter; reduced tool availability via registry)
 ```
 
-- **Behavioral drift beyond tool names** (example): Prisma `campaign-service.ts` wraps create/update/publish/archive mutations in `withPublicDiscoveryInvalidation`. `campaign-service-cloudflare.ts` does **not**. Live MCP therefore can mutate campaign state without the discovery-invalidation invariant of the Prisma alternate. Tool-name parity alone will not catch cache invalidation, readiness, audit, idempotency, or tenant-check drift. CF `publishCampaign` / `archiveCampaign` currently throw `publishUnsupported()` while Prisma implements them—another capability/invariant split.
+- No hard reason required raw-SQL on Vercel Node; historical driver was CF build / Prisma stub.
+- `publish_campaign` still requires explicit `approved=true` and remains marked destructive.
+- Campaign canonical contracts: `tests/unit/modules/store/campaign-service.test.ts`.
+- Adapter write-parity (narrower): `cloudflare-write-parity.test.ts` — acceptable P0 split.
+- Deeper `*-cloudflare` consolidation stays **P1** unless Cloudflare becomes a live MCP serving path.
 
-**Why it matters:** Agent-Native is a primary brand-facing operating promise. A reduced live tool surface vs an alternate Prisma MCP, plus silent business-invariant skew inside shared tool names, creates credibility and correctness risk under SaaS velocity.
-
-**Recommendation (aligned with ADR-010, not against it):**
-
-1. Prefer **one application service + thin persistence adapters** (SQL/driver differences only) over forked business logic.
-2. Treat MCP tool registry as a single source; the live adapter may disable tools with explicit `availability`, never omit silently relative to product docs.
-3. Phase A must require **contract tests for equivalent business outcomes/invariants** across duplicated service pairs (invalidation, tenant scope, idempotency, audit, readiness)—tool-registry parity is only one layer.
-4. Prioritize consolidating: `campaign-service`, `merchant-analytics`, `merchant-onboarding`, `merchant-control-center`, MCP server families.
-5. Decide explicitly whether Prisma `server.ts` remains a maintained alternate, a migration target, or dead code—today it has no production call site.
+**Recommendation (remaining):** Prefer one application service + thin persistence adapters over forked business logic for remaining CF adapters; keep MCP tool registry as single source.
 
 ### F4. Three merchant intelligence stacks — P1
 
@@ -234,15 +217,15 @@ publish_campaign
 
 **Recommendation:** Do not refactor for purity. Extract only when a second Consumer surface (mobile/API) needs the same contracts.
 
-### F7. Documentation lag vs code reality — P2 (partially addressed in this PR)
+### F7. Documentation lag vs code reality — P2 (addressed for P0 authority in this PR)
 
-`docs/project/architecture.md` historically centered Consumer try-on/payment/SSG. This audit PR adds a domain-module / MCP map and corrects the MCP serving-vs-implementation wording. Remaining lag:
+`docs/project/architecture.md` historically centered Consumer try-on/payment/SSG. This audit PR adds a domain-module / MCP map and corrects the MCP serving-vs-implementation wording. Post-P0:
 
-- Product docs may still describe “CF MCP” as if Workers served `/api/mcp`;
-- Dual-implementation availability matrices are not yet first-class in `universal-agent-access.md`;
-- Consolidation DoD was Complete without recording later handoff imports (now §8.1).
+- This audit’s F2/F3, scorecard, and §8 now distinguish pre-remediation finding vs current state;
+- Consolidation plan status/DoD/§8.1/changelog assert Consumer→Store = 0 except Discover;
+- ADR-007 documents fail-closed broad-root scan + Discover allowlist.
 
-**Recommendation:** Keep `architecture.md` as technical reality; treat this audit + consolidation §8.1 as the reconciliation trail until handoff extraction or an exception ADR lands.
+Remaining lag (non-blocking for P0): Product docs may still describe historical “CF MCP” wording; dual-implementation availability matrices can deepen in `universal-agent-access.md` under P1.
 
 ---
 
@@ -274,7 +257,7 @@ publish_campaign
 | --- | --- |
 | Standards-based Remote MCP | Met |
 | OAuth + Agent Key → same actor | Met |
-| Tools call shared application services | Partially met (live `*-cloudflare` subset; Control Center not same APIs; Prisma alternate unused) |
+| Tools call shared application services | Met for live MCP (canonical Prisma); Control Center / Admin still not same APIs (P1) |
 | Skill teaches; MCP executes | Met |
 | Human + agent share commerce core | Directionally met |
 | External-client Golden Paths | Documented as still requiring revalidation |
@@ -285,12 +268,14 @@ publish_campaign
 
 Order by engineering risk (reviewer ranking, 2026-08-27):
 
-### P0 — Fix now (guardrail + live fork) — **in progress / largely closed in this PR**
+### P0 — Fix now (guardrail + live fork) — **closed on this PR head**
 
-1. **Consumer → Store boundary regression** — `src/lib/commerce-handoff/**` + broad ADR-007 boundary scan with Discover-only allowlist.
-2. **Production MCP implementation fork** — live `/api/mcp` converged to canonical Prisma MCP server; `CLOUDFLARE_BUILD` aliases retain raw-SQL adapter for CF bundles only. No hard reason required raw-SQL on Vercel Node.
+1. **Consumer → Store boundary** — `src/lib/commerce-handoff/**` + fail-closed broad ADR-007 scan with Discover-only allowlist. Rule: imports = zero except ADR-approved Commerce surfaces (Discover only).
+2. **Production MCP implementation fork** — live `/api/mcp` → canonical Prisma MCP server; `CLOUDFLARE_BUILD` aliases retain raw-SQL adapter for CF bundles only.
 3. **Behavioral parity / contract tests** — Campaign canonical contracts in `campaign-service.test.ts`; adapter invalidation + tenant checks in `cloudflare-write-parity.test.ts`; MCP tool-registry single-source + live publish path covered by `mcp-route.test.ts`.
-4. **Single-source MCP tool availability** — `modules/merchant/mcp/tool-registry.ts`; live path includes `publish_campaign` / `archive_campaign` / `inspect_catalog_source` / `compare_experiences`.
+4. **Single-source MCP tool availability** — `modules/merchant/mcp/tool-registry.ts`; live path includes all 23 tools (`publish_campaign` / `archive_campaign` / `inspect_catalog_source` / `compare_experiences`).
+
+Do **not** expand P0 into Admin/MCP/UI unification or `modules/commerce/**` extraction in this PR.
 
 ### P1 — Unify commerce application contracts
 
@@ -314,42 +299,55 @@ Only after real Pilot / second delivery-surface evidence. Do not rename Store fo
 
 ```text
 Direction (docs/ADRs)     ████████████████░░  strong
-Consumer stability        ██████████████░░░░  generation strong; handoff authority debt
+Consumer stability        ███████████████░░░  generation + route-wide guard closed (Discover exception)
 Tenant / actor model      ██████████████░░░░  strong
-Module cohesion           ██████████░░░░░░░░  uneven (Store overweight)
-Agent-Native production   ██████████░░░░░░░░  shape good; live/alternate invariant gap
-Dual-impl maintainability ████████░░░░░░░░░░  *-cloudflare fork tax
-Platform-ready overall    ███████████░░░░░░░  good enough to pilot;
-                                              not yet “set and forget” SaaS platform
+Module cohesion           ██████████░░░░░░░░  uneven (Store overweight) — P1/P2
+Agent-Native production   ███████████████░░░  live Prisma MCP + full tool registry
+Dual-impl maintainability ██████████░░░░░░░░  live MCP fork closed; CF adapter tax remains
+Platform-ready overall    ████████████░░░░░░  P0 closed for Pilot/Agent credibility;
+                                              P1 commerce-API unification still required
+                                              before “set and forget” SaaS platform
 ```
 
 **Is it “足够好”?**
 
-- **够好** to continue brand pilots, Agent-Native onboarding, and Product Advantage Gate work **without a rewrite**.
-- **不够好** to treat the current Store-centric module split + dual implementation forks as the final platform architecture for scaled 2B SaaS.
+- **够好** to continue brand pilots, Agent-Native onboarding, and Product Advantage Gate work **without a rewrite**, with P0 guardrail + live MCP credibility closed.
+- **不够好** to treat the current Store-centric module split + remaining CF dual-implementation adapters as the final platform architecture for scaled 2B SaaS.
 
-The highest-leverage architectural investments are **behavioral drift control**, **Consumer→Store authority reconciliation**, and **commerce contract extraction**—not new product layers.
+The highest-leverage remaining investments are **P1 commerce application unification** and evidence-triggered extraction—not new product layers.
 
 ---
 
-## 8. Evidence Snapshot (2026-08-27)
+## 8. Evidence Snapshot
+
+### 8.1 Pre-remediation (original 2026-08-27 audit scan)
+
+```text
+*-cloudflare.ts files: 25
+Core Consumer generation → store imports: 0
+Consumer/main → store handoff imports: 7 paths
+POST /api/mcp: runtime=nodejs, B4=vercel-required, impl=server-cloudflare.ts
+Prisma mcp/server.ts production importers: 0
+MCP tools live(*-cloudflare): 19 | alternate(Prisma server.ts): 23
+ADR-007 import test roots: generation/cron/try-on only (not money/auth/funnel)
+```
+
+### 8.2 Post-P0 current state (this PR head)
 
 ```text
 src/app ~25.3k LOC | components ~26.9k | lib ~14.4k | modules ~19.1k
 store ~13.4k | merchant ~5.6k | business ~0.2k
-*-cloudflare.ts files: 25
-merchant→store import files: 9 | store→merchant: 6
+*-cloudflare.ts files: still present for CF build adapters (not live MCP)
+merchant→store import files: present (expected; Merchant ops on Store commerce)
 Core Consumer generation → store imports: 0
-Consumer/main → store handoff imports: 7 paths (see F2)
-POST /api/mcp: runtime=nodejs, B4=vercel-required, impl=server-cloudflare.ts
-Prisma mcp/server.ts production importers: 0
-MCP tools live(*-cloudflare): 19 | alternate(Prisma server.ts): 23
-Alternate-only tools: publish_campaign, archive_campaign,
-  compare_experiences, inspect_catalog_source
-Example invariant drift: Prisma campaign mutations wrap
-  withPublicDiscoveryInvalidation; *-cloudflare campaign-service does not
-ADR-007 import test roots: tryon-service, quota, compare-tryon-server,
-  consumer cron helpers, /api/try-on — not payment/auth/success/pricing/funnel
+Consumer→Store imports outside Discover allowlist: 0
+Discover allowlist: discover/page.tsx + DiscoverPage.tsx
+POST /api/mcp: runtime=nodejs, B4=vercel-required, impl=mcp/server.ts (Prisma)
+CLOUDFLARE_BUILD aliases remap mcp/server → server-cloudflare for CF bundles
+MCP tools live(canonical-prisma): 23 | CF adapter unavailable subset: 4
+  (inspect_catalog_source, publish_campaign, archive_campaign, compare_experiences)
+ADR-007 guard: broad roots + non-Consumer exclusion list + Discover allowlist (fail-closed)
+Campaign contracts: campaign-service.test.ts (canonical) + cloudflare-write-parity.test.ts
 ```
 
 ---
@@ -360,4 +358,5 @@ ADR-007 import test roots: tryon-service, quota, compare-tryon-server,
 | --- | --- |
 | 2026-08-27 | Initial platform / 2B SaaS / Agent-Native architecture audit from docs + dependency evidence. |
 | 2026-08-27 | Review reconciliation: reframed F3 as live vs alternate implementation parity (not Workers vs Node serving); elevated F2 to consolidation DoD contradiction; required behavioral contract tests in Phase A. |
-| 2026-08-27 | P0 engineering start: `commerce-handoff` extraction, expanded ADR-007 roots, live campaign discovery-invalidation parity + contract tests; priority program rewritten to reviewer P0/P1/P2. |
+| 2026-08-27 | P0 engineering: `commerce-handoff` extraction, fail-closed ADR-007 scan, live MCP → canonical Prisma, Campaign contract tests; priority program = reviewer P0/P1/P2. |
+| 2026-08-27 | **Post-P0 rewrite:** F2/F3/scorecard/§8 distinguish pre-remediation finding vs current state (Discover-only exception; live Prisma MCP + 23 tools). |
