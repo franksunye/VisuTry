@@ -36,7 +36,7 @@ jest.mock('@/modules/merchant', () => ({
   },
 }))
 
-jest.mock('@/modules/merchant/application/merchant-mcp-cloudflare', () => ({
+jest.mock('@/modules/merchant/application/merchant-mcp', () => ({
   canonicalMcpResource: jest.fn((origin: string) => `${origin}/api/mcp`),
   assertTrustedMcpOrigin: jest.fn(),
   McpOriginError: class McpOriginError extends Error {
@@ -50,7 +50,7 @@ jest.mock('@/modules/merchant/application/merchant-mcp-cloudflare', () => ({
   },
 }))
 
-jest.mock('@/modules/merchant/cloudflare', () => ({
+jest.mock('@/modules/merchant/application/merchant-agent-rate-limit', () => ({
   consumeMerchantAgentMcpRequest: jest.fn().mockResolvedValue(undefined),
   AgentRateLimitError: class AgentRateLimitError extends Error {
     readonly code = 'AGENT_RATE_LIMITED'
@@ -75,7 +75,7 @@ import {
 import {
   authenticateMerchantMcpBearer,
   InvalidAgentCredentialError,
-} from '@/modules/merchant/application/merchant-mcp-cloudflare'
+} from '@/modules/merchant/application/merchant-mcp'
 import { POST as mcpPost } from '@/app/api/mcp/route'
 import { GET as protectedResourceGet } from '@/app/.well-known/oauth-protected-resource/route'
 import { GET as authorizationServerGet } from '@/app/.well-known/oauth-authorization-server/route'
