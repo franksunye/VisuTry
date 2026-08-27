@@ -49,7 +49,7 @@ test.describe('Human Merchant Onboarding G1', () => {
 
     await expect(page).toHaveURL(/\/en\/merchant\?merchantId=[^&]+&onboarding=created/)
     await expect(page.getByRole('status')).toContainText('Merchant workspace created successfully')
-    await expect(page.getByRole('link', { name: /next: add your eyewear catalog/i })).toHaveAttribute('href', '#experiences')
+    await expect(page.getByRole('link', { name: /next: add your eyewear catalog/i })).toHaveAttribute('href', '#catalog')
     const merchantId = new URL(page.url()).searchParams.get('merchantId')
     expect(merchantId).toBeTruthy()
 
@@ -79,7 +79,7 @@ test.describe('Human Merchant Onboarding G1', () => {
 
     await loginWithMock(request, context, 'free')
     await page.goto('/en/merchant', { waitUntil: 'domcontentloaded' })
-    await expect(page.getByRole('heading', { name: /let your agent do the work/i })).toBeVisible()
+    await expect(page.getByRole('heading', { name: /bring your eyewear catalog to life/i })).toBeVisible()
     await expect(page.locator('body')).toContainText('G1 Local Human Merchant')
     await expect(page.getByText(/create your merchant workspace/i)).not.toBeVisible()
 

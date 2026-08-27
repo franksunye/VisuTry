@@ -208,8 +208,8 @@ export function createMerchantMcpServer(actor: AgentMerchantActor) {
 
   server.registerTool('import_frames', {
     title: 'Import frames',
-    description: 'Create or update up to 100 structured catalog frames, idempotently by merchant SKU. This never deletes frames.',
-    inputSchema: { frames: z.array(frameInput).min(1).max(100) },
+    description: 'Create or update up to 1,000 structured catalog frames, idempotently by merchant SKU. This never deletes frames.',
+    inputSchema: { frames: z.array(frameInput).min(1).max(1000) },
   }, async ({ frames }) => safe(() => merchantOnboarding.importMerchantFrames({ actor, frames: frames as CatalogFrameInput[] })))
 
   server.registerTool('validate_catalog', {

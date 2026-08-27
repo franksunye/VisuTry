@@ -18,7 +18,10 @@ describe('MerchantControlCenter', () => {
   beforeEach(() => {
     jest.clearAllMocks()
     Object.defineProperty(navigator, 'clipboard', { configurable: true, value: { writeText: jest.fn().mockResolvedValue(undefined) } })
-    global.fetch = jest.fn().mockResolvedValue({ ok: true, json: async () => ({ data: { credentials: [{ id: 'credential-a', name: 'Agent', masked: 'vt_live_••••••••', scopes: ['analytics:read'], status: 'ACTIVE', createdAt: '2026-08-01T00:00:00.000Z', lastUsedAt: null, revokedAt: null }] } }) }) as jest.Mock
+    global.fetch = jest.fn().mockImplementation(async (url: string) => {
+      if (url.includes('/catalog')) return new Promise(() => undefined)
+      return { ok: true, json: async () => ({ data: { credentials: [{ id: 'credential-a', name: 'Agent', masked: 'vt_live_••••••••', scopes: ['analytics:read'], status: 'ACTIVE', createdAt: '2026-08-01T00:00:00.000Z', lastUsedAt: null, revokedAt: null }] } }) }
+    }) as jest.Mock
   })
 
   it('renders the three-step connection surface and mobile-safe stacked sections', () => {
@@ -35,7 +38,7 @@ describe('MerchantControlCenter', () => {
   it('shows the post-creation next step and records workspace entry', () => {
     render(<MerchantControlCenter {...baseProps} onboardingState="created" />)
     expect(screen.getByRole('status')).toHaveTextContent('Merchant workspace created successfully')
-    expect(screen.getByRole('link', { name: /next: add your eyewear catalog/i })).toHaveAttribute('href', '#experiences')
+    expect(screen.getByRole('link', { name: /next: add your eyewear catalog/i })).toHaveAttribute('href', '#catalog')
     expect(analytics.trackCustomEvent).toHaveBeenCalledWith('merchant_workspace_entered', expect.objectContaining({ merchant_id: 'merchant-a', entry_point: 'b2b' }))
   })
 
@@ -109,6 +112,7 @@ describe('MerchantControlCenter', () => {
   it('shows a newly created secret once and removes it on close', async () => {
     ;(global.fetch as jest.Mock).mockImplementation(async (url: string, options?: RequestInit) => {
       if (options?.method === 'POST') return { ok: true, json: async () => ({ data: { secret: 'vt_live_one_time_secret' } }) }
+      if (url.includes('/catalog')) return new Promise(() => undefined)
       return { ok: true, json: async () => ({ data: { credentials: [{ id: 'credential-a', name: 'Agent', masked: 'vt_live_••••••••', scopes: ['analytics:read'], status: 'ACTIVE', createdAt: '2026-08-01T00:00:00.000Z', lastUsedAt: null, revokedAt: null }] } }) }
     })
     render(<MerchantControlCenter {...baseProps} />)

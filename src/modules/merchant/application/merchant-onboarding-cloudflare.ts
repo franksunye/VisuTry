@@ -5,7 +5,9 @@ import { MerchantAccessError } from './merchant-access-cloudflare'
 import { recordMerchantAgentOperation } from './merchant-agent-credentials-cloudflare'
 import { requireAgentScope, type MerchantActorContext } from '../domain/actor'
 
-export const MAX_CATALOG_IMPORT = 100
+// Batch safety guard, not a product-count/UI ceiling. Human Web paginates the
+// catalog and the import review can contain up to 1,000 rows per approval.
+export const MAX_CATALOG_IMPORT = 1000
 export const MAX_STORE_FRAMES = 100
 
 export type CatalogFrameInput = {

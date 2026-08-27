@@ -29,6 +29,7 @@ import {
   MERCHANT_DISTRIBUTION_SOURCE_LABELS,
   type MerchantDistributionReport,
 } from "@/modules/store/domain/merchant-distribution-report";
+import { MerchantCatalogSelfService } from "@/components/merchant/MerchantCatalogSelfService";
 
 type SkillCard = { name: string; purpose: string; url: string; prompt: string };
 type Props = {
@@ -144,12 +145,12 @@ function Overview({
   control,
   agentReady,
   onAgentAccess,
-  onExperiences,
+  onCatalog,
 }: {
   control: MerchantControlCenterModel;
   agentReady: boolean;
   onAgentAccess: () => void;
-  onExperiences: () => void;
+  onCatalog: () => void;
 }) {
   const cards = [
     {
@@ -188,12 +189,12 @@ function Overview({
           Merchant workspace
         </p>
         <h1 className="mt-3 max-w-2xl text-3xl font-semibold tracking-[-0.04em] text-slate-950 sm:text-5xl">
-          Let your agent do the work.
+          Bring your eyewear catalog to life.
         </h1>
         <p className="mt-4 max-w-2xl text-base leading-7 text-slate-600">
-          Connect your Agent with one secure key, then let it understand your
-          workspace, guide setup, and help you operate Store, Campaigns, and
-          insights through conversation.
+          Start with your store URL, a CSV, or a few products manually. Review
+          what VisuTry found, approve the valid rows, and keep your catalog in
+          your own merchant workspace.
         </p>
         <div className="mt-6 flex flex-col gap-3 sm:flex-row">
           <button
@@ -207,9 +208,9 @@ function Overview({
           <button
             type="button"
             className={`${buttonClass} border border-slate-300 bg-white text-slate-800 hover:border-blue-300`}
-            onClick={onExperiences}
+            onClick={onCatalog}
           >
-            View status
+            Add eyewear catalog
           </button>
         </div>
       </div>
@@ -1464,6 +1465,12 @@ export function MerchantControlCenter({
               >
                 Status
               </a>
+              <a
+                className="rounded-lg px-2.5 py-2 hover:bg-slate-100"
+                href="#catalog"
+              >
+                Catalog
+              </a>
             </nav>
           </div>
         </div>
@@ -1487,7 +1494,7 @@ export function MerchantControlCenter({
                 : "You are back in your existing workspace. Your next step is to add your eyewear catalog."}
             </p>
             <a
-              href="#experiences"
+              href="#catalog"
               className="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-emerald-800 underline decoration-emerald-300 underline-offset-4 hover:text-emerald-950"
             >
               Next: add your eyewear catalog <ArrowRight className="h-4 w-4" aria-hidden="true" />
@@ -1502,9 +1509,9 @@ export function MerchantControlCenter({
               .getElementById("agent-access")
               ?.scrollIntoView({ behavior: "smooth" })
           }
-          onExperiences={() =>
+          onCatalog={() =>
             document
-              .getElementById("experiences")
+              .getElementById("catalog")
               ?.scrollIntoView({ behavior: "smooth" })
           }
         />
@@ -1520,6 +1527,10 @@ export function MerchantControlCenter({
           skills={skills}
           initialCredentials={credentials}
           onCredentialsChanged={handleCredentialsChanged}
+        />
+        <MerchantCatalogSelfService
+          merchantId={control.merchant.id}
+          initialTotal={control.catalog.total}
         />
         <Experiences
           experiences={control.experiences}
