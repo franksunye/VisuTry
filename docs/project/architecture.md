@@ -352,10 +352,11 @@ Admin, Merchant Control Center, and MCP are delivery clients of the same C1 Expe
 Delivery surfaces
   ├─ Merchant Control Center
   ├─ Admin merchant comparison
+  ├─ Admin merchant Performance snapshot
   └─ MCP get_experience_* / compare_experiences
         ↓
 Shared application contracts
-  ├─ computeExperienceAnalytics / getExperienceAnalyticsSummary / listMerchantExperienceAnalytics
+  ├─ computeExperienceAnalytics / getExperienceAnalyticsSummary / listMerchantExperienceAnalytics / getMerchantAnalyticsSnapshot
   └─ buildMerchantCommerceIntelligence / getMerchantCommerceIntelligence
         ↓
 Prisma or Cloudflare persistence loaders (no local metric formulas)
@@ -402,13 +403,14 @@ Store publish remains the separate onboarding command (`publishMerchantStore`). 
 - MCP Experience summary / funnel / top frames / intent
 - Merchant Control Center `commerceIntelligence`
 - Admin merchant Experience comparison table (`listMerchantExperienceAnalytics`)
+- Admin merchant Performance snapshot (`getMerchantAnalyticsSnapshot` merchant-wide C1)
 - Admin Experience insights API when `experienceId` is set
 - `compareMerchantExperiences` (already composed from C1 summaries)
 - Campaign preview / readiness / publish / archive
 
 ### Still duplicated (acceptable; P2 not triggered)
 
-- `getMerchantInsights` CRM (recent sessions, inquiries, catalog interest, all-time operator funnel)
+- `getMerchantInsights` CRM / operational activity (recent sessions, inquiries, catalog interest, all-time action counts). Admin may show these as **shopper actions**, not as C1 engagement or session conversion.
 - `get-experience-admin` all-time directory counts on the Experiences list page
 - Remaining Prisma vs Cloudflare persistence adapters (business policy is already shared for analytics and Campaign lifecycle)
 - `merchant-distribution-report` source-class engagement overlay (includes recommendation by design)
