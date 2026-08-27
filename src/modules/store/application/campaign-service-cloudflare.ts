@@ -3,6 +3,7 @@ import { validateCatalogFrame } from '@/modules/merchant/application/merchant-on
 import { MerchantAccessError } from '@/modules/merchant/application/merchant-access-cloudflare'
 import { resolveCampaignConversionPolicy, isCampaignGate, isCampaignObjective, isPresentationMode, type CampaignGate, type CampaignObjective } from '../domain/campaign-policy'
 import { resolvePresentationMode, type PresentationMode } from '../domain/presentation-mode'
+import { withPublicDiscoveryInvalidation } from './public-discovery-invalidation'
 
 const MAX_CAMPAIGN_FRAMES = 100
 
@@ -157,7 +158,11 @@ export async function createCampaignDraft(input: {
   const requestedSlug = slugify(input.slug || name)
   const id = globalThis.crypto?.randomUUID?.() ?? `cf-${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`
   const values = { name, objective, gate, presentationMode, headline: input.headline?.trim() || null, description: input.description?.trim() || null, startAt, endAt, primaryCtaType: input.primaryCtaType?.trim() || null, primaryCtaLabel: input.primaryCtaLabel?.trim() || null, primaryCtaUrl: input.primaryCtaUrl?.trim() || null, secondaryCtaType: input.secondaryCtaType?.trim() || null, secondaryCtaLabel: input.secondaryCtaLabel?.trim() || null, secondaryCtaUrl: input.secondaryCtaUrl?.trim() || null }
-  const inserted = await sql`INSERT INTO "Experience" ("id", "merchantId", "type", "slug", "name", "status", "headline", "description", "campaignObjective", "campaignGate", "presentationMode", "startAt", "endAt", "primaryCtaType", "primaryCtaLabel", "primaryCtaUrl", "secondaryCtaType", "secondaryCtaLabel", "secondaryCtaUrl", "createdAt", "updatedAt") VALUES (${id}, ${input.merchantId}, 'CAMPAIGN', ${requestedSlug}, ${values.name}, 'DRAFT', ${values.headline}, ${values.description}, ${values.objective}, ${values.gate}, ${values.presentationMode}, ${values.startAt}, ${values.endAt}, ${values.primaryCtaType}, ${values.primaryCtaLabel}, ${values.primaryCtaUrl}, ${values.secondaryCtaType}, ${values.secondaryCtaLabel}, ${values.secondaryCtaUrl}, NOW(), NOW()) ON CONFLICT ("merchantId", "slug") DO NOTHING RETURNING "id"`
+  const inserted = await withPublicDiscoveryInvalidation({
+    target: { kind: 'experience', merchantSlug: String(merchant.slug), experienceSlug: requestedSlug },
+    mutation: () => sql`INSERT INTO "Experience" ("id", "merchantId", "type", "slug", "name", "status", "headline", "description", "campaignObjective", "campaignGate", "presentationMode", "startAt", "endAt", "primaryCtaType", "primaryCtaLabel", "primaryCtaUrl", "secondaryCtaType", "secondaryCtaLabel", "secondaryCtaUrl", "createdAt", "updatedAt") VALUES (${id}, ${input.merchantId}, 'CAMPAIGN', ${requestedSlug}, ${values.name}, 'DRAFT', ${values.headline}, ${values.description}, ${values.objective}, ${values.gate}, ${values.presentationMode}, ${values.startAt}, ${values.endAt}, ${values.primaryCtaType}, ${values.primaryCtaLabel}, ${values.primaryCtaUrl}, ${values.secondaryCtaType}, ${values.secondaryCtaLabel}, ${values.secondaryCtaUrl}, NOW(), NOW()) ON CONFLICT ("merchantId", "slug") DO NOTHING RETURNING "id"`,
+    invalidate: (rows) => Boolean(rows[0]?.id),
+  })
   const campaignId = String(inserted[0]?.id ?? '')
   if (!campaignId) {
     const existingRows = await sql`SELECT "id" FROM "Experience" WHERE "merchantId" = ${input.merchantId} AND "slug" = ${requestedSlug} LIMIT 1`
@@ -183,7 +188,9 @@ export async function updateCampaign(input: {
   if (input.name !== undefined && !input.name.trim()) throw new CampaignServiceError('INVALID_REQUEST', 'Campaign name is required.')
   const has = (field: string) => Object.prototype.hasOwnProperty.call(input, field)
   const sql = getCloudflareSql()
-  const rows = await sql`
+  const rows = await withPublicDiscoveryInvalidation({
+    target: { kind: 'experience', merchantSlug: String(current.merchant.slug), experienceSlug: String(current.row.slug) },
+    mutation: () => sql`
     UPDATE "Experience"
     SET "name" = CASE WHEN ${has('name')} THEN ${input.name?.trim() ?? null} ELSE "name" END,
       "headline" = CASE WHEN ${has('headline')} THEN ${input.headline == null ? null : input.headline.trim()} ELSE "headline" END,
@@ -200,7 +207,8 @@ export async function updateCampaign(input: {
       "updatedAt" = NOW()
     WHERE "id" = ${input.campaignId} AND "merchantId" = ${input.merchantId} AND "type" = 'CAMPAIGN'
     RETURNING "id"
-  `
+  `,
+  })
   if (!rows[0]) throw new MerchantAccessError()
   return getCampaign({ merchantId: input.merchantId, campaignId: input.campaignId })
 }
@@ -208,12 +216,15 @@ export async function updateCampaign(input: {
 export async function setCampaignFrames(input: { merchantId: string; campaignId: string; frameIds: string[] }) {
   if (input.frameIds.length > MAX_CAMPAIGN_FRAMES) throw new CampaignServiceError('INVALID_REQUEST', `frameIds cannot exceed ${MAX_CAMPAIGN_FRAMES}.`)
   const frameIds = [...new Set(input.frameIds)]
-  await fetchCampaign(input.merchantId, input.campaignId)
+  const current = await fetchCampaign(input.merchantId, input.campaignId)
   const sql = getCloudflareSql()
   const frames = await sql`SELECT "id", "sku", "name", "imageUrl", "shape", "widthClass", "status" FROM "MerchantFrame" WHERE "merchantId" = ${input.merchantId} AND "id" = ANY(${frameIds}) AND "status" = 'ACTIVE'`
   if (frames.length !== frameIds.length || frames.some((frame) => !validateCatalogFrame(frame as never).valid)) throw new MerchantAccessError()
   const statements = [sql`DELETE FROM "ExperienceFrame" WHERE "experienceId" = ${input.campaignId} AND "merchantId" = ${input.merchantId}`, ...frameIds.map((frameId, sortOrder) => sql`INSERT INTO "ExperienceFrame" ("experienceId", "merchantId", "merchantFrameId", "sortOrder", "active", "createdAt", "updatedAt") VALUES (${input.campaignId}, ${input.merchantId}, ${frameId}, ${sortOrder}, true, NOW(), NOW()) ON CONFLICT ("experienceId", "merchantFrameId") DO UPDATE SET "sortOrder" = EXCLUDED."sortOrder", "active" = true, "updatedAt" = NOW()`)]
-  await sql.transaction(statements, { isolationLevel: 'Serializable' })
+  await withPublicDiscoveryInvalidation({
+    target: { kind: 'experience', merchantSlug: String(current.merchant.slug), experienceSlug: String(current.row.slug) },
+    mutation: () => sql.transaction(statements, { isolationLevel: 'Serializable' }),
+  })
   return { frameIds }
 }
 
