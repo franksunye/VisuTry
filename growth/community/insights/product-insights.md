@@ -37,3 +37,12 @@ Record evidence, not assumptions. A single comment is a `SINGLE SIGNAL` until re
 - Area: Face Analysis / Advisor / Try-On / Consumer UX / Content
 - Confidence: SINGLE SIGNAL
 - Follow-up measurement: separate genuine user questions from passive engagement and track whether future tool-related questions ask about accuracy, limitations, or fit confidence
+
+## 2026-08-27 public discovery sample
+
+- Insight: Frame-comparison questions can hinge on bridge width even when lens width is unchanged; shoppers also want style, brow-coverage, and stability judgments separated.
+- Evidence: A Reddit author compared two pairs with the same lens width but a 2 mm bridge-width difference and asked whether to choose a similar bridge with narrower lenses; a second thread asked how to stop Oakley frames from slipping and received advice about professional fitting, temple design, nose pads, and anti-slip aids.
+- Source URLs: https://www.reddit.com/r/glassesadvice/comments/1vgkrdn/which_glasses_should_i_get/ ; https://www.reddit.com/r/glassesadvice/comments/1v9wu2g/what_could_i_dobuy_to_stop_these_glasses_falling/
+- Area: Advisor / Try-On / Compare / Consumer UX / FAQ
+- Confidence: REPEATED SIGNAL
+- Follow-up measurement: classify future questions into lens width, bridge width, brow alignment, and side stability rather than treating frame size as one variable

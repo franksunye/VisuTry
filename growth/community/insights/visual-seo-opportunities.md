@@ -41,3 +41,13 @@ Examples include frames too wide versus correct width, brow-line alignment, brid
 - Landing-page candidate: `/en/compare-glasses-frames` or the existing glasses-fit/face-shape route owner
 - Evidence count: 1 Reddit decision thread plus recurring fit/sizing video topics
 - Confidence: SINGLE SIGNAL
+
+## 2026-08-27 public discovery sample
+
+- Visual title: `Bridge Width Changes Overall Fit: Front and Side Checks`
+- Target query: `bridge width versus lens width`, `glasses cover eyebrows`, `how to stop glasses slipping`
+- Visual answer concept: compare two frames with identical lens width but different bridge width, then annotate total frame width, brow coverage, bridge contact, temple stability, and the limit that a photo cannot establish comfort or prescription fit.
+- Source question and URL: `Would it be better to choose a bridge width similar to the pair in Photo 1, but with narrower lenses?` — https://www.reddit.com/r/glassesadvice/comments/1vgkrdn/which_glasses_should_i_get/
+- Landing-page candidate: `/en/compare-glasses-frames` or the existing glasses-fit/face-shape route owner
+- Evidence count: 2 Reddit fit/comparison threads reviewed on 2026-08-27 plus repeated prior fit signals
+- Confidence: REPEATED SIGNAL

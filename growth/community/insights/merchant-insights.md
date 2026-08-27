@@ -39,3 +39,13 @@
 - Confidence: SINGLE SIGNAL
 - Possible merchant implication: make current-frame comparison easier with size/shape guidance that separates numeric fit from style preference
 - Follow-up measurement: track future mentions of frame width comparisons, size ranges, and uncertainty about online try-on results
+
+## 2026-08-27 public discovery sample
+
+- Insight: Merchants should expose bridge width separately from lens width and explain stability checks before shoppers replace frames.
+- Evidence: A Reddit shopper compared identical lens widths with different bridge widths; a separate slipping-frame thread was already answered with professional fitting, temple, nose-pad, and frame-design guidance.
+- Source URLs: https://www.reddit.com/r/glassesadvice/comments/1vgkrdn/which_glasses_should_i_get/ ; https://www.reddit.com/r/glassesadvice/comments/1v9wu2g/what_could_i_dobuy_to_stop_these_glasses_falling/
+- Area: Store / Merchant Sales
+- Confidence: REPEATED SIGNAL
+- Possible merchant implication: make total frame width, bridge width, lens width, and plain-language stability notes easy to compare near the size selector
+- Follow-up measurement: track future questions about bridge differences, brow coverage, slipping, and requests for fit adjustments

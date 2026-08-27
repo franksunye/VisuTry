@@ -84,3 +84,27 @@ Preserve exact language where reasonable. Add one entry per meaningful question.
 - Business relevance: fit checklist should include side-fit and wearing-comfort prompts
 - First observed: 2026-08-25
 - Last observed: 2026-08-25
+
+## 2026-08-27 public discovery sample
+
+- Question: Should bridge width and lens width be evaluated separately when comparing frames?
+- Exact user phrasing: `Would it be better to choose a bridge width similar to the pair in Photo 1, but with narrower lenses? Or should I look for a different shape or size altogether?`
+- Platform: Reddit
+- Source URL: https://www.reddit.com/r/glassesadvice/comments/1vgkrdn/which_glasses_should_i_get/
+- Topic: bridge width, lens width, brow coverage, frame shape, visual weight
+- Intent: compare candidate frames before purchase
+- Frequency/pattern: REPEATED SIGNAL, extending prior frame-width and bridge-fit questions
+- Business relevance: Compare and Advisor flows should expose fit variables separately from style preference
+- First observed: 2026-08-27
+- Last observed: 2026-08-27
+
+- Question: What can help keep frames from slipping when the user wants to keep the pair?
+- Exact user phrasing: `What could I do/buy to stop these glasses falling off/slipping?`
+- Platform: Reddit
+- Source URL: https://www.reddit.com/r/glassesadvice/comments/1v9wu2g/what_could_i_dobuy_to_stop_these_glasses_falling/
+- Topic: stability, temple fit, bridge fit, nose pads, anti-slip aids
+- Intent: improve comfort/stability without immediately replacing frames
+- Frequency/pattern: SINGLE SIGNAL, adjacent to repeated slipping and comfort concerns
+- Business relevance: fit guidance should include adjustment and stability checks, not only appearance
+- First observed: 2026-08-27
+- Last observed: 2026-08-27

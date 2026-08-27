@@ -45,3 +45,14 @@ Candidates only. Do not create production pages automatically.
 - Evidence count: 1 Reddit decision thread plus 2 relevant YouTube fit videos reviewed on 2026-08-26
 - Product path: Advisor -> Compare -> Try-On
 - Confidence: SINGLE SIGNAL
+
+## 2026-08-27 public discovery sample
+
+- Opportunity: Expand fit/comparison coverage for `bridge width versus lens width`, `glasses cover eyebrows`, and `how to stop glasses slipping`.
+- Repeated user question: shoppers need to separate overall frame width, bridge width, brow coverage, and side stability when choosing or keeping frames.
+- Source URLs: https://www.reddit.com/r/glassesadvice/comments/1vgkrdn/which_glasses_should_i_get/ ; https://www.reddit.com/r/glassesadvice/comments/1v9wu2g/what_could_i_dobuy_to_stop_these_glasses_falling/
+- Suggested page action: existing fit/comparison page improvement plus FAQ expansion
+- Search language: `bridge width versus lens width`, `glasses cover eyebrows`, `how to stop glasses slipping`, `how do I know if frames fit`
+- Evidence count: 2 Reddit decision/fit threads reviewed on 2026-08-27, alongside repeated prior fit signals
+- Product path: Advisor -> Compare -> Try-On
+- Confidence: REPEATED SIGNAL
