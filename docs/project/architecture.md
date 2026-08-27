@@ -334,13 +334,13 @@ In addition to Consumer App Router surfaces, the codebase now contains three app
 
 Agent-Native entry points:
 
-- Remote MCP: `POST /api/mcp` (production path currently wires the Cloudflare MCP server)
+- Remote MCP: `POST /api/mcp` — **serving runtime is Vercel Node** (`runtime = 'nodejs'`; B4 class `vercel-required`). The route currently wires the **`*-cloudflare` / raw-SQL implementation family** (`server-cloudflare.ts`). The Prisma MCP server (`modules/merchant/mcp/server.ts`) has no production importer.
 - Agent HTTP: `/api/agent/v1/**`
 - Merchant Skill: `/skills/merchant`
 
 Hosting direction for Store/Campaign traffic scale is ADR-010 (Cloudflare for high-frequency edge; backend for AI/payment/Blob/cron). Consumer stability while Store evolves is ADR-007. Commerce-over-Storefront direction is ADR-008.
 
-For readiness gaps (dual CF/Node forks, Consumer handoff imports of Store domain, intelligence surface duplication), see `docs/audits/2026-08-27-architecture-platform-saas-audit.md`.
+For readiness gaps (live vs alternate `*-cloudflare`/Prisma implementation drift, Consumer handoff imports of Store domain vs consolidation DoD, intelligence surface duplication), see `docs/audits/2026-08-27-architecture-platform-saas-audit.md`.
 
 ## Architecture Review Notes
 
@@ -351,8 +351,9 @@ This document should be reviewed against the codebase before major work in the f
 3. Credits Pack conversion and failed-generation handling.
 4. Free local Face Shape Detector architecture.
 5. Shopify / widget / public API work.
-6. MCP / Agent Key / OAuth parity across Node and Cloudflare runtimes.
+6. Live vs alternate merchant/MCP service parity (behavioral invariants, not filename/`runtime` labels alone).
 7. Shared commerce contract extraction when a second non-Storefront surface requires it.
+8. Reconciliation of Consumer→Store imports against ADR-007 / consolidation DoD.
 
 Detailed specs should be created or updated under `docs/product/specs/` before engineering starts on those capabilities.
 

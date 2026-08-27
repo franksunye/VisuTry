@@ -1,10 +1,11 @@
 # VisuTry Architecture Consolidation Plan — Pre-Pilot
 
-**Status:** Complete — pre-Pilot architecture consolidation DoD met  
+**Status:** Complete for generation-isolation DoD; **partially reopened** for route-wide Consumer→Store import-zero (see §8.1 / 2026-08-27 audit reconciliation)  
 **Owner:** Product / Engineering  
 **Created:** 2026-08-06  
-**Completed:** 2026-08-06  
-**Target duration:** 3–5 engineering days  
+**Completed:** 2026-08-06 (generation / cron / settlement isolation)  
+**Reopened slice:** 2026-08-27 — Consumer/main handoff imports of `src/modules/store/**` contradict the written Boundary DoD; must be exceptioned by ADR or extracted  
+**Target duration:** 3–5 engineering days (historical)  
 **Primary ADRs:**
 - `docs/decisions/ADR-007-store-consumer-stability-boundary.md`
 - `docs/decisions/ADR-008-commerce-domain-over-storefront.md`
@@ -14,6 +15,7 @@
 - `docs/product/specs/visutry-store-engineering-foundation.md`
 - `docs/product/plans/visutry-store-implementation-plan.md`
 - `docs/product/specs/merchant-commercial-entitlements.md`
+- `docs/audits/2026-08-27-architecture-platform-saas-audit.md`
 
 ---
 
@@ -526,7 +528,8 @@ This consolidation is complete only when all of the following are true.
 
 ### Boundary DoD
 
-- [x] Consumer -> `src/modules/store/**` dependency count is zero.
+- [x] Consumer **generation / quota / cron** paths → `src/modules/store/**` dependency count is zero (protected roots covered by `tests/unit/lib/adr-007-consumer-stability.test.ts`).
+- [ ] ~~Consumer → `src/modules/store/**` dependency count is zero across all Consumer modules/routes.~~ **Reopened 2026-08-27** — see §8.1. Not currently true for payment/signin/success/pricing/funnel/discover/distribution handoffs.
 - [x] Store failures cannot abort protected Consumer background workflows.
 - [x] Consumer and Store settlement policies are separate.
 - [x] Consumer and Store asset/privacy policy ownership is separate.
@@ -558,9 +561,39 @@ This consolidation is complete only when all of the following are true.
 
 ### Execution DoD
 
-- [x] no unresolved P0 architecture ambiguity remains for the first Merchant Pilot.
+- [x] no unresolved P0 architecture ambiguity remains for the first Merchant Pilot **generation path**.
 - [x] deferred architecture items are explicitly listed and gated by real Pilot evidence.
 - [x] engineering returns to Merchant Pilot work after this consolidation.
+- [ ] **2026-08-27:** route-wide Consumer→Store import authority is reconciled (ADR exception list **or** handoff extraction + expanded ADR-007 import guards).
+
+---
+
+## 8.1. 2026-08-27 Reconciliation — Consumer→Store Imports
+
+The 2026-08-06 consolidation closed generation isolation. A 2026-08-27 architecture audit found that the written “Consumer → store dependency count is zero” claim is **no longer accurate** for non-generation Consumer/main surfaces, while CI remains green because the ADR-007 import regression only scans:
+
+```text
+src/lib/tryon-service.ts
+src/lib/quota.ts
+src/lib/compare-tryon-server.ts
+src/lib/cron/sync-pending-consumer-tasks.ts
+src/app/api/cron/cleanup-expired-tasks/route.ts
+src/app/api/cron/sync-pending-consumer-tasks/route.ts
+src/app/api/try-on/**
+```
+
+Known Consumer/main → Store imports at audit time:
+
+| Path | Classification (proposed) |
+| --- | --- |
+| `discover/page.tsx` + Store discover runtime | **Candidate approved exception** — Discover is a Store discovery surface hosted under `(main)` |
+| `ContextualExperienceHandoff.tsx` / `distribution-handoffs.ts` | **Candidate approved exception** — explicit Consumer→Store handoff bridge |
+| `payment/create-session`, `PricingCard`, `auth/signin`, `success` via `merchant-continuation` | **Debt** — extract to shared commerce-handoff contracts |
+| `analytics/consumer-funnel` via `session-acquisition` | **Debt** — move AI referral inference to shared attribution helper |
+
+Until Product + Engineering either (a) publish an ADR listing approved exceptions, or (b) extract the debt imports and expand the ADR-007 guard, this plan’s route-wide import-zero DoD must **not** be cited as Complete.
+
+Authority for the audit write-up: `docs/audits/2026-08-27-architecture-platform-saas-audit.md` finding F2.
 
 ---
 
@@ -628,3 +661,4 @@ Those decisions must not be pulled into the current consolidation without eviden
 | --- | --- |
 | 2026-08-06 | Created explicit 3–5 day pre-Pilot architecture consolidation execution plan to operationalize ADR-007 and ADR-008 without broad rewrite. |
 | 2026-08-06 | **DoD met.** P0 landed: MerchantSession acquisition fields + create API/client capture; Merchant commercial entitlement (`planCode` / allowances / `FOUNDING_PILOT` v8 resolver) wired into session + try-on enforcement; Store pending-sync moved under `modules/store`; ADR-007 regression expanded. Deferred (evidence-gated): full multi-provider router productization, `src/modules/commerce/**` extraction, Campaign/Conversion first-class aggregates, billing product model beyond entitlement config. |
+| 2026-08-27 | **Partial reopen.** Architecture audit found Consumer/main → Store imports contradicting the route-wide import-zero Boundary DoD while generation isolation remains green. Status split; §8.1 records debt vs candidate exceptions. |
