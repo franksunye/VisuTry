@@ -63,7 +63,7 @@ describe('Cloudflare direct-Neon merchant and experience writes', () => {
       [{ id: 'store-a', merchantId: 'merchant-a', slug: 'store', name: 'Store A', status: 'DRAFT' }],
       [{ merchantFrameId: 'old-frame', sortOrder: 0, id: 'old-frame', sku: 'old', name: 'Old', imageUrl: 'https://example.test/old.png', shape: 'oval', widthClass: null, status: 'ACTIVE' }],
       [activeFrame],
-      [],
+      [{ id: 'merchant-a', slug: 'merchant-a', name: 'Merchant A', status: 'ACTIVE', websiteUrl: null, contactEmail: null }],
     ], [[], []])
     ;(getCloudflareSql as jest.Mock).mockReturnValue(sql)
 
@@ -72,6 +72,9 @@ describe('Cloudflare direct-Neon merchant and experience writes', () => {
     expect(result).toEqual({ storeId: 'store-a', frameIds: ['frame-a'], frameCount: 1 })
     expect(sql.transaction).toHaveBeenCalledWith(expect.any(Array), { isolationLevel: 'Serializable' })
     expect(sql.mock.calls.map((call) => call[0]?.join?.('') ?? '').some((query) => query.includes('"experienceId"'))).toBe(true)
+    expect(withPublicDiscoveryInvalidation).toHaveBeenCalledWith(expect.objectContaining({
+      target: { kind: 'experience', merchantSlug: 'merchant-a', experienceSlug: null },
+    }))
   })
 
   it('creates a Campaign DRAFT and keeps the merchant boundary in every read', async () => {
