@@ -2,8 +2,21 @@ import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { mockGlassesFrames, isMockMode } from "@/lib/mocks"
 import { PUBLIC_CATALOG_CACHE_CONTROL } from "@/lib/public-http-cache"
+import { getActiveFrames } from "@/data/glasses"
+import { revalidateGlassesCatalog } from "@/lib/glasses-catalog-cache"
 
-function toPublicFrame(frame: { id: string; name: string; imageUrl: string; category: string | null; brand: string | null }) {
+/**
+ * Legacy public catalog DTO.
+ * Production pages no longer call this route; keep the contract for undocumented
+ * clients and serve it from the same cached `getActiveFrames()` loader.
+ */
+function toPublicFrame(frame: {
+  id: string
+  name: string
+  imageUrl: string
+  category: string | null
+  brand: string | null
+}) {
   return {
     id: frame.id,
     name: frame.name,
@@ -26,21 +39,7 @@ export async function GET() {
       })
     }
 
-    const frames = await prisma.glassesFrame.findMany({
-      where: {
-        isActive: true
-      },
-      orderBy: {
-        createdAt: "desc"
-      },
-      select: {
-        id: true,
-        name: true,
-        imageUrl: true,
-        category: true,
-        brand: true,
-      },
-    })
+    const frames = await getActiveFrames()
 
     return NextResponse.json({
       success: true,
@@ -88,6 +87,7 @@ export async function POST(request: Request) {
       }
     })
 
+    revalidateGlassesCatalog()
     return NextResponse.json({
       success: true,
       data: frame

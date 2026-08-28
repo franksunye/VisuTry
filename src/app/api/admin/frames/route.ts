@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { requireAdmin } from '@/lib/api-auth'
 import { prisma } from '@/lib/prisma'
 import { logger, getRequestContext } from '@/lib/logger'
+import { revalidateGlassesCatalog } from '@/lib/glasses-catalog-cache'
 
 // Force dynamic rendering for this route
 export const dynamic = 'force-dynamic'
@@ -134,6 +135,7 @@ export async function POST(request: NextRequest) {
         },
       })
 
+      revalidateGlassesCatalog()
       logger.info('api', 'Frame created successfully', { frameId: frame.id, name: frame.name }, ctx)
       return NextResponse.json({
         success: true,
