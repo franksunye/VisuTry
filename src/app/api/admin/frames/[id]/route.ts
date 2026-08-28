@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { requireAdmin } from '@/lib/api-auth'
 import { prisma } from '@/lib/prisma'
+import { revalidateGlassesCatalog } from '@/lib/glasses-catalog-cache'
 
 // Force dynamic rendering for this route
 export const dynamic = 'force-dynamic'
@@ -112,6 +113,7 @@ export async function PUT(
       },
     })
 
+    revalidateGlassesCatalog()
     return NextResponse.json({
       success: true,
       frame,
@@ -151,6 +153,7 @@ export async function DELETE(
       where: { id: params.id },
     })
 
+    revalidateGlassesCatalog()
     return NextResponse.json({
       success: true,
       message: 'Frame deleted successfully',

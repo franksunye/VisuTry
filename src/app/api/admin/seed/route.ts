@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
+import { revalidateGlassesCatalog } from '@/lib/glasses-catalog-cache'
 
 export async function POST(request: Request) {
   try {
@@ -105,6 +106,7 @@ export async function POST(request: Request) {
     }
 
     console.log('Database seeding completed!')
+    revalidateGlassesCatalog()
 
     return NextResponse.json({
       success: true,

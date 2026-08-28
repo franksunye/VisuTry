@@ -167,6 +167,8 @@ describe('approved edge API OpenNext bypass', () => {
     const imports = handler.split('\n').filter((line) => line.startsWith('import '))
     expect(imports.join('\n')).not.toMatch(/@opennextjs|\.open-next|incremental-cache/)
     expect(handler).not.toMatch(/applyWorkerEnv/)
+    expect(handler).not.toMatch(/from 'next\/cache'|from \"next\/cache\"/)
+    expect(handler).not.toMatch(/unstable_cache/)
     expect(handler).not.toMatch(/process\.env\.DATABASE_URL\s*=/)
 
     const worker = fs.readFileSync(path.join(__dirname, '../../cloudflare-router/app-host-worker.ts'), 'utf8')
@@ -199,5 +201,91 @@ describe('approved edge API OpenNext bypass', () => {
     })
     const rscDecision = classifyB4ProductionPublicSlice(rsc)
     expect(forceVercelForNextFrontend(rsc, rscDecision).backend).toBe('vercel')
+  })
+})
+
+describe('approved edge API catalog Cache API', () => {
+  function createMemoryCatalogCache() {
+    const store = new Map<string, { status: number; statusText: string; headers: [string, string][]; body: string }>()
+    return {
+      async match(input: Request) {
+        const saved = store.get(new URL(input.url).toString())
+        if (!saved) return undefined
+        return new Response(saved.body, {
+          status: saved.status,
+          statusText: saved.statusText,
+          headers: saved.headers,
+        })
+      },
+      async put(input: Request, response: Response) {
+        const body = await response.clone().text()
+        store.set(new URL(input.url).toString(), {
+          status: response.status,
+          statusText: response.statusText,
+          headers: [...response.headers.entries()],
+          body,
+        })
+      },
+    }
+  }
+
+  beforeEach(() => {
+    jest.clearAllMocks()
+    mocked.getActiveBrands.mockResolvedValue(['Warby Parker'])
+    mocked.getCategories.mockResolvedValue([])
+    mocked.getFaceShapes.mockResolvedValue([])
+    ;(globalThis as { __VISUTRY_CATALOG_EDGE_CACHE__?: unknown }).__VISUTRY_CATALOG_EDGE_CACHE__ = createMemoryCatalogCache()
+  })
+
+  afterEach(() => {
+    delete (globalThis as { __VISUTRY_CATALOG_EDGE_CACHE__?: unknown }).__VISUTRY_CATALOG_EDGE_CACHE__
+  })
+
+  it('serves MISS then HIT for anonymous catalog GETs without a second origin load', async () => {
+    const first = await handleApprovedEdgeApi(request('/api/glasses/brands'))
+    const second = await handleApprovedEdgeApi(request('/api/glasses/brands?x=1'))
+
+    expect(first.status).toBe(200)
+    expect(first.headers.get('x-visutry-catalog-cache')).toBe('miss')
+    expect(first.headers.get('Cache-Control')).toBe(PUBLIC_CATALOG_CACHE_CONTROL)
+    expect(await first.json()).toEqual({ success: true, data: ['Warby Parker'] })
+
+    expect(second.status).toBe(200)
+    expect(second.headers.get('x-visutry-catalog-cache')).toBe('hit')
+    expect(second.headers.get('Cache-Control')).toBe(PUBLIC_CATALOG_CACHE_CONTROL)
+    expect(await second.json()).toEqual({ success: true, data: ['Warby Parker'] })
+    expect(mocked.getActiveBrands).toHaveBeenCalledTimes(1)
+  })
+
+  it('bypasses cache for Authorization and does not store the response', async () => {
+    const authed = new EdgeRequest('https://www.visutry.com/api/glasses/brands', {
+      method: 'GET',
+      headers: { authorization: 'Bearer secret' },
+    })
+    const first = await handleApprovedEdgeApi(authed)
+    const second = await handleApprovedEdgeApi(authed)
+    const anonymous = await handleApprovedEdgeApi(request('/api/glasses/brands'))
+
+    expect(first.headers.get('x-visutry-catalog-cache')).toBe('bypass')
+    expect(second.headers.get('x-visutry-catalog-cache')).toBe('bypass')
+    expect(anonymous.headers.get('x-visutry-catalog-cache')).toBe('miss')
+    expect(mocked.getActiveBrands).toHaveBeenCalledTimes(3)
+  })
+
+  it('does not cache catalog errors', async () => {
+    mocked.getFaceShapes
+      .mockRejectedValueOnce(new Error('neon down'))
+      .mockResolvedValueOnce([])
+    const spy = jest.spyOn(console, 'error').mockImplementation(() => {})
+
+    const first = await handleApprovedEdgeApi(request('/api/glasses/face-shapes'))
+    const second = await handleApprovedEdgeApi(request('/api/glasses/face-shapes'))
+    spy.mockRestore()
+
+    expect(first.status).toBe(500)
+    expect(first.headers.get('x-visutry-catalog-cache')).toBeNull()
+    expect(second.status).toBe(200)
+    expect(second.headers.get('x-visutry-catalog-cache')).toBe('miss')
+    expect(mocked.getFaceShapes).toHaveBeenCalledTimes(2)
   })
 })

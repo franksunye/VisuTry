@@ -9,6 +9,11 @@
 import { getActiveBrands, getCategories, getFaceShapes } from '../src/data/glasses-cloudflare'
 import { PUBLIC_CATALOG_CACHE_CONTROL } from '../src/lib/public-http-cache'
 import { B4_FIRST_SLICE_APIS } from './b4-production-public-slice'
+import {
+  markCatalogEdgeCacheStatus,
+  matchCatalogEdgeCache,
+  storeCatalogEdgeCache,
+} from './public-catalog-edge-cache'
 
 export type ApprovedEdgeApiEnv = {
   NODE_ENV?: string
@@ -53,9 +58,29 @@ async function catalog<T>(
   logLabel: string,
   errorMessage: string,
 ): Promise<Response> {
+  const cached = await matchCatalogEdgeCache(request)
+  if (cached) return cached
+
   try {
     const data = await load()
-    return jsonResponse(request, { success: true, data }, { cacheControl: PUBLIC_CATALOG_CACHE_CONTROL })
+    const generated = jsonResponse(
+      new Request(request, { method: 'GET' }),
+      { success: true, data },
+      { cacheControl: PUBLIC_CATALOG_CACHE_CONTROL },
+    )
+    if (request.headers.get('authorization')) {
+      const bypass = markCatalogEdgeCacheStatus(generated, 'bypass')
+      if (request.method === 'HEAD') {
+        return new Response(null, { status: bypass.status, statusText: bypass.statusText, headers: bypass.headers })
+      }
+      return bypass
+    }
+    const miss = markCatalogEdgeCacheStatus(generated, 'miss')
+    await storeCatalogEdgeCache(request, miss)
+    if (request.method === 'HEAD') {
+      return new Response(null, { status: miss.status, statusText: miss.statusText, headers: miss.headers })
+    }
+    return miss
   } catch (error) {
     console.error(logLabel, error)
     return jsonResponse(request, { success: false, error: errorMessage }, { status: 500 })

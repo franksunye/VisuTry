@@ -1,5 +1,10 @@
 /** @jest-environment node */
 
+jest.mock('next/cache', () => ({
+  unstable_cache: (fn: () => Promise<unknown>) => fn,
+  revalidateTag: jest.fn(),
+}))
+
 jest.mock('@/lib/prisma', () => ({
   prisma: {
     glassesFrame: {
