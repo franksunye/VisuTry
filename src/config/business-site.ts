@@ -111,6 +111,17 @@ export const businessPages: Record<BusinessPageKey, BusinessPageDefinition> = {
           { title: '$149 / 30 days', description: 'Assisted setup, up to 1,500 AI-assisted shoppers, and up to 3,500 Standard Try-On generations.', href: '/business/pricing', label: 'View Pricing' },
         ],
       },
+      {
+        eyebrow: 'Commercial path',
+        title: 'Start small, then choose the capacity you need.',
+        body: 'The Pilot is fixed-term and does not auto-renew. After it ends, keep a useful Free Store or choose Launch, Growth, or Scale. Paid AI capacity is usage-based; if it is exhausted, the Store stays live and Virtual Try-On pauses until capacity is restored.',
+        cards: [
+          { title: 'Free', description: 'One Store, up to 50 catalog items, basic recommendation and analytics.' },
+          { title: 'Launch · $199/month', description: '1,000 AI Commerce Sessions and one active Campaign.' },
+          { title: 'Growth · $499/month', description: '5,000 AI Commerce Sessions and three active Campaigns.' },
+          { title: 'Scale · $999/month', description: '10,000 AI Commerce Sessions and ten active Campaigns.' },
+        ],
+      },
     ],
   },
   platform: {
@@ -298,9 +309,15 @@ export const businessPages: Record<BusinessPageKey, BusinessPageDefinition> = {
       },
       {
         eyebrow: 'Commercial boundary',
-        title: 'Simple now. Flexible after the Pilot.',
-        body: 'Future recurring plans are not yet published as a locked external price card. Continuation is discussed based on real merchant usage, campaigns, integrations, support needs, and the pricing version in effect at that time.',
-        note: 'No lifetime price promise. No surprise Pilot overage charge. No revenue or conversion guarantee.',
+        title: 'Choose how to continue after the Pilot.',
+        body: 'The Founding Pilot is a fixed $149 / 30-day offer with no automatic conversion or renewal. After the Pilot, a merchant can remain on Free or choose Launch, Growth, or Scale based on the capacity and features they need.',
+        cards: [
+          { title: 'Free · $0', description: 'One Store, up to 50 catalog items, basic recommendation and analytics. Generative Try-On is not included.' },
+          { title: 'Launch · $199/month', description: 'One Store, up to 100 catalog items, 1 active Campaign, and 1,000 AI Commerce Sessions.' },
+          { title: 'Growth · $499/month', description: 'One Store, up to 500 catalog items, 3 active Campaigns, and 5,000 AI Commerce Sessions.' },
+          { title: 'Scale · $999/month', description: 'One Store, up to 2,000 catalog items, 10 active Campaigns, and 10,000 AI Commerce Sessions.' },
+        ],
+        note: 'AI Commerce Sessions count one AI-assisted shopper journey, not each model call. If paid AI capacity is exhausted, the Store stays live while Virtual Try-On pauses. No lifetime price promise or surprise Pilot overage charge.',
       },
     ],
   },

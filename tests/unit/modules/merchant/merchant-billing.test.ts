@@ -4,7 +4,7 @@ jest.mock('@/lib/prisma', () => ({
   prisma: {
     merchant: { findUnique: jest.fn() },
     merchantBillingAccount: { findUnique: jest.fn(), create: jest.fn(), update: jest.fn() },
-    merchantBillingEvent: { findUnique: jest.fn(), create: jest.fn() },
+    merchantBillingEvent: { findUnique: jest.fn(), create: jest.fn(), update: jest.fn() },
     $transaction: jest.fn(),
   },
 }))
@@ -38,7 +38,7 @@ const account: TestBillingAccount = {
 
 const tx = {
   merchantBillingAccount: { findUnique: jest.fn(), create: jest.fn(), update: jest.fn() },
-  merchantBillingEvent: { findUnique: jest.fn(), create: jest.fn() },
+  merchantBillingEvent: { findUnique: jest.fn(), create: jest.fn(), update: jest.fn() },
   merchant: { update: jest.fn() },
 }
 
@@ -72,6 +72,7 @@ describe('Merchant Stripe billing boundary', () => {
       eventLedger.add(input.data.providerEventId)
       return { id: `event-ledger-${input.data.providerEventId}` }
     })
+    tx.merchantBillingEvent.update.mockResolvedValue({})
     tx.merchantBillingAccount.update.mockImplementation(async (input: any) => {
       persistedAccount = { ...persistedAccount, ...input.data }
       return { ...persistedAccount }
@@ -188,6 +189,15 @@ describe('Merchant Stripe billing boundary', () => {
     expect(persistedMerchant).toMatchObject({ planCode: 'FOUNDING_PILOT', commercialStatus: 'PILOT_ACTIVE' })
     expect(tx.merchantBillingAccount.update).toHaveBeenCalledTimes(1)
     expect(tx.merchant.update).toHaveBeenCalledTimes(1)
+  })
+
+  it('records identity or price rejection without mutating the canonical Merchant state', async () => {
+    const event = subscriptionEvent({ id: 'evt_unsupported_price' })
+    event.data.object.items.data[0].price.id = 'price_not_allowlisted'
+
+    await expect(processMerchantStripeEvent(event)).rejects.toMatchObject({ code: 'UNSUPPORTED_PRICE' })
+    expect(tx.merchant.update).not.toHaveBeenCalled()
+    expect(prisma.merchantBillingEvent.create).toHaveBeenCalledWith(expect.objectContaining({ data: expect.objectContaining({ status: 'REJECTED', processingReason: 'UNSUPPORTED_PRICE' }) }))
   })
 })
 

@@ -32,6 +32,8 @@ import {
 import { MerchantCatalogSelfService } from "@/components/merchant/MerchantCatalogSelfService";
 import { MerchantStoreSelfService } from "@/components/merchant/MerchantStoreSelfService";
 import { MerchantPlanUsage } from "@/components/merchant/MerchantPlanUsage";
+import { MerchantBillingProcessingNotice } from "@/components/merchant/MerchantBillingProcessingNotice";
+import type { MerchantBillablePlanCode } from "@/modules/merchant/domain/merchant-billing";
 
 type SkillCard = { name: string; purpose: string; url: string; prompt: string };
 type Props = {
@@ -44,6 +46,7 @@ type Props = {
   skills: SkillCard[];
   onboardingState?: "created" | "existing";
   billingState?: "processing" | "cancelled";
+  billingPlan?: MerchantBillablePlanCode;
 };
 
 const buttonClass =
@@ -1376,6 +1379,7 @@ export function MerchantControlCenter({
   skills,
   onboardingState,
   billingState,
+  billingPlan,
 }: Props) {
   const router = useRouter();
   const selectedMerchant = useMemo(
@@ -1490,12 +1494,7 @@ export function MerchantControlCenter({
         </div>
       </header>
       <div className="mx-auto max-w-7xl space-y-6 px-4 py-6 sm:px-6 sm:py-10">
-        {billingState === "processing" ? (
-          <section role="status" className="rounded-2xl border border-blue-200 bg-blue-50 px-5 py-4 text-blue-950 sm:px-6">
-            <p className="text-xs font-bold uppercase tracking-[0.18em] text-blue-700">Plan update in progress</p>
-            <p className="mt-2 text-sm leading-6 text-blue-900">Your payment is being confirmed. Your plan and feature access will update after confirmation.</p>
-          </section>
-        ) : null}
+        {billingState === "processing" && control.commercial ? <MerchantBillingProcessingNotice merchantId={control.merchant.id} commercial={control.commercial} targetPlan={billingPlan} /> : null}
         {billingState === "cancelled" ? (
           <section role="status" className="rounded-2xl border border-slate-200 bg-slate-50 px-5 py-4 text-slate-800 sm:px-6">
             <p className="text-xs font-bold uppercase tracking-[0.18em] text-slate-600">No changes were made</p>

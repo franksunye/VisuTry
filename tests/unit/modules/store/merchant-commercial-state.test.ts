@@ -70,6 +70,15 @@ describe('G4-A canonical Merchant commercial contract', () => {
     expect(state.period.end?.toISOString()).toBe('2026-08-31T00:00:00.000Z')
     expect(state.status).toBe('USAGE_WARNING')
     expect(state.threshold).toBe('NOTICE')
+    expect(state.primaryAction).toBe('CONTINUE_AFTER_PILOT')
+  })
+
+  it('keeps an expired Pilot non-destructive and reports a period decision', () => {
+    const state = resolveMerchantCommercialState({ planCode: 'FOUNDING_PILOT', entitlementEffectiveFrom: new Date('2026-07-01T00:00:00.000Z'), billingPeriodEnd: new Date('2026-07-31T00:00:00.000Z') }, { catalogItems: 50 }, now)
+    expect(state.status).toBe('PILOT_EXPIRED')
+    expect(state.featureAvailability.STORE).toBe(true)
+    expect(canUseCommercialFeature(state, 'CATALOG')).toMatchObject({ code: 'COMMERCIAL_PERIOD_EXPIRED' })
+    expect(state.primaryAction).toBe('CONTINUE_AFTER_PILOT')
   })
 
   it('reports remaining sessions without rollover', () => {

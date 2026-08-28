@@ -49,8 +49,10 @@ export class MerchantProvisioningError extends Error {
 }
 
 function normalizeInput(input: CreateMerchantWithOwnerInput) {
-  const suppliedName = input.name === undefined ? null : input.name.trim()
-  const name = suppliedName === null ? 'My Merchant Workspace' : suppliedName
+  // The onboarding form intentionally makes the name optional. Treat an
+  // omitted, empty, or whitespace-only value the same way so a blank form
+  // cannot fall into the slug/name validation path.
+  const name = input.name?.trim() || 'My Store'
   if (name.length < 2 || name.length > 120) {
     throw new MerchantProvisioningError('INVALID_MERCHANT_NAME', 'Merchant name must be between 2 and 120 characters.')
   }

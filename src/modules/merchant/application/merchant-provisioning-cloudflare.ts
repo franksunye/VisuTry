@@ -41,8 +41,10 @@ function newRecordId(): string {
 }
 
 function normalizeInput(input: CreateMerchantWithOwnerInput) {
-  const suppliedName = input.name === undefined ? null : input.name.trim()
-  const name = suppliedName === null ? 'My Merchant Workspace' : suppliedName
+  // Keep the build-time Cloudflare adapter semantically aligned with the
+  // canonical Vercel implementation: empty optional input gets a neutral
+  // display name and slug uniqueness remains independent.
+  const name = input.name?.trim() || 'My Store'
   if (name.length < 2 || name.length > 120) {
     throw new MerchantProvisioningError('INVALID_MERCHANT_NAME', 'Merchant name must be between 2 and 120 characters.')
   }

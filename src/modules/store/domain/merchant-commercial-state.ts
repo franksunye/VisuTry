@@ -198,7 +198,7 @@ export function resolveMerchantCommercialState(fields: MerchantCommercialFields,
     BASIC_ANALYTICS: plan.analytics === 'basic' || plan.analytics === 'advanced',
     ADVANCED_ANALYTICS: plan.analytics === 'advanced',
   }
-  const primaryAction = status === 'PILOT_EXPIRED' ? 'CONTINUE_AFTER_PILOT'
+  const primaryAction = planCode === 'FOUNDING_PILOT' ? 'CONTINUE_AFTER_PILOT'
     : status === 'PAYMENT_ACTION_REQUIRED' || status === 'PAST_DUE' ? 'RESOLVE_PAYMENT'
       : status === 'USAGE_EXHAUSTED' ? 'RESTORE_AI_CAPACITY'
         : status === 'USAGE_WARNING' ? 'UPGRADE_CAPACITY'
@@ -243,10 +243,10 @@ export function canUseCommercialFeature(state: MerchantCommercialState, feature:
     return { allowed: true, feature, message: 'Existing Store access remains available until a current plan is selected.' }
   }
   if (state.featureAvailability[feature]) return { allowed: true, feature, message: 'Available.' }
+  if (['EXPIRED', 'PILOT_EXPIRED', 'PAYMENT_ACTION_REQUIRED', 'PAST_DUE'].includes(state.status)) return { allowed: false, feature, code: 'COMMERCIAL_PERIOD_EXPIRED', message: state.status === 'PILOT_EXPIRED' ? 'Your Founding Pilot has ended. Your Store and catalog remain available.' : 'This feature is not currently available for this commercial period.' }
   if (feature === 'CAMPAIGN') return { allowed: false, feature, code: 'CAMPAIGN_LIMIT_REACHED', message: `Your current plan includes up to ${state.plan?.activeCampaigns ?? 'custom'} active Campaigns.`, current: state.usage.activeCampaigns, limit: state.plan?.activeCampaigns, recommendedPlan: recommendedCampaignPlan(state.planCode ?? 'FREE') }
   if (feature === 'CATALOG') return { allowed: false, feature, code: 'CATALOG_LIMIT_REACHED', message: `Your current plan includes up to ${state.plan?.catalogItems ?? 'custom'} catalog items.`, current: state.usage.catalogItems, limit: state.plan?.catalogItems, recommendedPlan: recommendedCatalogPlan(state.planCode ?? 'FREE') }
   if (feature === 'GENERATIVE_TRY_ON' && state.status === 'USAGE_EXHAUSTED') return { allowed: false, feature, code: 'AI_USAGE_LIMIT_REACHED', message: 'Your included AI Commerce Sessions are fully used. Your Store remains live. Virtual Try-On is paused.', current: state.usage.aiCommerceSessions, limit: state.aiCommerceSessionLimit, recommendedPlan: state.planCode === 'LAUNCH' ? 'GROWTH' : 'SCALE' }
-  if (['EXPIRED', 'PILOT_EXPIRED', 'PAYMENT_ACTION_REQUIRED', 'PAST_DUE'].includes(state.status)) return { allowed: false, feature, code: 'COMMERCIAL_PERIOD_EXPIRED', message: state.status === 'PILOT_EXPIRED' ? 'Your Founding Pilot has ended. Your Store and catalog remain available.' : 'This feature is not currently available for this commercial period.' }
   return { allowed: false, feature, code: 'FEATURE_NOT_INCLUDED', message: feature === 'GENERATIVE_TRY_ON' ? 'Virtual Try-On is not included in the Free plan.' : 'This feature is not included in the current plan.', recommendedPlan: 'LAUNCH' }
 }
 

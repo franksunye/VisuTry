@@ -20,6 +20,7 @@ import {
   summarizeMerchantPortfolio,
   type MerchantPortfolioFilter,
 } from '@/modules/merchant/domain/merchant-classification'
+import { computeMerchantCommercialKpis, type MerchantCommercialKpiRow } from '@/modules/merchant/domain/merchant-commercial-kpis'
 
 export const dynamic = 'force-dynamic'
 
@@ -106,6 +107,10 @@ function merchantClassificationCopy(classification: string): string {
   }
 }
 
+function money(cents: number): string {
+  return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(cents / 100)
+}
+
 export default async function AdminStoreMerchantsPage({ searchParams }: AdminStoreMerchantsPageProps) {
   const filter: MerchantPortfolioFilter = isMerchantPortfolioFilter(searchParams?.view)
     ? searchParams.view
@@ -120,9 +125,40 @@ export default async function AdminStoreMerchantsPage({ searchParams }: AdminSto
       websiteUrl: true,
       status: true,
       classification: true,
+      planCode: true,
+      commercialStatus: true,
+      billingPeriodEnd: true,
       updatedAt: true,
-      _count: { select: { sessions: true, frames: true, intents: true, experiences: true } },
+      _count: { select: { sessions: true, frames: true, intents: true, experiences: true, billingAccounts: true } },
     },
+  })
+
+  const merchantIds = merchants.map((merchant) => merchant.id)
+  const [publishedStores, aiSessionCounts, pilotBillingAccounts] = await Promise.all([
+    merchantIds.length === 0
+      ? Promise.resolve([] as Array<{ merchantId: string }>)
+      : prisma.experience.findMany({ where: { merchantId: { in: merchantIds }, type: 'STORE', status: 'ACTIVE' }, select: { merchantId: true }, distinct: ['merchantId'] }),
+    merchantIds.length === 0
+      ? Promise.resolve([] as Array<{ merchantId: string; _count: { _all: number } }>)
+      : prisma.merchantUsageLedger.groupBy({ by: ['merchantId'], where: { merchantId: { in: merchantIds }, kind: 'AI_COMMERCE_SESSION' }, _count: { _all: true } }),
+    prisma.merchantBillingAccount.count({ where: { stripePriceId: process.env.STRIPE_FOUNDING_PILOT_PRICE_ID?.trim() || '__not_configured__', merchant: { classification: 'REAL' } } }),
+  ])
+  const publishedMerchantIds = new Set(publishedStores.map((row) => row.merchantId))
+  const aiSessionsByMerchant = new Map(aiSessionCounts.map((row) => [row.merchantId, row._count._all]))
+  const commercialKpis = computeMerchantCommercialKpis({
+    pilotRevenueCents: pilotBillingAccounts * 14900,
+    merchants: merchants.map((merchant): MerchantCommercialKpiRow => ({
+      classification: merchant.classification,
+      planCode: merchant.planCode,
+      commercialStatus: merchant.commercialStatus,
+      billingPeriodEnd: merchant.billingPeriodEnd,
+      catalogItems: merchant._count.frames,
+      shopperSessions: merchant._count.sessions,
+      intents: merchant._count.intents,
+      aiCommerceSessions: aiSessionsByMerchant.get(merchant.id) ?? 0,
+      publishedStore: publishedMerchantIds.has(merchant.id),
+      checkoutStarted: merchant._count.billingAccounts > 0,
+    })),
   })
 
   const visibleMerchants = filterMerchantPortfolioRows(merchants, filter)
@@ -177,6 +213,46 @@ export default async function AdminStoreMerchantsPage({ searchParams }: AdminSto
             </article>
           )
         })}
+      </section>
+
+      <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6" aria-labelledby="commercial-kpi-heading">
+        <div className="flex flex-wrap items-end justify-between gap-4">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-teal-700">Commercial launch view</p>
+            <h2 id="commercial-kpi-heading" className="mt-1 text-xl font-semibold text-slate-950">REAL merchant funnel &amp; revenue</h2>
+            <p className="mt-1 text-sm text-slate-500">Only merchants classified as REAL are included. Test, reference, and possible-external activity stays outside commercial KPIs.</p>
+          </div>
+          <span className="rounded-full bg-slate-100 px-3 py-1.5 text-xs font-semibold text-slate-600">REAL only</span>
+        </div>
+        <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+          {[
+            ['REAL Merchants', commercialKpis.realMerchants],
+            ['Paid REAL Merchants', commercialKpis.paidRealMerchants],
+            ['Active Pilots', commercialKpis.activePilots],
+            ['Active paid subscriptions', commercialKpis.activePaidSubscriptions],
+            ['MRR', money(commercialKpis.mrrCents)],
+          ].map(([label, value]) => <div key={String(label)} className="rounded-xl bg-slate-50 p-4"><p className="text-xs text-slate-500">{label}</p><p className="mt-2 text-xl font-semibold tabular-nums text-slate-950">{value}</p></div>)}
+        </div>
+        <dl className="mt-4 grid gap-3 text-sm sm:grid-cols-2 lg:grid-cols-4">
+          <div><dt className="text-slate-500">Pilot revenue</dt><dd className="mt-1 font-semibold text-slate-900">{money(commercialKpis.pilotRevenueCents)} <span className="font-normal text-slate-400">one-time</span></dd></div>
+          <div><dt className="text-slate-500">AI Commerce Sessions</dt><dd className="mt-1 font-semibold text-slate-900">{commercialKpis.commercialAICommerceSessions.toLocaleString()}</dd></div>
+          <div><dt className="text-slate-500">Shopper sessions</dt><dd className="mt-1 font-semibold text-slate-900">{commercialKpis.commercialShopperSessions.toLocaleString()}</dd></div>
+          <div><dt className="text-slate-500">Shopper intents</dt><dd className="mt-1 font-semibold text-slate-900">{commercialKpis.commercialIntents.toLocaleString()}</dd></div>
+        </dl>
+        <div className="mt-5 border-t border-slate-100 pt-4">
+          <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-400">First-merchant funnel</p>
+          <div className="mt-3 flex flex-wrap gap-x-4 gap-y-2 text-sm text-slate-700">
+            {[
+              ['Created', commercialKpis.funnel.merchantCreated],
+              ['Catalog ready', commercialKpis.funnel.catalogReady],
+              ['Store published', commercialKpis.funnel.storePublished],
+              ['Checkout started', commercialKpis.funnel.checkoutStarted],
+              ['Billing activated', commercialKpis.funnel.billingActivated],
+              ['First AI session', commercialKpis.funnel.firstAICommerceSession],
+              ['First intent', commercialKpis.funnel.firstIntent],
+            ].map(([label, value]) => <span key={String(label)}><strong className="font-semibold text-slate-950">{value}</strong> {label}</span>)}
+          </div>
+        </div>
       </section>
 
       <section>

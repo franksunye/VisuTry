@@ -14,8 +14,8 @@ function sqlMock(transactions: unknown[][][]): SqlMock {
   return sql
 }
 
-function selectedMerchant(merchantId: string, slug: string, role: 'OWNER' | 'ADMIN' = 'OWNER') {
-  return { membershipId: `membership-${merchantId}`, userId: 'user-a', merchantId, role, membershipCreatedAt: new Date(), membershipUpdatedAt: new Date(), slug, name: 'Test Merchant' }
+function selectedMerchant(merchantId: string, slug: string, role: 'OWNER' | 'ADMIN' = 'OWNER', name = 'Test Merchant') {
+  return { membershipId: `membership-${merchantId}`, userId: 'user-a', merchantId, role, membershipCreatedAt: new Date(), membershipUpdatedAt: new Date(), slug, name }
 }
 
 describe('Cloudflare direct-Neon merchant provisioning', () => {
@@ -67,6 +67,16 @@ describe('Cloudflare direct-Neon merchant provisioning', () => {
     expect(result.merchant.slug).toBe('brand-name-2')
     expect(result.created).toBe(true)
     expect(sql.transaction).toHaveBeenCalledTimes(2)
+  })
+
+  it('uses the same neutral display name when the optional name is blank', async () => {
+    const sql = sqlMock([[[], [], [], [], [selectedMerchant('merchant-new', 'my-store', 'OWNER', 'My Store')]]])
+    ;(getCloudflareSql as jest.Mock).mockReturnValue(sql)
+
+    const result = await createMerchantWithOwner({ userId: 'user-a', name: '   ' })
+
+    expect(result.merchant).toMatchObject({ slug: 'my-store', name: 'My Store' })
+    expect(result.created).toBe(true)
   })
 
   it('keeps user and merchant identifiers parameterized in every provisioning attempt', async () => {

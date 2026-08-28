@@ -66,6 +66,15 @@ export const AnalyticsEvent = {
   MerchantCatalogCorrectionSaved: 'merchant_catalog_correction_saved',
   MerchantStoreCreated: 'merchant_store_created',
   MerchantStorePublished: 'merchant_store_published',
+  MerchantFirstStorePublished: 'merchant_first_store_published',
+  MerchantCommercialOfferViewed: 'merchant_commercial_offer_viewed',
+  MerchantCheckoutStarted: 'merchant_checkout_started',
+  MerchantCheckoutReturned: 'merchant_checkout_returned',
+  MerchantBillingActivated: 'merchant_billing_activated',
+  MerchantFirstAICommerceSession: 'merchant_first_ai_commerce_session',
+  MerchantFirstIntent: 'merchant_first_intent',
+  MerchantPilotExpired: 'merchant_pilot_expired',
+  MerchantSubscriptionCancelled: 'merchant_subscription_cancelled',
 } as const
 
 export type AnalyticsEventName =

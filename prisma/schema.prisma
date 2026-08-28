@@ -756,8 +756,12 @@ model MerchantBillingEvent {
   eventType            String
   stripeCustomerId     String?
   stripeSubscriptionId String?
+  stripePriceId        String?
   eventCreatedAt       Int?
   status               String   @default("PROCESSED")
+  processingReason     String?
+  duplicateCount       Int      @default(0)
+  lastDuplicateAt      DateTime?
   processedAt          DateTime?
 
   merchant       Merchant?               @relation(fields: [merchantId], references: [id], onDelete: SetNull)

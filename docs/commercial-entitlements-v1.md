@@ -99,3 +99,42 @@ Local and preview environments must use test Stripe credentials and
 closed. No G4-B migration is run by local verification and this feature is not
 production-ready until the additive migration, review, merge, deployment, and
 bounded smoke are completed.
+
+## G4-C commercial launch closure
+
+The external offer is intentionally explicit. A new Merchant can use the real
+Free plan, request or enter the fixed Founding Pilot when eligible, or choose a
+paid recurring plan after enrollment. The Pilot is `$149 / 30 days`, has no
+automatic renewal or silent conversion, and is not a discounted Launch
+subscription. The Merchant Plan & Usage surface shows the current plan,
+period, included capacity, remaining capacity, feature availability, and the
+next action. A checkout return is only a processing state until a verified
+webhook updates the canonical Merchant fields; the browser redirect never
+grants entitlement.
+
+An exhausted paid or Pilot AI Commerce Session allowance pauses paid
+Generative Try-On only. The Store remains live, normal browsing and product
+links remain available, and the shopper receives a generic availability
+message. `NORMAL`, `NOTICE`, `WARNING`, and `LIMIT_REACHED` are shared domain
+thresholds at `<70%`, `70–89%`, `90–99%`, and `100%+`; UI code must not define a
+second percentage contract.
+
+Commercial KPI reporting is a trust boundary: only `REAL` Merchants count.
+MRR sums active Launch ($199), Growth ($499), and Scale ($999) recurring
+plans. Founding Pilot receipts are one-time revenue and are never included in
+MRR. TEST, INTERNAL, REFERENCE, POSSIBLE_EXTERNAL, and legacy/unmigrated rows
+may exercise runtime behavior but cannot become commercial revenue evidence
+without explicit provenance review. Classification is never authorization.
+
+The Admin view exposes enrollment, plan/status, usage, Store status, masked
+provider identity, and recent webhook outcomes without exposing raw payloads or
+allowing manual plan mutation. `PROCESSED`, `IGNORED · out of order`,
+duplicate delivery counts, and `REJECTED` reasons are operational evidence;
+absence of a ledger row means no verified event has arrived. Billing routes and
+webhooks remain Vercel-owned; Cloudflare is not a second billing state machine.
+
+Production paid validation is deliberately a separate operator action. Use the
+runbook at
+`docs/operations/merchant-first-paid-production-validation.md` only after
+approval. This G4-C code closure does not execute a real payment, deploy
+production, mutate Merchant classification, or delete production data.

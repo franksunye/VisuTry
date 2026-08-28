@@ -38,6 +38,11 @@ describe('MerchantPlanUsage', () => {
     expect(screen.getByRole('link', { name: /unlock ai try-on/i })).toBeInTheDocument()
   })
 
+  it('offers the fixed Founding Pilot directly from the Free workspace', () => {
+    render(<MerchantPlanUsage commercial={commercial({ planCode: 'FREE', planName: 'Free', priceLabel: '$0', status: 'FREE', periodStart: null, periodEnd: null, daysRemaining: null, limits: { catalogItems: 50, activeCampaigns: 0, aiCommerceSessions: null, standardTryOnGenerations: null, normalStoreTraffic: 'unlimited' }, usage: { aiCommerceSessions: 0, activeCampaigns: 0, catalogItems: 4, standardTryOnGenerations: 0 }, aiCommerceSessionLimit: null, aiCommerceSessionRemaining: null, aiCommerceSessionPercentage: null, threshold: null, features: { STORE: true, CATALOG: true, CAMPAIGN: false, RECOMMENDATION: true, GENERATIVE_TRY_ON: false, COMPARE: false, BASIC_ANALYTICS: true, ADVANCED_ANALYTICS: false }, primaryAction: 'UNLOCK_AI_TRY_ON' })} merchantId="merchant-free" />)
+    expect(screen.getByRole('button', { name: /start founding pilot/i })).toBeInTheDocument()
+  })
+
   it('explains the fixed Founding Pilot offer without presenting recurring billing', () => {
     render(<MerchantPlanUsage commercial={commercial({ planCode: 'FOUNDING_PILOT', planName: 'Founding Pilot', priceLabel: '$149 / 30 days', status: 'PILOT_ACTIVE', periodStart: '2026-08-01T00:00:00.000Z', periodEnd: '2026-08-31T00:00:00.000Z', daysRemaining: 3, limits: { catalogItems: 50, activeCampaigns: 1, aiCommerceSessions: 1500, standardTryOnGenerations: 3500, normalStoreTraffic: 'unlimited' }, usage: { aiCommerceSessions: 620, activeCampaigns: 0, catalogItems: 12, standardTryOnGenerations: 1420 }, aiCommerceSessionLimit: 1500, aiCommerceSessionRemaining: 880, aiCommerceSessionPercentage: 41, threshold: 'NORMAL', features: { STORE: true, CATALOG: true, CAMPAIGN: true, RECOMMENDATION: true, GENERATIVE_TRY_ON: true, COMPARE: true, BASIC_ANALYTICS: true, ADVANCED_ANALYTICS: false }, primaryAction: 'CONTINUE_AFTER_PILOT', pilotCatalogRange: { min: 8, max: 50 }, setupLabel: 'Assisted setup + weekly review' })} />)
     expect(screen.getByText('$149 / 30 days')).toBeInTheDocument()

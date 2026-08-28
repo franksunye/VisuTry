@@ -1,9 +1,11 @@
 "use client";
 
 import { ArrowRight, BarChart3, Check, Sparkles, Store } from "lucide-react";
-import type { ReactNode } from "react";
+import { useEffect, type ReactNode } from "react";
 import type { MerchantCommercialPresentation } from "@/modules/merchant/application/merchant-control-center";
 import { MerchantBillingActions } from "@/components/merchant/MerchantBillingActions";
+import { analytics } from "@/lib/analytics";
+import { AnalyticsEvent } from "@/lib/analytics-events";
 
 type Props = { commercial: MerchantCommercialPresentation; merchantId?: string; locale?: string };
 
@@ -60,6 +62,14 @@ function actionLabel(action: MerchantCommercialPresentation["primaryAction"]) {
 }
 
 export function MerchantPlanUsage({ commercial, merchantId, locale = "en" }: Props) {
+  useEffect(() => {
+    analytics.trackCustomEvent(AnalyticsEvent.MerchantCommercialOfferViewed, {
+      merchant_id: merchantId,
+      plan_code: commercial.planCode ?? "LEGACY_UNMIGRATED",
+      commercial_status: commercial.status,
+      locale,
+    });
+  }, [commercial.planCode, commercial.status, locale, merchantId]);
   const periodText = commercial.status === "LEGACY_UNMIGRATED"
     ? "Not enrolled in a current plan"
     : commercial.status === "PILOT_ACTIVE" || commercial.planCode === "FOUNDING_PILOT"
