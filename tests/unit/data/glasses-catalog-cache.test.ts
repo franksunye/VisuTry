@@ -23,7 +23,7 @@ jest.mock('next/cache', () => ({
     opts?: { tags?: string[] },
   ) => {
     return async () => {
-      const state = (globalThis as { __GLASSES_CATALOG_TEST_CACHE__: CacheState }).__GLASSES_CATALOG_TEST_CACHE__
+      const state = (globalThis as unknown as { __GLASSES_CATALOG_TEST_CACHE__: CacheState }).__GLASSES_CATALOG_TEST_CACHE__
       const cacheKey = JSON.stringify(keys)
       if (state.store.has(cacheKey)) return state.store.get(cacheKey)
       const value = await fn()
@@ -37,7 +37,7 @@ jest.mock('next/cache', () => ({
     }
   },
   revalidateTag: (tag: string) => {
-    const state = (globalThis as { __GLASSES_CATALOG_TEST_CACHE__: CacheState }).__GLASSES_CATALOG_TEST_CACHE__
+    const state = (globalThis as unknown as { __GLASSES_CATALOG_TEST_CACHE__: CacheState }).__GLASSES_CATALOG_TEST_CACHE__
     const keys = state.tagged.get(tag)
     if (!keys) return
     for (const key of keys) state.store.delete(key)

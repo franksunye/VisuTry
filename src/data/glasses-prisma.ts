@@ -14,27 +14,25 @@ function asDate(value: Date | string): Date {
   return value instanceof Date ? value : new Date(value)
 }
 
-function reviveCategory(category: GlassesCategoryRecord): GlassesCategoryRecord {
+function reviveDateField<T extends { createdAt?: Date | string; updatedAt?: Date | string }>(row: T): T {
   return {
-    ...category,
-    createdAt: asDate(category.createdAt),
-    updatedAt: asDate(category.updatedAt),
+    ...row,
+    ...(row.createdAt != null ? { createdAt: asDate(row.createdAt) } : {}),
+    ...(row.updatedAt != null ? { updatedAt: asDate(row.updatedAt) } : {}),
   }
 }
 
+function reviveCategory(category: GlassesCategoryRecord): GlassesCategoryRecord {
+  return reviveDateField(category)
+}
+
 function reviveFaceShape(shape: FaceShapeRecord): FaceShapeRecord {
-  return {
-    ...shape,
-    createdAt: asDate(shape.createdAt),
-    updatedAt: asDate(shape.updatedAt),
-  }
+  return reviveDateField(shape)
 }
 
 function reviveFrame(frame: GlassesFrameRecord): GlassesFrameRecord {
   return {
-    ...frame,
-    createdAt: asDate(frame.createdAt),
-    updatedAt: asDate(frame.updatedAt),
+    ...reviveDateField(frame),
     faceShapes: (frame.faceShapes ?? []).map((join) => ({
       ...join,
       faceShape: reviveFaceShape(join.faceShape),
