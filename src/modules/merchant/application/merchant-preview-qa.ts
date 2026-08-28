@@ -341,21 +341,29 @@ export async function preparePreviewSubscriptionBoundary(input: { merchant: unkn
   return { alias, merchantId: row.id, classification: String(row.classification), before, after, mode: input.mode, pass }
 }
 
-export async function replayPreviewStripeEvent(input: { merchant: unknown; eventId: string; repeat: number }) {
+export async function replayPreviewStripeEvent(input: { merchant: unknown; eventId: string; repeat: number; concurrent?: boolean }) {
   validatePreviewQaEnvironment()
   const { alias, row } = await loadQaMerchant(input.merchant)
   if (!/^evt_[A-Za-z0-9]+$/.test(input.eventId)) throw new PreviewQaGuardError('STRIPE_EVENT_ID_REQUIRED', 'event-id must be a Stripe event id.')
-  if (!Number.isInteger(input.repeat) || input.repeat < 1 || input.repeat > 2) throw new PreviewQaGuardError('REPLAY_BOUND_REQUIRED', 'Replay repeat must be 1 or 2.')
+  const maxRepeat = input.concurrent ? 10 : 2
+  if (!Number.isInteger(input.repeat) || input.repeat < 1 || input.repeat > maxRepeat) throw new PreviewQaGuardError('REPLAY_BOUND_REQUIRED', `Replay repeat must be between 1 and ${maxRepeat}.`)
   const event = await stripe.events.retrieve(input.eventId) as unknown as Stripe.Event
   if (!isMerchantBillingMetadata((event.data.object as Record<string, unknown>).metadata)) throw new PreviewQaGuardError('MERCHANT_EVENT_REQUIRED', 'The Stripe TEST event is not a Merchant Billing event.')
   const metadata = metadataRecord((event.data.object as Record<string, unknown>).metadata)
   if (metadata.merchantId && metadata.merchantId !== row.id) throw new PreviewQaGuardError('BILLING_IDENTITY_MISMATCH', 'The Stripe event belongs to a different Merchant.')
   const before = await snapshotPreviewQaMerchant(alias)
-  const results: MerchantBillingEventResult[] = []
-  for (let index = 0; index < input.repeat; index += 1) results.push(await processMerchantStripeEvent(event))
+  const results: MerchantBillingEventResult[] = input.concurrent
+    ? await Promise.all(Array.from({ length: input.repeat }, () => processMerchantStripeEvent(event)))
+    : []
+  if (!input.concurrent) {
+    for (let index = 0; index < input.repeat; index += 1) results.push(await processMerchantStripeEvent(event))
+  }
   const after = await snapshotPreviewQaMerchant(alias)
-  const secondIsDuplicate = input.repeat === 1 || results[1]?.duplicate === true
-  const pass = results.every((result) => result.handled === true && result.merchantId === row.id) && secondIsDuplicate && after.billingEventCount >= before.billingEventCount
+  const canonicalApplications = results.filter((result) => result.duplicate === false).length
+  const duplicateDeliveries = results.filter((result) => result.duplicate === true).length
+  const pass = results.every((result) => result.handled === true && result.merchantId === row.id)
+    && (input.concurrent ? canonicalApplications <= 1 && duplicateDeliveries >= input.repeat - 1 : input.repeat === 1 || results[1]?.duplicate === true)
+    && after.billingEventCount >= before.billingEventCount
   return { alias, merchantId: row.id, classification: String(row.classification), before, after, eventId: event.id, eventType: event.type, results, pass }
 }
 

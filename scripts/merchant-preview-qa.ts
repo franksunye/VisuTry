@@ -52,6 +52,7 @@ function help(): void {
     '  npx tsx scripts/merchant-preview-qa.ts pilot-expire --merchant=QA-PILOT',
     '  npx tsx scripts/merchant-preview-qa.ts subscription-boundary --merchant=QA-SUBSCRIPTION --mode=near-expiry|expired',
     '  npx tsx scripts/merchant-preview-qa.ts replay-event --merchant=QA-SUBSCRIPTION --event-id=evt_... [--repeat=1|2]',
+    '  npx tsx scripts/merchant-preview-qa.ts replay-event-concurrent --merchant=QA-SUBSCRIPTION --event-id=evt_... [--repeat=5|10]',
     '',
     'Run from Vercel Preview context, for example:',
     '  vercel env run -e preview --git-branch codex/g4c-commercial-launch -- npx tsx scripts/merchant-preview-qa.ts snapshot --merchant=QA-FREE',
@@ -121,12 +122,13 @@ async function main(): Promise<void> {
       if (!result.pass) process.exitCode = 1
       return
     }
-    if (command === 'replay-event') {
+    if (command === 'replay-event' || command === 'replay-event-concurrent') {
       const eventId = valueFlag(argv, '--event-id')
       if (!eventId) throw new Error('--event-id is required.')
-      const repeat = Number(valueFlag(argv, '--repeat') ?? '2')
-      const result = await replayPreviewStripeEvent({ merchant, eventId, repeat })
-      printResult({ command, environment: environmentLabel(), merchantId: result.merchantId, classification: result.classification, beforeState: result.before, fixture: `retrieve Stripe TEST event ${result.eventId} (${result.eventType}) and deliver through canonical webhook processor ${repeat} time(s)`, afterState: result.after, deliveries: result.results, result: result.pass ? 'PASS' : 'FAIL' })
+      const repeat = Number(valueFlag(argv, '--repeat') ?? (command === 'replay-event-concurrent' ? '10' : '2'))
+      const concurrent = command === 'replay-event-concurrent'
+      const result = await replayPreviewStripeEvent({ merchant, eventId, repeat, concurrent })
+      printResult({ command, environment: environmentLabel(), merchantId: result.merchantId, classification: result.classification, beforeState: result.before, fixture: `retrieve Stripe TEST event ${result.eventId} (${result.eventType}) and ${concurrent ? 'concurrently ' : ''}deliver through canonical webhook processor ${repeat} time(s)`, afterState: result.after, deliveries: result.results, result: result.pass ? 'PASS' : 'FAIL' })
       if (!result.pass) process.exitCode = 1
       return
     }

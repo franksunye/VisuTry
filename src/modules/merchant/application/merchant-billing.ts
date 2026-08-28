@@ -5,9 +5,9 @@ import { stripe } from '@/lib/stripe'
 import { isMockMode } from '@/lib/mocks'
 import { COMMERCIAL_PLAN_VERSION, getMerchantPlanDefinition } from '@/modules/store/domain/merchant-commercial-plans'
 import { addDays, compareBillingEvent, commercialStatusForSubscription, type MerchantBillablePlanCode, type MerchantRecurringPlanCode } from '../domain/merchant-billing'
-import { MERCHANT_BILLING_PROVIDER, MerchantBillingError, assertMerchantStripeEnvironment, isMerchantBillingMetadata, isRetryableMerchantBillingErrorCode, merchantStripePriceForPlan, metadataRecord, resolveMerchantStripePrice, stripeId, unixDate } from './merchant-billing-shared'
+import { MERCHANT_BILLING_PROVIDER, MerchantBillingError, assertMerchantStripeEnvironment, isMerchantBillingMetadata, isRetryableMerchantBillingDatabaseError, isRetryableMerchantBillingErrorCode, merchantStripePriceForPlan, metadataRecord, resolveMerchantStripePrice, stripeId, unixDate } from './merchant-billing-shared'
 
-export { MERCHANT_BILLING_PROVIDER, MerchantBillingError, assertMerchantStripeEnvironment, isRetryableMerchantBillingErrorCode, merchantStripePriceMap, merchantStripePriceForPlan, resolveMerchantStripePrice } from './merchant-billing-shared'
+export { MERCHANT_BILLING_PROVIDER, MerchantBillingError, assertMerchantStripeEnvironment, isRetryableMerchantBillingDatabaseError, isRetryableMerchantBillingErrorCode, merchantStripePriceMap, merchantStripePriceForPlan, resolveMerchantStripePrice } from './merchant-billing-shared'
 export type { MerchantStripePrice } from './merchant-billing-shared'
 
 type BillingAccountRow = {
@@ -102,21 +102,23 @@ export async function enrollMerchantCommercialPlan(input: { merchantId: string; 
   return txOverride ? run(txOverride) : prisma.$transaction(run)
 }
 
-async function findAccount(event: Stripe.Event): Promise<BillingAccountRow | null> {
+type MerchantBillingDatabase = typeof prisma
+
+async function findAccount(event: Stripe.Event, database: MerchantBillingDatabase = prisma): Promise<BillingAccountRow | null> {
   const object = event.data.object as Record<string, unknown>; const meta = metadataRecord(object.metadata); const customer = stripeId(object.customer as string | { id: string } | null | undefined); const subscription = stripeId(object.subscription as string | { id: string } | null | undefined) ?? (event.type.startsWith('customer.subscription.') ? String(object.id ?? '') : null)
   if (meta.merchantId) {
-    const row = await prisma.merchantBillingAccount.findUnique({ where: { merchantId_provider: { merchantId: meta.merchantId, provider: MERCHANT_BILLING_PROVIDER } }, select: billingAccountSelect })
+    const row = await database.merchantBillingAccount.findUnique({ where: { merchantId_provider: { merchantId: meta.merchantId, provider: MERCHANT_BILLING_PROVIDER } }, select: billingAccountSelect })
     if (row) return row as BillingAccountRow
     // Fall through to the provider identity so a known customer with bad or
     // stale metadata can be recorded as a rejected operational event instead
     // of disappearing as an unhandled webhook.
   }
-  if (subscription) { const row = await prisma.merchantBillingAccount.findUnique({ where: { stripeSubscriptionId: subscription }, select: billingAccountSelect }); if (row) return row as BillingAccountRow }
-  if (customer) { const row = await prisma.merchantBillingAccount.findUnique({ where: { stripeCustomerId: customer }, select: billingAccountSelect }); if (row) return row as BillingAccountRow }
+  if (subscription) { const row = await database.merchantBillingAccount.findUnique({ where: { stripeSubscriptionId: subscription }, select: billingAccountSelect }); if (row) return row as BillingAccountRow }
+  if (customer) { const row = await database.merchantBillingAccount.findUnique({ where: { stripeCustomerId: customer }, select: billingAccountSelect }); if (row) return row as BillingAccountRow }
   return null
 }
 
-async function recordRejectedEvent(event: Stripe.Event, account: BillingAccountRow, object: Record<string, unknown>, error: MerchantBillingError) {
+async function recordRejectedEvent(event: Stripe.Event, account: BillingAccountRow, object: Record<string, unknown>, error: MerchantBillingError, database: MerchantBillingDatabase = prisma) {
   const data = {
     provider: MERCHANT_BILLING_PROVIDER,
     providerEventId: event.id,
@@ -132,16 +134,16 @@ async function recordRejectedEvent(event: Stripe.Event, account: BillingAccountR
     processingReason: error.code,
     processedAt: new Date(),
   }
-  const existing = await prisma.merchantBillingEvent.findUnique({ where: { provider_providerEventId: { provider: MERCHANT_BILLING_PROVIDER, providerEventId: event.id } }, select: { id: true } })
+  const existing = await database.merchantBillingEvent.findUnique({ where: { provider_providerEventId: { provider: MERCHANT_BILLING_PROVIDER, providerEventId: event.id } }, select: { id: true } })
   if (existing) {
-    await prisma.merchantBillingEvent.update({ where: { id: existing.id }, data: { ...data, duplicateCount: { increment: 1 }, lastDuplicateAt: new Date() } })
+    await database.merchantBillingEvent.update({ where: { id: existing.id }, data: { ...data, duplicateCount: { increment: 1 }, lastDuplicateAt: new Date() } })
     return
   }
   try {
-    await prisma.merchantBillingEvent.create({ data })
+    await database.merchantBillingEvent.create({ data })
   } catch (recordingError) {
     if ((recordingError as { code?: string }).code !== 'P2002') throw recordingError
-    await prisma.merchantBillingEvent.update({ where: { provider_providerEventId: { provider: MERCHANT_BILLING_PROVIDER, providerEventId: event.id } }, data: { ...data, duplicateCount: { increment: 1 }, lastDuplicateAt: new Date() } })
+    await database.merchantBillingEvent.update({ where: { provider_providerEventId: { provider: MERCHANT_BILLING_PROVIDER, providerEventId: event.id } }, data: { ...data, duplicateCount: { increment: 1 }, lastDuplicateAt: new Date() } })
   }
 }
 
@@ -160,16 +162,16 @@ async function applySubscription(tx: any, account: BillingAccountRow, value: Str
   return true
 }
 
-async function applyCheckout(tx: any, account: BillingAccountRow, session: Stripe.Checkout.Session | Record<string, unknown>, event: Stripe.Event): Promise<boolean> {
+async function applyCheckout(tx: any, account: BillingAccountRow, session: Stripe.Checkout.Session | Record<string, unknown>, event: Stripe.Event, subscription: Stripe.Subscription | null = null): Promise<boolean> {
   const meta = metadataRecord(session.metadata); assertIdentity(account, stripeId(session.customer as string | { id: string } | null | undefined), meta.merchantId || String(session.client_reference_id ?? '')); if (session.payment_status !== 'paid' && session.payment_status !== 'no_payment_required') return false
   if (account.stripeCheckoutSessionId === String(session.id) || !isNewerBillingEvent(account, event)) return false
   const price = resolveMerchantStripePrice(meta.stripePriceId)
   if (price.billingType === 'one_time') { const start = eventDate(event); const end = addDays(start, 30); await tx.merchantBillingAccount.update({ where: { id: account.id }, data: { stripePriceId: price.priceId, stripeCheckoutSessionId: String(session.id), subscriptionStatus: 'paid', currentPeriodStart: start, currentPeriodEnd: end, lastEventCreatedAt: event.created, lastEventId: event.id } }); await enrollMerchantCommercialPlan({ merchantId: account.merchantId, planCode: price.planCode, effectiveFrom: start, billingPeriodEnd: end, commercialStatus: 'PILOT_ACTIVE', source: `stripe:${event.type}` }, tx); return true }
-  const id = stripeId(session.subscription as string | { id: string } | null | undefined); if (!id) throw new MerchantBillingError('SUBSCRIPTION_NOT_FOUND', 'Stripe did not provide the Merchant subscription.', 409); const subscription = await retrieveSubscription(id); if (!subscription) throw new MerchantBillingError('SUBSCRIPTION_NOT_READY', 'Merchant subscription is still being confirmed.', 409); const applied = await applySubscription(tx, { ...account, stripeCheckoutSessionId: String(session.id) }, subscription, event); if (applied) await tx.merchantBillingAccount.update({ where: { id: account.id }, data: { stripeCheckoutSessionId: String(session.id) } }); return applied
+  const id = stripeId(session.subscription as string | { id: string } | null | undefined); if (!id) throw new MerchantBillingError('SUBSCRIPTION_NOT_FOUND', 'Stripe did not provide the Merchant subscription.', 409); if (!subscription) throw new MerchantBillingError('SUBSCRIPTION_NOT_READY', 'Merchant subscription is still being confirmed.', 409); const applied = await applySubscription(tx, { ...account, stripeCheckoutSessionId: String(session.id) }, subscription, event); if (applied) await tx.merchantBillingAccount.update({ where: { id: account.id }, data: { stripeCheckoutSessionId: String(session.id) } }); return applied
 }
 
-async function applyInvoice(tx: any, account: BillingAccountRow, invoice: Stripe.Invoice | Record<string, unknown>, event: Stripe.Event): Promise<boolean> {
-  assertIdentity(account, invoiceCustomer(invoice), null); if (!isNewerBillingEvent(account, event)) return false; const id = invoiceSubscription(invoice) ?? account.stripeSubscriptionId; if (!id) return false; const subscription = await retrieveSubscription(id)
+async function applyInvoice(tx: any, account: BillingAccountRow, invoice: Stripe.Invoice | Record<string, unknown>, event: Stripe.Event, subscription: Stripe.Subscription | null = null): Promise<boolean> {
+  assertIdentity(account, invoiceCustomer(invoice), null); if (!isNewerBillingEvent(account, event)) return false; const id = invoiceSubscription(invoice) ?? account.stripeSubscriptionId; if (!id) return false
   if (subscription) return applySubscription(tx, account, event.type === 'invoice.payment_failed' ? { ...subscription, status: 'past_due' } : subscription, event)
   const price = account.stripePriceId ? resolveMerchantStripePrice(account.stripePriceId) : null; if (!price || price.billingType !== 'subscription') return false; const status = event.type === 'invoice.payment_failed' ? 'PAST_DUE' : 'PAID_ACTIVE'; await tx.merchantBillingAccount.update({ where: { id: account.id }, data: { subscriptionStatus: status === 'PAID_ACTIVE' ? 'active' : 'past_due', lastEventCreatedAt: event.created, lastEventId: event.id } }); await enrollMerchantCommercialPlan({ merchantId: account.merchantId, planCode: price.planCode, effectiveFrom: account.currentPeriodStart ?? eventDate(event), billingPeriodEnd: account.currentPeriodEnd, commercialStatus: status, source: `stripe:${event.type}` }, tx); return true
 }
@@ -178,14 +180,80 @@ const supported = new Set(['checkout.session.completed', 'checkout.session.async
 export function isMerchantStripeEventCandidate(event: Stripe.Event) { return supported.has(event.type) && isMerchantBillingMetadata((event.data.object as Record<string, unknown>).metadata) }
 export type MerchantBillingEventResult = { handled: boolean; duplicate: boolean; merchantId?: string; eventType?: string }
 
-export async function processMerchantStripeEvent(event: Stripe.Event): Promise<MerchantBillingEventResult> {
+type PreparedMerchantBillingEvent = { subscription: Stripe.Subscription | null }
+
+async function prepareMerchantBillingEvent(event: Stripe.Event, account: BillingAccountRow, object: Record<string, unknown>): Promise<PreparedMerchantBillingEvent> {
+  if (event.type.startsWith('checkout.session.') && (object.payment_status === 'paid' || object.payment_status === 'no_payment_required')) {
+    const price = resolveMerchantStripePrice(metadataRecord(object.metadata).stripePriceId)
+    if (price.billingType === 'subscription') {
+      const id = stripeId(object.subscription as string | { id: string } | null | undefined)
+      if (!id) throw new MerchantBillingError('SUBSCRIPTION_NOT_FOUND', 'Stripe did not provide the Merchant subscription.', 409)
+      const subscription = await retrieveSubscription(id)
+      if (!subscription) throw new MerchantBillingError('SUBSCRIPTION_NOT_READY', 'Merchant subscription is still being confirmed.', 409)
+      return { subscription }
+    }
+  }
+
+  if (event.type.startsWith('invoice.')) {
+    const id = invoiceSubscription(object) ?? account.stripeSubscriptionId
+    return { subscription: id ? await retrieveSubscription(id) : null }
+  }
+
+  return { subscription: null }
+}
+
+async function lockBillingAccount(tx: any, accountId: string): Promise<BillingAccountRow | null> {
+  // The event ledger has foreign keys to both MerchantBillingAccount and
+  // Merchant. Locking the account first prevents two new event inserts from
+  // holding FK key-share locks while they wait to update this same account.
+  const rows = await tx.$queryRaw(Prisma.sql`
+    SELECT "id", "merchantId", "provider", "stripeCustomerId", "stripeSubscriptionId",
+      "stripePriceId", "stripeCheckoutSessionId", "subscriptionStatus", "cancelAtPeriodEnd",
+      "currentPeriodStart", "currentPeriodEnd", "lastEventCreatedAt", "lastEventId"
+    FROM "MerchantBillingAccount"
+    WHERE "id" = ${accountId}
+    FOR UPDATE
+  `) as BillingAccountRow[]
+  return rows[0] ?? null
+}
+
+const MAX_BILLING_TRANSACTION_ATTEMPTS = 3
+
+function waitForBillingRetry(attempt: number): Promise<void> {
+  const delayMs = 10 * (2 ** (attempt - 1)) + Math.floor(Math.random() * 15)
+  return new Promise((resolve) => setTimeout(resolve, delayMs))
+}
+
+async function runBillingTransaction<T>(database: MerchantBillingDatabase, operation: (tx: any) => Promise<T>): Promise<T> {
+  let lastError: unknown
+  for (let attempt = 1; attempt <= MAX_BILLING_TRANSACTION_ATTEMPTS; attempt += 1) {
+    try {
+      // The account row lock is the serialization primitive for this bounded
+      // aggregate. Read Committed avoids PostgreSQL Serializable snapshot
+      // aborts when a burst of webhook deliveries all waits on that lock.
+      return await database.$transaction(operation, { isolationLevel: Prisma.TransactionIsolationLevel.ReadCommitted })
+    } catch (error) {
+      lastError = error
+      if (!isRetryableMerchantBillingDatabaseError(error)) throw error
+      if (attempt === MAX_BILLING_TRANSACTION_ATTEMPTS) break
+      await waitForBillingRetry(attempt)
+    }
+  }
+  throw new MerchantBillingError('DATABASE_SERIALIZATION_FAILURE', 'Merchant billing is temporarily busy. Stripe can safely retry this event.', 503, { retryable: true, attempts: MAX_BILLING_TRANSACTION_ATTEMPTS, causeCode: (lastError as { code?: string })?.code ?? 'DATABASE_CONCURRENCY' })
+}
+
+export async function processMerchantStripeEvent(event: Stripe.Event, database: MerchantBillingDatabase = prisma): Promise<MerchantBillingEventResult> {
   if (!supported.has(event.type)) return { handled: false, duplicate: false }
-  const account = await findAccount(event); if (!account) return { handled: false, duplicate: false }; const object = event.data.object as Record<string, unknown>
+  const account = await findAccount(event, database); if (!account) return { handled: false, duplicate: false }; const object = event.data.object as Record<string, unknown>
   try {
-    const result = await prisma.$transaction(async (tx) => {
-      // Lock the account before reading its cursor. Every provider event that
-      // can mutate billing state therefore observes and advances one cursor.
-      const locked = await tx.merchantBillingAccount.findUnique({ where: { id: account.id }, select: billingAccountSelect }) as BillingAccountRow | null; if (!locked) throw new MerchantBillingError('BILLING_IDENTITY_NOT_FOUND', 'Merchant billing identity was not found.', 409)
+    // Stripe provider reads happen before the database transaction. This
+    // keeps the account/ledger critical section deterministic and short.
+    const prepared = await prepareMerchantBillingEvent(event, account, object)
+    const result = await runBillingTransaction(database, async (tx) => {
+      // Every Merchant billing event transaction acquires the same account row
+      // lock before touching the event ledger. The FK write therefore cannot
+      // participate in the prior deadlock cycle.
+      const locked = await lockBillingAccount(tx, account.id); if (!locked) throw new MerchantBillingError('BILLING_IDENTITY_NOT_FOUND', 'Merchant billing identity was not found.', 409)
       const existing = await tx.merchantBillingEvent.findUnique({ where: { provider_providerEventId: { provider: MERCHANT_BILLING_PROVIDER, providerEventId: event.id } }, select: { id: true, status: true, processingReason: true } })
       let ledgerId: string
       if (existing) {
@@ -200,18 +268,18 @@ export async function processMerchantStripeEvent(event: Stripe.Event): Promise<M
         ledgerId = ledger.id
       }
       let applied = false
-      if (event.type === 'checkout.session.completed' || event.type === 'checkout.session.async_payment_succeeded') applied = await applyCheckout(tx, locked, object as unknown as Stripe.Checkout.Session, event)
+      if (event.type === 'checkout.session.completed' || event.type === 'checkout.session.async_payment_succeeded') applied = await applyCheckout(tx, locked, object as unknown as Stripe.Checkout.Session, event, prepared.subscription)
       else if (event.type.startsWith('customer.subscription.')) applied = await applySubscription(tx, locked, object as unknown as Stripe.Subscription, event, event.type === 'customer.subscription.deleted')
-      else applied = await applyInvoice(tx, locked, object as unknown as Stripe.Invoice, event)
+      else applied = await applyInvoice(tx, locked, object as unknown as Stripe.Invoice, event, prepared.subscription)
       const reason = applied ? null : !isNewerBillingEvent(locked, event) ? 'OUT_OF_ORDER' : event.type.startsWith('checkout.session.') ? 'PAYMENT_NOT_CONFIRMED' : 'NO_STATE_CHANGE'
       await tx.merchantBillingEvent.update({ where: { id: ledgerId }, data: { status: applied ? 'PROCESSED' : 'IGNORED', processingReason: reason, processedAt: new Date() } })
       return { handled: true, duplicate: false }
-    }, { isolationLevel: Prisma.TransactionIsolationLevel.Serializable })
+    })
     return { ...result, merchantId: account.merchantId, eventType: event.type }
   } catch (error) {
     // Keep a small operational record for rejected provider events without
     // allowing a rejected event to mutate the canonical billing state.
-    if (error instanceof MerchantBillingError) await recordRejectedEvent(event, account, object, error)
+    if (error instanceof MerchantBillingError) await recordRejectedEvent(event, account, object, error, database)
     throw error
   }
 }

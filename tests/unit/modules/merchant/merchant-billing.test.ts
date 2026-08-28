@@ -5,6 +5,7 @@ jest.mock('@/lib/prisma', () => ({
     merchant: { findUnique: jest.fn() },
     merchantBillingAccount: { findUnique: jest.fn(), create: jest.fn(), update: jest.fn() },
     merchantBillingEvent: { findUnique: jest.fn(), create: jest.fn(), update: jest.fn() },
+    $queryRaw: jest.fn(),
     $transaction: jest.fn(),
   },
 }))
@@ -38,6 +39,7 @@ const account: TestBillingAccount = {
 }
 
 const tx = {
+  $queryRaw: jest.fn(),
   merchantBillingAccount: { findUnique: jest.fn(), create: jest.fn(), update: jest.fn() },
   merchantBillingEvent: { findUnique: jest.fn(), create: jest.fn(), update: jest.fn() },
   merchant: { update: jest.fn() },
@@ -95,6 +97,7 @@ describe('Merchant Stripe billing boundary', () => {
       }
     })
     tx.merchantBillingAccount.findUnique.mockImplementation(async () => ({ ...persistedAccount }))
+    tx.$queryRaw.mockImplementation(async () => [{ ...persistedAccount }])
     tx.merchantBillingEvent.findUnique.mockImplementation(async (input: any) => {
       const eventId = input.where?.provider_providerEventId?.providerEventId
       return eventId ? eventLedger.get(eventId) ?? null : null
@@ -150,6 +153,114 @@ describe('Merchant Stripe billing boundary', () => {
     const second = await processMerchantStripeEvent(event)
     expect(second).toMatchObject({ handled: true, duplicate: true })
     expect(tx.merchant.update).toHaveBeenCalledTimes(1)
+  })
+
+  it('serializes concurrent delivery of the same event and applies entitlement once', async () => {
+    let lockTail = Promise.resolve()
+    ;(prisma.$transaction as jest.Mock).mockImplementation(async (callback: (value: unknown) => unknown) => {
+      const previous = lockTail
+      let release!: () => void
+      lockTail = new Promise<void>((resolve) => { release = resolve })
+      await previous
+      try { return await callback(tx) } finally { release() }
+    })
+
+    const event = subscriptionEvent({ id: 'evt_concurrent_replay' })
+    const results = await Promise.all(Array.from({ length: 50 }, () => processMerchantStripeEvent(event)))
+
+    expect(results.filter((result) => !result.duplicate)).toHaveLength(1)
+    expect(results.filter((result) => result.duplicate)).toHaveLength(49)
+    expect(eventLedger.get(event.id)).toMatchObject({ status: 'PROCESSED', duplicateCount: 49 })
+    expect(tx.merchant.update).toHaveBeenCalledTimes(1)
+    expect(tx.merchantBillingAccount.update).toHaveBeenCalledTimes(1)
+  })
+
+  it('serializes overlapping checkout and subscription events without a plan regression', async () => {
+    const checkout = checkoutSubscriptionEvent({ id: 'evt_checkout_overlap', created: 1_725_000_000 })
+    const subscription = subscriptionEvent({ id: 'evt_subscription_overlap', created: 1_725_000_001 })
+    retrieveSubscription.mockResolvedValue(subscription.data.object)
+    let lockTail = Promise.resolve()
+    ;(prisma.$transaction as jest.Mock).mockImplementation(async (callback: (value: unknown) => unknown) => {
+      const previous = lockTail
+      let release!: () => void
+      lockTail = new Promise<void>((resolve) => { release = resolve })
+      await previous
+      try { return await callback(tx) } finally { release() }
+    })
+
+    await Promise.all([processMerchantStripeEvent(checkout), processMerchantStripeEvent(subscription)])
+
+    expect(billingState()).toMatchObject({
+      subscriptionStatus: 'active',
+      merchantCommercialStatus: 'PAID_ACTIVE',
+      lastEventId: 'evt_subscription_overlap',
+    })
+    expect(tx.merchant.update).toHaveBeenCalledTimes(1)
+    expect([eventLedger.get(checkout.id)?.status, eventLedger.get(subscription.id)?.status].sort()).toEqual(['IGNORED', 'PROCESSED'])
+  })
+
+  it('serializes overlapping subscription and invoice events with one final period', async () => {
+    const subscription = subscriptionEvent({ id: 'evt_subscription_invoice', created: 1_725_000_001 })
+    const invoice = invoiceEvent({ id: 'evt_invoice_overlap', created: 1_725_000_002 })
+    retrieveSubscription.mockResolvedValue(subscription.data.object)
+    let lockTail = Promise.resolve()
+    ;(prisma.$transaction as jest.Mock).mockImplementation(async (callback: (value: unknown) => unknown) => {
+      const previous = lockTail
+      let release!: () => void
+      lockTail = new Promise<void>((resolve) => { release = resolve })
+      await previous
+      try { return await callback(tx) } finally { release() }
+    })
+
+    await Promise.all([processMerchantStripeEvent(subscription), processMerchantStripeEvent(invoice)])
+
+    expect(billingState()).toMatchObject({
+      subscriptionStatus: 'active',
+      merchantCommercialStatus: 'PAID_ACTIVE',
+      lastEventId: 'evt_invoice_overlap',
+    })
+    expect(eventLedger.get(subscription.id)).toMatchObject({ status: 'PROCESSED' })
+    expect(eventLedger.get(invoice.id)).toMatchObject({ status: 'PROCESSED' })
+  })
+
+  it('retries only recognized database concurrency failures with bounded attempts', async () => {
+    const event = subscriptionEvent({ id: 'evt_db_retry' })
+    let attempts = 0
+    ;(prisma.$transaction as jest.Mock).mockImplementation(async (callback: (value: unknown) => unknown) => {
+      attempts += 1
+      if (attempts < 3) throw Object.assign(new Error('deadlock detected'), { code: '40P01' })
+      return callback(tx)
+    })
+
+    const result = await processMerchantStripeEvent(event)
+
+    expect(result).toMatchObject({ handled: true, duplicate: false })
+    expect(attempts).toBe(3)
+    expect(persistedMerchant).toMatchObject({ planCode: 'LAUNCH', commercialStatus: 'PAID_ACTIVE' })
+  })
+
+  it('returns a retryable failure after concurrency retries are exhausted without canonical mutation', async () => {
+    const event = subscriptionEvent({ id: 'evt_db_retry_exhausted' })
+    let attempts = 0
+    ;(prisma.$transaction as jest.Mock).mockImplementation(async () => {
+      attempts += 1
+      throw Object.assign(new Error('serialization failure'), { code: 'P2034' })
+    })
+
+    await expect(processMerchantStripeEvent(event)).rejects.toMatchObject({ code: 'DATABASE_SERIALIZATION_FAILURE', httpStatus: 503 })
+    expect(attempts).toBe(3)
+    expect(persistedMerchant).toMatchObject({ planCode: null, commercialStatus: null })
+    expect(eventLedger.get(event.id)).toMatchObject({ status: 'REJECTED', processingReason: 'DATABASE_SERIALIZATION_FAILURE' })
+  })
+
+  it('does not retry terminal billing validation errors', async () => {
+    const event = subscriptionEvent({ id: 'evt_terminal_no_retry' })
+    event.data.object.items.data[0].price.id = 'price_not_allowlisted'
+
+    await expect(processMerchantStripeEvent(event)).rejects.toMatchObject({ code: 'UNSUPPORTED_PRICE' })
+
+    expect(prisma.$transaction).toHaveBeenCalledTimes(1)
+    expect(eventLedger.get(event.id)).toMatchObject({ status: 'REJECTED', processingReason: 'UNSUPPORTED_PRICE' })
   })
 
   it('retries a retryable rejected checkout event and activates exactly once', async () => {
@@ -313,6 +424,22 @@ function checkoutSubscriptionEvent(input: { id: string; created: number }) {
         payment_status: 'paid',
         subscription: 'sub_merchant_1',
         metadata: { billingPurpose: 'MERCHANT_PLAN', merchantId: 'merchant-1', stripePriceId: 'price_merchant_launch' },
+      },
+    },
+  } as any
+}
+
+function invoiceEvent(input: { id: string; created: number }) {
+  return {
+    id: input.id,
+    created: input.created,
+    type: 'invoice.paid',
+    data: {
+      object: {
+        id: `in_${input.id}`,
+        customer: 'cus_merchant_1',
+        subscription: 'sub_merchant_1',
+        metadata: { billingPurpose: 'MERCHANT_PLAN', merchantId: 'merchant-1' },
       },
     },
   } as any
