@@ -143,8 +143,11 @@ model TryOnTask {
 
   user            User?           @relation(fields: [userId], references: [id], onDelete: Cascade)
   merchant        Merchant?       @relation(fields: [merchantId], references: [id], onDelete: Restrict)
-  merchantSession MerchantSession? @relation(fields: [merchantSessionId], references: [id], onDelete: Restrict)
-  merchantFrame   MerchantFrame?  @relation(fields: [merchantFrameId], references: [id], onDelete: Restrict)
+  /// Tenant-safe session/frame FKs. PostgreSQL MATCH SIMPLE allows CONSUMER
+  /// rows where merchantSessionId, merchantFrameId, and merchantId are NULL.
+  /// try_on_task_actor_check still owns CONSUMER vs STORE origin invariants.
+  merchantSession MerchantSession? @relation(fields: [merchantSessionId, merchantId], references: [id, merchantId], onDelete: Restrict)
+  merchantFrame   MerchantFrame?  @relation(fields: [merchantFrameId, merchantId], references: [id, merchantId], onDelete: Restrict)
 
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
@@ -1138,6 +1141,7 @@ model MerchantSession {
 
   merchant   Merchant         @relation(fields: [merchantId], references: [id], onDelete: Restrict)
   experience Experience?      @relation(fields: [experienceId, merchantId], references: [id, merchantId], onDelete: Restrict)
+  /// Single-column SET NULL so clearing a photo does not null merchantId.
   photoAsset StoreAsset?      @relation("SessionPhotoAsset", fields: [photoAssetId], references: [id], onDelete: SetNull)
   intents    MerchantIntent[]
   events     MerchantEvent[]
@@ -1149,6 +1153,8 @@ model MerchantSession {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  /// Required so child commerce rows can FK (merchantSessionId, merchantId).
+  @@unique([id, merchantId])
   @@index([merchantId, status])
   @@index([merchantId, createdAt(sort: Desc)])
   @@index([expiresAt])
@@ -1172,9 +1178,9 @@ model MerchantIntent {
   note              String?            @db.Text
 
   merchant Merchant         @relation(fields: [merchantId], references: [id], onDelete: Restrict)
-  session  MerchantSession  @relation(fields: [merchantSessionId], references: [id], onDelete: Restrict)
+  session  MerchantSession  @relation(fields: [merchantSessionId, merchantId], references: [id, merchantId], onDelete: Restrict)
   experience Experience?     @relation(fields: [experienceId, merchantId], references: [id, merchantId], onDelete: Restrict)
-  frame    MerchantFrame?   @relation(fields: [merchantFrameId], references: [id], onDelete: Restrict)
+  frame    MerchantFrame?   @relation(fields: [merchantFrameId, merchantId], references: [id, merchantId], onDelete: Restrict)
 
   createdAt DateTime @default(now())
 
@@ -1203,9 +1209,9 @@ model MerchantEvent {
   metadata          Json?
 
   merchant Merchant         @relation(fields: [merchantId], references: [id], onDelete: Restrict)
-  session  MerchantSession? @relation(fields: [merchantSessionId], references: [id], onDelete: Restrict)
+  session  MerchantSession? @relation(fields: [merchantSessionId, merchantId], references: [id, merchantId], onDelete: Restrict)
   experience Experience?    @relation(fields: [experienceId, merchantId], references: [id, merchantId], onDelete: Restrict)
-  frame    MerchantFrame?   @relation(fields: [merchantFrameId], references: [id], onDelete: Restrict)
+  frame    MerchantFrame?   @relation(fields: [merchantFrameId, merchantId], references: [id, merchantId], onDelete: Restrict)
 
   createdAt DateTime @default(now())
 
@@ -1234,7 +1240,7 @@ model StoreAsset {
   lastDeleteAttemptAt DateTime?
 
   merchant          Merchant          @relation(fields: [merchantId], references: [id], onDelete: Restrict)
-  session           MerchantSession?  @relation("SessionAssets", fields: [merchantSessionId], references: [id], onDelete: Restrict)
+  session           MerchantSession?  @relation("SessionAssets", fields: [merchantSessionId, merchantId], references: [id, merchantId], onDelete: Restrict)
   sessionsWithPhoto MerchantSession[] @relation("SessionPhotoAsset")
 
   createdAt DateTime @default(now())
@@ -1258,7 +1264,7 @@ model MerchantUsageLedger {
   dedupeKey         String?           @unique
 
   merchant Merchant         @relation(fields: [merchantId], references: [id], onDelete: Restrict)
-  session  MerchantSession? @relation(fields: [merchantSessionId], references: [id], onDelete: Restrict)
+  session  MerchantSession? @relation(fields: [merchantSessionId, merchantId], references: [id, merchantId], onDelete: Restrict)
 
   createdAt DateTime @default(now())
 
@@ -1280,6 +1286,8 @@ enum MerchantSponsoredUsageStatus {
 }
 
 /// Separate, auditable merchant-funded usage. Never maps to User credits.
+/// Session and Experience stay single-column FKs with ON DELETE SET NULL so
+/// deleting those rows preserves merchantId on the audit record.
 model MerchantSponsoredUsage {
   id                  String                       @id @default(cuid())
   merchantId          String
