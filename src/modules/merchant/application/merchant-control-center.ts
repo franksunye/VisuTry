@@ -6,8 +6,10 @@ import { validateMerchantFrameReadiness } from '../domain/merchant-frame-readine
 import { validateMerchantFrameStoreReadiness } from '../domain/merchant-frame-store-readiness'
 import type { MerchantFrameReadiness } from '../domain/merchant-frame-readiness'
 import { getMerchantCommerceIntelligence, type MerchantCommerceIntelligence } from './merchant-commerce-intelligence'
+import { commercialStateForPresentation, getMerchantCommercialState } from './merchant-commercial-entitlements'
 
 export type { MerchantCommerceIntelligence }
+export type MerchantCommercialPresentation = ReturnType<typeof commercialStateForPresentation>
 
 export type MerchantCatalogFrameSummary = {
   id: string
@@ -65,6 +67,7 @@ export type MerchantControlCenter = {
   shopperActivityAvailable: boolean
   credentialUsage: { active: number }
   commerceIntelligence?: MerchantCommerceIntelligence
+  commercial?: MerchantCommercialPresentation
 }
 
 type LocalFrame = { id: string; sku: string | null; externalId?: string | null; productUrl?: string | null; name: string; brand: string | null; imageUrl: string | null; shape: string; widthClass: string | null; source: string; status: string; enrichmentStatus: string }
@@ -102,7 +105,7 @@ export async function getMerchantControlCenter(input: { merchantId: string }): P
   })
   if (!merchant) return null
 
-  const [experiences, shopperSessions, activeCredentials, catalogFrames, commerceIntelligence] = await Promise.all([
+  const [experiences, shopperSessions, activeCredentials, catalogFrames, commerceIntelligence, commercialState] = await Promise.all([
     prisma.experience.findMany({
       where: { merchantId: merchant.id },
       orderBy: { updatedAt: 'desc' },
@@ -118,6 +121,7 @@ export async function getMerchantControlCenter(input: { merchantId: string }): P
     prisma.merchantAgentCredential.count({ where: { merchantId: merchant.id, status: 'ACTIVE' } }),
     prisma.merchantFrame.findMany({ where: { merchantId: merchant.id }, orderBy: { name: 'asc' }, select: { id: true, sku: true, externalId: true, productUrl: true, name: true, brand: true, imageUrl: true, shape: true, widthClass: true, source: true, status: true, enrichmentStatus: true } }),
     getMerchantCommerceIntelligence({ merchantId: merchant.id }),
+    getMerchantCommercialState({ merchantId: merchant.id }),
   ])
 
   const operationRows = await prisma.merchantOperationAudit.findMany({ where: { merchantId: merchant.id, resourceType: 'Experience' }, orderBy: { createdAt: 'desc' }, select: { resourceId: true, action: true, actorType: true, createdAt: true } })
@@ -191,5 +195,6 @@ export async function getMerchantControlCenter(input: { merchantId: string }): P
     shopperActivityAvailable: commerceIntelligence.hasActivity || shopperSessions > 0,
     credentialUsage: { active: activeCredentials },
     commerceIntelligence,
+    commercial: commercialStateForPresentation(commercialState),
   }
 }

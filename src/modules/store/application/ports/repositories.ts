@@ -52,6 +52,7 @@ export type MerchantRecord = {
   entitlementEffectiveFrom: Date | null
   billingPeriodEnd: Date | null
   commercialExceptionCode: string | null
+  commercialStatus?: string | null
   createdAt: Date
   updatedAt: Date
 }
@@ -317,6 +318,18 @@ export interface StoreUsageRepository {
     kind: StoreUsageKind
   }): Promise<void>
   countCommerceSessions(merchantId: string): Promise<number>
+  countAICommerceSessions?(input: {
+    merchantId: string
+    periodStart?: Date | null
+    periodEnd?: Date | null
+  }): Promise<number>
+  consumeAICommerceSession?(input: {
+    merchantId: string
+    merchantSessionId: string
+    periodStart?: Date | null
+    periodEnd?: Date | null
+    limit: number
+  }): Promise<{ consumed: boolean; alreadyConsumed: boolean; used: number; limit: number }>
   countSuccessfulRenders(merchantId: string): Promise<number>
   countSessionSuccessfulRenders(
     merchantId: string,

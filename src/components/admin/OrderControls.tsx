@@ -1,9 +1,12 @@
 'use client';
 
 import { useSearchParams, usePathname, useRouter } from 'next/navigation';
-import { PaymentStatus } from '@prisma/client';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+
+// Keep this client component independent from the Prisma runtime. The enum
+// values are persisted API vocabulary, not client-side database access.
+const PAYMENT_STATUSES = ['PENDING', 'COMPLETED', 'FAILED', 'REFUNDED'] as const;
 
 export default function OrderControls({
   currentPage,
@@ -35,7 +38,7 @@ export default function OrderControls({
     }
   };
 
-  const statuses = Object.values(PaymentStatus);
+  const statuses = PAYMENT_STATUSES;
   const currentStatus = searchParams.get('status')?.toString() ?? 'all';
 
   return (

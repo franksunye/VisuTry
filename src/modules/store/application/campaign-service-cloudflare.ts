@@ -10,6 +10,12 @@ import {
 } from '../domain/campaign-readiness'
 import { resolvePresentationMode, type PresentationMode } from '../domain/presentation-mode'
 import { withPublicDiscoveryInvalidation } from './public-discovery-invalidation'
+import {
+  canUseCommercialFeature,
+  isCanonicalMerchantCommercialFields,
+  resolveMerchantCommercialState,
+  type MerchantCommercialFields,
+} from '../domain/merchant-commercial-state'
 
 export { CampaignServiceError }
 
@@ -47,6 +53,23 @@ type CampaignRow = Row & { frames: CampaignFrame[] }
 
 function dateValue(value: unknown): Date | null {
   return value == null ? null : value instanceof Date ? value : new Date(String(value))
+}
+
+function merchantCommercialFields(row: Row): MerchantCommercialFields {
+  return {
+    planCode: row.planCode == null ? null : String(row.planCode),
+    commercialStatus: row.commercialStatus == null ? null : String(row.commercialStatus),
+    commercialStage: row.commercialStage == null ? null : String(row.commercialStage),
+    pricingVersion: row.pricingVersion == null ? null : String(row.pricingVersion),
+    entitlementVersion: row.entitlementVersion == null ? null : String(row.entitlementVersion),
+    commerceSessionAllowance: row.commerceSessionAllowance == null ? null : Number(row.commerceSessionAllowance),
+    standardRenderAllowance: row.standardRenderAllowance == null ? null : Number(row.standardRenderAllowance),
+    campaignAllowance: row.campaignAllowance == null ? null : Number(row.campaignAllowance),
+    entitlementEffectiveFrom: dateValue(row.entitlementEffectiveFrom),
+    billingPeriodEnd: dateValue(row.billingPeriodEnd),
+    commercialExceptionCode: row.commercialExceptionCode == null ? null : String(row.commercialExceptionCode),
+    createdAt: dateValue(row.createdAt),
+  }
 }
 
 function slugify(value: string): string {
@@ -103,7 +126,7 @@ function mapCampaign(row: CampaignRow, merchantSlug: string, merchantReferenceDa
 async function fetchCampaign(merchantId: string, campaignId: string): Promise<{ row: CampaignRow; merchant: Row }> {
   const sql = getCloudflareSql()
   const [merchantRows, rows] = await Promise.all([
-    sql`SELECT "id", "slug", "referenceData" FROM "Merchant" WHERE "id" = ${merchantId} LIMIT 1`,
+    sql`SELECT "id", "slug", "referenceData", "planCode", "commercialStatus", "commercialStage", "pricingVersion", "entitlementVersion", "commerceSessionAllowance", "standardRenderAllowance", "campaignAllowance", "entitlementEffectiveFrom", "billingPeriodEnd", "commercialExceptionCode", "createdAt" FROM "Merchant" WHERE "id" = ${merchantId} LIMIT 1`,
     sql`SELECT e."id", e."merchantId", e."type", e."slug", e."name", e."status", e."headline", e."description", e."primaryCtaType", e."primaryCtaLabel", e."primaryCtaUrl", e."secondaryCtaType", e."secondaryCtaLabel", e."secondaryCtaUrl", e."startAt", e."endAt", e."campaignObjective", e."campaignGate", e."presentationMode", e."referenceData", ef."merchantFrameId", mf."sku", mf."externalId" AS "frameExternalId", mf."productUrl" AS "frameProductUrl", mf."imageUrl" AS "frameImageUrl", mf."shape" AS "frameShape", mf."widthClass" AS "frameWidthClass", mf."source" AS "frameSource", mf."enrichmentStatus" AS "frameEnrichmentStatus", mf."status" AS "frameStatus", mf."id" AS "frameId", mf."name" AS "frameName", ef."sortOrder", ef."createdAt" AS "frameCreatedAt" FROM "Experience" e LEFT JOIN "ExperienceFrame" ef ON ef."experienceId" = e."id" AND ef."merchantId" = e."merchantId" AND ef."active" = true LEFT JOIN "MerchantFrame" mf ON mf."id" = ef."merchantFrameId" AND mf."merchantId" = ef."merchantId" WHERE e."id" = ${campaignId} AND e."merchantId" = ${merchantId} AND e."type" = 'CAMPAIGN' ORDER BY ef."sortOrder" ASC NULLS LAST, ef."createdAt" ASC`,
   ])
   const merchant = merchantRows[0]
@@ -230,10 +253,81 @@ export async function publishCampaign(input: { merchantId: string; campaignId: s
   const model = mapCampaign(current.row, String(current.merchant.slug), Boolean(current.merchant.referenceData))
   assertCampaignPublishable(model.readiness, true)
   if (String(current.row.status) === 'ACTIVE') return model
+  const sql = getCloudflareSql()
+  if (isCanonicalMerchantCommercialFields(merchantCommercialFields(current.merchant))) {
+    const activeRows = await sql`SELECT count(*)::int AS "count" FROM "Experience" WHERE "merchantId" = ${input.merchantId} AND "type" = 'CAMPAIGN' AND "status" = 'ACTIVE'`
+    const merchantFields = merchantCommercialFields(current.merchant)
+    const state = resolveMerchantCommercialState(merchantFields, { activeCampaigns: Number(activeRows[0]?.count ?? 0) })
+    const decision = canUseCommercialFeature(state, 'CAMPAIGN')
+    if (!decision.allowed) throw new CampaignServiceError(decision.code ?? 'CAMPAIGN_LIMIT_REACHED', decision.message, 409)
+
+    // Neon tagged-template transactions are statement-based. Keep the
+    // Merchant row lock, ACTIVE count, and conditional activation in one SQL
+    // statement so concurrent publishers cannot both observe the same slot.
+    const results = await withPublicDiscoveryInvalidation({
+      target: { kind: 'experience', merchantSlug: String(current.merchant.slug), experienceSlug: String(current.row.slug) },
+      mutation: () => sql.transaction([
+        sql`
+          WITH locked_merchant AS MATERIALIZED (
+            SELECT "id"
+            FROM "Merchant"
+            WHERE "id" = ${input.merchantId}
+            FOR UPDATE
+          ),
+          target_campaign AS MATERIALIZED (
+            SELECT e."id", e."status"
+            FROM "Experience" e
+            JOIN locked_merchant m ON m."id" = e."merchantId"
+            WHERE e."id" = ${input.campaignId}
+              AND e."merchantId" = ${input.merchantId}
+              AND e."type" = 'CAMPAIGN'
+            FOR UPDATE
+          ),
+          active_count AS MATERIALIZED (
+            SELECT count(*)::int AS "count"
+            FROM "Experience" e
+            JOIN locked_merchant m ON m."id" = e."merchantId"
+            WHERE e."type" = 'CAMPAIGN'
+              AND e."status" = 'ACTIVE'
+          ),
+          campaign_limit AS MATERIALIZED (
+            SELECT CASE UPPER(m."planCode")
+              WHEN 'FREE' THEN 0
+              WHEN 'LAUNCH' THEN 1
+              WHEN 'GROWTH' THEN 3
+              WHEN 'SCALE' THEN 10
+              WHEN 'FOUNDING_PILOT' THEN 1
+              ELSE NULL
+            END::int AS "limit"
+            FROM locked_merchant m
+          ),
+          activated AS (
+            UPDATE "Experience" e
+            SET "status" = 'ACTIVE', "updatedAt" = NOW()
+            FROM target_campaign c, active_count a, campaign_limit l
+            WHERE e."id" = c."id"
+              AND c."status" <> 'ACTIVE'
+              AND (l."limit" IS NULL OR a."count" < l."limit")
+            RETURNING e."id"
+          )
+          SELECT c."status" AS "currentStatus", a."count" AS "activeCount", l."limit" AS "campaignLimit", activated."id" AS "activatedId"
+          FROM target_campaign c
+          CROSS JOIN active_count a
+          CROSS JOIN campaign_limit l
+          LEFT JOIN activated ON true
+        `,
+      ], { isolationLevel: 'Serializable' }),
+    })
+    const result = results[0]?.[0]
+    if (!result) throw new MerchantAccessError()
+    if (result.activatedId == null && String(result.currentStatus) !== 'ACTIVE') {
+      throw new CampaignServiceError('CAMPAIGN_LIMIT_REACHED', `Your current plan includes up to ${result.campaignLimit ?? 'custom'} active Campaigns.`, 409)
+    }
+    return getCampaign({ merchantId: input.merchantId, campaignId: input.campaignId })
+  }
   await withPublicDiscoveryInvalidation({
     target: { kind: 'experience', merchantSlug: String(current.merchant.slug), experienceSlug: String(current.row.slug) },
     mutation: async () => {
-      const sql = getCloudflareSql()
       const rows = await sql`
         UPDATE "Experience"
         SET "status" = 'ACTIVE', "updatedAt" = NOW()

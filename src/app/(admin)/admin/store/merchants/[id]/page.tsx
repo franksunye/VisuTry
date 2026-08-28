@@ -6,6 +6,7 @@ import { createStoreRuntime, getExperienceAdminWorkspace, getMerchantAnalyticsSn
 import type { MerchantInsightsDto } from '@/modules/store/application/get-merchant-insights'
 import type { MerchantAnalyticsSummary } from '@/modules/store/application/merchant-analytics'
 import { MERCHANT_CLASSIFICATION_LABELS, normalizeMerchantClassification, type MerchantClassification } from '@/modules/merchant/domain/merchant-classification'
+import { commercialStateForPresentation, getMerchantCommercialState } from '@/modules/merchant/application/merchant-commercial-entitlements'
 import { adminActivitySignals, adminPerformanceCards, formatC1Percent, formatC1PeriodCaption } from './merchant-insights-view'
 
 export const dynamic = 'force-dynamic'
@@ -66,6 +67,7 @@ export default async function AdminMerchantInsightsPage({ params }: PageProps) {
   const analytics = await getMerchantAnalyticsSnapshot({
     actor: { actorType: 'SYSTEM', actorId: `admin:${params.id}`, merchantId: params.id },
   })
+  const commercial = commercialStateForPresentation(await getMerchantCommercialState({ merchantId: params.id }))
 
   const { merchant, dataProvenance, metrics, topFrames, recentSessions, recentInquiries, catalog } = insights
   const reference = dataProvenance.referenceData || merchant.referenceData
@@ -80,6 +82,21 @@ export default async function AdminMerchantInsightsPage({ params }: PageProps) {
       </header>
 
       {reference ? <p className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900"><strong>Reference data.</strong> Simulation activity for product demonstration.</p> : null}
+
+      <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6" aria-labelledby="commercial-heading">
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div><p className="text-xs font-semibold uppercase tracking-[0.16em] text-teal-700">Commercial state</p><h2 id="commercial-heading" className="mt-1 text-xl font-semibold text-slate-950">Plan &amp; entitlement visibility</h2></div>
+          <span className="rounded-full bg-slate-100 px-3 py-1.5 text-xs font-semibold text-slate-700">{commercial.isCanonical ? 'Canonical plan' : 'Legacy · not enrolled'} · {commercial.status}</span>
+        </div>
+        <dl className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="rounded-xl bg-slate-50 p-4"><dt className="text-xs text-slate-500">Enrollment</dt><dd className="mt-1 font-semibold text-slate-900">{commercial.isCanonical ? 'Canonical' : 'Legacy / not enrolled'}</dd></div>
+          <div className="rounded-xl bg-slate-50 p-4"><dt className="text-xs text-slate-500">Plan</dt><dd className="mt-1 font-semibold text-slate-900">{commercial.planName}</dd></div>
+          <div className="rounded-xl bg-slate-50 p-4"><dt className="text-xs text-slate-500">AI Commerce Sessions</dt><dd className="mt-1 font-semibold text-slate-900">{commercial.aiCommerceSessionLimit === null ? `${commercial.usage.aiCommerceSessions} · Not metered` : `${commercial.usage.aiCommerceSessions} / ${commercial.aiCommerceSessionLimit}`}</dd></div>
+          <div className="rounded-xl bg-slate-50 p-4"><dt className="text-xs text-slate-500">Active Campaigns</dt><dd className="mt-1 font-semibold text-slate-900">{commercial.usage.activeCampaigns} / {commercial.limits.activeCampaigns ?? 'Custom'}</dd></div>
+          <div className="rounded-xl bg-slate-50 p-4"><dt className="text-xs text-slate-500">Catalog Items</dt><dd className="mt-1 font-semibold text-slate-900">{commercial.usage.catalogItems} / {commercial.limits.catalogItems ?? 'Custom'}</dd></div>
+          <div className="rounded-xl bg-slate-50 p-4"><dt className="text-xs text-slate-500">Period end</dt><dd className="mt-1 font-semibold text-slate-900">{commercial.periodEnd ? formatDate(commercial.periodEnd) : 'Not applicable'}</dd></div>
+        </dl>
+      </section>
 
       <section aria-labelledby="snapshot-heading">
         <div>

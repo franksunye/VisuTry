@@ -31,6 +31,7 @@ import {
 } from "@/modules/store/domain/merchant-distribution-report";
 import { MerchantCatalogSelfService } from "@/components/merchant/MerchantCatalogSelfService";
 import { MerchantStoreSelfService } from "@/components/merchant/MerchantStoreSelfService";
+import { MerchantPlanUsage } from "@/components/merchant/MerchantPlanUsage";
 
 type SkillCard = { name: string; purpose: string; url: string; prompt: string };
 type Props = {
@@ -1536,6 +1537,7 @@ export function MerchantControlCenter({
           initialName={control.merchant.name}
           initialWebsiteUrl={control.merchant.websiteUrl}
         />
+        {control.commercial ? <MerchantPlanUsage commercial={control.commercial} /> : null}
         <CommerceIntelligence insights={control.commerceIntelligence} />
         <AgentAccess
           merchantId={control.merchant.id}

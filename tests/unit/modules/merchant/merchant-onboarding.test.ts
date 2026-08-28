@@ -195,6 +195,22 @@ describe('merchant onboarding catalog validation', () => {
     expect(create).toHaveBeenCalledWith({ data: expect.objectContaining({ sku: null, shape: '', externalId: 'https://catalog.example.test/products/url-only', enrichmentStatus: 'PENDING' }) })
   })
 
+  it('blocks only new catalog additions when a canonical plan is full', async () => {
+    const writeActor: AgentMerchantActor = { ...actor, scopes: ['catalog:write'] }
+    const create = jest.fn()
+    ;(prisma.merchant.findUnique as jest.Mock).mockResolvedValue({ slug: 'merchant-a', planCode: 'LAUNCH', commercialStatus: 'PAID_ACTIVE' })
+    ;(prisma.$transaction as jest.Mock).mockImplementation(async (callback) => callback({
+      merchantFrame: {
+        count: jest.fn().mockResolvedValue(100),
+        findFirst: jest.fn().mockResolvedValue(null),
+        create,
+      },
+    }))
+
+    await expect(merchantOnboarding.importMerchantFrames({ actor: writeActor, frames: [{ sku: 'SKU-NEW', name: 'Frame New', shape: 'round', imageUrl: 'https://cdn.example.test/frame-new.jpg' }] })).rejects.toMatchObject({ code: 'CATALOG_LIMIT_REACHED' })
+    expect(create).not.toHaveBeenCalled()
+  })
+
   it('invalidates Store discovery after frame replacement succeeds', async () => {
     const writeActor: AgentMerchantActor = { ...actor, scopes: ['experience:write'] }
     ;(prisma.experience.findFirst as jest.Mock).mockResolvedValue({ id: 'store-a', slug: 'store', status: 'DRAFT', frames: [] })

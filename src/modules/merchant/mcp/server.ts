@@ -40,6 +40,7 @@ import {
   setCampaignFrames,
   updateCampaign,
 } from '@/modules/store/application/campaign-service'
+import { MerchantCommercialError } from '../application/merchant-commercial-entitlements'
 import {
   MCP_HIGH_IMPACT_TOOLS,
   MCP_LIVE_RUNTIME,
@@ -137,6 +138,7 @@ function errorResult(error: unknown) {
   if (error instanceof MerchantOnboardingError) return { code: error.code, message: error.message }
   if (error instanceof MerchantSourceIntakeError) return { code: error.code, message: error.message }
   if (error instanceof CampaignServiceError) return { code: error.code, message: error.message }
+  if (error instanceof MerchantCommercialError) return { code: error.code, message: error.message, decision: error.decision }
   if (error instanceof MerchantAnalyticsComparisonError) return { code: error.code, message: error.message }
   if (error instanceof MerchantAnalyticsError) {
     if (error.code === 'EXPERIENCE_NOT_FOUND') return { code: 'RESOURCE_NOT_FOUND', message: 'The requested merchant resource was not found.' }

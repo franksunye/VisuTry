@@ -4,10 +4,11 @@ import { prisma } from '@/lib/prisma'
 jest.mock('@/lib/prisma', () => ({
   prisma: {
     merchant: { findUnique: jest.fn() },
-    experience: { findMany: jest.fn() },
+    experience: { findMany: jest.fn(), count: jest.fn() },
     merchantSession: { count: jest.fn() },
     merchantAgentCredential: { count: jest.fn() },
-    merchantFrame: { findMany: jest.fn() },
+    merchantFrame: { findMany: jest.fn(), count: jest.fn() },
+    merchantUsageLedger: { count: jest.fn() },
     merchantOperationAudit: { findMany: jest.fn() },
   },
 }))
@@ -29,10 +30,11 @@ jest.mock('@/modules/merchant/application/merchant-commerce-intelligence', () =>
 
 const db = prisma as unknown as {
   merchant: { findUnique: jest.Mock }
-  experience: { findMany: jest.Mock }
+  experience: { findMany: jest.Mock; count: jest.Mock }
   merchantSession: { count: jest.Mock }
   merchantAgentCredential: { count: jest.Mock }
-  merchantFrame: { findMany: jest.Mock }
+  merchantFrame: { findMany: jest.Mock; count: jest.Mock }
+  merchantUsageLedger: { count: jest.Mock }
   merchantOperationAudit: { findMany: jest.Mock }
 }
 
@@ -47,6 +49,9 @@ describe('merchant control center read model', () => {
     db.merchantSession.count.mockResolvedValue(2)
     db.merchantAgentCredential.count.mockResolvedValue(1)
     db.merchantFrame.findMany.mockResolvedValue([{ id: 'frame-a', sku: 'A-1', name: 'Frame A', brand: 'Alpha', imageUrl: 'https://example.com/a.jpg', shape: 'ROUND', widthClass: null, source: 'MANUAL', status: 'ACTIVE', enrichmentStatus: 'APPROVED' }])
+    db.experience.count.mockResolvedValue(1)
+    db.merchantFrame.count.mockResolvedValue(1)
+    db.merchantUsageLedger.count.mockResolvedValue(0)
     db.merchantOperationAudit.findMany.mockResolvedValue([])
   })
 

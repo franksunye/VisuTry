@@ -14,6 +14,8 @@ import {
   type MerchantFrameEnrichmentStatus,
 } from '../domain/merchant-frame-readiness'
 import { validateMerchantFrameStoreReadiness } from '../domain/merchant-frame-store-readiness'
+import { getMerchantPlanDefinition, resolveMerchantPlanCode } from '@/modules/store/domain/merchant-commercial-plans'
+import { isCanonicalMerchantCommercialFields } from '@/modules/store/domain/merchant-commercial-state'
 import type { MerchantStorePreviewFrame, MerchantStoreWorkspace, MerchantStoreWorkspaceFrame } from './merchant-store-workspace'
 
 // Request-size safety guard, not a product-count/UI ceiling. Human Web can
@@ -178,7 +180,7 @@ export async function importMerchantFrames(input: { actor: MerchantActorContext;
     identities.add(identity)
   }
 
-  const merchant = await prisma.merchant.findUnique({ where: { id: input.actor.merchantId }, select: { slug: true } })
+  const merchant = await prisma.merchant.findUnique({ where: { id: input.actor.merchantId }, select: { slug: true, planCode: true, commercialStatus: true } })
   if (!merchant) throw new MerchantAccessError()
   const result = await withPublicDiscoveryInvalidation({
     target: { kind: 'catalog', merchantSlug: merchant.slug },
@@ -186,6 +188,11 @@ export async function importMerchantFrames(input: { actor: MerchantActorContext;
       const ids: string[] = []
       let created = 0
       let updated = 0
+      const canonicalPlan = isCanonicalMerchantCommercialFields(merchant)
+      const catalogLimit = canonicalPlan ? getMerchantPlanDefinition(resolveMerchantPlanCode(merchant.planCode)).catalogItems : null
+      const currentCatalogCount = catalogLimit === null
+        ? 0
+        : await tx.merchantFrame.count({ where: { merchantId: input.actor.merchantId } })
       for (const frame of normalized) {
         const identityFilters = [
           ...(frame.sku ? [{ sku: frame.sku }] : []),
@@ -193,6 +200,13 @@ export async function importMerchantFrames(input: { actor: MerchantActorContext;
           ...(frame.productUrl ? [{ productUrl: frame.productUrl }] : []),
         ]
         const existing = await tx.merchantFrame.findFirst({ where: { merchantId: input.actor.merchantId, OR: identityFilters } })
+        if (!existing && catalogLimit !== null && currentCatalogCount + created >= catalogLimit) {
+          throw new MerchantOnboardingError(
+            'CATALOG_LIMIT_REACHED',
+            `Your current plan includes up to ${catalogLimit} catalog items.`,
+            409,
+          )
+        }
         const data = {
           name: frame.name,
           brand: frame.brand,

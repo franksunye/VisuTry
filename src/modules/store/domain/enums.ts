@@ -75,6 +75,7 @@ export const STORE_USAGE_KINDS = [
   'RENDER_SUCCESS',
   'RENDER_FAILURE',
   'SESSION',
+  'AI_COMMERCE_SESSION',
 ] as const
 export type StoreUsageKind = (typeof STORE_USAGE_KINDS)[number]
 

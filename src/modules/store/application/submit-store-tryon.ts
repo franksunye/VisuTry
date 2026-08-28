@@ -22,6 +22,8 @@ import {
   authRequiredForContinuation,
   consumerEntitlementRequired,
 } from '../domain'
+import { canUseCommercialFeature, isCanonicalMerchantCommercialFields } from '../domain/merchant-commercial-state'
+import { consumeAICommerceSession } from '@/modules/merchant/application/merchant-commercial-entitlements'
 import { checkUserQuota } from '@/lib/quota'
 import { calculateExpiresAt } from '@/config/retention'
 import type { AssetStore } from './ports/asset-store'
@@ -574,6 +576,22 @@ export async function submitStoreFrameTryOn(
     select: { id: true, userId: true, metadata: true },
   })
   const existingMetadata = (existingBeforeClaim?.metadata ?? {}) as Record<string, unknown>
+  const hasCanonicalCommercialPlan = isCanonicalMerchantCommercialFields(merchant)
+  if (hasCanonicalCommercialPlan && !existingBeforeClaim) {
+    const commercialSession = await consumeAICommerceSession({
+      merchantId: merchant.id,
+      merchantSessionId: session.id,
+    })
+    const decision = canUseCommercialFeature(commercialSession.state, 'GENERATIVE_TRY_ON')
+    if (!decision.allowed && !commercialSession.alreadyConsumed) {
+      throw new StoreDomainError(
+        decision.code ?? 'FEATURE_NOT_INCLUDED',
+        'Virtual Try-On is temporarily unavailable for this Store.',
+        decision.code === 'AI_USAGE_LIMIT_REACHED' ? 429 : 409,
+        decision.message,
+      )
+    }
+  }
   let usagePolicy = selectUsagePolicy(
     {
       kind: 'store',
@@ -647,7 +665,14 @@ export async function submitStoreFrameTryOn(
         maxSuccessfulRendersPerMerchant: Number.POSITIVE_INFINITY,
         maxSuccessfulRendersPerSession: Number.POSITIVE_INFINITY,
       }
-    : entitlement.renderLimits
+    : hasCanonicalCommercialPlan && merchant.planCode !== 'FOUNDING_PILOT'
+      ? {
+          ...entitlement.renderLimits,
+          maxSuccessfulRendersPerMerchant: Number.POSITIVE_INFINITY,
+          maxSuccessfulRendersPerSession: Number.POSITIVE_INFINITY,
+          maxAttemptsPerSession: Number.POSITIVE_INFINITY,
+        }
+      : entitlement.renderLimits
 
   let claim: Awaited<ReturnType<typeof claimStoreTryOnSlot>>
   try {

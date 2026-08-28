@@ -4,7 +4,6 @@ import {
   buildStoreEventIdempotencyKey,
   createMerchantSessionCapability,
   computeSessionExpiresAt,
-  isMerchantEntitlementActive,
   merchantInactive,
   merchantNotFound,
   resolveMerchantEntitlement,
@@ -56,24 +55,10 @@ export async function createStoreSession(input: {
 
   const entitlement = resolveMerchantEntitlement(merchant)
   const experiencePolicy = resolveStoreExperiencePolicy(merchant)
-  if (!isMerchantEntitlementActive(entitlement)) {
-    throw new StoreDomainError(
-      'MERCHANT_INACTIVE',
-      'This store is temporarily unavailable.',
-      403,
-      'Merchant Pilot entitlement period is not active.',
-    )
-  }
-  if (Number.isFinite(entitlement.commerceSessionAllowance)) {
-    const usedSessions = await input.usage.countCommerceSessions(merchant.id)
-    if (usedSessions >= entitlement.commerceSessionAllowance) {
-      throw new StoreDomainError(
-        'ALLOWANCE_EXCEEDED',
-        'Merchant commerce session allowance reached.',
-        429,
-      )
-    }
-  }
+  // A normal Store visit is operational traffic, not a paid AI Commerce
+  // Session. Paid usage is marked idempotently when the shopper crosses the
+  // AI-assisted threshold (recommendation/AI generation), so exhaustion can
+  // pause that capability without taking the Store offline.
 
   const capability = createMerchantSessionCapability()
   const expiresAt = computeSessionExpiresAt()

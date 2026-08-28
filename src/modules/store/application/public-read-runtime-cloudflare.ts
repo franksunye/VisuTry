@@ -65,6 +65,7 @@ function mapMerchant(row: Row): MerchantRecord {
     entitlementEffectiveFrom: row.entitlementEffectiveFrom == null ? null : dateValue(row.entitlementEffectiveFrom),
     billingPeriodEnd: row.billingPeriodEnd == null ? null : dateValue(row.billingPeriodEnd),
     commercialExceptionCode: nullableString(row.commercialExceptionCode),
+    commercialStatus: nullableString(row.commercialStatus),
     createdAt: dateValue(row.createdAt),
     updatedAt: dateValue(row.updatedAt),
   }
@@ -144,7 +145,7 @@ const merchantColumns = `
   "defaultCampaign", "tryOnEnabled", "compareEnabled", "maxCompareFrames", "inquiryEnabled",
   "planCode", "commercialStage", "pricingVersion", "entitlementVersion", "commerceSessionAllowance",
   "standardRenderAllowance", "premiumRenderAllowance", "campaignAllowance", "entitlementEffectiveFrom",
-  "billingPeriodEnd", "commercialExceptionCode", "createdAt", "updatedAt"
+  "billingPeriodEnd", "commercialExceptionCode", "commercialStatus", "createdAt", "updatedAt"
 `
 
 const experienceColumns = `
