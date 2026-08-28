@@ -118,7 +118,18 @@ npm run report:generation-reliability -- --from 2026-08-14T00:00:00.000Z --to 20
 npm run report:generation-reliability -- --period 7d --include-test --environment production
 ```
 
-The three surfaces read the same `GenerationRequest` / `GenerationAttempt` rows.
+Inspect one request (no image/prompt content):
+
+```
+npm run inspect:generation-telemetry -- --tryOnTaskId <id>
+npm run inspect:generation-telemetry -- --requestId <id>
+npm run inspect:generation-telemetry -- --providerTaskId <id>
+npm run inspect:generation-telemetry -- --clientSubmissionId <id>
+```
+
+The three report surfaces read the same `GenerationRequest` / `GenerationAttempt` rows.
+
+Production deploy, smoke matrix, Axiom procedure, and Day 0 gate: `docs/operations/try-on-generation-production-validation.md`.
 
 ---
 
