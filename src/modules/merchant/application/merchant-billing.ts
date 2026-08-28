@@ -1,0 +1,145 @@
+import { Prisma } from '@prisma/client'
+import type Stripe from 'stripe'
+import { prisma } from '@/lib/prisma'
+import { stripe } from '@/lib/stripe'
+import { isMockMode } from '@/lib/mocks'
+import { COMMERCIAL_PLAN_VERSION, getMerchantPlanDefinition } from '@/modules/store/domain/merchant-commercial-plans'
+import { addDays, commercialStatusForSubscription, type MerchantBillablePlanCode, type MerchantRecurringPlanCode } from '../domain/merchant-billing'
+import { MERCHANT_BILLING_PROVIDER, MerchantBillingError, assertMerchantStripeEnvironment, isMerchantBillingMetadata, merchantStripePriceForPlan, metadataRecord, resolveMerchantStripePrice, stripeId, unixDate } from './merchant-billing-shared'
+
+export { MERCHANT_BILLING_PROVIDER, MerchantBillingError, assertMerchantStripeEnvironment, merchantStripePriceMap, merchantStripePriceForPlan, resolveMerchantStripePrice } from './merchant-billing-shared'
+export type { MerchantStripePrice } from './merchant-billing-shared'
+
+type BillingAccountRow = {
+  id: string; merchantId: string; provider: string; stripeCustomerId: string; stripeSubscriptionId: string | null; stripePriceId: string | null; stripeCheckoutSessionId: string | null; subscriptionStatus: string | null; cancelAtPeriodEnd: boolean; currentPeriodStart: Date | null; currentPeriodEnd: Date | null; lastEventCreatedAt: number | null; lastEventId: string | null
+}
+const billingAccountSelect = { id: true, merchantId: true, provider: true, stripeCustomerId: true, stripeSubscriptionId: true, stripePriceId: true, stripeCheckoutSessionId: true, subscriptionStatus: true, cancelAtPeriodEnd: true, currentPeriodStart: true, currentPeriodEnd: true, lastEventCreatedAt: true, lastEventId: true } as const
+export type MerchantBillingSummary = BillingAccountRow & { maskedCustomerId: string | null; maskedSubscriptionId: string | null }
+
+function mask(value: string | null) { return value ? `${value.slice(0, 4)}••••${value.slice(-4)}` : null }
+function eventDate(event: Stripe.Event) { return new Date(event.created * 1000) }
+function items(value: Stripe.Subscription | Record<string, unknown>) { return (value as { items?: { data?: Array<Record<string, unknown>> } }).items?.data ?? [] }
+function subPrice(value: Stripe.Subscription | Record<string, unknown>) { return stripeId(items(value)[0]?.price as string | { id: string } | null | undefined) }
+function subCustomer(value: Stripe.Subscription | Record<string, unknown>) { return stripeId((value as { customer?: string | { id: string } | null }).customer) }
+function subId(value: Stripe.Subscription | Record<string, unknown>) { return stripeId((value as { id?: string | { id: string } | null }).id as string | { id: string } | null | undefined) }
+function invoiceCustomer(value: Stripe.Invoice | Record<string, unknown>) { return stripeId((value as { customer?: string | { id: string } | null }).customer) }
+function invoiceSubscription(value: Stripe.Invoice | Record<string, unknown>) { return stripeId((value as { subscription?: string | { id: string } | null }).subscription) }
+function period(value: Stripe.Subscription | Record<string, unknown>, fallback: Date) { const row = value as { current_period_start?: number; current_period_end?: number }; return { start: unixDate(row.current_period_start) ?? fallback, end: unixDate(row.current_period_end) } }
+function metadata(merchantId: string, planCode: MerchantBillablePlanCode, priceId: string) { return { billingPurpose: 'MERCHANT_PLAN', merchantId, requestedPlanCode: planCode, stripePriceId: priceId, pricingVersion: COMMERCIAL_PLAN_VERSION, entitlementVersion: COMMERCIAL_PLAN_VERSION } }
+
+async function merchantForBilling(merchantId: string) {
+  const merchant = await prisma.merchant.findUnique({ where: { id: merchantId }, select: { id: true, name: true } })
+  if (!merchant) throw new MerchantBillingError('MERCHANT_NOT_FOUND', 'Merchant not found.', 404)
+  return merchant
+}
+
+async function ensureAccount(merchantId: string, merchantName: string): Promise<BillingAccountRow> {
+  const existing = await prisma.merchantBillingAccount.findUnique({ where: { merchantId_provider: { merchantId, provider: MERCHANT_BILLING_PROVIDER } }, select: billingAccountSelect })
+  if (existing) return existing as BillingAccountRow
+  const client = stripe as any
+  const customer = isMockMode && !client.customers?.create ? { id: `cus_mock_merchant_${merchantId}` } : await client.customers.create({ name: merchantName, metadata: { merchantId, billingPurpose: 'MERCHANT_PLAN' } }, { idempotencyKey: `merchant-customer:${merchantId}` })
+  try {
+    return await prisma.merchantBillingAccount.create({ data: { merchantId, provider: MERCHANT_BILLING_PROVIDER, stripeCustomerId: customer.id }, select: billingAccountSelect }) as BillingAccountRow
+  } catch (error) {
+    if ((error as { code?: string }).code !== 'P2002') throw error
+    const raced = await prisma.merchantBillingAccount.findUnique({ where: { merchantId_provider: { merchantId, provider: MERCHANT_BILLING_PROVIDER } }, select: billingAccountSelect })
+    if (!raced) throw error
+    return raced as BillingAccountRow
+  }
+}
+
+export async function getMerchantBillingSummary(input: { merchantId: string }): Promise<MerchantBillingSummary | null> {
+  const account = await prisma.merchantBillingAccount.findUnique({ where: { merchantId_provider: { merchantId: input.merchantId, provider: MERCHANT_BILLING_PROVIDER } }, select: billingAccountSelect })
+  return account ? { ...(account as BillingAccountRow), maskedCustomerId: mask(account.stripeCustomerId), maskedSubscriptionId: mask(account.stripeSubscriptionId) } : null
+}
+
+export async function createMerchantCheckoutSession(input: { merchantId: string; planCode: MerchantBillablePlanCode; successUrl: string; cancelUrl: string }) {
+  assertMerchantStripeEnvironment()
+  const price = merchantStripePriceForPlan(input.planCode)
+  const merchant = await merchantForBilling(input.merchantId)
+  const account = await ensureAccount(merchant.id, merchant.name)
+  if (price.billingType === 'subscription' && account.stripeSubscriptionId && ['active', 'trialing', 'past_due', 'unpaid'].includes(account.subscriptionStatus ?? '')) throw new MerchantBillingError('SUBSCRIPTION_EXISTS', 'This Merchant already has a billing plan. Use Manage plan to change it.', 409)
+  const session = await (stripe as any).checkout.sessions.create({ mode: price.billingType === 'subscription' ? 'subscription' : 'payment', customer: account.stripeCustomerId, line_items: [{ price: price.priceId, quantity: 1 }], success_url: input.successUrl, cancel_url: input.cancelUrl, client_reference_id: merchant.id, metadata: metadata(merchant.id, price.planCode, price.priceId), ...(price.billingType === 'subscription' ? { subscription_data: { metadata: metadata(merchant.id, price.planCode, price.priceId) } } : {}) }, { idempotencyKey: `merchant-checkout:${merchant.id}:${price.planCode}:${account.stripeCheckoutSessionId ?? 'new'}` })
+  return { kind: 'checkout' as const, sessionId: String(session.id), url: session.url == null ? null : String(session.url), planCode: price.planCode, priceId: price.priceId }
+}
+
+export async function updateMerchantSubscription(input: { merchantId: string; planCode: MerchantRecurringPlanCode }) {
+  assertMerchantStripeEnvironment()
+  const price = merchantStripePriceForPlan(input.planCode)
+  const account = await prisma.merchantBillingAccount.findUnique({ where: { merchantId_provider: { merchantId: input.merchantId, provider: MERCHANT_BILLING_PROVIDER } }, select: billingAccountSelect }) as BillingAccountRow | null
+  if (!account?.stripeSubscriptionId) throw new MerchantBillingError('SUBSCRIPTION_NOT_FOUND', 'No active Merchant subscription was found.', 404)
+  const subscription = await (stripe as any).subscriptions.retrieve(account.stripeSubscriptionId)
+  if (subCustomer(subscription) !== account.stripeCustomerId) throw new MerchantBillingError('BILLING_IDENTITY_MISMATCH', 'The billing identity does not belong to this Merchant.', 409)
+  const item = items(subscription)[0]
+  if (!item?.id) throw new MerchantBillingError('SUBSCRIPTION_NOT_SUPPORTED', 'This subscription cannot be changed automatically.', 409)
+  await (stripe as any).subscriptions.update(account.stripeSubscriptionId, { items: [{ id: item.id, price: price.priceId }], proration_behavior: 'create_prorations', metadata: metadata(input.merchantId, price.planCode, price.priceId) })
+  return { kind: 'subscription_update' as const, subscriptionId: account.stripeSubscriptionId, planCode: input.planCode, priceId: price.priceId }
+}
+
+export async function createMerchantBillingPortalSession(input: { merchantId: string; returnUrl: string }) {
+  assertMerchantStripeEnvironment()
+  const account = await prisma.merchantBillingAccount.findUnique({ where: { merchantId_provider: { merchantId: input.merchantId, provider: MERCHANT_BILLING_PROVIDER } }, select: billingAccountSelect })
+  if (!account?.stripeSubscriptionId) throw new MerchantBillingError('SUBSCRIPTION_NOT_FOUND', 'No active Merchant subscription was found.', 404)
+  const portal = await (stripe as any).billingPortal.sessions.create({ customer: account.stripeCustomerId, return_url: input.returnUrl })
+  return { url: String(portal.url) }
+}
+
+export async function enrollMerchantCommercialPlan(input: { merchantId: string; planCode: MerchantBillablePlanCode; effectiveFrom: Date; billingPeriodEnd: Date | null; commercialStatus: 'PAID_ACTIVE' | 'CANCEL_AT_PERIOD_END' | 'PAST_DUE' | 'PAYMENT_ACTION_REQUIRED' | 'EXPIRED' | 'PILOT_ACTIVE' | 'PILOT_EXPIRED'; pricingVersion?: string; entitlementVersion?: string; source: string }, txOverride?: any) {
+  const run = (tx: any) => tx.merchant.update({ where: { id: input.merchantId }, data: { planCode: input.planCode, commercialStatus: input.commercialStatus, pricingVersion: input.pricingVersion ?? COMMERCIAL_PLAN_VERSION, entitlementVersion: input.entitlementVersion ?? COMMERCIAL_PLAN_VERSION, entitlementEffectiveFrom: input.effectiveFrom, billingPeriodEnd: input.billingPeriodEnd, commercialStage: input.planCode === 'FOUNDING_PILOT' ? 'MARKET_CAPTURE' : null }, select: { id: true, planCode: true, commercialStatus: true, billingPeriodEnd: true } })
+  return txOverride ? run(txOverride) : prisma.$transaction(run)
+}
+
+async function findAccount(event: Stripe.Event): Promise<BillingAccountRow | null> {
+  const object = event.data.object as Record<string, unknown>; const meta = metadataRecord(object.metadata); const customer = stripeId(object.customer as string | { id: string } | null | undefined); const subscription = stripeId(object.subscription as string | { id: string } | null | undefined) ?? (event.type.startsWith('customer.subscription.') ? String(object.id ?? '') : null)
+  if (meta.merchantId) return await prisma.merchantBillingAccount.findUnique({ where: { merchantId_provider: { merchantId: meta.merchantId, provider: MERCHANT_BILLING_PROVIDER } }, select: billingAccountSelect }) as BillingAccountRow | null
+  if (subscription) { const row = await prisma.merchantBillingAccount.findUnique({ where: { stripeSubscriptionId: subscription }, select: billingAccountSelect }); if (row) return row as BillingAccountRow }
+  if (customer) { const row = await prisma.merchantBillingAccount.findUnique({ where: { stripeCustomerId: customer }, select: billingAccountSelect }); if (row) return row as BillingAccountRow }
+  return null
+}
+
+async function retrieveSubscription(id: string) { try { return await (stripe as any).subscriptions.retrieve(id) as Stripe.Subscription } catch { return null } }
+function assertIdentity(account: BillingAccountRow, customer: string | null, merchantId: string | null) { if (customer && customer !== account.stripeCustomerId) throw new MerchantBillingError('BILLING_IDENTITY_MISMATCH', 'Stripe billing identity does not match this Merchant.', 409); if (merchantId && merchantId !== account.merchantId) throw new MerchantBillingError('BILLING_IDENTITY_MISMATCH', 'Stripe Merchant metadata does not match this billing identity.', 409) }
+
+async function applySubscription(tx: any, account: BillingAccountRow, value: Stripe.Subscription | Record<string, unknown>, event: Stripe.Event, deleted = false) {
+  const meta = metadataRecord(value.metadata); assertIdentity(account, subCustomer(value), meta.merchantId || account.merchantId)
+  const priceId = subPrice(value) ?? account.stripePriceId; if (!priceId) throw new MerchantBillingError('SUBSCRIPTION_PRICE_MISSING', 'Stripe subscription price is missing.', 409)
+  const price = resolveMerchantStripePrice(priceId); if (price.billingType !== 'subscription') throw new MerchantBillingError('UNSUPPORTED_PRICE', 'This Stripe price is not a Merchant monthly plan.', 409)
+  if (account.lastEventCreatedAt !== null && event.created < account.lastEventCreatedAt) return
+  const dates = period(value, eventDate(event)); const rawStatus = String((value as { status?: unknown }).status ?? (deleted ? 'canceled' : 'active')); const cancel = Boolean((value as { cancel_at_period_end?: unknown }).cancel_at_period_end); const status = deleted ? 'EXPIRED' : commercialStatusForSubscription({ status: rawStatus, cancelAtPeriodEnd: cancel })
+  await tx.merchantBillingAccount.update({ where: { id: account.id }, data: { stripeSubscriptionId: deleted ? null : subId(value), stripePriceId: price.priceId, subscriptionStatus: deleted ? 'canceled' : rawStatus, cancelAtPeriodEnd: cancel, currentPeriodStart: dates.start, currentPeriodEnd: dates.end, lastEventCreatedAt: event.created, lastEventId: event.id } })
+  await enrollMerchantCommercialPlan({ merchantId: account.merchantId, planCode: price.planCode, effectiveFrom: dates.start, billingPeriodEnd: dates.end, commercialStatus: status, source: `stripe:${event.type}` }, tx)
+}
+
+async function applyCheckout(tx: any, account: BillingAccountRow, session: Stripe.Checkout.Session | Record<string, unknown>, event: Stripe.Event) {
+  const meta = metadataRecord(session.metadata); assertIdentity(account, stripeId(session.customer as string | { id: string } | null | undefined), meta.merchantId || String(session.client_reference_id ?? '')); if (session.payment_status !== 'paid' && session.payment_status !== 'no_payment_required') return
+  const price = resolveMerchantStripePrice(meta.stripePriceId); if (account.stripeCheckoutSessionId === String(session.id)) return
+  if (price.billingType === 'one_time') { const start = eventDate(event); const end = addDays(start, 30); await tx.merchantBillingAccount.update({ where: { id: account.id }, data: { stripePriceId: price.priceId, stripeCheckoutSessionId: String(session.id), subscriptionStatus: 'paid', currentPeriodStart: start, currentPeriodEnd: end, lastEventCreatedAt: event.created, lastEventId: event.id } }); await enrollMerchantCommercialPlan({ merchantId: account.merchantId, planCode: price.planCode, effectiveFrom: start, billingPeriodEnd: end, commercialStatus: 'PILOT_ACTIVE', source: `stripe:${event.type}` }, tx); return }
+  const id = stripeId(session.subscription as string | { id: string } | null | undefined); if (!id) throw new MerchantBillingError('SUBSCRIPTION_NOT_FOUND', 'Stripe did not provide the Merchant subscription.', 409); const subscription = await retrieveSubscription(id); if (!subscription) throw new MerchantBillingError('SUBSCRIPTION_NOT_READY', 'Merchant subscription is still being confirmed.', 409); await applySubscription(tx, { ...account, stripeCheckoutSessionId: String(session.id) }, subscription, event); await tx.merchantBillingAccount.update({ where: { id: account.id }, data: { stripeCheckoutSessionId: String(session.id) } })
+}
+
+async function applyInvoice(tx: any, account: BillingAccountRow, invoice: Stripe.Invoice | Record<string, unknown>, event: Stripe.Event) {
+  assertIdentity(account, invoiceCustomer(invoice), null); const id = invoiceSubscription(invoice) ?? account.stripeSubscriptionId; if (!id || (account.lastEventCreatedAt !== null && event.created < account.lastEventCreatedAt)) return; const subscription = await retrieveSubscription(id)
+  if (subscription) { await applySubscription(tx, account, event.type === 'invoice.payment_failed' ? { ...subscription, status: 'past_due' } : subscription, event); return }
+  const price = account.stripePriceId ? resolveMerchantStripePrice(account.stripePriceId) : null; if (!price || price.billingType !== 'subscription') return; const status = event.type === 'invoice.payment_failed' ? 'PAST_DUE' : 'PAID_ACTIVE'; await tx.merchantBillingAccount.update({ where: { id: account.id }, data: { subscriptionStatus: status === 'PAID_ACTIVE' ? 'active' : 'past_due', lastEventCreatedAt: event.created, lastEventId: event.id } }); await enrollMerchantCommercialPlan({ merchantId: account.merchantId, planCode: price.planCode, effectiveFrom: account.currentPeriodStart ?? eventDate(event), billingPeriodEnd: account.currentPeriodEnd, commercialStatus: status, source: `stripe:${event.type}` }, tx)
+}
+
+const supported = new Set(['checkout.session.completed', 'checkout.session.async_payment_succeeded', 'customer.subscription.created', 'customer.subscription.updated', 'customer.subscription.deleted', 'invoice.paid', 'invoice.payment_succeeded', 'invoice.payment_failed'])
+export function isMerchantStripeEventCandidate(event: Stripe.Event) { return supported.has(event.type) && isMerchantBillingMetadata((event.data.object as Record<string, unknown>).metadata) }
+export type MerchantBillingEventResult = { handled: boolean; duplicate: boolean; merchantId?: string; eventType?: string }
+
+export async function processMerchantStripeEvent(event: Stripe.Event): Promise<MerchantBillingEventResult> {
+  if (!supported.has(event.type)) return { handled: false, duplicate: false }
+  const account = await findAccount(event); if (!account) return { handled: false, duplicate: false }; const object = event.data.object as Record<string, unknown>
+  const result = await prisma.$transaction(async (tx) => {
+    const locked = await tx.merchantBillingAccount.findUnique({ where: { id: account.id }, select: billingAccountSelect }) as BillingAccountRow | null; if (!locked) throw new MerchantBillingError('BILLING_IDENTITY_NOT_FOUND', 'Merchant billing identity was not found.', 409)
+    const existing = await tx.merchantBillingEvent.findUnique({ where: { provider_providerEventId: { provider: MERCHANT_BILLING_PROVIDER, providerEventId: event.id } }, select: { id: true } }); if (existing) return { handled: true, duplicate: true }
+    await tx.merchantBillingEvent.create({ data: { provider: MERCHANT_BILLING_PROVIDER, providerEventId: event.id, merchantId: locked.merchantId, billingAccountId: locked.id, eventType: event.type, stripeCustomerId: stripeId(object.customer as string | { id: string } | null | undefined), stripeSubscriptionId: stripeId(object.subscription as string | { id: string } | null | undefined) ?? (event.type.startsWith('customer.subscription.') ? String(object.id ?? '') : null), eventCreatedAt: event.created, status: 'PROCESSED', processedAt: new Date() } })
+    if (event.type === 'checkout.session.completed' || event.type === 'checkout.session.async_payment_succeeded') await applyCheckout(tx, locked, object as unknown as Stripe.Checkout.Session, event)
+    else if (event.type.startsWith('customer.subscription.')) await applySubscription(tx, locked, object as unknown as Stripe.Subscription, event, event.type === 'customer.subscription.deleted')
+    else await applyInvoice(tx, locked, object as unknown as Stripe.Invoice, event)
+    return { handled: true, duplicate: false }
+  }, { isolationLevel: Prisma.TransactionIsolationLevel.Serializable })
+  return { ...result, merchantId: account.merchantId, eventType: event.type }
+}
+
+export function merchantBillingPlanDefinition(planCode: MerchantBillablePlanCode) { return getMerchantPlanDefinition(planCode) }

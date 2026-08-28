@@ -7,6 +7,7 @@ import type { MerchantInsightsDto } from '@/modules/store/application/get-mercha
 import type { MerchantAnalyticsSummary } from '@/modules/store/application/merchant-analytics'
 import { MERCHANT_CLASSIFICATION_LABELS, normalizeMerchantClassification, type MerchantClassification } from '@/modules/merchant/domain/merchant-classification'
 import { commercialStateForPresentation, getMerchantCommercialState } from '@/modules/merchant/application/merchant-commercial-entitlements'
+import { getMerchantBillingSummary } from '@/modules/merchant/application/merchant-billing'
 import { adminActivitySignals, adminPerformanceCards, formatC1Percent, formatC1PeriodCaption } from './merchant-insights-view'
 
 export const dynamic = 'force-dynamic'
@@ -68,6 +69,7 @@ export default async function AdminMerchantInsightsPage({ params }: PageProps) {
     actor: { actorType: 'SYSTEM', actorId: `admin:${params.id}`, merchantId: params.id },
   })
   const commercial = commercialStateForPresentation(await getMerchantCommercialState({ merchantId: params.id }))
+  const billing = await getMerchantBillingSummary({ merchantId: params.id })
 
   const { merchant, dataProvenance, metrics, topFrames, recentSessions, recentInquiries, catalog } = insights
   const reference = dataProvenance.referenceData || merchant.referenceData
@@ -95,6 +97,9 @@ export default async function AdminMerchantInsightsPage({ params }: PageProps) {
           <div className="rounded-xl bg-slate-50 p-4"><dt className="text-xs text-slate-500">Active Campaigns</dt><dd className="mt-1 font-semibold text-slate-900">{commercial.usage.activeCampaigns} / {commercial.limits.activeCampaigns ?? 'Custom'}</dd></div>
           <div className="rounded-xl bg-slate-50 p-4"><dt className="text-xs text-slate-500">Catalog Items</dt><dd className="mt-1 font-semibold text-slate-900">{commercial.usage.catalogItems} / {commercial.limits.catalogItems ?? 'Custom'}</dd></div>
           <div className="rounded-xl bg-slate-50 p-4"><dt className="text-xs text-slate-500">Period end</dt><dd className="mt-1 font-semibold text-slate-900">{commercial.periodEnd ? formatDate(commercial.periodEnd) : 'Not applicable'}</dd></div>
+          <div className="rounded-xl bg-slate-50 p-4"><dt className="text-xs text-slate-500">Billing provider</dt><dd className="mt-1 font-semibold text-slate-900">{billing ? billing.provider : 'Not connected'}</dd></div>
+          <div className="rounded-xl bg-slate-50 p-4"><dt className="text-xs text-slate-500">Billing status</dt><dd className="mt-1 font-semibold text-slate-900">{billing?.subscriptionStatus ?? 'No provider subscription'}</dd></div>
+          <div className="rounded-xl bg-slate-50 p-4"><dt className="text-xs text-slate-500">Provider identity</dt><dd className="mt-1 font-mono text-xs text-slate-700">{billing?.maskedCustomerId ?? 'Not connected'}{billing?.maskedSubscriptionId ? <><br />{billing.maskedSubscriptionId}</> : null}</dd></div>
         </dl>
       </section>
 

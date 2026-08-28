@@ -553,6 +553,8 @@ model Merchant {
   orphanBlobs StoreOrphanBlob[]
   abuseCounters StoreAbuseCounter[]
   memberships MerchantMembership[]
+  billingAccounts MerchantBillingAccount[]
+  billingEvents MerchantBillingEvent[]
   agentCredentials MerchantAgentCredential[]
   operationAudits MerchantOperationAudit[]
   oauthAuthorizations MerchantOAuthAuthorization[]
@@ -583,6 +585,58 @@ model MerchantMembership {
   @@unique([userId, merchantId])
   @@index([userId])
   @@index([merchantId])
+}
+
+/// Provider-specific billing identity. Merchant commercial fields remain
+/// provider-independent and are changed only by verified billing events.
+model MerchantBillingAccount {
+  id                      String   @id @default(cuid())
+  merchantId              String
+  provider                String   @default("STRIPE")
+  stripeCustomerId        String   @unique
+  stripeSubscriptionId    String?  @unique
+  stripePriceId           String?
+  stripeCheckoutSessionId String?  @unique
+  subscriptionStatus      String?
+  cancelAtPeriodEnd       Boolean  @default(false)
+  currentPeriodStart      DateTime?
+  currentPeriodEnd        DateTime?
+  lastEventCreatedAt      Int?
+  lastEventId             String?
+
+  merchant Merchant @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+  events   MerchantBillingEvent[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([merchantId, provider])
+  @@index([merchantId])
+  @@index([stripeSubscriptionId])
+}
+
+/// Minimal provider event ledger for signed webhook idempotency and ordering.
+model MerchantBillingEvent {
+  id                   String   @id @default(cuid())
+  provider             String   @default("STRIPE")
+  providerEventId      String
+  merchantId           String?
+  billingAccountId     String?
+  eventType            String
+  stripeCustomerId     String?
+  stripeSubscriptionId String?
+  eventCreatedAt       Int?
+  status               String   @default("PROCESSED")
+  processedAt          DateTime?
+
+  merchant       Merchant?               @relation(fields: [merchantId], references: [id], onDelete: SetNull)
+  billingAccount MerchantBillingAccount? @relation(fields: [billingAccountId], references: [id], onDelete: SetNull)
+
+  createdAt DateTime @default(now())
+
+  @@unique([provider, providerEventId])
+  @@index([merchantId, createdAt])
+  @@index([billingAccountId, createdAt])
 }
 
 /// Merchant-scoped authentication client for API/MCP adapters.

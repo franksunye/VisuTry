@@ -3,8 +3,9 @@
 import { ArrowRight, BarChart3, Check, Sparkles, Store } from "lucide-react";
 import type { ReactNode } from "react";
 import type { MerchantCommercialPresentation } from "@/modules/merchant/application/merchant-control-center";
+import { MerchantBillingActions } from "@/components/merchant/MerchantBillingActions";
 
-type Props = { commercial: MerchantCommercialPresentation };
+type Props = { commercial: MerchantCommercialPresentation; merchantId?: string; locale?: string };
 
 const buttonClass = "inline-flex items-center justify-center gap-2 rounded-xl px-3.5 py-2.5 text-sm font-semibold transition focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2";
 
@@ -58,7 +59,7 @@ function actionLabel(action: MerchantCommercialPresentation["primaryAction"]) {
   }
 }
 
-export function MerchantPlanUsage({ commercial }: Props) {
+export function MerchantPlanUsage({ commercial, merchantId, locale = "en" }: Props) {
   const periodText = commercial.status === "LEGACY_UNMIGRATED"
     ? "Not enrolled in a current plan"
     : commercial.status === "PILOT_ACTIVE" || commercial.planCode === "FOUNDING_PILOT"
@@ -70,10 +71,6 @@ export function MerchantPlanUsage({ commercial }: Props) {
   const aiDetail = commercial.aiCommerceSessionLimit === null
     ? commercial.status === "LEGACY_UNMIGRATED" ? "Existing activity · not on a current plan" : commercial.planCode === "FREE" ? "Not included on Free" : "Included by custom plan"
     : `${allowance(commercial.usage.aiCommerceSessions, commercial.aiCommerceSessionLimit)}${commercial.aiCommerceSessionPercentage === null ? "" : ` · ${commercial.aiCommerceSessionPercentage}%`}`;
-  const primaryHref = commercial.primaryAction === "ENROLL_PLAN" || commercial.primaryAction === "UNLOCK_AI_TRY_ON" || commercial.primaryAction === "CONTINUE_AFTER_PILOT"
-    ? "/en/business"
-    : "/en/business#plans";
-
   return (
     <section id="commercial" className="scroll-mt-44 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6" aria-labelledby="plan-usage-heading">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
@@ -116,7 +113,7 @@ export function MerchantPlanUsage({ commercial }: Props) {
       </div>
 
       <div className="mt-6 flex flex-col gap-3 border-t border-slate-100 pt-5 sm:flex-row sm:items-center">
-        <a className={`${buttonClass} bg-slate-950 text-white hover:bg-slate-800`} href={primaryHref}>{actionLabel(commercial.primaryAction)} <ArrowRight className="h-4 w-4" aria-hidden="true" /></a>
+        {merchantId ? <MerchantBillingActions merchantId={merchantId} locale={locale} commercial={commercial} /> : <a className={`${buttonClass} bg-slate-950 text-white hover:bg-slate-800`} href="/en/business#plans">{actionLabel(commercial.primaryAction)} <ArrowRight className="h-4 w-4" aria-hidden="true" /></a>}
         <a className="text-sm font-semibold text-slate-600 underline decoration-slate-300 underline-offset-4 hover:text-slate-950" href="/en/business#plans">Compare plans</a>
       </div>
     </section>

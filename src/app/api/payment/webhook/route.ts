@@ -14,6 +14,7 @@ import Stripe from "stripe"
 import { QUOTA_CONFIG, PRODUCT_METADATA, getProductQuota } from "@/config/pricing"
 import { logger, getRequestContext, getRequestLanguageContext } from "@/lib/logger"
 import { sanitizeAcquisitionAttribution } from "@/lib/acquisition-attribution"
+import { isMerchantStripeEventCandidate, processMerchantStripeEvent } from '@/modules/merchant/application/merchant-billing'
 
 // Force dynamic rendering for this route
 export const dynamic = 'force-dynamic'
@@ -68,6 +69,17 @@ export async function POST(request: NextRequest) {
 
     // 验证Webhook签名
     const event = verifyWebhookSignature(body, signature, webhookSecret)
+
+    // Merchant billing is isolated from Consumer Payment fulfillment. A
+    // Merchant metadata marker is required for checkout/subscription events;
+    // invoice events may be resolved by an existing Merchant billing identity.
+    const prismaWithMerchantBilling = prisma as typeof prisma & { merchantBillingAccount?: unknown }
+    const merchantCandidate = isMerchantStripeEventCandidate(event)
+    if (merchantCandidate || (event.type.startsWith('invoice.') && prismaWithMerchantBilling.merchantBillingAccount)) {
+      const merchantResult = await processMerchantStripeEvent(event)
+      if (merchantResult.handled) return NextResponse.json({ received: true })
+      if (merchantCandidate) throw new Error('Merchant billing identity was not found')
+    }
 
     // 处理不同类型的事件
     switch (event.type) {
