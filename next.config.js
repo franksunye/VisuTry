@@ -228,7 +228,6 @@ const nextConfig = {
         '@/modules/merchant/mcp/server$': path.resolve(__dirname, 'src/modules/merchant/mcp/server-cloudflare.ts'),
         '@/modules/store/application/campaign-service$': path.resolve(__dirname, 'src/modules/store/application/campaign-service-cloudflare.ts'),
         '@/modules/merchant/application/merchant-control-center$': path.resolve(__dirname, 'src/modules/merchant/application/merchant-control-center-cloudflare.ts'),
-        '@/modules/merchant/application/merchant-billing$': path.resolve(__dirname, 'src/modules/merchant/application/merchant-billing-cloudflare.ts'),
         '@/modules/merchant/cloudflare$': path.resolve(__dirname, 'src/modules/merchant/cloudflare.ts'),
         [path.resolve(__dirname, 'src/modules/store/application/public-read-runtime.ts')]: path.resolve(__dirname, 'src/modules/store/application/public-read-runtime-cloudflare.ts'),
         [path.resolve(__dirname, 'src/modules/store/application/public-route-admission.ts')]: path.resolve(__dirname, 'src/modules/store/application/public-route-admission-cloudflare.ts'),
@@ -244,7 +243,6 @@ const nextConfig = {
         [path.resolve(__dirname, 'src/modules/merchant/mcp/server.ts')]: path.resolve(__dirname, 'src/modules/merchant/mcp/server-cloudflare.ts'),
         [path.resolve(__dirname, 'src/modules/store/application/campaign-service.ts')]: path.resolve(__dirname, 'src/modules/store/application/campaign-service-cloudflare.ts'),
         [path.resolve(__dirname, 'src/modules/merchant/application/merchant-control-center.ts')]: path.resolve(__dirname, 'src/modules/merchant/application/merchant-control-center-cloudflare.ts'),
-        [path.resolve(__dirname, 'src/modules/merchant/application/merchant-billing.ts')]: path.resolve(__dirname, 'src/modules/merchant/application/merchant-billing-cloudflare.ts'),
         [path.resolve(__dirname, 'src/modules/merchant/cloudflare.ts')]: path.resolve(__dirname, 'src/modules/merchant/cloudflare.ts'),
       }
     }
