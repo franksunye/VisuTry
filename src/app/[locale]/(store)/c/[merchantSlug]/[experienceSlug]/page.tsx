@@ -82,6 +82,7 @@ export default async function CampaignExperiencePage({ params }: CampaignExperie
           experienceSlug={params.experienceSlug}
           locale={locale}
           publicPocStorage={assetPolicy.publicPoc}
+          generativeTryOnAvailable={discovery.merchant.generativeTryOnAvailable}
       />
     </RouteMessagesProvider>
     <div className="bg-[#f7f8fb] px-5 pb-8 sm:px-8 lg:px-10">

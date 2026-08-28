@@ -34,6 +34,8 @@ export type PublicExperienceDiscovery = {
     logoUrl: string | null
     websiteUrl: string | null
     accentColor: string | null
+    /** Public capability hint only; commercial plan details never leave the server. */
+    generativeTryOnAvailable: boolean
     referenceData: boolean
     updatedAt: Date
   }
@@ -137,6 +139,7 @@ export async function getPublicExperienceDiscovery(input: {
       logoUrl: merchant.logoUrl,
       websiteUrl: merchant.websiteUrl,
       accentColor: merchant.accentColor,
+      generativeTryOnAvailable: merchant.planCode !== 'FREE' && !['PILOT_EXPIRED', 'EXPIRED', 'PAST_DUE', 'PAYMENT_ACTION_REQUIRED', 'USAGE_EXHAUSTED'].includes(merchant.commercialStatus ?? ''),
       referenceData: merchant.referenceData === true || experience.referenceData,
       updatedAt: merchant.updatedAt,
     },

@@ -10,6 +10,9 @@ ALTER TABLE "TryOnTask" ADD COLUMN IF NOT EXISTS "retentionStatus" "RetentionSta
 ALTER TABLE "TryOnTask" ADD COLUMN IF NOT EXISTS "deleteFailCount" INTEGER NOT NULL DEFAULT 0;
 ALTER TABLE "TryOnTask" ADD COLUMN IF NOT EXISTS "lastDeleteError" TEXT;
 ALTER TABLE "TryOnTask" ADD COLUMN IF NOT EXISTS "lastDeleteAttemptAt" TIMESTAMP(3);
+-- Some historical databases received this retention field through the
+-- baseline rather than a named migration. Keep a fresh Local replayable.
+ALTER TABLE "TryOnTask" ADD COLUMN IF NOT EXISTS "expiresAt" TIMESTAMP(3);
 
 CREATE INDEX IF NOT EXISTS "TryOnTask_retentionStatus_expiresAt_idx"
   ON "TryOnTask"("retentionStatus", "expiresAt");

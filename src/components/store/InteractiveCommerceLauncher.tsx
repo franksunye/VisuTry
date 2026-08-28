@@ -2,7 +2,7 @@
 
 import dynamic from 'next/dynamic'
 import { useEffect, useRef, useState } from 'react'
-import { ArrowRight, Loader2, X } from 'lucide-react'
+import { ArrowRight, Loader2, LockKeyhole, X } from 'lucide-react'
 import {
   createMerchantContinuation,
   getMerchantContinuationFromUrl,
@@ -27,6 +27,7 @@ type InteractiveCommerceLauncherProps = {
   experienceSlug?: string
   locale: string
   publicPocStorage: boolean
+  generativeTryOnAvailable?: boolean
 }
 
 /**
@@ -39,6 +40,7 @@ export function InteractiveCommerceLauncher({
   experienceSlug,
   locale,
   publicPocStorage,
+  generativeTryOnAvailable = true,
 }: InteractiveCommerceLauncherProps) {
   const [started, setStarted] = useState(false)
   const closeButtonRef = useRef<HTMLButtonElement>(null)
@@ -132,11 +134,13 @@ export function InteractiveCommerceLauncher({
         </div>
         <button
           type="button"
-          onClick={() => setStarted(true)}
-          className="inline-flex shrink-0 items-center gap-2 rounded-xl bg-slate-950 px-4 py-3 text-sm font-semibold text-white transition hover:bg-slate-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
+          onClick={generativeTryOnAvailable ? () => setStarted(true) : undefined}
+          disabled={!generativeTryOnAvailable}
+          aria-disabled={!generativeTryOnAvailable}
+          className="inline-flex shrink-0 items-center gap-2 rounded-xl bg-slate-950 px-4 py-3 text-sm font-semibold text-white transition hover:bg-slate-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:bg-slate-200 disabled:text-slate-600 disabled:hover:bg-slate-200"
         >
-          Try on your photo
-          <ArrowRight className="h-4 w-4" aria-hidden="true" />
+          {generativeTryOnAvailable ? 'Try on your photo' : 'Virtual Try-On is available on Launch and above.'}
+          {generativeTryOnAvailable ? <ArrowRight className="h-4 w-4" aria-hidden="true" /> : <LockKeyhole className="h-4 w-4" aria-hidden="true" />}
         </button>
       </div>
     </section>

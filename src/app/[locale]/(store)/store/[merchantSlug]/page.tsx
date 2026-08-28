@@ -77,6 +77,7 @@ export default async function MerchantStorePage({ params }: MerchantStorePagePro
           merchantSlug={params.merchantSlug}
           locale={locale}
           publicPocStorage={assetPolicy.publicPoc}
+          generativeTryOnAvailable={discovery.merchant.generativeTryOnAvailable}
       />
     </RouteMessagesProvider>
     <div className="bg-[#f7f8fb] px-5 pb-8 sm:px-8 lg:px-10">

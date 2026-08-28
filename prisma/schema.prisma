@@ -15,6 +15,16 @@ datasource db {
   // DATABASE_URL — see src/lib/prisma.ts.
 }
 
+/// Safe, non-secret marker proving which environment owns this database.
+/// It is registered only by guarded local/Preview bootstrap commands.
+model EnvironmentMetadata {
+  id               String   @id @default("primary")
+  environment      String
+  databaseIdentity String   @unique
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+}
+
 model Account {
   id                String  @id @default(cuid())
   userId            String

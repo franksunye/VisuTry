@@ -45,6 +45,21 @@ describe('InteractiveCommerceLauncher', () => {
     expect(screen.getByRole('button', { name: /close try-on workspace/i })).toBeInTheDocument()
   })
 
+  it('locks the public Try-On CTA for a canonical Free Store', () => {
+    render(
+      <InteractiveCommerceLauncher
+        merchantSlug="free-store"
+        locale="en"
+        publicPocStorage={false}
+        generativeTryOnAvailable={false}
+      />,
+    )
+
+    const button = screen.getByRole('button', { name: /virtual try-on is available on launch and above/i })
+    expect(button).toBeDisabled()
+    expect(screen.queryByTestId('lazy-runtime')).not.toBeInTheDocument()
+  })
+
   it('keeps the page behind the workspace and closes on Escape', () => {
     render(
       <InteractiveCommerceLauncher

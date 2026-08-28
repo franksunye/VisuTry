@@ -13,7 +13,7 @@ const buttonClass = "inline-flex items-center justify-center gap-2 rounded-xl px
 
 function dateLabel(value: string | null) {
   if (!value) return null;
-  return new Intl.DateTimeFormat("en", { month: "short", day: "numeric", year: "numeric" }).format(new Date(value));
+  return new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric", year: "numeric", timeZone: "UTC" }).format(new Date(value));
 }
 
 function statusCopy(commercial: MerchantCommercialPresentation) {
