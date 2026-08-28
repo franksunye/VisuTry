@@ -31,7 +31,10 @@
       "reply_received": false,
       "current_status": "POSTED_NO_FOLLOW_UP",
       "follow_up_needed": false,
-      "evidence_note": "Platform displayed the comment as 1 month ago on 2026-08-26; exact publication timestamp was not exposed."
+      "evidence_note": "Platform displayed the comment as 1 month ago on 2026-08-26; exact publication timestamp was not exposed.",
+      "legacy_promotion_risk": true,
+      "affiliation_disclosed": false,
+      "classification_note": "Historical measurement-only classification; do not reuse as a future wording or disclosure template."
     }
   ]
 }

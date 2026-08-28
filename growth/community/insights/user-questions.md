@@ -108,3 +108,38 @@ Preserve exact language where reasonable. Add one entry per meaningful question.
 - Business relevance: fit guidance should include adjustment and stability checks, not only appearance
 - First observed: 2026-08-27
 - Last observed: 2026-08-27
+
+## 2026-08-28 public discovery sample
+
+- Question: Am I being too picky when new glasses repeatedly slide, tilt, or create ear pressure?
+- Exact user phrasing: `Am I being too picky and pedantic about things?`
+- Platform: Reddit
+- Source URL: https://www.reddit.com/r/glassesadvice/comments/1v8u82e/cannot_get_fit_right_with_new_glasses/
+- Topic: comfort, stability, repeated adjustments, and exchange confidence
+- Intent: decide whether to keep adjusting or exchange a frame that looks acceptable but does not stay comfortable
+- Frequency/pattern: REPEATED SIGNAL adjacent to prior slipping, nose-pad, temple, and behind-ear questions
+- Business relevance: fit guidance should distinguish visual appeal from day-to-day comfort and give shoppers a keep-adjust-exchange framework
+- First observed: 2026-08-28
+- Last observed: 2026-08-28
+
+- Question: Which of several frame and tint variants looks best?
+- Exact user phrasing: `Which glasses look better on me? (Third and Fourth are the tinted versions of first and second)`
+- Platform: Reddit
+- Source URL: https://www.reddit.com/r/glassesadvice/comments/1vyzsj7/which_glasses_look_better_on_me_third_and_fourth/
+- Topic: style comparison, tint, color contrast, and visual weight
+- Intent: choose among candidate frames before purchase
+- Frequency/pattern: REPEATED SIGNAL with prior frame-comparison questions
+- Business relevance: comparison guidance should separate style and color preference from physical fit checks
+- First observed: 2026-08-28
+- Last observed: 2026-08-28
+
+- Question: Which of two frames is better, or are both acceptable?
+- Exact user phrasing: `Which Glasses are better? 1 or 2? or do both look ok?`
+- Platform: Reddit
+- Source URL: https://www.reddit.com/r/glassesadvice/comments/1vwvb2k/which_glasses_are_better_1_or_2_or_do_both_look_ok/
+- Topic: frame-shape comparison and face proportions
+- Intent: decide whether either candidate is worth keeping
+- Frequency/pattern: REPEATED SIGNAL with prior style-versus-fit questions
+- Business relevance: Compare and Advisor flows should explain why a choice works instead of returning a single undifferentiated score
+- First observed: 2026-08-28
+- Last observed: 2026-08-28

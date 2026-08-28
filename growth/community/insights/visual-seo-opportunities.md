@@ -51,3 +51,13 @@ Examples include frames too wide versus correct width, brow-line alignment, brid
 - Landing-page candidate: `/en/compare-glasses-frames` or the existing glasses-fit/face-shape route owner
 - Evidence count: 2 Reddit fit/comparison threads reviewed on 2026-08-27 plus repeated prior fit signals
 - Confidence: REPEATED SIGNAL
+
+## 2026-08-28 public discovery sample
+
+- Visual title: `Style Choice Versus Fit: Compare Frame and Tint Variants`
+- Target query: `which glasses look better`, `glasses sliding down nose`, `painful pressure behind one ear`
+- Visual answer concept: show candidate frames side by side with color/tint/style notes in one layer and bridge contact, brow coverage, lens width, temple stability, and pressure warning signs in a separate fit layer; note that a photo cannot establish comfort or prescription fit.
+- Source question and URL: `Which glasses look better on me? (Third and Fourth are the tinted versions of first and second)` — https://www.reddit.com/r/glassesadvice/comments/1vyzsj7/which_glasses_look_better_on_me_third_and_fourth/
+- Landing-page candidate: `/en/compare-glasses-frames` or the existing glasses-fit/face-shape route owner
+- Evidence count: 3 Reddit style/fit comparison threads reviewed on 2026-08-28 plus repeated prior fit signals
+- Confidence: REPEATED SIGNAL

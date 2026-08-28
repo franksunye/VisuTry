@@ -46,3 +46,12 @@ Record evidence, not assumptions. A single comment is a `SINGLE SIGNAL` until re
 - Area: Advisor / Try-On / Compare / Consumer UX / FAQ
 - Confidence: REPEATED SIGNAL
 - Follow-up measurement: classify future questions into lens width, bridge width, brow alignment, and side stability rather than treating frame size as one variable
+
+## 2026-08-28 public discovery sample
+
+- Insight: Frame comparison needs a separate style layer and comfort/stability layer; a visually acceptable frame may still need adjustment or exchange.
+- Evidence: A Reddit author reported repeated sliding, tilting, and painful ear pressure despite daily adjustments; two newer comparison posts focused on choosing between color, tint, and shape variants and were already answered by style votes.
+- Source URLs: https://www.reddit.com/r/glassesadvice/comments/1v8u82e/cannot_get_fit_right_with_new_glasses/ ; https://www.reddit.com/r/glassesadvice/comments/1vyzsj7/which_glasses_look_better_on_me_third_and_fourth/ ; https://www.reddit.com/r/glassesadvice/comments/1vwvb2k/which_glasses_are_better_1_or_2_or_do_both_look_ok/
+- Area: Advisor / Try-On / Compare / Consumer UX / FAQ
+- Confidence: REPEATED SIGNAL
+- Follow-up measurement: classify future comparison questions by style preference, visible fit, comfort/stability, and keep-adjust-exchange decision

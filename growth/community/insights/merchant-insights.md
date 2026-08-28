@@ -49,3 +49,13 @@
 - Confidence: REPEATED SIGNAL
 - Possible merchant implication: make total frame width, bridge width, lens width, and plain-language stability notes easy to compare near the size selector
 - Follow-up measurement: track future questions about bridge differences, brow coverage, slipping, and requests for fit adjustments
+
+## 2026-08-28 public discovery sample
+
+- Insight: Merchants should make adjustment and exchange guidance visible when shoppers report sliding, tilting, or painful pressure, even if the frame looks good from the front.
+- Evidence: A Reddit shopper described repeated near-daily adjustments, nose slipping, one-sided tilt, and painful ear pressure; the existing replies emphasized frame size, arm length, nose-pad order, and walking around after adjustment. Separate current posts showed style votes dominating frame and tint comparisons.
+- Source URLs: https://www.reddit.com/r/glassesadvice/comments/1v8u82e/cannot_get_fit_right_with_new_glasses/ ; https://www.reddit.com/r/glassesadvice/comments/1vyzsj7/which_glasses_look_better_on_me_third_and_fourth/
+- Area: Store / Merchant Sales
+- Confidence: REPEATED SIGNAL
+- Possible merchant implication: show exchange-window reminders, adjustment expectations, and plain-language bridge/temple stability checks near size selectors and comparison controls
+- Follow-up measurement: track future questions about repeated adjustments, asymmetric pressure, slipping, and returns/exchanges

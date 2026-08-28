@@ -56,3 +56,14 @@ Candidates only. Do not create production pages automatically.
 - Evidence count: 2 Reddit decision/fit threads reviewed on 2026-08-27, alongside repeated prior fit signals
 - Product path: Advisor -> Compare -> Try-On
 - Confidence: REPEATED SIGNAL
+
+## 2026-08-28 public discovery sample
+
+- Opportunity: Expand fit/comparison coverage for `glasses sliding down nose`, `painful pressure behind one ear`, `am I being too picky about glasses fit`, and `which glasses look better`.
+- Repeated user question: shoppers need to know when a frame needs another adjustment, a different size, or an exchange, while style comparisons often focus on color and shape separately from fit.
+- Source URLs: https://www.reddit.com/r/glassesadvice/comments/1v8u82e/cannot_get_fit_right_with_new_glasses/ ; https://www.reddit.com/r/glassesadvice/comments/1vyzsj7/which_glasses_look_better_on_me_third_and_fourth/ ; https://www.reddit.com/r/glassesadvice/comments/1vwvb2k/which_glasses_are_better_1_or_2_or_do_both_look_ok/
+- Suggested page action: existing fit/comparison page improvement plus FAQ expansion
+- Search language: `glasses sliding down nose`, `painful pressure behind one ear`, `am I being too picky about glasses fit`, `which glasses look better`
+- Evidence count: 3 Reddit decision/fit threads reviewed on 2026-08-28, alongside repeated prior fit/comparison signals
+- Product path: Advisor -> Compare -> Try-On
+- Confidence: REPEATED SIGNAL
