@@ -4,6 +4,33 @@ export const MERCHANT_BILLABLE_PLAN_CODES = ['LAUNCH', 'GROWTH', 'SCALE', 'FOUND
 export type MerchantBillablePlanCode = (typeof MERCHANT_BILLABLE_PLAN_CODES)[number]
 export type MerchantRecurringPlanCode = Exclude<MerchantBillablePlanCode, 'FOUNDING_PILOT'>
 
+export type BillingEventComparison = -1 | 0 | 1
+
+/**
+ * Compare the persisted Stripe event cursor with an incoming event.
+ *
+ * Stripe timestamps only have second precision, so event.id is the stable
+ * deterministic tie-breaker for events created in the same second. A zero
+ * result is an exact cursor duplicate and must be treated as a no-op by the
+ * event ledger/application boundary.
+ */
+export function compareBillingEvent(input: {
+  incomingCreated: number
+  incomingEventId: string
+  storedCreated: number | null
+  storedEventId: string | null
+}): BillingEventComparison {
+  if (input.storedCreated === null) return 1
+  if (input.incomingCreated > input.storedCreated) return 1
+  if (input.incomingCreated < input.storedCreated) return -1
+  if (input.incomingEventId === input.storedEventId) return 0
+
+  // A legacy cursor may have a timestamp without an event id. Treat a valid
+  // incoming Stripe id as the deterministic successor in that tie.
+  if (input.storedEventId === null) return 1
+  return input.incomingEventId > input.storedEventId ? 1 : -1
+}
+
 export function isMerchantBillablePlanCode(value: unknown): value is MerchantBillablePlanCode {
   return typeof value === 'string' && MERCHANT_BILLABLE_PLAN_CODES.includes(value.toUpperCase() as MerchantBillablePlanCode)
 }
