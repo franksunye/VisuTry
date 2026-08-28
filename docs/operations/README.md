@@ -24,6 +24,7 @@ The architectural decision is recorded in `docs/decisions/ADR-011-vercel-sole-ne
 | `hybrid-performance-benchmark.md` | **Active / Long-term baseline** | Synthetic/RUM performance discipline for Cloudflare proxy/static/Worker and Vercel paths. |
 | `production-route-migration-performance-protocol.md` | **Active / Scoped** | Performance protocol for future **non-Next capability** migrations. It does not authorize Next HTML or `/_next/static` migration while ADR-011 is active. |
 | `vercel-quota-emergency-reduction.md` | **Active playbook** | Emergency Vercel quota/resource reduction actions. |
+| `try-on-generation-reliability-baseline.md` | **Active / Measurement** | Try-On generation reliability baseline: request vs attempt model, DB system of record, Axiom correlation, and 7/14-day collection process. No SLO. |
 | `cloudflare-next-static-route-incident-2026-08-19.md` | **Resolved P0 / Permanent guardrail** | Incident evidence behind the single Next frontend owner rule. |
 
 ## Current production Worker Route set

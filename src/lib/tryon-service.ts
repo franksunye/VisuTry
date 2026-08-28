@@ -25,6 +25,17 @@ import {
   getTryOnSourceBlobOptions,
 } from '@/lib/tryon-blob-access'
 import { tryOnProviderMediaInput } from '@/lib/tryon-media-loader'
+import {
+  startGenerationRequest,
+  startGenerationAttempt,
+  markGenerationAttemptSubmitted,
+  recordUsableGenerationSuccess,
+  recordGenerationFailure,
+  recordGenerationTimeoutForRetry,
+  ensureGenerationRequestFromTask,
+  generationLogFields,
+} from '@/lib/generation/telemetry'
+import { GRSAI_TRY_ON_MODEL, GEMINI_TRY_ON_IMAGE_MODEL } from '@/lib/generation/providers'
 
 export type { TryOnPollResult, TryOnSubmissionResult }
 
@@ -77,6 +88,13 @@ function submissionResultFromTask(task: {
 
 function isUniqueConstraintError(error: unknown) {
   return Boolean(error && typeof error === 'object' && (error as { code?: string }).code === 'P2002')
+}
+
+async function returnUsableGenerationResult(taskId: string, result: TryOnPollResult): Promise<TryOnPollResult> {
+  if (result.status === TaskStatus.COMPLETED) {
+    await recordUsableGenerationSuccess(taskId)
+  }
+  return result
 }
 
 function shouldRetryGrsAiTimeout(error?: string): boolean {
@@ -316,13 +334,14 @@ export async function submitTryOnTask(
           renderedPrompt: resolvedPrompt.renderedPrompt,
           promptVersion,
           promptSource: resolvedPrompt.source,
-          retryCount: 0,
-          clientSubmissionId,
-          originalUserFileName: userImageFile.name,
-          originalItemFileName: itemImageFile.name,
-          inputDiagnostics,
-          uploadDiagnostics,
-        }
+      retryCount: 0,
+      clientSubmissionId,
+      originalUserFileName: userImageFile.name,
+      originalItemFileName: itemImageFile.name,
+      inputDiagnostics,
+      uploadDiagnostics,
+      telemetryOrigin: 'CONSUMER',
+    }
       }
     })
   } catch (error) {
@@ -343,12 +362,42 @@ export async function submitTryOnTask(
       clientSubmissionId,
       taskId: existingTask.id,
     })
+    await ensureGenerationRequestFromTask({
+      ...existingTask,
+      origin: 'CONSUMER',
+      userId: user.id,
+      clientSubmissionId,
+      type,
+    })
     return submissionResultFromTask(existingTask)
   }
+
+  const requestHandle = await startGenerationRequest({
+    tryOnTaskId: task.id,
+    origin: 'CONSUMER',
+    userId: user.id,
+    clientSubmissionId,
+    generationType: type,
+    provider: serviceType,
+    model: serviceType === 'gemini' ? GEMINI_TRY_ON_IMAGE_MODEL : GRSAI_TRY_ON_MODEL,
+    startedAt: task.createdAt ?? new Date(),
+  })
 
   // 4. Dispatch to Service
   if (serviceType === 'gemini') {
     // --- Gemini (Synchronous) ---
+    const attemptHandle = await startGenerationAttempt({
+      tryOnTaskId: task.id,
+      provider: 'gemini',
+      model: GEMINI_TRY_ON_IMAGE_MODEL,
+    })
+    const geminiLog = generationLogFields(attemptHandle ?? requestHandle, {
+      tryOnTaskId: task.id,
+      clientSubmissionId,
+      origin: 'CONSUMER',
+      provider: 'gemini',
+      model: GEMINI_TRY_ON_IMAGE_MODEL,
+    })
     try {
       // Generation consumes the request-local files rather than persisted Blob URLs.
       // This keeps Gemini independent of source-media storage visibility.
@@ -385,6 +434,7 @@ export async function submitTryOnTask(
             taskId: task.id,
             clientSubmissionId,
             access: resultBlobOptions.access,
+            ...geminiLog,
           })
         } catch (uploadError) {
           logger.error('tryon-service', 'Failed to upload Gemini result to blob', uploadError as Error, {
@@ -412,6 +462,8 @@ export async function submitTryOnTask(
           }
         })
 
+        await recordUsableGenerationSuccess(task.id)
+
         return {
           taskId: task.id,
           status: 'completed',
@@ -427,6 +479,7 @@ export async function submitTryOnTask(
       logger.error('tryon-service', 'Gemini generation failed', error as Error, {
         taskId: task.id,
         clientSubmissionId,
+        ...geminiLog,
       })
       
       await prisma.tryOnTask.update({
@@ -437,11 +490,26 @@ export async function submitTryOnTask(
         }
       })
 
+      await recordGenerationFailure(task.id, errorMessage, { source: 'submit' })
+
       throw error
     }
 
   } else {
     // --- GrsAi (Asynchronous) ---
+    const attemptHandle = await startGenerationAttempt({
+      tryOnTaskId: task.id,
+      provider: 'grsai',
+      model: GRSAI_TRY_ON_MODEL,
+    })
+    const submitStartedAt = Date.now()
+    const grsaiLog = generationLogFields(attemptHandle ?? requestHandle, {
+      tryOnTaskId: task.id,
+      clientSubmissionId,
+      origin: 'CONSUMER',
+      provider: 'grsai',
+      model: GRSAI_TRY_ON_MODEL,
+    })
     try {
       // Initial provider dispatch consumes request-local files and never needs
       // public source Blob URLs.
@@ -459,8 +527,11 @@ export async function submitTryOnTask(
           taskId: task.id,
           clientSubmissionId,
           origin: 'CONSUMER',
+          ...grsaiLog,
         },
       )
+
+      await markGenerationAttemptSubmitted(task.id, externalTaskId, Date.now() - submitStartedAt)
 
       // Update task with external ID
       await prisma.tryOnTask.update({
@@ -493,6 +564,7 @@ export async function submitTryOnTask(
       logger.error('tryon-service', 'GrsAi submission failed', error as Error, {
         taskId: task.id,
         clientSubmissionId,
+        ...grsaiLog,
       })
       
       await prisma.tryOnTask.update({
@@ -502,6 +574,8 @@ export async function submitTryOnTask(
           errorMessage
         }
       })
+
+      await recordGenerationFailure(task.id, errorMessage, { source: 'submit' })
 
       throw error
     }
@@ -550,8 +624,39 @@ export async function getTryOnResult(taskId: string): Promise<TryOnPollResult> {
 
   // If task has an external GrsAi ID, keep polling even if the local status was marked FAILED.
   if (metadata?.serviceType === 'grsai' && metadata?.externalTaskId) {
+    const pollHandle = await ensureGenerationRequestFromTask({
+      id: task.id,
+      origin: task.origin,
+      userId: task.userId,
+      merchantId: task.merchantId,
+      merchantSessionId: task.merchantSessionId,
+      clientSubmissionId: task.clientSubmissionId,
+      type: task.type,
+      createdAt: task.createdAt,
+      metadata,
+    })
+    const pollLog = generationLogFields(pollHandle, {
+      tryOnTaskId: taskId,
+      providerTaskId: metadata.externalTaskId,
+      clientSubmissionId:
+        typeof metadata?.clientSubmissionId === 'string'
+          ? metadata.clientSubmissionId
+          : task.clientSubmissionId,
+      origin: typeof metadata?.telemetryOrigin === 'string' ? metadata.telemetryOrigin : task.origin,
+      provider: 'grsai',
+      model: GRSAI_TRY_ON_MODEL,
+    })
+
     // Poll GrsAi
-    const pollResult = await pollTaskResult(metadata.externalTaskId)
+    const pollResult = await pollTaskResult(metadata.externalTaskId, {
+      taskId,
+      clientSubmissionId:
+        typeof metadata?.clientSubmissionId === 'string'
+          ? metadata.clientSubmissionId
+          : task.clientSubmissionId ?? undefined,
+      origin: task.origin === 'CONSUMER' ? 'CONSUMER' : task.origin,
+      ...pollLog,
+    })
     const retryCount = typeof metadata?.retryCount === 'number' ? metadata.retryCount : 0
     const externalPollMetadata = {
       ...(metadata as any),
@@ -677,6 +782,7 @@ export async function getTryOnResult(taskId: string): Promise<TryOnPollResult> {
         logger.info('tryon-service', 'GrsAi result uploaded to blob', {
           taskId,
           access: resultBlobOptions.access,
+          ...pollLog,
         })
       } catch (uploadError) {
         const persistError = uploadError instanceof Error ? uploadError.message : String(uploadError)
@@ -715,12 +821,12 @@ export async function getTryOnResult(taskId: string): Promise<TryOnPollResult> {
                 },
               })
               if (reconciled.count > 0) {
-                return {
+                return returnUsableGenerationResult(taskId, {
                   status: TaskStatus.COMPLETED,
                   resultImageUrl: existing.url,
                   progress: 100,
                   isNewCompletion: true,
-                }
+                })
               }
 
               const completed = await prisma.tryOnTask.findUnique({
@@ -838,20 +944,20 @@ export async function getTryOnResult(taskId: string): Promise<TryOnPollResult> {
             isNewCompletion: false,
           }
         }
-        return {
+        return returnUsableGenerationResult(taskId, {
           status: TaskStatus.COMPLETED,
           resultImageUrl: completed.resultImageUrl || persistedUrl,
           progress: 100,
           isNewCompletion: false,
-        }
+        })
       }
 
-      return {
+      return returnUsableGenerationResult(taskId, {
         status: TaskStatus.COMPLETED,
         resultImageUrl: persistedUrl,
         progress: 100,
         isNewCompletion,
-      }
+      })
     } else if (pollResult.status === 'succeeded' && !pollResult.imageUrl) {
       const errorMessage = 'GrsAi task succeeded without a result image URL'
 
@@ -859,6 +965,7 @@ export async function getTryOnResult(taskId: string): Promise<TryOnPollResult> {
         taskId,
         externalTaskId: metadata.externalTaskId,
         diagnostics: pollResult.diagnostics,
+        ...pollLog,
       })
 
       await prisma.tryOnTask.update({
@@ -870,6 +977,8 @@ export async function getTryOnResult(taskId: string): Promise<TryOnPollResult> {
         }
       })
 
+      await recordGenerationFailure(taskId, errorMessage, { source: 'poll' })
+
       return {
         status: TaskStatus.FAILED,
         error: errorMessage
@@ -880,6 +989,7 @@ export async function getTryOnResult(taskId: string): Promise<TryOnPollResult> {
           taskId,
           externalTaskId: metadata.externalTaskId,
           error: pollResult.error,
+          ...pollLog,
         })
 
         await prisma.tryOnTask.updateMany({
@@ -916,7 +1026,10 @@ export async function getTryOnResult(taskId: string): Promise<TryOnPollResult> {
           retryCount,
           maxRetries: MAX_GRSAI_TIMEOUT_RETRIES,
           error: pollResult.error,
+          ...pollLog,
         })
+
+        await recordGenerationTimeoutForRetry(taskId, pollResult.error)
 
         try {
           // Preserve legacy public provider inputs exactly, while private Blob
@@ -925,6 +1038,24 @@ export async function getTryOnResult(taskId: string): Promise<TryOnPollResult> {
             tryOnProviderMediaInput(task.userImageUrl),
             tryOnProviderMediaInput(task.itemImageUrl),
           ])
+
+          const retryAttempt = await startGenerationAttempt({
+            tryOnTaskId: taskId,
+            provider: 'grsai',
+            model: GRSAI_TRY_ON_MODEL,
+          })
+          const retrySubmitStartedAt = Date.now()
+          const retryLog = generationLogFields(retryAttempt ?? pollHandle, {
+            tryOnTaskId: taskId,
+            clientSubmissionId:
+              typeof metadata?.clientSubmissionId === 'string'
+                ? metadata.clientSubmissionId
+                : task.clientSubmissionId,
+            origin: 'CONSUMER',
+            provider: 'grsai',
+            model: GRSAI_TRY_ON_MODEL,
+            attemptNumber: (retryCount ?? 0) + 2,
+          })
 
           const retriedExternalTaskId = await submitAsyncTask(
             retryUserInput,
@@ -938,8 +1069,11 @@ export async function getTryOnResult(taskId: string): Promise<TryOnPollResult> {
                   ? metadata.clientSubmissionId
                   : undefined,
               origin: 'CONSUMER',
+              ...retryLog,
             },
           )
+
+          await markGenerationAttemptSubmitted(taskId, retriedExternalTaskId, Date.now() - retrySubmitStartedAt)
 
           await prisma.tryOnTask.updateMany({
             where: {
@@ -971,6 +1105,7 @@ export async function getTryOnResult(taskId: string): Promise<TryOnPollResult> {
             taskId,
             previousExternalTaskId: metadata.externalTaskId,
             retryCount,
+            ...pollLog,
           })
         }
       }
@@ -987,6 +1122,8 @@ export async function getTryOnResult(taskId: string): Promise<TryOnPollResult> {
           metadata: externalPollMetadata,
         }
       })
+
+      await recordGenerationFailure(taskId, pollResult.error, { source: 'poll' })
       
       return {
         status: TaskStatus.FAILED,

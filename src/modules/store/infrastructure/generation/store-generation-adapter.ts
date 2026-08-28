@@ -92,6 +92,9 @@ export function createStoreGenerationAdapter(): StoreGenerationPort {
           onProviderAccepted: input.onProviderAccepted,
           metadata: {
             usagePolicyKind: input.usagePolicy.kind,
+            telemetryOrigin: input.telemetryOrigin ?? 'STORE',
+            storeId: input.storeId ?? null,
+            campaignId: input.campaignId ?? null,
           },
         },
       )

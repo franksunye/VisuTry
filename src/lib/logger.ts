@@ -7,7 +7,7 @@
 import { Axiom } from '@axiomhq/js'
 
 export type LogLevel = 'debug' | 'info' | 'warn' | 'error'
-export type LogCategory = 'auth' | 'oauth' | 'api' | 'database' | 'upload' | 'payment' | 'web' | 'general' | 'email' | 'grsai' | 'grsai-face' | 'tryon-service' | 'face-analysis' | 'face-analysis-service' | 'quota' | 'cron' | 'store' | 'face-shape' | 'frame-compare' | 'style-explorer'
+export type LogCategory = 'auth' | 'oauth' | 'api' | 'database' | 'upload' | 'payment' | 'web' | 'general' | 'email' | 'grsai' | 'grsai-face' | 'tryon-service' | 'face-analysis' | 'face-analysis-service' | 'quota' | 'cron' | 'store' | 'face-shape' | 'frame-compare' | 'style-explorer' | 'generation'
 
 export interface LogEntry {
   id: string

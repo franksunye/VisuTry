@@ -58,6 +58,7 @@
     "test:gemini": "tsx scripts/test-gemini-connection.ts",
     "test:gemini:tryon": "tsx scripts/test-gemini-tryon.ts",
     "prompt:versions": "tsx scripts/list-try-on-prompt-versions.ts",
+    "report:generation-reliability": "tsx scripts/generation-reliability-report.ts",
     "test:grsai:face-analysis": "tsx scripts/test-grsai-face-analysis.ts",
     "debug:oauth": "node scripts/debug-twitter-oauth.js",
     "debug:logs": "echo 'Visit http://localhost:3000/debug/logs to view logs'",

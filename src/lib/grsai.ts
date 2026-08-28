@@ -1,17 +1,19 @@
 import { logger } from "@/lib/logger"
 import { buildTryOnPrompt } from "@/lib/prompt-builder"
+import { GRSAI_TRY_ON_MODEL } from "@/lib/generation/providers"
+import { compactGenerationLogContext, type GenerationLogContext } from "@/lib/generation/log-context"
 
 const GRSAI_API_KEY = process.env.GRSAI_API_KEY || process.env.GEMINI_API_KEY
 // Default to the current overseas GrsAi host from vendor docs.
 const GRSAI_BASE_URL = (process.env.GRSAI_BASE_URL || process.env.GEMINI_API_BASE_URL || "https://grsaiapi.com").replace(/\/$/, "")
-const MODEL_NAME = "nano-banana-fast"
+const MODEL_NAME = GRSAI_TRY_ON_MODEL
 const DEFAULT_SUBMIT_TIMEOUT_MS = 25_000
 const MAX_SUBMIT_TIMEOUT_MS = 45_000
 
-export interface GrsAiRequestContext {
+export interface GrsAiRequestContext extends GenerationLogContext {
   taskId?: string
   clientSubmissionId?: string
-  origin?: 'CONSUMER' | 'STORE_DEMO' | 'STORE_PILOT'
+  origin?: 'CONSUMER' | 'STORE_DEMO' | 'STORE_PILOT' | 'STORE' | 'CAMPAIGN'
 }
 
 function getSubmitTimeoutMs(): number {
@@ -99,7 +101,12 @@ export async function submitAsyncTask(
   logger.info('grsai', `Submitting task to: ${url}`, {
     baseUrl: GRSAI_BASE_URL,
     timeoutMs,
-    ...context,
+    provider: 'grsai',
+    model: MODEL_NAME,
+    ...compactGenerationLogContext(context),
+    taskId: context.taskId,
+    clientSubmissionId: context.clientSubmissionId,
+    origin: context.origin,
   })
 
   try {
@@ -119,7 +126,12 @@ export async function submitAsyncTask(
         url,
         error: errorText,
         durationMs: Date.now() - startedAt,
-        ...context,
+        provider: 'grsai',
+        model: MODEL_NAME,
+        ...compactGenerationLogContext(context),
+        taskId: context.taskId,
+        clientSubmissionId: context.clientSubmissionId,
+        origin: context.origin,
       })
       throw new Error(`GrsAi Submission failed: ${response.statusText}`)
     }
@@ -133,14 +145,25 @@ export async function submitAsyncTask(
       hasData: !!data.data,
       hasId: !!data.data?.id,
       durationMs: Date.now() - startedAt,
-      ...context,
+      provider: 'grsai',
+      model: MODEL_NAME,
+      ...compactGenerationLogContext(context),
+      taskId: context.taskId,
+      clientSubmissionId: context.clientSubmissionId,
+      origin: context.origin,
     })
 
     if (data.code === 0 && data.data?.id) {
       logger.info('grsai', `Task submitted successfully`, {
         externalTaskId: data.data.id,
+        providerTaskId: data.data.id,
         durationMs: Date.now() - startedAt,
-        ...context,
+        provider: 'grsai',
+        model: MODEL_NAME,
+        ...compactGenerationLogContext({ ...context, providerTaskId: data.data.id }),
+        taskId: context.taskId,
+        clientSubmissionId: context.clientSubmissionId,
+        origin: context.origin,
       })
       return data.data.id
     } else {
@@ -148,7 +171,12 @@ export async function submitAsyncTask(
       logger.error('grsai', 'Unexpected response format', undefined, {
         fullResponse: JSON.stringify(data).substring(0, 500), // Limit length
         durationMs: Date.now() - startedAt,
-        ...context,
+        provider: 'grsai',
+        model: MODEL_NAME,
+        ...compactGenerationLogContext(context),
+        taskId: context.taskId,
+        clientSubmissionId: context.clientSubmissionId,
+        origin: context.origin,
       })
       throw new Error("No Task ID received from GrsAi")
     }
@@ -166,7 +194,12 @@ export async function submitAsyncTask(
       url,
       timeoutMs,
       durationMs: Date.now() - startedAt,
-      ...context,
+      provider: 'grsai',
+      model: MODEL_NAME,
+      ...compactGenerationLogContext(context),
+      taskId: context.taskId,
+      clientSubmissionId: context.clientSubmissionId,
+      origin: context.origin,
     })
     throw reportedError
   }
@@ -176,12 +209,22 @@ export async function submitAsyncTask(
  * Poll task result from GrsAi
  * @param grsaiTaskId - The external task ID from GrsAi (stored in metadata.externalTaskId)
  */
-export async function pollTaskResult(grsaiTaskId: string): Promise<GrsAiResult> {
+export async function pollTaskResult(grsaiTaskId: string, context: GrsAiRequestContext = {}): Promise<GrsAiResult> {
   const url = `${GRSAI_BASE_URL}/v1/draw/result`
   const startTime = Date.now()
+  const logContext = {
+    grsaiTaskId,
+    providerTaskId: grsaiTaskId,
+    provider: 'grsai',
+    model: MODEL_NAME,
+    ...compactGenerationLogContext({ ...context, providerTaskId: grsaiTaskId }),
+    taskId: context.taskId,
+    clientSubmissionId: context.clientSubmissionId,
+    origin: context.origin,
+  }
 
   logger.debug('grsai', `Polling GrsAi task result`, {
-    grsaiTaskId,
+    ...logContext,
     url,
     baseUrl: GRSAI_BASE_URL,
   })
@@ -201,11 +244,12 @@ export async function pollTaskResult(grsaiTaskId: string): Promise<GrsAiResult> 
     if (!response.ok) {
       const errorText = await response.text()
       logger.error('grsai', `Polling failed: ${response.status}`, undefined, {
-        grsaiTaskId,
+        ...logContext,
         httpStatus: response.status,
         httpStatusText: response.statusText,
         responseTime: `${responseTime}ms`,
-        error: errorText
+        error: errorText,
+        status: 'failed',
       })
       // If 404, maybe task not found or expired, treat as failed
       return { status: 'failed', progress: 0, error: `Polling failed: ${response.status}` }
@@ -343,7 +387,7 @@ export async function pollTaskResult(grsaiTaskId: string): Promise<GrsAiResult> 
 
     if (status === 'processing' && responseCode !== undefined && responseCode !== 0) {
       logger.warn('grsai', 'GrsAi returned non-zero business code while task remained non-terminal', {
-        grsaiTaskId,
+        ...logContext,
         code: responseCode,
         message: responseMessage,
         rawStatus,
@@ -351,7 +395,7 @@ export async function pollTaskResult(grsaiTaskId: string): Promise<GrsAiResult> 
     }
 
     logger.debug('grsai', `GrsAi polling completed`, {
-      grsaiTaskId,
+      ...logContext,
       status: result.status,
       progress: result.progress,
       hasImageUrl: !!result.imageUrl,
@@ -367,8 +411,9 @@ export async function pollTaskResult(grsaiTaskId: string): Promise<GrsAiResult> 
   } catch (error) {
     const totalTime = Date.now() - startTime
     logger.error('grsai', 'Polling network error', error as Error, {
-      grsaiTaskId,
+      ...logContext,
       totalTime: `${totalTime}ms`,
+      status: 'failed',
     })
     return { status: 'failed', progress: 0, error: "Network error" }
   }
