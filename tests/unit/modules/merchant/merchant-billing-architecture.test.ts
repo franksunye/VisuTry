@@ -62,4 +62,25 @@ describe('Merchant billing runtime ownership', () => {
       expect(source).not.toContain('merchant-billing-cloudflare')
     }
   })
+
+  it('keeps new Billing routes and application modules free of provider-specific imports', () => {
+    const billingFiles = [
+      'src/app/api/payment/webhook/route.ts',
+      'src/app/api/merchant/[merchantId]/billing/billing-http.ts',
+      'src/app/api/merchant/[merchantId]/billing/checkout/route.ts',
+      'src/app/api/merchant/[merchantId]/billing/change-plan/route.ts',
+      'src/app/api/merchant/[merchantId]/billing/portal/route.ts',
+      'src/modules/merchant/application/merchant-billing.ts',
+      'src/modules/merchant/application/merchant-billing-shared.ts',
+      'src/modules/merchant/domain/merchant-billing.ts',
+    ]
+    const providerImport = /from\s+['"][^'"]*(?:-cloudflare|neon-cloudflare)[^'"]*['"]/
+
+    for (const relativePath of billingFiles) {
+      const source = fs.readFileSync(path.join(root, relativePath), 'utf8')
+      const imports = source.split('\n').filter((line) => /^\s*import\b/.test(line) || /\bfrom\s+['"]/.test(line))
+      expect(imports.join('\n')).not.toMatch(providerImport)
+      expect(imports.join('\n')).not.toContain('getCloudflareSql')
+    }
+  })
 })

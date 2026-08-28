@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { requireAuth } from '@/lib/api-auth-runtime'
-import { requireMerchantMembership } from '@/modules/merchant/application/merchant-access-cloudflare'
+import { requireMerchantMembership } from '@/modules/merchant/application/merchant-access'
 import { createMerchantBillingPortalSession } from '@/modules/merchant/application/merchant-billing'
 import { billingErrorResponse, merchantBillingUrl } from '../billing-http'
 

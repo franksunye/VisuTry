@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { requireAuth } from '@/lib/api-auth-runtime'
-import { requireMerchantMembership } from '@/modules/merchant/application/merchant-access-cloudflare'
+import { requireMerchantMembership } from '@/modules/merchant/application/merchant-access'
 import { updateMerchantSubscription } from '@/modules/merchant/application/merchant-billing'
 import { billingErrorResponse } from '../billing-http'
 
