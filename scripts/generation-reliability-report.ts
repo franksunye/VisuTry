@@ -14,6 +14,8 @@ async function main() {
     period: readArg('--period') ?? '7d',
     from: readArg('--from'),
     to: readArg('--to'),
+    includeTest: process.argv.includes('--include-test'),
+    environment: readArg('--environment'),
   })
   process.stdout.write(`${formatGenerationReliabilityReport(report)}\n`)
 }

@@ -21,6 +21,7 @@ type StoreGenerationSubmitBase = {
   telemetryOrigin?: 'STORE' | 'CAMPAIGN'
   storeId?: string | null
   campaignId?: string | null
+  isTest?: boolean
 }
 
 export type StoreGenerationSubmitInput = StoreGenerationSubmitBase &

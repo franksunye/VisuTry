@@ -54,7 +54,7 @@ import {
 } from './store-dispatch-lease'
 import { acquireStoreDispatchTakeover } from './store-task-leases'
 import { startGenerationRequest, recordGenerationFailure } from '@/lib/generation/telemetry'
-import { resolveStoreTelemetryAttribution } from '@/lib/generation/origin'
+import { resolveStoreTelemetryAttribution, resolveTelemetryIsTest } from '@/lib/generation/origin'
 
 export type SubmitStoreTryOnInput = {
   merchants: MerchantRepository
@@ -239,7 +239,7 @@ async function markStoreClaimFailed(
     },
   })
   if (updated.count > 0) {
-    await recordGenerationFailure(taskId, reason, { source: 'internal' })
+    await recordGenerationFailure(taskId, reason, { source: 'internal', failureStage: 'INTERNAL' })
   }
   return updated.count > 0
 }
@@ -267,6 +267,7 @@ async function claimStoreTryOnSlot(input: {
   telemetryOrigin?: 'STORE' | 'CAMPAIGN'
   storeId?: string | null
   campaignId?: string | null
+  isTest?: boolean
 }): Promise<{
   taskId: string
   reusedExisting: boolean
@@ -432,6 +433,7 @@ async function claimStoreTryOnSlot(input: {
                 telemetryOrigin: input.telemetryOrigin ?? 'STORE',
                 storeId: input.storeId ?? null,
                 campaignId: input.campaignId ?? null,
+                telemetryIsTest: input.isTest === true,
                 ...(input.sponsoredReservationId
                   ? { sponsoredReservationId: input.sponsoredReservationId }
                   : {}),
@@ -502,6 +504,11 @@ export async function submitStoreFrameTryOn(
     ? await input.experiences.findByMerchantAndId(merchant.id, session.experienceId)
     : null
   const telemetryAttribution = resolveStoreTelemetryAttribution(experience)
+  const isTestTraffic = resolveTelemetryIsTest({
+    merchantReferenceData: merchant.referenceData,
+    experienceReferenceData: experience?.referenceData,
+    sessionReferenceData: session.referenceData,
+  })
 
   const frame = await input.frames.findActiveByMerchantAndId(
     merchant.id,
@@ -707,6 +714,7 @@ export async function submitStoreFrameTryOn(
       telemetryOrigin: telemetryAttribution.telemetryOrigin,
       storeId: telemetryAttribution.storeId,
       campaignId: telemetryAttribution.campaignId,
+      isTest: isTestTraffic,
     })
   } catch (error) {
     if (sponsoredReservationId && input.sponsoredUsage) {
@@ -725,6 +733,7 @@ export async function submitStoreFrameTryOn(
     clientSubmissionId: input.clientSubmissionId,
     generationType: 'GLASSES',
     provider: 'grsai',
+    isTest: isTestTraffic,
   })
 
   let shouldDispatch = !claim.reusedExisting
@@ -844,6 +853,7 @@ export async function submitStoreFrameTryOn(
       telemetryOrigin: telemetryAttribution.telemetryOrigin,
       storeId: telemetryAttribution.storeId,
       campaignId: telemetryAttribution.campaignId,
+      isTest: isTestTraffic,
     })
 
     logger.info('store', 'Store try-on submitted', {

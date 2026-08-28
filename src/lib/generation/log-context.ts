@@ -9,6 +9,7 @@ export type GenerationLogContext = {
   attemptNumber?: number | null
   status?: string | null
   tryOnTaskId?: string | null
+  failureStage?: string | null
 }
 
 export function compactGenerationLogContext(input: GenerationLogContext): Record<string, unknown> {
@@ -23,5 +24,6 @@ export function compactGenerationLogContext(input: GenerationLogContext): Record
   if (typeof input.attemptNumber === 'number') context.attemptNumber = input.attemptNumber
   if (input.status) context.status = input.status
   if (input.tryOnTaskId) context.tryOnTaskId = input.tryOnTaskId
+  if (input.failureStage) context.failureStage = input.failureStage
   return context
 }

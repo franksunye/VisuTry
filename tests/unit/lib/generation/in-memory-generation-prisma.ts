@@ -18,6 +18,9 @@ type RequestRow = {
   endToEndDurationMs: number | null
   attemptCount: number
   finalErrorCode: string | null
+  failureStage: string | null
+  isTest: boolean
+  environment: string | null
   createdAt: Date
   updatedAt: Date
 }
@@ -32,9 +35,11 @@ type AttemptRow = {
   submittedAt: Date
   completedAt: Date | null
   submitDurationMs: number | null
+  attemptDurationMs: number | null
   providerDurationMs: number | null
   status: string
   errorCode: string | null
+  failureStage: string | null
   errorMessageNormalized: string | null
   isTimeout: boolean
   createdAt: Date
@@ -98,6 +103,8 @@ export function createInMemoryGenerationPrisma() {
       let rows = [...requests]
       if (where?.startedAt?.gte) rows = rows.filter((item) => item.startedAt >= where.startedAt.gte)
       if (where?.startedAt?.lt) rows = rows.filter((item) => item.startedAt < where.startedAt.lt)
+      if (typeof where?.isTest === 'boolean') rows = rows.filter((item) => item.isTest === where.isTest)
+      if (typeof where?.environment === 'string') rows = rows.filter((item) => item.environment === where.environment)
       if (orderBy?.startedAt === 'asc') rows.sort((a, b) => a.startedAt.getTime() - b.startedAt.getTime())
       return rows.map((row) => {
         if (!select) return { ...row, attempts: attempts.filter((item) => item.requestId === row.id) }
@@ -140,6 +147,9 @@ export function createInMemoryGenerationPrisma() {
         endToEndDurationMs: data.endToEndDurationMs ?? null,
         attemptCount: data.attemptCount ?? 0,
         finalErrorCode: data.finalErrorCode ?? null,
+        failureStage: data.failureStage ?? null,
+        isTest: data.isTest ?? false,
+        environment: data.environment ?? null,
         createdAt: now,
         updatedAt: now,
       }
@@ -185,9 +195,11 @@ export function createInMemoryGenerationPrisma() {
         submittedAt: data.submittedAt ?? now,
         completedAt: data.completedAt ?? null,
         submitDurationMs: data.submitDurationMs ?? null,
+        attemptDurationMs: data.attemptDurationMs ?? null,
         providerDurationMs: data.providerDurationMs ?? null,
         status: data.status ?? 'STARTED',
         errorCode: data.errorCode ?? null,
+        failureStage: data.failureStage ?? null,
         errorMessageNormalized: data.errorMessageNormalized ?? null,
         isTimeout: data.isTimeout ?? false,
         createdAt: now,

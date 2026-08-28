@@ -1,6 +1,9 @@
 -- Try-On generation reliability baseline (Phase 1).
 -- Additive telemetry tables. Independent of TryOnTask retention.
 -- Does not alter provider selection, retry, timeout, or async behavior.
+-- Unique (tryOnTaskId) and (requestId, attemptNumber) prevent duplicate telemetry rows.
+-- Rollback: DROP TABLE "GenerationAttempt"; DROP TABLE "GenerationRequest"; DROP TYPE ...
+-- Safe at current production volume: new empty tables, no rewrite of TryOnTask.
 
 CREATE TYPE "GenerationTelemetryOrigin" AS ENUM ('CONSUMER', 'STORE', 'CAMPAIGN');
 CREATE TYPE "GenerationRequestFinalStatus" AS ENUM ('STARTED', 'COMPLETED', 'FAILED');

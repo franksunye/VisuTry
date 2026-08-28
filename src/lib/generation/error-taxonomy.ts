@@ -21,6 +21,77 @@ export type ClassifiedGenerationError = {
   errorMessageNormalized: string | null
 }
 
+export const GENERATION_FAILURE_STAGES = [
+  'SUBMIT',
+  'PROVIDER_PROCESSING',
+  'POLL_NETWORK',
+  'STALE_DISPATCH',
+  'ASSET_UPLOAD',
+  'INTERNAL',
+  'UNKNOWN',
+] as const
+
+export type GenerationFailureStageName = (typeof GENERATION_FAILURE_STAGES)[number]
+
+export type ClassifyFailureStageInput = {
+  source?: 'submit' | 'poll' | 'persist' | 'upload' | 'internal'
+  error?: string | null
+  failureStage?: GenerationFailureStageName | null
+  isTimeout?: boolean
+}
+
+const NETWORK_NEEDLES = [
+  'network error',
+  'fetch failed',
+  'socket hang up',
+  'econnreset',
+  'econnrefused',
+  'enotfound',
+  'dns',
+]
+
+/**
+ * Distinguish timeout/failure *layer* without changing timeout behavior.
+ * errorCategory (PROVIDER_TIMEOUT) can share a code across SUBMIT vs PROVIDER_PROCESSING.
+ */
+export function classifyFailureStage(input: ClassifyFailureStageInput = {}): GenerationFailureStageName {
+  if (input.failureStage && (GENERATION_FAILURE_STAGES as readonly string[]).includes(input.failureStage)) {
+    return input.failureStage
+  }
+
+  const haystack = (input.error || '').toLowerCase()
+  const source = input.source
+
+  if (source === 'upload' || source === 'persist') return 'ASSET_UPLOAD'
+
+  if (source === 'internal') {
+    if (
+      includesAny(haystack, [
+        'interrupted before an external task id',
+        'missing_external_task_id',
+        'stale consumer dispatch',
+        'stale dispatch',
+      ])
+    ) {
+      return 'STALE_DISPATCH'
+    }
+    return 'INTERNAL'
+  }
+
+  if (source === 'submit') return 'SUBMIT'
+
+  if (source === 'poll') {
+    if (includesAny(haystack, NETWORK_NEEDLES) && !input.isTimeout) return 'POLL_NETWORK'
+    return 'PROVIDER_PROCESSING'
+  }
+
+  if (includesAny(haystack, ['failed to upload', 'failed to persist', 'blob', 'asset'])) {
+    return 'ASSET_UPLOAD'
+  }
+
+  return 'UNKNOWN'
+}
+
 const URL_RE = /https?:\/\/\S+/gi
 const DATA_URI_RE = /data:[^,\s]+,[^\s]*/gi
 
@@ -70,17 +141,7 @@ export function classifyGenerationError(
     return { errorCode: 'PROVIDER_TIMEOUT', isTimeout: true, errorMessageNormalized: normalized }
   }
 
-  if (
-    includesAny(haystack, [
-      'network error',
-      'fetch failed',
-      'socket hang up',
-      'econnreset',
-      'econnrefused',
-      'enotfound',
-      'dns',
-    ])
-  ) {
+  if (includesAny(haystack, NETWORK_NEEDLES)) {
     return { errorCode: 'NETWORK_ERROR', isTimeout: false, errorMessageNormalized: normalized }
   }
 

@@ -17,6 +17,8 @@ export async function GET(request: NextRequest) {
       period: searchParams.get('period'),
       from: searchParams.get('from'),
       to: searchParams.get('to'),
+      includeTest: searchParams.get('includeTest'),
+      environment: searchParams.get('environment'),
     })
 
     if (format === 'text') {

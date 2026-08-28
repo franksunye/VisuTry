@@ -34,7 +34,7 @@ describe('admin generation reliability route', () => {
       p90: 2000,
       p95: 3000,
       p99: 4000,
-      breakdowns: { provider: [], model: [], origin: [], error: [] },
+      breakdowns: { provider: [], model: [], origin: [], error: [], failureStage: [] },
     })
 
     const response = await GET(
@@ -43,7 +43,7 @@ describe('admin generation reliability route', () => {
     const body = await response.json()
 
     expect(response.status).toBe(200)
-    expect(query).toHaveBeenCalledWith({ period: '7d', from: null, to: null })
+    expect(query).toHaveBeenCalledWith({ period: '7d', from: null, to: null, includeTest: null, environment: null })
     expect(body.data.requests).toBe(10)
     expect(body.data.finalSuccess).toBe(0.8)
   })

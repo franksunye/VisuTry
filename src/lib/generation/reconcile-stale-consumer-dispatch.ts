@@ -64,6 +64,9 @@ export async function reconcileStaleConsumerDispatch(
     staleForMs: now.getTime() - task.createdAt.getTime(),
   })
 
-  await recordGenerationFailure(task.id, STALE_CONSUMER_DISPATCH_ERROR, { source: 'internal' })
+  await recordGenerationFailure(task.id, STALE_CONSUMER_DISPATCH_ERROR, {
+    source: 'internal',
+    failureStage: 'STALE_DISPATCH',
+  })
   return true
 }

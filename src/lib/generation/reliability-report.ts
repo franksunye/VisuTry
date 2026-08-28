@@ -69,14 +69,18 @@ export type ReliabilityRequestRow = {
   endToEndDurationMs: number | null
   attemptCount: number
   finalErrorCode: string | null
+  failureStage: string | null
   attempts: Array<{
     attemptNumber: number
     provider: string
     model: string
     status: string
     isTimeout: boolean
+    submitDurationMs: number | null
+    attemptDurationMs: number | null
     providerDurationMs: number | null
     errorCode: string | null
+    failureStage: string | null
   }>
 }
 
@@ -114,11 +118,21 @@ export type GenerationReliabilityReport = {
   attemptP90: number | null
   attemptP95: number | null
   attemptP99: number | null
+  submitP50: number | null
+  submitP90: number | null
+  submitP95: number | null
+  submitP99: number | null
+  latencyFields: {
+    requestEndToEnd: 'endToEndDurationMs'
+    providerProcessing: 'providerDurationMs'
+    submitApi: 'submitDurationMs'
+  }
   breakdowns: {
     provider: ReliabilityBreakdownRow[]
     model: ReliabilityBreakdownRow[]
     origin: ReliabilityBreakdownRow[]
     error: ReliabilityBreakdownRow[]
+    failureStage: ReliabilityBreakdownRow[]
   }
 }
 
@@ -167,15 +181,23 @@ export function buildGenerationReliabilityReport(
   const retried = terminal.filter((row) => row.attemptCount > 1)
   const retriedRecovered = retried.filter((row) => row.finalStatus === 'COMPLETED').length
 
+  const TERMINAL_ATTEMPT_STATUSES = new Set(['COMPLETED', 'FAILED', 'TIMEOUT'])
+
   const requestDurations = terminal
     .map((row) => row.endToEndDurationMs)
-    .filter((value): value is number => typeof value === 'number' && Number.isFinite(value))
+    .filter((value): value is number => typeof value === 'number' && Number.isFinite(value) && value >= 0)
     .sort((a, b) => a - b)
 
-  const attemptDurations = rows
-    .flatMap((row) => row.attempts)
+  const terminalAttempts = rows.flatMap((row) => row.attempts).filter((attempt) => TERMINAL_ATTEMPT_STATUSES.has(attempt.status))
+
+  const attemptDurations = terminalAttempts
     .map((attempt) => attempt.providerDurationMs)
-    .filter((value): value is number => typeof value === 'number' && Number.isFinite(value))
+    .filter((value): value is number => typeof value === 'number' && Number.isFinite(value) && value >= 0)
+    .sort((a, b) => a - b)
+
+  const submitDurations = terminalAttempts
+    .map((attempt) => attempt.submitDurationMs)
+    .filter((value): value is number => typeof value === 'number' && Number.isFinite(value) && value >= 0)
     .sort((a, b) => a - b)
 
   const attempts = rows.reduce((sum, row) => sum + row.attempts.length, 0)
@@ -184,6 +206,7 @@ export function buildGenerationReliabilityReport(
   const byModel = new Map<string, ReliabilityBreakdownRow>()
   const byOrigin = new Map<string, ReliabilityBreakdownRow>()
   const byError = new Map<string, ReliabilityBreakdownRow>()
+  const byFailureStage = new Map<string, ReliabilityBreakdownRow>()
 
   for (const row of rows) {
     const isTerminal = row.finalStatus === 'COMPLETED' || row.finalStatus === 'FAILED'
@@ -225,6 +248,12 @@ export function buildGenerationReliabilityReport(
         failures: 1,
         timeouts: hadTimeout ? 1 : 0,
       })
+      addBreakdown(byFailureStage, row.failureStage || 'UNKNOWN', {
+        requests: 1,
+        attempts: row.attempts.length,
+        failures: 1,
+        timeouts: hadTimeout ? 1 : 0,
+      })
     }
   }
 
@@ -255,11 +284,21 @@ export function buildGenerationReliabilityReport(
     attemptP90: percentileCont(attemptDurations, 0.9),
     attemptP95: percentileCont(attemptDurations, 0.95),
     attemptP99: percentileCont(attemptDurations, 0.99),
+    submitP50: percentileCont(submitDurations, 0.5),
+    submitP90: percentileCont(submitDurations, 0.9),
+    submitP95: percentileCont(submitDurations, 0.95),
+    submitP99: percentileCont(submitDurations, 0.99),
+    latencyFields: {
+      requestEndToEnd: 'endToEndDurationMs',
+      providerProcessing: 'providerDurationMs',
+      submitApi: 'submitDurationMs',
+    },
     breakdowns: {
       provider: sortBreakdown([...byProvider.values()]),
       model: sortBreakdown([...byModel.values()]),
       origin: sortBreakdown([...byOrigin.values()]),
       error: sortBreakdown([...byError.values()]),
+      failureStage: sortBreakdown([...byFailureStage.values()]),
     },
   }
 }
@@ -278,14 +317,18 @@ export function formatGenerationReliabilityReport(report: GenerationReliabilityR
     `Timeout: ${pct(report.timeout)}`,
     `Retry rate: ${pct(report.retryRate)}`,
     `Retry recovery: ${pct(report.retryRecovery)}`,
-    `P50: ${ms(report.p50)}`,
-    `P90: ${ms(report.p90)}`,
-    `P95: ${ms(report.p95)}`,
-    `P99: ${ms(report.p99)}`,
-    `Attempt P50: ${ms(report.attemptP50)}`,
+    `P50 (request e2e / endToEndDurationMs): ${ms(report.p50)}`,
+    `P90 (request e2e): ${ms(report.p90)}`,
+    `P95 (request e2e): ${ms(report.p95)}`,
+    `P99 (request e2e): ${ms(report.p99)}`,
+    `Attempt P50 (provider processing / providerDurationMs): ${ms(report.attemptP50)}`,
     `Attempt P90: ${ms(report.attemptP90)}`,
     `Attempt P95: ${ms(report.attemptP95)}`,
     `Attempt P99: ${ms(report.attemptP99)}`,
+    `Submit P50 (submit/API / submitDurationMs): ${ms(report.submitP50)}`,
+    `Submit P90: ${ms(report.submitP90)}`,
+    `Submit P95: ${ms(report.submitP95)}`,
+    `Submit P99: ${ms(report.submitP99)}`,
     '',
     'Breakdown by provider:',
     ...report.breakdowns.provider.map((row) => `  ${row.key}: requests=${row.requests} finalSuccess=${row.finalSuccess} firstAttemptSuccess=${row.firstAttemptSuccess} failures=${row.failures}`),
@@ -295,6 +338,8 @@ export function formatGenerationReliabilityReport(report: GenerationReliabilityR
     ...report.breakdowns.origin.map((row) => `  ${row.key}: requests=${row.requests} finalSuccess=${row.finalSuccess}`),
     'Breakdown by normalized error:',
     ...report.breakdowns.error.map((row) => `  ${row.key}: requests=${row.requests} timeouts=${row.timeouts}`),
+    'Breakdown by failure stage:',
+    ...report.breakdowns.failureStage.map((row) => `  ${row.key}: requests=${row.requests} timeouts=${row.timeouts}`),
   ]
   return lines.join('\n')
 }

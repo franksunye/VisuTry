@@ -23,6 +23,16 @@ jest.mock('@prisma/client', () => ({
     FAILED: 'FAILED',
     TIMEOUT: 'TIMEOUT',
   },
+  GenerationFailureStage: {
+    SUBMIT: 'SUBMIT',
+    PROVIDER_PROCESSING: 'PROVIDER_PROCESSING',
+    POLL_NETWORK: 'POLL_NETWORK',
+    STALE_DISPATCH: 'STALE_DISPATCH',
+    ASSET_UPLOAD: 'ASSET_UPLOAD',
+    INTERNAL: 'INTERNAL',
+    UNKNOWN: 'UNKNOWN',
+  },
+  GenerationTelemetryOrigin: { CONSUMER: 'CONSUMER', STORE: 'STORE', CAMPAIGN: 'CAMPAIGN' },
   Prisma: { PrismaClientKnownRequestError: class PrismaClientKnownRequestError extends Error { code = '' } },
 }))
 

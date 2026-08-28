@@ -190,6 +190,12 @@ model GenerationRequest {
   endToEndDurationMs Int?
   attemptCount       Int                         @default(0)
   finalErrorCode     GenerationErrorCode?
+  /// Layer where the terminal failure occurred. Null on success / in-flight.
+  failureStage       GenerationFailureStage?
+  /// Canonical QA/reference marker from Merchant/Experience.referenceData.
+  isTest             Boolean                     @default(false)
+  /// VERCEL_ENV or NODE_ENV at request creation. Used to exclude non-production from baseline.
+  environment        String?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -203,6 +209,9 @@ model GenerationRequest {
   @@index([requestedModel, startedAt])
   @@index([finalErrorCode, startedAt])
   @@index([merchantId, startedAt])
+  @@index([isTest, startedAt])
+  @@index([environment, startedAt])
+  @@index([failureStage, startedAt])
 }
 
 /// One actual provider invocation for a GenerationRequest.
@@ -216,10 +225,16 @@ model GenerationAttempt {
   providerTaskId         String?
   submittedAt            DateTime
   completedAt            DateTime?
+  /// HTTP submit start → provider task ID returned (async GrsAi). Null for sync Gemini.
   submitDurationMs       Int?
+  /// Full attempt wall clock: submittedAt → completedAt (submit + provider processing).
+  attemptDurationMs      Int?
+  /// Provider processing only. For async GrsAi: completedAt − (submittedAt + submitDurationMs).
+  /// For sync Gemini (no submitDurationMs): same as attemptDurationMs.
   providerDurationMs     Int?
   status                 GenerationAttemptStatus  @default(STARTED)
   errorCode              GenerationErrorCode?
+  failureStage           GenerationFailureStage?
   errorMessageNormalized String?
   isTimeout              Boolean                  @default(false)
 
@@ -234,6 +249,7 @@ model GenerationAttempt {
   @@index([status, submittedAt])
   @@index([providerTaskId])
   @@index([isTimeout, submittedAt])
+  @@index([failureStage, submittedAt])
 }
 
 model FaceAnalysisTask {
@@ -483,6 +499,18 @@ enum GenerationErrorCode {
   UPLOAD_OR_ASSET_ERROR
   CALLBACK_ERROR
   INTERNAL_ERROR
+  UNKNOWN
+}
+
+/// Where a timeout/failure occurred. Independent of errorCategory.
+/// Does not change timeout behavior — measurement only.
+enum GenerationFailureStage {
+  SUBMIT
+  PROVIDER_PROCESSING
+  POLL_NETWORK
+  STALE_DISPATCH
+  ASSET_UPLOAD
+  INTERNAL
   UNKNOWN
 }
 

@@ -110,6 +110,7 @@ export async function submitStoreTryOnTask(
     metadataTelemetry.telemetryOrigin === 'CAMPAIGN' ? 'CAMPAIGN' : 'STORE'
   const telemetryStoreId = typeof metadataTelemetry.storeId === 'string' ? metadataTelemetry.storeId : null
   const telemetryCampaignId = typeof metadataTelemetry.campaignId === 'string' ? metadataTelemetry.campaignId : null
+  const telemetryIsTest = metadataTelemetry.telemetryIsTest === true
 
   // Claim-first: prefer pre-claimed task from atomic reservation; otherwise create here.
   const directLease = buildDispatchLeaseFields()
@@ -251,6 +252,7 @@ export async function submitStoreTryOnTask(
     provider: 'grsai',
     model: GRSAI_TRY_ON_MODEL,
     startedAt: task.createdAt,
+    isTest: telemetryIsTest,
   })
 
   const ownerKey = `store/${merchantId}`
@@ -340,7 +342,10 @@ export async function submitStoreTryOnTask(
         errorMessage: 'Failed to upload images to Store storage',
       },
     })
-    await recordGenerationFailure(task.id, 'Failed to upload images to Store storage', { source: 'upload' })
+    await recordGenerationFailure(task.id, 'Failed to upload images to Store storage', {
+      source: 'upload',
+      failureStage: 'ASSET_UPLOAD',
+    })
     throw new Error('Failed to upload images')
   }
 
@@ -483,7 +488,7 @@ export async function submitStoreTryOnTask(
         errorMessage,
       },
     })
-    await recordGenerationFailure(task.id, errorMessage, { source: 'submit' })
+      await recordGenerationFailure(task.id, errorMessage, { source: 'submit', failureStage: 'SUBMIT' })
     throw error
   }
 }

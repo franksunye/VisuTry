@@ -1,16 +1,26 @@
-import {
+import type {
   GenerationAttemptStatus,
   GenerationErrorCode,
+  GenerationFailureStage,
   GenerationRequestFinalStatus,
   GenerationTelemetryOrigin,
 } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { logger } from '@/lib/logger'
-import { classifyGenerationError } from '@/lib/generation/error-taxonomy'
+import {
+  classifyFailureStage,
+  classifyGenerationError,
+  type GenerationFailureStageName,
+} from '@/lib/generation/error-taxonomy'
 import { compactGenerationLogContext, type GenerationLogContext } from '@/lib/generation/log-context'
+import {
+  resolveGenerationEnvironment,
+  resolveTelemetryOriginFromMetadata,
+} from '@/lib/generation/origin'
 import { modelForProvider, type GenerationProviderName } from '@/lib/generation/providers'
 
 const OPEN_ATTEMPT_STATUSES: GenerationAttemptStatus[] = ['STARTED', 'SUBMITTED']
+const TERMINAL_REQUEST_STATUSES: GenerationRequestFinalStatus[] = ['COMPLETED', 'FAILED']
 
 export type GenerationTelemetryOriginName = 'CONSUMER' | 'STORE' | 'CAMPAIGN'
 
@@ -26,6 +36,8 @@ export type StartGenerationRequestInput = {
   provider?: GenerationProviderName | string | null
   model?: string | null
   startedAt?: Date
+  isTest?: boolean
+  environment?: string | null
 }
 
 export type StartGenerationAttemptInput = {
@@ -61,6 +73,29 @@ function isUniqueConstraintError(error: unknown) {
 
 function asOrigin(origin: GenerationTelemetryOriginName): GenerationTelemetryOrigin {
   return origin as GenerationTelemetryOrigin
+}
+
+function asFailureStage(stage: GenerationFailureStageName): GenerationFailureStage {
+  return stage as GenerationFailureStage
+}
+
+/**
+ * Split attempt wall-clock into submit/API latency vs provider processing.
+ * Async GrsAi: providerDurationMs starts after the provider task ID is returned.
+ * Sync Gemini: no submitDurationMs, so providerDurationMs equals the full attempt span.
+ */
+export function computeAttemptLatencies(input: {
+  submittedAt: Date
+  completedAt: Date
+  submitDurationMs?: number | null
+}): { attemptDurationMs: number; providerDurationMs: number } {
+  const attemptDurationMs = Math.max(0, input.completedAt.getTime() - input.submittedAt.getTime())
+  const submitMs = input.submitDurationMs
+  const providerDurationMs =
+    submitMs != null && Number.isFinite(submitMs)
+      ? Math.max(0, attemptDurationMs - submitMs)
+      : attemptDurationMs
+  return { attemptDurationMs, providerDurationMs }
 }
 
 export function generationLogFields(handle?: GenerationTelemetryHandle | null, extra?: GenerationLogContext): Record<string, unknown> {
@@ -129,9 +164,11 @@ export async function startGenerationRequest(
           generationType: input.generationType,
           requestedProvider,
           requestedModel,
-          finalStatus: GenerationRequestFinalStatus.STARTED,
+          finalStatus: 'STARTED',
           startedAt,
           attemptCount: 0,
+          isTest: input.isTest === true,
+          environment: input.environment ?? resolveGenerationEnvironment(),
         },
         select: {
           id: true,
@@ -190,7 +227,7 @@ export async function startGenerationAttempt(
       },
     })
     if (!request) return null
-    if (request.finalStatus === GenerationRequestFinalStatus.COMPLETED) {
+    if (TERMINAL_REQUEST_STATUSES.includes(request.finalStatus)) {
       return {
         requestId: request.id,
         tryOnTaskId: request.tryOnTaskId,
@@ -236,12 +273,12 @@ export async function startGenerationAttempt(
         provider,
         model,
         submittedAt,
-        status: GenerationAttemptStatus.STARTED,
+        status: 'STARTED',
       },
     })
 
     await prisma.generationRequest.updateMany({
-      where: { id: request.id, finalStatus: { not: GenerationRequestFinalStatus.COMPLETED } },
+      where: { id: request.id, finalStatus: 'STARTED' },
       data: { attemptCount: attemptNumber, requestedProvider: provider, requestedModel: model },
     })
 
@@ -297,7 +334,7 @@ export async function markGenerationAttemptSubmitted(
       data: {
         providerTaskId,
         submitDurationMs,
-        status: GenerationAttemptStatus.SUBMITTED,
+        status: 'SUBMITTED',
       },
     })
 
@@ -311,7 +348,7 @@ export async function markGenerationAttemptSubmitted(
       model: attempt.model,
       providerTaskId,
       clientSubmissionId: request.clientSubmissionId,
-      status: GenerationAttemptStatus.SUBMITTED,
+      status: 'SUBMITTED',
     }
     logger.info('generation', 'ATTEMPT_SUBMITTED', generationLogFields(handle, { status: 'SUBMITTED' }))
     return handle
@@ -328,6 +365,7 @@ async function finishOpenAttempt(
     errorCode?: GenerationErrorCode | null
     errorMessageNormalized?: string | null
     isTimeout?: boolean
+    failureStage?: GenerationFailureStageName | null
     completedAt?: Date
   },
 ): Promise<GenerationTelemetryHandle | null> {
@@ -349,7 +387,12 @@ async function finishOpenAttempt(
   if (!request || !attempt) return null
 
   const completedAt = data.completedAt ?? new Date()
-  const providerDurationMs = Math.max(0, completedAt.getTime() - attempt.submittedAt.getTime())
+  const { attemptDurationMs, providerDurationMs } = computeAttemptLatencies({
+    submittedAt: attempt.submittedAt,
+    completedAt,
+    submitDurationMs: attempt.submitDurationMs,
+  })
+  const failureStage = data.failureStage ? asFailureStage(data.failureStage) : null
 
   if (OPEN_ATTEMPT_STATUSES.includes(attempt.status)) {
     await prisma.generationAttempt.updateMany({
@@ -357,10 +400,12 @@ async function finishOpenAttempt(
       data: {
         status: data.status,
         completedAt,
+        attemptDurationMs,
         providerDurationMs,
         errorCode: data.errorCode ?? null,
         errorMessageNormalized: data.errorMessageNormalized ?? null,
         isTimeout: data.isTimeout ?? false,
+        failureStage,
       },
     })
   }
@@ -382,28 +427,29 @@ async function finishOpenAttempt(
 export async function recordUsableGenerationSuccess(tryOnTaskId: string): Promise<void> {
   try {
     const handle = await finishOpenAttempt(tryOnTaskId, {
-      status: GenerationAttemptStatus.COMPLETED,
+      status: 'COMPLETED',
     })
     const request = await prisma.generationRequest.findUnique({
       where: { tryOnTaskId },
       select: { id: true, startedAt: true, finalStatus: true },
     })
     if (!request) return
-    if (request.finalStatus === GenerationRequestFinalStatus.COMPLETED) return
 
     const completedAt = new Date()
-    await prisma.generationRequest.updateMany({
+    const updated = await prisma.generationRequest.updateMany({
       where: {
         id: request.id,
-        finalStatus: { not: GenerationRequestFinalStatus.COMPLETED },
+        finalStatus: 'STARTED',
       },
       data: {
-        finalStatus: GenerationRequestFinalStatus.COMPLETED,
+        finalStatus: 'COMPLETED',
         completedAt,
         endToEndDurationMs: Math.max(0, completedAt.getTime() - request.startedAt.getTime()),
         finalErrorCode: null,
+        failureStage: null,
       },
     })
+    if (updated.count !== 1) return
     logger.info('generation', 'ATTEMPT_COMPLETED', generationLogFields(handle, { status: 'COMPLETED' }))
     logger.info('generation', 'REQUEST_COMPLETED', generationLogFields(handle, { status: 'COMPLETED' }))
   } catch (error) {
@@ -419,6 +465,7 @@ export async function recordGenerationFailure(
     httpStatus?: number | null
     isTimeout?: boolean
     completeRequest?: boolean
+    failureStage?: GenerationFailureStageName | null
   },
 ): Promise<void> {
   try {
@@ -427,7 +474,13 @@ export async function recordGenerationFailure(
       httpStatus: options?.httpStatus,
     })
     const isTimeout = options?.isTimeout ?? classified.isTimeout
-    const attemptStatus = isTimeout ? GenerationAttemptStatus.TIMEOUT : GenerationAttemptStatus.FAILED
+    const failureStage = classifyFailureStage({
+      source: options?.source,
+      error,
+      failureStage: options?.failureStage,
+      isTimeout,
+    })
+    const attemptStatus: GenerationAttemptStatus = isTimeout ? 'TIMEOUT' : 'FAILED'
     const completeRequest = options?.completeRequest !== false
 
     const handle = await finishOpenAttempt(tryOnTaskId, {
@@ -435,6 +488,7 @@ export async function recordGenerationFailure(
       errorCode: classified.errorCode,
       errorMessageNormalized: classified.errorMessageNormalized,
       isTimeout,
+      failureStage,
     })
 
     logger.info(
@@ -442,6 +496,7 @@ export async function recordGenerationFailure(
       isTimeout ? 'ATTEMPT_TIMEOUT' : 'ATTEMPT_FAILED',
       generationLogFields(handle, {
         status: attemptStatus,
+        failureStage,
       }),
     )
 
@@ -451,22 +506,24 @@ export async function recordGenerationFailure(
       where: { tryOnTaskId },
       select: { id: true, startedAt: true, finalStatus: true },
     })
-    if (!request || request.finalStatus === GenerationRequestFinalStatus.COMPLETED) return
+    if (!request) return
 
     const completedAt = new Date()
-    await prisma.generationRequest.updateMany({
+    const updated = await prisma.generationRequest.updateMany({
       where: {
         id: request.id,
-        finalStatus: { not: GenerationRequestFinalStatus.COMPLETED },
+        finalStatus: 'STARTED',
       },
       data: {
-        finalStatus: GenerationRequestFinalStatus.FAILED,
+        finalStatus: 'FAILED',
         completedAt,
         endToEndDurationMs: Math.max(0, completedAt.getTime() - request.startedAt.getTime()),
         finalErrorCode: classified.errorCode,
+        failureStage: asFailureStage(failureStage),
       },
     })
-    logger.info('generation', 'REQUEST_FAILED', generationLogFields(handle, { status: 'FAILED' }))
+    if (updated.count !== 1) return
+    logger.info('generation', 'REQUEST_FAILED', generationLogFields(handle, { status: 'FAILED', failureStage }))
   } catch (error) {
     logTelemetryFailure('recordGenerationFailure', error, { tryOnTaskId })
   }
@@ -477,6 +534,7 @@ export async function recordGenerationTimeoutForRetry(tryOnTaskId: string, error
     source: 'poll',
     isTimeout: true,
     completeRequest: false,
+    failureStage: 'PROVIDER_PROCESSING',
   })
 }
 
@@ -492,13 +550,9 @@ export async function ensureGenerationRequestFromTask(task: {
   metadata?: unknown
 }): Promise<GenerationTelemetryHandle | null> {
   const metadata = (task.metadata ?? {}) as Record<string, unknown>
-  const telemetryOrigin =
-    metadata.telemetryOrigin === 'CAMPAIGN' || metadata.telemetryOrigin === 'STORE' || metadata.telemetryOrigin === 'CONSUMER'
-      ? metadata.telemetryOrigin
-      : task.origin === 'CONSUMER'
-        ? 'CONSUMER'
-        : 'STORE'
+  const telemetryOrigin = resolveTelemetryOriginFromMetadata(metadata, task.origin)
   const serviceType = typeof metadata.serviceType === 'string' ? metadata.serviceType : 'grsai'
+  const isTest = metadata.telemetryIsTest === true || metadata.isTest === true
 
   return startGenerationRequest({
     tryOnTaskId: task.id,
@@ -511,5 +565,6 @@ export async function ensureGenerationRequestFromTask(task: {
     generationType: task.type ?? 'GLASSES',
     provider: serviceType,
     startedAt: task.createdAt,
+    isTest,
   })
 }

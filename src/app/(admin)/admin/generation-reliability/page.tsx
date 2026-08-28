@@ -24,13 +24,15 @@ function ms(value: number | null) {
 export default async function GenerationReliabilityPage({
   searchParams,
 }: {
-  searchParams?: { period?: string; from?: string; to?: string }
+  searchParams?: { period?: string; from?: string; to?: string; includeTest?: string; environment?: string }
 }) {
   const period = searchParams?.period
   const report = await queryGenerationReliabilityReport({
     period,
     from: searchParams?.from,
     to: searchParams?.to,
+    includeTest: searchParams?.includeTest,
+    environment: searchParams?.environment,
   })
 
   const selected = report.period.preset
@@ -41,7 +43,8 @@ export default async function GenerationReliabilityPage({
         <h1 className="text-2xl font-semibold tracking-tight">Try-On generation reliability</h1>
         <p className="mt-1 max-w-3xl text-sm text-muted-foreground">
           Phase 1 measurement only. These figures are not an SLO. Baseline starts after this
-          instrumentation is deployed and validated in production.
+          instrumentation is deployed and validated in production. QA/reference (`isTest`)
+          rows are excluded unless you open this page with `includeTest=1`.
         </p>
       </div>
 
@@ -69,9 +72,11 @@ export default async function GenerationReliabilityPage({
         <MetricCard title="First-attempt success" value={pct(report.firstAttemptSuccess)} />
         <MetricCard title="Failure" value={pct(report.failure)} />
         <MetricCard title="Timeout" value={pct(report.timeout)} />
-        <MetricCard title="P50" value={ms(report.p50)} hint={`P95 ${ms(report.p95)}`} />
+        <MetricCard title="P50 request e2e" value={ms(report.p50)} hint={`P95 ${ms(report.p95)} · P99 ${ms(report.p99)}`} />
         <MetricCard title="Attempts" value={String(report.attempts)} hint={`retry ${pct(report.retryRate)}`} />
         <MetricCard title="Retry recovery" value={pct(report.retryRecovery)} />
+        <MetricCard title="Provider P50" value={ms(report.attemptP50)} hint="providerDurationMs" />
+        <MetricCard title="Submit P50" value={ms(report.submitP50)} hint="submitDurationMs" />
       </div>
 
       <div className="grid gap-4 lg:grid-cols-2">
@@ -79,6 +84,7 @@ export default async function GenerationReliabilityPage({
         <BreakdownTable title="Model" rows={report.breakdowns.model} />
         <BreakdownTable title="Origin" rows={report.breakdowns.origin} />
         <BreakdownTable title="Normalized failure reasons" rows={report.breakdowns.error} empty="No terminal failures in this period." />
+        <BreakdownTable title="Failure stage" rows={report.breakdowns.failureStage} empty="No terminal failures in this period." />
       </div>
     </div>
   )

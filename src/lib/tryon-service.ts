@@ -490,7 +490,10 @@ export async function submitTryOnTask(
         }
       })
 
-      await recordGenerationFailure(task.id, errorMessage, { source: 'submit' })
+      await recordGenerationFailure(task.id, errorMessage, {
+        source: 'submit',
+        failureStage: 'PROVIDER_PROCESSING',
+      })
 
       throw error
     }
@@ -575,7 +578,7 @@ export async function submitTryOnTask(
         }
       })
 
-      await recordGenerationFailure(task.id, errorMessage, { source: 'submit' })
+      await recordGenerationFailure(task.id, errorMessage, { source: 'submit', failureStage: 'SUBMIT' })
 
       throw error
     }
@@ -977,7 +980,7 @@ export async function getTryOnResult(taskId: string): Promise<TryOnPollResult> {
         }
       })
 
-      await recordGenerationFailure(taskId, errorMessage, { source: 'poll' })
+      await recordGenerationFailure(taskId, errorMessage, { source: 'poll', failureStage: 'PROVIDER_PROCESSING' })
 
       return {
         status: TaskStatus.FAILED,

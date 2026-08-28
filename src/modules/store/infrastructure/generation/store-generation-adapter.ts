@@ -95,6 +95,7 @@ export function createStoreGenerationAdapter(): StoreGenerationPort {
             telemetryOrigin: input.telemetryOrigin ?? 'STORE',
             storeId: input.storeId ?? null,
             campaignId: input.campaignId ?? null,
+            telemetryIsTest: input.isTest === true,
           },
         },
       )
