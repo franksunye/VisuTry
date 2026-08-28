@@ -57,4 +57,23 @@ describe('Merchant self-service Golden Path integration', () => {
     }))
     expect(tx.merchantMembership.create).toHaveBeenCalledTimes(1)
   })
+
+  it('accepts an omitted or whitespace-only name with a neutral display name', async () => {
+    const tx = {
+      user: { update: jest.fn().mockResolvedValue({ id: 'blank-user' }) },
+      merchant: {
+        create: jest.fn().mockResolvedValue({ id: 'merchant-blank', slug: 'my-store', name: 'My Store' }),
+      },
+      merchantMembership: {
+        findFirst: jest.fn().mockResolvedValue(null),
+        create: jest.fn().mockResolvedValue({ id: 'membership-blank', userId: 'blank-user', merchantId: 'merchant-blank', role: 'OWNER', createdAt: new Date(), updatedAt: new Date() }),
+      },
+    }
+    ;(prisma.$transaction as jest.Mock).mockImplementation(async (callback) => callback(tx))
+
+    const result = await createMerchantWithOwner({ userId: 'blank-user', name: '   ' })
+
+    expect(result.merchant).toMatchObject({ id: 'merchant-blank', name: 'My Store' })
+    expect(tx.merchant.create).toHaveBeenCalledWith(expect.objectContaining({ data: expect.objectContaining({ name: 'My Store' }) }))
+  })
 })

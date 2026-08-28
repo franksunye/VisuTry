@@ -20,6 +20,23 @@ export class MerchantBillingError extends Error {
   }
 }
 
+/**
+ * A provider event may be delivered again after a transient dependency has
+ * recovered. Keep this allowlist deliberately narrow: identity, price, and
+ * configuration failures are terminal and must not become an unbounded retry
+ * loop.
+ */
+const RETRYABLE_MERCHANT_BILLING_ERROR_CODES = new Set([
+  'SUBSCRIPTION_NOT_READY',
+  'BILLING_PROVIDER_UNAVAILABLE',
+  'PROVIDER_API_TRANSIENT',
+  'DATABASE_SERIALIZATION_FAILURE',
+])
+
+export function isRetryableMerchantBillingErrorCode(code: string | null | undefined): boolean {
+  return code != null && RETRYABLE_MERCHANT_BILLING_ERROR_CODES.has(code)
+}
+
 export function merchantStripePriceMap(env: Env = process.env): Map<string, MerchantStripePrice> {
   const result = new Map<string, MerchantStripePrice>()
   for (const planCode of Object.keys(BILLING_PRICE_ENV) as MerchantBillablePlanCode[]) {

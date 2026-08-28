@@ -6,6 +6,7 @@ import { authOptions } from '@/lib/auth-runtime'
 import { getMerchantControlCenter, listMerchantAgentCredentials, listMerchantsForUser, requireMerchantMembership } from '@/modules/merchant/cloudflare'
 import { MerchantControlCenter } from '@/components/merchant/MerchantControlCenter'
 import { MerchantWorkspaceOnboarding } from '@/components/merchant/MerchantWorkspaceOnboarding'
+import type { MerchantBillablePlanCode } from '@/modules/merchant/domain/merchant-billing'
 
 export const dynamic = 'force-dynamic'
 
@@ -22,7 +23,12 @@ function requestOrigin() {
   return `${protocol}://${host}`
 }
 
-export default async function MerchantWorkspacePage({ params, searchParams }: { params: { locale: string }; searchParams?: { merchantId?: string; onboarding?: string; billing?: string } }) {
+function billingPlan(value: string | undefined): MerchantBillablePlanCode | undefined {
+  const normalized = value?.trim().toUpperCase()
+  return normalized === 'LAUNCH' || normalized === 'GROWTH' || normalized === 'SCALE' || normalized === 'FOUNDING_PILOT' ? normalized : undefined
+}
+
+export default async function MerchantWorkspacePage({ params, searchParams }: { params: { locale: string }; searchParams?: { merchantId?: string; onboarding?: string; billing?: string; plan?: string } }) {
   const session = await getServerSession(authOptions)
   if (!session?.user?.id) redirect(`/${params.locale}/auth/signin?callbackUrl=/${params.locale}/merchant`)
 
@@ -46,5 +52,5 @@ export default async function MerchantWorkspacePage({ params, searchParams }: { 
   const billingState = searchParams?.billing === 'processing' || searchParams?.billing === 'cancelled'
     ? searchParams.billing
     : undefined
-  return <MerchantControlCenter locale={params.locale} merchants={merchants.map(({ merchant, membership }) => ({ id: merchant.id, slug: merchant.slug, name: merchant.name, role: membership.role }))} selectedMerchantId={selected.merchant.id} control={control} credentials={credentials} endpoint={`${origin}/api/mcp`} skills={skills} onboardingState={onboardingState} billingState={billingState} />
+  return <MerchantControlCenter locale={params.locale} merchants={merchants.map(({ merchant, membership }) => ({ id: merchant.id, slug: merchant.slug, name: merchant.name, role: membership.role }))} selectedMerchantId={selected.merchant.id} control={control} credentials={credentials} endpoint={`${origin}/api/mcp`} skills={skills} onboardingState={onboardingState} billingState={billingState} billingPlan={billingPlan(searchParams?.plan)} />
 }

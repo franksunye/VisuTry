@@ -4,12 +4,13 @@ jest.mock('@/lib/prisma', () => ({
   prisma: {
     merchant: { findUnique: jest.fn() },
     merchantBillingAccount: { findUnique: jest.fn(), create: jest.fn(), update: jest.fn() },
-    merchantBillingEvent: { findUnique: jest.fn(), create: jest.fn() },
+    merchantBillingEvent: { findUnique: jest.fn(), create: jest.fn(), update: jest.fn() },
     $transaction: jest.fn(),
   },
 }))
 
 import { prisma } from '@/lib/prisma'
+import { stripe } from '@/lib/stripe'
 import { createMerchantCheckoutSession, processMerchantStripeEvent } from '@/modules/merchant/application/merchant-billing'
 import { merchantStripePriceForPlan, merchantStripePriceMap } from '@/modules/merchant/application/merchant-billing-shared'
 import { compareBillingEvent } from '@/modules/merchant/domain/merchant-billing'
@@ -38,13 +39,14 @@ const account: TestBillingAccount = {
 
 const tx = {
   merchantBillingAccount: { findUnique: jest.fn(), create: jest.fn(), update: jest.fn() },
-  merchantBillingEvent: { findUnique: jest.fn(), create: jest.fn() },
+  merchantBillingEvent: { findUnique: jest.fn(), create: jest.fn(), update: jest.fn() },
   merchant: { update: jest.fn() },
 }
 
 let persistedAccount = { ...account }
 let persistedMerchant = { planCode: null as string | null, commercialStatus: null as string | null, billingPeriodEnd: null as Date | null }
-const eventLedger = new Set<string>()
+const eventLedger = new Map<string, { id: string; status: string; processingReason: string | null; duplicateCount: number; [key: string]: unknown }>()
+const retrieveSubscription = jest.spyOn((stripe as any).subscriptions, 'retrieve')
 
 function configurePrices() {
   process.env.STRIPE_MERCHANT_LAUNCH_MONTHLY_PRICE_ID = 'price_merchant_launch'
@@ -58,19 +60,57 @@ describe('Merchant Stripe billing boundary', () => {
     configurePrices(); jest.clearAllMocks()
     persistedAccount = { ...account }
     persistedMerchant = { planCode: null, commercialStatus: null, billingPeriodEnd: null }
-    eventLedger.clear()
+    eventLedger.clear(); retrieveSubscription.mockReset()
     ;(prisma.merchant.findUnique as jest.Mock).mockResolvedValue({ id: 'merchant-1', name: 'North Star Eyewear' })
     ;(prisma.merchantBillingAccount.findUnique as jest.Mock).mockResolvedValue(account)
     ;(prisma.merchantBillingAccount.create as jest.Mock).mockResolvedValue(account)
-    ;(prisma.$transaction as jest.Mock).mockImplementation(async (callback: (value: unknown) => unknown) => callback(tx))
+    ;(prisma.merchantBillingEvent.findUnique as jest.Mock).mockImplementation(async (input: any) => {
+      const eventId = input.where?.provider_providerEventId?.providerEventId
+      return eventId ? eventLedger.get(eventId) ?? null : null
+    })
+    ;(prisma.merchantBillingEvent.create as jest.Mock).mockImplementation(async (input: any) => {
+      const id = `event-ledger-${input.data.providerEventId}`
+      eventLedger.set(input.data.providerEventId, { id, status: input.data.status, processingReason: input.data.processingReason ?? null, duplicateCount: 0, ...input.data })
+      return { id }
+    })
+    ;(prisma.merchantBillingEvent.update as jest.Mock).mockImplementation(async (input: any) => {
+      const event = [...eventLedger.values()].find((row) => row.id === input.where?.id || row.id === `event-ledger-${input.where?.provider_providerEventId?.providerEventId}`)
+      if (!event) return {}
+      const next = { ...event, ...input.data }
+      if (input.data.duplicateCount?.increment != null) next.duplicateCount = event.duplicateCount + input.data.duplicateCount.increment
+      eventLedger.set(String(event.providerEventId), next)
+      return next
+    })
+    ;(prisma.$transaction as jest.Mock).mockImplementation(async (callback: (value: unknown) => unknown) => {
+      const ledgerSnapshot = new Map([...eventLedger.entries()].map(([key, value]) => [key, { ...value }]))
+      const accountSnapshot = { ...persistedAccount }
+      const merchantSnapshot = { ...persistedMerchant }
+      try {
+        return await callback(tx)
+      } catch (error) {
+        eventLedger.clear(); for (const [key, value] of ledgerSnapshot) eventLedger.set(key, value)
+        persistedAccount = accountSnapshot
+        persistedMerchant = merchantSnapshot
+        throw error
+      }
+    })
     tx.merchantBillingAccount.findUnique.mockImplementation(async () => ({ ...persistedAccount }))
     tx.merchantBillingEvent.findUnique.mockImplementation(async (input: any) => {
       const eventId = input.where?.provider_providerEventId?.providerEventId
-      return eventId && eventLedger.has(eventId) ? { id: `event-ledger-${eventId}` } : null
+      return eventId ? eventLedger.get(eventId) ?? null : null
     })
     tx.merchantBillingEvent.create.mockImplementation(async (input: any) => {
-      eventLedger.add(input.data.providerEventId)
-      return { id: `event-ledger-${input.data.providerEventId}` }
+      const id = `event-ledger-${input.data.providerEventId}`
+      eventLedger.set(input.data.providerEventId, { id, status: input.data.status, processingReason: input.data.processingReason ?? null, duplicateCount: 0, ...input.data })
+      return { id }
+    })
+    tx.merchantBillingEvent.update.mockImplementation(async (input: any) => {
+      const event = [...eventLedger.values()].find((row) => row.id === input.where?.id || row.id === `event-ledger-${input.where?.provider_providerEventId?.providerEventId}`)
+      if (!event) return {}
+      const next = { ...event, ...input.data }
+      if (input.data.duplicateCount?.increment != null) next.duplicateCount = event.duplicateCount + input.data.duplicateCount.increment
+      eventLedger.set(String(event.providerEventId), next)
+      return next
     })
     tx.merchantBillingAccount.update.mockImplementation(async (input: any) => {
       persistedAccount = { ...persistedAccount, ...input.data }
@@ -110,6 +150,24 @@ describe('Merchant Stripe billing boundary', () => {
     const second = await processMerchantStripeEvent(event)
     expect(second).toMatchObject({ handled: true, duplicate: true })
     expect(tx.merchant.update).toHaveBeenCalledTimes(1)
+  })
+
+  it('retries a retryable rejected checkout event and activates exactly once', async () => {
+    const event = checkoutSubscriptionEvent({ id: 'evt_retryable_checkout', created: 1_725_000_000 })
+    const subscription = subscriptionEvent({ id: 'evt_subscription_for_checkout' }).data.object
+    retrieveSubscription.mockRejectedValueOnce(new Error('Stripe subscription is not ready'))
+      .mockResolvedValueOnce(subscription)
+
+    await expect(processMerchantStripeEvent(event)).rejects.toMatchObject({ code: 'SUBSCRIPTION_NOT_READY' })
+    expect(persistedMerchant.planCode).toBeNull()
+    expect(eventLedger.get(event.id)).toMatchObject({ status: 'REJECTED', processingReason: 'SUBSCRIPTION_NOT_READY' })
+
+    const retry = await processMerchantStripeEvent(event)
+
+    expect(retry).toMatchObject({ handled: true, duplicate: false })
+    expect(persistedMerchant).toMatchObject({ planCode: 'LAUNCH', commercialStatus: 'PAID_ACTIVE' })
+    expect(tx.merchant.update).toHaveBeenCalledTimes(1)
+    expect(eventLedger.get(event.id)).toMatchObject({ status: 'PROCESSED', processingReason: null })
   })
 
   it('uses event id as the deterministic tie-breaker for same-second events', () => {
@@ -189,6 +247,20 @@ describe('Merchant Stripe billing boundary', () => {
     expect(tx.merchantBillingAccount.update).toHaveBeenCalledTimes(1)
     expect(tx.merchant.update).toHaveBeenCalledTimes(1)
   })
+
+  it('records identity or price rejection without mutating the canonical Merchant state', async () => {
+    const event = subscriptionEvent({ id: 'evt_unsupported_price' })
+    event.data.object.items.data[0].price.id = 'price_not_allowlisted'
+
+    await expect(processMerchantStripeEvent(event)).rejects.toMatchObject({ code: 'UNSUPPORTED_PRICE' })
+    expect(tx.merchant.update).not.toHaveBeenCalled()
+    expect(prisma.merchantBillingEvent.create).toHaveBeenCalledWith(expect.objectContaining({ data: expect.objectContaining({ status: 'REJECTED', processingReason: 'UNSUPPORTED_PRICE' }) }))
+
+    const replay = await processMerchantStripeEvent(event)
+    expect(replay).toMatchObject({ handled: true, duplicate: true })
+    expect(tx.merchant.update).not.toHaveBeenCalled()
+    expect(eventLedger.get(event.id)).toMatchObject({ status: 'REJECTED', processingReason: 'UNSUPPORTED_PRICE', duplicateCount: 1 })
+  })
 })
 
 function subscriptionEvent(input: { id: string; created?: number; type?: string; status?: string }) {
@@ -223,6 +295,24 @@ function checkoutEvent(input: { id: string; created: number }) {
         client_reference_id: 'merchant-1',
         payment_status: 'paid',
         metadata: { billingPurpose: 'MERCHANT_PLAN', merchantId: 'merchant-1', stripePriceId: 'price_founding_pilot' },
+      },
+    },
+  } as any
+}
+
+function checkoutSubscriptionEvent(input: { id: string; created: number }) {
+  return {
+    id: input.id,
+    created: input.created,
+    type: 'checkout.session.completed',
+    data: {
+      object: {
+        id: 'cs_subscription_1',
+        customer: 'cus_merchant_1',
+        client_reference_id: 'merchant-1',
+        payment_status: 'paid',
+        subscription: 'sub_merchant_1',
+        metadata: { billingPurpose: 'MERCHANT_PLAN', merchantId: 'merchant-1', stripePriceId: 'price_merchant_launch' },
       },
     },
   } as any

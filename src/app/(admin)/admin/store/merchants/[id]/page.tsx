@@ -2,6 +2,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { ArrowUpRight, ExternalLink, ImageIcon, MessageCircle, MousePointerClick, ScanFace, Store, Users } from 'lucide-react'
+import { prisma } from '@/lib/prisma'
 import { createStoreRuntime, getExperienceAdminWorkspace, getMerchantAnalyticsSnapshot, getMerchantInsights } from '@/modules/store/application'
 import type { MerchantInsightsDto } from '@/modules/store/application/get-merchant-insights'
 import type { MerchantAnalyticsSummary } from '@/modules/store/application/merchant-analytics'
@@ -20,6 +21,11 @@ function price(value: number | null, currency: string | null) {
   return new Intl.NumberFormat('en-US', { style: 'currency', currency: currency.toUpperCase(), maximumFractionDigits: 0 }).format(value / 100)
 }
 function formatDate(value: string) { return new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric' }).format(new Date(value)) }
+function formatDateTime(value: Date | number | string | null) { return value === null ? 'Not recorded' : new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }).format(new Date(value)) }
+function billingEventStatusLabel(status: string, reason: string | null, duplicateCount: number) {
+  const base = status === 'PROCESSED' ? 'Processed' : status === 'IGNORED' && reason === 'OUT_OF_ORDER' ? 'Ignored · out of order' : status === 'REJECTED' ? `Rejected · ${reason ?? 'unclassified'}` : status === 'IGNORED' ? `Ignored · ${reason ?? 'no state change'}` : status
+  return duplicateCount > 0 ? `${base} · ${duplicateCount} duplicate delivery${duplicateCount === 1 ? '' : 'ies'}` : base
+}
 
 function Provenance({ classification }: { classification: string }) {
   const normalized = normalizeMerchantClassification(classification)
@@ -70,6 +76,12 @@ export default async function AdminMerchantInsightsPage({ params }: PageProps) {
   })
   const commercial = commercialStateForPresentation(await getMerchantCommercialState({ merchantId: params.id }))
   const billing = await getMerchantBillingSummary({ merchantId: params.id })
+  const recentBillingEvents = await prisma.merchantBillingEvent.findMany({
+    where: { merchantId: params.id },
+    orderBy: { createdAt: 'desc' },
+    take: 8,
+    select: { id: true, eventType: true, status: true, processingReason: true, stripeCustomerId: true, stripeSubscriptionId: true, stripePriceId: true, eventCreatedAt: true, processedAt: true, duplicateCount: true, lastDuplicateAt: true, createdAt: true },
+  })
 
   const { merchant, dataProvenance, metrics, topFrames, recentSessions, recentInquiries, catalog } = insights
   const reference = dataProvenance.referenceData || merchant.referenceData
@@ -101,6 +113,11 @@ export default async function AdminMerchantInsightsPage({ params }: PageProps) {
           <div className="rounded-xl bg-slate-50 p-4"><dt className="text-xs text-slate-500">Billing status</dt><dd className="mt-1 font-semibold text-slate-900">{billing?.subscriptionStatus ?? 'No provider subscription'}</dd></div>
           <div className="rounded-xl bg-slate-50 p-4"><dt className="text-xs text-slate-500">Provider identity</dt><dd className="mt-1 font-mono text-xs text-slate-700">{billing?.maskedCustomerId ?? 'Not connected'}{billing?.maskedSubscriptionId ? <><br />{billing.maskedSubscriptionId}</> : null}</dd></div>
         </dl>
+      </section>
+
+      <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6" aria-labelledby="billing-events-heading">
+        <div className="flex flex-wrap items-start justify-between gap-4"><div><p className="text-xs font-semibold uppercase tracking-[0.16em] text-teal-700">Billing operations</p><h2 id="billing-events-heading" className="mt-1 text-xl font-semibold text-slate-950">Recent provider events</h2><p className="mt-1 text-sm text-slate-500">Verified Stripe event outcomes only. Payloads and secret provider details are not shown here.</p></div><span className="text-xs text-slate-400">{recentBillingEvents.length} shown</span></div>
+        <div className="mt-5 overflow-x-auto">{recentBillingEvents.length === 0 ? <EmptyState title="No verified billing event has arrived" copy="This Merchant has no recorded Stripe webhook for the current billing boundary." /> : <table className="w-full min-w-[720px] text-left text-sm"><thead><tr className="border-b border-slate-200 text-xs text-slate-500"><th className="pb-3 pr-4 font-semibold">Event</th><th className="pb-3 pr-4 font-semibold">Outcome</th><th className="pb-3 pr-4 font-semibold">Price</th><th className="pb-3 pr-4 font-semibold">Event time</th><th className="pb-3 font-semibold">Recorded</th></tr></thead><tbody>{recentBillingEvents.map((event) => <tr key={event.id} className="border-b border-slate-100 last:border-0"><td className="py-3 pr-4"><p className="font-semibold text-slate-900">{event.eventType}</p><p className="mt-1 text-xs text-slate-500">{event.stripeCustomerId ? `${event.stripeCustomerId.slice(0, 4)}••••${event.stripeCustomerId.slice(-4)}` : 'No customer identity'}</p></td><td className="py-3 pr-4 text-xs font-semibold text-slate-700">{billingEventStatusLabel(event.status, event.processingReason, event.duplicateCount)}</td><td className="py-3 pr-4 font-mono text-xs text-slate-600">{event.stripePriceId ? `${event.stripePriceId.slice(0, 6)}…` : 'Not present'}</td><td className="py-3 pr-4 text-xs text-slate-600">{formatDateTime(event.eventCreatedAt === null ? null : event.eventCreatedAt * 1000)}</td><td className="py-3 text-xs text-slate-500">{formatDateTime(event.processedAt ?? event.createdAt)}</td></tr>)}</tbody></table>}</div>
       </section>
 
       <section aria-labelledby="snapshot-heading">

@@ -301,7 +301,10 @@ export function MerchantStoreSelfService({ merchantId, initialCatalogCount, cata
     const wasLive = workspace.store.status === "ACTIVE";
     try {
       await readResponse(await fetch(`${apiBase}/publish`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ storeId: workspace.store.id, approved: true }) }));
-      if (!wasLive) analytics.trackCustomEvent(AnalyticsEvent.MerchantStorePublished, { merchant_id: merchantId, source_journey: "merchant_workspace_store" });
+      if (!wasLive) {
+        analytics.trackCustomEvent(AnalyticsEvent.MerchantStorePublished, { merchant_id: merchantId, source_journey: "merchant_workspace_store" });
+        analytics.trackCustomEvent(AnalyticsEvent.MerchantFirstStorePublished, { merchant_id: merchantId, source_journey: "merchant_workspace_store" });
+      }
       setNotice("Your Store is live. Share the public link with shoppers.");
       await loadWorkspace();
     } catch (requestError) {

@@ -25,7 +25,6 @@ import {
   MerchantAccessError,
   createMerchantMembership,
   createMerchantWithOwner,
-  MerchantProvisioningError,
   getMerchantForUser,
   listMembersForMerchant,
   listMerchantsForUser,
@@ -367,8 +366,7 @@ describe('Merchant human membership foundation', () => {
     expect(tx.merchant.create).not.toHaveBeenCalled()
   })
 
-  it('validates merchant name and website before opening a transaction', async () => {
-    await expect(createMerchantWithOwner({ userId: 'user-a', name: ' ' })).rejects.toBeInstanceOf(MerchantProvisioningError)
+  it('validates unsafe website input before opening a transaction', async () => {
     await expect(createMerchantWithOwner({ userId: 'user-a', name: 'Valid Name', websiteUrl: 'javascript:alert(1)' })).rejects.toMatchObject({ code: 'INVALID_WEBSITE_URL' })
     expect(prisma.$transaction).not.toHaveBeenCalled()
   })
