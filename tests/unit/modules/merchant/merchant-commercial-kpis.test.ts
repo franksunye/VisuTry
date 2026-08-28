@@ -6,7 +6,8 @@ describe('G4-C commercial KPI boundary', () => {
   it('includes only REAL merchants and keeps Pilot revenue out of MRR', () => {
     const result = computeMerchantCommercialKpis({
       now,
-      pilotRevenueCents: 14900,
+      pilotPriceId: 'price_founding_pilot',
+      pilotRevenueEvidence: [{ classification: 'REAL', stripePriceId: 'price_founding_pilot', status: 'PROCESSED', eventType: 'checkout.session.completed', providerEventId: 'evt_pilot_1', stripeCheckoutSessionId: 'cs_pilot_1' }],
       merchants: [
         { classification: 'REAL', planCode: 'LAUNCH', commercialStatus: 'PAID_ACTIVE', billingPeriodEnd: new Date('2026-09-01'), catalogItems: 12, shopperSessions: 20, intents: 3, aiCommerceSessions: 4, publishedStore: true, checkoutStarted: true },
         { classification: 'REAL', planCode: 'FOUNDING_PILOT', commercialStatus: 'PILOT_ACTIVE', billingPeriodEnd: new Date('2026-09-10'), catalogItems: 10, shopperSessions: 8, intents: 1, aiCommerceSessions: 2, publishedStore: true, checkoutStarted: true },
@@ -27,6 +28,24 @@ describe('G4-C commercial KPI boundary', () => {
       commercialIntents: 4,
       publishedStores: 2,
     })
+  })
+
+  it('counts historical Pilot receipts once and keeps them after a plan change', () => {
+    const result = computeMerchantCommercialKpis({
+      now,
+      pilotPriceId: 'price_founding_pilot',
+      pilotRevenueEvidence: [
+        { classification: 'REAL', stripePriceId: 'price_founding_pilot', status: 'PROCESSED', eventType: 'checkout.session.completed', providerEventId: 'evt_pilot_1', stripeCheckoutSessionId: 'cs_pilot_1' },
+        { classification: 'REAL', stripePriceId: 'price_founding_pilot', status: 'PROCESSED', eventType: 'checkout.session.completed', providerEventId: 'evt_pilot_1', stripeCheckoutSessionId: 'cs_pilot_1' },
+        { classification: 'REAL', stripePriceId: 'price_founding_pilot', status: 'IGNORED', eventType: 'checkout.session.async_payment_succeeded', providerEventId: 'evt_pilot_async', stripeCheckoutSessionId: 'cs_pilot_1' },
+        { classification: 'TEST', stripePriceId: 'price_founding_pilot', status: 'PROCESSED', eventType: 'checkout.session.completed', providerEventId: 'evt_test_pilot', stripeCheckoutSessionId: 'cs_test_pilot' },
+        { classification: 'POSSIBLE_EXTERNAL', stripePriceId: 'price_founding_pilot', status: 'PROCESSED', eventType: 'checkout.session.completed', providerEventId: 'evt_external_pilot', stripeCheckoutSessionId: 'cs_external_pilot' },
+      ],
+      merchants: [{ classification: 'REAL', planCode: 'LAUNCH', commercialStatus: 'PAID_ACTIVE', billingPeriodEnd: new Date('2026-09-01') }],
+    })
+
+    expect(result.pilotRevenueCents).toBe(14900)
+    expect(result.mrrCents).toBe(19900)
   })
 
   it('does not count expired, past-due, or payment-action-required plans as healthy paid state', () => {

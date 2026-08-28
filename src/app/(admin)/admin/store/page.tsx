@@ -20,7 +20,7 @@ import {
   summarizeMerchantPortfolio,
   type MerchantPortfolioFilter,
 } from '@/modules/merchant/domain/merchant-classification'
-import { computeMerchantCommercialKpis, type MerchantCommercialKpiRow } from '@/modules/merchant/domain/merchant-commercial-kpis'
+import { computeMerchantCommercialKpis, type MerchantCommercialKpiRow, type MerchantPilotRevenueEvidence } from '@/modules/merchant/domain/merchant-commercial-kpis'
 
 export const dynamic = 'force-dynamic'
 
@@ -134,19 +134,36 @@ export default async function AdminStoreMerchantsPage({ searchParams }: AdminSto
   })
 
   const merchantIds = merchants.map((merchant) => merchant.id)
-  const [publishedStores, aiSessionCounts, pilotBillingAccounts] = await Promise.all([
+  const pilotPriceId = process.env.STRIPE_FOUNDING_PILOT_PRICE_ID?.trim() || null
+  const [publishedStores, aiSessionCounts, pilotBillingEvents] = await Promise.all([
     merchantIds.length === 0
       ? Promise.resolve([] as Array<{ merchantId: string }>)
       : prisma.experience.findMany({ where: { merchantId: { in: merchantIds }, type: 'STORE', status: 'ACTIVE' }, select: { merchantId: true }, distinct: ['merchantId'] }),
     merchantIds.length === 0
       ? Promise.resolve([] as Array<{ merchantId: string; _count: { _all: number } }>)
       : prisma.merchantUsageLedger.groupBy({ by: ['merchantId'], where: { merchantId: { in: merchantIds }, kind: 'AI_COMMERCE_SESSION' }, _count: { _all: true } }),
-    prisma.merchantBillingAccount.count({ where: { stripePriceId: process.env.STRIPE_FOUNDING_PILOT_PRICE_ID?.trim() || '__not_configured__', merchant: { classification: 'REAL' } } }),
+    prisma.merchantBillingEvent.findMany({
+      where: {
+        stripePriceId: pilotPriceId ?? '__not_configured__',
+        status: 'PROCESSED',
+        eventType: { in: ['checkout.session.completed', 'checkout.session.async_payment_succeeded'] },
+        merchant: { classification: 'REAL' },
+      },
+      select: { providerEventId: true, stripePriceId: true, stripeCheckoutSessionId: true, status: true, eventType: true, merchant: { select: { classification: true } } },
+    }),
   ])
   const publishedMerchantIds = new Set(publishedStores.map((row) => row.merchantId))
   const aiSessionsByMerchant = new Map(aiSessionCounts.map((row) => [row.merchantId, row._count._all]))
   const commercialKpis = computeMerchantCommercialKpis({
-    pilotRevenueCents: pilotBillingAccounts * 14900,
+    pilotPriceId,
+    pilotRevenueEvidence: pilotBillingEvents.map((event): MerchantPilotRevenueEvidence => ({
+      classification: event.merchant?.classification ?? 'UNKNOWN',
+      stripePriceId: event.stripePriceId,
+      status: event.status,
+      eventType: event.eventType,
+      providerEventId: event.providerEventId,
+      stripeCheckoutSessionId: event.stripeCheckoutSessionId,
+    })),
     merchants: merchants.map((merchant): MerchantCommercialKpiRow => ({
       classification: merchant.classification,
       planCode: merchant.planCode,

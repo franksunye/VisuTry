@@ -1,5 +1,8 @@
 import { getMerchantPlanDefinition, isMerchantPlanCode, type MerchantPlanCode } from '@/modules/store/domain/merchant-commercial-plans'
 
+export const PILOT_SUCCESSFUL_CHECKOUT_EVENTS = ['checkout.session.completed', 'checkout.session.async_payment_succeeded'] as const
+const pilotSuccessfulCheckoutEvents = new Set<string>(PILOT_SUCCESSFUL_CHECKOUT_EVENTS)
+
 const ACTIVE_RECURRING_STATUSES = new Set([
   'PAID_ACTIVE',
   'USAGE_WARNING',
@@ -50,6 +53,35 @@ export type MerchantCommercialKpis = {
   funnel: MerchantCommercialFunnel
 }
 
+export type MerchantPilotRevenueEvidence = {
+  classification: string
+  stripePriceId: string | null
+  status: string
+  eventType: string
+  providerEventId: string
+  stripeCheckoutSessionId: string | null
+}
+
+/**
+ * Count verified one-time Pilot receipts, not current subscription state.
+ * Checkout retries can have different provider event ids, so the Checkout
+ * Session is the receipt identity used for deduplication.
+ */
+export function computeMerchantPilotRevenueCents(input: {
+  evidence: readonly MerchantPilotRevenueEvidence[]
+  pilotPriceId: string | null | undefined
+}): number {
+  const eligible = input.evidence.filter((row) =>
+    row.classification.trim().toUpperCase() === 'REAL'
+    && row.stripePriceId === input.pilotPriceId
+    && row.status.trim().toUpperCase() === 'PROCESSED'
+    && pilotSuccessfulCheckoutEvents.has(row.eventType),
+  )
+  const receipts = new Set<string>()
+  for (const row of eligible) receipts.add(row.stripeCheckoutSessionId || `event:${row.providerEventId}`)
+  return receipts.size * (getMerchantPlanDefinition('FOUNDING_PILOT').priceCents ?? 0)
+}
+
 function normalizedPlan(value: string | null | undefined): MerchantPlanCode | null {
   return isMerchantPlanCode(value) ? value.toUpperCase() as MerchantPlanCode : null
 }
@@ -80,7 +112,8 @@ function isActiveSubscription(row: MerchantCommercialKpiRow, now: Date): boolean
  */
 export function computeMerchantCommercialKpis(input: {
   merchants: readonly MerchantCommercialKpiRow[]
-  pilotRevenueCents?: number
+  pilotRevenueEvidence?: readonly MerchantPilotRevenueEvidence[]
+  pilotPriceId?: string | null
   now?: Date
 }): MerchantCommercialKpis {
   const now = input.now ?? new Date()
@@ -99,7 +132,7 @@ export function computeMerchantCommercialKpis(input: {
     activePilots: pilots.length,
     activePaidSubscriptions: subscriptions.length,
     mrrCents,
-    pilotRevenueCents: input.pilotRevenueCents ?? 0,
+    pilotRevenueCents: computeMerchantPilotRevenueCents({ evidence: input.pilotRevenueEvidence ?? [], pilotPriceId: input.pilotPriceId }),
     commercialAICommerceSessions: real.reduce((total, row) => total + Math.max(0, row.aiCommerceSessions ?? 0), 0),
     commercialShopperSessions: real.reduce((total, row) => total + Math.max(0, row.shopperSessions ?? 0), 0),
     commercialIntents: real.reduce((total, row) => total + Math.max(0, row.intents ?? 0), 0),

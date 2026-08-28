@@ -133,6 +133,14 @@ duplicate delivery counts, and `REJECTED` reasons are operational evidence;
 absence of a ledger row means no verified event has arrived. Billing routes and
 webhooks remain Vercel-owned; Cloudflare is not a second billing state machine.
 
+Webhook retry semantics are explicit. A `REJECTED` event with a transient
+reason such as `SUBSCRIPTION_NOT_READY` may be reprocessed for the same Stripe
+`event.id`; a `PROCESSED`, `IGNORED`, or terminally `REJECTED` event is a
+duplicate no-op. Pilot revenue is receipt-based: only `PROCESSED` successful
+Pilot Checkout events from `REAL` Merchants count, deduplicated by the Stripe
+Checkout Session, so a later recurring-plan change cannot erase historical
+Pilot revenue and Pilot revenue never becomes MRR.
+
 Production paid validation is deliberately a separate operator action. Use the
 runbook at
 `docs/operations/merchant-first-paid-production-validation.md` only after

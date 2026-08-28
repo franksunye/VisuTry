@@ -757,6 +757,7 @@ model MerchantBillingEvent {
   stripeCustomerId     String?
   stripeSubscriptionId String?
   stripePriceId        String?
+  stripeCheckoutSessionId String?
   eventCreatedAt       Int?
   status               String   @default("PROCESSED")
   processingReason     String?
