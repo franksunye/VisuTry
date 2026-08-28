@@ -51,6 +51,9 @@ npx prisma db push
 echo "→ run PostgreSQL sponsored usage smoke"
 npx tsx scripts/sponsored-postgres-smoke.ts
 
+echo "→ run merchant tenant FK PostgreSQL contract"
+npx tsx scripts/merchant-tenant-fk-postgres-contract.ts
+
 echo "→ run local entitlement contracts"
 npx jest \
   tests/unit/modules/store/merchant-sponsored-consumer-fallback.test.ts \

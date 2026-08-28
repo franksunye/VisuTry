@@ -60,11 +60,17 @@ jobs:
       - name: Generate Prisma Client
         run: npx prisma generate
 
+      - name: Validate Prisma schema
+        run: npx prisma validate
+
       - name: Bootstrap disposable PostgreSQL schema
         run: npx prisma db push
 
       - name: Run Sponsored PostgreSQL smoke
         run: npx tsx scripts/sponsored-postgres-smoke.ts
+
+      - name: Run merchant tenant FK PostgreSQL contract
+        run: npx tsx scripts/merchant-tenant-fk-postgres-contract.ts
 
   static-and-unit:
     name: Static + Critical Business Regression
