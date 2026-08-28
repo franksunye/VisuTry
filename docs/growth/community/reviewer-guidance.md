@@ -32,14 +32,26 @@ Routine review results that require no operational change do not need a reposito
 
 ## Guidance log
 
+### 2026-08-28 — Move from permanent warm-up to balanced promotion
+
+- The current strategy has become too conservative. Reddit and YouTube are not only research surfaces; they are intended distribution channels and must eventually create qualified awareness and traffic for VisuTry.
+- Do not preserve `0 VisuTry mentions / 0 links` as an implicit success state indefinitely. Trust and usefulness remain primary, but permanent non-promotion fails the growth objective.
+- The interaction policy has been updated to use three modes: `COMMUNITY_VALUE`, `TRANSPARENT_MENTION`, and `DIRECT_SHARE`.
+- On active operating days, deliberately search for high-intent promotion-fit opportunities such as tool requests, face-shape help, virtual try-on/comparison requests, online frame-decision questions, and recommendation-tool questions. Do not search only generic or already-saturated threads.
+- When VisuTry directly solves the user's request and current community rules allow it, actively consider a transparent product mention. Do not reject a mention merely because a no-product answer is possible.
+- Affiliation disclosure is mandatory. Never recreate the legacy pattern of presenting VisuTry as though it were an unrelated third-party tool.
+- Direct links remain stricter than mentions and should be used mainly where the user explicitly wants a resource/tool and rules permit it.
+- Directional multi-week balance after warm-up: approximately 70-85% community-value interactions, 10-20% transparent VisuTry mentions when genuinely relevant, and 5-10% direct shares at most. These are not daily quotas and must never override community rules or quality judgment.
+- Weekly review must explicitly diagnose `UNDER_PROMOTION`, `BALANCED`, or `OVER_PROMOTION`. Repeated weeks at zero mentions despite qualified opportunities should be treated as `UNDER_PROMOTION`.
+- Original Reddit posts may be used strategically up to the existing weekly ceiling in communities that permit educational maker posts, project feedback, tools, startups, or self-promotion. Do not use stealth marketing.
+- Maintain the human-like interaction rule: sometimes one sentence, sometimes a short discussion, sometimes a careful explanation, sometimes a transparent product mention, and sometimes no reply.
+
 ### 2026-08-27 — Evidence model and legacy-promotion classification
 
-- Keep the current conservative, research-first interaction strategy. A zero-public-action day is valid when follow-ups are checked and current threads are already answered, stale, or otherwise do not benefit from another reply.
 - Stop creating chained self-evidence commits merely to record the SHA of the commit that contains the daily log. The repository branch HEAD is already authoritative remote evidence. Prefer one primary ops commit per run. If a post-push evidence field is retained, it may reference the primary ops commit without requiring another state-only or timestamp-only commit; do not create a new commit solely because recording the previous commit SHA changed a file.
 - Treat `git_final_evidence` as operational evidence, not as a requirement for the log to contain the eventual branch HEAD. Reviewers may verify the actual remote branch HEAD independently.
 - The historical YouTube VisuTry comment currently indexed as `tone: PROMOTIONAL` must also be treated internally as a legacy promotion-risk example because affiliation was not transparently disclosed. Add an explicit non-sensitive classification such as `legacy_promotion_risk: true` and `affiliation_disclosed: false` (or equivalent schema-compatible fields) on a normal future state update. Do not delete or edit the historical public comment solely for this bookkeeping change.
 - Never use that legacy YouTube comment as a wording, cadence, or disclosure template. Future VisuTry mentions must remain transparent about affiliation and independently useful even without the product mention.
-- Do not increase Reddit or YouTube activity volume in response to this guidance.
 
 ### 2026-08-26 — GitHub-mediated closed loop
 
