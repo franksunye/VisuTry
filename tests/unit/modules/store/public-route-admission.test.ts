@@ -36,7 +36,7 @@ import {
 import { getPublicExperienceDiscoveryForRoute } from '@/modules/store/application/get-public-experience-discovery-route'
 
 const admissionCacheSetup = (unstable_cache as jest.Mock).mock.calls.find(
-  ([, key]) => JSON.stringify(key) === JSON.stringify(['public-route-admission-index']),
+  ([, key]) => Array.isArray(key) && key[0] === 'public-route-admission-index',
 )
 
 type AdmissionMerchant = Parameters<typeof buildPublicRouteAdmissionIndex>[0][number]
@@ -127,7 +127,7 @@ describe('public route admission', () => {
     expect(prisma.merchant.findMany).toHaveBeenCalledTimes(1)
     expect(admissionCacheSetup).toEqual([
       expect.any(Function),
-      ['public-route-admission-index'],
+      ['public-route-admission-index', expect.stringMatching(/^public-discovery:/)],
       expect.objectContaining({ tags: ['public-discovery:route-admission'] }),
     ])
   })
