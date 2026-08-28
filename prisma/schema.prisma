@@ -168,6 +168,90 @@ model TryOnTask {
   @@unique([userId, clientSubmissionId])          // Prevent duplicate client/batch submissions
 }
 
+/// Canonical Try-On reliability baseline row. One logical user/business
+/// generation request, independent of TryOnTask image retention.
+/// TryOnTask.id is stored as tryOnTaskId without an FK so telemetry survives
+/// retention cleanup. Do not treat this as a second Try-On task table.
+model GenerationRequest {
+  id                 String                      @id @default(cuid())
+  tryOnTaskId        String                      @unique
+  origin             GenerationTelemetryOrigin
+  userId             String?
+  merchantId         String?
+  storeId            String?
+  campaignId         String?
+  clientSubmissionId String?
+  generationType     String
+  requestedModel     String?
+  requestedProvider  String?
+  finalStatus        GenerationRequestFinalStatus @default(STARTED)
+  startedAt          DateTime
+  completedAt        DateTime?
+  endToEndDurationMs Int?
+  attemptCount       Int                         @default(0)
+  finalErrorCode     GenerationErrorCode?
+  /// Layer where the terminal failure occurred. Null on success / in-flight.
+  failureStage       GenerationFailureStage?
+  /// Canonical QA/reference marker from Merchant/Experience.referenceData.
+  isTest             Boolean                     @default(false)
+  /// VERCEL_ENV or NODE_ENV at request creation. Used to exclude non-production from baseline.
+  environment        String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  attempts GenerationAttempt[]
+
+  @@index([startedAt])
+  @@index([origin, startedAt])
+  @@index([finalStatus, startedAt])
+  @@index([requestedProvider, startedAt])
+  @@index([requestedModel, startedAt])
+  @@index([finalErrorCode, startedAt])
+  @@index([merchantId, startedAt])
+  @@index([isTest, startedAt])
+  @@index([environment, startedAt])
+  @@index([failureStage, startedAt])
+}
+
+/// One actual provider invocation for a GenerationRequest.
+/// Repeated polling/callbacks must update this row, not insert another.
+model GenerationAttempt {
+  id                     String                   @id @default(cuid())
+  requestId              String
+  attemptNumber          Int
+  provider               String
+  model                  String
+  providerTaskId         String?
+  submittedAt            DateTime
+  completedAt            DateTime?
+  /// HTTP submit start → provider task ID returned (async GrsAi). Null for sync Gemini.
+  submitDurationMs       Int?
+  /// Full attempt wall clock: submittedAt → completedAt (submit + provider processing).
+  attemptDurationMs      Int?
+  /// Provider processing only. For async GrsAi: completedAt − (submittedAt + submitDurationMs).
+  /// For sync Gemini (no submitDurationMs): same as attemptDurationMs.
+  providerDurationMs     Int?
+  status                 GenerationAttemptStatus  @default(STARTED)
+  errorCode              GenerationErrorCode?
+  failureStage           GenerationFailureStage?
+  errorMessageNormalized String?
+  isTimeout              Boolean                  @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  request GenerationRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
+
+  @@unique([requestId, attemptNumber])
+  @@index([requestId, status])
+  @@index([provider, submittedAt])
+  @@index([status, submittedAt])
+  @@index([providerTaskId])
+  @@index([isTimeout, submittedAt])
+  @@index([failureStage, submittedAt])
+}
+
 model FaceAnalysisTask {
   id              String     @id @default(cuid())
   userId          String
@@ -381,6 +465,53 @@ enum TryOnOrigin {
   CONSUMER
   STORE_DEMO
   STORE_PILOT
+}
+
+/// Product-facing origin for reliability reporting. STORE_DEMO/STORE_PILOT
+/// remain operational TryOnOrigin values and are mapped onto STORE | CAMPAIGN.
+enum GenerationTelemetryOrigin {
+  CONSUMER
+  STORE
+  CAMPAIGN
+}
+
+enum GenerationRequestFinalStatus {
+  STARTED
+  COMPLETED
+  FAILED
+}
+
+enum GenerationAttemptStatus {
+  STARTED
+  SUBMITTED
+  COMPLETED
+  FAILED
+  TIMEOUT
+}
+
+enum GenerationErrorCode {
+  PROVIDER_REJECTED
+  PROVIDER_FAILED
+  PROVIDER_TIMEOUT
+  NETWORK_ERROR
+  INVALID_INPUT
+  CONTENT_POLICY
+  UPLOAD_OR_ASSET_ERROR
+  CALLBACK_ERROR
+  INTERNAL_ERROR
+  UNKNOWN
+}
+
+/// Where a timeout/failure occurred. Independent of errorCategory.
+/// Does not change timeout behavior — measurement only.
+enum GenerationFailureStage {
+  SUBMIT
+  PROVIDER_PROCESSING
+  POLL_NETWORK
+  STALE_DISPATCH
+  ASSET_UPLOAD
+  INTERNAL
+  UNKNOWN
 }
 
 enum MerchantStatus {

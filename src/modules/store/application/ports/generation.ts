@@ -18,6 +18,10 @@ type StoreGenerationSubmitBase = {
   /** Consumer-entitlement history follows the Consumer retention policy. */
   expiresAt?: Date
   onProviderAccepted?: () => Promise<void>
+  telemetryOrigin?: 'STORE' | 'CAMPAIGN'
+  storeId?: string | null
+  campaignId?: string | null
+  isTest?: boolean
 }
 
 export type StoreGenerationSubmitInput = StoreGenerationSubmitBase &

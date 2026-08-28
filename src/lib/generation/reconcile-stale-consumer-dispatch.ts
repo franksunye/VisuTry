@@ -1,6 +1,7 @@
 import { TaskStatus } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { logger } from '@/lib/logger'
+import { recordGenerationFailure } from '@/lib/generation/telemetry'
 
 export const STALE_CONSUMER_DISPATCH_MS = 2 * 60 * 1000
 export const STALE_CONSUMER_DISPATCH_ERROR =
@@ -61,6 +62,11 @@ export async function reconcileStaleConsumerDispatch(
     source,
     createdAt: task.createdAt,
     staleForMs: now.getTime() - task.createdAt.getTime(),
+  })
+
+  await recordGenerationFailure(task.id, STALE_CONSUMER_DISPATCH_ERROR, {
+    source: 'internal',
+    failureStage: 'STALE_DISPATCH',
   })
   return true
 }

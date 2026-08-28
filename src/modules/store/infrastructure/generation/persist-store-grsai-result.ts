@@ -17,6 +17,14 @@ import type {
   GrsaiSucceededPersistInput,
 } from '@/lib/generation/tryon-result-persist'
 import type { TryOnPollResult } from '@/lib/generation/tryon-types'
+import { recordUsableGenerationSuccess } from '@/lib/generation/telemetry'
+
+async function storeCompletedResult(taskId: string, result: TryOnPollResult): Promise<TryOnPollResult> {
+  if (result.status === TaskStatus.COMPLETED) {
+    await recordUsableGenerationSuccess(taskId)
+  }
+  return result
+}
 
 export const persistStoreGrsaiSucceededResult: GrsaiSucceededPersistHandler = async (
   input: GrsaiSucceededPersistInput,
@@ -36,12 +44,12 @@ export const persistStoreGrsaiSucceededResult: GrsaiSucceededPersistHandler = as
   const resultPathname = `tryon/result/${resultOwnerKey}/${taskId}.png`
 
   if (latestBeforePersist?.status === TaskStatus.COMPLETED) {
-    return {
+    return storeCompletedResult(taskId, {
       status: TaskStatus.COMPLETED,
       resultImageUrl: latestBeforePersist.resultImageUrl || undefined,
       progress: 100,
       isNewCompletion: false,
-    }
+    })
   }
 
   let resultPersistFence: DispatchFence | null = null
@@ -78,12 +86,12 @@ export const persistStoreGrsaiSucceededResult: GrsaiSucceededPersistHandler = as
             resultPersistLeaseUntil: null,
           },
         })
-        return {
+        return storeCompletedResult(taskId, {
           status: TaskStatus.COMPLETED,
           resultImageUrl: existing.url,
           progress: 100,
           isNewCompletion: updateResult.count > 0,
-        }
+        })
       } catch {
         // Lease holder still uploading
       }
@@ -123,12 +131,12 @@ export const persistStoreGrsaiSucceededResult: GrsaiSucceededPersistHandler = as
             resultPersistLeaseUntil: null,
           },
         })
-        return {
+        return storeCompletedResult(taskId, {
           status: TaskStatus.COMPLETED,
           resultImageUrl: existing.url,
           progress: 100,
           isNewCompletion: reconciled.count > 0,
-        }
+        })
       } catch {
         return {
           status: TaskStatus.PROCESSING,
@@ -227,12 +235,12 @@ export const persistStoreGrsaiSucceededResult: GrsaiSucceededPersistHandler = as
         select: { status: true, resultImageUrl: true },
       })
       if (afterFail?.status === TaskStatus.COMPLETED) {
-        return {
+        return storeCompletedResult(taskId, {
           status: TaskStatus.COMPLETED,
           resultImageUrl: afterFail.resultImageUrl || undefined,
           progress: 100,
           isNewCompletion: false,
-        }
+        })
       }
       return {
         status: TaskStatus.PROCESSING,
@@ -296,18 +304,18 @@ export const persistStoreGrsaiSucceededResult: GrsaiSucceededPersistHandler = as
         isNewCompletion: false,
       }
     }
-    return {
+    return storeCompletedResult(taskId, {
       status: TaskStatus.COMPLETED,
       resultImageUrl: completed.resultImageUrl || persistedUrl,
       progress: 100,
       isNewCompletion: false,
-    }
+    })
   }
 
-  return {
+  return storeCompletedResult(taskId, {
     status: TaskStatus.COMPLETED,
     resultImageUrl: persistedUrl,
     progress: 100,
     isNewCompletion,
-  }
+  })
 }

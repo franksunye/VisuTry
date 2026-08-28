@@ -53,6 +53,8 @@ import {
   resolvePlaceholderReuseAction,
 } from './store-dispatch-lease'
 import { acquireStoreDispatchTakeover } from './store-task-leases'
+import { startGenerationRequest, recordGenerationFailure } from '@/lib/generation/telemetry'
+import { resolveStoreTelemetryAttribution, resolveTelemetryIsTest } from '@/lib/generation/origin'
 
 export type SubmitStoreTryOnInput = {
   merchants: MerchantRepository
@@ -236,6 +238,9 @@ async function markStoreClaimFailed(
       },
     },
   })
+  if (updated.count > 0) {
+    await recordGenerationFailure(taskId, reason, { source: 'internal', failureStage: 'INTERNAL' })
+  }
   return updated.count > 0
 }
 
@@ -259,6 +264,10 @@ async function claimStoreTryOnSlot(input: {
   userId?: string | null
   usagePolicyKind: 'store_demo_allowance' | 'merchant_allowance' | 'merchant_sponsored' | 'consumer_quota'
   sponsoredReservationId?: string | null
+  telemetryOrigin?: 'STORE' | 'CAMPAIGN'
+  storeId?: string | null
+  campaignId?: string | null
+  isTest?: boolean
 }): Promise<{
   taskId: string
   reusedExisting: boolean
@@ -421,6 +430,10 @@ async function claimStoreTryOnSlot(input: {
                 ...lease,
                 batchId: input.batchId,
                 usagePolicyKind: input.usagePolicyKind,
+                telemetryOrigin: input.telemetryOrigin ?? 'STORE',
+                storeId: input.storeId ?? null,
+                campaignId: input.campaignId ?? null,
+                telemetryIsTest: input.isTest === true,
                 ...(input.sponsoredReservationId
                   ? { sponsoredReservationId: input.sponsoredReservationId }
                   : {}),
@@ -490,6 +503,12 @@ export async function submitStoreFrameTryOn(
   const experience = session.experienceId && input.experiences
     ? await input.experiences.findByMerchantAndId(merchant.id, session.experienceId)
     : null
+  const telemetryAttribution = resolveStoreTelemetryAttribution(experience)
+  const isTestTraffic = resolveTelemetryIsTest({
+    merchantReferenceData: merchant.referenceData,
+    experienceReferenceData: experience?.referenceData,
+    sessionReferenceData: session.referenceData,
+  })
 
   const frame = await input.frames.findActiveByMerchantAndId(
     merchant.id,
@@ -692,6 +711,10 @@ export async function submitStoreFrameTryOn(
       expiresAt: usagePolicy.kind === 'consumer_quota' ? consumerRetentionExpiresAt : undefined,
       usagePolicyKind: usagePolicy.kind,
       sponsoredReservationId,
+      telemetryOrigin: telemetryAttribution.telemetryOrigin,
+      storeId: telemetryAttribution.storeId,
+      campaignId: telemetryAttribution.campaignId,
+      isTest: isTestTraffic,
     })
   } catch (error) {
     if (sponsoredReservationId && input.sponsoredUsage) {
@@ -699,6 +722,19 @@ export async function submitStoreFrameTryOn(
     }
     throw error
   }
+
+  await startGenerationRequest({
+    tryOnTaskId: claim.taskId,
+    origin: telemetryAttribution.telemetryOrigin,
+    userId: taskUserId,
+    merchantId: merchant.id,
+    storeId: telemetryAttribution.storeId,
+    campaignId: telemetryAttribution.campaignId,
+    clientSubmissionId: input.clientSubmissionId,
+    generationType: 'GLASSES',
+    provider: 'grsai',
+    isTest: isTestTraffic,
+  })
 
   let shouldDispatch = !claim.reusedExisting
   let dispatchLease = claim.dispatchLease
@@ -814,6 +850,10 @@ export async function submitStoreFrameTryOn(
         : undefined,
       preClaimedTaskId: claim.taskId,
       dispatchLease,
+      telemetryOrigin: telemetryAttribution.telemetryOrigin,
+      storeId: telemetryAttribution.storeId,
+      campaignId: telemetryAttribution.campaignId,
+      isTest: isTestTraffic,
     })
 
     logger.info('store', 'Store try-on submitted', {
@@ -824,6 +864,9 @@ export async function submitStoreFrameTryOn(
       status: submitted.status,
       reusedExisting: submitted.reusedExisting || claim.reusedExisting,
       usagePolicyKind: usagePolicy.kind,
+      origin: telemetryAttribution.telemetryOrigin,
+      campaignId: telemetryAttribution.campaignId,
+      storeId: telemetryAttribution.storeId,
     })
 
     return {

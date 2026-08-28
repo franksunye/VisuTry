@@ -19,6 +19,14 @@ import { isMockMode } from "@/lib/mocks"
 import { mockBlobUpload } from "@/lib/mocks/blob"
 import { resolveStoreAssetAccessPolicy } from "@/modules/store/infrastructure/config/store-asset-access-policy"
 import type { TryOnSubmissionResult } from "@/lib/generation/tryon-types"
+import {
+  startGenerationRequest,
+  startGenerationAttempt,
+  markGenerationAttemptSubmitted,
+  recordGenerationFailure,
+  generationLogFields,
+} from "@/lib/generation/telemetry"
+import { GRSAI_TRY_ON_MODEL } from "@/lib/generation/providers"
 
 function submissionResultFromTask(task: {
   id: string
@@ -97,6 +105,12 @@ export async function submitStoreTryOnTask(
   const serviceType = 'grsai'
   const isAsync = true
   const storeAssetPolicy = resolveStoreAssetAccessPolicy()
+  const metadataTelemetry = (options?.metadata ?? {}) as Record<string, unknown>
+  const telemetryOrigin =
+    metadataTelemetry.telemetryOrigin === 'CAMPAIGN' ? 'CAMPAIGN' : 'STORE'
+  const telemetryStoreId = typeof metadataTelemetry.storeId === 'string' ? metadataTelemetry.storeId : null
+  const telemetryCampaignId = typeof metadataTelemetry.campaignId === 'string' ? metadataTelemetry.campaignId : null
+  const telemetryIsTest = metadataTelemetry.telemetryIsTest === true
 
   // Claim-first: prefer pre-claimed task from atomic reservation; otherwise create here.
   const directLease = buildDispatchLeaseFields()
@@ -226,6 +240,21 @@ export async function submitStoreTryOnTask(
     task = refreshedTask
   }
 
+  await startGenerationRequest({
+    tryOnTaskId: task.id,
+    origin: telemetryOrigin,
+    userId: attribution.userId,
+    merchantId,
+    storeId: telemetryStoreId,
+    campaignId: telemetryCampaignId,
+    clientSubmissionId,
+    generationType: 'GLASSES',
+    provider: 'grsai',
+    model: GRSAI_TRY_ON_MODEL,
+    startedAt: task.createdAt,
+    isTest: telemetryIsTest,
+  })
+
   const ownerKey = `store/${merchantId}`
   // A takeover gets a distinct path generation. A stale owner can therefore
   // compensate only its own uploads, never assets created by the new owner.
@@ -299,6 +328,7 @@ export async function submitStoreTryOnTask(
       merchantId,
       merchantSessionId,
       taskId: task.id,
+      origin: telemetryOrigin,
     })
     await compensateUploaded()
     await prisma.tryOnTask.updateMany({
@@ -311,6 +341,10 @@ export async function submitStoreTryOnTask(
         status: TaskStatus.FAILED,
         errorMessage: 'Failed to upload images to Store storage',
       },
+    })
+    await recordGenerationFailure(task.id, 'Failed to upload images to Store storage', {
+      source: 'upload',
+      failureStage: 'ASSET_UPLOAD',
     })
     throw new Error('Failed to upload images')
   }
@@ -356,6 +390,19 @@ export async function submitStoreTryOnTask(
     // Set immediately before the provider call. A thrown request may have
     // reached the provider, so the caller must retain the reservation.
     providerStarted = true
+    const attemptHandle = await startGenerationAttempt({
+      tryOnTaskId: task.id,
+      provider: 'grsai',
+      model: GRSAI_TRY_ON_MODEL,
+    })
+    const submitStartedAt = Date.now()
+    const attemptLog = generationLogFields(attemptHandle, {
+      tryOnTaskId: task.id,
+      clientSubmissionId,
+      origin: telemetryOrigin,
+      provider: 'grsai',
+      model: GRSAI_TRY_ON_MODEL,
+    })
     const externalTaskId = await submitAsyncTask(
       userDataUri,
       itemDataUri,
@@ -365,8 +412,10 @@ export async function submitStoreTryOnTask(
         taskId: task.id,
         clientSubmissionId,
         origin,
+        ...attemptLog,
       },
     )
+    await markGenerationAttemptSubmitted(task.id, externalTaskId, Date.now() - submitStartedAt)
 
     // This callback is the cost boundary: the provider accepted a costly
     // generation. It is intentionally best-effort; a failed accounting write
@@ -425,6 +474,7 @@ export async function submitStoreTryOnTask(
     logger.error('store', 'Store GrsAi submission failed', error as Error, {
       taskId: task.id,
       merchantId,
+      origin: telemetryOrigin,
     })
     await prisma.tryOnTask.updateMany({
       where: {
@@ -438,6 +488,7 @@ export async function submitStoreTryOnTask(
         errorMessage,
       },
     })
+      await recordGenerationFailure(task.id, errorMessage, { source: 'submit', failureStage: 'SUBMIT' })
     throw error
   }
 }

@@ -167,11 +167,11 @@ describe('TryOnService', () => {
         expect.stringContaining('data:image/jpeg;base64,'),
         expect.any(String),
         'tryon-v1',
-        {
+        expect.objectContaining({
           taskId: 'task-1',
           clientSubmissionId: undefined,
           origin: 'CONSUMER',
-        },
+        }),
       )
       expect(prisma.tryOnTask.create).toHaveBeenCalledWith({
         data: expect.objectContaining({
@@ -360,7 +360,10 @@ describe('TryOnService', () => {
 
       const result = await getTryOnResult('task-1')
 
-      expect(pollTaskResult).toHaveBeenCalledWith('grsai-task-id')
+      expect(pollTaskResult).toHaveBeenCalledWith('grsai-task-id', expect.objectContaining({
+        taskId: 'task-1',
+        provider: 'grsai',
+      }))
       // Expect upload to be called
       expect(put).toHaveBeenCalledWith(
         expect.stringContaining('tryon/result/user-1/task-1.png'),
@@ -659,11 +662,10 @@ describe('TryOnService', () => {
         'http://blob/item.jpg',
         'retry prompt',
         'tryon-v1',
-        {
+        expect.objectContaining({
           taskId: 'task-3',
-          clientSubmissionId: undefined,
           origin: 'CONSUMER',
-        },
+        }),
       )
       expect(prisma.tryOnTask.updateMany).toHaveBeenCalledWith({
         where: { id: 'task-3', status: { not: TaskStatus.COMPLETED } },
@@ -709,7 +711,10 @@ describe('TryOnService', () => {
 
       const result = await getTryOnResult('task-recover')
 
-      expect(pollTaskResult).toHaveBeenCalledWith('grsai-task-id-recover')
+      expect(pollTaskResult).toHaveBeenCalledWith('grsai-task-id-recover', expect.objectContaining({
+        taskId: 'task-recover',
+        provider: 'grsai',
+      }))
       expect(prisma.tryOnTask.updateMany).toHaveBeenCalledWith({
         where: expect.objectContaining({
           id: 'task-recover',
