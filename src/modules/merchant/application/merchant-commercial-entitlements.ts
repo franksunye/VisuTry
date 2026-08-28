@@ -113,7 +113,7 @@ export const canActivateCampaign = canActivateMerchantCampaign
 export async function canAddMerchantCatalogItems(input: { merchantId: string; additionalItems?: number; now?: Date }) {
   const state = await getMerchantCommercialState({ merchantId: input.merchantId, now: input.now })
   const additionalItems = Math.max(0, input.additionalItems ?? 1)
-  const limit = state.plan.catalogItems
+  const limit = state.plan?.catalogItems ?? null
   const allowed = limit === null || state.usage.catalogItems + additionalItems <= limit
   if (allowed) return { allowed: true as const, state }
   const decision = canUseCommercialFeature({ ...state, featureAvailability: { ...state.featureAvailability, CATALOG: false } }, 'CATALOG')

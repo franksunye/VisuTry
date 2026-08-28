@@ -1,11 +1,12 @@
 jest.mock('@/lib/prisma', () => ({
-  prisma: {
-    merchant: { findUnique: jest.fn() },
-    experience: { findFirst: jest.fn(), findMany: jest.fn(), create: jest.fn(), update: jest.fn(), count: jest.fn() },
+    prisma: {
+      merchant: { findUnique: jest.fn() },
+      experience: { findFirst: jest.fn(), findMany: jest.fn(), create: jest.fn(), update: jest.fn(), count: jest.fn() },
     merchantFrame: { findMany: jest.fn(), count: jest.fn() },
-    merchantUsageLedger: { count: jest.fn() },
-    experienceFrame: { deleteMany: jest.fn(), createMany: jest.fn() },
-    $transaction: jest.fn(),
+      merchantUsageLedger: { count: jest.fn() },
+      experienceFrame: { deleteMany: jest.fn(), createMany: jest.fn() },
+      $transaction: jest.fn(),
+      $queryRaw: jest.fn(),
   },
 }))
 
@@ -134,12 +135,61 @@ describe('Campaign application service', () => {
 
   it('returns a structured limit decision instead of activating a second Launch Campaign', async () => {
     ;(prisma.experience.findFirst as jest.Mock).mockResolvedValue(baseRow)
-    ;(prisma.merchant.findUnique as jest.Mock).mockResolvedValue({ slug: 'merchant-a', referenceData: false, planCode: 'LAUNCH', commercialStatus: 'PAID_ACTIVE', createdAt: new Date('2026-08-01T00:00:00.000Z') })
-    ;(prisma.experience.count as jest.Mock).mockResolvedValue(1)
-    ;(prisma.merchantUsageLedger.count as jest.Mock).mockResolvedValue(0)
+    const merchant = { slug: 'merchant-a', referenceData: false, planCode: 'LAUNCH', commercialStatus: 'PAID_ACTIVE', entitlementEffectiveFrom: new Date('2026-08-01T00:00:00.000Z'), billingPeriodEnd: new Date('2026-09-01T00:00:00.000Z'), createdAt: new Date('2026-08-01T00:00:00.000Z') }
+    ;(prisma.merchant.findUnique as jest.Mock).mockResolvedValue(merchant)
+    ;(prisma.$transaction as jest.Mock).mockImplementation(async (callback) => callback({
+      $queryRaw: jest.fn(),
+      merchant: { findUnique: jest.fn().mockResolvedValue(merchant) },
+      experience: { findFirst: jest.fn().mockResolvedValue(baseRow), count: jest.fn().mockResolvedValue(1), update: jest.fn() },
+    }))
 
     await expect(publishCampaign({ merchantId: 'merchant-a', campaignId: 'campaign-a', approved: true })).rejects.toMatchObject({ code: 'CAMPAIGN_LIMIT_REACHED', httpStatus: 409 })
     expect(prisma.experience.update).not.toHaveBeenCalled()
+  })
+
+  it('atomically limits concurrent Launch Campaign publishes to one ACTIVE Campaign', async () => {
+    const merchant = { slug: 'merchant-a', referenceData: false, planCode: 'LAUNCH', commercialStatus: 'PAID_ACTIVE', entitlementEffectiveFrom: new Date('2026-08-01T00:00:00.000Z'), billingPeriodEnd: new Date('2026-09-01T00:00:00.000Z'), createdAt: new Date('2026-08-01T00:00:00.000Z') }
+    const rows = new Map<string, any>([
+      ['campaign-a', baseRow],
+      ['campaign-b', { ...baseRow, id: 'campaign-b', slug: 'large-faces', name: 'Large Faces' }],
+    ])
+    const active = new Set<string>()
+    let lockTail = Promise.resolve()
+    ;(prisma.experience.findFirst as jest.Mock).mockImplementation(async ({ where }: { where: { id: string } }) => rows.get(where.id) ?? null)
+    ;(prisma.merchant.findUnique as jest.Mock).mockResolvedValue(merchant)
+    ;(prisma.$transaction as jest.Mock).mockImplementation(async (callback) => {
+      const previous = lockTail
+      let release!: () => void
+      lockTail = new Promise<void>((resolve) => { release = resolve })
+      await previous
+      const tx = {
+        $queryRaw: jest.fn(),
+        merchant: { findUnique: jest.fn().mockResolvedValue(merchant) },
+        experience: {
+          findFirst: jest.fn(async ({ where }: { where: { id: string } }) => rows.get(where.id) ?? null),
+          count: jest.fn(async () => active.size),
+          update: jest.fn(async ({ where }: { where: { id: string } }) => {
+            const row = rows.get(where.id)!
+            active.add(where.id)
+            const updated = { ...row, status: 'ACTIVE' as const }
+            rows.set(where.id, updated)
+            return updated
+          }),
+        },
+      }
+      try { return await callback(tx) } finally { release() }
+    })
+
+    const results = await Promise.allSettled([
+      publishCampaign({ merchantId: 'merchant-a', campaignId: 'campaign-a', approved: true }),
+      publishCampaign({ merchantId: 'merchant-a', campaignId: 'campaign-b', approved: true }),
+    ])
+
+    expect(results.filter((result) => result.status === 'fulfilled')).toHaveLength(1)
+    expect(results.filter((result) => result.status === 'rejected')).toHaveLength(1)
+    const rejection = results.find((result) => result.status === 'rejected')
+    expect(rejection).toMatchObject({ status: 'rejected', reason: expect.objectContaining({ code: 'CAMPAIGN_LIMIT_REACHED' }) })
+    expect(active.size).toBe(1)
   })
 
   it('invalidates publish and archive transitions after the database write', async () => {

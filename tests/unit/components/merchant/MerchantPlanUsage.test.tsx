@@ -4,7 +4,7 @@ import type { MerchantCommercialPresentation } from '@/modules/merchant/applicat
 
 function commercial(overrides: Partial<MerchantCommercialPresentation> = {}): MerchantCommercialPresentation {
   return {
-    planCode: 'GROWTH', planName: 'Growth', priceLabel: '$499/month', status: 'USAGE_WARNING',
+    commercialState: 'CANONICAL', isCanonical: true, planCode: 'GROWTH', planName: 'Growth', priceLabel: '$499/month', status: 'USAGE_WARNING',
     periodStart: '2026-08-01T00:00:00.000Z', periodEnd: '2026-09-01T00:00:00.000Z', daysRemaining: 5,
     limits: { catalogItems: 500, activeCampaigns: 3, aiCommerceSessions: 5000, standardTryOnGenerations: null, normalStoreTraffic: 'unlimited' },
     pilotCatalogRange: null, setupLabel: null,
@@ -43,5 +43,13 @@ describe('MerchantPlanUsage', () => {
     expect(screen.getByText('$149 / 30 days')).toBeInTheDocument()
     expect(screen.getByText('8–50 frames')).toBeInTheDocument()
     expect(screen.getByText('Assisted setup + weekly review')).toBeInTheDocument()
+  })
+
+  it('does not present a legacy merchant as Free', () => {
+    render(<MerchantPlanUsage commercial={commercial({ commercialState: 'LEGACY_UNMIGRATED', isCanonical: false, planCode: null, planName: 'Legacy · not enrolled', priceLabel: 'No canonical plan', status: 'LEGACY_UNMIGRATED', periodStart: null, periodEnd: null, daysRemaining: null, aiCommerceSessionLimit: null, aiCommerceSessionPercentage: null, aiCommerceSessionRemaining: null, primaryAction: 'ENROLL_PLAN', limits: { catalogItems: null, activeCampaigns: null, aiCommerceSessions: null, standardTryOnGenerations: null, normalStoreTraffic: 'unlimited' } })} />)
+    expect(screen.getByRole('heading', { name: 'Legacy · not enrolled' })).toBeInTheDocument()
+    expect(screen.getByText(/existing access while you choose a current plan/i)).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /choose a plan/i })).toBeInTheDocument()
+    expect(screen.queryByRole('heading', { name: 'Free' })).not.toBeInTheDocument()
   })
 })

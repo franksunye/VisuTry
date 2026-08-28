@@ -1,14 +1,19 @@
 import { resolveMerchantUsagePeriod } from './merchant-entitlement'
 import {
   getMerchantPlanDefinition,
+  isMerchantPlanCode,
   resolveMerchantPlanCode,
   type MerchantPlanCode,
   type MerchantPlanDefinition,
 } from './merchant-commercial-plans'
 
+export const COMMERCIAL_STATE_KINDS = ['CANONICAL', 'LEGACY_UNMIGRATED'] as const
+export type CommercialStateKind = (typeof COMMERCIAL_STATE_KINDS)[number]
+
 export const COMMERCIAL_STATUSES = [
   'FREE', 'PILOT_ACTIVE', 'PILOT_EXPIRED', 'PAID_ACTIVE', 'USAGE_WARNING',
   'USAGE_EXHAUSTED', 'CANCEL_AT_PERIOD_END', 'EXPIRED', 'PAYMENT_ACTION_REQUIRED', 'PAST_DUE',
+  'LEGACY_UNMIGRATED',
 ] as const
 export type CommercialStatus = (typeof COMMERCIAL_STATUSES)[number]
 
@@ -46,8 +51,9 @@ export type CommercialUsage = {
 export type UsagePeriod = { kind: 'none' | 'monthly' | 'fixed_30_days'; start: Date | null; end: Date | null }
 
 export type MerchantCommercialState = {
-  planCode: MerchantPlanCode
-  plan: MerchantPlanDefinition
+  commercialState: CommercialStateKind
+  planCode: MerchantPlanCode | null
+  plan: MerchantPlanDefinition | null
   status: CommercialStatus
   period: UsagePeriod
   usage: CommercialUsage
@@ -56,7 +62,7 @@ export type MerchantCommercialState = {
   aiCommerceSessionPercentage: number | null
   threshold: UsageThreshold | null
   featureAvailability: Record<CommercialFeature, boolean>
-  primaryAction: 'NONE' | 'UNLOCK_AI_TRY_ON' | 'MANAGE_PLAN' | 'UPGRADE_CAPACITY' | 'RESTORE_AI_CAPACITY' | 'CONTINUE_AFTER_PILOT' | 'RESOLVE_PAYMENT'
+  primaryAction: 'NONE' | 'ENROLL_PLAN' | 'UNLOCK_AI_TRY_ON' | 'MANAGE_PLAN' | 'UPGRADE_CAPACITY' | 'RESTORE_AI_CAPACITY' | 'CONTINUE_AFTER_PILOT' | 'RESOLVE_PAYMENT'
 }
 
 const DAY_MS = 86_400_000
@@ -87,6 +93,7 @@ function resolvePaidPeriod(fields: MerchantCommercialFields, now: Date): UsagePe
 }
 
 export function resolveMerchantCommercialPeriod(fields: MerchantCommercialFields, now = new Date()): UsagePeriod {
+  if (!isCanonicalMerchantCommercialFields(fields)) return { kind: 'none', start: null, end: null }
   const planCode = resolveMerchantPlanCode(fields.planCode)
   if (planCode === 'FREE' || planCode === 'ENTERPRISE') return { kind: 'none', start: null, end: null }
   if (planCode === 'FOUNDING_PILOT') {
@@ -94,6 +101,15 @@ export function resolveMerchantCommercialPeriod(fields: MerchantCommercialFields
     return { kind: 'fixed_30_days', start: period.start, end: period.end }
   }
   return resolvePaidPeriod(fields, now)
+}
+
+/**
+ * A Merchant is canonical only after an explicit plan enrollment writes a
+ * supported planCode. Missing or legacy plan values remain compatibility
+ * state; they must never be presented as the Free plan.
+ */
+export function isCanonicalMerchantCommercialFields(fields: MerchantCommercialFields): boolean {
+  return isMerchantPlanCode(fields.planCode)
 }
 
 export function usageThreshold(used: number, included: number | null): UsageThreshold | null {
@@ -116,15 +132,40 @@ function parseStatus(value: string | null | undefined): CommercialStatus | null 
 }
 
 export function resolveMerchantCommercialState(fields: MerchantCommercialFields, usage: Partial<CommercialUsage> = {}, now = new Date()): MerchantCommercialState {
-  const planCode = resolveMerchantPlanCode(fields.planCode)
-  const plan = getMerchantPlanDefinition(planCode)
-  const period = resolveMerchantCommercialPeriod(fields, now)
   const normalizedUsage: CommercialUsage = {
     aiCommerceSessions: Math.max(0, usage.aiCommerceSessions ?? 0),
     activeCampaigns: Math.max(0, usage.activeCampaigns ?? 0),
     catalogItems: Math.max(0, usage.catalogItems ?? 0),
     standardTryOnGenerations: Math.max(0, usage.standardTryOnGenerations ?? 0),
   }
+  if (!isCanonicalMerchantCommercialFields(fields)) {
+    return {
+      commercialState: 'LEGACY_UNMIGRATED',
+      planCode: null,
+      plan: null,
+      status: 'LEGACY_UNMIGRATED',
+      period: { kind: 'none', start: null, end: null },
+      usage: normalizedUsage,
+      aiCommerceSessionLimit: null,
+      aiCommerceSessionRemaining: null,
+      aiCommerceSessionPercentage: null,
+      threshold: null,
+      featureAvailability: {
+        STORE: true,
+        CATALOG: true,
+        CAMPAIGN: true,
+        RECOMMENDATION: true,
+        GENERATIVE_TRY_ON: true,
+        COMPARE: true,
+        BASIC_ANALYTICS: true,
+        ADVANCED_ANALYTICS: true,
+      },
+      primaryAction: 'ENROLL_PLAN',
+    }
+  }
+  const planCode = resolveMerchantPlanCode(fields.planCode)
+  const plan = getMerchantPlanDefinition(planCode)
+  const period = resolveMerchantCommercialPeriod(fields, now)
   const limit = plan.aiCommerceSessions
   const threshold = usageThreshold(normalizedUsage.aiCommerceSessions, limit)
   const periodExpired = Boolean(period.end && now.getTime() >= period.end.getTime())
@@ -149,8 +190,8 @@ export function resolveMerchantCommercialState(fields: MerchantCommercialFields,
   const compare = plan.compare && paidActive
   const featureAvailability: Record<CommercialFeature, boolean> = {
     STORE: true,
-    CATALOG: plan.catalogItems === null || normalizedUsage.catalogItems < plan.catalogItems,
-    CAMPAIGN: plan.activeCampaigns === null || normalizedUsage.activeCampaigns < plan.activeCampaigns,
+    CATALOG: paidActive && (plan.catalogItems === null || normalizedUsage.catalogItems < plan.catalogItems),
+    CAMPAIGN: paidActive && (plan.activeCampaigns === null || normalizedUsage.activeCampaigns < plan.activeCampaigns),
     RECOMMENDATION: recommendation || planCode === 'FREE',
     GENERATIVE_TRY_ON: generativeTryOn,
     COMPARE: compare,
@@ -164,6 +205,7 @@ export function resolveMerchantCommercialState(fields: MerchantCommercialFields,
           : planCode === 'FREE' ? 'UNLOCK_AI_TRY_ON' : 'MANAGE_PLAN'
 
   return {
+    commercialState: 'CANONICAL',
     planCode, plan, status, period, usage: normalizedUsage,
     aiCommerceSessionLimit: limit,
     aiCommerceSessionRemaining: limit === null ? null : Math.max(0, limit - normalizedUsage.aiCommerceSessions),
@@ -197,9 +239,12 @@ function recommendedCatalogPlan(planCode: MerchantPlanCode): MerchantPlanCode {
 }
 
 export function canUseCommercialFeature(state: MerchantCommercialState, feature: CommercialFeature): EntitlementDecision {
+  if (state.status === 'LEGACY_UNMIGRATED') {
+    return { allowed: true, feature, message: 'Existing Store access remains available until a current plan is selected.' }
+  }
   if (state.featureAvailability[feature]) return { allowed: true, feature, message: 'Available.' }
-  if (feature === 'CAMPAIGN') return { allowed: false, feature, code: 'CAMPAIGN_LIMIT_REACHED', message: `Your current plan includes up to ${state.plan.activeCampaigns ?? 'custom'} active Campaigns.`, current: state.usage.activeCampaigns, limit: state.plan.activeCampaigns, recommendedPlan: recommendedCampaignPlan(state.planCode) }
-  if (feature === 'CATALOG') return { allowed: false, feature, code: 'CATALOG_LIMIT_REACHED', message: `Your current plan includes up to ${state.plan.catalogItems ?? 'custom'} catalog items.`, current: state.usage.catalogItems, limit: state.plan.catalogItems, recommendedPlan: recommendedCatalogPlan(state.planCode) }
+  if (feature === 'CAMPAIGN') return { allowed: false, feature, code: 'CAMPAIGN_LIMIT_REACHED', message: `Your current plan includes up to ${state.plan?.activeCampaigns ?? 'custom'} active Campaigns.`, current: state.usage.activeCampaigns, limit: state.plan?.activeCampaigns, recommendedPlan: recommendedCampaignPlan(state.planCode ?? 'FREE') }
+  if (feature === 'CATALOG') return { allowed: false, feature, code: 'CATALOG_LIMIT_REACHED', message: `Your current plan includes up to ${state.plan?.catalogItems ?? 'custom'} catalog items.`, current: state.usage.catalogItems, limit: state.plan?.catalogItems, recommendedPlan: recommendedCatalogPlan(state.planCode ?? 'FREE') }
   if (feature === 'GENERATIVE_TRY_ON' && state.status === 'USAGE_EXHAUSTED') return { allowed: false, feature, code: 'AI_USAGE_LIMIT_REACHED', message: 'Your included AI Commerce Sessions are fully used. Your Store remains live. Virtual Try-On is paused.', current: state.usage.aiCommerceSessions, limit: state.aiCommerceSessionLimit, recommendedPlan: state.planCode === 'LAUNCH' ? 'GROWTH' : 'SCALE' }
   if (['EXPIRED', 'PILOT_EXPIRED', 'PAYMENT_ACTION_REQUIRED', 'PAST_DUE'].includes(state.status)) return { allowed: false, feature, code: 'COMMERCIAL_PERIOD_EXPIRED', message: state.status === 'PILOT_EXPIRED' ? 'Your Founding Pilot has ended. Your Store and catalog remain available.' : 'This feature is not currently available for this commercial period.' }
   return { allowed: false, feature, code: 'FEATURE_NOT_INCLUDED', message: feature === 'GENERATIVE_TRY_ON' ? 'Virtual Try-On is not included in the Free plan.' : 'This feature is not included in the current plan.', recommendedPlan: 'LAUNCH' }
@@ -215,19 +260,22 @@ export function daysRemaining(period: UsagePeriod, now = new Date()): number | n
 }
 
 export function commercialStateForPresentation(state: MerchantCommercialState) {
+  const plan = state.plan
   return {
+    commercialState: state.commercialState,
+    isCanonical: state.commercialState === 'CANONICAL',
     planCode: state.planCode,
-    planName: state.plan.name,
-    priceLabel: state.plan.priceLabel,
+    planName: plan?.name ?? 'Legacy · not enrolled',
+    priceLabel: plan?.priceLabel ?? 'No canonical plan',
     limits: {
-      catalogItems: state.plan.catalogItems,
-      activeCampaigns: state.plan.activeCampaigns,
-      aiCommerceSessions: state.plan.aiCommerceSessions,
-      standardTryOnGenerations: state.plan.standardTryOnGenerations,
-      normalStoreTraffic: state.plan.normalStoreTraffic,
+      catalogItems: plan?.catalogItems ?? null,
+      activeCampaigns: plan?.activeCampaigns ?? null,
+      aiCommerceSessions: plan?.aiCommerceSessions ?? null,
+      standardTryOnGenerations: plan?.standardTryOnGenerations ?? null,
+      normalStoreTraffic: plan?.normalStoreTraffic ?? 'unlimited',
     },
-    pilotCatalogRange: state.plan.pilotCatalogRange ?? null,
-    setupLabel: state.plan.setupLabel ?? null,
+    pilotCatalogRange: plan?.pilotCatalogRange ?? null,
+    setupLabel: plan?.setupLabel ?? null,
     status: state.status,
     periodStart: state.period.start?.toISOString() ?? null,
     periodEnd: state.period.end?.toISOString() ?? null,

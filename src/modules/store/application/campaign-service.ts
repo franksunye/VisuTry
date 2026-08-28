@@ -11,7 +11,13 @@ import {
 import { resolvePresentationMode, type PresentationMode } from '../domain/presentation-mode'
 import { MerchantAccessError } from '@/modules/merchant/application/merchant-access'
 import { withPublicDiscoveryInvalidation } from './public-discovery-invalidation'
-import { canActivateMerchantCampaign, MerchantCommercialError } from '@/modules/merchant/application/merchant-commercial-entitlements'
+import { MerchantCommercialError } from '@/modules/merchant/application/merchant-commercial-entitlements'
+import {
+  canUseCommercialFeature,
+  isCanonicalMerchantCommercialFields,
+  resolveMerchantCommercialState,
+} from '../domain/merchant-commercial-state'
+import type { MerchantCommercialFields } from '../domain/merchant-commercial-state'
 
 export { CampaignServiceError }
 
@@ -49,6 +55,23 @@ type CampaignFrame = {
 }
 
 type CampaignRow = Experience & { frames: CampaignFrame[] }
+
+const merchantCommercialSelect = {
+  slug: true,
+  referenceData: true,
+  planCode: true,
+  commercialStatus: true,
+  commercialStage: true,
+  pricingVersion: true,
+  entitlementVersion: true,
+  commerceSessionAllowance: true,
+  standardRenderAllowance: true,
+  campaignAllowance: true,
+  entitlementEffectiveFrom: true,
+  billingPeriodEnd: true,
+  commercialExceptionCode: true,
+  createdAt: true,
+} satisfies Prisma.MerchantSelect
 
 const campaignFramesInclude = {
   frames: {
@@ -140,7 +163,7 @@ async function campaignRow(merchantId: string, campaignId: string) {
     include: campaignFramesInclude,
   })
   if (!row) throw new MerchantAccessError()
-  const merchant = await prisma.merchant.findUnique({ where: { id: merchantId }, select: { slug: true, referenceData: true, planCode: true, commercialStatus: true } })
+  const merchant = await prisma.merchant.findUnique({ where: { id: merchantId }, select: merchantCommercialSelect })
   if (!merchant) throw new MerchantAccessError()
   return { row, merchant }
 }
@@ -297,12 +320,34 @@ export async function publishCampaign(input: { merchantId: string; campaignId: s
   const model = mapCampaign(current.row, current.merchant.slug, current.merchant.referenceData)
   assertCampaignPublishable(model.readiness, true)
   if (current.row.status === 'ACTIVE') return model
-  if (current.merchant.planCode || current.merchant.commercialStatus) {
-    const campaignEntitlement = await canActivateMerchantCampaign({
-      merchantId: input.merchantId,
-      currentStatus: current.row.status,
+  if (isCanonicalMerchantCommercialFields(current.merchant)) {
+    const updated = await withPublicDiscoveryInvalidation({
+      target: { kind: 'experience', merchantSlug: current.merchant.slug, experienceSlug: current.row.slug },
+      mutation: () => prisma.$transaction(async (tx) => {
+        // All canonical Campaign activations for one Merchant serialize on the
+        // Merchant row. The lock covers both the ACTIVE count and the status
+        // write, so two concurrent publishes cannot both pass the same count.
+        await tx.$queryRaw<{ id: string }[]>(Prisma.sql`SELECT "id" FROM "Merchant" WHERE "id" = ${input.merchantId} FOR UPDATE`)
+        const lockedRow = await tx.experience.findFirst({
+          where: { id: input.campaignId, merchantId: input.merchantId, type: 'CAMPAIGN' },
+          include: campaignFramesInclude,
+        })
+        if (!lockedRow) throw new MerchantAccessError()
+        const lockedMerchant = await tx.merchant.findUnique({ where: { id: input.merchantId }, select: merchantCommercialSelect })
+        if (!lockedMerchant) throw new MerchantAccessError()
+        if (lockedRow.status === 'ACTIVE') return lockedRow
+
+        const activeCampaigns = await tx.experience.count({ where: { merchantId: input.merchantId, type: 'CAMPAIGN', status: 'ACTIVE' } })
+        const state = resolveMerchantCommercialState(lockedMerchant as MerchantCommercialFields, { activeCampaigns })
+        const decision = canUseCommercialFeature(state, 'CAMPAIGN')
+        if (!decision.allowed) throw new MerchantCommercialError(decision)
+
+        const publishable = mapCampaign(lockedRow, lockedMerchant.slug, lockedMerchant.referenceData)
+        assertCampaignPublishable(publishable.readiness, true)
+        return tx.experience.update({ where: { id: lockedRow.id }, data: { status: 'ACTIVE' }, include: campaignFramesInclude })
+      }, { isolationLevel: Prisma.TransactionIsolationLevel.Serializable }),
     })
-    if (!campaignEntitlement.allowed) throw new MerchantCommercialError(campaignEntitlement.decision)
+    return mapCampaign(updated, current.merchant.slug, current.merchant.referenceData)
   }
   const updated = await withPublicDiscoveryInvalidation({
     target: { kind: 'experience', merchantSlug: current.merchant.slug, experienceSlug: current.row.slug },

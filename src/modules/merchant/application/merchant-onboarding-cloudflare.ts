@@ -11,6 +11,7 @@ import {
 } from '../domain/merchant-frame-readiness'
 import { validateMerchantFrameStoreReadiness } from '../domain/merchant-frame-store-readiness'
 import { getMerchantPlanDefinition, resolveMerchantPlanCode } from '@/modules/store/domain/merchant-commercial-plans'
+import { isCanonicalMerchantCommercialFields } from '@/modules/store/domain/merchant-commercial-state'
 import type { MerchantStorePreviewFrame, MerchantStoreWorkspace, MerchantStoreWorkspaceFrame } from './merchant-store-workspace'
 
 // Request-size safety guard, not a product-count/UI ceiling. Human Web can
@@ -265,7 +266,10 @@ export async function importMerchantFrames(input: { actor: MerchantActorContext;
     `)),
   ])
   const merchantRow = merchantRows[0]
-  const canonicalPlan = Boolean(merchantRow?.planCode || merchantRow?.commercialStatus)
+  const canonicalPlan = isCanonicalMerchantCommercialFields({
+    planCode: merchantRow?.planCode == null ? null : String(merchantRow.planCode),
+    commercialStatus: merchantRow?.commercialStatus == null ? null : String(merchantRow.commercialStatus),
+  })
   const catalogLimit = canonicalPlan ? getMerchantPlanDefinition(resolveMerchantPlanCode(merchantRow?.planCode == null ? null : String(merchantRow.planCode))).catalogItems : null
   const existingIdSet = new Set(existingRows.flatMap((rows) => rows.map((row) => String(row.id))))
   const additions = normalized.filter((_, index) => !existingIdSet.has(String(existingRows[index]?.[0]?.id ?? ''))).length

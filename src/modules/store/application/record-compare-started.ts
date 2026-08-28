@@ -16,6 +16,7 @@ import type {
 } from './ports/repositories'
 import { requireOperableStoreSession } from './require-store-session'
 import { canUseFeature } from '@/modules/merchant/application/merchant-commercial-entitlements'
+import { isCanonicalMerchantCommercialFields } from '../domain/merchant-commercial-state'
 
 export async function recordCompareStarted(input: {
   merchants: MerchantRepository
@@ -33,7 +34,7 @@ export async function recordCompareStarted(input: {
   const merchant = await input.merchants.findBySlug(input.slug)
   if (!merchant) throw merchantNotFound()
   if (merchant.status !== 'ACTIVE') throw merchantInactive()
-  if (merchant.planCode || merchant.commercialStatus) {
+  if (isCanonicalMerchantCommercialFields(merchant)) {
     const decision = await canUseFeature({ merchantId: merchant.id, feature: 'COMPARE' })
     if (!decision.allowed) {
       throw new StoreDomainError(decision.code ?? 'FEATURE_NOT_INCLUDED', 'Compare is not currently available for this Store.', 409, decision.message)

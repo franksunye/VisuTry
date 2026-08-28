@@ -1,6 +1,8 @@
 import {
   canUseCommercialFeature,
   percentageUsed,
+  commercialStateForPresentation,
+  isCanonicalMerchantCommercialFields,
   resolveMerchantCommercialState,
   resolveMerchantCommercialPeriod,
   usageThreshold,
@@ -32,6 +34,18 @@ describe('G4-A canonical Merchant commercial contract', () => {
     expect(state.featureAvailability.GENERATIVE_TRY_ON).toBe(false)
     expect(state.featureAvailability.CAMPAIGN).toBe(false)
     expect(canUseCommercialFeature(state, 'GENERATIVE_TRY_ON').code).toBe('FEATURE_NOT_INCLUDED')
+  })
+
+  it('distinguishes canonical Free enrollment from a legacy merchant', () => {
+    const free = resolveMerchantCommercialState({ planCode: 'FREE', commercialStatus: 'FREE' }, {}, now)
+    const legacy = resolveMerchantCommercialState({ planCode: null, commercialStatus: null }, {}, now)
+
+    expect(isCanonicalMerchantCommercialFields({ planCode: 'FREE' })).toBe(true)
+    expect(isCanonicalMerchantCommercialFields({ planCode: null, commercialStatus: null })).toBe(false)
+    expect(free).toMatchObject({ commercialState: 'CANONICAL', planCode: 'FREE', status: 'FREE' })
+    expect(legacy).toMatchObject({ commercialState: 'LEGACY_UNMIGRATED', planCode: null, plan: null, status: 'LEGACY_UNMIGRATED', primaryAction: 'ENROLL_PLAN' })
+    expect(commercialStateForPresentation(legacy)).toMatchObject({ isCanonical: false, planName: 'Legacy · not enrolled', status: 'LEGACY_UNMIGRATED' })
+    expect(canUseCommercialFeature(legacy, 'GENERATIVE_TRY_ON').allowed).toBe(true)
   })
 
   it('pauses Try-On at paid session exhaustion without taking Store offline', () => {

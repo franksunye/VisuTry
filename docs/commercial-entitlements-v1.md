@@ -16,6 +16,20 @@ with weekly review. Pilot is not silently converted to Launch.
 Every Merchant has one canonical Store in v1. Additional brands or Stores are
 future separate Merchant workspaces; Store count is not a pricing dimension.
 
+## Legacy enrollment boundary
+
+Only a Merchant with a supported `planCode` is enrolled in the canonical
+commercial domain. A row with no supported plan is represented as
+`LEGACY_UNMIGRATED` / `Legacy · not enrolled`; it is not silently presented as
+`FREE`. Legacy runtime behavior remains compatible with the existing product,
+and this PR does not backfill or mutate existing production Merchants.
+
+Enrollment is an explicit future transition: a billing or Admin-controlled
+operation must write a supported `planCode`, the commercial contract version,
+and the effective period together before canonical enforcement begins. G4-B
+must call that transition from its Stripe-to-domain flow; Stripe is not queried
+by runtime requests and no enrollment workflow is implemented in G4-A.
+
 ## AI Commerce Session meter
 
 An AI Commerce Session starts when a shopper crosses into an AI-assisted

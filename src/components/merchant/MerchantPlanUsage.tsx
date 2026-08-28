@@ -14,6 +14,7 @@ function dateLabel(value: string | null) {
 }
 
 function statusCopy(commercial: MerchantCommercialPresentation) {
+  if (commercial.status === "LEGACY_UNMIGRATED") return "This Store is still using its existing access while you choose a current plan.";
   if (commercial.status === "FREE") return "Your Store is live on the Free plan.";
   if (commercial.status === "PILOT_ACTIVE") {
     const days = commercial.daysRemaining;
@@ -32,6 +33,7 @@ function statusCopy(commercial: MerchantCommercialPresentation) {
 
 function statusTone(status: string, threshold: string | null) {
   if (["USAGE_EXHAUSTED", "PAYMENT_ACTION_REQUIRED", "PAST_DUE"].includes(status)) return "border-red-200 bg-red-50 text-red-800";
+  if (status === "LEGACY_UNMIGRATED") return "border-slate-200 bg-slate-50 text-slate-700";
   if (status === "USAGE_WARNING" && threshold === "NOTICE") return "border-blue-200 bg-blue-50 text-blue-800";
   if (["USAGE_WARNING", "PILOT_EXPIRED", "EXPIRED", "CANCEL_AT_PERIOD_END"].includes(status)) return "border-amber-200 bg-amber-50 text-amber-900";
   if (status === "FREE") return "border-blue-200 bg-blue-50 text-blue-800";
@@ -45,6 +47,7 @@ function allowance(value: number, limit: number | null) {
 
 function actionLabel(action: MerchantCommercialPresentation["primaryAction"]) {
   switch (action) {
+    case "ENROLL_PLAN": return "Choose a plan";
     case "UNLOCK_AI_TRY_ON": return "Unlock AI Try-On";
     case "UPGRADE_CAPACITY": return "Upgrade capacity";
     case "RESTORE_AI_CAPACITY": return "Restore AI capacity";
@@ -56,16 +59,18 @@ function actionLabel(action: MerchantCommercialPresentation["primaryAction"]) {
 }
 
 export function MerchantPlanUsage({ commercial }: Props) {
-  const periodText = commercial.status === "PILOT_ACTIVE" || commercial.planCode === "FOUNDING_PILOT"
+  const periodText = commercial.status === "LEGACY_UNMIGRATED"
+    ? "Not enrolled in a current plan"
+    : commercial.status === "PILOT_ACTIVE" || commercial.planCode === "FOUNDING_PILOT"
     ? commercial.periodEnd ? `Ends ${dateLabel(commercial.periodEnd)}` : "30-day pilot"
     : commercial.periodStart && commercial.periodEnd
       ? `${dateLabel(commercial.periodStart)} – ${dateLabel(commercial.periodEnd)}`
       : commercial.planCode === "FREE" ? "No billing period" : "Current period";
-  const aiLabel = commercial.aiCommerceSessionLimit === null ? "AI Commerce Sessions" : "AI Commerce Sessions";
+  const aiLabel = "AI Commerce Sessions";
   const aiDetail = commercial.aiCommerceSessionLimit === null
-    ? commercial.planCode === "FREE" ? "Not included on Free" : "Included by custom plan"
+    ? commercial.status === "LEGACY_UNMIGRATED" ? "Existing activity · not on a current plan" : commercial.planCode === "FREE" ? "Not included on Free" : "Included by custom plan"
     : `${allowance(commercial.usage.aiCommerceSessions, commercial.aiCommerceSessionLimit)}${commercial.aiCommerceSessionPercentage === null ? "" : ` · ${commercial.aiCommerceSessionPercentage}%`}`;
-  const primaryHref = commercial.primaryAction === "UNLOCK_AI_TRY_ON" || commercial.primaryAction === "CONTINUE_AFTER_PILOT"
+  const primaryHref = commercial.primaryAction === "ENROLL_PLAN" || commercial.primaryAction === "UNLOCK_AI_TRY_ON" || commercial.primaryAction === "CONTINUE_AFTER_PILOT"
     ? "/en/business"
     : "/en/business#plans";
 

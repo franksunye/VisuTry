@@ -22,7 +22,7 @@ import {
   authRequiredForContinuation,
   consumerEntitlementRequired,
 } from '../domain'
-import { canUseCommercialFeature } from '../domain/merchant-commercial-state'
+import { canUseCommercialFeature, isCanonicalMerchantCommercialFields } from '../domain/merchant-commercial-state'
 import { consumeAICommerceSession } from '@/modules/merchant/application/merchant-commercial-entitlements'
 import { checkUserQuota } from '@/lib/quota'
 import { calculateExpiresAt } from '@/config/retention'
@@ -576,7 +576,7 @@ export async function submitStoreFrameTryOn(
     select: { id: true, userId: true, metadata: true },
   })
   const existingMetadata = (existingBeforeClaim?.metadata ?? {}) as Record<string, unknown>
-  const hasCanonicalCommercialPlan = Boolean(merchant.planCode || merchant.commercialStatus)
+  const hasCanonicalCommercialPlan = isCanonicalMerchantCommercialFields(merchant)
   if (hasCanonicalCommercialPlan && !existingBeforeClaim) {
     const commercialSession = await consumeAICommerceSession({
       merchantId: merchant.id,
