@@ -218,6 +218,8 @@ async function lockBillingAccount(tx: any, accountId: string): Promise<BillingAc
 }
 
 const MAX_BILLING_TRANSACTION_ATTEMPTS = 3
+const BILLING_TRANSACTION_MAX_WAIT_MS = 15_000
+const BILLING_TRANSACTION_TIMEOUT_MS = 15_000
 
 function waitForBillingRetry(attempt: number): Promise<void> {
   const delayMs = 10 * (2 ** (attempt - 1)) + Math.floor(Math.random() * 15)
@@ -231,7 +233,11 @@ async function runBillingTransaction<T>(database: MerchantBillingDatabase, opera
       // The account row lock is the serialization primitive for this bounded
       // aggregate. Read Committed avoids PostgreSQL Serializable snapshot
       // aborts when a burst of webhook deliveries all waits on that lock.
-      return await database.$transaction(operation, { isolationLevel: Prisma.TransactionIsolationLevel.ReadCommitted })
+      return await database.$transaction(operation, {
+        isolationLevel: Prisma.TransactionIsolationLevel.ReadCommitted,
+        maxWait: BILLING_TRANSACTION_MAX_WAIT_MS,
+        timeout: BILLING_TRANSACTION_TIMEOUT_MS,
+      })
     } catch (error) {
       lastError = error
       if (!isRetryableMerchantBillingDatabaseError(error)) throw error
