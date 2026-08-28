@@ -43,6 +43,7 @@ type Props = {
   endpoint: string;
   skills: SkillCard[];
   onboardingState?: "created" | "existing";
+  billingState?: "processing" | "cancelled";
 };
 
 const buttonClass =
@@ -1374,6 +1375,7 @@ export function MerchantControlCenter({
   endpoint,
   skills,
   onboardingState,
+  billingState,
 }: Props) {
   const router = useRouter();
   const selectedMerchant = useMemo(
@@ -1488,6 +1490,18 @@ export function MerchantControlCenter({
         </div>
       </header>
       <div className="mx-auto max-w-7xl space-y-6 px-4 py-6 sm:px-6 sm:py-10">
+        {billingState === "processing" ? (
+          <section role="status" className="rounded-2xl border border-blue-200 bg-blue-50 px-5 py-4 text-blue-950 sm:px-6">
+            <p className="text-xs font-bold uppercase tracking-[0.18em] text-blue-700">Plan update in progress</p>
+            <p className="mt-2 text-sm leading-6 text-blue-900">Your payment is being confirmed. Your plan and feature access will update after confirmation.</p>
+          </section>
+        ) : null}
+        {billingState === "cancelled" ? (
+          <section role="status" className="rounded-2xl border border-slate-200 bg-slate-50 px-5 py-4 text-slate-800 sm:px-6">
+            <p className="text-xs font-bold uppercase tracking-[0.18em] text-slate-600">No changes were made</p>
+            <p className="mt-2 text-sm leading-6 text-slate-700">You can choose a plan whenever you’re ready. Your current Store and access remain unchanged.</p>
+          </section>
+        ) : null}
         {onboardingState ? (
           <section
             data-onboarding-state={onboardingState}
@@ -1537,7 +1551,7 @@ export function MerchantControlCenter({
           initialName={control.merchant.name}
           initialWebsiteUrl={control.merchant.websiteUrl}
         />
-        {control.commercial ? <MerchantPlanUsage commercial={control.commercial} /> : null}
+        {control.commercial ? <MerchantPlanUsage commercial={control.commercial} merchantId={control.merchant.id} locale={locale} /> : null}
         <CommerceIntelligence insights={control.commerceIntelligence} />
         <AgentAccess
           merchantId={control.merchant.id}

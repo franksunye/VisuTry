@@ -70,3 +70,32 @@ remaining excluded from commercial KPI reporting.
 
 G4-A intentionally does not implement Stripe checkout, subscriptions,
 webhooks, invoices, refunds, automatic overage charging, or Enterprise sales.
+
+## G4-B billing boundary
+
+G4-B adds Stripe as payment infrastructure only. The provider-independent
+`Merchant.planCode`, `Merchant.commercialStatus`, pricing version, entitlement
+version, and period boundaries remain the runtime source of truth. A successful
+browser redirect never enrolls a Merchant; only a verified Stripe webhook may
+perform enrollment.
+
+Merchant billing uses an explicit server-side Price ID allowlist. Prices are
+mapped by `STRIPE_MERCHANT_LAUNCH_MONTHLY_PRICE_ID`,
+`STRIPE_MERCHANT_GROWTH_MONTHLY_PRICE_ID`,
+`STRIPE_MERCHANT_SCALE_MONTHLY_PRICE_ID`, and
+`STRIPE_FOUNDING_PILOT_PRICE_ID`. Client-supplied amounts and Price IDs are
+never trusted. Each Merchant has one provider-specific billing identity, kept
+separate from Consumer payments.
+
+`MerchantBillingEvent` is the verified event ledger. The unique provider event
+ID makes webhook retries no-ops; the account's event timestamp prevents older
+Stripe events from overwriting newer state. Subscription lifecycle changes are
+translated into the canonical commercial states, while a paid Founding Pilot
+is a fixed 30-day period and never silently becomes Launch.
+
+Local and preview environments must use test Stripe credentials and
+`STRIPE_MERCHANT_BILLING_MODE=test`. Production requires live credentials and
+`STRIPE_MERCHANT_BILLING_MODE=live`. Missing or mismatched configuration fails
+closed. No G4-B migration is run by local verification and this feature is not
+production-ready until the additive migration, review, merge, deployment, and
+bounded smoke are completed.
