@@ -28,6 +28,13 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
+# Crash dumps (Linux core files). prisma/core was an accidental schema-engine dump.
+core
+!core.js
+!core.ts
+!core.tsx
+/prisma/core
+
 # local env files
 .env*.local
 .env
