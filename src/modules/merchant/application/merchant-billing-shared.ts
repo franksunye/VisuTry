@@ -37,6 +37,23 @@ export function isRetryableMerchantBillingErrorCode(code: string | null | undefi
   return code != null && RETRYABLE_MERCHANT_BILLING_ERROR_CODES.has(code)
 }
 
+/**
+ * Database errors that indicate a transaction-level concurrency conflict.
+ * Keep this allowlist narrow: provider/configuration and business validation
+ * errors must not be retried by the webhook boundary.
+ */
+export function isRetryableMerchantBillingDatabaseError(error: unknown): boolean {
+  const seen = new Set<unknown>()
+  let current: unknown = error
+  while (current && typeof current === 'object' && !seen.has(current)) {
+    seen.add(current)
+    const row = current as { code?: unknown; originalCode?: unknown; cause?: unknown }
+    if (row.code === 'P2034' || row.code === '40P01' || row.code === '40001' || row.originalCode === '40P01' || row.originalCode === '40001') return true
+    current = row.cause
+  }
+  return false
+}
+
 export function merchantStripePriceMap(env: Env = process.env): Map<string, MerchantStripePrice> {
   const result = new Map<string, MerchantStripePrice>()
   for (const planCode of Object.keys(BILLING_PRICE_ENV) as MerchantBillablePlanCode[]) {

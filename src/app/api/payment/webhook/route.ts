@@ -14,7 +14,7 @@ import Stripe from "stripe"
 import { QUOTA_CONFIG, PRODUCT_METADATA, getProductQuota } from "@/config/pricing"
 import { logger, getRequestContext, getRequestLanguageContext } from "@/lib/logger"
 import { sanitizeAcquisitionAttribution } from "@/lib/acquisition-attribution"
-import { isMerchantStripeEventCandidate, processMerchantStripeEvent } from '@/modules/merchant/application/merchant-billing'
+import { isMerchantStripeEventCandidate, MerchantBillingError, processMerchantStripeEvent } from '@/modules/merchant/application/merchant-billing'
 
 // Force dynamic rendering for this route
 export const dynamic = 'force-dynamic'
@@ -130,10 +130,8 @@ export async function POST(request: NextRequest) {
     const err = error instanceof Error ? error : new Error(String(error))
     console.error("Webhook处理失败:", error)
     logger.error('payment', 'Webhook处理失败', err, undefined, ctx)
-    return NextResponse.json(
-      { error: "Webhook处理失败" },
-      { status: 400 }
-    )
+    const status = error instanceof MerchantBillingError ? error.httpStatus : 500
+    return NextResponse.json({ error: "Webhook处理失败" }, { status })
   }
 }
 

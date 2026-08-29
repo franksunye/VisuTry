@@ -18,6 +18,24 @@ export const PUBLIC_DISCOVERY_CACHE = {
   },
 } as const
 
+/**
+ * Public Store discovery is persisted in the platform cache, so its keys
+ * must not be shared by Local, Preview, and Production. The database
+ * identity is deliberately non-secret and gives separate Preview branches
+ * their own namespace without embedding a connection string.
+ */
+export function publicDiscoveryCacheNamespace(
+  env: Record<string, string | undefined> = process.env,
+): string {
+  const appEnvironment = env.APP_ENV?.trim().toLowerCase()
+    || env.VERCEL_ENV?.trim().toLowerCase()
+    || 'unknown'
+  const databaseIdentity = env.VISUTRY_DATABASE_IDENTITY?.trim()
+  return databaseIdentity
+    ? `public-discovery:${appEnvironment}:${databaseIdentity}`
+    : `public-discovery:${appEnvironment}`
+}
+
 export function publicDiscoveryCacheTags(
   merchantSlug: string,
   experienceSlug?: string | null,
@@ -35,6 +53,7 @@ export function publicDiscoveryCacheKey(input: {
   experienceSlug?: string | null
 }): string[] {
   return [
+    publicDiscoveryCacheNamespace(),
     'public-experience-discovery',
     input.locale,
     input.merchantSlug,

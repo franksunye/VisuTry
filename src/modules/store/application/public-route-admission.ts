@@ -1,7 +1,7 @@
 import { unstable_cache } from 'next/cache'
 import { prisma } from '@/lib/prisma'
 import { resolveExperienceSearchVisibility } from '../domain/experience-search-visibility'
-import { PUBLIC_DISCOVERY_CACHE } from '@/lib/store-discovery-cache'
+import { PUBLIC_DISCOVERY_CACHE, publicDiscoveryCacheNamespace } from '@/lib/store-discovery-cache'
 
 export const PUBLIC_MERCHANT_SLUG_MAX_LENGTH = 180
 export const PUBLIC_EXPERIENCE_SLUG_MAX_LENGTH = 240
@@ -174,7 +174,7 @@ async function readPublicRouteAdmissionIndex(): Promise<PublicRouteAdmissionInde
 
 const getCachedPublicRouteAdmissionIndex = unstable_cache(
   readPublicRouteAdmissionIndex,
-  ['public-route-admission-index'],
+  ['public-route-admission-index', publicDiscoveryCacheNamespace()],
   {
     revalidate: PUBLIC_DISCOVERY_CACHE.sitemapRevalidateSeconds,
     tags: [PUBLIC_DISCOVERY_CACHE.tags.routeAdmission],

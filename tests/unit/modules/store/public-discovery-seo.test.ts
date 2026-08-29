@@ -110,6 +110,7 @@ function discovery(): PublicExperienceDiscovery {
       logoUrl: null,
       websiteUrl: 'https://merchant.example.test',
       accentColor: '#1f4b5a',
+      generativeTryOnAvailable: true,
       referenceData: false,
       updatedAt: date,
     },

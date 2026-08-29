@@ -389,6 +389,18 @@ function formatInsightDate(value: string) {
   }).format(date);
 }
 
+/** Keep server/client output identical; browser locale/timezone must not affect hydration. */
+function formatMerchantDate(value: string | Date) {
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return "Unknown"
+  return new Intl.DateTimeFormat("en-US", {
+    month: "numeric",
+    day: "numeric",
+    year: "numeric",
+    timeZone: "UTC",
+  }).format(date)
+}
+
 function insightWindowLabel(period: MerchantCommerceIntelligence["period"]) {
   return `${formatInsightDate(period.from)} – ${formatInsightDate(period.to)}`;
 }
@@ -1169,12 +1181,12 @@ function AgentAccess({
                     <span>{credential.scopes.length} scopes</span>
                     <span>
                       Created{" "}
-                      {new Date(credential.createdAt).toLocaleDateString()}
+                      {formatMerchantDate(credential.createdAt)}
                     </span>
                     {credential.lastUsedAt ? (
                       <span>
                         Last used{" "}
-                        {new Date(credential.lastUsedAt).toLocaleDateString()}
+                        {formatMerchantDate(credential.lastUsedAt)}
                       </span>
                     ) : (
                       <span>Not used yet</span>
@@ -1288,7 +1300,7 @@ function Experiences({
                   <p className="mt-1 text-sm text-slate-500">
                     {experience.selectedFrames.length} selected product
                     {experience.selectedFrames.length === 1 ? "" : "s"} · Updated{" "}
-                    {new Date(experience.updatedAt).toLocaleDateString()}
+                    {formatMerchantDate(experience.updatedAt)}
                   </p>
                   <div className="mt-3 flex flex-wrap items-center gap-2 text-xs">
                     <span className={`rounded-full px-2 py-1 font-semibold ${experience.readiness.status === "VALID" ? "bg-emerald-50 text-emerald-700" : experience.readiness.status === "NEEDS_ATTENTION" ? "bg-amber-50 text-amber-800" : "bg-slate-100 text-slate-600"}`}>
@@ -1335,7 +1347,7 @@ function Experiences({
                   <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
                     {experience.headline ? <span className="font-semibold text-slate-950">{experience.headline}</span> : null}
                     {experience.primaryCtaLabel ? <span className="text-xs font-semibold text-violet-800">CTA: {experience.primaryCtaLabel}</span> : null}
-                    {experience.startAt || experience.endAt ? <span className="text-xs text-slate-500">{experience.startAt ? new Date(experience.startAt).toLocaleDateString() : "Now"} → {experience.endAt ? new Date(experience.endAt).toLocaleDateString() : "Open"}</span> : null}
+                    {experience.startAt || experience.endAt ? <span className="text-xs text-slate-500">{experience.startAt ? formatMerchantDate(experience.startAt) : "Now"} → {experience.endAt ? formatMerchantDate(experience.endAt) : "Open"}</span> : null}
                   </div>
                   {experience.description ? <p className="mt-1 line-clamp-2 text-xs leading-5 text-slate-600">{experience.description}</p> : null}
                 </div>

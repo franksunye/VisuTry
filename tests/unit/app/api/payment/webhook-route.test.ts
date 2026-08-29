@@ -269,7 +269,7 @@ describe('/api/payment/webhook checkout fulfillment', () => {
     expect(mockTransaction).not.toHaveBeenCalled()
   })
 
-  it('returns a non-2xx response so Stripe retries transient fulfillment failures', async () => {
+  it('returns a server error so Stripe retries transient fulfillment failures', async () => {
     mockVerifyWebhookSignature.mockReturnValue({
       type: 'checkout.session.completed',
       data: { object: checkoutSession('paid') },
@@ -278,7 +278,7 @@ describe('/api/payment/webhook checkout fulfillment', () => {
 
     const response = await POST(webhookRequest())
 
-    expect(response.status).toBe(400)
+    expect(response.status).toBe(500)
     expect(mockLogger.error).toHaveBeenCalledWith('payment', 'payment_fulfillment_failed', undefined, {
       stage: 'checkout_session_completed',
       retryable: true,
