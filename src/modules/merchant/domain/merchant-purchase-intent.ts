@@ -75,13 +75,20 @@ export function resolveMerchantPurchaseAction(input: {
   commercialStatus?: string | null
   stripeSubscriptionId?: string | null
   subscriptionStatus?: string | null
+  /** True when a processed Founding Pilot receipt exists for this Merchant. */
+  foundingPilotConsumed?: boolean
 }): MerchantPurchaseAction {
   if (input.intent === 'FREE') return 'WORKSPACE'
   const currentPlan = parseMerchantPurchaseIntent(input.currentPlanCode)
   const status = input.commercialStatus?.trim().toUpperCase()
   const activeSubscription = Boolean(input.stripeSubscriptionId) && hasActiveMerchantSubscription(input.subscriptionStatus)
 
-  if (input.intent === 'FOUNDING_PILOT' && currentPlan === 'FOUNDING_PILOT' && status === 'PILOT_ACTIVE') {
+  const foundingPilotConsumed = input.foundingPilotConsumed === true
+    || currentPlan === 'FOUNDING_PILOT'
+    || status === 'PILOT_ACTIVE'
+    || status === 'PILOT_EXPIRED'
+
+  if (input.intent === 'FOUNDING_PILOT' && foundingPilotConsumed) {
     return 'DUPLICATE_PILOT'
   }
   if (status && BILLING_ACTION_STATUSES.has(status)) return 'MANAGE_BILLING'

@@ -66,12 +66,40 @@ export async function getMerchantBillingSummary(input: { merchantId: string }): 
   return account ? { ...(account as BillingAccountRow), maskedCustomerId: mask(account.stripeCustomerId), maskedSubscriptionId: mask(account.stripeSubscriptionId) } : null
 }
 
+const FOUNDING_PILOT_RECEIPT_EVENT_TYPES = ['checkout.session.completed', 'checkout.session.async_payment_succeeded'] as const
+
+/**
+ * A Founding Pilot is a one-time commercial offer. Its processed receipt is
+ * the durable fact that survives Pilot expiry and later plan changes.
+ */
+export async function hasMerchantFoundingPilotReceipt(input: { merchantId: string; pilotPriceId?: string }, database: MerchantBillingDatabase = prisma): Promise<boolean> {
+  const pilotPriceId = input.pilotPriceId ?? merchantStripePriceForPlan('FOUNDING_PILOT').priceId
+  const receipt = await database.merchantBillingEvent.findFirst({
+    where: {
+      provider: MERCHANT_BILLING_PROVIDER,
+      merchantId: input.merchantId,
+      stripePriceId: pilotPriceId,
+      status: 'PROCESSED',
+      eventType: { in: [...FOUNDING_PILOT_RECEIPT_EVENT_TYPES] },
+      stripeCheckoutSessionId: { not: null },
+    },
+    select: { id: true },
+  })
+  return Boolean(receipt)
+}
+
 export async function createMerchantCheckoutSession(input: { merchantId: string; planCode: MerchantBillablePlanCode; successUrl: string; cancelUrl: string }) {
   assertMerchantStripeEnvironment()
   const price = merchantStripePriceForPlan(input.planCode)
   const merchant = await merchantForBilling(input.merchantId)
-  if (price.planCode === 'FOUNDING_PILOT' && merchant.planCode === 'FOUNDING_PILOT' && merchant.commercialStatus === 'PILOT_ACTIVE') {
-    throw new MerchantBillingError('PILOT_EXISTS', 'This Merchant already has an active Founding Pilot.', 409)
+  if (price.planCode === 'FOUNDING_PILOT') {
+    const currentPilotState = merchant.planCode?.trim().toUpperCase() === 'FOUNDING_PILOT'
+      || merchant.commercialStatus?.trim().toUpperCase() === 'PILOT_ACTIVE'
+      || merchant.commercialStatus?.trim().toUpperCase() === 'PILOT_EXPIRED'
+    const hasPilotReceipt = await hasMerchantFoundingPilotReceipt({ merchantId: merchant.id, pilotPriceId: price.priceId })
+    if (currentPilotState || hasPilotReceipt) {
+      throw new MerchantBillingError('PILOT_EXISTS', 'This Merchant has already used the Founding Pilot. Choose a monthly plan instead.', 409)
+    }
   }
   const account = await ensureAccount(merchant.id, merchant.name)
   if (price.billingType === 'subscription' && account.stripeSubscriptionId && ['active', 'trialing', 'past_due', 'unpaid'].includes(account.subscriptionStatus ?? '')) throw new MerchantBillingError('SUBSCRIPTION_EXISTS', 'This Merchant already has a billing plan. Use Manage plan to change it.', 409)

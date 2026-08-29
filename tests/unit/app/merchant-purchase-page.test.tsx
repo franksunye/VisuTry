@@ -11,7 +11,7 @@ jest.mock('@/lib/auth-runtime', () => ({ authOptions: {} }))
 jest.mock('@/modules/merchant/application/merchant-memberships', () => ({ listMerchantsForUser: jest.fn() }))
 jest.mock('@/modules/merchant/application/merchant-access', () => ({ requireMerchantMembership: jest.fn() }))
 jest.mock('@/modules/merchant/application/merchant-commercial-entitlements', () => ({ getMerchantCommercialState: jest.fn() }))
-jest.mock('@/modules/merchant/application/merchant-billing', () => ({ getMerchantBillingSummary: jest.fn() }))
+jest.mock('@/modules/merchant/application/merchant-billing', () => ({ getMerchantBillingSummary: jest.fn(), hasMerchantFoundingPilotReceipt: jest.fn() }))
 jest.mock('@/components/merchant/MerchantPurchaseSummary', () => ({
   MerchantPurchaseSummary: (props: { merchantId: string; intent: string; action: string }) => <div data-merchant-id={props.merchantId} data-purchase-intent={props.intent} data-purchase-action={props.action} />,
 }))
@@ -20,7 +20,7 @@ import { getServerSession } from 'next-auth'
 import { listMerchantsForUser } from '@/modules/merchant/application/merchant-memberships'
 import { requireMerchantMembership } from '@/modules/merchant/application/merchant-access'
 import { getMerchantCommercialState } from '@/modules/merchant/application/merchant-commercial-entitlements'
-import { getMerchantBillingSummary } from '@/modules/merchant/application/merchant-billing'
+import { getMerchantBillingSummary, hasMerchantFoundingPilotReceipt } from '@/modules/merchant/application/merchant-billing'
 import MerchantPurchasePage from '@/app/[locale]/merchant/purchase/page'
 
 describe('Merchant purchase summary route', () => {
@@ -30,6 +30,7 @@ describe('Merchant purchase summary route', () => {
     ;(listMerchantsForUser as jest.Mock).mockResolvedValue([{ merchant: { id: 'merchant-a', slug: 'alpha', name: 'Alpha', status: 'ACTIVE' }, membership: { role: 'OWNER' } }])
     ;(getMerchantCommercialState as jest.Mock).mockResolvedValue({ planCode: null, plan: null, status: 'LEGACY_UNMIGRATED' })
     ;(getMerchantBillingSummary as jest.Mock).mockResolvedValue(null)
+    ;(hasMerchantFoundingPilotReceipt as jest.Mock).mockResolvedValue(false)
   })
 
   it('returns a canonical order summary for the preserved Growth intent', async () => {
@@ -43,6 +44,13 @@ describe('Merchant purchase summary route', () => {
     ;(getMerchantBillingSummary as jest.Mock).mockResolvedValue({ stripeSubscriptionId: 'sub-1', subscriptionStatus: 'active' })
     const result = await MerchantPurchasePage({ params: { locale: 'en' }, searchParams: { merchantId: 'merchant-a', commercialIntent: 'GROWTH' } })
     expect(result).toMatchObject({ props: { intent: 'GROWTH', action: 'CHANGE_PLAN' } })
+  })
+
+  it('routes a former Pilot with a receipt away from another Pilot checkout', async () => {
+    ;(getMerchantCommercialState as jest.Mock).mockResolvedValue({ planCode: 'LAUNCH', plan: { name: 'Launch' }, status: 'PAID_ACTIVE' })
+    ;(hasMerchantFoundingPilotReceipt as jest.Mock).mockResolvedValue(true)
+    const result = await MerchantPurchasePage({ params: { locale: 'en' }, searchParams: { merchantId: 'merchant-a', commercialIntent: 'FOUNDING_PILOT' } })
+    expect(result).toMatchObject({ props: { intent: 'FOUNDING_PILOT', action: 'DUPLICATE_PILOT' } })
   })
 
   it('sends an authenticated user without a Merchant to the preserved onboarding flow', async () => {

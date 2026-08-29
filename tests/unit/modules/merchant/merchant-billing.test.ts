@@ -4,7 +4,7 @@ jest.mock('@/lib/prisma', () => ({
   prisma: {
     merchant: { findUnique: jest.fn() },
     merchantBillingAccount: { findUnique: jest.fn(), create: jest.fn(), update: jest.fn() },
-    merchantBillingEvent: { findUnique: jest.fn(), create: jest.fn(), update: jest.fn() },
+    merchantBillingEvent: { findUnique: jest.fn(), findFirst: jest.fn(), create: jest.fn(), update: jest.fn() },
     $queryRaw: jest.fn(),
     $transaction: jest.fn(),
   },
@@ -41,7 +41,7 @@ const account: TestBillingAccount = {
 const tx = {
   $queryRaw: jest.fn(),
   merchantBillingAccount: { findUnique: jest.fn(), create: jest.fn(), update: jest.fn() },
-  merchantBillingEvent: { findUnique: jest.fn(), create: jest.fn(), update: jest.fn() },
+  merchantBillingEvent: { findUnique: jest.fn(), findFirst: jest.fn(), create: jest.fn(), update: jest.fn() },
   merchant: { update: jest.fn() },
 }
 
@@ -70,6 +70,7 @@ describe('Merchant Stripe billing boundary', () => {
       const eventId = input.where?.provider_providerEventId?.providerEventId
       return eventId ? eventLedger.get(eventId) ?? null : null
     })
+    ;(prisma.merchantBillingEvent.findFirst as jest.Mock).mockResolvedValue(null)
     ;(prisma.merchantBillingEvent.create as jest.Mock).mockImplementation(async (input: any) => {
       const id = `event-ledger-${input.data.providerEventId}`
       eventLedger.set(input.data.providerEventId, { id, status: input.data.status, processingReason: input.data.processingReason ?? null, duplicateCount: 0, ...input.data })
@@ -150,6 +151,69 @@ describe('Merchant Stripe billing boundary', () => {
       successUrl: 'http://localhost/en/merchant?billing=processing',
       cancelUrl: 'http://localhost/en/merchant?billing=cancelled',
     })).rejects.toMatchObject({ code: 'PILOT_EXISTS' })
+  })
+
+  it('blocks a second Founding Pilot from an expired canonical Pilot even without a receipt lookup hit', async () => {
+    ;(prisma.merchant.findUnique as jest.Mock).mockResolvedValue({ id: 'merchant-1', name: 'North Star Eyewear', planCode: 'FOUNDING_PILOT', commercialStatus: 'PILOT_EXPIRED' })
+
+    await expect(createMerchantCheckoutSession({
+      merchantId: 'merchant-1',
+      planCode: 'FOUNDING_PILOT',
+      successUrl: 'http://localhost/en/merchant?billing=processing',
+      cancelUrl: 'http://localhost/en/merchant?billing=cancelled',
+    })).rejects.toMatchObject({ code: 'PILOT_EXISTS' })
+  })
+
+  it.each([
+    ['former Pilot after Launch', { planCode: 'LAUNCH', commercialStatus: 'PAID_ACTIVE' }],
+    ['former Pilot after Growth', { planCode: 'GROWTH', commercialStatus: 'PAID_ACTIVE' }],
+  ])('blocks a second Founding Pilot for %s using canonical receipt history', async (_label, state) => {
+    ;(prisma.merchant.findUnique as jest.Mock).mockResolvedValue({ id: 'merchant-1', name: 'North Star Eyewear', ...state })
+    ;(prisma.merchantBillingEvent.findFirst as jest.Mock).mockResolvedValue({ id: 'pilot-receipt-1' })
+
+    await expect(createMerchantCheckoutSession({
+      merchantId: 'merchant-1',
+      planCode: 'FOUNDING_PILOT',
+      successUrl: 'http://localhost/en/merchant?billing=processing',
+      cancelUrl: 'http://localhost/en/merchant?billing=cancelled',
+    })).rejects.toMatchObject({ code: 'PILOT_EXISTS' })
+    expect(prisma.merchantBillingEvent.findFirst).toHaveBeenCalledWith(expect.objectContaining({
+      where: expect.objectContaining({
+        merchantId: 'merchant-1',
+        stripePriceId: 'price_founding_pilot',
+        status: 'PROCESSED',
+        stripeCheckoutSessionId: { not: null },
+      }),
+    }))
+  })
+
+  it.each(['TEST', 'REAL'])('blocks a second Founding Pilot regardless of Merchant classification (%s)', async (classification) => {
+    ;(prisma.merchant.findUnique as jest.Mock).mockResolvedValue({ id: 'merchant-1', name: 'North Star Eyewear', planCode: 'LAUNCH', commercialStatus: 'PAID_ACTIVE', classification })
+    ;(prisma.merchantBillingEvent.findFirst as jest.Mock).mockResolvedValue({ id: 'pilot-receipt-1' })
+
+    await expect(createMerchantCheckoutSession({
+      merchantId: 'merchant-1',
+      planCode: 'FOUNDING_PILOT',
+      successUrl: 'http://localhost/en/merchant?billing=processing',
+      cancelUrl: 'http://localhost/en/merchant?billing=cancelled',
+    })).rejects.toMatchObject({ code: 'PILOT_EXISTS' })
+  })
+
+  it('allows a first Founding Pilot when no canonical state or processed receipt exists', async () => {
+    ;(prisma.merchant.findUnique as jest.Mock).mockResolvedValue({ id: 'merchant-1', name: 'North Star Eyewear', planCode: null, commercialStatus: null })
+    await expect(createMerchantCheckoutSession({
+      merchantId: 'merchant-1',
+      planCode: 'FOUNDING_PILOT',
+      successUrl: 'http://localhost/en/merchant?billing=processing',
+      cancelUrl: 'http://localhost/en/merchant?billing=cancelled',
+    })).resolves.toMatchObject({ kind: 'checkout', planCode: 'FOUNDING_PILOT', priceId: 'price_founding_pilot' })
+  })
+
+  it('returns one Stripe Checkout Session for duplicate browser Pilot requests before activation', async () => {
+    ;(prisma.merchant.findUnique as jest.Mock).mockResolvedValue({ id: 'merchant-1', name: 'North Star Eyewear', planCode: null, commercialStatus: null })
+    const input = { merchantId: 'merchant-1', planCode: 'FOUNDING_PILOT' as const, successUrl: 'http://localhost/en/merchant?billing=processing', cancelUrl: 'http://localhost/en/merchant?billing=cancelled' }
+    const [first, second] = await Promise.all([createMerchantCheckoutSession(input), createMerchantCheckoutSession(input)])
+    expect(second.sessionId).toBe(first.sessionId)
   })
 
   it('enrolls only from a Merchant subscription webhook and ignores duplicate delivery', async () => {

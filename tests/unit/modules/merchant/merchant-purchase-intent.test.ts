@@ -34,8 +34,14 @@ describe('Merchant self-service purchase intent', () => {
     })).toBe('MANAGE_BILLING')
   })
 
-  it('blocks duplicate Pilot purchase only while the canonical Pilot is active', () => {
+  it('allows the first Pilot and blocks every later Pilot purchase', () => {
+    expect(resolveMerchantPurchaseAction({ intent: 'FOUNDING_PILOT', currentPlanCode: null, commercialStatus: null, foundingPilotConsumed: false })).toBe('CHECKOUT')
     expect(resolveMerchantPurchaseAction({ intent: 'FOUNDING_PILOT', currentPlanCode: 'FOUNDING_PILOT', commercialStatus: 'PILOT_ACTIVE' })).toBe('DUPLICATE_PILOT')
+    expect(resolveMerchantPurchaseAction({ intent: 'FOUNDING_PILOT', currentPlanCode: 'FOUNDING_PILOT', commercialStatus: 'PILOT_EXPIRED' })).toBe('DUPLICATE_PILOT')
+    expect(resolveMerchantPurchaseAction({ intent: 'FOUNDING_PILOT', currentPlanCode: 'LAUNCH', commercialStatus: 'PAID_ACTIVE', foundingPilotConsumed: true })).toBe('DUPLICATE_PILOT')
+    expect(resolveMerchantPurchaseAction({ intent: 'FOUNDING_PILOT', currentPlanCode: 'GROWTH', commercialStatus: 'PAID_ACTIVE', foundingPilotConsumed: true })).toBe('DUPLICATE_PILOT')
+    expect(resolveMerchantPurchaseAction({ intent: 'FOUNDING_PILOT', currentPlanCode: 'SCALE', commercialStatus: 'PAID_ACTIVE', foundingPilotConsumed: true })).toBe('DUPLICATE_PILOT')
+    expect(resolveMerchantPurchaseAction({ intent: 'FOUNDING_PILOT', currentPlanCode: 'LAUNCH', commercialStatus: 'PAID_ACTIVE', foundingPilotConsumed: false })).toBe('CHECKOUT')
     expect(resolveMerchantPurchaseAction({ intent: 'LAUNCH', currentPlanCode: 'FOUNDING_PILOT', commercialStatus: 'PILOT_ACTIVE' })).toBe('CHECKOUT')
   })
 })
