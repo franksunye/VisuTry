@@ -1,11 +1,10 @@
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
-import { ArrowRight, Check, ExternalLink, Sparkles } from 'lucide-react'
+import { ArrowRight, ExternalLink, Sparkles } from 'lucide-react'
 import { businessHref, businessPages, type BusinessPageKey, type BusinessSection } from '@/config/business-site'
 import { BusinessVisualPlaceholder } from './BusinessVisualPlaceholder'
 import { BusinessPilotLeadForm } from './BusinessPilotLeadForm'
 import { BusinessPricingPage } from './BusinessPricingPage'
-import { FOUNDING_PILOT_OFFER, getMerchantPlanDefinition } from '@/modules/merchant/domain/merchant-commercial-plans'
 
 interface BusinessMarketingPageProps {
   locale: string
@@ -217,35 +216,12 @@ function hardenedSections(pageKey: BusinessPageKey, sections: BusinessSection[])
   return mapped
 }
 
-function PricingHeroVisual() {
-  const pilot = getMerchantPlanDefinition('FOUNDING_PILOT')
-  const pilotHighlights = [
-    `${FOUNDING_PILOT_OFFER.catalogFrames.min}–${FOUNDING_PILOT_OFFER.catalogFrames.max} reviewed frames`,
-    '1 hosted Store or Campaign',
-    FOUNDING_PILOT_OFFER.included.join(' · '),
-    pilot.setupLabel ?? FOUNDING_PILOT_OFFER.setup,
-  ]
-
-  return (
-    <div className="mx-auto w-full max-w-md border-y border-slate-300 py-7 sm:border sm:bg-white sm:p-8 sm:shadow-[0_28px_80px_-52px_rgba(15,23,42,0.35)]">
-      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-blue-700">Founding Merchant Pilot</p>
-      <p className="mt-5 text-5xl font-semibold tracking-[-0.06em] text-slate-950">{pilot.priceLabel}</p>
-      <div className="mt-7 border-t border-slate-200 pt-5 text-sm text-slate-700">
-        {pilotHighlights.map((item) => (
-          <div key={item} className="flex items-center gap-3 py-2"><Check className="h-4 w-4 text-blue-700" /><span>{item}</span></div>
-        ))}
-      </div>
-      <p className="mt-5 text-xs leading-5 text-slate-500">A focused paid engagement before any larger commitment.</p>
-    </div>
-  )
-}
-
 function Hero({ locale, pageKey }: { locale: string; pageKey: BusinessPageKey }) {
   const page = businessPages[pageKey]
   const primaryCta = page.primaryCta
   const secondaryCta = page.secondaryCta
   const slot = visualSlots[pageKey]
-  const textOnly = pageKey === 'examples' || pageKey === 'integrations' || pageKey === 'pilot'
+  const textOnly = pageKey === 'pricing' || pageKey === 'examples' || pageKey === 'integrations' || pageKey === 'pilot'
   const dark = pageKey === 'intelligence'
   const storeDominant = pageKey === 'store'
   const audienceLine = pageKey === 'overview'
@@ -269,12 +245,13 @@ function Hero({ locale, pageKey }: { locale: string; pageKey: BusinessPageKey })
             <CtaLink locale={locale} {...primaryCta} primary inverse={dark} />
             {secondaryCta ? <CtaLink locale={locale} {...secondaryCta} inverse={dark} /> : null}
           </div>
+          {pageKey === 'pricing' ? <p className="mt-5 text-xs font-semibold text-slate-500">No surprise usage billing.</p> : null}
           {page.microcopy ? <p className={`mt-5 text-xs leading-5 ${dark ? 'text-slate-400' : 'text-slate-500'}`}>{page.microcopy}</p> : null}
         </div>
 
         {!textOnly ? (
           <div className={storeDominant ? 'mt-12 lg:mt-14 lg:ml-auto lg:w-[82%]' : 'relative'}>
-            {pageKey === 'pricing' ? <PricingHeroVisual /> : slot ? <BusinessVisualPlaceholder {...slot} /> : null}
+            {slot ? <BusinessVisualPlaceholder {...slot} /> : null}
           </div>
         ) : null}
       </div>
