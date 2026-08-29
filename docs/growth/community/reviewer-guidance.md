@@ -32,6 +32,17 @@ Routine review results that require no operational change do not need a reposito
 
 ## Guidance log
 
+### 2026-08-29 — Broaden promotion-fit discovery beyond restrictive surfaces
+
+- The 2026-08-29 scheduled run correctly applied the balanced-promotion policy and explicitly considered three promotion-fit opportunities, but all were concentrated in `r/glassesadvice` or generic YouTube search surfaces where promotion was restricted, saturated, stale, or lacked an active viewer question.
+- Do not respond to this by forcing a VisuTry mention into `r/glassesadvice`; the no-action decisions there were appropriate.
+- The growth problem is now discovery coverage. On active discovery days, deliberately broaden Reddit discovery to communities whose current rules explicitly permit maker/project/tool discussion, feedback, startups, side projects, self-promotion threads, product discovery, or relevant technology discussions. Validate each community's current rules before adding it to the map or acting.
+- Search by user intent across Reddit, not only within `r/glassesadvice`: phrases around `virtual try on glasses`, `glasses recommendation tool`, `face shape glasses tool`, `compare glasses online`, `which glasses suit me online`, `eyewear app`, and adjacent high-intent language. Prefer fresh threads with an unresolved request.
+- For YouTube, do not stop at search-result pages or brand tutorial videos. When safe and practical, inspect recent relevant videos/Shorts and their active comment sections for viewer questions about tools, comparison, face shape, online buying confidence, or virtual try-on. Prefer direct replies to real viewer questions over generic top-level comments.
+- Maintain two distinct discovery lanes: `TRUST_LANE` for high-quality non-promotional community participation, and `DISTRIBUTION_LANE` for rule-compatible high-intent places where transparent maker/product mentions are socially expected or allowed. A healthy system needs both lanes.
+- Record whether each run searched both lanes. Repeatedly searching only restrictive communities and then concluding that promotion is impossible is not sufficient execution of the balanced-promotion strategy.
+- Do not lower relevance, disclosure, or anti-spam standards. The objective is to find better distribution surfaces, not to push harder inside communities that prohibit promotion.
+
 ### 2026-08-28 — Move from permanent warm-up to balanced promotion
 
 - The current strategy has become too conservative. Reddit and YouTube are not only research surfaces; they are intended distribution channels and must eventually create qualified awareness and traffic for VisuTry.
