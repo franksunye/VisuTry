@@ -77,7 +77,8 @@ If two documents conflict:
 3. `docs/project/architecture.md`
 4. Relevant accepted ADRs under `docs/decisions/`
 5. `docs/guides/development-guide.md`
-6. Current implementation/configuration files.
+6. `docs/engineering/environment-isolation-contract.md`
+7. Current implementation/configuration files.
 
 ### Hosting / Cloudflare / Vercel work
 
@@ -91,6 +92,13 @@ Read in this order:
 6. `docs/operations/ARCHIVE.md` only when historical migration evidence is required.
 
 Do **not** start current hosting work from old B3/B4 phase documents.
+
+### Environment and QA work
+
+1. `docs/engineering/environment-isolation-contract.md`
+2. `docs/guides/development-guide.md`
+3. `docs/engineering/quality-assurance-strategy.md`
+4. `docs/g4c-preview-qa.md` for the fixed Preview QA Merchant pool and bounded fixtures.
 
 ### Consumer GTM and paid conversion
 

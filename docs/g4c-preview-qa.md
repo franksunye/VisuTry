@@ -1,5 +1,10 @@
 # G4-C Preview QA Harness
 
+**Status:** Active Preview QA operating guide
+**Last reviewed:** 2026-08-29
+**Owner:** Engineering
+**Environment contract:** [`docs/engineering/environment-isolation-contract.md`](engineering/environment-isolation-contract.md)
+
 The G4-C harness is a bounded, Preview-only operator tool. It is not an
 Admin UI and it is not available through an application route.
 
@@ -21,29 +26,48 @@ A `REAL` Merchant is rejected before a fixture write is attempted. Billing
 ledger/history is append-only from the harness perspective; there is no delete
 or arbitrary SQL command.
 
-Run from the Preview environment so the command receives the Preview
-database and Stripe TEST configuration:
+Run from the Preview environment so the command receives the project-level
+Preview database and Stripe TEST configuration. Replace `<preview-branch>`
+with the current Preview branch; all ordinary Preview branches inherit the
+same project-level Preview variables:
 
 ```bash
-vercel env run -e preview --git-branch codex/g4c-commercial-launch -- \
+vercel env run -e preview --git-branch <preview-branch> -- \
   npx tsx scripts/merchant-preview-qa.ts ensure
 ```
 
-This creates or reuses only these fixed slugs, all with classification
+This creates or reuses only these fixed QA Merchants, all with classification
 `TEST`:
 
-```text
-QA-FREE          g4c-qa-free
-QA-PILOT         g4c-qa-pilot
-QA-SUBSCRIPTION  g4c-qa-subscription
-QA-USAGE         g4c-qa-usage
-```
+| Alias | Stable slug | Intended use |
+| --- | --- | --- |
+| `QA-FREE` | `g4c-qa-free` | FREE Store, catalog, and basic recommendation |
+| `QA-PILOT` | `g4c-qa-pilot` | Stripe TEST Founding Pilot lifecycle |
+| `QA-SUBSCRIPTION` | `g4c-qa-subscription` | Stripe TEST recurring subscription lifecycle |
+| `QA-USAGE` | `g4c-qa-usage` | AI Commerce Session usage thresholds |
+
+The aliases are the stable operator interface; the command output is the
+source for the current `merchantId` in this Preview database.
 
 New fixtures start as canonical `FREE`. The harness never upgrades them by
 writing a paid plan. Use the normal Preview Stripe TEST Checkout to activate
 `QA-PILOT`, `QA-SUBSCRIPTION`, or `QA-USAGE`; the lifecycle fixtures refuse to
 run until the Merchant has a matching `PROCESSED` Stripe TEST event and, for a
 subscription, a Stripe subscription identity.
+
+### Fixed QA Merchant maintenance
+
+The four QA Merchants are long-lived Preview assets. Reuse them across branches
+and test runs; do not delete/recreate them or create a new QA Merchant for an
+ordinary repeat run. Use the supported `ensure`, snapshot, usage, expiry, and
+event replay commands to prepare a bounded state. Billing ledger/history is
+preserved.
+
+The harness requires `classification=TEST` before any read or mutation and
+rejects `REAL` before a write. `G4 QA Merchant 20260828` is intentionally not
+in this pool because its classification is `POSSIBLE_EXTERNAL`; it must not
+be used as a substitute. QA plan state is runtime test data and does not make
+the Merchant part of REAL commercial KPI.
 
 ## Commands
 

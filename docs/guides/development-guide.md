@@ -1,11 +1,14 @@
 # VisuTry Development Guide
 
 **Status:** Active operating guide  
-**Last reviewed:** 2026-07-08  
+**Last reviewed:** 2026-08-29
 **Owner:** Engineering  
 **Review cadence:** Monthly, or whenever environment variables, auth, payment, database, or deployment flow changes  
 **Scope:** Local setup, environment variables, development workflow, testing, deployment, and troubleshooting.  
 **Current guidance:** Product priority lives in `docs/product/product-plan.md`; technical reality lives in `docs/project/architecture.md`; feature-level details should live in `docs/product/specs/`.
+
+Before changing environment variables, database connections, payment mode, or
+QA data, read the [Environment Isolation Contract](../engineering/environment-isolation-contract.md).
 
 ---
 
@@ -34,8 +37,12 @@ Then, fill in the required environment variables. Keep `.env.example` as the sou
 
 ```bash
 # Database
-# For local development with Neon, use the pooled connection where applicable.
-DATABASE_URL="postgresql://username:password@host-pooler.region.neon.tech/dbname?sslmode=require"
+# Local development uses the repository-local PostgreSQL workflow described below.
+# Do not point Local at a Neon database.
+APP_ENV="local"
+VISUTRY_DATABASE_IDENTITY="local:127.0.0.1:5433/visutry_local"
+DATABASE_URL="postgresql://visutry_local@127.0.0.1:5433/visutry_local"
+DATABASE_URL_UNPOOLED="postgresql://visutry_local@127.0.0.1:5433/visutry_local"
 
 # NextAuth.js
 NEXTAUTH_URL="http://localhost:3000"
@@ -90,6 +97,8 @@ Notes:
 - Do not commit real secrets.
 - Keep production and test Stripe price IDs separated.
 - If `.env.example` changes, update this guide or reference `.env.example` directly instead of duplicating stale values.
+- Vercel Preview uses the project-level Preview configuration and the persistent Preview Neon branch. Do not copy Preview credentials into `.env.local`.
+- Production variables are configured separately in Vercel and must never be reused for Local or Preview.
 
 ---
 
@@ -123,10 +132,12 @@ Notes:
    npx prisma generate
    ```
 
-5. **Apply database schema locally**:
+5. **Start and migrate the repository-local database**:
 
    ```bash
-   npx prisma db push
+   npm run db:local:up
+   npm run db:local:migrate
+   npm run db:local:seed
    ```
 
 6. **Start the development server**:
@@ -149,11 +160,14 @@ npm run dev:local
   npx prisma studio
   ```
 
-- **Reset database**:
+- **Reset the Local database**:
 
   ```bash
-  npx prisma db push --force-reset
+  npm run db:local:reset
   ```
+
+  This resets only the repository-local `.local/postgres` cluster. Never use
+  this command with a Neon URL.
 
 - **Generate Prisma client**:
 
@@ -172,6 +186,10 @@ npm run dev:local
   ```bash
   npx prisma migrate deploy
   ```
+
+For Preview QA, use the bounded Preview bootstrap and fixed QA Merchant
+workflow in [`docs/g4c-preview-qa.md`](../g4c-preview-qa.md). Do not create
+ad-hoc Preview merchants for repeatable tests.
 
 ### Code Quality Checks
 

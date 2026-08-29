@@ -105,6 +105,21 @@ Important:
 
 Blocking: YES.
 
+### Environment and QA data ownership
+
+The three-environment operating contract is maintained in the
+[Environment Isolation Contract](environment-isolation-contract.md). Local
+tests use repository-local data; Vercel Preview uses the persistent Preview
+database and Stripe TEST configuration; Production uses separate live
+resources.
+
+Provider-dependent Preview validation must reuse the fixed `TEST` Merchant
+pool and bounded fixtures documented in [`docs/g4c-preview-qa.md`](../g4c-preview-qa.md).
+Do not create disposable QA Merchants for ordinary repeat runs, use
+Production data in Preview, or use `REAL`/`POSSIBLE_EXTERNAL` Merchants as QA
+substitutes. A test Merchant may exercise runtime entitlement state while
+remaining excluded from REAL-only commercial KPI.
+
 ### L4 — Integration / E2E / Provider Validation
 
 Runs on release, when risk requires it, or manually before significant production changes.
