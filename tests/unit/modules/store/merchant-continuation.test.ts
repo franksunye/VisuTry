@@ -3,6 +3,7 @@ import {
   createMerchantContinuation,
   getMerchantContinuationFromUrl,
   getSafeShopperAuthCallbackUrl,
+  getSafeMerchantAuthCallbackUrl,
   isSafeMerchantCheckoutReturnUrl,
   merchantPricingPath,
   merchantRuntimeContinuationStorageKey,
@@ -73,6 +74,15 @@ describe('Merchant continuation contract', () => {
     expect(getSafeShopperAuthCallbackUrl('/admin/users', 'en')).toBeNull()
     expect(getSafeShopperAuthCallbackUrl('/api/auth/session', 'en')).toBeNull()
     expect(getSafeShopperAuthCallbackUrl('//attacker.example/en/store/ello-sunglasses', 'en')).toBeNull()
+  })
+
+  it('preserves a canonical Merchant purchase intent through Auth0 while rejecting unsafe variants', () => {
+    expect(getSafeMerchantAuthCallbackUrl('/en/merchant?commercialIntent=GROWTH', 'en'))
+      .toBe('/en/merchant?commercialIntent=GROWTH')
+    expect(getSafeMerchantAuthCallbackUrl('/en/merchant?commercialIntent=price_live_123', 'en')).toBeNull()
+    expect(getSafeMerchantAuthCallbackUrl('/en/merchant?commercialIntent=GROWTH&returnUrl=https://evil.example', 'en')).toBeNull()
+    expect(getSafeMerchantAuthCallbackUrl('https://evil.example/steal', 'en')).toBeNull()
+    expect(getSafeMerchantAuthCallbackUrl('/en/business/checkout?commercialIntent=GROWTH', 'en')).toBeNull()
   })
 
   it('accepts only paired same-origin Merchant Checkout return URLs', () => {

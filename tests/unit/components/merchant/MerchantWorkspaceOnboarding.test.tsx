@@ -44,6 +44,14 @@ describe('MerchantWorkspaceOnboarding', () => {
     expect(analytics.trackCustomEvent).toHaveBeenCalledWith('merchant_workspace_created', expect.objectContaining({ merchant_id: 'merchant-new', created: true }))
   })
 
+  it('continues a paid pricing intent to the canonical purchase summary after creation', async () => {
+    render(<MerchantWorkspaceOnboarding locale="en" commercialIntent="FOUNDING_PILOT" />)
+    fireEvent.click(screen.getByRole('button', { name: /create workspace/i }))
+
+    await waitFor(() => expect(router.push).toHaveBeenCalledWith('/en/merchant/purchase?merchantId=merchant-new&commercialIntent=FOUNDING_PILOT'))
+    expect(analytics.trackCustomEvent).toHaveBeenCalledWith('merchant_workspace_created', expect.objectContaining({ commercial_intent: 'FOUNDING_PILOT' }))
+  })
+
   it('shows a safe error and does not redirect when provisioning fails', async () => {
     ;(global.fetch as jest.Mock).mockResolvedValue({ ok: false, json: async () => ({ code: 'INVALID_WEBSITE_URL', error: 'Please enter a valid http(s) website URL.' }) })
     render(<MerchantWorkspaceOnboarding locale="en" />)

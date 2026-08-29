@@ -6,6 +6,7 @@ import {
   getMerchantPlanDefinition,
   type MerchantPlanCode,
 } from '@/modules/merchant/domain/merchant-commercial-plans'
+import { merchantPurchasePath, type MerchantPurchaseIntent } from '@/modules/merchant/domain/merchant-purchase-intent'
 import { PricingTooltip } from './PricingTooltip'
 
 const primaryPlanCodes = ['LAUNCH', 'GROWTH', 'SCALE'] as const
@@ -14,8 +15,8 @@ type PrimaryPlanCode = (typeof primaryPlanCodes)[number]
 type ComparisonPlanCode = (typeof comparisonPlanCodes)[number]
 
 function planPath(planCode: MerchantPlanCode) {
-  if (planCode === 'FREE') return '/merchant'
-  return `/business/pilot?plan=${planCode.toLowerCase()}`
+  if (planCode === 'ENTERPRISE') return '/business/pilot?plan=enterprise'
+  return merchantPurchasePath(planCode as MerchantPurchaseIntent)
 }
 
 function planCta(planCode: MerchantPlanCode) {

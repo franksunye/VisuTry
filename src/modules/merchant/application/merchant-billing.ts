@@ -41,7 +41,7 @@ function checkoutSessionId(value: Record<string, unknown>, eventType: string) {
 }
 
 async function merchantForBilling(merchantId: string) {
-  const merchant = await prisma.merchant.findUnique({ where: { id: merchantId }, select: { id: true, name: true } })
+  const merchant = await prisma.merchant.findUnique({ where: { id: merchantId }, select: { id: true, name: true, planCode: true, commercialStatus: true } })
   if (!merchant) throw new MerchantBillingError('MERCHANT_NOT_FOUND', 'Merchant not found.', 404)
   return merchant
 }
@@ -70,6 +70,9 @@ export async function createMerchantCheckoutSession(input: { merchantId: string;
   assertMerchantStripeEnvironment()
   const price = merchantStripePriceForPlan(input.planCode)
   const merchant = await merchantForBilling(input.merchantId)
+  if (price.planCode === 'FOUNDING_PILOT' && merchant.planCode === 'FOUNDING_PILOT' && merchant.commercialStatus === 'PILOT_ACTIVE') {
+    throw new MerchantBillingError('PILOT_EXISTS', 'This Merchant already has an active Founding Pilot.', 409)
+  }
   const account = await ensureAccount(merchant.id, merchant.name)
   if (price.billingType === 'subscription' && account.stripeSubscriptionId && ['active', 'trialing', 'past_due', 'unpaid'].includes(account.subscriptionStatus ?? '')) throw new MerchantBillingError('SUBSCRIPTION_EXISTS', 'This Merchant already has a billing plan. Use Manage plan to change it.', 409)
   const session = await (stripe as any).checkout.sessions.create({ mode: price.billingType === 'subscription' ? 'subscription' : 'payment', customer: account.stripeCustomerId, line_items: [{ price: price.priceId, quantity: 1 }], success_url: input.successUrl, cancel_url: input.cancelUrl, client_reference_id: merchant.id, metadata: metadata(merchant.id, price.planCode, price.priceId), ...(price.billingType === 'subscription' ? { subscription_data: { metadata: metadata(merchant.id, price.planCode, price.priceId) } } : {}) }, { idempotencyKey: `merchant-checkout:${merchant.id}:${price.planCode}:${account.stripeCheckoutSessionId ?? 'new'}` })

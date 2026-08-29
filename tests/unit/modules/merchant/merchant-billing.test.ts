@@ -141,6 +141,17 @@ describe('Merchant Stripe billing boundary', () => {
     expect(result.url).toContain('/mock/checkout/')
   })
 
+  it('blocks a second Founding Pilot from an already active canonical Pilot', async () => {
+    ;(prisma.merchant.findUnique as jest.Mock).mockResolvedValue({ id: 'merchant-1', name: 'North Star Eyewear', planCode: 'FOUNDING_PILOT', commercialStatus: 'PILOT_ACTIVE' })
+
+    await expect(createMerchantCheckoutSession({
+      merchantId: 'merchant-1',
+      planCode: 'FOUNDING_PILOT',
+      successUrl: 'http://localhost/en/merchant?billing=processing',
+      cancelUrl: 'http://localhost/en/merchant?billing=cancelled',
+    })).rejects.toMatchObject({ code: 'PILOT_EXISTS' })
+  })
+
   it('enrolls only from a Merchant subscription webhook and ignores duplicate delivery', async () => {
     const event = {
       id: 'evt_merchant_subscription_1', created: 1_725_000_000, type: 'customer.subscription.updated',

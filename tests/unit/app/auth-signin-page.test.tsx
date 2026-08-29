@@ -11,6 +11,7 @@ jest.mock('@/lib/seo', () => ({ generateI18nSEO: jest.fn() }))
 jest.mock('@/lib/localized-path', () => ({ localizedPath: (locale: string, path: string) => `/${locale}${path}` }))
 jest.mock('@/lib/commerce-handoff/merchant-continuation', () => ({
   getSafeShopperAuthCallbackUrl: (value: string | undefined, locale: string) => value?.startsWith(`/${locale}/store`) ? value : null,
+  getSafeMerchantAuthCallbackUrl: (value: string | undefined, locale: string) => value?.startsWith(`/${locale}/merchant?commercialIntent=`) ? value : value === `/${locale}/merchant` ? value : null,
 }))
 
 describe('merchant sign-in continuation', () => {
@@ -28,5 +29,13 @@ describe('merchant sign-in continuation', () => {
     expect(merchantMarkup).toContain('data-merchant-callback="/en/merchant"')
     expect(unsafeMarkup).toContain('data-merchant-callback="/en/merchant"')
     expect(unsafeMarkup).not.toContain('evil.example')
+  })
+
+  it('keeps a paid plan intent in the merchant Auth0 callback', async () => {
+    const markup = renderToStaticMarkup(await SignInPage({
+      params: Promise.resolve({ locale: 'en' }),
+      searchParams: Promise.resolve({ callbackUrl: '/en/merchant?commercialIntent=GROWTH' }),
+    }))
+    expect(markup).toContain('data-merchant-callback="/en/merchant?commercialIntent=GROWTH"')
   })
 })

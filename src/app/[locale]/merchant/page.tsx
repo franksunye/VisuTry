@@ -7,6 +7,7 @@ import { getMerchantControlCenter, listMerchantAgentCredentials, listMerchantsFo
 import { MerchantControlCenter } from '@/components/merchant/MerchantControlCenter'
 import { MerchantWorkspaceOnboarding } from '@/components/merchant/MerchantWorkspaceOnboarding'
 import type { MerchantBillablePlanCode } from '@/modules/merchant/domain/merchant-billing'
+import { parseMerchantPurchaseIntent } from '@/modules/merchant/domain/merchant-purchase-intent'
 
 export const dynamic = 'force-dynamic'
 
@@ -28,16 +29,26 @@ function billingPlan(value: string | undefined): MerchantBillablePlanCode | unde
   return normalized === 'LAUNCH' || normalized === 'GROWTH' || normalized === 'SCALE' || normalized === 'FOUNDING_PILOT' ? normalized : undefined
 }
 
-export default async function MerchantWorkspacePage({ params, searchParams }: { params: { locale: string }; searchParams?: { merchantId?: string; onboarding?: string; billing?: string; plan?: string } }) {
+export default async function MerchantWorkspacePage({ params, searchParams }: { params: { locale: string }; searchParams?: { merchantId?: string; onboarding?: string; billing?: string; plan?: string; commercialIntent?: string } }) {
   const session = await getServerSession(authOptions)
-  if (!session?.user?.id) redirect(`/${params.locale}/auth/signin?callbackUrl=/${params.locale}/merchant`)
+  const purchaseIntent = parseMerchantPurchaseIntent(searchParams?.commercialIntent)
+  if (!session?.user?.id) {
+    const callbackUrl = purchaseIntent
+      ? `/${params.locale}/merchant?commercialIntent=${purchaseIntent}`
+      : `/${params.locale}/merchant`
+    const encodedCallback = purchaseIntent ? encodeURIComponent(callbackUrl) : callbackUrl
+    redirect(`/${params.locale}/auth/signin?callbackUrl=${encodedCallback}`)
+  }
 
   const merchants = await listMerchantsForUser(session.user.id)
-  if (merchants.length === 0) return <MerchantWorkspaceOnboarding locale={params.locale} />
+  if (merchants.length === 0) return <MerchantWorkspaceOnboarding locale={params.locale} commercialIntent={purchaseIntent ?? undefined} />
   const selected = searchParams?.merchantId
     ? merchants.find((entry) => entry.merchant.id === searchParams.merchantId)
     : merchants[0]
   if (!selected) notFound()
+  if (purchaseIntent && purchaseIntent !== 'FREE') {
+    redirect(`/${params.locale}/merchant/purchase?merchantId=${encodeURIComponent(selected.merchant.id)}&commercialIntent=${purchaseIntent}`)
+  }
   await requireMerchantMembership({ userId: session.user.id, merchantId: selected.merchant.id, roles: ['OWNER', 'ADMIN'] })
   const control = await getMerchantControlCenter({ merchantId: selected.merchant.id })
   if (!control) notFound()
