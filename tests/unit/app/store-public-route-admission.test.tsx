@@ -46,6 +46,7 @@ jest.mock('@/components/store/StorePresentationDisclosure', () => ({
 
 import { notFound } from 'next/navigation'
 import { getPublicExperienceDiscoveryForRoute } from '@/modules/store/application/get-public-experience-discovery-route'
+import type { PublicExperienceDiscovery } from '@/modules/store/application/get-public-experience-discovery'
 import {
   isPublicCampaignRouteAdmitted,
   isPublicStoreRouteAdmitted,
@@ -53,10 +54,46 @@ import {
 import * as storePage from '@/app/[locale]/(store)/store/[merchantSlug]/page'
 import * as campaignPage from '@/app/[locale]/(store)/c/[merchantSlug]/[experienceSlug]/page'
 
-const discovery = {
-  merchant: { referenceData: false },
-  experience: { referenceData: false },
-} as never
+const discoveryUpdatedAt = new Date('2026-08-12T00:00:00.000Z')
+
+const discovery: PublicExperienceDiscovery = {
+  merchant: {
+    id: 'merchant-a',
+    slug: 'merchant-a',
+    name: 'Merchant A',
+    logoUrl: null,
+    websiteUrl: 'https://merchant-a.example',
+    accentColor: '#1D4ED8',
+    generativeTryOnAvailable: true,
+    referenceData: false,
+    pilotType: null,
+    updatedAt: discoveryUpdatedAt,
+  },
+  experience: {
+    id: 'experience-store',
+    merchantId: 'merchant-a',
+    type: 'STORE',
+    slug: 'store',
+    name: 'Store',
+    status: 'ACTIVE',
+    headline: null,
+    description: null,
+    heroAssetUrl: null,
+    presentationMode: null,
+    referenceData: false,
+    updatedAt: discoveryUpdatedAt,
+  },
+  frames: [],
+  experiencePolicy: {
+    tryOnEnabled: true,
+    compareEnabled: true,
+    maxCompareFrames: 2,
+    inquiryEnabled: false,
+  },
+  guestSponsoredTryOnLimit: 1,
+  visibility: 'PUBLIC_NOINDEX',
+  lastModified: discoveryUpdatedAt,
+}
 
 describe('public Store/Campaign route admission boundary', () => {
   it('keeps Store/Campaign HTML on long-lived on-demand ISR rather than hourly refresh', () => {
