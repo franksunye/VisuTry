@@ -1,4 +1,5 @@
 import { isValidLocale, type Locale } from '@/i18n'
+import { parseMerchantPurchaseIntent, type MerchantPurchaseIntent } from '@/modules/merchant/domain/merchant-purchase-intent'
 
 /**
  * The only URL state that is allowed to cross the shopper auth/payment
@@ -236,6 +237,32 @@ export function getSafeShopperAuthCallbackUrl(
   const normalizedPathname = localizedPathname(url.pathname, locale)
   if (!normalizedPathname || !isAllowedConsumerCallbackPath(normalizedPathname, locale)) return null
   return `${normalizedPathname}${url.search}${url.hash}`
+}
+
+/**
+ * Sanitize the merchant acquisition callback separately from Consumer
+ * continuation. Only the localized Merchant entry point and the bounded
+ * commercial intent may cross Auth0/NextAuth. Merchant IDs and arbitrary
+ * return paths are intentionally not accepted from the browser.
+ */
+export function getSafeMerchantAuthCallbackUrl(
+  value: unknown,
+  locale: string,
+): string | null {
+  if (!isValidLocale(locale)) return null
+  const url = parseRelativeUrl(value)
+  if (!url || url.pathname !== `/${locale}/merchant`) return null
+
+  const keys = [...url.searchParams.keys()]
+  if (keys.some((key) => key !== 'commercialIntent') || keys.length > 1) return null
+  const rawIntent = url.searchParams.get('commercialIntent')
+  if (rawIntent === null) return `/${locale}/merchant`
+  const intent = parseMerchantPurchaseIntent(rawIntent)
+  return intent ? merchantIntentCallbackPath(locale, intent) : null
+}
+
+function merchantIntentCallbackPath(locale: string, intent: MerchantPurchaseIntent): string {
+  return `/${locale}/merchant?commercialIntent=${intent}`
 }
 
 export function isSafeMerchantCheckoutReturnUrl(value: unknown, requestOrigin: string): boolean {

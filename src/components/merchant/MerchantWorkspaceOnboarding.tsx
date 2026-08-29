@@ -6,10 +6,11 @@ import { ArrowRight, Check, ChevronDown, Store } from 'lucide-react'
 import { analytics, getAcquisitionContext } from '@/lib/analytics'
 import { AnalyticsEvent } from '@/lib/analytics-events'
 import { getCampaignAnalyticsContext } from '@/lib/analytics-v2'
+import type { MerchantPurchaseIntent } from '@/modules/merchant/domain/merchant-purchase-intent'
 
-type Props = { locale: string }
+type Props = { locale: string; commercialIntent?: MerchantPurchaseIntent }
 
-export function MerchantWorkspaceOnboarding({ locale }: Props) {
+export function MerchantWorkspaceOnboarding({ locale, commercialIntent }: Props) {
   const router = useRouter()
   const [name, setName] = useState('')
   const [websiteUrl, setWebsiteUrl] = useState('')
@@ -27,8 +28,9 @@ export function MerchantWorkspaceOnboarding({ locale }: Props) {
       journey_type: 'visutry_b2b_acquisition',
       source_journey: 'business_merchant_entry',
       landing_surface: 'merchant_onboarding',
+      commercial_intent: commercialIntent,
     })
-  }, [])
+  }, [commercialIntent])
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -67,9 +69,13 @@ export function MerchantWorkspaceOnboarding({ locale }: Props) {
           journey_type: 'visutry_b2b_acquisition',
           source_journey: 'business_merchant_entry',
           landing_surface: 'merchant_onboarding',
+          commercial_intent: commercialIntent,
         })
       }
-      router.push(`/${locale}/merchant?merchantId=${encodeURIComponent(body.data.merchant.id)}&onboarding=${onboardingState}`)
+      const destination = commercialIntent && commercialIntent !== 'FREE'
+        ? `/${locale}/merchant/purchase?merchantId=${encodeURIComponent(body.data.merchant.id)}&commercialIntent=${commercialIntent}`
+        : `/${locale}/merchant?merchantId=${encodeURIComponent(body.data.merchant.id)}&onboarding=${onboardingState}`
+      router.push(destination)
       router.refresh()
     } catch (requestError) {
       setError(requestError instanceof Error ? requestError.message : 'Unable to create your Merchant Workspace.')

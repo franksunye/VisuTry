@@ -5,7 +5,7 @@ import { Metadata } from 'next'
 import { generateI18nSEO } from '@/lib/seo'
 import { Locale } from '@/i18n'
 import { localizedPath } from '@/lib/localized-path'
-import { getSafeShopperAuthCallbackUrl } from '@/lib/commerce-handoff/merchant-continuation'
+import { getSafeMerchantAuthCallbackUrl, getSafeShopperAuthCallbackUrl } from '@/lib/commerce-handoff/merchant-continuation'
 
 type Props = {
   params: Promise<{ locale: string }>
@@ -35,7 +35,8 @@ export default async function SignInPage(props: Props) {
     ? searchParams.callbackUrl[0]
     : searchParams?.callbackUrl
   const shopperCallback = getSafeShopperAuthCallbackUrl(rawCallbackUrl, params.locale)
-  const callbackUrl = shopperCallback || merchantCallback
+  const merchantPurchaseCallback = getSafeMerchantAuthCallbackUrl(rawCallbackUrl, params.locale)
+  const callbackUrl = shopperCallback || merchantPurchaseCallback || merchantCallback
   const isShopperContinuation = Boolean(shopperCallback)
 
   return (

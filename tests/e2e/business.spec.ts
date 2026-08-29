@@ -98,11 +98,11 @@ test.describe('@critical Business market-facing narrative', () => {
     await page.waitForLoadState('networkidle');
     await sessionsTooltipButton.click();
     await expect(page.getByRole('tooltip')).toContainText(/1 AI Commerce Session/i);
-    await expect(page.getByRole('link', { name: 'Start Free' })).toHaveAttribute('href', '/en/merchant');
-    await expect(page.getByRole('link', { name: 'Start 30-Day Pilot' })).toHaveAttribute('href', '/en/business/pilot?plan=founding_pilot');
-    await expect(page.getByRole('link', { name: 'Choose Launch' })).toHaveAttribute('href', '/en/business/pilot?plan=launch');
-    await expect(page.getByRole('link', { name: 'Choose Growth' })).toHaveAttribute('href', '/en/business/pilot?plan=growth');
-    await expect(page.getByRole('link', { name: 'Choose Scale' })).toHaveAttribute('href', '/en/business/pilot?plan=scale');
+    await expect(page.getByRole('link', { name: 'Start Free' })).toHaveAttribute('href', '/en/merchant?commercialIntent=FREE');
+    await expect(page.getByRole('link', { name: 'Start 30-Day Pilot' })).toHaveAttribute('href', '/en/merchant?commercialIntent=FOUNDING_PILOT');
+    await expect(page.getByRole('link', { name: 'Choose Launch' })).toHaveAttribute('href', '/en/merchant?commercialIntent=LAUNCH');
+    await expect(page.getByRole('link', { name: 'Choose Growth' })).toHaveAttribute('href', '/en/merchant?commercialIntent=GROWTH');
+    await expect(page.getByRole('link', { name: 'Choose Scale' })).toHaveAttribute('href', '/en/merchant?commercialIntent=SCALE');
     await expect(page.getByRole('link', { name: 'Contact Sales' }).first()).toHaveAttribute('href', '/en/business/pilot?plan=enterprise');
     await expect(page.locator('body')).not.toContainText(/price_(?:live|test|[A-Za-z0-9]+)/i);
     expect(consoleErrors).toEqual([]);

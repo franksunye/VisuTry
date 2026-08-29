@@ -99,6 +99,7 @@ Notes:
 - If `.env.example` changes, update this guide or reference `.env.example` directly instead of duplicating stale values.
 - Vercel Preview uses the project-level Preview configuration and the persistent Preview Neon branch. Do not copy Preview credentials into `.env.local`.
 - Production variables are configured separately in Vercel and must never be reused for Local or Preview.
+- The canonical Preview browser URL is `https://visutry-pre.vercel.app`. After a Preview deployment is READY, bind its deployment URL with `vercel alias set <ready-preview-deployment>.vercel.app visutry-pre.vercel.app --scope sunye`; do not use random deployment URLs for authenticated QA or add them to Auth0.
 
 ---
 

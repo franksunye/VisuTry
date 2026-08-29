@@ -17,7 +17,9 @@ jest.mock('@/components/merchant/MerchantControlCenter', () => ({
   MerchantControlCenter: (props: { selectedMerchantId: string; onboardingState?: string }) => <div data-selected-merchant={props.selectedMerchantId} data-onboarding-state={props.onboardingState} />,
 }))
 jest.mock('@/components/merchant/MerchantWorkspaceOnboarding', () => ({
-  MerchantWorkspaceOnboarding: (props: { locale: string }) => <div data-onboarding-locale={props.locale}>Create your Merchant Workspace</div>,
+  MerchantWorkspaceOnboarding: (props: { locale: string; commercialIntent?: string }) => (
+    <div data-onboarding-locale={props.locale} data-commercial-intent={props.commercialIntent}>Create your Merchant Workspace</div>
+  ),
 }))
 
 import { getServerSession } from 'next-auth'
@@ -75,6 +77,18 @@ describe('Merchant workspace authorization', () => {
     merchants.mockResolvedValue([])
     const result = await MerchantWorkspacePage({ params: { locale: 'en' } })
     expect(result).toBeTruthy()
+    expect(control).not.toHaveBeenCalled()
+  })
+
+  it('preserves a paid purchase intent through first-time Merchant onboarding', async () => {
+    merchants.mockResolvedValue([])
+    const result = await MerchantWorkspacePage({ params: { locale: 'en' }, searchParams: { commercialIntent: 'growth' } })
+    expect((result as { props: { commercialIntent?: string } }).props.commercialIntent).toBe('GROWTH')
+  })
+
+  it('routes an existing Merchant with a paid intent to the canonical purchase summary', async () => {
+    await expect(MerchantWorkspacePage({ params: { locale: 'en' }, searchParams: { commercialIntent: 'GROWTH' } }))
+      .rejects.toThrow('REDIRECT:/en/merchant/purchase?merchantId=merchant-a&commercialIntent=GROWTH')
     expect(control).not.toHaveBeenCalled()
   })
 

@@ -73,6 +73,40 @@ The marker is verified by the Preview bootstrap and QA guard. The guarded
 Preview schema/bootstrap changes therefore use the explicit Preview
 bootstrap/release procedure, not an implicit Production migration.
 
+### Canonical Preview URL
+
+All Preview deployments are accessed through the stable Vercel alias:
+
+```text
+https://visutry-pre.vercel.app
+```
+
+Vercel's deployment-specific `*.vercel.app` URL is an implementation detail
+and must not be used as the Preview QA URL or added to Auth0 for routine
+testing. The alias is a pointer to the latest approved Preview deployment;
+rebinding it does not create a new environment, database, Stripe account, or
+QA Merchant pool.
+
+After a Preview deployment is READY, bind that deployment to the alias before
+any authenticated QA:
+
+```bash
+vercel alias set <ready-preview-deployment>.vercel.app \
+  visutry-pre.vercel.app --scope sunye
+```
+
+The Vercel Preview `NEXTAUTH_URL` must remain the fixed origin above. Auth0
+should have the fixed callback URL allow-listed once:
+
+```text
+https://visutry-pre.vercel.app/api/auth/callback/auth0
+```
+
+If required by the Auth0 tenant policy, also allow the fixed origin for logout
+and web origins. Do not add per-deployment random URLs as a normal workflow.
+Production continues to use `https://www.visutry.com` and its separate Auth0
+configuration.
+
 Preview Merchant billing uses Stripe TEST configuration. The bounded QA
 harness additionally requires:
 
