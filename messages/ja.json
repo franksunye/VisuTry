@@ -838,7 +838,9 @@
       "recommend": "Could not build recommendations. Please try again.",
       "select": "Could not save your frame selection.",
       "tryOn": "Try-on could not start. Please try again.",
-      "intent": "Could not save that action. Please try again."
+      "intent": "Could not save that action. Please try again.",
+      "sessionRestart": "セッションの有効期限が切れました。最初からやり直してください。",
+      "capabilityUnavailable": "このストアは一時的に利用できません。"
     },
     "recommend": {
       "analyzing": "Finding frames that suit you…",
@@ -851,7 +853,8 @@
       "saving": "Saving…",
       "savedTitle": "Selection saved",
       "savedBody": "Start virtual try-on for your selected frames below.",
-      "tryOnComingSoon": "Continue to try-on (next)"
+      "tryOnComingSoon": "Continue to try-on (next)",
+      "tryOnThisFrame": "このフレームを試す"
     },
     "tryOn": {
       "title": "Virtual try-on",
@@ -865,7 +868,11 @@
       "viewProduct": "View product",
       "openCompare": "Compare {count} results",
       "compareTitle": "Side-by-side compare",
-      "compareHint": "Same shopper photo across selected frames."
+      "compareHint": "Same shopper photo across selected frames.",
+      "startOne": "このフレームを試す",
+      "timedOut": "試着の生成に通常より時間がかかっています",
+      "checkAgain": "もう一度確認",
+      "tryAgain": "もう一度試す"
     },
     "intent": {
       "favorite": "Favorite",

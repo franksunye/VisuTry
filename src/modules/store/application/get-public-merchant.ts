@@ -7,8 +7,10 @@ import type { MerchantRecord, MerchantRepository, MerchantFrameRepository } from
 import type { ExperienceRepository, ExperienceRecord } from './ports/repositories'
 import { resolveMerchantExperience } from './resolve-experience'
 import { resolveStoreExperiencePolicy, type StoreExperiencePolicy } from '../domain/experience-policy'
+import { resolveGuestSponsoredTryOnLimit } from '../domain/merchant-sponsored-usage'
 import { productBrandForFrame } from './product-labels'
 import type { PresentationMode } from '../domain/presentation-mode'
+import type { PublicExperienceDiscovery } from './get-public-experience-discovery'
 
 export type PublicMerchantFramePreview = {
   id: string
@@ -29,6 +31,11 @@ export type PublicMerchantProfile = {
   pilotType: string | null
   referenceData: boolean
   experiencePolicy: StoreExperiencePolicy
+  /**
+   * Anonymous guest sponsored generation ceiling. Null = no sponsored cap
+   * (merchant commercial entitlement / compare policy applies).
+   */
+  guestSponsoredTryOnLimit: number | null
   activeFrameCount: number
   featuredFrames: PublicMerchantFramePreview[]
   status: MerchantStatus
@@ -92,6 +99,7 @@ export function toPublicMerchantProfile(
     pilotType: merchant.pilotType ?? null,
     referenceData: merchant.referenceData === true || experience?.referenceData === true,
     experiencePolicy: resolveStoreExperiencePolicy(merchant),
+    guestSponsoredTryOnLimit: resolveGuestSponsoredTryOnLimit(merchant),
     activeFrameCount: activeFrames.length,
     featuredFrames: activeFrames.slice(0, 4).map((frame) => ({
       id: frame.id,
@@ -124,5 +132,51 @@ export function toPublicMerchantProfile(
           referenceData: experience.referenceData,
         }
       : null,
+  }
+}
+
+/**
+ * Safe public subset already loaded by Store/Campaign RSC discovery.
+ * Used as the shopper workspace bootstrap so modal mount does not
+ * depend on a second catalog GET.
+ */
+export function publicMerchantFromDiscovery(
+  discovery: PublicExperienceDiscovery,
+): PublicMerchantProfile {
+  return {
+    id: discovery.merchant.id,
+    slug: discovery.merchant.slug,
+    name: discovery.merchant.name,
+    logoUrl: discovery.merchant.logoUrl,
+    websiteUrl: discovery.merchant.websiteUrl,
+    accentColor: discovery.merchant.accentColor,
+    pilotType: discovery.merchant.pilotType ?? null,
+    referenceData: discovery.merchant.referenceData || discovery.experience.referenceData,
+    experiencePolicy: discovery.experiencePolicy,
+    guestSponsoredTryOnLimit: discovery.guestSponsoredTryOnLimit,
+    activeFrameCount: discovery.frames.length,
+    featuredFrames: discovery.frames.slice(0, 4).map((frame) => ({
+      id: frame.id,
+      name: frame.name,
+      imageUrl: frame.imageUrl,
+      shape: frame.shape,
+      color: frame.color,
+      productBrand: frame.brand,
+    })),
+    status: 'ACTIVE',
+    experience: {
+      id: discovery.experience.id,
+      type: discovery.experience.type,
+      slug: discovery.experience.slug,
+      name: discovery.experience.name,
+      headline: discovery.experience.headline,
+      description: discovery.experience.description,
+      heroAssetUrl: discovery.experience.heroAssetUrl,
+      presentationMode: discovery.experience.presentationMode ?? null,
+      primaryCta: null,
+      secondaryCta: null,
+      offer: null,
+      referenceData: discovery.experience.referenceData,
+    },
   }
 }

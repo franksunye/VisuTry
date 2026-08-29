@@ -854,7 +854,9 @@
       "recommend": "Could not build recommendations. Please try again.",
       "select": "Could not save your frame selection.",
       "tryOn": "Try-on could not start. Please try again.",
-      "intent": "Could not save that action. Please try again."
+      "intent": "Could not save that action. Please try again.",
+      "sessionRestart": "Your session expired. Please start again.",
+      "capabilityUnavailable": "This store is temporarily unavailable."
     },
     "recommend": {
       "analyzing": "Finding frames that suit you…",
@@ -869,6 +871,7 @@
       "selectHint": "Selected {count} of {max}",
       "confirm": "Save selection ({count})",
       "tryOnSelected": "Try on selected frames",
+      "tryOnThisFrame": "Try On This Frame",
       "continue": "Continue to Try-On",
       "readyEyebrow": "Ready when you are",
       "readyTitle": "Frames ready",
@@ -887,10 +890,14 @@
       "editLabel": "Try them on",
       "storeBrand": "Store collection",
       "start": "Try on {count} frames",
+      "startOne": "Try On This Frame",
       "starting": "Starting try-on…",
       "queued": "Queued…",
       "processing": "Generating…",
       "failed": "Try-on failed",
+      "timedOut": "Try-On is taking longer than expected",
+      "checkAgain": "Check again",
+      "tryAgain": "Try again",
       "retry": "Retry",
       "viewProduct": "View product",
       "openCompare": "Compare {count} results",

@@ -813,7 +813,9 @@
       "recommend": "Could not build recommendations. Please try again.",
       "select": "Could not save your frame selection.",
       "tryOn": "Try-on could not start. Please try again.",
-      "intent": "Could not save that action. Please try again."
+      "intent": "Could not save that action. Please try again.",
+      "sessionRestart": "انتهت صلاحية جلستك. يُرجى البدء من جديد.",
+      "capabilityUnavailable": "هذا المتجر غير متاح مؤقتًا."
     },
     "recommend": {
       "analyzing": "Finding frames that suit you…",
@@ -826,7 +828,8 @@
       "saving": "Saving…",
       "savedTitle": "Selection saved",
       "savedBody": "Start virtual try-on for your selected frames below.",
-      "tryOnComingSoon": "Continue to try-on (next)"
+      "tryOnComingSoon": "Continue to try-on (next)",
+      "tryOnThisFrame": "جرّب هذا الإطار"
     },
     "tryOn": {
       "title": "Virtual try-on",
@@ -840,7 +843,11 @@
       "viewProduct": "View product",
       "openCompare": "Compare {count} results",
       "compareTitle": "Side-by-side compare",
-      "compareHint": "Same shopper photo across selected frames."
+      "compareHint": "Same shopper photo across selected frames.",
+      "startOne": "جرّب هذا الإطار",
+      "timedOut": "التجربة الافتراضية تستغرق وقتًا أطول من المتوقع",
+      "checkAgain": "تحقّق مرة أخرى",
+      "tryAgain": "حاول مرة أخرى"
     },
     "intent": {
       "favorite": "Favorite",

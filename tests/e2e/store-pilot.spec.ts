@@ -639,7 +639,7 @@ test.describe('@critical Store Pilot Flow', () => {
     await page.goto(`/en/store/ello-sunglasses?merchantContinuation=${continuation}`, { waitUntil: 'domcontentloaded' });
     await expect(page.getByRole('dialog', { name: /try-on workspace/i })).toBeVisible();
     await expect(page.locator('[data-selection-cta="mobile"]')).toHaveText(/Continue to Try-On/);
-    await expect(page.getByRole('button', { name: /Try on 1 frame/ })).toBeVisible();
+    await expect(page.getByRole('button', { name: /Try On This Frame|Try on 1 frame/i })).toBeVisible();
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
   });
 });

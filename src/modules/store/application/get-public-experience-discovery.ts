@@ -2,6 +2,8 @@ import {
   resolveExperienceSearchVisibility,
   type ExperienceSearchVisibility,
 } from '../domain/experience-search-visibility'
+import { resolveStoreExperiencePolicy, type StoreExperiencePolicy } from '../domain/experience-policy'
+import { resolveGuestSponsoredTryOnLimit } from '../domain/merchant-sponsored-usage'
 import type {
   ExperienceRecord,
   ExperienceRepository,
@@ -37,6 +39,7 @@ export type PublicExperienceDiscovery = {
     /** Public capability hint only; commercial plan details never leave the server. */
     generativeTryOnAvailable: boolean
     referenceData: boolean
+    pilotType: string | null
     updatedAt: Date
   }
   experience: {
@@ -54,6 +57,8 @@ export type PublicExperienceDiscovery = {
     updatedAt: Date
   }
   frames: PublicDiscoveryFrame[]
+  experiencePolicy: StoreExperiencePolicy
+  guestSponsoredTryOnLimit: number | null
   visibility: ExperienceSearchVisibility
   lastModified: Date
 }
@@ -141,6 +146,7 @@ export async function getPublicExperienceDiscovery(input: {
       accentColor: merchant.accentColor,
       generativeTryOnAvailable: merchant.planCode !== 'FREE' && !['PILOT_EXPIRED', 'EXPIRED', 'PAST_DUE', 'PAYMENT_ACTION_REQUIRED', 'USAGE_EXHAUSTED'].includes(merchant.commercialStatus ?? ''),
       referenceData: merchant.referenceData === true || experience.referenceData,
+      pilotType: merchant.pilotType ?? null,
       updatedAt: merchant.updatedAt,
     },
     experience: {
@@ -158,6 +164,8 @@ export async function getPublicExperienceDiscovery(input: {
       updatedAt: experience.updatedAt,
     },
     frames: publicFrames,
+    experiencePolicy: resolveStoreExperiencePolicy(merchant),
+    guestSponsoredTryOnLimit: resolveGuestSponsoredTryOnLimit(merchant),
     visibility,
     lastModified: [merchant.updatedAt, experience.updatedAt, latestFrameUpdate]
       .filter((value): value is Date => value instanceof Date)

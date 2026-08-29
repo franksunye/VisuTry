@@ -5,6 +5,9 @@ import { useTranslations } from 'next-intl'
 import Link from 'next/link'
 import { Heart, Loader2, RefreshCw, Sparkles } from 'lucide-react'
 import { FRAME_DISPATCH_STAGGER_MS, sleep } from '@/lib/try-on/batch-types'
+import { isUnknownPollFailure, type StoreTryOnPollFailReason } from '@/lib/store-tryon-poll-policy'
+import { startStoreTryOnPollLoop } from '@/lib/store-tryon-poll-loop'
+import type { MerchantRuntimeTryOnTaskRef } from '@/lib/commerce-handoff/merchant-runtime-state'
 import { buildStoreOutboundUrl } from '@/lib/store-outbound-links'
 import {
   appendMerchantContinuation,
@@ -25,12 +28,15 @@ type FrameMeta = {
   productBrand: string | null
 }
 
+type TryOnRetryAction = 'resume' | 'resubmit' | 'none'
+
 type TryOnTile = {
   merchantFrameId: string
   taskId: string | null
-  status: 'queued' | 'processing' | 'completed' | 'failed'
+  status: 'queued' | 'processing' | 'completed' | 'failed' | 'timed_out' | 'status_unknown'
   resultImageUrl: string | null
   errorMessage: string | null
+  retryAction: TryOnRetryAction
   frame: FrameMeta
 }
 
@@ -46,11 +52,39 @@ type StoreTryOnComparePanelProps = {
   onError: (message: string) => void
   experiencePolicy: StoreExperiencePolicy
   initialBatchId?: string | null
+  initialTasks?: MerchantRuntimeTryOnTaskRef[] | null
   onContinuationBatchId?: (batchId: string) => void
+  onTryOnTasksChange?: (tasks: MerchantRuntimeTryOnTaskRef[]) => void
+}
+
+function restoreTilesFromTasks(
+  selectedFrames: FrameMeta[],
+  initialTasks?: MerchantRuntimeTryOnTaskRef[] | null,
+): TryOnTile[] {
+  if (!initialTasks?.length) return []
+  return initialTasks.flatMap((task) => {
+    const frame = selectedFrames.find((item) => item.id === task.merchantFrameId)
+    if (!frame || !task.taskId) return []
+    return [{
+      merchantFrameId: task.merchantFrameId,
+      taskId: task.taskId,
+      status: 'processing' as const,
+      resultImageUrl: null,
+      errorMessage: null,
+      retryAction: 'none' as const,
+      frame,
+    }]
+  })
+}
+
+function retryActionForPollFailure(reason: StoreTryOnPollFailReason): TryOnRetryAction {
+  if (isUnknownPollFailure(reason)) return 'resume'
+  if (reason === 'session_restart' || reason === 'unavailable' || reason === 'forbidden') return 'none'
+  return 'resubmit'
 }
 
 function deviceTypeLabel(): string {
-  if (typeof window === 'undefined') return 'desktop'
+  if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return 'desktop'
   return window.matchMedia('(max-width: 768px)').matches ? 'mobile' : 'desktop'
 }
 
@@ -79,10 +113,12 @@ export function StoreTryOnComparePanel({
   onError,
   experiencePolicy,
   initialBatchId,
+  initialTasks,
   onContinuationBatchId,
+  onTryOnTasksChange,
 }: StoreTryOnComparePanelProps) {
   const t = useTranslations('storeShopper')
-  const [tiles, setTiles] = useState<TryOnTile[]>([])
+  const [tiles, setTiles] = useState<TryOnTile[]>(() => restoreTilesFromTasks(selectedFrames, initialTasks))
   const [batchId, setBatchId] = useState<string | null>(initialBatchId ?? null)
   const [dispatching, setDispatching] = useState(false)
   const [compareStarted, setCompareStarted] = useState(false)
@@ -94,7 +130,9 @@ export function StoreTryOnComparePanel({
   const [inquirySending, setInquirySending] = useState(false)
   const [inquirySent, setInquirySent] = useState(false)
   const [continuationState, setContinuationState] = useState<'AUTH_REQUIRED' | 'CONSUMER_CREDITS_REQUIRED' | null>(null)
-  const pollRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const [sessionNotice, setSessionNotice] = useState<'session_restart' | 'unavailable' | null>(null)
+  const pollControllersRef = useRef(new Map<string, () => void>())
+  const inFlightSubmitRef = useRef(new Set<string>())
 
   useEffect(() => {
     if (initialBatchId && !batchId) setBatchId(initialBatchId)
@@ -149,9 +187,14 @@ export function StoreTryOnComparePanel({
 
   const startTryOn = useCallback(async () => {
     if (!experiencePolicy.tryOnEnabled || selectedFrames.length === 0 || dispatching) return
+    const framesToSubmit = selectedFrames.filter(
+      (frame) => !tiles.some((tile) => tile.merchantFrameId === frame.id && Boolean(tile.taskId)),
+    )
+    if (framesToSubmit.length === 0) return
     setDispatching(true)
     onError('')
     setContinuationState(null)
+    setSessionNotice(null)
     const nextBatchId = batchId || (
       typeof crypto !== 'undefined' && 'randomUUID' in crypto
         ? crypto.randomUUID()
@@ -160,18 +203,29 @@ export function StoreTryOnComparePanel({
     setBatchId(nextBatchId)
     setCompareStarted(false)
 
-    const initial: TryOnTile[] = selectedFrames.map((frame) => ({
-      merchantFrameId: frame.id,
-      taskId: null,
-      status: 'queued',
-      resultImageUrl: null,
-      errorMessage: null,
-      frame,
-    }))
-    setTiles(initial)
+    setTiles((current) => {
+      const byFrame = new Map(current.map((tile) => [tile.merchantFrameId, tile]))
+      const next = selectedFrames.map((frame) => {
+        const existing = byFrame.get(frame.id)
+        if (existing?.taskId) return existing
+        return {
+          merchantFrameId: frame.id,
+          taskId: null,
+          status: 'queued' as const,
+          resultImageUrl: null,
+          errorMessage: null,
+          retryAction: 'none' as const,
+          frame,
+        }
+      })
+      const extras = current.filter(
+        (tile) => tile.taskId && !selectedFrames.some((item) => item.id === tile.merchantFrameId),
+      )
+      return [...next, ...extras]
+    })
 
-    for (let i = 0; i < selectedFrames.length; i++) {
-      const frame = selectedFrames[i]
+    for (let i = 0; i < framesToSubmit.length; i++) {
+      const frame = framesToSubmit[i]
       try {
         const res = await fetch('/api/store/sessions/try-on', {
           method: 'POST',
@@ -206,6 +260,7 @@ export function StoreTryOnComparePanel({
                     ...tile,
                     status: 'failed',
                     errorMessage: json.error || t('errors.tryOn'),
+                    retryAction: 'resubmit',
                   }
                 : tile,
             ),
@@ -223,7 +278,7 @@ export function StoreTryOnComparePanel({
                         : json.data.status === 'failed'
                           ? 'failed'
                           : 'processing',
-                    resultImageUrl: null,
+                    retryAction: json.data.status === 'failed' ? 'resubmit' : 'none',
                     frame: { ...tile.frame, ...json.data.frame },
                   }
                 : tile,
@@ -234,13 +289,13 @@ export function StoreTryOnComparePanel({
         setTiles((current) =>
           current.map((tile) =>
             tile.merchantFrameId === frame.id
-              ? { ...tile, status: 'failed', errorMessage: t('errors.tryOn') }
+              ? { ...tile, status: 'failed', errorMessage: t('errors.tryOn'), retryAction: 'resubmit' }
               : tile,
           ),
         )
       }
 
-      if (i < selectedFrames.length - 1) {
+      if (i < framesToSubmit.length - 1) {
         await sleep(FRAME_DISPATCH_STAGGER_MS)
       }
     }
@@ -248,6 +303,7 @@ export function StoreTryOnComparePanel({
     setDispatching(false)
   }, [
     selectedFrames,
+    tiles,
     dispatching,
     merchantSlug,
     merchantSessionId,
@@ -266,84 +322,187 @@ export function StoreTryOnComparePanel({
     .join(',')
 
   useEffect(() => {
-    if (!activeTaskKey) {
-      if (pollRef.current) {
-        clearInterval(pollRef.current)
-        pollRef.current = null
+    const taskIds = activeTaskKey ? activeTaskKey.split(',').filter(Boolean) : []
+    const active = new Set(taskIds)
+
+    for (const [taskId, stop] of [...pollControllersRef.current.entries()]) {
+      if (!active.has(taskId)) {
+        stop()
+        pollControllersRef.current.delete(taskId)
       }
-      return
     }
 
-    const taskIds = activeTaskKey.split(',').filter(Boolean)
-
-    const pollOnce = async () => {
-      await Promise.all(
-        taskIds.map(async (taskId) => {
-          try {
-            const res = await fetch('/api/store/sessions/try-on/poll', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                merchantSlug,
-                merchantSessionId,
-                taskId,
-                locale,
-                deviceType: deviceTypeLabel(),
-              }),
-            })
-            const json = await res.json()
-            if (!res.ok || !json.success) return
-
-            const status = String(json.data.status).toLowerCase()
-            setTiles((current) =>
-              current.map((item) =>
-                item.taskId === taskId
-                  ? {
-                      ...item,
-                      status:
-                        status === 'completed'
-                          ? 'completed'
-                          : status === 'failed'
-                            ? 'failed'
-                            : 'processing',
-                      resultImageUrl: json.data.resultImageUrl ?? item.resultImageUrl,
-                      errorMessage: json.data.errorMessage ?? item.errorMessage,
-                      frame: json.data.frame
-                        ? { ...item.frame, ...json.data.frame }
-                        : item.frame,
-                    }
-                  : item,
-              ),
-            )
-          } catch {
-            // keep polling
+    const applyTile = (taskId: string, patch: Partial<TryOnTile>) => {
+      setTiles((current) =>
+        current.map((item) => {
+          if (item.taskId !== taskId) return item
+          if (item.status === 'completed' && patch.status && patch.status !== 'completed') {
+            return item
           }
+          return { ...item, ...patch }
         }),
       )
     }
 
-    void pollOnce()
-    pollRef.current = setInterval(() => {
-      void pollOnce()
-    }, 7000)
+    const failMessage = (reason: StoreTryOnPollFailReason) => {
+      if (reason === 'timed_out') return t('tryOn.timedOut')
+      if (reason === 'session_restart') return t('errors.sessionRestart')
+      if (reason === 'unavailable') return t('errors.capabilityUnavailable')
+      if (reason === 'not_found') return t('tryOn.failed')
+      return t('errors.tryOn')
+    }
+
+    for (const taskId of taskIds) {
+      if (pollControllersRef.current.has(taskId)) continue
+
+      const handle = startStoreTryOnPollLoop({
+        poll: async (signal) => {
+          const res = await fetch('/api/store/sessions/try-on/poll', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              merchantSlug,
+              merchantSessionId,
+              taskId,
+              locale,
+              deviceType: deviceTypeLabel(),
+            }),
+            signal,
+          })
+          let body: unknown = null
+          try {
+            body = await res.json()
+          } catch {
+            body = null
+          }
+          return {
+            httpStatus: res.status,
+            retryAfterHeader: res.headers.get('retry-after'),
+            body,
+          }
+        },
+        onTerminal: (result) => {
+          pollControllersRef.current.delete(taskId)
+          if (result.kind === 'completed') {
+            applyTile(taskId, {
+              status: 'completed',
+              resultImageUrl: result.data.resultImageUrl ?? null,
+              errorMessage: null,
+              retryAction: 'none',
+            })
+            if (result.data.frame) {
+              setTiles((current) =>
+                current.map((item) =>
+                  item.taskId === taskId
+                    ? { ...item, frame: { ...item.frame, ...(result.data.frame as Partial<FrameMeta>) } }
+                    : item,
+                ),
+              )
+            }
+            return
+          }
+          if (result.kind === 'confirmed_failed') {
+            applyTile(taskId, {
+              status: 'failed',
+              errorMessage: result.data.errorMessage || t('tryOn.failed'),
+              retryAction: 'resubmit',
+            })
+            return
+          }
+          if (result.kind === 'timed_out') {
+            applyTile(taskId, {
+              status: 'timed_out',
+              errorMessage: t('tryOn.timedOut'),
+              retryAction: 'resume',
+            })
+            return
+          }
+          if (result.kind === 'entitlement') {
+            setContinuationState(result.code)
+            applyTile(taskId, {
+              status: 'failed',
+              errorMessage: t('errors.tryOn'),
+              retryAction: 'none',
+            })
+            return
+          }
+          if (result.reason === 'session_restart') {
+            setSessionNotice('session_restart')
+            applyTile(taskId, {
+              status: 'failed',
+              errorMessage: failMessage(result.reason),
+              retryAction: 'none',
+            })
+            return
+          }
+          if (result.reason === 'unavailable' || result.reason === 'forbidden') {
+            setSessionNotice('unavailable')
+            applyTile(taskId, {
+              status: 'failed',
+              errorMessage: failMessage(result.reason),
+              retryAction: 'none',
+            })
+            return
+          }
+          applyTile(taskId, {
+            status: isUnknownPollFailure(result.reason) ? 'status_unknown' : 'failed',
+            errorMessage: failMessage(result.reason),
+            retryAction: retryActionForPollFailure(result.reason),
+          })
+        },
+      })
+      pollControllersRef.current.set(taskId, handle.stop)
+    }
 
     return () => {
-      if (pollRef.current) {
-        clearInterval(pollRef.current)
-        pollRef.current = null
+      for (const taskId of taskIds) {
+        const stop = pollControllersRef.current.get(taskId)
+        if (stop) {
+          stop()
+          pollControllersRef.current.delete(taskId)
+        }
       }
     }
-  }, [activeTaskKey, merchantSlug, merchantSessionId, locale])
+  }, [activeTaskKey, merchantSlug, merchantSessionId, locale, t])
+
+  useEffect(() => {
+    const controllers = pollControllersRef.current
+    return () => {
+      for (const stop of controllers.values()) stop()
+      controllers.clear()
+    }
+  }, [])
+
+  useEffect(() => {
+    const tasks = tiles
+      .filter((tile): tile is TryOnTile & { taskId: string } => Boolean(tile.taskId))
+      .map((tile) => ({ merchantFrameId: tile.merchantFrameId, taskId: tile.taskId }))
+    onTryOnTasksChange?.(tasks)
+  }, [tiles, onTryOnTasksChange])
 
   const completed = tiles.filter((tile) => tile.status === 'completed' && tile.resultImageUrl)
   const showCompare = experiencePolicy.compareEnabled && compareStarted && completed.length >= 2
 
-  const retryFailed = async (tile: TryOnTile) => {
-    if (!batchId) return
+  const resumeUnknownStatus = (tile: TryOnTile) => {
+    if (!tile.taskId) return
+    setSessionNotice(null)
     setTiles((current) =>
       current.map((item) =>
         item.merchantFrameId === tile.merchantFrameId
-          ? { ...item, status: 'queued', errorMessage: null, taskId: null }
+          ? { ...item, status: 'processing', errorMessage: null, retryAction: 'none' }
+          : item,
+      ),
+    )
+  }
+
+  const resubmitFailed = async (tile: TryOnTile) => {
+    if (!batchId || tile.retryAction !== 'resubmit') return
+    if (inFlightSubmitRef.current.has(tile.merchantFrameId)) return
+    inFlightSubmitRef.current.add(tile.merchantFrameId)
+    setTiles((current) =>
+      current.map((item) =>
+        item.merchantFrameId === tile.merchantFrameId
+          ? { ...item, status: 'queued', errorMessage: null, taskId: null, retryAction: 'none' }
           : item,
       ),
     )
@@ -378,6 +537,7 @@ export function StoreTryOnComparePanel({
                   ...item,
                   status: 'failed',
                   errorMessage: json.error || t('errors.tryOn'),
+                  retryAction: 'resubmit',
                 }
               : item,
           ),
@@ -391,6 +551,7 @@ export function StoreTryOnComparePanel({
                 ...item,
                 taskId: json.data.taskId,
                 status: 'processing',
+                retryAction: 'none',
               }
             : item,
         ),
@@ -399,12 +560,18 @@ export function StoreTryOnComparePanel({
       setTiles((current) =>
         current.map((item) =>
           item.merchantFrameId === tile.merchantFrameId
-            ? { ...item, status: 'failed', errorMessage: t('errors.tryOn') }
+            ? { ...item, status: 'failed', errorMessage: t('errors.tryOn'), retryAction: 'resubmit' }
             : item,
         ),
       )
+    } finally {
+      inFlightSubmitRef.current.delete(tile.merchantFrameId)
     }
   }
+
+  const framesNeedingSubmit = selectedFrames.filter(
+    (frame) => !tiles.some((tile) => tile.merchantFrameId === frame.id && Boolean(tile.taskId)),
+  )
 
   return (
     <section className="rounded-[2rem] border border-slate-200/80 bg-white p-5 shadow-[0_22px_70px_rgba(15,23,42,0.07)] sm:p-7">
@@ -414,11 +581,12 @@ export function StoreTryOnComparePanel({
           <h2 className="mt-2 font-serif text-2xl font-semibold text-slate-950 sm:text-3xl">{t('tryOn.title')}</h2>
           <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-500">{t('tryOn.subtitle')}</p>
         </div>
-        {tiles.length === 0 ? (
+        {framesNeedingSubmit.length > 0 ? (
           <button
             type="button"
             onClick={() => void startTryOn()}
             disabled={dispatching}
+            data-testid="store-tryon-start"
             className="inline-flex items-center gap-2 rounded-2xl px-5 py-3 text-sm font-semibold text-white shadow-lg transition hover:-translate-y-0.5 hover:shadow-xl disabled:opacity-60"
             style={{ backgroundColor: accent }}
           >
@@ -430,12 +598,28 @@ export function StoreTryOnComparePanel({
             ) : (
               <>
                 <Sparkles className="h-4 w-4" />
-                {t('tryOn.start', { count: selectedFrames.length })}
+                {framesNeedingSubmit.length === 1
+                  ? (t.has('tryOn.startOne') ? t('tryOn.startOne') : 'Try On This Frame')
+                  : t('tryOn.start', { count: framesNeedingSubmit.length })}
               </>
             )}
           </button>
         ) : null}
       </div>
+
+      {sessionNotice ? (
+        <div
+          className="mb-6 rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-800"
+          role="alert"
+          data-testid={sessionNotice === 'session_restart' ? 'store-tryon-session-restart' : 'store-tryon-unavailable'}
+        >
+          <p className="font-semibold">
+            {sessionNotice === 'session_restart'
+              ? t('errors.sessionRestart')
+              : t('errors.capabilityUnavailable')}
+          </p>
+        </div>
+      ) : null}
 
       {continuationState ? (
         <div
@@ -485,6 +669,7 @@ export function StoreTryOnComparePanel({
                       <img
                         src={tile.resultImageUrl}
                         alt={tile.frame.name}
+                        data-testid={`store-tryon-result-${tile.taskId || tile.merchantFrameId}`}
                         className="h-full w-full object-cover"
                       />
                     ) : (
@@ -499,19 +684,37 @@ export function StoreTryOnComparePanel({
                             </span>
                           </>
                         )}
-                        {tile.status === 'failed' && (
+                        {tile.status === 'failed' || tile.status === 'timed_out' || tile.status === 'status_unknown' ? (
                           <>
-                            <p className="text-red-600">{tile.errorMessage || t('tryOn.failed')}</p>
-                            <button
-                              type="button"
-                              onClick={() => void retryFailed(tile)}
-                              className="inline-flex items-center gap-1 text-sm font-medium text-gray-800 underline"
-                            >
-                              <RefreshCw className="h-3.5 w-3.5" />
-                              {t('tryOn.retry')}
-                            </button>
+                            <p className={tile.status === 'failed' ? 'text-red-600' : 'text-amber-800'}>
+                              {tile.errorMessage || (tile.status === 'timed_out'
+                                ? t('tryOn.timedOut')
+                                : t('tryOn.failed'))}
+                            </p>
+                            {tile.retryAction === 'resume' ? (
+                              <button
+                                type="button"
+                                data-testid="store-tryon-check-again"
+                                onClick={() => resumeUnknownStatus(tile)}
+                                className="inline-flex items-center gap-1 text-sm font-medium text-gray-800 underline"
+                              >
+                                <RefreshCw className="h-3.5 w-3.5" />
+                                {t('tryOn.checkAgain')}
+                              </button>
+                            ) : null}
+                            {tile.retryAction === 'resubmit' ? (
+                              <button
+                                type="button"
+                                data-testid="store-tryon-try-again"
+                                onClick={() => void resubmitFailed(tile)}
+                                className="inline-flex items-center gap-1 text-sm font-medium text-gray-800 underline"
+                              >
+                                <RefreshCw className="h-3.5 w-3.5" />
+                                {t('tryOn.tryAgain')}
+                              </button>
+                            ) : null}
                           </>
-                        )}
+                        ) : null}
                       </div>
                     )}
                   </div>
