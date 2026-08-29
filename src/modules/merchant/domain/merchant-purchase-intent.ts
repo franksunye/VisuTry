@@ -1,4 +1,5 @@
 import type { MerchantBillablePlanCode } from './merchant-billing'
+import type { MerchantBillingState } from './merchant-billing-state'
 
 /**
  * The only commercial intent that may cross the public Pricing/Auth boundary.
@@ -43,6 +44,8 @@ export type MerchantPurchaseAction =
   | 'CHECKOUT'
   | 'CHANGE_PLAN'
   | 'MANAGE_BILLING'
+  | 'BILLING_DISABLED'
+  | 'BILLING_RECOVERY'
   | 'CURRENT'
   | 'WORKSPACE'
   | 'DUPLICATE_PILOT'
@@ -75,13 +78,14 @@ export function resolveMerchantPurchaseAction(input: {
   commercialStatus?: string | null
   stripeSubscriptionId?: string | null
   subscriptionStatus?: string | null
+  /** Prefer this verified server-side state over raw persisted fields. */
+  billingState?: MerchantBillingState | null
   /** True when a processed Founding Pilot receipt exists for this Merchant. */
   foundingPilotConsumed?: boolean
 }): MerchantPurchaseAction {
   if (input.intent === 'FREE') return 'WORKSPACE'
   const currentPlan = parseMerchantPurchaseIntent(input.currentPlanCode)
   const status = input.commercialStatus?.trim().toUpperCase()
-  const activeSubscription = Boolean(input.stripeSubscriptionId) && hasActiveMerchantSubscription(input.subscriptionStatus)
 
   const foundingPilotConsumed = input.foundingPilotConsumed === true
     || currentPlan === 'FOUNDING_PILOT'
@@ -91,6 +95,26 @@ export function resolveMerchantPurchaseAction(input: {
   if (input.intent === 'FOUNDING_PILOT' && foundingPilotConsumed) {
     return 'DUPLICATE_PILOT'
   }
+
+  if (input.billingState) {
+    switch (input.billingState.kind) {
+      case 'BILLING_DISABLED':
+        return 'BILLING_DISABLED'
+      case 'SUBSCRIPTION_MISSING':
+      case 'SUBSCRIPTION_INVALID':
+      case 'PROVIDER_UNAVAILABLE':
+        return 'BILLING_RECOVERY'
+      case 'PAYMENT_ATTENTION':
+        return 'MANAGE_BILLING'
+      case 'VALID_SUBSCRIPTION':
+        if (input.intent === 'FOUNDING_PILOT') return 'MANAGE_BILLING'
+        return currentPlan === input.intent ? 'CURRENT' : 'CHANGE_PLAN'
+      case 'NO_SUBSCRIPTION':
+        return 'CHECKOUT'
+    }
+  }
+
+  const activeSubscription = Boolean(input.stripeSubscriptionId) && hasActiveMerchantSubscription(input.subscriptionStatus)
   if (status && BILLING_ACTION_STATUSES.has(status)) return 'MANAGE_BILLING'
   if (activeSubscription) {
     if (input.intent !== 'FOUNDING_PILOT' && currentPlan === input.intent) return 'CURRENT'

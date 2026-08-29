@@ -5,7 +5,7 @@ import { authOptions } from '@/lib/auth-runtime'
 import { listMerchantsForUser } from '@/modules/merchant/application/merchant-memberships'
 import { requireMerchantMembership } from '@/modules/merchant/application/merchant-access'
 import { getMerchantCommercialState } from '@/modules/merchant/application/merchant-commercial-entitlements'
-import { getMerchantBillingSummary, hasMerchantFoundingPilotReceipt } from '@/modules/merchant/application/merchant-billing'
+import { getMerchantBillingState, hasMerchantFoundingPilotReceipt } from '@/modules/merchant/application/merchant-billing'
 import { getMerchantPlanDefinition } from '@/modules/merchant/domain/merchant-commercial-plans'
 import {
   merchantBillablePlanFromPurchaseIntent,
@@ -46,9 +46,9 @@ export default async function MerchantPurchasePage({ params, searchParams }: Pro
   if (!selected) notFound()
 
   await requireMerchantMembership({ userId: session.user.id, merchantId: selected.merchant.id, roles: ['OWNER', 'ADMIN'] })
-  const [commercial, billing, foundingPilotConsumed] = await Promise.all([
+  const [commercial, billingState, foundingPilotConsumed] = await Promise.all([
     getMerchantCommercialState({ merchantId: selected.merchant.id }),
-    getMerchantBillingSummary({ merchantId: selected.merchant.id }),
+    getMerchantBillingState({ merchantId: selected.merchant.id }),
     intent === 'FOUNDING_PILOT'
       ? hasMerchantFoundingPilotReceipt({ merchantId: selected.merchant.id })
       : Promise.resolve(false),
@@ -58,8 +58,7 @@ export default async function MerchantPurchasePage({ params, searchParams }: Pro
     intent,
     currentPlanCode: commercial.planCode,
     commercialStatus: commercial.status,
-    stripeSubscriptionId: billing?.stripeSubscriptionId,
-    subscriptionStatus: billing?.subscriptionStatus,
+    billingState: billingState.state,
     foundingPilotConsumed,
   })
 
@@ -71,5 +70,6 @@ export default async function MerchantPurchasePage({ params, searchParams }: Pro
     plan={getMerchantPlanDefinition(planCode)}
     action={action}
     currentPlanName={commercial.plan?.name ?? null}
+    billingState={billingState.state}
   />
 }
