@@ -17,9 +17,8 @@ import { Inter, Noto_Sans_Arabic } from 'next/font/google'
 import { locales, localeDirections, type Locale } from '@/i18n'
 import { GoogleAnalytics } from '@/components/analytics/GoogleAnalytics'
 import { GoogleTagManager } from '@/components/analytics/GoogleTagManager'
-import { PaymentConversionTracker } from '@/components/analytics/PaymentConversionTracker'
-import { SessionProvider } from '@/components/providers/SessionProvider'
 import { generateI18nSEO } from '@/lib/seo'
+import { resolvePublicAnalyticsBootstrap } from '@/lib/public-analytics-bootstrap'
 import { Metadata } from 'next'
 import { ReactNode } from 'react'
 import { pickMessages } from '@/components/i18n/RouteMessagesProvider'
@@ -84,8 +83,10 @@ export default async function LocaleLayout(props: Props) {
   // or pricing visit does not receive face-analysis/store copy as well.
   const clientMessages = pickMessages(messages as Record<string, unknown>, ['common', 'nav', 'footer'])
 
-  const gaId = process.env.NEXT_PUBLIC_GA_ID
-  const gtmId = process.env.NEXT_PUBLIC_GTM_ID
+  const analytics = resolvePublicAnalyticsBootstrap({
+    gtmId: process.env.NEXT_PUBLIC_GTM_ID,
+    gaId: process.env.NEXT_PUBLIC_GA_ID,
+  })
 
   const direction = localeDirections[locale as Locale]
 
@@ -100,12 +101,9 @@ export default async function LocaleLayout(props: Props) {
         <link rel="dns-prefetch" href="https://www.googletagmanager.com" />
       </head>
       <body className={`${inter.variable} ${notoSansArabic.variable}`} suppressHydrationWarning>
-        <SessionProvider>
-          {gtmId && <GoogleTagManager gtmId={gtmId} />}
-          {gaId && <GoogleAnalytics gaId={gaId} locale={locale} />}
-          <PaymentConversionTracker />
-          <NextIntlClientProvider messages={clientMessages}>{children}</NextIntlClientProvider>
-        </SessionProvider>
+        {analytics.mode === 'gtm' ? <GoogleTagManager gtmId={analytics.gtmId} /> : null}
+        {analytics.mode === 'gtag' ? <GoogleAnalytics gaId={analytics.gaId} locale={locale} /> : null}
+        <NextIntlClientProvider messages={clientMessages}>{children}</NextIntlClientProvider>
       </body>
     </html>
   )

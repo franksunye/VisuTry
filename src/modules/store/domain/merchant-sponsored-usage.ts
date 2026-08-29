@@ -44,6 +44,19 @@ export function isMerchantSponsoredUsageEnabled(): boolean {
   return process.env.NODE_ENV === 'production'
 }
 
+/**
+ * Public shopper hint: how many sponsored generations an anonymous guest can
+ * complete without auth continuation. Null means there is no sponsored guest
+ * ceiling (merchant commercial entitlement applies instead).
+ */
+export function resolveGuestSponsoredTryOnLimit(
+  fields: MerchantSponsoredPolicyFields,
+): number | null {
+  const policy = resolveMerchantSponsoredUsagePolicy(fields)
+  if (!policy.enabled) return null
+  return policy.sponsoredGenerationLimit
+}
+
 /** Resolve a server-owned policy from an explicit policy key only. */
 export function resolveMerchantSponsoredUsagePolicy(
   fields: MerchantSponsoredPolicyFields,

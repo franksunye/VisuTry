@@ -42,8 +42,8 @@ import { recordStoreTryOnAttempt } from './settle-store-usage'
 import { fetchImageAsFile } from './fetch-image-file'
 import { assertSameMerchantTenant } from './tenant-guards'
 import {
-  DEFAULT_STORE_ABUSE_LIMITS,
   dayWindowStart,
+  getStoreAbuseLimits,
   retryAfterSeconds,
 } from './store-abuse-limits'
 import { computeStoreAssetExpiresAt } from '../infrastructure/config/store-demo-limits'
@@ -339,6 +339,7 @@ async function claimStoreTryOnSlot(input: {
             throw new StoreDomainError('ALLOWANCE_EXCEEDED', allowance.reason, 429)
           }
 
+          const abuseLimits = getStoreAbuseLimits()
           const merchantAbuse = await tx.storeAbuseCounter.upsert({
             where: {
               merchantId_bucket_windowStart: {
@@ -355,7 +356,7 @@ async function claimStoreTryOnSlot(input: {
             },
             update: { count: { increment: 1 } },
           })
-          if (merchantAbuse.count > DEFAULT_STORE_ABUSE_LIMITS.maxAttemptsPerMerchantPerDay) {
+          if (merchantAbuse.count > abuseLimits.maxAttemptsPerMerchantPerDay) {
             throw new StoreDomainError(
               'ALLOWANCE_EXCEEDED',
               'Merchant daily try-on attempt limit reached.',
@@ -380,7 +381,7 @@ async function claimStoreTryOnSlot(input: {
             },
             update: { count: { increment: 1 } },
           })
-          if (ipAbuse.count > 40) {
+          if (ipAbuse.count > abuseLimits.maxAttemptsPerIpPerDay) {
             throw new StoreDomainError(
               'ALLOWANCE_EXCEEDED',
               'Too many try-on attempts from this network.',
@@ -400,7 +401,7 @@ async function claimStoreTryOnSlot(input: {
           })
           if (
             failureAbuse &&
-            failureAbuse.count >= DEFAULT_STORE_ABUSE_LIMITS.maxFailuresPerMerchantPerDay
+            failureAbuse.count >= abuseLimits.maxFailuresPerMerchantPerDay
           ) {
             throw new StoreDomainError(
               'ALLOWANCE_EXCEEDED',
@@ -933,7 +934,7 @@ export async function submitStoreFrameTryOn(
     } catch {
       // Event write is best-effort after failure marking.
     }
-    if (failure.count >= DEFAULT_STORE_ABUSE_LIMITS.maxFailuresPerMerchantPerDay) {
+    if (failure.count >= getStoreAbuseLimits().maxFailuresPerMerchantPerDay) {
       throw new StoreDomainError(
         'ALLOWANCE_EXCEEDED',
         'Merchant daily try-on failure limit reached.',

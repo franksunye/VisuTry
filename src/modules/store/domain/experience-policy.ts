@@ -40,9 +40,25 @@ export function resolveStoreExperiencePolicy(input: {
   }
 }
 
+export type StoreFrameSelectionContext = {
+  /** Sponsored guest generation ceiling. Null means no sponsored cap (commercial/compare policy applies). */
+  guestSponsoredTryOnLimit?: number | null
+  /** Signed-in / continuation shoppers may use the full compare shortlist. */
+  guestCompareUnlocked?: boolean
+}
+
 /** Selection is shared by the Try-On shortlist; disabled compare never exposes a multi-frame path. */
-export function maxSelectableStoreFrames(policy: StoreExperiencePolicy): number {
-  return policy.compareEnabled ? policy.maxCompareFrames : 1
+export function maxSelectableStoreFrames(
+  policy: StoreExperiencePolicy,
+  context: StoreFrameSelectionContext = {},
+): number {
+  const policyMax = policy.compareEnabled ? policy.maxCompareFrames : 1
+  if (context.guestCompareUnlocked) return policyMax
+  const guestLimit = context.guestSponsoredTryOnLimit
+  if (typeof guestLimit === 'number' && guestLimit > 0) {
+    return Math.min(policyMax, guestLimit)
+  }
+  return policyMax
 }
 
 export function experiencePolicyMetadata(

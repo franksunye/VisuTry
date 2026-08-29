@@ -851,7 +851,8 @@
       "saving": "Saving…",
       "savedTitle": "Selection saved",
       "savedBody": "Start virtual try-on for your selected frames below.",
-      "tryOnComingSoon": "Continue to try-on (next)"
+      "tryOnComingSoon": "Continue to try-on (next)",
+      "tryOnThisFrame": "Try On This Frame"
     },
     "tryOn": {
       "title": "Virtual try-on",
@@ -865,7 +866,9 @@
       "viewProduct": "View product",
       "openCompare": "Compare {count} results",
       "compareTitle": "Side-by-side compare",
-      "compareHint": "Same shopper photo across selected frames."
+      "compareHint": "Same shopper photo across selected frames.",
+      "startOne": "Try On This Frame",
+      "timedOut": "Try-On is taking longer than expected"
     },
     "intent": {
       "favorite": "Favorite",

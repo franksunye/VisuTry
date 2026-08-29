@@ -6,6 +6,7 @@ import { InteractiveCommerceLauncher } from '@/components/store/InteractiveComme
 import { StorePresentationDisclosure } from '@/components/store/StorePresentationDisclosure'
 import { resolveStoreAssetAccessPolicy } from '@/modules/store/infrastructure/config/store-asset-access-policy'
 import { getPublicExperienceDiscoveryForRoute } from '@/modules/store/application/get-public-experience-discovery-route'
+import { publicMerchantFromDiscovery } from '@/modules/store/application/get-public-merchant'
 import { isPublicCampaignRouteAdmitted } from '@/modules/store/application/public-route-admission'
 import { buildExperienceDiscoveryMetadata, discoveryCanonicalUrl } from '@/lib/store-discovery-seo'
 import { getValidLocale } from '@/i18n'
@@ -83,6 +84,7 @@ export default async function CampaignExperiencePage({ params }: CampaignExperie
           locale={locale}
           publicPocStorage={assetPolicy.publicPoc}
           generativeTryOnAvailable={discovery.merchant.generativeTryOnAvailable}
+          initialPublicMerchant={publicMerchantFromDiscovery(discovery)}
       />
     </RouteMessagesProvider>
     <div className="bg-[#f7f8fb] px-5 pb-8 sm:px-8 lg:px-10">

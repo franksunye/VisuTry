@@ -5,6 +5,12 @@ import { useTranslations } from 'next-intl'
 import Link from 'next/link'
 import { Heart, Loader2, RefreshCw, Sparkles } from 'lucide-react'
 import { FRAME_DISPATCH_STAGGER_MS, sleep } from '@/lib/try-on/batch-types'
+import {
+  decidePollHttpStatus,
+  decidePollNetworkFailure,
+  nextPollDelayMs,
+  STORE_TRYON_POLL_MAX_DURATION_MS,
+} from '@/lib/store-tryon-poll-policy'
 import { buildStoreOutboundUrl } from '@/lib/store-outbound-links'
 import {
   appendMerchantContinuation,
@@ -28,7 +34,7 @@ type FrameMeta = {
 type TryOnTile = {
   merchantFrameId: string
   taskId: string | null
-  status: 'queued' | 'processing' | 'completed' | 'failed'
+  status: 'queued' | 'processing' | 'completed' | 'failed' | 'timed_out'
   resultImageUrl: string | null
   errorMessage: string | null
   frame: FrameMeta
@@ -94,7 +100,8 @@ export function StoreTryOnComparePanel({
   const [inquirySending, setInquirySending] = useState(false)
   const [inquirySent, setInquirySent] = useState(false)
   const [continuationState, setContinuationState] = useState<'AUTH_REQUIRED' | 'CONSUMER_CREDITS_REQUIRED' | null>(null)
-  const pollRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const pollControllersRef = useRef(new Map<string, () => void>())
+  const pollStartedAtRef = useRef(new Map<string, number>())
 
   useEffect(() => {
     if (initialBatchId && !batchId) setBatchId(initialBatchId)
@@ -266,74 +273,187 @@ export function StoreTryOnComparePanel({
     .join(',')
 
   useEffect(() => {
-    if (!activeTaskKey) {
-      if (pollRef.current) {
-        clearInterval(pollRef.current)
-        pollRef.current = null
+    const taskIds = activeTaskKey ? activeTaskKey.split(',').filter(Boolean) : []
+    const active = new Set(taskIds)
+
+    for (const [taskId, stop] of [...pollControllersRef.current.entries()]) {
+      if (!active.has(taskId)) {
+        stop()
+        pollControllersRef.current.delete(taskId)
+        pollStartedAtRef.current.delete(taskId)
       }
-      return
     }
 
-    const taskIds = activeTaskKey.split(',').filter(Boolean)
+    const applyTile = (taskId: string, patch: Partial<TryOnTile>) => {
+      setTiles((current) =>
+        current.map((item) => (item.taskId === taskId ? { ...item, ...patch } : item)),
+      )
+    }
 
-    const pollOnce = async () => {
-      await Promise.all(
-        taskIds.map(async (taskId) => {
-          try {
-            const res = await fetch('/api/store/sessions/try-on/poll', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                merchantSlug,
-                merchantSessionId,
-                taskId,
-                locale,
-                deviceType: deviceTypeLabel(),
-              }),
+    const failMessage = (reason: 'not_found' | 'server_error' | 'network' | 'timed_out' | 'forbidden') => {
+      if (reason === 'timed_out') return t('tryOn.timedOut')
+      if (reason === 'not_found') return t('tryOn.failed')
+      return t('errors.tryOn')
+    }
+
+    for (const taskId of taskIds) {
+      if (pollControllersRef.current.has(taskId)) continue
+      if (!pollStartedAtRef.current.has(taskId)) {
+        pollStartedAtRef.current.set(taskId, Date.now())
+      }
+      const startedAt = pollStartedAtRef.current.get(taskId)!
+      let cancelled = false
+      let timeoutId: ReturnType<typeof setTimeout> | null = null
+      let attempt = 0
+      let networkFailures = 0
+      let serverErrors = 0
+
+      const stop = () => {
+        cancelled = true
+        if (timeoutId) {
+          clearTimeout(timeoutId)
+          timeoutId = null
+        }
+      }
+
+      const schedule = (delayMs: number) => {
+        if (cancelled) return
+        timeoutId = setTimeout(() => {
+          void run()
+        }, delayMs)
+      }
+
+      const run = async () => {
+        if (cancelled) return
+        const elapsedMs = Date.now() - startedAt
+        if (elapsedMs >= STORE_TRYON_POLL_MAX_DURATION_MS) {
+          applyTile(taskId, { status: 'timed_out', errorMessage: t('tryOn.timedOut') })
+          return
+        }
+
+        try {
+          const res = await fetch('/api/store/sessions/try-on/poll', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              merchantSlug,
+              merchantSessionId,
+              taskId,
+              locale,
+              deviceType: deviceTypeLabel(),
+            }),
+          })
+          if (cancelled) return
+
+          const decision = decidePollHttpStatus({
+            status: res.status,
+            retryAfterHeader: res.headers.get('retry-after'),
+            serverErrorCount: serverErrors,
+            elapsedMs,
+          })
+
+          if (decision.action === 'entitlement') {
+            let code: 'AUTH_REQUIRED' | 'CONSUMER_CREDITS_REQUIRED' = 'AUTH_REQUIRED'
+            try {
+              const json = await res.json()
+              if (json.code === 'CONSUMER_CREDITS_REQUIRED') code = 'CONSUMER_CREDITS_REQUIRED'
+            } catch {
+              // Keep AUTH_REQUIRED when the body cannot be parsed.
+            }
+            setContinuationState(code)
+            applyTile(taskId, {
+              status: 'failed',
+              errorMessage: t('errors.tryOn'),
             })
-            const json = await res.json()
-            if (!res.ok || !json.success) return
+            return
+          }
 
-            const status = String(json.data.status).toLowerCase()
+          if (decision.action === 'fail') {
+            applyTile(taskId, {
+              status: decision.reason === 'timed_out' ? 'timed_out' : 'failed',
+              errorMessage: failMessage(decision.reason),
+            })
+            return
+          }
+
+          if (decision.action === 'retry') {
+            if (res.status >= 500) serverErrors += 1
+            attempt += 1
+            schedule(decision.delayMs)
+            return
+          }
+
+          const json = await res.json()
+          if (cancelled) return
+          if (!json.success) {
+            serverErrors += 1
+            const retry = decidePollHttpStatus({
+              status: 500,
+              serverErrorCount: serverErrors - 1,
+              elapsedMs,
+            })
+            if (retry.action === 'retry') {
+              attempt += 1
+              schedule(retry.delayMs)
+              return
+            }
+            applyTile(taskId, { status: 'failed', errorMessage: json.error || t('errors.tryOn') })
+            return
+          }
+
+          const status = String(json.data.status).toLowerCase()
+          if (status === 'completed' || status === 'failed') {
             setTiles((current) =>
               current.map((item) =>
                 item.taskId === taskId
                   ? {
                       ...item,
-                      status:
-                        status === 'completed'
-                          ? 'completed'
-                          : status === 'failed'
-                            ? 'failed'
-                            : 'processing',
+                      status: status === 'completed' ? 'completed' : 'failed',
                       resultImageUrl: json.data.resultImageUrl ?? item.resultImageUrl,
-                      errorMessage: json.data.errorMessage ?? item.errorMessage,
-                      frame: json.data.frame
-                        ? { ...item.frame, ...json.data.frame }
-                        : item.frame,
+                      errorMessage: json.data.errorMessage ?? (status === 'failed' ? t('tryOn.failed') : item.errorMessage),
+                      frame: json.data.frame ? { ...item.frame, ...json.data.frame } : item.frame,
                     }
                   : item,
               ),
             )
-          } catch {
-            // keep polling
+            return
           }
-        }),
-      )
-    }
 
-    void pollOnce()
-    pollRef.current = setInterval(() => {
-      void pollOnce()
-    }, 7000)
-
-    return () => {
-      if (pollRef.current) {
-        clearInterval(pollRef.current)
-        pollRef.current = null
+          attempt += 1
+          schedule(nextPollDelayMs(attempt))
+        } catch {
+          if (cancelled) return
+          networkFailures += 1
+          const decision = decidePollNetworkFailure({
+            networkFailureCount: networkFailures,
+            elapsedMs: Date.now() - startedAt,
+          })
+          if (decision.action === 'fail') {
+            applyTile(taskId, {
+              status: decision.reason === 'timed_out' ? 'timed_out' : 'failed',
+              errorMessage: failMessage(decision.reason),
+            })
+            return
+          }
+          attempt += 1
+          if (decision.action === 'retry') schedule(decision.delayMs)
+        }
       }
+
+      pollControllersRef.current.set(taskId, stop)
+      schedule(nextPollDelayMs(0))
     }
-  }, [activeTaskKey, merchantSlug, merchantSessionId, locale])
+  }, [activeTaskKey, merchantSlug, merchantSessionId, locale, t])
+
+  useEffect(() => {
+    const controllers = pollControllersRef.current
+    const startedAt = pollStartedAtRef.current
+    return () => {
+      for (const stop of controllers.values()) stop()
+      controllers.clear()
+      startedAt.clear()
+    }
+  }, [])
 
   const completed = tiles.filter((tile) => tile.status === 'completed' && tile.resultImageUrl)
   const showCompare = experiencePolicy.compareEnabled && compareStarted && completed.length >= 2
@@ -430,7 +550,9 @@ export function StoreTryOnComparePanel({
             ) : (
               <>
                 <Sparkles className="h-4 w-4" />
-                {t('tryOn.start', { count: selectedFrames.length })}
+                {selectedFrames.length === 1
+                  ? (t.has('tryOn.startOne') ? t('tryOn.startOne') : 'Try On This Frame')
+                  : t('tryOn.start', { count: selectedFrames.length })}
               </>
             )}
           </button>
@@ -499,9 +621,13 @@ export function StoreTryOnComparePanel({
                             </span>
                           </>
                         )}
-                        {tile.status === 'failed' && (
+                        {tile.status === 'failed' || tile.status === 'timed_out' ? (
                           <>
-                            <p className="text-red-600">{tile.errorMessage || t('tryOn.failed')}</p>
+                            <p className={tile.status === 'timed_out' ? 'text-amber-800' : 'text-red-600'}>
+                              {tile.errorMessage || (tile.status === 'timed_out'
+                                ? (t.has('tryOn.timedOut') ? t('tryOn.timedOut') : 'Try-On is taking longer than expected')
+                                : t('tryOn.failed'))}
+                            </p>
                             <button
                               type="button"
                               onClick={() => void retryFailed(tile)}
@@ -511,7 +637,7 @@ export function StoreTryOnComparePanel({
                               {t('tryOn.retry')}
                             </button>
                           </>
-                        )}
+                        ) : null}
                       </div>
                     )}
                   </div>

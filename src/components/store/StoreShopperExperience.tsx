@@ -20,48 +20,17 @@ import { StoreFitProfile, type StoreFitProfileCopy } from '@/components/store/St
 import { analyzeFaceLandmarkFile } from '@/lib/face-landmark-client'
 import type { FaceLandmarkDetectionResult } from '@/lib/face-landmark-client'
 import type { FaceGeometryAnalysis } from '@/types/face-analysis'
-import { maxSelectableStoreFrames, type StoreExperiencePolicy } from '@/modules/store/domain/experience-policy'
+import { maxSelectableStoreFrames } from '@/modules/store/domain/experience-policy'
 import { resolvePresentationMode } from '@/modules/store/domain/presentation-mode'
-import type { PresentationMode } from '@/modules/store/domain/presentation-mode'
 import { resolveStoreSelectionCtaState, resolveStoreWorkspaceStep } from '@/components/store/store-workspace-ux'
-import { MerchantShopperAccountControl } from '@/components/store/MerchantShopperAccountControl'
 import {
   createMerchantContinuation,
   getMerchantContinuationFromUrl,
   merchantRuntimeContinuationStorageKey,
 } from '@/lib/commerce-handoff/merchant-continuation'
+import type { PublicMerchantProfile } from '@/modules/store/application/get-public-merchant'
 
-type MerchantProfile = {
-  id: string
-  slug: string
-  name: string
-  logoUrl: string | null
-  websiteUrl: string | null
-  accentColor: string | null
-  pilotType: string | null
-  referenceData: boolean
-  experience: {
-    id: string
-    type: 'STORE' | 'CAMPAIGN'
-    slug: string
-    name: string
-    headline: string | null
-    description: string | null
-    heroAssetUrl: string | null
-    presentationMode: PresentationMode | null
-    referenceData: boolean
-  } | null
-  experiencePolicy: StoreExperiencePolicy
-  activeFrameCount: number
-  featuredFrames: Array<{
-    id: string
-    name: string
-    imageUrl: string | null
-    shape: string
-    color: string | null
-    productBrand: string | null
-  }>
-}
+type MerchantProfile = PublicMerchantProfile
 
 type SessionState = {
   merchantId: string
@@ -106,6 +75,7 @@ type StoreShopperExperienceProps = {
   experienceSlug?: string
   locale: string
   publicPocStorage: boolean
+  initialPublicMerchant?: PublicMerchantProfile | null
 }
 
 type LoadState = 'loading' | 'ready' | 'unavailable' | 'error'
@@ -213,10 +183,11 @@ export function StoreShopperExperience({
   experienceSlug,
   locale,
   publicPocStorage,
+  initialPublicMerchant = null,
 }: StoreShopperExperienceProps) {
   const t = useTranslations('storeShopper')
-  const [loadState, setLoadState] = useState<LoadState>('loading')
-  const [merchant, setMerchant] = useState<MerchantProfile | null>(null)
+  const [loadState, setLoadState] = useState<LoadState>(initialPublicMerchant ? 'ready' : 'loading')
+  const [merchant, setMerchant] = useState<MerchantProfile | null>(initialPublicMerchant)
   const [privacyAccepted, setPrivacyAccepted] = useState(false)
   const [session, setSession] = useState<SessionState | null>(null)
   const [sessionStarting, setSessionStarting] = useState(false)
@@ -232,6 +203,7 @@ export function StoreShopperExperience({
   const [faceDetection, setFaceDetection] = useState<FaceLandmarkDetectionResult | null>(null)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const [resumeBatchId, setResumeBatchId] = useState<string | null>(null)
+  const [guestCompareUnlocked, setGuestCompareUnlocked] = useState(false)
   const featuredFramesRef = useRef<HTMLElement>(null)
   const tryOnSectionRef = useRef<HTMLDivElement>(null)
   const [storeContinuationQuery, setStoreContinuationQuery] = useState('')
@@ -290,6 +262,12 @@ export function StoreShopperExperience({
     let cancelled = false
 
     async function loadMerchant() {
+      if (initialPublicMerchant) {
+        setMerchant(initialPublicMerchant)
+        setLoadState('ready')
+        return
+      }
+
       setLoadState('loading')
       setErrorMessage(null)
       try {
@@ -318,7 +296,7 @@ export function StoreShopperExperience({
     return () => {
       cancelled = true
     }
-  }, [merchantSlug, experienceSlug, t])
+  }, [merchantSlug, experienceSlug, t, initialPublicMerchant])
 
   useEffect(() => {
     if (!merchant || typeof window === 'undefined' || !runtimeContinuationKey || !merchantContinuationPath) return
@@ -364,6 +342,7 @@ export function StoreShopperExperience({
       setSelectedIds(validSelectedIds)
       setSelectionSaved(true)
       setResumeBatchId(typeof value.batchId === 'string' ? value.batchId : null)
+      setGuestCompareUnlocked(true)
     } catch {
       // Ignore malformed same-tab state and let the shopper restart cleanly.
     }
@@ -571,6 +550,11 @@ export function StoreShopperExperience({
     setFaceDetection(null)
   }
 
+  const frameSelectionContext = {
+    guestSponsoredTryOnLimit: merchant?.guestSponsoredTryOnLimit ?? null,
+    guestCompareUnlocked,
+  }
+
   const toggleFrame = (frameId: string) => {
     clearRuntimeContinuation()
     setResumeBatchId(null)
@@ -579,12 +563,13 @@ export function StoreShopperExperience({
       if (current.includes(frameId)) {
         return current.filter((id) => id !== frameId)
       }
-      if (current.length >= maxSelectableStoreFrames(merchant?.experiencePolicy ?? {
+      const max = maxSelectableStoreFrames(merchant?.experiencePolicy ?? {
         tryOnEnabled: true,
         compareEnabled: true,
         maxCompareFrames: 2,
         inquiryEnabled: false,
-      })) return current
+      }, frameSelectionContext)
+      if (current.length >= max) return current
       return [...current, frameId]
     })
   }
@@ -664,7 +649,10 @@ export function StoreShopperExperience({
     selectionContinued: selectionSaved,
     tryOnEnabled: merchant.experiencePolicy.tryOnEnabled,
   })
-  const maxSelectableFrames = maxSelectableStoreFrames(merchant.experiencePolicy)
+  const maxSelectableFrames = maxSelectableStoreFrames(merchant.experiencePolicy, {
+    guestSponsoredTryOnLimit: merchant.guestSponsoredTryOnLimit,
+    guestCompareUnlocked,
+  })
   const selectedFrames = recommendations.filter((frame) => selectedIds.includes(frame.id))
   const isCampaign = merchant.experience?.type === 'CAMPAIGN'
   const continuationText = (key: string, fallback: string) => t.has(key) ? t(key) : fallback
@@ -689,7 +677,9 @@ export function StoreShopperExperience({
   const selectionCtaLabel = selectionCtaState === 'continue-to-try-on'
     ? continuationText('recommend.continue', 'Continue to Try-On')
     : selectionCtaState === 'try-on-selected'
-      ? continuationText('recommend.tryOnSelected', 'Try on selected frames')
+      ? (maxSelectableFrames === 1
+        ? continuationText('recommend.tryOnThisFrame', 'Try On This Frame')
+        : continuationText('recommend.tryOnSelected', 'Try on selected frames'))
       : t('recommend.confirm', { count: selectedIds.length })
   const selectionBusyLabel = selectionCtaState === 'save-selection'
     ? t('recommend.saving')
@@ -740,12 +730,6 @@ export function StoreShopperExperience({
       <div className="relative mx-auto max-w-[1440px] px-5 pb-10 pt-5 sm:px-8 lg:px-10">
         <header className="flex items-center justify-between gap-3 rounded-3xl border border-white/80 bg-white/75 px-5 py-4 shadow-[0_18px_60px_rgba(15,23,42,0.06)] backdrop-blur-xl sm:px-7">
           <MerchantMark merchant={merchant} accent={accent} />
-          <MerchantShopperAccountControl
-            merchantSlug={merchantSlug}
-            experienceType={merchant.experience?.type || 'STORE'}
-            experienceSlug={merchant.experience?.type === 'CAMPAIGN' ? merchant.experience.slug : undefined}
-            locale={locale}
-          />
         </header>
 
         {!privacyAccepted ? (

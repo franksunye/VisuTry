@@ -9,16 +9,56 @@ export type StoreAbuseLimits = {
   maxSessionCreatesPerIpPerHour: number
   maxPhotoUploadsPerIpPerHour: number
   maxPhotoBytesPerIpPerDay: number
+  /**
+   * Security / flood ceiling per merchant per UTC day.
+   * This is not merchant commercial allowance (plan, sponsored, campaign quota).
+   */
   maxAttemptsPerMerchantPerDay: number
   maxFailuresPerMerchantPerDay: number
+  maxAttemptsPerIpPerDay: number
 }
 
+/**
+ * Abuse-protection defaults. Paid/pilot burst traffic is expected to stay
+ * well below this ceiling; raise via STORE_MERCHANT_DAILY_ATTEMPT_LIMIT
+ * rather than treating this number as a commercial SKU.
+ */
 export const DEFAULT_STORE_ABUSE_LIMITS: StoreAbuseLimits = {
   maxSessionCreatesPerIpPerHour: 30,
   maxPhotoUploadsPerIpPerHour: 40,
   maxPhotoBytesPerIpPerDay: 200 * 1024 * 1024,
-  maxAttemptsPerMerchantPerDay: 200,
+  maxAttemptsPerMerchantPerDay: 2_000,
   maxFailuresPerMerchantPerDay: 200,
+  maxAttemptsPerIpPerDay: 40,
+}
+
+function parsePositiveInt(value: string | undefined, fallback: number): number {
+  if (!value) return fallback
+  const parsed = Number.parseInt(value, 10)
+  if (!Number.isFinite(parsed) || parsed < 1) return fallback
+  return Math.min(parsed, 1_000_000)
+}
+
+/**
+ * Runtime abuse limits. Merchant daily attempt/failure ceilings are
+ * env-configurable so a paid campaign is not stuck on a hard-coded 200/day.
+ * IP upload/session/failure protections stay at the secure defaults unless
+ * an explicit override is supplied by the caller.
+ */
+export function getStoreAbuseLimits(
+  env: Record<string, string | undefined> = process.env,
+): StoreAbuseLimits {
+  return {
+    ...DEFAULT_STORE_ABUSE_LIMITS,
+    maxAttemptsPerMerchantPerDay: parsePositiveInt(
+      env.STORE_MERCHANT_DAILY_ATTEMPT_LIMIT,
+      DEFAULT_STORE_ABUSE_LIMITS.maxAttemptsPerMerchantPerDay,
+    ),
+    maxFailuresPerMerchantPerDay: parsePositiveInt(
+      env.STORE_MERCHANT_DAILY_FAILURE_LIMIT,
+      DEFAULT_STORE_ABUSE_LIMITS.maxFailuresPerMerchantPerDay,
+    ),
+  }
 }
 
 function hourWindowStart(now = new Date()): Date {
@@ -77,7 +117,7 @@ export async function assertStoreSessionCreateAllowed(input: {
   ip: string
   limits?: Partial<StoreAbuseLimits>
 }): Promise<void> {
-  const limits = { ...DEFAULT_STORE_ABUSE_LIMITS, ...input.limits }
+  const limits = { ...getStoreAbuseLimits(), ...input.limits }
   const windowStart = hourWindowStart()
   const { count } = await bumpCounter({
     merchantId: input.merchantId,
@@ -100,7 +140,7 @@ export async function assertStorePhotoUploadAllowed(input: {
   byteSize: number
   limits?: Partial<StoreAbuseLimits>
 }): Promise<void> {
-  const limits = { ...DEFAULT_STORE_ABUSE_LIMITS, ...input.limits }
+  const limits = { ...getStoreAbuseLimits(), ...input.limits }
   const hourStart = hourWindowStart()
   const dayStart = dayWindowStart()
 
@@ -139,7 +179,7 @@ export async function assertStoreMerchantAttemptAllowed(input: {
   merchantId: string
   limits?: Partial<StoreAbuseLimits>
 }): Promise<void> {
-  const limits = { ...DEFAULT_STORE_ABUSE_LIMITS, ...input.limits }
+  const limits = { ...getStoreAbuseLimits(), ...input.limits }
   const windowStart = dayWindowStart()
   const { count } = await bumpCounter({
     merchantId: input.merchantId,
@@ -160,7 +200,7 @@ export async function recordStoreMerchantFailureAbuse(input: {
   merchantId: string
   limits?: Partial<StoreAbuseLimits>
 }): Promise<void> {
-  const limits = { ...DEFAULT_STORE_ABUSE_LIMITS, ...input.limits }
+  const limits = { ...getStoreAbuseLimits(), ...input.limits }
   const windowStart = dayWindowStart()
   const { count } = await bumpCounter({
     merchantId: input.merchantId,

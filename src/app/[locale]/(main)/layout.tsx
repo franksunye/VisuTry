@@ -1,5 +1,6 @@
 import { Header } from '@/components/layout/Header'
 import { Footer } from '@/components/layout/Footer'
+import { ConsumerSessionBoundary } from '@/components/providers/ConsumerSessionBoundary'
 import { HomeStructuredData } from './home-structured-data'
 
 export default function MainLayout({
@@ -8,7 +9,7 @@ export default function MainLayout({
   children: React.ReactNode
 }) {
   return (
-    <>
+    <ConsumerSessionBoundary>
       <HomeStructuredData />
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex flex-col">
         <Header />
@@ -17,7 +18,7 @@ export default function MainLayout({
         </div>
         <Footer />
       </div>
-    </>
+    </ConsumerSessionBoundary>
   )
 }
 

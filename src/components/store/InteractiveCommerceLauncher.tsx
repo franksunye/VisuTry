@@ -8,6 +8,7 @@ import {
   getMerchantContinuationFromUrl,
   MERCHANT_CONTINUATION_PARAM,
 } from '@/lib/commerce-handoff/merchant-continuation'
+import type { PublicMerchantProfile } from '@/modules/store/application/get-public-merchant'
 
 const LazyStoreShopperExperience = dynamic(
   () => import('@/components/store/StoreShopperExperience').then((module) => module.StoreShopperExperience),
@@ -28,6 +29,7 @@ type InteractiveCommerceLauncherProps = {
   locale: string
   publicPocStorage: boolean
   generativeTryOnAvailable?: boolean
+  initialPublicMerchant?: PublicMerchantProfile | null
 }
 
 /**
@@ -41,6 +43,7 @@ export function InteractiveCommerceLauncher({
   locale,
   publicPocStorage,
   generativeTryOnAvailable = true,
+  initialPublicMerchant = null,
 }: InteractiveCommerceLauncherProps) {
   const [started, setStarted] = useState(false)
   const closeButtonRef = useRef<HTMLButtonElement>(null)
@@ -109,6 +112,7 @@ export function InteractiveCommerceLauncher({
                 experienceSlug={experienceSlug}
                 locale={locale}
                 publicPocStorage={publicPocStorage}
+                initialPublicMerchant={initialPublicMerchant}
               />
             </section>
           </div>

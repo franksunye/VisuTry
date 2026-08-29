@@ -825,7 +825,8 @@
       "saving": "Saving…",
       "savedTitle": "Pilihan tersimpan",
       "savedBody": "Start virtual try-on for your selected frames below.",
-      "tryOnComingSoon": "Lanjut ke try-on (berikutnya)"
+      "tryOnComingSoon": "Lanjut ke try-on (berikutnya)",
+      "tryOnThisFrame": "Try On This Frame"
     },
     "tryOn": {
       "title": "Virtual try-on",
@@ -839,7 +840,9 @@
       "viewProduct": "View product",
       "openCompare": "Compare {count} results",
       "compareTitle": "Side-by-side compare",
-      "compareHint": "Same shopper photo across selected frames."
+      "compareHint": "Same shopper photo across selected frames.",
+      "startOne": "Try On This Frame",
+      "timedOut": "Try-On is taking longer than expected"
     },
     "intent": {
       "favorite": "Favorite",

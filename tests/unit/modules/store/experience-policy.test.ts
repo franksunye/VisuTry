@@ -109,6 +109,8 @@ describe('Campaign Experience Policy v1', () => {
       inquiryEnabled: false,
     })
     expect(maxSelectableStoreFrames({ ...policy, compareEnabled: false })).toBe(1)
+    expect(maxSelectableStoreFrames(policy, { guestSponsoredTryOnLimit: 1 })).toBe(1)
+    expect(maxSelectableStoreFrames(policy, { guestSponsoredTryOnLimit: 1, guestCompareUnlocked: true })).toBe(2)
   })
 
   it('rejects Store Try-On before photo or generation work when disabled', async () => {

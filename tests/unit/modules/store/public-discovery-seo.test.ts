@@ -112,6 +112,7 @@ function discovery(): PublicExperienceDiscovery {
       accentColor: '#1f4b5a',
       generativeTryOnAvailable: true,
       referenceData: false,
+      pilotType: 'LIVE',
       updatedAt: date,
     },
     experience: {
@@ -128,6 +129,13 @@ function discovery(): PublicExperienceDiscovery {
       updatedAt: date,
     },
     frames: frames(),
+    experiencePolicy: {
+      tryOnEnabled: true,
+      compareEnabled: true,
+      maxCompareFrames: 2,
+      inquiryEnabled: false,
+    },
+    guestSponsoredTryOnLimit: null,
     visibility: 'PUBLIC_INDEX',
     lastModified: date,
   }
