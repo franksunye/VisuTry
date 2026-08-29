@@ -854,7 +854,9 @@
       "recommend": "Could not build recommendations. Please try again.",
       "select": "Could not save your frame selection.",
       "tryOn": "Try-on could not start. Please try again.",
-      "intent": "Could not save that action. Please try again."
+      "intent": "Could not save that action. Please try again.",
+      "sessionRestart": "Your session expired. Please start again.",
+      "capabilityUnavailable": "This store is temporarily unavailable."
     },
     "recommend": {
       "analyzing": "Finding frames that suit you…",
@@ -894,6 +896,8 @@
       "processing": "Generating…",
       "failed": "Try-on failed",
       "timedOut": "Try-On is taking longer than expected",
+      "checkAgain": "Check again",
+      "tryAgain": "Try again",
       "retry": "Retry",
       "viewProduct": "View product",
       "openCompare": "Compare {count} results",

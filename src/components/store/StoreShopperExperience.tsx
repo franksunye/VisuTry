@@ -28,6 +28,12 @@ import {
   getMerchantContinuationFromUrl,
   merchantRuntimeContinuationStorageKey,
 } from '@/lib/commerce-handoff/merchant-continuation'
+import {
+  parseMerchantRuntimeContinuationState,
+  serializeMerchantRuntimeContinuationState,
+  type MerchantRuntimeTryOnTaskRef,
+} from '@/lib/commerce-handoff/merchant-runtime-state'
+import { isPersistablePreviewUrl } from '@/lib/commerce-handoff/merchant-runtime-preview'
 import type { PublicMerchantProfile } from '@/modules/store/application/get-public-merchant'
 
 type MerchantProfile = PublicMerchantProfile
@@ -64,10 +70,7 @@ type RuntimeContinuationState = {
   selectedIds: string[]
   selectionSaved: boolean
   batchId: string | null
-}
-
-function isPersistablePreviewUrl(value: string): boolean {
-  return !value.startsWith('data:') && (value.startsWith('/') || value.startsWith('https://'))
+  tryOnTasks: MerchantRuntimeTryOnTaskRef[]
 }
 
 type StoreShopperExperienceProps = {
@@ -203,6 +206,7 @@ export function StoreShopperExperience({
   const [faceDetection, setFaceDetection] = useState<FaceLandmarkDetectionResult | null>(null)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const [resumeBatchId, setResumeBatchId] = useState<string | null>(null)
+  const [resumeTryOnTasks, setResumeTryOnTasks] = useState<MerchantRuntimeTryOnTaskRef[]>([])
   const [guestCompareUnlocked, setGuestCompareUnlocked] = useState(false)
   const featuredFramesRef = useRef<HTMLElement>(null)
   const tryOnSectionRef = useRef<HTMLDivElement>(null)
@@ -229,7 +233,7 @@ export function StoreShopperExperience({
     }
   }, [runtimeContinuationKey])
 
-  const persistRuntimeContinuation = useCallback((batchId = resumeBatchId) => {
+  const persistRuntimeContinuation = useCallback((batchId = resumeBatchId, tryOnTasks = resumeTryOnTasks) => {
     if (
       typeof window === 'undefined' ||
       !runtimeContinuationKey ||
@@ -250,13 +254,20 @@ export function StoreShopperExperience({
       selectedIds,
       selectionSaved: true,
       batchId,
+      tryOnTasks,
     }
     try {
-      sessionStorage.setItem(runtimeContinuationKey, JSON.stringify(value))
+      sessionStorage.setItem(
+        runtimeContinuationKey,
+        serializeMerchantRuntimeContinuationState({
+          ...value,
+          selectionSaved: true,
+        }),
+      )
     } catch {
       // Ignore unavailable or quota-limited storage.
     }
-  }, [photoPreview, recommendations, resumeBatchId, runtimeContinuationKey, selectedIds, selectionSaved, session])
+  }, [photoPreview, recommendations, resumeBatchId, resumeTryOnTasks, runtimeContinuationKey, selectedIds, selectionSaved, session])
 
   useEffect(() => {
     let cancelled = false
@@ -308,27 +319,17 @@ export function StoreShopperExperience({
     try {
       const raw = sessionStorage.getItem(runtimeContinuationKey)
       if (!raw) return
-      const value = JSON.parse(raw) as Partial<RuntimeContinuationState>
-      if (
-        typeof value.merchantId !== 'string' ||
-        typeof value.merchantSessionId !== 'string' ||
-        typeof value.expiresAt !== 'string' ||
-        new Date(value.expiresAt).getTime() <= Date.now() ||
-        typeof value.photoPreview !== 'string' ||
-        !isPersistablePreviewUrl(value.photoPreview) ||
-        !Array.isArray(value.recommendations) ||
-        !Array.isArray(value.selectedIds) ||
-        value.selectionSaved !== true
-      ) {
+      const parsedJson = JSON.parse(raw) as unknown
+      const value = parseMerchantRuntimeContinuationState(parsedJson)
+      if (!value) {
         sessionStorage.removeItem(runtimeContinuationKey)
         return
       }
 
       const validRecommendations = value.recommendations.filter((frame): frame is RecommendedFrame =>
-        Boolean(frame && typeof frame === 'object' && typeof frame.id === 'string'),
+        Boolean(frame && typeof frame === 'object' && typeof (frame as RecommendedFrame).id === 'string'),
       )
-      const validSelectedIds = value.selectedIds.filter((id): id is string => typeof id === 'string')
-      if (validRecommendations.length === 0 || validSelectedIds.length === 0) return
+      if (validRecommendations.length === 0 || value.selectedIds.length === 0) return
 
       setSession({
         merchantId: value.merchantId,
@@ -339,9 +340,10 @@ export function StoreShopperExperience({
       setPhotoPreview(value.photoPreview)
       setPhotoReady(true)
       setRecommendations(validRecommendations)
-      setSelectedIds(validSelectedIds)
+      setSelectedIds(value.selectedIds)
       setSelectionSaved(true)
-      setResumeBatchId(typeof value.batchId === 'string' ? value.batchId : null)
+      setResumeBatchId(value.batchId)
+      setResumeTryOnTasks(value.tryOnTasks)
       setGuestCompareUnlocked(true)
     } catch {
       // Ignore malformed same-tab state and let the shopper restart cleanly.
@@ -620,8 +622,16 @@ export function StoreShopperExperience({
 
   const handleContinuationBatchId = useCallback((batchId: string) => {
     setResumeBatchId(batchId)
-    persistRuntimeContinuation(batchId)
-  }, [persistRuntimeContinuation])
+    persistRuntimeContinuation(batchId, resumeTryOnTasks)
+  }, [persistRuntimeContinuation, resumeTryOnTasks])
+
+  const handleTryOnTasksChange = useCallback((tasks: MerchantRuntimeTryOnTaskRef[]) => {
+    setResumeTryOnTasks((current) => {
+      const currentKey = current.map((task) => `${task.merchantFrameId}:${task.taskId}`).sort().join(',')
+      const nextKey = tasks.map((task) => `${task.merchantFrameId}:${task.taskId}`).sort().join(',')
+      return currentKey === nextKey ? current : tasks
+    })
+  }, [])
 
   if (loadState === 'loading') {
     return (
@@ -882,7 +892,9 @@ export function StoreShopperExperience({
                       experiencePolicy={merchant.experiencePolicy}
                       onError={(message) => setErrorMessage(message || null)}
                       initialBatchId={resumeBatchId}
+                      initialTasks={resumeTryOnTasks}
                       onContinuationBatchId={handleContinuationBatchId}
+                      onTryOnTasksChange={handleTryOnTasksChange}
                     />
                   ) : null}
                 </div>

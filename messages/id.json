@@ -813,7 +813,9 @@
       "recommend": "Could not build recommendations. Please try again.",
       "select": "Could not save your frame selection.",
       "tryOn": "Try-on could not start. Please try again.",
-      "intent": "Could not save that action. Please try again."
+      "intent": "Could not save that action. Please try again.",
+      "sessionRestart": "Sesi Anda telah berakhir. Silakan mulai lagi.",
+      "capabilityUnavailable": "Toko ini sedang tidak tersedia."
     },
     "recommend": {
       "analyzing": "Mencari bingkai yang cocok…",
@@ -826,7 +828,7 @@
       "savedTitle": "Pilihan tersimpan",
       "savedBody": "Start virtual try-on for your selected frames below.",
       "tryOnComingSoon": "Lanjut ke try-on (berikutnya)",
-      "tryOnThisFrame": "Try On This Frame"
+      "tryOnThisFrame": "Coba Bingkai Ini"
     },
     "tryOn": {
       "title": "Virtual try-on",
@@ -841,8 +843,10 @@
       "openCompare": "Compare {count} results",
       "compareTitle": "Side-by-side compare",
       "compareHint": "Same shopper photo across selected frames.",
-      "startOne": "Try On This Frame",
-      "timedOut": "Try-On is taking longer than expected"
+      "startOne": "Coba Bingkai Ini",
+      "timedOut": "Uji coba virtual membutuhkan waktu lebih lama dari yang diharapkan",
+      "checkAgain": "Periksa lagi",
+      "tryAgain": "Coba lagi"
     },
     "intent": {
       "favorite": "Favorite",

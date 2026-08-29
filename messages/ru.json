@@ -813,7 +813,9 @@
       "recommend": "Could not build recommendations. Please try again.",
       "select": "Could not save your frame selection.",
       "tryOn": "Try-on could not start. Please try again.",
-      "intent": "Could not save that action. Please try again."
+      "intent": "Could not save that action. Please try again.",
+      "sessionRestart": "Срок действия сессии истёк. Начните заново.",
+      "capabilityUnavailable": "Этот магазин временно недоступен."
     },
     "recommend": {
       "analyzing": "Finding frames that suit you…",
@@ -827,7 +829,7 @@
       "savedTitle": "Selection saved",
       "savedBody": "Start virtual try-on for your selected frames below.",
       "tryOnComingSoon": "Continue to try-on (next)",
-      "tryOnThisFrame": "Try On This Frame"
+      "tryOnThisFrame": "Примерить эту оправу"
     },
     "tryOn": {
       "title": "Virtual try-on",
@@ -842,8 +844,10 @@
       "openCompare": "Compare {count} results",
       "compareTitle": "Side-by-side compare",
       "compareHint": "Same shopper photo across selected frames.",
-      "startOne": "Try On This Frame",
-      "timedOut": "Try-On is taking longer than expected"
+      "startOne": "Примерить эту оправу",
+      "timedOut": "Виртуальная примерка занимает больше времени, чем ожидалось",
+      "checkAgain": "Проверить снова",
+      "tryAgain": "Попробовать снова"
     },
     "intent": {
       "favorite": "Favorite",

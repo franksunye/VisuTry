@@ -838,7 +838,9 @@
       "recommend": "Could not build recommendations. Please try again.",
       "select": "Could not save your frame selection.",
       "tryOn": "Try-on could not start. Please try again.",
-      "intent": "Could not save that action. Please try again."
+      "intent": "Could not save that action. Please try again.",
+      "sessionRestart": "Votre session a expiré. Veuillez recommencer.",
+      "capabilityUnavailable": "Cette boutique est temporairement indisponible."
     },
     "recommend": {
       "analyzing": "Finding frames that suit you…",
@@ -852,7 +854,7 @@
       "savedTitle": "Selection saved",
       "savedBody": "Start virtual try-on for your selected frames below.",
       "tryOnComingSoon": "Continue to try-on (next)",
-      "tryOnThisFrame": "Try On This Frame"
+      "tryOnThisFrame": "Essayer cette monture"
     },
     "tryOn": {
       "title": "Virtual try-on",
@@ -867,8 +869,10 @@
       "openCompare": "Compare {count} results",
       "compareTitle": "Side-by-side compare",
       "compareHint": "Same shopper photo across selected frames.",
-      "startOne": "Try On This Frame",
-      "timedOut": "Try-On is taking longer than expected"
+      "startOne": "Essayer cette monture",
+      "timedOut": "L’essayage virtuel prend plus de temps que prévu",
+      "checkAgain": "Vérifier à nouveau",
+      "tryAgain": "Réessayer"
     },
     "intent": {
       "favorite": "Favorite",
