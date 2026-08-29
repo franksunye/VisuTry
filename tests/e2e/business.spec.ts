@@ -53,4 +53,70 @@ test.describe('@critical Business market-facing narrative', () => {
     await expect(page.getByLabel('Work email')).toHaveAttribute('type', 'email');
     await expect(page.locator('a[href^="mailto:"]').filter({ hasText: 'Request Pilot Review' })).toHaveCount(0);
   });
+
+  test('Merchant pricing page exposes the canonical plans, usage semantics, and safe CTAs', async ({ page }) => {
+    const consoleErrors: string[] = [];
+    const pageErrors: string[] = [];
+    page.on('console', (message) => { if (message.type() === 'error') consoleErrors.push(message.text()); });
+    page.on('pageerror', (error) => pageErrors.push(error.message));
+
+    const response = await page.goto('/en/business/pricing', { waitUntil: 'domcontentloaded' });
+
+    expect(response).not.toBeNull();
+    expect(response!.status()).toBeLessThan(400);
+    await expect(page).toHaveTitle(/VisuTry Merchant Pricing/);
+    await expect(page.getByRole('heading', { name: /Choose the right capacity for your next stage of eyewear commerce/i })).toBeVisible();
+    await expect(page.locator('[data-plan-code="FREE"]')).toContainText('$0');
+    await expect(page.locator('[data-plan-code="FREE"]')).toContainText('Up to 50 catalog items');
+    await expect(page.locator('[data-plan-code="FREE"]')).toContainText('Generative Try-On not included');
+    await expect(page.locator('[data-plan-code="LAUNCH"]')).toContainText('$199/month');
+    await expect(page.locator('[data-plan-code="LAUNCH"]')).toContainText('1 active Campaign');
+    await expect(page.locator('[data-plan-code="LAUNCH"]')).toContainText('1,000 AI Commerce Sessions');
+    await expect(page.locator('[data-plan-code="GROWTH"]')).toContainText('$499/month');
+    await expect(page.locator('[data-plan-code="GROWTH"]')).toContainText('3 active Campaigns');
+    await expect(page.locator('[data-plan-code="GROWTH"]')).toContainText('5,000 AI Commerce Sessions');
+    await expect(page.locator('[data-plan-code="SCALE"]')).toContainText('$999/month');
+    await expect(page.locator('[data-plan-code="SCALE"]')).toContainText('10 active Campaigns');
+    await expect(page.locator('[data-plan-code="SCALE"]')).toContainText('10,000 AI Commerce Sessions');
+    await expect(page.locator('[data-plan-code="ENTERPRISE"]')).toContainText('$2,500+ / month');
+    await expect(page.locator('[data-plan-code="ENTERPRISE"]')).toContainText('Custom catalog allowance');
+    await expect(page.locator('[data-plan-code="ENTERPRISE"]')).toContainText('Contact Sales');
+    await expect(page.getByRole('heading', { name: /A low-risk 30-day validation/i })).toBeVisible();
+    await expect(page.locator('#pilot')).toContainText('$149 / 30 days');
+    await expect(page.locator('#pilot')).toContainText('1,500 AI-assisted shoppers');
+    await expect(page.locator('#pilot')).toContainText('3,500 generations');
+    await expect(page.locator('#pilot')).toContainText('no automatic renewal');
+    await expect(page.getByRole('heading', { name: /Clear capacity, without shutting down the Store/i })).toBeVisible();
+    await expect(page.getByText(/AI Commerce Sessions measure a shopper who starts an AI-assisted journey/i)).toBeVisible();
+    await expect(page.getByText(/There are no automatic overage charges and no rollover/i)).toBeVisible();
+    await expect(page.getByText(/One Merchant \/ Brand has one canonical Store/i)).toBeVisible();
+    await expect(page.getByRole('link', { name: 'Start Free' })).toHaveAttribute('href', '/en/merchant');
+    await expect(page.getByRole('link', { name: 'Start 30-Day Pilot' })).toHaveAttribute('href', '/en/business/pilot?plan=founding_pilot');
+    await expect(page.getByRole('link', { name: 'Choose Launch' })).toHaveAttribute('href', '/en/business/pilot?plan=launch');
+    await expect(page.getByRole('link', { name: 'Choose Growth' })).toHaveAttribute('href', '/en/business/pilot?plan=growth');
+    await expect(page.getByRole('link', { name: 'Choose Scale' })).toHaveAttribute('href', '/en/business/pilot?plan=scale');
+    await expect(page.getByRole('link', { name: 'Contact Sales' }).first()).toHaveAttribute('href', '/en/business/pilot?plan=enterprise');
+    await expect(page.locator('body')).not.toContainText(/price_(?:live|test|[A-Za-z0-9]+)/i);
+    expect(consoleErrors).toEqual([]);
+    expect(pageErrors).toEqual([]);
+  });
+
+  test('Merchant pricing comparison remains usable on mobile', async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto('/en/business/pricing', { waitUntil: 'domcontentloaded' });
+    await expect(page.locator('table[aria-label="Merchant plan comparison"]')).toBeVisible();
+    const documentWidth = await page.evaluate(() => document.documentElement.scrollWidth);
+    expect(documentWidth).toBeLessThanOrEqual(390);
+  });
+
+  for (const locale of ['de', 'ja', 'fr']) {
+    test(`${locale} pricing route canonicalizes to the English merchant pricing page`, async ({ page }) => {
+      const response = await page.goto(`/${locale}/business/pricing`, { waitUntil: 'domcontentloaded' });
+
+      expect(response).not.toBeNull();
+      expect(response!.status()).toBeLessThan(400);
+      await expect(page).toHaveURL('/en/business/pricing');
+      await expect(page.getByRole('heading', { name: /Choose the right capacity for your next stage of eyewear commerce/i })).toBeVisible();
+    });
+  }
 });

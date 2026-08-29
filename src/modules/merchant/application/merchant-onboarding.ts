@@ -14,7 +14,7 @@ import {
   type MerchantFrameEnrichmentStatus,
 } from '../domain/merchant-frame-readiness'
 import { validateMerchantFrameStoreReadiness } from '../domain/merchant-frame-store-readiness'
-import { getMerchantPlanDefinition, resolveMerchantPlanCode } from '@/modules/store/domain/merchant-commercial-plans'
+import { getMerchantPlanDefinition, resolveMerchantPlanCode } from '@/modules/merchant/domain/merchant-commercial-plans'
 import { isCanonicalMerchantCommercialFields } from '@/modules/store/domain/merchant-commercial-state'
 import type { MerchantStorePreviewFrame, MerchantStoreWorkspace, MerchantStoreWorkspaceFrame } from './merchant-store-workspace'
 

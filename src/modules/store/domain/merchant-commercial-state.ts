@@ -5,7 +5,7 @@ import {
   resolveMerchantPlanCode,
   type MerchantPlanCode,
   type MerchantPlanDefinition,
-} from './merchant-commercial-plans'
+} from '@/modules/merchant/domain/merchant-commercial-plans'
 
 export const COMMERCIAL_STATE_KINDS = ['CANONICAL', 'LEGACY_UNMIGRATED'] as const
 export type CommercialStateKind = (typeof COMMERCIAL_STATE_KINDS)[number]

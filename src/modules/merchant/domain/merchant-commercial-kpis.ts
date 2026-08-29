@@ -1,4 +1,4 @@
-import { getMerchantPlanDefinition, isMerchantPlanCode, type MerchantPlanCode } from '@/modules/store/domain/merchant-commercial-plans'
+import { getMerchantPlanDefinition, isMerchantPlanCode, type MerchantPlanCode } from '@/modules/merchant/domain/merchant-commercial-plans'
 
 export const PILOT_SUCCESSFUL_CHECKOUT_EVENTS = ['checkout.session.completed', 'checkout.session.async_payment_succeeded'] as const
 const pilotSuccessfulCheckoutEvents = new Set<string>(PILOT_SUCCESSFUL_CHECKOUT_EVENTS)
