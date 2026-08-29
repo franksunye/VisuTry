@@ -13,7 +13,7 @@ jest.mock('@/lib/prisma', () => ({
 import { prisma } from '@/lib/prisma'
 import { stripe } from '@/lib/stripe'
 import { createMerchantCheckoutSession, processMerchantStripeEvent } from '@/modules/merchant/application/merchant-billing'
-import { merchantStripePriceForPlan, merchantStripePriceMap } from '@/modules/merchant/application/merchant-billing-shared'
+import { merchantFoundingPilotReceiptPriceIds, merchantStripePriceForPlan, merchantStripePriceMap } from '@/modules/merchant/application/merchant-billing-shared'
 import { compareBillingEvent } from '@/modules/merchant/domain/merchant-billing'
 
 type TestBillingAccount = {
@@ -55,6 +55,7 @@ function configurePrices() {
   process.env.STRIPE_MERCHANT_GROWTH_MONTHLY_PRICE_ID = 'price_merchant_growth'
   process.env.STRIPE_MERCHANT_SCALE_MONTHLY_PRICE_ID = 'price_merchant_scale'
   process.env.STRIPE_FOUNDING_PILOT_PRICE_ID = 'price_founding_pilot'
+  delete process.env.STRIPE_FOUNDING_PILOT_PRICE_HISTORY
 }
 
 describe('Merchant Stripe billing boundary', () => {
@@ -180,12 +181,48 @@ describe('Merchant Stripe billing boundary', () => {
     expect(prisma.merchantBillingEvent.findFirst).toHaveBeenCalledWith(expect.objectContaining({
       where: expect.objectContaining({
         merchantId: 'merchant-1',
-        planCode: 'FOUNDING_PILOT',
         status: 'PROCESSED',
         stripeCheckoutSessionId: { not: null },
+        OR: expect.arrayContaining([
+          { planCode: 'FOUNDING_PILOT' },
+          { planCode: null, stripePriceId: { in: ['price_founding_pilot'] } },
+        ]),
       }),
     }))
     expect((prisma.merchantBillingEvent.findFirst as jest.Mock).mock.calls[0][0].where.stripePriceId).toBeUndefined()
+  })
+
+  it('blocks a legacy receipt with a verified old Pilot Price after Price rotation', async () => {
+    process.env.STRIPE_FOUNDING_PILOT_PRICE_ID = 'price_founding_pilot_replacement'
+    process.env.STRIPE_FOUNDING_PILOT_PRICE_HISTORY = 'price_founding_pilot_old'
+    ;(prisma.merchant.findUnique as jest.Mock).mockResolvedValue({ id: 'merchant-1', name: 'North Star Eyewear', planCode: 'LAUNCH', commercialStatus: 'PAID_ACTIVE' })
+    ;(prisma.merchantBillingEvent.findFirst as jest.Mock).mockResolvedValue({ id: 'legacy-pilot-receipt', planCode: null, stripePriceId: 'price_founding_pilot_old' })
+
+    await expect(createMerchantCheckoutSession({
+      merchantId: 'merchant-1',
+      planCode: 'FOUNDING_PILOT',
+      successUrl: 'http://localhost/en/merchant?billing=processing',
+      cancelUrl: 'http://localhost/en/merchant?billing=cancelled',
+    })).rejects.toMatchObject({ code: 'PILOT_EXISTS' })
+
+    expect(prisma.merchantBillingEvent.findFirst).toHaveBeenCalledWith(expect.objectContaining({
+      where: expect.objectContaining({
+        OR: expect.arrayContaining([
+          { planCode: null, stripePriceId: { in: ['price_founding_pilot_replacement', 'price_founding_pilot_old'] } },
+        ]),
+      }),
+    }))
+  })
+
+  it('keeps the historical receipt registry separate from checkout Price resolution', () => {
+    expect(merchantFoundingPilotReceiptPriceIds({
+      STRIPE_FOUNDING_PILOT_PRICE_ID: 'price_founding_pilot_replacement',
+      STRIPE_FOUNDING_PILOT_PRICE_HISTORY: 'price_founding_pilot_old, price_founding_pilot_older',
+    })).toEqual(['price_founding_pilot_replacement', 'price_founding_pilot_old', 'price_founding_pilot_older'])
+    expect(merchantStripePriceForPlan('FOUNDING_PILOT', {
+      STRIPE_FOUNDING_PILOT_PRICE_ID: 'price_founding_pilot_replacement',
+      STRIPE_FOUNDING_PILOT_PRICE_HISTORY: 'price_founding_pilot_old',
+    })).toMatchObject({ priceId: 'price_founding_pilot_replacement', planCode: 'FOUNDING_PILOT' })
   })
 
   it('blocks a former Pilot after Stripe Price rotation using the canonical ledger plan identity', async () => {
@@ -199,7 +236,11 @@ describe('Merchant Stripe billing boundary', () => {
       successUrl: 'http://localhost/en/merchant?billing=processing',
       cancelUrl: 'http://localhost/en/merchant?billing=cancelled',
     })).rejects.toMatchObject({ code: 'PILOT_EXISTS' })
-    expect(prisma.merchantBillingEvent.findFirst).toHaveBeenCalledWith(expect.objectContaining({ where: expect.objectContaining({ planCode: 'FOUNDING_PILOT' }) }))
+    expect(prisma.merchantBillingEvent.findFirst).toHaveBeenCalledWith(expect.objectContaining({
+      where: expect.objectContaining({
+        OR: expect.arrayContaining([{ planCode: 'FOUNDING_PILOT' }]),
+      }),
+    }))
   })
 
   it.each(['TEST', 'REAL'])('blocks a second Founding Pilot regardless of Merchant classification (%s)', async (classification) => {

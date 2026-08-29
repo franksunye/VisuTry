@@ -5,9 +5,9 @@ import { stripe } from '@/lib/stripe'
 import { isMockMode } from '@/lib/mocks'
 import { COMMERCIAL_PLAN_VERSION, getMerchantPlanDefinition } from '@/modules/merchant/domain/merchant-commercial-plans'
 import { addDays, compareBillingEvent, commercialStatusForSubscription, type MerchantBillablePlanCode, type MerchantRecurringPlanCode } from '../domain/merchant-billing'
-import { MERCHANT_BILLING_PROVIDER, MerchantBillingError, assertMerchantStripeEnvironment, isMerchantBillingMetadata, isRetryableMerchantBillingDatabaseError, isRetryableMerchantBillingErrorCode, merchantStripePriceForPlan, metadataRecord, resolveMerchantStripePrice, stripeId, unixDate } from './merchant-billing-shared'
+import { MERCHANT_BILLING_PROVIDER, MerchantBillingError, assertMerchantStripeEnvironment, isMerchantBillingMetadata, isRetryableMerchantBillingDatabaseError, isRetryableMerchantBillingErrorCode, merchantFoundingPilotReceiptPriceIds, merchantStripePriceForPlan, metadataRecord, resolveMerchantStripePrice, stripeId, unixDate } from './merchant-billing-shared'
 
-export { MERCHANT_BILLING_PROVIDER, MerchantBillingError, assertMerchantStripeEnvironment, isRetryableMerchantBillingDatabaseError, isRetryableMerchantBillingErrorCode, merchantStripePriceMap, merchantStripePriceForPlan, resolveMerchantStripePrice } from './merchant-billing-shared'
+export { MERCHANT_BILLING_PROVIDER, MerchantBillingError, assertMerchantStripeEnvironment, isRetryableMerchantBillingDatabaseError, isRetryableMerchantBillingErrorCode, merchantFoundingPilotReceiptPriceIds, merchantStripePriceMap, merchantStripePriceForPlan, resolveMerchantStripePrice } from './merchant-billing-shared'
 export type { MerchantStripePrice } from './merchant-billing-shared'
 
 type BillingAccountRow = {
@@ -86,14 +86,18 @@ const FOUNDING_PILOT_RECEIPT_EVENT_TYPES = ['checkout.session.completed', 'check
  * the durable fact that survives Pilot expiry and later plan changes.
  */
 export async function hasMerchantFoundingPilotReceipt(input: { merchantId: string }, database: MerchantBillingDatabase = prisma): Promise<boolean> {
+  const receiptPriceIds = merchantFoundingPilotReceiptPriceIds()
   const receipt = await database.merchantBillingEvent.findFirst({
     where: {
       provider: MERCHANT_BILLING_PROVIDER,
       merchantId: input.merchantId,
-      planCode: 'FOUNDING_PILOT',
       status: 'PROCESSED',
       eventType: { in: [...FOUNDING_PILOT_RECEIPT_EVENT_TYPES] },
       stripeCheckoutSessionId: { not: null },
+      OR: [
+        { planCode: 'FOUNDING_PILOT' },
+        ...(receiptPriceIds.length > 0 ? [{ planCode: null, stripePriceId: { in: receiptPriceIds } }] : []),
+      ],
     },
     select: { id: true },
   })

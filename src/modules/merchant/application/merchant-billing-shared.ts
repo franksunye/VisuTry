@@ -66,6 +66,25 @@ export function merchantStripePriceMap(env: Env = process.env): Map<string, Merc
   return result
 }
 
+/**
+ * Return the server-maintained receipt identity registry for the one-time
+ * Founding Pilot offer. The current Price ID is used for new checkout
+ * sessions; historical IDs are used only to recognize verified pre-planCode
+ * receipts after a Stripe Price rotation. This list must contain only Price
+ * IDs that were previously verified as the Founding Pilot offer.
+ */
+export function merchantFoundingPilotReceiptPriceIds(env: Env = process.env): string[] {
+  const configured = [
+    env.STRIPE_FOUNDING_PILOT_PRICE_ID?.trim(),
+    ...(env.STRIPE_FOUNDING_PILOT_PRICE_HISTORY ?? '').split(',').map((value) => value.trim()),
+  ].filter((value): value is string => Boolean(value))
+  const result = [...new Set(configured)]
+  for (const priceId of result) {
+    if (!priceId.startsWith('price_')) throw new MerchantBillingError('INVALID_PRICE_CONFIGURATION', 'Founding Pilot receipt Price IDs must be Stripe Price IDs.', 503)
+  }
+  return result
+}
+
 export function resolveMerchantStripePrice(priceId: unknown, env: Env = process.env): MerchantStripePrice {
   const result = merchantStripePriceMap(env).get(typeof priceId === 'string' ? priceId.trim() : '')
   if (!result) throw new MerchantBillingError('UNSUPPORTED_PRICE', 'This billing option is not available.', 400)
