@@ -1,7 +1,7 @@
 'use client'
 
-import { useSession } from 'next-auth/react'
 import { useCallback, useMemo } from 'react'
+import { useOptionalSession } from '@/hooks/useOptionalSession'
 import { calculateRemainingQuota, getSubscriptionQuotaLabel, QUOTA_CONFIG, type ProductType } from '@/config/pricing'
 import { getUserType, type UserType } from '@/lib/analytics'
 
@@ -40,7 +40,7 @@ export interface QuotaState {
 }
 
 export function useQuota(): QuotaState {
-  const { data: session, status } = useSession()
+  const { data: session, status } = useOptionalSession()
 
   const user = session?.user as Record<string, unknown> | undefined
 

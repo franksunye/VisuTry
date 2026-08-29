@@ -1,6 +1,7 @@
 'use client'
 
-import { signOut, useSession } from 'next-auth/react'
+import { signOut } from 'next-auth/react'
+import { useOptionalSession } from '@/hooks/useOptionalSession'
 import Link from 'next/link'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { CreditCard, History, LayoutDashboard, LogOut, User, X } from 'lucide-react'
@@ -26,7 +27,7 @@ export function MerchantShopperAccountControl({
   experienceSlug,
   locale,
 }: MerchantShopperAccountControlProps) {
-  const { data: session, status } = useSession()
+  const { data: session, status } = useOptionalSession()
   const { testSession, loading: testSessionLoading, clearTestSession } = useTestSession()
   const quota = useQuota()
   const buttonRef = useRef<HTMLButtonElement>(null)
