@@ -331,3 +331,35 @@ Reference pre-Tiered combined baseline for the three families: approximately **2
 - No production change. First restore one clean measurement window. If that window shows MISS/EXPIRED improved but `/style/*` DYNAMIC remains material, the next change candidate remains the already-prepared narrow SEO-link `prefetch={false}` containment patch, deployed as its own isolated experiment.
 
 **Production changes made by review:** NONE
+
+## 2026-08-29
+
+### Codex Morning Inspection — 11:00
+
+**Status:** MISSING — no 2026-08-29 Codex Morning Inspection was present in GitHub when the afternoon review ran.
+
+**Evidence:** No new GA4, Vercel, Cloudflare, or Axiom measurements are recorded for today. No values are inferred from prior windows.
+
+**Production changes made during inspection:** NONE RECORDED
+
+### ChatGPT Afternoon Review
+
+**Verdict:** **HOLD** — the morning evidence is missing for a second consecutive day, so there is still no trustworthy basis to judge whether the 24h Edge TTL, Smart Tiered Cache, ISR/FOT pressure, or Axiom error clusters improved or regressed.
+
+**What the evidence means**
+1. The latest measured production state remains the 2026-08-27 observation: pilot ISR subtotal ~**3.72K RU / 12h** versus the ~**2.52K RU / 12h** reference, with `glasses-guide` dominating and no proven economic win from Smart Tiered Cache.
+2. Because no 2026-08-28 or 2026-08-29 morning measurements exist, we cannot attribute any current change to the later **24h Edge TTL** experiment or decide whether the prepared SEO `prefetch={false}` containment patch should be deployed.
+3. The operational gap is now itself the priority: two missed morning runs mean the experiment is accumulating time without usable measurement evidence.
+
+**Decision**
+- **HOLD.** Do not expand Cloudflare cache scope, change Tiered Cache, or deploy the prepared prefetch patch until one clean comparable measurement window is restored.
+
+**Next Codex inspection focus**
+1. First restore the daily watch: capture one fixed complete 12h window for all three pilot families with Cloudflare **HIT / MISS / EXPIRED / DYNAMIC**, separating `/style/*` document HTML from `_rsc` / Flight DYNAMIC where possible.
+2. Capture matching Vercel route-level ISR Read Units for `glasses-guide`, `style`, and `sunglasses-for`, project ISR total, and FOT. Compare the pilot subtotal directly with the ~**2.52K RU / 12h** reference and with the ~**3.72K RU / 12h** 2026-08-27 observation.
+3. Capture GA4 prior-day users/sessions/views plus Organic/AI referral direction, and Axiom face-analysis failure counts / `/api/face-analysis/submit` error rate. Explicitly state whether the prior **6 Submit API error + 6 Analysis failed** cluster persists.
+
+**Implementation guidance**
+- No production change. Once a clean post-24h-TTL window exists, decide the next isolated step: if MISS/EXPIRED materially fall but `/style/*` DYNAMIC remains high, proceed to the already-prepared narrow SEO-link `prefetch={false}` experiment; if ISR remains high despite improved cache statuses, move to broader ISR/FOT source attribution before adding more cache rules.
+
+**Production changes made by review:** NONE
