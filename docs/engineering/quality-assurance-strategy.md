@@ -120,6 +120,12 @@ Production data in Preview, or use `REAL`/`POSSIBLE_EXTERNAL` Merchants as QA
 substitutes. A test Merchant may exercise runtime entitlement state while
 remaining excluded from REAL-only commercial KPI.
 
+All browser and provider-dependent Preview checks use the fixed entry point
+`https://visutry-pre.vercel.app`. A deployment-specific Vercel URL is only an
+artifact URL; bind it to the fixed alias after the deployment is READY before
+starting authenticated QA. Auth0 therefore needs one stable Preview callback,
+not a new callback entry for every deployment.
+
 ### L4 — Integration / E2E / Provider Validation
 
 Runs on release, when risk requires it, or manually before significant production changes.
@@ -154,6 +160,7 @@ GitHub Actions: Quality Gate
       ↓
 Vercel Preview
   L3 Build / Preview
+  Fixed alias: https://visutry-pre.vercel.app
       ↓
 Optional L4 Integration / E2E / Provider Smoke
       ↓

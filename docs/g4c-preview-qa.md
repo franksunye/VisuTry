@@ -8,6 +8,33 @@
 The G4-C harness is a bounded, Preview-only operator tool. It is not an
 Admin UI and it is not available through an application route.
 
+## Canonical Preview entry point
+
+Open and validate Preview only at:
+
+```text
+https://visutry-pre.vercel.app
+```
+
+Each Vercel Preview deployment also has a random deployment URL. That URL is
+not the QA entry point because it would require a new Auth0 callback allow-list
+entry. Once the deployment is READY, bind it to the fixed alias and then use
+the fixed alias for all browser and provider-dependent checks:
+
+```bash
+vercel alias set <ready-preview-deployment>.vercel.app \
+  visutry-pre.vercel.app --scope sunye
+```
+
+The alias is a stable pointer, not a separate database or payment
+environment. Preview still uses the persistent Preview Neon branch and Stripe
+TEST configuration described below. Auth0 is configured once for the fixed
+callback:
+
+```text
+https://visutry-pre.vercel.app/api/auth/callback/auth0
+```
+
 Every command that reads or mutates QA state must run with all of the
 following conditions:
 
@@ -29,7 +56,8 @@ or arbitrary SQL command.
 Run from the Preview environment so the command receives the project-level
 Preview database and Stripe TEST configuration. Replace `<preview-branch>`
 with the current Preview branch; all ordinary Preview branches inherit the
-same project-level Preview variables:
+same project-level Preview variables. Browser QA must still use
+`https://visutry-pre.vercel.app` after the alias is bound:
 
 ```bash
 vercel env run -e preview --git-branch <preview-branch> -- \
