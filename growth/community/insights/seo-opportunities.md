@@ -67,3 +67,14 @@ Candidates only. Do not create production pages automatically.
 - Evidence count: 3 Reddit decision/fit threads reviewed on 2026-08-28, alongside repeated prior fit/comparison signals
 - Product path: Advisor -> Compare -> Try-On
 - Confidence: REPEATED SIGNAL
+
+## 2026-08-29 public discovery sample
+
+- Opportunity: Extend fit/comparison coverage to low-bridge, narrow-face, long-eyelash, high-prescription, and virtual-try-on limitation queries.
+- Repeated user question: shoppers want a visually suitable shortlist while knowing whether bridge position, lens clearance, and prescription constraints will work in real life.
+- Source URLs: https://www.reddit.com/r/glassesadvice/comments/1w156cr/what_frame_style_would_you_choose_for_my_face/ ; https://www.reddit.com/r/glassesadvice/comments/1w13edc/which_pair_excuse_the_skin_stress_breakouts/ ; https://www.reddit.com/r/glassesadvice/comments/1vfxudr/virtual_try_on_which_of_these_frames_suit_me/
+- Suggested page action: expand the existing fit/comparison page and FAQ with a style-shortlist versus physical-fit checklist
+- Search language: `small low bridge glasses`, `long eyelashes hit lenses`, `high prescription small frames`, `what frame style suits my face`, `virtual try-on cannot show bridge fit`
+- Evidence count: 2 fresh Reddit decision/fit threads plus 1 older virtual-try-on thread reviewed on 2026-08-29
+- Product path: Advisor -> Compare -> Try-On
+- Confidence: REPEATED SIGNAL

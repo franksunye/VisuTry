@@ -59,3 +59,13 @@
 - Confidence: REPEATED SIGNAL
 - Possible merchant implication: show exchange-window reminders, adjustment expectations, and plain-language bridge/temple stability checks near size selectors and comparison controls
 - Follow-up measurement: track future questions about repeated adjustments, asymmetric pressure, slipping, and returns/exchanges
+
+## 2026-08-29 public discovery sample
+
+- Insight: Merchant fit metadata should make low-bridge and narrow-face options easy to compare before purchase, especially when shoppers also need lens clearance for long eyelashes and high-prescription suitability.
+- Evidence: A Reddit shopper named narrow-face, small-low-bridge, long-lash, and high-RX constraints while comparing three frame sizes; a separate shopper wanted a style/model shortlist before deciding whether to buy online.
+- Source URLs: https://www.reddit.com/r/glassesadvice/comments/1w13edc/which_pair_excuse_the_skin_stress_breakouts/ ; https://www.reddit.com/r/glassesadvice/comments/1w156cr/what_frame_style_would_you_choose_for_my_face/
+- Area: Store / Merchant Sales / Fit Guidance
+- Confidence: REPEATED SIGNAL
+- Possible merchant implication: expose bridge width, lens width, total width, low-bridge/narrow-fit filters, lens-to-lash clearance guidance, and high-RX suitability near frame comparison and try-on controls
+- Follow-up measurement: track future mentions of low bridges, eyelashes touching lenses, narrow-fit sizing, and high-prescription frame limits

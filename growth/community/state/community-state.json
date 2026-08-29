@@ -1,24 +1,34 @@
 {
   "schema_version": 2,
-  "last_updated": "2026-08-28T10:13:08+08:00",
+  "last_updated": "2026-08-29T10:09:47+08:00",
   "rollout_week": "2026-W35",
   "branch": "growth/community-ops",
   "timezone": "Asia/Shanghai",
   "last_run": {
-    "started_at": "2026-08-28T10:00:00+08:00",
-    "finished_at": "2026-08-28T10:13:08+08:00",
+    "started_at": "2026-08-29T10:00:00+08:00",
+    "finished_at": "2026-08-29T10:09:47+08:00",
     "status": "NO_HIGH_QUALITY_ACTION_FOUND",
     "trigger": "SCHEDULED",
     "scheduler_run_id": "NOT_EXPOSED",
     "public_research": true,
-    "reddit_searches": 2,
-    "youtube_searches": 3,
+    "reddit_searches": 1,
+    "youtube_searches": 2,
     "reddit_interactions": 0,
     "youtube_interactions": 0,
     "follow_ups": 3,
     "questions_discovered": 3,
     "insights_captured": 4,
-    "blockers": ["IN_APP_BROWSER_NETWORK_SECURITY_BLOCK: Reddit; authenticated Chrome path succeeded"]
+    "blockers": [],
+    "promotion_fit_opportunities_considered": 3,
+    "promotion_fit_opportunities_rejected": 3,
+    "interaction_modes": {
+      "COMMUNITY_VALUE": 0,
+      "TRANSPARENT_MENTION": 0,
+      "DIRECT_SHARE": 0
+    },
+    "visutry_mentions": 0,
+    "visutry_links": 0,
+    "promotion_fit_notes": "Explicit discovery completed; candidates were rejected for community rules, saturation, redundancy, or absence of a current question. No blanket no-promotion posture."
   },
   "platforms": {
     "reddit": {
@@ -49,7 +59,7 @@
     "timezone": "Asia/Shanghai",
     "status": "ACTIVE",
     "next_run_at": "NOT_EXPOSED",
-      "verified_at": "2026-08-28T10:13:08+08:00",
+    "verified_at": "2026-08-29T10:09:47+08:00",
     "verification_source": "CODEX_SCHEDULER"
   }
 }

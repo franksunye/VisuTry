@@ -61,3 +61,13 @@ Examples include frames too wide versus correct width, brow-line alignment, brid
 - Landing-page candidate: `/en/compare-glasses-frames` or the existing glasses-fit/face-shape route owner
 - Evidence count: 3 Reddit style/fit comparison threads reviewed on 2026-08-28 plus repeated prior fit signals
 - Confidence: REPEATED SIGNAL
+
+## 2026-08-29 public discovery sample
+
+- Visual title: `Style Shortlist Versus Physical Fit for Low Bridges and Narrow Faces`
+- Target query: `small low bridge glasses`, `long eyelashes hit lenses`, `high prescription small frames`, `what frame style suits my face`
+- Visual answer concept: show a two-layer comparison with shape/color/visual-weight notes beside bridge position, total and lens width, brow/pupil alignment, lens-to-lash clearance, and a high-prescription caution; state that virtual try-on cannot establish comfort or prescription fit.
+- Source questions and URLs: `What frame (style) would you choose for my face/ face shape?` — https://www.reddit.com/r/glassesadvice/comments/1w156cr/what_frame_style_would_you_choose_for_my_face/ ; `Which pair? I am SO hard to fit. Narrow face and small low nose bridge, long eyelashes hit lenses. High RX.` — https://www.reddit.com/r/glassesadvice/comments/1w13edc/which_pair_excuse_the_skin_stress_breakouts/
+- Landing-page candidate: `/en/compare-glasses-frames` or the existing glasses-fit/face-shape route owner
+- Evidence count: 2 fresh Reddit style/fit decision threads plus repeated virtual-try-on limitation signals reviewed on 2026-08-29
+- Confidence: REPEATED SIGNAL

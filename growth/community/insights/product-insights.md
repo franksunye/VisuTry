@@ -55,3 +55,12 @@ Record evidence, not assumptions. A single comment is a `SINGLE SIGNAL` until re
 - Area: Advisor / Try-On / Compare / Consumer UX / FAQ
 - Confidence: REPEATED SIGNAL
 - Follow-up measurement: classify future comparison questions by style preference, visible fit, comfort/stability, and keep-adjust-exchange decision
+
+## 2026-08-29 public discovery sample
+
+- Insight: High-intent shoppers may use virtual try-on to narrow a shortlist but still need explicit physical-fit guidance for narrow faces, low bridges, long eyelashes, and high prescriptions.
+- Evidence: A fresh Reddit shopper combined frame-style and specific-model questions with an in-store shortlist and possible online purchase; a second shopper described narrow-face, low-bridge, long-lash, and high-RX constraints; an older virtual-try-on thread repeatedly separated visual shortlist value from bridge fit and comfort.
+- Source URLs: https://www.reddit.com/r/glassesadvice/comments/1w156cr/what_frame_style_would_you_choose_for_my_face/ ; https://www.reddit.com/r/glassesadvice/comments/1w13edc/which_pair_excuse_the_skin_stress_breakouts/ ; https://www.reddit.com/r/glassesadvice/comments/1vfxudr/virtual_try_on_which_of_these_frames_suit_me/
+- Area: Advisor / Try-On / Compare / Consumer UX / Accessibility
+- Confidence: REPEATED SIGNAL
+- Follow-up measurement: classify future try-on questions by visual shortlist need versus bridge, lash-clearance, prescription, and comfort constraints

@@ -122,6 +122,41 @@ Preserve exact language where reasonable. Add one entry per meaningful question.
 - First observed: 2026-08-28
 - Last observed: 2026-08-28
 
+## 2026-08-29 public discovery sample
+
+- Question: What frame style or specific model would suit my face shape before I get a new prescription?
+- Exact user phrasing: `What frame (style) would you choose for my face/ face shape?` and `Or even better a specific frame model you think would be good for me.`
+- Platform: Reddit
+- Source URL: https://www.reddit.com/r/glassesadvice/comments/1w156cr/what_frame_style_would_you_choose_for_my_face/
+- Topic: face-shape styling, model shortlisting, brow/pupil fit, and in-person versus online purchase
+- Intent: shortlist frames before a prescription purchase
+- Frequency/pattern: SINGLE SIGNAL, adjacent to repeated style-versus-fit comparisons
+- Business relevance: Advisor and Compare flows should separate visual suggestions from physical-fit and purchase-channel guidance
+- First observed: 2026-08-29
+- Last observed: 2026-08-29
+
+- Question: Which pair works for a narrow face and small low nose bridge when long eyelashes hit lenses and the prescription is high?
+- Exact user phrasing: `Which pair? I am SO hard to fit. Narrow face and small low nose bridge, long eyelashes hit lenses. High RX.`
+- Platform: Reddit
+- Source URL: https://www.reddit.com/r/glassesadvice/comments/1w13edc/which_pair_excuse_the_skin_stress_breakouts/
+- Topic: low-bridge fit, narrow-face sizing, lens clearance, high-prescription constraints, and style comparison
+- Intent: choose among candidate frames without sacrificing physical fit
+- Frequency/pattern: REPEATED SIGNAL adjacent to prior bridge, lash-clearance, and frame-size questions
+- Business relevance: fit guidance should surface bridge, clearance, and prescription constraints alongside style votes
+- First observed: 2026-08-29
+- Last observed: 2026-08-29
+
+- Question: Which virtual-try-on frames suit me, and what can the preview not establish?
+- Exact user phrasing: `Virtual Try On! Which of these frames suit me?`
+- Platform: Reddit
+- Source URL: https://www.reddit.com/r/glassesadvice/comments/1vfxudr/virtual_try_on_which_of_these_frames_suit_me/
+- Topic: visual shortlist confidence versus bridge fit, comfort, and real-world stability
+- Intent: narrow choices before an in-person frame appointment
+- Frequency/pattern: REPEATED SIGNAL with prior try-on and fit-limit questions
+- Business relevance: try-on UX should state its physical-fit limits and direct shoppers to measurable checks
+- First observed: 2026-08-29
+- Last observed: 2026-08-29
+
 - Question: Which of several frame and tint variants looks best?
 - Exact user phrasing: `Which glasses look better on me? (Third and Fourth are the tinted versions of first and second)`
 - Platform: Reddit
