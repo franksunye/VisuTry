@@ -26,7 +26,7 @@ import {
   resolveMerchantCommercialPeriod,
   resolveMerchantCommercialState,
 } from '../domain/merchant-commercial-state'
-import { getMerchantPlanDefinition } from '../domain/merchant-commercial-plans'
+import { getMerchantPlanDefinition } from '@/modules/merchant/domain/merchant-commercial-plans'
 import type { StoreUsageRepository } from './ports/repositories'
 
 export type RecommendFramesInput = {

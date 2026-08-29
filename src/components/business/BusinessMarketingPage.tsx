@@ -4,6 +4,8 @@ import { ArrowRight, Check, ExternalLink, Sparkles } from 'lucide-react'
 import { businessHref, businessPages, type BusinessPageKey, type BusinessSection } from '@/config/business-site'
 import { BusinessVisualPlaceholder } from './BusinessVisualPlaceholder'
 import { BusinessPilotLeadForm } from './BusinessPilotLeadForm'
+import { BusinessPricingPage } from './BusinessPricingPage'
+import { FOUNDING_PILOT_OFFER, getMerchantPlanDefinition } from '@/modules/merchant/domain/merchant-commercial-plans'
 
 interface BusinessMarketingPageProps {
   locale: string
@@ -94,30 +96,6 @@ function hardenedSections(pageKey: BusinessPageKey, sections: BusinessSection[])
         eyebrow: 'Store product preview',
         title: 'A persistent Store experience.',
         body: 'Use the current Store product surface to evaluate the always-on shopper journey. Reference Experiences below demonstrate additional campaign and merchandising patterns without implying customer relationships.',
-      }
-    }
-
-    if (pageKey === 'pricing' && index === 0) {
-      return {
-        ...section,
-        eyebrow: 'What is included',
-        title: 'One focused paid engagement, with enough scope to learn.',
-        body: 'Start with your real eyewear catalog, one hosted Experience, defined usage capacity, and assisted setup and review.',
-        cards: [
-          { title: 'Catalog & Experience', description: '8–50 reviewed frames and one hosted Store or Campaign Experience.' },
-          { title: 'Capacity', description: 'Up to 1,500 shoppers entering the guided AI decision journey and up to 3,500 Standard Try-On generations.' },
-          { title: 'Assisted launch & review', description: 'Catalog review, Experience setup, launch support, and weekly review during the 30-day Pilot.' },
-        ],
-      }
-    }
-
-    if (pageKey === 'pricing' && index === 1) {
-      return {
-        ...section,
-        eyebrow: 'After the Pilot',
-        title: 'Review the results, then decide how to continue.',
-        body: 'There is no automatic long-term commitment. At the end of the Pilot, we review usage, shopper behavior, campaign needs, integrations, and support requirements before discussing a continuation plan.',
-        note: 'No surprise Pilot overage charge. No conversion or revenue guarantee. Any continuation plan is agreed separately.',
       }
     }
 
@@ -240,12 +218,20 @@ function hardenedSections(pageKey: BusinessPageKey, sections: BusinessSection[])
 }
 
 function PricingHeroVisual() {
+  const pilot = getMerchantPlanDefinition('FOUNDING_PILOT')
+  const pilotHighlights = [
+    `${FOUNDING_PILOT_OFFER.catalogFrames.min}–${FOUNDING_PILOT_OFFER.catalogFrames.max} reviewed frames`,
+    '1 hosted Store or Campaign',
+    FOUNDING_PILOT_OFFER.included.join(' · '),
+    pilot.setupLabel ?? FOUNDING_PILOT_OFFER.setup,
+  ]
+
   return (
     <div className="mx-auto w-full max-w-md border-y border-slate-300 py-7 sm:border sm:bg-white sm:p-8 sm:shadow-[0_28px_80px_-52px_rgba(15,23,42,0.35)]">
       <p className="text-xs font-semibold uppercase tracking-[0.18em] text-blue-700">Founding Merchant Pilot</p>
-      <div className="mt-5 flex items-end gap-2"><span className="text-6xl font-semibold tracking-[-0.06em]">$149</span><span className="pb-2 text-sm text-slate-500">/ 30 days</span></div>
+      <p className="mt-5 text-5xl font-semibold tracking-[-0.06em] text-slate-950">{pilot.priceLabel}</p>
       <div className="mt-7 border-t border-slate-200 pt-5 text-sm text-slate-700">
-        {['8–50 reviewed frames', '1 hosted Store or Campaign', 'Recommendation · Try-On · Compare', 'Assisted setup + weekly review'].map((item) => (
+        {pilotHighlights.map((item) => (
           <div key={item} className="flex items-center gap-3 py-2"><Check className="h-4 w-4 text-blue-700" /><span>{item}</span></div>
         ))}
       </div>
@@ -399,10 +385,20 @@ function PilotCta({ locale }: { locale: string }) {
 
 export function BusinessMarketingPage({ locale, pageKey }: BusinessMarketingPageProps) {
   const page = businessPages[pageKey]
-  const sections = hardenedSections(pageKey, page.sections)
-  const showPilotCta = pageKey !== 'pricing' && pageKey !== 'pilot'
 
   if (locale !== 'en') redirect(`/en${page.slug}`)
+
+  if (pageKey === 'pricing') {
+    return (
+      <main className="bg-[#f8fafc] text-slate-950">
+        <Hero locale={locale} pageKey={pageKey} />
+        <BusinessPricingPage locale={locale} />
+      </main>
+    )
+  }
+
+  const sections = hardenedSections(pageKey, page.sections)
+  const showPilotCta = pageKey !== 'pilot'
 
   return (
     <main className="bg-[#f8fafc] text-slate-950">

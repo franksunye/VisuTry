@@ -1,4 +1,4 @@
-import type { MerchantPlanCode } from '@/modules/store/domain/merchant-commercial-plans'
+import type { MerchantPlanCode } from '@/modules/merchant/domain/merchant-commercial-plans'
 
 export const MERCHANT_BILLABLE_PLAN_CODES = ['LAUNCH', 'GROWTH', 'SCALE', 'FOUNDING_PILOT'] as const
 export type MerchantBillablePlanCode = (typeof MERCHANT_BILLABLE_PLAN_CODES)[number]
