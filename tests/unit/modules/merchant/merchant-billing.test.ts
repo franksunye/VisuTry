@@ -180,11 +180,26 @@ describe('Merchant Stripe billing boundary', () => {
     expect(prisma.merchantBillingEvent.findFirst).toHaveBeenCalledWith(expect.objectContaining({
       where: expect.objectContaining({
         merchantId: 'merchant-1',
-        stripePriceId: 'price_founding_pilot',
+        planCode: 'FOUNDING_PILOT',
         status: 'PROCESSED',
         stripeCheckoutSessionId: { not: null },
       }),
     }))
+    expect((prisma.merchantBillingEvent.findFirst as jest.Mock).mock.calls[0][0].where.stripePriceId).toBeUndefined()
+  })
+
+  it('blocks a former Pilot after Stripe Price rotation using the canonical ledger plan identity', async () => {
+    process.env.STRIPE_FOUNDING_PILOT_PRICE_ID = 'price_founding_pilot_replacement'
+    ;(prisma.merchant.findUnique as jest.Mock).mockResolvedValue({ id: 'merchant-1', name: 'North Star Eyewear', planCode: 'SCALE', commercialStatus: 'PAID_ACTIVE' })
+    ;(prisma.merchantBillingEvent.findFirst as jest.Mock).mockResolvedValue({ id: 'pilot-receipt-old-price', planCode: 'FOUNDING_PILOT', stripePriceId: 'price_founding_pilot_old' })
+
+    await expect(createMerchantCheckoutSession({
+      merchantId: 'merchant-1',
+      planCode: 'FOUNDING_PILOT',
+      successUrl: 'http://localhost/en/merchant?billing=processing',
+      cancelUrl: 'http://localhost/en/merchant?billing=cancelled',
+    })).rejects.toMatchObject({ code: 'PILOT_EXISTS' })
+    expect(prisma.merchantBillingEvent.findFirst).toHaveBeenCalledWith(expect.objectContaining({ where: expect.objectContaining({ planCode: 'FOUNDING_PILOT' }) }))
   })
 
   it.each(['TEST', 'REAL'])('blocks a second Founding Pilot regardless of Merchant classification (%s)', async (classification) => {
@@ -430,6 +445,7 @@ describe('Merchant Stripe billing boundary', () => {
     expect(firstPeriodEnd).toEqual(new Date(1_725_000_000 * 1000 + 30 * 86_400_000))
     expect(persistedAccount.currentPeriodEnd).toEqual(firstPeriodEnd)
     expect(persistedMerchant).toMatchObject({ planCode: 'FOUNDING_PILOT', commercialStatus: 'PILOT_ACTIVE' })
+    expect(eventLedger.get(first.id)).toMatchObject({ planCode: 'FOUNDING_PILOT' })
     expect(tx.merchantBillingAccount.update).toHaveBeenCalledTimes(1)
     expect(tx.merchant.update).toHaveBeenCalledTimes(1)
   })

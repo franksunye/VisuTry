@@ -87,11 +87,24 @@ mapped by `STRIPE_MERCHANT_LAUNCH_MONTHLY_PRICE_ID`,
 never trusted. Each Merchant has one provider-specific billing identity, kept
 separate from Consumer payments.
 
-`MerchantBillingEvent` is the verified event ledger. The unique provider event
-ID makes webhook retries no-ops; the account's event timestamp prevents older
-Stripe events from overwriting newer state. Subscription lifecycle changes are
-translated into the canonical commercial states, while a paid Founding Pilot
-is a fixed 30-day period and never silently becomes Launch.
+`MerchantBillingEvent` is the verified event ledger. In addition to provider
+evidence, each newly recorded event stores the provider-independent `planCode`
+when the signed Price/metadata has been validated. Founding Pilot repurchase
+eligibility uses a `PROCESSED` Pilot receipt with `planCode=FOUNDING_PILOT`, not
+the currently configured Stripe Pilot Price ID, so Pilot → paid plan changes
+and Stripe Price rotation cannot erase the one-time offer history. The unique
+provider event ID makes webhook retries no-ops; the account's event timestamp
+prevents older Stripe events from overwriting newer state. Subscription
+lifecycle changes are translated into the canonical commercial states, while a
+paid Founding Pilot is a fixed 30-day period and never silently becomes Launch.
+
+The additive `MerchantBillingEvent.planCode` migration does not guess at old
+rows. Events created before this field existed remain unclassified when their
+provider projection cannot prove the commercial plan; they require an explicit,
+audited backfill from verified receipt evidence before they can serve as Pilot
+consumption evidence. Current canonical Pilot state remains a compatibility
+guard during that transition. No billing history or production Merchant is
+mutated by the migration itself.
 
 Local and preview environments must use test Stripe credentials and
 `STRIPE_MERCHANT_BILLING_MODE=test`. Production requires live credentials and

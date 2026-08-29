@@ -767,6 +767,8 @@ model MerchantBillingEvent {
   merchantId           String?
   billingAccountId     String?
   eventType            String
+  /// Provider-independent commercial identity captured from the verified event.
+  planCode             String?
   stripeCustomerId     String?
   stripeSubscriptionId String?
   stripePriceId        String?
@@ -785,6 +787,7 @@ model MerchantBillingEvent {
 
   @@unique([provider, providerEventId])
   @@index([merchantId, createdAt])
+  @@index([merchantId, planCode, status])
   @@index([billingAccountId, createdAt])
 }
 

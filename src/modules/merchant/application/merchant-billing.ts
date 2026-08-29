@@ -40,6 +40,19 @@ function checkoutSessionId(value: Record<string, unknown>, eventType: string) {
   return eventType.startsWith('checkout.session.') ? stripeId(value.id as string | { id: string } | null | undefined) : null
 }
 
+function eventPlanCode(value: Record<string, unknown>, eventType: string): MerchantBillablePlanCode | null {
+  const priceId = eventPriceId(value, eventType)
+  if (!priceId) return null
+  try {
+    return resolveMerchantStripePrice(priceId).planCode
+  } catch {
+    // Invalid or rotated provider Prices must not be guessed into a
+    // commercial identity. Validated events are written with the canonical
+    // plan code; rejected events retain provider evidence only.
+    return null
+  }
+}
+
 async function merchantForBilling(merchantId: string) {
   const merchant = await prisma.merchant.findUnique({ where: { id: merchantId }, select: { id: true, name: true, planCode: true, commercialStatus: true } })
   if (!merchant) throw new MerchantBillingError('MERCHANT_NOT_FOUND', 'Merchant not found.', 404)
@@ -72,13 +85,12 @@ const FOUNDING_PILOT_RECEIPT_EVENT_TYPES = ['checkout.session.completed', 'check
  * A Founding Pilot is a one-time commercial offer. Its processed receipt is
  * the durable fact that survives Pilot expiry and later plan changes.
  */
-export async function hasMerchantFoundingPilotReceipt(input: { merchantId: string; pilotPriceId?: string }, database: MerchantBillingDatabase = prisma): Promise<boolean> {
-  const pilotPriceId = input.pilotPriceId ?? merchantStripePriceForPlan('FOUNDING_PILOT').priceId
+export async function hasMerchantFoundingPilotReceipt(input: { merchantId: string }, database: MerchantBillingDatabase = prisma): Promise<boolean> {
   const receipt = await database.merchantBillingEvent.findFirst({
     where: {
       provider: MERCHANT_BILLING_PROVIDER,
       merchantId: input.merchantId,
-      stripePriceId: pilotPriceId,
+      planCode: 'FOUNDING_PILOT',
       status: 'PROCESSED',
       eventType: { in: [...FOUNDING_PILOT_RECEIPT_EVENT_TYPES] },
       stripeCheckoutSessionId: { not: null },
@@ -96,7 +108,7 @@ export async function createMerchantCheckoutSession(input: { merchantId: string;
     const currentPilotState = merchant.planCode?.trim().toUpperCase() === 'FOUNDING_PILOT'
       || merchant.commercialStatus?.trim().toUpperCase() === 'PILOT_ACTIVE'
       || merchant.commercialStatus?.trim().toUpperCase() === 'PILOT_EXPIRED'
-    const hasPilotReceipt = await hasMerchantFoundingPilotReceipt({ merchantId: merchant.id, pilotPriceId: price.priceId })
+    const hasPilotReceipt = await hasMerchantFoundingPilotReceipt({ merchantId: merchant.id })
     if (currentPilotState || hasPilotReceipt) {
       throw new MerchantBillingError('PILOT_EXISTS', 'This Merchant has already used the Founding Pilot. Choose a monthly plan instead.', 409)
     }
@@ -159,6 +171,7 @@ async function recordRejectedEvent(event: Stripe.Event, account: BillingAccountR
     stripeCustomerId: stripeId(object.customer as string | { id: string } | null | undefined),
     stripeSubscriptionId: stripeId(object.subscription as string | { id: string } | null | undefined) ?? (event.type.startsWith('customer.subscription.') ? String(object.id ?? '') : null),
     stripePriceId: eventPriceId(object, event.type),
+    planCode: eventPlanCode(object, event.type),
     stripeCheckoutSessionId: checkoutSessionId(object, event.type),
     eventCreatedAt: event.created,
     status: 'REJECTED',
@@ -299,9 +312,10 @@ export async function processMerchantStripeEvent(event: Stripe.Event, database: 
           return { handled: true, duplicate: true }
         }
         ledgerId = existing.id
-        await tx.merchantBillingEvent.update({ where: { id: ledgerId }, data: { status: 'RECEIVED', processingReason: null, processedAt: null, duplicateCount: { increment: 1 }, lastDuplicateAt: new Date() } })
+        const planCode = eventPlanCode(object, event.type)
+        await tx.merchantBillingEvent.update({ where: { id: ledgerId }, data: { status: 'RECEIVED', processingReason: null, processedAt: null, ...(planCode ? { planCode } : {}), duplicateCount: { increment: 1 }, lastDuplicateAt: new Date() } })
       } else {
-        const ledger = await tx.merchantBillingEvent.create({ data: { provider: MERCHANT_BILLING_PROVIDER, providerEventId: event.id, merchantId: locked.merchantId, billingAccountId: locked.id, eventType: event.type, stripeCustomerId: stripeId(object.customer as string | { id: string } | null | undefined), stripeSubscriptionId: stripeId(object.subscription as string | { id: string } | null | undefined) ?? (event.type.startsWith('customer.subscription.') ? String(object.id ?? '') : null), stripePriceId: eventPriceId(object, event.type), stripeCheckoutSessionId: checkoutSessionId(object, event.type), eventCreatedAt: event.created, status: 'RECEIVED' }, select: { id: true } })
+        const ledger = await tx.merchantBillingEvent.create({ data: { provider: MERCHANT_BILLING_PROVIDER, providerEventId: event.id, merchantId: locked.merchantId, billingAccountId: locked.id, eventType: event.type, planCode: eventPlanCode(object, event.type), stripeCustomerId: stripeId(object.customer as string | { id: string } | null | undefined), stripeSubscriptionId: stripeId(object.subscription as string | { id: string } | null | undefined) ?? (event.type.startsWith('customer.subscription.') ? String(object.id ?? '') : null), stripePriceId: eventPriceId(object, event.type), stripeCheckoutSessionId: checkoutSessionId(object, event.type), eventCreatedAt: event.created, status: 'RECEIVED' }, select: { id: true } })
         ledgerId = ledger.id
       }
       let applied = false
