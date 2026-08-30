@@ -42,7 +42,7 @@ following conditions:
 VERCEL_ENV=preview
 APP_ENV=preview
 VISUTRY_PREVIEW_QA=1
-VISUTRY_DATABASE_IDENTITY=neon:steep-silence-18355430:br-raspy-cake-adwjq4e
+VISUTRY_DATABASE_IDENTITY=neon:steep-silence-18355430:br-raspy-cake-adwjq4e9
 STRIPE_MERCHANT_BILLING_MODE=test
 STRIPE_SECRET_KEY=sk_test_...
 ```
@@ -169,7 +169,7 @@ generic SQL execution tool is part of this harness.
 ## Environment isolation
 
 Preview uses the persistent schema-only Neon branch `preview` and is identified
-by the non-secret marker `neon:steep-silence-18355430:br-raspy-cake-adwjq4e`.
+by the non-secret marker `neon:steep-silence-18355430:br-raspy-cake-adwjq4e9`.
 Production keeps its existing Neon connection and live Stripe configuration.
 The marker is registered by the bounded Preview bootstrap only after the
 schema-only branch is selected:
