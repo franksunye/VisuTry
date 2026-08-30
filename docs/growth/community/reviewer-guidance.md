@@ -32,6 +32,19 @@ Routine review results that require no operational change do not need a reposito
 
 ## Guidance log
 
+### 2026-08-30 — Treat action-time confirmation as a structural distribution blocker
+
+- The 2026-08-30 run successfully found a qualified, fresh YouTube `TRANSPARENT_MENTION` opportunity and drafted an appropriate reply, but the browser required action-time confirmation before transmitting the public comment. This is now the primary blocker to fully unattended community distribution; it is not a promotion-strategy failure.
+- Never bypass or work around representational-action confirmation requirements. If the browser/runtime requires confirmation and none is available in the scheduled run, do not submit the action.
+- Do not spend a long-running scheduled session waiting for confirmation that cannot arrive. Once a qualified action reaches the confirmation boundary, record `REPRESENTATIONAL_ACTION_BLOCKED`, preserve the exact candidate URL, target comment/post, intended interaction mode, and final draft, then continue useful research/logging and finish the run.
+- Distinguish `QUALIFIED_PROMOTION_OPPORTUNITY` from `PUBLISHED_PROMOTION_ACTION`. A qualified opportunity blocked only by runtime confirmation is evidence that discovery and promotion judgment worked; it must not be counted as a relevance rejection or as evidence that the channel has no distribution potential.
+- Maintain a small pending-action queue in canonical state/log evidence for recent high-quality candidates blocked only by confirmation. Re-check freshness/context on the next run before reusing any candidate; never blindly post an old queued draft.
+- Keep searching both `TRUST_LANE` and `DISTRIBUTION_LANE`, but avoid repeatedly rediscovering the same blocked candidate solely to inflate promotion-fit counts.
+- The 2026-08-30 YouTube draft was appropriately concise, transparent about affiliation, and independently useful. Its content pattern is acceptable, but do not turn it into a repeated template.
+- The Reddit distribution expansion was directionally correct. `r/VirtualTryOn`, `r/SideProject`, and `r/alphaandbetausers` should remain `UNKNOWN` until current posting/self-promotion rules can be verified; do not infer permission merely from community descriptions.
+- Operational efficiency: a Sunday maintenance run should not require roughly 2.5 hours merely because a public action is blocked at confirmation. Prefer a bounded research pass and clean completion once the blocker and evidence are recorded.
+- Reviewer diagnosis for this run: `DISCOVERY_WORKING / PUBLISHING_BLOCKED_BY_CONFIRMATION`. Do not respond by weakening relevance standards or by forcing promotion elsewhere.
+
 ### 2026-08-29 — Broaden promotion-fit discovery beyond restrictive surfaces
 
 - The 2026-08-29 scheduled run correctly applied the balanced-promotion policy and explicitly considered three promotion-fit opportunities, but all were concentrated in `r/glassesadvice` or generic YouTube search surfaces where promotion was restricted, saturated, stale, or lacked an active viewer question.
