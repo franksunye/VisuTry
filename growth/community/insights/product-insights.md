@@ -64,3 +64,12 @@ Record evidence, not assumptions. A single comment is a `SINGLE SIGNAL` until re
 - Area: Advisor / Try-On / Compare / Consumer UX / Accessibility
 - Confidence: REPEATED SIGNAL
 - Follow-up measurement: classify future try-on questions by visual shortlist need versus bridge, lash-clearance, prescription, and comfort constraints
+
+## 2026-08-30 public discovery sample
+
+- Insight: Low-context face-shape questions need a compact decision path that turns a broad shape label into measurable frame checks without implying physical-fit certainty.
+- Evidence: A YouTube viewer asked which glasses to wear for a round face in an active 209-comment Short; the surrounding discussion included many face-shape labels but did not establish width, eye position, bridge comfort, or stability.
+- Source URLs: https://www.youtube.com/watch?v=Q-ke6q9vOgw ; https://www.youtube.com/watch?v=Q-ke6q9vOgw&lc=UgwI_k6Y5p1JNRTARBF4AaABAg
+- Area: Face Analysis / Advisor / Try-On / Compare / Consumer UX
+- Confidence: REPEATED SIGNAL
+- Follow-up measurement: track whether shape-led questions convert into measurable width, bridge, eye-position, or comfort questions after a shortlist is shown

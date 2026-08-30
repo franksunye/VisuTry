@@ -78,3 +78,14 @@ Candidates only. Do not create production pages automatically.
 - Evidence count: 2 fresh Reddit decision/fit threads plus 1 older virtual-try-on thread reviewed on 2026-08-29
 - Product path: Advisor -> Compare -> Try-On
 - Confidence: REPEATED SIGNAL
+
+## 2026-08-30 public discovery sample
+
+- Opportunity: Extend face-shape and try-on coverage to concise, question-led searches that appear in active video comments.
+- Repeated user question: people ask which glasses suit a round face, then need width, eye-position, bridge, and comfort guidance to make the answer actionable.
+- Source URLs: https://www.youtube.com/watch?v=Q-ke6q9vOgw ; https://www.youtube.com/watch?v=Q-ke6q9vOgw&lc=UgwI_k6Y5p1JNRTARBF4AaABAg
+- Suggested page action: add a compact round-face frame guide with a style shortlist plus a physical-fit checklist and preview limitations
+- Search language: `which glasses to wear if i have round face`, `round face glasses`, `virtual try on glasses app`
+- Evidence count: 1 active YouTube Short with 209 comments and a relevant question posted 8 days ago, plus related try-on search results reviewed on 2026-08-30
+- Product path: Face Analysis -> Advisor -> Compare -> Try-On
+- Confidence: REPEATED SIGNAL

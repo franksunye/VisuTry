@@ -1,6 +1,6 @@
 # Reddit Community Map
 
-Last reviewed: 2026-08-24
+Last reviewed: 2026-08-30
 Review rule: verify visible rules before posting; never treat a prior classification as permanent.
 
 | Subreddit | Relevance | Activity | Typical questions | Promotion/link rules observed | Tone | Classification | Interaction mode |
@@ -25,6 +25,12 @@ Suggested fields for each new entry:
 - Last reviewed date
 - Recommended interaction mode
 - Classification: `ALLOW`, `CAUTION`, `AVOID`, or `UNKNOWN`
+
+### 2026-08-30 discovery candidates
+
+- `r/VirtualTryOn` — High topic relevance for virtual try-on, AI/AR shopping, and builder discussions; low current activity in the visible feed and no `glasses` results in the community search. The community description says builders, brands, and users are welcome, and visible flairs include `Dev/Research` and `Startup/Showcase`. The current rules page did not expose explicit posting or self-promotion rules. Classification: `UNKNOWN`; interaction mode: `TRANSPARENT_MENTION` or `DIRECT_SHARE` only after rules and a fresh eyewear-relevant context are verified.
+- `r/SideProject` — Medium relevance as a constructive project-feedback surface; active feed with recent project posts. Community description explicitly supports sharing and receiving constructive feedback, but the current rules page did not expose explicit posting or self-promotion rules. Classification: `UNKNOWN`; interaction mode: `TRANSPARENT_MENTION` only for a genuine feedback request, never a generic link drop.
+- `r/alphaandbetausers` — Medium relevance as an app-testing surface; active beta-testing feed and community description explicitly invites app/website testers. The current rules page did not expose explicit posting or self-promotion rules, and the `glasses` search returned unrelated posts. Classification: `UNKNOWN`; interaction mode: `DIRECT_SHARE` only after current rules and a concrete testing request are verified.
 
 ## Seed query pool
 

@@ -1,26 +1,27 @@
 {
   "schema_version": 2,
-  "last_updated": "2026-08-29T10:09:47+08:00",
+  "last_updated": "2026-08-30T12:30:18+08:00",
   "rollout_week": "2026-W35",
   "branch": "growth/community-ops",
   "timezone": "Asia/Shanghai",
   "last_run": {
-    "started_at": "2026-08-29T10:00:00+08:00",
-    "finished_at": "2026-08-29T10:09:47+08:00",
-    "status": "NO_HIGH_QUALITY_ACTION_FOUND",
+    "started_at": "2026-08-30T10:00:00+08:00",
+    "finished_at": "2026-08-30T12:30:18+08:00",
+    "status": "COMPLETED",
     "trigger": "SCHEDULED",
     "scheduler_run_id": "NOT_EXPOSED",
     "public_research": true,
-    "reddit_searches": 1,
+    "reddit_searches": 4,
     "youtube_searches": 2,
     "reddit_interactions": 0,
     "youtube_interactions": 0,
     "follow_ups": 3,
-    "questions_discovered": 3,
+    "questions_discovered": 2,
     "insights_captured": 4,
-    "blockers": [],
-    "promotion_fit_opportunities_considered": 3,
-    "promotion_fit_opportunities_rejected": 3,
+    "blockers": ["BROWSER_CONFIRMATION_REQUIRED: YouTube public comment draft held and not transmitted"],
+    "promotion_fit_opportunities_considered": 2,
+    "promotion_fit_opportunities_rejected": 1,
+    "promotion_fit_opportunities_pending_confirmation": 1,
     "interaction_modes": {
       "COMMUNITY_VALUE": 0,
       "TRANSPARENT_MENTION": 0,
@@ -28,7 +29,7 @@
     },
     "visutry_mentions": 0,
     "visutry_links": 0,
-    "promotion_fit_notes": "Explicit discovery completed; candidates were rejected for community rules, saturation, redundancy, or absence of a current question. No blanket no-promotion posture."
+    "promotion_fit_notes": "Both trust and distribution lanes were searched. One qualified YouTube transparent-mention reply was drafted but held for required action-time confirmation; one Reddit distribution candidate was rejected because no fresh eyewear question was found and explicit current rules were unavailable."
   },
   "platforms": {
     "reddit": {
@@ -59,7 +60,7 @@
     "timezone": "Asia/Shanghai",
     "status": "ACTIVE",
     "next_run_at": "NOT_EXPOSED",
-    "verified_at": "2026-08-29T10:09:47+08:00",
+    "verified_at": "2026-08-30T12:30:18+08:00",
     "verification_source": "CODEX_SCHEDULER"
   }
 }

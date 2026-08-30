@@ -135,6 +135,30 @@ Preserve exact language where reasonable. Add one entry per meaningful question.
 - First observed: 2026-08-29
 - Last observed: 2026-08-29
 
+## 2026-08-30 public discovery sample
+
+- Question: Which glasses should I wear if I have a round face?
+- Exact user phrasing: `which glasses to wear if i have round face??`
+- Platform: YouTube
+- Source URL: https://www.youtube.com/watch?v=Q-ke6q9vOgw&lc=UgwI_k6Y5p1JNRTARBF4AaABAg
+- Topic: face-shape styling, frame structure, width, eye position, and fit limitations
+- Intent: choose a frame style from a short visual guide
+- Frequency/pattern: REPEATED SIGNAL with prior face-shape and style-versus-fit questions
+- Business relevance: a concise Advisor/Try-On answer can build awareness if it remains independently useful and discloses affiliation transparently
+- First observed: 2026-08-30
+- Last observed: 2026-08-30
+
+- Question: What does everyone think about my new glasses after purchase?
+- Exact user phrasing: `What does everyone think? I'm stuck with them so it doesn't really matter at this point, lol. But I'm just curious.`
+- Platform: Reddit
+- Source URL: https://www.reddit.com/r/glassesadvice/comments/1w26gpl/new_glasses/
+- Topic: post-purchase color and shape reassurance
+- Intent: low-stakes style confirmation
+- Frequency/pattern: SINGLE SIGNAL; two recent comments already answered it
+- Business relevance: no product intervention needed; reinforces stopping when another reply would add noise
+- First observed: 2026-08-30
+- Last observed: 2026-08-30
+
 - Question: Which pair works for a narrow face and small low nose bridge when long eyelashes hit lenses and the prescription is high?
 - Exact user phrasing: `Which pair? I am SO hard to fit. Narrow face and small low nose bridge, long eyelashes hit lenses. High RX.`
 - Platform: Reddit

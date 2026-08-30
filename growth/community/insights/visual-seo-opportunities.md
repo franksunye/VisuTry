@@ -71,3 +71,13 @@ Examples include frames too wide versus correct width, brow-line alignment, brid
 - Landing-page candidate: `/en/compare-glasses-frames` or the existing glasses-fit/face-shape route owner
 - Evidence count: 2 fresh Reddit style/fit decision threads plus repeated virtual-try-on limitation signals reviewed on 2026-08-29
 - Confidence: REPEATED SIGNAL
+
+## 2026-08-30 public discovery sample
+
+- Visual title: `Round-Face Glasses: Style Shortlist Plus Fit Checks`
+- Target query: `which glasses to wear if i have round face`, `round face glasses`, `virtual try on glasses app`
+- Visual answer concept: show structured frame families for round faces beside width, eye-position, bridge, and stability annotations; add a short note that virtual try-on supports visual shortlisting but cannot establish comfort or prescription fit.
+- Source question and URL: `which glasses to wear if i have round face??` — https://www.youtube.com/watch?v=Q-ke6q9vOgw&lc=UgwI_k6Y5p1JNRTARBF4AaABAg
+- Landing-page candidate: `/en/compare-glasses-frames` or the existing glasses-fit/face-shape route owner
+- Evidence count: 1 active YouTube Short with 209 comments and a relevant recent question reviewed on 2026-08-30
+- Confidence: REPEATED SIGNAL

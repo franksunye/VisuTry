@@ -69,3 +69,13 @@
 - Confidence: REPEATED SIGNAL
 - Possible merchant implication: expose bridge width, lens width, total width, low-bridge/narrow-fit filters, lens-to-lash clearance guidance, and high-RX suitability near frame comparison and try-on controls
 - Follow-up measurement: track future mentions of low bridges, eyelashes touching lenses, narrow-fit sizing, and high-prescription frame limits
+
+## 2026-08-30 public discovery sample
+
+- Insight: Merchant selectors should pair face-shape inspiration with plain-language width and bridge checks because a shape label alone does not tell a shopper whether a frame will stay comfortable.
+- Evidence: A current YouTube viewer asked for glasses for a round face; the active comment section showed strong interest in shape categories, while the safe answer needed to add frame structure, width, eye position, and bridge comfort.
+- Source URLs: https://www.youtube.com/watch?v=Q-ke6q9vOgw ; https://www.youtube.com/watch?v=Q-ke6q9vOgw&lc=UgwI_k6Y5p1JNRTARBF4AaABAg
+- Area: Store / Merchant Sales / Fit Guidance
+- Confidence: REPEATED SIGNAL
+- Possible merchant implication: show frame width, bridge contact, eye position, and comfort caveats next to shape-based style filters and try-on results
+- Follow-up measurement: track questions that begin with a face-shape label but continue into size, bridge, slipping, or comfort concerns
