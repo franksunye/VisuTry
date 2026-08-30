@@ -33,6 +33,7 @@ module.exports = {
   Download: createIcon('download'),
   Clock: createIcon('clock'),
   ArrowRight: createIcon('arrow-right'),
+  ArrowLeft: createIcon('arrow-left'),
   Compass: createIcon('compass'),
   ChevronLeft: createIcon('chevron-left'),
   ChevronRight: createIcon('chevron-right'),

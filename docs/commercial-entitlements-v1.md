@@ -159,6 +159,37 @@ Pilot Checkout events from `REAL` Merchants count, deduplicated by the Stripe
 Checkout Session, so a later recurring-plan change cannot erase historical
 Pilot revenue and Pilot revenue never becomes MRR.
 
+## Billing state normalization and recovery
+
+The Merchant Purchase Summary uses a normalized, server-resolved billing state;
+it does not infer a valid subscription from `stripeSubscriptionId` or the
+stored subscription status alone. The provider verification step is read-only,
+tenant-scoped, uses the expected Stripe mode, confirms the Stripe Customer and
+supported recurring Price, and applies a bounded provider read.
+
+The canonical states are:
+
+| State | Meaning | Purchase action |
+| --- | --- | --- |
+| `NO_SUBSCRIPTION` | No active-looking provider reference exists and the workspace may start billing | `CHECKOUT` |
+| `VALID_SUBSCRIPTION` | Stripe object, mode, Customer, Price, and lifecycle are valid | `CURRENT` or `CHANGE_PLAN` |
+| `PAYMENT_ATTENTION` | Payment, cancellation-at-period-end, or subscription action needs attention | `MANAGE_BILLING` |
+| `BILLING_DISABLED` | The current billing policy does not permit writes in this environment/workspace | No live billing CTA |
+| `SUBSCRIPTION_MISSING` | The database references a subscription that the expected provider cannot find | Recovery; never automatic Checkout |
+| `SUBSCRIPTION_INVALID` | The provider object has the wrong mode, Customer, Price, or lifecycle | Recovery; never automatic Checkout |
+| `PROVIDER_UNAVAILABLE` | The provider could not be reached or returned an unclassifiable transient error | Retry/recovery; never automatic Checkout |
+
+`CHANGE_PLAN` failures never fall back to creating a new Checkout Session. A
+missing, invalid, or ambiguous provider reference is a recovery state. Failed
+write responses tell the Merchant that no charge was made and that the current
+plan is unchanged; raw Stripe identifiers are not exposed.
+
+Billing policy is separate from authorization and KPI classification. In
+Production, `TEST` and `INTERNAL` workspaces have Live Billing disabled by
+default. Local and Preview may use Stripe TEST for bounded QA, while `REAL`
+workspaces follow the normal provider verification path. Classification does
+not grant tenant access and does not by itself enroll a Merchant in a plan.
+
 Production paid validation is deliberately a separate operator action. Use the
 runbook at
 `docs/operations/merchant-first-paid-production-validation.md` only after

@@ -34,6 +34,24 @@ describe('Merchant self-service purchase intent', () => {
     })).toBe('MANAGE_BILLING')
   })
 
+  it('maps normalized billing states to safe purchase actions', () => {
+    const base = { reason: null, providerPlanCode: null, providerSubscriptionStatus: null, cancelAtPeriodEnd: false } as const
+    expect(resolveMerchantPurchaseAction({ intent: 'GROWTH', currentPlanCode: 'LAUNCH', billingState: { kind: 'VALID_SUBSCRIPTION', ...base, providerPlanCode: 'LAUNCH', providerSubscriptionStatus: 'active' } })).toBe('CHANGE_PLAN')
+    expect(resolveMerchantPurchaseAction({ intent: 'LAUNCH', currentPlanCode: 'LAUNCH', billingState: { kind: 'VALID_SUBSCRIPTION', ...base, providerPlanCode: 'LAUNCH', providerSubscriptionStatus: 'active' } })).toBe('CURRENT')
+    expect(resolveMerchantPurchaseAction({ intent: 'SCALE', currentPlanCode: 'SCALE', billingState: { kind: 'VALID_SUBSCRIPTION', ...base, providerPlanCode: 'LAUNCH', providerSubscriptionStatus: 'active' } })).toBe('BILLING_RECOVERY')
+    expect(resolveMerchantPurchaseAction({ intent: 'SCALE', currentPlanCode: 'LAUNCH', billingState: { kind: 'VALID_SUBSCRIPTION', ...base, providerPlanCode: 'SCALE', providerSubscriptionStatus: 'active' } })).toBe('BILLING_RECOVERY')
+    expect(resolveMerchantPurchaseAction({ intent: 'GROWTH', currentPlanCode: 'LAUNCH', billingState: { kind: 'PAYMENT_ATTENTION', ...base, providerPlanCode: 'LAUNCH', providerSubscriptionStatus: 'past_due' } })).toBe('MANAGE_BILLING')
+    expect(resolveMerchantPurchaseAction({ intent: 'GROWTH', billingState: { kind: 'BILLING_DISABLED', ...base, reason: 'BILLING_POLICY_DISABLED' } })).toBe('BILLING_DISABLED')
+    expect(resolveMerchantPurchaseAction({ intent: 'GROWTH', currentPlanCode: 'LAUNCH', billingState: { kind: 'SUBSCRIPTION_MISSING', ...base, reason: 'SUBSCRIPTION_NOT_FOUND', providerSubscriptionStatus: 'active' } })).toBe('BILLING_RECOVERY')
+    expect(resolveMerchantPurchaseAction({ intent: 'GROWTH', currentPlanCode: 'LAUNCH', billingState: { kind: 'SUBSCRIPTION_INVALID', ...base, reason: 'WRONG_STRIPE_MODE' } })).toBe('BILLING_RECOVERY')
+    expect(resolveMerchantPurchaseAction({ intent: 'GROWTH', billingState: { kind: 'PROVIDER_UNAVAILABLE', ...base, reason: 'PROVIDER_UNAVAILABLE' } })).toBe('BILLING_RECOVERY')
+    expect(resolveMerchantPurchaseAction({ intent: 'GROWTH', billingState: { kind: 'NO_SUBSCRIPTION', ...base } })).toBe('CHECKOUT')
+  })
+
+  it('keeps the one-time Pilot guard ahead of billing recovery and policy states', () => {
+    expect(resolveMerchantPurchaseAction({ intent: 'FOUNDING_PILOT', currentPlanCode: 'LAUNCH', foundingPilotConsumed: true, billingState: { kind: 'SUBSCRIPTION_MISSING', reason: 'SUBSCRIPTION_NOT_FOUND', providerPlanCode: null, providerSubscriptionStatus: 'active', cancelAtPeriodEnd: false } })).toBe('DUPLICATE_PILOT')
+  })
+
   it('allows the first Pilot and blocks every later Pilot purchase', () => {
     expect(resolveMerchantPurchaseAction({ intent: 'FOUNDING_PILOT', currentPlanCode: null, commercialStatus: null, foundingPilotConsumed: false })).toBe('CHECKOUT')
     expect(resolveMerchantPurchaseAction({ intent: 'FOUNDING_PILOT', currentPlanCode: 'FOUNDING_PILOT', commercialStatus: 'PILOT_ACTIVE' })).toBe('DUPLICATE_PILOT')

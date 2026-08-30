@@ -3,9 +3,13 @@ import type Stripe from 'stripe'
 import { prisma } from '@/lib/prisma'
 import { stripe } from '@/lib/stripe'
 import { isMockMode } from '@/lib/mocks'
+import { resolveAppEnvironment } from '@/lib/app-environment'
 import { COMMERCIAL_PLAN_VERSION, getMerchantPlanDefinition } from '@/modules/merchant/domain/merchant-commercial-plans'
 import { addDays, compareBillingEvent, commercialStatusForSubscription, type MerchantBillablePlanCode, type MerchantRecurringPlanCode } from '../domain/merchant-billing'
+import { resolveMerchantBillingPolicy, type MerchantBillingPolicy, type MerchantBillingMode } from '../domain/merchant-billing-policy'
+import { normalizeMerchantBillingState, type MerchantBillingState } from '../domain/merchant-billing-state'
 import { MERCHANT_BILLING_PROVIDER, MerchantBillingError, assertMerchantStripeEnvironment, isMerchantBillingMetadata, isRetryableMerchantBillingDatabaseError, isRetryableMerchantBillingErrorCode, merchantFoundingPilotReceiptPriceIds, merchantStripePriceForPlan, metadataRecord, resolveMerchantStripePrice, stripeId, unixDate } from './merchant-billing-shared'
+import { readVerifiedMerchantSubscription, verifyMerchantSubscription } from './merchant-billing-provider'
 
 export { MERCHANT_BILLING_PROVIDER, MerchantBillingError, assertMerchantStripeEnvironment, isRetryableMerchantBillingDatabaseError, isRetryableMerchantBillingErrorCode, merchantFoundingPilotReceiptPriceIds, merchantStripePriceMap, merchantStripePriceForPlan, resolveMerchantStripePrice } from './merchant-billing-shared'
 export type { MerchantStripePrice } from './merchant-billing-shared'
@@ -53,8 +57,10 @@ function eventPlanCode(value: Record<string, unknown>, eventType: string): Merch
   }
 }
 
-async function merchantForBilling(merchantId: string) {
-  const merchant = await prisma.merchant.findUnique({ where: { id: merchantId }, select: { id: true, name: true, planCode: true, commercialStatus: true } })
+type MerchantBillingIdentity = { id: string; name: string; classification: string | null; planCode: string | null; commercialStatus: string | null }
+
+async function merchantForBilling(merchantId: string): Promise<MerchantBillingIdentity> {
+  const merchant = await prisma.merchant.findUnique({ where: { id: merchantId }, select: { id: true, name: true, classification: true, planCode: true, commercialStatus: true } })
   if (!merchant) throw new MerchantBillingError('MERCHANT_NOT_FOUND', 'Merchant not found.', 404)
   return merchant
 }
@@ -63,7 +69,14 @@ async function ensureAccount(merchantId: string, merchantName: string): Promise<
   const existing = await prisma.merchantBillingAccount.findUnique({ where: { merchantId_provider: { merchantId, provider: MERCHANT_BILLING_PROVIDER } }, select: billingAccountSelect })
   if (existing) return existing as BillingAccountRow
   const client = stripe as any
-  const customer = isMockMode && !client.customers?.create ? { id: `cus_mock_merchant_${merchantId}` } : await client.customers.create({ name: merchantName, metadata: { merchantId, billingPurpose: 'MERCHANT_PLAN' } }, { idempotencyKey: `merchant-customer:${merchantId}` })
+  let customer
+  try {
+    customer = isMockMode && !client.customers?.create
+      ? { id: `cus_mock_merchant_${merchantId}` }
+      : await client.customers.create({ name: merchantName, metadata: { merchantId, billingPurpose: 'MERCHANT_PLAN' } }, { idempotencyKey: `merchant-customer:${merchantId}` })
+  } catch (error) {
+    throw new MerchantBillingError('PROVIDER_UNAVAILABLE', 'We could not reach the billing provider. No charge was made. Your current plan is unchanged.', 503, { billingState: 'PROVIDER_UNAVAILABLE', retryable: true, providerError: error instanceof Error ? error.name : 'unknown' })
+  }
   try {
     return await prisma.merchantBillingAccount.create({ data: { merchantId, provider: MERCHANT_BILLING_PROVIDER, stripeCustomerId: customer.id }, select: billingAccountSelect }) as BillingAccountRow
   } catch (error) {
@@ -77,6 +90,86 @@ async function ensureAccount(merchantId: string, merchantName: string): Promise<
 export async function getMerchantBillingSummary(input: { merchantId: string }): Promise<MerchantBillingSummary | null> {
   const account = await prisma.merchantBillingAccount.findUnique({ where: { merchantId_provider: { merchantId: input.merchantId, provider: MERCHANT_BILLING_PROVIDER } }, select: billingAccountSelect })
   return account ? { ...(account as BillingAccountRow), maskedCustomerId: mask(account.stripeCustomerId), maskedSubscriptionId: mask(account.stripeSubscriptionId) } : null
+}
+
+function configuredMerchantStripeMode(): MerchantBillingMode | null {
+  const mode = process.env.STRIPE_MERCHANT_BILLING_MODE?.trim().toLowerCase()
+  if (mode === 'test' || mode === 'live') return mode
+  return isMockMode || resolveAppEnvironment() !== 'production' ? 'test' : null
+}
+
+function billingPolicyForMerchant(classification: string | null | undefined): MerchantBillingPolicy {
+  return resolveMerchantBillingPolicy({
+    classification,
+    environment: resolveAppEnvironment(),
+    stripeMode: configuredMerchantStripeMode(),
+  })
+}
+
+function stateFromConfigurationError(error: unknown): MerchantBillingState {
+  return {
+    kind: 'PROVIDER_UNAVAILABLE',
+    reason: error instanceof MerchantBillingError ? 'BILLING_CONFIGURATION_ERROR' : 'PROVIDER_UNAVAILABLE',
+    providerPlanCode: null,
+    providerSubscriptionStatus: null,
+    cancelAtPeriodEnd: false,
+  }
+}
+
+function stateError(state: MerchantBillingState): MerchantBillingError {
+  const messages: Record<MerchantBillingState['kind'], string> = {
+    BILLING_DISABLED: 'Live billing is disabled for this workspace.',
+    SUBSCRIPTION_MISSING: 'We could not verify the current billing subscription. No charge was made. Your current plan is unchanged.',
+    SUBSCRIPTION_INVALID: 'The current billing subscription is not valid for this workspace. No charge was made. Your current plan is unchanged.',
+    PROVIDER_UNAVAILABLE: 'We could not reach the billing provider. No charge was made. Your current plan is unchanged.',
+    NO_SUBSCRIPTION: 'No active Merchant subscription was found. No charge was made. Your current plan is unchanged.',
+    VALID_SUBSCRIPTION: 'This Merchant already has a billing plan. No charge was made. Your current plan is unchanged.',
+    PAYMENT_ATTENTION: 'Your billing account needs attention. No charge was made. Your current plan is unchanged.',
+  }
+  const code = state.kind === 'BILLING_DISABLED'
+    ? 'BILLING_DISABLED'
+    : state.kind === 'PAYMENT_ATTENTION'
+      ? 'PAYMENT_ATTENTION_REQUIRED'
+      : state.kind === 'PROVIDER_UNAVAILABLE' && state.reason === 'BILLING_CONFIGURATION_ERROR'
+        ? 'BILLING_CONFIGURATION_ERROR'
+        : state.kind
+  return new MerchantBillingError(code, messages[state.kind], state.kind === 'BILLING_DISABLED' ? 403 : 409, { billingState: state.kind, reason: state.reason, retryable: state.kind === 'PROVIDER_UNAVAILABLE' })
+}
+
+export type MerchantBillingStateResult = {
+  state: MerchantBillingState
+  billing: MerchantBillingSummary | null
+  policy: MerchantBillingPolicy
+}
+
+/**
+ * Resolve the billing state used by the Merchant Purchase Summary. Existing
+ * provider references are verified read-only before they can produce a
+ * CHANGE_PLAN, CURRENT, or MANAGE_BILLING action.
+ */
+export async function getMerchantBillingState(input: { merchantId: string }): Promise<MerchantBillingStateResult> {
+  const merchant = await merchantForBilling(input.merchantId)
+  const account = await prisma.merchantBillingAccount.findUnique({
+    where: { merchantId_provider: { merchantId: input.merchantId, provider: MERCHANT_BILLING_PROVIDER } },
+    select: billingAccountSelect,
+  }) as BillingAccountRow | null
+  const billing = account ? { ...(account as BillingAccountRow), maskedCustomerId: mask(account.stripeCustomerId), maskedSubscriptionId: mask(account.stripeSubscriptionId) } : null
+  const policy = billingPolicyForMerchant(merchant.classification)
+
+  if (!policy.billingWritesAllowed) {
+    return { state: normalizeMerchantBillingState({ policy, account }), billing, policy }
+  }
+
+  try {
+    assertMerchantStripeEnvironment()
+  } catch (error) {
+    return { state: stateFromConfigurationError(error), billing, policy }
+  }
+
+  const provider = account?.stripeSubscriptionId
+    ? await verifyMerchantSubscription({ subscriptionId: account.stripeSubscriptionId, customerId: account.stripeCustomerId })
+    : null
+  return { state: normalizeMerchantBillingState({ policy, account, provider, commercialPlanCode: merchant.planCode }), billing, policy }
 }
 
 const FOUNDING_PILOT_RECEIPT_EVENT_TYPES = ['checkout.session.completed', 'checkout.session.async_payment_succeeded'] as const
@@ -105,7 +198,6 @@ export async function hasMerchantFoundingPilotReceipt(input: { merchantId: strin
 }
 
 export async function createMerchantCheckoutSession(input: { merchantId: string; planCode: MerchantBillablePlanCode; successUrl: string; cancelUrl: string }) {
-  assertMerchantStripeEnvironment()
   const price = merchantStripePriceForPlan(input.planCode)
   const merchant = await merchantForBilling(input.merchantId)
   if (price.planCode === 'FOUNDING_PILOT') {
@@ -117,31 +209,67 @@ export async function createMerchantCheckoutSession(input: { merchantId: string;
       throw new MerchantBillingError('PILOT_EXISTS', 'This Merchant has already used the Founding Pilot. Choose a monthly plan instead.', 409)
     }
   }
+
+  const billingState = await getMerchantBillingState({ merchantId: merchant.id })
+  if (billingState.state.kind === 'BILLING_DISABLED') throw stateError(billingState.state)
+  if (billingState.state.kind !== 'NO_SUBSCRIPTION') {
+    throw new MerchantBillingError(
+      billingState.state.kind === 'VALID_SUBSCRIPTION' || billingState.state.kind === 'PAYMENT_ATTENTION' ? 'SUBSCRIPTION_EXISTS' : 'BILLING_RECOVERY_REQUIRED',
+      billingState.state.kind === 'VALID_SUBSCRIPTION' || billingState.state.kind === 'PAYMENT_ATTENTION'
+        ? 'This Merchant already has a billing plan. Use Manage plan to change it. No charge was made. Your current plan is unchanged.'
+        : 'We could not verify the current billing subscription. No charge was made. Your current plan is unchanged.',
+      billingState.state.kind === 'VALID_SUBSCRIPTION' || billingState.state.kind === 'PAYMENT_ATTENTION' ? 409 : 409,
+      { billingState: billingState.state.kind, reason: billingState.state.reason, retryable: billingState.state.kind === 'PROVIDER_UNAVAILABLE' },
+    )
+  }
+
+  assertMerchantStripeEnvironment()
   const account = await ensureAccount(merchant.id, merchant.name)
-  if (price.billingType === 'subscription' && account.stripeSubscriptionId && ['active', 'trialing', 'past_due', 'unpaid'].includes(account.subscriptionStatus ?? '')) throw new MerchantBillingError('SUBSCRIPTION_EXISTS', 'This Merchant already has a billing plan. Use Manage plan to change it.', 409)
-  const session = await (stripe as any).checkout.sessions.create({ mode: price.billingType === 'subscription' ? 'subscription' : 'payment', customer: account.stripeCustomerId, line_items: [{ price: price.priceId, quantity: 1 }], success_url: input.successUrl, cancel_url: input.cancelUrl, client_reference_id: merchant.id, metadata: metadata(merchant.id, price.planCode, price.priceId), ...(price.billingType === 'subscription' ? { subscription_data: { metadata: metadata(merchant.id, price.planCode, price.priceId) } } : {}) }, { idempotencyKey: `merchant-checkout:${merchant.id}:${price.planCode}:${account.stripeCheckoutSessionId ?? 'new'}` })
+  if (price.billingType === 'subscription' && account.stripeSubscriptionId) throw new MerchantBillingError('BILLING_RECOVERY_REQUIRED', 'We could not verify the current billing subscription. No charge was made. Your current plan is unchanged.', 409, { billingState: 'SUBSCRIPTION_MISSING', reason: 'SUBSCRIPTION_NOT_FOUND' })
+  let session
+  try {
+    session = await (stripe as any).checkout.sessions.create({ mode: price.billingType === 'subscription' ? 'subscription' : 'payment', customer: account.stripeCustomerId, line_items: [{ price: price.priceId, quantity: 1 }], success_url: input.successUrl, cancel_url: input.cancelUrl, client_reference_id: merchant.id, metadata: metadata(merchant.id, price.planCode, price.priceId), ...(price.billingType === 'subscription' ? { subscription_data: { metadata: metadata(merchant.id, price.planCode, price.priceId) } } : {}) }, { idempotencyKey: `merchant-checkout:${merchant.id}:${price.planCode}:${account.stripeCheckoutSessionId ?? 'new'}` })
+  } catch (error) {
+    throw new MerchantBillingError('PROVIDER_UNAVAILABLE', 'We could not reach the billing provider. No charge was made. Your current plan is unchanged.', 503, { billingState: 'PROVIDER_UNAVAILABLE', retryable: true, providerError: error instanceof Error ? error.name : 'unknown' })
+  }
   return { kind: 'checkout' as const, sessionId: String(session.id), url: session.url == null ? null : String(session.url), planCode: price.planCode, priceId: price.priceId }
 }
 
 export async function updateMerchantSubscription(input: { merchantId: string; planCode: MerchantRecurringPlanCode }) {
-  assertMerchantStripeEnvironment()
   const price = merchantStripePriceForPlan(input.planCode)
-  const account = await prisma.merchantBillingAccount.findUnique({ where: { merchantId_provider: { merchantId: input.merchantId, provider: MERCHANT_BILLING_PROVIDER } }, select: billingAccountSelect }) as BillingAccountRow | null
-  if (!account?.stripeSubscriptionId) throw new MerchantBillingError('SUBSCRIPTION_NOT_FOUND', 'No active Merchant subscription was found.', 404)
-  const subscription = await (stripe as any).subscriptions.retrieve(account.stripeSubscriptionId)
-  if (subCustomer(subscription) !== account.stripeCustomerId) throw new MerchantBillingError('BILLING_IDENTITY_MISMATCH', 'The billing identity does not belong to this Merchant.', 409)
+  const billingState = await getMerchantBillingState({ merchantId: input.merchantId })
+  if (billingState.state.kind === 'BILLING_DISABLED') throw stateError(billingState.state)
+  if (billingState.state.kind !== 'VALID_SUBSCRIPTION') throw stateError(billingState.state)
+  const account = billingState.billing
+  if (!account?.stripeSubscriptionId) throw new MerchantBillingError('SUBSCRIPTION_MISSING', 'We could not verify the current billing subscription. No charge was made. Your current plan is unchanged.', 409)
+  assertMerchantStripeEnvironment()
+  const verified = await readVerifiedMerchantSubscription({ subscriptionId: account.stripeSubscriptionId, customerId: account.stripeCustomerId })
+  if (verified.kind !== 'VALID_SUBSCRIPTION' && verified.kind !== 'PAYMENT_ATTENTION') throw stateError(normalizeMerchantBillingState({ policy: billingState.policy, account, provider: verified }))
+  if (verified.kind === 'PAYMENT_ATTENTION') throw stateError(normalizeMerchantBillingState({ policy: billingState.policy, account, provider: verified }))
+  const subscription = verified.subscription
   const item = items(subscription)[0]
   if (!item?.id) throw new MerchantBillingError('SUBSCRIPTION_NOT_SUPPORTED', 'This subscription cannot be changed automatically.', 409)
-  await (stripe as any).subscriptions.update(account.stripeSubscriptionId, { items: [{ id: item.id, price: price.priceId }], proration_behavior: 'create_prorations', metadata: metadata(input.merchantId, price.planCode, price.priceId) })
+  try {
+    await (stripe as any).subscriptions.update(account.stripeSubscriptionId, { items: [{ id: item.id, price: price.priceId }], proration_behavior: 'create_prorations', metadata: metadata(input.merchantId, price.planCode, price.priceId) })
+  } catch (error) {
+    throw new MerchantBillingError('PROVIDER_UNAVAILABLE', 'We could not update the billing subscription. No charge was made. Your current plan is unchanged.', 503, { billingState: 'PROVIDER_UNAVAILABLE', retryable: true, providerError: error instanceof Error ? error.name : 'unknown' })
+  }
   return { kind: 'subscription_update' as const, subscriptionId: account.stripeSubscriptionId, planCode: input.planCode, priceId: price.priceId }
 }
 
 export async function createMerchantBillingPortalSession(input: { merchantId: string; returnUrl: string }) {
+  const billingState = await getMerchantBillingState({ merchantId: input.merchantId })
+  if (billingState.state.kind === 'BILLING_DISABLED') throw stateError(billingState.state)
+  if (billingState.state.kind !== 'VALID_SUBSCRIPTION' && billingState.state.kind !== 'PAYMENT_ATTENTION') throw stateError(billingState.state)
+  const account = billingState.billing
+  if (!account?.stripeSubscriptionId) throw new MerchantBillingError('SUBSCRIPTION_MISSING', 'We could not verify the current billing subscription. No charge was made. Your current plan is unchanged.', 409)
   assertMerchantStripeEnvironment()
-  const account = await prisma.merchantBillingAccount.findUnique({ where: { merchantId_provider: { merchantId: input.merchantId, provider: MERCHANT_BILLING_PROVIDER } }, select: billingAccountSelect })
-  if (!account?.stripeSubscriptionId) throw new MerchantBillingError('SUBSCRIPTION_NOT_FOUND', 'No active Merchant subscription was found.', 404)
-  const portal = await (stripe as any).billingPortal.sessions.create({ customer: account.stripeCustomerId, return_url: input.returnUrl })
-  return { url: String(portal.url) }
+  try {
+    const portal = await (stripe as any).billingPortal.sessions.create({ customer: account.stripeCustomerId, return_url: input.returnUrl })
+    return { url: String(portal.url) }
+  } catch (error) {
+    throw new MerchantBillingError('PROVIDER_UNAVAILABLE', 'We could not open the billing portal. No charge was made. Your current plan is unchanged.', 503, { billingState: 'PROVIDER_UNAVAILABLE', retryable: true, providerError: error instanceof Error ? error.name : 'unknown' })
+  }
 }
 
 export async function enrollMerchantCommercialPlan(input: { merchantId: string; planCode: MerchantBillablePlanCode; effectiveFrom: Date; billingPeriodEnd: Date | null; commercialStatus: 'PAID_ACTIVE' | 'CANCEL_AT_PERIOD_END' | 'PAST_DUE' | 'PAYMENT_ACTION_REQUIRED' | 'EXPIRED' | 'PILOT_ACTIVE' | 'PILOT_EXPIRED'; pricingVersion?: string; entitlementVersion?: string; source: string }, txOverride?: any) {

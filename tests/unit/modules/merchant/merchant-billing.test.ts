@@ -12,7 +12,7 @@ jest.mock('@/lib/prisma', () => ({
 
 import { prisma } from '@/lib/prisma'
 import { stripe } from '@/lib/stripe'
-import { createMerchantCheckoutSession, processMerchantStripeEvent } from '@/modules/merchant/application/merchant-billing'
+import { createMerchantCheckoutSession, processMerchantStripeEvent, updateMerchantSubscription } from '@/modules/merchant/application/merchant-billing'
 import { merchantFoundingPilotReceiptPriceIds, merchantStripePriceForPlan, merchantStripePriceMap } from '@/modules/merchant/application/merchant-billing-shared'
 import { compareBillingEvent } from '@/modules/merchant/domain/merchant-billing'
 
@@ -49,8 +49,12 @@ let persistedAccount = { ...account }
 let persistedMerchant = { planCode: null as string | null, commercialStatus: null as string | null, billingPeriodEnd: null as Date | null }
 const eventLedger = new Map<string, { id: string; status: string; processingReason: string | null; duplicateCount: number; [key: string]: unknown }>()
 const retrieveSubscription = jest.spyOn((stripe as any).subscriptions, 'retrieve')
+const updateSubscription = jest.spyOn((stripe as any).subscriptions, 'update')
+const createCheckout = jest.spyOn((stripe as any).checkout.sessions, 'create')
 
 function configurePrices() {
+  process.env.APP_ENV = 'local'
+  process.env.STRIPE_MERCHANT_BILLING_MODE = 'test'
   process.env.STRIPE_MERCHANT_LAUNCH_MONTHLY_PRICE_ID = 'price_merchant_launch'
   process.env.STRIPE_MERCHANT_GROWTH_MONTHLY_PRICE_ID = 'price_merchant_growth'
   process.env.STRIPE_MERCHANT_SCALE_MONTHLY_PRICE_ID = 'price_merchant_scale'
@@ -141,6 +145,37 @@ describe('Merchant Stripe billing boundary', () => {
     const result = await createMerchantCheckoutSession({ merchantId: 'merchant-1', planCode: 'LAUNCH', successUrl: 'http://localhost/en/merchant?billing=processing', cancelUrl: 'http://localhost/en/merchant?billing=cancelled' })
     expect(result).toMatchObject({ kind: 'checkout', planCode: 'LAUNCH', priceId: 'price_merchant_launch' })
     expect(result.url).toContain('/mock/checkout/')
+  })
+
+  it('does not fall back to a new Checkout when an existing subscription is missing at the provider', async () => {
+    ;(prisma.merchant.findUnique as jest.Mock).mockResolvedValue({ id: 'merchant-1', name: 'North Star Eyewear', classification: 'REAL', planCode: 'LAUNCH', commercialStatus: 'PAID_ACTIVE' })
+    ;(prisma.merchantBillingAccount.findUnique as jest.Mock).mockResolvedValue({ ...account, stripeSubscriptionId: 'sub_missing', subscriptionStatus: 'active' })
+    retrieveSubscription.mockRejectedValue(Object.assign(new Error('No such subscription'), { code: 'resource_missing' }))
+
+    await expect(updateMerchantSubscription({ merchantId: 'merchant-1', planCode: 'GROWTH' })).rejects.toMatchObject({ code: 'SUBSCRIPTION_MISSING' })
+    expect(updateSubscription).not.toHaveBeenCalled()
+    expect(createCheckout).not.toHaveBeenCalled()
+  })
+
+  it('blocks Live Billing writes for an INTERNAL Production workspace', async () => {
+    process.env.APP_ENV = 'production'
+    process.env.STRIPE_MERCHANT_BILLING_MODE = 'live'
+    ;(prisma.merchant.findUnique as jest.Mock).mockResolvedValue({ id: 'merchant-1', name: 'VisuTry Demo', classification: 'INTERNAL', planCode: 'LAUNCH', commercialStatus: 'PAID_ACTIVE' })
+    ;(prisma.merchantBillingAccount.findUnique as jest.Mock).mockResolvedValue(null)
+
+    await expect(createMerchantCheckoutSession({ merchantId: 'merchant-1', planCode: 'GROWTH', successUrl: 'https://www.visutry.com/success', cancelUrl: 'https://www.visutry.com/cancel' })).rejects.toMatchObject({ code: 'BILLING_DISABLED' })
+    expect(createCheckout).not.toHaveBeenCalled()
+  })
+
+  it('rejects a subscription returned from the wrong Stripe mode before any update', async () => {
+    process.env.APP_ENV = 'production'
+    process.env.STRIPE_MERCHANT_BILLING_MODE = 'live'
+    ;(prisma.merchant.findUnique as jest.Mock).mockResolvedValue({ id: 'merchant-1', name: 'North Star Eyewear', classification: 'REAL', planCode: 'LAUNCH', commercialStatus: 'PAID_ACTIVE' })
+    ;(prisma.merchantBillingAccount.findUnique as jest.Mock).mockResolvedValue({ ...account, stripeSubscriptionId: 'sub_test_mode', subscriptionStatus: 'active' })
+    retrieveSubscription.mockResolvedValue({ ...subscriptionEvent({ id: 'provider-subscription' }).data.object, livemode: false })
+
+    await expect(updateMerchantSubscription({ merchantId: 'merchant-1', planCode: 'GROWTH' })).rejects.toMatchObject({ code: 'SUBSCRIPTION_INVALID' })
+    expect(updateSubscription).not.toHaveBeenCalled()
   })
 
   it('blocks a second Founding Pilot from an already active canonical Pilot', async () => {
