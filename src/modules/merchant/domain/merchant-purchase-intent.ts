@@ -108,7 +108,8 @@ export function resolveMerchantPurchaseAction(input: {
         return 'MANAGE_BILLING'
       case 'VALID_SUBSCRIPTION':
         if (input.intent === 'FOUNDING_PILOT') return 'MANAGE_BILLING'
-        return currentPlan === input.intent ? 'CURRENT' : 'CHANGE_PLAN'
+        if (!input.billingState.providerPlanCode || currentPlan !== input.billingState.providerPlanCode) return 'BILLING_RECOVERY'
+        return input.billingState.providerPlanCode === input.intent ? 'CURRENT' : 'CHANGE_PLAN'
       case 'NO_SUBSCRIPTION':
         return 'CHECKOUT'
     }

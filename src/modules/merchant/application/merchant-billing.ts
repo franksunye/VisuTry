@@ -169,7 +169,7 @@ export async function getMerchantBillingState(input: { merchantId: string }): Pr
   const provider = account?.stripeSubscriptionId
     ? await verifyMerchantSubscription({ subscriptionId: account.stripeSubscriptionId, customerId: account.stripeCustomerId })
     : null
-  return { state: normalizeMerchantBillingState({ policy, account, provider }), billing, policy }
+  return { state: normalizeMerchantBillingState({ policy, account, provider, commercialPlanCode: merchant.planCode }), billing, policy }
 }
 
 const FOUNDING_PILOT_RECEIPT_EVENT_TYPES = ['checkout.session.completed', 'checkout.session.async_payment_succeeded'] as const

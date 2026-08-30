@@ -11,7 +11,8 @@ describe('Merchant normalized billing state', () => {
 
   it('requires an explicit provider verification result for an existing reference', () => {
     const account = { stripeSubscriptionId: 'sub-1', subscriptionStatus: 'active' }
-    expect(normalizeMerchantBillingState({ policy: policy(), account, provider: { kind: 'VALID_SUBSCRIPTION', subscriptionId: 'sub-1', customerId: 'cus-1', priceId: 'price-launch', planCode: 'LAUNCH', subscriptionStatus: 'active', cancelAtPeriodEnd: false, currentPeriodStart: null, currentPeriodEnd: null } })).toMatchObject({ kind: 'VALID_SUBSCRIPTION', providerPlanCode: 'LAUNCH' })
+    expect(normalizeMerchantBillingState({ policy: policy(), account, commercialPlanCode: 'LAUNCH', provider: { kind: 'VALID_SUBSCRIPTION', subscriptionId: 'sub-1', customerId: 'cus-1', priceId: 'price-launch', planCode: 'LAUNCH', subscriptionStatus: 'active', cancelAtPeriodEnd: false, currentPeriodStart: null, currentPeriodEnd: null } })).toMatchObject({ kind: 'VALID_SUBSCRIPTION', providerPlanCode: 'LAUNCH' })
+    expect(normalizeMerchantBillingState({ policy: policy(), account, commercialPlanCode: 'SCALE', provider: { kind: 'VALID_SUBSCRIPTION', subscriptionId: 'sub-1', customerId: 'cus-1', priceId: 'price-launch', planCode: 'LAUNCH', subscriptionStatus: 'active', cancelAtPeriodEnd: false, currentPeriodStart: null, currentPeriodEnd: null } })).toMatchObject({ kind: 'SUBSCRIPTION_INVALID', reason: 'COMMERCIAL_PROVIDER_PLAN_MISMATCH', providerPlanCode: 'LAUNCH' })
     expect(normalizeMerchantBillingState({ policy: policy(), account, provider: { kind: 'SUBSCRIPTION_MISSING', reason: 'SUBSCRIPTION_NOT_FOUND' } })).toMatchObject({ kind: 'SUBSCRIPTION_MISSING' })
     expect(normalizeMerchantBillingState({ policy: policy(), account, provider: { kind: 'SUBSCRIPTION_INVALID', reason: 'WRONG_STRIPE_MODE' } })).toMatchObject({ kind: 'SUBSCRIPTION_INVALID', reason: 'WRONG_STRIPE_MODE' })
     expect(normalizeMerchantBillingState({ policy: policy(), account, provider: { kind: 'PROVIDER_UNAVAILABLE', reason: 'PROVIDER_UNAVAILABLE' } })).toMatchObject({ kind: 'PROVIDER_UNAVAILABLE' })
@@ -19,7 +20,7 @@ describe('Merchant normalized billing state', () => {
 
   it('keeps payment attention separate from a valid healthy subscription', () => {
     const account = { stripeSubscriptionId: 'sub-1', subscriptionStatus: 'past_due' }
-    expect(normalizeMerchantBillingState({ policy: policy(), account, provider: { kind: 'PAYMENT_ATTENTION', subscriptionId: 'sub-1', customerId: 'cus-1', priceId: 'price-launch', planCode: 'LAUNCH', subscriptionStatus: 'past_due', cancelAtPeriodEnd: false, currentPeriodStart: null, currentPeriodEnd: null } })).toMatchObject({ kind: 'PAYMENT_ATTENTION' })
+    expect(normalizeMerchantBillingState({ policy: policy(), account, commercialPlanCode: 'LAUNCH', provider: { kind: 'PAYMENT_ATTENTION', subscriptionId: 'sub-1', customerId: 'cus-1', priceId: 'price-launch', planCode: 'LAUNCH', subscriptionStatus: 'past_due', cancelAtPeriodEnd: false, currentPeriodStart: null, currentPeriodEnd: null } })).toMatchObject({ kind: 'PAYMENT_ATTENTION' })
   })
 
   it('disables live billing for TEST/INTERNAL production workspaces without changing authorization', () => {

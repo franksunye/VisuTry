@@ -38,6 +38,8 @@ describe('Merchant self-service purchase intent', () => {
     const base = { reason: null, providerPlanCode: null, providerSubscriptionStatus: null, cancelAtPeriodEnd: false } as const
     expect(resolveMerchantPurchaseAction({ intent: 'GROWTH', currentPlanCode: 'LAUNCH', billingState: { kind: 'VALID_SUBSCRIPTION', ...base, providerPlanCode: 'LAUNCH', providerSubscriptionStatus: 'active' } })).toBe('CHANGE_PLAN')
     expect(resolveMerchantPurchaseAction({ intent: 'LAUNCH', currentPlanCode: 'LAUNCH', billingState: { kind: 'VALID_SUBSCRIPTION', ...base, providerPlanCode: 'LAUNCH', providerSubscriptionStatus: 'active' } })).toBe('CURRENT')
+    expect(resolveMerchantPurchaseAction({ intent: 'SCALE', currentPlanCode: 'SCALE', billingState: { kind: 'VALID_SUBSCRIPTION', ...base, providerPlanCode: 'LAUNCH', providerSubscriptionStatus: 'active' } })).toBe('BILLING_RECOVERY')
+    expect(resolveMerchantPurchaseAction({ intent: 'SCALE', currentPlanCode: 'LAUNCH', billingState: { kind: 'VALID_SUBSCRIPTION', ...base, providerPlanCode: 'SCALE', providerSubscriptionStatus: 'active' } })).toBe('BILLING_RECOVERY')
     expect(resolveMerchantPurchaseAction({ intent: 'GROWTH', currentPlanCode: 'LAUNCH', billingState: { kind: 'PAYMENT_ATTENTION', ...base, providerPlanCode: 'LAUNCH', providerSubscriptionStatus: 'past_due' } })).toBe('MANAGE_BILLING')
     expect(resolveMerchantPurchaseAction({ intent: 'GROWTH', billingState: { kind: 'BILLING_DISABLED', ...base, reason: 'BILLING_POLICY_DISABLED' } })).toBe('BILLING_DISABLED')
     expect(resolveMerchantPurchaseAction({ intent: 'GROWTH', currentPlanCode: 'LAUNCH', billingState: { kind: 'SUBSCRIPTION_MISSING', ...base, reason: 'SUBSCRIPTION_NOT_FOUND', providerSubscriptionStatus: 'active' } })).toBe('BILLING_RECOVERY')

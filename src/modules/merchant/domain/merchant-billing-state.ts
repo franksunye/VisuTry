@@ -20,6 +20,7 @@ export const MERCHANT_BILLING_STATE_REASONS = [
   'CUSTOMER_MISMATCH',
   'UNSUPPORTED_SUBSCRIPTION_PRICE',
   'SUBSCRIPTION_STATUS_INVALID',
+  'COMMERCIAL_PROVIDER_PLAN_MISMATCH',
   'PROVIDER_UNAVAILABLE',
 ] as const
 export type MerchantBillingStateReason = (typeof MERCHANT_BILLING_STATE_REASONS)[number]
@@ -60,6 +61,8 @@ export function normalizeMerchantBillingState(input: {
   policy: MerchantBillingPolicy
   account?: MerchantBillingAccountStateInput | null
   provider?: MerchantBillingProviderState | null
+  /** Persisted commercial plan, used only after provider verification. */
+  commercialPlanCode?: string | null
 }): MerchantBillingState {
   if (!input.policy.billingWritesAllowed) {
     return {
@@ -112,11 +115,19 @@ export function normalizeMerchantBillingState(input: {
       cancelAtPeriodEnd: false,
     }
   }
-  return {
+  const normalized: MerchantBillingState = {
     kind: provider.kind,
     reason: null,
     providerPlanCode: provider.planCode,
     providerSubscriptionStatus: provider.subscriptionStatus,
     cancelAtPeriodEnd: provider.cancelAtPeriodEnd,
   }
+  if (input.commercialPlanCode !== undefined && input.commercialPlanCode?.trim().toUpperCase() !== normalized.providerPlanCode) {
+    return {
+      ...normalized,
+      kind: 'SUBSCRIPTION_INVALID',
+      reason: 'COMMERCIAL_PROVIDER_PLAN_MISMATCH',
+    }
+  }
+  return normalized
 }
