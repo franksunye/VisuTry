@@ -27,7 +27,7 @@ function runPsql(args: string[], input?: string) {
 function main() {
   if (requireExplicitAppEnvironment() !== 'preview' || process.env.VERCEL_ENV !== 'preview') throw new Error('Preview bootstrap requires APP_ENV=preview and VERCEL_ENV=preview.')
   if (process.env.VISUTRY_PREVIEW_QA !== '1') throw new Error('Preview bootstrap requires VISUTRY_PREVIEW_QA=1.')
-  if (process.env.VISUTRY_DATABASE_IDENTITY !== 'neon:steep-silence-18355430:br-raspy-cake-adwjq4e') throw new Error('Preview bootstrap requires the approved Preview database identity.')
+  if (process.env.VISUTRY_DATABASE_IDENTITY !== 'neon:steep-silence-18355430:br-raspy-cake-adwjq4e9') throw new Error('Preview bootstrap requires the approved Preview database identity.')
   const databaseIdentity = databaseIdentityFromUrl(process.env.DATABASE_URL)
   if (!databaseIdentity || !databaseIdentity.includes('ep-old-frog-adgzp23w')) throw new Error('Preview bootstrap refuses a database other than the dedicated Preview Neon branch.')
 
