@@ -32,6 +32,17 @@ Routine review results that require no operational change do not need a reposito
 
 ## Guidance log
 
+### 2026-08-31 — Bound execution time and remove stale no-promotion guidance
+
+- The 2026-08-31 scheduled run was evidence-complete and made sound no-action judgments, but a Monday active run lasting roughly four hours for only two Reddit searches and two YouTube searches is operationally inefficient.
+- Do not equate thoroughness with session duration. After notifications/follow-ups, both `TRUST_LANE` and `DISTRIBUTION_LANE`, a representative set of fresh candidates, and evidence capture are complete, finish the run.
+- If an initial query is weak or returns saturated/irrelevant results, vary query wording and surface deliberately rather than spending extended time on the same low-yield search path.
+- For active days, prefer several focused, semantically distinct high-intent searches over one prolonged generic search. Useful variants include tool/recommendation intent, comparison intent, face-shape intent, online purchase-confidence intent, and fresh viewer-comment discovery.
+- The no-action decision on the high-nose-bridge Reddit thread was correct: it was primarily physical fit, already had useful current replies, and was not a strong VisuTry use case. Do not lower relevance standards merely to create a promotion action.
+- The expired YouTube round-face candidate was correctly removed from the pending queue after freshness recheck. Do not recycle expired drafts.
+- The canonical runbook previously retained stale `conservative Week 1` and `default no VisuTry mention` wording that conflicted with the newer balanced-promotion policy. The runbook has now been aligned; follow the updated runbook and interaction policy rather than any older warm-up language.
+- Treat repeated 2+ hour scheduled runs with low search/action volume as an efficiency defect even if the final judgment is otherwise correct.
+
 ### 2026-08-30 — Treat action-time confirmation as a structural distribution blocker
 
 - The 2026-08-30 run successfully found a qualified, fresh YouTube `TRANSPARENT_MENTION` opportunity and drafted an appropriate reply, but the browser required action-time confirmation before transmitting the public comment. This is now the primary blocker to fully unattended community distribution; it is not a promotion-strategy failure.
