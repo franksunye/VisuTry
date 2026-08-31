@@ -6,6 +6,9 @@ import {
   PUBLIC_SELF_SERVICE_MERCHANT_CLASSIFICATION_SOURCE,
 } from '../domain/merchant-classification'
 import { isMerchantMembershipRole, type MerchantMembershipRecord } from '../domain/membership'
+import { merchantSlugForAttempt } from './merchant-slug'
+
+const MAX_SLUG_ATTEMPTS = 100
 
 export type CreateMerchantWithOwnerInput = {
   userId: string
@@ -59,7 +62,7 @@ function normalizeInput(input: CreateMerchantWithOwnerInput) {
     }
   }
 
-  const baseSlug = slugify((input.slug || name).trim()).slice(0, 180).replace(/-+$/u, '')
+  const baseSlug = slugify(input.slug?.trim() || name).slice(0, 180).replace(/-+$/u, '')
   if (!baseSlug) {
     throw new MerchantProvisioningError('INVALID_MERCHANT_NAME', 'Merchant name must contain letters or numbers.')
   }
@@ -150,8 +153,8 @@ function mapMerchantWithOwner(row: Record<string, unknown>, created: boolean): M
 
 export async function createMerchantWithOwner(input: CreateMerchantWithOwnerInput): Promise<MerchantWithOwner> {
   const normalized = normalizeInput(input)
-  for (let slugAttempt = 0; slugAttempt < 5; slugAttempt += 1) {
-    const slug = slugAttempt === 0 ? normalized.baseSlug : `${normalized.baseSlug}-${slugAttempt + 1}`
+  for (let slugAttempt = 0; slugAttempt < MAX_SLUG_ATTEMPTS; slugAttempt += 1) {
+    const slug = merchantSlugForAttempt(normalized.baseSlug, slugAttempt)
     const result = await createMerchantWithOwnerAttempt(input, normalized, slug)
     if (result) return result
   }
