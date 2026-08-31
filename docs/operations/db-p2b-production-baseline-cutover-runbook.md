@@ -4,6 +4,32 @@
 
 **Scope:** Existing Production database adoption only. This runbook does not authorize deployment, credential changes, schema changes, or direct SQL against `_prisma_migrations`.
 
+## Mandatory deployment freeze / serialization window
+
+Establish a deployment freeze and a single serialized migration operator **before** Production preflight begins. Keep the freeze active for the complete cutover window:
+
+1. Production preflight.
+2. Migration-ledger verification.
+3. Backup and restore verification.
+4. Baseline resolve.
+5. `prisma migrate status` verification requiring a clean result.
+6. P2B merge to `main`.
+7. First canonical Production build/deploy.
+8. Post-deploy migration-status verification.
+9. Production smoke tests.
+10. Health monitoring.
+11. Explicit release of the deployment freeze.
+
+During this window, prohibit:
+
+- unrelated Production deployments;
+- parallel releases;
+- automated migration jobs;
+- alternate operator migrations; and
+- merges from schema-changing branches.
+
+If this serialization cannot be guaranteed, stop the cutover and do not run the baseline adoption.
+
 ## Preconditions
 
 - The canonical active migration tree is present in the reviewed release.

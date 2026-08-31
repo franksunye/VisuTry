@@ -54,6 +54,18 @@ prisma_with() {
     npx prisma "$@" --config "$TEST_CONFIG"
 }
 
+historical_source_commit() {
+  local historical_path="$1"
+  local candidate_commit
+  while IFS= read -r candidate_commit; do
+    if git cat-file -e "$candidate_commit:$historical_path" 2>/dev/null; then
+      printf '%s' "$candidate_commit"
+      return 0
+    fi
+  done < <(git rev-list --all -- "$historical_path")
+  return 1
+}
+
 assert_clean_status() {
   local database_url="$1"
   local migrations_path="$2"
@@ -73,12 +85,12 @@ legacy_directory_count="$(find "$LEGACY_MIGRATIONS" -mindepth 1 -maxdepth 1 -typ
 [[ ! -e "$LEGACY_MIGRATIONS/migration_lock.toml" ]] || fail "migration_lock.toml was duplicated into the archive."
 [[ -f "$BASELINE_SQL" ]] || fail "Canonical baseline SQL is missing."
 
-lock_source_commit="$(git rev-list --all --max-count=1 -- prisma/migrations/migration_lock.toml)"
+lock_source_commit="$(historical_source_commit prisma/migrations/migration_lock.toml)"
 [[ -n "$lock_source_commit" ]] || fail "Could not locate the historical migration_lock.toml in Git history."
 git show "$lock_source_commit:prisma/migrations/migration_lock.toml" | cmp -s - "$ACTIVE_MIGRATIONS/migration_lock.toml" || fail "migration_lock.toml changed."
 while IFS= read -r legacy_directory; do
   migration_name="$(basename "$legacy_directory")"
-  source_commit="$(git rev-list --all --max-count=1 -- "prisma/migrations/$migration_name/migration.sql")"
+  source_commit="$(historical_source_commit "prisma/migrations/$migration_name/migration.sql")"
   [[ -n "$source_commit" ]] || fail "Could not locate historical migration in Git history: $migration_name"
   git show "$source_commit:prisma/migrations/$migration_name/migration.sql" | cmp -s - "$legacy_directory/migration.sql" || fail "Historical migration content changed: $migration_name"
 done < <(find "$LEGACY_MIGRATIONS" -mindepth 1 -maxdepth 1 -type d | sort)
@@ -175,6 +187,41 @@ set -e
 [[ "$prod_before_status" != 0 ]] || fail "PROD_SIM unexpectedly reported clean before baseline adoption."
 rg -q 'local migration history and the migrations table.*different' "$TEST_ROOT/prod-before-resolve-status.log" || fail "PROD_SIM did not report historical/active lineage divergence before adoption."
 
+# The production wrapper must fail closed on this pre-adoption divergence. The
+# wrapper runs only against the disposable PROD_SIM URL; the npx shim makes an
+# accidental deploy attempt observable without allowing any database mutation.
+WRAPPER_BIN="$TEST_ROOT/wrapper-bin"
+WRAPPER_LOG="$TEST_ROOT/prod-before-resolve-wrapper-deploy.log"
+WRAPPER_OUTPUT="$TEST_ROOT/prod-before-resolve-wrapper.log"
+mkdir -p "$WRAPPER_BIN"
+REAL_NPX="$(command -v npx)"
+printf '%s\n' \
+  '#!/usr/bin/env bash' \
+  'set -euo pipefail' \
+  'if [[ "$*" == "prisma migrate deploy" ]]; then' \
+  '  echo "deploy" >> "${P2B_WRAPPER_LOG:?}"' \
+  '  exit 99' \
+  'fi' \
+  'exec "$P2B_REAL_NPX" "$@"' > "$WRAPPER_BIN/npx"
+chmod +x "$WRAPPER_BIN/npx"
+: > "$WRAPPER_LOG"
+set +e
+P2B_REAL_NPX="$REAL_NPX" \
+  P2B_WRAPPER_LOG="$WRAPPER_LOG" \
+  PATH="$WRAPPER_BIN:$PATH" \
+  VERCEL_ENV=production \
+  VISUTRY_PRODUCTION_MIGRATION_AUTHORIZED=1 \
+  DATABASE_URL="$PROD_URL" \
+  DATABASE_URL_UNPOOLED="$PROD_URL" \
+  DIRECT_DATABASE_URL="$PROD_URL" \
+  DIRECT_URL="$PROD_URL" \
+  bash scripts/migrate-deploy.sh >"$WRAPPER_OUTPUT" 2>&1
+prod_wrapper_exit=$?
+set -e
+[[ "$prod_wrapper_exit" != 0 ]] || fail "Production migration wrapper unexpectedly succeeded before baseline adoption."
+[[ ! -s "$WRAPPER_LOG" ]] || fail "Production migration wrapper attempted deploy before baseline adoption."
+rg -q 'refusing to run migrate deploy' "$WRAPPER_OUTPUT" || fail "Production migration wrapper did not fail closed before baseline adoption."
+
 prisma_with "$PROD_URL" "$ACTIVE_MIGRATIONS" migrate resolve --applied "$BASELINE_NAME" >/dev/null
 assert_clean_status "$PROD_URL" "$ACTIVE_MIGRATIONS" "$TEST_ROOT/prod-after-baseline-status.log"
 prisma_with "$PROD_URL" "$FUTURE_MIGRATIONS" migrate deploy >"$TEST_ROOT/prod-future-deploy.log" 2>&1 || fail "PROD_SIM future migration deployment failed."
@@ -189,5 +236,7 @@ echo "ACTIVE_BASELINE=PASS"
 echo "HISTORICAL_ARCHIVE=PASS"
 echo "NEW_SIM=PASS"
 echo "PROD_SIM=PASS"
+echo "PROD_SIM_PRE_RESOLVE_FAIL_CLOSED=PASS"
+echo "PROD_SIM_POST_RESOLVE_CLEAN=PASS"
 echo "RAW_INVARIANTS=PASS"
 echo "PROVIDER_NEUTRALITY=PASS"
