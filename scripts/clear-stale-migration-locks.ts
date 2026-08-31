@@ -16,7 +16,7 @@
  *
  * Usage:  npx tsx scripts/clear-stale-migration-locks.ts
  */
-import { neon } from "@neondatabase/serverless";
+import { createPostgresSqlClient } from './lib/postgres-runtime';
 
 /** Prisma's fixed advisory-lock key (see prisma migrate source). */
 const PRISMA_ADVISORY_LOCK_KEY = 72707369;
@@ -32,7 +32,7 @@ async function main(): Promise<void> {
     return;
   }
 
-  const sql = neon(DIRECT_URL);
+  const sql = createPostgresSqlClient(DIRECT_URL);
 
   // Find stale lock holders: granted + idle for > 60s.
   const stale = await sql`
