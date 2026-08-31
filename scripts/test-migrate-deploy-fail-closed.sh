@@ -25,6 +25,17 @@ case "$*" in
       pending)
         echo "Following migration have not yet been applied:"
         echo "20260831120000_test_pending_migration"
+        exit 1
+        ;;
+      pending-interrupted)
+        echo "Following migration have not yet been applied:"
+        echo "20260831120000_test_pending_migration"
+        exit 130
+        ;;
+      pending-unexpected)
+        echo "Following migration have not yet been applied:"
+        echo "20260831120000_test_pending_migration"
+        exit 2
         ;;
       divergent)
         echo "The database schema is not in sync with the migration history."
@@ -92,7 +103,9 @@ run_case() {
 }
 
 run_case "up-to-date" "up-to-date" 0 no
-run_case "pending" "pending" 0 yes
+run_case "pending-exit-1" "pending" 0 yes
+run_case "pending-like-exit-130" "pending-interrupted" 1 no
+run_case "pending-like-exit-2" "pending-unexpected" 1 no
 run_case "divergent" "divergent" 1 no
 run_case "status-error" "status-error" 1 no
 run_case "unknown" "unknown" 1 no

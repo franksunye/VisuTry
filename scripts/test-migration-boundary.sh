@@ -41,7 +41,9 @@ case "$*" in
   "tsx scripts/clear-stale-migration-locks.ts") exit 0 ;;
   "prisma migrate status")
     if [[ "${STUB_PENDING:-0}" == "1" ]]; then
-      echo "Database schema is not yet been applied"
+      echo "Following migration have not yet been applied:"
+      echo "20260831120000_test_pending_migration"
+      exit 1
     else
       echo "Database schema is up to date"
     fi

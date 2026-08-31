@@ -107,7 +107,8 @@ if [[ "$STATUS_EXIT" -eq 0 ]] \
   && ! echo "$STATUS_OUTPUT" | grep -Eqi "$UNSAFE_STATUS_PATTERN"; then
   echo "✓ Schema is up to date — skipping migrate deploy"
   exit 0
-elif echo "$STATUS_OUTPUT" | grep -Eqi "not yet been applied" \
+elif [[ "$STATUS_EXIT" -eq 1 ]] \
+  && echo "$STATUS_OUTPUT" | grep -Eqi "not yet been applied" \
   && ! echo "$STATUS_OUTPUT" | grep -Eqi "$UNSAFE_STATUS_PATTERN"; then
   echo "→ Pending migrations detected — proceeding to migrate deploy"
 else
