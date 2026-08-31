@@ -21,6 +21,20 @@ cutover, a migration resolve, a migration deploy, or a provider change.
 If any precondition is false, stop. Do not combine this operation with the
 canonical-baseline lineage cutover.
 
+## Local rehearsal modes
+
+These commands use disposable local PostgreSQL only. They are not a
+Production timing estimate and do not authorize an environment switch:
+
+```text
+P3_CANONICAL_MIGRATIONS_PATH=<approved-canonical-migrations-path> npm run test:db-p3-data-migration
+P3_CANONICAL_MIGRATIONS_PATH=<approved-canonical-migrations-path> npm run test:db-p3-data-migration:scale
+```
+
+The first command is the fast CI-sized rehearsal. The second uses the scaled
+synthetic dataset and reports phase timings, dump/database sizes, row counts,
+and the post-import write/default/sequence smoke.
+
 ## Mandatory deployment freeze / serialization window
 
 Obtain an explicit deployment freeze before touching the source database. The
@@ -53,7 +67,7 @@ If serialization cannot be guaranteed, stop the cutover.
 
    ```text
    VISUTRY_FOOTPRINT_READ_ONLY=1
-   VISUTRY_FOOTPRINT_ALLOW_PRODUCTION=1
+   VISUTRY_PRODUCTION_READONLY_AUDIT_AUTHORIZED=1
    VISUTRY_FOOTPRINT_DATABASE_URL=<approved-read-only-direct-url>
    VISUTRY_FOOTPRINT_EXPECTED_DATABASE_IDENTITY=<approved-identity>
    npm run db:footprint:audit

@@ -1,6 +1,9 @@
 import {
   assertPostgresConnectionString,
+  databaseIdentityFromConnectionString,
   createReadinessPrismaClient,
+  isPreviewDatabaseIdentity,
+  isProtectedDatabaseIdentity,
   jsonSafe,
   printJson,
   queryOne,
@@ -8,6 +11,7 @@ import {
   redactErrorMessage,
   redactPostgresConnectionString,
   requireEnvironmentVariable,
+  type ReadinessQueryClient,
   type ReadinessSqlRow,
 } from './lib/postgres-readiness'
 
@@ -35,11 +39,10 @@ function requireReadOnlyAuditContext(): void {
   if (appEnvironment === 'preview' || vercelEnvironment === 'preview') {
     throw new Error('Footprint audit refuses Preview databases.')
   }
-  if (
-    (appEnvironment === 'production' || vercelEnvironment === 'production') &&
-    process.env.VISUTRY_FOOTPRINT_ALLOW_PRODUCTION !== '1'
-  ) {
-    throw new Error('Production footprint audit requires VISUTRY_FOOTPRINT_ALLOW_PRODUCTION=1.')
+  if (appEnvironment === 'production' || vercelEnvironment === 'production') {
+    if (process.env.VISUTRY_PRODUCTION_READONLY_AUDIT_AUTHORIZED !== '1') {
+      throw new Error('Production footprint audit requires VISUTRY_PRODUCTION_READONLY_AUDIT_AUTHORIZED=1.')
+    }
   }
 }
 
@@ -54,7 +57,7 @@ function sqlLiteral(value: string): string {
   return `'${value.replace(/'/g, "''")}'`
 }
 
-async function relationExists(client: ReturnType<typeof createReadinessPrismaClient>, relation: string): Promise<boolean> {
+async function relationExists(client: ReadinessQueryClient, relation: string): Promise<boolean> {
   const row = await queryOne<ReadinessSqlRow>(
     client,
     `SELECT to_regclass(${sqlLiteral(`public."${relation}"`)})::text AS relation`,
@@ -63,7 +66,7 @@ async function relationExists(client: ReturnType<typeof createReadinessPrismaCli
 }
 
 async function environmentMarker(
-  client: ReturnType<typeof createReadinessPrismaClient>,
+  client: ReadinessQueryClient,
   expectedIdentity: string,
 ): Promise<{ verified: boolean; environment: string | null; databaseIdentity: string | null }> {
   if (!(await relationExists(client, 'EnvironmentMetadata'))) {
@@ -88,7 +91,7 @@ async function environmentMarker(
 }
 
 async function exactTableStats(
-  client: ReturnType<typeof createReadinessPrismaClient>,
+  client: ReadinessQueryClient,
   table: string,
 ): Promise<ReadinessSqlRow | null> {
   const rows = await queryRows<ReadinessSqlRow>(
@@ -119,8 +122,18 @@ async function main(): Promise<void> {
     requireEnvironmentVariable('VISUTRY_FOOTPRINT_DATABASE_URL'),
   )
   const expectedIdentity = requireEnvironmentVariable('VISUTRY_FOOTPRINT_EXPECTED_DATABASE_IDENTITY')
+  const targetIdentity = databaseIdentityFromConnectionString(connectionString)
+  if (isPreviewDatabaseIdentity(targetIdentity)) {
+    throw new Error('Footprint audit refuses the known Preview database identity.')
+  }
+  const knownProductionIdentity = isProtectedDatabaseIdentity(targetIdentity)
   const client = createReadinessPrismaClient(connectionString)
   try {
+    const report = await client.$transaction(async (tx) => {
+    // Keep every query in one read-only transaction, including the identity
+    // and EnvironmentMetadata checks below.
+    await tx.$executeRawUnsafe('SET TRANSACTION READ ONLY')
+    const client = tx as unknown as ReturnType<typeof createReadinessPrismaClient>
     const identity = await queryOne<ReadinessSqlRow>(
       client,
       `SELECT current_database()::text AS database_name,
@@ -132,7 +145,22 @@ async function main(): Promise<void> {
     const productionContext =
       process.env.APP_ENV?.trim().toLowerCase() === 'production' ||
       process.env.VERCEL_ENV?.trim().toLowerCase() === 'production'
-    if (productionContext && !marker.verified) {
+    const markerEnvironment = marker.environment?.trim().toUpperCase()
+    if (markerEnvironment === 'PREVIEW') {
+      throw new Error('Footprint audit refuses a database marked Preview.')
+    }
+    const markerKnownPreview = marker.databaseIdentity ? isPreviewDatabaseIdentity(marker.databaseIdentity) : false
+    if (markerKnownPreview) {
+      throw new Error('Footprint audit refuses a database with the known Preview identity marker.')
+    }
+    const markerKnownProduction = marker.databaseIdentity
+      ? isProtectedDatabaseIdentity(marker.databaseIdentity)
+      : false
+    const productionDetected = productionContext || markerEnvironment === 'PRODUCTION' || knownProductionIdentity || markerKnownProduction
+    if (productionDetected && process.env.VISUTRY_PRODUCTION_READONLY_AUDIT_AUTHORIZED !== '1') {
+      throw new Error('Production footprint audit requires VISUTRY_PRODUCTION_READONLY_AUDIT_AUTHORIZED=1.')
+    }
+    if (productionDetected && !marker.verified) {
       throw new Error('Production EnvironmentMetadata identity could not be verified; refusing the audit.')
     }
 
@@ -220,7 +248,7 @@ async function main(): Promise<void> {
       )
     }
 
-    printJson({
+    return {
       result: 'PASS',
       readOnly: true,
       target: redactPostgresConnectionString(connectionString),
@@ -248,7 +276,9 @@ async function main(): Promise<void> {
         connectionLimits: jsonSafe(connectionLimits),
       },
       migrationLedger: ledger,
+    }
     })
+    printJson(report)
   } finally {
     await client.$disconnect()
   }

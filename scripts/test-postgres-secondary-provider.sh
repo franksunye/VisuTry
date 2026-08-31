@@ -13,7 +13,9 @@ if [[ -z "$URL" ]]; then
   exit 0
 fi
 
-if [[ "${APP_ENV:-}" == "production" || "${APP_ENV:-}" == "preview" || "${VERCEL_ENV:-}" == "production" || "${VERCEL_ENV:-}" == "preview" ]]; then
+APP_ENV_NORMALIZED="$(printf '%s' "${APP_ENV:-}" | tr '[:upper:]' '[:lower:]')"
+VERCEL_ENV_NORMALIZED="$(printf '%s' "${VERCEL_ENV:-}" | tr '[:upper:]' '[:lower:]')"
+if [[ "$APP_ENV_NORMALIZED" == "production" || "$APP_ENV_NORMALIZED" == "preview" || "$VERCEL_ENV_NORMALIZED" == "production" || "$VERCEL_ENV_NORMALIZED" == "preview" ]]; then
   echo "❌ Secondary provider smoke refuses deployed environments." >&2
   exit 1
 fi
@@ -66,6 +68,12 @@ if ! psql -X -w -v ON_ERROR_STOP=1 "$URL" -Atc "SELECT COUNT(*) FROM pg_catalog.
 fi
 if [[ "$(<"$TEST_ROOT/table-count")" != "0" ]]; then
   echo "❌ Secondary provider target is not empty; refusing a migration smoke that could alter existing data." >&2
+  exit 1
+fi
+
+if ! P3_TARGET_DATABASE_URL="$URL" P3_READINESS_CONFIRM=1 APP_ENV=local \
+  npx tsx scripts/postgres-readiness-target-check.ts >"$TEST_ROOT/target-safety.log" 2>&1; then
+  safe_log "$TEST_ROOT/target-safety.log" >&2
   exit 1
 fi
 

@@ -1,9 +1,9 @@
-import { assertNonDeployedEnvironment, assertPostgresConnectionString, createReadinessPrismaClient, printJson, redactErrorMessage, redactPostgresConnectionString, requireEnvironmentVariable } from './lib/postgres-readiness'
+import { assertPostgresConnectionString, assertReadinessTargetSafety, createReadinessPrismaClient, printJson, redactErrorMessage, redactPostgresConnectionString, requireEnvironmentVariable, requireLocalReadinessEnvironment } from './lib/postgres-readiness'
 import { assertSchemaContract, inspectSchemaContract } from './lib/postgres-schema-contract'
 import { runPostgresReadinessFixture } from './postgres-readiness-fixture'
 
 async function main(): Promise<void> {
-  assertNonDeployedEnvironment()
+  requireLocalReadinessEnvironment()
   if (process.env.P3_SECONDARY_POSTGRES_ALLOW !== '1') {
     throw new Error('Set P3_SECONDARY_POSTGRES_ALLOW=1 for an explicitly approved non-production provider smoke.')
   }
@@ -13,6 +13,7 @@ async function main(): Promise<void> {
   )
   const client = createReadinessPrismaClient(connectionString)
   try {
+    await assertReadinessTargetSafety(client, connectionString)
     const schema = await inspectSchemaContract(client)
     assertSchemaContract(schema, 'Secondary PostgreSQL database')
     const fixture = await runPostgresReadinessFixture(client, 'secondary-provider')

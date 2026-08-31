@@ -91,6 +91,7 @@
     "test:migration-fail-closed": "bash scripts/test-migrate-deploy-fail-closed.sh",
     "test:db-p3": "jest tests/unit/db-p3-readiness.test.ts --runInBand --testTimeout=30000",
     "test:db-p3-data-migration": "bash scripts/test-postgres-data-migration.sh",
+    "test:db-p3-data-migration:scale": "P3_DATA_MIGRATION_MODE=scale bash scripts/test-postgres-data-migration.sh",
     "test:db-p3-secondary-provider": "bash scripts/test-postgres-secondary-provider.sh",
     "test:db-p3-footprint": "bash scripts/test-postgres-footprint-audit.sh",
     "db:footprint:audit": "tsx scripts/postgres-footprint-audit.ts",

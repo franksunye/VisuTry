@@ -1,7 +1,7 @@
 import type { PrismaClient } from '@prisma/client'
 import {
-  assertNonDeployedEnvironment,
   assertPostgresConnectionString,
+  assertReadinessTargetSafety,
   countValue,
   createReadinessPrismaClient,
   jsonSafe,
@@ -12,6 +12,7 @@ import {
   redactErrorMessage,
   redactPostgresConnectionString,
   requireEnvironmentVariable,
+  requireLocalReadinessEnvironment,
   type ReadinessSqlRow,
 } from './lib/postgres-readiness'
 import {
@@ -101,7 +102,14 @@ type DataValidationResult = {
   timestamps: { source: number; target: number; match: boolean }
   defaults: { source: number; target: number; match: boolean }
   sequences: { source: number; target: number; match: boolean }
-  business: { source: BusinessMetrics; target: BusinessMetrics; match: boolean }
+  business: { source: BusinessMetrics; target: BusinessMetrics; match: boolean } | null
+}
+
+type BusinessValidationResult = {
+  pass: boolean
+  issues: string[]
+  source: { target: string; business: BusinessMetrics }
+  target: { target: string; business: BusinessMetrics }
 }
 
 type PublicSchemaContract = Omit<SchemaContract, 'rawSqlInvariantDefinitions'>
@@ -526,6 +534,7 @@ async function validateData(
   targetClient: PrismaClient,
   sourceLabel: string,
   targetLabel: string,
+  includeBusiness = true,
 ): Promise<DataValidationResult> {
   const [sourceSchema, targetSchema] = await Promise.all([
     inspectSchemaContract(sourceClient),
@@ -562,8 +571,6 @@ async function validateData(
     targetDefaults,
     sourceSequences,
     targetSequences,
-    sourceBusiness,
-    targetBusiness,
   ] = await Promise.all([
     foreignKeyOrphans(sourceClient),
     foreignKeyOrphans(targetClient),
@@ -581,15 +588,20 @@ async function validateData(
     defaultRows(targetClient),
     sequenceRows(sourceClient),
     sequenceRows(targetClient),
-    businessMetrics(sourceClient),
-    businessMetrics(targetClient),
   ])
+
+  const [sourceBusiness, targetBusiness] = includeBusiness
+    ? await Promise.all([businessMetrics(sourceClient), businessMetrics(targetClient)])
+    : [null, null]
 
   const typedMatch = JSON.stringify(sourceTyped) === JSON.stringify(targetTyped)
   const timestampMatch = JSON.stringify(sourceTimestamps) === JSON.stringify(targetTimestamps)
   const defaultsMatch = JSON.stringify(sourceDefaults) === JSON.stringify(targetDefaults)
   const sequencesMatch = JSON.stringify(sourceSequences) === JSON.stringify(targetSequences)
-  const businessMatch = JSON.stringify(sourceBusiness) === JSON.stringify(targetBusiness)
+  const businessMatch =
+    sourceBusiness && targetBusiness
+      ? JSON.stringify(sourceBusiness) === JSON.stringify(targetBusiness)
+      : true
   const issues = [...schemaDiff.issues]
   if (tableRows.some((row) => !row.match)) issues.push('table row counts differ')
   if (sourceForeignKeys !== 0 || targetForeignKeys !== 0) issues.push('foreign-key orphan rows found')
@@ -616,12 +628,33 @@ async function validateData(
     timestamps: { source: Object.keys(sourceTimestamps).length, target: Object.keys(targetTimestamps).length, match: timestampMatch },
     defaults: { source: sourceDefaults.length, target: targetDefaults.length, match: defaultsMatch },
     sequences: { source: sourceSequences.length, target: targetSequences.length, match: sequencesMatch },
-    business: { source: sourceBusiness, target: targetBusiness, match: businessMatch },
+    business: sourceBusiness && targetBusiness
+      ? { source: sourceBusiness, target: targetBusiness, match: businessMatch }
+      : null,
+  }
+}
+
+async function validateBusinessOnly(
+  sourceClient: PrismaClient,
+  targetClient: PrismaClient,
+  sourceLabel: string,
+  targetLabel: string,
+): Promise<BusinessValidationResult> {
+  const [source, target] = await Promise.all([
+    businessMetrics(sourceClient),
+    businessMetrics(targetClient),
+  ])
+  const match = JSON.stringify(source) === JSON.stringify(target)
+  return {
+    pass: match,
+    issues: match ? [] : ['business metrics differ'],
+    source: { target: sourceLabel, business: source },
+    target: { target: targetLabel, business: target },
   }
 }
 
 async function main(): Promise<void> {
-  assertNonDeployedEnvironment()
+  requireLocalReadinessEnvironment()
   if (process.env.P3_READINESS_CONFIRM !== '1') {
     throw new Error('Set P3_READINESS_CONFIRM=1 to run the PostgreSQL data validator.')
   }
@@ -634,15 +667,28 @@ async function main(): Promise<void> {
     requireEnvironmentVariable('P3_TARGET_DATABASE_URL'),
   )
   if (sourceUrl === targetUrl) throw new Error('Source and target PostgreSQL URLs must be different.')
+  const validationMode = process.env.P3_VALIDATION_MODE ?? 'all'
+  if (validationMode !== 'all' && validationMode !== 'structural' && validationMode !== 'business') {
+    throw new Error('P3_VALIDATION_MODE must be all, structural, or business.')
+  }
   const sourceClient = createReadinessPrismaClient(sourceUrl)
   const targetClient = createReadinessPrismaClient(targetUrl)
   try {
-    const result = await validateData(
-      sourceClient,
-      targetClient,
-      redactPostgresConnectionString(sourceUrl),
-      redactPostgresConnectionString(targetUrl),
-    )
+    await Promise.all([
+      assertReadinessTargetSafety(sourceClient, sourceUrl),
+      assertReadinessTargetSafety(targetClient, targetUrl),
+    ])
+    const sourceLabel = redactPostgresConnectionString(sourceUrl)
+    const targetLabel = redactPostgresConnectionString(targetUrl)
+    const result = validationMode === 'business'
+      ? await validateBusinessOnly(sourceClient, targetClient, sourceLabel, targetLabel)
+      : await validateData(
+          sourceClient,
+          targetClient,
+          sourceLabel,
+          targetLabel,
+          validationMode !== 'structural',
+        )
     printJson(result)
     if (!result.pass) process.exitCode = 1
   } finally {
