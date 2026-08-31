@@ -395,3 +395,35 @@ Reference pre-Tiered combined baseline for the three families: approximately **2
 - No production change. After one clean post-24h-TTL window exists, choose the next isolated step from evidence: if MISS/EXPIRED materially fall but `/style/*` DYNAMIC remains high, the prepared narrow SEO-link `prefetch={false}` containment patch remains the next candidate; if ISR remains high despite improved cache statuses, move to broader ISR/FOT source attribution before adding more Cloudflare rules.
 
 **Production changes made by review:** NONE
+
+## 2026-08-31
+
+### Codex Morning Inspection — 11:00
+
+**Status:** MISSING — no 2026-08-31 Codex Morning Inspection was present in GitHub when the afternoon review ran.
+
+**Evidence:** No new GA4, Vercel, Cloudflare, or Axiom measurements are recorded for today. No values are inferred from prior windows.
+
+**Production changes made during inspection:** NONE RECORDED
+
+### ChatGPT Afternoon Review
+
+**Verdict:** **HOLD** — the morning evidence is missing for a fourth consecutive day. There is no trustworthy same-day basis to judge GA traffic, Vercel ISR/FOT, Cloudflare cache/Tiered Cache effectiveness, or Axiom error direction.
+
+**What the evidence means**
+1. The latest measured watch evidence still comes from **2026-08-27**: pilot ISR subtotal ~**3.72K RU / 12h** versus the ~**2.52K RU / 12h** reference, project ISR ~**14K RU / 12h**, and no proven economic win from Smart Tiered Cache. Those values are stale and are not treated as current.
+2. Four consecutive missing morning inspections mean neither the **24h Edge TTL** behavior nor the current `/style/*` request mix can be evaluated from this file. No new conclusion should be drawn about HIT/MISS/EXPIRED/DYNAMIC, ISR, FOT, GA, or Axiom from stale windows.
+3. The daily observability loop is now the primary blocker. Before another infrastructure optimization is evaluated, Codex must restore one clean, fixed, comparable measurement window and explicitly record any production deployment SHA that materially affects interpretation.
+
+**Decision**
+- **HOLD.** Do not expand Cloudflare cache scope or alter Tiered Cache from stale evidence. Do not infer improvement or regression without a fresh morning record.
+
+**Next Codex inspection focus**
+1. Restore the watch with one fixed complete 12h window: Cloudflare **HIT / MISS / EXPIRED / DYNAMIC** for all three pilot families, separating `/style/*` document HTML from `_rsc` / Flight requests where possible.
+2. Capture the matching Vercel route-level ISR Read Units for `glasses-guide`, `style`, and `sunglasses-for`, plus project ISR total and FOT. Compare against both the ~**2.52K RU / 12h** reference and the ~**3.72K RU / 12h** 2026-08-27 observation, but only after confirming comparable windows.
+3. Capture GA4 prior-day users/sessions/views plus Organic/AI referral direction, and Axiom face-analysis failure counts / `/api/face-analysis/submit` error rate. Also record the current production SHA if a deployment occurred since the last measured watch entry, because it changes attribution.
+
+**Implementation guidance**
+- No production configuration or business-code change is authorized by this review. First restore measurement. Once fresh evidence exists, choose the next decision from measured behavior rather than the stale 2026-08-27 baseline.
+
+**Production changes made by review:** NONE
