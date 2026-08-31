@@ -1,10 +1,17 @@
 #!/usr/bin/env python3
 import json
-import psycopg2
+import os
 from datetime import datetime
 import uuid
 
-DATABASE_URL = "postgresql://neondb_owner:npg_QZepxrzP39mo@ep-wandering-union-ad43rx1s-pooler.c-2.us-east-1.aws.neon.tech/neondb?sslmode=require"
+DATABASE_URL = os.environ.get("DATABASE_URL")
+if not DATABASE_URL:
+    raise SystemExit(
+        "DATABASE_URL is required. Export it before running "
+        "scripts/import-500-models.py."
+    )
+
+import psycopg2
 
 def get_connection():
     """Create database connection"""
@@ -207,10 +214,10 @@ def main():
         print("  - Total: 567 pages")
         
     except Exception as e:
-        print(f"❌ Error: {e}")
-        import traceback
-        traceback.print_exc()
+        print(
+            f"❌ Import failed ({type(e).__name__}). "
+            "Check DATABASE_URL and database availability."
+        )
 
 if __name__ == '__main__':
     main()
-
