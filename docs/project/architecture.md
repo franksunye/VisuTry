@@ -239,7 +239,7 @@ VisuTry uses `@prisma/adapter-neon` which connects over **HTTP**, not persistent
 
 ### Payment (`/api/payment/*`)
 
-- `POST /api/payment/checkout`: Creates Stripe Checkout sessions
+- `POST /api/payment/create-session`: Creates Stripe Checkout sessions
 - `POST /api/payment/webhook`: Handles Stripe webhook events
 - `GET /api/payment/history`: Returns user's payment history (used by payments page)
 
