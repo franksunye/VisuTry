@@ -147,6 +147,41 @@ Append one new dated section. Keep entries concise.
 
 **Production changes made by review:** NONE
 
+## 2026-08-31
+
+### Codex Morning Inspection — 11:00
+
+**Window:** GA4 complete prior day **2026-08-30 (+08:00)**; Vercel rolling 12h ending around **2026-08-31 11:00 (+08:00)**; Cloudflare pilot filters in the same rolling 12h view; Axiom `Last 1 day`.
+
+**Traffic**
+- GA Users / Sessions / Views: **276 / 291 / 868**. Compared with the previous observed complete day **2026-08-29** (**298 / 308 / 985**): users **-7.4%**, sessions **-5.5%**, views **-11.9%**.
+- Organic / AI referral note: **176 Organic Search sessions** and **36 AI Assistant sessions (12.37%)**. Organic sessions increased versus the previous observed window; AI sessions declined modestly.
+
+**Vercel**
+- ISR Read Units: **10K project RU**; Write Units **140**. ISR Count and Bytes were not exposed in this view.
+- Important ISR route families: `/{locale}/glasses-guide/[slug]` **~1.1K RU**, `/{locale}/sunglasses-for/[faceShape]` **298 RU**, `/{locale}/style/[faceShape]` **289 RU**; visible pilot subtotal **~1.69K RU / 12h**, below the **~2.52K** pre-Tiered reference, but traffic and route mix were not constant.
+- Fast Origin Transfer: **45 MB outgoing + 10 MB incoming**; route-level FOT attribution is not exposed and is not inferred.
+- Latest production deployment observed was **READY** at main SHA `e5a682a`; production runtime logs showed **9 405**, **2 401**, and **2 404** responses, with no 5xx responses. No current production outage was visible.
+
+**Cloudflare**
+- Smart Tiered Cache remains **Active**; no Cloudflare setting was changed.
+- Reliable pilot filters: `/style/` **149** = **26 HIT / 13 MISS / 16 Expired / 94 Dynamic**; `/sunglasses-for/` **35** = **6 / 14 / 14 / 1**. `/glasses-guide/` returned **36 HIT**; MISS, Expired, and Dynamic did not expose numeric values after repeated waits and are not treated as zero.
+- Zone-wide context: **9.88K requests**, **39.82% cache hit**. No pilot origin-request counterfactual or Tiered Cache shield counter was exposed; the `/style/*` Dynamic share remains material.
+
+**Axiom**
+- `Last 1 day` error/warn query returned **41 events**, dominated by repeated **Free face shape detection failed** and **NextAuth session request slow or aborted** warnings.
+- No `ChunkLoadError`, hydration, or RSC matches. Vercel runtime groups still show Axiom dataset column-limit errors and timeout clusters, with latest occurrences in the current window; no 5xx spike was surfaced.
+
+**Six morning answers**
+1. Traffic materially changed: **Slightly down overall**; organic traffic increased, while total users, sessions, views, and AI sessions declined.
+2. Vercel resource efficiency materially changed: **Pilot ISR is ~1.69K RU / 12h versus ~2.52K baseline**, but the lower demand and mixed route coverage prevent a clean efficiency attribution.
+3. Cloudflare materially changed origin behavior: **Not proven**; Smart Tiered Cache is active, but pilot origin savings are not exposed and one route family's status breakdown is incomplete.
+4. Active experiment: **INCONCLUSIVE / HOLD**; the economic signal remains below baseline, but the measurement gap and high `/style/*` Dynamic share prevent a success call.
+5. Axiom regression: **Yes**—recurring face-shape and auth warnings plus persistent observability schema-limit and timeout signals; no frontend runtime regression or surfaced 5xx spike.
+6. Single most important infrastructure question: **Can the next fixed 12h window return complete status distributions for all three pilot families and confirm lower ISR under comparable demand?**
+
+**Production changes made during inspection:** NONE
+
 
 ```
 
