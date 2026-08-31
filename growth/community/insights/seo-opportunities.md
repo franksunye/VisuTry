@@ -24,6 +24,17 @@ Candidates only. Do not create production pages automatically.
 - Product path: Try-On -> Compare; fit explanation alongside face-shape guidance
 - Confidence: REPEATED SIGNAL
 
+## 2026-08-31 public discovery sample
+
+- Opportunity: Add specific high-bridge and low-eyebrow fit coverage alongside broader face-shape and virtual-try-on pages.
+- Repeated user question: shoppers may need a wide bridge, rounded-rectangle frame, or adjustable nose-pad solution even when generic frame-width advice is insufficient.
+- Source URL: https://www.reddit.com/r/glassesadvice/comments/1w2g5xa/high_nose_bridge_having_a_hard_time_finding/
+- Suggested page action: expand the existing fit/comparison FAQ with bridge hardware, reshape/adjustment options, and a photo-preview limitation note
+- Search language: `high nose bridge glasses wide bridge`, `low eyebrows glasses fit`, `rounded rectangle acetate wide bridge`
+- Evidence count: 1 current Reddit fit thread reviewed on 2026-08-31, adjacent to repeated bridge, low-bridge, and stability signals
+- Product path: Advisor -> Compare -> Try-On
+- Confidence: REPEATED SIGNAL
+
 ## 2026-08-25 public discovery sample
 
 - Opportunity: Expand frame-fit FAQ coverage for `where should nose pads sit`, `glasses too tight`, `glasses falling off`, and `temple length behind ears`.

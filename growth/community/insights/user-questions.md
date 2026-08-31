@@ -148,6 +148,17 @@ Preserve exact language where reasonable. Add one entry per meaningful question.
 - First observed: 2026-08-30
 - Last observed: 2026-08-30
 
+- Question: How can I find rounded-rectangle frames that fit a high nose bridge and low eyebrows when 20 mm bridges still feel too narrow?
+- Exact user phrasing: `Ideally I’m looking for rounded rectangle acetate frames with wider nose bridges but even ones which clam to be wider (20mm) are not enough.` / `Has anyone with a similar issue for a solution?`
+- Platform: Reddit
+- Source URL: https://www.reddit.com/r/glassesadvice/comments/1w2g5xa/high_nose_bridge_having_a_hard_time_finding/
+- Topic: high-nose-bridge fit, low eyebrows, bridge width, frame shaping, and adjustable nose pads
+- Intent: find a comfortable frame or a physical fitting solution after in-store search failed
+- Frequency/pattern: REPEATED SIGNAL adjacent to prior bridge-width, low-bridge, slipping, and stability questions
+- Business relevance: visual recommendations need to hand off to measurable bridge hardware and professional fitting guidance
+- First observed: 2026-08-31
+- Last observed: 2026-08-31
+
 - Question: What does everyone think about my new glasses after purchase?
 - Exact user phrasing: `What does everyone think? I'm stuck with them so it doesn't really matter at this point, lol. But I'm just curious.`
 - Platform: Reddit

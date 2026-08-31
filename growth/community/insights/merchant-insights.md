@@ -79,3 +79,13 @@
 - Confidence: REPEATED SIGNAL
 - Possible merchant implication: show frame width, bridge contact, eye position, and comfort caveats next to shape-based style filters and try-on results
 - Follow-up measurement: track questions that begin with a face-shape label but continue into size, bridge, slipping, or comfort concerns
+
+## 2026-08-31 public discovery sample
+
+- Insight: Shoppers benefit from visible frame-adjustment affordances such as bridge width, nose-pad type, frame-warmer/shaping availability, and flexible pad hardware—not only lens width or face-shape labels.
+- Evidence: A Reddit shopper with low eyebrows and a high nose bridge reported that even 20 mm bridges were too narrow after trying three stores; current replies suggested frame warming/shaping and flexible screw-in nose pads.
+- Source URL: https://www.reddit.com/r/glassesadvice/comments/1w2g5xa/high_nose_bridge_having_a_hard_time_finding/
+- Area: Store / Merchant Sales / Fit Guidance
+- Confidence: SINGLE SIGNAL
+- Possible merchant implication: expose bridge hardware and adjustment options near frame measurements, and make exchange or professional-fitting paths visible when a visually suitable frame is physically unstable
+- Follow-up measurement: track future mentions of frame warmers, nose-pad hardware, high bridges, low eyebrows, and repeated store visits

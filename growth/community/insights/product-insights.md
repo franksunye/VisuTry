@@ -73,3 +73,12 @@ Record evidence, not assumptions. A single comment is a `SINGLE SIGNAL` until re
 - Area: Face Analysis / Advisor / Try-On / Compare / Consumer UX
 - Confidence: REPEATED SIGNAL
 - Follow-up measurement: track whether shape-led questions convert into measurable width, bridge, eye-position, or comfort questions after a shortlist is shown
+
+## 2026-08-31 public discovery sample
+
+- Insight: High-nose-bridge and low-eyebrow cases need a physical-fit handoff in the try-on flow; visual shape suggestions cannot establish bridge contact, adjustability, or stability.
+- Evidence: A current Reddit shopper had low eyebrows and a high nose bridge, could not find a comfortable rounded-rectangle acetate frame after visiting three stores, and said 20 mm bridges still felt too narrow. Fresh replies focused on reshaping and flexible nose pads.
+- Source URL: https://www.reddit.com/r/glassesadvice/comments/1w2g5xa/high_nose_bridge_having_a_hard_time_finding/
+- Area: Advisor / Try-On / Consumer UX / Fit Guidance
+- Confidence: SINGLE SIGNAL
+- Follow-up measurement: track whether future high-bridge or low-eyebrow questions ask for physical adjustment, bridge hardware, or side-fit validation after a visual shortlist

@@ -20,6 +20,16 @@
 - Evidence count: repeated across public `r/glassesadvice` discovery results and related frame-sizing video topics
 - Confidence: REPEATED SIGNAL
 
+## 2026-08-31 public discovery sample
+
+- Visual title: `High-Nose-Bridge Fit: Front Style Versus Side Bridge Contact`
+- Target query: `high nose bridge glasses wide bridge`, `low eyebrows glasses fit`, `rounded rectangle acetate wide bridge`
+- Visual answer concept: show a rounded-rectangle frame from front and side, annotate eyebrow clearance, bridge contact, nose-pad adjustability, and the difference between reshaping and choosing a wider bridge; state that a photo cannot establish comfort.
+- Source question and URL: `Ideally I’m looking for rounded rectangle acetate frames with wider nose bridges but even ones which clam to be wider (20mm) are not enough.` — https://www.reddit.com/r/glassesadvice/comments/1w2g5xa/high_nose_bridge_having_a_hard_time_finding/
+- Landing-page candidate: `/en/compare-glasses-frames` or the existing glasses-fit/face-shape route owner
+- Evidence count: 1 current Reddit fit thread plus repeated bridge and stability signals
+- Confidence: REPEATED SIGNAL
+
 Examples include frames too wide versus correct width, brow-line alignment, bridge width, frame proportions, and two-frame comparisons.
 
 ## 2026-08-25 public discovery sample
