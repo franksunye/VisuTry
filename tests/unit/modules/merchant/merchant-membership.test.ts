@@ -398,6 +398,26 @@ describe('Merchant human membership foundation', () => {
     expect(tx.merchant.create.mock.calls[1][0].data.slug).toBe('new-2')
   })
 
+  it('uses a random suffix after readable merchant slugs collide', async () => {
+    const error = prismaError('P2002', { target: ['slug'] })
+    const tx = {
+      user: { update: jest.fn().mockResolvedValue({ id: 'user-a' }) },
+      merchant: { create: jest.fn()
+        .mockRejectedValueOnce(error)
+        .mockRejectedValueOnce(error)
+        .mockRejectedValueOnce(error)
+        .mockRejectedValueOnce(error)
+        .mockRejectedValueOnce(error)
+        .mockResolvedValue({ id: 'merchant-new', slug: 'new-abc123def456', name: 'New' }) },
+      merchantMembership: { findFirst: jest.fn().mockResolvedValue(null), create: jest.fn().mockResolvedValue({ ...membership, merchantId: 'merchant-new' }) },
+    }
+    ;(prisma.$transaction as jest.Mock).mockImplementation(async (callback) => callback(tx))
+
+    await expect(createMerchantWithOwner({ userId: 'user-a', name: 'New' })).resolves.toMatchObject({ merchant: { slug: 'new-abc123def456' } })
+    expect(tx.merchant.create).toHaveBeenCalledTimes(6)
+    expect(tx.merchant.create.mock.calls[5][0].data.slug).toMatch(/^new-[a-z0-9]{12}$/u)
+  })
+
   it('propagates a non-slug P2002 instead of returning SLUG_UNAVAILABLE', async () => {
     const error = prismaError('P2002', { target: ['userId', 'merchantId'] })
     const tx = {
@@ -437,6 +457,6 @@ describe('Merchant human membership foundation', () => {
     ;(prisma.$transaction as jest.Mock).mockImplementation(async (callback) => callback(tx))
 
     await expect(createMerchantWithOwner({ userId: 'user-a', name: 'New' })).rejects.toMatchObject({ code: 'SLUG_UNAVAILABLE' })
-    expect(prisma.$transaction).toHaveBeenCalledTimes(5)
+    expect(prisma.$transaction).toHaveBeenCalledTimes(100)
   })
 })

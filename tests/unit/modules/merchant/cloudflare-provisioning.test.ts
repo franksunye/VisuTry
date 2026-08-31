@@ -69,6 +69,19 @@ describe('Cloudflare direct-Neon merchant provisioning', () => {
     expect(sql.transaction).toHaveBeenCalledTimes(2)
   })
 
+  it('uses a random suffix after readable default slugs collide', async () => {
+    const transactions = Array.from({ length: 5 }, () => [[], [], [], [], []] as unknown[][])
+    transactions.push([[], [], [], [], [selectedMerchant('merchant-new', 'brand-name-abc123def456')]])
+    const sql = sqlMock(transactions)
+    ;(getCloudflareSql as jest.Mock).mockReturnValue(sql)
+
+    const result = await createMerchantWithOwner({ userId: 'user-a', name: 'Brand Name' })
+
+    expect(result.merchant.slug).toMatch(/^brand-name-[a-z0-9]{12}$/u)
+    expect(result.created).toBe(true)
+    expect(sql.transaction).toHaveBeenCalledTimes(6)
+  })
+
   it('uses the same neutral display name when the optional name is blank', async () => {
     const sql = sqlMock([[[], [], [], [], [selectedMerchant('merchant-new', 'my-store', 'OWNER', 'My Store')]]])
     ;(getCloudflareSql as jest.Mock).mockReturnValue(sql)

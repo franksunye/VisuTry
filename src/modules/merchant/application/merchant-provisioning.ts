@@ -8,6 +8,9 @@ import {
   PUBLIC_SELF_SERVICE_MERCHANT_CLASSIFICATION_SOURCE,
 } from '../domain/merchant-classification'
 import type { MerchantMembershipRecord } from '../domain/membership'
+import { merchantSlugForAttempt } from './merchant-slug'
+
+const MAX_SLUG_ATTEMPTS = 100
 
 export type CreateMerchantWithOwnerInput = {
   userId: string
@@ -67,7 +70,7 @@ function normalizeInput(input: CreateMerchantWithOwnerInput) {
     }
   }
 
-  const baseSlug = slugify((input.slug || name).trim()).slice(0, 180).replace(/-+$/u, '')
+  const baseSlug = slugify(input.slug?.trim() || name).slice(0, 180).replace(/-+$/u, '')
   if (!baseSlug) {
     throw new MerchantProvisioningError('INVALID_MERCHANT_NAME', 'Merchant name must contain letters or numbers.')
   }
@@ -165,9 +168,9 @@ export async function createMerchantWithOwner(
   const normalized = normalizeInput(input)
   let slugAttempt = 0
   let serializationRetries = 0
-  while (slugAttempt < 5 && serializationRetries < 5) {
+  while (slugAttempt < MAX_SLUG_ATTEMPTS && serializationRetries < 5) {
     try {
-      const slug = slugAttempt === 0 ? normalized.baseSlug : `${normalized.baseSlug}-${slugAttempt + 1}`
+      const slug = merchantSlugForAttempt(normalized.baseSlug, slugAttempt)
       const result = await withPublicDiscoveryInvalidation({
         target: { kind: 'merchant', merchantSlug: slug },
         invalidate: (attempt) => attempt.created,
@@ -180,7 +183,7 @@ export async function createMerchantWithOwner(
           serializationRetries += 1
           continue
         }
-        if (isMerchantSlugUniqueViolation(error) && slugAttempt < 4) {
+        if (isMerchantSlugUniqueViolation(error) && slugAttempt < MAX_SLUG_ATTEMPTS - 1) {
           slugAttempt += 1
           serializationRetries = 0
           continue
