@@ -17,7 +17,26 @@ export const RAW_SQL_INVARIANTS = [
 
 export const EXPECTED_APPLICATION_TABLE_COUNT = 42
 
+/**
+ * Non-secret identities that are never valid targets for a disposable
+ * readiness write. These are checked in addition to APP_ENV/VERCEL_ENV and
+ * the database's own EnvironmentMetadata marker.
+ */
+export const PROTECTED_DATABASE_IDENTITY_MARKERS = [
+  'ep-wandering-union-ad43rx1s',
+  'ep-old-frog-adgzp23w',
+  'neon:steep-silence-18355430:br-raspy-cake-adwjq4e9',
+] as const
+export const PREVIEW_DATABASE_IDENTITY_MARKERS = [
+  'ep-old-frog-adgzp23w',
+  'neon:steep-silence-18355430:br-raspy-cake-adwjq4e9',
+] as const
+
 export type ReadinessSqlRow = Record<string, unknown>
+
+export type ReadinessQueryClient = {
+  $queryRawUnsafe<T = unknown>(query: string, ...values: any[]): Promise<T>
+}
 
 export function requireEnvironmentVariable(
   name: string,
@@ -57,6 +76,22 @@ export function redactPostgresConnectionString(value: string): string {
   }
 }
 
+export function databaseIdentityFromConnectionString(value: string): string {
+  const url = new URL(value)
+  const database = url.pathname.replace(/^\//, '') || 'default'
+  return `${url.hostname.toLowerCase()}/${database}`
+}
+
+export function isProtectedDatabaseIdentity(value: string): boolean {
+  const normalized = value.toLowerCase()
+  return PROTECTED_DATABASE_IDENTITY_MARKERS.some((marker) => normalized.includes(marker.toLowerCase()))
+}
+
+export function isPreviewDatabaseIdentity(value: string): boolean {
+  const normalized = value.toLowerCase()
+  return PREVIEW_DATABASE_IDENTITY_MARKERS.some((marker) => normalized.includes(marker.toLowerCase()))
+}
+
 export function redactErrorMessage(error: unknown): string {
   const message = error instanceof Error ? error.message : String(error)
   return message.replace(/postgres(?:ql)?:\/\/[^\s'"`)>]+/gi, '[redacted PostgreSQL URL]')
@@ -77,6 +112,56 @@ export function assertNonDeployedEnvironment(
     throw new Error(
       'PostgreSQL readiness checks require a local/test environment; refusing a deployed environment.',
     )
+  }
+}
+
+export function requireLocalReadinessEnvironment(
+  env: Record<string, string | undefined> = process.env,
+): void {
+  assertNonDeployedEnvironment(env)
+  if (env.APP_ENV?.trim().toLowerCase() !== 'local') {
+    throw new Error('PostgreSQL readiness writes require APP_ENV=local.')
+  }
+}
+
+/**
+ * Read-only identity preflight for every readiness operation that can write.
+ * A missing marker is allowed for a brand-new local database, but a present
+ * Production/Preview marker or a known protected identity always stops the
+ * operation before the caller can mutate data.
+ */
+export async function assertReadinessTargetSafety(
+  client: ReadinessQueryClient,
+  connectionString: string,
+  env: Record<string, string | undefined> = process.env,
+): Promise<void> {
+  assertNonDeployedEnvironment(env)
+  const identity = databaseIdentityFromConnectionString(connectionString)
+  const configuredIdentity = env.VISUTRY_DATABASE_IDENTITY?.trim() ?? ''
+  if (isProtectedDatabaseIdentity(identity) || isProtectedDatabaseIdentity(configuredIdentity)) {
+    throw new Error('Readiness operation refuses a known Production or Preview database identity.')
+  }
+
+  const relation = await queryOne<{ relation: string | null }>(
+    client,
+    `SELECT to_regclass('public."EnvironmentMetadata"')::text AS relation`,
+  )
+  if (!relation.relation) return
+
+  const markers = await queryRows<{ environment: string; databaseIdentity: string }>(
+    client,
+    `SELECT "environment", "databaseIdentity"
+       FROM "EnvironmentMetadata"
+      WHERE "id" = 'primary'`,
+  )
+  const marker = markers[0]
+  if (!marker) return
+  const markerEnvironment = marker.environment.trim().toUpperCase()
+  if (markerEnvironment === 'PRODUCTION' || markerEnvironment === 'PREVIEW') {
+    throw new Error('Readiness operation refuses a Production or Preview database marker.')
+  }
+  if (isProtectedDatabaseIdentity(marker.databaseIdentity)) {
+    throw new Error('Readiness operation refuses a known protected database identity marker.')
   }
 }
 
@@ -112,7 +197,7 @@ export function createReadinessPrismaClient(connectionString: string): PrismaCli
 }
 
 export async function queryRows<T extends ReadinessSqlRow>(
-  client: PrismaClient,
+  client: ReadinessQueryClient,
   sql: string,
 ): Promise<T[]> {
   try {
@@ -124,7 +209,7 @@ export async function queryRows<T extends ReadinessSqlRow>(
 }
 
 export async function queryOne<T extends ReadinessSqlRow>(
-  client: PrismaClient,
+  client: ReadinessQueryClient,
   sql: string,
 ): Promise<T> {
   const rows = await queryRows<T>(client, sql)

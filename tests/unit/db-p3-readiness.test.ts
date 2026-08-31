@@ -3,8 +3,13 @@ import path from 'node:path'
 import {
   assertNonDeployedEnvironment,
   assertPostgresConnectionString,
+  assertReadinessTargetSafety,
+  redactErrorMessage,
   redactPostgresConnectionString,
+  PROTECTED_DATABASE_IDENTITY_MARKERS,
   RAW_SQL_INVARIANTS,
+  type ReadinessQueryClient,
+  requireLocalReadinessEnvironment,
 } from '../../scripts/lib/postgres-readiness'
 
 const root = process.cwd()
@@ -23,10 +28,55 @@ describe('DB-P3 migration readiness tooling', () => {
     )
   })
 
+  it('redacts PostgreSQL URLs embedded in errors', () => {
+    expect(redactErrorMessage(new Error('connect failed: postgresql://user:secret@example.test/db'))).toBe(
+      'connect failed: [redacted PostgreSQL URL]',
+    )
+  })
+
   it('rejects deployed environments for disposable readiness checks', () => {
     expect(() => assertNonDeployedEnvironment({ APP_ENV: 'production' })).toThrow(/deployed environment/)
     expect(() => assertNonDeployedEnvironment({ VERCEL_ENV: 'preview' })).toThrow(/deployed environment/)
     expect(() => assertNonDeployedEnvironment({ APP_ENV: 'local' })).not.toThrow()
+    expect(() => requireLocalReadinessEnvironment({})).toThrow(/APP_ENV=local/)
+    expect(() => requireLocalReadinessEnvironment({ APP_ENV: 'local' })).not.toThrow()
+  })
+
+  it('rejects known protected database identities before readiness writes', async () => {
+    const queryClient: ReadinessQueryClient = {
+      $queryRawUnsafe: async <T>() => [{ relation: null }] as T,
+    }
+    for (const marker of PROTECTED_DATABASE_IDENTITY_MARKERS) {
+      const connectionHost = marker.startsWith('ep-') ? marker : 'safe.example.test'
+      await expect(
+        assertReadinessTargetSafety(
+          queryClient,
+          `postgresql://user:secret@${connectionHost}/visutry`,
+          { APP_ENV: 'local', VISUTRY_DATABASE_IDENTITY: marker },
+        ),
+      ).rejects.toThrow(/known Production or Preview database identity/)
+    }
+  })
+
+  it('rejects a database marked Production or Preview even in a local process', async () => {
+    const productionClient: ReadinessQueryClient = {
+      $queryRawUnsafe: async <T>(sql: string) =>
+        sql.includes('to_regclass')
+          ? ([{ relation: 'EnvironmentMetadata' }] as T)
+          : ([{ environment: 'PRODUCTION', databaseIdentity: 'remote/visutry' }] as T),
+    }
+    const previewClient: ReadinessQueryClient = {
+      $queryRawUnsafe: async <T>(sql: string) =>
+        sql.includes('to_regclass')
+          ? ([{ relation: 'EnvironmentMetadata' }] as T)
+          : ([{ environment: 'PREVIEW', databaseIdentity: 'remote-preview/visutry' }] as T),
+    }
+    await expect(
+      assertReadinessTargetSafety(productionClient, 'postgresql://user:secret@remote/visutry', { APP_ENV: 'local' }),
+    ).rejects.toThrow(/Production or Preview database marker/)
+    await expect(
+      assertReadinessTargetSafety(previewClient, 'postgresql://user:secret@remote-preview/visutry', { APP_ENV: 'local' }),
+    ).rejects.toThrow(/Production or Preview database marker/)
   })
 
   it('validates only PostgreSQL connection strings', () => {
@@ -49,8 +99,62 @@ describe('DB-P3 migration readiness tooling', () => {
     const source = read('scripts/postgres-footprint-audit.ts')
     expect(source).toContain('VISUTRY_FOOTPRINT_READ_ONLY')
     expect(source).toContain('VISUTRY_FOOTPRINT_EXPECTED_DATABASE_IDENTITY')
-    expect(source).toContain('VISUTRY_FOOTPRINT_ALLOW_PRODUCTION')
-    expect(source).not.toMatch(/\b(?:INSERT\s+INTO|UPDATE\s+.+\s+SET|DELETE\s+FROM|ALTER\s+TABLE|DROP\s+TABLE|TRUNCATE)\b/i)
+    expect(source).toContain('VISUTRY_PRODUCTION_READONLY_AUDIT_AUTHORIZED')
+    expect(source).toContain('SET TRANSACTION READ ONLY')
+    expect(source).not.toContain('VISUTRY_FOOTPRINT_ALLOW_PRODUCTION')
+    expect(source).not.toMatch(/\b(?:INSERT\s+INTO|UPDATE\s+.+\s+SET|DELETE\s+FROM|ALTER\s+TABLE|DROP\s+TABLE|TRUNCATE|ANALYZE|VACUUM|REINDEX)\b/i)
+  })
+
+  it('guards every DB-P3 write-capable TypeScript entrypoint', () => {
+    for (const file of [
+      'scripts/postgres-provider-smoke.ts',
+      'scripts/postgres-application-smoke.ts',
+      'scripts/postgres-data-migration-seed.ts',
+      'scripts/postgres-data-migration-scale-seed.ts',
+    ]) {
+      expect(read(file)).toContain('assertReadinessTargetSafety')
+    }
+  })
+
+  it('preflights the secondary-provider migration before allowing external writes', () => {
+    const source = read('scripts/test-postgres-secondary-provider.sh')
+    expect(source).toContain('postgres-readiness-target-check.ts')
+    expect(source.indexOf('postgres-readiness-target-check.ts')).toBeLessThan(
+      source.indexOf('migrate deploy'),
+    )
+    const migration = read('scripts/test-postgres-data-migration.sh')
+    expect(migration.indexOf('postgres-readiness-target-check.ts')).toBeLessThan(
+      migration.indexOf('"$PG_BIN_DIR/pg_restore"'),
+    )
+  })
+
+  it('keeps scale rehearsal synthetic and phase-measured', () => {
+    const source = read('scripts/test-postgres-data-migration.sh')
+    const seed = read('scripts/postgres-data-migration-scale-seed.ts')
+    expect(source).toContain('P3_DATA_MIGRATION_MODE')
+    expect(source).toContain('TIMINGS_MS')
+    expect(source).toContain('POST_IMPORT_WRITE_SEQUENCE_SMOKE: PASS')
+    expect(seed).toContain('localSyntheticOnly: true')
+    expect(seed).toContain('generate_series')
+    expect(seed).toContain('P3_SCALE_FACE_SHAPE_DETECTIONS')
+  })
+
+  it('redacts errors and guards all readiness entrypoints', () => {
+    for (const file of [
+      'scripts/postgres-provider-smoke.ts',
+      'scripts/postgres-application-smoke.ts',
+      'scripts/postgres-data-migration-seed.ts',
+      'scripts/postgres-data-migration-scale-seed.ts',
+      'scripts/postgres-data-migration-validator.ts',
+      'scripts/postgres-footprint-audit.ts',
+      'scripts/postgres-readiness-target-check.ts',
+    ]) {
+      const source = read(file)
+      expect(source).toContain('redactErrorMessage')
+      expect(source).not.toMatch(
+        /console\.(?:log|error)\([^)]*(?:DATABASE_URL|DIRECT_URL|password|token)/i,
+      )
+    }
   })
 
   it('requires explicit non-production approval for the secondary provider smoke', () => {
