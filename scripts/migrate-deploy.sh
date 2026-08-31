@@ -18,8 +18,9 @@ set -euo pipefail
 # FIX LAYERS (defense in depth)
 #   1. prisma.config.ts forces the CLI onto a DIRECT (unpooled) connection,
 #      so the lock is tied to a real backend that releases it on disconnect.
-#   2. Skip `migrate deploy` entirely when `migrate status` reports the
-#      schema is up to date — avoids acquiring the lock at all (most builds).
+#   2. Classify `migrate status` strictly. Skip `migrate deploy` when the
+#      schema is explicitly up to date, deploy only for explicit pending
+#      migrations, and fail closed for every other result.
 #   3. Clear stale advisory locks held by idle backends (>60s) before
 #      migrating — recovers from any pre-existing leaked lock on the first
 #      build after this change lands.
@@ -87,22 +88,33 @@ else
   echo "  ⚠️ stale lock cleanup reported a failure (continuing anyway)"
 fi
 
-# --- Step 2: Skip if no pending migrations ----------------------------------
+# --- Step 2: Classify migration status fail-closed --------------------------
 # `migrate status` only reads the _prisma_migrations table — it does NOT
 # acquire the advisory lock, so it cannot itself cause P1002. Skipping the
 # deploy when there is nothing to do avoids the lock entirely on most builds.
 echo "→ Checking migration status..."
-STATUS_OUTPUT=$(npx prisma migrate status 2>&1 || true)
+STATUS_OUTPUT=""
+STATUS_EXIT=0
+set +e
+STATUS_OUTPUT=$(npx prisma migrate status 2>&1)
+STATUS_EXIT=$?
+set -e
 echo "$STATUS_OUTPUT" | sed 's/^/  /'
 
-if echo "$STATUS_OUTPUT" | grep -qi "not yet been applied"; then
-  echo "→ Pending migrations detected — proceeding to migrate deploy"
-elif echo "$STATUS_OUTPUT" | grep -qi "up to date"; then
+UNSAFE_STATUS_PATTERN='(error|failed|failure|divergen|drift|not in sync|missing|rolled back)'
+if [[ "$STATUS_EXIT" -eq 0 ]] \
+  && echo "$STATUS_OUTPUT" | grep -Eqi "database schema is up to date" \
+  && ! echo "$STATUS_OUTPUT" | grep -Eqi "$UNSAFE_STATUS_PATTERN"; then
   echo "✓ Schema is up to date — skipping migrate deploy"
   exit 0
+elif [[ "$STATUS_EXIT" -eq 1 ]] \
+  && echo "$STATUS_OUTPUT" | grep -Eqi "not yet been applied" \
+  && ! echo "$STATUS_OUTPUT" | grep -Eqi "$UNSAFE_STATUS_PATTERN"; then
+  echo "→ Pending migrations detected — proceeding to migrate deploy"
 else
-  echo "→ Migration status inconclusive (possibly an error above) —"
-  echo "  attempting migrate deploy with retries"
+  echo "❌ Migration status was not a recognized safe state (exit ${STATUS_EXIT}); refusing to run migrate deploy."
+  echo "   Resolve the migration state explicitly before retrying."
+  exit 1
 fi
 
 # --- Step 3: Run migrate deploy with retries + jitter -----------------------
