@@ -14,25 +14,24 @@ dotenv.config({ path: ".env.local", override: true });
  *
  * WHY THIS EXISTS
  * ───────────────
- * Neon's pooled connection uses PgBouncer in transaction mode. Prisma Migrate
- * relies on a session-level advisory lock (pg_advisory_lock(72707369)) to
- * serialize migrations. PgBouncer reassigns backend connections between
- * transactions, which orphans session-level locks — the lock gets "stuck"
+ * A pooled connection using a transaction-mode pooler can break Prisma's
+ * session-level advisory lock (pg_advisory_lock(72707369)), used to serialize
+ * migrations. The pooler can reassign backend connections between transactions,
+ * which orphans session-level locks — the lock gets "stuck"
  * held by an idle backend with no live client. Prisma hardcodes a 10s lock
  * timeout (not configurable), so every subsequent build hits P1002.
  *
- * The runtime PrismaClient is unaffected: it uses @prisma/adapter-neon over
- * the pooled connection (see src/lib/prisma.ts). Only the CLI/migration path
- * needs the direct connection.
+ * The runtime PrismaClient uses the pooled runtime connection. Only the
+ * CLI/migration path needs the direct connection.
  *
  * ENV VARS
  * ────────
- * Vercel Neon integration provides these automatically:
+ * Deployment integrations may provide these automatically:
  *   DATABASE_URL           — pooled (runtime / PrismaClient adapter)
  *   DATABASE_URL_UNPOOLED  — direct  (CLI / migrations)
  *
- * Local dev: set DATABASE_URL_UNPOOLED in .env to your Neon DIRECT (non-pooler)
- * connection string (the host without the `-pooler` suffix).
+ * Local dev: set DATABASE_URL_UNPOOLED to a direct (non-pooler) PostgreSQL
+ * connection string when the configured provider requires it.
  */
 const datasource = resolvePrismaCliDatasourceUrl();
 
@@ -42,16 +41,16 @@ if (datasource.mode === "pooled-fallback") {
   // eslint-disable-next-line no-console
   console.warn(
     "⚠️ [prisma.config.ts] DATABASE_URL_UNPOOLED is not set — falling back " +
-      "to DATABASE_URL for CLI commands. This is fine for local dev but " +
-      "WILL cause P1002 advisory lock timeouts on Vercel/Neon. " +
+      "to DATABASE_URL for CLI commands. This is acceptable only when the " +
+      "configured PostgreSQL connection supports Prisma migration locks. " +
       "Set DATABASE_URL_UNPOOLED to a direct (non-pooler) connection."
   );
 } else if (datasource.mode === "generate-placeholder") {
   // eslint-disable-next-line no-console
   console.warn(
-    "⚠️ [prisma.config.ts] No DATABASE_URL during prisma generate; using a " +
-      "placeholder so Prisma Client can be emitted. Cloudflare Workers Builds " +
-      "does not receive Vercel Neon env vars at npm ci."
+      "⚠️ [prisma.config.ts] No DATABASE_URL during prisma generate; using a " +
+      "placeholder so Prisma Client can be emitted. Edge builds may not receive " +
+      "deployment database variables during dependency installation."
   );
 }
 

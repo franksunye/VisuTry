@@ -20,9 +20,8 @@
 import * as dotenv from 'dotenv'
 import fs from 'fs'
 import path from 'path'
-import { PrismaClient } from '@prisma/client'
-import { PrismaNeon } from '@prisma/adapter-neon'
 import { sendMail } from './mail'
+import { createPostgresPrismaClient } from './lib/postgres-runtime'
 
 dotenv.config({ path: path.resolve(process.cwd(), '.env'), quiet: true })
 dotenv.config({ path: path.resolve(process.cwd(), '.env.local'), override: true, quiet: true })
@@ -100,15 +99,13 @@ function loadProductionDatabaseUrl(): void {
   process.env.DATABASE_URL = match.slice('DATABASE_URL='.length).replace(/^"|"$/g, '')
 }
 
-function createPrisma(): PrismaClient {
+function createPrisma() {
   const connectionString = process.env.DATABASE_URL
   if (!connectionString) {
     throw new Error('DATABASE_URL is not configured')
   }
 
-  return new PrismaClient({
-    adapter: new PrismaNeon({ connectionString }),
-  })
+  return createPostgresPrismaClient(connectionString)
 }
 
 function readSentLog(): SentLog {

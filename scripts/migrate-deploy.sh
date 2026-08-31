@@ -2,7 +2,7 @@
 set -euo pipefail
 
 # ============================================================
-# prisma migrate deploy — Neon/Vercel-safe (P1002 defense in depth)
+# prisma migrate deploy — pooled/direct PostgreSQL safety checks
 # ============================================================
 # SAFETY BOUNDARY
 #   This script is always on the Vercel `npm run build` path, but it is a
@@ -10,8 +10,8 @@ set -euo pipefail
 #   local builds therefore remain safe while production releases fail closed.
 # ============================================================
 # PROBLEM
-#   Neon's pooled connection (PgBouncer transaction mode) leaks Prisma's
-#   session-level advisory lock (pg_advisory_lock(72707369)). The leaked
+#   A transaction-mode pooler can leak Prisma's session-level advisory lock
+#   (pg_advisory_lock(72707369)). The leaked
 #   lock blocks every build until Prisma's hardcoded 10s timeout fires
 #   (P1002). The timeout is NOT configurable, so retries alone never help.
 #
@@ -23,13 +23,13 @@ set -euo pipefail
 #   3. Clear stale advisory locks held by idle backends (>60s) before
 #      migrating — recovers from any pre-existing leaked lock on the first
 #      build after this change lands.
-#   4. Retry with jitter for transient Neon cold-start failures.
+#   4. Retry with jitter for transient provider connection failures.
 #
 # REQUIRED ENV
-#   DATABASE_URL_UNPOOLED  — direct Neon connection (Vercel Neon integration
-#                             provides this automatically). Falls back to
+#   DATABASE_URL_UNPOOLED  — direct PostgreSQL connection (a deployment
+#                             integration may provide this automatically. Falls back to
 #                             DIRECT_DATABASE_URL / DIRECT_URL.
-#   DATABASE_URL           — pooled connection (only used to verify something
+#   DATABASE_URL           — runtime/pooled connection (only used to verify something
 #                             is configured; actual migration URL comes from
 #                             prisma.config.ts).
 # ============================================================
@@ -69,10 +69,10 @@ DIRECT_URL="${DATABASE_URL_UNPOOLED:-${DIRECT_DATABASE_URL:-${DIRECT_URL:-}}}"
 
 if [[ -z "$DIRECT_URL" ]]; then
   echo "❌ No direct (unpooled) database URL found."
-  echo "   Set DATABASE_URL_UNPOOLED on Vercel (the Neon integration provides"
-  echo "   this automatically) or DIRECT_DATABASE_URL in your environment."
-  echo "   Migrations via the pooled DATABASE_URL will hit P1002 advisory"
-  echo "   lock timeouts on Neon/PgBouncer."
+  echo "   Set DATABASE_URL_UNPOOLED in the deployment environment"
+  echo "   or DIRECT_DATABASE_URL / DIRECT_URL."
+  echo "   Migrations via a transaction-pooled DATABASE_URL may hit P1002"
+  echo "   advisory-lock timeouts."
   exit 1
 fi
 echo "→ Migrations will use a direct (unpooled) connection via prisma.config.ts"
@@ -124,7 +124,7 @@ done
 
 echo "❌ prisma migrate deploy failed after ${MAX_RETRIES} attempts"
 echo "   Diagnostic steps:"
-echo "     1. Confirm DATABASE_URL_UNPOOLED is set on Vercel (Neon integration)."
+echo "     1. Confirm DATABASE_URL_UNPOOLED is set in the deployment environment."
 echo "     2. Run: npx tsx scripts/clear-stale-migration-locks.ts"
-echo "     3. Check the Neon console for long-running idle sessions."
+echo "     3. Check the configured PostgreSQL provider for long-running idle sessions."
 exit 1
