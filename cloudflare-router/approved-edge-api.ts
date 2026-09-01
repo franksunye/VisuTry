@@ -1,19 +1,12 @@
 /**
- * Direct Worker handlers for the 4 approved non-Next production APIs.
+ * Direct Worker handler for the approved non-Next production health API.
  *
- * These paths must never enter OpenNext / NextServer. Neon uses fetch(), and
- * Next.js Data Cache would then call StaticAssetsIncrementalCache.set(type=fetch)
- * on the read-only Static Assets adapter.
+ * This path must never enter OpenNext / NextServer. The handler is deliberately
+ * database-free so the active Cloudflare path cannot couple to a PostgreSQL
+ * provider.
  */
 
-import { getActiveBrands, getCategories, getFaceShapes } from '../src/data/glasses-cloudflare'
-import { PUBLIC_CATALOG_CACHE_CONTROL } from '../src/lib/public-http-cache'
 import { B4_FIRST_SLICE_APIS } from './b4-production-public-slice'
-import {
-  markCatalogEdgeCacheStatus,
-  matchCatalogEdgeCache,
-  storeCatalogEdgeCache,
-} from './public-catalog-edge-cache'
 
 export type ApprovedEdgeApiEnv = {
   NODE_ENV?: string
@@ -52,41 +45,6 @@ function jsonResponse(request: Request, body: unknown, init: { status?: number; 
   return new Response(payload, { status, headers })
 }
 
-async function catalog<T>(
-  request: Request,
-  load: () => Promise<T>,
-  logLabel: string,
-  errorMessage: string,
-): Promise<Response> {
-  const cached = await matchCatalogEdgeCache(request)
-  if (cached) return cached
-
-  try {
-    const data = await load()
-    const generated = jsonResponse(
-      new Request(request, { method: 'GET' }),
-      { success: true, data },
-      { cacheControl: PUBLIC_CATALOG_CACHE_CONTROL },
-    )
-    if (request.headers.get('authorization')) {
-      const bypass = markCatalogEdgeCacheStatus(generated, 'bypass')
-      if (request.method === 'HEAD') {
-        return new Response(null, { status: bypass.status, statusText: bypass.statusText, headers: bypass.headers })
-      }
-      return bypass
-    }
-    const miss = markCatalogEdgeCacheStatus(generated, 'miss')
-    await storeCatalogEdgeCache(request, miss)
-    if (request.method === 'HEAD') {
-      return new Response(null, { status: miss.status, statusText: miss.statusText, headers: miss.headers })
-    }
-    return miss
-  } catch (error) {
-    console.error(logLabel, error)
-    return jsonResponse(request, { success: false, error: errorMessage }, { status: 500 })
-  }
-}
-
 export async function handleApprovedEdgeApi(request: Request, env: ApprovedEdgeApiEnv = {}): Promise<Response> {
   const path = cleanPath(new URL(request.url).pathname)
 
@@ -106,16 +64,6 @@ export async function handleApprovedEdgeApi(request: Request, env: ApprovedEdgeA
         timestamp: new Date().toISOString(),
       }, { status: 500 })
     }
-  }
-
-  if (path === '/api/glasses/brands') {
-    return catalog(request, getActiveBrands, 'Error fetching brands:', 'Failed to fetch brands')
-  }
-  if (path === '/api/glasses/categories') {
-    return catalog(request, getCategories, 'Error fetching categories:', 'Failed to fetch categories')
-  }
-  if (path === '/api/glasses/face-shapes') {
-    return catalog(request, getFaceShapes, 'Error fetching face shapes:', 'Failed to fetch face shapes')
   }
 
   return jsonResponse(request, { success: false, error: 'Not found' }, { status: 404 })

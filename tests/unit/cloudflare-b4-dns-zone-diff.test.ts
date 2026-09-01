@@ -26,10 +26,11 @@ describe('B4.2C Phase A DNS zone diff', () => {
       '0 issue "pki.goog"',
       '0 issue "sectigo.com"',
     ].sort())
-    // Vercel owns the Next frontend: the Worker route set is only the 12 approved
-    // non-Next capabilities (no Next HTML, no /_next/static).
-    expect(generateB4ProductionWorkerRoutes().length).toBe(12)
-    expect(routesForPriority('P0').length).toBe(12)
+    // Vercel owns the Next frontend and catalog APIs: the Worker route set is
+    // only the 9 approved non-Next capabilities (no Next HTML, /_next/static,
+    // or catalog API routes).
+    expect(generateB4ProductionWorkerRoutes().length).toBe(9)
+    expect(routesForPriority('P0').length).toBe(9)
   })
 
   it('skips when the Cloudflare dump is empty', () => {

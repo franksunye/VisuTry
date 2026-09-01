@@ -35,7 +35,7 @@ describe('B4.2 first production public slice', () => {
     expect(classifyB4ProductionPublicSlice(request('/api/merchant/workspaces', 'POST'))).toMatchObject({ backend: 'vercel' })
   })
 
-  it('routes ONLY the approved NON-Next static/public families and APIs to Cloudflare', () => {
+  it('routes ONLY the approved NON-Next static/public families and health API to Cloudflare', () => {
     const cfReady: Array<[string, string]> = [
       ['GET', '/favicon.ico'],
       ['GET', '/robots.txt'],
@@ -46,9 +46,6 @@ describe('B4.2 first production public slice', () => {
       ['GET', '/blog-covers/cover.jpg'],
       ['GET', '/assets/logo.png'],
       ['GET', '/api/health'],
-      ['GET', '/api/glasses/brands'],
-      ['GET', '/api/glasses/categories'],
-      ['GET', '/api/glasses/face-shapes'],
     ]
     for (const [method, path] of cfReady) {
       expect(classifyB4ProductionPublicSlice(request(path, method))).toMatchObject({
@@ -108,6 +105,9 @@ describe('B4.2 first production public slice', () => {
 
   it('keeps Store/Campaign, closed programmatic SEO, and dynamic pages on Vercel', () => {
     const vercel: string[] = [
+      '/api/glasses/brands',
+      '/api/glasses/categories',
+      '/api/glasses/face-shapes',
       '/en/store/luna-optical',
       '/en/c/luna-optical/petite-fit',
       '/en/category/aviator',
@@ -125,15 +125,17 @@ describe('B4.2 first production public slice', () => {
     }
   })
 
-  it('does not treat Cookie as identity for public classification', () => {
+  it('does not treat Cookie as identity for the Vercel-owned catalog APIs', () => {
     const cookieRequest = request('/api/glasses/brands', 'GET', {
       cookie: 'next-auth.session-token=abc',
     })
     expect(classifyB4ProductionPublicSlice(cookieRequest)).toMatchObject({
-      backend: 'cloudflare',
-      routeClass: 'cf-ready',
+      backend: 'vercel',
+      routeClass: 'vercel-required',
     })
-    expect(shouldBypassPublicCache(cookieRequest, classifyB4ProductionPublicSlice(cookieRequest))).toBe(false)
+    // Cloudflare does not cache this Vercel-owned route; Vercel retains the
+    // catalog route's own public response-cache contract.
+    expect(shouldBypassPublicCache(cookieRequest, classifyB4ProductionPublicSlice(cookieRequest))).toBe(true)
   })
 
   it('bypasses public cache for Authorization, `/`, and health', () => {

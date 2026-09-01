@@ -126,12 +126,21 @@ source_prep_ms=$(( $(now_ms) - source_prep_start ))
 echo "→ Exporting SOURCE_SIM with pg_dump (migration ledger excluded)"
 export_start="$(now_ms)"
 "$PG_BIN_DIR/pg_dump" -w --format=custom --data-only --no-owner --no-privileges \
-  --exclude-table=public._prisma_migrations --file="$DUMP_FILE" "$SOURCE_URL" \
+  --schema=public --exclude-table=public._prisma_migrations --file="$DUMP_FILE" "$SOURCE_URL" \
   >"$TEST_ROOT/pg-dump.log" 2>"$TEST_ROOT/pg-dump.err" || {
   safe_log "$TEST_ROOT/pg-dump.err" >&2
   exit 1
 }
 export_ms=$(( $(now_ms) - export_start ))
+
+"$PG_BIN_DIR/pg_restore" --list "$DUMP_FILE" >"$TEST_ROOT/pg-dump.list" 2>"$TEST_ROOT/pg-dump-list.err" || {
+  safe_log "$TEST_ROOT/pg-dump-list.err" >&2
+  exit 1
+}
+if rg -n '(^|[[:space:]])(pg_catalog|information_schema|pg_toast|supabase_[^[:space:]]*|_prisma_migrations)([[:space:]]|$)|EXTENSION' "$TEST_ROOT/pg-dump.list"; then
+  echo "❌ Provider-neutral data dump contains a migration, system, provider, or extension entry." >&2
+  exit 1
+fi
 
 echo "→ Importing the consistent snapshot into TARGET_SIM"
 import_start="$(now_ms)"
@@ -232,6 +241,7 @@ echo "DATA_MIGRATION_REHEARSAL: PASS"
 echo "SOURCE_TARGET_ROW_VALIDATION: PASS"
 echo "BUSINESS_INVARIANTS: PASS"
 echo "POST_IMPORT_WRITE_SEQUENCE_SMOKE: PASS"
+echo "PROVIDER_NEUTRAL_DATA_ONLY_DUMP: PASS"
 echo "FUTURE_MIGRATION: PASS"
 echo "ROLLBACK_REHEARSAL: PASS"
 echo "TIMINGS_MS: source_prep=${source_prep_ms} export=${export_ms} schema_prep=${schema_prep_ms} import=${import_ms} row_validation=${validation_ms} business_validation=${business_validation_ms} smoke=${smoke_ms} rollback=${rollback_ms}"

@@ -92,12 +92,7 @@ describe('B4.2A staging public slice router', () => {
   })
 
   it('classifies ONLY approved non-Next APIs as Cloudflare Worker (no Next HTML)', () => {
-    const layer2: Array<[string, string, string]> = [
-      ['GET', '/api/health', 'health'],
-      ['HEAD', '/api/glasses/brands', 'public-catalog-api'],
-      ['GET', '/api/glasses/categories', 'public-catalog-api'],
-      ['GET', '/api/glasses/face-shapes', 'public-catalog-api'],
-    ]
+    const layer2: Array<[string, string, string]> = [['GET', '/api/health', 'health']]
     for (const [method, pathName, cacheClass] of layer2) {
       const decision = classifyStagingPublicSlice(request(pathName, method))
       expect(decision).toMatchObject({
@@ -135,6 +130,9 @@ describe('B4.2A staging public slice router', () => {
 
   it('keeps Layer 3 deferred, unknown, auth, writes, and image optimization on Vercel', () => {
     const layer3: Array<[string, string]> = [
+      ['GET', '/api/glasses/brands'],
+      ['GET', '/api/glasses/categories'],
+      ['GET', '/api/glasses/face-shapes'],
       ['GET', '/en/store/luna-optical'],
       ['GET', '/en/c/luna-optical/petite-fit'],
       ['GET', '/en/category/test'],
@@ -152,6 +150,7 @@ describe('B4.2A staging public slice router', () => {
     for (const [method, pathName] of layer3) {
       const decision = classifyStagingPublicSlice(request(pathName, method))
       expect(decision.backend).toBe('vercel')
+      if (pathName.startsWith('/api/glasses/')) expect(decision.routeClass).toBe('vercel-required')
       expect(b4Layer(decision)).toBe('layer3-vercel')
       expect(decision.countsAgainstWorkerQuota).toBe(true)
     }
