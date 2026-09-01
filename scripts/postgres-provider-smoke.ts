@@ -1,4 +1,4 @@
-import { assertPostgresConnectionString, assertReadinessTargetSafety, createReadinessPrismaClient, printJson, redactErrorMessage, redactPostgresConnectionString, requireEnvironmentVariable, requireLocalReadinessEnvironment } from './lib/postgres-readiness'
+import { assertPostgresConnectionString, assertReadinessTargetSafety, createReadinessPrismaClient, DB_P3_PROVIDER_SMOKE_TRANSACTION_TIMEOUT_MS, printJson, redactErrorMessage, redactPostgresConnectionString, requireEnvironmentVariable, requireLocalReadinessEnvironment } from './lib/postgres-readiness'
 import { assertSchemaContract, inspectSchemaContract } from './lib/postgres-schema-contract'
 import { runPostgresReadinessFixture } from './postgres-readiness-fixture'
 
@@ -11,7 +11,9 @@ async function main(): Promise<void> {
     'P3_SECONDARY_POSTGRES_URL',
     requireEnvironmentVariable('P3_SECONDARY_POSTGRES_URL'),
   )
-  const client = createReadinessPrismaClient(connectionString)
+  const client = createReadinessPrismaClient(connectionString, {
+    transactionTimeoutMs: DB_P3_PROVIDER_SMOKE_TRANSACTION_TIMEOUT_MS,
+  })
   try {
     await assertReadinessTargetSafety(client, connectionString)
     const schema = await inspectSchemaContract(client)
