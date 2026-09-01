@@ -4,6 +4,34 @@ import {
 } from '../../prisma/resolve-cli-datasource-url'
 
 describe('resolvePrismaCliDatasourceUrl', () => {
+  it('prefers DATABASE_MIGRATION_URL over all legacy migration variables', () => {
+    expect(
+      resolvePrismaCliDatasourceUrl(
+        {
+          DATABASE_MIGRATION_URL: 'postgresql://migration/db',
+          DATABASE_URL_UNPOOLED: 'postgresql://unpooled/db',
+          DIRECT_DATABASE_URL: 'postgresql://direct/db',
+          DIRECT_URL: 'postgresql://direct-alias/db',
+          DATABASE_URL: 'postgresql://pooled/db',
+        },
+        ['node', 'prisma', 'migrate', 'deploy'],
+      ),
+    ).toEqual({ url: 'postgresql://migration/db', mode: 'direct' })
+  })
+
+  it('ignores blank migration URLs when selecting the next configured source', () => {
+    expect(
+      resolvePrismaCliDatasourceUrl(
+        {
+          DATABASE_MIGRATION_URL: '   ',
+          DATABASE_URL_UNPOOLED: 'postgresql://unpooled/db',
+          DATABASE_URL: 'postgresql://pooled/db',
+        },
+        ['node', 'prisma', 'migrate', 'deploy'],
+      ),
+    ).toEqual({ url: 'postgresql://unpooled/db', mode: 'direct' })
+  })
+
   it('prefers DATABASE_URL_UNPOOLED for migrate and generate', () => {
     const env = {
       DATABASE_URL_UNPOOLED: 'postgresql://direct/db',

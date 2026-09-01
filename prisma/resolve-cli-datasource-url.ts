@@ -7,14 +7,20 @@ export type PrismaCliDatasource = {
 }
 
 type PrismaCliEnv = {
+  DATABASE_MIGRATION_URL?: string
   DATABASE_URL_UNPOOLED?: string
   DIRECT_DATABASE_URL?: string
   DIRECT_URL?: string
   DATABASE_URL?: string
 }
 
+function firstConfiguredUrl(...values: Array<string | undefined>): string | undefined {
+  return values.find((value) => value?.trim())?.trim()
+}
+
 function processPrismaCliEnv(): PrismaCliEnv {
   return {
+    DATABASE_MIGRATION_URL: process.env.DATABASE_MIGRATION_URL,
     DATABASE_URL_UNPOOLED: process.env.DATABASE_URL_UNPOOLED,
     DIRECT_DATABASE_URL: process.env.DIRECT_DATABASE_URL,
     DIRECT_URL: process.env.DIRECT_URL,
@@ -32,7 +38,9 @@ export function isPrismaMigrateOrDbCommand(argv: string[] = process.argv): boole
  * on command sniffing. `prisma generate` only emits the client from schema
  * and does not connect.
  *
- * Deployment environments supply DATABASE_URL_UNPOOLED / DATABASE_URL, so
+ * Deployment environments supply DATABASE_MIGRATION_URL (or the legacy
+ * DATABASE_URL_UNPOOLED / DIRECT_DATABASE_URL / DIRECT_URL aliases) and
+ * DATABASE_URL, so
  * production generate + migrate keep using the configured PostgreSQL URLs.
  * migrate/db without a URL still throw when those commands are visible on argv.
  */
@@ -40,21 +48,27 @@ export function resolvePrismaCliDatasourceUrl(
   env: PrismaCliEnv = processPrismaCliEnv(),
   argv: string[] = process.argv,
 ): PrismaCliDatasource {
-  const direct =
-    env.DATABASE_URL_UNPOOLED ?? env.DIRECT_DATABASE_URL ?? env.DIRECT_URL
+  const direct = firstConfiguredUrl(
+    env.DATABASE_MIGRATION_URL,
+    env.DATABASE_URL_UNPOOLED,
+    env.DIRECT_DATABASE_URL,
+    env.DIRECT_URL,
+  )
 
   if (direct) {
     return { url: direct, mode: 'direct' }
   }
 
-  if (env.DATABASE_URL) {
-    return { url: env.DATABASE_URL, mode: 'pooled-fallback' }
+  const pooled = firstConfiguredUrl(env.DATABASE_URL)
+  if (pooled) {
+    return { url: pooled, mode: 'pooled-fallback' }
   }
 
   if (isPrismaMigrateOrDbCommand(argv)) {
     throw new Error(
-      '[prisma.config.ts] No database URL found. Set DATABASE_URL_UNPOOLED ' +
-        '(direct/admin connection) or DATABASE_URL (runtime connection).',
+      '[prisma.config.ts] No database URL found. Set DATABASE_MIGRATION_URL ' +
+        '(or DATABASE_URL_UNPOOLED / DIRECT_DATABASE_URL / DIRECT_URL) or ' +
+        'DATABASE_URL (runtime connection).',
     )
   }
 

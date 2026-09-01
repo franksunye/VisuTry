@@ -27,9 +27,9 @@ set -euo pipefail
 #   4. Retry with jitter for transient provider connection failures.
 #
 # REQUIRED ENV
-#   DATABASE_URL_UNPOOLED  — direct PostgreSQL connection (a deployment
-#                             integration may provide this automatically. Falls back to
-#                             DIRECT_DATABASE_URL / DIRECT_URL.
+#   DATABASE_MIGRATION_URL — provider-neutral direct PostgreSQL connection.
+#                             Falls back to the legacy
+#                             DATABASE_URL_UNPOOLED / DIRECT_DATABASE_URL / DIRECT_URL.
 #   DATABASE_URL           — runtime/pooled connection (only used to verify something
 #                             is configured; actual migration URL comes from
 #                             prisma.config.ts).
@@ -66,17 +66,17 @@ fi
 
 echo "✓ Explicit production migration authorization confirmed"
 
-DIRECT_URL="${DATABASE_URL_UNPOOLED:-${DIRECT_DATABASE_URL:-${DIRECT_URL:-}}}"
+DIRECT_URL="${DATABASE_MIGRATION_URL:-${DATABASE_URL_UNPOOLED:-${DIRECT_DATABASE_URL:-${DIRECT_URL:-}}}}"
 
 if [[ -z "$DIRECT_URL" ]]; then
   echo "❌ No direct (unpooled) database URL found."
-  echo "   Set DATABASE_URL_UNPOOLED in the deployment environment"
-  echo "   or DIRECT_DATABASE_URL / DIRECT_URL."
+  echo "   Set DATABASE_MIGRATION_URL in the deployment environment"
+  echo "   or DATABASE_URL_UNPOOLED / DIRECT_DATABASE_URL / DIRECT_URL."
   echo "   Migrations via a transaction-pooled DATABASE_URL may hit P1002"
   echo "   advisory-lock timeouts."
   exit 1
 fi
-echo "→ Migrations will use a direct (unpooled) connection via prisma.config.ts"
+echo "→ Migrations will use the configured direct migration connection via prisma.config.ts"
 
 # --- Step 1: Clear stale advisory locks held by idle backends ---------------
 # Recovers from any leaked lock left by previous pooled-connection builds.
@@ -136,7 +136,7 @@ done
 
 echo "❌ prisma migrate deploy failed after ${MAX_RETRIES} attempts"
 echo "   Diagnostic steps:"
-echo "     1. Confirm DATABASE_URL_UNPOOLED is set in the deployment environment."
+echo "     1. Confirm DATABASE_MIGRATION_URL is set in the deployment environment."
 echo "     2. Run: npx tsx scripts/clear-stale-migration-locks.ts"
 echo "     3. Check the configured PostgreSQL provider for long-running idle sessions."
 exit 1

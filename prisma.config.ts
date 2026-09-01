@@ -10,7 +10,7 @@ dotenv.config({ path: ".env.local", override: true });
  * Prisma 7 CLI configuration.
  *
  * Forces ALL Prisma CLI commands (migrate deploy / status / dev, db pull, etc.)
- * onto a DIRECT (unpooled) Postgres connection.
+ * onto the configured PostgreSQL migration connection.
  *
  * WHY THIS EXISTS
  * ───────────────
@@ -21,17 +21,19 @@ dotenv.config({ path: ".env.local", override: true });
  * held by an idle backend with no live client. Prisma hardcodes a 10s lock
  * timeout (not configurable), so every subsequent build hits P1002.
  *
- * The runtime PrismaClient uses the pooled runtime connection. Only the
- * CLI/migration path needs the direct connection.
+ * The runtime PrismaClient uses the runtime connection. Only the CLI/migration
+ * path needs the migration connection.
  *
  * ENV VARS
  * ────────
  * Deployment integrations may provide these automatically:
- *   DATABASE_URL           — pooled (runtime / PrismaClient adapter)
- *   DATABASE_URL_UNPOOLED  — direct  (CLI / migrations)
+ *   DATABASE_URL           — runtime (PrismaClient adapter)
+ *   DATABASE_MIGRATION_URL — migration (preferred CLI connection)
+ *   DATABASE_URL_UNPOOLED / DIRECT_DATABASE_URL / DIRECT_URL — legacy aliases
  *
- * Local dev: set DATABASE_URL_UNPOOLED to a direct (non-pooler) PostgreSQL
- * connection string when the configured provider requires it.
+ * Local dev: set DATABASE_MIGRATION_URL to the provider-approved PostgreSQL
+ * connection string for Prisma migration locks. A session-mode pooler is
+ * acceptable only when the provider-specific rehearsal proves it safe.
  */
 const datasource = resolvePrismaCliDatasourceUrl();
 
@@ -40,10 +42,10 @@ if (datasource.mode === "pooled-fallback") {
   // without forcing developers to configure a second connection string.
   // eslint-disable-next-line no-console
   console.warn(
-    "⚠️ [prisma.config.ts] DATABASE_URL_UNPOOLED is not set — falling back " +
+    "⚠️ [prisma.config.ts] No dedicated migration URL is set — falling back " +
       "to DATABASE_URL for CLI commands. This is acceptable only when the " +
       "configured PostgreSQL connection supports Prisma migration locks. " +
-      "Set DATABASE_URL_UNPOOLED to a direct (non-pooler) connection."
+      "Set DATABASE_MIGRATION_URL to the approved migration connection."
   );
 } else if (datasource.mode === "generate-placeholder") {
   // eslint-disable-next-line no-console
@@ -61,8 +63,8 @@ export default defineConfig({
     seed: "tsx prisma/seed.ts",
   },
   datasource: {
-    // Direct (unpooled) connection for migrations. Falls back to DATABASE_URL
-    // for local dev, or a generate-only placeholder when no URL is present.
+    // Provider-neutral migration connection. Falls back to DATABASE_URL for
+    // local dev, or a generate-only placeholder when no URL is present.
     url: datasource.url,
   },
 });

@@ -17,6 +17,13 @@ cutover, a migration resolve, a migration deploy, or a provider change.
    and serverless connection mode have been reviewed. Do not assume that a
    particular Supabase plan includes a particular backup or PITR feature.
 5. A tested backup/restore path exists for both providers.
+6. The complete production request graph has one authoritative PostgreSQL
+   provider. The approved Cloudflare catalog edge path currently follows
+   `cloudflare-router/approved-edge-api.ts` →
+   `src/data/glasses-cloudflare.ts` → `src/data/neon-cloudflare.ts`; it is a
+   cutover blocker while it still reads Neon after the Vercel runtime is
+   switched. Move that path to the switched provider or complete a separately
+   reviewed provider boundary before cutover.
 
 If any precondition is false, stop. Do not combine this operation with the
 canonical-baseline lineage cutover.
@@ -50,7 +57,10 @@ During this window there must be:
 - no automated migration job or alternate operator migration;
 - no schema-changing branch merge;
 - no simultaneous canonical-baseline adoption;
-- no DNS-only or blind environment-variable switch.
+- no DNS-only or blind environment-variable switch;
+- no split-brain provider configuration: all authoritative application reads,
+  writes, migrations, jobs, and approved edge data paths must point at the
+  same provider, or the cutover must stop.
 
 If serialization cannot be guaranteed, stop the cutover.
 
@@ -82,12 +92,15 @@ If serialization cannot be guaranteed, stop the cutover.
    storage/connection headroom.
 2. Obtain two target connection forms without committing them:
    - a runtime URL suitable for the serverless connection pattern;
-   - a direct/admin URL for Prisma migrations and `pg_dump`/`pg_restore`.
+   - a migration URL suitable for Prisma migration advisory locks and
+     `pg_dump`/`pg_restore`. A Supabase Session Pooler session-mode URL may be
+     used only after the exact connection mode passes rehearsal; a
+     transaction-mode pooler is not an acceptable migration URL.
 3. Require SSL and verify the target database identity before any write.
 4. Apply the canonical active migration path to an empty target:
 
    ```text
-   P3_SECONDARY_POSTGRES_URL=<target-direct-url>
+   P3_SECONDARY_POSTGRES_URL=<target-migration-url>
    P3_SECONDARY_POSTGRES_ALLOW=1
    P3_CANONICAL_MIGRATIONS_PATH=<approved-canonical-migrations-path>
    npm run test:db-p3-secondary-provider
@@ -96,6 +109,14 @@ If serialization cannot be guaranteed, stop the cutover.
    This must report clean status, the complete schema contract, all seven
    raw-SQL invariants, application smoke success, and a future migration
    success before proceeding.
+
+   Inventory `pg_extension` on both sides before choosing the dump/restore
+   command. Provider-managed extensions are not portable by default: restore
+   only extensions available on the target, and treat any missing extension or
+   PostgreSQL-major-version mismatch as a compatibility stop requiring an
+   operator decision. Use client tools compatible with the source server major
+   version; never disable TLS or edit application data to work around a restore
+   error.
 
 ## 3. Verify backup and restore readiness
 
@@ -126,12 +147,12 @@ strings, row values, tokens, image URLs, or credentials.
 ## 5. Prepare and import the target
 
 1. Confirm the target is the expected empty or disposable cutover database.
-2. Run the canonical migration path against the target with the direct URL.
+2. Run the canonical migration path against the target with the migration URL.
 3. Import the final snapshot without modifying `_prisma_migrations`:
 
    ```text
    pg_restore --data-only --no-owner --no-privileges --exit-on-error \
-     --dbname=<target-direct-url> <protected-export-path>
+     --dbname=<target-migration-url> <protected-export-path>
    ```
 
 4. Keep the source unchanged and authoritative until validation and smoke
@@ -139,7 +160,7 @@ strings, row values, tokens, image URLs, or credentials.
 
 ## 6. Validate before switching traffic
 
-Run the reusable validator with both direct URLs held only in the operator
+Run the reusable validator with both migration URLs held only in the operator
 environment:
 
 ```text
@@ -163,17 +184,54 @@ Require PASS for all of the following:
 
 ## 7. Switch the provider
 
-Only after validation passes, update the approved runtime and direct migration
+Only after validation passes, update the approved runtime and migration
 configuration atomically in the deployment system:
 
-1. runtime `DATABASE_URL` → approved Supabase runtime/pooled URL;
-2. migration `DATABASE_URL_UNPOOLED` (or the approved direct equivalent) →
-   approved Supabase direct URL;
-3. retain the old Neon values in the protected rollback procedure, not in
+1. `POSTGRES_RUNTIME_PROVIDER` → `pg`;
+2. runtime `DATABASE_URL` → the exact approved Supabase runtime URL;
+3. migration `DATABASE_MIGRATION_URL` → the exact approved Supabase migration
+   URL. The legacy `DATABASE_URL_UNPOOLED`, `DIRECT_DATABASE_URL`, and
+   `DIRECT_URL` aliases remain supported, but `DATABASE_MIGRATION_URL` takes
+   precedence;
+4. retain the old Neon values in the protected rollback procedure, not in
    source control or logs.
 
+The supported configuration contract is explicit and has no hostname
+inference:
+
+```text
+Neon (current/default):
+POSTGRES_RUNTIME_PROVIDER=neon
+DATABASE_URL=<Neon runtime URL>
+DATABASE_MIGRATION_URL=<Neon migration URL>
+
+Supabase (only after approval):
+POSTGRES_RUNTIME_PROVIDER=pg
+DATABASE_URL=<tested Supabase runtime URL>
+DATABASE_MIGRATION_URL=<tested Supabase migration URL>
+```
+
+Immediately before and after the switch, run the read-only provider preflight
+with the expected non-secret database identity supplied by the operator:
+
+```text
+APP_ENV=production
+VISUTRY_PRODUCTION_READONLY_AUDIT_AUTHORIZED=1
+P3_PROVIDER_PREFLIGHT_EXPECTED_ENVIRONMENT=PRODUCTION
+P3_PROVIDER_PREFLIGHT_EXPECTED_DATABASE_IDENTITY=<approved-identity>
+npm run db:provider:preflight
+```
+
+The preflight reports the selected provider, both database identities,
+PostgreSQL version, the 42-table schema contract, all seven raw-SQL
+invariants, and CLEAN migration status. It is read-only and never performs
+baseline adoption.
+
 Do not use blind DNS switching. Do not change the Prisma schema, edit
-`_prisma_migrations`, or run an automatic baseline/resolve operation.
+`_prisma_migrations`, or run an automatic baseline/resolve operation. If the
+Cloudflare catalog path still points at Neon, do not release the switch: move
+that path to Vercel or complete a separately reviewed explicit provider
+boundary before resuming.
 
 Immediately run `prisma migrate status` against the target active path and
 require `Database schema is up to date!` / CLEAN. If status is divergent,
@@ -213,17 +271,28 @@ owner has approved stabilization.
 
 ## Supabase readiness notes
 
-- Use a direct, SSL-enabled PostgreSQL URL for Prisma migrations; do not send
-  migration advisory locks through an incompatible transaction pooler.
+- Use an SSL-enabled PostgreSQL migration URL. Supabase Session Pooler
+  session-mode (port 5432) is acceptable only because it passed the DB-P3
+  rehearsal; do not use the transaction-mode pooler (port 6543) for Prisma
+  migrations or `pg_dump`/`pg_restore`.
+- Keep runtime and migration URLs separate even when they resolve to the same
+  database. Prisma CLI precedence is `DATABASE_MIGRATION_URL` →
+  `DATABASE_URL_UNPOOLED` → `DIRECT_DATABASE_URL` → `DIRECT_URL` →
+  `DATABASE_URL`.
+- `src/lib/postgres-runtime.ts` selects `PrismaNeon` by default and selects
+  `PrismaPg` only for explicit `POSTGRES_RUNTIME_PROVIDER=pg`; application
+  code continues to use the singleton in `src/lib/prisma.ts`.
 - Choose runtime pooling only after validating the actual Supabase connection
   mode, serverless concurrency, timeout behavior, and connection limits.
 - Compare source and target regions for latency and data-residency needs.
 - Verify backup/PITR availability, retention, restore destination, and operator
   access for the selected account/plan; pricing and feature availability are
   intentionally not hardcoded here.
-- The current VisuTry application runtime remains provider-specific until a
-  separately approved adapter change. This runbook proves PostgreSQL schema
-  and persistence portability; it does not authorize a runtime adapter rewrite.
+- The Node/Vercel application path is provider-selectable, but the current
+  production Cloudflare approved catalog path remains Neon-specific. This
+  runbook does not authorize a mixed-provider deployment; that edge path must
+  be moved or separately providerized before `SUPABASE SWITCH READY` can be
+  reported as YES.
 
 ## Prohibited shortcuts
 
