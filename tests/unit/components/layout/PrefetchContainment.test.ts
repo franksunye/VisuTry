@@ -9,6 +9,8 @@ const highFanoutLinkFiles = [
   'src/app/[locale]/(main)/glasses-guide/[slug]/page.tsx',
 ]
 
+const stylePageFile = 'src/app/[locale]/(main)/style/[faceShape]/page.tsx'
+
 function readSource(relativePath: string) {
   return fs.readFileSync(path.join(process.cwd(), relativePath), 'utf8')
 }
@@ -25,5 +27,21 @@ describe('P0-D1 prefetch containment', () => {
     linkTags.forEach((tag) => {
       expect(tag).toContain('prefetch={false}')
     })
+  })
+
+  it('disables speculative prefetch for style sibling SEO links', () => {
+    const source = readSource(stylePageFile)
+
+    expect(source).toMatch(
+      /href=\{`\/\$\{locale\}\/style\/\$\{item\}-face`\}[\s\S]{0,160}prefetch=\{false\}/,
+    )
+  })
+
+  it('disables speculative prefetch for the English glasses-guide exploration link', () => {
+    const source = readSource(stylePageFile)
+
+    expect(source).toMatch(
+      /href=\{`\/\$\{locale\}\/glasses-guide`\}[\s\S]{0,160}prefetch=\{false\}/,
+    )
   })
 })

@@ -1,8 +1,8 @@
 import 'dotenv/config'
 import { Axiom } from '@axiomhq/js'
-import { neon } from '@neondatabase/serverless'
 import { buildMerchantDistributionReport } from '@/modules/store/domain/merchant-distribution-report'
 import { buildConsumerFunnelReport, type ConsumerFunnelReportEvent } from '@/lib/agent-distribution-report'
+import { createPostgresSqlClient } from './lib/postgres-runtime'
 
 type CliOptions = { from: Date; to: Date; json: boolean }
 
@@ -104,7 +104,7 @@ async function readConsumerEvents(options: CliOptions): Promise<ConsumerFunnelRe
 }
 
 async function readMerchantReport(options: CliOptions) {
-  const sql = neon(requiredEnv('DATABASE_URL'))
+  const sql = createPostgresSqlClient(requiredEnv('DATABASE_URL'))
   const [sessions, events, intents] = await Promise.all([
     sql`
       SELECT s."id", s."source", s."medium", s."referrer", s."aiAgentSource", s."referenceData",

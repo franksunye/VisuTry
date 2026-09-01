@@ -296,6 +296,7 @@ export default function FaceShapePage({ params }: FaceShapePageProps) {
               <Link
                 key={item}
                 href={`/${locale}/style/${item}-face`}
+                prefetch={false}
                 className="rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-700 hover:border-blue-300 hover:text-blue-700"
               >
                 {seoCopy.shapeNames[item]}
@@ -304,7 +305,11 @@ export default function FaceShapePage({ params }: FaceShapePageProps) {
           </div>
           {locale === 'en' && (
             <div className="mt-5">
-              <Link href={`/${locale}/glasses-guide`} className="text-sm font-semibold text-blue-700 hover:text-blue-900">
+              <Link
+                href={`/${locale}/glasses-guide`}
+                prefetch={false}
+                className="text-sm font-semibold text-blue-700 hover:text-blue-900"
+              >
                 Explore more glasses guides →
               </Link>
             </div>

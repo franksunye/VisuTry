@@ -32,9 +32,9 @@ export function isPrismaMigrateOrDbCommand(argv: string[] = process.argv): boole
  * on command sniffing. `prisma generate` only emits the client from schema
  * and does not connect.
  *
- * Vercel still supplies DATABASE_URL_UNPOOLED / DATABASE_URL, so production
- * generate + migrate keep using the real Neon URLs. migrate/db without a URL
- * still throw when those commands are visible on argv.
+ * Deployment environments supply DATABASE_URL_UNPOOLED / DATABASE_URL, so
+ * production generate + migrate keep using the configured PostgreSQL URLs.
+ * migrate/db without a URL still throw when those commands are visible on argv.
  */
 export function resolvePrismaCliDatasourceUrl(
   env: PrismaCliEnv = processPrismaCliEnv(),
@@ -54,7 +54,7 @@ export function resolvePrismaCliDatasourceUrl(
   if (isPrismaMigrateOrDbCommand(argv)) {
     throw new Error(
       '[prisma.config.ts] No database URL found. Set DATABASE_URL_UNPOOLED ' +
-        '(provided by the Vercel Neon integration) or DATABASE_URL.',
+        '(direct/admin connection) or DATABASE_URL (runtime connection).',
     )
   }
 

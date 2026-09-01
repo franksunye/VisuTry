@@ -3,17 +3,13 @@
 // function bundle is initialized. Cloudflare builds alias this module to the
 // no-Prisma stub in next.config.js, so this import remains CF-safe.
 import { PrismaClient } from '@prisma/client/index'
-import { PrismaNeon } from '@prisma/adapter-neon'
+import { createRuntimePostgresAdapter } from './postgres-runtime'
 
 const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined
 }
 
-// 使用 Neon Serverless Driver 优化性能
-// Prisma 6.x 新 API：直接传递 connectionString 对象
-// 这样可以获得更低的延迟和更好的 serverless 性能
-const connectionString = process.env.DATABASE_URL!
-const adapter = new PrismaNeon({ connectionString })
+const adapter = createRuntimePostgresAdapter()
 
 // 🔍 性能监控：记录 Prisma 查询日志
 const logLevels = process.env.NODE_ENV === 'development'
@@ -21,7 +17,7 @@ const logLevels = process.env.NODE_ENV === 'development'
   : ['error'] as const
 
 export const prisma = globalForPrisma.prisma ?? new PrismaClient({
-  adapter: adapter, // 使用 Neon Serverless Driver 优化 serverless 环境性能
+  adapter: adapter, // Current PostgreSQL serverless adapter
   log: logLevels.map(level => ({
     level,
     emit: 'event'
@@ -44,6 +40,5 @@ if (process.env.NODE_ENV === 'production') {
 
 if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma
 
-// Note: No $connect() warm-up needed — the Neon serverless driver uses HTTP,
-// not persistent TCP. Prisma+Neon official example does not call $connect().
-// Cold-start latency is handled via the connection string's connect_timeout.
+// Do not eagerly connect during module evaluation. Connection lifecycle is
+// owned by the configured runtime adapter.
