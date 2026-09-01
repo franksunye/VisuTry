@@ -147,10 +147,15 @@ HEALTHY authority
 
 ## Provider connection notes
 
-For Supabase, use the direct PostgreSQL connection for Prisma migration and
-`pg_dump`/`pg_restore` operations. Use the pooled/runtime connection for
-serverless application traffic when required by the deployment model. Keep
-SSL enabled and account for pooler transaction/session behavior; do not pass
+For Supabase, the verified repository path for Prisma migration and
+`pg_dump`/`pg_restore` is the Session Pooler in session mode on port `5432`,
+with SSL enabled. The direct PostgreSQL endpoint is preferred when it is
+reachable from the operator network, but it is optional and must not be
+treated as a prerequisite; the current validation environment may expose it
+only through IPv6. Do not use the Transaction Pooler on port `6543` for
+migrations, dumps, or restores: transaction pooling can break session-scoped
+tooling assumptions. Use a pooled/runtime connection for serverless
+application traffic when required by the deployment model. Do not pass
 Prisma-only connection parameters to libpq tools.
 
 For a Neon target, use the direct connection for migration and snapshot
