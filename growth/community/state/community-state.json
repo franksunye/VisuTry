@@ -63,5 +63,12 @@
     "verified_at": "2026-08-31T14:01:12+08:00",
     "verification_source": "CODEX_SCHEDULER"
   },
-  "pending_actions": []
+  "pending_actions": [],
+  "reviewer_alert": {
+    "date": "2026-09-01",
+    "status": "SCHEDULED_RUN_EVIDENCE_MISSING",
+    "observed_after_expected_run_window": true,
+    "evidence": "No growth/community/daily/2026-09-01.md exists; last_run remains 2026-08-31; remote growth/community-ops HEAD still predates the expected 2026-09-01 ops commit.",
+    "required_next_run_behavior": "Do not backfill 2026-09-01 as SCHEDULED unless scheduler execution evidence exists. On the next actual Codex run, inspect and record the scheduler gap/root cause if observable; preserve trigger truthfully as MANUAL, SCHEDULED, RETRY, or UNKNOWN; restore normal evidence/commit/push only after real execution."
+  }
 }
