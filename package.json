@@ -93,6 +93,7 @@
     "test:db-p3-data-migration": "bash scripts/test-postgres-data-migration.sh",
     "test:db-p3-data-migration:scale": "P3_DATA_MIGRATION_MODE=scale bash scripts/test-postgres-data-migration.sh",
     "test:db-p3-secondary-provider": "bash scripts/test-postgres-secondary-provider.sh",
+    "test:db-p3-provider-dr": "bash scripts/test-postgres-provider-dr-restore.sh",
     "test:db-p3-footprint": "bash scripts/test-postgres-footprint-audit.sh",
     "test:db-p3-runtime-provider": "tsx scripts/postgres-runtime-provider-smoke.ts",
     "db:provider:preflight": "tsx scripts/postgres-provider-preflight.ts",

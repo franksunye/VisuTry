@@ -4,6 +4,7 @@ set -euo pipefail
 cd "$(dirname "${BASH_SOURCE[0]}")/.."
 
 ROOT="$PWD"
+source "$ROOT/scripts/lib/postgres-tools.sh"
 MIGRATIONS_PATH="${P3_CANONICAL_MIGRATIONS_PATH:-$ROOT/prisma/migrations}"
 BASELINE_SQL="$MIGRATIONS_PATH/00000000000000_canonical_baseline/migration.sql"
 if [[ ! -f "$BASELINE_SQL" ]]; then
@@ -12,13 +13,9 @@ if [[ ! -f "$BASELINE_SQL" ]]; then
   exit 0
 fi
 
-PG_BIN_DIR="${P3_PG_BIN_DIR:-$(dirname "$(command -v initdb)")}"
-for binary in initdb pg_ctl pg_isready createdb; do
-  if [[ ! -x "$PG_BIN_DIR/$binary" ]]; then
-    echo "❌ Missing PostgreSQL binary: $PG_BIN_DIR/$binary" >&2
-    exit 1
-  fi
-done
+PG_BIN_DIR="$(resolve_p3_pg_bin_dir)"
+PG_MAJOR="$(require_p3_pg_tools "$PG_BIN_DIR" initdb pg_ctl pg_isready createdb)"
+echo "POSTGRES_TOOLCHAIN: PG$PG_MAJOR ($PG_BIN_DIR)"
 
 PORT="${P3_FOOTPRINT_PGPORT:-55436}"
 if "$PG_BIN_DIR/pg_isready" -h 127.0.0.1 -p "$PORT" >/dev/null 2>&1; then

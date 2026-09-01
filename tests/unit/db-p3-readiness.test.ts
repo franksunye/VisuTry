@@ -87,6 +87,11 @@ describe('DB-P3 migration readiness tooling', () => {
 
   it('keeps the migration rehearsal native and ledger-safe', () => {
     const source = read('scripts/test-postgres-data-migration.sh')
+    const tools = read('scripts/lib/postgres-tools.sh')
+    expect(source).toContain('resolve_p3_pg_bin_dir')
+    expect(source).toContain('require_p3_pg_tools')
+    expect(tools).toContain('postgresql@17/bin')
+    expect(tools).toContain('P3_SOURCE_POSTGRES_MAJOR')
     expect(source).toContain('pg_dump')
     expect(source).toContain('pg_restore')
     expect(source).toContain('--schema=public')
@@ -96,6 +101,36 @@ describe('DB-P3 migration readiness tooling', () => {
     expect(source).not.toMatch(/INSERT\s+INTO\s+["']?_prisma_migrations/i)
     expect(source).not.toMatch(/UPDATE\s+["']?_prisma_migrations/i)
     expect(source).not.toMatch(/DELETE\s+FROM\s+["']?_prisma_migrations/i)
+  })
+
+  it('requires a compatible PostgreSQL toolchain for provider DR rehearsal', () => {
+    const source = read('scripts/test-postgres-provider-dr-restore.sh')
+    expect(source).toContain('P3_EXTERNAL_SOURCE_ALLOW')
+    expect(source).toContain('P3_EXTERNAL_SOURCE_DATABASE_IDENTITY')
+    expect(source).toContain('P3_SOURCE_POSTGRES_MAJOR')
+    expect(source).toContain('require_p3_pg_tools')
+    expect(source).toContain('--format=custom')
+    expect(source).toContain('--exclude-table=public._prisma_migrations')
+    expect(source).toContain('pg_restore')
+    expect(source).toContain('SOURCE_TARGET_STRUCTURAL_VALIDATION: PASS')
+    expect(source).not.toMatch(/INSERT\s+INTO\s+["']?_prisma_migrations/i)
+    expect(source).not.toMatch(/UPDATE\s+["']?_prisma_migrations/i)
+    expect(source).not.toMatch(/DELETE\s+FROM\s+["']?_prisma_migrations/i)
+  })
+
+  it('keeps the active Cloudflare catalog path on Vercel', () => {
+    const wrangler = read('wrangler.jsonc')
+    const appHostWorker = read('cloudflare-router/app-host-worker.ts')
+    const approvedEdge = read('cloudflare-router/approved-edge-api.ts')
+    expect(wrangler).toContain('"main": "cloudflare-router/app-host-worker.ts"')
+    expect(appHostWorker).toContain('classifyStagingPublicSlice(request)')
+    expect(appHostWorker).toContain('fallbackRequest(request, env.VERCEL_ORIGIN)')
+    expect(approvedEdge).toContain("B4_FIRST_SLICE_APIS")
+    expect(approvedEdge).not.toContain('neon-cloudflare')
+    expect(approvedEdge).not.toContain('glasses-cloudflare')
+    for (const route of ['/api/glasses/brands', '/api/glasses/categories', '/api/glasses/face-shapes']) {
+      expect(read('cloudflare-router/b4-production-public-slice.ts')).toContain(route)
+    }
   })
 
   it('keeps the footprint audit read-only and explicitly gated', () => {

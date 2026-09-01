@@ -42,6 +42,27 @@ The first command is the fast CI-sized rehearsal. The second uses the scaled
 synthetic dataset and reports phase timings, dump/database sizes, row counts,
 and the post-import write/default/sequence smoke.
 
+For a provider-to-standard-PostgreSQL disaster-recovery rehearsal, use the
+explicitly approved non-production source snapshot and PostgreSQL 17 tooling:
+
+```text
+APP_ENV=local
+P3_EXTERNAL_SOURCE_ALLOW=1
+P3_EXTERNAL_SOURCE_DATABASE_URL=<approved-non-production-source-url>
+P3_EXTERNAL_SOURCE_DATABASE_IDENTITY=<approved-non-production-identity>
+P3_SOURCE_POSTGRES_MAJOR=17
+P3_PG_BIN_DIR=<postgresql@17-bin-directory>
+P3_CANONICAL_MIGRATIONS_PATH=<approved-canonical-migrations-path>
+npm run test:db-p3-provider-dr
+```
+
+The DR harness verifies that `pg_dump`/`pg_restore` use a compatible major
+version, exports only application data, excludes `_prisma_migrations` and
+environment/test markers, restores into two disposable PostgreSQL 17
+databases, validates schema and business metrics, runs a post-restore write
+smoke, applies a future migration, and rehearses switch-back. It refuses
+Production/Preview environment markers and never copies the migration ledger.
+
 ## Mandatory deployment freeze / serialization window
 
 Obtain an explicit deployment freeze before touching the source database. The
