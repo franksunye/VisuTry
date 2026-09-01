@@ -10,8 +10,10 @@ const allowedProviderFiles = new Set([
 
 const providerMarkers = [
   '@prisma/adapter-neon',
+  '@prisma/adapter-pg',
   '@neondatabase/serverless',
   'PrismaNeon',
+  'PrismaPg',
   'neon(',
 ]
 
@@ -42,8 +44,28 @@ describe('PostgreSQL provider boundary', () => {
 
     expect(prismaSource).toContain("from './postgres-runtime'")
     expect(prismaSource).not.toContain('@prisma/adapter-neon')
+    expect(prismaSource).not.toContain('@prisma/adapter-pg')
     expect(prismaSource).not.toContain('PrismaNeon')
+    expect(prismaSource).not.toContain('PrismaPg')
     expect(providerSource).toContain('@prisma/adapter-neon')
+    expect(providerSource).toContain('@prisma/adapter-pg')
+    expect(providerSource).toContain('POSTGRES_RUNTIME_PROVIDER')
     expect(providerSource).toContain('DATABASE_URL')
+  })
+
+  it('keeps the production Cloudflare slice read-only and Vercel-owned for core writes', () => {
+    const { classifyB4ProductionPublicSlice } = require('../../../cloudflare-router/b4-production-public-slice') as typeof import('../../../cloudflare-router/b4-production-public-slice')
+    const request = (path: string, method = 'GET') => ({
+      url: `https://www.visutry.com${path}`,
+      method,
+      headers: { get: () => null },
+    }) as unknown as Request
+    const catalog = classifyB4ProductionPublicSlice(request('/api/glasses/brands'))
+    const coreWrite = classifyB4ProductionPublicSlice(request('/api/try-on/submit', 'POST'))
+    const merchantWrite = classifyB4ProductionPublicSlice(request('/api/merchant/workspaces', 'POST'))
+
+    expect(catalog.backend).toBe('cloudflare')
+    expect(coreWrite.backend).toBe('vercel')
+    expect(merchantWrite.backend).toBe('vercel')
   })
 })

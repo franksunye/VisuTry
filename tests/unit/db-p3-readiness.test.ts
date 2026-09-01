@@ -112,9 +112,18 @@ describe('DB-P3 migration readiness tooling', () => {
       'scripts/postgres-application-smoke.ts',
       'scripts/postgres-data-migration-seed.ts',
       'scripts/postgres-data-migration-scale-seed.ts',
+      'scripts/postgres-runtime-provider-smoke.ts',
     ]) {
       expect(read(file)).toContain('assertReadinessTargetSafety')
     }
+  })
+
+  it('keeps provider preflight read-only and production-authorized', () => {
+    const source = read('scripts/postgres-provider-preflight.ts')
+    expect(source).toContain('SET TRANSACTION READ ONLY')
+    expect(source).toContain('VISUTRY_PRODUCTION_READONLY_AUDIT_AUTHORIZED')
+    expect(source).toContain('P3_PROVIDER_PREFLIGHT_EXPECTED_DATABASE_IDENTITY')
+    expect(source).not.toMatch(/\b(?:INSERT\s+INTO|UPDATE\s+.+\s+SET|DELETE\s+FROM|ALTER\s+TABLE|DROP\s+TABLE|TRUNCATE|ANALYZE|VACUUM|REINDEX)\b/i)
   })
 
   it('limits the longer transaction timeout to provider/application smoke', () => {
@@ -127,6 +136,8 @@ describe('DB-P3 migration readiness tooling', () => {
     )
     for (const file of [
       'scripts/postgres-readiness-target-check.ts',
+      'scripts/postgres-provider-preflight.ts',
+      'scripts/postgres-runtime-provider-smoke.ts',
       'scripts/postgres-footprint-audit.ts',
       'scripts/postgres-data-migration-seed.ts',
       'scripts/postgres-data-migration-scale-seed.ts',
@@ -167,6 +178,8 @@ describe('DB-P3 migration readiness tooling', () => {
       'scripts/postgres-data-migration-validator.ts',
       'scripts/postgres-footprint-audit.ts',
       'scripts/postgres-readiness-target-check.ts',
+      'scripts/postgres-provider-preflight.ts',
+      'scripts/postgres-runtime-provider-smoke.ts',
     ]) {
       const source = read(file)
       expect(source).toContain('redactErrorMessage')
