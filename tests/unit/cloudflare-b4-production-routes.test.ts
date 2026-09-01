@@ -85,7 +85,7 @@ describe('B4.2B scoped production Worker Routes', () => {
       expect(wwwWorkerRouteMatch(`/${locale}/try-on/glasses`, '', routes)).toBeNull()
     }
     expect(wwwWorkerRouteMatch('/api/health', '', routes)?.layer).toBe('layer2-worker')
-    expect(wwwWorkerRouteMatch('/api/glasses/brands', '', routes)?.layer).toBe('layer2-worker')
+    expect(wwwWorkerRouteMatch('/api/glasses/brands', '', routes)).toBeNull()
     expect(wwwWorkerRouteMatch('/images/x.webp', '', routes)?.layer).toBe('layer1-static-asset')
     // The Next client artifact graph must never match a Worker route.
     expect(wwwWorkerRouteMatch('/_next/static/chunks/app.js', '', routes)).toBeNull()
@@ -176,7 +176,7 @@ describe('B4.2B scoped production Worker Routes', () => {
   it('distinguishes brands vs frames and keeps Next HTML off the Worker', () => {
     expect(wwwWorkerRouteMatch('/en/store', '', routes)).toBeNull()
     expect(wwwWorkerRouteMatch('/en/store/ello-sunglasses', '', routes)).toBeNull()
-    expect(wwwWorkerRouteMatch('/api/glasses/brands', '', routes)?.pattern).toBe('www.visutry.com/api/glasses/brands')
+    expect(wwwWorkerRouteMatch('/api/glasses/brands', '', routes)).toBeNull()
     expect(wwwWorkerRouteMatch('/api/glasses/frames', '', routes)).toBeNull()
     expect(wwwWorkerRouteMatch('/en/try-on/glasses', '', routes)).toBeNull()
     expect(wwwWorkerRouteMatch('/en/try/round-glasses', '', routes)).toBeNull()
@@ -189,7 +189,7 @@ describe('B4.2B scoped production Worker Routes', () => {
       expect(wwwWorkerRouteMatch(pathname, '', routes)).toBeTruthy()
     }
     // Next frontend + deferred/auth/image: classifier says vercel AND no Worker route.
-    for (const pathname of ['/', '/en', '/en/store', '/en/brand/warby-parker', '/en/store/ello-sunglasses', '/en/c/foo/bar', '/api/glasses/frames', '/api/auth/session', '/_next/image', '/_next/static/chunks/app.js']) {
+    for (const pathname of ['/', '/en', '/en/store', '/en/brand/warby-parker', '/en/store/ello-sunglasses', '/en/c/foo/bar', '/api/glasses/brands', '/api/glasses/categories', '/api/glasses/face-shapes', '/api/glasses/frames', '/api/auth/session', '/_next/image', '/_next/static/chunks/app.js']) {
       expect(classifyB4ProductionPublicSlice(getRequest(pathname)).backend).toBe('vercel')
       expect(wwwWorkerRouteMatch(pathname, '', routes)).toBeNull()
     }

@@ -61,10 +61,14 @@ describe('PostgreSQL provider boundary', () => {
       headers: { get: () => null },
     }) as unknown as Request
     const catalog = classifyB4ProductionPublicSlice(request('/api/glasses/brands'))
+    const categories = classifyB4ProductionPublicSlice(request('/api/glasses/categories'))
+    const faceShapes = classifyB4ProductionPublicSlice(request('/api/glasses/face-shapes'))
     const coreWrite = classifyB4ProductionPublicSlice(request('/api/try-on/submit', 'POST'))
     const merchantWrite = classifyB4ProductionPublicSlice(request('/api/merchant/workspaces', 'POST'))
 
-    expect(catalog.backend).toBe('cloudflare')
+    expect(catalog.backend).toBe('vercel')
+    expect(categories.backend).toBe('vercel')
+    expect(faceShapes.backend).toBe('vercel')
     expect(coreWrite.backend).toBe('vercel')
     expect(merchantWrite.backend).toBe('vercel')
   })

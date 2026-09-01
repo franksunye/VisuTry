@@ -7,17 +7,17 @@
   "generatedFrom": "cloudflare-router/b4-production-routes.ts",
   "note": "Do not paste into wrangler.jsonc. Do not deploy. Review only.",
   "summary": {
-    "total": 12,
+    "total": 9,
     "byLayer": {
       "layer1-static-asset": 8,
-      "layer2-worker": 4
+      "layer2-worker": 1
     },
     "byPriority": {
-      "P0": 12,
+      "P0": 9,
       "P1": 0,
       "P2": 0
     },
-    "activationP0": 12,
+    "activationP0": 9,
     "parityGated": 0,
     "requestLimitFailOpenRequired": true,
     "wwwDnsTargetFrozen": true,
@@ -130,57 +130,6 @@
     },
     {
       "pattern": "www.visutry.com/api/health",
-      "layer": "layer2-worker",
-      "expectedExecution": "worker",
-      "workerQuota": true,
-      "reason": "approved GET/HEAD non-Next public API; exact so /api/glasses/frames cannot match",
-      "excludedConflicts": [
-        "/api/glasses/frames",
-        "/api/auth/*",
-        "/api/glasses/*"
-      ],
-      "rollbackClass": "delete-route",
-      "priority": "P0",
-      "feasibility": "A",
-      "activationGate": "none",
-      "requestLimitFailOpen": true
-    },
-    {
-      "pattern": "www.visutry.com/api/glasses/brands",
-      "layer": "layer2-worker",
-      "expectedExecution": "worker",
-      "workerQuota": true,
-      "reason": "approved GET/HEAD non-Next public API; exact so /api/glasses/frames cannot match",
-      "excludedConflicts": [
-        "/api/glasses/frames",
-        "/api/auth/*",
-        "/api/glasses/*"
-      ],
-      "rollbackClass": "delete-route",
-      "priority": "P0",
-      "feasibility": "A",
-      "activationGate": "none",
-      "requestLimitFailOpen": true
-    },
-    {
-      "pattern": "www.visutry.com/api/glasses/categories",
-      "layer": "layer2-worker",
-      "expectedExecution": "worker",
-      "workerQuota": true,
-      "reason": "approved GET/HEAD non-Next public API; exact so /api/glasses/frames cannot match",
-      "excludedConflicts": [
-        "/api/glasses/frames",
-        "/api/auth/*",
-        "/api/glasses/*"
-      ],
-      "rollbackClass": "delete-route",
-      "priority": "P0",
-      "feasibility": "A",
-      "activationGate": "none",
-      "requestLimitFailOpen": true
-    },
-    {
-      "pattern": "www.visutry.com/api/glasses/face-shapes",
       "layer": "layer2-worker",
       "expectedExecution": "worker",
       "workerQuota": true,

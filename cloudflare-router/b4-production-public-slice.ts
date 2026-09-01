@@ -37,7 +37,6 @@ export type B4CacheClass =
   | 'static-sitemap'
   | 'locale-less-redirect'
   | 'root-locale-detect'
-  | 'public-catalog-api'
   | 'health'
   | 'none'
 
@@ -162,9 +161,6 @@ const staticSitemapExact = B4_STATIC_SITEMAP_EXACT
 
 export const B4_FIRST_SLICE_APIS = [
   '/api/health',
-  '/api/glasses/brands',
-  '/api/glasses/categories',
-  '/api/glasses/face-shapes',
 ] as const
 
 const vercelRequiredPrefixes = [
@@ -181,6 +177,9 @@ const vercelRequiredPrefixes = [
   '/api/auth',
   '/api/merchant/',
   '/api/mcp',
+  '/api/glasses/brands',
+  '/api/glasses/categories',
+  '/api/glasses/face-shapes',
 ] as const
 
 export const B4_CACHE_POLICIES: Record<B4CacheClass, {
@@ -271,17 +270,6 @@ export const B4_CACHE_POLICIES: Record<B4CacheClass, {
     purge: 'n/a',
     negativeCache: 'n/a',
   },
-  'public-catalog-api': {
-    browserCacheControl: 'public, max-age=0, s-maxage=3600, stale-while-revalidate=86400',
-    cloudflareTtl: '3600s (match PUBLIC_CATALOG_CACHE_CONTROL)',
-    cacheKey: 'scheme + host + path (ignore query, ignore Cookie)',
-    queryString: 'ignore for these list endpoints (no required query)',
-    cookieBypass: 'do not vary',
-    authorizationBypass: 'bypass cache when Authorization is present',
-    stale: 'SWR 86400s',
-    purge: 'purge URL after catalog admin edits if freshness < 1h is required',
-    negativeCache: 'do not cache 5xx; 404 n/a for list endpoints',
-  },
   health: {
     browserCacheControl: 'no-store',
     cloudflareTtl: 'bypass',
@@ -316,7 +304,7 @@ export const B4_PRODUCTION_PUBLIC_SLICE_MANIFEST: B4ManifestRow[] = [
   { route: '/robots.txt, /llms.txt', methods: 'GET,HEAD', backend: 'cloudflare', cachePolicy: 'control-files', invocation: 'static-asset', auth: 'none', reason: 'non-Next control files exist in .open-next/assets; conservative cache + deploy purge', rollbackClass: 'public-cdn', cutoverClass: 'first' },
   { route: '/sitemap.xml, /sitemaps/core.xml, /sitemaps/blog.xml', methods: 'GET,HEAD', backend: 'vercel', cachePolicy: 'none', invocation: 'vercel', auth: 'none', reason: 'Next sitemap routes are Next runtime output; owned by Vercel', rollbackClass: 'keep-vercel', cutoverClass: 'vercel' },
   { route: 'GET /api/health', methods: 'GET,HEAD', backend: 'cloudflare', cachePolicy: 'health', invocation: 'worker', auth: 'none', reason: 'proven CF public read; not cacheable', rollbackClass: 'origin-fallback', cutoverClass: 'first' },
-  { route: 'GET /api/glasses/brands|categories|face-shapes', methods: 'GET,HEAD', backend: 'cloudflare', cachePolicy: 'public-catalog-api', invocation: 'worker', auth: 'none', reason: 'anonymous catalog lists via glasses data layer', rollbackClass: 'origin-fallback', cutoverClass: 'first' },
+  { route: 'GET /api/glasses/brands|categories|face-shapes', methods: 'GET,HEAD', backend: 'vercel', cachePolicy: 'none', invocation: 'vercel', auth: 'none', reason: 'catalog reads use the shared Vercel Prisma runtime provider', rollbackClass: 'keep-vercel', cutoverClass: 'vercel' },
   { route: '/:locale/store/:merchantSlug', methods: 'GET,HEAD', backend: 'vercel', cachePolicy: 'none', invocation: 'vercel', auth: 'none', reason: 'on-demand ISR + Neon admission; CF cache cannot use revalidateTag', rollbackClass: 'keep-vercel', cutoverClass: 'later' },
   { route: '/:locale/c/:merchantSlug/:experienceSlug', methods: 'GET,HEAD', backend: 'vercel', cachePolicy: 'none', invocation: 'vercel', auth: 'none', reason: 'Campaign ISR + publish invalidation stays on Vercel', rollbackClass: 'keep-vercel', cutoverClass: 'later' },
   { route: '/:locale/category/*, /:locale/try/*', methods: 'GET,HEAD', backend: 'vercel', cachePolicy: 'none', invocation: 'vercel', auth: 'none', reason: 'PROGRAMMATIC_SEO off; Vercel dynamicParams=false 404s all slugs', rollbackClass: 'keep-vercel', cutoverClass: 'later' },
@@ -550,9 +538,11 @@ export function classifyB4ProductionPublicSlice(request: Request): B4RouteDecisi
     return decision('cloudflare', 'cf-ready', 'first', 'deploy-public-asset')
   }
 
-  // Approved lightweight public edge APIs (health + read-only glasses catalog).
+  // The only remaining approved lightweight public edge API is health. Catalog
+  // reads use the shared Vercel/Prisma provider path so a provider switch cannot
+  // leave an active Cloudflare → Neon dependency behind.
   if (isFirstSliceApi(path)) {
-    return decision('cloudflare', 'cf-ready', 'first', path === '/api/health' ? 'health' : 'public-catalog-api')
+    return decision('cloudflare', 'cf-ready', 'first', 'health')
   }
 
   // --- Everything else is Next HTML / runtime → Vercel owns it ---

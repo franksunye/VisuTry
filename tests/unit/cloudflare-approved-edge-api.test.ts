@@ -2,16 +2,8 @@
 
 import fs from 'fs'
 import path from 'path'
-import { PUBLIC_CATALOG_CACHE_CONTROL } from '@/lib/public-http-cache'
-import { getActiveBrands, getCategories, getFaceShapes } from '../../src/data/glasses-cloudflare'
 import { forceVercelForNextFrontend } from '../../cloudflare-router/b4-staging-router'
 import { classifyB4ProductionPublicSlice } from '../../cloudflare-router/b4-production-public-slice'
-
-jest.mock('../../src/data/glasses-cloudflare', () => ({
-  getActiveBrands: jest.fn(),
-  getCategories: jest.fn(),
-  getFaceShapes: jest.fn(),
-}))
 
 const EdgeRequest = (() => {
   const runtimeGlobals = globalThis as unknown as {
@@ -35,12 +27,6 @@ const EdgeRequest = (() => {
 
 const { handleApprovedEdgeApi, isApprovedEdgeApi } = require('../../cloudflare-router/approved-edge-api') as typeof import('../../cloudflare-router/approved-edge-api')
 
-const mocked = {
-  getActiveBrands: getActiveBrands as jest.MockedFunction<typeof getActiveBrands>,
-  getCategories: getCategories as jest.MockedFunction<typeof getCategories>,
-  getFaceShapes: getFaceShapes as jest.MockedFunction<typeof getFaceShapes>,
-}
-
 function request(pathName: string, method = 'GET') {
   return new EdgeRequest(`https://www.visutry.com${pathName}`, { method })
 }
@@ -57,11 +43,12 @@ describe('approved edge API OpenNext bypass', () => {
     delete (globalThis as { __VISUTRY_INCREMENTAL_CACHE_SET__?: unknown }).__VISUTRY_INCREMENTAL_CACHE_SET__
   })
 
-  it('matches only the 4 GET/HEAD approved APIs', () => {
+  it('matches only the health GET/HEAD edge API; catalog APIs are Vercel-owned', () => {
     expect(isApprovedEdgeApi(request('/api/health'))).toBe(true)
-    expect(isApprovedEdgeApi(request('/api/glasses/brands', 'HEAD'))).toBe(true)
-    expect(isApprovedEdgeApi(request('/api/glasses/categories/'))).toBe(true)
-    expect(isApprovedEdgeApi(request('/api/glasses/face-shapes?x=1'))).toBe(true)
+    expect(isApprovedEdgeApi(request('/api/health', 'HEAD'))).toBe(true)
+    expect(isApprovedEdgeApi(request('/api/glasses/brands'))).toBe(false)
+    expect(isApprovedEdgeApi(request('/api/glasses/categories'))).toBe(false)
+    expect(isApprovedEdgeApi(request('/api/glasses/face-shapes'))).toBe(false)
     expect(isApprovedEdgeApi(request('/api/health', 'POST'))).toBe(false)
     expect(isApprovedEdgeApi(request('/api/glasses/frames'))).toBe(false)
     expect(isApprovedEdgeApi(request('/en'))).toBe(false)
@@ -86,86 +73,12 @@ describe('approved edge API OpenNext bypass', () => {
     })
     expect(body.timestamp).toMatch(/^\d{4}-\d{2}-\d{2}T/)
     expect(incrementalSet).not.toHaveBeenCalled()
-    expect(mocked.getFaceShapes).not.toHaveBeenCalled()
-  })
-
-  it('keeps catalog JSON + Cache-Control and serializes Date fields as ISO', async () => {
-    mocked.getActiveBrands.mockResolvedValue(['Warby Parker'])
-    mocked.getCategories.mockResolvedValue([
-      {
-        id: 'cat-1',
-        name: 'optical',
-        displayName: 'Optical',
-        description: null,
-        createdAt: new Date('2026-01-01T00:00:00.000Z'),
-        updatedAt: new Date('2026-01-02T00:00:00.000Z'),
-      },
-    ])
-    mocked.getFaceShapes.mockResolvedValue([
-      {
-        id: 'shape-1',
-        name: 'oval',
-        displayName: 'Oval',
-        description: null,
-        characteristics: null,
-        createdAt: new Date('2026-01-01T00:00:00.000Z'),
-        updatedAt: new Date('2026-01-02T00:00:00.000Z'),
-      },
-    ])
-
-    const brands = await handleApprovedEdgeApi(request('/api/glasses/brands'))
-    const categories = await handleApprovedEdgeApi(request('/api/glasses/categories'))
-    const shapes = await handleApprovedEdgeApi(request('/api/glasses/face-shapes'))
-
-    expect(brands.status).toBe(200)
-    expect(brands.headers.get('Cache-Control')).toBe(PUBLIC_CATALOG_CACHE_CONTROL)
-    expect(await brands.json()).toEqual({ success: true, data: ['Warby Parker'] })
-
-    expect(categories.headers.get('Cache-Control')).toBe(PUBLIC_CATALOG_CACHE_CONTROL)
-    expect(await categories.json()).toEqual({
-      success: true,
-      data: [{
-        id: 'cat-1',
-        name: 'optical',
-        displayName: 'Optical',
-        description: null,
-        createdAt: '2026-01-01T00:00:00.000Z',
-        updatedAt: '2026-01-02T00:00:00.000Z',
-      }],
-    })
-
-    expect(shapes.status).toBe(200)
-    expect(shapes.headers.get('Cache-Control')).toBe(PUBLIC_CATALOG_CACHE_CONTROL)
-    expect(await shapes.json()).toEqual({
-      success: true,
-      data: [{
-        id: 'shape-1',
-        name: 'oval',
-        displayName: 'Oval',
-        description: null,
-        characteristics: null,
-        createdAt: '2026-01-01T00:00:00.000Z',
-        updatedAt: '2026-01-02T00:00:00.000Z',
-      }],
-    })
-    expect(mocked.getFaceShapes).toHaveBeenCalledTimes(1)
-    expect(incrementalSet).not.toHaveBeenCalled()
-  })
-
-  it('preserves catalog 500 contract when direct-Neon read fails', async () => {
-    mocked.getFaceShapes.mockRejectedValue(new Error('neon down'))
-    const spy = jest.spyOn(console, 'error').mockImplementation(() => {})
-    const response = await handleApprovedEdgeApi(request('/api/glasses/face-shapes'))
-    spy.mockRestore()
-    expect(response.status).toBe(500)
-    expect(await response.json()).toEqual({ success: false, error: 'Failed to fetch face shapes' })
-    expect(incrementalSet).not.toHaveBeenCalled()
   })
 
   it('does not import OpenNext incremental cache and dispatches before appWorker.fetch', () => {
     const handler = fs.readFileSync(path.join(__dirname, '../../cloudflare-router/approved-edge-api.ts'), 'utf8')
     const imports = handler.split('\n').filter((line) => line.startsWith('import '))
-    expect(imports.join('\n')).not.toMatch(/@opennextjs|\.open-next|incremental-cache/)
+    expect(imports.join('\n')).not.toMatch(/@opennextjs|\.open-next|incremental-cache|glasses-cloudflare|neon-cloudflare|public-catalog-edge-cache/)
     expect(handler).not.toMatch(/applyWorkerEnv/)
     expect(handler).not.toMatch(/from 'next\/cache'|from \"next\/cache\"/)
     expect(handler).not.toMatch(/unstable_cache/)
@@ -180,12 +93,16 @@ describe('approved edge API OpenNext bypass', () => {
     expect(worker.match(/appWorker\.fetch/g)).toHaveLength(1)
   })
 
-  it('keeps the Next frontend guardrail: /_next and RSC stay Vercel, approved APIs stay Cloudflare', () => {
-    const api = request('/api/glasses/face-shapes')
-    const apiDecision = classifyB4ProductionPublicSlice(api)
-    expect(forceVercelForNextFrontend(api, apiDecision).backend).toBe('cloudflare')
+  it('keeps the Next frontend guardrail and catalog APIs on Vercel', () => {
+    for (const pathName of ['/api/glasses/brands', '/api/glasses/categories', '/api/glasses/face-shapes']) {
+      const api = request(pathName)
+      const apiDecision = classifyB4ProductionPublicSlice(api)
+      expect(apiDecision).toMatchObject({ backend: 'vercel', routeClass: 'vercel-required', invocation: 'vercel' })
+      expect(forceVercelForNextFrontend(api, apiDecision).backend).toBe('vercel')
+    }
 
     const asset = request('/_next/static/chunks/app.js')
+    const apiDecision = classifyB4ProductionPublicSlice(asset)
     const coerced = forceVercelForNextFrontend(asset, {
       ...apiDecision,
       backend: 'cloudflare',
@@ -201,91 +118,5 @@ describe('approved edge API OpenNext bypass', () => {
     })
     const rscDecision = classifyB4ProductionPublicSlice(rsc)
     expect(forceVercelForNextFrontend(rsc, rscDecision).backend).toBe('vercel')
-  })
-})
-
-describe('approved edge API catalog Cache API', () => {
-  function createMemoryCatalogCache() {
-    const store = new Map<string, { status: number; statusText: string; headers: [string, string][]; body: string }>()
-    return {
-      async match(input: Request) {
-        const saved = store.get(new URL(input.url).toString())
-        if (!saved) return undefined
-        return new Response(saved.body, {
-          status: saved.status,
-          statusText: saved.statusText,
-          headers: saved.headers,
-        })
-      },
-      async put(input: Request, response: Response) {
-        const body = await response.clone().text()
-        store.set(new URL(input.url).toString(), {
-          status: response.status,
-          statusText: response.statusText,
-          headers: [...response.headers.entries()],
-          body,
-        })
-      },
-    }
-  }
-
-  beforeEach(() => {
-    jest.clearAllMocks()
-    mocked.getActiveBrands.mockResolvedValue(['Warby Parker'])
-    mocked.getCategories.mockResolvedValue([])
-    mocked.getFaceShapes.mockResolvedValue([])
-    ;(globalThis as { __VISUTRY_CATALOG_EDGE_CACHE__?: unknown }).__VISUTRY_CATALOG_EDGE_CACHE__ = createMemoryCatalogCache()
-  })
-
-  afterEach(() => {
-    delete (globalThis as { __VISUTRY_CATALOG_EDGE_CACHE__?: unknown }).__VISUTRY_CATALOG_EDGE_CACHE__
-  })
-
-  it('serves MISS then HIT for anonymous catalog GETs without a second origin load', async () => {
-    const first = await handleApprovedEdgeApi(request('/api/glasses/brands'))
-    const second = await handleApprovedEdgeApi(request('/api/glasses/brands?x=1'))
-
-    expect(first.status).toBe(200)
-    expect(first.headers.get('x-visutry-catalog-cache')).toBe('miss')
-    expect(first.headers.get('Cache-Control')).toBe(PUBLIC_CATALOG_CACHE_CONTROL)
-    expect(await first.json()).toEqual({ success: true, data: ['Warby Parker'] })
-
-    expect(second.status).toBe(200)
-    expect(second.headers.get('x-visutry-catalog-cache')).toBe('hit')
-    expect(second.headers.get('Cache-Control')).toBe(PUBLIC_CATALOG_CACHE_CONTROL)
-    expect(await second.json()).toEqual({ success: true, data: ['Warby Parker'] })
-    expect(mocked.getActiveBrands).toHaveBeenCalledTimes(1)
-  })
-
-  it('bypasses cache for Authorization and does not store the response', async () => {
-    const authed = new EdgeRequest('https://www.visutry.com/api/glasses/brands', {
-      method: 'GET',
-      headers: { authorization: 'Bearer secret' },
-    })
-    const first = await handleApprovedEdgeApi(authed)
-    const second = await handleApprovedEdgeApi(authed)
-    const anonymous = await handleApprovedEdgeApi(request('/api/glasses/brands'))
-
-    expect(first.headers.get('x-visutry-catalog-cache')).toBe('bypass')
-    expect(second.headers.get('x-visutry-catalog-cache')).toBe('bypass')
-    expect(anonymous.headers.get('x-visutry-catalog-cache')).toBe('miss')
-    expect(mocked.getActiveBrands).toHaveBeenCalledTimes(3)
-  })
-
-  it('does not cache catalog errors', async () => {
-    mocked.getFaceShapes
-      .mockRejectedValueOnce(new Error('neon down'))
-      .mockResolvedValueOnce([])
-    const spy = jest.spyOn(console, 'error').mockImplementation(() => {})
-
-    const first = await handleApprovedEdgeApi(request('/api/glasses/face-shapes'))
-    const second = await handleApprovedEdgeApi(request('/api/glasses/face-shapes'))
-    spy.mockRestore()
-
-    expect(first.status).toBe(500)
-    expect(first.headers.get('x-visutry-catalog-cache')).toBeNull()
-    expect(second.status).toBe(200)
-    expect(second.headers.get('x-visutry-catalog-cache')).toBe('miss')
-    expect(mocked.getFaceShapes).toHaveBeenCalledTimes(2)
   })
 })

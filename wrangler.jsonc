@@ -23,7 +23,7 @@
     }
   },
   // Production Worker name lives under env.production. Do NOT list www
-  // Worker Routes or custom_domain here. B4.2D attaches exactly 12 ungated
+  // Worker Routes or custom_domain here. B4.2D attaches exactly 9 ungated
   // P0 routes through the Cloudflare Routes API after deploy. Copying the
   // 286-route review manifest into wrangler would publish P1/P2 by accident.
   // `npm run deploy:cloudflare` remains staging-only.

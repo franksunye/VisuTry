@@ -18,12 +18,12 @@ cutover, a migration resolve, a migration deploy, or a provider change.
    particular Supabase plan includes a particular backup or PITR feature.
 5. A tested backup/restore path exists for both providers.
 6. The complete production request graph has one authoritative PostgreSQL
-   provider. The approved Cloudflare catalog edge path currently follows
-   `cloudflare-router/approved-edge-api.ts` →
-   `src/data/glasses-cloudflare.ts` → `src/data/neon-cloudflare.ts`; it is a
-   cutover blocker while it still reads Neon after the Vercel runtime is
-   switched. Move that path to the switched provider or complete a separately
-   reviewed provider boundary before cutover.
+   provider. The catalog APIs (`/api/glasses/brands`,
+   `/api/glasses/categories`, and `/api/glasses/face-shapes`) are Vercel-owned
+   and use the shared Prisma runtime provider. The active Cloudflare approved
+   edge path is health-only; legacy Cloudflare/Neon compatibility modules may
+   remain in the repository but must not be reactivated. Verify this boundary
+   before cutover.
 
 If any precondition is false, stop. Do not combine this operation with the
 canonical-baseline lineage cutover.
@@ -63,6 +63,10 @@ During this window there must be:
   same provider, or the cutover must stop.
 
 If serialization cannot be guaranteed, stop the cutover.
+
+The freeze begins before source preflight and is released only after target
+validation, the provider switch, CLEAN migration status, smoke tests, health
+monitoring, and the rollback-window handoff all succeed.
 
 ## 1. Preflight the source
 
@@ -137,12 +141,17 @@ ledger for insertion into the target:
 
 ```text
 pg_dump --format=custom --data-only --no-owner --no-privileges \
+  --schema=public \
   --exclude-table=public._prisma_migrations \
   --file=<protected-export-path> <source-direct-url>
 ```
 
 Protect the export as sensitive operational data. Do not print connection
 strings, row values, tokens, image URLs, or credentials.
+The `--data-only --schema=public` form intentionally excludes PostgreSQL
+system schemas and provider-managed extension definitions; inventory
+`pg_extension` separately and stop if the target cannot provide an equivalent
+extension. The migration ledger is never copied into the target.
 
 ## 5. Prepare and import the target
 
@@ -228,10 +237,11 @@ invariants, and CLEAN migration status. It is read-only and never performs
 baseline adoption.
 
 Do not use blind DNS switching. Do not change the Prisma schema, edit
-`_prisma_migrations`, or run an automatic baseline/resolve operation. If the
-Cloudflare catalog path still points at Neon, do not release the switch: move
-that path to Vercel or complete a separately reviewed explicit provider
-boundary before resuming.
+`_prisma_migrations`, or run an automatic baseline/resolve operation. The
+active Cloudflare catalog path must remain absent. If any catalog request is
+routed through `cloudflare-router/approved-edge-api.ts` or a direct
+Cloudflare → Neon data module, do not release the switch; restore the Vercel
+ownership boundary and re-review it first.
 
 Immediately run `prisma migrate status` against the target active path and
 require `Database schema is up to date!` / CLEAN. If status is divergent,
@@ -288,11 +298,10 @@ owner has approved stabilization.
 - Verify backup/PITR availability, retention, restore destination, and operator
   access for the selected account/plan; pricing and feature availability are
   intentionally not hardcoded here.
-- The Node/Vercel application path is provider-selectable, but the current
-  production Cloudflare approved catalog path remains Neon-specific. This
-  runbook does not authorize a mixed-provider deployment; that edge path must
-  be moved or separately providerized before `SUPABASE SWITCH READY` can be
-  reported as YES.
+- The Node/Vercel application path is provider-selectable. The approved
+  production Cloudflare path is health-only; catalog reads are Vercel-owned
+  and follow the shared Prisma provider selector. This runbook does not
+  authorize a mixed-provider deployment.
 
 ## Prohibited shortcuts
 

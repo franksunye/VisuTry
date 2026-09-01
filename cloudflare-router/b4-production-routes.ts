@@ -120,7 +120,7 @@ export function isForbiddenNextClientGraphRoute(pattern: string): boolean {
  * Vercel is the sole Next frontend owner, so this generator emits ONLY approved
  * NON-Next capabilities: non-Next public static assets (favicon, /images, /home,
  * /experience-heroes, /blog-covers, /assets), control files (robots/llms), and the
- * approved read-only edge APIs (health + glasses catalog). It intentionally emits
+ * approved read-only edge APIs (health only). It intentionally emits
  * NO Next HTML routes, NO locale homes, NO marketing/SEO HTML, NO Next sitemaps,
  * and NO `/_next/static/*`. `assertSafeB4ProductionRoutes` fails if any forbidden
  * Next client-graph or Next HTML route ever reappears.
@@ -394,6 +394,9 @@ export const B4_NEGATIVE_PATHS = [
   '/api/auth/callback/auth0',
   '/auth/signin',
   '/api/glasses/frames',
+  '/api/glasses/brands',
+  '/api/glasses/categories',
+  '/api/glasses/face-shapes',
   '/api/frames',
   '/_next/image',
   '/en/store/ello-sunglasses',
@@ -429,9 +432,6 @@ export const B4_NEGATIVE_PATHS = [
 export const B4_POSITIVE_PATHS = [
   // Only approved NON-Next capabilities may match a production Worker route.
   '/api/health',
-  '/api/glasses/brands',
-  '/api/glasses/categories',
-  '/api/glasses/face-shapes',
   '/robots.txt',
   '/llms.txt',
   '/favicon.ico',
