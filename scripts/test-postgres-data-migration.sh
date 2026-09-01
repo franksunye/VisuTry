@@ -4,6 +4,7 @@ set -euo pipefail
 cd "$(dirname "${BASH_SOURCE[0]}")/.."
 
 ROOT="$PWD"
+source "$ROOT/scripts/lib/postgres-tools.sh"
 APP_ENV_NORMALIZED="$(printf '%s' "${APP_ENV:-}" | tr '[:upper:]' '[:lower:]')"
 VERCEL_ENV_NORMALIZED="$(printf '%s' "${VERCEL_ENV:-}" | tr '[:upper:]' '[:lower:]')"
 if [[ "$APP_ENV_NORMALIZED" == "production" || "$APP_ENV_NORMALIZED" == "preview" || "$VERCEL_ENV_NORMALIZED" == "production" || "$VERCEL_ENV_NORMALIZED" == "preview" ]]; then
@@ -32,13 +33,9 @@ if [[ ! -f "$BASELINE_SQL" ]]; then
   exit 0
 fi
 
-PG_BIN_DIR="${P3_PG_BIN_DIR:-$(dirname "$(command -v initdb)")}"
-for binary in initdb pg_ctl pg_isready createdb psql pg_dump pg_restore; do
-  if [[ ! -x "$PG_BIN_DIR/$binary" ]]; then
-    echo "❌ Missing PostgreSQL binary: $PG_BIN_DIR/$binary" >&2
-    exit 1
-  fi
-done
+PG_BIN_DIR="$(resolve_p3_pg_bin_dir)"
+PG_MAJOR="$(require_p3_pg_tools "$PG_BIN_DIR" initdb pg_ctl pg_isready createdb psql pg_dump pg_restore)"
+echo "POSTGRES_TOOLCHAIN: PG$PG_MAJOR ($PG_BIN_DIR)"
 
 PORT="${P3_REHEARSAL_PGPORT:-55435}"
 if "$PG_BIN_DIR/pg_isready" -h 127.0.0.1 -p "$PORT" >/dev/null 2>&1; then

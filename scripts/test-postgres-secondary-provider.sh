@@ -4,6 +4,7 @@ set -euo pipefail
 cd "$(dirname "${BASH_SOURCE[0]}")/.."
 
 ROOT="$PWD"
+source "$ROOT/scripts/lib/postgres-tools.sh"
 URL="${P3_SECONDARY_POSTGRES_URL:-}"
 if [[ -z "$URL" ]]; then
   echo "SECOND_PROVIDER_LIVE_TEST: BLOCKED — non-production Supabase credentials are not available"
@@ -24,6 +25,12 @@ if [[ "${P3_SECONDARY_POSTGRES_ALLOW:-}" != "1" ]]; then
   exit 1
 fi
 
+# `uselibpqcompat` is a node-postgres/PrismaPg connection option. libpq
+# tools such as psql reject unknown URI parameters, so keep it for Prisma and
+# strip it only from the direct libpq inspection connection.
+PSQL_URL="${URL//&uselibpqcompat=true/}"
+PSQL_URL="${PSQL_URL//\?uselibpqcompat=true/}"
+
 MIGRATIONS_PATH="${P3_CANONICAL_MIGRATIONS_PATH:-$ROOT/prisma/migrations}"
 BASELINE_NAME="00000000000000_canonical_baseline"
 BASELINE_SQL="$MIGRATIONS_PATH/$BASELINE_NAME/migration.sql"
@@ -35,13 +42,9 @@ if [[ ! -f "$BASELINE_SQL" ]]; then
   exit 0
 fi
 
-PG_BIN_DIR="${P3_PG_BIN_DIR:-$(dirname "$(command -v psql)")}"
-for binary in psql; do
-  if [[ ! -x "$PG_BIN_DIR/$binary" ]]; then
-    echo "❌ Missing PostgreSQL binary: $PG_BIN_DIR/$binary" >&2
-    exit 1
-  fi
-done
+PG_BIN_DIR="$(resolve_p3_pg_bin_dir)"
+PG_MAJOR="$(require_p3_pg_tools "$PG_BIN_DIR" psql)"
+echo "POSTGRES_TOOLCHAIN: PG$PG_MAJOR ($PG_BIN_DIR)"
 
 TEST_ROOT="$(mktemp -d /tmp/visutry-db-p3-provider.XXXXXX)"
 FUTURE_MIGRATIONS="$TEST_ROOT/future-migrations"
@@ -61,7 +64,7 @@ run_prisma() {
     npx prisma "${@:2}" --config "$CONFIG"
 }
 
-if ! psql -X -w -v ON_ERROR_STOP=1 "$URL" -Atc "SELECT COUNT(*) FROM pg_catalog.pg_tables WHERE schemaname = 'public'" >"$TEST_ROOT/table-count" 2>"$TEST_ROOT/table-count.err"; then
+if ! "$PG_BIN_DIR/psql" -X -w -v ON_ERROR_STOP=1 "$PSQL_URL" -Atc "SELECT COUNT(*) FROM pg_catalog.pg_tables WHERE schemaname = 'public'" >"$TEST_ROOT/table-count" 2>"$TEST_ROOT/table-count.err"; then
   echo "❌ Could not inspect the secondary PostgreSQL target." >&2
   safe_log "$TEST_ROOT/table-count.err" >&2
   exit 1
@@ -118,7 +121,7 @@ if ! rg -qi 'database schema is up to date' "$TEST_ROOT/future-status.log"; then
   exit 1
 fi
 
-MARKER="$(psql -X -w -v ON_ERROR_STOP=1 "$URL" -Atc "SELECT EXISTS (SELECT 1 FROM pg_catalog.pg_class WHERE relname = 'DbP3MigrationRehearsalMarker' AND relkind = 'r')")"
+MARKER="$("$PG_BIN_DIR/psql" -X -w -v ON_ERROR_STOP=1 "$PSQL_URL" -Atc "SELECT EXISTS (SELECT 1 FROM pg_catalog.pg_class WHERE relname = 'DbP3MigrationRehearsalMarker' AND relkind = 'r')")"
 [[ "$MARKER" == "t" ]] || { echo "❌ Future migration marker is missing." >&2; exit 1; }
 
 echo "SECOND_PROVIDER_MIGRATE: PASS"
