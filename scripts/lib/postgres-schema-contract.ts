@@ -1,9 +1,9 @@
-import type { PrismaClient } from '@prisma/client'
 import {
   countValue,
   EXPECTED_APPLICATION_TABLE_COUNT,
   queryRows,
   RAW_SQL_INVARIANTS,
+  type ReadinessQueryClient,
   type ReadinessSqlRow,
 } from './postgres-readiness'
 
@@ -31,13 +31,14 @@ export type SchemaContractDiff = {
   target: SchemaContract
 }
 
-export async function inspectSchemaContract(client: PrismaClient): Promise<SchemaContract> {
+export async function inspectSchemaContract(client: ReadinessQueryClient): Promise<SchemaContract> {
   const tables = await queryRows<TableRow>(
     client,
     `SELECT tablename::text AS name
-       FROM pg_catalog.pg_tables
+      FROM pg_catalog.pg_tables
       WHERE schemaname = 'public'
         AND tablename <> '_prisma_migrations'
+        AND tablename <> 'DbP3MigrationRehearsalMarker'
       ORDER BY tablename`,
   )
   const enums = await queryRows<EnumRow>(
