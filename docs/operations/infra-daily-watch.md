@@ -147,6 +147,26 @@ Append one new dated section. Keep entries concise.
 
 **Production changes made by review:** NONE
 
+## 2026-09-01
+
+### Codex Morning Inspection — 11:00
+
+**Compared windows:** GA4 complete prior day 2026-08-31; Vercel and Cloudflare rolling 12h ending about 11:03–11:16 +08; Axiom last 1 day.
+
+**1. Traffic:** Down versus previous observed complete day 2026-08-30: 211 users, 224 sessions, 713 views; organic 150 sessions, AI assistant 31 sessions. Prior observed 276/291/868/176/36. This is a real decline, but not an experiment-clean comparison.
+
+**2. Vercel resource efficiency:** Project ISR 9.5K Read Units, 0 Write Units, Request Caching 1.9K; pilot route subtotal ≈1.73K RU/12h: glasses-guide 1.1K, style 428, sunglasses-for 198, below ≈2.52K baseline by ≈31%. FOT 56MB out/9MB in; route-level FOT unavailable. ISR Count/Bytes not exposed.
+
+**3. Cloudflare:** Smart Tiered Cache topology Active; origin configuration details unavailable. Zone 13.23K requests, 38.19% hit, 5xx 180 (zone-wide, not pilot attribution). Pilot filters: style 222 = 46 HIT/15 MISS/24 EXPIRED/137 DYNAMIC; sunglasses 32 = 4/10/9/9; glasses-guide 105 = 26/45/34/0; combined 359 = 76/70/67/146. No pilot origin-request/shield counterfactual.
+
+**4. Experiment:** HOLD / INCONCLUSIVE. The style prefetch containment code was merged and successfully deployed in Production (`c4c162f`), but post-deploy `/style/*` remains 61.7% Dynamic. RU is below baseline but traffic declined and source attribution is unavailable; classify HTML versus RSC/Flight/other requests before further changes. No production configuration change made by this inspection.
+
+**5. Axiom/regression:** NEW MATERIAL REGRESSION. Last 1d: 207 error/warn events; 148 face-shape usage write failures, 52 NextAuth errors, 7 face-shape detection failures. Vercel logs show repeated 500s with provider error “compute time quota exceeded”. No ChunkLoadError, hydration, or RSC events.
+
+**6. Single most important question:** Is the current production PostgreSQL compute quota incident the primary cause of the observed 500s and failed deployments, and can it be isolated/remediated before using any new cache/ISR comparison?
+
+**Deployment note:** Latest style prefetch Production deployment `c4c162f` is Ready; later latest-main production deployment `bbaa00b` failed build on database reachability/migration status. No production change was made by this inspection.
+
 ## 2026-08-31
 
 ### Codex Morning Inspection — 11:00
