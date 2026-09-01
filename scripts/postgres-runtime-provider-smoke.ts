@@ -1,6 +1,7 @@
 import {
   assertPostgresConnectionString,
   assertReadinessTargetSafety,
+  DB_P3_PROVIDER_SMOKE_TRANSACTION_TIMEOUT_MS,
   redactErrorMessage,
   redactPostgresConnectionString,
   requireEnvironmentVariable,
@@ -30,8 +31,8 @@ async function main(): Promise<void> {
     DATABASE_URL: connectionString,
     POSTGRES_RUNTIME_PROVIDER: requireEnvironmentVariable('P3_RUNTIME_PROVIDER'),
   })
-  if (provider !== 'pg') {
-    throw new Error('Runtime provider smoke requires POSTGRES_RUNTIME_PROVIDER=pg for the secondary provider.')
+  if (provider !== 'pg' && provider !== 'neon') {
+    throw new Error('Runtime provider smoke requires POSTGRES_RUNTIME_PROVIDER=pg or neon.')
   }
 
   // Set the same variables consumed by src/lib/postgres-runtime.ts before the
@@ -42,22 +43,25 @@ async function main(): Promise<void> {
 
   try {
     await assertReadinessTargetSafety(prisma, connectionString)
-    const counts = await prisma.$transaction([
-      prisma.user.count(),
-      prisma.account.count(),
-      prisma.session.count(),
-      prisma.tryOnTask.count(),
-      prisma.faceAnalysisTask.count(),
-      prisma.payment.count(),
-      prisma.merchant.count(),
-      prisma.merchantMembership.count(),
-      prisma.experience.count(),
-      prisma.merchantFrame.count(),
-      prisma.merchantUsageLedger.count(),
-      prisma.merchantSponsoredUsage.count(),
-      prisma.generationRequest.count(),
-      prisma.generationAttempt.count(),
-    ])
+    const counts = await prisma.$transaction(async (tx) => Promise.all([
+      tx.user.count(),
+      tx.account.count(),
+      tx.session.count(),
+      tx.tryOnTask.count(),
+      tx.faceAnalysisTask.count(),
+      tx.payment.count(),
+      tx.merchant.count(),
+      tx.merchantMembership.count(),
+      tx.experience.count(),
+      tx.merchantFrame.count(),
+      tx.merchantUsageLedger.count(),
+      tx.merchantSponsoredUsage.count(),
+      tx.generationRequest.count(),
+      tx.generationAttempt.count(),
+    ]), {
+      maxWait: DB_P3_PROVIDER_SMOKE_TRANSACTION_TIMEOUT_MS,
+      timeout: DB_P3_PROVIDER_SMOKE_TRANSACTION_TIMEOUT_MS,
+    })
     await prisma.$transaction(async (tx) => {
       await tx.$queryRaw`SELECT 1`
     })

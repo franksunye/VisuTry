@@ -30,7 +30,7 @@ async function main(): Promise<void> {
       connection.url,
       connection.identity,
       expectedEnvironment,
-      false,
+      process.env.P4_DR_ALLOW_UNMARKED_TARGET === '1',
     )
     const result = await client.$transaction(async (tx) => {
       const user = await tx.user.findFirst({

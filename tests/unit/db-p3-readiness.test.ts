@@ -163,20 +163,20 @@ describe('DB-P3 migration readiness tooling', () => {
     expect(source).not.toMatch(/\b(?:INSERT\s+INTO|UPDATE\s+.+\s+SET|DELETE\s+FROM|ALTER\s+TABLE|DROP\s+TABLE|TRUNCATE|ANALYZE|VACUUM|REINDEX)\b/i)
   })
 
-  it('limits the longer transaction timeout to provider/application smoke', () => {
+  it('limits the longer transaction timeout to provider/data migration smoke', () => {
     expect(DB_P3_PROVIDER_SMOKE_TRANSACTION_TIMEOUT_MS).toBe(30_000)
-    expect(read('scripts/postgres-provider-smoke.ts')).toContain(
-      'transactionTimeoutMs: DB_P3_PROVIDER_SMOKE_TRANSACTION_TIMEOUT_MS',
-    )
-    expect(read('scripts/postgres-application-smoke.ts')).toContain(
-      'transactionTimeoutMs: DB_P3_PROVIDER_SMOKE_TRANSACTION_TIMEOUT_MS',
-    )
+    for (const file of [
+      'scripts/postgres-provider-smoke.ts',
+      'scripts/postgres-application-smoke.ts',
+      'scripts/postgres-runtime-provider-smoke.ts',
+      'scripts/postgres-data-migration-seed.ts',
+    ]) {
+      expect(read(file)).toContain('DB_P3_PROVIDER_SMOKE_TRANSACTION_TIMEOUT_MS')
+    }
     for (const file of [
       'scripts/postgres-readiness-target-check.ts',
       'scripts/postgres-provider-preflight.ts',
-      'scripts/postgres-runtime-provider-smoke.ts',
       'scripts/postgres-footprint-audit.ts',
-      'scripts/postgres-data-migration-seed.ts',
       'scripts/postgres-data-migration-scale-seed.ts',
     ]) {
       expect(read(file)).not.toContain('DB_P3_PROVIDER_SMOKE_TRANSACTION_TIMEOUT_MS')
