@@ -16,6 +16,11 @@ export const RAW_SQL_INVARIANTS = [
 ] as const
 
 export const EXPECTED_APPLICATION_TABLE_COUNT = 42
+export const DB_P3_PROVIDER_SMOKE_TRANSACTION_TIMEOUT_MS = 30_000
+
+export type ReadinessPrismaClientOptions = {
+  transactionTimeoutMs?: number
+}
 
 /**
  * Non-secret identities that are never valid targets for a disposable
@@ -189,10 +194,20 @@ export function printJson(value: unknown): void {
   console.log(JSON.stringify(jsonSafe(value), null, 2))
 }
 
-export function createReadinessPrismaClient(connectionString: string): PrismaClient {
+export function createReadinessPrismaClient(
+  connectionString: string,
+  options: ReadinessPrismaClientOptions = {},
+): PrismaClient {
+  const transactionOptions = options.transactionTimeoutMs === undefined
+    ? undefined
+    : {
+        maxWait: options.transactionTimeoutMs,
+        timeout: options.transactionTimeoutMs,
+      }
   return new PrismaClient({
     adapter: new PrismaPg({ connectionString }),
     log: [],
+    ...(transactionOptions ? { transactionOptions } : {}),
   })
 }
 
