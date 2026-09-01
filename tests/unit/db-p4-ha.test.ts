@@ -6,6 +6,15 @@ import {
   retentionPlan,
 } from '../../scripts/lib/postgres-ha'
 import { redactUrl } from '../../scripts/lib/postgres-dr'
+import {
+  HEALTH_CONNECTION_TIMEOUT_MS,
+  HEALTH_LOCK_TIMEOUT_MS,
+  HEALTH_PROVIDER_TIMEOUT_MS,
+  HEALTH_QUERY_TIMEOUT_MS,
+  HEALTH_STATEMENT_TIMEOUT_MS,
+  unavailableHealthResult,
+  withHealthTimeout,
+} from '../../scripts/lib/postgres-health'
 
 describe('DB-P4 HA/DR safety planning', () => {
   test('requires one authority and rejects split brain or stale snapshots', () => {
@@ -54,6 +63,37 @@ describe('DB-P4 HA/DR safety planning', () => {
 
   test('redacts PostgreSQL credentials from operator-facing labels', () => {
     expect(redactUrl('postgresql://user:super-secret@example.test:5432/app?sslmode=require')).toBe('postgresql://example.test/app')
+  })
+
+  test('bounds provider health waits and classifies provider failures safely', async () => {
+    expect(HEALTH_CONNECTION_TIMEOUT_MS).toBeGreaterThanOrEqual(5_000)
+    expect(HEALTH_CONNECTION_TIMEOUT_MS).toBeLessThanOrEqual(10_000)
+    expect(HEALTH_STATEMENT_TIMEOUT_MS).toBeGreaterThanOrEqual(5_000)
+    expect(HEALTH_STATEMENT_TIMEOUT_MS).toBeLessThanOrEqual(10_000)
+    expect(HEALTH_LOCK_TIMEOUT_MS).toBeGreaterThanOrEqual(5_000)
+    expect(HEALTH_LOCK_TIMEOUT_MS).toBeLessThanOrEqual(10_000)
+    expect(HEALTH_QUERY_TIMEOUT_MS).toBeGreaterThanOrEqual(5_000)
+    expect(HEALTH_QUERY_TIMEOUT_MS).toBeLessThanOrEqual(10_000)
+    expect(HEALTH_PROVIDER_TIMEOUT_MS).toBeGreaterThanOrEqual(15_000)
+    expect(HEALTH_PROVIDER_TIMEOUT_MS).toBeLessThanOrEqual(20_000)
+
+    for (const detail of ['ECONNREFUSED', 'statement timeout', 'lock timeout']) {
+      const result = unavailableHealthResult(
+        'neon_a',
+        'postgresql://user:super-secret@example.test/app',
+        'example.test/app',
+        new Error(detail),
+      )
+      expect(result.status).toBe('UNAVAILABLE')
+      expect(JSON.stringify(result)).not.toContain('super-secret')
+    }
+
+    const startedAt = Date.now()
+    await expect(withHealthTimeout(new Promise<never>(() => {}), 25)).rejects.toThrow('exceeded 25ms')
+    expect(Date.now() - startedAt).toBeLessThan(250)
+    await expect(
+      withHealthTimeout(new Promise((resolve) => setTimeout(() => resolve('healthy'), 5)), 100),
+    ).resolves.toBe('healthy')
   })
 
   test('write-capable tools require local authorization and database identity checks', () => {

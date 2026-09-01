@@ -1,13 +1,11 @@
 import { execFile } from 'node:child_process'
 import { promisify } from 'node:util'
 import {
-  createReadinessPrismaClient,
   printJson,
   redactErrorMessage,
   requireEnvironmentVariable,
 } from './lib/postgres-readiness'
 import {
-  assertDrDatabaseSafety,
   parseProvider,
   requireDrAuthorization,
   requireDrConnection,
@@ -35,12 +33,6 @@ async function main(): Promise<void> {
   const prefix = providerPrefix(provider)
   const connection = requireDrConnection(`${prefix}_URL`, `${prefix}_IDENTITY`)
   const expectedEnvironment = requireEnvironmentVariable(`${prefix}_ENVIRONMENT`)
-  const client = createReadinessPrismaClient(connection.url)
-  try {
-    await assertDrDatabaseSafety(client, connection.url, connection.identity, expectedEnvironment, false)
-  } finally {
-    await client.$disconnect()
-  }
 
   const health = await checkProviderHealth(provider, connection.url, connection.identity, expectedEnvironment)
   if (health.status !== 'HEALTHY') {

@@ -1,6 +1,6 @@
-import { createReadinessPrismaClient, printJson, redactErrorMessage } from './lib/postgres-readiness'
-import { assertDrDatabaseSafety, parseProvider, requireDrConnection, requireHaLocalEnvironment, redactUrl, type DrProvider } from './lib/postgres-dr'
-import { checkProviderHealth, type HealthResult } from './lib/postgres-health'
+import { printJson, redactErrorMessage } from './lib/postgres-readiness'
+import { parseProvider, requireDrConnection, requireHaLocalEnvironment, type DrProvider } from './lib/postgres-dr'
+import { checkProviderHealth, type HealthResult, unavailableHealthResult } from './lib/postgres-health'
 
 function variablePrefix(provider: DrProvider): string {
   return `P4_DR_${provider.toUpperCase()}_DATABASE`
@@ -45,29 +45,23 @@ async function main(): Promise<void> {
       results.push({ provider, status: 'UNKNOWN', detail: `${prefix}_URL and ${prefix}_IDENTITY are required.` })
       continue
     }
-    const connection = requireDrConnection(`${prefix}_URL`, `${prefix}_IDENTITY`)
-    const client = createReadinessPrismaClient(connection.url)
     try {
-      await assertDrDatabaseSafety(
-        client,
+      const connection = requireDrConnection(`${prefix}_URL`, `${prefix}_IDENTITY`)
+      results.push(await checkProviderHealth(
+        provider,
         connection.url,
         connection.identity,
         expectedEnvironment,
-        process.env.P4_DR_HEALTH_ALLOW_UNMARKED === '1',
-      )
+        { allowUnmarked: process.env.P4_DR_HEALTH_ALLOW_UNMARKED === '1' },
+      ))
     } catch (error) {
-      results.push({
+      results.push(unavailableHealthResult(
         provider,
-        status: 'DEGRADED',
-        database: redactUrl(connection.url),
-        databaseIdentity: connection.identity,
-        detail: redactErrorMessage(error).slice(0, 240),
-      })
-      await client.$disconnect()
-      continue
+        url,
+        identity,
+        error,
+      ))
     }
-    await client.$disconnect()
-    results.push(await checkProviderHealth(provider, connection.url, connection.identity, expectedEnvironment))
   }
   printJson({
     result: results.every((result) => result.status === 'HEALTHY') ? 'PASS' : 'FAIL',

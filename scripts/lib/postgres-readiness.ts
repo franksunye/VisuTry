@@ -1,5 +1,6 @@
 import { PrismaPg } from '@prisma/adapter-pg'
 import { PrismaClient } from '@prisma/client'
+import type { PoolConfig } from 'pg'
 
 export const CANONICAL_BASELINE_NAME = '00000000000000_canonical_baseline'
 export const CANONICAL_BASELINE_SHA256 =
@@ -20,6 +21,10 @@ export const DB_P3_PROVIDER_SMOKE_TRANSACTION_TIMEOUT_MS = 30_000
 
 export type ReadinessPrismaClientOptions = {
   transactionTimeoutMs?: number
+  connectionTimeoutMs?: number
+  statementTimeoutMs?: number
+  lockTimeoutMs?: number
+  queryTimeoutMs?: number
 }
 
 /**
@@ -204,8 +209,23 @@ export function createReadinessPrismaClient(
         maxWait: options.transactionTimeoutMs,
         timeout: options.transactionTimeoutMs,
       }
+  const poolConfig: PoolConfig = {
+    connectionString,
+    ...(options.connectionTimeoutMs === undefined
+      ? {}
+      : { connectionTimeoutMillis: options.connectionTimeoutMs }),
+    ...(options.statementTimeoutMs === undefined
+      ? {}
+      : { statement_timeout: options.statementTimeoutMs }),
+    ...(options.lockTimeoutMs === undefined
+      ? {}
+      : { lock_timeout: options.lockTimeoutMs }),
+    ...(options.queryTimeoutMs === undefined
+      ? {}
+      : { query_timeout: options.queryTimeoutMs }),
+  }
   return new PrismaClient({
-    adapter: new PrismaPg({ connectionString }),
+    adapter: new PrismaPg(poolConfig),
     log: [],
     ...(transactionOptions ? { transactionOptions } : {}),
   })
