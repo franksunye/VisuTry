@@ -147,6 +147,26 @@ Append one new dated section. Keep entries concise.
 
 **Production changes made by review:** NONE
 
+## 2026-09-02
+
+### Codex Morning Inspection — 11:00
+
+**Compared windows:** GA4 complete prior day 2026-09-01; Vercel rolling 12h ending about 11:06 +08; Cloudflare rolling 12h; Axiom last 1 day.
+
+**1. Traffic:** Stable versus the previous observed complete day 2026-08-31: 209 active users, 222 sessions, 695 views; organic 151 sessions and AI assistant 32 sessions, versus 211/224/713/150/31. No material acquisition change is evident.
+
+**2. Vercel resource efficiency:** Project ISR 12K Read Units, 306 Write Units, Request Caching 2K, 1 time-based revalidation and 0 tag revalidations. Pilot route Read Units ≈2.397K/12h: glasses-guide 1.6K, style 379, sunglasses-for 418; close to but about 5% below the ≈2.52K reference. Pilot Read Counts are 148/36/38 and Read Bytes are 12/3/3 MB respectively. Project-level ISR Count/Bytes are not exposed. FOT was 66 MB outgoing and 13 MB incoming; route-level attribution unavailable.
+
+**3. Cloudflare:** Smart Tiered Cache remains Active with the switch checked; Origin Configuration still unavailable. Zone-wide rolling 12h: 10.42K requests, 40.16% HIT, 462.65 MB transfer and 1 five-hundred response. Path-filtered requests: glasses-guide 202 = 58 HIT/85 MISS/15 EXPIRED/1 DYNAMIC; style 159 = 41/9/5/0; sunglasses-for 66 = 19/30/8/0. The listed cache states do not cover all path-filtered requests, leaving residual unclassified requests; no pilot origin-request or shield counterfactual is exposed.
+
+**4. Experiment:** HOLD / INCONCLUSIVE. The style prefetch containment patch remains live in Production via `c4c162f`, but the current Cloudflare status filters have material unclassified residuals and cannot establish that Dynamic traffic disappeared. ISR is near the old baseline, but there is no causal counterfactual. Next focus is request classification for document HTML, RSC/Flight, static assets and unclassified traffic.
+
+**5. Axiom/regression:** Error volume is lower but still material: 121 error/warn events in the last 1 day, led by NextAuth error 60, face-shape usage write failures 40 and face-shape detection failures 14, with several one-off errors. No ChunkLoadError, hydration or RSC events. Vercel Functions reports 0% error and timeout rate in its rolling 12h view, while visible Vercel logs show 5 errors and 3 warnings, including an Axiom ingestion failure caused by the dataset column limit.
+
+**6. Single most important question:** Are the remaining face-shape and NextAuth errors user-facing database or provider failures, and can the Axiom schema-column-limit ingestion error be corrected before relying on error-rate trends?
+
+**Deployment note:** The latest successful Production deployment carrying the style prefetch patch remains `c4c162f`; the latest main deployment shown is `bbaa00b` with Error status. No production configuration, application code or data was changed by this inspection.
+
 ## 2026-09-01
 
 ### Codex Morning Inspection — 11:00
