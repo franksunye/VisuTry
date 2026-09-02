@@ -32,6 +32,15 @@ Routine review results that require no operational change do not need a reposito
 
 ## Guidance log
 
+### 2026-09-02 — Escalate consecutive scheduler evidence gaps
+
+- No `growth/community/daily/2026-09-02.md` exists after the expected daily execution window. `community-state.json` still reports the last actual run as 2026-08-31, and the remote `growth/community-ops` branch remains on the 2026-09-01 reviewer alert commit rather than a 2026-09-02 community-ops commit.
+- This is now a consecutive scheduled-execution evidence gap covering 2026-09-01 and 2026-09-02, not a one-day anomaly. Treat scheduler/execution-to-GitHub health as the primary blocker before evaluating community strategy or interaction quality.
+- Do not backfill either missing date as `SCHEDULED` unless real scheduler execution evidence exists. A later manual or retry run must preserve its true trigger.
+- On the next actual Codex execution, inspect scheduler status/run history if observable from the Codex runtime, record whether the missed runs were caused by the scheduler not firing, task startup failure, repository/branch sync failure, browser startup failure, or commit/push failure. Do not guess the root cause when it is not observable.
+- If the scheduler is active but the repository remains unchanged after a supposed run, explicitly classify the failure boundary and record it in the daily log/state. Restoring a real daily log + state update + primary ops commit + push is the recovery criterion.
+- Do not compensate for missed days by increasing Reddit/YouTube posting volume. Resume the normal balanced-promotion cadence only after scheduler health is restored.
+
 ### 2026-08-31 — Bound execution time and remove stale no-promotion guidance
 
 - The 2026-08-31 scheduled run was evidence-complete and made sound no-action judgments, but a Monday active run lasting roughly four hours for only two Reddit searches and two YouTube searches is operationally inefficient.
