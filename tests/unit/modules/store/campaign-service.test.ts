@@ -28,6 +28,9 @@ const baseRow = {
   frames: [{ merchantFrameId: 'frame-a', merchantFrame: { id: 'frame-a', sku: null, externalId: 'shopify:product-1', productUrl: 'https://shop.example.test/products/frame-a', name: 'Frame A', imageUrl: 'https://cdn.example.test/frame-a.jpg', shape: 'round', widthClass: 'small', source: 'EXTERNAL' as const, enrichmentStatus: 'APPROVED' as const, status: 'ACTIVE' as const } }],
 }
 
+const activeLaunchPeriodStart = new Date(Date.now() - 24 * 60 * 60 * 1000)
+const activeLaunchPeriodEnd = new Date(Date.now() + 24 * 60 * 60 * 1000)
+
 describe('Campaign application service', () => {
   beforeEach(() => jest.clearAllMocks())
 
@@ -135,7 +138,7 @@ describe('Campaign application service', () => {
 
   it('returns a structured limit decision instead of activating a second Launch Campaign', async () => {
     ;(prisma.experience.findFirst as jest.Mock).mockResolvedValue(baseRow)
-    const merchant = { slug: 'merchant-a', referenceData: false, planCode: 'LAUNCH', commercialStatus: 'PAID_ACTIVE', entitlementEffectiveFrom: new Date('2026-08-01T00:00:00.000Z'), billingPeriodEnd: new Date('2026-09-01T00:00:00.000Z'), createdAt: new Date('2026-08-01T00:00:00.000Z') }
+    const merchant = { slug: 'merchant-a', referenceData: false, planCode: 'LAUNCH', commercialStatus: 'PAID_ACTIVE', entitlementEffectiveFrom: activeLaunchPeriodStart, billingPeriodEnd: activeLaunchPeriodEnd, createdAt: activeLaunchPeriodStart }
     ;(prisma.merchant.findUnique as jest.Mock).mockResolvedValue(merchant)
     ;(prisma.$transaction as jest.Mock).mockImplementation(async (callback) => callback({
       $queryRaw: jest.fn(),
@@ -148,7 +151,7 @@ describe('Campaign application service', () => {
   })
 
   it('atomically limits concurrent Launch Campaign publishes to one ACTIVE Campaign', async () => {
-    const merchant = { slug: 'merchant-a', referenceData: false, planCode: 'LAUNCH', commercialStatus: 'PAID_ACTIVE', entitlementEffectiveFrom: new Date('2026-08-01T00:00:00.000Z'), billingPeriodEnd: new Date('2026-09-01T00:00:00.000Z'), createdAt: new Date('2026-08-01T00:00:00.000Z') }
+    const merchant = { slug: 'merchant-a', referenceData: false, planCode: 'LAUNCH', commercialStatus: 'PAID_ACTIVE', entitlementEffectiveFrom: activeLaunchPeriodStart, billingPeriodEnd: activeLaunchPeriodEnd, createdAt: activeLaunchPeriodStart }
     const rows = new Map<string, any>([
       ['campaign-a', baseRow],
       ['campaign-b', { ...baseRow, id: 'campaign-b', slug: 'large-faces', name: 'Large Faces' }],
