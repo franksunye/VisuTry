@@ -566,3 +566,23 @@ Reference pre-Tiered combined baseline for the three families: approximately **2
 - Documentation only. No production configuration or business-code change is authorized. The immediate priority is restoring the observability loop, not optimizing from stale evidence.
 
 **Production changes made by review:** NONE
+
+## 2026-09-03
+
+### Codex Morning Inspection — 11:00
+
+**Compared windows:** GA4 complete prior day 2026-09-02 versus 2026-09-01; Vercel and Cloudflare rolling 12 hours ending about 11:01 +08:00; Axiom last 1 day.
+
+**1. Traffic:** GA4 recorded **261 sessions**, **792 views**, and **239 active users**, versus 222 sessions, 695 views, and 209 active users on 2026-09-01: sessions **+17.6%**, views **+14.0%**, and active users **+14.4%**. Organic sessions were **120** versus 151, while AI Assistant was **40** versus 32. Traffic increased, but the acquisition mix shifted materially and includes substantial `(not set)` attribution, so source interpretation remains cautious.
+
+**2. Vercel resource efficiency:** In the current 12-hour production window, project ISR showed **14K Read Units**, **99 Write Units**, **2.5K Request Caching**, **0** time-based revalidations, and **0** tag revalidations. Pilot route Read Units were approximately **2.3K** for `glasses-guide`, **593** for `style`, and **803** for `sunglasses-for`, approximately **3.70K combined** versus the ~**2.52K / 12h** pre-Tiered reference. Route Count was 221 / 57 / 73 respectively; route Bytes were 18 MB / 5 MB / 6 MB. Project-level ISR Count and Bytes were not exposed. Fast Data Transfer was **133 MB outgoing** and **16 MB incoming**; route-level FOT was not inferred. Functions showed **<0.1% errors** and **0% timeouts** in the visible 12-hour overview.
+
+**3. Cloudflare:** Zone-wide rolling 12 hours showed **12.41K requests**, **1.37K visits**, **43.45% cache HIT rate**, **636.25 MB transfer**, status codes 10.94K 2xx, 1.03K 3xx, 434 4xx, and 2 5xx. Smart Tiered Cache remains **Active** and enabled; the dashboard's origin configuration panel was unavailable, so origin-bound savings cannot be measured. Pilot route totals were 277 / 204 / 100 for `glasses-guide` / `style` / `sunglasses-for`. Classified statuses were respectively 46 HIT, 182 MISS, 0 EXPIRED, 0 DYNAMIC; 44 HIT, 47 MISS, 0 EXPIRED, 106 DYNAMIC; and 29 HIT, 61 MISS, 0 EXPIRED, 3 DYNAMIC. Residual unclassified requests were 49 / 7 / 7; they are not assigned to a cache state.
+
+**4. Experiment:** **INCONCLUSIVE / HOLD.** The `style` DYNAMIC share remains visibly high, consistent with the earlier prefetch concern, while the pilot ISR subtotal remains above the ~2.52K baseline. The measurement is not yet a clean economic attribution because Cloudflare status classification has residuals and no origin counterfactual; do not change cache scope or Tiered Cache from this result.
+
+**5. Axiom/regression:** Last 1 day returned **17 error/warning groups**. The main repeated item was **12 `Free face shape detection failed`** events; there were single events for a slow/aborted NextAuth session, missing user email, Chat API network error, analysis failure, and Submit API error. The ChunkLoadError / hydration / RSC marker query returned **0 events**. No new broad frontend rendering regression was observed, but face-shape failures remain an application-health watch item.
+
+**6. Single most important question:** Can we obtain one classification-consistent pilot window that separates `/style/` document HTML from RSC/Flight and ties cache status to Vercel ISR and origin request counts, so the apparent `style` dynamic load can be attributed to prefetch rather than measurement gaps?
+
+**Deployment note:** The successful Production style prefetch containment deployment remains `c4c162f`; the latest `main` deployment observed was `bbaa00b` with Error status. No production configuration, application code, data, or cache setting was changed by this inspection.
