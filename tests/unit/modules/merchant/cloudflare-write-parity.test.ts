@@ -31,6 +31,9 @@ const actor = {
 
 const activeFrame = { id: 'frame-a', sku: null, externalId: 'shopify:product-1', productUrl: 'https://shop.example.test/products/frame-a', name: 'Frame A', imageUrl: 'https://example.test/frame-a.png', shape: 'oval', widthClass: null, source: 'EXTERNAL', enrichmentStatus: 'APPROVED', status: 'ACTIVE' }
 
+const activeLaunchPeriodStart = new Date(Date.now() - 24 * 60 * 60 * 1000)
+const activeLaunchPeriodEnd = new Date(Date.now() + 24 * 60 * 60 * 1000)
+
 describe('Cloudflare direct-Neon merchant and experience writes', () => {
   afterEach(() => jest.clearAllMocks())
 
@@ -178,7 +181,7 @@ describe('Cloudflare direct-Neon merchant and experience writes', () => {
   })
 
   it('atomically limits concurrent direct-Neon Launch publishes to one ACTIVE Campaign', async () => {
-    const merchant = { id: 'merchant-a', slug: 'merchant-a', referenceData: false, planCode: 'LAUNCH', commercialStatus: 'PAID_ACTIVE', entitlementEffectiveFrom: new Date('2026-08-01T00:00:00.000Z'), billingPeriodEnd: new Date('2026-09-01T00:00:00.000Z'), createdAt: new Date('2026-08-01T00:00:00.000Z') }
+    const merchant = { id: 'merchant-a', slug: 'merchant-a', referenceData: false, planCode: 'LAUNCH', commercialStatus: 'PAID_ACTIVE', entitlementEffectiveFrom: activeLaunchPeriodStart, billingPeriodEnd: activeLaunchPeriodEnd, createdAt: activeLaunchPeriodStart }
     const campaign = {
       id: 'campaign-a', merchantId: 'merchant-a', slug: 'campaign-a', name: 'Campaign A', status: 'DRAFT',
       headline: 'Try it', description: null, primaryCtaType: null, primaryCtaLabel: null, primaryCtaUrl: null,
