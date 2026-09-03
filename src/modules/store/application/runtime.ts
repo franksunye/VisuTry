@@ -11,8 +11,9 @@ import {
   createStoreGenerationAdapter,
 } from '../infrastructure'
 import { prisma } from '@/lib/prisma'
+import { createAnalyticsEventSink } from '@/lib/analytics-event-plane'
 
-/** Composition root for Store API routes — wires Prisma/Blob adapters. */
+/** Composition root for Store API routes — wires PostgreSQL, Blob, and optional analytics. */
 export function createStoreRuntime() {
   return {
     merchants: createPrismaMerchantRepository(),
@@ -20,6 +21,7 @@ export function createStoreRuntime() {
     experiences: createPrismaExperienceRepository(),
     sessions: createPrismaMerchantSessionRepository(),
     events: createPrismaMerchantEventRepository(),
+    analytics: createAnalyticsEventSink(),
     intents: createPrismaMerchantIntentRepository(),
     usage: createPrismaStoreUsageRepository(),
     sponsoredUsage: createPrismaMerchantSponsoredUsageRepository(prisma),
