@@ -12,10 +12,10 @@ jest.mock('next/cache', () => ({ revalidatePath: jest.fn(), revalidateTag: jest.
 describe('public discovery cache contract', () => {
   it('separates Store/Campaign and locale cache keys', () => {
     expect(publicDiscoveryCacheKey({ locale: 'en', merchantSlug: 'luna-optical' })).toEqual([
-      expect.stringMatching(/^public-discovery:/), 'public-experience-discovery', 'en', 'luna-optical', 'store',
+      expect.stringMatching(/^public-discovery:/), 'public-experience-discovery-v2', 'en', 'luna-optical', 'store',
     ])
     expect(publicDiscoveryCacheKey({ locale: 'en', merchantSlug: 'luna-optical', experienceSlug: 'petite-fit' })).toEqual([
-      expect.stringMatching(/^public-discovery:/), 'public-experience-discovery', 'en', 'luna-optical', 'petite-fit',
+      expect.stringMatching(/^public-discovery:/), 'public-experience-discovery-v2', 'en', 'luna-optical', 'petite-fit',
     ])
     expect(publicDiscoveryCacheKey({ locale: 'de', merchantSlug: 'luna-optical', experienceSlug: 'petite-fit' })).not.toEqual(
       publicDiscoveryCacheKey({ locale: 'en', merchantSlug: 'luna-optical', experienceSlug: 'petite-fit' }),
