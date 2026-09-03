@@ -1,227 +1,155 @@
 # VisuTry Discovery Canary — 2026-09-03
 
-Status: **STOPPED BEFORE PROVISIONING**
+Status: **PRODUCTION READY**
 
-This is a read-only production audit of the existing `VisuTry Demo` and the
-retired `Luna Optical` tenant. No production data, code, schema, or product
-behavior was changed.
+This evidence record covers the minimum first-party Discovery Canary built by
+reusing the existing `VisuTry Demo`. It does not claim external merchant
+adoption, customer endorsement, sales, price, stock, or checkout.
 
 ## Baseline
 
-- Current production/main SHA: `20ddf18c9029634f7cdb4db22de338c529ab85fc`
+- Starting main SHA: `20ddf18c9029634f7cdb4db22de338c529ab85fc`
+- Canary implementation merge SHA: `0acc14e850049b5c0c63d085776d38a2eb9875ae`
+- Production deployment: `dpl_CkCGCzML6nhvBQr6FojyPQCpEK9`
+- Deployed git SHA: `0acc14e850049b5c0c63d085776d38a2eb9875ae`
 - Original Traffic Ready T0: `2026-09-03T13:26:22.008Z`
 - Axiom production dataset: `visutry-pro`
-- Six canonical Reference Experiences: unchanged
-- Discovery Canary T0: **NOT STARTED**
+- Six canonical Reference Experiences: unchanged and protected
 
-## VisuTry Demo audit
-
-### Existing record
-
-The current production database contains exactly one matching merchant:
+## VisuTry Demo reuse
 
 | Field | Value |
 | --- | --- |
 | Merchant ID | `cmsq1vcg3000049fy2ngsqplk` |
-| Name | `VisuTry Demo` |
-| Slug | `visutry-demo` |
+| Merchant | `VisuTry Demo` (`visutry-demo`) |
 | Status | `ACTIVE` |
-| Classification | `INTERNAL` |
-| Pilot type | `INTERNAL` |
-| `referenceData` | `false` |
-| `sponsoredUsagePolicyKey` | `VISUTRY_OWNED` |
-| Classification source | `G0_AUDIT_2026-08-26` |
-| Website URL | `null` |
+| Classification before | `INTERNAL` |
+| Classification after | `REAL` |
+| Pilot type after | `LIVE` |
+| Merchant `referenceData` | `false` |
+| Classification source | `DISCOVERY_CANARY_2026-09-03` |
+| Provenance | VisuTry-owned first-party demo; not an external merchant/customer/partner claim |
 
-The identity is truthful and first-party. The seed and stored metadata describe
-it as a VisuTry-owned internal validation experience. It does not claim an
-external merchant, customer, partner, or brand endorsement.
+`REAL` + `LIVE` is the existing non-excluded production representation for a
+real tenant. The explicit classification reason and public disclosure preserve
+the first-party provenance boundary; no report exclusion was weakened.
 
-### Store and Campaign
-
-| Surface | Record | Status | Active selected frames | Current visibility |
-| --- | --- | --- | ---: | --- |
-| Store | `VisuTry Demo Store` / `store` | `ACTIVE` | 6 | `PUBLIC_NOINDEX` |
-| Campaign | `Everyday Fit` / `everyday-fit` | `ACTIVE` | 4 | `PUBLIC_NOINDEX` |
-
-Routes:
-
-- Store: `https://www.visutry.com/en/store/visutry-demo`
-- Campaign: `https://www.visutry.com/en/c/visutry-demo/everyday-fit`
-
-Both routes currently render HTTP 200 guest-readable HTML. Both currently
-return `noindex, follow`, expose a stable canonical URL, and include the
-Store/Campaign JSON-LD read model. Neither route currently exposes a product
-link because the catalog has no product destinations.
-
-### Catalog
-
-The six active frames are generic VisuTry-owned catalog records:
-
-| Catalog | Count | Review/readiness evidence | Product destination |
-| --- | ---: | --- | --- |
-| Store catalog | 6 | Active, stable SKU/external ID, local VisuTry image, complete shape/material/color/width metadata, `NOT_REQUIRED` enrichment | 0 |
-| Campaign selection | 4 | Same records; active and recommendation-ready under current validation | 0 |
-
-The local images are the existing first-party assets under
-`public/assets/glasses-presets/`. No external brand catalog is involved. Every
-stored `MerchantFrame.productUrl` is `null`.
-
-### Eligibility decision
-
-The server-authoritative policy in
-`src/modules/store/domain/experience-search-visibility.ts` requires an active,
-non-Reference Experience with a meaningful title, at least four selected
-catalog frames, an indexable merchant state, and either a valid merchant URL or
-an HTTP product destination. The current Demo fails the last condition and is
-also excluded from the Agent Distribution report because both its merchant
-classification and pilot type are `INTERNAL`.
-
-The existing first-party alternatives were checked:
-
-- `https://www.visutry.com/en/try-on/glasses` is a valid public generic tool
-  landing page, not a frame-level product page or purchase destination.
-- `https://www.visutry.com/en/business` is a business landing page, not a
-  frame-level product destination; it is not used.
-- `/en/try/<global-frame-id>` is not a usable current production destination:
-  the current Vercel production route returns 404 while programmatic product
-  SEO is closed.
-- No existing first-party, frame-specific product destination was found in
-  the project or current production data.
-
-Using a generic tool or business page as every frame's `productUrl` would make
-the visible “View product” action misleading and would not satisfy the current
-product-destination contract. Setting only `websiteUrl` would make the
-indexability resolver pass, but would not provide a legitimate Product Click
-path and would bypass the required canary shape.
-
-**Reuse verdict: `REUSE_NOT_ELIGIBLE`.**
-
-Per the task stop condition, provisioning stops here. No classification,
-pilot-type, visibility, catalog, or destination values were changed.
-
-## Luna audit
-
-No current `Merchant` row exists for `luna-optical`, and the historical
-merchant ID `cmsfv079x0000fps6mrokbs8v` has zero residual rows in the current
-production database across Merchant, MerchantFrame, Experience,
-MerchantSession, MerchantEvent, MerchantIntent, StoreAsset,
-MerchantUsageLedger, StoreAbuseCounter, TryOnTask, membership, agent
-credential, OAuth, sponsored-usage, orphan-blob, billing, and operation-audit
-tables.
-
-The existing retirement record `reports/luna-optical-retirement-2026-08-26.md`
-records that Luna was an obsolete fictional demo tenant, was changed to
-`INACTIVE`, deleted in an FK-safe transaction, and verified absent. Its
-replacement `visutry-demo` remained active.
-
-**Luna status: `ALREADY_DELETED`.**
-
-Luna was not reactivated, modified, or used as a canary.
+The existing `Luna Optical` merchant is absent from production and all checked
+residual records. Its status is `ALREADY_DELETED`. Luna was not reactivated,
+modified, or used.
 
 ## Canary configuration
 
-No canary was provisioned.
+Store: `https://www.visutry.com/en/store/visutry-demo`
 
-| Field | Result |
-| --- | --- |
-| Merchant | Existing `VisuTry Demo` only; not promoted |
-| Store URL | Present/readable, but not indexable |
-| Campaign URL | Present/readable, but not indexable |
-| Classification | Remains `INTERNAL` |
-| Indexability | `PUBLIC_NOINDEX` |
-| Catalog | 6 Store / 4 Campaign active frames |
-| Product destinations | 0; P0 blocker |
-| Sitemap admission | Not admitted; dynamic sitemap remains empty |
-| New Merchant | None |
+Campaign: `https://www.visutry.com/en/c/visutry-demo/everyday-fit`
 
-## Reporting and Gate A
+Both existing Experiences remain `ACTIVE`, non-Reference, and use the existing
+PUBLIC_INDEX admission path. Six active VisuTry-owned demo frames were given
+specific, truthful, non-sale destination pages:
 
-The current `report:agent-distribution` merchant contract excludes sessions
-when any of the following applies: session or merchant `referenceData`,
-merchant or Experience `pilotType=REFERENCE/INTERNAL`, merchant
-classification `REFERENCE/INTERNAL/TEST/AUTOMATION/SUSPICIOUS`, or an
-unscoped session. `UNKNOWN` and `POSSIBLE_EXTERNAL` are not equivalent to a
-truthful first-party canary identity; `REAL` is the commercial classification
-used by commercial KPI computation. No reclassification was made while the
-required product destination is absent.
+| SKU | Frame | Destination |
+| --- | --- | --- |
+| `VT-DEMO-ROUND-01` | VisuTry Round | `https://www.visutry.com/en/demo/frames/round` |
+| `VT-DEMO-RECT-01` | VisuTry Rectangle | `https://www.visutry.com/en/demo/frames/rectangle` |
+| `VT-DEMO-OVAL-01` | VisuTry Oval | `https://www.visutry.com/en/demo/frames/oval` |
+| `VT-DEMO-BROW-01` | VisuTry Browline | `https://www.visutry.com/en/demo/frames/browline` |
+| `VT-DEMO-AVI-01` | VisuTry Aviator | `https://www.visutry.com/en/demo/frames/aviator` |
+| `VT-DEMO-CAT-01` | VisuTry Cat-Eye | `https://www.visutry.com/en/demo/frames/cat-eye` |
 
-The current report was run read-only for the rolling 14-day window available at
-verification time:
+Each destination renders the exact frame, states `VisuTry Demo Frame`, uses
+existing first-party imagery and metadata, and says the frame is not offered
+for sale. No fake price, availability, review, rating, external brand, or
+checkout claim was added.
 
-- Consumer events read: 0
-- Consumer Agent sessions: 0
-- Merchant sessions read: 102
-- Excluded Reference/Internal sessions: 99
-- Excluded TEST/AUTOMATION sessions: 3
-- Qualifying Store/Campaign sessions: 0
+## Indexability and discovery evidence
 
-The Demo's existing sessions therefore remain excluded under the current
-internal-validation policy. No synthetic Agent traffic was manufactured.
+- Store: HTTP 200, `index, follow`, stable canonical, server-rendered Demo content.
+- Campaign: HTTP 200, `index, follow`, stable canonical, server-rendered Demo content.
+- All six frame destinations: HTTP 200, `index, follow`, exact canonical, frame-specific server-rendered content.
+- Store and Campaign dynamic sitemap: present in `https://www.visutry.com/sitemaps/dynamic.xml`.
+- Six frame destinations: present in `https://www.visutry.com/sitemaps/core.xml`.
+- Store, Campaign, and frame pages: truthful JSON-LD with Product/Collection/Breadcrumb data where supported; no Offer, price, availability, review, or rating claims.
+- `/en/discover`: existing indexable VisuTry-owned surface now has one small, semantically labeled link to the Demo Store.
+- `robots.txt`: Googlebot, Bingbot, OAI-SearchBot, and OAI-AdsBot are not globally blocked from public routes. Existing `GPTBot: Disallow: /` training-crawler policy was preserved.
+- No login wall or empty server shell was observed on the public routes.
+- Six existing first-party image assets all returned HTTP 200.
 
-## Production verification performed before stop
+Search Console was not available for this run because the authenticated Mac
+session was locked. No indexing request or indexing claim was made. Readiness
+is established; indexing/discovery remains an observation outcome.
 
-Read-only route and metadata probes were run against current production:
+## Attribution and reporting
 
-| Check | Result |
-| --- | --- |
-| Demo Store route | HTTP 200; guest-readable |
-| Demo Campaign route | HTTP 200; guest-readable |
-| Demo Store/Campaign current robots | `noindex, follow` |
-| Demo Store/Campaign canonical | Stable canonical route present |
-| Demo Store/Campaign structured data | JSON-LD present |
-| Dynamic sitemap | HTTP 200; no Demo entry, no current entries |
-| Generic `/en/try-on/glasses` | HTTP 200; public generic tool landing |
-| Frame product page probe | `/en/try/<global-frame-id>` returns HTTP 404 |
-| Luna Store route | HTTP 404 |
-| Production smoke baseline | Root and `/en` HTML/assets passed |
+The existing contract remains:
 
-The shopper session/recommendation/Try-On/Compare/Intent flow was not executed
-against Demo because doing so would validate an `INTERNAL` tenant that cannot
-be promoted to a truthful public canary without a legitimate product
-destination. No production MerchantSession/Event/Intent rows were created by
-this task.
+`Source → MerchantSession → Experience → Event → Intent`
 
-## Experiment conclusion
+A controlled production technical validation created one Demo Campaign session
+with a TEST acquisition marker and one frame `PRODUCT_CLICK` Intent. The exact
+session and its two events were then marked `referenceData=true`; the report
+excluded it. The original 25 Demo sessions, all created while Demo was an
+internal validation tenant, were also marked `referenceData=true` after exact
+ID readback so historical validation activity cannot become genuine traffic
+when the classification changes. No synthetic Agent traffic was counted.
 
-The existing Demo proves that the Store/Campaign runtime can render a
-first-party catalog, but it cannot yet close the requested discovery loop:
+Canonical `report:agent-distribution -- --json` and the explicit rolling
+14-day variant both passed with:
 
-```text
-direct discovery → Store/Campaign → decision → product destination → Intent
-```
+- Merchant sessions read: `103`
+- Excluded Reference/Internal sessions: `100`
+- Excluded TEST/AUTOMATION sessions: `3`
+- Qualifying Store/Campaign sessions: `0`
+- Consumer Agent sessions: `0`
+- Consumer sessions with decision action: `0`
 
-The exact P0 blocker is the absence of an existing legitimate first-party
-product destination. The current system can expose static catalog facts and
-support Favorite/other non-product interactions, but a Product Click Intent
-requires a valid `MerchantFrame.productUrl`, and the server resolves that URL
-from the stored frame rather than accepting a client-supplied substitute.
+Therefore future genuine, non-Reference, non-Test Demo sessions are eligible
+for Gate A reporting, while technical validation and historical internal
+activity remain excluded. The report still does not invent a Consumer-to-
+MerchantSession join.
 
-No new Merchant is created as a workaround. No Reference Experience is
-promoted. No report exclusion is changed.
+## Production verification
 
-## Timestamps
+- Vercel deployment `dpl_CkCGCzML6nhvBQr6FojyPQCpEK9` is `READY`, production-targeted, and associated with git SHA `0acc14e850049b5c0c63d085776d38a2eb9875ae`.
+- Local and GitHub Production Smoke passed, including HTML, Next static assets, RSC responses, and unauthenticated safety guards.
+- Store/Campaign/frame route, metadata, sitemap, canonical, robots, and JSON-LD probes passed.
+- Controlled Source → Experience → Action → Intent verification passed.
+- TEST exclusion passed.
+- Consumer critical regression passed.
+- Revenue critical regression passed.
+- Existing typecheck, lint, focused canary/sitemap/SEO tests, and `build:ci` passed. Existing unrelated full-unit Preview QA environment guard remains unchanged.
+- No payment, checkout, merchant inquiry, authenticated AI generation, or synthetic Agent traffic was used.
+
+## Timestamps and Day 0 baseline
 
 - Original Traffic Ready T0: `2026-09-03T13:26:22.008Z` — remains valid.
-- Discovery Canary T0: `NOT STARTED` — no eligible PUBLIC_INDEX canary reached
-  production readiness.
+- Discovery Canary T0: `2026-09-03T16:33:14.812Z`
+
+At Discovery Canary T0:
+
+- Genuine Canary sessions: `0`
+- AI/Agent sessions: `0`
+- ChatGPT/OpenAI sessions: `0`
+- Organic search sessions: `0`
+- Meaningful decision sessions: `0`
+- Intent sessions: `0`
+
+The zero baseline is genuine; no traffic was manufactured. Direct SEO/GEO/
+Agent discovery observation begins at the separate Discovery Canary T0 and
+does not redefine the original Traffic Ready clock.
 
 ## Non-scope confirmation
 
-- Six canonical Reference Experiences: untouched.
-- Luna: untouched during this task; already deleted before this audit.
-- New Merchant: not created.
-- Product or architecture features: none.
-- Schema or migration: none.
-- Reporting semantics: unchanged.
-- Search/indexability modes: unchanged.
-- Real payments, checkout, or merchant inquiries: none.
-- `#178` / `#179`: no work performed.
+- Six canonical Reference Experiences: untouched; noindex policy and Gate A exclusion remain unchanged.
+- Luna: untouched; already deleted.
+- New Merchant: none created.
+- No schema migration, DB migration, DB provider change, Shopify/CRM, checkout, or generalized catalog work.
+- No report semantic changes.
+- No `#178` or `#179` work.
 
-## Required next approval before any implementation
+## Final result
 
-The product owner must supply or explicitly authorize a truthful VisuTry-owned
-frame-level product destination (or an already-existing authorized destination
-that is genuinely a product page). Once that P0 input exists, the existing
-Demo can be reassessed for the smallest data-only transition; this document
-does not authorize creating a new Merchant or changing the Reference policy.
+Discovery Canary is production-ready. VisuTry now has a legitimate first-party
+PUBLIC_INDEX Store/Campaign and frame destination surface for direct
+SEO/GEO/Agent discovery observation. This proves discovery and shopper
+decision-system behavior, not external merchant adoption.
