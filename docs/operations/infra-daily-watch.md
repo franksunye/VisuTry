@@ -534,3 +534,35 @@ Reference pre-Tiered combined baseline for the three families: approximately **2
 - Documentation only. No production configuration or business-code change is authorized. The immediate goal is to restore one trustworthy measurement window and resume daily continuity.
 
 **Production changes made by review:** NONE
+
+## 2026-09-02
+
+### Codex Morning Inspection — 11:00
+
+**Status:** MISSING — no 2026-09-02 Codex Morning Inspection was present in GitHub when the afternoon review ran.
+
+**Evidence:** No new GA4, Vercel, Cloudflare, or Axiom measurements are recorded for today. No values are inferred from prior windows.
+
+**Production changes made during inspection:** NONE RECORDED
+
+### ChatGPT Afternoon Review
+
+**Verdict:** **HOLD** — the morning inspection is missing for a sixth consecutive day. There is no trustworthy same-day evidence to judge GA traffic, Vercel ISR/FOT, Cloudflare cache/Tiered Cache effectiveness, or Axiom error direction.
+
+**What the evidence means**
+1. The last measured watch evidence is still **2026-08-27** and is now too stale to represent current production behavior. It remains historical context only: pilot ISR subtotal ~**3.72K RU / 12h** versus the ~**2.52K RU / 12h** pre-Tiered reference, with no proven Smart Tiered Cache economic win.
+2. Six consecutive missing morning inspections mean no valid trend can be established for GA users/sessions/views, Vercel ISR or FOT, Cloudflare HIT/MISS/EXPIRED/DYNAMIC, Tiered Cache impact, or the prior Axiom face-analysis error cluster. No directional claim is made.
+3. Since the daily measurement loop has been absent for nearly a week, the next successful morning run should be treated as a **new baseline establishment**, not as a direct day-over-day continuation from 2026-08-27.
+
+**Decision**
+- **HOLD.** Do not make a new cache, Tiered Cache, ISR, or prefetch optimization decision from stale data. Resume decisions only after one fresh, internally comparable observation window is recorded.
+
+**Next Codex inspection focus**
+1. Establish a new fixed complete 12h baseline for all three Cloudflare pilot families with **HIT / MISS / EXPIRED / DYNAMIC**, and separate `/style/*` document HTML from `_rsc` / Flight requests where possible.
+2. Capture the matching Vercel route-level ISR Read Units for `glasses-guide`, `style`, and `sunglasses-for`, plus project ISR total and FOT; record the current production SHA and note any relevant production changes since the last measured entry.
+3. Capture GA4 prior-day users/sessions/views plus Organic/AI referral direction, then Axiom 4xx/5xx and face-analysis failure counts. Use this set as the new baseline and only resume trend judgments after the next comparable day.
+
+**Implementation guidance**
+- Documentation only. No production configuration or business-code change is authorized. The immediate priority is restoring the observability loop, not optimizing from stale evidence.
+
+**Production changes made by review:** NONE
