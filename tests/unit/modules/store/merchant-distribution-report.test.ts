@@ -11,12 +11,14 @@ describe('merchant distribution report', () => {
     expect(classifyMerchantDistributionSource({ id: '4', source: 'instagram.com', medium: 'social', referrer: null, aiAgentSource: null })).toBe('social')
     expect(classifyMerchantDistributionSource({ id: '5', source: null, medium: 'referral', referrer: 'https://example.com', aiAgentSource: null })).toBe('generic_referral')
     expect(classifyMerchantDistributionSource({ id: '6', source: null, medium: null, referrer: null, aiAgentSource: null })).toBe('direct')
+    expect(classifyMerchantDistributionSource({ id: '7', source: 'reddit.com', medium: 'social', referrer: null, aiAgentSource: null })).toBe('reddit')
+    expect(classifyMerchantDistributionSource({ id: '8', source: null, medium: 'referral', referrer: 'https://www.youtube.com/watch?v=1', aiAgentSource: null })).toBe('youtube')
   })
 
   it('joins durable source classes to Store/Campaign decision actions by session', () => {
     const report = buildMerchantDistributionReport({
       sessions: [
-        { id: 'chat-session', source: null, medium: null, referrer: null, aiAgentSource: 'chatgpt' },
+        { id: 'chat-session', source: null, medium: null, referrer: null, aiAgentSource: 'chatgpt', experienceId: 'experience-campaign', merchantSlug: 'merchant-a', merchantName: 'Merchant A', experienceType: 'CAMPAIGN', experienceSlug: 'edit', experienceName: 'Focused Edit' },
         { id: 'search-session', source: 'google.com', medium: 'organic', referrer: null, aiAgentSource: null },
         { id: 'direct-session', source: null, medium: null, referrer: null, aiAgentSource: null },
       ],
@@ -37,6 +39,18 @@ describe('merchant distribution report', () => {
       expect.objectContaining({ sourceClass: 'chatgpt', visitors: 1, engagedShoppers: 1, recommendationActivity: 1, tryOnCompletions: 1, productClicks: 1, highIntentShoppers: 0 }),
       expect.objectContaining({ sourceClass: 'direct', visitors: 1, engagedShoppers: 0, inquiries: 1 }),
       expect.objectContaining({ sourceClass: 'organic_search', visitors: 1, engagedShoppers: 1, compareActivity: 2, highIntentShoppers: 1 }),
+    ])
+    expect(report.experiences).toEqual([
+      expect.objectContaining({
+        experienceId: 'experience-campaign',
+        merchantSlug: 'merchant-a',
+        experienceType: 'CAMPAIGN',
+        experienceSlug: 'edit',
+        visitors: 1,
+        recommendationActivity: 1,
+        tryOnCompletions: 1,
+        productClicks: 1,
+      }),
     ])
   })
 })
