@@ -5,6 +5,7 @@ import { FACE_SHAPE_COMPARISON_SLUGS } from '@/config/face-shape-comparisons'
 import { CURATED_BRAND_SLUGS } from '@/config/brand-try-on-content'
 import { COMBINATION_SEARCH_PAGES } from '@/config/search-combination-pages'
 import { getVisualSeoAssetsForPage } from '@/config/visual-seo-assets'
+import { VISUTRY_DEMO_FRAME_ROUTES } from '@/lib/visutry-demo-frame-routes'
 
 export function buildSitemapAlternates(baseUrl: string, path: string): Record<string, string> {
   const alternates: Record<string, string> = {}
@@ -57,6 +58,7 @@ export function buildCoreSitemapEntries(baseUrl: string): SitemapEntry[] {
     { path: '/business/examples', priority: 0.75, changeFrequency: 'weekly' },
     { path: '/business/integrations', priority: 0.65, changeFrequency: 'monthly' },
     { path: '/business/pilot', priority: 0.8, changeFrequency: 'weekly' },
+    ...VISUTRY_DEMO_FRAME_ROUTES.map(({ slug }) => ({ path: `/demo/frames/${slug}`, priority: 0.65, changeFrequency: 'monthly' as const })),
   ]
   const localizedSunglassesPaths = FACE_SHAPE_SLUGS.map((slug) => `/sunglasses-for/${slug}-face`)
   const localizedOrdinaryGlassesPaths = FACE_SHAPE_SLUGS.map((slug) => `/style/${slug}-face`)

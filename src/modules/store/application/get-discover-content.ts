@@ -43,6 +43,11 @@ export type DiscoverContent = {
   copy: ReturnType<typeof getDiscoverCopy>
   featured: DiscoverFeaturedExperience[]
   merchants: DiscoverMerchant[]
+  canary: {
+    href: string
+    name: string
+    description: string
+  }
 }
 
 export type DiscoverRuntime = {
@@ -131,5 +136,10 @@ export async function getDiscoverContent(
     copy: getDiscoverCopy(locale),
     featured: featured.filter((item) => item !== null),
     merchants: merchants.filter((item) => item !== null),
+    canary: {
+      href: `/${locale}/store/visutry-demo?source=visutry&medium=internal&surface=discover&campaign=discovery-canary`,
+      name: 'VisuTry Demo',
+      description: 'A first-party demo collection for evaluating frame discovery, virtual try-on, comparison, and shopper decision flows.',
+    },
   }
 }
