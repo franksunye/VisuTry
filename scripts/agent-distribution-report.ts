@@ -76,8 +76,20 @@ async function readConsumerEvents(options: CliOptions): Promise<ConsumerFunnelRe
   if (!/^[A-Za-z0-9_-]+$/.test(dataset)) throw new Error('AXIOM_DATASET contains unsupported characters')
 
   const axiom = new Axiom({ token, orgId: process.env.AXIOM_ORG_ID?.trim() || undefined })
+  const projectedFields = [
+    'traffic_class=column_ifexists("data.traffic_class", "")',
+    'consumer_funnel_id=column_ifexists("data.consumer_funnel_id", "")',
+    'source_class=column_ifexists("data.source_class", "")',
+    'agent_source=column_ifexists("data.agent_source", "")',
+    'event_name=column_ifexists("data.event_name", "")',
+    'landing_page=column_ifexists("data.landing_page", "")',
+    'page_path=column_ifexists("data.page_path", "")',
+    'surface=column_ifexists("data.surface", "")',
+    'entry_point=column_ifexists("data.entry_point", "")',
+    'campaign_name=column_ifexists("data.campaign_name", "")',
+  ]
   const result = await axiom.query(
-    `['${dataset}'] | where message == "consumer_funnel_event" | project _time, data | take 50000`,
+    `['${dataset}'] | where message == "consumer_funnel_event" | project _time, ${projectedFields.join(', ')} | take 50000`,
     {
       startTime: options.from.toISOString(),
       endTime: options.to.toISOString(),
@@ -87,7 +99,14 @@ async function readConsumerEvents(options: CliOptions): Promise<ConsumerFunnelRe
   )
 
   return rowsFromAxiom(result).map((row) => {
-    const payload = parsePayload(row.data)
+    const payload = {
+      ...parsePayload(row.data),
+      ...Object.fromEntries(
+        ['traffic_class', 'consumer_funnel_id', 'source_class', 'agent_source', 'event_name', 'landing_page', 'page_path', 'surface', 'entry_point', 'campaign_name']
+          .filter((field) => row[field] !== undefined && row[field] !== null && row[field] !== '')
+          .map((field) => [field, row[field]]),
+      ),
+    }
     return {
       trafficClass: stringValue(payload.traffic_class),
       funnelId: stringValue(payload.consumer_funnel_id),
