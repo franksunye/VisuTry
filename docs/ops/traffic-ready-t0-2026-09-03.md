@@ -4,7 +4,7 @@ Date: 2026-09-03
 Starting `origin/main` SHA: `4662908a36df8d38ed22916ad19d90c4535f313f`  
 Ending branch SHA: final committed branch SHA (record with `git rev-parse HEAD` at handoff)  
 Working branch: `codex/traffic-ready-t0`  
-PR: to be created after final validation and push.
+PR: [#182 — Traffic Ready T0: close agent distribution observability](https://github.com/franksunye/VisuTry/pull/182)
 
 ## Scope and boundary
 
