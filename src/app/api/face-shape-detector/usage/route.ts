@@ -1,14 +1,9 @@
 import { NextResponse } from 'next/server'
-import { TaskStatus } from '@prisma/client'
-import { prisma } from '@/lib/prisma'
 import { FACE_SHAPE_FAILURE_REASONS } from '@/config/face-analysis'
-import { getRequestContext, getRequestLanguageContext, logger } from '@/lib/logger'
+import { getRequestLanguageContext, logger } from '@/lib/logger'
 import { isValidLocale } from '@/i18n'
 
-const ALLOWED_STATUSES = new Set<TaskStatus>([
-  TaskStatus.COMPLETED,
-  TaskStatus.FAILED,
-])
+const ALLOWED_STATUSES = new Set(['COMPLETED', 'FAILED'] as const)
 
 const ALLOWED_FAILURE_REASONS = new Set<string>(FACE_SHAPE_FAILURE_REASONS)
 
@@ -74,44 +69,43 @@ function sanitizeDiagnostics(value: unknown): DetectionDiagnostics | undefined {
 }
 
 export async function POST(request: Request) {
-  const ctx = getRequestContext(request)
   const languageContext = getRequestLanguageContext(request)
+  let body: {
+    status?: unknown
+    failureReason?: unknown
+    diagnostics?: unknown
+    siteLocale?: unknown
+  }
   try {
-    const body = await request.json() as {
-      status?: unknown
-      failureReason?: unknown
-      diagnostics?: unknown
-      siteLocale?: unknown
-    }
-    const status = body.status
-    const siteLocale = typeof body.siteLocale === 'string' && isValidLocale(body.siteLocale)
-      ? body.siteLocale
-      : undefined
+    body = await request.json()
+  } catch {
+    return NextResponse.json({ success: false }, { status: 400 })
+  }
 
-    if (typeof status !== 'string' || !ALLOWED_STATUSES.has(status as TaskStatus)) {
-      return NextResponse.json({ success: false }, { status: 400 })
-    }
+  const status = body.status
+  const siteLocale = typeof body.siteLocale === 'string' && isValidLocale(body.siteLocale)
+    ? body.siteLocale
+    : undefined
 
-    // failureReason is only meaningful for FAILED records; ignore it for COMPLETED.
-    const rawReason = body.failureReason
-    const failureReason =
-      status === TaskStatus.FAILED &&
-      typeof rawReason === 'string' &&
-      ALLOWED_FAILURE_REASONS.has(rawReason)
-        ? rawReason
-        : null
-    const diagnostics = status === TaskStatus.FAILED
-      ? sanitizeDiagnostics(body.diagnostics)
-      : undefined
+  if (typeof status !== 'string' || !ALLOWED_STATUSES.has(status as 'COMPLETED' | 'FAILED')) {
+    return NextResponse.json({ success: false }, { status: 400 })
+  }
 
-    await prisma.faceShapeDetection.create({
-      data: {
-        status: status as TaskStatus,
-        failureReason,
-      },
-    })
+  // Diagnostics are telemetry only. Never persist them to PostgreSQL and never
+  // let an Axiom failure change the detector's successful response.
+  const rawReason = body.failureReason
+  const failureReason =
+    status === 'FAILED' &&
+    typeof rawReason === 'string' &&
+    ALLOWED_FAILURE_REASONS.has(rawReason)
+      ? rawReason
+      : null
+  const diagnostics = status === 'FAILED'
+    ? sanitizeDiagnostics(body.diagnostics)
+    : undefined
 
-    if (status === TaskStatus.COMPLETED) {
+  try {
+    if (status === 'COMPLETED') {
       logger.info('face-shape', 'Free face shape detection completed', {
         ...(siteLocale ? { site_locale: siteLocale } : {}),
       }, languageContext)
@@ -122,15 +116,9 @@ export async function POST(request: Request) {
         ...(diagnostics ? { diagnostics } : {}),
       }, languageContext)
     }
-
-    return NextResponse.json({ success: true }, { status: 201 })
-  } catch (error) {
-    logger.error(
-      'face-shape',
-      'Free face shape detection usage write failed',
-      error instanceof Error ? error : new Error(String(error)),
-      ctx,
-    )
-    return NextResponse.json({ success: false }, { status: 500 })
+  } catch {
+    // Observability is fail-open for this non-authoritative browser signal.
   }
+
+  return new NextResponse(null, { status: 204 })
 }
