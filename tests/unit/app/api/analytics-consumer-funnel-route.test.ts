@@ -61,6 +61,14 @@ describe('Consumer funnel telemetry route', () => {
     expect(logInfo.mock.calls[0][2]).toEqual(expect.objectContaining({ traffic_class: 'test' }))
   })
 
+  it('keeps Reddit and YouTube as distinct supported source classes', async () => {
+    await POST(request({ ...validBody, acquisition_source: 'reddit.com' }))
+    expect(logInfo.mock.calls[0][2]).toEqual(expect.objectContaining({ source_class: 'reddit' }))
+
+    await POST(request({ ...validBody, acquisition_source: null, referrer_host: 'www.youtube.com' }))
+    expect(logInfo.mock.calls[1][2]).toEqual(expect.objectContaining({ source_class: 'youtube' }))
+  })
+
   it('rejects unknown events and malformed identifiers', async () => {
     const response = await POST(request({
       ...validBody,

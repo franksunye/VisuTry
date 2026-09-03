@@ -35,6 +35,17 @@ function hasKnownTestCookie(request: NextRequest): boolean {
   return Boolean(request.cookies.get('test-session'))
 }
 
+function matchesDomain(value: string | undefined, domains: readonly string[]): boolean {
+  const normalized = value?.trim().toLowerCase()
+  if (!normalized) return false
+  const host = normalized
+    .replace(/^https?:\/\//, '')
+    .split(/[/?#]/, 1)[0]
+    .replace(/:\d+$/, '')
+    .replace(/^www\./, '')
+  return domains.some((domain) => host === domain || host.endsWith(`.${domain}`))
+}
+
 function classifySource(input: {
   source?: string
   medium?: string
@@ -51,11 +62,17 @@ function classifySource(input: {
 
   const source = input.source?.toLowerCase() ?? ''
   const medium = input.medium?.toLowerCase() ?? ''
-  if ((!source || source === 'direct') && (!medium || medium === 'none')) {
+  if ((!source || source === 'direct') && (!medium || medium === 'none') && !input.referrerHost) {
     return { sourceClass: 'direct' }
   }
   if (medium === 'organic' || medium === 'seo') return { sourceClass: 'organic_search' }
   if (/paid|cpc|ppc|display|sponsored/.test(medium)) return { sourceClass: 'paid' }
+  if (source === 'reddit' || matchesDomain(source, ['reddit.com', 'redd.it']) || matchesDomain(input.referrerHost, ['reddit.com', 'redd.it'])) {
+    return { sourceClass: 'reddit' }
+  }
+  if (source === 'youtube' || matchesDomain(source, ['youtube.com', 'youtu.be']) || matchesDomain(input.referrerHost, ['youtube.com', 'youtu.be'])) {
+    return { sourceClass: 'youtube' }
+  }
   if (/social/.test(medium) || /facebook|instagram|reddit|youtube|tiktok|linkedin/.test(source)) {
     return { sourceClass: 'social' }
   }

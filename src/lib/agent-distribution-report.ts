@@ -10,6 +10,8 @@ export const AGENT_DISTRIBUTION_SOURCE_CLASSES = [
   'paid',
   'direct',
   'social',
+  'reddit',
+  'youtube',
   'other',
 ] as const
 

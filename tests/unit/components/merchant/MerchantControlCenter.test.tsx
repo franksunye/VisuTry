@@ -57,6 +57,7 @@ describe('MerchantControlCenter', () => {
         scope: 'MERCHANT_STORE_CAMPAIGN_SESSIONS',
         consumerEventBoundary: 'Detector and Advisor events currently live in GA4/dataLayer without a durable MerchantSession join; this report does not claim those Consumer actions.',
         sources: [{ sourceClass: 'chatgpt', visitors: 4, engagedShoppers: 3, recommendationActivity: 2, tryOnCompletions: 1, compareActivity: 1, productClicks: 1, inquiries: 0, highIntentShoppers: 1 }],
+        experiences: [],
       },
       experiences: [{ id: 'experience-a', type: 'STORE', name: 'Reference Store', status: 'ACTIVE', referenceData: true, visitors: 12, engagedShoppers: 8, recommendationActivity: 7, tryOnCompletions: 5, compareActivity: 3, productClicks: 2, highIntentShoppers: 2 }],
     } }} />)
