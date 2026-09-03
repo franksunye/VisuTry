@@ -1,24 +1,24 @@
 {
   "schema_version": 2,
-  "last_updated": "2026-08-31T14:01:12+08:00",
-  "rollout_week": "2026-W35",
+  "last_updated": "2026-09-03T10:24:28+08:00",
+  "rollout_week": "2026-W36",
   "branch": "growth/community-ops",
   "timezone": "Asia/Shanghai",
   "last_run": {
-    "started_at": "2026-08-31T10:00:00+08:00",
-    "finished_at": "2026-08-31T14:01:12+08:00",
+    "started_at": "2026-09-03T10:00:00+08:00",
+    "finished_at": "2026-09-03T10:24:28+08:00",
     "status": "NO_HIGH_QUALITY_ACTION_FOUND",
     "trigger": "SCHEDULED",
     "scheduler_run_id": "NOT_EXPOSED",
     "public_research": true,
     "reddit_searches": 2,
-    "youtube_searches": 2,
+    "youtube_searches": 1,
     "reddit_interactions": 0,
     "youtube_interactions": 0,
-    "follow_ups": 3,
-    "questions_discovered": 2,
-    "insights_captured": 4,
-    "blockers": [],
+    "follow_ups": 2,
+    "questions_discovered": 0,
+    "insights_captured": 0,
+    "blockers": ["SCHEDULED_EVIDENCE_GAP: missing 2026-09-01 and 2026-09-02 evidence; scheduler run history and root cause not exposed"],
     "promotion_fit_opportunities_considered": 2,
     "promotion_fit_opportunities_rejected": 2,
     "promotion_fit_opportunities_pending_confirmation": 0,
@@ -29,7 +29,7 @@
     },
     "visutry_mentions": 0,
     "visutry_links": 0,
-    "promotion_fit_notes": "Both trust and distribution lanes were searched. The fresh Reddit high-nose-bridge thread was rejected because it was primarily a physical-fit issue already addressed by current replies; the prior YouTube round-face candidate was rechecked and expired because the exact recent question was no longer surfaced. No current promotion-fit action remained."
+    "promotion_fit_notes": "Both trust and distribution lanes were searched during recovery. Current Reddit results were unrelated or stale; current YouTube virtual-try-on results were older brand/tutorial content without a viewer question. No current promotion-fit action remained, and no volume increase was used to compensate for the prior scheduler gap."
   },
   "platforms": {
     "reddit": {
@@ -60,15 +60,15 @@
     "timezone": "Asia/Shanghai",
     "status": "ACTIVE",
     "next_run_at": "NOT_EXPOSED",
-    "verified_at": "2026-08-31T14:01:12+08:00",
+    "verified_at": "2026-09-03T10:24:28+08:00",
     "verification_source": "CODEX_SCHEDULER"
   },
   "pending_actions": [],
   "reviewer_alert": {
     "date": "2026-09-01",
-    "status": "SCHEDULED_RUN_EVIDENCE_MISSING",
+    "status": "CURRENT_RUN_EVIDENCE_RESTORED",
     "observed_after_expected_run_window": true,
-    "evidence": "No growth/community/daily/2026-09-01.md exists; last_run remains 2026-08-31; remote growth/community-ops HEAD still predates the expected 2026-09-01 ops commit.",
-    "required_next_run_behavior": "Do not backfill 2026-09-01 as SCHEDULED unless scheduler execution evidence exists. On the next actual Codex run, inspect and record the scheduler gap/root cause if observable; preserve trigger truthfully as MANUAL, SCHEDULED, RETRY, or UNKNOWN; restore normal evidence/commit/push only after real execution."
+    "evidence": "No daily evidence exists for 2026-09-01 or 2026-09-02; the current 2026-09-03 scheduled run restored the next real daily log, state update, commit, and push without backfilling either missed date.",
+    "recovery_note": "Scheduler configuration is ACTIVE, but scheduler run history and the root cause of the missed dates were not exposed in the observable runtime."
   }
 }
