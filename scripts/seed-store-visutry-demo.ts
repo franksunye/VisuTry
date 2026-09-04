@@ -1,10 +1,10 @@
 /**
- * Seed the VisuTry-owned internal validation merchant.
+ * Seed the VisuTry-owned first-party discovery canary.
  *
  * Safety:
  * - Uses one fixed merchant slug and tenant-scoped upserts only.
  * - Never deletes shared rows or touches another merchant.
- * - Uses generic local VisuTry assets with no external product destinations.
+ * - Uses generic local VisuTry assets with first-party frame destinations.
  * - Requires VISUTRY_DEMO_SEED_CONFIRM=yes when targeting production.
  *
  * Usage:
@@ -15,10 +15,13 @@
 const MERCHANT_SLUG = 'visutry-demo'
 const MERCHANT_NAME = 'VisuTry Demo'
 const SPONSORED_POLICY_KEY = 'VISUTRY_OWNED'
+const DISCOVERY_CANARY_SOURCE = 'DISCOVERY_CANARY_2026-09-03'
+const DISCOVERY_CANARY_REASON = 'VisuTry-owned first-party Discovery Canary; not an external merchant, customer, or partner claim.'
 
 const FRAME_DEFINITIONS = [
   {
     sku: 'VT-DEMO-ROUND-01',
+    slug: 'round',
     name: 'VisuTry Round',
     imageUrl: '/assets/glasses-presets/round-classic.jpg',
     shape: 'round',
@@ -29,6 +32,7 @@ const FRAME_DEFINITIONS = [
   },
   {
     sku: 'VT-DEMO-RECT-01',
+    slug: 'rectangle',
     name: 'VisuTry Rectangle',
     imageUrl: '/assets/glasses-presets/rectangle-classic.jpg',
     shape: 'rectangle',
@@ -39,6 +43,7 @@ const FRAME_DEFINITIONS = [
   },
   {
     sku: 'VT-DEMO-OVAL-01',
+    slug: 'oval',
     name: 'VisuTry Oval',
     imageUrl: '/assets/glasses-presets/oval-classic.jpg',
     shape: 'oval',
@@ -49,6 +54,7 @@ const FRAME_DEFINITIONS = [
   },
   {
     sku: 'VT-DEMO-BROW-01',
+    slug: 'browline',
     name: 'VisuTry Browline',
     imageUrl: '/assets/glasses-presets/browline-classic.jpg',
     shape: 'browline',
@@ -59,6 +65,7 @@ const FRAME_DEFINITIONS = [
   },
   {
     sku: 'VT-DEMO-AVI-01',
+    slug: 'aviator',
     name: 'VisuTry Aviator',
     imageUrl: '/assets/glasses-presets/aviator-classic.jpg',
     shape: 'aviator',
@@ -69,6 +76,7 @@ const FRAME_DEFINITIONS = [
   },
   {
     sku: 'VT-DEMO-CAT-01',
+    slug: 'cat-eye',
     name: 'VisuTry Cat-Eye',
     imageUrl: '/assets/glasses-presets/cat-eye-classic.jpg',
     shape: 'cat-eye',
@@ -85,7 +93,7 @@ const EXPERIENCE_DEFINITIONS = [
     type: 'STORE' as const,
     name: 'VisuTry Demo Store',
     headline: 'Find frames for your everyday style',
-    description: 'Internal validation experience for VisuTry-owned shopping flows.',
+    description: 'VisuTry-owned demo experience for evaluating frame discovery, virtual try-on, and shopper decisions.',
     campaign: 'visutry-demo-store',
     frameCount: FRAME_DEFINITIONS.length,
   },
@@ -94,16 +102,16 @@ const EXPERIENCE_DEFINITIONS = [
     type: 'CAMPAIGN' as const,
     name: 'Everyday Fit',
     headline: 'Find frames that fit your everyday style',
-    description: 'A neutral internal campaign for validating guided frame discovery.',
+    description: 'VisuTry-owned demo campaign for evaluating guided frame discovery and shopper decisions.',
     campaign: 'visutry-demo-everyday-fit',
     frameCount: 4,
   },
 ] as const
 
-const INTERNAL_METADATA = {
+const CANARY_METADATA = {
   ownership: 'VISUTRY',
-  purpose: 'INTERNAL_VALIDATION',
-  disclosure: 'VisuTry-owned internal validation experience',
+  purpose: 'DISCOVERY_CANARY',
+  disclosure: 'VisuTry-owned first-party discovery canary; not an external merchant or customer storefront.',
 }
 
 function isProductionEnvironment(): boolean {
@@ -123,19 +131,19 @@ function printDryRun(): void {
     merchant: {
       slug: MERCHANT_SLUG,
       name: MERCHANT_NAME,
-      pilotType: 'INTERNAL',
+      pilotType: 'LIVE',
       referenceData: false,
-      classification: 'INTERNAL',
+      classification: 'REAL',
       sponsoredUsagePolicyKey: SPONSORED_POLICY_KEY,
-      metadata: INTERNAL_METADATA,
+      metadata: CANARY_METADATA,
     },
-    frames: FRAME_DEFINITIONS.map(({ sku, name, imageUrl, shape, widthClass }) => ({
+    frames: FRAME_DEFINITIONS.map(({ sku, slug, name, imageUrl, shape, widthClass }) => ({
       sku,
       name,
       imageUrl,
       shape,
       widthClass,
-      productUrl: null,
+      productUrl: `https://www.visutry.com/en/demo/frames/${slug}`,
     })),
     experiences: EXPERIENCE_DEFINITIONS,
     writes: 'tenant-scoped upserts only',
@@ -160,6 +168,7 @@ async function main(): Promise<void> {
           name: true,
           websiteUrl: true,
           pilotType: true,
+          classification: true,
           referenceData: true,
         },
       })
@@ -167,11 +176,12 @@ async function main(): Promise<void> {
       if (existingMerchant && (
         existingMerchant.name !== MERCHANT_NAME ||
         existingMerchant.websiteUrl !== null ||
-        existingMerchant.pilotType !== 'INTERNAL' ||
+        existingMerchant.pilotType !== 'LIVE' ||
+        existingMerchant.classification !== 'REAL' ||
         existingMerchant.referenceData
       )) {
         throw new Error(
-          `Refusing to reuse ${MERCHANT_SLUG}: existing row is not the expected VisuTry-owned internal merchant`,
+          `Refusing to reuse ${MERCHANT_SLUG}: existing row is not the expected VisuTry-owned discovery canary`,
         )
       }
 
@@ -182,11 +192,11 @@ async function main(): Promise<void> {
           name: MERCHANT_NAME,
           websiteUrl: null,
           status: 'ACTIVE',
-          pilotType: 'INTERNAL',
+          pilotType: 'LIVE',
           referenceData: false,
-          classification: 'INTERNAL',
-          classificationSource: 'INTERNAL_DEMO_SEED',
-          classificationReason: 'VisuTry-owned internal demo workspace created by the guarded Demo seed.',
+          classification: 'REAL',
+          classificationSource: DISCOVERY_CANARY_SOURCE,
+          classificationReason: DISCOVERY_CANARY_REASON,
           defaultSource: 'visutry',
           defaultCampaign: 'visutry-demo',
           tryOnEnabled: true,
@@ -194,20 +204,16 @@ async function main(): Promise<void> {
           maxCompareFrames: 2,
           inquiryEnabled: false,
           sponsoredUsagePolicyKey: SPONSORED_POLICY_KEY,
-          planCode: 'INTERNAL_VALIDATION',
-          commercialStage: 'INTERNAL_VALIDATION',
-          pricingVersion: 'internal-v1',
-          entitlementVersion: 'sponsored-usage-v1',
         },
         update: {
           name: MERCHANT_NAME,
           websiteUrl: null,
           status: 'ACTIVE',
-          pilotType: 'INTERNAL',
+          pilotType: 'LIVE',
           referenceData: false,
-          classification: 'INTERNAL',
-          classificationSource: 'INTERNAL_DEMO_SEED',
-          classificationReason: 'VisuTry-owned internal demo workspace maintained by the guarded Demo seed.',
+          classification: 'REAL',
+          classificationSource: DISCOVERY_CANARY_SOURCE,
+          classificationReason: DISCOVERY_CANARY_REASON,
           defaultSource: 'visutry',
           defaultCampaign: 'visutry-demo',
           tryOnEnabled: true,
@@ -215,10 +221,6 @@ async function main(): Promise<void> {
           maxCompareFrames: 2,
           inquiryEnabled: false,
           sponsoredUsagePolicyKey: SPONSORED_POLICY_KEY,
-          planCode: 'INTERNAL_VALIDATION',
-          commercialStage: 'INTERNAL_VALIDATION',
-          pricingVersion: 'internal-v1',
-          entitlementVersion: 'sponsored-usage-v1',
         },
         select: { id: true, slug: true, name: true, sponsoredUsagePolicyKey: true },
       })
@@ -243,14 +245,14 @@ async function main(): Promise<void> {
             name: frame.name,
             brand: 'VisuTry',
             imageUrl: frame.imageUrl,
-            productUrl: null,
+            productUrl: `https://www.visutry.com/en/demo/frames/${frame.slug}`,
             shape: frame.shape,
             material: frame.material,
             color: frame.color,
             widthClass: frame.widthClass,
             styleTags: [...frame.styleTags],
-            collectionTags: ['visutry-demo', 'internal-validation'],
-            sourceNotes: 'VisuTry-owned generic validation frame; no external product identity.',
+            collectionTags: ['visutry-demo', 'discovery-canary'],
+            sourceNotes: 'VisuTry-owned first-party demo inventory; not offered for sale.',
             source: 'SEED',
             externalId: frame.sku,
             enrichmentStatus: 'NOT_REQUIRED',
@@ -260,14 +262,14 @@ async function main(): Promise<void> {
             name: frame.name,
             brand: 'VisuTry',
             imageUrl: frame.imageUrl,
-            productUrl: null,
+            productUrl: `https://www.visutry.com/en/demo/frames/${frame.slug}`,
             shape: frame.shape,
             material: frame.material,
             color: frame.color,
             widthClass: frame.widthClass,
             styleTags: [...frame.styleTags],
-            collectionTags: ['visutry-demo', 'internal-validation'],
-            sourceNotes: 'VisuTry-owned generic validation frame; no external product identity.',
+            collectionTags: ['visutry-demo', 'discovery-canary'],
+            sourceNotes: 'VisuTry-owned first-party demo inventory; not offered for sale.',
             source: 'SEED',
             externalId: frame.sku,
             enrichmentStatus: 'NOT_REQUIRED',
@@ -296,7 +298,7 @@ async function main(): Promise<void> {
             referenceData: false,
             defaultSource: 'visutry',
             defaultCampaign: definition.campaign,
-            referenceMetadata: INTERNAL_METADATA,
+            referenceMetadata: CANARY_METADATA,
           },
           update: {
             type: definition.type,
@@ -307,7 +309,7 @@ async function main(): Promise<void> {
             referenceData: false,
             defaultSource: 'visutry',
             defaultCampaign: definition.campaign,
-            referenceMetadata: INTERNAL_METADATA,
+            referenceMetadata: CANARY_METADATA,
           },
           select: { id: true, slug: true, type: true, merchantId: true },
         })

@@ -12,6 +12,8 @@ export const MERCHANT_DISTRIBUTION_SOURCE_CLASSES = [
   'paid',
   'direct',
   'social',
+  'reddit',
+  'youtube',
   'other',
 ] as const
 
@@ -29,7 +31,26 @@ export const MERCHANT_DISTRIBUTION_SOURCE_LABELS: Record<MerchantDistributionSou
   paid: 'Paid',
   direct: 'Direct',
   social: 'Social',
+  reddit: 'Reddit',
+  youtube: 'YouTube',
   other: 'Other',
+}
+
+export type MerchantDistributionExperience = {
+  experienceId: string
+  merchantSlug: string | null
+  merchantName: string | null
+  experienceType: string | null
+  experienceSlug: string | null
+  experienceName: string | null
+  visitors: number
+  engagedShoppers: number
+  recommendationActivity: number
+  tryOnCompletions: number
+  compareActivity: number
+  productClicks: number
+  inquiries: number
+  highIntentShoppers: number
 }
 
 export type MerchantDistributionReport = {
@@ -46,6 +67,7 @@ export type MerchantDistributionReport = {
     inquiries: number
     highIntentShoppers: number
   }>
+  experiences: MerchantDistributionExperience[]
 }
 
 type DistributionSession = {
@@ -54,6 +76,12 @@ type DistributionSession = {
   medium: string | null
   referrer: string | null
   aiAgentSource: string | null
+  experienceId?: string | null
+  merchantSlug?: string | null
+  merchantName?: string | null
+  experienceType?: string | null
+  experienceSlug?: string | null
+  experienceName?: string | null
 }
 
 type DistributionEvent = {
@@ -69,7 +97,7 @@ type DistributionIntent = {
   count: number
 }
 
-type SourceMetrics = {
+type DistributionMetrics = {
   visitors: number
   engaged: Set<string>
   recommendationActivity: number
@@ -85,7 +113,19 @@ function normalize(value: string | null): string {
 }
 
 function matchesDomain(value: string, domains: readonly string[]): boolean {
-  return domains.some((domain) => value === domain || value.endsWith(`.${domain}`))
+  const normalized = value.trim().toLowerCase()
+  if (!normalized) return false
+  let host = normalized
+  try {
+    host = new URL(normalized).hostname.toLowerCase()
+  } catch {
+    host = normalized
+      .replace(/^https?:\/\//, '')
+      .split(/[/?#]/, 1)[0]
+      .replace(/:\d+$/, '')
+      .replace(/^www\./, '')
+  }
+  return domains.some((domain) => host === domain || host.endsWith(`.${domain}`))
 }
 
 function sourceToken(session: DistributionSession): string {
@@ -118,6 +158,14 @@ export function classifyMerchantDistributionSource(session: DistributionSession)
     return 'organic_search'
   }
 
+  if (source === 'reddit' || matchesDomain(sourceOrReferrer, ['reddit.com', 'redd.it'])) {
+    return 'reddit'
+  }
+
+  if (source === 'youtube' || matchesDomain(sourceOrReferrer, ['youtube.com', 'youtu.be'])) {
+    return 'youtube'
+  }
+
   if (
     medium.includes('social') ||
     matchesDomain(sourceOrReferrer, ['facebook.com', 'instagram.com', 'tiktok.com', 'pinterest.com', 'linkedin.com', 'x.com', 'twitter.com'])
@@ -146,10 +194,10 @@ function emptySignals(): MerchantAnalyticsSessionSignals & { triedFrameIds: Set<
   }
 }
 
-function ensureMetrics(metrics: Map<MerchantDistributionSourceClass, SourceMetrics>, sourceClass: MerchantDistributionSourceClass): SourceMetrics {
-  const existing = metrics.get(sourceClass)
+function ensureMetrics<T extends string>(metrics: Map<T, DistributionMetrics>, key: T): DistributionMetrics {
+  const existing = metrics.get(key)
   if (existing) return existing
-  const created: SourceMetrics = {
+  const created: DistributionMetrics = {
     visitors: 0,
     engaged: new Set<string>(),
     recommendationActivity: 0,
@@ -159,16 +207,69 @@ function ensureMetrics(metrics: Map<MerchantDistributionSourceClass, SourceMetri
     inquiries: 0,
     signals: new Map(),
   }
-  metrics.set(sourceClass, created)
+  metrics.set(key, created)
   return created
 }
 
-function ensureSignals(metrics: SourceMetrics, sessionId: string) {
+function ensureSignals(metrics: DistributionMetrics, sessionId: string) {
   const existing = metrics.signals.get(sessionId)
   if (existing) return existing
   const created = emptySignals()
   metrics.signals.set(sessionId, created)
   return created
+}
+
+function applyEvent(metrics: DistributionMetrics, event: DistributionEvent) {
+  if (!event.merchantSessionId) return
+  const signals = ensureSignals(metrics, event.merchantSessionId)
+  if (ENGAGEMENT_EVENTS.has(event.type)) metrics.engaged.add(event.merchantSessionId)
+  if (event.type === 'merchant_recommendation_completed') metrics.recommendationActivity += event.count
+  if (event.type === 'merchant_tryon_completed') {
+    metrics.tryOnCompletions += event.count
+    signals.tryOnCompletions += event.count
+    if (event.merchantFrameId) {
+      signals.triedFrameIds.add(event.merchantFrameId)
+      signals.uniqueFramesTried = signals.triedFrameIds.size
+    }
+  }
+  if (event.type === 'merchant_tryon_started') signals.tryOnStarts += event.count
+  if (event.type === 'merchant_frame_selected') signals.frameInteractions += event.count
+  if (event.type === 'merchant_compare_started') {
+    metrics.compareActivity += event.count
+    signals.compares += event.count
+  }
+}
+
+function applyIntent(metrics: DistributionMetrics, intent: DistributionIntent) {
+  const signals = ensureSignals(metrics, intent.merchantSessionId)
+  if (intent.type === 'PRODUCT_CLICK') {
+    metrics.productClicks += intent.count
+    signals.productInteractions += intent.count
+  }
+  if (intent.type === 'INQUIRY') {
+    metrics.inquiries += intent.count
+    signals.productInteractions += intent.count
+  }
+  if (intent.type === 'FAVORITE') signals.favorites += intent.count
+}
+
+type ExperienceDescriptor = Pick<MerchantDistributionExperience, 'experienceId' | 'merchantSlug' | 'merchantName' | 'experienceType' | 'experienceSlug' | 'experienceName'>
+
+function metricsToExperience(
+  descriptor: ExperienceDescriptor,
+  metrics: DistributionMetrics,
+): MerchantDistributionExperience {
+  return {
+    ...descriptor,
+    visitors: metrics.visitors,
+    engagedShoppers: metrics.engaged.size,
+    recommendationActivity: metrics.recommendationActivity,
+    tryOnCompletions: metrics.tryOnCompletions,
+    compareActivity: metrics.compareActivity,
+    productClicks: metrics.productClicks,
+    inquiries: metrics.inquiries,
+    highIntentShoppers: Array.from(metrics.signals.values()).filter(isHighIntentSession).length,
+  }
 }
 
 const ENGAGEMENT_EVENTS = new Set([
@@ -192,52 +293,44 @@ export function buildMerchantDistributionReport(input: {
   intents: DistributionIntent[]
 }): MerchantDistributionReport {
   const sessionSource = new Map<string, MerchantDistributionSourceClass>()
-  const metrics = new Map<MerchantDistributionSourceClass, SourceMetrics>()
+  const sessionExperience = new Map<string, string>()
+  const metrics = new Map<MerchantDistributionSourceClass, DistributionMetrics>()
+  const experienceMetrics = new Map<string, DistributionMetrics>()
+  const experienceDescriptors = new Map<string, ExperienceDescriptor>()
 
   for (const session of input.sessions) {
     const sourceClass = classifyMerchantDistributionSource(session)
     sessionSource.set(session.id, sourceClass)
     ensureMetrics(metrics, sourceClass).visitors += 1
+    if (session.experienceId) {
+      sessionExperience.set(session.id, session.experienceId)
+      ensureMetrics(experienceMetrics, session.experienceId).visitors += 1
+      experienceDescriptors.set(session.experienceId, {
+        experienceId: session.experienceId,
+        merchantSlug: session.merchantSlug ?? null,
+        merchantName: session.merchantName ?? null,
+        experienceType: session.experienceType ?? null,
+        experienceSlug: session.experienceSlug ?? null,
+        experienceName: session.experienceName ?? null,
+      })
+    }
   }
 
   for (const event of input.events) {
     if (!event.merchantSessionId) continue
     const sourceClass = sessionSource.get(event.merchantSessionId)
     if (!sourceClass) continue
-    const target = ensureMetrics(metrics, sourceClass)
-    const signals = ensureSignals(target, event.merchantSessionId)
-    if (ENGAGEMENT_EVENTS.has(event.type)) target.engaged.add(event.merchantSessionId)
-    if (event.type === 'merchant_recommendation_completed') target.recommendationActivity += event.count
-    if (event.type === 'merchant_tryon_completed') {
-      target.tryOnCompletions += event.count
-      signals.tryOnCompletions += event.count
-      if (event.merchantFrameId) {
-        signals.triedFrameIds.add(event.merchantFrameId)
-        signals.uniqueFramesTried = signals.triedFrameIds.size
-      }
-    }
-    if (event.type === 'merchant_tryon_started') signals.tryOnStarts += event.count
-    if (event.type === 'merchant_frame_selected') signals.frameInteractions += event.count
-    if (event.type === 'merchant_compare_started') {
-      target.compareActivity += event.count
-      signals.compares += event.count
-    }
+    applyEvent(ensureMetrics(metrics, sourceClass), event)
+    const experienceId = sessionExperience.get(event.merchantSessionId)
+    if (experienceId) applyEvent(ensureMetrics(experienceMetrics, experienceId), event)
   }
 
   for (const intent of input.intents) {
     const sourceClass = sessionSource.get(intent.merchantSessionId)
     if (!sourceClass) continue
-    const target = ensureMetrics(metrics, sourceClass)
-    const signals = ensureSignals(target, intent.merchantSessionId)
-    if (intent.type === 'PRODUCT_CLICK') {
-      target.productClicks += intent.count
-      signals.productInteractions += intent.count
-    }
-    if (intent.type === 'INQUIRY') {
-      target.inquiries += intent.count
-      signals.productInteractions += intent.count
-    }
-    if (intent.type === 'FAVORITE') signals.favorites += intent.count
+    applyIntent(ensureMetrics(metrics, sourceClass), intent)
+    const experienceId = sessionExperience.get(intent.merchantSessionId)
+    if (experienceId) applyIntent(ensureMetrics(experienceMetrics, experienceId), intent)
   }
 
   return {
@@ -256,5 +349,18 @@ export function buildMerchantDistributionReport(input: {
         highIntentShoppers: Array.from(value.signals.values()).filter(isHighIntentSession).length,
       }))
       .sort((a, b) => b.visitors - a.visitors || a.sourceClass.localeCompare(b.sourceClass)),
+    experiences: Array.from(experienceMetrics.entries())
+      .map(([experienceId, value]) => metricsToExperience(
+        experienceDescriptors.get(experienceId) ?? {
+          experienceId,
+          merchantSlug: null,
+          merchantName: null,
+          experienceType: null,
+          experienceSlug: null,
+          experienceName: null,
+        },
+        value,
+      ))
+      .sort((a, b) => b.visitors - a.visitors || a.experienceId.localeCompare(b.experienceId)),
   }
 }

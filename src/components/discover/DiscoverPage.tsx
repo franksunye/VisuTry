@@ -172,6 +172,18 @@ export function DiscoverPage({ content }: { content: DiscoverContent }) {
               </Link>
             ))}
           </div>
+
+          <Link
+            href={content.canary.href}
+            className="group mt-5 flex max-w-2xl items-center justify-between gap-5 rounded-2xl border border-blue-200 bg-blue-50/70 p-5 transition hover:border-blue-300 hover:bg-blue-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
+          >
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.14em] text-blue-700">First-party demo</p>
+              <h3 className="mt-1 text-lg font-semibold text-slate-950">{content.canary.name}</h3>
+              <p className="mt-1 text-sm leading-6 text-slate-600">{content.canary.description}</p>
+            </div>
+            <ArrowRight className="h-5 w-5 shrink-0 text-blue-600 transition group-hover:translate-x-1" aria-hidden="true" />
+          </Link>
         </div>
       </section>
     </main>

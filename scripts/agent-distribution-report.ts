@@ -76,8 +76,20 @@ async function readConsumerEvents(options: CliOptions): Promise<ConsumerFunnelRe
   if (!/^[A-Za-z0-9_-]+$/.test(dataset)) throw new Error('AXIOM_DATASET contains unsupported characters')
 
   const axiom = new Axiom({ token, orgId: process.env.AXIOM_ORG_ID?.trim() || undefined })
+  const projectedFields = [
+    'traffic_class=column_ifexists("data.traffic_class", "")',
+    'consumer_funnel_id=column_ifexists("data.consumer_funnel_id", "")',
+    'source_class=column_ifexists("data.source_class", "")',
+    'agent_source=column_ifexists("data.agent_source", "")',
+    'event_name=column_ifexists("data.event_name", "")',
+    'landing_page=column_ifexists("data.landing_page", "")',
+    'page_path=column_ifexists("data.page_path", "")',
+    'surface=column_ifexists("data.surface", "")',
+    'entry_point=column_ifexists("data.entry_point", "")',
+    'campaign_name=column_ifexists("data.campaign_name", "")',
+  ]
   const result = await axiom.query(
-    `['${dataset}'] | where message == "consumer_funnel_event" | project _time, data | take 50000`,
+    `['${dataset}'] | where message == "consumer_funnel_event" | project _time, ${projectedFields.join(', ')} | take 50000`,
     {
       startTime: options.from.toISOString(),
       endTime: options.to.toISOString(),
@@ -87,7 +99,14 @@ async function readConsumerEvents(options: CliOptions): Promise<ConsumerFunnelRe
   )
 
   return rowsFromAxiom(result).map((row) => {
-    const payload = parsePayload(row.data)
+    const payload = {
+      ...parsePayload(row.data),
+      ...Object.fromEntries(
+        ['traffic_class', 'consumer_funnel_id', 'source_class', 'agent_source', 'event_name', 'landing_page', 'page_path', 'surface', 'entry_point', 'campaign_name']
+          .filter((field) => row[field] !== undefined && row[field] !== null && row[field] !== '')
+          .map((field) => [field, row[field]]),
+      ),
+    }
     return {
       trafficClass: stringValue(payload.traffic_class),
       funnelId: stringValue(payload.consumer_funnel_id),
@@ -108,8 +127,10 @@ async function readMerchantReport(options: CliOptions) {
   const [sessions, events, intents] = await Promise.all([
     sql`
       SELECT s."id", s."source", s."medium", s."referrer", s."aiAgentSource", s."referenceData",
+        m."slug" AS "merchantSlug", m."name" AS "merchantName",
         m."pilotType" AS "merchantPilotType", m."referenceData" AS "merchantReferenceData",
-        e."type" AS "experienceType"
+        m."classification" AS "merchantClassification",
+        e."id" AS "experienceId", e."type" AS "experienceType", e."slug" AS "experienceSlug", e."name" AS "experienceName"
       FROM "MerchantSession" s
       JOIN "Merchant" m ON m."id" = s."merchantId"
       LEFT JOIN "Experience" e ON e."id" = s."experienceId" AND e."merchantId" = s."merchantId"
@@ -128,24 +149,67 @@ async function readMerchantReport(options: CliOptions) {
     `,
   ])
 
-  const qualifying = sessions
-    .filter((session) => (
-      !session.referenceData
-      && !session.merchantReferenceData
-      && session.merchantPilotType !== 'INTERNAL'
-      && session.experienceType !== null
-    ))
-    .map((session) => ({
+  const exclusions = {
+    referenceOrInternal: 0,
+    testOrAutomation: 0,
+    suspicious: 0,
+    unscoped: 0,
+  }
+  const qualifying = []
+
+  for (const session of sessions) {
+    const pilotType = stringValue(session.merchantPilotType)?.toUpperCase()
+    const classification = stringValue(session.merchantClassification)?.toUpperCase()
+    const isReferenceOrInternal = Boolean(
+      session.referenceData
+      || session.merchantReferenceData
+      || pilotType === 'REFERENCE'
+      || pilotType === 'INTERNAL'
+      || classification === 'REFERENCE'
+      || classification === 'INTERNAL',
+    )
+    const isTestOrAutomation = classification === 'TEST' || classification === 'AUTOMATION'
+    const isSuspicious = classification === 'SUSPICIOUS'
+
+    if (isReferenceOrInternal) {
+      exclusions.referenceOrInternal += 1
+      continue
+    }
+    if (isTestOrAutomation) {
+      exclusions.testOrAutomation += 1
+      continue
+    }
+    if (isSuspicious) {
+      exclusions.suspicious += 1
+      continue
+    }
+    if (!session.experienceId || !session.experienceType) {
+      exclusions.unscoped += 1
+      continue
+    }
+
+    qualifying.push({
       id: String(session.id),
       source: session.source == null ? null : String(session.source),
       medium: session.medium == null ? null : String(session.medium),
       referrer: session.referrer == null ? null : String(session.referrer),
       aiAgentSource: session.aiAgentSource == null ? null : String(session.aiAgentSource),
-    }))
+      experienceId: String(session.experienceId),
+      merchantSlug: stringValue(session.merchantSlug),
+      merchantName: stringValue(session.merchantName),
+      experienceType: stringValue(session.experienceType),
+      experienceSlug: stringValue(session.experienceSlug),
+      experienceName: stringValue(session.experienceName),
+    })
+  }
 
   return {
     sessionsRead: sessions.length,
-    excludedReferenceOrInternalSessions: sessions.length - qualifying.length,
+    excludedSessions: sessions.length - qualifying.length,
+    excludedReferenceOrInternalSessions: exclusions.referenceOrInternal,
+    excludedTestOrAutomationSessions: exclusions.testOrAutomation,
+    excludedSuspiciousSessions: exclusions.suspicious,
+    excludedUnscopedSessions: exclusions.unscoped,
     storeCampaignSessions: qualifying.length,
     report: buildMerchantDistributionReport({
       sessions: qualifying,
@@ -191,7 +255,11 @@ async function main() {
   console.log(`Consumer Agent sessions: ${report.consumer.agentSessions}`)
   console.log(`Consumer sessions with decision action: ${report.consumer.sessionsWithDecisionAction}`)
   console.log(`Merchant Store/Campaign sessions: ${report.merchant.storeCampaignSessions}`)
+  console.log(`Excluded sessions: ${report.merchant.excludedSessions}`)
   console.log(`Excluded Reference/Internal sessions: ${report.merchant.excludedReferenceOrInternalSessions}`)
+  console.log(`Excluded TEST/AUTOMATION sessions: ${report.merchant.excludedTestOrAutomationSessions}`)
+  console.log(`Excluded suspicious sessions: ${report.merchant.excludedSuspiciousSessions}`)
+  console.log(`Excluded unscoped sessions: ${report.merchant.excludedUnscopedSessions}`)
   console.log(`Cross-system join: NOT JOINED — ${report.join.reason}`)
   console.log(JSON.stringify(report, null, 2))
 }

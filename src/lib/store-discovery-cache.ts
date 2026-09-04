@@ -54,7 +54,10 @@ export function publicDiscoveryCacheKey(input: {
 }): string[] {
   return [
     publicDiscoveryCacheNamespace(),
-    'public-experience-discovery',
+    // Bump when a scoped production provisioning write happens outside the
+    // application invalidation boundary; this prevents an old ISR read model
+    // from masking the now-authoritative PUBLIC_INDEX state.
+    'public-experience-discovery-v2',
     input.locale,
     input.merchantSlug,
     input.experienceSlug || 'store',
