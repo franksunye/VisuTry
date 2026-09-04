@@ -586,3 +586,23 @@ Reference pre-Tiered combined baseline for the three families: approximately **2
 **6. Single most important question:** Can we obtain one classification-consistent pilot window that separates `/style/` document HTML from RSC/Flight and ties cache status to Vercel ISR and origin request counts, so the apparent `style` dynamic load can be attributed to prefetch rather than measurement gaps?
 
 **Deployment note:** The successful Production style prefetch containment deployment remains `c4c162f`; the latest `main` deployment observed was `bbaa00b` with Error status. No production configuration, application code, data, or cache setting was changed by this inspection.
+
+## 2026-09-04
+
+### Codex Morning Inspection — 11:00
+
+**Compared windows:** GA4 complete prior day 2026-09-03 versus 2026-09-02; Vercel and Cloudflare rolling 12 hours ending about 11:00 +08:00; Axiom last 1 day.
+
+**1. Traffic:** GA4 recorded **253 sessions**, **844 views**, and **236 active users**, versus 261 / 792 / 239 on 2026-09-02: sessions **-3.1%**, views **+6.6%**, and active users **-1.3%**. Organic sessions were **127** versus 120, while AI Assistant was **24** versus 40 (**-40%**). Overall traffic was broadly stable; AI referral traffic declined materially and should be watched.
+
+**2. Vercel resource efficiency:** The current 12-hour production window showed **14K ISR Read Units**, **284 Write Units**, **2.9K Request Caching**, and **0** time-based or tag revalidations. Pilot route Read Units were approximately **1.5K** for `glasses-guide`, **481** for `style`, and **209** for `sunglasses-for`, approximately **2.19K combined** versus the ~**2.52K / 12h** pre-Tiered reference and the prior observation of ~**3.70K**. Visible route Count / Units / Bytes were `glasses-guide` **144 / 1.5K / 12 MB**, `style` **45 / 481 / 4 MB**, and `sunglasses-for` **not exposed / 209 / 2 MB**. Fast Data Transfer was **192 MB outgoing** and **22 MB incoming**; route-level FOT was not inferred. Functions showed **1.6K invocations**, error rate **below 0.1%**, timeout **0%**, memory **239 MB / 2.05 GB**, CPU throttle P75 **27.9%**, and cold start **7.6%**.
+
+**3. Cloudflare:** Zone-wide rolling 12 hours showed **14.04K requests**, **1.03K visits**, **43.63% cache HIT rate**, **700.97 MB transfer**, and status codes 11.95K 2xx, 1.38K 3xx, 715 4xx, and 1 5xx. Smart Tiered Cache is **Active** with Smart Tiered Cache selected; Origin Configuration still reports an error. Path-filtered totals were `glasses-guide` **198** with **19.70%** hit rate, `style` **229** with **17.03%** hit rate, and `sunglasses-for` **21** with **19.05%** hit rate. The `style` DYNAMIC query returned **155** requests, about **67.7%** of its filtered total. A complete consistent HIT / MISS / EXPIRED / DYNAMIC breakdown was not available for all three routes, so no residuals were assigned to a cache state.
+
+**4. Experiment:** **INCONCLUSIVE / HOLD.** Pilot ISR Units are now below the old baseline and below the previous observation, but global FOT increased and the route classification remains incomplete. The high `style` DYNAMIC share is consistent with prefetch-driven requests, but this window does not establish origin savings or a causal Tiered Cache benefit. No cache or production change is recommended from this observation.
+
+**5. Axiom/regression:** The last 1 day returned **28 error/warning events** across 7 message groups: **19 `Free face shape detection failed`**, **4 `NextAuth session request slow or aborted`**, and one each for an unhandled payment event, analysis failure, face-analysis quota denial, Chat API transient provider error, and Chat API network error. The ChunkLoadError / hydration / RSC query returned **0 events**. The repeated face-shape failures remain the primary application-health watch item; no broad frontend rendering regression was observed.
+
+**6. Single most important question:** Can we produce a complete, classification-consistent pilot measurement that separates `/style/` document HTML from RSC/Flight and connects the lower pilot ISR Units to actual origin requests, before treating the apparent improvement as a Tiered Cache or prefetch success?
+
+**Deployment note:** Latest `main` Production deployment observed is `0acc14e`, **Ready**, about 11 hours old; a prior preview deployment showed Error but no current main Production error was visible. No production configuration, application code, data, or cache setting was changed by this inspection.
