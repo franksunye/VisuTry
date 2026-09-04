@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { logger } from '@/lib/logger'
 import { CONSUMER_FUNNEL_EVENT_NAMES } from '@/lib/consumer-funnel'
 import { inferAiReferralSource } from '@/lib/commerce-handoff/ai-referral'
+import { emitTrafficTelemetry, type TrafficTelemetryInput } from '@/lib/traffic-telemetry'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -134,7 +134,10 @@ export async function POST(request: NextRequest) {
   if (sourceClassification.agentSource) telemetry.agent_source = sourceClassification.agentSource
   if (typeof body.success === 'boolean') telemetry.success = body.success
 
-  logger.info('web', 'consumer_funnel_event', telemetry)
+  // Consumer evidence has a dedicated flat schema. Await the server-side
+  // emission so the request lifecycle observes completion; the emitter
+  // swallows Axiom failures so telemetry failure remains non-fatal.
+  await emitTrafficTelemetry(telemetry as TrafficTelemetryInput)
 
   return NextResponse.json(
     { accepted: true },

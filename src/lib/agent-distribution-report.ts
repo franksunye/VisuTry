@@ -30,6 +30,7 @@ export const CONSUMER_DECISION_EVENTS = [
 export type ConsumerDecisionEventName = (typeof CONSUMER_DECISION_EVENTS)[number]
 
 export type ConsumerFunnelReportEvent = {
+  eventId: string | null
   trafficClass: 'test' | 'production_candidate' | string | null
   funnelId: string | null
   sourceClass: string | null
@@ -52,6 +53,8 @@ export type ConsumerFunnelSourceReport = {
 
 export type ConsumerFunnelReport = {
   eventsRead: number
+  duplicateEvents: number
+  invalidIdentityEvents: number
   excludedTestEvents: number
   productionCandidateEvents: number
   totalSessions: number
@@ -114,13 +117,38 @@ export function buildConsumerFunnelReport(events: ConsumerFunnelReportEvent[]): 
   const actionSessions = new Set<string>()
   let excludedTestEvents = 0
   let productionCandidateEvents = 0
+  let duplicateEvents = 0
+  let invalidIdentityEvents = 0
 
+  // The same event can be present in both the legacy operational dataset and
+  // the dedicated traffic dataset during the cutover. TEST wins if duplicate
+  // rows disagree, so a synthetic event can never become production proof.
+  const uniqueEvents = new Map<string, ConsumerFunnelReportEvent>()
+  const missingIdentityEvents: ConsumerFunnelReportEvent[] = []
   for (const event of events) {
+    if (!event.eventId) {
+      missingIdentityEvents.push(event)
+      continue
+    }
+    const existing = uniqueEvents.get(event.eventId)
+    if (!existing) {
+      uniqueEvents.set(event.eventId, event)
+      continue
+    }
+    duplicateEvents += 1
+    if (event.trafficClass === 'test') uniqueEvents.set(event.eventId, event)
+  }
+
+  for (const event of [...missingIdentityEvents, ...uniqueEvents.values()]) {
     if (event.trafficClass === 'test') {
       excludedTestEvents += 1
       continue
     }
     if (event.trafficClass !== 'production_candidate' || !event.funnelId) continue
+    if (!event.eventId) {
+      invalidIdentityEvents += 1
+      continue
+    }
     productionCandidateEvents += 1
     const key = sourceKey(event)
     const current = sourceMetrics.get(key) || {
@@ -161,6 +189,8 @@ export function buildConsumerFunnelReport(events: ConsumerFunnelReportEvent[]): 
 
   return {
     eventsRead: events.length,
+    duplicateEvents,
+    invalidIdentityEvents,
     excludedTestEvents,
     productionCandidateEvents,
     totalSessions: allSessions.size,
