@@ -53,31 +53,45 @@ function rowsFromAxiom(result: any): Array<Record<string, unknown>> {
   return rows
 }
 
-function parsePayload(value: unknown): Record<string, unknown> {
-  if (value && typeof value === 'object' && !Array.isArray(value)) return value as Record<string, unknown>
-  if (typeof value === 'string') {
-    try {
-      const parsed = JSON.parse(value)
-      if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) return parsed as Record<string, unknown>
-    } catch {
-      // Ignore malformed telemetry rows; the report must not fail open.
-    }
-  }
-  return {}
-}
-
 function stringValue(value: unknown): string | null {
   return typeof value === 'string' && value.trim() ? value.trim() : null
 }
 
+function datasetName(value: string, fallback: string): string {
+  const dataset = value.trim() || fallback
+  if (!/^[A-Za-z0-9_-]+$/.test(dataset)) throw new Error(`Axiom dataset contains unsupported characters: ${dataset}`)
+  return dataset
+}
+
+function consumerEventFromRow(row: Record<string, unknown>, prefix: 'legacy' | 'traffic') {
+  const read = (field: string) => prefix === 'legacy'
+    ? row[field] ?? row[`data.${field}`] ?? null
+    : row[field] ?? null
+  const stringField = (field: string) => stringValue(read(field))
+  return {
+    eventId: stringField('event_id'),
+    trafficClass: stringField('traffic_class'),
+    funnelId: stringField('consumer_funnel_id'),
+    sourceClass: stringField('source_class'),
+    agentSource: stringField('agent_source'),
+    eventName: stringField('event_name'),
+    landingPage: stringField('landing_page'),
+    pagePath: stringField('page_path'),
+    surface: stringField('surface'),
+    entryPoint: stringField('entry_point'),
+    campaignName: stringField('campaign_name'),
+  }
+}
+
 async function readConsumerEvents(options: CliOptions): Promise<ConsumerFunnelReportEvent[]> {
-  const token = requiredEnv('AXIOM_TOKEN')
-  const dataset = process.env.AXIOM_DATASET?.trim() || 'visutry-logs'
-  if (!/^[A-Za-z0-9_-]+$/.test(dataset)) throw new Error('AXIOM_DATASET contains unsupported characters')
+  const token = process.env.AXIOM_AGENT_DISTRIBUTION_TOKEN?.trim() || requiredEnv('AXIOM_TOKEN')
+  const legacyDataset = datasetName(process.env.AXIOM_DATASET || '', 'visutry-pro')
+  const trafficDataset = datasetName(process.env.AXIOM_TRAFFIC_DATASET || '', 'visutry-traffic-pro')
 
   const axiom = new Axiom({ token, orgId: process.env.AXIOM_ORG_ID?.trim() || undefined })
   const projectedFields = [
     'traffic_class=column_ifexists("data.traffic_class", "")',
+    'event_id=column_ifexists("data.event_id", "")',
     'consumer_funnel_id=column_ifexists("data.consumer_funnel_id", "")',
     'source_class=column_ifexists("data.source_class", "")',
     'agent_source=column_ifexists("data.agent_source", "")',
@@ -88,38 +102,31 @@ async function readConsumerEvents(options: CliOptions): Promise<ConsumerFunnelRe
     'entry_point=column_ifexists("data.entry_point", "")',
     'campaign_name=column_ifexists("data.campaign_name", "")',
   ]
-  const result = await axiom.query(
-    `['${dataset}'] | where message == "consumer_funnel_event" | project _time, ${projectedFields.join(', ')} | take 50000`,
-    {
-      startTime: options.from.toISOString(),
-      endTime: options.to.toISOString(),
-      format: 'tabular',
-      noCache: true,
-    },
-  )
+  const queryOptions = {
+    startTime: options.from.toISOString(),
+    endTime: options.to.toISOString(),
+    format: 'tabular' as const,
+    noCache: true,
+  }
+  const trafficFields = [
+    'event_id', 'traffic_class', 'consumer_funnel_id', 'source_class', 'agent_source',
+    'event_name', 'landing_page', 'page_path', 'surface', 'entry_point', 'campaign_name',
+  ].map((field) => `${field}=column_ifexists("${field}", "")`)
+  const [legacyResult, trafficResult] = await Promise.all([
+    axiom.query(
+      `['${legacyDataset}'] | where message == "consumer_funnel_event" | project _time, ${projectedFields.join(', ')} | take 50000`,
+      queryOptions,
+    ),
+    axiom.query(
+      `['${trafficDataset}'] | where event_name != "" | project _time, ${trafficFields.join(', ')} | take 50000`,
+      queryOptions,
+    ),
+  ])
 
-  return rowsFromAxiom(result).map((row) => {
-    const payload = {
-      ...parsePayload(row.data),
-      ...Object.fromEntries(
-        ['traffic_class', 'consumer_funnel_id', 'source_class', 'agent_source', 'event_name', 'landing_page', 'page_path', 'surface', 'entry_point', 'campaign_name']
-          .filter((field) => row[field] !== undefined && row[field] !== null && row[field] !== '')
-          .map((field) => [field, row[field]]),
-      ),
-    }
-    return {
-      trafficClass: stringValue(payload.traffic_class),
-      funnelId: stringValue(payload.consumer_funnel_id),
-      sourceClass: stringValue(payload.source_class),
-      agentSource: stringValue(payload.agent_source),
-      eventName: stringValue(payload.event_name),
-      landingPage: stringValue(payload.landing_page),
-      pagePath: stringValue(payload.page_path),
-      surface: stringValue(payload.surface),
-      entryPoint: stringValue(payload.entry_point),
-      campaignName: stringValue(payload.campaign_name),
-    }
-  })
+  return [
+    ...rowsFromAxiom(legacyResult).map((row) => consumerEventFromRow(row, 'legacy')),
+    ...rowsFromAxiom(trafficResult).map((row) => consumerEventFromRow(row, 'traffic')),
+  ]
 }
 
 async function readMerchantReport(options: CliOptions) {

@@ -85,6 +85,37 @@ const ALLOWED_LOG_NESTED_FIELDS: Record<string, Set<string>> = {
   userImage: new Set(['name', 'size', 'type']),
 }
 
+// This is the audited subset of the current 257-field `visutry-pro` schema.
+// Keep this separate from the application payload allowlist: a field can be
+// useful in memory while still being ineligible for the saturated operational
+// dataset. Consumer attribution is emitted through traffic-telemetry.ts.
+const AXIOM_PRODUCTION_DATA_FIELDS = new Set([
+  'aborted', 'access', 'accessMode', 'active', 'amount', 'apiTime', 'assets',
+  'attempt', 'baseUrl', 'batchId', 'batchIndex', 'bufferSize', 'campaign', 'candidateCount',
+  'checkoutContext', 'clientSubmissionId', 'code', 'completionTimeMs',
+  'contentLength', 'contentType', 'created', 'createdAt', 'currentStatus',
+  'customerId', 'detectedShape', 'deviceType', 'diagnostics', 'duration',
+  'durationMs', 'emailId', 'error', 'errorMessage', 'errorType', 'eventCreated', 'experienceId',
+  'externalTaskId', 'failureReason', 'fetchedPageCount', 'fileName', 'fileSize',
+  'finalUrl', 'framePresetId', 'geometryQuality', 'geometryStatus',
+  'hasCallbackUrl', 'hasContent', 'hasData', 'hasError', 'hasId', 'hasImageUrl',
+  'hasMetadata', 'hasResultImage', 'httpStatus', 'httpStatusText', 'imageSize',
+  'imageTransport', 'inlineImageKb', 'intentId', 'isNewCompletion', 'isNewUser',
+  'isPremium', 'itemImageFingerprint', 'itemImageName', 'itemImageSize',
+  'itemSha256', 'itemUrl', 'locale', 'merchantFrameId', 'merchantId',
+  'itemFile', 'itemImage', 'merchantSessionId', 'merchantSlug', 'metadata', 'method', 'model', 'msg',
+  'normalizedStatus', 'origin', 'orphans', 'path', 'pathname', 'paymentStatus',
+  'photoAssetId', 'planCode', 'platforms', 'pollDuration', 'productType',
+  'progress', 'provider', 'quotaSource', 'rawStatus', 'remaining',
+  'reportUnlocked', 'responseTime', 'resultStatus', 'role', 'route',
+  'sameContentSha256', 'sameFileName', 'sameFileSize', 'sameMetadata',
+  'sameObjectReference', 'site_locale', 'source', 'sourceHostnames', 'status',
+  'statusChanged', 'subscriptionId', 'syncReason', 'taskId', 'taskUserId',
+  'textResponse', 'threeDayEmails', 'timeoutMs', 'totalDuration', 'totalTime',
+  'threeDayEmails', 'tryOnType', 'twentyFourHourEmails', 'type', 'updatedAt', 'usagePolicyKind', 'usageSettled',
+  'userFile', 'userId', 'userImage', 'userSha256', 'vercel',
+])
+
 const AXIOM_ENVELOPE_SCALAR_KEYS = [
   'timestamp', 'level', 'category', 'message', 'id', 'userId', 'sessionId',
   'userAgent', 'ip', 'accept_language', 'url', 'method',
@@ -96,9 +127,9 @@ const AXIOM_ENVELOPE_SCALAR_KEYS = [
  * Axiom indexes nested objects as dotted fields.
  */
 export const AXIOM_SERIALIZED_KEY_ALLOWLIST: ReadonlySet<string> = new Set([
-  ...AXIOM_ENVELOPE_SCALAR_KEYS,
-  'error.name', 'error.message', 'error.stack',
-  ...Array.from(ALLOWED_LOG_DATA_FIELDS).flatMap((field) => {
+  ...AXIOM_ENVELOPE_SCALAR_KEYS.filter((key) => key !== 'userId' && key !== 'sessionId'),
+  'error.name', 'error.message',
+  ...Array.from(AXIOM_PRODUCTION_DATA_FIELDS).flatMap((field) => {
     const nestedFields = ALLOWED_LOG_NESTED_FIELDS[field]
     return nestedFields
       ? Array.from(nestedFields).map((nestedField) => `data.${field}.${nestedField}`)
@@ -150,13 +181,16 @@ function sanitizeLogValue(value: unknown, path: string, seen: Set<object>): LogV
  * Normalize the only payload that may be sent to Axiom.
  * Unknown keys and arbitrary nested objects are intentionally dropped.
  */
-export function normalizeLogData(data: unknown): LogData | undefined {
+export function normalizeLogData(
+  data: unknown,
+  allowedFields: ReadonlySet<string> = ALLOWED_LOG_DATA_FIELDS,
+): LogData | undefined {
   if (!isRecord(data)) return undefined
 
   const result: LogData = {}
   const seen = new Set<object>()
   for (const [key, value] of Object.entries(data)) {
-    if (Object.keys(result).length >= MAX_LOG_OBJECT_KEYS || !ALLOWED_LOG_DATA_FIELDS.has(key)) continue
+    if (Object.keys(result).length >= MAX_LOG_OBJECT_KEYS || !allowedFields.has(key)) continue
     const sanitized = sanitizeLogValue(value, key, seen)
     if (sanitized !== undefined) result[key] = sanitized
   }
@@ -215,22 +249,23 @@ export type AxiomRecord = {
 
 /** Serialize the exact bounded record passed to Axiom. */
 export function serializeAxiomRecord(entry: LogEntry): AxiomRecord {
-  return {
+  const result: AxiomRecord = {
     timestamp: entry.timestamp,
     level: entry.level,
     category: entry.category,
     message: entry.message,
     id: entry.id,
-    userId: entry.userId,
-    sessionId: entry.sessionId,
     userAgent: entry.userAgent,
     ip: entry.ip,
     accept_language: entry.accept_language,
     url: entry.url,
     method: entry.method,
-    error: entry.error,
-    data: normalizeLogData(entry.data),
+    error: entry.error
+      ? { name: entry.error.name, message: entry.error.message }
+      : undefined,
+    data: normalizeLogData(entry.data, AXIOM_PRODUCTION_DATA_FIELDS),
   }
+  return result
 }
 
 class Logger {

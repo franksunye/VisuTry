@@ -4,6 +4,7 @@ import {
   normalizeLogData,
   serializeAxiomRecord,
 } from '@/lib/logger'
+import { VISUTRY_PRO_FIELDS } from '../../fixtures/axiom-visutry-pro-fields'
 
 function collectSerializedKeys(value: unknown, prefix = ''): string[] {
   if (value === undefined) return []
@@ -121,5 +122,11 @@ describe('normalizeLogData', () => {
     expect(keys).not.toContain('data.providerResponse')
     expect(keys).not.toContain('data.diagnostics.dynamicSubkey')
     expect(keys).not.toContain('data.metadata.arbitrary.nested')
+  })
+
+  it('keeps every operational serializer key inside the checked-in production schema', () => {
+    expect(VISUTRY_PRO_FIELDS.size).toBe(257)
+    expect(AXIOM_SERIALIZED_KEY_ALLOWLIST.size).toBe(177)
+    expect([...AXIOM_SERIALIZED_KEY_ALLOWLIST].filter((key) => !VISUTRY_PRO_FIELDS.has(key))).toEqual([])
   })
 })

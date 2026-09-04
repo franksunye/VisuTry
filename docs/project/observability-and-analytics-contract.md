@@ -285,7 +285,31 @@ P0 schema containment was implemented on 2026-09-04 in `src/lib/logger.ts` and v
 
 This condition is an observability governance issue, not a reason to alter product behavior.
 
-### 10.3 Dataset separation decision
+### 10.3 Dedicated Consumer traffic evidence plane
+
+P0.2 adds a responsibility-based traffic evidence plane without performing the deferred Commerce split:
+
+```text
+visutry-pro
+  bounded operational/runtime telemetry only
+
+visutry-traffic-pro
+  bounded Consumer attribution, acquisition, Agent referral and funnel events
+
+PostgreSQL
+  MerchantSession → MerchantEvent → MerchantIntent commerce truth
+
+GA4
+  product and acquisition analytics
+```
+
+`visutry-traffic-pro` uses a strict flat record with an explicit 21-field business schema. It receives no raw `data`, nested objects, arbitrary arrays, provider payloads, PII, image data, secrets, or free-form request body. Production Consumer funnel events route there with a dedicated ingest credential; Preview uses the existing `visutry-ppe` destination with the same record contract; development does not ingest traffic telemetry.
+
+`report:agent-distribution` reads the legacy `data.<field>` Consumer rows from `visutry-pro` and top-level records from `visutry-traffic-pro`. It deduplicates by `event_id`, gives TEST precedence for duplicate IDs, and retains the existing Consumer/Merchant evidence-plane boundary. The legacy read fallback remains temporary for the active observation window.
+
+This is not the deferred `visutry-commerce-pro` split. No Commerce dataset is created by this contract.
+
+### 10.4 Dataset separation decision
 
 Do **not** split datasets merely because the product is described as 2B/2C.
 
@@ -303,7 +327,7 @@ The second dataset is a **candidate P1 target**, not current production truth. T
 
 Shared provider/runtime errors must remain diagnosable across business lines; physical separation must not destroy incident correlation.
 
-### 10.4 Field governance
+### 10.5 Field governance
 
 Before a new production log field is introduced, classify it:
 
@@ -316,7 +340,7 @@ Before a new production log field is introduced, classify it:
 
 Prefer stable top-level/log-envelope fields plus bounded canonical payloads. Avoid arbitrary nested maps whose keys become columns.
 
-### 10.5 Vacuum / schema lock / destructive operations
+### 10.6 Vacuum / schema lock / destructive operations
 
 Axiom schema cleanup must follow an evidence-first sequence:
 
@@ -421,3 +445,4 @@ When product analytics enums or merchant distribution semantics change, update t
 | --- | --- |
 | 2026-09-04 | Established the cross-cutting three-plane contract; separated Consumer, Commerce shopper and Merchant operator semantics; recorded `visutry-pro` schema-capacity condition; made dataset split an audit-gated decision; preserved T0 and Discovery Canary evidence boundaries. |
 | 2026-09-04 | Implemented P0 Axiom schema containment with an explicit bounded transport allowlist; prohibited arbitrary production payload expansion; retained temporary legacy `data.*` read compatibility; deferred Commerce dataset split and vacuum/schema-lock. |
+| 2026-09-04 | Added the P0.2 dedicated `visutry-traffic-pro` Consumer evidence plane with a strict flat schema, dual-dataset report read, event-ID deduplication, and unchanged T0 clocks; deferred `visutry-commerce-pro`. |

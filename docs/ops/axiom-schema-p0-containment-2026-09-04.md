@@ -5,7 +5,7 @@
 P0 containment is implemented in the application logger. This change is intentionally limited to preventing uncontrolled production Axiom field growth while preserving the existing Traffic Ready / Discovery Canary observation contract.
 
 - Baseline SHA: `065b72ede70253ec6991514e12b21b585a7fd564`
-- Implementation SHA: `9017c9bf7bdd14b905efca0b5a13d372fa5c37a9`
+- Implementation SHA: pending final commit on `codex/axiom-schema-containment`
 - Production dataset: `visutry-pro`
 - Axiom mutation: none
 - P1 Commerce dataset split: deferred
@@ -31,7 +31,7 @@ No report exclusion logic, TEST classification, Reference/Internal semantics, da
 
 ## Final bounded Axiom schema
 
-The transport has a maximum of **247 flattened canonical keys**. `error.stack` is an explicit optional key in the contract, but production-created errors omit stack traces; the transport still uses the same fixed envelope. Axiom system fields such as `_time` and `_sysTime` are not application-emitted keys and are not counted below.
+The initial P0 candidate contained 247 flattened keys. The zero-new-field compatibility pass removed 70 keys absent from the live `visutry-pro` inventory. The final production logger transport has a maximum of **177 flattened application keys**, all already present in the live 257-field schema; Axiom system fields such as `_time` and `_sysTime` are not application-emitted keys.
 
 ```text
 accept_language
@@ -283,6 +283,12 @@ userAgent
 userId
 ```
 
+The block above is the original 247-key P0 candidate inventory retained as
+evidence of the compatibility reduction. The authoritative final set is the
+177-key `AXIOM_SERIALIZED_KEY_ALLOWLIST` exported by
+`src/lib/logger.ts`; the schema-contract test proves that set is a subset of
+the live 257-field `visutry-pro` inventory.
+
 The machine-readable source of this set is `AXIOM_SERIALIZED_KEY_ALLOWLIST` in `src/lib/logger.ts`.
 
 ## Privacy and sensitive-data policy
@@ -291,7 +297,7 @@ The containment boundary does not serialize raw photos, biometric geometry, secr
 
 ## Report compatibility
 
-The canonical Consumer fields remain under their existing flattened names (`data.traffic_class`, `data.consumer_funnel_id`, `data.source_class`, `data.agent_source`, `data.event_name`, and attribution fields). The report continues to use `column_ifexists` and therefore reads historical legacy dotted rows and new bounded rows through the same projection. The compatibility test proves a TEST row remains excluded, a production candidate remains counted once, and decision actions are not double counted.
+The original P0 compatibility test covered the legacy bounded logger shape. P0.2 moves the Consumer evidence plane to top-level records in `visutry-traffic-pro`; the report now dual-reads legacy `data.<field>` rows from `visutry-pro` and top-level traffic rows, then deduplicates by `event_id` with TEST precedence. The focused fixtures prove legacy-only, new-only, duplicate, and TEST rows preserve the existing counting boundary.
 
 ## Validation
 
@@ -300,14 +306,39 @@ The canonical Consumer fields remain under their existing flattened names (`data
 - Consumer funnel route tests: PASS.
 - Typecheck: PASS.
 - Lint: PASS with pre-existing repository warnings only.
-- Unit suite: PASS under isolated test URL environment (235 suites, 1454 tests).
+- Unit suite: PASS under isolated test URL environment (236 suites, 1461 tests).
 - Critical suite: PASS (7 suites, 34 tests).
 - Production build: PASS.
 - `git diff --check`: PASS.
 
 ## Deferred / unchanged
 
-- No Axiom dataset mutation was performed.
+- `visutry-pro` was not modified, trimmed, vacuumed, or schema-locked.
 - No historical field cleanup, trim, vacuum, or schema-lock was performed.
 - P1 `visutry-commerce-pro` dataset split remains deferred.
 - Traffic Ready and Discovery Canary observation clocks remain unchanged.
+
+## P0.2 dedicated traffic telemetry
+
+P0.2 is implemented on the continuation branch but is not claimed as deployed until review and merge. It provisions the separate Production dataset `visutry-traffic-pro` with the organization default 30-day retention and routes only the strict flat Consumer evidence record there.
+
+Infrastructure readiness was verified in the authenticated Axiom/Vercel
+configuration on 2026-09-04: the live `visutry-pro` inventory remains 257
+fields, the final operational serializer emits 177 keys, and the compatibility
+set difference is empty. The new `visutry-traffic-pro` dataset contains the 21
+business fields below plus Axiom's `_time` and `_sysTime` system fields; a
+single synthetic `traffic_class=test` smoke event confirmed ingestion without
+`data.*`, nested, or provider/raw fields. The dedicated ingest and dual-dataset
+read credentials are configured without recording their secret values here.
+
+The exact 21-field business schema is:
+
+```text
+timestamp, schema_version, event_id, event_name, consumer_funnel_id,
+traffic_class, source_class, agent_source, acquisition_source,
+acquisition_medium, referrer_host, landing_page, page_path, source_page,
+product_path, destination, surface, entry_point, journey_type,
+completion_status, success
+```
+
+The traffic serializer drops arbitrary/nested input and sensitive/raw values, including email, user identity, IP, image URLs, uploaded filenames, provider responses, tokens, cookies, raw request bodies, and biometric payloads. Production uses the dedicated ingest credential and dataset; Preview uses `visutry-ppe` with the same contract; development does not ingest traffic telemetry. The report read credential is scoped to query only `visutry-pro` and `visutry-traffic-pro`.
