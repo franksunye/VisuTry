@@ -85,6 +85,27 @@ const ALLOWED_LOG_NESTED_FIELDS: Record<string, Set<string>> = {
   userImage: new Set(['name', 'size', 'type']),
 }
 
+const AXIOM_ENVELOPE_SCALAR_KEYS = [
+  'timestamp', 'level', 'category', 'message', 'id', 'userId', 'sessionId',
+  'userAgent', 'ip', 'accept_language', 'url', 'method',
+] as const
+
+/**
+ * Flattened Axiom keys that the transport is allowed to emit. The `data` and
+ * `error` containers are intentionally represented by their leaf paths because
+ * Axiom indexes nested objects as dotted fields.
+ */
+export const AXIOM_SERIALIZED_KEY_ALLOWLIST: ReadonlySet<string> = new Set([
+  ...AXIOM_ENVELOPE_SCALAR_KEYS,
+  'error.name', 'error.message', 'error.stack',
+  ...Array.from(ALLOWED_LOG_DATA_FIELDS).flatMap((field) => {
+    const nestedFields = ALLOWED_LOG_NESTED_FIELDS[field]
+    return nestedFields
+      ? Array.from(nestedFields).map((nestedField) => `data.${field}.${nestedField}`)
+      : [`data.${field}`]
+  }),
+])
+
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value)
 }
@@ -172,6 +193,43 @@ export interface LogEntry {
     name: string
     message: string
     stack?: string
+  }
+}
+
+export type AxiomRecord = {
+  timestamp: string
+  level: LogLevel
+  category: LogCategory
+  message: string
+  id: string
+  userId?: string
+  sessionId?: string
+  userAgent?: string
+  ip?: string
+  accept_language?: string
+  url?: string
+  method?: string
+  error?: LogEntry['error']
+  data?: LogData
+}
+
+/** Serialize the exact bounded record passed to Axiom. */
+export function serializeAxiomRecord(entry: LogEntry): AxiomRecord {
+  return {
+    timestamp: entry.timestamp,
+    level: entry.level,
+    category: entry.category,
+    message: entry.message,
+    id: entry.id,
+    userId: entry.userId,
+    sessionId: entry.sessionId,
+    userAgent: entry.userAgent,
+    ip: entry.ip,
+    accept_language: entry.accept_language,
+    url: entry.url,
+    method: entry.method,
+    error: entry.error,
+    data: normalizeLogData(entry.data),
   }
 }
 
@@ -280,25 +338,9 @@ class Logger {
     if (!this.axiom) return
 
     try {
-      // 构建发送到 Axiom 的日志对象
-      const axiomLog = {
-        timestamp: entry.timestamp,
-        level: entry.level,
-        category: entry.category,
-        message: entry.message,
-        id: entry.id,
-        userId: entry.userId,
-        sessionId: entry.sessionId,
-        userAgent: entry.userAgent,
-        ip: entry.ip,
-        accept_language: entry.accept_language,
-        url: entry.url,
-        method: entry.method,
-        error: entry.error,
-        // Re-apply the boundary at the transport edge as a defense in depth
-        // measure for any future LogEntry construction path.
-        data: normalizeLogData(entry.data),
-      }
+      // Re-apply the boundary at the transport edge as a defense in depth
+      // measure for any future LogEntry construction path.
+      const axiomLog = serializeAxiomRecord(entry)
 
       // 异步发送到 Axiom，不阻塞主流程
       await this.axiom.ingest(process.env.AXIOM_DATASET || 'visutry-logs', [axiomLog])

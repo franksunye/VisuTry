@@ -1,4 +1,21 @@
-import { logger, normalizeLogData } from '@/lib/logger'
+import {
+  AXIOM_SERIALIZED_KEY_ALLOWLIST,
+  logger,
+  normalizeLogData,
+  serializeAxiomRecord,
+} from '@/lib/logger'
+
+function collectSerializedKeys(value: unknown, prefix = ''): string[] {
+  if (value === undefined) return []
+  if (value === null || typeof value !== 'object' || Array.isArray(value)) {
+    return prefix ? [prefix] : []
+  }
+
+  return Object.entries(value).flatMap(([key, nestedValue]) => {
+    const path = prefix ? `${prefix}.${key}` : key
+    return collectSerializedKeys(nestedValue, path)
+  })
+}
 
 describe('normalizeLogData', () => {
   it('keeps the bounded analytics contract and drops dynamic fields', () => {
@@ -74,5 +91,35 @@ describe('normalizeLogData', () => {
     const [entry] = logger.getLogs({ limit: 1 })
     expect(entry).toMatchObject({ userId: 'user-1', url: 'https://example.test/en' })
     expect(entry).not.toHaveProperty('injectedField')
+  })
+
+  it('emits only the explicit flattened Axiom key allowlist', () => {
+    const serialized = serializeAxiomRecord({
+      id: 'log-1',
+      timestamp: '2026-09-04T00:00:00.000Z',
+      level: 'error',
+      category: 'grsai',
+      message: 'provider failed',
+      error: { name: 'Error', message: 'bounded error', stack: 'dev-only stack' },
+      data: {
+        provider: 'grsai',
+        diagnostics: {
+          code: 'UPSTREAM_TIMEOUT',
+          failureReason: 'timeout',
+          dynamicSubkey: 'must not escape',
+        },
+        metadata: { providerId: 'task-1', arbitrary: { nested: true } },
+        providerResponse: { choices: [{ message: { content: 'raw response' } }] },
+      } as never,
+    })
+
+    const keys = collectSerializedKeys(serialized)
+    expect(keys.every((key) => AXIOM_SERIALIZED_KEY_ALLOWLIST.has(key))).toBe(true)
+    expect(keys).toContain('data.provider')
+    expect(keys).toContain('data.diagnostics.code')
+    expect(keys).toContain('data.metadata.providerId')
+    expect(keys).not.toContain('data.providerResponse')
+    expect(keys).not.toContain('data.diagnostics.dynamicSubkey')
+    expect(keys).not.toContain('data.metadata.arbitrary.nested')
   })
 })
