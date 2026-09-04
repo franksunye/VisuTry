@@ -105,6 +105,7 @@ Use the audit during monthly review and before merging broad documentation-gover
 | P0 | Add repeatable documentation health audit | Done 2026-08-26 |
 | P0 | Establish cross-cutting Observability & Analytics authority | **Done 2026-09-04** |
 | P0 | Remove stale active Campaign Intelligence phase/dashboard authorities that conflicted with the durable MerchantSession/Event/Intent model | **Done 2026-09-04** — removed `implementation-progress.md` and obsolete `ga4-dashboard-spec.md`; retained historical migration evidence under `archive/` |
+| P0 | Remove obsolete pre-governance logging migration checklist | **Done 2026-09-04** — removed `docs/project/LOGGING_ROADMAP.md`; current logging/Axiom rules are owned by the Observability & Analytics Contract and runtime logger |
 | P0 | Reconcile Campaign Intelligence taxonomy/GA4 runbook with current runtime/data-plane boundaries | **Done 2026-09-04** |
 | P0 | Axiom `visutry-pro` field/schema-capacity audit | **Open** — current dataset observed at field capacity; no destructive cleanup or dataset split until read-only inventory/dependency audit |
 | P1 | GA4 console reconciliation against observed current events/dimensions/key events | Open; operator task, no code change implied |
@@ -123,7 +124,7 @@ Delete when a document is:
 
 Retain/archive when it contains unique incident, migration, production verification or decision evidence that may be needed for audit/forensics.
 
-The 2026-09-04 analytics governance pass intentionally **keeps** `docs/product/campaign-intelligence/archive/` because it contains historical migration/evidence, while deleting the two stale active-layer documents whose role was fully absorbed by current authorities.
+The 2026-09-04 analytics governance pass intentionally **keeps** `docs/product/campaign-intelligence/archive/` because it contains historical migration/evidence, while deleting stale active-layer documents whose role was fully absorbed by current authorities.
 
 ## 9. Review checklist
 
@@ -144,4 +145,4 @@ At milestone close or monthly review:
 | 2026-07-08 | Created the original file-by-file inventory and cleanup backlog. |
 | 2026-08-26 | Replaced the non-scaling catalog with an authority registry, lifecycle, creation budget and focused cleanup queue per ADR-012. |
 | 2026-08-27 | Registered cross-cutting audits and platform/SaaS architecture evidence. |
-| 2026-09-04 | Registered the Observability & Analytics Contract; narrowed Campaign Intelligence; removed stale active analytics migration/dashboard docs; added Axiom schema-capacity and GA4 reconciliation cleanup work. |
+| 2026-09-04 | Registered the Observability & Analytics Contract; narrowed Campaign Intelligence; removed stale analytics/logging active docs; added Axiom schema-capacity and GA4 reconciliation cleanup work. |
