@@ -1,6 +1,13 @@
 /** @jest-environment node */
 
+jest.mock('@axiomhq/js', () => ({
+  Axiom: jest.fn().mockImplementation(() => ({
+    ingest: jest.fn().mockRejectedValue(new Error('synthetic Axiom failure')),
+  })),
+}))
+
 import {
+  emitTrafficTelemetry,
   resolveTrafficTelemetryDestination,
   serializeTrafficTelemetry,
   TRAFFIC_TELEMETRY_FIELDS,
@@ -70,5 +77,47 @@ describe('traffic telemetry contract', () => {
     } as NodeJS.ProcessEnv)).toEqual({ dataset: 'visutry-ppe', token: 'preview-token' })
 
     expect(resolveTrafficTelemetryDestination({ NODE_ENV: 'development' } as NodeJS.ProcessEnv)).toBeNull()
+  })
+
+  it('preserves symbolic destination values used by analytics callers', () => {
+    const record = serializeTrafficTelemetry({
+      event_id: 'evt_1234567890123456',
+      event_name: 'recommendation_viewed',
+      consumer_funnel_id: 'funnel_1234567890123456',
+      traffic_class: 'production_candidate',
+      destination: 'virtual_try_on',
+    })
+
+    expect(record.destination).toBe('virtual_try_on')
+
+    const pathRecord = serializeTrafficTelemetry({
+      event_id: 'evt_1234567890123456',
+      event_name: 'recommendation_viewed',
+      consumer_funnel_id: 'funnel_1234567890123456',
+      traffic_class: 'production_candidate',
+      destination: 'https://visutry.com/en/demo?token=secret',
+    })
+    expect(pathRecord.destination).toBe('/en/demo')
+  })
+
+  it('swallows Axiom failures without rejecting the telemetry request', async () => {
+    const originalEnv = process.env
+    process.env = {
+      ...originalEnv,
+      NODE_ENV: 'production',
+      VERCEL_ENV: 'production',
+      AXIOM_TRAFFIC_TOKEN: 'traffic-token',
+    }
+    const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {})
+
+    await expect(emitTrafficTelemetry({
+      event_id: 'evt_1234567890123456',
+      event_name: 'tryon_completed',
+      consumer_funnel_id: 'funnel_1234567890123456',
+      traffic_class: 'production_candidate',
+    })).resolves.toBeUndefined()
+
+    errorSpy.mockRestore()
+    process.env = originalEnv
   })
 })

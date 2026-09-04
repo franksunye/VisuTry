@@ -134,9 +134,10 @@ export async function POST(request: NextRequest) {
   if (sourceClassification.agentSource) telemetry.agent_source = sourceClassification.agentSource
   if (typeof body.success === 'boolean') telemetry.success = body.success
 
-  // Consumer evidence has a dedicated flat schema. Emission is deliberately
-  // fire-and-forget so telemetry failure cannot fail the shopper request.
-  void emitTrafficTelemetry(telemetry as TrafficTelemetryInput)
+  // Consumer evidence has a dedicated flat schema. Await the server-side
+  // emission so the request lifecycle observes completion; the emitter
+  // swallows Axiom failures so telemetry failure remains non-fatal.
+  await emitTrafficTelemetry(telemetry as TrafficTelemetryInput)
 
   return NextResponse.json(
     { accepted: true },

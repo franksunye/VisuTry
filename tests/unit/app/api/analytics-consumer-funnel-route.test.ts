@@ -36,6 +36,7 @@ describe('Consumer funnel telemetry route', () => {
   beforeEach(() => jest.clearAllMocks())
 
   it('accepts a valid event and server-classifies non-test traffic', async () => {
+    emitTraffic.mockResolvedValue(undefined)
     const response = await POST(request(validBody))
 
     expect(response.status).toBe(202)
@@ -51,10 +52,46 @@ describe('Consumer funnel telemetry route', () => {
   })
 
   it('keeps the server-side test boundary when the test cookie is present', async () => {
+    emitTraffic.mockResolvedValue(undefined)
     const response = await POST(request(validBody, 'test-session=playwright'))
 
     expect(response.status).toBe(202)
     expect(emitTraffic.mock.calls[0][0]).toEqual(expect.objectContaining({ traffic_class: 'test' }))
+  })
+
+  it('waits for telemetry to settle before returning 202', async () => {
+    let settle!: () => void
+    const pending = new Promise<void>((resolve) => { settle = resolve })
+    emitTraffic.mockReturnValueOnce(pending)
+
+    let returned = false
+    const responsePromise = POST(request(validBody)).then((response) => {
+      returned = true
+      return response
+    })
+
+    await Promise.resolve()
+    expect(returned).toBe(false)
+    settle()
+
+    const response = await responsePromise
+    expect(returned).toBe(true)
+    expect(response.status).toBe(202)
+  })
+
+  it('keeps a swallowed emitter failure non-fatal and returns 202', async () => {
+    emitTraffic.mockImplementationOnce(async () => {
+      try {
+        throw new Error('synthetic Axiom failure')
+      } catch {
+        // Mirrors emitTrafficTelemetry's non-fatal Axiom failure contract.
+      }
+    })
+
+    const response = await POST(request(validBody))
+
+    expect(response.status).toBe(202)
+    expect(await response.json()).toEqual({ accepted: true })
   })
 
   it('keeps Reddit and YouTube as distinct supported source classes', async () => {

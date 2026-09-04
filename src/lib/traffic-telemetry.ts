@@ -112,6 +112,16 @@ function boundedHost(value: unknown): string | undefined {
   }
 }
 
+function boundedDestination(value: unknown): string | undefined {
+  const raw = boundedString(value)
+  if (!raw) return undefined
+
+  // Analytics callers use symbolic destinations such as `virtual_try_on` and
+  // `recommendation`; do not turn those into synthetic URL pathnames.
+  if (!raw.startsWith('/') && !/^[a-z][a-z\d+.-]*:\/\//i.test(raw)) return raw
+  return boundedPath(raw)
+}
+
 /** Build a flat, privacy-bounded record from the route's validated event. */
 export function serializeTrafficTelemetry(input: TrafficTelemetryInput): TrafficTelemetryRecord {
   const record: TrafficTelemetryRecord = {
@@ -126,8 +136,10 @@ export function serializeTrafficTelemetry(input: TrafficTelemetryInput): Traffic
   for (const field of OPTIONAL_STRING_FIELDS) {
     const value = field === 'referrer_host'
       ? boundedHost(input[field])
-      : ['landing_page', 'page_path', 'source_page', 'product_path', 'destination'].includes(field)
+      : ['landing_page', 'page_path', 'source_page', 'product_path'].includes(field)
         ? boundedPath(input[field])
+        : field === 'destination'
+          ? boundedDestination(input[field])
         : boundedString(input[field])
     if (value) record[field] = value
   }
