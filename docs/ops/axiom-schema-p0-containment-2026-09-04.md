@@ -5,7 +5,7 @@
 P0 containment is implemented in the application logger. This change is intentionally limited to preventing uncontrolled production Axiom field growth while preserving the existing Traffic Ready / Discovery Canary observation contract.
 
 - Baseline SHA: `065b72ede70253ec6991514e12b21b585a7fd564`
-- Implementation SHA: pending final commit on `codex/axiom-schema-containment`
+- Implementation SHA: `505a066471457e3909ca5072615810dbf99ab881`
 - Production dataset: `visutry-pro`
 - Axiom mutation: none
 - P1 Commerce dataset split: deferred
