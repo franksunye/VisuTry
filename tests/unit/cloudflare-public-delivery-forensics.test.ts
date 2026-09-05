@@ -35,8 +35,27 @@ describe('public delivery forensic telemetry', () => {
 
   it('uses bounded route families and does not expose arbitrary slugs', () => {
     expect(forensicPathFamily('/en/style/round-face')).toBe('/:locale/style/:faceShape')
+    expect(forensicPathFamily('/en/sunglasses-for/round-face')).toBe('/:locale/sunglasses-for/:faceShape')
+    expect(forensicPathFamily('/en/hairstyles-for/oval-face')).toBe('/:locale/hairstyles-for/:faceShape')
+    expect(forensicPathFamily('/en/store/private-merchant-name')).toBe('/:locale/store/:merchantSlug')
+    expect(forensicPathFamily('/en/c/private-merchant/private-campaign')).toBe('/:locale/c/:merchantSlug/:experienceSlug')
     expect(forensicPathFamily('/en/glasses-guide/private-slug')).toBe('/:locale/glasses-guide/:slug')
+    expect(forensicPathFamily('/en/unexpected/private-value')).toBe('/:locale/*')
     expect(forensicPathFamily('/unexpected/private-value')).toBe('/*')
+
+    const sensitiveValues = [
+      'a'.repeat(256),
+      '550e8400-e29b-41d4-a716-446655440000',
+      '%70%72%69%76%61%74%65-%76%61%6c%75%65',
+    ]
+    for (const value of sensitiveValues) {
+      const family = forensicPathFamily(`/en/unexpected/${value}`)
+      expect(family).toBe('/:locale/*')
+      expect(family).not.toContain(value)
+    }
+
+    const eventPath = forensicPathFamily('/en/unexpected/private-value')
+    expect(JSON.stringify({ pathFamily: eventPath })).not.toMatch(/unexpected|private-value/)
   })
 
   it('classifies bot and browser families from UA only', () => {
@@ -80,10 +99,11 @@ describe('public delivery forensic telemetry', () => {
       requestClass: 'rsc',
       uaClass: 'oai_searchbot',
       forwardedToVercel: true,
-      cfCacheStatus: 'DYNAMIC',
+      observedCfCacheStatus: 'DYNAMIC',
       vercelCache: 'HIT',
       contentLength: 4,
     })
+    expect(response.bodyUsed).toBe(false)
     expect(event).not.toHaveProperty('path')
     expect(event).not.toHaveProperty('userAgent')
     expect(event).not.toHaveProperty('cookie')
@@ -110,6 +130,33 @@ describe('public delivery forensic telemetry', () => {
     expect(log).not.toHaveBeenCalled()
     await Promise.resolve()
     expect(log).toHaveBeenCalledTimes(1)
+    log.mockRestore()
+  })
+
+  it('contains logging failures and a broken execution context', async () => {
+    const req = request('/sitemaps/core.xml')
+    const decision = classifyB4ProductionPublicSlice(req)
+    const captured: Promise<unknown>[] = []
+    const waitUntil = jest.fn((promise: Promise<unknown>) => captured.push(promise))
+    const log = jest.spyOn(console, 'log').mockImplementation(() => {
+      throw new Error('logging unavailable')
+    })
+
+    expect(() => emitPublicDeliveryForensicEvent(
+      req,
+      decision,
+      new Response('ok'),
+      { VISUTRY_PUBLIC_DELIVERY_FORENSICS: 'true' },
+      { waitUntil },
+    )).not.toThrow()
+    await expect(captured[0]).resolves.toBeUndefined()
+    expect(() => emitPublicDeliveryForensicEvent(
+      req,
+      decision,
+      new Response('ok'),
+      { VISUTRY_PUBLIC_DELIVERY_FORENSICS: 'true' },
+      { waitUntil: () => { throw new Error('broken context') } },
+    )).not.toThrow()
     log.mockRestore()
   })
 })

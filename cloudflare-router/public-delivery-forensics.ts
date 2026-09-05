@@ -1,5 +1,9 @@
-import { isRscRequest } from './b4-production-public-slice'
-import { sanitizeRouteTemplate } from './b4-staging-router'
+import {
+  B4_LOCALIZED_EXACT_PAGES,
+  B4_LOCALES,
+  B4_LOCALE_LESS_MARKETING_EXACT,
+  isRscRequest,
+} from './b4-production-public-slice'
 import type { B4RouteDecision } from './b4-production-public-slice'
 
 export const PUBLIC_DELIVERY_FORENSIC_EVENT = 'public_delivery_forensic' as const
@@ -45,7 +49,8 @@ export interface PublicDeliveryForensicEvent {
   isPrefetch: boolean
   uaClass: PublicDeliveryUaClass
   cfDecision: string
-  cfCacheStatus: string
+  /** Header observed on the Worker-side response; not the final public CF result. */
+  observedCfCacheStatus: string
   forwardedToVercel: boolean
   status: number
   contentType: string
@@ -59,7 +64,7 @@ interface WaitUntilContext {
   waitUntil(promise: Promise<unknown>): void
 }
 
-const locales = new Set(['en', 'id', 'ar', 'ru', 'de', 'ja', 'es', 'pt', 'fr'])
+const locales = new Set<string>(B4_LOCALES)
 const safeExactPathFamilies = new Set([
   '/',
   '/favicon.ico',
@@ -70,13 +75,57 @@ const safeExactPathFamilies = new Set([
   '/sitemaps/blog.xml',
   '/sitemaps/dynamic.xml',
   '/_next/image',
+  ...B4_LOCALE_LESS_MARKETING_EXACT,
 ])
+const localizedExactPathFamilies = new Set([
+  '/:locale',
+  ...B4_LOCALIZED_EXACT_PAGES.map((path) => `/:locale${path}`),
+])
+
+type PathFamilyMatcher = { template: string; matches: (path: string) => boolean }
+
+function matchesLocalizedRest(path: string, restPattern: RegExp): boolean {
+  const segments = path.split('/')
+  const locale = segments[1] ?? ''
+  if (!locales.has(locale)) return false
+  return restPattern.test(`/${segments.slice(2).join('/')}`)
+}
+
+// These matchers only return constants. They intentionally never interpolate a
+// path segment, so unknown slugs, IDs, and encoded values cannot enter telemetry.
+const pathFamilyMatchers: PathFamilyMatcher[] = [
+  { template: '/:locale/blog/tag/:tag', matches: (path) => matchesLocalizedRest(path, /^\/blog\/tag\/[^/]+$/) },
+  { template: '/:locale/blog/:slug', matches: (path) => matchesLocalizedRest(path, /^\/blog\/[^/]+$/) },
+  { template: '/:locale/brand/:brand', matches: (path) => matchesLocalizedRest(path, /^\/brand\/[^/]+$/) },
+  { template: '/:locale/glasses-guide/:slug', matches: (path) => matchesLocalizedRest(path, /^\/glasses-guide\/[^/]+$/) },
+  { template: '/:locale/face-shapes/:faceShape', matches: (path) => matchesLocalizedRest(path, /^\/face-shapes\/[^/]+$/) },
+  { template: '/:locale/style/:faceShape', matches: (path) => matchesLocalizedRest(path, /^\/style\/[^/]+$/) },
+  { template: '/:locale/sunglasses-for/:faceShape', matches: (path) => matchesLocalizedRest(path, /^\/sunglasses-for\/[^/]+$/) },
+  { template: '/:locale/hairstyles-for/:faceShape', matches: (path) => matchesLocalizedRest(path, /^\/hairstyles-for\/[^/]+$/) },
+  { template: '/:locale/store/:merchantSlug', matches: (path) => matchesLocalizedRest(path, /^\/store\/[^/]+$/) },
+  { template: '/:locale/c/:merchantSlug/:experienceSlug', matches: (path) => matchesLocalizedRest(path, /^\/c\/[^/]+\/[^/]+$/) },
+  { template: '/:locale/category/:slug', matches: (path) => matchesLocalizedRest(path, /^\/category\/[^/]+$/) },
+  { template: '/:locale/try/:slug', matches: (path) => matchesLocalizedRest(path, /^\/try\/[^/]+$/) },
+  { template: '/blog/tag/:tag', matches: (path) => /^\/blog\/tag\/[^/]+$/.test(path) },
+  { template: '/blog/:slug', matches: (path) => /^\/blog\/[^/]+$/.test(path) },
+  { template: '/brand/:brand', matches: (path) => /^\/brand\/[^/]+$/.test(path) },
+  { template: '/glasses-guide/:slug', matches: (path) => /^\/glasses-guide\/[^/]+$/.test(path) },
+  { template: '/face-shapes/:faceShape', matches: (path) => /^\/face-shapes\/[^/]+$/.test(path) },
+  { template: '/style/:faceShape', matches: (path) => /^\/style\/[^/]+$/.test(path) },
+  { template: '/sunglasses-for/:faceShape', matches: (path) => /^\/sunglasses-for\/[^/]+$/.test(path) },
+  { template: '/hairstyles-for/:faceShape', matches: (path) => /^\/hairstyles-for\/[^/]+$/.test(path) },
+  { template: '/store/:merchantSlug', matches: (path) => /^\/store\/[^/]+$/.test(path) },
+  { template: '/c/:merchantSlug/:experienceSlug', matches: (path) => /^\/c\/[^/]+\/[^/]+$/.test(path) },
+  { template: '/category/:slug', matches: (path) => /^\/category\/[^/]+$/.test(path) },
+  { template: '/try/:slug', matches: (path) => /^\/try\/[^/]+$/.test(path) },
+]
 
 function header(request: Request, name: string): string {
   return request.headers.get(name) ?? ''
 }
 
 function cleanPath(pathname: string): string {
+  pathname = pathname.split('?')[0] || '/'
   if (pathname.length > 1 && pathname.endsWith('/')) return pathname.slice(0, -1)
   return pathname || '/'
 }
@@ -111,14 +160,26 @@ function localeOf(path: string): string {
 /** Return a route template, never a raw arbitrary pathname or query string. */
 export function forensicPathFamily(pathname: string): string {
   const path = cleanPath(pathname)
-  const sanitized = sanitizeRouteTemplate(path)
-  if (safeExactPathFamilies.has(sanitized) || sanitized.includes('/:') || sanitized.includes('/*')) {
-    return sanitized
+  if (safeExactPathFamilies.has(path)) return path
+  const locale = path.split('/')[1] ?? ''
+  const localizedRest = path.slice(locale ? locale.length + 1 : path.length)
+  const localizedTemplate = `/:locale${localizedRest}`
+  if (locales.has(locale) && localizedExactPathFamilies.has(localizedTemplate)) {
+    return localizedTemplate
+  }
+  for (const matcher of pathFamilyMatchers) {
+    if (matcher.matches(path)) return matcher.template
   }
   if (path.startsWith('/api/')) return '/api/*'
   if (path.startsWith('/_next/static/')) return '/_next/static/*'
   if (path.startsWith('/_next/')) return '/_next/*'
   if (path.startsWith('/sitemaps/')) return '/sitemaps/*'
+  if (path.startsWith('/images/')) return '/images/*'
+  if (path.startsWith('/home/')) return '/home/*'
+  if (path.startsWith('/experience-heroes/')) return '/experience-heroes/*'
+  if (path.startsWith('/blog-covers/')) return '/blog-covers/*'
+  if (path.startsWith('/assets/')) return '/assets/*'
+  if (locales.has(path.split('/')[1] ?? '')) return '/:locale/*'
   return '/*'
 }
 
@@ -224,7 +285,10 @@ export function buildPublicDeliveryForensicEvent(
     isPrefetch,
     uaClass: classifyUa(header(request, 'user-agent')),
     cfDecision: `${decision.backend}:${decision.routeClass}:${decision.cacheClass}:${decision.invocation}`,
-    cfCacheStatus: response.headers.get('cf-cache-status')?.slice(0, 32) || 'unknown',
+    // This is the header observable inside the Worker on the response it sees;
+    // it is not authoritative for the final client-facing Cloudflare edge
+    // result. Final CF-Cache-Status requires a controlled external HTTP probe.
+    observedCfCacheStatus: response.headers.get('cf-cache-status')?.slice(0, 32) || 'unknown',
     forwardedToVercel,
     status: response.status,
     contentType: responseHeader(response, 'content-type'),
