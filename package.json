@@ -89,6 +89,7 @@
     "test:sponsored:postgres": "bash scripts/test-sponsored-postgres-local.sh",
     "test:migration-boundary": "bash scripts/test-migration-boundary.sh",
     "test:migration-fail-closed": "bash scripts/test-migrate-deploy-fail-closed.sh",
+    "test:db-p2b-lineage": "bash scripts/test-db-p2b-lineage.sh",
     "release": "node scripts/release.js",
     "release:patch": "node scripts/release.js patch",
     "release:minor": "node scripts/release.js minor",
