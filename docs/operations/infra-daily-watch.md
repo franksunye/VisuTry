@@ -606,3 +606,46 @@ Reference pre-Tiered combined baseline for the three families: approximately **2
 **6. Single most important question:** Can we produce a complete, classification-consistent pilot measurement that separates `/style/` document HTML from RSC/Flight and connects the lower pilot ISR Units to actual origin requests, before treating the apparent improvement as a Tiered Cache or prefetch success?
 
 **Deployment note:** Latest `main` Production deployment observed is `0acc14e`, **Ready**, about 11 hours old; a prior preview deployment showed Error but no current main Production error was visible. No production configuration, application code, data, or cache setting was changed by this inspection.
+
+## 2026-09-05
+
+### Codex Morning Inspection — 11:00
+
+**Window:** Vercel last 12 hours, dashboard observed about 11:16 UTC; Vercel Usage rolling 30 days ending 2026-09-05. GA4 / Cloudflare / Axiom were not readable because the Mac was locked and automatic unlock failed.
+
+**Traffic**
+- GA Users / Sessions / Views: **NOT MEASURED**.
+- Organic / AI referral note: **NOT MEASURED**; no direction inferred.
+
+**Vercel**
+- ISR Read Units: **~13K**; Write Units **202**; Request Caching **2.9K**; time-based revalidations **9**; tag revalidations **0**.
+- Important ISR route families, Units: `glasses-guide` **1.6K**, `style` **329**; `sunglasses-for` not visible in the top-10 route table and not inferred. ISR Bytes: `glasses-guide` **12 MB**, `style` **3 MB**; these are separate from Units.
+- Fast Data Transfer, last 12h: **274 MB outgoing**, **30 MB incoming**. Fast Origin Transfer was visible only as the rolling Usage total: **10.2 GB / 10 GB**, with **9.87 GB outgoing** and **334.35 MB incoming**; no 12h FOT value inferred.
+- Production deployment: `779e7bc2…`, READY. A preview for the forensic branch was building and is not consumer production.
+- Vercel runtime errors, last 1d: timeout group **191** cumulative occurrences (last seen 11:10 UTC), static-to-dynamic `/en/try-on/null` **20** (last 10:55 UTC), face-analysis `Analysis failed` **4** cumulative (last 05:37 UTC), and Vercel 60s runtime timeout **2** cumulative (last 2026-09-04 20:40 UTC). These are not treated as new broad frontend regression evidence.
+
+**Cloudflare**
+- Relevant cache experiment: D1 pilot routes and Smart Tiered Cache.
+- Cache hit / miss evidence: **NOT MEASURED today**; the 2026-09-04 dashboard record was Active but is stale for today’s window.
+- Tiered Cache: **NOT REVALIDATED today**.
+- Origin-bound evidence: **NOT AVAILABLE**.
+
+**Axiom**
+- 4xx/5xx anomalies: **NOT MEASURED today**.
+- New production errors: **NOT REVALIDATED today**; Vercel runtime error evidence above is recorded separately.
+
+**Change vs prior comparable window**
+- Traffic: **INCONCLUSIVE** — GA4 unavailable.
+- ISR: **INCONCLUSIVE** — ~13K Read Units in the current 12h window; prior 12h was ~14K, but route and traffic attribution is incomplete.
+- FOT: **INCONCLUSIVE** — only rolling 30d FOT is exposed.
+- Cache efficiency: **INCONCLUSIVE** — Cloudflare window unavailable.
+
+**Current interpretation**
+1. The Vercel 12h snapshot shows high project ISR usage with `glasses-guide` still the largest visible route family; `style` is 329 Units, but this does not identify document HTML versus RSC/Flight.
+2. The D1 / Tiered Cache result remains **INCONCLUSIVE / HOLD** because today’s Cloudflare cache-state and origin-bound measurements are missing; no production setting change is justified.
+3. The current production deployment is READY. Runtime timeout and static-to-dynamic groups remain watch items, while frontend ChunkLoadError/hydration/RSC status cannot be refreshed today.
+
+**Question for afternoon review**
+- Can dashboard access be restored and one complete comparable window captured across GA4, Cloudflare, Axiom, and Vercel, with `/style/` document HTML separated from RSC/Flight before making any cache or prefetch decision?
+
+**Production changes made during inspection:** NONE
