@@ -10,12 +10,14 @@ import {
   sanitizeWorkerException,
   withB4RouterHeaders,
 } from './b4-staging-router'
+import { emitPublicDeliveryForensicEvent } from './public-delivery-forensics'
 
 interface Env {
   VERCEL_ORIGIN: string
   PUBLIC_HOST?: string
   NODE_ENV?: string
   ROUTER_ENV?: string
+  VISUTRY_PUBLIC_DELIVERY_FORENSICS?: string
 }
 
 interface RouterExecutionContext {
@@ -44,6 +46,7 @@ export default {
           : await appWorker.fetch(request, env, ctx)
         const latencyMs = Date.now() - startedAt
         console.log(JSON.stringify(routerLogFields(request, decision, response.status, latencyMs)))
+        emitPublicDeliveryForensicEvent(request, decision, response, env, ctx)
         return withB4RouterHeaders(response, decision, latencyMs)
       } catch (error) {
         const latencyMs = Date.now() - startedAt
@@ -53,7 +56,7 @@ export default {
           errorDetail,
         }))
         const previewHost = new URL(request.url).host.endsWith('.workers.dev')
-        return new Response(
+        const response = new Response(
           previewHost
             ? JSON.stringify({ error: errorClass, detail: errorDetail })
             : 'Internal Server Error',
@@ -70,6 +73,8 @@ export default {
             },
           },
         )
+        emitPublicDeliveryForensicEvent(request, decision, response, env, ctx)
+        return response
       }
     }
 
@@ -77,16 +82,18 @@ export default {
       const response = await fetch(fallbackRequest(request, env.VERCEL_ORIGIN))
       const latencyMs = Date.now() - startedAt
       console.log(JSON.stringify(routerLogFields(request, decision, response.status, latencyMs)))
-      return withB4RouterHeaders(
+      const routedResponse = withB4RouterHeaders(
         rewriteFallbackLocation(response, env.VERCEL_ORIGIN, publicHost),
         decision,
         latencyMs,
       )
+      emitPublicDeliveryForensicEvent(request, decision, routedResponse, env, ctx)
+      return routedResponse
     } catch (error) {
       const latencyMs = Date.now() - startedAt
       const errorClass = error instanceof Error ? error.name : 'upstream-fetch-failed'
       console.log(JSON.stringify(routerLogFields(request, decision, 502, latencyMs, errorClass)))
-      return new Response('Upstream unavailable', {
+      const response = new Response('Upstream unavailable', {
         status: 502,
         headers: {
           'content-type': 'text/plain; charset=utf-8',
@@ -98,6 +105,8 @@ export default {
           'x-visutry-router-latency-ms': String(latencyMs),
         },
       })
+      emitPublicDeliveryForensicEvent(request, decision, response, env, ctx)
+      return response
     }
   },
 }
