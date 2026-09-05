@@ -1,127 +1,152 @@
-# GA4 Console Checklist (Partially implemented)
+# GA4 Console Checklist
 
-**Status:** Active runbook / Partially implemented
-**Owner:** Growth / Analytics
-**Last updated:** 2026-08-26
+**Status:** Active bounded operator runbook  
+**Owner:** Growth / Analytics  
+**Last updated:** 2026-09-04  
+**Authority:** `docs/project/observability-and-analytics-contract.md`  
+**Runtime event registry:** `src/lib/analytics-events.ts`
 
-Remaining items are blocked until GA4 observes the new canonical event parameters/events.
-Property: `G-6J4ZXNNL4F`  
-Spec source: `ga4-dashboard-spec.md`  
-Last updated: 2026-08-11
+## Purpose
 
-Execution record (2026-08-11):
+Use this checklist only for GA4 console configuration and verification. GA4 is an aggregate product/acquisition analytics consumer; it is not the Store/Campaign business database and does not replace Axiom operational telemetry.
 
-- Created the event-scoped `Face shape` dimension mapped to `face_shape`.
-- Existing dimensions (`destination`, `purchase_context`, and the blog/continuation dimensions) were retained.
-- The GA4 parameter picker does not yet expose `campaign_id`, `merchant_id`, `store_id`, `surface`, `entry_point`, `frame_category`, `intent_type`, `lead_type`, `landing_surface`, `source_journey`, or `analytics_schema_version`; these cannot be safely registered until GA4 has received those parameters.
-- The canonical key events (`tryon_completed`, `comparison_completed`, `purchase_intent_clicked`, `lead_created`) are not yet present in the property. Existing legacy key events were left enabled to avoid a conversion-reporting gap.
-- Production smoke reached the Store CTA with `?campaign_id=cmp_debug`; photo-upload smoke was blocked by Chrome file-upload permission, so DebugView confirmation remains pending.
+Do not change product code merely because a desired GA4 dimension/event is not visible in the console.
 
-For the remaining items below, wait until the corresponding canonical events/parameters have been observed in GA4, then execute the steps in Chrome. Do not change product code for this checklist.
+## 1. Before changing GA4
 
----
+Verify in the authenticated GA4 property:
 
-## A. Custom dimensions (event-scoped)
+1. the active production web data stream / Measurement ID;
+2. events observed in the last 7–14 days;
+3. existing custom dimensions;
+4. existing key events;
+5. whether legacy dimensions/events still receive production traffic;
+6. current consent/filter/internal-traffic rules.
 
-Admin → Property → Data display → Custom definitions → Create custom dimension
+Historical console state from August 2026 is evidence only; do not assume it still represents the current property.
 
-| Dimension name | Event parameter | Scope |
-|---|---|---|
-| Campaign ID | `campaign_id` | Event |
-| Campaign name | `campaign_name` | Event |
-| Merchant ID | `merchant_id` | Event |
-| Store ID | `store_id` | Event |
-| Surface | `surface` | Event |
-| Entry point | `entry_point` | Event |
-| Frame category | `frame_category` | Event |
-| Face shape | `face_shape` | Event |
-| Intent type | `intent_type` | Event |
-| Lead type | `lead_type` | Event |
-| Landing surface | `landing_surface` | Event |
-| Source journey | `source_journey` | Event |
-| Destination | `destination` | Event |
-| Schema version | `analytics_schema_version` | Event |
+## 2. Recommended logical reporting groups
 
-Notes:
+Maintain one GA4 property for now and build logical views/explorations for:
 
-- Existing locale dimensions (`landing_locale`, `browser_language`) should already exist; do not duplicate.
-- New dimensions only apply to data collected **after** creation.
+- **Consumer Growth** — acquisition → Consumer decision flow → paid outcome.
+- **Commerce Discovery** — acquisition/discovery paths into PUBLIC_INDEX Store/Campaign surfaces; durable shopper/action/intent totals remain PostgreSQL-backed.
+- **Cross-product Discovery** — Search / AI / social / referral across VisuTry-owned acquisition surfaces and commerce surfaces.
+- **Merchant Activation** — merchant prospect/onboarding/workspace funnel.
 
----
+Do not create separate GA4 properties for 2B/2C without a separate privacy/ownership/scale decision.
 
-## B. Mark key / conversion events
+## 3. Custom-dimension discipline
 
-Admin → Property → Data display → Events
+Register only bounded dimensions that answer a recurring analysis question and are actually observed in production.
 
-Turn ON as key events / conversions:
+Good candidates, when emitted and useful:
 
-| Event | Why |
-|---|---|
-| `tryon_completed` | Core shopper product outcome |
-| `comparison_completed` | Preference depth |
-| `purchase_intent_clicked` | Shopper commerce intent (merchant campaign) |
-| `lead_created` | Shopper / campaign lead |
-| `b2b_lead_created` | VisuTry Store B2B sales lead (separate funnel) |
+```text
+surface
+entry_point
+journey_type
+source_journey
+destination
+face_shape
+frame_category
+intent_type
+lead_type
+failure_reason
+analytics_schema_version
+```
 
-Keep (if already conversions):
+Use caution before registering high-cardinality fields such as:
 
-| Event | Why |
-|---|---|
-| `begin_checkout` | GA4 ecommerce |
-| `purchase` | Verified purchase only |
+```text
+merchant_id
+store_id
+campaign_id
+consumer_funnel_id
+session/event identifiers
+landing_page / page_path when effectively unbounded
+```
 
-Optional secondary (campaign-dependent):
+These fields may exist in events without being good GA4 custom dimensions.
 
-| Event |
-|---|
-| `face_analysis_completed` |
-| `face_shape_detection_completed` |
-| `b2b_landing_viewed` |
+Never register raw arrays, arbitrary URLs, raw errors, inference payloads, free text, secrets or PII as custom dimensions.
 
-Important: do **not** treat `/store` marketing traffic as `campaign_landed`. B2B acquisition uses `b2b_*` events.
+## 4. Key-event discipline
 
----
+Mark only verified product/business outcomes that exist in production and are useful for decision-making.
 
-## C. Do NOT mark as conversions
+Examples of legitimate candidates include:
+
+```text
+tryon_completed
+comparison_completed
+purchase_intent_clicked
+lead_created
+b2b_lead_created
+merchant_first_store_published
+merchant_billing_activated
+merchant_first_intent
+purchase
+```
+
+The exact enabled set should match current product priorities and observed event availability.
+
+Do not mark as key events merely to complete a funnel:
 
 ```text
 *_started
 *_failed
 journey_continued
-paywall_viewed
-checkout_return_verified
-face_shape_detector_photo_handoff
-face_analysis_photo_handoff_restored
-conversion_context_restored
-original_action_resumed
+internal/test/debug events
 ```
 
----
+## 5. DebugView smoke
 
-## D. Quick DebugView smoke (after deploy)
+After a real instrumentation change or GA4 console change:
 
-1. Open site with `?campaign_id=cmp_debug`
-2. Run Face Shape Detector → continue to Face Analysis
-3. Start a Try-On
-4. Open Store landing and submit lead form (or CTA)
-5. Confirm in DebugView:
-   - `analytics_schema_version = 2`
-   - canonical event names (not legacy `try_on_*` / `face_analysis_start`)
-   - no dual `checkout_started` + `begin_checkout`
+1. use a controlled QA/test session;
+2. exercise only the relevant bounded flow;
+3. confirm the canonical event name;
+4. confirm expected bounded parameters;
+5. confirm no PII/secrets/raw object payloads;
+6. confirm no duplicate legacy + canonical event pair unless an intentional migration window exists;
+7. confirm test evidence is not being interpreted as genuine distribution evidence.
 
----
+Do not generate synthetic Agent traffic to make observation metrics non-zero.
 
-## E. Suggested first exploration
+## 6. Merchant commerce boundary
 
-Free-form exploration filtered by `analytics_schema_version = 2`:
+GA4 may show Store/Campaign acquisition and aggregate behavior, but merchant business truth comes from:
 
 ```text
-campaign_landed
- → campaign_engaged
- → face_analysis_started / face_shape_detection_completed
- → tryon_completed
- → purchase_intent_clicked
- → lead_created
+MerchantSession
+→ MerchantEvent
+→ MerchantIntent
 ```
 
-Break down by `acquisition_source` and `entry_point`.
+Use `npm run report:agent-distribution -- --json` for the current genuine distribution evidence contract.
+
+Never use a GA4 dashboard alone to claim:
+
+- durable Store/Campaign visitor totals;
+- Product Click / Inquiry business truth;
+- merchant sales/revenue attribution;
+- Gate A genuine distribution PASS.
+
+## 7. Current cleanup task
+
+During the next authenticated GA4 console session:
+
+- inventory existing custom dimensions/key events;
+- classify each as `keep`, `legacy-remove`, or `needs-evidence`;
+- prefer deleting obsolete console configuration over adding dimensions for old plans;
+- verify current Consumer/Commerce/merchant-activation explorations can be built from observed events;
+- record only the resulting durable configuration here.
+
+No application change is authorized by this checklist alone.
+
+## Change log
+
+| Date | Change |
+| --- | --- |
+| 2026-09-04 | Replaced the stale Phase-2 Campaign dashboard setup list with a bounded one-property GA4 operator checklist aligned to the current three-plane observability contract and durable merchant business model. |

@@ -1,35 +1,67 @@
-# Campaign Intelligence 文档入口
+# Campaign Intelligence Documentation
 
-**Status:** Active documentation entry point
-**Owner:** Product / Engineering / Growth
-**Last updated:** 2026-08-26
-**Scope:** VisuTry consumer funnel、Store/Campaign merchant analytics、事件契约和 GA4 配置。
+**Status:** Active bounded product-analytics reference  
+**Owner:** Product / Engineering / Growth  
+**Last updated:** 2026-09-04  
+**Scope:** Product-event semantics and GA4 operator configuration that remain useful after the Merchant Store/Campaign durable analytics model shipped.
 
-## 当前阅读顺序
+## Authority boundary
 
-1. `event-taxonomy.md` — 当前唯一的业务事件契约。它定义事件命名、上下文、B2B 与 shopper 边界、归因和 GA4 cardinality 规则。
-2. `implementation-progress.md` — 当前进度台账和未决事项。它回答“代码迁移完成到哪里、接下来等什么”。
-3. `ga4-dashboard-spec.md` — 将事件契约映射到 campaign / merchant 报表的指标和探索。
-4. `ga4-console-checklist.md` — 需要在 GA4 控制台执行的配置和验证步骤。
+The cross-cutting authority for VisuTry telemetry, analytics, data-plane ownership, attribution, exclusion semantics and schema governance is now:
 
-## 当前结论
+- `docs/project/observability-and-analytics-contract.md`
 
-- Phases 1–3 的工程事件层已经完成，生产代码通过 `analytics.ts` / `analytics-v2.ts` 发出 canonical business events。
-- `/store` 是 merchant prospect acquisition，必须使用 `b2b_*` 事件；不能用 shopper campaign 事件替代。
-- GA4 是事件消费者，不是 VisuTry 的产品数据模型；代码中的 event registry 和本 taxonomy 才是契约。
-- 当前等待项集中在 GA4 观测、DebugView 和控制台 key-event/custom-dimension 配置，不应重新开启已完成的迁移计划。
-- `frame_favorited` 等没有真实产品交互的事件保持 backlog，不为填报表而伪造埋点。
+Campaign Intelligence is **not** the product-wide observability architecture and GA4 is **not** the Merchant Store/Campaign business source of truth.
 
-## 文档边界
+Current runtime authorities are:
 
-| 文档 | 作用 | 当前状态 |
-| --- | --- | --- |
-| `event-taxonomy.md` | 业务事件契约和语义规则 | Active source of truth |
-| `implementation-progress.md` | 当前进度、follow-up 和等待条件 | Active operating ledger |
-| `ga4-dashboard-spec.md` | GA4 报表与 campaign 指标设计 | Active supporting spec |
-| `ga4-console-checklist.md` | 控制台执行清单 | Active runbook / partially implemented |
-| `archive/` | 迁移过程和已完成阶段的历史证据 | Historical reference only |
+- Consumer/product analytics event registry: `src/lib/analytics-events.ts`
+- Consumer Traffic Ready evidence endpoint: `src/app/api/analytics/consumer-funnel/route.ts`
+- Store/Campaign business facts: PostgreSQL `MerchantSession` / `MerchantEvent` / `MerchantIntent`
+- Merchant distribution reporting: `src/modules/store/domain/merchant-distribution-report.ts` and `scripts/agent-distribution-report.ts`
 
-## 创建规则
+## Current reading path
 
-新事件先更新 `event-taxonomy.md` 和代码 registry，再更新 `implementation-progress.md`。不要为每个阶段另建一份 completion report；只有可复现的验证证据、事故记录或外部研究才单独成文，并在完成后放入 `archive/` 或 evidence 目录。
+1. `docs/project/observability-and-analytics-contract.md` — first read; owns cross-cutting data-plane and governance decisions.
+2. `event-taxonomy.md` — bounded semantic guide for the current web product analytics registry; code wins for exact implemented event names/fields.
+3. `ga4-console-checklist.md` — bounded GA4 operator checklist; GA4 configuration only.
+4. `archive/` — historical migration/audit/completion evidence; never current execution authority.
+
+## Current product boundaries
+
+Keep these journeys separate in reporting:
+
+```text
+Standalone Consumer
+  acquisition → detector/analysis/advisor → try-on/compare → paid/product outcome
+
+Merchant shopper
+  source → Store/Campaign → decision actions → MerchantIntent
+
+Merchant operator
+  business acquisition/onboarding → workspace/catalog/publish/billing
+```
+
+The first and second journeys may reuse decision capabilities but they do **not** share a durable per-user session join today. Do not invent one in analytics.
+
+## GA4 boundary
+
+GA4 remains useful for aggregate acquisition, funnel and UX exploration. It is a consumer of product events, not the merchant business database.
+
+Do not use GA4 alone to claim:
+
+- Store/Campaign durable visitor or intent totals;
+- merchant revenue or sales attribution;
+- payment/credit truth;
+- production/runtime reliability.
+
+## Document lifecycle
+
+The old Phase 1–3 migration/progress model is closed. Historical phase reports stay under `archive/` as evidence. Do not create new phase/completion documents for ordinary analytics changes.
+
+When event semantics change:
+
+1. change and test the runtime contract;
+2. update `event-taxonomy.md` only for durable semantic changes;
+3. update the cross-cutting Observability & Analytics Contract when data-plane, provenance, attribution, schema or source-of-truth boundaries change;
+4. update the GA4 checklist only when operator configuration changes.

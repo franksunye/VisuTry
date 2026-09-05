@@ -2,161 +2,138 @@
 
 **Status:** Active documentation entry point  
 **Created:** 2026-07-08  
-**Last updated:** 2026-08-27
+**Last updated:** 2026-09-04  
 **Owner:** Product / Engineering  
-**Review cadence:** Monthly, or whenever the product direction materially changes.
-
----
+**Review cadence:** Monthly, or whenever product direction / production architecture materially changes.
 
 ## 1. Purpose
 
-This file is the entry point for the VisuTry documentation system.
+This is the entry point for current VisuTry documentation. It distinguishes active authorities from bounded runbooks and dated evidence so old phase documents do not silently drive current work.
 
-Use it to answer:
+## 2. Current authorities
 
-1. Where is the current commercial strategy?
-2. Where is the current product plan?
-3. Where are execution backlogs and specs?
-4. Which documents are active source of truth, supporting references, or historical archives?
-5. What is the current infrastructure/hosting authority?
+| Scope | Primary authority |
+| --- | --- |
+| Commercial direction | `docs/strategy/commercial-strategy.md` |
+| Product execution priority | `docs/product/product-plan.md` |
+| Cross-product positioning / boundaries | `docs/product/product-system.md` |
+| Detailed product behavior | `docs/product/specs/` |
+| Technical reality | `docs/project/architecture.md` + accepted ADRs |
+| **Observability / analytics / attribution / data-plane ownership** | **`docs/project/observability-and-analytics-contract.md`** |
+| Hosting/runtime ownership | ADR-011 + `docs/operations/hosting-strategy-vercel-cloudflare.md` |
+| Technical operations | `docs/operations/README.md` + dated evidence under `docs/ops/` |
+| GTM execution | `docs/strategy/analytics/gtm.md` |
+| SEO/GEO execution | `docs/project/seo-backlog.md` + current SEO strategy docs |
+| Documentation governance | `docs/document-inventory.md` + ADR-012 |
 
----
+## 3. Source-of-truth rules
 
-## 2. Documentation Layers
+1. Commercial strategy decides commercial direction.
+2. Product plan decides current product priority.
+3. Approved product specs decide bounded feature behavior.
+4. Current accepted ADRs decide durable architecture decisions.
+5. `docs/project/architecture.md` describes current implementation reality.
+6. **`docs/project/observability-and-analytics-contract.md` decides which telemetry/analytics/business-data plane owns a fact and how Consumer / Commerce / Merchant Operator measurement is separated.**
+7. Runtime code remains authoritative for exact implemented event names, schema fields and reporting behavior.
+8. Dated `docs/ops/` records are evidence snapshots; they do not become permanent architecture authorities.
+9. Historical/archive documents never override active authorities.
 
-| Layer | Purpose | Primary documents |
-| --- | --- | --- |
-| Strategy | Why VisuTry exists commercially and where it should go. | `docs/strategy/commercial-strategy.md` |
-| Benchmark / research | External evidence, market references, competitor notes, and commercial inspirations. | `docs/strategy/commercial-benchmarks.md` |
-| Product plan | What should be built next, in what order, and with what success criteria. | `docs/product/product-plan.md` |
-| Product specs | How a specific product capability should work. | `docs/product/specs/` |
-| Growth / SEO / GTM | How VisuTry acquires traffic, demand, and product actions. | `docs/strategy/seo/`, `docs/strategy/growth/`, `docs/strategy/analytics/gtm.md`, `docs/project/seo-backlog.md` |
-| Technical architecture | How the current system is built. | `docs/project/architecture.md`, `docs/decisions/`, latest readiness audit `docs/audits/2026-08-27-architecture-platform-saas-audit.md` |
-| Technical operations | How production infrastructure is operated and verified. | `docs/operations/README.md`, `docs/operations/hosting-strategy-vercel-cloudflare.md`, `docs/ops/` |
-| Archive | Historical/superseded material retained for evidence, not current execution. | `docs/strategy/archive/`, `docs/operations/ARCHIVE.md` |
+If two documents conflict, prefer the authority for the specific scope and then current implementation evidence.
 
----
+## 4. Current observation phase
 
-## 3. Source-of-Truth Rules
+The current production measurement phase has two distinct evidence clocks:
 
-1. **Commercial direction** lives in `docs/strategy/commercial-strategy.md`.
-2. **External references** live in `docs/strategy/commercial-benchmarks.md`.
-3. **Current product execution** lives in `docs/product/product-plan.md`.
-4. **Detailed feature behavior** lives in `docs/product/specs/`.
-5. **GTM execution priority** lives in `docs/strategy/analytics/gtm.md`.
-6. **Current production hosting/runtime ownership** is governed by `docs/decisions/ADR-011-vercel-sole-next-frontend-owner.md` plus `docs/operations/hosting-strategy-vercel-cloudflare.md`.
-7. **Exact Cloudflare production Worker route intent** is governed by `cloudflare-router/b4-production-routes.ts` and its generated JSON manifest.
-8. **Historical plans/milestones** must be marked archived/superseded and must not override current ADRs or canonical operating documents.
+- Traffic Ready T0: `2026-09-03T13:26:22.008Z`
+- Discovery Canary T0: `2026-09-03T16:33:14.812Z`
 
-If two documents conflict:
+Read:
 
-- Commercial strategy wins over benchmark notes.
-- Product plan wins over older roadmap documents for current execution priority.
-- Feature specs win over product plan for detailed acceptance criteria after the spec is approved.
-- Current accepted ADRs win over historical architecture/migration notes.
-- For hosting specifically: **ADR-011 > current hosting strategy > current generated route manifest context > archived migration milestones.**
-- Architecture documents describe current technical reality; they do not override product/commercial direction.
+1. `docs/project/observability-and-analytics-contract.md`
+2. `docs/ops/traffic-ready-t0-2026-09-03.md`
+3. `docs/ops/discovery-canary-2026-09-03.md`
+4. `docs/product/plans/product-advantage-gate.md`
 
----
+The first two dated records prove readiness/evidence; the Product Advantage Gate defines the genuine-distribution decision bar.
 
-## 4. Current Active Reading Paths
+## 5. Active reading paths
 
-### Product and business planning
+### Product / business
 
 1. `docs/strategy/commercial-strategy.md`
 2. `docs/product/product-plan.md`
-3. `docs/strategy/commercial-benchmarks.md`
-4. `docs/strategy/seo/2026-06-30-product-architecture-seo-geo-sync.md`
-5. `docs/project/seo-backlog.md`
-6. Relevant specs under `docs/product/specs/`
+3. relevant `docs/product/specs/`
+4. `docs/product/plans/product-advantage-gate.md` when evaluating current merchant-distribution proof
 
-### Engineering work
+### Engineering
 
 1. `docs/product/product-plan.md`
-2. Relevant spec under `docs/product/specs/`
+2. relevant product spec
 3. `docs/project/architecture.md`
-4. Relevant accepted ADRs under `docs/decisions/`
-5. `docs/guides/development-guide.md`
-6. `docs/engineering/environment-isolation-contract.md`
-7. Current implementation/configuration files.
+4. `docs/project/observability-and-analytics-contract.md` for telemetry/analytics/data questions
+5. accepted ADRs
+6. `docs/guides/development-guide.md`
+7. current implementation/configuration
 
-### Hosting / Cloudflare / Vercel work
+### Observability / analytics
 
-Read in this order:
+1. `docs/project/observability-and-analytics-contract.md`
+2. current runtime contracts (`src/lib/logger.ts`, `src/lib/analytics-events.ts`, MerchantSession/Event/Intent, distribution report)
+3. `docs/product/campaign-intelligence/event-taxonomy.md` for bounded web product-event semantics
+4. `docs/product/campaign-intelligence/ga4-console-checklist.md` for GA4 operator work
+5. dated `docs/ops/` evidence only when reproducing a specific baseline
+
+Do not start a new analytics architecture from the historical Campaign Intelligence migration files.
+
+### Hosting / Cloudflare / Vercel
 
 1. `docs/decisions/ADR-011-vercel-sole-next-frontend-owner.md`
 2. `docs/operations/hosting-strategy-vercel-cloudflare.md`
 3. `docs/operations/README.md`
-4. `cloudflare-router/b4-production-routes.ts` and `cloudflare-router/b4-production-routes.json`
-5. `docs/operations/cloudflare-next-static-route-incident-2026-08-19.md` when investigating the dual-build/ChunkLoadError failure class.
-6. `docs/operations/ARCHIVE.md` only when historical migration evidence is required.
+4. current generated route manifest / implementation
+5. incident/archive evidence only when investigating history
 
-Do **not** start current hosting work from old B3/B4 phase documents.
-
-### Environment and QA work
+### Environment / QA
 
 1. `docs/engineering/environment-isolation-contract.md`
 2. `docs/guides/development-guide.md`
 3. `docs/engineering/quality-assurance-strategy.md`
-4. `docs/g4c-preview-qa.md` for the fixed Preview QA Merchant pool and bounded fixtures.
+4. current QA fixtures and implementation
 
-### Consumer GTM and paid conversion
+## 6. Documentation lifecycle
 
-1. `docs/strategy/analytics/gtm.md`
-2. `docs/ops/consumer-checkout-observation-2026-08-10.md`
-3. `docs/product/specs/credits-pack-conversion.md`
-4. `docs/product/product-plan.md`
-
-### 2B / Merchant Commerce work
-
-1. `docs/product/product-plan.md`
-2. `docs/product/README.md`
-3. `docs/product/specs/visutry-store-engineering-foundation.md`
-4. `docs/product/specs/merchant-experience-architecture.md`
-5. `docs/product/specs/campaign-conversion-policy.md`
-6. `docs/product/plans/market-facing-productization-plan.md`
-7. `docs/product/plans/agent-native-merchant-self-service.md` and `docs/product/plans/universal-agent-access.md` for agent-native work.
-8. `docs/product/sales/visutry-sales-readiness-audit-2026-08-12.md` for the current merchant-validation loop.
-9. Dated D0/Factory plans only when historical acceptance evidence or a durable contract is needed.
-
----
-
-## 5. Document Governance
-
-Every active planning/operations document should include:
-
-- status;
-- owner;
-- last updated/reviewed date where applicable;
-- scope;
-- relationship to the relevant source of truth.
-
-Recommended lifecycle values:
+Every active authority/plan/spec/runbook should state Status, Owner, review/update date and scope.
 
 | Status | Meaning |
 | --- | --- |
-| Active source of truth | Primary authority for its scope. |
-| Active operating plan / playbook | Current bounded execution procedure. |
-| Living supporting reference | Evidence/research that informs decisions. |
-| Resolved incident / permanent guardrail | Closed incident retained because its evidence defines a safety rule. |
-| Draft | Under discussion; should not drive execution alone. |
-| Superseded | Replaced by newer guidance; must not drive current work. |
-| Archived historical reference | Retained for audit/context only. |
+| Active source of truth | Primary authority for its scope |
+| Active plan / playbook | Current bounded execution procedure |
+| Measuring / validation | Shipped/prepared; next decision waits on evidence |
+| Living supporting reference | Useful supporting research/evidence |
+| Resolved incident / permanent guardrail | Closed evidence retained because it defines safety |
+| Draft | Under discussion; not execution authority |
+| Superseded | Replaced by named newer guidance |
+| Archived historical reference | Context only |
 
-Historical operational evidence should normally be retained and classified rather than deleted. Delete only duplicate, empty, or fully incorporated documents that have no remaining audit value.
+Delete documents only when they are duplicate, empty, fully incorporated elsewhere, or an expired progress/spec file whose unique evidence is already retained. Preserve dated production/incident evidence when it has forensic value.
 
-The inventory is deliberately limited to authoritative entry points and explicit cleanup exceptions. It is not a catalog of every document. Directory lifecycle, creation/close-out rules, and the current cleanup queue live in `docs/document-inventory.md`; the scaling decision is recorded in `docs/decisions/ADR-012-scalable-documentation-governance.md`.
+## 7. Creation / cleanup rules
 
-Before adding a new plan, summary, completion report, or audit, prefer updating the existing plan/spec when it can preserve the same facts. If a separate document is necessary, declare its owner, active lifetime, and eventual merge/archive/evidence destination.
+Before adding a document, prefer updating an existing authority/spec. Avoid separate “summary”, “complete”, “ready”, and “final” files when the originating document can hold the durable state.
 
----
+When a bounded migration/progress document closes:
 
-## 6. Maintenance Notes
+- merge durable rules into the relevant authority;
+- retain unique reproducible evidence under archive/evidence/ops when useful;
+- delete the closed duplicate/ledger when it has no unique remaining value.
 
-- Do not let `commercial-strategy.md` become a research dump.
-- Do not let `product-plan.md` become a feature spec dump.
-- Do not let benchmark notes decide product priority directly.
-- Keep current architecture/operations entry points small and authoritative.
-- Archive-by-status old migration milestones as soon as their experiment/cutover phase closes.
-- If a new infrastructure decision changes an ownership boundary, create/supersede an ADR before treating phase notes as production authority.
-- Run `npm run docs:audit` during the monthly review and at milestone close. Use `npm run docs:audit:strict` before merging governance or large documentation changes.
+Run:
+
+```bash
+npm run docs:audit
+npm run docs:audit:strict
+```
+
+for governance or large documentation changes.
+
+See `docs/document-inventory.md` for lifecycle and cleanup governance.
