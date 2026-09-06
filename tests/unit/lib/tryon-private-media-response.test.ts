@@ -17,16 +17,31 @@ import { tryOnProviderMediaInput } from '@/lib/tryon-media-loader'
 import { loadTryOnMediaFile, serveLegacyTryOnMedia } from '@/lib/tryon-media-response'
 
 describe('Try-On private source media delivery', () => {
-  const previousStoreId = process.env.TRY_ON_BLOB_STORE_ID
+  const envKeys = [
+    'TRY_ON_BLOB_STORE_ID',
+    'TRY_ON_BLOB_READ_WRITE_TOKEN',
+    'FACE_ANALYSIS_BLOB_READ_WRITE_TOKEN',
+    'RPIVATE_BLOB_READ_WRITE_TOKEN',
+  ] as const
+  const originalEnv: Partial<Record<(typeof envKeys)[number], string | undefined>> = {}
+
+  beforeAll(() => {
+    for (const key of envKeys) originalEnv[key] = process.env[key]
+  })
 
   beforeEach(() => {
     jest.clearAllMocks()
+    for (const key of envKeys) delete process.env[key]
     process.env.TRY_ON_BLOB_STORE_ID = 'store_tryon'
+    process.env.TRY_ON_BLOB_READ_WRITE_TOKEN = 'private-tryon-token'
   })
 
   afterAll(() => {
-    if (previousStoreId === undefined) delete process.env.TRY_ON_BLOB_STORE_ID
-    else process.env.TRY_ON_BLOB_STORE_ID = previousStoreId
+    for (const key of envKeys) {
+      const value = originalEnv[key]
+      if (value === undefined) delete process.env[key]
+      else process.env[key] = value
+    }
   })
 
   function privateBlobResult(bytes: number[], contentType = 'image/jpeg') {
@@ -50,9 +65,9 @@ describe('Try-On private source media delivery', () => {
       'source.jpg',
     )
 
-    expect(mockGet).toHaveBeenCalledWith('tryon/user/user-1/source.jpg', {
+    expect(mockGet).toHaveBeenCalledWith('https://tryon-media.test/tryon/user/user-1/source.jpg', {
       access: 'private',
-      storeId: 'store_tryon',
+      token: 'private-tryon-token',
     })
     expect(fetchSpy).not.toHaveBeenCalled()
     expect(file.type).toBe('image/jpeg')
@@ -69,7 +84,38 @@ describe('Try-On private source media delivery', () => {
     )
 
     expect(input).toBe('data:image/png;base64,AQID')
-    expect(mockGet).toHaveBeenCalledWith('tryon/user/user-1/source.png', {
+    expect(mockGet).toHaveBeenCalledWith('https://tryon-media.test/tryon/user/user-1/source.png', {
+      access: 'private',
+      token: 'private-tryon-token',
+    })
+  })
+
+  it('uses the existing production private-store token alias during migration', async () => {
+    delete process.env.TRY_ON_BLOB_READ_WRITE_TOKEN
+    process.env.RPIVATE_BLOB_READ_WRITE_TOKEN = 'legacy-private-store-token'
+    mockGet.mockResolvedValue(privateBlobResult([1], 'image/png'))
+
+    await loadTryOnMediaFile(
+      'https://tryon-media.test/tryon/user/user-1/source.png',
+      'source.png',
+    )
+
+    expect(mockGet).toHaveBeenCalledWith('https://tryon-media.test/tryon/user/user-1/source.png', {
+      access: 'private',
+      token: 'legacy-private-store-token',
+    })
+  })
+
+  it('retains store-bound auth when no dedicated private-store token exists', async () => {
+    delete process.env.TRY_ON_BLOB_READ_WRITE_TOKEN
+    mockGet.mockResolvedValue(privateBlobResult([1], 'image/png'))
+
+    await loadTryOnMediaFile(
+      'https://tryon-media.test/tryon/user/user-1/source.png',
+      'source.png',
+    )
+
+    expect(mockGet).toHaveBeenCalledWith('https://tryon-media.test/tryon/user/user-1/source.png', {
       access: 'private',
       storeId: 'store_tryon',
     })
