@@ -5,6 +5,18 @@ import { FaceAnalysisTaskResponse } from '@/types/face-analysis'
 import { buildFullResult, parseFaceAnalysisContent } from '@/lib/face-analysis-parser'
 import { analytics } from '@/lib/analytics'
 
+jest.mock('next/image', () => {
+  const React = require('react')
+
+  return function MockNextImage({ unoptimized, fill, ...props }: Record<string, unknown>) {
+    return React.createElement('img', {
+      ...props,
+      'data-unoptimized': unoptimized ? 'true' : 'false',
+      'data-fill': fill ? 'true' : undefined,
+    })
+  }
+})
+
 jest.mock('next-intl', () => ({
   useTranslations: () => (key: string, values?: Record<string, unknown>) => {
     if (key === 'completed') return 'Completed'
@@ -250,7 +262,7 @@ describe('FaceAnalysisResult', () => {
     const completedTasks = Array.from({ length: 4 }, (_, index) => ({
       taskId: `try-on-${index + 1}`,
       status: 'completed' as const,
-      resultImageUrl: `https://example.com/result-${index + 1}.jpg`,
+      resultImageUrl: `/api/try-on/try-on-${index + 1}/media/result`,
       errorMessage: null,
       preset: {
         id: `preset-${index + 1}`,
@@ -280,6 +292,40 @@ describe('FaceAnalysisResult', () => {
       '/en/style-explorer?source=face-analysis&taskId=task-1',
     )
     expect(screen.queryByRole('button', { name: /try top picks/i })).not.toBeInTheDocument()
+  })
+
+  it('renders authenticated Top Picks media without the Next image optimizer', async () => {
+    const resultUrl = '/api/try-on/try-on-1/media/result'
+    global.fetch = jest.fn(async () => ({
+      ok: true,
+      json: async () => ({
+        success: true,
+        data: {
+          batchId: 'batch-protected-media',
+          requiredCredits: 4,
+          creditsUsed: 4,
+          recovered: true,
+          tasks: Array.from({ length: 4 }, (_, index) => ({
+            taskId: `try-on-${index + 1}`,
+            status: 'completed' as const,
+            resultImageUrl: `/api/try-on/try-on-${index + 1}/media/result`,
+            errorMessage: null,
+            preset: {
+              id: `preset-${index + 1}`,
+              name: `Preset ${index + 1}`,
+              style: 'round',
+            },
+          })),
+        },
+      }),
+    })) as jest.Mock
+
+    render(<FaceAnalysisResult task={makeTask()} onUnlock={jest.fn()} remainingCredits={26} />)
+
+    const image = await screen.findByAltText('Preset 1 try-on result')
+    expect(image).toHaveAttribute('src', resultUrl)
+    expect(image).toHaveAttribute('data-unoptimized', 'true')
+    expect(image).not.toHaveAttribute('src', expect.stringContaining('/_next/image'))
   })
 
   it('submits only the completion mode after a recovered partial batch', async () => {

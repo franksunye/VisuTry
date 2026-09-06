@@ -31,11 +31,25 @@ describe('Try-On protected media boundary', () => {
     })
   })
 
+  it('canonicalizes private, legacy public, and data-url results identically', () => {
+    const sources = [
+      'https://storage.example.test/tryon/result/task-1.png',
+      'https://legacy.example.com/tryon/result/task-1.png',
+      'data:image/png;base64,AQIDBA==',
+    ]
+
+    for (const source of sources) {
+      const response = tryOnMediaUrls({ id: 'task-1', resultImageUrl: source })
+      expect(response.resultImageUrl).toBe(tryOnMediaPath('task-1', 'result'))
+      expect(JSON.stringify(response)).not.toContain(source)
+    }
+  })
+
   it('never exposes a raw result URL through compare/style task DTOs', () => {
     const response = toCompareTaskResponse({
       id: 'task-1',
       status: 'COMPLETED',
-      resultImageUrl: 'https://public.blob.vercel-storage.com/raw-result.png',
+      resultImageUrl: 'https://storage.example.test/raw-result.png',
       metadata: {
         framePresetId: 'unknown-preset',
         framePresetName: 'Frame',
@@ -44,7 +58,7 @@ describe('Try-On protected media boundary', () => {
     })
 
     expect(response.resultImageUrl).toBe(tryOnMediaPath('task-1', 'result'))
-    expect(JSON.stringify(response)).not.toContain('blob.vercel-storage.com')
+    expect(JSON.stringify(response)).not.toContain('storage.example.test')
   })
 
   it('allowlists client metadata and removes internal media URLs/data URLs', () => {
@@ -53,7 +67,7 @@ describe('Try-On protected media boundary', () => {
       source: 'face-analysis-top-picks',
       framePresetName: 'Classic Frame',
       uploadDiagnostics: {
-        userImageUrl: 'https://public.blob.vercel-storage.com/raw-user.jpg',
+      userImageUrl: 'https://storage.example.test/raw-user.jpg',
       },
       originalResultUrl: 'data:image/png;base64,SECRET',
     })
@@ -63,13 +77,13 @@ describe('Try-On protected media boundary', () => {
       source: 'face-analysis-top-picks',
       framePresetName: 'Classic Frame',
     })
-    expect(JSON.stringify(metadata)).not.toContain('blob.vercel-storage.com')
+    expect(JSON.stringify(metadata)).not.toContain('storage.example.test')
     expect(JSON.stringify(metadata)).not.toContain('data:image')
   })
 
   it('accepts legacy HTTP(S) media targets for post-auth redirects', () => {
-    expect(parseLegacyTryOnHttpUrl('https://public.blob.vercel-storage.com/result.png').href)
-      .toBe('https://public.blob.vercel-storage.com/result.png')
+    expect(parseLegacyTryOnHttpUrl('https://storage.example.test/result.png').href)
+      .toBe('https://storage.example.test/result.png')
     expect(() => parseLegacyTryOnHttpUrl('ftp://example.com/result.png')).toThrow(
       'Unsupported Try-On media URL',
     )

@@ -1,6 +1,7 @@
 const mockRequireAuth = jest.fn()
 const mockFindUnique = jest.fn()
 const mockServeLegacyTryOnMedia = jest.fn()
+const mockLoggerError = jest.fn()
 
 jest.mock('next/server', () => ({
   NextResponse: {
@@ -27,6 +28,14 @@ jest.mock('@/lib/tryon-media-response', () => ({
   serveLegacyTryOnMedia: (...args: unknown[]) => mockServeLegacyTryOnMedia(...args),
 }))
 
+jest.mock('@/lib/logger', () => ({
+  getRequestContext: jest.fn().mockReturnValue({}),
+  logger: {
+    warn: jest.fn(),
+    error: (...args: unknown[]) => mockLoggerError(...args),
+  },
+}))
+
 import { GET } from '@/app/api/try-on/[id]/media/[kind]/route'
 
 describe('GET /api/try-on/[id]/media/[kind]', () => {
@@ -50,7 +59,7 @@ describe('GET /api/try-on/[id]/media/[kind]', () => {
   it('rejects access to another users media', async () => {
     mockFindUnique.mockResolvedValue({
       userId: 'user-2',
-      userImageUrl: 'https://public.blob.vercel-storage.com/user.jpg',
+      userImageUrl: 'https://storage.example.test/user.jpg',
       itemImageUrl: null,
       glassesImageUrl: null,
       resultImageUrl: null,
@@ -67,10 +76,10 @@ describe('GET /api/try-on/[id]/media/[kind]', () => {
   it('serves owner result media through the protected proxy', async () => {
     mockFindUnique.mockResolvedValue({
       userId: 'user-1',
-      userImageUrl: 'https://public.blob.vercel-storage.com/user.jpg',
-      itemImageUrl: 'https://public.blob.vercel-storage.com/item.png',
+      userImageUrl: 'https://storage.example.test/user.jpg',
+      itemImageUrl: 'https://storage.example.test/item.png',
       glassesImageUrl: null,
-      resultImageUrl: 'https://public.blob.vercel-storage.com/result.png',
+      resultImageUrl: 'https://storage.example.test/result.png',
     })
 
     const result = await GET({} as any, {
@@ -78,7 +87,101 @@ describe('GET /api/try-on/[id]/media/[kind]', () => {
     })
 
     expect(result.status).toBe(200)
-    expect(mockServeLegacyTryOnMedia).toHaveBeenCalledWith('https://public.blob.vercel-storage.com/result.png')
+    expect(mockServeLegacyTryOnMedia).toHaveBeenCalledWith('https://storage.example.test/result.png')
+  })
+
+  it('passes through an image response from the shared private-media reader', async () => {
+    mockFindUnique.mockResolvedValue({
+      userId: 'user-1',
+      userImageUrl: 'https://public.example.com/user.jpg',
+      itemImageUrl: null,
+      glassesImageUrl: null,
+      resultImageUrl: 'https://storage.example.test/tryon/result.png',
+    })
+    mockServeLegacyTryOnMedia.mockResolvedValue({
+      status: 200,
+      headers: { get: (name: string) => name.toLowerCase() === 'content-type' ? 'image/png' : null },
+      arrayBuffer: async () => new Uint8Array([1, 2, 3]).buffer,
+    })
+
+    const result = await GET({} as any, {
+      params: { id: 'task-1', kind: 'result' },
+    })
+
+    expect(result.status).toBe(200)
+    expect(result.headers.get('content-type')).toBe('image/png')
+    expect(new Uint8Array(await result.arrayBuffer())).toEqual(new Uint8Array([1, 2, 3]))
+  })
+
+  it('returns an explicit failure when the owner has no result media', async () => {
+    mockFindUnique.mockResolvedValue({
+      userId: 'user-1',
+      userImageUrl: 'https://public.example.com/user.jpg',
+      itemImageUrl: 'https://public.example.com/item.png',
+      glassesImageUrl: null,
+      resultImageUrl: null,
+    })
+
+    const result = await GET({} as any, {
+      params: { id: 'task-1', kind: 'result' },
+    })
+
+    expect(result.status).toBe(404)
+    expect(mockServeLegacyTryOnMedia).not.toHaveBeenCalled()
+  })
+
+  it('returns an explicit media failure when the shared reader fails', async () => {
+    mockFindUnique.mockResolvedValue({
+      userId: 'user-1',
+      userImageUrl: 'https://public.example.com/user.jpg',
+      itemImageUrl: null,
+      glassesImageUrl: null,
+      resultImageUrl: 'https://storage.example.test/tryon/result.png',
+    })
+    mockServeLegacyTryOnMedia.mockRejectedValue(new Error('Failed to load private Try-On media'))
+
+    const result = await GET({} as any, {
+      params: { id: 'task-1', kind: 'result' },
+    })
+
+    expect(result.status).toBe(502)
+    expect(await result.json()).toEqual({ success: false, error: 'Media unavailable' })
+    expect(mockLoggerError).toHaveBeenCalledWith(
+      'api',
+      'Consumer Try-On media delivery failed',
+      expect.objectContaining({
+        name: 'Error',
+        message: 'Failed to load private Try-On media',
+      }),
+      expect.objectContaining({
+        errorType: 'media_delivery_failed',
+        source: 'legacy_http',
+      }),
+      {},
+    )
+  })
+
+  it('redacts media URLs and credentials from reader failure diagnostics', async () => {
+    mockFindUnique.mockResolvedValue({
+      userId: 'user-1',
+      userImageUrl: 'https://public.example.com/user.jpg',
+      itemImageUrl: null,
+      glassesImageUrl: null,
+      resultImageUrl: 'https://storage.example.invalid/result.png',
+    })
+    mockServeLegacyTryOnMedia.mockRejectedValue(new Error(
+      'Failed to load private Try-On media: https://media.example.invalid/result.png?token=fixture-token Authorization: Bearer fixture-bearer',
+    ))
+
+    await GET({} as any, {
+      params: { id: 'task-1', kind: 'result' },
+    })
+
+    const loggedError = mockLoggerError.mock.calls.at(-1)?.[2] as Error
+    expect(loggedError.message).toContain('Failed to load private Try-On media')
+    expect(loggedError.message).not.toContain('media.example.invalid')
+    expect(loggedError.message).not.toContain('fixture-token')
+    expect(loggedError.message).not.toContain('fixture-bearer')
   })
 
   it('returns 404 for unsupported media kinds', async () => {

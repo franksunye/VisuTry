@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
+import { publicTryOnShareResultPath } from "@/lib/tryon-media"
 
 export async function GET(
   request: NextRequest,
@@ -11,10 +12,14 @@ export async function GET(
     // 获取试戴任务
     const task = await prisma.tryOnTask.findUnique({
       where: { id: taskId },
-      include: {
+      select: {
+        id: true,
+        type: true,
+        status: true,
+        resultImageUrl: true,
+        createdAt: true,
         user: {
           select: {
-            id: true,
             name: true,
             image: true
           }
@@ -42,10 +47,13 @@ export async function GET(
       data: {
         id: task.id,
         type: (task as any).type || 'GLASSES', // Include type, default to GLASSES for old records
-        userImageUrl: task.userImageUrl,
-        itemImageUrl: (task as any).itemImageUrl || task.glassesImageUrl, // Support both field names
-        glassesImageUrl: task.glassesImageUrl, // Keep for backward compatibility
-        resultImageUrl: task.resultImageUrl,
+        // This legacy public DTO has no authenticated source-media capability.
+        // Do not expose persisted storage references; the result uses the
+        // existing public share reader instead.
+        userImageUrl: null,
+        itemImageUrl: null,
+        glassesImageUrl: null,
+        resultImageUrl: publicTryOnShareResultPath(task.id),
         createdAt: task.createdAt,
         user: {
           name: task.user?.name ?? null,
