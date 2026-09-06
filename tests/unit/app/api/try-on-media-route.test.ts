@@ -155,7 +155,7 @@ describe('GET /api/try-on/[id]/media/[kind]', () => {
       }),
       expect.objectContaining({
         errorType: 'media_delivery_failed',
-        source_class: 'legacy_http',
+        source: 'legacy_http',
       }),
       {},
     )

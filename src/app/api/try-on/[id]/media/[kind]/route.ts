@@ -62,7 +62,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
         taskId: params.id,
         type: params.kind,
         status: ownershipResult,
-        source_class: sourceClass,
+        source: sourceClass,
         errorType: 'unauthenticated',
       }, ctx)
       return auth.response
@@ -76,7 +76,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
         type: params.kind,
         userId: authenticatedUserId,
         status: ownershipResult,
-        source_class: sourceClass,
+        source: sourceClass,
         errorType: 'unsupported_media_kind',
       }, ctx)
       return NextResponse.json({ success: false, error: 'Media not found' }, { status: 404 })
@@ -100,7 +100,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
         type: params.kind,
         userId: authenticatedUserId,
         status: ownershipResult,
-        source_class: sourceClass,
+        source: sourceClass,
         errorType: 'task_not_found',
       }, ctx)
       return NextResponse.json({ success: false, error: 'Task not found' }, { status: 404 })
@@ -113,7 +113,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
         userId: authenticatedUserId,
         taskUserId: task.userId,
         status: ownershipResult,
-        source_class: sourceClass,
+        source: sourceClass,
         errorType: 'ownership_denied',
       }, ctx)
       return NextResponse.json({ success: false, error: 'Forbidden' }, { status: 403 })
@@ -134,7 +134,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
         type: params.kind,
         userId: authenticatedUserId,
         status: ownershipResult,
-        source_class: sourceClass,
+        source: sourceClass,
         errorType: 'media_not_found',
       }, ctx)
       return NextResponse.json({ success: false, error: 'Media not found' }, { status: 404 })
@@ -147,7 +147,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       taskId: params.id,
       type: params.kind,
       status: ownershipResult,
-      source_class: sourceClass,
+      source: sourceClass,
       errorType: 'media_delivery_failed',
     }, ctx)
     return NextResponse.json({ success: false, error: 'Media unavailable' }, { status: 502 })

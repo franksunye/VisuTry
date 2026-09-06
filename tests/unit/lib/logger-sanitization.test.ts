@@ -132,7 +132,8 @@ describe('normalizeLogData', () => {
       category: 'api',
       message: 'Consumer Try-On media delivery failed',
       data: {
-        source_class: 'private_blob',
+        source: 'private_blob',
+        source_class: 'must-not-become-a-production-column',
         errorType: 'media_delivery_failed',
       },
     })
