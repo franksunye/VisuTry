@@ -1,6 +1,5 @@
 import {
   getTryOnBlobStoreId,
-  getTryOnPrivateBlobReadOptions,
   getTryOnResultBlobOptions,
   getTryOnSourceBlobOptions,
   resolveTryOnBlobAccessMode,
@@ -11,9 +10,6 @@ const ENV_KEYS = [
   'TRY_ON_BLOB_STORE_ID',
   'FACE_ANALYSIS_BLOB_ACCESS_MODE',
   'FACE_ANALYSIS_BLOB_STORE_ID',
-  'TRY_ON_BLOB_READ_WRITE_TOKEN',
-  'FACE_ANALYSIS_BLOB_READ_WRITE_TOKEN',
-  'RPIVATE_BLOB_READ_WRITE_TOKEN',
 ] as const
 
 describe('Try-On Blob access policy', () => {
@@ -64,35 +60,6 @@ describe('Try-On Blob access policy', () => {
     }
     expect(getTryOnSourceBlobOptions()).toEqual(expected)
     expect(getTryOnResultBlobOptions()).toEqual(expected)
-  })
-
-  it('binds private reads to the dedicated Try-On token', () => {
-    process.env.TRY_ON_BLOB_READ_WRITE_TOKEN = 'tryon-private-token'
-    process.env.FACE_ANALYSIS_BLOB_READ_WRITE_TOKEN = 'face-private-token'
-    process.env.RPIVATE_BLOB_READ_WRITE_TOKEN = 'legacy-private-token'
-
-    expect(getTryOnPrivateBlobReadOptions()).toEqual({
-      access: 'private',
-      token: 'tryon-private-token',
-    })
-  })
-
-  it('supports the existing production private-store token alias', () => {
-    process.env.RPIVATE_BLOB_READ_WRITE_TOKEN = 'legacy-private-token'
-
-    expect(getTryOnPrivateBlobReadOptions()).toEqual({
-      access: 'private',
-      token: 'legacy-private-token',
-    })
-  })
-
-  it('falls back to OIDC/store binding when no dedicated token exists', () => {
-    process.env.TRY_ON_BLOB_STORE_ID = 'store_tryon'
-
-    expect(getTryOnPrivateBlobReadOptions()).toEqual({
-      access: 'private',
-      storeId: 'store_tryon',
-    })
   })
 
   it('lets explicit Try-On configuration override the Face Analysis fallback', () => {
