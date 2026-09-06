@@ -649,3 +649,25 @@ Reference pre-Tiered combined baseline for the three families: approximately **2
 - Can dashboard access be restored and one complete comparable window captured across GA4, Cloudflare, Axiom, and Vercel, with `/style/` document HTML separated from RSC/Flight before making any cache or prefetch decision?
 
 **Production changes made during inspection:** NONE
+
+## 2026-09-06
+
+### Codex Morning Inspection — 11:00
+
+**Compared windows:** Cloudflare exact T0→T0+12h, **2026-09-05T13:42:00Z → 2026-09-06T01:42:00Z**; Axiom last 24h, approximately **2026-09-05T03:05Z → 2026-09-06T03:05Z**; Vercel production/runtime status checked current. GA4 and Vercel resource dashboards were not readable because the Mac was locked; no missing values were inferred.
+
+**1. Traffic:** **INCONCLUSIVE.** GA4 users, sessions, views, Organic, and AI referral traffic were not measured today. Cloudflare zone analytics recorded **16,743 requests**, **135,356,884 edge-response bytes**, and **1,109 visits** in the exact T0→T0+12h window. This is public HTTP demand, not a GA4 human-usage substitute.
+
+**2. Vercel resource efficiency:** **INCONCLUSIVE.** ISR Read Units, ISR Read Count, ISR Read Bytes, FOT, FDT, Edge Requests, and Function Invocations were not measurable from the locked dashboard. Current Production remains **READY** at main SHA `779e7bc2…`. Vercel runtime errors in the last 24h included **215 timeout** occurrences, **22** static-to-dynamic `/en/try-on/null` warnings, and **4** face-analysis submit errors; these are watch items, not proof of a new broad frontend regression.
+
+**3. Cloudflare caching / Tiered Cache:** Zone cache distribution in the exact window was **HIT 5,349 (31.95%; 73,674,783 bytes, 54.43%)**, **DYNAMIC 4,624 (27.62%; 45,686,047 bytes, 33.75%)**, **MISS 3,773 (22.53%; 8,406,429 bytes, 6.21%)**, **NONE 2,925 (17.47%; 6,674,466 bytes, 4.93%)**, **REVALIDATED 45**, **EXPIRED 27**, and **BYPASS 0**. `/_next/static/*` was **98.54% HIT** by requests; `/style/*` was **32.35% DYNAMIC** by requests and **57.73% DYNAMIC** by bytes; `/glasses-guide/*` was **69.83% MISS**; `/sunglasses-for/*` was **74.67% MISS**. Smart Tiered Cache was not revalidated through the locked UI; no Tiered Cache change is inferred.
+
+**4. Experiment:** **INCONCLUSIVE / HOLD.** The zone-level window confirms meaningful public traffic and persistent dynamic/miss behavior on pilot families, especially `style`, but Vercel ISR/FOT and origin-forwarded attribution are unavailable in the same exact interval. Worker telemetry covers only the currently routed 12 Worker Routes, not the full HTML/RSC population. Do not change cache or routing policy.
+
+**5. Axiom / regression:** Axiom returned **41** error/warning rows across 10 groups in the last 24h, led by **23 `Free face shape detection failed`**, **4** slow/aborted NextAuth sessions, **2** face-analysis submit errors, and **2** analysis failures; payment/provider warnings made up the remainder. A targeted `ChunkLoadError` / hydration / RSC query returned **0** events. The repeated face-shape failures remain the primary application-health watch item; no broad frontend rendering regression was observed.
+
+**6. Single most important question:** Can we restore GA4/Vercel/Axiom dashboard access and obtain a complete classification-consistent 12h window that separates `/style/` document HTML from RSC/Flight and connects pilot origin requests to ISR Reads/FOT, so the remaining dynamic traffic can be attributed rather than guessed?
+
+**Supporting evidence:** Safe Cloudflare route-family aggregation was dominated by `/_next/static/*` (**4,673 requests / 63,762,488 bytes**), `/_next/image` (**1,689 / 15,721,453**), and `/:locale` (**994 / 4,351,856**). `/api/auth/session` accounted for **615 requests (3.67%)** but only **597,326 bytes (0.44%)**. Cloudflare-recognized bot categories represented **1,307 requests (7.81%)** and **17,212,774 bytes (12.71%)**; unclassified traffic is not labeled human. Worker exact-window telemetry showed **2,725 requests, 0 errors**; forensic event/path-class detail was not re-queried today.
+
+**Production changes made during inspection:** NONE. **B2B Store/Campaign:** no material volume signal in the safe aggregation (`/:locale/store/*` and `/:locale/c/*` together were about **0.33%** of requests).
