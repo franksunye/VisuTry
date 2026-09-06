@@ -67,3 +67,46 @@ tasks or mutate credits/payment state.
 Any Cloudflare Workers build or deployment failure is a separate
 infrastructure follow-up and is not part of this Consumer media RCA. This fix
 made no Cloudflare route, DNS, Wrangler, or Blob-visibility change.
+
+## Separate 2026-09-06 Blob capacity incident
+
+This incident must not be conflated with the Consumer DTO boundary defect
+above. Later on 2026-09-06, authenticated Admin Try-On previews and Consumer
+media delivery both failed because the Vercel Blob store had exhausted its
+Hobby-plan usage allowance. The Vercel Storage UI explicitly reported that
+access was suspended until the next cycle, and authorized application-owned
+media requests failed downstream with `Vercel Blob: Failed to fetch blob: 403
+Forbidden`, which the application returned as HTTP 502.
+
+The incident timeline distinguishes capacity exhaustion from an application
+credential defect:
+
+- Production deployment `2f27e0fb11fdc5ca78d0a049a6f24a7798719dbd`, which
+  added a speculative dedicated-token selection path, reached READY.
+- After that deployment and before the plan upgrade, the same authenticated
+  Admin media request still returned HTTP 502 and Blob returned HTTP 403.
+- The account was upgraded from Hobby to Pro without changing Blob visibility
+  or persisted task data.
+- The same application-owned Admin media request then returned HTTP 200,
+  `image/jpeg`, with a browser-decoded size of 900 by 1200 pixels.
+
+Therefore the direct root cause of this later outage was exhausted provider
+capacity, and the restoring action was the Vercel Pro upgrade. The dedicated
+token selection change was not the incident fix and is reverted separately.
+The canonical Consumer media boundary remains required and unchanged.
+
+### Preventive controls
+
+- Keep the production team on a plan that permits on-demand Blob usage; do not
+  rely on a hard Hobby allowance for customer media delivery.
+- Vercel Pro Spend Management is enabled with a USD 20 on-demand budget,
+  notifications enabled, and automatic production pausing disabled. Vercel
+  sends threshold notifications as the configured budget is approached.
+- Review the team Usage dashboard and the private Blob store's Storage,
+  Simple Operations, Advanced Operations, and Data Transfer during the regular
+  operations review. Provider usage is the authoritative signal; an
+  application database count is not a substitute for billing-cycle usage.
+- Treat Blob HTTP 403 followed by application media HTTP 502 as a capacity or
+  provider-access incident first. Check the Storage usage banner and billing
+  state before changing credentials, regenerating tasks, changing visibility,
+  or modifying credits/payment data.
