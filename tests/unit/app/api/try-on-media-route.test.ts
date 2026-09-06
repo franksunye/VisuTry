@@ -27,6 +27,14 @@ jest.mock('@/lib/tryon-media-response', () => ({
   serveLegacyTryOnMedia: (...args: unknown[]) => mockServeLegacyTryOnMedia(...args),
 }))
 
+jest.mock('@/lib/logger', () => ({
+  getRequestContext: jest.fn().mockReturnValue({}),
+  logger: {
+    warn: jest.fn(),
+    error: jest.fn(),
+  },
+}))
+
 import { GET } from '@/app/api/try-on/[id]/media/[kind]/route'
 
 describe('GET /api/try-on/[id]/media/[kind]', () => {
@@ -50,7 +58,7 @@ describe('GET /api/try-on/[id]/media/[kind]', () => {
   it('rejects access to another users media', async () => {
     mockFindUnique.mockResolvedValue({
       userId: 'user-2',
-      userImageUrl: 'https://public.blob.vercel-storage.com/user.jpg',
+      userImageUrl: 'https://storage.example.test/user.jpg',
       itemImageUrl: null,
       glassesImageUrl: null,
       resultImageUrl: null,
@@ -67,10 +75,10 @@ describe('GET /api/try-on/[id]/media/[kind]', () => {
   it('serves owner result media through the protected proxy', async () => {
     mockFindUnique.mockResolvedValue({
       userId: 'user-1',
-      userImageUrl: 'https://public.blob.vercel-storage.com/user.jpg',
-      itemImageUrl: 'https://public.blob.vercel-storage.com/item.png',
+      userImageUrl: 'https://storage.example.test/user.jpg',
+      itemImageUrl: 'https://storage.example.test/item.png',
       glassesImageUrl: null,
-      resultImageUrl: 'https://public.blob.vercel-storage.com/result.png',
+      resultImageUrl: 'https://storage.example.test/result.png',
     })
 
     const result = await GET({} as any, {
@@ -78,7 +86,65 @@ describe('GET /api/try-on/[id]/media/[kind]', () => {
     })
 
     expect(result.status).toBe(200)
-    expect(mockServeLegacyTryOnMedia).toHaveBeenCalledWith('https://public.blob.vercel-storage.com/result.png')
+    expect(mockServeLegacyTryOnMedia).toHaveBeenCalledWith('https://storage.example.test/result.png')
+  })
+
+  it('passes through an image response from the shared private-media reader', async () => {
+    mockFindUnique.mockResolvedValue({
+      userId: 'user-1',
+      userImageUrl: 'https://public.example.com/user.jpg',
+      itemImageUrl: null,
+      glassesImageUrl: null,
+      resultImageUrl: 'https://storage.example.test/tryon/result.png',
+    })
+    mockServeLegacyTryOnMedia.mockResolvedValue({
+      status: 200,
+      headers: { get: (name: string) => name.toLowerCase() === 'content-type' ? 'image/png' : null },
+      arrayBuffer: async () => new Uint8Array([1, 2, 3]).buffer,
+    })
+
+    const result = await GET({} as any, {
+      params: { id: 'task-1', kind: 'result' },
+    })
+
+    expect(result.status).toBe(200)
+    expect(result.headers.get('content-type')).toBe('image/png')
+    expect(new Uint8Array(await result.arrayBuffer())).toEqual(new Uint8Array([1, 2, 3]))
+  })
+
+  it('returns an explicit failure when the owner has no result media', async () => {
+    mockFindUnique.mockResolvedValue({
+      userId: 'user-1',
+      userImageUrl: 'https://public.example.com/user.jpg',
+      itemImageUrl: 'https://public.example.com/item.png',
+      glassesImageUrl: null,
+      resultImageUrl: null,
+    })
+
+    const result = await GET({} as any, {
+      params: { id: 'task-1', kind: 'result' },
+    })
+
+    expect(result.status).toBe(404)
+    expect(mockServeLegacyTryOnMedia).not.toHaveBeenCalled()
+  })
+
+  it('returns an explicit media failure when the shared reader fails', async () => {
+    mockFindUnique.mockResolvedValue({
+      userId: 'user-1',
+      userImageUrl: 'https://public.example.com/user.jpg',
+      itemImageUrl: null,
+      glassesImageUrl: null,
+      resultImageUrl: 'https://storage.example.test/tryon/result.png',
+    })
+    mockServeLegacyTryOnMedia.mockRejectedValue(new Error('private Blob read failed'))
+
+    const result = await GET({} as any, {
+      params: { id: 'task-1', kind: 'result' },
+    })
+
+    expect(result.status).toBe(502)
+    expect(await result.json()).toEqual({ success: false, error: 'Media unavailable' })
   })
 
   it('returns 404 for unsupported media kinds', async () => {

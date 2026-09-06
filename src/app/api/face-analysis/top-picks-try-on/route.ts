@@ -10,6 +10,7 @@ import { logger, getRequestContext } from '@/lib/logger'
 import { submitTryOnTask } from '@/lib/tryon-service'
 import { getTryOnConfig } from '@/config/try-on-types'
 import { readFaceAnalysisUserImageFile } from '@/lib/face-analysis-service'
+import { tryOnMediaPath } from '@/lib/tryon-media'
 import {
   DEFAULT_TOP_PICK_PRESET_IDS,
   getTopPickPresetById,
@@ -127,7 +128,10 @@ function serializeBatch({
     return {
       taskId: task.id,
       status,
-      resultImageUrl: task.resultImageUrl,
+      // Persisted media stays storage-specific in the database. Every
+      // authenticated Consumer DTO must expose the application-owned media
+      // boundary instead of the underlying Blob/data/legacy URL.
+      resultImageUrl: task.resultImageUrl ? tryOnMediaPath(task.id, 'result') : null,
       errorMessage: status === 'failed' && !task.errorMessage
         ? 'Generation completed without a result image. Complete your top picks to try again.'
         : task.errorMessage,

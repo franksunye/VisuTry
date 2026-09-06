@@ -5,6 +5,7 @@ import { PublicTryOnGallery } from "@/components/user/PublicTryOnGallery"
 import { Glasses, Calendar, Star } from "lucide-react"
 import type { Metadata } from "next"
 import { localizedPath } from "@/lib/localized-path"
+import { publicTryOnShareResultPath } from "@/lib/tryon-media"
 
 interface UserPageProps {
   params: {
@@ -109,12 +110,7 @@ export default async function UserPage({ params }: UserPageProps) {
     select: {
       id: true,
       type: true,
-      resultImageUrl: true,
-      userImageUrl: true,
-      itemImageUrl: true,
-      glassesImageUrl: true, // Keep for backward compatibility
       createdAt: true,
-      metadata: true
     }
   })
 
@@ -123,6 +119,18 @@ export default async function UserPage({ params }: UserPageProps) {
     year: "numeric",
     month: "long"
   })
+
+  const publicTryOnMedia = publicTryOns.map((tryOn) => ({
+    id: tryOn.id,
+    type: tryOn.type,
+    // Public gallery results use the opaque public share capability. No
+    // persisted source or result storage references cross the server/client boundary.
+    resultImageUrl: publicTryOnShareResultPath(tryOn.id),
+    userImageUrl: '',
+    itemImageUrl: null,
+    glassesImageUrl: null,
+    createdAt: tryOn.createdAt,
+  }))
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -240,7 +248,7 @@ export default async function UserPage({ params }: UserPageProps) {
             </p>
           </div>
           
-          <PublicTryOnGallery tryOns={publicTryOns} />
+          <PublicTryOnGallery tryOns={publicTryOnMedia} />
         </div>
 
         {/* Bottom CTA */}

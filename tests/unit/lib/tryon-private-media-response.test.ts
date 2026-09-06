@@ -6,6 +6,13 @@ jest.mock('@vercel/blob', () => ({
   get: (...args: unknown[]) => mockGet(...args),
 }))
 
+jest.mock('@/lib/blob/private-signed-url', () => ({
+  pathnameFromPrivateBlobUrl: (value: string) => {
+    const prefix = 'https://tryon-media.test/'
+    return value.startsWith(prefix) ? value.slice(prefix.length) : null
+  },
+}))
+
 import { tryOnProviderMediaInput } from '@/lib/tryon-media-loader'
 import { loadTryOnMediaFile, serveLegacyTryOnMedia } from '@/lib/tryon-media-response'
 
@@ -39,7 +46,7 @@ describe('Try-On private source media delivery', () => {
     const fetchSpy = jest.spyOn(global, 'fetch')
 
     const file = await loadTryOnMediaFile(
-      'https://abc.private.blob.vercel-storage.com/tryon/user/user-1/source.jpg',
+      'https://tryon-media.test/tryon/user/user-1/source.jpg',
       'source.jpg',
     )
 
@@ -58,7 +65,7 @@ describe('Try-On private source media delivery', () => {
     mockGet.mockResolvedValue(privateBlobResult([1, 2, 3], 'image/png'))
 
     const input = await tryOnProviderMediaInput(
-      'https://abc.private.blob.vercel-storage.com/tryon/user/user-1/source.png',
+      'https://tryon-media.test/tryon/user/user-1/source.png',
     )
 
     expect(input).toBe('data:image/png;base64,AQID')
@@ -79,7 +86,7 @@ describe('Try-On private source media delivery', () => {
     mockGet.mockResolvedValue(privateBlobResult([9, 8, 7], 'image/png'))
 
     const response = await serveLegacyTryOnMedia(
-      'https://abc.private.blob.vercel-storage.com/tryon/item/user-1/frame.png',
+      'https://tryon-media.test/tryon/item/user-1/frame.png',
     )
 
     expect(response.status).toBe(200)
@@ -89,11 +96,27 @@ describe('Try-On private source media delivery', () => {
     expect(Array.from(new Uint8Array(await response.arrayBuffer()))).toEqual([9, 8, 7])
   })
 
+  it('serves legacy data-url bytes through the same media response boundary', async () => {
+    const response = await serveLegacyTryOnMedia('data:image/png;base64,CQgH')
+
+    expect(response.status).toBe(200)
+    expect(response.headers.get('content-type')).toBe('image/png')
+    expect(Array.from(new Uint8Array(await response.arrayBuffer()))).toEqual([9, 8, 7])
+  })
+
+  it('keeps legacy HTTP media compatible through a redirect', async () => {
+    const legacyUrl = 'https://legacy.example.com/tryon/result.jpg'
+    const response = await serveLegacyTryOnMedia(legacyUrl)
+
+    expect(response.status).toBe(307)
+    expect(response.headers.get('location')).toBe(legacyUrl)
+  })
+
   it('rejects unsupported private media content types', async () => {
     mockGet.mockResolvedValue(privateBlobResult([1, 2], 'text/plain'))
 
     await expect(loadTryOnMediaFile(
-      'https://abc.private.blob.vercel-storage.com/tryon/user/user-1/source.txt',
+      'https://tryon-media.test/tryon/user/user-1/source.txt',
       'source.txt',
     )).rejects.toThrow('unsupported content type')
   })

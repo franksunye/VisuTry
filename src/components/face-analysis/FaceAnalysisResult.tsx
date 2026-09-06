@@ -714,6 +714,7 @@ function TryOnTopPicksPanel({
                   {task.resultImageUrl ? (
                     <Image
                       src={task.resultImageUrl}
+                      unoptimized
                       alt={`${task.preset.name} try-on result`}
                       fill
                       className="object-cover"

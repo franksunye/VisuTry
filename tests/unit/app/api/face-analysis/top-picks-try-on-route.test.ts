@@ -6,6 +6,7 @@ import { requireAuthWithUser } from '@/lib/api-auth'
 import { prisma } from '@/lib/prisma'
 import { getRemainingQuotaCount } from '@/lib/quota'
 import { submitTryOnTask } from '@/lib/tryon-service'
+import { tryOnMediaPath } from '@/lib/tryon-media'
 import { readFile } from 'node:fs/promises'
 
 jest.mock('@/lib/api-auth', () => ({ requireAuthWithUser: jest.fn() }))
@@ -40,7 +41,9 @@ function storedTask(
   return {
     id: `${presetId}-${attempt}`,
     status,
-    resultImageUrl: status === 'COMPLETED' ? `https://example.com/${presetId}.jpg` : null,
+    resultImageUrl: status === 'COMPLETED'
+      ? `https://storage.example.test/tryon/result/${presetId}.jpg`
+      : null,
     errorMessage: status === 'FAILED' ? 'Generation failed' : null,
     createdAt: new Date(`2026-08-03T00:00:0${index + attempt}.000Z`),
     metadata: {
@@ -92,6 +95,9 @@ describe('/api/face-analysis/top-picks-try-on', () => {
     })
     expect(payload.data.tasks).toHaveLength(4)
     expect(payload.data.tasks.every((task: { status: string }) => task.status === 'completed')).toBe(true)
+    expect(payload.data.tasks.map((task: { taskId: string; resultImageUrl: string }) => task.resultImageUrl))
+      .toEqual(completedTasks.map((task) => tryOnMediaPath(task.id, 'result')))
+    expect(JSON.stringify(payload)).not.toContain('storage.example.test')
   })
 
   it('returns an existing partial batch instead of generating four more tasks', async () => {
@@ -116,7 +122,60 @@ describe('/api/face-analysis/top-picks-try-on', () => {
     expect(response.status).toBe(200)
     expect(payload.data.recovered).toBe(true)
     expect(payload.data.tasks.filter((task: { status: string }) => task.status === 'completed')).toHaveLength(3)
+    expect(payload.data.tasks
+      .filter((task: { status: string }) => task.status === 'completed')
+      .every((task: { taskId: string; resultImageUrl: string }) => (
+        task.resultImageUrl === tryOnMediaPath(task.taskId, 'result')
+      ))).toBe(true)
     expect(submitTryOnTask).not.toHaveBeenCalled()
+  })
+
+  it('returns the canonical result proxy for an idempotent existing completed batch', async () => {
+    const completedTasks = presetIds.map((id, index) => storedTask(id, 'COMPLETED', index))
+    ;(prisma.tryOnTask.findFirst as jest.Mock).mockResolvedValue({
+      metadata: { batchId: 'face-top-picks-analysis-1-v1' },
+    })
+    ;(prisma.tryOnTask.findMany as jest.Mock).mockResolvedValue(completedTasks)
+
+    const response = await POST(new NextRequest(
+      'http://localhost/api/face-analysis/top-picks-try-on',
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ faceAnalysisTaskId: 'analysis-1', framePresetIds: presetIds }),
+      },
+    ))
+    const payload = await response.json()
+
+    expect(response.status).toBe(200)
+    expect(payload.data.recovered).toBe(true)
+    expect(payload.data.tasks.map((task: { taskId: string; resultImageUrl: string }) => task.resultImageUrl))
+      .toEqual(completedTasks.map((task) => tryOnMediaPath(task.id, 'result')))
+    expect(JSON.stringify(payload)).not.toContain('storage.example.test')
+    expect(submitTryOnTask).not.toHaveBeenCalled()
+  })
+
+  it('marks a completed task without persisted media as an explicit failed slot', async () => {
+    const incompleteTasks = presetIds.map((id, index) => storedTask(id, 'COMPLETED', index))
+    incompleteTasks[2] = { ...incompleteTasks[2], resultImageUrl: null }
+    ;(prisma.tryOnTask.findFirst as jest.Mock).mockResolvedValue({
+      metadata: { batchId: 'face-top-picks-analysis-1-v1' },
+    })
+    ;(prisma.tryOnTask.findMany as jest.Mock).mockResolvedValue(incompleteTasks)
+
+    const response = await GET(new NextRequest(
+      'http://localhost/api/face-analysis/top-picks-try-on?faceAnalysisTaskId=analysis-1',
+    ))
+    const payload = await response.json()
+    const missing = payload.data.tasks.find((task: { preset: { id: string } }) => (
+      task.preset.id === presetIds[2]
+    ))
+
+    expect(missing).toMatchObject({
+      status: 'failed',
+      resultImageUrl: null,
+    })
+    expect(missing.errorMessage).toMatch(/without a result image/i)
   })
 
   it('retries only failed presets when completing a partial batch', async () => {
@@ -177,5 +236,10 @@ describe('/api/face-analysis/top-picks-try-on', () => {
     expect(payload.data.tasks.find((task: { preset: { id: string } }) => (
       task.preset.id === 'geometric-classic'
     )).status).toBe('processing')
+    expect(payload.data.tasks
+      .filter((task: { status: string }) => task.status === 'completed')
+      .every((task: { taskId: string; resultImageUrl: string }) => (
+        task.resultImageUrl === tryOnMediaPath(task.taskId, 'result')
+      ))).toBe(true)
   })
 })
