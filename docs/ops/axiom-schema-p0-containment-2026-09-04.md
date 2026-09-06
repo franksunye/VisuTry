@@ -320,7 +320,7 @@ The original P0 compatibility test covered the legacy bounded logger shape. P0.2
 
 ## P0.2 dedicated traffic telemetry
 
-P0.2 is implemented on the continuation branch but is not claimed as deployed until review and merge. It provisions the separate Production dataset `visutry-traffic-pro` with the organization default 30-day retention and routes only the strict flat Consumer evidence record there.
+P0.2 was merged in PR #187 at `779e7bc267ceceb5cd6dca49bcc21c3fdc1c32a1` and is live in the Ready Production deployment. It provisions the separate Production dataset `visutry-traffic-pro` with the organization default 30-day retention and routes only the strict flat Consumer evidence record there.
 
 Infrastructure readiness was verified in the authenticated Axiom/Vercel
 configuration on 2026-09-04: the live `visutry-pro` inventory remains 257
@@ -342,3 +342,13 @@ completion_status, success
 ```
 
 The traffic serializer drops arbitrary/nested input and sensitive/raw values, including email, user identity, IP, image URLs, uploaded filenames, provider responses, tokens, cookies, raw request bodies, and biometric payloads. Production uses the dedicated ingest credential and dataset; Preview uses `visutry-ppe` with the same contract; development does not ingest traffic telemetry. The report read credential is scoped to query only `visutry-pro` and `visutry-traffic-pro`.
+
+### P0/P0.2 production closeout — 2026-09-05
+
+- Vercel Production deployment `dpl_3b2kB57namAUJ8fjXtVJy6Au3vtN` is Ready and runs merge SHA `779e7bc267ceceb5cd6dca49bcc21c3fdc1c32a1`.
+- Live `visutry-pro` inventory remains 257 fields with 30-day retention; no Axiom Vacuum, Trim, or Schema Lock was performed.
+- Live `visutry-traffic-pro` inventory is exactly 21 business fields plus `_time` and `_sysTime`, with 30-day retention and no `data.*`, nested, provider/raw, or sensitive business fields.
+- One controlled Production `traffic_class=test` Consumer request returned HTTP 202 and was found in `visutry-traffic-pro` with the bounded schema intact.
+- Focused telemetry/report tests pass: request-lifecycle awaiting, non-fatal emitter failure, TEST exclusion, bounded serialization, legacy `data.<field>` compatibility, top-level traffic reads, and `event_id` deduplication.
+- The Traffic Ready T0 `2026-09-03T13:26:22.008Z` and Discovery Canary T0 `2026-09-03T16:33:14.812Z` remain unchanged.
+- P1 `visutry-commerce-pro` remains deferred; no dataset mutation, migration, Vacuum, Trim, or Schema Lock was performed.
