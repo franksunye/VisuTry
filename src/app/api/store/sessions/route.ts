@@ -39,8 +39,8 @@ export async function POST(request: NextRequest) {
     const result = await createStoreSession({
       merchants: runtime.merchants,
       sessions: runtime.sessions,
-      events: runtime.events,
       usage: runtime.usage,
+      analytics: runtime.analytics,
       experiences: runtime.experiences,
       slug: parsed.data.merchantSlug,
       experienceSlug: parsed.data.experienceSlug ?? null,

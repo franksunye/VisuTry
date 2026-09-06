@@ -1,6 +1,10 @@
 import { logger } from '@/lib/logger'
 import {
-  StoreDomainError,
+  createMerchantPageViewedEvent,
+  emitAnalyticsEvent,
+  type AnalyticsEventSink,
+} from '@/lib/analytics-event-plane'
+import {
   buildStoreEventIdempotencyKey,
   createMerchantSessionCapability,
   computeSessionExpiresAt,
@@ -8,13 +12,11 @@ import {
   merchantNotFound,
   resolveMerchantEntitlement,
   sanitizeSessionAcquisition,
-  sessionAcquisitionToMetadata,
   type SessionAcquisitionInput,
 } from '../domain'
 import { experiencePolicyMetadata, resolveStoreExperiencePolicy } from '../domain/experience-policy'
 import { resolveMerchantExperience } from './resolve-experience'
 import type {
-  MerchantEventRepository,
   MerchantRepository,
   MerchantSessionRepository,
   StoreUsageRepository,
@@ -33,8 +35,8 @@ export type CreateStoreSessionResult = {
 export async function createStoreSession(input: {
   merchants: MerchantRepository
   sessions: MerchantSessionRepository
-  events: MerchantEventRepository
   usage: StoreUsageRepository
+  analytics?: AnalyticsEventSink
   experiences?: ExperienceRepository
   slug: string
   experienceSlug?: string | null
@@ -89,29 +91,32 @@ export async function createStoreSession(input: {
     kind: 'SESSION',
   })
 
-  const acquisitionMeta = sessionAcquisitionToMetadata(acquisition)
-
-  await input.events.appendIdempotent({
-    eventId: buildStoreEventIdempotencyKey({
-      type: 'merchant_page_viewed',
+  if (input.analytics) {
+    void emitAnalyticsEvent(input.analytics, createMerchantPageViewedEvent({
+      eventId: buildStoreEventIdempotencyKey({
+        type: 'merchant_page_viewed',
+        merchantId: merchant.id,
+        merchantSessionId: session.id,
+        clientActionId: `session-create:${session.id}`,
+      }),
       merchantId: merchant.id,
       merchantSessionId: session.id,
-      clientActionId: `session-create:${session.id}`,
-    }),
-    type: 'merchant_page_viewed',
-    merchantId: merchant.id,
-    merchantSessionId: session.id,
-    experienceId: experience?.id ?? null,
-    source: 'SERVER',
-    locale: input.locale ?? null,
-    deviceType: input.deviceType ?? null,
-    metadata: {
-      planCode: entitlement.planCode,
-      entitlementVersion: entitlement.entitlementVersion,
-      ...experiencePolicyMetadata(experiencePolicy),
-      ...(acquisitionMeta ?? {}),
-    },
-  })
+      experienceId: experience?.id ?? null,
+      anonymousVisitorId: input.anonymousVisitorId ?? null,
+      locale: input.locale ?? null,
+      deviceType: input.deviceType ?? null,
+      acquisition: {
+        source: acquisition.source,
+        medium: acquisition.medium,
+        campaign: acquisition.campaign,
+        acquisitionSurface: acquisition.acquisitionSurface,
+        aiAgentSource: acquisition.aiAgentSource,
+        planCode: entitlement.planCode,
+        entitlementVersion: entitlement.entitlementVersion,
+        ...experiencePolicyMetadata(experiencePolicy),
+      },
+    }))
+  }
 
   logger.debug('store', 'Store session created', {
     merchantId: merchant.id,

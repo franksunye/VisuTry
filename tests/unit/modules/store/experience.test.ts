@@ -319,6 +319,7 @@ describe('Experience foundation', () => {
       lastActiveAt: now,
       expiresAt: new Date(now.getTime() + 60_000),
     })
+    const analytics = { write: jest.fn().mockResolvedValue(undefined) }
     const result = await createStoreSession({
       merchants: merchant(),
       sessions: {
@@ -334,8 +335,8 @@ describe('Experience foundation', () => {
         findByMerchantAndId: jest.fn(),
         findActiveCampaignByMerchantAndSlug: jest.fn(),
       },
-      events: { appendIdempotent: jest.fn().mockResolvedValue({ created: true }), listByMerchant: jest.fn() },
       usage: { countCommerceSessions: jest.fn().mockResolvedValue(0), record: jest.fn() } as never,
+      analytics,
       slug: 'ello-sunglasses',
       locale: 'en',
       acquisition: { source: 'visutry', medium: 'internal', surface: 'face-analysis', campaign: 'declared-campaign' },
@@ -348,6 +349,11 @@ describe('Experience foundation', () => {
       medium: 'internal',
       campaign: 'declared-campaign',
       acquisitionSurface: 'face-analysis',
+    }))
+    expect(analytics.write).toHaveBeenCalledWith(expect.objectContaining({
+      eventType: 'merchant_page_viewed',
+      merchantId: 'merchant-1',
+      sessionId: 'session-1',
     }))
   })
 

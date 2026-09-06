@@ -52,7 +52,7 @@ export type RetentionStatus = (typeof RETENTION_STATUSES)[number]
 export const STORE_EVENT_SOURCES = ['CLIENT', 'SERVER'] as const
 export type StoreEventSource = (typeof STORE_EVENT_SOURCES)[number]
 
-/** Canonical Store funnel event names (authoritative DB records). */
+/** Canonical Store funnel event names; page views are analytics-only. */
 export const STORE_EVENT_TYPES = [
   'merchant_page_viewed',
   'merchant_photo_uploaded',
