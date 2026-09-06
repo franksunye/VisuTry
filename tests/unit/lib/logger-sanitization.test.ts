@@ -124,6 +124,28 @@ describe('normalizeLogData', () => {
     expect(keys).not.toContain('data.metadata.arbitrary.nested')
   })
 
+  it('serializes source classification through the approved production source field', () => {
+    const serialized = serializeAxiomRecord({
+      id: 'log-media-1',
+      timestamp: '2026-09-06T00:00:00.000Z',
+      level: 'error',
+      category: 'api',
+      message: 'Consumer Try-On media delivery failed',
+      data: {
+        source_class: 'private_blob',
+        errorType: 'media_delivery_failed',
+      },
+    })
+
+    expect(serialized.data).toEqual(expect.objectContaining({
+      source: 'private_blob',
+      errorType: 'media_delivery_failed',
+    }))
+    expect(serialized.data).not.toHaveProperty('source_class')
+    expect(AXIOM_SERIALIZED_KEY_ALLOWLIST.has('data.source')).toBe(true)
+    expect(AXIOM_SERIALIZED_KEY_ALLOWLIST.has('data.source_class')).toBe(false)
+  })
+
   it('keeps every operational serializer key inside the checked-in production schema', () => {
     expect(VISUTRY_PRO_FIELDS.size).toBe(257)
     expect(AXIOM_SERIALIZED_KEY_ALLOWLIST.size).toBe(177)

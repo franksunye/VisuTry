@@ -198,6 +198,20 @@ export function normalizeLogData(
   return Object.keys(result).length > 0 ? result : undefined
 }
 
+function normalizeAxiomData(data: unknown): LogData | undefined {
+  if (!isRecord(data)) return undefined
+
+  // `source_class` is part of the application logging contract, but the
+  // production dataset already approves `source` and must not gain a column.
+  // Preserve this classification under that existing production field.
+  const sourceClass = data.source_class
+  const productionData = typeof sourceClass === 'string' && data.source === undefined
+    ? { ...data, source: sourceClass }
+    : data
+
+  return normalizeLogData(productionData, AXIOM_PRODUCTION_DATA_FIELDS)
+}
+
 function normalizeLogContext(context: unknown) {
   if (!isRecord(context)) return {}
 
@@ -263,7 +277,7 @@ export function serializeAxiomRecord(entry: LogEntry): AxiomRecord {
     error: entry.error
       ? { name: entry.error.name, message: entry.error.message }
       : undefined,
-    data: normalizeLogData(entry.data, AXIOM_PRODUCTION_DATA_FIELDS),
+    data: normalizeAxiomData(entry.data),
   }
   return result
 }

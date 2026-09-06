@@ -1,6 +1,7 @@
 const mockRequireAuth = jest.fn()
 const mockFindUnique = jest.fn()
 const mockServeLegacyTryOnMedia = jest.fn()
+const mockLoggerError = jest.fn()
 
 jest.mock('next/server', () => ({
   NextResponse: {
@@ -31,7 +32,7 @@ jest.mock('@/lib/logger', () => ({
   getRequestContext: jest.fn().mockReturnValue({}),
   logger: {
     warn: jest.fn(),
-    error: jest.fn(),
+    error: (...args: unknown[]) => mockLoggerError(...args),
   },
 }))
 
@@ -137,7 +138,7 @@ describe('GET /api/try-on/[id]/media/[kind]', () => {
       glassesImageUrl: null,
       resultImageUrl: 'https://storage.example.test/tryon/result.png',
     })
-    mockServeLegacyTryOnMedia.mockRejectedValue(new Error('private Blob read failed'))
+    mockServeLegacyTryOnMedia.mockRejectedValue(new Error('Failed to load private Try-On media'))
 
     const result = await GET({} as any, {
       params: { id: 'task-1', kind: 'result' },
@@ -145,6 +146,42 @@ describe('GET /api/try-on/[id]/media/[kind]', () => {
 
     expect(result.status).toBe(502)
     expect(await result.json()).toEqual({ success: false, error: 'Media unavailable' })
+    expect(mockLoggerError).toHaveBeenCalledWith(
+      'api',
+      'Consumer Try-On media delivery failed',
+      expect.objectContaining({
+        name: 'Error',
+        message: 'Failed to load private Try-On media',
+      }),
+      expect.objectContaining({
+        errorType: 'media_delivery_failed',
+        source_class: 'legacy_http',
+      }),
+      {},
+    )
+  })
+
+  it('redacts media URLs and credentials from reader failure diagnostics', async () => {
+    mockFindUnique.mockResolvedValue({
+      userId: 'user-1',
+      userImageUrl: 'https://public.example.com/user.jpg',
+      itemImageUrl: null,
+      glassesImageUrl: null,
+      resultImageUrl: 'https://storage.example.invalid/result.png',
+    })
+    mockServeLegacyTryOnMedia.mockRejectedValue(new Error(
+      'Failed to load private Try-On media: https://media.example.invalid/result.png?token=fixture-token Authorization: Bearer fixture-bearer',
+    ))
+
+    await GET({} as any, {
+      params: { id: 'task-1', kind: 'result' },
+    })
+
+    const loggedError = mockLoggerError.mock.calls.at(-1)?.[2] as Error
+    expect(loggedError.message).toContain('Failed to load private Try-On media')
+    expect(loggedError.message).not.toContain('media.example.invalid')
+    expect(loggedError.message).not.toContain('fixture-token')
+    expect(loggedError.message).not.toContain('fixture-bearer')
   })
 
   it('returns 404 for unsupported media kinds', async () => {

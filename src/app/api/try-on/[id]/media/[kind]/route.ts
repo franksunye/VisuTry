@@ -12,6 +12,9 @@ const MEDIA_KINDS = new Set<TryOnMediaKind>(['user', 'item', 'result'])
 
 type RouteParams = { params: { id: string; kind: string } }
 
+const MEDIA_URL_PATTERN = /\b(?:https?|blob):\/\/[^\s"'<>]+/gi
+const MEDIA_CREDENTIAL_PATTERN = /\b(?:authorization|bearer|token|access[_-]?token|refresh[_-]?token|signature|sig|secret|password|passwd|credential|api[_-]?key)\b\s*(?:[:=]\s*)?(?:bearer\s+)?[^\s"'<>]+/gi
+
 function mediaSourceClass(sourceUrl: string | null | undefined) {
   if (!sourceUrl) return 'missing'
   if (sourceUrl.startsWith('data:')) return 'data'
@@ -22,6 +25,27 @@ function mediaSourceClass(sourceUrl: string | null | undefined) {
   } catch {
     return 'invalid'
   }
+}
+
+function sanitizeMediaDiagnostic(value: string): string {
+  return value
+    .replace(MEDIA_URL_PATTERN, '[redacted-url]')
+    .replace(MEDIA_CREDENTIAL_PATTERN, '[redacted-credential]')
+    .trim()
+}
+
+function normalizeMediaDeliveryError(error: unknown): Error {
+  const rawMessage = error instanceof Error
+    ? error.message
+    : typeof error === 'string'
+      ? error
+      : ''
+  const safeMessage = sanitizeMediaDiagnostic(rawMessage) || 'Try-On media delivery failed'
+  const normalized = new Error(safeMessage)
+  normalized.name = sanitizeMediaDiagnostic(
+    error instanceof Error && error.name ? error.name : 'Error',
+  ) || 'Error'
+  return normalized
 }
 
 export async function GET(request: NextRequest, { params }: RouteParams) {
@@ -117,8 +141,8 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     }
 
     return await serveLegacyTryOnMedia(sourceUrl)
-  } catch {
-    logger.error('api', 'Consumer Try-On media delivery failed', new Error('Try-On media delivery failed'), {
+  } catch (error) {
+    logger.error('api', 'Consumer Try-On media delivery failed', normalizeMediaDeliveryError(error), {
       userId: authenticatedUserId,
       taskId: params.id,
       type: params.kind,
