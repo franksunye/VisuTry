@@ -68,7 +68,12 @@ describe('G4-C Preview QA harness guardrails', () => {
   const originalEnv = { ...process.env }
 
   beforeEach(() => {
-    process.env = { ...originalEnv, ...previewEnv }
+    process.env = {
+      ...originalEnv,
+      ...previewEnv,
+      NEXT_PUBLIC_SITE_URL: undefined,
+      NEXT_PUBLIC_APP_URL: undefined,
+    }
     jest.clearAllMocks()
     ;(prisma.environmentMetadata.findUnique as jest.Mock).mockResolvedValue({ environment: 'PREVIEW', databaseIdentity: 'preview-db' })
   })

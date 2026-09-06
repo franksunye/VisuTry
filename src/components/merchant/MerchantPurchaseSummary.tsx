@@ -5,6 +5,7 @@ import { ArrowLeft, ArrowRight, Check, Loader2, ShieldCheck } from 'lucide-react
 import { useRouter } from 'next/navigation'
 import { analytics } from '@/lib/analytics'
 import { AnalyticsEvent } from '@/lib/analytics-events'
+import { recordMerchantActivationClientEvent } from '@/lib/merchant-activation-client'
 import type { MerchantPlanDefinition } from '@/modules/merchant/domain/merchant-commercial-plans'
 import type { MerchantBillingState } from '@/modules/merchant/domain/merchant-billing-state'
 import type { MerchantPurchaseAction, MerchantPurchaseIntent } from '@/modules/merchant/domain/merchant-purchase-intent'
@@ -72,6 +73,13 @@ export function MerchantPurchaseSummary({ locale, merchantId, merchantName, inte
   async function continuePurchase() {
     setBusy(true)
     setError(null)
+    void recordMerchantActivationClientEvent({
+      merchantId,
+      eventType: 'merchant_commercial_intent',
+      commercialIntent: intent,
+    }).catch(() => {
+      // Activation telemetry must never block billing navigation.
+    })
     analytics.trackCustomEvent(AnalyticsEvent.MerchantCheckoutStarted, {
       plan_code: intent,
       source: 'business_pricing',

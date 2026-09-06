@@ -9,6 +9,9 @@ export type AcquisitionAttribution = {
   page_path?: string
   acquisition_source?: string
   acquisition_medium?: string
+  utm_source?: string
+  utm_medium?: string
+  utm_campaign?: string
   source_page?: string
   query_cluster?: string
   content_cluster?: string
@@ -33,6 +36,9 @@ type StringAttributionKey =
   | 'page_path'
   | 'acquisition_source'
   | 'acquisition_medium'
+  | 'utm_source'
+  | 'utm_medium'
+  | 'utm_campaign'
   | 'source_page'
   | 'query_cluster'
   | 'content_cluster'
@@ -50,6 +56,9 @@ const ATTRIBUTION_KEYS: StringAttributionKey[] = [
   'page_path',
   'acquisition_source',
   'acquisition_medium',
+  'utm_source',
+  'utm_medium',
+  'utm_campaign',
   'source_page',
   'query_cluster',
   'content_cluster',
@@ -157,6 +166,9 @@ export function serializeAttributionForStripe(
     ...(sanitized.acquisition_medium
       ? { acquisition_medium: truncate(sanitized.acquisition_medium, 40) }
       : {}),
+    ...(sanitized.utm_source ? { utm_source: truncate(sanitized.utm_source, 80) } : {}),
+    ...(sanitized.utm_medium ? { utm_medium: truncate(sanitized.utm_medium, 40) } : {}),
+    ...(sanitized.utm_campaign ? { utm_campaign: truncate(sanitized.utm_campaign, 120) } : {}),
     ...(sanitized.source_page
       ? { source_page: truncate(sanitized.source_page, 100) }
       : {}),

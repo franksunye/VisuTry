@@ -5,6 +5,7 @@ import { ArrowRight, Loader2 } from "lucide-react";
 import type { MerchantCommercialPresentation } from "@/modules/merchant/application/merchant-control-center";
 import { analytics } from "@/lib/analytics";
 import { AnalyticsEvent } from "@/lib/analytics-events";
+import { recordMerchantActivationClientEvent } from "@/lib/merchant-activation-client";
 
 type Props = { merchantId: string; locale: string; commercial: MerchantCommercialPresentation };
 type PlanCode = "LAUNCH" | "GROWTH" | "SCALE" | "FOUNDING_PILOT";
@@ -44,6 +45,13 @@ export function MerchantBillingActions({ merchantId, locale, commercial }: Props
   }
 
   function checkout(planCode: PlanCode) {
+    void recordMerchantActivationClientEvent({
+      merchantId,
+      eventType: "merchant_commercial_intent",
+      commercialIntent: planCode,
+    }).catch(() => {
+      // Activation telemetry must never block billing navigation.
+    });
     analytics.trackCustomEvent(AnalyticsEvent.MerchantCheckoutStarted, { merchant_id: merchantId, plan_code: planCode });
     void call(`/api/merchant/${encodeURIComponent(merchantId)}/billing/checkout`, { planCode, locale });
   }

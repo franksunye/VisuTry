@@ -319,6 +319,7 @@ describe('Experience foundation', () => {
       lastActiveAt: now,
       expiresAt: new Date(now.getTime() + 60_000),
     })
+    const recordFirstShopperSession = jest.fn().mockResolvedValue(undefined)
     const result = await createStoreSession({
       merchants: merchant(),
       sessions: {
@@ -336,6 +337,7 @@ describe('Experience foundation', () => {
       },
       events: { appendIdempotent: jest.fn().mockResolvedValue({ created: true }), listByMerchant: jest.fn() },
       usage: { countCommerceSessions: jest.fn().mockResolvedValue(0), record: jest.fn() } as never,
+      activation: { recordFirstShopperSession },
       slug: 'ello-sunglasses',
       locale: 'en',
       acquisition: { source: 'visutry', medium: 'internal', surface: 'face-analysis', campaign: 'declared-campaign' },
@@ -349,6 +351,7 @@ describe('Experience foundation', () => {
       campaign: 'declared-campaign',
       acquisitionSurface: 'face-analysis',
     }))
+    expect(recordFirstShopperSession).toHaveBeenCalledWith({ merchantId: 'merchant-1', merchantSessionId: 'session-1' })
   })
 
   it('rejects compare requests for a frame outside the authoritative session Experience', async () => {

@@ -1,5 +1,6 @@
-import { render, screen } from '@testing-library/react'
+import { fireEvent, render, screen } from '@testing-library/react'
 import { MerchantPurchaseSummary } from '@/components/merchant/MerchantPurchaseSummary'
+import { recordMerchantActivationClientEvent } from '@/lib/merchant-activation-client'
 import { getMerchantPlanDefinition } from '@/modules/merchant/domain/merchant-commercial-plans'
 import type { MerchantBillingState } from '@/modules/merchant/domain/merchant-billing-state'
 
@@ -7,6 +8,8 @@ const refresh = jest.fn()
 
 jest.mock('next/navigation', () => ({ useRouter: () => ({ refresh }) }))
 jest.mock('@/lib/analytics', () => ({ analytics: { trackCustomEvent: jest.fn() } }))
+jest.mock('@/lib/merchant-activation-client', () => ({ recordMerchantActivationClientEvent: jest.fn().mockResolvedValue(true) }))
+const mockRecordMerchantActivationClientEvent = recordMerchantActivationClientEvent as jest.Mock
 
 const baseState = {
   reason: null,
@@ -24,6 +27,17 @@ describe('MerchantPurchaseSummary billing states', () => {
     renderSummary('CHECKOUT')
     expect(screen.getByRole('button', { name: /start secure checkout/i })).toBeInTheDocument()
     expect(screen.queryByText(/billing is disabled/i)).not.toBeInTheDocument()
+  })
+
+  it('records commercial intent without blocking checkout navigation', () => {
+    mockRecordMerchantActivationClientEvent.mockClear()
+    renderSummary('CHECKOUT')
+    fireEvent.click(screen.getByRole('button', { name: /start secure checkout/i }))
+    expect(mockRecordMerchantActivationClientEvent).toHaveBeenCalledWith(expect.objectContaining({
+      merchantId: 'merchant-1',
+      eventType: 'merchant_commercial_intent',
+      commercialIntent: 'GROWTH',
+    }))
   })
 
   it('shows a non-write disabled state for test/internal workspaces', () => {

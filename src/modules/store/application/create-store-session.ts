@@ -42,6 +42,9 @@ export async function createStoreSession(input: {
   anonymousVisitorId?: string | null
   deviceType?: string | null
   acquisition?: SessionAcquisitionInput | null
+  activation?: {
+    recordFirstShopperSession: (input: { merchantId: string; merchantSessionId: string }) => Promise<void>
+  }
 }): Promise<CreateStoreSessionResult> {
   const merchant = await input.merchants.findBySlug(input.slug)
   if (!merchant) throw merchantNotFound()
@@ -81,6 +84,14 @@ export async function createStoreSession(input: {
     expiresAt,
     referenceData: merchant.referenceData === true || experience?.referenceData === true,
     ...acquisition,
+  })
+
+  // A real shopper session is a server-authoritative Merchant activation
+  // milestone. The activation ledger deduplicates this per Merchant, so
+  // retries or later shopper sessions cannot inflate the first-session fact.
+  await input.activation?.recordFirstShopperSession({
+    merchantId: merchant.id,
+    merchantSessionId: session.id,
   })
 
   await input.usage.record({

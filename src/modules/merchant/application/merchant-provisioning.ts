@@ -9,6 +9,8 @@ import {
 } from '../domain/merchant-classification'
 import type { MerchantMembershipRecord } from '../domain/membership'
 import { merchantSlugForAttempt } from './merchant-slug'
+import { recordMerchantActivationEventWithClient } from './merchant-activation'
+import { MERCHANT_ACTIVATION_EVENT, type MerchantActivationAttributionInput } from '../domain/merchant-activation'
 
 const MAX_SLUG_ATTEMPTS = 100
 
@@ -19,6 +21,9 @@ export type CreateMerchantWithOwnerInput = {
   websiteUrl?: string | null
   source?: string | null
   campaign?: string | null
+  commercialIntent?: string | null
+  signupCorrelationId?: string | null
+  attribution?: MerchantActivationAttributionInput | null
 }
 
 export type MerchantWithOwner = {
@@ -155,6 +160,20 @@ async function createMerchantWithOwnerAttempt(
         role: true,
         createdAt: true,
         updatedAt: true,
+      },
+    })
+
+    await recordMerchantActivationEventWithClient(tx, {
+      merchantId: merchant.id,
+      eventType: MERCHANT_ACTIVATION_EVENT.WORKSPACE_CREATED,
+      source: 'SERVER',
+      correlationId: input.signupCorrelationId,
+      attribution: input.attribution,
+      intent: input.commercialIntent,
+      metadata: {
+        classification: PUBLIC_SELF_SERVICE_MERCHANT_CLASSIFICATION,
+        classification_source: PUBLIC_SELF_SERVICE_MERCHANT_CLASSIFICATION_SOURCE,
+        commercial_intent: input.commercialIntent,
       },
     })
 

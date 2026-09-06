@@ -12,6 +12,8 @@ import {
 import { validateMerchantFrameStoreReadiness } from '../domain/merchant-frame-store-readiness'
 import { getMerchantPlanDefinition, resolveMerchantPlanCode } from '@/modules/merchant/domain/merchant-commercial-plans'
 import { isCanonicalMerchantCommercialFields } from '@/modules/store/domain/merchant-commercial-state'
+import { merchantCatalogItemIsReady, MERCHANT_ACTIVATION_EVENT } from '../domain/merchant-activation'
+import { recordMerchantActivationEvent } from './merchant-activation-cloudflare'
 import type { MerchantStorePreviewFrame, MerchantStoreWorkspace, MerchantStoreWorkspaceFrame } from './merchant-store-workspace'
 
 // Request-size safety guard, not a product-count/UI ceiling. Human Web can
@@ -307,6 +309,33 @@ export async function importMerchantFrames(input: { actor: MerchantActorContext;
   const results = await sql.transaction(statements, { isolationLevel: 'Serializable' })
   const ids = results.flatMap((result) => result.map((row) => String(row.id)))
   const created = results.flatMap((result) => result).filter((row) => Boolean(row.created)).length
+  if (created > 0) {
+    await recordMerchantActivationEvent({
+      merchantId: input.actor.merchantId,
+      eventType: MERCHANT_ACTIVATION_EVENT.FIRST_ITEM_ADDED,
+      source: 'SERVER',
+      metadata: { frame_count: created },
+    })
+  }
+  if (normalized.some((frame) => merchantCatalogItemIsReady({
+    id: null,
+    sku: frame.sku,
+    externalId: frame.externalId,
+    productUrl: frame.productUrl,
+    name: frame.name,
+    imageUrl: frame.imageUrl,
+    shape: frame.shape,
+    source: frame.source,
+    status: 'ACTIVE',
+    enrichmentStatus: frame.enrichmentStatus,
+  }))) {
+    await recordMerchantActivationEvent({
+      merchantId: input.actor.merchantId,
+      eventType: MERCHANT_ACTIVATION_EVENT.CATALOG_READY,
+      source: 'SERVER',
+      metadata: { ready: true },
+    })
+  }
   await recordMerchantAgentOperation({ actor: input.actor, action: 'catalog.imported', resourceType: 'MerchantFrame', result: 'SUCCESS' })
   return { ids, created, updated: normalized.length - created, imported: normalized.length }
 }
@@ -381,6 +410,16 @@ export async function updateMerchantStore(input: { actor: MerchantActorContext; 
       return rows[0]
     },
   })
+  const meaningfulChange = name !== String(store.store.name) || headline !== (store.store.headline == null ? null : String(store.store.headline)) || description !== (store.store.description == null ? null : String(store.store.description))
+  if (meaningfulChange) {
+    await recordMerchantActivationEvent({
+      merchantId: input.actor.merchantId,
+      eventType: MERCHANT_ACTIVATION_EVENT.STORE_CONFIGURED,
+      source: 'SERVER',
+      resourceId: input.storeId,
+      metadata: { store_id: input.storeId },
+    })
+  }
   await audit(input.actor, 'store.updated', input.storeId)
   return { id: String(updated.id), slug: String(updated.slug), name: String(updated.name), status: String(updated.status), headline: updated.headline == null ? null : String(updated.headline), description: updated.description == null ? null : String(updated.description), publicPath: `/en/store/${merchant.slug}` }
 }
@@ -400,6 +439,15 @@ export async function setMerchantStoreFrames(input: { actor: MerchantActorContex
     target: { kind: 'experience', merchantSlug: merchant.slug, experienceSlug: null },
     mutation: () => sql.transaction(statements, { isolationLevel: 'Serializable' }),
   })
+  if (frameIds.length) {
+    await recordMerchantActivationEvent({
+      merchantId: input.actor.merchantId,
+      eventType: MERCHANT_ACTIVATION_EVENT.STORE_CONFIGURED,
+      source: 'SERVER',
+      resourceId: input.storeId,
+      metadata: { store_id: input.storeId, frame_count: frameIds.length },
+    })
+  }
   await audit(input.actor, 'store.frames_updated', input.storeId)
   return { storeId: input.storeId, frameIds, frameCount: frameIds.length }
 }
@@ -458,6 +506,15 @@ export async function publishMerchantStore(input: { actor: MerchantActorContext;
       return rows[0]
     },
   })
+  if (String(store.store.status) !== 'ACTIVE') {
+    await recordMerchantActivationEvent({
+      merchantId: input.actor.merchantId,
+      eventType: MERCHANT_ACTIVATION_EVENT.STORE_PUBLISHED,
+      source: 'SERVER',
+      resourceId: input.storeId,
+      metadata: { store_id: input.storeId },
+    })
+  }
   await recordMerchantAgentOperation({ actor: input.actor, action: 'store.published', resourceType: 'Experience', resourceId: String(store.store.id) })
   return { id: String((published as Row).id), status: String((published as Row).status), publicPath: `/en/store/${merchant.slug}`, approvalRecorded: true }
 }

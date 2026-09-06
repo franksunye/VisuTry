@@ -324,6 +324,16 @@ describe('campaign intelligence analytics migration', () => {
       AnalyticsEvent.MerchantOnboardingStarted,
       expect.objectContaining({ entry_point: 'b2b', actor_type: 'merchant_prospect' }),
     )
+    expect(window.gtag).toHaveBeenCalledTimes(1)
+    expect(window.dataLayer).toHaveLength(1)
+    expect(window.dataLayer[0]).toEqual(
+      expect.objectContaining({
+        event: AnalyticsEvent.MerchantOnboardingStarted,
+        actor_type: 'merchant_prospect',
+        entry_point: 'b2b',
+        analytics_schema_version: ANALYTICS_SCHEMA_VERSION,
+      }),
+    )
     expect(window.fetch).not.toHaveBeenCalled()
   })
 

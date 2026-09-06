@@ -32,12 +32,16 @@ describe('MerchantWorkspaceOnboarding', () => {
     fireEvent.click(screen.getByRole('button', { name: /create workspace/i }))
 
     await waitFor(() => expect(global.fetch).toHaveBeenCalledWith('/api/merchant/workspaces', expect.objectContaining({ method: 'POST' })))
-    expect(JSON.parse(((global.fetch as jest.Mock).mock.calls[0][1] as RequestInit).body as string)).toEqual({
+    expect(JSON.parse(((global.fetch as jest.Mock).mock.calls[0][1] as RequestInit).body as string)).toEqual(expect.objectContaining({
       name: 'Golden Path Test',
       websiteUrl: 'https://example.test',
       source: 'linkedin/paid',
       campaign: 'g1-launch',
-    })
+    }))
+    expect(JSON.parse(((global.fetch as jest.Mock).mock.calls[0][1] as RequestInit).body as string)).toEqual(expect.objectContaining({
+      signupCorrelationId: expect.stringMatching(/^signup-/u),
+      attribution: expect.objectContaining({ acquisitionSource: 'linkedin', acquisitionMedium: 'paid' }),
+    }))
     await waitFor(() => expect(router.push).toHaveBeenCalledWith('/en/merchant?merchantId=merchant-new&onboarding=created'))
     expect(router.refresh).toHaveBeenCalled()
     expect(analytics.trackCustomEvent).toHaveBeenCalledWith('merchant_onboarding_started', expect.objectContaining({ entry_point: 'b2b' }))

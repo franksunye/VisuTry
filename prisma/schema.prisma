@@ -702,6 +702,7 @@ model Merchant {
   agentCredentials MerchantAgentCredential[]
   operationAudits MerchantOperationAudit[]
   oauthAuthorizations MerchantOAuthAuthorization[]
+  activationEvents MerchantActivationEvent[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -833,6 +834,30 @@ model MerchantOperationAudit {
 
   @@index([merchantId, createdAt])
   @@index([actorType, actorId, createdAt])
+}
+
+/// Server-authoritative Merchant activation milestones and bounded journey
+/// events. This is separate from MerchantEvent, which is the shopper Store
+/// event stream, and from MerchantOperationAudit, which audits credentials and
+/// agent writes.
+model MerchantActivationEvent {
+  id            String   @id @default(cuid())
+  merchantId    String
+  eventType     String   @db.VarChar(80)
+  occurredAt    DateTime @default(now())
+  source        String   @db.VarChar(16)
+  correlationId String?  @db.VarChar(96)
+  sessionId     String?  @db.VarChar(96)
+  dedupeKey     String   @db.VarChar(240)
+  /// Sanitized activation attribution and bounded milestone metadata only.
+  metadata      Json?
+  createdAt     DateTime @default(now())
+
+  merchant Merchant @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+
+  @@unique([merchantId, dedupeKey])
+  @@index([merchantId, eventType, occurredAt])
+  @@index([merchantId, sessionId, occurredAt])
 }
 
 /// Public Remote MCP OAuth client registration. Clients are public PKCE clients;

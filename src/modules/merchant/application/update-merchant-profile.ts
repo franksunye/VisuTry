@@ -1,6 +1,8 @@
 import { prisma } from '@/lib/prisma'
 import { requireMerchantMembership } from './merchant-access'
 import { withPublicDiscoveryInvalidation } from '@/modules/store/application/public-discovery-invalidation'
+import { MERCHANT_ACTIVATION_EVENT } from '../domain/merchant-activation'
+import { recordMerchantActivationEventWithClient } from './merchant-activation'
 
 export class MerchantProfileError extends Error {
   readonly code: 'INVALID_MERCHANT_NAME' | 'INVALID_WEBSITE_URL'
@@ -39,12 +41,23 @@ export async function updateMerchantProfile(input: {
   const name = input.name === undefined ? current.name : input.name.trim()
   if (name.length < 2 || name.length > 120) throw new MerchantProfileError('INVALID_MERCHANT_NAME', 'Merchant name must be between 2 and 120 characters.')
   const websiteUrl = normalizeWebsite(input.websiteUrl)
+  const meaningfulChange = name !== current.name || (websiteUrl !== undefined && websiteUrl !== current.websiteUrl)
   const updated = await withPublicDiscoveryInvalidation({
     target: { kind: 'merchant', merchantSlug: current.slug },
-    mutation: () => prisma.merchant.update({
-      where: { id: input.merchantId },
-      data: { name, ...(websiteUrl === undefined ? {} : { websiteUrl }) },
-      select: { id: true, slug: true, name: true, websiteUrl: true },
+    mutation: () => prisma.$transaction(async (tx) => {
+      const result = await tx.merchant.update({
+        where: { id: input.merchantId },
+        data: { name, ...(websiteUrl === undefined ? {} : { websiteUrl }) },
+        select: { id: true, slug: true, name: true, websiteUrl: true },
+      })
+      if (meaningfulChange) {
+        await recordMerchantActivationEventWithClient(tx, {
+          merchantId: input.merchantId,
+          eventType: MERCHANT_ACTIVATION_EVENT.PROFILE_UPDATED,
+          source: 'SERVER',
+        })
+      }
+      return result
     }),
   })
   return updated

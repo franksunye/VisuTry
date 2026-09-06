@@ -7,7 +7,7 @@
 import { Axiom } from '@axiomhq/js'
 
 export type LogLevel = 'debug' | 'info' | 'warn' | 'error'
-export type LogCategory = 'auth' | 'oauth' | 'api' | 'database' | 'upload' | 'payment' | 'web' | 'general' | 'email' | 'grsai' | 'grsai-face' | 'tryon-service' | 'face-analysis' | 'face-analysis-service' | 'quota' | 'cron' | 'store' | 'face-shape' | 'frame-compare' | 'style-explorer' | 'generation'
+export type LogCategory = 'auth' | 'oauth' | 'api' | 'database' | 'upload' | 'payment' | 'web' | 'general' | 'email' | 'grsai' | 'grsai-face' | 'tryon-service' | 'face-analysis' | 'face-analysis-service' | 'quota' | 'cron' | 'store' | 'merchant' | 'face-shape' | 'frame-compare' | 'style-explorer' | 'generation'
 
 type LogScalar = string | number | boolean | null
 export type LogValue = LogScalar | LogValue[] | { [key: string]: LogValue }
@@ -57,7 +57,7 @@ const ALLOWED_LOG_DATA_FIELDS = new Set([
   'timeoutMs', 'total', 'totalDuration', 'totalTime', 'traffic_class',
   'tryOnType', 'type', 'updatedAt', 'uploadTarget', 'usagePolicyKind',
   'usageSettled', 'userId', 'userIntent', 'user_intent', 'userSha256', 'vercel',
-  'content_cluster', 'geo_region', 'pricing_locale',
+  'content_cluster', 'geo_region', 'pricing_locale', 'domain', 'event', 'activationEvent', 'correlationId', 'environment',
   'assets', 'itemFile', 'itemImage', 'metadata', 'orphans', 'threeDayEmails',
   'twentyFourHourEmails', 'userFile', 'userImage',
 ])
@@ -97,7 +97,7 @@ const AXIOM_PRODUCTION_DATA_FIELDS = new Set([
   'customerId', 'detectedShape', 'deviceType', 'diagnostics', 'duration',
   'durationMs', 'emailId', 'error', 'errorMessage', 'errorType', 'eventCreated', 'experienceId',
   'externalTaskId', 'failureReason', 'fetchedPageCount', 'fileName', 'fileSize',
-  'finalUrl', 'framePresetId', 'geometryQuality', 'geometryStatus',
+  'finalUrl', 'framePresetId', 'geometryQuality', 'geometryStatus', 'domain', 'event', 'activationEvent', 'correlationId', 'environment',
   'hasCallbackUrl', 'hasContent', 'hasData', 'hasError', 'hasId', 'hasImageUrl',
   'hasMetadata', 'hasResultImage', 'httpStatus', 'httpStatusText', 'imageSize',
   'imageTransport', 'inlineImageKb', 'intentId', 'isNewCompletion', 'isNewUser',

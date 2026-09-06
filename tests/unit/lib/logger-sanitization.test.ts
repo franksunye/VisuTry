@@ -148,8 +148,8 @@ describe('normalizeLogData', () => {
   })
 
   it('keeps every operational serializer key inside the checked-in production schema', () => {
-    expect(VISUTRY_PRO_FIELDS.size).toBe(257)
-    expect(AXIOM_SERIALIZED_KEY_ALLOWLIST.size).toBe(177)
+    expect(VISUTRY_PRO_FIELDS.size).toBe(262)
+    expect(AXIOM_SERIALIZED_KEY_ALLOWLIST.size).toBe(182)
     expect([...AXIOM_SERIALIZED_KEY_ALLOWLIST].filter((key) => !VISUTRY_PRO_FIELDS.has(key))).toEqual([])
   })
 })

@@ -7,6 +7,8 @@ import {
 } from '../domain/merchant-classification'
 import { isMerchantMembershipRole, type MerchantMembershipRecord } from '../domain/membership'
 import { merchantSlugForAttempt } from './merchant-slug'
+import { merchantActivationEventInsertStatement } from './merchant-activation-cloudflare'
+import { MERCHANT_ACTIVATION_EVENT, type MerchantActivationAttributionInput } from '../domain/merchant-activation'
 
 const MAX_SLUG_ATTEMPTS = 100
 
@@ -17,6 +19,9 @@ export type CreateMerchantWithOwnerInput = {
   websiteUrl?: string | null
   source?: string | null
   campaign?: string | null
+  commercialIntent?: string | null
+  signupCorrelationId?: string | null
+  attribution?: MerchantActivationAttributionInput | null
 }
 
 export type MerchantWithOwner = {
@@ -81,6 +86,11 @@ async function createMerchantWithOwnerAttempt(
   const sql = getCloudflareSql()
   const merchantId = newRecordId()
   const membershipId = newRecordId()
+  const activationMetadata = {
+    classification: PUBLIC_SELF_SERVICE_MERCHANT_CLASSIFICATION,
+    classification_source: PUBLIC_SELF_SERVICE_MERCHANT_CLASSIFICATION_SOURCE,
+    commercial_intent: input.commercialIntent,
+  }
   const results = await sql.transaction([
     sql`
       SELECT mm."id", mm."userId", mm."merchantId", mm."role", mm."createdAt", mm."updatedAt",
@@ -109,6 +119,15 @@ async function createMerchantWithOwnerAttempt(
       ON CONFLICT ("userId", "merchantId") DO NOTHING
       RETURNING "id", "userId", "merchantId", "role", "createdAt", "updatedAt"
     `,
+    merchantActivationEventInsertStatement(sql, {
+      merchantId,
+      eventType: MERCHANT_ACTIVATION_EVENT.WORKSPACE_CREATED,
+      source: 'SERVER',
+      correlationId: input.signupCorrelationId,
+      attribution: input.attribution,
+      intent: input.commercialIntent,
+      metadata: activationMetadata,
+    }, { ifMemberOfUserId: input.userId }),
     sql`
       SELECT mm."id" AS "membershipId", mm."userId", mm."merchantId", mm."role",
         mm."createdAt" AS "membershipCreatedAt", mm."updatedAt" AS "membershipUpdatedAt",
@@ -122,7 +141,7 @@ async function createMerchantWithOwnerAttempt(
   ], { isolationLevel: 'Serializable' })
 
   const existing = results[0]?.[0] as Record<string, unknown> | undefined
-  const selected = results[4]?.[0] as Record<string, unknown> | undefined
+  const selected = results[5]?.[0] as Record<string, unknown> | undefined
   // The first membership is the idempotency record for this user's self-service
   // workspace. Returning it keeps retries and callback replays side-effect free.
   if (existing && selected) return mapMerchantWithOwner(selected, false)

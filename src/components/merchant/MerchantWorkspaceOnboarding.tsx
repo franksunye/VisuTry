@@ -6,6 +6,7 @@ import { ArrowRight, Check, ChevronDown, Store } from 'lucide-react'
 import { analytics, getAcquisitionContext } from '@/lib/analytics'
 import { AnalyticsEvent } from '@/lib/analytics-events'
 import { getCampaignAnalyticsContext } from '@/lib/analytics-v2'
+import { getMerchantActivationAttribution, getMerchantActivationContext } from '@/lib/merchant-activation-client'
 import type { MerchantPurchaseIntent } from '@/modules/merchant/domain/merchant-purchase-intent'
 
 type Props = { locale: string; commercialIntent?: MerchantPurchaseIntent }
@@ -22,6 +23,7 @@ export function MerchantWorkspaceOnboarding({ locale, commercialIntent }: Props)
   useEffect(() => {
     if (onboardingStarted.current) return
     onboardingStarted.current = true
+    const { signupCorrelationId } = getMerchantActivationContext()
     analytics.trackCustomEvent(AnalyticsEvent.MerchantOnboardingStarted, {
       entry_point: 'b2b',
       actor_type: 'merchant_prospect',
@@ -29,6 +31,7 @@ export function MerchantWorkspaceOnboarding({ locale, commercialIntent }: Props)
       source_journey: 'business_merchant_entry',
       landing_surface: 'merchant_onboarding',
       commercial_intent: commercialIntent,
+      signup_correlation_id: signupCorrelationId,
     })
   }, [commercialIntent])
 
@@ -41,6 +44,7 @@ export function MerchantWorkspaceOnboarding({ locale, commercialIntent }: Props)
     try {
       const acquisition = getAcquisitionContext()
       const campaign = getCampaignAnalyticsContext()
+      const activationContext = getMerchantActivationContext()
       const source = [acquisition.acquisition_source, acquisition.acquisition_medium]
         .filter(Boolean)
         .join('/') || undefined
@@ -52,6 +56,9 @@ export function MerchantWorkspaceOnboarding({ locale, commercialIntent }: Props)
           websiteUrl: websiteUrl || undefined,
           source,
           campaign: campaign.campaign_name,
+          commercialIntent,
+          signupCorrelationId: activationContext.signupCorrelationId,
+          attribution: getMerchantActivationAttribution(commercialIntent),
         }),
       })
       const body = await response.json() as { data?: { created?: boolean; merchant?: { id?: string } }; error?: string }
@@ -70,6 +77,7 @@ export function MerchantWorkspaceOnboarding({ locale, commercialIntent }: Props)
           source_journey: 'business_merchant_entry',
           landing_surface: 'merchant_onboarding',
           commercial_intent: commercialIntent,
+          signup_correlation_id: activationContext.signupCorrelationId,
         })
       }
       const destination = commercialIntent && commercialIntent !== 'FREE'

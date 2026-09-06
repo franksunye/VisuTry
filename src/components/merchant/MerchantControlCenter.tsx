@@ -24,6 +24,7 @@ import type {
   MerchantControlExperience,
 } from "@/modules/merchant/application/merchant-control-center";
 import { analytics } from "@/lib/analytics";
+import { getMerchantActivationContext, recordMerchantActivationClientEvent } from "@/lib/merchant-activation-client";
 import { AnalyticsEvent } from "@/lib/analytics-events";
 import {
   MERCHANT_DISTRIBUTION_SOURCE_LABELS,
@@ -31,6 +32,7 @@ import {
 } from "@/modules/store/domain/merchant-distribution-report";
 import { MerchantCatalogSelfService } from "@/components/merchant/MerchantCatalogSelfService";
 import { MerchantStoreSelfService } from "@/components/merchant/MerchantStoreSelfService";
+import { MerchantActivationChecklist } from "@/components/merchant/MerchantActivationChecklist";
 import { MerchantPlanUsage } from "@/components/merchant/MerchantPlanUsage";
 import { MerchantBillingProcessingNotice } from "@/components/merchant/MerchantBillingProcessingNotice";
 import type { MerchantBillablePlanCode } from "@/modules/merchant/domain/merchant-billing";
@@ -1404,6 +1406,7 @@ export function MerchantControlCenter({
   );
   const [catalogAvailable, setCatalogAvailable] = useState(control.catalog.total > 0);
   useEffect(() => {
+    const { signupCorrelationId } = getMerchantActivationContext();
     analytics.trackCustomEvent(AnalyticsEvent.MerchantWorkspaceEntered, {
       merchant_id: selectedMerchantId,
       entry_point: "b2b",
@@ -1411,6 +1414,13 @@ export function MerchantControlCenter({
       journey_type: "visutry_b2b_acquisition",
       source_journey: "business_merchant_entry",
       landing_surface: "merchant_workspace",
+      signup_correlation_id: signupCorrelationId,
+    });
+    void recordMerchantActivationClientEvent({
+      merchantId: selectedMerchantId,
+      eventType: "merchant_workspace_entered",
+    }).catch(() => {
+      // Activation telemetry must never block the Merchant workspace.
     });
   }, [selectedMerchantId]);
   const switchMerchant = (merchantId: string) =>
@@ -1538,6 +1548,7 @@ export function MerchantControlCenter({
             </a>
           </section>
         ) : null}
+        <MerchantActivationChecklist control={control} />
         <Overview
           control={control}
           agentReady={agentReady}
@@ -1574,12 +1585,16 @@ export function MerchantControlCenter({
         <MerchantCatalogSelfService
           merchantId={control.merchant.id}
           initialTotal={control.catalog.total}
-          onCatalogChanged={() => setCatalogAvailable(true)}
+          onCatalogChanged={() => {
+            setCatalogAvailable(true)
+            router.refresh()
+          }}
         />
         <MerchantStoreSelfService
           merchantId={control.merchant.id}
           initialCatalogCount={control.catalog.total}
           catalogAvailable={catalogAvailable}
+          onStoreChanged={() => router.refresh()}
         />
         <Experiences
           experiences={control.experiences}

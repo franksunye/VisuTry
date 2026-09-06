@@ -145,6 +145,9 @@ export type AnalyticsCommonContext = {
   page_path?: string
   acquisition_source?: string
   acquisition_medium?: string
+  utm_source?: string
+  utm_medium?: string
+  utm_campaign?: string
   referrer_host?: string
   landing_locale?: string
   site_locale?: string
