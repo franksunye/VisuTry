@@ -42,17 +42,40 @@ It allows only:
 Unknown routes, APIs, sitemaps, Store/Campaign paths, and `/_next/static/*`
 are outside the rule. Browser caching remains bypassed.
 
-The edge TTL target is **3,600 seconds (1 hour)**. No stale-while-revalidate
-behavior is requested. The rule must not rely only on origin `Vary` headers to
-protect RSC or prefetch traffic.
+The edge TTL target is **7,200 seconds (2 hours)**. This is the conservative
+backstop while the production zone plan is not independently proven to allow a
+1-hour minimum. No stale-while-revalidate behavior is requested. The rule must
+not rely only on origin `Vary` headers to protect RSC or prefetch traffic.
+
+The desired Rulesets API rule is emitted as `action_parameters` with the
+Cloudflare field names `edge_ttl` and `browser_ttl`; `browser_ttl` is
+`bypass_by_default`. No custom `vary` object is included.
+
+The expression also requires `not http.request.headers.truncated`. If the
+header map is truncated, the edge cannot safely prove that Cookie and
+Authorization were absent, so the request must bypass D1.
 
 ## Deployment invalidation contract
 
-After a Vercel Production deployment is verified as `READY` and `PROMOTED`,
-purge exactly the 27 family-root URLs plus the 27 trailing-slash HTTPS
-prefixes represented by the three D1 families × nine locales. The exact root
-URLs are needed because a trailing-slash prefix does not include the root
-itself. This is a scoped purge, not a purge of unrelated assets:
+After a Vercel Production deployment is independently verified as `READY`,
+`target=production`, owned by the expected project/team, currently owning the
+`www.visutry.com` alias, and carrying the expected Git SHA, send one
+prefix-only purge request containing exactly 27 prefixes. Each prefix is a
+host/path value without scheme, query, or wildcard:
+
+```json
+{
+  "prefixes": [
+    "www.visutry.com/en/glasses-guide",
+    "www.visutry.com/en/style",
+    "www.visutry.com/en/sunglasses-for"
+  ]
+}
+```
+
+The real payload contains all nine locales. Prefixes cover each family root
+and detail pages; no separate `files` field is sent. This is a scoped purge,
+not a purge of unrelated assets:
 
 - no `/_next/static/*`
 - no sitemaps
@@ -62,27 +85,63 @@ itself. This is a scoped purge, not a purge of unrelated assets:
 The executable mechanism is:
 
 ```bash
-D1_CACHE_PURGE_APPROVED=1 \
 CLOUDFLARE_ZONE_ID=... \
 CLOUDFLARE_API_TOKEN=... \
+VERCEL_API_TOKEN=... \
+VERCEL_PROJECT_ID=... \
+VERCEL_TEAM_ID=... \
 VERCEL_PRODUCTION_SHA=... \
 VERCEL_PRODUCTION_DEPLOYMENT_ID=... \
+npm run d1:cache:governance -- --verify-vercel
+
+D1_CACHE_PURGE_APPROVED=1 \
 npm run d1:cache:governance -- --purge
 ```
 
-The script fails closed unless all values are present and the explicit
-approval variable is `1`. It prints a JSON evidence record containing the
-deployment identifiers, exact-file/prefix target count, timestamp, HTTP
-status, Cloudflare request ID, and success result; it never prints the API
-token.
+`--purge` repeats the Vercel verification immediately before calling
+Cloudflare. It fails closed if the Vercel token, expected project/team,
+deployment ID, expected SHA, or production alias proof is missing or does not
+match. It then sends only:
+
+```json
+{
+  "prefixes": ["...27 host/path prefixes..."]
+}
+```
+
+The evidence JSON reports `purgeType: "prefixes"` and `prefixCount: 27`.
+Cloudflare API failure returns non-zero and does not assume cache coherence.
+
+The repository workflow performs the same independent Vercel verification
+before opening `D1_CACHE_PURGE_APPROVED=1`:
+
+```bash
+npm run d1:cache:governance -- --purge
+```
+
+It never prints API tokens. A future real purge must verify representative
+family-root and detail URLs return `MISS`/`EXPIRED` and reference the current
+Vercel deployment before the coherence gate passes.
 
 The repository workflow has no `push` trigger. It accepts only a
-`vercel-production-promoted` repository dispatch whose payload proves:
-`target=production`, `ready_state=READY`, `ready_substate=PROMOTED`, and
-contains both a deployment ID and Git SHA. The external Vercel-to-GitHub
+`vercel-production-promoted` repository dispatch as lookup input. The payload
+is not trusted proof: the workflow calls Vercel API and checks deployment ID,
+project/team, production target, `READY`, production alias ownership, and Git
+SHA before any purge gate opens. The external Vercel-to-GitHub
 dispatch/webhook wiring is not present in this repository yet, so the
-automatic path is not production-ready until that integration and the
-dedicated Cloudflare token are provisioned.
+automatic path is not production-ready until that integration, the dedicated
+Vercel read token, and the dedicated Cloudflare purge token are provisioned.
+
+For read-only live drift inspection, use:
+
+```bash
+CLOUDFLARE_ZONE_ID=... \
+CLOUDFLARE_API_TOKEN=... \
+npm run d1:cache:governance -- --check-live
+```
+
+This compares the live rule ID, expression, action, `action_parameters`,
+enabled state, and order. It performs no mutation.
 
 Cloudflare documents prefix purge as a supported purge method on all plans,
 but the token must have the zone `Cache Purge` permission. The currently used

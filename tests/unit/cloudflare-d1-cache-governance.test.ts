@@ -1,15 +1,19 @@
 /** @jest-environment node */
 
 import {
-  D1_CACHE_PURGE_FILES,
   D1_CACHE_PURGE_PREFIXES,
+  D1_CACHE_RULE_API_RULE,
   D1_CACHE_RULE_EDGE_TTL_SECONDS,
   D1_CACHE_RULE_EXPRESSION,
   D1_LOCALES,
   D1_ROUTE_FAMILIES,
-  D1_CACHE_RULE_REPRESENTATION,
+  compareD1LiveRule,
   d1CachePurgePlan,
+  d1CachePurgeRequestBody,
+  isCloudflarePurgeSuccessful,
   isD1CacheEligible,
+  isVercelProductionDeploymentProofValid,
+  readVercelVerificationConfig,
 } from '../../cloudflare-router/d1-cache-governance'
 
 function request(path: string, init: RequestInit = {}) {
@@ -66,6 +70,7 @@ describe('D1 production HTML cache governance contract', () => {
     for (const clause of [
       'not has_key(http.request.headers, "authorization")',
       'not has_key(http.request.headers, "cookie")',
+      'not http.request.headers.truncated',
       'not has_key(http.request.headers, "rsc")',
       'not has_key(http.request.headers, "next-router-prefetch")',
       'not has_key(http.request.headers, "next-router-state-tree")',
@@ -79,25 +84,88 @@ describe('D1 production HTML cache governance contract', () => {
     expect(D1_CACHE_RULE_EXPRESSION).not.toContain('http.cookie contains "next-auth.session-token"')
   })
 
-  it('keeps browser caching bypassed and edge TTL at one hour', () => {
-    expect(D1_CACHE_RULE_REPRESENTATION.actionParameters.browserTtl.mode).toBe('bypass')
-    expect(D1_CACHE_RULE_REPRESENTATION.actionParameters.edgeTtl).toEqual({
-      mode: 'override_origin',
-      default: D1_CACHE_RULE_EDGE_TTL_SECONDS,
-    })
-    expect(D1_CACHE_RULE_REPRESENTATION.actionParameters.edgeTtl.default).toBe(3600)
+  it('fails closed when Cloudflare reports truncated headers', () => {
+    expect(isD1CacheEligible(request('/en/style/round-face'), { headersTruncated: true })).toBe(false)
   })
 
-  it('limits invalidation to the 27 family roots and 27 trailing-slash prefixes', () => {
+  it('uses an API-exact Rulesets rule shape with no invented Vary object', () => {
+    expect(D1_CACHE_RULE_API_RULE).toEqual({
+      ref: 'visutry-d1-seo-html-cache-shield',
+      description: 'VisuTry D1 - SEO HTML Cache Shield',
+      expression: D1_CACHE_RULE_EXPRESSION,
+      action: 'set_cache_settings',
+      action_parameters: {
+        cache: true,
+        edge_ttl: {
+          mode: 'override_origin',
+          default: D1_CACHE_RULE_EDGE_TTL_SECONDS,
+        },
+        browser_ttl: { mode: 'bypass_by_default' },
+      },
+      enabled: true,
+    })
+    expect('vary' in D1_CACHE_RULE_API_RULE.action_parameters).toBe(false)
+  })
+
+  it('uses the plan-safe two-hour edge TTL', () => {
+    expect(D1_CACHE_RULE_EDGE_TTL_SECONDS).toBe(7200)
+    expect(D1_CACHE_RULE_API_RULE.action_parameters.edge_ttl).toEqual({
+      mode: 'override_origin',
+      default: 7200,
+    })
+    expect(D1_CACHE_RULE_API_RULE.action_parameters.browser_ttl).toEqual({ mode: 'bypass_by_default' })
+  })
+
+  it('uses one prefixes-only purge request for exactly 27 family prefixes', () => {
     expect(D1_CACHE_PURGE_PREFIXES).toHaveLength(27)
-    expect(D1_CACHE_PURGE_FILES).toHaveLength(27)
     expect(new Set(D1_CACHE_PURGE_PREFIXES).size).toBe(27)
-    expect(new Set(D1_CACHE_PURGE_FILES).size).toBe(27)
-    expect(D1_CACHE_PURGE_PREFIXES.every((prefix) => prefix.startsWith('https://www.visutry.com/'))).toBe(true)
-    expect(D1_CACHE_PURGE_FILES.every((file) => file.startsWith('https://www.visutry.com/'))).toBe(true)
+    expect(D1_CACHE_PURGE_PREFIXES.every((prefix) => !prefix.includes('://') && !prefix.includes('?') && !prefix.includes('*'))).toBe(true)
+    expect(D1_CACHE_PURGE_PREFIXES).toContain('www.visutry.com/en/glasses-guide')
+    expect(D1_CACHE_PURGE_PREFIXES).toContain('www.visutry.com/en/style')
+    expect(D1_CACHE_PURGE_PREFIXES).toContain('www.visutry.com/en/sunglasses-for')
     expect(D1_CACHE_PURGE_PREFIXES.some((prefix) => prefix.includes('_next'))).toBe(false)
     expect(D1_CACHE_PURGE_PREFIXES.some((prefix) => prefix.includes('sitemaps'))).toBe(false)
-    expect(d1CachePurgePlan().mechanism).toBe('Cloudflare zone purge_cache with exact files and trailing-slash prefixes')
-    expect(d1CachePurgePlan().count).toBe(54)
+    expect(d1CachePurgePlan()).toMatchObject({ purgeType: 'prefixes', prefixCount: 27 })
+    expect(d1CachePurgeRequestBody()).toEqual({ prefixes: D1_CACHE_PURGE_PREFIXES })
+    expect(Object.keys(d1CachePurgeRequestBody())).toEqual(['prefixes'])
+  })
+
+  it('fails closed on Cloudflare API failures', () => {
+    expect(isCloudflarePurgeSuccessful(200, { success: true })).toBe(true)
+    expect(isCloudflarePurgeSuccessful(500, { success: true })).toBe(false)
+    expect(isCloudflarePurgeSuccessful(200, { success: false })).toBe(false)
+  })
+
+  it('requires independent Vercel verification credentials', () => {
+    expect(() => readVercelVerificationConfig({})).toThrow('missing Vercel verification configuration')
+  })
+
+  it('rejects forged or unverified Vercel deployment proof', () => {
+    const config = {
+      projectId: 'prj_visutry',
+      teamId: 'team_visutry',
+      deploymentId: 'dpl_expected',
+      expectedGitSha: 'sha_expected',
+      productionAlias: 'www.visutry.com',
+    }
+    const validProof = {
+      id: 'dpl_expected',
+      projectId: 'prj_visutry',
+      teamId: 'team_visutry',
+      target: 'production',
+      readyState: 'READY',
+      gitSha: 'sha_expected',
+      aliases: ['www.visutry.com'],
+    } as const
+    expect(isVercelProductionDeploymentProofValid(validProof, config)).toBe(true)
+    expect(isVercelProductionDeploymentProofValid({ ...validProof, readyState: 'BUILDING' }, config)).toBe(false)
+    expect(isVercelProductionDeploymentProofValid({ ...validProof, aliases: [] }, config)).toBe(false)
+    expect(isVercelProductionDeploymentProofValid({ ...validProof, gitSha: 'sha_forged' }, config)).toBe(false)
+  })
+
+  it('reports live rule drift without mutating anything', () => {
+    const report = compareD1LiveRule(null)
+    expect(report.matches).toBe(false)
+    expect(report.mismatches).toContain('live D1 rule not found')
   })
 })
