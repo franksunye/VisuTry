@@ -1,0 +1,35 @@
+name: Invalidate D1 HTML cache after Vercel production promotion
+
+on:
+  repository_dispatch:
+    types: [vercel-production-promoted]
+
+permissions:
+  contents: read
+
+jobs:
+  purge-d1-html:
+    # The dispatch sender must provide proof that the deployment is the
+    # production target and is both READY and PROMOTED. No push trigger exists.
+    if: >-
+      github.event.client_payload.target == 'production' &&
+      github.event.client_payload.ready_state == 'READY' &&
+      github.event.client_payload.ready_substate == 'PROMOTED' &&
+      github.event.client_payload.deployment_id != '' &&
+      github.event.client_payload.git_sha != ''
+    runs-on: ubuntu-latest
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_D1_CACHE_PURGE_TOKEN }}
+      CLOUDFLARE_ZONE_ID: ${{ vars.CLOUDFLARE_ZONE_ID }}
+      D1_CACHE_PURGE_APPROVED: '1'
+      VERCEL_PRODUCTION_SHA: ${{ github.event.client_payload.git_sha }}
+      VERCEL_PRODUCTION_DEPLOYMENT_ID: ${{ github.event.client_payload.deployment_id }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - name: Purge only D1-covered HTML prefixes
+        run: npm run d1:cache:governance -- --purge
