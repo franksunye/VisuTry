@@ -168,7 +168,10 @@ If a later Auth0 failure is confirmed to be caused by www proxy, rollback is `ww
 
 ## 9. Cache
 
-No Cache Rules created. Browser Cache TTL not changed. Cache Everything not enabled.
+At the B3 audit point no Cache Rules were created, Browser Cache TTL was not
+changed, and Cache Everything was not enabled. A later dashboard-only D1 rule
+is governed by [the D1 cache governance contract](./cloudflare-d1-cache-governance.md)
+and is outside the B3 change scope.
 
 When Cloudflare edge headers are present, HTML and public APIs are **DYNAMIC**. A representative static JS file was **HIT**. No private/authenticated response caching was observed on the checked paths.
 
