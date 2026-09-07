@@ -102,7 +102,7 @@ policy, so production remains the authoritative deployment environment.
 
 Dashboard evidence was collected on 2026-09-07. The focused PR is created
 as PR #193; no merge is performed by this workstream. The branch head is
-`43b158cee5a9e2c206bf126de6db542eaa0ade4a`.
+recorded by the PR and final handoff rather than duplicated here.
 
 Local validation passed for the focused ignored-build contract, typecheck,
 lint, the complete unit suite (242 suites / 1,500 tests), Consumer critical,
