@@ -1,5 +1,7 @@
 export type TryOnBlobAccessMode = 'public' | 'private'
 
+export const TRY_ON_BLOB_DELETE_TOKEN_ENV = 'RPIVATE_BLOB_READ_WRITE_TOKEN'
+
 export function resolveTryOnBlobAccessMode(
   configured = process.env.TRY_ON_BLOB_ACCESS_MODE ?? process.env.FACE_ANALYSIS_BLOB_ACCESS_MODE,
 ): TryOnBlobAccessMode {
@@ -17,6 +19,21 @@ export function getTryOnBlobStoreId(
     throw new Error('TRY_ON_BLOB_STORE_ID is required when Try-On Blob access is private')
   }
   return storeId
+}
+
+/**
+ * The connected private Blob store uses its project-scoped read-write token.
+ * Retention cleanup must pass it explicitly because @vercel/blob otherwise
+ * falls back to BLOB_READ_WRITE_TOKEN, which may belong to another store.
+ */
+export function getTryOnBlobDeleteToken(): string {
+  const token = process.env[TRY_ON_BLOB_DELETE_TOKEN_ENV]?.trim()
+  if (!token) {
+    throw new Error(
+      `${TRY_ON_BLOB_DELETE_TOKEN_ENV} is required for Try-On Blob retention cleanup`,
+    )
+  }
+  return token
 }
 
 export function getTryOnSourceBlobOptions():

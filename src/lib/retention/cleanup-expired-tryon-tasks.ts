@@ -9,6 +9,7 @@ import { del } from '@vercel/blob'
 import { prisma } from '@/lib/prisma'
 import { logger } from '@/lib/logger'
 import { isMockMode } from '@/lib/mocks'
+import { getTryOnBlobDeleteToken } from '@/lib/tryon-blob-access'
 import {
   retentionBackoffMs,
   shouldMarkDeleteBlocked,
@@ -118,7 +119,7 @@ export async function cleanupExpiredTryOnTasks(
       if (!isMockMode) {
         for (const target of targets) {
           try {
-            await del(target)
+            await del(target, { token: getTryOnBlobDeleteToken() })
           } catch (error) {
             if (!isBlobNotFoundError(error)) {
               blobOk = false
