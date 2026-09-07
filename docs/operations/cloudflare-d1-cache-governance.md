@@ -39,6 +39,12 @@ It allows only:
 - the explicit localized families `/glasses-guide/*`, `/style/*`, and
   `/sunglasses-for/*` for the nine approved locales
 
+The family landing/root pages are intentionally excluded from D1:
+`/en/style`, `/en/style/`, `/en/glasses-guide`, and
+`/en/sunglasses-for/` remain Vercel-owned and uncached by D1. Only detail
+paths such as `/en/style/round-face` are eligible. This detail-only boundary
+also prevents sibling paths such as `/en/style-explorer` from being included.
+
 Unknown routes, APIs, sitemaps, Store/Campaign paths, and `/_next/static/*`
 are outside the rule. Browser caching remains bypassed.
 
@@ -66,16 +72,17 @@ host/path value without scheme, query, or wildcard:
 ```json
 {
   "prefixes": [
-    "www.visutry.com/en/glasses-guide",
-    "www.visutry.com/en/style",
-    "www.visutry.com/en/sunglasses-for"
+    "www.visutry.com/en/glasses-guide/",
+    "www.visutry.com/en/style/",
+    "www.visutry.com/en/sunglasses-for/"
   ]
 }
 ```
 
 The real payload contains all nine locales. Prefixes cover each family root
-and detail pages; no separate `files` field is sent. This is a scoped purge,
-not a purge of unrelated assets:
+and detail pages, while the D1 expression caches only detail pages; no
+separate `files` field is sent. This is a scoped purge, not a purge of
+unrelated assets:
 
 - no `/_next/static/*`
 - no sitemaps
@@ -123,14 +130,21 @@ It never prints API tokens. A future real purge must verify representative
 family-root and detail URLs return `MISS`/`EXPIRED` and reference the current
 Vercel deployment before the coherence gate passes.
 
-The repository workflow has no `push` trigger. It accepts only a
-`vercel-production-promoted` repository dispatch as lookup input. The payload
-is not trusted proof: the workflow calls Vercel API and checks deployment ID,
-project/team, production target, `READY`, production alias ownership, and Git
-SHA before any purge gate opens. The external Vercel-to-GitHub
-dispatch/webhook wiring is not present in this repository yet, so the
-automatic path is not production-ready until that integration, the dedicated
-Vercel read token, and the dedicated Cloudflare purge token are provisioned.
+The repository workflow has no `push` trigger. It accepts both a future
+`vercel-production-promoted` repository dispatch and a manual
+`workflow_dispatch` with `deployment_id` and `git_sha` inputs. In both cases
+the supplied values are only lookup inputs: the workflow calls Vercel API and
+checks deployment ID, project/team, production target, `READY`, production
+alias ownership, and Git SHA before any purge gate opens.
+
+```text
+AUTOMATIC INVALIDATION: NOT WIRED
+MANUAL VERIFIED INVALIDATION: AVAILABLE
+```
+
+The external Vercel-to-GitHub dispatch/webhook wiring is not present in this
+repository yet, so the automatic path is not production-ready. The manual
+path still requires the dedicated Vercel read token and Cloudflare purge token.
 
 For read-only live drift inspection, use:
 
@@ -140,8 +154,11 @@ CLOUDFLARE_API_TOKEN=... \
 npm run d1:cache:governance -- --check-live
 ```
 
-This compares the live rule ID, expression, action, `action_parameters`,
-enabled state, and order. It performs no mutation.
+This calls the Cache Rules entrypoint endpoint, reads its actual `rules` array,
+then compares the live rule ID, expression, action, `action_parameters`,
+enabled state, and array order. The List Rulesets metadata response is not
+treated as rule contents. Objects are canonicalized before comparison. The
+command performs no mutation.
 
 Cloudflare documents prefix purge as a supported purge method on all plans,
 but the token must have the zone `Cache Purge` permission. The currently used

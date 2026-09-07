@@ -3,21 +3,35 @@ name: Invalidate D1 HTML cache after Vercel production promotion
 on:
   repository_dispatch:
     types: [vercel-production-promoted]
+  workflow_dispatch:
+    inputs:
+      deployment_id:
+        description: Vercel deployment ID to verify through the Vercel API
+        required: true
+        type: string
+      git_sha:
+        description: Expected Git SHA to verify against the Vercel deployment
+        required: true
+        type: string
 
 permissions:
   contents: read
 
 jobs:
   purge-d1-html:
-    # Dispatch fields are only lookup inputs. The job independently verifies
-    # the deployment through Vercel API before enabling the purge gate.
-    # No push trigger exists.
+    # Dispatch/input fields are only lookup inputs. The job independently
+    # verifies the deployment through Vercel API before enabling the purge
+    # gate. No push trigger exists.
     if: >-
+      (github.event_name == 'repository_dispatch' &&
       github.event.client_payload.target == 'production' &&
       github.event.client_payload.ready_state == 'READY' &&
       github.event.client_payload.ready_substate == 'PROMOTED' &&
       github.event.client_payload.deployment_id != '' &&
-      github.event.client_payload.git_sha != ''
+      github.event.client_payload.git_sha != '') ||
+      (github.event_name == 'workflow_dispatch' &&
+      inputs.deployment_id != '' &&
+      inputs.git_sha != '')
     runs-on: ubuntu-latest
     env:
       CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_D1_CACHE_PURGE_TOKEN }}
@@ -26,8 +40,8 @@ jobs:
       VERCEL_PROJECT_ID: ${{ vars.VERCEL_PROJECT_ID }}
       VERCEL_TEAM_ID: ${{ vars.VERCEL_TEAM_ID }}
       VERCEL_PRODUCTION_ALIAS: www.visutry.com
-      VERCEL_PRODUCTION_SHA: ${{ github.event.client_payload.git_sha }}
-      VERCEL_PRODUCTION_DEPLOYMENT_ID: ${{ github.event.client_payload.deployment_id }}
+      VERCEL_PRODUCTION_SHA: ${{ github.event_name == 'workflow_dispatch' && inputs.git_sha || github.event.client_payload.git_sha }}
+      VERCEL_PRODUCTION_DEPLOYMENT_ID: ${{ github.event_name == 'workflow_dispatch' && inputs.deployment_id || github.event.client_payload.deployment_id }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4

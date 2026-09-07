@@ -1,15 +1,19 @@
 /** @jest-environment node */
 
+import fs from 'fs'
+import path from 'path'
 import {
   D1_CACHE_PURGE_PREFIXES,
   D1_CACHE_RULE_API_RULE,
   D1_CACHE_RULE_EDGE_TTL_SECONDS,
+  D1_CACHE_RULE_ID,
   D1_CACHE_RULE_EXPRESSION,
   D1_LOCALES,
   D1_ROUTE_FAMILIES,
   compareD1LiveRule,
   d1CachePurgePlan,
   d1CachePurgeRequestBody,
+  extractD1LiveRuleFromEntrypoint,
   isCloudflarePurgeSuccessful,
   isD1CacheEligible,
   isVercelProductionDeploymentProofValid,
@@ -54,11 +58,17 @@ describe('D1 production HTML cache governance contract', () => {
   })
 
   it('does not broaden a family prefix to a sibling path', () => {
-    expect(isD1CacheEligible(request('/en/style'))).toBe(true)
+    expect(isD1CacheEligible(request('/en/style'))).toBe(false)
     expect(isD1CacheEligible(request('/en/style/round-face'))).toBe(true)
+    expect(isD1CacheEligible(request('/en/style/'))).toBe(false)
     expect(isD1CacheEligible(request('/en/styleful/round-face'))).toBe(false)
-    expect(isD1CacheEligible(request('/en/glasses-guide'))).toBe(true)
-    expect(isD1CacheEligible(request('/en/glasses-guide/'))).toBe(true)
+    expect(isD1CacheEligible(request('/en/glasses-guide'))).toBe(false)
+    expect(isD1CacheEligible(request('/en/glasses-guide/'))).toBe(false)
+    expect(isD1CacheEligible(request('/en/sunglasses-for'))).toBe(false)
+    expect(isD1CacheEligible(request('/en/sunglasses-for/'))).toBe(false)
+    expect(isD1CacheEligible(request('/en/style-explorer'))).toBe(false)
+    expect(isD1CacheEligible(request('/en/glasses-guide-old'))).toBe(false)
+    expect(isD1CacheEligible(request('/en/sunglasses-format'))).toBe(false)
   })
 
   it('contains the complete explicit route and bypass matrix', () => {
@@ -81,6 +91,9 @@ describe('D1 production HTML cache governance contract', () => {
     ]) {
       expect(D1_CACHE_RULE_EXPRESSION).toContain(clause)
     }
+    expect(D1_CACHE_RULE_EXPRESSION).toContain('starts_with(http.request.uri.path, "/en/style/")')
+    expect(D1_CACHE_RULE_EXPRESSION).toContain('http.request.uri.path ne "/en/style/"')
+    expect(D1_CACHE_RULE_EXPRESSION).not.toContain('http.request.uri.path eq "/en/style"')
     expect(D1_CACHE_RULE_EXPRESSION).not.toContain('http.cookie contains "next-auth.session-token"')
   })
 
@@ -120,9 +133,10 @@ describe('D1 production HTML cache governance contract', () => {
     expect(D1_CACHE_PURGE_PREFIXES).toHaveLength(27)
     expect(new Set(D1_CACHE_PURGE_PREFIXES).size).toBe(27)
     expect(D1_CACHE_PURGE_PREFIXES.every((prefix) => !prefix.includes('://') && !prefix.includes('?') && !prefix.includes('*'))).toBe(true)
-    expect(D1_CACHE_PURGE_PREFIXES).toContain('www.visutry.com/en/glasses-guide')
-    expect(D1_CACHE_PURGE_PREFIXES).toContain('www.visutry.com/en/style')
-    expect(D1_CACHE_PURGE_PREFIXES).toContain('www.visutry.com/en/sunglasses-for')
+    expect(D1_CACHE_PURGE_PREFIXES.every((prefix) => prefix.endsWith('/'))).toBe(true)
+    expect(D1_CACHE_PURGE_PREFIXES).toContain('www.visutry.com/en/glasses-guide/')
+    expect(D1_CACHE_PURGE_PREFIXES).toContain('www.visutry.com/en/style/')
+    expect(D1_CACHE_PURGE_PREFIXES).toContain('www.visutry.com/en/sunglasses-for/')
     expect(D1_CACHE_PURGE_PREFIXES.some((prefix) => prefix.includes('_next'))).toBe(false)
     expect(D1_CACHE_PURGE_PREFIXES.some((prefix) => prefix.includes('sitemaps'))).toBe(false)
     expect(d1CachePurgePlan()).toMatchObject({ purgeType: 'prefixes', prefixCount: 27 })
@@ -167,5 +181,96 @@ describe('D1 production HTML cache governance contract', () => {
     const report = compareD1LiveRule(null)
     expect(report.matches).toBe(false)
     expect(report.mismatches).toContain('live D1 rule not found')
+  })
+
+  it('does not mistake List Rulesets metadata for rule contents', () => {
+    const metadataOnly = {
+      success: true,
+      result: [{ id: 'rs_cache', name: 'zone-cache-rules', phase: 'http_request_cache_settings', kind: 'zone' }],
+    }
+    expect(extractD1LiveRuleFromEntrypoint(metadataOnly)).toBeNull()
+    expect(extractD1LiveRuleFromEntrypoint({ success: false, result: { rules: [] } })).toBeNull()
+  })
+
+  it('parses the entrypoint rules array, prefers ID, and records array order', () => {
+    const fixture = {
+      success: true,
+      result: {
+        id: 'rs_cache',
+        phase: 'http_request_cache_settings',
+        rules: [
+          {
+            id: D1_CACHE_RULE_ID,
+            ref: 'visutry-d1-seo-html-cache-shield',
+            description: 'VisuTry D1 - SEO HTML Cache Shield',
+            expression: D1_CACHE_RULE_EXPRESSION,
+            action: 'set_cache_settings',
+            action_parameters: {
+              browser_ttl: { mode: 'bypass_by_default' },
+              edge_ttl: { default: 7200, mode: 'override_origin' },
+              cache: true,
+            },
+            enabled: true,
+          },
+          {
+            id: 'other-rule',
+            ref: 'other',
+            description: 'Other rule',
+            expression: 'true',
+            action: 'set_cache_settings',
+            action_parameters: { cache: false },
+            enabled: true,
+          },
+        ],
+      },
+    }
+    const actual = extractD1LiveRuleFromEntrypoint(fixture)
+    expect(actual).toMatchObject({ id: D1_CACHE_RULE_ID, order: 1 })
+    expect(compareD1LiveRule(actual).matches).toBe(true)
+  })
+
+  it('falls back to description/ref, and missing D1 remains fail-closed', () => {
+    const fallback = extractD1LiveRuleFromEntrypoint({
+      success: true,
+      result: {
+        rules: [{
+          id: 'new-rule-id',
+          ref: 'visutry-d1-seo-html-cache-shield',
+          description: 'VisuTry D1 - SEO HTML Cache Shield',
+          expression: D1_CACHE_RULE_EXPRESSION,
+          action: 'set_cache_settings',
+          action_parameters: D1_CACHE_RULE_API_RULE.action_parameters,
+          enabled: true,
+        }],
+      },
+    })
+    expect(fallback).not.toBeNull()
+    expect(compareD1LiveRule(fallback).matches).toBe(false)
+    expect(extractD1LiveRuleFromEntrypoint({ result: { rules: [] } })).toBeNull()
+  })
+
+  it('canonicalizes action parameters regardless of JSON property order', () => {
+    const actual = {
+      id: D1_CACHE_RULE_ID,
+      expression: D1_CACHE_RULE_EXPRESSION,
+      action: 'set_cache_settings',
+      action_parameters: {
+        browser_ttl: { mode: 'bypass_by_default' },
+        edge_ttl: { default: 7200, mode: 'override_origin' },
+        cache: true,
+      },
+      enabled: true,
+      order: 1,
+    }
+    expect(compareD1LiveRule(actual).matches).toBe(true)
+  })
+
+  it('offers manual workflow dispatch but keeps the same verification gate', () => {
+    const workflow = fs.readFileSync(path.join(process.cwd(), '.github/workflows/d1-cache-invalidation.yml'), 'utf8')
+    expect(workflow).toContain('workflow_dispatch:')
+    expect(workflow).toContain('deployment_id')
+    expect(workflow).toContain('git_sha')
+    expect(workflow).toContain('--verify-vercel')
+    expect(workflow).toContain("echo 'D1_CACHE_PURGE_APPROVED=1' >> \"$GITHUB_ENV\"")
   })
 })

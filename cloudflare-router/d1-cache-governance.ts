@@ -12,6 +12,8 @@
 export const D1_CACHE_RULE_NAME = 'VisuTry D1 - SEO HTML Cache Shield' as const
 export const D1_CACHE_RULE_ID = '95eee5c32435422686aa759e231b8b13' as const
 export const D1_PRODUCTION_HOST = 'www.visutry.com' as const
+export const D1_CLOUDFLARE_CACHE_RULE_ENTRYPOINT_PATH =
+  '/zones/{zone_id}/rulesets/phases/http_request_cache_settings/entrypoint' as const
 
 // 7200 seconds is the conservative plan-safe backstop while the zone plan is
 // not independently proven. Do not lower this to 3600 without plan evidence.
@@ -84,7 +86,8 @@ const d1CacheRuleActionParameters = {
 
 const d1PathClause = (locale: D1Locale, family: D1RouteFamily) => {
   const base = `/${locale}${family}`
-  return `(http.request.uri.path eq "${base}" or starts_with(http.request.uri.path, "${base}/"))`
+  const detailPrefix = `${base}/`
+  return `(starts_with(http.request.uri.path, "${detailPrefix}") and http.request.uri.path ne "${detailPrefix}")`
 }
 
 const d1FamilyExpression = D1_LOCALES.flatMap((locale) =>
@@ -131,7 +134,8 @@ export const D1_CACHE_RULE_API_RULE: D1CacheRuleApiRule = {
 const pathMatchesFamily = (path: string, family: D1RouteFamily) =>
   D1_LOCALES.some((locale) => {
     const base = `/${locale}${family}`
-    return path === base || path.startsWith(`${base}/`)
+    const detailPrefix = `${base}/`
+    return path.startsWith(detailPrefix) && path !== detailPrefix
   })
 
 const headerContains = (request: Request, name: string, value: string) =>
@@ -172,10 +176,11 @@ export function isD1CacheEligible(request: Request, context: { headersTruncated?
 
 /**
  * Cloudflare prefix purge accepts host/path values without scheme, query, or
- * wildcard. Each prefix covers both the family root and its detail pages.
+ * wildcard. Each prefix covers only detail pages; family landing/root pages
+ * intentionally remain Vercel-owned and uncached by D1.
  */
 export const D1_CACHE_PURGE_PREFIXES = D1_LOCALES.flatMap((locale) =>
-  D1_ROUTE_FAMILIES.map((family) => `${D1_PRODUCTION_HOST}/${locale}${family}`),
+  D1_ROUTE_FAMILIES.map((family) => `${D1_PRODUCTION_HOST}/${locale}${family}/`),
 )
 
 export function d1CachePurgeRequestBody() {
@@ -207,7 +212,7 @@ export function readVercelVerificationConfig(
     productionAlias: env.VERCEL_PRODUCTION_ALIAS ?? D1_PRODUCTION_HOST,
   }
   const missing = Object.entries(values)
-    .filter(([key, value]) => key !== 'productionAlias' && !value)
+    .filter(([, value]) => !value)
     .map(([key]) => key)
   if (missing.length > 0) {
     throw new Error(`missing Vercel verification configuration: ${missing.join(', ')}`)
@@ -241,6 +246,67 @@ export function compareD1LiveRule(actual: D1LiveRuleSnapshot | null): D1RuleDrif
     return { matches: false, mismatches: ['live D1 rule not found'], expected, actual: null }
   }
   const mismatches = (['id', 'expression', 'action', 'action_parameters', 'enabled', 'order'] as const)
-    .filter((field) => JSON.stringify(actual[field]) !== JSON.stringify(expected[field]))
+    .filter((field) => canonicalJson(actual[field]) !== canonicalJson(expected[field]))
   return { matches: mismatches.length === 0, mismatches, expected, actual }
+}
+
+function canonicalize(value: unknown): unknown {
+  if (Array.isArray(value)) return value.map(canonicalize)
+  if (!value || typeof value !== 'object') return value
+  return Object.keys(value as Record<string, unknown>)
+    .sort()
+    .reduce<Record<string, unknown>>((result, key) => {
+      result[key] = canonicalize((value as Record<string, unknown>)[key])
+      return result
+    }, {})
+}
+
+export function canonicalJson(value: unknown): string {
+  return JSON.stringify(canonicalize(value))
+}
+
+function normalizeD1Rule(rule: unknown, order: number): D1LiveRuleSnapshot | null {
+  if (!rule || typeof rule !== 'object') return null
+  const candidate = rule as Record<string, unknown>
+  if (
+    typeof candidate.id !== 'string'
+    || typeof candidate.expression !== 'string'
+    || typeof candidate.action !== 'string'
+    || !candidate.action_parameters
+    || typeof candidate.action_parameters !== 'object'
+    || typeof candidate.enabled !== 'boolean'
+  ) return null
+  return {
+    id: candidate.id,
+    expression: candidate.expression,
+    action: candidate.action,
+    action_parameters: candidate.action_parameters as Record<string, unknown>,
+    enabled: candidate.enabled,
+    order,
+  }
+}
+
+/**
+ * Parse the actual rules array returned by the Cache Rules entrypoint. The
+ * Cloudflare List Rulesets response is metadata-only and must not be passed
+ * here as if it contained rule contents.
+ */
+export function extractD1LiveRuleFromEntrypoint(payload: unknown): D1LiveRuleSnapshot | null {
+  if (!payload || typeof payload !== 'object') return null
+  if ((payload as Record<string, unknown>).success !== true) return null
+  const result = (payload as Record<string, unknown>).result
+  if (!result || typeof result !== 'object') return null
+  const rules = (result as Record<string, unknown>).rules
+  if (!Array.isArray(rules)) return null
+
+  const idIndex = rules.findIndex((rule) => (
+    rule && typeof rule === 'object' && (rule as Record<string, unknown>).id === D1_CACHE_RULE_ID
+  ))
+  const fallbackIndex = rules.findIndex((rule) => (
+    rule && typeof rule === 'object'
+      && (((rule as Record<string, unknown>).description === D1_CACHE_RULE_NAME)
+        || ((rule as Record<string, unknown>).ref === 'visutry-d1-seo-html-cache-shield'))
+  ))
+  const index = idIndex >= 0 ? idIndex : fallbackIndex
+  return index >= 0 ? normalizeD1Rule(rules[index], index + 1) : null
 }

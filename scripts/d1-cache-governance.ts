@@ -4,13 +4,14 @@ import {
   D1_CACHE_RULE_EXPRESSION,
   D1_CACHE_RULE_ID,
   D1_CACHE_RULE_NAME,
+  D1_CLOUDFLARE_CACHE_RULE_ENTRYPOINT_PATH,
   D1_EXPECTED_RULE_ORDER,
-  D1LiveRuleSnapshot,
   D1VercelDeploymentProof,
   D1VercelVerificationConfig,
   compareD1LiveRule,
   d1CachePurgePlan,
   d1CachePurgeRequestBody,
+  extractD1LiveRuleFromEntrypoint,
   isCloudflarePurgeSuccessful,
   isVercelProductionDeploymentProofValid,
   readVercelVerificationConfig,
@@ -170,54 +171,18 @@ async function purgeAfterPromotion() {
   if (!successful) fail('Cloudflare prefix purge failed; D1 cache state is not assumed coherent')
 }
 
-function normalizeCloudflareRule(rule: Record<string, unknown>, order: number): D1LiveRuleSnapshot | null {
-  if (
-    typeof rule.id !== 'string'
-    || typeof rule.expression !== 'string'
-    || typeof rule.action !== 'string'
-    || !rule.action_parameters
-    || typeof rule.action_parameters !== 'object'
-    || typeof rule.enabled !== 'boolean'
-  ) return null
-  return {
-    id: rule.id,
-    expression: rule.expression,
-    action: rule.action,
-    action_parameters: rule.action_parameters as Record<string, unknown>,
-    enabled: rule.enabled,
-    order: typeof rule.order === 'number' ? rule.order : order,
-  }
-}
-
 async function checkLiveRule() {
   const zoneId = process.env.CLOUDFLARE_ZONE_ID
   const apiToken = process.env.CLOUDFLARE_API_TOKEN
   if (!zoneId || !apiToken) fail('CLOUDFLARE_ZONE_ID and CLOUDFLARE_API_TOKEN are required for --check-live')
 
-  const response = await fetch(
-    `https://api.cloudflare.com/client/v4/zones/${zoneId}/rulesets?phase=http_request_cache_settings&kind=zone`,
-    { headers: cloudflareHeaders(apiToken) },
-  )
+  const entrypointPath = D1_CLOUDFLARE_CACHE_RULE_ENTRYPOINT_PATH.replace('{zone_id}', zoneId)
+  const response = await fetch(`https://api.cloudflare.com/client/v4${entrypointPath}`, {
+    headers: cloudflareHeaders(apiToken),
+  })
   if (!response.ok) fail(`Cloudflare ruleset lookup failed with HTTP ${response.status}`)
-  const payload = await readJson(response) as {
-    success?: boolean
-    result?: Array<{ rules?: unknown[] }>
-  }
-  if (payload.success !== true || !Array.isArray(payload.result)) fail('Cloudflare ruleset response was not successful')
-
-  let liveRule: D1LiveRuleSnapshot | null = null
-  for (const ruleset of payload.result) {
-    const rules = Array.isArray(ruleset.rules) ? ruleset.rules : []
-    const index = rules.findIndex((rule) => (
-      rule && typeof rule === 'object'
-      && (((rule as Record<string, unknown>).id === D1_CACHE_RULE_ID)
-        || ((rule as Record<string, unknown>).description === D1_CACHE_RULE_NAME))
-    ))
-    if (index >= 0) {
-      liveRule = normalizeCloudflareRule(rules[index] as Record<string, unknown>, index + 1)
-      break
-    }
-  }
+  const payload = await readJson(response)
+  const liveRule = extractD1LiveRuleFromEntrypoint(payload)
 
   const report = compareD1LiveRule(liveRule)
   console.log(JSON.stringify({
