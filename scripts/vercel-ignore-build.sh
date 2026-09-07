@@ -8,6 +8,14 @@ set -u
 # Skip only when every changed path is under docs/. Any uncertainty fails safe
 # and allows Vercel to build.
 
+# Preview deployments are intentionally excluded from the full build pipeline
+# to avoid paying for non-production builds. Production remains fail-safe and
+# continues through the docs-only decision below.
+if [ "${VERCEL_ENV:-}" != "production" ]; then
+  echo "Non-production environment (${VERCEL_ENV:-unknown}); skip Vercel build."
+  exit 0
+fi
+
 if ! git rev-parse HEAD^ >/dev/null 2>&1; then
   echo "No parent commit available; continue Vercel build."
   exit 1
