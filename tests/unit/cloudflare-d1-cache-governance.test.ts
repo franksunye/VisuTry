@@ -18,6 +18,7 @@ import {
   isD1CacheEligible,
   isVercelProductionDeploymentProofValid,
   readVercelVerificationConfig,
+  resolveVercelDeploymentTeamId,
 } from '../../cloudflare-router/d1-cache-governance'
 
 function request(path: string, init: RequestInit = {}) {
@@ -175,6 +176,13 @@ describe('D1 production HTML cache governance contract', () => {
     expect(isVercelProductionDeploymentProofValid({ ...validProof, readyState: 'BUILDING' }, config)).toBe(false)
     expect(isVercelProductionDeploymentProofValid({ ...validProof, aliases: [] }, config)).toBe(false)
     expect(isVercelProductionDeploymentProofValid({ ...validProof, gitSha: 'sha_forged' }, config)).toBe(false)
+  })
+
+  it('resolves the Vercel deployment team from current and legacy API response shapes', () => {
+    expect(resolveVercelDeploymentTeamId({ teamId: 'team_direct', ownerId: 'team_owner' })).toBe('team_direct')
+    expect(resolveVercelDeploymentTeamId({ ownerId: 'team_owner' })).toBe('team_owner')
+    expect(resolveVercelDeploymentTeamId({ team: { id: 'team_nested' } })).toBe('team_nested')
+    expect(resolveVercelDeploymentTeamId({ team: { slug: 'sunye' } })).toBe('')
   })
 
   it('reports live rule drift without mutating anything', () => {

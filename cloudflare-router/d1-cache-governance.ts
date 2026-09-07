@@ -62,6 +62,23 @@ export interface D1CloudflarePurgePayload {
   success?: boolean
 }
 
+/**
+ * Vercel's deployment API identifies the owning team as `ownerId` (and also
+ * exposes it as `team.id`), while some response variants include `teamId`.
+ * Keep the verifier strict about the expected configured team, but accept the
+ * documented response shapes instead of treating a missing legacy field as an
+ * unverified deployment.
+ */
+export function resolveVercelDeploymentTeamId(deployment: Record<string, unknown>): string {
+  if (typeof deployment.teamId === 'string') return deployment.teamId
+  if (typeof deployment.ownerId === 'string') return deployment.ownerId
+  if (deployment.team && typeof deployment.team === 'object') {
+    const team = deployment.team as Record<string, unknown>
+    if (typeof team.id === 'string') return team.id
+  }
+  return ''
+}
+
 export interface D1LiveRuleSnapshot {
   id: string
   expression: string
