@@ -21,6 +21,7 @@ import {
   type MerchantPortfolioFilter,
 } from '@/modules/merchant/domain/merchant-classification'
 import { computeMerchantCommercialKpis, type MerchantCommercialKpiRow, type MerchantPilotRevenueEvidence } from '@/modules/merchant/domain/merchant-commercial-kpis'
+import { getMerchantActivationReport } from '@/modules/merchant/application/merchant-activation-report'
 
 export const dynamic = 'force-dynamic'
 
@@ -152,6 +153,7 @@ export default async function AdminStoreMerchantsPage({ searchParams }: AdminSto
       select: { providerEventId: true, stripePriceId: true, stripeCheckoutSessionId: true, status: true, eventType: true, merchant: { select: { classification: true } } },
     }),
   ])
+  const activationReport = await getMerchantActivationReport()
   const publishedMerchantIds = new Set(publishedStores.map((row) => row.merchantId))
   const aiSessionsByMerchant = new Map(aiSessionCounts.map((row) => [row.merchantId, row._count._all]))
   const commercialKpis = computeMerchantCommercialKpis({
@@ -270,6 +272,26 @@ export default async function AdminStoreMerchantsPage({ searchParams }: AdminSto
             ].map(([label, value]) => <span key={String(label)}><strong className="font-semibold text-slate-950">{value}</strong> {label}</span>)}
           </div>
         </div>
+      </section>
+
+      <section className="rounded-2xl border border-blue-100 bg-blue-50/40 p-5 shadow-sm sm:p-6" aria-labelledby="activation-report-heading">
+        <div className="flex flex-wrap items-end justify-between gap-4">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-blue-700">Post-v1 activation</p>
+            <h2 id="activation-report-heading" className="mt-1 text-xl font-semibold text-slate-950">Self-service activation report</h2>
+            <p className="mt-1 text-sm text-slate-600">Durable Merchant events only. The cohort begins when Activation v1 starts; historical signups are not backfilled.</p>
+          </div>
+          <span className="rounded-full bg-white px-3 py-1.5 text-xs font-semibold text-blue-800 ring-1 ring-blue-200">{activationReport.cohort.workspacesCreated} workspaces</span>
+        </div>
+        <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          {[
+            ['Returned', activationReport.counts.workspacesReturned, activationReport.rates.workspaceReturnRate],
+            ['First product', activationReport.counts.firstItem, activationReport.rates.firstItemActivationRate],
+            ['Catalog ready', activationReport.counts.catalogReady, activationReport.rates.catalogReadyRate],
+            ['Store published', activationReport.counts.storePublished, activationReport.rates.storePublishedRate],
+          ].map(([label, value, rate]) => <div key={String(label)} className="rounded-xl bg-white p-4 ring-1 ring-blue-100"><p className="text-xs text-slate-500">{label}</p><p className="mt-2 text-xl font-semibold tabular-nums text-slate-950">{value}</p><p className="mt-1 text-xs text-slate-500">{rate == null ? '—' : `${rate}% of cohort`}</p></div>)}
+        </div>
+        <p className="mt-4 text-xs text-slate-500">Preview path: {activationReport.counts.storePreviewed} previewed · {activationReport.counts.commercialIntent} commercial intent · {activationReport.counts.checkoutStarted} checkout started · average time to first product {activationReport.averageTimeToFirstItemMs == null ? '—' : `${Math.round(activationReport.averageTimeToFirstItemMs / 60000)} min`}.</p>
       </section>
 
       <section>

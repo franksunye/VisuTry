@@ -16,6 +16,8 @@ import {
 import { validateMerchantFrameStoreReadiness } from '../domain/merchant-frame-store-readiness'
 import { getMerchantPlanDefinition, resolveMerchantPlanCode } from '@/modules/merchant/domain/merchant-commercial-plans'
 import { isCanonicalMerchantCommercialFields } from '@/modules/store/domain/merchant-commercial-state'
+import { merchantCatalogItemIsReady, MERCHANT_ACTIVATION_EVENT } from '../domain/merchant-activation'
+import { recordMerchantActivationEventWithClient } from './merchant-activation'
 import type { MerchantStorePreviewFrame, MerchantStoreWorkspace, MerchantStoreWorkspaceFrame } from './merchant-store-workspace'
 
 // Request-size safety guard, not a product-count/UI ceiling. Human Web can
@@ -232,7 +234,25 @@ export async function importMerchantFrames(input: { actor: MerchantActorContext;
           : await tx.merchantFrame.create({ data: { ...data, merchantId: input.actor.merchantId, sku: frame.sku } })
         ids.push(row.id)
         if (existing) updated += 1
-        else created += 1
+        else {
+          created += 1
+          await recordMerchantActivationEventWithClient(tx, {
+            merchantId: input.actor.merchantId,
+            eventType: MERCHANT_ACTIVATION_EVENT.FIRST_ITEM_ADDED,
+            source: 'SERVER',
+            resourceId: row.id,
+            metadata: { frame_id: row.id },
+          })
+        }
+        if (merchantCatalogItemIsReady(row)) {
+          await recordMerchantActivationEventWithClient(tx, {
+            merchantId: input.actor.merchantId,
+            eventType: MERCHANT_ACTIVATION_EVENT.CATALOG_READY,
+            source: 'SERVER',
+            resourceId: row.id,
+            metadata: { frame_id: row.id, ready: true },
+          })
+        }
       }
       return { ids, created, updated }
     }, { isolationLevel: Prisma.TransactionIsolationLevel.Serializable }),
@@ -402,9 +422,22 @@ export async function updateMerchantStore(input: { actor: MerchantActorContext; 
   if (description && description.length > 5000) throw new MerchantOnboardingError('INVALID_STORE_DETAILS', 'Store description cannot exceed 5,000 characters.')
   const merchant = await prisma.merchant.findUnique({ where: { id: input.actor.merchantId }, select: { slug: true } })
   if (!merchant) throw new MerchantAccessError()
+  const meaningfulChange = name !== store.name || headline !== store.headline || description !== store.description
   const updated = await withPublicDiscoveryInvalidation({
     target: { kind: 'experience', merchantSlug: merchant.slug, experienceSlug: null },
-    mutation: () => prisma.experience.update({ where: { id: store.id }, data: { name, headline, description }, select: { id: true, slug: true, name: true, status: true, headline: true, description: true } }),
+    mutation: () => prisma.$transaction(async (tx) => {
+      const result = await tx.experience.update({ where: { id: store.id }, data: { name, headline, description }, select: { id: true, slug: true, name: true, status: true, headline: true, description: true } })
+      if (meaningfulChange) {
+        await recordMerchantActivationEventWithClient(tx, {
+          merchantId: input.actor.merchantId,
+          eventType: MERCHANT_ACTIVATION_EVENT.STORE_CONFIGURED,
+          source: 'SERVER',
+          resourceId: store.id,
+          metadata: { store_id: store.id },
+        })
+      }
+      return result
+    }),
   })
   await recordMerchantAgentOperation({ actor: input.actor, action: 'store.updated', resourceType: 'Experience', resourceId: store.id })
   return { id: updated.id, slug: updated.slug, name: updated.name, status: updated.status, headline: updated.headline, description: updated.description, publicPath: `/en/store/${merchant.slug}` }
@@ -425,6 +458,15 @@ export async function setMerchantStoreFrames(input: { actor: MerchantActorContex
     mutation: () => prisma.$transaction(async (tx) => {
       await tx.experienceFrame.deleteMany({ where: { experienceId: store.id, merchantId: input.actor.merchantId } })
       if (frameIds.length) await tx.experienceFrame.createMany({ data: frameIds.map((merchantFrameId, sortOrder) => ({ experienceId: store.id, merchantId: input.actor.merchantId, merchantFrameId, sortOrder, active: true })) })
+      if (frameIds.length) {
+        await recordMerchantActivationEventWithClient(tx, {
+          merchantId: input.actor.merchantId,
+          eventType: MERCHANT_ACTIVATION_EVENT.STORE_CONFIGURED,
+          source: 'SERVER',
+          resourceId: store.id,
+          metadata: { store_id: store.id, frame_count: frameIds.length },
+        })
+      }
     }, { isolationLevel: Prisma.TransactionIsolationLevel.Serializable }),
   })
   await recordMerchantAgentOperation({ actor: input.actor, action: 'store.frames_updated', resourceType: 'Experience', resourceId: store.id })
@@ -478,7 +520,17 @@ export async function publishMerchantStore(input: { actor: MerchantActorContext;
     ? store
     : await withPublicDiscoveryInvalidation({
       target: { kind: 'experience', merchantSlug: merchant.slug, experienceSlug: null },
-      mutation: () => prisma.experience.update({ where: { id: store.id }, data: { status: 'ACTIVE' }, include: { frames: { where: { active: true } } } }),
+      mutation: () => prisma.$transaction(async (tx) => {
+        const publishedStore = await tx.experience.update({ where: { id: store.id }, data: { status: 'ACTIVE' }, include: { frames: { where: { active: true } } } })
+        await recordMerchantActivationEventWithClient(tx, {
+          merchantId: input.actor.merchantId,
+          eventType: MERCHANT_ACTIVATION_EVENT.STORE_PUBLISHED,
+          source: 'SERVER',
+          resourceId: store.id,
+          metadata: { store_id: store.id },
+        })
+        return publishedStore
+      }),
     })
   await recordMerchantAgentOperation({ actor: input.actor, action: 'store.published', resourceType: 'Experience', resourceId: store.id })
   return { id: published.id, status: published.status, publicPath: `/en/store/${merchant.slug}`, approvalRecorded: true }

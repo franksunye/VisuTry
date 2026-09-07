@@ -48,6 +48,7 @@ export async function POST(request: NextRequest) {
       anonymousVisitorId: visitor.identity.tokenHash,
       deviceType: parsed.data.deviceType ?? null,
       acquisition: parsed.data.acquisition ?? null,
+      activation: runtime.activation,
     })
 
     const response = NextResponse.json({

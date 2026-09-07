@@ -6,6 +6,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { AlertTriangle, ArrowRight, Check, Copy, ExternalLink, Eye, Loader2, Save, Store } from "lucide-react";
 import { analytics } from "@/lib/analytics";
 import { AnalyticsEvent } from "@/lib/analytics-events";
+import { recordMerchantActivationClientEvent } from "@/lib/merchant-activation-client";
 import { ExperiencePresentationShell, type ExperiencePresentationCopy, type PresentationMerchant } from "@/components/store/ExperiencePresentationShell";
 import type { MerchantStorePreviewFrame } from "@/modules/merchant/application/merchant-store-workspace";
 
@@ -180,7 +181,7 @@ async function readResponse<T>(response: Response): Promise<T> {
   return body.data;
 }
 
-export function MerchantStoreSelfService({ merchantId, initialCatalogCount, catalogAvailable = false }: { merchantId: string; initialCatalogCount: number; catalogAvailable?: boolean }) {
+export function MerchantStoreSelfService({ merchantId, initialCatalogCount, catalogAvailable = false, onStoreChanged }: { merchantId: string; initialCatalogCount: number; catalogAvailable?: boolean; onStoreChanged?: () => void }) {
   const hasCatalog = initialCatalogCount > 0 || catalogAvailable;
   const apiBase = `/api/merchant/${encodeURIComponent(merchantId)}/store`;
   const [workspace, setWorkspace] = useState<StoreWorkspace | null>(null);
@@ -248,6 +249,7 @@ export function MerchantStoreSelfService({ merchantId, initialCatalogCount, cata
       if (data.created) analytics.trackCustomEvent(AnalyticsEvent.MerchantStoreCreated, { merchant_id: merchantId, source_journey: "merchant_workspace_store" });
       setNotice("Your Store draft is ready. Select the products you want to display.");
       await loadWorkspace();
+      onStoreChanged?.();
     } catch (requestError) {
       setError(requestError instanceof Error ? requestError.message : "Unable to create your Store.");
     } finally { setBusy(false); }
@@ -261,6 +263,7 @@ export function MerchantStoreSelfService({ merchantId, initialCatalogCount, cata
       setNotice("Store details saved.");
       await loadWorkspace();
       clearPreview();
+      onStoreChanged?.();
     } catch (requestError) {
       setError(requestError instanceof Error ? requestError.message : "Unable to save Store details.");
     } finally { setBusy(false); }
@@ -274,6 +277,7 @@ export function MerchantStoreSelfService({ merchantId, initialCatalogCount, cata
       setNotice("Store products saved.");
       await loadWorkspace();
       clearPreview();
+      onStoreChanged?.();
     } catch (requestError) {
       setError(requestError instanceof Error ? requestError.message : "Unable to save Store products.");
     } finally { setBusy(false); }
@@ -290,6 +294,13 @@ export function MerchantStoreSelfService({ merchantId, initialCatalogCount, cata
       const next = await readResponse<Preview>(await fetch(`${apiBase}/preview`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ storeId: workspace.store.id }) }));
       setPreview(next);
       setPublishApproved(false);
+      void recordMerchantActivationClientEvent({
+        merchantId,
+        eventType: "merchant_store_previewed",
+        resourceId: workspace.store.id,
+      }).catch(() => {
+        // Activation telemetry must never block a private Store preview.
+      });
     } catch (requestError) {
       setError(requestError instanceof Error ? requestError.message : "Unable to preview your Store.");
     } finally { setBusy(false); }
@@ -307,6 +318,7 @@ export function MerchantStoreSelfService({ merchantId, initialCatalogCount, cata
       }
       setNotice("Your Store is live. Share the public link with shoppers.");
       await loadWorkspace();
+      onStoreChanged?.();
     } catch (requestError) {
       setError(requestError instanceof Error ? requestError.message : "Unable to publish your Store.");
     } finally { setBusy(false); }

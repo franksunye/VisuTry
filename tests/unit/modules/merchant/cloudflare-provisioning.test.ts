@@ -24,7 +24,7 @@ describe('Cloudflare direct-Neon merchant provisioning', () => {
   it('returns the existing owner membership idempotently and uses Serializable transactions', async () => {
     const sql = sqlMock([[
       [{ id: 'membership-a', userId: 'user-a', merchantId: 'merchant-a', role: 'OWNER' }],
-      [], [], [], [selectedMerchant('merchant-a', 'existing-merchant')],
+      [], [], [], [], [selectedMerchant('merchant-a', 'existing-merchant')],
     ]])
     ;(getCloudflareSql as jest.Mock).mockReturnValue(sql)
 
@@ -38,7 +38,7 @@ describe('Cloudflare direct-Neon merchant provisioning', () => {
   it('preserves the persisted ADMIN role for an existing membership', async () => {
     const sql = sqlMock([[
       [{ id: 'membership-a', userId: 'user-a', merchantId: 'merchant-a', role: 'ADMIN' }],
-      [], [], [], [selectedMerchant('merchant-a', 'existing-merchant', 'ADMIN')],
+      [], [], [], [], [selectedMerchant('merchant-a', 'existing-merchant', 'ADMIN')],
     ]])
     ;(getCloudflareSql as jest.Mock).mockReturnValue(sql)
 
@@ -57,8 +57,8 @@ describe('Cloudflare direct-Neon merchant provisioning', () => {
 
   it('retries a slug collision with a deterministic suffix', async () => {
     const sql = sqlMock([
-      [[], [], [], [], []],
-      [[], [], [], [], [selectedMerchant('merchant-new', 'brand-name-2')]],
+      [[], [], [], [], [], []],
+      [[], [], [], [], [], [selectedMerchant('merchant-new', 'brand-name-2')]],
     ])
     ;(getCloudflareSql as jest.Mock).mockReturnValue(sql)
 
@@ -70,8 +70,8 @@ describe('Cloudflare direct-Neon merchant provisioning', () => {
   })
 
   it('uses a random suffix after readable default slugs collide', async () => {
-    const transactions = Array.from({ length: 5 }, () => [[], [], [], [], []] as unknown[][])
-    transactions.push([[], [], [], [], [selectedMerchant('merchant-new', 'brand-name-abc123def456')]])
+    const transactions = Array.from({ length: 5 }, () => [[], [], [], [], [], []] as unknown[][])
+    transactions.push([[], [], [], [], [], [selectedMerchant('merchant-new', 'brand-name-abc123def456')]])
     const sql = sqlMock(transactions)
     ;(getCloudflareSql as jest.Mock).mockReturnValue(sql)
 
@@ -83,7 +83,7 @@ describe('Cloudflare direct-Neon merchant provisioning', () => {
   })
 
   it('uses the same neutral display name when the optional name is blank', async () => {
-    const sql = sqlMock([[[], [], [], [], [selectedMerchant('merchant-new', 'my-store', 'OWNER', 'My Store')]]])
+    const sql = sqlMock([[[], [], [], [], [], [selectedMerchant('merchant-new', 'my-store', 'OWNER', 'My Store')]]])
     ;(getCloudflareSql as jest.Mock).mockReturnValue(sql)
 
     const result = await createMerchantWithOwner({ userId: 'user-a', name: '   ' })
@@ -93,13 +93,13 @@ describe('Cloudflare direct-Neon merchant provisioning', () => {
   })
 
   it('keeps user and merchant identifiers parameterized in every provisioning attempt', async () => {
-    const sql = sqlMock([[[], [], [], [], [selectedMerchant('merchant-a', 'brand-name')]]])
+    const sql = sqlMock([[[], [], [], [], [], [selectedMerchant('merchant-a', 'brand-name')]]])
     ;(getCloudflareSql as jest.Mock).mockReturnValue(sql)
 
     await createMerchantWithOwner({ userId: 'user-a', name: 'Brand Name' })
 
     const calls = sql.transaction.mock.calls[0][0]
-    expect(calls).toHaveLength(5)
+    expect(calls).toHaveLength(6)
     expect(sql.transaction.mock.calls[0][1]).toEqual({ isolationLevel: 'Serializable' })
   })
 })

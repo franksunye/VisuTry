@@ -1,8 +1,9 @@
 jest.mock('@/lib/prisma', () => ({
-  prisma: {
-    merchant: { findUnique: jest.fn(), update: jest.fn() },
-    merchantMembership: { findUnique: jest.fn() },
-  },
+      prisma: {
+        merchant: { findUnique: jest.fn(), update: jest.fn() },
+        merchantMembership: { findUnique: jest.fn() },
+        $transaction: jest.fn(),
+      },
 }))
 
 jest.mock('@/modules/store/application/public-discovery-invalidation', () => ({
@@ -20,6 +21,10 @@ describe('merchant profile public discovery boundary', () => {
     ;(prisma.merchantMembership.findUnique as jest.Mock).mockResolvedValue({ id: 'membership-a', userId: 'user-a', merchantId: 'merchant-a', role: 'OWNER' })
     ;(prisma.merchant.findUnique as jest.Mock).mockResolvedValue({ id: 'merchant-a', slug: 'merchant-a', name: 'Merchant A', websiteUrl: null })
     ;(prisma.merchant.update as jest.Mock).mockResolvedValue({ id: 'merchant-a', slug: 'merchant-a', name: 'New Name', websiteUrl: null })
+    ;(prisma.$transaction as jest.Mock).mockImplementation(async (callback) => callback({
+      merchant: { update: prisma.merchant.update },
+      merchantActivationEvent: { createMany: jest.fn().mockResolvedValue({ count: 1 }) },
+    }))
 
     await updateMerchantProfile({ userId: 'user-a', merchantId: 'merchant-a', name: 'New Name' })
     expect(withPublicDiscoveryInvalidation).toHaveBeenCalledWith(expect.objectContaining({ target: { kind: 'merchant', merchantSlug: 'merchant-a' } }))

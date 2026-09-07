@@ -12,6 +12,11 @@ import {
 import { validateMerchantFrameStoreReadiness } from '../domain/merchant-frame-store-readiness'
 import { getMerchantPlanDefinition, resolveMerchantPlanCode } from '@/modules/merchant/domain/merchant-commercial-plans'
 import { isCanonicalMerchantCommercialFields } from '@/modules/store/domain/merchant-commercial-state'
+import { merchantCatalogItemIsReady, MERCHANT_ACTIVATION_EVENT } from '../domain/merchant-activation'
+import {
+  logMerchantActivationEventIfInserted,
+  merchantActivationEventInsertStatement,
+} from './merchant-activation-cloudflare'
 import type { MerchantStorePreviewFrame, MerchantStoreWorkspace, MerchantStoreWorkspaceFrame } from './merchant-store-workspace'
 
 // Request-size safety guard, not a product-count/UI ceiling. Human Web can
@@ -276,6 +281,30 @@ export async function importMerchantFrames(input: { actor: MerchantActorContext;
   if (catalogLimit !== null && Number(countRows[0]?.count ?? 0) + additions > catalogLimit) {
     throw new MerchantOnboardingError('CATALOG_LIMIT_REACHED', `Your current plan includes up to ${catalogLimit} catalog items.`, 409)
   }
+  const activationInputs = [] as Array<{ eventType: typeof MERCHANT_ACTIVATION_EVENT[keyof typeof MERCHANT_ACTIVATION_EVENT]; metadata: Record<string, unknown> }>
+  if (additions > 0) {
+    activationInputs.push({
+      eventType: MERCHANT_ACTIVATION_EVENT.FIRST_ITEM_ADDED,
+      metadata: { frame_count: additions },
+    })
+  }
+  if (normalized.some((frame) => merchantCatalogItemIsReady({
+    id: null,
+    sku: frame.sku,
+    externalId: frame.externalId,
+    productUrl: frame.productUrl,
+    name: frame.name,
+    imageUrl: frame.imageUrl,
+    shape: frame.shape,
+    source: frame.source,
+    status: 'ACTIVE',
+    enrichmentStatus: frame.enrichmentStatus,
+  }))) {
+    activationInputs.push({
+      eventType: MERCHANT_ACTIVATION_EVENT.CATALOG_READY,
+      metadata: { ready: true },
+    })
+  }
   const statements = normalized.map((frame) => sql`
     WITH existing AS (
       SELECT "id" FROM "MerchantFrame"
@@ -304,9 +333,26 @@ export async function importMerchantFrames(input: { actor: MerchantActorContext;
     )
     SELECT * FROM updated UNION ALL SELECT * FROM inserted
   `)
+  for (const activation of activationInputs) {
+    statements.push(merchantActivationEventInsertStatement(sql, {
+      merchantId: input.actor.merchantId,
+      eventType: activation.eventType,
+      source: 'SERVER',
+      metadata: activation.metadata,
+    }))
+  }
   const results = await sql.transaction(statements, { isolationLevel: 'Serializable' })
-  const ids = results.flatMap((result) => result.map((row) => String(row.id)))
-  const created = results.flatMap((result) => result).filter((row) => Boolean(row.created)).length
+  const frameResults = results.slice(0, normalized.length)
+  const ids = frameResults.flatMap((result) => result.map((row) => String(row.id)))
+  const created = frameResults.flatMap((result) => result).filter((row) => Boolean(row.created)).length
+  activationInputs.forEach((activation, index) => {
+    logMerchantActivationEventIfInserted({
+      merchantId: input.actor.merchantId,
+      eventType: activation.eventType,
+      source: 'SERVER',
+      metadata: activation.metadata,
+    }, results[normalized.length + index])
+  })
   await recordMerchantAgentOperation({ actor: input.actor, action: 'catalog.imported', resourceType: 'MerchantFrame', result: 'SUCCESS' })
   return { ids, created, updated: normalized.length - created, imported: normalized.length }
 }
@@ -373,11 +419,23 @@ export async function updateMerchantStore(input: { actor: MerchantActorContext; 
   if (description && description.length > 5000) throw new MerchantOnboardingError('INVALID_STORE_DETAILS', 'Store description cannot exceed 5,000 characters.')
   const merchant = await getMerchant({ actor: input.actor })
   const sql = getCloudflareSql()
+  const meaningfulChange = name !== String(store.store.name) || headline !== (store.store.headline == null ? null : String(store.store.headline)) || description !== (store.store.description == null ? null : String(store.store.description))
+  const activationInput = {
+    merchantId: input.actor.merchantId,
+    eventType: MERCHANT_ACTIVATION_EVENT.STORE_CONFIGURED,
+    source: 'SERVER' as const,
+    resourceId: input.storeId,
+    metadata: { store_id: input.storeId },
+  }
   const updated = await withPublicDiscoveryInvalidation({
     target: { kind: 'experience', merchantSlug: merchant.slug, experienceSlug: null },
     mutation: async () => {
-      const rows = await sql`UPDATE "Experience" SET "name" = ${name}, "headline" = ${headline}, "description" = ${description}, "updatedAt" = NOW() WHERE "id" = ${input.storeId} AND "merchantId" = ${input.actor.merchantId} AND "type" = 'STORE' RETURNING "id", "slug", "name", "status", "headline", "description"`
+      const statements = [sql`UPDATE "Experience" SET "name" = ${name}, "headline" = ${headline}, "description" = ${description}, "updatedAt" = NOW() WHERE "id" = ${input.storeId} AND "merchantId" = ${input.actor.merchantId} AND "type" = 'STORE' RETURNING "id", "slug", "name", "status", "headline", "description"`]
+      if (meaningfulChange) statements.push(merchantActivationEventInsertStatement(sql, activationInput))
+      const results = await sql.transaction(statements, { isolationLevel: 'Serializable' })
+      const rows = results[0] ?? []
       if (!rows[0]) throw new MerchantAccessError()
+      if (meaningfulChange) logMerchantActivationEventIfInserted(activationInput, results[1])
       return rows[0]
     },
   })
@@ -395,11 +453,20 @@ export async function setMerchantStoreFrames(input: { actor: MerchantActorContex
   if (frames.length !== frameIds.length) throw new MerchantAccessError()
   const merchant = await getMerchant({ actor: input.actor })
   const sql = getCloudflareSql()
+  const activationInput = {
+    merchantId: input.actor.merchantId,
+    eventType: MERCHANT_ACTIVATION_EVENT.STORE_CONFIGURED,
+    source: 'SERVER' as const,
+    resourceId: input.storeId,
+    metadata: { store_id: input.storeId, frame_count: frameIds.length },
+  }
   const statements = [sql`DELETE FROM "ExperienceFrame" WHERE "experienceId" = ${input.storeId} AND "merchantId" = ${input.actor.merchantId}`, ...frameIds.map((frameId, sortOrder) => sql`INSERT INTO "ExperienceFrame" ("experienceId", "merchantId", "merchantFrameId", "sortOrder", "active", "createdAt", "updatedAt") VALUES (${input.storeId}, ${input.actor.merchantId}, ${frameId}, ${sortOrder}, true, NOW(), NOW()) ON CONFLICT ("experienceId", "merchantFrameId") DO UPDATE SET "sortOrder" = EXCLUDED."sortOrder", "active" = true, "updatedAt" = NOW()`)]
-  await withPublicDiscoveryInvalidation({
+  if (frameIds.length) statements.push(merchantActivationEventInsertStatement(sql, activationInput))
+  const transactionResults = await withPublicDiscoveryInvalidation({
     target: { kind: 'experience', merchantSlug: merchant.slug, experienceSlug: null },
     mutation: () => sql.transaction(statements, { isolationLevel: 'Serializable' }),
   })
+  if (frameIds.length) logMerchantActivationEventIfInserted(activationInput, transactionResults.at(-1))
   await audit(input.actor, 'store.frames_updated', input.storeId)
   return { storeId: input.storeId, frameIds, frameCount: frameIds.length }
 }
@@ -444,17 +511,28 @@ export async function publishMerchantStore(input: { actor: MerchantActorContext;
   const readiness = storeReadiness(frames as unknown as FrameForValidation[], store.frames.length)
   if (!readiness.ready || store.frames.length === 0) throw new MerchantOnboardingError('STORE_NOT_READY', 'Store is not ready to publish.', 409)
   const sql = getCloudflareSql()
+  const shouldPublish = String(store.store.status) !== 'ACTIVE'
+  const activationInput = {
+    merchantId: input.actor.merchantId,
+    eventType: MERCHANT_ACTIVATION_EVENT.STORE_PUBLISHED,
+    source: 'SERVER' as const,
+    resourceId: input.storeId,
+    metadata: { store_id: input.storeId },
+  }
   const published = await withPublicDiscoveryInvalidation({
     target: { kind: 'experience', merchantSlug: merchant.slug, experienceSlug: null },
     mutation: async () => {
-      if (String(store.store.status) === 'ACTIVE') return store.store
-      const rows = await sql`
+      if (!shouldPublish) return store.store
+      const statements = [sql`
         UPDATE "Experience"
         SET "status" = 'ACTIVE', "updatedAt" = NOW()
         WHERE "id" = ${input.storeId} AND "merchantId" = ${input.actor.merchantId} AND "type" = 'STORE' AND "status" = 'DRAFT'
         RETURNING "id", "status"
-      `
+      `, merchantActivationEventInsertStatement(sql, activationInput)]
+      const results = await sql.transaction(statements, { isolationLevel: 'Serializable' })
+      const rows = results[0] ?? []
       if (!rows[0]) throw new MerchantOnboardingError('STORE_PUBLISH_FAILED', 'The Store could not be published.', 409)
+      logMerchantActivationEventIfInserted(activationInput, results[1])
       return rows[0]
     },
   })

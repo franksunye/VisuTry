@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Check, ChevronDown, Edit3, FileUp, Globe2, Loader2, Plus, RefreshCw, Save, Trash2 } from "lucide-react";
 import { analytics } from "@/lib/analytics";
 import { AnalyticsEvent } from "@/lib/analytics-events";
+import { recordMerchantActivationClientEvent } from "@/lib/merchant-activation-client";
 
 type SourceType = "url" | "csv" | "manual";
 type Candidate = {
@@ -136,7 +137,9 @@ function emptyInput(item: CatalogItem): ManualRow {
 }
 
 export function MerchantCatalogSelfService({ merchantId, initialTotal, onCatalogChanged }: { merchantId: string; initialTotal: number; onCatalogChanged?: () => void }) {
-  const [sourceType, setSourceType] = useState<SourceType>("url");
+  // Manual entry is the shortest guaranteed first-success path for an empty
+  // catalog. Existing catalogs keep the URL-first import default.
+  const [sourceType, setSourceType] = useState<SourceType>(initialTotal === 0 ? "manual" : "url");
   const [url, setUrl] = useState("");
   const [file, setFile] = useState<File | null>(null);
   const [manualRows, setManualRows] = useState<ManualRow[]>([emptyManualRow()]);
@@ -148,10 +151,12 @@ export function MerchantCatalogSelfService({ merchantId, initialTotal, onCatalog
   const catalogCursorRef = useRef<string | null>(null);
   const [catalogLoading, setCatalogLoading] = useState(false);
   const [catalogError, setCatalogError] = useState<string | null>(null);
+  const [successNotice, setSuccessNotice] = useState<string | null>(null);
   const [query, setQuery] = useState("");
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingRow, setEditingRow] = useState<ManualRow | null>(null);
   const entered = useRef(false);
+  const hadCatalogAtMount = useRef(initialTotal > 0);
 
   const apiBase = `/api/merchant/${encodeURIComponent(merchantId)}/catalog`;
   const loadCatalog = useCallback(async (append = false) => {
@@ -178,6 +183,9 @@ export function MerchantCatalogSelfService({ merchantId, initialTotal, onCatalog
     if (!entered.current) {
       entered.current = true;
       analytics.trackCustomEvent(AnalyticsEvent.MerchantCatalogWorkspaceEntered, { merchant_id: merchantId, source_journey: "merchant_workspace_catalog" });
+      void recordMerchantActivationClientEvent({ merchantId, eventType: "merchant_catalog_started" }).catch(() => {
+        // Activation telemetry must never block catalog work.
+      });
     }
     void loadCatalog(false);
   }, [loadCatalog, merchantId]);
@@ -244,8 +252,14 @@ export function MerchantCatalogSelfService({ merchantId, initialTotal, onCatalog
         merchant_id: merchantId, source_type: sourceType, imported_count: body.data.imported ?? 0,
         created_count: body.data.created ?? 0, updated_count: body.data.updated ?? 0,
       });
+      const addedFirstProduct = !hadCatalogAtMount.current && (body.data.created ?? 0) > 0;
+      if (addedFirstProduct) {
+        setSuccessNotice("Your first product is in the Catalog.");
+      } else {
+        setSuccessNotice("Catalog updated successfully.");
+      }
+      if ((body.data.created ?? 0) > 0) hadCatalogAtMount.current = true;
       setProposal(null);
-      setFile(null);
       await loadCatalog(false);
       onCatalogChanged?.();
     } catch (requestError) {
@@ -302,6 +316,8 @@ export function MerchantCatalogSelfService({ merchantId, initialTotal, onCatalog
         ))}
       </div>
 
+      {successNotice ? <p role="status" className="mt-4 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-800">{successNotice}</p> : null}
+
       <div className="mt-4 rounded-2xl border border-slate-200 bg-slate-50/70 p-4 sm:p-5">
         {sourceType === "url" ? <>
           <label htmlFor="merchant-catalog-url" className="text-sm font-semibold text-slate-800">Store or product URL</label>
@@ -314,6 +330,7 @@ export function MerchantCatalogSelfService({ merchantId, initialTotal, onCatalog
           <p className="mt-2 text-xs leading-5 text-slate-500">Required: <code>name</code> and a usable <code>imageUrl</code>. Recommended: <code>sku</code>, <code>shape</code>, <code>productUrl</code>, <code>price</code>, <code>brand</code>. A product URL or externalId can identify rows when a merchant SKU is unavailable.</p>
         </> : null}
         {sourceType === "manual" ? <div className="space-y-3">
+          <p className="text-xs leading-5 text-slate-500">Required: product name and a usable image URL, plus a merchant SKU or product URL for stable identity. Shape can be added later if it is not known yet.</p>
           {manualRows.map((row, index) => <div key={index} className="rounded-xl border border-slate-200 bg-white p-3">
             <div className="mb-2 flex items-center justify-between"><span className="text-xs font-bold uppercase tracking-[0.14em] text-slate-500">Product {index + 1}</span>{manualRows.length > 1 ? <button type="button" aria-label={`Remove product ${index + 1}`} onClick={() => setManualRows((rows) => rows.filter((_, rowIndex) => rowIndex !== index))} className="text-slate-400 hover:text-red-600"><Trash2 className="h-4 w-4" aria-hidden="true" /></button> : null}</div>
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">

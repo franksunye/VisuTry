@@ -40,6 +40,9 @@ const LANDING_PAGE_KEY = 'visutry_landing_page'
 const ACQUISITION_SOURCE_KEY = 'visutry_acquisition_source'
 const ACQUISITION_MEDIUM_KEY = 'visutry_acquisition_medium'
 const ACQUISITION_REFERRER_HOST_KEY = 'visutry_referrer_host'
+const UTM_SOURCE_KEY = 'visutry_utm_source'
+const UTM_MEDIUM_KEY = 'visutry_utm_medium'
+const UTM_CAMPAIGN_KEY = 'visutry_utm_campaign'
 const GROWTH_CONTEXT_KEY = 'visutry_growth_context'
 const LANDING_LOCALE_KEY = 'visutry_landing_locale'
 const PRICING_LOCALE_KEY = 'visutry_pricing_locale'
@@ -50,6 +53,9 @@ export type AcquisitionContext = {
   page_path: string
   acquisition_source?: string
   acquisition_medium?: string
+  utm_source?: string
+  utm_medium?: string
+  utm_campaign?: string
   referrer_host?: string
   source_page?: string
   query_cluster?: string
@@ -262,6 +268,9 @@ function getSessionAttribution(): AcquisitionContext {
     const storedAcquisitionSource = window.sessionStorage.getItem(ACQUISITION_SOURCE_KEY)
     const storedAcquisitionMedium = window.sessionStorage.getItem(ACQUISITION_MEDIUM_KEY)
     const storedReferrerHost = window.sessionStorage.getItem(ACQUISITION_REFERRER_HOST_KEY)
+    const storedUtmSource = window.sessionStorage.getItem(UTM_SOURCE_KEY)
+    const storedUtmMedium = window.sessionStorage.getItem(UTM_MEDIUM_KEY)
+    const storedUtmCampaign = window.sessionStorage.getItem(UTM_CAMPAIGN_KEY)
 
     if (!storedLandingPage) {
       window.sessionStorage.setItem(LANDING_PAGE_KEY, pagePath)
@@ -270,6 +279,17 @@ function getSessionAttribution(): AcquisitionContext {
     let acquisitionSource = storedAcquisitionSource || undefined
     let acquisitionMedium = storedAcquisitionMedium || undefined
     let referrerHost = storedReferrerHost || undefined
+    let utmSource = storedUtmSource || undefined
+    let utmMedium = storedUtmMedium || undefined
+    let utmCampaign = storedUtmCampaign || undefined
+
+    if (!storedUtmSource) utmSource = searchParams.get('utm_source')?.trim() || undefined
+    if (!storedUtmMedium) utmMedium = searchParams.get('utm_medium')?.trim() || undefined
+    if (!storedUtmCampaign) utmCampaign = searchParams.get('utm_campaign')?.trim() || undefined
+
+    if (!storedUtmSource && utmSource) window.sessionStorage.setItem(UTM_SOURCE_KEY, utmSource)
+    if (!storedUtmMedium && utmMedium) window.sessionStorage.setItem(UTM_MEDIUM_KEY, utmMedium)
+    if (!storedUtmCampaign && utmCampaign) window.sessionStorage.setItem(UTM_CAMPAIGN_KEY, utmCampaign)
 
     if (!storedAcquisitionSource) {
       const utmSource = searchParams.get('utm_source') || undefined
@@ -303,6 +323,9 @@ function getSessionAttribution(): AcquisitionContext {
       ...(localeChanged ? { locale_changed: true } : {}),
       ...(acquisitionSource ? { acquisition_source: acquisitionSource } : {}),
       ...(acquisitionMedium ? { acquisition_medium: acquisitionMedium } : {}),
+      ...(utmSource ? { utm_source: utmSource } : {}),
+      ...(utmMedium ? { utm_medium: utmMedium } : {}),
+      ...(utmCampaign ? { utm_campaign: utmCampaign } : {}),
       ...(referrerHost ? { referrer_host: referrerHost } : {}),
       ...growthContext,
     }

@@ -11,6 +11,12 @@ import type {
   MerchantRepository,
 } from '@/modules/store/application'
 
+jest.mock('@/lib/logger', () => ({
+  logger: { debug: jest.fn(), warn: jest.fn() },
+}))
+
+import { logger } from '@/lib/logger'
+
 jest.mock('@/lib/prisma', () => ({
   prisma: {
     tryOnTask: { count: jest.fn() },
@@ -319,6 +325,7 @@ describe('Experience foundation', () => {
       lastActiveAt: now,
       expiresAt: new Date(now.getTime() + 60_000),
     })
+    const recordFirstShopperSession = jest.fn().mockResolvedValue(undefined)
     const result = await createStoreSession({
       merchants: merchant(),
       sessions: {
@@ -336,6 +343,7 @@ describe('Experience foundation', () => {
       },
       events: { appendIdempotent: jest.fn().mockResolvedValue({ created: true }), listByMerchant: jest.fn() },
       usage: { countCommerceSessions: jest.fn().mockResolvedValue(0), record: jest.fn() } as never,
+      activation: { recordFirstShopperSession },
       slug: 'ello-sunglasses',
       locale: 'en',
       acquisition: { source: 'visutry', medium: 'internal', surface: 'face-analysis', campaign: 'declared-campaign' },
@@ -348,6 +356,63 @@ describe('Experience foundation', () => {
       medium: 'internal',
       campaign: 'declared-campaign',
       acquisitionSurface: 'face-analysis',
+    }))
+    expect(recordFirstShopperSession).toHaveBeenCalledWith({ merchantId: 'merchant-1', merchantSessionId: 'session-1' })
+  })
+
+  it('does not fail a shopper session when activation telemetry is temporarily unavailable', async () => {
+    const sessionCreate = jest.fn().mockResolvedValue({
+      id: 'session-retry',
+      merchantId: 'merchant-1',
+      experienceId: 'experience-1',
+      referenceData: true,
+      capabilityTokenHash: 'hash',
+      anonymousVisitorId: null,
+      photoAssetId: null,
+      locale: 'en',
+      status: 'ACTIVE',
+      source: null,
+      medium: null,
+      campaign: null,
+      referrer: null,
+      landingUrl: null,
+      aiAgentSource: null,
+      createdAt: now,
+      lastActiveAt: now,
+      expiresAt: new Date(now.getTime() + 60_000),
+    })
+    const recordFirstShopperSession = jest.fn()
+      .mockRejectedValueOnce(new Error('activation database unavailable'))
+      .mockResolvedValueOnce(undefined)
+    const create = () => createStoreSession({
+      merchants: merchant(),
+      sessions: {
+        create: sessionCreate,
+        findByMerchantAndId: jest.fn(),
+        touch: jest.fn(),
+        markExpired: jest.fn(),
+        attachPhotoAsset: jest.fn(),
+      },
+      experiences: {
+        findDefaultStore: jest.fn().mockResolvedValue(experience({ type: 'STORE', slug: 'default' })),
+        hasAnyByMerchant: jest.fn().mockResolvedValue(true),
+        findByMerchantAndId: jest.fn(),
+        findActiveCampaignByMerchantAndSlug: jest.fn(),
+      },
+      events: { appendIdempotent: jest.fn().mockResolvedValue({ created: true }), listByMerchant: jest.fn() },
+      usage: { countCommerceSessions: jest.fn().mockResolvedValue(0), record: jest.fn() } as never,
+      activation: { recordFirstShopperSession },
+      slug: 'ello-sunglasses',
+      locale: 'en',
+    })
+
+    await expect(create()).resolves.toMatchObject({ merchantSessionId: 'session-retry' })
+    await expect(create()).resolves.toMatchObject({ merchantSessionId: 'session-retry' })
+    expect(recordFirstShopperSession).toHaveBeenCalledTimes(2)
+    expect(logger.warn).toHaveBeenCalledWith('store', 'Merchant activation milestone deferred', expect.objectContaining({
+      merchantId: 'merchant-1',
+      merchantSessionId: 'session-retry',
+      retryable: true,
     }))
   })
 

@@ -220,6 +220,27 @@ Use the existing `merchant_*` product analytics events for funnel/UX analysis wh
 
 Do not mix merchant-operator events into shopper conversion or merchant Store/Campaign traffic totals.
 
+### 8.1 Activation v1 durable milestones
+
+New self-service Merchant activation is measured from the durable
+`MerchantActivationEvent` model, not from GA4 alone. The authoritative cohort
+denominator is a successfully committed
+`merchant_workspace_created` event; first item, catalog readiness, Store
+configuration, preview, publish, workspace entry, and bounded return-session
+events join by `merchantId`. First-time milestones use deterministic dedupe
+keys and the existing Merchant frame readiness contract.
+
+GA4/dataLayer remains the UX/acquisition observation layer, and Axiom remains
+the operational log layer. These systems must not be used to fabricate
+historical milestones or manually join a post-v1 cohort. Attribution is a
+sanitized first-touch snapshot with bounded pathname/host/UTM values and an
+opaque signup correlation ID; activation events must not contain raw email,
+IP, cookies, auth tokens, or full user-agent data.
+
+The full event definitions, reporting boundary, first-product checklist, and
+fixed Preview/QA workflow are maintained in
+[`docs/merchant-activation-v1.md`](../merchant-activation-v1.md).
+
 ## 9. GA4 policy
 
 ### Current topology
