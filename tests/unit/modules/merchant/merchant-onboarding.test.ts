@@ -131,7 +131,7 @@ describe('merchant onboarding catalog validation', () => {
         findFirst: jest.fn().mockResolvedValue(null),
         create: jest.fn().mockResolvedValue({ id: 'frame-a' }),
       },
-      merchantActivationEvent: { upsert: jest.fn().mockResolvedValue({}) },
+      merchantActivationEvent: { createMany: jest.fn().mockResolvedValue({ count: 1 }) },
     }))
 
     await merchantOnboarding.importMerchantFrames({ actor: writeActor, frames: [{ sku: 'SKU-A', name: 'Frame A', shape: 'round', imageUrl: 'https://cdn.example.test/frame-a.jpg' }] })
@@ -150,7 +150,7 @@ describe('merchant onboarding catalog validation', () => {
     ;(prisma.merchant.findUnique as jest.Mock).mockResolvedValue({ slug: 'merchant-a' })
     ;(prisma.$transaction as jest.Mock).mockImplementation(async (callback) => callback({
       merchantFrame: { findFirst: jest.fn().mockResolvedValue(null), create },
-      merchantActivationEvent: { upsert: jest.fn().mockResolvedValue({}) },
+      merchantActivationEvent: { createMany: jest.fn().mockResolvedValue({ count: 1 }) },
     }))
 
     await merchantOnboarding.importMerchantFrames({
@@ -180,7 +180,7 @@ describe('merchant onboarding catalog validation', () => {
     ;(prisma.merchant.findUnique as jest.Mock).mockResolvedValue({ slug: 'merchant-a' })
     ;(prisma.$transaction as jest.Mock).mockImplementation(async (callback) => callback({
       merchantFrame: { findFirst: jest.fn().mockResolvedValue(null), create },
-      merchantActivationEvent: { upsert: jest.fn().mockResolvedValue({}) },
+      merchantActivationEvent: { createMany: jest.fn().mockResolvedValue({ count: 1 }) },
     }))
 
     await merchantOnboarding.importMerchantFrames({
@@ -221,7 +221,7 @@ describe('merchant onboarding catalog validation', () => {
     ;(prisma.merchantFrame.findMany as jest.Mock).mockResolvedValue([frame('frame-a')])
     ;(prisma.$transaction as jest.Mock).mockImplementation(async (callback) => callback({
       experienceFrame: { deleteMany: jest.fn(), createMany: jest.fn() },
-      merchantActivationEvent: { upsert: jest.fn().mockResolvedValue({}) },
+      merchantActivationEvent: { createMany: jest.fn().mockResolvedValue({ count: 1 }) },
     }))
 
     await merchantOnboarding.setMerchantStoreFrames({ actor: writeActor, storeId: 'store-a', frameIds: ['frame-a'] })
@@ -242,7 +242,7 @@ describe('merchant onboarding catalog validation', () => {
       } }))
       .mockImplementationOnce(async (callback) => callback({
         experience: { update: jest.fn().mockResolvedValue({ id: 'store-a', status: 'ACTIVE', frames: [] }) },
-        merchantActivationEvent: { upsert: jest.fn().mockResolvedValue({}) },
+      merchantActivationEvent: { createMany: jest.fn().mockResolvedValue({ count: 1 }) },
       }))
     ;(prisma.experience.update as jest.Mock).mockResolvedValue({ id: 'store-a', status: 'ACTIVE', frames: [] })
 

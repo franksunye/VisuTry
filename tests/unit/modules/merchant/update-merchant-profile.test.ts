@@ -23,7 +23,7 @@ describe('merchant profile public discovery boundary', () => {
     ;(prisma.merchant.update as jest.Mock).mockResolvedValue({ id: 'merchant-a', slug: 'merchant-a', name: 'New Name', websiteUrl: null })
     ;(prisma.$transaction as jest.Mock).mockImplementation(async (callback) => callback({
       merchant: { update: prisma.merchant.update },
-      merchantActivationEvent: { upsert: jest.fn().mockResolvedValue({}) },
+      merchantActivationEvent: { createMany: jest.fn().mockResolvedValue({ count: 1 }) },
     }))
 
     await updateMerchantProfile({ userId: 'user-a', merchantId: 'merchant-a', name: 'New Name' })

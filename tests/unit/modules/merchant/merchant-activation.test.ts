@@ -1,7 +1,7 @@
 jest.mock('@/lib/prisma', () => ({
   prisma: {
     merchantActivationEvent: {
-      upsert: jest.fn().mockResolvedValue({}),
+      createMany: jest.fn().mockResolvedValue({ count: 1 }),
       findMany: jest.fn().mockResolvedValue([]),
     },
   },
@@ -34,9 +34,8 @@ describe('Merchant Activation v1 application service', () => {
       },
     })
 
-    expect(prisma.merchantActivationEvent.upsert).toHaveBeenCalledWith(expect.objectContaining({
-      where: { merchantId_dedupeKey: expect.objectContaining({ merchantId: 'merchant-a' }) },
-      create: expect.objectContaining({
+    expect(prisma.merchantActivationEvent.createMany).toHaveBeenCalledWith(expect.objectContaining({
+      data: expect.objectContaining({
         merchantId: 'merchant-a',
         eventType: 'merchant_workspace_entered',
         source: 'CLIENT',
@@ -47,7 +46,7 @@ describe('Merchant Activation v1 application service', () => {
           referrer_host: 'www.google.com',
         }),
       }),
-      update: {},
+      skipDuplicates: true,
     }))
     expect(logger.info).toHaveBeenCalledWith('merchant', 'Merchant activation event recorded', expect.objectContaining({
       activationEvent: 'merchant_workspace_entered',
@@ -63,12 +62,12 @@ describe('Merchant Activation v1 application service', () => {
       source: 'CLIENTISH' as never,
       sessionId: 'session-12345678',
     })).rejects.toThrow('Unsupported Merchant activation event source.')
-    expect(prisma.merchantActivationEvent.upsert).not.toHaveBeenCalled()
+    expect(prisma.merchantActivationEvent.createMany).not.toHaveBeenCalled()
   })
 
   it('shares the same normalization and dedupe contract with transaction callers', async () => {
     const client = {
-      merchantActivationEvent: { upsert: jest.fn().mockResolvedValue({}) },
+      merchantActivationEvent: { createMany: jest.fn().mockResolvedValue({ count: 1 }) },
     }
     await recordMerchantActivationEventWithClient(client, {
       merchantId: 'merchant-a',
@@ -78,8 +77,20 @@ describe('Merchant Activation v1 application service', () => {
       metadata: { frame_id: 'frame-a', reason: 'owner@example.com', frame_count: 1 },
     })
 
-    const call = client.merchantActivationEvent.upsert.mock.calls[0][0]
-    expect(call.where.merchantId_dedupeKey.dedupeKey).toBe('merchant:merchant-a:first_item_added')
-    expect(call.create.metadata).toEqual({ frame_id: 'frame-a', frame_count: 1 })
+    const call = client.merchantActivationEvent.createMany.mock.calls[0][0]
+    expect(call.data.dedupeKey).toBe('merchant:merchant-a:first_item_added')
+    expect(call.data.metadata).toEqual({ frame_id: 'frame-a', frame_count: 1 })
+  })
+
+  it('does not log a duplicate milestone as a newly recorded event', async () => {
+    ;(prisma.merchantActivationEvent.createMany as jest.Mock).mockResolvedValueOnce({ count: 0 })
+
+    await recordMerchantActivationEvent({
+      merchantId: 'merchant-a',
+      eventType: 'merchant_workspace_created',
+      source: 'SERVER',
+    })
+
+    expect(logger.info).not.toHaveBeenCalled()
   })
 })

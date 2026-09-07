@@ -234,13 +234,28 @@ describe('Cloudflare direct-Neon merchant and experience writes', () => {
       [{ id: 'merchant-a', slug: 'merchant-a', name: 'Merchant A', status: 'ACTIVE', websiteUrl: null, contactEmail: null }],
       [activeFrame],
       [{ id: 'store-a', status: 'ACTIVE' }],
-    ], [[], []])
+    ], [[[{ id: 'store-a', status: 'ACTIVE' }], [{ id: 'activation-a' }]]])
     ;(getCloudflareSql as jest.Mock).mockReturnValue(sql)
 
     await expect(publishMerchantStore({ actor, storeId: 'store-a', approved: false })).rejects.toMatchObject({ code: 'PUBLISH_APPROVAL_REQUIRED' })
     const result = await publishMerchantStore({ actor, storeId: 'store-a', approved: true })
     expect(result).toEqual({ id: 'store-a', status: 'ACTIVE', publicPath: '/en/store/merchant-a', approvalRecorded: true })
     expect(sql.mock.calls.some((call) => call[0].join('').includes('UPDATE "Experience"'))).toBe(true)
+  })
+
+  it('does not expose a published Store when the atomic milestone insert fails', async () => {
+    const sql = sqlMock([
+      [{ id: 'store-a', merchantId: 'merchant-a', slug: 'store', name: 'Store A', status: 'DRAFT' }],
+      [{ merchantFrameId: 'frame-a', sortOrder: 0, id: 'frame-a', sku: 'sku-a', name: 'Frame A', imageUrl: 'https://example.test/frame-a.png', shape: 'oval', widthClass: null, status: 'ACTIVE' }],
+      [{ id: 'merchant-a', slug: 'merchant-a', name: 'Merchant A', status: 'ACTIVE', websiteUrl: null, contactEmail: null }],
+      [activeFrame],
+    ])
+    sql.transaction = jest.fn().mockRejectedValue(new Error('activation insert failed'))
+    ;(getCloudflareSql as jest.Mock).mockReturnValue(sql)
+
+    await expect(publishMerchantStore({ actor, storeId: 'store-a', approved: true })).rejects.toThrow('activation insert failed')
+    expect(sql.transaction).toHaveBeenCalledTimes(1)
+    expect(sql.transaction.mock.calls[0][0]).toHaveLength(2)
   })
 
   it('persists PENDING enrichment for an importable frame without shape', async () => {
@@ -267,5 +282,28 @@ describe('Cloudflare direct-Neon merchant and experience writes', () => {
 
     expect(result).toMatchObject({ imported: 1, created: 1 })
     expect(calls.some(({ values }) => values.includes('PENDING'))).toBe(true)
+  })
+
+  it('does not report a catalog mutation when the atomic milestone transaction fails', async () => {
+    const sql = sqlMock([
+      [{ planCode: null, commercialStatus: null }],
+      [{ count: 0 }],
+      [],
+    ])
+    sql.transaction = jest.fn().mockRejectedValue(new Error('activation insert failed'))
+    ;(getCloudflareSql as jest.Mock).mockReturnValue(sql)
+
+    await expect(importMerchantFrames({
+      actor: { ...actor, scopes: ['catalog:write'] },
+      frames: [{
+        sku: null,
+        name: 'Atomic Frame',
+        imageUrl: 'https://cdn.example.test/atomic.jpg',
+        productUrl: 'https://catalog.example.test/products/atomic',
+        source: 'EXTERNAL',
+        shape: 'round',
+      }],
+    })).rejects.toThrow('activation insert failed')
+    expect(sql.transaction).toHaveBeenCalledTimes(1)
   })
 })

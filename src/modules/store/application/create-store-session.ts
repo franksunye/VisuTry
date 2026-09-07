@@ -89,10 +89,24 @@ export async function createStoreSession(input: {
   // A real shopper session is a server-authoritative Merchant activation
   // milestone. The activation ledger deduplicates this per Merchant, so
   // retries or later shopper sessions cannot inflate the first-session fact.
-  await input.activation?.recordFirstShopperSession({
-    merchantId: merchant.id,
-    merchantSessionId: session.id,
-  })
+  try {
+    await input.activation?.recordFirstShopperSession({
+      merchantId: merchant.id,
+      merchantSessionId: session.id,
+    })
+  } catch (error) {
+    // Activation is authoritative telemetry, but it must not turn a valid
+    // shopper session into a user-facing failure. The next real Store session
+    // retries the same deterministic first-shopper dedupe key, providing a
+    // bounded reconciliation path without creating duplicate milestones.
+    logger.warn('store', 'Merchant activation milestone deferred', {
+      merchantId: merchant.id,
+      merchantSessionId: session.id,
+      activationEvent: 'merchant_first_shopper_session',
+      retryable: true,
+      error: error instanceof Error ? error.message : String(error),
+    })
+  }
 
   await input.usage.record({
     merchantId: merchant.id,

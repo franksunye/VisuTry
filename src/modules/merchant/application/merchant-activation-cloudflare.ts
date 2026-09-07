@@ -117,21 +117,29 @@ export function merchantActivationEventInsertStatement(sql: CloudflareSql, input
   `
 }
 
+function logActivationEvent(input: ReturnType<typeof normalizeInput>) {
+  logger.info('merchant', 'Merchant activation event recorded', {
+    domain: 'merchant',
+    event: 'merchant_activation',
+    activationEvent: input.eventType,
+    merchantId: input.merchantId,
+    correlationId: input.correlationId,
+    source: input.source,
+    environment: process.env.APP_ENV ?? process.env.VERCEL_ENV ?? process.env.NODE_ENV ?? 'unknown',
+  })
+}
+
+/** Log only after the surrounding Neon transaction has committed the row. */
+export function logMerchantActivationEventIfInserted(input: MerchantActivationEventInput, result: unknown): boolean {
+  if (!Array.isArray(result) || result.length === 0) return false
+  logActivationEvent(normalizeInput(input))
+  return true
+}
+
 export async function recordMerchantActivationEvent(input: MerchantActivationEventInput): Promise<void> {
   const sql = getCloudflareSql()
   const result = await sql.transaction([merchantActivationEventInsertStatement(sql, input)], { isolationLevel: 'ReadCommitted' })
-  if (result[0]?.[0]) {
-    const normalized = normalizeInput(input)
-    logger.info('merchant', 'Merchant activation event recorded', {
-      domain: 'merchant',
-      event: 'merchant_activation',
-      activationEvent: normalized.eventType,
-      merchantId: normalized.merchantId,
-      correlationId: normalized.correlationId,
-      source: normalized.source,
-      environment: process.env.APP_ENV ?? process.env.VERCEL_ENV ?? process.env.NODE_ENV ?? 'unknown',
-    })
-  }
+  logMerchantActivationEventIfInserted(input, result[0])
 }
 
 /**

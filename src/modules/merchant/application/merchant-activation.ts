@@ -31,9 +31,8 @@ export type MerchantActivationEventInput = {
 
 type ActivationEventWriter = {
   merchantActivationEvent: {
-    upsert: (args: {
-      where: { merchantId_dedupeKey: { merchantId: string; dedupeKey: string } }
-      create: {
+    createMany: (args: {
+      data: {
         merchantId: string
         eventType: string
         occurredAt: Date
@@ -43,8 +42,8 @@ type ActivationEventWriter = {
         dedupeKey: string
         metadata?: Prisma.InputJsonValue
       }
-      update: Record<string, never>
-    }) => Promise<unknown>
+      skipDuplicates?: boolean
+    }) => Promise<{ count: number }>
   }
 }
 
@@ -157,9 +156,8 @@ export async function recordMerchantActivationEventWithClient(
   input: MerchantActivationEventInput,
 ): Promise<void> {
   const normalized = normalizeInput(input)
-  await client.merchantActivationEvent.upsert({
-    where: { merchantId_dedupeKey: { merchantId: normalized.merchantId, dedupeKey: normalized.dedupeKey } },
-    create: {
+  const result = await client.merchantActivationEvent.createMany({
+    data: {
       merchantId: normalized.merchantId,
       eventType: normalized.eventType,
       occurredAt: normalized.occurredAt,
@@ -169,9 +167,10 @@ export async function recordMerchantActivationEventWithClient(
       dedupeKey: normalized.dedupeKey,
       ...(normalized.metadata ? { metadata: normalized.metadata } : {}),
     },
-    update: {},
+    skipDuplicates: true,
   })
-  logActivationEvent(normalized)
+  const created = result.count > 0
+  if (created) logActivationEvent(normalized)
 }
 
 export async function recordMerchantActivationEvent(input: MerchantActivationEventInput): Promise<void> {

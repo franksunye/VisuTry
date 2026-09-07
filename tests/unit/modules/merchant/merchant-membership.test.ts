@@ -308,7 +308,7 @@ describe('Merchant human membership foundation', () => {
       user: { update: jest.fn().mockResolvedValue({ id: 'user-a' }) },
       merchant: { create: jest.fn() },
       merchantMembership: { findFirst: jest.fn().mockResolvedValue(null), create: jest.fn() },
-      merchantActivationEvent: { upsert: jest.fn().mockResolvedValue({}) },
+      merchantActivationEvent: { createMany: jest.fn().mockResolvedValue({ count: 1 }) },
     }
     tx.merchant.create.mockResolvedValue({ id: 'merchant-new', slug: 'new', name: 'New' })
     tx.merchantMembership.create.mockResolvedValue({ ...membership, merchantId: 'merchant-new' })
@@ -391,7 +391,7 @@ describe('Merchant human membership foundation', () => {
         .mockRejectedValueOnce(prismaError('P2002', { target: ['slug'] }))
         .mockResolvedValue({ id: 'merchant-new', slug: 'new-2', name: 'New' }) },
       merchantMembership: { findFirst: jest.fn().mockResolvedValue(null), create: jest.fn().mockResolvedValue({ ...membership, merchantId: 'merchant-new' }) },
-      merchantActivationEvent: { upsert: jest.fn().mockResolvedValue({}) },
+      merchantActivationEvent: { createMany: jest.fn().mockResolvedValue({ count: 1 }) },
     }
     ;(prisma.$transaction as jest.Mock).mockImplementation(async (callback) => callback(tx))
 
@@ -412,7 +412,7 @@ describe('Merchant human membership foundation', () => {
         .mockRejectedValueOnce(error)
         .mockResolvedValue({ id: 'merchant-new', slug: 'new-abc123def456', name: 'New' }) },
       merchantMembership: { findFirst: jest.fn().mockResolvedValue(null), create: jest.fn().mockResolvedValue({ ...membership, merchantId: 'merchant-new' }) },
-      merchantActivationEvent: { upsert: jest.fn().mockResolvedValue({}) },
+      merchantActivationEvent: { createMany: jest.fn().mockResolvedValue({ count: 1 }) },
     }
     ;(prisma.$transaction as jest.Mock).mockImplementation(async (callback) => callback(tx))
 
@@ -440,7 +440,7 @@ describe('Merchant human membership foundation', () => {
       user: { update: jest.fn().mockResolvedValue({ id: 'user-a' }) },
       merchant: { create: jest.fn().mockResolvedValue({ id: 'merchant-new', slug: 'new', name: 'New' }) },
       merchantMembership: { findFirst: jest.fn().mockResolvedValue(null), create: jest.fn().mockResolvedValue({ ...membership, merchantId: 'merchant-new' }) },
-      merchantActivationEvent: { upsert: jest.fn().mockResolvedValue({}) },
+      merchantActivationEvent: { createMany: jest.fn().mockResolvedValue({ count: 1 }) },
     }
     ;(prisma.$transaction as jest.Mock)
       .mockRejectedValueOnce(error)
