@@ -62,6 +62,26 @@ export interface D1CloudflarePurgePayload {
   success?: boolean
 }
 
+/**
+ * Extract the Vercel team identity from the deployment response.
+ *
+ * The deployments API has exposed the owning team as a top-level `teamId`,
+ * `ownerId`, or nested `team.id` depending on the response version. Keep all
+ * accepted forms explicit so the deployment proof remains fail-closed for an
+ * unknown response shape.
+ */
+export function vercelDeploymentTeamId(deployment: Record<string, unknown>): string {
+  if (typeof deployment.teamId === 'string') return deployment.teamId
+  if (typeof deployment.ownerId === 'string') return deployment.ownerId
+
+  const team = deployment.team
+  if (team && typeof team === 'object' && typeof (team as Record<string, unknown>).id === 'string') {
+    return (team as Record<string, unknown>).id as string
+  }
+
+  return ''
+}
+
 export interface D1LiveRuleSnapshot {
   id: string
   expression: string

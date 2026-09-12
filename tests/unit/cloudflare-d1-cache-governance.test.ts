@@ -18,6 +18,7 @@ import {
   isD1CacheEligible,
   isVercelProductionDeploymentProofValid,
   readVercelVerificationConfig,
+  vercelDeploymentTeamId,
 } from '../../cloudflare-router/d1-cache-governance'
 
 function request(path: string, init: RequestInit = {}) {
@@ -152,6 +153,13 @@ describe('D1 production HTML cache governance contract', () => {
 
   it('requires independent Vercel verification credentials', () => {
     expect(() => readVercelVerificationConfig({})).toThrow('missing Vercel verification configuration')
+  })
+
+  it('reads Vercel team identity across supported deployment response shapes', () => {
+    expect(vercelDeploymentTeamId({ teamId: 'team_top_level' })).toBe('team_top_level')
+    expect(vercelDeploymentTeamId({ ownerId: 'team_owner' })).toBe('team_owner')
+    expect(vercelDeploymentTeamId({ team: { id: 'team_nested' } })).toBe('team_nested')
+    expect(vercelDeploymentTeamId({ team: { name: 'missing-id' } })).toBe('')
   })
 
   it('rejects forged or unverified Vercel deployment proof', () => {

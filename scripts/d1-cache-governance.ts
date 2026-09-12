@@ -15,6 +15,7 @@ import {
   isCloudflarePurgeSuccessful,
   isVercelProductionDeploymentProofValid,
   readVercelVerificationConfig,
+  vercelDeploymentTeamId,
 } from '../cloudflare-router/d1-cache-governance'
 
 const args = new Set(process.argv.slice(2))
@@ -78,7 +79,7 @@ function deploymentProofFromApi(deployment: Record<string, unknown>, aliases: st
   return {
     id: typeof deployment.id === 'string' ? deployment.id : '',
     projectId: typeof deployment.projectId === 'string' ? deployment.projectId : '',
-    teamId: typeof deployment.teamId === 'string' ? deployment.teamId : '',
+    teamId: vercelDeploymentTeamId(deployment),
     target: typeof deployment.target === 'string' ? deployment.target : null,
     readyState: typeof deployment.readyState === 'string' ? deployment.readyState : null,
     gitSha: typeof meta.githubCommitSha === 'string'
