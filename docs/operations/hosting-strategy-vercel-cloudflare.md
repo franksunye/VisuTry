@@ -1,15 +1,18 @@
-# Hosting Strategy — Hybrid Edge Architecture
+# Hosting Strategy — Vercel + Cloudflare
 
-**Status:** Active
-
-**Date:** 2026-08-18  
-**Last updated:** 2026-08-20
-
+**Status:** Active source of truth for hosting/runtime ownership
 **Owner:** Product / Engineering
+**Last updated:** 2026-09-12
+**Review cadence:** When production route ownership, cache ownership, runtime provider, or frontend ownership changes
+**Scope:** Production responsibility boundary between Vercel, Cloudflare, and shared external services.
 
-## Objective
+## 1. Decision
 
-Keep VisuTry infrastructure cost near zero / low fixed cost before break-even while building an architecture that can absorb materially larger Consumer, Store, and Campaign traffic without forcing every request through heavyweight backend execution.
+VisuTry uses a hybrid edge architecture with a strict ownership rule:
+
+> **Vercel produces the Next.js application. Cloudflare provides the governed edge around it.**
+
+The system is not a dual-frontend deployment.
 
 The objective is no longer to answer "Vercel or Cloudflare?" as a provider-selection question. The validated direction is a hybrid execution model based on workload shape.
 
@@ -74,241 +77,173 @@ Preferred order:
 
 > Static Asset → Worker only if necessary → Backend only if necessary
 
+ADR-011 is authoritative: Vercel is the sole production producer of Next HTML, RSC/Flight, the browser client artifact graph, and `/_next/static/*`.
+
 ```text
-Internet / Shopper / Bot
-        |
-        v
-Layer 1 — Cloudflare Static Assets
-        |
-        | asset miss / runtime route
-        v
-Layer 2 — Cloudflare Worker / Capability Router
-        |
-        | VERCEL_REQUIRED / UNKNOWN
-        v
-Layer 3 — Backend / Vercel
-        |
-        v
-Neon PostgreSQL where relational data is required
+Internet
+   |
+   v
+Cloudflare
+DNS / proxy / CDN / WAF / governed cache / approved non-Next capabilities
+   |
+   v
+Vercel
+sole Next.js producer + primary backend runtime
+   |
+   +---- PostgreSQL
+   +---- AI providers
+   +---- Stripe
+   +---- Vercel Blob
+   +---- Email / other integrations
 ```
 
-### Layer 1 — Cloudflare Static Assets
+## 2. Vercel ownership
 
-Served from the Workers Static Assets directory (`.open-next/assets`) when `run_worker_first` is `false` and the URL is an exact asset match. In the production traffic-layer build, this directory is populated from `public/`; the OpenNext output is reserved for staging/full-migration research.
+Cloudflare Static Assets are served from the Workers Static Assets directory (`.open-next/assets`) when `run_worker_first` is `false` and the URL is an exact asset match. In the production traffic-layer build, this directory is populated from `public/`; the OpenNext output is reserved for staging/full-migration research. This layer is limited to explicitly assigned non-Next assets and does not make Cloudflare a producer of the Next frontend.
 
-- Hashed `/_next/static/*` assets
-- Proven public static assets (favicon, `/images/*`, `/home/*`, `/experience-heroes/*`, other non-hashed public prefixes present in the asset output)
-- Control files such as `/robots.txt` and `/llms.txt` when they exist as Static Assets
-- Served **without** Worker invocation
-- Does **not** consume the Workers Free request quota
-- Does **not** hit Vercel
+Vercel is the canonical production owner for:
 
-Next.js `force-static` HTML is **not** Layer 1 merely because Next labeled the route static. HTML must exist as a Static Asset file to skip the Worker. OpenNext currently serves locale/SEO/blog/brand HTML from Worker incremental cache, which is Layer 2.
+- Next HTML;
+- RSC / Flight responses;
+- `/_next/static/*` and the browser client graph;
+- Next runtime redirects and sitemap output;
+- the primary Next.js application/API runtime;
+- AI orchestration and heavy generation paths;
+- Stripe/payment fulfillment;
+- Vercel Blob workflows;
+- cron/background work;
+- broad Admin behavior;
+- full MCP OAuth/DCR/source-intake behavior unless a narrower capability is separately classified.
 
-### Layer 2 — Cloudflare Worker / Capability Router
+A route being static, cacheable, or edge-eligible does not by itself transfer production ownership away from Vercel.
 
-The Worker runs only for routes that miss Layer 1 and actually require routing or runtime execution.
+## 3. Cloudflare ownership
 
-- Lightweight public APIs
-- Direct-Neon capabilities where proven
-- Capability classification (`cf-ready` vs `vercel-required` vs `unknown-fallback`)
-- Proxy routing for `vercel-required` and unknown requests to Vercel
-- These requests **count against** the Worker request quota
+Cloudflare provides:
 
-The production Worker does not build or execute a peer Next/OpenNext frontend.
-Vercel remains responsible for Next HTML, RSC/Flight, redirects, sitemaps, and
-business/page-data execution. OpenNext remains available only through the
-explicit staging/research commands.
+- DNS / reverse proxy;
+- CDN and WAF/security controls;
+- traffic shaping;
+- explicitly approved non-Next public assets and lightweight edge APIs;
+- the isolated MediaPipe asset path on `assets.visutry.com` backed by R2;
+- a governed D1 cache rule for a bounded subset of anonymous SEO document HTML;
+- direct-Neon capabilities where proven;
+- capability classification (`cf-ready` vs `vercel-required` vs `unknown-fallback`);
+- proxy routing for `vercel-required` and unknown requests to Vercel. These requests **count against** the Worker request quota.
 
 Layer 2 must not be used as a quota offload via Workers Caching. Cache hits still count as Worker requests and can bill otherwise-free Layer 1 assets.
 
-### Layer 3 — Backend / Vercel
+The production traffic layer does not build or execute a peer Next/OpenNext frontend. Vercel remains responsible for Next HTML, RSC/Flight, redirects, sitemaps, and business/page-data execution. OpenNext remains available only through explicit staging/research commands.
 
-Fallback and heavy/unverified execution. The Worker may proxy here after classification; the authoritative runtime remains Vercel/backend.
+Exact production Worker route intent is code-authoritative in:
 
-- Vercel/backend fallback
-- `UNKNOWN` routes
-- Unsupported routes
-- Stripe
-- Blob
-- AI
-- Cron/background
-- Admin
-- Full MCP OAuth/DCR
-- Other heavy or unverified capabilities
+- `cloudflare-router/b4-production-routes.ts`
+- `cloudflare-router/b4-production-routes.json`
 
-### Invariants
+Do not copy the route count into architecture decisions as a durable invariant; the generated manifest owns the exact current set.
 
-These routing principles are unchanged:
+Unknown/unapproved capabilities remain on/fall back to the canonical Vercel path.
 
-- One authoritative runtime per capability
-- Unknown → backend (Layer 3)
-- One writer
-- No automatic cross-runtime write retry
-- Neon remains the relational source of truth
+## 4. D1 SEO HTML Cache Shield
 
-B4 production-slice evidence and cache/quota detail live in `docs/operations/cloudflare-b4-production-cutover-readiness.md`. This section is the strategy-level source of truth for the three layers.
+The D1 cache rule is a **cache layer**, not a second Next renderer.
 
-## Why This Changed
+Vercel still produces the eligible HTML. Cloudflare may serve a cached copy only when the request satisfies the repository-owned eligibility contract.
 
-Earlier strategy was:
+Current contract is owned by:
 
-> Optimize for optionality: Vercel today, Cloudflare-ready tomorrow.
+- `cloudflare-router/d1-cache-governance.ts`
+- `scripts/d1-cache-governance.ts`
+- `.github/workflows/` deployment/purge governance associated with the rule
 
-That was appropriate before the Cloudflare path was tested.
+The governed rule currently limits caching to approved localized SEO detail families and excludes private or ambiguous requests, including requests carrying Cookie/Authorization, RSC/Flight signals, prefetch/prerender signals, query strings, or truncated headers.
 
-Phase A through B3.1 has now produced real staging evidence:
+The current code also owns the TTL, rule identity/order, purge prefixes, drift verification, and production-deployment proof requirements. Those values must not be duplicated here as permanent architecture constants.
 
-- OpenNext/Workers build and deployment are reproducible.
-- The Cloudflare Worker fits the Workers Free compressed bundle limit without Prisma runtime/WASM.
-- Public/localized routes and selected public reads work.
-- Real Auth0 login/session/logout works.
-- Protected direct-Neon reads work with ownership isolation.
-- Merchant workspace reads and provisioning work with tenant isolation.
-- Store DRAFT and Campaign DRAFT write paths work for the tested B2 scope.
-- Narrow stateless MCP bearer/tool execution works.
-- Several heavy integrations remain better suited to the current backend path.
+### D1 invariant
 
-The architecture question has therefore changed from:
+> A Cloudflare cache hit does not change Next frontend ownership. The cached object must originate from the verified Vercel production deployment governed by the cache contract.
 
-> "Can VisuTry migrate away from Vercel?"
+## 5. Next frontend guardrail
 
-into:
+While ADR-011 is active:
 
-> "Which workload should execute at the edge, and which workload requires heavier backend execution?"
+- Cloudflare/OpenNext must not emit production Next HTML.
+- Cloudflare must not own production RSC/Flight.
+- `www.visutry.com/_next/static/*` must not be a Cloudflare Worker Route.
+- A same-commit Cloudflare build is not considered the same client artifact graph.
+- A future frontend migration must move the complete Next ownership boundary atomically and supersede ADR-011.
 
-That distinction is especially important for Store and Campaign.
+OpenNext/Cloudflare builds remain useful for staging, compatibility testing, and future optionality; they are not an independent production Next frontend.
 
-## Store / Campaign Scale Model
+## 6. Capability allocation
 
-Store/Campaign traffic is expected to create substantially more shopper requests than the current consumer application alone.
-
-Most of that traffic should not require expensive server execution.
-
-Typical high-frequency paths include:
-
-- Store/Campaign landing and navigation;
-- catalog/frame/configuration reads;
-- attribution and session handling;
-- lightweight merchant/public APIs;
-- selected interaction/event ingestion;
-- selected recommendation/read paths;
-- narrow agent/MCP requests.
-
-Heavy paths include:
-
-- AI generation and orchestration;
-- payment and Stripe fulfillment;
-- object-storage lifecycle operations;
-- long-running or retried background work;
-- broad admin workflows;
-- full OAuth/DCR/source-network operations.
-
-Target traffic shape uses the same three layers. Most Store/Campaign page-view growth should stop at Layer 1 (hashed/public assets) or Layer 2 (landing HTML and lightweight reads), not Layer 3.
-
-```text
-Shopper / Agent / Bot
-      |
-      v
-Layer 1 — Cloudflare Static Assets
-      |     hashed /_next/static, proven public files
-      |     no Worker, no Vercel, no Worker quota
-      |
-      | asset miss / runtime route
-      v
-Layer 2 — Cloudflare Worker / Capability Router
-      |     Store/Campaign landing HTML (when Worker-owned)
-      |     catalog/config reads, selected auth/read/write
-      |     attribution/session, lightweight public APIs
-      |     direct Neon where proven
-      |     counts toward Worker quota
-      |
-      | VERCEL_REQUIRED / UNKNOWN
-      v
-Layer 3 — Backend / Vercel
-      |     AI, Stripe, Blob/storage workflows
-      |     cron/background, full MCP OAuth/source intake
-      |     admin and other heavy/unverified paths
-      |
-      v
-Neon PostgreSQL where relational data is required
-```
-
-The architecture should ensure that Store/Campaign traffic growth does not cause heavyweight backend work to grow linearly with page views or shopper interactions. Asset subresources must not be forced through Layer 2 (`run_worker_first` must stay false for public assets).
-
-## Architecture Responsibilities
-
-| Capability | Direction |
+| Capability | Current production owner/path |
 | --- | --- |
-| Public hashed/static files | Layer 1 Static Assets (no Worker) once production rollout is approved |
-| MediaPipe runtime/model assets | `assets.visutry.com` → dedicated Cloudflare Worker → R2; production browsers load these binaries directly, with legacy Vercel `/mediapipe/*` rewrites retained for rollback |
-| Public HTML and lightweight reads | Layer 2 Worker + direct Neon where proven; not Layer 1 unless a Static Asset file exists |
-| Auth0/JWT session boundary | Cloudflare-capable for the tested path |
-| Protected user reads | Cloudflare + direct Neon where proven |
-| Merchant workspace/profile | Cloudflare + direct Neon where proven |
-| Merchant provisioning | Cloudflare-capable for the tested scope |
-| Store/Campaign DRAFT operations | Cloudflare-capable for the tested B2 scope |
-| Narrow MCP bearer/tools | Cloudflare-capable; bundle budget remains monitored |
-| Neon/PostgreSQL | Shared external relational source of truth |
-| Stripe/payment fulfillment | Current Vercel/backend path |
-| Blob/upload/cleanup | Current Vercel/backend path |
-| AI generation/orchestration | Current Vercel/backend path |
-| Cron/background work | Current Vercel/backend path |
-| Full MCP OAuth/DCR/source intake | Current Vercel/backend path |
-| Broad admin surface | Current Vercel/backend path until separately proven |
+| Next HTML / RSC / client artifacts | Vercel |
+| Eligible anonymous SEO HTML cache | Cloudflare D1 cache of Vercel-produced HTML |
+| Non-Next public assets explicitly routed at edge | Cloudflare |
+| MediaPipe WASM/model assets | `assets.visutry.com` Cloudflare Worker + R2 |
+| Approved lightweight edge APIs | Cloudflare, only where generated route intent allows |
+| Primary application/API runtime | Vercel |
+| AI generation/orchestration | Vercel/backend |
+| Stripe/payment fulfillment | Vercel/backend |
+| Blob lifecycle | Vercel/backend |
+| Cron/background work | Vercel/backend |
+| Broad Admin | Vercel/backend |
+| Full MCP OAuth/DCR/source intake | Vercel/backend |
+| Relational business state | PostgreSQL (current production provider: Neon) |
 
-R2 native custom-domain attachment is currently unavailable due to Cloudflare R2 control-plane errors (`10001` / `10071`), so the dedicated asset Worker is the current production delivery path.
+Capability-specific edge adapters may exist, but each must have a single authoritative business contract and explicit production routing classification.
 
-The canonical capability classification is maintained in:
+## 7. PostgreSQL boundary
 
-- `docs/operations/cloudflare-production-route-boundary.md`
+PostgreSQL is the relational architecture contract. Neon is the current production provider, not a required business-domain dependency.
 
-## Routing Principles
+Canonical backend application access uses Prisma. Runtime connection resolution is centralized in `src/lib/postgres-runtime.ts`; CLI/migrations use the direct/unpooled path governed by `prisma.config.ts` when required.
 
-Production rollout must follow these rules:
+Cloudflare/direct-SQL adapters may be used only for explicitly proven edge capabilities. They must preserve the same tenant isolation and business invariants as the canonical backend path.
 
-1. **Prefer the cheapest sufficient layer.** Static Asset, then Worker only if necessary, then backend only if necessary.
-2. **Explicit capability ownership.** Every route/capability has one authoritative runtime owner.
-3. **Unknown defaults to the existing backend.** No broad wildcard migration of unverified APIs.
-4. **One writer per capability.** Never dual-write between Cloudflare and Vercel.
-5. **No automatic cross-runtime retry for mutations.** A failed write must not silently execute on both runtimes.
-6. **Shared identity and database truth.** Auth0 remains the identity provider; Neon remains the relational source of truth.
-7. **Security boundaries are preserved.** Tenant, ownership, role, webhook, and rate-limit semantics must survive routing changes.
-8. **Rollback is route/capability based.** Reads should be able to return to the existing backend without database rollback; writes require drain/idempotency checks before ownership changes.
+## 8. Scale model
 
-## Cloudflare Budget Discipline
+The scale strategy is:
 
-Cloudflare Free is currently strategically useful because it can absorb meaningful edge traffic with minimal fixed infrastructure cost.
+1. avoid unnecessary dynamic/server work on public traffic;
+2. let Cloudflare absorb safe proxy/CDN/cache/static traffic within governed boundaries;
+3. keep the canonical Next producer and heavy stateful/compute work on Vercel;
+4. keep durable business state in PostgreSQL;
+5. move a capability only when production evidence justifies a new owner.
 
-Current operational budgets include Worker bundle size, Worker request count, CPU, and runtime limits. Measure **two request meters**: Layer 1 Static Asset requests (free when the Worker is not invoked) and Layer 2 Worker invocations (Free plan 100,000/day). Do not treat total site traffic or Layer 1 hits as Worker requests. These must be measured as part of relevant changes.
+Store/Campaign growth must not automatically imply a second application runtime or duplicate business implementation. High-frequency read/cache paths can be optimized independently from AI/payment/write paths.
 
-However:
+## 9. Safety invariants
 
-> The Free plan is a budget constraint, not the architecture itself.
+1. One authoritative runtime/business implementation per capability.
+2. One Next frontend producer.
+3. One durable writer/transaction owner for a state transition.
+4. Unknown/unclassified production traffic stays on the canonical path.
+5. No cross-runtime automatic write retry that can duplicate state changes.
+6. Cache layers must preserve privacy/auth bypass rules.
+7. Cache invalidation must be tied to verified production deployment state where required by the governed contract.
+8. Provider-specific edge optimizations must not redefine domain semantics.
 
-Do not distort product or architecture solely to preserve a free-tier limit. Upgrade, split, or move a workload when the business economics justify it.
+## 10. Operational authority
 
-## Provider Independence
+Read current hosting decisions in this order:
 
-Keep provider-independent boundaries where practical:
+1. `docs/decisions/ADR-011-vercel-sole-next-frontend-owner.md`
+2. this document
+3. `cloudflare-router/b4-production-routes.ts` + generated route manifest for exact Worker route intent
+4. `cloudflare-router/d1-cache-governance.ts` for exact D1 cache behavior
+5. `docs/operations/README.md` for current operational navigation
+6. ADR-010 for the broader hybrid-edge rationale
+7. historical Cloudflare migration/incident documents only for evidence and rationale
 
-- Neon remains external and shared.
-- Stripe remains external.
-- Auth0 remains external.
-- AI providers remain external behind service interfaces.
-- Storage remains on the current Blob path until an R2 or other migration is separately justified.
+## 11. Historical migration material
 
-Do not migrate a component merely because Cloudflare offers an equivalent service.
+The Cloudflare Phase A/B/B4 documents are retained as migration/incident evidence. They do not authorize current production routing when they conflict with ADR-011, this strategy, the generated route manifest, or the D1 cache governance contract.
 
-A migration should materially improve at least one of:
-
-- cost;
-- latency;
-- scalability;
-- reliability;
-- operational simplicity;
-- portability;
-- product capability.
+Do not reintroduce old route-count plans, dual Next builds, or phase-specific topology diagrams into the active architecture authority.
 
 ## Implementation Roadmap
 
@@ -394,3 +329,10 @@ Routine implementation work should not reopen the architecture decision.
 - `docs/operations/cloudflare-production-route-boundary.md`
 - `docs/operations/cloudflare-b4-production-cutover-readiness.md`
 - `docs/operations/vercel-cpu-static-page-pilot.md`
+
+## Change log
+
+| Date | Change |
+| --- | --- |
+| 2026-08-19 | Established Vercel as the sole production Next frontend owner after the dual-client-graph incident. |
+| 2026-09-12 | Consolidated the hosting authority around current ownership; removed obsolete Layer-1/Layer-2 wording that implied Cloudflare could produce production Next HTML/assets; incorporated the governed D1 SEO HTML Cache Shield without changing Vercel frontend ownership; made route/cache detail code-authoritative. |
