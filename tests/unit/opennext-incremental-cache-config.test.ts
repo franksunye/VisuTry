@@ -88,7 +88,7 @@ describe('OpenNext static-assets incremental cache production config', () => {
   })
 
   it('keeps known Glasses Guide detail slugs valid and unknown slugs closed', () => {
-    const glassesGuidePage = require('@/app/[locale]/(main)/glasses-guide/[slug]/page') as {
+    const glassesGuidePage = require('@/app/[locale]/(public)/glasses-guide/[slug]/page') as {
       dynamic: string
       dynamicParams: boolean
     }

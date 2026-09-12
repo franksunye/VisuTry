@@ -2,10 +2,10 @@
 
 jest.mock('@/lib/prisma', () => ({ prisma: {} }))
 
-import * as brandPage from '@/app/[locale]/(main)/brand/[brand]/page'
-import * as categoryPage from '@/app/[locale]/(main)/category/[category]/page'
-import * as tryPage from '@/app/[locale]/(main)/try/[slug]/page'
-import * as stylePage from '@/app/[locale]/(main)/style/[faceShape]/page'
+import * as brandPage from '@/app/[locale]/(public)/brand/[brand]/page'
+import * as categoryPage from '@/app/[locale]/(public)/category/[category]/page'
+import * as tryPage from '@/app/[locale]/(public)/try/[slug]/page'
+import * as stylePage from '@/app/[locale]/(public)/style/[faceShape]/page'
 
 describe('quota-sensitive public page segment config', () => {
   it('converts high-cardinality SEO catalog routes from hourly ISR to static', () => {

@@ -1,6 +1,6 @@
 import React from 'react'
 import { render, screen } from '@testing-library/react'
-import StyleExplorerPage from '@/app/[locale]/(main)/style-explorer/page'
+import StyleExplorerPage from '@/app/[locale]/(consumer-app)/style-explorer/page'
 
 jest.mock('next-intl/server', () => ({
   getTranslations: jest.fn(),

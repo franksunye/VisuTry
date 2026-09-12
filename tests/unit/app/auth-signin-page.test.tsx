@@ -1,5 +1,5 @@
 import { renderToStaticMarkup } from 'react-dom/server'
-import SignInPage from '@/app/[locale]/(main)/auth/signin/page'
+import SignInPage from '@/app/[locale]/(consumer-app)/auth/signin/page'
 
 jest.mock('@/components/auth/MerchantAuthActions', () => ({
   MerchantAuthActions: ({ callbackUrl }: { callbackUrl: string }) => <div data-merchant-callback={callbackUrl} />,

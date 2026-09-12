@@ -4,12 +4,12 @@ import path from 'node:path'
 const highFanoutLinkFiles = [
   'src/components/layout/Header.tsx',
   'src/components/layout/Footer.tsx',
-  'src/app/[locale]/(main)/blog/page.tsx',
-  'src/app/[locale]/(main)/glasses-guide/page.tsx',
-  'src/app/[locale]/(main)/glasses-guide/[slug]/page.tsx',
+  'src/app/[locale]/(public)/blog/page.tsx',
+  'src/app/[locale]/(public)/glasses-guide/page.tsx',
+  'src/app/[locale]/(public)/glasses-guide/[slug]/page.tsx',
 ]
 
-const stylePageFile = 'src/app/[locale]/(main)/style/[faceShape]/page.tsx'
+const stylePageFile = 'src/app/[locale]/(public)/style/[faceShape]/page.tsx'
 
 function readSource(relativePath: string) {
   return fs.readFileSync(path.join(process.cwd(), relativePath), 'utf8')

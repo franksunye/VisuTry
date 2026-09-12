@@ -18,7 +18,7 @@ BLOG_POSTS=(
 )
 
 # Base directory
-BASE_DIR="src/app/(main)/blog"
+BASE_DIR="src/app/[locale]/(public)/blog"
 
 # Counter for modified files
 MODIFIED=0
@@ -50,4 +50,3 @@ done
 echo ""
 echo "Summary: Modified $MODIFIED files"
 echo "Done!"
-

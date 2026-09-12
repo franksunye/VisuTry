@@ -5,7 +5,7 @@ describe('pricing legal notice', () => {
   it('does not render subscription-only legal wording on the mixed pricing page', () => {
     const pagePath = path.join(
       process.cwd(),
-      'src/app/[locale]/(main)/pricing/page.tsx',
+      'src/app/[locale]/(consumer-app)/pricing/page.tsx',
     )
     const source = fs.readFileSync(pagePath, 'utf8')
 

@@ -133,7 +133,7 @@ const linkMappings = {
   ]
 };
 
-const baseDir = path.join(process.cwd(), 'src/app/(main)/blog');
+const baseDir = path.join(process.cwd(), 'src/app/[locale]/(public)/blog');
 
 let modified = 0;
 let skipped = 0;
@@ -189,4 +189,3 @@ console.log(`   Modified: ${modified} files`);
 console.log(`   Skipped: ${skipped} files`);
 console.log('='.repeat(50));
 console.log('\n✨ Internal links added successfully!\n');
-

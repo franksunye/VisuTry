@@ -6,7 +6,7 @@ import {
 } from '@/lib/product-positioning'
 
 /**
- * Global structured data shared by public pages.
+ * Global structured data shared by the public and consumer locale shells.
  * Page-specific SoftwareApplication, Article, FAQ, and HowTo schemas should live on the page.
  */
 export function HomeStructuredData() {

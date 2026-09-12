@@ -94,17 +94,16 @@ function walkTsFiles(dir: string, acc: string[] = []): string[] {
 
 /**
  * Authoritative Consumer→Store import allowlist (ADR-007).
- * Discover is a Commerce discovery surface that may live under `(main)` for
- * URL/SEO reasons while calling Store application services.
+ * Discover is a Commerce discovery surface that lives in the public route
+ * group for URL/SEO reasons while calling Store application services.
  */
 const CONSUMER_STORE_IMPORT_ALLOWLIST = new Set([
-  'src/app/[locale]/(main)/discover/page.tsx',
   'src/components/discover/DiscoverPage.tsx',
 ])
 
 /** Broad roots — fail closed for newly added Consumer paths. */
 const CONSUMER_BOUNDARY_ROOTS = [
-  'src/app/[locale]/(main)',
+  'src/app/[locale]/(consumer-app)',
   'src/app/api',
   'src/components',
   'src/lib',
@@ -413,14 +412,13 @@ describe('ADR-007 Consumer stability boundary', () => {
     expect(violations).toEqual([])
   })
 
-  it('Discover is the only allowlisted Commerce discovery surface under Consumer roots', () => {
+  it('Discover remains an explicitly public Commerce discovery surface', () => {
     const discover = readFileSync(
-      join(process.cwd(), 'src/app/[locale]/(main)/discover/page.tsx'),
+      join(process.cwd(), 'src/app/[locale]/(public)/discover/page.tsx'),
       'utf8',
     )
     expect(discover).toContain('modules/store')
     expect([...CONSUMER_STORE_IMPORT_ALLOWLIST].sort()).toEqual([
-      'src/app/[locale]/(main)/discover/page.tsx',
       'src/components/discover/DiscoverPage.tsx',
     ].sort())
   })

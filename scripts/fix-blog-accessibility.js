@@ -21,7 +21,7 @@ const blogPosts = [
   'tom-ford-luxury-eyewear-guide-2025',
 ];
 
-const baseDir = path.join(process.cwd(), 'src/app/(main)/blog');
+const baseDir = path.join(process.cwd(), 'src/app/[locale]/(public)/blog');
 
 let modified = 0;
 let skipped = 0;
@@ -75,4 +75,3 @@ console.log(`   Modified: ${modified} files`);
 console.log(`   Skipped: ${skipped} files`);
 console.log('='.repeat(50));
 console.log('\n✨ Done! All blog posts now have proper <main> landmarks.\n');
-
