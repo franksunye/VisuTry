@@ -10,6 +10,7 @@ import {
   getVisualSeoAssetsForPage,
   VISUAL_SEO_ASSETS,
 } from '@/config/visual-seo-assets'
+import { isGovernedStaticSeoImagePath } from '@/components/seo/StaticContentImage'
 
 describe('B01 through B06 visual SEO master assets', () => {
   it('keeps all fifty-four source and public assets present with stable dimensions', () => {
@@ -99,5 +100,14 @@ describe('B01 through B06 visual SEO master assets', () => {
     }
     expect(B06_VISUAL_SEO_ASSETS.every((asset) => asset.bodyPosition === 'after')).toBe(true)
     expect(B06_VISUAL_SEO_ASSETS.every((asset) => !('priority' in asset))).toBe(true)
+  })
+
+  it('governs only repository-owned public SEO WebP paths for direct delivery', () => {
+    expect(isGovernedStaticSeoImagePath('/images/seo/core/face-shape-guide.webp')).toBe(true)
+    expect(isGovernedStaticSeoImagePath('/images/seo/face-shapes/round-face.webp')).toBe(true)
+    expect(isGovernedStaticSeoImagePath('/_next/static/media/guide.png')).toBe(false)
+    expect(isGovernedStaticSeoImagePath('/uploads/user-photo.webp')).toBe(false)
+    expect(isGovernedStaticSeoImagePath('https://cdn.example.com/guide.webp')).toBe(false)
+    expect(isGovernedStaticSeoImagePath('/images/seo/core/guide.webp?width=1200')).toBe(false)
   })
 })

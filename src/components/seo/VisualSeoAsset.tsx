@@ -1,5 +1,6 @@
 import Image from 'next/image'
 import Link from '@/components/layout/PublicLink'
+import { isGovernedStaticSeoImagePath, StaticContentImage } from '@/components/seo/StaticContentImage'
 import type { VisualSeoAsset as VisualSeoAssetData } from '@/config/visual-seo-assets'
 
 export type VisualSeoRenderableAsset = Omit<VisualSeoAssetData, 'batch'> & {
@@ -10,6 +11,17 @@ type VisualSeoAssetProps = {
   asset: VisualSeoRenderableAsset
   variant?: 'default' | 'compact' | 'editorial' | 'owner-editorial' | 'supporting-wide'
   headingDisplay?: 'visible' | 'sr-only'
+}
+
+type VisualSeoImageProps = Omit<React.ComponentProps<typeof Image>, 'src' | 'alt'> & {
+  src: string
+  alt: string
+}
+
+function VisualSeoImage({ src, alt, ...props }: VisualSeoImageProps) {
+  return isGovernedStaticSeoImagePath(src)
+    ? <StaticContentImage src={src} alt={alt} {...props} />
+    : <Image src={src} alt={alt} {...props} />
 }
 
 export function VisualSeoAsset({
@@ -31,7 +43,7 @@ export function VisualSeoAsset({
     return (
       <article className="grid grid-cols-[112px_minmax(0,1fr)] gap-x-3 gap-y-2 rounded-xl border border-slate-200 bg-white p-3 shadow-sm md:block md:p-4">
         <figure className="col-start-1 row-start-1">
-          <Image
+          <VisualSeoImage
             src={asset.publicPath}
             alt={asset.alt}
             width={asset.width}
@@ -62,7 +74,7 @@ export function VisualSeoAsset({
     return (
       <article className="grid grid-cols-[112px_minmax(0,1fr)] gap-x-3 gap-y-2 rounded-xl border border-slate-200 bg-white p-3 shadow-sm md:grid-cols-[minmax(280px,40%)_minmax(0,1fr)] md:items-start md:gap-x-6 md:gap-y-2 md:p-4">
         <figure className="col-start-1 row-start-1 md:row-span-3">
-          <Image
+          <VisualSeoImage
             src={asset.publicPath}
             alt={asset.alt}
             width={asset.width}
@@ -99,7 +111,7 @@ export function VisualSeoAsset({
         </h2>
         {asset.bodyPosition === 'before' ? <div className="mb-5">{body}</div> : null}
         <figure>
-          <Image
+          <VisualSeoImage
             src={asset.publicPath}
             alt={asset.alt}
             width={asset.width}
@@ -130,7 +142,7 @@ export function VisualSeoAsset({
         {asset.heading}
       </h2>
       <figure>
-        <Image
+        <VisualSeoImage
           src={asset.publicPath}
           alt={asset.alt}
           width={asset.width}
