@@ -18,9 +18,10 @@ type VisualSeoImageProps = Omit<React.ComponentProps<typeof Image>, 'src' | 'alt
   alt: string
 }
 
-function VisualSeoImage({ src, alt, ...props }: VisualSeoImageProps) {
+function VisualSeoImage({ src, alt, allowStaticDelivery = false, ...props }: VisualSeoImageProps & { allowStaticDelivery?: boolean }) {
   return isGovernedStaticSeoImagePath(src)
-    ? <StaticContentImage src={src} alt={alt} {...props} />
+    && allowStaticDelivery
+    ? <StaticContentImage src={src} alt={alt} desktopOnly {...props} />
     : <Image src={src} alt={alt} {...props} />
 }
 
@@ -117,6 +118,7 @@ export function VisualSeoAsset({
             width={asset.width}
             height={asset.height}
             priority={asset.priority}
+            allowStaticDelivery
             sizes="(max-width: 768px) 100vw, 1120px"
             className="h-auto w-full"
           />

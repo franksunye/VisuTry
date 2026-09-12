@@ -43,22 +43,27 @@ function isDirectSeoRequest(requestUrl: string) {
 
 test.describe('P0.5C image delivery governance', () => {
   for (const [viewportName, viewport] of viewports) {
-    test(`${viewportName}: governed SEO WebP assets bypass the optimizer`, async ({ page }) => {
+    test(`${viewportName}: editorial SEO WebP assets use the viewport-safe delivery path`, async ({ page }) => {
       await page.setViewportSize(viewport)
       const requests = await loadPublicPage(page, '/en/style/round-face')
 
-      expect(requests.filter(isDirectSeoRequest).length).toBeGreaterThan(0)
-      expect(requests.filter(isSeoOptimizerRequest)).toHaveLength(0)
-      expect(await page.locator('img[src^="/images/seo/"]').count()).toBeGreaterThan(0)
+      if (viewportName === 'desktop') {
+        expect(requests.filter(isDirectSeoRequest).length).toBeGreaterThan(0)
+        expect(requests.filter(isSeoOptimizerRequest)).toHaveLength(0)
+      } else {
+        expect(requests.filter(isDirectSeoRequest)).toHaveLength(0)
+        expect(requests.filter(isSeoOptimizerRequest).length).toBeGreaterThan(0)
+      }
+      expect(await page.locator('img').count()).toBeGreaterThan(0)
     })
 
-    test(`${viewportName}: face-detector SEO WebP assets bypass the optimizer`, async ({ page }) => {
+    test(`${viewportName}: small SEO WebP placements retain responsive optimization`, async ({ page }) => {
       await page.setViewportSize(viewport)
       const requests = await loadPublicPage(page, '/en/face-shape-detector')
 
-      expect(requests.filter(isDirectSeoRequest).length).toBeGreaterThan(0)
-      expect(requests.filter(isSeoOptimizerRequest)).toHaveLength(0)
-      expect(await page.locator('img[src^="/images/seo/"]').count()).toBeGreaterThan(0)
+      expect(requests.filter(isDirectSeoRequest)).toHaveLength(0)
+      expect(requests.filter(isSeoOptimizerRequest).length).toBeGreaterThan(0)
+      expect(await page.locator('img').count()).toBeGreaterThan(0)
     })
   }
 
