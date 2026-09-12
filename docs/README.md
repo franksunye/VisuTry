@@ -2,7 +2,7 @@
 
 **Status:** Active documentation entry point  
 **Created:** 2026-07-08  
-**Last updated:** 2026-09-04  
+**Last updated:** 2026-09-12  
 **Owner:** Product / Engineering  
 **Review cadence:** Monthly, or whenever product direction / production architecture materially changes.
 
@@ -18,8 +18,8 @@ This is the entry point for current VisuTry documentation. It distinguishes acti
 | Product execution priority | `docs/product/product-plan.md` |
 | Cross-product positioning / boundaries | `docs/product/product-system.md` |
 | Detailed product behavior | `docs/product/specs/` |
-| Technical reality | `docs/project/architecture.md` + accepted ADRs |
-| **Observability / analytics / attribution / data-plane ownership** | **`docs/project/observability-and-analytics-contract.md`** |
+| Technical architecture / current system shape | `docs/project/architecture.md` + accepted ADRs |
+| Observability / analytics / attribution / data-plane ownership | `docs/project/observability-and-analytics-contract.md` |
 | Hosting/runtime ownership | ADR-011 + `docs/operations/hosting-strategy-vercel-cloudflare.md` |
 | Technical operations | `docs/operations/README.md` + dated evidence under `docs/ops/` |
 | GTM execution | `docs/strategy/analytics/gtm.md` |
@@ -31,30 +31,36 @@ This is the entry point for current VisuTry documentation. It distinguishes acti
 1. Commercial strategy decides commercial direction.
 2. Product plan decides current product priority.
 3. Approved product specs decide bounded feature behavior.
-4. Current accepted ADRs decide durable architecture decisions.
-5. `docs/project/architecture.md` describes current implementation reality.
-6. **`docs/project/observability-and-analytics-contract.md` decides which telemetry/analytics/business-data plane owns a fact and how Consumer / Commerce / Merchant Operator measurement is separated.**
-7. Runtime code remains authoritative for exact implemented event names, schema fields and reporting behavior.
-8. Dated `docs/ops/` records are evidence snapshots; they do not become permanent architecture authorities.
-9. Historical/archive documents never override active authorities.
+4. Accepted ADRs decide durable architecture decisions until explicitly superseded.
+5. `docs/project/architecture.md` describes current architecture/system ownership and must remain consistent with accepted ADRs.
+6. `docs/project/observability-and-analytics-contract.md` decides telemetry/analytics/business-data-plane ownership and Consumer/Commerce measurement separation.
+7. Hosting details follow ADR-011 and the canonical hosting strategy; generated route/cache contracts own volatile implementation details.
+8. Runtime code remains authoritative for exact implemented route lists, event names, schema fields, package versions, and generated manifests.
+9. Dated `docs/ops/` records are evidence snapshots; they do not become permanent architecture authorities.
+10. Historical/archive documents never override active authorities.
 
-If two documents conflict, prefer the authority for the specific scope and then current implementation evidence.
+If two documents conflict, prefer the authority for the specific scope, then accepted ADRs, then current implementation evidence. Fix the active document rather than carrying a known conflict forward.
 
-## 4. Current observation phase
+### Architecture-document rule
 
-The current production measurement phase has two distinct evidence clocks:
+Active architecture docs should describe **stable ownership and contracts**, not copy volatile inventories from code.
 
-- Traffic Ready T0: `2026-09-03T13:26:22.008Z`
-- Discovery Canary T0: `2026-09-03T16:33:14.812Z`
+- Prefer `PostgreSQL` as the architecture boundary; document Neon only where current provider/deployment behavior matters.
+- Prefer “Vercel owns Next / Cloudflare owns governed edge capabilities” over phase-specific routing diagrams.
+- Link to generated route/cache/event/schema contracts instead of copying lists that are expected to drift.
+- Historical audits/migrations stay immutable unless a factual correction is required; durable conclusions move into an active authority or ADR.
 
-Read:
+## 4. Dated evidence is not a phase tracker
 
-1. `docs/project/observability-and-analytics-contract.md`
-2. `docs/ops/traffic-ready-t0-2026-09-03.md`
-3. `docs/ops/discovery-canary-2026-09-03.md`
-4. `docs/product/plans/product-advantage-gate.md`
+Production baselines such as Traffic Ready T0 and Discovery Canary T0 remain useful point-in-time evidence, but this documentation index does not declare a dated measurement window to be perpetually “current.”
 
-The first two dated records prove readiness/evidence; the Product Advantage Gate defines the genuine-distribution decision bar.
+For those specific baselines, read:
+
+- `docs/ops/traffic-ready-t0-2026-09-03.md`
+- `docs/ops/discovery-canary-2026-09-03.md`
+- the governing plan/authority that explicitly references the baseline
+
+A newer gate or observation record supersedes “current phase” wording without rewriting the historical evidence file.
 
 ## 5. Active reading paths
 
@@ -63,35 +69,36 @@ The first two dated records prove readiness/evidence; the Product Advantage Gate
 1. `docs/strategy/commercial-strategy.md`
 2. `docs/product/product-plan.md`
 3. relevant `docs/product/specs/`
-4. `docs/product/plans/product-advantage-gate.md` when evaluating current merchant-distribution proof
+4. the current product gate/plan when a decision is evidence-bound
 
 ### Engineering
 
 1. `docs/product/product-plan.md`
 2. relevant product spec
 3. `docs/project/architecture.md`
-4. `docs/project/observability-and-analytics-contract.md` for telemetry/analytics/data questions
-5. accepted ADRs
-6. `docs/guides/development-guide.md`
-7. current implementation/configuration
+4. relevant accepted ADRs
+5. `docs/project/observability-and-analytics-contract.md` for telemetry/analytics/data questions
+6. `docs/operations/hosting-strategy-vercel-cloudflare.md` for deployment/runtime ownership
+7. `docs/guides/development-guide.md`
+8. current implementation/configuration
 
 ### Observability / analytics
 
 1. `docs/project/observability-and-analytics-contract.md`
 2. current runtime contracts (`src/lib/logger.ts`, `src/lib/analytics-events.ts`, MerchantSession/Event/Intent, distribution report)
-3. `docs/product/campaign-intelligence/event-taxonomy.md` for bounded web product-event semantics
-4. `docs/product/campaign-intelligence/ga4-console-checklist.md` for GA4 operator work
-5. dated `docs/ops/` evidence only when reproducing a specific baseline
+3. bounded event/runbook docs when needed
+4. dated `docs/ops/` evidence only when reproducing a specific baseline
 
-Do not start a new analytics architecture from the historical Campaign Intelligence migration files.
+Do not start a new analytics architecture from historical Campaign Intelligence migration files.
 
 ### Hosting / Cloudflare / Vercel
 
 1. `docs/decisions/ADR-011-vercel-sole-next-frontend-owner.md`
 2. `docs/operations/hosting-strategy-vercel-cloudflare.md`
-3. `docs/operations/README.md`
-4. current generated route manifest / implementation
-5. incident/archive evidence only when investigating history
+3. `cloudflare-router/b4-production-routes.ts` / generated manifest for exact Worker routes
+4. `cloudflare-router/d1-cache-governance.ts` for exact D1 cache behavior
+5. `docs/operations/README.md`
+6. incident/archive evidence only when investigating history
 
 ### Environment / QA
 
@@ -127,6 +134,12 @@ When a bounded migration/progress document closes:
 - retain unique reproducible evidence under archive/evidence/ops when useful;
 - delete the closed duplicate/ledger when it has no unique remaining value.
 
+For architecture governance specifically:
+
+- do not promote a vendor SDK/package to an architecture dependency when the application contract is provider-neutral;
+- do not duplicate exact route counts, cache rules, event fields, or model fields across active docs when code/generated manifests already own them;
+- update an accepted ADR only through its supersession mechanism, not by silently rewriting history.
+
 Run:
 
 ```bash
@@ -137,3 +150,9 @@ npm run docs:audit:strict
 for governance or large documentation changes.
 
 See `docs/document-inventory.md` for lifecycle and cleanup governance.
+
+## Change log
+
+| Date | Change |
+| --- | --- |
+| 2026-09-12 | Tightened architecture documentation precedence; made volatile routing/cache/schema detail code-authoritative; removed the documentation index as a perpetual observation-phase tracker. |

@@ -1,448 +1,272 @@
-# VisuTry Project Architecture & Features
+# VisuTry Project Architecture
 
-**Status:** Active source of truth for current technical reality  
-**Last reviewed:** 2026-08-27
+**Status:** Active source of truth for current technical architecture  
 **Owner:** Engineering  
-**Review cadence:** Monthly, or before major product architecture work  
-**Scope:** Current VisuTry technical stack, rendering strategy, session data flow, implemented capabilities, core data model, APIs, pages, components, and workflows.  
-**Current guidance:** This document describes the current system. Product priority lives in `docs/product/product-plan.md`; commercial direction lives in `docs/strategy/commercial-strategy.md`; detailed feature behavior should live in `docs/product/specs/`. Platform / 2B SaaS / Agent-Native readiness assessment: `docs/audits/2026-08-27-architecture-platform-saas-audit.md`.
+**Last reviewed:** 2026-09-12  
+**Review cadence:** Monthly, and whenever a runtime, domain, persistence, or deployment boundary materially changes  
+**Scope:** Current system shape, ownership boundaries, shared platform contracts, production runtime topology, persistence, and architectural guardrails.
 
----
+## 1. Authority and scope
 
-## Project Overview
+This document describes **current architecture**, not product priority, rollout history, or a file-by-file implementation inventory.
 
-VisuTry is a full-stack AI-powered glasses try-on and eyewear decision application built with Next.js.
+Use the following authorities for adjacent concerns:
 
-The current product includes user authentication, image upload, AI glasses try-on, payment / credits, dashboard history, sharing, SEO/Growth surfaces, and face-analysis / face-landmark capabilities.
+- Product priority: `docs/product/product-plan.md`
+- Product behavior: relevant specs under `docs/product/specs/`
+- Durable architecture decisions: accepted ADRs under `docs/decisions/`
+- Hosting/runtime ownership: ADR-011 + `docs/operations/hosting-strategy-vercel-cloudflare.md`
+- Observability, analytics, attribution, and data-plane ownership: `docs/project/observability-and-analytics-contract.md`
+- Exact implemented route/event/schema details: current code and generated manifests
 
-The current product direction is documented in `docs/product/product-plan.md`:
+Historical audits, migration plans, and dated operations evidence are useful context but are **not** current architecture authorities.
 
-> Face Shape Detector → Glasses Advisor → Virtual Try-On → Frame Compare
+## 2. Architecture summary
 
----
-
-## Technology Stack
-
-### Frontend
-
-- **Framework**: Next.js 14 App Router
-- **UI Library**: React 18 + TypeScript
-- **Styling**: Tailwind CSS + Lucide React Icons
-- **State Management**: React Hooks
-- **Localization**: `next-intl` v4
-
-### Backend
-
-- **API**: Next.js API Routes / Route Handlers
-- **Database**: Neon PostgreSQL (serverless) + Prisma ORM v7
-- **Database Driver**: `@prisma/adapter-neon` (HTTP-based serverless driver, not persistent TCP)
-- **Authentication**: NextAuth.js v4 + Auth0
-- **Payment**: Stripe
-- **File Storage**: Vercel Blob
-- **AI Try-On Service**: Google Gemini API
-- **Face Landmark / Local Vision**: MediaPipe Tasks Vision
-- **Email / Notification Infrastructure**: Resend / Nodemailer where configured
-
-### Deployment
-
-- **Application / Next Delivery**: Vercel (serverless functions + Next frontend delivery)
-- **Database**: Neon PostgreSQL (scales to zero, cold start 500ms–few seconds)
-- **Edge / Asset Delivery**: Cloudflare for explicitly assigned non-Next workloads
-- **MediaPipe Asset Delivery**: `assets.visutry.com` → dedicated Cloudflare Worker → R2 bucket `visutry-mediapipe-assets`
-- **MediaPipe Runtime Assets**: pinned `@mediapipe/tasks-vision` 0.10.35 WASM + `face_landmarker` float16 v1 model; production clients load them from the Cloudflare asset host, while Vercel `/mediapipe/*` rewrites remain as rollback paths
-- **Analytics**: Vercel Analytics, GA/GTM where configured
-
----
-
-## Rendering Strategy
-
-VisuTry uses three rendering modes, determined per-page. The rendering mode is verifiable in the `next build` output (`●` = SSG, `ƒ` = Dynamic).
-
-### 1. Static Generation (SSG) — Default for all public pages
-
-All marketing, tool landing, legal, and blog pages are statically generated at build time. This is the primary defense against Vercel serverless CPU consumption and Neon HTTP timeouts.
-
-**Requirements for SSG:**
-- No `getServerSession()` in the page or any of its layouts (reading `cookies()` forces dynamic rendering)
-- `setRequestLocale(locale)` called in every layout and page that uses `next-intl/server` functions
-- `export const dynamic = 'force-static'` on pages where the default is ambiguous
-- `generateStaticParams` in `[locale]/layout.tsx` to pre-render all locales
-
-**Pages currently SSG:**
-- `/` (homepage), `/face-shape-detector`, `/style-explorer`, `/try-on/[type]`, `/try-on/glasses/compare`
-- `/face-analysis`, `/pricing`, `/faq`, `/terms`, `/privacy`, `/blog/*`
-- `/dashboard`, `/dashboard/history`, `/payments`, `/debug-images`
-
-### 2. Client-Side Gate Pattern — For pages requiring auth-aware UI
-
-Pages that previously used `getServerSession()` to decide between a landing page (unauthenticated) and a tool interface (authenticated) now use the **client-side gate** pattern:
-
-1. The server renders a static shell (usually the landing/marketing content) — no DB queries, no `cookies()` access
-2. A client component (`*Gate.tsx`) wraps the page content and calls `useSession()`
-3. While `status === 'loading'`: show the landing content or a loading skeleton
-4. When `status === 'authenticated'`: swap to the tool interface
-5. When `status === 'unauthenticated'`: show the landing content or redirect to signin
-
-**Gate components:**
-- `StyleExplorerGate` — style-explorer page
-- `ComparePageClient` — try-on/glasses/compare page
-- `TryOnGate` — try-on/[type] page
-- `FaceAnalysisGate` — face-analysis page
-- `HistoryPageClient` — dashboard/history page
-- `DashboardPageClient` — dashboard page
-- `PaymentsPageClient` — payments page
-- `DebugImagesPageClient` — debug-images page
-
-**Trade-off:** Authenticated users see a brief loading state (200–500ms) before the tool interface appears. This is the standard `next-auth` client session behavior. Unauthenticated visitors (majority of traffic) see no difference.
-
-### 3. Dynamic Rendering (SSR) — Only for admin and API routes
-
-Only `/admin/*` pages and `/api/*` route handlers use dynamic rendering with server-side `getServerSession()`. These are on-demand endpoints or protected admin pages where per-request authentication is required.
-
-**`getServerSession()` is ONLY allowed in:**
-- `src/app/api/**` — API route handlers
-- `src/app/[locale]/admin/**` — Admin pages
-
-**`getServerSession()` must NOT appear in:**
-- `src/app/layout.tsx` — Root layout (would force all pages dynamic)
-- `src/app/[locale]/layout.tsx` — Locale layout
-- `src/app/[locale]/(main)/**` — Any public-facing page
-
----
-
-## Session Data Flow
-
-### Architecture
-
-VisuTry uses NextAuth.js v4 with the JWT session strategy (not database sessions). The JWT token is the primary data carrier for user state.
-
-```
-Client (browser)
-  │
-  ├── useSession() → fetch /api/auth/session → returns session.user
-  │
-  ├── session.update() → triggers JWT callback (trigger='update')
-  │
-  └── API calls → API route getServerSession() → verifies JWT from cookie
-```
-
-### JWT Callback (`src/lib/auth.ts`)
-
-The JWT callback (`callbacks.jwt`) is the single point where user data is synced from the database into the token. It runs:
-
-1. **On login** (`user` object present): Reads the full user record from DB, populates token fields
-2. **On `trigger === 'update'`**: Rate-limited to once per 30 seconds (`lastSyncTime` in token). Reads user from DB to catch subscription/quota changes
-3. **Periodically**: Every 15 minutes from the last successful database sync (`lastSyncTime`) — catches subscription changes
-4. **On first token** (`isPremium === undefined`): Initializes token with DB data
-
-Failed JWT database syncs retain the last valid token fields and record `lastSyncAttemptTime`; retries observe a 60-second cooldown so a Neon outage cannot make every authenticated request retry immediately. Sync telemetry records one of `first-login`, `missing-data`, `manual-update`, or `periodic`.
-
-### Token Fields
-
-The JWT token carries these user fields (synced from DB):
-- `id`, `email`, `name`, `image`
-- `isPremium`, `isPremiumActive`, `premiumExpiresAt`
-- `subscriptionType`, `isYearlySubscription`
-- `remainingTrials` (computed: free + premium + credits remaining)
-- `creditsPurchased`, `creditsUsed`
-- `freeTrialsUsed`, `premiumUsageCount`
-- `lastSyncTime` (for rate-limiting `update` triggers)
-- `lastSyncAttemptTime` (for failed-sync retry cooldown)
-
-### Session Callback (`callbacks.session`)
-
-The session callback maps token fields onto `session.user` for client consumption via `useSession()`.
-
-### Key Rule: Token is the Read Source
-
-Pages and client components should read user data from `session.user` (via `useSession()` or `getServerSession()` in API routes). Direct `prisma.user.findUnique()` in pages is an anti-pattern — the token already carries the data.
-
-API routes that **write** user data (e.g., after a try-on, after a payment) update the DB directly, then call `session.update()` to refresh the token.
-
----
-
-## Database Schema (Prisma)
-
-### Neon Serverless Driver
-
-VisuTry uses `@prisma/adapter-neon` which connects over **HTTP**, not persistent TCP. Key implications:
-
-- **No `$connect()` needed**: The Neon serverless driver creates a new HTTP request per query. Calling `prisma.$connect()` is a no-op and should not be used for warm-up.
-- **Cold starts**: Neon scales compute to zero after 5 minutes of inactivity. Cold start takes 500ms–few seconds. This is handled via the `connect_timeout` parameter in the connection string, not by pre-connecting.
-- **Connection pooling**: The `DATABASE_URL` uses Neon's PgBouncer pooler (`-pooler` hostname). Prisma CLI commands (migrations) use `DIRECT_URL` (direct connection) to avoid PgBouncer advisory lock issues.
-- **Timeout risk**: Concurrent HTTP queries during cold start can saturate the Neon HTTP endpoint, causing `undici TimeoutError`. This is why all public pages are SSG — they don't query the DB at request time.
-
-### Core Tables
-
-1. **User** (`prisma/schema.prisma`)
-   - `id`, `name`, `email`, `image`, `username`
-   - `freeTrialsUsed`: Free trial usage counter
-   - `premiumUsageCount`: Premium subscription usage counter (resets on billing cycle)
-   - `creditsPurchased`: Total credits purchased (monotonically increasing)
-   - `creditsUsed`: Total credits consumed (monotonically increasing)
-   - `isPremium`, `premiumExpiresAt`: Subscription status
-   - `currentSubscriptionType`: `PREMIUM_MONTHLY` or `PREMIUM_YEARLY`
-   - `role`: `USER` or `ADMIN`
-   - Email retention tracking fields: `lastRetention3DayEmailSent`, `lastRetention24HEmailSent`, `lastRetentionDeletedEmailSent`
-
-2. **TryOnTask**
-   - `type`: `GLASSES`, `OUTFIT`, `SHOES`, `ACCESSORIES`
-   - `userImageUrl`, `itemImageUrl`, `glassesImageUrl` (backward compat), `resultImageUrl`
-   - `status`: `PENDING`, `PROCESSING`, `COMPLETED`, `FAILED`
-   - `quotaSettledAt`, `quotaSource`: durable exactly-once quota settlement state for successful Try-On tasks
-   - `prompt`, `metadata`: AI generation details
-   - `expiresAt`: Data retention expiry
-   - Indexes optimized for: user+type queries, dashboard recent tasks, dashboard stats, expiry cleanup
-
-3. **Payment**
-   - `stripeSessionId`, `stripePaymentId`, `stripeSubscriptionId`
-   - `amount` (cents), `currency`
-   - `status`: `PENDING`, `COMPLETED`, `FAILED`, `REFUNDED`
-   - `productType`: `PREMIUM_MONTHLY`, `PREMIUM_YEARLY`, `CREDITS_PACK`, `CREDITS_PACK_PROMO_60`, `PREMIUM_MONTHLY_PROMO`, `PREMIUM_YEARLY_PROMO`
-
-4. **FaceAnalysisTask**
-   - `userImageUrl`, `detectedShape`, `confidence`
-   - `basicResult`, `fullResult` (JSON)
-   - `reportUnlocked`: Whether the paid full report has been unlocked
-   - `externalTaskId`: For async processing
-
-5. **GlassesFrame / FaceShape / GlassesCategory**
-   - Historical frame catalog models. Future merchant / catalog work should use `docs/product/specs/visutry-store-mvp.md`.
-
-### NextAuth.js Tables
-
-- **Account**: OAuth provider account links (Auth0)
-- **Session**: Database sessions (unused — JWT strategy is active, but table retained)
-- **VerificationToken**: Email verification tokens
-
----
-
-## API Design
-
-### Authentication (`/api/auth/*`)
-
-- Handled by NextAuth.js + Auth0
-- `/api/auth/session`: Returns session object; called by `useSession()` on the client
-
-### Try-On (`/api/try-on/*`)
-
-- `POST /api/try-on/submit`: Create a new try-on task
-- `GET /api/try-on/poll`: Poll task status and result
-- `GET /api/try-on/history`: Paginated user try-on history (used by dashboard/history and debug-images pages)
-- `POST /api/try-on/glasses/compare/*`: Frame compare endpoints
-- `POST /api/try-on/glasses/style-explorer/*`: Style explorer endpoints
-
-### Face Analysis (`/api/face-analysis/*`)
-
-- Server-side analysis / deeper report routes for paid or logged-in analysis flows
-- Free local detector (MediaPipe) runs entirely client-side, no API call
-
-### Payment (`/api/payment/*`)
-
-- `POST /api/payment/create-session`: Creates Stripe Checkout sessions
-- `POST /api/payment/webhook`: Handles Stripe webhook events
-- `GET /api/payment/history`: Returns user's payment history (used by payments page)
-
-### User (`/api/user/*`)
-
-- `GET /api/user/balance`: Returns user's credit/quota balance (used by dashboard)
-
-### File Management
-
-- Vercel Blob is used for persisted files (uploads and generated results)
-
-### Other APIs
-
-- `/api/share/*`: Shared try-on result surfaces
-- `/api/health`: Health check endpoint
-- `/api/admin/*`: Admin-only endpoints
-- `/api/debug/*`: Debugging tools where enabled
-
----
-
-## Component & Page Architecture
-
-### Page Components (`src/app/`)
+VisuTry is a **modular monolith** built on Next.js App Router. Consumer, Store/Campaign, Merchant operator, Admin, and Agent surfaces share one application core and common platform services. There is no production microservice split today.
 
 ```text
-src/app/
-├── layout.tsx              # Root layout — SessionProvider (no getServerSession)
-├── [locale]/
-│   ├── layout.tsx          # Locale layout — setRequestLocale, NextIntlClientProvider
-│   ├── (main)/
-│   │   ├── layout.tsx      # Main section layout (header/footer)
-│   │   ├── page.tsx        # Homepage (SSG)
-│   │   ├── face-shape-detector/page.tsx  # SSG, fully client-side
-│   │   ├── style-explorer/page.tsx       # SSG + StyleExplorerGate
-│   │   ├── try-on/
-│   │   │   ├── [type]/page.tsx           # SSG + TryOnGate
-│   │   │   └── glasses/compare/page.tsx  # SSG + ComparePageClient
-│   │   ├── face-analysis/page.tsx        # SSG + FaceAnalysisGate
-│   │   ├── pricing/page.tsx              # SSG (PricingSection uses useSession)
-│   │   ├── dashboard/
-│   │   │   ├── page.tsx                  # SSG + DashboardPageClient
-│   │   │   └── history/page.tsx          # SSG + HistoryPageClient
-│   │   ├── payments/page.tsx             # SSG + PaymentsPageClient
-│   │   ├── blog/                         # SSG (ISR)
-│   │   └── ...
-│   └── admin/                            # Dynamic (SSR, requires auth)
-├── api/                                  # Dynamic (route handlers)
-├── auth/                                 # Auth pages
-└── share/[id]/                           # Dynamic (per-result SSR)
+Human / Agent traffic
+        |
+        v
+Cloudflare edge
+DNS / proxy / CDN / WAF / bounded cache / approved non-Next capabilities
+        |
+        v
+Vercel Next.js application
+Consumer | Store/Campaign | Merchant | Admin | MCP/Agent
+        |
+        +-------------------+
+        | shared application|
+        | + domain contracts|
+        +-------------------+
+          |       |       |
+          v       v       v
+     PostgreSQL  AI     Stripe / Blob / Email
+       + Prisma  providers
 ```
 
-### Gate Components (`src/components/`)
+The architectural objective is not to distribute code across providers for its own sake. The objective is to keep ownership explicit, preserve one source of truth per capability, and scale high-volume traffic without weakening product or data boundaries.
 
-Gate components are the client-side boundary between static rendering and auth-aware UI:
+## 3. Product and domain boundaries
+
+### Consumer
+
+Standalone VisuTry decision journey:
 
 ```text
-src/components/
-├── style-explorer/StyleExplorerGate.tsx
-├── compare/ComparePageClient.tsx
-├── try-on/TryOnGate.tsx
-├── face-analysis/FaceAnalysisGate.tsx
-├── dashboard/DashboardPageClient.tsx
-├── dashboard/HistoryPageClient.tsx
-├── payments/PaymentsPageClient.tsx
-├── debug-images/DebugImagesPageClient.tsx
-├── layout/Header.tsx        # Uses useSession with loading placeholder
-├── providers/SessionProvider.tsx  # Wraps next-auth SessionProvider (no server session prop)
-└── ...
+Face understanding
+→ Advisor / recommendation
+→ Try-On
+→ Compare
+→ paid continuation where applicable
 ```
 
----
+Consumer routes may reuse shared generation, catalog, analytics, payment, and identity capabilities, but Consumer product behavior remains a separate domain boundary from Merchant commerce.
 
-## Core Workflows
+### Store / Commerce
 
-- **Authentication**: User signs in via Auth0 / NextAuth.js → JWT token created → user data synced from DB to token → `useSession()` provides session on client
-- **Try-On**: User uploads images → API creates a `TryOnTask` → Gemini/GrsAi processes → result saved to Vercel Blob → a serializable transaction settles task quota exactly once → `session.update()` refreshes quota → history updated
-- **Payment / Credits**: User selects a paid option → Stripe Checkout → Stripe webhook updates DB (credits, entitlement) → `session.update()` syncs token
-- **Face Analysis**: Free detector runs client-side (MediaPipe). Paid deeper analysis uses server-side VLM flow.
-- **Sharing**: Completed try-on results exposed through `/share/[id]` surfaces.
+`src/modules/store` is the current commerce application owner. It contains the Store/Campaign experience, catalog/frame use, shopper sessions, intent/events, analytics, public discovery, and commerce-facing try-on adapters.
 
----
+The Storefront is a delivery surface; Campaign and commerce intelligence build on the same commerce domain rather than creating parallel product stacks.
 
-## Domain Modules (Current Code Map)
+### Merchant
 
-In addition to Consumer App Router surfaces, the codebase now contains three application modules:
+`src/modules/merchant` owns the tenant/operator boundary: Merchant membership, onboarding, Control Center, Agent Keys, OAuth/MCP access, and merchant-facing operations.
 
-| Module | Role |
+`Merchant` is the tenant boundary. Tenant isolation must remain explicit in every read/write path.
+
+### Business acquisition
+
+`src/modules/business` is a narrow business-site / merchant-prospect boundary. It does not own merchant commerce runtime behavior.
+
+### Admin
+
+Admin is an operator surface over shared application contracts. It must not invent independent business rules, analytics formulas, campaign lifecycle rules, or persistence semantics.
+
+## 4. Shared application contracts
+
+Delivery surfaces must converge on shared application/domain contracts rather than duplicate logic.
+
+Current examples include:
+
+- generation orchestration and task/attempt telemetry;
+- Experience/Store/Campaign lifecycle and readiness;
+- Merchant analytics / commerce intelligence;
+- attribution and intent/event semantics;
+- tenant authorization and Merchant access rules;
+- payment/credit/entitlement state transitions;
+- public discovery invalidation.
+
+A new UI, API, Admin screen, or Agent tool is another client of these contracts, not a reason to create a second business implementation.
+
+Extraction into a new top-level domain/module is evidence-driven. Do not split the modular monolith merely to mirror product labels.
+
+## 5. Technology baseline
+
+| Layer | Current baseline |
 | --- | --- |
-| `src/modules/store` | Phase-1 commerce foundation: MerchantSession, Experience/Campaign, catalog frames, Store try-on adapters, intent/analytics, public discovery. Still the largest commerce owner in code. |
-| `src/modules/merchant` | Tenant operator boundary: memberships, Agent Keys, MCP/OAuth, onboarding, Control Center. |
-| `src/modules/business` | Narrow Business Website pilot-lead capture. |
+| Web/application | Next.js 14 App Router, React 18, TypeScript |
+| Localization | `next-intl` |
+| Styling/UI | Tailwind CSS, Lucide |
+| Authentication | NextAuth.js v4 + Auth0 |
+| Relational persistence | PostgreSQL + Prisma 7 |
+| Payments | Stripe |
+| Object storage | Vercel Blob |
+| AI generation / analysis | Gemini and configured generation-provider adapters, including asynchronous provider paths where enabled |
+| Local face landmarks | MediaPipe Tasks Vision |
+| Email | Resend / configured mail path |
+| Operational telemetry | Axiom + Vercel runtime logs |
+| Product/acquisition analytics | GA4 / GTM where configured |
+| Primary application host | Vercel |
+| Edge/security/cache | Cloudflare within explicitly governed boundaries |
 
-Agent-Native entry points:
+Package versions and provider SDK versions are implementation facts and should be read from `package.json`, not duplicated here unless they define an architectural constraint.
 
-- Remote MCP: `POST /api/mcp` — **serving runtime is Vercel Node** (`runtime = 'nodejs'`; B4 class `vercel-required`). Live implementation is the **canonical Prisma MCP server** (`modules/merchant/mcp/server.ts`) plus Prisma application services. Tool inventory is single-sourced from `modules/merchant/mcp/tool-registry.ts` (includes `publish_campaign` with `approved=true`). `CLOUDFLARE_BUILD=1` webpack aliases remap the MCP entrypoints to the raw-SQL `*-cloudflare` adapter for true Cloudflare bundles only.
+## 6. Production runtime ownership
+
+### Vercel owns the Next frontend
+
+Per ADR-011, Vercel is the **sole production producer** of:
+
+- Next HTML;
+- RSC / Flight responses;
+- the browser client artifact graph;
+- `/_next/static/*`;
+- Next runtime redirects and sitemap output.
+
+Cloudflare must not independently produce production Next HTML/RSC/client artifacts while ADR-011 is active.
+
+### Cloudflare is the governed edge layer
+
+Cloudflare owns DNS/proxy/CDN/WAF/traffic shaping and may own explicitly approved non-Next capabilities. Current route intent is code-authoritative in `cloudflare-router/b4-production-routes.ts` and its generated manifest.
+
+Cloudflare also has a narrowly governed **D1 SEO HTML Cache Shield** for eligible anonymous document HTML. This caches Vercel-produced HTML; it does **not** make Cloudflare a second Next frontend producer. Exact eligibility, TTL, bypass conditions, purge scope, and deployment verification are owned by `cloudflare-router/d1-cache-governance.ts` and `scripts/d1-cache-governance.ts`.
+
+MediaPipe runtime/model assets use the isolated `assets.visutry.com` Cloudflare Worker + R2 delivery path.
+
+### Heavy/backend capabilities
+
+AI orchestration, Stripe fulfillment, Blob workflows, cron/background work, broad Admin behavior, and full MCP/OAuth/source-intake paths remain backend/Vercel-owned unless a separately governed capability is explicitly moved.
+
+Unknown or unclassified production capabilities fail toward the canonical backend path rather than being silently reimplemented at the edge.
+
+## 7. PostgreSQL and Prisma boundary
+
+The architecture contract is **PostgreSQL**, not a database vendor SDK.
+
+Current production PostgreSQL is hosted on Neon, but application architecture must remain provider-neutral where practical:
+
+- `src/lib/prisma.ts` creates the shared Prisma client.
+- `src/lib/postgres-runtime.ts` resolves runtime PostgreSQL connectivity from `POSTGRES_URL` or `DATABASE_URL` and applies runtime-specific connection behavior.
+- Prisma CLI/migrations use a direct/unpooled connection path governed by `prisma.config.ts` and `DATABASE_URL_UNPOOLED` when required.
+
+Provider-specific packages may exist for proven runtime/edge adapters, migration work, or fallback paths. Their presence does not make provider-specific behavior part of a domain contract.
+
+### Persistence principles
+
+1. PostgreSQL is the durable relational source of truth for application/business state.
+2. Prisma is the primary application persistence layer on the canonical backend path.
+3. Edge/raw-SQL adapters are alternate persistence adapters for explicitly proven capabilities, not alternate business logic.
+4. One writer/transaction owner must exist for a given state transition.
+5. No automatic cross-runtime write retry may create duplicate or divergent writes.
+6. Schema migrations must use the governed migration path; runtime pool configuration must not leak into migration correctness.
+
+## 8. Identity and session boundary
+
+Consumer authentication uses NextAuth.js + Auth0 with JWT sessions. Authenticated UI should read session state through the established session contract rather than performing ad-hoc page-level database reads.
+
+Merchant access adds tenant membership/authorization on top of user identity. A valid user session is not sufficient to authorize a Merchant resource; tenant ownership/membership must be checked by the owning application contract.
+
+Agent authentication is a separate access path and must preserve the same Merchant tenant boundary and action-approval rules as human operator surfaces.
+
+## 9. Generation architecture
+
+Try-On and related AI generation use a shared orchestration path rather than surface-specific provider calls.
+
+Durable reliability measurement separates the logical request from provider attempts so retries remain observable and reconstructable. `TryOnTask`, generation request/attempt telemetry, provider task identifiers, and Axiom correlation form the current reliability evidence chain where implemented.
+
+Principles:
+
+- product surfaces consume a shared generation capability;
+- provider adapters are replaceable implementation details;
+- retry/terminal-state behavior must be deterministic;
+- quota/usage settlement must be durable and exactly-once for successful billable work;
+- provider/runtime telemetry is operational evidence, not payment/business truth.
+
+See `docs/operations/try-on-generation-reliability-baseline.md` for the active measurement contract.
+
+## 10. Analytics and observability boundary
+
+VisuTry intentionally separates three data planes:
+
+1. **Operational telemetry** — Axiom + Vercel runtime logs.
+2. **Product/acquisition analytics** — GA4/GTM where configured.
+3. **Durable business truth** — PostgreSQL.
+
+Merchant shopper truth is first-party and durable through MerchantSession / MerchantEvent / MerchantIntent contracts. GA4 does not replace those records. Axiom is not a business warehouse.
+
+All detailed event ownership, Consumer/Commerce separation, attribution, Axiom dataset governance, and test/reference exclusion rules are owned by `docs/project/observability-and-analytics-contract.md`.
+
+## 11. Agent-native boundary
+
+Current agent entry points include:
+
+- Remote MCP: `POST /api/mcp`
 - Agent HTTP: `/api/agent/v1/**`
 - Merchant Skill: `/skills/merchant`
 
-**Discover** (`/[locale]/discover`) is classified as a **Commerce discovery surface**: it may remain under the `(main)` URL tree for SEO, but it is an intentional Store/Commerce client (ADR-007 allowlist), not part of the protected Consumer decision workflow.
+The live MCP path uses the canonical Merchant/Store application contracts. Cloudflare-specific adapters may exist for bounded edge builds, but alternate adapters must preserve the same authorization and business invariants and must not become a second product implementation.
 
-Hosting direction for Store/Campaign traffic scale is ADR-010 (Cloudflare for high-frequency edge; backend for AI/payment/Blob/cron). Consumer stability while Store evolves is ADR-007. Commerce-over-Storefront direction is ADR-008.
+Agent actions that mutate merchant state must obey the same tenant isolation, readiness, approval, and lifecycle rules as human-operated surfaces.
 
-For readiness gaps and P0 remediation status, see `docs/audits/2026-08-27-architecture-platform-saas-audit.md`.
+## 12. Data ownership model
 
-## Merchant Intelligence application contracts (P1)
+The following is a conceptual ownership map, not an exhaustive Prisma model list:
 
-Admin, Merchant Control Center, and MCP are delivery clients of the same C1 Experience analytics contract. They must not independently re-aggregate visit, engagement, try-on, favorite, compare, or high-intent metrics.
+| Area | Durable ownership |
+| --- | --- |
+| Consumer identity / entitlement | User, payment/credit/subscription state |
+| Consumer AI work | Try-On / Face Analysis / generation task state |
+| Tenant | Merchant + membership/operator relationships |
+| Commerce surface | Store/Experience/Campaign + catalog/frame relationships |
+| Shopper behavior | MerchantSession → MerchantEvent → MerchantIntent |
+| Activation / operator milestones | Merchant activation / onboarding state |
+| Reliability evidence | generation request/attempt/task correlation + operational telemetry |
 
-```text
-Delivery surfaces
-  ├─ Merchant Control Center
-  ├─ Admin merchant comparison
-  ├─ Admin merchant Performance snapshot
-  └─ MCP get_experience_* / compare_experiences
-        ↓
-Shared application contracts
-  ├─ computeExperienceAnalytics / getExperienceAnalyticsSummary / listMerchantExperienceAnalytics / getMerchantAnalyticsSnapshot
-  └─ buildMerchantCommerceIntelligence / getMerchantCommerceIntelligence
-        ↓
-Prisma or Cloudflare persistence loaders (no local metric formulas)
-```
+Exact fields and model names remain schema/code-authoritative.
 
-Canonical owners:
+## 13. Architectural guardrails
 
-- Experience analytics kernel: `src/modules/store/application/merchant-analytics-compute.ts`
-- Tenant-scoped Prisma query API: `src/modules/store/application/merchant-analytics.ts`
-- Cloudflare SQL loader (same kernel): `src/modules/store/application/merchant-analytics-cloudflare.ts`
-- Merchant overview (C1 totals + Control Center overlay cards): `src/modules/merchant/application/merchant-commerce-intelligence.ts`
+1. **Modular monolith first.** No microservice split without demonstrated ownership, scale, or deployment need.
+2. **One capability, one authoritative business implementation.** Delivery surfaces reuse it.
+3. **One Next frontend producer.** Vercel remains sole producer while ADR-011 is active.
+4. **Caching is not ownership.** Cloudflare may cache governed Vercel output without becoming a second frontend runtime.
+5. **Provider-neutral domain contracts.** Neon, Vercel, Cloudflare, Axiom, or AI-provider mechanics do not leak into business-domain semantics unless an ADR explicitly makes them architectural.
+6. **PostgreSQL is business truth.** Logs/GA4 do not substitute for durable state.
+7. **Tenant isolation is mandatory.** Merchant identity is an authorization boundary, not a reporting label.
+8. **Consumer and Commerce remain isolated product domains** while sharing explicit platform services/contracts.
+9. **Historical docs cannot override active authorities.** Migrations/audits remain evidence only.
+10. **Volatile implementation inventories belong in code/generated manifests.** Architecture docs link to them instead of copying lists that drift.
 
-### C1 metric semantics
+## 14. Review triggers
 
-| Metric | Numerator | Denominator | Notes |
-| --- | --- | --- | --- |
-| visits | Distinct `MerchantSession` ids in range | — | Tenant + experience scoped |
-| engagedSessions | Sessions with frame select, try-on start, favorite, compare, or product/inquiry intent | visits | Recommendation-only is **not** engagement |
-| tryOnStarts / tryOnCompletions | Matching event counts | tryOnStarts for completion rate | Counts, not unique sessions |
-| framesTried | Try-on completion events with a frame id | — | `uniqueFramesTried` is a set of completed frame ids |
-| favorites | `FAVORITE` intent count | — | |
-| compares | `merchant_compare_started` event count | — | |
-| highIntentSessions | Sessions with observed-behavior score ≥ 4 | visits | Identity is not scored |
-| merchantCtaClicks / identifiedSessions | unavailable | — | `null` / `available: false` |
+Review this document when any of the following occurs:
 
-Date range: UTC, `from` inclusive / `to` exclusive, default 30 days, max 365 days. Empty periods return zeros and `null` rates. Reference-data flags pass through; they do not change formulas. Missing tenant-owned top-frame catalog rows fail closed (`MerchantAccessError`).
+- Next frontend ownership changes;
+- Cloudflare gains or loses a production capability class;
+- PostgreSQL provider or connection architecture materially changes;
+- a new top-level application/domain module is introduced;
+- Consumer/Commerce/Merchant ownership changes;
+- MCP/Agent execution ownership changes;
+- generation orchestration/provider ownership changes;
+- a new data plane becomes authoritative for a class of facts;
+- a new ADR supersedes a guardrail above.
 
-Control Center still shows recommendation-activity and product-click **overlay** cards. Those overlays are not C1 engagement or high-intent numerators.
+Documentation-only implementation details, route counts, model fields, and package version bumps should normally update their local authority rather than expanding this document.
 
-### Campaign lifecycle contracts
+## Change log
 
-Preview, readiness, publish, and archive share `evaluateCampaignReadiness` / `assertCampaignPublishable` in `src/modules/store/domain/campaign-readiness.ts`.
-
-- Live MCP (`POST /api/mcp` → Prisma `mcp/server.ts` + `tool-registry.ts`) exposes `preview_campaign` / `publish_campaign` / `archive_campaign` through the same application commands. The Cloudflare raw-SQL adapter implements the same persistence commands but does **not** register those MCP tools (`MCP_CLOUDFLARE_ADAPTER_UNAVAILABLE`)
-- `publish_campaign` still requires `approved: true` and fails with `PUBLISH_APPROVAL_REQUIRED` / `CAMPAIGN_NOT_READY`
-- Admin Campaign `ACTIVE` / `ARCHIVED` status writes go through `publishCampaign` / `archiveCampaign` (`requireAdmin` is the operator approval)
-- Merchant Control Center Campaign pills use the same blocking codes (not frame-only validation)
-- Successful publish/archive still go through `withPublicDiscoveryInvalidation`
-
-Store publish remains the separate onboarding command (`publishMerchantStore`). Admin `DRAFT` / `ENDED` are not MCP transitions and still use `updatePublicExperience`.
-
-### Unified in this slice
-
-- MCP Experience summary / funnel / top frames / intent
-- Merchant Control Center `commerceIntelligence`
-- Admin merchant Experience comparison table (`listMerchantExperienceAnalytics`)
-- Admin merchant Performance snapshot (`getMerchantAnalyticsSnapshot` merchant-wide C1)
-- Admin Experience insights API when `experienceId` is set
-- `compareMerchantExperiences` (already composed from C1 summaries)
-- Campaign preview / readiness / publish / archive
-
-### Still duplicated (acceptable; P2 not triggered)
-
-- `getMerchantInsights` CRM / operational activity (recent sessions, inquiries, catalog interest, all-time action counts). Admin may show these as **shopper actions**, not as C1 engagement or session conversion.
-- `get-experience-admin` all-time directory counts on the Experiences list page
-- Remaining Prisma vs Cloudflare persistence adapters (business policy is already shared for analytics and Campaign lifecycle)
-- `merchant-distribution-report` source-class engagement overlay (includes recommendation by design)
-- `merchant-commerce-intelligence.ts` still hosts both the pure overview builder and the Prisma loader (non-blocking; split if the module keeps growing)
-- Store-only Control Center readiness remains frame validation (`evaluateStoreReadiness` not extracted)
-
-P2 / `src/modules/commerce/**` extraction remains evidence-based: trigger only when a third genuine domain (not another delivery surface) needs these contracts, or when remaining CRM / lifecycle duplication causes metric disagreement that this kernel cannot own.
-
-P1 analytics and Campaign lifecycle do not reopen Consumer routes. ADR-007 Consumer→Store close-out (Discover-only exception) is on `main` via #143.
-
----
-
-## Architecture Review Notes
-
-This document should be reviewed against the codebase before major work in the following areas:
-
-1. Merchant / Store / Frame Catalog models.
-2. Frame Compare implementation.
-3. Credits Pack conversion and failed-generation handling.
-4. Free local Face Shape Detector architecture.
-5. Shopify / widget / public API work.
-6. Live vs alternate merchant/MCP service parity (behavioral invariants, not filename/`runtime` labels alone).
-7. Shared commerce contract extraction when a second non-Storefront surface requires it.
-8. Reconciliation of Consumer→Store imports against ADR-007 / consolidation DoD.
-
-Detailed specs should be created or updated under `docs/product/specs/` before engineering starts on those capabilities.
-
-For Store work, the mandatory engineering authority is:
-
-- `docs/product/specs/visutry-store-engineering-foundation.md`
-- `docs/decisions/ADR-006-store-modular-multitenant-foundation.md`
-- `docs/decisions/ADR-007-store-consumer-stability-boundary.md`
-- `docs/decisions/ADR-008-commerce-domain-over-storefront.md`
-
-Store remains a module in the current application, uses `Merchant` as the tenant boundary, and reuses the existing generation core through explicit actor, usage-policy, attribution, event, and asset contracts.
+| Date | Change |
+| --- | --- |
+| 2026-09-12 | Rebuilt the architecture authority around the current modular-monolith/domain boundaries; corrected PostgreSQL/Prisma provider abstraction; aligned Vercel/Cloudflare ownership with ADR-011 and the D1 cache shield; moved volatile route/event/schema detail back to code and specialized authorities. |
